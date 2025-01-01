@@ -34,7 +34,7 @@ public partial class MapManager : Node
 		}
 
 		// Create basis for each wall direction
-		var northBasis = new Basis(Vector3.Up, 0);                    // Facing north
+		var northBasis = new Basis(Vector3.Up, 0);                   // Facing north
 		var southBasis = new Basis(Vector3.Up, Mathf.Pi);            // Facing south
 		var eastBasis = new Basis(Vector3.Up, Mathf.Pi / 2);         // Facing east
 		var westBasis = new Basis(Vector3.Up, -Mathf.Pi / 2);        // Facing west

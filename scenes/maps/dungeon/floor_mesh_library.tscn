@@ -17,44 +17,44 @@
 
 [node name="FloorMeshLibrary" type="Node3D"]
 
-[node name="floor_dirt_small_A2" parent="." instance=ExtResource("1_wu2nd")]
+[node name="floor_dirt_small_A" parent="." instance=ExtResource("1_wu2nd")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1)
 
-[node name="floor_dirt_small_B2" parent="." instance=ExtResource("2_tee7t")]
+[node name="floor_dirt_small_B" parent="." instance=ExtResource("2_tee7t")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 1)
 
-[node name="floor_dirt_small_C2" parent="." instance=ExtResource("3_seedj")]
+[node name="floor_dirt_small_C" parent="." instance=ExtResource("3_seedj")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 1)
 
-[node name="floor_dirt_small_corner2" parent="." instance=ExtResource("4_w2gxd")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 1)
-
-[node name="floor_dirt_small_D2" parent="." instance=ExtResource("5_srpta")]
+[node name="floor_dirt_small_D" parent="." instance=ExtResource("5_srpta")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 1)
 
-[node name="floor_dirt_small_weeds2" parent="." instance=ExtResource("6_320yr")]
+[node name="floor_dirt_small_corner" parent="." instance=ExtResource("4_w2gxd")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 1)
+
+[node name="floor_dirt_small_weeds" parent="." instance=ExtResource("6_320yr")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 1)
 
-[node name="floor_tile_small2" parent="." instance=ExtResource("7_dfl60")]
+[node name="floor_tile_small" parent="." instance=ExtResource("7_dfl60")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 1)
 
-[node name="floor_tile_small_broken_A2" parent="." instance=ExtResource("8_ysmqk")]
+[node name="floor_tile_small_broken_A" parent="." instance=ExtResource("8_ysmqk")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 1)
 
-[node name="floor_tile_small_broken_B2" parent="." instance=ExtResource("9_gpvjw")]
+[node name="floor_tile_small_broken_B" parent="." instance=ExtResource("9_gpvjw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, 1)
 
-[node name="floor_tile_small_decorated2" parent="." instance=ExtResource("10_00e0k")]
+[node name="floor_tile_small_decorated" parent="." instance=ExtResource("10_00e0k")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, 1)
 
-[node name="floor_tile_small_weeds_A2" parent="." instance=ExtResource("11_bg0hh")]
+[node name="floor_tile_small_weeds_A" parent="." instance=ExtResource("11_bg0hh")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21, 0, 1)
 
-[node name="floor_tile_small_weeds_B2" parent="." instance=ExtResource("12_khg88")]
+[node name="floor_tile_small_weeds_B" parent="." instance=ExtResource("12_khg88")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0, 1)
 
-[node name="floor_wood_small2" parent="." instance=ExtResource("13_2wko6")]
+[node name="floor_wood_small" parent="." instance=ExtResource("13_2wko6")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, 1)
 
-[node name="floor_wood_small_dark2" parent="." instance=ExtResource("14_6m7s5")]
+[node name="floor_wood_small_dark" parent="." instance=ExtResource("14_6m7s5")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0, 1)
