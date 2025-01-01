@@ -1,0 +1,94 @@
+[gd_scene load_steps=7 format=3 uid="uid://beddkxj3k6x7i"]
+
+[ext_resource type="Script" path="res://ui/Hud.cs" id="1_fp313"]
+
+[sub_resource type="Theme" id="Theme_t728w"]
+default_font_size = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vfmfx"]
+bg_color = Color(0.0748453, 0.0748453, 0.0748452, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e0nu8"]
+bg_color = Color(0.6, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nmk63"]
+bg_color = Color(0.6, 0.6, 0.6, 0.121569)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kncs8"]
+bg_color = Color(0.6, 0, 0, 1)
+
+[node name="HUD" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme = SubResource("Theme_t728w")
+script = ExtResource("1_fp313")
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 448.0
+offset_bottom = 57.0
+theme_override_styles/background = SubResource("StyleBoxFlat_vfmfx")
+theme_override_styles/fill = SubResource("StyleBoxFlat_e0nu8")
+value = 75.0
+show_percentage = false
+
+[node name="ScoreLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 72.0
+offset_right = 129.0
+offset_bottom = 117.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Score: 0"
+
+[node name="ActionCooldown1" type="ProgressBar" parent="."]
+layout_mode = 0
+offset_left = 520.0
+offset_top = 56.0
+offset_right = 568.0
+offset_bottom = 105.0
+rotation = 4.71239
+theme_override_styles/background = SubResource("StyleBoxFlat_nmk63")
+theme_override_styles/fill = SubResource("StyleBoxFlat_kncs8")
+value = 75.0
+show_percentage = false
+
+[node name="ActionCooldown2" type="ProgressBar" parent="."]
+layout_mode = 0
+offset_left = 584.0
+offset_top = 56.0
+offset_right = 632.0
+offset_bottom = 105.0
+rotation = 4.71239
+theme_override_styles/background = SubResource("StyleBoxFlat_nmk63")
+theme_override_styles/fill = SubResource("StyleBoxFlat_kncs8")
+value = 75.0
+show_percentage = false
+
+[node name="ActionCooldown3" type="ProgressBar" parent="."]
+layout_mode = 0
+offset_left = 648.0
+offset_top = 56.0
+offset_right = 696.0
+offset_bottom = 105.0
+rotation = 4.71239
+theme_override_styles/background = SubResource("StyleBoxFlat_nmk63")
+theme_override_styles/fill = SubResource("StyleBoxFlat_kncs8")
+value = 75.0
+show_percentage = false
+
+[node name="ActionCooldown4" type="ProgressBar" parent="."]
+layout_mode = 0
+offset_left = 712.0
+offset_top = 56.0
+offset_right = 760.0
+offset_bottom = 105.0
+rotation = 4.71239
+theme_override_styles/background = SubResource("StyleBoxFlat_nmk63")
+theme_override_styles/fill = SubResource("StyleBoxFlat_kncs8")
+value = 75.0
+show_percentage = false
