@@ -1,9 +1,13 @@
-[gd_scene load_steps=10 format=3 uid="uid://ds1fgmaafnkkj"]
+[gd_scene load_steps=15 format=3 uid="uid://ds1fgmaafnkkj"]
 
 [ext_resource type="Script" path="res://scenes/main/Main.cs" id="1_dl2xl"]
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/mob.tscn" id="2_jmf21"]
 [ext_resource type="PackedScene" uid="uid://beddkxj3k6x7i" path="res://ui/hud.tscn" id="3_stuk7"]
 [ext_resource type="PackedScene" uid="uid://hshntmwu857e" path="res://scenes/player/player.tscn" id="3_xhv3r"]
+[ext_resource type="PackedScene" uid="uid://df88kw5shtk48" path="res://scenes/levels/level.tscn" id="5_nxjfc"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="6_g3uvw"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="7_wl18x"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="8_qd7vr"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_i8ecf"]
 size = Vector3(60, 2, 60)
@@ -23,6 +27,12 @@ _data = {
 "tilts": PackedFloat32Array(0, 0, 0, 0, 0)
 }
 point_count = 5
+
+[sub_resource type="Resource" id="Resource_3h1r8"]
+script = ExtResource("8_qd7vr")
+duration = 1.0
+transition = 0
+ease = 2
 
 [node name="Main" type="Node"]
 script = ExtResource("1_dl2xl")
@@ -47,14 +57,7 @@ shadow_enabled = true
 
 [node name="Player" parent="." instance=ExtResource("3_xhv3r")]
 
-[node name="CameraPivot" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0)
-
-[node name="Camera3D" type="Camera3D" parent="CameraPivot"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 19)
-projection = 1
-size = 19.0
-far = 100.0
+[node name="Level" parent="." instance=ExtResource("5_nxjfc")]
 
 [node name="Cylinders" type="Node3D" parent="."]
 
@@ -83,5 +86,27 @@ transform = Transform3D(-0.000916287, 0, 1, 0, 1, 0, -1, 0, -0.000916287, 23.957
 [node name="MobTimer" type="Timer" parent="."]
 wait_time = 0.5
 autostart = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707106, 0, -0.707106, 0.707107, 0, 8.07084, 8.07085)
+
+[node name="PhantomCameraHost" type="Node" parent="Camera3D"]
+process_priority = 300
+process_physics_priority = 300
+script = ExtResource("6_g3uvw")
+
+[node name="PhantomCamera3D" type="Node3D" parent="." node_paths=PackedStringArray("follow_target")]
+transform = Transform3D(0.999972, 0, 0, 0, 0.707095, 0.707084, 0, -0.707094, 0.707085, 0, 8.07084, 8.07085)
+top_level = true
+script = ExtResource("7_wl18x")
+follow_mode = 5
+follow_target = NodePath("../Player")
+tween_resource = SubResource("Resource_3h1r8")
+follow_offset = Vector3(0, 1, 1)
+follow_damping = true
+follow_distance = 10.0
+dead_zone_width = 0.3
+dead_zone_height = 0.3
+spring_length = 10.0
 
 [connection signal="timeout" from="MobTimer" to="." method="OnMobTimerTimeout"]

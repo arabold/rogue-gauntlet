@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3 uid="uid://df88kw5shtk48"]
+
+[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/maps/dungeon/FloorMeshLibrary.tres" id="1_dy8vv"]
+[ext_resource type="Script" path="res://scripts/MapManager.cs" id="1_rjppm"]
+[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/maps/dungeon/WallsMeshLibrary.tres" id="2_umira"]
+
+[node name="Level" type="Node3D"]
+script = ExtResource("1_rjppm")
+
+[node name="FloorGrid" type="GridMap" parent="."]
+mesh_library = ExtResource("1_dy8vv")
+cell_center_y = false
+collision_layer = 4
+collision_mask = 0
+
+[node name="WallGrid" type="GridMap" parent="."]
+mesh_library = ExtResource("2_umira")
+cell_size = Vector3(4, 4, 4)
+cell_center_y = false
+collision_layer = 4
+collision_mask = 0
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="DecorationGrid" type="GridMap" parent="."]
+cell_center_y = false
+collision_layer = 4
+collision_mask = 0
