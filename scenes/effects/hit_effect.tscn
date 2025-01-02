@@ -1,0 +1,41 @@
+[gd_scene load_steps=8 format=3 uid="uid://cs2dyf0ews4ob"]
+
+[ext_resource type="Shader" uid="uid://bqx7berfiywk2" path="res://scenes/effects/blood.tres" id="1_p0uex"]
+[ext_resource type="Script" path="res://scenes/effects/HitEffect.cs" id="2_jsjxl"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_trbx2"]
+render_priority = 0
+shader = ExtResource("1_p0uex")
+
+[sub_resource type="Curve" id="Curve_xy7ll"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.502697), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_ykacj"]
+curve = SubResource("Curve_xy7ll")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_rppku"]
+emission_shape_offset = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 1.0
+initial_velocity_max = 3.0
+scale_min = 2.0
+scale_max = 4.0
+scale_curve = SubResource("CurveTexture_ykacj")
+
+[sub_resource type="QuadMesh" id="QuadMesh_t36bp"]
+
+[node name="HitEffect" type="GPUParticles3D"]
+material_override = SubResource("ShaderMaterial_trbx2")
+amount = 100
+lifetime = 0.5
+explosiveness = 0.5
+randomness = 1.0
+process_material = SubResource("ParticleProcessMaterial_rppku")
+draw_pass_1 = SubResource("QuadMesh_t36bp")
+script = ExtResource("2_jsjxl")
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 0.5
+one_shot = true
+autostart = true

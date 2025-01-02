@@ -1,18 +1,49 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
-public partial class Mob : CharacterBody3D
+public partial class Mob : CharacterBody3D, IDamageable
 {
+	public enum BehaviorState
+	{
+		Sleeping,
+		Idle,
+		Walking
+	}
+
+	public enum ActionState
+	{
+		None,
+		Hit,
+		Attacking,
+		Dying
+	}
+
+	private static readonly Dictionary<BehaviorState, string> BehaviorAnimations = new()
+	{
+		{ BehaviorState.Sleeping, "Lie_Idle" },
+		{ BehaviorState.Idle, "Idle" },
+		{ BehaviorState.Walking, "Walking_A" }
+	};
+
+	private static readonly Dictionary<ActionState, string> ActionAnimations = new()
+	{
+		{ ActionState.None, null },
+		{ ActionState.Hit, "Hit_A" },
+		{ ActionState.Attacking, "1H_Melee_Attack_Chop" },
+		{ ActionState.Dying, "Death_A" }
+	};
+
 	// Minimum speed of the mob in meters per second
-	[Export]
-	public int MinSpeed { get; set; } = 10;
+	[Export] public int MinSpeed { get; set; } = 10;
 
 	// Maximum speed of the mob in meters per second
-	[Export]
-	public int MaxSpeed { get; set; } = 18;
+	[Export] public int MaxSpeed { get; set; } = 18;
 
-	[Export]
-	public float RotationSpeed { get; set; } = 10.0f;
+	[Export] public float RotationSpeed { get; set; } = 10.0f;
+
+	// Total health
+	[Export] public int MaxHitPoints = 10;
 
 	private AnimationTree _animationTree;
 	private AnimationNodeStateMachinePlayback _animationStateMachine;
@@ -21,14 +52,39 @@ public partial class Mob : CharacterBody3D
 	private Vector3 _targetLookDirection = Vector3.Forward;
 	private const float VELOCITY_CHANGE_THRESHOLD = 0.1f;
 	private bool _isRotating = false;
+	private int _currentHitPoints;
+
+	private BehaviorState _currentBehavior = BehaviorState.Walking;
+	private ActionState _currentAction = ActionState.None;
+
+	private Node3D _pivot;
 
 	public override void _Ready()
 	{
 		base._Ready();
 
+		_pivot = GetNode<Node3D>("Pivot");
+		if (_pivot == null)
+		{
+			GD.PrintErr("Pivot node not found! Make sure to add a Node3D named 'Pivot' as a child of the Mob.");
+			QueueFree();
+			return;
+		}
+
+		// Rotate the pivot 180 degrees to correct initial orientation
+		_pivot.RotateY(Mathf.Pi);
+
 		_animationTree = GetNode<AnimationTree>("AnimationTree");
+		if (_animationTree == null)
+		{
+			GD.PrintErr("AnimationTree not found!");
+			QueueFree();
+			return;
+		}
+
 		_animationStateMachine = (AnimationNodeStateMachinePlayback)_animationTree.Get("parameters/playback");
-		_animationStateMachine.Start("Walking_A");
+		UpdateAnimation();
+		_currentHitPoints = MaxHitPoints;
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -52,14 +108,20 @@ public partial class Mob : CharacterBody3D
 		// Apply rotation if needed
 		if (_isRotating)
 		{
-			var currentRotation = Quaternion.FromEuler(Rotation);
-			var targetRotation = GetLookAtQuaternion(_targetLookDirection);
+			// Create the target rotation basis (using negative direction like the Player class)
+			var targetBasis = Basis.LookingAt(-_targetLookDirection);
+			// Smoothly interpolate between current and target rotation
+			_pivot.Basis = _pivot.Basis.Slerp(targetBasis, (float)delta * RotationSpeed);
+		}
 
-			// Ensure both quaternions are normalized
-			currentRotation = currentRotation.Normalized();
-			targetRotation = targetRotation.Normalized();
-
-			Rotation = currentRotation.Slerp(targetRotation, (float)delta * RotationSpeed).GetEuler();
+		// Update behavior based on velocity
+		if (currentVelocity.Length() > 0.1f)
+		{
+			SetBehavior(BehaviorState.Walking);
+		}
+		else
+		{
+			SetBehavior(BehaviorState.Idle);
 		}
 
 		_previousVelocity = currentVelocity;
@@ -81,24 +143,90 @@ public partial class Mob : CharacterBody3D
 
 	public void Initialize(Vector3 startPosition, Vector3 playerPosition)
 	{
-		// We position the mob by placing it at startPosition
-		// and rotate it towards playerPosition, so it looks at the player.
-		LookAtFromPosition(startPosition, playerPosition, Vector3.Up);
-		// Rotate this mob randomly within range of -45 and +45 degrees,
-		// so that it doesn't move directly towards the player.
-		RotateY((float)GD.RandRange(-Mathf.Pi / 4.0, Mathf.Pi / 4.0));
+		Position = startPosition;
+		var direction = (playerPosition - startPosition).Normalized();
 
-		// We calculate a random speed (integer).
+		// Calculate random speed and velocity
 		int randomSpeed = GD.RandRange(MinSpeed, MaxSpeed);
-		// We calculate a forward velocity that represents the speed.
-		Velocity = Vector3.Forward * randomSpeed;
-		// We then rotate the velocity vector based on the mob's Y rotation
-		// in order to move in the direction the mob is looking.
-		Velocity = Velocity.Rotated(Vector3.Up, Rotation.Y);
+		Velocity = direction * randomSpeed;
 	}
 
 	private void OnVisibilityNotifierScreenExited()
 	{
 		QueueFree();
+	}
+
+	public void TakeDamage(int amount)
+	{
+		_currentHitPoints -= amount;
+
+		SetAction(ActionState.Hit);
+		SpawnHitEffect();
+
+		if (_currentHitPoints <= 0)
+		{
+			Die();
+		}
+		else
+		{
+			// Reset action state after a short delay
+			GetTree().CreateTimer(0.3f).Connect("timeout", Callable.From(() => SetAction(ActionState.None)));
+		}
+	}
+
+	private void SpawnHitEffect()
+	{
+		// Load the HitEffect scene
+		var hitEffect = ResourceLoader.Load<PackedScene>("res://scenes/effects/hit_effect.tscn").Instantiate<GpuParticles3D>();
+		hitEffect.GlobalTransform = GlobalTransform; // Position the effect at the enemy's location
+		hitEffect.OneShot = true;
+
+		// Add to the scene
+		GetParent().AddChild(hitEffect);
+	}
+
+	private void Die()
+	{
+		SetAction(ActionState.Dying);
+
+		// Stop nao movement immediately
+		Velocity = Vector3.Zero;
+
+		// Wait for death animation to finish
+		GetTree().CreateTimer(1.0f).Connect("timeout", Callable.From(() =>
+		{
+			GD.Print($"{Name} is destroyed!");
+			QueueFree();
+		}));
+	}
+
+	private void UpdateAnimation()
+	{
+		string targetAnimation = _currentAction != ActionState.None
+			? ActionAnimations[_currentAction]
+			: BehaviorAnimations[_currentBehavior];
+
+		_animationStateMachine.Travel(targetAnimation);
+	}
+
+	public void SetBehavior(BehaviorState newBehavior)
+	{
+		if (_currentBehavior != newBehavior)
+		{
+			_currentBehavior = newBehavior;
+			if (_currentAction == ActionState.None)
+			{
+				UpdateAnimation();
+			}
+		}
+	}
+
+	public void SetAction(ActionState newAction)
+	{
+		if (_currentAction != newAction)
+		{
+			_currentAction = newAction;
+			UpdateAnimation();
+		}
 	}
 }

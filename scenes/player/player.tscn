@@ -1,8 +1,10 @@
-[gd_scene load_steps=52 format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=57 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="Script" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/models/characters/Barbarian.glb" id="1_jv6xc"]
 [ext_resource type="Script" path="res://scripts/BoneAttachmentManager.cs" id="3_3k2q2"]
+[ext_resource type="Script" path="res://scenes/player/FlyingOrb.cs" id="4_cpikd"]
+[ext_resource type="Script" path="res://addons/lines_and_trails_3d/trail_3d.gd" id="5_dmihs"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_s7lv0"]
 radius = 1.2
@@ -184,6 +186,14 @@ states/Walking_B/position = Vector2(684.178, 423.077)
 transitions = ["Idle", "Walking_B", SubResource("AnimationNodeStateMachineTransition_5p13e"), "Walking_B", "Idle", SubResource("AnimationNodeStateMachineTransition_a2x46"), "Hit_B", "Idle", SubResource("AnimationNodeStateMachineTransition_r5ki7"), "Idle", "Hit_B", SubResource("AnimationNodeStateMachineTransition_utep2"), "Idle", "Hit_A", SubResource("AnimationNodeStateMachineTransition_1rbd1"), "Hit_A", "Idle", SubResource("AnimationNodeStateMachineTransition_h4auy"), "Idle", "Death_A", SubResource("AnimationNodeStateMachineTransition_dqlug"), "Death_A", "Death_A_Pose", SubResource("AnimationNodeStateMachineTransition_33ov3"), "Idle", "1H_Melee_Attack_Chop", SubResource("AnimationNodeStateMachineTransition_lryud"), "1H_Melee_Attack_Chop", "Idle", SubResource("AnimationNodeStateMachineTransition_lasb5"), "Idle", "Death_B", SubResource("AnimationNodeStateMachineTransition_miuhq"), "Death_B", "Death_B_Pose", SubResource("AnimationNodeStateMachineTransition_kettj"), "Start", "Idle", SubResource("AnimationNodeStateMachineTransition_1r4ca"), "Idle", "2H_Melee_Attack_Chop", SubResource("AnimationNodeStateMachineTransition_d5bo2"), "Idle", "2H_Melee_Attack_Spin", SubResource("AnimationNodeStateMachineTransition_7ustp"), "2H_Melee_Attack_Chop", "Idle", SubResource("AnimationNodeStateMachineTransition_ky4kn"), "Idle", "Use_Item", SubResource("AnimationNodeStateMachineTransition_83vkb"), "Use_Item", "Idle", SubResource("AnimationNodeStateMachineTransition_fya0a"), "1H_Melee_Attack_Slice_Horizontal", "Idle", SubResource("AnimationNodeStateMachineTransition_xg506"), "Idle", "1H_Melee_Attack_Slice_Horizontal", SubResource("AnimationNodeStateMachineTransition_johjp"), "2H_Melee_Attack_Spin", "Idle", SubResource("AnimationNodeStateMachineTransition_54ps3"), "Idle", "Spellcast_Shoot", SubResource("AnimationNodeStateMachineTransition_r8qo1"), "Idle", "Spellcast_Raise", SubResource("AnimationNodeStateMachineTransition_ccoj4"), "Idle", "Spellcast_Long", SubResource("AnimationNodeStateMachineTransition_g5o54"), "Idle", "Spellcasting", SubResource("AnimationNodeStateMachineTransition_6ewwh"), "Spellcast_Shoot", "Idle", SubResource("AnimationNodeStateMachineTransition_go50w"), "Spellcast_Long", "Idle", SubResource("AnimationNodeStateMachineTransition_nyryj"), "Spellcast_Raise", "Idle", SubResource("AnimationNodeStateMachineTransition_75dqn"), "Spellcasting", "Idle", SubResource("AnimationNodeStateMachineTransition_q1cfx")]
 graph_offset = Vector2(363.392, -550.648)
 
+[sub_resource type="SphereMesh" id="SphereMesh_nd30j"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_yxpj2"]
+
+[sub_resource type="Curve" id="Curve_dae2j"]
+_data = [Vector2(0, 1), 0.0, -1.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
 [node name="Player" type="CharacterBody3D"]
 collision_mask = 6
 script = ExtResource("1_5y8vd")
@@ -193,43 +203,43 @@ script = ExtResource("1_5y8vd")
 [node name="Character" parent="Pivot" instance=ExtResource("1_jv6xc")]
 
 [node name="Skeleton3D" parent="Pivot/Character/Rig" index="0"]
-bones/1/position = Vector3(0, 0.388865, 0)
+bones/1/position = Vector3(0, 0.384605, 0)
 bones/1/rotation = Quaternion(-1.11123e-10, 0.0431578, 2.57241e-09, 0.999068)
 bones/2/rotation = Quaternion(-6.93889e-18, 7.10543e-15, 4.93038e-32, 1)
 bones/3/rotation = Quaternion(8.27181e-25, 3.72529e-09, -2.75506e-40, 1)
 bones/4/position = Vector3(0.212007, 0.134132, 7.92996e-08)
-bones/4/rotation = Quaternion(-0.557351, -0.0622958, -0.650511, 0.512167)
+bones/4/rotation = Quaternion(-0.557431, -0.0590348, -0.640641, 0.524752)
 bones/4/scale = Vector3(0.999999, 0.999999, 1)
-bones/5/rotation = Quaternion(1.90579e-08, -5.29852e-08, -0.483823, 0.875166)
+bones/5/rotation = Quaternion(-3.21831e-09, -5.41832e-08, -0.50431, 0.863522)
 bones/6/rotation = Quaternion(-9.73784e-11, -2.98437e-10, 0.0266581, 0.999645)
 bones/6/scale = Vector3(1, 1, 1)
-bones/7/rotation = Quaternion(-0.31903, -0.325676, 0.139947, 0.878959)
+bones/7/rotation = Quaternion(-0.321567, -0.330007, 0.14833, 0.875036)
 bones/8/position = Vector3(8.34843e-10, 0.0961252, -0.0575)
-bones/8/rotation = Quaternion(0.000899004, 0.000898978, -0.703799, 0.710398)
+bones/8/rotation = Quaternion(0.000243559, 0.000243539, -0.706212, 0.708)
 bones/8/scale = Vector3(1, 1, 1)
 bones/11/position = Vector3(-0.212007, 0.134132, 8.6814e-08)
-bones/11/rotation = Quaternion(-0.616184, 0.0821786, 0.62382, 0.473723)
+bones/11/rotation = Quaternion(-0.61578, 0.0791027, 0.615344, 0.485706)
 bones/11/scale = Vector3(0.999999, 0.999999, 1)
-bones/12/rotation = Quaternion(1.99665e-08, 5.96407e-08, 0.507539, 0.861629)
+bones/12/rotation = Quaternion(3.36721e-08, 5.58867e-08, 0.527182, 0.849752)
 bones/13/rotation = Quaternion(-9.73784e-11, 2.98437e-10, -0.0266581, 0.999645)
 bones/13/scale = Vector3(1, 1, 1)
-bones/14/rotation = Quaternion(-0.317326, 0.300218, -0.22154, 0.871833)
+bones/14/rotation = Quaternion(-0.320077, 0.305667, -0.230179, 0.866681)
 bones/15/position = Vector3(-1.5736e-08, 0.0961251, -0.0575)
-bones/15/rotation = Quaternion(0.00171279, 0.00201741, 0.705327, 0.708877)
+bones/15/rotation = Quaternion(0.000798268, 0.000940238, 0.706279, 0.707933)
 bones/15/scale = Vector3(1, 1, 1)
 bones/19/rotation = Quaternion(-5.80608e-11, -0.0313417, -1.88012e-09, 0.999509)
 bones/22/position = Vector3(0.170945, 0.113587, 1.59941e-08)
-bones/22/rotation = Quaternion(0.993384, 0.0833619, 0.0745924, 0.0259797)
+bones/22/rotation = Quaternion(0.992736, 0.0831477, 0.0757657, 0.0426723)
 bones/22/scale = Vector3(1, 1, 1)
-bones/23/rotation = Quaternion(0.234744, 6.45167e-08, -1.62876e-07, 0.972057)
-bones/24/rotation = Quaternion(-0.537908, -0.208288, 0.049638, 0.815357)
+bones/23/rotation = Quaternion(0.278248, 6.50336e-08, -1.94893e-07, 0.960509)
+bones/24/rotation = Quaternion(-0.560532, -0.206689, 0.0565704, 0.799927)
 bones/25/rotation = Quaternion(-9.74065e-09, 0.920355, -0.391084, 7.8309e-08)
 bones/25/scale = Vector3(1, 1, 1)
 bones/26/position = Vector3(-0.170945, 0.113587, 1.55755e-08)
-bones/26/rotation = Quaternion(0.996575, -0.0300711, 0.031235, 0.070411)
+bones/26/rotation = Quaternion(0.995513, -0.0308487, 0.0308778, 0.0839567)
 bones/26/scale = Vector3(1, 1, 1)
-bones/27/rotation = Quaternion(0.303238, -6.37125e-08, 2.1078e-07, 0.952915)
-bones/28/rotation = Quaternion(-0.574582, 0.114306, -0.011071, 0.81035)
+bones/27/rotation = Quaternion(0.33803, -6.23332e-08, 2.34312e-07, 0.941135)
+bones/28/rotation = Quaternion(-0.593121, 0.113982, -0.0140614, 0.79688)
 bones/29/rotation = Quaternion(3.03591e-08, 0.920355, -0.391084, -6.95338e-08)
 bones/29/scale = Vector3(1, 1, 1)
 bones/30/rotation = Quaternion(0.707107, -2.29302e-07, -4.60552e-08, 0.707107)
@@ -249,32 +259,32 @@ bones/41/position = Vector3(-6.31128e-09, 0.16565, 2.70695e-09)
 bones/41/rotation = Quaternion(-0.391084, -6.885e-08, -6.56287e-08, 0.920355)
 bones/42/rotation = Quaternion(1, 3.76526e-09, 1.94879e-07, 7.45058e-09)
 bones/44/rotation = Quaternion(-0.707107, -7.27951e-08, -7.27951e-08, 0.707107)
-bones/45/position = Vector3(0.520841, 0.780742, -0.0576374)
+bones/45/position = Vector3(0.520841, 0.784832, -0.0576374)
 bones/45/rotation = Quaternion(0.794627, -1.11759e-07, 0.607098, -5.96046e-08)
 bones/46/rotation = Quaternion(-0.707107, -7.27951e-08, -7.27951e-08, 0.707107)
-bones/47/position = Vector3(-0.510844, 0.780742, 0.0597369)
+bones/47/position = Vector3(-0.510844, 0.784832, 0.0597369)
 bones/47/rotation = Quaternion(0.758253, 1.52737e-07, -0.651961, 1.11759e-08)
 
 [node name="1H_Axe_Offhand" parent="Pivot/Character/Rig/Skeleton3D" index="0"]
-transform = Transform3D(3.83638e-05, 0.262971, 0.964803, 0.999953, -0.00933472, 0.00250544, 0.0096655, 0.964758, -0.262958, 0.516392, 0.62839, 0.0128258)
+transform = Transform3D(9.28505e-07, 0.262863, 0.964832, 0.999996, -0.00252814, 0.000688678, 0.00262072, 0.964829, -0.262862, 0.5164, 0.633305, 0.0142024)
 
 [node name="Barbarian_Round_Shield" parent="Pivot/Character/Rig/Skeleton3D" index="1"]
-transform = Transform3D(3.81526e-05, 0.26297, 0.964803, 0.999953, -0.00933724, 0.00250635, 0.00966817, 0.964758, -0.262958, 0.662505, 0.628933, -0.0438884)
+transform = Transform3D(7.17015e-07, 0.262863, 0.964832, 0.999996, -0.00253066, 0.000689583, 0.00262339, 0.964829, -0.262862, 0.662519, 0.633453, -0.042498)
 
 [node name="1H_Axe" parent="Pivot/Character/Rig/Skeleton3D" index="2"]
-transform = Transform3D(-0.00119471, -0.155107, 0.987896, 0.999987, -0.00502091, 0.000420202, 0.00489538, 0.987884, 0.155111, -0.496234, 0.632724, 0.138719)
+transform = Transform3D(-0.000566531, -0.15229, 0.988335, 0.999996, -0.00230965, 0.000216501, 0.00225027, 0.988332, 0.15229, -0.495866, 0.637758, 0.140115)
 
 [node name="2H_Axe" parent="Pivot/Character/Rig/Skeleton3D" index="3"]
-transform = Transform3D(-0.00119471, -0.155107, 0.987896, 0.999987, -0.00502091, 0.000420202, 0.00489538, 0.987884, 0.155111, -0.496234, 0.632724, 0.138719)
+transform = Transform3D(-0.000566531, -0.15229, 0.988335, 0.999996, -0.00230965, 0.000216501, 0.00225027, 0.988332, 0.15229, -0.495866, 0.637758, 0.140115)
 
 [node name="Mug" parent="Pivot/Character/Rig/Skeleton3D" index="4"]
-transform = Transform3D(-0.00119471, -0.155107, 0.987896, 0.999987, -0.00502091, 0.000420202, 0.00489538, 0.987884, 0.155111, -0.488283, 0.332407, 0.0888951)
+transform = Transform3D(-0.000566531, -0.15229, 0.988335, 0.999996, -0.00230965, 0.000216501, 0.00225027, 0.988332, 0.15229, -0.488241, 0.337306, 0.0910639)
 
 [node name="Barbarian_Hat" parent="Pivot/Character/Rig/Skeleton3D" index="5"]
-transform = Transform3D(0.99972, -1.40143e-09, 0.0236466, 1.39341e-09, 1, 3.55686e-10, -0.0236466, -3.22637e-10, 0.99972, -7.55726e-09, 1.19907, -1.39052e-07)
+transform = Transform3D(0.99972, -1.40143e-09, 0.0236466, 1.39341e-09, 1, 3.55686e-10, -0.0236466, -3.22637e-10, 0.99972, -7.55726e-09, 1.19481, -1.39052e-07)
 
 [node name="Barbarian_Cape" parent="Pivot/Character/Rig/Skeleton3D" index="6"]
-transform = Transform3D(0.996275, -5.14962e-09, 0.0862353, 5.13043e-09, 1, 4.44077e-10, -0.0862353, 1.88007e-15, 0.996275, -1.91641e-06, 1.19907, 2.59003e-08)
+transform = Transform3D(0.996275, -5.14962e-09, 0.0862353, 5.13043e-09, 1, 4.44077e-10, -0.0862353, 1.88007e-15, 0.996275, -1.91641e-06, 1.19481, 2.59003e-08)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.17248, 0)
@@ -288,5 +298,29 @@ anim_player = NodePath("../Pivot/Character/AnimationPlayer")
 [node name="BoneAttachmentManager" type="Node" parent="." node_paths=PackedStringArray("CharacterNode")]
 script = ExtResource("3_3k2q2")
 CharacterNode = NodePath("../Pivot/Character")
+
+[node name="FlyingOrb" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0)
+script = ExtResource("4_cpikd")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="FlyingOrb"]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
+mesh = SubResource("SphereMesh_nd30j")
+
+[node name="Area3D" type="Area3D" parent="FlyingOrb"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, 0)
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FlyingOrb/Area3D"]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 2, 1, 0)
+shape = SubResource("SphereShape3D_yxpj2")
+
+[node name="Trail3D" type="MeshInstance3D" parent="FlyingOrb"]
+process_priority = 9999
+cast_shadow = 0
+script = ExtResource("5_dmihs")
+width = 0.5
+width_curve = SubResource("Curve_dae2j")
 
 [editable path="Pivot/Character"]
