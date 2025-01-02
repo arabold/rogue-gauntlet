@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c6276kjx70mps"]
+
+[ext_resource type="Script" path="res://scenes/enemies/MovementComponent.cs" id="1_4ttty"]
+
+[node name="MovementComponent" type="Node"]
+script = ExtResource("1_4ttty")

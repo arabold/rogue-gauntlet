@@ -15,17 +15,17 @@ public enum PlayerState
 
 public partial class Player : CharacterBody3D
 {
+	// The enemy's target (e.g., the player)
+	[Export] public Node3D Target { get; set; }
+
 	// How fast the player moves in meters per second.
-	[Export]
-	public int Speed { get; set; } = 14;
+	[Export] public int Speed { get; set; } = 14;
 
 	// The downward acceleration when in the air, in meters per second squared.
-	[Export]
-	public int FallAcceleration { get; set; } = 75;
+	[Export] public int FallAcceleration { get; set; } = 75;
 
 	// Adjust this value to control rotation speed
-	[Export]
-	public float RotationSpeed { get; set; } = 10.0f;
+	[Export] public float RotationSpeed { get; set; } = 10.0f;
 
 	private Vector3 _targetVelocity = Vector3.Zero;
 	private Node3D _pivot;
