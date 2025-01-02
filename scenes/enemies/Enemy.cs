@@ -11,7 +11,6 @@ public partial class Enemy : CharacterBody3D, IDamageable
 
 	private Node3D _pivot;
 	private EnemyBehavior _enemyBehavior;
-	private MovementComponent _movementComponent;
 
 	public override void _Ready()
 	{
@@ -32,14 +31,6 @@ public partial class Enemy : CharacterBody3D, IDamageable
 		if (_enemyBehavior == null)
 		{
 			GD.PrintErr("EnemyBehavior node not found!");
-			QueueFree();
-			return;
-		}
-
-		_movementComponent = GetNode<MovementComponent>("MovementComponent");
-		if (_movementComponent == null)
-		{
-			GD.PrintErr("MovementComponent node not found!");
 			QueueFree();
 			return;
 		}

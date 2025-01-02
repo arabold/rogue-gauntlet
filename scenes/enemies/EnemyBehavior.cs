@@ -69,17 +69,16 @@ public partial class EnemyBehavior : Node, IDamageable
 		if (_animationTree == null)
 		{
 			GD.PrintErr("AnimationTree not found!");
-			GetParent().QueueFree();
+			_owner.QueueFree();
 			return;
 		}
 
-		_animationStateMachine = (AnimationNodeStateMachinePlayback)_animationTree.Get("parameters/playback");
-		UpdateAnimation();
-
 		_maxHitPoints = ((Enemy)_owner).MaxHitPoints;
+		_animationStateMachine = (AnimationNodeStateMachinePlayback)_animationTree.Get("parameters/playback");
 		_currentHitPoints = _maxHitPoints;
-
 		_movementComponent = _owner.GetNode<MovementComponent>("MovementComponent");
+
+		UpdateAnimation();
 	}
 
 	public void SetSleeping() => SetBehavior(BehaviorState.Sleeping);
@@ -93,18 +92,16 @@ public partial class EnemyBehavior : Node, IDamageable
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (_target == null)
+		if (_target != null)
 		{
-			return; // No target to chase
-		}
+			// Get the target's position
+			Vector3 targetPosition = _target.GlobalTransform.Origin;
 
-		// Get the target's position
-		Vector3 targetPosition = _target.GlobalTransform.Origin;
-
-		// Move toward the target
-		if (_movementComponent != null)
-		{
-			_movementComponent.MoveTo(targetPosition);
+			// Move toward the target
+			if (_movementComponent != null)
+			{
+				_movementComponent.MoveTo(targetPosition);
+			}
 		}
 	}
 
@@ -188,13 +185,13 @@ public partial class EnemyBehavior : Node, IDamageable
 		SetBehavior(BehaviorState.Dead);
 
 		// Stop movement immediately
-		((Enemy)GetParent()).Velocity = Vector3.Zero;
+		_movementComponent.Stop();
 
 		// Wait for death animation to finish
 		GetTree().CreateTimer(1.0f).Connect("timeout", Callable.From(() =>
 		{
-			GD.Print($"{GetParent().Name} is destroyed!");
-			GetParent().QueueFree();
+			GD.Print($"{_owner.Name} is destroyed!");
+			_owner.QueueFree();
 		}));
 	}
 
@@ -211,6 +208,6 @@ public partial class EnemyBehavior : Node, IDamageable
 		hitEffect.OneShot = true;
 
 		// Add to the scene
-		GetParent().GetParent().AddChild(hitEffect);
+		_owner.GetParent().AddChild(hitEffect);
 	}
 }
