@@ -7,6 +7,8 @@ public partial class MovementComponent : Node
 
 	private Node3D _parent; // Parent node
 	private Vector3 _targetPosition = Vector3.Zero;
+	private Vector3 _pushDirection = Vector3.Zero;
+	private float _pushStrength = 0.0f;
 
 	public override void _Ready()
 	{
@@ -16,6 +18,12 @@ public partial class MovementComponent : Node
 	public void MoveTo(Vector3 targetPosition)
 	{
 		_targetPosition = targetPosition;
+	}
+
+	public void Push(Vector3 direction, float strength)
+	{
+		_pushDirection = direction.Normalized();
+		_pushStrength = strength;
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -36,6 +44,13 @@ public partial class MovementComponent : Node
 			{
 				_targetPosition = Vector3.Zero;
 			}
+		}
+
+		if (_pushStrength > 0.0f)
+		{
+			Vector3 pushVector = _pushDirection * _pushStrength * (float)delta;
+			_parent.GlobalTransform = new Transform3D(_parent.GlobalTransform.Basis, _parent.GlobalTransform.Origin + pushVector);
+			_pushStrength -= Speed * (float)delta; // Decrease push strength over time
 		}
 	}
 

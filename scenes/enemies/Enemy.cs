@@ -72,8 +72,8 @@ public partial class Enemy : CharacterBody3D, IDamageable
 		QueueFree();
 	}
 
-	public void TakeDamage(int amount)
+	public void TakeDamage(int amount, Vector3 attackDirection)
 	{
-		_enemyBehavior.TakeDamage(amount);
+		_enemyBehavior.TakeDamage(amount, attackDirection);
 	}
 }

@@ -155,7 +155,7 @@ public partial class EnemyBehavior : Node, IDamageable
 		_target = target;
 	}
 
-	public void TakeDamage(int amount)
+	public void TakeDamage(int amount, Vector3 attackDirection)
 	{
 		// Prevent taking damage if already dead
 		if (CurrentBehavior == BehaviorState.Dead)
@@ -167,6 +167,9 @@ public partial class EnemyBehavior : Node, IDamageable
 
 		SetAction(ActionState.Hit);
 		SpawnHitEffect();
+
+		// Push the enemy away from the attacker
+		_movementComponent.Push(attackDirection, 5.0f);
 
 		if (_currentHitPoints <= 0)
 		{
