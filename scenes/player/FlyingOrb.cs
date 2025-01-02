@@ -9,7 +9,7 @@ public partial class FlyingOrb : Node3D
 	[Export] public float OrbitSpeed = 10.0f;
 	[Export] public float OrbitHeight = 1.0f;
 	// Damage dealt by the orb
-	[Export] public int Damage = 20;
+	[Export] public int Damage = 5;
 
 	private float _angle = 0.0f; // Current angle of the orb around the player
 	private Node3D _player; // Reference to the player

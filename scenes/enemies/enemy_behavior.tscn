@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dt3ptc0tqgy5s"]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyBehavior.cs" id="1_dk8te"]
+
+[node name="EnemyBehavior" type="Node3D"]
+script = ExtResource("1_dk8te")
