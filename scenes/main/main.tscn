@@ -1,7 +1,7 @@
 [gd_scene load_steps=15 format=3 uid="uid://ds1fgmaafnkkj"]
 
 [ext_resource type="Script" path="res://scenes/main/Main.cs" id="1_dl2xl"]
-[ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/mob.tscn" id="2_jmf21"]
+[ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy.tscn" id="2_jmf21"]
 [ext_resource type="PackedScene" uid="uid://beddkxj3k6x7i" path="res://ui/hud.tscn" id="3_stuk7"]
 [ext_resource type="PackedScene" uid="uid://hshntmwu857e" path="res://scenes/player/player.tscn" id="3_xhv3r"]
 [ext_resource type="PackedScene" uid="uid://df88kw5shtk48" path="res://scenes/levels/level.tscn" id="5_nxjfc"]
@@ -36,7 +36,7 @@ ease = 2
 
 [node name="Main" type="Node"]
 script = ExtResource("1_dl2xl")
-MobScene = ExtResource("2_jmf21")
+EnemyScene = ExtResource("2_jmf21")
 
 [node name="HUD" parent="." instance=ExtResource("3_stuk7")]
 
@@ -83,7 +83,7 @@ curve = SubResource("Curve3D_o4rwl")
 [node name="SpawnLocation" type="PathFollow3D" parent="SpawnPath"]
 transform = Transform3D(-0.000916287, 0, 1, 0, 1, 0, -1, 0, -0.000916287, 23.9579, 0, -14.0942)
 
-[node name="MobTimer" type="Timer" parent="."]
+[node name="EnemyTimer" type="Timer" parent="."]
 wait_time = 0.5
 autostart = true
 
@@ -109,4 +109,4 @@ dead_zone_width = 0.3
 dead_zone_height = 0.3
 spring_length = 10.0
 
-[connection signal="timeout" from="MobTimer" to="." method="OnMobTimerTimeout"]
+[connection signal="timeout" from="EnemyTimer" to="." method="OnEnemyTimerTimeout"]

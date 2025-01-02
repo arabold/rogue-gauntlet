@@ -4,7 +4,7 @@ using System;
 public partial class Main : Node
 {
 	[Export]
-	public PackedScene MobScene { get; set; }
+	public PackedScene EnemyScene { get; set; }
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -15,22 +15,22 @@ public partial class Main : Node
 	public override void _Process(double delta)
 	{
 	}
-	
-	private void OnMobTimerTimeout()
+
+	private void OnEnemyTimerTimeout()
 	{
-		// Create a new instance of the Mob scene.
-		Mob mob = MobScene.Instantiate<Mob>();
+		// Create a new instance of the Enemy scene.
+		Enemy enemy = EnemyScene.Instantiate<Enemy>();
 
 		// Choose a random location on the SpawnPath.
 		// We store the reference to the SpawnLocation node.
-		var mobSpawnLocation = GetNode<PathFollow3D>("SpawnPath/SpawnLocation");
+		var enemySpawnLocation = GetNode<PathFollow3D>("SpawnPath/SpawnLocation");
 		// And give it a random offset.
-		mobSpawnLocation.ProgressRatio = GD.Randf();
+		enemySpawnLocation.ProgressRatio = GD.Randf();
 
 		Vector3 playerPosition = GetNode<Player>("Player").Position;
-		mob.Initialize(mobSpawnLocation.Position, playerPosition);
+		enemy.Initialize(enemySpawnLocation.Position, playerPosition);
 
-		// Spawn the mob by adding it to the Main scene.
-		AddChild(mob);
+		// Spawn the enemy by adding it to the Main scene.
+		AddChild(enemy);
 	}
 }

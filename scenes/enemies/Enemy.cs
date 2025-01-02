@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
-public partial class Mob : CharacterBody3D, IDamageable
+public partial class Enemy : CharacterBody3D, IDamageable
 {
 	public enum BehaviorState
 	{
@@ -34,10 +34,10 @@ public partial class Mob : CharacterBody3D, IDamageable
 		{ ActionState.Dying, "Death_A" }
 	};
 
-	// Minimum speed of the mob in meters per second
+	// Minimum speed of the enemy in meters per second
 	[Export] public int MinSpeed { get; set; } = 10;
 
-	// Maximum speed of the mob in meters per second
+	// Maximum speed of the enemy in meters per second
 	[Export] public int MaxSpeed { get; set; } = 18;
 
 	[Export] public float RotationSpeed { get; set; } = 10.0f;
@@ -66,7 +66,7 @@ public partial class Mob : CharacterBody3D, IDamageable
 		_pivot = GetNode<Node3D>("Pivot");
 		if (_pivot == null)
 		{
-			GD.PrintErr("Pivot node not found! Make sure to add a Node3D named 'Pivot' as a child of the Mob.");
+			GD.PrintErr("Pivot node not found! Make sure to add a Node3D named 'Pivot' as a child of the Enemy.");
 			QueueFree();
 			return;
 		}
