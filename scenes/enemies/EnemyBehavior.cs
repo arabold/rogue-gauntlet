@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
-public partial class EnemyBehavior : Node, IDamageable
+public partial class EnemyBehavior : Node
 {
 	public enum BehaviorState
 	{
@@ -19,67 +19,39 @@ public partial class EnemyBehavior : Node, IDamageable
 	public enum ActionState
 	{
 		None,
+		Spawning,
+		StandingUp,
 		Hit,
 		Attacking,
-		Dying
+		Dying,
 	}
 
-	private static readonly Dictionary<BehaviorState, string> BehaviorAnimations = new()
+	private static readonly Dictionary<ActionState, float> ActionDurations = new()
 	{
-		{ BehaviorState.Sleeping, "Lie_Idle" },
-		{ BehaviorState.Idle, "Idle" },
-		{ BehaviorState.Guarding, "Walking_A" },
-		{ BehaviorState.Patrolling, "Walking_A" },
-		{ BehaviorState.Searching, "Walking_A" },
-		{ BehaviorState.Chasing, "Walking_A" },
-		{ BehaviorState.Fleeing, "Walking_A" },
-		{ BehaviorState.Dead, "Death_A" }
+		{ ActionState.None, 0 },
+		{ ActionState.Spawning, 3.5f },
+		{ ActionState.StandingUp, 2.33f },
+		{ ActionState.Hit, 0.66f },
+		{ ActionState.Attacking, 1.0f },
+		{ ActionState.Dying, 2.0f },
 	};
 
-	private static readonly Dictionary<ActionState, string> ActionAnimations = new()
-	{
-		{ ActionState.None, null },
-		{ ActionState.Hit, "Hit_A" },
-		{ ActionState.Attacking, "1H_Melee_Attack_Chop" },
-		{ ActionState.Dying, "Death_A" }
-	};
-
-	private AnimationTree _animationTree;
-	private AnimationNodeStateMachinePlayback _animationStateMachine;
-	private int _currentHitPoints;
-	private int _maxHitPoints;
-	// Reference to the Enemy's main Node
-	private Node3D _owner;
-	// Reference to the target Node, i.e. the player
+	private Node3D _parent;
 	private Node3D _target;
 	private MovementComponent _movementComponent;
+	private float _remainingActionTime = 0;
 
-	[Export] public float ChaseDistance = 10.0f; // Distance within which the enemy starts chasing the player
-	[Export] public PackedScene HitEffect { get; set; }
+	[Export] public BehaviorState CurrentBehavior { get; private set; } = BehaviorState.Idle;
+	[Export] public ActionState CurrentAction { get; private set; } = ActionState.Spawning;
 
-	public BehaviorState CurrentBehavior { get; private set; } = BehaviorState.Idle;
-	public ActionState CurrentAction { get; private set; } = ActionState.None;
-
-	public override void _Ready()
-	{
-		base._Ready();
-
-		_owner = GetParent<Node3D>(); // Assume the parent is the Enemy node
-		_animationTree = GetNode<AnimationTree>("AnimationTree");
-		if (_animationTree == null)
-		{
-			GD.PrintErr("AnimationTree not found!");
-			_owner.QueueFree();
-			return;
-		}
-
-		_maxHitPoints = ((Enemy)_owner).MaxHitPoints;
-		_animationStateMachine = (AnimationNodeStateMachinePlayback)_animationTree.Get("parameters/playback");
-		_currentHitPoints = _maxHitPoints;
-		_movementComponent = _owner.GetNode<MovementComponent>("MovementComponent");
-
-		UpdateAnimation();
-	}
+	// We can use these properties to automatically transition between animation states
+	public bool IsSleeping => CurrentAction == ActionState.None && CurrentBehavior == BehaviorState.Sleeping;
+	public bool IsMoving => CurrentAction == ActionState.None && _movementComponent.IsMoving;
+	public bool IsDead => CurrentAction == ActionState.None && CurrentBehavior == BehaviorState.Dead;
+	public bool IsAttacking => CurrentAction == ActionState.Attacking;
+	public bool IsHit => CurrentAction == ActionState.Hit;
+	public bool IsDying => CurrentAction == ActionState.Dying;
+	public bool IsSpawning => CurrentAction == ActionState.Spawning;
 
 	public void SetSleeping() => SetBehavior(BehaviorState.Sleeping);
 	public void SetIdle() => SetBehavior(BehaviorState.Idle);
@@ -90,50 +62,93 @@ public partial class EnemyBehavior : Node, IDamageable
 	public void SetFleeing(Node3D target) => SetBehavior(BehaviorState.Fleeing, target);
 	public void SetDead() => SetBehavior(BehaviorState.Dead);
 
+	public override void _Ready()
+	{
+		base._Ready();
+
+		_parent = GetParent<Node3D>(); // Assume the parent is the Enemy node
+		_movementComponent = _parent.GetNode<MovementComponent>("MovementComponent");
+
+		// Ensure to properly initialize the enemy's state with the current selection
+		GD.Print($"{_parent.Name} is initialized with {CurrentBehavior} and {CurrentAction}");
+		_remainingActionTime = ActionDurations[CurrentAction];
+	}
+
 	public override void _PhysicsProcess(double delta)
 	{
-		if (_target != null)
+		if (CurrentAction != ActionState.None)
 		{
-			// Get the target's position
-			Vector3 targetPosition = _target.GlobalTransform.Origin;
-
-			// Move toward the target
-			if (_movementComponent != null)
+			// Update the remaining action time
+			_remainingActionTime -= (float)delta;
+			if (_remainingActionTime <= 0)
 			{
-				_movementComponent.MoveTo(targetPosition);
+				SetAction(ActionState.None);
+			}
+		}
+		else
+		{
+			// Main behavior logic goes here...
+			if (CurrentBehavior == BehaviorState.Chasing)
+			{
+				ChaseTarget();
+			}
+			else if (CurrentBehavior == BehaviorState.Fleeing)
+			{
+				FleeFromTarget();
 			}
 		}
 	}
 
-	private void UpdateAnimation()
+	private void ChaseTarget()
 	{
-		string targetAnimation = CurrentAction != ActionState.None
-			? ActionAnimations[CurrentAction]
-			: BehaviorAnimations[CurrentBehavior];
+		if (_target == null)
+		{
+			return;
+		}
 
-		_animationStateMachine.Travel(targetAnimation);
+		// Get the target's position
+		Vector3 targetPosition = _target.GlobalTransform.Origin;
+
+		// Move toward the target
+		if (_movementComponent != null)
+		{
+			_movementComponent.MoveTo(targetPosition);
+		}
 	}
 
-	public void SetBehavior(BehaviorState newBehavior, Node3D target = null)
+	private void FleeFromTarget()
+	{
+		if (_target == null)
+		{
+			return;
+		}
+
+		// Get the target's position
+		Vector3 targetPosition = _target.GlobalTransform.Origin;
+
+		// Move away from the target
+		if (_movementComponent != null)
+		{
+			_movementComponent.MoveTo(-targetPosition);
+		}
+	}
+
+	private void SetBehavior(BehaviorState newBehavior, Node3D target = null)
 	{
 		if (CurrentBehavior == BehaviorState.Dead)
 		{
 			return;
 		}
 
-		SetTarget(target);
+		_target = target;
 		if (CurrentBehavior != newBehavior)
 		{
-			GD.Print($"{_owner.Name} is now {newBehavior}");
+			GD.Print($"{_parent.Name} is now {newBehavior}");
 			CurrentBehavior = newBehavior;
-			if (CurrentAction == ActionState.None)
-			{
-				UpdateAnimation();
-			}
 		}
 	}
 
-	public void SetAction(ActionState newAction)
+	private void SetAction(ActionState newAction)
 	{
 		if (CurrentBehavior == BehaviorState.Dead)
 		{
@@ -142,44 +157,18 @@ public partial class EnemyBehavior : Node, IDamageable
 
 		if (CurrentAction != newAction)
 		{
+			GD.Print($"{_parent.Name} is performing {newAction}");
 			CurrentAction = newAction;
-			UpdateAnimation();
+			_remainingActionTime = ActionDurations[newAction];
 		}
 	}
 
-	public void SetTarget(Node3D target)
+	public void Hit()
 	{
-		_target = target;
+		SetAction(EnemyBehavior.ActionState.Hit);
 	}
 
-	public void TakeDamage(int amount, Vector3 attackDirection)
-	{
-		// Prevent taking damage if already dead
-		if (CurrentBehavior == BehaviorState.Dead)
-		{
-			return;
-		}
-
-		_currentHitPoints -= amount;
-
-		SetAction(ActionState.Hit);
-		SpawnHitEffect();
-
-		// Push the enemy away from the attacker
-		_movementComponent.Push(attackDirection, 5.0f);
-
-		if (_currentHitPoints <= 0)
-		{
-			Die();
-		}
-		else
-		{
-			// Reset action state after a short delay
-			GetTree().CreateTimer(0.3f).Connect("timeout", Callable.From(() => SetAction(ActionState.None)));
-		}
-	}
-
-	private void Die()
+	public void Die()
 	{
 		SetAction(ActionState.Dying);
 		SetBehavior(BehaviorState.Dead);
@@ -188,26 +177,10 @@ public partial class EnemyBehavior : Node, IDamageable
 		_movementComponent.Stop();
 
 		// Wait for death animation to finish
-		GetTree().CreateTimer(1.0f).Connect("timeout", Callable.From(() =>
+		GetTree().CreateTimer(2.0f).Connect("timeout", Callable.From(() =>
 		{
-			GD.Print($"{_owner.Name} is destroyed!");
-			_owner.QueueFree();
+			GD.Print($"{_parent.Name} is destroyed!");
+			_parent.QueueFree();
 		}));
-	}
-
-	private void SpawnHitEffect()
-	{
-		if (HitEffect == null)
-		{
-			GD.PrintErr("HitEffectScene is not set!");
-			return;
-		}
-
-		var hitEffect = HitEffect.Instantiate<GpuParticles3D>();
-		hitEffect.GlobalTransform = _owner.GlobalTransform; // Position the effect at the enemy's location
-		hitEffect.OneShot = true;
-
-		// Add to the scene
-		_owner.GetParent().AddChild(hitEffect);
 	}
 }

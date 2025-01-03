@@ -4,13 +4,10 @@ using System.Collections.Generic;
 
 public partial class Enemy : CharacterBody3D, IDamageable
 {
-	// Total health
-	[Export] public int MaxHitPoints = 10;
-
-	private int _currentHitPoints;
-
 	private Node3D _pivot;
 	private EnemyBehavior _enemyBehavior;
+	private MovementComponent _movementComponent;
+	private HealthComponent _healthComponent;
 
 	public override void _Ready()
 	{
@@ -24,9 +21,6 @@ public partial class Enemy : CharacterBody3D, IDamageable
 			return;
 		}
 
-		// Rotate the pivot 180 degrees to correct initial orientation
-		_pivot.RotateY(Mathf.Pi);
-
 		_enemyBehavior = GetNode<EnemyBehavior>("EnemyBehavior");
 		if (_enemyBehavior == null)
 		{
@@ -35,16 +29,33 @@ public partial class Enemy : CharacterBody3D, IDamageable
 			return;
 		}
 
-		_currentHitPoints = MaxHitPoints;
+		_movementComponent = GetNode<MovementComponent>("MovementComponent");
+		if (_movementComponent == null)
+		{
+			GD.PrintErr("MovementComponent node not found!");
+			QueueFree();
+			return;
+		}
+
+		_healthComponent = GetNode<HealthComponent>("HealthComponent");
+		if (_healthComponent == null)
+		{
+			GD.PrintErr("HealthComponent node not found!");
+			QueueFree();
+			return;
+		}
+
+		// Rotate the pivot 180 degrees to correct initial orientation
+		_pivot.RotateY(Mathf.Pi);
+
+		// Hide the mesh until the animations are fully initialized to
+		// prevent any flickering
+		Visible = false;
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		// Prevent any logic if the enemy is dead
-		if (_enemyBehavior.CurrentBehavior == EnemyBehavior.BehaviorState.Dead)
-		{
-			return;
-		}
+		Visible = true;
 	}
 
 	public void Initialize(Vector3 startPosition)
@@ -65,6 +76,8 @@ public partial class Enemy : CharacterBody3D, IDamageable
 
 	public void TakeDamage(int amount, Vector3 attackDirection)
 	{
-		_enemyBehavior.TakeDamage(amount, attackDirection);
+		_enemyBehavior.Hit();
+		_movementComponent.Push(attackDirection, 5.0f);
+		_healthComponent.TakeDamage(amount);
 	}
 }

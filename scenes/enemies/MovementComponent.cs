@@ -1,9 +1,12 @@
+using System;
 using Godot;
 
 public partial class MovementComponent : Node
 {
 	[Export] public float Speed { get; set; } = 3.0f; // Movement speed
 	[Export] public float RotationSpeed { get; set; } = 20.0f; // Increased rotation speed
+
+	public bool IsMoving => _targetPosition != Vector3.Zero;
 
 	private Node3D _parent; // Parent node
 	private Vector3 _targetPosition = Vector3.Zero;
@@ -13,6 +16,11 @@ public partial class MovementComponent : Node
 	public override void _Ready()
 	{
 		_parent = GetParent<Node3D>();
+
+		// Make the parent look in a random direction
+		Random random = new Random();
+		float randomRotation = (float)(random.NextDouble() * 2 * Math.PI);
+		_parent.RotateY(randomRotation);
 	}
 
 	public void MoveTo(Vector3 targetPosition)
