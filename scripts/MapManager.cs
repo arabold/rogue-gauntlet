@@ -2,56 +2,65 @@ using Godot;
 
 public partial class MapManager : Node
 {
-	private GridMap _floorGrid;
-	private GridMap _wallGrid;
-	private GridMap _decorationGrid;
+	private GridMap _floorGridMap;
+	private GridMap _wallGridMap;
+	private GridMap _decorationGridMap;
 
 	public override void _Ready()
 	{
 		// Get references to the GridMaps
-		_floorGrid = GetNode<GridMap>("FloorGrid");
-		_wallGrid = GetNode<GridMap>("WallGrid");
-		_decorationGrid = GetNode<GridMap>("DecorationGrid");
+		_floorGridMap = GetNode<GridMap>("FloorGridMap");
+		_wallGridMap = GetNode<GridMap>("WallGridMap");
+		_decorationGridMap = GetNode<GridMap>("DecorationGridMap");
 
 		GenerateMap();
 	}
 
-	public void GenerateMap()
+	private void AddRoom(string roomScenePath, Vector3 offset)
 	{
-		// Example dimensions
-		int width = 10;
-		int depth = 10;
+		// Load the room scene
+		var roomScene = ResourceLoader.Load<PackedScene>(roomScenePath);
+		var roomInstance = roomScene.Instantiate<Node3D>();
 
-		// Place floor tiles with random variations
-		for (int x = 0; x < width; x++)
+		// Add the room temporarily to the scene to access its GridMaps
+		AddChild(roomInstance);
+
+		// Combine the Floor GridMap
+		var roomFloorGridMap = roomInstance.GetNode<GridMap>("FloorGridMap");
+		MergeGridMaps(roomFloorGridMap, _floorGridMap, offset);
+
+		// Combine the Wall GridMap
+		var roomWallGridMap = roomInstance.GetNode<GridMap>("WallGridMap");
+		MergeGridMaps(roomWallGridMap, _wallGridMap, offset);
+
+		// Combine the Decoration GridMap
+		var roomDecorationGridMap = roomInstance.GetNode<GridMap>("DecorationGridMap");
+		MergeGridMaps(roomDecorationGridMap, _decorationGridMap, offset);
+
+		// Remove the temporary room instance
+		roomInstance.QueueFree();
+	}
+
+	private void MergeGridMaps(GridMap sourceGridMap, GridMap targetGridMap, Vector3 offset)
+	{
+		// Get all used cells in the source GridMap
+		foreach (Vector3I cell in sourceGridMap.GetUsedCells())
 		{
-			for (int z = 0; z < depth; z++)
+			// Get the tile index at this cell
+			int tileIndex = sourceGridMap.GetCellItem(cell);
+			if (tileIndex != -1) // Skip empty cells
 			{
-				var cell = new Vector3I(x, 0, z);
-				int randomTile = GD.RandRange(0, 2);  // Random tile
-				_floorGrid.SetCellItem(cell, randomTile);
+				int transformIndex = sourceGridMap.GetCellItemOrientation(cell);
+
+				// Apply the offset and copy the tile to the target GridMap
+				Vector3I targetCell = cell + new Vector3I((int)offset.X, (int)offset.Y, (int)offset.Z);
+				targetGridMap.SetCellItem(targetCell, tileIndex, transformIndex);
 			}
 		}
+	}
 
-		// Create basis for each wall direction
-		var northBasis = new Basis(Vector3.Up, 0);                   // Facing north
-		var southBasis = new Basis(Vector3.Up, Mathf.Pi);            // Facing south
-		var eastBasis = new Basis(Vector3.Up, Mathf.Pi / 2);         // Facing east
-		var westBasis = new Basis(Vector3.Up, -Mathf.Pi / 2);        // Facing west
-
-		// Place walls around the edges with proper rotation
-		for (int i = 0; i < width; i++)
-		{
-			_wallGrid.SetCellItem(new Vector3I(i, 0, 0), 0, _wallGrid.GetOrthogonalIndexFromBasis(northBasis));
-			_wallGrid.SetCellItem(new Vector3I(i, 0, depth - 1), 0, _wallGrid.GetOrthogonalIndexFromBasis(southBasis));
-		}
-		for (int i = 0; i < depth; i++)
-		{
-			_wallGrid.SetCellItem(new Vector3I(0, 0, i), 0, _wallGrid.GetOrthogonalIndexFromBasis(eastBasis));
-			_wallGrid.SetCellItem(new Vector3I(width - 1, 0, i), 0, _wallGrid.GetOrthogonalIndexFromBasis(westBasis));
-		}
-
-		// Place a decorative torch
-		//_decorationGrid.SetCellItem(new Vector3I(5, 1, 5), 2);
+	public void GenerateMap()
+	{
+		AddRoom("res://scenes/maps/dungeon/rooms/small_room.tscn", new Vector3(0, 0, 0));
 	}
 }

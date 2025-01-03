@@ -210,28 +210,33 @@ public partial class Player : CharacterBody3D
 		UpdateActionProgress((float)delta);
 		HandleActionInput();
 
+		// Get the camera's forward and right vectors
+		Camera3D camera = GetViewport().GetCamera3D();
+		Vector3 cameraForward = camera.GlobalTransform.Basis.Z;
+		Vector3 cameraRight = camera.GlobalTransform.Basis.X;
 		var direction = Vector3.Zero;
 
 		// We check for each move input and update the direction accordingly.
-		if (Input.IsActionPressed("move_east"))
+		if (Input.IsActionPressed("move_right"))
 		{
-			direction.X += 1.0f;
+			direction += cameraRight;
 		}
-		if (Input.IsActionPressed("move_west"))
+		if (Input.IsActionPressed("move_left"))
 		{
-			direction.X -= 1.0f;
+			direction -= cameraRight;
 		}
-		if (Input.IsActionPressed("move_north"))
+		if (Input.IsActionPressed("move_up"))
 		{
-			direction.Z -= 1.0f;
+			direction -= cameraForward;
 		}
-		if (Input.IsActionPressed("move_south"))
+		if (Input.IsActionPressed("move_down"))
 		{
-			direction.Z += 1.0f;
+			direction += cameraForward;
 		}
 
 		if (direction != Vector3.Zero)
 		{
+			direction.Y = 0;
 			direction = direction.Normalized();
 
 			// Create the target rotation basis

@@ -7,21 +7,29 @@
 [node name="Level" type="Node3D"]
 script = ExtResource("1_rjppm")
 
-[node name="FloorGrid" type="GridMap" parent="."]
+[node name="FloorGridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("1_dy8vv")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
 cell_center_y = false
+cell_center_z = false
 collision_layer = 4
 collision_mask = 0
 
-[node name="WallGrid" type="GridMap" parent="."]
+[node name="WallGridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("2_umira")
-cell_size = Vector3(4, 4, 4)
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
 cell_center_y = false
+cell_center_z = false
 collision_layer = 4
 collision_mask = 0
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
-[node name="DecorationGrid" type="GridMap" parent="."]
+[node name="DecorationGridMap" type="GridMap" parent="."]
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
 cell_center_y = false
+cell_center_z = false
 collision_layer = 4
 collision_mask = 0

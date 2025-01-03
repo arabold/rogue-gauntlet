@@ -1,0 +1,33 @@
+[gd_scene load_steps=3 format=3 uid="uid://dcta6i5ia5by0"]
+
+[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/maps/dungeon/FloorMeshLibrary.tres" id="1_5sjjj"]
+[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/maps/dungeon/WallsMeshLibrary.tres" id="2_bqipc"]
+
+[node name="SmallRoom" type="Node3D"]
+transform = Transform3D(1.1, 0, 0, 0, 1.1, 0, 0, 0, 1.1, 0, 0, 0)
+
+[node name="FloorGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("1_5sjjj")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(6, 2, 655381, 6, 65534, 655381, 6, 65530, 655381, 2, 65530, 655381, 65534, 65530, 655381, 65530, 65530, 655381, 65530, 65534, 655381, 65530, 2, 655381, 65530, 6, 655381, 65534, 6, 655381, 2, 6, 655381, 6, 6, 655381, 2, 2, 655375, 2, 65534, 655375, 65534, 65534, 655375, 65534, 2, 655375)
+}
+
+[node name="WallGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("2_bqipc")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(0, 65528, 655372, 4, 65528, 655361, 65532, 65528, 655361, 65528, 65528, 1048582, 8, 8, 1441798, 8, 65528, 6, 65528, 8, 655366, 4, 8, 28, 65532, 8, 28, 0, 8, 22, 8, 4, 1441814, 65528, 65532, 1048598, 8, 65532, 1048598, 65528, 4, 1048598, 65528, 0, 1048586, 8, 0, 1048576)
+}
+
+[node name="DecorationGridMap" type="GridMap" parent="."]
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
