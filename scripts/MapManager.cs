@@ -57,6 +57,7 @@ public partial class MapManager : Node
 				targetGridMap.SetCellItem(targetCell, tileIndex, transformIndex);
 			}
 		}
+
 	}
 
 	public void GenerateMap()

@@ -98,7 +98,7 @@ wait_time = 0.5
 autostart = true
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.707107, 0.5, -0.5, 0, 0.707107, 0.707107, 0.707107, -0.5, 0.5, -9.99968, 14.1417, 9.99968)
+transform = Transform3D(0.707107, 0.5, -0.5, -5.96046e-08, 0.707107, 0.707107, 0.707107, -0.5, 0.5, -9.99968, 14.1417, 9.99968)
 projection = 1
 size = 20.0
 

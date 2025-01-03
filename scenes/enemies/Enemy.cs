@@ -77,7 +77,7 @@ public partial class Enemy : CharacterBody3D, IDamageable
 	public void TakeDamage(int amount, Vector3 attackDirection)
 	{
 		_enemyBehavior.Hit();
-		_movementComponent.Push(attackDirection, 5.0f);
+		_movementComponent.Push(attackDirection, 2.0f);
 		_healthComponent.TakeDamage(amount);
 	}
 }

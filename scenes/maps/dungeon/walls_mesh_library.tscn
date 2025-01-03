@@ -1,4 +1,4 @@
-[gd_scene load_steps=134 format=4 uid="uid://clf8kr48qsfgr"]
+[gd_scene load_steps=130 format=4 uid="uid://clf8kr48qsfgr"]
 
 [ext_resource type="Texture2D" uid="uid://dwy100cuqcdu1" path="res://assets/models/dungeon/dungeon_texture.png" id="1_736wu"]
 
@@ -553,9 +553,6 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_yxqci")
 
-[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_druns"]
-points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, -0.5, -2, 0, 0.5, -2, 4, -0.5, -2, 0, -0.5)
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qy3jl"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
@@ -627,9 +624,6 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_84ab2")
 
-[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_mub0k"]
-points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, -0.5, -2, 0, 0.5, -2, 4, -0.5, -2, 0, -0.5)
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hdcm6"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
@@ -667,9 +661,6 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_qgk48")
 
-[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_hgok7"]
-points = PackedVector3Array(2.49951, 4, 1.99961, 2.49951, 3.44988, 2, 2.49951, 4, -2, 1.49961, 4, 2, 2.49951, 0, 2, 2.49951, 0, -2, -2.5, 4, -2, -2.5, 4, 2, -2.5, 0, 2, -2.5, 0, -2)
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_53msk"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
@@ -706,9 +697,6 @@ _surfaces = [{
 }]
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_o8ekg")
-
-[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_pjact"]
-points = PackedVector3Array(4, 4, 0.499927, 4, 0, 0.499927, 4, 4, -0.5, 2.49961, 4, 1.99982, 2.49961, 3.44988, 2.00006, 4, 0, -0.5, 2.49961, 0, 2.00006, -4, 4, -0.5, 1.49961, 3.99961, 2.00006, -2.50039, 4, 1.99982, -4, 0, -0.5, -2.50039, 0, 2.00006, -4, 4, 0.499927, -1.50039, 3.99961, 2.00006, -2.50039, 3.44988, 2.00006, -4, 0, 0.499927)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ayv47"]
 resource_name = "texture"
@@ -1469,11 +1457,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.820099, 0, 0)
 mesh = SubResource("ArrayMesh_k0rpy")
 skeleton = NodePath("")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="wall_doorway"]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="wall_doorway/StaticBody3D"]
-shape = SubResource("ConvexPolygonShape3D_druns")
-
 [node name="wall_doorway_scaffold" type="MeshInstance3D" parent="."]
 mesh = SubResource("ArrayMesh_axhra")
 skeleton = NodePath("")
@@ -1483,28 +1466,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.820099, 0, 0)
 mesh = SubResource("ArrayMesh_070tp")
 skeleton = NodePath("")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="wall_doorway_scaffold"]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="wall_doorway_scaffold/StaticBody3D"]
-shape = SubResource("ConvexPolygonShape3D_mub0k")
-
 [node name="wall_doorway_sides" type="MeshInstance3D" parent="."]
 mesh = SubResource("ArrayMesh_yatof")
 skeleton = NodePath("")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="wall_doorway_sides"]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="wall_doorway_sides/StaticBody3D"]
-shape = SubResource("ConvexPolygonShape3D_hgok7")
-
 [node name="wall_doorway_Tsplit" type="MeshInstance3D" parent="."]
 mesh = SubResource("ArrayMesh_qitj5")
 skeleton = NodePath("")
-
-[node name="StaticBody3D" type="StaticBody3D" parent="wall_doorway_Tsplit"]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="wall_doorway_Tsplit/StaticBody3D"]
-shape = SubResource("ConvexPolygonShape3D_pjact")
 
 [node name="wall_endcap" type="MeshInstance3D" parent="."]
 mesh = SubResource("ArrayMesh_4i7lw")

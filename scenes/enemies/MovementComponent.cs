@@ -8,14 +8,14 @@ public partial class MovementComponent : Node
 
 	public bool IsMoving => _targetPosition != Vector3.Zero;
 
-	private Node3D _parent; // Parent node
+	private CharacterBody3D _parent; // Parent node
 	private Vector3 _targetPosition = Vector3.Zero;
 	private Vector3 _pushDirection = Vector3.Zero;
 	private float _pushStrength = 0.0f;
 
 	public override void _Ready()
 	{
-		_parent = GetParent<Node3D>();
+		_parent = GetParent<CharacterBody3D>();
 
 		// Make the parent look in a random direction
 		Random random = new Random();
@@ -36,34 +36,36 @@ public partial class MovementComponent : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (_targetPosition != Vector3.Zero)
+		Vector3 velocity = Vector3.Zero;
+
+		if (_pushStrength > 0.0f)
+		{
+			velocity = _pushDirection * _pushStrength;
+			_pushStrength -= Speed * (float)delta; // Decrease push strength over time
+		}
+		else if (_targetPosition != Vector3.Zero)
 		{
 			Vector3 direction = (_targetPosition - _parent.GlobalTransform.Origin).Normalized();
-			Vector3 moveVector = direction * Speed * (float)delta;
+			velocity = direction * Speed;
 
 			// Automatically orient the parent towards the target position
 			_parent.LookAt(_targetPosition, Vector3.Up);
-
-			// Move the enemy towards the target
-			_parent.GlobalTransform = new Transform3D(_parent.GlobalTransform.Basis, _parent.GlobalTransform.Origin + moveVector);
 
 			// Check if the enemy has reached the target position
 			if (_parent.GlobalTransform.Origin.DistanceTo(_targetPosition) < 0.1f)
 			{
 				_targetPosition = Vector3.Zero;
+				velocity = Vector3.Zero;
 			}
 		}
 
-		if (_pushStrength > 0.0f)
-		{
-			Vector3 pushVector = _pushDirection * _pushStrength * (float)delta;
-			_parent.GlobalTransform = new Transform3D(_parent.GlobalTransform.Basis, _parent.GlobalTransform.Origin + pushVector);
-			_pushStrength -= Speed * (float)delta; // Decrease push strength over time
-		}
+		_parent.Velocity = velocity;
+		_parent.MoveAndSlide();
 	}
 
 	public void Stop()
 	{
 		_targetPosition = Vector3.Zero;
+		_parent.Velocity = Vector3.Zero;
 	}
 }
