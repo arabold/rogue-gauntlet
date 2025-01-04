@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 public partial class Enemy : CharacterBody3D, IDamageable
 {
-	private Node3D _pivot;
 	private EnemyBehavior _enemyBehavior;
 	private MovementComponent _movementComponent;
 	private HealthComponent _healthComponent;
@@ -12,14 +11,6 @@ public partial class Enemy : CharacterBody3D, IDamageable
 	public override void _Ready()
 	{
 		base._Ready();
-
-		_pivot = GetNode<Node3D>("Pivot");
-		if (_pivot == null)
-		{
-			GD.PrintErr("Pivot node not found! Make sure to add a Node3D named 'Pivot' as a child of the Enemy.");
-			QueueFree();
-			return;
-		}
 
 		_enemyBehavior = GetNode<EnemyBehavior>("EnemyBehavior");
 		if (_enemyBehavior == null)
@@ -44,9 +35,6 @@ public partial class Enemy : CharacterBody3D, IDamageable
 			QueueFree();
 			return;
 		}
-
-		// Rotate the pivot 180 degrees to correct initial orientation
-		_pivot.RotateY(Mathf.Pi);
 
 		// Hide the mesh until the animations are fully initialized to
 		// prevent any flickering

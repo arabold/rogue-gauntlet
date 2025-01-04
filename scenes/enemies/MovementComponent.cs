@@ -9,6 +9,7 @@ public partial class MovementComponent : Node
 	public bool IsMoving => _targetPosition != Vector3.Zero;
 
 	private CharacterBody3D _parent; // Parent node
+	private NavigationAgent3D _navigationAgent;
 	private Vector3 _targetPosition = Vector3.Zero;
 	private Vector3 _pushDirection = Vector3.Zero;
 	private float _pushStrength = 0.0f;
@@ -16,6 +17,14 @@ public partial class MovementComponent : Node
 	public override void _Ready()
 	{
 		_parent = GetParent<CharacterBody3D>();
+
+		_navigationAgent = _parent.GetNode<NavigationAgent3D>("NavigationAgent3D");
+		if (_navigationAgent == null)
+		{
+			GD.PrintErr("NavigationAgent3D node not found!");
+			QueueFree();
+			return;
+		}
 
 		// Make the parent look in a random direction
 		Random random = new Random();
@@ -26,6 +35,7 @@ public partial class MovementComponent : Node
 	public void MoveTo(Vector3 targetPosition)
 	{
 		_targetPosition = targetPosition;
+		_navigationAgent.SetTargetPosition(_targetPosition);
 	}
 
 	public void Push(Vector3 direction, float strength)
@@ -45,18 +55,23 @@ public partial class MovementComponent : Node
 		}
 		else if (_targetPosition != Vector3.Zero)
 		{
-			Vector3 direction = (_targetPosition - _parent.GlobalTransform.Origin).Normalized();
-			velocity = direction * Speed;
+			//Vector3 direction = (_targetPosition - _parent.GlobalTransform.Origin).Normalized();
+			//velocity = direction * Speed;
 
 			// Automatically orient the parent towards the target position
-			_parent.LookAt(_targetPosition, Vector3.Up);
+			//_parent.LookAt(_targetPosition, Vector3.Up);
 
 			// Check if the enemy has reached the target position
-			if (_parent.GlobalTransform.Origin.DistanceTo(_targetPosition) < 0.1f)
-			{
-				_targetPosition = Vector3.Zero;
-				velocity = Vector3.Zero;
-			}
+			//if (_parent.GlobalTransform.Origin.DistanceTo(_targetPosition) < 0.1f)
+			//{
+			//_targetPosition = Vector3.Zero;
+			//velocity = Vector3.Zero;
+			//}
+
+			Vector3 destination = _navigationAgent.GetNextPathPosition();
+			Vector3 localDestination = destination - _parent.GlobalPosition;
+			Vector3 direction = localDestination.Normalized();
+			velocity = direction * Speed;
 		}
 
 		_parent.Velocity = velocity;

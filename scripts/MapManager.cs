@@ -5,15 +5,32 @@ public partial class MapManager : Node
 	private GridMap _floorGridMap;
 	private GridMap _wallGridMap;
 	private GridMap _decorationGridMap;
+	private NavigationRegion3D _navigationRegion;
 
 	public override void _Ready()
 	{
+		_navigationRegion = GetNode<NavigationRegion3D>("NavigationRegion3D");
+
 		// Get references to the GridMaps
 		_floorGridMap = GetNode<GridMap>("FloorGridMap");
 		_wallGridMap = GetNode<GridMap>("WallGridMap");
 		_decorationGridMap = GetNode<GridMap>("DecorationGridMap");
 
+		CreateFloor(60, 60);
 		GenerateMap();
+	}
+
+	private void CreateFloor(int width, int depth)
+	{
+		// Create the floor GridMap
+		_floorGridMap.Clear();
+		for (int x = -width / 2; x < width / 2; x += 2)
+		{
+			for (int z = -depth / 2; z < depth / 2; z += 2)
+			{
+				_floorGridMap.SetCellItem(new Vector3I(x, 0, z), 0, 0);
+			}
+		}
 	}
 
 	private void AddRoom(string roomScenePath, Vector3 offset)
@@ -44,6 +61,7 @@ public partial class MapManager : Node
 	private void MergeGridMaps(GridMap sourceGridMap, GridMap targetGridMap, Vector3 offset)
 	{
 		// Get all used cells in the source GridMap
+		GD.Print($"Merging GridMaps from {sourceGridMap.Name} to {targetGridMap.Name}");
 		foreach (Vector3I cell in sourceGridMap.GetUsedCells())
 		{
 			// Get the tile index at this cell
@@ -62,6 +80,22 @@ public partial class MapManager : Node
 
 	public void GenerateMap()
 	{
+		GD.Print("Generating map...");
+
+		// It seems that the GridMaps cannot be children of the NavigationRegion3D
+		// when adding cells to them, so we remove them temporarily.
+		_floorGridMap.GetParent().RemoveChild(_floorGridMap);
+		_wallGridMap.GetParent().RemoveChild(_wallGridMap);
+		_decorationGridMap.GetParent().RemoveChild(_decorationGridMap);
+
 		AddRoom("res://scenes/maps/dungeon/rooms/small_room.tscn", new Vector3(0, 0, 0));
+
+		// Add grid maps back to the NavigationRegion and rebake the navigation mesh
+		_navigationRegion.AddChild(_floorGridMap);
+		_navigationRegion.AddChild(_wallGridMap);
+		_navigationRegion.AddChild(_decorationGridMap);
+		_navigationRegion.BakeNavigationMesh();
+
+		GD.Print("Map generated.");
 	}
 }

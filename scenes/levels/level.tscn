@@ -1,11 +1,16 @@
-[gd_scene load_steps=4 format=3 uid="uid://df88kw5shtk48"]
+[gd_scene load_steps=5 format=3 uid="uid://df88kw5shtk48"]
 
+[ext_resource type="Script" path="res://scripts/MapManager.cs" id="1_7okih"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/maps/dungeon/FloorMeshLibrary.tres" id="1_dy8vv"]
-[ext_resource type="Script" path="res://scripts/MapManager.cs" id="1_rjppm"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/maps/dungeon/WallsMeshLibrary.tres" id="2_umira"]
 
+[sub_resource type="NavigationMesh" id="NavigationMesh_ymnfm"]
+
 [node name="Level" type="Node3D"]
-script = ExtResource("1_rjppm")
+script = ExtResource("1_7okih")
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavigationMesh_ymnfm")
 
 [node name="FloorGridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("1_dy8vv")

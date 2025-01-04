@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://ds1fgmaafnkkj"]
+[gd_scene load_steps=14 format=3 uid="uid://ds1fgmaafnkkj"]
 
 [ext_resource type="Script" path="res://scenes/main/Main.cs" id="1_dl2xl"]
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy.tscn" id="2_jmf21"]
@@ -14,12 +14,6 @@ background_mode = 1
 ambient_light_source = 3
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.1
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_i8ecf"]
-size = Vector3(60, 2, 60)
-
-[sub_resource type="BoxMesh" id="BoxMesh_yfl05"]
-size = Vector3(60, 2, 60)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rm8sn"]
 albedo_color = Color(0.97, 0.549667, 0, 1)
@@ -48,17 +42,6 @@ EnemyScene = ExtResource("2_jmf21")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_cxo8v")
-
-[node name="Ground" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
-collision_layer = 4
-collision_mask = 0
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
-shape = SubResource("BoxShape3D_i8ecf")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
-mesh = SubResource("BoxMesh_yfl05")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.984808, 0.0996005, -0.142244, 0, 0.819152, 0.573576, 0.173648, -0.564863, 0.806707, 0, 18, 0)
@@ -98,7 +81,7 @@ wait_time = 0.5
 autostart = true
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.707107, 0.5, -0.5, -5.96046e-08, 0.707107, 0.707107, 0.707107, -0.5, 0.5, -9.99968, 14.1417, 9.99968)
+transform = Transform3D(0.707107, 0.5, -0.5, 0, 0.707107, 0.707107, 0.707107, -0.5, 0.5, -9.99968, 14.1417, 9.99968)
 projection = 1
 size = 20.0
 
