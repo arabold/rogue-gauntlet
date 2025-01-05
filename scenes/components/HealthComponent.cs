@@ -5,7 +5,7 @@ public partial class HealthComponent : Node
 	[Export] public int MaxHitPoints { get; set; } = 10;
 	[Export] public PackedScene HitEffect { get; set; }
 
-	[Signal] public delegate void HealthChangedEventHandler(int currentHitPoints);
+	[Signal] public delegate void HealthChangedEventHandler(int currentHitPoints, int maxHitPoints);
 	[Signal] public delegate void DiedEventHandler();
 
 	public int CurrentHitPoints { get; private set; }
@@ -22,13 +22,20 @@ public partial class HealthComponent : Node
 			CurrentHitPoints -= amount;
 			SpawnHitEffect();
 
-			EmitSignal(SignalName.HealthChanged, CurrentHitPoints);
+			EmitSignal(SignalName.HealthChanged, CurrentHitPoints, MaxHitPoints);
 
 			if (CurrentHitPoints <= 0)
 			{
 				Die();
 			}
 		}
+	}
+
+	public void Heal(int amount)
+	{
+		CurrentHitPoints += amount;
+		CurrentHitPoints = Mathf.Clamp(CurrentHitPoints, 0, MaxHitPoints);
+		EmitSignal(SignalName.HealthChanged, CurrentHitPoints, MaxHitPoints);
 	}
 
 	private void Die()
