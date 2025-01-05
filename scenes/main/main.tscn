@@ -1,10 +1,8 @@
-[gd_scene load_steps=14 format=3 uid="uid://ds1fgmaafnkkj"]
+[gd_scene load_steps=9 format=3 uid="uid://ds1fgmaafnkkj"]
 
 [ext_resource type="Script" path="res://scenes/main/Main.cs" id="1_dl2xl"]
-[ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy.tscn" id="2_jmf21"]
 [ext_resource type="PackedScene" uid="uid://beddkxj3k6x7i" path="res://ui/hud.tscn" id="3_stuk7"]
-[ext_resource type="PackedScene" uid="uid://hshntmwu857e" path="res://scenes/player/player.tscn" id="3_xhv3r"]
-[ext_resource type="PackedScene" uid="uid://df88kw5shtk48" path="res://scenes/levels/level.tscn" id="5_nxjfc"]
+[ext_resource type="PackedScene" uid="uid://b1b1kyg5ak1kw" path="res://scenes/levels/level.tscn" id="5_nxjfc"]
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="6_g3uvw"]
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="7_wl18x"]
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="8_qd7vr"]
@@ -15,19 +13,6 @@ ambient_light_source = 3
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.1
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rm8sn"]
-albedo_color = Color(0.97, 0.549667, 0, 1)
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_2cb53"]
-material = SubResource("StandardMaterial3D_rm8sn")
-
-[sub_resource type="Curve3D" id="Curve3D_o4rwl"]
-_data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 23.9579, 0, -14.0942, 0, 0, 0, 0, 0, 0, -23.9579, 0, -14.0503, 0, 0, 0, 0, 0, 0, -24.1332, 0, 14.8833, 0, 0, 0, 0, 0, 0, 24.0017, 0, 14.8833, 0, 0, 0, 0, 0, 0, 23.9579, 0, -14.0942),
-"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
-}
-point_count = 5
-
 [sub_resource type="Resource" id="Resource_3h1r8"]
 script = ExtResource("8_qd7vr")
 duration = 1.0
@@ -36,7 +21,6 @@ ease = 2
 
 [node name="Main" type="Node"]
 script = ExtResource("1_dl2xl")
-EnemyScene = ExtResource("2_jmf21")
 
 [node name="HUD" parent="." instance=ExtResource("3_stuk7")]
 
@@ -48,37 +32,10 @@ transform = Transform3D(0.984808, 0.0996005, -0.142244, 0, 0.819152, 0.573576, 0
 light_energy = 0.5
 shadow_enabled = true
 
-[node name="Player" parent="." instance=ExtResource("3_xhv3r")]
-
 [node name="Level" parent="." instance=ExtResource("5_nxjfc")]
 
-[node name="Cylinders" type="Node3D" parent="."]
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Cylinders"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, -14)
-mesh = SubResource("CylinderMesh_2cb53")
-
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="Cylinders"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, -14)
-mesh = SubResource("CylinderMesh_2cb53")
-
-[node name="MeshInstance3D3" type="MeshInstance3D" parent="Cylinders"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, 15)
-mesh = SubResource("CylinderMesh_2cb53")
-
-[node name="MeshInstance3D4" type="MeshInstance3D" parent="Cylinders"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, 15)
-mesh = SubResource("CylinderMesh_2cb53")
-
-[node name="SpawnPath" type="Path3D" parent="."]
-curve = SubResource("Curve3D_o4rwl")
-
-[node name="SpawnLocation" type="PathFollow3D" parent="SpawnPath"]
-transform = Transform3D(-0.000916287, 0, 1, 0, 1, 0, -1, 0, -0.000916287, 23.9579, 0, -14.0942)
-
-[node name="EnemyTimer" type="Timer" parent="."]
-wait_time = 0.5
-autostart = true
+[node name="CameraManager" parent="Level" index="3" node_paths=PackedStringArray("PCam")]
+PCam = NodePath("../../PhantomCamera3D")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(0.707107, 0.5, -0.5, 0, 0.707107, 0.707107, 0.707107, -0.5, 0.5, -9.99968, 14.1417, 9.99968)
@@ -90,12 +47,11 @@ process_priority = 300
 process_physics_priority = 300
 script = ExtResource("6_g3uvw")
 
-[node name="PhantomCamera3D" type="Node3D" parent="." node_paths=PackedStringArray("follow_target")]
+[node name="PhantomCamera3D" type="Node3D" parent="."]
 transform = Transform3D(0.707087, 0.499991, -0.499984, 0, 0.707094, 0.707084, 0.707087, -0.499991, 0.499984, -9.99968, 14.1417, 9.99968)
 top_level = true
 script = ExtResource("7_wl18x")
 follow_mode = 5
-follow_target = NodePath("../Player")
 tween_resource = SubResource("Resource_3h1r8")
 follow_damping = true
 follow_distance = 20.0
@@ -103,4 +59,4 @@ dead_zone_width = 0.3
 dead_zone_height = 0.3
 spring_length = 20.0
 
-[connection signal="timeout" from="EnemyTimer" to="." method="OnEnemyTimerTimeout"]
+[editable path="Level"]

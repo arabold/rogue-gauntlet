@@ -2,50 +2,44 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
+public enum MapTile
+{
+	Wall,
+	Floor
+}
+
 public partial class MapManager : Node
 {
-	[Export] public int MapWidth = 60;
-	[Export] public int MapHeight = 60;
-	[Export] public int MaxRooms = 10;
-	[Export] public int RoomMinSize = 3;
-	[Export] public int RoomMaxSize = 8;
+	[Export] public int MapWidth = 30;
+	[Export] public int MapHeight = 30;
+	[Export] public int MaxRooms = 5;
+	[Export] public int RoomMinSize = 2;
+	[Export] public int RoomMaxSize = 4;
 	[Export] public int Seed = 42;
 	// Bias for straight corridors (0 to 1)
 	[Export] public float CorridorStraightness = 0.75f;
 
-	private GridMap _floorGridMap;
-	private GridMap _wallGridMap;
-	private GridMap _decorationGridMap;
-	private NavigationRegion3D _navigationRegion;
+	[Export] public GridMap FloorGridMap;
+	[Export] public GridMap WallGridMap;
+	[Export] public GridMap DecorationGridMap;
+	[Export] public NavigationRegion3D NavigationRegion;
+
+	[Export]
+	public PackedScene[] EnemyScenes { get; set; }
+
+	[Signal]
+	public delegate void MapGeneratedEventHandler();
 
 	private Random _random;
-	private int[,] _map;
 	private List<Rect2I> _rooms = new List<Rect2I>();
+
+	public MapTile[,] BaseMap { get; private set; }
+	public Vector3 PlayerSpawnPoint { get; private set; }
+	public List<EnemySpawnPoint> EnemySpawnPoints { get; private set; } = new List<EnemySpawnPoint>();
 
 	public override void _Ready()
 	{
 		_random = new Random(Seed);
-		_navigationRegion = GetNode<NavigationRegion3D>("NavigationRegion3D");
-
-		// Get references to the GridMaps
-		_floorGridMap = GetNode<GridMap>("FloorGridMap");
-		_wallGridMap = GetNode<GridMap>("WallGridMap");
-		_decorationGridMap = GetNode<GridMap>("DecorationGridMap");
-
-		GenerateMap();
-	}
-
-	private void CreateFloor(int width, int depth)
-	{
-		// Create the floor GridMap
-		_floorGridMap.Clear();
-		for (int x = -width / 2; x < width / 2; x += 2)
-		{
-			for (int z = -depth / 2; z < depth / 2; z += 2)
-			{
-				_floorGridMap.SetCellItem(new Vector3I(x, 0, z), 0, 0);
-			}
-		}
 	}
 
 	private void AddRoom(string roomScenePath, Vector3 offset)
@@ -59,15 +53,15 @@ public partial class MapManager : Node
 
 		// Combine the Floor GridMap
 		var roomFloorGridMap = roomInstance.GetNode<GridMap>("FloorGridMap");
-		MergeGridMaps(roomFloorGridMap, _floorGridMap, offset);
+		MergeGridMaps(roomFloorGridMap, FloorGridMap, offset);
 
 		// Combine the Wall GridMap
 		var roomWallGridMap = roomInstance.GetNode<GridMap>("WallGridMap");
-		MergeGridMaps(roomWallGridMap, _wallGridMap, offset);
+		MergeGridMaps(roomWallGridMap, WallGridMap, offset);
 
 		// Combine the Decoration GridMap
 		var roomDecorationGridMap = roomInstance.GetNode<GridMap>("DecorationGridMap");
-		MergeGridMaps(roomDecorationGridMap, _decorationGridMap, offset);
+		MergeGridMaps(roomDecorationGridMap, DecorationGridMap, offset);
 
 		// Remove the temporary room instance
 		roomInstance.QueueFree();
@@ -129,7 +123,7 @@ public partial class MapManager : Node
 		{
 			for (int y = room.Position.Y; y < room.Position.Y + room.Size.Y; y++)
 			{
-				_map[x, y] = 0; // 0 = Floor
+				BaseMap[x, y] = MapTile.Floor;
 			}
 		}
 	}
@@ -152,7 +146,7 @@ public partial class MapManager : Node
 		while (visitedRooms.Count < _rooms.Count)
 		{
 			// Mark the current tile as a floor
-			_map[drunkard.X, drunkard.Y] = 0;
+			BaseMap[drunkard.X, drunkard.Y] = MapTile.Floor;
 
 			// Check if we're in a new room and mark it as visited
 			foreach (Rect2I room in _rooms)
@@ -197,23 +191,51 @@ public partial class MapManager : Node
 		};
 	}
 
-	private void GenerateMap()
+	private void GeneratePlayerSpawnPoint()
+	{
+		// Find a random floor tile to place the player
+		int playerX = 0;
+		int playerZ = 0;
+		while (BaseMap[playerX, playerZ] != MapTile.Floor)
+		{
+			playerX = _random.Next(1, MapWidth - 1);
+			playerZ = _random.Next(1, MapHeight - 1);
+		}
+
+		PlayerSpawnPoint = new Vector3(playerX, 0, playerZ);
+	}
+
+	private void GenerateEnemySpawnPoints()
+	{
+		// Clear the existing spawn points
+		EnemySpawnPoints.Clear();
+
+		// Add skeleton spawn points
+		for (int i = 0; i < 10; i++)
+		{
+			int skeletonX = 0;
+			int skeletonZ = 0;
+			while (BaseMap[skeletonX, skeletonZ] != MapTile.Floor)
+			{
+				skeletonX = _random.Next(1, MapWidth - 1);
+				skeletonZ = _random.Next(1, MapHeight - 1);
+			}
+
+			EnemySpawnPoints.Add(new EnemySpawnPoint(EnemyType.SkeletonMinion, new Vector3(skeletonX, 0, skeletonZ)));
+		}
+	}
+
+	public void GenerateMap()
 	{
 		GD.Print("Generating map...");
 
-		// It seems that the GridMaps cannot be children of the NavigationRegion3D
-		// when adding cells to them, so we remove them temporarily.
-		_floorGridMap.GetParent().RemoveChild(_floorGridMap);
-		_wallGridMap.GetParent().RemoveChild(_wallGridMap);
-		_decorationGridMap.GetParent().RemoveChild(_decorationGridMap);
-
 		// Initialize the map with walls
-		_map = new int[MapWidth, MapHeight];
+		BaseMap = new MapTile[MapWidth, MapHeight];
 		for (int x = 0; x < MapWidth; x++)
 		{
 			for (int y = 0; y < MapHeight; y++)
 			{
-				_map[x, y] = 1; // 1 = Wall
+				BaseMap[x, y] = MapTile.Wall;
 			}
 		}
 
@@ -223,26 +245,40 @@ public partial class MapManager : Node
 		// Step 2: Use Drunkard's Walk to connect the rooms
 		DrunkardsWalkConnect();
 
+		// Step 3: Create spawn points
+		GeneratePlayerSpawnPoint();
+		GenerateEnemySpawnPoints();
+
 		RenderMap();
 
 		// Add grid maps back to the NavigationRegion and rebake the navigation mesh
-		_navigationRegion.AddChild(_floorGridMap);
-		_navigationRegion.AddChild(_wallGridMap);
-		_navigationRegion.AddChild(_decorationGridMap);
-		_navigationRegion.BakeNavigationMesh();
+		// TODO: Not sure why we cannot make the GridMaps children of the NavigationRegion directly
+		// If we try, the thread seems to block indefinitely when making updates to the GridMaps
+		Node floorGridMapCopy = FloorGridMap.Duplicate();
+		Node wallGripMapCopy = WallGridMap.Duplicate();
+		Node decorationGridMapCopy = DecorationGridMap.Duplicate();
+		NavigationRegion.AddChild(floorGridMapCopy);
+		NavigationRegion.AddChild(wallGripMapCopy);
+		NavigationRegion.AddChild(decorationGridMapCopy);
+		NavigationRegion.BakeNavigationMesh();
+		floorGridMapCopy.QueueFree();
+		wallGripMapCopy.QueueFree();
+		decorationGridMapCopy.QueueFree();
 
 		GD.Print("Map generated.");
+
+		EmitSignal(SignalName.MapGenerated);
 	}
 
 	private void RenderMap()
 	{
-		_floorGridMap.Clear();
-		_wallGridMap.Clear();
+		FloorGridMap.Clear();
+		WallGridMap.Clear();
 
 		// Find a random floor tile to place the player
 		int playerX = 0;
 		int playerZ = 0;
-		while (_map[playerX, playerZ] != 0)
+		while (BaseMap[playerX, playerZ] != MapTile.Floor)
 		{
 			playerX = _random.Next(1, MapWidth - 1);
 			playerZ = _random.Next(1, MapHeight - 1);
@@ -253,20 +289,20 @@ public partial class MapManager : Node
 		{
 			for (int z = 0; z < MapHeight; z++)
 			{
-				if (_map[x, z] == 0)
+				if (BaseMap[x, z] == MapTile.Floor)
 				{
-					_floorGridMap.SetCellItem(new Vector3I((x - playerX) * 4, 0, (z - playerZ) * 4), 0, 0);
+					FloorGridMap.SetCellItem(new Vector3I((x - playerX) * 4, 0, (z - playerZ) * 4), 0, 0);
 				}
 			}
 		}
 
 		// Set wall tiles in the GridMap
-		_wallGridMap.Clear();
+		WallGridMap.Clear();
 		for (int x = 0; x < MapWidth; x++)
 		{
 			for (int z = 0; z < MapHeight; z++)
 			{
-				if (_map[x, z] == 0) // Only check floor tiles
+				if (BaseMap[x, z] == MapTile.Floor) // Only check floor tiles
 				{
 					// Check for wall adjacency and place walls
 					PlaceWallIfNeeded(x, z, playerX, playerZ);
@@ -281,27 +317,27 @@ public partial class MapManager : Node
 		Vector3I basePosition = new Vector3I((x - playerX) * 4, 0, (z - playerZ) * 4);
 
 		// Check above (north)
-		if (z > 0 && _map[x, z - 1] == 1) // Wall above
+		if (z > 0 && BaseMap[x, z - 1] == MapTile.Wall) // Wall above
 		{
-			_wallGridMap.SetCellItem(basePosition + new Vector3I(0, 0, -2), 0, 0); // Vertical wall (no rotation)
+			WallGridMap.SetCellItem(basePosition + new Vector3I(0, 0, -2), 0, 0); // Vertical wall (no rotation)
 		}
 
 		// Check below (south)
-		if (z < MapHeight - 1 && _map[x, z + 1] == 1) // Wall below
+		if (z < MapHeight - 1 && BaseMap[x, z + 1] == MapTile.Wall) // Wall below
 		{
-			_wallGridMap.SetCellItem(basePosition + new Vector3I(0, 0, 2), 0, 0); // Vertical wall (no rotation)
+			WallGridMap.SetCellItem(basePosition + new Vector3I(0, 0, 2), 0, 0); // Vertical wall (no rotation)
 		}
 
 		// Check left (west)
-		if (x > 0 && _map[x - 1, z] == 1) // Wall to the left
+		if (x > 0 && BaseMap[x - 1, z] == MapTile.Wall) // Wall to the left
 		{
-			_wallGridMap.SetCellItem(basePosition + new Vector3I(-2, 0, 0), 0, 16); // Horizontal wall (rotated)
+			WallGridMap.SetCellItem(basePosition + new Vector3I(-2, 0, 0), 0, 16); // Horizontal wall (rotated)
 		}
 
 		// Check right (east)
-		if (x < MapWidth - 1 && _map[x + 1, z] == 1) // Wall to the right
+		if (x < MapWidth - 1 && BaseMap[x + 1, z] == MapTile.Wall) // Wall to the right
 		{
-			_wallGridMap.SetCellItem(basePosition + new Vector3I(2, 0, 0), 0, 16); // Horizontal wall (rotated)
+			WallGridMap.SetCellItem(basePosition + new Vector3I(2, 0, 0), 0, 16); // Horizontal wall (rotated)
 		}
 	}
 }

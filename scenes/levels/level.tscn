@@ -1,13 +1,35 @@
-[gd_scene load_steps=5 format=3 uid="uid://df88kw5shtk48"]
+[gd_scene load_steps=11 format=3 uid="uid://b1b1kyg5ak1kw"]
 
-[ext_resource type="Script" path="res://scripts/MapManager.cs" id="1_7okih"]
-[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/maps/dungeon/FloorMeshLibrary.tres" id="1_dy8vv"]
-[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/maps/dungeon/WallsMeshLibrary.tres" id="2_umira"]
+[ext_resource type="Script" path="res://scenes/levels/Level.cs" id="1_37vyo"]
+[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="1_dy8vv"]
+[ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy.tscn" id="2_4mulc"]
+[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="2_umira"]
+[ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/map_manager.tscn" id="3_hy4st"]
+[ext_resource type="PackedScene" uid="uid://ch4hss8ixtooy" path="res://scenes/levels/enemy_spawner.tscn" id="4_76dm5"]
+[ext_resource type="PackedScene" uid="uid://ukjvle2lc3wy" path="res://scenes/levels/player_spawner.tscn" id="5_g3baj"]
+[ext_resource type="PackedScene" uid="uid://hshntmwu857e" path="res://scenes/player/player.tscn" id="6_ot162"]
+[ext_resource type="PackedScene" uid="uid://co63kumhx7fol" path="res://scenes/levels/CameraManager.tscn" id="7_astvi"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_ymnfm"]
 
 [node name="Level" type="Node3D"]
-script = ExtResource("1_7okih")
+script = ExtResource("1_37vyo")
+
+[node name="MapManager" parent="." node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap", "NavigationRegion") instance=ExtResource("3_hy4st")]
+FloorGridMap = NodePath("../FloorGridMap")
+WallGridMap = NodePath("../WallGridMap")
+DecorationGridMap = NodePath("../DecorationGridMap")
+NavigationRegion = NodePath("../NavigationRegion3D")
+EnemyScenes = Array[PackedScene]([ExtResource("2_4mulc")])
+
+[node name="PlayerSpawner" parent="." instance=ExtResource("5_g3baj")]
+PlayerScene = ExtResource("6_ot162")
+
+[node name="EnemySpawner" parent="." instance=ExtResource("4_76dm5")]
+EnemyScene = ExtResource("2_4mulc")
+
+[node name="CameraManager" parent="." node_paths=PackedStringArray("PlayerSpawner") instance=ExtResource("7_astvi")]
+PlayerSpawner = NodePath("../PlayerSpawner")
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
 navigation_mesh = SubResource("NavigationMesh_ymnfm")

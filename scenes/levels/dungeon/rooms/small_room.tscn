@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://dcta6i5ia5by0"]
 
-[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/maps/dungeon/FloorMeshLibrary.tres" id="1_5sjjj"]
-[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/maps/dungeon/WallsMeshLibrary.tres" id="2_bqipc"]
+[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="1_5sjjj"]
+[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="2_bqipc"]
 
 [node name="SmallRoom" type="Node3D"]
 transform = Transform3D(1.1, 0, 0, 0, 1.1, 0, 0, 0, 1.1, 0, 0, 0)

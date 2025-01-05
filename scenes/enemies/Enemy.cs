@@ -59,7 +59,7 @@ public partial class Enemy : CharacterBody3D, IDamageable
 
 	private void OnVisibilityNotifierScreenExited()
 	{
-		QueueFree();
+		// QueueFree();
 	}
 
 	public void TakeDamage(int amount, Vector3 attackDirection)

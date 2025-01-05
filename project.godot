@@ -90,6 +90,8 @@ action_4={
 
 [layer_names]
 
+3d_render/layer_1="background"
+3d_render/layer_2="walls"
 3d_physics/layer_1="player"
 3d_physics/layer_2="enemies"
 3d_physics/layer_3="world"
