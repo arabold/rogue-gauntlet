@@ -15,19 +15,9 @@ public enum PlayerState
 
 public partial class Player : CharacterBody3D
 {
-	// The enemy's target (e.g., the player)
-	[Export] public Node3D Target { get; set; }
-
 	// How fast the player moves in meters per second.
 	[Export] public int Speed { get; set; } = 14;
 
-	// The downward acceleration when in the air, in meters per second squared.
-	[Export] public int FallAcceleration { get; set; } = 75;
-
-	// Adjust this value to control rotation speed
-	[Export] public float RotationSpeed { get; set; } = 10.0f;
-
-	private Vector3 _targetVelocity = Vector3.Zero;
 	private Node3D _pivot;
 	private AnimationTree _animationTree;
 	private AnimationNodeStateMachinePlayback _animationStateMachine;
@@ -35,18 +25,21 @@ public partial class Player : CharacterBody3D
 	private ActionRegistry _actionRegistry;
 	private PlayerAction _currentAction;
 
+	private MovementComponent _movementComponent;
+	private InputComponent _inputComponent;
+
 	private bool _isWalking = false;
 	private bool _isPerformingAction = false;
 	private float _actionTimer = 0f;
 	private PlayerState _currentActionState = PlayerState.Idle;
 	private Dictionary<string, float> _cooldowns = new();
 
-	private readonly Dictionary<string, string> _actionInputMap = new()
+	private readonly Dictionary<int, string> _actionInputMap = new()
 	{
-		{ "action_1", "quick_attack" },
-		{ "action_2", "heavy_attack" },
-		{ "action_3", "drink_potion" },
-		{ "action_4", "cast_spell" }
+		{ 1, "quick_attack" },
+		{ 2, "heavy_attack" },
+		{ 3, "drink_potion" },
+		{ 4, "cast_spell" }
 	};
 
 	public override void _Ready()
@@ -59,6 +52,24 @@ public partial class Player : CharacterBody3D
 		_animationStateMachine = (AnimationNodeStateMachinePlayback)_animationTree.Get("parameters/playback");
 		_animationStateMachine.Start("Idle");
 		_actionRegistry = ActionRegistry.CreateDefault();
+
+		_movementComponent = GetNode<MovementComponent>("MovementComponent");
+		if (_movementComponent == null)
+		{
+			GD.PrintErr("MovementComponent node not found!");
+			QueueFree();
+			return;
+		}
+
+		_inputComponent = GetNode<InputComponent>("InputComponent");
+		if (_inputComponent == null)
+		{
+			GD.PrintErr("InputComponent node not found!");
+			QueueFree();
+			return;
+		}
+
+		_movementComponent.Speed = Speed;
 
 		// Initialize all cooldowns to 0
 		foreach (var actionId in _actionRegistry.GetAllActionIds())
@@ -73,24 +84,29 @@ public partial class Player : CharacterBody3D
 		return _cooldowns[action.Id] <= 0;
 	}
 
-	private void HandleActionInput()
+	private void HandleInput()
 	{
-		if (_isPerformingAction) return;
+		if (_isPerformingAction)
+		{
+			// If we're performing an action, don't allow any other actions
+			_movementComponent.SetInputDirection(Vector3.Zero);
+			return;
+		}
 
 		foreach (var (inputAction, actionId) in _actionInputMap)
 		{
-			if (Input.IsActionJustPressed(inputAction))
+			if (_inputComponent.IsActionPressed(inputAction))
 			{
 				var action = _actionRegistry.GetAction(actionId);
 				if (action != null && CanPerformAction(action))
 				{
-					// Use the action number directly (1-based)
-					int actionIndex = int.Parse(inputAction.Split('_')[1]);
-					StartAction(action, actionIndex);
+					StartAction(action, inputAction);
 					break;
 				}
 			}
 		}
+
+		_movementComponent.SetInputDirection(_inputComponent.InputDirection);
 	}
 
 	private void StartAction(PlayerAction action, int actionIndex)
@@ -107,39 +123,6 @@ public partial class Player : CharacterBody3D
 		GameManager.Instance.UpdateCooldown(actionIndex, progressTime, progressTime);
 
 		action.OnStart?.Invoke();
-		UpdateActionState(action.State);
-	}
-
-	private void UpdateActionState(PlayerState newState)
-	{
-		if (_currentActionState == newState) return;
-
-		_currentActionState = newState;
-		UpdateAnimation();
-	}
-
-	private void UpdateMovementState(bool isWalking)
-	{
-		if (_isWalking == isWalking) return;
-
-		_isWalking = isWalking;
-		UpdateAnimation();
-	}
-
-	private void UpdateAnimation()
-	{
-		if (_isPerformingAction && _currentAction != null)
-		{
-			_animationStateMachine.Travel(_currentAction.AnimationName);
-		}
-		else if (_isWalking)
-		{
-			_animationStateMachine.Travel("Walking_B");
-		}
-		else
-		{
-			_animationStateMachine.Travel("Idle");
-		}
 	}
 
 	private void UpdateActionProgress(float delta)
@@ -172,9 +155,7 @@ public partial class Player : CharacterBody3D
 	private void UpdateActionUI(string actionId)
 	{
 		var action = _actionRegistry.GetAction(actionId);
-		// Find the input action that maps to this actionId and extract its index
 		var actionInput = _actionInputMap.First(x => x.Value == actionId).Key;
-		int actionIndex = int.Parse(actionInput.Split('_')[1]);
 
 		float duration = action.Cooldown > 0 ? action.Cooldown : action.Duration;
 		float current = _cooldowns[actionId];
@@ -185,7 +166,7 @@ public partial class Player : CharacterBody3D
 			current = _actionTimer;
 		}
 
-		GameManager.Instance.UpdateCooldown(actionIndex, Math.Max(0, current), duration);
+		GameManager.Instance.UpdateCooldown(actionInput, Math.Max(0, current), duration);
 	}
 
 	private void CompleteAction()
@@ -197,72 +178,22 @@ public partial class Player : CharacterBody3D
 		if (_currentAction != null)
 		{
 			var actionInput = _actionInputMap.First(x => x.Value == _currentAction.Id).Key;
-			int actionIndex = int.Parse(actionInput.Split('_')[1]);
-			GameManager.Instance.UpdateCooldown(actionIndex, 0, 1);
+			GameManager.Instance.UpdateCooldown(actionInput, 0, 1);
 		}
 
 		_currentAction = null;
-		UpdateActionState(PlayerState.Idle);
+	}
+
+	public override void _Process(double delta)
+	{
+		UpdateActionProgress((float)delta);
+		HandleInput();
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		UpdateActionProgress((float)delta);
-		HandleActionInput();
-
-		// Get the camera's forward and right vectors
-		Camera3D camera = GetViewport().GetCamera3D();
-		Vector3 cameraForward = camera.GlobalTransform.Basis.Z;
-		Vector3 cameraRight = camera.GlobalTransform.Basis.X;
-		var direction = Vector3.Zero;
-
-		// We check for each move input and update the direction accordingly.
-		if (Input.IsActionPressed("move_right"))
-		{
-			direction += cameraRight;
-		}
-		if (Input.IsActionPressed("move_left"))
-		{
-			direction -= cameraRight;
-		}
-		if (Input.IsActionPressed("move_up"))
-		{
-			direction -= cameraForward;
-		}
-		if (Input.IsActionPressed("move_down"))
-		{
-			direction += cameraForward;
-		}
-
-		if (direction != Vector3.Zero)
-		{
-			direction.Y = 0;
-			direction = direction.Normalized();
-
-			// Create the target rotation basis
-			var targetBasis = Basis.LookingAt(-direction);
-			// Smoothly interpolate between current and target rotation
-			_pivot.Basis = _pivot.Basis.Slerp(targetBasis, (float)delta * RotationSpeed);
-
-			UpdateMovementState(true);
-		}
-		else
-		{
-			UpdateMovementState(false);
-		}
-
-		// Ground velocity
-		_targetVelocity.X = direction.X * Speed;
-		_targetVelocity.Z = direction.Z * Speed;
-
-		// Vertical velocity
-		if (!IsOnFloor()) // If in the air, fall towards the floor. Literally gravity
-		{
-			_targetVelocity.Y -= FallAcceleration * (float)delta;
-		}
-
-		// Moving the character
-		Velocity = _targetVelocity;
+		Velocity = _movementComponent.GetVelocity();
+		LookAt(Position + _movementComponent.GetDirection(), Vector3.Up);
 		MoveAndSlide();
 	}
 }

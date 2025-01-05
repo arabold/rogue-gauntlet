@@ -1,6 +1,4 @@
 using Godot;
-using System;
-using System.Collections.Generic;
 
 public partial class Enemy : CharacterBody3D, IDamageable
 {
@@ -36,14 +34,15 @@ public partial class Enemy : CharacterBody3D, IDamageable
 			return;
 		}
 
+		// Connect the health component's Died signal to the enemy behavior's Die method
+		_healthComponent.Connect(
+			HealthComponent.SignalName.Died,
+			Callable.From(_enemyBehavior.Die)
+		);
+
 		// Hide the mesh until the animations are fully initialized to
 		// prevent any flickering
 		Visible = false;
-	}
-
-	public override void _PhysicsProcess(double delta)
-	{
-		Visible = true;
 	}
 
 	public void Initialize(Vector3 startPosition)
@@ -68,4 +67,13 @@ public partial class Enemy : CharacterBody3D, IDamageable
 		_movementComponent.Push(attackDirection, 2.0f);
 		_healthComponent.TakeDamage(amount);
 	}
+
+	public override void _PhysicsProcess(double delta)
+	{
+		Visible = true;
+		Velocity = _movementComponent.GetVelocity();
+		LookAt(Position + _movementComponent.GetDirection(), Vector3.Up);
+		MoveAndSlide();
+	}
+
 }

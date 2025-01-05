@@ -27,7 +27,7 @@ public partial class FlyingOrb : Node3D
 	}
 
 
-	public override void _Process(double delta)
+	public override void _PhysicsProcess(double delta)
 	{
 		// Increment the angle based on the orbit speed
 		_angle += (float)(OrbitSpeed * delta);

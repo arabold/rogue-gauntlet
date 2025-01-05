@@ -74,7 +74,7 @@ public partial class EnemyBehavior : Node
 		_remainingActionTime = ActionDurations[CurrentAction];
 	}
 
-	public override void _PhysicsProcess(double delta)
+	public override void _Process(double delta)
 	{
 		if (CurrentAction != ActionState.None)
 		{
@@ -112,7 +112,7 @@ public partial class EnemyBehavior : Node
 		// Move toward the target
 		if (_movementComponent != null)
 		{
-			_movementComponent.MoveTo(targetPosition);
+			_movementComponent.NavigateTo(targetPosition);
 		}
 	}
 
@@ -129,7 +129,7 @@ public partial class EnemyBehavior : Node
 		// Move away from the target
 		if (_movementComponent != null)
 		{
-			_movementComponent.MoveTo(-targetPosition);
+			_movementComponent.NavigateTo(-targetPosition);
 		}
 	}
 
