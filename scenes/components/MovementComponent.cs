@@ -20,6 +20,7 @@ public partial class MovementComponent : Node
 
 	private CharacterBody3D _parent;
 	private Vector3 _velocity = Vector3.Zero;
+	private Vector3 _lookAtDirection = Vector3.Zero;
 	private Vector3 _targetDirection = Vector3.Zero;
 	private Vector3 _targetPosition = Vector3.Zero;
 	private Vector3 _pushDirection = Vector3.Zero;
@@ -29,10 +30,13 @@ public partial class MovementComponent : Node
 	{
 		_parent = GetParent<CharacterBody3D>();
 
-		// Make the parent look in a random direction
+		// Look into a random direction
 		Random random = new Random();
-		float randomRotation = (float)(random.NextDouble() * 2 * Math.PI);
-		_parent.RotateY(randomRotation);
+		_lookAtDirection = new Vector3(
+			(float)random.NextDouble() * 2 - 1,
+			0,
+			(float)random.NextDouble() * 2 - 1
+		).Normalized();
 	}
 
 	public void NavigateTo(Vector3 targetPosition)
@@ -72,26 +76,26 @@ public partial class MovementComponent : Node
 		return _targetDirection;
 	}
 
+	public Vector3 GetLookAtDirection()
+	{
+		return _lookAtDirection;
+	}
+
+	public void Stop()
+	{
+		_targetDirection = Vector3.Zero;
+		_targetPosition = Vector3.Zero;
+	}
+
 	public override void _PhysicsProcess(double delta)
 	{
-		// If we have a target position, navigate to it
-		if (_targetPosition != Vector3.Zero)
-		{
-			if (_parent.GlobalTransform.Origin.DistanceTo(_targetPosition) < 1f)
-			{
-				// If we reached the final destination, stop moving
-				_targetDirection = Vector3.Zero;
-				_targetPosition = Vector3.Zero;
-			}
-			else
-			{
-				// Move to the next path position
-				Vector3 destination = NavigationAgent.GetNextPathPosition();
-				Vector3 localDestination = destination - _parent.GlobalPosition;
-				_targetDirection = localDestination.Normalized();
-			}
-		}
+		NavigateToTarget();
+		UpdateVelocity(delta);
+		SmoothRotateToward(delta);
+	}
 
+	private void UpdateVelocity(double delta)
+	{
 		Vector3 velocity;
 		if (_pushStrength > 0.1f)
 		{
@@ -127,9 +131,35 @@ public partial class MovementComponent : Node
 		}
 	}
 
-	public void Stop()
+	private void NavigateToTarget()
 	{
-		_targetDirection = Vector3.Zero;
-		_targetPosition = Vector3.Zero;
+		// If we have a target position, navigate to it
+		if (_targetPosition != Vector3.Zero)
+		{
+			if (_parent.GlobalTransform.Origin.DistanceTo(_targetPosition) < 1f)
+			{
+				// If we reached the final destination, stop moving
+				_targetDirection = Vector3.Zero;
+				_targetPosition = Vector3.Zero;
+			}
+			else
+			{
+				// Move to the next path position
+				Vector3 destination = NavigationAgent.GetNextPathPosition();
+				Vector3 localDestination = destination - _parent.GlobalPosition;
+				_targetDirection = localDestination.Normalized();
+			}
+		}
+	}
+
+	private void SmoothRotateToward(double delta)
+	{
+		if (_targetDirection.Length() > 0.1f)
+		{
+			_lookAtDirection = _lookAtDirection.Slerp(
+				_targetDirection,
+				RotationSpeed * (float)delta
+			).Normalized();
+		}
 	}
 }

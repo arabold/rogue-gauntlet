@@ -193,7 +193,9 @@ public partial class Player : CharacterBody3D
 	public override void _PhysicsProcess(double delta)
 	{
 		Velocity = _movementComponent.GetVelocity();
-		LookAt(Position + _movementComponent.GetDirection(), Vector3.Up);
 		MoveAndSlide();
+
+		LookAt(Position + _movementComponent.GetLookAtDirection(), Vector3.Up);
 	}
+
 }

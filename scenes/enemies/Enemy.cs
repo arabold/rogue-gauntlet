@@ -72,8 +72,8 @@ public partial class Enemy : CharacterBody3D, IDamageable
 	{
 		Visible = true;
 		Velocity = _movementComponent.GetVelocity();
-		LookAt(Position + _movementComponent.GetDirection(), Vector3.Up);
 		MoveAndSlide();
-	}
 
+		LookAt(Position + _movementComponent.GetLookAtDirection(), Vector3.Up);
+	}
 }
