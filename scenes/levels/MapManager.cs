@@ -5,7 +5,8 @@ using Godot;
 public enum MapTile
 {
 	Wall,
-	Floor
+	Pathway,
+	Room
 }
 
 public partial class MapManager : Node
@@ -121,7 +122,7 @@ public partial class MapManager : Node
 		{
 			for (int y = room.Position.Y; y < room.Position.Y + room.Size.Y; y++)
 			{
-				BaseMap[x, y] = MapTile.Floor;
+				BaseMap[x, y] = MapTile.Room;
 			}
 		}
 	}
@@ -144,7 +145,10 @@ public partial class MapManager : Node
 		while (visitedRooms.Count < _rooms.Count)
 		{
 			// Mark the current tile as a floor
-			BaseMap[drunkard.X, drunkard.Y] = MapTile.Floor;
+			if (BaseMap[drunkard.X, drunkard.Y] == MapTile.Wall)
+			{
+				BaseMap[drunkard.X, drunkard.Y] = MapTile.Pathway;
+			}
 
 			// Check if we're in a new room and mark it as visited
 			foreach (Rect2I room in _rooms)
@@ -194,7 +198,7 @@ public partial class MapManager : Node
 		// Find a random floor tile to place the player
 		int playerX = 0;
 		int playerZ = 0;
-		while (BaseMap[playerX, playerZ] != MapTile.Floor)
+		while (!IsFloor(playerX, playerZ))
 		{
 			playerX = _random.Next(1, MapWidth - 1);
 			playerZ = _random.Next(1, MapHeight - 1);
@@ -213,7 +217,7 @@ public partial class MapManager : Node
 		{
 			int x = 0;
 			int y = 0;
-			while (BaseMap[x, y] != MapTile.Floor)
+			while (!IsFloor(x, y))
 			{
 				x = _random.Next(1, MapWidth - 1);
 				y = _random.Next(1, MapHeight - 1);
@@ -242,15 +246,7 @@ public partial class MapManager : Node
 	{
 		GD.Print("Generating map...");
 
-		// Initialize the map with walls
-		BaseMap = new MapTile[MapWidth, MapHeight];
-		for (int x = 0; x < MapWidth; x++)
-		{
-			for (int y = 0; y < MapHeight; y++)
-			{
-				BaseMap[x, y] = MapTile.Wall;
-			}
-		}
+		ResetMap();
 
 		// Step 1: Generate random rooms
 		GenerateRooms();
@@ -285,6 +281,19 @@ public partial class MapManager : Node
 		EmitSignal(SignalName.MapGenerated);
 	}
 
+	private void ResetMap()
+	{
+		// Initialize the map with walls
+		BaseMap = new MapTile[MapWidth, MapHeight];
+		for (int x = 0; x < MapWidth; x++)
+		{
+			for (int y = 0; y < MapHeight; y++)
+			{
+				BaseMap[x, y] = MapTile.Wall;
+			}
+		}
+	}
+
 	private void RenderMap()
 	{
 		FloorGridMap.Clear();
@@ -293,7 +302,7 @@ public partial class MapManager : Node
 		// Find a random floor tile to place the player
 		int playerX = 0;
 		int playerZ = 0;
-		while (BaseMap[playerX, playerZ] != MapTile.Floor)
+		while (!IsFloor(playerX, playerZ))
 		{
 			playerX = _random.Next(1, MapWidth - 1);
 			playerZ = _random.Next(1, MapHeight - 1);
@@ -302,11 +311,16 @@ public partial class MapManager : Node
 		// Set floor tiles in the GridMap
 		for (int x = 0; x < MapWidth; x++)
 		{
-			for (int z = 0; z < MapHeight; z++)
+			for (int y = 0; y < MapHeight; y++)
 			{
-				if (BaseMap[x, z] == MapTile.Floor)
+				var tile = BaseMap[x, y];
+				if (tile == MapTile.Pathway)
 				{
-					FloorGridMap.SetCellItem(new Vector3I(x * 4, 0, z * 4), 0, 0);
+					FloorGridMap.SetCellItem(new Vector3I(x * 4, 0, y * 4), 0, 0);
+				}
+				else if (tile == MapTile.Room)
+				{
+					FloorGridMap.SetCellItem(new Vector3I(x * 4, 0, y * 4), 21, 0);
 				}
 			}
 		}
@@ -315,12 +329,12 @@ public partial class MapManager : Node
 		WallGridMap.Clear();
 		for (int x = 0; x < MapWidth; x++)
 		{
-			for (int z = 0; z < MapHeight; z++)
+			for (int y = 0; y < MapHeight; y++)
 			{
-				if (BaseMap[x, z] == MapTile.Floor) // Only check floor tiles
+				if (IsFloor(x, y)) // Only check floor tiles
 				{
 					// Check for wall adjacency and place walls
-					PlaceWallIfNeeded(x, z);
+					PlaceWallIfNeeded(x, y);
 				}
 			}
 		}
@@ -332,27 +346,37 @@ public partial class MapManager : Node
 		Vector3I basePosition = new Vector3I(x * 4, 0, z * 4);
 
 		// Check above (north)
-		if (z > 0 && BaseMap[x, z - 1] == MapTile.Wall) // Wall above
+		if (z > 0 && IsWall(x, z - 1)) // Wall above
 		{
 			WallGridMap.SetCellItem(basePosition + new Vector3I(0, 0, -2), 0, 0); // Vertical wall (no rotation)
 		}
 
 		// Check below (south)
-		if (z < MapHeight - 1 && BaseMap[x, z + 1] == MapTile.Wall) // Wall below
+		if (z < MapHeight - 1 && IsWall(x, z + 1)) // Wall below
 		{
 			WallGridMap.SetCellItem(basePosition + new Vector3I(0, 0, 2), 0, 0); // Vertical wall (no rotation)
 		}
 
 		// Check left (west)
-		if (x > 0 && BaseMap[x - 1, z] == MapTile.Wall) // Wall to the left
+		if (x > 0 && IsWall(x - 1, z)) // Wall to the left
 		{
 			WallGridMap.SetCellItem(basePosition + new Vector3I(-2, 0, 0), 0, 16); // Horizontal wall (rotated)
 		}
 
 		// Check right (east)
-		if (x < MapWidth - 1 && BaseMap[x + 1, z] == MapTile.Wall) // Wall to the right
+		if (x < MapWidth - 1 && IsWall(x + 1, z)) // Wall to the right
 		{
 			WallGridMap.SetCellItem(basePosition + new Vector3I(2, 0, 0), 0, 16); // Horizontal wall (rotated)
 		}
+	}
+
+	private bool IsFloor(int x, int y)
+	{
+		return BaseMap[x, y] == MapTile.Pathway || BaseMap[x, y] == MapTile.Room;
+	}
+
+	private bool IsWall(int x, int y)
+	{
+		return BaseMap[x, y] == MapTile.Wall;
 	}
 }
