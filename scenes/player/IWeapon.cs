@@ -1,0 +1,4 @@
+interface IWeapon
+{
+    void Attack();
+}

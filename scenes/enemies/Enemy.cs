@@ -37,7 +37,7 @@ public partial class Enemy : CharacterBody3D, IDamageable
 		// Connect the health component's Died signal to the enemy behavior's Die method
 		_healthComponent.Connect(
 			HealthComponent.SignalName.Died,
-			Callable.From(_enemyBehavior.Die)
+			Callable.From(OnDie)
 		);
 
 		// Hide the mesh until the animations are fully initialized to
@@ -66,6 +66,13 @@ public partial class Enemy : CharacterBody3D, IDamageable
 		_enemyBehavior.Hit();
 		_movementComponent.Push(attackDirection, 2.0f);
 		_healthComponent.TakeDamage(amount);
+	}
+
+	private void OnDie()
+	{
+		// Disable collision detection for the enemy
+		CollisionLayer = 0;
+		_enemyBehavior.Die();
 	}
 
 	public override void _PhysicsProcess(double delta)

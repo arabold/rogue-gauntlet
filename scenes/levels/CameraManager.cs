@@ -15,7 +15,7 @@ public partial class CameraManager : Node
 
 	private void OnPlayerSpawned(Player player)
 	{
-		GD.Print("Player spawned. Setting camera target...");
+		GD.Print($"{player.Name} spawned. Setting camera target...");
 		PCam.Call("set_follow_target", player);
 		PCam.Set("follow_mode", 5); // FRAMED = 5
 	}

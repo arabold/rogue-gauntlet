@@ -47,7 +47,6 @@ public partial class HealthComponent : Node
 	{
 		if (HitEffect == null)
 		{
-			GD.PrintErr("HitEffectScene is not set!");
 			return;
 		}
 

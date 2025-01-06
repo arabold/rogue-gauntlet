@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3 uid="uid://6pckd2upjrvu"]
+
+[ext_resource type="Script" path="res://scenes/player/WeaponSwing.cs" id="1_xsocg"]
+[ext_resource type="Script" path="res://addons/lines_and_trails_3d/trail_3d.gd" id="2_dfxuj"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4vv8c"]
+size = Vector3(2, 2, 0.1)
+
+[sub_resource type="Curve" id="Curve_dae2j"]
+_data = [Vector2(0, 1), 0.0, -1.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[node name="WeaponSwing" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+script = ExtResource("1_xsocg")
+
+[node name="Area3D" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+collision_layer = 0
+collision_mask = 10
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+shape = SubResource("BoxShape3D_4vv8c")
+
+[node name="Trail3D" type="MeshInstance3D" parent="."]
+process_priority = 9999
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 1.5, 0, 0)
+cast_shadow = 0
+script = ExtResource("2_dfxuj")
+width = 0.5
+width_curve = SubResource("Curve_dae2j")

@@ -32,6 +32,8 @@ transform = Transform3D(0.984808, 0.0996005, -0.142244, 0, 0.819152, 0.573576, 0
 light_energy = 0.5
 shadow_enabled = true
 
+[node name="Placeholder" type="Node3D" parent="."]
+
 [node name="Level" parent="." instance=ExtResource("5_nxjfc")]
 
 [node name="CameraManager" parent="Level" index="3" node_paths=PackedStringArray("PCam")]
@@ -47,11 +49,12 @@ process_priority = 300
 process_physics_priority = 300
 script = ExtResource("6_g3uvw")
 
-[node name="PhantomCamera3D" type="Node3D" parent="."]
+[node name="PhantomCamera3D" type="Node3D" parent="." node_paths=PackedStringArray("follow_target")]
 transform = Transform3D(0.707087, 0.499991, -0.499984, 0, 0.707094, 0.707084, 0.707087, -0.499991, 0.499984, -9.99968, 14.1417, 9.99968)
 top_level = true
 script = ExtResource("7_wl18x")
 follow_mode = 5
+follow_target = NodePath("../Placeholder")
 tween_resource = SubResource("Resource_3h1r8")
 follow_damping = true
 follow_distance = 20.0

@@ -24,9 +24,6 @@ public partial class MapManager : Node
 	[Export] public GridMap DecorationGridMap;
 	[Export] public NavigationRegion3D NavigationRegion;
 
-	[Export]
-	public PackedScene[] EnemyScenes { get; set; }
-
 	[Signal]
 	public delegate void MapGeneratedEventHandler();
 
@@ -36,6 +33,7 @@ public partial class MapManager : Node
 	public MapTile[,] BaseMap { get; private set; }
 	public Vector3 PlayerSpawnPoint { get; private set; }
 	public List<EnemySpawnPoint> EnemySpawnPoints { get; private set; } = new List<EnemySpawnPoint>();
+	public List<ItemSpawnPoint> ItemSpawnPoints { get; private set; } = new();
 
 	public override void _Ready()
 	{
@@ -211,17 +209,32 @@ public partial class MapManager : Node
 		EnemySpawnPoints.Clear();
 
 		// Add skeleton spawn points
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 20; i++)
 		{
-			int skeletonX = 0;
-			int skeletonZ = 0;
-			while (BaseMap[skeletonX, skeletonZ] != MapTile.Floor)
+			int x = 0;
+			int y = 0;
+			while (BaseMap[x, y] != MapTile.Floor)
 			{
-				skeletonX = _random.Next(1, MapWidth - 1);
-				skeletonZ = _random.Next(1, MapHeight - 1);
+				x = _random.Next(1, MapWidth - 1);
+				y = _random.Next(1, MapHeight - 1);
 			}
 
-			EnemySpawnPoints.Add(new EnemySpawnPoint(EnemyType.SkeletonMinion, new Vector3(skeletonX, 0, skeletonZ)));
+			EnemySpawnPoints.Add(new EnemySpawnPoint(EnemyType.SkeletonMinion, new Vector3(x * 4, 0, y * 4)));
+		}
+	}
+
+	private void GenerateItemSpawnPoints()
+	{
+		ItemSpawnPoints.Clear();
+		foreach (Rect2I room in _rooms)
+		{
+			int itemCount = _random.Next(1, 3);
+			for (int i = 0; i < itemCount; i++)
+			{
+				int x = _random.Next(room.Position.X, room.Position.X + room.Size.X);
+				int y = _random.Next(room.Position.Y, room.Position.Y + room.Size.Y);
+				ItemSpawnPoints.Add(new ItemSpawnPoint(new Vector3(x * 4, 0, y * 4)));
+			}
 		}
 	}
 
@@ -248,6 +261,8 @@ public partial class MapManager : Node
 		// Step 3: Create spawn points
 		GeneratePlayerSpawnPoint();
 		GenerateEnemySpawnPoints();
+		GenerateItemSpawnPoints();
+		//PlaceBarrelsInRooms();
 
 		RenderMap();
 
@@ -291,7 +306,7 @@ public partial class MapManager : Node
 			{
 				if (BaseMap[x, z] == MapTile.Floor)
 				{
-					FloorGridMap.SetCellItem(new Vector3I((x - playerX) * 4, 0, (z - playerZ) * 4), 0, 0);
+					FloorGridMap.SetCellItem(new Vector3I(x * 4, 0, z * 4), 0, 0);
 				}
 			}
 		}
@@ -305,16 +320,16 @@ public partial class MapManager : Node
 				if (BaseMap[x, z] == MapTile.Floor) // Only check floor tiles
 				{
 					// Check for wall adjacency and place walls
-					PlaceWallIfNeeded(x, z, playerX, playerZ);
+					PlaceWallIfNeeded(x, z);
 				}
 			}
 		}
 	}
 
-	private void PlaceWallIfNeeded(int x, int z, int playerX, int playerZ)
+	private void PlaceWallIfNeeded(int x, int z)
 	{
 		// Check each direction for wall adjacency
-		Vector3I basePosition = new Vector3I((x - playerX) * 4, 0, (z - playerZ) * 4);
+		Vector3I basePosition = new Vector3I(x * 4, 0, z * 4);
 
 		// Check above (north)
 		if (z > 0 && BaseMap[x, z - 1] == MapTile.Wall) // Wall above

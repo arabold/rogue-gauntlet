@@ -24,6 +24,10 @@ public partial class Player : CharacterBody3D
 	private ActionRegistry _actionRegistry;
 	private PlayerAction _currentAction;
 
+	private FlyingOrb _flyingOrb;
+	private WeaponBase _quickAttackSwing;
+	private WeaponBase _heavyAttackSwing;
+
 	private MovementComponent _movementComponent;
 	private InputComponent _inputComponent;
 
@@ -65,6 +69,21 @@ public partial class Player : CharacterBody3D
 			QueueFree();
 			return;
 		}
+
+		_flyingOrb = GetNode<FlyingOrb>("FlyingOrb");
+		_flyingOrb.QueueFree();
+
+		_quickAttackSwing = GetNode<WeaponSwing>("QuickAttackSwing");
+		_quickAttackSwing.Connect(
+			WeaponBase.SignalName.Hit,
+			Callable.From<Node>(OnDamageableHit)
+		);
+
+		_heavyAttackSwing = GetNode<WeaponSwing>("HeavyAttackSwing");
+		_heavyAttackSwing.Connect(
+			WeaponBase.SignalName.Hit,
+			Callable.From<Node>(OnDamageableHit)
+		);
 
 		_movementComponent.Speed = Speed;
 
@@ -111,10 +130,21 @@ public partial class Player : CharacterBody3D
 	{
 		if (action == null) return;
 
+		GD.Print($"Player triggered action: {action.Id}");
 		_isPerformingAction = true;
 		_actionTimer = action.Duration;
 		_currentAction = action;
 		_cooldowns[action.Id] = action.Cooldown;
+
+		switch (action.Id)
+		{
+			case "quick_attack":
+				_quickAttackSwing.Attack();
+				break;
+			case "heavy_attack":
+				_heavyAttackSwing.Attack();
+				break;
+		}
 
 		// Always update UI with either cooldown or duration
 		float progressTime = action.Cooldown > 0 ? action.Cooldown : action.Duration;
@@ -177,7 +207,15 @@ public partial class Player : CharacterBody3D
 
 		_currentAction = null;
 		_isPerformingAction = false;
+	}
 
+	private void OnDamageableHit(Node node)
+	{
+		GD.Print($"Player hit {node.Name}");
+		if (node is IDamageable damageable)
+		{
+			damageable.TakeDamage(5, GlobalTransform.Basis.Z);
+		}
 	}
 
 	public override void _Process(double delta)

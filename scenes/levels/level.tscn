@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=13 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="1_dy8vv"]
@@ -6,9 +6,11 @@
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="2_umira"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/map_manager.tscn" id="3_hy4st"]
 [ext_resource type="PackedScene" uid="uid://ch4hss8ixtooy" path="res://scenes/levels/enemy_spawner.tscn" id="4_76dm5"]
+[ext_resource type="PackedScene" uid="uid://c5y1dtkex8ba4" path="res://scenes/items/barrel.tscn" id="4_ttmur"]
 [ext_resource type="PackedScene" uid="uid://ukjvle2lc3wy" path="res://scenes/levels/player_spawner.tscn" id="5_g3baj"]
 [ext_resource type="PackedScene" uid="uid://hshntmwu857e" path="res://scenes/player/player.tscn" id="6_ot162"]
 [ext_resource type="PackedScene" uid="uid://co63kumhx7fol" path="res://scenes/levels/CameraManager.tscn" id="7_astvi"]
+[ext_resource type="PackedScene" uid="uid://cjvydduvn2nut" path="res://scenes/levels/item_spawner.tscn" id="8_on56x"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_ymnfm"]
 
@@ -20,13 +22,15 @@ FloorGridMap = NodePath("../FloorGridMap")
 WallGridMap = NodePath("../WallGridMap")
 DecorationGridMap = NodePath("../DecorationGridMap")
 NavigationRegion = NodePath("../NavigationRegion3D")
-EnemyScenes = Array[PackedScene]([ExtResource("2_4mulc")])
 
 [node name="PlayerSpawner" parent="." instance=ExtResource("5_g3baj")]
 PlayerScene = ExtResource("6_ot162")
 
 [node name="EnemySpawner" parent="." instance=ExtResource("4_76dm5")]
 EnemyScene = ExtResource("2_4mulc")
+
+[node name="ItemSpawner" parent="." instance=ExtResource("8_on56x")]
+ItemScene = ExtResource("4_ttmur")
 
 [node name="CameraManager" parent="." node_paths=PackedStringArray("PlayerSpawner") instance=ExtResource("7_astvi")]
 PlayerSpawner = NodePath("../PlayerSpawner")

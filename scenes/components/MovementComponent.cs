@@ -159,12 +159,19 @@ public partial class MovementComponent : Node
 
 	private void SmoothRotateToward(double delta)
 	{
-		if (_targetDirection.Length() > 0.1f)
+		if (_targetDirection != Vector3.Zero && _lookAtDirection != _targetDirection)
 		{
-			_lookAtDirection = _lookAtDirection.Slerp(
-				_targetDirection,
-				RotationSpeed * (float)delta
-			).Normalized();
+			if (_lookAtDirection != Vector3.Zero)
+			{
+				_lookAtDirection = _lookAtDirection.Slerp(
+					_targetDirection,
+					RotationSpeed * (float)delta
+				).Normalized();
+			}
+			else
+			{
+				_lookAtDirection = _targetDirection;
+			}
 		}
 	}
 }

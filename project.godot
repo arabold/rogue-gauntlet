@@ -33,6 +33,11 @@ project/assembly_name="Rogue Gauntlet"
 
 enabled=PackedStringArray("res://addons/lines_and_trails_3d/plugin.cfg", "res://addons/phantom_camera/plugin.cfg")
 
+[global_group]
+
+destroyable="Can be destroyed by attacks. Will vanish from the map grid."
+item="An item on the map that the player can interact with"
+
 [input]
 
 move_up={
@@ -95,6 +100,7 @@ action_4={
 3d_physics/layer_1="player"
 3d_physics/layer_2="enemies"
 3d_physics/layer_3="world"
+3d_physics/layer_4="items"
 
 [rendering]
 
