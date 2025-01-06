@@ -3,20 +3,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-public enum PlayerState
-{
-	Idle,
-	Walking,
-	QuickAttacking,
-	HeavyAttacking,
-	DrinkingPotion,
-	CastingSpell
-}
-
 public partial class Player : CharacterBody3D
 {
 	// How fast the player moves in meters per second.
 	[Export] public int Speed { get; set; } = 14;
+
+	// The following states are used for animation
+	public bool IsDead => GameManager.Instance.Health <= 0;
+	public bool IsHit => _movementComponent.IsPushed;
+	public bool IsMoving => _movementComponent.IsMoving;
+	public bool IsFalling => _movementComponent.IsFalling;
+	public bool IsPerformingAction => _isPerformingAction;
+	public string CurrentActionId => _currentAction?.Id;
+	public PlayerAction CurrentAction => _currentAction;
 
 	private Node3D _pivot;
 	private AnimationTree _animationTree;
@@ -28,10 +27,8 @@ public partial class Player : CharacterBody3D
 	private MovementComponent _movementComponent;
 	private InputComponent _inputComponent;
 
-	private bool _isWalking = false;
 	private bool _isPerformingAction = false;
 	private float _actionTimer = 0f;
-	private PlayerState _currentActionState = PlayerState.Idle;
 	private Dictionary<string, float> _cooldowns = new();
 
 	private readonly Dictionary<int, string> _actionInputMap = new()
@@ -90,6 +87,7 @@ public partial class Player : CharacterBody3D
 		{
 			// If we're performing an action, don't allow any other actions
 			_movementComponent.SetInputDirection(Vector3.Zero);
+			_movementComponent.SetLookAtDirection(_inputComponent.InputDirection);
 			return;
 		}
 
@@ -121,8 +119,6 @@ public partial class Player : CharacterBody3D
 		// Always update UI with either cooldown or duration
 		float progressTime = action.Cooldown > 0 ? action.Cooldown : action.Duration;
 		GameManager.Instance.UpdateCooldown(actionIndex, progressTime, progressTime);
-
-		action.OnStart?.Invoke();
 	}
 
 	private void UpdateActionProgress(float delta)
@@ -171,17 +167,17 @@ public partial class Player : CharacterBody3D
 
 	private void CompleteAction()
 	{
-		_isPerformingAction = false;
-		_currentAction?.OnEnd?.Invoke();
-
 		// Reset progress bar
 		if (_currentAction != null)
 		{
 			var actionInput = _actionInputMap.First(x => x.Value == _currentAction.Id).Key;
-			GameManager.Instance.UpdateCooldown(actionInput, 0, 1);
+			float duration = _currentAction.Cooldown > 0 ? _currentAction.Cooldown : _currentAction.Duration;
+			GameManager.Instance.UpdateCooldown(actionInput, 0, duration);
 		}
 
 		_currentAction = null;
+		_isPerformingAction = false;
+
 	}
 
 	public override void _Process(double delta)
@@ -195,7 +191,11 @@ public partial class Player : CharacterBody3D
 		Velocity = _movementComponent.GetVelocity();
 		MoveAndSlide();
 
-		LookAt(Position + _movementComponent.GetLookAtDirection(), Vector3.Up);
+		var lookAt = _movementComponent.GetLookAtDirection();
+		if (lookAt != Vector3.Zero)
+		{
+			LookAt(Position + lookAt, Vector3.Up);
+		}
 	}
 
 }

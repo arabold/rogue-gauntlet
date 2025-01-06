@@ -45,12 +45,12 @@ public partial class EnemyBehavior : Node
 	[Export] public ActionState CurrentAction { get; private set; } = ActionState.Spawning;
 
 	// We can use these properties to automatically transition between animation states
-	public bool IsSleeping => CurrentAction == ActionState.None && CurrentBehavior == BehaviorState.Sleeping;
-	public bool IsMoving => CurrentAction == ActionState.None && _movementComponent.IsMoving;
-	public bool IsDead => CurrentAction == ActionState.None && CurrentBehavior == BehaviorState.Dead;
+	public bool IsSleeping => CurrentBehavior == BehaviorState.Sleeping;
+	public bool IsMoving => _movementComponent.IsMoving;
+	public bool IsFalling => _movementComponent.IsFalling;
+	public bool IsDead => CurrentAction == ActionState.Dying || CurrentBehavior == BehaviorState.Dead;
 	public bool IsAttacking => CurrentAction == ActionState.Attacking;
-	public bool IsHit => CurrentAction == ActionState.Hit;
-	public bool IsDying => CurrentAction == ActionState.Dying;
+	public bool IsHit => CurrentAction == ActionState.Hit || _movementComponent.IsPushed;
 	public bool IsSpawning => CurrentAction == ActionState.Spawning;
 
 	public void SetSleeping() => SetBehavior(BehaviorState.Sleeping);

@@ -66,6 +66,11 @@ public partial class MovementComponent : Node
 		_targetDirection = inputDirection.Normalized();
 	}
 
+	public void SetLookAtDirection(Vector3 lookAtDirection)
+	{
+		_lookAtDirection = lookAtDirection.Normalized();
+	}
+
 	public Vector3 GetVelocity()
 	{
 		return _velocity;

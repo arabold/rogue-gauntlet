@@ -23,8 +23,6 @@ public class ActionRegistry
         registry.RegisterAction(new PlayerAction(
             "quick_attack",
             "Quick Attack",
-            PlayerState.QuickAttacking,
-            "1H_Melee_Attack_Chop",
             duration: 0.5f,
             cooldown: 0f
         ));
@@ -32,8 +30,6 @@ public class ActionRegistry
         registry.RegisterAction(new PlayerAction(
             "heavy_attack",
             "Heavy Attack",
-            PlayerState.HeavyAttacking,
-            "1H_Melee_Attack_Slice_Horizontal",
             duration: 1.2f,
             cooldown: 2.5f
         ));
@@ -41,8 +37,6 @@ public class ActionRegistry
         registry.RegisterAction(new PlayerAction(
             "drink_potion",
             "Drink Potion",
-            PlayerState.DrinkingPotion,
-            "Use_Item",
             duration: 0.8f,
             cooldown: 0f
         ));
@@ -50,8 +44,6 @@ public class ActionRegistry
         registry.RegisterAction(new PlayerAction(
             "cast_spell",
             "Cast Spell",
-            PlayerState.CastingSpell,
-            "Spellcasting",
             duration: 0.8f,
             cooldown: 1.5f
         ));
