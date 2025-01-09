@@ -20,6 +20,10 @@ config/icon="res://icon.svg"
 PhantomCameraManager="*res://addons/phantom_camera/scripts/managers/phantom_camera_manager.gd"
 GameManager="*res://scripts/GameManager.cs"
 
+[debug]
+
+settings/stdout/print_fps=true
+
 [display]
 
 window/size/viewport_width=1440
@@ -95,12 +99,24 @@ action_4={
 
 [layer_names]
 
-3d_render/layer_1="background"
+3d_render/layer_1="world"
 3d_render/layer_2="walls"
-3d_physics/layer_1="player"
-3d_physics/layer_2="enemies"
-3d_physics/layer_3="world"
-3d_physics/layer_4="items"
+3d_render/layer_3="player"
+3d_render/layer_4="enemies"
+3d_render/layer_5="statics"
+3d_render/layer_6="items"
+3d_render/layer_7="projectiles"
+3d_render/layer_8="npcs"
+3d_render/layer_9="effects"
+3d_physics/layer_1="world"
+3d_physics/layer_2="walls"
+3d_physics/layer_3="player"
+3d_physics/layer_4="enemies"
+3d_physics/layer_5="statics"
+3d_physics/layer_6="items"
+3d_physics/layer_7="projectiles"
+3d_physics/layer_8="npcs"
+3d_physics/layer_9="effects"
 
 [rendering]
 

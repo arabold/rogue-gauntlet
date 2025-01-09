@@ -48,6 +48,7 @@ height = 1.0
 script = ExtResource("1_hqi8w")
 
 [node name="barrel_small" type="MeshInstance3D" parent="."]
+layers = 32
 mesh = SubResource("ArrayMesh_71a2t")
 skeleton = NodePath("")
 

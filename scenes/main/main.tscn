@@ -29,6 +29,7 @@ environment = SubResource("Environment_cxo8v")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.984808, 0.0996005, -0.142244, 0, 0.819152, 0.573576, 0.173648, -0.564863, 0.806707, 0, 18, 0)
+visible = false
 light_energy = 0.5
 shadow_enabled = true
 
@@ -36,7 +37,7 @@ shadow_enabled = true
 
 [node name="Level" parent="." instance=ExtResource("5_nxjfc")]
 
-[node name="CameraManager" parent="Level" index="3" node_paths=PackedStringArray("PCam")]
+[node name="CameraManager" parent="Level" index="4" node_paths=PackedStringArray("PCam")]
 PCam = NodePath("../../PhantomCamera3D")
 
 [node name="Camera3D" type="Camera3D" parent="."]

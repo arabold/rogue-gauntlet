@@ -161,17 +161,10 @@ public partial class MovementComponent : Node
 	{
 		if (_targetDirection != Vector3.Zero && _lookAtDirection != _targetDirection)
 		{
-			if (_lookAtDirection != Vector3.Zero)
-			{
-				_lookAtDirection = _lookAtDirection.Slerp(
-					_targetDirection,
-					RotationSpeed * (float)delta
-				).Normalized();
-			}
-			else
-			{
-				_lookAtDirection = _targetDirection;
-			}
+			_lookAtDirection = _lookAtDirection.Slerp(
+				_targetDirection,
+				RotationSpeed * (float)delta
+			).Normalized();
 		}
 	}
 }
