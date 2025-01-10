@@ -25,8 +25,6 @@ public partial class Player : CharacterBody3D
 	private BoneAttachmentManager _attachmentManager;
 
 	private FlyingOrb _flyingOrb;
-	private WeaponBase _quickAttackSwing;
-	private WeaponBase _heavyAttackSwing;
 
 	private MovementComponent _movementComponent;
 	private InputComponent _inputComponent;
@@ -42,14 +40,15 @@ public partial class Player : CharacterBody3D
 		_animationStateMachine = (AnimationNodeStateMachinePlayback)_animationTree.Get("parameters/playback");
 		_animationStateMachine.Start("Idle");
 
-		_quickAttackSwing = GetNode<WeaponSwing>("QuickAttackSwing");
-		_heavyAttackSwing = GetNode<WeaponSwing>("HeavyAttackSwing");
+		WeaponBase quickAttackSwing = GetNode<WeaponSwing>("QuickAttackSwing");
+		WeaponBase heavyAttackSwing = GetNode<WeaponSwing>("HeavyAttackSwing");
+		RangedWeapon weaponProjectile = GetNode<RangedWeapon>("RangedWeapon");
 
 		_actionManager = GetNode<ActionManager>("ActionManager");
-		_actionManager.AssignAction(0, new QuickAttackAction(_quickAttackSwing));
-		_actionManager.AssignAction(1, new HeavyAttackAction(_heavyAttackSwing));
+		_actionManager.AssignAction(0, new QuickAttackAction(quickAttackSwing));
+		_actionManager.AssignAction(1, new HeavyAttackAction(heavyAttackSwing));
 		_actionManager.AssignAction(2, new DrinkPotionAction());
-		_actionManager.AssignAction(3, new CastSpellAction());
+		_actionManager.AssignAction(3, new QuickAttackAction(weaponProjectile));
 
 		_movementComponent = GetNode<MovementComponent>("MovementComponent");
 		if (_movementComponent == null)

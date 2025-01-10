@@ -21,17 +21,11 @@ public partial class HitBoxComponent : Area3D
 
 	private void OnAreaEntered(Area3D area)
 	{
-		if (area is IDamageable damageable)
-		{
-			EmitSignal(SignalName.HitDetected, (Node3D)damageable);
-		}
+		EmitSignal(SignalName.HitDetected, area);
 	}
 
 	private void OnBodyEntered(Node3D node)
 	{
-		if (node is IDamageable damageable)
-		{
-			EmitSignal(SignalName.HitDetected, (Node3D)damageable);
-		}
+		EmitSignal(SignalName.HitDetected, node);
 	}
 }

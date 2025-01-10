@@ -3,7 +3,6 @@ using Godot;
 public partial class WeaponSwing : WeaponBase
 {
 	private Node3D _trail;
-	private Tween _tween;
 
 	[Export] public float SwingOffset = 180f; // Offset for the swing animation
 	[Export] public float SwingDuration = 0.5f; // Time for the swing animation
@@ -38,16 +37,16 @@ public partial class WeaponSwing : WeaponBase
 		float offset = (SwingOffset - SwingArc) / 2f;
 		float end = SwingRight ? offset : offset + SwingArc;
 
-		_tween = GetTree().CreateTween();
-		_tween.TweenProperty(
+		Tween tween = GetTree().CreateTween();
+		tween.TweenProperty(
 			this,
 			"rotation_degrees",
 			new Vector3(RotationDegrees.X, end, RotationDegrees.Z),
 			SwingDuration
 		).SetDelay(Delay); // Set the delay for the animation
 
-		_tween.Finished += OnAttackFinished; // Disable detection after animation
-		_tween.Play();
+		tween.Finished += OnAttackFinished; // Disable detection after animation
+		tween.Play();
 	}
 
 	private void OnAttackFinished()

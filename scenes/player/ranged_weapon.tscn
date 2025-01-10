@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://cuqdoxdbo6j0w"]
+
+[ext_resource type="Script" path="res://scenes/player/RangedWeapon.cs" id="1_ikbgr"]
+[ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/components/projectile.tscn" id="2_vyhbg"]
+
+[node name="RangedWeapon" type="Node3D"]
+script = ExtResource("1_ikbgr")
+ProjectileScene = ExtResource("2_vyhbg")
+
+[node name="ProjectileContainer" type="Node" parent="."]
