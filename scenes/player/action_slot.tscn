@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cvlbnkr0h7y32"]
+
+[ext_resource type="Script" path="res://scenes/player/ActionSlot.cs" id="1_74bdu"]
+
+[node name="ActionSlot" type="Node"]
+script = ExtResource("1_74bdu")

@@ -73,9 +73,9 @@ public partial class GameManager : Node
 	}
 
 	// Method to update cooldown status
-	public void UpdateCooldown(int actionIndex, float remainingTime, float totalTime)
+	public void UpdateCooldown(int slotIndex, float remainingTime, float totalTime)
 	{
-		EmitSignal(SignalName.CooldownUpdated, actionIndex, remainingTime, totalTime);
+		EmitSignal(SignalName.CooldownUpdated, slotIndex, remainingTime, totalTime);
 	}
 
 	// Method to change the level

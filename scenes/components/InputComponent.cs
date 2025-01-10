@@ -12,9 +12,13 @@ public partial class InputComponent : Node
 		return InputDirection != Vector3.Zero;
 	}
 
-	public bool IsActionPressed(int action)
+	/// <summary>
+	/// Check if the action button is pressed.
+	/// </summary>
+	/// <param name="slotIndex">0-based index of the action slot.</param>
+	public bool IsActionSlotPressed(int slotIndex)
 	{
-		return Input.IsActionPressed($"action_{action}");
+		return Input.IsActionPressed($"action_{slotIndex + 1}");
 	}
 
 	public override void _Process(double delta)

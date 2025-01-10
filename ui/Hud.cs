@@ -59,12 +59,11 @@ public partial class Hud : Control
 		// You can add additional UI changes here, like showing a "Paused" label
 	}
 
-	private void OnCooldownUpdated(int actionIndex, float remainingTime, float totalTime)
+	private void OnCooldownUpdated(int slotIndex, float remainingTime, float totalTime)
 	{
-		int arrayIndex = actionIndex - 1;
-		if (arrayIndex >= 0 && arrayIndex < _cooldownBars.Length)
+		if (slotIndex >= 0 && slotIndex < _cooldownBars.Length)
 		{
-			_cooldownBars[arrayIndex].Value = 100 * remainingTime / totalTime;
+			_cooldownBars[slotIndex].Value = 100 * remainingTime / totalTime;
 		}
 	}
 }

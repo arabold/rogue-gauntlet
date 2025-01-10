@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8f3d27ga3wrm"]
+
+[ext_resource type="PackedScene" uid="uid://cvlbnkr0h7y32" path="res://scenes/player/action_slot.tscn" id="1_f7uw6"]
+[ext_resource type="Script" path="res://scenes/player/ActionManager.cs" id="1_lj302"]
+
+[node name="ActionManager" type="Node"]
+script = ExtResource("1_lj302")
+
+[node name="ActionSlot_1" parent="." instance=ExtResource("1_f7uw6")]
+
+[node name="ActionSlot_2" parent="." instance=ExtResource("1_f7uw6")]
+
+[node name="ActionSlot_3" parent="." instance=ExtResource("1_f7uw6")]
+
+[node name="ActionSlot_4" parent="." instance=ExtResource("1_f7uw6")]
