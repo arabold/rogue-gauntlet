@@ -9,9 +9,9 @@
 
 [sub_resource type="Environment" id="Environment_cxo8v"]
 background_mode = 1
-ambient_light_source = 3
+ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
-ambient_light_energy = 0.1
+ambient_light_energy = 0.05
 
 [sub_resource type="Resource" id="Resource_3h1r8"]
 script = ExtResource("8_qd7vr")
@@ -26,14 +26,6 @@ script = ExtResource("1_dl2xl")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_cxo8v")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.984808, 0.0996005, -0.142244, 0, 0.819152, 0.573576, 0.173648, -0.564863, 0.806707, 0, 18, 0)
-visible = false
-light_energy = 0.5
-shadow_enabled = true
-
-[node name="Placeholder" type="Node3D" parent="."]
 
 [node name="Level" parent="." instance=ExtResource("5_nxjfc")]
 
@@ -55,12 +47,14 @@ transform = Transform3D(0.707087, 0.499991, -0.499984, 0, 0.707094, 0.707084, 0.
 top_level = true
 script = ExtResource("7_wl18x")
 follow_mode = 5
-follow_target = NodePath("../Placeholder")
+follow_target = NodePath("../CameraTargetPlaceholder")
 tween_resource = SubResource("Resource_3h1r8")
 follow_damping = true
 follow_distance = 20.0
 dead_zone_width = 0.3
 dead_zone_height = 0.3
 spring_length = 20.0
+
+[node name="CameraTargetPlaceholder" type="Node3D" parent="."]
 
 [editable path="Level"]

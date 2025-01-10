@@ -46,6 +46,7 @@ cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 collision_mask = 0
+metadata/_editor_floor_ = Vector3(0, 1, 0)
 
 [node name="WallGridMap" type="GridMap" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
