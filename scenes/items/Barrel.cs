@@ -9,9 +9,8 @@ public partial class Barrel : ItemBase
 	public override void _Ready()
 	{
 		base._Ready();
-		_healthComponent = GetNode<HealthComponent>("HealthComponent");
 		_hurtBoxComponent = GetNode<HurtBoxComponent>("HurtBoxComponent");
-
+		_healthComponent = GetNode<HealthComponent>("HealthComponent");
 		_healthComponent.Died += OnDie;
 	}
 
