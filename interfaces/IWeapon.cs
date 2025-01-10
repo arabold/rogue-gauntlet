@@ -1,4 +1,4 @@
 interface IWeapon
 {
-    void Attack();
+	void Attack();
 }

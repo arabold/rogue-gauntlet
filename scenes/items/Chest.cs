@@ -6,6 +6,7 @@ public partial class Chest : ItemBase
 	[Export] public int GoldAmount { get; set; } = 10;
 	[Export] public bool IsOpen { get; set; } = false;
 
+	private InteractiveComponent _interactiveComponent;
 	private HealthComponent _healthComponent;
 	private HurtBoxComponent _hurtBoxComponent;
 	private MeshInstance3D _chest;
@@ -14,6 +15,7 @@ public partial class Chest : ItemBase
 	public override void _Ready()
 	{
 		base._Ready();
+		_interactiveComponent = GetNode<InteractiveComponent>("InteractiveComponent");
 		_hurtBoxComponent = GetNode<HurtBoxComponent>("HurtBoxComponent");
 		_healthComponent = GetNode<HealthComponent>("HealthComponent");
 		_healthComponent.Died += OnDie;
@@ -23,6 +25,11 @@ public partial class Chest : ItemBase
 	}
 
 	private void OnDie()
+	{
+		OnInteract(null);
+	}
+
+	private void OnInteract(Player actor)
 	{
 		if (IsOpen)
 		{

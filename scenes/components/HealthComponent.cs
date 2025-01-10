@@ -2,29 +2,29 @@ using Godot;
 
 public partial class HealthComponent : Node
 {
-	[Export] public int MaxHitPoints { get; set; } = 10;
+	[Export] public int MaxHealth { get; set; } = 10;
 	[Export] public PackedScene HitEffect { get; set; }
 
-	[Signal] public delegate void HealthChangedEventHandler(int currentHitPoints, int maxHitPoints);
+	[Signal] public delegate void HealthChangedEventHandler(int currentHealth, int maxHealth);
 	[Signal] public delegate void DiedEventHandler();
 
-	public int CurrentHitPoints { get; private set; }
+	public int CurrentHealth { get; private set; }
 
 	public override void _Ready()
 	{
-		CurrentHitPoints = MaxHitPoints;
+		CurrentHealth = MaxHealth;
 	}
 
 	public void TakeDamage(int amount)
 	{
-		if (CurrentHitPoints > 0)
+		if (CurrentHealth > 0)
 		{
-			CurrentHitPoints -= amount;
+			CurrentHealth -= amount;
 			SpawnHitEffect();
 
-			EmitSignal(SignalName.HealthChanged, CurrentHitPoints, MaxHitPoints);
+			EmitSignal(SignalName.HealthChanged, CurrentHealth, MaxHealth);
 
-			if (CurrentHitPoints <= 0)
+			if (CurrentHealth <= 0)
 			{
 				Die();
 			}
@@ -33,9 +33,9 @@ public partial class HealthComponent : Node
 
 	public void Heal(int amount)
 	{
-		CurrentHitPoints += amount;
-		CurrentHitPoints = Mathf.Clamp(CurrentHitPoints, 0, MaxHitPoints);
-		EmitSignal(SignalName.HealthChanged, CurrentHitPoints, MaxHitPoints);
+		CurrentHealth += amount;
+		CurrentHealth = Mathf.Clamp(CurrentHealth, 0, MaxHealth);
+		EmitSignal(SignalName.HealthChanged, CurrentHealth, MaxHealth);
 	}
 
 	private void Die()

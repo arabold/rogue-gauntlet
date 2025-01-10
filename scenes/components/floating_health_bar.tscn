@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3 uid="uid://c6i0b6qufb14m"]
+
+[ext_resource type="Texture2D" uid="uid://ma668h4m1jyu" path="res://assets/gui/ScrollBar_Blank_Base.png" id="1_tvg26"]
+[ext_resource type="Script" path="res://scenes/components/FloatingHealthBar.cs" id="2_s53ct"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tif5p"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_26og4"]
+bg_color = Color(1, 0, 0, 1)
+
+[node name="FloatingHealthBar" type="Sprite3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+modulate = Color(1, 0, 0, 1)
+pixel_size = 0.002
+billboard = 1
+texture = ExtResource("1_tvg26")
+script = ExtResource("2_s53ct")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+transparent_bg = true
+size = Vector2i(1151, 132)
+
+[node name="ProgressBar" type="ProgressBar" parent="SubViewport"]
+offset_right = 1151.0
+offset_bottom = 132.0
+theme_override_styles/background = SubResource("StyleBoxFlat_tif5p")
+theme_override_styles/fill = SubResource("StyleBoxFlat_26og4")
+step = 1.0
+value = 75.0
+rounded = true
+show_percentage = false

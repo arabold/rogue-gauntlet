@@ -8,34 +8,17 @@ public partial class Enemy : CharacterBody3D, IDamageable
 	private EnemyBehavior _enemyBehavior;
 	private MovementComponent _movementComponent;
 	private HealthComponent _healthComponent;
+	private FloatingHealthBar _healthBar;
 
 	public override void _Ready()
 	{
 		base._Ready();
 
 		_enemyBehavior = GetNode<EnemyBehavior>("EnemyBehavior");
-		if (_enemyBehavior == null)
-		{
-			GD.PrintErr("EnemyBehavior node not found!");
-			QueueFree();
-			return;
-		}
-
 		_movementComponent = GetNode<MovementComponent>("MovementComponent");
-		if (_movementComponent == null)
-		{
-			GD.PrintErr("MovementComponent node not found!");
-			QueueFree();
-			return;
-		}
-
 		_healthComponent = GetNode<HealthComponent>("HealthComponent");
-		if (_healthComponent == null)
-		{
-			GD.PrintErr("HealthComponent node not found!");
-			QueueFree();
-			return;
-		}
+		_healthBar = GetNode<FloatingHealthBar>("FloatingHealthBar");
+		_healthBar.Update(_healthComponent.CurrentHealth, _healthComponent.MaxHealth);
 
 		// Connect the health component's Died signal to the enemy behavior's Die method
 		_healthComponent.Died += OnDie;
@@ -66,6 +49,7 @@ public partial class Enemy : CharacterBody3D, IDamageable
 		_enemyBehavior.OnHit();
 		_movementComponent.Push(attackDirection, 2.0f);
 		_healthComponent.TakeDamage(amount);
+		_healthBar.Update(_healthComponent.CurrentHealth, _healthComponent.MaxHealth);
 	}
 
 	private void OnDie()

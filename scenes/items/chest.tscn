@@ -1,7 +1,8 @@
-[gd_scene load_steps=11 format=4 uid="uid://cgi3a5fi0sxu6"]
+[gd_scene load_steps=12 format=4 uid="uid://cgi3a5fi0sxu6"]
 
 [ext_resource type="Script" path="res://scenes/items/Chest.cs" id="1_3h5at"]
 [ext_resource type="Texture2D" uid="uid://dwy100cuqcdu1" path="res://assets/models/dungeon/dungeon_texture.png" id="2_fidv6"]
+[ext_resource type="PackedScene" uid="uid://dekj8iq2d1qp5" path="res://scenes/components/interactive_component.tscn" id="3_p08mt"]
 [ext_resource type="PackedScene" uid="uid://bfol3ridi0ig8" path="res://scenes/components/health_component.tscn" id="3_q8441"]
 [ext_resource type="PackedScene" uid="uid://doui3rts7bdo7" path="res://scenes/components/hurt_box_component.tscn" id="4_r8rim"]
 
@@ -74,8 +75,8 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_wuvpp")
 
-[sub_resource type="CylinderShape3D" id="CylinderShape3D_vrtfn"]
-height = 1.0
+[sub_resource type="BoxShape3D" id="BoxShape3D_3k0l2"]
+size = Vector3(1.8, 1.5, 1)
 
 [node name="Chest" type="Node3D" groups=["item"]]
 script = ExtResource("1_3h5at")
@@ -89,13 +90,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -0.564883)
 mesh = SubResource("ArrayMesh_1qy4e")
 skeleton = NodePath("")
 
+[node name="InteractiveComponent" parent="." instance=ExtResource("3_p08mt")]
+
 [node name="HealthComponent" parent="." instance=ExtResource("3_q8441")]
 MaxHitPoints = 1
 
 [node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("4_r8rim")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 collision_layer = 32
 HealthComponent = NodePath("../HealthComponent")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent"]
-shape = SubResource("CylinderShape3D_vrtfn")
+shape = SubResource("BoxShape3D_3k0l2")
