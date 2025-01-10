@@ -1,5 +1,8 @@
 using Godot;
 
+/// <summary>
+/// Represents an enemy character in the game.
+/// </summary>
 public partial class Enemy : CharacterBody3D, IDamageable
 {
 	private EnemyBehavior _enemyBehavior;
@@ -35,10 +38,7 @@ public partial class Enemy : CharacterBody3D, IDamageable
 		}
 
 		// Connect the health component's Died signal to the enemy behavior's Die method
-		_healthComponent.Connect(
-			HealthComponent.SignalName.Died,
-			Callable.From(OnDie)
-		);
+		_healthComponent.Died += OnDie;
 
 		// Hide the mesh until the animations are fully initialized to
 		// prevent any flickering
@@ -52,8 +52,8 @@ public partial class Enemy : CharacterBody3D, IDamageable
 
 	public void StartChasing(Node3D player)
 	{
-		GD.Print("Chasing player: " + player.Name);
-		_enemyBehavior.SetChasing(player);
+		// _enemyBehavior.SetBehavior(BehaviorState.Idle);
+		// _enemyBehavior.SetTarget(player);
 	}
 
 	private void OnVisibilityNotifierScreenExited()
@@ -63,7 +63,7 @@ public partial class Enemy : CharacterBody3D, IDamageable
 
 	public void TakeDamage(int amount, Vector3 attackDirection)
 	{
-		_enemyBehavior.Hit();
+		_enemyBehavior.OnHit();
 		_movementComponent.Push(attackDirection, 2.0f);
 		_healthComponent.TakeDamage(amount);
 	}
@@ -72,7 +72,16 @@ public partial class Enemy : CharacterBody3D, IDamageable
 	{
 		// Disable collision detection for the enemy
 		CollisionLayer = 0;
-		_enemyBehavior.Die();
+		_enemyBehavior.OnDie();
+		_movementComponent.Stop();
+		SetPhysicsProcess(false);
+
+		// Wait for death animation to finish
+		GetTree().CreateTimer(2.0f).Connect("timeout", Callable.From(() =>
+		{
+			GD.Print($"{Name} is destroyed!");
+			QueueFree();
+		}));
 	}
 
 	public override void _PhysicsProcess(double delta)

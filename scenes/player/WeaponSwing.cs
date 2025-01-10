@@ -2,7 +2,6 @@ using Godot;
 
 public partial class WeaponSwing : WeaponBase
 {
-	private Area3D _attackArea;
 	private Node3D _trail;
 	private Tween _tween;
 
@@ -14,10 +13,7 @@ public partial class WeaponSwing : WeaponBase
 
 	public override void _Ready()
 	{
-		_attackArea = GetNode<Area3D>("Area3D");
-		_attackArea.Monitoring = false; // Disable detection until attack is triggered
-		_attackArea.BodyEntered += OnBodyEntered;
-
+		base._Ready();
 		_trail = GetNode<Node3D>("Trail3D");
 		_trail.Visible = false; // Hide the trail effect
 
@@ -35,8 +31,7 @@ public partial class WeaponSwing : WeaponBase
 
 	public override void Attack()
 	{
-		// Enable collision detection
-		_attackArea.Monitoring = true;
+		StartAttack();
 		_trail.Visible = true;
 
 		// Create a Tween for the swing animation
@@ -57,18 +52,8 @@ public partial class WeaponSwing : WeaponBase
 
 	private void OnAttackFinished()
 	{
-		_attackArea.Monitoring = false; // Disable collision detection
 		_trail.Visible = false;
 		ResetRotation();
-	}
-
-	private void OnBodyEntered(Node3D body)
-	{
-		// Check if the object implements IDamageable
-		GD.Print($"WeaponSwing collided with body: {body.Name}");
-		if (body is IDamageable)
-		{
-			EmitSignal(SignalName.Hit, body);
-		}
+		StopAttack();
 	}
 }

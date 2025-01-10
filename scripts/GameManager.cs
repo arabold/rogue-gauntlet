@@ -1,5 +1,6 @@
 using Godot;
-using System;
+using Godot.Collections;
+using System.Linq;
 
 public partial class GameManager : Node
 {
@@ -11,6 +12,9 @@ public partial class GameManager : Node
 	public int Health { get; private set; }
 	public int CurrentLevel { get; private set; }
 	public bool IsGamePaused { get; private set; }
+
+	public Array<Player> PlayersInScene { get; private set; }
+	public Array<Enemy> EnemiesInScene { get; private set; }
 
 	[Signal]
 	public delegate void ScoreUpdatedEventHandler(int newScore);
@@ -44,6 +48,10 @@ public partial class GameManager : Node
 		Health = 100;
 		CurrentLevel = 1;
 		IsGamePaused = false;
+
+		PlayersInScene = new Array<Player>(GetTree().GetNodesInGroup("player").Cast<Player>().ToArray());
+		EnemiesInScene = new Array<Enemy>(GetTree().GetNodesInGroup("enemy").Cast<Enemy>().ToArray());
+		GetTree().TreeChanged += OnSceneTreeChanged;
 
 		GD.Print("GameManager initialized.");
 	}
@@ -101,5 +109,11 @@ public partial class GameManager : Node
 
 		// Load the main scene
 		GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+	}
+
+	private void OnSceneTreeChanged()
+	{
+		PlayersInScene = new Array<Player>(GetTree().GetNodesInGroup("player").Cast<Player>().ToArray());
+		EnemiesInScene = new Array<Enemy>(GetTree().GetNodesInGroup("enemy").Cast<Enemy>().ToArray());
 	}
 }

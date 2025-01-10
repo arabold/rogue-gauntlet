@@ -1,6 +1,23 @@
-[gd_scene load_steps=2 format=3 uid="uid://dt3ptc0tqgy5s"]
+[gd_scene load_steps=3 format=3 uid="uid://dt3ptc0tqgy5s"]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyBehavior.cs" id="1_dk8te"]
+[ext_resource type="Script" path="res://addons/lines_and_trails_3d/line_3d.gd" id="2_hxa40"]
 
-[node name="EnemyBehavior" type="Node"]
+[node name="EnemyBehavior" type="Node3D"]
 script = ExtResource("1_dk8te")
+
+[node name="SightRay" type="RayCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+enabled = false
+target_position = Vector3(0, 0, -10)
+collision_mask = 7
+collide_with_areas = true
+debug_shape_custom_color = Color(1, 1, 0, 1)
+
+[node name="Line3D" type="MeshInstance3D" parent="SightRay"]
+visible = false
+layers = 512
+skeleton = NodePath("../..")
+script = ExtResource("2_hxa40")
+width = 0.1
+points = PackedVector3Array(0, 0, 0, 0, 0, -15)

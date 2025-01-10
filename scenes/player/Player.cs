@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+/// <summary>
+/// The main player character.
+/// </summary>
 public partial class Player : CharacterBody3D
 {
 	// How fast the player moves in meters per second.
@@ -74,16 +77,7 @@ public partial class Player : CharacterBody3D
 		_flyingOrb.QueueFree();
 
 		_quickAttackSwing = GetNode<WeaponSwing>("QuickAttackSwing");
-		_quickAttackSwing.Connect(
-			WeaponBase.SignalName.Hit,
-			Callable.From<Node>(OnDamageableHit)
-		);
-
 		_heavyAttackSwing = GetNode<WeaponSwing>("HeavyAttackSwing");
-		_heavyAttackSwing.Connect(
-			WeaponBase.SignalName.Hit,
-			Callable.From<Node>(OnDamageableHit)
-		);
 
 		_movementComponent.Speed = Speed;
 
@@ -207,15 +201,6 @@ public partial class Player : CharacterBody3D
 
 		_currentAction = null;
 		_isPerformingAction = false;
-	}
-
-	private void OnDamageableHit(Node node)
-	{
-		GD.Print($"Player hit {node.Name}");
-		if (node is IDamageable damageable)
-		{
-			damageable.TakeDamage(5, GlobalTransform.Basis.Z);
-		}
 	}
 
 	public override void _Process(double delta)

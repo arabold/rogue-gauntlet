@@ -7,10 +7,7 @@ public partial class CameraManager : Node
 
 	public override void _Ready()
 	{
-		PlayerSpawner.Connect(
-			PlayerSpawner.SignalName.PlayerSpawned,
-			Callable.From<Player>(OnPlayerSpawned)
-		);
+		PlayerSpawner.PlayerSpawned += OnPlayerSpawned;
 	}
 
 	private void OnPlayerSpawned(Player player)
