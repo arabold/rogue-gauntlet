@@ -19,6 +19,7 @@ public partial class LevelGenerator : Node
 		set
 		{
 			if (value < 5 || value > 100) return;
+			if (value < RoomMinSize) return;
 			_mapWidth = value;
 			OnPropertyChange();
 		}
@@ -31,6 +32,7 @@ public partial class LevelGenerator : Node
 		set
 		{
 			if (value < 5 || value > 100) return;
+			if (value < RoomMinSize) return;
 			_mapHeight = value;
 			OnPropertyChange();
 		}
@@ -56,6 +58,7 @@ public partial class LevelGenerator : Node
 		{
 			if (value < 2) return;
 			if (value > RoomMaxSize) return;
+			if (value > Math.Min(MapWidth, MapHeight)) return;
 			_roomMinSize = value;
 			OnPropertyChange();
 		}
@@ -69,6 +72,7 @@ public partial class LevelGenerator : Node
 		{
 			if (value < 2) return;
 			if (value < RoomMinSize) return;
+			if (value > Math.Min(MapWidth, MapHeight)) return;
 			_roomMaxSize = value;
 			OnPropertyChange();
 		}
