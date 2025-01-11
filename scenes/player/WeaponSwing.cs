@@ -1,22 +1,36 @@
 using Godot;
 
-public partial class WeaponSwing : WeaponBase
+public partial class WeaponSwing : Node3D, IWeapon
 {
 	private Node3D _trail;
 
-	[Export] public float SwingOffset = 180f; // Offset for the swing animation
-	[Export] public float SwingDuration = 0.5f; // Time for the swing animation
+	[Export] public float SwingOffset = 180f; // Offset for the swing
+	[Export] public float SwingDuration = 0.5f; // Time for the swing
 	[Export] public float SwingArc = 180; // Swing arc in degrees
 	[Export] public bool SwingRight = true; // Swing direction
-	[Export] public float Delay = 0.0f; // Delay before the swing animation starts
+	[Export] public int Damage = 0;
+
+	private HitBoxComponent _hitBox;
 
 	public override void _Ready()
 	{
-		base._Ready();
 		_trail = GetNode<Node3D>("Trail3D");
 		_trail.Visible = false; // Hide the trail effect
 
+		_hitBox = GetNode<HitBoxComponent>("HitBoxComponent");
+		_hitBox.Monitoring = false; // Disable detection until attack is triggered
+		_hitBox.HitDetected += OnHitDetected;
+
 		ResetRotation();
+	}
+
+	private void OnHitDetected(Node3D damageable)
+	{
+		if (damageable is IDamageable target)
+		{
+			GD.Print($"{Name} hit {damageable.Name} with {Damage} damage");
+			target.TakeDamage(Damage, GlobalTransform.Basis.Z);
+		}
 	}
 
 	private void ResetRotation()
@@ -28,9 +42,9 @@ public partial class WeaponSwing : WeaponBase
 			RotationDegrees.Z);
 	}
 
-	public override void Attack()
+	public void Attack()
 	{
-		StartAttack();
+		_hitBox.Monitoring = true;
 		_trail.Visible = true;
 
 		// Create a Tween for the swing animation
@@ -43,7 +57,7 @@ public partial class WeaponSwing : WeaponBase
 			"rotation_degrees",
 			new Vector3(RotationDegrees.X, end, RotationDegrees.Z),
 			SwingDuration
-		).SetDelay(Delay); // Set the delay for the animation
+		);
 
 		tween.Finished += OnAttackFinished; // Disable detection after animation
 		tween.Play();
@@ -51,8 +65,8 @@ public partial class WeaponSwing : WeaponBase
 
 	private void OnAttackFinished()
 	{
+		_hitBox.Monitoring = false;
 		_trail.Visible = false;
 		ResetRotation();
-		StopAttack();
 	}
 }

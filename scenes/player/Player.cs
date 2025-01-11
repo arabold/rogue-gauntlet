@@ -40,15 +40,15 @@ public partial class Player : CharacterBody3D
 		_animationStateMachine = (AnimationNodeStateMachinePlayback)_animationTree.Get("parameters/playback");
 		_animationStateMachine.Start("Idle");
 
-		WeaponBase quickAttackSwing = GetNode<WeaponSwing>("QuickAttackSwing");
-		WeaponBase heavyAttackSwing = GetNode<WeaponSwing>("HeavyAttackSwing");
-		RangedWeapon weaponProjectile = GetNode<RangedWeapon>("RangedWeapon");
+		WeaponSwing quickAttackSwing = GetNode<WeaponSwing>("QuickAttackSwing");
+		WeaponSwing heavyAttackSwing = GetNode<WeaponSwing>("HeavyAttackSwing");
+		RangedWeapon rangedWeapon = GetNode<RangedWeapon>("RangedWeapon");
 
 		_actionManager = GetNode<ActionManager>("ActionManager");
 		_actionManager.AssignAction(0, new QuickAttackAction(quickAttackSwing));
 		_actionManager.AssignAction(1, new HeavyAttackAction(heavyAttackSwing));
 		_actionManager.AssignAction(2, new DrinkPotionAction());
-		_actionManager.AssignAction(3, new QuickAttackAction(weaponProjectile));
+		_actionManager.AssignAction(3, new RangedAttackAction(rangedWeapon));
 
 		_movementComponent = GetNode<MovementComponent>("MovementComponent");
 		if (_movementComponent == null)
