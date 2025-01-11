@@ -93,7 +93,6 @@ skeleton = NodePath("")
 [node name="InteractiveComponent" parent="." instance=ExtResource("3_p08mt")]
 
 [node name="HealthComponent" parent="." instance=ExtResource("3_q8441")]
-MaxHitPoints = 1
 
 [node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("4_r8rim")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)

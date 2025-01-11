@@ -9,16 +9,94 @@ public enum MapTile
 	Room
 }
 
+[Tool]
 public partial class LevelGenerator : Node
 {
-	[Export] public int MapWidth = 30;
-	[Export] public int MapHeight = 30;
-	[Export] public int MaxRooms = 5;
-	[Export] public int RoomMinSize = 2;
-	[Export] public int RoomMaxSize = 4;
-	[Export] public int Seed = 42;
+	[Export]
+	public int MapWidth
+	{
+		get => _mapWidth;
+		set
+		{
+			if (value < 5 || value > 100) return;
+			_mapWidth = value;
+			OnPropertyChange();
+		}
+	}
+
+	[Export]
+	public int MapHeight
+	{
+		get => _mapHeight;
+		set
+		{
+			if (value < 5 || value > 100) return;
+			_mapHeight = value;
+			OnPropertyChange();
+		}
+	}
+
+	[Export]
+	public int MaxRooms
+	{
+		get => _maxRooms;
+		set
+		{
+			if (value < 1) return;
+			_maxRooms = value;
+			OnPropertyChange();
+		}
+	}
+
+	[Export]
+	public int RoomMinSize
+	{
+		get => _roomMinSize;
+		set
+		{
+			if (value < 2) return;
+			if (value > RoomMaxSize) return;
+			_roomMinSize = value;
+			OnPropertyChange();
+		}
+	}
+
+	[Export]
+	public int RoomMaxSize
+	{
+		get => _roomMaxSize;
+		set
+		{
+			if (value < 2) return;
+			if (value < RoomMinSize) return;
+			_roomMaxSize = value;
+			OnPropertyChange();
+		}
+	}
+
+	[Export]
+	public int Seed
+	{
+		get => _seed;
+		set
+		{
+			_seed = value;
+			OnPropertyChange();
+		}
+	}
+
 	// Bias for straight corridors (0 to 1)
-	[Export] public float CorridorStraightness = 0.75f;
+	[Export]
+	public float CorridorStraightness
+	{
+		get => _corridorStraightness;
+		set
+		{
+			if (value < 0 || value > 1) return;
+			_corridorStraightness = value;
+			OnPropertyChange();
+		}
+	}
 
 	[Export] public GridMap FloorGridMap;
 	[Export] public GridMap WallGridMap;
@@ -28,7 +106,14 @@ public partial class LevelGenerator : Node
 	[Signal]
 	public delegate void LevelGeneratedEventHandler();
 
-	private Random _random;
+	private Random _random = new Random();
+	private int _mapWidth = 30;
+	private int _mapHeight = 30;
+	private int _maxRooms = 5;
+	private int _roomMinSize = 2;
+	private int _roomMaxSize = 4;
+	private float _corridorStraightness = 0.75f;
+	private int _seed = 42;
 	private List<Rect2I> _rooms = new List<Rect2I>();
 
 	public MapTile[,] BaseMap { get; private set; }
@@ -36,9 +121,15 @@ public partial class LevelGenerator : Node
 	public List<EnemySpawnPoint> EnemySpawnPoints { get; private set; } = new List<EnemySpawnPoint>();
 	public List<ItemSpawnPoint> ItemSpawnPoints { get; private set; } = new();
 
-	public override void _Ready()
+	private void OnPropertyChange()
 	{
-		_random = new Random(Seed);
+		if (Engine.IsEditorHint())
+		{
+			if (FloorGridMap != null && WallGridMap != null && DecorationGridMap != null)
+			{
+				GenerateMap();
+			}
+		}
 	}
 
 	private void AddRoom(string roomScenePath, Vector3 offset)
@@ -254,7 +345,7 @@ public partial class LevelGenerator : Node
 	{
 		GD.Print("Generating map...");
 
-		ResetMap();
+		Reset();
 
 		// Step 1: Generate random rooms
 		GenerateRooms();
@@ -266,7 +357,6 @@ public partial class LevelGenerator : Node
 		GeneratePlayerSpawnPoint();
 		GenerateEnemySpawnPoints();
 		GenerateItemSpawnPoints();
-		//PlaceBarrelsInRooms();
 
 		RenderMap();
 
@@ -289,8 +379,10 @@ public partial class LevelGenerator : Node
 		EmitSignal(SignalName.LevelGenerated);
 	}
 
-	private void ResetMap()
+	private void Reset()
 	{
+		_random = new Random(Seed);
+
 		// Initialize the map with walls
 		BaseMap = new MapTile[MapWidth, MapHeight];
 		for (int x = 0; x < MapWidth; x++)

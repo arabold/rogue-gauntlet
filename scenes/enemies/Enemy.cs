@@ -35,12 +35,6 @@ public partial class Enemy : CharacterBody3D, IDamageable
 		Position = startPosition;
 	}
 
-	public void StartChasing(Node3D player)
-	{
-		// _enemyBehavior.SetBehavior(BehaviorState.Idle);
-		// _enemyBehavior.SetTarget(player);
-	}
-
 	private void OnVisibilityNotifierScreenExited()
 	{
 		// QueueFree();
