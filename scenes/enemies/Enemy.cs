@@ -10,6 +10,8 @@ public partial class Enemy : CharacterBody3D, IDamageable
 	private HealthComponent _healthComponent;
 	private FloatingHealthBar _healthBar;
 
+	public bool IsDead => _enemyBehavior.IsDead;
+
 	public override void _Ready()
 	{
 		base._Ready();

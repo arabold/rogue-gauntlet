@@ -8,3 +8,7 @@ script = ExtResource("1_ikbgr")
 ProjectileScene = ExtResource("2_vyhbg")
 
 [node name="ProjectileContainer" type="Node" parent="."]
+
+[node name="RayCast3D" type="RayCast3D" parent="."]
+target_position = Vector3(0, 0, -1)
+collision_mask = 27

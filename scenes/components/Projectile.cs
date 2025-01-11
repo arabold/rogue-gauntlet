@@ -45,6 +45,7 @@ public partial class Projectile : Node3D
 	private void OnHitDetected(Node body)
 	{
 		// Destroy the projectile when it hits something
+		GD.Print($"Projectile hit {body.Name}");
 		if (body is IDamageable damageable)
 		{
 			damageable.TakeDamage(Damage, Direction);

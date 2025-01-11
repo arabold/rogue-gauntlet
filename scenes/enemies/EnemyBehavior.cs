@@ -119,15 +119,8 @@ public partial class EnemyBehavior : Node
 
 	private bool TestLineOfSight(Node3D node)
 	{
-		var space = _sightRay.GetWorld3D().DirectSpaceState;
-		float distance = _parent.GlobalTransform.Origin.DistanceTo(node.GlobalTransform.Origin);
-		if (distance > DetectionRange)
-		{
-			return false;
-		}
-
-		Vector3 direction = (node.GlobalTransform.Origin - _parent.GlobalTransform.Origin).Normalized();
-		Vector3 endPoint = _parent.GlobalTransform.Origin + direction * Mathf.Min(distance, DetectionRange);
+		Vector3 endPoint = node.GlobalTransform.Origin;
+		Vector3 direction = (endPoint - _parent.GlobalTransform.Origin).Normalized();
 
 		Vector3 forward = -_parent.GlobalTransform.Basis.Z;
 		float angle = Mathf.RadToDeg(Mathf.Acos(forward.Normalized().Dot(direction)));
@@ -136,6 +129,7 @@ public partial class EnemyBehavior : Node
 			return false;
 		}
 
+		var space = _sightRay.GetWorld3D().DirectSpaceState;
 		var query = PhysicsRayQueryParameters3D.Create(
 			_parent.GlobalTransform.Origin,
 			endPoint,
@@ -162,19 +156,14 @@ public partial class EnemyBehavior : Node
 			var players = GameManager.Instance.PlayersInScene;
 			foreach (var player in players)
 			{
+				if (player.IsDead) continue;
+
 				var distance = _parent.GlobalTransform.Origin.DistanceTo(player.GlobalTransform.Origin);
-				if (distance > 0 && distance < DetectionRange && !player.IsDead)
+				if (distance > 0 && distance <= DetectionRange)
 				{
-					// Target is very close, engage right away
-					if (distance < DetectionRange / 2)
+					if ((distance < DetectionRange / 2) || TestLineOfSight(player))
 					{
-						UpdateTargetPosition();
-						SetTarget(player);
-						return true;
-					}
-					// Check if the player is in line of sight
-					else if (TestLineOfSight(player))
-					{
+						GD.Print($"{_parent.Name} has spotted {player.Name}");
 						UpdateTargetPosition();
 						SetTarget(player);
 						return true;
