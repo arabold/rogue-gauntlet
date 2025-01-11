@@ -9,7 +9,7 @@ public enum MapTile
 	Room
 }
 
-public partial class MapManager : Node
+public partial class LevelGenerator : Node
 {
 	[Export] public int MapWidth = 30;
 	[Export] public int MapHeight = 30;
@@ -26,7 +26,7 @@ public partial class MapManager : Node
 	[Export] public NavigationRegion3D NavigationRegion;
 
 	[Signal]
-	public delegate void MapGeneratedEventHandler();
+	public delegate void LevelGeneratedEventHandler();
 
 	private Random _random;
 	private List<Rect2I> _rooms = new List<Rect2I>();
@@ -223,7 +223,11 @@ public partial class MapManager : Node
 				y = _random.Next(1, MapHeight - 1);
 			}
 
-			EnemySpawnPoints.Add(new EnemySpawnPoint(EnemyType.SkeletonMinion, new Vector3(x * 4, 0, y * 4)));
+			EnemySpawnPoints.Add(
+				new EnemySpawnPoint(
+					EnemyType.SkeletonMinion,
+					new Vector3(x * 4, 0, y * 4),
+					_random.Next(0, 360)));
 		}
 	}
 
@@ -237,7 +241,11 @@ public partial class MapManager : Node
 			{
 				int x = _random.Next(room.Position.X, room.Position.X + room.Size.X);
 				int y = _random.Next(room.Position.Y, room.Position.Y + room.Size.Y);
-				ItemSpawnPoints.Add(new ItemSpawnPoint(new Vector3(x * 4, 0, y * 4)));
+				ItemSpawnPoints.Add(
+					new ItemSpawnPoint(
+						ItemType.Chest,
+						new Vector3(x * 4, 0, y * 4),
+						_random.Next(0, 360)));
 			}
 		}
 	}
@@ -278,7 +286,7 @@ public partial class MapManager : Node
 
 		GD.Print("Map generated.");
 
-		EmitSignal(SignalName.MapGenerated);
+		EmitSignal(SignalName.LevelGenerated);
 	}
 
 	private void ResetMap()

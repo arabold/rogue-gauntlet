@@ -4,7 +4,7 @@
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="1_dy8vv"]
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy.tscn" id="2_4mulc"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="2_umira"]
-[ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/map_manager.tscn" id="3_hy4st"]
+[ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/level_generator.tscn" id="3_hy4st"]
 [ext_resource type="PackedScene" uid="uid://ch4hss8ixtooy" path="res://scenes/levels/enemy_spawner.tscn" id="4_76dm5"]
 [ext_resource type="PackedScene" uid="uid://ukjvle2lc3wy" path="res://scenes/levels/player_spawner.tscn" id="5_g3baj"]
 [ext_resource type="PackedScene" uid="uid://hshntmwu857e" path="res://scenes/player/player.tscn" id="6_ot162"]
@@ -17,7 +17,7 @@
 [node name="Level" type="Node3D"]
 script = ExtResource("1_37vyo")
 
-[node name="MapManager" parent="." node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap", "NavigationRegion") instance=ExtResource("3_hy4st")]
+[node name="LevelGenerator" parent="." node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap", "NavigationRegion") instance=ExtResource("3_hy4st")]
 FloorGridMap = NodePath("../FloorGridMap")
 WallGridMap = NodePath("../WallGridMap")
 DecorationGridMap = NodePath("../DecorationGridMap")

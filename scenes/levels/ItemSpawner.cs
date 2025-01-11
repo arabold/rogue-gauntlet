@@ -19,6 +19,7 @@ public partial class ItemSpawner : Node
 
 			var item = ItemScene.Instantiate<Node3D>();
 			item.GlobalTransform = new Transform3D(Basis.Identity, spawnPoint.Position);
+			item.RotateY(Mathf.DegToRad(spawnPoint.Rotation));
 			AddChild(item);
 
 			EmitSignal(SignalName.ItemSpawned, item);

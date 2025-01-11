@@ -19,6 +19,7 @@ public partial class EnemySpawner : Node
 
 			var enemy = EnemyScene.Instantiate<Node3D>();
 			enemy.GlobalTransform = new Transform3D(Basis.Identity, spawnPoint.Position);
+			enemy.RotateY(Mathf.DegToRad(spawnPoint.Rotation));
 			AddChild(enemy);
 
 			EmitSignal(SignalName.EnemySpawned, enemy);

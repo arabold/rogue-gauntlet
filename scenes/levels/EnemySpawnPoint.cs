@@ -7,12 +7,23 @@ public enum EnemyType
 
 public struct EnemySpawnPoint
 {
-	public EnemyType Type; // The type of entity to spawn (e.g., "Goblin", "Skeleton")
-	public Vector3 Position; // World position of the spawn point
+	/// <summary>
+	/// The type of enemy to spawn (e.g., "Goblin", "Skeleton")
+	/// </summary>
+	public EnemyType Type;
+	/// <summary>
+	/// The world position of the spawn point
+	/// </summary>
+	public Vector3 Position;
+	/// <summary>
+	/// The rotation of the entity when spawned (in degrees around the Y axis)
+	/// </summary>
+	public float Rotation;
 
-	public EnemySpawnPoint(EnemyType type, Vector3 position)
+	public EnemySpawnPoint(EnemyType type, Vector3 position, float rotation)
 	{
 		Type = type;
 		Position = position;
+		Rotation = rotation;
 	}
 }

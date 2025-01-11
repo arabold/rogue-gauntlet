@@ -29,14 +29,7 @@ public partial class MovementComponent : Node
 	public override void _Ready()
 	{
 		_parent = GetParent<CharacterBody3D>();
-
-		// Look into a random direction
-		Random random = new Random();
-		_lookAtDirection = new Vector3(
-			(float)random.NextDouble() * 2 - 1,
-			0,
-			(float)random.NextDouble() * 2 - 1
-		).Normalized();
+		_lookAtDirection = _parent.GlobalTransform.Basis.Z;
 	}
 
 	public void NavigateTo(Vector3 targetPosition)
