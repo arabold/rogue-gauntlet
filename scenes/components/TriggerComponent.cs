@@ -5,23 +5,13 @@ using Godot;
 /// </summary>
 public partial class TriggerComponent : Area3D
 {
-	/// <summary>
-	/// The radius around the object in which the trigger will activate.
-	/// </summary>
-	[Export] public float Radius { get; set; } = 1.5f;
-
 	[Signal]
-	public delegate void OnPlayerEnteredEventHandler(Player player);
+	public delegate void PlayerEnteredEventHandler(Player player);
 	[Signal]
-	public delegate void OnPlayerExitedEventHandler(Player player);
-
-	private CollisionShape3D _collisionShape;
+	public delegate void PlayerExitedEventHandler(Player player);
 
 	public override void _Ready()
 	{
-		_collisionShape = GetNode<CollisionShape3D>("CollisionShape3D");
-		((SphereShape3D)_collisionShape.Shape).Radius = Radius;
-
 		BodyEntered += OnBodyEntered;
 		BodyExited += OnBodyExited;
 	}
@@ -31,7 +21,7 @@ public partial class TriggerComponent : Area3D
 		if (body is Player player)
 		{
 			GD.Print($"{player.Name} entered the trigger area");
-			EmitSignal(SignalName.OnPlayerEntered, player);
+			EmitSignal(SignalName.PlayerEntered, player);
 		}
 	}
 
@@ -40,7 +30,7 @@ public partial class TriggerComponent : Area3D
 		if (body is Player player)
 		{
 			GD.Print($"{player.Name} left the trigger area");
-			EmitSignal(SignalName.OnPlayerExited, player);
+			EmitSignal(SignalName.PlayerExited, player);
 		}
 	}
 }
