@@ -163,7 +163,6 @@ public partial class LevelGenerator : Node
 		else
 		{
 			roomInstance.QueueFree();
-			RemoveChild(roomInstance);
 		}
 	}
 

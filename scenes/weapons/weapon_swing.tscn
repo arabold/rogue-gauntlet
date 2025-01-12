@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://6pckd2upjrvu"]
 
-[ext_resource type="Script" path="res://scenes/player/WeaponSwing.cs" id="1_xsocg"]
+[ext_resource type="Script" path="res://scenes/weapons/WeaponSwing.cs" id="1_xsocg"]
 [ext_resource type="Script" path="res://addons/lines_and_trails_3d/trail_3d.gd" id="2_dfxuj"]
 [ext_resource type="PackedScene" uid="uid://blsurcr8183cv" path="res://scenes/components/hit_box_component.tscn" id="2_f0o48"]
 
@@ -16,7 +16,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 script = ExtResource("1_xsocg")
 
 [node name="HitBoxComponent" parent="." instance=ExtResource("2_f0o48")]
-collision_mask = 40
+collision_mask = 24
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HitBoxComponent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)

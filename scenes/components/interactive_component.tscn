@@ -1,6 +1,23 @@
-[gd_scene load_steps=2 format=3 uid="uid://dekj8iq2d1qp5"]
+[gd_scene load_steps=5 format=3 uid="uid://dekj8iq2d1qp5"]
 
 [ext_resource type="Script" path="res://scenes/components/InteractiveComponent.cs" id="1_3unqb"]
+[ext_resource type="PackedScene" uid="uid://bwn75e8ldk4nt" path="res://scenes/components/floating_label.tscn" id="2_0adgp"]
 
-[node name="InteractiveComponent" type="Node"]
+[sub_resource type="SphereShape3D" id="SphereShape3D_p7jp5"]
+radius = 1.0
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_ngqwn"]
+viewport_path = NodePath("SubViewport")
+
+[node name="InteractiveComponent" type="Area3D" groups=["interactive"]]
+collision_layer = 16
+collision_mask = 4
+monitoring = false
 script = ExtResource("1_3unqb")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_p7jp5")
+
+[node name="FloatingLabel" parent="." instance=ExtResource("2_0adgp")]
+texture = SubResource("ViewportTexture_ngqwn")
+Label = "Interact"

@@ -10,7 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://hshntmwu857e" path="res://scenes/player/player.tscn" id="6_ot162"]
 [ext_resource type="PackedScene" uid="uid://co63kumhx7fol" path="res://scenes/levels/CameraManager.tscn" id="7_astvi"]
 [ext_resource type="PackedScene" uid="uid://cjvydduvn2nut" path="res://scenes/levels/item_spawner.tscn" id="8_on56x"]
-[ext_resource type="PackedScene" uid="uid://cgi3a5fi0sxu6" path="res://scenes/items/chest.tscn" id="8_usvvb"]
+[ext_resource type="PackedScene" uid="uid://cgi3a5fi0sxu6" path="res://scenes/statics/chest.tscn" id="8_usvvb"]
 [ext_resource type="MeshLibrary" uid="uid://c133krcrhd1yi" path="res://scenes/levels/BaseMapMeshLibrary.tres" id="10_6mqyp"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_ymnfm"]

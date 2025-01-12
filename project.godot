@@ -35,13 +35,16 @@ project/assembly_name="Rogue Gauntlet"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/lines_and_trails_3d/plugin.cfg", "res://addons/phantom_camera/plugin.cfg")
+enabled=PackedStringArray()
 
 [global_group]
 
 item="An item on the map that the player can interact with"
 enemy=""
 player=""
+static=""
+interactive="An interactive component"
+trigger=""
 
 [input]
 

@@ -24,11 +24,12 @@ public partial class Player : CharacterBody3D
 	private AnimationNodeStateMachinePlayback _animationStateMachine;
 	private BoneAttachmentManager _attachmentManager;
 
-	private FlyingOrb _flyingOrb;
-
 	private MovementComponent _movementComponent;
 	private InputComponent _inputComponent;
 	private ActionManager _actionManager;
+	private InteractionArea _interactionArea;
+
+	private Array<Node> _nearbyInteractives = new Array<Node>();
 
 	public override void _Ready()
 	{
@@ -51,27 +52,24 @@ public partial class Player : CharacterBody3D
 		_actionManager.AssignAction(3, new RangedAttackAction(rangedWeapon));
 
 		_movementComponent = GetNode<MovementComponent>("MovementComponent");
-		if (_movementComponent == null)
-		{
-			GD.PrintErr("MovementComponent node not found!");
-			QueueFree();
-			return;
-		}
+		_movementComponent.Speed = Speed;
 
 		_inputComponent = GetNode<InputComponent>("InputComponent");
-		if (_inputComponent == null)
-		{
-			GD.PrintErr("InputComponent node not found!");
-			QueueFree();
-			return;
-		}
 
-		_flyingOrb = GetNode<FlyingOrb>("FlyingOrb");
-		_flyingOrb.QueueFree();
-
-		_movementComponent.Speed = Speed;
+		_interactionArea = GetNode<InteractionArea>("InteractionArea");
+		_interactionArea.InteractiveEntered += OnInteractiveEntered;
+		_interactionArea.InteractiveExited += OnInteractiveExited;
 	}
 
+	private void OnInteractiveEntered(Node node)
+	{
+		_nearbyInteractives.Add(node);
+	}
+
+	private void OnInteractiveExited(Node node)
+	{
+		_nearbyInteractives.Remove(node);
+	}
 
 	private void HandleInput()
 	{
@@ -89,6 +87,12 @@ public partial class Player : CharacterBody3D
 			{
 				_actionManager.TryPerformAction(i);
 			}
+		}
+
+		if (_inputComponent.IsInteractPressed() && _nearbyInteractives.Count > 0)
+		{
+			var interactive = _nearbyInteractives.Last() as IInteractive;
+			interactive.Interact(this);
 		}
 
 		_movementComponent.SetInputDirection(_inputComponent.InputDirection);
@@ -110,5 +114,4 @@ public partial class Player : CharacterBody3D
 			LookAt(Position + lookAt, Vector3.Up);
 		}
 	}
-
 }

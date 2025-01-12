@@ -21,6 +21,11 @@ public partial class InputComponent : Node
 		return Input.IsActionPressed($"action_{slotIndex + 1}");
 	}
 
+	public bool IsInteractPressed()
+	{
+		return Input.IsActionPressed("action_1");
+	}
+
 	public override void _Process(double delta)
 	{
 		// Get the camera's forward and right vectors

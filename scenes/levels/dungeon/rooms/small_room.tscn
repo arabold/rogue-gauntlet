@@ -1,14 +1,16 @@
-[gd_scene load_steps=6 format=3 uid="uid://dcta6i5ia5by0"]
+[gd_scene load_steps=7 format=3 uid="uid://dcta6i5ia5by0"]
 
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="1_5sjjj"]
 [ext_resource type="MeshLibrary" uid="uid://c133krcrhd1yi" path="res://scenes/levels/BaseMapMeshLibrary.tres" id="1_jvtcw"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="2_bqipc"]
-[ext_resource type="PackedScene" uid="uid://c5y1dtkex8ba4" path="res://scenes/items/barrel.tscn" id="3_gk7q6"]
-[ext_resource type="PackedScene" uid="uid://dbns86sg2gnll" path="res://scenes/items/door.tscn" id="4_agye4"]
+[ext_resource type="PackedScene" uid="uid://c5y1dtkex8ba4" path="res://scenes/statics/barrel.tscn" id="3_gk7q6"]
+[ext_resource type="PackedScene" uid="uid://dbns86sg2gnll" path="res://scenes/statics/door.tscn" id="4_agye4"]
+[ext_resource type="PackedScene" uid="uid://cgi3a5fi0sxu6" path="res://scenes/statics/chest.tscn" id="6_g764j"]
 
 [node name="SmallRoom" type="Node3D"]
 
 [node name="BaseMap" type="GridMap" parent="."]
+visible = false
 mesh_library = ExtResource("1_jvtcw")
 cell_size = Vector3(4, 4, 4)
 cell_center_x = false
@@ -55,4 +57,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -2)
 
 [node name="Door" parent="." instance=ExtResource("4_agye4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -10)
-IsOpen = true
+
+[node name="Chest" parent="." instance=ExtResource("6_g764j")]
+transform = Transform3D(-0.258819, 0, -0.965926, 0, 1, 0, 0.965926, 0, -0.258819, 4, 0, 0)

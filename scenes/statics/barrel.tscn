@@ -1,7 +1,7 @@
-[gd_scene load_steps=9 format=4 uid="uid://c5y1dtkex8ba4"]
+[gd_scene load_steps=10 format=4 uid="uid://c5y1dtkex8ba4"]
 
 [ext_resource type="Texture2D" uid="uid://dwy100cuqcdu1" path="res://assets/models/dungeon/dungeon_texture.png" id="1_eupbt"]
-[ext_resource type="Script" path="res://scenes/items/Barrel.cs" id="1_hqi8w"]
+[ext_resource type="Script" path="res://scenes/statics/Barrel.cs" id="1_hqi8w"]
 [ext_resource type="PackedScene" uid="uid://bfol3ridi0ig8" path="res://scenes/components/health_component.tscn" id="2_mdpgq"]
 [ext_resource type="PackedScene" uid="uid://doui3rts7bdo7" path="res://scenes/components/hurt_box_component.tscn" id="4_jmo8b"]
 
@@ -42,23 +42,30 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_mc71r")
 
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_g7g4t"]
+points = PackedVector3Array(-0.23885, 0.770804, -0.392957, 0.00780376, 0.772202, 0.488295, 0.0232103, 0.755942, 0.486674, -0.330011, 0.017703, 0.0384214, 0.48733, 0.24601, -0.0230126, 0.33334, 0.989425, -0.0230638, 0.0232436, 0.245997, -0.487229, -0.457244, 0.834352, 0.0387962, -0.0386991, 0.167567, 0.457846, 0.347716, 0.771436, -0.347589, 0.294298, -1.11022e-16, -0.103206, -0.334794, 0.166315, -0.33479, 0.348066, 0.230498, 0.348085, -0.348031, 0.230427, 0.348078, -0.241576, 0.992093, 0.241716, 0.334216, 0.835188, 0.334235, -0.0382179, 0.983868, -0.329425, -0.488845, 0.22957, 0.0077303, 0.348109, 0.230463, -0.347982, 0.488322, 0.772228, 0.00772017, 0.0384, 0.0178245, 0.330072, -0.0382897, 0.0176498, -0.330043, -0.347638, 0.771471, 0.347685, 0.00780575, 0.772269, -0.488275, -0.334127, 0.835221, -0.334123, 0.0232908, 0.989264, 0.333314, -0.241639, 0.992219, -0.241633, 0.253507, 0.0173883, 0.222826, -0.241978, 0.00924753, 0.242118, -0.0564204, 1.02578, -0.0402724, 0.222451, 0.984247, -0.25297, -0.471895, 0.740899, -0.0695052)
+
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_vrtfn"]
 height = 1.0
 
-[node name="Barrel" type="Node3D" groups=["item"]]
+[node name="Barrel" type="Node3D" groups=["static"]]
 script = ExtResource("1_hqi8w")
 
 [node name="barrel_small" type="MeshInstance3D" parent="."]
-layers = 32
+layers = 16
 mesh = SubResource("ArrayMesh_71a2t")
 skeleton = NodePath("")
 
+[node name="StaticBody3D" type="StaticBody3D" parent="barrel_small"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="barrel_small/StaticBody3D"]
+shape = SubResource("ConvexPolygonShape3D_g7g4t")
+
 [node name="HealthComponent" parent="." instance=ExtResource("2_mdpgq")]
-MaxHitPoints = 1
 
 [node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("4_jmo8b")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-collision_layer = 32
+collision_layer = 16
 HealthComponent = NodePath("../HealthComponent")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent"]

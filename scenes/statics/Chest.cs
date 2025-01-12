@@ -20,8 +20,6 @@ public partial class Chest : ItemBase
 
 	private bool _isOpen = false;
 	private InteractiveComponent _interactiveComponent;
-	private HealthComponent _healthComponent;
-	private HurtBoxComponent _hurtBoxComponent;
 	private MeshInstance3D _chest;
 	private MeshInstance3D _chestLid;
 
@@ -35,17 +33,10 @@ public partial class Chest : ItemBase
 		if (!Engine.IsEditorHint())
 		{
 			_interactiveComponent = GetNode<InteractiveComponent>("InteractiveComponent");
-			_hurtBoxComponent = GetNode<HurtBoxComponent>("HurtBoxComponent");
-			_healthComponent = GetNode<HealthComponent>("HealthComponent");
-			_healthComponent.Died += OnDie;
+			_interactiveComponent.Interacted += OnInteract;
 		}
 
 		UpdateChestLid();
-	}
-
-	private void OnDie()
-	{
-		OnInteract(null);
 	}
 
 	private void UpdateChestLid()
@@ -66,8 +57,7 @@ public partial class Chest : ItemBase
 		tween.TweenProperty(_chestLid, "rotation_degrees:x", -45, 0.5f);
 
 		// Disable any interactivity
-		_hurtBoxComponent.Monitoring = false;
-		_hurtBoxComponent.Monitorable = false;
+		_interactiveComponent.QueueFree();
 
 		// TODO: Drop gold
 	}

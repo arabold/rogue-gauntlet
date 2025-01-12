@@ -1,10 +1,8 @@
-[gd_scene load_steps=12 format=4 uid="uid://cgi3a5fi0sxu6"]
+[gd_scene load_steps=10 format=4 uid="uid://cgi3a5fi0sxu6"]
 
-[ext_resource type="Script" path="res://scenes/items/Chest.cs" id="1_3h5at"]
+[ext_resource type="Script" path="res://scenes/statics/Chest.cs" id="1_3h5at"]
 [ext_resource type="Texture2D" uid="uid://dwy100cuqcdu1" path="res://assets/models/dungeon/dungeon_texture.png" id="2_fidv6"]
 [ext_resource type="PackedScene" uid="uid://dekj8iq2d1qp5" path="res://scenes/components/interactive_component.tscn" id="3_p08mt"]
-[ext_resource type="PackedScene" uid="uid://bfol3ridi0ig8" path="res://scenes/components/health_component.tscn" id="3_q8441"]
-[ext_resource type="PackedScene" uid="uid://doui3rts7bdo7" path="res://scenes/components/hurt_box_component.tscn" id="4_r8rim"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hy3g6"]
 resource_name = "texture"
@@ -75,13 +73,14 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_wuvpp")
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_3k0l2"]
-size = Vector3(1.8, 1.5, 1)
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_ioc10"]
+points = PackedVector3Array(-0.605012, 0.0249606, -0.6, -0.650117, -2.38419e-07, -0.575001, -0.8, -2.38419e-07, -0.500004, -0.605012, 0.49998, -0.6, 0.604855, 0.0249606, -0.6, 0.649961, -2.38419e-07, -0.575001, -0.8, -2.38419e-07, 0.499955, -0.8, 0.6, -0.500004, -0.650117, 0.525, -0.575001, 0.604855, 0.49998, -0.6, 0.8, -2.38419e-07, -0.500004, -0.8, 0.6, 0.499955, -0.650117, -2.38419e-07, 0.574952, -0.605012, 0.0249606, 0.599951, -0.546594, 0.119988, 0.63434, 0.8, 0.6, -0.500004, 0.649961, 0.525, -0.575001, 0.8, -2.38419e-07, 0.499955, -0.605012, 0.49998, 0.599951, -0.650117, 0.525, 0.574952, 0.8, 0.6, 0.499955, 0.649961, -2.38419e-07, 0.574952, -0.500078, 0.073414, 0.63434, -0.500078, 0.119988, 0.645802, 0.604855, 0.0249606, 0.599951, 0.546437, 0.119988, 0.63434, 0.604855, 0.49998, 0.599951, 0.649961, 0.525, 0.574952, 0.499922, 0.073414, 0.63434, 0.499922, 0.119988, 0.645802)
 
-[node name="Chest" type="Node3D" groups=["item"]]
+[node name="Chest" type="Node3D" groups=["static"]]
 script = ExtResource("1_3h5at")
 
 [node name="chest" type="MeshInstance3D" parent="."]
+layers = 16
 mesh = SubResource("ArrayMesh_wut3y")
 skeleton = NodePath("")
 
@@ -90,14 +89,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -0.564883)
 mesh = SubResource("ArrayMesh_1qy4e")
 skeleton = NodePath("")
 
+[node name="StaticBody3D" type="StaticBody3D" parent="chest"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="chest/StaticBody3D"]
+shape = SubResource("ConvexPolygonShape3D_ioc10")
+
 [node name="InteractiveComponent" parent="." instance=ExtResource("3_p08mt")]
-
-[node name="HealthComponent" parent="." instance=ExtResource("3_q8441")]
-
-[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("4_r8rim")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
-collision_layer = 32
-HealthComponent = NodePath("../HealthComponent")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent"]
-shape = SubResource("BoxShape3D_3k0l2")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

@@ -1,7 +1,9 @@
 [gd_scene load_steps=5 format=3 uid="uid://c6i0b6qufb14m"]
 
-[ext_resource type="Texture2D" uid="uid://ma668h4m1jyu" path="res://assets/gui/ScrollBar_Blank_Base.png" id="1_tvg26"]
 [ext_resource type="Script" path="res://scenes/components/FloatingHealthBar.cs" id="2_s53ct"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_lqloq"]
+viewport_path = NodePath("SubViewport")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tif5p"]
 bg_color = Color(0, 0, 0, 1)
@@ -10,11 +12,11 @@ bg_color = Color(0, 0, 0, 1)
 bg_color = Color(1, 0, 0, 1)
 
 [node name="FloatingHealthBar" type="Sprite3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
-modulate = Color(1, 0, 0, 1)
+layers = 256
 pixel_size = 0.002
 billboard = 1
-texture = ExtResource("1_tvg26")
+no_depth_test = true
+texture = SubResource("ViewportTexture_lqloq")
 script = ExtResource("2_s53ct")
 
 [node name="SubViewport" type="SubViewport" parent="."]

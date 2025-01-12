@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://c71hsyyiyu6y4"]
 
-[ext_resource type="Script" path="res://scenes/components/Projectile.cs" id="1_ve8w4"]
+[ext_resource type="Script" path="res://scenes/weapons/Projectile.cs" id="1_ve8w4"]
 [ext_resource type="PackedScene" uid="uid://blsurcr8183cv" path="res://scenes/components/hit_box_component.tscn" id="2_p3b8w"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_vi72o"]

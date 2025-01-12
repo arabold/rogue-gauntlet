@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=4 uid="uid://dbns86sg2gnll"]
+[gd_scene load_steps=10 format=4 uid="uid://dbns86sg2gnll"]
 
-[ext_resource type="Script" path="res://scenes/items/Door.cs" id="1_rychn"]
+[ext_resource type="Script" path="res://scenes/statics/Door.cs" id="1_rychn"]
 [ext_resource type="Texture2D" uid="uid://dwy100cuqcdu1" path="res://assets/models/dungeon/dungeon_texture.png" id="2_yt2ch"]
+[ext_resource type="PackedScene" uid="uid://dekj8iq2d1qp5" path="res://scenes/components/interactive_component.tscn" id="3_0wdxa"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xy2m3"]
 resource_name = "texture"
@@ -74,10 +75,14 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_yxqci")
 
-[node name="Door" type="Node3D" groups=["item"]]
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_ce1s2"]
+points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, -0.5, -2, 0, 0.5, -2, 4, -0.5, -2, 0, -0.5)
+
+[node name="Door" type="Node3D" groups=["static"]]
 script = ExtResource("1_rychn")
 
 [node name="wall_doorway" type="MeshInstance3D" parent="."]
+layers = 16
 mesh = SubResource("ArrayMesh_hvlby")
 skeleton = NodePath("")
 
@@ -85,3 +90,13 @@ skeleton = NodePath("")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.820099, 0, 0)
 mesh = SubResource("ArrayMesh_k0rpy")
 skeleton = NodePath("")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("ConvexPolygonShape3D_ce1s2")
+
+[node name="InteractiveComponent" parent="." instance=ExtResource("3_0wdxa")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
