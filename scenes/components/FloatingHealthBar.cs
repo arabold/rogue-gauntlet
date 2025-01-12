@@ -1,6 +1,7 @@
 using Godot;
 using System;
 
+[Tool]
 public partial class FloatingHealthBar : Sprite3D
 {
 	private int _maxHealth = 100;
@@ -15,7 +16,11 @@ public partial class FloatingHealthBar : Sprite3D
 		_progressBar = _subViewport.GetNode<ProgressBar>("ProgressBar");
 
 		Texture = _subViewport.GetTexture();
-		Visible = false;
+		if (!Engine.IsEditorHint())
+		{
+			// Hide the progress bar until it's needed
+			Visible = false;
+		}
 	}
 
 	public void Update(int health, int maxHealth)

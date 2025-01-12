@@ -1,0 +1,32 @@
+[gd_scene load_steps=7 format=3 uid="uid://b7did2pvm0ahd"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ihmea"]
+size = Vector2(4, 4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2spnp"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_m85ln"]
+size = Vector2(4, 4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_d4djt"]
+albedo_color = Color(0.511259, 0.511259, 0.511259, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_nfswh"]
+size = Vector2(4, 4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sjdni"]
+albedo_color = Color(0, 0, 0, 1)
+
+[node name="BaseMapMeshLibrary" type="Node2D"]
+
+[node name="room" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_ihmea")
+surface_material_override/0 = SubResource("StandardMaterial3D_2spnp")
+
+[node name="hallway" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_m85ln")
+surface_material_override/0 = SubResource("StandardMaterial3D_d4djt")
+
+[node name="wall" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_nfswh")
+surface_material_override/0 = SubResource("StandardMaterial3D_sjdni")

@@ -74,7 +74,7 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_yxqci")
 
-[node name="Door" type="Node3D"]
+[node name="Door" type="Node3D" groups=["item"]]
 script = ExtResource("1_rychn")
 
 [node name="wall_doorway" type="MeshInstance3D" parent="."]

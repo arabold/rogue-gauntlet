@@ -1,4 +1,4 @@
-[gd_scene load_steps=42 format=3 uid="uid://cvvu87irfmqm1"]
+[gd_scene load_steps=43 format=3 uid="uid://cvvu87irfmqm1"]
 
 [ext_resource type="Script" path="res://scenes/enemies/Enemy.cs" id="1_ce7sy"]
 [ext_resource type="PackedScene" uid="uid://dx6rvie14m5bg" path="res://assets/models/characters/Skeleton_Minion.glb" id="2_krvni"]
@@ -160,6 +160,9 @@ states/Walking/position = Vector2(275.242, 419.962)
 transitions = ["Idle", "Walking", SubResource("AnimationNodeStateMachineTransition_t6uxn"), "Walking", "Idle", SubResource("AnimationNodeStateMachineTransition_d2noq"), "Idle", "Lie", SubResource("AnimationNodeStateMachineTransition_ahwo5"), "Lie", "StandUp", SubResource("AnimationNodeStateMachineTransition_jneow"), "StandUp", "Idle", SubResource("AnimationNodeStateMachineTransition_3ftaq"), "Idle", "Attack", SubResource("AnimationNodeStateMachineTransition_x0i68"), "Idle", "Dying", SubResource("AnimationNodeStateMachineTransition_551pq"), "Attack", "Idle", SubResource("AnimationNodeStateMachineTransition_hquwu"), "Dying", "Dead", SubResource("AnimationNodeStateMachineTransition_gyync"), "Walking", "Dying", SubResource("AnimationNodeStateMachineTransition_7hibw"), "Walking", "Attack", SubResource("AnimationNodeStateMachineTransition_qasbv"), "Walking", "Hit", SubResource("AnimationNodeStateMachineTransition_o4lkd"), "Start", "Lie", SubResource("AnimationNodeStateMachineTransition_bnfo4"), "Start", "Spawn", SubResource("AnimationNodeStateMachineTransition_kf5fr"), "Spawn", "Idle", SubResource("AnimationNodeStateMachineTransition_gclll"), "Walking", "Falling", SubResource("AnimationNodeStateMachineTransition_jplsx"), "Idle", "Falling", SubResource("AnimationNodeStateMachineTransition_viqtb"), "Falling", "Idle", SubResource("AnimationNodeStateMachineTransition_aab00"), "Idle", "Hit", SubResource("AnimationNodeStateMachineTransition_lwwi4"), "Hit", "Idle", SubResource("AnimationNodeStateMachineTransition_m1eid"), "Hit", "Dying", SubResource("AnimationNodeStateMachineTransition_5cn5g")]
 graph_offset = Vector2(102.21, -120.426)
 
+[sub_resource type="ViewportTexture" id="ViewportTexture_v7uux"]
+viewport_path = NodePath("SubViewport")
+
 [node name="Enemy" type="CharacterBody3D" groups=["enemy"]]
 collision_layer = 8
 collision_mask = 119
@@ -175,9 +178,7 @@ transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 
 [node name="Skeleton3D" parent="Pivot/Skeleton_Minion/Rig" index="0"]
 bones/1/position = Vector3(0, 0.386121, 0)
 bones/1/rotation = Quaternion(-1.11123e-10, 0.0431578, 2.57241e-09, 0.999068)
-bones/1/scale = Vector3(1, 1, 1)
 bones/2/rotation = Quaternion(-6.93889e-18, 7.10543e-15, 4.93038e-32, 1)
-bones/2/scale = Vector3(1, 1, 1)
 bones/3/rotation = Quaternion(8.27181e-25, 3.72529e-09, -2.75506e-40, 1)
 bones/3/scale = Vector3(1, 1, 1)
 bones/4/position = Vector3(0.212007, 0.134132, 7.92996e-08)
@@ -205,7 +206,6 @@ bones/13/position = Vector3(-1.5736e-08, 0.0961251, -0.0575)
 bones/13/rotation = Quaternion(0.000620086, 0.000730367, 0.706464, 0.707749)
 bones/13/scale = Vector3(1, 1, 1)
 bones/14/rotation = Quaternion(-5.80608e-11, -0.0313417, -1.88012e-09, 0.999509)
-bones/14/scale = Vector3(1, 1, 1)
 bones/15/position = Vector3(0.170945, 0.113587, 1.59941e-08)
 bones/15/rotation = Quaternion(0.992987, 0.0831978, 0.0753751, 0.0370641)
 bones/15/scale = Vector3(1, 1, 1)
@@ -255,7 +255,6 @@ bones/38/rotation = Quaternion(0.794627, -1.11759e-07, 0.607098, -5.96046e-08)
 bones/39/rotation = Quaternion(-0.707107, -7.27951e-08, -7.27951e-08, 0.707107)
 bones/40/position = Vector3(-0.510844, 0.785527, 0.0597369)
 bones/40/rotation = Quaternion(0.758253, 1.52737e-07, -0.651961, 1.11759e-08)
-bones/40/scale = Vector3(1, 1, 1)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
@@ -288,6 +287,7 @@ NavigationAgent = NodePath("../NavigationAgent3D")
 HitEffect = ExtResource("5_tudc7")
 
 [node name="FloatingHealthBar" parent="." instance=ExtResource("8_jolsx")]
+texture = SubResource("ViewportTexture_v7uux")
 
 [connection signal="screen_exited" from="VisibilityNotifier" to="." method="OnVisibilityNotifierScreenExited"]
 

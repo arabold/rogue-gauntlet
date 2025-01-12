@@ -6,7 +6,7 @@ public partial class PlayerSpawner : Node
 
 	[Signal] public delegate void PlayerSpawnedEventHandler(Player player);
 
-	public Node3D SpawnPlayer(Vector3 spawnPosition)
+	public Node3D SpawnPlayer(Vector3 spawnPosition, float rotation = 0)
 	{
 		if (PlayerScene == null)
 		{
@@ -15,8 +15,10 @@ public partial class PlayerSpawner : Node
 		}
 
 		var player = PlayerScene.Instantiate<Node3D>();
-		player.GlobalTransform = new Transform3D(Basis.Identity, spawnPosition);
 		AddChild(player);
+
+		player.GlobalTransform = new Transform3D(Basis.Identity, spawnPosition);
+		player.RotateY(Mathf.DegToRad(rotation));
 
 		EmitSignal(SignalName.PlayerSpawned, player);
 
