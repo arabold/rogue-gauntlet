@@ -6,7 +6,7 @@ using System.Linq;
 /// <summary>
 /// The main player character.
 /// </summary>
-public partial class Player : CharacterBody3D
+public partial class Player : CharacterBody3D, IDamageable
 {
 	// How fast the player moves in meters per second.
 	[Export] public int Speed { get; set; } = 14;
@@ -61,6 +61,13 @@ public partial class Player : CharacterBody3D
 		_interactionArea.InteractiveExited += OnInteractiveExited;
 	}
 
+	public void TakeDamage(int amount, Vector3 attackDirection)
+	{
+		var maxHealth = GameManager.Instance.MaxHealth;
+		var health = Math.Clamp(GameManager.Instance.Health - amount, 0, maxHealth);
+		GameManager.Instance.UpdateHealth(health, maxHealth);
+	}
+
 	private void OnInteractiveEntered(Node node)
 	{
 		_nearbyInteractives.Add(node);
@@ -105,10 +112,10 @@ public partial class Player : CharacterBody3D
 
 	public override void _PhysicsProcess(double delta)
 	{
-		Velocity = _movementComponent.GetVelocity();
+		Velocity = _movementComponent.Velocity;
 		MoveAndSlide();
 
-		var lookAt = _movementComponent.GetLookAtDirection();
+		var lookAt = _movementComponent.LookAtDirection;
 		if (lookAt != Vector3.Zero)
 		{
 			LookAt(Position + lookAt, Vector3.Up);

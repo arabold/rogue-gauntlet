@@ -18,6 +18,10 @@ public partial class MovementComponent : Node
 	public bool IsPushed => _pushStrength > 0.1f;
 	public bool IsFalling => _velocity.Y < 0;
 
+	public Vector3 Velocity => _velocity;
+	public Vector3 TargetDirection => _targetDirection;
+	public Vector3 LookAtDirection => _lookAtDirection;
+
 	private CharacterBody3D _parent;
 	private Vector3 _velocity = Vector3.Zero;
 	private Vector3 _lookAtDirection = Vector3.Zero;
@@ -62,21 +66,6 @@ public partial class MovementComponent : Node
 	public void SetLookAtDirection(Vector3 lookAtDirection)
 	{
 		_lookAtDirection = lookAtDirection.Normalized();
-	}
-
-	public Vector3 GetVelocity()
-	{
-		return _velocity;
-	}
-
-	public Vector3 GetDirection()
-	{
-		return _targetDirection;
-	}
-
-	public Vector3 GetLookAtDirection()
-	{
-		return _lookAtDirection;
 	}
 
 	public void Stop()

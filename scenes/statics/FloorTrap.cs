@@ -34,6 +34,8 @@ public partial class FloorTrap : Node3D
 		}
 
 		GD.Print($"{player.Name} stepped on the trap!");
+		player.TakeDamage(Damage, -player.Basis.Z);
+
 		Visible = true;
 		_isTriggered = true;
 

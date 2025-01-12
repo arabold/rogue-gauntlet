@@ -10,6 +10,7 @@ public partial class GameManager : Node
 	// Game state variables
 	public int Score { get; private set; }
 	public int Health { get; private set; }
+	public int MaxHealth { get; private set; }
 	public int CurrentLevel { get; private set; }
 	public bool IsGamePaused { get; private set; }
 
@@ -17,13 +18,13 @@ public partial class GameManager : Node
 	public Array<Enemy> EnemiesInScene { get; private set; }
 
 	[Signal]
-	public delegate void ScoreUpdatedEventHandler(int newScore);
+	public delegate void ScoreUpdatedEventHandler(int score);
 
 	[Signal]
-	public delegate void HealthChangedEventHandler(int newHealth);
+	public delegate void HealthChangedEventHandler(int currentHealth, int maxHealth);
 
 	[Signal]
-	public delegate void LevelChangedEventHandler(int newLevel);
+	public delegate void LevelChangedEventHandler(int level);
 
 	[Signal]
 	public delegate void GamePausedEventHandler(bool isPaused);
@@ -46,6 +47,7 @@ public partial class GameManager : Node
 		// Initialize default values
 		Score = 0;
 		Health = 100;
+		MaxHealth = 100;
 		CurrentLevel = 1;
 		IsGamePaused = false;
 
@@ -65,10 +67,10 @@ public partial class GameManager : Node
 	}
 
 	// Method to change the health
-	public void ChangeHealth(int health)
+	public void UpdateHealth(int health, int maxHealth)
 	{
 		Health = health;
-		EmitSignal(SignalName.HealthChanged, health);
+		EmitSignal(SignalName.HealthChanged, health, maxHealth);
 		GD.Print($"Health changed: {health}");
 	}
 

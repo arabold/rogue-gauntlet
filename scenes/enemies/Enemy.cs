@@ -67,9 +67,9 @@ public partial class Enemy : CharacterBody3D, IDamageable
 	public override void _PhysicsProcess(double delta)
 	{
 		Visible = true;
-		Velocity = _movementComponent.GetVelocity();
+		Velocity = _movementComponent.Velocity;
 		MoveAndSlide();
 
-		LookAt(Position + _movementComponent.GetLookAtDirection(), Vector3.Up);
+		LookAt(Position + _movementComponent.LookAtDirection, Vector3.Up);
 	}
 }

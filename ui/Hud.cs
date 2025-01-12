@@ -20,7 +20,7 @@ public partial class Hud : Control
 
 		// Initialize the HUD with the current game state
 		OnScoreUpdated(GameManager.Instance.Score);
-		OnHealthChanged(GameManager.Instance.Health);
+		OnHealthChanged(GameManager.Instance.Health, GameManager.Instance.MaxHealth);
 
 		// Initialize cooldown bars array
 		_cooldownBars = new ProgressBar[]
@@ -47,9 +47,10 @@ public partial class Hud : Control
 	}
 
 	// Updates the health bar when the health changes
-	private void OnHealthChanged(int newHealth)
+	private void OnHealthChanged(int health, int maxHealth)
 	{
-		_healthBar.Value = newHealth; // Assuming health is between 0 and _healthBar.MaxValue
+		_healthBar.MaxValue = maxHealth;
+		_healthBar.Value = health;
 	}
 
 	// Handles game pause (optional UI feedback)
