@@ -73,6 +73,13 @@ public partial class LevelGenerator : Node
 	/// </summary>
 	[Export] public int TileSize = 4;
 
+	public string[] RoomScenePaths = new[]
+	{
+		"res://scenes/levels/dungeon/rooms/cross_roads.tscn",
+		"res://scenes/levels/dungeon/rooms/small_room.tscn",
+		"res://scenes/levels/dungeon/rooms/storage_room_small.tscn",
+	};
+
 	[Signal]
 	public delegate void LevelGeneratedEventHandler();
 
@@ -108,15 +115,9 @@ public partial class LevelGenerator : Node
 			_roomsContainer.Owner = GetTree().EditedSceneRoot;
 		}
 
-		var roomScenePaths = new[]
-		{
-			"res://scenes/levels/dungeon/rooms/cross_roads.tscn",
-			"res://scenes/levels/dungeon/rooms/small_room.tscn",
-		};
-
 		for (int i = 0; i < MaxRooms; i++)
 		{
-			var roomScene = roomScenePaths[_random.Next(0, roomScenePaths.Length)];
+			var roomScene = RoomScenePaths[_random.Next(0, RoomScenePaths.Length)];
 			PlaceRoom(_roomsContainer, GD.Load<PackedScene>(roomScene));
 		}
 	}
@@ -173,7 +174,20 @@ public partial class LevelGenerator : Node
 		{
 			var baseX = position.X + cell.X;
 			var baseZ = position.Z + cell.Z;
-			if (!IsEmpty(baseX, baseZ))
+			// Check all nine tiles around the room
+			var adjacentTiles = new[]
+			{
+				new Vector2I(baseX - 1, baseZ - 1),
+				new Vector2I(baseX, baseZ - 1),
+				new Vector2I(baseX + 1, baseZ - 1),
+				new Vector2I(baseX - 1, baseZ),
+				new Vector2I(baseX, baseZ),
+				new Vector2I(baseX + 1, baseZ),
+				new Vector2I(baseX - 1, baseZ + 1),
+				new Vector2I(baseX, baseZ + 1),
+				new Vector2I(baseX + 1, baseZ + 1),
+			};
+			if (adjacentTiles.Any(tile => IsWithinBounds(tile.X, tile.Y) && !IsEmpty(tile.X, tile.Y)))
 			{
 				GD.Print($"Room overlaps with existing room at ({baseX}, 0, {baseZ})");
 				overlaps = true;

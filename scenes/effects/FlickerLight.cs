@@ -12,13 +12,12 @@ public partial class FlickerLight : OmniLight3D
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-		if (noiseTexture == null)
+		if (noiseTexture == null || noiseTexture.Noise == null)
 		{
 			GD.PrintErr("Noise texture is not set!");
 			return;
 		}
 		_timePassed += (float)delta;
-
 		var sampledNoise = Math.Abs(noiseTexture.Noise.GetNoise1D(_timePassed));
 		LightEnergy = Min + sampledNoise * (Max - Min);
 	}
