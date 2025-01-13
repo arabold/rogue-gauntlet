@@ -152,13 +152,13 @@ public partial class LevelGenerator : Node
 			roomBaseMap.QueueFree();
 
 			root.AddChild(roomInstance);
-			roomInstance.Position = TileToWorld(position);
+			// roomInstance.Position = TileToWorld(position);
+			roomInstance.Translate(TileToWorld(position));
 
 			if (Engine.IsEditorHint())
 			{
 				_roomsContainer.Owner = GetTree().EditedSceneRoot;
 			}
-
 		}
 		else
 		{

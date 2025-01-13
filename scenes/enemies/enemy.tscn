@@ -9,8 +9,8 @@
 [ext_resource type="PackedScene" uid="uid://bfol3ridi0ig8" path="res://scenes/components/health_component.tscn" id="6_eji0w"]
 [ext_resource type="PackedScene" uid="uid://c6i0b6qufb14m" path="res://scenes/components/floating_health_bar.tscn" id="8_jolsx"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_cxc4e"]
-size = Vector3(0.646, 2, 1)
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_fv4r8"]
+height = 1.8
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rfhfv"]
 animation = &"1H_Melee_Attack_Chop"
@@ -160,23 +160,22 @@ states/Walking/position = Vector2(275.242, 419.962)
 transitions = ["Idle", "Walking", SubResource("AnimationNodeStateMachineTransition_t6uxn"), "Walking", "Idle", SubResource("AnimationNodeStateMachineTransition_d2noq"), "Idle", "Lie", SubResource("AnimationNodeStateMachineTransition_ahwo5"), "Lie", "StandUp", SubResource("AnimationNodeStateMachineTransition_jneow"), "StandUp", "Idle", SubResource("AnimationNodeStateMachineTransition_3ftaq"), "Idle", "Attack", SubResource("AnimationNodeStateMachineTransition_x0i68"), "Idle", "Dying", SubResource("AnimationNodeStateMachineTransition_551pq"), "Attack", "Idle", SubResource("AnimationNodeStateMachineTransition_hquwu"), "Dying", "Dead", SubResource("AnimationNodeStateMachineTransition_gyync"), "Walking", "Dying", SubResource("AnimationNodeStateMachineTransition_7hibw"), "Walking", "Attack", SubResource("AnimationNodeStateMachineTransition_qasbv"), "Walking", "Hit", SubResource("AnimationNodeStateMachineTransition_o4lkd"), "Start", "Lie", SubResource("AnimationNodeStateMachineTransition_bnfo4"), "Start", "Spawn", SubResource("AnimationNodeStateMachineTransition_kf5fr"), "Spawn", "Idle", SubResource("AnimationNodeStateMachineTransition_gclll"), "Walking", "Falling", SubResource("AnimationNodeStateMachineTransition_jplsx"), "Idle", "Falling", SubResource("AnimationNodeStateMachineTransition_viqtb"), "Falling", "Idle", SubResource("AnimationNodeStateMachineTransition_aab00"), "Idle", "Hit", SubResource("AnimationNodeStateMachineTransition_lwwi4"), "Hit", "Idle", SubResource("AnimationNodeStateMachineTransition_m1eid"), "Hit", "Dying", SubResource("AnimationNodeStateMachineTransition_5cn5g")]
 graph_offset = Vector2(102.21, -120.426)
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_m0jpn"]
+[sub_resource type="ViewportTexture" id="ViewportTexture_d4frt"]
 viewport_path = NodePath("SubViewport")
 
 [node name="Enemy" type="CharacterBody3D" groups=["enemy"]]
 collision_layer = 8
-collision_mask = 119
+collision_mask = 87
 platform_floor_layers = 4294901761
 platform_wall_layers = 2
 script = ExtResource("1_ce7sy")
 
 [node name="Pivot" type="Node3D" parent="."]
-transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
 
 [node name="Skeleton_Minion" parent="Pivot" instance=ExtResource("2_krvni")]
 
 [node name="Skeleton3D" parent="Pivot/Skeleton_Minion/Rig" index="0"]
-bones/1/position = Vector3(0, 0.391383, 0)
+bones/1/position = Vector3(0, 0.386067, 0)
 bones/1/rotation = Quaternion(-1.11123e-10, 0.0431578, 2.57241e-09, 0.999068)
 bones/1/scale = Vector3(1, 1, 1)
 bones/2/rotation = Quaternion(-6.93889e-18, 7.10543e-15, 4.93038e-32, 1)
@@ -184,46 +183,46 @@ bones/2/scale = Vector3(1, 1, 1)
 bones/3/rotation = Quaternion(8.27181e-25, 3.72529e-09, -2.75506e-40, 1)
 bones/3/scale = Vector3(1, 1, 1)
 bones/4/position = Vector3(0.212007, 0.134132, 7.92996e-08)
-bones/4/rotation = Quaternion(-0.559687, -0.0607001, -0.643644, 0.518448)
+bones/4/rotation = Quaternion(-0.557928, -0.0593756, -0.641248, 0.523442)
 bones/4/scale = Vector3(0.999999, 0.999999, 1)
-bones/5/rotation = Quaternion(1.14205e-08, -4.4384e-08, -0.495429, 0.868649)
+bones/5/rotation = Quaternion(1.49906e-08, -5.07301e-08, -0.502541, 0.864553)
 bones/5/scale = Vector3(1, 0.999999, 1)
 bones/6/rotation = Quaternion(1.44633e-08, 1.26672e-08, 0.0266581, 0.999645)
 bones/6/scale = Vector3(1, 1, 1)
-bones/7/rotation = Quaternion(-0.321139, -0.325939, 0.146101, 0.877091)
+bones/7/rotation = Quaternion(-0.321481, -0.3291, 0.147874, 0.875487)
 bones/7/scale = Vector3(1, 1, 1)
 bones/8/position = Vector3(8.34843e-10, 0.0961252, -0.0575)
-bones/8/rotation = Quaternion(5.41263e-05, 5.41299e-05, -0.706908, 0.707305)
+bones/8/rotation = Quaternion(0.000213967, 0.00021395, -0.706321, 0.707892)
 bones/8/scale = Vector3(1, 1, 1)
 bones/9/position = Vector3(-0.212007, 0.134132, 8.6814e-08)
-bones/9/rotation = Quaternion(-0.618024, 0.080571, 0.617747, 0.479524)
+bones/9/rotation = Quaternion(-0.616273, 0.0793959, 0.615823, 0.484423)
 bones/9/scale = Vector3(0.999999, 0.999999, 1)
-bones/10/rotation = Quaternion(2.9687e-08, 4.75135e-08, 0.518616, 0.855007)
+bones/10/rotation = Quaternion(3.0512e-08, 5.57728e-08, 0.525475, 0.850809)
 bones/10/scale = Vector3(1, 1, 1)
 bones/11/rotation = Quaternion(-4.94615e-10, -1.45974e-08, -0.0266581, 0.999645)
 bones/11/scale = Vector3(1, 1, 1)
-bones/12/rotation = Quaternion(-0.319371, 0.301001, -0.227636, 0.869242)
+bones/12/rotation = Quaternion(-0.319935, 0.304676, -0.229684, 0.867214)
 bones/12/scale = Vector3(1, 1, 1)
 bones/13/position = Vector3(-1.5736e-08, 0.0961251, -0.0575)
-bones/13/rotation = Quaternion(0.000152021, 0.000179055, 0.706949, 0.707264)
+bones/13/rotation = Quaternion(0.000626412, 0.000737819, 0.706457, 0.707755)
 bones/13/scale = Vector3(1, 1, 1)
 bones/14/rotation = Quaternion(-5.80608e-11, -0.0313417, -1.88012e-09, 0.999509)
 bones/14/scale = Vector3(1, 1, 1)
 bones/15/position = Vector3(0.170945, 0.113587, 1.59941e-08)
-bones/15/rotation = Quaternion(0.993675, 0.0836434, 0.0736946, 0.0135286)
+bones/15/rotation = Quaternion(0.992979, 0.0831961, 0.075389, 0.0372632)
 bones/15/scale = Vector3(1, 1, 1)
-bones/16/rotation = Quaternion(0.202376, 6.37186e-08, -1.33718e-07, 0.979308)
+bones/16/rotation = Quaternion(0.264147, 6.48865e-08, -1.84327e-07, 0.964482)
 bones/16/scale = Vector3(1, 1, 1)
-bones/17/rotation = Quaternion(-0.521087, -0.209301, 0.0446757, 0.826236)
+bones/17/rotation = Quaternion(-0.55319, -0.207242, 0.0542815, 0.805037)
 bones/17/scale = Vector3(1, 1, 0.999999)
-bones/18/rotation = Quaternion(9.69847e-05, 0.920245, -0.391344, -2.1894e-05)
+bones/18/rotation = Quaternion(5.32823e-05, 0.920205, -0.391436, -1.20088e-05)
 bones/18/scale = Vector3(1, 0.999998, 1)
 bones/19/position = Vector3(-0.170945, 0.113587, 1.55755e-08)
-bones/19/rotation = Quaternion(0.997206, -0.0295581, 0.0314803, 0.0609517)
+bones/19/rotation = Quaternion(0.995887, -0.0305832, 0.0309972, 0.0794613)
 bones/19/scale = Vector3(1, 1, 1)
-bones/20/rotation = Quaternion(0.278902, -6.34839e-08, 1.95334e-07, 0.96032)
+bones/20/rotation = Quaternion(0.326524, -6.26215e-08, 2.27141e-07, 0.945189)
 bones/20/scale = Vector3(1, 1, 1)
-bones/21/rotation = Quaternion(-0.561641, 0.114482, -0.00903256, 0.819373)
+bones/21/rotation = Quaternion(-0.586985, 0.114099, -0.0130622, 0.801411)
 bones/21/scale = Vector3(1, 1, 0.999999)
 bones/22/rotation = Quaternion(-8.93489e-05, 0.920222, -0.391398, 2.0291e-05)
 bones/22/scale = Vector3(1, 0.999998, 1)
@@ -253,16 +252,16 @@ bones/35/scale = Vector3(1, 1, 1)
 bones/36/rotation = Quaternion(1.00614e-16, -6.74098e-17, -1.57416e-08, 1)
 bones/36/scale = Vector3(1, 1, 1)
 bones/37/rotation = Quaternion(-0.707107, -7.27951e-08, -7.27951e-08, 0.707107)
-bones/38/position = Vector3(0.520841, 0.787757, -0.0576373)
+bones/38/position = Vector3(0.520841, 0.785502, -0.0576374)
 bones/38/rotation = Quaternion(0.794627, -1.11759e-07, 0.607098, -5.96046e-08)
 bones/39/rotation = Quaternion(-0.707107, -7.27951e-08, -7.27951e-08, 0.707107)
-bones/40/position = Vector3(-0.510844, 0.787756, 0.0597369)
+bones/40/position = Vector3(-0.510844, 0.785502, 0.0597369)
 bones/40/rotation = Quaternion(0.758253, 1.52737e-07, -0.651961, 1.11759e-08)
 bones/40/scale = Vector3(1, 1, 1)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-shape = SubResource("BoxShape3D_cxc4e")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+shape = SubResource("CapsuleShape3D_fv4r8")
 
 [node name="VisibilityNotifier" type="VisibleOnScreenNotifier3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.20991, 0)
@@ -292,7 +291,7 @@ HitEffect = ExtResource("5_tudc7")
 
 [node name="FloatingHealthBar" parent="." instance=ExtResource("8_jolsx")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
-texture = SubResource("ViewportTexture_m0jpn")
+texture = SubResource("ViewportTexture_d4frt")
 
 [connection signal="screen_exited" from="VisibilityNotifier" to="." method="OnVisibilityNotifierScreenExited"]
 

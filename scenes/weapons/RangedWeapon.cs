@@ -54,7 +54,7 @@ public partial class RangedWeapon : Node3D, IWeapon
 				return direction;
 			}
 		}
-		return -GlobalTransform.Basis.Z;
+		return GlobalTransform.Basis.Z;
 	}
 
 	private bool TestLineOfSight(Node3D node)

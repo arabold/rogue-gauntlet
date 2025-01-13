@@ -4,9 +4,9 @@ public partial class WeaponSwing : Node3D, IWeapon
 {
 	private Node3D _trail;
 
-	[Export] public float SwingOffset = 180f; // Offset for the swing
+	[Export] public float SwingOffset = 0f; // Offset for the swing
 	[Export] public float SwingDuration = 0.5f; // Time for the swing
-	[Export] public float SwingArc = 180; // Swing arc in degrees
+	[Export] public float SwingArc = 180f; // Swing arc in degrees
 	[Export] public bool SwingRight = true; // Swing direction
 	[Export] public int Damage = 0;
 
@@ -35,10 +35,10 @@ public partial class WeaponSwing : Node3D, IWeapon
 
 	private void ResetRotation()
 	{
-		float offset = (SwingOffset - SwingArc) / 2f;
+		float halfArc = SwingArc / 2f;
 		RotationDegrees = new Vector3(
 			RotationDegrees.X,
-			SwingRight ? offset + SwingArc : offset,
+			SwingRight ? SwingOffset + halfArc : SwingOffset - halfArc,
 			RotationDegrees.Z);
 	}
 
@@ -48,8 +48,8 @@ public partial class WeaponSwing : Node3D, IWeapon
 		_trail.Visible = true;
 
 		// Create a Tween for the swing animation
-		float offset = (SwingOffset - SwingArc) / 2f;
-		float end = SwingRight ? offset : offset + SwingArc;
+		float halfArc = SwingArc / 2f;
+		float end = SwingRight ? SwingOffset - halfArc : SwingOffset + halfArc;
 
 		Tween tween = GetTree().CreateTween();
 		tween.TweenProperty(

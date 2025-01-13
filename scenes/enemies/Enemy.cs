@@ -5,6 +5,7 @@ using Godot;
 /// </summary>
 public partial class Enemy : CharacterBody3D, IDamageable
 {
+	private Node3D _pivot;
 	private EnemyBehavior _enemyBehavior;
 	private MovementComponent _movementComponent;
 	private HealthComponent _healthComponent;
@@ -16,6 +17,7 @@ public partial class Enemy : CharacterBody3D, IDamageable
 	{
 		base._Ready();
 
+		_pivot = GetNode<Node3D>("Pivot");
 		_enemyBehavior = GetNode<EnemyBehavior>("EnemyBehavior");
 		_movementComponent = GetNode<MovementComponent>("MovementComponent");
 		_healthComponent = GetNode<HealthComponent>("HealthComponent");
@@ -68,8 +70,11 @@ public partial class Enemy : CharacterBody3D, IDamageable
 	{
 		Visible = true;
 		Velocity = _movementComponent.Velocity;
+		var lookAt = _movementComponent.LookAtDirection;
+		if (lookAt != Vector3.Zero)
+		{
+			LookAt(GlobalPosition + lookAt, Vector3.Up);
+		}
 		MoveAndSlide();
-
-		LookAt(Position + _movementComponent.LookAtDirection, Vector3.Up);
 	}
 }

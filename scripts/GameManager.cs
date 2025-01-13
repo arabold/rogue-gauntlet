@@ -115,7 +115,11 @@ public partial class GameManager : Node
 
 	private void OnSceneTreeChanged()
 	{
-		PlayersInScene = new Array<Player>(GetTree().GetNodesInGroup("player").Cast<Player>().ToArray());
-		EnemiesInScene = new Array<Enemy>(GetTree().GetNodesInGroup("enemy").Cast<Enemy>().ToArray());
+		var tree = GetTree();
+		if (tree != null)
+		{
+			PlayersInScene = new Array<Player>(tree.GetNodesInGroup("player").Cast<Player>().ToArray());
+			EnemiesInScene = new Array<Enemy>(tree.GetNodesInGroup("enemy").Cast<Enemy>().ToArray());
+		}
 	}
 }

@@ -84,7 +84,7 @@ public partial class Player : CharacterBody3D, IDamageable
 		{
 			// If we're performing an action, don't allow any other actions
 			_movementComponent.SetInputDirection(Vector3.Zero);
-			_movementComponent.SetLookAtDirection(_inputComponent.InputDirection);
+			_movementComponent.SetLookAtDirection(-_inputComponent.InputDirection);
 			return;
 		}
 
@@ -113,12 +113,11 @@ public partial class Player : CharacterBody3D, IDamageable
 	public override void _PhysicsProcess(double delta)
 	{
 		Velocity = _movementComponent.Velocity;
-		MoveAndSlide();
-
 		var lookAt = _movementComponent.LookAtDirection;
 		if (lookAt != Vector3.Zero)
 		{
-			LookAt(Position + lookAt, Vector3.Up);
+			LookAt(GlobalPosition + lookAt, Vector3.Up);
 		}
+		MoveAndSlide();
 	}
 }

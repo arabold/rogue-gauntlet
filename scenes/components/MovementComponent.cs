@@ -24,7 +24,7 @@ public partial class MovementComponent : Node
 
 	private CharacterBody3D _parent;
 	private Vector3 _velocity = Vector3.Zero;
-	private Vector3 _lookAtDirection = Vector3.Zero;
+	private Vector3 _lookAtDirection = Vector3.Forward;
 	private Vector3 _targetDirection = Vector3.Zero;
 	private Vector3 _targetPosition = Vector3.Zero;
 	private Vector3 _pushDirection = Vector3.Zero;
@@ -134,7 +134,7 @@ public partial class MovementComponent : Node
 				// Move to the next path position
 				Vector3 destination = NavigationAgent.GetNextPathPosition();
 				Vector3 localDestination = destination - _parent.GlobalPosition;
-				_targetDirection = localDestination.Normalized();
+				_targetDirection = new Vector3(localDestination.X, 0, localDestination.Z).Normalized();
 			}
 		}
 	}
@@ -143,8 +143,9 @@ public partial class MovementComponent : Node
 	{
 		if (_targetDirection != Vector3.Zero && _lookAtDirection != _targetDirection)
 		{
+			var lookAt = new Vector3(_targetDirection.X, 0, _targetDirection.Z);
 			_lookAtDirection = _lookAtDirection.Slerp(
-				_targetDirection,
+				-lookAt.Normalized(),
 				RotationSpeed * (float)delta
 			).Normalized();
 		}
