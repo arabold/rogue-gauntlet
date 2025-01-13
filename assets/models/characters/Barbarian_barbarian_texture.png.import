@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://ckwxmba55rkq3"
 path.s3tc="res://.godot/imported/Barbarian_barbarian_texture.png-7bb9c02a9e7b2ef9d8598402a0f9d716.s3tc.ctex"
+path.etc2="res://.godot/imported/Barbarian_barbarian_texture.png-7bb9c02a9e7b2ef9d8598402a0f9d716.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/Barbarian_barbarian_texture.png"
-dest_files=["res://.godot/imported/Barbarian_barbarian_texture.png-7bb9c02a9e7b2ef9d8598402a0f9d716.s3tc.ctex"]
+dest_files=["res://.godot/imported/Barbarian_barbarian_texture.png-7bb9c02a9e7b2ef9d8598402a0f9d716.s3tc.ctex", "res://.godot/imported/Barbarian_barbarian_texture.png-7bb9c02a9e7b2ef9d8598402a0f9d716.etc2.ctex"]
 
 [params]
 

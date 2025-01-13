@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using Godot;
 using Godot.Collections;
@@ -63,6 +62,7 @@ public partial class LevelGenerator : Node
 		}
 	}
 
+	[Export] public Node3D RoomsContainer;
 	[Export] public GridMap BaseMap;
 	[Export] public GridMap FloorGridMap;
 	[Export] public GridMap WallGridMap;
@@ -72,6 +72,12 @@ public partial class LevelGenerator : Node
 	/// The size of each tile in the base map when translating to the GridMaps.
 	/// </summary>
 	[Export] public int TileSize = 4;
+	/// <summary>
+	/// The maximum number of times to retry placing a room before giving up.
+	/// Increasing this value may help to generate more complex maps at the
+	/// expense of performance.
+	/// </summary>
+	[Export] public int MaxRetries = 3;
 
 	public string[] RoomScenePaths = new[]
 	{
@@ -90,7 +96,7 @@ public partial class LevelGenerator : Node
 	private int _seed = 42;
 
 	private MapTile[,] _tiles;
-	private Node3D _roomsContainer;
+	private Array<Node3D> _rooms = new Array<Node3D>();
 
 	public Vector3 PlayerSpawnPoint { get; private set; } = Vector3.Zero;
 	public float PlayerRotation { get; private set; } = 0;
@@ -108,21 +114,14 @@ public partial class LevelGenerator : Node
 
 	private void GenerateRooms()
 	{
-		_roomsContainer = new Node3D();
-		AddChild(_roomsContainer);
-		if (Engine.IsEditorHint())
-		{
-			_roomsContainer.Owner = GetTree().EditedSceneRoot;
-		}
-
 		for (int i = 0; i < MaxRooms; i++)
 		{
 			var roomScene = RoomScenePaths[_random.Next(0, RoomScenePaths.Length)];
-			PlaceRoom(_roomsContainer, GD.Load<PackedScene>(roomScene));
+			PlaceRoom(GD.Load<PackedScene>(roomScene));
 		}
 	}
 
-	private void PlaceRoom(Node3D root, PackedScene roomScene)
+	private void PlaceRoom(PackedScene roomScene)
 	{
 		var roomInstance = roomScene.Instantiate<Node3D>();
 		var roomBaseMap = roomInstance.GetNode<GridMap>("BaseMap");
@@ -137,13 +136,20 @@ public partial class LevelGenerator : Node
 		int roomDepth = roomZMax - roomZMin + 1;
 		GD.Print($"Room size: {roomWidth}x{roomDepth} - ({roomXMin},{roomZMin}) to ({roomXMax},{roomZMax})");
 
-		// Place the room at a random position on the map
-		int roomX = _random.Next(2 - roomXMin, MapWidth - roomWidth - 2);
-		int roomZ = _random.Next(2 - roomZMin, MapDepth - roomDepth - 2);
-		Vector3I position = new Vector3I(roomX, 0, roomZ);
+		var retries = Math.Max(0, MaxRetries);
+		bool overlaps = false;
+		Vector3I position = Vector3I.Zero;
+		do
+		{
+			// Place the room at a random position on the map
+			int roomX = _random.Next(2 - roomXMin, MapWidth - roomWidth - 2);
+			int roomZ = _random.Next(2 - roomZMin, MapDepth - roomDepth - 2);
+			position = new Vector3I(roomX, 0, roomZ);
 
-		// Check if the room placement overlaps with any existing rooms
-		bool overlaps = IsRoomOverlapping(usedCells, position);
+			// Check if the room placement overlaps with any existing rooms
+			overlaps = IsRoomOverlapping(usedCells, position);
+		}
+		while (overlaps && retries-- >= 0);
 
 		if (!overlaps)
 		{
@@ -152,17 +158,12 @@ public partial class LevelGenerator : Node
 			UpdateBaseMap(roomBaseMap, position);
 			roomBaseMap.QueueFree();
 
-			root.AddChild(roomInstance);
-			// roomInstance.Position = TileToWorld(position);
 			roomInstance.Translate(TileToWorld(position));
-
-			if (Engine.IsEditorHint())
-			{
-				_roomsContainer.Owner = GetTree().EditedSceneRoot;
-			}
+			RoomsContainer.AddChild(roomInstance);
 		}
 		else
 		{
+			// We didn't place the room, so free the instance
 			roomInstance.QueueFree();
 		}
 	}
@@ -506,12 +507,11 @@ public partial class LevelGenerator : Node
 			}
 		}
 
-		if (_roomsContainer != null)
+		foreach (var room in RoomsContainer.GetChildren())
 		{
-			RemoveChild(_roomsContainer);
-			_roomsContainer.QueueFree();
+			RoomsContainer.RemoveChild(room);
+			room.QueueFree();
 		}
-
 		BaseMap.Clear();
 		FloorGridMap.Clear();
 		WallGridMap.Clear();
