@@ -7,7 +7,7 @@ public partial class RangedWeapon : Node3D, IWeapon
 	[Export] public PackedScene ProjectileScene;
 	[Export] public float ProjectileSpeed = 10f;
 	[Export] public float AimingAngle { get; set; } = 45.0f;
-	[Export] public float Range = 30f;
+	[Export] public float Range = 20f;
 	[Export] public int Damage = 2;
 
 	private Node _projectileContainer;
@@ -28,7 +28,7 @@ public partial class RangedWeapon : Node3D, IWeapon
 		// Instantiate a projectile and set its direction and speed
 		Projectile projectile = ProjectileScene.Instantiate<Projectile>();
 		projectile.Initialize(
-			GlobalTransform.Origin,
+			GlobalPosition,
 			targetDirection,
 			ProjectileSpeed, Range, Damage);
 		_projectileContainer.AddChild(projectile);
@@ -40,17 +40,32 @@ public partial class RangedWeapon : Node3D, IWeapon
 	/// </summary>
 	private Vector3 Aim()
 	{
-		var enemies = GameManager.Instance.EnemiesInScene.OrderBy(e =>
-				GlobalTransform.Origin.DistanceTo(e.GlobalTransform.Origin));
+		var enemies = GameManager.Instance.EnemiesInScene.OrderBy(n =>
+				GlobalPosition.DistanceTo(n.GlobalPosition));
 		foreach (var enemy in enemies)
 		{
 			if (!enemy.IsDead && TestLineOfSight(enemy))
 			{
 				// Aim at the vertical center of the enemy
 				var collisionShape = enemy.GetNode<CollisionShape3D>("CollisionShape3D");
-				var enemyCenter = enemy.GlobalTransform.Origin + collisionShape.Transform.Origin;
-				var direction = (enemyCenter - GlobalTransform.Origin).Normalized();
+				var enemyCenter = enemy.GlobalPosition + collisionShape.Transform.Origin;
+				var direction = (enemyCenter - GlobalPosition).Normalized();
 				GD.Print($"Aiming at {enemy.Name} {direction}");
+				return direction;
+			}
+		}
+
+		var damageables = GameManager.Instance.DamageablesInScene.OrderBy(n =>
+				GlobalPosition.DistanceTo(n.GlobalPosition));
+		foreach (var node in damageables)
+		{
+			if (node is IDamageable damageable && TestLineOfSight(node))
+			{
+				// Aim at the vertical center of the static object
+				var collisionShape = node.GetNode<CollisionShape3D>("CollisionShape3D");
+				var nodeCenter = node.GlobalPosition + collisionShape.Transform.Origin;
+				var direction = (nodeCenter - GlobalPosition).Normalized();
+				GD.Print($"Aiming at {node.Name} {direction}");
 				return direction;
 			}
 		}
@@ -59,37 +74,49 @@ public partial class RangedWeapon : Node3D, IWeapon
 
 	private bool TestLineOfSight(Node3D node)
 	{
-		float distance = GlobalTransform.Origin.DistanceTo(node.GlobalTransform.Origin);
+		float distance = GlobalPosition.DistanceTo(node.GlobalPosition);
 		if (distance > Range)
 		{
 			return false;
 		}
 
-		Vector3 endPoint = node.GlobalTransform.Origin;
-		Vector3 direction = (endPoint - GlobalTransform.Origin).Normalized();
-
+		Vector3 direction = (GlobalPosition - node.GlobalPosition).Normalized();
 		Vector3 forward = -GlobalTransform.Basis.Z;
-		float angle = Mathf.RadToDeg(Mathf.Acos(forward.Normalized().Dot(direction)));
+		float angle = Mathf.RadToDeg(forward.AngleTo(direction));
 		if (angle > AimingAngle)
 		{
 			return false;
 		}
 
+		var collisionShape = node.GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
+		var nodeCenter =
+			collisionShape != null
+				? node.GlobalPosition + collisionShape.Transform.Origin
+				: node.GlobalPosition + Vector3.Up * 0.5f;
+
 		var ray = _rayCast3D;
 		var space = ray.GetWorld3D().DirectSpaceState;
 		var query = PhysicsRayQueryParameters3D.Create(
-			GlobalTransform.Origin,
-			endPoint,
+			GlobalPosition,
+			nodeCenter,
 			ray.CollisionMask);
 		var result = space.IntersectRay(query);
 		if (result.Count == 0)
 		{
-			return false;
+			return true;
 		}
-		if (result["collider"].Obj == node)
+
+		// This is tricky: the raycast may hit a StaticBody3D of the same
+		// target that we're testing for. But there's no trivial way to
+		// test this. So, instead we check if the collision point lies
+		// within the collision shape of the target.
+		// FIXME: Implement this check; for now we just test the distance
+		var collisionPoint = (Vector3)result["position"];
+		if (collisionPoint.DistanceTo(nodeCenter) < 1f)
 		{
 			return true;
 		}
+
 		return false;
 	}
 

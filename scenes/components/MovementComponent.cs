@@ -123,7 +123,7 @@ public partial class MovementComponent : Node
 		// If we have a target position, navigate to it
 		if (_targetPosition != Vector3.Zero)
 		{
-			if (_parent.GlobalTransform.Origin.DistanceTo(_targetPosition) < 1f)
+			if (_parent.GlobalPosition.DistanceTo(_targetPosition) < 1f)
 			{
 				// If we reached the final destination, stop moving
 				_targetDirection = Vector3.Zero;
@@ -141,13 +141,19 @@ public partial class MovementComponent : Node
 
 	private void SmoothRotateToward(double delta)
 	{
-		if (_targetDirection != Vector3.Zero && _lookAtDirection != _targetDirection)
+		if (_targetDirection != Vector3.Zero)
 		{
-			var lookAt = new Vector3(_targetDirection.X, 0, _targetDirection.Z);
-			_lookAtDirection = _lookAtDirection.Slerp(
-				-lookAt.Normalized(),
-				RotationSpeed * (float)delta
-			).Normalized();
+			var lookAt = -new Vector3(_targetDirection.X, 0, _targetDirection.Z).Normalized();
+			if (lookAt.IsEqualApprox(_lookAtDirection))
+			{
+				_lookAtDirection = lookAt;
+			}
+			else
+			{
+				_lookAtDirection = _lookAtDirection.Slerp(
+					lookAt, RotationSpeed * (float)delta
+				).Normalized();
+			}
 		}
 	}
 }

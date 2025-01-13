@@ -45,6 +45,7 @@ player=""
 static=""
 interactive="An interactive component"
 trigger=""
+damageable=""
 
 [input]
 

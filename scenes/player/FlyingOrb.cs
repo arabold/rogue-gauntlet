@@ -46,7 +46,7 @@ public partial class FlyingOrb : Node3D
 		);
 
 		// Update the orb's global position relative to the player
-		GlobalTransform = new Transform3D(GlobalTransform.Basis, _player.GlobalTransform.Origin + orbitPosition);
+		GlobalTransform = new Transform3D(GlobalTransform.Basis, _player.GlobalPosition + orbitPosition);
 	}
 
 	private void OnBodyEntered(Node3D body)
@@ -54,7 +54,7 @@ public partial class FlyingOrb : Node3D
 		// Check if the object implements IDamageable
 		if (body is IDamageable damageable)
 		{
-			Vector3 attackDirection = (body.GlobalTransform.Origin - _player.GlobalTransform.Origin).Normalized();
+			Vector3 attackDirection = (body.GlobalPosition - _player.GlobalPosition).Normalized();
 			damageable.TakeDamage(Damage, attackDirection); // Apply damage with attack direction
 		}
 	}

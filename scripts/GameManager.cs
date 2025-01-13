@@ -16,6 +16,7 @@ public partial class GameManager : Node
 
 	public Array<Player> PlayersInScene { get; private set; }
 	public Array<Enemy> EnemiesInScene { get; private set; }
+	public Array<Node3D> DamageablesInScene { get; private set; }
 
 	[Signal]
 	public delegate void ScoreUpdatedEventHandler(int score);
@@ -51,8 +52,7 @@ public partial class GameManager : Node
 		CurrentLevel = 1;
 		IsGamePaused = false;
 
-		PlayersInScene = new Array<Player>(GetTree().GetNodesInGroup("player").Cast<Player>().ToArray());
-		EnemiesInScene = new Array<Enemy>(GetTree().GetNodesInGroup("enemy").Cast<Enemy>().ToArray());
+		OnSceneTreeChanged();
 		GetTree().TreeChanged += OnSceneTreeChanged;
 
 		GD.Print("GameManager initialized.");
@@ -120,6 +120,7 @@ public partial class GameManager : Node
 		{
 			PlayersInScene = new Array<Player>(tree.GetNodesInGroup("player").Cast<Player>().ToArray());
 			EnemiesInScene = new Array<Enemy>(tree.GetNodesInGroup("enemy").Cast<Enemy>().ToArray());
+			DamageablesInScene = new Array<Node3D>(tree.GetNodesInGroup("damageable").Cast<Node3D>().ToArray());
 		}
 	}
 }

@@ -119,8 +119,8 @@ public partial class EnemyBehavior : Node
 
 	private bool TestLineOfSight(Node3D node)
 	{
-		Vector3 endPoint = node.GlobalTransform.Origin;
-		Vector3 direction = (endPoint - _parent.GlobalTransform.Origin).Normalized();
+		Vector3 endPoint = node.GlobalPosition;
+		Vector3 direction = (endPoint - _parent.GlobalPosition).Normalized();
 
 		Vector3 forward = -_parent.GlobalTransform.Basis.Z;
 		float angle = Mathf.RadToDeg(Mathf.Acos(forward.Normalized().Dot(direction)));
@@ -131,7 +131,7 @@ public partial class EnemyBehavior : Node
 
 		var space = _sightRay.GetWorld3D().DirectSpaceState;
 		var query = PhysicsRayQueryParameters3D.Create(
-			_parent.GlobalTransform.Origin,
+			_parent.GlobalPosition,
 			endPoint,
 			_sightRay.CollisionMask);
 		var result = space.IntersectRay(query);
@@ -158,7 +158,7 @@ public partial class EnemyBehavior : Node
 			{
 				if (player.IsDead) continue;
 
-				var distance = _parent.GlobalTransform.Origin.DistanceTo(player.GlobalTransform.Origin);
+				var distance = _parent.GlobalPosition.DistanceTo(player.GlobalPosition);
 				if (distance > 0 && distance <= DetectionRange)
 				{
 					if ((distance < DetectionRange / 2) || TestLineOfSight(player))
@@ -184,7 +184,7 @@ public partial class EnemyBehavior : Node
 			return false;
 		}
 
-		float distance = _parent.GlobalTransform.Origin.DistanceTo(Target.GlobalTransform.Origin);
+		float distance = _parent.GlobalPosition.DistanceTo(Target.GlobalPosition);
 		return distance < 1.0f;
 	}
 
@@ -197,7 +197,7 @@ public partial class EnemyBehavior : Node
 		{
 			return false;
 		}
-		_lastKnownTargetPosition = Target.GlobalTransform.Origin;
+		_lastKnownTargetPosition = Target.GlobalPosition;
 		return true;
 	}
 
@@ -250,7 +250,7 @@ public partial class EnemyBehavior : Node
 		if (Target != null)
 		{
 			// Udpate the last known target position
-			_lastKnownTargetPosition = Target.GlobalTransform.Origin;
+			_lastKnownTargetPosition = Target.GlobalPosition;
 		}
 	}
 
