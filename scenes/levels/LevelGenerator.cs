@@ -79,11 +79,18 @@ public partial class LevelGenerator : Node
 	/// </summary>
 	[Export] public int MaxRetries = 3;
 
+	public string LevelEntranceScenePath =
+		"res://scenes/levels/dungeon/rooms/level_entrance.tscn";
+	public string LevelExitScenePath =
+		"res://scenes/levels/dungeon/rooms/level_exit.tscn";
+
 	public string[] RoomScenePaths = new[]
 	{
 		"res://scenes/levels/dungeon/rooms/cross_roads.tscn",
 		"res://scenes/levels/dungeon/rooms/small_room.tscn",
 		"res://scenes/levels/dungeon/rooms/storage_room_small.tscn",
+		"res://scenes/levels/dungeon/rooms/cave_small_with_pillars.tscn",
+		"res://scenes/levels/dungeon/rooms/cave_small.tscn"
 	};
 
 	[Signal]
@@ -114,14 +121,18 @@ public partial class LevelGenerator : Node
 
 	private void GenerateRooms()
 	{
+		// Place entrance and exit rooms
+		PlaceRoom(GD.Load<PackedScene>(LevelEntranceScenePath), int.MaxValue);
+		PlaceRoom(GD.Load<PackedScene>(LevelExitScenePath), int.MaxValue);
+
 		for (int i = 0; i < MaxRooms; i++)
 		{
 			var roomScene = RoomScenePaths[_random.Next(0, RoomScenePaths.Length)];
-			PlaceRoom(GD.Load<PackedScene>(roomScene));
+			PlaceRoom(GD.Load<PackedScene>(roomScene), MaxRetries);
 		}
 	}
 
-	private void PlaceRoom(PackedScene roomScene)
+	private void PlaceRoom(PackedScene roomScene, int retries)
 	{
 		var roomInstance = roomScene.Instantiate<Node3D>();
 		var roomBaseMap = roomInstance.GetNode<GridMap>("BaseMap");
@@ -136,7 +147,6 @@ public partial class LevelGenerator : Node
 		int roomDepth = roomZMax - roomZMin + 1;
 		GD.Print($"Room size: {roomWidth}x{roomDepth} - ({roomXMin},{roomZMin}) to ({roomXMax},{roomZMax})");
 
-		var retries = Math.Max(0, MaxRetries);
 		bool overlaps = false;
 		Vector3I position = Vector3I.Zero;
 		do
