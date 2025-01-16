@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=4 uid="uid://cyhr68psc2ku"]
+[gd_scene load_steps=9 format=4 uid="uid://cyhr68psc2ku"]
 
 [ext_resource type="Texture2D" uid="uid://dwy100cuqcdu1" path="res://scenes/levels/dungeon/assets/dungeon_texture.png" id="1_ydphq"]
 [ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flicker_light.tscn" id="2_excks"]
+[ext_resource type="PackedScene" uid="uid://1fto1nxkup13" path="res://scenes/effects/flames_effect.tscn" id="3_ehrkj"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bbptx"]
 resource_name = "texture"
@@ -59,3 +60,6 @@ skeleton = NodePath("")
 [node name="FlickerLight" parent="." instance=ExtResource("2_excks")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0.825363, 0.39241)
 noiseTexture = SubResource("NoiseTexture2D_p5w04")
+
+[node name="FlamesEffect" parent="." instance=ExtResource("3_ehrkj")]
+transform = Transform3D(0.999571, 0.0292999, 0, -0.0292999, 0.999571, 0, 0, 0, 1, 0, 0.741455, 0.319016)
