@@ -1,7 +1,7 @@
 [gd_scene load_steps=43 format=3 uid="uid://cvvu87irfmqm1"]
 
 [ext_resource type="Script" path="res://scenes/enemies/Enemy.cs" id="1_ce7sy"]
-[ext_resource type="PackedScene" uid="uid://dx6rvie14m5bg" path="res://assets/models/characters/Skeleton_Minion.glb" id="2_krvni"]
+[ext_resource type="PackedScene" uid="uid://dx6rvie14m5bg" path="res://scenes/enemies/skeleton/assets/Skeleton_Minion.glb" id="2_krvni"]
 [ext_resource type="Script" path="res://scripts/BoneAttachmentManager.cs" id="3_yymyr"]
 [ext_resource type="PackedScene" uid="uid://dt3ptc0tqgy5s" path="res://scenes/enemies/enemy_behavior.tscn" id="4_msdqr"]
 [ext_resource type="PackedScene" uid="uid://c6276kjx70mps" path="res://scenes/components/movement_component.tscn" id="5_5331y"]

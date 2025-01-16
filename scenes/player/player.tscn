@@ -1,7 +1,7 @@
 [gd_scene load_steps=46 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="Script" path="res://scenes/player/Player.cs" id="1_5y8vd"]
-[ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/models/characters/Barbarian.glb" id="1_jv6xc"]
+[ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://scenes/player/assets/Barbarian.glb" id="1_jv6xc"]
 [ext_resource type="Script" path="res://scripts/BoneAttachmentManager.cs" id="3_3k2q2"]
 [ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flicker_light.tscn" id="3_3qxnv"]
 [ext_resource type="Script" path="res://scenes/player/InteractionArea.cs" id="4_rbblq"]

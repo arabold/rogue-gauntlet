@@ -4,7 +4,7 @@
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_wjm60"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_325ce"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_p1ao1"]
-[ext_resource type="PackedScene" uid="uid://dbns86sg2gnll" path="res://scenes/statics/door.tscn" id="5_30oh8"]
+[ext_resource type="PackedScene" uid="uid://dbns86sg2gnll" path="res://scenes/props/door.tscn" id="5_30oh8"]
 
 [node name="CrossRoads" type="Node3D"]
 

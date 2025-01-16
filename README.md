@@ -16,11 +16,15 @@ To run the game, you will need to have the Godot Engine with .NET installed. You
 
 Once you have the engine installed, you can open the project by selecting the `project.godot` file in the root directory of the project and run the default scene.
 
+## Concepts
+
+- [Level Design](./docs/level-design.md)
+
 ## Requests and Suggestions
 
 ### Features
 
-If you havea feature request, please open an issue with the `feature` label.
+If you have a feature request, please open an issue with the `feature` label.
 
 ### Suggestions
 

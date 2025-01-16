@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://bwn75e8ldk4nt"]
 
 [ext_resource type="Script" path="res://scenes/components/FloatingLabel.cs" id="1_lm8es"]
-[ext_resource type="Texture2D" uid="uid://dopnkuqg2jiqj" path="res://assets/gui/xbox_button_color_x.png" id="1_tx3b5"]
+[ext_resource type="Texture2D" uid="uid://dopnkuqg2jiqj" path="res://scenes/ui/assets/xbox_button_color_x.png" id="1_tx3b5"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_t52t8"]
 viewport_path = NodePath("SubViewport")

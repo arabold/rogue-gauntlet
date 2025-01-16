@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/components/FloatingHealthBar.cs" id="2_s53ct"]
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_lqloq"]
+[sub_resource type="ViewportTexture" id="ViewportTexture_vaq3n"]
 viewport_path = NodePath("SubViewport")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tif5p"]
@@ -16,7 +16,7 @@ layers = 256
 pixel_size = 0.002
 billboard = 1
 no_depth_test = true
-texture = SubResource("ViewportTexture_lqloq")
+texture = SubResource("ViewportTexture_vaq3n")
 script = ExtResource("2_s53ct")
 
 [node name="SubViewport" type="SubViewport" parent="."]

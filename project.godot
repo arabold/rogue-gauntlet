@@ -40,12 +40,12 @@ enabled=PackedStringArray()
 [global_group]
 
 item="An item on the map that the player can interact with"
-enemy=""
-player=""
-static=""
+enemy="An enemy"
+player="The player"
+prop="Props like doors, chests, and other static objects"
 interactive="An interactive component"
-trigger=""
-damageable=""
+trigger="Trigger when the player is nearby"
+damageable="Object can take damage or can be destroyed"
 
 [input]
 
@@ -108,7 +108,7 @@ action_4={
 3d_render/layer_2="walls"
 3d_render/layer_3="player"
 3d_render/layer_4="enemies"
-3d_render/layer_5="statics"
+3d_render/layer_5="props"
 3d_render/layer_6="items"
 3d_render/layer_7="projectiles"
 3d_render/layer_8="npcs"
@@ -118,7 +118,7 @@ action_4={
 3d_physics/layer_2="walls"
 3d_physics/layer_3="player"
 3d_physics/layer_4="enemies"
-3d_physics/layer_5="statics"
+3d_physics/layer_5="props"
 3d_physics/layer_6="items"
 3d_physics/layer_7="projectiles"
 3d_physics/layer_8="npcs"

@@ -1,6 +1,6 @@
 [gd_scene load_steps=174 format=4 uid="uid://b2er53iwg6e5n"]
 
-[ext_resource type="Texture2D" uid="uid://dwy100cuqcdu1" path="res://assets/models/dungeon/dungeon_texture.png" id="1_o65vj"]
+[ext_resource type="Texture2D" uid="uid://dwy100cuqcdu1" path="res://scenes/levels/dungeon/assets/dungeon_texture.png" id="1_o65vj"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u2ld8"]
 resource_name = "texture"
