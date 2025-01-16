@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://b65sojfh3ktgj"]
+
+[ext_resource type="Script" path="res://scenes/player/StairsTriggers.cs" id="1_85q1b"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ivui0"]
+
+[node name="StairsTriggers" type="Area3D"]
+collision_layer = 0
+script = ExtResource("1_85q1b")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_ivui0")

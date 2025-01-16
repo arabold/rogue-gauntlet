@@ -46,6 +46,7 @@ prop="Props like doors, chests, and other static objects"
 interactive="An interactive component"
 trigger="Trigger when the player is nearby"
 damageable="Object can take damage or can be destroyed"
+stairs=""
 
 [input]
 

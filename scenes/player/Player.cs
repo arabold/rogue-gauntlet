@@ -102,7 +102,8 @@ public partial class Player : CharacterBody3D, IDamageable
 			interactive.Interact(this);
 		}
 
-		_movementComponent.SetInputDirection(_inputComponent.InputDirection);
+		var inputDirection = _inputComponent.InputDirection;
+		_movementComponent.SetInputDirection(inputDirection);
 	}
 
 	public override void _Process(double delta)

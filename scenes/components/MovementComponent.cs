@@ -3,16 +3,34 @@ using Godot;
 
 public partial class MovementComponent : Node
 {
-	// Movement speed
+	/// <summary>
+	/// Movement speed
+	/// </summary>
 	[Export] public float Speed { get; set; } = 3.0f;
-	// Rotation speed
+	/// <summary>
+	/// Rotation speed
+	/// </summary>
 	[Export] public float RotationSpeed { get; set; } = 20.0f;
-	// The NavigationAgent3D node that will be used for pathfinding
+	/// <summary>
+	/// The NavigationAgent3D node that will be used to navigate the character.
+	/// </summary>
 	[Export] public NavigationAgent3D NavigationAgent;
-	// Gravity
+	/// <summary>
+	/// The StairsTriggers node that will be used to detect stairs.
+	/// </summary>
+	[Export] public StairsTriggers StairsTriggers;
+	/// <summary>
+	/// The gravity strength.
+	/// </summary>
 	[Export] public float Gravity = 9.8f;
-	// Maximum fall speed
+	/// <summary>
+	/// Maximum fall speed
+	/// </summary>
 	[Export] public float MaxFallSpeed = 50.0f;
+	/// <summary>
+	/// Stairs step height 
+	/// </summary>
+	[Export] public float StairsStepHeight = 0.5f;
 
 	public bool IsMoving => _targetDirection != Vector3.Zero;
 	public bool IsPushed => _pushStrength > 0.1f;
@@ -109,6 +127,12 @@ public partial class MovementComponent : Node
 		{
 			// Reset vertical velocity when on the floor
 			_velocity.Y = 0;
+
+			// Check if we're on stairs
+			if (_velocity != Vector3.Zero && StairsTriggers?.stairs > 0)
+			{
+				_velocity.Y = StairsStepHeight * Speed;
+			}
 		}
 		else
 		{
