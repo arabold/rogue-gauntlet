@@ -1,0 +1,58 @@
+[gd_scene load_steps=11 format=3 uid="uid://cw6b8xk828smh"]
+
+[ext_resource type="Shader" path="res://scenes/effects/shaders/stylized_fire.gdshader" id="1_k0qhk"]
+[ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="2_utedi"]
+[ext_resource type="Texture2D" uid="uid://c8nnpux2gtihn" path="res://scenes/effects/assets/FireMask.png" id="3_j0ka0"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8onoy"]
+render_priority = 0
+shader = ExtResource("1_k0qhk")
+shader_parameter/emission_intensity = 2.0
+shader_parameter/time_scale = 3.0
+shader_parameter/texture_scale = Vector2(1, 1)
+shader_parameter/edge_softness = 0.1
+shader_parameter/noise_texture = ExtResource("2_utedi")
+shader_parameter/texture_mask = ExtResource("3_j0ka0")
+
+[sub_resource type="Gradient" id="Gradient_tpqa3"]
+offsets = PackedFloat32Array(0, 0.513636, 0.868182, 0.927273)
+colors = PackedColorArray(0.641173, 0.830866, 1, 1, 0.120103, 0.270136, 0.999988, 0.490196, 0.440982, 0.0402316, 0.766657, 0.180952, 0.333333, 0, 0.729412, 0.129412)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_62rtg"]
+gradient = SubResource("Gradient_tpqa3")
+width = 128
+
+[sub_resource type="Curve" id="Curve_ny7mq"]
+_data = [Vector2(0, 0.012), 0.0, 2.8912, 0, 0, Vector2(0.57554, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_6g7ec"]
+width = 128
+curve = SubResource("Curve_ny7mq")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_b28up"]
+lifetime_randomness = 0.81
+direction = Vector3(0, 1, 0)
+spread = 0.0
+initial_velocity_min = 0.5
+initial_velocity_max = 0.5
+gravity = Vector3(0, 0, 0)
+linear_accel_min = 4.0
+linear_accel_max = 4.0
+scale_max = 2.0
+scale_curve = SubResource("CurveTexture_6g7ec")
+color_ramp = SubResource("GradientTexture1D_62rtg")
+
+[sub_resource type="QuadMesh" id="QuadMesh_baems"]
+size = Vector2(0.5, 0.5)
+
+[node name="Fire" type="Node3D"]
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+material_override = SubResource("ShaderMaterial_8onoy")
+cast_shadow = 0
+amount = 50
+randomness = 0.74
+draw_order = 1
+process_material = SubResource("ParticleProcessMaterial_b28up")
+draw_pass_1 = SubResource("QuadMesh_baems")

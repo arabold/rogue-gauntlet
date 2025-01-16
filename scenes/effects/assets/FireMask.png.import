@@ -2,9 +2,9 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://1gp1sw8dsfow"
-path.s3tc="res://.godot/imported/flame02.png-f42f1248df95610bdc0bef0491c4787b.s3tc.ctex"
-path.etc2="res://.godot/imported/flame02.png-f42f1248df95610bdc0bef0491c4787b.etc2.ctex"
+uid="uid://c8nnpux2gtihn"
+path.s3tc="res://.godot/imported/FireMask.png-e43cc7f54429cf1fc6f0ab5d44fbe616.s3tc.ctex"
+path.etc2="res://.godot/imported/FireMask.png-e43cc7f54429cf1fc6f0ab5d44fbe616.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://scenes/effects/assets/flame02.png"
-dest_files=["res://.godot/imported/flame02.png-f42f1248df95610bdc0bef0491c4787b.s3tc.ctex", "res://.godot/imported/flame02.png-f42f1248df95610bdc0bef0491c4787b.etc2.ctex"]
+source_file="res://scenes/effects/assets/FireMask.png"
+dest_files=["res://.godot/imported/FireMask.png-e43cc7f54429cf1fc6f0ab5d44fbe616.s3tc.ctex", "res://.godot/imported/FireMask.png-e43cc7f54429cf1fc6f0ab5d44fbe616.etc2.ctex"]
 
 [params]
 
