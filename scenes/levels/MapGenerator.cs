@@ -13,8 +13,11 @@ public enum MapTile
 }
 
 [Tool]
-public partial class LevelGenerator : Node
+public partial class MapGenerator : Node3D
 {
+	[Signal]
+	public delegate void MapGeneratedEventHandler();
+
 	[Export]
 	public int MapWidth
 	{
@@ -62,22 +65,34 @@ public partial class LevelGenerator : Node
 		}
 	}
 
-	[Export] public Node3D RoomsContainer;
-	[Export] public GridMap BaseMap;
-	[Export] public GridMap FloorGridMap;
-	[Export] public GridMap WallGridMap;
-	[Export] public GridMap DecorationGridMap;
-	[Export] public NavigationRegion3D NavigationRegion;
-	/// <summary>
-	/// The size of each tile in the base map when translating to the GridMaps.
-	/// </summary>
-	[Export] public int TileSize = 4;
 	/// <summary>
 	/// The maximum number of times to retry placing a room before giving up.
 	/// Increasing this value may help to generate more complex maps at the
 	/// expense of performance.
 	/// </summary>
-	[Export] public int MaxRetries = 3;
+	[Export]
+	public int MaxRetries
+	{
+		get => _maxRetries;
+		set
+		{
+			if (value < 1 || value > 10) return;
+			_maxRetries = value;
+			OnPropertyChange();
+		}
+	}
+
+	public Node3D RoomsContainer { get; private set; }
+	public GridMap BaseMap { get; private set; }
+	public GridMap FloorGridMap { get; private set; }
+	public GridMap WallGridMap { get; private set; }
+	public GridMap DecorationGridMap { get; private set; }
+	public NavigationRegion3D NavigationRegion { get; private set; }
+
+	/// <summary>
+	/// The size of each tile in the base map when translating to the GridMaps.
+	/// </summary>
+	public int TileSize = 4;
 
 	public string LevelEntranceScenePath =
 		"res://scenes/levels/dungeon/rooms/level_entrance.tscn";
@@ -93,13 +108,11 @@ public partial class LevelGenerator : Node
 		"res://scenes/levels/dungeon/rooms/cave_small.tscn"
 	};
 
-	[Signal]
-	public delegate void LevelGeneratedEventHandler();
-
 	private Random _random = new Random();
 	private int _mapWidth = 30;
 	private int _mapDepth = 30;
 	private int _maxRooms = 5;
+	private int _maxRetries = 3;
 	private int _seed = 42;
 
 	private MapTile[,] _tiles;
@@ -107,6 +120,16 @@ public partial class LevelGenerator : Node
 
 	public Vector3 PlayerSpawnPoint { get; private set; } = Vector3.Zero;
 	public float PlayerRotation { get; private set; } = 0;
+
+	public override void _Ready()
+	{
+		RoomsContainer = GetNode<Node3D>("RoomsContainer");
+		BaseMap = GetNode<GridMap>("BaseMap");
+		FloorGridMap = GetNode<GridMap>("FloorGridMap");
+		WallGridMap = GetNode<GridMap>("WallGridMap");
+		DecorationGridMap = GetNode<GridMap>("DecorationGridMap");
+		NavigationRegion = GetNode<NavigationRegion3D>("NavigationRegion3D");
+	}
 
 	private void OnPropertyChange()
 	{
@@ -453,8 +476,6 @@ public partial class LevelGenerator : Node
 		wallGripMapCopy.QueueFree();
 		decorationGridMapCopy.QueueFree();
 
-		GD.Print("Map generated.");
-
 		// Render the BaseMap for debugging
 		if (Engine.IsEditorHint())
 		{
@@ -482,7 +503,8 @@ public partial class LevelGenerator : Node
 			BaseMap.QueueFree();
 		}
 
-		EmitSignal(SignalName.LevelGenerated);
+		GD.Print("Map generated.");
+		EmitSignal(SignalName.MapGenerated);
 	}
 
 	// Check if coordinates are within map bounds
