@@ -5,6 +5,10 @@
 [node name="EnemyBehavior" type="Node3D"]
 script = ExtResource("1_dk8te")
 
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+debug_enabled = true
+debug_path_custom_color = Color(1, 0, 0, 1)
+
 [node name="SightRay" type="RayCast3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 enabled = false

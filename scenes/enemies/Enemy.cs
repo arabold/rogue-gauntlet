@@ -42,8 +42,6 @@ public partial class Enemy : CharacterBody3D
 	{
 		// Disable collision detection for the enemy
 		CollisionLayer = 0;
-		EnemyBehavior.OnDie();
-		MovementComponent.Stop();
 		SetPhysicsProcess(false);
 
 		// Wait for death animation to finish
@@ -57,12 +55,6 @@ public partial class Enemy : CharacterBody3D
 	public override void _PhysicsProcess(double delta)
 	{
 		Visible = true;
-		Velocity = MovementComponent.Velocity;
-		var lookAt = MovementComponent.LookAtDirection;
-		if (lookAt != Vector3.Zero)
-		{
-			LookAt(GlobalPosition + lookAt, Vector3.Up);
-		}
-		MoveAndSlide();
+		MovementComponent.Move(this);
 	}
 }

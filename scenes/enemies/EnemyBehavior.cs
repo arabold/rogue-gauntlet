@@ -25,7 +25,7 @@ public enum EnemyAction
 
 public partial class EnemyBehavior : Node
 {
-
+	// FIXME: Remove this hardcoded dictionary and use a data-driven approach
 	private static readonly Dictionary<EnemyAction, float> ActionDurations = new()
 	{
 		{ EnemyAction.None, 0 },
@@ -36,41 +36,52 @@ public partial class EnemyBehavior : Node
 		{ EnemyAction.Dying, 2.0f },
 	};
 
-	private Node3D _parent;
-	private MovementComponent _movementComponent;
-	private RayCast3D _sightRay;
-	private float _remainingActionTime = 0;
-	private Vector3 _lastKnownTargetPosition = Vector3.Zero;
-
+	[Export] public MovementComponent MovementComponent { get; set; }
+	[Export] public HealthComponent HealthComponent { get; set; }
 	[Export] public EnemyBehaviorState CurrentBehavior { get; private set; } = EnemyBehaviorState.Idle;
 	[Export] public EnemyAction CurrentAction { get; private set; } = EnemyAction.Spawning;
-	[Export] public Node3D Target { get; private set; } = null;
 	[Export] public float DetectionRange { get; set; } = 20.0f;
 	[Export] public float DetectionAngle { get; set; } = 45.0f;
 
 	// We can use these properties to automatically transition between animation states
 	public bool IsSleeping => CurrentBehavior == EnemyBehaviorState.Sleeping;
-	public bool IsMoving => _movementComponent.IsMoving;
-	public bool IsFalling => _movementComponent.IsFalling;
+	public bool IsMoving => MovementComponent.IsMoving;
+	public bool IsFalling => MovementComponent.IsFalling;
 	public bool IsDead => CurrentAction == EnemyAction.Dying || CurrentBehavior == EnemyBehaviorState.Dead;
 	public bool IsAttacking => CurrentAction == EnemyAction.Attacking;
-	public bool IsHit => CurrentAction == EnemyAction.Hit || _movementComponent.IsPushed;
+	public bool IsHit => CurrentAction == EnemyAction.Hit || MovementComponent.IsPushed;
 	public bool IsSpawning => CurrentAction == EnemyAction.Spawning;
+
+	/// <summary>
+	/// The target node that the enemy is chasing
+	/// </summary>
+	public Node3D Target { get; private set; } = null;
+
+	private Node3D _parent;
+	private RayCast3D _sightRay;
+	private NavigationAgent3D _navigationAgent;
+	private float _remainingActionTime = 0;
+	private Vector3 _lastKnownTargetPosition;
 
 	public override void _Ready()
 	{
 		base._Ready();
 
 		_parent = GetParent<Node3D>(); // Assume the parent is the Enemy node
-		_movementComponent = _parent.GetNode<MovementComponent>("MovementComponent");
 		_sightRay = GetNode<RayCast3D>("SightRay");
+		_navigationAgent = GetNode<NavigationAgent3D>("NavigationAgent3D");
 
 		// Ensure to properly initialize the enemy's state with the current selection
 		GD.Print($"{_parent.Name} is initialized with {CurrentBehavior} and {CurrentAction}");
 		_remainingActionTime = ActionDurations[CurrentAction];
+
+		if (HealthComponent != null)
+		{
+			HealthComponent.Died += OnDie;
+		}
 	}
 
-	public override void _Process(double delta)
+	public override void _PhysicsProcess(double delta)
 	{
 		if (CurrentAction != EnemyAction.None)
 		{
@@ -198,6 +209,7 @@ public partial class EnemyBehavior : Node
 			return false;
 		}
 		_lastKnownTargetPosition = Target.GlobalPosition;
+		_navigationAgent.SetTargetPosition(_lastKnownTargetPosition);
 		return true;
 	}
 
@@ -210,10 +222,13 @@ public partial class EnemyBehavior : Node
 		{
 			return;
 		}
-		if (_movementComponent != null)
-		{
-			_movementComponent.NavigateTo(_lastKnownTargetPosition);
-		}
+
+		// Move to the next path position
+		Vector3 destination = _navigationAgent.GetNextPathPosition();
+		Vector3 localDestination = destination - _parent.GlobalPosition;
+		var direction = new Vector3(localDestination.X, 0, localDestination.Z).Normalized();
+		MovementComponent.SetInputDirection(direction);
+		// _targetDirection = new Vector3(localDestination.X, 0, localDestination.Z).Normalized();
 	}
 
 	/// <summary>
@@ -225,10 +240,11 @@ public partial class EnemyBehavior : Node
 		{
 			return;
 		}
-		if (_movementComponent != null)
-		{
-			_movementComponent.NavigateTo(-_lastKnownTargetPosition);
-		}
+
+		Vector3 destination = _navigationAgent.GetNextPathPosition();
+		Vector3 localDestination = destination - _parent.GlobalPosition;
+		var direction = new Vector3(localDestination.X, 0, localDestination.Z).Normalized();
+		MovementComponent.SetInputDirection(-direction);
 	}
 
 	public void SetBehavior(EnemyBehaviorState newBehavior)
@@ -247,11 +263,7 @@ public partial class EnemyBehavior : Node
 			GD.Print($"{_parent.Name} is now targeting {target.Name}");
 			Target = target;
 		}
-		if (Target != null)
-		{
-			// Udpate the last known target position
-			_lastKnownTargetPosition = Target.GlobalPosition;
-		}
+		UpdateTargetPosition();
 	}
 
 	public void SetAction(EnemyAction newAction)
@@ -273,5 +285,6 @@ public partial class EnemyBehavior : Node
 	{
 		SetAction(EnemyAction.Dying);
 		SetBehavior(EnemyBehaviorState.Dead);
+		MovementComponent.Stop();
 	}
 }
