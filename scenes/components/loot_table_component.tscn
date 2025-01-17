@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dud0hid1mwmdw"]
+
+[ext_resource type="Script" path="res://scenes/components/LootTableComponent.cs" id="1_ppr6f"]
+
+[node name="LootTableComponent" type="Node"]
+script = ExtResource("1_ppr6f")

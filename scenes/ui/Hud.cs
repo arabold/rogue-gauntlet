@@ -3,23 +3,27 @@ using Godot;
 public partial class Hud : Control
 {
 	private ProgressBar _healthBar;
-	private Label _scoreLabel;
+	private Label _xpLabel;
+	private Label _goldLabel;
 	private ProgressBar[] _cooldownBars;
 
 	public override void _Ready()
 	{
 		// Get references to the child nodes
 		_healthBar = GetNode<ProgressBar>("HealthBar");
-		_scoreLabel = GetNode<Label>("ScoreLabel");
+		_xpLabel = GetNode<Label>("XpLabel");
+		_goldLabel = GetNode<Label>("GoldLabel");
 
 		// Connect signals from GameManager to update HUD elements
-		SignalBus.Instance.ScoreUpdated += OnScoreUpdated;
+		SignalBus.Instance.XpUpdated += OnXpUpdated;
+		SignalBus.Instance.GoldUpdated += OnGoldUpdated;
 		SignalBus.Instance.HealthChanged += OnHealthChanged;
 		SignalBus.Instance.GamePaused += OnGamePaused;
 		SignalBus.Instance.CooldownUpdated += OnCooldownUpdated;
 
 		// Initialize the HUD with the current game state
-		OnScoreUpdated(GameManager.Instance.Score);
+		OnXpUpdated(GameManager.Instance.Xp);
+		OnGoldUpdated(GameManager.Instance.Gold);
 		OnHealthChanged(GameManager.Instance.Health, GameManager.Instance.MaxHealth);
 
 		// Initialize cooldown bars array
@@ -40,10 +44,14 @@ public partial class Hud : Control
 		}
 	}
 
-	// Updates the score label when the score changes
-	private void OnScoreUpdated(int newScore)
+	private void OnXpUpdated(int xp)
 	{
-		_scoreLabel.Text = $"Score: {newScore}";
+		_xpLabel.Text = $"XP: {xp}";
+	}
+
+	private void OnGoldUpdated(int gold)
+	{
+		_goldLabel.Text = $"Gold: {gold}";
 	}
 
 	// Updates the health bar when the health changes

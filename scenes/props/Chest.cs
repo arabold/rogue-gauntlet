@@ -1,7 +1,7 @@
 using Godot;
 
 [Tool]
-public partial class Chest : ItemBase
+public partial class Chest : Node3D
 {
 	[Export] public int GoldAmount { get; set; } = 10;
 	[Export]

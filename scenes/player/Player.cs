@@ -112,15 +112,4 @@ public partial class Player : CharacterBody3D
 	{
 		HandleInput();
 	}
-
-	public override void _PhysicsProcess(double delta)
-	{
-		Velocity = MovementComponent.Velocity;
-		var lookAt = MovementComponent.LookAtDirection;
-		if (lookAt != Vector3.Zero)
-		{
-			LookAt(GlobalPosition + lookAt, Vector3.Up);
-		}
-		MoveAndSlide();
-	}
 }

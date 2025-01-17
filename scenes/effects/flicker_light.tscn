@@ -6,6 +6,7 @@
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
 light_color = Color(1, 0.818182, 0.678769, 1)
 light_specular = 0.0
+light_bake_mode = 0
 light_cull_mask = 4293918975
 shadow_enabled = true
 distance_fade_enabled = true

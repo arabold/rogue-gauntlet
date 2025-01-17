@@ -42,14 +42,22 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_e0nu8")
 value = 75.0
 show_percentage = false
 
-[node name="ScoreLabel" type="Label" parent="."]
+[node name="XpLabel" type="Label" parent="."]
 layout_mode = 0
 offset_left = 8.0
 offset_top = 72.0
 offset_right = 129.0
 offset_bottom = 117.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-text = "Score: 0"
+text = "XP: 0"
+
+[node name="GoldLabel" type="Label" parent="."]
+offset_left = 8.0
+offset_top = 117.0
+offset_right = 129.0
+offset_bottom = 162.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Gold: 0"
 
 [node name="ActionCooldown1" type="ProgressBar" parent="."]
 layout_mode = 0

@@ -9,7 +9,8 @@ public partial class GameManager : Node
 	public static GameManager Instance { get; private set; }
 
 	// Game state variables
-	public int Score { get; private set; }
+	public int Xp { get; private set; }
+	public int Gold { get; private set; }
 	public int Health { get; private set; }
 	public int MaxHealth { get; private set; }
 	public int CurrentLevel { get; private set; }
@@ -21,6 +22,7 @@ public partial class GameManager : Node
 
 	public Random Random { get; private set; } = new Random();
 	public Player Player { get; private set; }
+	public Level Level { get; private set; }
 
 	public override void _Ready()
 	{
@@ -35,7 +37,8 @@ public partial class GameManager : Node
 		Instance = this;
 
 		// Initialize default values
-		Score = 0;
+		Xp = 0;
+		Gold = 0;
 		Health = 100;
 		MaxHealth = 100;
 		CurrentLevel = 1;
@@ -46,16 +49,25 @@ public partial class GameManager : Node
 		GetTree().TreeChanged += OnSceneTreeChanged;
 
 		SignalBus.Instance.PlayerSpawned += player => Player = player;
+		SignalBus.Instance.LevelLoaded += level => Level = level;
 
 		GD.Print("GameManager initialized.");
 	}
 
-	// Method to increase the score
-	public void AddScore(int points)
+	// Method to increase the experience points
+	public void AddXp(int xp)
 	{
-		Score += points;
-		SignalBus.EmitScoreUpdated(Score);
-		GD.Print($"Score Updated: {Score}");
+		Xp += xp;
+		SignalBus.EmitXpUpdated(Xp);
+		GD.Print($"XP Updated: {Xp}");
+	}
+
+	// Method to increase the gold
+	public void AddGold(int gold)
+	{
+		Gold += gold;
+		SignalBus.EmitGoldUpdated(Gold);
+		GD.Print($"Gold Updated: {Gold}");
 	}
 
 	// Method to change the health
@@ -96,7 +108,7 @@ public partial class GameManager : Node
 	// Restart the game
 	public void RestartGame()
 	{
-		Score = 0;
+		Xp = 0;
 		CurrentLevel = 1;
 		IsGamePaused = false;
 		GD.Print("Restarting Game...");

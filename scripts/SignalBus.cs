@@ -8,12 +8,14 @@ public partial class SignalBus : Node
     [Signal] public delegate void GamePausedEventHandler(bool isPaused);
     public static void EmitGamePaused(bool isPaused) => SafeEmitSignal(SignalName.GamePaused, isPaused);
 
-    [Signal] public delegate void ScoreUpdatedEventHandler(int score);
+    [Signal] public delegate void XpUpdatedEventHandler(int xp);
+    [Signal] public delegate void GoldUpdatedEventHandler(int gold);
     [Signal] public delegate void HealthChangedEventHandler(int currentHealth, int maxHealth);
     [Signal] public delegate void CooldownUpdatedEventHandler(int actionIndex, float remainingTime, float totalTime);
     [Signal] public delegate void PlayerSpawnedEventHandler(Player player);
     [Signal] public delegate void PlayerDeathEventHandler(Player player);
-    public static void EmitScoreUpdated(int score) => SafeEmitSignal(SignalName.ScoreUpdated, score);
+    public static void EmitXpUpdated(int score) => SafeEmitSignal(SignalName.XpUpdated, score);
+    public static void EmitGoldUpdated(int score) => SafeEmitSignal(SignalName.GoldUpdated, score);
     public static void EmitHealthChanged(int currentHealth, int maxHealth) => SafeEmitSignal(SignalName.HealthChanged, currentHealth, maxHealth);
     public static void EmitCooldownUpdated(int actionIndex, float remainingTime, float totalTime) => SafeEmitSignal(SignalName.CooldownUpdated, actionIndex, remainingTime, totalTime);
     public static void EmitPlayerSpawned(Player player) => SafeEmitSignal(SignalName.PlayerSpawned, player);

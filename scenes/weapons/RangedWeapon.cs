@@ -47,7 +47,7 @@ public partial class RangedWeapon : Node3D, IWeapon
 			if (!enemy.IsDead && TestLineOfSight(enemy))
 			{
 				// Aim at the vertical center of the enemy
-				var collisionShape = enemy.GetNode<CollisionShape3D>("CollisionShape3D");
+				var collisionShape = enemy.CollisionShape;
 				var enemyCenter = enemy.GlobalPosition + collisionShape.Transform.Origin;
 				var direction = (enemyCenter - GlobalPosition).Normalized();
 				GD.Print($"Aiming at {enemy.Name} {direction}");

@@ -36,6 +36,7 @@ public partial class EnemyBehavior : Node
 		{ EnemyAction.Dying, 2.0f },
 	};
 
+	[Export] public CharacterBody3D Actor { get; set; }
 	[Export] public MovementComponent MovementComponent { get; set; }
 	[Export] public HealthComponent HealthComponent { get; set; }
 	[Export] public EnemyBehaviorState CurrentBehavior { get; private set; } = EnemyBehaviorState.Idle;
@@ -57,7 +58,6 @@ public partial class EnemyBehavior : Node
 	/// </summary>
 	public Node3D Target { get; private set; } = null;
 
-	private Node3D _parent;
 	private RayCast3D _sightRay;
 	private NavigationAgent3D _navigationAgent;
 	private float _remainingActionTime = 0;
@@ -67,12 +67,11 @@ public partial class EnemyBehavior : Node
 	{
 		base._Ready();
 
-		_parent = GetParent<Node3D>(); // Assume the parent is the Enemy node
 		_sightRay = GetNode<RayCast3D>("SightRay");
 		_navigationAgent = GetNode<NavigationAgent3D>("NavigationAgent3D");
 
 		// Ensure to properly initialize the enemy's state with the current selection
-		GD.Print($"{_parent.Name} is initialized with {CurrentBehavior} and {CurrentAction}");
+		GD.Print($"{GetParent().Name} is initialized with {CurrentBehavior} and {CurrentAction}");
 		_remainingActionTime = ActionDurations[CurrentAction];
 
 		if (HealthComponent != null)
@@ -131,9 +130,9 @@ public partial class EnemyBehavior : Node
 	private bool TestLineOfSight(Node3D node)
 	{
 		Vector3 endPoint = node.GlobalPosition;
-		Vector3 direction = (endPoint - _parent.GlobalPosition).Normalized();
+		Vector3 direction = (endPoint - Actor.GlobalPosition).Normalized();
 
-		Vector3 forward = -_parent.GlobalTransform.Basis.Z;
+		Vector3 forward = -Actor.GlobalTransform.Basis.Z;
 		float angle = Mathf.RadToDeg(Mathf.Acos(forward.Normalized().Dot(direction)));
 		if (angle > DetectionAngle)
 		{
@@ -142,7 +141,7 @@ public partial class EnemyBehavior : Node
 
 		var space = _sightRay.GetWorld3D().DirectSpaceState;
 		var query = PhysicsRayQueryParameters3D.Create(
-			_parent.GlobalPosition,
+			Actor.GlobalPosition,
 			endPoint,
 			_sightRay.CollisionMask);
 		var result = space.IntersectRay(query);
@@ -169,12 +168,12 @@ public partial class EnemyBehavior : Node
 			{
 				if (player.IsDead) continue;
 
-				var distance = _parent.GlobalPosition.DistanceTo(player.GlobalPosition);
+				var distance = Actor.GlobalPosition.DistanceTo(player.GlobalPosition);
 				if (distance > 0 && distance <= DetectionRange)
 				{
 					if ((distance < DetectionRange / 2) || TestLineOfSight(player))
 					{
-						GD.Print($"{_parent.Name} has spotted {player.Name}");
+						GD.Print($"{Actor.Name} has spotted {player.Name}");
 						UpdateTargetPosition();
 						SetTarget(player);
 						return true;
@@ -195,7 +194,7 @@ public partial class EnemyBehavior : Node
 			return false;
 		}
 
-		float distance = _parent.GlobalPosition.DistanceTo(Target.GlobalPosition);
+		float distance = Actor.GlobalPosition.DistanceTo(Target.GlobalPosition);
 		return distance < 1.0f;
 	}
 
@@ -225,7 +224,7 @@ public partial class EnemyBehavior : Node
 
 		// Move to the next path position
 		Vector3 destination = _navigationAgent.GetNextPathPosition();
-		Vector3 localDestination = destination - _parent.GlobalPosition;
+		Vector3 localDestination = destination - Actor.GlobalPosition;
 		var direction = new Vector3(localDestination.X, 0, localDestination.Z).Normalized();
 		MovementComponent.SetInputDirection(direction);
 		// _targetDirection = new Vector3(localDestination.X, 0, localDestination.Z).Normalized();
@@ -242,7 +241,7 @@ public partial class EnemyBehavior : Node
 		}
 
 		Vector3 destination = _navigationAgent.GetNextPathPosition();
-		Vector3 localDestination = destination - _parent.GlobalPosition;
+		Vector3 localDestination = destination - Actor.GlobalPosition;
 		var direction = new Vector3(localDestination.X, 0, localDestination.Z).Normalized();
 		MovementComponent.SetInputDirection(-direction);
 	}
@@ -251,7 +250,7 @@ public partial class EnemyBehavior : Node
 	{
 		if (CurrentBehavior != newBehavior)
 		{
-			GD.Print($"{_parent.Name} is now {newBehavior}");
+			GD.Print($"{Actor.Name} is now {newBehavior}");
 			CurrentBehavior = newBehavior;
 		}
 	}
@@ -260,7 +259,7 @@ public partial class EnemyBehavior : Node
 	{
 		if (Target != target)
 		{
-			GD.Print($"{_parent.Name} is now targeting {target.Name}");
+			GD.Print($"{Actor.Name} is now targeting {target.Name}");
 			Target = target;
 		}
 		UpdateTargetPosition();
@@ -270,7 +269,7 @@ public partial class EnemyBehavior : Node
 	{
 		if (CurrentAction != newAction)
 		{
-			GD.Print($"{_parent.Name} is performing {newAction}");
+			GD.Print($"{Actor.Name} is performing {newAction}");
 			CurrentAction = newAction;
 			_remainingActionTime = ActionDurations[newAction];
 		}

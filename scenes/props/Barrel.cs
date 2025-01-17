@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class Barrel : ItemBase
+public partial class Barrel : Node3D
 {
 	private HealthComponent _healthComponent;
 	private HurtBoxComponent _hurtBoxComponent;

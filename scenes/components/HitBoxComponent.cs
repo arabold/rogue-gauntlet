@@ -10,11 +10,8 @@ public partial class HitBoxComponent : Area3D
 	[Signal]
 	public delegate void HitDetectedEventHandler(Node3D damageable);
 
-	private Node3D _parent;
-
 	public override void _Ready()
 	{
-		_parent = GetParent<Node3D>();
 		AreaEntered += OnAreaEntered;
 		BodyEntered += OnBodyEntered;
 	}

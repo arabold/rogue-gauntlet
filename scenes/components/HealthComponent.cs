@@ -8,6 +8,7 @@ public partial class HealthComponent : Node
 	[Signal] public delegate void DiedEventHandler();
 
 	public int CurrentHealth { get; private set; }
+	public bool IsDead => CurrentHealth <= 0;
 
 	public override void _Ready()
 	{

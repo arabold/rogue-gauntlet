@@ -4,6 +4,10 @@ using Godot;
 public partial class MovementComponent : Node
 {
 	/// <summary>
+	/// The actor that will be moved by this component.
+	/// </summary>
+	[Export] public CharacterBody3D Actor { get; set; }
+	/// <summary>
 	/// Movement speed
 	/// </summary>
 	[Export] public float Speed { get; set; } = 3.0f;
@@ -36,14 +40,12 @@ public partial class MovementComponent : Node
 	public Vector3 TargetDirection { get; private set; } = Vector3.Zero;
 	public Vector3 LookAtDirection { get; private set; } = Vector3.Forward;
 
-	private CharacterBody3D _parent;
 	private Vector3 _pushDirection = Vector3.Zero;
 	private float _pushStrength = 0.0f;
 
 	public override void _Ready()
 	{
-		_parent = GetParent<CharacterBody3D>();
-		LookAtDirection = _parent.GlobalTransform.Basis.Z;
+		LookAtDirection = Actor.GlobalTransform.Basis.Z;
 	}
 
 	public void Push(Vector3 direction, float strength)
@@ -73,6 +75,7 @@ public partial class MovementComponent : Node
 	{
 		UpdateVelocity(delta);
 		SmoothRotateToward(delta);
+		Move(Actor);
 	}
 
 	/// <summary>
@@ -113,7 +116,7 @@ public partial class MovementComponent : Node
 		// Apply vertical velocity
 		velocity.Y += Velocity.Y;
 		var isOnStairs = StairsTriggers?.stairs > 0;
-		if (_parent.IsOnFloor())
+		if (Actor.IsOnFloor())
 		{
 			// Reset vertical velocity when on the floor
 			velocity.Y = 0;

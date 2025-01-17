@@ -1,7 +1,7 @@
 using Godot;
 
 [Tool]
-public partial class Door : ItemBase
+public partial class Door : Node3D
 {
 	[Export]
 	public bool IsOpen
