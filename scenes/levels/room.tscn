@@ -1,0 +1,39 @@
+[gd_scene load_steps=6 format=3 uid="uid://b0hb8ttsstdbc"]
+
+[ext_resource type="Script" path="res://scenes/levels/Room.cs" id="1_5ov2y"]
+[ext_resource type="MeshLibrary" uid="uid://c133krcrhd1yi" path="res://scenes/levels/BaseMapMeshLibrary.tres" id="1_ihqya"]
+[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_rh25h"]
+[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_0ugaa"]
+[ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_uqg86"]
+
+[node name="Room" type="Node3D"]
+script = ExtResource("1_5ov2y")
+
+[node name="BaseMap" type="GridMap" parent="."]
+mesh_library = ExtResource("1_ihqya")
+cell_size = Vector3(4, 4, 4)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+
+[node name="FloorGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("2_rh25h")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+
+[node name="WallGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("3_0ugaa")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+metadata/_editor_floor_ = Vector3(0, -4, 0)
+
+[node name="DecorationGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("4_uqg86")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false

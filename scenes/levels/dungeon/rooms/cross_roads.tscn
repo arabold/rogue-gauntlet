@@ -1,12 +1,14 @@
-[gd_scene load_steps=6 format=3 uid="uid://cenip7lmkxdhn"]
+[gd_scene load_steps=7 format=3 uid="uid://cenip7lmkxdhn"]
 
 [ext_resource type="MeshLibrary" uid="uid://c133krcrhd1yi" path="res://scenes/levels/BaseMapMeshLibrary.tres" id="1_ps5v6"]
+[ext_resource type="Script" path="res://scenes/levels/Room.cs" id="1_rcyi1"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_wjm60"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_325ce"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_p1ao1"]
 [ext_resource type="PackedScene" uid="uid://dbns86sg2gnll" path="res://scenes/props/door.tscn" id="5_30oh8"]
 
 [node name="CrossRoads" type="Node3D"]
+script = ExtResource("1_rcyi1")
 
 [node name="BaseMap" type="GridMap" parent="."]
 visible = false

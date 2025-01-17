@@ -1,5 +1,6 @@
 using Godot;
 using Godot.Collections;
+using System;
 using System.Linq;
 
 public partial class GameManager : Node
@@ -17,6 +18,8 @@ public partial class GameManager : Node
 	public Array<Player> PlayersInScene { get; private set; }
 	public Array<Enemy> EnemiesInScene { get; private set; }
 	public Array<Node3D> DamageablesInScene { get; private set; }
+
+	public Random Random { get; private set; } = new Random();
 
 	[Signal]
 	public delegate void ScoreUpdatedEventHandler(int score);

@@ -8,6 +8,7 @@ public partial class Level : Node
 
 	public override void _Ready()
 	{
+		GD.Print("Initializing level...");
 		_mapGenerator = GetNode<MapGenerator>("MapGenerator");
 		if (!Engine.IsEditorHint())
 		{
@@ -25,7 +26,7 @@ public partial class Level : Node
 		{
 			// Spawn the player
 			Vector3 playerSpawnPoint = _mapGenerator.PlayerSpawnPoint;
-			Node3D player = _playerSpawner.SpawnPlayer(playerSpawnPoint);
+			_playerSpawner.SpawnPlayer(playerSpawnPoint);
 		}
 	}
 }

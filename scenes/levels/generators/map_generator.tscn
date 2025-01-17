@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://dhi51wv5tbpik"]
 
-[ext_resource type="Script" path="res://scenes/levels/MapGenerator.cs" id="1_wxtnq"]
+[ext_resource type="Script" path="res://scenes/levels/generators/MapGenerator.cs" id="1_wxtnq"]
 [ext_resource type="MeshLibrary" uid="uid://c133krcrhd1yi" path="res://scenes/levels/BaseMapMeshLibrary.tres" id="2_2oxdd"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="3_xm338"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="4_7abrk"]

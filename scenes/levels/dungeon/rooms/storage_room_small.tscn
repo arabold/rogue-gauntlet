@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://p77tcudxh8un"]
+[gd_scene load_steps=8 format=3 uid="uid://p77tcudxh8un"]
 
 [ext_resource type="MeshLibrary" uid="uid://c133krcrhd1yi" path="res://scenes/levels/BaseMapMeshLibrary.tres" id="1_0mdmy"]
+[ext_resource type="Script" path="res://scenes/levels/Room.cs" id="1_1ygbb"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_8yktl"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_f1dx5"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_haw0d"]
@@ -8,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://cyhr68psc2ku" path="res://scenes/props/torch_mounted.tscn" id="6_5jhrp"]
 
 [node name="StorageRoomSmall" type="Node3D"]
+script = ExtResource("1_1ygbb")
 
 [node name="BaseMap" type="GridMap" parent="."]
 visible = false
