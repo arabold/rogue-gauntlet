@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://co63kumhx7fol"]
-
-[ext_resource type="Script" path="res://scenes/levels/CameraManager.cs" id="1_04e2v"]
-
-[node name="CameraManager" type="Node"]
-script = ExtResource("1_04e2v")

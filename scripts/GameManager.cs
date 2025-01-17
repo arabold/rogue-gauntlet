@@ -20,21 +20,7 @@ public partial class GameManager : Node
 	public Array<Node3D> DamageablesInScene { get; private set; }
 
 	public Random Random { get; private set; } = new Random();
-
-	[Signal]
-	public delegate void ScoreUpdatedEventHandler(int score);
-
-	[Signal]
-	public delegate void HealthChangedEventHandler(int currentHealth, int maxHealth);
-
-	[Signal]
-	public delegate void LevelChangedEventHandler(int level);
-
-	[Signal]
-	public delegate void GamePausedEventHandler(bool isPaused);
-
-	[Signal]
-	public delegate void CooldownUpdatedEventHandler(int actionIndex, float remainingTime, float totalTime);
+	public Player Player { get; private set; }
 
 	public override void _Ready()
 	{
@@ -55,8 +41,11 @@ public partial class GameManager : Node
 		CurrentLevel = 1;
 		IsGamePaused = false;
 
+		// Connect to signals
 		OnSceneTreeChanged();
 		GetTree().TreeChanged += OnSceneTreeChanged;
+
+		SignalBus.Instance.PlayerSpawned += player => Player = player;
 
 		GD.Print("GameManager initialized.");
 	}
@@ -65,7 +54,7 @@ public partial class GameManager : Node
 	public void AddScore(int points)
 	{
 		Score += points;
-		EmitSignal(SignalName.ScoreUpdated, Score);
+		SignalBus.EmitScoreUpdated(Score);
 		GD.Print($"Score Updated: {Score}");
 	}
 
@@ -73,21 +62,21 @@ public partial class GameManager : Node
 	public void UpdateHealth(int health, int maxHealth)
 	{
 		Health = health;
-		EmitSignal(SignalName.HealthChanged, health, maxHealth);
+		SignalBus.EmitHealthChanged(health, maxHealth);
 		GD.Print($"Health changed: {health}");
 	}
 
 	// Method to update cooldown status
 	public void UpdateCooldown(int slotIndex, float remainingTime, float totalTime)
 	{
-		EmitSignal(SignalName.CooldownUpdated, slotIndex, remainingTime, totalTime);
+		SignalBus.EmitCooldownUpdated(slotIndex, remainingTime, totalTime);
 	}
 
 	// Method to change the level
 	public void ChangeLevel(int level)
 	{
 		CurrentLevel = level;
-		EmitSignal(SignalName.LevelChanged, level);
+		SignalBus.EmitLevelChanged(level);
 
 		// Load new level scene
 		GD.Print($"Changing to Level {level}");
@@ -98,7 +87,7 @@ public partial class GameManager : Node
 	public void TogglePause()
 	{
 		IsGamePaused = !IsGamePaused;
-		EmitSignal(SignalName.GamePaused, IsGamePaused);
+		SignalBus.EmitGamePaused(IsGamePaused);
 
 		GetTree().Paused = IsGamePaused;
 		GD.Print($"Game Paused: {IsGamePaused}");

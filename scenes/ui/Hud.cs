@@ -13,10 +13,10 @@ public partial class Hud : Control
 		_scoreLabel = GetNode<Label>("ScoreLabel");
 
 		// Connect signals from GameManager to update HUD elements
-		GameManager.Instance.ScoreUpdated += OnScoreUpdated;
-		GameManager.Instance.HealthChanged += OnHealthChanged;
-		GameManager.Instance.GamePaused += OnGamePaused;
-		GameManager.Instance.CooldownUpdated += OnCooldownUpdated;
+		SignalBus.Instance.ScoreUpdated += OnScoreUpdated;
+		SignalBus.Instance.HealthChanged += OnHealthChanged;
+		SignalBus.Instance.GamePaused += OnGamePaused;
+		SignalBus.Instance.CooldownUpdated += OnCooldownUpdated;
 
 		// Initialize the HUD with the current game state
 		OnScoreUpdated(GameManager.Instance.Score);

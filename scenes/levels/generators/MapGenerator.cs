@@ -2,12 +2,9 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-// [Tool]
+[Tool]
 public partial class MapGenerator : Node3D
 {
-	[Signal]
-	public delegate void MapGeneratedEventHandler();
-
 	[Export]
 	public int MapWidth
 	{
@@ -110,12 +107,9 @@ public partial class MapGenerator : Node3D
 
 	private void OnPropertyChange()
 	{
-		if (Engine.IsEditorHint())
+		if (Engine.IsEditorHint() && FloorGridMap != null && WallGridMap != null && DecorationGridMap != null)
 		{
-			if (FloorGridMap != null && WallGridMap != null && DecorationGridMap != null)
-			{
-				GenerateMap();
-			}
+			GenerateMap();
 		}
 	}
 
@@ -204,15 +198,15 @@ public partial class MapGenerator : Node3D
 		GD.Print("Generating player spawn point...");
 		// Find a random floor tile to place the player
 		int x;
-		int y;
+		int z;
 		do
 		{
 			x = Random.Next(1, MapWidth - 1);
-			y = Random.Next(1, MapDepth - 1);
+			z = Random.Next(1, MapDepth - 1);
 		}
-		while (!Map.IsRoom(x, y));
+		while (!Map.IsRoom(x, z));
 
-		PlayerSpawnPoint = new Vector3(x * TileSize, 0, y * TileSize);
+		PlayerSpawnPoint = TileToWorld(x, 0, z);
 		PlayerRotation = Random.Next(0, 360);
 	}
 
@@ -273,7 +267,6 @@ public partial class MapGenerator : Node3D
 		// }
 
 		GD.Print("Map generated.");
-		EmitSignal(SignalName.MapGenerated);
 	}
 
 	private void Reset()
@@ -293,6 +286,7 @@ public partial class MapGenerator : Node3D
 		FloorGridMap.Clear();
 		WallGridMap.Clear();
 		DecorationGridMap.Clear();
+		NavigationRegion.BakeNavigationMesh();
 	}
 
 	private void PlaceRooms(List<RoomPlacement> roomPlacements)
@@ -384,7 +378,8 @@ public partial class MapGenerator : Node3D
 
 	private Vector3I TileToWorld(int x, int y, int z)
 	{
-		return new Vector3I(x * TileSize, y * TileSize, z * TileSize);
+		var centerX = Map.Width / 2;
+		var centerZ = Map.Height / 2;
+		return new Vector3I((x - centerX) * TileSize, y * TileSize, (z - centerZ) * TileSize);
 	}
-
 }

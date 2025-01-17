@@ -1,6 +1,7 @@
 using System.Linq;
 using Godot;
 
+[Tool]
 public partial class Room : Node3D
 {
 	public Rect2I Bounds { get; private set; }

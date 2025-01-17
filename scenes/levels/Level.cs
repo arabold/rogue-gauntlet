@@ -3,30 +3,21 @@ using Godot;
 [Tool]
 public partial class Level : Node
 {
-	private MapGenerator _mapGenerator;
-	private PlayerSpawner _playerSpawner;
+	public MapGenerator MapGenerator { get; private set; }
+	public PlayerSpawner PlayerSpawner { get; private set; }
 
 	public override void _Ready()
 	{
 		GD.Print("Initializing level...");
-		_mapGenerator = GetNode<MapGenerator>("MapGenerator");
+		MapGenerator = GetNode<MapGenerator>("MapGenerator");
 		if (!Engine.IsEditorHint())
 		{
-			_playerSpawner = GetNode<PlayerSpawner>("PlayerSpawner");
+			PlayerSpawner = GetNode<PlayerSpawner>("PlayerSpawner");
 		}
 
-		_mapGenerator.MapGenerated += OnMapGenerated;
-		_mapGenerator.GenerateMap();
-	}
+		MapGenerator.GenerateMap();
 
-	private void OnMapGenerated()
-	{
-		GD.Print("Map generated signal received");
-		if (!Engine.IsEditorHint())
-		{
-			// Spawn the player
-			Vector3 playerSpawnPoint = _mapGenerator.PlayerSpawnPoint;
-			_playerSpawner.SpawnPlayer(playerSpawnPoint);
-		}
+		GD.Print("Level is ready");
+		SignalBus.EmitLevelLoaded(this);
 	}
 }

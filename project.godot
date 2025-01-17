@@ -17,8 +17,9 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-PhantomCameraManager="*res://addons/phantom_camera/scripts/managers/phantom_camera_manager.gd"
+SignalBus="*res://scripts/SignalBus.cs"
 GameManager="*res://scripts/GameManager.cs"
+PhantomCameraManager="*res://addons/phantom_camera/scripts/managers/phantom_camera_manager.gd"
 
 [debug]
 
