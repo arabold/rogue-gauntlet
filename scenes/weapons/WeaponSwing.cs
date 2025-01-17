@@ -24,12 +24,12 @@ public partial class WeaponSwing : Node3D, IWeapon
 		ResetRotation();
 	}
 
-	private void OnHitDetected(Node3D damageable)
+	private void OnHitDetected(Node3D node)
 	{
-		if (damageable is IDamageable target)
+		if (node is IDamageable damageable)
 		{
-			GD.Print($"{Name} hit {damageable.Name} with {Damage} damage");
-			target.TakeDamage(Damage, GlobalTransform.Basis.Z);
+			GD.Print($"{Name} hit {node.Name} with {Damage} damage");
+			damageable.TakeDamage(Damage, GlobalTransform.Basis.Z);
 		}
 	}
 

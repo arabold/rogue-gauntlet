@@ -1,14 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://d2l47r6atc27d"]
+[gd_scene load_steps=2 format=3 uid="uid://d2l47r6atc27d"]
 
 [ext_resource type="Script" path="res://scenes/components/TriggerComponent.cs" id="1_5qaxp"]
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_u78ln"]
-radius = 1.5
 
 [node name="TriggerComponent" type="Area3D" groups=["trigger"]]
 collision_layer = 16
 collision_mask = 4
 script = ExtResource("1_5qaxp")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-shape = SubResource("SphereShape3D_u78ln")

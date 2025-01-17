@@ -6,28 +6,27 @@ using System.Linq;
 /// <summary>
 /// The main player character.
 /// </summary>
-public partial class Player : CharacterBody3D, IDamageable
+public partial class Player : CharacterBody3D
 {
-	// How fast the player moves in meters per second.
-	[Export] public int Speed { get; set; } = 14;
-
 	// The following states are used for animation
-	public bool IsDead => GameManager.Instance.Health <= 0;
-	public bool IsHit => _movementComponent.IsPushed;
-	public bool IsMoving => _movementComponent.IsMoving;
-	public bool IsFalling => _movementComponent.IsFalling;
-	public bool IsPerformingAction => _actionManager.CurrentActionId != null;
-	public string CurrentActionId => _actionManager.CurrentActionId;
+	public bool IsDead => HealthComponent.CurrentHealth <= 0;
+	public bool IsHit => MovementComponent.IsPushed;
+	public bool IsMoving => MovementComponent.IsMoving;
+	public bool IsFalling => MovementComponent.IsFalling;
+	public bool IsPerformingAction => ActionManager.CurrentActionId != null;
+	public string CurrentActionId => ActionManager.CurrentActionId;
 
 	private Node3D _pivot;
 	private AnimationTree _animationTree;
 	private AnimationNodeStateMachinePlayback _animationStateMachine;
 	private BoneAttachmentManager _attachmentManager;
 
-	private MovementComponent _movementComponent;
-	private InputComponent _inputComponent;
-	private ActionManager _actionManager;
-	private InteractionArea _interactionArea;
+	public HealthComponent HealthComponent;
+	public HurtBoxComponent HurtBoxComponent;
+	public MovementComponent MovementComponent;
+	public InputComponent InputComponent;
+	public ActionManager ActionManager;
+	public InteractionArea InteractionArea;
 
 	private Array<Node> _nearbyInteractives = new Array<Node>();
 
@@ -45,26 +44,29 @@ public partial class Player : CharacterBody3D, IDamageable
 		WeaponSwing heavyAttackSwing = GetNode<WeaponSwing>("HeavyAttackSwing");
 		RangedWeapon rangedWeapon = GetNode<RangedWeapon>("RangedWeapon");
 
-		_actionManager = GetNode<ActionManager>("ActionManager");
-		_actionManager.AssignAction(0, new QuickAttackAction(quickAttackSwing));
-		_actionManager.AssignAction(1, new HeavyAttackAction(heavyAttackSwing));
-		_actionManager.AssignAction(2, new DrinkPotionAction());
-		_actionManager.AssignAction(3, new RangedAttackAction(rangedWeapon));
+		ActionManager = GetNode<ActionManager>("ActionManager");
+		ActionManager.AssignAction(0, new QuickAttackAction(quickAttackSwing));
+		ActionManager.AssignAction(1, new HeavyAttackAction(heavyAttackSwing));
+		ActionManager.AssignAction(2, new DrinkPotionAction());
+		ActionManager.AssignAction(3, new RangedAttackAction(rangedWeapon));
 
-		_movementComponent = GetNode<MovementComponent>("MovementComponent");
-		_movementComponent.Speed = Speed;
+		MovementComponent = GetNode<MovementComponent>("MovementComponent");
+		InputComponent = GetNode<InputComponent>("InputComponent");
+		HealthComponent = GetNode<HealthComponent>("HealthComponent");
+		HurtBoxComponent = GetNode<HurtBoxComponent>("HurtBoxComponent");
 
-		_inputComponent = GetNode<InputComponent>("InputComponent");
+		InteractionArea = GetNode<InteractionArea>("InteractionArea");
+		InteractionArea.InteractiveEntered += OnInteractiveEntered;
+		InteractionArea.InteractiveExited += OnInteractiveExited;
 
-		_interactionArea = GetNode<InteractionArea>("InteractionArea");
-		_interactionArea.InteractiveEntered += OnInteractiveEntered;
-		_interactionArea.InteractiveExited += OnInteractiveExited;
+		HealthComponent.SetMaxHealth(GameManager.Instance.MaxHealth);
+		HealthComponent.SetHealth(GameManager.Instance.Health);
+		HealthComponent.HealthChanged += OnHealthChanged;
 	}
 
-	public void TakeDamage(int amount, Vector3 attackDirection)
+	public void OnHealthChanged(int health, int maxHealth)
 	{
-		var maxHealth = GameManager.Instance.MaxHealth;
-		var health = Math.Clamp(GameManager.Instance.Health - amount, 0, maxHealth);
+		// FIXME: Use SignalBus to emit the health changed signal or keep GameManager?
 		GameManager.Instance.UpdateHealth(health, maxHealth);
 	}
 
@@ -83,27 +85,27 @@ public partial class Player : CharacterBody3D, IDamageable
 		if (IsPerformingAction)
 		{
 			// If we're performing an action, don't allow any other actions
-			_movementComponent.SetInputDirection(Vector3.Zero);
-			_movementComponent.SetLookAtDirection(-_inputComponent.InputDirection);
+			MovementComponent.SetInputDirection(Vector3.Zero);
+			MovementComponent.SetLookAtDirection(-InputComponent.InputDirection);
 			return;
 		}
 
-		for (int i = 0; i < _actionManager.ActionSlotCount; i++)
+		for (int i = 0; i < ActionManager.ActionSlotCount; i++)
 		{
-			if (_inputComponent.IsActionSlotPressed(i))
+			if (InputComponent.IsActionSlotPressed(i))
 			{
-				_actionManager.TryPerformAction(i);
+				ActionManager.TryPerformAction(i);
 			}
 		}
 
-		if (_inputComponent.IsInteractPressed() && _nearbyInteractives.Count > 0)
+		if (InputComponent.IsInteractPressed() && _nearbyInteractives.Count > 0)
 		{
 			var interactive = _nearbyInteractives.Last() as IInteractive;
 			interactive.Interact(this);
 		}
 
-		var inputDirection = _inputComponent.InputDirection;
-		_movementComponent.SetInputDirection(inputDirection);
+		var inputDirection = InputComponent.InputDirection;
+		MovementComponent.SetInputDirection(inputDirection);
 	}
 
 	public override void _Process(double delta)
@@ -113,8 +115,8 @@ public partial class Player : CharacterBody3D, IDamageable
 
 	public override void _PhysicsProcess(double delta)
 	{
-		Velocity = _movementComponent.Velocity;
-		var lookAt = _movementComponent.LookAtDirection;
+		Velocity = MovementComponent.Velocity;
+		var lookAt = MovementComponent.LookAtDirection;
 		if (lookAt != Vector3.Zero)
 		{
 			LookAt(GlobalPosition + lookAt, Vector3.Up);

@@ -3,29 +3,30 @@ using Godot;
 /// <summary>
 /// Represents an enemy character in the game.
 /// </summary>
-public partial class Enemy : CharacterBody3D, IDamageable
+public partial class Enemy : CharacterBody3D
 {
-	private Node3D _pivot;
-	private EnemyBehavior _enemyBehavior;
-	private MovementComponent _movementComponent;
-	private HealthComponent _healthComponent;
-	private FloatingHealthBar _healthBar;
+	public Node3D Pivot;
+	public EnemyBehavior EnemyBehavior;
+	public MovementComponent MovementComponent;
+	public HealthComponent HealthComponent;
+	public HurtBoxComponent HurtBoxComponent;
+	public FloatingHealthBar HealthBar;
 
-	public bool IsDead => _enemyBehavior.IsDead;
+	public bool IsDead => EnemyBehavior.IsDead;
 
 	public override void _Ready()
 	{
 		base._Ready();
 
-		_pivot = GetNode<Node3D>("Pivot");
-		_enemyBehavior = GetNode<EnemyBehavior>("EnemyBehavior");
-		_movementComponent = GetNode<MovementComponent>("MovementComponent");
-		_healthComponent = GetNode<HealthComponent>("HealthComponent");
-		_healthBar = GetNode<FloatingHealthBar>("FloatingHealthBar");
-		_healthBar.Update(_healthComponent.CurrentHealth, _healthComponent.MaxHealth);
+		Pivot = GetNode<Node3D>("Pivot");
+		EnemyBehavior = GetNode<EnemyBehavior>("EnemyBehavior");
+		MovementComponent = GetNode<MovementComponent>("MovementComponent");
+		HealthComponent = GetNode<HealthComponent>("HealthComponent");
+		HurtBoxComponent = GetNode<HurtBoxComponent>("HurtBoxComponent");
+		HealthBar = GetNode<FloatingHealthBar>("FloatingHealthBar");
 
 		// Connect the health component's Died signal to the enemy behavior's Die method
-		_healthComponent.Died += OnDie;
+		HealthComponent.Died += OnDie;
 
 		// Hide the mesh until the animations are fully initialized to
 		// prevent any flickering
@@ -37,25 +38,12 @@ public partial class Enemy : CharacterBody3D, IDamageable
 		Position = startPosition;
 	}
 
-	private void OnVisibilityNotifierScreenExited()
-	{
-		// QueueFree();
-	}
-
-	public void TakeDamage(int amount, Vector3 attackDirection)
-	{
-		_enemyBehavior.OnHit();
-		_movementComponent.Push(attackDirection, 2.0f);
-		_healthComponent.TakeDamage(amount);
-		_healthBar.Update(_healthComponent.CurrentHealth, _healthComponent.MaxHealth);
-	}
-
 	private void OnDie()
 	{
 		// Disable collision detection for the enemy
 		CollisionLayer = 0;
-		_enemyBehavior.OnDie();
-		_movementComponent.Stop();
+		EnemyBehavior.OnDie();
+		MovementComponent.Stop();
 		SetPhysicsProcess(false);
 
 		// Wait for death animation to finish
@@ -69,8 +57,8 @@ public partial class Enemy : CharacterBody3D, IDamageable
 	public override void _PhysicsProcess(double delta)
 	{
 		Visible = true;
-		Velocity = _movementComponent.Velocity;
-		var lookAt = _movementComponent.LookAtDirection;
+		Velocity = MovementComponent.Velocity;
+		var lookAt = MovementComponent.LookAtDirection;
 		if (lookAt != Vector3.Zero)
 		{
 			LookAt(GlobalPosition + lookAt, Vector3.Up);

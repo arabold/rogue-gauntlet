@@ -174,6 +174,11 @@ public partial class MovementComponent : Node
 			}
 			else
 			{
+				// Handle the case where lookAt is exactly opposite to _lookAtDirection
+				if (lookAt.Dot(_lookAtDirection) < -0.999f)
+				{
+					lookAt += new Vector3(0.001f, 0, 0).Normalized();
+				}
 				_lookAtDirection = _lookAtDirection.Slerp(
 					lookAt, RotationSpeed * (float)delta
 				).Normalized();

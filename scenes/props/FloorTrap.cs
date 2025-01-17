@@ -15,7 +15,7 @@ public partial class FloorTrap : Node3D
 	public override void _Ready()
 	{
 		_triggerComponent = GetNode<TriggerComponent>("TriggerComponent");
-		_triggerComponent.PlayerEntered += OnPlayerEntered;
+		_triggerComponent.Triggered += OnTriggered;
 
 		_floor = GetNode<MeshInstance3D>("floor_tile_big_spikes");
 		_spikes = _floor.GetNode<MeshInstance3D>("spikes");
@@ -25,7 +25,7 @@ public partial class FloorTrap : Node3D
 		Visible = false;
 	}
 
-	private void OnPlayerEntered(Player player)
+	private void OnTriggered(Node3D node)
 	{
 		if (_isTriggered)
 		{
@@ -33,22 +33,25 @@ public partial class FloorTrap : Node3D
 			return;
 		}
 
-		GD.Print($"{player.Name} stepped on the trap!");
-		player.TakeDamage(Damage, -player.Basis.Z);
-
-		Visible = true;
-		_isTriggered = true;
-
-		// Animate the spikes coming out of the floor
-		var tween = CreateTween();
-		tween.TweenProperty(_spikes, "position:y", 0f, 0.2f);
-		tween.TweenProperty(_spikes, "position:y", -2f, 1.5f).SetDelay(0.5f);
-
-		// Hide the trap after a short delay
-		tween.Finished += () =>
+		if (node is IDamageable damageable)
 		{
-			// Reset the trap
-			_isTriggered = false;
-		};
+			GD.Print($"{node.Name} stepped on the trap!");
+			damageable.TakeDamage(Damage, node.Basis.Z);
+
+			Visible = true;
+			_isTriggered = true;
+
+			// Animate the spikes coming out of the floor
+			var tween = CreateTween();
+			tween.TweenProperty(_spikes, "position:y", 0f, 0.2f);
+			tween.TweenProperty(_spikes, "position:y", -2f, 1.5f).SetDelay(0.5f);
+
+			// Hide the trap after a short delay
+			tween.Finished += () =>
+			{
+				// Reset the trap
+				_isTriggered = false;
+			};
+		}
 	}
 }

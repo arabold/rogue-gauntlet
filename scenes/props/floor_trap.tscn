@@ -1,7 +1,7 @@
-[gd_scene load_steps=9 format=4 uid="uid://cap6wqfjubqjx"]
+[gd_scene load_steps=10 format=4 uid="uid://cap6wqfjubqjx"]
 
 [ext_resource type="Script" path="res://scenes/props/FloorTrap.cs" id="1_064fn"]
-[ext_resource type="Texture2D" uid="uid://dwy100cuqcdu1" path="res://scenes/levels/dungeon/assets/dungeon_texture.png" id="2_ev4jl"]
+[ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://scenes/levels/dungeon/assets/dungeon_texture.png" id="2_ev4jl"]
 [ext_resource type="PackedScene" uid="uid://d2l47r6atc27d" path="res://scenes/components/trigger_component.tscn" id="3_ny7u4"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_glrei"]
@@ -73,6 +73,9 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_wavfr")
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_t1utv"]
+size = Vector3(4, 1, 4)
+
 [node name="FloorTrap" type="Node3D"]
 script = ExtResource("1_064fn")
 
@@ -86,3 +89,7 @@ mesh = SubResource("ArrayMesh_6fxy4")
 skeleton = NodePath("")
 
 [node name="TriggerComponent" parent="." instance=ExtResource("3_ny7u4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TriggerComponent"]
+shape = SubResource("BoxShape3D_t1utv")

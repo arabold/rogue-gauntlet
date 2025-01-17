@@ -6,31 +6,16 @@ using Godot;
 public partial class TriggerComponent : Area3D
 {
 	[Signal]
-	public delegate void PlayerEnteredEventHandler(Player player);
-	[Signal]
-	public delegate void PlayerExitedEventHandler(Player player);
+	public delegate void TriggeredEventHandler(Node3D body);
 
 	public override void _Ready()
 	{
-		BodyEntered += OnBodyEntered;
-		BodyExited += OnBodyExited;
+		AreaEntered += OnAreaEntered;
 	}
 
-	private void OnBodyEntered(Node body)
+	private void OnAreaEntered(Node3D body)
 	{
-		if (body is Player player)
-		{
-			GD.Print($"{player.Name} entered the trigger area");
-			EmitSignal(SignalName.PlayerEntered, player);
-		}
-	}
-
-	private void OnBodyExited(Node body)
-	{
-		if (body is Player player)
-		{
-			GD.Print($"{player.Name} left the trigger area");
-			EmitSignal(SignalName.PlayerExited, player);
-		}
+		GD.Print($"{body.Name} enterd the trigger area");
+		EmitSignal(SignalName.Triggered, body);
 	}
 }

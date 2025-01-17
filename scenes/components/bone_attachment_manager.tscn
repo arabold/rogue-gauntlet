@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://n0xkrntlfaa1"]
+
+[ext_resource type="Script" path="res://scenes/components/BoneAttachmentManager.cs" id="1_hs6hs"]
+
+[node name="BoneAttachmentManager" type="Node"]
+script = ExtResource("1_hs6hs")
