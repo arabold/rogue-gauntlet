@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://28ikr3i4kfrb"
-valid=false
+uid="uid://d31uim4v78eau"
+path="res://.godot/imported/bottle_B_green.gltf-5bcb15fa75040158fe269e9dbaa0bf70.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/bottle_B_green.gltf"
+dest_files=["res://.godot/imported/bottle_B_green.gltf-5bcb15fa75040158fe269e9dbaa0bf70.scn"]
 
 [params]
 

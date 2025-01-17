@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://4rifmc5213my"
-valid=false
+uid="uid://rvkq6rv27kpf"
+path="res://.godot/imported/floor_tile_big_grate_open.gltf-e89db1b490e7fd515de461a2e9968abe.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/floor_tile_big_grate_open.gltf"
+dest_files=["res://.godot/imported/floor_tile_big_grate_open.gltf-e89db1b490e7fd515de461a2e9968abe.scn"]
 
 [params]
 

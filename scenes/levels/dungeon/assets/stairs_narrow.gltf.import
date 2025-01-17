@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://k7dhtma0sucy"
-valid=false
+uid="uid://ciwute41cche4"
+path="res://.godot/imported/stairs_narrow.gltf-1afbe9ef134e177235686e05bb69a298.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/stairs_narrow.gltf"
+dest_files=["res://.godot/imported/stairs_narrow.gltf-1afbe9ef134e177235686e05bb69a298.scn"]
 
 [params]
 

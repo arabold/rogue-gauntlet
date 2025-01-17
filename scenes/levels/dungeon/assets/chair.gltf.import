@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://de2chxnkqsi8g"
-valid=false
+uid="uid://vo2y1smdbwat"
+path="res://.godot/imported/chair.gltf-61d384688c6a0ba491e4f60c66c76ded.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/chair.gltf"
+dest_files=["res://.godot/imported/chair.gltf-61d384688c6a0ba491e4f60c66c76ded.scn"]
 
 [params]
 

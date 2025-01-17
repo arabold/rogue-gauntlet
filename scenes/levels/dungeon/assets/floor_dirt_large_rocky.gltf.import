@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://chf5jwu0koiyf"
-valid=false
+uid="uid://d2d5bvhdxchv0"
+path="res://.godot/imported/floor_dirt_large_rocky.gltf-67a50f335e25ea0451863455dc2a8f75.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/floor_dirt_large_rocky.gltf"
+dest_files=["res://.godot/imported/floor_dirt_large_rocky.gltf-67a50f335e25ea0451863455dc2a8f75.scn"]
 
 [params]
 

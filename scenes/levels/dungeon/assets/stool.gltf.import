@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bfp4nx4o0bi2"
-valid=false
+uid="uid://bdi3y76sxvja6"
+path="res://.godot/imported/stool.gltf-8c5032334cac2d4eeaf8fe69a4d90d14.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/stool.gltf"
+dest_files=["res://.godot/imported/stool.gltf-8c5032334cac2d4eeaf8fe69a4d90d14.scn"]
 
 [params]
 

@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://e4wdavxys2yu"
-valid=false
+uid="uid://dy4ekjtmevroj"
+path="res://.godot/imported/sword_shield.gltf-c523ce3451da7d3c21bb05d498dd2f7a.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/sword_shield.gltf"
+dest_files=["res://.godot/imported/sword_shield.gltf-c523ce3451da7d3c21bb05d498dd2f7a.scn"]
 
 [params]
 

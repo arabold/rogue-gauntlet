@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dpx24k7eytui8"
-valid=false
+uid="uid://ct52anwtbys1h"
+path="res://.godot/imported/floor_tile_small_weeds_B.gltf-57b0207ea628770206a65d902fc8f9c2.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/floor_tile_small_weeds_B.gltf"
+dest_files=["res://.godot/imported/floor_tile_small_weeds_B.gltf-57b0207ea628770206a65d902fc8f9c2.scn"]
 
 [params]
 

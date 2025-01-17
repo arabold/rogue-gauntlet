@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://0jy5dr8fhlwe"
-valid=false
+uid="uid://b1bi3pl7p53wd"
+path="res://.godot/imported/wall_corner_scaffold.gltf-59b32ae179094378eec69282b1e4f060.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/wall_corner_scaffold.gltf"
+dest_files=["res://.godot/imported/wall_corner_scaffold.gltf-59b32ae179094378eec69282b1e4f060.scn"]
 
 [params]
 

@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://lbhv0fi7h77h"
-valid=false
+uid="uid://cwhr4lm2jdvn4"
+path="res://.godot/imported/floor_wood_large_dark.gltf-2c91e44d98e157d56656c5f43d6c589a.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/floor_wood_large_dark.gltf"
+dest_files=["res://.godot/imported/floor_wood_large_dark.gltf-2c91e44d98e157d56656c5f43d6c589a.scn"]
 
 [params]
 

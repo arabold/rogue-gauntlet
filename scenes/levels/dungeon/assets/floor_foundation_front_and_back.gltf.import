@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://beroswhohxe37"
-valid=false
+uid="uid://d2874m1xr7xhg"
+path="res://.godot/imported/floor_foundation_front_and_back.gltf-49a66e9e54b5b60fcd394df54ab429cf.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/floor_foundation_front_and_back.gltf"
+dest_files=["res://.godot/imported/floor_foundation_front_and_back.gltf-49a66e9e54b5b60fcd394df54ab429cf.scn"]
 
 [params]
 

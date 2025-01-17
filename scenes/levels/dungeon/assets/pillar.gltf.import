@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cvqj3ag3k5uub"
-valid=false
+uid="uid://bh1i40ycbggcy"
+path="res://.godot/imported/pillar.gltf-ba25898f97f6a2abfc6618ba830f0d15.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/pillar.gltf"
+dest_files=["res://.godot/imported/pillar.gltf-ba25898f97f6a2abfc6618ba830f0d15.scn"]
 
 [params]
 

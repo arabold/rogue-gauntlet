@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://djrm8bhwaeiou"
-valid=false
+uid="uid://cgujli2knb2cb"
+path="res://.godot/imported/chest.gltf-98d9121119daa009ec835dcbf162c52f.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/chest.gltf"
+dest_files=["res://.godot/imported/chest.gltf-98d9121119daa009ec835dcbf162c52f.scn"]
 
 [params]
 

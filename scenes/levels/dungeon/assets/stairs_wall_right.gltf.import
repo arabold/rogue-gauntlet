@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://b2muuscsnnhxw"
-valid=false
+uid="uid://bimjco1e75xb2"
+path="res://.godot/imported/stairs_wall_right.gltf-89c1badfe8cd8a79f791d428c0eb7527.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/stairs_wall_right.gltf"
+dest_files=["res://.godot/imported/stairs_wall_right.gltf-89c1badfe8cd8a79f791d428c0eb7527.scn"]
 
 [params]
 

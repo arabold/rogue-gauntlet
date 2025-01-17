@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cabk4ckmc051a"
-valid=false
+uid="uid://cfo1lcucte43f"
+path="res://.godot/imported/wall_corner_gated.gltf-62b047b222441e56e2cdcc0b21ce4ef6.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/wall_corner_gated.gltf"
+dest_files=["res://.godot/imported/wall_corner_gated.gltf-62b047b222441e56e2cdcc0b21ce4ef6.scn"]
 
 [params]
 

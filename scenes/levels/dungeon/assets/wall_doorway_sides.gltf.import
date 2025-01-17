@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://c5xwxpbcbwied"
-valid=false
+uid="uid://cdfm641lsxe5v"
+path="res://.godot/imported/wall_doorway_sides.gltf-33f87004b351649db2d18c8d09a05cda.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/wall_doorway_sides.gltf"
+dest_files=["res://.godot/imported/wall_doorway_sides.gltf-33f87004b351649db2d18c8d09a05cda.scn"]
 
 [params]
 

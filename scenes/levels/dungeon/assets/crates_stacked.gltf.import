@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dwj5gvfkspn3u"
-valid=false
+uid="uid://ddjl6f7xum82"
+path="res://.godot/imported/crates_stacked.gltf-eb7b23ed4b9428487f32c70a1886447a.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/crates_stacked.gltf"
+dest_files=["res://.godot/imported/crates_stacked.gltf-eb7b23ed4b9428487f32c70a1886447a.scn"]
 
 [params]
 

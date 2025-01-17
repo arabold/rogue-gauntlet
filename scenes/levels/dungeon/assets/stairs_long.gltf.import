@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dftr50fp2sfu1"
-valid=false
+uid="uid://b0hqhrle3subl"
+path="res://.godot/imported/stairs_long.gltf-a91b3c906ddbb5fd5ba592476489a4e1.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/stairs_long.gltf"
+dest_files=["res://.godot/imported/stairs_long.gltf-a91b3c906ddbb5fd5ba592476489a4e1.scn"]
 
 [params]
 

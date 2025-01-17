@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://c1b7shs34ojtg"
-valid=false
+uid="uid://82cdmsvfkhjs"
+path="res://.godot/imported/wall_Tsplit.gltf-348e5f386d314acf389eb289cfd2b39a.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/wall_Tsplit.gltf"
+dest_files=["res://.godot/imported/wall_Tsplit.gltf-348e5f386d314acf389eb289cfd2b39a.scn"]
 
 [params]
 

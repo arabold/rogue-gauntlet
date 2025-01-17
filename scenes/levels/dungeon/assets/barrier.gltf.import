@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://ckg8jg24popbd"
-valid=false
+uid="uid://dt8e1u6ycux0u"
+path="res://.godot/imported/barrier.gltf-0931960e4db0a075dbc12a51d49613ef.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/barrier.gltf"
+dest_files=["res://.godot/imported/barrier.gltf-0931960e4db0a075dbc12a51d49613ef.scn"]
 
 [params]
 

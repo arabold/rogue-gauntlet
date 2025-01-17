@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://nc7ytrly3kp1"
-valid=false
+uid="uid://bievn8mckhkni"
+path="res://.godot/imported/wall_half_endcap_sloped.gltf-cb1a2291f4cee021c465f1431bfa4088.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/wall_half_endcap_sloped.gltf"
+dest_files=["res://.godot/imported/wall_half_endcap_sloped.gltf-cb1a2291f4cee021c465f1431bfa4088.scn"]
 
 [params]
 

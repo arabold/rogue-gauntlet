@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://b7qht8752k58b"
-valid=false
+uid="uid://2xs40xjgggeg"
+path="res://.godot/imported/torch_lit.gltf-450bce3536ed31327ba17f53b5f28341.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/torch_lit.gltf"
+dest_files=["res://.godot/imported/torch_lit.gltf-450bce3536ed31327ba17f53b5f28341.scn"]
 
 [params]
 

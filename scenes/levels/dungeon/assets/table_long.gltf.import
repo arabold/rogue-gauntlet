@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://byrrqaox1hqj8"
-valid=false
+uid="uid://dqjy7c8h714ur"
+path="res://.godot/imported/table_long.gltf-68aa9643720c91d39dc1fc565076b4ab.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/table_long.gltf"
+dest_files=["res://.godot/imported/table_long.gltf-68aa9643720c91d39dc1fc565076b4ab.scn"]
 
 [params]
 

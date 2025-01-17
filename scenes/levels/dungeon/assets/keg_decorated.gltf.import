@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://66tuwguyw8ik"
-valid=false
+uid="uid://cqexx8cyh5hw8"
+path="res://.godot/imported/keg_decorated.gltf-e7f5b1a89e564771e04802c47cbde449.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/keg_decorated.gltf"
+dest_files=["res://.godot/imported/keg_decorated.gltf-e7f5b1a89e564771e04802c47cbde449.scn"]
 
 [params]
 

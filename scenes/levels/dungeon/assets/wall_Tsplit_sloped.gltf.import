@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dylyxopjk5xvy"
-valid=false
+uid="uid://27v3pkh2yepq"
+path="res://.godot/imported/wall_Tsplit_sloped.gltf-b9ec4f97fa5f777389e1e867876679e0.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/wall_Tsplit_sloped.gltf"
+dest_files=["res://.godot/imported/wall_Tsplit_sloped.gltf-b9ec4f97fa5f777389e1e867876679e0.scn"]
 
 [params]
 

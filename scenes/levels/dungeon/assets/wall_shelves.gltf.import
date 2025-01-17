@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://d2ilf3m2jblap"
-valid=false
+uid="uid://cqjs6f2tuxleg"
+path="res://.godot/imported/wall_shelves.gltf-f70b7dc00cdf91b14b132772727e2ce0.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/wall_shelves.gltf"
+dest_files=["res://.godot/imported/wall_shelves.gltf-f70b7dc00cdf91b14b132772727e2ce0.scn"]
 
 [params]
 

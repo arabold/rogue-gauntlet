@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://ddn46buap8s24"
-valid=false
+uid="uid://cvvvwmj5pmy5m"
+path="res://.godot/imported/box_large.gltf-99dba9a7ad66c4a639e452e32185208a.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/box_large.gltf"
+dest_files=["res://.godot/imported/box_large.gltf-99dba9a7ad66c4a639e452e32185208a.scn"]
 
 [params]
 

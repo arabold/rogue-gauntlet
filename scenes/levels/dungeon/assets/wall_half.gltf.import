@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cswhpm6dssve5"
-valid=false
+uid="uid://depyibs3oirbb"
+path="res://.godot/imported/wall_half.gltf-2ed01c0d060560ec409c0a6876978712.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/wall_half.gltf"
+dest_files=["res://.godot/imported/wall_half.gltf-2ed01c0d060560ec409c0a6876978712.scn"]
 
 [params]
 

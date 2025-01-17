@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://c5y6ftn1b7cch"
-valid=false
+uid="uid://bfv64vithfao5"
+path="res://.godot/imported/bed_decorated.gltf-289ea753fcdf42f6231762df177e7aec.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/bed_decorated.gltf"
+dest_files=["res://.godot/imported/bed_decorated.gltf-289ea753fcdf42f6231762df177e7aec.scn"]
 
 [params]
 

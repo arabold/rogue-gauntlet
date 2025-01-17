@@ -1,6 +1,6 @@
 [gd_scene load_steps=174 format=4 uid="uid://b2er53iwg6e5n"]
 
-[ext_resource type="Texture2D" uid="uid://dwy100cuqcdu1" path="res://scenes/levels/dungeon/assets/dungeon_texture.png" id="1_o65vj"]
+[ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://scenes/levels/dungeon/assets/dungeon_texture.png" id="1_o65vj"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u2ld8"]
 resource_name = "texture"
@@ -1545,6 +1545,7 @@ polygons = [PackedInt32Array(20, 1, 2), PackedInt32Array(20, 12, 1), PackedInt32
 [node name="FloorMeshLibrary" type="Node3D"]
 
 [node name="floor_dirt_large" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_ijef8")
 skeleton = NodePath("")
 
@@ -1557,6 +1558,7 @@ shape = SubResource("ConcavePolygonShape3D_vai3i")
 navigation_mesh = SubResource("NavigationMesh_myyhf")
 
 [node name="floor_dirt_large_rocky" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_66u6r")
 skeleton = NodePath("")
 
@@ -1569,6 +1571,7 @@ shape = SubResource("ConcavePolygonShape3D_eufik")
 navigation_mesh = SubResource("NavigationMesh_r4w53")
 
 [node name="floor_dirt_small_A" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_aeo6x")
 skeleton = NodePath("")
 
@@ -1581,6 +1584,7 @@ shape = SubResource("ConcavePolygonShape3D_8plbp")
 navigation_mesh = SubResource("NavigationMesh_strlw")
 
 [node name="floor_dirt_small_B" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_s52lm")
 skeleton = NodePath("")
 
@@ -1593,6 +1597,7 @@ shape = SubResource("ConcavePolygonShape3D_sc7ru")
 navigation_mesh = SubResource("NavigationMesh_tcow7")
 
 [node name="floor_dirt_small_C" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_wjtyp")
 skeleton = NodePath("")
 
@@ -1605,6 +1610,7 @@ shape = SubResource("ConcavePolygonShape3D_ief5l")
 navigation_mesh = SubResource("NavigationMesh_yg8jg")
 
 [node name="floor_dirt_small_corner" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_vrttq")
 skeleton = NodePath("")
 
@@ -1617,6 +1623,7 @@ shape = SubResource("ConcavePolygonShape3D_l7rmf")
 navigation_mesh = SubResource("NavigationMesh_7g2ot")
 
 [node name="floor_dirt_small_D" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_q74m8")
 skeleton = NodePath("")
 
@@ -1629,6 +1636,7 @@ shape = SubResource("ConcavePolygonShape3D_0eiov")
 navigation_mesh = SubResource("NavigationMesh_7rc16")
 
 [node name="floor_dirt_small_weeds" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_h6sqs")
 skeleton = NodePath("")
 
@@ -1641,6 +1649,7 @@ shape = SubResource("ConcavePolygonShape3D_eim57")
 navigation_mesh = SubResource("NavigationMesh_okp3c")
 
 [node name="floor_foundation_allsides" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_6j77d")
 skeleton = NodePath("")
 
@@ -1653,6 +1662,7 @@ shape = SubResource("ConcavePolygonShape3D_i3e32")
 navigation_mesh = SubResource("NavigationMesh_1gosp")
 
 [node name="floor_foundation_corner" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_cbgrp")
 skeleton = NodePath("")
 
@@ -1665,6 +1675,7 @@ shape = SubResource("ConcavePolygonShape3D_k6r4m")
 navigation_mesh = SubResource("NavigationMesh_6h85n")
 
 [node name="floor_foundation_diagonal_corner" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_cb7mp")
 skeleton = NodePath("")
 
@@ -1677,6 +1688,7 @@ shape = SubResource("ConcavePolygonShape3D_35rc4")
 navigation_mesh = SubResource("NavigationMesh_tpsqc")
 
 [node name="floor_foundation_front" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_dt1tw")
 skeleton = NodePath("")
 
@@ -1689,6 +1701,7 @@ shape = SubResource("ConcavePolygonShape3D_tnay4")
 navigation_mesh = SubResource("NavigationMesh_il2ok")
 
 [node name="floor_foundation_front_and_back" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_u36lm")
 skeleton = NodePath("")
 
@@ -1701,6 +1714,7 @@ shape = SubResource("ConcavePolygonShape3D_1g3wf")
 navigation_mesh = SubResource("NavigationMesh_pfgsv")
 
 [node name="floor_foundation_front_and_sides" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_hksxo")
 skeleton = NodePath("")
 
@@ -1713,6 +1727,7 @@ shape = SubResource("ConcavePolygonShape3D_l12ya")
 navigation_mesh = SubResource("NavigationMesh_3co3b")
 
 [node name="floor_tile_big_grate" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_orc2y")
 skeleton = NodePath("")
 
@@ -1725,6 +1740,7 @@ shape = SubResource("ConcavePolygonShape3D_jp2a7")
 navigation_mesh = SubResource("NavigationMesh_7jgwk")
 
 [node name="floor_tile_big_grate_open" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_j11rm")
 skeleton = NodePath("")
 
@@ -1737,6 +1753,7 @@ shape = SubResource("ConcavePolygonShape3D_gcymk")
 navigation_mesh = SubResource("NavigationMesh_mv6t1")
 
 [node name="floor_tile_big_spikes" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_n7d0f")
 skeleton = NodePath("")
 
@@ -1753,6 +1770,7 @@ shape = SubResource("ConcavePolygonShape3D_vx36p")
 navigation_mesh = SubResource("NavigationMesh_sg4gn")
 
 [node name="floor_tile_extralarge_grates" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_a2aqe")
 skeleton = NodePath("")
 
@@ -1765,6 +1783,7 @@ shape = SubResource("ConcavePolygonShape3D_are21")
 navigation_mesh = SubResource("NavigationMesh_hqyss")
 
 [node name="floor_tile_extralarge_grates_open" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_sdp5u")
 skeleton = NodePath("")
 
@@ -1777,6 +1796,7 @@ shape = SubResource("ConcavePolygonShape3D_b62nh")
 navigation_mesh = SubResource("NavigationMesh_jbm58")
 
 [node name="floor_tile_grate" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_wmhf7")
 skeleton = NodePath("")
 
@@ -1789,6 +1809,7 @@ shape = SubResource("ConcavePolygonShape3D_upo5k")
 navigation_mesh = SubResource("NavigationMesh_qexj8")
 
 [node name="floor_tile_grate_open" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_8t43g")
 skeleton = NodePath("")
 
@@ -1801,6 +1822,7 @@ shape = SubResource("ConcavePolygonShape3D_krt2k")
 navigation_mesh = SubResource("NavigationMesh_xbrh4")
 
 [node name="floor_tile_large" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_hcqye")
 skeleton = NodePath("")
 
@@ -1813,6 +1835,7 @@ shape = SubResource("ConcavePolygonShape3D_u7ljy")
 navigation_mesh = SubResource("NavigationMesh_jr401")
 
 [node name="floor_tile_large_rocks" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_k7opj")
 skeleton = NodePath("")
 
@@ -1825,6 +1848,7 @@ shape = SubResource("ConcavePolygonShape3D_3e17q")
 navigation_mesh = SubResource("NavigationMesh_f4p64")
 
 [node name="floor_tile_small" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_mg8sx")
 skeleton = NodePath("")
 
@@ -1837,6 +1861,7 @@ shape = SubResource("ConcavePolygonShape3D_rc0xm")
 navigation_mesh = SubResource("NavigationMesh_cm2cq")
 
 [node name="floor_tile_small_broken_A" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_qvsv5")
 skeleton = NodePath("")
 
@@ -1849,6 +1874,7 @@ shape = SubResource("ConcavePolygonShape3D_dveqg")
 navigation_mesh = SubResource("NavigationMesh_lari2")
 
 [node name="floor_tile_small_broken_B" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_r4qch")
 skeleton = NodePath("")
 
@@ -1861,6 +1887,7 @@ shape = SubResource("ConcavePolygonShape3D_uena4")
 navigation_mesh = SubResource("NavigationMesh_4ajin")
 
 [node name="floor_tile_small_corner" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_cpuyc")
 skeleton = NodePath("")
 
@@ -1873,6 +1900,7 @@ shape = SubResource("ConcavePolygonShape3D_eoabm")
 navigation_mesh = SubResource("NavigationMesh_d2cb7")
 
 [node name="floor_tile_small_decorated" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_osbib")
 skeleton = NodePath("")
 
@@ -1885,6 +1913,7 @@ shape = SubResource("ConcavePolygonShape3D_spxom")
 navigation_mesh = SubResource("NavigationMesh_q3imx")
 
 [node name="floor_tile_small_weeds_A" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_psr1r")
 skeleton = NodePath("")
 
@@ -1897,6 +1926,7 @@ shape = SubResource("ConcavePolygonShape3D_jbjlh")
 navigation_mesh = SubResource("NavigationMesh_7oruo")
 
 [node name="floor_tile_small_weeds_B" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_15i10")
 skeleton = NodePath("")
 
@@ -1909,6 +1939,7 @@ shape = SubResource("ConcavePolygonShape3D_8kcfc")
 navigation_mesh = SubResource("NavigationMesh_2uvkh")
 
 [node name="floor_wood_large" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_0wsxv")
 skeleton = NodePath("")
 
@@ -1921,6 +1952,7 @@ shape = SubResource("ConcavePolygonShape3D_shqud")
 navigation_mesh = SubResource("NavigationMesh_no4sr")
 
 [node name="floor_wood_large_dark" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_wi1v5")
 skeleton = NodePath("")
 
@@ -1933,6 +1965,7 @@ shape = SubResource("ConcavePolygonShape3D_xb3d5")
 navigation_mesh = SubResource("NavigationMesh_7hc73")
 
 [node name="floor_wood_small" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_kuh27")
 skeleton = NodePath("")
 
@@ -1945,6 +1978,7 @@ shape = SubResource("ConcavePolygonShape3D_dnegv")
 navigation_mesh = SubResource("NavigationMesh_ffxio")
 
 [node name="floor_wood_small_dark" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("ArrayMesh_uabyq")
 skeleton = NodePath("")
 

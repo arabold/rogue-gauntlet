@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bihrdorq0g8xu"
-valid=false
+uid="uid://ble0s4dtqgj24"
+path="res://.godot/imported/wall_doorway_scaffold.gltf-e2d6f469dd8f1f4a110344346e283092.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/wall_doorway_scaffold.gltf"
+dest_files=["res://.godot/imported/wall_doorway_scaffold.gltf-e2d6f469dd8f1f4a110344346e283092.scn"]
 
 [params]
 

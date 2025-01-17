@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://tigqkquldawp"
-valid=false
+uid="uid://ul6w1oiarbvt"
+path="res://.godot/imported/shelf_small_candles.gltf-eda9769513c661dad755e4cafc5983a3.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/shelf_small_candles.gltf"
+dest_files=["res://.godot/imported/shelf_small_candles.gltf-eda9769513c661dad755e4cafc5983a3.scn"]
 
 [params]
 

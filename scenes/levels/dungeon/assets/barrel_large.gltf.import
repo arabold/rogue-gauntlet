@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dm1cn3fkj8vmh"
-valid=false
+uid="uid://1do2co1lt7n"
+path="res://.godot/imported/barrel_large.gltf-2cf834571e883bb09045812c42470aa2.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/barrel_large.gltf"
+dest_files=["res://.godot/imported/barrel_large.gltf-2cf834571e883bb09045812c42470aa2.scn"]
 
 [params]
 

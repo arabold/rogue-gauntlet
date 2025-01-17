@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://b8clcik651q6s"
-valid=false
+uid="uid://cwuc5gi4qvxoj"
+path="res://.godot/imported/floor_foundation_allsides.gltf-fd1794c7cf6339605dd0930e215e876e.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/floor_foundation_allsides.gltf"
+dest_files=["res://.godot/imported/floor_foundation_allsides.gltf-fd1794c7cf6339605dd0930e215e876e.scn"]
 
 [params]
 

@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cjvd2h80ni3l6"
-valid=false
+uid="uid://dg6gbg2yewqji"
+path="res://.godot/imported/wall_crossing.gltf-d1a05811eb364333f171d47255a945c0.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/wall_crossing.gltf"
+dest_files=["res://.godot/imported/wall_crossing.gltf-d1a05811eb364333f171d47255a945c0.scn"]
 
 [params]
 

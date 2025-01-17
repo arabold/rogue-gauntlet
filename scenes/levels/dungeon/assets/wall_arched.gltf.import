@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://csor3n7413fac"
-valid=false
+uid="uid://cppbvmjvkbjs6"
+path="res://.godot/imported/wall_arched.gltf-158f187b8210793b1c7807b9aa401c2a.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/wall_arched.gltf"
+dest_files=["res://.godot/imported/wall_arched.gltf-158f187b8210793b1c7807b9aa401c2a.scn"]
 
 [params]
 

@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://piytqngws7mx"
-valid=false
+uid="uid://c6fvn6nag3u3l"
+path="res://.godot/imported/trunk_medium_A.gltf-973eb75bb3966064c08c13de35b8b211.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/trunk_medium_A.gltf"
+dest_files=["res://.godot/imported/trunk_medium_A.gltf-973eb75bb3966064c08c13de35b8b211.scn"]
 
 [params]
 

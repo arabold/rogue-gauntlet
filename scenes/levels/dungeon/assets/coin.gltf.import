@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://c0wveifryq88f"
-valid=false
+uid="uid://dsdsmh8gobgtt"
+path="res://.godot/imported/coin.gltf-287355599f858a8a23006342e3e93f2d.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/coin.gltf"
+dest_files=["res://.godot/imported/coin.gltf-287355599f858a8a23006342e3e93f2d.scn"]
 
 [params]
 

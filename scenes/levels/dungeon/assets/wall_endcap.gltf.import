@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://do64htsrgadt"
-valid=false
+uid="uid://ctrm1t86yp2qj"
+path="res://.godot/imported/wall_endcap.gltf-c9dea09f2e3827f3c8251ed0fdc314b0.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/wall_endcap.gltf"
+dest_files=["res://.godot/imported/wall_endcap.gltf-c9dea09f2e3827f3c8251ed0fdc314b0.scn"]
 
 [params]
 

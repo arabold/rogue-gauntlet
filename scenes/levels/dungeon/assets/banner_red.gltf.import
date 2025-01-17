@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://drsrjceoww0wh"
-valid=false
+uid="uid://dnntdmuipf3kc"
+path="res://.godot/imported/banner_red.gltf-7569711908848b68076a2fdc147dd683.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/banner_red.gltf"
+dest_files=["res://.godot/imported/banner_red.gltf-7569711908848b68076a2fdc147dd683.scn"]
 
 [params]
 

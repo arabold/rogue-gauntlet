@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bsy46nvj2i770"
-valid=false
+uid="uid://cse3sqw63kd7o"
+path="res://.godot/imported/wall_archedwindow_gated_scaffold.gltf-c1cbfce788764191aa52f2a2008687b9.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/wall_archedwindow_gated_scaffold.gltf"
+dest_files=["res://.godot/imported/wall_archedwindow_gated_scaffold.gltf-c1cbfce788764191aa52f2a2008687b9.scn"]
 
 [params]
 

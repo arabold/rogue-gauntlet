@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cf5uqq5pvbrwr"
-valid=false
+uid="uid://bkwla314vf8d4"
+path="res://.godot/imported/candle_thin.gltf-feb79420c08d2de946662c7cff8303e7.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/candle_thin.gltf"
+dest_files=["res://.godot/imported/candle_thin.gltf-feb79420c08d2de946662c7cff8303e7.scn"]
 
 [params]
 

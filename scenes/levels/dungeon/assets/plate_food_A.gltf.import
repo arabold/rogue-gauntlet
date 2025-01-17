@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dg5gtnw84sa8w"
-valid=false
+uid="uid://b3wa05t0hsne8"
+path="res://.godot/imported/plate_food_A.gltf-7de04cbf4eefd99871bf1d21d68ad6ac.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/plate_food_A.gltf"
+dest_files=["res://.godot/imported/plate_food_A.gltf-7de04cbf4eefd99871bf1d21d68ad6ac.scn"]
 
 [params]
 

@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dd5ioeaxywlnj"
-valid=false
+uid="uid://dd4k2mbmsj5i4"
+path="res://.godot/imported/ceiling_tile.gltf-1164826ff9e7d71bec658d300cda6641.scn"
 
 [deps]
 
 source_file="res://scenes/levels/dungeon/assets/ceiling_tile.gltf"
+dest_files=["res://.godot/imported/ceiling_tile.gltf-1164826ff9e7d71bec658d300cda6641.scn"]
 
 [params]
 
