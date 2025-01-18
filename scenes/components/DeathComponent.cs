@@ -18,7 +18,7 @@ public partial class DeathComponent : Node
 		owner.CollisionLayer = 0;
 		owner.SetPhysicsProcess(false);
 
-		GameManager.Instance.AddXp(Xp);
+		GameManager.Instance.PlayerStats.AddXp(Xp);
 
 		// Wait for death animation to finish
 		GetTree().CreateTimer(Delay).Connect("timeout", Callable.From(() =>

@@ -22,9 +22,10 @@ public partial class Hud : Control
 		SignalBus.Instance.CooldownUpdated += OnCooldownUpdated;
 
 		// Initialize the HUD with the current game state
-		OnXpUpdated(GameManager.Instance.Xp);
-		OnGoldUpdated(GameManager.Instance.Gold);
-		OnHealthChanged(GameManager.Instance.Health, GameManager.Instance.MaxHealth);
+		var playerStats = GameManager.Instance.PlayerStats;
+		OnXpUpdated(playerStats.Xp);
+		OnGoldUpdated(playerStats.Gold);
+		OnHealthChanged(playerStats.Health, playerStats.MaxHealth);
 
 		// Initialize cooldown bars array
 		_cooldownBars = new ProgressBar[]

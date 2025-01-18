@@ -8,6 +8,8 @@ using System.Linq;
 /// </summary>
 public partial class Player : CharacterBody3D
 {
+	[Export] public PlayerStats Stats { get; set; }
+
 	// The following states are used for animation
 	public bool IsDead => HealthComponent.CurrentHealth <= 0;
 	public bool IsHit => MovementComponent.IsPushed;
@@ -59,15 +61,14 @@ public partial class Player : CharacterBody3D
 		InteractionArea.InteractiveEntered += OnInteractiveEntered;
 		InteractionArea.InteractiveExited += OnInteractiveExited;
 
-		HealthComponent.SetMaxHealth(GameManager.Instance.MaxHealth);
-		HealthComponent.SetHealth(GameManager.Instance.Health);
+		HealthComponent.SetMaxHealth(Stats.MaxHealth);
+		HealthComponent.SetHealth(Stats.Health);
 		HealthComponent.HealthChanged += OnHealthChanged;
 	}
 
 	public void OnHealthChanged(int health, int maxHealth)
 	{
-		// FIXME: Use SignalBus to emit the health changed signal or keep GameManager?
-		GameManager.Instance.UpdateHealth(health, maxHealth);
+		Stats.UpdateHealth(health, maxHealth);
 	}
 
 	private void OnInteractiveEntered(Node node)

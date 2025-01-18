@@ -24,7 +24,7 @@ public partial class Gold : Node3D
 		if (body is Player || body.Owner is Player)
 		{
 			GD.Print($"Player collected {Amount} gold!");
-			GameManager.Instance.AddGold(Amount);
+			GameManager.Instance.PlayerStats.AddGold(Amount);
 			QueueFree();
 		}
 	}

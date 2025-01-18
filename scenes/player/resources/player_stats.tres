@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="PlayerStats" load_steps=2 format=3 uid="uid://nmu6am3fevbi"]
+
+[ext_resource type="Script" path="res://scenes/player/resources/PlayerStats.cs" id="1_ukt4l"]
+
+[resource]
+script = ExtResource("1_ukt4l")
+Health = 100
+MaxHealth = 100
+Xp = 0
+XpLevel = 1
+Gold = 0
+DungeonLevel = 0
