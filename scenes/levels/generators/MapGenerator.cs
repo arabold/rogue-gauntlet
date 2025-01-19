@@ -275,6 +275,7 @@ public partial class MapGenerator : Node3D
 		int z;
 		for (int i = 0; i < 10; i++)
 		{
+			// TODO: Ensure enemies are not placed too close to the player, each other or decorations
 			do
 			{
 				x = Random.Next(1, MapWidth - 1);

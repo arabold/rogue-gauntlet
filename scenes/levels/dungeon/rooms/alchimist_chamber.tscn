@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=3 uid="uid://cleuo31guk4w"]
+
+[ext_resource type="PackedScene" uid="uid://b0hb8ttsstdbc" path="res://scenes/levels/room.tscn" id="1_331yg"]
+[ext_resource type="PackedScene" uid="uid://dbns86sg2gnll" path="res://scenes/props/door.tscn" id="2_hbjkr"]
+
+[node name="AlchimistChamber" instance=ExtResource("1_331yg")]
+ShowDebugOverlay = true
+
+[node name="FloorGridMap" parent="." index="0"]
+data = {
+"cells": PackedInt32Array(0, 0, 30, 0, 4, 30, 65532, 4, 30, 65532, 0, 30, 65532, 65532, 30, 0, 65532, 30, 4, 65532, 30, 4, 0, 30, 4, 4, 30, 0, 8, 0)
+}
+
+[node name="WallGridMap" parent="." index="1"]
+data = {
+"cells": PackedInt32Array(65530, 65530, 1048582, 6, 65530, 6, 6, 6, 1441798, 65530, 6, 655366, 65534, 6, 655378, 4, 6, 655378, 65530, 65534, 1048600, 65530, 2, 1048576, 6, 65534, 1441792, 0, 65530, 24, 2, 65530, 18, 65532, 65530, 18, 6, 2, 1441818, 2, 2, 655380)
+}
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="DecorationGridMap" parent="." index="2"]
+data = {
+"cells": PackedInt32Array(2, 65530, 31, 65532, 65530, 0, 65531, 3, 655398, 65532, 65533, 14, 4, 4, 1441810, 65533, 65532, 1441824, 6, 65532, 1441792, 6, 65534, 1441792, 6, 0, 1441792, 2, 65533, 1441833, 2, 65534, 1441838, 4, 65533, 1441838)
+}
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="Door" parent="." index="3" instance=ExtResource("2_hbjkr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6)

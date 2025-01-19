@@ -1,29 +1,37 @@
 using System;
 using Godot;
+using Godot.Collections;
 
 [Tool]
 [GlobalClass]
 public partial class DungeonRoomFactoryStrategy : RoomFactoryStrategy
 {
+	[Export] public Array<PackedScene> EntranceScenes { get; set; }
+	[Export] public Array<PackedScene> ExitScenes { get; set; }
+	[Export] public Array<PackedScene> StandardRoomScenes { get; set; }
+	[Export] public Array<PackedScene> SpecialRoomScenes { get; set; }
+
 	public override PackedScene CreateEntrance(Random random)
 	{
-		return GD.Load<PackedScene>("res://scenes/levels/dungeon/rooms/level_entrance.tscn");
+		var scene = EntranceScenes[random.Next(0, EntranceScenes.Count)];
+		return scene;
 	}
 
 	public override PackedScene CreateExit(Random random)
 	{
-		return GD.Load<PackedScene>("res://scenes/levels/dungeon/rooms/level_exit.tscn");
+		var scene = ExitScenes[random.Next(0, ExitScenes.Count)];
+		return scene;
 	}
 
 	public override PackedScene CreateStandardRoom(Random random)
 	{
-		var paths = new string[] {
-			"res://scenes/levels/dungeon/rooms/cross_roads.tscn",
-			"res://scenes/levels/dungeon/rooms/small_room.tscn",
-			"res://scenes/levels/dungeon/rooms/storage_room_small.tscn",
-			"res://scenes/levels/dungeon/rooms/cave_small_with_pillars.tscn",
-			"res://scenes/levels/dungeon/rooms/cave_small.tscn"
-		};
-		return GD.Load<PackedScene>(paths[random.Next(0, paths.Length)]);
+		var scene = StandardRoomScenes[random.Next(0, StandardRoomScenes.Count)];
+		return scene;
+	}
+
+	public override PackedScene CreateSpecialRoom(Random random)
+	{
+		var scene = SpecialRoomScenes[random.Next(0, SpecialRoomScenes.Count)];
+		return scene;
 	}
 }

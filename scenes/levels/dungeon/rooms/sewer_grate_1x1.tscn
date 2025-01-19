@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://pp1aty3aklmf"]
+
+[ext_resource type="PackedScene" uid="uid://b0hb8ttsstdbc" path="res://scenes/levels/room.tscn" id="1_fcjby"]
+
+[node name="Room" instance=ExtResource("1_fcjby")]
+
+[node name="FloorGridMap" parent="." index="0"]
+data = {
+"cells": PackedInt32Array(0, 0, 15)
+}

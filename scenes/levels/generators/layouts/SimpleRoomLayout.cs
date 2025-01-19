@@ -28,9 +28,12 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		rooms.Add(new RoomPlacement(exitRoom, exitPlacement.Value));
 		PlaceRoom(map, exitRoom.Map, exitPlacement.Value);
 
+		var countSpecialRooms = random.Next(1, maxRooms / 3);
 		for (int i = 0; i < maxRooms; i++)
 		{
-			var scenePath = factory.CreateStandardRoom(random);
+			var scenePath = (i < countSpecialRooms)
+				? factory.CreateSpecialRoom(random)
+				: factory.CreateStandardRoom(random);
 			var scene = scenePath;
 			var room = scene.Instantiate<Room>();
 			room.BakeTileMap();

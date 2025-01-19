@@ -1463,7 +1463,6 @@ skeleton = NodePath("")
 shape = SubResource("ConvexPolygonShape3D_pnaje")
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="wall"]
-visible = false
 navigation_mesh = SubResource("NavigationMesh_nuhyc")
 
 [node name="wall_arched" type="MeshInstance3D" parent="."]

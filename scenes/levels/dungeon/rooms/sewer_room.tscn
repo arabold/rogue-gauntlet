@@ -1,0 +1,59 @@
+[gd_scene load_steps=9 format=3 uid="uid://dcta6i5ia5by0"]
+
+[ext_resource type="Script" path="res://scenes/levels/Room.cs" id="1_g56vc"]
+[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_cg38f"]
+[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_5gbe8"]
+[ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_7xfah"]
+[ext_resource type="PackedScene" uid="uid://c5y1dtkex8ba4" path="res://scenes/props/barrel.tscn" id="5_sa1lx"]
+[ext_resource type="PackedScene" uid="uid://dbns86sg2gnll" path="res://scenes/props/door.tscn" id="6_fw56o"]
+[ext_resource type="PackedScene" uid="uid://cgi3a5fi0sxu6" path="res://scenes/props/chest.tscn" id="7_co4j0"]
+[ext_resource type="PackedScene" uid="uid://cap6wqfjubqjx" path="res://scenes/props/floor_trap.tscn" id="8_qunla"]
+
+[node name="SmallRoom" type="Node3D"]
+script = ExtResource("1_g56vc")
+ShowDebugOverlay = true
+
+[node name="FloorGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("2_cg38f")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(65528, 65528, 21, 65528, 65532, 655381, 65528, 0, 655381, 65528, 4, 655381, 65532, 65524, 0, 65532, 65528, 655381, 65532, 65532, 655375, 65532, 0, 655375, 65532, 4, 655381, 0, 65524, 655361, 0, 65528, 655381, 0, 65532, 655375, 0, 0, 655375, 0, 4, 655381, 4, 65528, 655381, 4, 65532, 655381, 4, 0, 655381, 4, 4, 655381)
+}
+
+[node name="WallGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("3_5gbe8")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(65526, 65526, 1048582, 65526, 65530, 1048598, 65526, 65534, 1048586, 65526, 2, 1048598, 65526, 6, 655366, 65529, 65526, 0, 65530, 65526, 655361, 65534, 6, 22, 2, 65526, 655361, 6, 65526, 6, 6, 65530, 1048598, 6, 65534, 1048576, 6, 2, 1441814, 6, 6, 1441798, 65530, 6, 655360, 2, 6, 655360)
+}
+
+[node name="DecorationGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("4_7xfah")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+
+[node name="Barrel1" parent="." instance=ExtResource("5_sa1lx")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -4)
+
+[node name="Barrel2" parent="." instance=ExtResource("5_sa1lx")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -3)
+
+[node name="Barrel3" parent="." instance=ExtResource("5_sa1lx")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -2)
+
+[node name="Door" parent="." instance=ExtResource("6_fw56o")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -10)
+
+[node name="Chest" parent="." instance=ExtResource("7_co4j0")]
+transform = Transform3D(-0.258819, 0, -0.965926, 0, 1, 0, 0.965926, 0, -0.258819, 4, 0, 0)
+
+[node name="FloorTrap" parent="." instance=ExtResource("8_qunla")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -8)

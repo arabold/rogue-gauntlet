@@ -33,5 +33,5 @@ cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(65534, 65534, 24, 2, 65534, 24, 2, 65530, 24, 65534, 65530, 24)
+"cells": PackedInt32Array(65534, 65534, 1441816, 2, 65534, 1441816, 2, 65530, 1441816, 65534, 65530, 1441816)
 }
