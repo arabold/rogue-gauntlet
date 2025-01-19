@@ -86,9 +86,20 @@ public class MapData
         }
     }
 
+    /// <summary>
+    /// Checks if the given cell is within the bounds of the map.
+    /// </summary>
     public bool IsWithinBounds(int x, int y)
     {
         return x >= 0 && x < Width && y >= 0 && y < Height;
+    }
+
+    /// <summary>
+    /// Checks if the given cell is on the boundary of the map.
+    /// </summary>
+    public bool IsOnBoundary(int x, int y)
+    {
+        return x == 0 || y == 0 || x == Width - 1 || y == Height - 1;
     }
 
     // Helper checks: IsWall, IsRoom, etc.

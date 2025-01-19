@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
@@ -147,6 +148,16 @@ public partial class Room : Node3D
 						}
 					}
 				}
+			}
+		}
+
+		// Find holes in the room layout and mark them as chasms
+		var holes = FindChasms(map);
+		foreach (var hole in holes)
+		{
+			foreach (var cell in hole)
+			{
+				map.SetTile(cell.X, cell.Y, MapTile.Room);
 			}
 		}
 
@@ -324,6 +335,81 @@ public partial class Room : Node3D
 		}
 	}
 
+	/// <summary>
+	/// Finds all holes in the TileMap.
+	/// </summary>
+	/// <returns>A list of lists, where each inner list contains cells forming a hole.</returns>
+	public List<List<Vector2I>> FindChasms(MapData map)
+	{
+		var holes = new List<List<Vector2I>>();
+		var visited = new bool[map.Width, map.Height];
+
+		for (int i = 0; i < map.Width; i++)
+		{
+			for (int j = 0; j < map.Height; j++)
+			{
+				// If the cell is 0 and not visited, start BFS
+				if (map.IsEmpty(i, j) && !visited[i, j])
+				{
+					var hole = BFS(map, i, j, visited);
+					if (hole != null && hole.Count > 0)
+					{
+						holes.Add(hole);
+					}
+				}
+			}
+		}
+
+		return holes;
+	}
+
+	/// <summary>
+	/// Performs BFS to find all contiguous zeros connected to the starting cell.
+	/// </summary>
+	/// <param name="startX">Starting cell's X-coordinate.</param>
+	/// <param name="startY">Starting cell's Y-coordinate.</param>
+	/// <returns>A list of cells forming a hole, or null if not a hole.</returns>
+	private List<Vector2I> BFS(MapData map, int startX, int startY, bool[,] visited)
+	{
+		var queue = new Queue<Vector2I>();
+		var holeCells = new List<Vector2I>();
+		bool isHole = true;
+
+		queue.Enqueue(new Vector2I(startX, startY));
+		visited[startX, startY] = true;
+
+		// Directions: Up, Down, Left, Right
+		int[] dX = { -1, 1, 0, 0 };
+		int[] dY = { 0, 0, -1, 1 };
+
+		while (queue.Count > 0)
+		{
+			var current = queue.Dequeue();
+			holeCells.Add(current);
+
+			// If the current cell is on the boundary, it's not a hole
+			if (map.IsOnBoundary(current.X, current.Y))
+			{
+				isHole = false;
+			}
+
+			// Explore all four directions
+			for (int dir = 0; dir < 4; dir++)
+			{
+				int newX = current.X + dX[dir];
+				int newY = current.Y + dY[dir];
+
+				if (map.IsWithinBounds(newX, newY) && !visited[newX, newY] && map.IsEmpty(newX, newY))
+				{
+					queue.Enqueue(new Vector2I(newX, newY));
+					visited[newX, newY] = true;
+				}
+			}
+		}
+
+		return isHole ? holeCells : null;
+	}
+
 	protected Vector2I ToTilePosition(Vector3I position)
 	{
 		return ToTilePosition(position.X, 0, position.Z);
@@ -347,4 +433,5 @@ public partial class Room : Node3D
 		var gridZ = z * TileSize;
 		return new Vector3I(gridX, y, gridZ);
 	}
+
 }
