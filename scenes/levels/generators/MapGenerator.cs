@@ -9,48 +9,35 @@ public partial class MapGenerator : Node3D
 	public int MapWidth
 	{
 		get => _mapWidth;
-		set
-		{
-			if (value < 5 || value > 100) return;
-			_mapWidth = value;
-			OnPropertyChange();
-		}
+		set => SetPropertyWithBounds(ref _mapWidth, value, 20, 100);
 	}
 
 	[Export]
 	public int MapDepth
 	{
 		get => _mapDepth;
-		set
-		{
-			if (value < 5 || value > 100) return;
-			_mapDepth = value;
-			OnPropertyChange();
-		}
+		set => SetPropertyWithBounds(ref _mapDepth, value, 20, 100);
 	}
 
 	[Export]
 	public int MaxRooms
 	{
 		get => _maxRooms;
-		set
-		{
-			if (value < 1) return;
-			_maxRooms = value;
-			OnPropertyChange();
-		}
+		set => SetPropertyWithBounds(ref _maxRooms, value, 1, 20);
 	}
 
 	[Export]
 	public int Seed
 	{
 		get => _seed;
-		set
-		{
-			_seed = value;
-			OnPropertyChange();
-		}
+		set => SetProperty(ref _seed, value);
 	}
+
+	[Export] public RoomLayoutStrategy RoomLayout { get => _roomLayout; set => SetProperty(ref _roomLayout, value); }
+	[Export] public CorridorConnectorStrategy CorridorConnector { get => _corridorConnector; set => SetProperty(ref _corridorConnector, value); }
+	[Export] public RoomFactoryStrategy RoomFactory { get => _roomFactory; set => SetProperty(ref _roomFactory, value); }
+	[Export] public MobFactoryStrategy MobFactory { get => _mobFactory; set => SetProperty(ref _mobFactory, value); }
+	[Export] public TileFactoryStrategy TileFactory { get => _tileFactory; set => SetProperty(ref _tileFactory, value); }
 
 	/// <summary>
 	/// The maximum number of times to retry placing a room before giving up.
@@ -61,25 +48,25 @@ public partial class MapGenerator : Node3D
 	public int MaxRetries
 	{
 		get => _maxRetries;
-		set
-		{
-			if (value < 1 || value > 10) return;
-			_maxRetries = value;
-			OnPropertyChange();
-		}
+		set => SetPropertyWithBounds(ref _maxRetries, value, 1, 10);
 	}
 
 	public Node3D RoomsContainer { get; private set; }
-	public GridMap BaseMap { get; private set; }
 	public GridMap FloorGridMap { get; private set; }
 	public GridMap WallGridMap { get; private set; }
 	public GridMap DecorationGridMap { get; private set; }
 	public NavigationRegion3D NavigationRegion { get; private set; }
 
+	public Random Random = new Random();
+	public MapData Map;
+
+	public Vector3 PlayerSpawnPoint { get; private set; } = Vector3.Zero;
+	public float PlayerRotation { get; private set; } = 0;
+
 	/// <summary>
 	/// The size of each tile in the base map when translating to the GridMaps.
 	/// </summary>
-	public int TileSize = 4;
+	public readonly int TileSize = 4;
 
 	private int _mapWidth = 30;
 	private int _mapDepth = 30;
@@ -87,40 +74,53 @@ public partial class MapGenerator : Node3D
 	private int _maxRetries = 3;
 	private int _seed = 42;
 
-	public Random Random = new Random();
-	public MapData Map;
-	public List<Node3D> Rooms = new List<Node3D>();
-
-	public Vector3 PlayerSpawnPoint { get; private set; } = Vector3.Zero;
-	public float PlayerRotation { get; private set; } = 0;
+	private RoomLayoutStrategy _roomLayout;
+	private CorridorConnectorStrategy _corridorConnector;
+	private RoomFactoryStrategy _roomFactory;
+	private MobFactoryStrategy _mobFactory;
+	private TileFactoryStrategy _tileFactory;
 
 	public override void _Ready()
 	{
 		GD.Print("Initializing map generator...");
 		RoomsContainer = GetNode<Node3D>("RoomsContainer");
-		BaseMap = GetNode<GridMap>("BaseMap");
 		FloorGridMap = GetNode<GridMap>("FloorGridMap");
 		WallGridMap = GetNode<GridMap>("WallGridMap");
 		DecorationGridMap = GetNode<GridMap>("DecorationGridMap");
 		NavigationRegion = GetNode<NavigationRegion3D>("NavigationRegion3D");
-	}
 
-	private void OnPropertyChange()
-	{
-		if (Engine.IsEditorHint() && FloorGridMap != null && WallGridMap != null && DecorationGridMap != null)
+		if (Engine.IsEditorHint())
 		{
 			GenerateMap();
 		}
 	}
 
-	protected void MergeRoomGridMaps(Node3D roomInstance, Vector3I placement)
+	protected void SetProperty<T>(ref T field, T value)
+	{
+		field = value;
+
+		// Generate the map when the properties are set in the editor
+		if (Engine.IsEditorHint())
+		{
+			GenerateMap();
+		}
+	}
+
+	protected void SetPropertyWithBounds<T>(ref T field, T value, T min, T max) where T : IComparable<T>
+	{
+		if (Comparer<T>.Default.Compare(value, min) < 0 || Comparer<T>.Default.Compare(value, max) > 0) return;
+		SetProperty(ref field, value);
+	}
+
+	protected void MergeRoomGridMaps(Room room, Vector3I placement)
 	{
 		// Generate the tile map from the room scene
-		var roomFloorGridMap = roomInstance.GetNode<GridMap>("FloorGridMap");
-		var roomWallGridMap = roomInstance.GetNode<GridMap>("WallGridMap");
-		var roomDecorationGridMap = roomInstance.GetNode<GridMap>("DecorationGridMap");
+		var roomFloorGridMap = room.FloorGridMap;
+		var roomWallGridMap = room.WallGridMap;
+		var roomDecorationGridMap = room.DecorationGridMap;
 
-		var gridMapOffset = TileToWorld(placement);
+		var roomOffset = new Vector3I(room.Bounds.Position.X, 0, room.Bounds.Position.Y);
+		var gridMapOffset = TileToWorld(placement) - roomOffset;
 		MergeGridMaps(roomFloorGridMap, FloorGridMap, gridMapOffset);
 		MergeGridMaps(roomWallGridMap, WallGridMap, gridMapOffset);
 		MergeGridMaps(roomDecorationGridMap, DecorationGridMap, gridMapOffset);
@@ -149,144 +149,13 @@ public partial class MapGenerator : Node3D
 		}
 	}
 
-	// private void UpdateBaseMap(GridMap roomBaseMap, Vector3I position)
-	// {
-	// 	var tiles = roomBaseMap.GetUsedCells();
-	// 	foreach (var tile in tiles)
-	// 	{
-	// 		var tileIndex = roomBaseMap.GetCellItem(tile);
-	// 		var baseX = position.X + tile.X;
-	// 		var baseZ = position.Z + tile.Z;
-	// 		switch (tileIndex)
-	// 		{
-	// 			case 0:
-	// 				Map.SetTile(baseX, baseZ, MapTile.Room);
-	// 				break;
-	// 			case 1:
-	// 				Map.SetTile(baseX, baseZ, MapTile.Hallway);
-	// 				break;
-	// 			case 2:
-	// 				Map.SetTile(baseX, baseZ, MapTile.Wall);
-	// 				break;
-	// 		}
-	// 	}
-	// }
-
 	private void GenerateRooms()
 	{
 		GD.Print("Generating rooms...");
 
-		var roomFactory = new DungeonRoomFactory();
-		var roomLayout = new SimpleRoomLayout();
-		var roomPlacements = roomLayout.GenerateRooms(Map, roomFactory, MaxRooms, MaxRetries, Random);
-
+		var roomPlacements = RoomLayout.GenerateRooms(
+			Random, Map, RoomFactory, MaxRooms, MaxRetries);
 		PlaceRooms(roomPlacements);
-	}
-
-	private void ConnectRooms()
-	{
-		GD.Print("Connecting rooms...");
-		var hallwayConnector = new AStarHallwayConnector();
-		hallwayConnector.ConnectRooms(Map, Random);
-
-		PlaceHallways();
-		PlaceWalls();
-	}
-
-	private void GeneratePlayerSpawnPoint()
-	{
-		GD.Print("Generating player spawn point...");
-		// Find a random floor tile to place the player
-		int x;
-		int z;
-		do
-		{
-			x = Random.Next(1, MapWidth - 1);
-			z = Random.Next(1, MapDepth - 1);
-		}
-		while (!Map.IsRoom(x, z));
-
-		PlayerSpawnPoint = TileToWorld(x, 0, z);
-		PlayerRotation = Random.Next(0, 360);
-	}
-
-	public void GenerateMap()
-	{
-		GD.Print("Generating map...");
-
-		Reset();
-
-		// Step 1: Generate random rooms
-		GenerateRooms();
-
-		// Step 2: Connect the rooms
-		ConnectRooms();
-
-		// Step 3: Create spawn points
-		GeneratePlayerSpawnPoint();
-
-		// Add grid maps back to the NavigationRegion and rebake the navigation mesh
-		// TODO: Not sure why we cannot make the GridMaps children of the NavigationRegion directly
-		// If we try, the thread seems to block indefinitely when making updates to the GridMaps
-		Node floorGridMapCopy = FloorGridMap.Duplicate();
-		Node wallGripMapCopy = WallGridMap.Duplicate();
-		Node decorationGridMapCopy = DecorationGridMap.Duplicate();
-		NavigationRegion.AddChild(floorGridMapCopy);
-		NavigationRegion.AddChild(wallGripMapCopy);
-		NavigationRegion.AddChild(decorationGridMapCopy);
-		NavigationRegion.BakeNavigationMesh();
-		floorGridMapCopy.QueueFree();
-		wallGripMapCopy.QueueFree();
-		decorationGridMapCopy.QueueFree();
-
-		// // Render the BaseMap for debugging
-		// if (Engine.IsEditorHint())
-		// {
-		// 	for (int x = 0; x < MapWidth; x++)
-		// 	{
-		// 		for (int y = 0; y < MapDepth; y++)
-		// 		{
-		// 			if (Map.IsRoom(x, y))
-		// 			{
-		// 				BaseMap.SetCellItem(new Vector3I(x, 0, y), 0, 0);
-		// 			}
-		// 			else if (Map.IsHallway(x, y))
-		// 			{
-		// 				BaseMap.SetCellItem(new Vector3I(x, 0, y), 1, 0);
-		// 			}
-		// 			else if (Map.IsWallOrEmpty(x, y))
-		// 			{
-		// 				BaseMap.SetCellItem(new Vector3I(x, 0, y), 2, 0);
-		// 			}
-		// 		}
-		// 	}
-		// }
-		// else
-		// {
-		// 	BaseMap.QueueFree();
-		// }
-
-		GD.Print("Map generated.");
-	}
-
-	private void Reset()
-	{
-		GD.Print("Resetting map generator...");
-		Random = new Random(Seed);
-
-		// Initialize the map with empty tiles
-		Map = new MapData(_mapWidth, _mapDepth);
-
-		foreach (var room in RoomsContainer.GetChildren())
-		{
-			RoomsContainer.RemoveChild(room);
-			room.QueueFree();
-		}
-		BaseMap.Clear();
-		FloorGridMap.Clear();
-		WallGridMap.Clear();
-		DecorationGridMap.Clear();
-		NavigationRegion.BakeNavigationMesh();
 	}
 
 	private void PlaceRooms(List<RoomPlacement> roomPlacements)
@@ -295,26 +164,36 @@ public partial class MapGenerator : Node3D
 		foreach (var placement in roomPlacements)
 		{
 			MergeRoomGridMaps(placement.Room, placement.Position);
-			// UpdateBaseMap(roomBaseMap, placement);
-			// roomBaseMap.QueueFree();
 
+			var roomOffset = new Vector3I(placement.Room.Bounds.Position.X, 0, placement.Room.Bounds.Position.Y);
 			RoomsContainer.AddChild(placement.Room);
-			placement.Room.Translate(TileToWorld(placement.Position));
+			placement.Room.Translate(TileToWorld(placement.Position) - roomOffset);
 		}
 	}
 
-	private void PlaceHallways()
+	private void ConnectRooms()
 	{
-		GD.Print("Placing hallways...");
+		GD.Print("Connecting rooms...");
+
+		CorridorConnector.ConnectRooms(Random, Map);
+
+		PlaceCorridors();
+		PlaceWalls();
+	}
+
+	private void PlaceCorridors()
+	{
+		GD.Print("Placing corridors...");
 		for (int x = 0; x < Map.Width; x++)
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				if (Map.IsHallway(x, z))
+				if (Map.IsCorridor(x, z))
 				{
+					int tileIndex = TileFactory.GetCorridorTileIndex(Random);
 					if (FloorGridMap.GetCellItem(TileToWorld(x, 0, z)) == -1)
 					{
-						FloorGridMap.SetCellItem(TileToWorld(x, 0, z), 0, 0);
+						FloorGridMap.SetCellItem(TileToWorld(x, 0, z), tileIndex, 0);
 					}
 				}
 			}
@@ -329,8 +208,8 @@ public partial class MapGenerator : Node3D
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				// Only check hallway tiles as rooms are already surrounded by walls
-				if (Map.IsHallway(x, z))
+				// Only check corridor tiles as rooms are already surrounded by walls
+				if (Map.IsCorridor(x, z))
 				{
 					// Check for wall adjacency and place walls
 					PlaceWallIfNeeded(x, z);
@@ -344,7 +223,7 @@ public partial class MapGenerator : Node3D
 		// Check each direction for wall adjacency
 		Vector3I basePosition = TileToWorld(x, 0, z);
 		int tileCenter = TileSize / 2;
-		int tileIndex = 0;
+		int tileIndex = TileFactory.GetWallTileIndex(Random);
 
 		// Check above (north)
 		if (z > 0 && Map.IsWallOrEmpty(x, z - 1)) // Wall above
@@ -369,6 +248,131 @@ public partial class MapGenerator : Node3D
 		{
 			WallGridMap.SetCellItem(basePosition + new Vector3I(tileCenter, 0, 0), tileIndex, 16);
 		}
+	}
+
+	private void GeneratePlayerSpawnPoint()
+	{
+		GD.Print("Generating player spawn point...");
+		// Find a random floor tile to place the player
+		int x;
+		int z;
+		do
+		{
+			x = Random.Next(1, MapWidth - 1);
+			z = Random.Next(1, MapDepth - 1);
+		}
+		while (!Map.IsRoom(x, z) && !Map.IsOccupied(x, z));
+		Map.MarkOccupied(x, z);
+
+		PlayerSpawnPoint = TileToWorld(x, 0, z);
+		PlayerRotation = Random.Next(0, 360);
+	}
+
+	private void GenerateEnemySpawnPoints()
+	{
+		GD.Print("Generating enemy spawn points...");
+		int x;
+		int z;
+		for (int i = 0; i < 10; i++)
+		{
+			do
+			{
+				x = Random.Next(1, MapWidth - 1);
+				z = Random.Next(1, MapDepth - 1);
+			}
+			while (!Map.IsRoom(x, z) && !Map.IsOccupied(x, z));
+			Map.MarkOccupied(x, z);
+
+			var enemyScene = MobFactory.CreateEnemy(Random, 1);
+			var enemy = enemyScene.Instantiate<EnemyBase>();
+			RoomsContainer.AddChild(enemy);
+			enemy.GlobalPosition = TileToWorld(x, 0, z);
+			enemy.Rotation = new Vector3(0, Random.Next(0, 360), 0);
+		}
+	}
+
+	public void GenerateMap()
+	{
+		GD.Print("Generating map...");
+
+		Reset();
+
+		if (RoomLayout == null || CorridorConnector == null
+			|| RoomFactory == null || MobFactory == null || TileFactory == null
+			|| FloorGridMap == null || WallGridMap == null || DecorationGridMap == null)
+		{
+			// This is especially important to check in the editor
+			return;
+		}
+
+		// Step 1: Generate random rooms
+		GenerateRooms();
+
+		// Step 2: Connect the rooms
+		ConnectRooms();
+
+		// Step 3: Create spawn points
+		GeneratePlayerSpawnPoint();
+		GenerateEnemySpawnPoints();
+
+		// Step 4: Bake navigation mesh
+		BakeNavigationMesh();
+
+		GD.Print("Map generated.");
+	}
+
+	private void BakeNavigationMesh()
+	{
+		// Add grid maps back to the NavigationRegion and rebake the navigation mesh
+		// TODO: Not sure why we cannot make the GridMaps children of the NavigationRegion directly
+		// If we try, the thread seems to block indefinitely when making updates to the GridMaps
+		Node floorGridMapCopy = FloorGridMap.Duplicate();
+		Node wallGripMapCopy = WallGridMap.Duplicate();
+		Node decorationGridMapCopy = DecorationGridMap.Duplicate();
+		NavigationRegion.AddChild(floorGridMapCopy);
+		NavigationRegion.AddChild(wallGripMapCopy);
+		NavigationRegion.AddChild(decorationGridMapCopy);
+		NavigationRegion.BakeNavigationMesh();
+		floorGridMapCopy.QueueFree();
+		wallGripMapCopy.QueueFree();
+		decorationGridMapCopy.QueueFree();
+	}
+
+	private void Reset()
+	{
+		GD.Print("Resetting map generator...");
+		Random = new Random(Seed);
+
+		// Initialize the map with empty tiles
+		Map = new MapData(_mapWidth, _mapDepth);
+
+		// Initialize all tiles as empty and walls for borders
+		for (int x = 0; x < Map.Width; x++)
+		{
+			for (int y = 0; y < Map.Height; y++)
+			{
+				Map.Tiles[x, y] = MapTile.Empty;
+
+				if (x == 0 || x == Map.Width - 1 || y == 0 || y == Map.Height - 1)
+				{
+					Map.Tiles[x, y] = MapTile.Wall;
+				}
+			}
+		}
+
+		if (RoomsContainer != null)
+		{
+			foreach (var room in RoomsContainer.GetChildren())
+			{
+				RoomsContainer.RemoveChild(room);
+				room.QueueFree();
+			}
+		}
+
+		FloorGridMap?.Clear();
+		WallGridMap?.Clear();
+		DecorationGridMap?.Clear();
+		NavigationRegion?.BakeNavigationMesh();
 	}
 
 	private Vector3I TileToWorld(Vector3I tile)

@@ -9,7 +9,7 @@ public partial class GameManager : Node
 	public static GameManager Instance { get; private set; }
 
 	public Array<Player> PlayersInScene { get; private set; }
-	public Array<Enemy> EnemiesInScene { get; private set; }
+	public Array<EnemyBase> EnemiesInScene { get; private set; }
 	public Array<Node3D> DamageablesInScene { get; private set; }
 
 	public Random Random { get; private set; } = new Random();
@@ -61,7 +61,7 @@ public partial class GameManager : Node
 		if (tree != null)
 		{
 			PlayersInScene = new Array<Player>(tree.GetNodesInGroup("player").Cast<Player>().ToArray());
-			EnemiesInScene = new Array<Enemy>(tree.GetNodesInGroup("enemy").Cast<Enemy>().ToArray());
+			EnemiesInScene = new Array<EnemyBase>(tree.GetNodesInGroup("enemy").Cast<EnemyBase>().ToArray());
 			DamageablesInScene = new Array<Node3D>(tree.GetNodesInGroup("damageable").Cast<Node3D>().ToArray());
 		}
 	}

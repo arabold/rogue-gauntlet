@@ -3,7 +3,7 @@ using Godot;
 /// <summary>
 /// Represents an enemy character in the game.
 /// </summary>
-public partial class Enemy : CharacterBody3D
+public partial class EnemyBase : CharacterBody3D
 {
 	public Node3D Pivot;
 	public CollisionShape3D CollisionShape;

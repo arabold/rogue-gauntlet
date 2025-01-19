@@ -1,6 +1,5 @@
-[gd_scene load_steps=7 format=3 uid="uid://cenip7lmkxdhn"]
+[gd_scene load_steps=6 format=3 uid="uid://cenip7lmkxdhn"]
 
-[ext_resource type="MeshLibrary" uid="uid://c133krcrhd1yi" path="res://scenes/levels/BaseMapMeshLibrary.tres" id="1_ps5v6"]
 [ext_resource type="Script" path="res://scenes/levels/Room.cs" id="1_rcyi1"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_wjm60"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_325ce"]
@@ -10,25 +9,15 @@
 [node name="CrossRoads" type="Node3D"]
 script = ExtResource("1_rcyi1")
 
-[node name="BaseMap" type="GridMap" parent="."]
-visible = false
-mesh_library = ExtResource("1_ps5v6")
-cell_size = Vector3(4, 4, 4)
-cell_center_x = false
-cell_center_y = false
-cell_center_z = false
-data = {
-"cells": PackedInt32Array(1, 65534, 0, 1, 65535, 0, 1, 0, 0, 0, 65534, 0, 0, 65535, 0, 0, 0, 0, 65535, 0, 0, 65535, 65535, 0, 65535, 65534, 0, 65534, 65535, 1, 2, 65535, 1, 0, 65533, 1, 0, 1, 1, 65535, 1, 2, 65534, 65534, 2, 1, 65533, 2, 2, 65534, 2, 2, 0, 2, 1, 1, 2, 65535, 65533, 2, 65534, 0, 2)
-}
-
 [node name="FloorGridMap" type="GridMap" parent="."]
+visible = false
 mesh_library = ExtResource("2_wjm60")
 cell_size = Vector3(1, 1, 1)
 cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(0, 4, 1048576, 8, 65532, 1048576, 0, 65524, 1048576, 65528, 65532, 1048576, 0, 65532, 1048594, 1, 1, 1048599, 65535, 1, 1048599, 65533, 1, 1048599, 65531, 1, 1048599, 65531, 65533, 1048599, 65531, 65531, 1048599, 65531, 65527, 1048599, 65533, 65527, 1048599, 65535, 65527, 1048599, 1, 65527, 1048599, 3, 65527, 1048599, 5, 65527, 1048599, 5, 65529, 1048599, 5, 65531, 1048599, 5, 65533, 1048599, 5, 65535, 1048599, 3, 1, 1048599, 5, 65528, 1048600, 5, 1, 1048600, 65531, 65529, 1048601, 65531, 65535, 1048604)
+"cells": PackedInt32Array(8, 65532, 1048576, 0, 65524, 1048576, 65528, 65532, 1048576, 0, 65532, 1048594, 1, 1, 1048599, 65535, 1, 1048599, 65533, 1, 1048599, 65531, 1, 1048599, 65531, 65533, 1048599, 65531, 65531, 1048599, 65531, 65527, 1048599, 65533, 65527, 1048599, 65535, 65527, 1048599, 1, 65527, 1048599, 3, 65527, 1048599, 5, 65527, 1048599, 5, 65529, 1048599, 5, 65531, 1048599, 5, 65533, 1048599, 5, 65535, 1048599, 3, 1, 1048599, 5, 65528, 1048600, 5, 1, 1048600, 65531, 65529, 1048601, 65531, 65535, 1048604, 0, 4, 1048577)
 }
 
 [node name="WallGridMap" type="GridMap" parent="."]

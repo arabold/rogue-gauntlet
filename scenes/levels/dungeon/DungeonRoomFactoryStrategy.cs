@@ -1,19 +1,21 @@
 using System;
 using Godot;
 
-public class DungeonRoomFactory : IRoomFactory
+[Tool]
+[GlobalClass]
+public partial class DungeonRoomFactoryStrategy : RoomFactoryStrategy
 {
-	public PackedScene CreateLevelEntrance(Random random)
+	public override PackedScene CreateEntrance(Random random)
 	{
 		return GD.Load<PackedScene>("res://scenes/levels/dungeon/rooms/level_entrance.tscn");
 	}
 
-	public PackedScene CreateLevelExit(Random random)
+	public override PackedScene CreateExit(Random random)
 	{
 		return GD.Load<PackedScene>("res://scenes/levels/dungeon/rooms/level_exit.tscn");
 	}
 
-	public PackedScene CrateStandardRoom(Random random)
+	public override PackedScene CreateStandardRoom(Random random)
 	{
 		var paths = new string[] {
 			"res://scenes/levels/dungeon/rooms/cross_roads.tscn",

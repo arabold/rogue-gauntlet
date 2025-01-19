@@ -14,13 +14,13 @@ The level creation begins by randomly placing predefined rooms onto the map grid
 
 ### 2. Connecting Rooms with A\* Algorithm
 
-After all rooms are placed, the A* algorithm is used to establish connections between them. This algorithm finds efficient paths, creating hallways and corridors that logically connect rooms. Using A* ensures that the connections are optimized for smooth transitions and accessibility throughout the level.
+After all rooms are placed, the A* algorithm is used to establish connections between them. This algorithm finds efficient paths, creating corridors that logically connect rooms. Using A* ensures that the connections are optimized for smooth transitions and accessibility throughout the level.
 
 ### Map Structure and Grid Management
 
 The level generation system uses four grid maps to manage different environment aspects:
 
-1. **Base Map**: Defines the layout, controlling how rooms and hallways connect. It ensures the level's structure and flow.
+1. **Base Map**: Defines the layout, controlling how rooms and corridors connect. It ensures the level's structure and flow.
 2. **Floor Map**: Manages floor tile placement for consistent surfaces.
 3. **Wall Map**: Controls wall placement to delineate spaces and boundaries.
 4. **Decoration Map**: Places decorative elements to add visual consistency.
@@ -29,7 +29,7 @@ The level generation system uses four grid maps to manage different environment 
 
 When a room is added, its grid maps (base, floor, wall, decoration) are merged into the main map grid. This integrates the room into the layout, ensuring all aspects are unified.
 
-The **Base Map** defines connections between rooms and hallways, determining how new rooms fit into the structure and ensuring all areas are accessible.
+The **Base Map** defines connections between rooms and corridors, determining how new rooms fit into the structure and ensuring all areas are accessible.
 
 ## Creating a New Room
 
@@ -37,7 +37,7 @@ The **Base Map** defines connections between rooms and hallways, determining how
 
 - **Layout Planning**: Sketch the room's layout, determining the positions of walls, floors, and any unique features.
 - **Grid Mapping**: Translate the layout into the four grid maps:
-  - **Base Map**: Uses a 4x4 tile size to ensure enough space for the placer character to move. Define connection points for hallways.
+  - **Base Map**: Uses a 4x4 tile size to ensure enough space for the placer character to move. Define connection points for corridors.
   - **Floor Map**: Uses a 1x1 grid with tiles ranging from 1x1 to 12x12 in size. Place floor tiles according to the design.
   - **Wall Map**: Uses a 1x1 grid with tiles that can span from 1x1 to 4x1 cells. Outline walls based on the layout.
   - **Decoration Map**: Uses a 1x1 grid and varies in tile size. Add decorative elements to enhance visual appeal.

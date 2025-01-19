@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://dcta6i5ia5by0"]
+[gd_scene load_steps=10 format=3 uid="uid://dcta6i5ia5by0"]
 
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="1_5sjjj"]
 [ext_resource type="MeshLibrary" uid="uid://c133krcrhd1yi" path="res://scenes/levels/BaseMapMeshLibrary.tres" id="1_jvtcw"]
@@ -9,8 +9,6 @@
 [ext_resource type="PackedScene" uid="uid://dbns86sg2gnll" path="res://scenes/props/door.tscn" id="4_agye4"]
 [ext_resource type="PackedScene" uid="uid://cgi3a5fi0sxu6" path="res://scenes/props/chest.tscn" id="6_g764j"]
 [ext_resource type="PackedScene" uid="uid://cap6wqfjubqjx" path="res://scenes/props/floor_trap.tscn" id="7_sowm7"]
-[ext_resource type="PackedScene" uid="uid://ch4hss8ixtooy" path="res://scenes/levels/spawn_point.tscn" id="8_eedve"]
-[ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy.tscn" id="9_k7pg6"]
 
 [node name="SmallRoom" type="Node3D"]
 script = ExtResource("1_sj1n3")
@@ -70,7 +68,3 @@ transform = Transform3D(-0.258819, 0, -0.965926, 0, 1, 0, 0.965926, 0, -0.258819
 
 [node name="FloorTrap" parent="." instance=ExtResource("7_sowm7")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -8)
-
-[node name="SpawnPoint" parent="." instance=ExtResource("8_eedve")]
-transform = Transform3D(-0.866025, 0, -0.5, 0, 1, 0, 0.5, 0, -0.866025, 1, 0, -8)
-Scene = ExtResource("9_k7pg6")

@@ -4,18 +4,22 @@
 size = Vector2(4, 4)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2spnp"]
+transparency = 1
+albedo_color = Color(0, 1, 1, 0.501961)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_m85ln"]
 size = Vector2(4, 4)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_d4djt"]
-albedo_color = Color(0.511259, 0.511259, 0.511259, 1)
+transparency = 1
+albedo_color = Color(0.501961, 0, 0.501961, 0.501961)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_nfswh"]
 size = Vector2(4, 4)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sjdni"]
-albedo_color = Color(0, 0, 0, 1)
+transparency = 1
+albedo_color = Color(0, 0, 0, 0.501961)
 
 [node name="BaseMapMeshLibrary" type="Node2D"]
 
@@ -23,7 +27,7 @@ albedo_color = Color(0, 0, 0, 1)
 mesh = SubResource("PlaneMesh_ihmea")
 surface_material_override/0 = SubResource("StandardMaterial3D_2spnp")
 
-[node name="hallway" type="MeshInstance3D" parent="."]
+[node name="corridor" type="MeshInstance3D" parent="."]
 mesh = SubResource("PlaneMesh_m85ln")
 surface_material_override/0 = SubResource("StandardMaterial3D_d4djt")
 

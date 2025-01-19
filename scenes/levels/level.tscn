@@ -1,14 +1,39 @@
-[gd_scene load_steps=5 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=15 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
+[ext_resource type="Script" path="res://scenes/levels/dungeon/DungeonRoomFactoryStrategy.cs" id="3_ktjkn"]
+[ext_resource type="Script" path="res://scenes/levels/generators/layouts/SimpleRoomLayout.cs" id="3_rgmu0"]
+[ext_resource type="Script" path="res://scenes/levels/dungeon/DungeonMobFactoryStrategy.cs" id="4_kpxye"]
+[ext_resource type="Script" path="res://scenes/levels/generators/connectors/AStarCorridorConnector.cs" id="4_mssmn"]
+[ext_resource type="Script" path="res://scenes/levels/dungeon/DungeonTileFactoryStrategy.cs" id="5_ajgnw"]
 [ext_resource type="PackedScene" uid="uid://ukjvle2lc3wy" path="res://scenes/levels/player_spawner.tscn" id="5_g3baj"]
 [ext_resource type="PackedScene" uid="uid://hshntmwu857e" path="res://scenes/player/player.tscn" id="6_ot162"]
+
+[sub_resource type="Resource" id="Resource_1gbnw"]
+script = ExtResource("3_rgmu0")
+
+[sub_resource type="Resource" id="Resource_dysv2"]
+script = ExtResource("4_mssmn")
+
+[sub_resource type="Resource" id="Resource_r2i0w"]
+script = ExtResource("3_ktjkn")
+
+[sub_resource type="Resource" id="Resource_dy00s"]
+script = ExtResource("4_kpxye")
+
+[sub_resource type="Resource" id="Resource_gpgw5"]
+script = ExtResource("5_ajgnw")
 
 [node name="Level" type="Node3D"]
 script = ExtResource("1_37vyo")
 
 [node name="MapGenerator" parent="." instance=ExtResource("2_dtjl1")]
+RoomLayout = SubResource("Resource_1gbnw")
+CorridorConnector = SubResource("Resource_dysv2")
+RoomFactory = SubResource("Resource_r2i0w")
+MobFactory = SubResource("Resource_dy00s")
+TileFactory = SubResource("Resource_gpgw5")
 
 [node name="PlayerSpawner" parent="." instance=ExtResource("5_g3baj")]
 PlayerScene = ExtResource("6_ot162")

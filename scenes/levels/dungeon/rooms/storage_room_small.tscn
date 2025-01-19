@@ -1,6 +1,5 @@
-[gd_scene load_steps=8 format=3 uid="uid://p77tcudxh8un"]
+[gd_scene load_steps=7 format=3 uid="uid://p77tcudxh8un"]
 
-[ext_resource type="MeshLibrary" uid="uid://c133krcrhd1yi" path="res://scenes/levels/BaseMapMeshLibrary.tres" id="1_0mdmy"]
 [ext_resource type="Script" path="res://scenes/levels/Room.cs" id="1_1ygbb"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_8yktl"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_f1dx5"]
@@ -11,17 +10,6 @@
 [node name="StorageRoomSmall" type="Node3D"]
 script = ExtResource("1_1ygbb")
 
-[node name="BaseMap" type="GridMap" parent="."]
-visible = false
-mesh_library = ExtResource("1_0mdmy")
-cell_size = Vector3(4, 4, 4)
-cell_center_x = false
-cell_center_y = false
-cell_center_z = false
-data = {
-"cells": PackedInt32Array(1, 65534, 0, 1, 65535, 1, 1, 0, 0, 1, 1, 0, 0, 65534, 0, 0, 65535, 0, 0, 0, 0, 65535, 0, 0, 65535, 65535, 0, 65535, 65534, 0, 65534, 65534, 0, 65534, 65535, 0, 65534, 0, 0, 65534, 1, 0, 65533, 1, 1, 65533, 0, 1, 65533, 65535, 1, 65533, 65534, 1)
-}
-
 [node name="FloorGridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("2_8yktl")
 cell_size = Vector3(1, 1, 1)
@@ -29,7 +17,7 @@ cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(65528, 65528, 21, 65528, 65532, 655381, 65528, 0, 655381, 65528, 4, 655381, 65532, 65528, 655381, 65532, 4, 655381, 0, 65528, 655381, 0, 4, 655381, 4, 65528, 655381, 4, 65532, 655381, 4, 0, 655381, 4, 4, 655381, 65524, 4, 0, 65524, 0, 655360, 65524, 65528, 0, 65524, 65532, 1, 65532, 0, 21, 0, 0, 21, 0, 65532, 21, 65532, 65532, 22)
+"cells": PackedInt32Array(65528, 65528, 21, 65528, 65532, 655381, 65528, 0, 655381, 65528, 4, 655381, 65532, 65528, 655381, 65532, 4, 655381, 0, 65528, 655381, 0, 4, 655381, 4, 65528, 655381, 4, 65532, 655381, 4, 0, 655381, 4, 4, 655381, 65532, 0, 21, 0, 0, 21, 0, 65532, 21, 65532, 65532, 22, 65524, 0, 1441792, 65524, 65532, 1441792)
 }
 
 [node name="WallGridMap" type="GridMap" parent="."]
@@ -39,7 +27,7 @@ cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(65526, 65526, 1048582, 65526, 65530, 1048598, 65526, 2, 1048598, 65526, 6, 655366, 6, 65526, 6, 6, 65530, 1048598, 6, 65534, 1048576, 6, 2, 1441814, 6, 6, 1441798, 65530, 6, 0, 65534, 6, 0, 2, 6, 0, 65530, 65526, 0, 65534, 65526, 0, 2, 65526, 0)
+"cells": PackedInt32Array(65526, 65526, 1048582, 65526, 65530, 1048598, 65526, 2, 1048598, 65526, 6, 655366, 6, 65526, 6, 6, 65530, 1048598, 6, 65534, 1048576, 6, 2, 1441814, 6, 6, 1441798, 65534, 6, 0, 2, 6, 0, 65530, 65526, 0, 65534, 65526, 0, 2, 65526, 0, 65530, 6, 0)
 }
 
 [node name="DecorationGridMap" type="GridMap" parent="."]
@@ -49,7 +37,7 @@ cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(65527, 65527, 1048580, 65529, 65527, 1048580, 65527, 65532, 1048581, 65527, 65529, 1048582, 65528, 65528, 1048592, 65531, 65527, 1048591, 4, 65528, 18, 65528, 1, 1441810, 65532, 4, 655383, 1, 65532, 655384, 1, 0, 655384, 65531, 0, 655384, 65534, 65527, 1048614, 65535, 4, 1441840, 6, 65532, 1441823, 6, 65534, 1441823, 6, 0, 1441823, 5, 3, 655364, 5, 5, 655364, 4, 4, 655364, 2, 5, 655366, 65531, 65531, 655366, 1, 65531, 655366, 65532, 65530, 655364, 65531, 65532, 655384)
+"cells": PackedInt32Array(65527, 65527, 1048580, 65529, 65527, 1048580, 65527, 65532, 1048581, 65527, 65529, 1048582, 65528, 65528, 1048592, 65531, 65527, 1048591, 4, 65528, 18, 65528, 1, 1441810, 65532, 4, 655383, 65534, 65527, 1048614, 65535, 4, 1441840, 6, 65532, 1441823, 6, 65534, 1441823, 6, 0, 1441823, 5, 3, 655364, 5, 5, 655364, 4, 4, 655364, 2, 5, 655366, 1, 65531, 655384, 65531, 1, 655384, 1, 1, 655384, 65531, 65531, 655384)
 }
 
 [node name="Door" parent="." instance=ExtResource("5_7gnog")]

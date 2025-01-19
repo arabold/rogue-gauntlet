@@ -1,23 +1,12 @@
-[gd_scene load_steps=6 format=3 uid="uid://cdavbwmwausvd"]
+[gd_scene load_steps=5 format=3 uid="uid://cdavbwmwausvd"]
 
 [ext_resource type="Script" path="res://scenes/levels/Room.cs" id="1_g374h"]
-[ext_resource type="MeshLibrary" uid="uid://c133krcrhd1yi" path="res://scenes/levels/BaseMapMeshLibrary.tres" id="1_vqkeq"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_3gg6s"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_knwas"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_rnwlf"]
 
 [node name="CaveSmallWithPillars" type="Node3D"]
 script = ExtResource("1_g374h")
-
-[node name="BaseMap" type="GridMap" parent="."]
-mesh_library = ExtResource("1_vqkeq")
-cell_size = Vector3(4, 4, 4)
-cell_center_x = false
-cell_center_y = false
-cell_center_z = false
-data = {
-"cells": PackedInt32Array(1, 65534, 1, 1, 65535, 1, 1, 0, 1, 0, 65534, 1, 0, 65535, 1, 65535, 0, 1, 65535, 65535, 1, 65535, 65534, 1, 0, 0, 1)
-}
 
 [node name="FloorGridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("2_3gg6s")

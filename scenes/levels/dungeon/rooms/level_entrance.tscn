@@ -1,6 +1,5 @@
-[gd_scene load_steps=11 format=4 uid="uid://pw48ejm22co8"]
+[gd_scene load_steps=10 format=4 uid="uid://pw48ejm22co8"]
 
-[ext_resource type="MeshLibrary" uid="uid://c133krcrhd1yi" path="res://scenes/levels/BaseMapMeshLibrary.tres" id="1_4xb0i"]
 [ext_resource type="Script" path="res://scenes/levels/Room.cs" id="1_pvxcj"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_h46rv"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_8ytu7"]
@@ -49,17 +48,7 @@ data = PackedVector3Array(-1.75, 0.5, 7, 1.75, 0.5, 7.9, -1.75, 0.5, 7.9, -1.75,
 
 [node name="LevelEntrance" type="Node3D"]
 script = ExtResource("1_pvxcj")
-
-[node name="BaseMap" type="GridMap" parent="."]
-visible = false
-mesh_library = ExtResource("1_4xb0i")
-cell_size = Vector3(4, 4, 4)
-cell_center_x = false
-cell_center_y = false
-cell_center_z = false
-data = {
-"cells": PackedInt32Array(1, 65534, 1, 1, 65535, 1, 1, 0, 1, 0, 65534, 1048576, 0, 65535, 0, 0, 0, 1, 65535, 0, 1, 65535, 65535, 1, 65535, 65534, 1)
-}
+ShowDebugOverlay = true
 
 [node name="FloorGridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("2_h46rv")
@@ -77,6 +66,9 @@ cell_size = Vector3(1, 1, 1)
 cell_center_x = false
 cell_center_y = false
 cell_center_z = false
+data = {
+"cells": PackedInt32Array(0, 65526, 0)
+}
 
 [node name="DecorationGridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("4_87u72")
@@ -87,6 +79,7 @@ cell_center_z = false
 
 [node name="stairs_long" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -10)
+visible = false
 mesh = SubResource("ArrayMesh_b4i2o")
 skeleton = NodePath("")
 

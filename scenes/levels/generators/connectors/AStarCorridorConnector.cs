@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using Godot;
 
 /// <summary>
-/// Connects the rooms in the base map with hallways using A* pathfinding.
+/// Connects the rooms in the base map with corridors using A* pathfinding.
 /// </summary>
-public class AStarHallwayConnector : IHallwayConnectorStrategy
+[Tool]
+[GlobalClass]
+public partial class AStarCorridorConnector : CorridorConnectorStrategy
 {
-    public void ConnectRooms(MapData map, Random random)
+    public override void ConnectRooms(Random random, MapData map)
     {
         // We use a simple A* pathfinding algorithm to connect the rooms.
         // Initialize AStarGrid2D
@@ -22,17 +24,17 @@ public class AStarHallwayConnector : IHallwayConnectorStrategy
         astar.FillSolidRegion(new Rect2I(1, 1, map.Width - 1, map.Height - 1), solid: false);
         astar.FillWeightScaleRegion(new Rect2I(0, 0, map.Width, map.Height), 5);
 
-        // Find all hallway tiles on the map
-        List<Vector2I> hallwayTiles = new List<Vector2I>();
+        // Find all corridor tiles on the map
+        List<Vector2I> corridorTiles = new List<Vector2I>();
         for (int x = 0; x < map.Width; x++)
         {
             for (int z = 0; z < map.Height; z++)
             {
                 var node = new Vector2I(x, z);
 
-                if (map.IsHallway(x, z))
+                if (map.IsCorridor(x, z))
                 {
-                    hallwayTiles.Add(node);
+                    corridorTiles.Add(node);
                     astar.SetPointWeightScale(node, 0);
                 }
 
@@ -44,20 +46,20 @@ public class AStarHallwayConnector : IHallwayConnectorStrategy
             }
         }
 
-        GD.Print($"Found {hallwayTiles.Count} hallway tiles to connect.");
+        GD.Print($"Found {corridorTiles.Count} corridor tiles to connect.");
 
         // Pick two random floor tiles to connect
         var maxTries = 100;
-        while (hallwayTiles.Count > 1 && maxTries-- > 0)
+        while (corridorTiles.Count > 1 && maxTries-- > 0)
         {
-            ShuffleList(hallwayTiles, random);
-            Vector2I tile1 = hallwayTiles[0];
-            Vector2I tile2 = hallwayTiles[1];
+            ShuffleList(corridorTiles, random);
+            Vector2I tile1 = corridorTiles[0];
+            Vector2I tile2 = corridorTiles[1];
             if (ConnectTiles(map, astar, tile1, tile2))
             {
                 GD.Print($"Connected tiles {tile1} and {tile2}");
                 // remove the connected tiles
-                hallwayTiles.Remove(tile1);
+                corridorTiles.Remove(tile1);
             }
         }
 
@@ -76,7 +78,7 @@ public class AStarHallwayConnector : IHallwayConnectorStrategy
             {
                 if (map.IsEmpty(node.X, node.Y))
                 {
-                    map.SetTile(node.X, node.Y, MapTile.Hallway);
+                    map.SetTile(node.X, node.Y, MapTile.Corridor);
                     astar.SetPointWeightScale(node, 0);
                 }
             }
