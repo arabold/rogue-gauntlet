@@ -8,9 +8,9 @@
 
 [node name="CrossRoads" type="Node3D"]
 script = ExtResource("1_rcyi1")
+ShowDebugOverlay = true
 
 [node name="FloorGridMap" type="GridMap" parent="."]
-visible = false
 mesh_library = ExtResource("2_wjm60")
 cell_size = Vector3(1, 1, 1)
 cell_center_x = false

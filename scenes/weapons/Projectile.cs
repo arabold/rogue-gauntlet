@@ -19,7 +19,7 @@ public partial class Projectile : Node3D
 		_hitBoxComponent.HitDetected += OnHitDetected;
 	}
 
-	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, int damage)
+	public void Update(Vector3 origin, Vector3 direction, float speed, float range, int damage)
 	{
 		Direction = direction.Normalized();
 		Speed = speed;

@@ -67,7 +67,7 @@ cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(0, 65526, 0)
+"cells": PackedInt32Array(0, 65526, 0, 4, 65526, 0, 65532, 65526, 0)
 }
 
 [node name="DecorationGridMap" type="GridMap" parent="."]
@@ -78,8 +78,7 @@ cell_center_y = false
 cell_center_z = false
 
 [node name="stairs_long" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -10)
-visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, -10)
 mesh = SubResource("ArrayMesh_b4i2o")
 skeleton = NodePath("")
 

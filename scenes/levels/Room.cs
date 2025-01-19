@@ -25,16 +25,28 @@ public partial class Room : Node3D
 	[Export]
 	public bool ShowDebugOverlay
 	{
-		get => _debugGridMap != null && _debugGridMap.Visible;
+		get => _showDebugOverlay;
 		set
 		{
-			if (_debugGridMap != null)
+			if (value != _showDebugOverlay)
 			{
-				if (value && value != _debugGridMap.Visible)
+				_showDebugOverlay = value;
+				if (value)
 				{
-					GenerateOverlay();
+					// Property is set in the editor, so we need to check 
+					// if the room is initialized already
+					if (Engine.IsEditorHint() && _initialized && GetTree().EditedSceneRoot == this)
+					{
+						BakeTileMap();
+						CreateDebugOverlay();
+					}
 				}
-				_debugGridMap.Visible = value;
+				else if (_debugGridMap != null)
+				{
+					RemoveChild(_debugGridMap);
+					_debugGridMap.QueueFree();
+					_debugGridMap = null;
+				}
 			}
 		}
 	}
@@ -44,55 +56,32 @@ public partial class Room : Node3D
 	/// </summary>
 	public readonly int TileSize = 4;
 
+	private bool _showDebugOverlay = false;
+	private bool _initialized = false;
+
 	public override void _Ready()
 	{
+		base._Ready();
 		Initialize();
 	}
 
-	public virtual void Initialize()
+	public void Initialize()
 	{
-		GD.Print("Initializing room...");
-		FloorGridMap = GetNode<GridMap>("FloorGridMap");
-		WallGridMap = GetNode<GridMap>("WallGridMap");
-		DecorationGridMap = GetNode<GridMap>("DecorationGridMap");
-
-		// Top-left and bottom-right corners of the room
-		var usedCells = FloorGridMap.GetUsedCells();
-		int roomXMin = usedCells.MinBy(cell => cell.X).X;
-		int roomXMax = usedCells.MaxBy(cell => cell.X).X;
-		int roomZMin = usedCells.MinBy(cell => cell.Z).Z;
-		int roomZMax = usedCells.MaxBy(cell => cell.Z).Z;
-		int roomWidth = roomXMax - roomXMin + TileSize;
-		int roomDepth = roomZMax - roomZMin + TileSize;
-
-		Bounds = new Rect2I(roomXMin, roomZMin, roomWidth, roomDepth);
-		GD.Print($"Room bounds: {Bounds}");
-		RecreateMap();
-
-		if (Engine.IsEditorHint())
+		if (_initialized)
 		{
-			_debugGridMap = new GridMap();
-			_debugGridMap.Name = "DebugGridMap";
-			_debugGridMap.MeshLibrary = GD.Load<MeshLibrary>("res://scenes/levels/BaseMapMeshLibrary.tres");
-			_debugGridMap.CellSize = new Vector3(TileSize, TileSize, TileSize);
-			_debugGridMap.CellCenterX = false;
-			_debugGridMap.CellCenterY = false;
-			_debugGridMap.CellCenterZ = false;
-			_debugGridMap.Translate(new Vector3(Bounds.Position.X, 0.1f, Bounds.Position.Y));
-
-			_debugGridMap.Visible = false;
-			AddChild(_debugGridMap);
+			return;
 		}
-	}
 
-	public void Clear()
-	{
-		FloorGridMap.Clear();
-		WallGridMap.Clear();
-		DecorationGridMap.Clear();
-		// OverlayGridMap.Clear();
-		Map = null;
-		Bounds = new Rect2I();
+		GD.Print("Initializing room...");
+		BakeTileMap();
+
+		// Show the debug overlay if needed
+		if (Engine.IsEditorHint() && GetTree().EditedSceneRoot == this && _showDebugOverlay)
+		{
+			CreateDebugOverlay();
+		}
+
+		_initialized = true;
 	}
 
 	/// <summary>
@@ -101,10 +90,38 @@ public partial class Room : Node3D
 	/// This map will be used to determine which tiles are rooms and which
 	/// are corridors that need to be connected with other rooms.
 	/// </summary>
-	private void RecreateMap()
+	public void BakeTileMap()
 	{
-		// var usedCells = FloorGridMap
-		var map = new MapData(Bounds.Size.X / TileSize, Bounds.Size.Y / TileSize);
+		FloorGridMap = FloorGridMap ?? GetNode<GridMap>("FloorGridMap");
+		WallGridMap = WallGridMap ?? GetNode<GridMap>("WallGridMap");
+		DecorationGridMap = DecorationGridMap ?? GetNode<GridMap>("DecorationGridMap");
+
+		// Determine the bounds of the room
+		var usedCells = FloorGridMap.GetUsedCells();
+		if (usedCells.Count == 0)
+		{
+			GD.PrintErr("No floor tiles found in the room!");
+			Map = null;
+			return;
+		}
+
+		int roomXMin = Mathf.FloorToInt(
+			usedCells.MinBy(cell => cell.X).X / TileSize) * TileSize;
+		int roomXMax = Mathf.FloorToInt(
+			usedCells.MaxBy(cell => cell.X).X / TileSize) * TileSize;
+		int roomZMin = Mathf.FloorToInt(
+			usedCells.MinBy(cell => cell.Z).Z / TileSize) * TileSize;
+		int roomZMax = Mathf.FloorToInt(
+			usedCells.MaxBy(cell => cell.Z).Z / TileSize) * TileSize;
+
+		int roomWidth = roomXMax - roomXMin + TileSize;
+		int roomDepth = roomZMax - roomZMin + TileSize;
+
+		Bounds = new Rect2I(roomXMin, roomZMin, roomWidth, roomDepth);
+		GD.Print($"Room bounds: {Bounds}");
+
+		var mapSize = ToTilePosition(Bounds.Size.X, 0, Bounds.Size.Y);
+		var map = new MapData(mapSize.X, mapSize.Y);
 
 		// Each tile in our MapData maps 4x4 tiles in the GridMap (with TileSize = 4)
 		// To identify a wall tile, we need to check the 4x4 area around the tile
@@ -112,8 +129,9 @@ public partial class Room : Node3D
 		{
 			for (var z = 0; z < map.Height; z++)
 			{
-				var gridX = x * TileSize + Bounds.Position.X - TileSize / 2;
-				var gridZ = z * TileSize + Bounds.Position.Y - TileSize / 2;
+				var gridPos = ToGridPosition(x, 0, z);
+				var gridX = gridPos.X + Bounds.Position.X - TileSize / 2;
+				var gridZ = gridPos.Z + Bounds.Position.Y - TileSize / 2;
 
 				// Check for floors
 				for (var dx = 0; dx < TileSize; dx++)
@@ -171,29 +189,37 @@ public partial class Room : Node3D
 			if (!map.IsWithinBounds(adjX, adjZ) || map.IsEmpty(adjX, adjZ))
 			{
 				// We found an empty tile adjacent to the room. Check if there is a wall
-				int gridX = x * TileSize + Bounds.Position.X - TileSize / 2;
-				int gridZ = z * TileSize + Bounds.Position.Y - TileSize / 2;
+				var gridPos = ToGridPosition(x, 0, z);
+				int gridX = gridPos.X + Bounds.Position.X - TileSize / 2;
+				int gridZ = gridPos.Z + Bounds.Position.Y - TileSize / 2;
 
 				bool hasWall = false;
 				if (dx < 0)
 				{
 					hasWall = hasWallZ(gridX, gridZ);
+					// GD.Print($"Checking Z wall at {gridX}, {gridZ}: {hasWall}");
 				}
 				if (dx > 0)
 				{
 					hasWall = hasWallZ(gridX + TileSize, gridZ);
+					// GD.Print($"Checking Z wall at {gridX + TileSize}, {gridZ}: {hasWall}");
 				}
 				if (dz < 0)
 				{
 					hasWall = hasWallX(gridX, gridZ);
+					// GD.Print($"Checking X wall at {gridX}, {gridZ}: {hasWall}");
 				}
 				if (dz > 0)
 				{
 					hasWall = hasWallX(gridX, gridZ + TileSize);
+					// GD.Print($"Checking X wall at {gridX}, {gridZ + TileSize}: {hasWall}");
 				}
 
 				if (!hasWall)
 				{
+					// We found one open side of the tile, so treat it as a corridor
+					// that needs to be connected to other rooms
+					// GD.Print($"Tile at {x}, {z} is a corridor with open side at {adjX}, {adjZ}");
 					return true;
 				}
 			}
@@ -234,11 +260,49 @@ public partial class Room : Node3D
 		return false;
 	}
 
-	private void GenerateOverlay()
+	private void CreateDebugOverlay()
 	{
-		GD.Print("Generating overlay...");
+		if (Map == null)
+		{
+			GD.PrintErr("No map data available to generate overlay!");
+			return;
+		}
 
-		_debugGridMap.Clear();
+		if (_debugGridMap != null)
+		{
+			RemoveChild(_debugGridMap);
+			_debugGridMap.QueueFree();
+		}
+
+		// We always create a new grid map to adapt to changes in the room layout
+		_debugGridMap = new GridMap();
+		_debugGridMap.Name = "DebugGridMap";
+		_debugGridMap.MeshLibrary = GD.Load<MeshLibrary>("res://scenes/levels/BaseMapMeshLibrary.tres");
+		_debugGridMap.CellSize = new Vector3(TileSize, TileSize, TileSize);
+		_debugGridMap.CellCenterX = false;
+		_debugGridMap.CellCenterY = false;
+		_debugGridMap.CellCenterZ = false;
+		_debugGridMap.Translate(new Vector3(Bounds.Position.X, 0.1f, Bounds.Position.Y));
+		_debugGridMap.Visible = _showDebugOverlay;
+		AddChild(_debugGridMap);
+
+		// TODO: Make this more efficient by only updating the overlay when needed
+		// Add a refresh timer to update the overlay when the room layout changes
+		// var timer = new Timer();
+		// _debugGridMap.AddChild(timer);
+		// timer.OneShot = true;
+		// timer.WaitTime = 0.5f;
+		// timer.Timeout += () =>
+		// {
+		// 	if (_showDebugOverlay)
+		// 	{
+		// 		RecreateMap();
+		// 		CreateDebugOverlay();
+		// 	}
+		// };
+		// timer.Start();
+
+		GD.Print("Generating overlay...");
 		for (int x = 0; x < Map.Width; x++)
 		{
 			for (int z = 0; z < Map.Height; z++)
@@ -258,5 +322,29 @@ public partial class Room : Node3D
 				}
 			}
 		}
+	}
+
+	protected Vector2I ToTilePosition(Vector3I position)
+	{
+		return ToTilePosition(position.X, 0, position.Z);
+	}
+
+	protected Vector2I ToTilePosition(int x, int y, int z)
+	{
+		var tileX = Mathf.FloorToInt(x / TileSize);
+		var tileZ = Mathf.FloorToInt(z / TileSize);
+		return new Vector2I(tileX, tileZ);
+	}
+
+	protected Vector3I ToGridPosition(Vector2I position)
+	{
+		return ToGridPosition(position.X, 0, position.Y);
+	}
+
+	protected Vector3I ToGridPosition(int x, int y, int z)
+	{
+		var gridX = x * TileSize;
+		var gridZ = z * TileSize;
+		return new Vector3I(gridX, y, gridZ);
 	}
 }

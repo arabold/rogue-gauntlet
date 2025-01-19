@@ -27,7 +27,7 @@ public partial class RangedWeapon : Node3D, IWeapon
 
 		// Instantiate a projectile and set its direction and speed
 		Projectile projectile = ProjectileScene.Instantiate<Projectile>();
-		projectile.Initialize(
+		projectile.Update(
 			GlobalPosition,
 			targetDirection,
 			ProjectileSpeed, Range, Damage);

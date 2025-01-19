@@ -9,6 +9,7 @@
 
 [node name="StorageRoomSmall" type="Node3D"]
 script = ExtResource("1_1ygbb")
+ShowDebugOverlay = true
 
 [node name="FloorGridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("2_8yktl")
