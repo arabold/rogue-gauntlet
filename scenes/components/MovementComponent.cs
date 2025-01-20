@@ -16,9 +16,9 @@ public partial class MovementComponent : Node
 	/// </summary>
 	[Export] public float RotationSpeed { get; set; } = 20.0f;
 	/// <summary>
-	/// The StairsTriggers node that will be used to detect stairs.
+	/// The StairsTrigger node that will be used to detect stairs.
 	/// </summary>
-	[Export] public StairsTriggers StairsTriggers;
+	[Export] public StairsTrigger StairsTrigger;
 	/// <summary>
 	/// The gravity strength.
 	/// </summary>
@@ -115,7 +115,7 @@ public partial class MovementComponent : Node
 
 		// Apply vertical velocity
 		velocity.Y += Velocity.Y;
-		var isOnStairs = StairsTriggers?.stairs > 0;
+		var isOnStairs = StairsTrigger?.stairs > 0;
 		if (Actor.IsOnFloor())
 		{
 			// Reset vertical velocity when on the floor
