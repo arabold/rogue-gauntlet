@@ -18,9 +18,9 @@ public partial class Room : Node3D
 	/// </summary>
 	public Rect2I Bounds { get; private set; }
 
-	public GridMap FloorGridMap;
-	public GridMap WallGridMap;
-	public GridMap DecorationGridMap;
+	[Export] public GridMap FloorGridMap;
+	[Export] public GridMap WallGridMap;
+	[Export] public GridMap DecorationGridMap;
 	private GridMap _debugGridMap;
 
 	[Export]
@@ -71,6 +71,23 @@ public partial class Room : Node3D
 		}
 	}
 
+	public void InitGridMaps()
+	{
+		// Automatically find the grid maps if they are not set
+		if (FloorGridMap == null)
+		{
+			FloorGridMap = GetNodeOrNull<GridMap>("FloorGridMap");
+		}
+		if (WallGridMap == null)
+		{
+			WallGridMap = GetNodeOrNull<GridMap>("WallGridMap");
+		}
+		if (DecorationGridMap == null)
+		{
+			DecorationGridMap = GetNodeOrNull<GridMap>("DecorationGridMap");
+		}
+	}
+
 	/// <summary>
 	/// Create a map of the room based on the floor and wall grid maps.
 	/// <br/>
@@ -79,27 +96,33 @@ public partial class Room : Node3D
 	/// </summary>
 	public void BakeTileMap()
 	{
-		FloorGridMap = FloorGridMap ?? GetNode<GridMap>("FloorGridMap");
-		WallGridMap = WallGridMap ?? GetNode<GridMap>("WallGridMap");
-		DecorationGridMap = DecorationGridMap ?? GetNode<GridMap>("DecorationGridMap");
+		// Ensure the grid maps are set
+		InitGridMaps();
+		if (FloorGridMap == null || WallGridMap == null)
+		{
+			GD.PrintErr($"{Name}: FloorGridMap and WallGridMap must be set!");
+			Map = null;
+			return;
+		}
 
 		// Determine the bounds of the room
 		var usedCells = FloorGridMap.GetUsedCells();
 		if (usedCells.Count == 0)
 		{
-			GD.PrintErr("No floor tiles found in the room!");
+			GD.PrintErr($"{Name}: No floor tiles found in the room!");
 			Map = null;
 			return;
 		}
 
+		int halfTileSize = TileSize / 2;
 		int roomXMin = Mathf.FloorToInt(
-			usedCells.MinBy(cell => cell.X).X / TileSize) * TileSize;
+			usedCells.MinBy(cell => cell.X).X / halfTileSize) * halfTileSize;
 		int roomXMax = Mathf.FloorToInt(
-			usedCells.MaxBy(cell => cell.X).X / TileSize) * TileSize;
+			usedCells.MaxBy(cell => cell.X).X / halfTileSize) * halfTileSize;
 		int roomZMin = Mathf.FloorToInt(
-			usedCells.MinBy(cell => cell.Z).Z / TileSize) * TileSize;
+			usedCells.MinBy(cell => cell.Z).Z / halfTileSize) * halfTileSize;
 		int roomZMax = Mathf.FloorToInt(
-			usedCells.MaxBy(cell => cell.Z).Z / TileSize) * TileSize;
+			usedCells.MaxBy(cell => cell.Z).Z / halfTileSize) * halfTileSize;
 
 		int roomWidth = roomXMax - roomXMin + TileSize;
 		int roomDepth = roomZMax - roomZMin + TileSize;

@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=3 uid="uid://dcta6i5ia5by0"]
 
-[ext_resource type="Script" path="res://scenes/levels/Room.cs" id="1_g56vc"]
+[ext_resource type="Script" uid="uid://djvo5h5w1l038" path="res://scenes/levels/Room.cs" id="1_g56vc"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_cg38f"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_5gbe8"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_7xfah"]
@@ -9,8 +9,11 @@
 [ext_resource type="PackedScene" uid="uid://cgi3a5fi0sxu6" path="res://scenes/props/chest.tscn" id="7_co4j0"]
 [ext_resource type="PackedScene" uid="uid://cap6wqfjubqjx" path="res://scenes/props/floor_trap.tscn" id="8_qunla"]
 
-[node name="SmallRoom" type="Node3D"]
+[node name="SmallRoom" type="Node3D" node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap")]
 script = ExtResource("1_g56vc")
+FloorGridMap = NodePath("FloorGridMap")
+WallGridMap = NodePath("WallGridMap")
+DecorationGridMap = NodePath("DecorationGridMap")
 ShowDebugOverlay = true
 
 [node name="FloorGridMap" type="GridMap" parent="."]

@@ -1,0 +1,56 @@
+[gd_scene load_steps=6 format=3 uid="uid://ds6xrr21o2hq3"]
+
+[ext_resource type="Script" uid="uid://djvo5h5w1l038" path="res://scenes/levels/Room.cs" id="1_myv55"]
+[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_ltxps"]
+[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_mg5f3"]
+[ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_tslul"]
+[ext_resource type="PackedScene" uid="uid://cyhr68psc2ku" path="res://scenes/props/torch_mounted.tscn" id="5_ltxps"]
+
+[node name="Hall" type="Node3D" node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap")]
+script = ExtResource("1_myv55")
+FloorGridMap = NodePath("FloorGridMap")
+WallGridMap = NodePath("WallGridMap")
+DecorationGridMap = NodePath("DecorationGridMap")
+ShowDebugOverlay = true
+
+[node name="FloorGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("2_ltxps")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(65534, 2, 1048597, 65534, 6, 1048597, 2, 6, 1048597, 2, 2, 1048597, 65530, 2, 1048597, 65530, 6, 1048597, 65530, 10, 1048597, 65534, 10, 1048597, 2, 10, 1048597, 2, 65534, 1048597, 65534, 65534, 1048597, 65530, 65534, 1048597, 65530, 65530, 1048597, 65534, 65530, 1048597, 2, 65530, 1048597, 65533, 13, 5, 65535, 13, 1048581, 65533, 65527, 1441797, 65535, 65527, 655365, 65533, 15, 655366, 65535, 15, 655362, 65533, 65525, 1048578, 65535, 65525, 655364)
+}
+
+[node name="WallGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("3_mg5f3")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(65528, 12, 655366, 4, 12, 1441798, 4, 65528, 6, 65528, 65528, 1048582, 65528, 8, 1048577, 65528, 4, 1048577, 65528, 0, 1048577, 65528, 65532, 1048577, 4, 8, 1048577, 4, 4, 1048577, 4, 0, 1048577, 4, 65532, 1048577, 65532, 65528, 655378, 2, 65528, 655378, 65532, 12, 655378, 2, 12, 655378)
+}
+
+[node name="DecorationGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("4_tslul")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(65531, 8, 1048600, 65531, 4, 1048600, 65531, 0, 1048600, 65531, 65532, 1048600, 0, 65532, 1048600, 0, 0, 1048600, 0, 4, 1048600, 0, 8, 1048600)
+}
+
+[node name="TorchMounted" parent="DecorationGridMap" instance=ExtResource("5_ltxps")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.66, 2, 6)
+
+[node name="TorchMounted3" parent="DecorationGridMap" instance=ExtResource("5_ltxps")]
+transform = Transform3D(-8.74228e-08, 0, -1, 0, 1, 0, 1, 0, -8.74228e-08, 3.65, 2, 6)
+
+[node name="TorchMounted4" parent="DecorationGridMap" instance=ExtResource("5_ltxps")]
+transform = Transform3D(-8.74228e-08, 0, -1, 0, 1, 0, 1, 0, -8.74228e-08, 3.65, 2, -2)
+
+[node name="TorchMounted2" parent="DecorationGridMap" instance=ExtResource("5_ltxps")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.66, 2, -2)

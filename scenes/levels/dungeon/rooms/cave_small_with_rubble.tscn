@@ -1,0 +1,43 @@
+[gd_scene load_steps=5 format=3 uid="uid://byo2bj6pff2a4"]
+
+[ext_resource type="Script" uid="uid://djvo5h5w1l038" path="res://scenes/levels/Room.cs" id="1_gdkhi"]
+[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_lkf0s"]
+[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_2wd01"]
+[ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_apcyi"]
+
+[node name="CaveSmallWithRubble" type="Node3D" node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap")]
+script = ExtResource("1_gdkhi")
+FloorGridMap = NodePath("FloorGridMap")
+WallGridMap = NodePath("WallGridMap")
+DecorationGridMap = NodePath("DecorationGridMap")
+ShowDebugOverlay = true
+
+[node name="FloorGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("2_lkf0s")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(65535, 3, 1048580, 65535, 5, 1048578, 65535, 7, 655366, 65535, 9, 2, 0, 0, 0, 1, 3, 6, 1, 9, 655366, 3, 65535, 1441798, 3, 1, 7, 4, 4, 1441792, 4, 8, 655360, 5, 65535, 1441794, 5, 1, 1441795, 1, 7, 6, 1, 5, 1441798)
+}
+
+[node name="WallGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("3_2wd01")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(6, 4, 1048586)
+}
+
+[node name="DecorationGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("4_apcyi")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(6, 4, 655386)
+}

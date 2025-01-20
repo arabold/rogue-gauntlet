@@ -18,6 +18,7 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		// Place entrance and exit rooms
 		var entranceScene = factory.CreateEntrance();
 		var entranceRoom = entranceScene.Instantiate<Room>();
+		GD.Print($"Instantiated room {entranceRoom}...");
 		entranceRoom.BakeTileMap();
 		var entrancePlacement = TryPlaceRoom(map, entranceRoom.Map, 99);
 		rooms.Add(new RoomPlacement(entranceRoom, entrancePlacement.Value));
@@ -25,6 +26,7 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 
 		var exitScene = factory.CreateExit();
 		var exitRoom = exitScene.Instantiate<Room>();
+		GD.Print($"Instantiated room {exitRoom}...");
 		exitRoom.BakeTileMap();
 		var exitPlacement = TryPlaceRoom(map, exitRoom.Map, 99);
 		rooms.Add(new RoomPlacement(exitRoom, exitPlacement.Value));
@@ -41,6 +43,7 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 					: factory.CreateStandardRoom();
 				var scene = scenePath;
 				var room = scene.Instantiate<Room>();
+				GD.Print($"Instantiated room {scenePath}...");
 				room.BakeTileMap();
 
 				var placement = TryPlaceRoom(map, room.Map, retries);

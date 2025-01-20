@@ -1,0 +1,45 @@
+[gd_scene load_steps=6 format=3 uid="uid://d0u1wvpi5dn3m"]
+
+[ext_resource type="Script" uid="uid://djvo5h5w1l038" path="res://scenes/levels/Room.cs" id="1_70hq6"]
+[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_d701g"]
+[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_2gbrg"]
+[ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_xggem"]
+[ext_resource type="PackedScene" uid="uid://cyhr68psc2ku" path="res://scenes/props/torch_mounted.tscn" id="5_d701g"]
+
+[node name="RoomCornerWithBed" type="Node3D"]
+script = ExtResource("1_70hq6")
+ShowDebugOverlay = true
+
+[node name="FloorGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("2_d701g")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(65534, 6, 1048597, 65530, 6, 1048597, 65530, 10, 1048597, 65534, 10, 1048597)
+}
+
+[node name="WallGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("3_2gbrg")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(65528, 8, 1048577, 65528, 4, 1048582, 65532, 4, 10, 0, 4, 6, 0, 6, 1441810, 65528, 10, 1441810)
+}
+
+[node name="DecorationGridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("4_xggem")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(65530, 7, 1048590, 65528, 10, 1048576, 65529, 9, 1048581, 65529, 5, 655379, 65531, 5, 655391, 65534, 6, 655402)
+}
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="TorchMounted" parent="." instance=ExtResource("5_d701g")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.73388, 2, 5.52924)

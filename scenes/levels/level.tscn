@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=31 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" uid="uid://dufyxbs8mado1" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://he7ib5c3gsey" path="res://scenes/levels/generators/connectors/AStarCorridorConnector.cs" id="4_mssmn"]
 [ext_resource type="PackedScene" uid="uid://pw48ejm22co8" path="res://scenes/levels/dungeon/rooms/level_entrance.tscn" id="5_3x8eu"]
 [ext_resource type="Script" uid="uid://j1ny8jowafpm" path="res://scenes/levels/dungeon/DungeonTileFactoryStrategy.cs" id="5_ajgnw"]
+[ext_resource type="PackedScene" uid="uid://b488tqjwpkwrd" path="res://scenes/levels/dungeon/rooms/level_entrance2.tscn" id="6_b8j7q"]
 [ext_resource type="PackedScene" uid="uid://qv5esjvl3em7" path="res://scenes/levels/dungeon/rooms/level_exit.tscn" id="6_kvk12"]
 [ext_resource type="PackedScene" uid="uid://dbarqye64ji1k" path="res://scenes/levels/dungeon/rooms/cave_small.tscn" id="7_7drlw"]
 [ext_resource type="PackedScene" uid="uid://cdavbwmwausvd" path="res://scenes/levels/dungeon/rooms/cave_small_with_pillars.tscn" id="8_xn0xg"]
@@ -16,6 +17,14 @@
 [ext_resource type="PackedScene" uid="uid://dcta6i5ia5by0" path="res://scenes/levels/dungeon/rooms/sewer_room.tscn" id="11_gyban"]
 [ext_resource type="PackedScene" uid="uid://p77tcudxh8un" path="res://scenes/levels/dungeon/rooms/storage_room_small.tscn" id="12_aqm0a"]
 [ext_resource type="PackedScene" uid="uid://cleuo31guk4w" path="res://scenes/levels/dungeon/rooms/alchimist_chamber.tscn" id="13_dp3yu"]
+[ext_resource type="PackedScene" uid="uid://ds6xrr21o2hq3" path="res://scenes/levels/dungeon/rooms/hall.tscn" id="15_c3o0d"]
+[ext_resource type="PackedScene" uid="uid://blfayqkmrr5yv" path="res://scenes/levels/dungeon/rooms/barracks.tscn" id="16_c8ctg"]
+[ext_resource type="PackedScene" uid="uid://byo2bj6pff2a4" path="res://scenes/levels/dungeon/rooms/cave_small_with_rubble.tscn" id="17_xog87"]
+[ext_resource type="PackedScene" uid="uid://iokg6mdwffhl" path="res://scenes/levels/dungeon/rooms/cave_tiny.tscn" id="18_fq0wv"]
+[ext_resource type="PackedScene" uid="uid://d0u1wvpi5dn3m" path="res://scenes/levels/dungeon/rooms/room_corner_with_bed.tscn" id="19_gwbx5"]
+[ext_resource type="PackedScene" uid="uid://dx7jm4qonhj6v" path="res://scenes/levels/dungeon/rooms/room_dining.tscn" id="20_kbcxf"]
+[ext_resource type="PackedScene" uid="uid://bobyfcwebpbp1" path="res://scenes/levels/dungeon/rooms/cave_tiny2.tscn" id="21_xog87"]
+[ext_resource type="PackedScene" uid="uid://eyqbprfpr2le" path="res://scenes/levels/dungeon/rooms/cave_tiny3.tscn" id="22_fq0wv"]
 
 [sub_resource type="Resource" id="Resource_lu3sp"]
 script = ExtResource("3_6qmcm")
@@ -26,9 +35,9 @@ script = ExtResource("4_mssmn")
 
 [sub_resource type="Resource" id="Resource_r2i0w"]
 script = ExtResource("3_ktjkn")
-EntranceScenes = Array[PackedScene]([ExtResource("5_3x8eu")])
+EntranceScenes = Array[PackedScene]([ExtResource("5_3x8eu"), ExtResource("6_b8j7q")])
 ExitScenes = Array[PackedScene]([ExtResource("6_kvk12")])
-StandardRoomScenes = Array[PackedScene]([ExtResource("7_7drlw"), ExtResource("8_xn0xg"), ExtResource("9_4yir3"), ExtResource("10_qbkwb"), ExtResource("11_gyban")])
+StandardRoomScenes = Array[PackedScene]([ExtResource("7_7drlw"), ExtResource("8_xn0xg"), ExtResource("9_4yir3"), ExtResource("10_qbkwb"), ExtResource("11_gyban"), ExtResource("15_c3o0d"), ExtResource("16_c8ctg"), ExtResource("17_xog87"), ExtResource("18_fq0wv"), ExtResource("19_gwbx5"), ExtResource("20_kbcxf"), ExtResource("21_xog87"), ExtResource("22_fq0wv")])
 SpecialRoomScenes = Array[PackedScene]([ExtResource("13_dp3yu"), ExtResource("12_aqm0a")])
 
 [sub_resource type="Resource" id="Resource_dy00s"]
@@ -43,8 +52,7 @@ script = ExtResource("1_37vyo")
 [node name="MapGenerator" parent="." instance=ExtResource("2_dtjl1")]
 MapWidth = 20
 MapDepth = 20
-MaxRooms = 6
-Seed = 40
+MaxRooms = 10
 RoomLayout = SubResource("Resource_lu3sp")
 CorridorConnector = SubResource("Resource_dysv2")
 RoomFactory = SubResource("Resource_r2i0w")
