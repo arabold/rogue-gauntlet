@@ -1,20 +1,21 @@
 using System;
 using Godot;
+using Godot.Collections;
 
 [Tool]
 [GlobalClass]
 public partial class DungeonTileFactoryStrategy : TileFactoryStrategy
 {
-	private readonly int[] _corridorTileIndices = new int[] { 0 };
-	private readonly int[] _wallTileIndices = new int[] { 0 };
+	private readonly Array<int> _corridorTileIndices = new Array<int> { 0 };
+	private readonly Array<int> _wallTileIndices = new Array<int> { 0 };
 
-	public override int GetCorridorTileIndex(Random random)
+	public override int GetCorridorTileIndex()
 	{
-		return _corridorTileIndices[random.Next(0, _corridorTileIndices.Length)];
+		return _corridorTileIndices.PickRandom();
 	}
 
-	public override int GetWallTileIndex(Random random)
+	public override int GetWallTileIndex()
 	{
-		return _wallTileIndices[random.Next(0, _wallTileIndices.Length)];
+		return _wallTileIndices.PickRandom();
 	}
 }

@@ -11,27 +11,27 @@ public partial class DungeonRoomFactoryStrategy : RoomFactoryStrategy
 	[Export] public Array<PackedScene> StandardRoomScenes { get; set; }
 	[Export] public Array<PackedScene> SpecialRoomScenes { get; set; }
 
-	public override PackedScene CreateEntrance(Random random)
+	public override PackedScene CreateEntrance()
 	{
-		var scene = EntranceScenes[random.Next(0, EntranceScenes.Count)];
+		var scene = EntranceScenes.PickRandom();
 		return scene;
 	}
 
-	public override PackedScene CreateExit(Random random)
+	public override PackedScene CreateExit()
 	{
-		var scene = ExitScenes[random.Next(0, ExitScenes.Count)];
+		var scene = ExitScenes.PickRandom();
 		return scene;
 	}
 
-	public override PackedScene CreateStandardRoom(Random random)
+	public override PackedScene CreateStandardRoom()
 	{
-		var scene = StandardRoomScenes[random.Next(0, StandardRoomScenes.Count)];
+		var scene = StandardRoomScenes.PickRandom();
 		return scene;
 	}
 
-	public override PackedScene CreateSpecialRoom(Random random)
+	public override PackedScene CreateSpecialRoom()
 	{
-		var scene = SpecialRoomScenes[random.Next(0, SpecialRoomScenes.Count)];
+		var scene = SpecialRoomScenes.PickRandom();
 		return scene;
 	}
 }

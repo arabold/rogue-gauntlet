@@ -27,12 +27,13 @@ public partial class SpawnPoint : Node3D
 				AddChild(Scenes[0].Instantiate<Node3D>());
 			}
 		}
+
 		SignalBus.Instance.LevelLoaded += OnLevelLoaded;
 	}
 
 	private void OnLevelLoaded(Level level)
 	{
-		if (SpawnOnStart)
+		if (SpawnOnStart && !Engine.IsEditorHint())
 		{
 			Spawn();
 		}
@@ -49,13 +50,12 @@ public partial class SpawnPoint : Node3D
 			return null;
 		}
 
-		var scene = Scenes[GameManager.Instance.Random.Next(0, Scenes.Count)];
+		var scene = Scenes.PickRandom();
 		var node = scene.Instantiate<Node3D>();
 		GameManager.Instance.Level.AddChild(node);
 
 		node.GlobalTransform = GlobalTransform;
 		node.Rotation = Rotation;
-		// node.Rotation = new Vector3(0, (float)(GameManager.Instance.Random.NextDouble() * 2 * Math.PI), 0);
 
 		GD.Print($"Spawned {node.Name} at {node.GlobalPosition}");
 

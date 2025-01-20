@@ -9,7 +9,7 @@ using Godot;
 [GlobalClass]
 public partial class AStarCorridorConnector : CorridorConnectorStrategy
 {
-    public override void ConnectRooms(Random random, MapData map)
+    public override void ConnectRooms(MapData map)
     {
         // We use a simple A* pathfinding algorithm to connect the rooms.
         // Initialize AStarGrid2D
@@ -52,7 +52,7 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
         var maxTries = 100;
         while (corridorTiles.Count > 1 && maxTries-- > 0)
         {
-            ShuffleList(corridorTiles, random);
+            ShuffleList(corridorTiles);
             Vector2I tile1 = corridorTiles[0];
             Vector2I tile2 = corridorTiles[1];
             if (ConnectTiles(map, astar, tile1, tile2))
@@ -88,11 +88,11 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
     }
 
     // Shuffle a list in place using Fisher-Yates algorithm
-    private void ShuffleList<T>(List<T> list, Random random)
+    private void ShuffleList<T>(List<T> list)
     {
         for (int i = list.Count - 1; i > 0; i--)
         {
-            int j = random.Next(i + 1);
+            int j = GD.RandRange(0, i);
             T temp = list[i];
             list[i] = list[j];
             list[j] = temp;

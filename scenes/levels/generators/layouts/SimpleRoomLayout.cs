@@ -11,39 +11,39 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 {
 	[Export] public int Retries = 3;
 
-	public override List<RoomPlacement> GenerateRooms(Random random, MapData map, RoomFactoryStrategy factory, int maxRooms)
+	public override List<RoomPlacement> GenerateRooms(MapData map, RoomFactoryStrategy factory, uint maxRooms)
 	{
 		List<RoomPlacement> rooms = new List<RoomPlacement>();
 
 		// Place entrance and exit rooms
-		var entranceScene = factory.CreateEntrance(random);
+		var entranceScene = factory.CreateEntrance();
 		var entranceRoom = entranceScene.Instantiate<Room>();
 		entranceRoom.BakeTileMap();
-		var entrancePlacement = TryPlaceRoom(random, map, entranceRoom.Map, 99);
+		var entrancePlacement = TryPlaceRoom(map, entranceRoom.Map, 99);
 		rooms.Add(new RoomPlacement(entranceRoom, entrancePlacement.Value));
 		PlaceRoom(map, entranceRoom.Map, entrancePlacement.Value);
 
-		var exitScene = factory.CreateExit(random);
+		var exitScene = factory.CreateExit();
 		var exitRoom = exitScene.Instantiate<Room>();
 		exitRoom.BakeTileMap();
-		var exitPlacement = TryPlaceRoom(random, map, exitRoom.Map, 99);
+		var exitPlacement = TryPlaceRoom(map, exitRoom.Map, 99);
 		rooms.Add(new RoomPlacement(exitRoom, exitPlacement.Value));
 		PlaceRoom(map, exitRoom.Map, exitPlacement.Value);
 
-		var countSpecialRooms = random.Next(1, maxRooms / 3);
+		var countSpecialRooms = GD.RandRange(1, 1 + (int)Mathf.Floor(maxRooms / 3));
 		for (int i = 0; i < maxRooms; i++)
 		{
 			var retries = Retries;
 			do
 			{
 				var scenePath = (i < countSpecialRooms)
-					? factory.CreateSpecialRoom(random)
-					: factory.CreateStandardRoom(random);
+					? factory.CreateSpecialRoom()
+					: factory.CreateStandardRoom();
 				var scene = scenePath;
 				var room = scene.Instantiate<Room>();
 				room.BakeTileMap();
 
-				var placement = TryPlaceRoom(random, map, room.Map, retries);
+				var placement = TryPlaceRoom(map, room.Map, retries);
 				if (placement != null)
 				{
 					// Add the room to the map
@@ -77,15 +77,15 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		}
 	}
 
-	private Vector3I? TryPlaceRoom(Random random, MapData map, MapData roomMap, int retries)
+	private Vector3I? TryPlaceRoom(MapData map, MapData roomMap, int retries)
 	{
 		bool overlaps;
 		Vector3I placement;
 		do
 		{
-			// Place the room at a random position on the map
-			int roomX = random.Next(2, map.Width - roomMap.Width - 2);
-			int roomZ = random.Next(2, map.Height - roomMap.Height - 2);
+			// Place the room at a  position on the map
+			var roomX = GD.RandRange(2, map.Width - roomMap.Width - 1);
+			var roomZ = GD.RandRange(2, map.Height - roomMap.Height - 1);
 			placement = new Vector3I(roomX, 0, roomZ);
 
 			// Check if the room placement overlaps with any existing rooms

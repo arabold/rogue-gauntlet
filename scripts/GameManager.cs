@@ -12,7 +12,6 @@ public partial class GameManager : Node
 	public Array<EnemyBase> EnemiesInScene { get; private set; }
 	public Array<Node3D> DamageablesInScene { get; private set; }
 
-	public Random Random { get; } = new Random();
 	public Player Player { get; private set; }
 	public PlayerStats PlayerStats { get; private set; }
 	public Level Level { get; private set; }

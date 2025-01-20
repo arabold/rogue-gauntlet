@@ -10,5 +10,5 @@ public abstract partial class RoomLayoutStrategy : Resource
 	/// <summary>
 	/// Populates the map with room data (e.g., which tiles are rooms)
 	/// </summary>
-	public abstract List<RoomPlacement> GenerateRooms(Random random, MapData map, RoomFactoryStrategy factory, int maxRooms);
+	public abstract List<RoomPlacement> GenerateRooms(MapData map, RoomFactoryStrategy factory, uint maxRooms);
 }

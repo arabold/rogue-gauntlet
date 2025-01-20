@@ -1,5 +1,6 @@
 using Godot;
 
+[Tool]
 public partial class SignalBus : Node
 {
     // Singleton instance for global access

@@ -1,33 +1,41 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using Godot.Collections;
 
 [Tool]
 public partial class MapGenerator : Node3D
 {
 	[Export]
-	public int MapWidth
+	public uint DungeonDepth
+	{
+		get => _dungeonDepth;
+		set => SetPropertyWithBounds<uint>(ref _dungeonDepth, value, 1, 100);
+	}
+
+	[Export]
+	public uint MapWidth
 	{
 		get => _mapWidth;
-		set => SetPropertyWithBounds(ref _mapWidth, value, 20, 100);
+		set => SetPropertyWithBounds<uint>(ref _mapWidth, value, 20, 100);
 	}
 
 	[Export]
-	public int MapDepth
+	public uint MapDepth
 	{
 		get => _mapDepth;
-		set => SetPropertyWithBounds(ref _mapDepth, value, 20, 100);
+		set => SetPropertyWithBounds<uint>(ref _mapDepth, value, 20, 100);
 	}
 
 	[Export]
-	public int MaxRooms
+	public uint MaxRooms
 	{
 		get => _maxRooms;
-		set => SetPropertyWithBounds(ref _maxRooms, value, 1, 100);
+		set => SetPropertyWithBounds<uint>(ref _maxRooms, value, 1, 100);
 	}
 
 	[Export]
-	public int Seed
+	public ulong Seed
 	{
 		get => _seed;
 		set => SetProperty(ref _seed, value);
@@ -45,39 +53,43 @@ public partial class MapGenerator : Node3D
 	/// expense of performance.
 	/// </summary>
 	[Export]
-	public int MaxRetries
+	public uint MaxRetries
 	{
 		get => _maxRetries;
-		set => SetPropertyWithBounds(ref _maxRetries, value, 1, 10);
+		set => SetPropertyWithBounds<uint>(ref _maxRetries, value, 1, 10);
 	}
 
+	public MapData Map;
 	public GridMap FloorGridMap { get; private set; }
 	public GridMap WallGridMap { get; private set; }
 	public GridMap DecorationGridMap { get; private set; }
 	public NavigationRegion3D NavigationRegion { get; private set; }
 
-	public Random Random = new Random();
-	public MapData Map;
-
 	// public PlayerSpawnPoint PlayerSpawnPoint { get; private set; }
 	public float PlayerRotation { get; private set; } = 0;
 
+	// FIXME: Centralize the tile size to avoid hardcoding it in multiple places
 	/// <summary>
 	/// The size of each tile in the base map when translating to the GridMaps.
 	/// </summary>
-	public readonly int TileSize = 4;
+	public readonly uint TileSize = 4;
 
-	private int _mapWidth = 30;
-	private int _mapDepth = 30;
-	private int _maxRooms = 5;
-	private int _maxRetries = 3;
-	private int _seed = 42;
+	private uint _dungeonDepth = 1;
+	private uint _mapWidth = 30;
+	private uint _mapDepth = 30;
+	private uint _maxRooms = 5;
+	private uint _maxRetries = 3;
+	private ulong _seed = 42;
 
 	private RoomLayoutStrategy _roomLayout;
 	private CorridorConnectorStrategy _corridorConnector;
 	private RoomFactoryStrategy _roomFactory;
 	private MobFactoryStrategy _mobFactory;
 	private TileFactoryStrategy _tileFactory;
+
+	public PlayerSpawnPoint PlayerSpawnPoint;
+	public Array<SpawnPoint> EnemySpawnPoints;
+	public Array<Node3D> Items;
 
 	public override void _Ready()
 	{
@@ -152,7 +164,7 @@ public partial class MapGenerator : Node3D
 		GD.Print("Generating rooms...");
 
 		var roomPlacements = RoomLayout.GenerateRooms(
-			Random, Map, RoomFactory, MaxRooms);
+			Map, RoomFactory, MaxRooms);
 		PlaceRooms(roomPlacements);
 	}
 
@@ -177,7 +189,7 @@ public partial class MapGenerator : Node3D
 	{
 		GD.Print("Connecting rooms...");
 
-		CorridorConnector.ConnectRooms(Random, Map);
+		CorridorConnector.ConnectRooms(Map);
 
 		PlaceCorridors();
 		PlaceWalls();
@@ -192,7 +204,7 @@ public partial class MapGenerator : Node3D
 			{
 				if (Map.IsCorridor(x, z))
 				{
-					int tileIndex = TileFactory.GetCorridorTileIndex(Random);
+					int tileIndex = TileFactory.GetCorridorTileIndex();
 					if (FloorGridMap.GetCellItem(TileToWorld(x, 0, z)) == -1)
 					{
 						FloorGridMap.SetCellItem(TileToWorld(x, 0, z), tileIndex, 0);
@@ -224,8 +236,8 @@ public partial class MapGenerator : Node3D
 	{
 		// Check each direction for wall adjacency
 		Vector3I basePosition = TileToWorld(x, 0, z);
-		int tileCenter = TileSize / 2;
-		int tileIndex = TileFactory.GetWallTileIndex(Random);
+		int tileCenter = (int)TileSize / 2;
+		int tileIndex = TileFactory.GetWallTileIndex();
 
 		// Check above (north)
 		if (z > 0 && Map.IsWallOrEmpty(x, z - 1)) // Wall above
@@ -252,13 +264,21 @@ public partial class MapGenerator : Node3D
 		}
 	}
 
+	private void SetPlayerSpawnPoint()
+	{
+		// Find the player spawn point on the map
+		// TODO: This is a hack to find the player spawn point
+		PlayerSpawnPoint = FindChild("PlayerSpawnPoint", true, false) as PlayerSpawnPoint;
+	}
+
 	private void GenerateEnemySpawnPoints()
 	{
 		GD.Print("Generating enemy spawn points...");
 		var points = NavigationRegion.NavigationMesh.GetVertices();
 		var spawnPoints = new List<Vector3>();
 
-		for (int i = 0; i < 10; i++)
+		uint mobCount = 3 + _dungeonDepth % 5 + (GD.Randi() % 3);
+		for (int i = 0; i < mobCount; i++)
 		{
 			Vector3 point;
 			bool isValidPoint;
@@ -266,15 +286,15 @@ public partial class MapGenerator : Node3D
 			do
 			{
 				isValidPoint = true;
-				point = points[Random.Next(0, points.Length)];
+				point = points[GD.Randi() % points.Length];
 				point.Y = 0f; // Ensure the point is on the ground
 
-				// // Ensure the point is at least 20 meters away from the player
-				// if (point.DistanceTo(PlayerSpawnPoint.GlobalPosition) < 20)
-				// {
-				// 	isValidPoint = false;
-				// 	continue;
-				// }
+				// Ensure the point is at least 20 meters away from the player
+				if (point.DistanceTo(PlayerSpawnPoint.GlobalPosition) < 20)
+				{
+					isValidPoint = false;
+					continue;
+				}
 
 				// Ensure the point is at least 5 meters away from other spawn points
 				foreach (var spawnPoint in spawnPoints)
@@ -289,15 +309,26 @@ public partial class MapGenerator : Node3D
 
 			spawnPoints.Add(point);
 
-			var enemyScene = MobFactory.CreateEnemy(Random, 1);
+			var enemyScene = MobFactory.CreateEnemy(1);
 			var spawnPointNode = new SpawnPoint();
 			spawnPointNode.SpawnOnStart = true;
-			spawnPointNode.Scenes = new Godot.Collections.Array<PackedScene> { enemyScene };
+			spawnPointNode.Scenes = [enemyScene];
 			AddChild(spawnPointNode);
 
 			spawnPointNode.GlobalPosition = point;
-			spawnPointNode.Rotation = new Vector3(0, (float)(Random.NextDouble() * 2 * Math.PI), 0);
+			spawnPointNode.Rotation = new Vector3(0, (float)(GD.Randf() * 2 * Math.PI), 0);
+
+			EnemySpawnPoints.Add(spawnPointNode);
 		}
+	}
+
+	private void GenerateItems()
+	{
+		GD.Print("Generating items...");
+		var points = NavigationRegion.NavigationMesh.GetVertices();
+		var items = new List<Vector3>();
+
+		// int itemCount = 3 + Random.;
 	}
 
 	public void GenerateMap()
@@ -324,7 +355,9 @@ public partial class MapGenerator : Node3D
 		BakeNavigationMesh();
 
 		// Step 4: Create spawn points
+		SetPlayerSpawnPoint();
 		GenerateEnemySpawnPoints();
+		GenerateItems();
 
 		GD.Print("Map generated.");
 	}
@@ -349,10 +382,10 @@ public partial class MapGenerator : Node3D
 	private void Reset()
 	{
 		GD.Print("Resetting map generator...");
-		Random = new Random(Seed);
+		GD.Seed(Seed);
 
 		// Initialize the map with empty tiles
-		Map = new MapData(_mapWidth, _mapDepth);
+		Map = new MapData((int)_mapWidth, (int)_mapDepth);
 
 		// Initialize all tiles as empty and walls for borders
 		for (int x = 0; x < Map.Width; x++)
@@ -372,6 +405,10 @@ public partial class MapGenerator : Node3D
 		WallGridMap?.Clear();
 		DecorationGridMap?.Clear();
 
+		PlayerSpawnPoint = null;
+		EnemySpawnPoints = new Array<SpawnPoint>();
+		Items = new Array<Node3D>();
+
 		if (NavigationRegion != null)
 		{
 			// Empty the navigation region
@@ -380,7 +417,7 @@ public partial class MapGenerator : Node3D
 				NavigationRegion.RemoveChild(node);
 				node.QueueFree();
 			}
-			NavigationRegion.BakeNavigationMesh(false);
+			NavigationRegion.NavigationMesh.Clear();
 		}
 	}
 
@@ -391,8 +428,11 @@ public partial class MapGenerator : Node3D
 
 	private Vector3I TileToWorld(int x, int y, int z)
 	{
-		var centerX = Map.Width / 2;
-		var centerZ = Map.Height / 2;
-		return new Vector3I((x - centerX) * TileSize, y * TileSize, (z - centerZ) * TileSize);
+		var centerX = (int)Map.Width / 2;
+		var centerZ = (int)Map.Height / 2;
+		return new Vector3I(
+			(x - centerX) * (int)TileSize,
+			y * (int)TileSize,
+			(z - centerZ) * (int)TileSize);
 	}
 }
