@@ -51,7 +51,6 @@ public partial class MapGenerator : Node3D
 		set => SetPropertyWithBounds(ref _maxRetries, value, 1, 10);
 	}
 
-	public Node3D RoomsContainer { get; private set; }
 	public GridMap FloorGridMap { get; private set; }
 	public GridMap WallGridMap { get; private set; }
 	public GridMap DecorationGridMap { get; private set; }
@@ -83,7 +82,6 @@ public partial class MapGenerator : Node3D
 	public override void _Ready()
 	{
 		GD.Print("Initializing map generator...");
-		RoomsContainer = GetNode<Node3D>("RoomsContainer");
 		FloorGridMap = GetNode<GridMap>("FloorGridMap");
 		WallGridMap = GetNode<GridMap>("WallGridMap");
 		DecorationGridMap = GetNode<GridMap>("DecorationGridMap");
@@ -165,8 +163,12 @@ public partial class MapGenerator : Node3D
 		{
 			MergeRoomGridMaps(placement.Room, placement.Position);
 
+			// Make the room a child of the navigation region, so
+			// it is included in the navigation mesh and enemies
+			// avoid obstactles in it.
+			NavigationRegion.AddChild(placement.Room);
+
 			var roomOffset = new Vector3I(placement.Room.Bounds.Position.X, 0, placement.Room.Bounds.Position.Y);
-			RoomsContainer.AddChild(placement.Room);
 			placement.Room.Translate(TileToWorld(placement.Position) - roomOffset);
 		}
 	}
@@ -366,19 +368,20 @@ public partial class MapGenerator : Node3D
 			}
 		}
 
-		if (RoomsContainer != null)
-		{
-			foreach (var room in RoomsContainer.GetChildren())
-			{
-				RoomsContainer.RemoveChild(room);
-				room.QueueFree();
-			}
-		}
-
 		FloorGridMap?.Clear();
 		WallGridMap?.Clear();
 		DecorationGridMap?.Clear();
-		NavigationRegion?.BakeNavigationMesh();
+
+		if (NavigationRegion != null)
+		{
+			// Empty the navigation region
+			foreach (var node in NavigationRegion.GetChildren())
+			{
+				NavigationRegion.RemoveChild(node);
+				node.QueueFree();
+			}
+			NavigationRegion.BakeNavigationMesh(false);
+		}
 	}
 
 	private Vector3I TileToWorld(Vector3I tile)

@@ -48,6 +48,7 @@ interactive="An interactive component"
 trigger="Trigger when the player is nearby"
 damageable="Object can take damage or can be destroyed"
 stairs=""
+door=""
 
 [input]
 

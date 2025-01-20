@@ -44,7 +44,8 @@ public partial class Door : Node3D
 		if (_door == null)
 			return;
 		_door.RotationDegrees = new Vector3(0, _isOpen ? 90 : 0, 0);
-		_staticBody.ProcessMode = _isOpen ? ProcessModeEnum.Disabled : ProcessModeEnum.Inherit;
+		// _staticBody.ProcessMode = _isOpen ? ProcessModeEnum.Disabled : ProcessModeEnum.Inherit;
+		_staticBody.GetNode<CollisionShape3D>("CollisionShape3D").Disabled = _isOpen;
 	}
 
 	private void OpenDoor()
