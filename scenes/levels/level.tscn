@@ -43,7 +43,7 @@ script = ExtResource("1_37vyo")
 [node name="MapGenerator" parent="." instance=ExtResource("2_dtjl1")]
 MapWidth = 20
 MapDepth = 20
-MaxRooms = 10
+MaxRooms = 6
 Seed = 40
 RoomLayout = SubResource("Resource_lu3sp")
 CorridorConnector = SubResource("Resource_dysv2")

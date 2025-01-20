@@ -28,7 +28,10 @@ public partial class SpawnPoint : Node3D
 			}
 		}
 
-		SignalBus.Instance.LevelLoaded += OnLevelLoaded;
+		if (SignalBus.Instance != null) // while in editor
+		{
+			SignalBus.Instance.LevelLoaded += OnLevelLoaded;
+		}
 	}
 
 	private void OnLevelLoaded(Level level)

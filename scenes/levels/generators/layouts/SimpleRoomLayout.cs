@@ -84,8 +84,8 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		do
 		{
 			// Place the room at a  position on the map
-			var roomX = GD.RandRange(2, map.Width - roomMap.Width - 1);
-			var roomZ = GD.RandRange(2, map.Height - roomMap.Height - 1);
+			int roomX = GD.RandRange(2, map.Width - roomMap.Width - 1);
+			int roomZ = GD.RandRange(2, map.Height - roomMap.Height - 1);
 			placement = new Vector3I(roomX, 0, roomZ);
 
 			// Check if the room placement overlaps with any existing rooms

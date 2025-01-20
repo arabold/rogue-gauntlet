@@ -1,6 +1,6 @@
 [gd_scene load_steps=11 format=4 uid="uid://pw48ejm22co8"]
 
-[ext_resource type="Script" path="res://scenes/levels/Room.cs" id="1_pvxcj"]
+[ext_resource type="Script" uid="uid://djvo5h5w1l038" path="res://scenes/levels/Room.cs" id="1_pvxcj"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_h46rv"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_8ytu7"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_87u72"]
@@ -68,7 +68,7 @@ cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(0, 65526, 0, 4, 65526, 0, 65532, 65526, 0)
+"cells": PackedInt32Array(0, 65526, 0)
 }
 
 [node name="DecorationGridMap" type="GridMap" parent="."]

@@ -5,8 +5,7 @@ public partial class LootTableComponent : Node
 {
     [Export] public HealthComponent HealthComponent { get; set; }
 
-    // [Export] public LootTableItem[] Items { get; set; } = new LootTableItem[0];
-    public LootTableItem[] Items { get; private set; } = new LootTableItem[0];
+    public LootTableItem[] Items { get; private set; } = [];
 
     private bool _isDropped = false;
 
@@ -43,24 +42,14 @@ public partial class LootTableComponent : Node
 
     private LootTableItem PickItem()
     {
-        float totalWeight = 0;
-        foreach (var item in Items)
+        if (Items.Length == 0)
         {
-            totalWeight += item.Weight;
+            return null;
         }
 
-        float randomValue = (float)GD.RandRange(0, totalWeight);
-        float cumulativeWeight = 0;
-
-        foreach (var item in Items)
-        {
-            cumulativeWeight += item.Weight;
-            if (randomValue < cumulativeWeight)
-            {
-                return item;
-            }
-        }
-
-        return null; // This should never happen if weights are properly set
+        var weights = Items.Select(i => i.Weight).ToArray();
+        var random = new RandomNumberGenerator();
+        var item = Items[random.RandWeighted(weights)];
+        return item;
     }
 }

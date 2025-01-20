@@ -89,7 +89,6 @@ public partial class MapGenerator : Node3D
 
 	public PlayerSpawnPoint PlayerSpawnPoint;
 	public Array<SpawnPoint> EnemySpawnPoints;
-	public Array<Node3D> Items;
 
 	public override void _Ready()
 	{
@@ -273,11 +272,11 @@ public partial class MapGenerator : Node3D
 
 	private void GenerateEnemySpawnPoints()
 	{
-		GD.Print("Generating enemy spawn points...");
+		uint mobCount = 3 + _dungeonDepth % 5 + (GD.Randi() % 3);
+		GD.Print($"Generating {mobCount} enemy spawn points...");
+
 		var points = NavigationRegion.NavigationMesh.GetVertices();
 		var spawnPoints = new List<Vector3>();
-
-		uint mobCount = 3 + _dungeonDepth % 5 + (GD.Randi() % 3);
 		for (int i = 0; i < mobCount; i++)
 		{
 			Vector3 point;
@@ -322,15 +321,6 @@ public partial class MapGenerator : Node3D
 		}
 	}
 
-	private void GenerateItems()
-	{
-		GD.Print("Generating items...");
-		var points = NavigationRegion.NavigationMesh.GetVertices();
-		var items = new List<Vector3>();
-
-		// int itemCount = 3 + Random.;
-	}
-
 	public void GenerateMap()
 	{
 		GD.Print("Generating map...");
@@ -357,7 +347,6 @@ public partial class MapGenerator : Node3D
 		// Step 4: Create spawn points
 		SetPlayerSpawnPoint();
 		GenerateEnemySpawnPoints();
-		GenerateItems();
 
 		GD.Print("Map generated.");
 	}
@@ -407,7 +396,6 @@ public partial class MapGenerator : Node3D
 
 		PlayerSpawnPoint = null;
 		EnemySpawnPoints = new Array<SpawnPoint>();
-		Items = new Array<Node3D>();
 
 		if (NavigationRegion != null)
 		{
