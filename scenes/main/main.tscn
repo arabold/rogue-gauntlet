@@ -31,8 +31,7 @@ environment = SubResource("Environment_cxo8v")
 [node name="Level" parent="." instance=ExtResource("5_nxjfc")]
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707106, 0.707107, -0.707107, -0.5, 0.5, 9.99968, 14.1417, 9.99968)
-projection = 1
+transform = Transform3D(0.707107, -0.664463, 0.241845, 0, 0.34202, 0.939693, -0.707107, -0.664463, 0.241845, 3.62755, 14.0949, 3.62755)
 size = 20.0
 
 [node name="PhantomCameraHost" type="Node" parent="Camera3D"]
@@ -41,17 +40,18 @@ process_physics_priority = 300
 script = ExtResource("6_g3uvw")
 
 [node name="PhantomCamera3D" type="Node3D" parent="." node_paths=PackedStringArray("follow_target")]
-transform = Transform3D(0.707087, -0.499991, 0.499984, 0, 0.707093, 0.707084, -0.707087, -0.499991, 0.499984, 9.99968, 14.1417, 9.99968)
+transform = Transform3D(0.707087, -0.664451, 0.241837, 0, 0.342014, 0.939662, -0.707087, -0.664451, 0.241837, 3.62755, 14.0949, 3.62755)
 top_level = true
 script = ExtResource("7_wl18x")
 follow_mode = 5
 follow_target = NodePath("../CameraTargetPlaceholder")
 tween_resource = SubResource("Resource_3h1r8")
+tween_on_load = false
 follow_damping = true
-follow_distance = 20.0
+follow_distance = 15.0
 dead_zone_width = 0.3
 dead_zone_height = 0.3
-spring_length = 20.0
+spring_length = 15.0
 
 [node name="CameraTargetPlaceholder" type="Node3D" parent="."]
 

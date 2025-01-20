@@ -1,9 +1,6 @@
-[gd_scene load_steps=5 format=3 uid="uid://c6i0b6qufb14m"]
+[gd_scene load_steps=4 format=3 uid="uid://c6i0b6qufb14m"]
 
 [ext_resource type="Script" path="res://scenes/components/FloatingHealthBar.cs" id="2_s53ct"]
-
-[sub_resource type="ViewportTexture" id="ViewportTexture_fvdwo"]
-viewport_path = NodePath("SubViewport")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tif5p"]
 bg_color = Color(0, 0, 0, 1)
@@ -13,19 +10,20 @@ bg_color = Color(1, 0, 0, 1)
 
 [node name="FloatingHealthBar" type="Sprite3D"]
 layers = 256
-pixel_size = 0.002
 billboard = 1
 no_depth_test = true
-texture = SubResource("ViewportTexture_fvdwo")
 script = ExtResource("2_s53ct")
 
 [node name="SubViewport" type="SubViewport" parent="."]
 transparent_bg = true
-size = Vector2i(1151, 132)
+size = Vector2i(256, 24)
 
 [node name="ProgressBar" type="ProgressBar" parent="SubViewport"]
-offset_right = 1151.0
-offset_bottom = 132.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_tif5p")
 theme_override_styles/fill = SubResource("StyleBoxFlat_26og4")
 step = 1.0

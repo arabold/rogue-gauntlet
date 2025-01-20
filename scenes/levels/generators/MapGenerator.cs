@@ -23,7 +23,7 @@ public partial class MapGenerator : Node3D
 	public int MaxRooms
 	{
 		get => _maxRooms;
-		set => SetPropertyWithBounds(ref _maxRooms, value, 1, 20);
+		set => SetPropertyWithBounds(ref _maxRooms, value, 1, 100);
 	}
 
 	[Export]
@@ -60,7 +60,7 @@ public partial class MapGenerator : Node3D
 	public Random Random = new Random();
 	public MapData Map;
 
-	public Vector3 PlayerSpawnPoint { get; private set; } = Vector3.Zero;
+	// public PlayerSpawnPoint PlayerSpawnPoint { get; private set; }
 	public float PlayerRotation { get; private set; } = 0;
 
 	/// <summary>
@@ -154,7 +154,7 @@ public partial class MapGenerator : Node3D
 		GD.Print("Generating rooms...");
 
 		var roomPlacements = RoomLayout.GenerateRooms(
-			Random, Map, RoomFactory, MaxRooms, MaxRetries);
+			Random, Map, RoomFactory, MaxRooms);
 		PlaceRooms(roomPlacements);
 	}
 
@@ -250,45 +250,51 @@ public partial class MapGenerator : Node3D
 		}
 	}
 
-	private void GeneratePlayerSpawnPoint()
-	{
-		GD.Print("Generating player spawn point...");
-		// Find a random floor tile to place the player
-		int x;
-		int z;
-		do
-		{
-			x = Random.Next(1, MapWidth - 1);
-			z = Random.Next(1, MapDepth - 1);
-		}
-		while (!Map.IsRoom(x, z) && !Map.IsOccupied(x, z));
-		Map.MarkOccupied(x, z);
-
-		PlayerSpawnPoint = TileToWorld(x, 0, z);
-		PlayerRotation = Random.Next(0, 360);
-	}
-
 	private void GenerateEnemySpawnPoints()
 	{
 		GD.Print("Generating enemy spawn points...");
-		int x;
-		int z;
+		var points = NavigationRegion.NavigationMesh.GetVertices();
+		var spawnPoints = new List<Vector3>();
+
 		for (int i = 0; i < 10; i++)
 		{
-			// TODO: Ensure enemies are not placed too close to the player, each other or decorations
+			Vector3 point;
+			bool isValidPoint;
+
 			do
 			{
-				x = Random.Next(1, MapWidth - 1);
-				z = Random.Next(1, MapDepth - 1);
-			}
-			while (!Map.IsRoom(x, z) && !Map.IsOccupied(x, z));
-			Map.MarkOccupied(x, z);
+				isValidPoint = true;
+				point = points[Random.Next(0, points.Length)];
+				point.Y = 0f; // Ensure the point is on the ground
+
+				// // Ensure the point is at least 20 meters away from the player
+				// if (point.DistanceTo(PlayerSpawnPoint.GlobalPosition) < 20)
+				// {
+				// 	isValidPoint = false;
+				// 	continue;
+				// }
+
+				// Ensure the point is at least 5 meters away from other spawn points
+				foreach (var spawnPoint in spawnPoints)
+				{
+					if (point.DistanceTo(spawnPoint) < 5)
+					{
+						isValidPoint = false;
+						break;
+					}
+				}
+			} while (!isValidPoint);
+
+			spawnPoints.Add(point);
 
 			var enemyScene = MobFactory.CreateEnemy(Random, 1);
-			var enemy = enemyScene.Instantiate<EnemyBase>();
-			RoomsContainer.AddChild(enemy);
-			enemy.GlobalPosition = TileToWorld(x, 0, z);
-			enemy.Rotation = new Vector3(0, Random.Next(0, 360), 0);
+			var spawnPointNode = new SpawnPoint();
+			spawnPointNode.SpawnOnStart = true;
+			spawnPointNode.Scenes = new Godot.Collections.Array<PackedScene> { enemyScene };
+			AddChild(spawnPointNode);
+
+			spawnPointNode.GlobalPosition = point;
+			spawnPointNode.Rotation = new Vector3(0, (float)(Random.NextDouble() * 2 * Math.PI), 0);
 		}
 	}
 
@@ -312,12 +318,11 @@ public partial class MapGenerator : Node3D
 		// Step 2: Connect the rooms
 		ConnectRooms();
 
-		// Step 3: Create spawn points
-		GeneratePlayerSpawnPoint();
-		GenerateEnemySpawnPoints();
-
-		// Step 4: Bake navigation mesh
+		// Step 3: Bake navigation mesh
 		BakeNavigationMesh();
+
+		// Step 4: Create spawn points
+		GenerateEnemySpawnPoints();
 
 		GD.Print("Map generated.");
 	}
@@ -333,7 +338,7 @@ public partial class MapGenerator : Node3D
 		NavigationRegion.AddChild(floorGridMapCopy);
 		NavigationRegion.AddChild(wallGripMapCopy);
 		NavigationRegion.AddChild(decorationGridMapCopy);
-		NavigationRegion.BakeNavigationMesh();
+		NavigationRegion.BakeNavigationMesh(false);
 		floorGridMapCopy.QueueFree();
 		wallGripMapCopy.QueueFree();
 		decorationGridMapCopy.QueueFree();

@@ -1,16 +1,17 @@
-using System.Xml.Schema;
+using System;
 using Godot;
+using Godot.Collections;
 
+/// <summary>
+/// A spawn point that spawns objects on scene load or when called
+/// </summary>
+[Tool]
 public partial class SpawnPoint : Node3D
 {
 	/// <summary>
 	/// The type of object to spawn (e.g. an enemy scene)
 	/// </summary>
-	[Export] public PackedScene Scene;
-	/// <summary>
-	/// Optional timer to control the spawn rate
-	/// </summary>
-	[Export] public Timer Timer { get; set; }
+	[Export] public Array<PackedScene> Scenes;
 	/// <summary>
 	/// Whether to spawn immediately on scene load
 	/// </summary>
@@ -18,11 +19,20 @@ public partial class SpawnPoint : Node3D
 
 	public override void _Ready()
 	{
-		if (Timer != null)
+		if (Engine.IsEditorHint())
 		{
-			Timer.Timeout += Spawn;
+			// Preview the spawn point in the editor
+			if (Scenes?.Count > 0)
+			{
+				AddChild(Scenes[0].Instantiate<Node3D>());
+			}
 		}
-		else if (SpawnOnStart)
+		SignalBus.Instance.LevelLoaded += OnLevelLoaded;
+	}
+
+	private void OnLevelLoaded(Level level)
+	{
+		if (SpawnOnStart)
 		{
 			Spawn();
 		}
@@ -31,15 +41,24 @@ public partial class SpawnPoint : Node3D
 	/// <summary>
 	/// Spawns an objecct at the spawn point
 	/// </summary>
-	public void Spawn()
+	public Node Spawn()
 	{
-		if (Scene == null)
+		if (Scenes == null || Scenes.Count == 0)
 		{
-			GD.PrintErr("Scene is null");
-			return;
+			GD.PrintErr("No scenes to spawn");
+			return null;
 		}
 
-		var scene = Scene.Instantiate() as Node3D;
-		AddChild(scene);
+		var scene = Scenes[GameManager.Instance.Random.Next(0, Scenes.Count)];
+		var node = scene.Instantiate<Node3D>();
+		GameManager.Instance.Level.AddChild(node);
+
+		node.GlobalTransform = GlobalTransform;
+		node.Rotation = Rotation;
+		// node.Rotation = new Vector3(0, (float)(GameManager.Instance.Random.NextDouble() * 2 * Math.PI), 0);
+
+		GD.Print($"Spawned {node.Name} at {node.GlobalPosition}");
+
+		return node;
 	}
 }

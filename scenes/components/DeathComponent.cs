@@ -15,6 +15,8 @@ public partial class DeathComponent : Node
 	{
 		// Disable collision detection for character
 		var owner = GetOwner<CharacterBody3D>();
+
+		GD.Print($"{owner.Name} died!");
 		owner.CollisionLayer = 0;
 		owner.SetPhysicsProcess(false);
 

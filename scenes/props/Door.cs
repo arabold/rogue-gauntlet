@@ -9,7 +9,7 @@ public partial class Door : Node3D
 		get => _isOpen;
 		set
 		{
-			if (value != _isOpen)
+			if (value != _isOpen && IsNodeReady())
 			{
 				_isOpen = value;
 				UpdateDoor();
@@ -52,6 +52,7 @@ public partial class Door : Node3D
 		if (_isOpen)
 			return;
 
+		GD.Print("Opening door");
 		_isOpen = true;
 		_interactiveComponent.IsInteractive = false;
 		var tween = CreateTween();
@@ -68,6 +69,7 @@ public partial class Door : Node3D
 		if (!_isOpen)
 			return;
 
+		GD.Print("Closing door");
 		_isOpen = false;
 		_interactiveComponent.IsInteractive = false;
 		var tween = CreateTween();

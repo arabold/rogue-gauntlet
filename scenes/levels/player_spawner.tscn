@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://ukjvle2lc3wy"]
-
-[ext_resource type="Script" path="res://scenes/levels/PlayerSpawner.cs" id="1_1bkfx"]
-
-[node name="PlayerSpawner" type="Node"]
-script = ExtResource("1_1bkfx")

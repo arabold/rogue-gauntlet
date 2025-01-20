@@ -9,7 +9,9 @@ using Godot;
 [GlobalClass]
 public partial class SimpleRoomLayout : RoomLayoutStrategy
 {
-	public override List<RoomPlacement> GenerateRooms(Random random, MapData map, RoomFactoryStrategy factory, int maxRooms, int retries)
+	[Export] public int Retries = 3;
+
+	public override List<RoomPlacement> GenerateRooms(Random random, MapData map, RoomFactoryStrategy factory, int maxRooms)
 	{
 		List<RoomPlacement> rooms = new List<RoomPlacement>();
 
@@ -31,25 +33,30 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		var countSpecialRooms = random.Next(1, maxRooms / 3);
 		for (int i = 0; i < maxRooms; i++)
 		{
-			var scenePath = (i < countSpecialRooms)
-				? factory.CreateSpecialRoom(random)
-				: factory.CreateStandardRoom(random);
-			var scene = scenePath;
-			var room = scene.Instantiate<Room>();
-			room.BakeTileMap();
+			var retries = Retries;
+			do
+			{
+				var scenePath = (i < countSpecialRooms)
+					? factory.CreateSpecialRoom(random)
+					: factory.CreateStandardRoom(random);
+				var scene = scenePath;
+				var room = scene.Instantiate<Room>();
+				room.BakeTileMap();
 
-			var placement = TryPlaceRoom(random, map, room.Map, retries);
-			if (placement != null)
-			{
-				// Add the room to the map
-				rooms.Add(new RoomPlacement(room, placement.Value));
-				PlaceRoom(map, room.Map, placement.Value);
-			}
-			else
-			{
-				// Unload the room scene
-				room.QueueFree();
-			}
+				var placement = TryPlaceRoom(random, map, room.Map, retries);
+				if (placement != null)
+				{
+					// Add the room to the map
+					rooms.Add(new RoomPlacement(room, placement.Value));
+					PlaceRoom(map, room.Map, placement.Value);
+					break; // Room placed successfully
+				}
+				else
+				{
+					// Unload the room scene
+					room.QueueFree();
+				}
+			} while (retries-- > 0);
 		}
 
 		return rooms;

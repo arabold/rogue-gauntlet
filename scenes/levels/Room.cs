@@ -36,7 +36,7 @@ public partial class Room : Node3D
 				{
 					// Property is set in the editor, so we need to check 
 					// if the room is initialized already
-					if (Engine.IsEditorHint() && _initialized && GetTree().EditedSceneRoot == this)
+					if (Engine.IsEditorHint() && IsNodeReady() && GetTree().EditedSceneRoot == this)
 					{
 						BakeTileMap();
 						CreateDebugOverlay();
@@ -58,31 +58,17 @@ public partial class Room : Node3D
 	public readonly int TileSize = 4;
 
 	private bool _showDebugOverlay = false;
-	private bool _initialized = false;
 
 	public override void _Ready()
 	{
 		base._Ready();
-		Initialize();
-	}
-
-	public void Initialize()
-	{
-		if (_initialized)
-		{
-			return;
-		}
-
-		GD.Print("Initializing room...");
-		BakeTileMap();
 
 		// Show the debug overlay if needed
 		if (Engine.IsEditorHint() && GetTree().EditedSceneRoot == this && _showDebugOverlay)
 		{
+			BakeTileMap();
 			CreateDebugOverlay();
 		}
-
-		_initialized = true;
 	}
 
 	/// <summary>

@@ -1,10 +1,11 @@
-[gd_scene load_steps=10 format=4 uid="uid://pw48ejm22co8"]
+[gd_scene load_steps=11 format=4 uid="uid://pw48ejm22co8"]
 
 [ext_resource type="Script" path="res://scenes/levels/Room.cs" id="1_pvxcj"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_h46rv"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_8ytu7"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_87u72"]
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://scenes/levels/dungeon/assets/dungeon_texture.png" id="5_i432r"]
+[ext_resource type="PackedScene" uid="uid://cnrwt32gqdhx" path="res://scenes/levels/player_spawn_point.tscn" id="6_btmay"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0qmis"]
 resource_name = "texture"
@@ -87,3 +88,6 @@ collision_mask = 4
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="stairs_long/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_ihb1o")
+
+[node name="PlayerSpawnPoint" parent="." instance=ExtResource("6_btmay")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -5)

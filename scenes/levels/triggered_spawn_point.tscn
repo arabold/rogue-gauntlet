@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://dihplah5jc1fw"]
+
+[ext_resource type="PackedScene" uid="uid://ch4hss8ixtooy" path="res://scenes/levels/spawn_point.tscn" id="1_cywqb"]
+[ext_resource type="Script" path="res://scenes/levels/TriggeredSpawnPoint.cs" id="1_gbp5i"]
+
+[node name="TriggeredSpawnPoint" type="Area3D"]
+collision_layer = 0
+collision_mask = 4
+monitorable = false
+script = ExtResource("1_gbp5i")
+
+[node name="SpawnPoint" parent="." instance=ExtResource("1_cywqb")]
