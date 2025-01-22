@@ -1,17 +1,17 @@
-[gd_scene load_steps=6 format=3 uid="uid://dx7jm4qonhj6v"]
+[gd_scene load_steps=7 format=3 uid="uid://dx7jm4qonhj6v"]
 
 [ext_resource type="Script" uid="uid://djvo5h5w1l038" path="res://scenes/levels/Room.cs" id="1_65vc0"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_fk6jm"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_m4aul"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_vc7yy"]
 [ext_resource type="PackedScene" uid="uid://cyhr68psc2ku" path="res://scenes/props/torch_mounted.tscn" id="5_fk6jm"]
+[ext_resource type="PackedScene" uid="uid://bmhjevtjbrasi" path="res://scenes/props/chair.tscn" id="6_m4aul"]
 
 [node name="RoomDining" type="Node3D" node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap")]
 script = ExtResource("1_65vc0")
 FloorGridMap = NodePath("FloorGridMap")
 WallGridMap = NodePath("WallGridMap")
 DecorationGridMap = NodePath("DecorationGridMap")
-ShowDebugOverlay = true
 
 [node name="FloorGridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("2_fk6jm")
@@ -20,7 +20,7 @@ cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(65535, 3, 1048580, 65535, 5, 1048578, 65535, 7, 655366, 65535, 9, 2, 0, 0, 0, 1, 3, 6, 1, 5, 1441798, 1, 6, 655364, 1, 7, 655366, 1, 9, 655366, 3, 65535, 1441798, 3, 1, 7, 4, 4, 1441792, 4, 8, 655360, 5, 65535, 1441794, 5, 1, 1441795, 7, 65535, 655363, 7, 1, 1048578, 7, 7, 3, 7, 9, 655366, 8, 4, 655361, 9, 65535, 655366, 9, 1, 655364, 9, 7, 1048583, 9, 9, 1048578)
+"cells": PackedInt32Array(65535, 3, 1441815, 65535, 5, 1441815, 65535, 7, 26, 1, 3, 1441815, 1, 5, 1441815, 1, 6, 655364, 1, 7, 1441815, 3, 1, 655383, 4, 4, 1048597, 7, 65535, 655363, 7, 1, 1048578, 7, 7, 3, 7, 9, 655366, 8, 4, 655361, 9, 65535, 655366, 9, 1, 655364, 9, 7, 1048583, 9, 9, 1048578, 3, 7, 1048600, 65535, 1, 1441818, 1, 1, 1441820, 5, 7, 1048602, 5, 1, 655386, 4, 8, 1441792, 4, 0, 655360, 0, 8, 655361, 0, 0, 0)
 }
 
 [node name="WallGridMap" type="GridMap" parent="."]
@@ -40,9 +40,12 @@ cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(4, 4, 655400, 5, 5, 19, 5, 3, 19, 5, 4, 19, 3, 5, 655379, 3, 4, 655379, 3, 3, 655379, 0, 4, 1048599)
+"cells": PackedInt32Array(4, 4, 655400, 5, 3, 19, 5, 4, 19, 3, 5, 655379, 3, 4, 655379, 3, 3, 655379, 0, 4, 1048599)
 }
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="TorchMounted" parent="." instance=ExtResource("5_fk6jm")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.77105, 2, 4)
+
+[node name="Chair" parent="." instance=ExtResource("6_m4aul")]
+transform = Transform3D(2.69081e-08, 0.902886, -0.429881, -1, 2.98023e-08, 0, 1.28114e-08, 0.429881, 0.902886, 5.1875, 0.424316, 5.10895)

@@ -1,13 +1,17 @@
-[gd_scene load_steps=6 format=3 uid="uid://d0u1wvpi5dn3m"]
+[gd_scene load_steps=7 format=3 uid="uid://d0u1wvpi5dn3m"]
 
 [ext_resource type="Script" uid="uid://djvo5h5w1l038" path="res://scenes/levels/Room.cs" id="1_70hq6"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_d701g"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_2gbrg"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_xggem"]
 [ext_resource type="PackedScene" uid="uid://cyhr68psc2ku" path="res://scenes/props/torch_mounted.tscn" id="5_d701g"]
+[ext_resource type="PackedScene" uid="uid://bmhjevtjbrasi" path="res://scenes/props/chair.tscn" id="6_2gbrg"]
 
-[node name="RoomCornerWithBed" type="Node3D"]
+[node name="RoomCornerWithBed" type="Node3D" node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap")]
 script = ExtResource("1_70hq6")
+FloorGridMap = NodePath("FloorGridMap")
+WallGridMap = NodePath("WallGridMap")
+DecorationGridMap = NodePath("DecorationGridMap")
 ShowDebugOverlay = true
 
 [node name="FloorGridMap" type="GridMap" parent="."]
@@ -17,7 +21,7 @@ cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(65534, 6, 1048597, 65530, 6, 1048597, 65530, 10, 1048597, 65534, 10, 1048597)
+"cells": PackedInt32Array(65534, 6, 1048597, 65530, 6, 1048597, 65530, 10, 1048597, 65533, 11, 1048581, 65535, 9, 1048581, 65535, 11, 1048578, 65533, 9, 1048599)
 }
 
 [node name="WallGridMap" type="GridMap" parent="."]
@@ -37,9 +41,12 @@ cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(65530, 7, 1048590, 65528, 10, 1048576, 65529, 9, 1048581, 65529, 5, 655379, 65531, 5, 655391, 65534, 6, 655402)
+"cells": PackedInt32Array(65530, 7, 1048590, 65528, 10, 1048576, 65529, 9, 1048581, 65531, 5, 655391, 65534, 6, 655402)
 }
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="TorchMounted" parent="." instance=ExtResource("5_d701g")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.73388, 2, 5.52924)
+
+[node name="Chair" parent="." instance=ExtResource("6_2gbrg")]
+transform = Transform3D(-0.559815, 0, 0.828618, 0, 1, 0, -0.828618, 0, -0.559815, -6.23252, 0, 5.46066)

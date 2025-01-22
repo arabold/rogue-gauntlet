@@ -32,15 +32,18 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
             {
                 var node = new Vector2I(x, z);
 
-                if (map.IsCorridor(x, z))
+                if (map.IsConnector(x, z) || map.IsCorridor(x, z))
                 {
                     corridorTiles.Add(node);
                     astar.SetPointWeightScale(node, 0);
                 }
 
-                if (map.IsRoom(x, z) || map.IsWall(x, z))
+                // Avoid walking through rooms when finding the path
+                // as otherwise we might just connect the door from one
+                // side of the room to the other side without actually
+                // connecting the rooms.
+                if (map.IsRoom(x, z) || map.IsWall(x, z) || map.IsChasm(x, z))
                 {
-                    // Avoid walking through rooms
                     astar.SetPointSolid(node, solid: true);
                 }
             }

@@ -4,7 +4,7 @@ using System;
 [Tool]
 public partial class FloatingHealthBar : Sprite3D
 {
-	// Should be HealthComponent but it is not working when in the editor
+	// Can't use HealthComponent directly because it's not a [Tool] class
 	[Export] public Node HealthComponent { get; set; }
 	[Export] public bool HideWhenFull { get; set; } = true;
 
@@ -17,15 +17,15 @@ public partial class FloatingHealthBar : Sprite3D
 		_progressBar = _subViewport.GetNode<ProgressBar>("ProgressBar");
 
 		Texture = _subViewport.GetTexture();
-		if (!Engine.IsEditorHint())
-		{
-			// Hide the progress bar until it's needed
-			Visible = false;
-		}
 
-		if (HealthComponent != null && HealthComponent is HealthComponent hc)
+		if (HealthComponent != null && HealthComponent is HealthComponent healthComponent)
 		{
-			hc.HealthChanged += OnHealthChanged;
+			healthComponent.HealthChanged += OnHealthChanged;
+			if (!Engine.IsEditorHint())
+			{
+				// Hide the progress bar until it's needed
+				Visible = !HideWhenFull || healthComponent.CurrentHealth < healthComponent.MaxHealth;
+			}
 		}
 	}
 

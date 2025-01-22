@@ -7,7 +7,9 @@ public enum MapTile
     Empty,
     Wall,
     Room,
+    Connector,
     Corridor,
+    Chasm,
 }
 
 /// <summary>
@@ -105,6 +107,8 @@ public class MapData
     // Helper checks: IsWall, IsRoom, etc.
     public bool IsWall(int x, int y) => Tiles[x, y] == MapTile.Wall;
     public bool IsRoom(int x, int y) => Tiles[x, y] == MapTile.Room;
+    public bool IsConnector(int x, int y) => Tiles[x, y] == MapTile.Connector;
+    public bool IsChasm(int x, int y) => Tiles[x, y] == MapTile.Chasm;
     public bool IsCorridor(int x, int y) => Tiles[x, y] == MapTile.Corridor;
     public bool IsEmpty(int x, int y) => Tiles[x, y] == MapTile.Empty;
     public bool IsWallOrEmpty(int x, int y) => IsEmpty(x, y) || IsWall(x, y);

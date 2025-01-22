@@ -166,7 +166,7 @@ public partial class Room : Node3D
 		{
 			foreach (var cell in hole)
 			{
-				map.SetTile(cell.X, cell.Y, MapTile.Room);
+				map.SetTile(cell.X, cell.Y, MapTile.Chasm);
 			}
 		}
 
@@ -180,7 +180,7 @@ public partial class Room : Node3D
 					var isCorridor = CheckForCorridor(map, x, z);
 					if (isCorridor)
 					{
-						map.SetTile(x, z, MapTile.Corridor);
+						map.SetTile(x, z, MapTile.Connector);
 					}
 				}
 			}
@@ -332,7 +332,7 @@ public partial class Room : Node3D
 				{
 					_debugGridMap.SetCellItem(position, 0, 0);
 				}
-				else if (Map.IsCorridor(x, z))
+				else if (Map.IsConnector(x, z))
 				{
 					_debugGridMap.SetCellItem(position, 1, 0);
 				}

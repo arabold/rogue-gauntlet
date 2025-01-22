@@ -137,6 +137,9 @@ public partial class MapGenerator : Node3D
 		roomFloorGridMap.QueueFree();
 		roomWallGridMap.QueueFree();
 		roomDecorationGridMap.QueueFree();
+		room.FloorGridMap = null;
+		room.WallGridMap = null;
+		room.DecorationGridMap = null;
 	}
 
 	private void MergeGridMaps(GridMap sourceGridMap, GridMap targetGridMap, Vector3I offset)
@@ -172,15 +175,16 @@ public partial class MapGenerator : Node3D
 		GD.Print("Placing rooms...");
 		foreach (var placement in roomPlacements)
 		{
-			MergeRoomGridMaps(placement.Room, placement.Position);
+			var room = placement.Room;
+			MergeRoomGridMaps(room, placement.Position);
 
 			// Make the room a child of the navigation region, so
 			// it is included in the navigation mesh and enemies
 			// avoid obstactles in it.
-			NavigationRegion.AddChild(placement.Room);
+			NavigationRegion.AddChild(room);
 
-			var roomOffset = new Vector3I(placement.Room.Bounds.Position.X, 0, placement.Room.Bounds.Position.Y);
-			placement.Room.Translate(TileToWorld(placement.Position) - roomOffset);
+			var roomOffset = new Vector3I(room.Bounds.Position.X, 0, room.Bounds.Position.Y);
+			room.Translate(TileToWorld(placement.Position) - roomOffset);
 		}
 	}
 
@@ -201,13 +205,11 @@ public partial class MapGenerator : Node3D
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				if (Map.IsCorridor(x, z))
+				var position = TileToWorld(x, 0, z);
+				if (Map.IsCorridor(x, z) && FloorGridMap.GetCellItem(position) < 0)
 				{
 					int tileIndex = TileFactory.GetCorridorTileIndex();
-					if (FloorGridMap.GetCellItem(TileToWorld(x, 0, z)) == -1)
-					{
-						FloorGridMap.SetCellItem(TileToWorld(x, 0, z), tileIndex, 0);
-					}
+					FloorGridMap.SetCellItem(position, tileIndex, 0);
 				}
 			}
 		}
@@ -222,7 +224,7 @@ public partial class MapGenerator : Node3D
 			for (int z = 0; z < Map.Height; z++)
 			{
 				// Only check corridor tiles as rooms are already surrounded by walls
-				if (Map.IsCorridor(x, z))
+				if (Map.IsCorridor(x, z) || Map.IsConnector(x, z))
 				{
 					// Check for wall adjacency and place walls
 					PlaceWallIfNeeded(x, z);
@@ -268,6 +270,10 @@ public partial class MapGenerator : Node3D
 		// Find the player spawn point on the map
 		// TODO: This is a hack to find the player spawn point
 		PlayerSpawnPoint = FindChild("PlayerSpawnPoint", true, false) as PlayerSpawnPoint;
+		if (PlayerSpawnPoint == null)
+		{
+			GD.PrintErr("PlayerSpawnPoint not found in the scene.");
+		}
 	}
 
 	private void GenerateEnemySpawnPoints()

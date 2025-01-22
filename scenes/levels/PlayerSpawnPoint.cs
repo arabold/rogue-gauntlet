@@ -4,6 +4,7 @@ using System;
 /// <summary>
 /// Starting point for the player character in the map
 /// </summary>
+[Tool]
 public partial class PlayerSpawnPoint : Node3D
 {
 	public SpawnPoint SpawnPoint;
@@ -15,7 +16,10 @@ public partial class PlayerSpawnPoint : Node3D
 		SpawnPoint = GetNode<SpawnPoint>("SpawnPoint");
 		SpawnPoint.SpawnOnStart = false;
 
-		SignalBus.Instance.LevelLoaded += OnLevelLoaded;
+		if (!Engine.IsEditorHint())
+		{
+			SignalBus.Instance.LevelLoaded += OnLevelLoaded;
+		}
 	}
 
 	public Player Spawn()
