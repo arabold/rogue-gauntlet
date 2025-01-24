@@ -1,18 +1,18 @@
 [gd_scene load_steps=11 format=3 uid="uid://cdpdt64lfmt86"]
 
-[ext_resource type="Shader" path="res://scenes/effects/shaders/stylized_fire.gdshader" id="1_4tjql"]
+[ext_resource type="Shader" uid="uid://b7i3u0l0gwbmu" path="res://scenes/effects/shaders/stylized_fire.gdshader" id="1_4tjql"]
 [ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="2_y5jmk"]
 [ext_resource type="Texture2D" uid="uid://c8nnpux2gtihn" path="res://scenes/effects/assets/FireMask.png" id="3_047yh"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8onoy"]
 render_priority = 0
 shader = ExtResource("1_4tjql")
+shader_parameter/noise_texture = ExtResource("2_y5jmk")
+shader_parameter/texture_mask = ExtResource("3_047yh")
 shader_parameter/emission_intensity = 2.0
 shader_parameter/time_scale = 3.0
 shader_parameter/texture_scale = Vector2(1, 1)
 shader_parameter/edge_softness = 0.1
-shader_parameter/noise_texture = ExtResource("2_y5jmk")
-shader_parameter/texture_mask = ExtResource("3_047yh")
 
 [sub_resource type="Gradient" id="Gradient_tpqa3"]
 offsets = PackedFloat32Array(0, 0.509091, 1)

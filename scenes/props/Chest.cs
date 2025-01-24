@@ -3,7 +3,8 @@ using Godot;
 [Tool]
 public partial class Chest : Node3D
 {
-	[Export] public int GoldAmount { get; set; } = 10;
+	[Signal] public delegate void OpenedEventHandler(Chest chest);
+
 	[Export]
 	public bool IsOpen
 	{
@@ -54,12 +55,12 @@ public partial class Chest : Node3D
 		_isOpen = true;
 
 		var tween = CreateTween();
-		tween.TweenProperty(_chestLid, "rotation_degrees:x", -45, 0.5f);
+		tween
+			.TweenProperty(_chestLid, "rotation_degrees:x", -45, 0.5f)
+			.Finished += () => EmitSignal(SignalName.Opened, this);
 
 		// Disable any interactivity
 		_interactiveComponent.QueueFree();
-
-		// TODO: Drop gold
 	}
 
 	private void OnInteract(Player actor)

@@ -4,10 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dbns86sg2gnll" path="res://scenes/props/door.tscn" id="2_hbjkr"]
 [ext_resource type="PackedScene" uid="uid://cyhr68psc2ku" path="res://scenes/props/torch_mounted.tscn" id="3_2jny2"]
 
-[node name="AlchimistChamber" node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap") instance=ExtResource("1_331yg")]
-FloorGridMap = NodePath("FloorGridMap")
-WallGridMap = NodePath("WallGridMap")
-DecorationGridMap = NodePath("DecorationGridMap")
+[node name="AlchimistChamber" instance=ExtResource("1_331yg")]
 ShowDebugOverlay = true
 
 [node name="FloorGridMap" parent="." index="0"]

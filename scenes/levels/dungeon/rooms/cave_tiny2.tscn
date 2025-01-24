@@ -5,11 +5,8 @@
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_yu3ex"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_8uda1"]
 
-[node name="CaveTiny2" type="Node3D" node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap")]
+[node name="CaveTiny2" type="Node3D"]
 script = ExtResource("1_ivv33")
-FloorGridMap = NodePath("FloorGridMap")
-WallGridMap = NodePath("WallGridMap")
-DecorationGridMap = NodePath("DecorationGridMap")
 ShowDebugOverlay = true
 
 [node name="FloorGridMap" type="GridMap" parent="."]

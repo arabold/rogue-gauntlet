@@ -6,11 +6,8 @@
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_oqdsh"]
 [ext_resource type="PackedScene" uid="uid://cyhr68psc2ku" path="res://scenes/props/torch_mounted.tscn" id="5_bd7dt"]
 
-[node name="Barracks" type="Node3D" node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap")]
+[node name="Barracks" type="Node3D"]
 script = ExtResource("1_yhnkp")
-FloorGridMap = NodePath("FloorGridMap")
-WallGridMap = NodePath("WallGridMap")
-DecorationGridMap = NodePath("DecorationGridMap")
 ShowDebugOverlay = true
 
 [node name="FloorGridMap" type="GridMap" parent="."]
