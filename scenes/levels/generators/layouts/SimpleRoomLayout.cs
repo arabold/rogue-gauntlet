@@ -65,31 +65,31 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		return rooms;
 	}
 
-	private void PlaceRoom(MapData map, MapData roomMap, Vector3I placement)
+	private void PlaceRoom(MapData map, MapData roomMap, Vector2I placement)
 	{
 		GD.Print($"Placing room at {placement}");
 		for (var x = 0; x < roomMap.Width; x++)
 		{
-			for (var z = 0; z < roomMap.Height; z++)
+			for (var y = 0; y < roomMap.Height; y++)
 			{
 				var mapX = placement.X + x;
-				var mapZ = placement.Z + z;
+				var mapZ = placement.Y + y;
 
-				map.SetTile(mapX, mapZ, roomMap.Tiles[x, z]);
+				map.SetTile(mapX, mapZ, roomMap.Tiles[x, y]);
 			}
 		}
 	}
 
-	private Vector3I? TryPlaceRoom(MapData map, MapData roomMap, int retries)
+	private Vector2I? TryPlaceRoom(MapData map, MapData roomMap, int retries)
 	{
 		bool overlaps;
-		Vector3I placement;
+		Vector2I placement;
 		do
 		{
 			// Place the room at a  position on the map
 			int roomX = GD.RandRange(2, map.Width - roomMap.Width - 1);
 			int roomZ = GD.RandRange(2, map.Height - roomMap.Height - 1);
-			placement = new Vector3I(roomX, 0, roomZ);
+			placement = new Vector2I(roomX, roomZ);
 
 			// Check if the room placement overlaps with any existing rooms
 			overlaps = map.Intersects(roomMap, placement);

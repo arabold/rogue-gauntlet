@@ -170,13 +170,16 @@ public partial class Room : Node3D
 			}
 		}
 
-		// Once we have the room layout, we can check for walls
+		// Once we have the final room layout, we can check for 
+		// walls and corridors that need to be connected
 		for (var x = 0; x < map.Width; x++)
 		{
 			for (var z = 0; z < map.Height; z++)
 			{
-				if (map.Tiles[x, z] == MapTile.Room)
+				if (map.IsRoom(x, z))
 				{
+					// A room tile becomes a connector tile if it is 
+					// adjacent to an empty tile on any side.
 					var isCorridor = CheckForCorridor(map, x, z);
 					if (isCorridor)
 					{
@@ -209,31 +212,8 @@ public partial class Room : Node3D
 			if (!map.IsWithinBounds(adjX, adjZ) || map.IsEmpty(adjX, adjZ))
 			{
 				// We found an empty tile adjacent to the room. Check if there is a wall
-				var gridPos = ToGridPosition(x, 0, z);
-				int gridX = gridPos.X + Bounds.Position.X - TileSize / 2;
-				int gridZ = gridPos.Z + Bounds.Position.Y - TileSize / 2;
-
-				bool hasWall = false;
-				if (dx < 0)
-				{
-					hasWall = hasWallZ(gridX, gridZ);
-					// GD.Print($"Checking Z wall at {gridX}, {gridZ}: {hasWall}");
-				}
-				if (dx > 0)
-				{
-					hasWall = hasWallZ(gridX + TileSize, gridZ);
-					// GD.Print($"Checking Z wall at {gridX + TileSize}, {gridZ}: {hasWall}");
-				}
-				if (dz < 0)
-				{
-					hasWall = hasWallX(gridX, gridZ);
-					// GD.Print($"Checking X wall at {gridX}, {gridZ}: {hasWall}");
-				}
-				if (dz > 0)
-				{
-					hasWall = hasWallX(gridX, gridZ + TileSize);
-					// GD.Print($"Checking X wall at {gridX}, {gridZ + TileSize}: {hasWall}");
-				}
+				// separating the two tiles
+				bool hasWall = HasWall(x, z, dx, dz);
 
 				if (!hasWall)
 				{
@@ -248,10 +228,41 @@ public partial class Room : Node3D
 		return false;
 	}
 
+	private bool HasWall(int x, int z, int dx, int dz)
+	{
+		var gridPos = ToGridPosition(x, 0, z);
+		int gridX = gridPos.X + Bounds.Position.X - TileSize / 2;
+		int gridZ = gridPos.Z + Bounds.Position.Y - TileSize / 2;
+
+		bool hasWall = false;
+		if (dx < 0)
+		{
+			hasWall = HasWallZ(gridX, gridZ);
+			// GD.Print($"Checking Z wall at {gridX}, {gridZ}: {hasWall}");
+		}
+		if (dx > 0)
+		{
+			hasWall = HasWallZ(gridX + TileSize, gridZ);
+			// GD.Print($"Checking Z wall at {gridX + TileSize}, {gridZ}: {hasWall}");
+		}
+		if (dz < 0)
+		{
+			hasWall = HasWallX(gridX, gridZ);
+			// GD.Print($"Checking X wall at {gridX}, {gridZ}: {hasWall}");
+		}
+		if (dz > 0)
+		{
+			hasWall = HasWallX(gridX, gridZ + TileSize);
+			// GD.Print($"Checking X wall at {gridX}, {gridZ + TileSize}: {hasWall}");
+		}
+
+		return hasWall;
+	}
+
 	/// <summary>
 	/// Check if there is a wall along the X axis at the given grid position
 	/// </summary>
-	private bool hasWallX(int gridX, int gridZ)
+	private bool HasWallX(int gridX, int gridZ)
 	{
 		// Note that walls are placed at the center of the tile
 		for (var dx = 0; dx < TileSize; dx++)
@@ -267,7 +278,7 @@ public partial class Room : Node3D
 	/// <summary>
 	/// Check if there is a wall along the Z axis at the given grid position
 	/// </summary>
-	private bool hasWallZ(int gridX, int gridZ)
+	private bool HasWallZ(int gridX, int gridZ)
 	{
 		// Note that walls are placed at the center of the tile
 		for (var dz = 0; dz < TileSize; dz++)

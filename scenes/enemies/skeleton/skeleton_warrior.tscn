@@ -1,7 +1,7 @@
 [gd_scene load_steps=40 format=3 uid="uid://coev873edfqw6"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_p3la7"]
-[ext_resource type="PackedScene" uid="uid://c7qnx3sxaoosn" path="res://scenes/enemies/skeleton/assets/Skeleton_Warrior.glb" id="2_srno3"]
+[ext_resource type="PackedScene" uid="uid://c7qnx3sxaoosn" path="res://assets/kaykit-skeletons/Skeleton_Warrior.glb" id="2_srno3"]
 [ext_resource type="PackedScene" uid="uid://ug658msv7mmw" path="res://scenes/components/loot_table_item.tscn" id="3_8cqyb"]
 [ext_resource type="PackedScene" uid="uid://c3qy5hoelwn6j" path="res://scenes/items/gold.tscn" id="4_4dvn7"]
 

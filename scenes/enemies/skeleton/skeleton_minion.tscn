@@ -1,7 +1,7 @@
 [gd_scene load_steps=39 format=3 uid="uid://cp8o80bbyblfj"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_u7kdf"]
-[ext_resource type="PackedScene" uid="uid://dx6rvie14m5bg" path="res://scenes/enemies/skeleton/assets/Skeleton_Minion.glb" id="2_lb3ug"]
+[ext_resource type="PackedScene" uid="uid://dx6rvie14m5bg" path="res://assets/kaykit-skeletons/Skeleton_Minion.glb" id="2_lb3ug"]
 [ext_resource type="PackedScene" uid="uid://ug658msv7mmw" path="res://scenes/components/loot_table_item.tscn" id="3_c7e80"]
 [ext_resource type="PackedScene" uid="uid://c3qy5hoelwn6j" path="res://scenes/items/gold.tscn" id="4_03e7f"]
 

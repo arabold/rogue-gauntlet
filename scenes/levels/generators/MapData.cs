@@ -20,30 +20,28 @@ public class MapData
     public int Width { get; }
     public int Height { get; }
     public MapTile[,] Tiles { get; }
-    private bool[,] Occupied;
 
     public MapData(int width, int height)
     {
         Width = width;
         Height = height;
         Tiles = new MapTile[width, height];
-        Occupied = new bool[width, height];
     }
 
     /// <summary>
-    /// Checks if rooms on the given map intersect with rooms on the current map
+    /// Checks if rooms on the given map intersect with rooms on the current map.
     /// </summary>
-    public bool Intersects(MapData roomMap, Vector3I placement)
+    public bool Intersects(MapData roomMap, Vector2I placement)
     {
         for (var x = 0; x < roomMap.Width; x++)
         {
-            for (var z = 0; z < roomMap.Height; z++)
+            for (var y = 0; y < roomMap.Height; y++)
             {
-                if (roomMap.IsEmpty(x, z))
+                if (roomMap.IsEmpty(x, y))
                     continue; // Empty cells are fine
 
                 var mapX = placement.X + x;
-                var mapZ = placement.Z + z;
+                var mapZ = placement.Y + y;
                 // Check all nine tiles around the room
                 var adjacentTiles = new[]
                 {
@@ -70,22 +68,6 @@ public class MapData
     public void SetTile(int x, int y, MapTile tile)
     {
         Tiles[x, y] = tile;
-    }
-
-    public bool IsOccupied(int x, int y)
-    {
-        if (!IsWithinBounds(x, y))
-            return true; // Treat out-of-bounds as occupied
-
-        return Occupied[x, y];
-    }
-
-    public void MarkOccupied(int x, int y)
-    {
-        if (IsWithinBounds(x, y))
-        {
-            Occupied[x, y] = true;
-        }
     }
 
     /// <summary>

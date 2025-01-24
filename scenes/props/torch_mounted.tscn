@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=4 uid="uid://cyhr68psc2ku"]
 
-[ext_resource type="Texture2D" uid="uid://dwy100cuqcdu1" path="res://scenes/levels/dungeon/assets/dungeon_texture.png" id="1_ydphq"]
+[ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="1_ydphq"]
 [ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flicker_light.tscn" id="2_excks"]
 [ext_resource type="PackedScene" uid="uid://cdpdt64lfmt86" path="res://scenes/effects/fire.tscn" id="3_gja5y"]
 

@@ -4,7 +4,7 @@
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_h46rv"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_8ytu7"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_87u72"]
-[ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://scenes/levels/dungeon/assets/dungeon_texture.png" id="5_i432r"]
+[ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="5_i432r"]
 [ext_resource type="PackedScene" uid="uid://cnrwt32gqdhx" path="res://scenes/levels/player_spawn_point.tscn" id="6_btmay"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0qmis"]

@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=4 uid="uid://cgi3a5fi0sxu6"]
 
-[ext_resource type="Script" path="res://scenes/props/Chest.cs" id="1_3h5at"]
-[ext_resource type="Texture2D" uid="uid://dwy100cuqcdu1" path="res://scenes/levels/dungeon/assets/dungeon_texture.png" id="2_fidv6"]
+[ext_resource type="Script" uid="uid://nft3v52nfsps" path="res://scenes/props/Chest.cs" id="1_3h5at"]
+[ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="2_fidv6"]
 [ext_resource type="PackedScene" uid="uid://dekj8iq2d1qp5" path="res://scenes/components/interactive_component.tscn" id="3_p08mt"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hy3g6"]

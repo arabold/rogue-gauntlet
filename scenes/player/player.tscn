@@ -1,10 +1,10 @@
 [gd_scene load_steps=52 format=3 uid="uid://hshntmwu857e"]
 
-[ext_resource type="Script" path="res://scenes/player/Player.cs" id="1_5y8vd"]
-[ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://scenes/player/assets/Barbarian.glb" id="1_jv6xc"]
+[ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
+[ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
 [ext_resource type="Resource" uid="uid://nmu6am3fevbi" path="res://scenes/player/resources/player_stats.tres" id="2_sug4b"]
 [ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flicker_light.tscn" id="3_3qxnv"]
-[ext_resource type="Script" path="res://scenes/player/InteractionArea.cs" id="4_rbblq"]
+[ext_resource type="Script" uid="uid://7aetn0f4oogq" path="res://scenes/player/InteractionArea.cs" id="4_rbblq"]
 [ext_resource type="PackedScene" uid="uid://6pckd2upjrvu" path="res://scenes/weapons/weapon_swing.tscn" id="5_4hg3j"]
 [ext_resource type="PackedScene" uid="uid://cuqdoxdbo6j0w" path="res://scenes/weapons/ranged_weapon.tscn" id="7_02tdp"]
 [ext_resource type="PackedScene" uid="uid://c6276kjx70mps" path="res://scenes/components/movement_component.tscn" id="7_7mjdt"]

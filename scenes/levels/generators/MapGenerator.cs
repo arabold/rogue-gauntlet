@@ -176,7 +176,8 @@ public partial class MapGenerator : Node3D
 		foreach (var placement in roomPlacements)
 		{
 			var room = placement.Room;
-			MergeRoomGridMaps(room, placement.Position);
+			var position = new Vector3I(placement.Position.X, 0, placement.Position.Y);
+			MergeRoomGridMaps(room, position);
 
 			// Make the room a child of the navigation region, so
 			// it is included in the navigation mesh and enemies
@@ -184,7 +185,7 @@ public partial class MapGenerator : Node3D
 			NavigationRegion.AddChild(room);
 
 			var roomOffset = new Vector3I(room.Bounds.Position.X, 0, room.Bounds.Position.Y);
-			room.Translate(TileToWorld(placement.Position) - roomOffset);
+			room.Translate(TileToWorld(position) - roomOffset);
 		}
 	}
 
@@ -295,7 +296,7 @@ public partial class MapGenerator : Node3D
 				point.Y = 0f; // Ensure the point is on the ground
 
 				// Ensure the point is at least 20 meters away from the player
-				if (point.DistanceTo(PlayerSpawnPoint.GlobalPosition) < 20)
+				if (PlayerSpawnPoint != null && point.DistanceTo(PlayerSpawnPoint.GlobalPosition) < 20)
 				{
 					isValidPoint = false;
 					continue;

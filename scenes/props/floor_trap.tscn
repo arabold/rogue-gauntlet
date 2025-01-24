@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=4 uid="uid://cap6wqfjubqjx"]
 
-[ext_resource type="Script" path="res://scenes/props/FloorTrap.cs" id="1_064fn"]
-[ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://scenes/levels/dungeon/assets/dungeon_texture.png" id="2_ev4jl"]
+[ext_resource type="Script" uid="uid://d33rvrl7g5ltg" path="res://scenes/props/FloorTrap.cs" id="1_064fn"]
+[ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="2_ev4jl"]
 [ext_resource type="PackedScene" uid="uid://d2l47r6atc27d" path="res://scenes/components/trigger_component.tscn" id="3_ny7u4"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_glrei"]

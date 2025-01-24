@@ -6,9 +6,9 @@ using Godot;
 public class RoomPlacement
 {
 	public Room Room;
-	public Vector3I Position;
+	public Vector2I Position;
 
-	public RoomPlacement(Room room, Vector3I position)
+	public RoomPlacement(Room room, Vector2I position)
 	{
 		Room = room;
 		Position = position;
