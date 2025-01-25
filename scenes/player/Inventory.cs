@@ -4,6 +4,8 @@ using Godot.Collections;
 [GlobalClass]
 public partial class Inventory : Resource
 {
+	[Signal] public delegate void InventoryUpdatedEventHandler();
+
 	/// <summary>
 	/// The maximum number of items that can be stored in the inventory.
 	/// </summary>
@@ -30,6 +32,7 @@ public partial class Inventory : Resource
 			{
 				slot.Quantity += quantity;
 				GD.Print($"Stacked {item.Name} ({slot.Quantity}) in inventory");
+				EmitSignal(SignalName.InventoryUpdated);
 				return;
 			}
 		}
@@ -38,6 +41,7 @@ public partial class Inventory : Resource
 		var newSlot = new InventoryItemSlot { Item = item, Quantity = quantity };
 		Items.Add(newSlot);
 		GD.Print($"{item.Name} added to inventory");
+		EmitSignal(SignalName.InventoryUpdated);
 	}
 
 	public void RemoveItem(Item item)
@@ -52,6 +56,7 @@ public partial class Inventory : Resource
 					Items.Remove(slot);
 				}
 				GD.Print($"{item.Name} removed from inventory");
+				EmitSignal(SignalName.InventoryUpdated);
 				return;
 			}
 		}

@@ -10,6 +10,8 @@ public partial class Preview : SubViewport
 
 	public override void _Ready()
 	{
+		OwnWorld3D = true;
+
 		_camera = GetNode<Camera3D>("Camera3D");
 		Refresh();
 	}
@@ -40,11 +42,25 @@ public partial class Preview : SubViewport
 
 	private void CenterObjectToCamera()
 	{
-		Aabb aabb = ComputeAABB(_object);
-		Vector3 ofs = aabb.GetCenter();
+		var aabb = ComputeAABB(_object);
+		var distance = Mathf.Max(aabb.Size.X, aabb.Size.Y);
 
-		_object.Translate(ofs);
-		_camera.Size = Mathf.Max(aabb.Size.X, aabb.Size.Y) * 1.5f;
+		// If the object is lying down, rotate it to stand up
+		if (aabb.Size.X > aabb.Size.Y)
+		{
+			_object.RotateObjectLocal(Vector3.Right, Mathf.Pi / 2);
+			distance = Mathf.Max(aabb.Size.Z, aabb.Size.Y);
+		}
+		else if (aabb.Size.Z > aabb.Size.Y)
+		{
+			_object.RotateObjectLocal(Vector3.Forward, Mathf.Pi / 2);
+			distance = Mathf.Max(aabb.Size.X, aabb.Size.Z);
+		}
+
+		// Center the object to the camera
+		var center = aabb.GetCenter();
+		_object.TranslateObjectLocal(-center);
+		_camera.Size = distance * 1.5f;
 	}
 
 	public void Refresh()

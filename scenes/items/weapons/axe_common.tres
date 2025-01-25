@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EquippableItem" load_steps=3 format=3 uid="uid://bylnwqmg1nm57"]
+
+[ext_resource type="Script" uid="uid://de5x45p7jum00" path="res://scenes/items/EquippableItem.cs" id="1_4nbvr"]
+[ext_resource type="PackedScene" uid="uid://bcaymd3eo2cxa" path="res://scenes/items/weapons/axe_common.tscn" id="1_w1nru"]
+
+[resource]
+script = ExtResource("1_4nbvr")
+Scene = ExtResource("1_w1nru")
+Name = "Axe"
+Durability = 1.0
+Quality = 0.6
+Value = 10
+Weight = 1.0
+UsesSlot = true
+IsStackable = false
+IsConsumable = false
+IsEquippable = true
+metadata/_custom_type_script = ExtResource("1_4nbvr")

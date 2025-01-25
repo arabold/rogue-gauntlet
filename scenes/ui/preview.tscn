@@ -1,16 +1,21 @@
-[gd_scene load_steps=2 format=3 uid="uid://cmguxod8mb5o6"]
+[gd_scene load_steps=3 format=3 uid="uid://cmguxod8mb5o6"]
 
 [ext_resource type="Script" uid="uid://6brhycbekdik" path="res://scenes/ui/Preview.cs" id="1_lnfqo"]
 
+[sub_resource type="Environment" id="Environment_lpme6"]
+background_color = Color(0.144063, 0.144063, 0.144063, 1)
+
 [node name="Preview" type="SubViewport"]
 own_world_3d = true
+transparent_bg = true
 handle_input_locally = false
 size = Vector2i(128, 128)
 render_target_update_mode = 4
 script = ExtResource("1_lnfqo")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.85264, 0.522499, 0, -0.522499, 0.85264, 0, 4, 5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+environment = SubResource("Environment_lpme6")
 projection = 1
 size = 3.0
 
