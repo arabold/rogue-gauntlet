@@ -36,7 +36,7 @@ public partial class Room : Node3D
 				{
 					// Property is set in the editor, so we need to check 
 					// if the room is initialized already
-					if (Engine.IsEditorHint() && IsNodeReady() && GetTree().EditedSceneRoot == this)
+					if (Engine.IsEditorHint() && IsNodeReady() && GetTree()?.EditedSceneRoot == this)
 					{
 						BakeTileMap();
 						CreateDebugOverlay();

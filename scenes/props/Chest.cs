@@ -21,6 +21,7 @@ public partial class Chest : Node3D
 
 	private bool _isOpen = false;
 	private InteractiveComponent _interactiveComponent;
+	private LootTableComponent _lootTableComponent;
 	private MeshInstance3D _chest;
 	private MeshInstance3D _chestLid;
 
@@ -35,6 +36,8 @@ public partial class Chest : Node3D
 		{
 			_interactiveComponent = GetNode<InteractiveComponent>("InteractiveComponent");
 			_interactiveComponent.Interacted += OnInteract;
+
+			_lootTableComponent = GetNode<LootTableComponent>("LootTableComponent");
 		}
 
 		UpdateChestLid();
@@ -57,14 +60,21 @@ public partial class Chest : Node3D
 		var tween = CreateTween();
 		tween
 			.TweenProperty(_chestLid, "rotation_degrees:x", -45, 0.5f)
-			.Finished += () => EmitSignal(SignalName.Opened, this);
+			.Finished += OnOpened;
 
-		// Disable any interactivity
+		// Disable any interactivity (e.g. prevent the player from 
+		// opening the chest again)
 		_interactiveComponent.QueueFree();
 	}
 
 	private void OnInteract(Player actor)
 	{
 		OpenChest();
+	}
+
+	public void OnOpened()
+	{
+		_lootTableComponent?.DropLoot();
+		EmitSignal(SignalName.Opened, this);
 	}
 }

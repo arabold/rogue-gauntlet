@@ -43,6 +43,11 @@ public partial class HealthComponent : Node
 		}
 	}
 
+	/// <summary>
+	/// Heals the player by the specified amount. 
+	/// A negative amount will damage the player.
+	/// </summary>
+	/// <param name="amount"></param>
 	public void Heal(int amount)
 	{
 		CurrentHealth += amount;

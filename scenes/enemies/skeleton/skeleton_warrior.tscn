@@ -1,9 +1,10 @@
-[gd_scene load_steps=40 format=3 uid="uid://coev873edfqw6"]
+[gd_scene load_steps=41 format=3 uid="uid://coev873edfqw6"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_p3la7"]
 [ext_resource type="PackedScene" uid="uid://c7qnx3sxaoosn" path="res://assets/kaykit-skeletons/Skeleton_Warrior.glb" id="2_srno3"]
 [ext_resource type="PackedScene" uid="uid://ug658msv7mmw" path="res://scenes/components/loot_table_item.tscn" id="3_8cqyb"]
-[ext_resource type="PackedScene" uid="uid://c3qy5hoelwn6j" path="res://scenes/items/gold.tscn" id="4_4dvn7"]
+[ext_resource type="Resource" uid="uid://dnxrasu67oe6k" path="res://scenes/items/gold/gold.tres" id="4_acu02"]
+[ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion.tres" id="5_6enk2"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_fv4r8"]
 radius = 0.75
@@ -159,7 +160,7 @@ graph_offset = Vector2(102.21, -120.426)
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_5rbcv"]
 radius = 0.75
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_bvbj6"]
+[sub_resource type="ViewportTexture" id="ViewportTexture_ty78u"]
 viewport_path = NodePath("SubViewport")
 
 [node name="SkeletonWarrior" instance=ExtResource("1_p3la7")]
@@ -187,7 +188,7 @@ bones/8/position = Vector3(8.34843e-10, 0.0961252, -0.0575)
 bones/8/rotation = Quaternion(-3.6586e-09, 6.87811e-09, -0.707107, 0.707107)
 bones/8/scale = Vector3(1, 1, 1)
 bones/9/position = Vector3(-0.212007, 0.134132, 8.6814e-08)
-bones/9/rotation = Quaternion(-0.618244, 0.0807286, 0.618012, 0.478873)
+bones/9/rotation = Quaternion(-0.618244, 0.0807287, 0.618012, 0.478873)
 bones/9/scale = Vector3(0.999999, 0.999999, 1)
 bones/10/rotation = Quaternion(2.09853e-08, 5.12855e-08, 0.517939, 0.855417)
 bones/10/scale = Vector3(1, 1, 1)
@@ -201,14 +202,14 @@ bones/13/scale = Vector3(1, 1, 1)
 bones/14/rotation = Quaternion(-5.80608e-11, -0.0313417, -1.88012e-09, 0.999509)
 bones/14/scale = Vector3(1, 1, 1)
 bones/16/position = Vector3(0.170945, 0.113587, 1.59941e-08)
-bones/16/rotation = Quaternion(0.996185, 0.0479136, 0.0566427, -0.045939)
+bones/16/rotation = Quaternion(0.993715, 0.0837146, 0.0735038, 0.0109185)
 bones/16/scale = Vector3(1, 1, 1)
-bones/17/rotation = Quaternion(0.165014, 6.49414e-08, -1.11407e-07, 0.986291)
+bones/17/rotation = Quaternion(0.195602, 6.26228e-08, -1.32239e-07, 0.980683)
 bones/17/scale = Vector3(1, 1, 1)
-bones/18/rotation = Quaternion(-0.533729, -0.260895, -1.72985e-05, 0.804405)
+bones/18/rotation = Quaternion(-0.517564, -0.209497, 0.0436549, 0.828452)
 bones/18/scale = Vector3(1, 1, 0.999999)
-bones/19/rotation = Quaternion(0.000263472, 0.920216, -0.391412, -5.96391e-05)
-bones/19/scale = Vector3(1, 0.999997, 1)
+bones/19/rotation = Quaternion(0.000111784, 0.920258, -0.391313, -2.52417e-05)
+bones/19/scale = Vector3(1, 0.999998, 1)
 bones/20/position = Vector3(-0.170945, 0.113587, 1.55755e-08)
 bones/20/rotation = Quaternion(0.997322, -0.0294574, 0.0315293, 0.0590483)
 bones/20/scale = Vector3(1, 1, 1)
@@ -219,17 +220,17 @@ bones/22/scale = Vector3(1, 1, 0.999999)
 bones/23/rotation = Quaternion(-8.93489e-05, 0.920222, -0.391398, 2.0291e-05)
 bones/23/scale = Vector3(1, 0.999998, 1)
 bones/24/rotation = Quaternion(0.707107, -2.29302e-07, -4.60552e-08, 0.707107)
-bones/25/position = Vector3(0.213918, 0.0259903, 0.173866)
-bones/25/rotation = Quaternion(-0.705092, 0.0533355, 0.0533355, 0.705092)
+bones/25/position = Vector3(0.202182, 0.0259903, 0.205181)
+bones/25/rotation = Quaternion(-0.707107, -7.05285e-08, -7.05285e-08, 0.707107)
 bones/26/rotation = Quaternion(9.65792e-09, 1.77955e-09, 0.985719, -0.168398)
-bones/27/position = Vector3(-1.11482e-08, 0.213436, -5.36347e-09)
-bones/27/rotation = Quaternion(-1.10961e-07, 0.391084, 0.920355, -2.67919e-08)
+bones/27/position = Vector3(-2.60494e-08, 0.213436, -5.1715e-09)
+bones/27/rotation = Quaternion(-1.01273e-07, 0.391084, 0.920355, -3.35091e-08)
 bones/27/scale = Vector3(1, 1, 1)
-bones/28/position = Vector3(-6.31128e-09, 0.16565, -7.10267e-09)
+bones/28/position = Vector3(8.58988e-09, 0.16565, -2.40963e-09)
 bones/28/scale = Vector3(1, 1, 1)
-bones/29/rotation = Quaternion(1, -8.27364e-11, 1.94627e-07, -7.45058e-09)
+bones/29/rotation = Quaternion(1, -2.33136e-09, 1.99777e-07, -1.34211e-15)
 bones/29/scale = Vector3(1, 1, 1)
-bones/30/rotation = Quaternion(5.55113e-17, -6.74098e-17, -1.94669e-08, 1)
+bones/30/rotation = Quaternion(4.16335e-17, -6.74098e-17, -1.94669e-08, 1)
 bones/31/rotation = Quaternion(0.707107, -3.82385e-08, 1.45009e-07, 0.707107)
 bones/32/rotation = Quaternion(-0.707107, -7.05285e-08, -7.05285e-08, 0.707107)
 bones/33/rotation = Quaternion(-5.83589e-09, 6.43837e-10, 0.994809, 0.101756)
@@ -248,7 +249,7 @@ bones/39/position = Vector3(0.520841, 0.788312, -0.0576373)
 bones/39/rotation = Quaternion(0.794627, -1.11759e-07, 0.607098, -5.96046e-08)
 bones/40/rotation = Quaternion(-0.707107, -7.27951e-08, -7.27951e-08, 0.707107)
 bones/41/position = Vector3(-0.510844, 0.788312, 0.0597369)
-bones/41/rotation = Quaternion(0.758253, 1.52737e-07, -0.651961, 1.11759e-08)
+bones/41/rotation = Quaternion(-0.758253, -1.52737e-07, 0.651961, -1.11759e-08)
 bones/41/scale = Vector3(1, 1, 1)
 
 [node name="Skeleton_Warrior_Helmet" parent="Pivot/Skeleton_Warrior/Rig/Skeleton3D" index="0"]
@@ -266,8 +267,12 @@ anim_player = NodePath("../../Pivot/Skeleton_Warrior/AnimationPlayer")
 [node name="BoneAttachmentManager" parent="." index="3" node_paths=PackedStringArray("CharacterNode")]
 CharacterNode = NodePath("../Pivot/Skeleton_Warrior")
 
-[node name="LootTableItem" parent="LootTableComponent" index="0" instance=ExtResource("3_8cqyb")]
-Scene = ExtResource("4_4dvn7")
+[node name="Gold" parent="LootTableComponent" index="0" instance=ExtResource("3_8cqyb")]
+Item = ExtResource("4_acu02")
+Quantity = 50
+
+[node name="LootTableItem" parent="LootTableComponent" index="1" instance=ExtResource("3_8cqyb")]
+Item = ExtResource("5_6enk2")
 
 [node name="HealthComponent" parent="." index="6"]
 MaxHealth = 30
@@ -279,6 +284,6 @@ Xp = 30
 shape = SubResource("CapsuleShape3D_5rbcv")
 
 [node name="FloatingHealthBar" parent="." index="9"]
-texture = SubResource("ViewportTexture_bvbj6")
+texture = SubResource("ViewportTexture_ty78u")
 
 [editable path="Pivot/Skeleton_Warrior"]

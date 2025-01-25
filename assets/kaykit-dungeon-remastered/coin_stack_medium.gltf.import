@@ -4,11 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dspke7hnmpjly"
-valid=false
+path="res://.godot/imported/coin_stack_medium.gltf-9bb131d4953bd215478da0875f08ac2f.scn"
 
 [deps]
 
 source_file="res://assets/kaykit-dungeon-remastered/coin_stack_medium.gltf"
+dest_files=["res://.godot/imported/coin_stack_medium.gltf-9bb131d4953bd215478da0875f08ac2f.scn"]
 
 [params]
 

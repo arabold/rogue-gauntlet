@@ -1,12 +1,11 @@
-[gd_scene load_steps=14 format=4 uid="uid://c3qy5hoelwn6j"]
+[gd_scene load_steps=12 format=4 uid="uid://c3qy5hoelwn6j"]
 
-[ext_resource type="Script" uid="uid://c2qmmex75h6vb" path="res://scenes/items/Gold.cs" id="1_qdbs2"]
-[ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="2_u7mgb"]
-[ext_resource type="PackedScene" uid="uid://d2l47r6atc27d" path="res://scenes/components/trigger_component.tscn" id="3_wh0n1"]
+[ext_resource type="Script" uid="uid://c2qmmex75h6vb" path="res://scenes/items/gold/CoinStack.cs" id="1_v44mh"]
+[ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="2_0g4l6"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j7a3y"]
 resource_name = "texture"
-albedo_texture = ExtResource("2_u7mgb")
+albedo_texture = ExtResource("2_0g4l6")
 roughness = 0.45
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_o8dcl"]
@@ -43,7 +42,7 @@ shadow_mesh = SubResource("ArrayMesh_o8dcl")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ut2jw"]
 resource_name = "texture"
-albedo_texture = ExtResource("2_u7mgb")
+albedo_texture = ExtResource("2_0g4l6")
 roughness = 0.45
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_jvtra"]
@@ -80,7 +79,7 @@ shadow_mesh = SubResource("ArrayMesh_jvtra")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xyqaq"]
 resource_name = "texture"
-albedo_texture = ExtResource("2_u7mgb")
+albedo_texture = ExtResource("2_0g4l6")
 roughness = 0.45
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_2ff7o"]
@@ -115,12 +114,11 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_2ff7o")
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_pmep3"]
-
-[node name="Gold" type="Node3D" groups=["item"]]
-script = ExtResource("1_qdbs2")
+[node name="CoinStack" type="Node3D" groups=["item"]]
+script = ExtResource("1_v44mh")
 
 [node name="coin_stack_large" type="MeshInstance3D" parent="."]
+visible = false
 layers = 32
 mesh = SubResource("ArrayMesh_decbr")
 skeleton = NodePath("")
@@ -132,20 +130,6 @@ mesh = SubResource("ArrayMesh_mene8")
 skeleton = NodePath("")
 
 [node name="coin_stack_small" type="MeshInstance3D" parent="."]
-visible = false
 layers = 32
 mesh = SubResource("ArrayMesh_y6b8c")
 skeleton = NodePath("")
-
-[node name="OmniLight3D" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
-layers = 256
-light_specular = 0.0
-light_bake_mode = 0
-light_cull_mask = 4294966323
-
-[node name="TriggerComponent" parent="." instance=ExtResource("3_wh0n1")]
-collision_layer = 32
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="TriggerComponent"]
-shape = SubResource("SphereShape3D_pmep3")

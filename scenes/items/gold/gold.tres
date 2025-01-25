@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="Item" load_steps=3 format=3 uid="uid://dnxrasu67oe6k"]
+
+[ext_resource type="PackedScene" uid="uid://c3qy5hoelwn6j" path="res://scenes/items/gold/coin_stack.tscn" id="1_03cx5"]
+[ext_resource type="Script" path="res://scenes/items/gold/Gold.cs" id="2_fe4b1"]
+
+[resource]
+script = ExtResource("2_fe4b1")
+Scene = ExtResource("1_03cx5")
+Name = "Gold"
+Durability = 1.0
+Quality = 1.0
+Value = 1
+Weight = 0.0
+UsesSlot = false
+IsStackable = true
+IsConsumable = false
+IsEquippable = false
+metadata/_custom_type_script = ExtResource("2_fe4b1")

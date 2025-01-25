@@ -1,10 +1,10 @@
 [gd_resource type="Resource" script_class="PlayerStats" load_steps=2 format=3 uid="uid://nmu6am3fevbi"]
 
-[ext_resource type="Script" path="res://scenes/player/resources/PlayerStats.cs" id="1_ukt4l"]
+[ext_resource type="Script" uid="uid://b2ogo7g4nm4lq" path="res://scenes/player/resources/PlayerStats.cs" id="1_ukt4l"]
 
 [resource]
 script = ExtResource("1_ukt4l")
-Health = 100
+Health = 50
 MaxHealth = 100
 Xp = 0
 XpLevel = 1

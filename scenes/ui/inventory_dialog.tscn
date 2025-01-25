@@ -1,0 +1,35 @@
+[gd_scene load_steps=3 format=3 uid="uid://bgq1h0jm4ybvw"]
+
+[ext_resource type="Script" uid="uid://cfcm8ru6gkvrc" path="res://scenes/ui/InventoryDialog.cs" id="1_jpxud"]
+[ext_resource type="PackedScene" uid="uid://c03l8q524arxf" path="res://scenes/ui/item_slot_panel.tscn" id="2_jd25f"]
+
+[node name="InventoryDialog" type="PanelContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_jpxud")
+InventoryItemScene = ExtResource("2_jd25f")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Inventory"
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = " X "
+
+[node name="InventoryGrid" type="GridContainer" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 8

@@ -25,4 +25,15 @@ public partial class Main : Node
 		_pcam.Call("set_follow_target", player);
 		_pcam.Set("follow_mode", 5); // FRAMED = 5
 	}
+
+	public override void _UnhandledInput(InputEvent @event)
+	{
+		if (@event.IsActionReleased("inventory"))
+		{
+			var inventoryDialog = GetNode<InventoryDialog>("%InventoryDialog");
+			inventoryDialog.Open(GameManager.Instance.Player.Inventory);
+		}
+
+		base._UnhandledInput(@event);
+	}
 }

@@ -6,7 +6,7 @@ using System.Linq;
 /// <summary>
 /// The main player character.
 /// </summary>
-public partial class Player : CharacterBody3D
+public partial class Player : CharacterBody3D, IDamageable
 {
 	[Export] public PlayerStats Stats { get; set; }
 
@@ -18,17 +18,20 @@ public partial class Player : CharacterBody3D
 	public bool IsPerformingAction => ActionManager.CurrentActionId != null;
 	public string CurrentActionId => ActionManager.CurrentActionId;
 
+	protected HealthComponent HealthComponent;
+	protected HurtBoxComponent HurtBoxComponent;
+	protected MovementComponent MovementComponent;
+	protected InputComponent InputComponent;
+	protected ActionManager ActionManager;
+	protected InteractionArea InteractionArea;
+
+	public Inventory Inventory { get; private set; } = new Inventory();
+	public Array<ActiveBuff> ActiveBuffs { get; private set; } = new Array<ActiveBuff>();
+
 	private Node3D _pivot;
 	private AnimationTree _animationTree;
 	private AnimationNodeStateMachinePlayback _animationStateMachine;
 	private BoneAttachmentManager _attachmentManager;
-
-	public HealthComponent HealthComponent;
-	public HurtBoxComponent HurtBoxComponent;
-	public MovementComponent MovementComponent;
-	public InputComponent InputComponent;
-	public ActionManager ActionManager;
-	public InteractionArea InteractionArea;
 
 	private Array<Node> _nearbyInteractives = new Array<Node>();
 
@@ -112,5 +115,71 @@ public partial class Player : CharacterBody3D
 	public override void _Process(double delta)
 	{
 		HandleInput();
+
+		// Remove expired buffs
+		foreach (var buff in ActiveBuffs)
+		{
+			if (buff.IsExpired)
+			{
+				ActiveBuffs.Remove(buff);
+				RemoveChild(buff);
+				buff.QueueFree();
+			}
+		}
+	}
+
+	public void ApplyBuff(Buff buff)
+	{
+		var activeBuff = new ActiveBuff();
+		activeBuff.Initialize(this, buff);
+		ActiveBuffs.Add(activeBuff);
+
+		AddChild(activeBuff);
+	}
+
+	public void RemoveBuff(Buff buff)
+	{
+		var activeBuff = ActiveBuffs.FirstOrDefault(b => b.Buff == buff);
+		if (activeBuff != null)
+		{
+			ActiveBuffs.Remove(activeBuff);
+			RemoveChild(activeBuff);
+			activeBuff.QueueFree();
+		}
+	}
+
+	public bool PickupItem(Item item, int quantity = 1)
+	{
+		if (Inventory.IsFull)
+		{
+			GD.Print("Inventory is full");
+			return false;
+		}
+
+		Inventory.AddItem(item, quantity);
+		return true;
+	}
+
+	public void RemoveItem(Item item)
+	{
+		Inventory.RemoveItem(item);
+	}
+
+	public void TakeDamage(int amount, Vector3 attackDirection)
+	{
+		HurtBoxComponent.TakeDamage(amount, attackDirection);
+	}
+
+	public void TakeDamage(int amount)
+	{
+		// If there's no attack direction, just apply the damage
+		// directly to the health component. This is useful for
+		// poison or other damage-over-time effects.
+		HealthComponent.TakeDamage(amount);
+	}
+
+	public void Heal(int amount)
+	{
+		HealthComponent.Heal(amount);
 	}
 }

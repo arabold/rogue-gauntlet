@@ -3,7 +3,7 @@ using Godot;
 /// <summary>
 /// Represents an enemy character in the game.
 /// </summary>
-public partial class EnemyBase : CharacterBody3D
+public partial class EnemyBase : CharacterBody3D, IDamageable
 {
 	public Node3D Pivot;
 	public CollisionShape3D CollisionShape;
@@ -13,6 +13,7 @@ public partial class EnemyBase : CharacterBody3D
 	public HurtBoxComponent HurtBoxComponent;
 	public FloatingHealthBar HealthBar;
 	public DeathComponent DeathComponent;
+	public LootTableComponent LootTableComponent;
 
 	public bool IsDead => EnemyBehavior.IsDead;
 
@@ -26,14 +27,30 @@ public partial class EnemyBase : CharacterBody3D
 		HurtBoxComponent = GetNodeOrNull<HurtBoxComponent>("HurtBoxComponent");
 		HealthBar = GetNodeOrNull<FloatingHealthBar>("FloatingHealthBar");
 		DeathComponent = GetNodeOrNull<DeathComponent>("DeathComponent");
+		LootTableComponent = GetNodeOrNull<LootTableComponent>("LootTableComponent");
 
 		// Hide the mesh until the animations are fully initialized to
 		// prevent any flickering
 		Visible = false;
+
+		if (HealthComponent != null)
+		{
+			HealthComponent.Died += OnDied;
+		}
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
 		Visible = true;
+	}
+
+	public void TakeDamage(int amount, Vector3 attackDirection)
+	{
+		HurtBoxComponent?.TakeDamage(amount, attackDirection);
+	}
+
+	public void OnDied()
+	{
+		LootTableComponent?.DropLoot();
 	}
 }

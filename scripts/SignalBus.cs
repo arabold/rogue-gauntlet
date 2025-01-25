@@ -24,6 +24,15 @@ public partial class SignalBus : Node
     public static void EmitPlayerSpawned(Player player) => SafeEmitSignal(SignalName.PlayerSpawned, player);
     public static void EmitPlayerDeath(Player player) => SafeEmitSignal(SignalName.PlayerDeath, player);
 
+    [Signal] public delegate void ItemConsumedEventHandler(ConsumableItem item);
+    [Signal] public delegate void ItemEquippedEventHandler(EquippableItem item);
+    [Signal] public delegate void ItemUnequippedEventHandler(EquippableItem item);
+    [Signal] public delegate void ItemDestroyedEventHandler(Item item);
+    public static void EmitItemConsumed(ConsumableItem item) => SafeEmitSignal(SignalName.ItemConsumed, item);
+    public static void EmitItemEquipped(EquippableItem item) => SafeEmitSignal(SignalName.ItemEquipped, item);
+    public static void EmitItemUnequipped(EquippableItem item) => SafeEmitSignal(SignalName.ItemUnequipped, item);
+    public static void EmitItemDestroyed(Item item) => SafeEmitSignal(SignalName.ItemDestroyed, item);
+
     [Signal] public delegate void LevelChangedEventHandler(int level);
     [Signal] public delegate void LevelLoadedEventHandler(Level level);
     public static void EmitLevelChanged(int level) => SafeEmitSignal(SignalName.LevelChanged, level);

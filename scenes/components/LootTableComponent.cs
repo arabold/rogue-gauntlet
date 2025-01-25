@@ -3,8 +3,10 @@ using Godot;
 
 public partial class LootTableComponent : Node
 {
-    [Export] public HealthComponent HealthComponent { get; set; }
-
+    /// <summary>
+    /// The chance of dropping loot from this table.
+    /// </summary>
+    [Export] public float DropChance { get; private set; } = 1.0f;
     public LootTableItem[] Items { get; private set; } = [];
 
     private bool _isDropped = false;
@@ -15,8 +17,6 @@ public partial class LootTableComponent : Node
 
         Items = GetChildren().OfType<LootTableItem>().ToArray();
         GD.Print($"Loot table initialized with {Items.Length} item(s)");
-
-        HealthComponent.Died += DropLoot;
     }
 
     public void DropLoot()
@@ -26,15 +26,25 @@ public partial class LootTableComponent : Node
             return;
         }
 
-        var selectedItem = PickItem();
-        if (selectedItem != null)
+        if (GD.Randf() < DropChance)
         {
-            var instance = selectedItem.Scene?.Instantiate<Node3D>();
-            if (instance != null)
+            GD.Print("Dropping loot...");
+            var selectedItem = PickItem();
+            if (selectedItem != null)
             {
-                GameManager.Instance.Level.AddChild(instance);
-                instance.GlobalPosition = GetOwner<Node3D>().GlobalPosition;
+                // TODO: Avoid hardcoding the path to the lootable item scene
+                var scene = GD.Load<PackedScene>("res://scenes/items/lootable_item.tscn");
+                var lootableItem = scene.Instantiate<LootableItem>();
+                lootableItem.Item = selectedItem.Item;
+                lootableItem.Quantity = selectedItem.Quantity;
+
+                GameManager.Instance.Level.AddChild(lootableItem);
+                lootableItem.GlobalPosition = GetOwner<Node3D>().GlobalPosition;
             }
+        }
+        else
+        {
+            GD.Print("No loot dropped");
         }
 
         _isDropped = true;

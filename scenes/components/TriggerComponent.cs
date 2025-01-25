@@ -10,12 +10,19 @@ public partial class TriggerComponent : Area3D
 
 	public override void _Ready()
 	{
-		AreaEntered += OnAreaEntered;
+		// AreaEntered += OnAreaEntered;
+		BodyEntered += OnBodyEntered;
 	}
 
-	private void OnAreaEntered(Node3D body)
+	// private void OnAreaEntered(Node3D area)
+	// {
+	// 	GD.Print($"{area.Name} entered the trigger area");
+	// 	EmitSignal(SignalName.Triggered, area);
+	// }
+
+	private void OnBodyEntered(Node3D body)
 	{
-		GD.Print($"{body.Name} enterd the trigger area");
+		GD.Print($"{body.Name} entered the trigger area");
 		EmitSignal(SignalName.Triggered, body);
 	}
 }

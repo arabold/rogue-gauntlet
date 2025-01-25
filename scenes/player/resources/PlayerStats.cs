@@ -40,25 +40,16 @@ public partial class PlayerStats : Resource
 		GD.Print($"Gold Updated: {Gold}");
 	}
 
-	// Method to change the health
+	/// <summary>
+	/// Updates the player's health and emits the HealthChanged signal.
+	/// This method is used internally by the Player class. Do not call
+	/// this method directly from other classes. Instead use the `Heal`
+	/// and `TakeDamage` methods to change the player's health.
+	/// </summary>
 	public void UpdateHealth(int health, int maxHealth)
 	{
 		Health = health;
 		SignalBus.EmitHealthChanged(health, maxHealth);
 		GD.Print($"Health changed: {health}");
-	}
-
-	public void TakeDamage(int damage)
-	{
-		Health -= damage;
-		SignalBus.EmitHealthChanged(Health, MaxHealth);
-		GD.Print($"Health changed: {Health}");
-	}
-
-	public void Heal(int amount)
-	{
-		Health += amount;
-		SignalBus.EmitHealthChanged(Health, MaxHealth);
-		GD.Print($"Health changed: {Health}");
 	}
 }

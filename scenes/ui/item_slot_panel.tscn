@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://c03l8q524arxf"]
+
+[ext_resource type="Script" uid="uid://c0g8vw8xh13dv" path="res://scenes/ui/ItemSlotPanel.cs" id="1_pe6wt"]
+[ext_resource type="Texture2D" uid="uid://dq1fvu6l25b3r" path="res://icon.svg" id="1_uw4km"]
+
+[node name="ItemSlotPanel" type="PanelContainer"]
+script = ExtResource("1_pe6wt")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 2
+texture = ExtResource("1_uw4km")
