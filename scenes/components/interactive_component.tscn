@@ -20,4 +20,4 @@ shape = SubResource("SphereShape3D_p7jp5")
 
 [node name="FloatingLabel" parent="." instance=ExtResource("2_0adgp")]
 texture = SubResource("ViewportTexture_ngqwn")
-Label = "Interact"
+Text = "Interact"

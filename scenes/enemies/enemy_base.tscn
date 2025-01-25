@@ -9,12 +9,12 @@
 [ext_resource type="PackedScene" uid="uid://prsvhvx843w0" path="res://scenes/components/death_component.tscn" id="7_2q7cy"]
 [ext_resource type="PackedScene" uid="uid://doui3rts7bdo7" path="res://scenes/components/hurt_box_component.tscn" id="8_b88gg"]
 [ext_resource type="PackedScene" uid="uid://cs2dyf0ews4ob" path="res://scenes/effects/hit_effect.tscn" id="9_d4q6w"]
-[ext_resource type="PackedScene" uid="uid://c6i0b6qufb14m" path="res://scenes/components/floating_health_bar.tscn" id="10_2mhe4"]
+[ext_resource type="PackedScene" uid="uid://c6i0b6qufb14m" path="res://scenes/components/floating_health_bar.tscn" id="10_oansv"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_fv4r8"]
 radius = 0.75
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_oansv"]
+[sub_resource type="ViewportTexture" id="ViewportTexture_6flps"]
 viewport_path = NodePath("SubViewport")
 
 [node name="Enemy" type="CharacterBody3D" groups=["enemy"]]
@@ -40,13 +40,13 @@ HealthComponent = NodePath("../HealthComponent")
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor") instance=ExtResource("4_qc6m8")]
 Actor = NodePath("..")
 
-[node name="LootTableComponent" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("5_qpnrt")]
-HealthComponent = NodePath("../HealthComponent")
+[node name="LootTableComponent" parent="." instance=ExtResource("5_qpnrt")]
 
 [node name="HealthComponent" parent="." instance=ExtResource("6_g62l6")]
 
-[node name="DeathComponent" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("7_2q7cy")]
+[node name="DeathComponent" parent="." node_paths=PackedStringArray("HealthComponent", "LootTableComponent") instance=ExtResource("7_2q7cy")]
 HealthComponent = NodePath("../HealthComponent")
+LootTableComponent = NodePath("../LootTableComponent")
 
 [node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("8_b88gg")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
@@ -54,7 +54,7 @@ collision_layer = 8
 HealthComponent = NodePath("../HealthComponent")
 HitEffect = ExtResource("9_d4q6w")
 
-[node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("10_2mhe4")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
-texture = SubResource("ViewportTexture_oansv")
+[node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("10_oansv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+texture = SubResource("ViewportTexture_6flps")
 HealthComponent = NodePath("../HealthComponent")

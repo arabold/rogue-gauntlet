@@ -1,16 +1,16 @@
 [gd_scene load_steps=4 format=3 uid="uid://bwn75e8ldk4nt"]
 
-[ext_resource type="Script" path="res://scenes/components/FloatingLabel.cs" id="1_lm8es"]
+[ext_resource type="Script" uid="uid://b2mbnj58veou5" path="res://scenes/components/FloatingLabel.cs" id="1_lm8es"]
 [ext_resource type="Texture2D" uid="uid://dopnkuqg2jiqj" path="res://scenes/ui/assets/xbox_button_color_x.png" id="1_tx3b5"]
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_t52t8"]
+[sub_resource type="ViewportTexture" id="ViewportTexture_scbep"]
 viewport_path = NodePath("SubViewport")
 
 [node name="FloatingLabel" type="Sprite3D"]
 layers = 256
 billboard = 1
 no_depth_test = true
-texture = SubResource("ViewportTexture_t52t8")
+texture = SubResource("ViewportTexture_scbep")
 script = ExtResource("1_lm8es")
 
 [node name="SubViewport" type="SubViewport" parent="."]
@@ -30,10 +30,10 @@ layout_mode = 2
 texture = ExtResource("1_tx3b5")
 
 [node name="Label" type="Label" parent="SubViewport/HFlowContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 10
-theme_override_font_sizes/font_size = 32
-text = "Label"
+text = "Text"
 vertical_alignment = 1

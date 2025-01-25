@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://c7qnx3sxaoosn" path="res://assets/kaykit-skeletons/Skeleton_Warrior.glb" id="2_srno3"]
 [ext_resource type="PackedScene" uid="uid://ug658msv7mmw" path="res://scenes/components/loot_table_item.tscn" id="3_8cqyb"]
 [ext_resource type="Resource" uid="uid://dnxrasu67oe6k" path="res://scenes/items/gold/gold.tres" id="4_acu02"]
-[ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion.tres" id="5_6enk2"]
+[ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion_small.tres" id="5_6enk2"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_fv4r8"]
 radius = 0.75
@@ -282,8 +282,5 @@ Xp = 30
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
 shape = SubResource("CapsuleShape3D_5rbcv")
-
-[node name="FloatingHealthBar" parent="." index="9"]
-texture = SubResource("ViewportTexture_ty78u")
 
 [editable path="Pivot/Skeleton_Warrior"]

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /// </summary>
 public partial class InteractiveComponent : Area3D, IInteractive
 {
-	[Export] public string Label { get; set; } = "Interact";
+	[Export] public string Text { get; set; } = "Interact";
 	[Export]
 	public bool IsInteractive
 	{
@@ -36,7 +36,7 @@ public partial class InteractiveComponent : Area3D, IInteractive
 	{
 		_floatingLabel = GetNode<FloatingLabel>("FloatingLabel");
 		_floatingLabel.Visible = false;
-		_floatingLabel.Label = Label;
+		_floatingLabel.Text = Text;
 	}
 
 	public void Interact(Player actor)

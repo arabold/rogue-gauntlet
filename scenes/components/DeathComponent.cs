@@ -2,7 +2,9 @@ using Godot;
 
 public partial class DeathComponent : Node
 {
-	[Export] public HealthComponent HealthComponent { get; set; }
+	[Export] public HealthComponent HealthComponent;
+	[Export] public LootTableComponent LootTableComponent;
+
 	[Export] public int Xp { get; set; } = 100;
 	[Export] public float Delay { get; set; } = 2.0f;
 
@@ -20,6 +22,8 @@ public partial class DeathComponent : Node
 		owner.CollisionLayer = 0;
 		owner.SetPhysicsProcess(false);
 
+		// Drop loot and add XP
+		LootTableComponent?.DropLoot();
 		GameManager.Instance.PlayerStats.AddXp(Xp);
 
 		// Wait for death animation to finish

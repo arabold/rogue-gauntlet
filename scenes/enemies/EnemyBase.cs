@@ -32,11 +32,6 @@ public partial class EnemyBase : CharacterBody3D, IDamageable
 		// Hide the mesh until the animations are fully initialized to
 		// prevent any flickering
 		Visible = false;
-
-		if (HealthComponent != null)
-		{
-			HealthComponent.Died += OnDied;
-		}
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -47,10 +42,5 @@ public partial class EnemyBase : CharacterBody3D, IDamageable
 	public void TakeDamage(int amount, Vector3 attackDirection)
 	{
 		HurtBoxComponent?.TakeDamage(amount, attackDirection);
-	}
-
-	public void OnDied()
-	{
-		LootTableComponent?.DropLoot();
 	}
 }
