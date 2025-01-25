@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://cmguxod8mb5o6"]
+
+[ext_resource type="Script" uid="uid://6brhycbekdik" path="res://scenes/ui/Preview.cs" id="1_lnfqo"]
+
+[node name="Preview" type="SubViewport"]
+own_world_3d = true
+handle_input_locally = false
+size = Vector2i(128, 128)
+render_target_update_mode = 4
+script = ExtResource("1_lnfqo")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.85264, 0.522499, 0, -0.522499, 0.85264, 0, 4, 5)
+projection = 1
+size = 3.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.815939, -0.0041906, -0.578122, 0.434696, 0.663717, 0.608702, 0.381159, -0.747972, 0.543375, 0, 0, 0)

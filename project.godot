@@ -50,6 +50,10 @@ damageable="Object can take damage or can be destroyed"
 stairs=""
 door=""
 
+[gui]
+
+theme/custom="uid://b0hdi5gdamdfw"
+
 [input]
 
 move_up={

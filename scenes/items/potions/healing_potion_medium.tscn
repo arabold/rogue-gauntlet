@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://cwwmhhgksrbip"]
+
+[ext_resource type="PackedScene" uid="uid://d31uim4v78eau" path="res://assets/kaykit-dungeon-remastered/bottle_B_green.gltf" id="1_6dfeb"]
+
+[node name="HealingPotionMedium" instance=ExtResource("1_6dfeb")]
+
+[node name="bottle_B_green" parent="." index="0"]
+layers = 32

@@ -1,12 +1,24 @@
-[gd_scene load_steps=3 format=3 uid="uid://bgq1h0jm4ybvw"]
+[gd_scene load_steps=4 format=3 uid="uid://bgq1h0jm4ybvw"]
 
 [ext_resource type="Script" uid="uid://cfcm8ru6gkvrc" path="res://scenes/ui/InventoryDialog.cs" id="1_jpxud"]
 [ext_resource type="PackedScene" uid="uid://c03l8q524arxf" path="res://scenes/ui/item_slot_panel.tscn" id="2_jd25f"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jd25f"]
+content_margin_left = 20.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+
 [node name="InventoryDialog" type="PanelContainer"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -222.0
+offset_top = -112.5
+offset_right = 222.0
+offset_bottom = 112.5
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_jpxud")
@@ -29,7 +41,23 @@ unique_name_in_owner = true
 layout_mode = 2
 text = " X "
 
-[node name="InventoryGrid" type="GridContainer" parent="VBoxContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_jd25f")
+
+[node name="InventoryGrid" type="GridContainer" parent="VBoxContainer/PanelContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
 columns = 8
+
+[node name="SampleItem1" parent="VBoxContainer/PanelContainer/InventoryGrid" instance=ExtResource("2_jd25f")]
+layout_mode = 2
+
+[node name="SampleItem2" parent="VBoxContainer/PanelContainer/InventoryGrid" instance=ExtResource("2_jd25f")]
+layout_mode = 2
+
+[node name="SampleItem3" parent="VBoxContainer/PanelContainer/InventoryGrid" instance=ExtResource("2_jd25f")]
+layout_mode = 2

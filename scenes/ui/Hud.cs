@@ -10,9 +10,9 @@ public partial class Hud : Control
 	public override void _Ready()
 	{
 		// Get references to the child nodes
-		_healthBar = GetNode<ProgressBar>("HealthBar");
-		_xpLabel = GetNode<Label>("XpLabel");
-		_goldLabel = GetNode<Label>("GoldLabel");
+		_healthBar = GetNode<ProgressBar>("%HealthBar");
+		_xpLabel = GetNode<Label>("%XpLabel");
+		_goldLabel = GetNode<Label>("%GoldLabel");
 
 		// Connect signals from GameManager to update HUD elements
 		SignalBus.Instance.XpUpdated += OnXpUpdated;
@@ -30,10 +30,10 @@ public partial class Hud : Control
 		// Initialize cooldown bars array
 		_cooldownBars = new ProgressBar[]
 		{
-			GetNode<ProgressBar>("ActionCooldown1"),
-			GetNode<ProgressBar>("ActionCooldown2"),
-			GetNode<ProgressBar>("ActionCooldown3"),
-			GetNode<ProgressBar>("ActionCooldown4")
+			GetNode<ProgressBar>("%ActionCooldown1"),
+			GetNode<ProgressBar>("%ActionCooldown2"),
+			GetNode<ProgressBar>("%ActionCooldown3"),
+			GetNode<ProgressBar>("%ActionCooldown4")
 		};
 
 		// Set initial values

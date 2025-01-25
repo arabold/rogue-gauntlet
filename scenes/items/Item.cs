@@ -4,7 +4,7 @@ using Godot;
 public partial class Item : Resource
 {
 	[Export] public PackedScene Scene;
-	[Export] public Texture Icon;
+	[Export] public Texture2D Icon;
 	[Export] public string Name;
 	[Export] public float Durability = 1.0f;
 	[Export] public float Quality = 1.0f;

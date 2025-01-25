@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="ConsumableItem" load_steps=6 format=3 uid="uid://b7ama245i2u14"]
+
+[ext_resource type="Script" uid="uid://irr1yr02p4rg" path="res://scenes/buffs/HealingBuff.cs" id="1_h2mqm"]
+[ext_resource type="Texture2D" uid="uid://dq1fvu6l25b3r" path="res://icon.svg" id="2_uhg3k"]
+[ext_resource type="PackedScene" uid="uid://bgnhd57qs37yb" path="res://scenes/items/potions/healing_potion_large.tscn" id="3_h2mqm"]
+[ext_resource type="Script" uid="uid://c15rgkjymw2e6" path="res://scenes/items/ConsumableItem.cs" id="4_5qc1u"]
+
+[sub_resource type="Resource" id="Resource_pgqm5"]
+script = ExtResource("1_h2mqm")
+HealthPointsPerTick = 5
+Name = "Healing"
+Duration = 1.0
+TicksPerSecond = 10
+metadata/_custom_type_script = ExtResource("1_h2mqm")
+
+[resource]
+script = ExtResource("4_5qc1u")
+Buff = SubResource("Resource_pgqm5")
+Scene = ExtResource("3_h2mqm")
+Icon = ExtResource("2_uhg3k")
+Name = "Healing Potion"
+Durability = 1.0
+Quality = 1.0
+Value = 100
+Weight = 1.0
+UsesSlot = true
+IsStackable = true
+IsConsumable = true
+IsEquippable = false
+metadata/_custom_type_script = ExtResource("4_5qc1u")
