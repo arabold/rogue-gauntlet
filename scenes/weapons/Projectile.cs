@@ -15,7 +15,7 @@ public partial class Projectile : Node3D
 	{
 		LookAt(GlobalTransform.Origin + Direction, Vector3.Up);
 
-		_hitBoxComponent = GetNode<HitBoxComponent>("HitBoxComponent");
+		_hitBoxComponent = GetNode<HitBoxComponent>("%HitBoxComponent");
 		_hitBoxComponent.HitDetected += OnHitDetected;
 	}
 

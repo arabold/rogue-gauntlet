@@ -111,6 +111,7 @@ script = ExtResource("1_ve8w4")
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, -0.5)
 
 [node name="HitBoxComponent" parent="Pivot" instance=ExtResource("2_p3b8w")]
+unique_name_in_owner = true
 collision_mask = 27
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Pivot/HitBoxComponent"]
