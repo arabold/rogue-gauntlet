@@ -28,12 +28,17 @@ public partial class InventoryDialog : PanelContainer
 		Show();
 	}
 
-	private void OnCloseButtonPressed()
+	public void Close()
 	{
 		_inventory.InventoryUpdated -= Update;
 		_inventory = null;
 		Hide();
 		Update();
+	}
+
+	private void OnCloseButtonPressed()
+	{
+		Close();
 	}
 
 	private void Update()

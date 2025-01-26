@@ -31,7 +31,14 @@ public partial class Main : Node
 		if (@event.IsActionReleased("inventory"))
 		{
 			var inventoryDialog = GetNode<InventoryDialog>("%InventoryDialog");
-			inventoryDialog.Open(GameManager.Instance.Player.Inventory);
+			if (inventoryDialog.Visible)
+			{
+				inventoryDialog.Close();
+			}
+			else
+			{
+				inventoryDialog.Open(GameManager.Instance.Player.Inventory);
+			}
 		}
 
 		base._UnhandledInput(@event);

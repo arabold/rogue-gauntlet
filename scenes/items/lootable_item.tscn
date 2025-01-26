@@ -13,11 +13,3 @@ script = ExtResource("1_an4ny")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="TriggerComponent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("SphereShape3D_gwbx5")
-
-[node name="OmniLight3D" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
-layers = 256
-light_specular = 0.0
-light_bake_mode = 0
-light_cull_mask = 4294966304
-omni_range = 3.0

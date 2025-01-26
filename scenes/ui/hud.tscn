@@ -1,10 +1,14 @@
-[gd_scene load_steps=11 format=3 uid="uid://beddkxj3k6x7i"]
+[gd_scene load_steps=15 format=3 uid="uid://beddkxj3k6x7i"]
 
 [ext_resource type="Script" uid="uid://bqo7ff6mav3rv" path="res://scenes/ui/Hud.cs" id="1_fp313"]
 [ext_resource type="Texture2D" uid="uid://cikg3wuhbyjl8" path="res://scenes/ui/assets/xbox_button_color_a.png" id="2_wue5h"]
+[ext_resource type="PackedScene" uid="uid://cmguxod8mb5o6" path="res://scenes/ui/preview.tscn" id="3_gss2c"]
 [ext_resource type="Texture2D" uid="uid://dju510v8mobia" path="res://scenes/ui/assets/xbox_button_color_b.png" id="3_jst1t"]
+[ext_resource type="PackedScene" uid="uid://bcaymd3eo2cxa" path="res://scenes/items/weapons/axe_common.tscn" id="4_h022r"]
 [ext_resource type="Texture2D" uid="uid://dopnkuqg2jiqj" path="res://scenes/ui/assets/xbox_button_color_x.png" id="4_ous7w"]
 [ext_resource type="Texture2D" uid="uid://budolujtrxg4p" path="res://scenes/ui/assets/xbox_button_color_y.png" id="5_c7l7m"]
+[ext_resource type="PackedScene" uid="uid://bbuw01h4uiwj8" path="res://assets/kaykit-dungeon-remastered/bottle_C_green.gltf" id="7_4jqwt"]
+[ext_resource type="PackedScene" uid="uid://d3gug0f3b7txa" path="res://assets/kaykit-dungeon-legacy/crossbow_common.gltf.glb" id="9_kicr4"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_136eg"]
 content_margin_left = 50.0
@@ -90,6 +94,14 @@ show_percentage = false
 scale = Vector2(0.6, 0.6)
 texture = ExtResource("2_wue5h")
 
+[node name="SubViewportContainer" type="SubViewportContainer" parent="HBoxContainer/ActionContainer1"]
+layout_mode = 2
+
+[node name="Preview1" parent="HBoxContainer/ActionContainer1/SubViewportContainer" instance=ExtResource("3_gss2c")]
+unique_name_in_owner = true
+size = Vector2i(100, 100)
+Scene = ExtResource("4_h022r")
+
 [node name="ActionContainer2" type="PanelContainer" parent="HBoxContainer"]
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
@@ -107,6 +119,14 @@ show_percentage = false
 [node name="XboxButtonColorB" type="Sprite2D" parent="HBoxContainer/ActionContainer2"]
 scale = Vector2(0.6, 0.6)
 texture = ExtResource("3_jst1t")
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="HBoxContainer/ActionContainer2"]
+layout_mode = 2
+
+[node name="Preview2" parent="HBoxContainer/ActionContainer2/SubViewportContainer" instance=ExtResource("3_gss2c")]
+unique_name_in_owner = true
+size = Vector2i(100, 100)
+Scene = ExtResource("4_h022r")
 
 [node name="ActionContainer3" type="PanelContainer" parent="HBoxContainer"]
 custom_minimum_size = Vector2(100, 100)
@@ -126,6 +146,14 @@ show_percentage = false
 scale = Vector2(0.6, 0.6)
 texture = ExtResource("4_ous7w")
 
+[node name="SubViewportContainer" type="SubViewportContainer" parent="HBoxContainer/ActionContainer3"]
+layout_mode = 2
+
+[node name="Preview3" parent="HBoxContainer/ActionContainer3/SubViewportContainer" instance=ExtResource("3_gss2c")]
+unique_name_in_owner = true
+size = Vector2i(100, 100)
+Scene = ExtResource("7_4jqwt")
+
 [node name="ActionContainer4" type="PanelContainer" parent="HBoxContainer"]
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
@@ -143,3 +171,11 @@ show_percentage = false
 [node name="XboxButtonColorY" type="Sprite2D" parent="HBoxContainer/ActionContainer4"]
 scale = Vector2(0.6, 0.6)
 texture = ExtResource("5_c7l7m")
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="HBoxContainer/ActionContainer4"]
+layout_mode = 2
+
+[node name="Preview4" parent="HBoxContainer/ActionContainer4/SubViewportContainer" instance=ExtResource("3_gss2c")]
+unique_name_in_owner = true
+size = Vector2i(100, 100)
+Scene = ExtResource("9_kicr4")
