@@ -20,12 +20,37 @@ public partial class FloatingLabel : Sprite3D
 		}
 	}
 
+	[Export]
+	public string ActionBinding
+	{
+		get => _actionBinding;
+		set
+		{
+			_actionBinding = value;
+			if (IsNodeReady() && _keyBinding != null)
+			{
+				_keyBinding.ActionBinding = _actionBinding;
+			}
+		}
+	}
+
 	private string _text = "Text";
+	private string _actionBinding = "action_1";
 	private Label _label;
-	private SubViewport _subViewport;
+	private KeyBinding _keyBinding;
 
 	public override void _Ready()
 	{
+		_keyBinding = GetNode<KeyBinding>("%KeyBinding");
+		if (_actionBinding != null && _actionBinding != "")
+		{
+			_keyBinding.ActionBinding = _actionBinding;
+		}
+		else
+		{
+			_keyBinding.QueueFree();
+		}
+
 		_label = GetNode<Label>("%Label");
 		_label.Text = _text;
 	}

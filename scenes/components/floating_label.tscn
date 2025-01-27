@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://bwn75e8ldk4nt"]
+[gd_scene load_steps=5 format=3 uid="uid://bwn75e8ldk4nt"]
 
 [ext_resource type="Script" uid="uid://b2mbnj58veou5" path="res://scenes/components/FloatingLabel.cs" id="1_lm8es"]
-[ext_resource type="Texture2D" uid="uid://dopnkuqg2jiqj" path="res://scenes/ui/assets/xbox_button_color_x.png" id="1_tx3b5"]
+[ext_resource type="PackedScene" uid="uid://cr2cd42w861x0" path="res://scenes/components/key_binding.tscn" id="2_scbep"]
+[ext_resource type="Texture2D" uid="uid://c6rdgh17kn84w" path="res://assets/kenny-input-prompts/keyboard/keyboard_1.svg" id="3_ki1k4"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_scbep"]
 viewport_path = NodePath("SubViewport")
@@ -25,9 +26,10 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="TextureRect" type="TextureRect" parent="SubViewport/HFlowContainer"]
+[node name="KeyBinding" parent="SubViewport/HFlowContainer" instance=ExtResource("2_scbep")]
+unique_name_in_owner = true
 layout_mode = 2
-texture = ExtResource("1_tx3b5")
+texture = ExtResource("3_ki1k4")
 
 [node name="Label" type="Label" parent="SubViewport/HFlowContainer"]
 unique_name_in_owner = true

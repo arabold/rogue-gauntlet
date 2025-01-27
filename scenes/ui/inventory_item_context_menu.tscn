@@ -1,0 +1,54 @@
+[gd_scene load_steps=2 format=3 uid="uid://57e4xuuji6nc"]
+
+[ext_resource type="Script" uid="uid://4jv7cjmbwkw3" path="res://scenes/ui/InventoryItemContextMenu.cs" id="1_ghh4b"]
+
+[node name="InventoryItemContextMenu" type="PopupPanel"]
+size = Vector2i(180, 321)
+visible = true
+transient_to_focused = true
+script = ExtResource("1_ghh4b")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 176.0
+offset_bottom = 317.0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="UseButton" type="Button" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Use"
+alignment = 0
+
+[node name="EquipButton" type="Button" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Equip"
+alignment = 0
+
+[node name="UnequipButton" type="Button" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Unequip"
+alignment = 0
+
+[node name="SplitButton" type="Button" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Split
+"
+alignment = 0
+
+[node name="DropButton" type="Button" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Drop"
+alignment = 0

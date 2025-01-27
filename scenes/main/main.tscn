@@ -32,7 +32,8 @@ environment = SubResource("Environment_cxo8v")
 [node name="Level" parent="." instance=ExtResource("5_nxjfc")]
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.707107, -0.664463, 0.241845, 0, 0.34202, 0.939693, -0.707107, -0.664463, 0.241845, 3.62755, 14.0949, 3.62755)
+transform = Transform3D(0.707107, -0.541675, 0.454519, 0, 0.642788, 0.766044, -0.707107, -0.541675, 0.454519, 6.81757, 11.4903, 6.81757)
+projection = 1
 current = true
 size = 20.0
 
@@ -42,7 +43,7 @@ process_physics_priority = 300
 script = ExtResource("6_g3uvw")
 
 [node name="PhantomCamera3D" type="Node3D" parent="." node_paths=PackedStringArray("follow_target")]
-transform = Transform3D(0.707087, -0.664451, 0.241837, 0, 0.342014, 0.939662, -0.707087, -0.664451, 0.241837, 3.62755, 14.0949, 3.62755)
+transform = Transform3D(0.707087, -0.541665, 0.454505, 0, 0.642776, 0.76602, -0.707087, -0.541665, 0.454505, 6.81757, 11.4903, 6.81757)
 top_level = true
 script = ExtResource("7_wl18x")
 follow_mode = 5

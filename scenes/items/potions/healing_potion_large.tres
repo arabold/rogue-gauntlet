@@ -25,6 +25,4 @@ Value = 100
 Weight = 1.0
 UsesSlot = true
 IsStackable = true
-IsConsumable = true
-IsEquippable = false
 metadata/_custom_type_script = ExtResource("4_5qc1u")

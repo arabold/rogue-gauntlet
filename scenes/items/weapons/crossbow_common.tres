@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://biricifur5j8u"]
+
+[ext_resource type="PackedScene" uid="uid://d3gug0f3b7txa" path="res://assets/kaykit-dungeon-legacy/crossbow_common.gltf.glb" id="1_7ihye"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_cecn6"]
+
+[resource]
+script = ExtResource("2_cecn6")
+IsTwoHanded = false
+IsRanged = true
+Type = 4
+DamageMin = 0
+DamageMax = 0
+Armor = 0
+AccuracyModifier = 1.0
+SpeedModifier = 1.0
+ReachModifier = 1.0
+Name = "Crossbow"
+Scene = ExtResource("1_7ihye")
+Durability = 1.0
+Quality = 1.0
+Value = 0
+Weight = 0.0
+UsesSlot = true
+IsStackable = false
+IsConsumable = null
+IsEquippable = null
+metadata/_custom_type_script = ExtResource("2_cecn6")

@@ -37,7 +37,8 @@ public partial class Main : Node
 			}
 			else
 			{
-				inventoryDialog.Open(GameManager.Instance.Player.Inventory);
+				var player = GameManager.Instance.Player;
+				inventoryDialog.Open(player.Inventory);
 			}
 		}
 

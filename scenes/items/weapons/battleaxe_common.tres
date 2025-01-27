@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://c3cgdlchx0g5u"]
+
+[ext_resource type="PackedScene" uid="uid://diisjjaetpt6g" path="res://assets/kaykit-dungeon-legacy/axeDouble_common.gltf.glb" id="1_c5hji"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_rmilr"]
+
+[resource]
+script = ExtResource("2_rmilr")
+IsTwoHanded = true
+IsRanged = false
+Type = 4
+DamageMin = 6
+DamageMax = 12
+Armor = 0
+AccuracyModifier = 1.0
+SpeedModifier = 0.8
+ReachModifier = 1.1
+Name = "Battle Axe"
+Scene = ExtResource("1_c5hji")
+Durability = 1.0
+Quality = 1.0
+Value = 0
+Weight = 0.0
+UsesSlot = true
+IsStackable = false
+IsConsumable = null
+IsEquippable = null
+metadata/_custom_type_script = ExtResource("2_rmilr")

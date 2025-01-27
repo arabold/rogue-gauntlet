@@ -1,0 +1,24 @@
+[gd_scene load_steps=9 format=3 uid="uid://cr2cd42w861x0"]
+
+[ext_resource type="Texture2D" uid="uid://c6rdgh17kn84w" path="res://assets/kenny-input-prompts/keyboard/keyboard_1.svg" id="1_dcgba"]
+[ext_resource type="Script" uid="uid://bmc2k5y606gvq" path="res://scenes/components/KeyBinding.cs" id="2_l65vd"]
+[ext_resource type="Texture2D" uid="uid://bbq37vnom6nvb" path="res://assets/kenny-input-prompts/keyboard/keyboard_2.svg" id="4_04ok3"]
+[ext_resource type="Texture2D" uid="uid://i7ausbee771p" path="res://assets/kenny-input-prompts/keyboard/keyboard_3.svg" id="5_hc8qk"]
+[ext_resource type="Texture2D" uid="uid://cti4ror840883" path="res://assets/kenny-input-prompts/keyboard/keyboard_4.svg" id="6_62b3s"]
+[ext_resource type="Texture2D" uid="uid://baqtp4dqrkxtu" path="res://assets/kenny-input-prompts/keyboard/keyboard_5.svg" id="7_ikwvy"]
+[ext_resource type="Texture2D" uid="uid://b3drv5og0xpai" path="res://assets/kenny-input-prompts/keyboard/keyboard_6.svg" id="8_57x1u"]
+[ext_resource type="Texture2D" uid="uid://caeejhajxbitq" path="res://assets/kenny-input-prompts/keyboard/keyboard_i.svg" id="10_04ok3"]
+
+[node name="KeyBinding" type="TextureRect"]
+texture = ExtResource("4_04ok3")
+script = ExtResource("2_l65vd")
+ActionBinding = "action_1"
+KeyboardDict = Dictionary[String, Texture2D]({
+"action_1": ExtResource("1_dcgba"),
+"action_2": ExtResource("4_04ok3"),
+"action_3": ExtResource("5_hc8qk"),
+"action_4": ExtResource("6_62b3s"),
+"action_5": ExtResource("7_ikwvy"),
+"action_6": ExtResource("8_57x1u"),
+"inventory": ExtResource("10_04ok3")
+})

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://cy1kwv8aehsen"]
+
+[ext_resource type="PackedScene" uid="uid://cdsd1m5xe5g0h" path="res://assets/kaykit-dungeon-legacy/shield_common.gltf.glb" id="1_lxa4h"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_mvkcv"]
+
+[resource]
+script = ExtResource("2_mvkcv")
+IsTwoHanded = false
+IsRanged = false
+Type = 4
+DamageMin = 0
+DamageMax = 0
+Armor = 3
+AccuracyModifier = 1.0
+SpeedModifier = 1.0
+ReachModifier = 1.0
+Name = "Shield"
+Scene = ExtResource("1_lxa4h")
+Durability = 1.0
+Quality = 1.0
+Value = 0
+Weight = 0.0
+UsesSlot = true
+IsStackable = false
+IsConsumable = null
+IsEquippable = null
+metadata/_custom_type_script = ExtResource("2_mvkcv")

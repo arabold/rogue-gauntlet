@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://btk1o3ydc6yaf"]
+
+[ext_resource type="PackedScene" uid="uid://ddkigg2atj5wo" path="res://assets/kaykit-dungeon-legacy/sword_common.gltf.glb" id="1_x0rs4"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_e51uk"]
+
+[resource]
+script = ExtResource("2_e51uk")
+IsTwoHanded = false
+IsRanged = false
+Type = 4
+DamageMin = 2
+DamageMax = 8
+Armor = 0
+AccuracyModifier = 1.0
+SpeedModifier = 0.9
+ReachModifier = 1.2
+Name = "Long Sword"
+Scene = ExtResource("1_x0rs4")
+Durability = 1.0
+Quality = 1.0
+Value = 0
+Weight = 0.0
+UsesSlot = true
+IsStackable = false
+IsConsumable = null
+IsEquippable = null
+metadata/_custom_type_script = ExtResource("2_e51uk")

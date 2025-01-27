@@ -1,12 +1,8 @@
-[gd_scene load_steps=15 format=3 uid="uid://beddkxj3k6x7i"]
+[gd_scene load_steps=9 format=3 uid="uid://beddkxj3k6x7i"]
 
 [ext_resource type="Script" uid="uid://bqo7ff6mav3rv" path="res://scenes/ui/Hud.cs" id="1_fp313"]
-[ext_resource type="Texture2D" uid="uid://cikg3wuhbyjl8" path="res://scenes/ui/assets/xbox_button_color_a.png" id="2_wue5h"]
-[ext_resource type="PackedScene" uid="uid://cmguxod8mb5o6" path="res://scenes/ui/preview.tscn" id="3_gss2c"]
-[ext_resource type="Texture2D" uid="uid://dju510v8mobia" path="res://scenes/ui/assets/xbox_button_color_b.png" id="3_jst1t"]
+[ext_resource type="PackedScene" uid="uid://c6oltejkpt4a0" path="res://scenes/ui/action_container.tscn" id="2_kicr4"]
 [ext_resource type="PackedScene" uid="uid://bcaymd3eo2cxa" path="res://scenes/items/weapons/axe_common.tscn" id="4_h022r"]
-[ext_resource type="Texture2D" uid="uid://dopnkuqg2jiqj" path="res://scenes/ui/assets/xbox_button_color_x.png" id="4_ous7w"]
-[ext_resource type="Texture2D" uid="uid://budolujtrxg4p" path="res://scenes/ui/assets/xbox_button_color_y.png" id="5_c7l7m"]
 [ext_resource type="PackedScene" uid="uid://bbuw01h4uiwj8" path="res://assets/kaykit-dungeon-remastered/bottle_C_green.gltf" id="7_4jqwt"]
 [ext_resource type="PackedScene" uid="uid://d3gug0f3b7txa" path="res://assets/kaykit-dungeon-legacy/crossbow_common.gltf.glb" id="9_kicr4"]
 
@@ -22,12 +18,6 @@ bg_color = Color(0.0748453, 0.0748453, 0.0748452, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e0nu8"]
 bg_color = Color(0.6, 0, 0, 1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nmk63"]
-bg_color = Color(0, 0, 0, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kncs8"]
-bg_color = Color(0.6, 0, 0, 1)
-
 [node name="HUD" type="PanelContainer"]
 anchors_preset = 15
 anchor_right = 1.0
@@ -41,27 +31,25 @@ script = ExtResource("1_fp313")
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 2
 size_flags_vertical = 8
-theme_override_constants/separation = 10
 
 [node name="PanelContainer" type="VBoxContainer" parent="HBoxContainer"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
+theme_override_constants/separation = 8
 
 [node name="XpLabel" type="Label" parent="HBoxContainer/PanelContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "XP: 0"
-horizontal_alignment = 1
 
 [node name="GoldLabel" type="Label" parent="HBoxContainer/PanelContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "Gold: 0"
-horizontal_alignment = 1
 
-[node name="HealthBar" type="ProgressBar" parent="HBoxContainer"]
+[node name="HealthBar" type="ProgressBar" parent="HBoxContainer/PanelContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(450, 50)
 layout_mode = 2
@@ -76,106 +64,40 @@ show_percentage = false
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ActionContainer1" type="PanelContainer" parent="HBoxContainer"]
-custom_minimum_size = Vector2(100, 100)
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer"]
 layout_mode = 2
+size_flags_vertical = 8
+theme_override_constants/separation = 16
 
-[node name="ActionCooldown1" type="ProgressBar" parent="HBoxContainer/ActionContainer1"]
-unique_name_in_owner = true
+[node name="ActionContainer1" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2
-size_flags_vertical = 1
-theme_override_styles/background = SubResource("StyleBoxFlat_nmk63")
-theme_override_styles/fill = SubResource("StyleBoxFlat_kncs8")
-value = 75.0
-fill_mode = 3
-show_percentage = false
+ActionBinding = "action_1"
+PreviewScene = ExtResource("4_h022r")
 
-[node name="XboxButtonColorA" type="Sprite2D" parent="HBoxContainer/ActionContainer1"]
-scale = Vector2(0.6, 0.6)
-texture = ExtResource("2_wue5h")
-
-[node name="SubViewportContainer" type="SubViewportContainer" parent="HBoxContainer/ActionContainer1"]
+[node name="ActionContainer2" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2
+Slot = 1
+ActionBinding = "action_2"
+PreviewScene = ExtResource("4_h022r")
 
-[node name="Preview1" parent="HBoxContainer/ActionContainer1/SubViewportContainer" instance=ExtResource("3_gss2c")]
-unique_name_in_owner = true
-size = Vector2i(100, 100)
-Scene = ExtResource("4_h022r")
-
-[node name="ActionContainer2" type="PanelContainer" parent="HBoxContainer"]
-custom_minimum_size = Vector2(100, 100)
+[node name="ActionContainer3" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2
+Slot = 2
+ActionBinding = "action_3"
+PreviewScene = ExtResource("7_4jqwt")
 
-[node name="ActionCooldown2" type="ProgressBar" parent="HBoxContainer/ActionContainer2"]
-unique_name_in_owner = true
+[node name="ActionContainer4" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2
-size_flags_vertical = 1
-theme_override_styles/background = SubResource("StyleBoxFlat_nmk63")
-theme_override_styles/fill = SubResource("StyleBoxFlat_kncs8")
-value = 75.0
-fill_mode = 3
-show_percentage = false
+Slot = 3
+ActionBinding = "action_4"
+PreviewScene = ExtResource("9_kicr4")
 
-[node name="XboxButtonColorB" type="Sprite2D" parent="HBoxContainer/ActionContainer2"]
-scale = Vector2(0.6, 0.6)
-texture = ExtResource("3_jst1t")
-
-[node name="SubViewportContainer" type="SubViewportContainer" parent="HBoxContainer/ActionContainer2"]
+[node name="ActionContainer5" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2
+Slot = 4
+ActionBinding = "action_5"
 
-[node name="Preview2" parent="HBoxContainer/ActionContainer2/SubViewportContainer" instance=ExtResource("3_gss2c")]
-unique_name_in_owner = true
-size = Vector2i(100, 100)
-Scene = ExtResource("4_h022r")
-
-[node name="ActionContainer3" type="PanelContainer" parent="HBoxContainer"]
-custom_minimum_size = Vector2(100, 100)
+[node name="ActionContainer6" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2
-
-[node name="ActionCooldown3" type="ProgressBar" parent="HBoxContainer/ActionContainer3"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 1
-theme_override_styles/background = SubResource("StyleBoxFlat_nmk63")
-theme_override_styles/fill = SubResource("StyleBoxFlat_kncs8")
-value = 75.0
-fill_mode = 3
-show_percentage = false
-
-[node name="XboxButtonColorX" type="Sprite2D" parent="HBoxContainer/ActionContainer3"]
-scale = Vector2(0.6, 0.6)
-texture = ExtResource("4_ous7w")
-
-[node name="SubViewportContainer" type="SubViewportContainer" parent="HBoxContainer/ActionContainer3"]
-layout_mode = 2
-
-[node name="Preview3" parent="HBoxContainer/ActionContainer3/SubViewportContainer" instance=ExtResource("3_gss2c")]
-unique_name_in_owner = true
-size = Vector2i(100, 100)
-Scene = ExtResource("7_4jqwt")
-
-[node name="ActionContainer4" type="PanelContainer" parent="HBoxContainer"]
-custom_minimum_size = Vector2(100, 100)
-layout_mode = 2
-
-[node name="ActionCooldown4" type="ProgressBar" parent="HBoxContainer/ActionContainer4"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 1
-theme_override_styles/background = SubResource("StyleBoxFlat_nmk63")
-theme_override_styles/fill = SubResource("StyleBoxFlat_kncs8")
-value = 75.0
-fill_mode = 3
-show_percentage = false
-
-[node name="XboxButtonColorY" type="Sprite2D" parent="HBoxContainer/ActionContainer4"]
-scale = Vector2(0.6, 0.6)
-texture = ExtResource("5_c7l7m")
-
-[node name="SubViewportContainer" type="SubViewportContainer" parent="HBoxContainer/ActionContainer4"]
-layout_mode = 2
-
-[node name="Preview4" parent="HBoxContainer/ActionContainer4/SubViewportContainer" instance=ExtResource("3_gss2c")]
-unique_name_in_owner = true
-size = Vector2i(100, 100)
-Scene = ExtResource("9_kicr4")
+Slot = 5
+ActionBinding = "action_6"

@@ -1,0 +1,96 @@
+[gd_scene load_steps=13 format=3 uid="uid://b2smli2h728cv"]
+
+[ext_resource type="PackedScene" uid="uid://cj2f3wqccmlsk" path="res://scenes/ui/equipment_item_panel.tscn" id="1_fkue4"]
+[ext_resource type="Script" uid="uid://de36osmiboeqv" path="res://scenes/ui/EquipmentPanel.cs" id="1_hpsfa"]
+[ext_resource type="Texture2D" uid="uid://dh334kscjc0os" path="res://assets/game-icons/black-knight-helm.svg" id="2_fkue4"]
+[ext_resource type="Texture2D" uid="uid://jsrnqtl67q2f" path="res://assets/game-icons/emerald-necklace.svg" id="3_w86ct"]
+[ext_resource type="Texture2D" uid="uid://crwseuk7kiwn2" path="res://assets/game-icons/arrowhead.svg" id="4_1nu6h"]
+[ext_resource type="Texture2D" uid="uid://omfmfpok1s35" path="res://assets/game-icons/bowie-knife.svg" id="5_hpsfa"]
+[ext_resource type="Texture2D" uid="uid://bi5mcege558u8" path="res://assets/game-icons/chest-armor.svg" id="6_04rni"]
+[ext_resource type="Texture2D" uid="uid://beecrmrr54am" path="res://assets/game-icons/checked-shield.svg" id="7_kwu0s"]
+[ext_resource type="Texture2D" uid="uid://dhrx50h7flc68" path="res://assets/game-icons/globe-ring.svg" id="8_6lwx2"]
+[ext_resource type="Texture2D" uid="uid://df1wufd6htxaf" path="res://assets/game-icons/gloves.svg" id="9_np2w0"]
+[ext_resource type="Texture2D" uid="uid://d14dt02sdvfd3" path="res://assets/game-icons/armored-pants.svg" id="10_jckiu"]
+[ext_resource type="Texture2D" uid="uid://rp8x01gygrxu" path="res://assets/game-icons/leg-armor.svg" id="11_dbude"]
+
+[node name="EquipmentPanel" type="PanelContainer"]
+script = ExtResource("1_hpsfa")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="AmuletPanel" parent="VBoxContainer/HBoxContainer" instance=ExtResource("1_fkue4")]
+unique_name_in_owner = true
+layout_mode = 2
+PlaceholderTexture = ExtResource("3_w86ct")
+
+[node name="HelmetPanel" parent="VBoxContainer/HBoxContainer" instance=ExtResource("1_fkue4")]
+unique_name_in_owner = true
+layout_mode = 2
+PlaceholderTexture = ExtResource("2_fkue4")
+
+[node name="ArrowsPanel" parent="VBoxContainer/HBoxContainer" instance=ExtResource("1_fkue4")]
+unique_name_in_owner = true
+layout_mode = 2
+PlaceholderTexture = ExtResource("4_1nu6h")
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="WeaponPanel" parent="VBoxContainer/HBoxContainer2" instance=ExtResource("1_fkue4")]
+unique_name_in_owner = true
+layout_mode = 2
+PlaceholderTexture = ExtResource("5_hpsfa")
+
+[node name="ArmorPanel" parent="VBoxContainer/HBoxContainer2" instance=ExtResource("1_fkue4")]
+unique_name_in_owner = true
+layout_mode = 2
+PlaceholderTexture = ExtResource("6_04rni")
+
+[node name="ShieldPanel" parent="VBoxContainer/HBoxContainer2" instance=ExtResource("1_fkue4")]
+unique_name_in_owner = true
+layout_mode = 2
+PlaceholderTexture = ExtResource("7_kwu0s")
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="RightRingPanel" parent="VBoxContainer/HBoxContainer3" instance=ExtResource("1_fkue4")]
+unique_name_in_owner = true
+layout_mode = 2
+PlaceholderTexture = ExtResource("8_6lwx2")
+
+[node name="GlovesPanel" parent="VBoxContainer/HBoxContainer3" instance=ExtResource("1_fkue4")]
+unique_name_in_owner = true
+layout_mode = 2
+PlaceholderTexture = ExtResource("9_np2w0")
+
+[node name="LeftRingPanel" parent="VBoxContainer/HBoxContainer3" instance=ExtResource("1_fkue4")]
+unique_name_in_owner = true
+layout_mode = 2
+PlaceholderTexture = ExtResource("8_6lwx2")
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="LegsPanel" parent="VBoxContainer/HBoxContainer4" instance=ExtResource("1_fkue4")]
+unique_name_in_owner = true
+layout_mode = 2
+PlaceholderTexture = ExtResource("10_jckiu")
+
+[node name="BootsPanel" parent="VBoxContainer/HBoxContainer4" instance=ExtResource("1_fkue4")]
+unique_name_in_owner = true
+layout_mode = 2
+PlaceholderTexture = ExtResource("11_dbude")

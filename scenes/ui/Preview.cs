@@ -60,7 +60,7 @@ public partial class Preview : SubViewport
 		// Center the object to the camera
 		var center = aabb.GetCenter();
 		_object.TranslateObjectLocal(-center);
-		_camera.Size = distance * 1.5f;
+		_camera.Size = distance * 1.25f;
 	}
 
 	public void Refresh()

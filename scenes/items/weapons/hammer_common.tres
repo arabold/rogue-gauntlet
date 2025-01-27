@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://l6l5vxvpavp5"]
+
+[ext_resource type="PackedScene" uid="uid://gfvglval5m42" path="res://assets/kaykit-dungeon-legacy/hammer_common.gltf.glb" id="1_3exot"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_ktxjh"]
+
+[resource]
+script = ExtResource("2_ktxjh")
+IsTwoHanded = false
+IsRanged = false
+Type = 4
+DamageMin = 3
+DamageMax = 8
+Armor = 0
+AccuracyModifier = 1.1
+SpeedModifier = 0.9
+ReachModifier = 1.0
+Name = "Hammer"
+Scene = ExtResource("1_3exot")
+Durability = 1.0
+Quality = 1.0
+Value = 0
+Weight = 0.0
+UsesSlot = true
+IsStackable = false
+IsConsumable = null
+IsEquippable = null
+metadata/_custom_type_script = ExtResource("2_ktxjh")

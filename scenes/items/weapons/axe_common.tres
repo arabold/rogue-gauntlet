@@ -1,18 +1,27 @@
-[gd_resource type="Resource" script_class="EquippableItem" load_steps=3 format=3 uid="uid://bylnwqmg1nm57"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://bylnwqmg1nm57"]
 
-[ext_resource type="Script" uid="uid://de5x45p7jum00" path="res://scenes/items/EquippableItem.cs" id="1_4nbvr"]
-[ext_resource type="PackedScene" uid="uid://bcaymd3eo2cxa" path="res://scenes/items/weapons/axe_common.tscn" id="1_w1nru"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="1_4nbvr"]
+[ext_resource type="PackedScene" uid="uid://c1me8lis4pxrw" path="res://assets/kaykit-dungeon-legacy/axe_common.gltf.glb" id="1_w1nru"]
 
 [resource]
 script = ExtResource("1_4nbvr")
-Scene = ExtResource("1_w1nru")
+IsTwoHanded = false
+IsRanged = false
+Type = 4
+DamageMin = 3
+DamageMax = 6
+Armor = 0
+AccuracyModifier = 1.0
+SpeedModifier = 0.9
+ReachModifier = 1.0
 Name = "Axe"
+Scene = ExtResource("1_w1nru")
 Durability = 1.0
-Quality = 0.6
-Value = 10
-Weight = 1.0
+Quality = 1.0
+Value = 0
+Weight = 0.0
 UsesSlot = true
 IsStackable = false
-IsConsumable = false
-IsEquippable = true
+IsConsumable = null
+IsEquippable = null
 metadata/_custom_type_script = ExtResource("1_4nbvr")

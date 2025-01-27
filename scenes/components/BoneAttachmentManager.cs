@@ -12,7 +12,7 @@ public enum AttachmentType
 	Cape
 }
 
-public enum EquipmentSlot
+public enum AttachmentEquipmentSlot
 {
 	OneHandAxe,
 	TwoHandAxe,
@@ -28,9 +28,9 @@ public partial class BoneAttachmentManager : Node
 	[Export]
 	public Node3D CharacterNode { get; set; }
 
-	private Dictionary<string, Dictionary<EquipmentSlot, string>> _characterEquipmentPaths;
+	private Dictionary<string, Dictionary<AttachmentEquipmentSlot, string>> _characterEquipmentPaths;
 	private Dictionary<string, BoneAttachment3D> _attachmentNodes;
-	private Dictionary<EquipmentSlot, AttachmentType> _slotTypes;
+	private Dictionary<AttachmentEquipmentSlot, AttachmentType> _slotTypes;
 	private string _currentCharacterType = "Barbarian";
 
 	public override void _Ready()
@@ -50,24 +50,24 @@ public partial class BoneAttachmentManager : Node
 		}
 
 		HideAllAttachments();
-		Equip(EquipmentSlot.OneHandAxe);
-		Equip(EquipmentSlot.BarbarianHat);
-		Equip(EquipmentSlot.BarbarianCape);
+		Equip(AttachmentEquipmentSlot.OneHandAxe);
+		Equip(AttachmentEquipmentSlot.BarbarianHat);
+		Equip(AttachmentEquipmentSlot.BarbarianCape);
 	}
 
 	private void InitializeEquipmentMappings()
 	{
-		_characterEquipmentPaths = new Dictionary<string, Dictionary<EquipmentSlot, string>>
+		_characterEquipmentPaths = new Dictionary<string, Dictionary<AttachmentEquipmentSlot, string>>
 			{
-				{ "Barbarian", new Dictionary<EquipmentSlot, string>
+				{ "Barbarian", new Dictionary<AttachmentEquipmentSlot, string>
 					{
-						{ EquipmentSlot.OneHandAxe, "1H_Axe" },
-						{ EquipmentSlot.TwoHandAxe, "2H_Axe" },
-						{ EquipmentSlot.RoundShield, "Barbarian_Round_Shield" },
-						{ EquipmentSlot.OffhandAxe, "1H_Axe_Offhand" },
-						{ EquipmentSlot.Mug, "Mug" },
-						{ EquipmentSlot.BarbarianHat, "Barbarian_Hat" },
-						{ EquipmentSlot.BarbarianCape, "Barbarian_Cape" }
+						{ AttachmentEquipmentSlot.OneHandAxe, "1H_Axe" },
+						{ AttachmentEquipmentSlot.TwoHandAxe, "2H_Axe" },
+						{ AttachmentEquipmentSlot.RoundShield, "Barbarian_Round_Shield" },
+						{ AttachmentEquipmentSlot.OffhandAxe, "1H_Axe_Offhand" },
+						{ AttachmentEquipmentSlot.Mug, "Mug" },
+						{ AttachmentEquipmentSlot.BarbarianHat, "Barbarian_Hat" },
+						{ AttachmentEquipmentSlot.BarbarianCape, "Barbarian_Cape" }
 					}
 				}
 			};
@@ -75,19 +75,19 @@ public partial class BoneAttachmentManager : Node
 
 	private void InitializeSlotTypes()
 	{
-		_slotTypes = new Dictionary<EquipmentSlot, AttachmentType>
+		_slotTypes = new Dictionary<AttachmentEquipmentSlot, AttachmentType>
 			{
-				{ EquipmentSlot.OneHandAxe, AttachmentType.OneHandedWeapon },
-				{ EquipmentSlot.TwoHandAxe, AttachmentType.TwoHandedWeapon },
-				{ EquipmentSlot.RoundShield, AttachmentType.OffhandWeapon },
-				{ EquipmentSlot.OffhandAxe, AttachmentType.OffhandWeapon },
-				{ EquipmentSlot.Mug, AttachmentType.Item },
-				{ EquipmentSlot.BarbarianHat, AttachmentType.Hat },
-				{ EquipmentSlot.BarbarianCape, AttachmentType.Cape }
+				{ AttachmentEquipmentSlot.OneHandAxe, AttachmentType.OneHandedWeapon },
+				{ AttachmentEquipmentSlot.TwoHandAxe, AttachmentType.TwoHandedWeapon },
+				{ AttachmentEquipmentSlot.RoundShield, AttachmentType.OffhandWeapon },
+				{ AttachmentEquipmentSlot.OffhandAxe, AttachmentType.OffhandWeapon },
+				{ AttachmentEquipmentSlot.Mug, AttachmentType.Item },
+				{ AttachmentEquipmentSlot.BarbarianHat, AttachmentType.Hat },
+				{ AttachmentEquipmentSlot.BarbarianCape, AttachmentType.Cape }
 			};
 	}
 
-	private void ShowAttachment(EquipmentSlot slot, bool isVisible)
+	private void ShowAttachment(AttachmentEquipmentSlot slot, bool isVisible)
 	{
 		var path = _characterEquipmentPaths[_currentCharacterType][slot];
 		if (_attachmentNodes.TryGetValue(path, out var node))
@@ -104,7 +104,7 @@ public partial class BoneAttachmentManager : Node
 		}
 	}
 
-	public void Equip(EquipmentSlot slot)
+	public void Equip(AttachmentEquipmentSlot slot)
 	{
 		var type = _slotTypes[slot];
 
