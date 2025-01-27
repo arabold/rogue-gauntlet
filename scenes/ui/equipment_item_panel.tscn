@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://cj2f3wqccmlsk"]
 
 [ext_resource type="Script" uid="uid://d3jom273tc72g" path="res://scenes/ui/EquipmentItemPanel.cs" id="1_2l0w6"]
-[ext_resource type="PackedScene" uid="uid://cmguxod8mb5o6" path="res://scenes/ui/preview.tscn" id="2_2l0w6"]
+[ext_resource type="PackedScene" uid="uid://c03l8q524arxf" path="res://scenes/ui/item_slot_panel.tscn" id="2_dikul"]
 
 [node name="EquipmentItemPanel" type="PanelContainer"]
 offset_right = 128.0
@@ -12,15 +12,15 @@ script = ExtResource("1_2l0w6")
 layout_mode = 2
 color = Color(0, 0, 0, 0.25098)
 
-[node name="BgTextureRect" type="TextureRect" parent="."]
+[node name="PlaceholderTextureRect" type="TextureRect" parent="ColorRect"]
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.25098)
 layout_mode = 2
+offset_right = 128.0
+offset_bottom = 128.0
 expand_mode = 2
 stretch_mode = 5
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
-layout_mode = 2
-
-[node name="Preview" parent="SubViewportContainer" instance=ExtResource("2_2l0w6")]
+[node name="ItemSlotPanel" parent="." instance=ExtResource("2_dikul")]
 unique_name_in_owner = true
+layout_mode = 2

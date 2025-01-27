@@ -64,8 +64,7 @@ public partial class InventoryDialog : PanelContainer
 		foreach (InventoryItemSlot slot in _inventory.Items)
 		{
 			var itemSlotPanel = InventoryItemScene.Instantiate<ItemSlotPanel>();
-			itemSlotPanel.Slot = slot;
-			itemSlotPanel.IsEquipped = _inventory.GetEquipmentSlot(slot.Item) != null;
+			itemSlotPanel.SetItem(slot, _inventory.IsEquipped(slot.Item));
 			itemSlotPanel.ItemSelected += OnItemSelected;
 
 			InventoryGrid.AddChild(itemSlotPanel);

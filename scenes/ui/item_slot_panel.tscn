@@ -29,18 +29,36 @@ custom_minimum_size = Vector2(128, 128)
 offset_right = 128.0
 offset_bottom = 128.0
 script = ExtResource("1_pe6wt")
+CommonColor = Color(0, 0, 0, 0.25098)
+UncommonColor = Color(0, 0.8, 0, 0.25098)
+RareColor = Color(0, 0, 0.8, 0.25098)
+LegendaryColor = Color(0.8, 0, 0.8, 0.25098)
+UniqueColor = Color(1, 0.698039, 0, 0.25098)
+DefaultColor = Color(0, 0, 0, 0.25098)
 
 [node name="Button" type="Button" parent="."]
 unique_name_in_owner = true
 layout_mode = 2
+flat = true
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="Button"]
+[node name="ColorRect" type="ColorRect" parent="Button"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+color = Color(0, 0, 0, 0.25098)
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Button/ColorRect"]
 layout_mode = 2
 offset_right = 128.0
 offset_bottom = 128.0
 stretch = true
 
-[node name="Preview" parent="Button/SubViewportContainer" instance=ExtResource("2_pe6wt")]
+[node name="Preview" parent="Button/ColorRect/SubViewportContainer" instance=ExtResource("2_pe6wt")]
 unique_name_in_owner = true
 
 [node name="PanelContainer" type="PanelContainer" parent="Button"]

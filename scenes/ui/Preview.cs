@@ -1,5 +1,6 @@
 using Godot;
 
+[Tool]
 public partial class Preview : SubViewport
 {
 	[Signal] public delegate void TextureBakedEventHandler(Texture2D texture);

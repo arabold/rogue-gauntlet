@@ -44,7 +44,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 		_splitButton.Disabled = slot.Quantity <= 1;
 		_dropButton.Visible = true;
 
-		if (inventory.GetEquipmentSlot(slot.Item) != null)
+		if (inventory.IsEquipped(slot.Item))
 		{
 			_equipButton.Visible = false;
 			_unequipButton.Visible = true;
@@ -70,6 +70,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 		{
 			GD.PrintErr($"{slot.Item.Name} is not consumable");
 		}
+		Hide();
 	}
 
 	private void DropItem(Inventory inventory, InventoryItemSlot slot)

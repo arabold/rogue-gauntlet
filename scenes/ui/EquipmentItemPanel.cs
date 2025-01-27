@@ -1,5 +1,4 @@
 using Godot;
-using System;
 
 [Tool]
 public partial class EquipmentItemPanel : PanelContainer
@@ -11,21 +10,24 @@ public partial class EquipmentItemPanel : PanelContainer
 		set
 		{
 			_placeholderTexture = value;
-			if (_bgTextureRect != null)
+			if (_placeholderTextureRect != null)
 			{
-				_bgTextureRect.Texture = _placeholderTexture;
+				_placeholderTextureRect.Texture = _placeholderTexture;
 			}
 		}
 	}
 	public Preview Preview;
 
-	private TextureRect _bgTextureRect;
+	private TextureRect _placeholderTextureRect;
 	private Texture2D _placeholderTexture;
+	private ItemSlotPanel _itemSlotPanel;
 
 	public override void _Ready()
 	{
-		_bgTextureRect = GetNode<TextureRect>("%BgTextureRect");
-		_bgTextureRect.Texture = _placeholderTexture;
+		_placeholderTextureRect = GetNode<TextureRect>("%PlaceholderTextureRect");
+		_placeholderTextureRect.Texture = _placeholderTexture;
+
+		_itemSlotPanel = GetNode<ItemSlotPanel>("%ItemSlotPanel");
 
 		if (!Engine.IsEditorHint())
 		{
@@ -36,6 +38,8 @@ public partial class EquipmentItemPanel : PanelContainer
 	public void SetItem(Item item)
 	{
 		Preview?.SetScene(item?.Scene);
-		_bgTextureRect.Visible = item == null;
+		_placeholderTextureRect.Visible = item == null;
+
+		_itemSlotPanel.SetItem(new InventoryItemSlot { Item = item }, false);
 	}
 }
