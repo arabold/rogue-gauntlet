@@ -31,8 +31,24 @@ public partial class LootableItem : Node3D
 			return;
 		}
 
+		// Instantiate the item scene
 		var itemScene = Item.Scene.Instantiate<Node>();
+		UpdateItemNodeProperties(itemScene);
 		AddChild(itemScene);
+	}
+
+	private void UpdateItemNodeProperties(Node node)
+	{
+		if (node is VisualInstance3D visu)
+		{
+			visu.Layers = 0;
+			visu.SetLayerMaskValue(6, true);
+		}
+
+		foreach (Node child in node.GetChildren())
+		{
+			UpdateItemNodeProperties(child);
+		}
 	}
 
 	private void OnTriggered(Node3D body)

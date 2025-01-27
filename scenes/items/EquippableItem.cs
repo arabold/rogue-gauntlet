@@ -13,6 +13,15 @@ public enum EquippableItemType
 	Ring = 8,
 }
 
+public enum EquippableItemRarity
+{
+	Common = 0,
+	Uncommon = 1,
+	Rare = 2,
+	Legendary = 3,
+	Unique = 4,
+}
+
 [GlobalClass]
 public partial class EquippableItem : Item
 {
@@ -41,6 +50,10 @@ public partial class EquippableItem : Item
 	/// Reach modifier for this weapon (melee weapons only)
 	/// </summary>
 	[Export] public float ReachModifier = 1.0f;
+	/// <summary>
+	/// Rarity of this item
+	/// </summary>
+	[Export] public EquippableItemRarity Rarity = EquippableItemRarity.Common;
 
 	// public void Equip(Player player)
 	// {

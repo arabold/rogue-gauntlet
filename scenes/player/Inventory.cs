@@ -112,6 +112,11 @@ public partial class Inventory : Resource
 		return null;
 	}
 
+	public bool IsEquipped(Item item)
+	{
+		return GetEquipmentSlot(item) != null;
+	}
+
 	public void Equip(EquippableItem item)
 	{
 		var slot = getSlotForItem(item);

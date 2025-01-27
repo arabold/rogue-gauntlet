@@ -160,7 +160,7 @@ graph_offset = Vector2(102.21, -120.426)
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_5rbcv"]
 radius = 0.75
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_ty78u"]
+[sub_resource type="ViewportTexture" id="ViewportTexture_6flps"]
 viewport_path = NodePath("SubViewport")
 
 [node name="SkeletonWarrior" instance=ExtResource("1_p3la7")]
@@ -255,6 +255,36 @@ bones/41/scale = Vector3(1, 1, 1)
 [node name="Skeleton_Warrior_Helmet" parent="Pivot/Skeleton_Warrior/Rig/Skeleton3D" index="0"]
 transform = Transform3D(0.99972, -1.40143e-09, 0.0236466, 1.39341e-09, 1, 3.55686e-10, -0.0236466, -3.22637e-10, 0.99972, -7.48334e-09, 1.20227, -1.35927e-07)
 
+[node name="Skeleton_Warrior_Helmet" parent="Pivot/Skeleton_Warrior/Rig/Skeleton3D/Skeleton_Warrior_Helmet" index="0"]
+layers = 8
+
+[node name="Skeleton_Warrior_ArmLeft" parent="Pivot/Skeleton_Warrior/Rig/Skeleton3D" index="1"]
+layers = 8
+
+[node name="Skeleton_Warrior_ArmRight" parent="Pivot/Skeleton_Warrior/Rig/Skeleton3D" index="2"]
+layers = 8
+
+[node name="Skeleton_Warrior_Body" parent="Pivot/Skeleton_Warrior/Rig/Skeleton3D" index="3"]
+layers = 8
+
+[node name="Skeleton_Warrior_Cloak" parent="Pivot/Skeleton_Warrior/Rig/Skeleton3D" index="4"]
+layers = 8
+
+[node name="Skeleton_Warrior_Eyes" parent="Pivot/Skeleton_Warrior/Rig/Skeleton3D" index="5"]
+layers = 8
+
+[node name="Skeleton_Warrior_Head" parent="Pivot/Skeleton_Warrior/Rig/Skeleton3D" index="6"]
+layers = 8
+
+[node name="Skeleton_Warrior_Jaw" parent="Pivot/Skeleton_Warrior/Rig/Skeleton3D" index="7"]
+layers = 8
+
+[node name="Skeleton_Warrior_LegLeft" parent="Pivot/Skeleton_Warrior/Rig/Skeleton3D" index="8"]
+layers = 8
+
+[node name="Skeleton_Warrior_LegRight" parent="Pivot/Skeleton_Warrior/Rig/Skeleton3D" index="9"]
+layers = 8
+
 [node name="CollisionShape3D" parent="." index="1"]
 shape = SubResource("CapsuleShape3D_fv4r8")
 
@@ -282,5 +312,8 @@ Xp = 30
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
 shape = SubResource("CapsuleShape3D_5rbcv")
+
+[node name="FloatingHealthBar" parent="." index="9"]
+texture = SubResource("ViewportTexture_6flps")
 
 [editable path="Pivot/Skeleton_Warrior"]
