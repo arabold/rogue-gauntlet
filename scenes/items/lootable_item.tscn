@@ -8,6 +8,8 @@
 [node name="LootableItem" type="Node3D"]
 script = ExtResource("1_an4ny")
 
+[node name="Pivot" type="Node3D" parent="."]
+
 [node name="TriggerComponent" parent="." instance=ExtResource("2_an4ny")]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="TriggerComponent"]

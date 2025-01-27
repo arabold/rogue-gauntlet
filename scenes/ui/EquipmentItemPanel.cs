@@ -26,20 +26,15 @@ public partial class EquipmentItemPanel : PanelContainer
 	{
 		_placeholderTextureRect = GetNode<TextureRect>("%PlaceholderTextureRect");
 		_placeholderTextureRect.Texture = _placeholderTexture;
-
-		_itemSlotPanel = GetNode<ItemSlotPanel>("%ItemSlotPanel");
-
 		if (!Engine.IsEditorHint())
 		{
-			Preview = GetNode<Preview>("%Preview");
+			_itemSlotPanel = GetNode<ItemSlotPanel>("%ItemSlotPanel");
 		}
 	}
 
 	public void SetItem(Item item)
 	{
-		Preview?.SetScene(item?.Scene);
 		_placeholderTextureRect.Visible = item == null;
-
 		_itemSlotPanel.SetItem(new InventoryItemSlot { Item = item }, false);
 	}
 }

@@ -8,6 +8,8 @@ public partial class LootableItem : Node3D
 	[Export] public Item Item;
 	[Export] public int Quantity = 1;
 
+	public Node3D Pivot;
+
 	public override void _Ready()
 	{
 		base._Ready();
@@ -31,10 +33,12 @@ public partial class LootableItem : Node3D
 			return;
 		}
 
+		Pivot = GetNode<Node3D>("Pivot");
+
 		// Instantiate the item scene
 		var itemScene = Item.Scene.Instantiate<Node>();
 		UpdateItemNodeProperties(itemScene);
-		AddChild(itemScene);
+		Pivot.AddChild(itemScene);
 	}
 
 	private void UpdateItemNodeProperties(Node node)
