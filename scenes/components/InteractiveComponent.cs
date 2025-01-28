@@ -42,7 +42,7 @@ public partial class InteractiveComponent : Area3D, IInteractive
 	public void Interact(Player actor)
 	{
 		GD.Print($"{actor.Name} interacted with {GetParent().Name}");
-		EmitSignal(SignalName.Interacted, actor);
+		EmitSignalInteracted(actor);
 	}
 
 	public void OnPlayerNearby(Player player)

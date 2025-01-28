@@ -51,7 +51,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0, 0, 0, 0.25098)
+color = Color(0.8, 0.8, 0.8, 0.1)
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="Button/ColorRect"]
 layout_mode = 2

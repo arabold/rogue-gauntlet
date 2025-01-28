@@ -1,18 +1,11 @@
 using Godot;
 
 [GlobalClass]
-public partial class ConsumableItem : Item
+public partial class ConsumableItem : BuffedItem
 {
-	[Export] public Buff Buff;
-
-	public void Consume(Player player)
+	public void OnConsumed(Player player)
 	{
 		GD.Print($"Consuming {Name}");
-		if (Buff != null)
-		{
-			player.ApplyBuff(Buff);
-		}
-		player.RemoveItem(this);
-		SignalBus.EmitItemConsumed(this);
+		ApplyBuff(player);
 	}
 }

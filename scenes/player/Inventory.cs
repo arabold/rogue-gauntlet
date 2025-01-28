@@ -20,9 +20,11 @@ public enum EquipmentSlot
 [GlobalClass]
 public partial class Inventory : Resource
 {
-	[Signal] public delegate void InventoryUpdatedEventHandler();
 	[Signal] public delegate void ItemEquippedEventHandler(EquipmentSlot slot, EquippableItem item);
 	[Signal] public delegate void ItemUnequippedEventHandler(EquipmentSlot slot, EquippableItem item);
+	[Signal] public delegate void ItemConsumedEventHandler(ConsumableItem item);
+	[Signal] public delegate void ItemDroppedEventHandler(Item item, int quantity);
+	[Signal] public delegate void ItemDestroyedEventHandler(Item item, int quantity);
 
 	public Dictionary<EquipmentSlot, EquippableItem> EquippedItems { get; private set; } = new Dictionary<EquipmentSlot, EquippableItem>{
 		{ EquipmentSlot.Head, null },
@@ -56,6 +58,11 @@ public partial class Inventory : Resource
 			return;
 		}
 
+		if (quantity <= 0)
+		{
+			return;
+		}
+
 		// Find an existing stackable item
 		foreach (var slot in Items)
 		{
@@ -63,7 +70,7 @@ public partial class Inventory : Resource
 			{
 				slot.Quantity += quantity;
 				GD.Print($"Stacked {item.Name} ({slot.Quantity}) in inventory");
-				EmitSignal(SignalName.InventoryUpdated);
+				EmitChanged();
 				return;
 			}
 		}
@@ -71,27 +78,21 @@ public partial class Inventory : Resource
 		// Add a new item
 		var newSlot = new InventoryItemSlot { Item = item, Quantity = quantity };
 		Items.Add(newSlot);
-		GD.Print($"{item.Name} added to inventory");
-		EmitSignal(SignalName.InventoryUpdated);
+		GD.Print($"{quantity}x {item.Name} added to inventory");
+		EmitChanged();
 	}
 
-	public void RemoveItem(Item item)
+	public void RemoveItem(InventoryItemSlot itemSlot, int quantity)
 	{
-		foreach (var slot in Items)
+		quantity = Math.Clamp(quantity, 0, itemSlot.Quantity);
+		itemSlot.Quantity -= quantity;
+		if (itemSlot.Quantity <= 0)
 		{
-			if (slot.Item == item)
-			{
-				slot.Quantity--;
-				if (slot.Quantity <= 0)
-				{
-					Items.Remove(slot);
-				}
-				GD.Print($"{item.Name} removed from inventory");
-				EmitSignal(SignalName.InventoryUpdated);
-				return;
-			}
+			Items.Remove(itemSlot);
 		}
-		GD.Print($"{item.Name} not found in inventory");
+		GD.Print($"{quantity}x {itemSlot.Item.Name} removed from inventory");
+		EmitChanged();
+		return;
 	}
 
 	public EquipmentSlot? GetEquipmentSlot(Item item)
@@ -112,14 +113,16 @@ public partial class Inventory : Resource
 		return null;
 	}
 
-	public bool IsEquipped(Item item)
+	public bool IsEquipped(InventoryItemSlot slot)
 	{
+		var item = slot.Item;
 		return GetEquipmentSlot(item) != null;
 	}
 
-	public void Equip(EquippableItem item)
+	public void Equip(InventoryItemSlot itemSlot)
 	{
-		var slot = getSlotForItem(item);
+		var item = itemSlot.Item as EquippableItem;
+		var equipSlot = getDefaultEquipmentSlotForItem(item);
 		if (item.Type == EquippableItemType.Weapon)
 		{
 			var isTwoHanded = (item is Weapon weapon) ? weapon.IsTwoHanded : false;
@@ -134,51 +137,115 @@ public partial class Inventory : Resource
 			// Check if the left ring slot is occupied
 			if (EquippedItems[EquipmentSlot.LeftRing] == null)
 			{
-				slot = EquipmentSlot.LeftRing;
+				equipSlot = EquipmentSlot.LeftRing;
 			}
 			// Check if the right ring slot is occupied
 			else if (EquippedItems[EquipmentSlot.RightRing] == null)
 			{
-				slot = EquipmentSlot.RightRing;
+				equipSlot = EquipmentSlot.RightRing;
 			}
 		}
 
-		Unequip(slot);
+		Unequip(equipSlot);
 
-		GD.Print($"{item.Name} equipped to {slot}");
-		EquippedItems[slot] = item;
-		EmitSignal(SignalName.ItemEquipped, (int)slot, item);
-
-		SignalBus.EmitItemEquipped(item);
+		GD.Print($"{item.Name} equipped to {equipSlot}");
+		EquippedItems[equipSlot] = item;
+		EmitSignalItemEquipped(equipSlot, item);
 	}
 
-	public void Unequip(EquippableItem item)
+	public void Unequip(InventoryItemSlot itemSlot)
 	{
-		var slot = GetEquipmentSlot(item);
-		if (slot != null)
+		var equipSlot = GetEquipmentSlot(itemSlot.Item);
+		if (equipSlot != null)
 		{
-			Unequip((EquipmentSlot)slot);
+			Unequip((EquipmentSlot)equipSlot);
 		}
 		else
 		{
-			GD.PrintErr($"{item.Name} is not equipped");
+			GD.PrintErr($"{itemSlot.Item.Name} is not equipped");
 		}
 	}
 
-	public void Unequip(EquipmentSlot slot)
+	public void Unequip(EquipmentSlot itemSlot)
 	{
-		var item = EquippedItems[slot];
+		var item = EquippedItems[itemSlot];
 		if (item != null)
 		{
-			GD.Print($"{item.Name} unequipped from {slot}");
-			EquippedItems[slot] = null;
-			EmitSignal(SignalName.ItemUnequipped, (int)slot, item);
-
-			SignalBus.EmitItemUnequipped(item);
+			GD.Print($"{item.Name} unequipped from {itemSlot}");
+			EquippedItems[itemSlot] = null;
+			EmitSignalItemUnequipped(itemSlot, item);
 		}
 	}
 
-	private EquipmentSlot getSlotForItem(EquippableItem item)
+	public void Consume(InventoryItemSlot itemSlot)
+	{
+		GD.Print($"Consuming {itemSlot.Item.Name} from inventory...");
+		EmitSignalItemConsumed(itemSlot.Item as ConsumableItem);
+		RemoveItem(itemSlot, 1);
+	}
+
+	public void DropItem(InventoryItemSlot itemSlot)
+	{
+		var item = itemSlot.Item;
+		if (item.IsQuestItem)
+		{
+			GD.PrintErr($"{itemSlot.Item.Name} is a quest item and cannot be dropped");
+			return;
+		}
+
+		var equipSlot = GetEquipmentSlot(item);
+		if (equipSlot != null)
+		{
+			// Unequip the item first
+			Unequip((EquipmentSlot)equipSlot);
+		}
+
+		var quantity = itemSlot.Quantity;
+		GD.Print($"Dropping {quantity}x {itemSlot.Item.Name} from inventory...");
+		EmitSignalItemDropped(itemSlot.Item, quantity);
+		RemoveItem(itemSlot, quantity);
+	}
+
+	public void DestroyItem(InventoryItemSlot itemSlot)
+	{
+		var item = itemSlot.Item;
+		if (item.IsQuestItem)
+		{
+			GD.PrintErr($"{itemSlot.Item.Name} is a quest item and cannot be destroyed");
+			return;
+		}
+
+		var equipSlot = GetEquipmentSlot(item);
+		if (equipSlot != null)
+		{
+			// Unequip the item first
+			Unequip((EquipmentSlot)equipSlot);
+		}
+
+		var quantity = itemSlot.Quantity;
+		GD.Print($"Destroying {quantity}x {itemSlot.Item.Name} from inventory...");
+		EmitSignalItemDestroyed(itemSlot.Item, quantity);
+		RemoveItem(itemSlot, quantity);
+	}
+
+	public void SplitItem(InventoryItemSlot itemSlot, int newQuantity)
+	{
+		if (IsFull)
+		{
+			GD.Print("Inventory is full");
+			return;
+		}
+
+		newQuantity = Math.Clamp(newQuantity, 0, itemSlot.Quantity - 1);
+		if (newQuantity > 0)
+		{
+			GD.Print($"Splitting {itemSlot.Quantity}x {itemSlot.Item.Name} in inventory...");
+			RemoveItem(itemSlot, newQuantity);
+			AddItem(itemSlot.Item, newQuantity);
+		}
+	}
+
+	private EquipmentSlot getDefaultEquipmentSlotForItem(EquippableItem item)
 	{
 		if (item.Type == EquippableItemType.Helmet)
 		{

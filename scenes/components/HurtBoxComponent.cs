@@ -16,7 +16,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 	public void TakeDamage(int amount, Vector3 attackDirection)
 	{
 		GD.Print($"{GetParent().Name} took {amount} damage");
-		EmitSignal(SignalName.DamageTaken, amount, attackDirection);
+		EmitSignalDamageTaken(amount, attackDirection);
 		HealthComponent?.TakeDamage(amount);
 
 		SpawnHitEffect(attackDirection);

@@ -18,14 +18,14 @@ public partial class HealthComponent : Node
 	public void SetHealth(int health)
 	{
 		CurrentHealth = Mathf.Clamp(health, 0, MaxHealth);
-		EmitSignal(SignalName.HealthChanged, CurrentHealth, MaxHealth);
+		EmitSignalHealthChanged(CurrentHealth, MaxHealth);
 	}
 
 	public void SetMaxHealth(int maxHealth)
 	{
 		MaxHealth = maxHealth;
 		CurrentHealth = Mathf.Clamp(CurrentHealth, 0, MaxHealth);
-		EmitSignal(SignalName.HealthChanged, CurrentHealth, MaxHealth);
+		EmitSignalHealthChanged(CurrentHealth, MaxHealth);
 	}
 
 	public void TakeDamage(int amount)
@@ -34,7 +34,7 @@ public partial class HealthComponent : Node
 		{
 			CurrentHealth -= amount;
 
-			EmitSignal(SignalName.HealthChanged, CurrentHealth, MaxHealth);
+			EmitSignalHealthChanged(CurrentHealth, MaxHealth);
 
 			if (CurrentHealth <= 0)
 			{
@@ -52,11 +52,11 @@ public partial class HealthComponent : Node
 	{
 		CurrentHealth += amount;
 		CurrentHealth = Mathf.Clamp(CurrentHealth, 0, MaxHealth);
-		EmitSignal(SignalName.HealthChanged, CurrentHealth, MaxHealth);
+		EmitSignalHealthChanged(CurrentHealth, MaxHealth);
 	}
 
 	private void Die()
 	{
-		EmitSignal(SignalName.Died);
+		EmitSignalDied();
 	}
 }

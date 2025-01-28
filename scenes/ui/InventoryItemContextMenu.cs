@@ -44,7 +44,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 		_splitButton.Disabled = slot.Quantity <= 1;
 		_dropButton.Visible = true;
 
-		if (inventory.IsEquipped(slot.Item))
+		if (inventory.IsEquipped(slot))
 		{
 			_equipButton.Visible = false;
 			_unequipButton.Visible = true;
@@ -54,17 +54,15 @@ public partial class InventoryItemContextMenu : PopupPanel
 		{
 			_equipButton.Visible = slot.Item is EquippableItem;
 			_unequipButton.Visible = false;
-			_dropButton.Disabled = false;
+			_dropButton.Disabled = slot.Item.IsQuestItem;
 		}
 	}
 
 	private void UseItem(Inventory inventory, InventoryItemSlot slot)
 	{
-		// FIXME: This seems convoluted and should be refactored
-		Player player = GameManager.Instance.Player;
-		if (slot.Item is ConsumableItem consumableItem)
+		if (slot.Item is ConsumableItem)
 		{
-			consumableItem.Consume(player);
+			inventory.Consume(slot);
 		}
 		else
 		{
@@ -75,15 +73,21 @@ public partial class InventoryItemContextMenu : PopupPanel
 
 	private void DropItem(Inventory inventory, InventoryItemSlot slot)
 	{
-		// inventory.RemoveItem(slot.Item);
+		inventory.DropItem(slot);
+		Hide();
+	}
+
+	private void DestroyItem(Inventory inventory, InventoryItemSlot slot)
+	{
+		inventory.DestroyItem(slot);
 		Hide();
 	}
 
 	private void EquipItem(Inventory inventory, InventoryItemSlot slot)
 	{
-		if (slot.Item is EquippableItem equippableItem)
+		if (slot.Item is EquippableItem)
 		{
-			inventory.Equip(equippableItem);
+			inventory.Equip(slot);
 		}
 		else
 		{
@@ -94,9 +98,9 @@ public partial class InventoryItemContextMenu : PopupPanel
 
 	private void UnequipItem(Inventory inventory, InventoryItemSlot slot)
 	{
-		if (slot.Item is EquippableItem equippableItem)
+		if (slot.Item is EquippableItem)
 		{
-			inventory.Unequip(equippableItem);
+			inventory.Unequip(slot);
 		}
 		else
 		{
@@ -107,6 +111,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 
 	private void SplitItem(Inventory inventory, InventoryItemSlot slot)
 	{
+		// TODO: Not implemented yet
 		Hide();
 	}
 }

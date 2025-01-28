@@ -18,12 +18,12 @@ public partial class Player : CharacterBody3D, IDamageable
 	public bool IsPerformingAction => ActionManager.CurrentActionId != null;
 	public string CurrentActionId => ActionManager.CurrentActionId;
 
-	protected HealthComponent HealthComponent;
-	protected HurtBoxComponent HurtBoxComponent;
-	protected MovementComponent MovementComponent;
-	protected InputComponent InputComponent;
-	protected ActionManager ActionManager;
-	protected InteractionArea InteractionArea;
+	public HealthComponent HealthComponent { get; private set; }
+	public HurtBoxComponent HurtBoxComponent { get; private set; }
+	public MovementComponent MovementComponent { get; private set; }
+	public InputComponent InputComponent { get; private set; }
+	public ActionManager ActionManager { get; private set; }
+	public InteractionArea InteractionArea { get; private set; }
 
 	public Inventory Inventory { get; private set; } = new Inventory();
 	public Array<ActiveBuff> ActiveBuffs { get; private set; } = new Array<ActiveBuff>();
@@ -67,18 +67,97 @@ public partial class Player : CharacterBody3D, IDamageable
 		HealthComponent.SetMaxHealth(Stats.MaxHealth);
 		HealthComponent.SetHealth(Stats.Health);
 		HealthComponent.HealthChanged += OnHealthChanged;
+
+		// The inventory lets us know about any changed via signals
+		Inventory.ItemEquipped += OnItemEquipped;
+		Inventory.ItemUnequipped += OnItemUnequipped;
+		Inventory.ItemConsumed += OnItemConsumed;
+		Inventory.ItemDropped += OnItemDropped;
+		Inventory.ItemDestroyed += OnItemDestroyed;
 	}
 
-	public void OnHealthChanged(int health, int maxHealth)
+	/// <summary>
+	/// Callback triggered by the inventory when an item gets equipped
+	/// </summary>
+	private void OnItemEquipped(EquipmentSlot slot, EquippableItem item)
+	{
+		// Update stats
+		item.OnEquipped(this);
+		SignalBus.EmitItemEquipped(this, item);
+	}
+
+	/// <summary>
+	/// Callback triggered by the inventory when an item gets unequipped
+	/// </summary>
+	private void OnItemUnequipped(EquipmentSlot slot, EquippableItem item)
+	{
+		// Update stats
+		item.OnUnequipped(this);
+		SignalBus.EmitItemUnequipped(this, item);
+	}
+
+	/// <summary>
+	/// Callback triggered by the inventory when an item gets used/consumed
+	/// </summary>
+	private void OnItemConsumed(ConsumableItem item)
+	{
+		// Apply buffs
+		item.OnConsumed(this);
+		SignalBus.EmitItemConsumed(this, item);
+	}
+
+	/// <summary>
+	/// Callback triggered by the inventory when an item gets dropped
+	/// </summary>
+	private void OnItemDropped(Item item, int quantity)
+	{
+		GD.Print($"{Name} dropped {quantity}x {item.Name}");
+
+		// Place a new lootable item into the world
+		// TODO: Avoid hardcoding the path to the lootable item scene
+		var scene = GD.Load<PackedScene>("res://scenes/items/lootable_item.tscn");
+		var lootableItem = scene.Instantiate<LootableItem>();
+		lootableItem.Item = item;
+		lootableItem.Quantity = quantity;
+		lootableItem.WaitForPlayerExited = true;
+
+		GameManager.Instance.Level.AddChild(lootableItem);
+		lootableItem.GlobalPosition = GlobalPosition;
+
+		item.OnDropped(this, quantity);
+		SignalBus.EmitItemDropped(this, item, quantity);
+	}
+
+	/// <summary>
+	/// Callback triggered by the inventory when an item gets destroyed
+	/// </summary>
+	private void OnItemDestroyed(Item item, int quantity)
+	{
+		// Nothing to do for us
+		item.OnDestroyed(this, quantity);
+		SignalBus.EmitItemDestroyed(this, item, quantity);
+	}
+
+	/// <summary>
+	/// Callback triggered whenever the HealthComponent updates
+	/// </summary>
+	private void OnHealthChanged(int health, int maxHealth)
 	{
 		Stats.UpdateHealth(health, maxHealth);
 	}
 
+	/// <summary>
+	/// Callback triggered when the player is close to an interactive
+	/// element, i.e. a door.
+	/// </summary>
 	private void OnInteractiveEntered(Node node)
 	{
 		_nearbyInteractives.Add(node);
 	}
 
+	/// <summary>
+	/// Callback triggered when the player leaves an interactive element.
+	/// </summary>
 	private void OnInteractiveExited(Node node)
 	{
 		_nearbyInteractives.Remove(node);
@@ -128,8 +207,12 @@ public partial class Player : CharacterBody3D, IDamageable
 		}
 	}
 
+	/// <summary>
+	/// Apply a buff to the player
+	/// </summary>
 	public void ApplyBuff(Buff buff)
 	{
+		GD.Print($"{Name} applied buff {buff.Name}");
 		var activeBuff = new ActiveBuff();
 		activeBuff.Initialize(this, buff);
 		ActiveBuffs.Add(activeBuff);
@@ -137,34 +220,48 @@ public partial class Player : CharacterBody3D, IDamageable
 		AddChild(activeBuff);
 	}
 
+	/// <summary>
+	/// Remove an active buff from the player
+	/// </summary>
 	public void RemoveBuff(Buff buff)
 	{
 		var activeBuff = ActiveBuffs.FirstOrDefault(b => b.Buff == buff);
 		if (activeBuff != null)
 		{
+			GD.Print($"{Name} removed buff {buff.Name}");
 			ActiveBuffs.Remove(activeBuff);
 			RemoveChild(activeBuff);
 			activeBuff.QueueFree();
 		}
 	}
 
+	/// <summary>
+	/// Public function that can be called when the player should pick
+	/// up a new item, i.e. by the `LootableItem` when the trigger is activated.
+	/// </summary>
 	public bool PickupItem(Item item, int quantity = 1)
 	{
-		if (Inventory.IsFull)
+		if (item.UsesSlot && Inventory.IsFull)
 		{
 			GD.Print("Inventory is full");
 			return false;
 		}
 
-		Inventory.AddItem(item, quantity);
+		GD.Print($"{Name} picks up {quantity}x {item.Name}");
+		item.OnPickup(this, quantity);
+
+		if (item.UsesSlot)
+		{
+			Inventory.AddItem(item, quantity);
+		}
+
 		return true;
 	}
 
-	public void RemoveItem(Item item)
-	{
-		Inventory.RemoveItem(item);
-	}
-
+	/// <summary>
+	/// Implement the `IDamageable` interface, so the player can take damage
+	/// when attacked or walking into a trap.
+	/// </summary>
 	public void TakeDamage(int amount, Vector3 attackDirection)
 	{
 		HurtBoxComponent.TakeDamage(amount, attackDirection);

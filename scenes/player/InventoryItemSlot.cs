@@ -4,8 +4,6 @@ using Godot.Collections;
 [GlobalClass]
 public partial class InventoryItemSlot : Resource
 {
-    [Signal] public delegate void ItemChangedEventHandler();
-
     [Export]
     public Item Item
     {
@@ -13,7 +11,7 @@ public partial class InventoryItemSlot : Resource
         set
         {
             _item = value;
-            EmitSignal(SignalName.ItemChanged);
+            EmitChanged();
         }
     }
 
@@ -24,7 +22,7 @@ public partial class InventoryItemSlot : Resource
         set
         {
             _quantity = value;
-            EmitSignal(SignalName.ItemChanged);
+            EmitChanged();
         }
     }
 

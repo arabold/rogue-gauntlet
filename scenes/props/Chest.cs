@@ -75,6 +75,6 @@ public partial class Chest : Node3D
 	public void OnOpened()
 	{
 		_lootTableComponent?.DropLoot();
-		EmitSignal(SignalName.Opened, this);
+		EmitSignalOpened(this);
 	}
 }

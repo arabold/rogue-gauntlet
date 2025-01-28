@@ -26,7 +26,7 @@ public partial class InteractionArea : Area3D
 		if (body is IInteractive interactive)
 		{
 			interactive.OnPlayerNearby(_player);
-			EmitSignal(SignalName.InteractiveEntered, body);
+			EmitSignalInteractiveEntered(body);
 		}
 	}
 
@@ -36,7 +36,7 @@ public partial class InteractionArea : Area3D
 		if (body is IInteractive interactive)
 		{
 			interactive.OnPlayerLeft(_player);
-			EmitSignal(SignalName.InteractiveExited, body);
+			EmitSignalInteractiveExited(body);
 		}
 	}
 }

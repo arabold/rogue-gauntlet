@@ -38,12 +38,12 @@ public partial class ActionSlot : Node
         GD.Print($"Performing {AssignedAction.Id}");
         IsPerformingAction = true;
         AssignedAction.Execute(player);
-        EmitSignal(SignalName.ActionTriggered);
+        EmitSignalActionTriggered();
 
         // Wait for perform duration
         await ToSignal(GetTree().CreateTimer(AssignedAction.PerformDuration), "timeout");
         IsPerformingAction = false;
-        EmitSignal(SignalName.ActionPerformed);
+        EmitSignalActionPerformed();
 
         // Apply effect
         GD.Print($"Applying effect of {AssignedAction.Id}");
@@ -52,10 +52,10 @@ public partial class ActionSlot : Node
         // Start cooldown
         IsOnCooldown = true;
         GD.Print($"Starting cooldown of {AssignedAction.Id}");
-        EmitSignal(SignalName.CooldownStarted);
+        EmitSignalCooldownStarted();
         await ToSignal(GetTree().CreateTimer(AssignedAction.CooldownDuration), "timeout");
         IsOnCooldown = false;
-        EmitSignal(SignalName.CooldownEnded);
+        EmitSignalCooldownEnded();
 
         // Reset action if needed
         GD.Print($"Resetting {AssignedAction.Id}");

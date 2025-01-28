@@ -34,28 +34,28 @@ public partial class ItemSlotPanel : PanelContainer
 	[Export] public Color UniqueColor = new Color(0.8f, 0.8f, 0.0f, 0.1f);
 	[Export] public Color DefaultColor = new Color(0.8f, 0.8f, 0.8f, 0.1f);
 
-	~ItemSlotPanel()
-	{
-		if (_slot != null)
-		{
-			_slot.ItemChanged -= Update;
-		}
-	}
-
-	override public void _Ready()
+	public override void _Ready()
 	{
 		var button = GetNode<Button>("%Button");
-		button.ButtonUp += () => EmitSignal(SignalName.ItemSelected, this);
+		button.ButtonUp += () => EmitSignalItemSelected(this);
 
 		Update();
 	}
 
+	public override void _ExitTree()
+	{
+		if (_slot != null)
+		{
+			_slot.Changed -= Update;
+		}
+		base._ExitTree();
+	}
 
 	public void SetItem(InventoryItemSlot slot, bool isEquipped)
 	{
 		if (_slot != null)
 		{
-			_slot.ItemChanged -= Update;
+			_slot.Changed -= Update;
 		}
 
 		_slot = slot;
@@ -63,7 +63,7 @@ public partial class ItemSlotPanel : PanelContainer
 
 		if (_slot != null)
 		{
-			_slot.ItemChanged += Update;
+			_slot.Changed += Update;
 		}
 
 		Update();

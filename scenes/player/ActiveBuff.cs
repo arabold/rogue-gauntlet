@@ -37,7 +37,7 @@ public partial class ActiveBuff : Node
         if (IsExpired)
         {
             GD.Print("Buff is expired");
-            EmitSignal(nameof(BuffExpiredEventHandler), this);
+            EmitSignalBuffExpired(this);
         }
     }
 

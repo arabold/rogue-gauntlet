@@ -23,7 +23,7 @@ public enum EquippableItemRarity
 }
 
 [GlobalClass]
-public partial class EquippableItem : Item
+public partial class EquippableItem : BuffedItem
 {
 	[Export] public EquippableItemType Type = EquippableItemType.Weapon;
 	/// <summary>
@@ -55,15 +55,19 @@ public partial class EquippableItem : Item
 	/// </summary>
 	[Export] public EquippableItemRarity Rarity = EquippableItemRarity.Common;
 
-	// public void Equip(Player player)
-	// {
-	// 	GD.Print($"{Name} is equipped");
-	// 	SignalBus.EmitItemEquipped(this);
-	// }
+	public void OnEquipped(Player player)
+	{
+		// Apply stats
+		ApplyBuff(player);
+		var stats = player.Stats;
+		// TODO: Apply stats...
+	}
 
-	// public void Unequip(Player player)
-	// {
-	// 	GD.Print($"{Name} is unequipped");
-	// 	SignalBus.EmitItemUnequipped(this);
-	// }
+	public void OnUnequipped(Player player)
+	{
+		// Reset stats
+		RemoveBuff(player);
+		var stats = player.Stats;
+		// TODO: Reset stats...
+	}
 }

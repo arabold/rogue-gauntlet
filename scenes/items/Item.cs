@@ -3,25 +3,24 @@ using Godot;
 [GlobalClass]
 public partial class Item : Resource
 {
-	[Export] public string Name;
-	[Export] public PackedScene Scene;
-	[Export] public float Durability = 1.0f;
-	[Export] public float Quality = 1.0f;
-	[Export] public int Value = 0;
-	[Export] public float Weight = 0.0f;
-	[Export] public bool UsesSlot = true;
-	[Export] public bool IsStackable = false;
-	// [Export] public bool IsConsumable = false;
-	// [Export] public bool IsEquippable = false;
-	// [Export] public bool IsKey = false;
-	// [Export] public bool IsQuestItem = false;
-	// [Export] public bool IsUnique = false;
+	[Export] public string Name { get; private set; }
+	[Export] public PackedScene Scene { get; private set; }
+	[Export] public float Quality { get; private set; } = 1.0f;
+	[Export] public int Value { get; private set; } = 0;
+	[Export] public float Weight { get; private set; } = 0.0f;
+	[Export] public bool UsesSlot { get; private set; } = true;
+	[Export] public bool IsStackable { get; private set; } = false;
+	/// <summary>
+	/// Quest items cannot be dropped or destroyed.
+	/// </summary>
+	[Export] public bool IsQuestItem { get; private set; } = false;
 
 	public virtual void OnPickup(Player player, int quantity)
-	{
-	}
+	{ }
 
-	public virtual void OnDrop(Player player, int quantity)
-	{
-	}
+	public virtual void OnDropped(Player player, int quantity)
+	{ }
+
+	public virtual void OnDestroyed(Player player, int quantity)
+	{ }
 }

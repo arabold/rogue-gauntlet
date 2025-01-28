@@ -25,7 +25,7 @@ public partial class InventoryDialog : PanelContainer
 	public void Open(Inventory inventory)
 	{
 		_inventory = inventory;
-		_inventory.InventoryUpdated += Update;
+		_inventory.Changed += Update;
 		_inventory.ItemEquipped += UpdateEquipped;
 		_inventory.ItemUnequipped += UpdateUnequipped;
 		Update();
@@ -34,7 +34,7 @@ public partial class InventoryDialog : PanelContainer
 
 	public void Close()
 	{
-		_inventory.InventoryUpdated -= Update;
+		_inventory.Changed -= Update;
 		_inventory.ItemEquipped -= UpdateEquipped;
 		_inventory.ItemUnequipped -= UpdateUnequipped;
 		_inventory = null;
@@ -64,7 +64,7 @@ public partial class InventoryDialog : PanelContainer
 		foreach (InventoryItemSlot slot in _inventory.Items)
 		{
 			var itemSlotPanel = InventoryItemScene.Instantiate<ItemSlotPanel>();
-			itemSlotPanel.SetItem(slot, _inventory.IsEquipped(slot.Item));
+			itemSlotPanel.SetItem(slot, _inventory.IsEquipped(slot));
 			itemSlotPanel.ItemSelected += OnItemSelected;
 
 			InventoryGrid.AddChild(itemSlotPanel);

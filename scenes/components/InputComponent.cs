@@ -59,6 +59,6 @@ public partial class InputComponent : Node
 		}
 
 		InputDirection = direction;
-		EmitSignal(SignalName.DirectionChanged, direction);
+		EmitSignalDirectionChanged(direction);
 	}
 }

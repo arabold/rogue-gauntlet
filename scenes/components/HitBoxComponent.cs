@@ -18,11 +18,11 @@ public partial class HitBoxComponent : Area3D
 
 	private void OnAreaEntered(Area3D area)
 	{
-		EmitSignal(SignalName.HitDetected, area);
+		EmitSignalHitDetected(area);
 	}
 
 	private void OnBodyEntered(Node3D node)
 	{
-		EmitSignal(SignalName.HitDetected, node);
+		EmitSignalHitDetected(node);
 	}
 }
