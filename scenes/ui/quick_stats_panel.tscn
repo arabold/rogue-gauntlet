@@ -1,0 +1,48 @@
+[gd_scene load_steps=3 format=3 uid="uid://do3vtup1gjbiu"]
+
+[ext_resource type="Script" uid="uid://bre0eghnnxvg2" path="res://scenes/ui/QuickStatsPanel.cs" id="1_jhim6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_iqxkc"]
+
+[node name="QuickStatsPanel" type="PanelContainer"]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_iqxkc")
+script = ExtResource("1_jhim6")
+
+[node name="GridContainer" type="GridContainer" parent="."]
+layout_mode = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="DamageLabel" type="Label" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 2
+text = "Damage:"
+
+[node name="DamageValue" type="Label" parent="GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "5 - 10"
+horizontal_alignment = 2
+
+[node name="ArmorLabel" type="Label" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 2
+text = "Armor:"
+
+[node name="ArmorValue" type="Label" parent="GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "6"
+horizontal_alignment = 2
+
+[node name="CritChanceLabel" type="Label" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 2
+text = "Crit. Chance:"
+
+[node name="CritChanceValue" type="Label" parent="GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "10%"
+horizontal_alignment = 2

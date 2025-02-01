@@ -5,23 +5,21 @@
 
 [resource]
 script = ExtResource("2_cecn6")
-IsTwoHanded = false
+DamageMin = 2.0
+DamageMax = 4.0
+WeaponReachModifier = 1.0
+AttackSpeedModifier = 1.0
+CritChance = 0.05
+IsTwoHanded = true
 IsRanged = true
 Type = 4
-DamageMin = 0
-DamageMax = 0
-Armor = 0
-AccuracyModifier = 1.0
-SpeedModifier = 1.0
-ReachModifier = 1.0
+Rarity = 0
 Name = "Crossbow"
 Scene = ExtResource("1_7ihye")
-Durability = 1.0
 Quality = 1.0
 Value = 0
 Weight = 0.0
 UsesSlot = true
 IsStackable = false
-IsConsumable = null
-IsEquippable = null
+IsQuestItem = false
 metadata/_custom_type_script = ExtResource("2_cecn6")

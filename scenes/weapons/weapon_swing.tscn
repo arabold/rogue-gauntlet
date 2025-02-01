@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://6pckd2upjrvu"]
 
-[ext_resource type="Script" path="res://scenes/weapons/WeaponSwing.cs" id="1_xsocg"]
-[ext_resource type="Script" path="res://addons/lines_and_trails_3d/trail_3d.gd" id="2_dfxuj"]
+[ext_resource type="Script" uid="uid://l1uw0yswlebw" path="res://scenes/weapons/WeaponSwing.cs" id="1_xsocg"]
+[ext_resource type="Script" uid="uid://cdkev722qsxhw" path="res://addons/lines_and_trails_3d/trail_3d.gd" id="2_dfxuj"]
 [ext_resource type="PackedScene" uid="uid://blsurcr8183cv" path="res://scenes/components/hit_box_component.tscn" id="2_f0o48"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_4vv8c"]
@@ -12,22 +12,25 @@ _data = [Vector2(0, 1), 0.0, -1.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
 point_count = 2
 
 [node name="WeaponSwing" type="Node3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 script = ExtResource("1_xsocg")
 SwingOffset = -90.0
 
-[node name="HitBoxComponent" parent="." instance=ExtResource("2_f0o48")]
+[node name="Pivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="HitBoxComponent" parent="Pivot" instance=ExtResource("2_f0o48")]
 collision_mask = 24
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="HitBoxComponent"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pivot/HitBoxComponent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 shape = SubResource("BoxShape3D_4vv8c")
 
-[node name="Trail3D" type="MeshInstance3D" parent="."]
+[node name="Trail3D" type="MeshInstance3D" parent="Pivot"]
 process_priority = 9999
 transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 1.5, 0, 0)
 layers = 256
 cast_shadow = 0
+skeleton = NodePath("../..")
 script = ExtResource("2_dfxuj")
 width = 0.5
 width_curve = SubResource("Curve_dae2j")

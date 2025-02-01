@@ -1,10 +1,7 @@
-[gd_scene load_steps=9 format=3 uid="uid://beddkxj3k6x7i"]
+[gd_scene load_steps=6 format=3 uid="uid://beddkxj3k6x7i"]
 
 [ext_resource type="Script" uid="uid://bqo7ff6mav3rv" path="res://scenes/ui/Hud.cs" id="1_fp313"]
 [ext_resource type="PackedScene" uid="uid://c6oltejkpt4a0" path="res://scenes/ui/action_container.tscn" id="2_kicr4"]
-[ext_resource type="PackedScene" uid="uid://bcaymd3eo2cxa" path="res://scenes/items/weapons/axe_common.tscn" id="4_h022r"]
-[ext_resource type="PackedScene" uid="uid://bbuw01h4uiwj8" path="res://assets/kaykit-dungeon-remastered/bottle_C_green.gltf" id="7_4jqwt"]
-[ext_resource type="PackedScene" uid="uid://d3gug0f3b7txa" path="res://assets/kaykit-dungeon-legacy/crossbow_common.gltf.glb" id="9_kicr4"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_136eg"]
 content_margin_left = 50.0
@@ -72,25 +69,21 @@ theme_override_constants/separation = 16
 [node name="ActionContainer1" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2
 ActionBinding = "action_1"
-PreviewScene = ExtResource("4_h022r")
 
 [node name="ActionContainer2" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2
 Slot = 1
 ActionBinding = "action_2"
-PreviewScene = ExtResource("4_h022r")
 
 [node name="ActionContainer3" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2
 Slot = 2
 ActionBinding = "action_3"
-PreviewScene = ExtResource("7_4jqwt")
 
 [node name="ActionContainer4" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2
 Slot = 3
 ActionBinding = "action_4"
-PreviewScene = ExtResource("9_kicr4")
 
 [node name="ActionContainer5" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2

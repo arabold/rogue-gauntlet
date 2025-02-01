@@ -1,0 +1,72 @@
+[gd_scene load_steps=7 format=3 uid="uid://bgq1h0jm4ybvw"]
+
+[ext_resource type="Script" uid="uid://cfcm8ru6gkvrc" path="res://scenes/ui/CharacterDialog.cs" id="1_bcqmh"]
+[ext_resource type="PackedScene" uid="uid://c03l8q524arxf" path="res://scenes/ui/item_slot_panel.tscn" id="2_4i5w2"]
+[ext_resource type="PackedScene" uid="uid://b2smli2h728cv" path="res://scenes/ui/equipment_panel.tscn" id="3_v312d"]
+[ext_resource type="PackedScene" uid="uid://do3vtup1gjbiu" path="res://scenes/ui/quick_stats_panel.tscn" id="4_tltc6"]
+[ext_resource type="PackedScene" uid="uid://by51iacjyqqtx" path="res://scenes/ui/inventory_panel.tscn" id="5_q7doa"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mu81i"]
+bg_color = Color(0, 0, 0, 1)
+draw_center = false
+
+[node name="CharacterDialog" type="PanelContainer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -222.0
+offset_top = -112.5
+offset_right = 222.0
+offset_bottom = 112.5
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_bcqmh")
+InventoryItemScene = ExtResource("2_4i5w2")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Title" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer/Title"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Inventory"
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="VBoxContainer/Title"]
+unique_name_in_owner = true
+layout_mode = 2
+text = " X "
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 32
+
+[node name="Content" type="HBoxContainer" parent="VBoxContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 32
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/Content"]
+layout_mode = 2
+theme_override_constants/separation = 32
+
+[node name="EquipmentPanel" parent="VBoxContainer/MarginContainer/Content/VBoxContainer" instance=ExtResource("3_v312d")]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mu81i")
+
+[node name="QuickStatsPanel" parent="VBoxContainer/MarginContainer/Content/VBoxContainer" instance=ExtResource("4_tltc6")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="InventoryPanel" parent="VBoxContainer/MarginContainer/Content" instance=ExtResource("5_q7doa")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(736, 0)
+layout_mode = 2

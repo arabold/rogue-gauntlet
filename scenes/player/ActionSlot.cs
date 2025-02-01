@@ -11,16 +11,18 @@ public partial class ActionSlot : Node
     [Signal]
     public delegate void CooldownEndedEventHandler();
 
-    public IAction AssignedAction { get; private set; }
+    public PlayerAction AssignedAction { get; private set; }
+    public PackedScene PreviewScene { get; private set; }
     public bool IsPerformingAction { get; private set; }
     public bool IsOnCooldown { get; private set; }
 
     /// <summary>
     /// Assign an action to the slot.
     /// </summary>
-    public void AssignAction(IAction action)
+    public void AssignAction(PlayerAction action, PackedScene previewScene)
     {
         AssignedAction = action;
+        PreviewScene = previewScene;
         IsPerformingAction = false;
         IsOnCooldown = false;
     }
@@ -34,10 +36,14 @@ public partial class ActionSlot : Node
         if (AssignedAction == null || IsOnCooldown)
             return;
 
-        // Perform the action
-        GD.Print($"Performing {AssignedAction.Id}");
+        GD.Print($"Performing {AssignedAction}");
         IsPerformingAction = true;
-        AssignedAction.Execute(player);
+
+        // Wait initial delay
+        await ToSignal(GetTree().CreateTimer(AssignedAction.Delay), "timeout");
+
+        // Perform the action
+        AssignedAction.Trigger(player);
         EmitSignalActionTriggered();
 
         // Wait for perform duration
@@ -46,19 +52,19 @@ public partial class ActionSlot : Node
         EmitSignalActionPerformed();
 
         // Apply effect
-        GD.Print($"Applying effect of {AssignedAction.Id}");
+        GD.Print($"Applying effect of {AssignedAction}");
         AssignedAction.ApplyEffect(player);
 
         // Start cooldown
         IsOnCooldown = true;
-        GD.Print($"Starting cooldown of {AssignedAction.Id}");
+        GD.Print($"Starting cooldown of {AssignedAction}");
         EmitSignalCooldownStarted();
         await ToSignal(GetTree().CreateTimer(AssignedAction.CooldownDuration), "timeout");
         IsOnCooldown = false;
         EmitSignalCooldownEnded();
 
         // Reset action if needed
-        GD.Print($"Resetting {AssignedAction.Id}");
+        GD.Print($"Resetting {AssignedAction}");
         AssignedAction.Reset();
     }
 }

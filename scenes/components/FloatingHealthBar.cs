@@ -13,6 +13,19 @@ public partial class FloatingHealthBar : Sprite3D
 
 	private ProgressBar _progressBar;
 
+	public override void _EnterTree()
+	{
+		base._EnterTree();
+		var subViewport = GetNode<SubViewport>("SubViewport");
+		Texture = subViewport.GetTexture();
+	}
+
+	public override void _ExitTree()
+	{
+		base._ExitTree();
+		Texture = null;
+	}
+
 	public override void _Ready()
 	{
 		_progressBar = GetNode<ProgressBar>("%ProgressBar");
@@ -24,7 +37,7 @@ public partial class FloatingHealthBar : Sprite3D
 		}
 	}
 
-	private void OnHealthChanged(int health, int maxHealth)
+	private void OnHealthChanged(float health, float maxHealth)
 	{
 		GD.Print($"Updating health bar: {health}/{maxHealth}");
 		_progressBar.MaxValue = maxHealth;

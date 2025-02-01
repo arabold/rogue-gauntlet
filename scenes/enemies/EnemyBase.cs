@@ -39,7 +39,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable
 		Visible = true;
 	}
 
-	public void TakeDamage(int amount, Vector3 attackDirection)
+	public void TakeDamage(float amount, Vector3 attackDirection)
 	{
 		HurtBoxComponent?.TakeDamage(amount, attackDirection);
 	}

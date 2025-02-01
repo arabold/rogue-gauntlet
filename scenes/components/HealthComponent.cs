@@ -2,38 +2,35 @@ using Godot;
 
 public partial class HealthComponent : Node
 {
-	[Export] public int MaxHealth { get; set; } = 10;
-
-	[Signal] public delegate void HealthChangedEventHandler(int currentHealth, int maxHealth);
+	[Signal] public delegate void HealthChangedEventHandler(float currentHealth, float maxHealth);
 	[Signal] public delegate void DiedEventHandler();
 
-	public int CurrentHealth { get; private set; }
+	[Export] public float MaxHealth { get; private set; } = 10;
+	[Export] public float CurrentHealth { get; private set; } = 10;
 	public bool IsDead => CurrentHealth <= 0;
 
-	public override void _Ready()
+	HealthComponent()
 	{
 		CurrentHealth = MaxHealth;
 	}
 
-	public void SetHealth(int health)
+	public void SetHealth(float health, float maxHealth)
 	{
-		CurrentHealth = Mathf.Clamp(health, 0, MaxHealth);
-		EmitSignalHealthChanged(CurrentHealth, MaxHealth);
+		if (health != CurrentHealth || maxHealth != MaxHealth)
+		{
+			MaxHealth = maxHealth;
+			CurrentHealth = Mathf.Clamp(health, 0, MaxHealth);
+			GD.Print($"Updated {GetOwner().Name} health to {CurrentHealth}/{MaxHealth}.");
+			EmitSignalHealthChanged(CurrentHealth, MaxHealth);
+		}
 	}
 
-	public void SetMaxHealth(int maxHealth)
-	{
-		MaxHealth = maxHealth;
-		CurrentHealth = Mathf.Clamp(CurrentHealth, 0, MaxHealth);
-		EmitSignalHealthChanged(CurrentHealth, MaxHealth);
-	}
-
-	public void TakeDamage(int amount)
+	public void TakeDamage(float amount)
 	{
 		if (CurrentHealth > 0)
 		{
+			GD.Print($"{GetOwner().Name} took {amount} damage.");
 			CurrentHealth -= amount;
-
 			EmitSignalHealthChanged(CurrentHealth, MaxHealth);
 
 			if (CurrentHealth <= 0)
@@ -45,18 +42,22 @@ public partial class HealthComponent : Node
 
 	/// <summary>
 	/// Heals the player by the specified amount. 
-	/// A negative amount will damage the player.
 	/// </summary>
 	/// <param name="amount"></param>
-	public void Heal(int amount)
+	public void Heal(float amount)
 	{
-		CurrentHealth += amount;
-		CurrentHealth = Mathf.Clamp(CurrentHealth, 0, MaxHealth);
-		EmitSignalHealthChanged(CurrentHealth, MaxHealth);
+		if (amount > 0)
+		{
+			GD.Print($"{GetOwner().Name} healed for {amount}.");
+			CurrentHealth += amount;
+			CurrentHealth = Mathf.Clamp(CurrentHealth, 0, MaxHealth);
+			EmitSignalHealthChanged(CurrentHealth, MaxHealth);
+		}
 	}
 
 	private void Die()
 	{
+		GD.Print($"{GetOwner().Name} has died.");
 		EmitSignalDied();
 	}
 }

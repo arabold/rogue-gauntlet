@@ -97,6 +97,7 @@ mesh = SubResource("ArrayMesh_hvlby")
 skeleton = NodePath("")
 
 [node name="wall_doorway_door" type="MeshInstance3D" parent="wall_doorway"]
+unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.820099, 0, 0)
 mesh = SubResource("ArrayMesh_k0rpy")
 skeleton = NodePath("")
@@ -106,6 +107,7 @@ collision_layer = 16
 collision_mask = 0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+unique_name_in_owner = true
 shape = SubResource("ConvexPolygonShape3D_ce1s2")
 
 [node name="InteractiveComponent" parent="." instance=ExtResource("3_0wdxa")]

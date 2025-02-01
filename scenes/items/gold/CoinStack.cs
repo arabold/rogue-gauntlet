@@ -6,23 +6,21 @@ public partial class CoinStack : Node3D
 	[Export]
 	public int Amount
 	{
-		get => _amount;
+		get;
 		set
 		{
-			_amount = value;
-			UpdateVisibility();
+			field = value;
+			if (IsNodeReady()) { Update(); }
 		}
-	}
-
-	private int _amount = 10;
+	} = 10;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		UpdateVisibility();
+		Update();
 	}
 
-	private void UpdateVisibility()
+	private void Update()
 	{
 		Node3D small = GetNode<Node3D>("coin_stack_small");
 		Node3D medium = GetNode<Node3D>("coin_stack_medium");

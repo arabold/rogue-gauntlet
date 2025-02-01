@@ -9,49 +9,53 @@ public partial class FloatingLabel : Sprite3D
 	[Export]
 	public string Text
 	{
-		get => _text;
+		get;
 		set
 		{
-			_text = value;
-			if (IsNodeReady() && _label != null)
+			field = value;
+			if (IsNodeReady())
 			{
-				_label.Text = _text;
+				_label.Text = value;
 			}
 		}
-	}
+	} = "Text";
 
 	[Export]
 	public string ActionBinding
 	{
-		get => _actionBinding;
+		get;
 		set
 		{
-			_actionBinding = value;
-			if (IsNodeReady() && _keyBinding != null)
+			field = value;
+			if (IsNodeReady())
 			{
-				_keyBinding.ActionBinding = _actionBinding;
+				_keyBinding.Visible = !string.IsNullOrEmpty(value);
 			}
 		}
 	}
 
-	private string _text = "Text";
-	private string _actionBinding = "action_1";
 	private Label _label;
 	private KeyBinding _keyBinding;
 
+	public override void _EnterTree()
+	{
+		base._EnterTree();
+		var subViewport = GetNode<SubViewport>("SubViewport");
+		Texture = subViewport.GetTexture();
+	}
+
+	public override void _ExitTree()
+	{
+		base._ExitTree();
+		Texture = null;
+	}
+
 	public override void _Ready()
 	{
-		_keyBinding = GetNode<KeyBinding>("%KeyBinding");
-		if (_actionBinding != null && _actionBinding != "")
-		{
-			_keyBinding.ActionBinding = _actionBinding;
-		}
-		else
-		{
-			_keyBinding.QueueFree();
-		}
-
 		_label = GetNode<Label>("%Label");
-		_label.Text = _text;
+		_label.Text = Text;
+
+		_keyBinding = GetNode<KeyBinding>("%KeyBinding");
+		_keyBinding.Visible = !string.IsNullOrEmpty(ActionBinding);
 	}
 }

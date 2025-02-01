@@ -1,6 +1,5 @@
 using Godot;
 using Godot.Collections;
-using System;
 using System.Linq;
 
 /// <summary>
@@ -8,15 +7,18 @@ using System.Linq;
 /// </summary>
 public partial class Player : CharacterBody3D, IDamageable
 {
-	[Export] public PlayerStats Stats { get; set; }
+	[Export] public PlayerStats Stats { get; protected set; }
+	[Export] public PackedScene MeleeAttackScene { get; protected set; }
+	[Export] public PackedScene RangedAttackScene { get; protected set; }
+	[Export] public PackedScene SpecialAttackScene { get; protected set; }
 
 	// The following states are used for animation
 	public bool IsDead => HealthComponent.CurrentHealth <= 0;
 	public bool IsHit => MovementComponent.IsPushed;
 	public bool IsMoving => MovementComponent.IsMoving;
 	public bool IsFalling => MovementComponent.IsFalling;
-	public bool IsPerformingAction => ActionManager.CurrentActionId != null;
-	public string CurrentActionId => ActionManager.CurrentActionId;
+	public bool IsPerformingAction => ActionManager.CurrentAnimationId != null;
+	public string CurrentActionId => ActionManager.CurrentAnimationId;
 
 	public HealthComponent HealthComponent { get; private set; }
 	public HurtBoxComponent HurtBoxComponent { get; private set; }
@@ -27,6 +29,13 @@ public partial class Player : CharacterBody3D, IDamageable
 
 	public Inventory Inventory { get; private set; } = new Inventory();
 	public Array<ActiveBuff> ActiveBuffs { get; private set; } = new Array<ActiveBuff>();
+
+	private MeleeAttackAction _meleeAttackAction;
+	private RangedAttackAction _rangedAttackAction;
+	private SpecialAttackAction _specialAttackAction;
+	private WeaponSwing _meleeAttack;
+	private WeaponSwing _specialAttack;
+	private RangedWeaponShot _rangedWeapon;
 
 	private Node3D _pivot;
 	private AnimationTree _animationTree;
@@ -45,15 +54,17 @@ public partial class Player : CharacterBody3D, IDamageable
 		_animationStateMachine = (AnimationNodeStateMachinePlayback)_animationTree.Get("parameters/playback");
 		_animationStateMachine.Start("Idle");
 
-		WeaponSwing quickAttackSwing = GetNode<WeaponSwing>("QuickAttackSwing");
-		WeaponSwing heavyAttackSwing = GetNode<WeaponSwing>("HeavyAttackSwing");
-		RangedWeapon rangedWeapon = GetNode<RangedWeapon>("RangedWeapon");
+		_meleeAttack = GetNode<WeaponSwing>("QuickAttackSwing");
+		_rangedWeapon = GetNode<RangedWeaponShot>("RangedWeaponShot");
+		_specialAttack = GetNode<WeaponSwing>("HeavyAttackSwing");
+
+		_meleeAttackAction = new MeleeAttackAction();
+		_rangedAttackAction = new RangedAttackAction();
+		_specialAttackAction = new SpecialAttackAction();
 
 		ActionManager = GetNode<ActionManager>("ActionManager");
-		ActionManager.AssignAction(0, new QuickAttackAction(quickAttackSwing));
-		ActionManager.AssignAction(1, new HeavyAttackAction(heavyAttackSwing));
-		ActionManager.AssignAction(2, new DrinkPotionAction());
-		ActionManager.AssignAction(3, new RangedAttackAction(rangedWeapon));
+		// ActionManager.AssignAction(0, _meleeAttackAction, null);
+		ActionManager.AssignAction(1, _specialAttackAction, null);
 
 		MovementComponent = GetNode<MovementComponent>("MovementComponent");
 		InputComponent = GetNode<InputComponent>("InputComponent");
@@ -64,8 +75,6 @@ public partial class Player : CharacterBody3D, IDamageable
 		InteractionArea.InteractiveEntered += OnInteractiveEntered;
 		InteractionArea.InteractiveExited += OnInteractiveExited;
 
-		HealthComponent.SetMaxHealth(Stats.MaxHealth);
-		HealthComponent.SetHealth(Stats.Health);
 		HealthComponent.HealthChanged += OnHealthChanged;
 
 		// The inventory lets us know about any changed via signals
@@ -74,6 +83,35 @@ public partial class Player : CharacterBody3D, IDamageable
 		Inventory.ItemConsumed += OnItemConsumed;
 		Inventory.ItemDropped += OnItemDropped;
 		Inventory.ItemDestroyed += OnItemDestroyed;
+
+		Stats.Changed += OnStatsChanged;
+		OnStatsChanged();
+	}
+
+	private void OnStatsChanged()
+	{
+		// Keep our stats and components in sync
+		MovementComponent.Speed = Stats.Speed;
+		HurtBoxComponent.Armor = Stats.Armor;
+		HealthComponent.SetHealth(Stats.Health, Stats.MaxHealth);
+
+		// Update attack stats
+		var duration = 1f / Stats.AttackSpeed;
+		var equppedItem = Inventory.EquippedItems[EquipmentSlot.WeaponHand];
+		if (equppedItem is Weapon weapon)
+		{
+			if (weapon.IsRanged)
+			{
+				_rangedWeapon.Weapon = weapon;
+				_rangedAttackAction.PerformDuration = duration;
+			}
+			else
+			{
+				_meleeAttack.SwingDuration = duration;
+				_meleeAttack.weapon = weapon;
+				_meleeAttackAction.PerformDuration = duration;
+			}
+		}
 	}
 
 	/// <summary>
@@ -84,6 +122,13 @@ public partial class Player : CharacterBody3D, IDamageable
 		// Update stats
 		item.OnEquipped(this);
 		SignalBus.EmitItemEquipped(this, item);
+
+		if (item is Weapon weapon)
+		{
+			// Weapon equipped, assign the correct action
+			PlayerAction action = weapon.IsRanged ? _rangedAttackAction : _meleeAttackAction;
+			ActionManager.AssignAction(0, action, weapon.Scene);
+		}
 	}
 
 	/// <summary>
@@ -94,6 +139,12 @@ public partial class Player : CharacterBody3D, IDamageable
 		// Update stats
 		item.OnUnequipped(this);
 		SignalBus.EmitItemUnequipped(this, item);
+		var equppedItem = Inventory.EquippedItems[EquipmentSlot.WeaponHand];
+		if (equppedItem == null)
+		{
+			// No weapon equipped
+			ActionManager.AssignAction(0, null, null);
+		}
 	}
 
 	/// <summary>
@@ -141,9 +192,11 @@ public partial class Player : CharacterBody3D, IDamageable
 	/// <summary>
 	/// Callback triggered whenever the HealthComponent updates
 	/// </summary>
-	private void OnHealthChanged(int health, int maxHealth)
+	private void OnHealthChanged(float health, float maxHealth)
 	{
-		Stats.UpdateHealth(health, maxHealth);
+		// Keep our stats in sync
+		Stats.Health = health;
+		Stats.BaseMaxHealth = maxHealth;
 	}
 
 	/// <summary>
@@ -261,22 +314,51 @@ public partial class Player : CharacterBody3D, IDamageable
 	/// <summary>
 	/// Implement the `IDamageable` interface, so the player can take damage
 	/// when attacked or walking into a trap.
+	/// 
+	/// The amount of damage is taking the armor into account.
 	/// </summary>
-	public void TakeDamage(int amount, Vector3 attackDirection)
+	public void TakeDamage(float amount, Vector3 attackDirection)
 	{
+		// Calculate the damage after armor is taken into account
+		amount = Mathf.Max(0, amount - Stats.Armor);
+		if (amount <= 0)
+		{
+			// No damage taken
+			return;
+		}
 		HurtBoxComponent.TakeDamage(amount, attackDirection);
 	}
 
-	public void TakeDamage(int amount)
+	/// <summary>
+	/// Public function that can be called when the player should take damage
+	/// without a specific attack direction. This is useful for poison or other
+	/// damage-over-time effects.
+	/// 
+	/// Armor is not taken into account here.
+	/// </summary>
+	/// <param name="amount"></param>
+	public void TakeDamage(float amount)
 	{
-		// If there's no attack direction, just apply the damage
-		// directly to the health component. This is useful for
-		// poison or other damage-over-time effects.
 		HealthComponent.TakeDamage(amount);
 	}
 
 	public void Heal(int amount)
 	{
 		HealthComponent.Heal(amount);
+	}
+
+	public void MeleeAttack()
+	{
+		_meleeAttack.Attack();
+	}
+
+	public void RangedAttack()
+	{
+		_rangedWeapon.Attack();
+	}
+
+	public void SpecialAttack()
+	{
+		_specialAttack.Attack();
 	}
 }

@@ -132,6 +132,14 @@ public partial class Inventory : Resource
 				Unequip(EquipmentSlot.ShieldHand);
 			}
 		}
+		else if (item.Type == EquippableItemType.Shield)
+		{
+			// Also unequip the weapon if it's two-handed
+			if (EquippedItems[EquipmentSlot.WeaponHand] is Weapon weapon && weapon.IsTwoHanded)
+			{
+				Unequip(EquipmentSlot.WeaponHand);
+			}
+		}
 		else if (item.Type == EquippableItemType.Ring)
 		{
 			// Check if the left ring slot is occupied

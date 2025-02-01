@@ -1,7 +1,7 @@
 using Godot;
 
 [GlobalClass]
-public partial class HealingBuff : Buff
+public partial class HealingBuff : PeriodicBuff
 {
     [Export] public int HealthPointsPerTick = 0;
 

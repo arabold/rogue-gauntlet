@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3 uid="uid://cp8o80bbyblfj"]
+[gd_scene load_steps=38 format=3 uid="uid://cp8o80bbyblfj"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_u7kdf"]
 [ext_resource type="PackedScene" uid="uid://dx6rvie14m5bg" path="res://assets/kaykit-skeletons/Skeleton_Minion.glb" id="2_lb3ug"]
@@ -156,15 +156,12 @@ states/Walking/position = Vector2(275.242, 419.962)
 transitions = ["Idle", "Walking", SubResource("AnimationNodeStateMachineTransition_t6uxn"), "Walking", "Idle", SubResource("AnimationNodeStateMachineTransition_d2noq"), "Idle", "Lie", SubResource("AnimationNodeStateMachineTransition_ahwo5"), "Lie", "StandUp", SubResource("AnimationNodeStateMachineTransition_jneow"), "StandUp", "Idle", SubResource("AnimationNodeStateMachineTransition_3ftaq"), "Idle", "Attack", SubResource("AnimationNodeStateMachineTransition_x0i68"), "Idle", "Dying", SubResource("AnimationNodeStateMachineTransition_551pq"), "Attack", "Idle", SubResource("AnimationNodeStateMachineTransition_hquwu"), "Dying", "Dead", SubResource("AnimationNodeStateMachineTransition_gyync"), "Walking", "Dying", SubResource("AnimationNodeStateMachineTransition_7hibw"), "Walking", "Attack", SubResource("AnimationNodeStateMachineTransition_qasbv"), "Walking", "Hit", SubResource("AnimationNodeStateMachineTransition_o4lkd"), "Start", "Lie", SubResource("AnimationNodeStateMachineTransition_bnfo4"), "Start", "Spawn", SubResource("AnimationNodeStateMachineTransition_kf5fr"), "Spawn", "Idle", SubResource("AnimationNodeStateMachineTransition_gclll"), "Walking", "Falling", SubResource("AnimationNodeStateMachineTransition_jplsx"), "Idle", "Falling", SubResource("AnimationNodeStateMachineTransition_viqtb"), "Falling", "Idle", SubResource("AnimationNodeStateMachineTransition_aab00"), "Idle", "Hit", SubResource("AnimationNodeStateMachineTransition_lwwi4"), "Hit", "Idle", SubResource("AnimationNodeStateMachineTransition_m1eid"), "Hit", "Dying", SubResource("AnimationNodeStateMachineTransition_5cn5g")]
 graph_offset = Vector2(102.21, -120.426)
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_6flps"]
-viewport_path = NodePath("SubViewport")
-
 [node name="SkeletonMinion" instance=ExtResource("1_u7kdf")]
 
 [node name="Skeleton_Minion" parent="Pivot" index="0" instance=ExtResource("2_lb3ug")]
 
 [node name="Skeleton3D" parent="Pivot/Skeleton_Minion/Rig" index="0"]
-bones/1/position = Vector3(0, 0.371306, 0)
+bones/1/position = Vector3(0, 0.392023, 0)
 bones/1/rotation = Quaternion(-1.11123e-10, 0.0431578, 2.57241e-09, 0.999068)
 bones/1/scale = Vector3(1, 1, 1)
 bones/2/rotation = Quaternion(-6.93889e-18, 7.10543e-15, 4.93038e-32, 1)
@@ -172,46 +169,46 @@ bones/2/scale = Vector3(1, 1, 1)
 bones/3/rotation = Quaternion(8.27181e-25, 3.72529e-09, -2.75506e-40, 1)
 bones/3/scale = Vector3(1, 1, 1)
 bones/4/position = Vector3(0.212007, 0.134132, 7.92996e-08)
-bones/4/rotation = Quaternion(-0.552489, -0.0566021, -0.637255, 0.534282)
+bones/4/rotation = Quaternion(-0.559893, -0.0608694, -0.643954, 0.51782)
 bones/4/scale = Vector3(0.999999, 0.999999, 1)
-bones/5/rotation = Quaternion(3.74144e-08, -5.78522e-08, -0.516161, 0.856492)
+bones/5/rotation = Quaternion(3.3905e-08, -4.85994e-08, -0.494749, 0.869036)
 bones/5/scale = Vector3(1, 0.999999, 1)
 bones/6/rotation = Quaternion(1.44633e-08, 1.26672e-08, 0.0266581, 0.999645)
 bones/6/scale = Vector3(1, 1, 1)
-bones/7/rotation = Quaternion(-0.321719, -0.337739, 0.150494, 0.871654)
+bones/7/rotation = Quaternion(-0.32107, -0.325356, 0.145749, 0.877391)
 bones/7/scale = Vector3(1, 1, 1)
 bones/8/position = Vector3(8.34843e-10, 0.0961252, -0.0575)
-bones/8/rotation = Quaternion(0.000829633, 0.000829627, -0.704055, 0.710145)
+bones/8/rotation = Quaternion(3.27302e-06, 3.28313e-06, -0.707095, 0.707119)
 bones/8/scale = Vector3(1, 1, 1)
 bones/9/position = Vector3(-0.212007, 0.134132, 8.6814e-08)
-bones/9/rotation = Quaternion(-0.610988, 0.0770817, 0.612841, 0.495155)
+bones/9/rotation = Quaternion(-0.618231, 0.0807191, 0.617996, 0.478912)
 bones/9/scale = Vector3(0.999999, 0.999999, 1)
-bones/10/rotation = Quaternion(2.84434e-08, 4.36473e-08, 0.538503, 0.842624)
+bones/10/rotation = Quaternion(2.16776e-08, 5.09857e-08, 0.517968, 0.8554)
 bones/10/scale = Vector3(1, 1, 1)
 bones/11/rotation = Quaternion(-4.94615e-10, -1.45974e-08, -0.0266581, 0.999645)
 bones/11/scale = Vector3(1, 1, 1)
-bones/12/rotation = Quaternion(-0.320726, 0.313969, -0.232665, 0.862801)
+bones/12/rotation = Quaternion(-0.319296, 0.300553, -0.227367, 0.869495)
 bones/12/scale = Vector3(1, 1, 1)
 bones/13/position = Vector3(-1.5736e-08, 0.0961251, -0.0575)
-bones/13/rotation = Quaternion(0.00262862, 0.00309613, 0.704371, 0.70982)
+bones/13/rotation = Quaternion(9.20139e-06, 1.08348e-05, 0.707097, 0.707116)
 bones/13/scale = Vector3(1, 1, 1)
 bones/14/rotation = Quaternion(-5.80608e-11, -0.0313417, -1.88012e-09, 0.999509)
 bones/14/scale = Vector3(1, 1, 1)
 bones/15/position = Vector3(0.170945, 0.113587, 1.59941e-08)
-bones/15/rotation = Quaternion(0.990037, 0.0835694, 0.078412, 0.0818249)
+bones/15/rotation = Quaternion(0.993714, 0.0837114, 0.073512, 0.0110301)
 bones/15/scale = Vector3(1, 1, 1)
-bones/16/rotation = Quaternion(0.381175, 6.07765e-08, -2.61373e-07, 0.924503)
+bones/16/rotation = Quaternion(0.195892, 6.26735e-08, -1.32251e-07, 0.980626)
 bones/16/scale = Vector3(1, 1, 1)
-bones/17/rotation = Quaternion(-0.614234, -0.201666, 0.0742088, 0.759302)
+bones/17/rotation = Quaternion(-0.517715, -0.209488, 0.0436984, 0.828358)
 bones/17/scale = Vector3(1, 1, 0.999999)
-bones/18/rotation = Quaternion(-2.24322e-06, 0.920156, -0.391552, 5.90891e-07)
+bones/18/rotation = Quaternion(0.000110889, 0.920257, -0.391315, -2.5039e-05)
 bones/18/scale = Vector3(1, 0.999998, 1)
 bones/19/position = Vector3(-0.170945, 0.113587, 1.55755e-08)
-bones/19/rotation = Quaternion(0.991986, -0.0330414, 0.029936, 0.118218)
+bones/19/rotation = Quaternion(0.997317, -0.0294616, 0.0315272, 0.0591291)
 bones/19/scale = Vector3(1, 1, 1)
-bones/20/rotation = Quaternion(0.426745, -6.01009e-08, 2.97608e-07, 0.904372)
+bones/20/rotation = Quaternion(0.274216, -6.37648e-08, 1.92932e-07, 0.961668)
 bones/20/scale = Vector3(1, 1, 1)
-bones/21/rotation = Quaternion(-0.640781, 0.112707, -0.0221709, 0.759082)
+bones/21/rotation = Quaternion(-0.55915, 0.114511, -0.00864478, 0.821075)
 bones/21/scale = Vector3(1, 1, 0.999999)
 bones/22/rotation = Quaternion(-8.93489e-05, 0.920222, -0.391398, 2.0291e-05)
 bones/22/scale = Vector3(1, 0.999998, 1)
@@ -241,10 +238,10 @@ bones/35/scale = Vector3(1, 1, 1)
 bones/36/rotation = Quaternion(1.00614e-16, -6.74098e-17, -1.57416e-08, 1)
 bones/36/scale = Vector3(1, 1, 1)
 bones/37/rotation = Quaternion(-0.707107, -7.27951e-08, -7.27951e-08, 0.707107)
-bones/38/position = Vector3(0.520841, 0.776704, -0.0576374)
+bones/38/position = Vector3(0.520841, 0.788279, -0.0576373)
 bones/38/rotation = Quaternion(0.794627, -1.11759e-07, 0.607098, -5.96046e-08)
 bones/39/rotation = Quaternion(-0.707107, -7.27951e-08, -7.27951e-08, 0.707107)
-bones/40/position = Vector3(-0.510844, 0.776704, 0.0597369)
+bones/40/position = Vector3(-0.510844, 0.788279, 0.0597369)
 bones/40/rotation = Quaternion(-0.758253, -1.52737e-07, 0.651961, -1.11759e-08)
 bones/40/scale = Vector3(1, 1, 1)
 
@@ -296,8 +293,5 @@ Xp = 10
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
 shape = SubResource("CapsuleShape3D_fv4r8")
-
-[node name="FloatingHealthBar" parent="." index="9"]
-texture = SubResource("ViewportTexture_6flps")
 
 [editable path="Pivot/Skeleton_Minion"]

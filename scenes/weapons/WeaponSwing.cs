@@ -1,23 +1,25 @@
 using Godot;
 
-public partial class WeaponSwing : Node3D, IWeapon
+public partial class WeaponSwing : Node3D
 {
-	private Node3D _trail;
-
 	[Export] public float SwingOffset = 0f; // Offset for the swing
 	[Export] public float SwingDuration = 0.5f; // Time for the swing
 	[Export] public float SwingArc = 180f; // Swing arc in degrees
 	[Export] public bool SwingRight = true; // Swing direction
-	[Export] public int Damage = 0;
+	[Export] public Weapon weapon; // Weapon to use
 
+	private Node3D _pivot;
+	private Node3D _trail;
 	private HitBoxComponent _hitBox;
 
 	public override void _Ready()
 	{
-		_trail = GetNode<Node3D>("Trail3D");
+		_pivot = GetNode<Node3D>("Pivot");
+
+		_trail = GetNode<Node3D>("Pivot/Trail3D");
 		_trail.Visible = false; // Hide the trail effect
 
-		_hitBox = GetNode<HitBoxComponent>("HitBoxComponent");
+		_hitBox = GetNode<HitBoxComponent>("Pivot/HitBoxComponent");
 		_hitBox.Monitoring = false; // Disable detection until attack is triggered
 		_hitBox.HitDetected += OnHitDetected;
 
@@ -28,18 +30,19 @@ public partial class WeaponSwing : Node3D, IWeapon
 	{
 		if (node is IDamageable damageable)
 		{
-			GD.Print($"{Name} hit {node.Name} with {Damage} damage");
-			damageable.TakeDamage(Damage, GlobalTransform.Basis.Z);
+			GD.Print($"{Name} hit {node.Name}");
+			var direction = _pivot.GlobalTransform.Basis.Z;
+			weapon?.ApplyDamage(damageable, direction);
 		}
 	}
 
 	private void ResetRotation()
 	{
 		float halfArc = SwingArc / 2f;
-		RotationDegrees = new Vector3(
-			RotationDegrees.X,
+		_pivot.RotationDegrees = new Vector3(
+			_pivot.RotationDegrees.X,
 			SwingRight ? SwingOffset + halfArc : SwingOffset - halfArc,
-			RotationDegrees.Z);
+			_pivot.RotationDegrees.Z);
 	}
 
 	public void Attack()
@@ -53,9 +56,9 @@ public partial class WeaponSwing : Node3D, IWeapon
 
 		Tween tween = GetTree().CreateTween();
 		tween.TweenProperty(
-			this,
+			_pivot,
 			"rotation_degrees",
-			new Vector3(RotationDegrees.X, end, RotationDegrees.Z),
+			new Vector3(_pivot.RotationDegrees.X, end, _pivot.RotationDegrees.Z),
 			SwingDuration
 		);
 

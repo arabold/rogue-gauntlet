@@ -8,18 +8,32 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 {
 	// Signal emitted when damage is taken
 	[Signal]
-	public delegate void DamageTakenEventHandler(int amount, Vector3 attackDirection);
+	public delegate void DamageTakenEventHandler(float amount, Vector3 attackDirection);
 
 	[Export] public HealthComponent HealthComponent { get; set; }
 	[Export] public PackedScene HitEffect { get; set; }
 
-	public void TakeDamage(int amount, Vector3 attackDirection)
-	{
-		GD.Print($"{GetParent().Name} took {amount} damage");
-		EmitSignalDamageTaken(amount, attackDirection);
-		HealthComponent?.TakeDamage(amount);
+	[Export] public float Armor { get; set; } = 0;
+	[Export] public bool Invulnerable { get; set; } = false;
 
-		SpawnHitEffect(attackDirection);
+	public void TakeDamage(float amount, Vector3 attackDirection)
+	{
+		if (Invulnerable)
+		{
+			GD.Print($"{GetParent().Name} is invulnerable!");
+			return;
+		}
+
+		GD.Print($"{GetParent().Name} took {amount} damage with {Armor} armor");
+
+		var finalDamage = Mathf.Max(0, amount - Armor);
+		EmitSignalDamageTaken(finalDamage, attackDirection);
+		HealthComponent?.TakeDamage(finalDamage);
+
+		if (finalDamage > 0)
+		{
+			SpawnHitEffect(attackDirection);
+		}
 	}
 
 	private void SpawnHitEffect(Vector3 attackDirection)

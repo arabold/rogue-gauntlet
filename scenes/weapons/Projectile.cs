@@ -4,8 +4,8 @@ public partial class Projectile : Node3D
 {
 	[Export] public float Speed = 10f;
 	[Export] public float Range = 30f;
-	[Export] public int Damage = 2;
 	[Export] public Vector3 Direction = Vector3.Forward;
+	[Export] public Weapon Weapon;
 
 	private HitBoxComponent _hitBoxComponent;
 	private Node3D _pivot;
@@ -19,12 +19,12 @@ public partial class Projectile : Node3D
 		_hitBoxComponent.HitDetected += OnHitDetected;
 	}
 
-	public void Update(Vector3 origin, Vector3 direction, float speed, float range, int damage)
+	public void Update(Vector3 origin, Vector3 direction, float speed, float range, Weapon weapon)
 	{
 		Direction = direction.Normalized();
 		Speed = speed;
 		Range = range;
-		Damage = damage;
+		Weapon = weapon;
 
 		// Set the projectile's position and rotation
 		GlobalTransform = new Transform3D(Basis.Identity, origin);
@@ -48,7 +48,7 @@ public partial class Projectile : Node3D
 		GD.Print($"Projectile hit {body.Name}");
 		if (body is IDamageable damageable)
 		{
-			damageable.TakeDamage(Damage, Direction);
+			Weapon.ApplyDamage(damageable, Direction);
 		}
 		QueueFree();
 	}

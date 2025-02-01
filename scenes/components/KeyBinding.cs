@@ -10,21 +10,27 @@ public partial class KeyBinding : TextureRect
 	[Export]
 	public string ActionBinding
 	{
-		get => _actionBinding;
+		get;
 		set
 		{
-			_actionBinding = value;
-			if (IsNodeReady())
-			{
-				Update();
-			}
+			field = value;
+			if (IsNodeReady()) { Update(); }
+		}
+	}
+
+	[Export]
+	public bool IsDisabled
+	{
+		get;
+		set
+		{
+			field = value;
+			if (IsNodeReady()) { Update(); }
 		}
 	}
 
 	[Export] public Dictionary<string, Texture2D> KeyboardDict { get; private set; } = new Dictionary<string, Texture2D>();
 	[Export] public Dictionary<string, Texture2D> XboxDict { get; private set; } = new Dictionary<string, Texture2D>();
-
-	private string _actionBinding;
 
 	public override void _Ready()
 	{
@@ -36,6 +42,7 @@ public partial class KeyBinding : TextureRect
 		if (KeyboardDict.ContainsKey(ActionBinding))
 		{
 			Texture = KeyboardDict[ActionBinding];
+			Modulate = IsDisabled ? new Color(1, 1, 1, 0.5f) : new Color(1, 1, 1, 1);
 		}
 		else
 		{

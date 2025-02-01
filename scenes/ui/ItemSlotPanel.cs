@@ -5,34 +5,32 @@ public partial class ItemSlotPanel : PanelContainer
 {
 	[Signal] public delegate void ItemSelectedEventHandler(ItemSlotPanel itemSlotPanel);
 
-	public bool IsEquipped
-	{
-		get => _isEquipped;
-		set
-		{
-			_isEquipped = value;
-			if (IsNodeReady())
-			{
-				Update();
-			}
-		}
-	}
-
-	public InventoryItemSlot Slot
-	{
-		get => _slot;
-		private set => _slot = value;
-	}
-
-	private bool _isEquipped = false;
-	private InventoryItemSlot _slot = null;
-
 	[Export] public Color CommonColor = new Color(0.8f, 0.8f, 0.0f, 0.1f);
 	[Export] public Color UncommonColor = new Color(0.0f, 0.8f, 0.0f, 0.1f);
 	[Export] public Color RareColor = new Color(0.0f, 0.0f, 0.8f, 0.1f);
 	[Export] public Color LegendaryColor = new Color(0.8f, 0.0f, 0.8f, 0.1f);
 	[Export] public Color UniqueColor = new Color(0.8f, 0.8f, 0.0f, 0.1f);
 	[Export] public Color DefaultColor = new Color(0.8f, 0.8f, 0.8f, 0.1f);
+
+	public bool IsEquipped
+	{
+		get;
+		private set
+		{
+			field = value;
+			if (IsNodeReady()) { Update(); }
+		}
+	}
+
+	public InventoryItemSlot Slot
+	{
+		get;
+		private set
+		{
+			field = value;
+			if (IsNodeReady()) { Update(); }
+		}
+	}
 
 	public override void _Ready()
 	{
@@ -44,26 +42,26 @@ public partial class ItemSlotPanel : PanelContainer
 
 	public override void _ExitTree()
 	{
-		if (_slot != null)
+		if (Slot != null)
 		{
-			_slot.Changed -= Update;
+			Slot.Changed -= Update;
 		}
 		base._ExitTree();
 	}
 
 	public void SetItem(InventoryItemSlot slot, bool isEquipped)
 	{
-		if (_slot != null)
+		if (Slot != null)
 		{
-			_slot.Changed -= Update;
+			Slot.Changed -= Update;
 		}
 
-		_slot = slot;
-		_isEquipped = isEquipped;
+		Slot = slot;
+		IsEquipped = isEquipped;
 
-		if (_slot != null)
+		if (Slot != null)
 		{
-			_slot.Changed += Update;
+			Slot.Changed += Update;
 		}
 
 		Update();
@@ -76,13 +74,13 @@ public partial class ItemSlotPanel : PanelContainer
 		var quantityLabel = GetNode<Label>("%QuantityLabel");
 		var equippedBorder = GetNode<Panel>("%EquippedBorder");
 
-		if (_slot != null && _slot.Item != null)
+		if (Slot != null && Slot.Item != null)
 		{
-			preview.SetScene(_slot.Item.Scene);
-			quantityLabel.Text = _slot.Quantity > 1 ? _slot.Quantity.ToString() : "";
+			preview.SetScene(Slot.Item.Scene);
+			quantityLabel.Text = Slot.Quantity > 1 ? Slot.Quantity.ToString() : "";
 			equippedBorder.Visible = IsEquipped;
 
-			if (_slot.Item is EquippableItem equippableItem)
+			if (Slot.Item is EquippableItem equippableItem)
 			{
 				colorRect.Color = equippableItem.Rarity switch
 				{

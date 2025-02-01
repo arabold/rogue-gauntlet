@@ -8,18 +8,14 @@ public partial class Chest : Node3D
 	[Export]
 	public bool IsOpen
 	{
-		get => _isOpen;
+		get;
 		set
 		{
-			if (value != _isOpen)
-			{
-				_isOpen = value;
-				UpdateChestLid();
-			}
+			field = value;
+			if (IsNodeReady()) { Update(); }
 		}
-	}
+	} = false;
 
-	private bool _isOpen = false;
 	private InteractiveComponent _interactiveComponent;
 	private LootTableComponent _lootTableComponent;
 	private MeshInstance3D _chest;
@@ -27,10 +23,8 @@ public partial class Chest : Node3D
 
 	public override void _Ready()
 	{
-		base._Ready();
-
 		_chest = GetNode<MeshInstance3D>("chest");
-		_chestLid = _chest.GetNode<MeshInstance3D>("chest_lid");
+		_chestLid = GetNode<MeshInstance3D>("chest_lid");
 
 		if (!Engine.IsEditorHint())
 		{
@@ -40,22 +34,22 @@ public partial class Chest : Node3D
 			_lootTableComponent = GetNode<LootTableComponent>("LootTableComponent");
 		}
 
-		UpdateChestLid();
+		Update();
 	}
 
-	private void UpdateChestLid()
+	private void Update()
 	{
 		if (_chestLid == null)
 			return;
-		_chestLid.RotationDegrees = new Vector3(_isOpen ? -45 : 0, 0, 0);
+		_chestLid.RotationDegrees = new Vector3(IsOpen ? -45 : 0, 0, 0);
 	}
 
 	private void OpenChest()
 	{
-		if (_isOpen)
+		if (IsOpen)
 			return;
 
-		_isOpen = true;
+		IsOpen = true;
 
 		var tween = CreateTween();
 		tween

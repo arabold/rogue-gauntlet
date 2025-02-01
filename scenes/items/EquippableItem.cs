@@ -25,49 +25,23 @@ public enum EquippableItemRarity
 [GlobalClass]
 public partial class EquippableItem : BuffedItem
 {
-	[Export] public EquippableItemType Type = EquippableItemType.Weapon;
 	/// <summary>
-	/// Minimum damage bonus for this item (absolute value). Stacks up with other items' damage bonus.
+	/// Type of this item
 	/// </summary>
-	[Export] public int DamageMin = 0;
-	/// <summary>
-	/// Maximum damage bonus for this item (absolute value). Stacks up with other items' damage bonus.
-	/// </summary>
-	[Export] public int DamageMax = 0;
-	/// <summary>
-	/// Armor bonus for this item (absolute value). Stacks up with other items' armor bonus.
-	/// </summary>
-	[Export] public int Armor = 0;
-	/// <summary>
-	/// Accuracy modifier for this weapon
-	/// </summary>
-	[Export] public float AccuracyModifier = 1.0f;
-	/// <summary>
-	/// Speed modifier for this weapon
-	/// </summary>
-	[Export] public float SpeedModifier = 1.0f;
-	/// <summary>
-	/// Reach modifier for this weapon (melee weapons only)
-	/// </summary>
-	[Export] public float ReachModifier = 1.0f;
+	[Export] public EquippableItemType Type { get; set => SetValue(ref field, value); } = EquippableItemType.Weapon;
 	/// <summary>
 	/// Rarity of this item
 	/// </summary>
-	[Export] public EquippableItemRarity Rarity = EquippableItemRarity.Common;
+	[Export]
+	public EquippableItemRarity Rarity { get; set => SetValue(ref field, value); } = EquippableItemRarity.Common;
 
-	public void OnEquipped(Player player)
+	public virtual void OnEquipped(Player player)
 	{
-		// Apply stats
 		ApplyBuff(player);
-		var stats = player.Stats;
-		// TODO: Apply stats...
 	}
 
-	public void OnUnequipped(Player player)
+	public virtual void OnUnequipped(Player player)
 	{
-		// Reset stats
 		RemoveBuff(player);
-		var stats = player.Stats;
-		// TODO: Reset stats...
 	}
 }

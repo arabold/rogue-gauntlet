@@ -5,15 +5,14 @@
 
 [resource]
 script = ExtResource("1_4nbvr")
+DamageMin = 3
+DamageMax = 6
+WeaponReachModifier = 1.0
+AttackSpeedModifier = 1.0
+CritChance = 0.0
 IsTwoHanded = false
 IsRanged = false
 Type = 4
-DamageMin = 3
-DamageMax = 6
-Armor = 0
-AccuracyModifier = 1.0
-SpeedModifier = 0.9
-ReachModifier = 1.0
 Rarity = 0
 Name = "Axe"
 Scene = ExtResource("1_w1nru")
@@ -22,4 +21,5 @@ Value = 0
 Weight = 0.0
 UsesSlot = true
 IsStackable = false
+IsQuestItem = false
 metadata/_custom_type_script = ExtResource("1_4nbvr")

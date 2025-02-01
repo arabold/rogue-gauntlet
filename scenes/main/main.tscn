@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://beddkxj3k6x7i" path="res://scenes/ui/hud.tscn" id="3_stuk7"]
 [ext_resource type="PackedScene" uid="uid://b1b1kyg5ak1kw" path="res://scenes/levels/level.tscn" id="5_nxjfc"]
 [ext_resource type="Script" uid="uid://dcn3x0v686qq4" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="6_g3uvw"]
-[ext_resource type="PackedScene" uid="uid://bgq1h0jm4ybvw" path="res://scenes/ui/inventory_dialog.tscn" id="7_hujxm"]
+[ext_resource type="PackedScene" uid="uid://bgq1h0jm4ybvw" path="res://scenes/ui/character_dialog.tscn" id="7_hujxm"]
 [ext_resource type="Script" uid="uid://bmqwajrqdvsis" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="7_wl18x"]
 [ext_resource type="Script" uid="uid://b6kqn4kkq0nvr" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="8_qd7vr"]
 
@@ -32,7 +32,7 @@ environment = SubResource("Environment_cxo8v")
 [node name="Level" parent="." instance=ExtResource("5_nxjfc")]
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.707107, -0.541675, 0.454519, 0, 0.642788, 0.766044, -0.707107, -0.541675, 0.454519, 6.81757, 11.4903, 6.81757)
+transform = Transform3D(0.707107, -0.541675, 0.45452, 0, 0.642788, 0.766044, -0.707107, -0.541675, 0.45452, 6.81757, 11.4903, 6.81757)
 projection = 1
 current = true
 size = 20.0
@@ -58,7 +58,7 @@ spring_length = 15.0
 
 [node name="CameraTargetPlaceholder" type="Node3D" parent="."]
 
-[node name="InventoryDialog" parent="." instance=ExtResource("7_hujxm")]
+[node name="CharacterDialog" parent="." instance=ExtResource("7_hujxm")]
 unique_name_in_owner = true
 visible = false
 

@@ -55,10 +55,10 @@ public partial class SpawnPoint : Node3D
 
 		var scene = Scenes.PickRandom();
 		var node = scene.Instantiate<Node3D>();
-		GameManager.Instance.Level.AddChild(node);
-
 		node.GlobalTransform = GlobalTransform;
 		node.Rotation = Rotation;
+
+		GameManager.Instance.Level.AddChild(node);
 
 		GD.Print($"Spawned {node.Name} at {node.GlobalPosition}");
 

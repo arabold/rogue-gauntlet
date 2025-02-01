@@ -6,58 +6,24 @@ using Godot.Collections;
 [Tool]
 public partial class MapGenerator : Node3D
 {
-	[Export]
-	public uint DungeonDepth
-	{
-		get => _dungeonDepth;
-		set => SetPropertyWithBounds<uint>(ref _dungeonDepth, value, 1, 100);
-	}
+	[Export] public uint DungeonDepth { get; set => SetPropertyWithBounds<uint>(ref field, value, 1, 100); } = 1;
+	[Export] public uint MapWidth { get; set => SetPropertyWithBounds<uint>(ref field, value, 20, 100); } = 20;
+	[Export] public uint MapDepth { get; set => SetPropertyWithBounds<uint>(ref field, value, 20, 100); } = 20;
+	[Export] public uint MaxRooms { get; set => SetPropertyWithBounds<uint>(ref field, value, 1, 100); } = 10;
+	[Export] public ulong Seed { get; set => SetProperty(ref field, value); } = 42;
 
-	[Export]
-	public uint MapWidth
-	{
-		get => _mapWidth;
-		set => SetPropertyWithBounds<uint>(ref _mapWidth, value, 20, 100);
-	}
-
-	[Export]
-	public uint MapDepth
-	{
-		get => _mapDepth;
-		set => SetPropertyWithBounds<uint>(ref _mapDepth, value, 20, 100);
-	}
-
-	[Export]
-	public uint MaxRooms
-	{
-		get => _maxRooms;
-		set => SetPropertyWithBounds<uint>(ref _maxRooms, value, 1, 100);
-	}
-
-	[Export]
-	public ulong Seed
-	{
-		get => _seed;
-		set => SetProperty(ref _seed, value);
-	}
-
-	[Export] public RoomLayoutStrategy RoomLayout { get => _roomLayout; set => SetProperty(ref _roomLayout, value); }
-	[Export] public CorridorConnectorStrategy CorridorConnector { get => _corridorConnector; set => SetProperty(ref _corridorConnector, value); }
-	[Export] public RoomFactoryStrategy RoomFactory { get => _roomFactory; set => SetProperty(ref _roomFactory, value); }
-	[Export] public MobFactoryStrategy MobFactory { get => _mobFactory; set => SetProperty(ref _mobFactory, value); }
-	[Export] public TileFactoryStrategy TileFactory { get => _tileFactory; set => SetProperty(ref _tileFactory, value); }
+	[Export] public RoomLayoutStrategy RoomLayout { get; set => SetProperty(ref field, value); }
+	[Export] public CorridorConnectorStrategy CorridorConnector { get; set => SetProperty(ref field, value); }
+	[Export] public RoomFactoryStrategy RoomFactory { get; set => SetProperty(ref field, value); }
+	[Export] public MobFactoryStrategy MobFactory { get; set => SetProperty(ref field, value); }
+	[Export] public TileFactoryStrategy TileFactory { get; set => SetProperty(ref field, value); }
 
 	/// <summary>
 	/// The maximum number of times to retry placing a room before giving up.
 	/// Increasing this value may help to generate more complex maps at the
 	/// expense of performance.
 	/// </summary>
-	[Export]
-	public uint MaxRetries
-	{
-		get => _maxRetries;
-		set => SetPropertyWithBounds<uint>(ref _maxRetries, value, 1, 10);
-	}
+	[Export] public uint MaxRetries { get; set => SetPropertyWithBounds<uint>(ref field, value, 1, 10); }
 
 	public MapData Map;
 	public GridMap FloorGridMap { get; private set; }
@@ -65,27 +31,11 @@ public partial class MapGenerator : Node3D
 	public GridMap DecorationGridMap { get; private set; }
 	public NavigationRegion3D NavigationRegion { get; private set; }
 
-	// public PlayerSpawnPoint PlayerSpawnPoint { get; private set; }
-	public float PlayerRotation { get; private set; } = 0;
-
 	// FIXME: Centralize the tile size to avoid hardcoding it in multiple places
 	/// <summary>
 	/// The size of each tile in the base map when translating to the GridMaps.
 	/// </summary>
 	public readonly uint TileSize = 4;
-
-	private uint _dungeonDepth = 1;
-	private uint _mapWidth = 30;
-	private uint _mapDepth = 30;
-	private uint _maxRooms = 5;
-	private uint _maxRetries = 3;
-	private ulong _seed = 42;
-
-	private RoomLayoutStrategy _roomLayout;
-	private CorridorConnectorStrategy _corridorConnector;
-	private RoomFactoryStrategy _roomFactory;
-	private MobFactoryStrategy _mobFactory;
-	private TileFactoryStrategy _tileFactory;
 
 	public PlayerSpawnPoint PlayerSpawnPoint;
 	public Array<SpawnPoint> EnemySpawnPoints;
@@ -279,7 +229,7 @@ public partial class MapGenerator : Node3D
 
 	private void GenerateEnemySpawnPoints()
 	{
-		uint mobCount = 3 + _dungeonDepth % 5 + (GD.Randi() % 3);
+		uint mobCount = 3 + DungeonDepth % 5 + (GD.Randi() % 3);
 		GD.Print($"Generating {mobCount} enemy spawn points...");
 
 		var points = NavigationRegion.NavigationMesh.GetVertices();
@@ -381,7 +331,7 @@ public partial class MapGenerator : Node3D
 		GD.Seed(Seed);
 
 		// Initialize the map with empty tiles
-		Map = new MapData((int)_mapWidth, (int)_mapDepth);
+		Map = new MapData((int)MapWidth, (int)MapDepth);
 
 		// Initialize all tiles as empty and walls for borders
 		for (int x = 0; x < Map.Width; x++)

@@ -1,5 +1,8 @@
 using Godot;
 
+/// <summary>
+/// Component that handles the death of a character (enemies).
+/// </summary>
 public partial class DeathComponent : Node
 {
 	[Export] public HealthComponent HealthComponent;

@@ -26,21 +26,19 @@ public partial class LootTableComponent : Node
             return;
         }
 
-        if (GD.Randf() < DropChance)
+        if (GD.Randf() < DropChance || Items.Length == 0)
         {
-            GD.Print("Dropping loot...");
             var selectedItem = PickItem();
-            if (selectedItem != null)
-            {
-                // TODO: Avoid hardcoding the path to the lootable item scene
-                var scene = GD.Load<PackedScene>("res://scenes/items/lootable_item.tscn");
-                var lootableItem = scene.Instantiate<LootableItem>();
-                lootableItem.Item = selectedItem.Item;
-                lootableItem.Quantity = selectedItem.Quantity;
+            GD.Print($"Dropping {selectedItem.Quantity}x {selectedItem.Item.Name}");
 
-                GameManager.Instance.Level.AddChild(lootableItem);
-                lootableItem.GlobalPosition = GetOwner<Node3D>().GlobalPosition;
-            }
+            // TODO: Avoid hardcoding the path to the lootable item scene
+            var scene = GD.Load<PackedScene>("res://scenes/items/lootable_item.tscn");
+            var lootableItem = scene.Instantiate<LootableItem>();
+            lootableItem.Item = selectedItem.Item;
+            lootableItem.Quantity = selectedItem.Quantity;
+
+            GameManager.Instance.Level.AddChild(lootableItem);
+            lootableItem.GlobalPosition = GetOwner<Node3D>().GlobalPosition;
         }
         else
         {

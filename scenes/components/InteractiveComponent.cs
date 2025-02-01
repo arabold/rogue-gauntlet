@@ -7,20 +7,22 @@ using System.Collections.Generic;
 /// </summary>
 public partial class InteractiveComponent : Area3D, IInteractive
 {
-	[Export] public string Text { get; set; } = "Interact";
 	[Export]
-	public bool IsInteractive
+	public string Text
 	{
-		get => _isInteractive;
+		get;
 		set
 		{
-			if (value != _isInteractive)
+			field = value;
+			if (IsNodeReady())
 			{
-				_isInteractive = value;
-				UpdateFloatingLabel();
+				_floatingLabel.Text = value;
 			}
 		}
-	}
+	} = "Interact";
+
+	[Export]
+	public bool IsInteractive { get; set; } = true;
 
 	/// <summary>
 	/// Signal emitted when the player interacts with the object.
@@ -30,7 +32,6 @@ public partial class InteractiveComponent : Area3D, IInteractive
 
 	private FloatingLabel _floatingLabel;
 	private List<Player> _nearbyPlayers = new List<Player>();
-	private bool _isInteractive = true;
 
 	public override void _Ready()
 	{
@@ -49,17 +50,17 @@ public partial class InteractiveComponent : Area3D, IInteractive
 	{
 		GD.Print($"{player.Name} is nearby");
 		_nearbyPlayers.Add(player);
-		UpdateFloatingLabel();
+		Update();
 	}
 
 	public void OnPlayerLeft(Player player)
 	{
 		GD.Print($"{player.Name} left");
 		_nearbyPlayers.Remove(player);
-		UpdateFloatingLabel();
+		Update();
 	}
 
-	private void UpdateFloatingLabel()
+	private void Update()
 	{
 		if (_nearbyPlayers.Count > 0 && IsInteractive)
 		{

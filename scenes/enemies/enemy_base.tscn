@@ -55,6 +55,6 @@ HealthComponent = NodePath("../HealthComponent")
 HitEffect = ExtResource("9_d4q6w")
 
 [node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("10_oansv")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 texture = SubResource("ViewportTexture_6flps")
 HealthComponent = NodePath("../HealthComponent")

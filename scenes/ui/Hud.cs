@@ -14,33 +14,20 @@ public partial class Hud : Control
 		_goldLabel = GetNode<Label>("%GoldLabel");
 
 		// Connect signals from GameManager to update HUD elements
-		SignalBus.Instance.XpUpdated += OnXpUpdated;
-		SignalBus.Instance.GoldUpdated += OnGoldUpdated;
-		SignalBus.Instance.HealthChanged += OnHealthChanged;
-		SignalBus.Instance.GamePaused += OnGamePaused;
+		SignalBus.Instance.PlayerStatsChanged += OnPlayerStatsChanged;
 
 		// Initialize the HUD with the current game state
+		// FIXME: Seems backwards. Send initial event from player instead?
 		var playerStats = GameManager.Instance.PlayerStats;
-		OnXpUpdated(playerStats.Xp);
-		OnGoldUpdated(playerStats.Gold);
-		OnHealthChanged(playerStats.Health, playerStats.MaxHealth);
+		OnPlayerStatsChanged(playerStats);
 	}
 
-	private void OnXpUpdated(int xp)
+	private void OnPlayerStatsChanged(PlayerStats stats)
 	{
-		_xpLabel.Text = $"XP: {xp}";
-	}
-
-	private void OnGoldUpdated(int gold)
-	{
-		_goldLabel.Text = $"Gold: {gold}";
-	}
-
-	// Updates the health bar when the health changes
-	private void OnHealthChanged(int health, int maxHealth)
-	{
-		_healthBar.MaxValue = maxHealth;
-		_healthBar.Value = health;
+		_xpLabel.Text = $"XP: {stats.Xp}";
+		_goldLabel.Text = $"Gold: {stats.Gold}";
+		_healthBar.MaxValue = stats.MaxHealth;
+		_healthBar.Value = stats.Health;
 	}
 
 	// Handles game pause (optional UI feedback)

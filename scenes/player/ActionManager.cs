@@ -5,12 +5,12 @@ using System;
 public partial class ActionManager : Node
 {
 	public int ActionSlotCount => _actionSlots.Count;
-	public string CurrentActionId => _currentAction?.Id;
+	public string CurrentAnimationId => _currentAction?.AnimationId;
 
 	private Player _player;
 	private Array<ActionSlot> _actionSlots;
 	private Array<float> _cooldownRemainingTime;
-	private IAction _currentAction;
+	private PlayerAction _currentAction;
 
 	public override void _Ready()
 	{
@@ -20,7 +20,9 @@ public partial class ActionManager : Node
 			GetNode<ActionSlot>("ActionSlot_1"),
 			GetNode<ActionSlot>("ActionSlot_2"),
 			GetNode<ActionSlot>("ActionSlot_3"),
-			GetNode<ActionSlot>("ActionSlot_4")
+			GetNode<ActionSlot>("ActionSlot_4"),
+			GetNode<ActionSlot>("ActionSlot_5"),
+			GetNode<ActionSlot>("ActionSlot_6")
 		};
 
 		foreach (var actionSlot in _actionSlots)
@@ -43,7 +45,7 @@ public partial class ActionManager : Node
 		}
 	}
 
-	public void AssignAction(int slotIndex, IAction action)
+	public void AssignAction(int slotIndex, PlayerAction action, PackedScene previewScene)
 	{
 		if (slotIndex < 0 || slotIndex >= _actionSlots.Count)
 		{
@@ -52,7 +54,8 @@ public partial class ActionManager : Node
 		}
 
 		ActionSlot slot = _actionSlots[slotIndex];
-		slot.AssignAction(action);
+		slot.AssignAction(action, previewScene);
+		SignalBus.EmitPlayerActionSlotChanged(slotIndex, slot);
 
 		// Reset cooldown
 		_cooldownRemainingTime[slotIndex] = 0;
@@ -102,7 +105,7 @@ public partial class ActionManager : Node
 	private void UpdateCooldownUI(int slotIndex)
 	{
 		ActionSlot slot = _actionSlots[slotIndex];
-		IAction action = slot.AssignedAction;
+		PlayerAction action = slot.AssignedAction;
 		if (action == null)
 		{
 			GameManager.Instance.UpdateCooldown(slotIndex, 0, 0);

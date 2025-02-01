@@ -1,7 +1,7 @@
 using Godot;
 
 [GlobalClass]
-public partial class PoisonBuff : Buff
+public partial class PoisonBuff : PeriodicBuff
 {
 	[Export] public int DamagePointsPerTick = 0;
 

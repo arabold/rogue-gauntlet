@@ -2,13 +2,13 @@ using System;
 using System.Linq;
 using Godot;
 
-public partial class RangedWeapon : Node3D, IWeapon
+public partial class RangedWeaponShot : Node3D
 {
 	[Export] public PackedScene ProjectileScene;
 	[Export] public float ProjectileSpeed = 10f;
 	[Export] public float AimingAngle { get; set; } = 45.0f;
 	[Export] public float Range = 20f;
-	[Export] public int Damage = 2;
+	[Export] public Weapon Weapon;
 
 	private Node _projectileContainer;
 	private RayCast3D _rayCast3D;
@@ -30,7 +30,8 @@ public partial class RangedWeapon : Node3D, IWeapon
 		projectile.Update(
 			GlobalPosition,
 			targetDirection,
-			ProjectileSpeed, Range, Damage);
+			ProjectileSpeed,
+			Range, Weapon);
 		_projectileContainer.AddChild(projectile);
 	}
 

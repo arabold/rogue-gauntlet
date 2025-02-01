@@ -8,24 +8,22 @@ public partial class TriggeredSpawnPoint : Area3D
 {
 	public Array<PackedScene> Scenes
 	{
-		get => _scenes;
+		get;
 		set
 		{
-			_scenes = value;
+			field = value;
 			if (IsNodeReady())
 			{
 				SpawnPoint.Scenes = value;
 			}
 		}
 	}
-	public SpawnPoint SpawnPoint;
 
-	private Array<PackedScene> _scenes;
+	public SpawnPoint SpawnPoint;
 
 	public override void _Ready()
 	{
 		SpawnPoint = GetNode<SpawnPoint>("SpawnPoint");
-		SpawnPoint.Scenes = Scenes;
 		SpawnPoint.SpawnOnStart = false;
 
 		AreaEntered += OnAreaEntered;

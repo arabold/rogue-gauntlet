@@ -10,7 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://caeejhajxbitq" path="res://assets/kenny-input-prompts/keyboard/keyboard_i.svg" id="10_04ok3"]
 
 [node name="KeyBinding" type="TextureRect"]
-texture = ExtResource("4_04ok3")
+texture = ExtResource("1_dcgba")
 script = ExtResource("2_l65vd")
 ActionBinding = "action_1"
 KeyboardDict = Dictionary[String, Texture2D]({

@@ -3,7 +3,7 @@ using Godot;
 [GlobalClass]
 public partial class BuffedItem : Item
 {
-	[Export] public Buff Buff;
+	[Export] public Buff Buff { get; set => SetValue(ref field, value); }
 
 	protected void ApplyBuff(Player player)
 	{

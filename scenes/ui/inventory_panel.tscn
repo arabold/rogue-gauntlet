@@ -1,0 +1,45 @@
+[gd_scene load_steps=5 format=3 uid="uid://by51iacjyqqtx"]
+
+[ext_resource type="PackedScene" uid="uid://c03l8q524arxf" path="res://scenes/ui/item_slot_panel.tscn" id="1_7ck5g"]
+[ext_resource type="Script" uid="uid://bic8q8g6t32jy" path="res://scenes/ui/InventoryPanel.cs" id="1_cvy6a"]
+[ext_resource type="PackedScene" uid="uid://57e4xuuji6nc" path="res://scenes/ui/inventory_item_context_menu.tscn" id="3_ta3uk"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8bl6e"]
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+bg_color = Color(0, 0, 0, 0.25098)
+
+[node name="InventoryPanel" type="ScrollContainer"]
+clip_contents = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_8bl6e")
+script = ExtResource("1_cvy6a")
+InventoryItemScene = ExtResource("1_7ck5g")
+
+[node name="InventoryGrid" type="GridContainer" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(704, 0)
+layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 8
+
+[node name="SampleItem1" parent="InventoryGrid" instance=ExtResource("1_7ck5g")]
+layout_mode = 2
+
+[node name="SampleItem2" parent="InventoryGrid" instance=ExtResource("1_7ck5g")]
+layout_mode = 2
+
+[node name="SampleItem3" parent="InventoryGrid" instance=ExtResource("1_7ck5g")]
+layout_mode = 2
+
+[node name="InventoryItemContextMenu" parent="." instance=ExtResource("3_ta3uk")]
+unique_name_in_owner = true
+auto_translate_mode = 1
+visible = false

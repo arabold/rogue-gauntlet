@@ -4,14 +4,14 @@
 [ext_resource type="PackedScene" uid="uid://cr2cd42w861x0" path="res://scenes/components/key_binding.tscn" id="2_scbep"]
 [ext_resource type="Texture2D" uid="uid://c6rdgh17kn84w" path="res://assets/kenny-input-prompts/keyboard/keyboard_1.svg" id="3_ki1k4"]
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_scbep"]
+[sub_resource type="ViewportTexture" id="ViewportTexture_ki1k4"]
 viewport_path = NodePath("SubViewport")
 
 [node name="FloatingLabel" type="Sprite3D"]
 layers = 256
 billboard = 1
 no_depth_test = true
-texture = SubResource("ViewportTexture_scbep")
+texture = SubResource("ViewportTexture_ki1k4")
 script = ExtResource("1_lm8es")
 
 [node name="SubViewport" type="SubViewport" parent="."]
@@ -28,6 +28,7 @@ alignment = 1
 
 [node name="KeyBinding" parent="SubViewport/HFlowContainer" instance=ExtResource("2_scbep")]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 texture = ExtResource("3_ki1k4")
 

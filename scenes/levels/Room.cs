@@ -26,12 +26,12 @@ public partial class Room : Node3D
 	[Export]
 	public bool ShowDebugOverlay
 	{
-		get => _showDebugOverlay;
+		get;
 		set
 		{
-			if (value != _showDebugOverlay)
+			if (value != field)
 			{
-				_showDebugOverlay = value;
+				field = value;
 				if (value)
 				{
 					// Property is set in the editor, so we need to check 
@@ -57,14 +57,12 @@ public partial class Room : Node3D
 	/// </summary>
 	public readonly int TileSize = 4;
 
-	private bool _showDebugOverlay = false;
-
 	public override void _Ready()
 	{
 		base._Ready();
 
 		// Show the debug overlay if needed
-		if (Engine.IsEditorHint() && GetTree().EditedSceneRoot == this && _showDebugOverlay)
+		if (Engine.IsEditorHint() && GetTree().EditedSceneRoot == this && ShowDebugOverlay)
 		{
 			BakeTileMap();
 			CreateDebugOverlay();
@@ -314,7 +312,7 @@ public partial class Room : Node3D
 		_debugGridMap.CellCenterY = false;
 		_debugGridMap.CellCenterZ = false;
 		_debugGridMap.Translate(new Vector3(Bounds.Position.X, 0.1f, Bounds.Position.Y));
-		_debugGridMap.Visible = _showDebugOverlay;
+		_debugGridMap.Visible = ShowDebugOverlay;
 		AddChild(_debugGridMap);
 
 		// TODO: Make this more efficient by only updating the overlay when needed

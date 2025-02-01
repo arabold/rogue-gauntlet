@@ -6,26 +6,26 @@ public partial class EquipmentItemPanel : PanelContainer
 	[Export]
 	public Texture2D PlaceholderTexture
 	{
-		get => _placeholderTexture;
+		get;
 		set
 		{
-			_placeholderTexture = value;
-			if (_placeholderTextureRect != null)
+			field = value;
+			if (IsNodeReady())
 			{
-				_placeholderTextureRect.Texture = _placeholderTexture;
+				_placeholderTextureRect.Texture = value;
 			}
 		}
 	}
 	public Preview Preview;
 
 	private TextureRect _placeholderTextureRect;
-	private Texture2D _placeholderTexture;
 	private ItemSlotPanel _itemSlotPanel;
 
 	public override void _Ready()
 	{
 		_placeholderTextureRect = GetNode<TextureRect>("%PlaceholderTextureRect");
-		_placeholderTextureRect.Texture = _placeholderTexture;
+		_placeholderTextureRect.Texture = PlaceholderTexture;
+
 		if (!Engine.IsEditorHint())
 		{
 			_itemSlotPanel = GetNode<ItemSlotPanel>("%ItemSlotPanel");

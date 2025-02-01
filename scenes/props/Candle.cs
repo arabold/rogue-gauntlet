@@ -7,18 +7,14 @@ public partial class Candle : Node3D
 	[Export]
 	public bool IsLit
 	{
-		get => _isLit;
+		get;
 		set
 		{
-			_isLit = value;
-			if (IsNodeReady())
-			{
-				UpdateVisibility();
-			}
+			field = value;
+			if (IsNodeReady()) { Update(); }
 		}
 	}
 
-	private bool _isLit = true;
 	private MeshInstance3D _candle;
 	private MeshInstance3D _candleLit;
 
@@ -26,13 +22,12 @@ public partial class Candle : Node3D
 	{
 		_candle = GetNode<MeshInstance3D>("candle");
 		_candleLit = GetNode<MeshInstance3D>("candle_lit");
-
-		UpdateVisibility();
+		Update();
 	}
 
-	private void UpdateVisibility()
+	private void Update()
 	{
-		_candle.Visible = !_isLit;
-		_candleLit.Visible = _isLit;
+		_candle.Visible = !IsLit;
+		_candleLit.Visible = IsLit;
 	}
 }
