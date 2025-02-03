@@ -5,10 +5,12 @@ using Godot;
 public partial class RangedWeaponShot : Node3D
 {
 	[Export] public PackedScene ProjectileScene;
+	[Export] public float MinDamage = 0f;
+	[Export] public float MaxDamage = 0f;
+	[Export] public float CritChance = 0f;
 	[Export] public float ProjectileSpeed = 10f;
 	[Export] public float AimingAngle { get; set; } = 45.0f;
 	[Export] public float Range = 20f;
-	[Export] public Weapon Weapon;
 
 	private Node _projectileContainer;
 	private RayCast3D _rayCast3D;
@@ -27,11 +29,12 @@ public partial class RangedWeaponShot : Node3D
 
 		// Instantiate a projectile and set its direction and speed
 		Projectile projectile = ProjectileScene.Instantiate<Projectile>();
-		projectile.Update(
+		projectile.Initialize(
 			GlobalPosition,
 			targetDirection,
 			ProjectileSpeed,
-			Range, Weapon);
+			Range,
+			MinDamage, MaxDamage, CritChance);
 		_projectileContainer.AddChild(projectile);
 	}
 

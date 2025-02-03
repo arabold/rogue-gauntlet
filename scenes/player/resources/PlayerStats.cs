@@ -18,10 +18,9 @@ public partial class PlayerStats : ObservableResource
 	// Attack and defense stats (without any modifiers applied)
 	public float BaseMinDamage { get; set => SetValue(ref field, value); } = 0;
 	public float BaseMaxDamage { get; set => SetValue(ref field, value); } = 2;
-	public float BaseWeaponReach { get; set => SetValue(ref field, value); } = 0.8f;
-	public float BaseAttackSpeed { get; set => SetValue(ref field, value); } = 5f; // per second
 	public float BaseCritChance { get; set => SetValue(ref field, value); } = 0.0f;
 	public float BaseArmor { get; set => SetValue(ref field, value); } = 0;
+	public float BaseEvasion { get; set => SetValue(ref field, value); } = 0;
 
 	// Multipliers for the player's stats
 	public float SpeedModifier { get; set => SetValue(ref field, value); } = 1.0f;
@@ -29,21 +28,22 @@ public partial class PlayerStats : ObservableResource
 	public float XpModifier { get; set => SetValue(ref field, value); } = 1.0f;
 	public float GoldModifier { get; set => SetValue(ref field, value); } = 1.0f;
 	public float DamageModifier { get; set => SetValue(ref field, value); } = 1.0f;
-	public float AttackSpeedModifier { get; set => SetValue(ref field, value); } = 1.0f;
 	public float CritModifier { get; set => SetValue(ref field, value); } = 1.0f;
-	public float WeaponReachModifier { get; set => SetValue(ref field, value); } = 1.0f;
 	public float ArmorModifier { get; set => SetValue(ref field, value); } = 1.0f;
 	public float AccuracyModifier { get; set => SetValue(ref field, value); } = 1.0f;
 
 	// Player's current stats (including items and buffs)
 	public float Speed => BaseSpeed * SpeedModifier;
 	public float MaxHealth => BaseMaxHealth * HealthModifier;
+
+	// Attack Stats
 	public float MinDamage => BaseMinDamage * DamageModifier * AccuracyModifier;
 	public float MaxDamage => BaseMaxDamage * DamageModifier * AccuracyModifier;
-	public float AttackSpeed => BaseAttackSpeed * AttackSpeedModifier;
 	public float CritChance => BaseCritChance * CritModifier * AccuracyModifier;
-	public float WeaponReach => BaseWeaponReach * WeaponReachModifier;
+
+	// Defense Stats
 	public float Armor => BaseArmor * ArmorModifier;
+	public float Evasion => BaseEvasion;
 
 	// Method to increase the experience points
 	public void AddXp(int xp)

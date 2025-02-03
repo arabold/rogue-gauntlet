@@ -13,14 +13,6 @@ public partial class Weapon : EquippableItem
 	/// </summary>
 	[Export] public float DamageMax { get; private set => SetValue(ref field, value); } = 0.0f;
 	/// <summary>
-	/// Weapon reach (melee weapons only)
-	/// </summary>
-	[Export] public float WeaponReachModifier { get; private set => SetValue(ref field, value); } = 1.0f;
-	/// <summary>
-	/// Weapon speed (attacks per second)
-	/// </summary>
-	[Export] public float AttackSpeedModifier { get; private set => SetValue(ref field, value); } = 1.0f;
-	/// <summary>
 	/// Critical hit chance for this weapon (stacks up with other items' crit chance)
 	/// </summary>
 	[Export] public float CritChance { get; private set => SetValue(ref field, value); } = 0.0f;
@@ -45,8 +37,6 @@ public partial class Weapon : EquippableItem
 		var stats = player.Stats;
 		stats.BaseMinDamage += DamageMin;
 		stats.BaseMaxDamage += DamageMax;
-		stats.WeaponReachModifier *= WeaponReachModifier;
-		stats.AttackSpeedModifier *= AttackSpeedModifier;
 		stats.BaseCritChance += CritChance;
 	}
 
@@ -56,15 +46,7 @@ public partial class Weapon : EquippableItem
 		var stats = player.Stats;
 		stats.BaseMinDamage -= DamageMin;
 		stats.BaseMaxDamage -= DamageMax;
-		stats.WeaponReachModifier /= WeaponReachModifier;
-		stats.AttackSpeedModifier /= AttackSpeedModifier;
 		stats.BaseCritChance -= CritChance;
 		base.OnUnequipped(player);
-	}
-
-	public void ApplyDamage(IDamageable damageable, Vector3 direction)
-	{
-		var damage = (float)GD.RandRange(DamageMin, DamageMax);
-		damageable.TakeDamage(damage, direction);
 	}
 }

@@ -5,7 +5,9 @@ public partial class Projectile : Node3D
 	[Export] public float Speed = 10f;
 	[Export] public float Range = 30f;
 	[Export] public Vector3 Direction = Vector3.Forward;
-	[Export] public Weapon Weapon;
+	[Export] float MinDamage;
+	[Export] float MaxDamage;
+	[Export] float CritChance;
 
 	private HitBoxComponent _hitBoxComponent;
 	private Node3D _pivot;
@@ -19,12 +21,14 @@ public partial class Projectile : Node3D
 		_hitBoxComponent.HitDetected += OnHitDetected;
 	}
 
-	public void Update(Vector3 origin, Vector3 direction, float speed, float range, Weapon weapon)
+	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float minDamage, float maxDamage, float critChance)
 	{
 		Direction = direction.Normalized();
 		Speed = speed;
 		Range = range;
-		Weapon = weapon;
+		MinDamage = minDamage;
+		MaxDamage = maxDamage;
+		CritChance = critChance;
 
 		// Set the projectile's position and rotation
 		GlobalTransform = new Transform3D(Basis.Identity, origin);
@@ -48,7 +52,13 @@ public partial class Projectile : Node3D
 		GD.Print($"Projectile hit {body.Name}");
 		if (body is IDamageable damageable)
 		{
-			Weapon.ApplyDamage(damageable, Direction);
+			var damage = (float)GD.RandRange(MinDamage, MaxDamage);
+			if (GD.Randf() < CritChance)
+			{
+				damage *= 2;
+				GD.Print("Critical hit!");
+			}
+			damageable.TakeDamage(damage, Direction);
 		}
 		QueueFree();
 	}

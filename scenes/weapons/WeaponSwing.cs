@@ -6,7 +6,9 @@ public partial class WeaponSwing : Node3D
 	[Export] public float SwingDuration = 0.5f; // Time for the swing
 	[Export] public float SwingArc = 180f; // Swing arc in degrees
 	[Export] public bool SwingRight = true; // Swing direction
-	[Export] public Weapon weapon; // Weapon to use
+	[Export] public float MinDamage = 0f;
+	[Export] public float MaxDamage = 0f;
+	[Export] public float CritChance = 0f;
 
 	private Node3D _pivot;
 	private Node3D _trail;
@@ -32,7 +34,13 @@ public partial class WeaponSwing : Node3D
 		{
 			GD.Print($"{Name} hit {node.Name}");
 			var direction = _pivot.GlobalTransform.Basis.Z;
-			weapon?.ApplyDamage(damageable, direction);
+			var damage = (float)GD.RandRange(MinDamage, MaxDamage);
+			if (GD.Randf() < CritChance)
+			{
+				damage *= 2;
+				GD.Print("Critical hit!");
+			}
+			damageable.TakeDamage(damage, direction);
 		}
 	}
 

@@ -14,10 +14,17 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 	[Export] public PackedScene HitEffect { get; set; }
 
 	[Export] public float Armor { get; set; } = 0;
+	[Export] public float Evasion { get; set; } = 0;
 	[Export] public bool Invulnerable { get; set; } = false;
 
 	public void TakeDamage(float amount, Vector3 attackDirection)
 	{
+		if (GD.Randf() <= Evasion)
+		{
+			GD.Print($"{GetParent().Name} evaded the attack!");
+			return;
+		}
+
 		if (Invulnerable)
 		{
 			GD.Print($"{GetParent().Name} is invulnerable!");
