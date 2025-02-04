@@ -34,10 +34,6 @@ public partial class Player : CharacterBody3D, IDamageable
 	private WeaponSwing _specialAttack;
 	private RangedWeaponShot _rangedWeapon;
 
-	private MeleeAttackAction _meleeAttackAction;
-	private SpecialAttackAction _specialAttackAction;
-	private RangedAttackAction _rangedAttackAction;
-
 	private Node3D _pivot;
 	private AnimationTree _animationTree;
 	private AnimationNodeStateMachinePlayback _animationStateMachine;
@@ -59,13 +55,9 @@ public partial class Player : CharacterBody3D, IDamageable
 		_specialAttack = GetNode<WeaponSwing>("HeavyAttackSwing");
 		_rangedWeapon = GetNode<RangedWeaponShot>("RangedWeaponShot");
 
-		_meleeAttackAction = new MeleeAttackAction();
-		_rangedAttackAction = new RangedAttackAction();
-		_specialAttackAction = new SpecialAttackAction();
-
 		ActionManager = GetNode<ActionManager>("ActionManager");
 		// ActionManager.AssignAction(0, _meleeAttackAction, null);
-		ActionManager.AssignAction(1, _specialAttackAction, null);
+		// ActionManager.AssignAction(1, _specialAttackAction, null);
 
 		MovementComponent = GetNode<MovementComponent>("MovementComponent");
 		InputComponent = GetNode<InputComponent>("InputComponent");
@@ -116,6 +108,9 @@ public partial class Player : CharacterBody3D, IDamageable
 				_specialAttack.CritChance = Stats.CritChance;
 			}
 		}
+
+		// Propagate the changes to the HUD
+		SignalBus.EmitPlayerStatsChanged(Stats);
 	}
 
 	/// <summary>
@@ -127,9 +122,17 @@ public partial class Player : CharacterBody3D, IDamageable
 		item.OnEquipped(this);
 		SignalBus.EmitItemEquipped(this, item);
 
-		if (item is Weapon weapon)
+		if (item is IPlayerAction action)
 		{
-			ActionManager.AssignAction(0, weapon.IsRanged ? _rangedAttackAction : _meleeAttackAction, weapon.Scene);
+			for (int i = 0; i < ActionManager.ActionSlotCount; i++)
+			{
+				if (ActionManager.GetAction(i) == action)
+				{
+					ActionManager.AssignAction(i, action, item.Scene);
+					return;
+				}
+			}
+			ActionManager.AssignAction(0, action, item.Scene);
 		}
 	}
 
@@ -155,7 +158,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	private void OnItemConsumed(ConsumableItem item)
 	{
 		// Apply buffs
-		item.OnConsumed(this);
+		item.PerformAction(this);
 		SignalBus.EmitItemConsumed(this, item);
 	}
 

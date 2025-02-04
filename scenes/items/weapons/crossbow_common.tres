@@ -7,11 +7,13 @@
 script = ExtResource("2_cecn6")
 DamageMin = 2.0
 DamageMax = 4.0
-WeaponReachModifier = 1.0
-AttackSpeedModifier = 1.0
 CritChance = 0.05
 IsTwoHanded = true
 IsRanged = true
+AnimationId = "range_attack"
+Delay = 0.3
+PerformDuration = 0.5
+CooldownDuration = 0.0
 Type = 4
 Rarity = 0
 Name = "Crossbow"

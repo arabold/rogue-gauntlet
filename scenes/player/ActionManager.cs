@@ -10,7 +10,7 @@ public partial class ActionManager : Node
 	private Player _player;
 	private Array<ActionSlot> _actionSlots;
 	private Array<float> _cooldownRemainingTime;
-	private PlayerAction _currentAction;
+	private IPlayerAction _currentAction;
 
 	public override void _Ready()
 	{
@@ -27,25 +27,26 @@ public partial class ActionManager : Node
 
 		foreach (var actionSlot in _actionSlots)
 		{
-			actionSlot.ActionPerformed += () => OnActionPerformed(actionSlot);
-			actionSlot.CooldownStarted += () => OnCooldownStarted(actionSlot);
-			actionSlot.CooldownEnded += () => OnCooldownEnded(actionSlot);
+			actionSlot.PerformAction += () => OnActionPerformed(actionSlot);
+			actionSlot.ActionPerformed += OnActionPerformed;
+			actionSlot.CooldownEnded += OnActionPerformed;
 		}
 
 		_cooldownRemainingTime = new Array<float>(new float[_actionSlots.Count]);
 	}
 
-	public override void _Process(double delta)
+	public IPlayerAction GetAction(int slotIndex)
 	{
-		// Update cooldowns
-		for (int i = 0; i < _actionSlots.Count; i++)
+		if (slotIndex < 0 || slotIndex >= _actionSlots.Count)
 		{
-			_cooldownRemainingTime[i] = Math.Max(0, _cooldownRemainingTime[i] - (float)delta);
-			UpdateCooldownUI(i);
+			GD.PushError("Invalid slot index");
+			return null;
 		}
+
+		return _actionSlots[slotIndex].AssignedAction;
 	}
 
-	public void AssignAction(int slotIndex, PlayerAction action, PackedScene previewScene)
+	public void AssignAction(int slotIndex, IPlayerAction action, PackedScene previewScene)
 	{
 		if (slotIndex < 0 || slotIndex >= _actionSlots.Count)
 		{
@@ -54,83 +55,31 @@ public partial class ActionManager : Node
 		}
 
 		ActionSlot slot = _actionSlots[slotIndex];
-		slot.AssignAction(action, previewScene);
+		slot.AssignAction(slotIndex, action, previewScene);
 		SignalBus.EmitPlayerActionSlotChanged(slotIndex, slot);
 
 		// Reset cooldown
 		_cooldownRemainingTime[slotIndex] = 0;
 	}
 
-	public bool TryPerformAction(int slotIndex)
+	public void TryPerformAction(int slotIndex)
 	{
 		if (slotIndex < 0 || slotIndex >= _actionSlots.Count)
 		{
 			GD.PushError("Invalid slot index");
-			return false;
-		}
-
-		if (!CanPerformAction(slotIndex))
-		{
-			return false;
-		}
-
-		var action = _actionSlots[slotIndex].AssignedAction;
-		if (action != null)
-		{
-			_actionSlots[slotIndex].TriggerAction(_player);
-			_currentAction = action;
-
-			var totalDuration = action.PerformDuration + action.CooldownDuration;
-			_cooldownRemainingTime[slotIndex] = totalDuration;
-		}
-		return true;
-	}
-
-	public bool CanPerformAction(int slotIndex)
-	{
-		if (slotIndex < 0 || slotIndex >= _actionSlots.Count)
-		{
-			GD.PushError("Invalid slot index");
-			return false;
-		}
-
-		if (_currentAction != null)
-		{
-			return false;
-		}
-
-		return !_actionSlots[slotIndex].IsOnCooldown;
-	}
-
-	private void UpdateCooldownUI(int slotIndex)
-	{
-		ActionSlot slot = _actionSlots[slotIndex];
-		PlayerAction action = slot.AssignedAction;
-		if (action == null)
-		{
-			GameManager.Instance.UpdateCooldown(slotIndex, 0, 0);
 			return;
 		}
 
-		var totalDuration = action.PerformDuration + action.CooldownDuration;
-		var remainingTime = Math.Clamp(_cooldownRemainingTime[slotIndex], 0, totalDuration);
-
-		// Update UI
-		GameManager.Instance.UpdateCooldown(slotIndex, remainingTime, totalDuration);
+		_actionSlots[slotIndex].TryPerformAction(_player);
 	}
 
 	private void OnActionPerformed(ActionSlot actionSlot)
 	{
+		_currentAction = actionSlot.AssignedAction;
+	}
+
+	private void OnActionPerformed()
+	{
 		_currentAction = null;
-	}
-
-	private void OnCooldownStarted(ActionSlot actionSlot)
-	{
-	}
-
-	private void OnCooldownEnded(ActionSlot actionSlot)
-	{
-		int slot = _actionSlots.IndexOf(actionSlot);
-		_cooldownRemainingTime[slot] = 0;
 	}
 }
