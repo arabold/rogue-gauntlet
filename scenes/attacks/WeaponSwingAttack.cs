@@ -1,6 +1,6 @@
 using Godot;
 
-public partial class WeaponSwing : Node3D
+public partial class WeaponSwingAttack : Node3D
 {
 	[Export] public float SwingOffset = 0f; // Offset for the swing
 	[Export] public float SwingDuration = 0.5f; // Time for the swing

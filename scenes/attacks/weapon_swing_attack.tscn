@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://6pckd2upjrvu"]
 
-[ext_resource type="Script" uid="uid://l1uw0yswlebw" path="res://scenes/weapons/WeaponSwing.cs" id="1_xsocg"]
+[ext_resource type="Script" uid="uid://l1uw0yswlebw" path="res://scenes/attacks/WeaponSwingAttack.cs" id="1_xsocg"]
 [ext_resource type="Script" uid="uid://cdkev722qsxhw" path="res://addons/lines_and_trails_3d/trail_3d.gd" id="2_dfxuj"]
 [ext_resource type="PackedScene" uid="uid://blsurcr8183cv" path="res://scenes/components/hit_box_component.tscn" id="2_f0o48"]
 
@@ -11,7 +11,7 @@ size = Vector3(2, 2, 0.1)
 _data = [Vector2(0, 1), 0.0, -1.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
 point_count = 2
 
-[node name="WeaponSwing" type="Node3D"]
+[node name="WeaponSwingAttack" type="Node3D"]
 script = ExtResource("1_xsocg")
 SwingOffset = -90.0
 

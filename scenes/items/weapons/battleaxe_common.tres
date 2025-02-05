@@ -11,7 +11,6 @@ WeaponReachModifier = 1.0
 AttackSpeedModifier = 1.1
 CritChance = 0.05
 IsTwoHanded = true
-IsRanged = false
 Type = 4
 Rarity = 0
 Name = "Battle Axe"

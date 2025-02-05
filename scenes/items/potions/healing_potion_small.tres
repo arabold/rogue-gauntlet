@@ -14,12 +14,15 @@ metadata/_custom_type_script = ExtResource("1_40ob2")
 
 [resource]
 script = ExtResource("4_d4ijv")
+AnimationId = "drink_potion"
+Delay = 0.0
+PerformDuration = 0.5
+CooldownDuration = 0.0
 Buff = SubResource("Resource_pgqm5")
 Name = "Healing Potion"
 Scene = ExtResource("3_a71fn")
 Quality = 1.0
 Value = 100
-Weight = 1.0
 UsesSlot = true
 IsStackable = true
 IsQuestItem = false

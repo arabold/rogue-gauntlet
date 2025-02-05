@@ -9,7 +9,7 @@ public partial class BreakableItem : Item
 
 	private float _durability = 1.0f;
 
-	public void Damage(int amount)
+	public virtual void Damage(int amount)
 	{
 		GD.Print($"{Name} is damaged by {amount}");
 		Durability -= amount;
@@ -20,13 +20,13 @@ public partial class BreakableItem : Item
 		}
 	}
 
-	public void Repair(int amount)
+	public virtual void Repair(int amount)
 	{
 		GD.Print($"{Name} is repaired by {amount}");
 		Durability += amount;
 	}
 
-	public void OnBroken()
+	public virtual void OnBroken()
 	{
 		EmitSignal(nameof(BrokenEventHandler));
 	}

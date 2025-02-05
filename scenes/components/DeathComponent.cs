@@ -23,6 +23,7 @@ public partial class DeathComponent : Node
 
 		GD.Print($"{owner.Name} died!");
 		owner.CollisionLayer = 0;
+		owner.CollisionMask = 1; // only collide with the floor
 		owner.SetPhysicsProcess(false);
 
 		// Drop loot and add XP

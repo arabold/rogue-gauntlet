@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("2_e51uk")
 IsTwoHanded = false
-IsRanged = false
 Type = 4
 DamageMin = 2
 DamageMax = 8

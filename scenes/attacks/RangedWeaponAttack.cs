@@ -1,8 +1,7 @@
-using System;
 using System.Linq;
 using Godot;
 
-public partial class RangedWeaponShot : Node3D
+public partial class RangedWeaponAttack : Node3D
 {
 	[Export] public PackedScene ProjectileScene;
 	[Export] public float MinDamage = 0f;

@@ -23,7 +23,7 @@ public partial class Projectile : Node3D
 
 	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float minDamage, float maxDamage, float critChance)
 	{
-		Direction = direction.Normalized();
+		Direction = new Vector3(direction.X, 0, direction.Z).Normalized();
 		Speed = speed;
 		Range = range;
 		MinDamage = minDamage;
@@ -59,7 +59,14 @@ public partial class Projectile : Node3D
 				GD.Print("Critical hit!");
 			}
 			damageable.TakeDamage(damage, Direction);
+			QueueFree();
 		}
-		QueueFree();
+		else
+		{
+			// Leave it stuck in the wall briefly
+			SetPhysicsProcess(false);
+			SetProcess(true);
+			GetTree().CreateTimer(0.3f).Timeout += () => QueueFree();
+		}
 	}
 }

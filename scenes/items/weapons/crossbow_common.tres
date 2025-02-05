@@ -1,16 +1,18 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://biricifur5j8u"]
+[gd_resource type="Resource" script_class="RangedWeapon" load_steps=3 format=3 uid="uid://biricifur5j8u"]
 
 [ext_resource type="PackedScene" uid="uid://d3gug0f3b7txa" path="res://assets/kaykit-dungeon-legacy/crossbow_common.gltf.glb" id="1_7ihye"]
-[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_cecn6"]
+[ext_resource type="Script" uid="uid://ddieqpfh5m7w8" path="res://scenes/items/RangedWeapon.cs" id="2_cecn6"]
 
 [resource]
 script = ExtResource("2_cecn6")
+ProjectileSpeed = 15.0
+Range = 20.0
+AimingAngle = 45.0
 DamageMin = 2.0
 DamageMax = 4.0
 CritChance = 0.05
 IsTwoHanded = true
-IsRanged = true
-AnimationId = "range_attack"
+AnimationId = "ranged_attack"
 Delay = 0.3
 PerformDuration = 0.5
 CooldownDuration = 0.0
@@ -20,7 +22,6 @@ Name = "Crossbow"
 Scene = ExtResource("1_7ihye")
 Quality = 1.0
 Value = 0
-Weight = 0.0
 UsesSlot = true
 IsStackable = false
 IsQuestItem = false

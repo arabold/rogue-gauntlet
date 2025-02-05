@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("2_ktxjh")
 IsTwoHanded = false
-IsRanged = false
 Type = 4
 DamageMin = 3
 DamageMax = 8

@@ -1,9 +1,9 @@
 [gd_scene load_steps=3 format=3 uid="uid://cuqdoxdbo6j0w"]
 
-[ext_resource type="Script" uid="uid://bjknkes4kfbti" path="res://scenes/weapons/RangedWeaponShot.cs" id="1_o2y62"]
-[ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/weapons/projectile.tscn" id="2_eutuq"]
+[ext_resource type="Script" uid="uid://bjknkes4kfbti" path="res://scenes/attacks/RangedWeaponAttack.cs" id="1_o2y62"]
+[ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/attacks/projectile.tscn" id="2_eutuq"]
 
-[node name="RangedWeaponShot" type="Node3D"]
+[node name="RangedWeaponAttack" type="Node3D"]
 script = ExtResource("1_o2y62")
 ProjectileScene = ExtResource("2_eutuq")
 

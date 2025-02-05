@@ -30,9 +30,9 @@ public partial class Player : CharacterBody3D, IDamageable
 	public Inventory Inventory { get; private set; } = new Inventory();
 	public Array<ActiveBuff> ActiveBuffs { get; private set; } = new Array<ActiveBuff>();
 
-	private WeaponSwing _meleeAttack;
-	private WeaponSwing _specialAttack;
-	private RangedWeaponShot _rangedWeapon;
+	private WeaponSwingAttack _meleeAttack;
+	private WeaponSwingAttack _specialAttack;
+	private RangedWeaponAttack _rangedAttack;
 
 	private Node3D _pivot;
 	private AnimationTree _animationTree;
@@ -51,14 +51,11 @@ public partial class Player : CharacterBody3D, IDamageable
 		_animationStateMachine = (AnimationNodeStateMachinePlayback)_animationTree.Get("parameters/playback");
 		_animationStateMachine.Start("Idle");
 
-		_meleeAttack = GetNode<WeaponSwing>("QuickAttackSwing");
-		_specialAttack = GetNode<WeaponSwing>("HeavyAttackSwing");
-		_rangedWeapon = GetNode<RangedWeaponShot>("RangedWeaponShot");
+		_meleeAttack = GetNode<WeaponSwingAttack>("QuickSwingAttack");
+		_specialAttack = GetNode<WeaponSwingAttack>("HeavySwingAttack");
+		_rangedAttack = GetNode<RangedWeaponAttack>("RangedWeaponAttack");
 
 		ActionManager = GetNode<ActionManager>("ActionManager");
-		// ActionManager.AssignAction(0, _meleeAttackAction, null);
-		// ActionManager.AssignAction(1, _specialAttackAction, null);
-
 		MovementComponent = GetNode<MovementComponent>("MovementComponent");
 		InputComponent = GetNode<InputComponent>("InputComponent");
 		HealthComponent = GetNode<HealthComponent>("HealthComponent");
@@ -92,13 +89,16 @@ public partial class Player : CharacterBody3D, IDamageable
 		// Update attack stats
 		if (Inventory.EquippedItems.TryGetValue(EquipmentSlot.WeaponHand, out var weapon))
 		{
-			if (weapon is Weapon w && w.IsRanged)
+			if (weapon is RangedWeapon rangedWeapon)
 			{
-				_rangedWeapon.MinDamage = Stats.MinDamage;
-				_rangedWeapon.MaxDamage = Stats.MaxDamage;
-				_rangedWeapon.CritChance = Stats.CritChance;
+				_rangedAttack.MinDamage = Stats.MinDamage;
+				_rangedAttack.MaxDamage = Stats.MaxDamage;
+				_rangedAttack.CritChance = Stats.CritChance;
+				_rangedAttack.ProjectileSpeed = rangedWeapon.ProjectileSpeed;
+				_rangedAttack.Range = rangedWeapon.Range;
+				_rangedAttack.AimingAngle = rangedWeapon.AimingAngle;
 			}
-			else
+			else if (weapon is Weapon)
 			{
 				_meleeAttack.MinDamage = Stats.MinDamage;
 				_meleeAttack.MaxDamage = Stats.MaxDamage;
@@ -359,7 +359,7 @@ public partial class Player : CharacterBody3D, IDamageable
 
 	public void RangedAttack()
 	{
-		_rangedWeapon.Attack();
+		_rangedAttack.Attack();
 	}
 
 	public void SpecialAttack()
