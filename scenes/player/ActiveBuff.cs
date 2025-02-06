@@ -20,7 +20,7 @@ public partial class ActiveBuff : Node
 		Buff.OnApply(Player);
 	}
 
-	public override void _Process(double delta)
+	public override void _PhysicsProcess(double delta)
 	{
 		if (IsExpired)
 		{

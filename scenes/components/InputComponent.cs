@@ -26,7 +26,7 @@ public partial class InputComponent : Node
 		return Input.IsActionPressed("action_1");
 	}
 
-	public override void _Process(double delta)
+	public override void _PhysicsProcess(double delta)
 	{
 		// Get the camera's forward and right vectors
 		Camera3D camera = GetViewport().GetCamera3D();

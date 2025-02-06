@@ -42,7 +42,7 @@ public partial class KeyBinding : TextureRect
 		if (KeyboardDict.ContainsKey(ActionBinding))
 		{
 			Texture = KeyboardDict[ActionBinding];
-			Modulate = IsDisabled ? new Color(1, 1, 1, 0.5f) : new Color(1, 1, 1, 1);
+			Modulate = IsDisabled ? new Color(0.5f, 0.5f, 0.5f, 1) : new Color(1, 1, 1, 1);
 		}
 		else
 		{
