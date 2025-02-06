@@ -20,15 +20,15 @@ public partial class InventoryPanel : ScrollContainer
 		{
 			// Unsubscribe from old inventory
 			_inventory.Changed -= Update;
-			_inventory.ItemEquipped -= UpdateEquipped;
-			_inventory.ItemUnequipped -= UpdateUnequipped;
+			_inventory.ItemEquipped -= OnItemEquipped;
+			_inventory.ItemUnequipped -= OnItemUnequipped;
 		}
 		_inventory = inventory;
 		if (_inventory != null)
 		{
 			_inventory.Changed += Update;
-			_inventory.ItemEquipped += UpdateEquipped;
-			_inventory.ItemUnequipped += UpdateUnequipped;
+			_inventory.ItemEquipped += OnItemEquipped;
+			_inventory.ItemUnequipped += OnItemUnequipped;
 		}
 
 		Update();
@@ -69,12 +69,12 @@ public partial class InventoryPanel : ScrollContainer
 		}
 	}
 
-	private void UpdateEquipped(EquipmentSlot slot, EquippableItem item)
+	private void OnItemEquipped(EquipableItem item, EquipmentSlot slot)
 	{
 		Update();
 	}
 
-	private void UpdateUnequipped(EquipmentSlot slot, EquippableItem item)
+	private void OnItemUnequipped(EquipableItem item, EquipmentSlot slot)
 	{
 		Update();
 	}

@@ -8,9 +8,7 @@ using System.Linq;
 public partial class Player : CharacterBody3D, IDamageable
 {
 	[Export] public PlayerStats Stats { get; protected set; }
-	[Export] public PackedScene MeleeAttackScene { get; protected set; }
-	[Export] public PackedScene RangedAttackScene { get; protected set; }
-	[Export] public PackedScene SpecialAttackScene { get; protected set; }
+	[Export] public Inventory Inventory { get; protected set; }
 
 	// The following states are used for animation
 	public bool IsDead => HealthComponent.CurrentHealth <= 0;
@@ -20,15 +18,15 @@ public partial class Player : CharacterBody3D, IDamageable
 	public bool IsPerformingAction => ActionManager.CurrentAnimationId != null;
 	public string CurrentActionId => ActionManager.CurrentAnimationId;
 
-	public HealthComponent HealthComponent { get; private set; }
-	public HurtBoxComponent HurtBoxComponent { get; private set; }
-	public MovementComponent MovementComponent { get; private set; }
-	public InputComponent InputComponent { get; private set; }
-	public ActionManager ActionManager { get; private set; }
-	public InteractionArea InteractionArea { get; private set; }
+	public HealthComponent HealthComponent { get; protected set; }
+	public HurtBoxComponent HurtBoxComponent { get; protected set; }
+	public MovementComponent MovementComponent { get; protected set; }
+	public InputComponent InputComponent { get; protected set; }
+	public ActionManager ActionManager { get; protected set; }
 
-	public Inventory Inventory { get; private set; } = new Inventory();
-	public Array<ActiveBuff> ActiveBuffs { get; private set; } = new Array<ActiveBuff>();
+	public InteractionArea InteractionArea { get; protected set; }
+
+	public Array<ActiveBuff> ActiveBuffs { get; protected set; } = new Array<ActiveBuff>();
 
 	private WeaponSwingAttack _meleeAttack;
 	private WeaponSwingAttack _specialAttack;
@@ -73,9 +71,21 @@ public partial class Player : CharacterBody3D, IDamageable
 		Inventory.ItemConsumed += OnItemConsumed;
 		Inventory.ItemDropped += OnItemDropped;
 		Inventory.ItemDestroyed += OnItemDestroyed;
+		AutoEquipItems();
 
 		Stats.Changed += OnStatsChanged;
 		OnStatsChanged();
+	}
+
+	private void AutoEquipItems()
+	{
+		foreach (var item in Inventory.Items)
+		{
+			if (item.Item is EquipableItem)
+			{
+				Inventory.Equip(item);
+			}
+		}
 	}
 
 	private void OnStatsChanged()
@@ -87,9 +97,9 @@ public partial class Player : CharacterBody3D, IDamageable
 		HealthComponent.SetHealth(Stats.Health, Stats.MaxHealth);
 
 		// Update attack stats
-		if (Inventory.EquippedItems.TryGetValue(EquipmentSlot.WeaponHand, out var weapon))
+		if (Inventory.EquippedItems.TryGetValue(EquipmentSlot.WeaponHand, out var item))
 		{
-			if (weapon is RangedWeapon rangedWeapon)
+			if (item?.Item is RangedWeapon rangedWeapon)
 			{
 				_rangedAttack.MinDamage = Stats.MinDamage;
 				_rangedAttack.MaxDamage = Stats.MaxDamage;
@@ -98,14 +108,11 @@ public partial class Player : CharacterBody3D, IDamageable
 				_rangedAttack.Range = rangedWeapon.Range;
 				_rangedAttack.AimingAngle = rangedWeapon.AimingAngle;
 			}
-			else if (weapon is Weapon)
+			else if (item?.Item is Weapon)
 			{
 				_meleeAttack.MinDamage = Stats.MinDamage;
 				_meleeAttack.MaxDamage = Stats.MaxDamage;
 				_meleeAttack.CritChance = Stats.CritChance;
-				_specialAttack.MinDamage = Stats.MinDamage;
-				_specialAttack.MaxDamage = Stats.MaxDamage;
-				_specialAttack.CritChance = Stats.CritChance;
 			}
 		}
 
@@ -116,7 +123,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	/// <summary>
 	/// Callback triggered by the inventory when an item gets equipped
 	/// </summary>
-	private void OnItemEquipped(EquipmentSlot slot, EquippableItem item)
+	private void OnItemEquipped(EquipableItem item, EquipmentSlot slot)
 	{
 		// Update stats
 		item.OnEquipped(this);
@@ -139,7 +146,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	/// <summary>
 	/// Callback triggered by the inventory when an item gets unequipped
 	/// </summary>
-	private void OnItemUnequipped(EquipmentSlot slot, EquippableItem item)
+	private void OnItemUnequipped(EquipableItem item, EquipmentSlot slot)
 	{
 		// Update stats
 		item.OnUnequipped(this);
@@ -299,7 +306,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	/// </summary>
 	public bool PickupItem(Item item, int quantity = 1)
 	{
-		if (item.UsesSlot && Inventory.IsFull)
+		if (item.ShowInInventory && Inventory.IsFull)
 		{
 			GD.Print("Inventory is full");
 			return false;
@@ -308,7 +315,7 @@ public partial class Player : CharacterBody3D, IDamageable
 		GD.Print($"{Name} picks up {quantity}x {item.Name}");
 		item.OnPickup(this, quantity);
 
-		if (item.UsesSlot)
+		if (item.ShowInInventory)
 		{
 			Inventory.AddItem(item, quantity);
 		}

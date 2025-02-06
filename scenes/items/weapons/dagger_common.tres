@@ -5,22 +5,21 @@
 
 [resource]
 script = ExtResource("2_r05mt")
-IsTwoHanded = false
-Type = 4
 DamageMin = 1
 DamageMax = 6
-Armor = 0
-AccuracyModifier = 1.0
-SpeedModifier = 1.1
-ReachModifier = 0.9
+CritChance = 0.0
+IsTwoHanded = false
+AnimationId = "melee_attack"
+Delay = 0.0
+PerformDuration = 0.5
+CooldownDuration = 0.0
+ValidSlots = Array[int]([8])
+Rarity = 0
 Name = "Dagger"
 Scene = ExtResource("1_xjf30")
-Durability = 1.0
 Quality = 1.0
 Value = 0
-Weight = 0.0
-UsesSlot = true
+ShowInInventory = true
 IsStackable = false
-IsConsumable = null
-IsEquippable = null
+IsQuestItem = false
 metadata/_custom_type_script = ExtResource("2_r05mt")

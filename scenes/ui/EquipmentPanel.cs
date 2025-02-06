@@ -36,14 +36,14 @@ public partial class EquipmentPanel : PanelContainer
 		if (_inventory != null)
 		{
 			// Unsubscribe from old inventory
-			_inventory.ItemEquipped -= UpdateEquipped;
-			_inventory.ItemUnequipped -= UpdateUnequipped;
+			_inventory.ItemEquipped -= OnItemEquipped;
+			_inventory.ItemUnequipped -= OnItemUnequipped;
 		}
 		_inventory = inventory;
 		if (_inventory != null)
 		{
-			_inventory.ItemEquipped += UpdateEquipped;
-			_inventory.ItemUnequipped += UpdateUnequipped;
+			_inventory.ItemEquipped += OnItemEquipped;
+			_inventory.ItemUnequipped += OnItemUnequipped;
 		}
 	}
 
@@ -51,15 +51,15 @@ public partial class EquipmentPanel : PanelContainer
 	{
 		if (_inventory != null)
 		{
-			_inventory.ItemEquipped -= UpdateEquipped;
-			_inventory.ItemUnequipped -= UpdateUnequipped;
+			_inventory.ItemEquipped -= OnItemEquipped;
+			_inventory.ItemUnequipped -= OnItemUnequipped;
 			_inventory = null;
 		}
 
 		base._ExitTree();
 	}
 
-	private void UpdateEquipped(EquipmentSlot slot, EquippableItem item)
+	private void OnItemEquipped(EquipableItem item, EquipmentSlot slot)
 	{
 		switch (slot)
 		{
@@ -103,12 +103,12 @@ public partial class EquipmentPanel : PanelContainer
 		}
 	}
 
-	private void UpdateUnequipped(EquipmentSlot slot, EquippableItem item)
+	private void OnItemUnequipped(EquipableItem item, EquipmentSlot slot)
 	{
 		if (item is Weapon weapon && weapon.IsTwoHanded)
 		{
 			ShieldPanel.SetItem(null);
 		}
-		UpdateEquipped(slot, null);
+		OnItemEquipped(null, slot);
 	}
 }

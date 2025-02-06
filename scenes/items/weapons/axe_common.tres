@@ -5,21 +5,21 @@
 
 [resource]
 script = ExtResource("1_4nbvr")
-DamageMin = 3
-DamageMax = 6
+DamageMin = 0.0
+DamageMax = 0.0
 CritChance = 0.0
 IsTwoHanded = false
 AnimationId = "melee_attack"
 Delay = 0.0
 PerformDuration = 0.5
 CooldownDuration = 0.0
-Type = 4
+ValidSlots = Array[int]([8])
 Rarity = 0
 Name = "Axe"
 Scene = ExtResource("1_w1nru")
 Quality = 1.0
 Value = 0
-UsesSlot = true
+ShowInInventory = true
 IsStackable = false
 IsQuestItem = false
 metadata/_custom_type_script = ExtResource("1_4nbvr")

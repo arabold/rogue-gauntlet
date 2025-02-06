@@ -21,13 +21,13 @@ public partial class SignalBus : Node
     public static void EmitPlayerDeath(Player player) => Instance?.EmitSignalPlayerDeath(player);
 
     [Signal] public delegate void ItemConsumedEventHandler(Player player, ConsumableItem item);
-    [Signal] public delegate void ItemEquippedEventHandler(Player player, EquippableItem item);
-    [Signal] public delegate void ItemUnequippedEventHandler(Player player, EquippableItem item);
+    [Signal] public delegate void ItemEquippedEventHandler(Player player, EquipableItem item);
+    [Signal] public delegate void ItemUnequippedEventHandler(Player player, EquipableItem item);
     [Signal] public delegate void ItemDestroyedEventHandler(Player player, Item item, int quantity);
     [Signal] public delegate void ItemDroppedEventHandler(Player player, Item item, int quantity);
     public static void EmitItemConsumed(Player player, ConsumableItem item) => Instance?.EmitSignalItemConsumed(player, item);
-    public static void EmitItemEquipped(Player player, EquippableItem item) => Instance?.EmitSignalItemEquipped(player, item);
-    public static void EmitItemUnequipped(Player player, EquippableItem item) => Instance?.EmitSignalItemUnequipped(player, item);
+    public static void EmitItemEquipped(Player player, EquipableItem item) => Instance?.EmitSignalItemEquipped(player, item);
+    public static void EmitItemUnequipped(Player player, EquipableItem item) => Instance?.EmitSignalItemUnequipped(player, item);
     public static void EmitItemDestroyed(Player player, Item item, int quantity) => Instance?.EmitSignalItemDestroyed(player, item, quantity);
     public static void EmitItemDropped(Player player, Item item, int quantity) => Instance?.EmitSignalItemDropped(player, item, quantity);
 

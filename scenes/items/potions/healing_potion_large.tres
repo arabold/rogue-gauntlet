@@ -23,6 +23,6 @@ Durability = 1.0
 Quality = 1.0
 Value = 100
 Weight = 1.0
-UsesSlot = true
+ShowInInventory = true
 IsStackable = true
 metadata/_custom_type_script = ExtResource("4_5qc1u")

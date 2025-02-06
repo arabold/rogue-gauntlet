@@ -2,7 +2,7 @@ using Godot;
 using System;
 
 [GlobalClass]
-public partial class Weapon : EquippableItem, IPlayerAction
+public partial class Weapon : EquipableItem, IPlayerAction
 {
 	/// <summary>
 	/// Minimum damage bonus for this item (absolute value). Stacks up with other items' damage bonus.
@@ -28,7 +28,6 @@ public partial class Weapon : EquippableItem, IPlayerAction
 
 	protected Weapon()
 	{
-		Type = EquippableItemType.Weapon;
 		AnimationId = "melee_attack";
 	}
 

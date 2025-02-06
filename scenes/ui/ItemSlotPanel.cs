@@ -80,15 +80,15 @@ public partial class ItemSlotPanel : PanelContainer
 			quantityLabel.Text = Slot.Quantity > 1 ? Slot.Quantity.ToString() : "";
 			equippedBorder.Visible = IsEquipped;
 
-			if (Slot.Item is EquippableItem equippableItem)
+			if (Slot.Item is EquipableItem equipableItem)
 			{
-				colorRect.Color = equippableItem.Rarity switch
+				colorRect.Color = equipableItem.Rarity switch
 				{
-					EquippableItemRarity.Common => CommonColor,
-					EquippableItemRarity.Uncommon => UncommonColor,
-					EquippableItemRarity.Rare => RareColor,
-					EquippableItemRarity.Legendary => LegendaryColor,
-					EquippableItemRarity.Unique => UniqueColor,
+					EquipableItemRarity.Common => CommonColor,
+					EquipableItemRarity.Uncommon => UncommonColor,
+					EquipableItemRarity.Rare => RareColor,
+					EquipableItemRarity.Legendary => LegendaryColor,
+					EquipableItemRarity.Unique => UniqueColor,
 					_ => DefaultColor,
 				};
 			}

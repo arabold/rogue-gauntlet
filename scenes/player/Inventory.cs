@@ -20,13 +20,13 @@ public enum EquipmentSlot
 [GlobalClass]
 public partial class Inventory : Resource
 {
-	[Signal] public delegate void ItemEquippedEventHandler(EquipmentSlot slot, EquippableItem item);
-	[Signal] public delegate void ItemUnequippedEventHandler(EquipmentSlot slot, EquippableItem item);
+	[Signal] public delegate void ItemEquippedEventHandler(EquipableItem item, EquipmentSlot slot);
+	[Signal] public delegate void ItemUnequippedEventHandler(EquipableItem item, EquipmentSlot slot);
 	[Signal] public delegate void ItemConsumedEventHandler(ConsumableItem item);
 	[Signal] public delegate void ItemDroppedEventHandler(Item item, int quantity);
 	[Signal] public delegate void ItemDestroyedEventHandler(Item item, int quantity);
 
-	public Dictionary<EquipmentSlot, EquippableItem> EquippedItems { get; private set; } = new Dictionary<EquipmentSlot, EquippableItem>{
+	public Dictionary<EquipmentSlot, InventoryItemSlot> EquippedItems { get; private set; } = new Dictionary<EquipmentSlot, InventoryItemSlot>{
 		{ EquipmentSlot.Head, null },
 		{ EquipmentSlot.Chest, null },
 		{ EquipmentSlot.Hands, null },
@@ -95,94 +95,87 @@ public partial class Inventory : Resource
 		return;
 	}
 
-	public EquipmentSlot? GetEquipmentSlot(Item item)
+	public bool IsEquipped(InventoryItemSlot itemSlot)
 	{
-		if (item == null)
+		foreach (var equipSlot in EquippedItems.Keys)
 		{
-			return null;
-		}
-
-		foreach (var (slot, equippedItem) in EquippedItems)
-		{
-			if (equippedItem == item)
+			if (EquippedItems[equipSlot] == itemSlot)
 			{
-				return slot;
+				return true;
 			}
 		}
-
-		return null;
-	}
-
-	public bool IsEquipped(InventoryItemSlot slot)
-	{
-		var item = slot.Item;
-		return GetEquipmentSlot(item) != null;
+		return false;
 	}
 
 	public void Equip(InventoryItemSlot itemSlot)
 	{
-		var item = itemSlot.Item as EquippableItem;
-		var equipSlot = getDefaultEquipmentSlotForItem(item);
-		if (item.Type == EquippableItemType.Weapon)
+		var item = itemSlot.Item as EquipableItem;
+		var validSlots = item.ValidSlots;
+
+		if (validSlots.Count == 0)
 		{
-			var isTwoHanded = (item is Weapon weapon) ? weapon.IsTwoHanded : false;
-			if (isTwoHanded)
-			{
-				// Also unequip the other hand if it's occupied
-				Unequip(EquipmentSlot.ShieldHand);
-			}
+			GD.PrintErr($"{item.Name} cannot be equipped");
+			return;
 		}
-		else if (item.Type == EquippableItemType.Shield)
+
+		var isTwoHanded = (item is Weapon weapon) ? weapon.IsTwoHanded : false;
+		if (isTwoHanded)
 		{
-			// Also unequip the weapon if it's two-handed
-			if (EquippedItems[EquipmentSlot.WeaponHand] is Weapon weapon && weapon.IsTwoHanded)
+			Unequip(EquipmentSlot.WeaponHand);
+			Unequip(EquipmentSlot.ShieldHand);
+			EquippedItems[EquipmentSlot.WeaponHand] = itemSlot;
+			EmitSignalItemEquipped(item, EquipmentSlot.WeaponHand);
+		}
+		else
+		{
+			EquipmentSlot equipSlot = validSlots[0];
+			foreach (var slot in validSlots)
+			{
+				if (EquippedItems[slot] == null)
+				{
+					equipSlot = slot;
+					break;
+				}
+			}
+
+			Unequip(equipSlot);
+
+			// Special handling when unequipping a two-handed weapon
+			if (equipSlot == EquipmentSlot.ShieldHand
+				&& EquippedItems[EquipmentSlot.WeaponHand]?.Item is Weapon equippedWeapon
+				&& equippedWeapon.IsTwoHanded)
 			{
 				Unequip(EquipmentSlot.WeaponHand);
 			}
-		}
-		else if (item.Type == EquippableItemType.Ring)
-		{
-			// Check if the left ring slot is occupied
-			if (EquippedItems[EquipmentSlot.LeftRing] == null)
-			{
-				equipSlot = EquipmentSlot.LeftRing;
-			}
-			// Check if the right ring slot is occupied
-			else if (EquippedItems[EquipmentSlot.RightRing] == null)
-			{
-				equipSlot = EquipmentSlot.RightRing;
-			}
-		}
 
-		Unequip(equipSlot);
-
-		GD.Print($"{item.Name} equipped to {equipSlot}");
-		EquippedItems[equipSlot] = item;
-		EmitSignalItemEquipped(equipSlot, item);
+			EquippedItems[equipSlot] = itemSlot;
+			EmitSignalItemEquipped(item, equipSlot);
+		}
 	}
 
 	public void Unequip(InventoryItemSlot itemSlot)
 	{
-		var equipSlot = GetEquipmentSlot(itemSlot.Item);
-		if (equipSlot != null)
+		foreach (var equipSlot in EquippedItems.Keys)
 		{
-			Unequip((EquipmentSlot)equipSlot);
-		}
-		else
-		{
-			GD.PrintErr($"{itemSlot.Item.Name} is not equipped");
+			if (EquippedItems[equipSlot] == itemSlot)
+			{
+				Unequip(equipSlot);
+			}
 		}
 	}
 
-	public void Unequip(EquipmentSlot itemSlot)
+	public void Unequip(EquipmentSlot equipSlot)
 	{
-		var item = EquippedItems[itemSlot];
-		if (item != null)
+		var invSlot = EquippedItems[equipSlot];
+		if (invSlot == null)
 		{
-			GD.Print($"{item.Name} unequipped from {itemSlot}");
-			EquippedItems[itemSlot] = null;
-			EmitSignalItemUnequipped(itemSlot, item);
+			return;
 		}
+
+		var item = invSlot.Item as EquipableItem;
+		GD.Print($"{item.Name} unequipped from {equipSlot}");
+		EquippedItems[equipSlot] = null;
+		EmitSignalItemUnequipped(item, equipSlot);
 	}
 
 	public void Consume(InventoryItemSlot itemSlot)
@@ -201,12 +194,8 @@ public partial class Inventory : Resource
 			return;
 		}
 
-		var equipSlot = GetEquipmentSlot(item);
-		if (equipSlot != null)
-		{
-			// Unequip the item first
-			Unequip((EquipmentSlot)equipSlot);
-		}
+		// Unequip the item first
+		Unequip(itemSlot);
 
 		var quantity = itemSlot.Quantity;
 		GD.Print($"Dropping {quantity}x {itemSlot.Item.Name} from inventory...");
@@ -223,12 +212,8 @@ public partial class Inventory : Resource
 			return;
 		}
 
-		var equipSlot = GetEquipmentSlot(item);
-		if (equipSlot != null)
-		{
-			// Unequip the item first
-			Unequip((EquipmentSlot)equipSlot);
-		}
+		// Unequip the item first
+		Unequip(itemSlot);
 
 		var quantity = itemSlot.Quantity;
 		GD.Print($"Destroying {quantity}x {itemSlot.Item.Name} from inventory...");
@@ -250,46 +235,6 @@ public partial class Inventory : Resource
 			GD.Print($"Splitting {itemSlot.Quantity}x {itemSlot.Item.Name} in inventory...");
 			RemoveItem(itemSlot, newQuantity);
 			AddItem(itemSlot.Item, newQuantity);
-		}
-	}
-
-	private EquipmentSlot getDefaultEquipmentSlotForItem(EquippableItem item)
-	{
-		if (item.Type == EquippableItemType.Helmet)
-		{
-			return EquipmentSlot.Head;
-		}
-		else if (item.Type == EquippableItemType.Armor)
-		{
-			return EquipmentSlot.Chest;
-		}
-		else if (item.Type == EquippableItemType.Gloves)
-		{
-			return EquipmentSlot.Hands;
-		}
-		else if (item.Type == EquippableItemType.Boots)
-		{
-			return EquipmentSlot.Feet;
-		}
-		else if (item.Type == EquippableItemType.Amulet)
-		{
-			return EquipmentSlot.Neck;
-		}
-		else if (item.Type == EquippableItemType.Pants)
-		{
-			return EquipmentSlot.Legs;
-		}
-		else if (item.Type == EquippableItemType.Weapon)
-		{
-			return EquipmentSlot.WeaponHand;
-		}
-		else if (item.Type == EquippableItemType.Shield)
-		{
-			return EquipmentSlot.ShieldHand;
-		}
-		else
-		{
-			return EquipmentSlot.WeaponHand;
 		}
 	}
 }

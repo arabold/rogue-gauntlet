@@ -2,7 +2,7 @@ using Godot;
 using System;
 
 [GlobalClass]
-public partial class Armor : EquippableItem
+public partial class Armor : EquipableItem
 {
 	/// <summary>
 	/// Armor bonus for this item (absolute value). Stacks up with other items' armor bonus.
@@ -16,11 +16,6 @@ public partial class Armor : EquippableItem
 	/// Speed modifier for this armor
 	/// </summary>
 	[Export] public float SpeedModifier { get; set => SetValue(ref field, value); } = 1.0f;
-
-	Armor()
-	{
-		Type = EquippableItemType.Armor;
-	}
 
 	public override void OnEquipped(Player player)
 	{

@@ -52,7 +52,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 		}
 		else
 		{
-			_equipButton.Visible = slot.Item is EquippableItem;
+			_equipButton.Visible = slot.Item is EquipableItem;
 			_unequipButton.Visible = false;
 			_dropButton.Disabled = slot.Item.IsQuestItem;
 		}
@@ -85,26 +85,26 @@ public partial class InventoryItemContextMenu : PopupPanel
 
 	private void EquipItem(Inventory inventory, InventoryItemSlot slot)
 	{
-		if (slot.Item is EquippableItem)
+		if (slot.Item is EquipableItem)
 		{
 			inventory.Equip(slot);
 		}
 		else
 		{
-			GD.PrintErr($"{slot.Item.Name} is not equippable");
+			GD.PrintErr($"{slot.Item.Name} is not equipable");
 		}
 		Hide();
 	}
 
 	private void UnequipItem(Inventory inventory, InventoryItemSlot slot)
 	{
-		if (slot.Item is EquippableItem)
+		if (slot.Item is EquipableItem)
 		{
 			inventory.Unequip(slot);
 		}
 		else
 		{
-			GD.PrintErr($"{slot.Item.Name} is not equippable");
+			GD.PrintErr($"{slot.Item.Name} is not equipable");
 		}
 		Hide();
 	}
