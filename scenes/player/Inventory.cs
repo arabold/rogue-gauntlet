@@ -2,19 +2,25 @@ using Godot;
 using Godot.Collections;
 using System;
 
+/// <summary>
+/// Equipment slots for equipable items.
+/// 
+/// We use a bitwise enum to allow items to be equipped in multiple slots.
+/// However, for most use cases we will only use a single slot.
+/// </summary>
 public enum EquipmentSlot
 {
-	Head = 0,
-	Chest = 1,
-	Hands = 2,
-	Legs = 3,
-	Feet = 4,
-	Neck = 5,
-	LeftRing = 6,
-	RightRing = 7,
-	WeaponHand = 8,
-	ShieldHand = 9,
-	Arrows = 10,
+	Head = 1 << 0,
+	Chest = 1 << 1,
+	Hands = 1 << 2,
+	Legs = 1 << 3,
+	Feet = 1 << 4,
+	Neck = 1 << 5,
+	LeftRing = 1 << 6,
+	RightRing = 1 << 7,
+	WeaponHand = 1 << 8,
+	ShieldHand = 1 << 9,
+	Arrows = 1 << 10,
 }
 
 [GlobalClass]
@@ -110,9 +116,9 @@ public partial class Inventory : Resource
 	public void Equip(InventoryItemSlot itemSlot)
 	{
 		var item = itemSlot.Item as EquipableItem;
-		var validSlots = item.ValidSlots;
+		var validSlots = (int)item.ValidSlots;
 
-		if (validSlots.Count == 0)
+		if (validSlots == 0)
 		{
 			GD.PrintErr($"{item.Name} cannot be equipped");
 			return;
@@ -128,16 +134,16 @@ public partial class Inventory : Resource
 		}
 		else
 		{
-			EquipmentSlot equipSlot = validSlots[0];
-			foreach (var slot in validSlots)
+			// Try to find an empty slot to equip the item
+			EquipmentSlot equipSlot = (EquipmentSlot)(validSlots & -validSlots); // Get lowest set bit as default
+			for (int i = 1; i <= 32; i <<= 1)
 			{
-				if (EquippedItems[slot] == null)
+				if ((validSlots & i) != 0 && EquippedItems[(EquipmentSlot)i] == null)
 				{
-					equipSlot = slot;
+					equipSlot = (EquipmentSlot)i;
 					break;
 				}
 			}
-
 			Unequip(equipSlot);
 
 			// Special handling when unequipping a two-handed weapon

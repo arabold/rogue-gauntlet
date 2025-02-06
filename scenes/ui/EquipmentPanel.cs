@@ -44,6 +44,11 @@ public partial class EquipmentPanel : PanelContainer
 		{
 			_inventory.ItemEquipped += OnItemEquipped;
 			_inventory.ItemUnequipped += OnItemUnequipped;
+
+			foreach (var slot in _inventory.EquippedItems)
+			{
+				OnItemEquipped(slot.Value?.Item as EquipableItem, slot.Key);
+			}
 		}
 	}
 

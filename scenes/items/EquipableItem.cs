@@ -1,5 +1,26 @@
 using Godot;
 using Godot.Collections;
+using System;
+
+
+/// <summary>
+/// Flags for equipment slots.
+/// </summary>
+[Flags]
+public enum ValidSlots
+{
+	Head = EquipmentSlot.Head,
+	Chest = EquipmentSlot.Chest,
+	Hands = EquipmentSlot.Hands,
+	Legs = EquipmentSlot.Legs,
+	Feet = EquipmentSlot.Feet,
+	Neck = EquipmentSlot.Neck,
+	LeftRing = EquipmentSlot.LeftRing,
+	RightRing = EquipmentSlot.RightRing,
+	WeaponHand = EquipmentSlot.WeaponHand,
+	ShieldHand = EquipmentSlot.ShieldHand,
+	Arrows = EquipmentSlot.Arrows,
+}
 
 public enum EquipableItemRarity
 {
@@ -16,7 +37,7 @@ public partial class EquipableItem : BuffedItem
 	/// <summary>
 	/// Type of this item
 	/// </summary>
-	[Export] public Array<EquipmentSlot> ValidSlots { get; set => SetValue(ref field, value); } = new Array<EquipmentSlot>();
+	[Export] public ValidSlots ValidSlots { get; set => SetValue(ref field, value); } = 0;
 	/// <summary>
 	/// Rarity of this item
 	/// </summary>
