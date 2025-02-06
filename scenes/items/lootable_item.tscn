@@ -1,12 +1,22 @@
-[gd_scene load_steps=4 format=3 uid="uid://ccltoxuycom37"]
+[gd_scene load_steps=6 format=3 uid="uid://ccltoxuycom37"]
 
 [ext_resource type="Script" uid="uid://bjnjjpaq5mwlp" path="res://scenes/items/LootableItem.cs" id="1_an4ny"]
 [ext_resource type="PackedScene" uid="uid://d2l47r6atc27d" path="res://scenes/components/trigger_component.tscn" id="2_an4ny"]
+[ext_resource type="Shader" uid="uid://buuj0l35p658e" path="res://scenes/effects/shaders/highlight_item.gdshader" id="2_sc28g"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jws22"]
+render_priority = 0
+shader = ExtResource("2_sc28g")
+shader_parameter/shine_color = Color(1, 1, 1, 1)
+shader_parameter/cycle_interval = 1.0
+shader_parameter/shine_speed = 3.0
+shader_parameter/shine_width = 3.0
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_gwbx5"]
 
 [node name="LootableItem" type="Node3D"]
 script = ExtResource("1_an4ny")
+ShaderMaterial = SubResource("ShaderMaterial_jws22")
 
 [node name="Pivot" type="Node3D" parent="."]
 

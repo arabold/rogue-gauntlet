@@ -7,8 +7,18 @@ using System;
 /// </summary>
 public partial class LootableItem : Node3D
 {
+	/// <summary>
+	/// The item to be picked up.
+	/// </summary>
 	[Export] public Item Item;
+	/// <summary>
+	/// The quantity of items that can be picked up.
+	/// </summary>
 	[Export] public int Quantity = 1;
+	/// <summary>
+	/// Custom shader material to apply to the item, i.e. for highlighting.
+	/// </summary>
+	[Export] public ShaderMaterial ShaderMaterial;
 	/// <summary>
 	/// Waits for the player to exit first before triggering a pickup.
 	/// This is useful when a player just dropped an item and is still within
@@ -60,6 +70,11 @@ public partial class LootableItem : Node3D
 		{
 			visu.Layers = 0;
 			visu.SetLayerMaskValue(6, true);
+		}
+
+		if (node is MeshInstance3D mesh)
+		{
+			mesh.MaterialOverlay = ShaderMaterial;
 		}
 
 		foreach (Node child in node.GetChildren())
