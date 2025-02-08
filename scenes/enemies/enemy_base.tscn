@@ -1,7 +1,7 @@
-[gd_scene load_steps=12 format=3 uid="uid://cvvu87irfmqm1"]
+[gd_scene load_steps=11 format=3 uid="uid://cvvu87irfmqm1"]
 
 [ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="1_j62no"]
-[ext_resource type="PackedScene" uid="uid://dt3ptc0tqgy5s" path="res://scenes/enemies/enemy_behavior.tscn" id="2_sr21q"]
+[ext_resource type="PackedScene" uid="uid://dt3ptc0tqgy5s" path="res://scenes/enemies/enemy_behavior_component.tscn" id="2_sr21q"]
 [ext_resource type="PackedScene" uid="uid://c6276kjx70mps" path="res://scenes/components/movement_component.tscn" id="4_qc6m8"]
 [ext_resource type="PackedScene" uid="uid://dud0hid1mwmdw" path="res://scenes/components/loot_table_component.tscn" id="5_qpnrt"]
 [ext_resource type="PackedScene" uid="uid://bfol3ridi0ig8" path="res://scenes/components/health_component.tscn" id="6_g62l6"]
@@ -9,9 +9,6 @@
 [ext_resource type="PackedScene" uid="uid://doui3rts7bdo7" path="res://scenes/components/hurt_box_component.tscn" id="8_b88gg"]
 [ext_resource type="PackedScene" uid="uid://cs2dyf0ews4ob" path="res://scenes/effects/hit_effect.tscn" id="9_d4q6w"]
 [ext_resource type="PackedScene" uid="uid://c6i0b6qufb14m" path="res://scenes/components/floating_health_bar.tscn" id="10_oansv"]
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_fv4r8"]
-radius = 0.75
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_6flps"]
 viewport_path = NodePath("SubViewport")
@@ -25,11 +22,7 @@ script = ExtResource("1_j62no")
 
 [node name="Pivot" type="Node3D" parent="."]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
-shape = SubResource("CapsuleShape3D_fv4r8")
-
-[node name="EnemyBehavior" parent="." node_paths=PackedStringArray("Actor", "MovementComponent", "HealthComponent") instance=ExtResource("2_sr21q")]
+[node name="EnemyBehaviorComponent" parent="." node_paths=PackedStringArray("Actor", "MovementComponent", "HealthComponent") instance=ExtResource("2_sr21q")]
 Actor = NodePath("..")
 MovementComponent = NodePath("../MovementComponent")
 HealthComponent = NodePath("../HealthComponent")

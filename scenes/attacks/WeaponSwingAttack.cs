@@ -1,6 +1,6 @@
 using Godot;
 
-public partial class WeaponSwingAttack : Node3D
+public partial class WeaponSwingAttack : AbstractAttack
 {
 	/// <summary>
 	/// The offset for the swing rotation.
@@ -67,7 +67,7 @@ public partial class WeaponSwingAttack : Node3D
 			_pivot.RotationDegrees.Z);
 	}
 
-	public void Attack()
+	public override void Attack()
 	{
 		_hitBox.Monitoring = true;
 		_trail.Visible = true;

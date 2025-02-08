@@ -7,7 +7,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable
 {
 	public Node3D Pivot;
 	public CollisionShape3D CollisionShape;
-	public EnemyBehavior EnemyBehavior;
+	public EnemyBehaviorComponent EnemyBehaviorComponent;
 	public MovementComponent MovementComponent;
 	public HealthComponent HealthComponent;
 	public HurtBoxComponent HurtBoxComponent;
@@ -15,13 +15,13 @@ public partial class EnemyBase : CharacterBody3D, IDamageable
 	public DeathComponent DeathComponent;
 	public LootTableComponent LootTableComponent;
 
-	public bool IsDead => EnemyBehavior.IsDead;
+	public bool IsDead => EnemyBehaviorComponent.IsDead;
 
 	public override void _Ready()
 	{
 		Pivot = GetNode<Node3D>("Pivot");
 		CollisionShape = GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
-		EnemyBehavior = GetNodeOrNull<EnemyBehavior>("EnemyBehavior");
+		EnemyBehaviorComponent = GetNodeOrNull<EnemyBehaviorComponent>("EnemyBehaviorComponent");
 		MovementComponent = GetNodeOrNull<MovementComponent>("MovementComponent");
 		HealthComponent = GetNodeOrNull<HealthComponent>("HealthComponent");
 		HurtBoxComponent = GetNodeOrNull<HurtBoxComponent>("HurtBoxComponent");

@@ -1,7 +1,7 @@
 using System.Linq;
 using Godot;
 
-public partial class RangedWeaponAttack : Node3D
+public partial class RangedWeaponAttack : AbstractAttack
 {
 	[Export] public PackedScene ProjectileScene;
 	[Export] public float Accuracy = 1f;
@@ -22,7 +22,7 @@ public partial class RangedWeaponAttack : Node3D
 		_rayCast3D = GetNode<RayCast3D>("RayCast3D");
 	}
 
-	public void Attack()
+	public override void Attack()
 	{
 		// Find a target and aim at it
 		Vector3 targetDirection = Aim();

@@ -7,17 +7,9 @@ public partial class LootTableComponent : Node
     /// The chance of dropping loot from this table.
     /// </summary>
     [Export] public float DropChance { get; private set; } = 1.0f;
-    public LootTableItem[] Items { get; private set; } = [];
+    [Export] public LootTableItem[] Items { get; private set; } = [];
 
     private bool _isDropped = false;
-
-    public override void _Ready()
-    {
-        base._Ready();
-
-        Items = GetChildren().OfType<LootTableItem>().ToArray();
-        GD.Print($"Loot table initialized with {Items.Length} item(s)");
-    }
 
     public void DropLoot()
     {
@@ -26,7 +18,7 @@ public partial class LootTableComponent : Node
             return;
         }
 
-        if (GD.Randf() < DropChance || Items.Length == 0)
+        if (GD.Randf() <= DropChance && Items.Length > 0)
         {
             var selectedItem = PickItem();
             GD.Print($"Dropping {selectedItem.Quantity}x {selectedItem.Item.Name}");
@@ -36,9 +28,9 @@ public partial class LootTableComponent : Node
             var lootableItem = scene.Instantiate<LootableItem>();
             lootableItem.Item = selectedItem.Item;
             lootableItem.Quantity = selectedItem.Quantity;
+            lootableItem.GlobalPosition = GetOwner<Node3D>().GlobalPosition;
 
             GameManager.Instance.Level.AddChild(lootableItem);
-            lootableItem.GlobalPosition = GetOwner<Node3D>().GlobalPosition;
         }
         else
         {

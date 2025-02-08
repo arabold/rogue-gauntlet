@@ -23,7 +23,7 @@ public enum EnemyAction
 	Dying,
 }
 
-public partial class EnemyBehavior : Node
+public partial class EnemyBehaviorComponent : Node
 {
 	// FIXME: Remove this hardcoded dictionary and use a data-driven approach
 	private static readonly Dictionary<EnemyAction, float> ActionDurations = new()
@@ -41,6 +41,8 @@ public partial class EnemyBehavior : Node
 	[Export] public HealthComponent HealthComponent { get; set; }
 	[Export] public EnemyBehaviorState CurrentBehavior { get; private set; } = EnemyBehaviorState.Idle;
 	[Export] public EnemyAction CurrentAction { get; private set; } = EnemyAction.Spawning;
+	[Export] public AbstractAttack MeleeAttack { get; set; }
+	[Export] public AbstractAttack RangedAttack { get; set; }
 	[Export] public float DetectionRange { get; set; } = 20.0f;
 	[Export] public float DetectionAngle { get; set; } = 45.0f;
 
@@ -118,6 +120,13 @@ public partial class EnemyBehavior : Node
 			{
 				UpdateTargetPosition();
 				NavigateToTarget();
+
+				if (IsNearTarget() && MeleeAttack != null)
+				{
+					// Attack the target
+					SetAction(EnemyAction.Attacking);
+					MeleeAttack.Attack();
+				}
 			}
 			else if (CurrentBehavior == EnemyBehaviorState.Fleeing)
 			{
@@ -195,7 +204,7 @@ public partial class EnemyBehavior : Node
 		}
 
 		float distance = Actor.GlobalPosition.DistanceTo(Target.GlobalPosition);
-		return distance < 1.0f;
+		return distance < 2f;
 	}
 
 	/// <summary>

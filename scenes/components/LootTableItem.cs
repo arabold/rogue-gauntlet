@@ -1,6 +1,7 @@
 using Godot;
 
-public partial class LootTableItem : Node
+[GlobalClass]
+public partial class LootTableItem : Resource
 {
 	/// <summary>
 	/// Weighted chance of this item being selected from the loot table.
