@@ -51,7 +51,7 @@ public partial class ActionContainer : PanelContainer
 		if (slotIndex == Slot)
 		{
 			_preview.SetScene(action?.PreviewScene);
-			_keyBinding.IsDisabled = action == null;
+			_keyBinding.IsDisabled = action?.AssignedAction == null;
 		}
 	}
 

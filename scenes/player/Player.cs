@@ -136,13 +136,12 @@ public partial class Player : CharacterBody3D, IDamageable
 		{
 			for (int i = 0; i < ActionManager.ActionSlotCount; i++)
 			{
-				if (ActionManager.GetAction(i) == action)
+				if (ActionManager.GetAction(i) == null)
 				{
 					ActionManager.AssignAction(i, action, item.Scene);
 					return;
 				}
 			}
-			ActionManager.AssignAction(0, action, item.Scene);
 		}
 	}
 
@@ -154,11 +153,17 @@ public partial class Player : CharacterBody3D, IDamageable
 		// Update stats
 		item.OnUnequipped(this);
 		SignalBus.EmitItemUnequipped(this, item);
-		var equppedItem = Inventory.EquippedItems[EquipmentSlot.WeaponHand];
-		if (equppedItem == null)
+
+		if (item is IPlayerAction action)
 		{
-			// No weapon equipped
-			ActionManager.AssignAction(0, null, null);
+			for (int i = 0; i < ActionManager.ActionSlotCount; i++)
+			{
+				if (ActionManager.GetAction(i) == action)
+				{
+					ActionManager.AssignAction(i, null, null);
+					return;
+				}
+			}
 		}
 	}
 
