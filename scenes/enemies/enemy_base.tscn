@@ -1,8 +1,7 @@
-[gd_scene load_steps=13 format=3 uid="uid://cvvu87irfmqm1"]
+[gd_scene load_steps=12 format=3 uid="uid://cvvu87irfmqm1"]
 
 [ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="1_j62no"]
 [ext_resource type="PackedScene" uid="uid://dt3ptc0tqgy5s" path="res://scenes/enemies/enemy_behavior.tscn" id="2_sr21q"]
-[ext_resource type="PackedScene" uid="uid://n0xkrntlfaa1" path="res://scenes/components/bone_attachment_manager.tscn" id="3_ouhnj"]
 [ext_resource type="PackedScene" uid="uid://c6276kjx70mps" path="res://scenes/components/movement_component.tscn" id="4_qc6m8"]
 [ext_resource type="PackedScene" uid="uid://dud0hid1mwmdw" path="res://scenes/components/loot_table_component.tscn" id="5_qpnrt"]
 [ext_resource type="PackedScene" uid="uid://bfol3ridi0ig8" path="res://scenes/components/health_component.tscn" id="6_g62l6"]
@@ -34,8 +33,6 @@ shape = SubResource("CapsuleShape3D_fv4r8")
 Actor = NodePath("..")
 MovementComponent = NodePath("../MovementComponent")
 HealthComponent = NodePath("../HealthComponent")
-
-[node name="BoneAttachmentManager" parent="." instance=ExtResource("3_ouhnj")]
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor") instance=ExtResource("4_qc6m8")]
 Actor = NodePath("..")

@@ -1,168 +1,144 @@
 using Godot;
-using System.Collections.Generic;
-using System.Linq;
+using Godot.Collections;
 
 public enum AttachmentType
 {
 	OneHandedWeapon,
 	TwoHandedWeapon,
 	OffhandWeapon,
+	Shield,
 	Item,
 	Hat,
 	Cape
 }
 
-public enum AttachmentEquipmentSlot
-{
-	OneHandAxe,
-	TwoHandAxe,
-	RoundShield,
-	OffhandAxe,
-	Mug,
-	BarbarianHat,
-	BarbarianCape
-}
-
 public partial class BoneAttachmentManager : Node
 {
+	/// <summary>
+	/// The mapping of attachment types for the current character
+	/// </summary>
 	[Export]
-	public Node3D CharacterNode { get; set; }
+	public Dictionary<AttachmentType, BoneAttachment3D> AttachmentNodes { get; set; } =
+		new Dictionary<AttachmentType, BoneAttachment3D>();
 
-	private Dictionary<string, Dictionary<AttachmentEquipmentSlot, string>> _characterEquipmentPaths;
-	private Dictionary<string, BoneAttachment3D> _attachmentNodes;
-	private Dictionary<AttachmentEquipmentSlot, AttachmentType> _slotTypes;
-	private string _currentCharacterType = "Barbarian";
+	/// <summary>
+	/// The player that this BoneAttachmentManager is attached to.
+	/// This is used to listen to the player's inventory events.
+	/// </summary>
+	[Export] public Player player { get; set; }
+
+	[Export] public bool ResetAttachmentsOnReady { get; set; } = true;
+
+	private Inventory _inventory;
 
 	public override void _Ready()
 	{
-		InitializeEquipmentMappings();
-		InitializeSlotTypes();
-		_attachmentNodes = new Dictionary<string, BoneAttachment3D>();
-
-		// Cache all attachment nodes
-		foreach (var attachmentPath in _characterEquipmentPaths[_currentCharacterType].Values)
+		if (ResetAttachmentsOnReady)
 		{
-			var node = GetNodeOrNull<BoneAttachment3D>($"{CharacterNode.GetPath()}/Rig/Skeleton3D/{attachmentPath}");
-			if (node != null)
-			{
-				_attachmentNodes[attachmentPath] = node;
-			}
-		}
+			// Clean up the weapon and item attachment nodes
+			RemoveAttachments(AttachmentType.OneHandedWeapon);
+			RemoveAttachments(AttachmentType.TwoHandedWeapon);
+			RemoveAttachments(AttachmentType.OffhandWeapon);
+			RemoveAttachments(AttachmentType.Shield);
+			RemoveAttachments(AttachmentType.Item);
 
-		HideAllAttachments();
-		Equip(AttachmentEquipmentSlot.OneHandAxe);
-		Equip(AttachmentEquipmentSlot.BarbarianHat);
-		Equip(AttachmentEquipmentSlot.BarbarianCape);
-	}
-
-	private void InitializeEquipmentMappings()
-	{
-		_characterEquipmentPaths = new Dictionary<string, Dictionary<AttachmentEquipmentSlot, string>>
+			if (player != null)
 			{
-				{ "Barbarian", new Dictionary<AttachmentEquipmentSlot, string>
+				GD.Print($"Setting up BoneAttachmentManager for {player.Name}");
+				_inventory = player.Inventory;
+				_inventory.ItemEquipped += OnItemEquipped;
+				_inventory.ItemUnequipped += OnItemUnequipped;
+
+				foreach (var (slot, item) in _inventory.EquippedItems)
+				{
+					if (item != null)
 					{
-						{ AttachmentEquipmentSlot.OneHandAxe, "1H_Axe" },
-						{ AttachmentEquipmentSlot.TwoHandAxe, "2H_Axe" },
-						{ AttachmentEquipmentSlot.RoundShield, "Barbarian_Round_Shield" },
-						{ AttachmentEquipmentSlot.OffhandAxe, "1H_Axe_Offhand" },
-						{ AttachmentEquipmentSlot.Mug, "Mug" },
-						{ AttachmentEquipmentSlot.BarbarianHat, "Barbarian_Hat" },
-						{ AttachmentEquipmentSlot.BarbarianCape, "Barbarian_Cape" }
+						OnItemEquipped(item.Item as EquipableItem, slot);
 					}
 				}
-			};
+			}
+		}
 	}
 
-	private void InitializeSlotTypes()
+	private void RemoveAttachments(AttachmentType attachmentType)
 	{
-		_slotTypes = new Dictionary<AttachmentEquipmentSlot, AttachmentType>
+		if (AttachmentNodes == null)
+		{
+			return;
+		}
+
+		AttachmentNodes.TryGetValue(attachmentType, out var boneAttachment);
+		if (boneAttachment != null)
+		{
+			GD.Print($"Removing attachments from {attachmentType}");
+			var children = boneAttachment.GetChildren();
+			foreach (Node child in children)
 			{
-				{ AttachmentEquipmentSlot.OneHandAxe, AttachmentType.OneHandedWeapon },
-				{ AttachmentEquipmentSlot.TwoHandAxe, AttachmentType.TwoHandedWeapon },
-				{ AttachmentEquipmentSlot.RoundShield, AttachmentType.OffhandWeapon },
-				{ AttachmentEquipmentSlot.OffhandAxe, AttachmentType.OffhandWeapon },
-				{ AttachmentEquipmentSlot.Mug, AttachmentType.Item },
-				{ AttachmentEquipmentSlot.BarbarianHat, AttachmentType.Hat },
-				{ AttachmentEquipmentSlot.BarbarianCape, AttachmentType.Cape }
-			};
-	}
-
-	private void ShowAttachment(AttachmentEquipmentSlot slot, bool isVisible)
-	{
-		var path = _characterEquipmentPaths[_currentCharacterType][slot];
-		if (_attachmentNodes.TryGetValue(path, out var node))
-		{
-			node.Visible = isVisible;
+				boneAttachment.RemoveChild(child);
+				child.QueueFree();
+			}
 		}
 	}
 
-	public void HideAllAttachments()
+	private void AddAttachment(AttachmentType attachmentType, EquipableItem item)
 	{
-		foreach (var node in _attachmentNodes.Values)
+		if (AttachmentNodes == null)
 		{
-			node.Visible = false;
+			return;
+		}
+
+		AttachmentNodes.TryGetValue(attachmentType, out var boneAttachment);
+		if (boneAttachment != null)
+		{
+			GD.Print($"Adding attachment {item.Name} to {attachmentType}");
+			var itemAttachment = item.Scene.Instantiate<Node>();
+			boneAttachment.AddChild(itemAttachment);
 		}
 	}
 
-	public void Equip(AttachmentEquipmentSlot slot)
+	private AttachmentType GetAttachmentType(EquipableItem item)
 	{
-		var type = _slotTypes[slot];
-
-		switch (type)
+		AttachmentType attachmentType = AttachmentType.Item;
+		if (item is Weapon weapon)
 		{
-			case AttachmentType.TwoHandedWeapon:
-				// Hide all weapons and items and all other two-handed weapons
-				foreach (var equipSlot in _slotTypes.Where(x =>
-					x.Value == AttachmentType.OneHandedWeapon ||
-					x.Value == AttachmentType.OffhandWeapon ||
-					x.Value == AttachmentType.Item ||
-					(x.Value == AttachmentType.TwoHandedWeapon && x.Key != slot)))
-				{
-					ShowAttachment(equipSlot.Key, false);
-				}
-				break;
+			if (weapon.IsTwoHanded)
+			{
+				attachmentType = AttachmentType.TwoHandedWeapon;
+			}
+			else
+			{
+				attachmentType = AttachmentType.OneHandedWeapon;
+			}
+		}
+		else if (item is Armor armor)
+		{
+			if ((armor.ValidSlots & ValidSlots.ShieldHand) != 0)
+			{
+				attachmentType = AttachmentType.Shield;
+			}
+			else
+			{
+				attachmentType = AttachmentType.Item;
+			}
+		}
+		return attachmentType;
+	}
 
-			case AttachmentType.OneHandedWeapon:
-				// Hide two-handed weapons and other one-handed weapons in same slots
-				foreach (var equipSlot in _slotTypes.Where(x =>
-					x.Value == AttachmentType.TwoHandedWeapon ||
-					(x.Value == AttachmentType.OneHandedWeapon && x.Key != slot)))
-				{
-					ShowAttachment(equipSlot.Key, false);
-				}
-				break;
-
-			case AttachmentType.OffhandWeapon:
-				// Hide two-handed weapons and other offhand items
-				foreach (var equipSlot in _slotTypes.Where(x =>
-					x.Value == AttachmentType.TwoHandedWeapon ||
-					(x.Value == AttachmentType.OffhandWeapon && x.Key != slot)))
-				{
-					ShowAttachment(equipSlot.Key, false);
-				}
-				break;
-
-			case AttachmentType.Item:
-				// Hide two-handed weapons and other items in same slot
-				foreach (var equipSlot in _slotTypes.Where(x =>
-					x.Value == AttachmentType.TwoHandedWeapon ||
-					(x.Value == AttachmentType.Item && x.Key != slot)))
-				{
-					ShowAttachment(equipSlot.Key, false);
-				}
-				break;
-
-			default:
-				// For other types, just hide items of same type in different slots
-				foreach (var equipSlot in _slotTypes.Where(x =>
-					x.Value == type && x.Key != slot))
-				{
-					ShowAttachment(equipSlot.Key, false);
-				}
-				break;
+	private void OnItemEquipped(EquipableItem item, EquipmentSlot slot)
+	{
+		var attachmentType = GetAttachmentType(item);
+		if (attachmentType == AttachmentType.Item)
+		{
+			// We don't need to show items on the character
+			return;
 		}
 
-		// Show the requested equipment
-		ShowAttachment(slot, true);
+		AddAttachment(attachmentType, item);
+	}
+
+	private void OnItemUnequipped(EquipableItem item, EquipmentSlot slot)
+	{
+		var attachmentType = GetAttachmentType(item);
+		RemoveAttachments(attachmentType);
 	}
 }
