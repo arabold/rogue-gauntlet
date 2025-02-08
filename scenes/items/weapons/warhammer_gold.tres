@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://ddlbimgglj7ai"]
+
+[ext_resource type="PackedScene" uid="uid://dfapgwca57awf" path="res://scenes/items/weapons/warhammer_gold.tscn" id="1_gfvt2"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_1upbk"]
+
+[resource]
+script = ExtResource("2_1upbk")
+Tier = 4
+Level = 0
+RequiredStrength = 18
+Accuracy = 1.0
+DamageMin = 9.0
+DamageMax = 15.0
+CritChance = 0.0
+IsTwoHanded = true
+AnimationId = "melee_attack"
+Delay = 0.0
+PerformDuration = 0.5
+CooldownDuration = 0.0
+ValidSlots = 256
+Rarity = 0
+Name = "Warhammer"
+Scene = ExtResource("1_gfvt2")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_1upbk")

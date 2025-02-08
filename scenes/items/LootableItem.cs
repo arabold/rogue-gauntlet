@@ -20,6 +20,10 @@ public partial class LootableItem : Node3D
 	/// </summary>
 	[Export] public ShaderMaterial ShaderMaterial;
 	/// <summary>
+	/// Animate the item.
+	/// </summary>
+	[Export] public bool Animate = true;
+	/// <summary>
 	/// Waits for the player to exit first before triggering a pickup.
 	/// This is useful when a player just dropped an item and is still within
 	/// the trigger zone. In that case we want to wait until the player leaves
@@ -62,6 +66,17 @@ public partial class LootableItem : Node3D
 		UpdateItemNodeProperties(itemScene);
 		Pivot.AddChild(itemScene);
 		Pivot.RotateY((float)(GD.Randf() * 2 * Math.PI));
+
+		// FIXME: Hardcoded check for gold is not ideal
+		if (Item is Gold || !Animate)
+		{
+			Pivot.Position = new Vector3(0, 0, 0);
+		}
+		else if (Animate)
+		{
+			var animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
+			animationPlayer.Play("spin");
+		}
 	}
 
 	private void UpdateItemNodeProperties(Node node)

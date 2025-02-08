@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://dak88bwl5ipcv"]
+
+[ext_resource type="PackedScene" uid="uid://d4fu1vvr3w8ur" path="res://scenes/items/weapons/staff_common.tscn" id="1_o3tbi"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_qrt1b"]
+
+[resource]
+script = ExtResource("2_qrt1b")
+Tier = 2
+Level = 0
+RequiredStrength = 12
+Accuracy = 1.0
+DamageMin = 2.0
+DamageMax = 7.0
+CritChance = 0.0
+IsTwoHanded = false
+AnimationId = "melee_attack"
+Delay = 0.0
+PerformDuration = 0.5
+CooldownDuration = 0.0
+ValidSlots = 256
+Rarity = 0
+Name = "Staff"
+Scene = ExtResource("1_o3tbi")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_qrt1b")

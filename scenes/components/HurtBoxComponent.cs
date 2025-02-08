@@ -17,9 +17,11 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 	[Export] public float Evasion { get; set; } = 0;
 	[Export] public bool Invulnerable { get; set; } = false;
 
-	public void TakeDamage(float amount, Vector3 attackDirection)
+	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection)
 	{
-		if (GD.Randf() <= Evasion)
+		var attack = GD.RandRange(0f, accuracy);
+		var defense = GD.RandRange(0f, Evasion);
+		if (defense > attack)
 		{
 			GD.Print($"{GetParent().Name} evaded the attack!");
 			return;
@@ -31,14 +33,14 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 			return;
 		}
 
-		GD.Print($"{GetParent().Name} took {amount} damage with {Armor} armor");
+		var armor = (float)GD.RandRange(0f, Armor);
+		GD.Print($"{GetParent().Name} took {amount} damage with {armor} armor");
 
-		var finalDamage = Mathf.Max(0, amount - Armor);
-		EmitSignalDamageTaken(finalDamage, attackDirection);
-		HealthComponent?.TakeDamage(finalDamage);
-
+		var finalDamage = Mathf.Max(0, amount - armor);
 		if (finalDamage > 0)
 		{
+			EmitSignalDamageTaken(finalDamage, attackDirection);
+			HealthComponent?.TakeDamage(finalDamage);
 			SpawnHitEffect(attackDirection);
 		}
 	}

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="Armor" load_steps=3 format=3 uid="uid://b6piy51qeve40"]
+
+[ext_resource type="PackedScene" uid="uid://84xno330idjc" path="res://scenes/items/armor/shield_round_common.tscn" id="1_yd8k6"]
+[ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="2_ql60m"]
+
+[resource]
+script = ExtResource("2_ql60m")
+Level = 0
+RequiredStrength = 9
+ArmorPoints = 2
+AccuracyModifier = 1.0
+SpeedModifier = 1.0
+ValidSlots = 512
+Rarity = 0
+Name = "Round Shield"
+Scene = ExtResource("1_yd8k6")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_ql60m")

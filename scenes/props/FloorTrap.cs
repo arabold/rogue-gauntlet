@@ -3,6 +3,7 @@ using System;
 
 public partial class FloorTrap : Node3D
 {
+	[Export] public float Accuracy { get; set; } = 1.0f;
 	[Export] public int Damage { get; set; } = 5;
 
 	private TriggerComponent _triggerComponent;
@@ -36,7 +37,7 @@ public partial class FloorTrap : Node3D
 		if (node is IDamageable damageable)
 		{
 			GD.Print($"{node.Name} stepped on the trap!");
-			damageable.TakeDamage(Damage, node.Basis.Z);
+			damageable.TakeDamage(Accuracy, Damage, node.Basis.Z);
 
 			Visible = true;
 			_isTriggered = true;

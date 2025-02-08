@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://cl7ybfrf3tkam"]
+
+[ext_resource type="PackedScene" uid="uid://wif8gqnmq757" path="res://scenes/items/weapons/broadsword_common.tscn" id="1_wi8px"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_v6yg1"]
+
+[resource]
+script = ExtResource("2_v6yg1")
+Tier = 4
+Level = 0
+RequiredStrength = 16
+Accuracy = 1.0
+DamageMin = 6.0
+DamageMax = 13.0
+CritChance = 0.0
+IsTwoHanded = true
+AnimationId = "melee_attack"
+Delay = 0.0
+PerformDuration = 0.5
+CooldownDuration = 0.0
+ValidSlots = 256
+Rarity = 0
+Name = "Broadsword"
+Scene = ExtResource("1_wi8px")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_v6yg1")

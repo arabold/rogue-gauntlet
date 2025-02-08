@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://c5wta6m4wxnis" path="res://scenes/ui/ActionContainer.cs" id="1_j233v"]
 [ext_resource type="PackedScene" uid="uid://cmguxod8mb5o6" path="res://scenes/ui/preview.tscn" id="2_j233v"]
-[ext_resource type="PackedScene" uid="uid://bcaymd3eo2cxa" path="res://scenes/items/weapons/axe_common.tscn" id="3_mhqmc"]
+[ext_resource type="PackedScene" uid="uid://bcaymd3eo2cxa" path="res://scenes/items/weapons/axe_old.tscn" id="3_mhqmc"]
 [ext_resource type="PackedScene" uid="uid://cr2cd42w861x0" path="res://scenes/components/key_binding.tscn" id="3_ve64a"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j233v"]

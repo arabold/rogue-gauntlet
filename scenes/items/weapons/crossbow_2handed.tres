@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="RangedWeapon" load_steps=3 format=3 uid="uid://0a6ne7ik2tb7"]
+
+[ext_resource type="PackedScene" uid="uid://bmgxp3twebo5d" path="res://scenes/items/weapons/crossbow_2handed.tscn" id="1_0l2f5"]
+[ext_resource type="Script" uid="uid://ddieqpfh5m7w8" path="res://scenes/items/RangedWeapon.cs" id="2_hepbj"]
+
+[resource]
+script = ExtResource("2_hepbj")
+ProjectileSpeed = 15.0
+Range = 20.0
+AimingAngle = 45.0
+Tier = 4
+Level = 0
+RequiredStrength = 13
+Accuracy = 1.0
+DamageMin = 5.0
+DamageMax = 8.0
+CritChance = 0.0
+IsTwoHanded = true
+AnimationId = "ranged_attack"
+Delay = 0.3
+PerformDuration = 0.5
+CooldownDuration = 0.0
+ValidSlots = 256
+Rarity = 0
+Name = "Large Crossbow"
+Scene = ExtResource("1_0l2f5")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_hepbj")

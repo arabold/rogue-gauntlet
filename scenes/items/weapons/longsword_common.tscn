@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://crebuxx2r8pwb"]
+
+[ext_resource type="PackedScene" uid="uid://de533d5ctod6e" path="res://assets/kaykit-dungeon-legacy/sword_rare.gltf.glb" id="1_yo4g4"]
+[ext_resource type="PackedScene" uid="uid://ddkigg2atj5wo" path="res://assets/kaykit-dungeon-legacy/sword_common.gltf.glb" id="2_rxjlx"]
+[ext_resource type="PackedScene" uid="uid://bvqen7ukb8int" path="res://assets/kaykit-dungeon-legacy/sword_uncommon.gltf.glb" id="3_5205t"]
+
+[node name="LongswordCommon" type="Node3D"]
+
+[node name="sword_rare_gltf" parent="." instance=ExtResource("1_yo4g4")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+
+[node name="sword_common_gltf" parent="." instance=ExtResource("2_rxjlx")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+
+[node name="sword_uncommon_gltf" parent="." instance=ExtResource("3_5205t")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)

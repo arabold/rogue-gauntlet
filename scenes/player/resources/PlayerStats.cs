@@ -16,9 +16,10 @@ public partial class PlayerStats : ObservableResource
 	public float BaseMaxHealth { get; set => SetValue(ref field, value); } = 100;
 
 	// Attack and defense stats (without any modifiers applied)
+	public float BaseAccuracy { get; set => SetValue(ref field, value); } = 1.0f;
 	public float BaseMinDamage { get; set => SetValue(ref field, value); } = 0;
 	public float BaseMaxDamage { get; set => SetValue(ref field, value); } = 2;
-	public float BaseCritChance { get; set => SetValue(ref field, value); } = 0.0f;
+	public float BaseCritChance { get; set => SetValue(ref field, value); } = 0;
 	public float BaseArmor { get; set => SetValue(ref field, value); } = 0;
 	public float BaseEvasion { get; set => SetValue(ref field, value); } = 0;
 
@@ -37,9 +38,10 @@ public partial class PlayerStats : ObservableResource
 	public float MaxHealth => BaseMaxHealth * HealthModifier;
 
 	// Attack Stats
-	public float MinDamage => BaseMinDamage * DamageModifier * AccuracyModifier;
-	public float MaxDamage => BaseMaxDamage * DamageModifier * AccuracyModifier;
-	public float CritChance => BaseCritChance * CritModifier * AccuracyModifier;
+	public float Accuracy => BaseAccuracy * AccuracyModifier;
+	public float MinDamage => BaseMinDamage * DamageModifier;
+	public float MaxDamage => BaseMaxDamage * DamageModifier;
+	public float CritChance => BaseCritChance * CritModifier;
 
 	// Defense Stats
 	public float Armor => BaseArmor * ArmorModifier;

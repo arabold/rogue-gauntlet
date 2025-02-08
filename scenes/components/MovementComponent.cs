@@ -75,20 +75,20 @@ public partial class MovementComponent : Node
 	{
 		UpdateVelocity(delta);
 		SmoothRotateToward(delta);
-		Move(Actor);
+		MoveAndSlideActor();
 	}
 
 	/// <summary>
 	/// Move the character body
 	/// </summary>
-	public void Move(CharacterBody3D node)
+	public void MoveAndSlideActor()
 	{
 		if (LookAtDirection != Vector3.Zero)
 		{
-			node.LookAt(node.GlobalPosition + LookAtDirection, Vector3.Up);
+			Actor.LookAt(Actor.GlobalPosition + LookAtDirection, Vector3.Up);
 		}
-		node.Velocity = Velocity;
-		node.MoveAndSlide();
+		Actor.Velocity = Velocity;
+		Actor.MoveAndSlide();
 	}
 
 	private void UpdateVelocity(double delta)

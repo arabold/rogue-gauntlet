@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://csyxpvgdbtld2"]
+
+[ext_resource type="PackedScene" uid="uid://ddkigg2atj5wo" path="res://assets/kaykit-dungeon-legacy/sword_common.gltf.glb" id="1_gl564"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_7qsia"]
+
+[resource]
+script = ExtResource("2_7qsia")
+Tier = 1
+Level = 0
+RequiredStrength = 10
+Accuracy = 1.0
+DamageMin = 1.0
+DamageMax = 5.0
+CritChance = 0.0
+IsTwoHanded = false
+AnimationId = "melee_attack"
+Delay = 0.0
+PerformDuration = 0.5
+CooldownDuration = 0.0
+ValidSlots = 256
+Rarity = 0
+Name = "Shortsword"
+Scene = ExtResource("1_gl564")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_7qsia")

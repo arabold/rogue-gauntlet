@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://b111md1aceaul"]
+
+[ext_resource type="PackedScene" uid="uid://bho5s2rxlogin" path="res://scenes/items/weapons/staff_skeleton.tscn" id="1_k6v53"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_pfyxc"]
+
+[resource]
+script = ExtResource("2_pfyxc")
+Tier = 2
+Level = 0
+RequiredStrength = 12
+Accuracy = 1.0
+DamageMin = 2.0
+DamageMax = 7.0
+CritChance = 0.0
+IsTwoHanded = false
+AnimationId = "melee_attack"
+Delay = 0.0
+PerformDuration = 0.5
+CooldownDuration = 0.0
+ValidSlots = 256
+Rarity = 0
+Name = "Skeleton Staff"
+Scene = ExtResource("1_k6v53")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_pfyxc")

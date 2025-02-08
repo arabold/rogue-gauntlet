@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://ccltoxuycom37"]
+[gd_scene load_steps=9 format=3 uid="uid://ccltoxuycom37"]
 
 [ext_resource type="Script" uid="uid://bjnjjpaq5mwlp" path="res://scenes/items/LootableItem.cs" id="1_an4ny"]
 [ext_resource type="PackedScene" uid="uid://d2l47r6atc27d" path="res://scenes/components/trigger_component.tscn" id="2_an4ny"]
@@ -14,14 +14,82 @@ shader_parameter/shine_width = 3.0
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_gwbx5"]
 
+[sub_resource type="Animation" id="Animation_mjuy2"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Pivot:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 1, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Pivot:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_b0fih"]
+resource_name = "spin"
+length = 1.5
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Pivot:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.375, 0.75, 1.125, 1.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 1, 0), Vector3(0, 1.1, 0), Vector3(0, 1, 0), Vector3(0, 0.9, 0), Vector3(0, 1, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Pivot:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 6.28319, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_52kk7"]
+_data = {
+&"RESET": SubResource("Animation_mjuy2"),
+&"spin": SubResource("Animation_b0fih")
+}
+
 [node name="LootableItem" type="Node3D"]
 script = ExtResource("1_an4ny")
 ShaderMaterial = SubResource("ShaderMaterial_jws22")
 
 [node name="Pivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 
 [node name="TriggerComponent" parent="." instance=ExtResource("2_an4ny")]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="TriggerComponent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("SphereShape3D_gwbx5")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_52kk7")
+}

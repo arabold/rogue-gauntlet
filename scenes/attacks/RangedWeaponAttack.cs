@@ -4,6 +4,7 @@ using Godot;
 public partial class RangedWeaponAttack : Node3D
 {
 	[Export] public PackedScene ProjectileScene;
+	[Export] public float Accuracy = 1f;
 	[Export] public float MinDamage = 0f;
 	[Export] public float MaxDamage = 0f;
 	[Export] public float CritChance = 0f;
@@ -33,7 +34,9 @@ public partial class RangedWeaponAttack : Node3D
 			targetDirection,
 			ProjectileSpeed,
 			Range,
-			MinDamage, MaxDamage, CritChance);
+			Accuracy,
+			MinDamage, MaxDamage,
+			CritChance);
 		_projectileContainer.AddChild(projectile);
 	}
 

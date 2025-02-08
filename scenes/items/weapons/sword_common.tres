@@ -1,10 +1,14 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://csyxpvgdbtld2"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://btk1o3ydc6yaf"]
 
-[ext_resource type="PackedScene" uid="uid://ddkigg2atj5wo" path="res://assets/kaykit-dungeon-legacy/sword_common.gltf.glb" id="1_gl564"]
-[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_7qsia"]
+[ext_resource type="PackedScene" uid="uid://ddkigg2atj5wo" path="res://assets/kaykit-dungeon-legacy/sword_common.gltf.glb" id="1_x0rs4"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_e51uk"]
 
 [resource]
-script = ExtResource("2_7qsia")
+script = ExtResource("2_e51uk")
+Tier = 1
+Level = 0
+RequiredStrength = 0
+Accuracy = 1.0
 DamageMin = 2
 DamageMax = 8
 CritChance = 0.0
@@ -15,11 +19,11 @@ PerformDuration = 0.5
 CooldownDuration = 0.0
 ValidSlots = 256
 Rarity = 0
-Name = "Sword"
-Scene = ExtResource("1_gl564")
+Name = "Long Sword"
+Scene = ExtResource("1_x0rs4")
 Quality = 1.0
 Value = 0
 ShowInInventory = true
 IsStackable = false
 IsQuestItem = false
-metadata/_custom_type_script = ExtResource("2_7qsia")
+metadata/_custom_type_script = ExtResource("2_e51uk")

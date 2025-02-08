@@ -2,10 +2,24 @@ using Godot;
 
 public partial class WeaponSwingAttack : Node3D
 {
-	[Export] public float SwingOffset = 0f; // Offset for the swing
-	[Export] public float SwingDuration = 0.5f; // Time for the swing
-	[Export] public float SwingArc = 180f; // Swing arc in degrees
-	[Export] public bool SwingRight = true; // Swing direction
+	/// <summary>
+	/// The offset for the swing rotation.
+	/// </summary>
+	[Export] public float SwingOffset = 0f;
+	/// <summary>
+	/// The time it takes for the weapon to swing.
+	/// </summary>
+	[Export] public float SwingDuration = 0.5f;
+	/// <summary>
+	/// The angle of the swing arc in degrees.
+	/// </summary>
+	[Export] public float SwingArc = 180f;
+	/// <summary>
+	/// Whether the weapon swings to the right. If false, it swings to the left.
+	/// </summary>
+	[Export] public bool SwingRight = true;
+
+	[Export] public float Accuracy = 1f;
 	[Export] public float MinDamage = 0f;
 	[Export] public float MaxDamage = 0f;
 	[Export] public float CritChance = 0f;
@@ -40,7 +54,7 @@ public partial class WeaponSwingAttack : Node3D
 				damage *= 2;
 				GD.Print("Critical hit!");
 			}
-			damageable.TakeDamage(damage, direction);
+			damageable.TakeDamage(Accuracy, damage, direction);
 		}
 	}
 

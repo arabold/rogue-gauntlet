@@ -56,7 +56,7 @@ public partial class SpawnPoint : Node3D
 		var scene = Scenes.PickRandom();
 		var node = scene.Instantiate<Node3D>();
 		node.GlobalTransform = GlobalTransform;
-		node.Rotation = Rotation;
+		node.Rotate(Vector3.Up, Mathf.DegToRad(180)); // FIXME: Why?
 
 		GameManager.Instance.Level.AddChild(node);
 

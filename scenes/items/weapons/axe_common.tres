@@ -1,12 +1,16 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://bylnwqmg1nm57"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://bc4es25jpb62o"]
 
-[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="1_4nbvr"]
-[ext_resource type="PackedScene" uid="uid://c1me8lis4pxrw" path="res://assets/kaykit-dungeon-legacy/axe_common.gltf.glb" id="1_w1nru"]
+[ext_resource type="PackedScene" uid="uid://bcaymd3eo2cxa" path="res://scenes/items/weapons/axe_old.tscn" id="1_w1nru"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_nvcxl"]
 
 [resource]
-script = ExtResource("1_4nbvr")
-DamageMin = 0.0
-DamageMax = 0.0
+script = ExtResource("2_nvcxl")
+Tier = 1
+Level = 0
+RequiredStrength = 10
+Accuracy = 1.0
+DamageMin = 1.0
+DamageMax = 5.0
 CritChance = 0.0
 IsTwoHanded = false
 AnimationId = "melee_attack"
@@ -22,4 +26,4 @@ Value = 0
 ShowInInventory = true
 IsStackable = false
 IsQuestItem = false
-metadata/_custom_type_script = ExtResource("1_4nbvr")
+metadata/_custom_type_script = ExtResource("2_nvcxl")

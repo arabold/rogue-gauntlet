@@ -1,5 +1,6 @@
 using Godot;
 using Godot.Collections;
+using System;
 using System.Linq;
 
 /// <summary>
@@ -101,6 +102,7 @@ public partial class Player : CharacterBody3D, IDamageable
 		{
 			if (item?.Item is RangedWeapon rangedWeapon)
 			{
+				_rangedAttack.Accuracy = Stats.Accuracy;
 				_rangedAttack.MinDamage = Stats.MinDamage;
 				_rangedAttack.MaxDamage = Stats.MaxDamage;
 				_rangedAttack.CritChance = Stats.CritChance;
@@ -110,6 +112,7 @@ public partial class Player : CharacterBody3D, IDamageable
 			}
 			else if (item?.Item is Weapon)
 			{
+				_meleeAttack.Accuracy = Stats.Accuracy;
 				_meleeAttack.MinDamage = Stats.MinDamage;
 				_meleeAttack.MaxDamage = Stats.MaxDamage;
 				_meleeAttack.CritChance = Stats.CritChance;
@@ -329,16 +332,11 @@ public partial class Player : CharacterBody3D, IDamageable
 	/// 
 	/// The amount of damage is taking the armor into account.
 	/// </summary>
-	public void TakeDamage(float amount, Vector3 attackDirection)
+	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection)
 	{
-		// Calculate the damage after armor is taken into account
-		amount = Mathf.Max(0, amount - Stats.Armor);
-		if (amount <= 0)
-		{
-			// No damage taken
-			return;
-		}
-		HurtBoxComponent.TakeDamage(amount, attackDirection);
+		// Forward the damage to the HurtBoxComponent which handles
+		// the actual damage calculation
+		HurtBoxComponent.TakeDamage(accuracy, amount, attackDirection);
 	}
 
 	/// <summary>

@@ -5,4 +5,5 @@
 [node name="HealingPotionSmall" instance=ExtResource("1_yjpo8")]
 
 [node name="bottle_A_green" parent="." index="0"]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
 layers = 32

@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://b0npueya07rvp"]
+
+[ext_resource type="PackedScene" uid="uid://dwyvjmrj4xfmo" path="res://scenes/items/weapons/wand.tscn" id="1_jt0e5"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_3la6c"]
+
+[resource]
+script = ExtResource("2_3la6c")
+Tier = 1
+Level = 0
+RequiredStrength = 0
+Accuracy = 1.0
+DamageMin = 1.0
+DamageMax = 5.0
+CritChance = 0.0
+IsTwoHanded = false
+AnimationId = "melee_attack"
+Delay = 0.0
+PerformDuration = 0.5
+CooldownDuration = 0.0
+ValidSlots = 256
+Rarity = 0
+Name = "Wand"
+Scene = ExtResource("1_jt0e5")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_3la6c")

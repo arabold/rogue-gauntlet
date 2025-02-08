@@ -1,12 +1,16 @@
 [gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://cfjd6iimvn0lp"]
 
-[ext_resource type="PackedScene" uid="uid://dkki7tdl3xeo7" path="res://assets/kaykit-dungeon-legacy/dagger_common.gltf.glb" id="1_xjf30"]
+[ext_resource type="PackedScene" uid="uid://crmqcqukxcm5a" path="res://scenes/items/weapons/dagger_common.tscn" id="1_xjf30"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_r05mt"]
 
 [resource]
 script = ExtResource("2_r05mt")
+Tier = 1
+Level = 0
+RequiredStrength = 10
+Accuracy = 1.2
 DamageMin = 1
-DamageMax = 6
+DamageMax = 4.0
 CritChance = 0.0
 IsTwoHanded = false
 AnimationId = "melee_attack"

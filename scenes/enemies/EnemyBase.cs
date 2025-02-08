@@ -39,8 +39,10 @@ public partial class EnemyBase : CharacterBody3D, IDamageable
 		Visible = true;
 	}
 
-	public void TakeDamage(float amount, Vector3 attackDirection)
+	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection)
 	{
-		HurtBoxComponent?.TakeDamage(amount, attackDirection);
+		// Forward the damage to the hurtbox component which
+		// does the actual damage calculations
+		HurtBoxComponent?.TakeDamage(accuracy, amount, attackDirection);
 	}
 }

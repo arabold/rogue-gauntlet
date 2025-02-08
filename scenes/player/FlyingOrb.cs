@@ -55,7 +55,7 @@ public partial class FlyingOrb : Node3D
 		if (body is IDamageable damageable)
 		{
 			Vector3 attackDirection = (body.GlobalPosition - _player.GlobalPosition).Normalized();
-			damageable.TakeDamage(Damage, attackDirection); // Apply damage with attack direction
+			damageable.TakeDamage(1.0f, Damage, attackDirection); // Apply damage with attack direction
 		}
 	}
 

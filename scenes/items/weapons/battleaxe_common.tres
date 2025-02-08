@@ -5,9 +5,13 @@
 
 [resource]
 script = ExtResource("2_rmilr")
+Tier = 4
+Level = 0
+RequiredStrength = 16
+Accuracy = 1.0
 DamageMin = 6.0
-DamageMax = 12.0
-CritChance = 0.05
+DamageMax = 11.0
+CritChance = 0.0
 IsTwoHanded = true
 AnimationId = "melee_attack"
 Delay = 0.0

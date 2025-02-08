@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=31 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" uid="uid://dufyxbs8mado1" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
@@ -25,11 +25,6 @@
 [ext_resource type="PackedScene" uid="uid://dx7jm4qonhj6v" path="res://scenes/levels/dungeon/rooms/room_dining.tscn" id="20_kbcxf"]
 [ext_resource type="PackedScene" uid="uid://bobyfcwebpbp1" path="res://scenes/levels/dungeon/rooms/cave_tiny2.tscn" id="21_xog87"]
 [ext_resource type="PackedScene" uid="uid://eyqbprfpr2le" path="res://scenes/levels/dungeon/rooms/cave_tiny3.tscn" id="22_fq0wv"]
-[ext_resource type="PackedScene" uid="uid://ccltoxuycom37" path="res://scenes/items/lootable_item.tscn" id="26_fq0wv"]
-[ext_resource type="Resource" uid="uid://c3cgdlchx0g5u" path="res://scenes/items/weapons/battleaxe_common.tres" id="27_gwbx5"]
-[ext_resource type="Resource" uid="uid://cy1kwv8aehsen" path="res://scenes/items/weapons/shield_common.tres" id="28_kbcxf"]
-[ext_resource type="Resource" uid="uid://biricifur5j8u" path="res://scenes/items/weapons/crossbow_common.tres" id="29_roaf3"]
-[ext_resource type="Resource" uid="uid://bylnwqmg1nm57" path="res://scenes/items/weapons/axe_common.tres" id="30_eu7jx"]
 
 [sub_resource type="Resource" id="Resource_fq0wv"]
 script = ExtResource("3_xog87")
@@ -62,19 +57,3 @@ CorridorConnector = SubResource("Resource_dysv2")
 RoomFactory = SubResource("Resource_r2i0w")
 MobFactory = SubResource("Resource_dy00s")
 TileFactory = SubResource("Resource_gpgw5")
-
-[node name="LootableItem" parent="." instance=ExtResource("26_fq0wv")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.0358, 0, 0)
-Item = ExtResource("27_gwbx5")
-
-[node name="LootableItem2" parent="." instance=ExtResource("26_fq0wv")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.0358, 0, 0)
-Item = ExtResource("28_kbcxf")
-
-[node name="LootableItem3" parent="." instance=ExtResource("26_fq0wv")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.0358, 0, 0)
-Item = ExtResource("29_roaf3")
-
-[node name="LootableItem4" parent="." instance=ExtResource("26_fq0wv")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.0358, 0, 0)
-Item = ExtResource("30_eu7jx")

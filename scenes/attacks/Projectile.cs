@@ -5,9 +5,10 @@ public partial class Projectile : Node3D
 	[Export] public float Speed = 10f;
 	[Export] public float Range = 30f;
 	[Export] public Vector3 Direction = Vector3.Forward;
-	[Export] float MinDamage;
-	[Export] float MaxDamage;
-	[Export] float CritChance;
+	[Export] public float Accuracy;
+	[Export] public float MinDamage;
+	[Export] public float MaxDamage;
+	[Export] public float CritChance;
 
 	private HitBoxComponent _hitBoxComponent;
 	private Node3D _pivot;
@@ -21,11 +22,12 @@ public partial class Projectile : Node3D
 		_hitBoxComponent.HitDetected += OnHitDetected;
 	}
 
-	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float minDamage, float maxDamage, float critChance)
+	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float accuracy, float minDamage, float maxDamage, float critChance)
 	{
 		Direction = new Vector3(direction.X, 0, direction.Z).Normalized();
 		Speed = speed;
 		Range = range;
+		Accuracy = accuracy;
 		MinDamage = minDamage;
 		MaxDamage = maxDamage;
 		CritChance = critChance;
@@ -58,7 +60,7 @@ public partial class Projectile : Node3D
 				damage *= 2;
 				GD.Print("Critical hit!");
 			}
-			damageable.TakeDamage(damage, Direction);
+			damageable.TakeDamage(Accuracy, damage, Direction);
 			QueueFree();
 		}
 		else
