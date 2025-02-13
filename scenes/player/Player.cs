@@ -27,7 +27,7 @@ public partial class Player : CharacterBody3D, IDamageable
 
 	public InteractionArea InteractionArea { get; protected set; }
 
-	public Array<ActiveBuff> ActiveBuffs { get; protected set; } = new Array<ActiveBuff>();
+	public Array<ActiveBuff> ActiveBuffs { get; protected set; } = new();
 
 	private WeaponSwingAttack _meleeAttack;
 	private WeaponSwingAttack _specialAttack;
@@ -38,7 +38,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	private AnimationNodeStateMachinePlayback _animationStateMachine;
 	private BoneAttachmentManager _attachmentManager;
 
-	private Array<Node> _nearbyInteractives = new Array<Node>();
+	private Array<Node> _nearbyInteractives = new();
 
 	public override void _Ready()
 	{

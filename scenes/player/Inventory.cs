@@ -32,7 +32,7 @@ public partial class Inventory : Resource
 	[Signal] public delegate void ItemDroppedEventHandler(Item item, int quantity);
 	[Signal] public delegate void ItemDestroyedEventHandler(Item item, int quantity);
 
-	public Dictionary<EquipmentSlot, InventoryItemSlot> EquippedItems { get; private set; } = new Dictionary<EquipmentSlot, InventoryItemSlot>{
+	public Dictionary<EquipmentSlot, InventoryItemSlot> EquippedItems { get; private set; } = new(){
 		{ EquipmentSlot.Head, null },
 		{ EquipmentSlot.Chest, null },
 		{ EquipmentSlot.Hands, null },

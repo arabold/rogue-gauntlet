@@ -13,7 +13,7 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
     {
         // We use a simple A* pathfinding algorithm to connect the rooms.
         // Initialize AStarGrid2D
-        AStarGrid2D astar = new AStarGrid2D();
+        AStarGrid2D astar = new();
         astar.DiagonalMode = AStarGrid2D.DiagonalModeEnum.Never;
         astar.Region = new Rect2I(0, 0, map.Width, map.Height);
         astar.CellSize = Vector2.One;
@@ -25,7 +25,7 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
         astar.FillWeightScaleRegion(new Rect2I(0, 0, map.Width, map.Height), 5);
 
         // Find all corridor tiles on the map
-        List<Vector2I> corridorTiles = new List<Vector2I>();
+        List<Vector2I> corridorTiles = new();
         for (int x = 0; x < map.Width; x++)
         {
             for (int z = 0; z < map.Height; z++)

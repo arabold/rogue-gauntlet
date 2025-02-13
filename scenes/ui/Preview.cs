@@ -25,7 +25,7 @@ public partial class Preview : SubViewport
 
 	private Aabb ComputeAABB(Node3D node)
 	{
-		Aabb aabb = new Aabb();
+		Aabb aabb = new();
 		if (node is VisualInstance3D visualInstance)
 		{
 			aabb = visualInstance.GlobalTransform * visualInstance.GetAabb();

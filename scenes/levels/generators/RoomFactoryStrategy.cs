@@ -8,4 +8,5 @@ public abstract partial class RoomFactoryStrategy : Resource
 	public abstract PackedScene CreateExit();
 	public abstract PackedScene CreateStandardRoom();
 	public abstract PackedScene CreateSpecialRoom();
+	public virtual void Reset() { }
 }

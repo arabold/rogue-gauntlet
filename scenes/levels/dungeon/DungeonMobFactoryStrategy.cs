@@ -1,4 +1,3 @@
-using System;
 using Godot;
 using Godot.Collections;
 
@@ -6,12 +5,11 @@ using Godot.Collections;
 [GlobalClass]
 public partial class DungeonMobFactoryStrategy : MobFactoryStrategy
 {
-	public override PackedScene CreateEnemy(int dungeonLevel)
+	[Export] public Array<PackedScene> EnemieScenes { get; set; }
+
+	public override PackedScene CreateEnemy(uint dungeonDepth)
 	{
-		var paths = new Array<string>{
-			"res://scenes/enemies/skeleton/skeleton_minion.tscn",
-			"res://scenes/enemies/skeleton/skeleton_warrior.tscn",
-		};
-		return GD.Load<PackedScene>(paths.PickRandom());
+		var scene = EnemieScenes.PickRandom();
+		return scene;
 	}
 }

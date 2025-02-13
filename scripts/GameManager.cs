@@ -59,9 +59,9 @@ public partial class GameManager : Node
 		var tree = GetTree();
 		if (tree != null)
 		{
-			PlayersInScene = new Array<Player>(tree.GetNodesInGroup("player").Cast<Player>().ToArray());
-			EnemiesInScene = new Array<EnemyBase>(tree.GetNodesInGroup("enemy").Cast<EnemyBase>().ToArray());
-			DamageablesInScene = new Array<Node3D>(tree.GetNodesInGroup("damageable").Cast<Node3D>().ToArray());
+			PlayersInScene = new Array<Player>(tree.GetNodesInGroup("player").Cast<Player>());
+			EnemiesInScene = new Array<EnemyBase>(tree.GetNodesInGroup("enemy").Cast<EnemyBase>());
+			DamageablesInScene = new Array<Node3D>(tree.GetNodesInGroup("damageable").Cast<Node3D>());
 		}
 	}
 }

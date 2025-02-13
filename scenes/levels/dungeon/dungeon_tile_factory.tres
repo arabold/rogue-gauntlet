@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="DungeonTileFactoryStrategy" load_steps=2 format=3 uid="uid://djtuce71qkm72"]
+
+[ext_resource type="Script" uid="uid://j1ny8jowafpm" path="res://scenes/levels/dungeon/DungeonTileFactoryStrategy.cs" id="1_5r2i7"]
+
+[resource]
+script = ExtResource("1_5r2i7")

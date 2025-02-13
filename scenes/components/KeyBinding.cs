@@ -29,8 +29,8 @@ public partial class KeyBinding : TextureRect
 		}
 	}
 
-	[Export] public Dictionary<string, Texture2D> KeyboardDict { get; private set; } = new Dictionary<string, Texture2D>();
-	[Export] public Dictionary<string, Texture2D> XboxDict { get; private set; } = new Dictionary<string, Texture2D>();
+	[Export] public Dictionary<string, Texture2D> KeyboardDict { get; private set; } = new();
+	[Export] public Dictionary<string, Texture2D> XboxDict { get; private set; } = new();
 
 	public override void _Ready()
 	{

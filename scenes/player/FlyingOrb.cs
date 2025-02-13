@@ -39,7 +39,7 @@ public partial class FlyingOrb : Node3D
 		}
 
 		// Calculate the orb's position in circular motion around the player
-		Vector3 orbitPosition = new Vector3(
+		Vector3 orbitPosition = new(
 			Mathf.Cos(_angle) * OrbitRadius,
 			OrbitHeight,
 			Mathf.Sin(_angle) * OrbitRadius

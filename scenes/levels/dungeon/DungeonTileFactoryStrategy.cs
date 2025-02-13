@@ -1,4 +1,3 @@
-using System;
 using Godot;
 using Godot.Collections;
 
@@ -6,8 +5,8 @@ using Godot.Collections;
 [GlobalClass]
 public partial class DungeonTileFactoryStrategy : TileFactoryStrategy
 {
-	private readonly Array<int> _corridorTileIndices = new Array<int> { 0 };
-	private readonly Array<int> _wallTileIndices = new Array<int> { 0 };
+	private readonly Array<int> _corridorTileIndices = new() { 0, 1 };
+	private readonly Array<int> _wallTileIndices = new() { 0, 10, 22 };
 
 	public override int GetCorridorTileIndex()
 	{
@@ -16,6 +15,11 @@ public partial class DungeonTileFactoryStrategy : TileFactoryStrategy
 
 	public override int GetWallTileIndex()
 	{
+		if (GD.Randf() < 0.5f)
+		{
+			// We want the default wall tile to be the most common
+			return _wallTileIndices[0];
+		}
 		return _wallTileIndices.PickRandom();
 	}
 }

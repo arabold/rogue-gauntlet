@@ -13,7 +13,7 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 
 	public override List<RoomPlacement> GenerateRooms(MapData map, RoomFactoryStrategy factory, uint maxRooms)
 	{
-		List<RoomPlacement> rooms = new List<RoomPlacement>();
+		List<RoomPlacement> rooms = new();
 
 		// Place entrance and exit rooms
 		var entranceScene = factory.CreateEntrance();

@@ -265,7 +265,7 @@ public partial class MapGenerator : Node3D
 
 			spawnPoints.Add(point);
 
-			var enemyScene = MobFactory.CreateEnemy(1);
+			var enemyScene = MobFactory.CreateEnemy(DungeonDepth);
 			var spawnPointNode = new SpawnPoint();
 			spawnPointNode.SpawnOnStart = true;
 			spawnPointNode.Scenes = [enemyScene];
@@ -280,10 +280,9 @@ public partial class MapGenerator : Node3D
 
 	public void GenerateMap()
 	{
-		GD.Print("Generating map...");
-
 		Reset();
 
+		GD.Print("Generating map...");
 		if (RoomLayout == null || CorridorConnector == null
 			|| RoomFactory == null || MobFactory == null || TileFactory == null
 			|| FloorGridMap == null || WallGridMap == null || DecorationGridMap == null)
@@ -352,6 +351,13 @@ public partial class MapGenerator : Node3D
 		DecorationGridMap?.Clear();
 
 		PlayerSpawnPoint = null;
+		if (EnemySpawnPoints != null)
+		{
+			foreach (var spawnPoint in EnemySpawnPoints)
+			{
+				spawnPoint.QueueFree();
+			}
+		}
 		EnemySpawnPoints = new Array<SpawnPoint>();
 
 		if (NavigationRegion != null)
@@ -364,6 +370,10 @@ public partial class MapGenerator : Node3D
 			}
 			NavigationRegion.NavigationMesh.Clear();
 		}
+
+		MobFactory.Reset();
+		RoomFactory.Reset();
+		TileFactory.Reset();
 	}
 
 	private Vector3I TileToWorld(Vector3I tile)

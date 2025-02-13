@@ -31,7 +31,7 @@ public partial class InteractiveComponent : Area3D, IInteractive
 	public delegate void InteractedEventHandler(Player actor);
 
 	private FloatingLabel _floatingLabel;
-	private List<Player> _nearbyPlayers = new List<Player>();
+	private List<Player> _nearbyPlayers = new();
 
 	public override void _Ready()
 	{

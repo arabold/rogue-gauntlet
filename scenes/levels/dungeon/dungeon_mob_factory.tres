@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="DungeonMobFactoryStrategy" load_steps=4 format=3 uid="uid://rwocqk74o36p"]
+
+[ext_resource type="Script" uid="uid://cdxtax3rdfgrc" path="res://scenes/levels/dungeon/DungeonMobFactoryStrategy.cs" id="1_1dmj6"]
+[ext_resource type="PackedScene" uid="uid://cp8o80bbyblfj" path="res://scenes/enemies/skeleton/skeleton_minion.tscn" id="1_ghcej"]
+[ext_resource type="PackedScene" uid="uid://coev873edfqw6" path="res://scenes/enemies/skeleton/skeleton_warrior.tscn" id="2_dhkvn"]
+
+[resource]
+script = ExtResource("1_1dmj6")
+EnemieScenes = Array[PackedScene]([ExtResource("1_ghcej"), ExtResource("2_dhkvn")])

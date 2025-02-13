@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="DungeonRoomFactoryStrategy" load_steps=20 format=3 uid="uid://bhdxc5lxp6y21"]
+
+[ext_resource type="PackedScene" uid="uid://pw48ejm22co8" path="res://scenes/levels/dungeon/rooms/level_entrance.tscn" id="1_8hafw"]
+[ext_resource type="PackedScene" uid="uid://b488tqjwpkwrd" path="res://scenes/levels/dungeon/rooms/level_entrance2.tscn" id="2_m4ndx"]
+[ext_resource type="PackedScene" uid="uid://qv5esjvl3em7" path="res://scenes/levels/dungeon/rooms/level_exit.tscn" id="3_mqda1"]
+[ext_resource type="PackedScene" uid="uid://cleuo31guk4w" path="res://scenes/levels/dungeon/rooms/alchimist_chamber.tscn" id="4_w2e55"]
+[ext_resource type="PackedScene" uid="uid://p77tcudxh8un" path="res://scenes/levels/dungeon/rooms/storage_room_small.tscn" id="5_gy5de"]
+[ext_resource type="PackedScene" uid="uid://dbarqye64ji1k" path="res://scenes/levels/dungeon/rooms/cave_small.tscn" id="6_cdven"]
+[ext_resource type="PackedScene" uid="uid://cdavbwmwausvd" path="res://scenes/levels/dungeon/rooms/cave_small_with_pillars.tscn" id="7_sbyse"]
+[ext_resource type="PackedScene" uid="uid://cenip7lmkxdhn" path="res://scenes/levels/dungeon/rooms/sewer_crossing_4way.tscn" id="8_4tiw5"]
+[ext_resource type="PackedScene" uid="uid://pp1aty3aklmf" path="res://scenes/levels/dungeon/rooms/sewer_grate_1x1.tscn" id="9_ak7mm"]
+[ext_resource type="PackedScene" uid="uid://dcta6i5ia5by0" path="res://scenes/levels/dungeon/rooms/sewer_room.tscn" id="10_oktdg"]
+[ext_resource type="PackedScene" uid="uid://ds6xrr21o2hq3" path="res://scenes/levels/dungeon/rooms/hall.tscn" id="11_qs00p"]
+[ext_resource type="PackedScene" uid="uid://blfayqkmrr5yv" path="res://scenes/levels/dungeon/rooms/barracks.tscn" id="12_8bccw"]
+[ext_resource type="PackedScene" uid="uid://byo2bj6pff2a4" path="res://scenes/levels/dungeon/rooms/cave_small_with_rubble.tscn" id="13_4ip4g"]
+[ext_resource type="PackedScene" uid="uid://iokg6mdwffhl" path="res://scenes/levels/dungeon/rooms/cave_tiny.tscn" id="14_whit0"]
+[ext_resource type="PackedScene" uid="uid://d0u1wvpi5dn3m" path="res://scenes/levels/dungeon/rooms/room_corner_with_bed.tscn" id="15_rscbd"]
+[ext_resource type="PackedScene" uid="uid://dx7jm4qonhj6v" path="res://scenes/levels/dungeon/rooms/room_dining.tscn" id="16_wfcxe"]
+[ext_resource type="PackedScene" uid="uid://bobyfcwebpbp1" path="res://scenes/levels/dungeon/rooms/cave_tiny2.tscn" id="17_fdcoa"]
+[ext_resource type="PackedScene" uid="uid://eyqbprfpr2le" path="res://scenes/levels/dungeon/rooms/cave_tiny3.tscn" id="18_n8jgk"]
+[ext_resource type="Script" uid="uid://dkri5g6bwyqmd" path="res://scenes/levels/dungeon/DungeonRoomFactoryStrategy.cs" id="19_uxyt0"]
+
+[resource]
+script = ExtResource("19_uxyt0")
+EntranceScenes = Array[PackedScene]([ExtResource("1_8hafw"), ExtResource("2_m4ndx")])
+ExitScenes = Array[PackedScene]([ExtResource("3_mqda1")])
+StandardRoomScenes = Array[PackedScene]([ExtResource("6_cdven"), ExtResource("7_sbyse"), ExtResource("8_4tiw5"), ExtResource("9_ak7mm"), ExtResource("10_oktdg"), ExtResource("11_qs00p"), ExtResource("12_8bccw"), ExtResource("13_4ip4g"), ExtResource("14_whit0"), ExtResource("15_rscbd"), ExtResource("16_wfcxe"), ExtResource("17_fdcoa"), ExtResource("18_n8jgk")])
+SpecialRoomScenes = Array[PackedScene]([ExtResource("4_w2e55"), ExtResource("5_gy5de")])

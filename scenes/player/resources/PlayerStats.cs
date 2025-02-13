@@ -3,13 +3,12 @@ using Godot;
 [GlobalClass]
 public partial class PlayerStats : ObservableResource
 {
+	// Player's stats
 	public float Health { get; set => SetValue(ref field, value); } = 100;
-
-	// Health is not directly tracked in the player stats, as it is managed by the HealthComponent
 	public int Xp { get; set => SetValue(ref field, value); } = 0;
 	public int XpLevel { get; set => SetValue(ref field, value); } = 1;
 	public int Gold { get; set => SetValue(ref field, value); } = 0;
-	public int DungeonLevel { get; set => SetValue(ref field, value); } = 0;
+	public int DungeonDepth { get; set => SetValue(ref field, value); } = 0;
 
 	// Base stats (without any item or buff modifiers applied)
 	public float BaseSpeed { get; set => SetValue(ref field, value); } = 10;

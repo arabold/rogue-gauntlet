@@ -5,12 +5,12 @@ public partial class ItemSlotPanel : PanelContainer
 {
 	[Signal] public delegate void ItemSelectedEventHandler(ItemSlotPanel itemSlotPanel);
 
-	[Export] public Color CommonColor = new Color(0.8f, 0.8f, 0.0f, 0.1f);
-	[Export] public Color UncommonColor = new Color(0.0f, 0.8f, 0.0f, 0.1f);
-	[Export] public Color RareColor = new Color(0.0f, 0.0f, 0.8f, 0.1f);
-	[Export] public Color LegendaryColor = new Color(0.8f, 0.0f, 0.8f, 0.1f);
-	[Export] public Color UniqueColor = new Color(0.8f, 0.8f, 0.0f, 0.1f);
-	[Export] public Color DefaultColor = new Color(0.8f, 0.8f, 0.8f, 0.1f);
+	[Export] public Color CommonColor = new(0.8f, 0.8f, 0.0f, 0.1f);
+	[Export] public Color UncommonColor = new(0.0f, 0.8f, 0.0f, 0.1f);
+	[Export] public Color RareColor = new(0.0f, 0.0f, 0.8f, 0.1f);
+	[Export] public Color LegendaryColor = new(0.8f, 0.0f, 0.8f, 0.1f);
+	[Export] public Color UniqueColor = new(0.8f, 0.8f, 0.0f, 0.1f);
+	[Export] public Color DefaultColor = new(0.8f, 0.8f, 0.8f, 0.1f);
 
 	public bool IsEquipped
 	{
