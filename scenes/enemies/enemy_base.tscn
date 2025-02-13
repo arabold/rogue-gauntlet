@@ -39,7 +39,7 @@ HealthComponent = NodePath("../HealthComponent")
 LootTableComponent = NodePath("../LootTableComponent")
 
 [node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent", "MovementComponent") instance=ExtResource("8_b88gg")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00378418, 1.01208, -0.00549316)
 collision_layer = 8
 HealthComponent = NodePath("../HealthComponent")
 MovementComponent = NodePath("../MovementComponent")
