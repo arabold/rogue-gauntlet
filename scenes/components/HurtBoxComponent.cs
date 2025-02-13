@@ -11,6 +11,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 	public delegate void DamageTakenEventHandler(float amount, Vector3 attackDirection);
 
 	[Export] public HealthComponent HealthComponent { get; set; }
+	[Export] public MovementComponent MovementComponent { get; set; }
 	[Export] public PackedScene HitEffect { get; set; }
 
 	[Export] public float Armor { get; set; } = 0;
@@ -41,6 +42,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 		{
 			EmitSignalDamageTaken(finalDamage, attackDirection);
 			HealthComponent?.TakeDamage(finalDamage);
+			MovementComponent?.Push(attackDirection, 3.0f);
 			SpawnHitEffect(attackDirection);
 		}
 	}

@@ -21,7 +21,7 @@ metadata/_custom_type_script = ExtResource("4_mssmn")
 script = ExtResource("1_37vyo")
 
 [node name="MapGenerator" parent="." instance=ExtResource("2_dtjl1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.483704, -0.583375, 0.40564)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.454651, -0.546144, 0.377869)
 Seed = 23
 RoomLayout = SubResource("Resource_mbbpy")
 CorridorConnector = SubResource("Resource_ouxo3")

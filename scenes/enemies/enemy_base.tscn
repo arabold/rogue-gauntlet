@@ -38,10 +38,11 @@ Actor = NodePath("..")
 HealthComponent = NodePath("../HealthComponent")
 LootTableComponent = NodePath("../LootTableComponent")
 
-[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("8_b88gg")]
+[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent", "MovementComponent") instance=ExtResource("8_b88gg")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 collision_layer = 8
 HealthComponent = NodePath("../HealthComponent")
+MovementComponent = NodePath("../MovementComponent")
 HitEffect = ExtResource("9_d4q6w")
 
 [node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("10_oansv")]
