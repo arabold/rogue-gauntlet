@@ -57,7 +57,7 @@ public partial class DungeonRoomFactoryStrategy : RoomFactoryStrategy
 		return scene;
 	}
 
-	public void Reset()
+	public override void Reset()
 	{
 		_usedStandardRooms.Clear();
 		_usedSpecialRooms.Clear();

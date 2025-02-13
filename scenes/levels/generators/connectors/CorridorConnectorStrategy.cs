@@ -9,4 +9,5 @@ public abstract partial class CorridorConnectorStrategy : Resource
 	/// Connects the rooms in the base map with corridors
 	/// </summary>
 	public abstract void ConnectRooms(MapData map);
+	public virtual void Reset() { }
 }

@@ -8,21 +8,23 @@
 [ext_resource type="Resource" uid="uid://rwocqk74o36p" path="res://scenes/levels/dungeon/dungeon_mob_factory.tres" id="6_ouxo3"]
 [ext_resource type="Resource" uid="uid://djtuce71qkm72" path="res://scenes/levels/dungeon/dungeon_tile_factory.tres" id="7_icy5c"]
 
-[sub_resource type="Resource" id="Resource_fq0wv"]
+[sub_resource type="Resource" id="Resource_mbbpy"]
 script = ExtResource("3_xog87")
 Retries = 3
 metadata/_custom_type_script = ExtResource("3_xog87")
 
-[sub_resource type="Resource" id="Resource_dysv2"]
+[sub_resource type="Resource" id="Resource_ouxo3"]
 script = ExtResource("4_mssmn")
+metadata/_custom_type_script = ExtResource("4_mssmn")
 
 [node name="Level" type="Node3D"]
 script = ExtResource("1_37vyo")
 
 [node name="MapGenerator" parent="." instance=ExtResource("2_dtjl1")]
-Seed = 0
-RoomLayout = SubResource("Resource_fq0wv")
-CorridorConnector = SubResource("Resource_dysv2")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.483704, -0.583375, 0.40564)
+Seed = 23
+RoomLayout = SubResource("Resource_mbbpy")
+CorridorConnector = SubResource("Resource_ouxo3")
 RoomFactory = ExtResource("5_mbbpy")
 MobFactory = ExtResource("6_ouxo3")
 TileFactory = ExtResource("7_icy5c")

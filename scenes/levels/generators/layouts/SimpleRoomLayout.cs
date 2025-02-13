@@ -8,7 +8,11 @@ using Godot;
 [Tool]
 [GlobalClass]
 public partial class SimpleRoomLayout : RoomLayoutStrategy
-{
+{   /// <summary>
+	/// The maximum number of times to retry placing a room before giving up.
+	/// Increasing this value may help to generate more complex maps at the
+	/// expense of performance.
+	/// </summary>
 	[Export] public int Retries = 3;
 
 	public override List<RoomPlacement> GenerateRooms(MapData map, RoomFactoryStrategy factory, uint maxRooms)

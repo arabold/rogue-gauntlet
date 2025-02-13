@@ -18,13 +18,6 @@ public partial class MapGenerator : Node3D
 	[Export] public MobFactoryStrategy MobFactory { get; set => SetProperty(ref field, value); }
 	[Export] public TileFactoryStrategy TileFactory { get; set => SetProperty(ref field, value); }
 
-	/// <summary>
-	/// The maximum number of times to retry placing a room before giving up.
-	/// Increasing this value may help to generate more complex maps at the
-	/// expense of performance.
-	/// </summary>
-	[Export] public uint MaxRetries { get; set => SetPropertyWithBounds<uint>(ref field, value, 1, 10); }
-
 	public MapData Map;
 	public GridMap FloorGridMap { get; private set; }
 	public GridMap WallGridMap { get; private set; }
@@ -371,9 +364,11 @@ public partial class MapGenerator : Node3D
 			NavigationRegion.NavigationMesh.Clear();
 		}
 
-		MobFactory.Reset();
-		RoomFactory.Reset();
-		TileFactory.Reset();
+		RoomLayout?.Reset();
+		CorridorConnector?.Reset();
+		MobFactory?.Reset();
+		RoomFactory?.Reset();
+		TileFactory?.Reset();
 	}
 
 	private Vector3I TileToWorld(Vector3I tile)
