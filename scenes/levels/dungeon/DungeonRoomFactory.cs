@@ -5,7 +5,7 @@ using System.Linq;
 
 [Tool]
 [GlobalClass]
-public partial class DungeonRoomFactoryStrategy : RoomFactoryStrategy
+public partial class DungeonRoomFactory : RoomFactory
 {
 	[Export] public Array<PackedScene> EntranceScenes { get; set; }
 	[Export] public Array<PackedScene> ExitScenes { get; set; }

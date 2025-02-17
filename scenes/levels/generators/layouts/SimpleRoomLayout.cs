@@ -15,7 +15,7 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 	/// </summary>
 	[Export] public int Retries = 3;
 
-	public override List<RoomPlacement> GenerateRooms(MapData map, RoomFactoryStrategy factory, uint maxRooms)
+	public override List<RoomPlacement> GenerateRooms(MapData map, RoomFactory factory, uint maxRooms)
 	{
 		List<RoomPlacement> rooms = new();
 

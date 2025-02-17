@@ -3,7 +3,7 @@ using Godot.Collections;
 
 [Tool]
 [GlobalClass]
-public partial class DungeonTileFactoryStrategy : TileFactoryStrategy
+public partial class DungeonTileFactory : TileFactory
 {
 	private readonly Array<int> _corridorTileIndices = new() { 0, 1 };
 	private readonly Array<int> _wallTileIndices = new() { 0, 10, 22 };

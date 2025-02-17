@@ -14,9 +14,9 @@ public partial class MapGenerator : Node3D
 
 	[Export] public RoomLayoutStrategy RoomLayout { get; set => SetProperty(ref field, value); }
 	[Export] public CorridorConnectorStrategy CorridorConnector { get; set => SetProperty(ref field, value); }
-	[Export] public RoomFactoryStrategy RoomFactory { get; set => SetProperty(ref field, value); }
-	[Export] public MobFactoryStrategy MobFactory { get; set => SetProperty(ref field, value); }
-	[Export] public TileFactoryStrategy TileFactory { get; set => SetProperty(ref field, value); }
+	[Export] public RoomFactory RoomFactory { get; set => SetProperty(ref field, value); }
+	[Export] public MobFactory MobFactory { get; set => SetProperty(ref field, value); }
+	[Export] public TileFactory TileFactory { get; set => SetProperty(ref field, value); }
 
 	public MapData Map;
 	public GridMap FloorGridMap { get; private set; }

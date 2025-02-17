@@ -2,7 +2,7 @@ using System;
 using Godot;
 
 [GlobalClass]
-public abstract partial class RoomFactoryStrategy : Resource
+public abstract partial class RoomFactory : Resource
 {
 	public abstract PackedScene CreateEntrance();
 	public abstract PackedScene CreateExit();

@@ -3,7 +3,7 @@ using Godot.Collections;
 
 [Tool]
 [GlobalClass]
-public partial class DungeonMobFactoryStrategy : MobFactoryStrategy
+public partial class DungeonMobFactory : MobFactory
 {
 	[Export] public Array<PackedScene> EnemieScenes { get; set; }
 
