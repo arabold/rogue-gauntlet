@@ -3,6 +3,8 @@
 ## Architecture Review
 
 - Always review ARCHITECTURE.md when making changes that affect multiple files
+- Update ARCHITECTURE.md whenever you make changes to the application architecture.
+- Do not make changes to the architecture unless explicitly asked by the user!
 
 ## Design Principles
 
@@ -35,3 +37,8 @@
 - Fail Fast
   - Detect and report errors as early as possible
   - Use assertions and validation to catch issues early
+
+## Godot SDK
+
+- Always use the latest Godot 4.4 SDK.
+- Never invent Godot SDK functions. Always refer to the latest Godot documentation.
