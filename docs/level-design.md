@@ -1,44 +1,112 @@
 # Level Design
 
-## Introduction
+## Overview
 
-This chapter explains the level instantiation process in the game. It covers the main concepts and workflows for generating game levels. This information is for developers and level designers to understand the mechanics and collaborate on creating new content.
+This document explains the level generation system in Rogue Gauntlet, covering core concepts and implementation details for both developers and level designers.
 
-## Level Generation
+## Level Generation Pipeline
 
-## General Workflow
+The level generation follows a multi-step process:
 
-### 1. Placement of Predefined Rooms
+1. **Map Initialization**
 
-The level creation begins by randomly placing predefined rooms onto the map grid. These rooms are selected from a set of designed room templates to ensure coherence and balance within the game's structure. Random placement ensures each gameplay experience is unique by varying room locations and configurations.
+   - Creates a tile-based grid system using `MapData` class
+   - Grid uses `MapTile` enum: Empty, Wall, Room, Connector, Corridor, Chasm
+   - Map borders are automatically set as walls
+   - Configurable width and depth (20-100 tiles)
 
-### 2. Connecting Rooms with A\* Algorithm
+2. **Room Generation & Placement**
 
-After all rooms are placed, the A* algorithm is used to establish connections between them. This algorithm finds efficient paths, creating corridors that logically connect rooms. Using A* ensures that the connections are optimized for smooth transitions and accessibility throughout the level.
+   - Uses `RoomLayoutStrategy` to randomly place predefined room templates
+   - Validates room placement using intersection checks
+   - Ensures minimum spacing between rooms
+   - Configurable maximum number of rooms (1-100)
 
-### Map Structure and Grid Management
+3. **Corridor Generation**
 
-The level generation system uses four grid maps to manage different environment aspects:
+   - `CorridorConnectorStrategy` creates paths between rooms
+   - Uses A\* pathfinding for optimal corridor routing
+   - Automatically places connectors at room entrances
+   - Handles corridor-to-room transitions
 
-1. **Base Map**: Defines the layout, controlling how rooms and corridors connect. It ensures the level's structure and flow.
-2. **Floor Map**: Manages floor tile placement for consistent surfaces.
-3. **Wall Map**: Controls wall placement to delineate spaces and boundaries.
-4. **Decoration Map**: Places decorative elements to add visual consistency.
+4. **Environment Assembly**
+   The system uses four synchronized grid maps:
 
-### Merging Grid Maps
+   - **Base Map**: Core layout (4x4 tile size)
 
-When a room is added, its grid maps (base, floor, wall, decoration) are merged into the main map grid. This integrates the room into the layout, ensuring all aspects are unified.
+     - Defines room and corridor positions
+     - Manages structural connectivity
+     - Handles collision boundaries
 
-The **Base Map** defines connections between rooms and corridors, determining how new rooms fit into the structure and ensuring all areas are accessible.
+   - **Floor Map**: Ground surfaces (1x1 grid)
 
-## Creating a New Room
+     - Supports tiles from 1x1 to 12x12
+     - Maintains consistent floor patterns
+     - Handles elevation changes
 
-### Design the Room Template
+   - **Wall Map**: Vertical structures (1x1 grid)
 
-- **Layout Planning**: Sketch the room's layout, determining the positions of walls, floors, and any unique features.
-- **Grid Mapping**: Translate the layout into the four grid maps:
-  - **Base Map**: Uses a 4x4 tile size to ensure enough space for the placer character to move. Define connection points for corridors.
-  - **Floor Map**: Uses a 1x1 grid with tiles ranging from 1x1 to 12x12 in size. Place floor tiles according to the design.
-  - **Wall Map**: Uses a 1x1 grid with tiles that can span from 1x1 to 4x1 cells. Outline walls based on the layout.
-  - **Decoration Map**: Uses a 1x1 grid and varies in tile size. Add decorative elements to enhance visual appeal.
-- **Props**: Include interactive elements, such as doors, chests, or traps, to enhance gameplay and exploration. Props can be placed and rotated freely, independent of the grid.
+     - Supports tiles from 1x1 to 4x1
+     - Automatically places walls around rooms/corridors
+     - Manages wall variations and corners
+
+   - **Decoration Map**: Visual elements (1x1 grid)
+     - Variable tile sizes for details
+     - Handles props and environmental objects
+     - Adds visual interest to spaces
+
+5. **Navigation & Spawn Points**
+   - Generates navigation mesh for AI pathfinding
+   - Places player spawn point
+   - Dynamically creates enemy spawn points
+     - Ensures minimum distance from player (20 units)
+     - Maintains spacing between spawn points (5 units)
+   - Spawns enemies based on dungeon depth
+
+## Room Template Creation
+
+### Technical Requirements
+
+1. **Grid Compatibility**
+
+   - Base layout uses 4x4 tiles for character movement
+   - Must define valid connection points for corridors
+   - Room bounds must align with grid system
+
+2. **Component Setup**
+
+   - Implement required GridMaps (Floor, Wall, Decoration)
+   - Set up collision shapes for walls
+   - Add navigation mesh obstacles for AI
+
+3. **Props Integration**
+   - Props can be placed freely within room bounds
+   - Must be added as child nodes of room scene
+   - Should include appropriate collision setup
+
+### Design Guidelines
+
+1. **Layout Considerations**
+
+   - Ensure sufficient space for combat (minimum 4x4 tiles)
+   - Plan strategic cover placement
+   - Include clear entry/exit points
+
+2. **Gameplay Elements**
+
+   - Balance open areas and obstacles
+   - Create opportunities for tactical positioning
+   - Consider sight lines and ranged combat
+
+3. **Visual Design**
+   - Use decoration tiles to add visual interest
+   - Maintain theme consistency
+   - Ensure proper lighting setup
+
+## Implementation Notes
+
+- Room templates are loaded dynamically by `RoomFactory`
+- `TileFactory` manages tile variation and selection
+- Use `MobFactory` for enemy placement configuration
+- Navigation mesh is auto-baked after level generation
+- Seed-based generation ensures reproducible layouts
