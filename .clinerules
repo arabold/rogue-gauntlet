@@ -1,0 +1,37 @@
+# Cline Rules for Rogue Gauntlet
+
+## Architecture Review
+
+- Always review ARCHITECTURE.md when making changes that affect multiple files
+
+## Design Principles
+
+- DRY
+  - Extract common functionality into reusable components
+  - Avoid duplicating code across similar systems
+- KISS
+  - Prefer straightforward solutions over complex ones
+  - Write code that is easy to understand and maintain
+  - Avoid premature optimization
+- YAGNI
+  - Only implement features that are currently needed
+  - Avoid speculative abstractions
+  - Remove unused code
+- SOLID
+  - Single Responsibility: Each component should do one thing well
+  - Open/Closed: Open for extension, closed for modification
+  - Liskov Substitution: Derived classes must be substitutable for base classes
+  - Interface Segregation: Keep interfaces small and focused
+  - Dependency Inversion: Depend on abstractions, not implementations
+- Composition Over Inheritance
+  - Prefer composing objects from smaller parts
+  - Use inheritance only when true specialization is needed
+- Separation of Concerns
+  - Keep game logic separate from rendering logic
+  - Isolate different systems (combat, inventory, AI, etc.)
+- Favor Immutability
+  - Make data immutable where possible
+  - Use new instances instead of modifying existing ones
+- Fail Fast
+  - Detect and report errors as early as possible
+  - Use assertions and validation to catch issues early

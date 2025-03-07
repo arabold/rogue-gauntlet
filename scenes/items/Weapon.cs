@@ -42,7 +42,7 @@ public partial class Weapon : EquipableItem, IPlayerAction
 	[Export] public float PerformDuration { get; protected set => SetValue(ref field, value); } = 0.5f;
 	[Export] public float CooldownDuration { get; protected set => SetValue(ref field, value); } = 0f;
 
-	protected Weapon()
+	public Weapon()
 	{
 		AnimationId = "melee_attack";
 	}

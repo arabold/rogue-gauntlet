@@ -8,7 +8,7 @@ public partial class RangedWeapon : Weapon
     [Export] public float Range { get; protected set => SetValue(ref field, value); } = 20.0f;
     [Export] public float AimingAngle { get; protected set; } = 45.0f;
 
-    protected RangedWeapon()
+    public RangedWeapon()
     {
         AnimationId = "ranged_attack";
     }

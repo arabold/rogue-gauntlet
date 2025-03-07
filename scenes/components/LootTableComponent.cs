@@ -49,6 +49,7 @@ public partial class LootTableComponent : Node
 
         var weights = Items.Select(i => i.Weight).ToArray();
         var random = new RandomNumberGenerator();
+        random.Seed = GD.Randi();
         var item = Items[random.RandWeighted(weights)];
         return item;
     }
