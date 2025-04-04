@@ -1,44 +1,22 @@
-# Cline Rules for Rogue Gauntlet
+# Cline Custom Instructions
 
-## Architecture Review
+- ALWAYS refer to the `README.md` for the latest information on the project.
+- ALWAYS refer to `ARCHITECTURE.md` for the latest information on the architecture of the project.
+- ALWAYS Follow programming principles such as DRY, KISS, YAGNI, and SOLID
+- ALWAYS use the latest version of the programming language and libraries.
+- ALWAYS prefer the simplest solution.
+- ALWAYS add and update documetation for all classes, methods and functions. Focus on functionality and reasoning. Avoid documenting individual parameters or return values if their use can easily be derived from their name.
+- ALWAYS format Git commit messages as markdown.
+- ALWAYS adhere to the Conventional Commits specification for all Git commit messages
+- ALWAYS use the latest version of the Godot SDK.
+- You have access to the latest Godot documentation.
 
-- Always review ARCHITECTURE.md when making changes that affect multiple files
-- Update ARCHITECTURE.md whenever you make changes to the application architecture.
-- Do not make changes to the architecture unless explicitly asked by the user!
+## Architecture Documentation Guidelines
 
-## Design Principles
+Keep `ARCHITECTURE.md` high-level:
 
-- DRY
-  - Extract common functionality into reusable components
-  - Avoid duplicating code across similar systems
-- KISS
-  - Prefer straightforward solutions over complex ones
-  - Write code that is easy to understand and maintain
-  - Avoid premature optimization
-- YAGNI
-  - Only implement features that are currently needed
-  - Avoid speculative abstractions
-  - Remove unused code
-- SOLID
-  - Single Responsibility: Each component should do one thing well
-  - Open/Closed: Open for extension, closed for modification
-  - Liskov Substitution: Derived classes must be substitutable for base classes
-  - Interface Segregation: Keep interfaces small and focused
-  - Dependency Inversion: Depend on abstractions, not implementations
-- Composition Over Inheritance
-  - Prefer composing objects from smaller parts
-  - Use inheritance only when true specialization is needed
-- Separation of Concerns
-  - Keep game logic separate from rendering logic
-  - Isolate different systems (combat, inventory, AI, etc.)
-- Favor Immutability
-  - Make data immutable where possible
-  - Use new instances instead of modifying existing ones
-- Fail Fast
-  - Detect and report errors as early as possible
-  - Use assertions and validation to catch issues early
-
-## Godot SDK
-
-- Always use the latest Godot 4.4 SDK.
-- Never invent Godot SDK functions. Always refer to the latest Godot documentation.
+- Focus on system concepts and component relationships
+- Include design principles and code conventions
+- Use simple MermaidJS diagrams for visualization
+- Put implementation details in source code
+- Update when architecture changes
