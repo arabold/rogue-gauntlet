@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ConsumableItem" load_steps=5 format=3 uid="uid://2fvrpt5amg6e"]
+[gd_resource type="Resource" script_class="ConsumableItem" format=3 uid="uid://2fvrpt5amg6e"]
 
 [ext_resource type="Script" uid="uid://irr1yr02p4rg" path="res://scenes/buffs/HealingBuff.cs" id="1_40ob2"]
 [ext_resource type="PackedScene" uid="uid://bwk0co01wfjsp" path="res://scenes/items/potions/healing_potion_small.tscn" id="3_a71fn"]
@@ -9,21 +9,13 @@ script = ExtResource("1_40ob2")
 HealthPointsPerTick = 1
 TicksPerSecond = 10.0
 Name = "Healing"
-Duration = 1.0
 metadata/_custom_type_script = ExtResource("1_40ob2")
 
 [resource]
 script = ExtResource("4_d4ijv")
-AnimationId = "drink_potion"
-Delay = 0.0
-PerformDuration = 0.5
-CooldownDuration = 0.0
 Buff = SubResource("Resource_pgqm5")
 Name = "Healing Potion"
 Scene = ExtResource("3_a71fn")
-Quality = 1.0
 Value = 100
-ShowInInventory = true
 IsStackable = true
-IsQuestItem = false
 metadata/_custom_type_script = ExtResource("4_d4ijv")

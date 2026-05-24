@@ -16,6 +16,8 @@ public partial class GameManager : Node
 	public PlayerStats PlayerStats { get; private set; }
 	public Level Level { get; private set; }
 
+	private SceneTree _sceneTree;
+
 	public override void _Ready()
 	{
 		// Ensure this is the only instance
@@ -31,12 +33,22 @@ public partial class GameManager : Node
 
 		// Connect to signals
 		OnSceneTreeChanged();
-		GetTree().TreeChanged += OnSceneTreeChanged;
+		_sceneTree = GetTree();
+		_sceneTree.TreeChanged += OnSceneTreeChanged;
 
 		SignalBus.Instance.PlayerSpawned += player => Player = player;
 		SignalBus.Instance.LevelLoaded += level => Level = level;
 
 		GD.Print("GameManager initialized.");
+	}
+
+	public override void _ExitTree()
+	{
+		if (_sceneTree != null)
+		{
+			_sceneTree.TreeChanged -= OnSceneTreeChanged;
+			_sceneTree = null;
+		}
 	}
 
 	// Method to update cooldown status
@@ -51,11 +63,16 @@ public partial class GameManager : Node
 		GD.Print("Restarting Game...");
 
 		// Load the main scene
-		GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+		GetTree().ChangeSceneToFile("res://scenes/main/main.tscn");
 	}
 
 	private void OnSceneTreeChanged()
 	{
+		if (!IsInsideTree())
+		{
+			return;
+		}
+
 		var tree = GetTree();
 		if (tree != null)
 		{

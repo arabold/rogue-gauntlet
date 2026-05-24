@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://ds1fgmaafnkkj"]
+[gd_scene format=3 uid="uid://ds1fgmaafnkkj"]
 
 [ext_resource type="Script" uid="uid://cdal8n3nlw3ng" path="res://scenes/main/Main.cs" id="1_dl2xl"]
 [ext_resource type="PackedScene" uid="uid://beddkxj3k6x7i" path="res://scenes/ui/hud.tscn" id="3_stuk7"]
@@ -17,33 +17,33 @@ glow_enabled = true
 
 [sub_resource type="Resource" id="Resource_3h1r8"]
 script = ExtResource("8_qd7vr")
-duration = 1.0
-transition = 0
-ease = 2
 
-[node name="Main" type="Node"]
+[node name="Main" type="Node" unique_id=488156596]
 script = ExtResource("1_dl2xl")
 
-[node name="HUD" parent="." instance=ExtResource("3_stuk7")]
+[node name="HUD" parent="." unique_id=2078119296 instance=ExtResource("3_stuk7")]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=51815958]
 environment = SubResource("Environment_cxo8v")
 
-[node name="Level" parent="." instance=ExtResource("5_nxjfc")]
+[node name="Level" parent="." unique_id=1654143163 instance=ExtResource("5_nxjfc")]
 
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.707107, -0.541675, 0.45452, 0, 0.642788, 0.766044, -0.707107, -0.541675, 0.45452, 6.81757, 11.4903, 6.81757)
+[node name="MapGenerator" parent="Level" index="0"]
+Seed = 30
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1247339692]
+transform = Transform3D(0.70710677, -0.54167503, 0.4545197, 0, 0.6427879, 0.7660442, -0.70710677, -0.54167503, 0.4545197, 6.817575, 11.4903, 6.817575)
 projection = 1
 current = true
 size = 20.0
 
-[node name="PhantomCameraHost" type="Node" parent="Camera3D"]
+[node name="PhantomCameraHost" type="Node" parent="Camera3D" unique_id=581853234]
 process_priority = 300
 process_physics_priority = 300
 script = ExtResource("6_g3uvw")
 
-[node name="PhantomCamera3D" type="Node3D" parent="." node_paths=PackedStringArray("follow_target")]
-transform = Transform3D(0.707087, -0.541665, 0.454505, 0, 0.642776, 0.76602, -0.707087, -0.541665, 0.454505, 6.81757, 11.4903, 6.81757)
+[node name="PhantomCamera3D" type="Node3D" parent="." unique_id=102596580 node_paths=PackedStringArray("follow_target")]
+transform = Transform3D(0.707087, -0.541665, 0.454505, 0, 0.642776, 0.76602, -0.707087, -0.541665, 0.454505, 6.817575, 11.4903, 6.817575)
 top_level = true
 script = ExtResource("7_wl18x")
 follow_mode = 5
@@ -56,9 +56,9 @@ dead_zone_width = 0.3
 dead_zone_height = 0.3
 spring_length = 15.0
 
-[node name="CameraTargetPlaceholder" type="Node3D" parent="."]
+[node name="CameraTargetPlaceholder" type="Node3D" parent="." unique_id=2113066232]
 
-[node name="CharacterDialog" parent="." instance=ExtResource("7_hujxm")]
+[node name="CharacterDialog" parent="." unique_id=237802221 instance=ExtResource("7_hujxm")]
 unique_name_in_owner = true
 visible = false
 

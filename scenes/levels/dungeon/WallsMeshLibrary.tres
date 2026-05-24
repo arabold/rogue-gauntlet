@@ -1,4 +1,4 @@
-[gd_resource type="MeshLibrary" load_steps=218 format=4 uid="uid://b686hpw5x2r8t"]
+[gd_resource type="MeshLibrary" format=4 uid="uid://b686hpw5x2r8t"]
 
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="1_ypmv1"]
 
