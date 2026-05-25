@@ -139,10 +139,7 @@ public partial class Inventory : Resource
 		var isTwoHanded = (item is Weapon weapon) ? weapon.IsTwoHanded : false;
 		if (isTwoHanded)
 		{
-			Unequip(EquipmentSlot.WeaponHand);
-			Unequip(EquipmentSlot.ShieldHand);
-			EquippedItems[EquipmentSlot.WeaponHand] = itemSlot;
-			EmitSignalItemEquipped(item, EquipmentSlot.WeaponHand);
+			Equip(itemSlot, EquipmentSlot.WeaponHand);
 		}
 		else
 		{
@@ -156,19 +153,42 @@ public partial class Inventory : Resource
 					break;
 				}
 			}
-			Unequip(equipSlot);
-
-			// Special handling when unequipping a two-handed weapon
-			if (equipSlot == EquipmentSlot.ShieldHand
-				&& EquippedItems[EquipmentSlot.WeaponHand]?.Item is Weapon equippedWeapon
-				&& equippedWeapon.IsTwoHanded)
-			{
-				Unequip(EquipmentSlot.WeaponHand);
-			}
-
-			EquippedItems[equipSlot] = itemSlot;
-			EmitSignalItemEquipped(item, equipSlot);
+			Equip(itemSlot, equipSlot);
 		}
+	}
+
+	public void Equip(InventoryItemSlot itemSlot, EquipmentSlot equipSlot)
+	{
+		var item = itemSlot.Item as EquipableItem;
+		var validSlots = (int)item.ValidSlots;
+		if ((validSlots & (int)equipSlot) == 0)
+		{
+			GD.PrintErr($"{item.Name} cannot be equipped in {equipSlot}");
+			return;
+		}
+
+		var isTwoHanded = item is Weapon weapon && weapon.IsTwoHanded;
+		if (isTwoHanded && equipSlot != EquipmentSlot.WeaponHand)
+		{
+			GD.PrintErr($"{item.Name} must be equipped in {EquipmentSlot.WeaponHand}");
+			return;
+		}
+
+		Unequip(equipSlot);
+
+		if (isTwoHanded)
+		{
+			Unequip(EquipmentSlot.ShieldHand);
+		}
+		else if (equipSlot == EquipmentSlot.ShieldHand
+			&& EquippedItems[EquipmentSlot.WeaponHand]?.Item is Weapon equippedWeapon
+			&& equippedWeapon.IsTwoHanded)
+		{
+			Unequip(EquipmentSlot.WeaponHand);
+		}
+
+		EquippedItems[equipSlot] = itemSlot;
+		EmitSignalItemEquipped(item, equipSlot);
 	}
 
 	public void Unequip(InventoryItemSlot itemSlot)

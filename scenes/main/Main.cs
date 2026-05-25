@@ -13,6 +13,10 @@ public partial class Main : Node
 	public override void _Ready()
 	{
 		GD.Print("Main scene is ready");
+		var level = GetNode<Level>("Level");
+		GameSession.Instance?.ConfigureLevel(level);
+		level.Generate();
+
 		_pcam = GetNode<Node3D>("PhantomCamera3D");
 		_pcam.Set("follow_mode", FollowModeNone);
 

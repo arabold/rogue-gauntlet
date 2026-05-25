@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://ds1fgmaafnkkj"]
+[gd_scene load_steps=11 format=3 uid="uid://ds1fgmaafnkkj"]
 
 [ext_resource type="Script" uid="uid://cdal8n3nlw3ng" path="res://scenes/main/Main.cs" id="1_dl2xl"]
 [ext_resource type="PackedScene" uid="uid://beddkxj3k6x7i" path="res://scenes/ui/hud.tscn" id="3_stuk7"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://bgq1h0jm4ybvw" path="res://scenes/ui/character_dialog.tscn" id="7_hujxm"]
 [ext_resource type="Script" uid="uid://bmqwajrqdvsis" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="7_wl18x"]
 [ext_resource type="Script" uid="uid://b6kqn4kkq0nvr" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="8_qd7vr"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="9_pause"]
 
 [sub_resource type="Environment" id="Environment_cxo8v"]
 background_mode = 1
@@ -27,6 +28,7 @@ script = ExtResource("1_dl2xl")
 environment = SubResource("Environment_cxo8v")
 
 [node name="Level" parent="." unique_id=1654143163 instance=ExtResource("5_nxjfc")]
+AutoGenerateOnReady = false
 
 [node name="MapGenerator" parent="Level" index="0"]
 Seed = 30
@@ -59,6 +61,10 @@ spring_length = 15.0
 [node name="CameraTargetPlaceholder" type="Node3D" parent="." unique_id=2113066232]
 
 [node name="CharacterDialog" parent="." unique_id=237802221 instance=ExtResource("7_hujxm")]
+unique_name_in_owner = true
+visible = false
+
+[node name="PauseMenu" parent="." instance=ExtResource("9_pause")]
 unique_name_in_owner = true
 visible = false
 

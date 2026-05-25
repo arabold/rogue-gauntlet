@@ -89,6 +89,14 @@ public partial class ActionManager : Node
 		return false;
 	}
 
+	public void ClearActions()
+	{
+		for (int i = 0; i < ActionSlotCount; i++)
+		{
+			AssignAction(i, null, null);
+		}
+	}
+
 	public void TryPerformAction(int slotIndex)
 	{
 		if (slotIndex < 0 || slotIndex >= _actionSlots.Count)

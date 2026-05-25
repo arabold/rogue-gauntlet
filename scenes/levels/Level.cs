@@ -3,6 +3,8 @@ using Godot;
 [Tool]
 public partial class Level : Node
 {
+	[Export] public bool AutoGenerateOnReady { get; set; } = true;
+
 	public MapGenerator MapGenerator { get; private set; }
 
 	public void AddWorldNode(Node node)
@@ -24,6 +26,20 @@ public partial class Level : Node
 			return;
 		}
 
+		if (AutoGenerateOnReady)
+		{
+			Generate();
+		}
+	}
+
+	public void ConfigureGeneration(ulong seed, uint dungeonDepth)
+	{
+		MapGenerator.Seed = seed;
+		MapGenerator.DungeonDepth = dungeonDepth;
+	}
+
+	public void Generate()
+	{
 		GD.Print("Initializing level...");
 		MapGenerator.GenerateMap();
 
