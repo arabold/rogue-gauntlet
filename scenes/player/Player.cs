@@ -27,6 +27,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	public BuffController BuffController { get; protected set; }
 	public PlayerInteractionController InteractionController { get; protected set; }
 	public PlayerStatsController StatsController { get; protected set; }
+	public PlayerInventoryController InventoryController { get; protected set; }
 
 	public InteractionArea InteractionArea { get; protected set; }
 
@@ -61,132 +62,10 @@ public partial class Player : CharacterBody3D, IDamageable
 		BuffController = GetNode<BuffController>("BuffController");
 		InteractionController = GetNode<PlayerInteractionController>("PlayerInteractionController");
 		StatsController = GetNode<PlayerStatsController>("PlayerStatsController");
+		InventoryController = GetNode<PlayerInventoryController>("PlayerInventoryController");
 
 		InteractionArea = GetNode<InteractionArea>("InteractionArea");
-
-		// The inventory lets us know about any changed via signals
-		this.SubscribeUntilExit(
-			Inventory,
-			inventory => inventory.ItemEquipped += OnItemEquipped,
-			inventory => inventory.ItemEquipped -= OnItemEquipped);
-		this.SubscribeUntilExit(
-			Inventory,
-			inventory => inventory.ItemUnequipped += OnItemUnequipped,
-			inventory => inventory.ItemUnequipped -= OnItemUnequipped);
-		this.SubscribeUntilExit(
-			Inventory,
-			inventory => inventory.ItemConsumed += OnItemConsumed,
-			inventory => inventory.ItemConsumed -= OnItemConsumed);
-		this.SubscribeUntilExit(
-			Inventory,
-			inventory => inventory.ItemDropped += OnItemDropped,
-			inventory => inventory.ItemDropped -= OnItemDropped);
-		this.SubscribeUntilExit(
-			Inventory,
-			inventory => inventory.ItemDestroyed += OnItemDestroyed,
-			inventory => inventory.ItemDestroyed -= OnItemDestroyed);
-		AutoEquipItems();
-	}
-
-	private void AutoEquipItems()
-	{
-		foreach (var item in Inventory.Items)
-		{
-			if (item.Item is EquipableItem)
-			{
-				Inventory.Equip(item);
-			}
-		}
-	}
-
-	/// <summary>
-	/// Callback triggered by the inventory when an item gets equipped
-	/// </summary>
-	private void OnItemEquipped(EquipableItem item, EquipmentSlot slot)
-	{
-		// Update stats
-		item.OnEquipped(this);
-		StatsController.SyncStats();
-		SignalBus.EmitItemEquipped(this, item);
-
-		if (item is IPlayerAction action)
-		{
-			for (int i = 0; i < ActionManager.ActionSlotCount; i++)
-			{
-				if (ActionManager.GetAction(i) == null)
-				{
-					ActionManager.AssignAction(i, action, item.Scene);
-					return;
-				}
-			}
-		}
-	}
-
-	/// <summary>
-	/// Callback triggered by the inventory when an item gets unequipped
-	/// </summary>
-	private void OnItemUnequipped(EquipableItem item, EquipmentSlot slot)
-	{
-		// Update stats
-		item.OnUnequipped(this);
-		StatsController.SyncStats();
-		SignalBus.EmitItemUnequipped(this, item);
-
-		if (item is IPlayerAction action)
-		{
-			for (int i = 0; i < ActionManager.ActionSlotCount; i++)
-			{
-				if (ActionManager.GetAction(i) == action)
-				{
-					ActionManager.AssignAction(i, null, null);
-					return;
-				}
-			}
-		}
-	}
-
-	/// <summary>
-	/// Callback triggered by the inventory when an item gets used/consumed
-	/// </summary>
-	private void OnItemConsumed(ConsumableItem item)
-	{
-		// Apply buffs
-		item.PerformAction(this);
-		SignalBus.EmitItemConsumed(this, item);
-	}
-
-	/// <summary>
-	/// Callback triggered by the inventory when an item gets dropped
-	/// </summary>
-	private void OnItemDropped(Item item, int quantity)
-	{
-		GD.Print($"{Name} dropped {quantity}x {item.Name}");
-
-		if (LootableItemScene == null)
-		{
-			GD.PrintErr($"{Name} has no lootable item scene assigned.");
-			return;
-		}
-
-		var lootableItem = LootableItemScene.Instantiate<LootableItem>();
-		lootableItem.Item = item;
-		lootableItem.Quantity = quantity;
-		lootableItem.WaitForPlayerExited = true;
-
-		GameManager.Instance.Level.AddWorldNode(lootableItem, GlobalPosition);
-
-		item.OnDropped(this, quantity);
-		SignalBus.EmitItemDropped(this, item, quantity);
-	}
-
-	/// <summary>
-	/// Callback triggered by the inventory when an item gets destroyed
-	/// </summary>
-	private void OnItemDestroyed(Item item, int quantity)
-	{
-		// Nothing to do for us
-		item.OnDestroyed(this, quantity);
-		SignalBus.EmitItemDestroyed(this, item, quantity);
+		InventoryController.AutoEquipItems();
 	}
 
 	private void HandleInput()

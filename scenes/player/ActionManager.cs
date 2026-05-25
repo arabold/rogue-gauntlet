@@ -15,15 +15,14 @@ public partial class ActionManager : Node
 	public override void _Ready()
 	{
 		_player = GetParent<Player>();
-		_actionSlots = new Array<ActionSlot>
+		_actionSlots = new Array<ActionSlot>();
+		foreach (var child in GetChildren())
 		{
-			GetNode<ActionSlot>("ActionSlot_1"),
-			GetNode<ActionSlot>("ActionSlot_2"),
-			GetNode<ActionSlot>("ActionSlot_3"),
-			GetNode<ActionSlot>("ActionSlot_4"),
-			GetNode<ActionSlot>("ActionSlot_5"),
-			GetNode<ActionSlot>("ActionSlot_6")
-		};
+			if (child is ActionSlot actionSlot)
+			{
+				_actionSlots.Add(actionSlot);
+			}
+		}
 
 		foreach (var actionSlot in _actionSlots)
 		{
@@ -60,6 +59,34 @@ public partial class ActionManager : Node
 
 		// Reset cooldown
 		_cooldownRemainingTime[slotIndex] = 0;
+	}
+
+	public bool AssignFirstAvailableAction(IPlayerAction action, PackedScene previewScene)
+	{
+		for (int i = 0; i < ActionSlotCount; i++)
+		{
+			if (GetAction(i) == null)
+			{
+				AssignAction(i, action, previewScene);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public bool ClearAction(IPlayerAction action)
+	{
+		for (int i = 0; i < ActionSlotCount; i++)
+		{
+			if (GetAction(i) == action)
+			{
+				AssignAction(i, null, null);
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public void TryPerformAction(int slotIndex)
