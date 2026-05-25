@@ -54,6 +54,25 @@ public partial class PlayerInventoryController : Node
 		}
 	}
 
+	public bool PickupItem(Item item, int quantity = 1)
+	{
+		if (item.ShowInInventory && Inventory.IsFull)
+		{
+			GD.Print("Inventory is full");
+			return false;
+		}
+
+		GD.Print($"{Player.Name} picks up {quantity}x {item.Name}");
+		item.OnPickup(Player, quantity);
+
+		if (item.ShowInInventory)
+		{
+			Inventory.AddItem(item, quantity);
+		}
+
+		return true;
+	}
+
 	private void OnItemEquipped(EquipableItem item, EquipmentSlot slot)
 	{
 		item.OnEquipped(Player);

@@ -99,21 +99,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	/// </summary>
 	public bool PickupItem(Item item, int quantity = 1)
 	{
-		if (item.ShowInInventory && Inventory.IsFull)
-		{
-			GD.Print("Inventory is full");
-			return false;
-		}
-
-		GD.Print($"{Name} picks up {quantity}x {item.Name}");
-		item.OnPickup(this, quantity);
-
-		if (item.ShowInInventory)
-		{
-			Inventory.AddItem(item, quantity);
-		}
-
-		return true;
+		return InventoryController.PickupItem(item, quantity);
 	}
 
 	/// <summary>
