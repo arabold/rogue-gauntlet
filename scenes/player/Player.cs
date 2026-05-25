@@ -1,6 +1,4 @@
 using Godot;
-using Godot.Collections;
-using System;
 
 /// <summary>
 /// The main player character.
@@ -28,6 +26,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	public PlayerInteractionController InteractionController { get; protected set; }
 	public PlayerStatsController StatsController { get; protected set; }
 	public PlayerInventoryController InventoryController { get; protected set; }
+	public PlayerInputController InputController { get; protected set; }
 
 	public InteractionArea InteractionArea { get; protected set; }
 
@@ -78,41 +77,10 @@ public partial class Player : CharacterBody3D, IDamageable
 		InteractionController = GetNode<PlayerInteractionController>("PlayerInteractionController");
 		StatsController = GetNode<PlayerStatsController>("PlayerStatsController");
 		InventoryController = GetNode<PlayerInventoryController>("PlayerInventoryController");
+		InputController = GetNode<PlayerInputController>("PlayerInputController");
 
 		InteractionArea = GetNode<InteractionArea>("InteractionArea");
 		InventoryController.AutoEquipItems();
-	}
-
-	private void HandleInput()
-	{
-		if (IsPerformingAction)
-		{
-			// If we're performing an action, don't allow any other actions
-			MovementComponent.SetInputDirection(Vector3.Zero);
-			MovementComponent.SetLookAtDirection(-InputComponent.InputDirection);
-			return;
-		}
-
-		for (int i = 0; i < ActionManager.ActionSlotCount; i++)
-		{
-			if (InputComponent.IsActionSlotPressed(i))
-			{
-				ActionManager.TryPerformAction(i);
-			}
-		}
-
-		if (InputComponent.IsInteractPressed())
-		{
-			InteractionController.TryInteract();
-		}
-
-		var inputDirection = InputComponent.InputDirection;
-		MovementComponent.SetInputDirection(inputDirection);
-	}
-
-	public override void _PhysicsProcess(double delta)
-	{
-		HandleInput();
 	}
 
 	/// <summary>
