@@ -1,4 +1,4 @@
-[gd_scene load_steps=65 format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=66 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
@@ -25,6 +25,7 @@
 [ext_resource type="Script" path="res://scenes/player/PlayerStatsController.cs" id="14_ilumj"]
 [ext_resource type="Script" path="res://scenes/player/PlayerInventoryController.cs" id="15_gknh4"]
 [ext_resource type="Script" path="res://scenes/player/PlayerInputController.cs" id="16_1atg5"]
+[ext_resource type="Script" path="res://scenes/player/PlayerAttackController.cs" id="17_sh3lf"]
 
 [sub_resource type="Resource" id="Resource_3j4b4"]
 script = ExtResource("3_uf5tr")
@@ -455,6 +456,12 @@ InputComponent = NodePath("../InputComponent")
 MovementComponent = NodePath("../MovementComponent")
 ActionManager = NodePath("../ActionManager")
 InteractionController = NodePath("../PlayerInteractionController")
+
+[node name="PlayerAttackController" type="Node" parent="." node_paths=PackedStringArray("MeleeAttack", "SpecialAttack", "RangedAttack")]
+script = ExtResource("17_sh3lf")
+MeleeAttack = NodePath("../QuickSwingAttack")
+SpecialAttack = NodePath("../HeavySwingAttack")
+RangedAttack = NodePath("../RangedWeaponAttack")
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor", "StairsTrigger") instance=ExtResource("7_7mjdt")]
 Actor = NodePath("..")

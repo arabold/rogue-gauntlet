@@ -27,12 +27,9 @@ public partial class Player : CharacterBody3D, IDamageable
 	public PlayerStatsController StatsController { get; protected set; }
 	public PlayerInventoryController InventoryController { get; protected set; }
 	public PlayerInputController InputController { get; protected set; }
+	public PlayerAttackController AttackController { get; protected set; }
 
 	public InteractionArea InteractionArea { get; protected set; }
-
-	private WeaponSwingAttack _meleeAttack;
-	private WeaponSwingAttack _specialAttack;
-	private RangedWeaponAttack _rangedAttack;
 
 	private Node3D _pivot;
 	private AnimationTree _animationTree;
@@ -64,10 +61,6 @@ public partial class Player : CharacterBody3D, IDamageable
 		_animationStateMachine = (AnimationNodeStateMachinePlayback)_animationTree.Get("parameters/playback");
 		_animationStateMachine.Start("Idle");
 
-		_meleeAttack = GetNode<WeaponSwingAttack>("QuickSwingAttack");
-		_specialAttack = GetNode<WeaponSwingAttack>("HeavySwingAttack");
-		_rangedAttack = GetNode<RangedWeaponAttack>("RangedWeaponAttack");
-
 		ActionManager = GetNode<ActionManager>("ActionManager");
 		MovementComponent = GetNode<MovementComponent>("MovementComponent");
 		InputComponent = GetNode<InputComponent>("InputComponent");
@@ -78,6 +71,7 @@ public partial class Player : CharacterBody3D, IDamageable
 		StatsController = GetNode<PlayerStatsController>("PlayerStatsController");
 		InventoryController = GetNode<PlayerInventoryController>("PlayerInventoryController");
 		InputController = GetNode<PlayerInputController>("PlayerInputController");
+		AttackController = GetNode<PlayerAttackController>("PlayerAttackController");
 
 		InteractionArea = GetNode<InteractionArea>("InteractionArea");
 		InventoryController.AutoEquipItems();
@@ -155,16 +149,16 @@ public partial class Player : CharacterBody3D, IDamageable
 
 	public void MeleeAttack()
 	{
-		_meleeAttack.Attack();
+		AttackController.PerformMeleeAttack();
 	}
 
 	public void RangedAttack()
 	{
-		_rangedAttack.Attack();
+		AttackController.PerformRangedAttack();
 	}
 
 	public void SpecialAttack()
 	{
-		_specialAttack.Attack();
+		AttackController.PerformSpecialAttack();
 	}
 }
