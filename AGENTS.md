@@ -11,9 +11,10 @@
 - On this machine, the Godot CLI solution build with Godot 4.6.3 currently prints engine shutdown errors and times out; prefer `dotnet build "Rogue Gauntlet.sln"` for agent verification unless debugging Godot/editor behavior.
 
 ## Architecture
-- Autoload singletons are declared in `project.godot`: `SignalBus` (`scripts/SignalBus.cs`), `GameManager` (`scripts/GameManager.cs`), and Phantom Camera manager.
+- Autoload singletons are declared in `project.godot`: `SignalBus` (`scripts/SignalBus.cs`) and Phantom Camera manager.
 - `Main.cs` wires camera and inventory UI; `Level.cs` runs `MapGenerator.GenerateMap()` on ready; `MapGenerator.cs` owns room layout, corridor connection, gridmap merge, navigation bake, and spawn-point creation.
-- `GameManager` tracks live nodes by Godot groups (`player`, `enemy`, `damageable`); update scene groups when adding actors that should be discoverable.
+- There is no `GameManager` gameplay registry; use local dependencies, signals, or local group queries instead of adding one back by default.
+- If main menu/new-game/session flow needs a global coordinator later, add a focused flow/session autoload for that feature; keep it separate from gameplay registries and component dependencies.
 - Decoupled game/UI updates go through `SignalBus` static emit helpers. Add new bus events there instead of introducing direct cross-system references when reacting to gameplay state.
 - Player behavior is component-scene based: `Player.cs` expects named child nodes such as `MovementComponent`, `InputComponent`, `HealthComponent`, `HurtBoxComponent`, `ActionManager`, and attack nodes.
 - Data authored in Godot resources matters: items, player stats, dungeon factories, mesh libraries, and rooms are `.tres`/`.tscn` assets under `scenes/`; C# changes often need matching exported properties/resources in scenes.
@@ -23,9 +24,10 @@
 - Keep scenes self-contained. If a child needs outside context, inject it from the parent via exported Node/Resource references, signals, or explicit initialization.
 - Use `Resource`/`.tres` for designer-authored data, strategies, factories, item definitions, stats, buffs, loot tables, and other non-visual configuration.
 - Use scenes for game-specific runtime objects with node hierarchies, visuals, physics, UI, animation, or editor-authored composition.
-- Avoid adding autoload responsibilities by default. `SignalBus` is for broad notifications; `GameManager` is for high-level state/lookup, not feature logic.
+- Avoid adding autoload responsibilities by default. `SignalBus` is for broad notifications, not feature logic.
 - Prefer local signals/resource observation for parent-child or same-feature communication; use `SignalBus` only when sender and receiver are intentionally decoupled.
-- Avoid service-locator creep: do not reach into `GameManager.Instance` from reusable components when an exported dependency or parent initialization is practical.
+- Avoid service-locator creep: do not reach into autoloads from reusable components when an exported dependency or parent initialization is practical.
+- Prefer local Godot group queries for simple scene lookups (`player`, `enemy`, `damageable`) over cached global registries. Add a focused query/registry service only when profiling, complex shared filtering, or lifecycle requirements justify it.
 - Avoid hardcoded scene/resource paths in gameplay logic; prefer exported `PackedScene`/`Resource` fields or factory resources.
 - Split a class/component when it owns multiple independent reasons to change, e.g. input plus inventory plus combat plus UI signaling.
 - Do not split just to add patterns. Keep small behavior in one script until variation/reuse/testing pressure is real.
@@ -33,7 +35,7 @@
 - Actor root scripts should act as thin facades/mediators for their authored scene, not as the permanent home for every feature.
 - Shared authored resources should be treated as definitions. Duplicate/reset them before runtime mutation when state must be instance-specific.
 - Prefer C# interfaces for type-safe gameplay contracts (`IDamageable`, `IInteractive`, `IPlayerAction`) where Godot groups alone would imply hidden behavior.
-- Keep group usage documented and consistent; group membership is part of discoverability for `GameManager` and gameplay queries.
+- Keep group usage documented and consistent; group membership is part of gameplay query behavior.
 
 ## Godot/C# Gotchas
 - Several editor-time classes use `[Tool]` and exported properties that regenerate data in setters; avoid side effects that break editor instantiation.

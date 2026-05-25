@@ -1,4 +1,5 @@
 using Godot;
+using System.Linq;
 
 public partial class Main : Node
 {
@@ -20,9 +21,10 @@ public partial class Main : Node
 			SignalBus.Instance,
 			signalBus => signalBus.PlayerSpawned += OnPlayerSpawned,
 			signalBus => signalBus.PlayerSpawned -= OnPlayerSpawned);
-		if (GameManager.Instance.Player != null)
+		var player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
+		if (player != null)
 		{
-			OnPlayerSpawned(GameManager.Instance.Player);
+			OnPlayerSpawned(player);
 		}
 	}
 
@@ -87,8 +89,11 @@ public partial class Main : Node
 			}
 			else
 			{
-				var player = GameManager.Instance.Player;
-				characterDialog.Open(player);
+				var player = _player ?? GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
+				if (player != null)
+				{
+					characterDialog.Open(player);
+				}
 			}
 		}
 		base._UnhandledInput(@event);

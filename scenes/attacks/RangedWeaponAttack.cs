@@ -46,7 +46,7 @@ public partial class RangedWeaponAttack : AbstractAttack
 	/// </summary>
 	private Vector3 Aim()
 	{
-		var enemies = GameManager.Instance.EnemiesInScene.OrderBy(n =>
+		var enemies = GetTree().GetNodesInGroup("enemy").OfType<EnemyBase>().OrderBy(n =>
 				GlobalPosition.DistanceTo(n.GlobalPosition));
 		foreach (var enemy in enemies)
 		{
@@ -61,7 +61,7 @@ public partial class RangedWeaponAttack : AbstractAttack
 			}
 		}
 
-		var damageables = GameManager.Instance.DamageablesInScene.OrderBy(n =>
+		var damageables = GetTree().GetNodesInGroup("damageable").OfType<Node3D>().OrderBy(n =>
 				GlobalPosition.DistanceTo(n.GlobalPosition));
 		foreach (var node in damageables)
 		{

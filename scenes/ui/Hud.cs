@@ -1,4 +1,5 @@
 using Godot;
+using System.Linq;
 
 public partial class Hud : Control
 {
@@ -13,7 +14,7 @@ public partial class Hud : Control
 		_xpLabel = GetNode<Label>("%XpLabel");
 		_goldLabel = GetNode<Label>("%GoldLabel");
 
-		// Connect signals from GameManager to update HUD elements
+		// Connect player signals to update HUD elements.
 		this.SubscribeUntilExit(
 			SignalBus.Instance,
 			signalBus => signalBus.PlayerStatsChanged += OnPlayerStatsChanged,
@@ -23,9 +24,10 @@ public partial class Hud : Control
 			signalBus => signalBus.PlayerSpawned += OnPlayerSpawned,
 			signalBus => signalBus.PlayerSpawned -= OnPlayerSpawned);
 
-		if (GameManager.Instance.Player != null)
+		var player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
+		if (player != null)
 		{
-			OnPlayerSpawned(GameManager.Instance.Player);
+			OnPlayerSpawned(player);
 		}
 	}
 

@@ -29,9 +29,9 @@ public partial class DeathComponent : Node
 		owner.CollisionMask = 1; // only collide with the floor
 		owner.SetPhysicsProcess(false);
 
-		// Drop loot and add XP
+		// Drop loot and announce rewards without depending on a specific player lookup.
 		LootTableComponent?.DropLoot();
-		GameManager.Instance.Player?.Stats.AddXp(Xp);
+		SignalBus.EmitXpRewarded(Xp);
 
 		// Wait for death animation to finish
 		GetTree().CreateTimer(Delay).Connect("timeout", Callable.From(() =>

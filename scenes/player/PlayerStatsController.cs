@@ -31,6 +31,10 @@ public partial class PlayerStatsController : Node
 			Stats,
 			stats => stats.Changed += SyncStats,
 			stats => stats.Changed -= SyncStats);
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			signalBus => signalBus.XpRewarded += OnXpRewarded,
+			signalBus => signalBus.XpRewarded -= OnXpRewarded);
 
 		SyncStats();
 	}
@@ -76,5 +80,10 @@ public partial class PlayerStatsController : Node
 	{
 		Stats.Health = health;
 		Stats.BaseMaxHealth = maxHealth;
+	}
+
+	private void OnXpRewarded(int xp)
+	{
+		Stats.AddXp(xp);
 	}
 }

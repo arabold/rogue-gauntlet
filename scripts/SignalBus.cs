@@ -14,11 +14,13 @@ public partial class SignalBus : Node
     [Signal] public delegate void CooldownUpdatedEventHandler(int actionIndex, float remainingTime, float totalTime);
     [Signal] public delegate void PlayerSpawnedEventHandler(Player player);
     [Signal] public delegate void PlayerDeathEventHandler(Player player);
+    [Signal] public delegate void XpRewardedEventHandler(int xp);
     public static void EmitPlayerStatsChanged(PlayerStats stats) => Instance?.EmitSignalPlayerStatsChanged(stats);
     public static void EmitPlayerActionSlotChanged(int slotIndex, ActionSlot action) => Instance?.EmitSignalPlayerActionSlotChanged(slotIndex, action);
     public static void EmitCooldownUpdated(int actionIndex, float remainingTime, float totalTime) => Instance?.EmitSignalCooldownUpdated(actionIndex, remainingTime, totalTime);
     public static void EmitPlayerSpawned(Player player) => Instance?.EmitSignalPlayerSpawned(player);
     public static void EmitPlayerDeath(Player player) => Instance?.EmitSignalPlayerDeath(player);
+    public static void EmitXpRewarded(int xp) => Instance?.EmitSignalXpRewarded(xp);
 
     [Signal] public delegate void ItemConsumedEventHandler(Player player, ConsumableItem item);
     [Signal] public delegate void ItemEquippedEventHandler(Player player, EquipableItem item);

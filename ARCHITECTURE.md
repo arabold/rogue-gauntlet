@@ -18,7 +18,6 @@ The following diagram illustrates the major logical systems within Rogue Gauntle
 ```mermaid
 graph TD
     subgraph Core Systems
-        GameManager[Game Manager]
         SignalBus[(Signal Bus)]
         LevelManager[Level Manager]
         DataManager[Data Manager] --- Resource[Godot Resources / ObservableResource]
@@ -38,8 +37,6 @@ graph TD
     end
 
     %% Core Interactions
-    GameManager --> SignalBus
-    GameManager --> LevelManager
     LevelManager --> SignalBus
     DataManager -- Loads/Saves --> Resource
 
@@ -64,7 +61,6 @@ graph TD
     LevelManager --> PlayerController[Spawns Player]
 
     %% Style adjustments for clarity
-    style GameManager fill:#f9f,stroke:#333,stroke-width:2px
     style SignalBus fill:#ccf,stroke:#333,stroke-width:2px
     style LevelManager fill:#9cf,stroke:#333,stroke-width:2px
     style DataManager fill:#f96,stroke:#333,stroke-width:2px
@@ -76,8 +72,8 @@ graph TD
 
 ## Key System Descriptions
 
-- **Game Manager (`GameManager.cs`):** A singleton responsible for managing the overall game state (e.g., main menu, playing, game over), loading/transitioning between core game scenes, and potentially coordinating high-level game events.
 - **Signal Bus (`SignalBus.cs`):** A central, singleton event bus. Systems emit signals (events) to the bus, and other systems subscribe to signals they care about, enabling decoupled communication.
+- **Game Flow:** Main menu, new-game, save-slot, or scene-transition orchestration should be introduced as a focused flow/session coordinator when those features exist, not as a generic gameplay registry.
 - **Level Manager:** Handles the procedural generation or loading of game levels. Responsible for laying out rooms/corridors, placing environmental props, and spawning the player and enemies at appropriate locations. Often emits signals when level generation is complete.
 - **Data Manager:** Manages the loading, saving, and access to game data, such as player progress, settings, or definitions stored in Godot Resources. May interact with the `SignalBus` to trigger saves or load data based on game events.
 - **Player Controller:** Represents the player character. Manages player input, movement, interactions, and core stats. Typically composed of multiple components (e.g., `MovementComponent`, `HealthComponent`, `InventoryComponent`). Emits signals related to player actions or state changes.
@@ -92,7 +88,7 @@ graph TD
 
 - `/scenes`: Contains Godot scene files (`.tscn`) representing game entities, levels, UI elements, and reusable component assemblies. Scenes often have a root node with attached C# scripts.
   - Subdirectories (`/player`, `/enemies`, `/items`, etc.) organize scenes by feature area.
-- `/scripts`: Holds core C# script files (`.cs`), particularly singletons (`GameManager`, `SignalBus`), base classes, interfaces, and logic not directly tied to a specific scene node initially.
+- `/scripts`: Holds core C# script files (`.cs`), particularly singleton/event infrastructure such as `SignalBus`, base classes, interfaces, and logic not directly tied to a specific scene node initially.
 - `/common`: Contains reusable C# code, utility classes, interfaces, and base classes that are generally applicable across different parts of the project (e.g., `ObservableResource`).
 - `/assets`: Stores all raw art, audio, 3D models, fonts, and other media files used by the game. Godot's import files (`.import`) will reside alongside them.
 - `/addons`: Includes third-party plugins or extensions integrated into the project via Godot's addon system (e.g., Phantom Camera, Lines and Trails 3D).

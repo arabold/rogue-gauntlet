@@ -1,4 +1,5 @@
 using Godot;
+using System.Linq;
 
 /// <summary>
 /// High-level behavior states available to enemy AI controllers.
@@ -229,7 +230,7 @@ public partial class EnemyBehaviorComponent : Node
 	{
 		if (Target == null)
 		{
-			var players = GameManager.Instance.PlayersInScene;
+			var players = GetTree().GetNodesInGroup("player").OfType<Player>();
 			foreach (var player in players)
 			{
 				if (player.IsDead) continue;
