@@ -12,6 +12,7 @@ public partial class SpawnPoint : Node3D
 	/// The type of object to spawn (e.g. an enemy scene)
 	/// </summary>
 	[Export] public Array<PackedScene> Scenes;
+	[Export] public Level Level { get; set; }
 	/// <summary>
 	/// Whether to spawn immediately on scene load
 	/// </summary>
@@ -19,6 +20,8 @@ public partial class SpawnPoint : Node3D
 
 	public override void _Ready()
 	{
+		Level ??= this.GetAncestorOrNull<Level>();
+
 		if (Engine.IsEditorHint())
 		{
 			// Preview the spawn point in the editor
@@ -58,7 +61,7 @@ public partial class SpawnPoint : Node3D
 		node.GlobalTransform = GlobalTransform;
 		node.Rotate(Vector3.Up, Mathf.DegToRad(180)); // FIXME: Why?
 
-		GameManager.Instance.Level.AddWorldNode(node);
+		Level.AddWorldNode(node);
 
 		GD.Print($"Spawned {node.Name} at {node.GlobalPosition}");
 

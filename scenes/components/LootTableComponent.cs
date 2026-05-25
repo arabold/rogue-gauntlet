@@ -7,6 +7,7 @@ public partial class LootTableComponent : Node
 	/// The chance of dropping loot from this table.
 	/// </summary>
 	[Export] public float DropChance { get; private set; } = 1.0f;
+	[Export] public Level Level { get; set; }
 	[Export] public PackedScene LootableItemScene { get; private set; }
 	[Export] public LootTableItem[] Items { get; private set; } = [];
 
@@ -35,7 +36,8 @@ public partial class LootTableComponent : Node
 			lootableItem.Item = selectedItem.Item;
 			lootableItem.Quantity = selectedItem.Quantity;
 
-			GameManager.Instance.Level.AddWorldNode(lootableItem, GetOwner<Node3D>().GlobalPosition);
+			Level ??= this.GetAncestorOrNull<Level>();
+			Level.AddWorldNode(lootableItem, GetOwner<Node3D>().GlobalPosition);
         }
         else
         {

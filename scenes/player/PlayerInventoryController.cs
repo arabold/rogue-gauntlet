@@ -9,6 +9,7 @@ public partial class PlayerInventoryController : Node
 	[Export] public Inventory Inventory { get; set; }
 	[Export] public ActionManager ActionManager { get; set; }
 	[Export] public PlayerStatsController StatsController { get; set; }
+	[Export] public Level Level { get; set; }
 	[Export] public PackedScene LootableItemScene { get; set; }
 
 	public override void _Ready()
@@ -17,6 +18,7 @@ public partial class PlayerInventoryController : Node
 		Inventory ??= Player.Inventory;
 		ActionManager ??= Player.ActionManager;
 		StatsController ??= Player.StatsController;
+		Level ??= this.GetAncestorOrNull<Level>();
 		LootableItemScene ??= Player.LootableItemScene;
 
 		this.SubscribeUntilExit(
@@ -97,7 +99,7 @@ public partial class PlayerInventoryController : Node
 		lootableItem.Quantity = quantity;
 		lootableItem.WaitForPlayerExited = true;
 
-		GameManager.Instance.Level.AddWorldNode(lootableItem, Player.GlobalPosition);
+		Level.AddWorldNode(lootableItem, Player.GlobalPosition);
 
 		item.OnDropped(Player, quantity);
 		SignalBus.EmitItemDropped(Player, item, quantity);

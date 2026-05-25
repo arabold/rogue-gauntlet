@@ -24,14 +24,14 @@ public partial class Chest : Node3D
 	public override void _Ready()
 	{
 		_chest = GetNode<MeshInstance3D>("chest");
-		_chestLid = GetNode<MeshInstance3D>("chest_lid");
+		_chestLid = GetNode<MeshInstance3D>("chest/chest_lid");
 
 		if (!Engine.IsEditorHint())
 		{
 			_interactiveComponent = GetNode<InteractiveComponent>("InteractiveComponent");
 			_interactiveComponent.Interacted += OnInteract;
 
-			_lootTableComponent = GetNode<LootTableComponent>("LootTableComponent");
+			_lootTableComponent = GetNodeOrNull<LootTableComponent>("LootTableComponent");
 		}
 
 		Update();
@@ -52,13 +52,12 @@ public partial class Chest : Node3D
 		IsOpen = true;
 
 		var tween = CreateTween();
-		tween
-			.TweenProperty(_chestLid, "rotation_degrees:x", -45, 0.5f)
-			.Finished += OnOpened;
+		tween.TweenProperty(_chestLid, "rotation_degrees:x", -45, 0.5f);
+		tween.Finished += OnOpened;
 
 		// Disable any interactivity (e.g. prevent the player from 
 		// opening the chest again)
-		_interactiveComponent.QueueFree();
+		_interactiveComponent.IsInteractive = false;
 	}
 
 	private void OnInteract(Player actor)
