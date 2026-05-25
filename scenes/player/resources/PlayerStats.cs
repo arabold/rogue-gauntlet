@@ -46,6 +46,34 @@ public partial class PlayerStats : ObservableResource
 	public float Armor => BaseArmor * ArmorModifier;
 	public float Evasion => BaseEvasion;
 
+	public PlayerStats CreateRuntimeCopy()
+	{
+		return new PlayerStats
+		{
+			Health = Health,
+			Xp = Xp,
+			XpLevel = XpLevel,
+			Gold = Gold,
+			DungeonDepth = DungeonDepth,
+			BaseSpeed = BaseSpeed,
+			BaseMaxHealth = BaseMaxHealth,
+			BaseAccuracy = BaseAccuracy,
+			BaseMinDamage = BaseMinDamage,
+			BaseMaxDamage = BaseMaxDamage,
+			BaseCritChance = BaseCritChance,
+			BaseArmor = BaseArmor,
+			BaseEvasion = BaseEvasion,
+			SpeedModifier = SpeedModifier,
+			HealthModifier = HealthModifier,
+			XpModifier = XpModifier,
+			GoldModifier = GoldModifier,
+			DamageModifier = DamageModifier,
+			CritModifier = CritModifier,
+			ArmorModifier = ArmorModifier,
+			AccuracyModifier = AccuracyModifier,
+		};
+	}
+
 	// Method to increase the experience points
 	public void AddXp(int xp)
 	{

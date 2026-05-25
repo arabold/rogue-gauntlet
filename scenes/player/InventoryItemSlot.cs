@@ -31,4 +31,13 @@ public partial class InventoryItemSlot : Resource
 
     public bool IsEmpty => Item == null;
     public bool IsStackable => Item.IsStackable;
+
+	public InventoryItemSlot CreateRuntimeCopy()
+	{
+		return new InventoryItemSlot
+		{
+			Item = Item,
+			Quantity = Quantity
+		};
+	}
 }

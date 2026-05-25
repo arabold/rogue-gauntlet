@@ -56,6 +56,18 @@ public partial class Inventory : Resource
 
 	public bool IsFull => Items.Count >= Capacity;
 
+	public Inventory CreateRuntimeCopy()
+	{
+		var inventory = new Inventory { Capacity = Capacity };
+
+		foreach (var item in Items)
+		{
+			inventory.Items.Add(item.CreateRuntimeCopy());
+		}
+
+		return inventory;
+	}
+
 	public void AddItem(Item item, int quantity = 1)
 	{
 		if (IsFull)

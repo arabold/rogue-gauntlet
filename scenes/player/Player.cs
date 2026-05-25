@@ -39,6 +39,21 @@ public partial class Player : CharacterBody3D, IDamageable
 	private AnimationTree _animationTree;
 	private AnimationNodeStateMachinePlayback _animationStateMachine;
 	private BoneAttachmentManager _attachmentManager;
+	private bool _hasRuntimeState;
+
+	public override void _EnterTree()
+	{
+		base._EnterTree();
+		if (_hasRuntimeState)
+		{
+			return;
+		}
+
+		// Runtime mutations should not write back into authored scene/resource defaults.
+		Stats = Stats.CreateRuntimeCopy();
+		Inventory = Inventory.CreateRuntimeCopy();
+		_hasRuntimeState = true;
+	}
 
 	public override void _Ready()
 	{
