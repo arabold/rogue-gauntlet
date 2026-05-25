@@ -1,4 +1,4 @@
-[gd_scene load_steps=49 format=3 uid="uid://coev873edfqw6"]
+[gd_scene load_steps=50 format=3 uid="uid://coev873edfqw6"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_p3la7"]
 [ext_resource type="PackedScene" uid="uid://c7qnx3sxaoosn" path="res://assets/kaykit-skeletons/Skeleton_Warrior.glb" id="2_srno3"]
@@ -9,6 +9,7 @@
 [ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion_small.tres" id="5_6enk2"]
 [ext_resource type="Script" uid="uid://b2kapi7dsmanb" path="res://scenes/components/LootTableItem.cs" id="6_t2b4n"]
 [ext_resource type="Resource" uid="uid://bylnwqmg1nm57" path="res://scenes/items/weapons/axe_old.tres" id="8_4cr0r"]
+[ext_resource type="Resource" path="res://scenes/enemies/profiles/skeleton_warrior_behavior.tres" id="9_profile"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rfhfv"]
 animation = &"1H_Melee_Attack_Chop"
@@ -314,7 +315,7 @@ transform = Transform3D(0.918956, -0.000218019, 0.394361, 0.000216532, 1, 4.8537
 
 [node name="EnemyBehaviorComponent" parent="." index="1" node_paths=PackedStringArray("MeleeAttack")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00311279, 0, -0.00170898)
-CurrentAction = 0
+Profile = ExtResource("9_profile")
 MeleeAttack = NodePath("WeaponSwingAttack")
 
 [node name="AnimationTree" type="AnimationTree" parent="EnemyBehaviorComponent" index="2"]

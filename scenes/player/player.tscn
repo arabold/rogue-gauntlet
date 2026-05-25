@@ -1,4 +1,4 @@
-[gd_scene load_steps=59 format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=63 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
@@ -19,6 +19,10 @@
 [ext_resource type="PackedScene" uid="uid://cs2dyf0ews4ob" path="res://scenes/effects/hit_effect.tscn" id="9_nunx8"]
 [ext_resource type="PackedScene" uid="uid://b1g1tfsv7yd6i" path="res://scenes/components/input_component.tscn" id="9_p85oa"]
 [ext_resource type="PackedScene" uid="uid://n0xkrntlfaa1" path="res://scenes/components/bone_attachment_manager.tscn" id="10_0gr6c"]
+[ext_resource type="PackedScene" uid="uid://ccltoxuycom37" path="res://scenes/items/lootable_item.tscn" id="11_wj3nu"]
+[ext_resource type="Script" path="res://scenes/player/BuffController.cs" id="12_t4bx0"]
+[ext_resource type="Script" path="res://scenes/player/PlayerInteractionController.cs" id="13_0dcb4"]
+[ext_resource type="Script" path="res://scenes/player/PlayerStatsController.cs" id="14_ilumj"]
 
 [sub_resource type="Resource" id="Resource_3j4b4"]
 script = ExtResource("3_uf5tr")
@@ -225,6 +229,7 @@ platform_wall_layers = 2
 script = ExtResource("1_5y8vd")
 Stats = ExtResource("2_sug4b")
 Inventory = SubResource("Resource_yj68g")
+LootableItemScene = ExtResource("11_wj3nu")
 
 [node name="Pivot" type="Node3D" parent="."]
 
@@ -415,6 +420,24 @@ AttachmentNodes = {
 player = NodePath("..")
 
 [node name="ActionManager" parent="." instance=ExtResource("8_ywc1u")]
+
+[node name="BuffController" type="Node" parent="." node_paths=PackedStringArray("Player")]
+script = ExtResource("12_t4bx0")
+Player = NodePath("..")
+
+[node name="PlayerInteractionController" type="Node" parent="." node_paths=PackedStringArray("Player", "InteractionArea")]
+script = ExtResource("13_0dcb4")
+Player = NodePath("..")
+InteractionArea = NodePath("../InteractionArea")
+
+[node name="PlayerStatsController" type="Node" parent="." node_paths=PackedStringArray("Player", "MovementComponent", "HurtBoxComponent", "HealthComponent", "MeleeAttack", "RangedAttack")]
+script = ExtResource("14_ilumj")
+Player = NodePath("..")
+MovementComponent = NodePath("../MovementComponent")
+HurtBoxComponent = NodePath("../HurtBoxComponent")
+HealthComponent = NodePath("../HealthComponent")
+MeleeAttack = NodePath("../QuickSwingAttack")
+RangedAttack = NodePath("../RangedWeaponAttack")
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor", "StairsTrigger") instance=ExtResource("7_7mjdt")]
 Actor = NodePath("..")

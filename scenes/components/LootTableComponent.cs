@@ -3,11 +3,12 @@ using Godot;
 
 public partial class LootTableComponent : Node
 {
-    /// <summary>
-    /// The chance of dropping loot from this table.
-    /// </summary>
-    [Export] public float DropChance { get; private set; } = 1.0f;
-    [Export] public LootTableItem[] Items { get; private set; } = [];
+	/// <summary>
+	/// The chance of dropping loot from this table.
+	/// </summary>
+	[Export] public float DropChance { get; private set; } = 1.0f;
+	[Export] public PackedScene LootableItemScene { get; private set; }
+	[Export] public LootTableItem[] Items { get; private set; } = [];
 
     private bool _isDropped = false;
 
@@ -23,14 +24,18 @@ public partial class LootTableComponent : Node
             var selectedItem = PickItem();
             GD.Print($"Dropping {selectedItem.Quantity}x {selectedItem.Item.Name}");
 
-            // TODO: Avoid hardcoding the path to the lootable item scene
-            var scene = GD.Load<PackedScene>("res://scenes/items/lootable_item.tscn");
-            var lootableItem = scene.Instantiate<LootableItem>();
-            lootableItem.Item = selectedItem.Item;
-            lootableItem.Quantity = selectedItem.Quantity;
-            lootableItem.GlobalPosition = GetOwner<Node3D>().GlobalPosition;
+			if (LootableItemScene == null)
+			{
+				GD.PrintErr($"{Name} has no lootable item scene assigned.");
+				_isDropped = true;
+				return;
+			}
 
-            GameManager.Instance.Level.AddChild(lootableItem);
+			var lootableItem = LootableItemScene.Instantiate<LootableItem>();
+			lootableItem.Item = selectedItem.Item;
+			lootableItem.Quantity = selectedItem.Quantity;
+
+			GameManager.Instance.Level.AddWorldNode(lootableItem, GetOwner<Node3D>().GlobalPosition);
         }
         else
         {

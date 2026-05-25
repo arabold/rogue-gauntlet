@@ -18,11 +18,20 @@ public partial class Hud : Control
 			SignalBus.Instance,
 			signalBus => signalBus.PlayerStatsChanged += OnPlayerStatsChanged,
 			signalBus => signalBus.PlayerStatsChanged -= OnPlayerStatsChanged);
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			signalBus => signalBus.PlayerSpawned += OnPlayerSpawned,
+			signalBus => signalBus.PlayerSpawned -= OnPlayerSpawned);
 
-		// Initialize the HUD with the current game state
-		// FIXME: Seems backwards. Send initial event from player instead?
-		var playerStats = GameManager.Instance.PlayerStats;
-		OnPlayerStatsChanged(playerStats);
+		if (GameManager.Instance.Player != null)
+		{
+			OnPlayerSpawned(GameManager.Instance.Player);
+		}
+	}
+
+	private void OnPlayerSpawned(Player player)
+	{
+		OnPlayerStatsChanged(player.Stats);
 	}
 
 	private void OnPlayerStatsChanged(PlayerStats stats)

@@ -1,6 +1,8 @@
 using Godot;
-using Godot.Collections;
 
+/// <summary>
+/// High-level behavior states available to enemy AI controllers.
+/// </summary>
 public enum EnemyBehaviorState
 {
 	Sleeping,
@@ -13,6 +15,9 @@ public enum EnemyBehaviorState
 	Dead
 }
 
+/// <summary>
+/// Timed enemy actions that temporarily interrupt normal behavior decisions.
+/// </summary>
 public enum EnemyAction
 {
 	None,
@@ -24,28 +29,47 @@ public enum EnemyAction
 	Dying,
 }
 
+/// <summary>
+/// Coordinates enemy target acquisition, roaming, navigation, and attacks.
+/// </summary>
+/// <remarks>
+/// Monster-specific tuning lives in <see cref="EnemyBehaviorProfile"/> resources so new enemy
+/// scenes can vary behavior without duplicating this controller.
+/// </remarks>
 public partial class EnemyBehaviorComponent : Node
 {
-	// FIXME: Remove this hardcoded dictionary and use a data-driven approach
-	private static readonly Dictionary<EnemyAction, float> ActionDurations = new()
-	{
-		{ EnemyAction.None, 0 },
-		{ EnemyAction.Spawning, 3.5f },
-		{ EnemyAction.StandingUp, 2.33f },
-		{ EnemyAction.MeeleAttack, 1.0f },
-		{ EnemyAction.RangedAttack, 1.0f },
-		{ EnemyAction.Dying, 2.0f },
-	};
-
+	/// <summary>
+	/// Character body moved and rotated by this behavior controller.
+	/// </summary>
 	[Export] public CharacterBody3D Actor { get; set; }
+
+	/// <summary>
+	/// Movement component used to apply navigation directions.
+	/// </summary>
 	[Export] public MovementComponent MovementComponent { get; set; }
+
+	/// <summary>
+	/// Health component observed for death transitions.
+	/// </summary>
 	[Export] public HealthComponent HealthComponent { get; set; }
-	[Export] public EnemyBehaviorState CurrentBehavior { get; private set; } = EnemyBehaviorState.Idle;
-	[Export] public EnemyAction CurrentAction { get; private set; } = EnemyAction.Spawning;
+
+	/// <summary>
+	/// Authored behavior tuning for this enemy type.
+	/// </summary>
+	[Export] public EnemyBehaviorProfile Profile { get; set; }
+
+	/// <summary>
+	/// Melee attack component triggered when the enemy reaches melee range.
+	/// </summary>
 	[Export] public AbstractAttack MeleeAttack { get; set; }
+
+	/// <summary>
+	/// Ranged attack component reserved for enemy types that attack at distance.
+	/// </summary>
 	[Export] public AbstractAttack RangedAttack { get; set; }
-	[Export] public float DetectionRange { get; set; } = 20.0f;
-	[Export] public float DetectionAngle { get; set; } = 45.0f;
+
+	public EnemyBehaviorState CurrentBehavior { get; private set; } = EnemyBehaviorState.Idle;
+	public EnemyAction CurrentAction { get; private set; } = EnemyAction.Spawning;
 
 	// We can use these properties to automatically transition between animation states
 	public bool IsSleeping => CurrentBehavior == EnemyBehaviorState.Sleeping;
@@ -65,8 +89,13 @@ public partial class EnemyBehaviorComponent : Node
 
 	private RayCast3D _sightRay;
 	private NavigationAgent3D _navigationAgent;
+	private EnemyBehaviorProfile _profile;
 	private float _remainingActionTime = 0;
 	private Vector3 _lastKnownTargetPosition;
+	private Vector3 _homePosition;
+	private Vector3 _roamTargetPosition;
+	private bool _hasRoamTarget;
+	private float _remainingRoamPauseTime;
 
 	public override void _Ready()
 	{
@@ -74,10 +103,15 @@ public partial class EnemyBehaviorComponent : Node
 
 		_sightRay = GetNode<RayCast3D>("SightRay");
 		_navigationAgent = GetNode<NavigationAgent3D>("NavigationAgent3D");
+		_profile = Profile ?? new EnemyBehaviorProfile();
+		CurrentBehavior = _profile.InitialBehavior;
+		CurrentAction = _profile.InitialAction;
+		_homePosition = Actor.GlobalPosition;
+		_remainingRoamPauseTime = RandomRange(0, _profile.RoamPauseMax);
 
 		// Ensure to properly initialize the enemy's state with the current selection
 		GD.Print($"{GetParent().Name} is initialized with {CurrentBehavior} and {CurrentAction}");
-		_remainingActionTime = ActionDurations[CurrentAction];
+		_remainingActionTime = _profile.GetActionDuration(CurrentAction);
 
 		if (HealthComponent != null)
 		{
@@ -92,6 +126,8 @@ public partial class EnemyBehaviorComponent : Node
 	{
 		if (CurrentAction != EnemyAction.None)
 		{
+			MovementComponent.Stop();
+
 			// Update the remaining action time
 			_remainingActionTime -= (float)delta;
 			if (_remainingActionTime <= 0)
@@ -108,6 +144,21 @@ public partial class EnemyBehaviorComponent : Node
 				if (LookForNewTarget())
 				{
 					SetBehavior(EnemyBehaviorState.Chasing);
+				}
+				else
+				{
+					SetBehavior(EnemyBehaviorState.Patrolling);
+				}
+			}
+			else if (CurrentBehavior == EnemyBehaviorState.Patrolling)
+			{
+				if (LookForNewTarget())
+				{
+					SetBehavior(EnemyBehaviorState.Chasing);
+				}
+				else
+				{
+					Roam(delta);
 				}
 			}
 			else if (CurrentBehavior == EnemyBehaviorState.Searching)
@@ -149,7 +200,7 @@ public partial class EnemyBehaviorComponent : Node
 
 		Vector3 forward = -Actor.GlobalTransform.Basis.Z;
 		float angle = Mathf.RadToDeg(Mathf.Acos(forward.Normalized().Dot(direction)));
-		if (angle > DetectionAngle)
+		if (angle > _profile.DetectionAngle)
 		{
 			return false;
 		}
@@ -184,9 +235,9 @@ public partial class EnemyBehaviorComponent : Node
 				if (player.IsDead) continue;
 
 				var distance = Actor.GlobalPosition.DistanceTo(player.GlobalPosition);
-				if (distance > 0 && distance <= DetectionRange)
+				if (distance > 0 && distance <= _profile.DetectionRange)
 				{
-					if ((distance < DetectionRange / 2) || TestLineOfSight(player))
+					if ((distance < _profile.DetectionRange * _profile.CloseDetectionRangeMultiplier) || TestLineOfSight(player))
 					{
 						GD.Print($"{Actor.Name} has spotted {player.Name}");
 						UpdateTargetPosition();
@@ -210,7 +261,7 @@ public partial class EnemyBehaviorComponent : Node
 		}
 
 		float distance = Actor.GlobalPosition.DistanceTo(Target.GlobalPosition);
-		return distance < 2f;
+		return distance < _profile.MeleeAttackRange;
 	}
 
 	/// <summary>
@@ -227,6 +278,73 @@ public partial class EnemyBehaviorComponent : Node
 		return true;
 	}
 
+	private void Roam(double delta)
+	{
+		if (_remainingRoamPauseTime > 0)
+		{
+			_remainingRoamPauseTime -= (float)delta;
+			MovementComponent.Stop();
+			return;
+		}
+
+		if (!_hasRoamTarget)
+		{
+			if (!TrySetRoamTarget())
+			{
+				StartRoamPause();
+				MovementComponent.Stop();
+				return;
+			}
+		}
+
+		if (_navigationAgent.IsNavigationFinished()
+			|| Actor.GlobalPosition.DistanceTo(_roamTargetPosition) <= _profile.RoamTargetDistance)
+		{
+			_hasRoamTarget = false;
+			StartRoamPause();
+			MovementComponent.Stop();
+			return;
+		}
+
+		NavigateAlongPath();
+	}
+
+	private bool TrySetRoamTarget()
+	{
+		for (int i = 0; i < _profile.RoamTargetAttempts; i++)
+		{
+			float angle = RandomRange(0, Mathf.Pi * 2.0f);
+			float distance = RandomRange(_profile.RoamRadius * 0.25f, _profile.RoamRadius);
+			Vector3 offset = new(Mathf.Cos(angle) * distance, 0, Mathf.Sin(angle) * distance);
+			Vector3 targetPosition = NavigationServer3D.MapGetClosestPoint(
+				Actor.GetWorld3D().NavigationMap,
+				_homePosition + offset);
+
+			if (targetPosition.DistanceTo(_homePosition) > _profile.RoamRadius
+				|| targetPosition.DistanceTo(Actor.GlobalPosition) <= _profile.RoamTargetDistance)
+			{
+				continue;
+			}
+
+			_roamTargetPosition = targetPosition;
+			_hasRoamTarget = true;
+			_navigationAgent.SetTargetPosition(_roamTargetPosition);
+			return true;
+		}
+
+		return false;
+	}
+
+	private void StartRoamPause()
+	{
+		_remainingRoamPauseTime = RandomRange(_profile.RoamPauseMin, _profile.RoamPauseMax);
+	}
+
+	private static float RandomRange(float min, float max)
+	{
+		return min + ((float)GD.Randf() * (max - min));
+	}
+
 	/// <summary>
 	/// Navigate to the last known target position (i.e. chase the target)
 	/// </summary>
@@ -234,6 +352,18 @@ public partial class EnemyBehaviorComponent : Node
 	{
 		if (Target == null)
 		{
+			MovementComponent.Stop();
+			return;
+		}
+
+		NavigateAlongPath();
+	}
+
+	private void NavigateAlongPath()
+	{
+		if (_navigationAgent.IsNavigationFinished())
+		{
+			MovementComponent.Stop();
 			return;
 		}
 
@@ -241,6 +371,12 @@ public partial class EnemyBehaviorComponent : Node
 		Vector3 destination = _navigationAgent.GetNextPathPosition();
 		Vector3 localDestination = destination - Actor.GlobalPosition;
 		var direction = new Vector3(localDestination.X, 0, localDestination.Z).Normalized();
+		if (direction == Vector3.Zero)
+		{
+			MovementComponent.Stop();
+			return;
+		}
+
 		MovementComponent.SetInputDirection(direction);
 		// _targetDirection = new Vector3(localDestination.X, 0, localDestination.Z).Normalized();
 	}
@@ -252,6 +388,7 @@ public partial class EnemyBehaviorComponent : Node
 	{
 		if (Target == null)
 		{
+			MovementComponent.Stop();
 			return;
 		}
 
@@ -267,6 +404,10 @@ public partial class EnemyBehaviorComponent : Node
 		{
 			GD.Print($"{Actor.Name} is now {newBehavior}");
 			CurrentBehavior = newBehavior;
+			if (newBehavior != EnemyBehaviorState.Patrolling)
+			{
+				_hasRoamTarget = false;
+			}
 		}
 	}
 
@@ -286,7 +427,11 @@ public partial class EnemyBehaviorComponent : Node
 		{
 			GD.Print($"{Actor.Name} is performing {newAction}");
 			CurrentAction = newAction;
-			_remainingActionTime = ActionDurations[newAction];
+			_remainingActionTime = _profile.GetActionDuration(newAction);
+			if (newAction != EnemyAction.None)
+			{
+				MovementComponent.Stop();
+			}
 		}
 	}
 

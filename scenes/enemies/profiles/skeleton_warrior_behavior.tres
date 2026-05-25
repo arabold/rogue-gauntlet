@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="1_profile"]
+
+[resource]
+script = ExtResource("1_profile")
+InitialBehavior = 1
+InitialAction = 0
+DetectionRange = 22.0
+DetectionAngle = 60.0
+CloseDetectionRangeMultiplier = 0.5
+MeleeAttackRange = 2.1
+RoamRadius = 9.0
+RoamPauseMin = 1.0
+RoamPauseMax = 2.75
+RoamTargetDistance = 0.75
+RoamTargetAttempts = 10
+SpawningActionDuration = 3.5
+StandingUpActionDuration = 2.33
+HitActionDuration = 0.35
+MeleeAttackActionDuration = 1.0
+RangedAttackActionDuration = 1.0
+DyingActionDuration = 2.0

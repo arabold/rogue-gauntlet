@@ -1,7 +1,6 @@
 using Godot;
 using Godot.Collections;
 using System;
-using System.Linq;
 
 /// <summary>
 /// The main player character.
@@ -10,6 +9,7 @@ public partial class Player : CharacterBody3D, IDamageable
 {
 	[Export] public PlayerStats Stats { get; protected set; }
 	[Export] public Inventory Inventory { get; protected set; }
+	[Export] public PackedScene LootableItemScene { get; protected set; }
 
 	// The following states are used for animation
 	public bool IsDead => HealthComponent.CurrentHealth <= 0;
@@ -24,10 +24,11 @@ public partial class Player : CharacterBody3D, IDamageable
 	public MovementComponent MovementComponent { get; protected set; }
 	public InputComponent InputComponent { get; protected set; }
 	public ActionManager ActionManager { get; protected set; }
+	public BuffController BuffController { get; protected set; }
+	public PlayerInteractionController InteractionController { get; protected set; }
+	public PlayerStatsController StatsController { get; protected set; }
 
 	public InteractionArea InteractionArea { get; protected set; }
-
-	public Array<ActiveBuff> ActiveBuffs { get; protected set; } = new();
 
 	private WeaponSwingAttack _meleeAttack;
 	private WeaponSwingAttack _specialAttack;
@@ -37,8 +38,6 @@ public partial class Player : CharacterBody3D, IDamageable
 	private AnimationTree _animationTree;
 	private AnimationNodeStateMachinePlayback _animationStateMachine;
 	private BoneAttachmentManager _attachmentManager;
-
-	private Array<Node> _nearbyInteractives = new();
 
 	public override void _Ready()
 	{
@@ -59,21 +58,11 @@ public partial class Player : CharacterBody3D, IDamageable
 		InputComponent = GetNode<InputComponent>("InputComponent");
 		HealthComponent = GetNode<HealthComponent>("HealthComponent");
 		HurtBoxComponent = GetNode<HurtBoxComponent>("HurtBoxComponent");
+		BuffController = GetNode<BuffController>("BuffController");
+		InteractionController = GetNode<PlayerInteractionController>("PlayerInteractionController");
+		StatsController = GetNode<PlayerStatsController>("PlayerStatsController");
 
 		InteractionArea = GetNode<InteractionArea>("InteractionArea");
-		this.SubscribeUntilExit(
-			InteractionArea,
-			interactionArea => interactionArea.InteractiveEntered += OnInteractiveEntered,
-			interactionArea => interactionArea.InteractiveEntered -= OnInteractiveEntered);
-		this.SubscribeUntilExit(
-			InteractionArea,
-			interactionArea => interactionArea.InteractiveExited += OnInteractiveExited,
-			interactionArea => interactionArea.InteractiveExited -= OnInteractiveExited);
-
-		this.SubscribeUntilExit(
-			HealthComponent,
-			healthComponent => healthComponent.HealthChanged += OnHealthChanged,
-			healthComponent => healthComponent.HealthChanged -= OnHealthChanged);
 
 		// The inventory lets us know about any changed via signals
 		this.SubscribeUntilExit(
@@ -97,12 +86,6 @@ public partial class Player : CharacterBody3D, IDamageable
 			inventory => inventory.ItemDestroyed += OnItemDestroyed,
 			inventory => inventory.ItemDestroyed -= OnItemDestroyed);
 		AutoEquipItems();
-
-		this.SubscribeUntilExit(
-			Stats,
-			stats => stats.Changed += OnStatsChanged,
-			stats => stats.Changed -= OnStatsChanged);
-		OnStatsChanged();
 	}
 
 	private void AutoEquipItems()
@@ -116,40 +99,6 @@ public partial class Player : CharacterBody3D, IDamageable
 		}
 	}
 
-	private void OnStatsChanged()
-	{
-		// Keep our stats and components in sync
-		MovementComponent.Speed = Stats.Speed;
-		HurtBoxComponent.Armor = Stats.Armor;
-		HurtBoxComponent.Evasion = Stats.Evasion;
-		HealthComponent.SetHealth(Stats.Health, Stats.MaxHealth);
-
-		// Update attack stats
-		if (Inventory.EquippedItems.TryGetValue(EquipmentSlot.WeaponHand, out var item))
-		{
-			if (item?.Item is RangedWeapon rangedWeapon)
-			{
-				_rangedAttack.Accuracy = Stats.Accuracy;
-				_rangedAttack.MinDamage = Stats.MinDamage;
-				_rangedAttack.MaxDamage = Stats.MaxDamage;
-				_rangedAttack.CritChance = Stats.CritChance;
-				_rangedAttack.ProjectileSpeed = rangedWeapon.ProjectileSpeed;
-				_rangedAttack.Range = rangedWeapon.Range;
-				_rangedAttack.AimingAngle = rangedWeapon.AimingAngle;
-			}
-			else if (item?.Item is Weapon)
-			{
-				_meleeAttack.Accuracy = Stats.Accuracy;
-				_meleeAttack.MinDamage = Stats.MinDamage;
-				_meleeAttack.MaxDamage = Stats.MaxDamage;
-				_meleeAttack.CritChance = Stats.CritChance;
-			}
-		}
-
-		// Propagate the changes to the HUD
-		SignalBus.EmitPlayerStatsChanged(Stats);
-	}
-
 	/// <summary>
 	/// Callback triggered by the inventory when an item gets equipped
 	/// </summary>
@@ -157,6 +106,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	{
 		// Update stats
 		item.OnEquipped(this);
+		StatsController.SyncStats();
 		SignalBus.EmitItemEquipped(this, item);
 
 		if (item is IPlayerAction action)
@@ -179,6 +129,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	{
 		// Update stats
 		item.OnUnequipped(this);
+		StatsController.SyncStats();
 		SignalBus.EmitItemUnequipped(this, item);
 
 		if (item is IPlayerAction action)
@@ -211,16 +162,18 @@ public partial class Player : CharacterBody3D, IDamageable
 	{
 		GD.Print($"{Name} dropped {quantity}x {item.Name}");
 
-		// Place a new lootable item into the world
-		// TODO: Avoid hardcoding the path to the lootable item scene
-		var scene = GD.Load<PackedScene>("res://scenes/items/lootable_item.tscn");
-		var lootableItem = scene.Instantiate<LootableItem>();
+		if (LootableItemScene == null)
+		{
+			GD.PrintErr($"{Name} has no lootable item scene assigned.");
+			return;
+		}
+
+		var lootableItem = LootableItemScene.Instantiate<LootableItem>();
 		lootableItem.Item = item;
 		lootableItem.Quantity = quantity;
 		lootableItem.WaitForPlayerExited = true;
 
-		GameManager.Instance.Level.AddChild(lootableItem);
-		lootableItem.GlobalPosition = GlobalPosition;
+		GameManager.Instance.Level.AddWorldNode(lootableItem, GlobalPosition);
 
 		item.OnDropped(this, quantity);
 		SignalBus.EmitItemDropped(this, item, quantity);
@@ -234,33 +187,6 @@ public partial class Player : CharacterBody3D, IDamageable
 		// Nothing to do for us
 		item.OnDestroyed(this, quantity);
 		SignalBus.EmitItemDestroyed(this, item, quantity);
-	}
-
-	/// <summary>
-	/// Callback triggered whenever the HealthComponent updates
-	/// </summary>
-	private void OnHealthChanged(float health, float maxHealth)
-	{
-		// Keep our stats in sync
-		Stats.Health = health;
-		Stats.BaseMaxHealth = maxHealth;
-	}
-
-	/// <summary>
-	/// Callback triggered when the player is close to an interactive
-	/// element, i.e. a door.
-	/// </summary>
-	private void OnInteractiveEntered(Node node)
-	{
-		_nearbyInteractives.Add(node);
-	}
-
-	/// <summary>
-	/// Callback triggered when the player leaves an interactive element.
-	/// </summary>
-	private void OnInteractiveExited(Node node)
-	{
-		_nearbyInteractives.Remove(node);
 	}
 
 	private void HandleInput()
@@ -281,10 +207,9 @@ public partial class Player : CharacterBody3D, IDamageable
 			}
 		}
 
-		if (InputComponent.IsInteractPressed() && _nearbyInteractives.Count > 0)
+		if (InputComponent.IsInteractPressed())
 		{
-			var interactive = _nearbyInteractives.Last() as IInteractive;
-			interactive.Interact(this);
+			InteractionController.TryInteract();
 		}
 
 		var inputDirection = InputComponent.InputDirection;
@@ -294,17 +219,6 @@ public partial class Player : CharacterBody3D, IDamageable
 	public override void _PhysicsProcess(double delta)
 	{
 		HandleInput();
-
-		// Remove expired buffs
-		foreach (var buff in ActiveBuffs)
-		{
-			if (buff.IsExpired)
-			{
-				ActiveBuffs.Remove(buff);
-				RemoveChild(buff);
-				buff.QueueFree();
-			}
-		}
 	}
 
 	/// <summary>
@@ -312,12 +226,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	/// </summary>
 	public void ApplyBuff(Buff buff)
 	{
-		GD.Print($"{Name} applied buff {buff.Name}");
-		var activeBuff = new ActiveBuff();
-		activeBuff.Initialize(this, buff);
-		ActiveBuffs.Add(activeBuff);
-
-		AddChild(activeBuff);
+		BuffController.ApplyBuff(buff);
 	}
 
 	/// <summary>
@@ -325,14 +234,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	/// </summary>
 	public void RemoveBuff(Buff buff)
 	{
-		var activeBuff = ActiveBuffs.FirstOrDefault(b => b.Buff == buff);
-		if (activeBuff != null)
-		{
-			GD.Print($"{Name} removed buff {buff.Name}");
-			ActiveBuffs.Remove(activeBuff);
-			RemoveChild(activeBuff);
-			activeBuff.QueueFree();
-		}
+		BuffController.RemoveBuff(buff);
 	}
 
 	/// <summary>

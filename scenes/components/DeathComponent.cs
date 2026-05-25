@@ -31,7 +31,7 @@ public partial class DeathComponent : Node
 
 		// Drop loot and add XP
 		LootTableComponent?.DropLoot();
-		GameManager.Instance.PlayerStats.AddXp(Xp);
+		GameManager.Instance.Player?.Stats.AddXp(Xp);
 
 		// Wait for death animation to finish
 		GetTree().CreateTimer(Delay).Connect("timeout", Callable.From(() =>

@@ -58,7 +58,7 @@ public partial class SpawnPoint : Node3D
 		node.GlobalTransform = GlobalTransform;
 		node.Rotate(Vector3.Up, Mathf.DegToRad(180)); // FIXME: Why?
 
-		GameManager.Instance.Level.AddChild(node);
+		GameManager.Instance.Level.AddWorldNode(node);
 
 		GD.Print($"Spawned {node.Name} at {node.GlobalPosition}");
 

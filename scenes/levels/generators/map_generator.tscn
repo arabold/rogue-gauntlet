@@ -7,7 +7,7 @@
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_4j0yq"]
 geometry_collision_mask = 4294901779
-agent_radius = 0.75
+agent_radius = 1.0
 edge_max_length = 2.0
 
 [node name="MapGenerator" type="Node3D"]

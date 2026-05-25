@@ -13,7 +13,6 @@ public partial class GameManager : Node
 	public Array<Node3D> DamageablesInScene { get; private set; }
 
 	public Player Player { get; private set; }
-	public PlayerStats PlayerStats { get; private set; }
 	public Level Level { get; private set; }
 
 	private SceneTree _sceneTree;
@@ -29,7 +28,6 @@ public partial class GameManager : Node
 		}
 
 		Instance = this;
-		PlayerStats = GD.Load<PlayerStats>("res://scenes/player/resources/player_stats.tres");
 
 		// Connect to signals
 		OnSceneTreeChanged();
@@ -72,12 +70,6 @@ public partial class GameManager : Node
 	private void OnLevelLoaded(Level level)
 	{
 		Level = level;
-	}
-
-	// Method to update cooldown status
-	public void UpdateCooldown(int slotIndex, float remainingTime, float totalTime)
-	{
-		SignalBus.EmitCooldownUpdated(slotIndex, remainingTime, totalTime);
 	}
 
 	// Restart the game

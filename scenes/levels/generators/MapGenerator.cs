@@ -43,7 +43,7 @@ public partial class MapGenerator : Node3D
 
 		if (Engine.IsEditorHint())
 		{
-			GenerateMap();
+			GenerateMap(false);
 		}
 	}
 
@@ -52,9 +52,9 @@ public partial class MapGenerator : Node3D
 		field = value;
 
 		// Generate the map when the properties are set in the editor
-		if (Engine.IsEditorHint())
+		if (Engine.IsEditorHint() && IsNodeReady())
 		{
-			GenerateMap();
+			GenerateMap(false);
 		}
 	}
 
@@ -226,16 +226,23 @@ public partial class MapGenerator : Node3D
 		GD.Print($"Generating {mobCount} enemy spawn points...");
 
 		var points = NavigationRegion.NavigationMesh.GetVertices();
+		if (points.Length == 0)
+		{
+			GD.PrintErr("Cannot generate enemy spawn points: navigation mesh has no vertices.");
+			return;
+		}
+
 		var spawnPoints = new List<Vector3>();
 		for (int i = 0; i < mobCount; i++)
 		{
 			Vector3 point;
 			bool isValidPoint;
+			int attempts = 100;
 
 			do
 			{
 				isValidPoint = true;
-				point = points[GD.Randi() % points.Length];
+				point = points[(int)(GD.Randi() % (ulong)points.Length)];
 				point.Y = 0f; // Ensure the point is on the ground
 
 				// Ensure the point is at least 20 meters away from the player
@@ -254,7 +261,13 @@ public partial class MapGenerator : Node3D
 						break;
 					}
 				}
-			} while (!isValidPoint);
+			} while (!isValidPoint && attempts-- > 0);
+
+			if (!isValidPoint)
+			{
+				GD.PrintErr("Could not find a valid enemy spawn point.");
+				continue;
+			}
 
 			spawnPoints.Add(point);
 
@@ -271,7 +284,7 @@ public partial class MapGenerator : Node3D
 		}
 	}
 
-	public void GenerateMap()
+	public void GenerateMap(bool includeGameplay = true)
 	{
 		Reset();
 
@@ -289,6 +302,12 @@ public partial class MapGenerator : Node3D
 
 		// Step 2: Connect the rooms
 		ConnectRooms();
+
+		if (!includeGameplay)
+		{
+			GD.Print("Map preview generated.");
+			return;
+		}
 
 		// Step 3: Bake navigation mesh
 		BakeNavigationMesh();
