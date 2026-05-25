@@ -29,8 +29,6 @@ public partial class BoneAttachmentManager : Node
 
 	[Export] public bool ResetAttachmentsOnReady { get; set; } = true;
 
-	private Inventory _inventory;
-
 	public override void _Ready()
 	{
 		if (ResetAttachmentsOnReady)
@@ -45,11 +43,17 @@ public partial class BoneAttachmentManager : Node
 			if (player != null)
 			{
 				GD.Print($"Setting up BoneAttachmentManager for {player.Name}");
-				_inventory = player.Inventory;
-				_inventory.ItemEquipped += OnItemEquipped;
-				_inventory.ItemUnequipped += OnItemUnequipped;
+				Inventory playerInventory = player.Inventory;
+				this.SubscribeUntilExit(
+					playerInventory,
+					inventory => inventory.ItemEquipped += OnItemEquipped,
+					inventory => inventory.ItemEquipped -= OnItemEquipped);
+				this.SubscribeUntilExit(
+					playerInventory,
+					inventory => inventory.ItemUnequipped += OnItemUnequipped,
+					inventory => inventory.ItemUnequipped -= OnItemUnequipped);
 
-				foreach (var (slot, item) in _inventory.EquippedItems)
+				foreach (var (slot, item) in playerInventory.EquippedItems)
 				{
 					if (item != null)
 					{

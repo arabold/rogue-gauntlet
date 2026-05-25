@@ -40,8 +40,14 @@ public partial class ActionContainer : PanelContainer
 		_preview = GetNode<Preview>("%Preview");
 		_preview.SetScene(PreviewScene);
 
-		SignalBus.Instance.PlayerActionSlotChanged += OnActionSlotChanged;
-		SignalBus.Instance.CooldownUpdated += OnCooldownUpdated;
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			signalBus => signalBus.PlayerActionSlotChanged += OnActionSlotChanged,
+			signalBus => signalBus.PlayerActionSlotChanged -= OnActionSlotChanged);
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			signalBus => signalBus.CooldownUpdated += OnCooldownUpdated,
+			signalBus => signalBus.CooldownUpdated -= OnCooldownUpdated);
 
 		OnCooldownUpdated(Slot, 0, 0);
 	}

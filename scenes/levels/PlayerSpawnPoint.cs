@@ -18,7 +18,10 @@ public partial class PlayerSpawnPoint : Node3D
 
 		if (!Engine.IsEditorHint())
 		{
-			SignalBus.Instance.LevelLoaded += OnLevelLoaded;
+			this.SubscribeUntilExit(
+				SignalBus.Instance,
+				signalBus => signalBus.LevelLoaded += OnLevelLoaded,
+				signalBus => signalBus.LevelLoaded -= OnLevelLoaded);
 		}
 	}
 

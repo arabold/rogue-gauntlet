@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Godot;
 
 public partial class Main : Node
@@ -12,7 +11,10 @@ public partial class Main : Node
 		_pcam = GetNode<Node3D>("PhantomCamera3D");
 
 		// At this point the player is already spawned
-		SignalBus.Instance.PlayerSpawned += OnPlayerSpawned;
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			signalBus => signalBus.PlayerSpawned += OnPlayerSpawned,
+			signalBus => signalBus.PlayerSpawned -= OnPlayerSpawned);
 		if (GameManager.Instance.Player != null)
 		{
 			OnPlayerSpawned(GameManager.Instance.Player);

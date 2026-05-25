@@ -7,6 +7,7 @@ public partial class InventoryPanel : ScrollContainer
 
 	public GridContainer InventoryGrid;
 	private Inventory _inventory;
+	private Action _unsubscribeInventory = () => { };
 
 	public override void _Ready()
 	{
@@ -16,19 +17,26 @@ public partial class InventoryPanel : ScrollContainer
 
 	public void Initialize(Inventory inventory)
 	{
-		if (_inventory != null)
-		{
-			// Unsubscribe from old inventory
-			_inventory.Changed -= Update;
-			_inventory.ItemEquipped -= OnItemEquipped;
-			_inventory.ItemUnequipped -= OnItemUnequipped;
-		}
+		_unsubscribeInventory();
+		_unsubscribeInventory = () => { };
+
 		_inventory = inventory;
 		if (_inventory != null)
 		{
-			_inventory.Changed += Update;
-			_inventory.ItemEquipped += OnItemEquipped;
-			_inventory.ItemUnequipped += OnItemUnequipped;
+			_unsubscribeInventory = this.SubscribeUntilExit(
+				_inventory,
+				inventory =>
+				{
+					inventory.Changed += Update;
+					inventory.ItemEquipped += OnItemEquipped;
+					inventory.ItemUnequipped += OnItemUnequipped;
+				},
+				inventory =>
+				{
+					inventory.Changed -= Update;
+					inventory.ItemEquipped -= OnItemEquipped;
+					inventory.ItemUnequipped -= OnItemUnequipped;
+				});
 		}
 
 		Update();
@@ -36,11 +44,9 @@ public partial class InventoryPanel : ScrollContainer
 
 	public override void _ExitTree()
 	{
-		if (_inventory != null)
-		{
-			_inventory.Changed -= Update;
-			_inventory = null;
-		}
+		_unsubscribeInventory();
+		_unsubscribeInventory = () => { };
+		_inventory = null;
 
 		base._ExitTree();
 	}

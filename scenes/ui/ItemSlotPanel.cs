@@ -1,4 +1,5 @@
 using Godot;
+using System;
 
 [Tool]
 public partial class ItemSlotPanel : PanelContainer
@@ -11,6 +12,8 @@ public partial class ItemSlotPanel : PanelContainer
 	[Export] public Color LegendaryColor = new(0.8f, 0.0f, 0.8f, 0.1f);
 	[Export] public Color UniqueColor = new(0.8f, 0.8f, 0.0f, 0.1f);
 	[Export] public Color DefaultColor = new(0.8f, 0.8f, 0.8f, 0.1f);
+
+	private Action _unsubscribeSlot = () => { };
 
 	public bool IsEquipped
 	{
@@ -42,27 +45,23 @@ public partial class ItemSlotPanel : PanelContainer
 
 	public override void _ExitTree()
 	{
-		if (Slot != null)
-		{
-			Slot.Changed -= Update;
-		}
+		_unsubscribeSlot();
+		_unsubscribeSlot = () => { };
 		base._ExitTree();
 	}
 
 	public void SetItem(InventoryItemSlot slot, bool isEquipped)
 	{
-		if (Slot != null)
-		{
-			Slot.Changed -= Update;
-		}
+		_unsubscribeSlot();
+		_unsubscribeSlot = () => { };
 
 		Slot = slot;
 		IsEquipped = isEquipped;
 
-		if (Slot != null)
-		{
-			Slot.Changed += Update;
-		}
+		_unsubscribeSlot = this.SubscribeUntilExit(
+			Slot,
+			slot => slot.Changed += Update,
+			slot => slot.Changed -= Update);
 
 		Update();
 	}

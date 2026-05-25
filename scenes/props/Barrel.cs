@@ -11,7 +11,10 @@ public partial class Barrel : Node3D
 		base._Ready();
 		_hurtBoxComponent = GetNode<HurtBoxComponent>("HurtBoxComponent");
 		_healthComponent = GetNode<HealthComponent>("HealthComponent");
-		_healthComponent.Died += OnDie;
+		this.SubscribeUntilExit(
+			_healthComponent,
+			healthComponent => healthComponent.Died += OnDie,
+			healthComponent => healthComponent.Died -= OnDie);
 	}
 
 	private void OnDie()

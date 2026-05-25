@@ -81,7 +81,10 @@ public partial class EnemyBehaviorComponent : Node
 
 		if (HealthComponent != null)
 		{
-			HealthComponent.Died += OnDie;
+			this.SubscribeUntilExit(
+				HealthComponent,
+				healthComponent => healthComponent.Died += OnDie,
+				healthComponent => healthComponent.Died -= OnDie);
 		}
 	}
 

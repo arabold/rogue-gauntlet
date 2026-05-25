@@ -21,7 +21,7 @@ public partial class GameManager : Node
 	public override void _Ready()
 	{
 		// Ensure this is the only instance
-		if (Instance != null)
+		if (Instance != null && GodotObject.IsInstanceValid(Instance))
 		{
 			GD.PrintErr("Multiple instances of GameManager detected!");
 			QueueFree();
@@ -36,8 +36,14 @@ public partial class GameManager : Node
 		_sceneTree = GetTree();
 		_sceneTree.TreeChanged += OnSceneTreeChanged;
 
-		SignalBus.Instance.PlayerSpawned += player => Player = player;
-		SignalBus.Instance.LevelLoaded += level => Level = level;
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			signalBus => signalBus.PlayerSpawned += OnPlayerSpawned,
+			signalBus => signalBus.PlayerSpawned -= OnPlayerSpawned);
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			signalBus => signalBus.LevelLoaded += OnLevelLoaded,
+			signalBus => signalBus.LevelLoaded -= OnLevelLoaded);
 
 		GD.Print("GameManager initialized.");
 	}
@@ -49,6 +55,23 @@ public partial class GameManager : Node
 			_sceneTree.TreeChanged -= OnSceneTreeChanged;
 			_sceneTree = null;
 		}
+
+		if (Instance == this)
+		{
+			Instance = null;
+		}
+
+		base._ExitTree();
+	}
+
+	private void OnPlayerSpawned(Player player)
+	{
+		Player = player;
+	}
+
+	private void OnLevelLoaded(Level level)
+	{
+		Level = level;
 	}
 
 	// Method to update cooldown status

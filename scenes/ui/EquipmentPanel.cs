@@ -1,4 +1,5 @@
 using Godot;
+using System;
 
 public partial class EquipmentPanel : PanelContainer
 {
@@ -15,6 +16,7 @@ public partial class EquipmentPanel : PanelContainer
 	public EquipmentItemPanel BootsPanel { get; private set; }
 
 	private Inventory _inventory;
+	private Action _unsubscribeInventory = () => { };
 
 	public override void _Ready()
 	{
@@ -33,17 +35,24 @@ public partial class EquipmentPanel : PanelContainer
 
 	public void Initialize(Inventory inventory)
 	{
-		if (_inventory != null)
-		{
-			// Unsubscribe from old inventory
-			_inventory.ItemEquipped -= OnItemEquipped;
-			_inventory.ItemUnequipped -= OnItemUnequipped;
-		}
+		_unsubscribeInventory();
+		_unsubscribeInventory = () => { };
+
 		_inventory = inventory;
 		if (_inventory != null)
 		{
-			_inventory.ItemEquipped += OnItemEquipped;
-			_inventory.ItemUnequipped += OnItemUnequipped;
+			_unsubscribeInventory = this.SubscribeUntilExit(
+				_inventory,
+				inventory =>
+				{
+					inventory.ItemEquipped += OnItemEquipped;
+					inventory.ItemUnequipped += OnItemUnequipped;
+				},
+				inventory =>
+				{
+					inventory.ItemEquipped -= OnItemEquipped;
+					inventory.ItemUnequipped -= OnItemUnequipped;
+				});
 
 			foreach (var slot in _inventory.EquippedItems)
 			{
@@ -54,12 +63,9 @@ public partial class EquipmentPanel : PanelContainer
 
 	public override void _ExitTree()
 	{
-		if (_inventory != null)
-		{
-			_inventory.ItemEquipped -= OnItemEquipped;
-			_inventory.ItemUnequipped -= OnItemUnequipped;
-			_inventory = null;
-		}
+		_unsubscribeInventory();
+		_unsubscribeInventory = () => { };
+		_inventory = null;
 
 		base._ExitTree();
 	}

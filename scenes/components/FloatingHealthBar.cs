@@ -33,7 +33,10 @@ public partial class FloatingHealthBar : Sprite3D
 		if (HealthComponent != null)
 		{
 			OnHealthChanged(HealthComponent.CurrentHealth, HealthComponent.MaxHealth);
-			HealthComponent.HealthChanged += OnHealthChanged;
+			this.SubscribeUntilExit(
+				HealthComponent,
+				healthComponent => healthComponent.HealthChanged += OnHealthChanged,
+				healthComponent => healthComponent.HealthChanged -= OnHealthChanged);
 		}
 	}
 

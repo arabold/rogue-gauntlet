@@ -13,7 +13,10 @@ public partial class DeathComponent : Node
 
 	public override void _Ready()
 	{
-		HealthComponent.Died += OnDied;
+		this.SubscribeUntilExit(
+			HealthComponent,
+			healthComponent => healthComponent.Died += OnDied,
+			healthComponent => healthComponent.Died -= OnDied);
 	}
 
 	private void OnDied()

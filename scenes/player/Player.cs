@@ -61,20 +61,47 @@ public partial class Player : CharacterBody3D, IDamageable
 		HurtBoxComponent = GetNode<HurtBoxComponent>("HurtBoxComponent");
 
 		InteractionArea = GetNode<InteractionArea>("InteractionArea");
-		InteractionArea.InteractiveEntered += OnInteractiveEntered;
-		InteractionArea.InteractiveExited += OnInteractiveExited;
+		this.SubscribeUntilExit(
+			InteractionArea,
+			interactionArea => interactionArea.InteractiveEntered += OnInteractiveEntered,
+			interactionArea => interactionArea.InteractiveEntered -= OnInteractiveEntered);
+		this.SubscribeUntilExit(
+			InteractionArea,
+			interactionArea => interactionArea.InteractiveExited += OnInteractiveExited,
+			interactionArea => interactionArea.InteractiveExited -= OnInteractiveExited);
 
-		HealthComponent.HealthChanged += OnHealthChanged;
+		this.SubscribeUntilExit(
+			HealthComponent,
+			healthComponent => healthComponent.HealthChanged += OnHealthChanged,
+			healthComponent => healthComponent.HealthChanged -= OnHealthChanged);
 
 		// The inventory lets us know about any changed via signals
-		Inventory.ItemEquipped += OnItemEquipped;
-		Inventory.ItemUnequipped += OnItemUnequipped;
-		Inventory.ItemConsumed += OnItemConsumed;
-		Inventory.ItemDropped += OnItemDropped;
-		Inventory.ItemDestroyed += OnItemDestroyed;
+		this.SubscribeUntilExit(
+			Inventory,
+			inventory => inventory.ItemEquipped += OnItemEquipped,
+			inventory => inventory.ItemEquipped -= OnItemEquipped);
+		this.SubscribeUntilExit(
+			Inventory,
+			inventory => inventory.ItemUnequipped += OnItemUnequipped,
+			inventory => inventory.ItemUnequipped -= OnItemUnequipped);
+		this.SubscribeUntilExit(
+			Inventory,
+			inventory => inventory.ItemConsumed += OnItemConsumed,
+			inventory => inventory.ItemConsumed -= OnItemConsumed);
+		this.SubscribeUntilExit(
+			Inventory,
+			inventory => inventory.ItemDropped += OnItemDropped,
+			inventory => inventory.ItemDropped -= OnItemDropped);
+		this.SubscribeUntilExit(
+			Inventory,
+			inventory => inventory.ItemDestroyed += OnItemDestroyed,
+			inventory => inventory.ItemDestroyed -= OnItemDestroyed);
 		AutoEquipItems();
 
-		Stats.Changed += OnStatsChanged;
+		this.SubscribeUntilExit(
+			Stats,
+			stats => stats.Changed += OnStatsChanged,
+			stats => stats.Changed -= OnStatsChanged);
 		OnStatsChanged();
 	}
 

@@ -11,121 +11,77 @@ enum LimitMode {
 
 
 @export_range(0.01, 1.0) var max_section_length: float = 0.1:
-	get: return max_section_length
 	set(value):
-		if max_section_length == value:
-			return
 		max_section_length = value
 		if _auto_rebuild and Engine.is_editor_hint():
 			rebuild()
 @export var limit_mode: LimitMode = LimitMode.TIME:
-	get: return limit_mode
 	set(value):
-		if limit_mode == value:
-			return
 		limit_mode = value
-		set_process(value == LimitMode.TIME)
-		notify_property_list_changed()
-		if _auto_rebuild and Engine.is_editor_hint():
-			_step()
-@export var time_limit: float = 0.25:
-	get: return time_limit
-	set(value):
-		if time_limit == value:
-			return
-		time_limit = value
-		if _auto_rebuild and Engine.is_editor_hint():
-			_step()
-@export var length_limit: float = 1.0:
-	get: return length_limit
-	set(value):
-		if length_limit == value:
-			return
-		length_limit = value
-		if _auto_rebuild and Engine.is_editor_hint():
-			_step()
-@export var pin_texture: bool = false:
-	get: return pin_texture
-	set(value):
-		if pin_texture == value:
-			return
-		pin_texture = value
 		notify_property_list_changed()
 		if _auto_rebuild and Engine.is_editor_hint():
 			rebuild()
+@export var time_limit: float = 0.25:
+	set(value):
+		time_limit = value
+		if _auto_rebuild and Engine.is_editor_hint():
+			rebuild()
+@export var length_limit: float = 1.0:
+	set(value):
+		length_limit = value
+		if _auto_rebuild and Engine.is_editor_hint():
+			rebuild()
 
+var _prev_pos: Vector3
 var _times: PackedFloat64Array
-var _last_pinned_u: float
 
 
 func _ready() -> void:
 
-	use_global_space = true
+	_auto_rebuild = false
+	_prev_pos = global_position
 	process_priority = 9999
+	use_global_space = true
+	points.clear()
+	_times.clear()
 
 	rebuild()
 
 
 func _validate_property(property: Dictionary) -> void:
 
-	match property.name:
-		"time_limit":
-			if limit_mode != LimitMode.TIME:
-				property.usage &= ~PROPERTY_USAGE_EDITOR
-		"length_limit":
-			if limit_mode != LimitMode.LENGTH:
-				property.usage &= ~PROPERTY_USAGE_EDITOR
-		"points", "curve_normals":
-			property.usage = PROPERTY_USAGE_NONE
-		"use_global_space":
-			property.usage = PROPERTY_USAGE_NONE
-		"texture_offset":
-			if pin_texture:
-				property.usage = PROPERTY_USAGE_NONE
-		"pin_texture":
-			if texture_tile_mode == TextureTileMode.RATIO:
-				property.usage = PROPERTY_USAGE_NONE
-		_:
-			super._validate_property(property)
+	if property.name == "time_limit":
+		if limit_mode != LimitMode.TIME:
+			property.usage &= ~PROPERTY_USAGE_EDITOR
+	elif property.name == "length_limit":
+		if limit_mode != LimitMode.LENGTH:
+			property.usage &= ~PROPERTY_USAGE_EDITOR
+	elif property.name == "points":
+		property.usage = PROPERTY_USAGE_NONE
+	elif property.name == "use_global_space":
+		property.usage = PROPERTY_USAGE_NONE
+	else:
+		super._validate_property(property)
 
 
-func clear() -> void:
+func _process(delta: float) -> void:
 
-	_times.clear()
-	_last_pinned_u = 0
-	super.clear()
-
-
-func _process(_delta: float) -> void:
-
-	if limit_mode == LimitMode.TIME:
-		_step()
+	_step()
 
 
 func _step() -> void:
 
-	if not is_inside_tree() or not is_node_ready():
-		return
-
-	_auto_rebuild = false
-
-	if not use_global_space:
-		use_global_space = true
-
-	var tf := global_transform
-	var pos := tf.origin
-	var up := tf.basis.y
+	var pos := global_position
 	var time := Time.get_ticks_msec() / 1000.0
 
 	while points.size() < 2:
 		points.insert(0, pos)
-		curve_normals.insert(0, up)
 	while _times.size() < 2:
 		_times.insert(0, time)
 
 	points[0] = pos
-	curve_normals[0] = up
 	_times[0] = time
+	_prev_pos = pos
 
 	if points.size() >= 2:
 
@@ -133,16 +89,13 @@ func _step() -> void:
 		var from_leading := pos - leading
 		var dist_from_leading := from_leading.length()
 
-		if pin_texture:
-			texture_offset = -_last_pinned_u - dist_from_leading
-		else:
-			_last_pinned_u = -texture_offset - dist_from_leading
-
 		if dist_from_leading > max_section_length:
-			points.insert(1, pos)
-			curve_normals.insert(1, up)
-			_times.insert(1, time)
-			_last_pinned_u += dist_from_leading
+			var dir_from_leading := from_leading / dist_from_leading
+			var d: float = max_section_length
+			while d < dist_from_leading:
+				points.insert(1, leading + dir_from_leading * d)
+				_times.insert(1, time)
+				d += max_section_length
 
 	if limit_mode == LimitMode.LENGTH:
 
@@ -162,7 +115,6 @@ func _step() -> void:
 				points[last_index] = second_last_point + (last_point - second_last_point) * (shortened_section_length / last_section_length)
 			else:
 				points.remove_at(last_index)
-				curve_normals.remove_at(last_index)
 				_times.remove_at(last_index)
 				last_index -= 1
 			extra_length -= last_section_length
@@ -186,18 +138,17 @@ func _step() -> void:
 				_times[last_index] = second_last_time + (last_time - second_last_time) * shortened_ratio
 			else:
 				points.remove_at(last_index)
-				curve_normals.remove_at(last_index)
 				_times.remove_at(last_index)
 				last_index -= 1
 			extra_time -= last_section_duration
 
-	_auto_rebuild = true
-
 	rebuild()
 
 
-# VIRTUAL
-func _on_transform_changed() -> void:
+func _get_default_width_curve() -> Curve:
 
-	if limit_mode == LimitMode.LENGTH:
-		_step()
+	var c := Curve.new()
+	c.clear_points()
+	c.add_point(Vector2(0, 1), -1, -1, Curve.TangentMode.TANGENT_LINEAR)
+	c.add_point(Vector2(1, 0), -1, -1, Curve.TangentMode.TANGENT_LINEAR)
+	return c

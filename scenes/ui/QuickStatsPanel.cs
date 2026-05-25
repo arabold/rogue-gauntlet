@@ -4,6 +4,7 @@ using System;
 public partial class QuickStatsPanel : PanelContainer
 {
 	private PlayerStats _stats;
+	private Action _unsubscribeStats = () => { };
 
 	public Label DamageValue;
 	public Label ArmorValue;
@@ -18,26 +19,23 @@ public partial class QuickStatsPanel : PanelContainer
 
 	public void Initialize(PlayerStats stats)
 	{
-		if (_stats != null)
-		{
-			_stats.Changed -= Update;
-		}
+		_unsubscribeStats();
+		_unsubscribeStats = () => { };
+
 		_stats = stats;
-		if (_stats != null)
-		{
-			_stats.Changed += Update;
-		}
+		_unsubscribeStats = this.SubscribeUntilExit(
+			_stats,
+			stats => stats.Changed += Update,
+			stats => stats.Changed -= Update);
 
 		Update();
 	}
 
 	public override void _ExitTree()
 	{
-		if (_stats != null)
-		{
-			_stats.Changed -= Update;
-			_stats = null;
-		}
+		_unsubscribeStats();
+		_unsubscribeStats = () => { };
+		_stats = null;
 
 		base._ExitTree();
 	}

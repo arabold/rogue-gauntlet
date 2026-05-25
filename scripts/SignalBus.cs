@@ -39,7 +39,7 @@ public partial class SignalBus : Node
     public override void _Ready()
     {
         // Ensure this is the only instance
-        if (Instance != null)
+        if (Instance != null && GodotObject.IsInstanceValid(Instance))
         {
             GD.PrintErr("Multiple instances of SignalBus detected!");
             QueueFree();
@@ -48,5 +48,15 @@ public partial class SignalBus : Node
 
         GD.Print("SignalBus is ready");
         Instance = this;
+    }
+
+    public override void _ExitTree()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+
+        base._ExitTree();
     }
 }

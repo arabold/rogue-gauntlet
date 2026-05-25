@@ -14,7 +14,10 @@ public partial class Hud : Control
 		_goldLabel = GetNode<Label>("%GoldLabel");
 
 		// Connect signals from GameManager to update HUD elements
-		SignalBus.Instance.PlayerStatsChanged += OnPlayerStatsChanged;
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			signalBus => signalBus.PlayerStatsChanged += OnPlayerStatsChanged,
+			signalBus => signalBus.PlayerStatsChanged -= OnPlayerStatsChanged);
 
 		// Initialize the HUD with the current game state
 		// FIXME: Seems backwards. Send initial event from player instead?
