@@ -9,96 +9,221 @@ using Godot;
 [GlobalClass]
 public partial class AStarCorridorConnector : CorridorConnectorStrategy
 {
+    private readonly struct RoomConnector
+    {
+        public RoomConnector(Vector2I roomTile, Vector2I direction)
+        {
+            CorridorTile = roomTile + direction;
+        }
+
+        public Vector2I CorridorTile { get; }
+    }
+
+    private sealed class RoomComponent
+    {
+        public List<Vector2I> Tiles { get; } = new();
+        public List<RoomConnector> Connectors { get; } = new();
+    }
+
     public override void ConnectRooms(MapData map)
     {
-        // We use a simple A* pathfinding algorithm to connect the rooms.
-        // Initialize AStarGrid2D
-        AStarGrid2D astar = new();
+        var astar = CreatePathGrid(map);
+        var components = FindRoomComponents(map);
+        if (components.Count <= 1)
+        {
+            return;
+        }
+
+        var connectedComponents = new List<RoomComponent>();
+        var remainingComponents = new List<RoomComponent>();
+        foreach (var component in components)
+        {
+            if (component.Connectors.Count == 0)
+            {
+                GD.PrintErr($"Room component at {component.Tiles[0]} has no connector tiles and cannot be reached.");
+                continue;
+            }
+
+            if (connectedComponents.Count == 0)
+            {
+                connectedComponents.Add(component);
+            }
+            else
+            {
+                remainingComponents.Add(component);
+            }
+        }
+
+        GD.Print($"Found {components.Count} room components to connect.");
+
+        while (remainingComponents.Count > 0)
+        {
+            if (!TryFindBestConnection(astar, connectedComponents, remainingComponents,
+                out var componentToConnect, out var path))
+            {
+                GD.PrintErr("Failed to connect all rooms.");
+                return;
+            }
+
+            PlaceCorridorPath(map, astar, path);
+            connectedComponents.Add(componentToConnect);
+            remainingComponents.Remove(componentToConnect);
+        }
+    }
+
+    private AStarGrid2D CreatePathGrid(MapData map)
+    {
+        var astar = new AStarGrid2D();
         astar.DiagonalMode = AStarGrid2D.DiagonalModeEnum.Never;
         astar.Region = new Rect2I(0, 0, map.Width, map.Height);
         astar.CellSize = Vector2.One;
         astar.Update();
 
-        // Initialize the weights
-        astar.FillSolidRegion(new Rect2I(0, 0, map.Width, map.Height), solid: true);
-        astar.FillSolidRegion(new Rect2I(1, 1, map.Width - 1, map.Height - 1), solid: false);
+        astar.FillSolidRegion(new Rect2I(0, 0, map.Width, map.Height), solid: false);
         astar.FillWeightScaleRegion(new Rect2I(0, 0, map.Width, map.Height), 5);
 
-        // Find all corridor tiles on the map
-        List<Vector2I> corridorTiles = new();
         for (int x = 0; x < map.Width; x++)
         {
             for (int z = 0; z < map.Height; z++)
             {
                 var node = new Vector2I(x, z);
-
-                if (map.IsConnector(x, z) || map.IsCorridor(x, z))
+                if (map.IsCorridor(x, z))
                 {
-                    corridorTiles.Add(node);
                     astar.SetPointWeightScale(node, 0);
                 }
 
-                // Avoid walking through rooms when finding the path
-                // as otherwise we might just connect the door from one
-                // side of the room to the other side without actually
-                // connecting the rooms.
-                if (map.IsRoom(x, z) || map.IsWall(x, z) || map.IsChasm(x, z))
+                // Corridors are routed outside rooms. Room connectors become solid
+                // here so paths cannot enter through a closed side of a doorway tile.
+                if (map.IsRoom(x, z) || map.IsConnector(x, z) || map.IsWall(x, z) || map.IsChasm(x, z))
                 {
                     astar.SetPointSolid(node, solid: true);
                 }
             }
         }
 
-        GD.Print($"Found {corridorTiles.Count} corridor tiles to connect.");
-
-        // Pick two random floor tiles to connect
-        var maxTries = 100;
-        while (corridorTiles.Count > 1 && maxTries-- > 0)
-        {
-            ShuffleList(corridorTiles);
-            Vector2I tile1 = corridorTiles[0];
-            Vector2I tile2 = corridorTiles[1];
-            if (ConnectTiles(map, astar, tile1, tile2))
-            {
-                GD.Print($"Connected tiles {tile1} and {tile2}");
-                // remove the connected tiles
-                corridorTiles.Remove(tile1);
-            }
-        }
-
-        if (maxTries <= 0)
-        {
-            GD.PrintErr("Failed to connect all rooms.");
-        }
+        return astar;
     }
 
-    private bool ConnectTiles(MapData map, AStarGrid2D astar, Vector2I tile1, Vector2I tile2)
+    private List<RoomComponent> FindRoomComponents(MapData map)
     {
-        var path = astar.GetIdPath(tile1, tile2);
-        if (path.Count > 0)
+        var components = new List<RoomComponent>();
+        var visited = new bool[map.Width, map.Height];
+
+        for (int x = 0; x < map.Width; x++)
         {
-            foreach (var node in path)
+            for (int z = 0; z < map.Height; z++)
             {
-                if (map.IsEmpty(node.X, node.Y))
+                if (!visited[x, z] && IsRoomComponentTile(map, x, z))
                 {
-                    map.SetTile(node.X, node.Y, MapTile.Corridor);
-                    astar.SetPointWeightScale(node, 0);
+                    components.Add(FloodFillRoomComponent(map, x, z, visited));
                 }
             }
-            return true;
         }
-        return false;
+
+        return components;
     }
 
-    // Shuffle a list in place using Fisher-Yates algorithm
-    private void ShuffleList<T>(List<T> list)
+    private RoomComponent FloodFillRoomComponent(MapData map, int startX, int startZ, bool[,] visited)
     {
-        for (int i = list.Count - 1; i > 0; i--)
+        var component = new RoomComponent();
+        var queue = new Queue<Vector2I>();
+        queue.Enqueue(new Vector2I(startX, startZ));
+        visited[startX, startZ] = true;
+
+        while (queue.Count > 0)
         {
-            int j = GD.RandRange(0, i);
-            T temp = list[i];
-            list[i] = list[j];
-            list[j] = temp;
+            var tile = queue.Dequeue();
+            component.Tiles.Add(tile);
+
+            if (map.IsConnector(tile.X, tile.Y))
+            {
+                AddConnectorEntrances(map, component, tile);
+            }
+
+            foreach (var neighbor in GetCardinalNeighbors(tile))
+            {
+                if (map.IsWithinBounds(neighbor.X, neighbor.Y)
+                    && !visited[neighbor.X, neighbor.Y]
+                    && IsRoomComponentTile(map, neighbor.X, neighbor.Y))
+                {
+                    visited[neighbor.X, neighbor.Y] = true;
+                    queue.Enqueue(neighbor);
+                }
+            }
         }
+
+        return component;
+    }
+
+    private void AddConnectorEntrances(MapData map, RoomComponent component, Vector2I connectorTile)
+    {
+        foreach (var direction in map.GetConnectorDirections(connectorTile.X, connectorTile.Y))
+        {
+            var corridorTile = connectorTile + direction;
+            if (map.IsWithinBounds(corridorTile.X, corridorTile.Y)
+                && (map.IsEmpty(corridorTile.X, corridorTile.Y) || map.IsCorridor(corridorTile.X, corridorTile.Y)))
+            {
+                component.Connectors.Add(new RoomConnector(connectorTile, direction));
+            }
+        }
+    }
+
+    private bool TryFindBestConnection(
+        AStarGrid2D astar,
+        List<RoomComponent> connectedComponents,
+        List<RoomComponent> remainingComponents,
+        out RoomComponent componentToConnect,
+        out Godot.Collections.Array<Vector2I> bestPath)
+    {
+        componentToConnect = null;
+        bestPath = null;
+        var bestPathLength = int.MaxValue;
+
+        foreach (var connectedComponent in connectedComponents)
+        {
+            foreach (var startConnector in connectedComponent.Connectors)
+            {
+                foreach (var remainingComponent in remainingComponents)
+                {
+                    foreach (var endConnector in remainingComponent.Connectors)
+                    {
+                        var path = astar.GetIdPath(startConnector.CorridorTile, endConnector.CorridorTile);
+                        if (path.Count > 0 && path.Count < bestPathLength)
+                        {
+                            bestPathLength = path.Count;
+                            bestPath = path;
+                            componentToConnect = remainingComponent;
+                        }
+                    }
+                }
+            }
+        }
+
+        return componentToConnect != null;
+    }
+
+    private void PlaceCorridorPath(MapData map, AStarGrid2D astar, Godot.Collections.Array<Vector2I> path)
+    {
+        foreach (var node in path)
+        {
+            if (map.IsEmpty(node.X, node.Y))
+            {
+                map.SetTile(node.X, node.Y, MapTile.Corridor);
+                astar.SetPointWeightScale(node, 0);
+            }
+        }
+    }
+
+    private bool IsRoomComponentTile(MapData map, int x, int z)
+    {
+        return map.IsRoom(x, z) || map.IsConnector(x, z);
+    }
+
+    private IEnumerable<Vector2I> GetCardinalNeighbors(Vector2I tile)
+    {
+        yield return tile + Vector2I.Right;
+        yield return tile + Vector2I.Left;
+        yield return tile + Vector2I.Down;
+        yield return tile + Vector2I.Up;
     }
 }

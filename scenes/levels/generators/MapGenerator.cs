@@ -167,8 +167,10 @@ public partial class MapGenerator : Node3D
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				// Only check corridor tiles as rooms are already surrounded by walls
-				if (Map.IsCorridor(x, z) || Map.IsConnector(x, z))
+				// Room scenes may intentionally omit perimeter wall segments for doorway
+				// authoring. Fill exposed room edges after corridors have been routed so
+				// unused doorway candidates are closed while connected doorways stay open.
+				if (Map.IsRoom(x, z) || Map.IsConnector(x, z) || Map.IsCorridor(x, z))
 				{
 					// Check for wall adjacency and place walls
 					PlaceWallIfNeeded(x, z);

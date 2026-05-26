@@ -8,7 +8,8 @@ using Godot;
 [Tool]
 [GlobalClass]
 public partial class SimpleRoomLayout : RoomLayoutStrategy
-{   /// <summary>
+{
+	/// <summary>
 	/// The maximum number of times to retry placing a room before giving up.
 	/// Increasing this value may help to generate more complex maps at the
 	/// expense of performance.
@@ -24,6 +25,11 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		var entranceRoom = entranceScene.Instantiate<Room>();
 		GD.Print($"Instantiated room {entranceRoom}...");
 		entranceRoom.BakeTileMap();
+		if (!ValidateConnectableRoom(entranceRoom))
+		{
+			entranceRoom.QueueFree();
+			return rooms;
+		}
 		var entrancePlacement = TryPlaceRoom(map, entranceRoom.Map, 99);
 		rooms.Add(new RoomPlacement(entranceRoom, entrancePlacement.Value));
 		PlaceRoom(map, entranceRoom.Map, entrancePlacement.Value);
@@ -32,6 +38,11 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		var exitRoom = exitScene.Instantiate<Room>();
 		GD.Print($"Instantiated room {exitRoom}...");
 		exitRoom.BakeTileMap();
+		if (!ValidateConnectableRoom(exitRoom))
+		{
+			exitRoom.QueueFree();
+			return rooms;
+		}
 		var exitPlacement = TryPlaceRoom(map, exitRoom.Map, 99);
 		rooms.Add(new RoomPlacement(exitRoom, exitPlacement.Value));
 		PlaceRoom(map, exitRoom.Map, exitPlacement.Value);
@@ -49,6 +60,11 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 				var room = scene.Instantiate<Room>();
 				GD.Print($"Instantiated room {scenePath}...");
 				room.BakeTileMap();
+				if (!ValidateConnectableRoom(room))
+				{
+					room.QueueFree();
+					continue;
+				}
 
 				var placement = TryPlaceRoom(map, room.Map, retries);
 				if (placement != null)
@@ -69,6 +85,29 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		return rooms;
 	}
 
+	private bool ValidateConnectableRoom(Room room)
+	{
+		if (room.Map == null)
+		{
+			GD.PrintErr($"Skipping room {room.Name}: no generated map data.");
+			return false;
+		}
+
+		for (var x = 0; x < room.Map.Width; x++)
+		{
+			for (var z = 0; z < room.Map.Height; z++)
+			{
+				if (room.Map.IsConnector(x, z) && room.Map.GetConnectorDirections(x, z).Count > 0)
+				{
+					return true;
+				}
+			}
+		}
+
+		GD.PrintErr($"Skipping room {room.Name}: no connector tiles. Add at least one wall-free edge tile to make it reachable.");
+		return false;
+	}
+
 	private void PlaceRoom(MapData map, MapData roomMap, Vector2I placement)
 	{
 		GD.Print($"Placing room at {placement}");
@@ -79,7 +118,14 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 				var mapX = placement.X + x;
 				var mapZ = placement.Y + y;
 
-				map.SetTile(mapX, mapZ, roomMap.Tiles[x, y]);
+				if (roomMap.IsConnector(x, y))
+				{
+					map.SetConnector(mapX, mapZ, roomMap.GetConnectorDirections(x, y));
+				}
+				else
+				{
+					map.SetTile(mapX, mapZ, roomMap.Tiles[x, y]);
+				}
 			}
 		}
 	}
