@@ -1,14 +1,12 @@
-[gd_scene load_steps=5 format=3 uid="uid://bobyfcwebpbp1"]
-
+[gd_scene load_steps=6 format=3 uid="uid://bobyfcwebpbp1"]
 [ext_resource type="Script" uid="uid://djvo5h5w1l038" path="res://scenes/levels/Room.cs" id="1_ivv33"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_jwqa4"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_yu3ex"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_8uda1"]
-
+[ext_resource type="Script" uid="uid://b1nxed0l83t2d" path="res://scenes/levels/DoorwayMarker.cs" id="doorway_marker"]
 [node name="CaveTiny2" type="Node3D"]
 script = ExtResource("1_ivv33")
 ShowDebugOverlay = true
-
 [node name="FloorGridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("2_jwqa4")
 cell_size = Vector3(1, 1, 1)
@@ -18,7 +16,6 @@ cell_center_z = false
 data = {
 "cells": PackedInt32Array(65535, 3, 1048580, 65535, 5, 1048578, 0, 0, 0, 1, 3, 6, 1, 5, 1441798, 3, 65535, 1441798, 3, 1, 7, 4, 4, 1441792, 5, 65535, 1441794, 5, 1, 1441795)
 }
-
 [node name="WallGridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("3_yu3ex")
 cell_size = Vector3(1, 1, 1)
@@ -28,7 +25,6 @@ cell_center_z = false
 data = {
 "cells": PackedInt32Array(65534, 4, 1441802, 0, 6, 655360)
 }
-
 [node name="DecorationGridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("4_8uda1")
 cell_size = Vector3(1, 1, 1)
@@ -38,3 +34,21 @@ cell_center_z = false
 data = {
 "cells": PackedInt32Array(0, 3, 36)
 }
+
+[node name="DoorwayWest" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 2)
+script = ExtResource("doorway_marker")
+Directions = 8
+EditorLabel = "&"
+
+[node name="DoorwayNorth" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 2)
+script = ExtResource("doorway_marker")
+Directions = 1
+EditorLabel = "&"
+
+[node name="DoorwaySouthEast" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 6)
+script = ExtResource("doorway_marker")
+Directions = 6
+EditorLabel = "&"
