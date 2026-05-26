@@ -44,9 +44,7 @@ public partial class Room : Node3D
 				}
 				else if (_debugGridMap != null)
 				{
-					RemoveChild(_debugGridMap);
-					_debugGridMap.QueueFree();
-					_debugGridMap = null;
+					RemoveDebugOverlay();
 				}
 			}
 		}
@@ -170,32 +168,144 @@ public partial class Room : Node3D
 
 		// Once we have the final room layout, we can check for 
 		// walls and corridors that need to be connected
-		for (var x = 0; x < map.Width; x++)
+		var doorwayMarkers = GetEnabledDoorwayMarkers().ToList();
+		if (doorwayMarkers.Count > 0)
 		{
-			for (var z = 0; z < map.Height; z++)
-			{
-				if (map.IsRoom(x, z))
-				{
-					// A room tile becomes a connector tile if it is 
-					// adjacent to an empty tile on any side.
-					var isCorridor = CheckForCorridor(map, x, z);
-					if (isCorridor)
-					{
-						map.SetTile(x, z, MapTile.Connector);
-					}
-				}
-			}
+			BakeDoorwayMarkers(map, doorwayMarkers);
+		}
+		else
+		{
+			BakeInferredConnectors(map);
 		}
 
 		Map = map;
 		GD.Print($"Room map generated: {Map.Width}x{Map.Height}");
 	}
 
+	private void BakeDoorwayMarkers(MapData map, List<DoorwayMarker> doorwayMarkers)
+	{
+		foreach (var doorwayMarker in doorwayMarkers)
+		{
+			var tile = MarkerToTilePosition(doorwayMarker);
+			var directions = ValidateDoorwayMarker(map, doorwayMarker, tile);
+			if (directions.Count == 0)
+			{
+				continue;
+			}
+
+			map.SetConnector(tile.X, tile.Y, directions);
+		}
+	}
+
+	private void BakeInferredConnectors(MapData map)
+	{
+		for (var x = 0; x < map.Width; x++)
+		{
+			for (var z = 0; z < map.Height; z++)
+			{
+				if (map.IsRoom(x, z))
+				{
+					// A room tile becomes a connector tile if it has at least one
+					// open side facing out of the room.
+					var connectorDirections = GetConnectorDirections(map, x, z);
+					if (connectorDirections.Count > 0)
+					{
+						map.SetConnector(x, z, connectorDirections);
+					}
+				}
+			}
+		}
+	}
+
+	private IEnumerable<DoorwayMarker> GetEnabledDoorwayMarkers()
+	{
+		return FindChildren("*", "", true, false)
+			.OfType<DoorwayMarker>()
+			.Where(marker => marker.Enabled);
+	}
+
+	private Vector2I MarkerToTilePosition(Node3D marker)
+	{
+		var localPosition = GetMarkerLocalPosition(marker);
+		return new Vector2I(
+			Mathf.FloorToInt((localPosition.X - Bounds.Position.X) / TileSize),
+			Mathf.FloorToInt((localPosition.Z - Bounds.Position.Y) / TileSize));
+	}
+
+	private Vector3 GetMarkerLocalPosition(Node3D marker)
+	{
+		var markerTransform = marker.Transform;
+		var current = marker.GetParent();
+
+		while (current != null && current != this)
+		{
+			if (current is not Node3D parent3D)
+			{
+				GD.PrintErr($"{Name}: Doorway marker {marker.Name} must be parented under Node3D nodes.");
+				return marker.Position;
+			}
+
+			markerTransform = parent3D.Transform * markerTransform;
+			current = current.GetParent();
+		}
+
+		return markerTransform.Origin;
+	}
+
+	private List<Vector2I> ValidateDoorwayMarker(MapData map, DoorwayMarker marker, Vector2I tile)
+	{
+		if (!map.IsWithinBounds(tile.X, tile.Y))
+		{
+			GD.PrintErr($"{Name}: Doorway marker {marker.Name} is outside room bounds at tile {tile}.");
+			return [];
+		}
+
+		if (!map.IsRoom(tile.X, tile.Y) && !map.IsConnector(tile.X, tile.Y))
+		{
+			GD.PrintErr($"{Name}: Doorway marker {marker.Name} must be placed on a floor tile. Current tile: {map.Tiles[tile.X, tile.Y]}.");
+			return [];
+		}
+
+		var validDirections = new List<Vector2I>();
+		foreach (var direction in marker.GetDirectionVectors())
+		{
+			if (direction == Vector2I.Zero)
+			{
+				continue;
+			}
+
+			if (HasWall(tile.X, tile.Y, direction.X, direction.Y))
+			{
+				GD.PrintErr($"{Name}: Doorway marker {marker.Name} points through a wall at direction {direction}. Remove the wall or change the marker direction.");
+				continue;
+			}
+
+			var outsideTile = tile + direction;
+			if (map.IsWithinBounds(outsideTile.X, outsideTile.Y)
+				&& !map.IsEmpty(outsideTile.X, outsideTile.Y))
+			{
+				GD.PrintErr($"{Name}: Doorway marker {marker.Name} must point out of the room, not into {map.Tiles[outsideTile.X, outsideTile.Y]} at direction {direction}.");
+				continue;
+			}
+
+			validDirections.Add(direction);
+		}
+
+		if (validDirections.Count == 0)
+		{
+			GD.PrintErr($"{Name}: Doorway marker {marker.Name} has no valid directions.");
+		}
+
+		return validDirections;
+	}
+
 	/// <summary>
 	/// Check if the given tile is a corridor by checking if it is adjacent to an empty tile
 	/// </summary>
-	private bool CheckForCorridor(MapData map, int x, int z)
+	private List<Vector2I> GetConnectorDirections(MapData map, int x, int z)
 	{
+		var connectorDirections = new List<Vector2I>();
+
 		// The 4 adjacent tiles
 		var adjacentOffsets = new (int x, int z)[]
 		{
@@ -215,15 +325,14 @@ public partial class Room : Node3D
 
 				if (!hasWall)
 				{
-					// We found one open side of the tile, so treat it as a corridor
-					// that needs to be connected to other rooms
-					// GD.Print($"Tile at {x}, {z} is a corridor with open side at {adjX}, {adjZ}");
-					return true;
+					// We found one open side of the tile, so it can be connected
+					// to corridors outside of the room.
+					connectorDirections.Add(new Vector2I(dx, dz));
 				}
 			}
 		}
 
-		return false;
+		return connectorDirections;
 	}
 
 	private bool HasWall(int x, int z, int dx, int dz)
@@ -297,11 +406,7 @@ public partial class Room : Node3D
 			return;
 		}
 
-		if (_debugGridMap != null)
-		{
-			RemoveChild(_debugGridMap);
-			_debugGridMap.QueueFree();
-		}
+		RemoveDebugOverlay();
 
 		// We always create a new grid map to adapt to changes in the room layout
 		_debugGridMap = new GridMap();
@@ -351,6 +456,20 @@ public partial class Room : Node3D
 				}
 			}
 		}
+	}
+
+	private void RemoveDebugOverlay()
+	{
+		foreach (var child in GetChildren())
+		{
+			if (child is GridMap gridMap && gridMap.Name == "DebugGridMap")
+			{
+				RemoveChild(gridMap);
+				gridMap.QueueFree();
+			}
+		}
+
+		_debugGridMap = null;
 	}
 
 	/// <summary>

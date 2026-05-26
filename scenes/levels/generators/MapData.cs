@@ -17,9 +17,12 @@ public enum MapTile
 /// </summary>
 public class MapData
 {
+    private static readonly IReadOnlyList<Vector2I> EmptyConnectorDirections = System.Array.Empty<Vector2I>();
+
     public int Width { get; }
     public int Height { get; }
     public MapTile[,] Tiles { get; }
+    private readonly Dictionary<Vector2I, List<Vector2I>> _connectorDirections = new();
 
     public MapData(int width, int height)
     {
@@ -68,6 +71,41 @@ public class MapData
     public void SetTile(int x, int y, MapTile tile)
     {
         Tiles[x, y] = tile;
+
+        if (tile != MapTile.Connector)
+        {
+            _connectorDirections.Remove(new Vector2I(x, y));
+        }
+    }
+
+    /// <summary>
+    /// Marks a tile as a room connector and stores the directions where the room has no wall.
+    /// </summary>
+    public void SetConnector(int x, int y, IEnumerable<Vector2I> directions)
+    {
+        Tiles[x, y] = MapTile.Connector;
+
+        var key = new Vector2I(x, y);
+        var openDirections = _connectorDirections.TryGetValue(key, out var existingDirections)
+            ? existingDirections.Concat(directions).Distinct().ToList()
+            : directions.Distinct().ToList();
+        if (openDirections.Count == 0)
+        {
+            _connectorDirections.Remove(key);
+            return;
+        }
+
+        _connectorDirections[key] = openDirections;
+    }
+
+    /// <summary>
+    /// Returns the open sides for a connector tile.
+    /// </summary>
+    public IReadOnlyList<Vector2I> GetConnectorDirections(int x, int y)
+    {
+        return _connectorDirections.TryGetValue(new Vector2I(x, y), out var directions)
+            ? directions
+            : EmptyConnectorDirections;
     }
 
     /// <summary>
