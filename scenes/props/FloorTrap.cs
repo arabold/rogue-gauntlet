@@ -37,7 +37,7 @@ public partial class FloorTrap : Node3D
 		if (node is IDamageable damageable)
 		{
 			GD.Print($"{node.Name} stepped on the trap!");
-			damageable.TakeDamage(Accuracy, Damage, node.Basis.Z);
+			damageable.TakeDamage(Accuracy, Damage, node.Basis.Z, this);
 
 			Visible = true;
 			_isTriggered = true;

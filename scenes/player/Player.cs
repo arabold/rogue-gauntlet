@@ -75,6 +75,12 @@ public partial class Player : CharacterBody3D, IDamageable
 
 		InteractionArea = GetNode<InteractionArea>("InteractionArea");
 		InventoryController.AutoEquipItems();
+
+		// Configure Player's HurtBox to only take damage from Enemies, Bosses, Traps, and environmental hazards
+		if (HurtBoxComponent != null)
+		{
+			HurtBoxComponent.DamageFilter = DamageSourceFlags.Enemy | DamageSourceFlags.Boss | DamageSourceFlags.Environment | DamageSourceFlags.Trap;
+		}
 	}
 
 	/// <summary>
@@ -108,11 +114,11 @@ public partial class Player : CharacterBody3D, IDamageable
 	/// 
 	/// The amount of damage is taking the armor into account.
 	/// </summary>
-	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection)
+	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null)
 	{
 		// Forward the damage to the HurtBoxComponent which handles
 		// the actual damage calculation
-		HurtBoxComponent.TakeDamage(accuracy, amount, attackDirection);
+		HurtBoxComponent.TakeDamage(accuracy, amount, attackDirection, attacker);
 	}
 
 	/// <summary>

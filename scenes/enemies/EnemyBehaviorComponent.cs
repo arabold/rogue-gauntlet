@@ -59,16 +59,6 @@ public partial class EnemyBehaviorComponent : Node
 	/// </summary>
 	[Export] public EnemyBehaviorProfile Profile { get; set; }
 
-	/// <summary>
-	/// Melee attack component triggered when the enemy reaches melee range.
-	/// </summary>
-	[Export] public AbstractAttack MeleeAttack { get; set; }
-
-	/// <summary>
-	/// Ranged attack component reserved for enemy types that attack at distance.
-	/// </summary>
-	[Export] public AbstractAttack RangedAttack { get; set; }
-
 	public EnemyBehaviorState CurrentBehavior { get; private set; } = EnemyBehaviorState.Idle;
 	public EnemyAction CurrentAction { get; private set; } = EnemyAction.Spawning;
 
@@ -97,6 +87,7 @@ public partial class EnemyBehaviorComponent : Node
 	private Vector3 _roamTargetPosition;
 	private bool _hasRoamTarget;
 	private float _remainingRoamPauseTime;
+	private AttackController _attackController;
 
 	public override void _Ready()
 	{
@@ -109,6 +100,16 @@ public partial class EnemyBehaviorComponent : Node
 		CurrentAction = _profile.InitialAction;
 		_homePosition = Actor.GlobalPosition;
 		_remainingRoamPauseTime = RandomRange(0, _profile.RoamPauseMax);
+
+		_attackController = Actor.GetNodeOrNull<AttackController>("AttackController");
+		if (_attackController == null)
+		{
+			GD.PushError($"{Actor.Name} has no AttackController child; melee attacks will not deal damage.");
+		}
+		else
+		{
+			_attackController.DebugDrawEnabled = true;
+		}
 
 		// Ensure to properly initialize the enemy's state with the current selection
 		GD.Print($"{GetParent().Name} is initialized with {CurrentBehavior} and {CurrentAction}");
@@ -179,11 +180,11 @@ public partial class EnemyBehaviorComponent : Node
 				UpdateTargetPosition();
 				NavigateToTarget();
 
-				if (IsNearTarget() && MeleeAttack != null)
+				if (IsNearTarget())
 				{
 					// Attack the target
 					SetAction(EnemyAction.MeeleAttack);
-					MeleeAttack.Attack();
+					TriggerMeleeAttack();
 				}
 			}
 			else if (CurrentBehavior == EnemyBehaviorState.Fleeing)
@@ -199,7 +200,7 @@ public partial class EnemyBehaviorComponent : Node
 		Vector3 endPoint = node.GlobalPosition;
 		Vector3 direction = (endPoint - Actor.GlobalPosition).Normalized();
 
-		Vector3 forward = -Actor.GlobalTransform.Basis.Z;
+		Vector3 forward = Actor.GlobalTransform.Basis.Z;
 		float angle = Mathf.RadToDeg(Mathf.Acos(forward.Normalized().Dot(direction)));
 		if (angle > _profile.DetectionAngle)
 		{
@@ -433,7 +434,50 @@ public partial class EnemyBehaviorComponent : Node
 			{
 				MovementComponent.Stop();
 			}
+
+			// Cancel attack hitbox if transitioning out of attack, getting hit, or dying
+			if (newAction == EnemyAction.None || newAction == EnemyAction.Hit || newAction == EnemyAction.Dying)
+			{
+				_attackController?.CancelAttack();
+			}
 		}
+	}
+
+	private void TriggerMeleeAttack()
+	{
+		if (_attackController == null)
+		{
+			GD.PushError($"{Actor.Name} cannot start melee attack without AttackController.");
+			return;
+		}
+
+		var def = _profile.MeleeAttackDefinition ?? CreateDefaultMeleeAttackDefinition();
+
+		uint targetMask = 4; // Targets player (HurtBoxComponent is on Layer 3 / Mask 4)
+
+		_attackController.StartAttack(
+			def,
+			_profile.MeleeAttackMinDamage,
+			_profile.MeleeAttackMaxDamage,
+			_profile.MeleeAttackAccuracy,
+			_profile.MeleeAttackCritChance,
+			targetMask
+		);
+	}
+
+	private AttackDefinition CreateDefaultMeleeAttackDefinition()
+	{
+		var def = new AttackDefinition();
+		def.AnimationId = "melee_attack";
+
+		float duration = _profile.GetActionDuration(EnemyAction.MeeleAttack);
+		def.HitWindowStart = 0.3f * duration;
+		def.HitWindowEnd = 0.7f * duration;
+
+		def.AttachHitBoxToWeapon = false;
+		def.HitBoxSize = new Vector3(1.5f, 2.2f, 2.2f);
+		def.HitBoxOffset = new Vector3(0.0f, 1.0f, 1.1f);
+		return def;
 	}
 
 	public void OnDie()

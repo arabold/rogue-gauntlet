@@ -41,6 +41,31 @@ public partial class EnemyBehaviorProfile : Resource
 	[Export] public float MeleeAttackRange { get; set; } = 2.0f;
 
 	/// <summary>
+	/// Accuracy used by this enemy's melee attack.
+	/// </summary>
+	[Export] public float MeleeAttackAccuracy { get; set; } = 0.8f;
+
+	/// <summary>
+	/// Minimum damage dealt by this enemy's melee attack.
+	/// </summary>
+	[Export] public float MeleeAttackMinDamage { get; set; } = 1.0f;
+
+	/// <summary>
+	/// Maximum damage dealt by this enemy's melee attack.
+	/// </summary>
+	[Export] public float MeleeAttackMaxDamage { get; set; } = 5.0f;
+
+	/// <summary>
+	/// Critical hit chance used by this enemy's melee attack.
+	/// </summary>
+	[Export] public float MeleeAttackCritChance { get; set; } = 0.0f;
+
+	/// <summary>
+	/// Optional authored attack definition for enemy melee VFX, hit shape, and timing overrides.
+	/// </summary>
+	[Export] public AttackDefinition MeleeAttackDefinition { get; set; }
+
+	/// <summary>
 	/// Maximum distance from its spawn point that the enemy can pick roam destinations.
 	/// </summary>
 	[Export] public float RoamRadius { get; set; } = 8.0f;

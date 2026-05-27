@@ -1,6 +1,18 @@
 using Godot;
 using System;
 
+[System.Flags]
+public enum DamageSourceFlags
+{
+	None = 0,
+	Player = 1,
+	Enemy = 2,
+	Environment = 4,
+	Boss = 8,
+	Trap = 16,
+	All = Player | Enemy | Environment | Boss | Trap
+}
+
 /// <summary>
 /// Defines the area that can be hit or receive damage.
 /// </summary>
@@ -18,8 +30,42 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 	[Export] public float Evasion { get; set; } = 0;
 	[Export] public bool Invulnerable { get; set; } = false;
 
-	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection)
+	/// <summary>
+	/// Bitmask defining which factions/sources are allowed to damage this hurtbox.
+	/// </summary>
+	[Export] public DamageSourceFlags DamageFilter { get; set; } = DamageSourceFlags.Player | DamageSourceFlags.Boss | DamageSourceFlags.Environment;
+
+	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null)
 	{
+		// 1. Resolve the attacker's faction
+		DamageSourceFlags attackerFaction = DamageSourceFlags.Environment; // Default fallback (e.g. fire/lava)
+		if (attacker != null)
+		{
+			if (attacker.IsInGroup("player"))
+			{
+				attackerFaction = DamageSourceFlags.Player;
+			}
+			else if (attacker.IsInGroup("boss"))
+			{
+				attackerFaction = DamageSourceFlags.Boss;
+			}
+			else if (attacker.IsInGroup("enemy"))
+			{
+				attackerFaction = DamageSourceFlags.Enemy;
+			}
+			else if (attacker.IsInGroup("trap") || attacker is FloorTrap || attacker.Name.ToString().ToLower().Contains("trap"))
+			{
+				attackerFaction = DamageSourceFlags.Trap;
+			}
+		}
+
+		// 2. Check if the attacker faction is allowed to damage this hurtbox
+		if ((DamageFilter & attackerFaction) == 0)
+		{
+			GD.Print($"{GetParent().Name}'s hurtbox filtered out damage from {attacker?.Name ?? "unknown"} ({attackerFaction})");
+			return; // Damage filtered out!
+		}
+
 		var attack = GD.RandRange(0f, accuracy);
 		var defense = GD.RandRange(0f, Evasion);
 		if (defense > attack)

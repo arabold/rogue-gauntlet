@@ -1,11 +1,10 @@
-[gd_scene load_steps=50 format=3 uid="uid://coev873edfqw6"]
+[gd_scene load_steps=49 format=3 uid="uid://coev873edfqw6"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_p3la7"]
 [ext_resource type="PackedScene" uid="uid://c7qnx3sxaoosn" path="res://assets/kaykit-skeletons/Skeleton_Warrior.glb" id="2_srno3"]
 [ext_resource type="PackedScene" uid="uid://mqwwxa8pvcxx" path="res://assets/kaykit-skeletons/Skeleton_Axe.gltf" id="3_t2b4n"]
 [ext_resource type="PackedScene" uid="uid://c8g78nlylc3kb" path="res://assets/kaykit-skeletons/Skeleton_Shield_Small_B.gltf" id="4_4cr0r"]
 [ext_resource type="Resource" uid="uid://dnxrasu67oe6k" path="res://scenes/items/gold/gold.tres" id="4_acu02"]
-[ext_resource type="PackedScene" uid="uid://6pckd2upjrvu" path="res://scenes/attacks/weapon_swing_attack.tscn" id="5_3s7sy"]
 [ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion_small.tres" id="5_6enk2"]
 [ext_resource type="Script" uid="uid://b2kapi7dsmanb" path="res://scenes/components/LootTableItem.cs" id="6_t2b4n"]
 [ext_resource type="Resource" uid="uid://bylnwqmg1nm57" path="res://scenes/items/weapons/axe_old.tres" id="8_4cr0r"]
@@ -313,24 +312,15 @@ bone_idx = 7
 [node name="Skeleton_Shield_Small_B2" parent="Pivot/Skeleton_Warrior/Rig/Skeleton3D/BoneAttachment3D2" index="0" instance=ExtResource("4_4cr0r")]
 transform = Transform3D(0.918956, -0.000218019, 0.394361, 0.000216532, 1, 4.85376e-05, -0.394361, 4.0993e-05, 0.918956, 0.00140689, 0.00603771, -0.000639856)
 
-[node name="EnemyBehaviorComponent" parent="." index="1" node_paths=PackedStringArray("MeleeAttack")]
+[node name="EnemyBehaviorComponent" parent="." index="1"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00311279, 0, -0.00170898)
 Profile = ExtResource("9_profile")
-MeleeAttack = NodePath("WeaponSwingAttack")
 
 [node name="AnimationTree" type="AnimationTree" parent="EnemyBehaviorComponent" index="2"]
 root_node = NodePath("../../Pivot/Skeleton_Warrior")
 tree_root = SubResource("AnimationNodeStateMachine_mq8v6")
 advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../../Pivot/Skeleton_Warrior/AnimationPlayer")
-
-[node name="WeaponSwingAttack" parent="EnemyBehaviorComponent" index="3" instance=ExtResource("5_3s7sy")]
-Accuracy = 0.8
-MinDamage = 1.0
-MaxDamage = 15.0
-
-[node name="HitBoxComponent" parent="EnemyBehaviorComponent/WeaponSwingAttack/Pivot" index="0"]
-collision_mask = 4
 
 [node name="LootTableComponent" parent="." index="3"]
 Items = [SubResource("Resource_4cr0r"), SubResource("Resource_3s7sy"), SubResource("Resource_x7qcu"), SubResource("Resource_ppoya")]
@@ -349,4 +339,3 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00756836, 1.2, 0.0137939)
 shape = SubResource("CapsuleShape3D_4cr0r")
 
 [editable path="Pivot/Skeleton_Warrior"]
-[editable path="EnemyBehaviorComponent/WeaponSwingAttack"]

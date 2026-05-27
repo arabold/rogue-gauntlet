@@ -37,6 +37,8 @@ public partial class Weapon : EquipableItem, IPlayerAction
 	/// </summary>
 	[Export] public bool IsTwoHanded { get; protected set => SetValue(ref field, value); } = false;
 
+	[Export] public AttackDefinition CustomAttackDefinition { get; protected set; }
+
 	[Export] public string AnimationId { get; protected set => SetValue(ref field, value); } = "melee_attack";
 	[Export] public float Delay { get; protected set => SetValue(ref field, value); } = 0f;
 	[Export] public float PerformDuration { get; protected set => SetValue(ref field, value); } = 0.5f;

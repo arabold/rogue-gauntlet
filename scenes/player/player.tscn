@@ -1,4 +1,4 @@
-[gd_scene load_steps=66 format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=64 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
@@ -7,10 +7,8 @@
 [ext_resource type="Script" uid="uid://s73gxicbccb2" path="res://scenes/player/InventoryItemSlot.cs" id="3_uf5tr"]
 [ext_resource type="Script" uid="uid://7aetn0f4oogq" path="res://scenes/player/InteractionArea.cs" id="4_rbblq"]
 [ext_resource type="Resource" uid="uid://bc4es25jpb62o" path="res://scenes/items/weapons/axe_common.tres" id="4_uf5tr"]
-[ext_resource type="PackedScene" uid="uid://6pckd2upjrvu" path="res://scenes/attacks/weapon_swing_attack.tscn" id="5_4hg3j"]
 [ext_resource type="Script" uid="uid://tqq4nke7m3g1" path="res://scenes/player/Inventory.cs" id="5_8ydkj"]
 [ext_resource type="Resource" uid="uid://kgk80xoii6kd" path="res://scenes/items/armor/shield_badge_color.tres" id="6_8ydkj"]
-[ext_resource type="PackedScene" uid="uid://cuqdoxdbo6j0w" path="res://scenes/attacks/ranged_weapon_attack.tscn" id="7_02tdp"]
 [ext_resource type="PackedScene" uid="uid://c6276kjx70mps" path="res://scenes/components/movement_component.tscn" id="7_7mjdt"]
 [ext_resource type="PackedScene" uid="uid://b65sojfh3ktgj" path="res://scenes/player/stairs_trigger.tscn" id="7_52dmq"]
 [ext_resource type="PackedScene" uid="uid://doui3rts7bdo7" path="res://scenes/components/hurt_box_component.tscn" id="8_lcxbs"]
@@ -433,14 +431,12 @@ script = ExtResource("13_0dcb4")
 Player = NodePath("..")
 InteractionArea = NodePath("../InteractionArea")
 
-[node name="PlayerStatsController" type="Node" parent="." node_paths=PackedStringArray("Player", "MovementComponent", "HurtBoxComponent", "HealthComponent", "MeleeAttack", "RangedAttack")]
+[node name="PlayerStatsController" type="Node" parent="." node_paths=PackedStringArray("Player", "MovementComponent", "HurtBoxComponent", "HealthComponent")]
 script = ExtResource("14_ilumj")
 Player = NodePath("..")
 MovementComponent = NodePath("../MovementComponent")
 HurtBoxComponent = NodePath("../HurtBoxComponent")
 HealthComponent = NodePath("../HealthComponent")
-MeleeAttack = NodePath("../QuickSwingAttack")
-RangedAttack = NodePath("../RangedWeaponAttack")
 
 [node name="PlayerInventoryController" type="Node" parent="." node_paths=PackedStringArray("Player", "ActionManager", "StatsController")]
 script = ExtResource("15_gknh4")
@@ -457,11 +453,8 @@ MovementComponent = NodePath("../MovementComponent")
 ActionManager = NodePath("../ActionManager")
 InteractionController = NodePath("../PlayerInteractionController")
 
-[node name="PlayerAttackController" type="Node" parent="." node_paths=PackedStringArray("MeleeAttack", "SpecialAttack", "RangedAttack")]
+[node name="PlayerAttackController" type="Node" parent="."]
 script = ExtResource("17_sh3lf")
-MeleeAttack = NodePath("../QuickSwingAttack")
-SpecialAttack = NodePath("../HeavySwingAttack")
-RangedAttack = NodePath("../RangedWeaponAttack")
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor", "StairsTrigger") instance=ExtResource("7_7mjdt")]
 Actor = NodePath("..")
@@ -469,16 +462,5 @@ Speed = 14.0
 StairsTrigger = NodePath("../StairsTrigger")
 
 [node name="InputComponent" parent="." instance=ExtResource("9_p85oa")]
-
-[node name="QuickSwingAttack" parent="." instance=ExtResource("5_4hg3j")]
-SwingDuration = 0.2
-
-[node name="HeavySwingAttack" parent="." instance=ExtResource("5_4hg3j")]
-SwingOffset = 90.0
-SwingArc = 360.0
-
-[node name="RangedWeaponAttack" parent="." instance=ExtResource("7_02tdp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -1)
-ProjectileSpeed = 50.0
 
 [editable path="Pivot/Character"]

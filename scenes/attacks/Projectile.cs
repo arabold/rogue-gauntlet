@@ -13,6 +13,7 @@ public partial class Projectile : Node3D
 	private HitBoxComponent _hitBoxComponent;
 	private Node3D _pivot;
 	private float _distanceTravelled;
+	private Node _attacker;
 
 	public override void _Ready()
 	{
@@ -22,7 +23,7 @@ public partial class Projectile : Node3D
 		_hitBoxComponent.HitDetected += OnHitDetected;
 	}
 
-	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float accuracy, float minDamage, float maxDamage, float critChance)
+	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float accuracy, float minDamage, float maxDamage, float critChance, Node attacker = null)
 	{
 		Direction = new Vector3(direction.X, 0, direction.Z).Normalized();
 		Speed = speed;
@@ -31,6 +32,7 @@ public partial class Projectile : Node3D
 		MinDamage = minDamage;
 		MaxDamage = maxDamage;
 		CritChance = critChance;
+		_attacker = attacker;
 
 		// Set the projectile's position and rotation
 		GlobalTransform = new Transform3D(Basis.Identity, origin);
@@ -60,7 +62,7 @@ public partial class Projectile : Node3D
 				damage *= 2;
 				GD.Print("Critical hit!");
 			}
-			damageable.TakeDamage(Accuracy, damage, Direction);
+			damageable.TakeDamage(Accuracy, damage, Direction, _attacker);
 			QueueFree();
 		}
 		else

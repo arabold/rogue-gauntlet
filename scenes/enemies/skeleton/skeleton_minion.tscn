@@ -1,11 +1,10 @@
-[gd_scene load_steps=44 format=3 uid="uid://cp8o80bbyblfj"]
+[gd_scene load_steps=43 format=3 uid="uid://cp8o80bbyblfj"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_u7kdf"]
 [ext_resource type="PackedScene" uid="uid://dx6rvie14m5bg" path="res://assets/kaykit-skeletons/Skeleton_Minion.glb" id="2_lb3ug"]
 [ext_resource type="PackedScene" uid="uid://poi1cfpu8w0h" path="res://assets/kaykit-skeletons/Skeleton_Blade.gltf" id="3_7afn0"]
 [ext_resource type="Resource" uid="uid://dnxrasu67oe6k" path="res://scenes/items/gold/gold.tres" id="4_802aw"]
 [ext_resource type="Script" uid="uid://b2kapi7dsmanb" path="res://scenes/components/LootTableItem.cs" id="5_m4sjw"]
-[ext_resource type="PackedScene" uid="uid://6pckd2upjrvu" path="res://scenes/attacks/weapon_swing_attack.tscn" id="6_m4sjw"]
 [ext_resource type="Resource" path="res://scenes/enemies/profiles/skeleton_minion_behavior.tres" id="7_profile"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rfhfv"]
@@ -296,23 +295,14 @@ layers = 8
 [node name="Skeleton_Minion_LegRight" parent="Pivot/Skeleton_Minion/Rig/Skeleton3D" index="9"]
 layers = 8
 
-[node name="EnemyBehaviorComponent" parent="." index="1" node_paths=PackedStringArray("MeleeAttack")]
+[node name="EnemyBehaviorComponent" parent="." index="1"]
 Profile = ExtResource("7_profile")
-MeleeAttack = NodePath("WeaponSwingAttack")
 
 [node name="AnimationTree" type="AnimationTree" parent="EnemyBehaviorComponent" index="2"]
 root_node = NodePath("../../Pivot/Skeleton_Minion")
 tree_root = SubResource("AnimationNodeStateMachine_mq8v6")
 advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../../Pivot/Skeleton_Minion/AnimationPlayer")
-
-[node name="WeaponSwingAttack" parent="EnemyBehaviorComponent" index="3" instance=ExtResource("6_m4sjw")]
-Accuracy = 0.8
-MinDamage = 1.0
-MaxDamage = 5.0
-
-[node name="HitBoxComponent" parent="EnemyBehaviorComponent/WeaponSwingAttack/Pivot" index="0"]
-collision_mask = 4
 
 [node name="LootTableComponent" parent="." index="3"]
 Items = [SubResource("Resource_j6k7w")]
@@ -338,4 +328,3 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 shape = SubResource("CapsuleShape3D_m4sjw")
 
 [editable path="Pivot/Skeleton_Minion"]
-[editable path="EnemyBehaviorComponent/WeaponSwingAttack"]

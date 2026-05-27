@@ -32,6 +32,12 @@ public partial class EnemyBase : CharacterBody3D, IDamageable
 		// Hide the mesh until the animations are fully initialized to
 		// prevent any flickering
 		Visible = false;
+
+		// Configure Enemy HurtBox to only take damage from Player, Boss, or environmental hazards (traps)
+		if (HurtBoxComponent != null)
+		{
+			HurtBoxComponent.DamageFilter = DamageSourceFlags.Player | DamageSourceFlags.Boss | DamageSourceFlags.Environment;
+		}
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -39,10 +45,10 @@ public partial class EnemyBase : CharacterBody3D, IDamageable
 		Visible = true;
 	}
 
-	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection)
+	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null)
 	{
 		// Forward the damage to the hurtbox component which
 		// does the actual damage calculations
-		HurtBoxComponent?.TakeDamage(accuracy, amount, attackDirection);
+		HurtBoxComponent?.TakeDamage(accuracy, amount, attackDirection, attacker);
 	}
 }
