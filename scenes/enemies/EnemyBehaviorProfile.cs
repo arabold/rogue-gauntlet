@@ -61,7 +61,7 @@ public partial class EnemyBehaviorProfile : Resource
 	[Export] public float MeleeAttackCritChance { get; set; } = 0.0f;
 
 	/// <summary>
-	/// Optional authored attack definition for enemy melee VFX, hit shape, and timing overrides.
+	/// Optional authored attack definition for enemy melee hit shape and timing overrides.
 	/// </summary>
 	[Export] public AttackDefinition MeleeAttackDefinition { get; set; }
 

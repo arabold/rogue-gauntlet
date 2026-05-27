@@ -1,6 +1,4 @@
 using Godot;
-using System;
-
 [System.Flags]
 public enum DamageSourceFlags
 {
@@ -37,8 +35,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 
 	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null)
 	{
-		// 1. Resolve the attacker's faction
-		DamageSourceFlags attackerFaction = DamageSourceFlags.Environment; // Default fallback (e.g. fire/lava)
+		DamageSourceFlags attackerFaction = DamageSourceFlags.Environment;
 		if (attacker != null)
 		{
 			if (attacker.IsInGroup("player"))
@@ -53,17 +50,16 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 			{
 				attackerFaction = DamageSourceFlags.Enemy;
 			}
-			else if (attacker.IsInGroup("trap") || attacker is FloorTrap || attacker.Name.ToString().ToLower().Contains("trap"))
+			else if (attacker.IsInGroup("trap") || attacker is FloorTrap)
 			{
 				attackerFaction = DamageSourceFlags.Trap;
 			}
 		}
 
-		// 2. Check if the attacker faction is allowed to damage this hurtbox
 		if ((DamageFilter & attackerFaction) == 0)
 		{
 			GD.Print($"{GetParent().Name}'s hurtbox filtered out damage from {attacker?.Name ?? "unknown"} ({attackerFaction})");
-			return; // Damage filtered out!
+			return;
 		}
 
 		var attack = GD.RandRange(0f, accuracy);

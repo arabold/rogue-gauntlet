@@ -1,4 +1,4 @@
-[gd_scene load_steps=64 format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=66 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
@@ -24,6 +24,8 @@
 [ext_resource type="Script" path="res://scenes/player/PlayerInventoryController.cs" id="15_gknh4"]
 [ext_resource type="Script" path="res://scenes/player/PlayerInputController.cs" id="16_1atg5"]
 [ext_resource type="Script" path="res://scenes/player/PlayerAttackController.cs" id="17_sh3lf"]
+[ext_resource type="PackedScene" uid="uid://blsurcr8183cv" path="res://scenes/components/hit_box_component.tscn" id="18_hitbox"]
+[ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/attacks/projectile.tscn" id="19_projectile"]
 
 [sub_resource type="Resource" id="Resource_3j4b4"]
 script = ExtResource("3_uf5tr")
@@ -456,6 +458,8 @@ InteractionController = NodePath("../PlayerInteractionController")
 
 [node name="PlayerAttackController" type="Node" parent="."]
 script = ExtResource("17_sh3lf")
+HitBoxScene = ExtResource("18_hitbox")
+DefaultProjectileScene = ExtResource("19_projectile")
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor", "StairsTrigger") instance=ExtResource("7_7mjdt")]
 Actor = NodePath("..")

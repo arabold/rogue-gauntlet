@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://cvvu87irfmqm1"]
+[gd_scene load_steps=14 format=3 uid="uid://cvvu87irfmqm1"]
 
 [ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="1_j62no"]
 [ext_resource type="PackedScene" uid="uid://dt3ptc0tqgy5s" path="res://scenes/enemies/enemy_behavior_component.tscn" id="2_sr21q"]
@@ -10,6 +10,8 @@
 [ext_resource type="PackedScene" uid="uid://cs2dyf0ews4ob" path="res://scenes/effects/hit_effect.tscn" id="9_d4q6w"]
 [ext_resource type="PackedScene" uid="uid://c6i0b6qufb14m" path="res://scenes/components/floating_health_bar.tscn" id="10_oansv"]
 [ext_resource type="Script" path="res://scenes/attacks/AttackController.cs" id="11_attack"]
+[ext_resource type="PackedScene" uid="uid://blsurcr8183cv" path="res://scenes/components/hit_box_component.tscn" id="12_hitbox"]
+[ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/attacks/projectile.tscn" id="13_projectile"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_6flps"]
 viewport_path = NodePath("SubViewport")
@@ -31,6 +33,8 @@ HealthComponent = NodePath("../HealthComponent")
 
 [node name="AttackController" type="Node" parent="."]
 script = ExtResource("11_attack")
+HitBoxScene = ExtResource("12_hitbox")
+DefaultProjectileScene = ExtResource("13_projectile")
 DebugDrawEnabled = true
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor") instance=ExtResource("4_qc6m8")]

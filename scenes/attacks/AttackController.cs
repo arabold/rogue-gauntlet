@@ -3,15 +3,13 @@ using System.Linq;
 using System.Collections.Generic;
 
 /// <summary>
-/// Handles timing-synchronized hit detection, VFX/SFX, and projectile spawning for actors.
-/// Replaces the legacy pre-authored attack nodes.
+/// Handles timing-synchronized hit detection and projectile spawning for actors.
 /// </summary>
 public partial class AttackController : Node
 {
+	[Export] public PackedScene HitBoxScene { get; set; }
+	[Export] public PackedScene DefaultProjectileScene { get; set; }
 	[Export] public bool DebugDrawEnabled { get; set; } = true;
-
-	private static PackedScene _hitBoxScene = GD.Load<PackedScene>("res://scenes/components/hit_box_component.tscn");
-	private static PackedScene _defaultProjectileScene = GD.Load<PackedScene>("res://scenes/attacks/projectile.tscn");
 
 	private bool _isAttacking;
 	private float _elapsedTime;
@@ -26,7 +24,6 @@ public partial class AttackController : Node
 	private bool _hitWindowOpen;
 	private bool _projectileSpawned;
 	private HashSet<Node> _hitTargets = new HashSet<Node>();
-	private MeshInstance3D _debugMesh;
 
 	private Node3D _actor;
 
@@ -40,6 +37,12 @@ public partial class AttackController : Node
 	/// </summary>
 	public void StartAttack(AttackDefinition def, float minDamage, float maxDamage, float accuracy, float critChance, uint targetMask)
 	{
+		if (def == null)
+		{
+			GD.PushError($"{Name} cannot start attack without an AttackDefinition.");
+			return;
+		}
+
 		_actor ??= GetParent<Node3D>();
 		if (_actor == null)
 		{
@@ -64,15 +67,11 @@ public partial class AttackController : Node
 
 		GD.Print($"{_actor.Name} starting attack: {def.AnimationId} (Ranged: {def.IsRanged})");
 
-		// Trigger visual/audio effects
-		PlayAttackEffects();
-
-		// Set the process loop active
 		SetProcess(true);
 	}
 
 	/// <summary>
-	/// Cancels any active attack, cleaning up active hitboxes and debug meshes.
+	/// Cancels any active attack and cleans up active hitboxes.
 	/// </summary>
 	public void CancelAttack()
 	{
@@ -131,27 +130,21 @@ public partial class AttackController : Node
 	{
 		if (_hitWindowOpen || _currentAttack == null) return;
 
-		Node3D attachParent = _actor;
-		if (_currentAttack.AttachHitBoxToWeapon)
+		if (HitBoxScene == null)
 		{
-			attachParent = FindWeaponInstance();
-			if (attachParent == null)
-			{
-				attachParent = FindHandAttachment();
-			}
-			if (attachParent == null)
-			{
-				attachParent = _actor;
-			}
+			GD.PushError($"{Name} cannot open hit window without a HitBoxScene.");
+			CancelAttack();
+			return;
 		}
+
+		Node3D attachParent = _currentAttack.AttachHitBoxToWeapon ? FindWeaponInstance() : _actor;
+		attachParent ??= _actor;
 
 		GD.Print($"{_actor.Name} opening hit window under: {attachParent.Name}");
 
-		// 2. Instantiate and parent the hitbox
-		_activeHitBox = _hitBoxScene.Instantiate<HitBoxComponent>();
+		_activeHitBox = HitBoxScene.Instantiate<HitBoxComponent>();
 		attachParent.AddChild(_activeHitBox);
 
-		// 3. Configure collision mask and shape
 		_activeHitBox.CollisionMask = _targetMask;
 		_activeHitBox.Monitoring = true;
 		_activeHitBox.HitDetected += OnHitDetected;
@@ -163,9 +156,6 @@ public partial class AttackController : Node
 		collisionShape.Position = _currentAttack.HitBoxOffset;
 		_activeHitBox.AddChild(collisionShape);
 
-		SpawnSwingVfx();
-
-		// 4. Spawn debug mesh if enabled
 		if (DebugDrawEnabled)
 		{
 			var debugMeshInstance = new MeshInstance3D();
@@ -173,7 +163,7 @@ public partial class AttackController : Node
 			boxMesh.Size = _currentAttack.HitBoxSize;
 			
 			var material = new StandardMaterial3D();
-			material.AlbedoColor = new Color(1.0f, 0.2f, 0.0f, 0.35f); // transparent orange/red
+			material.AlbedoColor = new Color(1.0f, 0.2f, 0.0f, 0.35f);
 			material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
 			material.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
 			
@@ -181,11 +171,7 @@ public partial class AttackController : Node
 			debugMeshInstance.MaterialOverride = material;
 			debugMeshInstance.Position = _currentAttack.HitBoxOffset;
 			_activeHitBox.AddChild(debugMeshInstance);
-			_debugMesh = debugMeshInstance;
 		}
-
-		// 5. Activate any trail effect on the weapon mesh if it has one
-		SetTrailVisible(attachParent, true);
 
 		_hitWindowOpen = true;
 	}
@@ -198,14 +184,12 @@ public partial class AttackController : Node
 
 		if (GodotObject.IsInstanceValid(_activeHitBox))
 		{
-			SetTrailVisible(_activeHitBox.GetParent(), false);
 			_activeHitBox.Monitoring = false;
 			_activeHitBox.HitDetected -= OnHitDetected;
 			_activeHitBox.QueueFree();
 		}
 
 		_activeHitBox = null;
-		_debugMesh = null;
 		_hitWindowOpen = false;
 	}
 
@@ -246,8 +230,7 @@ public partial class AttackController : Node
 	{
 		if (_currentAttack == null) return;
 
-		// 1. Locate the muzzle point, fallback to in front of actor
-		Vector3 origin = _actor.GlobalPosition + Vector3.Up * 1.2f; // default center
+		Vector3 origin = _actor.GlobalPosition + Vector3.Up * 1.2f;
 		Node3D muzzle = FindMuzzlePoint();
 		if (muzzle != null)
 		{
@@ -258,11 +241,15 @@ public partial class AttackController : Node
 			origin = _actor.GlobalPosition - _actor.GlobalTransform.Basis.Z * 1.0f + Vector3.Up * 1.2f;
 		}
 
-		// 2. Find closest target in LOS to aim at, fallback to actor's facing direction
 		Vector3 direction = Aim(_currentAttack.Range);
 
-		// 3. Spawn the projectile
-		PackedScene scene = _currentAttack.ProjectileScene ?? _defaultProjectileScene;
+		PackedScene scene = _currentAttack.ProjectileScene ?? DefaultProjectileScene;
+		if (scene == null)
+		{
+			GD.PushError($"{Name} cannot spawn projectile without a projectile scene.");
+			return;
+		}
+
 		Projectile projectile = scene.Instantiate<Projectile>();
 		projectile.Initialize(
 			origin,
@@ -274,32 +261,11 @@ public partial class AttackController : Node
 			_currentCritChance,
 			_actor);
 
-		// Always add projectile to current scene root so its lifetime is independent of the weapon/actor
 		GetTree().CurrentScene.AddChild(projectile);
 		GD.Print($"{_actor.Name} spawned projectile flying {direction}");
 	}
 
 	private Node3D FindWeaponInstance()
-	{
-		var authoredWeapon = FindAuthoredWeaponAttachmentInstance();
-		if (authoredWeapon != null)
-		{
-			return authoredWeapon;
-		}
-
-		var attachments = GetBoneAttachments(_actor);
-		foreach (var attachment in attachments)
-		{
-			if (attachment.Visible && attachment.GetChildCount() > 0)
-			{
-				var child = attachment.GetChild<Node3D>(0);
-				if (child != null) return child;
-			}
-		}
-		return null;
-	}
-
-	private Node3D FindAuthoredWeaponAttachmentInstance()
 	{
 		var attachmentManager = _actor.GetNodeOrNull<BoneAttachmentManager>("BoneAttachmentManager");
 		if (attachmentManager?.AttachmentNodes == null)
@@ -334,20 +300,8 @@ public partial class AttackController : Node
 		return null;
 	}
 
-	private BoneAttachment3D FindHandAttachment()
-	{
-		var attachments = GetBoneAttachments(_actor);
-		// Prefer right hand attachments
-		return attachments.FirstOrDefault(a => 
-			a.Name.ToString().Contains("1H_Axe") || 
-			a.Name.ToString().Contains("2H_Axe") || 
-			a.Name.ToString().Contains("wrist") || 
-			a.Name.ToString().Contains("hand.r"));
-	}
-
 	private Node3D FindMuzzlePoint()
 	{
-		// Try to find a Marker3D named "Muzzle" or similar on the active weapon mesh or bone attachments
 		Node3D weapon = FindWeaponInstance();
 		if (weapon != null)
 		{
@@ -356,85 +310,6 @@ public partial class AttackController : Node
 		}
 		return null;
 	}
-
-	private List<BoneAttachment3D> GetBoneAttachments(Node root)
-	{
-		var list = new List<BoneAttachment3D>();
-		FindBoneAttachmentsRecursive(root, list);
-		return list;
-	}
-
-	private void FindBoneAttachmentsRecursive(Node node, List<BoneAttachment3D> list)
-	{
-		if (node is BoneAttachment3D boneAttachment)
-		{
-			list.Add(boneAttachment);
-		}
-		foreach (var child in node.GetChildren())
-		{
-			FindBoneAttachmentsRecursive(child, list);
-		}
-	}
-
-	private void SetTrailVisible(Node node, bool visible)
-	{
-		if (node == null) return;
-		var trail = node.FindChild("Trail3D") as MeshInstance3D;
-		if (trail != null)
-		{
-			trail.Visible = visible;
-		}
-	}
-
-	private void SpawnSwingVfx()
-	{
-		if (_currentAttack.SwingVfx != null)
-		{
-			var vfx = _currentAttack.SwingVfx.Instantiate<Node3D>();
-			vfx.Position = _currentAttack.HitBoxOffset;
-			_activeHitBox.AddChild(vfx);
-			return;
-		}
-
-		var slashMesh = new MeshInstance3D();
-		var mesh = new BoxMesh();
-		mesh.Size = new Vector3(
-			Mathf.Max(_currentAttack.HitBoxSize.X, 0.15f),
-			0.03f,
-			Mathf.Max(_currentAttack.HitBoxSize.Z, 0.15f));
-
-		var material = new StandardMaterial3D();
-		material.AlbedoColor = new Color(0.8f, 0.95f, 1.0f, 0.35f);
-		material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
-		material.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
-
-		slashMesh.Mesh = mesh;
-		slashMesh.MaterialOverride = material;
-		slashMesh.Position = _currentAttack.HitBoxOffset;
-		slashMesh.RotationDegrees = new Vector3(0.0f, 0.0f, 25.0f);
-		_activeHitBox.AddChild(slashMesh);
-	}
-
-	private void PlayAttackEffects()
-	{
-		if (_currentAttack == null) return;
-
-		// Play SFX
-		if (_currentAttack.SwingSfx != null)
-		{
-			// Try to find AudioStreamPlayer3D on actor, or create one dynamically
-			var player = _actor.GetNodeOrNull<AudioStreamPlayer3D>("AudioStreamPlayer3D");
-			if (player == null)
-			{
-				player = new AudioStreamPlayer3D();
-				player.Name = "DynamicAudioPlayer3D";
-				_actor.AddChild(player);
-			}
-			player.Stream = _currentAttack.SwingSfx;
-			player.Play();
-		}
-	}
-
 	private Vector3 Aim(float range)
 	{
 		bool isPlayer = _actor.IsInGroup("player");
@@ -495,10 +370,9 @@ public partial class AttackController : Node
 		float distance = _actor.GlobalPosition.DistanceTo(target.GlobalPosition);
 		if (distance > range) return false;
 
-		// Corrected mathematically: direction FROM actor TO target (ignoring vertical differences)
 		Vector3 directionToTarget = target.GlobalPosition - _actor.GlobalPosition;
 		directionToTarget.Y = 0;
-		if (directionToTarget.LengthSquared() == 0) return true; // overlapping perfectly
+		if (directionToTarget.LengthSquared() == 0) return true;
 		directionToTarget = directionToTarget.Normalized();
 
 		Vector3 forward = -_actor.GlobalTransform.Basis.Z;
@@ -506,7 +380,7 @@ public partial class AttackController : Node
 		forward = forward.Normalized();
 
 		float angle = Mathf.RadToDeg(forward.AngleTo(directionToTarget));
-		if (angle > 60.0f) return false; // within front 120-degree cone (60 degrees each side)
+		if (angle > 60.0f) return false;
 
 		return true;
 	}

@@ -56,13 +56,4 @@ public partial class AttackDefinition : Resource
 	/// </summary>
 	[Export] public float Range { get; set; } = 20.0f;
 
-	/// <summary>
-	/// Optional visual effect to spawn when starting the attack.
-	/// </summary>
-	[Export] public PackedScene SwingVfx { get; set; }
-
-	/// <summary>
-	/// Optional audio stream to play when starting the attack.
-	/// </summary>
-	[Export] public AudioStream SwingSfx { get; set; }
 }

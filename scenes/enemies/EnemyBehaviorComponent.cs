@@ -106,11 +106,6 @@ public partial class EnemyBehaviorComponent : Node
 		{
 			GD.PushError($"{Actor.Name} has no AttackController child; melee attacks will not deal damage.");
 		}
-		else
-		{
-			_attackController.DebugDrawEnabled = true;
-		}
-
 		// Ensure to properly initialize the enemy's state with the current selection
 		GD.Print($"{GetParent().Name} is initialized with {CurrentBehavior} and {CurrentAction}");
 		_remainingActionTime = _profile.GetActionDuration(CurrentAction);
