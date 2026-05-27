@@ -45,7 +45,7 @@ public partial class MovementComponent : Node
 
 	public override void _Ready()
 	{
-		LookAtDirection = Actor.GlobalTransform.Basis.Z;
+		LookAtDirection = -Actor.GlobalTransform.Basis.Z;
 	}
 
 	public void Push(Vector3 direction, float strength)
@@ -147,7 +147,7 @@ public partial class MovementComponent : Node
 	{
 		if (TargetDirection != Vector3.Zero)
 		{
-			var lookAt = -new Vector3(TargetDirection.X, 0, TargetDirection.Z).Normalized();
+			var lookAt = new Vector3(TargetDirection.X, 0, TargetDirection.Z).Normalized();
 			if (lookAt.IsEqualApprox(LookAtDirection))
 			{
 				LookAtDirection = lookAt;

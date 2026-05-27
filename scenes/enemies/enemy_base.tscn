@@ -22,6 +22,7 @@ platform_wall_layers = 2
 script = ExtResource("1_j62no")
 
 [node name="Pivot" type="Node3D" parent="."]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
 
 [node name="EnemyBehaviorComponent" parent="." node_paths=PackedStringArray("Actor", "MovementComponent", "HealthComponent") instance=ExtResource("2_sr21q")]
 Actor = NodePath("..")

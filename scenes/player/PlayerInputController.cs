@@ -25,7 +25,7 @@ public partial class PlayerInputController : Node
 		if (Player.IsPerformingAction)
 		{
 			MovementComponent.SetInputDirection(Vector3.Zero);
-			MovementComponent.SetLookAtDirection(-InputComponent.InputDirection);
+			MovementComponent.SetLookAtDirection(InputComponent.InputDirection);
 			return;
 		}
 

@@ -200,7 +200,7 @@ public partial class EnemyBehaviorComponent : Node
 		Vector3 endPoint = node.GlobalPosition;
 		Vector3 direction = (endPoint - Actor.GlobalPosition).Normalized();
 
-		Vector3 forward = Actor.GlobalTransform.Basis.Z;
+		Vector3 forward = -Actor.GlobalTransform.Basis.Z;
 		float angle = Mathf.RadToDeg(Mathf.Acos(forward.Normalized().Dot(direction)));
 		if (angle > _profile.DetectionAngle)
 		{
@@ -476,7 +476,7 @@ public partial class EnemyBehaviorComponent : Node
 
 		def.AttachHitBoxToWeapon = false;
 		def.HitBoxSize = new Vector3(1.5f, 2.2f, 2.2f);
-		def.HitBoxOffset = new Vector3(0.0f, 1.0f, 1.1f);
+		def.HitBoxOffset = new Vector3(0.0f, 1.0f, -1.1f);
 		return def;
 	}
 

@@ -233,6 +233,7 @@ Inventory = SubResource("Resource_yj68g")
 LootableItemScene = ExtResource("11_wj3nu")
 
 [node name="Pivot" type="Node3D" parent="."]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
 
 [node name="Character" parent="Pivot" instance=ExtResource("1_jv6xc")]
 

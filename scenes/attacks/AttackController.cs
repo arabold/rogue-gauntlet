@@ -230,7 +230,7 @@ public partial class AttackController : Node
 
 			GD.Print($"{_actor.Name} hits {target.Name} (Owner: {damageOwner.Name}) with {_currentAttack.AnimationId}!");
 
-			var direction = _actor.GlobalTransform.Basis.Z; // Project convention: actor forward is +Z.
+			var direction = -_actor.GlobalTransform.Basis.Z;
 			var damage = (float)GD.RandRange(_currentMinDamage, _currentMaxDamage);
 			if (GD.Randf() < _currentCritChance)
 			{
@@ -255,7 +255,7 @@ public partial class AttackController : Node
 		}
 		else
 		{
-			origin = _actor.GlobalPosition + _actor.GlobalTransform.Basis.Z * 1.0f + Vector3.Up * 1.2f;
+			origin = _actor.GlobalPosition - _actor.GlobalTransform.Basis.Z * 1.0f + Vector3.Up * 1.2f;
 		}
 
 		// 2. Find closest target in LOS to aim at, fallback to actor's facing direction
@@ -487,7 +487,7 @@ public partial class AttackController : Node
 			}
 		}
 
-		return _actor.GlobalTransform.Basis.Z;
+		return -_actor.GlobalTransform.Basis.Z;
 	}
 
 	private bool TestLineOfSight(Node3D target, float range)
@@ -501,7 +501,7 @@ public partial class AttackController : Node
 		if (directionToTarget.LengthSquared() == 0) return true; // overlapping perfectly
 		directionToTarget = directionToTarget.Normalized();
 
-		Vector3 forward = _actor.GlobalTransform.Basis.Z;
+		Vector3 forward = -_actor.GlobalTransform.Basis.Z;
 		forward.Y = 0;
 		forward = forward.Normalized();
 
