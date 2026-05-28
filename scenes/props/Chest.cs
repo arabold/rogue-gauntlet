@@ -12,14 +12,18 @@ public partial class Chest : Node3D
 		set
 		{
 			field = value;
-			if (IsNodeReady()) { Update(); }
+			if (IsNodeReady() && !_isAnimating) { Update(); }
 		}
 	} = false;
+
+	private const float OpenRotationDegrees = -45f;
+	private const float AnimationDuration = 0.5f;
 
 	private InteractiveComponent _interactiveComponent;
 	private LootTableComponent _lootTableComponent;
 	private MeshInstance3D _chest;
 	private MeshInstance3D _chestLid;
+	private bool _isAnimating;
 
 	public override void _Ready()
 	{
@@ -41,23 +45,28 @@ public partial class Chest : Node3D
 	{
 		if (_chestLid == null)
 			return;
-		_chestLid.RotationDegrees = new Vector3(IsOpen ? -45 : 0, 0, 0);
+		_chestLid.RotationDegrees = new Vector3(IsOpen ? OpenRotationDegrees : 0, 0, 0);
 	}
 
 	private void OpenChest()
 	{
-		if (IsOpen)
+		if (IsOpen || _isAnimating)
 			return;
 
+		_isAnimating = true;
+		_interactiveComponent.IsInteractive = false;
 		IsOpen = true;
 
 		var tween = CreateTween();
-		tween.TweenProperty(_chestLid, "rotation_degrees:x", -45, 0.5f);
-		tween.Finished += OnOpened;
-
-		// Disable any interactivity (e.g. prevent the player from 
-		// opening the chest again)
-		_interactiveComponent.IsInteractive = false;
+		tween.TweenProperty(_chestLid, "rotation_degrees:x", OpenRotationDegrees, AnimationDuration)
+			.SetTrans(Tween.TransitionType.Sine)
+			.SetEase(Tween.EaseType.Out);
+		tween.Finished += () =>
+		{
+			_isAnimating = false;
+			Update();
+			OnOpened();
+		};
 	}
 
 	private void OnInteract(Player actor)

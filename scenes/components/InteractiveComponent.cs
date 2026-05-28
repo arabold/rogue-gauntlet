@@ -22,7 +22,18 @@ public partial class InteractiveComponent : Area3D, IInteractive
 	} = "Interact";
 
 	[Export]
-	public bool IsInteractive { get; set; } = true;
+	public bool IsInteractive
+	{
+		get;
+		set
+		{
+			field = value;
+			if (IsNodeReady())
+			{
+				Update();
+			}
+		}
+	} = true;
 
 	/// <summary>
 	/// Signal emitted when the player interacts with the object.
@@ -42,6 +53,9 @@ public partial class InteractiveComponent : Area3D, IInteractive
 
 	public void Interact(Player actor)
 	{
+		if (!IsInteractive)
+			return;
+
 		GD.Print($"{actor.Name} interacted with {GetParent().Name}");
 		EmitSignalInteracted(actor);
 	}

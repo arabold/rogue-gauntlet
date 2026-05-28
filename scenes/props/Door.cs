@@ -10,13 +10,17 @@ public partial class Door : Node3D
 		set
 		{
 			field = value;
-			if (IsNodeReady()) { Update(); }
+			if (IsNodeReady() && !_isAnimating) { Update(); }
 		}
 	} = false;
+
+	private const float OpenRotationDegrees = 90f;
+	private const float AnimationDuration = 0.5f;
 
 	private CollisionShape3D _collisionShape;
 	private MeshInstance3D _door;
 	private InteractiveComponent _interactiveComponent;
+	private bool _isAnimating;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -35,41 +39,52 @@ public partial class Door : Node3D
 
 	private void Update()
 	{
-		_door.RotationDegrees = new Vector3(0, IsOpen ? 90 : 0, 0);
+		_door.RotationDegrees = new Vector3(0, IsOpen ? OpenRotationDegrees : 0, 0);
 		_collisionShape.Disabled = IsOpen;
 	}
 
 	private void OpenDoor()
 	{
-		if (IsOpen)
+		if (IsOpen || _isAnimating)
 			return;
 
 		GD.Print("Opening door");
-		IsOpen = true;
+		_isAnimating = true;
 		_interactiveComponent.IsInteractive = false;
+		_collisionShape.Disabled = true;
+		IsOpen = true;
+
 		var tween = CreateTween();
-		tween.TweenProperty(_door, "rotation_degrees:y", 90, 0.5f);
+		tween.TweenProperty(_door, "rotation_degrees:y", OpenRotationDegrees, AnimationDuration)
+			.SetTrans(Tween.TransitionType.Sine)
+			.SetEase(Tween.EaseType.Out);
 		tween.Finished += () =>
 		{
-			_interactiveComponent.IsInteractive = true;
+			_isAnimating = false;
 			Update();
+			_interactiveComponent.IsInteractive = true;
 		};
 	}
 
 	private void CloseDoor()
 	{
-		if (!IsOpen)
+		if (!IsOpen || _isAnimating)
 			return;
 
 		GD.Print("Closing door");
-		IsOpen = false;
+		_isAnimating = true;
 		_interactiveComponent.IsInteractive = false;
+		IsOpen = false;
+
 		var tween = CreateTween();
-		tween.TweenProperty(_door, "rotation_degrees:y", 0, 0.5f);
+		tween.TweenProperty(_door, "rotation_degrees:y", 0, AnimationDuration)
+			.SetTrans(Tween.TransitionType.Sine)
+			.SetEase(Tween.EaseType.Out);
 		tween.Finished += () =>
 		{
-			_interactiveComponent.IsInteractive = true;
+			_isAnimating = false;
 			Update();
+			_interactiveComponent.IsInteractive = true;
 		};
 	}
 
