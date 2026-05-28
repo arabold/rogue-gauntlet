@@ -52,6 +52,17 @@ public partial class Level : Node
 		ClearWorldNodes();
 		MapGenerator.GenerateMap();
 
+		// Live under RuntimeWorld so they are cleared and rebuilt with each
+		// generation. FogOfWar must subscribe before RoomManager's first poll, so
+		// create it first.
+		var fogOfWar = new FogOfWar { Name = "FogOfWar" };
+		AddWorldNode(fogOfWar);
+		fogOfWar.Initialize(MapGenerator);
+
+		var roomManager = new RoomManager { Name = "RoomManager" };
+		AddWorldNode(roomManager);
+		roomManager.Initialize(MapGenerator);
+
 		GD.Print("Level is ready");
 		SignalBus.EmitLevelLoaded(this);
 	}

@@ -22,13 +22,43 @@ public partial class MapGenerator : Node3D
 	public GridMap FloorGridMap { get; private set; }
 	public GridMap WallGridMap { get; private set; }
 	public GridMap DecorationGridMap { get; private set; }
+	public GridMap OcclusionGridMap { get; private set; }
 	public NavigationRegion3D NavigationRegion { get; private set; }
+
+	private readonly List<RoomRegion> _roomRegions = new();
+	// Interior floor tile -> room id, for "which room is the player in" detection.
+	private readonly System.Collections.Generic.Dictionary<Vector2I, int> _tileToRoom = new();
+	// Connector tile -> room id (every connector). Drives the reveal cascade.
+	private readonly System.Collections.Generic.Dictionary<Vector2I, int> _connectorToRoom = new();
+	// Connectors guarded by a door; the reveal cascade stops here until it opens.
+	private readonly HashSet<Vector2I> _dooredConnectors = new();
+	private readonly HashSet<Vector2I> _revealedTiles = new();
+
+	private static readonly Vector2I[] CardinalOffsets =
+	{
+		new(1, 0), new(-1, 0), new(0, 1), new(0, -1),
+	};
 
 	// FIXME: Centralize the tile size to avoid hardcoding it in multiple places
 	/// <summary>
 	/// The size of each tile in the base map when translating to the GridMaps.
 	/// </summary>
 	public readonly uint TileSize = 4;
+
+	/// <summary>
+	/// Y level the flat void occluder caps sit at (one tile up, i.e. wall-top
+	/// height). A horizontal cap has no tall front face, so it hides the void
+	/// without clipping rooms behind it in the isometric view. Tune visually.
+	/// </summary>
+	public readonly float OcclusionCapHeight = 4f;
+
+	private const int OcclusionItemId = 0;
+
+	/// <summary>
+	/// Extra rows/columns of occluder caps placed beyond the map bounds so the
+	/// outer walls of edge rooms are hidden against the void.
+	/// </summary>
+	private const int OcclusionMargin = 2;
 
 	public PlayerSpawnPoint PlayerSpawnPoint;
 	public Array<SpawnPoint> EnemySpawnPoints;
@@ -39,6 +69,8 @@ public partial class MapGenerator : Node3D
 		FloorGridMap = GetNode<GridMap>("FloorGridMap");
 		WallGridMap = GetNode<GridMap>("WallGridMap");
 		DecorationGridMap = GetNode<GridMap>("DecorationGridMap");
+		OcclusionGridMap = GetNode<GridMap>("OcclusionGridMap");
+		OcclusionGridMap.MeshLibrary = BuildOcclusionMeshLibrary();
 		NavigationRegion = GetNode<NavigationRegion3D>("NavigationRegion3D");
 
 		if (Engine.IsEditorHint())
@@ -129,7 +161,106 @@ public partial class MapGenerator : Node3D
 
 			var roomOffset = new Vector3I(room.Bounds.Position.X, 0, room.Bounds.Position.Y);
 			room.Translate(TileToWorld(position) - roomOffset);
+
+			RegisterRoomRegion(placement);
 		}
+	}
+
+	/// <summary>
+	/// Records which master tiles belong to a placed room so the room can later be
+	/// looked up by tile and revealed by its exact (possibly non-rectangular) shape.
+	/// </summary>
+	private void RegisterRoomRegion(RoomPlacement placement)
+	{
+		var roomMap = placement.Room.Map;
+		if (roomMap == null)
+		{
+			return;
+		}
+
+		var region = new RoomRegion(_roomRegions.Count);
+		for (int lx = 0; lx < roomMap.Width; lx++)
+		{
+			for (int lz = 0; lz < roomMap.Height; lz++)
+			{
+				bool isRoom = roomMap.IsRoom(lx, lz);
+				bool isConnector = roomMap.IsConnector(lx, lz);
+				// Chasms (interior pits) reveal with the room but are not walkable.
+				bool isChasm = roomMap.IsChasm(lx, lz);
+				if (!isRoom && !isConnector && !isChasm)
+				{
+					continue;
+				}
+
+				var tile = new Vector2I(placement.Position.X + lx, placement.Position.Y + lz);
+				region.Tiles.Add(tile);
+
+				// Only interior floor tiles count as "the player is in this room".
+				// Connectors are doorway thresholds: counting them would reveal a room
+				// when the player merely stands against its closed door, since the
+				// position rounds onto the connector tile.
+				if (isRoom)
+				{
+					_tileToRoom[tile] = region.Id;
+				}
+
+				if (isConnector)
+				{
+					region.ConnectorTiles.Add(tile);
+					_connectorToRoom[tile] = region.Id;
+				}
+			}
+		}
+
+		RegisterDoors(placement.Room, region);
+		_roomRegions.Add(region);
+	}
+
+	/// <summary>
+	/// Marks the connectors guarded by hand-placed Door props so fog reveal stops
+	/// at them. A door is matched to the nearest connector of its own room.
+	/// </summary>
+	private void RegisterDoors(Room room, RoomRegion region)
+	{
+		if (region.ConnectorTiles.Count == 0)
+		{
+			return;
+		}
+
+		foreach (Node node in room.FindChildren("*", "", true, false))
+		{
+			if (node is not Door door)
+			{
+				continue;
+			}
+
+			if (TryFindNearestConnector(region, door.GlobalPosition, out var connector))
+			{
+				_dooredConnectors.Add(connector);
+			}
+		}
+	}
+
+	private bool TryFindNearestConnector(RoomRegion region, Vector3 worldPosition, out Vector2I connector)
+	{
+		connector = default;
+		float bestDistance = float.MaxValue;
+		foreach (var candidate in region.ConnectorTiles)
+		{
+			var center = TileToWorld(candidate.X, 0, candidate.Y);
+			float dx = worldPosition.X - center.X;
+			float dz = worldPosition.Z - center.Z;
+			float distance = dx * dx + dz * dz;
+			if (distance < bestDistance)
+			{
+				bestDistance = distance;
+				connector = candidate;
+			}
+		}
+
+		// Reject matches further than one tile away so a door at an unused doorway
+		// does not get attributed to a different, connected connector.
+		return bestDistance <= TileSize * TileSize;
 	}
 
 	private void ConnectRooms()
@@ -209,6 +340,204 @@ public partial class MapGenerator : Node3D
 		{
 			WallGridMap.SetCellItem(basePosition + new Vector3I(tileCenter, 0, 0), tileIndex, 16);
 		}
+	}
+
+	/// <summary>
+	/// Builds the single-item mesh library used by the occlusion grid: an unlit
+	/// black horizontal cap that covers one logical tile footprint at wall-top
+	/// height. Contiguous void tiles tile into a continuous flat black roof.
+	/// </summary>
+	private MeshLibrary BuildOcclusionMeshLibrary()
+	{
+		var material = new StandardMaterial3D
+		{
+			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+			AlbedoColor = Colors.Black,
+			// Visible from both sides so the cap reads as black at any camera yaw.
+			CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+		};
+
+		var plane = new PlaneMesh
+		{
+			Size = new Vector2(TileSize, TileSize),
+			Material = material,
+		};
+
+		var library = new MeshLibrary();
+		library.CreateItem(OcclusionItemId);
+		library.SetItemName(OcclusionItemId, "void_occluder");
+		library.SetItemMesh(OcclusionItemId, plane);
+		// Floor tiles are centered on their cell, so the cap centers in X/Z; lift it
+		// to wall-top height so it forms a flat roof over the void.
+		library.SetItemMeshTransform(
+			OcclusionItemId,
+			new Transform3D(Basis.Identity, new Vector3(0, OcclusionCapHeight, 0)));
+
+		return library;
+	}
+
+	/// <summary>
+	/// Places the black occluder caps across the map (plus a margin band so edge
+	/// rooms' outer walls stay hidden). When <paramref name="fog"/> is set every
+	/// tile is covered so rooms start hidden and are revealed during play; without
+	/// it only the void/border is covered and interior surfaces stay visible.
+	/// </summary>
+	private void PlaceOcclusion(bool fog)
+	{
+		GD.Print("Placing occlusion...");
+		if (OcclusionGridMap == null)
+		{
+			return;
+		}
+
+		for (int x = -OcclusionMargin; x < Map.Width + OcclusionMargin; x++)
+		{
+			for (int z = -OcclusionMargin; z < Map.Height + OcclusionMargin; z++)
+			{
+				bool isVisibleInterior = Map.IsWithinBounds(x, z)
+					&& (Map.IsRoom(x, z) || Map.IsConnector(x, z)
+						|| Map.IsCorridor(x, z) || Map.IsChasm(x, z));
+				if (fog || !isVisibleInterior)
+				{
+					OcclusionGridMap.SetCellItem(TileToWorld(x, 0, z), OcclusionItemId, 0);
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Reveals a room and everything reachable from it without crossing a door:
+	/// the room footprint, its connected corridors, and any further rooms joined by
+	/// door-free connectors. A doored connector blocks the cascade and stays capped
+	/// (black above the door) until the door is opened.
+	/// </summary>
+	public void RevealRoom(int roomId)
+	{
+		if (roomId < 0 || roomId >= _roomRegions.Count || OcclusionGridMap == null)
+		{
+			return;
+		}
+
+		var roomQueue = new Queue<int>();
+		var queuedRooms = new HashSet<int> { roomId };
+		roomQueue.Enqueue(roomId);
+
+		while (roomQueue.Count > 0)
+		{
+			var region = _roomRegions[roomQueue.Dequeue()];
+			foreach (var tile in region.Tiles)
+			{
+				// Keep a closed door's threshold capped so the sealed doorway stays
+				// black above the door until it is opened.
+				if (_dooredConnectors.Contains(tile))
+				{
+					continue;
+				}
+
+				RevealTile(tile);
+			}
+
+			foreach (var connector in region.ConnectorTiles)
+			{
+				if (_dooredConnectors.Contains(connector))
+				{
+					continue; // The door gates the cascade.
+				}
+
+				FloodCorridors(connector, roomQueue, queuedRooms);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Unseals the doored connector nearest the opened door and reveals through it,
+	/// so opening a door flows the fog into the corridor and rooms beyond.
+	/// </summary>
+	public void OpenDoorAt(Vector3 worldPosition)
+	{
+		Vector2I? nearest = null;
+		float bestDistance = float.MaxValue;
+		foreach (var connector in _dooredConnectors)
+		{
+			var center = TileToWorld(connector.X, 0, connector.Y);
+			float dx = worldPosition.X - center.X;
+			float dz = worldPosition.Z - center.Z;
+			float distance = dx * dx + dz * dz;
+			if (distance < bestDistance)
+			{
+				bestDistance = distance;
+				nearest = connector;
+			}
+		}
+
+		if (nearest is not Vector2I connectorTile)
+		{
+			return;
+		}
+
+		_dooredConnectors.Remove(connectorTile);
+		RevealRoom(_connectorToRoom[connectorTile]);
+	}
+
+	private void FloodCorridors(Vector2I startConnector, Queue<int> roomQueue,
+		HashSet<int> queuedRooms)
+	{
+		var queue = new Queue<Vector2I>();
+		var visited = new HashSet<Vector2I>();
+
+		foreach (var offset in CardinalOffsets)
+		{
+			var seed = startConnector + offset;
+			if (Map.IsWithinBounds(seed.X, seed.Y) && Map.IsCorridor(seed.X, seed.Y)
+				&& visited.Add(seed))
+			{
+				queue.Enqueue(seed);
+			}
+		}
+
+		while (queue.Count > 0)
+		{
+			var tile = queue.Dequeue();
+			RevealTile(tile);
+			foreach (var offset in CardinalOffsets)
+			{
+				var n = tile + offset;
+				if (!Map.IsWithinBounds(n.X, n.Y))
+				{
+					continue;
+				}
+
+				if (Map.IsCorridor(n.X, n.Y))
+				{
+					if (visited.Add(n))
+					{
+						queue.Enqueue(n);
+					}
+				}
+				else if (Map.IsConnector(n.X, n.Y))
+				{
+					// Reached another room. A doored connector stays sealed (black); an
+					// open one cascades into that room.
+					if (!_dooredConnectors.Contains(n)
+						&& _connectorToRoom.TryGetValue(n, out int otherRoom)
+						&& queuedRooms.Add(otherRoom))
+					{
+						roomQueue.Enqueue(otherRoom);
+					}
+				}
+			}
+		}
+	}
+
+	private void RevealTile(Vector2I tile)
+	{
+		if (!_revealedTiles.Add(tile))
+		{
+			return;
+		}
+
+		// -1 clears the cell (GridMap.InvalidCellItem).
+		OcclusionGridMap.SetCellItem(TileToWorld(tile.X, 0, tile.Y), -1);
 	}
 
 	private void SetPlayerSpawnPoint()
@@ -312,6 +641,11 @@ public partial class MapGenerator : Node3D
 		// Step 2: Connect the rooms
 		ConnectRooms();
 
+		// Step 2b: Place the black occluder caps. In gameplay the whole map starts
+		// covered (fog of war) and rooms are carved out as the player explores; in
+		// the editor preview only the void is covered so the layout stays visible.
+		PlaceOcclusion(includeGameplay);
+
 		if (!includeGameplay)
 		{
 			GD.Print("Map preview generated.");
@@ -350,6 +684,12 @@ public partial class MapGenerator : Node3D
 		GD.Print("Resetting map generator...");
 		GD.Seed(Seed);
 
+		_roomRegions.Clear();
+		_tileToRoom.Clear();
+		_revealedTiles.Clear();
+		_connectorToRoom.Clear();
+		_dooredConnectors.Clear();
+
 		// Initialize the map with empty tiles
 		Map = new MapData((int)MapWidth, (int)MapDepth);
 
@@ -370,6 +710,7 @@ public partial class MapGenerator : Node3D
 		FloorGridMap?.Clear();
 		WallGridMap?.Clear();
 		DecorationGridMap?.Clear();
+		OcclusionGridMap?.Clear();
 
 		PlayerSpawnPoint = null;
 		if (EnemySpawnPoints != null)
@@ -397,6 +738,28 @@ public partial class MapGenerator : Node3D
 		MobFactory?.Reset();
 		RoomFactory?.Reset();
 		TileFactory?.Reset();
+	}
+
+	/// <summary>
+	/// Converts a world position to the master map tile that contains it. Inverse
+	/// of <see cref="TileToWorld(int,int,int)"/>; tiles are centered on their cell.
+	/// </summary>
+	public Vector2I WorldToTile(Vector3 worldPosition)
+	{
+		var centerX = Map.Width / 2;
+		var centerZ = Map.Height / 2;
+		return new Vector2I(
+			Mathf.RoundToInt(worldPosition.X / TileSize) + centerX,
+			Mathf.RoundToInt(worldPosition.Z / TileSize) + centerZ);
+	}
+
+	/// <summary>
+	/// Returns the id of the room that owns the given tile, or -1 if the tile is
+	/// not part of any room (corridor, void, or out of bounds).
+	/// </summary>
+	public int GetRoomIdAt(Vector2I tile)
+	{
+		return _tileToRoom.TryGetValue(tile, out var id) ? id : -1;
 	}
 
 	private Vector3I TileToWorld(Vector3I tile)

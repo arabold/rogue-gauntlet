@@ -19,10 +19,10 @@ public partial class Door : Node3D
 
 	private CollisionShape3D _collisionShape;
 	private MeshInstance3D _door;
+	private MeshInstance3D _xray;
 	private InteractiveComponent _interactiveComponent;
 	private bool _isAnimating;
 
-	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		_collisionShape = GetNode<CollisionShape3D>("%CollisionShape3D");
@@ -32,9 +32,34 @@ public partial class Door : Node3D
 		{
 			_interactiveComponent = GetNode<InteractiveComponent>("InteractiveComponent");
 			_interactiveComponent.Interacted += OnInteract;
+			CreateIndicator();
 		}
 
 		Update();
+	}
+
+	/// <summary>
+	/// Builds an x-ray silhouette of the door. Its shader only draws where the door
+	/// is occluded by scene geometry (a wall or the black fog cap) and fades with
+	/// distance, so a hidden door reads from any camera angle without showing when
+	/// it is already in plain view.
+	/// </summary>
+	private void CreateIndicator()
+	{
+		var material = new ShaderMaterial
+		{
+			Shader = GD.Load<Shader>("res://scenes/props/door_xray.gdshader"),
+			RenderPriority = 8,
+		};
+
+		_xray = new MeshInstance3D
+		{
+			Mesh = _door.Mesh,
+			MaterialOverride = material,
+			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+			Visible = !IsOpen,
+		};
+		_door.AddChild(_xray);
 	}
 
 	private void Update()
@@ -53,6 +78,8 @@ public partial class Door : Node3D
 		_interactiveComponent.IsInteractive = false;
 		_collisionShape.Disabled = true;
 		IsOpen = true;
+		_xray.Visible = false; // No indicator needed once the door is open.
+		SignalBus.EmitDoorOpened(this);
 
 		var tween = CreateTween();
 		tween.TweenProperty(_door, "rotation_degrees:y", OpenRotationDegrees, AnimationDuration)
@@ -75,6 +102,7 @@ public partial class Door : Node3D
 		_isAnimating = true;
 		_interactiveComponent.IsInteractive = false;
 		IsOpen = false;
+		_xray.Visible = true; // Shader decides when it actually appears.
 
 		var tween = CreateTween();
 		tween.TweenProperty(_door, "rotation_degrees:y", 0, AnimationDuration)

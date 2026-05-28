@@ -43,3 +43,11 @@ cell_center_y = false
 cell_center_z = false
 collision_layer = 16
 collision_mask = 0
+
+[node name="OcclusionGridMap" type="GridMap" parent="."]
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+collision_layer = 0
+collision_mask = 0

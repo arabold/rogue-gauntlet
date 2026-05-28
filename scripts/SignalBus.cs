@@ -38,6 +38,12 @@ public partial class SignalBus : Node
     public static void EmitLevelChanged(int level) => Instance?.EmitSignalLevelChanged(level);
     public static void EmitLevelLoaded(Level level) => Instance?.EmitSignalLevelLoaded(level);
 
+    [Signal] public delegate void RoomEnteredEventHandler(int roomId);
+    public static void EmitRoomEntered(int roomId) => Instance?.EmitSignalRoomEntered(roomId);
+
+    [Signal] public delegate void DoorOpenedEventHandler(Node3D door);
+    public static void EmitDoorOpened(Node3D door) => Instance?.EmitSignalDoorOpened(door);
+
     public override void _Ready()
     {
         // Ensure this is the only instance
