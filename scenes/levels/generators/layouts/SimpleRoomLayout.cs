@@ -20,8 +20,14 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 	{
 		List<RoomPlacement> rooms = new();
 
-		// Place entrance and exit rooms
+		// Factories return lazily-loaded scenes. If a path is broken, skip generation
+		// gracefully so content mistakes show as editor/runtime errors instead of crashes.
 		var entranceScene = factory.CreateEntrance();
+		if (entranceScene == null)
+		{
+			return rooms;
+		}
+
 		var entranceRoom = entranceScene.Instantiate<Room>();
 		GD.Print($"Instantiated room {entranceRoom}...");
 		entranceRoom.BakeTileMap();
@@ -35,6 +41,11 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		PlaceRoom(map, entranceRoom.Map, entrancePlacement.Value);
 
 		var exitScene = factory.CreateExit();
+		if (exitScene == null)
+		{
+			return rooms;
+		}
+
 		var exitRoom = exitScene.Instantiate<Room>();
 		GD.Print($"Instantiated room {exitRoom}...");
 		exitRoom.BakeTileMap();
@@ -53,12 +64,16 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 			var retries = Retries;
 			do
 			{
-				var scenePath = (i < countSpecialRooms)
+				var roomScene = (i < countSpecialRooms)
 					? factory.CreateSpecialRoom()
 					: factory.CreateStandardRoom();
-				var scene = scenePath;
-				var room = scene.Instantiate<Room>();
-				GD.Print($"Instantiated room {scenePath}...");
+				if (roomScene == null)
+				{
+					continue;
+				}
+
+				var room = roomScene.Instantiate<Room>();
+				GD.Print($"Instantiated room {roomScene}...");
 				room.BakeTileMap();
 				if (!ValidateConnectableRoom(room))
 				{

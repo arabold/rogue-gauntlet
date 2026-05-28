@@ -273,7 +273,13 @@ public partial class MapGenerator : Node3D
 
 			spawnPoints.Add(point);
 
+			// Enemy scenes are loaded lazily by the factory to keep unused variants out of memory.
 			var enemyScene = MobFactory.CreateEnemy(DungeonDepth);
+			if (enemyScene == null)
+			{
+				continue;
+			}
+
 			var spawnPointNode = new SpawnPoint();
 			spawnPointNode.SpawnOnStart = true;
 			spawnPointNode.Scenes = [enemyScene];

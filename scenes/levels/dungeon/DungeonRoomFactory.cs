@@ -7,53 +7,76 @@ using System.Linq;
 [GlobalClass]
 public partial class DungeonRoomFactory : RoomFactory
 {
-	[Export] public Array<PackedScene> EntranceScenes { get; set; }
-	[Export] public Array<PackedScene> ExitScenes { get; set; }
-	[Export] public Array<PackedScene> StandardRoomScenes { get; set; }
-	[Export] public Array<PackedScene> SpecialRoomScenes { get; set; }
+	// Store paths instead of PackedScene references so loading a level does not preload
+	// every authored room and all of their mesh/prop dependencies into memory.
+	[Export] public Array<string> EntranceScenePaths { get; set; }
+	[Export] public Array<string> ExitScenePaths { get; set; }
+	[Export] public Array<string> StandardRoomScenePaths { get; set; }
+	[Export] public Array<string> SpecialRoomScenePaths { get; set; }
 
-	private HashSet<PackedScene> _usedStandardRooms = new();
-	private HashSet<PackedScene> _usedSpecialRooms = new();
+	private readonly HashSet<string> _usedStandardRooms = new();
+	private readonly HashSet<string> _usedSpecialRooms = new();
 
 	public override PackedScene CreateEntrance()
 	{
-		var scene = EntranceScenes.PickRandom();
-		return scene;
+		return LoadScene(EntranceScenePaths.PickRandom());
 	}
 
 	public override PackedScene CreateExit()
 	{
-		var scene = ExitScenes.PickRandom();
-		return scene;
+		return LoadScene(ExitScenePaths.PickRandom());
 	}
 
 	public override PackedScene CreateStandardRoom()
 	{
-		var availableRooms = new Array<PackedScene>(StandardRoomScenes.Where(room => !_usedStandardRooms.Contains(room)));
+		// Track by path because scenes are loaded on demand; comparing PackedScene
+		// instances here would not reliably detect reuse across separate loads.
+		var availableRooms = new Array<string>(StandardRoomScenePaths.Where(room => !_usedStandardRooms.Contains(room)));
 		if (availableRooms.Count == 0)
 		{
-			// If all rooms have been used, reset tracking
+			// Reset after exhausting the pool so long levels can reuse rooms only when necessary.
 			_usedStandardRooms.Clear();
-			availableRooms = StandardRoomScenes;
+			availableRooms = StandardRoomScenePaths;
 		}
 
-		var scene = availableRooms.PickRandom();
-		_usedStandardRooms.Add(scene);
-		return scene;
+		string scenePath = availableRooms.PickRandom();
+		_usedStandardRooms.Add(scenePath);
+		return LoadScene(scenePath);
 	}
 
 	public override PackedScene CreateSpecialRoom()
 	{
-		var availableRooms = new Array<PackedScene>(SpecialRoomScenes.Where(room => !_usedSpecialRooms.Contains(room)));
+		// Track by path because scenes are loaded on demand; comparing PackedScene
+		// instances here would not reliably detect reuse across separate loads.
+		var availableRooms = new Array<string>(SpecialRoomScenePaths.Where(room => !_usedSpecialRooms.Contains(room)));
 		if (availableRooms.Count == 0)
 		{
-			// If all rooms have been used, reset tracking
+			// Reset after exhausting the pool so long levels can reuse rooms only when necessary.
 			_usedSpecialRooms.Clear();
-			availableRooms = SpecialRoomScenes;
+			availableRooms = SpecialRoomScenePaths;
 		}
 
-		var scene = availableRooms.PickRandom();
-		_usedSpecialRooms.Add(scene);
+		string scenePath = availableRooms.PickRandom();
+		_usedSpecialRooms.Add(scenePath);
+		return LoadScene(scenePath);
+	}
+
+	private static PackedScene LoadScene(string scenePath)
+	{
+		if (string.IsNullOrEmpty(scenePath))
+		{
+			GD.PrintErr("Dungeon room factory has an empty scene path.");
+			return null;
+		}
+
+		// Ignore the global cache so these room PackedScenes can be released after the
+		// generated level scene is freed instead of becoming long-lived cached resources.
+		PackedScene scene = ResourceLoader.Load<PackedScene>(scenePath, cacheMode: ResourceLoader.CacheMode.Ignore);
+		if (scene == null)
+		{
+			GD.PrintErr($"Could not load dungeon room scene: {scenePath}");
+		}
+
 		return scene;
 	}
 

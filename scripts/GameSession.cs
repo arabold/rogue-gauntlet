@@ -257,7 +257,22 @@ public partial class GameSession : Node
 	{
 		GetTree().Paused = false;
 		SignalBus.EmitGamePaused(false);
+		// The menu should not keep a run active just because this autoload survives
+		// scene changes. Clearing here releases save data and prevents stale state reuse.
+		ClearSession();
 		GetTree().ChangeSceneToFile(MenuScenePath);
+	}
+
+	private void ClearSession()
+	{
+		ActiveSlotId = 0;
+		ActiveSeed = 42;
+		ActiveDungeonDepth = 1;
+		PendingTravelDirection = LevelTravelDirection.None;
+		_activeSave = null;
+		_pendingLoadedSave = null;
+		_sessionStartedAtMsec = 0;
+		_stairArrivalTicks = 0;
 	}
 
 	private double GetSessionElapsedSeconds()
