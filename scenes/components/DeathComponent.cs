@@ -24,6 +24,15 @@ public partial class DeathComponent : Node
 		// Disable collision detection for character
 		var owner = GetOwner<CharacterBody3D>();
 
+		if (owner.HasMeta("persistent_id"))
+		{
+			string persistentId = owner.GetMeta("persistent_id").AsString();
+			if (!string.IsNullOrEmpty(persistentId))
+			{
+				GameSession.Instance?.ClearEntity(persistentId);
+			}
+		}
+
 		GD.Print($"{owner.Name} died!");
 		owner.CollisionLayer = 0;
 		owner.CollisionMask = 1; // only collide with the floor

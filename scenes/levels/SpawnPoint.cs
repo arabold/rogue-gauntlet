@@ -13,6 +13,7 @@ public partial class SpawnPoint : Node3D
 	/// </summary>
 	[Export] public Array<PackedScene> Scenes;
 	[Export] public Level Level { get; set; }
+	[Export] public string PersistentId { get; set; } = string.Empty;
 	/// <summary>
 	/// Whether to spawn immediately on scene load
 	/// </summary>
@@ -56,10 +57,21 @@ public partial class SpawnPoint : Node3D
 			return null;
 		}
 
+		if (!string.IsNullOrEmpty(PersistentId) && GameSession.Instance?.IsEntityCleared(PersistentId) == true)
+		{
+			GD.Print($"Skipping spawn of cleared entity: {PersistentId}");
+			return null;
+		}
+
 		var scene = Scenes.PickRandom();
 		var node = scene.Instantiate<Node3D>();
 		node.GlobalTransform = GlobalTransform;
 		node.Rotate(Vector3.Up, Mathf.DegToRad(180)); // FIXME: Why?
+
+		if (!string.IsNullOrEmpty(PersistentId))
+		{
+			node.SetMeta("persistent_id", PersistentId);
+		}
 
 		Level.AddWorldNode(node);
 

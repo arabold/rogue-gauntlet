@@ -277,6 +277,7 @@ public partial class MapGenerator : Node3D
 			var spawnPointNode = new SpawnPoint();
 			spawnPointNode.SpawnOnStart = true;
 			spawnPointNode.Scenes = [enemyScene];
+			spawnPointNode.PersistentId = $"depth:{DungeonDepth}:monster:{i}";
 			AddChild(spawnPointNode);
 
 			spawnPointNode.GlobalPosition = point;

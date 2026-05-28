@@ -33,6 +33,7 @@ public sealed class SaveSlotMetadata
 
 public sealed class PlayerSaveData
 {
+	public bool ApplyTransform { get; set; } = true;
 	public Vector3SaveData Position { get; set; } = new();
 	public Vector3SaveData Rotation { get; set; } = new();
 	public PlayerStatsSaveData Stats { get; set; } = new();

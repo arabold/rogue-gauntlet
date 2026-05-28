@@ -18,6 +18,17 @@ public partial class GameSession : Node
 	public uint ActiveDungeonDepth { get; private set; } = 1;
 	public bool IsGameActive => ActiveSlotId > 0;
 
+	public enum LevelTravelDirection
+	{
+		None,
+		Up,
+		Down
+	}
+
+	public LevelTravelDirection PendingTravelDirection { get; private set; } = LevelTravelDirection.None;
+	private double _stairArrivalTicks;
+	private const double StairArrivalLockSeconds = 1.0;
+
 	private SaveGame _activeSave;
 	private SaveGame _pendingLoadedSave;
 	private double _sessionStartedAtMsec;
@@ -96,7 +107,108 @@ public partial class GameSession : Node
 
 	public void ConfigureLevel(Level level)
 	{
-		level.ConfigureGeneration(ActiveSeed, ActiveDungeonDepth);
+		ulong levelSeed = GetLevelSeed(ActiveSeed, ActiveDungeonDepth);
+		level.ConfigureGeneration(levelSeed, ActiveDungeonDepth);
+	}
+
+	public static ulong GetLevelSeed(ulong runSeed, uint depth)
+	{
+		return runSeed ^ ((ulong)depth * 0x9e3779b97f4a7c15UL);
+	}
+
+	public bool CanUseTransition(LevelTravelDirection direction)
+	{
+		if (direction == LevelTravelDirection.Up && ActiveDungeonDepth == 1)
+		{
+			return false;
+		}
+
+		double elapsed = (Time.GetTicksMsec() - _stairArrivalTicks) / 1000.0;
+		if (elapsed < StairArrivalLockSeconds)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	public void RegisterStairArrival(Player player)
+	{
+		_stairArrivalTicks = Time.GetTicksMsec();
+		PendingTravelDirection = LevelTravelDirection.None;
+	}
+
+	public bool ChangeDungeonDepth(LevelTravelDirection direction)
+	{
+		if (!CanUseTransition(direction))
+		{
+			return false;
+		}
+
+		Player player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
+		if (player == null)
+		{
+			return false;
+		}
+
+		if (_activeSave == null)
+		{
+			_activeSave = new SaveGame
+			{
+				SlotId = ActiveSlotId,
+				RunId = Guid.NewGuid().ToString("N"),
+				CreatedAtUtc = DateTime.UtcNow.ToString("O"),
+			};
+		}
+
+		_activeSave.Player = CapturePlayerForLevelTransition(player);
+		_pendingLoadedSave = _activeSave;
+
+		if (direction == LevelTravelDirection.Down)
+		{
+			ActiveDungeonDepth++;
+		}
+		else if (direction == LevelTravelDirection.Up)
+		{
+			if (ActiveDungeonDepth > 1)
+			{
+				ActiveDungeonDepth--;
+			}
+		}
+
+		PendingTravelDirection = direction;
+		_activeSave.DungeonDepth = ActiveDungeonDepth;
+		_activeSave.Player.Stats.DungeonDepth = (int)ActiveDungeonDepth;
+
+		GD.Print($"Transitioning {direction} to depth {ActiveDungeonDepth}...");
+
+		GetTree().Paused = false;
+		GetTree().ReloadCurrentScene();
+
+		return true;
+	}
+
+	public bool IsEntityCleared(string entityId)
+	{
+		return _activeSave?.World?.ClearedEntityIds?.Contains(entityId) == true;
+	}
+
+	public void ClearEntity(string entityId)
+	{
+		if (_activeSave == null)
+		{
+			_activeSave = new SaveGame
+			{
+				SlotId = ActiveSlotId,
+				RunId = Guid.NewGuid().ToString("N"),
+				CreatedAtUtc = DateTime.UtcNow.ToString("O"),
+			};
+		}
+
+		if (!_activeSave.World.ClearedEntityIds.Contains(entityId))
+		{
+			_activeSave.World.ClearedEntityIds.Add(entityId);
+		}
 	}
 
 	public void SaveActiveGame()
@@ -170,6 +282,16 @@ public partial class GameSession : Node
 		{
 			Position = CaptureVector3(player.GlobalPosition),
 			Rotation = CaptureVector3(player.Rotation),
+			Stats = CaptureStats(player.Stats),
+			Inventory = CaptureInventory(player.Inventory),
+		};
+	}
+
+	private static PlayerSaveData CapturePlayerForLevelTransition(Player player)
+	{
+		return new PlayerSaveData
+		{
+			ApplyTransform = false,
 			Stats = CaptureStats(player.Stats),
 			Inventory = CaptureInventory(player.Inventory),
 		};
@@ -253,8 +375,11 @@ public partial class GameSession : Node
 		ApplyInventory(player, saveData.Inventory);
 		ApplyStats(player.Stats, saveData.Stats);
 		player.StatsController.SyncStats();
-		player.GlobalPosition = ToVector3(saveData.Position);
-		player.Rotation = ToVector3(saveData.Rotation);
+		if (saveData.ApplyTransform)
+		{
+			player.GlobalPosition = ToVector3(saveData.Position);
+			player.Rotation = ToVector3(saveData.Rotation);
+		}
 	}
 
 	private static void ApplyInventory(Player player, InventorySaveData saveData)
