@@ -20,12 +20,11 @@ public partial class GameSession : Node
 
 	public enum LevelTravelDirection
 	{
-		None,
-		Up,
-		Down
+		Up = 1,
+		Down = 2
 	}
 
-	public LevelTravelDirection PendingTravelDirection { get; private set; } = LevelTravelDirection.None;
+	public LevelTravelDirection? PendingTravelDirection { get; private set; }
 	private double _stairArrivalTicks;
 	private const double StairArrivalLockSeconds = 1.0;
 
@@ -67,6 +66,7 @@ public partial class GameSession : Node
 		ActiveSlotId = slotId;
 		ActiveSeed = (ulong)DateTime.UtcNow.Ticks;
 		ActiveDungeonDepth = 1;
+		PendingTravelDirection = LevelTravelDirection.Down;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
 		_pendingLoadedSave = null;
 
@@ -97,6 +97,7 @@ public partial class GameSession : Node
 		ActiveSlotId = slotId;
 		ActiveSeed = saveGame.Seed;
 		ActiveDungeonDepth = saveGame.DungeonDepth;
+		PendingTravelDirection = null;
 		_activeSave = saveGame;
 		_pendingLoadedSave = saveGame;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
@@ -135,7 +136,7 @@ public partial class GameSession : Node
 	public void RegisterStairArrival(Player player)
 	{
 		_stairArrivalTicks = Time.GetTicksMsec();
-		PendingTravelDirection = LevelTravelDirection.None;
+		PendingTravelDirection = null;
 	}
 
 	public bool ChangeDungeonDepth(LevelTravelDirection direction)
@@ -311,7 +312,7 @@ public partial class GameSession : Node
 		ActiveSlotId = 0;
 		ActiveSeed = 42;
 		ActiveDungeonDepth = 1;
-		PendingTravelDirection = LevelTravelDirection.None;
+		PendingTravelDirection = null;
 		_activeSave = null;
 		_pendingLoadedSave = null;
 		_sessionStartedAtMsec = 0;
