@@ -137,7 +137,7 @@ script = ExtResource("debug_volume_visualizer")
 DebugColor = Color(0.1, 0.6, 1, 0.2)
 
 [node name="PlayerSpawnPoint" parent="." unique_id=1749205725 instance=ExtResource("6_f2qx3")]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -1, 2, -4)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -4, 3, -4)
 AutoWalkDirection = Vector3(0, 0, 1)
 AutoWalkSeconds = 0.45
 
