@@ -93,4 +93,23 @@ public sealed class Vector3SaveData
 public sealed class WorldSaveData
 {
 	public List<string> ClearedEntityIds { get; set; } = [];
+	public List<RevealedLevelSaveData> RevealedLevels { get; set; } = [];
+}
+
+/// <summary>
+/// Fog-of-war reveal state for one dungeon depth. The map regenerates
+/// deterministically from its seed, so replaying the rooms the player entered and
+/// the doors they opened reproduces the exact revealed area.
+/// </summary>
+public sealed class RevealedLevelSaveData
+{
+	public uint DungeonDepth { get; set; }
+	public List<int> RevealedRoomIds { get; set; } = [];
+	public List<Vector2ISaveData> OpenedDoors { get; set; } = [];
+}
+
+public sealed class Vector2ISaveData
+{
+	public int X { get; set; }
+	public int Y { get; set; }
 }

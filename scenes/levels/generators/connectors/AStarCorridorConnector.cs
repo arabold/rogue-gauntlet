@@ -29,6 +29,17 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
     {
         var astar = CreatePathGrid(map);
         var components = FindRoomComponents(map);
+
+        // Phase 1: link every room into a single reachable network (spanning tree).
+        ConnectComponents(map, astar, components);
+
+        // Phase 2: route a corridor out of every doorway, so each one is an open
+        // passage rather than just one per room.
+        ConnectAllDoorways(map, astar, components);
+    }
+
+    private void ConnectComponents(MapData map, AStarGrid2D astar, List<RoomComponent> components)
+    {
         if (components.Count <= 1)
         {
             return;
@@ -68,6 +79,56 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
             PlaceCorridorPath(map, astar, path);
             connectedComponents.Add(componentToConnect);
             remainingComponents.Remove(componentToConnect);
+        }
+    }
+
+    /// <summary>
+    /// Connects every doorway into the corridor network. The spanning tree links
+    /// only one doorway per room; the rest are routed here to the nearest doorway
+    /// that already opens into the network, so authored multi-door rooms (e.g. a
+    /// 4-way crossing) keep all of their entrances.
+    /// </summary>
+    private void ConnectAllDoorways(MapData map, AStarGrid2D astar, List<RoomComponent> components)
+    {
+        var connectors = new List<RoomConnector>();
+        foreach (var component in components)
+        {
+            connectors.AddRange(component.Connectors);
+        }
+
+        foreach (var connector in connectors)
+        {
+            if (map.IsCorridor(connector.CorridorTile.X, connector.CorridorTile.Y))
+            {
+                continue; // Already opens into the network.
+            }
+
+            Godot.Collections.Array<Vector2I> bestPath = null;
+            int bestLength = int.MaxValue;
+            foreach (var target in connectors)
+            {
+                if (target.CorridorTile == connector.CorridorTile
+                    || !map.IsCorridor(target.CorridorTile.X, target.CorridorTile.Y))
+                {
+                    continue;
+                }
+
+                var path = astar.GetIdPath(connector.CorridorTile, target.CorridorTile);
+                if (path.Count > 0 && path.Count < bestLength)
+                {
+                    bestLength = path.Count;
+                    bestPath = path;
+                }
+            }
+
+            if (bestPath != null)
+            {
+                PlaceCorridorPath(map, astar, bestPath);
+            }
+            else
+            {
+                GD.PrintErr($"Doorway entrance at {connector.CorridorTile} could not be connected.");
+            }
         }
     }
 

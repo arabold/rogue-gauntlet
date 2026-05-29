@@ -33,6 +33,8 @@ public partial class MapGenerator : Node3D
 	// Connectors guarded by a door; the reveal cascade stops here until it opens.
 	private readonly HashSet<Vector2I> _dooredConnectors = new();
 	private readonly HashSet<Vector2I> _revealedTiles = new();
+	// Doors paired with the connector they guard, for toggling their x-ray indicator.
+	private readonly List<(Door Door, Vector2I Connector)> _doorIndicators = new();
 
 	private static readonly Vector2I[] CardinalOffsets =
 	{
@@ -234,9 +236,11 @@ public partial class MapGenerator : Node3D
 				continue;
 			}
 
+			// Candidates only: which doorways are real passages isn't known until
+			// corridors have been routed (see FinalizeDoors).
 			if (TryFindNearestConnector(region, door.GlobalPosition, out var connector))
 			{
-				_dooredConnectors.Add(connector);
+				_doorIndicators.Add((door, connector));
 			}
 		}
 	}
@@ -258,9 +262,55 @@ public partial class MapGenerator : Node3D
 			}
 		}
 
-		// Reject matches further than one tile away so a door at an unused doorway
-		// does not get attributed to a different, connected connector.
-		return bestDistance <= TileSize * TileSize;
+		// Doors sit in the wall opening, up to ~1.5 tiles from the connector floor
+		// tile they guard (plus tile-center rounding), so accept the nearest match
+		// within a 2-tile radius and reject doors with no connector near them.
+		float maxDistance = TileSize * 2f;
+		return bestDistance <= maxDistance * maxDistance;
+	}
+
+	/// <summary>
+	/// Resolves hand-placed doors against the routed corridors. A door whose doorway
+	/// was connected becomes a real gating door (its connector seals the fog); a door
+	/// at a doorway the connector step walled shut is removed so it does not linger as
+	/// an interactable door embedded in a solid wall.
+	/// </summary>
+	private void FinalizeDoors()
+	{
+		var connectedDoors = new List<(Door Door, Vector2I Connector)>();
+		foreach (var (door, connector) in _doorIndicators)
+		{
+			if (IsConnectorConnected(connector))
+			{
+				_dooredConnectors.Add(connector);
+				connectedDoors.Add((door, connector));
+			}
+			else
+			{
+				door.QueueFree();
+			}
+		}
+
+		_doorIndicators.Clear();
+		_doorIndicators.AddRange(connectedDoors);
+	}
+
+	/// <summary>
+	/// A connector is connected when a corridor was routed out of one of its open
+	/// sides (rooms never sit adjacent, so a real link always has a corridor tile).
+	/// </summary>
+	private bool IsConnectorConnected(Vector2I connector)
+	{
+		foreach (var direction in Map.GetConnectorDirections(connector.X, connector.Y))
+		{
+			var outside = connector + direction;
+			if (Map.IsWithinBounds(outside.X, outside.Y) && Map.IsCorridor(outside.X, outside.Y))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private void ConnectRooms()
@@ -408,8 +458,9 @@ public partial class MapGenerator : Node3D
 	/// <summary>
 	/// Reveals a room and everything reachable from it without crossing a door:
 	/// the room footprint, its connected corridors, and any further rooms joined by
-	/// door-free connectors. A doored connector blocks the cascade and stays capped
-	/// (black above the door) until the door is opened.
+	/// door-free connectors. A doored connector blocks the cascade so the corridor
+	/// beyond a closed door stays hidden, but the doorway tile itself (part of the
+	/// room) is revealed; the closed door and the hidden corridor are the seal.
 	/// </summary>
 	public void RevealRoom(int roomId)
 	{
@@ -427,13 +478,6 @@ public partial class MapGenerator : Node3D
 			var region = _roomRegions[roomQueue.Dequeue()];
 			foreach (var tile in region.Tiles)
 			{
-				// Keep a closed door's threshold capped so the sealed doorway stays
-				// black above the door until it is opened.
-				if (_dooredConnectors.Contains(tile))
-				{
-					continue;
-				}
-
 				RevealTile(tile);
 			}
 
@@ -447,13 +491,41 @@ public partial class MapGenerator : Node3D
 				FloodCorridors(connector, roomQueue, queuedRooms);
 			}
 		}
+
+		UpdateDoorIndicators();
+	}
+
+	/// <summary>
+	/// Shows a door's x-ray indicator only once the area on at least one side of it
+	/// has been revealed, so doors still buried in the fog don't leak their location.
+	/// </summary>
+	private void UpdateDoorIndicators()
+	{
+		foreach (var (door, connector) in _doorIndicators)
+		{
+			door.SetIndicatorVisible(HasRevealedNeighbor(connector));
+		}
+	}
+
+	private bool HasRevealedNeighbor(Vector2I tile)
+	{
+		foreach (var offset in CardinalOffsets)
+		{
+			if (_revealedTiles.Contains(tile + offset))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/// <summary>
 	/// Unseals the doored connector nearest the opened door and reveals through it,
-	/// so opening a door flows the fog into the corridor and rooms beyond.
+	/// so opening a door flows the fog into the corridor and rooms beyond. Returns
+	/// the unsealed connector tile (for persistence), or null if none matched.
 	/// </summary>
-	public void OpenDoorAt(Vector3 worldPosition)
+	public Vector2I? OpenDoorAt(Vector3 worldPosition)
 	{
 		Vector2I? nearest = null;
 		float bestDistance = float.MaxValue;
@@ -472,11 +544,45 @@ public partial class MapGenerator : Node3D
 
 		if (nearest is not Vector2I connectorTile)
 		{
-			return;
+			return null;
 		}
 
-		_dooredConnectors.Remove(connectorTile);
-		RevealRoom(_connectorToRoom[connectorTile]);
+		OpenConnector(connectorTile);
+		return connectorTile;
+	}
+
+	/// <summary>
+	/// Restores a previously explored level: re-opens the doors that were opened and
+	/// re-reveals the rooms that were entered. Combined with deterministic map
+	/// generation, this reproduces the exact area the player had uncovered.
+	/// </summary>
+	public void RestoreReveal(IEnumerable<int> revealedRoomIds, IEnumerable<Vector2I> openedDoors)
+	{
+		// Unseal every opened door first so cascades can flow through all of them.
+		foreach (var connector in openedDoors)
+		{
+			_dooredConnectors.Remove(connector);
+		}
+
+		foreach (var roomId in revealedRoomIds)
+		{
+			RevealRoom(roomId);
+		}
+
+		// Reveal through doors opened from the corridor side (no room was entered).
+		foreach (var connector in openedDoors)
+		{
+			if (_connectorToRoom.TryGetValue(connector, out int roomId))
+			{
+				RevealRoom(roomId);
+			}
+		}
+	}
+
+	private void OpenConnector(Vector2I connector)
+	{
+		_dooredConnectors.Remove(connector);
+		RevealRoom(_connectorToRoom[connector]);
 	}
 
 	private void FloodCorridors(Vector2I startConnector, Queue<int> roomQueue,
@@ -641,7 +747,11 @@ public partial class MapGenerator : Node3D
 		// Step 2: Connect the rooms
 		ConnectRooms();
 
-		// Step 2b: Place the black occluder caps. In gameplay the whole map starts
+		// Step 2b: Resolve doors against the routed corridors: keep doors at connected
+		// doorways (and gate fog there), drop doors at doorways that got walled shut.
+		FinalizeDoors();
+
+		// Step 2c: Place the black occluder caps. In gameplay the whole map starts
 		// covered (fog of war) and rooms are carved out as the player explores; in
 		// the editor preview only the void is covered so the layout stays visible.
 		PlaceOcclusion(includeGameplay);
@@ -689,6 +799,7 @@ public partial class MapGenerator : Node3D
 		_revealedTiles.Clear();
 		_connectorToRoom.Clear();
 		_dooredConnectors.Clear();
+		_doorIndicators.Clear();
 
 		// Initialize the map with empty tiles
 		Map = new MapData((int)MapWidth, (int)MapDepth);

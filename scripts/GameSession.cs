@@ -151,16 +151,7 @@ public partial class GameSession : Node
 			return false;
 		}
 
-		if (_activeSave == null)
-		{
-			_activeSave = new SaveGame
-			{
-				SlotId = ActiveSlotId,
-				RunId = Guid.NewGuid().ToString("N"),
-				CreatedAtUtc = DateTime.UtcNow.ToString("O"),
-			};
-		}
-
+		EnsureActiveSave();
 		_activeSave.Player = CapturePlayerForLevelTransition(player);
 		_pendingLoadedSave = _activeSave;
 
@@ -195,20 +186,73 @@ public partial class GameSession : Node
 
 	public void ClearEntity(string entityId)
 	{
-		if (_activeSave == null)
-		{
-			_activeSave = new SaveGame
-			{
-				SlotId = ActiveSlotId,
-				RunId = Guid.NewGuid().ToString("N"),
-				CreatedAtUtc = DateTime.UtcNow.ToString("O"),
-			};
-		}
-
+		EnsureActiveSave();
 		if (!_activeSave.World.ClearedEntityIds.Contains(entityId))
 		{
 			_activeSave.World.ClearedEntityIds.Add(entityId);
 		}
+	}
+
+	/// <summary>Records that the player entered (and thus revealed) a room on the current depth.</summary>
+	public void MarkRoomRevealed(int roomId)
+	{
+		RevealedLevelSaveData level = GetOrCreateRevealedLevel();
+		if (!level.RevealedRoomIds.Contains(roomId))
+		{
+			level.RevealedRoomIds.Add(roomId);
+		}
+	}
+
+	/// <summary>Records that a door at the given connector tile was opened on the current depth.</summary>
+	public void MarkDoorOpened(Vector2I connector)
+	{
+		RevealedLevelSaveData level = GetOrCreateRevealedLevel();
+		if (!level.OpenedDoors.Any(door => door.X == connector.X && door.Y == connector.Y))
+		{
+			level.OpenedDoors.Add(new Vector2ISaveData { X = connector.X, Y = connector.Y });
+		}
+	}
+
+	public IReadOnlyList<int> GetRevealedRoomIds()
+	{
+		return FindRevealedLevel()?.RevealedRoomIds ?? (IReadOnlyList<int>)Array.Empty<int>();
+	}
+
+	public IReadOnlyList<Vector2I> GetOpenedDoors()
+	{
+		RevealedLevelSaveData level = FindRevealedLevel();
+		return level == null
+			? Array.Empty<Vector2I>()
+			: level.OpenedDoors.Select(door => new Vector2I(door.X, door.Y)).ToList();
+	}
+
+	private RevealedLevelSaveData FindRevealedLevel()
+	{
+		return _activeSave?.World?.RevealedLevels?
+			.FirstOrDefault(level => level.DungeonDepth == ActiveDungeonDepth);
+	}
+
+	private RevealedLevelSaveData GetOrCreateRevealedLevel()
+	{
+		EnsureActiveSave();
+		RevealedLevelSaveData level = FindRevealedLevel();
+		if (level == null)
+		{
+			level = new RevealedLevelSaveData { DungeonDepth = ActiveDungeonDepth };
+			_activeSave.World.RevealedLevels.Add(level);
+		}
+
+		return level;
+	}
+
+	private void EnsureActiveSave()
+	{
+		_activeSave ??= new SaveGame
+		{
+			SlotId = ActiveSlotId,
+			RunId = Guid.NewGuid().ToString("N"),
+			CreatedAtUtc = DateTime.UtcNow.ToString("O"),
+		};
 	}
 
 	public void SaveActiveGame()
@@ -226,12 +270,8 @@ public partial class GameSession : Node
 			return;
 		}
 
-		SaveGame saveGame = _activeSave ?? new SaveGame
-		{
-			SlotId = ActiveSlotId,
-			RunId = Guid.NewGuid().ToString("N"),
-			CreatedAtUtc = DateTime.UtcNow.ToString("O"),
-		};
+		EnsureActiveSave();
+		SaveGame saveGame = _activeSave;
 
 		saveGame.Version = SaveGame.CurrentVersion;
 		saveGame.SlotId = ActiveSlotId;

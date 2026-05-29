@@ -20,6 +20,7 @@ public partial class Door : Node3D
 	private CollisionShape3D _collisionShape;
 	private MeshInstance3D _door;
 	private MeshInstance3D _xray;
+	private bool _indicatorAllowed;
 	private InteractiveComponent _interactiveComponent;
 	private bool _isAnimating;
 
@@ -57,9 +58,22 @@ public partial class Door : Node3D
 			Mesh = _door.Mesh,
 			MaterialOverride = material,
 			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
-			Visible = !IsOpen,
+			Visible = false, // Stays hidden until an adjacent tile is revealed.
 		};
 		_door.AddChild(_xray);
+	}
+
+	/// <summary>
+	/// Allows the x-ray indicator to show (it still only renders when the door is
+	/// closed). Driven by whether the area next to the door has been discovered.
+	/// </summary>
+	public void SetIndicatorVisible(bool allowed)
+	{
+		_indicatorAllowed = allowed;
+		if (_xray != null)
+		{
+			_xray.Visible = allowed && !IsOpen;
+		}
 	}
 
 	private void Update()
@@ -102,7 +116,7 @@ public partial class Door : Node3D
 		_isAnimating = true;
 		_interactiveComponent.IsInteractive = false;
 		IsOpen = false;
-		_xray.Visible = true; // Shader decides when it actually appears.
+		_xray.Visible = _indicatorAllowed; // Shader decides when it actually appears.
 
 		var tween = CreateTween();
 		tween.TweenProperty(_door, "rotation_degrees:y", 0, AnimationDuration)
