@@ -2,111 +2,124 @@
 
 ## Overview
 
-This document explains the level generation system in Rogue Gauntlet, covering core concepts and implementation details for both developers and level designers.
+This document explains the level generation, connectivity, and visibility (fog of war) systems in Rogue Gauntlet, covering core concepts and implementation details for both developers and level designers.
+
+## Coordinate model (important)
+
+There are three sizes in play; mixing them up causes alignment bugs:
+
+- **GridMap cells: 1 unit.** All room `GridMap`s (`Floor`, `Wall`, `Decoration`, and the runtime `Occlusion` grid) use a `cell_size` of 1.
+- **Floor/wall meshes: variable.** Authored tile meshes are 2×2, 4×4, or even 8×8 units depending on the kit (e.g. sewer grates are 2×2, dirt floors 4×4).
+- **Logical map tiles: 4 units (`TileSize = 4`).** `MapData` — the grid that generation, connectivity, fog, and occlusion all reason on — buckets the world into 4×4 logical tiles. `Room.BakeTileMap` marks a logical tile as floor if it finds *any* floor cell in its 4×4 area.
+
+When converting: `MapGenerator.TileToWorld` maps a logical tile to GridMap coordinates (centered on the map), and `WorldToTile` inverts it.
 
 ## Level Generation Pipeline
 
-The level generation follows a multi-step process:
+`MapGenerator.GenerateMap` runs these steps:
 
-1. **Map Initialization**
+1. **Map initialization (`Reset`)**
 
-   - Creates a tile-based grid system using `MapData` class
-   - Grid uses `MapTile` enum: Empty, Wall, Room, Connector, Corridor, Chasm
-   - Map borders are automatically set as walls
-   - Configurable width and depth (20-100 tiles)
+   - Builds a `MapData` grid (`MapTile` enum: `Empty, Wall, Room, Connector, Corridor, Chasm`).
+   - Outer border is set to `Wall`; everything else starts `Empty`.
+   - Width/depth configurable (20–100 logical tiles).
 
-2. **Room Generation & Placement**
+2. **Room placement (`RoomLayoutStrategy`)**
 
-   - Uses `RoomLayoutStrategy` to randomly place predefined room templates
-   - Validates room placement using intersection checks
-   - Ensures minimum spacing between rooms
-   - Configurable maximum number of rooms (1-100)
+   - Instantiates authored room templates and places them with spacing/intersection checks (`MapData.Intersects`).
+   - Each placed room's local `MapData` is stamped into the master map, and per-room runtime data is recorded: a `RoomRegion` (the room's tiles and connector tiles) plus a `tile → room id` lookup. Room ids are assigned in placement order, which is deterministic for a given seed.
 
-3. **Corridor Generation**
+3. **Corridor connection (`CorridorConnectorStrategy`)** — see [Connectivity](#connectivity-doorways-vs-open-edges).
 
-   - `CorridorConnectorStrategy` creates paths between rooms
-   - Uses A\* pathfinding for optimal corridor routing
-   - Automatically places connectors at room entrances
-   - Handles corridor-to-room transitions
+4. **Door resolution (`FinalizeDoors`)**
 
-4. **Environment Assembly**
-   The system uses four synchronized grid maps:
+   - Matches hand-placed `Door` props to the nearest connector of their room.
+   - A door at a doorway that was actually connected becomes a real gating door; a door at a doorway that got walled shut is removed (so there are no interactable doors embedded in solid walls).
 
-   - **Base Map**: Core layout (4x4 tile size)
+5. **Occlusion placement (`PlaceOcclusion`)** — see [Map Occlusion & Fog of War](#map-occlusion--fog-of-war).
 
-     - Defines room and corridor positions
-     - Manages structural connectivity
-     - Handles collision boundaries
+6. **Navigation & spawns**
 
-   - **Floor Map**: Ground surfaces (1x1 grid)
+   - Bakes the navigation mesh for AI.
+   - Places the player spawn point and enemy spawn points (min 20 units from player, 5 units apart), scaled by dungeon depth.
 
-     - Supports tiles from 1x1 to 12x12
-     - Maintains consistent floor patterns
-     - Handles elevation changes
+Generation is seed-based (`GameSession.GetLevelSeed(seed, depth)`), so a given run + depth always produces the same layout — this is what lets fog reveal be persisted compactly (see below).
 
-   - **Wall Map**: Vertical structures (1x1 grid)
+## Connectivity: doorways vs. open edges
 
-     - Supports tiles from 1x1 to 4x1
-     - Automatically places walls around rooms/corridors
-     - Manages wall variations and corners
+Rooms connect to corridors through **connector** tiles, and there are two kinds:
 
-   - **Decoration Map**: Visual elements (1x1 grid)
-     - Variable tile sizes for details
-     - Handles props and environmental objects
-     - Adds visual interest to spaces
+- **Doorways** — connectors created from an explicit `DoorwayMarker` in the room scene (`Room.BakeDoorwayMarkers`). These are intentional entrances and are flagged in `MapData` via `IsDoorway`. Doors (`Door` props) are placed at doorways.
+- **Inferred open edges** — when a room has _no_ `DoorwayMarker`s, every wall-free edge tile becomes a connector (`Room.BakeInferredConnectors`). These are optional openings.
 
-5. **Navigation & Spawn Points**
-   - Generates navigation mesh for AI pathfinding
-   - Places player spawn point
-   - Dynamically creates enemy spawn points
-     - Ensures minimum distance from player (20 units)
-     - Maintains spacing between spawn points (5 units)
-   - Spawns enemies based on dungeon depth
+`AStarCorridorConnector` connects them in two phases:
+
+1. **Spanning tree (`ConnectComponents`)** — links every room into one reachable network with one corridor each. This guarantees **every room has at least one connection**.
+2. **Remaining doorways (`ConnectRemainingDoorways`)** — force-connects every `IsDoorway` connector the spanning tree left unconnected. **Inferred edges are never force-connected** — they stay optional.
+
+Net effect: a 4-way sewer crossing keeps all four doored entrances; a cave (inferred edges only) gets one opening and the rest stay closed. After connection, `PlaceWalls` closes any exposed room/corridor edge that didn't become a passage.
+
+## Map Occlusion & Fog of War
+
+The dungeon is a 3D scene viewed through a rotatable orthographic (isometric) camera, so two visibility problems are solved together with one `OcclusionGridMap` of flat, unlit black "cap" meshes sitting at wall-top height:
+
+- **Void occlusion:** unreachable space (and the exterior faces of walls) is hidden behind black caps.
+- **Fog of war:** undiscovered rooms/corridors start capped and are revealed as the player explores.
+
+In gameplay (`PlaceOcclusion(fog: true)`) **every** tile starts capped; the occluder is a faithful inverse of the map mask. In the editor preview (`fog: false`) only the void/border is capped so the layout stays visible.
+
+### Reveal flow
+
+- **`RoomManager`** polls the player's tile each physics frame (`WorldToTile` → `GetRoomIdAt`) and emits `SignalBus.RoomEntered` when the owning room changes. Detection uses interior floor tiles only — standing against a closed door does not count as entering.
+- **`FogOfWar`** listens for `RoomEntered` and calls `MapGenerator.RevealRoom`, which removes the caps over:
+  - the room's footprint (floor, connectors, and chasm pits), and
+  - everything reachable from it **without crossing a door** — it floods through open connectors into connected corridors and cascades into further door-free rooms.
+- A **doored** connector blocks the cascade, so the corridor and rooms beyond a closed door stay hidden. The doorway tile itself is still revealed (it's part of the room); the closed door plus the hidden corridor are the seal.
+- Opening a door (`Door` emits `SignalBus.DoorOpened`) calls `MapGenerator.OpenDoorAt`, which unseals that connector and reveals through it.
+
+### Door indicators (x-ray)
+
+Because the camera rotates, a closed door can end up hidden behind a wall. Each `Door` carries an x-ray silhouette (`door_xray.gdshader`) that:
+
+- only draws where the door is actually occluded by scene geometry (it samples the depth texture), and
+- fades with distance, and
+- is only enabled once a tile adjacent to the door has been revealed (so undiscovered doors don't leak through the fog — `UpdateDoorIndicators`).
+
+### Persistence
+
+Reveal state is saved per dungeon depth (`WorldSaveData.RevealedLevels`) as the **rooms entered** and **doors opened**, not the raw tiles. On load, `FogOfWar` replays them via `MapGenerator.RestoreReveal`; because generation is deterministic, replaying reproduces the exact explored area. This survives quit/reload and travelling between depths.
 
 ## Room Template Creation
 
-### Technical Requirements
+### Technical requirements
 
-1. **Grid Compatibility**
+1. **Grid compatibility**
 
-   - Base layout uses 4x4 tiles for character movement
-   - Must define valid connection points for corridors
-   - Room bounds must align with grid system
+   - The logical grid is 4 units per tile; floor meshes may be 2×2/4×4/8×8 but must tile cleanly.
+   - Room bounds should align to the grid so `BakeTileMap` buckets cleanly.
 
-2. **Component Setup**
+2. **Components**
 
-   - Implement required GridMaps (Floor, Wall, Decoration)
-   - Set up collision shapes for walls
-   - Add navigation mesh obstacles for AI
+   - Provide the three `GridMap`s (`Floor`, `Wall`, `Decoration`); collision lives on the wall meshes.
 
-3. **Props Integration**
-   - Props can be placed freely within room bounds
-   - Must be added as child nodes of room scene
-   - Should include appropriate collision setup
+3. **Doorways & doors**
 
-### Design Guidelines
+   - Add a `DoorwayMarker` at each intentional entrance. Every doorway will be connected by a corridor, so only mark real entrances.
+   - A room with **no** `DoorwayMarker`s exposes all its open edges as optional connectors (good for caves/organic rooms where any edge may connect).
+   - Place a `Door` prop at a doorway to make it a gating door; doorways without a door are open archways. Doors at doorways that don't end up connected are removed automatically.
 
-1. **Layout Considerations**
+4. **Props**
 
-   - Ensure sufficient space for combat (minimum 4x4 tiles)
-   - Plan strategic cover placement
-   - Include clear entry/exit points
+   - Parent props under the room scene; include collision where relevant.
 
-2. **Gameplay Elements**
+### Design guidelines
 
-   - Balance open areas and obstacles
-   - Create opportunities for tactical positioning
-   - Consider sight lines and ranged combat
-
-3. **Visual Design**
-   - Use decoration tiles to add visual interest
-   - Maintain theme consistency
-   - Ensure proper lighting setup
+- Leave room for combat (≥ 4×4 tiles of open floor).
+- Use doorways deliberately — a 4-way crossing with four doors will branch four ways; a single-doorway room is a dead-end pocket.
+- Use the debug overlay (`Room.ShowDebugOverlay`) to inspect the baked mask (cyan = room, purple = connector, black = empty).
 
 ## Implementation Notes
 
-- Room templates are loaded dynamically by `RoomFactory`
-- `TileFactory` manages tile variation and selection
-- Use `MobFactory` for enemy placement configuration
-- Navigation mesh is auto-baked after level generation
-- Seed-based generation ensures reproducible layouts
+- Room templates load via `RoomFactory`; `TileFactory` selects tile variants; `MobFactory` configures enemies.
+- The navigation mesh is auto-baked after generation; seed-based generation keeps layouts reproducible (and fog reveal replayable).
+- Level transitions reload the scene; the reload is deferred out of the trigger's physics callback to avoid freeing collision bodies mid-step.
