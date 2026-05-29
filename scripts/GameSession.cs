@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 /// <summary>
 /// Coordinates game flow between menus, gameplay, and save slots.
@@ -27,10 +28,17 @@ public partial class GameSession : Node
 	public LevelTravelDirection? PendingTravelDirection { get; private set; }
 	private double _stairArrivalTicks;
 	private const double StairArrivalLockSeconds = 1.0;
+	private const double LevelFadeOutSeconds = 0.25;
+	private const double LevelFadeInSeconds = 0.45;
+	private const int LevelFadeLayer = 128;
+	private static readonly Color TransparentBlack = new(0f, 0f, 0f, 0f);
 
 	private SaveGame _activeSave;
 	private SaveGame _pendingLoadedSave;
 	private double _sessionStartedAtMsec;
+	private CanvasLayer _levelFadeLayer;
+	private ColorRect _levelFadeRect;
+	private Tween _levelFadeTween;
 
 	public override void _Ready()
 	{
@@ -82,6 +90,7 @@ public partial class GameSession : Node
 		};
 
 		GetTree().Paused = false;
+		ShowBlackScreen();
 		GetTree().ChangeSceneToFile(GameplayScenePath);
 	}
 
@@ -103,6 +112,7 @@ public partial class GameSession : Node
 		_sessionStartedAtMsec = Time.GetTicksMsec();
 
 		GetTree().Paused = false;
+		ShowBlackScreen();
 		GetTree().ChangeSceneToFile(GameplayScenePath);
 	}
 
@@ -174,11 +184,7 @@ public partial class GameSession : Node
 
 		GD.Print($"Transitioning {direction} to depth {ActiveDungeonDepth}...");
 
-		GetTree().Paused = false;
-		// This runs from the transition trigger's physics callback (BodyEntered), so
-		// defer the reload to idle — reloading now would free the current scene's
-		// collision bodies (including the player) mid-physics-step.
-		GetTree().CallDeferred(SceneTree.MethodName.ReloadCurrentScene);
+		FadeOutAndReloadLevel();
 
 		return true;
 	}
@@ -326,13 +332,103 @@ public partial class GameSession : Node
 
 	private void OnPlayerSpawned(Player player)
 	{
-		if (_pendingLoadedSave?.Player == null)
+		if (_pendingLoadedSave?.Player != null)
+		{
+			ApplyPlayerSave(player, _pendingLoadedSave.Player);
+			_pendingLoadedSave = null;
+		}
+
+		CallDeferred(MethodName.FadeInAfterLevelSettled);
+	}
+
+	private async void FadeOutAndReloadLevel()
+	{
+		GetTree().Paused = false;
+		await FadeToBlack();
+
+		// This can start from the transition trigger's physics callback (BodyEntered), so
+		// defer the reload to idle — reloading now would free the current scene's
+		// collision bodies (including the player) mid-physics-step.
+		GetTree().CallDeferred(SceneTree.MethodName.ReloadCurrentScene);
+	}
+
+	private async void FadeInAfterLevelSettled()
+	{
+		// Player spawning can happen while Main is still wiring the camera. Let the
+		// scene finish _Ready and process a frame before revealing the level.
+		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+		await FadeFromBlack();
+	}
+
+	private async Task FadeToBlack()
+	{
+		EnsureLevelFadeOverlay();
+		if (!_levelFadeLayer.Visible)
+		{
+			_levelFadeRect.Color = TransparentBlack;
+		}
+
+		_levelFadeLayer.Visible = true;
+		await TweenFadeAlpha(1f, LevelFadeOutSeconds);
+	}
+
+	private void ShowBlackScreen()
+	{
+		EnsureLevelFadeOverlay();
+		_levelFadeTween?.Kill();
+		_levelFadeRect.Color = Colors.Black;
+		_levelFadeLayer.Visible = true;
+	}
+
+	private async Task FadeFromBlack()
+	{
+		EnsureLevelFadeOverlay();
+		if (!_levelFadeLayer.Visible && _levelFadeRect.Color.A <= 0f)
 		{
 			return;
 		}
 
-		ApplyPlayerSave(player, _pendingLoadedSave.Player);
-		_pendingLoadedSave = null;
+		_levelFadeLayer.Visible = true;
+		await TweenFadeAlpha(0f, LevelFadeInSeconds);
+		_levelFadeLayer.Visible = false;
+	}
+
+	private async Task TweenFadeAlpha(float targetAlpha, double seconds)
+	{
+		_levelFadeTween?.Kill();
+		_levelFadeTween = CreateTween();
+		_levelFadeTween.TweenProperty(_levelFadeRect, "color:a", targetAlpha, seconds)
+			.SetTrans(Tween.TransitionType.Sine)
+			.SetEase(Tween.EaseType.InOut);
+		await ToSignal(_levelFadeTween, Tween.SignalName.Finished);
+	}
+
+	private void EnsureLevelFadeOverlay()
+	{
+		if (GodotObject.IsInstanceValid(_levelFadeLayer) && GodotObject.IsInstanceValid(_levelFadeRect))
+		{
+			return;
+		}
+
+		_levelFadeLayer = new CanvasLayer
+		{
+			Name = "LevelTransitionFade",
+			Layer = LevelFadeLayer,
+			ProcessMode = ProcessModeEnum.Always,
+			Visible = false,
+		};
+
+		_levelFadeRect = new ColorRect
+		{
+			Name = "FadeRect",
+			Color = TransparentBlack,
+			MouseFilter = Control.MouseFilterEnum.Stop,
+		};
+		_levelFadeRect.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+
+		AddChild(_levelFadeLayer);
+		_levelFadeLayer.AddChild(_levelFadeRect);
 	}
 
 	private static PlayerSaveData CapturePlayer(Player player)
