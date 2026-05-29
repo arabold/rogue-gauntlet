@@ -55,6 +55,12 @@ public partial class MapGenerator : Node3D
 	public readonly float OcclusionCapHeight = 4f;
 
 	private const int OcclusionItemId = 0;
+	private const int HorizontalWallOrientation = 0;
+	private const int VerticalWallOrientation = 16;
+	private const int NorthWestCornerOrientation = 16;
+	private const int NorthEastCornerOrientation = 0;
+	private const int SouthWestCornerOrientation = 10;
+	private const int SouthEastCornerOrientation = 22;
 
 	/// <summary>
 	/// Extra rows/columns of occluder caps placed beyond the map bounds so the
@@ -343,53 +349,154 @@ public partial class MapGenerator : Node3D
 	private void PlaceWalls()
 	{
 		GD.Print("Placing walls...");
-		// Set wall tiles in the GridMap
+		var cornerEdges = new System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges>();
+
 		for (int x = 0; x < Map.Width; x++)
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				// Room scenes may intentionally omit perimeter wall segments for doorway
-				// authoring. Fill exposed room edges after corridors have been routed so
-				// unused doorway candidates are closed while connected doorways stay open.
-				if (Map.IsRoom(x, z) || Map.IsConnector(x, z) || Map.IsCorridor(x, z))
+				if (IsWallSourceTile(x, z))
 				{
-					// Check for wall adjacency and place walls
-					PlaceWallIfNeeded(x, z);
+					PlaceWallModulesForTile(x, z, cornerEdges);
 				}
+			}
+		}
+
+		PlaceWallCorners(cornerEdges);
+	}
+
+	private void PlaceWallModulesForTile(int x, int z, System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges)
+	{
+		int tileCenter = (int)TileSize / 2;
+		var basePosition = TileToWorld(x, 0, z);
+		bool north = NeedsGeneratedWallAgainst(x, z - 1);
+		bool south = NeedsGeneratedWallAgainst(x, z + 1);
+		bool west = NeedsGeneratedWallAgainst(x - 1, z);
+		bool east = NeedsGeneratedWallAgainst(x + 1, z);
+		int westX = basePosition.X - tileCenter;
+		int eastX = basePosition.X + tileCenter;
+		int northZ = basePosition.Z - tileCenter;
+		int southZ = basePosition.Z + tileCenter;
+
+		if (north)
+		{
+			AddHorizontalCornerEdge(cornerEdges, new Vector2I(westX, northZ), extendsEast: true);
+			AddHorizontalCornerEdge(cornerEdges, new Vector2I(eastX, northZ), extendsEast: false);
+			PlaceWallStraight(basePosition + new Vector3I(0, 0, -tileCenter), HorizontalWallOrientation);
+		}
+
+		if (south)
+		{
+			AddHorizontalCornerEdge(cornerEdges, new Vector2I(westX, southZ), extendsEast: true);
+			AddHorizontalCornerEdge(cornerEdges, new Vector2I(eastX, southZ), extendsEast: false);
+			PlaceWallStraight(basePosition + new Vector3I(0, 0, tileCenter), HorizontalWallOrientation);
+		}
+
+		if (west)
+		{
+			AddVerticalCornerEdge(cornerEdges, new Vector2I(westX, northZ), extendsSouth: true);
+			AddVerticalCornerEdge(cornerEdges, new Vector2I(westX, southZ), extendsSouth: false);
+			PlaceWallStraight(basePosition + new Vector3I(-tileCenter, 0, 0), VerticalWallOrientation);
+		}
+
+		if (east)
+		{
+			AddVerticalCornerEdge(cornerEdges, new Vector2I(eastX, northZ), extendsSouth: true);
+			AddVerticalCornerEdge(cornerEdges, new Vector2I(eastX, southZ), extendsSouth: false);
+			PlaceWallStraight(basePosition + new Vector3I(tileCenter, 0, 0), VerticalWallOrientation);
+		}
+	}
+
+	private void AddHorizontalCornerEdge(System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, Vector2I position, bool extendsEast)
+	{
+		cornerEdges.TryGetValue(position, out var edges);
+		if (extendsEast)
+		{
+			edges.HorizontalEast = true;
+		}
+		else
+		{
+			edges.HorizontalWest = true;
+		}
+
+		cornerEdges[position] = edges;
+	}
+
+	private void AddVerticalCornerEdge(System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, Vector2I position, bool extendsSouth)
+	{
+		cornerEdges.TryGetValue(position, out var edges);
+		if (extendsSouth)
+		{
+			edges.VerticalSouth = true;
+		}
+		else
+		{
+			edges.VerticalNorth = true;
+		}
+
+		cornerEdges[position] = edges;
+	}
+
+	private void PlaceWallCorners(System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges)
+	{
+		foreach (var (position, edges) in cornerEdges)
+		{
+			if (edges.HorizontalEast && edges.VerticalSouth)
+			{
+				PlaceWallCorner(position, NorthWestCornerOrientation);
+			}
+			else if (edges.HorizontalWest && edges.VerticalSouth)
+			{
+				PlaceWallCorner(position, NorthEastCornerOrientation);
+			}
+			else if (edges.HorizontalEast && edges.VerticalNorth)
+			{
+				PlaceWallCorner(position, SouthWestCornerOrientation);
+			}
+			else if (edges.HorizontalWest && edges.VerticalNorth)
+			{
+				PlaceWallCorner(position, SouthEastCornerOrientation);
 			}
 		}
 	}
 
-	private void PlaceWallIfNeeded(int x, int z)
+	private void PlaceWallCorner(Vector2I position, int orientation)
 	{
-		// Check each direction for wall adjacency
-		Vector3I basePosition = TileToWorld(x, 0, z);
-		int tileCenter = (int)TileSize / 2;
-		int tileIndex = TileFactory.GetWallTileIndex();
+		SetGeneratedWallCell(new Vector3I(position.X, 0, position.Y), TileFactory.GetWallCornerTileIndex(), orientation);
+	}
 
-		// Check above (north)
-		if (z > 0 && Map.IsWallOrEmpty(x, z - 1)) // Wall above
+	private void PlaceWallStraight(Vector3I position, int orientation)
+	{
+		SetGeneratedWallCell(position, TileFactory.GetWallTileIndex(), orientation);
+	}
+
+	private void SetGeneratedWallCell(Vector3I position, int tileIndex, int orientation)
+	{
+		if (WallGridMap.GetCellItem(position) >= 0)
 		{
-			WallGridMap.SetCellItem(basePosition + new Vector3I(0, 0, -tileCenter), tileIndex, 0);
+			return;
 		}
 
-		// Check below (south)
-		if (z < Map.Height - 1 && Map.IsWallOrEmpty(x, z + 1)) // Wall below
-		{
-			WallGridMap.SetCellItem(basePosition + new Vector3I(0, 0, tileCenter), tileIndex, 0);
-		}
+		WallGridMap.SetCellItem(position, tileIndex, orientation);
+	}
 
-		// Check left (west)
-		if (x > 0 && Map.IsWallOrEmpty(x - 1, z)) // Wall to the left
-		{
-			WallGridMap.SetCellItem(basePosition + new Vector3I(-tileCenter, 0, 0), tileIndex, 16);
-		}
+	private bool IsWallSourceTile(int x, int z)
+	{
+		return Map.IsWithinBounds(x, z)
+			&& (Map.IsRoom(x, z) || Map.IsConnector(x, z) || Map.IsCorridor(x, z));
+	}
 
-		// Check right (east)
-		if (x < Map.Width - 1 && Map.IsWallOrEmpty(x + 1, z)) // Wall to the right
-		{
-			WallGridMap.SetCellItem(basePosition + new Vector3I(tileCenter, 0, 0), tileIndex, 16);
-		}
+	private bool NeedsGeneratedWallAgainst(int x, int z)
+	{
+		return !Map.IsWithinBounds(x, z) || Map.IsWallOrEmpty(x, z);
+	}
+
+	private struct WallCornerEdges
+	{
+		public bool HorizontalWest;
+		public bool HorizontalEast;
+		public bool VerticalNorth;
+		public bool VerticalSouth;
 	}
 
 	/// <summary>
