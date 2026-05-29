@@ -174,7 +174,10 @@ public partial class GameSession : Node
 		GD.Print($"Transitioning {direction} to depth {ActiveDungeonDepth}...");
 
 		GetTree().Paused = false;
-		GetTree().ReloadCurrentScene();
+		// This runs from the transition trigger's physics callback (BodyEntered), so
+		// defer the reload to idle — reloading now would free the current scene's
+		// collision bodies (including the player) mid-physics-step.
+		GetTree().CallDeferred(SceneTree.MethodName.ReloadCurrentScene);
 
 		return true;
 	}
