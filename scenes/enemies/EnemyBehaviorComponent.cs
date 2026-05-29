@@ -39,6 +39,10 @@ public enum EnemyAction
 /// </remarks>
 public partial class EnemyBehaviorComponent : Node
 {
+	private const float StuckCheckInterval = 0.25f;
+	private const float StuckMinimumProgress = 0.2f;
+	private const float StuckRecoverySeconds = 1.0f;
+
 	/// <summary>
 	/// Character body moved and rotated by this behavior controller.
 	/// </summary>
@@ -88,6 +92,9 @@ public partial class EnemyBehaviorComponent : Node
 	private bool _hasRoamTarget;
 	private float _remainingRoamPauseTime;
 	private AttackController _attackController;
+	private Vector3 _lastStuckCheckPosition;
+	private float _stuckCheckTimer;
+	private float _stuckTime;
 
 	public override void _Ready()
 	{
@@ -99,6 +106,7 @@ public partial class EnemyBehaviorComponent : Node
 		CurrentBehavior = _profile.InitialBehavior;
 		CurrentAction = _profile.InitialAction;
 		_homePosition = Actor.GlobalPosition;
+		_lastStuckCheckPosition = Actor.GlobalPosition;
 		_remainingRoamPauseTime = RandomRange(0, _profile.RoamPauseMax);
 
 		_attackController = Actor.GetNodeOrNull<AttackController>("AttackController");
@@ -124,6 +132,7 @@ public partial class EnemyBehaviorComponent : Node
 		if (CurrentAction != EnemyAction.None)
 		{
 			MovementComponent.Stop();
+			ResetStuckTracking();
 
 			// Update the remaining action time
 			_remainingActionTime -= (float)delta;
@@ -137,6 +146,8 @@ public partial class EnemyBehaviorComponent : Node
 			// Main behavior logic goes here...
 			if (CurrentBehavior == EnemyBehaviorState.Idle)
 			{
+				ResetStuckTracking();
+
 				// Check if the target is within range and start chasing
 				if (LookForNewTarget())
 				{
@@ -186,6 +197,7 @@ public partial class EnemyBehaviorComponent : Node
 			{
 				UpdateTargetPosition();
 				NavigateAwayFromTarget();
+				ResetStuckTracking();
 			}
 		}
 	}
@@ -361,6 +373,7 @@ public partial class EnemyBehaviorComponent : Node
 		if (_navigationAgent.IsNavigationFinished())
 		{
 			MovementComponent.Stop();
+			ResetStuckTracking();
 			return;
 		}
 
@@ -371,11 +384,63 @@ public partial class EnemyBehaviorComponent : Node
 		if (direction == Vector3.Zero)
 		{
 			MovementComponent.Stop();
+			ResetStuckTracking();
 			return;
 		}
 
 		MovementComponent.SetInputDirection(direction);
+		UpdateStuckTracking();
 		// _targetDirection = new Vector3(localDestination.X, 0, localDestination.Z).Normalized();
+	}
+
+	private void UpdateStuckTracking()
+	{
+		_stuckCheckTimer += (float)GetPhysicsProcessDeltaTime();
+		if (_stuckCheckTimer < StuckCheckInterval)
+		{
+			return;
+		}
+
+		float progress = HorizontalDistance(Actor.GlobalPosition, _lastStuckCheckPosition);
+		_stuckTime = progress < StuckMinimumProgress ? _stuckTime + _stuckCheckTimer : 0;
+		_lastStuckCheckPosition = Actor.GlobalPosition;
+		_stuckCheckTimer = 0;
+
+		if (_stuckTime >= StuckRecoverySeconds)
+		{
+			RecoverFromStuckPath();
+		}
+	}
+
+	private void RecoverFromStuckPath()
+	{
+		GD.Print($"{Actor.Name} appears stuck while {CurrentBehavior}; refreshing path.");
+		ResetStuckTracking();
+
+		if (CurrentBehavior == EnemyBehaviorState.Patrolling)
+		{
+			_hasRoamTarget = false;
+			StartRoamPause();
+			MovementComponent.Stop();
+			return;
+		}
+
+		if (CurrentBehavior == EnemyBehaviorState.Searching || CurrentBehavior == EnemyBehaviorState.Chasing)
+		{
+			_navigationAgent.SetTargetPosition(_lastKnownTargetPosition);
+		}
+	}
+
+	private void ResetStuckTracking()
+	{
+		_lastStuckCheckPosition = Actor.GlobalPosition;
+		_stuckCheckTimer = 0;
+		_stuckTime = 0;
+	}
+
+	private static float HorizontalDistance(Vector3 a, Vector3 b)
+	{
+		return new Vector2(a.X, a.Z).DistanceTo(new Vector2(b.X, b.Z));
 	}
 
 	/// <summary>
