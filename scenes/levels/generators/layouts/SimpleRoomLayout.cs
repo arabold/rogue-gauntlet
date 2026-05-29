@@ -135,7 +135,7 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 
 				if (roomMap.IsConnector(x, y))
 				{
-					map.SetConnector(mapX, mapZ, roomMap.GetConnectorDirections(x, y));
+					map.SetConnector(mapX, mapZ, roomMap.GetConnectorDirections(x, y), roomMap.IsDoorway(x, y));
 				}
 				else
 				{

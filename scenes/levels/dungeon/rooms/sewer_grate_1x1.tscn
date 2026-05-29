@@ -1,17 +1,14 @@
-[gd_scene load_steps=3 format=3 uid="uid://pp1aty3aklmf"]
+[gd_scene format=3 uid="uid://pp1aty3aklmf"]
+
 [ext_resource type="PackedScene" uid="uid://b0hb8ttsstdbc" path="res://scenes/levels/room.tscn" id="1_fcjby"]
-[ext_resource type="Script" uid="uid://b1nxed0l83t2d" path="res://scenes/levels/DoorwayMarker.cs" id="doorway_marker"]
-[node name="SewerGrate1x1" node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap") instance=ExtResource("1_fcjby")]
+
+[node name="SewerGrate1x1" unique_id=425213921 node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap") instance=ExtResource("1_fcjby")]
 FloorGridMap = NodePath("FloorGridMap")
 WallGridMap = NodePath("WallGridMap")
 DecorationGridMap = NodePath("DecorationGridMap")
+ShowDebugOverlay = true
+
 [node name="FloorGridMap" parent="." index="0"]
 data = {
 "cells": PackedInt32Array(0, 0, 15)
 }
-
-[node name="DoorwayAll" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 2)
-script = ExtResource("doorway_marker")
-Directions = 15
-EditorLabel = "&"

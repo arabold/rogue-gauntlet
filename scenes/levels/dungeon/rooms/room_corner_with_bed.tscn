@@ -1,15 +1,20 @@
-[gd_scene load_steps=8 format=3 uid="uid://d0u1wvpi5dn3m"]
+[gd_scene format=3 uid="uid://d0u1wvpi5dn3m"]
+
 [ext_resource type="Script" uid="uid://djvo5h5w1l038" path="res://scenes/levels/Room.cs" id="1_70hq6"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_d701g"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_2gbrg"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_xggem"]
 [ext_resource type="PackedScene" uid="uid://cyhr68psc2ku" path="res://scenes/props/torch_mounted.tscn" id="5_d701g"]
 [ext_resource type="PackedScene" uid="uid://bmhjevtjbrasi" path="res://scenes/props/chair.tscn" id="6_2gbrg"]
-[ext_resource type="Script" uid="uid://b1nxed0l83t2d" path="res://scenes/levels/DoorwayMarker.cs" id="doorway_marker"]
-[node name="RoomCornerWithBed" type="Node3D"]
+
+[node name="RoomCornerWithBed" type="Node3D" unique_id=1770536554 node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap")]
 script = ExtResource("1_70hq6")
+FloorGridMap = NodePath("FloorGridMap")
+WallGridMap = NodePath("WallGridMap")
+DecorationGridMap = NodePath("DecorationGridMap")
 ShowDebugOverlay = true
-[node name="FloorGridMap" type="GridMap" parent="."]
+
+[node name="FloorGridMap" type="GridMap" parent="." unique_id=793021451]
 mesh_library = ExtResource("2_d701g")
 cell_size = Vector3(1, 1, 1)
 cell_center_x = false
@@ -18,7 +23,8 @@ cell_center_z = false
 data = {
 "cells": PackedInt32Array(65534, 6, 1048597, 65530, 6, 1048597, 65530, 10, 1048597, 65533, 11, 1048581, 65535, 9, 1048581, 65535, 11, 1048578, 65533, 9, 1048599)
 }
-[node name="WallGridMap" type="GridMap" parent="."]
+
+[node name="WallGridMap" type="GridMap" parent="." unique_id=1401513187]
 mesh_library = ExtResource("3_2gbrg")
 cell_size = Vector3(1, 1, 1)
 cell_center_x = false
@@ -27,7 +33,8 @@ cell_center_z = false
 data = {
 "cells": PackedInt32Array(65528, 8, 1048577, 65528, 4, 1048582, 65532, 4, 10, 0, 4, 6, 0, 6, 1441810, 65528, 10, 1441810)
 }
-[node name="DecorationGridMap" type="GridMap" parent="."]
+
+[node name="DecorationGridMap" type="GridMap" parent="." unique_id=668893081]
 mesh_library = ExtResource("4_xggem")
 cell_size = Vector3(1, 1, 1)
 cell_center_x = false
@@ -37,13 +44,9 @@ data = {
 "cells": PackedInt32Array(65530, 7, 1048590, 65528, 10, 1048576, 65529, 9, 1048581, 65531, 5, 655391, 65534, 6, 655402)
 }
 metadata/_editor_floor_ = Vector3(0, 0, 0)
-[node name="TorchMounted" parent="." instance=ExtResource("5_d701g")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.73388, 2, 5.52924)
-[node name="Chair" parent="." instance=ExtResource("6_2gbrg")]
-transform = Transform3D(-0.559815, 0, 0.828618, 0, 1, 0, -0.828618, 0, -0.559815, -6.23252, 0, 5.46066)
 
-[node name="DoorwaySouthEast" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12)
-script = ExtResource("doorway_marker")
-Directions = 6
-EditorLabel = "&"
+[node name="TorchMounted" parent="." unique_id=230164767 instance=ExtResource("5_d701g")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.73388, 2, 5.52924)
+
+[node name="Chair" parent="." unique_id=625686594 instance=ExtResource("6_2gbrg")]
+transform = Transform3D(-0.559815, 0, 0.828618, 0, 1, 0, -0.828618, 0, -0.559815, -6.23252, 0, 5.46066)

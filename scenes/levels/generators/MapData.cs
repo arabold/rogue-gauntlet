@@ -23,6 +23,9 @@ public class MapData
     public int Height { get; }
     public MapTile[,] Tiles { get; }
     private readonly Dictionary<Vector2I, List<Vector2I>> _connectorDirections = new();
+    // Connectors that come from an explicit DoorwayMarker (vs. inferred open edges).
+    // These are intentional entrances and must all be connected by a corridor.
+    private readonly HashSet<Vector2I> _doorwayTiles = new();
 
     public MapData(int width, int height)
     {
@@ -74,14 +77,18 @@ public class MapData
 
         if (tile != MapTile.Connector)
         {
-            _connectorDirections.Remove(new Vector2I(x, y));
+            var key = new Vector2I(x, y);
+            _connectorDirections.Remove(key);
+            _doorwayTiles.Remove(key);
         }
     }
 
     /// <summary>
-    /// Marks a tile as a room connector and stores the directions where the room has no wall.
+    /// Marks a tile as a room connector and stores the directions where the room has
+    /// no wall. <paramref name="isDoorway"/> flags connectors that come from an
+    /// explicit DoorwayMarker (intentional entrances that must all be connected).
     /// </summary>
-    public void SetConnector(int x, int y, IEnumerable<Vector2I> directions)
+    public void SetConnector(int x, int y, IEnumerable<Vector2I> directions, bool isDoorway = false)
     {
         Tiles[x, y] = MapTile.Connector;
 
@@ -92,11 +99,22 @@ public class MapData
         if (openDirections.Count == 0)
         {
             _connectorDirections.Remove(key);
+            _doorwayTiles.Remove(key);
             return;
         }
 
         _connectorDirections[key] = openDirections;
+        if (isDoorway)
+        {
+            _doorwayTiles.Add(key);
+        }
     }
+
+    /// <summary>
+    /// True when the connector tile is an explicit doorway (from a DoorwayMarker),
+    /// as opposed to an inferred open edge.
+    /// </summary>
+    public bool IsDoorway(int x, int y) => _doorwayTiles.Contains(new Vector2I(x, y));
 
     /// <summary>
     /// Returns the open sides for a connector tile.

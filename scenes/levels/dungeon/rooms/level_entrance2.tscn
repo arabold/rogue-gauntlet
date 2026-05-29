@@ -7,7 +7,6 @@
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="5_m88fd"]
 [ext_resource type="PackedScene" uid="uid://cnrwt32gqdhx" path="res://scenes/levels/player_spawn_point.tscn" id="6_f2qx3"]
 [ext_resource type="Script" uid="uid://ddncvvlwm35nh" path="res://scenes/levels/DebugVolumeVisualizer.cs" id="debug_volume_visualizer"]
-[ext_resource type="Script" uid="uid://b1nxed0l83t2d" path="res://scenes/levels/DoorwayMarker.cs" id="doorway_marker"]
 [ext_resource type="Script" uid="uid://cmaamo4055ana" path="res://scenes/levels/LevelTransitionTrigger.cs" id="level_transition_trigger"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0qmis"]
@@ -164,32 +163,3 @@ collision_mask = 4
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="UpTransitionTrigger/TransitionBlocker" unique_id=1564029851]
 shape = SubResource("BoxShape3D_transition_blocker")
-
-[node name="DoorwayWest" type="Node3D" parent="." unique_id=989503399]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -6)
-script = ExtResource("doorway_marker")
-Directions = 8
-EditorLabel = "&"
-
-[node name="DoorwayNorth" type="Node3D" parent="." unique_id=840136100]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -6)
-script = ExtResource("doorway_marker")
-EditorLabel = "&"
-
-[node name="DoorwayEast" type="Node3D" parent="." unique_id=332638697]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -2)
-script = ExtResource("doorway_marker")
-Directions = 2
-EditorLabel = "&"
-
-[node name="DoorwayWest2" type="Node3D" parent="." unique_id=828209205]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 2)
-script = ExtResource("doorway_marker")
-Directions = 8
-EditorLabel = "&"
-
-[node name="DoorwaySouth" type="Node3D" parent="." unique_id=1848105056]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 2)
-script = ExtResource("doorway_marker")
-Directions = 4
-EditorLabel = "&"

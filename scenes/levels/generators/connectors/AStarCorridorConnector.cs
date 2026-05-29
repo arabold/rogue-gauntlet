@@ -13,9 +13,14 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
     {
         public RoomConnector(Vector2I roomTile, Vector2I direction)
         {
+            ConnectorTile = roomTile;
             CorridorTile = roomTile + direction;
         }
 
+        /// <summary>The room-edge connector tile.</summary>
+        public Vector2I ConnectorTile { get; }
+
+        /// <summary>The tile just outside the connector where a corridor enters.</summary>
         public Vector2I CorridorTile { get; }
     }
 
@@ -30,12 +35,13 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
         var astar = CreatePathGrid(map);
         var components = FindRoomComponents(map);
 
-        // Phase 1: link every room into a single reachable network (spanning tree).
+        // Phase 1: link every room into a single reachable network (spanning tree),
+        // guaranteeing each room at least one connection.
         ConnectComponents(map, astar, components);
 
-        // Phase 2: route a corridor out of every doorway, so each one is an open
-        // passage rather than just one per room.
-        ConnectAllDoorways(map, astar, components);
+        // Phase 2: route a corridor out of every explicit doorway that the spanning
+        // tree left unconnected. Inferred open edges stay optional.
+        ConnectRemainingDoorways(map, astar, components);
     }
 
     private void ConnectComponents(MapData map, AStarGrid2D astar, List<RoomComponent> components)
@@ -83,12 +89,13 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
     }
 
     /// <summary>
-    /// Connects every doorway into the corridor network. The spanning tree links
-    /// only one doorway per room; the rest are routed here to the nearest doorway
-    /// that already opens into the network, so authored multi-door rooms (e.g. a
-    /// 4-way crossing) keep all of their entrances.
+    /// Connects every explicit doorway into the corridor network. The spanning tree
+    /// links only one connector per room; doorways come from DoorwayMarkers and are
+    /// intentional entrances, so any left unconnected are routed here to the nearest
+    /// connector already on the network (e.g. a 4-way crossing keeps all its doors).
+    /// Inferred open edges are left optional.
     /// </summary>
-    private void ConnectAllDoorways(MapData map, AStarGrid2D astar, List<RoomComponent> components)
+    private void ConnectRemainingDoorways(MapData map, AStarGrid2D astar, List<RoomComponent> components)
     {
         var connectors = new List<RoomConnector>();
         foreach (var component in components)
@@ -98,6 +105,11 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
 
         foreach (var connector in connectors)
         {
+            if (!map.IsDoorway(connector.ConnectorTile.X, connector.ConnectorTile.Y))
+            {
+                continue; // Only doorways must be connected; open edges are optional.
+            }
+
             if (map.IsCorridor(connector.CorridorTile.X, connector.CorridorTile.Y))
             {
                 continue; // Already opens into the network.

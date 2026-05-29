@@ -6,7 +6,6 @@
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_vc7yy"]
 [ext_resource type="PackedScene" uid="uid://cyhr68psc2ku" path="res://scenes/props/torch_mounted.tscn" id="5_fk6jm"]
 [ext_resource type="PackedScene" uid="uid://bmhjevtjbrasi" path="res://scenes/props/chair.tscn" id="6_m4aul"]
-[ext_resource type="Script" uid="uid://b1nxed0l83t2d" path="res://scenes/levels/DoorwayMarker.cs" id="doorway_marker"]
 
 [node name="RoomDining" type="Node3D" unique_id=1001524705 node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap")]
 script = ExtResource("1_65vc0")
@@ -51,32 +50,3 @@ transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.77105, 2, 4)
 
 [node name="Chair" parent="." unique_id=313786538 instance=ExtResource("6_m4aul")]
 transform = Transform3D(2.69081e-08, 0.902886, -0.429881, -1, 2.98023e-08, 0, 1.28114e-08, 0.429881, 0.902886, 5.101074, 0.2684322, 5.4910913)
-
-[node name="DoorwayWest" type="Node3D" parent="." unique_id=1366471619]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 2)
-script = ExtResource("doorway_marker")
-Directions = 8
-EditorLabel = "&"
-
-[node name="DoorwayNorth" type="Node3D" parent="." unique_id=2066809304]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 2)
-script = ExtResource("doorway_marker")
-EditorLabel = "&"
-
-[node name="DoorwayEast" type="Node3D" parent="." unique_id=673237722]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 6)
-script = ExtResource("doorway_marker")
-Directions = 2
-EditorLabel = "&"
-
-[node name="DoorwayWest2" type="Node3D" parent="." unique_id=1903942977]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 10)
-script = ExtResource("doorway_marker")
-Directions = 8
-EditorLabel = "&"
-
-[node name="DoorwaySouth" type="Node3D" parent="." unique_id=1527375456]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 10)
-script = ExtResource("doorway_marker")
-Directions = 4
-EditorLabel = "&"

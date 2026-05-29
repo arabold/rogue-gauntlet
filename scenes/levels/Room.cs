@@ -193,7 +193,7 @@ public partial class Room : Node3D
 				continue;
 			}
 
-			map.SetConnector(tile.X, tile.Y, directions);
+			map.SetConnector(tile.X, tile.Y, directions, isDoorway: true);
 		}
 	}
 

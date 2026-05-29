@@ -1,13 +1,18 @@
-[gd_scene load_steps=6 format=3 uid="uid://cdavbwmwausvd"]
+[gd_scene format=3 uid="uid://cdavbwmwausvd"]
+
 [ext_resource type="Script" uid="uid://djvo5h5w1l038" path="res://scenes/levels/Room.cs" id="1_g374h"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_3gg6s"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_knwas"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_rnwlf"]
-[ext_resource type="Script" uid="uid://b1nxed0l83t2d" path="res://scenes/levels/DoorwayMarker.cs" id="doorway_marker"]
-[node name="CaveSmallWithPillars" type="Node3D"]
+
+[node name="CaveSmallWithPillars" type="Node3D" unique_id=858992704 node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap")]
 script = ExtResource("1_g374h")
+FloorGridMap = NodePath("FloorGridMap")
+WallGridMap = NodePath("WallGridMap")
+DecorationGridMap = NodePath("DecorationGridMap")
 ShowDebugOverlay = true
-[node name="FloorGridMap" type="GridMap" parent="."]
+
+[node name="FloorGridMap" type="GridMap" parent="." unique_id=653984026]
 mesh_library = ExtResource("2_3gg6s")
 cell_size = Vector3(1, 1, 1)
 cell_center_x = false
@@ -16,13 +21,15 @@ cell_center_z = false
 data = {
 "cells": PackedInt32Array(65532, 65528, 0, 0, 65532, 1441792, 0, 0, 655360, 4, 65532, 655361, 65531, 65533, 1048578, 3, 65529, 1048578, 5, 1, 1048578, 3, 65535, 3, 1, 65529, 1441795, 3, 65527, 655363, 5, 65529, 655364, 5, 65527, 655366, 65531, 65535, 655366, 3, 1, 655366, 5, 65535, 1048583, 65535, 65529, 7, 65531, 1, 2, 1, 65527, 1441794, 65535, 65527, 1441798, 65533, 65533, 1441798, 65533, 65535, 655366, 65533, 1, 655366, 65533, 65534, 655364, 65531, 65531, 1048580, 65533, 65531, 6)
 }
-[node name="WallGridMap" type="GridMap" parent="."]
+
+[node name="WallGridMap" type="GridMap" parent="." unique_id=821719972]
 mesh_library = ExtResource("3_knwas")
 cell_size = Vector3(1, 1, 1)
 cell_center_x = false
 cell_center_y = false
 cell_center_z = false
-[node name="DecorationGridMap" type="GridMap" parent="."]
+
+[node name="DecorationGridMap" type="GridMap" parent="." unique_id=603968724]
 mesh_library = ExtResource("4_rnwlf")
 cell_size = Vector3(1, 1, 1)
 cell_center_x = false
@@ -31,27 +38,3 @@ cell_center_z = false
 data = {
 "cells": PackedInt32Array(65534, 65534, 1441816, 2, 65534, 1441816, 2, 65530, 1441816, 65534, 65530, 1441816)
 }
-
-[node name="DoorwayNorth" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -6)
-script = ExtResource("doorway_marker")
-Directions = 1
-EditorLabel = "&"
-
-[node name="DoorwayWest" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -2)
-script = ExtResource("doorway_marker")
-Directions = 8
-EditorLabel = "&"
-
-[node name="DoorwayEast" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -2)
-script = ExtResource("doorway_marker")
-Directions = 2
-EditorLabel = "&"
-
-[node name="DoorwaySouth" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 2)
-script = ExtResource("doorway_marker")
-Directions = 4
-EditorLabel = "&"
