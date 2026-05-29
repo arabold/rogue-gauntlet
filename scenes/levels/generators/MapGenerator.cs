@@ -61,6 +61,10 @@ public partial class MapGenerator : Node3D
 	private const int NorthEastCornerOrientation = 0;
 	private const int SouthWestCornerOrientation = 10;
 	private const int SouthEastCornerOrientation = 22;
+	private const float EnemySpawnPlayerClearance = 20f;
+	private const float EnemySpawnPointSpacing = 5f;
+	private const float EnemySpawnBlockedAreaClearance = 7f;
+	private const float EnemySpawnPropClearance = 2f;
 
 	/// <summary>
 	/// Extra rows/columns of occluder caps placed beyond the map bounds so the
@@ -769,45 +773,23 @@ public partial class MapGenerator : Node3D
 		uint mobCount = 3 + DungeonDepth % 5 + (GD.Randi() % 3);
 		GD.Print($"Generating {mobCount} enemy spawn points...");
 
-		var points = NavigationRegion.NavigationMesh.GetVertices();
-		if (points.Length == 0)
+		if (NavigationRegion.NavigationMesh.GetVertices().Length == 0)
 		{
 			GD.PrintErr("Cannot generate enemy spawn points: navigation mesh has no vertices.");
+			return;
+		}
+
+		var candidates = GetEnemySpawnCandidates();
+		if (candidates.Count == 0)
+		{
+			GD.PrintErr("Cannot generate enemy spawn points: no valid map tiles found.");
 			return;
 		}
 
 		var spawnPoints = new List<Vector3>();
 		for (int i = 0; i < mobCount; i++)
 		{
-			Vector3 point;
-			bool isValidPoint;
-			int attempts = 100;
-
-			do
-			{
-				isValidPoint = true;
-				point = points[(int)(GD.Randi() % (ulong)points.Length)];
-				point.Y = 0f; // Ensure the point is on the ground
-
-				// Ensure the point is at least 20 meters away from the player
-				if (PlayerSpawnPoint != null && point.DistanceTo(PlayerSpawnPoint.GlobalPosition) < 20)
-				{
-					isValidPoint = false;
-					continue;
-				}
-
-				// Ensure the point is at least 5 meters away from other spawn points
-				foreach (var spawnPoint in spawnPoints)
-				{
-					if (point.DistanceTo(spawnPoint) < 5)
-					{
-						isValidPoint = false;
-						break;
-					}
-				}
-			} while (!isValidPoint && attempts-- > 0);
-
-			if (!isValidPoint)
+			if (!TryPickEnemySpawnPoint(candidates, spawnPoints, out var point))
 			{
 				GD.PrintErr("Could not find a valid enemy spawn point.");
 				continue;
@@ -833,6 +815,120 @@ public partial class MapGenerator : Node3D
 
 			EnemySpawnPoints.Add(spawnPointNode);
 		}
+	}
+
+	private List<Vector3> GetEnemySpawnCandidates()
+	{
+		var candidates = new List<Vector3>();
+		for (int x = 0; x < Map.Width; x++)
+		{
+			for (int z = 0; z < Map.Height; z++)
+			{
+				if ((Map.IsRoom(x, z) || Map.IsCorridor(x, z)) && !IsOccupiedSpawnTile(x, z))
+				{
+					candidates.Add(TileToWorld(x, 0, z));
+				}
+			}
+		}
+
+		return candidates;
+	}
+
+	private bool IsOccupiedSpawnTile(int x, int z)
+	{
+		return HasDecorationInTile(x, z) || HasPropInTile(x, z);
+	}
+
+	private bool HasDecorationInTile(int x, int z)
+	{
+		var center = TileToWorld(x, 0, z);
+		int halfTileSize = (int)TileSize / 2;
+		for (int dx = -halfTileSize; dx < halfTileSize; dx++)
+		{
+			for (int dz = -halfTileSize; dz < halfTileSize; dz++)
+			{
+				var cell = new Vector3I(center.X + dx, center.Y, center.Z + dz);
+				if (DecorationGridMap.GetCellItem(cell) >= 0)
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private bool HasPropInTile(int x, int z)
+	{
+		var center = TileToWorld(x, 0, z);
+		foreach (Node node in GetTree().GetNodesInGroup("prop"))
+		{
+			if (node is Node3D node3D && HorizontalDistance(center, node3D.GlobalPosition) < EnemySpawnPropClearance)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private bool TryPickEnemySpawnPoint(IReadOnlyList<Vector3> candidates, List<Vector3> spawnPoints, out Vector3 point)
+	{
+		point = Vector3.Zero;
+		var remainingCandidates = new List<Vector3>(candidates);
+		while (remainingCandidates.Count > 0)
+		{
+			int index = (int)(GD.Randi() % (ulong)remainingCandidates.Count);
+			var candidate = remainingCandidates[index];
+			remainingCandidates.RemoveAt(index);
+
+			if (IsBlockedEnemySpawnPoint(candidate, spawnPoints))
+			{
+				continue;
+			}
+
+			point = candidate;
+			return true;
+		}
+
+		return false;
+	}
+
+	private bool IsBlockedEnemySpawnPoint(Vector3 point, List<Vector3> spawnPoints)
+	{
+		if (PlayerSpawnPoint != null && HorizontalDistance(point, PlayerSpawnPoint.GlobalPosition) < EnemySpawnPlayerClearance)
+		{
+			return true;
+		}
+
+		foreach (var spawnPoint in spawnPoints)
+		{
+			if (HorizontalDistance(point, spawnPoint) < EnemySpawnPointSpacing)
+			{
+				return true;
+			}
+		}
+
+		foreach (Node node in FindChildren("*", "", true, false))
+		{
+			if (node is not Node3D node3D)
+			{
+				continue;
+			}
+
+			if ((node is PlayerSpawnPoint || node is LevelTransitionTrigger || node.IsInGroup("stairs"))
+				&& HorizontalDistance(point, node3D.GlobalPosition) < EnemySpawnBlockedAreaClearance)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static float HorizontalDistance(Vector3 a, Vector3 b)
+	{
+		return new Vector2(a.X, a.Z).DistanceTo(new Vector2(b.X, b.Z));
 	}
 
 	public void GenerateMap(bool includeGameplay = true)
