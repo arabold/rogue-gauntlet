@@ -36,6 +36,8 @@ public partial class GameSession : Node
 	private SaveGame _activeSave;
 	private SaveGame _pendingLoadedSave;
 	private double _sessionStartedAtMsec;
+	private bool _isSceneTransitioning;
+	private bool _saveAfterNextSpawn;
 	private CanvasLayer _levelFadeLayer;
 	private ColorRect _levelFadeRect;
 	private Tween _levelFadeTween;
@@ -70,6 +72,11 @@ public partial class GameSession : Node
 
 	public void StartNewGame(int slotId)
 	{
+		if (_isSceneTransitioning)
+		{
+			return;
+		}
+
 		SaveService.GetSlotPath(slotId);
 		ActiveSlotId = slotId;
 		ActiveSeed = (ulong)DateTime.UtcNow.Ticks;
@@ -77,6 +84,7 @@ public partial class GameSession : Node
 		PendingTravelDirection = LevelTravelDirection.Down;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
 		_pendingLoadedSave = null;
+		_saveAfterNextSpawn = true;
 
 		string now = DateTime.UtcNow.ToString("O");
 		_activeSave = new SaveGame
@@ -90,12 +98,18 @@ public partial class GameSession : Node
 		};
 
 		GetTree().Paused = false;
+		_isSceneTransitioning = true;
 		ShowBlackScreen();
 		GetTree().ChangeSceneToFile(GameplayScenePath);
 	}
 
 	public void LoadGame(int slotId)
 	{
+		if (_isSceneTransitioning)
+		{
+			return;
+		}
+
 		SaveGame saveGame = SaveService.Load(slotId);
 		if (saveGame == null)
 		{
@@ -109,9 +123,11 @@ public partial class GameSession : Node
 		PendingTravelDirection = null;
 		_activeSave = saveGame;
 		_pendingLoadedSave = saveGame;
+		_saveAfterNextSpawn = false;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
 
 		GetTree().Paused = false;
+		_isSceneTransitioning = true;
 		ShowBlackScreen();
 		GetTree().ChangeSceneToFile(GameplayScenePath);
 	}
@@ -151,6 +167,11 @@ public partial class GameSession : Node
 
 	public bool ChangeDungeonDepth(LevelTravelDirection direction)
 	{
+		if (_isSceneTransitioning)
+		{
+			return false;
+		}
+
 		if (!CanUseTransition(direction))
 		{
 			return false;
@@ -184,6 +205,7 @@ public partial class GameSession : Node
 
 		GD.Print($"Transitioning {direction} to depth {ActiveDungeonDepth}...");
 
+		_isSceneTransitioning = true;
 		FadeOutAndReloadLevel();
 
 		return true;
@@ -265,19 +287,19 @@ public partial class GameSession : Node
 		};
 	}
 
-	public void SaveActiveGame()
+	public bool SaveActiveGame()
 	{
 		if (!IsGameActive)
 		{
 			GD.PrintErr("Cannot save because no game slot is active.");
-			return;
+			return false;
 		}
 
 		Player player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
 		if (player == null)
 		{
 			GD.PrintErr("Cannot save because no player is active.");
-			return;
+			return false;
 		}
 
 		EnsureActiveSave();
@@ -291,16 +313,23 @@ public partial class GameSession : Node
 		saveGame.PlayTimeSeconds += GetSessionElapsedSeconds();
 		saveGame.Player = CapturePlayer(player);
 
-		SaveService.Save(saveGame);
+		if (!SaveService.Save(saveGame))
+		{
+			return false;
+		}
+
 		_activeSave = saveGame;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
 		GD.Print($"Saved game to slot {ActiveSlotId}.");
+		return true;
 	}
 
 	public void SaveAndReturnToMenu()
 	{
-		SaveActiveGame();
-		ReturnToMenu();
+		if (SaveActiveGame())
+		{
+			ReturnToMenu();
+		}
 	}
 
 	public void ReturnToMenu()
@@ -323,6 +352,8 @@ public partial class GameSession : Node
 		_pendingLoadedSave = null;
 		_sessionStartedAtMsec = 0;
 		_stairArrivalTicks = 0;
+		_isSceneTransitioning = false;
+		_saveAfterNextSpawn = false;
 	}
 
 	private double GetSessionElapsedSeconds()
@@ -334,8 +365,15 @@ public partial class GameSession : Node
 	{
 		if (_pendingLoadedSave?.Player != null)
 		{
+			// Loading still instantiates through the authored spawn point; the saved
+			// transform is applied immediately before the level is revealed.
 			ApplyPlayerSave(player, _pendingLoadedSave.Player);
 			_pendingLoadedSave = null;
+		}
+		else if (_saveAfterNextSpawn)
+		{
+			_saveAfterNextSpawn = false;
+			SaveActiveGame();
 		}
 
 		CallDeferred(MethodName.FadeInAfterLevelSettled);
@@ -359,6 +397,7 @@ public partial class GameSession : Node
 		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 		await FadeFromBlack();
+		_isSceneTransitioning = false;
 	}
 
 	private async Task FadeToBlack()

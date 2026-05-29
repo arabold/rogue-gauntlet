@@ -13,18 +13,18 @@ public partial class Main : Node
 	public override void _Ready()
 	{
 		GD.Print("Main scene is ready");
-		var level = GetNode<Level>("Level");
-		GameSession.Instance?.ConfigureLevel(level);
-		level.Generate();
-
 		_pcam = GetNode<Node3D>("PhantomCamera3D");
 		_pcam.Set("follow_mode", FollowModeNone);
 
-		// At this point the player is already spawned
 		this.SubscribeUntilExit(
 			SignalBus.Instance,
 			signalBus => signalBus.PlayerSpawned += OnPlayerSpawned,
 			signalBus => signalBus.PlayerSpawned -= OnPlayerSpawned);
+
+		var level = GetNode<Level>("Level");
+		GameSession.Instance?.ConfigureLevel(level);
+		level.Generate();
+
 		var player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
 		if (player != null)
 		{

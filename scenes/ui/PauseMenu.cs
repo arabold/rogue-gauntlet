@@ -65,7 +65,8 @@ public partial class PauseMenu : Control
 
 	private void Save()
 	{
-		GameSession.Instance.SaveActiveGame();
-		_statusLabel.Text = "Saved.";
+		_statusLabel.Text = GameSession.Instance.SaveActiveGame()
+			? "Saved."
+			: "Save failed.";
 	}
 }

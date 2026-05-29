@@ -54,7 +54,7 @@ public static class SaveService
 		}
 	}
 
-	public static void Save(SaveGame saveGame)
+	public static bool Save(SaveGame saveGame)
 	{
 		ValidateSlot(saveGame.SlotId);
 		EnsureSaveDirectory();
@@ -65,10 +65,11 @@ public static class SaveService
 		if (file == null)
 		{
 			GD.PrintErr($"Could not write save file: {path}");
-			return;
+			return false;
 		}
 
 		file.StoreString(json);
+		return true;
 	}
 
 	public static IReadOnlyList<SaveSlotMetadata> ListSlots()
