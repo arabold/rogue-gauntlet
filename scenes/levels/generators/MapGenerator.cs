@@ -363,7 +363,7 @@ public partial class MapGenerator : Node3D
 	{
 		GD.Print("Placing walls...");
 		var cornerEdges = new System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges>();
-		var authoredWallCells = new HashSet<Vector3I>(WallGridMap.GetUsedCells());
+		var occupiedWallSpans = BuildOccupiedWallSpans();
 
 		for (int x = 0; x < Map.Width; x++)
 		{
@@ -371,15 +371,15 @@ public partial class MapGenerator : Node3D
 			{
 				if (IsWallSourceTile(x, z))
 				{
-					PlaceWallModulesForTile(x, z, cornerEdges, authoredWallCells);
+					PlaceWallModulesForTile(x, z, cornerEdges, occupiedWallSpans);
 				}
 			}
 		}
 
-		PlaceWallCorners(cornerEdges, authoredWallCells);
+		PlaceWallCorners(cornerEdges, occupiedWallSpans);
 	}
 
-	private void PlaceWallModulesForTile(int x, int z, System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, HashSet<Vector3I> authoredWallCells)
+	private void PlaceWallModulesForTile(int x, int z, System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, HashSet<WallSpan> occupiedWallSpans)
 	{
 		int tileCenter = (int)TileSize / 2;
 		var basePosition = TileToWorld(x, 0, z);
@@ -396,28 +396,28 @@ public partial class MapGenerator : Node3D
 		{
 			AddHorizontalCornerEdge(cornerEdges, new Vector2I(westX, northZ), extendsEast: true);
 			AddHorizontalCornerEdge(cornerEdges, new Vector2I(eastX, northZ), extendsEast: false);
-			PlaceWallStraight(basePosition + new Vector3I(0, 0, -tileCenter), HorizontalWallOrientation, authoredWallCells);
+			PlaceWallStraight(basePosition + new Vector3I(0, 0, -tileCenter), HorizontalWallOrientation, occupiedWallSpans);
 		}
 
 		if (south)
 		{
 			AddHorizontalCornerEdge(cornerEdges, new Vector2I(westX, southZ), extendsEast: true);
 			AddHorizontalCornerEdge(cornerEdges, new Vector2I(eastX, southZ), extendsEast: false);
-			PlaceWallStraight(basePosition + new Vector3I(0, 0, tileCenter), HorizontalWallOrientation, authoredWallCells);
+			PlaceWallStraight(basePosition + new Vector3I(0, 0, tileCenter), HorizontalWallOrientation, occupiedWallSpans);
 		}
 
 		if (west)
 		{
 			AddVerticalCornerEdge(cornerEdges, new Vector2I(westX, northZ), extendsSouth: true);
 			AddVerticalCornerEdge(cornerEdges, new Vector2I(westX, southZ), extendsSouth: false);
-			PlaceWallStraight(basePosition + new Vector3I(-tileCenter, 0, 0), VerticalWallOrientation, authoredWallCells);
+			PlaceWallStraight(basePosition + new Vector3I(-tileCenter, 0, 0), VerticalWallOrientation, occupiedWallSpans);
 		}
 
 		if (east)
 		{
 			AddVerticalCornerEdge(cornerEdges, new Vector2I(eastX, northZ), extendsSouth: true);
 			AddVerticalCornerEdge(cornerEdges, new Vector2I(eastX, southZ), extendsSouth: false);
-			PlaceWallStraight(basePosition + new Vector3I(tileCenter, 0, 0), VerticalWallOrientation, authoredWallCells);
+			PlaceWallStraight(basePosition + new Vector3I(tileCenter, 0, 0), VerticalWallOrientation, occupiedWallSpans);
 		}
 	}
 
@@ -451,156 +451,256 @@ public partial class MapGenerator : Node3D
 		cornerEdges[position] = edges;
 	}
 
-	private void PlaceWallCorners(System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, HashSet<Vector3I> authoredWallCells)
+	private void PlaceWallCorners(System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, HashSet<WallSpan> occupiedWallSpans)
 	{
 		foreach (var (position, edges) in cornerEdges)
 		{
 			if (edges.HorizontalEast && edges.VerticalSouth)
 			{
-				PlaceWallCorner(position, NorthWestCornerOrientation, authoredWallCells);
+				PlaceWallCorner(position, NorthWestCornerOrientation, occupiedWallSpans);
 			}
 			else if (edges.HorizontalWest && edges.VerticalSouth)
 			{
-				PlaceWallCorner(position, NorthEastCornerOrientation, authoredWallCells);
+				PlaceWallCorner(position, NorthEastCornerOrientation, occupiedWallSpans);
 			}
 			else if (edges.HorizontalEast && edges.VerticalNorth)
 			{
-				PlaceWallCorner(position, SouthWestCornerOrientation, authoredWallCells);
+				PlaceWallCorner(position, SouthWestCornerOrientation, occupiedWallSpans);
 			}
 			else if (edges.HorizontalWest && edges.VerticalNorth)
 			{
-				PlaceWallCorner(position, SouthEastCornerOrientation, authoredWallCells);
+				PlaceWallCorner(position, SouthEastCornerOrientation, occupiedWallSpans);
 			}
 		}
 	}
 
-	private void PlaceWallCorner(Vector2I position, int orientation, HashSet<Vector3I> authoredWallCells)
+	private void PlaceWallCorner(Vector2I position, int orientation, HashSet<WallSpan> occupiedWallSpans)
 	{
-		SetGeneratedWallCell(new Vector3I(position.X, 0, position.Y), TileFactory.GetWallCornerTileIndex(), orientation, authoredWallCells, GeneratedWallFootprint.Point);
+		var cellPosition = new Vector3I(position.X, 0, position.Y);
+		var coverage = GetCornerWallCoverage(orientation);
+
+		if (!WallCoverageOccupied(cellPosition, coverage, occupiedWallSpans)
+			&& SetGeneratedWallCell(cellPosition, TileFactory.GetWallCornerTileIndex(), orientation, coverage, occupiedWallSpans))
+		{
+			return;
+		}
+
+		PlaceWallHalves(cellPosition, coverage, occupiedWallSpans);
 	}
 
-	private void PlaceWallStraight(Vector3I position, int orientation, HashSet<Vector3I> authoredWallCells)
+	private void PlaceWallStraight(Vector3I position, int orientation, HashSet<WallSpan> occupiedWallSpans)
 	{
 		var footprint = orientation == HorizontalWallOrientation
 			? GeneratedWallFootprint.Horizontal
 			: GeneratedWallFootprint.Vertical;
-		bool startHalfOverlapsAuthoredWall = GeneratedWallHalfOverlapsAuthoredWall(position, footprint, startHalf: true, authoredWallCells);
-		bool endHalfOverlapsAuthoredWall = GeneratedWallHalfOverlapsAuthoredWall(position, footprint, startHalf: false, authoredWallCells);
+		bool startHalfOccupied = WallHalfSpanOccupied(position, footprint, startHalf: true, occupiedWallSpans);
+		bool endHalfOccupied = WallHalfSpanOccupied(position, footprint, startHalf: false, occupiedWallSpans);
 
-		if (!startHalfOverlapsAuthoredWall && !endHalfOverlapsAuthoredWall)
+		if (!startHalfOccupied && !endHalfOccupied)
 		{
-			SetGeneratedWallCell(position, TileFactory.GetWallTileIndex(), orientation, authoredWallCells, GeneratedWallFootprint.Point);
+			var coverage = GetStraightWallCoverage(footprint);
+			if (SetGeneratedWallCell(position, TileFactory.GetWallTileIndex(), orientation, coverage, occupiedWallSpans))
+			{
+				return;
+			}
+
+			PlaceWallHalf(position, footprint, startHalf: true, occupiedWallSpans);
+			PlaceWallHalf(position, footprint, startHalf: false, occupiedWallSpans);
 			return;
 		}
 
-		if (!startHalfOverlapsAuthoredWall)
+		if (!startHalfOccupied)
 		{
-			SetGeneratedWallCell(position, TileFactory.GetWallHalfTileIndex(), GetStartHalfWallOrientation(footprint), authoredWallCells, GeneratedWallFootprint.Point);
+			PlaceWallHalf(position, footprint, startHalf: true, occupiedWallSpans);
 		}
 
-		if (!endHalfOverlapsAuthoredWall)
+		if (!endHalfOccupied)
 		{
-			SetGeneratedWallCell(position, TileFactory.GetWallHalfTileIndex(), GetEndHalfWallOrientation(footprint), authoredWallCells, GeneratedWallFootprint.Point);
+			PlaceWallHalf(position, footprint, startHalf: false, occupiedWallSpans);
 		}
 	}
 
-	private void SetGeneratedWallCell(Vector3I position, int tileIndex, int orientation, HashSet<Vector3I> authoredWallCells, GeneratedWallFootprint footprint)
+	private void PlaceWallHalves(Vector3I position, WallCoverage coverage, HashSet<WallSpan> occupiedWallSpans)
+	{
+		if (coverage.HasFlag(WallCoverage.HorizontalWest))
+		{
+			PlaceWallHalf(position, GeneratedWallFootprint.Horizontal, startHalf: true, occupiedWallSpans);
+		}
+
+		if (coverage.HasFlag(WallCoverage.HorizontalEast))
+		{
+			PlaceWallHalf(position, GeneratedWallFootprint.Horizontal, startHalf: false, occupiedWallSpans);
+		}
+
+		if (coverage.HasFlag(WallCoverage.VerticalNorth))
+		{
+			PlaceWallHalf(position, GeneratedWallFootprint.Vertical, startHalf: true, occupiedWallSpans);
+		}
+
+		if (coverage.HasFlag(WallCoverage.VerticalSouth))
+		{
+			PlaceWallHalf(position, GeneratedWallFootprint.Vertical, startHalf: false, occupiedWallSpans);
+		}
+	}
+
+	private bool PlaceWallHalf(Vector3I position, GeneratedWallFootprint footprint, bool startHalf, HashSet<WallSpan> occupiedWallSpans)
+	{
+		if (WallHalfSpanOccupied(position, footprint, startHalf, occupiedWallSpans))
+		{
+			return false;
+		}
+
+		int tileCenter = (int)TileSize / 2;
+		int tileIndex = TileFactory.GetWallHalfTileIndex();
+
+		// A wall_half covers one side of its anchor. If the center anchor is already
+		// used by an authored wall, the same 2-cell span can be represented from the
+		// opposite endpoint with the opposite orientation.
+		if (footprint == GeneratedWallFootprint.Horizontal)
+		{
+			return startHalf
+				? SetGeneratedWallCell(position, tileIndex, HorizontalWallWestHalfOrientation, WallCoverage.HorizontalWest, occupiedWallSpans)
+					|| SetGeneratedWallCell(position + new Vector3I(-tileCenter, 0, 0), tileIndex, HorizontalWallOrientation, WallCoverage.HorizontalEast, occupiedWallSpans)
+				: SetGeneratedWallCell(position, tileIndex, HorizontalWallOrientation, WallCoverage.HorizontalEast, occupiedWallSpans)
+					|| SetGeneratedWallCell(position + new Vector3I(tileCenter, 0, 0), tileIndex, HorizontalWallWestHalfOrientation, WallCoverage.HorizontalWest, occupiedWallSpans);
+		}
+
+		return startHalf
+			? SetGeneratedWallCell(position, tileIndex, VerticalWallOrientation, WallCoverage.VerticalNorth, occupiedWallSpans)
+				|| SetGeneratedWallCell(position + new Vector3I(0, 0, -tileCenter), tileIndex, VerticalWallSouthHalfOrientation, WallCoverage.VerticalSouth, occupiedWallSpans)
+			: SetGeneratedWallCell(position, tileIndex, VerticalWallSouthHalfOrientation, WallCoverage.VerticalSouth, occupiedWallSpans)
+				|| SetGeneratedWallCell(position + new Vector3I(0, 0, tileCenter), tileIndex, VerticalWallOrientation, WallCoverage.VerticalNorth, occupiedWallSpans);
+	}
+
+	private bool SetGeneratedWallCell(Vector3I position, int tileIndex, int orientation, WallCoverage coverage, HashSet<WallSpan> occupiedWallSpans)
 	{
 		if (WallGridMap.GetCellItem(position) >= 0)
 		{
-			return;
+			return false;
 		}
 
-		if (GeneratedWallOverlapsAuthoredWall(position, footprint, authoredWallCells))
+		if (WallCoverageOccupied(position, coverage, occupiedWallSpans))
 		{
-			return;
+			return false;
 		}
 
 		WallGridMap.SetCellItem(position, tileIndex, orientation);
+		AddWallSpans(occupiedWallSpans, position, coverage);
+		return true;
 	}
 
-	private bool GeneratedWallOverlapsAuthoredWall(Vector3I position, GeneratedWallFootprint footprint, HashSet<Vector3I> authoredWallCells)
+	private HashSet<WallSpan> BuildOccupiedWallSpans()
 	{
-		// Authored wall meshes may span multiple GridMap cells from a single anchor, so
-		// checking only the generated anchor can still stack a generated wall on top.
+		var occupiedWallSpans = new HashSet<WallSpan>();
+		foreach (Vector3I cell in WallGridMap.GetUsedCells())
+		{
+			int tileIndex = WallGridMap.GetCellItem(cell);
+			if (tileIndex < 0)
+			{
+				continue;
+			}
+
+			AddWallSpans(occupiedWallSpans, cell, GetWallCoverage(tileIndex, WallGridMap.GetCellItemOrientation(cell)));
+		}
+
+		return occupiedWallSpans;
+	}
+
+	private void AddWallSpans(HashSet<WallSpan> occupiedWallSpans, Vector3I position, WallCoverage coverage)
+	{
+		if (coverage.HasFlag(WallCoverage.HorizontalWest))
+		{
+			occupiedWallSpans.Add(GetWallHalfSpan(position, GeneratedWallFootprint.Horizontal, startHalf: true));
+		}
+
+		if (coverage.HasFlag(WallCoverage.HorizontalEast))
+		{
+			occupiedWallSpans.Add(GetWallHalfSpan(position, GeneratedWallFootprint.Horizontal, startHalf: false));
+		}
+
+		if (coverage.HasFlag(WallCoverage.VerticalNorth))
+		{
+			occupiedWallSpans.Add(GetWallHalfSpan(position, GeneratedWallFootprint.Vertical, startHalf: true));
+		}
+
+		if (coverage.HasFlag(WallCoverage.VerticalSouth))
+		{
+			occupiedWallSpans.Add(GetWallHalfSpan(position, GeneratedWallFootprint.Vertical, startHalf: false));
+		}
+	}
+
+	private bool WallCoverageOccupied(Vector3I position, WallCoverage coverage, HashSet<WallSpan> occupiedWallSpans)
+	{
+		return coverage.HasFlag(WallCoverage.HorizontalWest) && WallHalfSpanOccupied(position, GeneratedWallFootprint.Horizontal, startHalf: true, occupiedWallSpans)
+			|| coverage.HasFlag(WallCoverage.HorizontalEast) && WallHalfSpanOccupied(position, GeneratedWallFootprint.Horizontal, startHalf: false, occupiedWallSpans)
+			|| coverage.HasFlag(WallCoverage.VerticalNorth) && WallHalfSpanOccupied(position, GeneratedWallFootprint.Vertical, startHalf: true, occupiedWallSpans)
+			|| coverage.HasFlag(WallCoverage.VerticalSouth) && WallHalfSpanOccupied(position, GeneratedWallFootprint.Vertical, startHalf: false, occupiedWallSpans);
+	}
+
+	private bool WallHalfSpanOccupied(Vector3I position, GeneratedWallFootprint footprint, bool startHalf, HashSet<WallSpan> occupiedWallSpans)
+	{
+		return occupiedWallSpans.Contains(GetWallHalfSpan(position, footprint, startHalf));
+	}
+
+	private WallSpan GetWallHalfSpan(Vector3I position, GeneratedWallFootprint footprint, bool startHalf)
+	{
 		int tileCenter = (int)TileSize / 2;
 		if (footprint == GeneratedWallFootprint.Horizontal)
 		{
-			int startX = position.X - tileCenter;
-			for (int dx = 0; dx < TileSize; dx++)
-			{
-				if (authoredWallCells.Contains(new Vector3I(startX + dx, position.Y, position.Z)))
-				{
-					return true;
-				}
-			}
-
-			return false;
+			return startHalf
+				? new WallSpan(position + new Vector3I(-tileCenter, 0, 0), position)
+				: new WallSpan(position, position + new Vector3I(tileCenter, 0, 0));
 		}
 
-		if (footprint == GeneratedWallFootprint.Vertical)
-		{
-			int startZ = position.Z - tileCenter;
-			for (int dz = 0; dz < TileSize; dz++)
-			{
-				if (authoredWallCells.Contains(new Vector3I(position.X, position.Y, startZ + dz)))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		return authoredWallCells.Contains(position);
+		return startHalf
+			? new WallSpan(position + new Vector3I(0, 0, -tileCenter), position)
+			: new WallSpan(position, position + new Vector3I(0, 0, tileCenter));
 	}
 
-	private bool GeneratedWallHalfOverlapsAuthoredWall(Vector3I position, GeneratedWallFootprint footprint, bool startHalf, HashSet<Vector3I> authoredWallCells)
+	private WallCoverage GetWallCoverage(int tileIndex, int orientation)
 	{
-		int tileCenter = (int)TileSize / 2;
-		if (footprint == GeneratedWallFootprint.Horizontal)
+		if (tileIndex == TileFactory.GetWallHalfTileIndex())
 		{
-			int startX = position.X + (startHalf ? -tileCenter : 0);
-			for (int dx = 0; dx < tileCenter; dx++)
-			{
-				if (authoredWallCells.Contains(new Vector3I(startX + dx, position.Y, position.Z)))
-				{
-					return true;
-				}
-			}
-
-			return false;
+			return GetHalfWallCoverage(orientation);
 		}
 
-		if (footprint == GeneratedWallFootprint.Vertical)
+		if (tileIndex == TileFactory.GetWallCornerTileIndex())
 		{
-			int startZ = position.Z + (startHalf ? -tileCenter : 0);
-			for (int dz = 0; dz < tileCenter; dz++)
-			{
-				if (authoredWallCells.Contains(new Vector3I(position.X, position.Y, startZ + dz)))
-				{
-					return true;
-				}
-			}
-
-			return false;
+			return GetCornerWallCoverage(orientation);
 		}
 
-		return authoredWallCells.Contains(position);
+		return orientation == VerticalWallOrientation || orientation == VerticalWallSouthHalfOrientation
+			? GetStraightWallCoverage(GeneratedWallFootprint.Vertical)
+			: GetStraightWallCoverage(GeneratedWallFootprint.Horizontal);
 	}
 
-	private int GetStartHalfWallOrientation(GeneratedWallFootprint footprint)
+	private WallCoverage GetStraightWallCoverage(GeneratedWallFootprint footprint)
 	{
 		return footprint == GeneratedWallFootprint.Horizontal
-			? HorizontalWallWestHalfOrientation
-			: VerticalWallOrientation;
+			? WallCoverage.HorizontalWest | WallCoverage.HorizontalEast
+			: WallCoverage.VerticalNorth | WallCoverage.VerticalSouth;
 	}
 
-	private int GetEndHalfWallOrientation(GeneratedWallFootprint footprint)
+	private WallCoverage GetHalfWallCoverage(int orientation)
 	{
-		return footprint == GeneratedWallFootprint.Horizontal
-			? HorizontalWallOrientation
-			: VerticalWallSouthHalfOrientation;
+		return orientation switch
+		{
+			HorizontalWallWestHalfOrientation => WallCoverage.HorizontalWest,
+			VerticalWallOrientation => WallCoverage.VerticalNorth,
+			VerticalWallSouthHalfOrientation => WallCoverage.VerticalSouth,
+			_ => WallCoverage.HorizontalEast,
+		};
+	}
+
+	private WallCoverage GetCornerWallCoverage(int orientation)
+	{
+		return orientation switch
+		{
+			NorthWestCornerOrientation => WallCoverage.HorizontalEast | WallCoverage.VerticalSouth,
+			NorthEastCornerOrientation => WallCoverage.HorizontalWest | WallCoverage.VerticalSouth,
+			SouthWestCornerOrientation => WallCoverage.HorizontalEast | WallCoverage.VerticalNorth,
+			_ => WallCoverage.HorizontalWest | WallCoverage.VerticalNorth,
+		};
 	}
 
 	private enum GeneratedWallFootprint
@@ -609,6 +709,18 @@ public partial class MapGenerator : Node3D
 		Horizontal,
 		Vertical,
 	}
+
+	[Flags]
+	private enum WallCoverage
+	{
+		None = 0,
+		HorizontalWest = 1,
+		HorizontalEast = 2,
+		VerticalNorth = 4,
+		VerticalSouth = 8,
+	}
+
+	private readonly record struct WallSpan(Vector3I Start, Vector3I End);
 
 	private bool IsWallSourceTile(int x, int z)
 	{
