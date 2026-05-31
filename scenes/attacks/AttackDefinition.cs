@@ -56,4 +56,9 @@ public partial class AttackDefinition : Resource
 	/// </summary>
 	[Export] public float Range { get; set; } = 20.0f;
 
+	/// <summary>
+	/// Maximum angle from the actor's forward direction where ranged attacks can auto-aim at a target.
+	/// </summary>
+	[Export] public float AimingAngle { get; set; } = 60.0f;
+
 }

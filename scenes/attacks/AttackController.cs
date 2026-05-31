@@ -241,7 +241,7 @@ public partial class AttackController : Node
 			origin = _actor.GlobalPosition - _actor.GlobalTransform.Basis.Z * 1.0f + Vector3.Up * 1.2f;
 		}
 
-		Vector3 direction = Aim(_currentAttack.Range);
+		Vector3 direction = Aim(origin, _currentAttack.Range, _currentAttack.AimingAngle);
 
 		PackedScene scene = _currentAttack.ProjectileScene ?? DefaultProjectileScene;
 		if (scene == null)
@@ -310,63 +310,88 @@ public partial class AttackController : Node
 		}
 		return null;
 	}
-	private Vector3 Aim(float range)
+
+	private Vector3 Aim(Vector3 origin, float range, float aimingAngle)
 	{
 		bool isPlayer = _actor.IsInGroup("player");
 		string targetGroup = isPlayer ? "enemy" : "player";
 
-		var targets = GetTree().GetNodesInGroup(targetGroup).OfType<Node3D>().OrderBy(n =>
-				_actor.GlobalPosition.DistanceTo(n.GlobalPosition));
+		var targets = GetTree().GetNodesInGroup(targetGroup).OfType<Node3D>()
+			.Where(target => IsValidAimTarget(target) && TestLineOfSight(target, range, aimingAngle))
+			.OrderBy(GetAimAngle)
+			.ThenBy(target => _actor.GlobalPosition.DistanceTo(target.GlobalPosition));
 
 		foreach (var target in targets)
 		{
-			if (target is EnemyBase enemy && enemy.IsDead) continue;
-			if (target is Player player && player.IsDead) continue;
-
-			if (TestLineOfSight(target, range))
-			{
-				var collisionShape = target.GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
-				Vector3 targetCenter = target.GlobalPosition;
-				if (collisionShape != null)
-				{
-					targetCenter = target.GlobalPosition + collisionShape.Transform.Origin;
-				}
-				else
-				{
-					targetCenter += Vector3.Up * 1.0f;
-				}
-				return (targetCenter - _actor.GlobalPosition).Normalized();
-			}
+			return GetDirectionToTarget(origin, target, 1.0f);
 		}
 
 		if (isPlayer)
 		{
-			var damageables = GetTree().GetNodesInGroup("damageable").OfType<Node3D>().OrderBy(n =>
-					_actor.GlobalPosition.DistanceTo(n.GlobalPosition));
+			var damageables = GetTree().GetNodesInGroup("damageable").OfType<Node3D>()
+				.Where(node => node is IDamageable
+					&& !IsOwnedByActor(node)
+					&& TestLineOfSight(node, range, aimingAngle))
+				.OrderBy(GetAimAngle)
+				.ThenBy(node => _actor.GlobalPosition.DistanceTo(node.GlobalPosition));
+
 			foreach (var node in damageables)
 			{
-				if (node is IDamageable && TestLineOfSight(node, range))
-				{
-					var collisionShape = node.GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
-					Vector3 targetCenter = node.GlobalPosition;
-					if (collisionShape != null)
-					{
-						targetCenter = node.GlobalPosition + collisionShape.Transform.Origin;
-					}
-					else
-					{
-						targetCenter += Vector3.Up * 0.5f;
-					}
-					return (targetCenter - _actor.GlobalPosition).Normalized();
-				}
+				return GetDirectionToTarget(origin, node, 0.5f);
 			}
 		}
 
-		return -_actor.GlobalTransform.Basis.Z;
+		return GetActorForward();
 	}
 
-	private bool TestLineOfSight(Node3D target, float range)
+	private Vector3 GetDirectionToTarget(Vector3 origin, Node3D target, float fallbackHeight)
 	{
+		Vector3 direction = GetTargetCenter(target, fallbackHeight) - origin;
+		direction.Y = 0;
+		return direction.LengthSquared() > 0 ? direction.Normalized() : GetActorForward();
+	}
+
+	private Vector3 GetTargetCenter(Node3D target, float fallbackHeight)
+	{
+		var collisionShape = target.GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
+		return collisionShape?.GlobalPosition ?? target.GlobalPosition + Vector3.Up * fallbackHeight;
+	}
+
+	private bool IsOwnedByActor(Node node)
+	{
+		return node == _actor || _actor.IsAncestorOf(node) || node.IsAncestorOf(_actor);
+	}
+
+	private bool IsValidAimTarget(Node node)
+	{
+		if (IsOwnedByActor(node)) return false;
+		if (node is EnemyBase enemy) return !enemy.IsDead;
+		if (node is Player player) return !player.IsDead;
+		if (node.GetParent() is EnemyBase parentEnemy) return !parentEnemy.IsDead;
+		if (node.GetParent() is Player parentPlayer) return !parentPlayer.IsDead;
+		return true;
+	}
+
+	private float GetAimAngle(Node3D target)
+	{
+		Vector3 directionToTarget = target.GlobalPosition - _actor.GlobalPosition;
+		directionToTarget.Y = 0;
+		if (directionToTarget.LengthSquared() == 0) return 0.0f;
+
+		return Mathf.RadToDeg(GetActorForward().AngleTo(directionToTarget.Normalized()));
+	}
+
+	private Vector3 GetActorForward()
+	{
+		Vector3 forward = -_actor.GlobalTransform.Basis.Z;
+		forward.Y = 0;
+		return forward.LengthSquared() > 0 ? forward.Normalized() : Vector3.Forward;
+	}
+
+	private bool TestLineOfSight(Node3D target, float range, float aimingAngle)
+	{
+		if (!IsValidAimTarget(target)) return false;
+
 		float distance = _actor.GlobalPosition.DistanceTo(target.GlobalPosition);
 		if (distance > range) return false;
 
@@ -375,12 +400,8 @@ public partial class AttackController : Node
 		if (directionToTarget.LengthSquared() == 0) return true;
 		directionToTarget = directionToTarget.Normalized();
 
-		Vector3 forward = -_actor.GlobalTransform.Basis.Z;
-		forward.Y = 0;
-		forward = forward.Normalized();
-
-		float angle = Mathf.RadToDeg(forward.AngleTo(directionToTarget));
-		if (angle > 60.0f) return false;
+		float angle = Mathf.RadToDeg(GetActorForward().AngleTo(directionToTarget));
+		if (angle > aimingAngle) return false;
 
 		return true;
 	}

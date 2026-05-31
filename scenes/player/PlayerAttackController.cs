@@ -79,6 +79,7 @@ public partial class PlayerAttackController : AttackController
 			if (weapon is RangedWeapon rangedWeapon)
 			{
 				def.ProjectileSpeed = rangedWeapon.ProjectileSpeed;
+				def.AimingAngle = rangedWeapon.AimingAngle;
 			}
 		}
 
