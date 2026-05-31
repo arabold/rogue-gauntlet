@@ -5,14 +5,14 @@
 [node name="EnemyBehaviorComponent" type="Node3D"]
 script = ExtResource("1_o22n4")
 
-[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
-debug_enabled = true
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." groups=["navigation_agent"]]
+debug_enabled = false
 debug_path_custom_color = Color(1, 0, 0, 1)
 
 [node name="SightRay" type="RayCast3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 enabled = false
 target_position = Vector3(0, 0, -1)
-collision_mask = 7
+collision_mask = 23
 collide_with_areas = true
 debug_shape_custom_color = Color(1, 1, 0, 1)

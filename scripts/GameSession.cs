@@ -258,6 +258,19 @@ public partial class GameSession : Node
 			: level.OpenedDoors.Select(door => new Vector2I(door.X, door.Y)).ToList();
 	}
 
+	public void ResetCurrentLevelDebugState()
+	{
+		if (_activeSave?.World == null)
+		{
+			return;
+		}
+
+		_activeSave.World.ClearedEntityIds.RemoveAll(entityId =>
+			entityId.StartsWith($"depth:{ActiveDungeonDepth}:", StringComparison.Ordinal));
+		_activeSave.World.RevealedLevels.RemoveAll(level => level.DungeonDepth == ActiveDungeonDepth);
+		_pendingLoadedSave = null;
+	}
+
 	private RevealedLevelSaveData FindRevealedLevel()
 	{
 		return _activeSave?.World?.RevealedLevels?

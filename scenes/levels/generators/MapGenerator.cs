@@ -25,6 +25,9 @@ public partial class MapGenerator : Node3D
 	public GridMap OcclusionGridMap { get; private set; }
 	public NavigationRegion3D NavigationRegion { get; private set; }
 
+	// Lazily-built translucent overlay of the baked navigation mesh, toggled by the debug menu.
+	private MeshInstance3D _navigationDebugMesh;
+
 	private readonly List<RoomRegion> _roomRegions = new();
 	// Interior floor tile -> room id, for "which room is the player in" detection.
 	private readonly System.Collections.Generic.Dictionary<Vector2I, int> _tileToRoom = new();
@@ -65,6 +68,10 @@ public partial class MapGenerator : Node3D
 	private const float EnemySpawnPointSpacing = 5f;
 	private const float EnemySpawnBlockedAreaClearance = 7f;
 	private const float EnemySpawnPropClearance = 2f;
+
+	// Physics layers a runtime spawn must stay clear of: world (1) | walls (2) | props (5).
+	// Keeps items out of stairs, transition blockers, walls, and props via a single overlap test.
+	private const uint SpawnObstructionMask = 1u | 2u | 16u;
 
 	/// <summary>
 	/// Extra rows/columns of occluder caps placed beyond the map bounds so the
@@ -690,6 +697,25 @@ public partial class MapGenerator : Node3D
 		}
 	}
 
+	/// <summary>
+	/// Clears gameplay fog across the generated level for runtime debugging.
+	/// </summary>
+	public void RevealAllFog()
+	{
+		if (OcclusionGridMap == null)
+		{
+			return;
+		}
+
+		OcclusionGridMap.Clear();
+		PlaceOcclusion(false);
+
+		foreach (var (door, _) in _doorIndicators)
+		{
+			door.SetIndicatorVisible(true);
+		}
+	}
+
 	private void OpenConnector(Vector2I connector)
 	{
 		_dooredConnectors.Remove(connector);
@@ -837,6 +863,91 @@ public partial class MapGenerator : Node3D
 	private bool IsOccupiedSpawnTile(int x, int z)
 	{
 		return HasDecorationInTile(x, z) || HasPropInTile(x, z);
+	}
+
+	/// <summary>
+	/// Finds a free world position close to <paramref name="origin"/> for a runtime spawn. Probes the
+	/// origin first, then samples points on expanding rings out to <paramref name="maxRadius"/> world
+	/// units, returning the nearest one that sits on a room/corridor floor tile whose column is clear
+	/// of any solid collider (walls, props, stairs, transition blockers, etc.). Falls back to
+	/// <paramref name="origin"/> when nothing nearby is free, so the item still drops next to the
+	/// player rather than teleporting across the map.
+	/// </summary>
+	public Vector3 FindFreeSpawnPositionNear(Vector3 origin, float maxRadius = 6f)
+	{
+		if (Map == null || IsSpawnPositionFree(origin))
+		{
+			return origin;
+		}
+
+		const int samplesPerRing = 12;
+		const float ringStep = 1.0f;
+		for (float radius = ringStep; radius <= maxRadius; radius += ringStep)
+		{
+			for (int i = 0; i < samplesPerRing; i++)
+			{
+				float angle = Mathf.Tau * i / samplesPerRing;
+				var candidate = new Vector3(
+					origin.X + Mathf.Cos(angle) * radius,
+					origin.Y,
+					origin.Z + Mathf.Sin(angle) * radius);
+
+				if (IsSpawnPositionFree(candidate))
+				{
+					return candidate;
+				}
+			}
+		}
+
+		return origin;
+	}
+
+	private bool IsSpawnPositionFree(Vector3 worldPosition)
+	{
+		var tile = WorldToTile(worldPosition);
+		if (tile.X < 0 || tile.Y < 0 || tile.X >= Map.Width || tile.Y >= Map.Height)
+		{
+			return false;
+		}
+
+		if (!Map.IsRoom(tile.X, tile.Y) && !Map.IsCorridor(tile.X, tile.Y))
+		{
+			return false;
+		}
+
+		return !IsColumnObstructed(worldPosition);
+	}
+
+	/// <summary>
+	/// Returns true when a solid collider occupies the column at <paramref name="worldPosition"/>.
+	/// This is a physics overlap against the world, walls, and props layers, so it treats stairs,
+	/// transition blockers, decorations, and props uniformly as "occupied" without enumerating each
+	/// object category. The probe is item-sized and lifted off the floor so the flat floor collider
+	/// is ignored and free space right beside an obstacle still qualifies.
+	/// </summary>
+	private bool IsColumnObstructed(Vector3 worldPosition)
+	{
+		PhysicsDirectSpaceState3D space = GetWorld3D()?.DirectSpaceState;
+		if (space == null)
+		{
+			return false;
+		}
+
+		var shape = new BoxShape3D
+		{
+			Size = new Vector3(0.8f, 1.6f, 0.8f),
+		};
+
+		var query = new PhysicsShapeQueryParameters3D
+		{
+			Shape = shape,
+			Transform = new Transform3D(Basis.Identity, worldPosition + Vector3.Up * 1.0f),
+			CollisionMask = SpawnObstructionMask,
+			CollideWithBodies = true,
+			CollideWithAreas = false,
+		};
+
+		return space.IntersectShape(query, 1).Count > 0;
 	}
 
 	private bool HasDecorationInTile(int x, int z)
@@ -990,6 +1101,73 @@ public partial class MapGenerator : Node3D
 		floorGridMapCopy.QueueFree();
 		wallGripMapCopy.QueueFree();
 		decorationGridMapCopy.QueueFree();
+	}
+
+	/// <summary>
+	/// Shows or hides a translucent overlay of the baked navigation mesh. The overlay is built lazily
+	/// from the current <see cref="NavigationRegion"/> mesh so it reflects the active level, and is
+	/// rebuilt automatically if a regeneration discarded the previous instance.
+	/// </summary>
+	public void SetNavigationDebugVisible(bool visible)
+	{
+		if (NavigationRegion?.NavigationMesh == null)
+		{
+			return;
+		}
+
+		if (visible && (_navigationDebugMesh == null || !IsInstanceValid(_navigationDebugMesh)))
+		{
+			_navigationDebugMesh = BuildNavigationDebugMesh();
+		}
+
+		if (_navigationDebugMesh != null && IsInstanceValid(_navigationDebugMesh))
+		{
+			_navigationDebugMesh.Visible = visible;
+		}
+	}
+
+	private MeshInstance3D BuildNavigationDebugMesh()
+	{
+		NavigationMesh navigationMesh = NavigationRegion.NavigationMesh;
+		Vector3[] vertices = navigationMesh.GetVertices();
+		if (vertices.Length == 0)
+		{
+			return null;
+		}
+
+		var surfaceTool = new SurfaceTool();
+		surfaceTool.Begin(Mesh.PrimitiveType.Triangles);
+		for (int polygonIndex = 0; polygonIndex < navigationMesh.GetPolygonCount(); polygonIndex++)
+		{
+			int[] polygon = navigationMesh.GetPolygon(polygonIndex);
+			// Fan-triangulate each convex navmesh polygon.
+			for (int corner = 2; corner < polygon.Length; corner++)
+			{
+				surfaceTool.AddVertex(vertices[polygon[0]]);
+				surfaceTool.AddVertex(vertices[polygon[corner - 1]]);
+				surfaceTool.AddVertex(vertices[polygon[corner]]);
+			}
+		}
+
+		var material = new StandardMaterial3D
+		{
+			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+			Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+			CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+			AlbedoColor = new Color(0.1f, 0.6f, 1f, 0.35f),
+		};
+
+		var meshInstance = new MeshInstance3D
+		{
+			Name = "NavigationDebugMesh",
+			Mesh = surfaceTool.Commit(),
+			MaterialOverride = material,
+			// Lift slightly off the floor to avoid z-fighting with the ground meshes.
+			Position = new Vector3(0, 0.1f, 0),
+		};
+
+		NavigationRegion.AddChild(meshInstance);
+		return meshInstance;
 	}
 
 	private void Reset()

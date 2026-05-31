@@ -9,7 +9,8 @@ public partial class AttackController : Node
 {
 	[Export] public PackedScene HitBoxScene { get; set; }
 	[Export] public PackedScene DefaultProjectileScene { get; set; }
-	[Export] public bool DebugDrawEnabled { get; set; } = true;
+	[Export] public bool DebugDrawEnabled { get; set; } = false;
+	public static bool GlobalDebugDrawEnabled { get; set; } = false;
 
 	private bool _isAttacking;
 	private float _elapsedTime;
@@ -30,6 +31,7 @@ public partial class AttackController : Node
 	public override void _Ready()
 	{
 		_actor = GetParent<Node3D>();
+		AddToGroup("attack_controller");
 	}
 
 	/// <summary>
@@ -156,9 +158,10 @@ public partial class AttackController : Node
 		collisionShape.Position = _currentAttack.HitBoxOffset;
 		_activeHitBox.AddChild(collisionShape);
 
-		if (DebugDrawEnabled)
+		if (DebugDrawEnabled || GlobalDebugDrawEnabled)
 		{
 			var debugMeshInstance = new MeshInstance3D();
+			debugMeshInstance.AddToGroup("debug_mesh");
 			var boxMesh = new BoxMesh();
 			boxMesh.Size = _currentAttack.HitBoxSize;
 			

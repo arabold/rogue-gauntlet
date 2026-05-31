@@ -10,7 +10,13 @@ public partial class DebugVolumeVisualizer : MeshInstance3D
 
 	public override void _Ready()
 	{
+		AddToGroup("debug_mesh");
 		UpdatePreview();
+
+		if (!Engine.IsEditorHint())
+		{
+			Visible = false;
+		}
 	}
 
 	public override void _Process(double delta)

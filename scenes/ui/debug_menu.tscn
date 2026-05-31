@@ -1,0 +1,82 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/DebugMenu.cs" id="1_debug_menu"]
+[ext_resource type="Resource" uid="uid://bc4es25jpb62o" path="res://scenes/items/weapons/axe_common.tres" id="2_axe"]
+[ext_resource type="Resource" uid="uid://biricifur5j8u" path="res://scenes/items/weapons/crossbow_common.tres" id="3_crossbow"]
+[ext_resource type="Resource" uid="uid://cl7ybfrf3tkam" path="res://scenes/items/weapons/broadsword_common.tres" id="4_broadsword"]
+[ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion_small.tres" id="5_healing_potion"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.03, 0.035, 0.045, 0.72)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_normal"]
+bg_color = Color(0.16, 0.18, 0.22, 0.88)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 10.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.26, 0.3, 0.38, 0.95)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 10.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_pressed"]
+bg_color = Color(0.1, 0.12, 0.16, 0.95)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 10.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_fps"]
+font_size = 16
+font_color = Color(0.78, 0.93, 0.75, 1)
+
+[node name="DebugMenu" type="HBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 32)
+theme_override_constants/separation = 8
+script = ExtResource("1_debug_menu")
+SpawnableItems = Array[Resource]([ExtResource("2_axe"), ExtResource("3_crossbow"), ExtResource("4_broadsword"), ExtResource("5_healing_potion")])
+
+[node name="DebugMenuButton" type="MenuButton" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_button_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
+text = "Debug"
+
+[node name="FpsPanel" type="PanelContainer" parent="."]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="FpsLabel" type="Label" parent="FpsPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+label_settings = SubResource("LabelSettings_fps")
+text = "FPS: 0"

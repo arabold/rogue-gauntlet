@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://beddkxj3k6x7i"]
+[gd_scene load_steps=7 format=3 uid="uid://beddkxj3k6x7i"]
 
 [ext_resource type="Script" uid="uid://bqo7ff6mav3rv" path="res://scenes/ui/Hud.cs" id="1_fp313"]
 [ext_resource type="PackedScene" uid="uid://c6oltejkpt4a0" path="res://scenes/ui/action_container.tscn" id="2_kicr4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/debug_menu.tscn" id="3_debug_menu"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_136eg"]
 content_margin_left = 50.0
@@ -94,3 +95,8 @@ ActionBinding = "action_5"
 layout_mode = 2
 Slot = 5
 ActionBinding = "action_6"
+
+[node name="DebugMenu" parent="." instance=ExtResource("3_debug_menu")]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0

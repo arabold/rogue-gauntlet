@@ -35,7 +35,6 @@ HealthComponent = NodePath("../HealthComponent")
 script = ExtResource("11_attack")
 HitBoxScene = ExtResource("12_hitbox")
 DefaultProjectileScene = ExtResource("13_projectile")
-DebugDrawEnabled = true
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor") instance=ExtResource("4_qc6m8")]
 Actor = NodePath("..")
