@@ -7,6 +7,7 @@ public partial class DungeonTileFactory : TileFactory
 {
 	private readonly Array<int> _corridorTileIndices = new() { 0, 1 };
 	private readonly Array<int> _wallTileIndices = new() { 0, 10, 22 };
+	private const int WallHalfTileIndex = 18;
 	private const int WallCornerTileIndex = 6;
 
 	public override int GetCorridorTileIndex()
@@ -23,6 +24,8 @@ public partial class DungeonTileFactory : TileFactory
 		}
 		return _wallTileIndices.PickRandom();
 	}
+
+	public override int GetWallHalfTileIndex() => WallHalfTileIndex;
 
 	public override int GetWallCornerTileIndex() => WallCornerTileIndex;
 }
