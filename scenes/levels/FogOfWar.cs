@@ -31,6 +31,10 @@ public partial class FogOfWar : Node
 			SignalBus.Instance,
 			bus => bus.DoorOpened += OnDoorOpened,
 			bus => bus.DoorOpened -= OnDoorOpened);
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			bus => bus.DoorClosed += OnDoorClosed,
+			bus => bus.DoorClosed -= OnDoorClosed);
 	}
 
 	private void OnRoomEntered(int roomId)
@@ -46,5 +50,10 @@ public partial class FogOfWar : Node
 		{
 			GameSession.Instance?.MarkDoorOpened(connector.Value);
 		}
+	}
+
+	private void OnDoorClosed(Node3D door)
+	{
+		_mapGenerator?.CloseDoorAt(door.GlobalPosition);
 	}
 }

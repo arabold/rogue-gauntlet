@@ -134,6 +134,7 @@ public partial class Door : Node3D
 		_interactiveComponent.IsInteractive = false;
 		IsOpen = false;
 		_xray.Visible = _indicatorAllowed; // Shader decides when it actually appears.
+		SignalBus.EmitDoorClosed(this);
 
 		var tween = CreateTween();
 		tween.TweenProperty(_door, "rotation_degrees:y", 0, AnimationDuration)

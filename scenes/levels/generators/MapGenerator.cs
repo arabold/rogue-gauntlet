@@ -68,7 +68,6 @@ public partial class MapGenerator : Node3D
 	private const float EnemySpawnPointSpacing = 5f;
 	private const float EnemySpawnBlockedAreaClearance = 7f;
 	private const float EnemySpawnPropClearance = 2f;
-	private const float EnemySpawnNavmeshTolerance = 1.5f;
 
 	// Physics layers a runtime spawn must stay clear of: world (1) | walls (2) | props (5).
 	// Keeps items out of stairs, transition blockers, walls, and props via a single overlap test.
@@ -646,28 +645,48 @@ public partial class MapGenerator : Node3D
 	/// </summary>
 	public Vector2I? OpenDoorAt(Vector3 worldPosition)
 	{
-		Vector2I? nearest = null;
-		float bestDistance = float.MaxValue;
-		foreach (var connector in _dooredConnectors)
-		{
-			var center = TileToWorld(connector.X, 0, connector.Y);
-			float dx = worldPosition.X - center.X;
-			float dz = worldPosition.Z - center.Z;
-			float distance = dx * dx + dz * dz;
-			if (distance < bestDistance)
-			{
-				bestDistance = distance;
-				nearest = connector;
-			}
-		}
-
-		if (nearest is not Vector2I connectorTile)
+		if (!TryFindNearestDoorConnector(worldPosition, out Vector2I connectorTile))
 		{
 			return null;
 		}
 
 		OpenConnector(connectorTile);
 		return connectorTile;
+	}
+
+	/// <summary>
+	/// Marks the connector guarded by a closed door as sealed again. Fog remains revealed;
+	/// this only updates logical reachability for enemy decisions.
+	/// </summary>
+	public Vector2I? CloseDoorAt(Vector3 worldPosition)
+	{
+		if (!TryFindNearestDoorConnector(worldPosition, out Vector2I connectorTile))
+		{
+			return null;
+		}
+
+		_dooredConnectors.Add(connectorTile);
+		UpdateDoorIndicators();
+		return connectorTile;
+	}
+
+	private bool TryFindNearestDoorConnector(Vector3 worldPosition, out Vector2I connectorTile)
+	{
+		connectorTile = default;
+		float bestDistance = float.MaxValue;
+		bool found = false;
+		foreach (var (door, connector) in _doorIndicators)
+		{
+			float distance = HorizontalDistance(worldPosition, door.GlobalPosition);
+			if (distance < bestDistance)
+			{
+				bestDistance = distance;
+				connectorTile = connector;
+				found = true;
+			}
+		}
+
+		return found;
 	}
 
 	/// <summary>
@@ -721,6 +740,60 @@ public partial class MapGenerator : Node3D
 	{
 		_dooredConnectors.Remove(connector);
 		RevealRoom(_connectorToRoom[connector]);
+	}
+
+	/// <summary>
+	/// Returns whether two world positions are connected by room/corridor tiles without
+	/// crossing a connector that still has a closed door. This gates enemy target
+	/// decisions; movement still follows the baked navmesh once a target is reachable.
+	/// </summary>
+	public bool CanReachWithoutOpeningDoors(Vector3 fromWorldPosition, Vector3 toWorldPosition)
+	{
+		if (Map == null)
+		{
+			return true;
+		}
+
+		Vector2I from = WorldToTile(fromWorldPosition);
+		Vector2I to = WorldToTile(toWorldPosition);
+		if (!IsDoorReachabilityTile(from) || !IsDoorReachabilityTile(to))
+		{
+			return true;
+		}
+
+		var queue = new Queue<Vector2I>();
+		var visited = new HashSet<Vector2I> { from };
+		queue.Enqueue(from);
+
+		while (queue.Count > 0)
+		{
+			Vector2I tile = queue.Dequeue();
+			if (tile == to)
+			{
+				return true;
+			}
+
+			foreach (Vector2I offset in CardinalOffsets)
+			{
+				Vector2I neighbor = tile + offset;
+				if (visited.Contains(neighbor) || !IsDoorReachabilityTile(neighbor))
+				{
+					continue;
+				}
+
+				visited.Add(neighbor);
+				queue.Enqueue(neighbor);
+			}
+		}
+
+		return false;
+	}
+
+	private bool IsDoorReachabilityTile(Vector2I tile)
+	{
+		return Map.IsWithinBounds(tile.X, tile.Y)
+			&& !_dooredConnectors.Contains(tile)
+			&& (Map.IsRoom(tile.X, tile.Y) || Map.IsConnector(tile.X, tile.Y) || Map.IsCorridor(tile.X, tile.Y));
 	}
 
 	private void FloodCorridors(Vector2I startConnector, Queue<int> roomQueue,
@@ -994,34 +1067,28 @@ public partial class MapGenerator : Node3D
 			var candidate = remainingCandidates[index];
 			remainingCandidates.RemoveAt(index);
 
-			Vector3 navPoint = NavigationServer3D.MapGetClosestPoint(GetWorld3D().NavigationMap, candidate);
-			if (IsBlockedEnemySpawnPoint(candidate, navPoint, spawnPoints))
+			if (IsBlockedEnemySpawnPoint(candidate, spawnPoints))
 			{
 				continue;
 			}
 
-			point = navPoint;
+			point = candidate;
 			return true;
 		}
 
 		return false;
 	}
 
-	private bool IsBlockedEnemySpawnPoint(Vector3 candidate, Vector3 navPoint, List<Vector3> spawnPoints)
+	private bool IsBlockedEnemySpawnPoint(Vector3 point, List<Vector3> spawnPoints)
 	{
-		if (HorizontalDistance(candidate, navPoint) > EnemySpawnNavmeshTolerance || IsColumnObstructed(navPoint))
-		{
-			return true;
-		}
-
-		if (PlayerSpawnPoint != null && HorizontalDistance(navPoint, PlayerSpawnPoint.GlobalPosition) < EnemySpawnPlayerClearance)
+		if (PlayerSpawnPoint != null && HorizontalDistance(point, PlayerSpawnPoint.GlobalPosition) < EnemySpawnPlayerClearance)
 		{
 			return true;
 		}
 
 		foreach (var spawnPoint in spawnPoints)
 		{
-			if (HorizontalDistance(navPoint, spawnPoint) < EnemySpawnPointSpacing)
+			if (HorizontalDistance(point, spawnPoint) < EnemySpawnPointSpacing)
 			{
 				return true;
 			}
@@ -1035,7 +1102,7 @@ public partial class MapGenerator : Node3D
 			}
 
 			if ((node is PlayerSpawnPoint || node is LevelTransitionTrigger || node.IsInGroup("stairs"))
-				&& HorizontalDistance(navPoint, node3D.GlobalPosition) < EnemySpawnBlockedAreaClearance)
+				&& HorizontalDistance(point, node3D.GlobalPosition) < EnemySpawnBlockedAreaClearance)
 			{
 				return true;
 			}

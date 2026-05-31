@@ -95,6 +95,7 @@ public partial class EnemyBehaviorComponent : Node
 	private Vector3 _lastStuckCheckPosition;
 	private float _stuckCheckTimer;
 	private float _stuckTime;
+	private MapGenerator _mapGenerator;
 
 	public override void _Ready()
 	{
@@ -114,6 +115,7 @@ public partial class EnemyBehaviorComponent : Node
 		{
 			GD.PushError($"{Actor.Name} has no AttackController child; melee attacks will not deal damage.");
 		}
+		_mapGenerator = this.GetAncestorOrNull<Level>()?.MapGenerator;
 		// Ensure to properly initialize the enemy's state with the current selection
 		GD.Print($"{GetParent().Name} is initialized with {CurrentBehavior} and {CurrentAction}");
 		_remainingActionTime = _profile.GetActionDuration(CurrentAction);
@@ -183,6 +185,14 @@ public partial class EnemyBehaviorComponent : Node
 			}
 			else if (CurrentBehavior == EnemyBehaviorState.Chasing)
 			{
+				if (!CanReachTarget(Target))
+				{
+					Target = null;
+					MovementComponent.Stop();
+					SetBehavior(EnemyBehaviorState.Patrolling);
+					return;
+				}
+
 				UpdateTargetPosition();
 				NavigateToTarget();
 
@@ -247,7 +257,7 @@ public partial class EnemyBehaviorComponent : Node
 				if (distance > 0 && distance <= _profile.DetectionRange)
 				{
 					bool isClose = distance < _profile.DetectionRange * _profile.CloseDetectionRangeMultiplier;
-					if (isClose || TestLineOfSight(player))
+					if (CanReachTarget(player) && (isClose || TestLineOfSight(player)))
 					{
 						GD.Print($"{Actor.Name} has spotted {player.Name}");
 						UpdateTargetPosition();
@@ -258,6 +268,13 @@ public partial class EnemyBehaviorComponent : Node
 			}
 		}
 		return false;
+	}
+
+	private bool CanReachTarget(Node3D target)
+	{
+		return target == null
+			|| _mapGenerator == null
+			|| _mapGenerator.CanReachWithoutOpeningDoors(Actor.GlobalPosition, target.GlobalPosition);
 	}
 
 	/// <summary>

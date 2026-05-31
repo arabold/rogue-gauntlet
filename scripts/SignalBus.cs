@@ -44,6 +44,9 @@ public partial class SignalBus : Node
     [Signal] public delegate void DoorOpenedEventHandler(Node3D door);
     public static void EmitDoorOpened(Node3D door) => Instance?.EmitSignalDoorOpened(door);
 
+    [Signal] public delegate void DoorClosedEventHandler(Node3D door);
+    public static void EmitDoorClosed(Node3D door) => Instance?.EmitSignalDoorClosed(door);
+
     public override void _Ready()
     {
         // Ensure this is the only instance

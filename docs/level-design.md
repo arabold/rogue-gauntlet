@@ -89,13 +89,14 @@ Because the camera rotates, a closed door can end up hidden behind a wall. Each 
 
 Reveal state is saved per dungeon depth (`WorldSaveData.RevealedLevels`) as the **rooms entered** and **doors opened**, not the raw tiles. On load, `FogOfWar` replays them via `MapGenerator.RestoreReveal`; because generation is deterministic, replaying reproduces the exact explored area. This survives quit/reload and travelling between depths.
 
-## Enemy Door Routing Concept
+## Enemy Door Awareness
 
 Enemies should continue to use Godot navigation for movement shape. The map-level door data should only decide whether a target is currently reachable, not replace the navmesh with hand-authored waypoint steering.
 
 - `DoorwayMarker` directions are already baked into connector tiles via `MapData.GetConnectorDirections`; this data identifies the corridor side of each intentional doorway.
-- `MapGenerator` already tracks `_dooredConnectors`. A connector in that set is currently closed; `OpenDoorAt` removes it when the player opens the matching door.
-- A future door-aware chase pass should use that state to detect "target is behind a closed door" and either stop, search, pick an already-open alternate route, or interact with the door. It should avoid forcing enemies through doorway waypoints unless the navmesh itself cannot model the route.
+- `MapGenerator` tracks `_dooredConnectors`. A connector in that set is currently closed; `OpenDoorAt` removes it and `CloseDoorAt` adds it back.
+- Enemy target acquisition asks `MapGenerator.CanReachWithoutOpeningDoors(...)` before aggroing. If a door closes while chasing, the enemy drops the target and resumes patrolling.
+- Closed doors are not dynamic navmesh blockers. Roaming enemies can still physically bump into a closed door and recover via stuck handling.
 
 The important rule: navmesh remains the source of movement paths; logical door state gates target selection and reachability.
 
