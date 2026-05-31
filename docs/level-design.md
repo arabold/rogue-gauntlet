@@ -41,7 +41,7 @@ When converting: `MapGenerator.TileToWorld` maps a logical tile to GridMap coord
 6. **Navigation & spawns**
 
    - Bakes the navigation mesh for AI.
-   - Places the player spawn point and enemy spawn points (min 20 units from player, 5 units apart), scaled by dungeon depth.
+   - Places the player spawn point and enemy spawn points from logical room/corridor tiles, avoiding occupied decoration/prop tiles, stairs, transitions, and other spawn points.
 
 Generation is seed-based (`GameSession.GetLevelSeed(seed, depth)`), so a given run + depth always produces the same layout — this is what lets fog reveal be persisted compactly (see below).
 
@@ -88,6 +88,16 @@ Because the camera rotates, a closed door can end up hidden behind a wall. Each 
 ### Persistence
 
 Reveal state is saved per dungeon depth (`WorldSaveData.RevealedLevels`) as the **rooms entered** and **doors opened**, not the raw tiles. On load, `FogOfWar` replays them via `MapGenerator.RestoreReveal`; because generation is deterministic, replaying reproduces the exact explored area. This survives quit/reload and travelling between depths.
+
+## Enemy Door Routing Concept
+
+Enemies should continue to use Godot navigation for movement shape. The map-level door data should only decide whether a target is currently reachable, not replace the navmesh with hand-authored waypoint steering.
+
+- `DoorwayMarker` directions are already baked into connector tiles via `MapData.GetConnectorDirections`; this data identifies the corridor side of each intentional doorway.
+- `MapGenerator` already tracks `_dooredConnectors`. A connector in that set is currently closed; `OpenDoorAt` removes it when the player opens the matching door.
+- A future door-aware chase pass should use that state to detect "target is behind a closed door" and either stop, search, pick an already-open alternate route, or interact with the door. It should avoid forcing enemies through doorway waypoints unless the navmesh itself cannot model the route.
+
+The important rule: navmesh remains the source of movement paths; logical door state gates target selection and reachability.
 
 ## Room Template Creation
 

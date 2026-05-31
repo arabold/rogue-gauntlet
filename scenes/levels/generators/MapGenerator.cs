@@ -68,6 +68,7 @@ public partial class MapGenerator : Node3D
 	private const float EnemySpawnPointSpacing = 5f;
 	private const float EnemySpawnBlockedAreaClearance = 7f;
 	private const float EnemySpawnPropClearance = 2f;
+	private const float EnemySpawnNavmeshTolerance = 1.5f;
 
 	// Physics layers a runtime spawn must stay clear of: world (1) | walls (2) | props (5).
 	// Keeps items out of stairs, transition blockers, walls, and props via a single overlap test.
@@ -348,7 +349,7 @@ public partial class MapGenerator : Node3D
 			for (int z = 0; z < Map.Height; z++)
 			{
 				var position = TileToWorld(x, 0, z);
-				if (Map.IsCorridor(x, z) && FloorGridMap.GetCellItem(position) < 0)
+				if ((Map.IsCorridor(x, z) || Map.IsConnector(x, z)) && FloorGridMap.GetCellItem(position) < 0)
 				{
 					int tileIndex = TileFactory.GetCorridorTileIndex();
 					FloorGridMap.SetCellItem(position, tileIndex, 0);
@@ -993,28 +994,34 @@ public partial class MapGenerator : Node3D
 			var candidate = remainingCandidates[index];
 			remainingCandidates.RemoveAt(index);
 
-			if (IsBlockedEnemySpawnPoint(candidate, spawnPoints))
+			Vector3 navPoint = NavigationServer3D.MapGetClosestPoint(GetWorld3D().NavigationMap, candidate);
+			if (IsBlockedEnemySpawnPoint(candidate, navPoint, spawnPoints))
 			{
 				continue;
 			}
 
-			point = candidate;
+			point = navPoint;
 			return true;
 		}
 
 		return false;
 	}
 
-	private bool IsBlockedEnemySpawnPoint(Vector3 point, List<Vector3> spawnPoints)
+	private bool IsBlockedEnemySpawnPoint(Vector3 candidate, Vector3 navPoint, List<Vector3> spawnPoints)
 	{
-		if (PlayerSpawnPoint != null && HorizontalDistance(point, PlayerSpawnPoint.GlobalPosition) < EnemySpawnPlayerClearance)
+		if (HorizontalDistance(candidate, navPoint) > EnemySpawnNavmeshTolerance || IsColumnObstructed(navPoint))
+		{
+			return true;
+		}
+
+		if (PlayerSpawnPoint != null && HorizontalDistance(navPoint, PlayerSpawnPoint.GlobalPosition) < EnemySpawnPlayerClearance)
 		{
 			return true;
 		}
 
 		foreach (var spawnPoint in spawnPoints)
 		{
-			if (HorizontalDistance(point, spawnPoint) < EnemySpawnPointSpacing)
+			if (HorizontalDistance(navPoint, spawnPoint) < EnemySpawnPointSpacing)
 			{
 				return true;
 			}
@@ -1028,7 +1035,7 @@ public partial class MapGenerator : Node3D
 			}
 
 			if ((node is PlayerSpawnPoint || node is LevelTransitionTrigger || node.IsInGroup("stairs"))
-				&& HorizontalDistance(point, node3D.GlobalPosition) < EnemySpawnBlockedAreaClearance)
+				&& HorizontalDistance(navPoint, node3D.GlobalPosition) < EnemySpawnBlockedAreaClearance)
 			{
 				return true;
 			}
@@ -1094,13 +1101,29 @@ public partial class MapGenerator : Node3D
 		Node floorGridMapCopy = FloorGridMap.Duplicate();
 		Node wallGripMapCopy = WallGridMap.Duplicate();
 		Node decorationGridMapCopy = DecorationGridMap.Duplicate();
-		NavigationRegion.AddChild(floorGridMapCopy);
-		NavigationRegion.AddChild(wallGripMapCopy);
-		NavigationRegion.AddChild(decorationGridMapCopy);
-		NavigationRegion.BakeNavigationMesh(false);
-		floorGridMapCopy.QueueFree();
-		wallGripMapCopy.QueueFree();
-		decorationGridMapCopy.QueueFree();
+		SetDoorNavigationBakeCollisionEnabled(false);
+		try
+		{
+			NavigationRegion.AddChild(floorGridMapCopy);
+			NavigationRegion.AddChild(wallGripMapCopy);
+			NavigationRegion.AddChild(decorationGridMapCopy);
+			NavigationRegion.BakeNavigationMesh(false);
+		}
+		finally
+		{
+			SetDoorNavigationBakeCollisionEnabled(true);
+			floorGridMapCopy.QueueFree();
+			wallGripMapCopy.QueueFree();
+			decorationGridMapCopy.QueueFree();
+		}
+	}
+
+	private void SetDoorNavigationBakeCollisionEnabled(bool enabled)
+	{
+		foreach (var (door, _) in _doorIndicators)
+		{
+			door.SetNavigationBakeCollisionEnabled(enabled);
+		}
 	}
 
 	/// <summary>

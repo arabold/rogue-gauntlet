@@ -26,8 +26,7 @@ public partial class Door : Node3D
 
 	public override void _Ready()
 	{
-		_collisionShape = GetNode<CollisionShape3D>("%CollisionShape3D");
-		_door = GetNode<MeshInstance3D>("%wall_doorway_door");
+		InitializeNodes();
 
 		if (!Engine.IsEditorHint())
 		{
@@ -37,6 +36,23 @@ public partial class Door : Node3D
 		}
 
 		Update();
+	}
+
+	/// <summary>
+	/// Temporarily controls whether this door blocks the generated navigation mesh bake.
+	/// Closed doors still block physics after baking; this only prevents them from splitting
+	/// the navmesh into disconnected islands.
+	/// </summary>
+	public void SetNavigationBakeCollisionEnabled(bool enabled)
+	{
+		InitializeNodes();
+		_collisionShape.Disabled = !enabled || IsOpen;
+	}
+
+	private void InitializeNodes()
+	{
+		_collisionShape ??= GetNode<CollisionShape3D>("%CollisionShape3D");
+		_door ??= GetNode<MeshInstance3D>("%wall_doorway_door");
 	}
 
 	/// <summary>
@@ -78,6 +94,7 @@ public partial class Door : Node3D
 
 	private void Update()
 	{
+		InitializeNodes();
 		_door.RotationDegrees = new Vector3(0, IsOpen ? OpenRotationDegrees : 0, 0);
 		_collisionShape.Disabled = IsOpen;
 	}

@@ -246,7 +246,8 @@ public partial class EnemyBehaviorComponent : Node
 				var distance = Actor.GlobalPosition.DistanceTo(player.GlobalPosition);
 				if (distance > 0 && distance <= _profile.DetectionRange)
 				{
-					if ((distance < _profile.DetectionRange * _profile.CloseDetectionRangeMultiplier) || TestLineOfSight(player))
+					bool isClose = distance < _profile.DetectionRange * _profile.CloseDetectionRangeMultiplier;
+					if (isClose || TestLineOfSight(player))
 					{
 						GD.Print($"{Actor.Name} has spotted {player.Name}");
 						UpdateTargetPosition();

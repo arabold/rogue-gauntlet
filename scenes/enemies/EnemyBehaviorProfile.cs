@@ -31,7 +31,7 @@ public partial class EnemyBehaviorProfile : Resource
 	[Export] public float DetectionAngle { get; set; } = 45.0f;
 
 	/// <summary>
-	/// Fraction of detection range where the enemy can notice the player without line of sight.
+	/// Fraction of detection range where the enemy wakes up from proximity alone.
 	/// </summary>
 	[Export] public float CloseDetectionRangeMultiplier { get; set; } = 0.5f;
 
