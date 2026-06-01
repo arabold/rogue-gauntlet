@@ -1209,18 +1209,61 @@ public partial class MapGenerator : Node3D
 
 	private bool IsSpawnPositionFree(Vector3 worldPosition)
 	{
+		if (!IsWalkableMapPosition(worldPosition))
+		{
+			return false;
+		}
+
+		return !IsColumnObstructed(worldPosition);
+	}
+
+	/// <summary>
+	/// Finds a nearby floor/corridor point for effects that can land near props or stairs.
+	/// Unlike item spawns, this deliberately does not require a clear item-sized collision column.
+	/// </summary>
+	public Vector3 FindEffectLandingPositionNear(Vector3 origin, float maxRadius = 1.5f)
+	{
+		if (Map == null || IsEffectLandingPositionValid(origin))
+		{
+			return origin;
+		}
+
+		const int samplesPerRing = 16;
+		const float ringStep = 0.5f;
+		for (float radius = ringStep; radius <= maxRadius; radius += ringStep)
+		{
+			for (int i = 0; i < samplesPerRing; i++)
+			{
+				float angle = Mathf.Tau * i / samplesPerRing;
+				var candidate = new Vector3(
+					origin.X + Mathf.Cos(angle) * radius,
+					origin.Y,
+					origin.Z + Mathf.Sin(angle) * radius);
+
+				if (IsEffectLandingPositionValid(candidate))
+				{
+					return candidate;
+				}
+			}
+		}
+
+		return origin;
+	}
+
+	public bool IsEffectLandingPositionValid(Vector3 worldPosition)
+	{
+		return Map != null && IsWalkableMapPosition(worldPosition);
+	}
+
+	private bool IsWalkableMapPosition(Vector3 worldPosition)
+	{
 		var tile = WorldToTile(worldPosition);
 		if (tile.X < 0 || tile.Y < 0 || tile.X >= Map.Width || tile.Y >= Map.Height)
 		{
 			return false;
 		}
 
-		if (!Map.IsRoom(tile.X, tile.Y) && !Map.IsCorridor(tile.X, tile.Y))
-		{
-			return false;
-		}
-
-		return !IsColumnObstructed(worldPosition);
+		return Map.IsRoom(tile.X, tile.Y) || Map.IsCorridor(tile.X, tile.Y);
 	}
 
 	/// <summary>

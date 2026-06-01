@@ -241,6 +241,12 @@ public partial class AttackController : Node
 		}
 
 		Vector3 origin = GetProjectileOrigin();
+		if (_currentAttack.ProjectilePattern == ProjectilePattern.MeteorShower)
+		{
+			SpawnMeteorShower(origin, scene);
+			return;
+		}
+
 		Vector3 aimedDirection = Aim(origin, _currentAttack.Range, _currentAttack.AimingAngle);
 		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, GetActorForward());
 		SpawnEffect(_currentAttack.MuzzleEffectScene, origin, aimedDirection);
@@ -248,6 +254,7 @@ public partial class AttackController : Node
 		foreach (Vector3 direction in GetProjectileDirections(aimedDirection))
 		{
 			Projectile projectile = ScenePool.Spawn<Projectile>(scene, GetTree().CurrentScene);
+			ApplyProjectileOverrides(projectile);
 			projectile.Initialize(
 				origin,
 				direction,
@@ -261,6 +268,76 @@ public partial class AttackController : Node
 
 			GameDebug.Combat($"{_actor.Name} spawned projectile flying {direction}");
 		}
+	}
+
+	private void SpawnMeteorShower(Vector3 origin, PackedScene scene)
+	{
+		Vector3 actorForward = GetActorForward();
+		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, actorForward);
+		SpawnEffect(_currentAttack.MuzzleEffectScene, origin, actorForward);
+
+		foreach (Vector3 targetPosition in GetMeteorLandingPositions())
+		{
+			Vector3 meteorOrigin = targetPosition + Vector3.Up * _currentAttack.SpawnHeight;
+			Vector3 direction = Vector3.Down;
+			Projectile projectile = ScenePool.Spawn<Projectile>(scene, GetTree().CurrentScene);
+			ApplyProjectileOverrides(projectile);
+			projectile.Initialize(
+				meteorOrigin,
+				direction,
+				_currentAttack.ProjectileSpeed,
+				_currentAttack.SpawnHeight + 1.0f,
+				_currentAccuracy,
+				_currentMinDamage * _currentAttack.ProjectileDamageScale,
+				_currentMaxDamage * _currentAttack.ProjectileDamageScale,
+				_currentCritChance,
+				_actor);
+
+			GameDebug.Combat($"{_actor.Name} spawned meteor at {targetPosition}");
+		}
+	}
+
+	private void ApplyProjectileOverrides(Projectile projectile)
+	{
+		if (_currentAttack.AreaRadius >= 0.0f)
+		{
+			projectile.ImpactRadius = _currentAttack.AreaRadius;
+		}
+	}
+
+	private IEnumerable<Vector3> GetMeteorLandingPositions()
+	{
+		int count = Mathf.Max(1, _currentAttack.ProjectileCount);
+		Level level = _actor.GetAncestorOrNull<Level>() ?? GetTree().CurrentScene?.GetNodeOrNull<Level>("Level");
+		var random = new RandomNumberGenerator();
+		random.Randomize();
+
+		for (int i = 0; i < count; i++)
+		{
+			if (TryGetMeteorLandingPosition(i, count, random, level?.MapGenerator, out Vector3 landingPosition))
+			{
+				yield return landingPosition;
+			}
+		}
+	}
+
+	private bool TryGetMeteorLandingPosition(int index, int count, RandomNumberGenerator random, MapGenerator mapGenerator, out Vector3 landingPosition)
+	{
+		for (int attempt = 0; attempt < 8; attempt++)
+		{
+			float angle = index / (float)count * Mathf.Tau + random.RandfRange(-0.45f, 0.45f) + attempt * 0.29f;
+			float radius = random.RandfRange(_currentAttack.TargetAreaRadius * 0.25f, _currentAttack.TargetAreaRadius);
+			Vector3 rawTarget = _actor.GlobalPosition + new Vector3(Mathf.Cos(angle) * radius, 0.0f, Mathf.Sin(angle) * radius);
+			Vector3 candidate = mapGenerator?.FindEffectLandingPositionNear(rawTarget, 1.5f) ?? rawTarget;
+			if (mapGenerator == null || mapGenerator.IsEffectLandingPositionValid(candidate))
+			{
+				landingPosition = candidate;
+				return true;
+			}
+		}
+
+		landingPosition = default;
+		return false;
 	}
 
 	private Vector3 GetProjectileOrigin()

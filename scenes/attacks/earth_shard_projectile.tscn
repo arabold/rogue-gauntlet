@@ -56,9 +56,10 @@ size = Vector2(0.5, 0.5)
 
 [node name="EarthShardProjectile" type="Node3D"]
 script = ExtResource("1_projectile")
-Speed = 10.0
-Range = 15.0
+Speed = 15.0
+Range = 9.0
 ImpactEffectScene = ExtResource("3_impact")
+ImpactRadius = 1.45
 
 [node name="Pivot" type="Node3D" parent="."]
 
@@ -67,6 +68,15 @@ unique_name_in_owner = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Pivot/HitBoxComponent"]
 shape = SubResource("SphereShape3D_hit")
+
+[node name="MeteorTail" type="GPUParticles3D" parent="Pivot"]
+material_override = SubResource("ShaderMaterial_dust")
+amount = 34
+lifetime = 0.45
+randomness = 0.9
+local_coords = false
+process_material = SubResource("ParticleProcessMaterial_dust")
+draw_pass_1 = SubResource("QuadMesh_dust")
 
 [node name="RockCluster" type="Node3D" parent="Pivot"]
 script = ExtResource("4_spin")
@@ -86,15 +96,6 @@ mesh = SubResource("BoxMesh_rock_medium")
 transform = Transform3D(0.5, -0.2, 0.84, 0.48, 0.87, -0.07, -0.72, 0.45, 0.53, -0.35, -0.08, 0.2)
 layers = 64
 mesh = SubResource("BoxMesh_rock_medium")
-
-[node name="DustTrail" type="GPUParticles3D" parent="Pivot"]
-material_override = SubResource("ShaderMaterial_dust")
-amount = 24
-lifetime = 0.45
-randomness = 0.9
-local_coords = false
-process_material = SubResource("ParticleProcessMaterial_dust")
-draw_pass_1 = SubResource("QuadMesh_dust")
 
 [node name="Light" type="OmniLight3D" parent="Pivot"]
 light_color = Color(0.82, 0.42, 0.12, 1)

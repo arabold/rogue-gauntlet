@@ -5,6 +5,7 @@ public enum ProjectilePattern
 	Single,
 	Spread,
 	Radial,
+	MeteorShower,
 }
 
 /// <summary>
@@ -97,5 +98,20 @@ public partial class AttackDefinition : Resource
 	/// Maximum angle from the actor's forward direction where ranged attacks can auto-aim at a target.
 	/// </summary>
 	[Export] public float AimingAngle { get; set; } = 60.0f;
+
+	/// <summary>
+	/// Radius around the actor used by placement-based attack patterns to pick target positions.
+	/// </summary>
+	[Export] public float TargetAreaRadius { get; set; } = 5.0f;
+
+	/// <summary>
+	/// Height above the chosen target position where placement-based projectiles start from.
+	/// </summary>
+	[Export] public float SpawnHeight { get; set; } = 8.0f;
+
+	/// <summary>
+	/// Optional override for projectile world-impact AoE. Negative values keep the projectile scene's default radius.
+	/// </summary>
+	[Export] public float AreaRadius { get; set; } = -1.0f;
 
 }

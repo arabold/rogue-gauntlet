@@ -19,6 +19,7 @@ public partial class Projectile : Node3D, IPooledNode
 	[Export] public PackedScene ImpactEffectScene { get; set; }
 	[Export] public PackedScene ExpireEffectScene { get; set; }
 	[Export] public bool SpawnImpactEffectOnExpire { get; set; } = true;
+	[Export] public float ImpactRadius { get; set; } = 0.0f;
 
 	private HitBoxComponent _hitBoxComponent;
 	private float _distanceTravelled;
@@ -26,6 +27,7 @@ public partial class Projectile : Node3D, IPooledNode
 	private bool _hasResolvedHit;
 	private bool _hitSignalConnected;
 	private int _returnVersion;
+	private uint _damageCollisionMask;
 
 	public override void _Ready()
 	{
@@ -50,7 +52,7 @@ public partial class Projectile : Node3D, IPooledNode
 
 	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float accuracy, float minDamage, float maxDamage, float critChance, Node attacker = null)
 	{
-		Direction = new Vector3(direction.X, 0, direction.Z).Normalized();
+		Direction = direction.Normalized();
 		Speed = speed;
 		Range = range;
 		Accuracy = accuracy;
@@ -65,12 +67,13 @@ public partial class Projectile : Node3D, IPooledNode
 		GlobalTransform = new Transform3D(Basis.Identity, origin);
 		if (IsInsideTree() && Direction.LengthSquared() > 0)
 		{
-			LookAt(origin + Direction, Vector3.Up);
+			LookAt(origin + Direction, GetLookAtUpVector(Direction));
 		}
 
 		if (_hitBoxComponent != null)
 		{
-			_hitBoxComponent.CollisionMask = GetDamageCollisionMask();
+			_damageCollisionMask = GetDamageCollisionMask();
+			_hitBoxComponent.CollisionMask = _damageCollisionMask;
 			_hitBoxComponent.Monitoring = true;
 		}
 	}
@@ -163,9 +166,68 @@ public partial class Projectile : Node3D, IPooledNode
 		{
 			_hitBoxComponent.Monitoring = false;
 		}
+
+		ApplyImpactRadiusDamage();
 		SpawnSurfaceAlignedEffect(ImpactEffectScene, hitNormal);
 		int returnVersion = _returnVersion;
 		GetTree().CreateTimer(0.3f).Timeout += () => ReturnToPoolOrFree(returnVersion);
+	}
+
+	private void ApplyImpactRadiusDamage()
+	{
+		if (ImpactRadius <= 0.0f)
+		{
+			return;
+		}
+
+		PhysicsDirectSpaceState3D space = GetWorld3D()?.DirectSpaceState;
+		if (space == null)
+		{
+			return;
+		}
+
+		var shape = new SphereShape3D { Radius = ImpactRadius };
+		var query = new PhysicsShapeQueryParameters3D
+		{
+			Shape = shape,
+			Transform = new Transform3D(Basis.Identity, GlobalPosition + Vector3.Up * 0.6f),
+			CollisionMask = _damageCollisionMask == 0 ? GetDamageCollisionMask() : _damageCollisionMask,
+			CollideWithBodies = true,
+			CollideWithAreas = true,
+		};
+
+		var damaged = new System.Collections.Generic.HashSet<Node>();
+		foreach (Godot.Collections.Dictionary result in space.IntersectShape(query, 16))
+		{
+			Node collider = result["collider"].As<Node>();
+			if (collider is not IDamageable damageable)
+			{
+				continue;
+			}
+
+			Node damageOwner = collider is HurtBoxComponent hurtBox ? (hurtBox.GetParent() ?? collider) : collider;
+			if (!damaged.Add(damageOwner))
+			{
+				continue;
+			}
+
+			float damage = (float)GD.RandRange(MinDamage, MaxDamage);
+			if (GD.Randf() < CritChance)
+			{
+				damage *= 2;
+				GameDebug.Combat("Critical meteor impact!");
+			}
+
+			Vector3 pushDirection = damageOwner is Node3D node3D
+				? (node3D.GlobalPosition - GlobalPosition).Normalized()
+				: Direction;
+			if (pushDirection.LengthSquared() < 0.001f)
+			{
+				pushDirection = Direction;
+			}
+
+			damageable.TakeDamage(Accuracy, damage, pushDirection, _attacker);
+		}
 	}
 
 	private void SpawnEffect(PackedScene effectScene)
@@ -176,8 +238,13 @@ public partial class Projectile : Node3D, IPooledNode
 		effect.GlobalPosition = GlobalPosition;
 		if (Direction.LengthSquared() > 0)
 		{
-			effect.LookAt(GlobalPosition + Direction, Vector3.Up);
+			effect.LookAt(GlobalPosition + Direction, GetLookAtUpVector(Direction));
 		}
+	}
+
+	private static Vector3 GetLookAtUpVector(Vector3 direction)
+	{
+		return Mathf.Abs(direction.Normalized().Dot(Vector3.Up)) > 0.95f ? Vector3.Forward : Vector3.Up;
 	}
 
 	private void SpawnSurfaceAlignedEffect(PackedScene effectScene, Vector3 surfaceNormal)
@@ -233,7 +300,8 @@ public partial class Projectile : Node3D, IPooledNode
 		if (_hitBoxComponent != null)
 		{
 			_hitBoxComponent.Monitoring = true;
-			_hitBoxComponent.CollisionMask = GetDamageCollisionMask();
+			_damageCollisionMask = GetDamageCollisionMask();
+			_hitBoxComponent.CollisionMask = _damageCollisionMask;
 		}
 	}
 
