@@ -1,0 +1,98 @@
+[gd_scene load_steps=13 format=4]
+
+[ext_resource type="Script" path="res://scenes/attacks/Projectile.cs" id="1_projectile"]
+[ext_resource type="PackedScene" uid="uid://blsurcr8183cv" path="res://scenes/components/hit_box_component.tscn" id="2_hitbox"]
+[ext_resource type="PackedScene" path="res://scenes/effects/water_impact.tscn" id="3_impact"]
+[ext_resource type="Shader" uid="uid://b7i3u0l0gwbmu" path="res://scenes/effects/shaders/stylized_fire.gdshader" id="4_shader"]
+[ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="5_noise"]
+[ext_resource type="Texture2D" uid="uid://c8nnpux2gtihn" path="res://scenes/effects/assets/FireMask.png" id="6_mask"]
+[ext_resource type="Script" path="res://scenes/effects/WaterStreamEffect.cs" id="7_water_stream"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_particles"]
+shader = ExtResource("4_shader")
+shader_parameter/noise_texture = ExtResource("5_noise")
+shader_parameter/texture_mask = ExtResource("6_mask")
+shader_parameter/emission_intensity = 1.6
+shader_parameter/time_scale = 4.2
+shader_parameter/texture_scale = Vector2(1, 1)
+shader_parameter/edge_softness = 0.16
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
+radius = 0.22
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_core"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.08, 0.55, 0.95, 0.72)
+emission_enabled = true
+emission = Color(0.02, 0.3, 0.9, 1)
+emission_energy_multiplier = 2.2
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_core"]
+material = SubResource("StandardMaterial3D_core")
+radius = 0.24
+height = 0.95
+radial_segments = 16
+rings = 6
+
+[sub_resource type="Gradient" id="Gradient_trail"]
+colors = PackedColorArray(0.82, 0.98, 1, 0.85, 0.05, 0.34, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_trail"]
+gradient = SubResource("Gradient_trail")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_trail"]
+direction = Vector3(0, 0, 1)
+spread = 24.0
+initial_velocity_min = 1.4
+initial_velocity_max = 4.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.18
+scale_max = 0.45
+color_ramp = SubResource("GradientTexture1D_trail")
+
+[sub_resource type="QuadMesh" id="QuadMesh_trail"]
+material = SubResource("StandardMaterial3D_core")
+size = Vector2(0.32, 0.32)
+
+[node name="WaterBoltProjectile" type="Node3D"]
+script = ExtResource("1_projectile")
+Speed = 16.0
+Range = 18.0
+ImpactEffectScene = ExtResource("3_impact")
+
+[node name="Pivot" type="Node3D" parent="."]
+
+[node name="HitBoxComponent" parent="Pivot" instance=ExtResource("2_hitbox")]
+unique_name_in_owner = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pivot/HitBoxComponent"]
+shape = SubResource("SphereShape3D_hit")
+
+[node name="MistTrail" type="GPUParticles3D" parent="Pivot"]
+material_override = SubResource("ShaderMaterial_particles")
+cast_shadow = 0
+amount = 58
+lifetime = 0.5
+randomness = 0.8
+local_coords = false
+process_material = SubResource("ParticleProcessMaterial_trail")
+draw_pass_1 = SubResource("QuadMesh_trail")
+
+[node name="WaterStream" type="Node3D" parent="."]
+script = ExtResource("7_water_stream")
+Target = NodePath("..")
+StrandCount = 4
+MaxPoints = 16
+PointSpacing = 0.11
+CoreWidth = 0.5
+SprayRadius = 0.34
+DropletCount = 10
+DropletTrailLength = 3.6
+MeshUpdateInterval = 0.06
+DropletUpdateInterval = 0.08
+
+[node name="Light" type="OmniLight3D" parent="Pivot"]
+light_color = Color(0.25, 0.68, 1, 1)
+light_energy = 0.8
+omni_range = 3.4

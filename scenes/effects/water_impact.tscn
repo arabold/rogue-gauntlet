@@ -1,0 +1,37 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/FrostImpactEffect.cs" id="1_timed"]
+[ext_resource type="Script" path="res://scenes/effects/ElementalImpactLayer.cs" id="2_impact_layer"]
+
+[node name="FrostImpact" type="Node3D"]
+script = ExtResource("1_timed")
+Lifetime = 1.3
+GrowDuration = 0.34
+HoldDuration = 0.32
+ShatterDuration = 0.18
+SpikeCount = 11
+ShardCount = 20
+UpdateInterval = 0.05
+
+[node name="FrostShockwaveLayer" type="Node3D" parent="."]
+script = ExtResource("2_impact_layer")
+Duration = 1.05
+RingColor = Color(0.62, 0.96, 1, 0.74)
+DiskColor = Color(0.24, 0.74, 1, 0.24)
+StreakColor = Color(0.86, 1, 1, 0.66)
+CrackColor = Color(0.52, 0.96, 1, 0.74)
+EmissionEnergy = 2.6
+MaxRadius = 2.65
+DiskRadius = 2.3
+RingCount = 3
+StreakCount = 12
+CrackCount = 5
+GroundDiskEnabled = true
+VerticalStreaks = true
+UpdateInterval = 0.05
+
+[node name="IceLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
+light_color = Color(0.34, 0.78, 1, 1)
+light_energy = 2.0
+omni_range = 4.8

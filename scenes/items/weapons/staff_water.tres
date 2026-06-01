@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="MagicStaff" load_steps=7 format=3]
+
+[ext_resource type="PackedScene" uid="uid://d4fu1vvr3w8ur" path="res://scenes/items/weapons/staff_common.tscn" id="1_staff"]
+[ext_resource type="Script" uid="uid://bncpld6hbytsn" path="res://scenes/items/MagicStaff.cs" id="2_magic"]
+[ext_resource type="Script" uid="uid://dirab7d4baxkb" path="res://scenes/attacks/AttackDefinition.cs" id="3_attack_script"]
+[ext_resource type="PackedScene" path="res://scenes/attacks/water_bolt_projectile.tscn" id="4_projectile"]
+[ext_resource type="PackedScene" path="res://scenes/effects/staff_muzzle_burst_frost.tscn" id="5_muzzle"]
+
+[sub_resource type="Resource" id="Resource_water_attack"]
+script = ExtResource("3_attack_script")
+AnimationId = "ranged_attack"
+HitWindowStart = 0.18
+IsRanged = true
+ProjectileScene = ExtResource("4_projectile")
+MuzzleEffectScene = ExtResource("5_muzzle")
+ProjectilePattern = 1
+ProjectileCount = 2
+SpreadAngle = 14.0
+ProjectileDamageScale = 0.75
+ProjectileSpeed = 16.0
+Range = 18.0
+AimingAngle = 50.0
+
+[resource]
+script = ExtResource("2_magic")
+Element = 1
+ProjectileSpeed = 16.0
+Range = 18.0
+AimingAngle = 50.0
+Tier = 2
+Level = 0
+RequiredStrength = 6
+Accuracy = 1.05
+DamageMin = 2.0
+DamageMax = 4.0
+CritChance = 0.02
+IsTwoHanded = false
+CustomAttackDefinition = SubResource("Resource_water_attack")
+AnimationId = "ranged_attack"
+Delay = 0.1
+PerformDuration = 0.5
+CooldownDuration = 0.1
+ValidSlots = 256
+Rarity = 1
+Name = "Frost Staff"
+Scene = ExtResource("1_staff")
+Quality = 1.0
+Value = 75
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_magic")

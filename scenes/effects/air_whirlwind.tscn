@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/WhirlwindEffect.cs" id="1_timed"]
+
+[node name="AirWhirlwind" type="Node3D"]
+script = ExtResource("1_timed")
+Lifetime = 1.35
+WindStreakCount = 56
+DebrisCount = 12
+Height = 3.6
+BottomRadius = 0.28
+TopRadius = 2.35
+RiseSpeed = 2.0
+RotationSpeedDegrees = 920.0
+SpiralTurns = 1.35
+UpdateInterval = 0.05
+
+[node name="WindLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+light_color = Color(0.45, 0.85, 1, 1)
+light_energy = 1.4
+omni_range = 4.8

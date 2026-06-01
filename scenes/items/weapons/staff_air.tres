@@ -1,0 +1,54 @@
+[gd_resource type="Resource" script_class="MagicStaff" load_steps=8 format=3]
+
+[ext_resource type="PackedScene" uid="uid://d4fu1vvr3w8ur" path="res://scenes/items/weapons/staff_common.tscn" id="1_staff"]
+[ext_resource type="Script" uid="uid://bncpld6hbytsn" path="res://scenes/items/MagicStaff.cs" id="2_magic"]
+[ext_resource type="Script" uid="uid://dirab7d4baxkb" path="res://scenes/attacks/AttackDefinition.cs" id="3_attack_script"]
+[ext_resource type="PackedScene" path="res://scenes/attacks/air_blade_projectile.tscn" id="4_projectile"]
+[ext_resource type="PackedScene" path="res://scenes/effects/air_whirlwind.tscn" id="5_whirlwind"]
+[ext_resource type="PackedScene" path="res://scenes/effects/staff_muzzle_burst_air.tscn" id="6_muzzle"]
+
+[sub_resource type="Resource" id="Resource_air_attack"]
+script = ExtResource("3_attack_script")
+AnimationId = "ranged_attack"
+HitWindowStart = 0.12
+IsRanged = true
+ProjectileScene = ExtResource("4_projectile")
+MuzzleEffectScene = ExtResource("6_muzzle")
+CastEffectScene = ExtResource("5_whirlwind")
+ProjectilePattern = 2
+ProjectileCount = 10
+SpreadAngle = 360.0
+ProjectileDamageScale = 0.32
+ProjectileSpeed = 18.0
+Range = 12.0
+AimingAngle = 180.0
+
+[resource]
+script = ExtResource("2_magic")
+Element = 3
+ProjectileSpeed = 18.0
+Range = 12.0
+AimingAngle = 180.0
+Tier = 2
+Level = 0
+RequiredStrength = 5
+Accuracy = 1.15
+DamageMin = 1.0
+DamageMax = 3.0
+CritChance = 0.03
+IsTwoHanded = false
+CustomAttackDefinition = SubResource("Resource_air_attack")
+AnimationId = "ranged_attack"
+Delay = 0.05
+PerformDuration = 0.45
+CooldownDuration = 0.35
+ValidSlots = 256
+Rarity = 1
+Name = "Air Staff"
+Scene = ExtResource("1_staff")
+Quality = 1.0
+Value = 75
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_magic")

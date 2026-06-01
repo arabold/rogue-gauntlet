@@ -67,7 +67,7 @@ public partial class AttackController : Node
 		_projectileSpawned = false;
 		_hitTargets.Clear();
 
-		GD.Print($"{_actor.Name} starting attack: {def.AnimationId} (Ranged: {def.IsRanged})");
+		GameDebug.Combat($"{_actor.Name} starting attack: {def.AnimationId} (Ranged: {def.IsRanged})");
 
 		SetProcess(true);
 	}
@@ -142,7 +142,7 @@ public partial class AttackController : Node
 		Node3D attachParent = _currentAttack.AttachHitBoxToWeapon ? FindWeaponInstance() : _actor;
 		attachParent ??= _actor;
 
-		GD.Print($"{_actor.Name} opening hit window under: {attachParent.Name}");
+		GameDebug.Combat($"{_actor.Name} opening hit window under: {attachParent.Name}");
 
 		_activeHitBox = HitBoxScene.Instantiate<HitBoxComponent>();
 		attachParent.AddChild(_activeHitBox);
@@ -183,7 +183,7 @@ public partial class AttackController : Node
 	{
 		if (!_hitWindowOpen) return;
 
-		GD.Print($"{_actor.Name} closing hit window");
+		GameDebug.Combat($"{_actor.Name} closing hit window");
 
 		if (GodotObject.IsInstanceValid(_activeHitBox))
 		{
@@ -215,14 +215,14 @@ public partial class AttackController : Node
 
 			_hitTargets.Add(damageOwner);
 
-			GD.Print($"{_actor.Name} hits {target.Name} (Owner: {damageOwner.Name}) with {_currentAttack.AnimationId}!");
+			GameDebug.Combat($"{_actor.Name} hits {target.Name} (Owner: {damageOwner.Name}) with {_currentAttack.AnimationId}!");
 
 			var direction = -_actor.GlobalTransform.Basis.Z;
 			var damage = (float)GD.RandRange(_currentMinDamage, _currentMaxDamage);
 			if (GD.Randf() < _currentCritChance)
 			{
 				damage *= 2;
-				GD.Print("Critical hit!");
+				GameDebug.Combat("Critical hit!");
 			}
 
 			damageable.TakeDamage(_currentAccuracy, damage, direction, _actor);
@@ -233,19 +233,6 @@ public partial class AttackController : Node
 	{
 		if (_currentAttack == null) return;
 
-		Vector3 origin = _actor.GlobalPosition + Vector3.Up * 1.2f;
-		Node3D muzzle = FindMuzzlePoint();
-		if (muzzle != null)
-		{
-			origin = muzzle.GlobalPosition;
-		}
-		else
-		{
-			origin = _actor.GlobalPosition - _actor.GlobalTransform.Basis.Z * 1.0f + Vector3.Up * 1.2f;
-		}
-
-		Vector3 direction = Aim(origin, _currentAttack.Range, _currentAttack.AimingAngle);
-
 		PackedScene scene = _currentAttack.ProjectileScene ?? DefaultProjectileScene;
 		if (scene == null)
 		{
@@ -253,19 +240,83 @@ public partial class AttackController : Node
 			return;
 		}
 
-		Projectile projectile = scene.Instantiate<Projectile>();
-		projectile.Initialize(
-			origin,
-			direction,
-			_currentAttack.ProjectileSpeed,
-			_currentAttack.Range,
-			_currentAccuracy,
-			_currentMinDamage, _currentMaxDamage,
-			_currentCritChance,
-			_actor);
+		Vector3 origin = GetProjectileOrigin();
+		Vector3 aimedDirection = Aim(origin, _currentAttack.Range, _currentAttack.AimingAngle);
+		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, GetActorForward());
+		SpawnEffect(_currentAttack.MuzzleEffectScene, origin, aimedDirection);
 
-		GetTree().CurrentScene.AddChild(projectile);
-		GD.Print($"{_actor.Name} spawned projectile flying {direction}");
+		foreach (Vector3 direction in GetProjectileDirections(aimedDirection))
+		{
+			Projectile projectile = ScenePool.Spawn<Projectile>(scene, GetTree().CurrentScene);
+			projectile.Initialize(
+				origin,
+				direction,
+				_currentAttack.ProjectileSpeed,
+				_currentAttack.Range,
+				_currentAccuracy,
+				_currentMinDamage * _currentAttack.ProjectileDamageScale,
+				_currentMaxDamage * _currentAttack.ProjectileDamageScale,
+				_currentCritChance,
+				_actor);
+
+			GameDebug.Combat($"{_actor.Name} spawned projectile flying {direction}");
+		}
+	}
+
+	private Vector3 GetProjectileOrigin()
+	{
+		Node3D muzzle = FindMuzzlePoint();
+		if (muzzle != null)
+		{
+			return muzzle.GlobalPosition;
+		}
+
+		return _actor.GlobalPosition - _actor.GlobalTransform.Basis.Z * 1.0f + Vector3.Up * 1.2f;
+	}
+
+	private IEnumerable<Vector3> GetProjectileDirections(Vector3 aimedDirection)
+	{
+		int count = Mathf.Max(1, _currentAttack.ProjectileCount);
+
+		if (_currentAttack.ProjectilePattern == ProjectilePattern.Radial)
+		{
+			float step = 360.0f / count;
+			for (int i = 0; i < count; i++)
+			{
+				yield return RotateHorizontal(GetActorForward(), step * i);
+			}
+			yield break;
+		}
+
+		if (_currentAttack.ProjectilePattern == ProjectilePattern.Spread && count > 1)
+		{
+			float startAngle = -_currentAttack.SpreadAngle * 0.5f;
+			float step = _currentAttack.SpreadAngle / (count - 1);
+			for (int i = 0; i < count; i++)
+			{
+				yield return RotateHorizontal(aimedDirection, startAngle + step * i);
+			}
+			yield break;
+		}
+
+		yield return aimedDirection;
+	}
+
+	private Vector3 RotateHorizontal(Vector3 direction, float degrees)
+	{
+		return direction.Rotated(Vector3.Up, Mathf.DegToRad(degrees)).Normalized();
+	}
+
+	private void SpawnEffect(PackedScene effectScene, Vector3 origin, Vector3 direction)
+	{
+		if (effectScene == null) return;
+
+		Node3D effect = ScenePool.Spawn<Node3D>(effectScene, GetTree().CurrentScene);
+		effect.GlobalPosition = origin;
+		if (direction.LengthSquared() > 0)
+		{
+			effect.LookAt(origin + direction, Vector3.Up);
+		}
 	}
 
 	private Node3D FindWeaponInstance()

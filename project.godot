@@ -23,6 +23,7 @@ config/icon="res://icon.svg"
 
 SignalBus="*res://scripts/SignalBus.cs"
 GameSession="*res://scripts/GameSession.cs"
+ScenePool="*res://scripts/ScenePool.cs"
 SceneDebugBootstrap="*res://scripts/SceneDebugBootstrap.cs"
 PhantomCameraManager="*res://addons/phantom_camera/scripts/managers/phantom_camera_manager.gd"
 

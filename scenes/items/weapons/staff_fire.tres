@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="MagicStaff" load_steps=7 format=3]
+
+[ext_resource type="PackedScene" uid="uid://d4fu1vvr3w8ur" path="res://scenes/items/weapons/staff_common.tscn" id="1_staff"]
+[ext_resource type="Script" uid="uid://bncpld6hbytsn" path="res://scenes/items/MagicStaff.cs" id="2_magic"]
+[ext_resource type="Script" uid="uid://dirab7d4baxkb" path="res://scenes/attacks/AttackDefinition.cs" id="3_attack_script"]
+[ext_resource type="PackedScene" path="res://scenes/attacks/fireball_projectile.tscn" id="4_projectile"]
+[ext_resource type="PackedScene" path="res://scenes/effects/staff_muzzle_burst_fire.tscn" id="5_muzzle"]
+
+[sub_resource type="Resource" id="Resource_fire_attack"]
+script = ExtResource("3_attack_script")
+AnimationId = "ranged_attack"
+HitWindowStart = 0.2
+IsRanged = true
+ProjectileScene = ExtResource("4_projectile")
+MuzzleEffectScene = ExtResource("5_muzzle")
+ProjectilePattern = 0
+ProjectileCount = 1
+SpreadAngle = 30.0
+ProjectileDamageScale = 1.25
+ProjectileSpeed = 13.0
+Range = 18.0
+AimingAngle = 55.0
+
+[resource]
+script = ExtResource("2_magic")
+Element = 0
+ProjectileSpeed = 13.0
+Range = 18.0
+AimingAngle = 55.0
+Tier = 2
+Level = 0
+RequiredStrength = 6
+Accuracy = 1.0
+DamageMin = 3.0
+DamageMax = 6.0
+CritChance = 0.05
+IsTwoHanded = false
+CustomAttackDefinition = SubResource("Resource_fire_attack")
+AnimationId = "ranged_attack"
+Delay = 0.15
+PerformDuration = 0.55
+CooldownDuration = 0.15
+ValidSlots = 256
+Rarity = 1
+Name = "Fire Staff"
+Scene = ExtResource("1_staff")
+Quality = 1.0
+Value = 75
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_magic")

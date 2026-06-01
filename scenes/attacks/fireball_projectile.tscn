@@ -1,0 +1,222 @@
+[gd_scene load_steps=27 format=4]
+
+[ext_resource type="Script" path="res://scenes/attacks/Projectile.cs" id="1_projectile"]
+[ext_resource type="PackedScene" uid="uid://blsurcr8183cv" path="res://scenes/components/hit_box_component.tscn" id="2_hitbox"]
+[ext_resource type="PackedScene" path="res://scenes/effects/fireball_impact.tscn" id="3_impact"]
+[ext_resource type="Shader" uid="uid://b7i3u0l0gwbmu" path="res://scenes/effects/shaders/stylized_fire.gdshader" id="4_fire_shader"]
+[ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="5_noise"]
+[ext_resource type="Texture2D" uid="uid://c8nnpux2gtihn" path="res://scenes/effects/assets/FireMask.png" id="6_mask"]
+[ext_resource type="Shader" path="res://scenes/effects/shaders/fireball_core.gdshader" id="7_core_shader"]
+[ext_resource type="Script" path="res://scenes/effects/MagicRibbonTrail.cs" id="8_ribbon_script"]
+[ext_resource type="Shader" path="res://scenes/effects/shaders/magic_ribbon.gdshader" id="9_ribbon_shader"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
+radius = 0.42
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_core"]
+shader = ExtResource("7_core_shader")
+shader_parameter/core_color = Color(1, 0.86, 0.24, 1)
+shader_parameter/flame_color = Color(1, 0.12, 0.01, 1)
+shader_parameter/noise_texture = ExtResource("5_noise")
+shader_parameter/emission_intensity = 8.0
+shader_parameter/pulse_speed = 11.0
+shader_parameter/noise_scale = 3.2
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_flame"]
+shader = ExtResource("4_fire_shader")
+shader_parameter/noise_texture = ExtResource("5_noise")
+shader_parameter/texture_mask = ExtResource("6_mask")
+shader_parameter/emission_intensity = 6.5
+shader_parameter/time_scale = 7.0
+shader_parameter/texture_scale = Vector2(1, 1)
+shader_parameter/edge_softness = 0.1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_smoke"]
+shader = ExtResource("4_fire_shader")
+shader_parameter/noise_texture = ExtResource("5_noise")
+shader_parameter/texture_mask = ExtResource("6_mask")
+shader_parameter/emission_intensity = 0.18
+shader_parameter/time_scale = 1.2
+shader_parameter/texture_scale = Vector2(0.7, 0.7)
+shader_parameter/edge_softness = 0.34
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ribbon"]
+shader = ExtResource("9_ribbon_shader")
+shader_parameter/head_color = Color(1, 0.82, 0.2, 0.95)
+shader_parameter/tail_color = Color(1, 0.08, 0.01, 0)
+shader_parameter/emission_intensity = 5.5
+shader_parameter/edge_softness = 0.28
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_smoke"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.12, 0.08, 0.055, 0.32)
+emission_enabled = true
+emission = Color(0.08, 0.035, 0.01, 1)
+emission_energy_multiplier = 0.4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spark"]
+shading_mode = 0
+albedo_color = Color(1, 0.72, 0.14, 1)
+emission_enabled = true
+emission = Color(1, 0.45, 0.04, 1)
+emission_energy_multiplier = 5.5
+
+[sub_resource type="SphereMesh" id="SphereMesh_core"]
+material = SubResource("ShaderMaterial_core")
+radius = 0.34
+height = 0.68
+radial_segments = 24
+rings = 12
+
+[sub_resource type="SphereMesh" id="SphereMesh_shell"]
+material = SubResource("ShaderMaterial_core")
+radius = 0.48
+height = 0.96
+radial_segments = 24
+rings = 12
+
+[sub_resource type="Gradient" id="Gradient_flame"]
+offsets = PackedFloat32Array(0, 0.32, 0.72, 1)
+colors = PackedColorArray(1, 0.9, 0.28, 0.95, 1, 0.38, 0.02, 0.72, 0.8, 0.08, 0.01, 0.35, 0.18, 0.02, 0, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_flame"]
+gradient = SubResource("Gradient_flame")
+
+[sub_resource type="Gradient" id="Gradient_smoke"]
+colors = PackedColorArray(0.18, 0.11, 0.075, 0.32, 0.03, 0.025, 0.02, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_smoke"]
+gradient = SubResource("Gradient_smoke")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_flame_wake"]
+direction = Vector3(0, 0, 1)
+spread = 38.0
+initial_velocity_min = 4.5
+initial_velocity_max = 9.0
+gravity = Vector3(0, 0.6, 0)
+scale_min = 0.34
+scale_max = 1.15
+color_ramp = SubResource("GradientTexture1D_flame")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_outer_flame"]
+emission_shape = 1
+emission_sphere_radius = 0.25
+direction = Vector3(0, 0, 1)
+spread = 90.0
+initial_velocity_min = 1.5
+initial_velocity_max = 4.5
+gravity = Vector3(0, 0.4, 0)
+scale_min = 0.22
+scale_max = 0.75
+color_ramp = SubResource("GradientTexture1D_flame")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_smoke"]
+direction = Vector3(0, 0, 1)
+spread = 24.0
+initial_velocity_min = 1.0
+initial_velocity_max = 3.2
+gravity = Vector3(0, 0.25, 0)
+scale_min = 0.55
+scale_max = 1.8
+color_ramp = SubResource("GradientTexture1D_smoke")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_sparks"]
+direction = Vector3(0, 0, 1)
+spread = 50.0
+initial_velocity_min = 4.0
+initial_velocity_max = 11.0
+gravity = Vector3(0, -2.4, 0)
+scale_min = 0.08
+scale_max = 0.18
+color = Color(1, 0.65, 0.12, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_flame"]
+size = Vector2(0.58, 0.58)
+
+[sub_resource type="QuadMesh" id="QuadMesh_smoke"]
+material = SubResource("StandardMaterial3D_smoke")
+size = Vector2(0.8, 0.8)
+
+[sub_resource type="SphereMesh" id="SphereMesh_spark"]
+material = SubResource("StandardMaterial3D_spark")
+radius = 0.04
+height = 0.08
+radial_segments = 8
+rings = 4
+
+[node name="FireballProjectile" type="Node3D"]
+script = ExtResource("1_projectile")
+Speed = 13.0
+Range = 18.0
+ImpactEffectScene = ExtResource("3_impact")
+
+[node name="Pivot" type="Node3D" parent="."]
+
+[node name="HitBoxComponent" parent="Pivot" instance=ExtResource("2_hitbox")]
+unique_name_in_owner = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pivot/HitBoxComponent"]
+shape = SubResource("SphereShape3D_hit")
+
+[node name="Core" type="MeshInstance3D" parent="Pivot"]
+layers = 64
+mesh = SubResource("SphereMesh_core")
+
+[node name="HeatShell" type="MeshInstance3D" parent="Pivot"]
+layers = 64
+mesh = SubResource("SphereMesh_shell")
+
+[node name="FlameWake" type="GPUParticles3D" parent="Pivot"]
+material_override = SubResource("ShaderMaterial_flame")
+cast_shadow = 0
+amount = 58
+lifetime = 0.55
+randomness = 0.92
+local_coords = false
+process_material = SubResource("ParticleProcessMaterial_flame_wake")
+draw_pass_1 = SubResource("QuadMesh_flame")
+
+[node name="OuterFlames" type="GPUParticles3D" parent="Pivot"]
+material_override = SubResource("ShaderMaterial_flame")
+cast_shadow = 0
+amount = 42
+lifetime = 0.36
+randomness = 1.0
+local_coords = false
+process_material = SubResource("ParticleProcessMaterial_outer_flame")
+draw_pass_1 = SubResource("QuadMesh_flame")
+
+[node name="SmokeWake" type="GPUParticles3D" parent="Pivot"]
+material_override = SubResource("ShaderMaterial_smoke")
+cast_shadow = 0
+amount = 14
+lifetime = 1.0
+randomness = 1.0
+local_coords = false
+process_material = SubResource("ParticleProcessMaterial_smoke")
+draw_pass_1 = SubResource("QuadMesh_smoke")
+
+[node name="Embers" type="GPUParticles3D" parent="Pivot"]
+amount = 18
+lifetime = 0.65
+randomness = 1.0
+local_coords = false
+process_material = SubResource("ParticleProcessMaterial_sparks")
+draw_pass_1 = SubResource("SphereMesh_spark")
+
+[node name="RibbonTrail" type="MeshInstance3D" parent="."]
+material_override = SubResource("ShaderMaterial_ribbon")
+script = ExtResource("8_ribbon_script")
+Target = NodePath("..")
+MaxPoints = 24
+PointSpacing = 0.12
+Width = 1.15
+TailWidthScale = 0.08
+MeshUpdateInterval = 0.05
+
+[node name="Light" type="OmniLight3D" parent="Pivot"]
+light_color = Color(1, 0.38, 0.08, 1)
+light_energy = 2.8
+light_specular = 0.15
+omni_range = 5.2

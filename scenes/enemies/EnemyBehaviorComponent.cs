@@ -42,6 +42,10 @@ public partial class EnemyBehaviorComponent : Node
 	private const float StuckCheckInterval = 0.25f;
 	private const float StuckMinimumProgress = 0.2f;
 	private const float StuckRecoverySeconds = 1.0f;
+	private const float TargetScanInterval = 0.2f;
+	private const float TargetPathRefreshInterval = 0.12f;
+	private const float TargetReachabilityCheckInterval = 0.35f;
+	private const float TargetPositionRefreshDistance = 0.35f;
 
 	/// <summary>
 	/// Character body moved and rotated by this behavior controller.
@@ -96,6 +100,10 @@ public partial class EnemyBehaviorComponent : Node
 	private float _stuckCheckTimer;
 	private float _stuckTime;
 	private MapGenerator _mapGenerator;
+	private float _targetScanTimer;
+	private float _targetPathRefreshTimer;
+	private float _targetReachabilityTimer;
+	private bool _lastTargetReachable = true;
 
 	public override void _Ready()
 	{
@@ -117,7 +125,7 @@ public partial class EnemyBehaviorComponent : Node
 		}
 		_mapGenerator = this.GetAncestorOrNull<Level>()?.MapGenerator;
 		// Ensure to properly initialize the enemy's state with the current selection
-		GD.Print($"{GetParent().Name} is initialized with {CurrentBehavior} and {CurrentAction}");
+		GameDebug.Ai($"{GetParent().Name} is initialized with {CurrentBehavior} and {CurrentAction}");
 		_remainingActionTime = _profile.GetActionDuration(CurrentAction);
 
 		if (HealthComponent != null)
@@ -131,6 +139,10 @@ public partial class EnemyBehaviorComponent : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
+		_targetScanTimer -= (float)delta;
+		_targetPathRefreshTimer -= (float)delta;
+		_targetReachabilityTimer -= (float)delta;
+
 		if (CurrentAction != EnemyAction.None)
 		{
 			MovementComponent.Stop();
@@ -151,7 +163,7 @@ public partial class EnemyBehaviorComponent : Node
 				ResetStuckTracking();
 
 				// Check if the target is within range and start chasing
-				if (LookForNewTarget())
+				if (ShouldScanForTarget() && LookForNewTarget())
 				{
 					SetBehavior(EnemyBehaviorState.Chasing);
 				}
@@ -162,7 +174,7 @@ public partial class EnemyBehaviorComponent : Node
 			}
 			else if (CurrentBehavior == EnemyBehaviorState.Patrolling)
 			{
-				if (LookForNewTarget())
+				if (ShouldScanForTarget() && LookForNewTarget())
 				{
 					SetBehavior(EnemyBehaviorState.Chasing);
 				}
@@ -173,7 +185,7 @@ public partial class EnemyBehaviorComponent : Node
 			}
 			else if (CurrentBehavior == EnemyBehaviorState.Searching)
 			{
-				if (LookForNewTarget())
+				if (ShouldScanForTarget() && LookForNewTarget())
 				{
 					SetBehavior(EnemyBehaviorState.Chasing);
 				}
@@ -185,7 +197,7 @@ public partial class EnemyBehaviorComponent : Node
 			}
 			else if (CurrentBehavior == EnemyBehaviorState.Chasing)
 			{
-				if (!CanReachTarget(Target))
+				if (!CanReachCurrentTarget())
 				{
 					Target = null;
 					MovementComponent.Stop();
@@ -193,7 +205,7 @@ public partial class EnemyBehaviorComponent : Node
 					return;
 				}
 
-				UpdateTargetPosition();
+				UpdateTargetPositionThrottled();
 				NavigateToTarget();
 
 				if (IsNearTarget())
@@ -205,7 +217,7 @@ public partial class EnemyBehaviorComponent : Node
 			}
 			else if (CurrentBehavior == EnemyBehaviorState.Fleeing)
 			{
-				UpdateTargetPosition();
+				UpdateTargetPositionThrottled();
 				NavigateAwayFromTarget();
 				ResetStuckTracking();
 			}
@@ -246,6 +258,7 @@ public partial class EnemyBehaviorComponent : Node
 	/// </summary>
 	private bool LookForNewTarget()
 	{
+		_targetScanTimer = TargetScanInterval;
 		if (Target == null)
 		{
 			var players = GetTree().GetNodesInGroup("player").OfType<Player>();
@@ -259,7 +272,7 @@ public partial class EnemyBehaviorComponent : Node
 					bool isClose = distance < _profile.DetectionRange * _profile.CloseDetectionRangeMultiplier;
 					if (CanReachTarget(player) && (isClose || TestLineOfSight(player)))
 					{
-						GD.Print($"{Actor.Name} has spotted {player.Name}");
+						GameDebug.Ai($"{Actor.Name} has spotted {player.Name}");
 						UpdateTargetPosition();
 						SetTarget(player);
 						return true;
@@ -268,6 +281,23 @@ public partial class EnemyBehaviorComponent : Node
 			}
 		}
 		return false;
+	}
+
+	private bool ShouldScanForTarget()
+	{
+		return Target == null && _targetScanTimer <= 0.0f;
+	}
+
+	private bool CanReachCurrentTarget()
+	{
+		if (_targetReachabilityTimer > 0.0f)
+		{
+			return _lastTargetReachable;
+		}
+
+		_targetReachabilityTimer = TargetReachabilityCheckInterval;
+		_lastTargetReachable = CanReachTarget(Target);
+		return _lastTargetReachable;
 	}
 
 	private bool CanReachTarget(Node3D target)
@@ -303,6 +333,23 @@ public partial class EnemyBehaviorComponent : Node
 		_lastKnownTargetPosition = Target.GlobalPosition;
 		_navigationAgent.SetTargetPosition(_lastKnownTargetPosition);
 		return true;
+	}
+
+	private bool UpdateTargetPositionThrottled()
+	{
+		if (Target == null)
+		{
+			return false;
+		}
+
+		if (_targetPathRefreshTimer > 0.0f
+			&& _lastKnownTargetPosition.DistanceTo(Target.GlobalPosition) < TargetPositionRefreshDistance)
+		{
+			return true;
+		}
+
+		_targetPathRefreshTimer = TargetPathRefreshInterval;
+		return UpdateTargetPosition();
 	}
 
 	private void Roam(double delta)
@@ -432,7 +479,7 @@ public partial class EnemyBehaviorComponent : Node
 
 	private void RecoverFromStuckPath()
 	{
-		GD.Print($"{Actor.Name} appears stuck while {CurrentBehavior}; refreshing path.");
+		GameDebug.Ai($"{Actor.Name} appears stuck while {CurrentBehavior}; refreshing path.");
 		ResetStuckTracking();
 
 		if (CurrentBehavior == EnemyBehaviorState.Patrolling)
@@ -482,7 +529,7 @@ public partial class EnemyBehaviorComponent : Node
 	{
 		if (CurrentBehavior != newBehavior)
 		{
-			GD.Print($"{Actor.Name} is now {newBehavior}");
+			GameDebug.Ai($"{Actor.Name} is now {newBehavior}");
 			CurrentBehavior = newBehavior;
 			if (newBehavior != EnemyBehaviorState.Patrolling)
 			{
@@ -495,7 +542,7 @@ public partial class EnemyBehaviorComponent : Node
 	{
 		if (Target != target)
 		{
-			GD.Print($"{Actor.Name} is now targeting {target.Name}");
+			GameDebug.Ai($"{Actor.Name} is now targeting {target.Name}");
 			Target = target;
 		}
 		UpdateTargetPosition();
@@ -505,7 +552,7 @@ public partial class EnemyBehaviorComponent : Node
 	{
 		if (CurrentAction != newAction)
 		{
-			GD.Print($"{Actor.Name} is performing {newAction}");
+			GameDebug.Ai($"{Actor.Name} is performing {newAction}");
 			CurrentAction = newAction;
 			_remainingActionTime = _profile.GetActionDuration(newAction);
 			if (newAction != EnemyAction.None)

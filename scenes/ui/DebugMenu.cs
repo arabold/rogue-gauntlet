@@ -12,6 +12,8 @@ public partial class DebugMenu : HBoxContainer
 	private const int KillPlayerId = 4;
 	private const int KillEnemiesId = 5;
 	private const int ToggleNavigationId = 6;
+	private const int ToggleCombatLogsId = 7;
+	private const int ToggleAiLogsId = 8;
 
 	[Export] public Godot.Collections.Array<Item> SpawnableItems { get; set; } = [];
 
@@ -64,6 +66,8 @@ public partial class DebugMenu : HBoxContainer
 
 		_debugMenu.AddCheckItem("Debug meshes", ToggleDebugMeshesId);
 		_debugMenu.AddCheckItem("Navigation", ToggleNavigationId);
+		_debugMenu.AddCheckItem("Combat logs", ToggleCombatLogsId);
+		_debugMenu.AddCheckItem("AI logs", ToggleAiLogsId);
 		_debugMenu.AddItem("Reveal map", RevealMapId);
 		_debugMenu.AddItem("Restart level", RestartLevelId);
 		_debugMenu.AddSeparator();
@@ -85,6 +89,9 @@ public partial class DebugMenu : HBoxContainer
 		_debugMenu.IdPressed += OnDebugMenuPressed;
 		_debugMenu.AddChild(_spawnItemMenu);
 		_debugMenu.AddSubmenuNodeItem("Spawn item", _spawnItemMenu);
+
+		SetChecked(ToggleCombatLogsId, GameDebug.CombatLogsEnabled);
+		SetChecked(ToggleAiLogsId, GameDebug.AiLogsEnabled);
 	}
 
 	private void OnDebugMenuPressed(long id)
@@ -96,6 +103,12 @@ public partial class DebugMenu : HBoxContainer
 				break;
 			case ToggleNavigationId:
 				SetNavigationEnabled(!_navigationEnabled);
+				break;
+			case ToggleCombatLogsId:
+				SetCombatLogsEnabled(!GameDebug.CombatLogsEnabled);
+				break;
+			case ToggleAiLogsId:
+				SetAiLogsEnabled(!GameDebug.AiLogsEnabled);
 				break;
 			case RevealMapId:
 				RevealMap();
@@ -158,11 +171,7 @@ public partial class DebugMenu : HBoxContainer
 			}
 		}
 
-		int debugMeshIndex = _debugMenu.GetItemIndex(ToggleDebugMeshesId);
-		if (debugMeshIndex >= 0)
-		{
-			_debugMenu.SetItemChecked(debugMeshIndex, enabled);
-		}
+		SetChecked(ToggleDebugMeshesId, enabled);
 	}
 
 	/// <summary>
@@ -184,10 +193,27 @@ public partial class DebugMenu : HBoxContainer
 
 		GetLevel()?.MapGenerator?.SetNavigationDebugVisible(enabled);
 
-		int navigationIndex = _debugMenu.GetItemIndex(ToggleNavigationId);
-		if (navigationIndex >= 0)
+		SetChecked(ToggleNavigationId, enabled);
+	}
+
+	private void SetCombatLogsEnabled(bool enabled)
+	{
+		GameDebug.CombatLogsEnabled = enabled;
+		SetChecked(ToggleCombatLogsId, enabled);
+	}
+
+	private void SetAiLogsEnabled(bool enabled)
+	{
+		GameDebug.AiLogsEnabled = enabled;
+		SetChecked(ToggleAiLogsId, enabled);
+	}
+
+	private void SetChecked(int itemId, bool enabled)
+	{
+		int itemIndex = _debugMenu.GetItemIndex(itemId);
+		if (itemIndex >= 0)
 		{
-			_debugMenu.SetItemChecked(navigationIndex, enabled);
+			_debugMenu.SetItemChecked(itemIndex, enabled);
 		}
 	}
 
@@ -230,6 +256,14 @@ public partial class DebugMenu : HBoxContainer
 		return GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
 	}
 
+	private string GetRuntimeDebugSummary()
+	{
+		int enemies = GetTree().GetNodesInGroup("enemy").Count;
+		int nodes = (int)Performance.GetMonitor(Performance.Monitor.ObjectNodeCount);
+		int drawCalls = (int)Performance.GetMonitor(Performance.Monitor.RenderTotalDrawCallsInFrame);
+		return $"Enemies: {enemies}  Nodes: {nodes}  Draw: {drawCalls}\n{ScenePool.GetDebugSummary()}";
+	}
+
 	private Level GetLevel()
 	{
 		return this.GetAncestorOrNull<Level>() ?? GetTree().CurrentScene?.GetNodeOrNull<Level>("Level");
@@ -237,6 +271,6 @@ public partial class DebugMenu : HBoxContainer
 
 	private void UpdateFpsLabel()
 	{
-		_fpsLabel.Text = $"FPS: {Engine.GetFramesPerSecond()}";
+		_fpsLabel.Text = $"FPS: {Engine.GetFramesPerSecond()}\n{GetRuntimeDebugSummary()}";
 	}
 }

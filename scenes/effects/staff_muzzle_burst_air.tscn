@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/ElementalMuzzleBurst.cs" id="1_muzzle"]
+
+[node name="StaffMuzzleBurstAir" type="Node3D"]
+script = ExtResource("1_muzzle")
+Lifetime = 0.34
+CoreColor = Color(0.8, 1, 1, 0.66)
+AccentColor = Color(0.38, 0.86, 1, 0.48)
+EmissionEnergy = 2.4
+SparkCount = 8
+Radius = 0.52
+UpdateInterval = 0.05

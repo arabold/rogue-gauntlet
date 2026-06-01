@@ -43,6 +43,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable
 	public override void _PhysicsProcess(double delta)
 	{
 		Visible = true;
+		SetPhysicsProcess(false);
 	}
 
 	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null)

@@ -1,0 +1,76 @@
+[gd_scene load_steps=14 format=4]
+
+[ext_resource type="Script" path="res://scenes/attacks/Projectile.cs" id="1_projectile"]
+[ext_resource type="PackedScene" uid="uid://blsurcr8183cv" path="res://scenes/components/hit_box_component.tscn" id="2_hitbox"]
+[ext_resource type="PackedScene" path="res://scenes/effects/air_impact.tscn" id="3_impact"]
+[ext_resource type="Shader" uid="uid://b7i3u0l0gwbmu" path="res://scenes/effects/shaders/stylized_fire.gdshader" id="4_shader"]
+[ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="5_noise"]
+[ext_resource type="Texture2D" uid="uid://c8nnpux2gtihn" path="res://scenes/effects/assets/FireMask.png" id="6_mask"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_particles"]
+shader = ExtResource("4_shader")
+shader_parameter/noise_texture = ExtResource("5_noise")
+shader_parameter/texture_mask = ExtResource("6_mask")
+shader_parameter/emission_intensity = 1.4
+shader_parameter/time_scale = 4.0
+shader_parameter/texture_scale = Vector2(1, 1)
+shader_parameter/edge_softness = 0.2
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
+radius = 0.25
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_air"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.65, 0.95, 1, 0.42)
+emission_enabled = true
+emission = Color(0.3, 0.72, 0.9, 1)
+emission_energy_multiplier = 1.8
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_blade"]
+material = SubResource("StandardMaterial3D_air")
+size = Vector2(0.36, 1.2)
+
+[sub_resource type="Gradient" id="Gradient_trail"]
+colors = PackedColorArray(0.9, 1, 1, 0.7, 0.45, 0.85, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_trail"]
+gradient = SubResource("Gradient_trail")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_trail"]
+direction = Vector3(0, 0, 1)
+spread = 10.0
+initial_velocity_min = 1.2
+initial_velocity_max = 4.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.14
+scale_max = 0.4
+color_ramp = SubResource("GradientTexture1D_trail")
+
+[sub_resource type="QuadMesh" id="QuadMesh_trail"]
+material = SubResource("StandardMaterial3D_air")
+size = Vector2(0.5, 0.12)
+
+[node name="AirBladeProjectile" type="Node3D"]
+script = ExtResource("1_projectile")
+Speed = 18.0
+Range = 12.0
+ImpactEffectScene = ExtResource("3_impact")
+SpawnImpactEffectOnExpire = false
+
+[node name="Pivot" type="Node3D" parent="."]
+
+[node name="HitBoxComponent" parent="Pivot" instance=ExtResource("2_hitbox")]
+unique_name_in_owner = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pivot/HitBoxComponent"]
+shape = SubResource("SphereShape3D_hit")
+
+[node name="WindTrail" type="GPUParticles3D" parent="Pivot"]
+material_override = SubResource("ShaderMaterial_particles")
+amount = 24
+lifetime = 0.34
+randomness = 0.75
+local_coords = false
+process_material = SubResource("ParticleProcessMaterial_trail")
+draw_pass_1 = SubResource("QuadMesh_trail")

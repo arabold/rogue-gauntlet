@@ -58,7 +58,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 
 		if ((DamageFilter & attackerFaction) == 0)
 		{
-			GD.Print($"{GetParent().Name}'s hurtbox filtered out damage from {attacker?.Name ?? "unknown"} ({attackerFaction})");
+			GameDebug.Combat($"{GetParent().Name}'s hurtbox filtered out damage from {attacker?.Name ?? "unknown"} ({attackerFaction})");
 			return;
 		}
 
@@ -66,18 +66,18 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 		var defense = GD.RandRange(0f, Evasion);
 		if (defense > attack)
 		{
-			GD.Print($"{GetParent().Name} evaded the attack!");
+			GameDebug.Combat($"{GetParent().Name} evaded the attack!");
 			return;
 		}
 
 		if (Invulnerable)
 		{
-			GD.Print($"{GetParent().Name} is invulnerable!");
+			GameDebug.Combat($"{GetParent().Name} is invulnerable!");
 			return;
 		}
 
 		var armor = (float)GD.RandRange(0f, Armor);
-		GD.Print($"{GetParent().Name} took {amount} damage with {armor} armor");
+		GameDebug.Combat($"{GetParent().Name} took {amount} damage with {armor} armor");
 
 		var finalDamage = Mathf.Max(0, amount - armor);
 		if (finalDamage > 0)
@@ -96,10 +96,8 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 			return;
 		}
 
-		// TODO: Use object pooling
-		var hitEffect = HitEffect.Instantiate<GpuParticles3D>();
+		var hitEffect = ScenePool.Spawn<GpuParticles3D>(HitEffect, this);
 		hitEffect.Position = attackDirection.Normalized() * 0.5f;
 		hitEffect.OneShot = true;
-		AddChild(hitEffect);
 	}
 }

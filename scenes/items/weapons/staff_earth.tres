@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="MagicStaff" load_steps=7 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bho5s2rxlogin" path="res://scenes/items/weapons/staff_skeleton.tscn" id="1_staff"]
+[ext_resource type="Script" uid="uid://bncpld6hbytsn" path="res://scenes/items/MagicStaff.cs" id="2_magic"]
+[ext_resource type="Script" uid="uid://dirab7d4baxkb" path="res://scenes/attacks/AttackDefinition.cs" id="3_attack_script"]
+[ext_resource type="PackedScene" path="res://scenes/attacks/earth_shard_projectile.tscn" id="4_projectile"]
+[ext_resource type="PackedScene" path="res://scenes/effects/staff_muzzle_burst_earth.tscn" id="5_muzzle"]
+
+[sub_resource type="Resource" id="Resource_earth_attack"]
+script = ExtResource("3_attack_script")
+AnimationId = "ranged_attack"
+HitWindowStart = 0.28
+IsRanged = true
+ProjectileScene = ExtResource("4_projectile")
+MuzzleEffectScene = ExtResource("5_muzzle")
+ProjectilePattern = 0
+ProjectileCount = 1
+SpreadAngle = 30.0
+ProjectileDamageScale = 1.6
+ProjectileSpeed = 10.0
+Range = 15.0
+AimingAngle = 45.0
+
+[resource]
+script = ExtResource("2_magic")
+Element = 2
+ProjectileSpeed = 10.0
+Range = 15.0
+AimingAngle = 45.0
+Tier = 2
+Level = 0
+RequiredStrength = 8
+Accuracy = 0.9
+DamageMin = 4.0
+DamageMax = 8.0
+CritChance = 0.08
+IsTwoHanded = false
+CustomAttackDefinition = SubResource("Resource_earth_attack")
+AnimationId = "ranged_attack"
+Delay = 0.2
+PerformDuration = 0.7
+CooldownDuration = 0.25
+ValidSlots = 256
+Rarity = 1
+Name = "Earth Staff"
+Scene = ExtResource("1_staff")
+Quality = 1.0
+Value = 80
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_magic")

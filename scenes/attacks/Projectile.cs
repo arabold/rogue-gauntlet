@@ -1,6 +1,6 @@
 using Godot;
 
-public partial class Projectile : Node3D
+public partial class Projectile : Node3D, IPooledNode
 {
 	private const uint WorldLayer = 1 << 0;
 	private const uint WallsLayer = 1 << 1;
@@ -16,19 +16,36 @@ public partial class Projectile : Node3D
 	[Export] public float MinDamage;
 	[Export] public float MaxDamage;
 	[Export] public float CritChance;
+	[Export] public PackedScene ImpactEffectScene { get; set; }
+	[Export] public PackedScene ExpireEffectScene { get; set; }
+	[Export] public bool SpawnImpactEffectOnExpire { get; set; } = true;
 
 	private HitBoxComponent _hitBoxComponent;
 	private float _distanceTravelled;
 	private Node _attacker;
 	private bool _hasResolvedHit;
+	private bool _hitSignalConnected;
+	private int _returnVersion;
 
 	public override void _Ready()
 	{
-		LookAt(GlobalTransform.Origin + Direction, Vector3.Up);
-
 		_hitBoxComponent = GetNode<HitBoxComponent>("%HitBoxComponent");
-		_hitBoxComponent.CollisionMask = GetDamageCollisionMask();
-		_hitBoxComponent.HitDetected += OnHitDetected;
+		ConnectHitSignal();
+		ResetRuntimeState();
+	}
+
+	public void OnSpawnedFromPool()
+	{
+		ResetRuntimeState();
+	}
+
+	public void OnDespawnedToPool()
+	{
+		SetPhysicsProcess(false);
+		if (_hitBoxComponent != null)
+		{
+			_hitBoxComponent.Monitoring = false;
+		}
 	}
 
 	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float accuracy, float minDamage, float maxDamage, float critChance, Node attacker = null)
@@ -41,9 +58,21 @@ public partial class Projectile : Node3D
 		MaxDamage = maxDamage;
 		CritChance = critChance;
 		_attacker = attacker;
+		_distanceTravelled = 0.0f;
+		_hasResolvedHit = false;
+		SetPhysicsProcess(true);
 
-		// Set the projectile's position and rotation
 		GlobalTransform = new Transform3D(Basis.Identity, origin);
+		if (IsInsideTree() && Direction.LengthSquared() > 0)
+		{
+			LookAt(origin + Direction, Vector3.Up);
+		}
+
+		if (_hitBoxComponent != null)
+		{
+			_hitBoxComponent.CollisionMask = GetDamageCollisionMask();
+			_hitBoxComponent.Monitoring = true;
+		}
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -54,10 +83,10 @@ public partial class Projectile : Node3D
 		Vector3 movement = Direction * Speed * (float)delta;
 		Vector3 end = start + movement;
 
-		if (TryHitWorld(start, end, out Vector3 hitPosition))
+		if (TryHitWorld(start, end, out Vector3 hitPosition, out Vector3 hitNormal))
 		{
 			GlobalPosition = hitPosition;
-			StickThenFree();
+			StickThenFree(hitNormal);
 			return;
 		}
 
@@ -66,8 +95,9 @@ public partial class Projectile : Node3D
 
 		if (_distanceTravelled >= Range)
 		{
-			GD.Print("Projectile reached max range");
-			QueueFree();
+			GameDebug.Combat("Projectile reached max range");
+			SpawnExpireEffect();
+			ReturnToPoolOrFree();
 		}
 	}
 
@@ -75,22 +105,23 @@ public partial class Projectile : Node3D
 	{
 		if (_hasResolvedHit) return;
 
-		GD.Print($"Projectile hit {body.Name}");
+		GameDebug.Combat($"Projectile hit {body.Name}");
 		if (body is IDamageable damageable)
 		{
 			var damage = (float)GD.RandRange(MinDamage, MaxDamage);
 			if (GD.Randf() < CritChance)
 			{
 				damage *= 2;
-				GD.Print("Critical hit!");
+				GameDebug.Combat("Critical hit!");
 			}
 			damageable.TakeDamage(Accuracy, damage, Direction, _attacker);
 			_hasResolvedHit = true;
-			QueueFree();
+			SpawnEffect(ImpactEffectScene);
+			ReturnToPoolOrFree();
 		}
 	}
 
-	private bool TryHitWorld(Vector3 start, Vector3 end, out Vector3 hitPosition)
+	private bool TryHitWorld(Vector3 start, Vector3 end, out Vector3 hitPosition, out Vector3 hitNormal)
 	{
 		var space = GetWorld3D().DirectSpaceState;
 		var query = PhysicsRayQueryParameters3D.Create(start, end, BlockingCollisionMask);
@@ -100,10 +131,12 @@ public partial class Projectile : Node3D
 		if (result.Count == 0)
 		{
 			hitPosition = default;
+			hitNormal = default;
 			return false;
 		}
 
 		hitPosition = result["position"].AsVector3();
+		hitNormal = result["normal"].AsVector3();
 		return true;
 	}
 
@@ -122,11 +155,117 @@ public partial class Projectile : Node3D
 		return PlayerLayer | EnemiesLayer;
 	}
 
-	private void StickThenFree()
+	private void StickThenFree(Vector3 hitNormal)
 	{
 		_hasResolvedHit = true;
 		SetPhysicsProcess(false);
-		_hitBoxComponent.Monitoring = false;
-		GetTree().CreateTimer(0.3f).Timeout += QueueFree;
+		if (_hitBoxComponent != null)
+		{
+			_hitBoxComponent.Monitoring = false;
+		}
+		SpawnSurfaceAlignedEffect(ImpactEffectScene, hitNormal);
+		int returnVersion = _returnVersion;
+		GetTree().CreateTimer(0.3f).Timeout += () => ReturnToPoolOrFree(returnVersion);
+	}
+
+	private void SpawnEffect(PackedScene effectScene)
+	{
+		if (effectScene == null) return;
+
+		Node3D effect = ScenePool.Spawn<Node3D>(effectScene, GetTree().CurrentScene);
+		effect.GlobalPosition = GlobalPosition;
+		if (Direction.LengthSquared() > 0)
+		{
+			effect.LookAt(GlobalPosition + Direction, Vector3.Up);
+		}
+	}
+
+	private void SpawnSurfaceAlignedEffect(PackedScene effectScene, Vector3 surfaceNormal)
+	{
+		if (effectScene == null) return;
+
+		if (surfaceNormal.LengthSquared() < 0.001f)
+		{
+			SpawnEffect(effectScene);
+			return;
+		}
+
+		Vector3 normal = surfaceNormal.Normalized();
+		Vector3 forward = Direction - normal * Direction.Dot(normal);
+		if (forward.LengthSquared() < 0.001f)
+		{
+			forward = Mathf.Abs(normal.Dot(Vector3.Forward)) > 0.95f ? Vector3.Right : Vector3.Forward;
+			forward = (forward - normal * forward.Dot(normal)).Normalized();
+		}
+		else
+		{
+			forward = forward.Normalized();
+		}
+
+		Vector3 right = forward.Cross(normal).Normalized();
+		forward = normal.Cross(right).Normalized();
+
+		Node3D effect = ScenePool.Spawn<Node3D>(effectScene, GetTree().CurrentScene);
+		effect.GlobalTransform = new Transform3D(new Basis(right, forward, normal), GlobalPosition + normal * 0.03f);
+	}
+
+	private void SpawnExpireEffect()
+	{
+		if (ExpireEffectScene != null)
+		{
+			SpawnEffect(ExpireEffectScene);
+			return;
+		}
+
+		if (SpawnImpactEffectOnExpire)
+		{
+			SpawnEffect(ImpactEffectScene);
+		}
+	}
+
+	private void ResetRuntimeState()
+	{
+		_distanceTravelled = 0.0f;
+		_hasResolvedHit = false;
+		_returnVersion++;
+		SetPhysicsProcess(true);
+		ConnectHitSignal();
+		if (_hitBoxComponent != null)
+		{
+			_hitBoxComponent.Monitoring = true;
+			_hitBoxComponent.CollisionMask = GetDamageCollisionMask();
+		}
+	}
+
+	private void ConnectHitSignal()
+	{
+		if (_hitBoxComponent == null || _hitSignalConnected)
+		{
+			return;
+		}
+
+		_hitBoxComponent.HitDetected += OnHitDetected;
+		_hitSignalConnected = true;
+	}
+
+	private void ReturnToPoolOrFree()
+	{
+		if (ScenePool.IsTracked(this))
+		{
+			ScenePool.Despawn(this);
+			return;
+		}
+
+		QueueFree();
+	}
+
+	private void ReturnToPoolOrFree(int returnVersion)
+	{
+		if (returnVersion != _returnVersion)
+		{
+			return;
+		}
+
+		ReturnToPoolOrFree();
 	}
 }

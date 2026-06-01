@@ -1,0 +1,109 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/TimedEffect.cs" id="1_timed"]
+[ext_resource type="Shader" uid="uid://b7i3u0l0gwbmu" path="res://scenes/effects/shaders/stylized_fire.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="3_noise"]
+[ext_resource type="Texture2D" uid="uid://c8nnpux2gtihn" path="res://scenes/effects/assets/FireMask.png" id="4_mask"]
+[ext_resource type="Script" path="res://scenes/effects/ElementalImpactLayer.cs" id="5_impact_layer"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_flame"]
+shader = ExtResource("2_shader")
+shader_parameter/noise_texture = ExtResource("3_noise")
+shader_parameter/texture_mask = ExtResource("4_mask")
+shader_parameter/emission_intensity = 7.0
+shader_parameter/time_scale = 7.5
+shader_parameter/texture_scale = Vector2(1, 1)
+shader_parameter/edge_softness = 0.12
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ring"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(1, 0.42, 0.04, 0.55)
+emission_enabled = true
+emission = Color(1, 0.22, 0.02, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="Gradient" id="Gradient_flame"]
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(1, 0.88, 0.24, 1, 1, 0.23, 0.02, 0.65, 0.25, 0.02, 0, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_flame"]
+gradient = SubResource("Gradient_flame")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_burst"]
+emission_shape = 1
+emission_sphere_radius = 0.25
+spread = 180.0
+initial_velocity_min = 5.5
+initial_velocity_max = 14.0
+gravity = Vector3(0, 1.1, 0)
+scale_min = 0.38
+scale_max = 1.35
+color_ramp = SubResource("GradientTexture1D_flame")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_sparks"]
+emission_shape = 1
+emission_sphere_radius = 0.1
+spread = 90.0
+initial_velocity_min = 9.0
+initial_velocity_max = 18.0
+gravity = Vector3(0, -3, 0)
+scale_min = 0.08
+scale_max = 0.18
+color = Color(1, 0.7, 0.18, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_flame"]
+material = SubResource("StandardMaterial3D_ring")
+size = Vector2(0.52, 0.52)
+
+[sub_resource type="SphereMesh" id="SphereMesh_spark"]
+material = SubResource("StandardMaterial3D_ring")
+radius = 0.055
+height = 0.11
+radial_segments = 8
+rings = 4
+
+[node name="FireballImpact" type="Node3D"]
+script = ExtResource("1_timed")
+Lifetime = 0.95
+
+[node name="ShockwaveLayer" type="Node3D" parent="."]
+script = ExtResource("5_impact_layer")
+Duration = 0.85
+RingColor = Color(1, 0.48, 0.04, 0.78)
+DiskColor = Color(0.75, 0.12, 0.01, 0.22)
+StreakColor = Color(1, 0.78, 0.16, 0.72)
+CrackColor = Color(0.08, 0.025, 0.01, 0.8)
+EmissionEnergy = 3.2
+MaxRadius = 3.0
+DiskRadius = 2.2
+RingCount = 3
+StreakCount = 12
+CrackCount = 4
+GroundDiskEnabled = true
+VerticalStreaks = true
+UpdateInterval = 0.05
+
+[node name="FlameBurst" type="GPUParticles3D" parent="."]
+material_override = SubResource("ShaderMaterial_flame")
+amount = 76
+lifetime = 0.52
+one_shot = true
+explosiveness = 0.92
+randomness = 1.0
+process_material = SubResource("ParticleProcessMaterial_burst")
+draw_pass_1 = SubResource("QuadMesh_flame")
+
+[node name="Sparks" type="GPUParticles3D" parent="."]
+amount = 26
+lifetime = 0.55
+one_shot = true
+explosiveness = 0.95
+randomness = 1.0
+process_material = SubResource("ParticleProcessMaterial_sparks")
+draw_pass_1 = SubResource("SphereMesh_spark")
+
+[node name="ImpactLight" type="OmniLight3D" parent="."]
+light_color = Color(1, 0.38, 0.08, 1)
+light_energy = 2.8
+omni_range = 5.2

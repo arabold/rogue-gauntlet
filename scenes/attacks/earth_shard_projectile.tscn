@@ -1,0 +1,102 @@
+[gd_scene load_steps=12 format=4]
+
+[ext_resource type="Script" path="res://scenes/attacks/Projectile.cs" id="1_projectile"]
+[ext_resource type="PackedScene" uid="uid://blsurcr8183cv" path="res://scenes/components/hit_box_component.tscn" id="2_hitbox"]
+[ext_resource type="PackedScene" path="res://scenes/effects/earth_impact.tscn" id="3_impact"]
+[ext_resource type="Script" path="res://scenes/effects/SpinEffect.cs" id="4_spin"]
+[ext_resource type="Shader" uid="uid://b7i3u0l0gwbmu" path="res://scenes/effects/shaders/stylized_fire.gdshader" id="5_shader"]
+[ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="6_noise"]
+[ext_resource type="Texture2D" uid="uid://c8nnpux2gtihn" path="res://scenes/effects/assets/FireMask.png" id="7_mask"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
+radius = 0.72
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_stone"]
+albedo_color = Color(0.35, 0.24, 0.13, 1)
+roughness = 0.95
+emission_enabled = true
+emission = Color(0.12, 0.06, 0.02, 1)
+emission_energy_multiplier = 0.45
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dust"]
+shader = ExtResource("5_shader")
+shader_parameter/noise_texture = ExtResource("6_noise")
+shader_parameter/texture_mask = ExtResource("7_mask")
+shader_parameter/emission_intensity = 0.7
+shader_parameter/time_scale = 1.5
+shader_parameter/texture_scale = Vector2(1, 1)
+shader_parameter/edge_softness = 0.25
+
+[sub_resource type="BoxMesh" id="BoxMesh_rock_large"]
+material = SubResource("StandardMaterial3D_stone")
+size = Vector3(0.9, 0.7, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rock_medium"]
+material = SubResource("StandardMaterial3D_stone")
+size = Vector3(0.55, 0.42, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_dust"]
+colors = PackedColorArray(0.48, 0.32, 0.16, 0.55, 0.2, 0.12, 0.04, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_dust"]
+gradient = SubResource("Gradient_dust")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_dust"]
+direction = Vector3(0, 0, 1)
+spread = 24.0
+initial_velocity_min = 1.2
+initial_velocity_max = 3.2
+gravity = Vector3(0, -0.6, 0)
+scale_min = 0.22
+scale_max = 0.75
+color_ramp = SubResource("GradientTexture1D_dust")
+
+[sub_resource type="QuadMesh" id="QuadMesh_dust"]
+size = Vector2(0.5, 0.5)
+
+[node name="EarthShardProjectile" type="Node3D"]
+script = ExtResource("1_projectile")
+Speed = 10.0
+Range = 15.0
+ImpactEffectScene = ExtResource("3_impact")
+
+[node name="Pivot" type="Node3D" parent="."]
+
+[node name="HitBoxComponent" parent="Pivot" instance=ExtResource("2_hitbox")]
+unique_name_in_owner = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pivot/HitBoxComponent"]
+shape = SubResource("SphereShape3D_hit")
+
+[node name="RockCluster" type="Node3D" parent="Pivot"]
+script = ExtResource("4_spin")
+RotationSpeedDegrees = Vector3(340, 520, 220)
+
+[node name="Core" type="MeshInstance3D" parent="Pivot/RockCluster"]
+transform = Transform3D(0.94, 0.08, 0.33, -0.18, 0.94, 0.28, -0.29, -0.33, 0.9, 0, 0, 0)
+layers = 64
+mesh = SubResource("BoxMesh_rock_large")
+
+[node name="ChunkA" type="MeshInstance3D" parent="Pivot/RockCluster"]
+transform = Transform3D(0.62, 0.16, -0.77, -0.34, 0.94, -0.07, 0.71, 0.31, 0.63, 0.42, 0.18, -0.12)
+layers = 64
+mesh = SubResource("BoxMesh_rock_medium")
+
+[node name="ChunkB" type="MeshInstance3D" parent="Pivot/RockCluster"]
+transform = Transform3D(0.5, -0.2, 0.84, 0.48, 0.87, -0.07, -0.72, 0.45, 0.53, -0.35, -0.08, 0.2)
+layers = 64
+mesh = SubResource("BoxMesh_rock_medium")
+
+[node name="DustTrail" type="GPUParticles3D" parent="Pivot"]
+material_override = SubResource("ShaderMaterial_dust")
+amount = 24
+lifetime = 0.45
+randomness = 0.9
+local_coords = false
+process_material = SubResource("ParticleProcessMaterial_dust")
+draw_pass_1 = SubResource("QuadMesh_dust")
+
+[node name="Light" type="OmniLight3D" parent="Pivot"]
+light_color = Color(0.82, 0.42, 0.12, 1)
+light_energy = 0.45
+omni_range = 2.8

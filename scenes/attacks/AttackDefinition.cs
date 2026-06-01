@@ -1,5 +1,12 @@
 using Godot;
 
+public enum ProjectilePattern
+{
+	Single,
+	Spread,
+	Radial,
+}
+
 /// <summary>
 /// Defines designer-authored data and timing for a specific attack (melee, ranged, or special).
 /// </summary>
@@ -45,6 +52,36 @@ public partial class AttackDefinition : Resource
 	/// The projectile scene to instantiate (ranged only).
 	/// </summary>
 	[Export] public PackedScene ProjectileScene { get; set; }
+
+	/// <summary>
+	/// Optional effect spawned at the muzzle when projectiles are released.
+	/// </summary>
+	[Export] public PackedScene MuzzleEffectScene { get; set; }
+
+	/// <summary>
+	/// Optional effect spawned at the actor origin when projectiles are released.
+	/// </summary>
+	[Export] public PackedScene CastEffectScene { get; set; }
+
+	/// <summary>
+	/// Pattern used when spawning one or more projectiles.
+	/// </summary>
+	[Export] public ProjectilePattern ProjectilePattern { get; set; } = ProjectilePattern.Single;
+
+	/// <summary>
+	/// Number of projectiles to spawn for this ranged attack.
+	/// </summary>
+	[Export] public int ProjectileCount { get; set; } = 1;
+
+	/// <summary>
+	/// Total arc used by spread patterns, centered on the aimed direction.
+	/// </summary>
+	[Export] public float SpreadAngle { get; set; } = 30.0f;
+
+	/// <summary>
+	/// Damage multiplier applied to each projectile spawned by this attack.
+	/// </summary>
+	[Export] public float ProjectileDamageScale { get; set; } = 1.0f;
 
 	/// <summary>
 	/// Speed of the spawned projectile (ranged only).
