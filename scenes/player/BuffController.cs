@@ -18,12 +18,10 @@ public partial class BuffController : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		foreach (var buff in ActiveBuffs.ToArray())
+		for (int i = ActiveBuffs.Count - 1; i >= 0; i--)
 		{
-			if (buff.IsExpired)
-			{
-				RemoveActiveBuff(buff);
-			}
+			if (ActiveBuffs[i].IsExpired)
+				RemoveActiveBuff(ActiveBuffs[i]);
 		}
 	}
 
