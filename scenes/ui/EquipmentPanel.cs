@@ -39,6 +39,8 @@ public partial class EquipmentPanel : PanelContainer
 		_unsubscribeInventory = () => { };
 
 		_inventory = inventory;
+		ClearSlots();
+
 		if (_inventory != null)
 		{
 			_unsubscribeInventory = this.SubscribeUntilExit(
@@ -59,6 +61,21 @@ public partial class EquipmentPanel : PanelContainer
 				OnItemEquipped(slot.Value?.Item as EquipableItem, slot.Key);
 			}
 		}
+	}
+
+	private void ClearSlots()
+	{
+		AmuletPanel.SetItem(null);
+		HelmetPanel.SetItem(null);
+		ArrowsPanel.SetItem(null);
+		WeaponPanel.SetItem(null);
+		ArmorPanel.SetItem(null);
+		ShieldPanel.SetItem(null);
+		RightRingPanel.SetItem(null);
+		GlovesPanel.SetItem(null);
+		LeftRingPanel.SetItem(null);
+		LegsPanel.SetItem(null);
+		BootsPanel.SetItem(null);
 	}
 
 	public override void _ExitTree()

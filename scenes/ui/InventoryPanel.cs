@@ -3,6 +3,8 @@ using System;
 
 public partial class InventoryPanel : ScrollContainer
 {
+	private const float ItemSlotWidth = 128;
+
 	[Export] public PackedScene InventoryItemScene;
 
 	public GridContainer InventoryGrid;
@@ -12,7 +14,16 @@ public partial class InventoryPanel : ScrollContainer
 	public override void _Ready()
 	{
 		InventoryGrid = GetNode<GridContainer>("%InventoryGrid");
+		Resized += RecalculateColumns;
+		RecalculateColumns();
 		Update();
+	}
+
+	private void RecalculateColumns()
+	{
+		float separation = InventoryGrid.GetThemeConstant("h_separation");
+		float availableWidth = GetRect().Size.X;
+		InventoryGrid.Columns = Mathf.Max(1, Mathf.FloorToInt((availableWidth + separation) / (ItemSlotWidth + separation)));
 	}
 
 	public void Initialize(Inventory inventory)
@@ -39,6 +50,7 @@ public partial class InventoryPanel : ScrollContainer
 				});
 		}
 
+		RecalculateColumns();
 		Update();
 	}
 
@@ -53,7 +65,6 @@ public partial class InventoryPanel : ScrollContainer
 
 	private void Update()
 	{
-		// Clear existing items
 		foreach (Node child in InventoryGrid.GetChildren())
 		{
 			child.QueueFree();
@@ -64,7 +75,6 @@ public partial class InventoryPanel : ScrollContainer
 			return;
 		}
 
-		// Add items
 		foreach (InventoryItemSlot slot in _inventory.Items)
 		{
 			var itemSlotPanel = InventoryItemScene.Instantiate<ItemSlotPanel>();

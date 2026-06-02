@@ -40,13 +40,6 @@ layout_mode = 2
 text = "Unequip"
 alignment = 0
 
-[node name="SplitButton" type="Button" parent="MarginContainer/VBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Split
-"
-alignment = 0
-
 [node name="DropButton" type="Button" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2

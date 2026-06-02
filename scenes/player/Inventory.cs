@@ -43,6 +43,7 @@ public partial class Inventory : Resource
 		{ EquipmentSlot.RightRing, null },
 		{ EquipmentSlot.WeaponHand, null },
 		{ EquipmentSlot.ShieldHand, null },
+		{ EquipmentSlot.Arrows, null },
 	};
 
 	/// <summary>

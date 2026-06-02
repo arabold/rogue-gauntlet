@@ -6,7 +6,6 @@ public partial class InventoryItemContextMenu : PopupPanel
 	private Button _dropButton;
 	private Button _equipButton;
 	private Button _unequipButton;
-	private Button _splitButton;
 
 	private Inventory _inventory;
 	private InventoryItemSlot _slot;
@@ -23,12 +22,8 @@ public partial class InventoryItemContextMenu : PopupPanel
 		_equipButton.ButtonUp += () => EquipItem(_inventory, _slot);
 		_unequipButton = GetNode<Button>("%UnequipButton");
 		_unequipButton.ButtonUp += () => UnequipItem(_inventory, _slot);
-		_splitButton = GetNode<Button>("%SplitButton");
-		_splitButton.ButtonUp += () => SplitItem(_inventory, _slot);
-
 		PopupHide += () =>
 		{
-			// Clean up
 			_inventory = null;
 			_slot = null;
 		};
@@ -40,8 +35,6 @@ public partial class InventoryItemContextMenu : PopupPanel
 		_slot = slot;
 
 		_useButton.Visible = slot.Item is ConsumableItem;
-		_splitButton.Visible = slot.Item.IsStackable;
-		_splitButton.Disabled = slot.Quantity <= 1;
 		_dropButton.Visible = true;
 
 		if (inventory.IsEquipped(slot))
@@ -77,12 +70,6 @@ public partial class InventoryItemContextMenu : PopupPanel
 		Hide();
 	}
 
-	private void DestroyItem(Inventory inventory, InventoryItemSlot slot)
-	{
-		inventory.DestroyItem(slot);
-		Hide();
-	}
-
 	private void EquipItem(Inventory inventory, InventoryItemSlot slot)
 	{
 		if (slot.Item is EquipableItem)
@@ -109,9 +96,4 @@ public partial class InventoryItemContextMenu : PopupPanel
 		Hide();
 	}
 
-	private void SplitItem(Inventory inventory, InventoryItemSlot slot)
-	{
-		// TODO: Not implemented yet
-		Hide();
-	}
 }

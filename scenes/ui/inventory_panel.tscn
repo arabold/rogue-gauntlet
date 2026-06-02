@@ -12,32 +12,22 @@ content_margin_bottom = 16.0
 bg_color = Color(0, 0, 0, 0.25098)
 
 [node name="InventoryPanel" type="ScrollContainer"]
-clip_contents = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+horizontal_scroll_mode = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_8bl6e")
 script = ExtResource("1_cvy6a")
 InventoryItemScene = ExtResource("1_7ck5g")
 
 [node name="InventoryGrid" type="GridContainer" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(704, 0)
 layout_mode = 2
 theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 10
-columns = 8
-
-[node name="SampleItem1" parent="InventoryGrid" instance=ExtResource("1_7ck5g")]
-layout_mode = 2
-
-[node name="SampleItem2" parent="InventoryGrid" instance=ExtResource("1_7ck5g")]
-layout_mode = 2
-
-[node name="SampleItem3" parent="InventoryGrid" instance=ExtResource("1_7ck5g")]
-layout_mode = 2
+columns = 4
 
 [node name="InventoryItemContextMenu" parent="." instance=ExtResource("3_ta3uk")]
 unique_name_in_owner = true
