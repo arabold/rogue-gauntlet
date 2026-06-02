@@ -16,13 +16,14 @@ public partial class FrostImpactEffect : TimedEffect
 	[Export] public float UpdateInterval { get; set; } = 0.025f;
 
 	private readonly List<IceSpike> _spikes = [];
-	private readonly List<IceShard> _shards = [];
 	private MeshInstance3D _frostDisk;
 	private OmniLight3D _light;
 	private StandardMaterial3D _iceMaterial;
 	private StandardMaterial3D _coreIceMaterial;
 	private StandardMaterial3D _frostMaterial;
 	private StandardMaterial3D _shardMaterial;
+	private GpuParticles3D _shardEmitter;
+	private ParticleProcessMaterial _shardProcessMaterial;
 	private float _age;
 	private float _updateCooldown;
 	private bool _shattered;
@@ -32,7 +33,7 @@ public partial class FrostImpactEffect : TimedEffect
 		BuildMaterials();
 		BuildFrostDisk();
 		BuildSpikes();
-		BuildShards();
+		BuildShardEmitter();
 		_light = GetNodeOrNull<OmniLight3D>("IceLight");
 		base._Ready();
 	}
@@ -49,14 +50,15 @@ public partial class FrostImpactEffect : TimedEffect
 	public override void OnDespawnedToPool()
 	{
 		base.OnDespawnedToPool();
-		foreach (IceShard shard in _shards)
+		if (_shardEmitter != null)
 		{
-			shard.Node.Visible = false;
+			_shardEmitter.Emitting = false;
 		}
 	}
 
 	public override void _Process(double delta)
 	{
+		base._Process(delta);
 		_age += (float)delta;
 		_updateCooldown -= (float)delta;
 		if (_updateCooldown > 0.0f)
@@ -67,11 +69,11 @@ public partial class FrostImpactEffect : TimedEffect
 		_updateCooldown = UpdateInterval;
 		UpdateSpikes();
 		UpdateFrostDisk();
-		UpdateShards();
 
 		if (!_shattered && _age >= GrowDuration + HoldDuration)
 		{
 			_shattered = true;
+			BurstShards();
 		}
 	}
 
@@ -157,36 +159,36 @@ public partial class FrostImpactEffect : TimedEffect
 		}
 	}
 
-	private void BuildShards()
+	private void BuildShardEmitter()
 	{
-		var random = new RandomNumberGenerator
+		_shardProcessMaterial = new ParticleProcessMaterial
 		{
-			Seed = 12873,
+			EmissionShape = ParticleProcessMaterial.EmissionShapeEnum.Sphere,
+			EmissionSphereRadius = 0.36f,
+			Spread = 180.0f,
+			InitialVelocityMin = 2.2f,
+			InitialVelocityMax = 6.0f,
+			Gravity = new Vector3(0.0f, -4.8f, 0.0f),
+			ScaleMin = 0.55f,
+			ScaleMax = 1.45f,
+			ColorRamp = CreateShardColorRamp(),
 		};
 
-		for (int i = 0; i < ShardCount; i++)
+		_shardEmitter = new GpuParticles3D
 		{
-			float angle = i / (float)ShardCount * Tau + random.RandfRange(-0.12f, 0.12f);
-			Vector3 horizontal = new Vector3(Mathf.Cos(angle), 0.0f, Mathf.Sin(angle)).Normalized();
-			var shard = new MeshInstance3D
-			{
-				Name = "IceBurstShard",
-				Mesh = new PrismMesh
-				{
-					Size = new Vector3(random.RandfRange(0.04f, 0.1f), random.RandfRange(0.18f, 0.42f), random.RandfRange(0.04f, 0.1f)),
-				},
-				MaterialOverride = _shardMaterial,
-				CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
-				Visible = false,
-			};
-
-			AddChild(shard);
-			_shards.Add(new IceShard(
-				shard,
-				horizontal * random.RandfRange(2.2f, 5.2f) + Vector3.Up * random.RandfRange(1.3f, 3.7f),
-				new Vector3(random.RandfRange(240.0f, 720.0f), random.RandfRange(360.0f, 900.0f), random.RandfRange(240.0f, 720.0f)),
-				random.RandfRange(0.65f, 1.35f)));
-		}
+			Name = "IceShardBurst",
+			Amount = Mathf.Max(1, ShardCount),
+			Lifetime = 0.56f,
+			OneShot = true,
+			Explosiveness = 0.96f,
+			Randomness = 1.0f,
+			LocalCoords = true,
+			ProcessMaterial = _shardProcessMaterial,
+			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+		};
+		_shardEmitter.SetDrawPassMesh(0, CreateShardMesh());
+		AddChild(_shardEmitter);
+		_shardEmitter.Emitting = false;
 	}
 
 	private void UpdateSpikes()
@@ -215,11 +217,9 @@ public partial class FrostImpactEffect : TimedEffect
 			spike.Node.Scale = new Vector3(0.05f, 0.02f, 0.05f);
 		}
 
-		foreach (IceShard shard in _shards)
+		if (_shardEmitter != null)
 		{
-			shard.Node.Visible = false;
-			shard.Node.Position = Vector3.Zero;
-			shard.Node.Scale = Vector3.One;
+			_shardEmitter.Emitting = false;
 		}
 	}
 
@@ -235,22 +235,45 @@ public partial class FrostImpactEffect : TimedEffect
 		}
 	}
 
-	private void UpdateShards()
+	private void BurstShards()
 	{
-		if (!_shattered)
+		if (_shardEmitter == null)
 		{
 			return;
 		}
 
-		float t = Mathf.Clamp((_age - GrowDuration - HoldDuration) / 0.55f, 0.0f, 1.0f);
-		foreach (IceShard shard in _shards)
+		_shardEmitter.Amount = Mathf.Max(1, ShardCount);
+		_shardEmitter.Emitting = false;
+		_shardEmitter.Restart();
+		_shardEmitter.Emitting = true;
+	}
+
+	private Mesh CreateShardMesh()
+	{
+		return new PrismMesh
 		{
-			shard.Node.Visible = true;
-			shard.Node.Position = shard.Velocity * t + Vector3.Down * 3.2f * t * t;
-			shard.Node.RotationDegrees = shard.RotationDegreesPerSecond * t;
-			float scale = (1.0f - t) * shard.ScaleMultiplier;
-			shard.Node.Scale = Vector3.One * Mathf.Max(0.0f, scale);
-		}
+			Material = _shardMaterial,
+			Size = new Vector3(0.075f, 0.3f, 0.075f),
+		};
+	}
+
+	private GradientTexture1D CreateShardColorRamp()
+	{
+		var gradient = new Gradient
+		{
+			Offsets = [0.0f, 0.48f, 1.0f],
+			Colors =
+			[
+				new Color(0.9f, 1.0f, 1.0f, 0.78f),
+				new Color(0.5f, 0.94f, 1.0f, 0.55f),
+				new Color(0.5f, 0.94f, 1.0f, 0.0f),
+			],
+		};
+
+		return new GradientTexture1D
+		{
+			Gradient = gradient,
+		};
 	}
 
 	private static float EaseOutCubic(float t)
@@ -272,9 +295,4 @@ public partial class FrostImpactEffect : TimedEffect
 		float Delay,
 		float SpeedMultiplier);
 
-	private sealed record IceShard(
-		MeshInstance3D Node,
-		Vector3 Velocity,
-		Vector3 RotationDegreesPerSecond,
-		float ScaleMultiplier);
 }

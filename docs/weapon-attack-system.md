@@ -22,9 +22,9 @@ This keeps regular weapons, bows, staffs, and later spells scaling through the s
 - `MagicStaff`: Ranged weapon marker with a `MagicElement`; staff behavior still comes from its authored `AttackDefinition`.
 - `AttackDefinition`: Resource that defines attack timing, hit shape, projectile pattern, effect scenes, and placement/AoE parameters.
 - `AttackController`: Runtime executor that turns an `AttackDefinition` plus actor stats into hitboxes, projectiles, and effects.
-- `Projectile`: Runtime damage/effect carrier. It handles movement, collision, impact effects, pooling, and optional AoE damage.
+- `Projectile`: Runtime damage/effect carrier. It handles movement, collision, impact effects, pooling, and optional impact-radius damage.
 
-`Projectile.ImpactRadius` is the projectile scene's inherent impact radius. `AttackDefinition.AreaRadius` is an override for a specific weapon or spell using that projectile. This lets two weapons reuse the same projectile scene while giving one of them a larger or smaller impact area.
+`Projectile.ImpactRadius` is the projectile scene's inherent impact radius. `AttackDefinition.ImpactRadiusOverride` and `ImpactRadiusMinDamageScaleOverride` are attack-level overrides for a specific weapon or spell using that projectile. This lets two weapons reuse the same projectile scene while giving one of them a larger or smaller impact area or a sharper/softer damage falloff. Impact-radius damage is generic: it applies after direct or world impact, excludes the direct-hit target, and falls off from full damage at the center to the projectile's minimum impact damage scale at the edge.
 
 ## Authored Attack Data
 
@@ -32,16 +32,17 @@ This keeps regular weapons, bows, staffs, and later spells scaling through the s
 
 Important shared fields:
 
-- `ProjectilePattern`: Shape of ranged projectile spawning, e.g. `Single`, `Spread`, `Radial`, `MeteorShower`.
-- `ProjectileCount`: Shared count for fireballs, ice bolts, radial air blades, meteors, and future multi-projectile weapons.
+- `ProjectilePattern`: Shape of ranged projectile spawning, e.g. `Single`, `Spread`, `Radial`, `AreaDrop`.
+- `ProjectileCount`: Shared count for fireballs, ice bolts, radial air blades, falling rocks, and future multi-projectile weapons.
 - `SpreadAngle`: Arc for spread projectiles.
 - `ProjectileDamageScale`: Per-projectile damage multiplier, useful when one attack spawns many projectiles.
 - `ProjectileSpeed`: Projectile movement speed.
 - `Range`: Maximum projectile travel range or targeting range.
 - `AimingAngle`: Auto-aim cone for directed ranged attacks.
-- `TargetAreaRadius`: Radius around the actor used by placement-based attacks to choose target positions.
-- `SpawnHeight`: Vertical offset for placement-based projectiles such as falling rocks.
-- `AreaRadius`: Optional attack-level override for projectile world-impact AoE. Negative values keep the projectile scene's default `ImpactRadius`.
+- `TargetAreaRadius`: Radius around the actor used by placement-based attacks such as `AreaDrop` to choose target positions.
+- `SpawnHeight`: Vertical offset for placement-based projectiles such as falling rocks, drop pods, lightning strikes, or trap volleys.
+- `ImpactRadiusOverride`: Optional attack-level override for projectile world-impact AoE. Negative values keep the projectile scene's default `ImpactRadius`.
+- `ImpactRadiusMinDamageScaleOverride`: Optional attack-level override for how much damage remains at the edge of impact radius.
 - `ProjectileScene`, `MuzzleEffectScene`, `CastEffectScene`: Visual and hit carrier scenes.
 
 Avoid adding element-specific fields like `MeteorRadius` to `AttackDefinition`. Prefer generic fields that can serve multiple future patterns.
@@ -51,7 +52,7 @@ Avoid adding element-specific fields like `MeteorRadius` to `AttackDefinition`. 
 - Fire staff: a single strong directed fireball.
 - Frost staff: two ice/water projectiles with a small spread.
 - Air staff: radial light projectile carriers plus a player-centered whirlwind cast effect.
-- Earth staff: placement-based meteor shower, spawning several falling rocks around the player on valid effect landing tiles.
+- Earth staff: placement-based `AreaDrop`, spawning several falling rocks around the player on valid effect landing tiles.
 
 These are all regular `MagicStaff` resources with different `AttackDefinition` data. The element is useful for item identity and future UI/resistance logic, but the current behavior is data-driven by attack definition and scenes.
 
@@ -60,7 +61,7 @@ These are all regular `MagicStaff` resources with different `AttackDefinition` d
 There are two related but intentionally different placement checks:
 
 - Item/enemy spawn placement is strict and requires a clear collision column so pickups and spawned actors do not overlap props, stairs, walls, or blockers.
-- Effect landing placement is looser and only requires a valid room/corridor floor tile. This allows meteors and future area effects to land near stairs, railings, and props where there is visually enough gameplay floor.
+- Effect landing placement is looser than persistent spawn placement: it allows props and decorations, but keeps a tile margin from walls so vertical drops do not clip wall tops.
 
 Use the strict item spawn helpers for persistent physical objects. Use effect landing helpers for short-lived VFX/damage events.
 
@@ -80,7 +81,8 @@ Good scaling outputs:
 
 - `ProjectileCount`
 - `ProjectileDamageScale`
-- `AreaRadius`
+- `ImpactRadiusOverride`
+- `ImpactRadiusMinDamageScaleOverride`
 - `TargetAreaRadius`
 - `Range`
 - `ProjectileSpeed`

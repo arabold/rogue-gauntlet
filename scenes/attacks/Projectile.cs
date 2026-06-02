@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 
 public partial class Projectile : Node3D, IPooledNode
 {
@@ -20,6 +21,7 @@ public partial class Projectile : Node3D, IPooledNode
 	[Export] public PackedScene ExpireEffectScene { get; set; }
 	[Export] public bool SpawnImpactEffectOnExpire { get; set; } = true;
 	[Export] public float ImpactRadius { get; set; } = 0.0f;
+	[Export(PropertyHint.Range, "0,1,0.05")] public float ImpactRadiusMinDamageScale { get; set; } = 0.2f;
 
 	private HitBoxComponent _hitBoxComponent;
 	private float _distanceTravelled;
@@ -28,9 +30,26 @@ public partial class Projectile : Node3D, IPooledNode
 	private bool _hitSignalConnected;
 	private int _returnVersion;
 	private uint _damageCollisionMask;
+	private float _defaultImpactRadius;
+	private float _defaultImpactRadiusMinDamageScale;
+	private readonly PhysicsRayQueryParameters3D _worldRayQuery = new()
+	{
+		CollisionMask = BlockingCollisionMask,
+		HitFromInside = false,
+	};
+	private readonly SphereShape3D _impactShape = new();
+	private readonly PhysicsShapeQueryParameters3D _impactQuery = new()
+	{
+		CollideWithBodies = true,
+		CollideWithAreas = true,
+	};
+	private readonly HashSet<Node> _damagedImpactOwners = [];
 
 	public override void _Ready()
 	{
+		_defaultImpactRadius = ImpactRadius;
+		_defaultImpactRadiusMinDamageScale = ImpactRadiusMinDamageScale;
+		_impactQuery.Shape = _impactShape;
 		_hitBoxComponent = GetNode<HitBoxComponent>("%HitBoxComponent");
 		ConnectHitSignal();
 		ResetRuntimeState();
@@ -109,7 +128,7 @@ public partial class Projectile : Node3D, IPooledNode
 		if (_hasResolvedHit) return;
 
 		GameDebug.Combat($"Projectile hit {body.Name}");
-		if (body is IDamageable damageable)
+		if (TryGetDamageTarget(body, out Node damageOwner, out IDamageable damageable))
 		{
 			var damage = (float)GD.RandRange(MinDamage, MaxDamage);
 			if (GD.Randf() < CritChance)
@@ -119,6 +138,13 @@ public partial class Projectile : Node3D, IPooledNode
 			}
 			damageable.TakeDamage(Accuracy, damage, Direction, _attacker);
 			_hasResolvedHit = true;
+			SetPhysicsProcess(false);
+			if (_hitBoxComponent != null)
+			{
+				_hitBoxComponent.Monitoring = false;
+			}
+
+			ApplyImpactRadiusDamage(damageOwner);
 			SpawnEffect(ImpactEffectScene);
 			ReturnToPoolOrFree();
 		}
@@ -126,11 +152,20 @@ public partial class Projectile : Node3D, IPooledNode
 
 	private bool TryHitWorld(Vector3 start, Vector3 end, out Vector3 hitPosition, out Vector3 hitNormal)
 	{
-		var space = GetWorld3D().DirectSpaceState;
-		var query = PhysicsRayQueryParameters3D.Create(start, end, BlockingCollisionMask);
-		query.HitFromInside = false;
+		PhysicsDirectSpaceState3D space = GetWorld3D()?.DirectSpaceState;
+		if (space == null)
+		{
+			hitPosition = default;
+			hitNormal = default;
+			return false;
+		}
 
-		var result = space.IntersectRay(query);
+		_worldRayQuery.From = start;
+		_worldRayQuery.To = end;
+		_worldRayQuery.CollisionMask = BlockingCollisionMask;
+		_worldRayQuery.HitFromInside = false;
+
+		var result = space.IntersectRay(_worldRayQuery);
 		if (result.Count == 0)
 		{
 			hitPosition = default;
@@ -173,7 +208,7 @@ public partial class Projectile : Node3D, IPooledNode
 		GetTree().CreateTimer(0.3f).Timeout += () => ReturnToPoolOrFree(returnVersion);
 	}
 
-	private void ApplyImpactRadiusDamage()
+	private void ApplyImpactRadiusDamage(Node excludedDamageOwner = null)
 	{
 		if (ImpactRadius <= 0.0f)
 		{
@@ -186,48 +221,111 @@ public partial class Projectile : Node3D, IPooledNode
 			return;
 		}
 
-		var shape = new SphereShape3D { Radius = ImpactRadius };
-		var query = new PhysicsShapeQueryParameters3D
+		_impactShape.Radius = ImpactRadius;
+		_impactQuery.Shape = _impactShape;
+		_impactQuery.Transform = new Transform3D(Basis.Identity, GlobalPosition + Vector3.Up * 0.6f);
+		_impactQuery.CollisionMask = _damageCollisionMask == 0 ? GetDamageCollisionMask() : _damageCollisionMask;
+		_impactQuery.CollideWithBodies = true;
+		_impactQuery.CollideWithAreas = true;
+		_damagedImpactOwners.Clear();
+		if (excludedDamageOwner != null)
 		{
-			Shape = shape,
-			Transform = new Transform3D(Basis.Identity, GlobalPosition + Vector3.Up * 0.6f),
-			CollisionMask = _damageCollisionMask == 0 ? GetDamageCollisionMask() : _damageCollisionMask,
-			CollideWithBodies = true,
-			CollideWithAreas = true,
-		};
-
-		var damaged = new System.Collections.Generic.HashSet<Node>();
-		foreach (Godot.Collections.Dictionary result in space.IntersectShape(query, 16))
-		{
-			Node collider = result["collider"].As<Node>();
-			if (collider is not IDamageable damageable)
-			{
-				continue;
-			}
-
-			Node damageOwner = collider is HurtBoxComponent hurtBox ? (hurtBox.GetParent() ?? collider) : collider;
-			if (!damaged.Add(damageOwner))
-			{
-				continue;
-			}
-
-			float damage = (float)GD.RandRange(MinDamage, MaxDamage);
-			if (GD.Randf() < CritChance)
-			{
-				damage *= 2;
-				GameDebug.Combat("Critical meteor impact!");
-			}
-
-			Vector3 pushDirection = damageOwner is Node3D node3D
-				? (node3D.GlobalPosition - GlobalPosition).Normalized()
-				: Direction;
-			if (pushDirection.LengthSquared() < 0.001f)
-			{
-				pushDirection = Direction;
-			}
-
-			damageable.TakeDamage(Accuracy, damage, pushDirection, _attacker);
+			_damagedImpactOwners.Add(excludedDamageOwner);
 		}
+
+		try
+		{
+			foreach (Godot.Collections.Dictionary result in space.IntersectShape(_impactQuery, 32))
+			{
+				Node collider = result["collider"].As<Node>();
+				if (!TryGetDamageTarget(collider, out Node damageOwner, out IDamageable damageable))
+				{
+					continue;
+				}
+
+				if (!_damagedImpactOwners.Add(damageOwner))
+				{
+					continue;
+				}
+
+				float damageScale = GetImpactRadiusDamageScale(damageOwner);
+				float damage = (float)GD.RandRange(MinDamage, MaxDamage) * damageScale;
+				if (GD.Randf() < CritChance)
+				{
+					damage *= 2;
+					GameDebug.Combat("Critical impact radius hit!");
+				}
+
+				Vector3 pushDirection = damageOwner is Node3D node3D
+					? (node3D.GlobalPosition - GlobalPosition).Normalized()
+					: Direction;
+				if (pushDirection.LengthSquared() < 0.001f)
+				{
+					pushDirection = Direction;
+				}
+
+				damageable.TakeDamage(Accuracy, damage, pushDirection, _attacker);
+			}
+		}
+		finally
+		{
+			_damagedImpactOwners.Clear();
+		}
+	}
+
+	private bool TryGetDamageTarget(Node collider, out Node damageOwner, out IDamageable damageable)
+	{
+		damageOwner = null;
+		damageable = null;
+		if (collider == null)
+		{
+			return false;
+		}
+
+		if (collider is HurtBoxComponent hurtBox)
+		{
+			damageOwner = hurtBox.GetParent() ?? hurtBox;
+			damageable = hurtBox;
+			return true;
+		}
+
+		if (collider is IDamageable directDamageable)
+		{
+			damageOwner = collider;
+			damageable = directDamageable;
+			return true;
+		}
+
+		Node parent = collider.GetParent();
+		if (parent is IDamageable parentDamageable)
+		{
+			damageOwner = parent;
+			damageable = parentDamageable;
+			return true;
+		}
+
+		HurtBoxComponent childHurtBox = collider.GetNodeOrNull<HurtBoxComponent>("%HurtBoxComponent")
+			?? collider.GetNodeOrNull<HurtBoxComponent>("HurtBoxComponent");
+		if (childHurtBox != null)
+		{
+			damageOwner = collider;
+			damageable = childHurtBox;
+			return true;
+		}
+
+		return false;
+	}
+
+	private float GetImpactRadiusDamageScale(Node damageOwner)
+	{
+		if (ImpactRadius <= 0.0f || damageOwner is not Node3D node3D)
+		{
+			return 1.0f;
+		}
+
+		float distance = node3D.GlobalPosition.DistanceTo(GlobalPosition);
+		float t = Mathf.Clamp(distance / ImpactRadius, 0.0f, 1.0f);
+		return Mathf.Lerp(Mathf.Clamp(ImpactRadiusMinDamageScale, 0.0f, 1.0f), 1.0f, 1.0f - t);
 	}
 
 	private void SpawnEffect(PackedScene effectScene)
@@ -295,6 +393,8 @@ public partial class Projectile : Node3D, IPooledNode
 		_distanceTravelled = 0.0f;
 		_hasResolvedHit = false;
 		_returnVersion++;
+		ImpactRadius = _defaultImpactRadius;
+		ImpactRadiusMinDamageScale = _defaultImpactRadiusMinDamageScale;
 		SetPhysicsProcess(true);
 		ConnectHitSignal();
 		if (_hitBoxComponent != null)

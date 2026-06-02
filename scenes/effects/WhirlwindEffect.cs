@@ -40,6 +40,7 @@ public partial class WhirlwindEffect : TimedEffect
 
 	public override void _Process(double delta)
 	{
+		base._Process(delta);
 		_age += (float)delta;
 		_updateCooldown -= (float)delta;
 		if (_updateCooldown > 0.0f)

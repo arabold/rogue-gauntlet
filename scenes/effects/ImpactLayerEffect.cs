@@ -4,7 +4,7 @@ using System.Collections.Generic;
 /// <summary>
 /// Adds reusable high-readability impact staging: expanding rings, ground glow, radial streaks, and cracks.
 /// </summary>
-public partial class ElementalImpactLayer : Node3D, IPooledNode
+public partial class ImpactLayerEffect : Node3D, IPooledNode
 {
 	private const float Tau = Mathf.Pi * 2.0f;
 
@@ -89,7 +89,7 @@ public partial class ElementalImpactLayer : Node3D, IPooledNode
 		_diskMaterial = CreateMaterial(DiskColor, EmissionEnergy * 0.55f);
 		_disk = new MeshInstance3D
 		{
-			Name = "ElementalGroundAftermath",
+			Name = "ImpactGroundAftermath",
 			Mesh = new CylinderMesh
 			{
 				TopRadius = 1.0f,
@@ -108,7 +108,7 @@ public partial class ElementalImpactLayer : Node3D, IPooledNode
 	{
 		_ringMaterial = CreateMaterial(RingColor, EmissionEnergy);
 		_ringMeshInstance = CreateMultiMeshInstance(
-			"ElementalShockRings",
+			"ImpactShockRings",
 			new TorusMesh
 			{
 				InnerRadius = 0.92f,
@@ -133,7 +133,7 @@ public partial class ElementalImpactLayer : Node3D, IPooledNode
 		};
 
 		_streakMaterial = CreateMaterial(StreakColor, EmissionEnergy * 1.15f);
-		_streakMeshInstance = CreateMultiMeshInstance("ElementalImpactStreaks", CreateTaperedShardMesh(), _streakMaterial, StreakCount);
+		_streakMeshInstance = CreateMultiMeshInstance("ImpactStreaks", CreateTaperedShardMesh(), _streakMaterial, StreakCount);
 
 		for (int i = 0; i < StreakCount; i++)
 		{
@@ -160,7 +160,7 @@ public partial class ElementalImpactLayer : Node3D, IPooledNode
 		};
 
 		_crackMaterial = CreateMaterial(CrackColor, EmissionEnergy * 0.35f);
-		_crackMeshInstance = CreateMultiMeshInstance("ElementalGroundCracks", CreateGroundCrackMesh(), _crackMaterial, CrackCount);
+		_crackMeshInstance = CreateMultiMeshInstance("ImpactGroundCracks", CreateGroundCrackMesh(), _crackMaterial, CrackCount);
 
 		for (int i = 0; i < CrackCount; i++)
 		{

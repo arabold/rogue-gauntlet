@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scenes/effects/FrostImpactEffect.cs" id="1_timed"]
-[ext_resource type="Script" path="res://scenes/effects/ElementalImpactLayer.cs" id="2_impact_layer"]
+[ext_resource type="Script" path="res://scenes/effects/ImpactLayerEffect.cs" id="2_impact_layer"]
 
 [node name="FrostImpact" type="Node3D"]
 script = ExtResource("1_timed")

@@ -7,13 +7,20 @@ public partial class TimedEffect : Node3D, IPooledNode
 {
 	[Export] public float Lifetime { get; set; } = 1.0f;
 
-	private SceneTreeTimer _lifeTimer;
-	private bool _isActive;
-	private int _lifetimeVersion;
+	private float _remainingLifetime;
 
 	public override void _Ready()
 	{
 		StartLifetime();
+	}
+
+	public override void _Process(double delta)
+	{
+		_remainingLifetime -= (float)delta;
+		if (_remainingLifetime <= 0.0f)
+		{
+			ReturnToPoolOrFree();
+		}
 	}
 
 	public virtual void OnSpawnedFromPool()
@@ -23,7 +30,6 @@ public partial class TimedEffect : Node3D, IPooledNode
 
 	public virtual void OnDespawnedToPool()
 	{
-		_isActive = false;
 		StopParticles(this);
 	}
 
@@ -40,21 +46,8 @@ public partial class TimedEffect : Node3D, IPooledNode
 
 	private void StartLifetime()
 	{
-		_isActive = true;
+		_remainingLifetime = Lifetime;
 		StartParticles(this);
-		int lifetimeVersion = ++_lifetimeVersion;
-		_lifeTimer = GetTree().CreateTimer(Lifetime);
-		_lifeTimer.Timeout += () => OnLifetimeExpired(lifetimeVersion);
-	}
-
-	private void OnLifetimeExpired(int lifetimeVersion)
-	{
-		if (!_isActive || lifetimeVersion != _lifetimeVersion)
-		{
-			return;
-		}
-
-		ReturnToPoolOrFree();
 	}
 
 	private void StartParticles(Node node)

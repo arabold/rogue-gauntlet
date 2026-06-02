@@ -1,13 +1,9 @@
 using Godot;
-using System.Collections.Generic;
-
 /// <summary>
-/// Short element-colored cast flash for staff projectiles: muzzle orb, expanding rings, and forward sparks.
+/// Short configurable muzzle flash with a core orb, expanding rings, and GPU-driven sparks.
 /// </summary>
-public partial class ElementalMuzzleBurst : Node3D, IPooledNode
+public partial class MuzzleBurstEffect : Node3D, IPooledNode
 {
-	private const float Tau = Mathf.Pi * 2.0f;
-
 	[Export] public float Lifetime { get; set; } = 0.38f;
 	[Export] public Color CoreColor { get; set; } = new(1.0f, 0.8f, 0.25f, 0.82f);
 	[Export] public Color AccentColor { get; set; } = new(1.0f, 0.25f, 0.04f, 0.65f);
@@ -16,21 +12,22 @@ public partial class ElementalMuzzleBurst : Node3D, IPooledNode
 	[Export] public float Radius { get; set; } = 0.42f;
 	[Export] public float UpdateInterval { get; set; } = 0.025f;
 
-	private readonly List<MuzzleSpark> _sparks = [];
-	private readonly List<MeshInstance3D> _rings = [];
-	private readonly List<StandardMaterial3D> _ringMaterials = [];
+	private readonly System.Collections.Generic.List<MeshInstance3D> _rings = [];
+	private readonly System.Collections.Generic.List<StandardMaterial3D> _ringMaterials = [];
 	private MeshInstance3D _core;
 	private StandardMaterial3D _coreMaterial;
+	private GpuParticles3D _sparks;
+	private ParticleProcessMaterial _sparkProcessMaterial;
 	private float _age;
 	private float _updateCooldown;
 	private bool _isActive;
-	private int _lifetimeVersion;
 
 	public override void _Ready()
 	{
 		BuildCore();
 		BuildRings();
 		BuildSparks();
+		RestartSparks();
 		StartLifetime();
 	}
 
@@ -39,51 +36,42 @@ public partial class ElementalMuzzleBurst : Node3D, IPooledNode
 		_age = 0.0f;
 		_updateCooldown = 0.0f;
 		_isActive = true;
-		StartLifetime();
+		RestartSparks();
 	}
 
 	public void OnDespawnedToPool()
 	{
 		_isActive = false;
+		if (_sparks != null)
+		{
+			_sparks.Emitting = false;
+		}
 	}
 
 	private void StartLifetime()
 	{
 		_isActive = true;
-		int lifetimeVersion = ++_lifetimeVersion;
-		GetTree().CreateTimer(Lifetime).Timeout += () => OnLifetimeExpired(lifetimeVersion);
-	}
-
-	private void OnLifetimeExpired(int lifetimeVersion)
-	{
-		if (!_isActive || lifetimeVersion != _lifetimeVersion)
-		{
-			return;
-		}
-
-		if (ScenePool.IsTracked(this))
-		{
-			ScenePool.Despawn(this);
-			return;
-		}
-
-		QueueFree();
 	}
 
 	public override void _Process(double delta)
 	{
 		_age += (float)delta;
 		_updateCooldown -= (float)delta;
-		if (_updateCooldown > 0.0f)
+		if (_updateCooldown <= 0.0f)
 		{
-			return;
+			_updateCooldown = UpdateInterval;
+			float t = Mathf.Clamp(_age / Lifetime, 0.0f, 1.0f);
+			UpdateCore(t);
+			UpdateRings(t);
 		}
 
-		_updateCooldown = UpdateInterval;
-		float t = Mathf.Clamp(_age / Lifetime, 0.0f, 1.0f);
-		UpdateCore(t);
-		UpdateRings(t);
-		UpdateSparks(t);
+		if (_age >= Lifetime)
+		{
+			if (ScenePool.IsTracked(this))
+				ScenePool.Despawn(this);
+			else
+				QueueFree();
+		}
 	}
 
 	private void BuildCore()
@@ -134,34 +122,32 @@ public partial class ElementalMuzzleBurst : Node3D, IPooledNode
 
 	private void BuildSparks()
 	{
-		var random = new RandomNumberGenerator
+		_sparkProcessMaterial = new ParticleProcessMaterial
 		{
-			Seed = 25057,
+			Direction = Vector3.Forward,
+			Spread = 58.0f,
+			InitialVelocityMin = Radius * 4.0f,
+			InitialVelocityMax = Radius * 8.5f,
+			Gravity = Vector3.Zero,
+			ScaleMin = 0.08f,
+			ScaleMax = 0.2f,
+			ColorRamp = CreateSparkColorRamp(),
 		};
 
-		ArrayMesh mesh = CreateSparkMesh();
-
-		for (int i = 0; i < SparkCount; i++)
+		_sparks = new GpuParticles3D
 		{
-			float angle = i / (float)SparkCount * Tau + random.RandfRange(-0.16f, 0.16f);
-			Vector3 side = new(Mathf.Cos(angle), Mathf.Sin(angle), 0.0f);
-			var material = CreateMaterial(i % 2 == 0 ? CoreColor : AccentColor, EmissionEnergy * 1.15f);
-			var spark = new MeshInstance3D
-			{
-				Name = "MuzzleSpark",
-				Mesh = mesh,
-				MaterialOverride = material,
-				CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
-			};
-
-			AddChild(spark);
-			_sparks.Add(new MuzzleSpark(
-				spark,
-				material,
-				side,
-				random.RandfRange(0.45f, 1.1f),
-				random.RandfRange(0.65f, 1.25f)));
-		}
+			Name = "MuzzleSparks",
+			Amount = Mathf.Max(1, SparkCount),
+			Lifetime = Mathf.Max(0.05f, Lifetime * 0.74f),
+			OneShot = true,
+			Explosiveness = 0.92f,
+			Randomness = 0.85f,
+			LocalCoords = true,
+			ProcessMaterial = _sparkProcessMaterial,
+			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+		};
+		_sparks.SetDrawPassMesh(0, CreateSparkMesh());
+		AddChild(_sparks);
 	}
 
 	private void UpdateCore(float t)
@@ -182,25 +168,18 @@ public partial class ElementalMuzzleBurst : Node3D, IPooledNode
 		}
 	}
 
-	private void UpdateSparks(float t)
+	private void RestartSparks()
 	{
-		foreach (MuzzleSpark spark in _sparks)
+		if (_sparks == null)
 		{
-			float distance = Mathf.Lerp(0.05f, Radius * 2.6f * spark.Speed, EaseOutCubic(t));
-			Vector3 direction = (spark.Side * 0.72f + Vector3.Forward * 0.95f).Normalized();
-			Vector3 position = direction * distance;
-			Vector3 tangent = direction.Normalized();
-			Vector3 right = tangent.Cross(Vector3.Up).Normalized();
-			if (right.LengthSquared() < 0.001f)
-			{
-				right = Vector3.Right;
-			}
-
-			spark.Node.Transform = new Transform3D(
-				new Basis(right * 0.05f * spark.Size, Vector3.Up * 0.05f * spark.Size, tangent * 0.56f * spark.Size),
-				position);
-			SetAlpha(spark.Material, AccentColor, AccentColor.A * (1.0f - EaseInCubic(t)));
+			return;
 		}
+
+		_sparks.Amount = Mathf.Max(1, SparkCount);
+		_sparks.Lifetime = Mathf.Max(0.05f, Lifetime * 0.74f);
+		_sparks.Emitting = false;
+		_sparks.Restart();
+		_sparks.Emitting = true;
 	}
 
 	private static StandardMaterial3D CreateMaterial(Color color, float emissionEnergy)
@@ -248,6 +227,25 @@ public partial class ElementalMuzzleBurst : Node3D, IPooledNode
 		return mesh;
 	}
 
+	private GradientTexture1D CreateSparkColorRamp()
+	{
+		var gradient = new Gradient
+		{
+			Offsets = [0.0f, 0.42f, 1.0f],
+			Colors =
+			[
+				new Color(AccentColor.R, AccentColor.G, AccentColor.B, AccentColor.A),
+				new Color(CoreColor.R, CoreColor.G, CoreColor.B, CoreColor.A * 0.75f),
+				new Color(AccentColor.R, AccentColor.G, AccentColor.B, 0.0f),
+			],
+		};
+
+		return new GradientTexture1D
+		{
+			Gradient = gradient,
+		};
+	}
+
 	private static void SetAlpha(StandardMaterial3D material, Color baseColor, float alpha)
 	{
 		material.AlbedoColor = new Color(baseColor.R, baseColor.G, baseColor.B, Mathf.Max(0.0f, alpha));
@@ -262,6 +260,4 @@ public partial class ElementalMuzzleBurst : Node3D, IPooledNode
 	{
 		return t * t * t;
 	}
-
-	private sealed record MuzzleSpark(MeshInstance3D Node, StandardMaterial3D Material, Vector3 Side, float Speed, float Size);
 }

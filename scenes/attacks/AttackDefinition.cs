@@ -5,7 +5,7 @@ public enum ProjectilePattern
 	Single,
 	Spread,
 	Radial,
-	MeteorShower,
+	AreaDrop,
 }
 
 /// <summary>
@@ -112,6 +112,12 @@ public partial class AttackDefinition : Resource
 	/// <summary>
 	/// Optional override for projectile world-impact AoE. Negative values keep the projectile scene's default radius.
 	/// </summary>
-	[Export] public float AreaRadius { get; set; } = -1.0f;
+	[Export] public float ImpactRadiusOverride { get; set; } = -1.0f;
+
+	/// <summary>
+	/// Optional override for minimum damage scale at the edge of projectile impact radius.
+	/// Negative values keep the projectile scene's default falloff.
+	/// </summary>
+	[Export(PropertyHint.Range, "-1,1,0.05")] public float ImpactRadiusMinDamageScaleOverride { get; set; } = -1.0f;
 
 }

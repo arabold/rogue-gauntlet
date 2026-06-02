@@ -21,11 +21,11 @@ public partial class WaterStreamEffect : Node3D, IPooledNode
 
 	private readonly List<Vector3> _points = [];
 	private readonly List<MeshInstance3D> _strands = [];
-	private readonly List<Droplet> _droplets = [];
 	private StandardMaterial3D _coreMaterial;
 	private StandardMaterial3D _sprayMaterial;
 	private StandardMaterial3D _dropletMaterial;
-	private SphereMesh _dropletMesh;
+	private GpuParticles3D _dropletEmitter;
+	private ParticleProcessMaterial _dropletProcessMaterial;
 	private float _age;
 	private float _meshUpdateCooldown;
 	private float _dropletUpdateCooldown;
@@ -37,7 +37,7 @@ public partial class WaterStreamEffect : Node3D, IPooledNode
 		TopLevel = true;
 		BuildMaterials();
 		BuildStrands();
-		BuildDroplets();
+		BuildDropletEmitter();
 	}
 
 	public void OnSpawnedFromPool()
@@ -52,6 +52,7 @@ public partial class WaterStreamEffect : Node3D, IPooledNode
 		{
 			strand.Mesh = null;
 		}
+		RestartDropletEmitter();
 	}
 
 	public void OnDespawnedToPool()
@@ -60,6 +61,10 @@ public partial class WaterStreamEffect : Node3D, IPooledNode
 		foreach (MeshInstance3D strand in _strands)
 		{
 			strand.Mesh = null;
+		}
+		if (_dropletEmitter != null)
+		{
+			_dropletEmitter.Emitting = false;
 		}
 	}
 
@@ -133,13 +138,6 @@ public partial class WaterStreamEffect : Node3D, IPooledNode
 			EmissionEnergyMultiplier = 2.4f,
 		};
 
-		_dropletMesh = new SphereMesh
-		{
-			Radius = 0.055f,
-			Height = 0.11f,
-			RadialSegments = 8,
-			Rings = 4,
-		};
 	}
 
 	private void BuildStrands()
@@ -158,31 +156,32 @@ public partial class WaterStreamEffect : Node3D, IPooledNode
 		}
 	}
 
-	private void BuildDroplets()
+	private void BuildDropletEmitter()
 	{
-		var random = new RandomNumberGenerator
+		_dropletProcessMaterial = new ParticleProcessMaterial
 		{
-			Seed = 73129,
+			Direction = Vector3.Back,
+			Spread = 34.0f,
+			InitialVelocityMin = 2.0f,
+			InitialVelocityMax = 6.2f,
+			Gravity = new Vector3(0.0f, -2.6f, 0.0f),
+			ScaleMin = 0.28f,
+			ScaleMax = 0.95f,
+			ColorRamp = CreateDropletColorRamp(),
 		};
 
-		for (int i = 0; i < DropletCount; i++)
+		_dropletEmitter = new GpuParticles3D
 		{
-			var node = new MeshInstance3D
-			{
-				Name = "WaterDroplet",
-				Mesh = _dropletMesh,
-				MaterialOverride = _dropletMaterial,
-				CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
-			};
-
-			AddChild(node);
-			_droplets.Add(new Droplet(
-				node,
-				random.RandfRange(0.0f, 1.0f),
-				random.RandfRange(0.0f, Tau),
-				random.RandfRange(0.4f, 1.25f),
-				random.RandfRange(0.55f, 1.4f)));
-		}
+			Name = "WaterDropletSpray",
+			Amount = Mathf.Max(1, DropletCount),
+			Lifetime = Mathf.Max(0.12f, DropletTrailLength / 8.0f),
+			Randomness = 0.9f,
+			LocalCoords = false,
+			ProcessMaterial = _dropletProcessMaterial,
+			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+		};
+		_dropletEmitter.SetDrawPassMesh(0, CreateDropletMesh());
+		AddChild(_dropletEmitter);
 	}
 
 	private void BuildMeshes()
@@ -259,44 +258,66 @@ public partial class WaterStreamEffect : Node3D, IPooledNode
 
 	private void UpdateDroplets()
 	{
-		if (_points.Count < 2)
+		if (_points.Count < 2 || _dropletEmitter == null)
 		{
 			return;
 		}
 
 		Vector3 forward = (_points[0] - _points[^1]).Normalized();
-		Vector3 side = forward.Cross(Vector3.Up).Normalized();
-		if (side.LengthSquared() < 0.001f)
+		_dropletEmitter.GlobalPosition = _points[0];
+		if (forward.LengthSquared() > 0.001f)
 		{
-			side = Vector3.Right;
-		}
-
-		foreach (Droplet droplet in _droplets)
-		{
-			float phase = PositiveModulo(droplet.Offset + _age * 0.85f * droplet.SpeedMultiplier, 1.0f);
-			float arc = Mathf.Sin(phase * Mathf.Pi);
-			float sideways = Mathf.Sin(droplet.Angle + _age * 7.0f) * SprayRadius * droplet.SpreadMultiplier;
-			float fall = phase * phase * 1.15f;
-			Vector3 position = _points[0]
-				- forward * DropletTrailLength * phase
-				+ side * sideways
-				+ Vector3.Up * (arc * 0.42f - fall);
-
-			droplet.Node.GlobalPosition = position;
-			droplet.Node.Scale = Vector3.One * Mathf.Lerp(1.35f, 0.45f, phase) * droplet.SpreadMultiplier;
+			_dropletEmitter.LookAt(_points[0] - forward, GetLookAtUpVector(forward));
 		}
 	}
 
-	private static float PositiveModulo(float value, float divisor)
+	private void RestartDropletEmitter()
 	{
-		float result = value % divisor;
-		return result < 0.0f ? result + divisor : result;
+		if (_dropletEmitter == null)
+		{
+			return;
+		}
+
+		_dropletEmitter.Amount = Mathf.Max(1, DropletCount);
+		_dropletEmitter.Lifetime = Mathf.Max(0.12f, DropletTrailLength / 8.0f);
+		_dropletEmitter.Emitting = false;
+		_dropletEmitter.Restart();
+		_dropletEmitter.Emitting = true;
 	}
 
-	private sealed record Droplet(
-		MeshInstance3D Node,
-		float Offset,
-		float Angle,
-		float SpeedMultiplier,
-		float SpreadMultiplier);
+	private Mesh CreateDropletMesh()
+	{
+		return new SphereMesh
+		{
+			Material = _dropletMaterial,
+			Radius = 0.055f,
+			Height = 0.11f,
+			RadialSegments = 8,
+			Rings = 4,
+		};
+	}
+
+	private GradientTexture1D CreateDropletColorRamp()
+	{
+		var gradient = new Gradient
+		{
+			Offsets = [0.0f, 0.38f, 1.0f],
+			Colors =
+			[
+				new Color(0.82f, 1.0f, 1.0f, 0.78f),
+				new Color(0.48f, 0.9f, 1.0f, 0.52f),
+				new Color(0.32f, 0.72f, 1.0f, 0.0f),
+			],
+		};
+
+		return new GradientTexture1D
+		{
+			Gradient = gradient,
+		};
+	}
+
+	private static Vector3 GetLookAtUpVector(Vector3 direction)
+	{
+		return Mathf.Abs(direction.Normalized().Dot(Vector3.Up)) > 0.95f ? Vector3.Forward : Vector3.Up;
+	}
 }

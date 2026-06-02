@@ -1218,8 +1218,9 @@ public partial class MapGenerator : Node3D
 	}
 
 	/// <summary>
-	/// Finds a nearby floor/corridor point for effects that can land near props or stairs.
-	/// Unlike item spawns, this deliberately does not require a clear item-sized collision column.
+	/// Finds a nearby floor/corridor point for effects that can land near props or decorations.
+	/// Unlike item spawns, this deliberately does not require a clear item-sized collision column,
+	/// but it does keep a tile margin from walls so vertical drops do not clip wall tops.
 	/// </summary>
 	public Vector3 FindEffectLandingPositionNear(Vector3 origin, float maxRadius = 1.5f)
 	{
@@ -1252,7 +1253,26 @@ public partial class MapGenerator : Node3D
 
 	public bool IsEffectLandingPositionValid(Vector3 worldPosition)
 	{
-		return Map != null && IsWalkableMapPosition(worldPosition);
+		return Map != null && IsWalkableMapPosition(worldPosition) && HasEffectWallClearance(worldPosition);
+	}
+
+	private bool HasEffectWallClearance(Vector3 worldPosition)
+	{
+		var tile = WorldToTile(worldPosition);
+		for (int dx = -1; dx <= 1; dx++)
+		{
+			for (int dz = -1; dz <= 1; dz++)
+			{
+				int x = tile.X + dx;
+				int z = tile.Y + dz;
+				if (!Map.IsWithinBounds(x, z) || (!Map.IsRoom(x, z) && !Map.IsCorridor(x, z) && !Map.IsConnector(x, z)))
+				{
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 
 	private bool IsWalkableMapPosition(Vector3 worldPosition)
