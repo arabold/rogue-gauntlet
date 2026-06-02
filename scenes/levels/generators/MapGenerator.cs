@@ -74,6 +74,9 @@ public partial class MapGenerator : Node3D
 	// Physics layers a runtime spawn must stay clear of: world (1) | walls (2) | props (5).
 	// Keeps items out of stairs, transition blockers, walls, and props via a single overlap test.
 	private const uint SpawnObstructionMask = 1u | 2u | 16u;
+	private const uint EffectLandingSurfaceMask = 1u;
+	private const float EffectLandingRayHeight = 10.0f;
+	private const float EffectLandingRayDepth = 14.0f;
 
 	/// <summary>
 	/// Extra rows/columns of occluder caps placed beyond the map bounds so the
@@ -1219,14 +1222,19 @@ public partial class MapGenerator : Node3D
 
 	/// <summary>
 	/// Finds a nearby floor/corridor point for effects that can land near props or decorations.
-	/// Unlike item spawns, this deliberately does not require a clear item-sized collision column,
-	/// but it does keep a tile margin from walls so vertical drops do not clip wall tops.
+	/// Unlike item spawns, this deliberately does not require a clear item-sized collision column.
 	/// </summary>
-	public Vector3 FindEffectLandingPositionNear(Vector3 origin, float maxRadius = 1.5f)
+	public bool TryFindEffectLandingPositionNear(Vector3 origin, float maxRadius, out Vector3 landingPosition)
 	{
 		if (Map == null || IsEffectLandingPositionValid(origin))
 		{
-			return origin;
+			landingPosition = origin;
+			return true;
+		}
+
+		if (TryProjectEffectLandingPosition(origin, out landingPosition))
+		{
+			return true;
 		}
 
 		const int samplesPerRing = 16;
@@ -1243,47 +1251,95 @@ public partial class MapGenerator : Node3D
 
 				if (IsEffectLandingPositionValid(candidate))
 				{
-					return candidate;
+					landingPosition = candidate;
+					return true;
+				}
+
+				if (TryProjectEffectLandingPosition(candidate, out landingPosition))
+				{
+					return true;
 				}
 			}
 		}
 
-		return origin;
+		landingPosition = default;
+		return false;
 	}
 
 	public bool IsEffectLandingPositionValid(Vector3 worldPosition)
 	{
-		return Map != null && IsWalkableMapPosition(worldPosition) && HasEffectWallClearance(worldPosition);
+		return Map != null && IsWalkableMapPosition(worldPosition);
 	}
 
-	private bool HasEffectWallClearance(Vector3 worldPosition)
+	private bool TryProjectEffectLandingPosition(Vector3 worldPosition, out Vector3 landingPosition)
 	{
-		var tile = WorldToTile(worldPosition);
-		for (int dx = -1; dx <= 1; dx++)
+		PhysicsDirectSpaceState3D space = GetWorld3D()?.DirectSpaceState;
+		if (space == null)
 		{
-			for (int dz = -1; dz <= 1; dz++)
-			{
-				int x = tile.X + dx;
-				int z = tile.Y + dz;
-				if (!Map.IsWithinBounds(x, z) || (!Map.IsRoom(x, z) && !Map.IsCorridor(x, z) && !Map.IsConnector(x, z)))
-				{
-					return false;
-				}
-			}
+			landingPosition = default;
+			return false;
 		}
 
+		var query = PhysicsRayQueryParameters3D.Create(
+			worldPosition + Vector3.Up * EffectLandingRayHeight,
+			worldPosition + Vector3.Down * EffectLandingRayDepth,
+			EffectLandingSurfaceMask);
+		query.HitFromInside = false;
+		var result = space.IntersectRay(query);
+		if (result.Count == 0)
+		{
+			landingPosition = default;
+			return false;
+		}
+
+		Vector3 normal = result["normal"].AsVector3();
+		if (normal.Dot(Vector3.Up) < 0.35f)
+		{
+			landingPosition = default;
+			return false;
+		}
+
+		Vector3 projectedPosition = result["position"].AsVector3();
+		Node collider = result["collider"].As<Node>();
+		if (!IsEffectLandingSurface(collider, projectedPosition))
+		{
+			landingPosition = default;
+			return false;
+		}
+
+		landingPosition = projectedPosition;
 		return true;
+	}
+
+	private bool IsEffectLandingSurface(Node collider, Vector3 worldPosition)
+	{
+		if (collider == FloorGridMap)
+		{
+			return IsWalkableMapPosition(worldPosition);
+		}
+
+		return collider?.IsInGroup("stairs") == true && IsWithinMapBounds(worldPosition);
 	}
 
 	private bool IsWalkableMapPosition(Vector3 worldPosition)
 	{
 		var tile = WorldToTile(worldPosition);
-		if (tile.X < 0 || tile.Y < 0 || tile.X >= Map.Width || tile.Y >= Map.Height)
+		if (!IsWithinMapBounds(tile))
 		{
 			return false;
 		}
 
 		return Map.IsRoom(tile.X, tile.Y) || Map.IsCorridor(tile.X, tile.Y);
+	}
+
+	private bool IsWithinMapBounds(Vector3 worldPosition)
+	{
+		return IsWithinMapBounds(WorldToTile(worldPosition));
+	}
+
+	private bool IsWithinMapBounds(Vector2I tile)
+	{
+		return Map != null && tile.X >= 0 && tile.Y >= 0 && tile.X < Map.Width && tile.Y < Map.Height;
 	}
 
 	/// <summary>

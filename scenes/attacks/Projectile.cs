@@ -20,6 +20,7 @@ public partial class Projectile : Node3D, IPooledNode
 	[Export] public PackedScene ImpactEffectScene { get; set; }
 	[Export] public PackedScene ExpireEffectScene { get; set; }
 	[Export] public bool SpawnImpactEffectOnExpire { get; set; } = true;
+	[Export(PropertyHint.Layers3DPhysics)] public uint WorldCollisionMask { get; set; } = BlockingCollisionMask;
 	[Export] public float ImpactRadius { get; set; } = 0.0f;
 	[Export(PropertyHint.Range, "0,1,0.05")] public float ImpactRadiusMinDamageScale { get; set; } = 0.2f;
 
@@ -162,7 +163,7 @@ public partial class Projectile : Node3D, IPooledNode
 
 		_worldRayQuery.From = start;
 		_worldRayQuery.To = end;
-		_worldRayQuery.CollisionMask = BlockingCollisionMask;
+		_worldRayQuery.CollisionMask = WorldCollisionMask;
 		_worldRayQuery.HitFromInside = false;
 
 		var result = space.IntersectRay(_worldRayQuery);

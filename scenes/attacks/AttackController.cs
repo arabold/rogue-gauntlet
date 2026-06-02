@@ -332,8 +332,13 @@ public partial class AttackController : Node
 			float angle = index / (float)count * Mathf.Tau + random.RandfRange(-0.45f, 0.45f) + attempt * 0.29f;
 			float radius = random.RandfRange(_currentAttack.TargetAreaRadius * 0.25f, _currentAttack.TargetAreaRadius);
 			Vector3 rawTarget = _actor.GlobalPosition + new Vector3(Mathf.Cos(angle) * radius, 0.0f, Mathf.Sin(angle) * radius);
-			Vector3 candidate = mapGenerator?.FindEffectLandingPositionNear(rawTarget, 1.5f) ?? rawTarget;
-			if (mapGenerator == null || mapGenerator.IsEffectLandingPositionValid(candidate))
+			if (mapGenerator == null)
+			{
+				landingPosition = rawTarget;
+				return true;
+			}
+
+			if (mapGenerator.TryFindEffectLandingPositionNear(rawTarget, 1.5f, out Vector3 candidate))
 			{
 				landingPosition = candidate;
 				return true;
