@@ -27,6 +27,7 @@ public partial class Projectile : Node3D, IPooledNode
 	private HitBoxComponent _hitBoxComponent;
 	private float _distanceTravelled;
 	private Node _attacker;
+	private DamageSourceFlags _attackerFaction = DamageSourceFlags.Environment;
 	private bool _hasResolvedHit;
 	private bool _hitSignalConnected;
 	private int _returnVersion;
@@ -64,10 +65,9 @@ public partial class Projectile : Node3D, IPooledNode
 	public void OnDespawnedToPool()
 	{
 		SetPhysicsProcess(false);
-		if (_hitBoxComponent != null)
-		{
-			_hitBoxComponent.Monitoring = false;
-		}
+		_attacker = null;
+		_attackerFaction = DamageSourceFlags.Environment;
+		SetHitBoxMonitoring(false, deferred: true);
 	}
 
 	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float accuracy, float minDamage, float maxDamage, float critChance, Node attacker = null)
@@ -80,6 +80,7 @@ public partial class Projectile : Node3D, IPooledNode
 		MaxDamage = maxDamage;
 		CritChance = critChance;
 		_attacker = attacker;
+		_attackerFaction = HurtBoxComponent.GetDamageSource(attacker);
 		_distanceTravelled = 0.0f;
 		_hasResolvedHit = false;
 		SetPhysicsProcess(true);
@@ -94,7 +95,7 @@ public partial class Projectile : Node3D, IPooledNode
 		{
 			_damageCollisionMask = GetDamageCollisionMask();
 			_hitBoxComponent.CollisionMask = _damageCollisionMask;
-			_hitBoxComponent.Monitoring = true;
+			SetHitBoxMonitoring(true);
 		}
 	}
 
@@ -120,7 +121,7 @@ public partial class Projectile : Node3D, IPooledNode
 		{
 			GameDebug.Combat("Projectile reached max range");
 			SpawnExpireEffect();
-			ReturnToPoolOrFree();
+			CallDeferred(MethodName.ReturnToPoolOrFree);
 		}
 	}
 
@@ -137,17 +138,14 @@ public partial class Projectile : Node3D, IPooledNode
 				damage *= 2;
 				GameDebug.Combat("Critical hit!");
 			}
-			damageable.TakeDamage(Accuracy, damage, Direction, _attacker);
+			damageable.TakeDamage(Accuracy, damage, Direction, GetValidAttacker(), _attackerFaction);
 			_hasResolvedHit = true;
 			SetPhysicsProcess(false);
-			if (_hitBoxComponent != null)
-			{
-				_hitBoxComponent.Monitoring = false;
-			}
+			SetHitBoxMonitoring(false, deferred: true);
 
 			ApplyImpactRadiusDamage(damageOwner);
 			SpawnEffect(ImpactEffectScene);
-			ReturnToPoolOrFree();
+			CallDeferred(MethodName.ReturnToPoolOrFree);
 		}
 	}
 
@@ -181,14 +179,19 @@ public partial class Projectile : Node3D, IPooledNode
 
 	private uint GetDamageCollisionMask()
 	{
-		if (_attacker?.IsInGroup("player") == true)
+		if (_attackerFaction == DamageSourceFlags.Player)
 		{
 			return EnemiesLayer;
 		}
 
-		if (_attacker?.IsInGroup("enemy") == true || _attacker?.IsInGroup("boss") == true)
+		if (_attackerFaction == DamageSourceFlags.Enemy || _attackerFaction == DamageSourceFlags.Boss)
 		{
 			return PlayerLayer;
+		}
+
+		if (_attackerFaction == DamageSourceFlags.None)
+		{
+			return 0;
 		}
 
 		return PlayerLayer | EnemiesLayer;
@@ -198,10 +201,7 @@ public partial class Projectile : Node3D, IPooledNode
 	{
 		_hasResolvedHit = true;
 		SetPhysicsProcess(false);
-		if (_hitBoxComponent != null)
-		{
-			_hitBoxComponent.Monitoring = false;
-		}
+		SetHitBoxMonitoring(false, deferred: true);
 
 		ApplyImpactRadiusDamage();
 		SpawnSurfaceAlignedEffect(ImpactEffectScene, hitNormal);
@@ -265,7 +265,7 @@ public partial class Projectile : Node3D, IPooledNode
 					pushDirection = Direction;
 				}
 
-				damageable.TakeDamage(Accuracy, damage, pushDirection, _attacker);
+				damageable.TakeDamage(Accuracy, damage, pushDirection, GetValidAttacker(), _attackerFaction);
 			}
 		}
 		finally
@@ -396,14 +396,35 @@ public partial class Projectile : Node3D, IPooledNode
 		_returnVersion++;
 		ImpactRadius = _defaultImpactRadius;
 		ImpactRadiusMinDamageScale = _defaultImpactRadiusMinDamageScale;
-		SetPhysicsProcess(true);
+		SetPhysicsProcess(false);
 		ConnectHitSignal();
 		if (_hitBoxComponent != null)
 		{
-			_hitBoxComponent.Monitoring = true;
+			SetHitBoxMonitoring(false);
 			_damageCollisionMask = GetDamageCollisionMask();
 			_hitBoxComponent.CollisionMask = _damageCollisionMask;
 		}
+	}
+
+	private Node GetValidAttacker()
+	{
+		return _attacker != null && GodotObject.IsInstanceValid(_attacker) ? _attacker : null;
+	}
+
+	private void SetHitBoxMonitoring(bool enabled, bool deferred = false)
+	{
+		if (_hitBoxComponent == null)
+		{
+			return;
+		}
+
+		if (deferred)
+		{
+			_hitBoxComponent.SetDeferred(Area3D.PropertyName.Monitoring, enabled);
+			return;
+		}
+
+		_hitBoxComponent.Monitoring = enabled;
 	}
 
 	private void ConnectHitSignal()

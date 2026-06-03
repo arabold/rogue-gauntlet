@@ -139,6 +139,7 @@ public partial class WhirlwindEffect : TimedEffect
 			MaterialOverride = material,
 			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
 		};
+		node.Set("physics_interpolation_mode", 2);
 
 		AddChild(node);
 		return node;

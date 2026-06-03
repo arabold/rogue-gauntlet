@@ -5,5 +5,5 @@ public interface IDamageable
 	/// <summary>
 	/// Called when the object takes damage
 	/// </summary>
-	void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null);
+	void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null, DamageSourceFlags attackerFaction = DamageSourceFlags.None);
 }

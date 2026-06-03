@@ -33,32 +33,16 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 	/// </summary>
 	[Export] public DamageSourceFlags DamageFilter { get; set; } = DamageSourceFlags.Player | DamageSourceFlags.Boss | DamageSourceFlags.Environment;
 
-	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null)
+	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null, DamageSourceFlags attackerFaction = DamageSourceFlags.None)
 	{
-		DamageSourceFlags attackerFaction = DamageSourceFlags.Environment;
-		if (attacker != null)
+		if (attackerFaction == DamageSourceFlags.None)
 		{
-			if (attacker.IsInGroup("player"))
-			{
-				attackerFaction = DamageSourceFlags.Player;
-			}
-			else if (attacker.IsInGroup("boss"))
-			{
-				attackerFaction = DamageSourceFlags.Boss;
-			}
-			else if (attacker.IsInGroup("enemy"))
-			{
-				attackerFaction = DamageSourceFlags.Enemy;
-			}
-			else if (attacker.IsInGroup("trap") || attacker is FloorTrap)
-			{
-				attackerFaction = DamageSourceFlags.Trap;
-			}
+			attackerFaction = GetDamageSource(attacker);
 		}
 
 		if ((DamageFilter & attackerFaction) == 0)
 		{
-			GameDebug.Combat($"{GetParent().Name}'s hurtbox filtered out damage from {attacker?.Name ?? "unknown"} ({attackerFaction})");
+			GameDebug.Combat($"{GetParent().Name}'s hurtbox filtered out damage from {GetAttackerName(attacker)} ({attackerFaction})");
 			return;
 		}
 
@@ -99,5 +83,50 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 		var hitEffect = ScenePool.Spawn<GpuParticles3D>(HitEffect, this);
 		hitEffect.Position = attackDirection.Normalized() * 0.5f;
 		hitEffect.OneShot = true;
+	}
+
+	public static DamageSourceFlags GetDamageSource(Node attacker)
+	{
+		if (attacker == null)
+		{
+			return DamageSourceFlags.Environment;
+		}
+
+		if (!GodotObject.IsInstanceValid(attacker))
+		{
+			return DamageSourceFlags.None;
+		}
+
+		if (attacker.IsInGroup("player"))
+		{
+			return DamageSourceFlags.Player;
+		}
+
+		if (attacker.IsInGroup("boss"))
+		{
+			return DamageSourceFlags.Boss;
+		}
+
+		if (attacker.IsInGroup("enemy"))
+		{
+			return DamageSourceFlags.Enemy;
+		}
+
+		if (attacker.IsInGroup("trap") || attacker is FloorTrap)
+		{
+			return DamageSourceFlags.Trap;
+		}
+
+		return DamageSourceFlags.Environment;
+	}
+
+	private static string GetAttackerName(Node attacker)
+	{
+		if (attacker == null)
+		{
+			return "unknown";
+		}
+
+		return GodotObject.IsInstanceValid(attacker) ? attacker.Name : "invalid";
 	}
 }
