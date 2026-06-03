@@ -366,6 +366,7 @@ public partial class MapGenerator : Node3D
 	{
 		GD.Print("Placing walls...");
 		var cornerEdges = new System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges>();
+		var straightWalls = new List<WallStraightRequest>();
 		var occupiedWallSpans = BuildOccupiedWallSpans();
 
 		for (int x = 0; x < Map.Width; x++)
@@ -374,15 +375,19 @@ public partial class MapGenerator : Node3D
 			{
 				if (IsWallSourceTile(x, z))
 				{
-					PlaceWallModulesForTile(x, z, cornerEdges, occupiedWallSpans);
+					PlaceWallModulesForTile(x, z, cornerEdges, straightWalls);
 				}
 			}
 		}
 
 		PlaceWallCorners(cornerEdges, occupiedWallSpans);
+		foreach (var wall in straightWalls)
+		{
+			PlaceWallStraight(wall.Position, wall.Orientation, occupiedWallSpans);
+		}
 	}
 
-	private void PlaceWallModulesForTile(int x, int z, System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, HashSet<WallSpan> occupiedWallSpans)
+	private void PlaceWallModulesForTile(int x, int z, System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, List<WallStraightRequest> straightWalls)
 	{
 		int tileCenter = (int)TileSize / 2;
 		var basePosition = TileToWorld(x, 0, z);
@@ -399,28 +404,28 @@ public partial class MapGenerator : Node3D
 		{
 			AddHorizontalCornerEdge(cornerEdges, new Vector2I(westX, northZ), extendsEast: true);
 			AddHorizontalCornerEdge(cornerEdges, new Vector2I(eastX, northZ), extendsEast: false);
-			PlaceWallStraight(basePosition + new Vector3I(0, 0, -tileCenter), HorizontalWallOrientation, occupiedWallSpans);
+			straightWalls.Add(new(basePosition + new Vector3I(0, 0, -tileCenter), HorizontalWallOrientation));
 		}
 
 		if (south)
 		{
 			AddHorizontalCornerEdge(cornerEdges, new Vector2I(westX, southZ), extendsEast: true);
 			AddHorizontalCornerEdge(cornerEdges, new Vector2I(eastX, southZ), extendsEast: false);
-			PlaceWallStraight(basePosition + new Vector3I(0, 0, tileCenter), HorizontalWallOrientation, occupiedWallSpans);
+			straightWalls.Add(new(basePosition + new Vector3I(0, 0, tileCenter), HorizontalWallOrientation));
 		}
 
 		if (west)
 		{
 			AddVerticalCornerEdge(cornerEdges, new Vector2I(westX, northZ), extendsSouth: true);
 			AddVerticalCornerEdge(cornerEdges, new Vector2I(westX, southZ), extendsSouth: false);
-			PlaceWallStraight(basePosition + new Vector3I(-tileCenter, 0, 0), VerticalWallOrientation, occupiedWallSpans);
+			straightWalls.Add(new(basePosition + new Vector3I(-tileCenter, 0, 0), VerticalWallOrientation));
 		}
 
 		if (east)
 		{
 			AddVerticalCornerEdge(cornerEdges, new Vector2I(eastX, northZ), extendsSouth: true);
 			AddVerticalCornerEdge(cornerEdges, new Vector2I(eastX, southZ), extendsSouth: false);
-			PlaceWallStraight(basePosition + new Vector3I(tileCenter, 0, 0), VerticalWallOrientation, occupiedWallSpans);
+			straightWalls.Add(new(basePosition + new Vector3I(tileCenter, 0, 0), VerticalWallOrientation));
 		}
 	}
 
@@ -724,6 +729,7 @@ public partial class MapGenerator : Node3D
 	}
 
 	private readonly record struct WallSpan(Vector3I Start, Vector3I End);
+	private readonly record struct WallStraightRequest(Vector3I Position, int Orientation);
 
 	private bool IsWallSourceTile(int x, int z)
 	{
