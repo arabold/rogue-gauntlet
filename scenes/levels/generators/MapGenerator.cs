@@ -982,60 +982,6 @@ public partial class MapGenerator : Node3D
 		RevealRoom(_connectorToRoom[connector]);
 	}
 
-	/// <summary>
-	/// Returns whether two world positions are connected by room/corridor tiles without
-	/// crossing a connector that still has a closed door. This gates enemy target
-	/// decisions; movement still follows the baked navmesh once a target is reachable.
-	/// </summary>
-	public bool CanReachWithoutOpeningDoors(Vector3 fromWorldPosition, Vector3 toWorldPosition)
-	{
-		if (Map == null)
-		{
-			return true;
-		}
-
-		Vector2I from = WorldToTile(fromWorldPosition);
-		Vector2I to = WorldToTile(toWorldPosition);
-		if (!IsDoorReachabilityTile(from) || !IsDoorReachabilityTile(to))
-		{
-			return true;
-		}
-
-		var queue = new Queue<Vector2I>();
-		var visited = new HashSet<Vector2I> { from };
-		queue.Enqueue(from);
-
-		while (queue.Count > 0)
-		{
-			Vector2I tile = queue.Dequeue();
-			if (tile == to)
-			{
-				return true;
-			}
-
-			foreach (Vector2I offset in CardinalOffsets)
-			{
-				Vector2I neighbor = tile + offset;
-				if (visited.Contains(neighbor) || !IsDoorReachabilityTile(neighbor))
-				{
-					continue;
-				}
-
-				visited.Add(neighbor);
-				queue.Enqueue(neighbor);
-			}
-		}
-
-		return false;
-	}
-
-	private bool IsDoorReachabilityTile(Vector2I tile)
-	{
-		return Map.IsWithinBounds(tile.X, tile.Y)
-			&& !_dooredConnectors.Contains(tile)
-			&& (Map.IsRoom(tile.X, tile.Y) || Map.IsConnector(tile.X, tile.Y) || Map.IsCorridor(tile.X, tile.Y));
-	}
-
 	private void FloodCorridors(Vector2I startConnector, Queue<int> roomQueue,
 		HashSet<int> queuedRooms)
 	{
@@ -1524,7 +1470,6 @@ public partial class MapGenerator : Node3D
 		Node floorGridMapCopy = FloorGridMap.Duplicate();
 		Node wallGripMapCopy = WallGridMap.Duplicate();
 		Node decorationGridMapCopy = DecorationGridMap.Duplicate();
-		SetDoorNavigationBakeCollisionEnabled(false);
 		try
 		{
 			NavigationRegion.AddChild(floorGridMapCopy);
@@ -1534,18 +1479,9 @@ public partial class MapGenerator : Node3D
 		}
 		finally
 		{
-			SetDoorNavigationBakeCollisionEnabled(true);
 			floorGridMapCopy.QueueFree();
 			wallGripMapCopy.QueueFree();
 			decorationGridMapCopy.QueueFree();
-		}
-	}
-
-	private void SetDoorNavigationBakeCollisionEnabled(bool enabled)
-	{
-		foreach (var (door, _) in _doorIndicators)
-		{
-			door.SetNavigationBakeCollisionEnabled(enabled);
 		}
 	}
 
@@ -1561,38 +1497,49 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		if (visible && (_navigationDebugMesh == null || !IsInstanceValid(_navigationDebugMesh)))
-		{
-			_navigationDebugMesh = BuildNavigationDebugMesh();
-		}
-
+		// Rebuild from scratch each time so door-link colours reflect current open/closed state
+		// rather than whatever it was when the overlay was first shown.
 		if (_navigationDebugMesh != null && IsInstanceValid(_navigationDebugMesh))
 		{
-			_navigationDebugMesh.Visible = visible;
+			_navigationDebugMesh.QueueFree();
+			_navigationDebugMesh = null;
+		}
+
+		if (visible)
+		{
+			_navigationDebugMesh = BuildNavigationDebugMesh();
 		}
 	}
 
 	private MeshInstance3D BuildNavigationDebugMesh()
 	{
-		NavigationMesh navigationMesh = NavigationRegion.NavigationMesh;
-		Vector3[] vertices = navigationMesh.GetVertices();
-		if (vertices.Length == 0)
-		{
-			return null;
-		}
-
 		var surfaceTool = new SurfaceTool();
 		surfaceTool.Begin(Mesh.PrimitiveType.Triangles);
-		for (int polygonIndex = 0; polygonIndex < navigationMesh.GetPolygonCount(); polygonIndex++)
+
+		// Main baked region in blue.
+		bool hasGeometry = AppendRegionTriangles(
+			surfaceTool, NavigationRegion, new Color(0.1f, 0.6f, 1f, 0.35f));
+
+		// Per-door links drawn as flat strips between their endpoints, in the same blue as the main
+		// mesh, so each doorway bridge is visible (whether the door is open or closed).
+		foreach (Node node in GetTree().GetNodesInGroup("door"))
 		{
-			int[] polygon = navigationMesh.GetPolygon(polygonIndex);
-			// Fan-triangulate each convex navmesh polygon.
-			for (int corner = 2; corner < polygon.Length; corner++)
+			if (node is not Door)
 			{
-				surfaceTool.AddVertex(vertices[polygon[0]]);
-				surfaceTool.AddVertex(vertices[polygon[corner - 1]]);
-				surfaceTool.AddVertex(vertices[polygon[corner]]);
+				continue;
 			}
+
+			var doorLink = node.GetNodeOrNull<NavigationLink3D>("NavigationLink3D");
+			if (doorLink != null)
+			{
+				hasGeometry |= AppendLinkStrip(
+					surfaceTool, doorLink, new Color(0.1f, 0.6f, 1f, 0.35f));
+			}
+		}
+
+		if (!hasGeometry)
+		{
+			return null;
 		}
 
 		var material = new StandardMaterial3D
@@ -1600,7 +1547,7 @@ public partial class MapGenerator : Node3D
 			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
 			Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
 			CullMode = BaseMaterial3D.CullModeEnum.Disabled,
-			AlbedoColor = new Color(0.1f, 0.6f, 1f, 0.35f),
+			VertexColorUseAsAlbedo = true,
 		};
 
 		var meshInstance = new MeshInstance3D
@@ -1608,12 +1555,104 @@ public partial class MapGenerator : Node3D
 			Name = "NavigationDebugMesh",
 			Mesh = surfaceTool.Commit(),
 			MaterialOverride = material,
-			// Lift slightly off the floor to avoid z-fighting with the ground meshes.
-			Position = new Vector3(0, 0.1f, 0),
+			// Vertices are already baked in world space, so ignore the parent transform.
+			TopLevel = true,
 		};
 
 		NavigationRegion.AddChild(meshInstance);
 		return meshInstance;
+	}
+
+	/// <summary>
+	/// Appends a navigation region's polygons to <paramref name="surfaceTool"/> in world space
+	/// (lifted slightly to avoid z-fighting), tinted with <paramref name="color"/>. Returns false
+	/// if the region has no navmesh geometry. Used by the debug overlay to draw the main mesh and
+	/// each door's bridge patch together so their relative height and alignment are visible.
+	/// </summary>
+	private static bool AppendRegionTriangles(SurfaceTool surfaceTool, NavigationRegion3D region, Color color)
+	{
+		NavigationMesh navigationMesh = region?.NavigationMesh;
+		if (navigationMesh == null)
+		{
+			return false;
+		}
+
+		Vector3[] vertices = navigationMesh.GetVertices();
+		if (vertices.Length == 0)
+		{
+			return false;
+		}
+
+		Transform3D transform = region.GlobalTransform;
+		transform.Origin += new Vector3(0, 0.05f, 0);
+
+		for (int polygonIndex = 0; polygonIndex < navigationMesh.GetPolygonCount(); polygonIndex++)
+		{
+			int[] polygon = navigationMesh.GetPolygon(polygonIndex);
+			// Fan-triangulate each convex navmesh polygon.
+			for (int corner = 2; corner < polygon.Length; corner++)
+			{
+				surfaceTool.SetColor(color);
+				surfaceTool.AddVertex(transform * vertices[polygon[0]]);
+				surfaceTool.SetColor(color);
+				surfaceTool.AddVertex(transform * vertices[polygon[corner - 1]]);
+				surfaceTool.SetColor(color);
+				surfaceTool.AddVertex(transform * vertices[polygon[corner]]);
+			}
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// Appends a flat quad strip following a navigation link from its start to end endpoint, tinted
+	/// with <paramref name="color"/>. The strip's height is snapped to the baked navmesh (via the
+	/// nearest navmesh point) so it sits co-planar with the main mesh overlay rather than at the
+	/// link's authored floor-level endpoints. Returns false if the endpoints coincide.
+	/// </summary>
+	private static bool AppendLinkStrip(SurfaceTool surfaceTool, NavigationLink3D link, Color color)
+	{
+		Transform3D transform = link.GlobalTransform;
+		Vector3 start = transform * link.StartPosition;
+		Vector3 end = transform * link.EndPosition;
+
+		// Lift to the navmesh surface (+ the same small z-fight offset the main mesh uses) so the
+		// debug strip lines up with the blue overlay instead of hugging the floor.
+		Rid navigationMap = link.GetWorld3D().NavigationMap;
+		if (navigationMap.IsValid)
+		{
+			start.Y = NavigationServer3D.MapGetClosestPoint(navigationMap, start).Y;
+			end.Y = NavigationServer3D.MapGetClosestPoint(navigationMap, end).Y;
+		}
+		start.Y += 0.05f;
+		end.Y += 0.05f;
+
+		Vector3 along = end - start;
+		if (along.LengthSquared() <= 0.0001f)
+		{
+			return false;
+		}
+
+		// A half-metre-wide ribbon centred on the link line, lying flat on the floor plane.
+		Vector3 side = along.Normalized().Cross(Vector3.Up);
+		if (side.LengthSquared() <= 0.0001f)
+		{
+			side = Vector3.Right;
+		}
+		side = side.Normalized() * 0.25f;
+
+		Vector3 a = start + side;
+		Vector3 b = start - side;
+		Vector3 c = end - side;
+		Vector3 d = end + side;
+
+		foreach (Vector3 vertex in new[] { a, b, c, a, c, d })
+		{
+			surfaceTool.SetColor(color);
+			surfaceTool.AddVertex(vertex);
+		}
+
+		return true;
 	}
 
 	private void Reset()

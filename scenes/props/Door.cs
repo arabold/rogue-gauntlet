@@ -19,6 +19,7 @@ public partial class Door : Node3D
 
 	private CollisionShape3D _collisionShape;
 	private MeshInstance3D _door;
+	private NavigationLink3D _navigationLink;
 	private MeshInstance3D _xray;
 	private bool _indicatorAllowed;
 	private InteractiveComponent _interactiveComponent;
@@ -39,20 +40,22 @@ public partial class Door : Node3D
 	}
 
 	/// <summary>
-	/// Temporarily controls whether this door blocks the generated navigation mesh bake.
-	/// Closed doors still block physics after baking; this only prevents them from splitting
-	/// the navmesh into disconnected islands.
+	/// Bridges the doorway gap in the baked navigation mesh only while the door is open.
+	/// The main navmesh is permanently severed at every doored doorway (the closed door
+	/// geometry blocks the bake), so this per-door <see cref="NavigationLink3D"/> reconnects the
+	/// two sides while the door is open. A link connects by proximity to the navmesh on each end
+	/// (within the map's link connection radius) rather than by fragile edge-alignment, so it
+	/// reconnects reliably where a flat region patch only stitched one side of the doorway.
+	/// Disabling it when the door is closed makes the navmesh the single source of truth for
+	/// reachability: enemies route around closed doors. A link spans the gap rather than filling
+	/// it, so the agent is briefly off the navmesh mid-doorway; the enemy chase logic commits to
+	/// the crossing (see EnemyBehaviorComponent.IsCrossingDoorway) to avoid oscillating there.
 	/// </summary>
-	public void SetNavigationBakeCollisionEnabled(bool enabled)
-	{
-		InitializeNodes();
-		_collisionShape.Disabled = !enabled || IsOpen;
-	}
-
 	private void InitializeNodes()
 	{
 		_collisionShape ??= GetNode<CollisionShape3D>("%CollisionShape3D");
 		_door ??= GetNode<MeshInstance3D>("%wall_doorway_door");
+		_navigationLink ??= GetNode<NavigationLink3D>("NavigationLink3D");
 	}
 
 	/// <summary>
@@ -97,6 +100,7 @@ public partial class Door : Node3D
 		InitializeNodes();
 		_door.RotationDegrees = new Vector3(0, IsOpen ? OpenRotationDegrees : 0, 0);
 		_collisionShape.Disabled = IsOpen;
+		_navigationLink.Enabled = IsOpen;
 	}
 
 	private void OpenDoor()

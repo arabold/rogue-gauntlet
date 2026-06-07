@@ -91,6 +91,12 @@ public partial class EnemyBehaviorProfile : Resource
 	[Export] public int RoamTargetAttempts { get; set; } = 8;
 
 	/// <summary>
+	/// How long the enemy investigates a target's last known position after losing it
+	/// before giving up and returning to patrol.
+	/// </summary>
+	[Export] public float SearchDuration { get; set; } = 4.0f;
+
+	/// <summary>
 	/// Time spent in the spawn action before normal behavior resumes.
 	/// </summary>
 	[Export] public float SpawningActionDuration { get; set; } = 3.5f;

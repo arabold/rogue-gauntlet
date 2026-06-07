@@ -42,10 +42,27 @@ public partial class EnemyBehaviorComponent : Node
 	private const float StuckCheckInterval = 0.25f;
 	private const float StuckMinimumProgress = 0.2f;
 	private const float StuckRecoverySeconds = 1.0f;
+
+	// How far the desired heading must point into a wall normal before we slide along that wall.
+	// Filters floor/ceiling contacts and grazing touches so straight movement is untouched.
+	private const float WallSlideEngageDot = -0.05f;
+	// Minimum squared length of the wall-projected heading we trust. Below this the actor is
+	// wedged in a concave corner with no clear tangent, so we keep the original heading and let
+	// stuck-recovery repath instead of snapping to an unstable sliver at full speed.
+	private const float WallSlideMinLengthSquared = 0.04f;
 	private const float TargetScanInterval = 0.2f;
 	private const float TargetPathRefreshInterval = 0.12f;
 	private const float TargetReachabilityCheckInterval = 0.35f;
 	private const float TargetPositionRefreshDistance = 0.35f;
+
+	// Horizontal distance from the baked navmesh beyond which the actor is treated as crossing a
+	// doorway link. agent_radius keeps a navigating body flush with the mesh everywhere else, so
+	// only the gap a door's NavigationLink3D spans pushes it this far off-mesh.
+	private const float DoorwayCrossingOffMeshDistance = 0.6f;
+
+	// How close a navigation path must end to the target's projected navmesh point for the
+	// target to count as reachable. A blocked target yields a path that stops short of this.
+	private const float ReachabilityThreshold = 1.5f;
 
 	/// <summary>
 	/// Character body moved and rotated by this behavior controller.
@@ -99,7 +116,7 @@ public partial class EnemyBehaviorComponent : Node
 	private Vector3 _lastStuckCheckPosition;
 	private float _stuckCheckTimer;
 	private float _stuckTime;
-	private MapGenerator _mapGenerator;
+	private float _remainingSearchTime;
 	private float _targetScanTimer;
 	private float _targetPathRefreshTimer;
 	private float _targetReachabilityTimer;
@@ -123,7 +140,6 @@ public partial class EnemyBehaviorComponent : Node
 		{
 			GD.PushError($"{Actor.Name} has no AttackController child; melee attacks will not deal damage.");
 		}
-		_mapGenerator = this.GetAncestorOrNull<Level>()?.MapGenerator;
 		// Ensure to properly initialize the enemy's state with the current selection
 		GameDebug.Ai($"{GetParent().Name} is initialized with {CurrentBehavior} and {CurrentAction}");
 		_remainingActionTime = _profile.GetActionDuration(CurrentAction);
@@ -185,27 +201,44 @@ public partial class EnemyBehaviorComponent : Node
 			}
 			else if (CurrentBehavior == EnemyBehaviorState.Searching)
 			{
+				_remainingSearchTime -= (float)delta;
+
 				if (ShouldScanForTarget() && LookForNewTarget())
 				{
 					SetBehavior(EnemyBehaviorState.Chasing);
 				}
+				else if (_remainingSearchTime <= 0 || _navigationAgent.IsNavigationFinished())
+				{
+					// Reached the last known position or gave up; resume normal patrol.
+					SetBehavior(EnemyBehaviorState.Patrolling);
+				}
 				else
 				{
-					// Go to last known position
-					NavigateToTarget();
+					// Walk to the last known target position set when the chase was lost.
+					NavigateAlongPath();
 				}
 			}
 			else if (CurrentBehavior == EnemyBehaviorState.Chasing)
 			{
-				if (!CanReachCurrentTarget())
+				// While crossing a doorway link the actor is briefly off the navmesh (the link spans
+				// the doorway gap rather than filling it). Repathing or reachability-testing from an
+				// off-mesh position snaps the path start to whichever doorway side is nearest and
+				// flips it as the actor inches across, so the enemy oscillates in the doorway. Freeze
+				// those decisions until it lands back on the mesh so it commits to the crossing; it
+				// keeps following its already-computed path, which routes through the link.
+				bool crossingDoorway = IsCrossingDoorway();
+
+				if (!crossingDoorway && !CanReachCurrentTarget())
 				{
-					Target = null;
-					MovementComponent.Stop();
-					SetBehavior(EnemyBehaviorState.Patrolling);
+					StartSearching();
 					return;
 				}
 
-				UpdateTargetPositionThrottled();
+				if (!crossingDoorway)
+				{
+					UpdateTargetPositionThrottled();
+				}
+
 				NavigateToTarget();
 
 				if (IsNearTarget())
@@ -302,9 +335,66 @@ public partial class EnemyBehaviorComponent : Node
 
 	private bool CanReachTarget(Node3D target)
 	{
-		return target == null
-			|| _mapGenerator == null
-			|| _mapGenerator.CanReachWithoutOpeningDoors(Actor.GlobalPosition, target.GlobalPosition);
+		return target != null && IsReachableByNavmesh(target.GlobalPosition);
+	}
+
+	/// <summary>
+	/// Tests reachability against the baked navigation mesh, which already reflects door
+	/// state (each open door enables a <see cref="NavigationLink3D"/> across its doorway, closed
+	/// doors leave the doorway severed). A blocked target yields a path that stops short of it, so
+	/// we compare the path's end against the target's projected navmesh point. This query is
+	/// side-effect free and does not disturb the agent's current chase or roam path.
+	/// </summary>
+	private bool IsReachableByNavmesh(Vector3 targetPosition)
+	{
+		Rid navigationMap = Actor.GetWorld3D().NavigationMap;
+		if (!navigationMap.IsValid)
+		{
+			return true;
+		}
+
+		Vector3[] path = NavigationServer3D.MapGetPath(
+			navigationMap, Actor.GlobalPosition, targetPosition, true);
+		if (path.Length == 0)
+		{
+			return false;
+		}
+
+		Vector3 mappedTarget = NavigationServer3D.MapGetClosestPoint(navigationMap, targetPosition);
+		return path[^1].DistanceTo(mappedTarget) <= ReachabilityThreshold;
+	}
+
+	/// <summary>
+	/// True while the actor is mid-doorway, crossing the gap a door's <see cref="NavigationLink3D"/>
+	/// spans. Detected by horizontal distance to the nearest navmesh point: agent_radius keeps a
+	/// navigating body flush with the mesh everywhere else, so only a doorway link pushes it past
+	/// <see cref="DoorwayCrossingOffMeshDistance"/>. Chasing uses this to commit to the crossing.
+	/// </summary>
+	private bool IsCrossingDoorway()
+	{
+		Rid navigationMap = Actor.GetWorld3D().NavigationMap;
+		if (!navigationMap.IsValid)
+		{
+			return false;
+		}
+
+		Vector3 closest = NavigationServer3D.MapGetClosestPoint(navigationMap, Actor.GlobalPosition);
+		return HorizontalDistance(Actor.GlobalPosition, closest) > DoorwayCrossingOffMeshDistance;
+	}
+
+	/// <summary>
+	/// Drops the current target and investigates its last known position for a while before
+	/// returning to patrol, so a player that breaks contact (or closes a door) is pursued to
+	/// where they were last seen instead of being forgotten instantly.
+	/// </summary>
+	private void StartSearching()
+	{
+		MovementComponent.Stop();
+		Target = null;
+		_lastTargetReachable = true;
+		_remainingSearchTime = _profile.SearchDuration;
+		_navigationAgent.SetTargetPosition(_lastKnownTargetPosition);
+		SetBehavior(EnemyBehaviorState.Searching);
 	}
 
 	/// <summary>
@@ -453,9 +543,55 @@ public partial class EnemyBehaviorComponent : Node
 			return;
 		}
 
+		direction = SteerAlongWalls(direction);
 		MovementComponent.SetInputDirection(direction);
 		UpdateStuckTracking();
-		// _targetDirection = new Vector3(localDestination.X, 0, localDestination.Z).Normalized();
+	}
+
+	/// <summary>
+	/// Deflects a desired horizontal heading along any wall the actor is pressing into so it
+	/// follows the wall at full speed toward its path waypoint instead of grinding to a crawl at
+	/// corners. Uses the previous physics frame's slide collisions (movement runs after this
+	/// component). Returns the heading unchanged when nothing is blocking it or when the actor is
+	/// wedged in a concave corner with no usable tangent.
+	/// </summary>
+	private Vector3 SteerAlongWalls(Vector3 desired)
+	{
+		Vector3 deflected = desired;
+		int collisionCount = Actor.GetSlideCollisionCount();
+		for (int i = 0; i < collisionCount; i++)
+		{
+			KinematicCollision3D collision = Actor.GetSlideCollision(i);
+
+			// Never slide along the chase target itself, or the enemy would orbit the player.
+			if (collision.GetCollider() == Target)
+			{
+				continue;
+			}
+
+			Vector3 normal = collision.GetNormal();
+			normal.Y = 0;
+			if (normal.LengthSquared() < 0.0001f)
+			{
+				// Floor or ceiling contact, not a wall.
+				continue;
+			}
+			normal = normal.Normalized();
+
+			float into = deflected.Dot(normal);
+			if (into < WallSlideEngageDot)
+			{
+				// Remove the component pushing into the wall, leaving the tangent along it.
+				deflected -= normal * into;
+			}
+		}
+
+		if (deflected.LengthSquared() < WallSlideMinLengthSquared)
+		{
+			return desired;
+		}
+
+		return deflected;
 	}
 
 	private void UpdateStuckTracking()

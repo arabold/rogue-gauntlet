@@ -91,14 +91,36 @@ Reveal state is saved per dungeon depth (`WorldSaveData.RevealedLevels`) as the 
 
 ## Enemy Door Awareness
 
-Enemies should continue to use Godot navigation for movement shape. The map-level door data should only decide whether a target is currently reachable, not replace the navmesh with hand-authored waypoint steering.
+The baked navigation mesh is the single source of truth for both enemy movement and target
+reachability. It reflects door state directly, so there is no separate logical door-gating for
+AI:
 
-- `DoorwayMarker` directions are already baked into connector tiles via `MapData.GetConnectorDirections`; this data identifies the corridor side of each intentional doorway.
-- `MapGenerator` tracks `_dooredConnectors`. A connector in that set is currently closed; `OpenDoorAt` removes it and `CloseDoorAt` adds it back.
-- Enemy target acquisition asks `MapGenerator.CanReachWithoutOpeningDoors(...)` before aggroing. If a door closes while chasing, the enemy drops the target and resumes patrolling.
-- Closed doors are not dynamic navmesh blockers. Roaming enemies can still physically bump into a closed door and recover via stuck handling.
+- The main navmesh is permanently severed at every doored doorway (the closed door geometry blocks
+  the bake; open archways with no door bake through as one). Each `Door` scene carries a
+  `NavigationLink3D` spanning the doorway gap (endpoints on each side, `z = ±1.5` at floor height).
+  `Door.Update` enables the link only while the door is open, so a closed door leaves the doorway
+  disconnected. A link reconnects by *proximity* to the navmesh on each end (within the map's link
+  connection radius) instead of by fragile edge-alignment, so it bridges the doorway reliably — a
+  hand-authored flat region patch only stitched one side of the gap and the path dead-ended at the
+  door.
+- Because a link *spans* the gap rather than filling it, an agent is briefly off the navmesh while
+  crossing a doorway. The chase loop detects this (`EnemyBehaviorComponent.IsCrossingDoorway`, via
+  horizontal distance to the nearest navmesh point) and freezes path refresh and reachability
+  give-ups until the agent lands back on the mesh, so it commits to the crossing instead of
+  oscillating between the two doorway sides.
+- Enemy target acquisition and chase retention test reachability with
+  `NavigationServer3D.MapGetPath` (`EnemyBehaviorComponent.IsReachableByNavmesh`): a target behind
+  a closed door yields no connecting path, so the enemy will not aggro through it and will route
+  through open doors instead. The query is side-effect free and never disturbs the agent's path.
+- When a chase is lost (the player breaks contact or a door closes), the enemy enters `Searching`
+  and walks to the last known position for `EnemyBehaviorProfile.SearchDuration` before returning
+  to patrol, rather than forgetting the target instantly.
+- Closed doors still block physics, so a roaming enemy that bumps one recovers via stuck handling.
+- The navigation debug overlay (Debug menu → Navigation) draws each door link as a strip: green
+  while open (active), red while closed (disabled), alongside the blue baked navmesh.
 
-The important rule: navmesh remains the source of movement paths; logical door state gates target selection and reachability.
+The important rule: door state lives in the navmesh (open = link enabled), and the same navmesh
+drives movement, reachability, and aggro — no parallel reachability model.
 
 ## Room Template Creation
 

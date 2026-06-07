@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=4 uid="uid://dbns86sg2gnll"]
+[gd_scene load_steps=10 format=4 uid="uid://dbns86sg2gnll"]
 
 [ext_resource type="Script" uid="uid://bbavd8jl8n263" path="res://scenes/props/Door.cs" id="1_rychn"]
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="2_yt2ch"]
@@ -78,16 +78,6 @@ shadow_mesh = SubResource("ArrayMesh_yxqci")
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_ce1s2"]
 points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, -0.5, -2, 0, 0.5, -2, 4, -0.5, -2, 0, -0.5)
 
-[sub_resource type="NavigationMesh" id="NavigationMesh_ykr7j"]
-vertices = PackedVector3Array(-1.25, 0.5, -1.25, -1.25, 0.5, 1.25, 1.25, 0.5, 1.25, 1.25, 0.5, -1.25)
-polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
-border_size = 0.75
-agent_height = 2.0
-agent_radius = 0.75
-
-[sub_resource type="BoxMesh" id="BoxMesh_ddnv5"]
-size = Vector3(4, 0, 4)
-
 [node name="Door" type="Node3D" groups=["door", "prop"]]
 script = ExtResource("1_rychn")
 
@@ -113,10 +103,7 @@ shape = SubResource("ConvexPolygonShape3D_ce1s2")
 [node name="InteractiveComponent" parent="." instance=ExtResource("3_0wdxa")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 
-[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
-navigation_mesh = SubResource("NavigationMesh_ykr7j")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D"]
-layers = 0
-mesh = SubResource("BoxMesh_ddnv5")
-skeleton = NodePath("")
+[node name="NavigationLink3D" type="NavigationLink3D" parent="."]
+start_position = Vector3(0, 0.1, -1.5)
+end_position = Vector3(0, 0.1, 1.5)
+enabled = false
