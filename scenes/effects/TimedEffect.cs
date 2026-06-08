@@ -7,7 +7,7 @@ public partial class TimedEffect : Node3D, IPooledNode
 {
 	[Export] public float Lifetime { get; set; } = 1.0f;
 
-	private float _remainingLifetime;
+	private Cooldown _lifetime;
 
 	public override void _Ready()
 	{
@@ -16,8 +16,7 @@ public partial class TimedEffect : Node3D, IPooledNode
 
 	public override void _Process(double delta)
 	{
-		_remainingLifetime -= (float)delta;
-		if (_remainingLifetime <= 0.0f)
+		if (_lifetime.Tick(delta))
 		{
 			ReturnToPoolOrFree();
 		}
@@ -46,7 +45,7 @@ public partial class TimedEffect : Node3D, IPooledNode
 
 	private void StartLifetime()
 	{
-		_remainingLifetime = Lifetime;
+		_lifetime.Start(Lifetime);
 		StartParticles(this);
 	}
 

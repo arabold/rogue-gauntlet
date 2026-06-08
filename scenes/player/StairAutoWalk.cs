@@ -7,7 +7,7 @@ public partial class StairAutoWalk : Node
 {
 	private Player _player;
 	private Vector3 _direction;
-	private double _remainingSeconds;
+	private Cooldown _walkCooldown;
 
 	public static void Start(Player player, Vector3 direction, double durationSeconds)
 	{
@@ -21,8 +21,8 @@ public partial class StairAutoWalk : Node
 			Name = "StairAutoWalk",
 			_player = player,
 			_direction = direction.Normalized(),
-			_remainingSeconds = durationSeconds,
 		};
+		autoWalk._walkCooldown.Start((float)durationSeconds);
 		player.AddChild(autoWalk);
 	}
 
@@ -34,8 +34,7 @@ public partial class StairAutoWalk : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		_remainingSeconds -= delta;
-		if (_remainingSeconds <= 0 || !GodotObject.IsInstanceValid(_player))
+		if (_walkCooldown.Tick(delta) || !GodotObject.IsInstanceValid(_player))
 		{
 			Finish();
 			return;

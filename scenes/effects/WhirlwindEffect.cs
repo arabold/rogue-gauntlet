@@ -23,7 +23,7 @@ public partial class WhirlwindEffect : TimedEffect
 	private MultiMeshInstance3D _windMeshInstance;
 	private MultiMeshInstance3D _debrisMeshInstance;
 	private float _age;
-	private float _updateCooldown;
+	private Cooldown _updateCooldown;
 
 	public override void _Ready()
 	{
@@ -34,7 +34,7 @@ public partial class WhirlwindEffect : TimedEffect
 	public override void OnSpawnedFromPool()
 	{
 		_age = 0.0f;
-		_updateCooldown = 0.0f;
+		_updateCooldown.Start(0.0f);
 		base.OnSpawnedFromPool();
 	}
 
@@ -42,13 +42,12 @@ public partial class WhirlwindEffect : TimedEffect
 	{
 		base._Process(delta);
 		_age += (float)delta;
-		_updateCooldown -= (float)delta;
-		if (_updateCooldown > 0.0f)
+		if (!_updateCooldown.Tick(delta))
 		{
 			return;
 		}
 
-		_updateCooldown = UpdateInterval;
+		_updateCooldown.Start(UpdateInterval);
 
 		for (int i = 0; i < _windPieces.Count; i++)
 		{

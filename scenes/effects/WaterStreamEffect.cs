@@ -27,8 +27,8 @@ public partial class WaterStreamEffect : Node3D, IPooledNode
 	private GpuParticles3D _dropletEmitter;
 	private ParticleProcessMaterial _dropletProcessMaterial;
 	private float _age;
-	private float _meshUpdateCooldown;
-	private float _dropletUpdateCooldown;
+	private Cooldown _meshUpdateCooldown;
+	private Cooldown _dropletUpdateCooldown;
 	private bool _meshDirty;
 
 	public override void _Ready()
@@ -43,8 +43,8 @@ public partial class WaterStreamEffect : Node3D, IPooledNode
 	public void OnSpawnedFromPool()
 	{
 		_age = 0.0f;
-		_meshUpdateCooldown = 0.0f;
-		_dropletUpdateCooldown = 0.0f;
+		_meshUpdateCooldown.Start(0.0f);
+		_dropletUpdateCooldown.Start(0.0f);
 		_meshDirty = true;
 		_points.Clear();
 		Target ??= GetParent<Node3D>();
@@ -88,19 +88,18 @@ public partial class WaterStreamEffect : Node3D, IPooledNode
 			}
 		}
 
-		_meshUpdateCooldown -= (float)delta;
-		if (_meshDirty && _meshUpdateCooldown <= 0.0f)
+		bool meshReady = _meshUpdateCooldown.Tick(delta);
+		if (_meshDirty && meshReady)
 		{
 			BuildMeshes();
 			_meshDirty = false;
-			_meshUpdateCooldown = MeshUpdateInterval;
+			_meshUpdateCooldown.Start(MeshUpdateInterval);
 		}
 
-		_dropletUpdateCooldown -= (float)delta;
-		if (_dropletUpdateCooldown <= 0.0f)
+		if (_dropletUpdateCooldown.Tick(delta))
 		{
 			UpdateDroplets();
-			_dropletUpdateCooldown = DropletUpdateInterval;
+			_dropletUpdateCooldown.Start(DropletUpdateInterval);
 		}
 	}
 

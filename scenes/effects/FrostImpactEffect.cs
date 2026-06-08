@@ -25,7 +25,7 @@ public partial class FrostImpactEffect : TimedEffect
 	private GpuParticles3D _shardEmitter;
 	private ParticleProcessMaterial _shardProcessMaterial;
 	private float _age;
-	private float _updateCooldown;
+	private Cooldown _updateCooldown;
 	private bool _shattered;
 
 	public override void _Ready()
@@ -41,7 +41,7 @@ public partial class FrostImpactEffect : TimedEffect
 	public override void OnSpawnedFromPool()
 	{
 		_age = 0.0f;
-		_updateCooldown = 0.0f;
+		_updateCooldown.Start(0.0f);
 		_shattered = false;
 		ResetVisuals();
 		base.OnSpawnedFromPool();
@@ -60,13 +60,12 @@ public partial class FrostImpactEffect : TimedEffect
 	{
 		base._Process(delta);
 		_age += (float)delta;
-		_updateCooldown -= (float)delta;
-		if (_updateCooldown > 0.0f)
+		if (!_updateCooldown.Tick(delta))
 		{
 			return;
 		}
 
-		_updateCooldown = UpdateInterval;
+		_updateCooldown.Start(UpdateInterval);
 		UpdateSpikes();
 		UpdateFrostDisk();
 

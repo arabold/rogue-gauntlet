@@ -19,7 +19,7 @@ public partial class MuzzleBurstEffect : Node3D, IPooledNode
 	private GpuParticles3D _sparks;
 	private ParticleProcessMaterial _sparkProcessMaterial;
 	private float _age;
-	private float _updateCooldown;
+	private Cooldown _updateCooldown;
 	private bool _isActive;
 
 	public override void _Ready()
@@ -34,7 +34,7 @@ public partial class MuzzleBurstEffect : Node3D, IPooledNode
 	public void OnSpawnedFromPool()
 	{
 		_age = 0.0f;
-		_updateCooldown = 0.0f;
+		_updateCooldown.Start(0.0f);
 		_isActive = true;
 		RestartSparks();
 	}
@@ -56,10 +56,9 @@ public partial class MuzzleBurstEffect : Node3D, IPooledNode
 	public override void _Process(double delta)
 	{
 		_age += (float)delta;
-		_updateCooldown -= (float)delta;
-		if (_updateCooldown <= 0.0f)
+		if (_updateCooldown.Tick(delta))
 		{
-			_updateCooldown = UpdateInterval;
+			_updateCooldown.Start(UpdateInterval);
 			float t = Mathf.Clamp(_age / Lifetime, 0.0f, 1.0f);
 			UpdateCore(t);
 			UpdateRings(t);

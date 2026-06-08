@@ -14,7 +14,7 @@ public partial class MagicRibbonTrail : MeshInstance3D, IPooledNode
 	[Export] public float MeshUpdateInterval { get; set; } = 0.033f;
 
 	private readonly List<Vector3> _points = new();
-	private float _meshUpdateCooldown;
+	private Cooldown _meshUpdateCooldown;
 	private bool _meshDirty;
 
 	public override void _Ready()
@@ -28,7 +28,7 @@ public partial class MagicRibbonTrail : MeshInstance3D, IPooledNode
 	{
 		_points.Clear();
 		Mesh = null;
-		_meshUpdateCooldown = 0.0f;
+		_meshUpdateCooldown.Start(0.0f);
 		_meshDirty = false;
 		Target ??= GetParent<Node3D>();
 	}
@@ -59,12 +59,12 @@ public partial class MagicRibbonTrail : MeshInstance3D, IPooledNode
 			}
 		}
 
-		_meshUpdateCooldown -= (float)delta;
-		if (_meshDirty && _meshUpdateCooldown <= 0.0f)
+		bool meshReady = _meshUpdateCooldown.Tick(delta);
+		if (_meshDirty && meshReady)
 		{
 			BuildMesh();
 			_meshDirty = false;
-			_meshUpdateCooldown = MeshUpdateInterval;
+			_meshUpdateCooldown.Start(MeshUpdateInterval);
 		}
 	}
 

@@ -35,7 +35,7 @@ public partial class ImpactLayerEffect : Node3D, IPooledNode
 	private StandardMaterial3D _streakMaterial;
 	private StandardMaterial3D _crackMaterial;
 	private float _age;
-	private float _updateCooldown;
+	private Cooldown _updateCooldown;
 
 	public override void _Ready()
 	{
@@ -48,26 +48,25 @@ public partial class ImpactLayerEffect : Node3D, IPooledNode
 	public void OnSpawnedFromPool()
 	{
 		_age = 0.0f;
-		_updateCooldown = 0.0f;
+		_updateCooldown.Start(0.0f);
 		UpdateVisuals(0.0f);
 	}
 
 	public void OnDespawnedToPool()
 	{
 		_age = 0.0f;
-		_updateCooldown = 0.0f;
+		_updateCooldown.Start(0.0f);
 	}
 
 	public override void _Process(double delta)
 	{
 		_age += (float)delta;
-		_updateCooldown -= (float)delta;
-		if (_updateCooldown > 0.0f)
+		if (!_updateCooldown.Tick(delta))
 		{
 			return;
 		}
 
-		_updateCooldown = UpdateInterval;
+		_updateCooldown.Start(UpdateInterval);
 		UpdateVisuals(Mathf.Clamp(_age / Duration, 0.0f, 1.0f));
 	}
 
