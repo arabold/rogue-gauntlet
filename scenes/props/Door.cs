@@ -49,7 +49,7 @@ public partial class Door : Node3D
 	/// Disabling it when the door is closed makes the navmesh the single source of truth for
 	/// reachability: enemies route around closed doors. A link spans the gap rather than filling
 	/// it, so the agent is briefly off the navmesh mid-doorway; the enemy chase logic commits to
-	/// the crossing (see EnemyBehaviorComponent.IsCrossingDoorway) to avoid oscillating there.
+	/// the crossing (see NavigationComponent.IsCrossingDoorway) to avoid oscillating there.
 	/// </summary>
 	private void InitializeNodes()
 	{

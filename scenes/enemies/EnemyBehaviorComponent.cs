@@ -1,5 +1,4 @@
 using Godot;
-using System.Linq;
 
 /// <summary>
 /// High-level behavior states available to enemy AI controllers.
@@ -31,7 +30,11 @@ public enum EnemyAction
 }
 
 /// <summary>
-/// Coordinates enemy target acquisition, roaming, navigation, and attacks.
+/// Thin host that wires up an enemy's AI: it owns the perception and navigation components, the
+/// behavior <see cref="EnemyStateMachine"/>, and the timed-action layer (spawn, hit, attack, death)
+/// that gates the machine. Per-state behavior lives in the <see cref="IEnemyState"/> classes and
+/// shared data in <see cref="EnemyContext"/>; this component only ties them together, surfaces the
+/// animation <c>Is*</c> flags, and runs the action gate in <see cref="_PhysicsProcess"/>.
 /// </summary>
 /// <remarks>
 /// Monster-specific tuning lives in <see cref="EnemyBehaviorProfile"/> resources so new enemy
@@ -39,31 +42,6 @@ public enum EnemyAction
 /// </remarks>
 public partial class EnemyBehaviorComponent : Node
 {
-	private const float StuckCheckInterval = 0.25f;
-	private const float StuckMinimumProgress = 0.2f;
-	private const float StuckRecoverySeconds = 1.0f;
-
-	// How far the desired heading must point into a wall normal before we slide along that wall.
-	// Filters floor/ceiling contacts and grazing touches so straight movement is untouched.
-	private const float WallSlideEngageDot = -0.05f;
-	// Minimum squared length of the wall-projected heading we trust. Below this the actor is
-	// wedged in a concave corner with no clear tangent, so we keep the original heading and let
-	// stuck-recovery repath instead of snapping to an unstable sliver at full speed.
-	private const float WallSlideMinLengthSquared = 0.04f;
-	private const float TargetScanInterval = 0.2f;
-	private const float TargetPathRefreshInterval = 0.12f;
-	private const float TargetReachabilityCheckInterval = 0.35f;
-	private const float TargetPositionRefreshDistance = 0.35f;
-
-	// Horizontal distance from the baked navmesh beyond which the actor is treated as crossing a
-	// doorway link. agent_radius keeps a navigating body flush with the mesh everywhere else, so
-	// only the gap a door's NavigationLink3D spans pushes it this far off-mesh.
-	private const float DoorwayCrossingOffMeshDistance = 0.6f;
-
-	// How close a navigation path must end to the target's projected navmesh point for the
-	// target to count as reachable. A blocked target yields a path that stops short of this.
-	private const float ReachabilityThreshold = 1.5f;
-
 	/// <summary>
 	/// Character body moved and rotated by this behavior controller.
 	/// </summary>
@@ -84,7 +62,7 @@ public partial class EnemyBehaviorComponent : Node
 	/// </summary>
 	[Export] public EnemyBehaviorProfile Profile { get; set; }
 
-	public EnemyBehaviorState CurrentBehavior { get; private set; } = EnemyBehaviorState.Idle;
+	public EnemyBehaviorState CurrentBehavior => _machine?.CurrentId ?? EnemyBehaviorState.Idle;
 	public EnemyAction CurrentAction { get; private set; } = EnemyAction.Spawning;
 
 	// We can use these properties to automatically transition between animation states
@@ -101,48 +79,56 @@ public partial class EnemyBehaviorComponent : Node
 	/// <summary>
 	/// The target node that the enemy is chasing
 	/// </summary>
-	public Node3D Target { get; private set; } = null;
+	public Node3D Target => _context?.Target;
 
-	private RayCast3D _sightRay;
-	private NavigationAgent3D _navigationAgent;
+	private PerceptionComponent _perception;
+	private NavigationComponent _navigation;
 	private EnemyBehaviorProfile _profile;
-	private float _remainingActionTime = 0;
-	private Vector3 _lastKnownTargetPosition;
-	private Vector3 _homePosition;
-	private Vector3 _roamTargetPosition;
-	private bool _hasRoamTarget;
-	private float _remainingRoamPauseTime;
 	private AttackController _attackController;
-	private Vector3 _lastStuckCheckPosition;
-	private float _stuckCheckTimer;
-	private float _stuckTime;
-	private float _remainingSearchTime;
-	private float _targetScanTimer;
-	private float _targetPathRefreshTimer;
-	private float _targetReachabilityTimer;
-	private bool _lastTargetReachable = true;
+	private EnemyContext _context;
+	private EnemyStateMachine _machine;
+	private Cooldown _actionCooldown;
 
 	public override void _Ready()
 	{
 		base._Ready();
 
-		_sightRay = GetNode<RayCast3D>("SightRay");
-		_navigationAgent = GetNode<NavigationAgent3D>("NavigationAgent3D");
 		_profile = Profile ?? new EnemyBehaviorProfile();
-		CurrentBehavior = _profile.InitialBehavior;
 		CurrentAction = _profile.InitialAction;
-		_homePosition = Actor.GlobalPosition;
-		_lastStuckCheckPosition = Actor.GlobalPosition;
-		_remainingRoamPauseTime = RandomRange(0, _profile.RoamPauseMax);
+
+		// SightRay and NavigationAgent3D stay authored as direct children of this component so
+		// inherited enemy scenes are not disturbed; the perception and navigation components drive
+		// them by reference.
+		_perception = GetNode<PerceptionComponent>("Perception");
+		_perception.Initialize(Actor, _profile, GetNode<RayCast3D>("SightRay"));
+		_navigation = GetNode<NavigationComponent>("Navigation");
+		_navigation.Initialize(Actor, MovementComponent, GetNode<NavigationAgent3D>("NavigationAgent3D"));
 
 		_attackController = Actor.GetNodeOrNull<AttackController>("AttackController");
 		if (_attackController == null)
 		{
 			GD.PushError($"{Actor.Name} has no AttackController child; melee attacks will not deal damage.");
 		}
+
+		// The context is the shared blackboard the behavior states read and mutate; the state machine
+		// owns the behavior layer. The timed-action layer (spawn, hit, attack, death) stays on this
+		// host as a gate above the machine - see _PhysicsProcess.
+		_context = new EnemyContext(Actor, MovementComponent, _perception, _navigation, _profile, RequestMeleeAttack);
+		_machine = new EnemyStateMachine(_context, new IEnemyState[]
+		{
+			new IdleState(),
+			new PatrollingState(_profile),
+			new SearchingState(),
+			new ChasingState(),
+			new FleeingState(),
+			new PassiveState(EnemyBehaviorState.Sleeping),
+			new PassiveState(EnemyBehaviorState.Guarding),
+			new PassiveState(EnemyBehaviorState.Dead),
+		}, _profile.InitialBehavior);
+
 		// Ensure to properly initialize the enemy's state with the current selection
 		GameDebug.Ai($"{GetParent().Name} is initialized with {CurrentBehavior} and {CurrentAction}");
-		_remainingActionTime = _profile.GetActionDuration(CurrentAction);
+		_actionCooldown.Start(_profile.GetActionDuration(CurrentAction));
 
 		if (HealthComponent != null)
 		{
@@ -155,533 +141,52 @@ public partial class EnemyBehaviorComponent : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		_targetScanTimer -= (float)delta;
-		_targetPathRefreshTimer -= (float)delta;
-		_targetReachabilityTimer -= (float)delta;
+		_context.TickThrottles(delta);
 
+		// Action layer: timed actions (spawn, stand up, hit, attack, death) interrupt the behavior
+		// layer. While one is active the body holds still and the state machine does not tick; when it
+		// expires control returns to the machine.
 		if (CurrentAction != EnemyAction.None)
 		{
 			MovementComponent.Stop();
-			ResetStuckTracking();
+			_navigation.ResetStuckTracking();
 
-			// Update the remaining action time
-			_remainingActionTime -= (float)delta;
-			if (_remainingActionTime <= 0)
+			if (_actionCooldown.Tick(delta))
 			{
 				SetAction(EnemyAction.None);
 			}
 		}
 		else
 		{
-			// Main behavior logic goes here...
-			if (CurrentBehavior == EnemyBehaviorState.Idle)
-			{
-				ResetStuckTracking();
-
-				// Check if the target is within range and start chasing
-				if (ShouldScanForTarget() && LookForNewTarget())
-				{
-					SetBehavior(EnemyBehaviorState.Chasing);
-				}
-				else
-				{
-					SetBehavior(EnemyBehaviorState.Patrolling);
-				}
-			}
-			else if (CurrentBehavior == EnemyBehaviorState.Patrolling)
-			{
-				if (ShouldScanForTarget() && LookForNewTarget())
-				{
-					SetBehavior(EnemyBehaviorState.Chasing);
-				}
-				else
-				{
-					Roam(delta);
-				}
-			}
-			else if (CurrentBehavior == EnemyBehaviorState.Searching)
-			{
-				_remainingSearchTime -= (float)delta;
-
-				if (ShouldScanForTarget() && LookForNewTarget())
-				{
-					SetBehavior(EnemyBehaviorState.Chasing);
-				}
-				else if (_remainingSearchTime <= 0 || _navigationAgent.IsNavigationFinished())
-				{
-					// Reached the last known position or gave up; resume normal patrol.
-					SetBehavior(EnemyBehaviorState.Patrolling);
-				}
-				else
-				{
-					// Walk to the last known target position set when the chase was lost.
-					NavigateAlongPath();
-				}
-			}
-			else if (CurrentBehavior == EnemyBehaviorState.Chasing)
-			{
-				// While crossing a doorway link the actor is briefly off the navmesh (the link spans
-				// the doorway gap rather than filling it). Repathing or reachability-testing from an
-				// off-mesh position snaps the path start to whichever doorway side is nearest and
-				// flips it as the actor inches across, so the enemy oscillates in the doorway. Freeze
-				// those decisions until it lands back on the mesh so it commits to the crossing; it
-				// keeps following its already-computed path, which routes through the link.
-				bool crossingDoorway = IsCrossingDoorway();
-
-				if (!crossingDoorway && !CanReachCurrentTarget())
-				{
-					StartSearching();
-					return;
-				}
-
-				if (!crossingDoorway)
-				{
-					UpdateTargetPositionThrottled();
-				}
-
-				NavigateToTarget();
-
-				if (IsNearTarget())
-				{
-					// Attack the target
-					SetAction(EnemyAction.MeeleAttack);
-					TriggerMeleeAttack();
-				}
-			}
-			else if (CurrentBehavior == EnemyBehaviorState.Fleeing)
-			{
-				UpdateTargetPositionThrottled();
-				NavigateAwayFromTarget();
-				ResetStuckTracking();
-			}
+			_machine.Tick(delta);
 		}
-	}
-
-	private bool TestLineOfSight(Node3D node)
-	{
-		Vector3 endPoint = node.GlobalPosition;
-		Vector3 direction = (endPoint - Actor.GlobalPosition).Normalized();
-
-		Vector3 forward = -Actor.GlobalTransform.Basis.Z;
-		float angle = Mathf.RadToDeg(Mathf.Acos(forward.Normalized().Dot(direction)));
-		if (angle > _profile.DetectionAngle)
-		{
-			return false;
-		}
-
-		var space = _sightRay.GetWorld3D().DirectSpaceState;
-		var query = PhysicsRayQueryParameters3D.Create(
-			Actor.GlobalPosition,
-			endPoint,
-			_sightRay.CollisionMask);
-		var result = space.IntersectRay(query);
-		if (result.Count == 0)
-		{
-			return false;
-		}
-		if (result["collider"].Obj == node)
-		{
-			return true;
-		}
-		return false;
 	}
 
 	/// <summary>
-	/// Look for a new target in the scene
+	/// Starts a melee attack through the action layer. Handed to <see cref="EnemyContext"/> so the
+	/// Chasing state can request an attack without touching <see cref="CurrentAction"/> directly. The
+	/// action starts even when no AttackController is present (TriggerMeleeAttack logs the error),
+	/// preserving the original ordering.
 	/// </summary>
-	private bool LookForNewTarget()
+	private void RequestMeleeAttack()
 	{
-		_targetScanTimer = TargetScanInterval;
-		if (Target == null)
-		{
-			var players = GetTree().GetNodesInGroup("player").OfType<Player>();
-			foreach (var player in players)
-			{
-				if (player.IsDead) continue;
-
-				var distance = Actor.GlobalPosition.DistanceTo(player.GlobalPosition);
-				if (distance > 0 && distance <= _profile.DetectionRange)
-				{
-					bool isClose = distance < _profile.DetectionRange * _profile.CloseDetectionRangeMultiplier;
-					if (CanReachTarget(player) && (isClose || TestLineOfSight(player)))
-					{
-						GameDebug.Ai($"{Actor.Name} has spotted {player.Name}");
-						UpdateTargetPosition();
-						SetTarget(player);
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
-
-	private bool ShouldScanForTarget()
-	{
-		return Target == null && _targetScanTimer <= 0.0f;
-	}
-
-	private bool CanReachCurrentTarget()
-	{
-		if (_targetReachabilityTimer > 0.0f)
-		{
-			return _lastTargetReachable;
-		}
-
-		_targetReachabilityTimer = TargetReachabilityCheckInterval;
-		_lastTargetReachable = CanReachTarget(Target);
-		return _lastTargetReachable;
-	}
-
-	private bool CanReachTarget(Node3D target)
-	{
-		return target != null && IsReachableByNavmesh(target.GlobalPosition);
+		SetAction(EnemyAction.MeeleAttack);
+		TriggerMeleeAttack();
 	}
 
 	/// <summary>
-	/// Tests reachability against the baked navigation mesh, which already reflects door
-	/// state (each open door enables a <see cref="NavigationLink3D"/> across its doorway, closed
-	/// doors leave the doorway severed). A blocked target yields a path that stops short of it, so
-	/// we compare the path's end against the target's projected navmesh point. This query is
-	/// side-effect free and does not disturb the agent's current chase or roam path.
+	/// Forces a behavior transition through the state machine. Kept as the public entry point used
+	/// by the host (e.g. <see cref="OnDie"/>); normal transitions happen inside the states.
 	/// </summary>
-	private bool IsReachableByNavmesh(Vector3 targetPosition)
-	{
-		Rid navigationMap = Actor.GetWorld3D().NavigationMap;
-		if (!navigationMap.IsValid)
-		{
-			return true;
-		}
-
-		Vector3[] path = NavigationServer3D.MapGetPath(
-			navigationMap, Actor.GlobalPosition, targetPosition, true);
-		if (path.Length == 0)
-		{
-			return false;
-		}
-
-		Vector3 mappedTarget = NavigationServer3D.MapGetClosestPoint(navigationMap, targetPosition);
-		return path[^1].DistanceTo(mappedTarget) <= ReachabilityThreshold;
-	}
-
-	/// <summary>
-	/// True while the actor is mid-doorway, crossing the gap a door's <see cref="NavigationLink3D"/>
-	/// spans. Detected by horizontal distance to the nearest navmesh point: agent_radius keeps a
-	/// navigating body flush with the mesh everywhere else, so only a doorway link pushes it past
-	/// <see cref="DoorwayCrossingOffMeshDistance"/>. Chasing uses this to commit to the crossing.
-	/// </summary>
-	private bool IsCrossingDoorway()
-	{
-		Rid navigationMap = Actor.GetWorld3D().NavigationMap;
-		if (!navigationMap.IsValid)
-		{
-			return false;
-		}
-
-		Vector3 closest = NavigationServer3D.MapGetClosestPoint(navigationMap, Actor.GlobalPosition);
-		return HorizontalDistance(Actor.GlobalPosition, closest) > DoorwayCrossingOffMeshDistance;
-	}
-
-	/// <summary>
-	/// Drops the current target and investigates its last known position for a while before
-	/// returning to patrol, so a player that breaks contact (or closes a door) is pursued to
-	/// where they were last seen instead of being forgotten instantly.
-	/// </summary>
-	private void StartSearching()
-	{
-		MovementComponent.Stop();
-		Target = null;
-		_lastTargetReachable = true;
-		_remainingSearchTime = _profile.SearchDuration;
-		_navigationAgent.SetTargetPosition(_lastKnownTargetPosition);
-		SetBehavior(EnemyBehaviorState.Searching);
-	}
-
-	/// <summary>
-	/// Check if the enemy is near the target
-	/// </summary>
-	private bool IsNearTarget()
-	{
-		if (Target == null)
-		{
-			return false;
-		}
-
-		float distance = Actor.GlobalPosition.DistanceTo(Target.GlobalPosition);
-		return distance < _profile.MeleeAttackRange;
-	}
-
-	/// <summary>
-	/// Update the last known target position
-	/// </summary>
-	private bool UpdateTargetPosition()
-	{
-		if (Target == null)
-		{
-			return false;
-		}
-		_lastKnownTargetPosition = Target.GlobalPosition;
-		_navigationAgent.SetTargetPosition(_lastKnownTargetPosition);
-		return true;
-	}
-
-	private bool UpdateTargetPositionThrottled()
-	{
-		if (Target == null)
-		{
-			return false;
-		}
-
-		if (_targetPathRefreshTimer > 0.0f
-			&& _lastKnownTargetPosition.DistanceTo(Target.GlobalPosition) < TargetPositionRefreshDistance)
-		{
-			return true;
-		}
-
-		_targetPathRefreshTimer = TargetPathRefreshInterval;
-		return UpdateTargetPosition();
-	}
-
-	private void Roam(double delta)
-	{
-		if (_remainingRoamPauseTime > 0)
-		{
-			_remainingRoamPauseTime -= (float)delta;
-			MovementComponent.Stop();
-			return;
-		}
-
-		if (!_hasRoamTarget)
-		{
-			if (!TrySetRoamTarget())
-			{
-				StartRoamPause();
-				MovementComponent.Stop();
-				return;
-			}
-		}
-
-		if (_navigationAgent.IsNavigationFinished()
-			|| Actor.GlobalPosition.DistanceTo(_roamTargetPosition) <= _profile.RoamTargetDistance)
-		{
-			_hasRoamTarget = false;
-			StartRoamPause();
-			MovementComponent.Stop();
-			return;
-		}
-
-		NavigateAlongPath();
-	}
-
-	private bool TrySetRoamTarget()
-	{
-		for (int i = 0; i < _profile.RoamTargetAttempts; i++)
-		{
-			float angle = RandomRange(0, Mathf.Pi * 2.0f);
-			float distance = RandomRange(_profile.RoamRadius * 0.25f, _profile.RoamRadius);
-			Vector3 offset = new(Mathf.Cos(angle) * distance, 0, Mathf.Sin(angle) * distance);
-			Vector3 targetPosition = NavigationServer3D.MapGetClosestPoint(
-				Actor.GetWorld3D().NavigationMap,
-				_homePosition + offset);
-
-			if (targetPosition.DistanceTo(_homePosition) > _profile.RoamRadius
-				|| targetPosition.DistanceTo(Actor.GlobalPosition) <= _profile.RoamTargetDistance)
-			{
-				continue;
-			}
-
-			_roamTargetPosition = targetPosition;
-			_hasRoamTarget = true;
-			_navigationAgent.SetTargetPosition(_roamTargetPosition);
-			return true;
-		}
-
-		return false;
-	}
-
-	private void StartRoamPause()
-	{
-		_remainingRoamPauseTime = RandomRange(_profile.RoamPauseMin, _profile.RoamPauseMax);
-	}
-
-	private static float RandomRange(float min, float max)
-	{
-		return min + ((float)GD.Randf() * (max - min));
-	}
-
-	/// <summary>
-	/// Navigate to the last known target position (i.e. chase the target)
-	/// </summary>
-	private void NavigateToTarget()
-	{
-		if (Target == null)
-		{
-			MovementComponent.Stop();
-			return;
-		}
-
-		NavigateAlongPath();
-	}
-
-	private void NavigateAlongPath()
-	{
-		if (_navigationAgent.IsNavigationFinished())
-		{
-			MovementComponent.Stop();
-			ResetStuckTracking();
-			return;
-		}
-
-		// Move to the next path position
-		Vector3 destination = _navigationAgent.GetNextPathPosition();
-		Vector3 localDestination = destination - Actor.GlobalPosition;
-		var direction = new Vector3(localDestination.X, 0, localDestination.Z).Normalized();
-		if (direction == Vector3.Zero)
-		{
-			MovementComponent.Stop();
-			ResetStuckTracking();
-			return;
-		}
-
-		direction = SteerAlongWalls(direction);
-		MovementComponent.SetInputDirection(direction);
-		UpdateStuckTracking();
-	}
-
-	/// <summary>
-	/// Deflects a desired horizontal heading along any wall the actor is pressing into so it
-	/// follows the wall at full speed toward its path waypoint instead of grinding to a crawl at
-	/// corners. Uses the previous physics frame's slide collisions (movement runs after this
-	/// component). Returns the heading unchanged when nothing is blocking it or when the actor is
-	/// wedged in a concave corner with no usable tangent.
-	/// </summary>
-	private Vector3 SteerAlongWalls(Vector3 desired)
-	{
-		Vector3 deflected = desired;
-		int collisionCount = Actor.GetSlideCollisionCount();
-		for (int i = 0; i < collisionCount; i++)
-		{
-			KinematicCollision3D collision = Actor.GetSlideCollision(i);
-
-			// Never slide along the chase target itself, or the enemy would orbit the player.
-			if (collision.GetCollider() == Target)
-			{
-				continue;
-			}
-
-			Vector3 normal = collision.GetNormal();
-			normal.Y = 0;
-			if (normal.LengthSquared() < 0.0001f)
-			{
-				// Floor or ceiling contact, not a wall.
-				continue;
-			}
-			normal = normal.Normalized();
-
-			float into = deflected.Dot(normal);
-			if (into < WallSlideEngageDot)
-			{
-				// Remove the component pushing into the wall, leaving the tangent along it.
-				deflected -= normal * into;
-			}
-		}
-
-		if (deflected.LengthSquared() < WallSlideMinLengthSquared)
-		{
-			return desired;
-		}
-
-		return deflected;
-	}
-
-	private void UpdateStuckTracking()
-	{
-		_stuckCheckTimer += (float)GetPhysicsProcessDeltaTime();
-		if (_stuckCheckTimer < StuckCheckInterval)
-		{
-			return;
-		}
-
-		float progress = HorizontalDistance(Actor.GlobalPosition, _lastStuckCheckPosition);
-		_stuckTime = progress < StuckMinimumProgress ? _stuckTime + _stuckCheckTimer : 0;
-		_lastStuckCheckPosition = Actor.GlobalPosition;
-		_stuckCheckTimer = 0;
-
-		if (_stuckTime >= StuckRecoverySeconds)
-		{
-			RecoverFromStuckPath();
-		}
-	}
-
-	private void RecoverFromStuckPath()
-	{
-		GameDebug.Ai($"{Actor.Name} appears stuck while {CurrentBehavior}; refreshing path.");
-		ResetStuckTracking();
-
-		if (CurrentBehavior == EnemyBehaviorState.Patrolling)
-		{
-			_hasRoamTarget = false;
-			StartRoamPause();
-			MovementComponent.Stop();
-			return;
-		}
-
-		if (CurrentBehavior == EnemyBehaviorState.Searching || CurrentBehavior == EnemyBehaviorState.Chasing)
-		{
-			_navigationAgent.SetTargetPosition(_lastKnownTargetPosition);
-		}
-	}
-
-	private void ResetStuckTracking()
-	{
-		_lastStuckCheckPosition = Actor.GlobalPosition;
-		_stuckCheckTimer = 0;
-		_stuckTime = 0;
-	}
-
-	private static float HorizontalDistance(Vector3 a, Vector3 b)
-	{
-		return new Vector2(a.X, a.Z).DistanceTo(new Vector2(b.X, b.Z));
-	}
-
-	/// <summary>
-	/// Navigate away from the last known target position (i.e. flee from the target)
-	/// </summary>
-	private void NavigateAwayFromTarget()
-	{
-		if (Target == null)
-		{
-			MovementComponent.Stop();
-			return;
-		}
-
-		Vector3 destination = _navigationAgent.GetNextPathPosition();
-		Vector3 localDestination = destination - Actor.GlobalPosition;
-		var direction = new Vector3(localDestination.X, 0, localDestination.Z).Normalized();
-		MovementComponent.SetInputDirection(-direction);
-	}
-
 	public void SetBehavior(EnemyBehaviorState newBehavior)
 	{
-		if (CurrentBehavior != newBehavior)
-		{
-			GameDebug.Ai($"{Actor.Name} is now {newBehavior}");
-			CurrentBehavior = newBehavior;
-			if (newBehavior != EnemyBehaviorState.Patrolling)
-			{
-				_hasRoamTarget = false;
-			}
-		}
+		_machine?.ChangeState(newBehavior);
 	}
 
+	/// <summary>Sets the chase target (delegates to the shared context).</summary>
 	public void SetTarget(Node3D target)
 	{
-		if (Target != target)
-		{
-			GameDebug.Ai($"{Actor.Name} is now targeting {target.Name}");
-			Target = target;
-		}
-		UpdateTargetPosition();
+		_context?.SetTarget(target);
 	}
 
 	public void SetAction(EnemyAction newAction)
@@ -690,7 +195,7 @@ public partial class EnemyBehaviorComponent : Node
 		{
 			GameDebug.Ai($"{Actor.Name} is performing {newAction}");
 			CurrentAction = newAction;
-			_remainingActionTime = _profile.GetActionDuration(newAction);
+			_actionCooldown.Start(_profile.GetActionDuration(newAction));
 			if (newAction != EnemyAction.None)
 			{
 				MovementComponent.Stop();

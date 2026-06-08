@@ -89,6 +89,94 @@ Because the camera rotates, a closed door can end up hidden behind a wall. Each 
 
 Reveal state is saved per dungeon depth (`WorldSaveData.RevealedLevels`) as the **rooms entered** and **doors opened**, not the raw tiles. On load, `FogOfWar` replays them via `MapGenerator.RestoreReveal`; because generation is deterministic, replaying reproduces the exact explored area. This survives quit/reload and travelling between depths.
 
+## Enemy AI structure
+
+Enemy behavior is split across small, single-purpose pieces so each concern can change without
+destabilizing the others (the layout that replaced the original monolithic controller):
+
+- **`EnemyBehaviorComponent`** (the host node) wires everything together and owns the **action
+  layer**: timed, animation-driving actions (spawn, stand up, hit, melee/ranged attack, death). While
+  an action is active the body holds still and the behavior layer is frozen; when it elapses control
+  returns to the state machine. The host also exposes the `Is*` flags the `AnimationTree` reads.
+- **`PerceptionComponent`** answers "what can I sense" — the vision cone, hearing radius, and
+  line-of-sight test (see "Enemy Detection" below). It never decides what to do about a target.
+- **`NavigationComponent`** owns "how the body moves" along the baked navmesh — path-following, wall
+  sliding, stuck detection, and navmesh queries (reachability, doorway crossing). Recovery *policy*
+  (repath, abandon roam, give up a chase) lives in the states, not here.
+- **The behavior state machine** (`EnemyStateMachine` + the `IEnemyState` classes Idle, Patrolling,
+  Searching, Chasing, Fleeing, and a passive state for Sleeping/Guarding/Dead) decides what to do.
+  Each state has `Enter`/`Update`/`Exit`; `Update` returns the next state's id or null to stay. One
+  instance of each state is created per enemy and reused, so state-local data persists across
+  re-entry. Shared data (current target, last-known position, roam anchor, throttle `Cooldown`s) and
+  the perception/navigation helper queries live on a shared **`EnemyContext`** passed to every state.
+
+`EnemyBehaviorProfile` resources hold the per-monster tuning. When changing detection or chase rules,
+edit the perception/state code and keep the invariants documented below intact.
+
+## Enemy Detection (sight & hearing)
+
+Enemies acquire the player through `PerceptionComponent.FindVisibleTarget` (driven from the behavior
+layer's `EnemyContext.LookForNewTarget`). A candidate must be within `DetectionRange` **and**
+reachable over the navmesh (`EnemyContext.CanReachTarget`, backed by `NavigationComponent.IsReachable`),
+and then pass one of two detection modes — **but every mode requires an unobstructed line of sight**:
+
+```
+detected = isReachable && (isClose || IsWithinVisionCone) && CanSee
+```
+
+- **Sight (long range, directional).** Up to `DetectionRange`, the player is seen only when inside
+  the forward vision cone (`IsWithinVisionCone`, half-angle `DetectionAngle`). Because it is
+  directional, the player can slip past *behind* an enemy without being seen.
+- **Hearing (close range, omnidirectional).** Within `DetectionRange * CloseDetectionRangeMultiplier`
+  the player is detected regardless of facing — the enemy "hears" them. Facing is dropped, but the
+  line-of-sight requirement is **not**.
+- **Line of sight (`PerceptionComponent.CanSee`) is mandatory for both modes.** This is what keeps
+  detection inside a single room: walls and closed doors sit on the sight collision mask, so a clear
+  line proves enemy and player share an open space. Without it, the omnidirectional hearing radius
+  would wake enemies through walls in adjacent rooms.
+
+Invariants that future changes must preserve (breaking either silently re-introduces past bugs):
+
+1. **The sight ray is cast at eye height, not between body origins.** `CanSee` raises
+   both endpoints to the `SightRay` node's authored Y (~1.5). The body origins sit at floor level
+   (y≈0) while the collision shapes are at hip height; a floor-level ray grazes the ground and wall
+   bases and rarely reaches the target, so it would report "no clear line" for everyone and enemies
+   would never detect the player. Keep the cast horizontal at eye height.
+2. **Hearing must keep the line-of-sight check.** The `&& CanSee` applies to the whole
+   condition, including the `isClose` branch. Re-ordering it to `isClose || (cone && line)` would
+   let proximity alone aggro through walls again — the exact cross-room bug this design fixes.
+
+The relevant tuning lives on `EnemyBehaviorProfile`: `DetectionRange`, `DetectionAngle`,
+`CloseDetectionRangeMultiplier`. The sight mask and eye height are authored on the enemy's
+`SightRay` node (`enemy_behavior_component.tscn`).
+
+### Chase retention
+
+Acquisition (above) is separate from how long a chase *sticks*. Retention is **reachability-based,
+not sight-based**: once alerted, the enemy keeps repathing to the target's **live** position for as
+long as the navmesh can still reach it. This is deliberate — an enemy that has to take the long way
+around (out through another door, around a wall) loses line of sight to the player *en route*, so
+ending the chase on lost sight would make it give up exactly when it is pursuing correctly.
+
+- While the target stays reachable, the enemy follows its live position, pursuing around corners and
+  through open doors **even with no line of sight**.
+- A chase ends only when the navmesh path to the target breaks — e.g. a door closes between them, or
+  the target reaches an area with no connecting path. The enemy then enters `Searching`, walks to the
+  last reachable position for `SearchDuration`, and returns to patrol if it finds nothing.
+- Reachability is tested with `NavigationComponent.IsReachable` (door-aware; see "Enemy Door
+  Awareness"), on a throttled periodic check rather than every frame.
+- The give-up check is skipped while the agent is mid-doorway crossing a `NavigationLink3D`, where it
+  is briefly off-mesh; it commits to the crossing instead of oscillating between the doorway sides.
+
+Line of sight (`PerceptionComponent.CanSee`) still governs **acquisition** — it is what stops an
+enemy waking to a player in another room — but it must **not** be re-added as a chase give-up
+condition (that was the earlier design, and it abandoned valid pursuits around corners). There is no
+distance leash: an aggroed enemy pursues anywhere a path exists until the path is severed.
+
+The net effect: enemies follow you relentlessly through the connected space once alerted, and you
+shake them by breaking the path (closing a door between you) or reaching somewhere they can't path
+to — not merely by ducking out of sight.
+
 ## Enemy Door Awareness
 
 The baked navigation mesh is the single source of truth for both enemy movement and target
@@ -104,20 +192,21 @@ AI:
   hand-authored flat region patch only stitched one side of the gap and the path dead-ended at the
   door.
 - Because a link *spans* the gap rather than filling it, an agent is briefly off the navmesh while
-  crossing a doorway. The chase loop detects this (`EnemyBehaviorComponent.IsCrossingDoorway`, via
+  crossing a doorway. The chase state detects this (`NavigationComponent.IsCrossingDoorway`, via
   horizontal distance to the nearest navmesh point) and freezes path refresh and reachability
   give-ups until the agent lands back on the mesh, so it commits to the crossing instead of
   oscillating between the two doorway sides.
 - Enemy target acquisition and chase retention test reachability with
-  `NavigationServer3D.MapGetPath` (`EnemyBehaviorComponent.IsReachableByNavmesh`): a target behind
+  `NavigationServer3D.MapGetPath` (`NavigationComponent.IsReachable`): a target behind
   a closed door yields no connecting path, so the enemy will not aggro through it and will route
   through open doors instead. The query is side-effect free and never disturbs the agent's path.
 - When a chase is lost (the player breaks contact or a door closes), the enemy enters `Searching`
   and walks to the last known position for `EnemyBehaviorProfile.SearchDuration` before returning
   to patrol, rather than forgetting the target instantly.
 - Closed doors still block physics, so a roaming enemy that bumps one recovers via stuck handling.
-- The navigation debug overlay (Debug menu → Navigation) draws each door link as a strip: green
-  while open (active), red while closed (disabled), alongside the blue baked navmesh.
+- The navigation debug overlay (Debug menu → Navigation) draws each door link as a strip in the
+  same blue as the baked navmesh, snapped to the navmesh height, so every doorway bridge is
+  visible whether the door is open or closed.
 
 The important rule: door state lives in the navmesh (open = link enabled), and the same navmesh
 drives movement, reachability, and aggro — no parallel reachability model.

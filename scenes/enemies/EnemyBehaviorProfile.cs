@@ -31,7 +31,9 @@ public partial class EnemyBehaviorProfile : Resource
 	[Export] public float DetectionAngle { get; set; } = 45.0f;
 
 	/// <summary>
-	/// Fraction of detection range where the enemy wakes up from proximity alone.
+	/// Fraction of detection range within which the enemy detects the player regardless of
+	/// facing ("hearing"). Still requires an unobstructed line of sight, so it only triggers
+	/// when they share a room rather than through walls.
 	/// </summary>
 	[Export] public float CloseDetectionRangeMultiplier { get; set; } = 0.5f;
 

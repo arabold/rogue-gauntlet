@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://dt3ptc0tqgy5s"]
+[gd_scene load_steps=4 format=3 uid="uid://dt3ptc0tqgy5s"]
 
 [ext_resource type="Script" uid="uid://bs4got72vslex" path="res://scenes/enemies/EnemyBehaviorComponent.cs" id="1_o22n4"]
+[ext_resource type="Script" path="res://scenes/enemies/NavigationComponent.cs" id="2_nav"]
+[ext_resource type="Script" path="res://scenes/enemies/PerceptionComponent.cs" id="3_perc"]
 
 [node name="EnemyBehaviorComponent" type="Node3D"]
 script = ExtResource("1_o22n4")
@@ -16,3 +18,9 @@ target_position = Vector3(0, 0, -1)
 collision_mask = 23
 collide_with_areas = true
 debug_shape_custom_color = Color(1, 1, 0, 1)
+
+[node name="Navigation" type="Node" parent="."]
+script = ExtResource("2_nav")
+
+[node name="Perception" type="Node" parent="."]
+script = ExtResource("3_perc")
