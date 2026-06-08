@@ -36,6 +36,11 @@ public partial class MapGenerator : Node3D
 	// Connectors guarded by a door; the reveal cascade stops here until it opens.
 	private readonly HashSet<Vector2I> _dooredConnectors = new();
 	private readonly HashSet<Vector2I> _revealedTiles = new();
+	// Tiles uncovered by the in-progress RevealRoom call, batched so they fade out
+	// together as one overlay. Null when a reveal should apply instantly (e.g. on load).
+	private List<Vector2I> _revealBatch;
+	// Shared unlit black cap mesh, reused by the static occlusion grid and the fade overlay.
+	private PlaneMesh _occlusionCapMesh;
 	// Doors paired with the connector they guard, for toggling their x-ray indicator.
 	private readonly List<(Door Door, Vector2I Connector)> _doorIndicators = new();
 
@@ -56,6 +61,12 @@ public partial class MapGenerator : Node3D
 	/// without clipping rooms behind it in the isometric view. Tune visually.
 	/// </summary>
 	public readonly float OcclusionCapHeight = 4f;
+
+	/// <summary>
+	/// Seconds the black caps over a newly revealed area take to fade out, so exploring
+	/// eases an area into view instead of popping it.
+	/// </summary>
+	private const float FogRevealFadeSeconds = 0.6f;
 
 	private const int OcclusionItemId = 0;
 	private const int HorizontalWallOrientation = 0;
@@ -757,24 +768,10 @@ public partial class MapGenerator : Node3D
 	/// </summary>
 	private MeshLibrary BuildOcclusionMeshLibrary()
 	{
-		var material = new StandardMaterial3D
-		{
-			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
-			AlbedoColor = Colors.Black,
-			// Visible from both sides so the cap reads as black at any camera yaw.
-			CullMode = BaseMaterial3D.CullModeEnum.Disabled,
-		};
-
-		var plane = new PlaneMesh
-		{
-			Size = new Vector2(TileSize, TileSize),
-			Material = material,
-		};
-
 		var library = new MeshLibrary();
 		library.CreateItem(OcclusionItemId);
 		library.SetItemName(OcclusionItemId, "void_occluder");
-		library.SetItemMesh(OcclusionItemId, plane);
+		library.SetItemMesh(OcclusionItemId, OcclusionCapMesh);
 		// Floor tiles are centered on their cell, so the cap centers in X/Z; lift it
 		// to wall-top height so it forms a flat roof over the void.
 		library.SetItemMeshTransform(
@@ -783,6 +780,22 @@ public partial class MapGenerator : Node3D
 
 		return library;
 	}
+
+	/// <summary>
+	/// The shared unlit black cap covering one tile footprint. Used both by the static
+	/// occlusion grid and by the temporary overlay that fades a revealed area into view.
+	/// Visible from both sides so the cap reads as black at any camera yaw.
+	/// </summary>
+	private PlaneMesh OcclusionCapMesh => _occlusionCapMesh ??= new PlaneMesh
+	{
+		Size = new Vector2(TileSize, TileSize),
+		Material = new StandardMaterial3D
+		{
+			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+			AlbedoColor = Colors.Black,
+			CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+		},
+	};
 
 	/// <summary>
 	/// Places the black occluder caps across the map (plus a margin band so edge
@@ -819,12 +832,22 @@ public partial class MapGenerator : Node3D
 	/// door-free connectors. A doored connector blocks the cascade so the corridor
 	/// beyond a closed door stays hidden, but the doorway tile itself (part of the
 	/// room) is revealed; the closed door and the hidden corridor are the seal.
+	/// When <paramref name="animate"/> is set the newly uncovered tiles fade out
+	/// together; pass false to apply the reveal instantly (e.g. restoring a save).
 	/// </summary>
-	public void RevealRoom(int roomId)
+	public void RevealRoom(int roomId, bool animate = true)
 	{
 		if (roomId < 0 || roomId >= _roomRegions.Count || OcclusionGridMap == null)
 		{
 			return;
+		}
+
+		// Batch the tiles uncovered by this call so they can fade out as one overlay.
+		// Guard against re-entrancy so a single batch spans the whole cascade.
+		bool ownsBatch = animate && _revealBatch == null;
+		if (ownsBatch)
+		{
+			_revealBatch = new List<Vector2I>();
 		}
 
 		var roomQueue = new Queue<int>();
@@ -851,6 +874,12 @@ public partial class MapGenerator : Node3D
 		}
 
 		UpdateDoorIndicators();
+
+		if (ownsBatch)
+		{
+			SpawnRevealFade(_revealBatch);
+			_revealBatch = null;
+		}
 	}
 
 	/// <summary>
@@ -944,7 +973,7 @@ public partial class MapGenerator : Node3D
 
 		foreach (var roomId in revealedRoomIds)
 		{
-			RevealRoom(roomId);
+			RevealRoom(roomId, animate: false);
 		}
 
 		// Reveal through doors opened from the corridor side (no room was entered).
@@ -952,7 +981,7 @@ public partial class MapGenerator : Node3D
 		{
 			if (_connectorToRoom.TryGetValue(connector, out int roomId))
 			{
-				RevealRoom(roomId);
+				RevealRoom(roomId, animate: false);
 			}
 		}
 	}
@@ -1041,6 +1070,65 @@ public partial class MapGenerator : Node3D
 
 		// -1 clears the cell (GridMap.InvalidCellItem).
 		OcclusionGridMap.SetCellItem(TileToWorld(tile.X, 0, tile.Y), -1);
+
+		// Hand the just-cleared cap to the fade overlay so it eases out instead of popping.
+		_revealBatch?.Add(tile);
+	}
+
+	/// <summary>
+	/// Spawns a short-lived black overlay covering the just-revealed tiles and fades it
+	/// out, so a newly explored area eases into view. The caps were already cleared from
+	/// the static occlusion grid; this batched <see cref="MultiMeshInstance3D"/> stands in
+	/// for them only for the fade, then frees itself. It carries its own alpha-blended
+	/// material override (starting fully opaque, so there is no flash when it takes over
+	/// from the grid), leaving the shared opaque cap material untouched.
+	/// </summary>
+	private void SpawnRevealFade(List<Vector2I> tiles)
+	{
+		if (tiles == null || tiles.Count == 0 || OcclusionGridMap == null)
+		{
+			return;
+		}
+
+		var multiMesh = new MultiMesh
+		{
+			TransformFormat = MultiMesh.TransformFormatEnum.Transform3D,
+			Mesh = OcclusionCapMesh,
+			InstanceCount = tiles.Count,
+		};
+
+		for (int i = 0; i < tiles.Count; i++)
+		{
+			Vector3 origin = TileToWorld(tiles[i].X, 0, tiles[i].Y);
+			origin.Y += OcclusionCapHeight;
+			multiMesh.SetInstanceTransform(i, new Transform3D(Basis.Identity, origin));
+		}
+
+		// A fresh alpha-blended material override drives the fade without mutating the
+		// shared cap material that the static occlusion grid still relies on.
+		var fadeMaterial = new StandardMaterial3D
+		{
+			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+			AlbedoColor = Colors.Black,
+			CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+			Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+		};
+
+		var overlay = new MultiMeshInstance3D
+		{
+			Multimesh = multiMesh,
+			MaterialOverride = fadeMaterial,
+		};
+
+		// Parent to the occlusion grid so the caps share its coordinate space and align
+		// exactly with the cells they replace.
+		OcclusionGridMap.AddChild(overlay);
+
+		var tween = overlay.CreateTween();
+		tween.TweenProperty(fadeMaterial, "albedo_color:a", 0.0f, FogRevealFadeSeconds)
+			.SetTrans(Tween.TransitionType.Sine)
+			.SetEase(Tween.EaseType.Out);
+		tween.Finished += overlay.QueueFree;
 	}
 
 	private void SetPlayerSpawnPoint()

@@ -11,6 +11,12 @@ public partial class DeathComponent : Node
 	[Export] public int Xp { get; set; } = 100;
 	[Export] public float Delay { get; set; } = 2.0f;
 
+	/// <summary>
+	/// Seconds spent fading the corpse out after the death animation, so it eases away
+	/// instead of popping. Set to 0 to despawn instantly.
+	/// </summary>
+	[Export] public float FadeDuration { get; set; } = 0.6f;
+
 	public override void _Ready()
 	{
 		this.SubscribeUntilExit(
@@ -42,11 +48,23 @@ public partial class DeathComponent : Node
 		LootTableComponent?.DropLoot();
 		SignalBus.EmitXpRewarded(Xp);
 
-		// Wait for death animation to finish
+		// Wait for the death animation, then ease the corpse out instead of popping it.
 		GetTree().CreateTimer(Delay).Connect("timeout", Callable.From(() =>
 		{
+			if (!GodotObject.IsInstanceValid(owner))
+			{
+				return;
+			}
+
 			GD.Print($"{owner.Name} is destroyed!");
-			owner.QueueFree();
+			if (FadeDuration > 0f)
+			{
+				FadeOutComponent.FadeOutAndFree(owner, FadeDuration);
+			}
+			else
+			{
+				owner.QueueFree();
+			}
 		}));
 	}
 }

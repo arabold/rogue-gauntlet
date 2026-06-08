@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cxnwnkjd4d8mu"]
+
+[ext_resource type="Script" path="res://scenes/components/FadeOutComponent.cs" id="1_fade"]
+
+[node name="FadeOutComponent" type="Node"]
+script = ExtResource("1_fade")
