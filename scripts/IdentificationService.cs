@@ -6,8 +6,14 @@ using System.Linq;
 /// Per-run item identification state. At run start every item type in the
 /// <see cref="IdentityCatalog"/> is assigned an appearance from its category pool
 /// using a deterministic shuffle derived from the run seed, so a run always
-/// reproduces the same disguises and a fresh run re-randomizes them. Only the set of
-/// discovered type ids is persisted; the assignment regenerates on load.
+/// reproduces the same disguises and a fresh run re-randomizes them. The set of
+/// discovered type ids is persisted; the full type-to-appearance assignment is
+/// persisted as well (see <see cref="GetAssignmentDescriptors"/>) so a restored save
+/// reproduces the exact disguises even if the catalog changes, with the seed-derived
+/// shuffle as the baseline for any types not present in the save.
+///
+/// When no catalog is available the system is inert: every item reads as itself
+/// (always identified, no tint), which keeps the editor and tests working.
 ///
 /// Owned by <see cref="GameSession"/>. See docs/item-identification-system.md.
 /// </summary>
@@ -20,6 +26,12 @@ public sealed class IdentificationService
 	private readonly Dictionary<string, ItemAppearance> _appearanceByType = new();
 	private readonly HashSet<string> _identified = new();
 	private IdentityCatalog _catalog;
+
+	/// <summary>
+	/// Whether a catalog was loaded and the disguise system is active this run. When
+	/// false the service is inert and every item is treated as already identified.
+	/// </summary>
+	private bool _active;
 
 	/// <summary>
 	/// Builds the type-to-appearance assignment for the run. A deterministic shuffle
@@ -36,6 +48,7 @@ public sealed class IdentificationService
 	{
 		_appearanceByType.Clear();
 		_identified.Clear();
+		_active = false;
 
 		if (identifiedTypeIds != null)
 		{
@@ -55,6 +68,7 @@ public sealed class IdentificationService
 			return;
 		}
 
+		_active = true;
 		foreach (IdentityCategory category in _catalog.Categories)
 		{
 			AssignCategory(category, runSeed, persistedAssignments);
@@ -63,7 +77,9 @@ public sealed class IdentificationService
 
 	public bool IsIdentified(IdentifiableItem item)
 	{
-		return item == null || !item.HasIdentity || _identified.Contains(item.TypeId);
+		// Inert without a catalog: treat everything as identified so items read as
+		// themselves instead of as "mysterious …" with no disguise data behind it.
+		return !_active || item == null || !item.HasIdentity || _identified.Contains(item.TypeId);
 	}
 
 	/// <summary>Records discovery of a type. Returns true if it was newly identified.</summary>
@@ -195,6 +211,7 @@ public sealed class IdentificationService
 		foreach (string typeId in typeIds)
 		{
 			if (persistedAssignments.TryGetValue(typeId, out string descriptor)
+				&& !string.IsNullOrEmpty(descriptor)
 				&& byDescriptor.TryGetValue(descriptor, out ItemAppearance appearance))
 			{
 				_appearanceByType[typeId] = appearance;

@@ -16,8 +16,10 @@ pieces by swapping the appearance pool.
 
 Identification is **per run**. The type→appearance assignment is derived
 deterministically from the run `Seed`, so it re-randomizes on each new game and
-regenerates identically on load. The save only needs to record which type ids the
-player has discovered.
+regenerates identically on load. The save records which type ids the player has
+discovered **and** the full type→appearance assignment, so a restored run reproduces
+the exact disguises even if the catalog changes; the seed-derived shuffle is the
+baseline for any types not present in the save (see [Save Schema](#save-schema)).
 
 ## How it builds on existing systems
 
@@ -63,12 +65,17 @@ category.
 
 `IdentificationService` exposes:
 
-- `Initialize(runSeed, allTypes, pool)`: builds the type→appearance map for a
-  category at run start (or load).
-- `GetAppearance(typeId)`: the disguise for a type.
-- `IsIdentified(typeId)` / `Identify(typeId)`: read/record discovery.
+- `Initialize(runSeed, identifiedTypeIds = null, persistedAssignments = null)`: loads
+  the catalog and builds the type→appearance map for every category at run start. On
+  load, pass the discovered type ids and the persisted descriptor assignments to
+  restore exactly what the player saw.
+- `GetAppearance(item)`: the disguise assigned to the item's type, or null.
+- `IsIdentified(item)` / `Identify(typeId)`: read/record discovery (`Identify` returns
+  true when the type was newly discovered).
 - `GetDisplayName(item)`: `TrueName` when identified, otherwise the templated
   descriptor ("fizzy crimson potion").
+- `GetIdentifiedTypeIds()` / `GetAssignmentDescriptors()`: the discovered ids and the
+  current type→descriptor assignment, for persistence.
 
 Discovery is driven by existing events: `GameSession` (or a small listener) hooks
 `SignalBus.ItemConsumed`, calls `Identify(item.TypeId)`, and re-emits so the
