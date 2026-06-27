@@ -40,6 +40,13 @@ public partial class ItemSlotPanel : PanelContainer
 		var button = GetNode<Button>("%Button");
 		button.ButtonUp += () => EmitSignalItemSelected(this);
 
+		// Relabel live when a hidden identity is discovered elsewhere this run, so
+		// every stack of the identified type reveals its true name at once.
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			signalBus => signalBus.ItemIdentified += OnItemIdentified,
+			signalBus => signalBus.ItemIdentified -= OnItemIdentified);
+
 		Update();
 	}
 
@@ -66,8 +73,15 @@ public partial class ItemSlotPanel : PanelContainer
 		Update();
 	}
 
+	private void OnItemIdentified(string typeId)
+	{
+		// Cheap to refresh unconditionally; only the matching type changes name/tint.
+		Update();
+	}
+
 	private void Update()
 	{
+		var button = GetNode<Button>("%Button");
 		var colorRect = GetNode<ColorRect>("%ColorRect");
 		var preview = GetNode<Preview>("%Preview");
 		var quantityLabel = GetNode<Label>("%QuantityLabel");
@@ -75,7 +89,8 @@ public partial class ItemSlotPanel : PanelContainer
 
 		if (Slot != null && Slot.Item != null)
 		{
-			preview.SetScene(Slot.Item.Scene);
+			preview.SetScene(Slot.Item.Scene, ItemIdentity.ResolveTint(Slot.Item));
+			button.TooltipText = ItemIdentity.ResolveDisplayName(Slot.Item);
 			quantityLabel.Text = Slot.Quantity > 1 ? Slot.Quantity.ToString() : "";
 			equippedBorder.Visible = IsEquipped;
 
@@ -99,6 +114,7 @@ public partial class ItemSlotPanel : PanelContainer
 		else
 		{
 			preview.SetScene(null);
+			button.TooltipText = "";
 			quantityLabel.Text = "";
 			equippedBorder.Visible = false;
 			colorRect.Color = DefaultColor;

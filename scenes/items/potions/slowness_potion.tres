@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="ConsumableItem" load_steps=6 format=3 uid="uid://dslowptres001"]
+
+[ext_resource type="Script" uid="uid://bh7qyqv6lvcim" path="res://scenes/buffs/SpeedBuff.cs" id="1_buff"]
+[ext_resource type="Texture2D" uid="uid://dq1fvu6l25b3r" path="res://icon.svg" id="2_icon"]
+[ext_resource type="PackedScene" uid="uid://cslowpot00001" path="res://scenes/items/potions/slowness_potion.tscn" id="3_scene"]
+[ext_resource type="Script" uid="uid://c15rgkjymw2e6" path="res://scenes/items/ConsumableItem.cs" id="4_item"]
+
+[sub_resource type="Resource" id="Resource_slow"]
+script = ExtResource("1_buff")
+SpeedModifier = 0.5
+Name = "Slowness"
+Duration = 8.0
+metadata/_custom_type_script = ExtResource("1_buff")
+
+[resource]
+script = ExtResource("4_item")
+Buff = SubResource("Resource_slow")
+TypeId = "potion.slowness"
+IdentityCategory = "potion"
+TrueName = "Potion of Slowness"
+UnidentifiedNameTemplate = "{descriptor} potion"
+Scene = ExtResource("3_scene")
+Icon = ExtResource("2_icon")
+Name = "Slowness Potion"
+Quality = 1.0
+Value = 30
+ShowInInventory = true
+IsStackable = true
+metadata/_custom_type_script = ExtResource("4_item")

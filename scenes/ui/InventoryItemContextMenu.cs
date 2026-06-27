@@ -2,6 +2,7 @@ using Godot;
 
 public partial class InventoryItemContextMenu : PopupPanel
 {
+	private Label _titleLabel;
 	private Button _useButton;
 	private Button _dropButton;
 	private Button _equipButton;
@@ -14,6 +15,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 	{
 		base._Ready();
 
+		_titleLabel = GetNode<Label>("%TitleLabel");
 		_useButton = GetNode<Button>("%UseButton");
 		_useButton.ButtonUp += () => UseItem(_inventory, _slot);
 		_dropButton = GetNode<Button>("%DropButton");
@@ -34,6 +36,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 		_inventory = inventory;
 		_slot = slot;
 
+		_titleLabel.Text = ItemIdentity.ResolveDisplayName(slot.Item);
 		_useButton.Visible = slot.Item is ConsumableItem;
 		_dropButton.Visible = true;
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/DebugMenu.cs" id="1_debug_menu"]
 [ext_resource type="Resource" uid="uid://bc4es25jpb62o" path="res://scenes/items/weapons/axe_common.tres" id="2_axe"]
@@ -9,6 +9,12 @@
 [ext_resource type="Resource" path="res://scenes/items/weapons/staff_water.tres" id="7_staff_water"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/staff_earth.tres" id="8_staff_earth"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/staff_air.tres" id="9_staff_air"]
+[ext_resource type="Resource" uid="uid://dpoisonptres1" path="res://scenes/items/potions/poison_potion.tres" id="10_poison"]
+[ext_resource type="Resource" uid="uid://dhasteptres01" path="res://scenes/items/potions/haste_potion.tres" id="11_haste"]
+[ext_resource type="Resource" uid="uid://dregenptres01" path="res://scenes/items/potions/regeneration_potion.tres" id="12_regen"]
+[ext_resource type="Resource" uid="uid://dslowptres001" path="res://scenes/items/potions/slowness_potion.tres" id="13_slow"]
+[ext_resource type="Resource" uid="uid://b2vo50ixkurnb" path="res://scenes/items/potions/healing_potion_medium.tres" id="14_healing_med"]
+[ext_resource type="Resource" uid="uid://b7ama245i2u14" path="res://scenes/items/potions/healing_potion_large.tres" id="15_healing_lrg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.03, 0.035, 0.045, 0.72)
@@ -63,7 +69,7 @@ visible = false
 custom_minimum_size = Vector2(0, 32)
 theme_override_constants/separation = 8
 script = ExtResource("1_debug_menu")
-SpawnableItems = Array[Resource]([ExtResource("2_axe"), ExtResource("3_crossbow"), ExtResource("4_broadsword"), ExtResource("6_staff_fire"), ExtResource("7_staff_water"), ExtResource("8_staff_earth"), ExtResource("9_staff_air"), ExtResource("5_healing_potion")])
+SpawnableItems = Array[Resource]([ExtResource("2_axe"), ExtResource("3_crossbow"), ExtResource("4_broadsword"), ExtResource("6_staff_fire"), ExtResource("7_staff_water"), ExtResource("8_staff_earth"), ExtResource("9_staff_air"), ExtResource("5_healing_potion"), ExtResource("14_healing_med"), ExtResource("15_healing_lrg"), ExtResource("10_poison"), ExtResource("11_haste"), ExtResource("12_regen"), ExtResource("13_slow")])
 
 [node name="DebugMenuButton" type="MenuButton" parent="."]
 unique_name_in_owner = true

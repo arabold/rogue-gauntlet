@@ -1,0 +1,57 @@
+[gd_resource type="Resource" script_class="AppearancePool" load_steps=11 format=3 uid="uid://dpotionapprs1"]
+
+[ext_resource type="Script" uid="uid://cappearpool01" path="res://scenes/items/identity/AppearancePool.cs" id="1_pool"]
+[ext_resource type="Script" uid="uid://citemappear01" path="res://scenes/items/identity/ItemAppearance.cs" id="2_appr"]
+
+[sub_resource type="Resource" id="Appearance_crimson"]
+script = ExtResource("2_appr")
+Descriptor = "fizzy crimson"
+TintColor = Color(0.78, 0.12, 0.12, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_green"]
+script = ExtResource("2_appr")
+Descriptor = "murky green"
+TintColor = Color(0.27, 0.45, 0.18, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_azure"]
+script = ExtResource("2_appr")
+Descriptor = "cloudy azure"
+TintColor = Color(0.2, 0.45, 0.85, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_golden"]
+script = ExtResource("2_appr")
+Descriptor = "golden"
+TintColor = Color(0.92, 0.78, 0.2, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_violet"]
+script = ExtResource("2_appr")
+Descriptor = "dusky violet"
+TintColor = Color(0.5, 0.25, 0.7, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_milky"]
+script = ExtResource("2_appr")
+Descriptor = "milky white"
+TintColor = Color(0.92, 0.92, 0.95, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_inky"]
+script = ExtResource("2_appr")
+Descriptor = "inky black"
+TintColor = Color(0.12, 0.12, 0.14, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_orange"]
+script = ExtResource("2_appr")
+Descriptor = "bubbling orange"
+TintColor = Color(0.95, 0.5, 0.12, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[resource]
+script = ExtResource("1_pool")
+Appearances = Array[ItemAppearance]([SubResource("Appearance_crimson"), SubResource("Appearance_green"), SubResource("Appearance_azure"), SubResource("Appearance_golden"), SubResource("Appearance_violet"), SubResource("Appearance_milky"), SubResource("Appearance_inky"), SubResource("Appearance_orange")])
+metadata/_custom_type_script = ExtResource("1_pool")
