@@ -149,8 +149,13 @@ public sealed class IdentificationService
 
 		if (appearances.Count < typeIds.Count)
 		{
-			GD.PushWarning($"IdentificationService: category '{category.Category}' has fewer appearances " +
-				$"({appearances.Count}) than types ({typeIds.Count}); some disguises will repeat.");
+			// Authoring invariant: a category's pool must cover its types, otherwise two
+			// different effects share a disguise and the player cannot tell them apart by
+			// appearance. Surface it as an error so it is caught while editing content;
+			// assignment still proceeds (wrapping) so the game remains playable.
+			GD.PushError($"IdentificationService: category '{category.Category}' has fewer appearances " +
+				$"({appearances.Count}) than types ({typeIds.Count}); add at least " +
+				$"{typeIds.Count - appearances.Count} more appearance(s) so every type reads as distinct.");
 		}
 
 		var rng = new RandomNumberGenerator { Seed = runSeed ^ StableHash(category.Category ?? "") };

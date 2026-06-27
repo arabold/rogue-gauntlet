@@ -1,0 +1,65 @@
+[gd_resource type="Resource" script_class="LootTable" load_steps=17 format=3 uid="uid://clootchest0001"]
+
+[ext_resource type="Script" path="res://scenes/components/LootTable.cs" id="1_table"]
+[ext_resource type="Script" uid="uid://b2kapi7dsmanb" path="res://scenes/components/LootTableItem.cs" id="2_item"]
+[ext_resource type="Resource" uid="uid://dnxrasu67oe6k" path="res://scenes/items/gold/gold.tres" id="3_gold"]
+[ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion_small.tres" id="4_heal_s"]
+[ext_resource type="Resource" uid="uid://b2vo50ixkurnb" path="res://scenes/items/potions/healing_potion_medium.tres" id="5_heal_m"]
+[ext_resource type="Resource" uid="uid://dhasteptres01" path="res://scenes/items/potions/haste_potion.tres" id="6_haste"]
+[ext_resource type="Resource" uid="uid://dregenptres01" path="res://scenes/items/potions/regeneration_potion.tres" id="7_regen"]
+[ext_resource type="Resource" uid="uid://dpoisonptres1" path="res://scenes/items/potions/poison_potion.tres" id="8_poison"]
+[ext_resource type="Resource" uid="uid://dslowptres001" path="res://scenes/items/potions/slowness_potion.tres" id="9_slow"]
+
+[sub_resource type="Resource" id="Item_gold"]
+script = ExtResource("2_item")
+Weight = 3.0
+Item = ExtResource("3_gold")
+Quantity = 30
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_heal_small"]
+script = ExtResource("2_item")
+Weight = 2.0
+Item = ExtResource("4_heal_s")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_heal_medium"]
+script = ExtResource("2_item")
+Weight = 1.5
+Item = ExtResource("5_heal_m")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_haste"]
+script = ExtResource("2_item")
+Weight = 1.0
+Item = ExtResource("6_haste")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_regen"]
+script = ExtResource("2_item")
+Weight = 1.0
+Item = ExtResource("7_regen")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_poison"]
+script = ExtResource("2_item")
+Weight = 0.5
+Item = ExtResource("8_poison")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_slow"]
+script = ExtResource("2_item")
+Weight = 0.5
+Item = ExtResource("9_slow")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("2_item")
+
+[resource]
+script = ExtResource("1_table")
+Items = [SubResource("Item_gold"), SubResource("Item_heal_small"), SubResource("Item_heal_medium"), SubResource("Item_haste"), SubResource("Item_regen"), SubResource("Item_poison"), SubResource("Item_slow")]
+metadata/_custom_type_script = ExtResource("1_table")

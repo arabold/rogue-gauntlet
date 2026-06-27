@@ -1,8 +1,10 @@
-[gd_scene load_steps=10 format=4 uid="uid://cgi3a5fi0sxu6"]
+[gd_scene load_steps=12 format=4 uid="uid://cgi3a5fi0sxu6"]
 
 [ext_resource type="Script" uid="uid://nft3v52nfsps" path="res://scenes/props/Chest.cs" id="1_3h5at"]
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="2_fidv6"]
 [ext_resource type="PackedScene" uid="uid://dekj8iq2d1qp5" path="res://scenes/components/interactive_component.tscn" id="3_p08mt"]
+[ext_resource type="PackedScene" uid="uid://dud0hid1mwmdw" path="res://scenes/components/loot_table_component.tscn" id="4_loot_comp"]
+[ext_resource type="Resource" uid="uid://clootchest0001" path="res://scenes/items/loot/loot_chest_common.tres" id="5_loot_table"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hy3g6"]
 resource_name = "texture"
@@ -98,3 +100,6 @@ shape = SubResource("ConvexPolygonShape3D_ioc10")
 
 [node name="InteractiveComponent" parent="." instance=ExtResource("3_p08mt")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="LootTableComponent" parent="." instance=ExtResource("4_loot_comp")]
+Table = ExtResource("5_loot_table")

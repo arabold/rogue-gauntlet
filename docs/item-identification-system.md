@@ -185,6 +185,7 @@ Other Rogue categories reuse the same three pieces by swapping the
    `Identify` and relabel UI/world.
 2. **Content**: author a potion appearance pool; convert existing healing potions to
    carry a `TypeId`.
-3. **Effects**: add `StatModifierBuff`, `ConfusionBuff`, etc., new potion `.tres`
-   files, and loot weights in `DungeonItemFactory`.
+3. **Effects & loot**: add `StatModifierBuff`, `ConfusionBuff`, etc., new potion
+   `.tres` files, and entries in the shared `LootTable` resources
+   (`scenes/items/loot/`) that chests and enemies draw from.
 4. **Generalize**: scrolls, then rings and wands.

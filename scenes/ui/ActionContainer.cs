@@ -56,7 +56,9 @@ public partial class ActionContainer : PanelContainer
 	{
 		if (slotIndex == Slot)
 		{
-			_preview.SetScene(action?.PreviewScene);
+			// Tint disguised consumables so the action bar matches the inventory preview.
+			Color? tint = action?.AssignedAction is Item item ? ItemIdentity.ResolveTint(item) : null;
+			_preview.SetScene(action?.PreviewScene, tint);
 			_keyBinding.IsDisabled = action?.AssignedAction == null;
 		}
 	}
