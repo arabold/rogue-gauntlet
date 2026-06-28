@@ -2,3 +2,6 @@
 .godot/
 /android/
 .DS_Store
+
+# Backup copies of the C# project file
+*.csproj.old*

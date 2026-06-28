@@ -9,7 +9,7 @@
 - Fast compile check: `dotnet build "Rogue Gauntlet.sln"`. This is the default agent verification step for C# changes.
 - VS Code task config points to `/Applications/Godot.app/Contents/MacOS/Godot --build-solutions ...`, but this machine has `/Applications/Godot_mono.app/Contents/MacOS/Godot` instead.
 - The Godot CLI solution build currently prints engine shutdown errors and times out; prefer `dotnet build "Rogue Gauntlet.sln"` for verification unless debugging Godot/editor behavior.
-- For scene/resource/GridMap/visual work, use the Godot MCP server (see the `godot-mcp` skill in `.agents/godot-mcp/SKILL.md`); fall back to the local Godot binary via Bash if MCP reports `ENOENT` on the default `Godot.app` path. Treat headless leak messages on forced quit as shutdown noise unless preceded by real load/script/resource errors.
+- For scene/resource/GridMap/visual work, use the Godot MCP server (see the `godot-mcp` skill in `.agents/skills/godot-mcp/SKILL.md`); fall back to the local Godot binary via Bash if MCP reports `ENOENT` on the default `Godot.app` path. Treat headless leak messages on forced quit as shutdown noise unless preceded by real load/script/resource errors.
 
 ## Git / Commits & PRs
 - Adhere to the Conventional Commits specification, and format commit messages as markdown.
