@@ -3,13 +3,20 @@
 ## Project Shape
 - Godot 4 C# game; open/run `project.godot`. The project main scene (`run/main_scene`) is `res://scenes/menu/main_menu.tscn`; the gameplay scene is `res://scenes/main/main.tscn` — run that directly for level-generation/gameplay smoke checks.
 - C# project is `Rogue Gauntlet.csproj` using `Godot.NET.Sdk/4.7.0`, `net9.0`, `LangVersion=preview`, root namespace `RogueGauntlet`.
-- There are no test projects or CI workflows in this repo currently; use build plus editor/game smoke checks.
+- C# tests live in `tests/RogueGauntlet.Tests.csproj` (GdUnit4, see Testing below); there are no CI workflows in this repo currently.
 
 ## Commands
 - Fast compile check: `dotnet build "Rogue Gauntlet.sln"`. This is the default agent verification step for C# changes.
 - VS Code task config points to `/Applications/Godot.app/Contents/MacOS/Godot --build-solutions ...`, but this machine has `/Applications/Godot_mono.app/Contents/MacOS/Godot` instead.
 - The Godot CLI solution build currently prints engine shutdown errors and times out; prefer `dotnet build "Rogue Gauntlet.sln"` for verification unless debugging Godot/editor behavior.
 - For scene/resource/GridMap/visual work, use the Godot MCP server (see the `godot-mcp` skill in `.agents/skills/godot-mcp/SKILL.md`); fall back to the local Godot binary via Bash if MCP reports `ENOENT` on the default `Godot.app` path. Treat headless leak messages on forced quit as shutdown noise unless preceded by real load/script/resource errors.
+
+## Testing
+- C# unit/integration tests use **GdUnit4** (`gdUnit4.api` + `gdUnit4.test.adapter`) in `tests/RogueGauntlet.Tests.csproj`, which references the game project and is registered in `Rogue Gauntlet.sln`.
+- Run tests: `dotnet test "tests/RogueGauntlet.Tests.csproj" --settings .runsettings`. The `.runsettings` sets `GODOT_BIN` to the local `Godot_mono` binary; the adapter hosts runtime-dependent tests in a real Godot instance.
+- Test classes use `[TestSuite]` / `[TestCase]` and the `GdUnit4.Assertions` static helpers. Prefer pure-logic tests (no Godot runtime) where possible; use the GdUnit4 scene runner for tests that need nodes/scenes.
+- Only the .NET 10 runtime is installed locally, so the net9.0 test project sets `<RollForward>LatestMajor</RollForward>`. The game project excludes `tests/**/*.cs` from its own compilation (the Godot SDK glob would otherwise pull them in).
+- `dotnet build "Rogue Gauntlet.sln"` remains the fast compile check; add a `dotnet test` run when changing testable C# logic.
 
 ## Git / Commits & PRs
 - Adhere to the Conventional Commits specification, and format commit messages as markdown.

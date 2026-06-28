@@ -5,4 +5,9 @@
     <RootNamespace>RogueGauntlet</RootNamespace>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Tests live in their own project (tests/RogueGauntlet.Tests.csproj); keep the
+         Godot.NET.Sdk glob from compiling them into the game assembly. -->
+    <Compile Remove="tests/**/*.cs" />
+  </ItemGroup>
 </Project>

@@ -5,3 +5,7 @@
 
 # Backup copies of the C# project file
 *.csproj.old*
+
+# .NET build output (e.g. tests/bin, tests/obj)
+[Bb]in/
+[Oo]bj/
