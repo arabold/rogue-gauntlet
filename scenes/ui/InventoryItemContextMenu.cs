@@ -3,6 +3,7 @@ using Godot;
 public partial class InventoryItemContextMenu : PopupPanel
 {
 	private Label _titleLabel;
+	private ItemDetailsView _details;
 	private Button _useButton;
 	private Button _dropButton;
 	private Button _equipButton;
@@ -16,6 +17,14 @@ public partial class InventoryItemContextMenu : PopupPanel
 		base._Ready();
 
 		_titleLabel = GetNode<Label>("%TitleLabel");
+		// Reuse the same details component as the hover tooltip so click and hover show the
+		// same rarity-colored name and affix lines. It replaces the plain title label.
+		_details = new ItemDetailsView();
+		Node header = _titleLabel.GetParent();
+		header.AddChild(_details);
+		header.MoveChild(_details, 0);
+		_titleLabel.Visible = false;
+
 		_useButton = GetNode<Button>("%UseButton");
 		_useButton.ButtonUp += () => UseItem(_inventory, _slot);
 		_dropButton = GetNode<Button>("%DropButton");
@@ -36,7 +45,10 @@ public partial class InventoryItemContextMenu : PopupPanel
 		_inventory = inventory;
 		_slot = slot;
 
-		_titleLabel.Text = ItemIdentity.ResolveDisplayName(slot.Item);
+		_details.SetItem(slot.Item);
+		// Shrink the popup to fit its contents once the new layout is computed, so its height
+		// (and width) track the item rather than a fixed authored size.
+		CallDeferred(Window.MethodName.ResetSize);
 		_useButton.Visible = slot.Item is ConsumableItem;
 		_dropButton.Visible = true;
 

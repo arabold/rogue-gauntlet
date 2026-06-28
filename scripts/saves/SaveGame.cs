@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 2;
+	public const int CurrentVersion = 3;
 
 	public int Version { get; set; } = CurrentVersion;
 	public int SlotId { get; set; }
@@ -15,6 +15,8 @@ public sealed class SaveGame
 	public ulong Seed { get; set; }
 	public uint DungeonDepth { get; set; } = 1;
 	public double PlayTimeSeconds { get; set; }
+	/// <summary>Loot rolls drawn this run; persisted so the seeded drop sequence resumes.</summary>
+	public uint LootRollsConsumed { get; set; }
 	public PlayerSaveData Player { get; set; } = new();
 	public WorldSaveData World { get; set; } = new();
 	public IdentificationSaveData Identification { get; set; } = new();
@@ -69,6 +71,14 @@ public sealed class PlayerStatsSaveData
 	public int XpLevel { get; set; }
 	public int Gold { get; set; }
 	public int DungeonDepth { get; set; }
+
+	// Primary attributes. Defaulted to the standard starting values so pre-v3 saves (which
+	// lack these keys) load as a baseline character instead of a zeroed-out one.
+	public float BaseStrength { get; set; } = 10;
+	public float BaseDexterity { get; set; } = 10;
+	public float BaseVitality { get; set; } = 10;
+	public float BaseIntelligence { get; set; } = 10;
+
 	public float BaseSpeed { get; set; }
 	public float BaseMaxHealth { get; set; }
 	public float BaseAccuracy { get; set; }
@@ -77,14 +87,8 @@ public sealed class PlayerStatsSaveData
 	public float BaseCritChance { get; set; }
 	public float BaseArmor { get; set; }
 	public float BaseEvasion { get; set; }
-	public float SpeedModifier { get; set; }
-	public float HealthModifier { get; set; }
-	public float XpModifier { get; set; }
-	public float GoldModifier { get; set; }
-	public float DamageModifier { get; set; }
-	public float CritModifier { get; set; }
-	public float ArmorModifier { get; set; }
-	public float AccuracyModifier { get; set; }
+	public float XpModifier { get; set; } = 1f;
+	public float GoldModifier { get; set; } = 1f;
 }
 
 public sealed class InventorySaveData
@@ -97,6 +101,26 @@ public sealed class InventoryItemSaveData
 {
 	public string ItemPath { get; set; } = string.Empty;
 	public int Quantity { get; set; }
+
+	// Instance-level rolls for a rolled equipable. Rarity is -1 (and Affixes empty) for plain
+	// shared items, which load directly from ItemPath; otherwise ItemPath is the base
+	// definition that gets duplicated and re-stamped with this rarity and these affixes.
+	public int Rarity { get; set; } = -1;
+	public List<RolledAffixSaveData> Affixes { get; set; } = [];
+}
+
+public sealed class RolledAffixSaveData
+{
+	public string NameFragment { get; set; } = string.Empty;
+	public int Kind { get; set; }
+	public List<StatModifierSaveData> Modifiers { get; set; } = [];
+}
+
+public sealed class StatModifierSaveData
+{
+	public int Stat { get; set; }
+	public int Op { get; set; }
+	public float Value { get; set; }
 }
 
 public sealed class EquippedItemSaveData

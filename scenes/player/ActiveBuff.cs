@@ -8,8 +8,13 @@ public partial class ActiveBuff : Node
 	public Player Player { get; private set; }
 	public Buff Buff { get; private set; }
 	public double RemainingDuration { get; private set; }
-	public bool IsExpired => Buff.Duration >= 0 && RemainingDuration <= 0;
+
+	/// <summary>A non-positive duration means the buff lasts until it is explicitly removed.</summary>
+	public bool IsPermanent => Buff.Duration <= 0;
+	public bool IsExpired => !IsPermanent && RemainingDuration <= 0;
+
 	private double _tickAccumulator = 0;
+	private bool _removed;
 
 	public void Initialize(Player player, Buff buff)
 	{
@@ -20,30 +25,48 @@ public partial class ActiveBuff : Node
 		Buff.OnApply(Player);
 	}
 
-	public override void _PhysicsProcess(double delta)
+	/// <summary>
+	/// Reverses the buff exactly once. Both natural expiry and explicit removal funnel
+	/// through here so <see cref="Buff.OnRemove"/> is never skipped or applied twice.
+	/// </summary>
+	public void Deactivate()
 	{
-		if (IsExpired)
+		if (_removed || Buff == null)
 		{
 			return;
 		}
 
-		if (Buff is PeriodicBuff periodicBuff)
-		{
-			_tickAccumulator += Math.Min(delta, RemainingDuration);
-			RemainingDuration -= delta;
+		_removed = true;
+		Buff.OnRemove(Player);
+	}
 
-			while (_tickAccumulator >= 1.0 / periodicBuff.TicksPerSecond)
+	public override void _PhysicsProcess(double delta)
+	{
+		if (_removed)
+		{
+			return;
+		}
+
+		if (!IsPermanent)
+		{
+			RemainingDuration -= delta;
+		}
+
+		if (Buff is PeriodicBuff periodicBuff && periodicBuff.TicksPerSecond > 0)
+		{
+			double interval = 1.0 / periodicBuff.TicksPerSecond;
+			_tickAccumulator += delta;
+			while (_tickAccumulator >= interval)
 			{
 				periodicBuff.OnTick(Player);
-				_tickAccumulator -= 1.0 / periodicBuff.TicksPerSecond;
+				_tickAccumulator -= interval;
 			}
 		}
 
 		if (IsExpired)
 		{
-			GD.Print("Buff is expired");
 			EmitSignalBuffExpired(this);
-			Buff.OnRemove(Player);
+			Deactivate();
 		}
 	}
 }

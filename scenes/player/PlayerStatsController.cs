@@ -49,8 +49,11 @@ public partial class PlayerStatsController : Node
 
 	private void OnHealthChanged(float health, float maxHealth)
 	{
+		// Only current health flows back from the component. Max health is derived from
+		// stats (base + Vitality + modifiers) and pushed out by SyncStats; writing the
+		// derived max back into BaseMaxHealth would re-add the derivation each sync and
+		// inflate it without bound.
 		Stats.Health = health;
-		Stats.BaseMaxHealth = maxHealth;
 	}
 
 	private void OnXpRewarded(int xp)

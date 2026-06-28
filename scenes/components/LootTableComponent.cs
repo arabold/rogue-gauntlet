@@ -25,24 +25,37 @@ public partial class LootTableComponent : Node
             return;
         }
 
-        if (GD.Randf() <= DropChance && Items.Length > 0)
+        // Draw the whole drop from the run's seeded loot sequence; fall back to an unseeded
+        // RNG outside an active session (editor/tests).
+        RandomNumberGenerator rng = GameSession.Instance?.CreateLootRng();
+        if (rng == null)
         {
-            var selectedItem = PickItem();
-            GD.Print($"Dropping {selectedItem.Quantity}x {selectedItem.Item.Name}");
+            rng = new RandomNumberGenerator();
+            rng.Randomize();
+        }
 
-			if (LootableItemScene == null)
-			{
-				GD.PrintErr($"{Name} has no lootable item scene assigned.");
-				_isDropped = true;
-				return;
-			}
+        if (rng.Randf() <= DropChance && Items.Length > 0)
+        {
+            var selectedItem = PickItem(rng);
 
-			var lootableItem = LootableItemScene.Instantiate<LootableItem>();
-			lootableItem.Item = selectedItem.Item;
-			lootableItem.Quantity = selectedItem.Quantity;
+            if (LootableItemScene == null)
+            {
+                GD.PrintErr($"{Name} has no lootable item scene assigned.");
+                _isDropped = true;
+                return;
+            }
 
-			Level ??= this.GetAncestorOrNull<Level>();
-			Level.AddWorldNode(lootableItem, GetOwner<Node3D>().GlobalPosition);
+            // Equipables drop as rolled instances (rarity + affixes); other items pass through.
+            uint depth = GameSession.Instance?.ActiveDungeonDepth ?? 1;
+            Item item = LootRoller.Roll(selectedItem.Item, depth, rng);
+            GD.Print($"Dropping {selectedItem.Quantity}x {item.Name}");
+
+            var lootableItem = LootableItemScene.Instantiate<LootableItem>();
+            lootableItem.Item = item;
+            lootableItem.Quantity = selectedItem.Quantity;
+
+            Level ??= this.GetAncestorOrNull<Level>();
+            Level.AddWorldNode(lootableItem, GetOwner<Node3D>().GlobalPosition);
         }
         else
         {
@@ -52,7 +65,7 @@ public partial class LootTableComponent : Node
         _isDropped = true;
     }
 
-    private LootTableItem PickItem()
+    private LootTableItem PickItem(RandomNumberGenerator rng)
     {
         if (Items.Length == 0)
         {
@@ -60,9 +73,6 @@ public partial class LootTableComponent : Node
         }
 
         var weights = Items.Select(i => i.Weight).ToArray();
-        var random = new RandomNumberGenerator();
-        random.Seed = GD.Randi();
-        var item = Items[random.RandWeighted(weights)];
-        return item;
+        return Items[rng.RandWeighted(weights)];
     }
 }

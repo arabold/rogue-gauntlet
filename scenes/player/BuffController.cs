@@ -47,6 +47,7 @@ public partial class BuffController : Node
 
 	private void RemoveActiveBuff(ActiveBuff activeBuff)
 	{
+		activeBuff.Deactivate();
 		ActiveBuffs.Remove(activeBuff);
 		RemoveChild(activeBuff);
 		activeBuff.QueueFree();

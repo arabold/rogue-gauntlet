@@ -57,4 +57,4 @@
 
 ## Documentation Layout
 - `ARCHITECTURE.md` is the system-level overview (component-based, event-driven via `SignalBus`, data-oriented resources). Keep it high-level: system concepts, component relationships, design principles, code conventions, and simple MermaidJS diagrams. Put implementation details in source code, and update it only when architecture changes — do not mirror implementation details there.
-- Feature deep-dives live in `docs/`: `level-design.md`, `item-identification-system.md`, `weapon-attack-system.md`.
+- Feature deep-dives live in `docs/`: `level-design.md`, `item-identification-system.md`, `weapon-attack-system.md`, `stats-and-itemization.md`.

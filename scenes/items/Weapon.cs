@@ -49,24 +49,16 @@ public partial class Weapon : EquipableItem, IPlayerAction
 		AnimationId = "melee_attack";
 	}
 
-	public override void OnEquipped(Player player)
+	protected override System.Collections.Generic.IEnumerable<StatModifier> BuildStatModifiers()
 	{
-		// Apply stats
-		base.OnEquipped(player);
-		var stats = player.Stats;
-		stats.BaseMinDamage += DamageMin;
-		stats.BaseMaxDamage += DamageMax;
-		stats.BaseCritChance += CritChance;
-	}
+		foreach (StatModifier modifier in base.BuildStatModifiers())
+		{
+			yield return modifier;
+		}
 
-	public override void OnUnequipped(Player player)
-	{
-		// Reset stats
-		var stats = player.Stats;
-		stats.BaseMinDamage -= DamageMin;
-		stats.BaseMaxDamage -= DamageMax;
-		stats.BaseCritChance -= CritChance;
-		base.OnUnequipped(player);
+		yield return new StatModifier { Stat = StatType.MinDamage, Op = ModifierOp.Flat, Value = DamageMin };
+		yield return new StatModifier { Stat = StatType.MaxDamage, Op = ModifierOp.Flat, Value = DamageMax };
+		yield return new StatModifier { Stat = StatType.CritChance, Op = ModifierOp.Flat, Value = CritChance };
 	}
 
 	public virtual void PerformAction(Player player)
