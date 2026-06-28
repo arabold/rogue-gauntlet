@@ -47,6 +47,10 @@ public partial class ActiveBuff : Node
 			return;
 		}
 
+		// Only count time up to what remains, so a large frame near expiry cannot drive
+		// extra ticks past the buff's end. Permanent buffs accrue the full frame.
+		double step = IsPermanent ? delta : System.Math.Min(delta, RemainingDuration);
+
 		if (!IsPermanent)
 		{
 			RemainingDuration -= delta;
@@ -55,7 +59,7 @@ public partial class ActiveBuff : Node
 		if (Buff is PeriodicBuff periodicBuff && periodicBuff.TicksPerSecond > 0)
 		{
 			double interval = 1.0 / periodicBuff.TicksPerSecond;
-			_tickAccumulator += delta;
+			_tickAccumulator += step;
 			while (_tickAccumulator >= interval)
 			{
 				periodicBuff.OnTick(Player);
