@@ -27,8 +27,9 @@ The effect side already exists and is unchanged:
 
 - A consumable is an authored `Resource` (`.tres`): `ConsumableItem` → `BuffedItem`
   → `Item`. It carries a `Buff`.
-- `Buff` / `PeriodicBuff` (`HealingBuff`, `PoisonBuff`, `SpeedBuff`, …) define the
-  effect through `OnApply` / `OnTick` / `OnRemove`, applied via `BuffController`.
+- `Buff` / `StatModifierBuff` / `PeriodicBuff` (`HealingBuff`, `PoisonBuff`) define the
+  effect through `OnApply` / `OnTick` / `OnRemove`, applied via `BuffController`. See
+  [stats & itemization](stats-and-itemization.md) for the modifier model.
 - Inventory persists items by `ResourcePath`; the run `Seed` lives in
   `GameSession` / `SaveGame`.
 - `SignalBus.ItemConsumed(player, item)` already fires when a consumable is used.
@@ -160,8 +161,8 @@ when behavior genuinely diverges.
 | --- | --- | --- |
 | Healing (S/M/L) | restore health over time | `HealingBuff` (exists) |
 | Extra Healing | heal + raise max health | `HealingBuff` + `StatModifierBuff` |
-| Strength | permanent damage up | `StatModifierBuff` (Duration 0) |
-| Haste Self | temporary speed up | `SpeedBuff` (exists) |
+| Strength | permanent damage up | `StatModifierBuff` (Duration 0, exists) |
+| Haste Self | temporary speed up | `StatModifierBuff` (exists) |
 | Poison | damage over time (bad) | `PoisonBuff` (exists) |
 | Confusion | scramble input | `ConfusionBuff` (new) |
 | Blindness | reduce vision radius | `BlindnessBuff` (new) |

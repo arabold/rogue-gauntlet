@@ -81,7 +81,7 @@ public partial class ItemSlotPanel : PanelContainer
 
 	private void Update()
 	{
-		var button = GetNode<Button>("%Button");
+		var button = GetNode<ItemSlotButton>("%Button");
 		var colorRect = GetNode<ColorRect>("%ColorRect");
 		var preview = GetNode<Preview>("%Preview");
 		var quantityLabel = GetNode<Label>("%QuantityLabel");
@@ -90,6 +90,8 @@ public partial class ItemSlotPanel : PanelContainer
 		if (Slot != null && Slot.Item != null)
 		{
 			preview.SetScene(Slot.Item.Scene, ItemIdentity.ResolveTint(Slot.Item));
+			// Plain text is the fallback; the rich hover tooltip is built by ItemSlotButton.
+			button.Item = Slot.Item;
 			button.TooltipText = ItemIdentity.ResolveDisplayName(Slot.Item);
 			quantityLabel.Text = Slot.Quantity > 1 ? Slot.Quantity.ToString() : "";
 			equippedBorder.Visible = IsEquipped;
@@ -114,6 +116,7 @@ public partial class ItemSlotPanel : PanelContainer
 		else
 		{
 			preview.SetScene(null);
+			button.Item = null;
 			button.TooltipText = "";
 			quantityLabel.Text = "";
 			equippedBorder.Visible = false;

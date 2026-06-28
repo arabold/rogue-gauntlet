@@ -3,16 +3,15 @@
 [ext_resource type="Script" uid="uid://4jv7cjmbwkw3" path="res://scenes/ui/InventoryItemContextMenu.cs" id="1_ghh4b"]
 
 [node name="InventoryItemContextMenu" type="PopupPanel"]
-size = Vector2i(180, 321)
-visible = true
 transient_to_focused = true
 script = ExtResource("1_ghh4b")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
-offset_left = 4.0
-offset_top = 4.0
-offset_right = 176.0
-offset_bottom = 317.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8

@@ -34,15 +34,17 @@ public static class ItemIdentity
 		return null;
 	}
 
-	/// <summary>The label to show: true name when identified, else the disguised name.</summary>
+	/// <summary>
+	/// The label to show: true name when identified, else the disguised name, with any rolled
+	/// affix fragments folded in for equipables ("Vicious Broadsword of the Bear").
+	/// </summary>
 	public static string ResolveDisplayName(Item item)
 	{
-		if (item is IdentifiableItem identifiable && Service != null)
-		{
-			return Service.GetDisplayName(identifiable);
-		}
+		string baseName = item is IdentifiableItem identifiable && Service != null
+			? Service.GetDisplayName(identifiable)
+			: item?.Name ?? "";
 
-		return item?.Name ?? "";
+		return item is EquipableItem equipable ? equipable.ComposeName(baseName) : baseName;
 	}
 
 	/// <summary>

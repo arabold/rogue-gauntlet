@@ -25,24 +25,18 @@ public partial class Armor : EquipableItem
 	/// </summary>
 	[Export] public float SpeedModifier { get; set => SetValue(ref field, value); } = 1.0f;
 
-	public override void OnEquipped(Player player)
+	protected override System.Collections.Generic.IEnumerable<StatModifier> BuildStatModifiers()
 	{
-		// Apply stats
-		base.OnEquipped(player);
-		var stats = player.Stats;
-		stats.BaseArmor += ArmorPoints;
-		stats.AccuracyModifier *= AccuracyModifier;
-		stats.SpeedModifier *= SpeedModifier;
-	}
+		foreach (StatModifier modifier in base.BuildStatModifiers())
+		{
+			yield return modifier;
+		}
 
-	public override void OnUnequipped(Player player)
-	{
-		// Reset stats
-		var stats = player.Stats;
-		stats.BaseArmor -= ArmorPoints;
-		stats.AccuracyModifier /= AccuracyModifier;
-		stats.SpeedModifier /= SpeedModifier;
-		base.OnUnequipped(player);
+		yield return new StatModifier { Stat = StatType.Armor, Op = ModifierOp.Flat, Value = ArmorPoints };
+		// AccuracyModifier/SpeedModifier are authored as multipliers (1.0 = no change), so a
+		// value of 0.9 becomes a -10% percent modifier.
+		yield return new StatModifier { Stat = StatType.Accuracy, Op = ModifierOp.Percent, Value = AccuracyModifier - 1f };
+		yield return new StatModifier { Stat = StatType.Speed, Op = ModifierOp.Percent, Value = SpeedModifier - 1f };
 	}
 
 	public void UpgradeLevel()

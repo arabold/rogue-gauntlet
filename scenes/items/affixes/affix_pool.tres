@@ -1,0 +1,254 @@
+[gd_resource type="Resource" script_class="AffixPool" load_steps=35 format=3 uid="uid://daffixpoolres01"]
+
+[ext_resource type="Script" uid="uid://caffixpool000001" path="res://scenes/items/affixes/AffixPool.cs" id="1_pool"]
+[ext_resource type="Script" uid="uid://caffix000000001" path="res://scenes/items/affixes/Affix.cs" id="2_affix"]
+[ext_resource type="Script" uid="uid://caffixrange00001" path="res://scenes/items/affixes/AffixModifierRange.cs" id="3_range"]
+[ext_resource type="Script" uid="uid://caffixrollcount1" path="res://scenes/items/affixes/AffixRollCount.cs" id="4_count"]
+[ext_resource type="Script" uid="uid://crarityweight0001" path="res://scenes/items/affixes/RarityWeight.cs" id="5_weight"]
+
+[sub_resource type="Resource" id="R_vic_max"]
+script = ExtResource("3_range")
+Stat = 8
+Op = 0
+MinValue = 1.0
+MaxValue = 4.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_vic_min"]
+script = ExtResource("3_range")
+Stat = 7
+Op = 0
+MinValue = 0.0
+MaxValue = 2.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_keen"]
+script = ExtResource("3_range")
+Stat = 9
+Op = 0
+MinValue = 0.02
+MaxValue = 0.08
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_savage"]
+script = ExtResource("3_range")
+Stat = 8
+Op = 1
+MinValue = 0.1
+MaxValue = 0.3
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_sturdy"]
+script = ExtResource("3_range")
+Stat = 10
+Op = 0
+MinValue = 1.0
+MaxValue = 5.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_ox"]
+script = ExtResource("3_range")
+Stat = 0
+Op = 0
+MinValue = 2.0
+MaxValue = 6.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_fox"]
+script = ExtResource("3_range")
+Stat = 1
+Op = 0
+MinValue = 2.0
+MaxValue = 6.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_bear"]
+script = ExtResource("3_range")
+Stat = 2
+Op = 0
+MinValue = 2.0
+MaxValue = 6.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_haste"]
+script = ExtResource("3_range")
+Stat = 5
+Op = 1
+MinValue = 0.05
+MaxValue = 0.15
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_ward"]
+script = ExtResource("3_range")
+Stat = 10
+Op = 1
+MinValue = 0.1
+MaxValue = 0.25
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="A_vicious"]
+script = ExtResource("2_affix")
+NameFragment = "Vicious"
+Kind = 0
+Modifiers = [SubResource("R_vic_max"), SubResource("R_vic_min")]
+AllowedSlots = 256
+Weight = 10.0
+MinRarity = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_keen"]
+script = ExtResource("2_affix")
+NameFragment = "Keen"
+Kind = 0
+Modifiers = [SubResource("R_keen")]
+AllowedSlots = 256
+Weight = 8.0
+MinRarity = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_savage"]
+script = ExtResource("2_affix")
+NameFragment = "Savage"
+Kind = 0
+Modifiers = [SubResource("R_savage")]
+AllowedSlots = 256
+Weight = 4.0
+MinRarity = 2
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_sturdy"]
+script = ExtResource("2_affix")
+NameFragment = "Sturdy"
+Kind = 0
+Modifiers = [SubResource("R_sturdy")]
+AllowedSlots = 543
+Weight = 8.0
+MinRarity = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_ox"]
+script = ExtResource("2_affix")
+NameFragment = "of the Ox"
+Kind = 1
+Modifiers = [SubResource("R_ox")]
+AllowedSlots = 0
+Weight = 8.0
+MinRarity = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_fox"]
+script = ExtResource("2_affix")
+NameFragment = "of the Fox"
+Kind = 1
+Modifiers = [SubResource("R_fox")]
+AllowedSlots = 0
+Weight = 8.0
+MinRarity = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_bear"]
+script = ExtResource("2_affix")
+NameFragment = "of the Bear"
+Kind = 1
+Modifiers = [SubResource("R_bear")]
+AllowedSlots = 0
+Weight = 8.0
+MinRarity = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_haste"]
+script = ExtResource("2_affix")
+NameFragment = "of Haste"
+Kind = 1
+Modifiers = [SubResource("R_haste")]
+AllowedSlots = 0
+Weight = 5.0
+MinRarity = 1
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_ward"]
+script = ExtResource("2_affix")
+NameFragment = "of Warding"
+Kind = 1
+Modifiers = [SubResource("R_ward")]
+AllowedSlots = 0
+Weight = 5.0
+MinRarity = 1
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="RC_common"]
+script = ExtResource("4_count")
+Rarity = 0
+MinAffixes = 1
+MaxAffixes = 1
+metadata/_custom_type_script = ExtResource("4_count")
+
+[sub_resource type="Resource" id="RC_unc"]
+script = ExtResource("4_count")
+Rarity = 1
+MinAffixes = 1
+MaxAffixes = 2
+metadata/_custom_type_script = ExtResource("4_count")
+
+[sub_resource type="Resource" id="RC_rare"]
+script = ExtResource("4_count")
+Rarity = 2
+MinAffixes = 2
+MaxAffixes = 3
+metadata/_custom_type_script = ExtResource("4_count")
+
+[sub_resource type="Resource" id="RC_leg"]
+script = ExtResource("4_count")
+Rarity = 3
+MinAffixes = 3
+MaxAffixes = 4
+metadata/_custom_type_script = ExtResource("4_count")
+
+[sub_resource type="Resource" id="RC_uniq"]
+script = ExtResource("4_count")
+Rarity = 4
+MinAffixes = 4
+MaxAffixes = 5
+metadata/_custom_type_script = ExtResource("4_count")
+
+[sub_resource type="Resource" id="RW_common"]
+script = ExtResource("5_weight")
+Rarity = 0
+BaseWeight = 100.0
+WeightPerDepth = -5.0
+metadata/_custom_type_script = ExtResource("5_weight")
+
+[sub_resource type="Resource" id="RW_unc"]
+script = ExtResource("5_weight")
+Rarity = 1
+BaseWeight = 40.0
+WeightPerDepth = 2.0
+metadata/_custom_type_script = ExtResource("5_weight")
+
+[sub_resource type="Resource" id="RW_rare"]
+script = ExtResource("5_weight")
+Rarity = 2
+BaseWeight = 12.0
+WeightPerDepth = 2.0
+metadata/_custom_type_script = ExtResource("5_weight")
+
+[sub_resource type="Resource" id="RW_leg"]
+script = ExtResource("5_weight")
+Rarity = 3
+BaseWeight = 3.0
+WeightPerDepth = 1.0
+metadata/_custom_type_script = ExtResource("5_weight")
+
+[sub_resource type="Resource" id="RW_uniq"]
+script = ExtResource("5_weight")
+Rarity = 4
+BaseWeight = 0.5
+WeightPerDepth = 0.3
+metadata/_custom_type_script = ExtResource("5_weight")
+
+[resource]
+script = ExtResource("1_pool")
+Affixes = [SubResource("A_vicious"), SubResource("A_keen"), SubResource("A_savage"), SubResource("A_sturdy"), SubResource("A_ox"), SubResource("A_fox"), SubResource("A_bear"), SubResource("A_haste"), SubResource("A_ward")]
+RollCounts = [SubResource("RC_common"), SubResource("RC_unc"), SubResource("RC_rare"), SubResource("RC_leg"), SubResource("RC_uniq")]
+RarityWeights = [SubResource("RW_common"), SubResource("RW_unc"), SubResource("RW_rare"), SubResource("RW_leg"), SubResource("RW_uniq")]
+metadata/_custom_type_script = ExtResource("1_pool")

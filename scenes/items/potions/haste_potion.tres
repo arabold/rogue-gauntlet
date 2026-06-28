@@ -1,15 +1,23 @@
-[gd_resource type="Resource" script_class="ConsumableItem" load_steps=6 format=3 uid="uid://dhasteptres01"]
+[gd_resource type="Resource" script_class="ConsumableItem" load_steps=8 format=3 uid="uid://dhasteptres01"]
 
-[ext_resource type="Script" uid="uid://bh7qyqv6lvcim" path="res://scenes/buffs/SpeedBuff.cs" id="1_buff"]
+[ext_resource type="Script" uid="uid://cstatmodbuff0001" path="res://scenes/buffs/StatModifierBuff.cs" id="1_buff"]
 [ext_resource type="Texture2D" uid="uid://dq1fvu6l25b3r" path="res://icon.svg" id="2_icon"]
 [ext_resource type="PackedScene" uid="uid://chastepot0001" path="res://scenes/items/potions/haste_potion.tscn" id="3_scene"]
 [ext_resource type="Script" uid="uid://c15rgkjymw2e6" path="res://scenes/items/ConsumableItem.cs" id="4_item"]
+[ext_resource type="Script" uid="uid://cstatmod0000001" path="res://scenes/player/resources/StatModifier.cs" id="5_mod"]
+
+[sub_resource type="Resource" id="Resource_hastemod"]
+script = ExtResource("5_mod")
+Stat = 5
+Op = 1
+Value = 0.6
+metadata/_custom_type_script = ExtResource("5_mod")
 
 [sub_resource type="Resource" id="Resource_haste"]
 script = ExtResource("1_buff")
-SpeedModifier = 1.6
 Name = "Haste"
 Duration = 15.0
+Modifiers = [SubResource("Resource_hastemod")]
 metadata/_custom_type_script = ExtResource("1_buff")
 
 [resource]

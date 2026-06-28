@@ -41,6 +41,7 @@ public partial class GameSession : Node
 	private double _sessionStartedAtMsec;
 	private bool _isSceneTransitioning;
 	private bool _saveAfterNextSpawn;
+	private uint _lootRollsConsumed;
 	private CanvasLayer _levelFadeLayer;
 	private ColorRect _levelFadeRect;
 	private Tween _levelFadeTween;
@@ -93,6 +94,7 @@ public partial class GameSession : Node
 		_sessionStartedAtMsec = Time.GetTicksMsec();
 		_pendingLoadedSave = null;
 		_saveAfterNextSpawn = true;
+		_lootRollsConsumed = 0;
 		Identification.Initialize(ActiveSeed);
 
 		string now = DateTime.UtcNow.ToString("O");
@@ -134,6 +136,7 @@ public partial class GameSession : Node
 		_pendingLoadedSave = saveGame;
 		_saveAfterNextSpawn = false;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
+		_lootRollsConsumed = saveGame.LootRollsConsumed;
 		Identification.Initialize(ActiveSeed, saveGame.Identification?.IdentifiedTypeIds, BuildAssignmentMap(saveGame.Identification));
 
 		GetTree().Paused = false;
@@ -151,6 +154,22 @@ public partial class GameSession : Node
 	public static ulong GetLevelSeed(ulong runSeed, uint depth)
 	{
 		return runSeed ^ ((ulong)depth * 0x9e3779b97f4a7c15UL);
+	}
+
+	/// <summary>
+	/// A deterministic RNG for the next loot roll this run. Seeded from the run/depth seed
+	/// and a persisted counter so successive drops differ and resume consistently across a
+	/// save/load. Rolled results are also persisted on the item, so exact fidelity does not
+	/// depend on replaying the same drop order.
+	/// </summary>
+	public RandomNumberGenerator CreateLootRng()
+	{
+		var rng = new RandomNumberGenerator
+		{
+			Seed = GetLevelSeed(ActiveSeed, ActiveDungeonDepth) ^ (_lootRollsConsumed * 0x9e3779b97f4a7c15UL),
+		};
+		_lootRollsConsumed++;
+		return rng;
 	}
 
 	public bool CanUseTransition(LevelTravelDirection direction)
@@ -334,6 +353,7 @@ public partial class GameSession : Node
 		saveGame.Seed = ActiveSeed;
 		saveGame.DungeonDepth = ActiveDungeonDepth;
 		saveGame.PlayTimeSeconds += GetSessionElapsedSeconds();
+		saveGame.LootRollsConsumed = _lootRollsConsumed;
 		saveGame.Player = CapturePlayer(player);
 		saveGame.Identification = CaptureIdentification();
 
@@ -378,6 +398,7 @@ public partial class GameSession : Node
 		_stairArrivalTicks = 0;
 		_isSceneTransitioning = false;
 		_saveAfterNextSpawn = false;
+		_lootRollsConsumed = 0;
 	}
 
 	private double GetSessionElapsedSeconds()
@@ -571,6 +592,10 @@ public partial class GameSession : Node
 			XpLevel = stats.XpLevel,
 			Gold = stats.Gold,
 			DungeonDepth = stats.DungeonDepth,
+			BaseStrength = stats.BaseStrength,
+			BaseDexterity = stats.BaseDexterity,
+			BaseVitality = stats.BaseVitality,
+			BaseIntelligence = stats.BaseIntelligence,
 			BaseSpeed = stats.BaseSpeed,
 			BaseMaxHealth = stats.BaseMaxHealth,
 			BaseAccuracy = stats.BaseAccuracy,
@@ -579,14 +604,8 @@ public partial class GameSession : Node
 			BaseCritChance = stats.BaseCritChance,
 			BaseArmor = stats.BaseArmor,
 			BaseEvasion = stats.BaseEvasion,
-			SpeedModifier = stats.SpeedModifier,
-			HealthModifier = stats.HealthModifier,
 			XpModifier = stats.XpModifier,
 			GoldModifier = stats.GoldModifier,
-			DamageModifier = stats.DamageModifier,
-			CritModifier = stats.CritModifier,
-			ArmorModifier = stats.ArmorModifier,
-			AccuracyModifier = stats.AccuracyModifier,
 		};
 	}
 
@@ -597,17 +616,36 @@ public partial class GameSession : Node
 		for (int i = 0; i < inventory.Items.Count; i++)
 		{
 			InventoryItemSlot itemSlot = inventory.Items[i];
-			if (itemSlot?.Item == null || string.IsNullOrEmpty(itemSlot.Item.ResourcePath))
+			if (itemSlot?.Item == null)
 			{
 				continue;
 			}
 
-			savedItemIndexes[itemSlot] = saveData.Items.Count;
-			saveData.Items.Add(new InventoryItemSaveData
+			// A rolled instance has an empty ResourcePath but knows its source definition;
+			// fall back to that so the base item can be reloaded and re-stamped on load.
+			var rolled = itemSlot.Item as EquipableItem;
+			string path = !string.IsNullOrEmpty(itemSlot.Item.ResourcePath)
+				? itemSlot.Item.ResourcePath
+				: rolled?.SourceDefinitionPath;
+			if (string.IsNullOrEmpty(path))
 			{
-				ItemPath = itemSlot.Item.ResourcePath,
+				continue;
+			}
+
+			var itemData = new InventoryItemSaveData
+			{
+				ItemPath = path,
 				Quantity = itemSlot.Quantity,
-			});
+			};
+
+			if (rolled != null && !string.IsNullOrEmpty(rolled.SourceDefinitionPath))
+			{
+				itemData.Rarity = (int)rolled.Rarity;
+				itemData.Affixes = CaptureAffixes(rolled.Affixes);
+			}
+
+			savedItemIndexes[itemSlot] = saveData.Items.Count;
+			saveData.Items.Add(itemData);
 		}
 
 		for (int i = 0; i < inventory.Items.Count; i++)
@@ -632,6 +670,76 @@ public partial class GameSession : Node
 		}
 
 		return saveData;
+	}
+
+	private static List<RolledAffixSaveData> CaptureAffixes(Godot.Collections.Array<RolledAffix> affixes)
+	{
+		var list = new List<RolledAffixSaveData>();
+		if (affixes == null)
+		{
+			return list;
+		}
+
+		foreach (RolledAffix affix in affixes)
+		{
+			if (affix == null)
+			{
+				continue;
+			}
+
+			var data = new RolledAffixSaveData { NameFragment = affix.NameFragment, Kind = (int)affix.Kind };
+			if (affix.Modifiers != null)
+			{
+				foreach (StatModifier modifier in affix.Modifiers)
+				{
+					if (modifier != null)
+					{
+						data.Modifiers.Add(new StatModifierSaveData
+						{
+							Stat = (int)modifier.Stat,
+							Op = (int)modifier.Op,
+							Value = modifier.Value,
+						});
+					}
+				}
+			}
+
+			list.Add(data);
+		}
+
+		return list;
+	}
+
+	private static Godot.Collections.Array<RolledAffix> BuildAffixes(List<RolledAffixSaveData> saved)
+	{
+		var affixes = new Godot.Collections.Array<RolledAffix>();
+		if (saved == null)
+		{
+			return affixes;
+		}
+
+		foreach (RolledAffixSaveData data in saved)
+		{
+			var modifiers = new List<StatModifier>();
+			foreach (StatModifierSaveData modifier in data.Modifiers)
+			{
+				modifiers.Add(new StatModifier
+				{
+					Stat = (StatType)modifier.Stat,
+					Op = (ModifierOp)modifier.Op,
+					Value = modifier.Value,
+				});
+			}
+
+			affixes.Add(new RolledAffix
+			{
+				NameFragment = data.NameFragment,
+				Kind = (AffixKind)data.Kind,
+				Modifiers = modifiers.ToArray(),
+			});
+		}
+
+		return affixes;
 	}
 
 	private static void ApplyPlayerSave(Player player, PlayerSaveData saveData)
@@ -666,6 +774,22 @@ public partial class GameSession : Node
 				continue;
 			}
 
+			// Reconstruct a rolled instance: duplicate the base definition and re-stamp the
+			// saved rarity and affixes. Plain items (Rarity -1, no affixes) load as-is.
+			if (item is EquipableItem definition
+				&& (itemSaveData.Rarity >= 0 || itemSaveData.Affixes.Count > 0))
+			{
+				var instance = (EquipableItem)definition.Duplicate(true);
+				instance.SourceDefinitionPath = itemSaveData.ItemPath;
+				if (itemSaveData.Rarity >= 0)
+				{
+					instance.Rarity = (EquipableItemRarity)itemSaveData.Rarity;
+				}
+
+				instance.Affixes = BuildAffixes(itemSaveData.Affixes);
+				item = instance;
+			}
+
 			inventory.Items.Add(new InventoryItemSlot
 			{
 				Item = item,
@@ -695,6 +819,7 @@ public partial class GameSession : Node
 	{
 		foreach (ActiveBuff activeBuff in player.BuffController.ActiveBuffs.ToArray())
 		{
+			activeBuff.Deactivate();
 			player.BuffController.ActiveBuffs.Remove(activeBuff);
 			player.BuffController.RemoveChild(activeBuff);
 			activeBuff.QueueFree();
@@ -708,6 +833,10 @@ public partial class GameSession : Node
 		stats.XpLevel = saveData.XpLevel;
 		stats.Gold = saveData.Gold;
 		stats.DungeonDepth = saveData.DungeonDepth;
+		stats.BaseStrength = saveData.BaseStrength;
+		stats.BaseDexterity = saveData.BaseDexterity;
+		stats.BaseVitality = saveData.BaseVitality;
+		stats.BaseIntelligence = saveData.BaseIntelligence;
 		stats.BaseSpeed = saveData.BaseSpeed;
 		stats.BaseMaxHealth = saveData.BaseMaxHealth;
 		stats.BaseAccuracy = saveData.BaseAccuracy;
@@ -716,14 +845,8 @@ public partial class GameSession : Node
 		stats.BaseCritChance = saveData.BaseCritChance;
 		stats.BaseArmor = saveData.BaseArmor;
 		stats.BaseEvasion = saveData.BaseEvasion;
-		stats.SpeedModifier = saveData.SpeedModifier;
-		stats.HealthModifier = saveData.HealthModifier;
 		stats.XpModifier = saveData.XpModifier;
 		stats.GoldModifier = saveData.GoldModifier;
-		stats.DamageModifier = saveData.DamageModifier;
-		stats.CritModifier = saveData.CritModifier;
-		stats.ArmorModifier = saveData.ArmorModifier;
-		stats.AccuracyModifier = saveData.AccuracyModifier;
 	}
 
 	private static Vector3SaveData CaptureVector3(Vector3 vector)
