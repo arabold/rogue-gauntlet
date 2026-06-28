@@ -16,8 +16,6 @@
     Run with: dotnet test "Rogue Gauntlet.csproj" using the .runsettings file.
   -->
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <!-- Only the .NET 10 runtime is installed locally; let the net9.0 testhost use it. -->
-    <RollForward>LatestMajor</RollForward>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">

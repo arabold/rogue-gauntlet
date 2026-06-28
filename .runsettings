@@ -7,6 +7,9 @@
     <EnvironmentVariables>
       <!-- This machine ships Godot as Godot_mono.app, not the default Godot.app. -->
       <GODOT_BIN>/Applications/Godot_mono.app/Contents/MacOS/Godot</GODOT_BIN>
+      <!-- The net9.0 testhost rolls forward onto the locally installed .NET 10 runtime.
+           Scoped to the test run here so normal Debug gameplay stays on its declared TFM. -->
+      <DOTNET_ROLL_FORWARD>LatestMajor</DOTNET_ROLL_FORWARD>
     </EnvironmentVariables>
   </RunConfiguration>
   <GdUnit4>

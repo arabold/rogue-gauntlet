@@ -16,7 +16,7 @@
 - Run tests: `dotnet test "Rogue Gauntlet.csproj" --settings .runsettings`. The `.runsettings` sets `GODOT_BIN` to the local `Godot_mono` binary; the adapter generates a runner scene under `gdunit4_testadapter_v5/` and hosts runtime tests in that engine instance.
 - The test dependencies, the test sources, and the generated runner are all scoped to the **Debug** configuration in `Rogue Gauntlet.csproj`, so exported builds (`ExportDebug` / `ExportRelease`) stay clean — verify with `dotnet build "Rogue Gauntlet.csproj" -c ExportRelease`.
 - Test classes use `[TestSuite]` / `[TestCase]` and the `GdUnit4.Assertions` static helpers. Tests that touch Godot resources, nodes, or the scene runner must add `[RequireGodotRuntime]`; plain-C# tests omit it and run far faster (no engine boot).
-- Only the .NET 10 runtime is installed locally, so Debug sets `<RollForward>LatestMajor</RollForward>` to run the net9.0 testhost. The first runtime-test run is slow because Godot imports the checkout's assets — warm it with a headless boot if the runner times out, or raise `GodotConnectTimeout` in `.runsettings`.
+- Only the .NET 10 runtime is installed locally, so `.runsettings` sets `DOTNET_ROLL_FORWARD=LatestMajor` for the testhost (scoped to the test run, so normal Debug gameplay stays on its declared TFM). The first runtime-test run is slow because Godot imports the checkout's assets — warm it with a headless boot if the runner times out, or raise `GodotConnectTimeout` in `.runsettings`.
 - `dotnet build "Rogue Gauntlet.sln"` remains the fast compile check; add a `dotnet test` run when changing testable C# logic.
 
 ## Git / Commits & PRs

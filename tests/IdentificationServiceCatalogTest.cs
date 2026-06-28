@@ -19,10 +19,20 @@ public class IdentificationServiceCatalogTest
 {
 	private const string CatalogPath = "res://scenes/items/identity/identity_catalog.tres";
 
+	/// <summary>Loads the authored catalog, failing the test cleanly if it is missing.</summary>
+	private static IdentityCatalog LoadCatalog()
+	{
+		IdentityCatalog catalog = ResourceLoader.Load<IdentityCatalog>(CatalogPath);
+		AssertObject(catalog)
+			.OverrideFailureMessage($"Could not load the identity catalog at '{CatalogPath}'.")
+			.IsNotNull();
+		return catalog;
+	}
+
 	/// <summary>Distinct identifiable type ids the catalog is expected to assign.</summary>
 	private static List<string> CatalogTypeIds()
 	{
-		IdentityCatalog catalog = ResourceLoader.Load<IdentityCatalog>(CatalogPath);
+		IdentityCatalog catalog = LoadCatalog();
 		return catalog.Categories
 			.Where(category => category?.Types != null)
 			.SelectMany(category => category.Types)
@@ -34,7 +44,7 @@ public class IdentificationServiceCatalogTest
 
 	private static IdentifiableItem FirstIdentifiableItem()
 	{
-		IdentityCatalog catalog = ResourceLoader.Load<IdentityCatalog>(CatalogPath);
+		IdentityCatalog catalog = LoadCatalog();
 		return catalog.Categories
 			.Where(category => category?.Types != null)
 			.SelectMany(category => category.Types)
