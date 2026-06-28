@@ -17,6 +17,7 @@
 - The test dependencies, the test sources, and the generated runner are all scoped to the **Debug** configuration in `Rogue Gauntlet.csproj`, so exported builds (`ExportDebug` / `ExportRelease`) stay clean — verify with `dotnet build "Rogue Gauntlet.csproj" -c ExportRelease`.
 - Test classes use `[TestSuite]` / `[TestCase]` and the `GdUnit4.Assertions` static helpers. Tests that touch Godot resources, nodes, or the scene runner must add `[RequireGodotRuntime]`; plain-C# tests omit it and run far faster (no engine boot).
 - Only the .NET 10 runtime is installed locally, so `.runsettings` sets `DOTNET_ROLL_FORWARD=LatestMajor` for the testhost (scoped to the test run, so normal Debug gameplay stays on its declared TFM). The first runtime-test run is slow because Godot imports the checkout's assets — warm it with a headless boot if the runner times out, or raise `GodotConnectTimeout` in `.runsettings`.
+- Navmesh-dependent enemy pathfinding (`NavigationComponent.IsReachable` / `NavigationServer3D` path queries) is **not** reliably testable here: headless Godot cannot bake a navmesh, so path queries return empty. Test the AI decision layer instead (e.g. `EnemyStateMachine` transition semantics, which is a plain class), and rely on `MainSceneSmokeTest` plus the editor for the real navmesh path.
 - `dotnet build "Rogue Gauntlet.sln"` remains the fast compile check; add a `dotnet test` run when changing testable C# logic.
 
 ## Git / Commits & PRs
