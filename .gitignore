@@ -9,3 +9,10 @@
 # .NET build output (e.g. tests/bin, tests/obj)
 [Bb]in/
 [Oo]bj/
+
+# Godot generates .uid files for any .cs it scans; the test sources are not game
+# content, so ignore the .uid files it creates under tests/.
+tests/**/*.uid
+
+# Runner scene the GdUnit4 test adapter generates at run time for [RequireGodotRuntime] tests.
+gdunit4_testadapter_v5/

@@ -13,7 +13,8 @@
     <Parameters></Parameters>
     <DisplayName>FullyQualifiedName</DisplayName>
     <CaptureStdOut>true</CaptureStdOut>
-    <CompileProcessTimeout>30000</CompileProcessTimeout>
-    <GodotConnectTimeout>15000</GodotConnectTimeout>
+    <!-- Booting a full Godot instance is slow on a cold import cache; keep these generous. -->
+    <CompileProcessTimeout>60000</CompileProcessTimeout>
+    <GodotConnectTimeout>60000</GodotConnectTimeout>
   </GdUnit4>
 </RunSettings>
