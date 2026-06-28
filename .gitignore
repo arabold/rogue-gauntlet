@@ -5,3 +5,7 @@
 
 # Backup copies of the C# project file
 *.csproj.old*
+
+# Secrets / local env (never commit)
+.env
+.env.*
