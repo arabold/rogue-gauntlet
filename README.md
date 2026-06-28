@@ -55,7 +55,7 @@ A typical workflow for adding a new feature might involve:
 
 ### Coding Conventions
 
-Please adhere to the coding style defined in the `.editorconfig` file. C# code generally follows standard .NET conventions. Refer to the `.clinerules` file and the contribution guidelines in **[ARCHITECTURE.md](./ARCHITECTURE.md)** for any project-specific rules.
+Please adhere to the coding style defined in the `.editorconfig` file. C# code generally follows standard .NET conventions. Refer to `AGENTS.md` and the contribution guidelines in **[ARCHITECTURE.md](./ARCHITECTURE.md)** for any project-specific rules.
 
 ## Architecture
 
