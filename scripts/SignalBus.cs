@@ -27,7 +27,10 @@ public partial class SignalBus : Node
     [Signal] public delegate void ItemUnequippedEventHandler(Player player, EquipableItem item);
     [Signal] public delegate void ItemDestroyedEventHandler(Player player, Item item, int quantity);
     [Signal] public delegate void ItemDroppedEventHandler(Player player, Item item, int quantity);
+    /// <summary>Fired when an item type's hidden identity is newly discovered this run.</summary>
+    [Signal] public delegate void ItemIdentifiedEventHandler(string typeId);
     public static void EmitItemConsumed(Player player, ConsumableItem item) => Instance?.EmitSignalItemConsumed(player, item);
+    public static void EmitItemIdentified(string typeId) => Instance?.EmitSignalItemIdentified(typeId);
     public static void EmitItemEquipped(Player player, EquipableItem item) => Instance?.EmitSignalItemEquipped(player, item);
     public static void EmitItemUnequipped(Player player, EquipableItem item) => Instance?.EmitSignalItemUnequipped(player, item);
     public static void EmitItemDestroyed(Player player, Item item, int quantity) => Instance?.EmitSignalItemDestroyed(player, item, quantity);

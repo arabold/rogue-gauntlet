@@ -19,6 +19,9 @@ public partial class GameSession : Node
 	public uint ActiveDungeonDepth { get; private set; } = 1;
 	public bool IsGameActive => ActiveSlotId > 0;
 
+	/// <summary>Per-run hidden-identity state for potions, scrolls, and similar items.</summary>
+	public IdentificationService Identification { get; } = new();
+
 	public enum LevelTravelDirection
 	{
 		Up = 1,
@@ -58,6 +61,11 @@ public partial class GameSession : Node
 			SignalBus.Instance,
 			signalBus => signalBus.PlayerSpawned += OnPlayerSpawned,
 			signalBus => signalBus.PlayerSpawned -= OnPlayerSpawned);
+
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			signalBus => signalBus.ItemConsumed += OnItemConsumed,
+			signalBus => signalBus.ItemConsumed -= OnItemConsumed);
 	}
 
 	public override void _ExitTree()
@@ -85,6 +93,7 @@ public partial class GameSession : Node
 		_sessionStartedAtMsec = Time.GetTicksMsec();
 		_pendingLoadedSave = null;
 		_saveAfterNextSpawn = true;
+		Identification.Initialize(ActiveSeed);
 
 		string now = DateTime.UtcNow.ToString("O");
 		_activeSave = new SaveGame
@@ -125,6 +134,7 @@ public partial class GameSession : Node
 		_pendingLoadedSave = saveGame;
 		_saveAfterNextSpawn = false;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
+		Identification.Initialize(ActiveSeed, saveGame.Identification?.IdentifiedTypeIds, BuildAssignmentMap(saveGame.Identification));
 
 		GetTree().Paused = false;
 		_isSceneTransitioning = true;
@@ -325,6 +335,7 @@ public partial class GameSession : Node
 		saveGame.DungeonDepth = ActiveDungeonDepth;
 		saveGame.PlayTimeSeconds += GetSessionElapsedSeconds();
 		saveGame.Player = CapturePlayer(player);
+		saveGame.Identification = CaptureIdentification();
 
 		if (!SaveService.Save(saveGame))
 		{
@@ -372,6 +383,53 @@ public partial class GameSession : Node
 	private double GetSessionElapsedSeconds()
 	{
 		return Math.Max(0, (Time.GetTicksMsec() - _sessionStartedAtMsec) / 1000.0);
+	}
+
+	private void OnItemConsumed(Player player, ConsumableItem item)
+	{
+		if (item is IdentifiableItem identifiable
+			&& identifiable.HasIdentity
+			&& Identification.Identify(identifiable.TypeId))
+		{
+			GD.Print($"Identified {identifiable.TypeId} as {identifiable.TrueName}.");
+			SignalBus.EmitItemIdentified(identifiable.TypeId);
+		}
+	}
+
+	private IdentificationSaveData CaptureIdentification()
+	{
+		var data = new IdentificationSaveData
+		{
+			IdentifiedTypeIds = Identification.GetIdentifiedTypeIds().ToList(),
+		};
+
+		foreach (KeyValuePair<string, string> assignment in Identification.GetAssignmentDescriptors())
+		{
+			data.Assignments.Add(new AppearanceAssignmentSaveData
+			{
+				TypeId = assignment.Key,
+				AppearanceDescriptor = assignment.Value,
+			});
+		}
+
+		return data;
+	}
+
+	private static Dictionary<string, string> BuildAssignmentMap(IdentificationSaveData data)
+	{
+		var map = new Dictionary<string, string>();
+		if (data?.Assignments != null)
+		{
+			foreach (AppearanceAssignmentSaveData assignment in data.Assignments)
+			{
+				if (!string.IsNullOrEmpty(assignment.TypeId))
+				{
+					map[assignment.TypeId] = assignment.AppearanceDescriptor;
+				}
+			}
+		}
+
+		return map;
 	}
 
 	private void OnPlayerSpawned(Player player)

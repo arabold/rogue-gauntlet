@@ -8,6 +8,7 @@ public partial class Preview : SubViewport
 
 	private Node3D _object;
 	private Camera3D _camera;
+	private Color? _tint;
 
 	public override void _Ready()
 	{
@@ -20,6 +21,14 @@ public partial class Preview : SubViewport
 	public void SetScene(PackedScene scene)
 	{
 		Scene = scene;
+		_tint = null;
+		Refresh();
+	}
+
+	public void SetScene(PackedScene scene, Color? tint)
+	{
+		Scene = scene;
+		_tint = tint;
 		Refresh();
 	}
 
@@ -72,6 +81,11 @@ public partial class Preview : SubViewport
 		{
 			GD.Print($"Rendering preview for {_object.Name}");
 			AddChild(_object);
+			if (_tint.HasValue)
+			{
+				ItemIdentity.ApplyTint(_object, _tint.Value);
+			}
+
 			CenterObjectToCamera();
 		}
 	}

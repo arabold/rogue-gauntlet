@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 1;
+	public const int CurrentVersion = 2;
 
 	public int Version { get; set; } = CurrentVersion;
 	public int SlotId { get; set; }
@@ -17,6 +17,28 @@ public sealed class SaveGame
 	public double PlayTimeSeconds { get; set; }
 	public PlayerSaveData Player { get; set; } = new();
 	public WorldSaveData World { get; set; } = new();
+	public IdentificationSaveData Identification { get; set; } = new();
+}
+
+/// <summary>
+/// Per-run identification state. Stores both which item types the player has
+/// discovered and the full type-to-appearance assignment, so a restored save
+/// always shows the same disguise for the same effect — even if a later game
+/// version adds or reorders item types (which would shift a purely seed-derived
+/// assignment). Newly added types not present in a save fall back to the
+/// deterministic seed-based assignment.
+/// </summary>
+public sealed class IdentificationSaveData
+{
+	public List<string> IdentifiedTypeIds { get; set; } = [];
+	public List<AppearanceAssignmentSaveData> Assignments { get; set; } = [];
+}
+
+/// <summary>One persisted disguise: which appearance an item type wore this run.</summary>
+public sealed class AppearanceAssignmentSaveData
+{
+	public string TypeId { get; set; } = string.Empty;
+	public string AppearanceDescriptor { get; set; } = string.Empty;
 }
 
 public sealed class SaveSlotMetadata

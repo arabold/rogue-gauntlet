@@ -1,13 +1,10 @@
-[gd_scene load_steps=49 format=3 uid="uid://coev873edfqw6"]
+[gd_scene load_steps=42 format=3 uid="uid://coev873edfqw6"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_p3la7"]
 [ext_resource type="PackedScene" uid="uid://c7qnx3sxaoosn" path="res://assets/kaykit-skeletons/Skeleton_Warrior.glb" id="2_srno3"]
 [ext_resource type="PackedScene" uid="uid://mqwwxa8pvcxx" path="res://assets/kaykit-skeletons/Skeleton_Axe.gltf" id="3_t2b4n"]
 [ext_resource type="PackedScene" uid="uid://c8g78nlylc3kb" path="res://assets/kaykit-skeletons/Skeleton_Shield_Small_B.gltf" id="4_4cr0r"]
-[ext_resource type="Resource" uid="uid://dnxrasu67oe6k" path="res://scenes/items/gold/gold.tres" id="4_acu02"]
-[ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion_small.tres" id="5_6enk2"]
-[ext_resource type="Script" uid="uid://b2kapi7dsmanb" path="res://scenes/components/LootTableItem.cs" id="6_t2b4n"]
-[ext_resource type="Resource" uid="uid://bylnwqmg1nm57" path="res://scenes/items/weapons/axe_old.tres" id="8_4cr0r"]
+[ext_resource type="Resource" uid="uid://clootwarrior01" path="res://scenes/items/loot/loot_skeleton_warrior.tres" id="10_loot"]
 [ext_resource type="Resource" path="res://scenes/enemies/profiles/skeleton_warrior_behavior.tres" id="9_profile"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rfhfv"]
@@ -158,33 +155,6 @@ states/Walking/position = Vector2(216.242, 417.688)
 transitions = ["Idle", "Walking", SubResource("AnimationNodeStateMachineTransition_t6uxn"), "Walking", "Idle", SubResource("AnimationNodeStateMachineTransition_d2noq"), "Idle", "Lie", SubResource("AnimationNodeStateMachineTransition_ahwo5"), "Lie", "StandUp", SubResource("AnimationNodeStateMachineTransition_jneow"), "StandUp", "Idle", SubResource("AnimationNodeStateMachineTransition_3ftaq"), "Idle", "Attack", SubResource("AnimationNodeStateMachineTransition_x0i68"), "Idle", "Dying", SubResource("AnimationNodeStateMachineTransition_551pq"), "Attack", "Idle", SubResource("AnimationNodeStateMachineTransition_hquwu"), "Dying", "Dead", SubResource("AnimationNodeStateMachineTransition_gyync"), "Walking", "Dying", SubResource("AnimationNodeStateMachineTransition_7hibw"), "Walking", "Attack", SubResource("AnimationNodeStateMachineTransition_qasbv"), "Walking", "Hit", SubResource("AnimationNodeStateMachineTransition_o4lkd"), "Start", "Lie", SubResource("AnimationNodeStateMachineTransition_bnfo4"), "Start", "Spawn", SubResource("AnimationNodeStateMachineTransition_kf5fr"), "Spawn", "Idle", SubResource("AnimationNodeStateMachineTransition_gclll"), "Walking", "Falling", SubResource("AnimationNodeStateMachineTransition_jplsx"), "Idle", "Falling", SubResource("AnimationNodeStateMachineTransition_viqtb"), "Falling", "Idle", SubResource("AnimationNodeStateMachineTransition_aab00"), "Idle", "Hit", SubResource("AnimationNodeStateMachineTransition_lwwi4"), "Hit", "Idle", SubResource("AnimationNodeStateMachineTransition_m1eid"), "Hit", "Dying", SubResource("AnimationNodeStateMachineTransition_5cn5g")]
 graph_offset = Vector2(-45.75, -25.415)
 
-[sub_resource type="Resource" id="Resource_4cr0r"]
-script = ExtResource("6_t2b4n")
-Weight = 1.0
-Item = ExtResource("4_acu02")
-Quantity = 25
-metadata/_custom_type_script = ExtResource("6_t2b4n")
-
-[sub_resource type="Resource" id="Resource_3s7sy"]
-script = ExtResource("6_t2b4n")
-Weight = 1.0
-Item = ExtResource("4_acu02")
-Quantity = 50
-metadata/_custom_type_script = ExtResource("6_t2b4n")
-
-[sub_resource type="Resource" id="Resource_x7qcu"]
-script = ExtResource("6_t2b4n")
-Weight = 1.0
-Item = ExtResource("5_6enk2")
-Quantity = 1
-metadata/_custom_type_script = ExtResource("6_t2b4n")
-
-[sub_resource type="Resource" id="Resource_ppoya"]
-script = ExtResource("6_t2b4n")
-Weight = 1.0
-Item = ExtResource("8_4cr0r")
-Quantity = 1
-metadata/_custom_type_script = ExtResource("6_t2b4n")
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_5rbcv"]
 radius = 0.75
@@ -323,7 +293,7 @@ advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../../Pivot/Skeleton_Warrior/AnimationPlayer")
 
 [node name="LootTableComponent" parent="." index="3"]
-Items = [SubResource("Resource_4cr0r"), SubResource("Resource_3s7sy"), SubResource("Resource_x7qcu"), SubResource("Resource_ppoya")]
+Table = ExtResource("10_loot")
 
 [node name="DeathComponent" parent="." index="5"]
 Xp = 30

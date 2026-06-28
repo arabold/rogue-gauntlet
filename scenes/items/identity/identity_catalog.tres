@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="IdentityCatalog" load_steps=10 format=3 uid="uid://didentitycat1"]
+
+[ext_resource type="Script" uid="uid://cidcatalog001" path="res://scenes/items/identity/IdentityCatalog.cs" id="1_cat"]
+[ext_resource type="Script" uid="uid://cidcategory01" path="res://scenes/items/identity/IdentityCategory.cs" id="2_cat"]
+[ext_resource type="Resource" uid="uid://dpotionapprs1" path="res://scenes/items/identity/potion_appearances.tres" id="3_pool"]
+[ext_resource type="Resource" uid="uid://b2vo50ixkurnb" path="res://scenes/items/potions/healing_potion_medium.tres" id="4_healing"]
+[ext_resource type="Resource" uid="uid://dpoisonptres1" path="res://scenes/items/potions/poison_potion.tres" id="5_poison"]
+[ext_resource type="Resource" uid="uid://dhasteptres01" path="res://scenes/items/potions/haste_potion.tres" id="6_haste"]
+[ext_resource type="Resource" uid="uid://dregenptres01" path="res://scenes/items/potions/regeneration_potion.tres" id="7_regen"]
+[ext_resource type="Resource" uid="uid://dslowptres001" path="res://scenes/items/potions/slowness_potion.tres" id="8_slow"]
+
+[sub_resource type="Resource" id="Category_potion"]
+script = ExtResource("2_cat")
+Category = "potion"
+AppearancePool = ExtResource("3_pool")
+Types = Array[IdentifiableItem]([ExtResource("4_healing"), ExtResource("5_poison"), ExtResource("6_haste"), ExtResource("7_regen"), ExtResource("8_slow")])
+metadata/_custom_type_script = ExtResource("2_cat")
+
+[resource]
+script = ExtResource("1_cat")
+Categories = Array[IdentityCategory]([SubResource("Category_potion")])
+metadata/_custom_type_script = ExtResource("1_cat")

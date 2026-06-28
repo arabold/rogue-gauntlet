@@ -1,7 +1,7 @@
 using Godot;
 
 [GlobalClass]
-public partial class ConsumableItem : BuffedItem, IPlayerAction
+public partial class ConsumableItem : IdentifiableItem, IPlayerAction
 {
 	[Export] public string AnimationId { get; protected set => SetValue(ref field, value); } = "drink_potion";
 	[Export] public float Delay { get; protected set => SetValue(ref field, value); } = 0f;

@@ -4,14 +4,19 @@ using Godot;
 public partial class LootTableComponent : Node
 {
 	/// <summary>
-	/// The chance of dropping loot from this table.
+	/// The chance of dropping loot from this table. Kept on the component (not the
+	/// table) so the same shared <see cref="LootTable"/> can drop at different rates
+	/// for different spawners.
 	/// </summary>
 	[Export] public float DropChance { get; private set; } = 1.0f;
 	[Export] public Level Level { get; set; }
 	[Export] public PackedScene LootableItemScene { get; private set; }
-	[Export] public LootTableItem[] Items { get; private set; } = [];
+	/// <summary>The shared, weighted pool this spawner can drop from.</summary>
+	[Export] public LootTable Table { get; private set; }
 
     private bool _isDropped = false;
+
+    private LootTableItem[] Items => Table?.Items ?? [];
 
     public void DropLoot()
     {

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="LootTable" load_steps=5 format=3 uid="uid://clootminion001"]
+
+[ext_resource type="Script" path="res://scenes/components/LootTable.cs" id="1_table"]
+[ext_resource type="Script" uid="uid://b2kapi7dsmanb" path="res://scenes/components/LootTableItem.cs" id="2_item"]
+[ext_resource type="Resource" uid="uid://dnxrasu67oe6k" path="res://scenes/items/gold/gold.tres" id="3_gold"]
+
+[sub_resource type="Resource" id="Item_gold"]
+script = ExtResource("2_item")
+Weight = 1.0
+Item = ExtResource("3_gold")
+Quantity = 10
+metadata/_custom_type_script = ExtResource("2_item")
+
+[resource]
+script = ExtResource("1_table")
+Items = [SubResource("Item_gold")]
+metadata/_custom_type_script = ExtResource("1_table")
