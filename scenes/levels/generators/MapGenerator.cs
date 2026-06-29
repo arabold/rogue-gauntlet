@@ -398,11 +398,18 @@ public partial class MapGenerator : Node3D
 			}
 		}
 
-		PlaceWallCorners(cornerEdges);
+		// Straight walls first: each lays a full-width wall on its (distinct) edge-midpoint
+		// cell, so every void-facing edge is sealed before anything else. Corners are placed
+		// afterwards on corner cells (a different cell set) purely for the join visual. This
+		// ordering matters for the rare midpoint-occupied fallback in PlaceWallStraight: it
+		// anchors half-walls at the edge's endpoint (corner) cells, so corners must not be
+		// placed yet or they would block that fallback and could leave the edge unsealed.
 		foreach (var wall in straightWalls)
 		{
 			PlaceWallStraight(wall.Position, wall.Orientation, occupiedWallSpans);
 		}
+
+		PlaceWallCorners(cornerEdges);
 	}
 
 	private void PlaceWallModulesForTile(int x, int z, System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, List<WallStraightRequest> straightWalls, List<Aabb> authoredWallBoxes)
