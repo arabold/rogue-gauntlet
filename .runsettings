@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <RunConfiguration>
+    <!-- GdUnit4 hosts tests in a single Godot instance; parallel hosts are unsupported. -->
+    <MaxCpuCount>1</MaxCpuCount>
+    <TestSessionTimeout>180000</TestSessionTimeout>
+    <EnvironmentVariables>
+      <!-- This machine ships Godot as Godot_mono.app, not the default Godot.app. -->
+      <GODOT_BIN>/Applications/Godot_mono.app/Contents/MacOS/Godot</GODOT_BIN>
+      <!-- The net9.0 testhost rolls forward onto the locally installed .NET 10 runtime.
+           Scoped to the test run here so normal Debug gameplay stays on its declared TFM. -->
+      <DOTNET_ROLL_FORWARD>LatestMajor</DOTNET_ROLL_FORWARD>
+    </EnvironmentVariables>
+  </RunConfiguration>
+  <GdUnit4>
+    <Parameters></Parameters>
+    <DisplayName>FullyQualifiedName</DisplayName>
+    <CaptureStdOut>true</CaptureStdOut>
+    <!-- Booting a full Godot instance is slow on a cold import cache; keep these generous. -->
+    <CompileProcessTimeout>60000</CompileProcessTimeout>
+    <GodotConnectTimeout>60000</GodotConnectTimeout>
+  </GdUnit4>
+</RunSettings>
