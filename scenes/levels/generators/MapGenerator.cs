@@ -378,7 +378,14 @@ public partial class MapGenerator : Node3D
 		GD.Print("Placing walls...");
 		var cornerEdges = new System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges>();
 		var straightWalls = new List<WallStraightRequest>();
-		var occupiedWallSpans = BuildOccupiedWallSpans();
+		// Occupancy tracks only the walls we generate here, so generated corners/halves
+		// tile without overlapping each other. Reconciliation with room-authored walls is
+		// done per logical edge against their real mesh footprints (see PlaceWallModulesForTile),
+		// not by inferring coverage from a wall's tile index -- that inference misread authored
+		// corner variants (e.g. wall_corner_small) as full straight walls and suppressed the
+		// generated walls that should have sealed the adjacent corridor edge, leaving gaps.
+		var occupiedWallSpans = new HashSet<WallSpan>();
+		var authoredWallBoxes = BuildAuthoredWallBoxes();
 
 		for (int x = 0; x < Map.Width; x++)
 		{
@@ -386,30 +393,40 @@ public partial class MapGenerator : Node3D
 			{
 				if (IsWallSourceTile(x, z))
 				{
-					PlaceWallModulesForTile(x, z, cornerEdges, straightWalls);
+					PlaceWallModulesForTile(x, z, cornerEdges, straightWalls, authoredWallBoxes);
 				}
 			}
 		}
 
-		PlaceWallCorners(cornerEdges, occupiedWallSpans);
+		// Straight walls first: each lays a full-width wall on its (distinct) edge-midpoint
+		// cell, so every void-facing edge is sealed before anything else. Corners are placed
+		// afterwards on corner cells (a different cell set) purely for the join visual. This
+		// ordering matters for the rare midpoint-occupied fallback in PlaceWallStraight: it
+		// anchors half-walls at the edge's endpoint (corner) cells, so corners must not be
+		// placed yet or they would block that fallback and could leave the edge unsealed.
 		foreach (var wall in straightWalls)
 		{
 			PlaceWallStraight(wall.Position, wall.Orientation, occupiedWallSpans);
 		}
+
+		PlaceWallCorners(cornerEdges);
 	}
 
-	private void PlaceWallModulesForTile(int x, int z, System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, List<WallStraightRequest> straightWalls)
+	private void PlaceWallModulesForTile(int x, int z, System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, List<WallStraightRequest> straightWalls, List<Aabb> authoredWallBoxes)
 	{
 		int tileCenter = (int)TileSize / 2;
 		var basePosition = TileToWorld(x, 0, z);
-		bool north = NeedsGeneratedWallAgainst(x, z - 1);
-		bool south = NeedsGeneratedWallAgainst(x, z + 1);
-		bool west = NeedsGeneratedWallAgainst(x - 1, z);
-		bool east = NeedsGeneratedWallAgainst(x + 1, z);
 		int westX = basePosition.X - tileCenter;
 		int eastX = basePosition.X + tileCenter;
 		int northZ = basePosition.Z - tileCenter;
 		int southZ = basePosition.Z + tileCenter;
+
+		// Generate a wall on each edge that faces void -- unless the room template already
+		// authored a wall that fully covers that edge (checked against real mesh footprints).
+		bool north = NeedsGeneratedWallAgainst(x, z - 1) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: true, northZ, westX, eastX);
+		bool south = NeedsGeneratedWallAgainst(x, z + 1) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: true, southZ, westX, eastX);
+		bool west = NeedsGeneratedWallAgainst(x - 1, z) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: false, westX, northZ, southZ);
+		bool east = NeedsGeneratedWallAgainst(x + 1, z) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: false, eastX, northZ, southZ);
 
 		if (north)
 		{
@@ -470,96 +487,62 @@ public partial class MapGenerator : Node3D
 		cornerEdges[position] = edges;
 	}
 
-	private void PlaceWallCorners(System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, HashSet<WallSpan> occupiedWallSpans)
+	private void PlaceWallCorners(System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges)
 	{
 		foreach (var (position, edges) in cornerEdges)
 		{
 			if (edges.HorizontalEast && edges.VerticalSouth)
 			{
-				PlaceWallCorner(position, NorthWestCornerOrientation, occupiedWallSpans);
+				PlaceWallCorner(position, NorthWestCornerOrientation);
 			}
 			else if (edges.HorizontalWest && edges.VerticalSouth)
 			{
-				PlaceWallCorner(position, NorthEastCornerOrientation, occupiedWallSpans);
+				PlaceWallCorner(position, NorthEastCornerOrientation);
 			}
 			else if (edges.HorizontalEast && edges.VerticalNorth)
 			{
-				PlaceWallCorner(position, SouthWestCornerOrientation, occupiedWallSpans);
+				PlaceWallCorner(position, SouthWestCornerOrientation);
 			}
 			else if (edges.HorizontalWest && edges.VerticalNorth)
 			{
-				PlaceWallCorner(position, SouthEastCornerOrientation, occupiedWallSpans);
+				PlaceWallCorner(position, SouthEastCornerOrientation);
 			}
 		}
 	}
 
-	private void PlaceWallCorner(Vector2I position, int orientation, HashSet<WallSpan> occupiedWallSpans)
+	private void PlaceWallCorner(Vector2I position, int orientation)
 	{
+		// A corner is pure polish at the join of two edges; the full-width straight walls
+		// already seal both edges. So just drop a corner mesh on the corner cell when it is
+		// free, and otherwise leave it. The previous code fell back to scattering half-walls
+		// into neighbouring cells, which could occupy a straight wall's midpoint cell and
+		// leave that edge with a gap.
 		var cellPosition = new Vector3I(position.X, 0, position.Y);
-		var coverage = GetCornerWallCoverage(orientation);
-
-		if (!WallCoverageOccupied(cellPosition, coverage, occupiedWallSpans)
-			&& SetGeneratedWallCell(cellPosition, TileFactory.GetWallCornerTileIndex(), orientation, coverage, occupiedWallSpans))
+		if (WallGridMap.GetCellItem(cellPosition) < 0)
 		{
-			return;
+			WallGridMap.SetCellItem(cellPosition, TileFactory.GetWallCornerTileIndex(), orientation);
 		}
-
-		PlaceWallHalves(cellPosition, coverage, occupiedWallSpans);
 	}
 
 	private void PlaceWallStraight(Vector3I position, int orientation, HashSet<WallSpan> occupiedWallSpans)
 	{
-		var footprint = orientation == HorizontalWallOrientation
-			? GeneratedWallFootprint.Horizontal
-			: GeneratedWallFootprint.Vertical;
-		bool startHalfOccupied = WallHalfSpanOccupied(position, footprint, startHalf: true, occupiedWallSpans);
-		bool endHalfOccupied = WallHalfSpanOccupied(position, footprint, startHalf: false, occupiedWallSpans);
-
-		if (!startHalfOccupied && !endHalfOccupied)
+		// Lay a full-width wall across the whole edge so it is guaranteed sealed. A corner
+		// already placed at an endpoint simply overlaps this wall's end (harmless). The old
+		// half-tiling tried to avoid that overlap by splitting the edge into halves, but it
+		// dropped a half whenever it could not find a free anchor cell beside a corner,
+		// leaving see-through gaps. Full edges cannot have that problem.
+		if (WallGridMap.GetCellItem(position) < 0)
 		{
-			var coverage = GetStraightWallCoverage(footprint);
-			if (SetGeneratedWallCell(position, TileFactory.GetWallTileIndex(), orientation, coverage, occupiedWallSpans))
-			{
-				return;
-			}
-
-			PlaceWallHalf(position, footprint, startHalf: true, occupiedWallSpans);
-			PlaceWallHalf(position, footprint, startHalf: false, occupiedWallSpans);
+			WallGridMap.SetCellItem(position, TileFactory.GetWallTileIndex(), orientation);
 			return;
 		}
 
-		if (!startHalfOccupied)
-		{
-			PlaceWallHalf(position, footprint, startHalf: true, occupiedWallSpans);
-		}
-
-		if (!endHalfOccupied)
-		{
-			PlaceWallHalf(position, footprint, startHalf: false, occupiedWallSpans);
-		}
-	}
-
-	private void PlaceWallHalves(Vector3I position, WallCoverage coverage, HashSet<WallSpan> occupiedWallSpans)
-	{
-		if (coverage.HasFlag(WallCoverage.HorizontalWest))
-		{
-			PlaceWallHalf(position, GeneratedWallFootprint.Horizontal, startHalf: true, occupiedWallSpans);
-		}
-
-		if (coverage.HasFlag(WallCoverage.HorizontalEast))
-		{
-			PlaceWallHalf(position, GeneratedWallFootprint.Horizontal, startHalf: false, occupiedWallSpans);
-		}
-
-		if (coverage.HasFlag(WallCoverage.VerticalNorth))
-		{
-			PlaceWallHalf(position, GeneratedWallFootprint.Vertical, startHalf: true, occupiedWallSpans);
-		}
-
-		if (coverage.HasFlag(WallCoverage.VerticalSouth))
-		{
-			PlaceWallHalf(position, GeneratedWallFootprint.Vertical, startHalf: false, occupiedWallSpans);
-		}
+		// The edge midpoint cell is already used (rare). Fill each side with a half where one fits.
+		var footprint = orientation == HorizontalWallOrientation
+			? GeneratedWallFootprint.Horizontal
+			: GeneratedWallFootprint.Vertical;
+		PlaceWallHalf(position, footprint, startHalf: true, occupiedWallSpans);
+		PlaceWallHalf(position, footprint, startHalf: false, occupiedWallSpans);
 	}
 
 	private bool PlaceWallHalf(Vector3I position, GeneratedWallFootprint footprint, bool startHalf, HashSet<WallSpan> occupiedWallSpans)
@@ -608,9 +591,24 @@ public partial class MapGenerator : Node3D
 		return true;
 	}
 
-	private HashSet<WallSpan> BuildOccupiedWallSpans()
+	private const float WallCoverageEps = 0.05f;
+
+	/// <summary>
+	/// World-space XZ footprints of every wall already in the grid before generation runs
+	/// (i.e. the room-authored walls). Used to decide, per logical edge, whether the room
+	/// already sealed it. Derived from each piece's actual mesh AABB + orientation rather
+	/// than guessed from its tile index, so decorative corner/half variants are handled
+	/// correctly.
+	/// </summary>
+	private List<Aabb> BuildAuthoredWallBoxes()
 	{
-		var occupiedWallSpans = new HashSet<WallSpan>();
+		var boxes = new List<Aabb>();
+		MeshLibrary library = WallGridMap.MeshLibrary;
+		if (library == null)
+		{
+			return boxes;
+		}
+
 		foreach (Vector3I cell in WallGridMap.GetUsedCells())
 		{
 			int tileIndex = WallGridMap.GetCellItem(cell);
@@ -619,10 +617,90 @@ public partial class MapGenerator : Node3D
 				continue;
 			}
 
-			AddWallSpans(occupiedWallSpans, cell, GetWallCoverage(tileIndex, WallGridMap.GetCellItemOrientation(cell)));
+			Mesh mesh = library.GetItemMesh(tileIndex);
+			if (mesh == null)
+			{
+				continue;
+			}
+
+			boxes.Add(WallFootprintWorld(mesh.GetAabb(), WallGridMap.GetCellItemOrientation(cell), cell));
 		}
 
-		return occupiedWallSpans;
+		return boxes;
+	}
+
+	/// <summary>
+	/// World XZ footprint of a wall cell. Wall pieces use only the upright Y-rotation
+	/// orientations {0:0°, 16:90°, 10:180°, 22:270°}; the GridMaps use cell_center=false, so
+	/// the mesh origin sits at the cell coordinate.
+	/// </summary>
+	private static Aabb WallFootprintWorld(Aabb local, int orientation, Vector3I origin)
+	{
+		int quarterTurns = orientation switch { 16 => 1, 10 => 2, 22 => 3, _ => 0 };
+		float x0 = local.Position.X, x1 = local.End.X, z0 = local.Position.Z, z1 = local.End.Z;
+		var corners = new (float X, float Z)[] { (x0, z0), (x1, z0), (x0, z1), (x1, z1) };
+		float minX = float.MaxValue, maxX = float.MinValue, minZ = float.MaxValue, maxZ = float.MinValue;
+		foreach (var (px, pz) in corners)
+		{
+			(float rx, float rz) = quarterTurns switch
+			{
+				1 => (pz, -px),
+				2 => (-px, -pz),
+				3 => (-pz, px),
+				_ => (px, pz),
+			};
+			minX = Mathf.Min(minX, rx);
+			maxX = Mathf.Max(maxX, rx);
+			minZ = Mathf.Min(minZ, rz);
+			maxZ = Mathf.Max(maxZ, rz);
+		}
+
+		return new Aabb(
+			new Vector3(minX + origin.X, local.Position.Y + origin.Y, minZ + origin.Z),
+			new Vector3(maxX - minX, local.Size.Y, maxZ - minZ));
+	}
+
+	/// <summary>
+	/// True when authored wall footprints fully cover a logical tile edge. The edge runs
+	/// along X at z=<paramref name="lineCoord"/> when <paramref name="horizontal"/>, else
+	/// along Z at x=<paramref name="lineCoord"/>; <paramref name="spanMin"/>..spanMax is its
+	/// 4-unit extent on that axis.
+	/// </summary>
+	private static bool EdgeFullyAuthored(List<Aabb> authoredWallBoxes, bool horizontal, float lineCoord, float spanMin, float spanMax)
+	{
+		var intervals = new List<(float A, float B)>();
+		foreach (Aabb box in authoredWallBoxes)
+		{
+			float perpMin = horizontal ? box.Position.Z : box.Position.X;
+			float perpMax = horizontal ? box.End.Z : box.End.X;
+			if (lineCoord < perpMin - WallCoverageEps || lineCoord > perpMax + WallCoverageEps)
+			{
+				continue;
+			}
+
+			float a = horizontal ? box.Position.X : box.Position.Z;
+			float b = horizontal ? box.End.X : box.End.Z;
+			intervals.Add((Mathf.Max(a, spanMin), Mathf.Min(b, spanMax)));
+		}
+
+		intervals.Sort((p, q) => p.A.CompareTo(q.A));
+		float reached = spanMin;
+		foreach (var (a, b) in intervals)
+		{
+			if (b <= a)
+			{
+				continue; // empty after clamping
+			}
+
+			if (a > reached + WallCoverageEps)
+			{
+				return false; // uncovered span before this interval
+			}
+
+			reached = Mathf.Max(reached, b);
+		}
+
+		return reached >= spanMax - WallCoverageEps;
 	}
 
 	private void AddWallSpans(HashSet<WallSpan> occupiedWallSpans, Vector3I position, WallCoverage coverage)
@@ -674,52 +752,6 @@ public partial class MapGenerator : Node3D
 		return startHalf
 			? new WallSpan(position + new Vector3I(0, 0, -tileCenter), position)
 			: new WallSpan(position, position + new Vector3I(0, 0, tileCenter));
-	}
-
-	private WallCoverage GetWallCoverage(int tileIndex, int orientation)
-	{
-		if (tileIndex == TileFactory.GetWallHalfTileIndex())
-		{
-			return GetHalfWallCoverage(orientation);
-		}
-
-		if (tileIndex == TileFactory.GetWallCornerTileIndex())
-		{
-			return GetCornerWallCoverage(orientation);
-		}
-
-		return orientation == VerticalWallOrientation || orientation == VerticalWallSouthHalfOrientation
-			? GetStraightWallCoverage(GeneratedWallFootprint.Vertical)
-			: GetStraightWallCoverage(GeneratedWallFootprint.Horizontal);
-	}
-
-	private WallCoverage GetStraightWallCoverage(GeneratedWallFootprint footprint)
-	{
-		return footprint == GeneratedWallFootprint.Horizontal
-			? WallCoverage.HorizontalWest | WallCoverage.HorizontalEast
-			: WallCoverage.VerticalNorth | WallCoverage.VerticalSouth;
-	}
-
-	private WallCoverage GetHalfWallCoverage(int orientation)
-	{
-		return orientation switch
-		{
-			HorizontalWallWestHalfOrientation => WallCoverage.HorizontalWest,
-			VerticalWallOrientation => WallCoverage.VerticalNorth,
-			VerticalWallSouthHalfOrientation => WallCoverage.VerticalSouth,
-			_ => WallCoverage.HorizontalEast,
-		};
-	}
-
-	private WallCoverage GetCornerWallCoverage(int orientation)
-	{
-		return orientation switch
-		{
-			NorthWestCornerOrientation => WallCoverage.HorizontalEast | WallCoverage.VerticalSouth,
-			NorthEastCornerOrientation => WallCoverage.HorizontalWest | WallCoverage.VerticalSouth,
-			SouthWestCornerOrientation => WallCoverage.HorizontalEast | WallCoverage.VerticalNorth,
-			_ => WallCoverage.HorizontalWest | WallCoverage.VerticalNorth,
-		};
 	}
 
 	private enum GeneratedWallFootprint

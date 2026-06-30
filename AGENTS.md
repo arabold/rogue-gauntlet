@@ -3,13 +3,22 @@
 ## Project Shape
 - Godot 4 C# game; open/run `project.godot`. The project main scene (`run/main_scene`) is `res://scenes/menu/main_menu.tscn`; the gameplay scene is `res://scenes/main/main.tscn` — run that directly for level-generation/gameplay smoke checks.
 - C# project is `Rogue Gauntlet.csproj` using `Godot.NET.Sdk/4.7.0`, `net9.0`, `LangVersion=preview`, root namespace `RogueGauntlet`.
-- There are no test projects or CI workflows in this repo currently; use build plus editor/game smoke checks.
+- C# tests live under `tests/` inside the game project (GdUnit4, see Testing below); there are no CI workflows in this repo currently.
 
 ## Commands
 - Fast compile check: `dotnet build "Rogue Gauntlet.sln"`. This is the default agent verification step for C# changes.
 - VS Code task config points to `/Applications/Godot.app/Contents/MacOS/Godot --build-solutions ...`, but this machine has `/Applications/Godot_mono.app/Contents/MacOS/Godot` instead.
 - The Godot CLI solution build currently prints engine shutdown errors and times out; prefer `dotnet build "Rogue Gauntlet.sln"` for verification unless debugging Godot/editor behavior.
 - For scene/resource/GridMap/visual work, use the Godot MCP server (see the `godot-mcp` skill in `.agents/skills/godot-mcp/SKILL.md`); fall back to the local Godot binary via Bash if MCP reports `ENOENT` on the default `Godot.app` path. Treat headless leak messages on forced quit as shutdown noise unless preceded by real load/script/resource errors.
+
+## Testing
+- C# tests use **GdUnit4** (`gdUnit4.api` + `gdUnit4.test.adapter`). Tests live under `tests/` and are compiled into the game project itself — GdUnit4's `[RequireGodotRuntime]` tests boot a real Godot instance, which only works when the test assembly shares the game's `project.godot` and `res://` tree, so a separate test project is not viable here.
+- Run tests: `dotnet test "Rogue Gauntlet.csproj" --settings .runsettings`. Export `GODOT_BIN` first so GdUnit4 can find the engine (the path is intentionally kept out of `.runsettings` for portability), e.g. `export GODOT_BIN="/Applications/Godot_mono.app/Contents/MacOS/Godot"`. The adapter generates a runner scene under `gdunit4_testadapter_v5/` and hosts runtime tests in that engine instance.
+- The test dependencies, the test sources, and the generated runner are all scoped to the **Debug** configuration in `Rogue Gauntlet.csproj`, so exported builds (`ExportDebug` / `ExportRelease`) stay clean — verify with `dotnet build "Rogue Gauntlet.csproj" -c ExportRelease`.
+- Test classes use `[TestSuite]` / `[TestCase]` and the `GdUnit4.Assertions` static helpers. Tests that touch Godot resources, nodes, or the scene runner must add `[RequireGodotRuntime]`; plain-C# tests omit it and run far faster (no engine boot).
+- Only the .NET 10 runtime is installed locally, so `.runsettings` sets `DOTNET_ROLL_FORWARD=LatestMajor` for the testhost (scoped to the test run, so normal Debug gameplay stays on its declared TFM). The first runtime-test run is slow because Godot imports the checkout's assets — warm it with a headless boot if the runner times out, or raise `GodotConnectTimeout` in `.runsettings`.
+- Navmesh-dependent enemy pathfinding (`NavigationComponent.IsReachable` / `NavigationServer3D` path queries) is **not** reliably testable here: headless Godot cannot bake a navmesh, so path queries return empty. Test the AI decision layer instead (e.g. `EnemyStateMachine` transition semantics, which is a plain class), and rely on `MainSceneSmokeTest` plus the editor for the real navmesh path.
+- `dotnet build "Rogue Gauntlet.sln"` remains the fast compile check; add a `dotnet test` run when changing testable C# logic.
 
 ## Git / Commits & PRs
 - Adhere to the Conventional Commits specification, and format commit messages as markdown.

@@ -5,4 +5,29 @@
     <RootNamespace>RogueGauntlet</RootNamespace>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
+
+  <!--
+    GdUnit4 test harness. Tests live under tests/ inside the Godot project so that
+    [RequireGodotRuntime] tests can boot a real engine against the game's own res://
+    resources. Everything below is scoped to the Debug configuration, so the test
+    dependencies and test sources are excluded from exported game builds
+    (ExportDebug / ExportRelease).
+
+    Run with: dotnet test "Rogue Gauntlet.csproj" using the .runsettings file.
+  -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageReference Include="gdUnit4.api" Version="5.0.0" />
+    <PackageReference Include="gdUnit4.test.adapter" Version="3.0.0" />
+    <PackageReference Include="gdUnit4.analyzers" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' != 'Debug'">
+    <Compile Remove="tests/**/*.cs" />
+    <!-- Runner scene the test adapter generates at the project root; keep it out of
+         exported builds, which do not reference gdUnit4. -->
+    <Compile Remove="gdunit4_testadapter_v5/**/*.cs" />
+  </ItemGroup>
 </Project>
