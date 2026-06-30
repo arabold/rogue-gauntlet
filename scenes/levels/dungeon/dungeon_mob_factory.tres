@@ -4,4 +4,4 @@
 
 [resource]
 script = ExtResource("1_1dmj6")
-EnemyScenePaths = Array[String](["res://scenes/enemies/skeleton/skeleton_minion.tscn", "res://scenes/enemies/skeleton/skeleton_warrior.tscn"])
+EnemyScenePaths = Array[String](["res://scenes/enemies/skeleton/skeleton_minion.tscn", "res://scenes/enemies/skeleton/skeleton_warrior.tscn", "res://scenes/enemies/orc/orc.tscn", "res://scenes/enemies/demon/blue_demon.tscn", "res://scenes/enemies/bat/bat.tscn", "res://scenes/enemies/ghost/ghost.tscn", "res://scenes/enemies/slime/slime.tscn", "res://scenes/enemies/yeti/yeti.tscn", "res://scenes/enemies/spider/spider.tscn"])

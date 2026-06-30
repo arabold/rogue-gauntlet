@@ -1,0 +1,143 @@
+{
+	"_comment": "Source of truth for asset provenance, licensing, and visual-style metadata. One entry per pack. See AGENTS.md in this folder for how to read, add to, and maintain this file. Every directory under assets/ MUST have an entry here.",
+	"compatibility_groups": {
+		"kaykit": {
+			"look": "Flat-shaded low-poly, painterly hand-authored palette texture atlas, soft rounded forms, warm saturated colors.",
+			"scale": "Real-world-ish, Y-up, ~1 Godot unit = 1 meter. Humanoids ~1.7-1.8u tall. Dungeon pieces snap to a 1-unit modular grid.",
+			"rig": "Shared KayKit humanoid skeleton; all KayKit characters reuse the KayKit Character Animations set.",
+			"texture": "A single shared palette PNG atlas per pack (e.g. *_texture.png); recoloring = remap UVs on the atlas, not per-mesh textures.",
+			"notes": "This is the project's primary 3D style. New 3D should join this group whenever possible — same-creator is the only hard guarantee that models blend."
+		},
+		"kenney-2d": {
+			"look": "Clean vector/flat UI and input-prompt iconography.",
+			"notes": "2D UI helper art; no 3D-style constraints."
+		},
+		"game-icons-net": {
+			"look": "Monochrome single-path silhouette icons, recolored at runtime via modulate.",
+			"notes": "Inventory/ability iconography. Mixed individual authors under one CC BY license."
+		},
+		"quaternius": {
+			"look": "Flat-shaded low-poly, cleaner/cartoonier than KayKit, single Atlas texture per model, slightly chunkier proportions.",
+			"scale": "Y-up, ~1 Godot unit = 1m, rigged humanoid armature (EnemyArmature/CharacterArmature) with its own animation set (Idle/Walk/Run/Attack/Death/HitReact).",
+			"notes": "A deliberate SECOND 3D style group, brought in for free CC0 animated monsters (KayKit has none free). Reads more cartoony than KayKit — acceptable for enemies, verified by in-engine side-by-side. Animation names differ per model; the enemy AnimationTree maps them per-monster."
+		},
+		"unsorted": {
+			"look": "Not yet classified.",
+			"notes": "Triage required — assign a real group or document why it stands alone."
+		}
+	},
+	"packs": [
+		{
+			"id": "kaykit-adventurers",
+			"name": "KayKit - Character Pack : Adventurers",
+			"dir": "assets/kaykit-adventurers",
+			"author": "Kay Lousberg (KayKit)",
+			"source": "https://kaylousberg.itch.io/kaykit-adventurers",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": ["3d"],
+			"compatibility_group": "kaykit",
+			"acquired": "unknown (predates manifest)",
+			"notes": "Rigged/animated humanoid characters (Knight, Mage, Rogue, Barbarian) plus held weapon meshes. Player character source."
+		},
+		{
+			"id": "kaykit-dungeon-legacy",
+			"name": "KayKit - Dungeon Pack (legacy / pre-remaster)",
+			"dir": "assets/kaykit-dungeon-legacy",
+			"author": "Kay Lousberg (KayKit)",
+			"source": "https://kaylousberg.itch.io/kaykit-dungeon",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": ["3d"],
+			"compatibility_group": "kaykit",
+			"acquired": "unknown (predates manifest)",
+			"notes": "Older dungeon prop/weapon set using the *.gltf.glb naming and rarity suffixes (_common/_uncommon/_rare). Kept alongside the remaster; prefer remastered where equivalents exist."
+		},
+		{
+			"id": "kaykit-dungeon-remastered",
+			"name": "KayKit - Dungeon Pack Remastered",
+			"dir": "assets/kaykit-dungeon-remastered",
+			"author": "Kay Lousberg (KayKit)",
+			"source": "https://kaylousberg.itch.io/kaykit-dungeon-remastered",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": ["3d"],
+			"compatibility_group": "kaykit",
+			"acquired": "unknown (predates manifest)",
+			"notes": "Primary dungeon environment set (~200 modular pieces): walls, floors, banners, props. Drives level generation tiling."
+		},
+		{
+			"id": "kaykit-skeletons",
+			"name": "KayKit - Skeletons Character Pack",
+			"dir": "assets/kaykit-skeletons",
+			"author": "Kay Lousberg (KayKit)",
+			"source": "https://kaylousberg.itch.io/kaykit-skeletons",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": ["3d"],
+			"compatibility_group": "kaykit",
+			"acquired": "unknown (predates manifest)",
+			"notes": "Animated skeleton enemies + modular skeleton parts/weapons. Current enemy source."
+		},
+		{
+			"id": "kenny-input-prompts",
+			"name": "Kenney - Input Prompts",
+			"dir": "assets/kenny-input-prompts",
+			"author": "Kenney (kenney.nl)",
+			"source": "https://kenney.nl/assets/input-prompts",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": ["2d"],
+			"compatibility_group": "kenney-2d",
+			"acquired": "unknown (predates manifest)",
+			"notes": "Keyboard + Xbox controller button prompt SVGs for UI hints. Directory name keeps the original 'kenny' spelling."
+		},
+		{
+			"id": "game-icons",
+			"name": "game-icons.net icon set",
+			"dir": "assets/game-icons",
+			"author": "Various authors via game-icons.net (per-icon attribution required)",
+			"source": "https://game-icons.net/",
+			"license": "CC-BY-3.0",
+			"license_url": "https://creativecommons.org/licenses/by/3.0/",
+			"attribution_required": true,
+			"types": ["2d"],
+			"compatibility_group": "game-icons-net",
+			"acquired": "unknown (predates manifest)",
+			"notes": "ATTRIBUTION REQUIRED. Item/equipment SVG icons. Each icon has an individual author that must be credited in shipped builds. Per-icon authorship is not yet recorded here — needs backfill (see AGENTS.md)."
+		},
+		{
+			"id": "quaternius-monsters",
+			"name": "Quaternius low-poly animated monsters (via Poly Pizza)",
+			"dir": "assets/quaternius-monsters",
+			"author": "Quaternius",
+			"source": "https://poly.pizza/u/Quaternius",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": ["3d"],
+			"compatibility_group": "quaternius",
+			"acquired": "2026-06-28",
+			"notes": "Coherent vertex-colored CC0 monster set fetched via the assets skill's Poly Pizza channel: orc, blue-demon, ghost, yeti, slime-enemy, bat, spider. Wired as enemies under scenes/enemies/{orc,demon,ghost,yeti,slime,bat,spider}/. NOTE: Quaternius ships multiple visual sub-series; the textured-atlas EnemyArmature ones (goblin, zombie) clash with this vertex-color set and were intentionally excluded. Rigs differ per body type (CharacterArmature/MonsterArmature/BatArmature/SpiderArmature), so each .glb.import sets loop_mode on its own looping clips and each scene maps its own clip names. Scales are per-model starting points to be eyeballed; bat/ghost are flyers given a model Y-offset to hover (movement is still ground-based)."
+		},
+		{
+			"id": "ui",
+			"name": "UI background art (unverified)",
+			"dir": "assets/ui",
+			"author": "UNKNOWN — needs triage",
+			"source": "UNKNOWN",
+			"license": "UNKNOWN",
+			"license_url": "",
+			"attribution_required": null,
+			"types": ["2d"],
+			"compatibility_group": "unsorted",
+			"acquired": "unknown (predates manifest)",
+			"notes": "main_menu_background.png has no recorded source or license. MUST be triaged before shipping: confirm origin/terms, or replace with an asset of known provenance."
+		}
+	]
+}

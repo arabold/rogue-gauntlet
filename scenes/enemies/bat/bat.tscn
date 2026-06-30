@@ -1,0 +1,126 @@
+[gd_scene load_steps=27 format=3]
+
+[ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://assets/quaternius-monsters/bat.glb" id="2_glb"]
+[ext_resource type="Resource" uid="uid://clootminion001" path="res://scenes/items/loot/loot_skeleton_minion.tres" id="3_loot"]
+[ext_resource type="Resource" path="res://scenes/enemies/bat/bat_behavior.tres" id="4_profile"]
+
+[sub_resource type="AnimationNodeAnimation" id="anim_idle"]
+animation = &"BatArmature|Bat_Flying"
+[sub_resource type="AnimationNodeAnimation" id="anim_walk"]
+animation = &"BatArmature|Bat_Flying"
+[sub_resource type="AnimationNodeAnimation" id="anim_attack"]
+animation = &"BatArmature|Bat_Attack"
+[sub_resource type="AnimationNodeAnimation" id="anim_hit"]
+animation = &"BatArmature|Bat_Hit"
+[sub_resource type="AnimationNodeAnimation" id="anim_dying"]
+animation = &"BatArmature|Bat_Death"
+[sub_resource type="AnimationNodeAnimation" id="anim_dead"]
+animation = &"BatArmature|Bat_Death"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_start_idle"]
+advance_mode = 2
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_walk"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsMoving"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_idle"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "!IsMoving"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_attack"]
+advance_mode = 2
+advance_expression = "IsAttacking"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_attack"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsAttacking"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_attack_idle"]
+switch_mode = 2
+advance_mode = 2
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_hit"]
+advance_mode = 2
+advance_expression = "IsHit"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_hit"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsHit"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_hit_idle"]
+switch_mode = 2
+advance_mode = 2
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_dying"]
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_dying"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_hit_dying"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_attack_dying"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_dying_dead"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachine" id="sm"]
+states/Attack/node = SubResource("anim_attack")
+states/Attack/position = Vector2(440, 100)
+states/Dead/node = SubResource("anim_dead")
+states/Dead/position = Vector2(820, 100)
+states/Dying/node = SubResource("anim_dying")
+states/Dying/position = Vector2(640, 100)
+states/Hit/node = SubResource("anim_hit")
+states/Hit/position = Vector2(440, 220)
+states/Idle/node = SubResource("anim_idle")
+states/Idle/position = Vector2(240, 100)
+states/Start/position = Vector2(60, 100)
+states/Walking/node = SubResource("anim_walk")
+states/Walking/position = Vector2(240, 320)
+transitions = ["Start", "Idle", SubResource("t_start_idle"), "Idle", "Walking", SubResource("t_idle_walk"), "Walking", "Idle", SubResource("t_walk_idle"), "Idle", "Attack", SubResource("t_idle_attack"), "Walking", "Attack", SubResource("t_walk_attack"), "Attack", "Idle", SubResource("t_attack_idle"), "Idle", "Hit", SubResource("t_idle_hit"), "Walking", "Hit", SubResource("t_walk_hit"), "Hit", "Idle", SubResource("t_hit_idle"), "Idle", "Dying", SubResource("t_idle_dying"), "Walking", "Dying", SubResource("t_walk_dying"), "Hit", "Dying", SubResource("t_hit_dying"), "Attack", "Dying", SubResource("t_attack_dying"), "Dying", "Dead", SubResource("t_dying_dead")]
+graph_offset = Vector2(0, 40)
+
+[sub_resource type="CapsuleShape3D" id="cap_hurt"]
+radius = 0.75
+height = 2.0
+[sub_resource type="CapsuleShape3D" id="cap_body"]
+radius = 0.75
+height = 2.0
+
+[node name="Bat" instance=ExtResource("1_base")]
+
+[node name="BatModel" parent="Pivot" index="0" instance=ExtResource("2_glb")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 1.3, 0)
+
+[node name="EnemyBehaviorComponent" parent="." index="1"]
+Profile = ExtResource("4_profile")
+
+[node name="AnimationTree" type="AnimationTree" parent="EnemyBehaviorComponent" index="2"]
+root_node = NodePath("../../Pivot/BatModel")
+tree_root = SubResource("sm")
+advance_expression_base_node = NodePath("..")
+anim_player = NodePath("../../Pivot/BatModel/AnimationPlayer")
+
+[node name="LootTableComponent" parent="." index="3"]
+Table = ExtResource("3_loot")
+
+[node name="HealthComponent" parent="." index="4"]
+MaxHealth = 4.0
+CurrentHealth = 4.0
+
+[node name="DeathComponent" parent="." index="5"]
+Xp = 2
+
+[node name="HurtBoxComponent" parent="." index="6"]
+Evasion = 0.35
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
+shape = SubResource("cap_hurt")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="8"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+shape = SubResource("cap_body")
