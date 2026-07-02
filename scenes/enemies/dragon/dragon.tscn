@@ -86,15 +86,18 @@ graph_offset = Vector2(0, 40)
 
 [sub_resource type="CapsuleShape3D" id="cap_hurt"]
 radius = 0.75
-height = 2.0
+height = 1.6
 [sub_resource type="CapsuleShape3D" id="cap_body"]
 radius = 0.75
-height = 2.0
+height = 1.6
 
 [node name="Dragon" instance=ExtResource("1_base")]
 
 [node name="DragonModel" parent="Pivot" index="0" instance=ExtResource("2_glb")]
-transform = Transform3D(1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0.8, 0)
+transform = Transform3D(1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0)
+
+[node name="MovementComponent" parent="." index="3"]
+HoverHeight = 1.0
 
 [node name="EnemyBehaviorComponent" parent="." index="1"]
 Profile = ExtResource("4_profile")
@@ -119,8 +122,9 @@ Xp = 14
 Evasion = 0.1
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 0)
 shape = SubResource("cap_hurt")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." index="8"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
 shape = SubResource("cap_body")

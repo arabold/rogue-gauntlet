@@ -251,5 +251,7 @@ public partial class EnemyBehaviorComponent : Node
 		SetAction(EnemyAction.Dying);
 		SetBehavior(EnemyBehaviorState.Dead);
 		MovementComponent.Stop();
+		// A dying flyer stops hovering so the body drops to the dungeon floor.
+		MovementComponent.HoverHeight = 0f;
 	}
 }

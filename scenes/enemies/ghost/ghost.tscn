@@ -103,10 +103,12 @@ transitions = ["Start", "Idle", SubResource("t_start_idle"), "Idle", "Walking", 
 graph_offset = Vector2(0, 40)
 
 [sub_resource type="CapsuleShape3D" id="cap_hurt"]
-radius = 0.75
+radius = 0.6
+height = 1.4
 
 [sub_resource type="CapsuleShape3D" id="cap_body"]
-radius = 0.75
+radius = 0.6
+height = 1.4
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_80ad7"]
 viewport_path = NodePath("SubViewport")
@@ -114,7 +116,10 @@ viewport_path = NodePath("SubViewport")
 [node name="Ghost" unique_id=628109694 instance=ExtResource("1_base")]
 
 [node name="GhostModel" parent="Pivot" index="0" unique_id=1492953416 instance=ExtResource("2_glb")]
-transform = Transform3D(0.75, 0, 0, 0, 0.75, 0, 0, 0, 0.75, 0, 0.2, 0)
+transform = Transform3D(0.75, 0, 0, 0, 0.75, 0, 0, 0, 0.75, 0, 0, 0)
+
+[node name="MovementComponent" parent="." index="3"]
+HoverHeight = 0.5
 
 [node name="EnemyBehaviorComponent" parent="." index="1"]
 Profile = ExtResource("4_profile")
@@ -140,10 +145,11 @@ Xp = 4
 Evasion = 0.3
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0" unique_id=278038501]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.4, 0)
 shape = SubResource("cap_hurt")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." index="8" unique_id=2029997531]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 shape = SubResource("cap_body")
 
 [node name="FloatingHealthBar" parent="." index="9"]
