@@ -114,6 +114,23 @@ variants in `scenes/enemies/skeleton/` as the reference). Steps:
    `res://scenes/main/main.tscn` and confirm the monster spawns. The cohesion/look call is the
    maintainer's — eyeball it next to existing actors.
 
+## Visual catalog (model screenshots)
+
+`scripts/render_catalog.gd` renders a transparent-background PNG of every `.glb`/`.gltf` in a
+directory (posed in Idle, 3/4 camera) — used to build `docs/monster-catalog/`.
+
+```bash
+.agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" \
+  --script .agents/skills/assets/scripts/render_catalog.gd -- docs/monster-catalog res://assets/quaternius-monsters
+```
+
+- **Run WINDOWED — not `--headless`.** Headless uses the dummy renderer: viewport captures come
+  back blank and the script hangs. A real window opens briefly and renders on the GPU. (`timeout`
+  isn't on macOS — rely on the runner's own time cap if you need a guard.)
+- Pass the dir to the script and let it scan (`DirAccess`); don't word-split a file list on the
+  shell — zsh doesn't split unquoted `$VARS` like bash, so only one path reaches the script.
+- After regenerating, update the table in `docs/monster-catalog/README.md`.
+
 ## Authoring our own (image-to-3D) — experimental
 
 `scripts/hf_image_to_3d.py` runs image-to-3D on HF hardware (TripoSR Space) via `gradio_client`.
