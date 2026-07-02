@@ -131,6 +131,33 @@ directory (posed in Idle, 3/4 camera) — used to build `docs/monster-catalog/`.
   shell — zsh doesn't split unquoted `$VARS` like bash, so only one path reaches the script.
 - After regenerating, update the table in `docs/monster-catalog/README.md`.
 
+## Visual preview harness (in-game screenshots + LLM inspection)
+
+`scripts/visual_preview.gd` stages scenes inside a **real authored dungeon room** (barracks,
+torch-lit) next to a KayKit knight as scale reference, and captures gameplay screenshots.
+For killable subjects it also deals lethal damage mid-run, capturing the death animation and
+the corpse — so one run verifies scale, textures, hover altitude, hit/death behavior in-situ.
+
+```bash
+.agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" \
+  --script .agents/skills/assets/scripts/visual_preview.gd -- <outdir> res://scenes/enemies/orc/orc.tscn [more...]
+```
+
+Output per subject: `<name>_idle.png` (+ `_dying.png`, `_dead.png` if it has a HealthComponent).
+**Then Read the PNGs and inspect** against this checklist:
+
+- feet on the floor (grounded) or at the intended hover altitude (flyers)
+- scale plausible next to the knight (grunt ≈ shoulder-to-head height; bosses larger)
+- textures/materials correct (not gray/magenta/muddy), animation posed (no T-pose)
+- no clipping into floor/walls/furniture; corpse lying on the floor after the death shot
+
+Gotchas (learned building it):
+- **Windowed only** — headless cannot capture. A window opens briefly per run.
+- glTF models face **+Z** (Godot convention is -Z), and enemy scenes bake an extra 180° flip
+  into their `Pivot` — the script compensates; don't "fix" facing with ad-hoc rotations.
+- Loot drops NRE in the harness (no `Level`) — harmless; death shots still capture.
+- The subject's `FloatingHealthBar` is hidden (its viewport texture renders as a black box).
+
 ## Authoring our own (image-to-3D) — experimental
 
 `scripts/hf_image_to_3d.py` runs image-to-3D on HF hardware (TripoSR Space) via `gradio_client`.
