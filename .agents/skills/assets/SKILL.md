@@ -134,7 +134,8 @@ directory (posed in Idle, 3/4 camera) — used to build `docs/monster-catalog/`.
 ## Visual preview harness (in-game screenshots + LLM inspection)
 
 `scripts/visual_preview.gd` stages scenes inside a **real authored dungeon room** (barracks,
-torch-lit) next to a KayKit knight as scale reference, and captures gameplay screenshots.
+torch-lit) next to a KayKit knight as scale reference, and captures screenshots through a
+camera matching the game's (orthogonal, ~50-degree pitch on the 45-degree diagonal).
 For killable subjects it also deals lethal damage mid-run, capturing the death animation and
 the corpse — so one run verifies scale, textures, hover altitude, hit/death behavior in-situ.
 
@@ -143,7 +144,9 @@ the corpse — so one run verifies scale, textures, hover altitude, hit/death be
   --script .agents/skills/assets/scripts/visual_preview.gd -- <outdir> res://scenes/enemies/orc/orc.tscn [more...]
 ```
 
-Output per subject: `<name>_idle.png` (+ `_dying.png`, `_dead.png` if it has a HealthComponent).
+Output per subject: `<name>_spawn.png` (catches flyer take-off; spawn-animation monsters may
+still be underground/hidden here) and `<name>_idle.png`, plus `_dying.png` + `_dead.png` for
+anything with a HealthComponent.
 **Then Read the PNGs and inspect** against this checklist:
 
 - feet on the floor (grounded) or at the intended hover altitude (flyers)
@@ -156,7 +159,10 @@ Gotchas (learned building it):
 - glTF models face **+Z** (Godot convention is -Z), and enemy scenes bake an extra 180° flip
   into their `Pivot` — the script compensates; don't "fix" facing with ad-hoc rotations.
 - Loot drops NRE in the harness (no `Level`) — harmless; death shots still capture.
-- The subject's `FloatingHealthBar` is hidden (its viewport texture renders as a black box).
+- The subject's `FloatingHealthBar` is freed (merely hiding it fails — it re-shows on damage —
+  and its viewport texture renders as a black box in the harness).
+- For a full-bestiary sweep, composite each monster's 4 shots into one 2x2 contact sheet
+  (Pillow) so the inspector reads one image per monster.
 
 ## Authoring our own (image-to-3D) — experimental
 

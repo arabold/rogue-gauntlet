@@ -76,7 +76,10 @@ func _next_subject():
 	_center = acc / cells.size()
 	_center.y = _floor_top(_center)
 
-	var cam_pos := _center + Vector3(2.2, 2.4, 4.2)
+	# Match the game camera: orthogonal, pitched ~50 degrees on a 45-degree diagonal
+	# (see Camera3D in scenes/main/main.tscn), just with a tighter ortho size for close-ups.
+	var focus := _center + Vector3(0.85, 0.8, 0)
+	var cam_pos := focus + Vector3(0.4545, 0.766, 0.4545) * 12.0
 	var to_cam := Vector3(cam_pos.x - _center.x, 0, cam_pos.z - _center.z)
 
 	_subject = load(_subjects[_index]).instantiate()
@@ -90,16 +93,20 @@ func _next_subject():
 	_killable = _subject.get_node_or_null("HealthComponent") != null
 	var bar := _subject.get_node_or_null("FloatingHealthBar")
 	if bar:
-		bar.visible = false  # its viewport texture renders as a black box in the harness
+		bar.queue_free()  # it re-shows itself on damage and renders as a black box here
 
 	var mannequin: Node3D = load(REFERENCE).instantiate()
 	_room.add_child(mannequin)
-	mannequin.global_position = _center + Vector3(1.7, 0, 0)
+	# Offset perpendicular to the camera so subject and reference never overlap on screen.
+	var side := Vector3(to_cam.z, 0, -to_cam.x).normalized()
+	mannequin.global_position = _center + side * 1.9
 	mannequin.look_at(mannequin.global_position - to_cam, Vector3.UP)
 
 	var cam := Camera3D.new()
 	_room.add_child(cam)
-	cam.look_at_from_position(cam_pos, _center + Vector3(0.7, 1.0, 0), Vector3.UP)
+	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
+	cam.size = 6.5
+	cam.look_at_from_position(cam_pos, focus, Vector3.UP)
 	cam.current = true
 
 func _floor_top(above: Vector3) -> float:
@@ -118,6 +125,8 @@ func _shot(suffix: String):
 func _process(_delta):
 	_frame += 1
 	match _frame:
+		10:
+			_shot("spawn")  # for flyers this catches the take-off toward hover altitude
 		70:
 			_shot("idle")
 			if not _killable:
