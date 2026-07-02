@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
 [ext_resource type="PackedScene" path="res://assets/quaternius-monsters/wizard.gltf" id="2_glb"]
-[ext_resource type="Resource" uid="uid://clootminion001" path="res://scenes/items/loot/loot_skeleton_minion.tres" id="3_loot"]
+[ext_resource type="Resource" uid="uid://clootstd0001" path="res://scenes/items/loot/loot_standard.tres" id="3_loot"]
 [ext_resource type="Resource" path="res://scenes/enemies/wizard/wizard_behavior.tres" id="4_profile"]
 
 [sub_resource type="AnimationNodeAnimation" id="anim_idle"]

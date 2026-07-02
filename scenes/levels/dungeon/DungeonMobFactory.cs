@@ -1,19 +1,23 @@
 using Godot;
 using Godot.Collections;
 
+/// <summary>
+/// Depth-aware enemy factory: each entry declares a depth window and a relative weight,
+/// so shallow floors spawn fodder while tougher enemies fade in further down.
+/// </summary>
 [Tool]
 [GlobalClass]
 public partial class DungeonMobFactory : MobFactory
 {
-	// Keep enemy scenes as paths so the level only loads enemy variants it actually spawns.
-	[Export] public Array<string> EnemyScenePaths { get; set; }
+	/// <summary>Weighted, depth-gated enemy pool.</summary>
+	[Export] public Array<DungeonMobEntry> Entries { get; set; } = [];
 
 	public override PackedScene CreateEnemy(uint dungeonDepth)
 	{
-		string scenePath = EnemyScenePaths.PickRandom();
+		string scenePath = PickScenePath(dungeonDepth);
 		if (string.IsNullOrEmpty(scenePath))
 		{
-			GD.PrintErr("Dungeon mob factory has an empty scene path.");
+			GD.PrintErr($"Dungeon mob factory has no eligible enemy for depth {dungeonDepth}.");
 			return null;
 		}
 
@@ -25,5 +29,46 @@ public partial class DungeonMobFactory : MobFactory
 		}
 
 		return scene;
+	}
+
+	/// <summary>
+	/// Weighted pick among the entries whose depth window contains the given depth.
+	/// Uses the global RNG (like the level generator) so spawns stay reproducible per map seed.
+	/// </summary>
+	private string PickScenePath(uint dungeonDepth)
+	{
+		float totalWeight = 0f;
+		foreach (DungeonMobEntry entry in Entries)
+		{
+			if (entry != null && entry.Weight > 0f && entry.IsEligibleAt(dungeonDepth))
+			{
+				totalWeight += entry.Weight;
+			}
+		}
+
+		if (totalWeight <= 0f)
+		{
+			return null;
+		}
+
+		float roll = GD.Randf() * totalWeight;
+		string lastEligible = null;
+		foreach (DungeonMobEntry entry in Entries)
+		{
+			if (entry == null || entry.Weight <= 0f || !entry.IsEligibleAt(dungeonDepth))
+			{
+				continue;
+			}
+
+			lastEligible = entry.ScenePath;
+			roll -= entry.Weight;
+			if (roll <= 0f)
+			{
+				return entry.ScenePath;
+			}
+		}
+
+		// Float rounding can leave a sliver of roll; fall back to the last eligible entry.
+		return lastEligible;
 	}
 }

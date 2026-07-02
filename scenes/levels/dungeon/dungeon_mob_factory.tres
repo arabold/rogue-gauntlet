@@ -1,7 +1,141 @@
-[gd_resource type="Resource" script_class="DungeonMobFactory" load_steps=2 format=3 uid="uid://rwocqk74o36p"]
+[gd_resource type="Resource" script_class="DungeonMobFactory" load_steps=22 format=3 uid="uid://rwocqk74o36p"]
 
-[ext_resource type="Script" uid="uid://cdxtax3rdfgrc" path="res://scenes/levels/dungeon/DungeonMobFactory.cs" id="1_1dmj6"]
+[ext_resource type="Script" uid="uid://cdxtax3rdfgrc" path="res://scenes/levels/dungeon/DungeonMobFactory.cs" id="1_factory"]
+[ext_resource type="Script" path="res://scenes/levels/dungeon/DungeonMobEntry.cs" id="2_entry"]
+
+[sub_resource type="Resource" id="e_bat"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/bat/bat.tscn"
+MinDepth = 1
+MaxDepth = 5
+Weight = 1.2
+
+[sub_resource type="Resource" id="e_slime"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/slime/slime.tscn"
+MinDepth = 1
+MaxDepth = 5
+Weight = 1.2
+
+[sub_resource type="Resource" id="e_skeleton_minion"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/skeleton/skeleton_minion.tscn"
+MinDepth = 1
+MaxDepth = 6
+Weight = 1.5
+
+[sub_resource type="Resource" id="e_spider"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/spider/spider.tscn"
+MinDepth = 1
+MaxDepth = 7
+Weight = 1.0
+
+[sub_resource type="Resource" id="e_ghost"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/ghost/ghost.tscn"
+MinDepth = 2
+MaxDepth = 8
+Weight = 1.0
+
+[sub_resource type="Resource" id="e_squidle"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/squidle/squidle.tscn"
+MinDepth = 2
+MaxDepth = 8
+Weight = 0.8
+
+[sub_resource type="Resource" id="e_spiky_blob"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/slime/spiky_blob.tscn"
+MinDepth = 2
+MaxDepth = 7
+Weight = 1.0
+
+[sub_resource type="Resource" id="e_cactoro"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/cactoro/cactoro.tscn"
+MinDepth = 2
+MaxDepth = 8
+Weight = 0.9
+
+[sub_resource type="Resource" id="e_skeleton_warrior"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/skeleton/skeleton_warrior.tscn"
+MinDepth = 3
+MaxDepth = 0
+Weight = 1.2
+
+[sub_resource type="Resource" id="e_orc"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/orc/orc.tscn"
+MinDepth = 3
+MaxDepth = 0
+Weight = 1.2
+
+[sub_resource type="Resource" id="e_dino"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/dino/dino.tscn"
+MinDepth = 3
+MaxDepth = 0
+Weight = 1.0
+
+[sub_resource type="Resource" id="e_wizard"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/wizard/wizard.tscn"
+MinDepth = 4
+MaxDepth = 0
+Weight = 0.8
+
+[sub_resource type="Resource" id="e_ghost_skull"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/ghost/ghost_skull.tscn"
+MinDepth = 4
+MaxDepth = 0
+Weight = 0.9
+
+[sub_resource type="Resource" id="e_orc_skull"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/orc/orc_skull.tscn"
+MinDepth = 5
+MaxDepth = 0
+Weight = 1.0
+
+[sub_resource type="Resource" id="e_yeti"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/yeti/yeti.tscn"
+MinDepth = 5
+MaxDepth = 0
+Weight = 0.9
+
+[sub_resource type="Resource" id="e_demon"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/demon/demon.tscn"
+MinDepth = 6
+MaxDepth = 0
+Weight = 0.9
+
+[sub_resource type="Resource" id="e_blue_demon"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/demon/blue_demon.tscn"
+MinDepth = 7
+MaxDepth = 0
+Weight = 0.9
+
+[sub_resource type="Resource" id="e_dragon"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/dragon/dragon.tscn"
+MinDepth = 8
+MaxDepth = 0
+Weight = 0.4
+
+[sub_resource type="Resource" id="e_mushroom_king"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/mushroom_king/mushroom_king.tscn"
+MinDepth = 8
+MaxDepth = 0
+Weight = 0.4
 
 [resource]
-script = ExtResource("1_1dmj6")
-EnemyScenePaths = Array[String](["res://scenes/enemies/skeleton/skeleton_minion.tscn", "res://scenes/enemies/skeleton/skeleton_warrior.tscn", "res://scenes/enemies/orc/orc.tscn", "res://scenes/enemies/demon/blue_demon.tscn", "res://scenes/enemies/bat/bat.tscn", "res://scenes/enemies/ghost/ghost.tscn", "res://scenes/enemies/slime/slime.tscn", "res://scenes/enemies/yeti/yeti.tscn", "res://scenes/enemies/spider/spider.tscn", "res://scenes/enemies/orc/orc_skull.tscn", "res://scenes/enemies/dino/dino.tscn", "res://scenes/enemies/demon/demon.tscn", "res://scenes/enemies/cactoro/cactoro.tscn", "res://scenes/enemies/mushroom_king/mushroom_king.tscn", "res://scenes/enemies/ghost/ghost_skull.tscn", "res://scenes/enemies/dragon/dragon.tscn", "res://scenes/enemies/squidle/squidle.tscn", "res://scenes/enemies/slime/spiky_blob.tscn", "res://scenes/enemies/wizard/wizard.tscn"])
+script = ExtResource("1_factory")
+Entries = [SubResource("e_bat"), SubResource("e_slime"), SubResource("e_skeleton_minion"), SubResource("e_spider"), SubResource("e_ghost"), SubResource("e_squidle"), SubResource("e_spiky_blob"), SubResource("e_cactoro"), SubResource("e_skeleton_warrior"), SubResource("e_orc"), SubResource("e_dino"), SubResource("e_wizard"), SubResource("e_ghost_skull"), SubResource("e_orc_skull"), SubResource("e_yeti"), SubResource("e_demon"), SubResource("e_blue_demon"), SubResource("e_dragon"), SubResource("e_mushroom_king")]

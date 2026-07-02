@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
 [ext_resource type="PackedScene" path="res://assets/quaternius-monsters/slime-enemy.glb" id="2_glb"]
-[ext_resource type="Resource" uid="uid://clootminion001" path="res://scenes/items/loot/loot_skeleton_minion.tres" id="3_loot"]
+[ext_resource type="Resource" uid="uid://clootfodder01" path="res://scenes/items/loot/loot_fodder.tres" id="3_loot"]
 [ext_resource type="Resource" path="res://scenes/enemies/slime/slime_behavior.tres" id="4_profile"]
 
 [sub_resource type="AnimationNodeAnimation" id="anim_idle"]
@@ -106,6 +106,7 @@ advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../../Pivot/SlimeModel/AnimationPlayer")
 
 [node name="LootTableComponent" parent="." index="3"]
+DropChance = 0.6
 Table = ExtResource("3_loot")
 
 [node name="HealthComponent" parent="." index="4"]
