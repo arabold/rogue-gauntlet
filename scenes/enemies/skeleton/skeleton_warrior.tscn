@@ -61,7 +61,7 @@ advance_mode = 2
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_x0i68"]
 advance_mode = 2
-advance_expression = "IsMeleeAttack"
+advance_expression = "IsAttacking"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_551pq"]
 advance_mode = 2

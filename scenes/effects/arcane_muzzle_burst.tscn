@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/MuzzleBurstEffect.cs" id="1_muzzle"]
+
+[node name="ArcaneMuzzleBurst" type="Node3D"]
+script = ExtResource("1_muzzle")
+Lifetime = 0.4
+CoreColor = Color(0.86, 0.62, 1, 0.86)
+AccentColor = Color(0.42, 0.06, 0.62, 0.7)
+EmissionEnergy = 3.4
+SparkCount = 10
+Radius = 0.44
+UpdateInterval = 0.05

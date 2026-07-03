@@ -71,10 +71,7 @@ public partial class EnemyBehaviorComponent : Node
 	public bool IsFalling => MovementComponent.IsFalling;
 	public bool IsDead => CurrentAction == EnemyAction.Dying || CurrentBehavior == EnemyBehaviorState.Dead;
 	public bool IsAttacking => CurrentAction == EnemyAction.MeeleAttack || CurrentAction == EnemyAction.RangedAttack;
-	public bool IsMeleeAttack => CurrentAction == EnemyAction.MeeleAttack;
-	public bool IsRangedAttack => CurrentAction == EnemyAction.RangedAttack;
 	public bool IsHit => MovementComponent.IsPushed;
-	public bool IsSpawning => CurrentAction == EnemyAction.Spawning;
 
 	/// <summary>
 	/// The target node that the enemy is chasing
@@ -113,7 +110,7 @@ public partial class EnemyBehaviorComponent : Node
 		// The context is the shared blackboard the behavior states read and mutate; the state machine
 		// owns the behavior layer. The timed-action layer (spawn, hit, attack, death) stays on this
 		// host as a gate above the machine - see _PhysicsProcess.
-		_context = new EnemyContext(Actor, MovementComponent, _perception, _navigation, _profile, RequestMeleeAttack);
+		_context = new EnemyContext(Actor, MovementComponent, _perception, _navigation, _profile, RequestMeleeAttack, RequestRangedAttack);
 		_machine = new EnemyStateMachine(_context, new IEnemyState[]
 		{
 			new IdleState(),
@@ -175,6 +172,17 @@ public partial class EnemyBehaviorComponent : Node
 	}
 
 	/// <summary>
+	/// Starts a ranged attack through the action layer, mirroring <see cref="RequestMeleeAttack"/>.
+	/// The Chasing state is responsible for facing the target (see <see cref="ChasingState"/>)
+	/// before calling this, since the action layer holds the body still once it starts.
+	/// </summary>
+	private void RequestRangedAttack()
+	{
+		SetAction(EnemyAction.RangedAttack);
+		TriggerRangedAttack();
+	}
+
+	/// <summary>
 	/// Forces a behavior transition through the state machine. Kept as the public entry point used
 	/// by the host (e.g. <see cref="OnDie"/>); normal transitions happen inside the states.
 	/// </summary>
@@ -209,32 +217,42 @@ public partial class EnemyBehaviorComponent : Node
 		}
 	}
 
+	// Targets the player: its HurtBoxComponent sits on Layer 3 (mask value 4).
+	private const uint PlayerTargetMask = 4;
+
 	private void TriggerMeleeAttack()
 	{
-		if (_attackController == null)
+		var def = _profile.MeleeAttackDefinition ?? CreateDefaultMeleeAttackDefinition();
+		StartProfileAttack(def, _profile.MeleeAttackMinDamage, _profile.MeleeAttackMaxDamage,
+			_profile.MeleeAttackAccuracy, _profile.MeleeAttackCritChance);
+	}
+
+	private void TriggerRangedAttack()
+	{
+		if (_profile.RangedAttackDefinition == null)
 		{
-			GD.PushError($"{Actor.Name} cannot start melee attack without AttackController.");
+			GD.PushError($"{Actor.Name} cannot start ranged attack without a RangedAttackDefinition.");
 			return;
 		}
 
-		var def = _profile.MeleeAttackDefinition ?? CreateDefaultMeleeAttackDefinition();
+		StartProfileAttack(_profile.RangedAttackDefinition, _profile.RangedAttackMinDamage,
+			_profile.RangedAttackMaxDamage, _profile.RangedAttackAccuracy, _profile.RangedAttackCritChance);
+	}
 
-		uint targetMask = 4; // Targets player (HurtBoxComponent is on Layer 3 / Mask 4)
+	private void StartProfileAttack(AttackDefinition def, float minDamage, float maxDamage, float accuracy, float critChance)
+	{
+		if (_attackController == null)
+		{
+			GD.PushError($"{Actor.Name} cannot start an attack without AttackController.");
+			return;
+		}
 
-		_attackController.StartAttack(
-			def,
-			_profile.MeleeAttackMinDamage,
-			_profile.MeleeAttackMaxDamage,
-			_profile.MeleeAttackAccuracy,
-			_profile.MeleeAttackCritChance,
-			targetMask
-		);
+		_attackController.StartAttack(def, minDamage, maxDamage, accuracy, critChance, PlayerTargetMask);
 	}
 
 	private AttackDefinition CreateDefaultMeleeAttackDefinition()
 	{
 		var def = new AttackDefinition();
-		def.AnimationId = "melee_attack";
 
 		float duration = _profile.GetActionDuration(EnemyAction.MeeleAttack);
 		def.HitWindowStart = 0.3f * duration;
@@ -251,5 +269,7 @@ public partial class EnemyBehaviorComponent : Node
 		SetAction(EnemyAction.Dying);
 		SetBehavior(EnemyBehaviorState.Dead);
 		MovementComponent.Stop();
+		// A dying flyer stops hovering so the body drops to the dungeon floor.
+		MovementComponent.HoverHeight = 0f;
 	}
 }

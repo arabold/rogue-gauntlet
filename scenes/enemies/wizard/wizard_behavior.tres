@@ -1,6 +1,23 @@
-[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="1_profile"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="2_attack_def"]
+[ext_resource type="PackedScene" path="res://scenes/attacks/arcane_bolt_projectile.tscn" id="3_bolt"]
+[ext_resource type="PackedScene" path="res://scenes/effects/arcane_muzzle_burst.tscn" id="4_muzzle"]
+
+[sub_resource type="Resource" id="Resource_arcane_bolt"]
+script = ExtResource("2_attack_def")
+AnimationId = "ranged_attack"
+HitWindowStart = 0.35
+IsRanged = true
+ProjectileScene = ExtResource("3_bolt")
+MuzzleEffectScene = ExtResource("4_muzzle")
+ProjectilePattern = 0
+ProjectileCount = 1
+ProjectileDamageScale = 1.0
+ProjectileSpeed = 11.0
+Range = 14.0
+AimingAngle = 50.0
 
 [resource]
 script = ExtResource("1_profile")
@@ -9,11 +26,12 @@ InitialAction = 0
 DetectionRange = 22.0
 DetectionAngle = 55.0
 CloseDetectionRangeMultiplier = 0.5
-MeleeAttackRange = 2.2
-MeleeAttackAccuracy = 0.8
-MeleeAttackMinDamage = 2.0
-MeleeAttackMaxDamage = 6.0
-MeleeAttackCritChance = 0.05
+RangedAttackDefinition = SubResource("Resource_arcane_bolt")
+RangedAttackRange = 14.0
+RangedAttackAccuracy = 0.85
+RangedAttackMinDamage = 2.0
+RangedAttackMaxDamage = 6.0
+RangedAttackCritChance = 0.1
 RoamRadius = 7.0
 RoamPauseMin = 0.75
 RoamPauseMax = 2.5
@@ -22,6 +40,5 @@ RoamTargetAttempts = 8
 SpawningActionDuration = 0.0
 StandingUpActionDuration = 2.33
 HitActionDuration = 0.35
-MeleeAttackActionDuration = 1.0
 RangedAttackActionDuration = 1.0
 DyingActionDuration = 2.0

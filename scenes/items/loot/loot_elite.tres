@@ -1,0 +1,72 @@
+[gd_resource type="Resource" script_class="LootTable" load_steps=18 format=3 uid="uid://clootelite01"]
+
+[ext_resource type="Script" path="res://scenes/components/LootTable.cs" id="1_table"]
+[ext_resource type="Script" uid="uid://b2kapi7dsmanb" path="res://scenes/components/LootTableItem.cs" id="2_item"]
+[ext_resource type="Resource" uid="uid://dnxrasu67oe6k" path="res://scenes/items/gold/gold.tres" id="3_gold"]
+[ext_resource type="Resource" uid="uid://b2vo50ixkurnb" path="res://scenes/items/potions/healing_potion_medium.tres" id="4_heal_m"]
+[ext_resource type="Resource" uid="uid://dregenptres01" path="res://scenes/items/potions/regeneration_potion.tres" id="5_regen"]
+[ext_resource type="Resource" uid="uid://k2qh6pkx5fat" path="res://scenes/items/weapons/longsword_common.tres" id="6_longsword"]
+[ext_resource type="Resource" uid="uid://l6l5vxvpavp5" path="res://scenes/items/weapons/hammer_common.tres" id="7_hammer"]
+[ext_resource type="Resource" uid="uid://dak88bwl5ipcv" path="res://scenes/items/weapons/staff_common.tres" id="8_staff"]
+[ext_resource type="Resource" uid="uid://b6piy51qeve40" path="res://scenes/items/armor/shield_round_common.tres" id="9_shield"]
+
+[sub_resource type="Resource" id="Item_gold_small"]
+script = ExtResource("2_item")
+Weight = 2.0
+Item = ExtResource("3_gold")
+Quantity = 45
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_gold_large"]
+script = ExtResource("2_item")
+Weight = 1.0
+Item = ExtResource("3_gold")
+Quantity = 70
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_heal_medium"]
+script = ExtResource("2_item")
+Weight = 0.8
+Item = ExtResource("4_heal_m")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_regen"]
+script = ExtResource("2_item")
+Weight = 0.4
+Item = ExtResource("5_regen")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_longsword"]
+script = ExtResource("2_item")
+Weight = 0.4
+Item = ExtResource("6_longsword")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_hammer"]
+script = ExtResource("2_item")
+Weight = 0.4
+Item = ExtResource("7_hammer")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_staff"]
+script = ExtResource("2_item")
+Weight = 0.3
+Item = ExtResource("8_staff")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield"]
+script = ExtResource("2_item")
+Weight = 0.4
+Item = ExtResource("9_shield")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("2_item")
+
+[resource]
+script = ExtResource("1_table")
+Items = [SubResource("Item_gold_small"), SubResource("Item_gold_large"), SubResource("Item_heal_medium"), SubResource("Item_regen"), SubResource("Item_longsword"), SubResource("Item_hammer"), SubResource("Item_staff"), SubResource("Item_shield")]
+metadata/_custom_type_script = ExtResource("1_table")

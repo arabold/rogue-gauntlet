@@ -1,8 +1,8 @@
-[gd_scene load_steps=27 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
 [ext_resource type="PackedScene" path="res://assets/quaternius-monsters/dino.gltf" id="2_glb"]
-[ext_resource type="Resource" uid="uid://clootminion001" path="res://scenes/items/loot/loot_skeleton_minion.tres" id="3_loot"]
+[ext_resource type="Resource" uid="uid://clootstd0001" path="res://scenes/items/loot/loot_standard.tres" id="3_loot"]
 [ext_resource type="Resource" path="res://scenes/enemies/dino/dino_behavior.tres" id="4_profile"]
 
 [sub_resource type="AnimationNodeAnimation" id="anim_idle"]
@@ -15,9 +15,6 @@ animation = &"Punch"
 animation = &"HitReact"
 [sub_resource type="AnimationNodeAnimation" id="anim_dying"]
 animation = &"Death"
-[sub_resource type="AnimationNodeAnimation" id="anim_dead"]
-animation = &"Death"
-
 [sub_resource type="AnimationNodeStateMachineTransition" id="t_start_idle"]
 advance_mode = 2
 [sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_walk"]
@@ -63,15 +60,9 @@ advance_expression = "IsDead"
 xfade_time = 0.3
 advance_mode = 2
 advance_expression = "IsDead"
-[sub_resource type="AnimationNodeStateMachineTransition" id="t_dying_dead"]
-switch_mode = 2
-advance_mode = 2
-
 [sub_resource type="AnimationNodeStateMachine" id="sm"]
 states/Attack/node = SubResource("anim_attack")
 states/Attack/position = Vector2(440, 100)
-states/Dead/node = SubResource("anim_dead")
-states/Dead/position = Vector2(820, 100)
 states/Dying/node = SubResource("anim_dying")
 states/Dying/position = Vector2(640, 100)
 states/Hit/node = SubResource("anim_hit")
@@ -81,7 +72,7 @@ states/Idle/position = Vector2(240, 100)
 states/Start/position = Vector2(60, 100)
 states/Walking/node = SubResource("anim_walk")
 states/Walking/position = Vector2(240, 320)
-transitions = ["Start", "Idle", SubResource("t_start_idle"), "Idle", "Walking", SubResource("t_idle_walk"), "Walking", "Idle", SubResource("t_walk_idle"), "Idle", "Attack", SubResource("t_idle_attack"), "Walking", "Attack", SubResource("t_walk_attack"), "Attack", "Idle", SubResource("t_attack_idle"), "Idle", "Hit", SubResource("t_idle_hit"), "Walking", "Hit", SubResource("t_walk_hit"), "Hit", "Idle", SubResource("t_hit_idle"), "Idle", "Dying", SubResource("t_idle_dying"), "Walking", "Dying", SubResource("t_walk_dying"), "Hit", "Dying", SubResource("t_hit_dying"), "Attack", "Dying", SubResource("t_attack_dying"), "Dying", "Dead", SubResource("t_dying_dead")]
+transitions = ["Start", "Idle", SubResource("t_start_idle"), "Idle", "Walking", SubResource("t_idle_walk"), "Walking", "Idle", SubResource("t_walk_idle"), "Idle", "Attack", SubResource("t_idle_attack"), "Walking", "Attack", SubResource("t_walk_attack"), "Attack", "Idle", SubResource("t_attack_idle"), "Idle", "Hit", SubResource("t_idle_hit"), "Walking", "Hit", SubResource("t_walk_hit"), "Hit", "Idle", SubResource("t_hit_idle"), "Idle", "Dying", SubResource("t_idle_dying"), "Walking", "Dying", SubResource("t_walk_dying"), "Hit", "Dying", SubResource("t_hit_dying"), "Attack", "Dying", SubResource("t_attack_dying")]
 graph_offset = Vector2(0, 40)
 
 [sub_resource type="CapsuleShape3D" id="cap_hurt"]
