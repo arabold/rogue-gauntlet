@@ -71,10 +71,7 @@ public partial class EnemyBehaviorComponent : Node
 	public bool IsFalling => MovementComponent.IsFalling;
 	public bool IsDead => CurrentAction == EnemyAction.Dying || CurrentBehavior == EnemyBehaviorState.Dead;
 	public bool IsAttacking => CurrentAction == EnemyAction.MeeleAttack || CurrentAction == EnemyAction.RangedAttack;
-	public bool IsMeleeAttack => CurrentAction == EnemyAction.MeeleAttack;
-	public bool IsRangedAttack => CurrentAction == EnemyAction.RangedAttack;
 	public bool IsHit => MovementComponent.IsPushed;
-	public bool IsSpawning => CurrentAction == EnemyAction.Spawning;
 
 	/// <summary>
 	/// The target node that the enemy is chasing
