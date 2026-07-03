@@ -80,9 +80,18 @@ public partial class PerceptionComponent : Node
 	/// </summary>
 	private bool IsWithinVisionCone(Node3D node)
 	{
-		Vector3 direction = (node.GlobalPosition - _actor.GlobalPosition).Normalized();
+		// Compare headings on the horizontal plane: a hovering flyer looks DOWN at a grounded
+		// player, and letting that vertical tilt count against the cone shrinks its effective
+		// field of view with altitude (a bat at 1.3 hover loses ~30 degrees at close range).
+		Vector3 direction = node.GlobalPosition - _actor.GlobalPosition;
+		direction.Y = 0;
+		if (direction.LengthSquared() < 0.0001f)
+		{
+			return true; // directly above/below - no meaningful facing
+		}
 		Vector3 forward = -_actor.GlobalTransform.Basis.Z;
-		float angle = Mathf.RadToDeg(Mathf.Acos(forward.Normalized().Dot(direction)));
+		forward.Y = 0;
+		float angle = Mathf.RadToDeg(forward.Normalized().AngleTo(direction.Normalized()));
 		return angle <= _profile.DetectionAngle;
 	}
 
@@ -94,26 +103,35 @@ public partial class PerceptionComponent : Node
 	/// only - chase retention is reachability-based and does not use this (see ChasingState).
 	/// </summary>
 	/// <remarks>
-	/// IMPORTANT: the ray is cast at the SightRay's eye height (its authored Y, ~1.5), not between
-	/// the body origins. Both the enemy and the player have their origin at floor level (y≈0) while
-	/// their collision shapes sit at hip height, so a floor-level ray grazes the ground and the
-	/// bases of walls/props and almost never reaches the target cleanly - it would report "no clear
-	/// line" for everyone and enemies would never detect the player. Casting horizontally at eye
-	/// height passes over the floor and reliably hits walls, closed doors, and the target's body.
-	/// Do not revert this to <c>_actor.GlobalPosition</c> / <c>node.GlobalPosition</c> endpoints.
+	/// IMPORTANT: each ray endpoint sits at that body's OWN height, never at floor level. Actor
+	/// origins are at floor level (y≈0) while collision shapes sit at hip height, so a floor-level
+	/// ray grazes the ground and the bases of walls/props and almost never reaches the target
+	/// cleanly - enemies would never detect the player. The enemy end uses the SightRay's global
+	/// position (its authored ~1.5 eye height, which naturally rises with a hovering flyer); the
+	/// target end uses the target's collision-shape center (chest height). Do NOT flatten both
+	/// endpoints to the enemy's eye height either: a hovering flyer's horizontal ray then passes
+	/// OVER a grounded player's head and the flyer is permanently blind - the ray must slant down
+	/// to the target's body.
 	/// </remarks>
 	public bool CanSee(Node3D node)
 	{
-		// Raise both endpoints to the SightRay's authored world height so the line runs at eye
-		// level over the floor rather than along it (see remarks above).
-		float eyeHeight = _sightRay.GlobalPosition.Y;
-		Vector3 from = new Vector3(_actor.GlobalPosition.X, eyeHeight, _actor.GlobalPosition.Z);
-		Vector3 to = new Vector3(node.GlobalPosition.X, eyeHeight, node.GlobalPosition.Z);
+		Vector3 from = new Vector3(_actor.GlobalPosition.X, _sightRay.GlobalPosition.Y, _actor.GlobalPosition.Z);
+		Vector3 to = GetBodyCenter(node);
 
 		var space = _sightRay.GetWorld3D().DirectSpaceState;
 		var query = PhysicsRayQueryParameters3D.Create(from, to, _sightRay.CollisionMask);
 		var result = space.IntersectRay(query);
 		// A clear line means the first thing the ray hits IS the target (not a wall/door in between).
 		return result.Count > 0 && result["collider"].Obj == node;
+	}
+
+	/// <summary>
+	/// The point line-of-sight rays aim at: the target's collision-shape center (chest height),
+	/// falling back to one unit above its floor-level origin.
+	/// </summary>
+	private static Vector3 GetBodyCenter(Node3D node)
+	{
+		var collisionShape = node.GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
+		return collisionShape?.GlobalPosition ?? node.GlobalPosition + Vector3.Up * 1.0f;
 	}
 }
