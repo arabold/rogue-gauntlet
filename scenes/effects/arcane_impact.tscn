@@ -1,0 +1,37 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/FrostImpactEffect.cs" id="1_timed"]
+[ext_resource type="Script" path="res://scenes/effects/ImpactLayerEffect.cs" id="2_impact_layer"]
+
+[node name="ArcaneImpact" type="Node3D"]
+script = ExtResource("1_timed")
+Lifetime = 1.1
+GrowDuration = 0.28
+HoldDuration = 0.26
+ShatterDuration = 0.22
+SpikeCount = 9
+ShardCount = 18
+UpdateInterval = 0.05
+
+[node name="ArcaneShockwaveLayer" type="Node3D" parent="."]
+script = ExtResource("2_impact_layer")
+Duration = 0.95
+RingColor = Color(0.78, 0.42, 1, 0.74)
+DiskColor = Color(0.4, 0.08, 0.62, 0.28)
+StreakColor = Color(0.9, 0.7, 1, 0.66)
+CrackColor = Color(0.72, 0.32, 1, 0.74)
+EmissionEnergy = 2.8
+MaxRadius = 2.4
+DiskRadius = 2.05
+RingCount = 3
+StreakCount = 12
+CrackCount = 5
+GroundDiskEnabled = true
+VerticalStreaks = true
+UpdateInterval = 0.05
+
+[node name="ArcaneLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
+light_color = Color(0.68, 0.3, 1, 1)
+light_energy = 2.0
+omni_range = 4.4

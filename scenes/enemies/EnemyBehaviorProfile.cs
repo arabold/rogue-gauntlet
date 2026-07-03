@@ -68,6 +68,38 @@ public partial class EnemyBehaviorProfile : Resource
 	[Export] public AttackDefinition MeleeAttackDefinition { get; set; }
 
 	/// <summary>
+	/// Attack definition for this enemy's ranged attack. A non-null value marks the enemy as a
+	/// ranged attacker: <see cref="ChasingState"/> holds it at <see cref="RangedAttackRange"/> and
+	/// fires instead of closing to <see cref="MeleeAttackRange"/>.
+	/// </summary>
+	[Export] public AttackDefinition RangedAttackDefinition { get; set; }
+
+	/// <summary>
+	/// Distance from the target at which a ranged attacker stops closing in and starts firing.
+	/// </summary>
+	[Export] public float RangedAttackRange { get; set; } = 14.0f;
+
+	/// <summary>
+	/// Accuracy used by this enemy's ranged attack.
+	/// </summary>
+	[Export] public float RangedAttackAccuracy { get; set; } = 0.85f;
+
+	/// <summary>
+	/// Minimum damage dealt by this enemy's ranged attack.
+	/// </summary>
+	[Export] public float RangedAttackMinDamage { get; set; } = 2.0f;
+
+	/// <summary>
+	/// Maximum damage dealt by this enemy's ranged attack.
+	/// </summary>
+	[Export] public float RangedAttackMaxDamage { get; set; } = 6.0f;
+
+	/// <summary>
+	/// Critical hit chance used by this enemy's ranged attack.
+	/// </summary>
+	[Export] public float RangedAttackCritChance { get; set; } = 0.05f;
+
+	/// <summary>
 	/// Maximum distance from its spawn point that the enemy can pick roam destinations.
 	/// </summary>
 	[Export] public float RoamRadius { get; set; } = 8.0f;

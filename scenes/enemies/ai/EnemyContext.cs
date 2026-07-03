@@ -39,6 +39,12 @@ public sealed class EnemyContext
 	/// </summary>
 	public Action RequestMeleeAttack { get; }
 
+	/// <summary>
+	/// Starts a ranged attack through the host's timed-action layer. Only meaningful when
+	/// <see cref="EnemyBehaviorProfile.RangedAttackDefinition"/> is set; see <see cref="RequestMeleeAttack"/>.
+	/// </summary>
+	public Action RequestRangedAttack { get; }
+
 	/// <summary>The player currently being chased, or null when the enemy has no target.</summary>
 	public Node3D Target { get; set; }
 
@@ -62,7 +68,8 @@ public sealed class EnemyContext
 		PerceptionComponent perception,
 		NavigationComponent navigation,
 		EnemyBehaviorProfile profile,
-		Action requestMeleeAttack)
+		Action requestMeleeAttack,
+		Action requestRangedAttack)
 	{
 		Actor = actor;
 		Movement = movement;
@@ -70,6 +77,7 @@ public sealed class EnemyContext
 		Navigation = navigation;
 		Profile = profile;
 		RequestMeleeAttack = requestMeleeAttack;
+		RequestRangedAttack = requestRangedAttack;
 		HomePosition = actor.GlobalPosition;
 	}
 

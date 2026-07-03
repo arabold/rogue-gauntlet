@@ -66,6 +66,13 @@ MinDepth = 3
 MaxDepth = 0
 Weight = 1.2
 
+[sub_resource type="Resource" id="e_skeleton_archer"]
+script = ExtResource("2_entry")
+ScenePath = "res://scenes/enemies/skeleton/skeleton_archer.tscn"
+MinDepth = 3
+MaxDepth = 0
+Weight = 1.0
+
 [sub_resource type="Resource" id="e_orc"]
 script = ExtResource("2_entry")
 ScenePath = "res://scenes/enemies/orc/orc.tscn"
@@ -138,4 +145,4 @@ Weight = 0.4
 
 [resource]
 script = ExtResource("1_factory")
-Entries = [SubResource("e_bat"), SubResource("e_slime"), SubResource("e_skeleton_minion"), SubResource("e_spider"), SubResource("e_ghost"), SubResource("e_squidle"), SubResource("e_spiky_blob"), SubResource("e_cactoro"), SubResource("e_skeleton_warrior"), SubResource("e_orc"), SubResource("e_dino"), SubResource("e_wizard"), SubResource("e_ghost_skull"), SubResource("e_orc_skull"), SubResource("e_yeti"), SubResource("e_demon"), SubResource("e_blue_demon"), SubResource("e_dragon"), SubResource("e_mushroom_king")]
+Entries = [SubResource("e_bat"), SubResource("e_slime"), SubResource("e_skeleton_minion"), SubResource("e_spider"), SubResource("e_ghost"), SubResource("e_squidle"), SubResource("e_spiky_blob"), SubResource("e_cactoro"), SubResource("e_skeleton_warrior"), SubResource("e_skeleton_archer"), SubResource("e_orc"), SubResource("e_dino"), SubResource("e_wizard"), SubResource("e_ghost_skull"), SubResource("e_orc_skull"), SubResource("e_yeti"), SubResource("e_demon"), SubResource("e_blue_demon"), SubResource("e_dragon"), SubResource("e_mushroom_king")]

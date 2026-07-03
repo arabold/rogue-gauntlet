@@ -17,6 +17,7 @@ var _models = []; var _i = 0; var _wait = 0; var _vp; var _holder
 func _initialize():
 	var args = OS.get_cmdline_user_args()
 	var outdir = args[0]
+	DirAccess.make_dir_recursive_absolute(outdir)
 	for src in args.slice(1):  # each arg is a directory (scanned) or a single model file
 		var d = DirAccess.open(src)
 		if d:

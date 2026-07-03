@@ -1,0 +1,209 @@
+[gd_scene load_steps=25 format=3 uid="uid://cskelarcher01"]
+
+[ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
+[ext_resource type="PackedScene" uid="uid://kgi4jullpsv7" path="res://assets/kaykit-skeletons/Skeleton_Rogue.glb" id="2_rogue"]
+[ext_resource type="PackedScene" uid="uid://c5j1dmi0rmnol" path="res://assets/kaykit-skeletons/Skeleton_Crossbow.gltf" id="3_crossbow"]
+[ext_resource type="Resource" uid="uid://clootstd0001" path="res://scenes/items/loot/loot_standard.tres" id="4_loot"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_archer_behavior.tres" id="5_profile"]
+
+[sub_resource type="AnimationNodeAnimation" id="anim_attack"]
+animation = &"1H_Ranged_Shoot"
+
+[sub_resource type="AnimationNodeAnimation" id="anim_dead"]
+animation = &"Death_A_Pose"
+
+[sub_resource type="AnimationNodeAnimation" id="anim_dying"]
+animation = &"Death_A"
+
+[sub_resource type="AnimationNodeAnimation" id="anim_falling"]
+animation = &"Jump_Idle"
+
+[sub_resource type="AnimationNodeAnimation" id="anim_hit"]
+animation = &"Hit_A"
+
+[sub_resource type="AnimationNodeAnimation" id="anim_idle"]
+animation = &"Idle_Combat"
+
+[sub_resource type="AnimationNodeAnimation" id="anim_lie"]
+animation = &"Lie_Idle"
+
+[sub_resource type="AnimationNodeAnimation" id="anim_spawn"]
+animation = &"Spawn_Ground_Skeletons"
+
+[sub_resource type="AnimationNodeAnimation" id="anim_standup"]
+animation = &"Lie_StandUp"
+
+[sub_resource type="AnimationNodeAnimation" id="anim_walk"]
+animation = &"Walking_D_Skeletons"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_walk"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsMoving"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_idle"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "!IsMoving"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_lie"]
+advance_mode = 2
+advance_expression = "IsSleeping"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_lie_standup"]
+advance_mode = 2
+advance_expression = "!isSleeping"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_standup_idle"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_attack"]
+advance_mode = 2
+advance_expression = "IsAttacking"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_dying"]
+advance_mode = 2
+advance_expression = "IsDead"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_attack_idle"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_dying_dead"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walking_dying"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walking_attack"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsAttacking"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walking_hit"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsHit"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_start_lie"]
+advance_mode = 2
+advance_expression = "isSleeping"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_start_spawn"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_spawn_idle"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walking_falling"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsFalling"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_falling"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsFalling"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_falling_idle"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "!IsFalling"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_hit"]
+advance_mode = 2
+advance_expression = "IsHit"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_hit_idle"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_hit_dying"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+
+[sub_resource type="AnimationNodeStateMachine" id="sm_archer"]
+states/Attack/node = SubResource("anim_attack")
+states/Attack/position = Vector2(440, 100)
+states/Dead/node = SubResource("anim_dead")
+states/Dead/position = Vector2(836.725, 96.4097)
+states/Dying/node = SubResource("anim_dying")
+states/Dying/position = Vector2(650.725, 96.4093)
+states/End/position = Vector2(1021, 97.707)
+states/Falling/node = SubResource("anim_falling")
+states/Falling/position = Vector2(616.142, 419.882)
+states/Hit/node = SubResource("anim_hit")
+states/Hit/position = Vector2(436.553, 350.933)
+states/Idle/node = SubResource("anim_idle")
+states/Idle/position = Vector2(368.031, 96.5347)
+states/Lie/node = SubResource("anim_lie")
+states/Lie/position = Vector2(266.277, -71.3619)
+states/Spawn/node = SubResource("anim_spawn")
+states/Spawn/position = Vector2(44.2281, 96.4024)
+states/StandUp/node = SubResource("anim_standup")
+states/StandUp/position = Vector2(475.608, -71.4518)
+states/Start/position = Vector2(44, -71.5416)
+states/Walking/node = SubResource("anim_walk")
+states/Walking/position = Vector2(216.242, 417.688)
+transitions = ["Idle", "Walking", SubResource("t_idle_walk"), "Walking", "Idle", SubResource("t_walk_idle"), "Idle", "Lie", SubResource("t_idle_lie"), "Lie", "StandUp", SubResource("t_lie_standup"), "StandUp", "Idle", SubResource("t_standup_idle"), "Idle", "Attack", SubResource("t_idle_attack"), "Idle", "Dying", SubResource("t_idle_dying"), "Attack", "Idle", SubResource("t_attack_idle"), "Dying", "Dead", SubResource("t_dying_dead"), "Walking", "Dying", SubResource("t_walking_dying"), "Walking", "Attack", SubResource("t_walking_attack"), "Walking", "Hit", SubResource("t_walking_hit"), "Start", "Lie", SubResource("t_start_lie"), "Start", "Spawn", SubResource("t_start_spawn"), "Spawn", "Idle", SubResource("t_spawn_idle"), "Walking", "Falling", SubResource("t_walking_falling"), "Idle", "Falling", SubResource("t_idle_falling"), "Falling", "Idle", SubResource("t_falling_idle"), "Idle", "Hit", SubResource("t_idle_hit"), "Hit", "Idle", SubResource("t_hit_idle"), "Hit", "Dying", SubResource("t_hit_dying")]
+graph_offset = Vector2(-45.75, -25.415)
+
+[sub_resource type="CapsuleShape3D" id="cap_hurt"]
+radius = 0.75
+
+[sub_resource type="CapsuleShape3D" id="cap_body"]
+radius = 0.75
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_archer"]
+viewport_path = NodePath("SubViewport")
+
+[node name="SkeletonArcher" instance=ExtResource("1_base")]
+
+[node name="Skeleton_Rogue" parent="Pivot" index="0" instance=ExtResource("2_rogue")]
+
+[node name="BoneAttachment3D" type="BoneAttachment3D" parent="Pivot/Skeleton_Rogue/Rig/Skeleton3D"]
+bone_name = "wrist.r"
+bone_idx = 11
+
+[node name="Skeleton_Crossbow" parent="Pivot/Skeleton_Rogue/Rig/Skeleton3D/BoneAttachment3D" instance=ExtResource("3_crossbow")]
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0.05, -0.15, 0.35)
+
+[node name="EnemyBehaviorComponent" parent="." index="1"]
+Profile = ExtResource("5_profile")
+
+[node name="AnimationTree" type="AnimationTree" parent="EnemyBehaviorComponent" index="2"]
+root_node = NodePath("../../Pivot/Skeleton_Rogue")
+tree_root = SubResource("sm_archer")
+advance_expression_base_node = NodePath("..")
+anim_player = NodePath("../../Pivot/Skeleton_Rogue/AnimationPlayer")
+
+[node name="LootTableComponent" parent="." index="3"]
+Table = ExtResource("4_loot")
+
+[node name="HealthComponent" parent="." index="4"]
+MaxHealth = 9.0
+CurrentHealth = 9.0
+
+[node name="DeathComponent" parent="." index="5"]
+Xp = 14
+
+[node name="HurtBoxComponent" parent="." index="6"]
+Evasion = 0.2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
+shape = SubResource("cap_hurt")
+
+[node name="FloatingHealthBar" parent="." index="7"]
+texture = SubResource("ViewportTexture_archer")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="8"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+shape = SubResource("cap_body")
+
+[editable path="Pivot/Skeleton_Rogue"]
