@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://mqwwxa8pvcxx" path="res://assets/kaykit-skeletons/Skeleton_Axe.gltf" id="3_t2b4n"]
 [ext_resource type="PackedScene" uid="uid://c8g78nlylc3kb" path="res://assets/kaykit-skeletons/Skeleton_Shield_Small_B.gltf" id="4_4cr0r"]
 [ext_resource type="Resource" uid="uid://clootwarrior01" path="res://scenes/items/loot/loot_skeleton_warrior.tres" id="10_loot"]
-[ext_resource type="Resource" path="res://scenes/enemies/profiles/skeleton_warrior_behavior.tres" id="9_profile"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_warrior_behavior.tres" id="9_profile"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rfhfv"]
 animation = &"1H_Melee_Attack_Chop"
