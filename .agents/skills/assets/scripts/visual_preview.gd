@@ -13,8 +13,9 @@ extends SceneTree
 #
 # e.g. -- /tmp/preview res://scenes/enemies/bat/bat.tscn res://scenes/enemies/orc/orc.tscn
 #
-# Output per subject: <name>_idle.png, and for killable subjects <name>_dying.png +
-# <name>_dead.png. Inspect the PNGs for: feet on floor (or hover altitude for flyers),
+# Output per subject: <name>_spawn.png (catches flyer take-off; spawn-animation monsters may
+# still be hidden here) and <name>_idle.png, plus <name>_dying.png + <name>_dead.png for
+# killable subjects. Inspect the PNGs for: feet on floor (or hover altitude for flyers),
 # scale vs the knight, texture/material correctness, no T-pose, no clipping into geometry.
 #
 const ROOM := "res://scenes/levels/dungeon/rooms/barracks.tscn"

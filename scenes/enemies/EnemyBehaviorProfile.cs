@@ -70,7 +70,8 @@ public partial class EnemyBehaviorProfile : Resource
 	/// <summary>
 	/// Attack definition for this enemy's ranged attack. A non-null value marks the enemy as a
 	/// ranged attacker: <see cref="ChasingState"/> holds it at <see cref="RangedAttackRange"/> and
-	/// fires instead of closing to <see cref="MeleeAttackRange"/>.
+	/// fires instead of closing to melee — all <c>Melee*</c> stats are then inert and should not
+	/// be authored on the profile.
 	/// </summary>
 	[Export] public AttackDefinition RangedAttackDefinition { get; set; }
 

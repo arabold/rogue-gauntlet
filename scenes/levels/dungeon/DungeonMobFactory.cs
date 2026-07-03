@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 using Godot.Collections;
 
@@ -37,30 +38,25 @@ public partial class DungeonMobFactory : MobFactory
 	/// </summary>
 	private string PickScenePath(uint dungeonDepth)
 	{
+		var eligible = new List<DungeonMobEntry>();
 		float totalWeight = 0f;
 		foreach (DungeonMobEntry entry in Entries)
 		{
 			if (entry != null && entry.Weight > 0f && entry.IsEligibleAt(dungeonDepth))
 			{
+				eligible.Add(entry);
 				totalWeight += entry.Weight;
 			}
 		}
 
-		if (totalWeight <= 0f)
+		if (eligible.Count == 0)
 		{
 			return null;
 		}
 
 		float roll = GD.Randf() * totalWeight;
-		string lastEligible = null;
-		foreach (DungeonMobEntry entry in Entries)
+		foreach (DungeonMobEntry entry in eligible)
 		{
-			if (entry == null || entry.Weight <= 0f || !entry.IsEligibleAt(dungeonDepth))
-			{
-				continue;
-			}
-
-			lastEligible = entry.ScenePath;
 			roll -= entry.Weight;
 			if (roll <= 0f)
 			{
@@ -69,6 +65,6 @@ public partial class DungeonMobFactory : MobFactory
 		}
 
 		// Float rounding can leave a sliver of roll; fall back to the last eligible entry.
-		return lastEligible;
+		return eligible[^1].ScenePath;
 	}
 }

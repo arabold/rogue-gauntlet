@@ -220,58 +220,42 @@ public partial class EnemyBehaviorComponent : Node
 		}
 	}
 
+	// Targets the player: its HurtBoxComponent sits on Layer 3 (mask value 4).
+	private const uint PlayerTargetMask = 4;
+
 	private void TriggerMeleeAttack()
 	{
-		if (_attackController == null)
-		{
-			GD.PushError($"{Actor.Name} cannot start melee attack without AttackController.");
-			return;
-		}
-
 		var def = _profile.MeleeAttackDefinition ?? CreateDefaultMeleeAttackDefinition();
-
-		uint targetMask = 4; // Targets player (HurtBoxComponent is on Layer 3 / Mask 4)
-
-		_attackController.StartAttack(
-			def,
-			_profile.MeleeAttackMinDamage,
-			_profile.MeleeAttackMaxDamage,
-			_profile.MeleeAttackAccuracy,
-			_profile.MeleeAttackCritChance,
-			targetMask
-		);
+		StartProfileAttack(def, _profile.MeleeAttackMinDamage, _profile.MeleeAttackMaxDamage,
+			_profile.MeleeAttackAccuracy, _profile.MeleeAttackCritChance);
 	}
 
 	private void TriggerRangedAttack()
 	{
-		if (_attackController == null)
-		{
-			GD.PushError($"{Actor.Name} cannot start ranged attack without AttackController.");
-			return;
-		}
-
 		if (_profile.RangedAttackDefinition == null)
 		{
 			GD.PushError($"{Actor.Name} cannot start ranged attack without a RangedAttackDefinition.");
 			return;
 		}
 
-		uint targetMask = 4; // Targets player (HurtBoxComponent is on Layer 3 / Mask 4)
+		StartProfileAttack(_profile.RangedAttackDefinition, _profile.RangedAttackMinDamage,
+			_profile.RangedAttackMaxDamage, _profile.RangedAttackAccuracy, _profile.RangedAttackCritChance);
+	}
 
-		_attackController.StartAttack(
-			_profile.RangedAttackDefinition,
-			_profile.RangedAttackMinDamage,
-			_profile.RangedAttackMaxDamage,
-			_profile.RangedAttackAccuracy,
-			_profile.RangedAttackCritChance,
-			targetMask
-		);
+	private void StartProfileAttack(AttackDefinition def, float minDamage, float maxDamage, float accuracy, float critChance)
+	{
+		if (_attackController == null)
+		{
+			GD.PushError($"{Actor.Name} cannot start an attack without AttackController.");
+			return;
+		}
+
+		_attackController.StartAttack(def, minDamage, maxDamage, accuracy, critChance, PlayerTargetMask);
 	}
 
 	private AttackDefinition CreateDefaultMeleeAttackDefinition()
 	{
 		var def = new AttackDefinition();
-		def.AnimationId = "melee_attack";
 
 		float duration = _profile.GetActionDuration(EnemyAction.MeeleAttack);
 		def.HitWindowStart = 0.3f * duration;

@@ -54,25 +54,20 @@ public sealed class ChasingState : IEnemyState
 			ctx.UpdateTargetPositionThrottled();
 		}
 
-		if (ctx.Profile.RangedAttackDefinition != null)
+		bool isRanged = ctx.Profile.RangedAttackDefinition != null;
+		if (isRanged && HasClearShot(ctx))
 		{
-			if (HasClearShot(ctx))
-			{
-				FaceTarget(ctx);
-				ctx.RequestRangedAttack();
-				return null;
-			}
-
-			// No clear shot yet (out of range or blocked): close the distance like a melee
-			// attacker so the enemy does not idle at range forever waiting for a line that never
-			// opens up.
-			NavigateToTarget(ctx);
+			FaceTarget(ctx);
+			ctx.RequestRangedAttack();
 			return null;
 		}
 
+		// Close the distance: melee attackers always, ranged attackers while they have no clear
+		// shot yet (out of range or blocked) so they do not idle at range forever waiting for a
+		// line that never opens up.
 		NavigateToTarget(ctx);
 
-		if (IsNearTarget(ctx))
+		if (!isRanged && IsNearTarget(ctx))
 		{
 			ctx.RequestMeleeAttack();
 		}
