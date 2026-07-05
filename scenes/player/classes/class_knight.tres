@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="CharacterClass" load_steps=11 format=3 uid="uid://cclassknight001"]
+[gd_resource type="Resource" script_class="CharacterClass" load_steps=9 format=3 uid="uid://cclassknight001"]
 
 [ext_resource type="Script" uid="uid://btgejekyq3ejc" path="res://scenes/player/classes/CharacterClass.cs" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://dg8hsqswlsl5r" path="res://assets/kaykit-adventurers/Knight.glb" id="2_model"]
@@ -6,7 +6,6 @@
 [ext_resource type="Script" uid="uid://s73gxicbccb2" path="res://scenes/player/InventoryItemSlot.cs" id="4_slot"]
 [ext_resource type="Resource" uid="uid://k2qh6pkx5fat" path="res://scenes/items/weapons/longsword_common.tres" id="5_weapon"]
 [ext_resource type="Resource" uid="uid://kgk80xoii6kd" path="res://scenes/items/armor/shield_badge_color.tres" id="6_shield"]
-[ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion_small.tres" id="7_potion"]
 
 [sub_resource type="Resource" id="Slot_shield"]
 script = ExtResource("4_slot")
@@ -17,12 +16,6 @@ metadata/_custom_type_script = ExtResource("4_slot")
 [sub_resource type="Resource" id="Slot_weapon"]
 script = ExtResource("4_slot")
 Item = ExtResource("5_weapon")
-Quantity = 1
-metadata/_custom_type_script = ExtResource("4_slot")
-
-[sub_resource type="Resource" id="Slot_potion"]
-script = ExtResource("4_slot")
-Item = ExtResource("7_potion")
 Quantity = 1
 metadata/_custom_type_script = ExtResource("4_slot")
 
@@ -37,8 +30,7 @@ BaseStrength = 12.0
 BaseDexterity = 8.0
 BaseVitality = 14.0
 BaseIntelligence = 6.0
-StartingItems = Array[ExtResource("4_slot")]([SubResource("Slot_shield"), SubResource("Slot_weapon"), SubResource("Slot_potion")])
-PreIdentifiedTypeIds = PackedStringArray("potion.healing")
+StartingItems = Array[ExtResource("4_slot")]([SubResource("Slot_shield"), SubResource("Slot_weapon")])
 PreviewAnimation = "Idle"
 AttachmentNodeNames = {
 0: "1H_Sword",

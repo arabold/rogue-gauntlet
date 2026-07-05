@@ -30,10 +30,14 @@ Everything is designer-authored resources under `scenes/player/classes/`:
 | Barbarian | 14 | 8 | 13 | 5 | 115 | +50% damage per STR | Worn Battle Axe (2H) |
 | Knight | 12 | 8 | 14 | 6 | 120 | — | Sword + shield |
 | Rogue | 8 | 15 | 9 | 8 | 95 | 2× crit/DEX, 2× evasion/DEX | Crossbow + dagger |
-| Mage | 6 | 10 | 8 | 16 | 90 | damage scales with INT | Fire staff |
+| Mage | 6 | 10 | 8 | 16 | 90 | damage scales with INT | Fire staff + healing potion (pre-identified) |
 
-Every class also starts with one small healing potion, pre-identified via
-`GameSession.Identification.Identify("potion.healing")`. There is no mana: casting stays
+Only the Mage starts with a healing potion, pre-identified via
+`GameSession.Identification.Identify("potion.healing")` (`PreIdentifiedTypeIds` on its
+`CharacterClass`). The other three classes start without one and must identify healing
+potions the normal way — a deliberate balance choice, not a limitation of the system;
+any class's `.tres` can add `StartingItems`/`PreIdentifiedTypeIds` entries the same way.
+There is no mana: casting stays
 cooldown-based, and caster/non-caster differences come purely from stat profiles.
 
 ## Runtime flow
