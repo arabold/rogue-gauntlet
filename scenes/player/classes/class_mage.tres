@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="CharacterClass" load_steps=9 format=3 uid="uid://cclassmage00001"]
+
+[ext_resource type="Script" uid="uid://btgejekyq3ejc" path="res://scenes/player/classes/CharacterClass.cs" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://csow2twtpsgnu" path="res://assets/kaykit-adventurers/Mage.glb" id="2_model"]
+[ext_resource type="Resource" uid="uid://cprofmage000001" path="res://scenes/player/classes/stat_profile_mage.tres" id="3_profile"]
+[ext_resource type="Script" uid="uid://s73gxicbccb2" path="res://scenes/player/InventoryItemSlot.cs" id="4_slot"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_fire.tres" id="5_staff"]
+[ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion_small.tres" id="6_potion"]
+
+[sub_resource type="Resource" id="Slot_staff"]
+script = ExtResource("4_slot")
+Item = ExtResource("5_staff")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("4_slot")
+
+[sub_resource type="Resource" id="Slot_potion"]
+script = ExtResource("4_slot")
+Item = ExtResource("6_potion")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("4_slot")
+
+[resource]
+script = ExtResource("1_script")
+Id = "mage"
+DisplayName = "Mage"
+Description = "A scholar of the arcane. Frail in body, the mage channels raw intelligence into devastating fire - and always knows what's in the bottle."
+CharacterScene = ExtResource("2_model")
+StatProfile = ExtResource("3_profile")
+BaseStrength = 6.0
+BaseDexterity = 10.0
+BaseVitality = 8.0
+BaseIntelligence = 16.0
+StartingItems = Array[ExtResource("4_slot")]([SubResource("Slot_staff"), SubResource("Slot_potion")])
+PreIdentifiedTypeIds = PackedStringArray("potion.healing")
+PreviewAnimation = "Idle"
+AttachmentNodeNames = {
+0: "1H_Wand",
+1: "2H_Staff",
+4: "Spellbook",
+5: "Mage_Hat",
+6: "Mage_Cape"
+}
+metadata/_custom_type_script = ExtResource("1_script")

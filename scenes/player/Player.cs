@@ -47,8 +47,47 @@ public partial class Player : CharacterBody3D, IDamageable
 
 		// Runtime mutations should not write back into authored scene/resource defaults.
 		Stats = Stats.CreateRuntimeCopy();
-		Inventory = Inventory.CreateRuntimeCopy();
+
+		// When a run has a character class, it replaces the authored appearance, stats,
+		// and starting gear. Without one (e.g. running main.tscn directly) the player
+		// keeps the scene's authored Barbarian setup.
+		CharacterClass characterClass = GameSession.Instance?.ActiveCharacterClass;
+		if (characterClass != null)
+		{
+			characterClass.ApplyToStats(Stats);
+			Inventory = characterClass.CreateStartingInventory(Inventory.Capacity);
+			ApplyCharacterModel(characterClass);
+		}
+		else
+		{
+			Inventory = Inventory.CreateRuntimeCopy();
+		}
+
 		_hasRuntimeState = true;
+	}
+
+	/// <summary>
+	/// Swaps the authored character visual for the active class's model. Runs in
+	/// _EnterTree — before any child's _Ready — so the AnimationTree (rooted at
+	/// "../Pivot/Character" with its AnimationPlayer) and the BoneAttachmentManager
+	/// resolve against the new model without any retargeting; all class models share
+	/// the same rig and animation names.
+	/// </summary>
+	private void ApplyCharacterModel(CharacterClass characterClass)
+	{
+		Node3D pivot = GetNode<Node3D>("Pivot");
+		Node3D oldCharacter = pivot.GetNode<Node3D>("Character");
+		Node3D newCharacter = CharacterModel.Instantiate(characterClass);
+		newCharacter.Name = "Character";
+		newCharacter.Transform = oldCharacter.Transform;
+		int childIndex = oldCharacter.GetIndex();
+		pivot.RemoveChild(oldCharacter);
+		oldCharacter.QueueFree();
+		pivot.AddChild(newCharacter);
+		pivot.MoveChild(newCharacter, childIndex);
+
+		var attachmentManager = GetNode<BoneAttachmentManager>("BoneAttachmentManager");
+		attachmentManager.AttachmentNodes = CharacterModel.ResolveAttachments(newCharacter, characterClass);
 	}
 
 	public override void _Ready()

@@ -1,0 +1,261 @@
+[gd_scene load_steps=7 format=3 uid="uid://ccharpaneltscn1"]
+
+[ext_resource type="Script" uid="uid://ccharpanelcs001" path="res://scenes/menu/CharacterPanel.cs" id="1_panel"]
+[ext_resource type="Resource" uid="uid://ccharcatalog001" path="res://scenes/player/classes/character_catalog.tres" id="2_catalog"]
+[ext_resource type="PackedScene" uid="uid://ccharpreviewtsn" path="res://scenes/menu/character_preview.tscn" id="3_preview"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.0352941, 0.0431373, 0.054902, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85, 0.59, 0.29, 0.35)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.14, 0.101, 0.075, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.79, 0.48, 0.2, 0.65)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.32, 0.19, 0.105, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.69, 0.32, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="CharacterPanel" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_panel")
+Catalog = ExtResource("2_catalog")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.24
+anchor_top = 0.06
+anchor_right = 0.76
+anchor_bottom = 0.94
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 32
+
+[node name="Content" type="VBoxContainer" parent="Panel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="Panel/MarginContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+theme_override_colors/font_color = Color(1, 0.86, 0.61, 1)
+text = "Choose Your Hero"
+horizontal_alignment = 1
+
+[node name="Carousel" type="HBoxContainer" parent="Panel/MarginContainer/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="PrevButton" type="Button" parent="Panel/MarginContainer/Content/Carousel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 2
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
+text = "<"
+
+[node name="Center" type="VBoxContainer" parent="Panel/MarginContainer/Content/Carousel"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="PreviewContainer" type="SubViewportContainer" parent="Panel/MarginContainer/Content/Carousel/Center"]
+layout_mode = 2
+size_flags_vertical = 3
+stretch = true
+
+[node name="CharacterPreview" parent="Panel/MarginContainer/Content/Carousel/Center/PreviewContainer" instance=ExtResource("3_preview")]
+unique_name_in_owner = true
+
+[node name="ClassNameLabel" type="Label" parent="Panel/MarginContainer/Content/Carousel/Center"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1, 0.86, 0.61, 1)
+text = "Barbarian"
+horizontal_alignment = 1
+
+[node name="ClassDescription" type="Label" parent="Panel/MarginContainer/Content/Carousel/Center"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 92)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.78, 0.83, 0.9, 1)
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="NextButton" type="Button" parent="Panel/MarginContainer/Content/Carousel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 2
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
+text = ">"
+
+[node name="StatsGrid" type="GridContainer" parent="Panel/MarginContainer/Content"]
+layout_mode = 2
+columns = 5
+
+[node name="StrengthLabel" type="Label" parent="Panel/MarginContainer/Content/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.78, 0.83, 0.9, 1)
+text = "STR"
+horizontal_alignment = 1
+
+[node name="DexterityLabel" type="Label" parent="Panel/MarginContainer/Content/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.78, 0.83, 0.9, 1)
+text = "DEX"
+horizontal_alignment = 1
+
+[node name="VitalityLabel" type="Label" parent="Panel/MarginContainer/Content/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.78, 0.83, 0.9, 1)
+text = "VIT"
+horizontal_alignment = 1
+
+[node name="IntelligenceLabel" type="Label" parent="Panel/MarginContainer/Content/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.78, 0.83, 0.9, 1)
+text = "INT"
+horizontal_alignment = 1
+
+[node name="HealthLabel" type="Label" parent="Panel/MarginContainer/Content/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.78, 0.83, 0.9, 1)
+text = "HP"
+horizontal_alignment = 1
+
+[node name="StrengthValue" type="Label" parent="Panel/MarginContainer/Content/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1, 0.86, 0.61, 1)
+text = "10"
+horizontal_alignment = 1
+
+[node name="DexterityValue" type="Label" parent="Panel/MarginContainer/Content/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1, 0.86, 0.61, 1)
+text = "10"
+horizontal_alignment = 1
+
+[node name="VitalityValue" type="Label" parent="Panel/MarginContainer/Content/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1, 0.86, 0.61, 1)
+text = "10"
+horizontal_alignment = 1
+
+[node name="IntelligenceValue" type="Label" parent="Panel/MarginContainer/Content/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1, 0.86, 0.61, 1)
+text = "10"
+horizontal_alignment = 1
+
+[node name="HealthValue" type="Label" parent="Panel/MarginContainer/Content/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1, 0.86, 0.61, 1)
+text = "100"
+horizontal_alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="Panel/MarginContainer/Content"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="BackButton" type="Button" parent="Panel/MarginContainer/Content/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 54)
+layout_mode = 2
+focus_mode = 2
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
+text = "Back"
+
+[node name="ConfirmButton" type="Button" parent="Panel/MarginContainer/Content/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
+text = "Start Adventure"

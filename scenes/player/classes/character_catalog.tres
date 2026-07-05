@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CharacterCatalog" load_steps=7 format=3 uid="uid://ccharcatalog001"]
+
+[ext_resource type="Script" uid="uid://bke6pkqp2v7ud" path="res://scenes/player/classes/CharacterCatalog.cs" id="1_script"]
+[ext_resource type="Script" uid="uid://btgejekyq3ejc" path="res://scenes/player/classes/CharacterClass.cs" id="2_class"]
+[ext_resource type="Resource" uid="uid://cclassbarb00001" path="res://scenes/player/classes/class_barbarian.tres" id="3_barbarian"]
+[ext_resource type="Resource" uid="uid://cclassknight001" path="res://scenes/player/classes/class_knight.tres" id="4_knight"]
+[ext_resource type="Resource" uid="uid://cclassrogue0001" path="res://scenes/player/classes/class_rogue.tres" id="5_rogue"]
+[ext_resource type="Resource" uid="uid://cclassmage00001" path="res://scenes/player/classes/class_mage.tres" id="6_mage"]
+
+[resource]
+script = ExtResource("1_script")
+Classes = Array[ExtResource("2_class")]([ExtResource("3_barbarian"), ExtResource("4_knight"), ExtResource("5_rogue"), ExtResource("6_mage")])
+metadata/_custom_type_script = ExtResource("1_script")

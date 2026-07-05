@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scenes/menu/MainMenu.cs" id="1_menu"]
 [ext_resource type="Texture2D" path="res://assets/ui/main_menu/main_menu_background.png" id="2_background"]
+[ext_resource type="PackedScene" uid="uid://ccharpaneltscn1" path="res://scenes/menu/character_panel.tscn" id="3_charpanel"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.0352941, 0.0431373, 0.054902, 0.82)
@@ -227,6 +228,10 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
 text = "Back"
+
+[node name="CharacterPanel" parent="." instance=ExtResource("3_charpanel")]
+unique_name_in_owner = true
+visible = false
 
 [node name="OverwriteDialog" type="ConfirmationDialog" parent="."]
 unique_name_in_owner = true
