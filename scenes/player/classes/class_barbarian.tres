@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="CharacterClass" load_steps=9 format=3 uid="uid://cclassbarb00001"]
+
+[ext_resource type="Script" uid="uid://btgejekyq3ejc" path="res://scenes/player/classes/CharacterClass.cs" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="2_model"]
+[ext_resource type="Resource" uid="uid://cprofbarbar0001" path="res://scenes/player/classes/stat_profile_barbarian.tres" id="3_profile"]
+[ext_resource type="Script" uid="uid://s73gxicbccb2" path="res://scenes/player/InventoryItemSlot.cs" id="4_slot"]
+[ext_resource type="Resource" uid="uid://cbattleaxestart" path="res://scenes/items/weapons/battleaxe_starter.tres" id="5_weapon"]
+[ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion_small.tres" id="6_potion"]
+
+[sub_resource type="Resource" id="Slot_weapon"]
+script = ExtResource("4_slot")
+Item = ExtResource("5_weapon")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("4_slot")
+
+[sub_resource type="Resource" id="Slot_potion"]
+script = ExtResource("4_slot")
+Item = ExtResource("6_potion")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("4_slot")
+
+[resource]
+script = ExtResource("1_script")
+Id = "barbarian"
+DisplayName = "Barbarian"
+Description = "A raging mountain of muscle. The barbarian cleaves through crowds with a two-handed axe and shrugs off blows that would fell lesser heroes - but magic is a mystery to him."
+CharacterScene = ExtResource("2_model")
+StatProfile = ExtResource("3_profile")
+BaseStrength = 14.0
+BaseDexterity = 8.0
+BaseVitality = 13.0
+BaseIntelligence = 5.0
+StartingItems = Array[ExtResource("4_slot")]([SubResource("Slot_weapon"), SubResource("Slot_potion")])
+PreIdentifiedTypeIds = PackedStringArray("potion.healing")
+PreviewAnimation = "2H_Melee_Idle"
+AttachmentNodeNames = {
+0: "1H_Axe",
+1: "2H_Axe",
+2: "1H_Axe_Offhand",
+3: "Barbarian_Round_Shield",
+4: "Mug",
+5: "Barbarian_Hat",
+6: "Barbarian_Cape"
+}
+metadata/_custom_type_script = ExtResource("1_script")

@@ -5,13 +5,18 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 3;
+	public const int CurrentVersion = 4;
+
+	/// <summary>Fallback class for pre-v4 saves, matching the previously hardcoded player model.</summary>
+	public const string DefaultCharacterClassId = "barbarian";
 
 	public int Version { get; set; } = CurrentVersion;
 	public int SlotId { get; set; }
 	public string RunId { get; set; } = string.Empty;
 	public string CreatedAtUtc { get; set; } = string.Empty;
 	public string SavedAtUtc { get; set; } = string.Empty;
+	/// <summary>Character class chosen at run start; pre-v4 saves lack this key and deserialize to the default.</summary>
+	public string CharacterClassId { get; set; } = DefaultCharacterClassId;
 	public ulong Seed { get; set; }
 	public uint DungeonDepth { get; set; } = 1;
 	public double PlayTimeSeconds { get; set; }
@@ -48,6 +53,7 @@ public sealed class SaveSlotMetadata
 	public int SlotId { get; set; }
 	public bool HasSave { get; set; }
 	public string RunId { get; set; } = string.Empty;
+	public string CharacterClassId { get; set; } = string.Empty;
 	public string SavedAtUtc { get; set; } = string.Empty;
 	public uint DungeonDepth { get; set; }
 	public int XpLevel { get; set; }

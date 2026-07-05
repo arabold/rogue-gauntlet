@@ -13,11 +13,13 @@ public partial class MainMenu : Control
 	private Button _newGameButton;
 	private Button _loadGameButton;
 	private Button _quitButton;
+	private Control _menuPanel;
 	private Control _mainButtons;
 	private Control _slotPanel;
 	private Label _slotTitle;
 	private Button _backButton;
 	private ConfirmationDialog _overwriteDialog;
+	private CharacterPanel _characterPanel;
 	private Button[] _slotButtons;
 	private SlotMode _slotMode;
 	private int _pendingSlotId;
@@ -30,11 +32,13 @@ public partial class MainMenu : Control
 		_newGameButton = GetNode<Button>("%NewGameButton");
 		_loadGameButton = GetNode<Button>("%LoadGameButton");
 		_quitButton = GetNode<Button>("%QuitButton");
+		_menuPanel = GetNode<Control>("MenuPanel");
 		_mainButtons = GetNode<Control>("%MainButtons");
 		_slotPanel = GetNode<Control>("%SlotPanel");
 		_slotTitle = GetNode<Label>("%SlotTitle");
 		_backButton = GetNode<Button>("%BackButton");
 		_overwriteDialog = GetNode<ConfirmationDialog>("%OverwriteDialog");
+		_characterPanel = GetNode<CharacterPanel>("%CharacterPanel");
 		_slotButtons = Enumerable.Range(1, SaveService.SlotCount)
 			.Select(i => GetNode<Button>($"%Slot{i}Button"))
 			.ToArray();
@@ -44,7 +48,18 @@ public partial class MainMenu : Control
 		_loadGameButton.Pressed += ShowLoadGameSlots;
 		_quitButton.Pressed += () => GetTree().Quit();
 		_backButton.Pressed += ShowMainButtons;
-		_overwriteDialog.Confirmed += () => GameSession.Instance.StartNewGame(_pendingSlotId);
+		// Overwrite is confirmed before class selection, but the slot file is only
+		// actually replaced by the first save after StartNewGame — so backing out of
+		// the character panel loses nothing.
+		_overwriteDialog.Confirmed += ShowCharacterPanel;
+		_characterPanel.ClassConfirmed += characterClass =>
+			GameSession.Instance.StartNewGame(_pendingSlotId, characterClass.Id);
+		_characterPanel.Canceled += () =>
+		{
+			_characterPanel.Close();
+			_menuPanel.Visible = true;
+			ShowNewGameSlots();
+		};
 
 		for (int i = 0; i < _slotButtons.Length; i++)
 		{
@@ -94,7 +109,9 @@ public partial class MainMenu : Control
 
 	public override void _UnhandledInput(InputEvent @event)
 	{
-		if (@event.IsActionReleased("ui_cancel") && _slotPanel.Visible)
+		// IsVisibleInTree: the slot panel stays Visible while the character panel hides
+		// the whole MenuPanel, and the character panel consumes its own cancel first.
+		if (@event.IsActionReleased("ui_cancel") && _slotPanel.IsVisibleInTree())
 		{
 			ShowMainButtons();
 			GetViewport().SetInputAsHandled();
@@ -109,27 +126,35 @@ public partial class MainMenu : Control
 			return;
 		}
 
+		_pendingSlotId = slotId;
 		if (SaveService.HasSave(slotId))
 		{
-			_pendingSlotId = slotId;
 			_overwriteDialog.DialogText = $"Slot {slotId} already has a game. Start a new game and overwrite it?";
 			_overwriteDialog.PopupCentered();
 			return;
 		}
 
-		GameSession.Instance.StartNewGame(slotId);
+		ShowCharacterPanel();
 	}
 
-	private static string FormatSlotLabel(SaveSlotMetadata slot)
+	private void ShowCharacterPanel()
+	{
+		_menuPanel.Visible = false;
+		_characterPanel.Open();
+	}
+
+	private string FormatSlotLabel(SaveSlotMetadata slot)
 	{
 		if (!slot.HasSave)
 		{
 			return $"Slot {slot.SlotId}\nEmpty";
 		}
 
+		string className = _characterPanel.Catalog?.FindById(slot.CharacterClassId)?.DisplayName;
+		string title = className != null ? $"Slot {slot.SlotId} - {className}" : $"Slot {slot.SlotId}";
 		string savedAt = FormatSavedAt(slot.SavedAtUtc);
 		string playTime = TimeSpan.FromSeconds(slot.PlayTimeSeconds).ToString(@"h\:mm\:ss");
-		return $"Slot {slot.SlotId}\nDepth {slot.DungeonDepth}  Level {slot.XpLevel}  Gold {slot.Gold}\n{playTime}  {savedAt}";
+		return $"{title}\nDepth {slot.DungeonDepth}  Level {slot.XpLevel}  Gold {slot.Gold}\n{playTime}  {savedAt}";
 	}
 
 	private static string FormatSavedAt(string savedAtUtc)

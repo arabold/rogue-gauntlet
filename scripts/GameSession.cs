@@ -22,6 +22,18 @@ public partial class GameSession : Node
 	/// <summary>Per-run hidden-identity state for potions, scrolls, and similar items.</summary>
 	public IdentificationService Identification { get; } = new();
 
+	/// <summary>Id of the run's character class; empty when no game is active.</summary>
+	public string ActiveCharacterClassId { get; private set; } = "";
+
+	/// <summary>
+	/// The run's character class, resolved from the catalog at game start. Null when no
+	/// game is active (e.g. running main.tscn directly), in which case the player keeps
+	/// its authored appearance and stats.
+	/// </summary>
+	public CharacterClass ActiveCharacterClass { get; private set; }
+
+	private CharacterCatalog _characterCatalog;
+
 	public enum LevelTravelDirection
 	{
 		Up = 1,
@@ -79,7 +91,7 @@ public partial class GameSession : Node
 		base._ExitTree();
 	}
 
-	public void StartNewGame(int slotId)
+	public void StartNewGame(int slotId, string characterClassId = null)
 	{
 		if (_isSceneTransitioning)
 		{
@@ -96,6 +108,13 @@ public partial class GameSession : Node
 		_saveAfterNextSpawn = true;
 		_lootRollsConsumed = 0;
 		Identification.Initialize(ActiveSeed);
+		ResolveCharacterClass(characterClassId);
+
+		// The hero knows their own supplies: class starting consumables are never disguised.
+		foreach (string typeId in ActiveCharacterClass?.PreIdentifiedTypeIds ?? Array.Empty<string>())
+		{
+			Identification.Identify(typeId);
+		}
 
 		string now = DateTime.UtcNow.ToString("O");
 		_activeSave = new SaveGame
@@ -104,6 +123,7 @@ public partial class GameSession : Node
 			RunId = Guid.NewGuid().ToString("N"),
 			CreatedAtUtc = now,
 			SavedAtUtc = now,
+			CharacterClassId = ActiveCharacterClassId,
 			Seed = ActiveSeed,
 			DungeonDepth = ActiveDungeonDepth,
 		};
@@ -138,6 +158,7 @@ public partial class GameSession : Node
 		_sessionStartedAtMsec = Time.GetTicksMsec();
 		_lootRollsConsumed = saveGame.LootRollsConsumed;
 		Identification.Initialize(ActiveSeed, saveGame.Identification?.IdentifiedTypeIds, BuildAssignmentMap(saveGame.Identification));
+		ResolveCharacterClass(saveGame.CharacterClassId);
 
 		GetTree().Paused = false;
 		_isSceneTransitioning = true;
@@ -349,6 +370,7 @@ public partial class GameSession : Node
 
 		saveGame.Version = SaveGame.CurrentVersion;
 		saveGame.SlotId = ActiveSlotId;
+		saveGame.CharacterClassId = ActiveCharacterClassId;
 		saveGame.SavedAtUtc = DateTime.UtcNow.ToString("O");
 		saveGame.Seed = ActiveSeed;
 		saveGame.DungeonDepth = ActiveDungeonDepth;
@@ -386,11 +408,34 @@ public partial class GameSession : Node
 		GetTree().ChangeSceneToFile(MenuScenePath);
 	}
 
+	/// <summary>
+	/// Resolves the run's class from the catalog. Unknown or empty ids (pre-class saves,
+	/// removed classes) fall back to the catalog's default so old slots keep loading.
+	/// </summary>
+	private void ResolveCharacterClass(string characterClassId)
+	{
+		_characterCatalog ??= CharacterCatalog.LoadDefault();
+		ActiveCharacterClass = _characterCatalog?.FindById(characterClassId);
+		if (ActiveCharacterClass == null)
+		{
+			if (!string.IsNullOrEmpty(characterClassId))
+			{
+				GD.PrintErr($"Unknown character class '{characterClassId}'; falling back to the default class.");
+			}
+
+			ActiveCharacterClass = _characterCatalog?.DefaultClass;
+		}
+
+		ActiveCharacterClassId = ActiveCharacterClass?.Id ?? SaveGame.DefaultCharacterClassId;
+	}
+
 	private void ClearSession()
 	{
 		ActiveSlotId = 0;
 		ActiveSeed = 42;
 		ActiveDungeonDepth = 1;
+		ActiveCharacterClassId = "";
+		ActiveCharacterClass = null;
 		PendingTravelDirection = null;
 		_activeSave = null;
 		_pendingLoadedSave = null;
@@ -759,9 +804,12 @@ public partial class GameSession : Node
 	{
 		Inventory inventory = player.Inventory;
 		player.ActionManager.ClearActions();
+		// Unequip (not just null out) so ItemUnequipped fires and the auto-equipped class
+		// starting gear reverses its stat modifiers and attached meshes before the saved
+		// inventory takes over.
 		foreach (EquipmentSlot slot in inventory.EquippedItems.Keys.ToArray())
 		{
-			inventory.EquippedItems[slot] = null;
+			inventory.Unequip(slot);
 		}
 
 		inventory.Items.Clear();

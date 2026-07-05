@@ -96,6 +96,7 @@ public static class SaveService
 			SlotId = slotId,
 			HasSave = true,
 			RunId = saveGame.RunId,
+			CharacterClassId = saveGame.CharacterClassId,
 			SavedAtUtc = saveGame.SavedAtUtc,
 			DungeonDepth = saveGame.DungeonDepth,
 			XpLevel = saveGame.Player?.Stats?.XpLevel ?? 1,

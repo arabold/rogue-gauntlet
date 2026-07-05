@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="CharacterClass" load_steps=11 format=3 uid="uid://cclassrogue0001"]
+
+[ext_resource type="Script" uid="uid://btgejekyq3ejc" path="res://scenes/player/classes/CharacterClass.cs" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://dmjw7n01w133k" path="res://assets/kaykit-adventurers/Rogue.glb" id="2_model"]
+[ext_resource type="Resource" uid="uid://cprofrogue00001" path="res://scenes/player/classes/stat_profile_rogue.tres" id="3_profile"]
+[ext_resource type="Script" uid="uid://s73gxicbccb2" path="res://scenes/player/InventoryItemSlot.cs" id="4_slot"]
+[ext_resource type="Resource" uid="uid://biricifur5j8u" path="res://scenes/items/weapons/crossbow_common.tres" id="5_crossbow"]
+[ext_resource type="Resource" uid="uid://cfjd6iimvn0lp" path="res://scenes/items/weapons/dagger_common.tres" id="6_dagger"]
+[ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion_small.tres" id="7_potion"]
+
+[sub_resource type="Resource" id="Slot_crossbow"]
+script = ExtResource("4_slot")
+Item = ExtResource("5_crossbow")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("4_slot")
+
+[sub_resource type="Resource" id="Slot_dagger"]
+script = ExtResource("4_slot")
+Item = ExtResource("6_dagger")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("4_slot")
+
+[sub_resource type="Resource" id="Slot_potion"]
+script = ExtResource("4_slot")
+Item = ExtResource("7_potion")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("4_slot")
+
+[resource]
+script = ExtResource("1_script")
+Id = "rogue"
+DisplayName = "Rogue"
+Description = "A quick-fingered shadow. The rogue picks enemies off with a crossbow and finishes them with a dagger - striking true far more often than luck allows."
+CharacterScene = ExtResource("2_model")
+StatProfile = ExtResource("3_profile")
+BaseStrength = 8.0
+BaseDexterity = 15.0
+BaseVitality = 9.0
+BaseIntelligence = 8.0
+StartingItems = Array[ExtResource("4_slot")]([SubResource("Slot_crossbow"), SubResource("Slot_dagger"), SubResource("Slot_potion")])
+PreIdentifiedTypeIds = PackedStringArray("potion.healing")
+PreviewAnimation = "Idle"
+AttachmentNodeNames = {
+0: "Knife",
+1: "2H_Crossbow",
+2: "Knife_Offhand",
+6: "Rogue_Cape"
+}
+metadata/_custom_type_script = ExtResource("1_script")

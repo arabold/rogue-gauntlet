@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://cbattleaxestart"]
+
+[ext_resource type="PackedScene" uid="uid://b3nqntuy7vgn3" path="res://scenes/items/weapons/battleaxe_common.tscn" id="1_c5hji"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_rmilr"]
+
+[resource]
+script = ExtResource("2_rmilr")
+Tier = 1
+Level = 0
+RequiredStrength = 8
+Accuracy = 1.0
+DamageMin = 2.0
+DamageMax = 7.0
+CritChance = 0.0
+IsTwoHanded = true
+AnimationId = "melee_attack"
+Delay = 0.0
+PerformDuration = 0.5
+CooldownDuration = 0.0
+ValidSlots = 256
+Rarity = 0
+Name = "Worn Battle Axe"
+Scene = ExtResource("1_c5hji")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_rmilr")
