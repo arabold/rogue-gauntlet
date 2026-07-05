@@ -82,7 +82,7 @@ public partial class Player : CharacterBody3D, IDamageable
 		newCharacter.Transform = oldCharacter.Transform;
 		int childIndex = oldCharacter.GetIndex();
 		pivot.RemoveChild(oldCharacter);
-		oldCharacter.Free();
+		oldCharacter.QueueFree();
 		pivot.AddChild(newCharacter);
 		pivot.MoveChild(newCharacter, childIndex);
 
