@@ -22,7 +22,7 @@ public static class ItemIdentity
 	/// </summary>
 	public static Color? ResolveTint(Item item)
 	{
-		if (item is IdentifiableItem identifiable && identifiable.HasIdentity)
+		if (item is IIdentifiable identifiable && identifiable.HasIdentity)
 		{
 			ItemAppearance appearance = Service?.GetAppearance(identifiable);
 			if (appearance != null)
@@ -40,11 +40,27 @@ public static class ItemIdentity
 	/// </summary>
 	public static string ResolveDisplayName(Item item)
 	{
-		string baseName = item is IdentifiableItem identifiable && Service != null
+		string baseName = item is IIdentifiable identifiable && Service != null
 			? Service.GetDisplayName(identifiable)
 			: item?.Name ?? "";
 
-		return item is EquipableItem equipable ? equipable.ComposeName(baseName) : baseName;
+		// Affix name fragments would leak rolled stats through an unidentified disguise.
+		if (item is EquipableItem equipable && IsIdentified(item))
+		{
+			return equipable.ComposeName(baseName);
+		}
+
+		return baseName;
+	}
+
+	/// <summary>
+	/// True for items with no hidden identity, or when identified; false only for an
+	/// unidentified <see cref="IIdentifiable"/>. Editor/tests without an active session
+	/// read as identified so nothing appears mysteriously disguised.
+	/// </summary>
+	public static bool IsIdentified(Item item)
+	{
+		return item is not IIdentifiable identifiable || Service == null || Service.IsIdentified(identifiable);
 	}
 
 	/// <summary>

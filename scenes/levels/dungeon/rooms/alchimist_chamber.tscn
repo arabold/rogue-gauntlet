@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://b0hb8ttsstdbc" path="res://scenes/levels/room.tscn" id="1_331yg"]
 [ext_resource type="PackedScene" uid="uid://dbns86sg2gnll" path="res://scenes/props/door.tscn" id="2_hbjkr"]
 [ext_resource type="PackedScene" uid="uid://cyhr68psc2ku" path="res://scenes/props/torch_mounted.tscn" id="3_2jny2"]
+[ext_resource type="PackedScene" path="res://scenes/props/chest_rare.tscn" id="4_chest"]
 [ext_resource type="Script" uid="uid://b1nxed0l83t2d" path="res://scenes/levels/DoorwayMarker.cs" id="doorway_marker"]
 
 [node name="AlchimistChamber" unique_id=388537236 node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap") instance=ExtResource("1_331yg")]
@@ -37,7 +38,10 @@ transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.77105, 2, 0)
 [node name="TorchMounted2" parent="." index="5" unique_id=1515418830 instance=ExtResource("3_2jny2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.77105, 2, -5.75586)
 
-[node name="DoorwaySouth" type="Node3D" parent="." index="6" unique_id=1562516057]
+[node name="ChestRare" parent="." index="6" unique_id=2004583720 instance=ExtResource("4_chest")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -2)
+
+[node name="DoorwaySouth" type="Node3D" parent="." index="7" unique_id=1562516057]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 6)
 script = ExtResource("doorway_marker")
 Directions = 4

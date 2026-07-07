@@ -75,7 +75,7 @@ public sealed class IdentificationService
 		}
 	}
 
-	public bool IsIdentified(IdentifiableItem item)
+	public bool IsIdentified(IIdentifiable item)
 	{
 		// Inert without a catalog: treat everything as identified so items read as
 		// themselves instead of as "mysterious …" with no disguise data behind it.
@@ -89,7 +89,7 @@ public sealed class IdentificationService
 	}
 
 	/// <summary>The disguise assigned to this item's type, or null if none/unknown.</summary>
-	public ItemAppearance GetAppearance(IdentifiableItem item)
+	public ItemAppearance GetAppearance(IIdentifiable item)
 	{
 		if (item == null || !item.HasIdentity)
 		{
@@ -102,7 +102,7 @@ public sealed class IdentificationService
 	}
 
 	/// <summary>True name when identified, otherwise the templated descriptor.</summary>
-	public string GetDisplayName(IdentifiableItem item)
+	public string GetDisplayName(IIdentifiable item)
 	{
 		if (item == null)
 		{
@@ -150,7 +150,8 @@ public sealed class IdentificationService
 		}
 
 		List<string> typeIds = category.Types
-			.Where(type => type != null && type.HasIdentity)
+			.OfType<IIdentifiable>()
+			.Where(type => type.HasIdentity)
 			.Select(type => type.TypeId)
 			.Distinct()
 			.ToList();

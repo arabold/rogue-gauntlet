@@ -1,0 +1,81 @@
+[gd_resource type="Resource" script_class="AppearancePool" load_steps=14 format=3]
+
+[ext_resource type="Script" uid="uid://cappearpool01" path="res://scenes/items/identity/AppearancePool.cs" id="1_pool"]
+[ext_resource type="Script" uid="uid://citemappear01" path="res://scenes/items/identity/ItemAppearance.cs" id="2_appr"]
+
+[sub_resource type="Resource" id="Appearance_zelgo"]
+script = ExtResource("2_appr")
+Descriptor = "ZELGO MER"
+TintColor = Color(0.82, 0.7, 0.48, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_juyed"]
+script = ExtResource("2_appr")
+Descriptor = "JUYED AWK YACC"
+TintColor = Color(0.75, 0.75, 0.72, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_nr9"]
+script = ExtResource("2_appr")
+Descriptor = "NR 9"
+TintColor = Color(0.92, 0.9, 0.82, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_xixaxa"]
+script = ExtResource("2_appr")
+Descriptor = "XIXAXA XOXAXA XUXAXA"
+TintColor = Color(0.62, 0.52, 0.72, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_pratyavayah"]
+script = ExtResource("2_appr")
+Descriptor = "PRATYAVAYAH"
+TintColor = Color(0.85, 0.55, 0.55, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_daiyen"]
+script = ExtResource("2_appr")
+Descriptor = "DAIYEN FOOELS"
+TintColor = Color(0.55, 0.65, 0.42, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_lepgex"]
+script = ExtResource("2_appr")
+Descriptor = "LEP GEX VEN ZEA"
+TintColor = Color(0.55, 0.68, 0.85, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_velox"]
+script = ExtResource("2_appr")
+Descriptor = "VELOX NEB"
+TintColor = Color(0.85, 0.72, 0.3, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_foobie"]
+script = ExtResource("2_appr")
+Descriptor = "FOOBIE BLETCH"
+TintColor = Color(0.35, 0.33, 0.32, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_temov"]
+script = ExtResource("2_appr")
+Descriptor = "TEMOV"
+TintColor = Color(0.72, 0.42, 0.25, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_garven"]
+script = ExtResource("2_appr")
+Descriptor = "GARVEN DEH"
+TintColor = Color(0.35, 0.62, 0.6, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_elbib"]
+script = ExtResource("2_appr")
+Descriptor = "ELBIB YLOH"
+TintColor = Color(0.9, 0.82, 0.55, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[resource]
+script = ExtResource("1_pool")
+Appearances = Array[ItemAppearance]([SubResource("Appearance_zelgo"), SubResource("Appearance_juyed"), SubResource("Appearance_nr9"), SubResource("Appearance_xixaxa"), SubResource("Appearance_pratyavayah"), SubResource("Appearance_daiyen"), SubResource("Appearance_lepgex"), SubResource("Appearance_velox"), SubResource("Appearance_foobie"), SubResource("Appearance_temov"), SubResource("Appearance_garven"), SubResource("Appearance_elbib")])
+metadata/_custom_type_script = ExtResource("1_pool")

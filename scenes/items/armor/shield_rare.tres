@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="Armor" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bd3ib2oodwh3g" path="res://assets/kaykit-dungeon-legacy/shield_rare.gltf.glb" id="1_shieldrare"]
+[ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="2_shieldrare"]
+
+[resource]
+script = ExtResource("2_shieldrare")
+Tier = 4
+Level = 0
+RequiredStrength = 16
+ArmorPoints = 8
+AccuracyModifier = 1.0
+SpeedModifier = 0.95
+ValidSlots = 512
+Rarity = 0
+Name = "Royal Shield"
+Scene = ExtResource("1_shieldrare")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_shieldrare")

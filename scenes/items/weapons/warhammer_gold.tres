@@ -5,12 +5,12 @@
 
 [resource]
 script = ExtResource("2_1upbk")
-Tier = 4
+Tier = 5
 Level = 0
-RequiredStrength = 18
+RequiredStrength = 22
 Accuracy = 1.0
-DamageMin = 9.0
-DamageMax = 15.0
+DamageMin = 15.0
+DamageMax = 27.0
 CritChance = 0.0
 IsTwoHanded = true
 AnimationId = "melee_attack"
@@ -19,7 +19,7 @@ PerformDuration = 0.5
 CooldownDuration = 0.0
 ValidSlots = 256
 Rarity = 0
-Name = "Warhammer"
+Name = "Gilded Warhammer"
 Scene = ExtResource("1_gfvt2")
 Quality = 1.0
 Value = 0

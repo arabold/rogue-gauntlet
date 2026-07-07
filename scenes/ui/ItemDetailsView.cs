@@ -35,7 +35,27 @@ public partial class ItemDetailsView : VBoxContainer
 			return;
 		}
 
+		// An unidentified equipable (e.g. an unworn ring) shows only its disguised name —
+		// rarity and rolled/intrinsic stats stay hidden until identified.
+		if (!ItemIdentity.IsIdentified(item))
+		{
+			AddLine("Unidentified", rarityColor);
+			return;
+		}
+
 		AddLine(equipable.Rarity.ToString(), rarityColor);
+
+		if (equipable is IdentifiableEquipableItem identifiable && identifiable.IntrinsicModifiers != null)
+		{
+			foreach (StatModifier modifier in identifiable.IntrinsicModifiers)
+			{
+				if (modifier != null)
+				{
+					AddLine(FormatModifier(modifier), Colors.White);
+				}
+			}
+		}
+
 		if (equipable.Affixes == null)
 		{
 			return;

@@ -2,6 +2,13 @@ using Godot;
 
 public partial class InventoryItemContextMenu : PopupPanel
 {
+	/// <summary>
+	/// Raised instead of consuming immediately when a targeted scroll's "Read" button is
+	/// pressed. <see cref="InventoryPanel"/> handles it by entering targeting mode; the
+	/// scroll is only consumed once a valid target is confirmed.
+	/// </summary>
+	[Signal] public delegate void TargetedUseRequestedEventHandler(InventoryItemSlot slot);
+
 	private Label _titleLabel;
 	private ItemDetailsView _details;
 	private Button _useButton;
@@ -50,6 +57,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 		// (and width) track the item rather than a fixed authored size.
 		CallDeferred(Window.MethodName.ResetSize);
 		_useButton.Visible = slot.Item is ConsumableItem;
+		_useButton.Text = slot.Item is Scroll ? "Read" : "Use";
 		_dropButton.Visible = true;
 
 		if (inventory.IsEquipped(slot))
@@ -68,6 +76,13 @@ public partial class InventoryItemContextMenu : PopupPanel
 
 	private void UseItem(Inventory inventory, InventoryItemSlot slot)
 	{
+		if (slot.Item is Scroll { RequiresTarget: true })
+		{
+			EmitSignalTargetedUseRequested(slot);
+			Hide();
+			return;
+		}
+
 		if (slot.Item is ConsumableItem)
 		{
 			inventory.Consume(slot);

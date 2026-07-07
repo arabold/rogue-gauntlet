@@ -5,6 +5,7 @@
 
 [resource]
 script = ExtResource("2_47uxn")
+Tier = 1
 Level = 0
 RequiredStrength = 10
 ArmorPoints = 3

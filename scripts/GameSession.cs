@@ -79,6 +79,11 @@ public partial class GameSession : Node
 			SignalBus.Instance,
 			signalBus => signalBus.ItemConsumed += OnItemConsumed,
 			signalBus => signalBus.ItemConsumed -= OnItemConsumed);
+
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			signalBus => signalBus.ItemEquipped += OnItemEquipped,
+			signalBus => signalBus.ItemEquipped -= OnItemEquipped);
 	}
 
 	public override void _ExitTree()
@@ -451,15 +456,25 @@ public partial class GameSession : Node
 		return Math.Max(0, (Time.GetTicksMsec() - _sessionStartedAtMsec) / 1000.0);
 	}
 
-	private void OnItemConsumed(Player player, ConsumableItem item)
+	private void OnItemConsumed(Player player, ConsumableItem item) => IdentifyItemType(item);
+
+	private void OnItemEquipped(Player player, EquipableItem item) => IdentifyItemType(item);
+
+	/// <summary>
+	/// Records discovery of an item's hidden type and notifies the UI. A safe no-op for
+	/// items with no hidden identity or a type already discovered. Shared by consuming
+	/// a potion/scroll, wearing jewelry, and a future scroll of identify.
+	/// </summary>
+	public bool IdentifyItemType(Item item)
 	{
-		if (item is IdentifiableItem identifiable
-			&& identifiable.HasIdentity
-			&& Identification.Identify(identifiable.TypeId))
+		if (item is IIdentifiable identifiable && identifiable.HasIdentity && Identification.Identify(identifiable.TypeId))
 		{
 			GD.Print($"Identified {identifiable.TypeId} as {identifiable.TrueName}.");
 			SignalBus.EmitItemIdentified(identifiable.TypeId);
+			return true;
 		}
+
+		return false;
 	}
 
 	private IdentificationSaveData CaptureIdentification()

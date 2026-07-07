@@ -36,19 +36,21 @@ public class IdentificationServiceCatalogTest
 		return catalog.Categories
 			.Where(category => category?.Types != null)
 			.SelectMany(category => category.Types)
-			.Where(type => type != null && type.HasIdentity)
+			.OfType<IIdentifiable>()
+			.Where(type => type.HasIdentity)
 			.Select(type => type.TypeId)
 			.Distinct()
 			.ToList();
 	}
 
-	private static IdentifiableItem FirstIdentifiableItem()
+	private static IIdentifiable FirstIdentifiableItem()
 	{
 		IdentityCatalog catalog = LoadCatalog();
 		return catalog.Categories
 			.Where(category => category?.Types != null)
 			.SelectMany(category => category.Types)
-			.First(type => type != null && type.HasIdentity);
+			.OfType<IIdentifiable>()
+			.First(type => type.HasIdentity);
 	}
 
 	[TestCase]
@@ -98,7 +100,7 @@ public class IdentificationServiceCatalogTest
 	[TestCase]
 	public void ItemReadsAsDisguisedUntilIdentified()
 	{
-		IdentifiableItem item = FirstIdentifiableItem();
+		IIdentifiable item = FirstIdentifiableItem();
 		var service = new IdentificationService();
 		service.Initialize(42);
 

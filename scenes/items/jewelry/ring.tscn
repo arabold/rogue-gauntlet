@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ring"]
+albedo_color = Color(0.85, 0.68, 0.32, 1)
+metallic = 0.6
+roughness = 0.35
+
+[sub_resource type="TorusMesh" id="TorusMesh_ring"]
+material = SubResource("StandardMaterial3D_ring")
+inner_radius = 0.09
+outer_radius = 0.14
+rings = 24
+ring_segments = 16
+
+[node name="Ring" type="Node3D"]
+
+[node name="RingMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.34202, -0.939693, 0, 0.939693, 0.34202, 0, 0, 0)
+layers = 32
+mesh = SubResource("TorusMesh_ring")

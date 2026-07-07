@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="Scroll" load_steps=6 format=3]
+
+[ext_resource type="Script" uid="uid://cstatmodbuff0001" path="res://scenes/buffs/StatModifierBuff.cs" id="1_buff"]
+[ext_resource type="Script" uid="uid://cstatmod0000001" path="res://scenes/player/resources/StatModifier.cs" id="2_mod"]
+[ext_resource type="PackedScene" uid="uid://fc5k4daomt7i" path="res://assets/kaykit-dungeon-legacy/bookA.gltf.glb" id="3_scene"]
+[ext_resource type="Script" uid="uid://tl6phiqa232t" path="res://scenes/items/scrolls/Scroll.cs" id="4_scroll"]
+
+[sub_resource type="Resource" id="Resource_protectionmod"]
+script = ExtResource("2_mod")
+Stat = 10
+Op = 0
+Value = 8.0
+metadata/_custom_type_script = ExtResource("2_mod")
+
+[sub_resource type="Resource" id="Resource_protection"]
+script = ExtResource("1_buff")
+Name = "Protection"
+Duration = 60.0
+Modifiers = [SubResource("Resource_protectionmod")]
+metadata/_custom_type_script = ExtResource("1_buff")
+
+[resource]
+script = ExtResource("4_scroll")
+Buff = SubResource("Resource_protection")
+AnimationId = "drink_potion"
+Name = "Scroll of Protection"
+TypeId = "scroll.protection"
+IdentityCategory = "scroll"
+TrueName = "Scroll of Protection"
+UnidentifiedNameTemplate = "scroll labeled {descriptor}"
+Scene = ExtResource("3_scene")
+Value = 110
+IsStackable = true
+metadata/_custom_type_script = ExtResource("4_scroll")

@@ -26,11 +26,13 @@ public partial class Affix : Resource
 	[Export] public float Weight { get; set; } = 1f;
 	/// <summary>Lowest item rarity at which this affix can appear.</summary>
 	[Export] public EquipableItemRarity MinRarity { get; set; } = EquipableItemRarity.Common;
+	/// <summary>Lowest base item <see cref="EquipableItem.Tier"/> this affix can roll on. 0 means any tier.</summary>
+	[Export] public int MinTier { get; set; } = 0;
 
-	/// <summary>True if this affix is eligible for an item of the given slots and rarity.</summary>
-	public bool CanRollOn(ValidSlots slots, EquipableItemRarity rarity)
+	/// <summary>True if this affix is eligible for an item of the given slots, rarity, and tier.</summary>
+	public bool CanRollOn(ValidSlots slots, EquipableItemRarity rarity, int tier)
 	{
-		if (rarity < MinRarity)
+		if (rarity < MinRarity || tier < MinTier)
 		{
 			return false;
 		}

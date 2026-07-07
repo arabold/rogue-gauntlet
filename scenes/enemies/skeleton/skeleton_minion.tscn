@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_u7kdf"]
 [ext_resource type="PackedScene" uid="uid://dx6rvie14m5bg" path="res://assets/kaykit-skeletons/Skeleton_Minion.glb" id="2_lb3ug"]
 [ext_resource type="PackedScene" uid="uid://poi1cfpu8w0h" path="res://assets/kaykit-skeletons/Skeleton_Blade.gltf" id="3_7afn0"]
-[ext_resource type="Resource" uid="uid://clootminion001" path="res://scenes/items/loot/loot_skeleton_minion.tres" id="4_loot"]
+[ext_resource type="Resource" uid="uid://clootminion001" path="res://scenes/items/loot/loot_enemy_common.tres" id="4_loot"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_behavior.tres" id="7_profile"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rfhfv"]
@@ -298,6 +298,7 @@ anim_player = NodePath("../../Pivot/Skeleton_Minion/AnimationPlayer")
 
 [node name="LootTableComponent" parent="." index="3"]
 Table = ExtResource("4_loot")
+DropChance = 0.55
 
 [node name="HealthComponent" parent="." index="4"]
 MaxHealth = 8.0

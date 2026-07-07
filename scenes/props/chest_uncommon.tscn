@@ -1,0 +1,36 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" uid="uid://nft3v52nfsps" path="res://scenes/props/Chest.cs" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://cmx8e4ny0ud4n" path="res://assets/kaykit-dungeon-legacy/chest_uncommon.gltf.glb" id="2_body"]
+[ext_resource type="PackedScene" uid="uid://da6xi3lpkvxun" path="res://assets/kaykit-dungeon-legacy/chestTop_uncommon.gltf.glb" id="3_lid"]
+[ext_resource type="PackedScene" uid="uid://dekj8iq2d1qp5" path="res://scenes/components/interactive_component.tscn" id="4_interactive"]
+[ext_resource type="PackedScene" uid="uid://dud0hid1mwmdw" path="res://scenes/components/loot_table_component.tscn" id="5_loot_comp"]
+[ext_resource type="Resource" path="res://scenes/items/loot/loot_chest_uncommon.tres" id="6_loot_table"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_body"]
+size = Vector3(1.84, 0.81, 1.1)
+
+[node name="Chest" type="Node3D" groups=["prop"]]
+script = ExtResource("1_script")
+
+[node name="chest" parent="." instance=ExtResource("2_body")]
+layers = 16
+
+[node name="chest_lid" parent="chest" instance=ExtResource("3_lid")]
+layers = 16
+
+[node name="StaticBody3D" type="StaticBody3D" parent="chest"]
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="chest/StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.405, 0)
+shape = SubResource("BoxShape3D_body")
+
+[node name="InteractiveComponent" parent="." instance=ExtResource("4_interactive")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="LootTableComponent" parent="." instance=ExtResource("5_loot_comp")]
+Table = ExtResource("6_loot_table")
+DropCountMin = 2
+DropCountMax = 3

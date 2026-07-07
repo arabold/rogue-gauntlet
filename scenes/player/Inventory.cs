@@ -146,7 +146,7 @@ public partial class Inventory : Resource
 		{
 			// Try to find an empty slot to equip the item
 			EquipmentSlot equipSlot = (EquipmentSlot)(validSlots & -validSlots); // Get lowest set bit as default
-			for (int i = 1; i <= 32; i <<= 1)
+			for (int i = 1; i <= (int)EquipmentSlot.Arrows; i <<= 1)
 			{
 				if ((validSlots & i) != 0 && EquippedItems[(EquipmentSlot)i] == null)
 				{

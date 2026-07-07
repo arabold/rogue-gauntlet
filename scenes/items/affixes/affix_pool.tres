@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="AffixPool" load_steps=35 format=3 uid="uid://daffixpoolres01"]
+[gd_resource type="Resource" script_class="AffixPool" load_steps=82 format=3 uid="uid://daffixpoolres01"]
 
 [ext_resource type="Script" uid="uid://caffixpool000001" path="res://scenes/items/affixes/AffixPool.cs" id="1_pool"]
 [ext_resource type="Script" uid="uid://caffix000000001" path="res://scenes/items/affixes/Affix.cs" id="2_affix"]
@@ -114,6 +114,7 @@ Modifiers = [SubResource("R_savage")]
 AllowedSlots = 256
 Weight = 4.0
 MinRarity = 2
+MinTier = 2
 metadata/_custom_type_script = ExtResource("2_affix")
 
 [sub_resource type="Resource" id="A_sturdy"]
@@ -174,6 +175,445 @@ Modifiers = [SubResource("R_ward")]
 AllowedSlots = 0
 Weight = 5.0
 MinRarity = 1
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="R_precise"]
+script = ExtResource("3_range")
+Stat = 6
+Op = 0
+MinValue = 0.05
+MaxValue = 0.15
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_swift"]
+script = ExtResource("3_range")
+Stat = 5
+Op = 1
+MinValue = 0.05
+MaxValue = 0.1
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_arcane"]
+script = ExtResource("3_range")
+Stat = 3
+Op = 0
+MinValue = 2.0
+MaxValue = 6.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_brutal_min"]
+script = ExtResource("3_range")
+Stat = 7
+Op = 0
+MinValue = 2.0
+MaxValue = 5.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_brutal_max"]
+script = ExtResource("3_range")
+Stat = 8
+Op = 0
+MinValue = 3.0
+MaxValue = 7.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_deadly"]
+script = ExtResource("3_range")
+Stat = 9
+Op = 0
+MinValue = 0.05
+MaxValue = 0.12
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_merciless"]
+script = ExtResource("3_range")
+Stat = 8
+Op = 1
+MinValue = 0.25
+MaxValue = 0.5
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_nimble"]
+script = ExtResource("3_range")
+Stat = 11
+Op = 0
+MinValue = 1.0
+MaxValue = 4.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_stalwart"]
+script = ExtResource("3_range")
+Stat = 4
+Op = 0
+MinValue = 5.0
+MaxValue = 15.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_fortified"]
+script = ExtResource("3_range")
+Stat = 10
+Op = 0
+MinValue = 3.0
+MaxValue = 8.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_impenetrable"]
+script = ExtResource("3_range")
+Stat = 10
+Op = 1
+MinValue = 0.25
+MaxValue = 0.5
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_owl"]
+script = ExtResource("3_range")
+Stat = 3
+Op = 0
+MinValue = 2.0
+MaxValue = 6.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_wind"]
+script = ExtResource("3_range")
+Stat = 11
+Op = 0
+MinValue = 2.0
+MaxValue = 6.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_vitality"]
+script = ExtResource("3_range")
+Stat = 4
+Op = 0
+MinValue = 10.0
+MaxValue = 25.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_precision"]
+script = ExtResource("3_range")
+Stat = 6
+Op = 1
+MinValue = 0.05
+MaxValue = 0.15
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_titan"]
+script = ExtResource("3_range")
+Stat = 0
+Op = 0
+MinValue = 4.0
+MaxValue = 9.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_assassin_dex"]
+script = ExtResource("3_range")
+Stat = 1
+Op = 0
+MinValue = 3.0
+MaxValue = 7.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_assassin_crit"]
+script = ExtResource("3_range")
+Stat = 9
+Op = 0
+MinValue = 0.03
+MaxValue = 0.06
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_fortress_armor"]
+script = ExtResource("3_range")
+Stat = 10
+Op = 0
+MinValue = 4.0
+MaxValue = 10.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_fortress_hp"]
+script = ExtResource("3_range")
+Stat = 4
+Op = 0
+MinValue = 5.0
+MaxValue = 15.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_alacrity"]
+script = ExtResource("3_range")
+Stat = 5
+Op = 1
+MinValue = 0.1
+MaxValue = 0.2
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_slaughter_min"]
+script = ExtResource("3_range")
+Stat = 7
+Op = 1
+MinValue = 0.1
+MaxValue = 0.25
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_slaughter_max"]
+script = ExtResource("3_range")
+Stat = 8
+Op = 1
+MinValue = 0.1
+MaxValue = 0.25
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_colossus_str"]
+script = ExtResource("3_range")
+Stat = 0
+Op = 0
+MinValue = 3.0
+MaxValue = 7.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_colossus_vit"]
+script = ExtResource("3_range")
+Stat = 2
+Op = 0
+MinValue = 3.0
+MaxValue = 7.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_juggernaut"]
+script = ExtResource("3_range")
+Stat = 4
+Op = 1
+MinValue = 0.1
+MaxValue = 0.2
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="A_precise"]
+script = ExtResource("2_affix")
+NameFragment = "Precise"
+Kind = 0
+Modifiers = [SubResource("R_precise")]
+AllowedSlots = 256
+Weight = 8.0
+MinRarity = 0
+MinTier = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_swift"]
+script = ExtResource("2_affix")
+NameFragment = "Swift"
+Kind = 0
+Modifiers = [SubResource("R_swift")]
+AllowedSlots = 256
+Weight = 5.0
+MinRarity = 1
+MinTier = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_arcane"]
+script = ExtResource("2_affix")
+NameFragment = "Arcane"
+Kind = 0
+Modifiers = [SubResource("R_arcane")]
+AllowedSlots = 256
+Weight = 5.0
+MinRarity = 1
+MinTier = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_brutal"]
+script = ExtResource("2_affix")
+NameFragment = "Brutal"
+Kind = 0
+Modifiers = [SubResource("R_brutal_min"), SubResource("R_brutal_max")]
+AllowedSlots = 256
+Weight = 4.0
+MinRarity = 2
+MinTier = 3
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_deadly"]
+script = ExtResource("2_affix")
+NameFragment = "Deadly"
+Kind = 0
+Modifiers = [SubResource("R_deadly")]
+AllowedSlots = 256
+Weight = 4.0
+MinRarity = 2
+MinTier = 3
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_merciless"]
+script = ExtResource("2_affix")
+NameFragment = "Merciless"
+Kind = 0
+Modifiers = [SubResource("R_merciless")]
+AllowedSlots = 256
+Weight = 2.0
+MinRarity = 3
+MinTier = 4
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_nimble"]
+script = ExtResource("2_affix")
+NameFragment = "Nimble"
+Kind = 0
+Modifiers = [SubResource("R_nimble")]
+AllowedSlots = 543
+Weight = 8.0
+MinRarity = 0
+MinTier = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_stalwart"]
+script = ExtResource("2_affix")
+NameFragment = "Stalwart"
+Kind = 0
+Modifiers = [SubResource("R_stalwart")]
+AllowedSlots = 543
+Weight = 6.0
+MinRarity = 1
+MinTier = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_fortified"]
+script = ExtResource("2_affix")
+NameFragment = "Fortified"
+Kind = 0
+Modifiers = [SubResource("R_fortified")]
+AllowedSlots = 543
+Weight = 4.0
+MinRarity = 2
+MinTier = 3
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_impenetrable"]
+script = ExtResource("2_affix")
+NameFragment = "Impenetrable"
+Kind = 0
+Modifiers = [SubResource("R_impenetrable")]
+AllowedSlots = 543
+Weight = 2.0
+MinRarity = 3
+MinTier = 4
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_owl"]
+script = ExtResource("2_affix")
+NameFragment = "of the Owl"
+Kind = 1
+Modifiers = [SubResource("R_owl")]
+AllowedSlots = 0
+Weight = 8.0
+MinRarity = 0
+MinTier = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_wind"]
+script = ExtResource("2_affix")
+NameFragment = "of the Wind"
+Kind = 1
+Modifiers = [SubResource("R_wind")]
+AllowedSlots = 0
+Weight = 5.0
+MinRarity = 1
+MinTier = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_vitality"]
+script = ExtResource("2_affix")
+NameFragment = "of Vitality"
+Kind = 1
+Modifiers = [SubResource("R_vitality")]
+AllowedSlots = 0
+Weight = 5.0
+MinRarity = 1
+MinTier = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_precision"]
+script = ExtResource("2_affix")
+NameFragment = "of Precision"
+Kind = 1
+Modifiers = [SubResource("R_precision")]
+AllowedSlots = 0
+Weight = 5.0
+MinRarity = 1
+MinTier = 0
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_titan"]
+script = ExtResource("2_affix")
+NameFragment = "of the Titan"
+Kind = 1
+Modifiers = [SubResource("R_titan")]
+AllowedSlots = 0
+Weight = 3.0
+MinRarity = 2
+MinTier = 3
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_assassin"]
+script = ExtResource("2_affix")
+NameFragment = "of the Assassin"
+Kind = 1
+Modifiers = [SubResource("R_assassin_dex"), SubResource("R_assassin_crit")]
+AllowedSlots = 0
+Weight = 3.0
+MinRarity = 2
+MinTier = 3
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_fortress"]
+script = ExtResource("2_affix")
+NameFragment = "of the Fortress"
+Kind = 1
+Modifiers = [SubResource("R_fortress_armor"), SubResource("R_fortress_hp")]
+AllowedSlots = 543
+Weight = 3.0
+MinRarity = 2
+MinTier = 3
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_alacrity"]
+script = ExtResource("2_affix")
+NameFragment = "of Alacrity"
+Kind = 1
+Modifiers = [SubResource("R_alacrity")]
+AllowedSlots = 0
+Weight = 3.0
+MinRarity = 2
+MinTier = 3
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_slaughter"]
+script = ExtResource("2_affix")
+NameFragment = "of Slaughter"
+Kind = 1
+Modifiers = [SubResource("R_slaughter_min"), SubResource("R_slaughter_max")]
+AllowedSlots = 256
+Weight = 2.0
+MinRarity = 3
+MinTier = 4
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_colossus"]
+script = ExtResource("2_affix")
+NameFragment = "of the Colossus"
+Kind = 1
+Modifiers = [SubResource("R_colossus_str"), SubResource("R_colossus_vit")]
+AllowedSlots = 0
+Weight = 2.0
+MinRarity = 3
+MinTier = 4
+metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="A_juggernaut"]
+script = ExtResource("2_affix")
+NameFragment = "of the Juggernaut"
+Kind = 1
+Modifiers = [SubResource("R_juggernaut")]
+AllowedSlots = 0
+Weight = 2.0
+MinRarity = 3
+MinTier = 4
 metadata/_custom_type_script = ExtResource("2_affix")
 
 [sub_resource type="Resource" id="RC_common"]
@@ -248,7 +688,7 @@ metadata/_custom_type_script = ExtResource("5_weight")
 
 [resource]
 script = ExtResource("1_pool")
-Affixes = [SubResource("A_vicious"), SubResource("A_keen"), SubResource("A_savage"), SubResource("A_sturdy"), SubResource("A_ox"), SubResource("A_fox"), SubResource("A_bear"), SubResource("A_haste"), SubResource("A_ward")]
+Affixes = [SubResource("A_vicious"), SubResource("A_keen"), SubResource("A_savage"), SubResource("A_sturdy"), SubResource("A_ox"), SubResource("A_fox"), SubResource("A_bear"), SubResource("A_haste"), SubResource("A_ward"), SubResource("A_precise"), SubResource("A_swift"), SubResource("A_arcane"), SubResource("A_brutal"), SubResource("A_deadly"), SubResource("A_merciless"), SubResource("A_nimble"), SubResource("A_stalwart"), SubResource("A_fortified"), SubResource("A_impenetrable"), SubResource("A_owl"), SubResource("A_wind"), SubResource("A_vitality"), SubResource("A_precision"), SubResource("A_titan"), SubResource("A_assassin"), SubResource("A_fortress"), SubResource("A_alacrity"), SubResource("A_slaughter"), SubResource("A_colossus"), SubResource("A_juggernaut")]
 RollCounts = [SubResource("RC_common"), SubResource("RC_unc"), SubResource("RC_rare"), SubResource("RC_leg"), SubResource("RC_uniq")]
 RarityWeights = [SubResource("RW_common"), SubResource("RW_unc"), SubResource("RW_rare"), SubResource("RW_leg"), SubResource("RW_uniq")]
 metadata/_custom_type_script = ExtResource("1_pool")

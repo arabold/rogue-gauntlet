@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://bc4es25jpb62o"]
 
-[ext_resource type="PackedScene" uid="uid://bcaymd3eo2cxa" path="res://scenes/items/weapons/axe_old.tscn" id="1_w1nru"]
+[ext_resource type="PackedScene" uid="uid://l0ojnwtgehmw" path="res://scenes/items/weapons/axe_common.tscn" id="1_w1nru"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_nvcxl"]
 
 [resource]

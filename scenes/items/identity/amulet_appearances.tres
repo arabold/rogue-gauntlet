@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="AppearancePool" load_steps=7 format=3]
+
+[ext_resource type="Script" uid="uid://cappearpool01" path="res://scenes/items/identity/AppearancePool.cs" id="1_pool"]
+[ext_resource type="Script" uid="uid://citemappear01" path="res://scenes/items/identity/ItemAppearance.cs" id="2_appr"]
+
+[sub_resource type="Resource" id="Appearance_tarnished"]
+script = ExtResource("2_appr")
+Descriptor = "tarnished"
+TintColor = Color(0.55, 0.45, 0.32, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_gleaming"]
+script = ExtResource("2_appr")
+Descriptor = "gleaming"
+TintColor = Color(0.85, 0.88, 0.92, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_bone"]
+script = ExtResource("2_appr")
+Descriptor = "carved bone"
+TintColor = Color(0.9, 0.86, 0.72, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_coral"]
+script = ExtResource("2_appr")
+Descriptor = "coral"
+TintColor = Color(0.9, 0.45, 0.4, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_leaden"]
+script = ExtResource("2_appr")
+Descriptor = "leaden"
+TintColor = Color(0.4, 0.42, 0.48, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[resource]
+script = ExtResource("1_pool")
+Appearances = Array[ItemAppearance]([SubResource("Appearance_tarnished"), SubResource("Appearance_gleaming"), SubResource("Appearance_bone"), SubResource("Appearance_coral"), SubResource("Appearance_leaden")])
+metadata/_custom_type_script = ExtResource("1_pool")

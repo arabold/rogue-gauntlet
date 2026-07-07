@@ -11,7 +11,7 @@ using Godot;
 /// shown as itself (e.g. food, or a basic potion that needs no disguise).
 /// </summary>
 [GlobalClass]
-public partial class IdentifiableItem : BuffedItem
+public partial class IdentifiableItem : BuffedItem, IIdentifiable
 {
 	/// <summary>Stable identity key, e.g. "potion.healing". Independent of file path.</summary>
 	[Export] public string TypeId { get; protected set => SetValue(ref field, value); } = "";

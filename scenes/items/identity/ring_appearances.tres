@@ -1,0 +1,81 @@
+[gd_resource type="Resource" script_class="AppearancePool" load_steps=14 format=3]
+
+[ext_resource type="Script" uid="uid://cappearpool01" path="res://scenes/items/identity/AppearancePool.cs" id="1_pool"]
+[ext_resource type="Script" uid="uid://citemappear01" path="res://scenes/items/identity/ItemAppearance.cs" id="2_appr"]
+
+[sub_resource type="Resource" id="Appearance_jade"]
+script = ExtResource("2_appr")
+Descriptor = "jade"
+TintColor = Color(0.35, 0.65, 0.4, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_ruby"]
+script = ExtResource("2_appr")
+Descriptor = "ruby"
+TintColor = Color(0.8, 0.15, 0.2, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_sapphire"]
+script = ExtResource("2_appr")
+Descriptor = "sapphire"
+TintColor = Color(0.18, 0.3, 0.8, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_obsidian"]
+script = ExtResource("2_appr")
+Descriptor = "obsidian"
+TintColor = Color(0.15, 0.13, 0.16, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_pearl"]
+script = ExtResource("2_appr")
+Descriptor = "pearl"
+TintColor = Color(0.92, 0.9, 0.88, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_topaz"]
+script = ExtResource("2_appr")
+Descriptor = "topaz"
+TintColor = Color(0.95, 0.7, 0.2, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_amethyst"]
+script = ExtResource("2_appr")
+Descriptor = "amethyst"
+TintColor = Color(0.55, 0.3, 0.75, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_emerald"]
+script = ExtResource("2_appr")
+Descriptor = "emerald"
+TintColor = Color(0.1, 0.6, 0.35, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_garnet"]
+script = ExtResource("2_appr")
+Descriptor = "garnet"
+TintColor = Color(0.6, 0.15, 0.25, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_opal"]
+script = ExtResource("2_appr")
+Descriptor = "opal"
+TintColor = Color(0.8, 0.85, 0.9, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_moonstone"]
+script = ExtResource("2_appr")
+Descriptor = "moonstone"
+TintColor = Color(0.75, 0.78, 0.9, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_onyx"]
+script = ExtResource("2_appr")
+Descriptor = "onyx"
+TintColor = Color(0.25, 0.25, 0.3, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[resource]
+script = ExtResource("1_pool")
+Appearances = Array[ItemAppearance]([SubResource("Appearance_jade"), SubResource("Appearance_ruby"), SubResource("Appearance_sapphire"), SubResource("Appearance_obsidian"), SubResource("Appearance_pearl"), SubResource("Appearance_topaz"), SubResource("Appearance_amethyst"), SubResource("Appearance_emerald"), SubResource("Appearance_garnet"), SubResource("Appearance_opal"), SubResource("Appearance_moonstone"), SubResource("Appearance_onyx")])
+metadata/_custom_type_script = ExtResource("1_pool")

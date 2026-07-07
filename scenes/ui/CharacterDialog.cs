@@ -14,13 +14,14 @@ public partial class CharacterDialog : PanelContainer
 		CloseButton.Pressed += OnCloseButtonPressed;
 
 		InventoryPanel = GetNode<InventoryPanel>("%InventoryPanel");
+		InventoryPanel.TargetingBanner = GetNode<Label>("%TargetingBanner");
 		EquipmentPanel = GetNode<EquipmentPanel>("%EquipmentPanel");
 		QuickStatsPanel = GetNode<QuickStatsPanel>("%QuickStatsPanel");
 	}
 
 	public void Open(Player player)
 	{
-		InventoryPanel.Initialize(player.Inventory);
+		InventoryPanel.Initialize(player.Inventory, player);
 		EquipmentPanel.Initialize(player.Inventory);
 		QuickStatsPanel.Initialize(player.Stats);
 

@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://d2i270kay8tx0" path="res://assets/kaykit-dungeon-legacy/axeDouble_uncommon.gltf.glb" id="1_axedblunc"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_axedblunc"]
+
+[resource]
+script = ExtResource("2_axedblunc")
+Tier = 4
+Level = 0
+RequiredStrength = 19
+Accuracy = 1.0
+DamageMin = 12.0
+DamageMax = 22.0
+CritChance = 0.0
+IsTwoHanded = true
+AnimationId = "melee_attack"
+Delay = 0.0
+PerformDuration = 0.5
+CooldownDuration = 0.0
+ValidSlots = 256
+Rarity = 0
+Name = "Great Axe"
+Scene = ExtResource("1_axedblunc")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_axedblunc")

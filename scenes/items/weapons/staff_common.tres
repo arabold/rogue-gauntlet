@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("2_qrt1b")
-Tier = 2
+Tier = 1
 Level = 0
 RequiredStrength = 12
 Accuracy = 1.0

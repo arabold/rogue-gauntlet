@@ -46,6 +46,14 @@ public partial class EquipableItem : BuffedItem
 	public EquipableItemRarity Rarity { get; set => SetValue(ref field, value); } = EquipableItemRarity.Common;
 
 	/// <summary>
+	/// The base item's ladder rung (1-5), independent of rolled <see cref="Rarity"/>. Maps to
+	/// a nominal dungeon depth band (see docs/stats-and-itemization.md) and gates which
+	/// <see cref="Affix"/>es can roll on this item via <see cref="Affix.MinTier"/>. A Tier-4
+	/// base can still roll Common rarity; tier and rarity are independent axes.
+	/// </summary>
+	[Export] public int Tier { get; protected set => SetValue(ref field, value); } = 1;
+
+	/// <summary>
 	/// Instance-level affixes rolled onto this item when it dropped. Empty on shared
 	/// definitions; populated on the duplicated instance produced by <see cref="LootRoller"/>.
 	/// </summary>

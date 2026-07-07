@@ -5,6 +5,7 @@
 
 [resource]
 script = ExtResource("2_2pge5")
+Tier = 1
 Level = 0
 RequiredStrength = 9
 ArmorPoints = 2
