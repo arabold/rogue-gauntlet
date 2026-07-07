@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ProceduralRoomBuilder" format=3 uid="uid://dv7q2m8xk4rjn"]
+
+[ext_resource type="Script" uid="uid://byy8a80kgj2ar" path="res://scenes/levels/generators/ProceduralRoomBuilder.cs" id="1_bldr"]
+[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_flr"]
+[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_wll"]
+[ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_dcr"]
+[ext_resource type="PackedScene" uid="uid://dbns86sg2gnll" path="res://scenes/props/door.tscn" id="5_door"]
+
+[resource]
+script = ExtResource("1_bldr")
+FloorLibrary = ExtResource("2_flr")
+WallLibrary = ExtResource("3_wll")
+DecorationLibrary = ExtResource("4_dcr")
+DoorScene = ExtResource("5_door")
+metadata/_custom_type_script = ExtResource("1_bldr")

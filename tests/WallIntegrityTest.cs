@@ -7,11 +7,14 @@ using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
-/// Generates many random dungeons and asserts every logical tile edge between walkable
-/// space (Room/Corridor/Connector) and void (Empty/Wall/out-of-bounds) is fully sealed
-/// by wall geometry. This is a generation-correctness contract: a single missing wall
-/// segment is a see-through gap the player can exploit, and the failure is layout- and
-/// seed-dependent, so only a sweep across seeds reliably catches it.
+/// Generates many random dungeons (for every layout strategy) and asserts every logical
+/// tile edge that must be sealed is fully covered by wall geometry: edges between
+/// walkable space (Room/Corridor/Connector) and void (Empty/Wall/out-of-bounds), plus
+/// interior room/corridor contacts not sanctioned by a connector
+/// (<see cref="MapData.RequiresInteriorWall"/>). This is a generation-correctness
+/// contract: a single missing wall segment is a see-through gap the player can exploit,
+/// and the failure is layout- and seed-dependent, so only a sweep across seeds reliably
+/// catches it.
 ///
 /// Coverage is measured from the actual wall <em>mesh</em> footprints (each cell's mesh
 /// AABB rotated by its orientation), not physics colliders — wall colliders are narrower
@@ -21,23 +24,47 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public class WallIntegrityTest
 {
-	private const int SeedCount = 60;
+	// 120, not the 60 the suite started with: rotated authored-room placements only
+	// became reachable once every room validated at all 4 orientations, and those new
+	// configurations need sweep coverage. Seed 27 (the authored-doorway-sealed-against-
+	// frame-cells regression this suite caught) stays inside the swept range.
+	private const int SeedCount = 120;
 	private const int TileSize = 4;
 	private const float Eps = 0.05f;
 
 	[TestCase]
-	public async Task GeneratedDungeonsHaveNoWallGaps()
+	public async Task SimpleLayoutDungeonsHaveNoWallGaps()
+	{
+		await AssertNoWallGaps(new SimpleRoomLayout { Retries = 3 });
+	}
+
+	[TestCase]
+	public async Task PackedLayoutDungeonsHaveNoWallGaps()
+	{
+		await AssertNoWallGaps(new PackedRoomLayout());
+	}
+
+	[TestCase]
+	public async Task ProceduralRoomDungeonsHaveNoWallGaps()
+	{
+		// Procedural rooms author no walls at all, so every one of their edges must be
+		// sealed by generated walls — the hardest stress on the wall pass.
+		await AssertNoWallGaps(new PackedRoomLayout(), TestFactories.AllProcedural());
+	}
+
+	[TestCase]
+	public async Task ProceduralRoomsWithDoorsHaveNoWallGaps()
+	{
+		// Explicit doorways make every OTHER edge fall back to a plain Room tile, which
+		// must still be sealed exactly like a void-facing edge -- the doorway/door path's
+		// stress on the wall pass.
+		await AssertNoWallGaps(new PackedRoomLayout(), TestFactories.AllProceduralWithDoors());
+	}
+
+	private static async Task AssertNoWallGaps(RoomLayoutStrategy layout, RoomFactory factory = null)
 	{
 		var wallLibrary = GD.Load<MeshLibrary>("res://scenes/levels/dungeon/WallsMeshLibrary.tres");
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/levels/generators/map_generator.tscn", true);
-		await runner.SimulateFrames(2); // let MapGenerator._Ready cache the child GridMaps
-
-		var mapGenerator = (MapGenerator)runner.Scene();
-		mapGenerator.RoomLayout = new SimpleRoomLayout { Retries = 3 };
-		mapGenerator.CorridorConnector = new AStarCorridorConnector();
-		mapGenerator.RoomFactory = GD.Load<RoomFactory>("res://scenes/levels/dungeon/dungeon_room_factory.tres");
-		mapGenerator.MobFactory = GD.Load<MobFactory>("res://scenes/levels/dungeon/dungeon_mob_factory.tres");
-		mapGenerator.TileFactory = GD.Load<TileFactory>("res://scenes/levels/dungeon/dungeon_tile_factory.tres");
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(layout, factory);
 
 		var gaps = new List<string>();
 		for (ulong seed = 1; seed <= SeedCount; seed++)
@@ -92,7 +119,10 @@ public class WallIntegrityTest
 				float cz = (z - map.Height / 2) * TileSize;
 				foreach (var (dx, dz, name) in dirs)
 				{
-					if (!NeedsWall(map, x + dx, z + dz))
+					// An edge must be sealed when it faces void, or when it is an
+					// unsanctioned room/corridor contact (see MapData.RequiresInteriorWall).
+					if (!NeedsWall(map, x + dx, z + dz)
+						&& !map.RequiresInteriorWall(x, z, new Vector2I(dx, dz)))
 					{
 						continue;
 					}
@@ -174,7 +204,7 @@ public class WallIntegrityTest
 
 	private static bool IsWalkable(MapData map, int x, int z)
 	{
-		return map.IsWithinBounds(x, z) && (map.IsRoom(x, z) || map.IsCorridor(x, z) || map.IsConnector(x, z));
+		return map.IsWithinBounds(x, z) && map.IsWalkable(x, z);
 	}
 
 	private static bool NeedsWall(MapData map, int x, int z)

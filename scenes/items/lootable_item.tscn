@@ -76,7 +76,7 @@ _data = {
 &"spin": SubResource("Animation_b0fih")
 }
 
-[node name="LootableItem" type="Node3D"]
+[node name="LootableItem" type="Node3D" groups=["prop"]]
 script = ExtResource("1_an4ny")
 ShaderMaterial = SubResource("ShaderMaterial_jws22")
 

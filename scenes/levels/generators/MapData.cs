@@ -35,7 +35,8 @@ public class MapData
     }
 
     /// <summary>
-    /// Checks if rooms on the given map intersect with rooms on the current map.
+    /// Checks if rooms on the given map intersect with rooms on the current map (with a
+    /// 1-tile buffer on every side, so placed rooms never end up directly adjacent).
     /// </summary>
     public bool Intersects(MapData roomMap, Vector2I placement)
     {
@@ -49,22 +50,15 @@ public class MapData
                 var mapX = placement.X + x;
                 var mapZ = placement.Y + y;
                 // Check all nine tiles around the room
-                var adjacentTiles = new[]
+                for (int dx = -1; dx <= 1; dx++)
                 {
-                    new Vector2I(mapX - 1, mapZ - 1),
-                    new Vector2I(mapX, mapZ - 1),
-                    new Vector2I(mapX + 1, mapZ - 1),
-                    new Vector2I(mapX - 1, mapZ),
-                    new Vector2I(mapX, mapZ),
-                    new Vector2I(mapX + 1, mapZ),
-                    new Vector2I(mapX - 1, mapZ + 1),
-                    new Vector2I(mapX, mapZ + 1),
-                    new Vector2I(mapX + 1, mapZ + 1),
-                };
-                if (adjacentTiles.Any(tile => IsWithinBounds(tile.X, tile.Y) && !IsEmpty(tile.X, tile.Y)))
-                {
-                    GD.Print($"Room overlaps with existing room at ({mapX}, 0, {mapZ})");
-                    return true;
+                    for (int dz = -1; dz <= 1; dz++)
+                    {
+                        if (IsWithinBounds(mapX + dx, mapZ + dz) && !IsEmpty(mapX + dx, mapZ + dz))
+                        {
+                            return true;
+                        }
+                    }
                 }
             }
         }
@@ -142,6 +136,66 @@ public class MapData
         return x == 0 || y == 0 || x == Width - 1 || y == Height - 1;
     }
 
+    /// <summary>
+    /// True when a wall must separate the walkable tile at (x, y) from its walkable
+    /// neighbor in <paramref name="direction"/>. Rooms open onto corridors only through
+    /// connector tiles, and a connector only through its open directions — any other
+    /// room/corridor contact must be sealed. This matters for tightly packed layouts,
+    /// where corridors are routed directly alongside room edges: without this rule an
+    /// unwalled room edge next to a passing corridor would become an unintended hole.
+    /// Void-facing edges are handled separately (see MapGenerator.PlaceWalls).
+    /// </summary>
+    public bool RequiresInteriorWall(int x, int y, Vector2I direction)
+    {
+        int nx = x + direction.X;
+        int ny = y + direction.Y;
+        if (!IsWithinBounds(nx, ny))
+        {
+            return false;
+        }
+
+        // Room interior meeting a corridor: sealed unless a connector sanctions it.
+        if (IsRoom(x, y) && IsCorridor(nx, ny))
+        {
+            return true;
+        }
+        if (IsCorridor(x, y) && IsRoom(nx, ny))
+        {
+            return true;
+        }
+
+        // A connector is a passage only along its open directions.
+        if (IsConnector(x, y) && IsCorridor(nx, ny))
+        {
+            return !GetConnectorDirections(x, y).Contains(direction);
+        }
+        if (IsCorridor(x, y) && IsConnector(nx, ny))
+        {
+            return !GetConnectorDirections(nx, ny).Contains(-direction);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Resets every tile to Empty and walls the outer border, and clears connector
+    /// bookkeeping — the initial state for a fresh map, and for re-stamping rooms after
+    /// a placement is rolled back.
+    /// </summary>
+    public void ResetToBorderedEmpty()
+    {
+        for (var x = 0; x < Width; x++)
+        {
+            for (var y = 0; y < Height; y++)
+            {
+                Tiles[x, y] = IsOnBoundary(x, y) ? MapTile.Wall : MapTile.Empty;
+            }
+        }
+
+        _connectorDirections.Clear();
+        _doorwayTiles.Clear();
+    }
+
     // Helper checks: IsWall, IsRoom, etc.
     public bool IsWall(int x, int y) => Tiles[x, y] == MapTile.Wall;
     public bool IsRoom(int x, int y) => Tiles[x, y] == MapTile.Room;
@@ -150,4 +204,5 @@ public class MapData
     public bool IsCorridor(int x, int y) => Tiles[x, y] == MapTile.Corridor;
     public bool IsEmpty(int x, int y) => Tiles[x, y] == MapTile.Empty;
     public bool IsWallOrEmpty(int x, int y) => IsEmpty(x, y) || IsWall(x, y);
+    public bool IsWalkable(int x, int y) => IsRoom(x, y) || IsConnector(x, y) || IsCorridor(x, y);
 }

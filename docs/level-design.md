@@ -8,11 +8,33 @@ This document explains the level generation, connectivity, and visibility (fog o
 
 There are three sizes in play; mixing them up causes alignment bugs:
 
-- **GridMap cells: 1 unit.** All room `GridMap`s (`Floor`, `Wall`, `Decoration`, and the runtime `Occlusion` grid) use a `cell_size` of 1.
+- **GridMap cells: 1 unit.** All room `GridMap`s (`Floor`, `Wall`, `Decoration`, and the runtime `Occlusion` grid) use a `cell_size` of 1, with cell centering disabled — a mesh's own geometry is centered on its anchor cell.
 - **Floor/wall meshes: variable.** Authored tile meshes are 2×2, 4×4, or even 8×8 units depending on the kit (e.g. sewer grates are 2×2, dirt floors 4×4).
-- **Logical map tiles: 4 units (`TileSize = 4`).** `MapData` — the grid that generation, connectivity, fog, and occlusion all reason on — buckets the world into 4×4 logical tiles. `Room.BakeTileMap` marks a logical tile as floor if it finds *any* floor cell in its 4×4 area.
+- **Logical map tiles: 4 units (`TileSize = 4`).** `MapData` — the grid that generation, connectivity, fog, and occlusion all reason on — buckets the world into 4×4 logical tiles.
 
-When converting: `MapGenerator.TileToWorld` maps a logical tile to GridMap coordinates (centered on the map), and `WorldToTile` inverts it.
+**The one convention everything follows: a logical tile is *centered* on its anchor
+coordinate, and a position belongs to the tile whose center is nearest.** Concretely:
+
+- Tile `(x,z)`'s center cell is `Bounds.Position + (x,z) · TileSize` in room-local space
+  (`Room.TileCenterCell`) and `TileToWorld(x,z)` in master-map space; the tile's cells
+  span that center ± `TileSize/2`.
+- Position→tile conversions bin by **nearest center** — `Room.LocalToTile` locally,
+  `MapGenerator.WorldToTile` globally — giving every conversion `TileSize/2` of slack in
+  all directions. Never floor-bin a position against a tile-corner origin: that puts
+  tile centers exactly on a bin boundary, where rotation or float drift flips results
+  into the neighboring tile (this knife edge is what historically made rotated rooms
+  fail doorway validation).
+- `Room.Bounds.Position` is the **center cell of the room's first (north-west) tile**,
+  derived from floor anchors by a parity rule (tile-sized meshes anchor on even cells =
+  the centers themselves; half-tile meshes anchor at centers ± 1 = odd cells, snapped
+  inward), so the invariant holds for every floor-mesh size and rotation.
+- `DoorwayMarker`s (and other tile-anchored markers) are authored **exactly on tile
+  centers**; `Room.BakeDoorwayMarkers` logs an error for any marker drifted more than
+  1 unit off its tile's center.
+- Whether a tile edge is walled is judged from **real wall-mesh footprints**
+  (`WallFootprints`: each piece's AABB rotated by its orientation), never from which
+  cells hold anchors — footprints rotate exactly with the geometry, and frame posts or
+  perpendicular pieces that merely occupy cells near an edge don't read as covering it.
 
 ## Level Generation Pipeline
 
@@ -26,15 +48,17 @@ When converting: `MapGenerator.TileToWorld` maps a logical tile to GridMap coord
 
 2. **Room placement (`RoomLayoutStrategy`)**
 
-   - Instantiates authored room templates and places them with spacing/intersection checks (`MapData.Intersects`).
+   - Instantiates authored room templates and places them with spacing/intersection checks (`MapData.Intersects`). The intersection check enforces a 1-tile empty ring around every room tile — rooms never sit directly adjacent. This ring is load-bearing: door resolution (`FinalizeDoors`) and the fog-reveal cascade both assume a real room-to-room link always has a corridor tile between the two connectors.
    - Each placed room's local `MapData` is stamped into the master map, and per-room runtime data is recorded: a `RoomRegion` (the room's tiles and connector tiles) plus a `tile → room id` lookup. Room ids are assigned in placement order, which is deterministic for a given seed.
+   - Two strategies exist. **`PackedRoomLayout` (the default)** grows a tight cluster: the entrance anchors the map center, each following room is placed on a candidate position hugging the already-placed rooms at the minimum legal gap (scored for compactness plus a bonus for doorways that end up facing each other across the gap), and the exit is placed last as far from the entrance as possible — rolling back standard rooms if the map filled up before the exit fit. **`SimpleRoomLayout`** places rooms at random positions with retries, producing sparse, sprawling layouts with long corridors.
 
 3. **Corridor connection (`CorridorConnectorStrategy`)** — see [Connectivity](#connectivity-doorways-vs-open-edges).
 
-4. **Door resolution (`FinalizeDoors`)**
+4. **Door resolution (`FinalizeDoors`, `FinalizeMarkers`)**
 
    - Matches hand-placed `Door` props to the nearest connector of their room.
    - A door at a doorway that was actually connected becomes a real gating door; a door at a doorway that got walled shut is removed (so there are no interactable doors embedded in solid walls).
+   - A `DoorwayMarker`'s tile keeps its `Connector` classification in `MapData` regardless of whether a corridor ever got routed to it (wall placement is pure geometry and never touches tile classification) — so a doorway can validate fine yet still end up walled shut, most often when a room has more doorways than the layout had room to route corridors to. `FinalizeMarkers` matches every marker to its connector the same way `FinalizeDoors` matches doors, and hides (`Enabled = false`) any marker whose every sanctioned direction ended up sealed, so its editor-only arrow gizmo never misleadingly points at a solid wall.
 
 5. **Occlusion placement (`PlaceOcclusion`)** — see [Map Occlusion & Fog of War](#map-occlusion--fog-of-war).
 
@@ -57,7 +81,11 @@ Rooms connect to corridors through **connector** tiles, and there are two kinds:
 1. **Spanning tree (`ConnectComponents`)** — links every room into one reachable network with one corridor each. This guarantees **every room has at least one connection**.
 2. **Remaining doorways (`ConnectRemainingDoorways`)** — force-connects every `IsDoorway` connector the spanning tree left unconnected. **Inferred edges are never force-connected** — they stay optional.
 
-Net effect: a 4-way sewer crossing keeps all four doored entrances; a cave (inferred edges only) gets one opening and the rest stay closed. After connection, `PlaceWalls` closes any exposed room/corridor edge that didn't become a passage.
+Net effect: a 4-way sewer crossing keeps all four doored entrances; a cave (inferred edges only) gets one opening and the rest stay closed. After connection, `PlaceWalls` closes any exposed room/corridor edge that didn't become a passage. That includes *interior* separation (`MapData.RequiresInteriorWall`): a corridor routed directly alongside a room — common with the packed layout — is walled off from it except through a connector's open direction, so an unwalled room edge next to a passing corridor never becomes an unintended entrance. (A cave's open edges *are* connectors, so a corridor brushing past a cave can still open into it — intended, organic behavior.)
+
+`PlaceWalls` runs as a decision pass and a coverage pass. The decision pass applies one rule per tile edge (`NeedsWallToward`: the neighbor is void/out-of-bounds, or the contact is unsanctioned interior contact) and skips edges the room template already sealed with authored walls (judged from mesh footprints via `WallFootprints`). Placement then puts a full-width wall on each required edge's free midpoint cell (the overwhelmingly common case), after which the coverage pass re-measures the actual mesh footprints and patches any required edge still showing daylight — placing full or half pieces anchored at whatever free cells actually cover the hole. An edge that cannot be sealed is a loud `GD.PrintErr`, never a silent see-through gap; the historical failure mode here was an unconnected authored doorway whose frame pieces occupied the seal's anchor cells while covering none of the opening.
+
+Generation correctness is covered by seed-sweep tests: `WallIntegrityTest` (no gaps in wall geometry, for every layout strategy) and `LayoutConnectivityTest` (single connected walkable component, all doorways connected, per-seed determinism, packed density beats simple). To *visually* sanity-check a layout — e.g. whether a doorway's connector tile sits flush with its wall gap — render a top-down screenshot with `.agents/skills/godot-mcp/scripts/render_level_topdown.gd` (see the godot-mcp skill's "Visual verification" section); it overlays `MapGenerator.GetConnectorDebugInfo()` directly rather than relying on the editor-only `DoorwayMarker` gizmo.
 
 ## Map Occlusion & Fog of War
 
@@ -76,6 +104,7 @@ In gameplay (`PlaceOcclusion(fog: true)`) **every** tile starts capped; the occl
   - everything reachable from it **without crossing a door** — it floods through open connectors into connected corridors and cascades into further door-free rooms.
 - A **doored** connector blocks the cascade, so the corridor and rooms beyond a closed door stay hidden. The doorway tile itself is still revealed (it's part of the room); the closed door plus the hidden corridor are the seal.
 - Opening a door (`Door` emits `SignalBus.DoorOpened`) calls `MapGenerator.OpenDoorAt`, which unseals that connector and reveals through it.
+- The flood only ever crosses a connector's own sanctioned direction (`ConnectorOpensToward`) — both when it first steps out of a room into a corridor and when it later reaches another room's connector from that corridor. A corridor is allowed to run alongside a connector's other, non-sanctioned sides (`MapData.RequiresInteriorWall` keeps that contact walled); without this the flood would reveal that corridor straight through the wall the moment the room next to it opens. `FogOfWarRevealTest` guards this by re-deriving, independently of `RevealRoom`/`FloodCorridors`, which tiles a single room's reveal should legitimately expose.
 
 ### Door indicators (x-ray)
 
@@ -211,6 +240,83 @@ AI:
 The important rule: door state lives in the navmesh (open = link enabled), and the same navmesh
 drives movement, reachability, and aggro — no parallel reachability model.
 
+## Procedural Rooms
+
+`ProceduralRoomBuilder` (a `Resource`, not a scene) builds a `Room` node programmatically instead
+of instantiating an authored scene, for instant layout variety. `MixedRoomFactory` blends it with
+an authored `RoomFactory`: entrances, exits, and special rooms always come from authored content
+(they carry hand-placed gameplay content a builder can't provide); standard rooms are procedural
+with a configurable probability (`ProceduralShare`).
+
+- **Footprint**: a rectangle, an L-shape (one corner carved away), or a union of two overlapping
+  rectangles (an S/T-like shape), sized within `MinTiles`/`MaxTiles`. A large rectangle can also
+  get an interior pit (kept a tile clear of every edge) that bakes into a chasm — L/union shapes
+  never get a pit, since a notch could merge with one into a region touching the room's own
+  bounds, which would not bake into a chasm.
+- **Floors**: a base floor item is picked per room for coherence. With `FloorAccentChance` the
+  room instead mixes in a second accent item (e.g. wood over stone) across one deliberate
+  sub-region — a centered rug-like patch, or a trim border around the room's edge — rather than
+  varying material per tile at random, which reads as noise instead of a designed room. Each
+  logical tile's anchor placement generalizes to any mesh footprint size that evenly divides
+  `TileSize` with matching parity (1×1 doesn't qualify under this `GridMap`'s integer-coordinate,
+  centering-disabled setup — only 2×2/4×4 today), so base and accent items can even differ in size.
+- **Columns**: placed on interior tile corners (where four floor tiles meet) using one arrangement
+  chosen for the whole room with `ColumnChance` — centered single column, a tight 2×2 cluster at
+  the center, an evenly spaced colonnade along the walls, or a mirror-symmetric scatter — rather
+  than an independent per-corner coin flip, since real rooms place columns by design, not at
+  random. Every arrangement degrades gracefully on irregular (L-shape/union) footprints: a
+  candidate corner that isn't actually a valid interior corner for that room's shape is simply
+  skipped.
+- **Doorways/doors**: by default a room stays fully open — no `DoorwayMarker`s, so every edge is
+  an inferred connector, exactly like an authored cave room. With `DoorwayChance` it instead gets
+  1–`MaxDoorways` explicit, guaranteed-connected doorways, each independently getting a real
+  `Door` (`DoorScene`) with `DoorChance` probability (0 makes every doorway an open archway, 1
+  makes every doorway doored, in between mixes both per room). A corner tile can face two
+  directions at once, but the builder commits to exactly **one**: corridor routing happens later
+  (once the whole map is placed) and can only ever connect through a single direction, so
+  combining both into one marker could let the corridor connect through the side a placed door
+  does *not* face — leaving that door pointless against a generated wall while the real,
+  connected passage sits open with no door at all.
+- **No wall authoring needed**: once any `DoorwayMarker` exists, every *other* open edge stops
+  being an inferred connector and falls back to a plain `Room` tile, which the generator's normal
+  wall pass (above) seals exactly like a void-facing edge. Marking doorways is never paired with
+  hand-authoring walls to avoid unintended openings — the existing generated-wall mechanism
+  already covers it.
+
+## Room Rotation
+
+`Room.Rotate(steps)` rotates a room's authored content — floor/wall/decoration `GridMap` cells
+and every other child node (props, doorway markers, doors) — by 1–3 quarter turns around the
+room's local origin, then re-bakes so `Map`/`Bounds` reflect the rotated geometry.
+
+This only ever rotates *raw geometry*, never a hand-derived `MapData`: a 90-degree-multiple
+rotation around an integer pivot is a pure permutation of the integer lattice (a coordinate swap
+plus sign flips, no scaling or fractional offset), so it preserves every tile-grid alignment
+relationship `BakeTileMap` depends on — a mesh anchored exactly on a tile's origin stays exactly
+on a (relabeled) tile's origin after rotation. Re-baking on the rotated geometry is therefore
+exactly as correct as if the room had been authored in that orientation to begin with, and it
+reuses the same wall/doorway-marker scanning logic every room already goes through.
+
+`PackedRoomLayout` tries all 4 orientations of the *same* room instance for every candidate slot
+(not 4 independently created rooms — for a procedurally built room that would each be a different
+random shape) and keeps whichever (position, rotation) pair scores best; "unrotated" is one of the
+4 options considered, so this can only ever match or beat placing the room without rotation.
+Rotating is re-checked for connectability at every orientation before it's considered a candidate,
+and any orientation that comes out unreachable is skipped rather than ever being placed — see
+`RoomLayoutStrategy.IsConnectable`, re-run after every `Room.Rotate` call in
+`PackedRoomLayout.TryFindBestPlacementAcrossRotations`.
+
+**Every room in the library — authored and procedural — validates at all 4 orientations**, and
+`RoomRotationTest.EveryAuthoredRoomBakesConnectorsAtAllFourRotations` enforces that as a permanent
+contract. (Historically most authored rooms failed at 1–3 rotations; that was never real geometry
+— it was two coordinate knife edges, since fixed: marker position→tile conversion floor-binned
+against a tile-corner origin, putting tile centers exactly on a bin boundary, and `HasWall`
+sampled a half-open cell row whose corner anchors flipped in and out of range per orientation.
+Both were replaced by the nearest-center/footprint-based conventions in the
+[Coordinate model](#coordinate-model-important) section.) The per-orientation connectability
+re-check in `PackedRoomLayout` remains as defense in depth, but a skipped orientation now
+indicates a content bug worth investigating, not expected behavior.
+
 ## Room Template Creation
 
 ### Technical requirements
@@ -242,6 +348,9 @@ drives movement, reachability, and aggro — no parallel reachability model.
 
 ## Implementation Notes
 
-- Room templates load via `RoomFactory`; `TileFactory` selects tile variants; `MobFactory` configures enemies.
+- Room templates load via `RoomFactory`, which returns ready-to-place (not yet baked) `Room`
+  instances — `DungeonRoomFactory` instantiates authored scenes, `MixedRoomFactory` optionally
+  routes standard-room requests through `ProceduralRoomBuilder` instead (see Procedural Rooms
+  above). `TileFactory` selects tile variants; `MobFactory` configures enemies.
 - The navigation mesh is auto-baked after generation; seed-based generation keeps layouts reproducible (and fog reveal replayable).
 - Level transitions reload the scene; the reload is deferred out of the trigger's physics callback to avoid freeing collision bodies mid-step.

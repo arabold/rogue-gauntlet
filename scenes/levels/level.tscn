@@ -1,15 +1,20 @@
-[gd_scene load_steps=10 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=14 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" uid="uid://dufyxbs8mado1" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
-[ext_resource type="Script" uid="uid://bn6la35vkfs76" path="res://scenes/levels/generators/layouts/SimpleRoomLayout.cs" id="3_xog87"]
+[ext_resource type="Script" uid="uid://ygesa632ip8" path="res://scenes/levels/generators/layouts/PackedRoomLayout.cs" id="3_xog87"]
 [ext_resource type="Script" uid="uid://he7ib5c3gsey" path="res://scenes/levels/generators/connectors/AStarCorridorConnector.cs" id="4_mssmn"]
-[ext_resource type="Resource" uid="uid://bhdxc5lxp6y21" path="res://scenes/levels/dungeon/dungeon_room_factory.tres" id="5_mbbpy"]
+[ext_resource type="Resource" uid="uid://cw3nq6yk8vpj5" path="res://scenes/levels/dungeon/dungeon_mixed_room_factory.tres" id="5_mbbpy"]
 [ext_resource type="Resource" uid="uid://rwocqk74o36p" path="res://scenes/levels/dungeon/dungeon_mob_factory.tres" id="6_ouxo3"]
 [ext_resource type="Resource" uid="uid://djtuce71qkm72" path="res://scenes/levels/dungeon/dungeon_tile_factory.tres" id="7_icy5c"]
+[ext_resource type="PackedScene" uid="uid://cgi3a5fi0sxu6" path="res://scenes/props/chest.tscn" id="8_chest"]
+[ext_resource type="PackedScene" uid="uid://cap6wqfjubqjx" path="res://scenes/props/floor_trap.tscn" id="9_trap"]
+[ext_resource type="PackedScene" uid="uid://ccltoxuycom37" path="res://scenes/items/lootable_item.tscn" id="10_lootitem"]
+[ext_resource type="Resource" uid="uid://clootchest0001" path="res://scenes/items/loot/loot_chest_common.tres" id="11_loottable"]
 
 [sub_resource type="Resource" id="Resource_mbbpy"]
 script = ExtResource("3_xog87")
+RoomGap = 1
 Retries = 3
 metadata/_custom_type_script = ExtResource("3_xog87")
 
@@ -21,10 +26,13 @@ metadata/_custom_type_script = ExtResource("4_mssmn")
 script = ExtResource("1_37vyo")
 
 [node name="MapGenerator" parent="." instance=ExtResource("2_dtjl1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.454651, -0.546144, 0.377869)
 Seed = 23
 RoomLayout = SubResource("Resource_mbbpy")
 CorridorConnector = SubResource("Resource_ouxo3")
 RoomFactory = ExtResource("5_mbbpy")
 MobFactory = ExtResource("6_ouxo3")
 TileFactory = ExtResource("7_icy5c")
+ChestScene = ExtResource("8_chest")
+TrapScene = ExtResource("9_trap")
+LooseItemScene = ExtResource("10_lootitem")
+LooseItemLootTable = ExtResource("11_loottable")

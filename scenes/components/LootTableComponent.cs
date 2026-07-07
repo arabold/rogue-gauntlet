@@ -1,4 +1,3 @@
-using System.Linq;
 using Godot;
 
 public partial class LootTableComponent : Node
@@ -16,8 +15,6 @@ public partial class LootTableComponent : Node
 
     private bool _isDropped = false;
 
-    private LootTableItem[] Items => Table?.Items ?? [];
-
     public void DropLoot()
     {
         if (_isDropped)
@@ -34,10 +31,9 @@ public partial class LootTableComponent : Node
             rng.Randomize();
         }
 
-        if (rng.Randf() <= DropChance && Items.Length > 0)
+        var selectedItem = rng.Randf() <= DropChance ? Table?.PickWeightedEntry(rng) : null;
+        if (selectedItem != null)
         {
-            var selectedItem = PickItem(rng);
-
             if (LootableItemScene == null)
             {
                 GD.PrintErr($"{Name} has no lootable item scene assigned.");
@@ -63,16 +59,5 @@ public partial class LootTableComponent : Node
         }
 
         _isDropped = true;
-    }
-
-    private LootTableItem PickItem(RandomNumberGenerator rng)
-    {
-        if (Items.Length == 0)
-        {
-            return null;
-        }
-
-        var weights = Items.Select(i => i.Weight).ToArray();
-        return Items[rng.RandWeighted(weights)];
     }
 }

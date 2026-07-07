@@ -71,6 +71,15 @@ public partial class DoorwayMarker : RoomMarker
 		};
 	}
 
+	/// <summary>Inverse of <see cref="GetDirectionVector"/>: the single cardinal flag a direction vector represents.</summary>
+	public static RoomMarkerDirection GetDirectionFlag(Vector2I direction) => (direction.X, direction.Y) switch
+	{
+		(0, -1) => RoomMarkerDirection.North,
+		(1, 0) => RoomMarkerDirection.East,
+		(0, 1) => RoomMarkerDirection.South,
+		_ => RoomMarkerDirection.West,
+	};
+
 	protected override string GetDefaultEditorLabel()
 	{
 		return $"Doorway {Directions}";
@@ -167,12 +176,20 @@ public partial class DoorwayMarker : RoomMarker
 
 	private static Vector3 GetArrowRotationDegrees(RoomMarkerDirection direction)
 	{
-		return direction switch
-		{
-			RoomMarkerDirection.East => new Vector3(0f, 270f, 0f),
-			RoomMarkerDirection.South => new Vector3(0f, 180f, 0f),
-			RoomMarkerDirection.West => new Vector3(0f, 90f, 0f),
-			_ => Vector3.Zero,
-		};
+		return new Vector3(0f, GetYRotationDegrees(direction), 0f);
 	}
+
+	/// <summary>
+	/// The Y-axis rotation, in degrees, that faces a prop toward North (0°) around to
+	/// the given direction. Shared with anything else that needs to orient content to a
+	/// single cardinal direction, e.g. a procedurally placed door
+	/// (ProceduralRoomBuilder), so the mapping has one definition.
+	/// </summary>
+	public static float GetYRotationDegrees(RoomMarkerDirection direction) => direction switch
+	{
+		RoomMarkerDirection.East => 270f,
+		RoomMarkerDirection.South => 180f,
+		RoomMarkerDirection.West => 90f,
+		_ => 0f,
+	};
 }

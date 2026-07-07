@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="MixedRoomFactory" format=3 uid="uid://cw3nq6yk8vpj5"]
+
+[ext_resource type="Script" uid="uid://pjbxgt1ovbpn" path="res://scenes/levels/generators/MixedRoomFactory.cs" id="1_mixd"]
+[ext_resource type="Resource" uid="uid://bhdxc5lxp6y21" path="res://scenes/levels/dungeon/dungeon_room_factory.tres" id="2_auth"]
+[ext_resource type="Resource" uid="uid://dv7q2m8xk4rjn" path="res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres" id="3_bldr"]
+
+[resource]
+script = ExtResource("1_mixd")
+AuthoredFactory = ExtResource("2_auth")
+RoomBuilder = ExtResource("3_bldr")
+ProceduralShare = 0.4
+metadata/_custom_type_script = ExtResource("1_mixd")
