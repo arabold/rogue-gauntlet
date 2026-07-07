@@ -18,6 +18,11 @@ public partial class EnchantScrollEffect : ScrollEffect
 
 	public override void ApplyToTarget(Player player, InventoryItemSlot slot)
 	{
+		if (player == null || slot?.Item is not EquipableItem)
+		{
+			return;
+		}
+
 		Inventory inventory = player.Inventory;
 		EquipmentSlot? equippedIn = null;
 		foreach (var pair in inventory.EquippedItems)

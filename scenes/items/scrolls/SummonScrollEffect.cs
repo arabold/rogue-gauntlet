@@ -13,6 +13,11 @@ public partial class SummonScrollEffect : ScrollEffect
 
 	public override void Apply(Player player)
 	{
+		if (player == null || Count <= 0)
+		{
+			return;
+		}
+
 		Level level = player.GetAncestorOrNull<Level>();
 		MapGenerator generator = level?.MapGenerator;
 		if (generator?.MobFactory == null)

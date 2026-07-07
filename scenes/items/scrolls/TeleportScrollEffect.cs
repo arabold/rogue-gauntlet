@@ -6,6 +6,11 @@ public partial class TeleportScrollEffect : ScrollEffect
 {
 	public override void Apply(Player player)
 	{
+		if (player == null)
+		{
+			return;
+		}
+
 		Level level = player.GetAncestorOrNull<Level>();
 		if (level?.MapGenerator == null)
 		{

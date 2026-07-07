@@ -165,6 +165,15 @@ public partial class InventoryPanel : ScrollContainer
 			return;
 		}
 
+		// Targeted effects (identify, enchant, ...) act on the player; without one there is
+		// nothing valid to target, so don't enter targeting mode at all. Initialize(inventory)
+		// permits a null player, so this can genuinely happen.
+		if (_player == null)
+		{
+			ShowBannerMessage("Nothing suitable — the scroll stays rolled up.");
+			return;
+		}
+
 		ScrollEffect effect = scroll.Effect;
 		bool AnyTarget() => _inventory.Items.Any(slot => slot != scrollSlot && effect.IsValidTarget(_player, slot));
 

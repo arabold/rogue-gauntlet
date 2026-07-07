@@ -14,6 +14,11 @@ public partial class IdentifyScrollEffect : ScrollEffect
 
 	public override void ApplyToTarget(Player player, InventoryItemSlot slot)
 	{
+		if (slot == null)
+		{
+			return;
+		}
+
 		GameSession.Instance?.IdentifyItemType(slot.Item);
 	}
 }

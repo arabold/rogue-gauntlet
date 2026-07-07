@@ -1264,7 +1264,7 @@ public partial class MapGenerator : Node3D
 		rng.Randomize();
 		for (int i = candidates.Count - 1; i > 0; i--)
 		{
-			int j = (int)rng.Randi() % (i + 1);
+			int j = rng.RandiRange(0, i);
 			(candidates[i], candidates[j]) = (candidates[j], candidates[i]);
 		}
 
