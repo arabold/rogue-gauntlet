@@ -77,7 +77,9 @@ public partial class DoorwayMarker : RoomMarker
 		(0, -1) => RoomMarkerDirection.North,
 		(1, 0) => RoomMarkerDirection.East,
 		(0, 1) => RoomMarkerDirection.South,
-		_ => RoomMarkerDirection.West,
+		(-1, 0) => RoomMarkerDirection.West,
+		_ => throw new ArgumentOutOfRangeException(
+			nameof(direction), direction, "Must be a single cardinal unit vector (up/right/down/left)."),
 	};
 
 	protected override string GetDefaultEditorLabel()

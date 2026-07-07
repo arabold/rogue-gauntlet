@@ -133,7 +133,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 		MapData map, List<RoomPlacement> rooms, Func<Room> createRoom,
 		Func<Vector2I, MapData, List<(Vector2I Tile, Vector2I Direction)>, float> score)
 	{
-		for (int attempt = 0; attempt <= Retries; attempt++)
+		for (int attempt = 0; attempt < Retries; attempt++)
 		{
 			var room = PrepareConnectableRoom(createRoom());
 			if (room == null)
