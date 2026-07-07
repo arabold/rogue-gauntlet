@@ -6,6 +6,7 @@ public partial class Preview : SubViewport
 	[Signal] public delegate void TextureBakedEventHandler(Texture2D texture);
 	[Export] public PackedScene Scene { get; private set; }
 
+	private Node3D _pivot;
 	private Node3D _object;
 	private Camera3D _camera;
 	private Color? _tint;
@@ -50,43 +51,55 @@ public partial class Preview : SubViewport
 		return aabb;
 	}
 
-	private void CenterObjectToCamera()
+	/// <summary>
+	/// Rotates/centers <paramref name="pivot"/> to frame <paramref name="model"/> in the
+	/// camera. Acts on a wrapper pivot rather than the model itself: some item scenes bake a
+	/// non-identity scale into their own root (e.g. the warhammers), and
+	/// RotateObjectLocal/TranslateObjectLocal move a node along its own basis — on a scaled
+	/// root, that basis scales the correction too, overshooting and clipping the model. The
+	/// pivot always starts at identity, so framing is correct regardless of the loaded
+	/// scene's own root transform.
+	/// </summary>
+	private void CenterObjectToCamera(Node3D model, Node3D pivot)
 	{
-		var aabb = ComputeAABB(_object);
+		var aabb = ComputeAABB(model);
 		var distance = Mathf.Max(aabb.Size.X, aabb.Size.Y);
 
 		// If the object is lying down, rotate it to stand up
 		if (aabb.Size.X > aabb.Size.Y)
 		{
-			_object.RotateObjectLocal(Vector3.Right, Mathf.Pi / 2);
+			pivot.RotateObjectLocal(Vector3.Right, Mathf.Pi / 2);
 			distance = Mathf.Max(aabb.Size.Z, aabb.Size.Y);
 		}
 		else if (aabb.Size.Z > aabb.Size.Y)
 		{
-			_object.RotateObjectLocal(Vector3.Forward, Mathf.Pi / 2);
+			pivot.RotateObjectLocal(Vector3.Forward, Mathf.Pi / 2);
 			distance = Mathf.Max(aabb.Size.X, aabb.Size.Z);
 		}
 
 		// Center the object to the camera
 		var center = aabb.GetCenter();
-		_object.TranslateObjectLocal(-center);
+		pivot.TranslateObjectLocal(-center);
 		_camera.Size = distance * 1.25f;
 	}
 
 	public void Refresh()
 	{
-		_object?.QueueFree();
+		_pivot?.QueueFree();
+		_pivot = null;
 		_object = Scene?.Instantiate<Node3D>();
 		if (_object != null && _camera != null)
 		{
 			GD.Print($"Rendering preview for {_object.Name}");
-			AddChild(_object);
+			_pivot = new Node3D();
+			AddChild(_pivot);
+			_pivot.AddChild(_object);
 			if (_tint.HasValue)
 			{
 				ItemIdentity.ApplyTint(_object, _tint.Value);
 			}
 
-			CenterObjectToCamera();
+			CenterObjectToCamera(_object, _pivot);
 		}
 	}
 }

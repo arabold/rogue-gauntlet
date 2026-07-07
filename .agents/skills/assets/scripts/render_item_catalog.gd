@@ -64,9 +64,17 @@ func _load_current():
 	if _holder:
 		_holder.free()
 	var item = load(_items[_i][0])
-	_holder = item.Scene.instantiate()
+	var model = item.Scene.instantiate()
+	# Frame via a wrapper pivot rather than the model itself: a few item scenes bake a
+	# non-identity scale into their own root (e.g. the warhammers), and
+	# rotate_object_local/translate_object_local move a node along its own basis — on a
+	# scaled root that basis scales the correction too, overshooting and clipping the model.
+	# The pivot always starts at identity, so framing is correct regardless of the loaded
+	# scene's own root transform. Mirrors Preview.cs's identical fix for the in-game preview.
+	_holder = Node3D.new()
 	_vp.add_child(_holder)
-	_center_object_to_camera(_holder)
+	_holder.add_child(model)
+	_center_object_to_camera(model, _holder)
 	_wait = 0
 
 func _compute_aabb(node: Node3D) -> AABB:
@@ -79,17 +87,17 @@ func _compute_aabb(node: Node3D) -> AABB:
 			aabb = aabb.merge(child_aabb)
 	return aabb
 
-func _center_object_to_camera(obj: Node3D):
-	var aabb = _compute_aabb(obj)
+func _center_object_to_camera(model: Node3D, pivot: Node3D):
+	var aabb = _compute_aabb(model)
 	var distance = max(aabb.size.x, aabb.size.y)
 	if aabb.size.x > aabb.size.y:
-		obj.rotate_object_local(Vector3.RIGHT, PI / 2)
+		pivot.rotate_object_local(Vector3.RIGHT, PI / 2)
 		distance = max(aabb.size.z, aabb.size.y)
 	elif aabb.size.z > aabb.size.y:
-		obj.rotate_object_local(Vector3.FORWARD, PI / 2)
+		pivot.rotate_object_local(Vector3.FORWARD, PI / 2)
 		distance = max(aabb.size.x, aabb.size.z)
 	var center = aabb.get_center()
-	obj.translate_object_local(-center)
+	pivot.translate_object_local(-center)
 	_cam.size = max(distance * 1.25, 0.35)
 
 func _process(_d):
