@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" uid="uid://b0k08or0t2tnc" path="res://assets/kaykit-dungeon-legacy/dagger_uncommon.gltf.glb" id="1_glb"]
+
+[node name="DaggerUncommon" type="Node3D"]
+
+[node name="dagger_uncommon" parent="." instance=ExtResource("1_glb")]

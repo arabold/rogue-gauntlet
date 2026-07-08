@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3]
 
-[ext_resource type="PackedScene" uid="uid://d1jcjjlc0dhsa" path="res://assets/kaykit-dungeon-legacy/hammer_uncommon.gltf.glb" id="1_hamunc"]
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/hammer_uncommon.tscn" id="1_hamunc"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_hamunc"]
 
 [resource]

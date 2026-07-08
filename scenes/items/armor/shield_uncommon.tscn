@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" uid="uid://dxx7h62h53fxn" path="res://assets/kaykit-dungeon-legacy/shield_uncommon.gltf.glb" id="1_glb"]
+
+[node name="ShieldUncommon" type="Node3D"]
+
+[node name="shield_uncommon" parent="." instance=ExtResource("1_glb")]

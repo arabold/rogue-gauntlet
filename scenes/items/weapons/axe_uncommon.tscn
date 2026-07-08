@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" uid="uid://b4xcfkrs30ckj" path="res://assets/kaykit-dungeon-legacy/axe_uncommon.gltf.glb" id="1_glb"]
+
+[node name="AxeUncommon" type="Node3D"]
+
+[node name="axe_uncommon" parent="." instance=ExtResource("1_glb")]

@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3]
 
-[ext_resource type="PackedScene" uid="uid://b0k08or0t2tnc" path="res://assets/kaykit-dungeon-legacy/dagger_uncommon.gltf.glb" id="1_dagunc"]
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/dagger_uncommon.tscn" id="1_dagunc"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_dagunc"]
 
 [resource]
