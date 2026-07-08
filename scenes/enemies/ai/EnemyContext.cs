@@ -39,6 +39,13 @@ public sealed class EnemyContext
 	/// </summary>
 	public Action RequestMeleeAttack { get; }
 
+	/// <summary>
+	/// Starts a ranged (projectile) attack through the host's timed-action layer, mirroring
+	/// <see cref="RequestMeleeAttack"/>. Only meaningful when the profile has a
+	/// <see cref="EnemyBehaviorProfile.RangedAttackDefinition"/>; see <see cref="CanUseRangedAttack"/>.
+	/// </summary>
+	public Action RequestRangedAttack { get; }
+
 	/// <summary>The player currently being chased, or null when the enemy has no target.</summary>
 	public Node3D Target { get; set; }
 
@@ -62,7 +69,8 @@ public sealed class EnemyContext
 		PerceptionComponent perception,
 		NavigationComponent navigation,
 		EnemyBehaviorProfile profile,
-		Action requestMeleeAttack)
+		Action requestMeleeAttack,
+		Action requestRangedAttack)
 	{
 		Actor = actor;
 		Movement = movement;
@@ -70,7 +78,20 @@ public sealed class EnemyContext
 		Navigation = navigation;
 		Profile = profile;
 		RequestMeleeAttack = requestMeleeAttack;
+		RequestRangedAttack = requestRangedAttack;
 		HomePosition = actor.GlobalPosition;
+	}
+
+	/// <summary>True when this enemy is authored as a shooter (has a ranged attack definition).</summary>
+	public bool CanUseRangedAttack => Profile.RangedAttackDefinition != null;
+
+	/// <summary>
+	/// True when the enemy currently has an unobstructed line of sight to its target. Reuses the
+	/// perception line-of-sight test so ranged enemies do not fire through walls.
+	/// </summary>
+	public bool HasLineOfSightToTarget()
+	{
+		return Target != null && Perception.CanSee(Target);
 	}
 
 	/// <summary>

@@ -68,6 +68,39 @@ public partial class EnemyBehaviorProfile : Resource
 	[Export] public AttackDefinition MeleeAttackDefinition { get; set; }
 
 	/// <summary>
+	/// Authored ranged attack (projectile) definition. When set, the enemy becomes a caster/shooter:
+	/// it stands off and fires this attack while the target is within <see cref="RangedAttackRange"/>
+	/// and in sight, falling back to melee only when the target closes inside melee range. Leave null
+	/// for melee-only enemies.
+	/// </summary>
+	[Export] public AttackDefinition RangedAttackDefinition { get; set; }
+
+	/// <summary>
+	/// Maximum distance from the target at which the enemy will use its ranged attack.
+	/// </summary>
+	[Export] public float RangedAttackRange { get; set; } = 12.0f;
+
+	/// <summary>
+	/// Accuracy used by this enemy's ranged attack.
+	/// </summary>
+	[Export] public float RangedAttackAccuracy { get; set; } = 0.9f;
+
+	/// <summary>
+	/// Minimum damage dealt by this enemy's ranged attack.
+	/// </summary>
+	[Export] public float RangedAttackMinDamage { get; set; } = 1.0f;
+
+	/// <summary>
+	/// Maximum damage dealt by this enemy's ranged attack.
+	/// </summary>
+	[Export] public float RangedAttackMaxDamage { get; set; } = 4.0f;
+
+	/// <summary>
+	/// Critical hit chance used by this enemy's ranged attack.
+	/// </summary>
+	[Export] public float RangedAttackCritChance { get; set; } = 0.0f;
+
+	/// <summary>
 	/// Maximum distance from its spawn point that the enemy can pick roam destinations.
 	/// </summary>
 	[Export] public float RoamRadius { get; set; } = 8.0f;
