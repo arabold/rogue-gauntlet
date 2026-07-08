@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
@@ -15,7 +16,24 @@ public partial class DebugMenu : HBoxContainer
 	private const int ToggleCombatLogsId = 7;
 	private const int ToggleAiLogsId = 8;
 
-	[Export] public Godot.Collections.Array<Item> SpawnableItems { get; set; } = [];
+	/// <summary>
+	/// Category label to res:// folder the "Spawn item" submenu is built from. Every
+	/// top-level <c>.tres</c> in a folder is offered for spawning, grouped under its label —
+	/// add a folder here once and every item authored into it shows up automatically, instead
+	/// of hand-listing every item (which silently drifts out of sync as new items are added).
+	/// </summary>
+	[Export]
+	public Godot.Collections.Dictionary<string, string> SpawnableCategories { get; set; } = new()
+	{
+		{ "Weapons", "res://scenes/items/weapons/" },
+		{ "Shields", "res://scenes/items/armor/" },
+		{ "Potions", "res://scenes/items/potions/" },
+		{ "Scrolls", "res://scenes/items/scrolls/" },
+		{ "Jewelry", "res://scenes/items/jewelry/" },
+		{ "Gold", "res://scenes/items/gold/" },
+	};
+
+	private readonly List<Item> _spawnableItems = [];
 
 	private Label _fpsLabel;
 	private MenuButton _menuButton;
@@ -75,23 +93,77 @@ public partial class DebugMenu : HBoxContainer
 		_debugMenu.AddItem("Kill all enemies", KillEnemiesId);
 		_debugMenu.AddSeparator();
 
-		foreach (Item item in SpawnableItems)
-		{
-			if (item == null)
-			{
-				continue;
-			}
+		BuildSpawnItemMenu();
 
-			_spawnItemMenu.AddItem(item.Name, SpawnableItems.IndexOf(item));
-		}
-
-		_spawnItemMenu.IdPressed += OnSpawnItemPressed;
 		_debugMenu.IdPressed += OnDebugMenuPressed;
 		_debugMenu.AddChild(_spawnItemMenu);
 		_debugMenu.AddSubmenuNodeItem("Spawn item", _spawnItemMenu);
 
 		SetChecked(ToggleCombatLogsId, GameDebug.CombatLogsEnabled);
 		SetChecked(ToggleAiLogsId, GameDebug.AiLogsEnabled);
+	}
+
+	/// <summary>
+	/// Builds one submenu per <see cref="SpawnableCategories"/> entry, populated by scanning
+	/// its folder. IDs are indices into <see cref="_spawnableItems"/>, shared across every
+	/// category submenu so a single <see cref="OnSpawnItemPressed"/> handler covers all of them.
+	/// </summary>
+	private void BuildSpawnItemMenu()
+	{
+		_spawnableItems.Clear();
+
+		foreach (var (label, directory) in SpawnableCategories)
+		{
+			List<Item> items = LoadItemsInDirectory(directory);
+			if (items.Count == 0)
+			{
+				continue;
+			}
+
+			var categoryMenu = new PopupMenu { Name = $"Spawn{label}Menu" };
+			foreach (Item item in items)
+			{
+				_spawnableItems.Add(item);
+				categoryMenu.AddItem(item.Name, _spawnableItems.Count - 1);
+			}
+
+			categoryMenu.IdPressed += OnSpawnItemPressed;
+			_spawnItemMenu.AddChild(categoryMenu);
+			_spawnItemMenu.AddSubmenuNodeItem(label, categoryMenu);
+		}
+	}
+
+	/// <summary>
+	/// Loads every top-level <c>.tres</c> in a folder as an <see cref="Item"/>, sorted by
+	/// display name. Entries that fail to load or aren't an <see cref="Item"/> are skipped.
+	/// </summary>
+	private static List<Item> LoadItemsInDirectory(string directory)
+	{
+		var items = new List<Item>();
+		DirAccess dir = DirAccess.Open(directory);
+		if (dir == null)
+		{
+			return items;
+		}
+
+		dir.ListDirBegin();
+		for (string fileName = dir.GetNext(); fileName != ""; fileName = dir.GetNext())
+		{
+			if (dir.CurrentIsDir() || !fileName.EndsWith(".tres"))
+			{
+				continue;
+			}
+
+			Item item = ResourceLoader.Load<Item>(directory.PathJoin(fileName));
+			if (item != null)
+			{
+				items.Add(item);
+			}
+		}
+
+		dir.ListDirEnd();
+		items.Sort((a, b) => string.Compare(a.Name, b.Name, System.StringComparison.Ordinal));
+		return items;
 	}
 
 	private void OnDebugMenuPressed(long id)
@@ -127,7 +199,7 @@ public partial class DebugMenu : HBoxContainer
 
 	private void OnSpawnItemPressed(long id)
 	{
-		if (id < 0 || id >= SpawnableItems.Count || SpawnableItems[(int)id] == null)
+		if (id < 0 || id >= _spawnableItems.Count || _spawnableItems[(int)id] == null)
 		{
 			return;
 		}
@@ -141,7 +213,7 @@ public partial class DebugMenu : HBoxContainer
 		}
 
 		LootableItem lootableItem = player.LootableItemScene.Instantiate<LootableItem>();
-		lootableItem.Item = SpawnableItems[(int)id];
+		lootableItem.Item = _spawnableItems[(int)id];
 		lootableItem.Quantity = 1;
 		lootableItem.WaitForPlayerExited = true;
 
