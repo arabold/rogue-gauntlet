@@ -38,6 +38,17 @@ public partial class EnemyBase : CharacterBody3D, IDamageable
 		{
 			HurtBoxComponent.DamageFilter = DamageSourceFlags.Player | DamageSourceFlags.Boss | DamageSourceFlags.Environment;
 		}
+
+		// See-through-wall silhouette so a hidden enemy reads from any camera angle. Properties
+		// are set before AddChild so the component builds its silhouettes with them in place.
+		var xray = new OcclusionXrayComponent
+		{
+			Name = "OcclusionXrayComponent",
+			Category = XrayCategory.Monster,
+			XrayColor = new Color(1f, 0.32f, 0.32f, 0.85f),
+			TargetRoot = "../Pivot",
+		};
+		AddChild(xray);
 	}
 
 	public override void _PhysicsProcess(double delta)

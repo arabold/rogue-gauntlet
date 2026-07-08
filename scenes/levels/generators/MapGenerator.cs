@@ -2263,6 +2263,16 @@ public partial class MapGenerator : Node3D
 		return _tileToRoom.TryGetValue(tile, out var id) ? id : -1;
 	}
 
+	/// <summary>
+	/// Whether the tile under the given world position has been uncovered by the fog
+	/// reveal. Used to gate monster/loot x-ray silhouettes to discovered areas, the
+	/// same way <see cref="HasRevealedNeighbor"/> gates the door indicator.
+	/// </summary>
+	public bool IsRevealedAt(Vector3 worldPosition)
+	{
+		return _revealedTiles.Contains(WorldToTile(worldPosition));
+	}
+
 	private Vector3I TileToWorld(Vector3I tile)
 	{
 		return TileToWorld(tile.X, tile.Y, tile.Z);
