@@ -39,17 +39,24 @@ public partial class LootTable : Resource
 
 	/// <summary>
 	/// Picks one entry using each item's <see cref="LootTableItem.Weight"/>, ignoring depth
-	/// eligibility, or null if the table is empty or every entry has zero weight.
+	/// eligibility, or null if the table is empty, <paramref name="rng"/> is null, or every
+	/// entry has zero weight.
 	/// </summary>
 	public LootTableItem PickWeightedEntry(RandomNumberGenerator rng)
 	{
-		if (Items == null || Items.Length == 0)
+		if (Items == null || Items.Length == 0 || rng == null)
 		{
 			return null;
 		}
 
-		var weights = Items.Select(i => i.Weight).ToArray();
+		LootTableItem[] entries = Items.Where(i => i != null).ToArray();
+		if (entries.Length == 0)
+		{
+			return null;
+		}
+
+		float[] weights = entries.Select(i => i.Weight).ToArray();
 		long index = rng.RandWeighted(weights);
-		return index >= 0 ? Items[index] : null;
+		return index >= 0 ? entries[index] : null;
 	}
 }
