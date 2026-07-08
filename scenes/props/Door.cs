@@ -34,6 +34,11 @@ public partial class Door : Node3D
 			_interactiveComponent = GetNode<InteractiveComponent>("InteractiveComponent");
 			_interactiveComponent.Interacted += OnInteract;
 			CreateIndicator();
+
+			this.SubscribeUntilExit(
+				SignalBus.Instance,
+				bus => bus.XraySettingsChanged += RefreshIndicator,
+				bus => bus.XraySettingsChanged -= RefreshIndicator);
 		}
 
 		Update();
@@ -89,9 +94,19 @@ public partial class Door : Node3D
 	public void SetIndicatorVisible(bool allowed)
 	{
 		_indicatorAllowed = allowed;
+		RefreshIndicator();
+	}
+
+	/// <summary>
+	/// Applies the current indicator visibility: shown only when the area is discovered,
+	/// the door is closed, and the door x-ray toggle is enabled. The shader still decides
+	/// when it actually renders (only where occluded).
+	/// </summary>
+	private void RefreshIndicator()
+	{
 		if (_xray != null)
 		{
-			_xray.Visible = allowed && !IsOpen;
+			_xray.Visible = _indicatorAllowed && !IsOpen && GameDebug.DoorXrayEnabled;
 		}
 	}
 
@@ -113,7 +128,7 @@ public partial class Door : Node3D
 		_interactiveComponent.IsInteractive = false;
 		_collisionShape.Disabled = true;
 		IsOpen = true;
-		_xray.Visible = false; // No indicator needed once the door is open.
+		RefreshIndicator(); // No indicator needed once the door is open.
 		SignalBus.EmitDoorOpened(this);
 
 		var tween = CreateTween();
@@ -137,7 +152,7 @@ public partial class Door : Node3D
 		_isAnimating = true;
 		_interactiveComponent.IsInteractive = false;
 		IsOpen = false;
-		_xray.Visible = _indicatorAllowed; // Shader decides when it actually appears.
+		RefreshIndicator(); // Shader decides when it actually appears.
 		SignalBus.EmitDoorClosed(this);
 
 		var tween = CreateTween();

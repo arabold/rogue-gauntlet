@@ -50,6 +50,10 @@ public partial class SignalBus : Node
     [Signal] public delegate void DoorClosedEventHandler(Node3D door);
     public static void EmitDoorClosed(Node3D door) => Instance?.EmitSignalDoorClosed(door);
 
+    /// <summary>Fired when an x-ray toggle changes in the debug menu so silhouettes refresh.</summary>
+    [Signal] public delegate void XraySettingsChangedEventHandler();
+    public static void EmitXraySettingsChanged() => Instance?.EmitSignalXraySettingsChanged();
+
     public override void _Ready()
     {
         // Ensure this is the only instance

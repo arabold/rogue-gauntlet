@@ -14,6 +14,9 @@ public partial class DebugMenu : HBoxContainer
 	private const int ToggleNavigationId = 6;
 	private const int ToggleCombatLogsId = 7;
 	private const int ToggleAiLogsId = 8;
+	private const int ToggleDoorXrayId = 9;
+	private const int ToggleMonsterXrayId = 10;
+	private const int ToggleLootXrayId = 11;
 
 	[Export] public Godot.Collections.Array<Item> SpawnableItems { get; set; } = [];
 
@@ -68,6 +71,9 @@ public partial class DebugMenu : HBoxContainer
 		_debugMenu.AddCheckItem("Navigation", ToggleNavigationId);
 		_debugMenu.AddCheckItem("Combat logs", ToggleCombatLogsId);
 		_debugMenu.AddCheckItem("AI logs", ToggleAiLogsId);
+		_debugMenu.AddCheckItem("Door x-ray", ToggleDoorXrayId);
+		_debugMenu.AddCheckItem("Monster x-ray", ToggleMonsterXrayId);
+		_debugMenu.AddCheckItem("Loot x-ray", ToggleLootXrayId);
 		_debugMenu.AddItem("Reveal map", RevealMapId);
 		_debugMenu.AddItem("Restart level", RestartLevelId);
 		_debugMenu.AddSeparator();
@@ -92,6 +98,9 @@ public partial class DebugMenu : HBoxContainer
 
 		SetChecked(ToggleCombatLogsId, GameDebug.CombatLogsEnabled);
 		SetChecked(ToggleAiLogsId, GameDebug.AiLogsEnabled);
+		SetChecked(ToggleDoorXrayId, GameDebug.DoorXrayEnabled);
+		SetChecked(ToggleMonsterXrayId, GameDebug.MonsterXrayEnabled);
+		SetChecked(ToggleLootXrayId, GameDebug.LootXrayEnabled);
 	}
 
 	private void OnDebugMenuPressed(long id)
@@ -109,6 +118,21 @@ public partial class DebugMenu : HBoxContainer
 				break;
 			case ToggleAiLogsId:
 				SetAiLogsEnabled(!GameDebug.AiLogsEnabled);
+				break;
+			case ToggleDoorXrayId:
+				GameDebug.DoorXrayEnabled = !GameDebug.DoorXrayEnabled;
+				SetChecked(ToggleDoorXrayId, GameDebug.DoorXrayEnabled);
+				SignalBus.EmitXraySettingsChanged();
+				break;
+			case ToggleMonsterXrayId:
+				GameDebug.MonsterXrayEnabled = !GameDebug.MonsterXrayEnabled;
+				SetChecked(ToggleMonsterXrayId, GameDebug.MonsterXrayEnabled);
+				SignalBus.EmitXraySettingsChanged();
+				break;
+			case ToggleLootXrayId:
+				GameDebug.LootXrayEnabled = !GameDebug.LootXrayEnabled;
+				SetChecked(ToggleLootXrayId, GameDebug.LootXrayEnabled);
+				SignalBus.EmitXraySettingsChanged();
 				break;
 			case RevealMapId:
 				RevealMap();
