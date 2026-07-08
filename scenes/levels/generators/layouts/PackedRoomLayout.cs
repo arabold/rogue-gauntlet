@@ -248,8 +248,13 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 		// insertion-ordered (not hash-ordered), so the same seed yields the same layout.
 		float best = scored.Max(c => c.Score);
 		var top = scored.Where(c => c.Score >= best - Mathf.Max(ScoreTolerance, 0f)).ToList();
-		placement = top[GD.RandRange(0, top.Count - 1)].Position;
-		placementScore = best;
+		var chosen = top[GD.RandRange(0, top.Count - 1)];
+		placement = chosen.Position;
+		// Report the CHOSEN candidate's score, not the max -- the caller compares this
+		// across rotations to pick the winning orientation, so it must reflect the
+		// placement actually returned, otherwise a rotation could win on a high-scoring
+		// candidate it didn't pick.
+		placementScore = chosen.Score;
 		return true;
 	}
 

@@ -69,6 +69,14 @@ public partial class ProceduralRoomBuilder : Resource
 	/// <summary>Chance a room gets columns at all; if it does, one pattern is chosen for the whole room.</summary>
 	[Export(PropertyHint.Range, "0,1")] public float ColumnChance { get; set; } = 0.25f;
 
+	/// <summary>
+	/// Per-corner probability within the symmetric-scatter pattern only (a mirrored
+	/// coin flip per quadrant corner) -- distinct from <see cref="ColumnChance"/>, which
+	/// gates whether a room gets columns at all. Kept separate so tuning column
+	/// frequency across rooms doesn't also change how densely a scattered room fills.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,1")] public float ColumnScatterChance { get; set; } = 0.25f;
+
 	/// <summary>Tile spacing between columns along a wall for the colonnade pattern.</summary>
 	[Export(PropertyHint.Range, "1,4")] public int ColumnSpacing { get; set; } = 2;
 
@@ -440,8 +448,8 @@ public partial class ProceduralRoomBuilder : Resource
 	}
 
 	/// <summary>
-	/// Rolls <see cref="ColumnChance"/> once per corner in one quadrant, then mirrors
-	/// whatever is chosen across both the width and height mid-axis -- keeps some
+	/// Rolls <see cref="ColumnScatterChance"/> once per corner in one quadrant, then
+	/// mirrors whatever is chosen across both the width and height mid-axis -- keeps some
 	/// organic variety while guaranteeing the result always reads as intentional
 	/// (mirror-symmetric) instead of lopsided.
 	/// </summary>
@@ -454,7 +462,7 @@ public partial class ProceduralRoomBuilder : Resource
 		{
 			for (int z = 1; z <= maxZ; z++)
 			{
-				if (GD.Randf() >= ColumnChance)
+				if (GD.Randf() >= ColumnScatterChance)
 				{
 					continue;
 				}
