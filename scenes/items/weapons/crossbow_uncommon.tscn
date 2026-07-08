@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" uid="uid://1sb4mis1eg0s" path="res://assets/kaykit-dungeon-legacy/crossbow_uncommon.gltf.glb" id="1_glb"]
+
+[node name="CrossbowUncommon" type="Node3D"]
+
+[node name="crossbow_uncommon" parent="." instance=ExtResource("1_glb")]
+rotation_degrees = Vector3(-90, 0, 0)

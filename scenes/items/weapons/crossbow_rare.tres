@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RangedWeapon" load_steps=3 format=3]
 
-[ext_resource type="PackedScene" uid="uid://cyo03xha02l4u" path="res://assets/kaykit-dungeon-legacy/crossbow_rare.gltf.glb" id="1_crossrare"]
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/crossbow_rare.tscn" id="1_crossrare"]
 [ext_resource type="Script" uid="uid://ddieqpfh5m7w8" path="res://scenes/items/RangedWeapon.cs" id="2_crossrare"]
 
 [resource]

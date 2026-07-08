@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bq56gf4om8a4m" path="res://assets/kaykit-dungeon-legacy/staff_rare.gltf.glb" id="1_glb"]
+
+[node name="StaffRare" type="Node3D"]
+
+[node name="staff_rare" parent="." instance=ExtResource("1_glb")]
+transform = Transform3D(1.85, 0, 0, 0, 1.85, 0, 0, 0, 1.85, 0, 0, 0)
