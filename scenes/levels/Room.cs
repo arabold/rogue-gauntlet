@@ -23,6 +23,10 @@ public partial class Room : Node3D
 	[Export] public GridMap DecorationGridMap;
 	private GridMap _debugGridMap;
 
+	// Authored wall mesh footprints, rebuilt by every BakeTileMap (so a Rotate's
+	// re-bake sees the rotated geometry). Backs HasWall's edge-coverage checks.
+	private List<Aabb> _wallFootprints = new();
+
 	[Export]
 	public bool ShowDebugOverlay
 	{
@@ -53,7 +57,7 @@ public partial class Room : Node3D
 	/// <summary>
 	/// The size of each tile in the grid map (must be 4x4)
 	/// </summary>
-	public readonly int TileSize = 4;
+	public const int TileSize = 4;
 
 	public override void _Ready()
 	{
@@ -110,15 +114,25 @@ public partial class Room : Node3D
 			return;
 		}
 
-		int halfTileSize = TileSize / 2;
-		int roomXMin = Mathf.FloorToInt(
-			usedCells.MinBy(cell => cell.X).X / halfTileSize) * halfTileSize;
-		int roomXMax = Mathf.FloorToInt(
-			usedCells.MaxBy(cell => cell.X).X / halfTileSize) * halfTileSize;
-		int roomZMin = Mathf.FloorToInt(
-			usedCells.MinBy(cell => cell.Z).Z / halfTileSize) * halfTileSize;
-		int roomZMax = Mathf.FloorToInt(
-			usedCells.MaxBy(cell => cell.Z).Z / halfTileSize) * halfTileSize;
+		// Floor meshes anchor either exactly on a tile center (tile-sized meshes --
+		// always even cell coordinates in every authoring path) or one cell off it
+		// (half-tile meshes at center±1 -- odd). Snapping odd extremes inward by one
+		// recovers the tile-center alignment, so Bounds.Position is the CENTER cell of
+		// the room's first (north-west) tile for every floor-mesh size and rotation.
+		// It anchors the whole tile coordinate system: tile (x,z)'s center cell is
+		// Bounds.Position + (x,z) * TileSize (see TileCenterCell/LocalToTile). The
+		// parity trick also avoids integer division entirely -- int '/' truncates
+		// toward zero, which floors positive cells but CEILS negative ones, silently
+		// shifting rooms that extend into negative coordinates.
+		int minCellX = usedCells.MinBy(cell => cell.X).X;
+		int maxCellX = usedCells.MaxBy(cell => cell.X).X;
+		int minCellZ = usedCells.MinBy(cell => cell.Z).Z;
+		int maxCellZ = usedCells.MaxBy(cell => cell.Z).Z;
+
+		int roomXMin = minCellX + (minCellX & 1);
+		int roomXMax = maxCellX - (maxCellX & 1);
+		int roomZMin = minCellZ + (minCellZ & 1);
+		int roomZMax = maxCellZ - (maxCellZ & 1);
 
 		int roomWidth = roomXMax - roomXMin + TileSize;
 		int roomDepth = roomZMax - roomZMin + TileSize;
@@ -126,18 +140,21 @@ public partial class Room : Node3D
 		Bounds = new Rect2I(roomXMin, roomZMin, roomWidth, roomDepth);
 		GD.Print($"Room bounds: {Bounds}");
 
+		_wallFootprints = WallFootprints.Collect(WallGridMap);
+
 		var mapSize = ToTilePosition(Bounds.Size.X, 0, Bounds.Size.Y);
 		var map = new MapData(mapSize.X, mapSize.Y);
 
-		// Each tile in our MapData maps 4x4 tiles in the GridMap (with TileSize = 4)
-		// To identify a wall tile, we need to check the 4x4 area around the tile
+		// Each logical tile is a 4x4 block of GridMap cells centered on its
+		// TileCenterCell; a tile is Room floor when any cell in that block holds a
+		// floor mesh anchor.
 		for (var x = 0; x < map.Width; x++)
 		{
 			for (var z = 0; z < map.Height; z++)
 			{
-				var gridPos = ToGridPosition(x, 0, z);
-				var gridX = gridPos.X + Bounds.Position.X - TileSize / 2;
-				var gridZ = gridPos.Z + Bounds.Position.Y - TileSize / 2;
+				var center = TileCenterCell(x, z);
+				var gridX = center.X - TileSize / 2;
+				var gridZ = center.Z - TileSize / 2;
 
 				// Check for floors
 				for (var dx = 0; dx < TileSize; dx++)
@@ -182,11 +199,171 @@ public partial class Room : Node3D
 		GD.Print($"Room map generated: {Map.Width}x{Map.Height}");
 	}
 
+	/// <summary>
+	/// Rotates the room's authored content -- floor/wall/decoration GridMap cells and
+	/// every other child node (props, doorway markers, doors) -- by
+	/// <paramref name="steps"/> quarter turns (wrapped to 0-3) around the room's local
+	/// origin, then re-bakes so Map/Bounds reflect the rotated geometry.
+	/// <br/>
+	/// This only ever needs to rotate raw geometry, not hand-derive a rotated Map: a
+	/// 90-degree-multiple rotation around an integer pivot is a pure permutation of the
+	/// integer lattice (a coordinate swap plus sign flips, no scaling or fractional
+	/// offset), so it preserves every tile-grid alignment relationship BakeTileMap
+	/// depends on -- an authored mesh anchored exactly on a tile's origin stays exactly
+	/// on a (relabeled) tile's origin after rotation. Re-baking on the rotated geometry
+	/// is therefore exactly as correct as if the room had been authored in that
+	/// orientation to begin with, and reuses the same wall/doorway-marker scanning
+	/// logic BakeTileMap already validates for every room.
+	/// </summary>
+	public void Rotate(int steps)
+	{
+		steps = ((steps % 4) + 4) % 4;
+		if (steps == 0)
+		{
+			return;
+		}
+
+		InitGridMaps();
+		RotateGridMapCells(FloorGridMap, steps);
+		RotateGridMapCells(WallGridMap, steps);
+		RotateGridMapCells(DecorationGridMap, steps);
+
+		// Direct children only, not recursive: a node's LOCAL transform is relative to
+		// its own parent, not the room, so rotating a direct child's own transform
+		// already correctly reorients everything nested under it via normal Godot
+		// transform inheritance -- a marker grouped under some organizational wrapper
+		// node does not also need its own local transform touched.
+		foreach (Node child in GetChildren())
+		{
+			if (child is Node3D node3D && node3D != FloorGridMap && node3D != WallGridMap && node3D != DecorationGridMap)
+			{
+				RotateChildTransform(node3D, steps);
+			}
+		}
+
+		BakeTileMap();
+	}
+
+	private static void RotateGridMapCells(GridMap gridMap, int steps)
+	{
+		if (gridMap == null)
+		{
+			return;
+		}
+
+		// Snapshot before mutating: rewriting cells in place while iterating could have
+		// a rotated cell land on a not-yet-processed original cell's position.
+		var originalCells = new List<(Vector3I Cell, int Item, int Orientation)>();
+		foreach (Vector3I cell in gridMap.GetUsedCells())
+		{
+			originalCells.Add((cell, gridMap.GetCellItem(cell), gridMap.GetCellItemOrientation(cell)));
+		}
+
+		gridMap.Clear();
+		Basis rotationStep = new(Vector3.Up, Mathf.DegToRad(steps * 90f));
+		foreach (var (cell, item, orientation) in originalCells)
+		{
+			// Compose via the engine's own basis math rather than a hardcoded lookup of
+			// the 4 upright orientations this project's wall/floor content happens to
+			// use: a hand-placed decoration can legitimately sit at any of Godot's 24
+			// orthogonal orientations (e.g. tipped over for variety), and this handles
+			// all of them correctly, not just the upright 4.
+			Basis rotatedBasis = rotationStep * gridMap.GetBasisWithOrthogonalIndex(orientation);
+			gridMap.SetCellItem(RotateCell(cell, steps), item, gridMap.GetOrthogonalIndexFromBasis(rotatedBasis));
+		}
+	}
+
+	private static void RotateChildTransform(Node3D node, int steps)
+	{
+		if (node is DoorwayMarker marker)
+		{
+			// A marker's visual children (arrow, tile box, label) are entirely
+			// regenerated from Directions every time it changes (RoomMarker.
+			// UpdateEditorVisual/DoorwayMarker.UpdateArrowVisual) -- they are not fixed,
+			// pre-authored geometry that needs the container's own Basis rotated to
+			// reorient them. Rotating the Basis *and* updating Directions would rotate
+			// the arrow twice (once via the marker's own now-rotated Basis, once via the
+			// arrow being redrawn at the new direction's absolute angle) -- e.g. North
+			// rotated by one step would end up facing 180 degrees away instead of the
+			// correct 90. Only Position needs rotating; Directions' own setter already
+			// triggers the single, correct redraw.
+			marker.Position = RotatePosition(marker.Position, steps);
+			marker.Directions = RotateDirections(marker.Directions, steps);
+			return;
+		}
+
+		// Compose via the basis, not by adding to RotationDegrees.Y: Euler-angle
+		// addition on just the Y component only reproduces "rotate by one more step"
+		// correctly when the child's existing rotation is itself pure-Y (no tilt). A
+		// hand-authored prop with any X/Z tilt (e.g. a knocked-over barrel) needs the
+		// additional rotation applied on top of its existing orientation via matrix
+		// composition, which is correct regardless of what that orientation already is.
+		Basis rotationStep = new(Vector3.Up, Mathf.DegToRad(steps * 90f));
+		node.Transform = new Transform3D(rotationStep * node.Transform.Basis, RotatePosition(node.Position, steps));
+	}
+
+	/// <summary>
+	/// A quarter-turn rotation around Y, matching the convention already used for wall
+	/// mesh footprints (MapGenerator.WallFootprintWorld): local +X rotates toward -Z
+	/// per step, the standard right-handed rotation around +Y.
+	/// </summary>
+	private static Vector3 RotatePosition(Vector3 position, int steps) => steps switch
+	{
+		1 => new Vector3(position.Z, position.Y, -position.X),
+		2 => new Vector3(-position.X, position.Y, -position.Z),
+		3 => new Vector3(-position.Z, position.Y, position.X),
+		_ => position,
+	};
+
+	private static Vector3I RotateCell(Vector3I cell, int steps) => steps switch
+	{
+		1 => new Vector3I(cell.Z, cell.Y, -cell.X),
+		2 => new Vector3I(-cell.X, cell.Y, -cell.Z),
+		3 => new Vector3I(-cell.Z, cell.Y, cell.X),
+		_ => cell,
+	};
+
+	private static RoomMarkerDirection RotateDirections(RoomMarkerDirection directions, int steps)
+	{
+		RoomMarkerDirection rotated = 0;
+		foreach (RoomMarkerDirection direction in new[]
+			{ RoomMarkerDirection.North, RoomMarkerDirection.East, RoomMarkerDirection.South, RoomMarkerDirection.West })
+		{
+			if (!directions.HasFlag(direction))
+			{
+				continue;
+			}
+
+			Vector2I vector = DoorwayMarker.GetDirectionVector(direction);
+			Vector3 rotatedVector = RotatePosition(new Vector3(vector.X, 0, vector.Y), steps);
+			rotated |= DoorwayMarker.GetDirectionFlag(new Vector2I(
+				Mathf.RoundToInt(rotatedVector.X), Mathf.RoundToInt(rotatedVector.Z)));
+		}
+
+		return rotated;
+	}
+
 	private void BakeDoorwayMarkers(MapData map, List<DoorwayMarker> doorwayMarkers)
 	{
 		foreach (var doorwayMarker in doorwayMarkers)
 		{
-			var tile = MarkerToTilePosition(doorwayMarker);
+			var localPosition = GetMarkerLocalPosition(doorwayMarker);
+			var tile = LocalToTile(localPosition);
+
+			// The authoring convention places markers exactly on their tile's center.
+			// LocalToTile tolerates up to TileSize/2 of drift, but real drift means the
+			// scene was authored against a different convention (or nudged by hand) --
+			// surface it here at bake time, where the room and marker are known, instead
+			// of letting it resurface as a misrouted corridor three systems later.
+			var center = TileCenterCell(tile.X, tile.Y);
+			float driftX = Mathf.Abs(localPosition.X - center.X);
+			float driftZ = Mathf.Abs(localPosition.Z - center.Z);
+			if (driftX > 1f || driftZ > 1f)
+			{
+				GD.PrintErr($"{Name}: Doorway marker {doorwayMarker.Name} sits ({driftX:F2},{driftZ:F2}) off "
+					+ $"its tile's center {center}; markers should be authored exactly on a tile center.");
+			}
+
 			var directions = ValidateDoorwayMarker(map, doorwayMarker, tile);
 			if (directions.Count == 0)
 			{
@@ -222,14 +399,6 @@ public partial class Room : Node3D
 		return FindChildren("*", "", true, false)
 			.OfType<DoorwayMarker>()
 			.Where(marker => marker.Enabled);
-	}
-
-	private Vector2I MarkerToTilePosition(Node3D marker)
-	{
-		var localPosition = GetMarkerLocalPosition(marker);
-		return new Vector2I(
-			Mathf.FloorToInt((localPosition.X - Bounds.Position.X) / TileSize),
-			Mathf.FloorToInt((localPosition.Z - Bounds.Position.Y) / TileSize));
 	}
 
 	private Vector3 GetMarkerLocalPosition(Node3D marker)
@@ -335,67 +504,28 @@ public partial class Room : Node3D
 		return connectorDirections;
 	}
 
+	/// <summary>
+	/// Whether authored wall geometry blocks passage through the given edge of tile
+	/// (x,z). Judged from real mesh footprints, not from which cells hold anchors: the
+	/// edge is blocked unless its largest uncovered stretch is wide enough to walk
+	/// through (half a tile). Footprint math is rotation-invariant -- a rotated wall's
+	/// footprint rotates exactly with it -- where the previous cell sampling of a
+	/// half-open edge row flipped corner anchors in and out of range per orientation,
+	/// making the same room validate differently at different rotations. It also means
+	/// a doorway's frame posts no longer read as "wall": only actual coverage counts.
+	/// </summary>
 	private bool HasWall(int x, int z, int dx, int dz)
 	{
-		var gridPos = ToGridPosition(x, 0, z);
-		int gridX = gridPos.X + Bounds.Position.X - TileSize / 2;
-		int gridZ = gridPos.Z + Bounds.Position.Y - TileSize / 2;
+		var center = TileCenterCell(x, z);
+		float half = TileSize / 2f;
+		bool horizontal = dz != 0;
+		float lineCoord = horizontal ? center.Z + dz * half : center.X + dx * half;
+		float spanMin = (horizontal ? center.X : center.Z) - half;
+		float spanMax = spanMin + TileSize;
 
-		bool hasWall = false;
-		if (dx < 0)
-		{
-			hasWall = HasWallZ(gridX, gridZ);
-			// GD.Print($"Checking Z wall at {gridX}, {gridZ}: {hasWall}");
-		}
-		if (dx > 0)
-		{
-			hasWall = HasWallZ(gridX + TileSize, gridZ);
-			// GD.Print($"Checking Z wall at {gridX + TileSize}, {gridZ}: {hasWall}");
-		}
-		if (dz < 0)
-		{
-			hasWall = HasWallX(gridX, gridZ);
-			// GD.Print($"Checking X wall at {gridX}, {gridZ}: {hasWall}");
-		}
-		if (dz > 0)
-		{
-			hasWall = HasWallX(gridX, gridZ + TileSize);
-			// GD.Print($"Checking X wall at {gridX}, {gridZ + TileSize}: {hasWall}");
-		}
-
-		return hasWall;
-	}
-
-	/// <summary>
-	/// Check if there is a wall along the X axis at the given grid position
-	/// </summary>
-	private bool HasWallX(int gridX, int gridZ)
-	{
-		// Note that walls are placed at the center of the tile
-		for (var dx = 0; dx < TileSize; dx++)
-		{
-			if (WallGridMap.GetCellItem(new Vector3I(gridX + dx, 0, gridZ)) != -1)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/// <summary>
-	/// Check if there is a wall along the Z axis at the given grid position
-	/// </summary>
-	private bool HasWallZ(int gridX, int gridZ)
-	{
-		// Note that walls are placed at the center of the tile
-		for (var dz = 0; dz < TileSize; dz++)
-		{
-			if (WallGridMap.GetCellItem(new Vector3I(gridX, 0, gridZ + dz)) != -1)
-			{
-				return true;
-			}
-		}
-		return false;
+		float passableGap = WallFootprints.MaxUncoveredGap(
+			_wallFootprints, horizontal, lineCoord, spanMin, spanMax);
+		return passableGap < TileSize / 2f - WallFootprints.Eps;
 	}
 
 	private void CreateDebugOverlay()
@@ -571,4 +701,30 @@ public partial class Room : Node3D
 		return new Vector3I(gridX, y, gridZ);
 	}
 
+	/// <summary>
+	/// The room-local tile containing a local position: the tile whose CENTER is
+	/// nearest. Tile (x,z)'s 4x4-cell footprint is centered on
+	/// <see cref="TileCenterCell"/>, so a position keeps resolving to its tile with up
+	/// to TileSize/2 of slack in every direction. (The previous floor-binning placed
+	/// tile centers exactly on a bin boundary, where any negative drift -- e.g. float
+	/// error from a rotated marker's composed transform -- flipped the result to the
+	/// neighboring tile; that knife edge is what historically made rotated rooms fail
+	/// doorway validation.)
+	/// </summary>
+	public Vector2I LocalToTile(Vector3 localPosition)
+	{
+		return new Vector2I(
+			Mathf.FloorToInt((localPosition.X - Bounds.Position.X + TileSize / 2f) / TileSize),
+			Mathf.FloorToInt((localPosition.Z - Bounds.Position.Y + TileSize / 2f) / TileSize));
+	}
+
+	/// <summary>
+	/// The grid cell at the center of tile (x,z) -- the anchor every piece of
+	/// tile-relative cell math hangs off. A tile's cells span this center
+	/// ± TileSize/2 on both axes.
+	/// </summary>
+	public Vector3I TileCenterCell(int x, int z)
+	{
+		return new Vector3I(x * TileSize + Bounds.Position.X, 0, z * TileSize + Bounds.Position.Y);
+	}
 }

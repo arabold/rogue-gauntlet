@@ -16,7 +16,8 @@ public partial class LootTable : Resource
 
 	/// <summary>
 	/// Weighted pick among the entries eligible at the given depth, or null if none are
-	/// eligible.
+	/// eligible or every eligible entry has zero weight (RandWeighted returns -1 for an
+	/// all-zero distribution rather than throwing).
 	/// </summary>
 	public LootTableItem PickEntry(uint depth, RandomNumberGenerator rng)
 	{
@@ -32,6 +33,23 @@ public partial class LootTable : Resource
 		}
 
 		float[] weights = eligible.Select(i => i.Weight).ToArray();
-		return eligible[rng.RandWeighted(weights)];
+		long index = rng.RandWeighted(weights);
+		return index >= 0 ? eligible[index] : null;
+	}
+
+	/// <summary>
+	/// Picks one entry using each item's <see cref="LootTableItem.Weight"/>, ignoring depth
+	/// eligibility, or null if the table is empty or every entry has zero weight.
+	/// </summary>
+	public LootTableItem PickWeightedEntry(RandomNumberGenerator rng)
+	{
+		if (Items == null || Items.Length == 0)
+		{
+			return null;
+		}
+
+		var weights = Items.Select(i => i.Weight).ToArray();
+		long index = rng.RandWeighted(weights);
+		return index >= 0 ? Items[index] : null;
 	}
 }

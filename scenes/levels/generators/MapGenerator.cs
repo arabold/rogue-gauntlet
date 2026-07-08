@@ -18,6 +18,23 @@ public partial class MapGenerator : Node3D
 	[Export] public MobFactory MobFactory { get; set => SetProperty(ref field, value); }
 	[Export] public TileFactory TileFactory { get; set => SetProperty(ref field, value); }
 
+	/// <summary>Chest prop placed against a room wall, facing into the room. Unset skips chest placement.</summary>
+	[Export] public PackedScene ChestScene { get; set => SetProperty(ref field, value); }
+	[Export(PropertyHint.Range, "0,10")] public int MinChests { get; set => SetProperty(ref field, value); } = 0;
+	[Export(PropertyHint.Range, "0,10")] public int MaxChests { get; set => SetProperty(ref field, value); } = 2;
+
+	/// <summary>Floor trap prop, placeable on any open room/corridor tile. Unset skips trap placement.</summary>
+	[Export] public PackedScene TrapScene { get; set => SetProperty(ref field, value); }
+	[Export(PropertyHint.Range, "0,10")] public int MinTraps { get; set => SetProperty(ref field, value); } = 0;
+	[Export(PropertyHint.Range, "0,10")] public int MaxTraps { get; set => SetProperty(ref field, value); } = 3;
+
+	/// <summary>Loose ground-item prop. Unset skips loose-item placement.</summary>
+	[Export] public PackedScene LooseItemScene { get; set => SetProperty(ref field, value); }
+	/// <summary>Weighted pool loose items are rolled from. Unset skips loose-item placement.</summary>
+	[Export] public LootTable LooseItemLootTable { get; set => SetProperty(ref field, value); }
+	[Export(PropertyHint.Range, "0,10")] public int MinLooseItems { get; set => SetProperty(ref field, value); } = 0;
+	[Export(PropertyHint.Range, "0,10")] public int MaxLooseItems { get; set => SetProperty(ref field, value); } = 4;
+
 	public MapData Map;
 	public GridMap FloorGridMap { get; private set; }
 	public GridMap WallGridMap { get; private set; }
@@ -43,6 +60,10 @@ public partial class MapGenerator : Node3D
 	private PlaneMesh _occlusionCapMesh;
 	// Doors paired with the connector they guard, for toggling their x-ray indicator.
 	private readonly List<(Door Door, Vector2I Connector)> _doorIndicators = new();
+	// Doorway markers paired with the connector they mark, so a marker whose doorway
+	// never got a corridor routed to it (see FinalizeDoors) can be hidden instead of
+	// misleadingly pointing at what is now a solid generated wall.
+	private readonly List<(DoorwayMarker Marker, Vector2I Connector)> _markerIndicators = new();
 
 	private static readonly Vector2I[] CardinalOffsets =
 	{
@@ -81,6 +102,12 @@ public partial class MapGenerator : Node3D
 	private const float EnemySpawnPointSpacing = 5f;
 	private const float EnemySpawnBlockedAreaClearance = 7f;
 	private const float EnemySpawnPropClearance = 2f;
+
+	// Smaller than the enemy-spawn equivalents: loot close to the entrance is fine, and a
+	// tight level shouldn't run out of valid spots just to keep loot far from the player.
+	// Internal (not private) so LootPlacementTest can assert against the real thresholds.
+	internal const float LootSpawnPlayerClearance = 10f;
+	internal const float LootSpawnSpacing = 6f;
 
 	// Physics layers a runtime spawn must stay clear of: world (1) | walls (2) | props (5).
 	// Keeps items out of stairs, transition blockers, walls, and props via a single overlap test.
@@ -213,7 +240,10 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		var region = new RoomRegion(_roomRegions.Count);
+		// A procedurally built room (ProceduralRoomBuilder.BuildRoom) is a fresh `new
+		// Room` with no backing scene file; an authored room is instantiated from a
+		// PackedScene, which sets SceneFilePath on the instantiated root.
+		var region = new RoomRegion(_roomRegions.Count) { IsProcedural = string.IsNullOrEmpty(placement.Room.SceneFilePath) };
 		for (int lx = 0; lx < roomMap.Width; lx++)
 		{
 			for (int lz = 0; lz < roomMap.Height; lz++)
@@ -253,7 +283,15 @@ public partial class MapGenerator : Node3D
 
 	/// <summary>
 	/// Marks the connectors guarded by hand-placed Door props so fog reveal stops
-	/// at them. A door is matched to the nearest connector of its own room.
+	/// at them, and separately tracks every DoorwayMarker so one whose doorway never
+	/// gets a corridor routed to it (see FinalizeDoors) can be hidden rather than left
+	/// pointing at a solid wall. Doors sit in the wall opening rather than exactly on a
+	/// connector tile, so they're matched to the nearest connector of the room. Markers
+	/// are authored exactly on their own tile's center (see the coordinate-convention
+	/// docs in Room.cs), so they're matched to that exact tile directly -- proximity
+	/// matching would let a marker whose OWN doorway failed validation (its tile never
+	/// became a connector at all) borrow a nearby, unrelated doorway's connected status
+	/// instead of correctly always reading as unconnected.
 	/// </summary>
 	private void RegisterDoors(Room room, RoomRegion region)
 	{
@@ -264,16 +302,30 @@ public partial class MapGenerator : Node3D
 
 		foreach (Node node in room.FindChildren("*", "", true, false))
 		{
-			if (node is not Door door)
+			if (node is Door door)
 			{
-				continue;
+				// Candidates only: which doorways are real passages isn't known until
+				// corridors have been routed (see FinalizeDoors).
+				if (TryFindNearestConnector(region, door.GlobalPosition, out var connector))
+				{
+					_doorIndicators.Add((door, connector));
+				}
 			}
-
-			// Candidates only: which doorways are real passages isn't known until
-			// corridors have been routed (see FinalizeDoors).
-			if (TryFindNearestConnector(region, door.GlobalPosition, out var connector))
+			else if (node is DoorwayMarker marker)
 			{
-				_doorIndicators.Add((door, connector));
+				var tile = WorldToTile(marker.GlobalPosition);
+				if (region.ConnectorTiles.Contains(tile))
+				{
+					_markerIndicators.Add((marker, tile));
+				}
+				else
+				{
+					// The marker's own doorway validation failed outright (its tile
+					// never became a connector at all) -- known now, without waiting on
+					// corridor routing, so disable it immediately rather than leaving it
+					// enabled forever (FinalizeMarkers only ever visits tracked markers).
+					marker.Enabled = false;
+				}
 			}
 		}
 	}
@@ -329,6 +381,31 @@ public partial class MapGenerator : Node3D
 	}
 
 	/// <summary>
+	/// Hides the editor-only gizmo of every DoorwayMarker whose doorway never got a
+	/// corridor routed to it. A doorway can validate fine (it becomes a real
+	/// MapData connector) yet still end up walled shut -- e.g. a tightly packed room
+	/// with more doorways than the layout had room to route corridors to, or one side
+	/// of a corner tile after Room.Rotate -- and MapData keeps classifying that tile
+	/// as a Connector either way (wall placement is pure geometry, it never touches
+	/// tile classification). Without this, the marker's arrow keeps pointing at what
+	/// is now a solid generated wall, which is confusing when inspecting a level in
+	/// the editor even though it has no effect on actual gameplay (the arrow doesn't
+	/// render outside the editor at all).
+	/// </summary>
+	private void FinalizeMarkers()
+	{
+		foreach (var (marker, connector) in _markerIndicators)
+		{
+			if (!IsConnectorConnected(connector))
+			{
+				marker.Enabled = false;
+			}
+		}
+
+		_markerIndicators.Clear();
+	}
+
+	/// <summary>
 	/// A connector is connected when a corridor was routed out of one of its open
 	/// sides (rooms never sit adjacent, so a real link always has a corridor tile).
 	/// </summary>
@@ -338,6 +415,20 @@ public partial class MapGenerator : Node3D
 		{
 			var outside = connector + direction;
 			if (Map.IsWithinBounds(outside.X, outside.Y) && Map.IsCorridor(outside.X, outside.Y))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/// <summary>True when one of the connector's own sanctioned open directions is <paramref name="direction"/>.</summary>
+	private bool ConnectorOpensToward(Vector2I connector, Vector2I direction)
+	{
+		foreach (var openDirection in Map.GetConnectorDirections(connector.X, connector.Y))
+		{
+			if (openDirection == direction)
 			{
 				return true;
 			}
@@ -377,16 +468,15 @@ public partial class MapGenerator : Node3D
 	{
 		GD.Print("Placing walls...");
 		var cornerEdges = new System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges>();
-		var straightWalls = new List<WallStraightRequest>();
-		// Occupancy tracks only the walls we generate here, so generated corners/halves
-		// tile without overlapping each other. Reconciliation with room-authored walls is
-		// done per logical edge against their real mesh footprints (see PlaceWallModulesForTile),
-		// not by inferring coverage from a wall's tile index -- that inference misread authored
-		// corner variants (e.g. wall_corner_small) as full straight walls and suppressed the
-		// generated walls that should have sealed the adjacent corridor edge, leaving gaps.
-		var occupiedWallSpans = new HashSet<WallSpan>();
-		var authoredWallBoxes = BuildAuthoredWallBoxes();
+		// A HashSet, not a List: an interior room/corridor edge is a wall-source tile on
+		// both sides (unlike a void-facing edge, which only ever has one walkable side),
+		// so both sides independently request the same wall at the same position and
+		// orientation. WallStraightRequest is a record struct, so this dedupes for free.
+		var straightWalls = new HashSet<WallStraightRequest>();
+		var authoredWallBoxes = CollectWallFootprints();
 
+		// Decision pass: one rule per tile edge (see NeedsWallToward) collects every
+		// edge that must end up sealed.
 		for (int x = 0; x < Map.Width; x++)
 		{
 			for (int z = 0; z < Map.Height; z++)
@@ -398,21 +488,154 @@ public partial class MapGenerator : Node3D
 			}
 		}
 
-		// Straight walls first: each lays a full-width wall on its (distinct) edge-midpoint
-		// cell, so every void-facing edge is sealed before anything else. Corners are placed
-		// afterwards on corner cells (a different cell set) purely for the join visual. This
-		// ordering matters for the rare midpoint-occupied fallback in PlaceWallStraight: it
-		// anchors half-walls at the edge's endpoint (corner) cells, so corners must not be
-		// placed yet or they would block that fallback and could leave the edge unsealed.
+		// Fast path: a full-width wall on each edge whose midpoint cell is free -- the
+		// overwhelmingly common case.
 		foreach (var wall in straightWalls)
 		{
-			PlaceWallStraight(wall.Position, wall.Orientation, occupiedWallSpans);
+			if (WallGridMap.GetCellItem(wall.Position) < 0)
+			{
+				WallGridMap.SetCellItem(wall.Position, TileFactory.GetWallTileIndex(), wall.Orientation);
+			}
+		}
+
+		// Coverage pass: re-measure the actual mesh footprints now in the grid (authored
+		// + just-generated) and patch any required edge still showing daylight. Coverage
+		// is judged from real geometry rather than parallel bookkeeping, so authored
+		// frame posts, corner pieces, and rotated perpendicular walls that merely occupy
+		// anchor CELLS without covering the edge LINE cannot fool it -- that exact
+		// confusion previously left an unconnected authored doorway open to the void
+		// (silently: the old half-wall fallback gave up when its two fixed anchor cells
+		// were taken). A required edge that cannot be sealed is now a loud error.
+		var wallBoxes = CollectWallFootprints();
+		foreach (var wall in straightWalls)
+		{
+			EnsureEdgeCovered(wall, wallBoxes);
 		}
 
 		PlaceWallCorners(cornerEdges);
 	}
 
-	private void PlaceWallModulesForTile(int x, int z, System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, List<WallStraightRequest> straightWalls, List<Aabb> authoredWallBoxes)
+	/// <summary>
+	/// Seals whatever parts of a required edge are still uncovered, placing full or half
+	/// wall pieces anchored at any free cell along the edge row whose measured footprint
+	/// actually covers the hole. Errors loudly when a hole cannot be sealed -- a visible
+	/// gap in the dungeon must never be silent.
+	/// </summary>
+	private void EnsureEdgeCovered(WallStraightRequest wall, List<Aabb> wallBoxes)
+	{
+		bool horizontal = wall.Orientation == HorizontalWallOrientation;
+		float lineCoord = horizontal ? wall.Position.Z : wall.Position.X;
+		float spanMin = (horizontal ? wall.Position.X : wall.Position.Z) - TileSize / 2f;
+		float spanMax = spanMin + TileSize;
+
+		// Each successful fill covers a positive part of the hole, so a handful of
+		// pieces always suffices for a TileSize-wide edge; the bound only guards
+		// against a degenerate mesh library (e.g. zero-width wall meshes).
+		for (int attempt = 0; attempt < TileSize; attempt++)
+		{
+			if (!WallFootprints.TryGetUncoveredSpan(wallBoxes, horizontal, lineCoord, spanMin, spanMax, out var gap))
+			{
+				return; // Fully sealed.
+			}
+
+			if (!TryFillEdgeGap(horizontal, lineCoord, gap, wallBoxes))
+			{
+				break;
+			}
+		}
+
+		if (WallFootprints.TryGetUncoveredSpan(wallBoxes, horizontal, lineCoord, spanMin, spanMax, out var remaining))
+		{
+			GD.PrintErr($"Wall gap could not be sealed on the {(horizontal ? "horizontal" : "vertical")} edge at "
+				+ $"{(horizontal ? "z" : "x")}={lineCoord}, span [{remaining.A:F1},{remaining.B:F1}] near {wall.Position}: "
+				+ "no free cell on the edge row fits a covering wall piece.");
+		}
+	}
+
+	/// <summary>
+	/// Places the single candidate piece (full or half wall, any orientation valid for
+	/// the edge axis, anchored at any free cell along the edge row) whose measured mesh
+	/// footprint covers the most of <paramref name="gap"/>. Candidates are judged by
+	/// their real rotated AABB footprint, never by which cell they anchor on.
+	/// </summary>
+	private bool TryFillEdgeGap(bool horizontal, float lineCoord, (float A, float B) gap, List<Aabb> wallBoxes)
+	{
+		MeshLibrary library = WallGridMap.MeshLibrary;
+		if (library == null)
+		{
+			return false;
+		}
+
+		(int Item, int Orientation)[] candidates = horizontal
+			? new[]
+			{
+				(TileFactory.GetWallTileIndex(), HorizontalWallOrientation),
+				(TileFactory.GetWallHalfTileIndex(), HorizontalWallOrientation),
+				(TileFactory.GetWallHalfTileIndex(), HorizontalWallWestHalfOrientation),
+			}
+			: new[]
+			{
+				(TileFactory.GetWallTileIndex(), VerticalWallOrientation),
+				(TileFactory.GetWallHalfTileIndex(), VerticalWallOrientation),
+				(TileFactory.GetWallHalfTileIndex(), VerticalWallSouthHalfOrientation),
+			};
+
+		float bestOverlap = WallCoverageEps;
+		Vector3I bestCell = default;
+		(int Item, int Orientation) bestCandidate = default;
+		Aabb bestFootprint = default;
+
+		int gapCenter = Mathf.RoundToInt((gap.A + gap.B) / 2f);
+		for (int offset = -(int)TileSize / 2; offset <= (int)TileSize / 2; offset++)
+		{
+			var cell = horizontal
+				? new Vector3I(gapCenter + offset, 0, Mathf.RoundToInt(lineCoord))
+				: new Vector3I(Mathf.RoundToInt(lineCoord), 0, gapCenter + offset);
+			if (WallGridMap.GetCellItem(cell) >= 0)
+			{
+				continue;
+			}
+
+			foreach (var candidate in candidates)
+			{
+				Mesh mesh = library.GetItemMesh(candidate.Item);
+				if (mesh == null)
+				{
+					continue;
+				}
+
+				Aabb footprint = WallFootprints.FootprintWorld(mesh.GetAabb(), candidate.Orientation, cell);
+				float perpMin = horizontal ? footprint.Position.Z : footprint.Position.X;
+				float perpMax = horizontal ? footprint.End.Z : footprint.End.X;
+				if (lineCoord < perpMin - WallCoverageEps || lineCoord > perpMax + WallCoverageEps)
+				{
+					continue; // Doesn't sit on the edge line.
+				}
+
+				float a = horizontal ? footprint.Position.X : footprint.Position.Z;
+				float b = horizontal ? footprint.End.X : footprint.End.Z;
+				float overlap = Mathf.Min(b, gap.B) - Mathf.Max(a, gap.A);
+				if (overlap > bestOverlap)
+				{
+					bestOverlap = overlap;
+					bestCell = cell;
+					bestCandidate = candidate;
+					bestFootprint = footprint;
+				}
+			}
+		}
+
+		if (bestOverlap <= WallCoverageEps)
+		{
+			return false;
+		}
+
+		WallGridMap.SetCellItem(bestCell, bestCandidate.Item, bestCandidate.Orientation);
+		wallBoxes.Add(bestFootprint);
+		return true;
+	}
+
+	private void PlaceWallModulesForTile(int x, int z, System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, HashSet<WallStraightRequest> straightWalls, List<Aabb> authoredWallBoxes)
 	{
 		int tileCenter = (int)TileSize / 2;
 		var basePosition = TileToWorld(x, 0, z);
@@ -421,12 +644,14 @@ public partial class MapGenerator : Node3D
 		int northZ = basePosition.Z - tileCenter;
 		int southZ = basePosition.Z + tileCenter;
 
-		// Generate a wall on each edge that faces void -- unless the room template already
-		// authored a wall that fully covers that edge (checked against real mesh footprints).
-		bool north = NeedsGeneratedWallAgainst(x, z - 1) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: true, northZ, westX, eastX);
-		bool south = NeedsGeneratedWallAgainst(x, z + 1) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: true, southZ, westX, eastX);
-		bool west = NeedsGeneratedWallAgainst(x - 1, z) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: false, westX, northZ, southZ);
-		bool east = NeedsGeneratedWallAgainst(x + 1, z) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: false, eastX, northZ, southZ);
+		// Generate a wall on each edge that faces void, or that needs interior separation
+		// (an unsanctioned room/corridor contact; see MapData.RequiresInteriorWall) --
+		// unless the room template already authored a wall that fully covers that edge
+		// (checked against real mesh footprints).
+		bool north = NeedsWallToward(x, z, 0, -1) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: true, northZ, westX, eastX);
+		bool south = NeedsWallToward(x, z, 0, 1) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: true, southZ, westX, eastX);
+		bool west = NeedsWallToward(x, z, -1, 0) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: false, westX, northZ, southZ);
+		bool east = NeedsWallToward(x, z, 1, 0) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: false, eastX, northZ, southZ);
 
 		if (north)
 		{
@@ -524,140 +749,17 @@ public partial class MapGenerator : Node3D
 		}
 	}
 
-	private void PlaceWallStraight(Vector3I position, int orientation, HashSet<WallSpan> occupiedWallSpans)
-	{
-		// Lay a full-width wall across the whole edge so it is guaranteed sealed. A corner
-		// already placed at an endpoint simply overlaps this wall's end (harmless). The old
-		// half-tiling tried to avoid that overlap by splitting the edge into halves, but it
-		// dropped a half whenever it could not find a free anchor cell beside a corner,
-		// leaving see-through gaps. Full edges cannot have that problem.
-		if (WallGridMap.GetCellItem(position) < 0)
-		{
-			WallGridMap.SetCellItem(position, TileFactory.GetWallTileIndex(), orientation);
-			return;
-		}
-
-		// The edge midpoint cell is already used (rare). Fill each side with a half where one fits.
-		var footprint = orientation == HorizontalWallOrientation
-			? GeneratedWallFootprint.Horizontal
-			: GeneratedWallFootprint.Vertical;
-		PlaceWallHalf(position, footprint, startHalf: true, occupiedWallSpans);
-		PlaceWallHalf(position, footprint, startHalf: false, occupiedWallSpans);
-	}
-
-	private bool PlaceWallHalf(Vector3I position, GeneratedWallFootprint footprint, bool startHalf, HashSet<WallSpan> occupiedWallSpans)
-	{
-		if (WallHalfSpanOccupied(position, footprint, startHalf, occupiedWallSpans))
-		{
-			return false;
-		}
-
-		int tileCenter = (int)TileSize / 2;
-		int tileIndex = TileFactory.GetWallHalfTileIndex();
-
-		// A wall_half covers one side of its anchor. If the center anchor is already
-		// used by an authored wall, the same 2-cell span can be represented from the
-		// opposite endpoint with the opposite orientation.
-		if (footprint == GeneratedWallFootprint.Horizontal)
-		{
-			return startHalf
-				? SetGeneratedWallCell(position, tileIndex, HorizontalWallWestHalfOrientation, WallCoverage.HorizontalWest, occupiedWallSpans)
-					|| SetGeneratedWallCell(position + new Vector3I(-tileCenter, 0, 0), tileIndex, HorizontalWallOrientation, WallCoverage.HorizontalEast, occupiedWallSpans)
-				: SetGeneratedWallCell(position, tileIndex, HorizontalWallOrientation, WallCoverage.HorizontalEast, occupiedWallSpans)
-					|| SetGeneratedWallCell(position + new Vector3I(tileCenter, 0, 0), tileIndex, HorizontalWallWestHalfOrientation, WallCoverage.HorizontalWest, occupiedWallSpans);
-		}
-
-		return startHalf
-			? SetGeneratedWallCell(position, tileIndex, VerticalWallOrientation, WallCoverage.VerticalNorth, occupiedWallSpans)
-				|| SetGeneratedWallCell(position + new Vector3I(0, 0, -tileCenter), tileIndex, VerticalWallSouthHalfOrientation, WallCoverage.VerticalSouth, occupiedWallSpans)
-			: SetGeneratedWallCell(position, tileIndex, VerticalWallSouthHalfOrientation, WallCoverage.VerticalSouth, occupiedWallSpans)
-				|| SetGeneratedWallCell(position + new Vector3I(0, 0, tileCenter), tileIndex, VerticalWallOrientation, WallCoverage.VerticalNorth, occupiedWallSpans);
-	}
-
-	private bool SetGeneratedWallCell(Vector3I position, int tileIndex, int orientation, WallCoverage coverage, HashSet<WallSpan> occupiedWallSpans)
-	{
-		if (WallGridMap.GetCellItem(position) >= 0)
-		{
-			return false;
-		}
-
-		if (WallCoverageOccupied(position, coverage, occupiedWallSpans))
-		{
-			return false;
-		}
-
-		WallGridMap.SetCellItem(position, tileIndex, orientation);
-		AddWallSpans(occupiedWallSpans, position, coverage);
-		return true;
-	}
-
-	private const float WallCoverageEps = 0.05f;
+	private const float WallCoverageEps = WallFootprints.Eps;
 
 	/// <summary>
-	/// World-space XZ footprints of every wall already in the grid before generation runs
-	/// (i.e. the room-authored walls). Used to decide, per logical edge, whether the room
-	/// already sealed it. Derived from each piece's actual mesh AABB + orientation rather
-	/// than guessed from its tile index, so decorative corner/half variants are handled
-	/// correctly.
+	/// World-space XZ footprints of every wall currently in the grid. Called before
+	/// generation (yielding the room-authored walls, to skip edges they already seal)
+	/// and again after the fast placement pass (yielding authored + generated, as the
+	/// baseline for the coverage-patching pass).
 	/// </summary>
-	private List<Aabb> BuildAuthoredWallBoxes()
+	private List<Aabb> CollectWallFootprints()
 	{
-		var boxes = new List<Aabb>();
-		MeshLibrary library = WallGridMap.MeshLibrary;
-		if (library == null)
-		{
-			return boxes;
-		}
-
-		foreach (Vector3I cell in WallGridMap.GetUsedCells())
-		{
-			int tileIndex = WallGridMap.GetCellItem(cell);
-			if (tileIndex < 0)
-			{
-				continue;
-			}
-
-			Mesh mesh = library.GetItemMesh(tileIndex);
-			if (mesh == null)
-			{
-				continue;
-			}
-
-			boxes.Add(WallFootprintWorld(mesh.GetAabb(), WallGridMap.GetCellItemOrientation(cell), cell));
-		}
-
-		return boxes;
-	}
-
-	/// <summary>
-	/// World XZ footprint of a wall cell. Wall pieces use only the upright Y-rotation
-	/// orientations {0:0°, 16:90°, 10:180°, 22:270°}; the GridMaps use cell_center=false, so
-	/// the mesh origin sits at the cell coordinate.
-	/// </summary>
-	private static Aabb WallFootprintWorld(Aabb local, int orientation, Vector3I origin)
-	{
-		int quarterTurns = orientation switch { 16 => 1, 10 => 2, 22 => 3, _ => 0 };
-		float x0 = local.Position.X, x1 = local.End.X, z0 = local.Position.Z, z1 = local.End.Z;
-		var corners = new (float X, float Z)[] { (x0, z0), (x1, z0), (x0, z1), (x1, z1) };
-		float minX = float.MaxValue, maxX = float.MinValue, minZ = float.MaxValue, maxZ = float.MinValue;
-		foreach (var (px, pz) in corners)
-		{
-			(float rx, float rz) = quarterTurns switch
-			{
-				1 => (pz, -px),
-				2 => (-px, -pz),
-				3 => (-pz, px),
-				_ => (px, pz),
-			};
-			minX = Mathf.Min(minX, rx);
-			maxX = Mathf.Max(maxX, rx);
-			minZ = Mathf.Min(minZ, rz);
-			maxZ = Mathf.Max(maxZ, rz);
-		}
-
-		return new Aabb(
-			new Vector3(minX + origin.X, local.Position.Y + origin.Y, minZ + origin.Z),
-			new Vector3(maxX - minX, local.Size.Y, maxZ - minZ));
+		return WallFootprints.Collect(WallGridMap);
 	}
 
 	/// <summary>
@@ -668,110 +770,9 @@ public partial class MapGenerator : Node3D
 	/// </summary>
 	private static bool EdgeFullyAuthored(List<Aabb> authoredWallBoxes, bool horizontal, float lineCoord, float spanMin, float spanMax)
 	{
-		var intervals = new List<(float A, float B)>();
-		foreach (Aabb box in authoredWallBoxes)
-		{
-			float perpMin = horizontal ? box.Position.Z : box.Position.X;
-			float perpMax = horizontal ? box.End.Z : box.End.X;
-			if (lineCoord < perpMin - WallCoverageEps || lineCoord > perpMax + WallCoverageEps)
-			{
-				continue;
-			}
-
-			float a = horizontal ? box.Position.X : box.Position.Z;
-			float b = horizontal ? box.End.X : box.End.Z;
-			intervals.Add((Mathf.Max(a, spanMin), Mathf.Min(b, spanMax)));
-		}
-
-		intervals.Sort((p, q) => p.A.CompareTo(q.A));
-		float reached = spanMin;
-		foreach (var (a, b) in intervals)
-		{
-			if (b <= a)
-			{
-				continue; // empty after clamping
-			}
-
-			if (a > reached + WallCoverageEps)
-			{
-				return false; // uncovered span before this interval
-			}
-
-			reached = Mathf.Max(reached, b);
-		}
-
-		return reached >= spanMax - WallCoverageEps;
+		return !WallFootprints.TryGetUncoveredSpan(authoredWallBoxes, horizontal, lineCoord, spanMin, spanMax, out _);
 	}
 
-	private void AddWallSpans(HashSet<WallSpan> occupiedWallSpans, Vector3I position, WallCoverage coverage)
-	{
-		if (coverage.HasFlag(WallCoverage.HorizontalWest))
-		{
-			occupiedWallSpans.Add(GetWallHalfSpan(position, GeneratedWallFootprint.Horizontal, startHalf: true));
-		}
-
-		if (coverage.HasFlag(WallCoverage.HorizontalEast))
-		{
-			occupiedWallSpans.Add(GetWallHalfSpan(position, GeneratedWallFootprint.Horizontal, startHalf: false));
-		}
-
-		if (coverage.HasFlag(WallCoverage.VerticalNorth))
-		{
-			occupiedWallSpans.Add(GetWallHalfSpan(position, GeneratedWallFootprint.Vertical, startHalf: true));
-		}
-
-		if (coverage.HasFlag(WallCoverage.VerticalSouth))
-		{
-			occupiedWallSpans.Add(GetWallHalfSpan(position, GeneratedWallFootprint.Vertical, startHalf: false));
-		}
-	}
-
-	private bool WallCoverageOccupied(Vector3I position, WallCoverage coverage, HashSet<WallSpan> occupiedWallSpans)
-	{
-		return coverage.HasFlag(WallCoverage.HorizontalWest) && WallHalfSpanOccupied(position, GeneratedWallFootprint.Horizontal, startHalf: true, occupiedWallSpans)
-			|| coverage.HasFlag(WallCoverage.HorizontalEast) && WallHalfSpanOccupied(position, GeneratedWallFootprint.Horizontal, startHalf: false, occupiedWallSpans)
-			|| coverage.HasFlag(WallCoverage.VerticalNorth) && WallHalfSpanOccupied(position, GeneratedWallFootprint.Vertical, startHalf: true, occupiedWallSpans)
-			|| coverage.HasFlag(WallCoverage.VerticalSouth) && WallHalfSpanOccupied(position, GeneratedWallFootprint.Vertical, startHalf: false, occupiedWallSpans);
-	}
-
-	private bool WallHalfSpanOccupied(Vector3I position, GeneratedWallFootprint footprint, bool startHalf, HashSet<WallSpan> occupiedWallSpans)
-	{
-		return occupiedWallSpans.Contains(GetWallHalfSpan(position, footprint, startHalf));
-	}
-
-	private WallSpan GetWallHalfSpan(Vector3I position, GeneratedWallFootprint footprint, bool startHalf)
-	{
-		int tileCenter = (int)TileSize / 2;
-		if (footprint == GeneratedWallFootprint.Horizontal)
-		{
-			return startHalf
-				? new WallSpan(position + new Vector3I(-tileCenter, 0, 0), position)
-				: new WallSpan(position, position + new Vector3I(tileCenter, 0, 0));
-		}
-
-		return startHalf
-			? new WallSpan(position + new Vector3I(0, 0, -tileCenter), position)
-			: new WallSpan(position, position + new Vector3I(0, 0, tileCenter));
-	}
-
-	private enum GeneratedWallFootprint
-	{
-		Point,
-		Horizontal,
-		Vertical,
-	}
-
-	[Flags]
-	private enum WallCoverage
-	{
-		None = 0,
-		HorizontalWest = 1,
-		HorizontalEast = 2,
-		VerticalNorth = 4,
-		VerticalSouth = 8,
-	}
-
-	private readonly record struct WallSpan(Vector3I Start, Vector3I End);
 	private readonly record struct WallStraightRequest(Vector3I Position, int Orientation);
 
 	private bool IsWallSourceTile(int x, int z)
@@ -783,6 +784,12 @@ public partial class MapGenerator : Node3D
 	private bool NeedsGeneratedWallAgainst(int x, int z)
 	{
 		return !Map.IsWithinBounds(x, z) || Map.IsWallOrEmpty(x, z);
+	}
+
+	private bool NeedsWallToward(int x, int z, int dx, int dz)
+	{
+		return NeedsGeneratedWallAgainst(x + dx, z + dz)
+			|| Map.RequiresInteriorWall(x, z, new Vector2I(dx, dz));
 	}
 
 	private struct WallCornerEdges
@@ -1051,6 +1058,15 @@ public partial class MapGenerator : Node3D
 
 		foreach (var offset in CardinalOffsets)
 		{
+			// Gate the seed the same way the cascade gates arriving at a connector
+			// (below): a corridor can pass alongside startConnector's walled,
+			// non-sanctioned side (RequiresInteriorWall keeps that contact sealed), and
+			// seeding from it would reveal that corridor tile through solid wall.
+			if (!ConnectorOpensToward(startConnector, offset))
+			{
+				continue;
+			}
+
 			var seed = startConnector + offset;
 			if (Map.IsWithinBounds(seed.X, seed.Y) && Map.IsCorridor(seed.X, seed.Y)
 				&& visited.Add(seed))
@@ -1081,8 +1097,12 @@ public partial class MapGenerator : Node3D
 				else if (Map.IsConnector(n.X, n.Y))
 				{
 					// Reached another room. A doored connector stays sealed (black); an
-					// open one cascades into that room.
+					// open one cascades into that room -- but only through one of its own
+					// sanctioned directions, so a corridor merely passing alongside a
+					// connector's walled (non-open) side does not leak the reveal through
+					// that wall (see MapData.RequiresInteriorWall).
 					if (!_dooredConnectors.Contains(n)
+						&& ConnectorOpensToward(n, -offset)
 						&& _connectorToRoom.TryGetValue(n, out int otherRoom)
 						&& queuedRooms.Add(otherRoom))
 					{
@@ -1174,6 +1194,380 @@ public partial class MapGenerator : Node3D
 		}
 	}
 
+	/// <summary>
+	/// Scatters chests, traps, and loose ground items across the finished map. Runs after
+	/// walls/corridors are final (so wall-adjacency and occupancy checks are accurate) and
+	/// before <see cref="BakeNavigationMesh"/> (so chests -- solid, unlike traps/loose items
+	/// -- are added as children of <see cref="NavigationRegion"/> in time to be baked in as
+	/// navmesh obstacles, the same way rooms already are). Every content type shares one
+	/// running list of placed points so chests/traps/items all keep clear of each other, not
+	/// just their own kind.
+	/// </summary>
+	private void PlaceLoot()
+	{
+		var placedLootPoints = new List<Vector3>();
+		PlaceChests(placedLootPoints);
+		PlaceTraps(placedLootPoints);
+		PlaceLooseItems(placedLootPoints);
+	}
+
+	private void PlaceChests(List<Vector3> placedLootPoints)
+	{
+		if (ChestScene == null || MaxChests <= 0)
+		{
+			return;
+		}
+
+		var candidates = GetChestCandidates();
+		if (candidates.Count == 0)
+		{
+			ReportNoLootCandidates("chests", "no valid wall-adjacent procedural room tiles found");
+			return;
+		}
+
+		int count = GD.RandRange(MinChests, MaxChests);
+		var remaining = new List<(Vector3 Point, float RotationDegrees)>(candidates);
+		int placed = 0;
+		while (placed < count && remaining.Count > 0)
+		{
+			int index = GD.RandRange(0, remaining.Count - 1);
+			var candidate = remaining[index];
+			remaining.RemoveAt(index);
+			if (IsBlockedLootPoint(candidate.Point, placedLootPoints, LootSpawnSpacing))
+			{
+				continue;
+			}
+
+			var chest = ChestScene.Instantiate<Node3D>();
+			// A chest is a solid StaticBody3D: parent it under NavigationRegion (like rooms
+			// and the GridMap copies BakeNavigationMesh adds) so it becomes a navmesh
+			// obstacle. Do NOT route this through SpawnPoint: it parents under Level instead
+			// (missing the navmesh bake) and unconditionally applies an extra 180-degree
+			// yaw on spawn, which would silently point the chest the wrong way.
+			NavigationRegion.AddChild(chest);
+			// Raised onto the floor's visual surface: a static prop doesn't settle via
+			// physics the way characters do, so at y=0 its base sits buried inside the
+			// floor mesh.
+			chest.GlobalPosition = candidate.Point + Vector3.Up * GetFloorSurfaceHeight(candidate.Point);
+			chest.RotationDegrees = new Vector3(0, candidate.RotationDegrees, 0);
+
+			placedLootPoints.Add(candidate.Point);
+			placed++;
+		}
+
+		if (placed < MinChests)
+		{
+			GD.PrintErr($"Placed only {placed}/{MinChests} minimum chests: ran out of valid spots.");
+		}
+	}
+
+	private void PlaceTraps(List<Vector3> placedLootPoints)
+	{
+		if (TrapScene == null || MaxTraps <= 0)
+		{
+			return;
+		}
+
+		var candidates = GetOpenTileCandidates(proceduralRoomsOnly: true);
+		if (candidates.Count == 0)
+		{
+			ReportNoLootCandidates("traps", "no valid open procedural room or corridor tiles found");
+			return;
+		}
+
+		int count = GD.RandRange(MinTraps, MaxTraps);
+		var remaining = new List<Vector3>(candidates);
+		int placed = 0;
+		while (placed < count && remaining.Count > 0)
+		{
+			int index = GD.RandRange(0, remaining.Count - 1);
+			var point = remaining[index];
+			remaining.RemoveAt(index);
+			if (IsBlockedLootPoint(point, placedLootPoints, LootSpawnSpacing))
+			{
+				continue;
+			}
+
+			// Traps deliberately allow room/corridor chokepoint tiles (unlike chests) -- a
+			// trap you're forced to cross is the point. No facing requirement either. The
+			// floor plate mesh is square and its texture is grid-aligned, matching the
+			// room's own floor tiles -- rotating it off-axis visibly breaks that seam
+			// alignment (the plate's edges no longer line up with its floor neighbors),
+			// which read as an oddly angled, "floating" tile rather than a natural part
+			// of the floor. Leave it unrotated, like any other floor tile.
+			var trap = TrapScene.Instantiate<Node3D>();
+			NavigationRegion.AddChild(trap);
+			trap.GlobalPosition = point;
+
+			placedLootPoints.Add(point);
+			placed++;
+		}
+
+		if (placed < MinTraps)
+		{
+			GD.PrintErr($"Placed only {placed}/{MinTraps} minimum traps: ran out of valid spots.");
+		}
+	}
+
+	private void PlaceLooseItems(List<Vector3> placedLootPoints)
+	{
+		if (LooseItemScene == null || LooseItemLootTable == null || MaxLooseItems <= 0)
+		{
+			return;
+		}
+
+		var candidates = GetLooseItemCandidates();
+		if (candidates.Count == 0)
+		{
+			ReportNoLootCandidates("loose items", "no valid procedural room tiles found");
+			return;
+		}
+
+		// Loot *rolls* (what's inside) stay on the run's own seeded loot sequence, the same
+		// one LootTableComponent.DropLoot draws from -- kept separate from the dungeon-layout
+		// RNG so rebalancing loot tables never perturbs level layout, and vice versa.
+		RandomNumberGenerator rng = GameSession.Instance?.CreateLootRng();
+		if (rng == null)
+		{
+			rng = new RandomNumberGenerator();
+			rng.Randomize();
+		}
+
+		uint depth = GameSession.Instance?.ActiveDungeonDepth ?? DungeonDepth;
+		int count = GD.RandRange(MinLooseItems, MaxLooseItems);
+		var remaining = new List<Vector3>(candidates);
+		int placed = 0;
+		while (placed < count && remaining.Count > 0)
+		{
+			int index = GD.RandRange(0, remaining.Count - 1);
+			var point = remaining[index];
+			remaining.RemoveAt(index);
+			if (IsBlockedLootPoint(point, placedLootPoints, LootSpawnSpacing))
+			{
+				continue;
+			}
+
+			var entry = LooseItemLootTable.PickWeightedEntry(rng);
+			if (entry == null)
+			{
+				break; // Table is empty; no point trying further candidates.
+			}
+
+			Item item = LootRoller.Roll(entry.Item, depth, rng);
+			var lootableItem = LooseItemScene.Instantiate<LootableItem>();
+			lootableItem.Item = item;
+			lootableItem.Quantity = entry.Quantity;
+			NavigationRegion.AddChild(lootableItem);
+			lootableItem.GlobalPosition = point + Vector3.Up * GetFloorSurfaceHeight(point);
+
+			placedLootPoints.Add(point);
+			placed++;
+		}
+
+		if (placed < MinLooseItems)
+		{
+			GD.PrintErr($"Placed only {placed}/{MinLooseItems} minimum loose items: ran out of valid spots.");
+		}
+	}
+
+	/// <summary>
+	/// Every interior room tile with a wall on at least one cardinal side, paired with the
+	/// Y-rotation that faces a chest away from that wall into the room -- excludes tiles
+	/// adjacent to a connector for extra margin from doorway traffic. A tile with exactly one
+	/// wall-adjacent side (a flat wall run) is preferred over a corner (two sides) for the
+	/// cleanest single-direction facing; corners are only used as a fallback when no flat
+	/// spot exists anywhere on the map.
+	/// </summary>
+	private List<(Vector3 Point, float RotationDegrees)> GetChestCandidates()
+	{
+		var flatCandidates = new List<(Vector3, float)>();
+		var cornerCandidates = new List<(Vector3, float)>();
+		for (int x = 0; x < Map.Width; x++)
+		{
+			for (int z = 0; z < Map.Height; z++)
+			{
+				if (!Map.IsRoom(x, z) || !IsProceduralRoomTile(x, z)
+					|| IsOccupiedSpawnTile(x, z) || IsAdjacentToConnector(x, z))
+				{
+					continue;
+				}
+
+				var wallDirections = new List<Vector2I>();
+				foreach (var offset in CardinalOffsets)
+				{
+					int nx = x + offset.X, nz = z + offset.Y;
+					// Wall placement has already sealed every void-facing and unsanctioned
+					// interior edge by this point in GenerateMap, so a non-walkable
+					// neighbor -- including the map border -- is solid wall geometry to back
+					// a chest against. Chasm is the one exception: it's deliberately left
+					// unwalled (pits are open), so a chasm-adjacent tile has nothing behind
+					// it and must not count as a wall direction.
+					if (Map.IsWithinBounds(nx, nz) && Map.IsChasm(nx, nz))
+					{
+						continue;
+					}
+
+					if (!Map.IsWithinBounds(nx, nz) || !Map.IsWalkable(nx, nz))
+					{
+						wallDirections.Add(offset);
+					}
+				}
+
+				if (wallDirections.Count == 0)
+				{
+					continue;
+				}
+
+				var point = TileToWorld(x, 0, z);
+				// GetYRotationDegrees assumes its prop is authored facing North (0deg) --
+				// true for doors/markers, but chest.tscn's lid/opening faces the opposite
+				// way at rotation 0. Rotating toward the wall direction itself (not away
+				// from it) compensates for that -- equivalent to "away + 180" but without
+				// a sum that can exceed 360 (RotationDegrees.Y doesn't normalize on a
+				// direct assignment, so a raw 450 would stay 450, not wrap to 90).
+				float rotation = DoorwayMarker.GetYRotationDegrees(DoorwayMarker.GetDirectionFlag(wallDirections[0]));
+				(wallDirections.Count == 1 ? flatCandidates : cornerCandidates).Add((point, rotation));
+			}
+		}
+
+		return flatCandidates.Count > 0 ? flatCandidates : cornerCandidates;
+	}
+
+	private List<Vector3> GetLooseItemCandidates()
+	{
+		var candidates = new List<Vector3>();
+		for (int x = 0; x < Map.Width; x++)
+		{
+			for (int z = 0; z < Map.Height; z++)
+			{
+				if (Map.IsRoom(x, z) && IsProceduralRoomTile(x, z) && !IsOccupiedSpawnTile(x, z))
+				{
+					candidates.Add(TileToWorld(x, 0, z));
+				}
+			}
+		}
+
+		return candidates;
+	}
+
+	/// <summary>
+	/// True when tile (x,z) belongs to a procedurally built room, or to no tracked room
+	/// region at all (e.g. a corridor tile, which is never part of any room). False only
+	/// for a tile that belongs to an authored room -- see RoomRegion.IsProcedural.
+	/// </summary>
+	private bool IsProceduralRoomTile(int x, int z)
+	{
+		return !_tileToRoom.TryGetValue(new Vector2I(x, z), out int roomId) || _roomRegions[roomId].IsProcedural;
+	}
+
+	/// <summary>
+	/// Generation-time loot only goes into procedural rooms (authored rooms carry their
+	/// own hand-placed content), so a map whose standard rooms all came from authored
+	/// scenes legitimately places nothing -- report that quietly. Zero candidates on a
+	/// map that DOES contain procedural rooms means something real broke, so that stays
+	/// a loud error.
+	/// </summary>
+	private void ReportNoLootCandidates(string lootKind, string reason)
+	{
+		bool anyProceduralRoom = false;
+		foreach (var region in _roomRegions)
+		{
+			if (region.IsProcedural)
+			{
+				anyProceduralRoom = true;
+				break;
+			}
+		}
+
+		if (anyProceduralRoom)
+		{
+			GD.PrintErr($"Cannot place {lootKind}: {reason}.");
+		}
+		else
+		{
+			GD.Print($"Skipping {lootKind}: no procedural rooms in this map (authored rooms keep their hand-placed content).");
+		}
+	}
+
+	/// <summary>
+	/// The walkable top surface of the floor at a world position, in world units above
+	/// y=0 -- what a prop must be raised by to stand ON the floor instead of having its
+	/// base buried inside the floor mesh (whose visual surface sits above its y=0 anchor
+	/// plane; ~0.05 for tile/wood floors, ~0.11 for dirt). Measured from the actual
+	/// floor mesh's AABB at that tile, capped because decorated variants (e.g.
+	/// floor_dirt_large_rocky's scattered rocks) inflate the AABB far above the actual
+	/// walkable plane.
+	/// </summary>
+	private float GetFloorSurfaceHeight(Vector3 worldPoint)
+	{
+		const float MaxSurfaceHeight = 0.12f;
+
+		MeshLibrary library = FloorGridMap.MeshLibrary;
+		if (library == null)
+		{
+			return 0f;
+		}
+
+		// A tile's floor is anchored somewhere within its 4x4 cell block: at the tile
+		// center for tile-sized meshes, at center±1 for half-tile meshes.
+		var center = new Vector3I(Mathf.RoundToInt(worldPoint.X), 0, Mathf.RoundToInt(worldPoint.Z));
+		float height = 0f;
+		for (int dx = -(int)TileSize / 2; dx < (int)TileSize / 2; dx++)
+		{
+			for (int dz = -(int)TileSize / 2; dz < (int)TileSize / 2; dz++)
+			{
+				int item = FloorGridMap.GetCellItem(center + new Vector3I(dx, 0, dz));
+				if (item < 0)
+				{
+					continue;
+				}
+
+				Mesh mesh = library.GetItemMesh(item);
+				if (mesh == null)
+				{
+					continue;
+				}
+
+				Aabb aabb = mesh.GetAabb();
+				height = Mathf.Max(height, Mathf.Min(aabb.Position.Y + aabb.Size.Y, MaxSurfaceHeight));
+			}
+		}
+
+		return height;
+	}
+
+	private bool IsAdjacentToConnector(int x, int z)
+	{
+		foreach (var offset in CardinalOffsets)
+		{
+			int nx = x + offset.X, nz = z + offset.Y;
+			if (Map.IsWithinBounds(nx, nz) && Map.IsConnector(nx, nz))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private bool IsBlockedLootPoint(Vector3 point, List<Vector3> placedLootPoints, float spacing)
+	{
+		if (PlayerSpawnPoint != null && HorizontalDistance(point, PlayerSpawnPoint.GlobalPosition) < LootSpawnPlayerClearance)
+		{
+			return true;
+		}
+
+		foreach (var placed in placedLootPoints)
+		{
+			if (HorizontalDistance(point, placed) < spacing)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private void GenerateEnemySpawnPoints()
 	{
 		uint mobCount = 3 + DungeonDepth % 5 + (GD.Randi() % 3);
@@ -1185,7 +1579,7 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		var candidates = GetEnemySpawnCandidates();
+		var candidates = GetOpenTileCandidates(proceduralRoomsOnly: false);
 		if (candidates.Count == 0)
 		{
 			GD.PrintErr("Cannot generate enemy spawn points: no valid map tiles found.");
@@ -1223,14 +1617,24 @@ public partial class MapGenerator : Node3D
 		}
 	}
 
-	private List<Vector3> GetEnemySpawnCandidates()
+	/// <summary>
+	/// Every open (room or corridor), unoccupied tile's world position -- shared by enemy
+	/// spawning and trap placement, both of which are happy to land on a chokepoint.
+	/// Corridor tiles are never part of any room, authored or not, so <paramref
+	/// name="proceduralRoomsOnly"/> only ever excludes a room tile -- pass true for
+	/// generation-time loot (an authored room brings its own hand-placed content the
+	/// generic scan knows nothing about), false for enemy spawning, which has always
+	/// used every room regardless of origin and should keep doing so.
+	/// </summary>
+	private List<Vector3> GetOpenTileCandidates(bool proceduralRoomsOnly)
 	{
 		var candidates = new List<Vector3>();
 		for (int x = 0; x < Map.Width; x++)
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				if ((Map.IsRoom(x, z) || Map.IsCorridor(x, z)) && !IsOccupiedSpawnTile(x, z))
+				bool isOpenRoomTile = Map.IsRoom(x, z) && (!proceduralRoomsOnly || IsProceduralRoomTile(x, z));
+				if ((isOpenRoomTile || Map.IsCorridor(x, z)) && !IsOccupiedSpawnTile(x, z))
 				{
 					candidates.Add(TileToWorld(x, 0, z));
 				}
@@ -1253,7 +1657,7 @@ public partial class MapGenerator : Node3D
 	/// </summary>
 	public bool TryPickRandomFreePosition(out Vector3 position)
 	{
-		List<Vector3> candidates = GetEnemySpawnCandidates();
+		List<Vector3> candidates = GetOpenTileCandidates(proceduralRoomsOnly: false);
 		if (candidates.Count == 0)
 		{
 			position = default;
@@ -1597,6 +2001,9 @@ public partial class MapGenerator : Node3D
 		// doorways (and gate fog there), drop doors at doorways that got walled shut.
 		FinalizeDoors();
 
+		// Step 2b.2: Hide doorway-marker gizmos left pointing at a wall for the same reason.
+		FinalizeMarkers();
+
 		// Step 2c: Place the black occluder caps. In gameplay the whole map starts
 		// covered (fog of war) and rooms are carved out as the player explores; in
 		// the editor preview only the void is covered so the layout stays visible.
@@ -1608,11 +2015,20 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		// Step 3: Bake navigation mesh
+		// Step 3: Find the player spawn point (moved ahead of the navmesh bake: loot
+		// placement below needs it for clearance, and it's just a scene lookup with no
+		// dependency on anything the bake computes).
+		SetPlayerSpawnPoint();
+
+		// Step 3b: Scatter chests/traps/loose items. Must run before BakeNavigationMesh so
+		// chests are included as navmesh obstacles, and before GenerateEnemySpawnPoints so
+		// enemy-spawn clearance (which already checks the "prop" group) naturally avoids them.
+		PlaceLoot();
+
+		// Step 4: Bake navigation mesh
 		BakeNavigationMesh();
 
-		// Step 4: Create spawn points
-		SetPlayerSpawnPoint();
+		// Step 5: Create enemy spawn points
 		GenerateEnemySpawnPoints();
 
 		GD.Print("Map generated.");
@@ -1822,23 +2238,11 @@ public partial class MapGenerator : Node3D
 		_connectorToRoom.Clear();
 		_dooredConnectors.Clear();
 		_doorIndicators.Clear();
+		_markerIndicators.Clear();
 
-		// Initialize the map with empty tiles
+		// Initialize the map with empty tiles and a walled border
 		Map = new MapData((int)MapWidth, (int)MapDepth);
-
-		// Initialize all tiles as empty and walls for borders
-		for (int x = 0; x < Map.Width; x++)
-		{
-			for (int y = 0; y < Map.Height; y++)
-			{
-				Map.Tiles[x, y] = MapTile.Empty;
-
-				if (x == 0 || x == Map.Width - 1 || y == 0 || y == Map.Height - 1)
-				{
-					Map.Tiles[x, y] = MapTile.Wall;
-				}
-			}
-		}
+		Map.ResetToBorderedEmpty();
 
 		FloorGridMap?.Clear();
 		WallGridMap?.Clear();
@@ -1908,5 +2312,52 @@ public partial class MapGenerator : Node3D
 			(x - centerX) * (int)TileSize,
 			y * (int)TileSize,
 			(z - centerZ) * (int)TileSize);
+	}
+
+	/// <summary>
+	/// Debug/tooling query: every connector tile's world position, whether it's an
+	/// explicit doorway (guaranteed-connected) or an inferred edge (optional), and each
+	/// open direction annotated with whether it actually leads to an open passage or is
+	/// sealed by a generated wall. All-Godot-native return types so this is callable
+	/// from a GDScript preview/verification script even though MapData itself (a plain
+	/// C# class) can't marshal across that boundary -- see
+	/// .agents/skills/godot-mcp/scripts/render_level_topdown.gd, which renders this
+	/// over a top-down screenshot so doorway alignment can be checked visually instead
+	/// of by reasoning about coordinates.
+	/// </summary>
+	public Godot.Collections.Array<Godot.Collections.Dictionary> GetConnectorDebugInfo()
+	{
+		var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+		for (int x = 0; x < Map.Width; x++)
+		{
+			for (int z = 0; z < Map.Height; z++)
+			{
+				if (!Map.IsConnector(x, z))
+				{
+					continue;
+				}
+
+				var directionsInfo = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+				foreach (var direction in Map.GetConnectorDirections(x, z))
+				{
+					var outside = new Vector2I(x + direction.X, z + direction.Y);
+					bool open = Map.IsWithinBounds(outside.X, outside.Y) && !Map.IsWallOrEmpty(outside.X, outside.Y);
+					directionsInfo.Add(new Godot.Collections.Dictionary
+					{
+						{ "direction", new Vector3(direction.X, 0, direction.Y) },
+						{ "open", open },
+					});
+				}
+
+				result.Add(new Godot.Collections.Dictionary
+				{
+					{ "worldPosition", (Vector3)TileToWorld(x, 0, z) },
+					{ "isDoorway", Map.IsDoorway(x, z) },
+					{ "directions", directionsInfo },
+				});
+			}
+		}
+
+		return result;
 	}
 }

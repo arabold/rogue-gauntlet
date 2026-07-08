@@ -58,12 +58,12 @@ transform = Transform3D(-8.74228e-08, 0, -1, 0, 1, 0, 1, 0, -8.74228e-08, 3.65, 
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.66, 2, -2)
 
 [node name="DoorwayNorth" type="Node3D" parent="." unique_id=233902607]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -6)
 script = ExtResource("doorway_marker")
 EditorLabel = "&"
 
 [node name="DoorwaySouth" type="Node3D" parent="." unique_id=476018963]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 11)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 10)
 script = ExtResource("doorway_marker")
 Directions = 4
 EditorLabel = "&"

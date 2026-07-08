@@ -3,7 +3,10 @@
   <RunConfiguration>
     <!-- GdUnit4 hosts tests in a single Godot instance; parallel hosts are unsupported. -->
     <MaxCpuCount>1</MaxCpuCount>
-    <TestSessionTimeout>180000</TestSessionTimeout>
+    <!-- The full generation-test sweep alone already runs 150-170s on a warm cache;
+         180s left almost no headroom for machine-load variance even before adding new
+         coverage. Raised for robustness, not because any single test got slower. -->
+    <TestSessionTimeout>300000</TestSessionTimeout>
     <EnvironmentVariables>
       <!-- GODOT_BIN is intentionally NOT set here: hard-coding a path breaks other
            machines/CI, and a value here would override the environment. Export it in

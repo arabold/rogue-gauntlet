@@ -68,7 +68,7 @@ public partial class RoomMarker : Node3D
 
 	protected virtual Vector3 GetVisualOffset()
 	{
-		return new Vector3(-2f, 0.08f, -2f);
+		return new Vector3(0f, 0.08f, 0f);
 	}
 
 	protected void UpdateEditorVisual()
