@@ -12,8 +12,11 @@ using static GdUnit4.Assertions;
 /// rotation actually facing away from that wall (not just "some" wall it happened to
 /// find); nothing lands adjacent to a connector (doorway traffic); every placed prop is
 /// spaced apart and parented under <see cref="MapGenerator.NavigationRegion"/> (not
-/// <c>Level</c>) so it becomes a navmesh obstacle the same way rooms already are; and
-/// the feature is fully opt-in — zero configured counts places nothing.
+/// <c>Level</c>) so it becomes a navmesh obstacle the same way rooms already are; the
+/// feature is fully opt-in — zero configured counts places nothing; and loot only ever
+/// goes into procedurally built rooms — an authored room's interior is hand-designed
+/// (including any chests it wants, placed by its author) and must never receive
+/// generated content.
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
@@ -24,7 +27,9 @@ public class LootPlacementTest
 	[TestCase]
 	public async Task PlacedChestsFaceAwayFromARealWall()
 	{
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
+		// All-procedural standard rooms: loot placement only considers procedural rooms,
+		// so the default all-authored factory would yield zero placements to check.
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProcedural());
 		TestFactories.WireLootScenes(mapGenerator);
 		mapGenerator.MinChests = mapGenerator.MaxChests = 2;
 
@@ -51,7 +56,7 @@ public class LootPlacementTest
 	[TestCase]
 	public async Task PlacedLootIsParentedUnderNavigationRegionForNavmeshBaking()
 	{
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProcedural());
 		TestFactories.WireLootScenes(mapGenerator);
 		mapGenerator.MinChests = mapGenerator.MaxChests = 1;
 		mapGenerator.MinTraps = mapGenerator.MaxTraps = 1;
@@ -80,7 +85,7 @@ public class LootPlacementTest
 	[TestCase]
 	public async Task PlacedLootRespectsMinimumSpacing()
 	{
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProcedural());
 		TestFactories.WireLootScenes(mapGenerator);
 		mapGenerator.MapWidth = 40;
 		mapGenerator.MapDepth = 40;
@@ -119,6 +124,47 @@ public class LootPlacementTest
 
 		AssertArray(failures)
 			.OverrideFailureMessage($"Found {failures.Count} spacing violation(s) across {SeedCount} seeds:\n  "
+				+ string.Join("\n  ", failures))
+			.IsEmpty();
+	}
+
+	[TestCase]
+	public async Task AuthoredRoomsNeverReceiveGeneratedLoot()
+	{
+		// The default room factory is all-authored scenes. With loot fully wired and
+		// non-zero counts requested, an all-authored map must still place ZERO chests
+		// and loose items -- authored interiors are hand-designed (including any chests
+		// their author placed) and generated content must never intrude. Traps are the
+		// one exception allowed OUTSIDE rooms: corridors belong to no room, authored or
+		// otherwise, so any trap that does get placed must sit on a corridor tile.
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
+		TestFactories.WireLootScenes(mapGenerator);
+		mapGenerator.MinChests = mapGenerator.MaxChests = 2;
+		mapGenerator.MinTraps = mapGenerator.MaxTraps = 2;
+		mapGenerator.MinLooseItems = mapGenerator.MaxLooseItems = 2;
+
+		var failures = new List<string>();
+		for (ulong seed = 1; seed <= 10; seed++)
+		{
+			mapGenerator.Seed = seed;
+			mapGenerator.GenerateMap(includeGameplay: true);
+
+			foreach (Node3D node in FindLootNodes(mapGenerator))
+			{
+				Vector2I tile = mapGenerator.WorldToTile(node.GlobalPosition);
+				if (node is FloorTrap && mapGenerator.Map.IsCorridor(tile.X, tile.Y))
+				{
+					continue;
+				}
+
+				failures.Add($"seed {seed}: generated {node.GetType().Name} at tile {tile} inside an all-authored map");
+			}
+
+			await runner.SimulateFrames(1);
+		}
+
+		AssertArray(failures)
+			.OverrideFailureMessage($"Found {failures.Count} loot placement(s) that intruded on authored rooms:\n  "
 				+ string.Join("\n  ", failures))
 			.IsEmpty();
 	}

@@ -240,7 +240,10 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		var region = new RoomRegion(_roomRegions.Count);
+		// A procedurally built room (ProceduralRoomBuilder.BuildRoom) is a fresh `new
+		// Room` with no backing scene file; an authored room is instantiated from a
+		// PackedScene, which sets SceneFilePath on the instantiated root.
+		var region = new RoomRegion(_roomRegions.Count) { IsProcedural = string.IsNullOrEmpty(placement.Room.SceneFilePath) };
 		for (int lx = 0; lx < roomMap.Width; lx++)
 		{
 			for (int lz = 0; lz < roomMap.Height; lz++)
@@ -1218,7 +1221,7 @@ public partial class MapGenerator : Node3D
 		var candidates = GetChestCandidates();
 		if (candidates.Count == 0)
 		{
-			GD.PrintErr("Cannot place chests: no valid wall-adjacent room tiles found.");
+			ReportNoLootCandidates("chests", "no valid wall-adjacent procedural room tiles found");
 			return;
 		}
 
@@ -1242,7 +1245,10 @@ public partial class MapGenerator : Node3D
 			// (missing the navmesh bake) and unconditionally applies an extra 180-degree
 			// yaw on spawn, which would silently point the chest the wrong way.
 			NavigationRegion.AddChild(chest);
-			chest.GlobalPosition = candidate.Point;
+			// Raised onto the floor's visual surface: a static prop doesn't settle via
+			// physics the way characters do, so at y=0 its base sits buried inside the
+			// floor mesh.
+			chest.GlobalPosition = candidate.Point + Vector3.Up * GetFloorSurfaceHeight(candidate.Point);
 			chest.RotationDegrees = new Vector3(0, candidate.RotationDegrees, 0);
 
 			placedLootPoints.Add(candidate.Point);
@@ -1262,10 +1268,10 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		var candidates = GetOpenTileCandidates();
+		var candidates = GetOpenTileCandidates(proceduralRoomsOnly: true);
 		if (candidates.Count == 0)
 		{
-			GD.PrintErr("Cannot place traps: no valid open tiles found.");
+			ReportNoLootCandidates("traps", "no valid open procedural room or corridor tiles found");
 			return;
 		}
 
@@ -1313,7 +1319,7 @@ public partial class MapGenerator : Node3D
 		var candidates = GetLooseItemCandidates();
 		if (candidates.Count == 0)
 		{
-			GD.PrintErr("Cannot place loose items: no valid room tiles found.");
+			ReportNoLootCandidates("loose items", "no valid procedural room tiles found");
 			return;
 		}
 
@@ -1352,7 +1358,7 @@ public partial class MapGenerator : Node3D
 			lootableItem.Item = item;
 			lootableItem.Quantity = entry.Quantity;
 			NavigationRegion.AddChild(lootableItem);
-			lootableItem.GlobalPosition = point;
+			lootableItem.GlobalPosition = point + Vector3.Up * GetFloorSurfaceHeight(point);
 
 			placedLootPoints.Add(point);
 			placed++;
@@ -1380,7 +1386,8 @@ public partial class MapGenerator : Node3D
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				if (!Map.IsRoom(x, z) || IsOccupiedSpawnTile(x, z) || IsAdjacentToConnector(x, z))
+				if (!Map.IsRoom(x, z) || !IsProceduralRoomTile(x, z)
+					|| IsOccupiedSpawnTile(x, z) || IsAdjacentToConnector(x, z))
 				{
 					continue;
 				}
@@ -1433,7 +1440,7 @@ public partial class MapGenerator : Node3D
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				if (Map.IsRoom(x, z) && !IsOccupiedSpawnTile(x, z))
+				if (Map.IsRoom(x, z) && IsProceduralRoomTile(x, z) && !IsOccupiedSpawnTile(x, z))
 				{
 					candidates.Add(TileToWorld(x, 0, z));
 				}
@@ -1441,6 +1448,92 @@ public partial class MapGenerator : Node3D
 		}
 
 		return candidates;
+	}
+
+	/// <summary>
+	/// True when tile (x,z) belongs to a procedurally built room, or to no tracked room
+	/// region at all (e.g. a corridor tile, which is never part of any room). False only
+	/// for a tile that belongs to an authored room -- see RoomRegion.IsProcedural.
+	/// </summary>
+	private bool IsProceduralRoomTile(int x, int z)
+	{
+		return !_tileToRoom.TryGetValue(new Vector2I(x, z), out int roomId) || _roomRegions[roomId].IsProcedural;
+	}
+
+	/// <summary>
+	/// Generation-time loot only goes into procedural rooms (authored rooms carry their
+	/// own hand-placed content), so a map whose standard rooms all came from authored
+	/// scenes legitimately places nothing -- report that quietly. Zero candidates on a
+	/// map that DOES contain procedural rooms means something real broke, so that stays
+	/// a loud error.
+	/// </summary>
+	private void ReportNoLootCandidates(string lootKind, string reason)
+	{
+		bool anyProceduralRoom = false;
+		foreach (var region in _roomRegions)
+		{
+			if (region.IsProcedural)
+			{
+				anyProceduralRoom = true;
+				break;
+			}
+		}
+
+		if (anyProceduralRoom)
+		{
+			GD.PrintErr($"Cannot place {lootKind}: {reason}.");
+		}
+		else
+		{
+			GD.Print($"Skipping {lootKind}: no procedural rooms in this map (authored rooms keep their hand-placed content).");
+		}
+	}
+
+	/// <summary>
+	/// The walkable top surface of the floor at a world position, in world units above
+	/// y=0 -- what a prop must be raised by to stand ON the floor instead of having its
+	/// base buried inside the floor mesh (whose visual surface sits above its y=0 anchor
+	/// plane; ~0.05 for tile/wood floors, ~0.11 for dirt). Measured from the actual
+	/// floor mesh's AABB at that tile, capped because decorated variants (e.g.
+	/// floor_dirt_large_rocky's scattered rocks) inflate the AABB far above the actual
+	/// walkable plane.
+	/// </summary>
+	private float GetFloorSurfaceHeight(Vector3 worldPoint)
+	{
+		const float MaxSurfaceHeight = 0.12f;
+
+		MeshLibrary library = FloorGridMap.MeshLibrary;
+		if (library == null)
+		{
+			return 0f;
+		}
+
+		// A tile's floor is anchored somewhere within its 4x4 cell block: at the tile
+		// center for tile-sized meshes, at center±1 for half-tile meshes.
+		var center = new Vector3I(Mathf.RoundToInt(worldPoint.X), 0, Mathf.RoundToInt(worldPoint.Z));
+		float height = 0f;
+		for (int dx = -(int)TileSize / 2; dx < (int)TileSize / 2; dx++)
+		{
+			for (int dz = -(int)TileSize / 2; dz < (int)TileSize / 2; dz++)
+			{
+				int item = FloorGridMap.GetCellItem(center + new Vector3I(dx, 0, dz));
+				if (item < 0)
+				{
+					continue;
+				}
+
+				Mesh mesh = library.GetItemMesh(item);
+				if (mesh == null)
+				{
+					continue;
+				}
+
+				Aabb aabb = mesh.GetAabb();
+				height = Mathf.Max(height, Mathf.Min(aabb.Position.Y + aabb.Size.Y, MaxSurfaceHeight));
+			}
+		}
+
+		return height;
 	}
 
 	private bool IsAdjacentToConnector(int x, int z)
@@ -1486,7 +1579,7 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		var candidates = GetOpenTileCandidates();
+		var candidates = GetOpenTileCandidates(proceduralRoomsOnly: false);
 		if (candidates.Count == 0)
 		{
 			GD.PrintErr("Cannot generate enemy spawn points: no valid map tiles found.");
@@ -1527,15 +1620,21 @@ public partial class MapGenerator : Node3D
 	/// <summary>
 	/// Every open (room or corridor), unoccupied tile's world position -- shared by enemy
 	/// spawning and trap placement, both of which are happy to land on a chokepoint.
+	/// Corridor tiles are never part of any room, authored or not, so <paramref
+	/// name="proceduralRoomsOnly"/> only ever excludes a room tile -- pass true for
+	/// generation-time loot (an authored room brings its own hand-placed content the
+	/// generic scan knows nothing about), false for enemy spawning, which has always
+	/// used every room regardless of origin and should keep doing so.
 	/// </summary>
-	private List<Vector3> GetOpenTileCandidates()
+	private List<Vector3> GetOpenTileCandidates(bool proceduralRoomsOnly)
 	{
 		var candidates = new List<Vector3>();
 		for (int x = 0; x < Map.Width; x++)
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				if ((Map.IsRoom(x, z) || Map.IsCorridor(x, z)) && !IsOccupiedSpawnTile(x, z))
+				bool isOpenRoomTile = Map.IsRoom(x, z) && (!proceduralRoomsOnly || IsProceduralRoomTile(x, z));
+				if ((isOpenRoomTile || Map.IsCorridor(x, z)) && !IsOccupiedSpawnTile(x, z))
 				{
 					candidates.Add(TileToWorld(x, 0, z));
 				}
