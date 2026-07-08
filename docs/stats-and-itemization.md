@@ -190,11 +190,23 @@ conveys rarity (the low-alpha colors authored on `ItemSlotPanel`).
 - **Tune drop rarity**: edit the `RarityWeights` (base + per-depth) and `RollCounts` on
   `affix_pool.tres`.
 - **A new base item / ladder rung**: author an `EquipableItem` `.tres` with a `Tier` matching
-  the depth band table above, referencing the item's model directly as its `Scene` (see
-  `sword_common.tres` for the pattern — no baked mesh, no wrapper `.tscn` needed unless the
-  model needs a grip-offset fix).
+  the depth band table above. Every weapon/shield goes through a thin wrapper `.tscn` around its
+  model (named after the item, e.g. `sword_common.tscn`, not the underlying asset) rather than
+  referencing a `.glb` directly, so the model can be swapped or corrected later with a one-line
+  `ext_resource` change — see the `godot-mcp` skill's `tres-authoring.md` for the wrapper
+  pattern. For a `Weapon`, set `IsTwoHanded` based on the model's actual measured size against a
+  sibling on the same bone, not a guess from the name (see `docs/character-classes.md`) — it's a
+  real gameplay flag (blocks the shield slot), not cosmetic. **Always verify the new item
+  equipped on the player**, not just in the floating item catalog — the two don't share failure
+  modes (a wrong local-axis convention or a scale inconsistent with a sibling tier can both pass
+  a floating render and fail badly once bone-attached). See the `assets` skill's in-hand
+  verification section (`render_held_items.gd`).
 - **Tune where an item drops**: edit `MinDepth`/`MaxDepth`/`QuantityPerDepth` on its
   `LootTableItem` entry in the relevant loot table (`scenes/items/loot/`).
+- **Make a new item spawnable from the in-game debug menu**: nothing to do — `DebugMenu`
+  auto-discovers every `.tres` under each category folder (`scenes/items/weapons/`, `armor/`,
+  `potions/`, `scrolls/`, `jewelry/`, `gold/`) via `SpawnableCategories`. Authoring the item's
+  `.tres` in the right folder is sufficient; don't hand-list it anywhere.
 - **A class/race profile (future)**: author a new `StatProfile` (and starting attributes) and
   point `PlayerStats.Profile` at it.
 

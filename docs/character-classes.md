@@ -74,6 +74,18 @@ Gear without a node still equips and applies stats — it just shows no mesh (lo
 warning). These names are load-bearing strings: `CharacterModelTest` fails if a GLB
 re-export or importer change breaks them.
 
+**`Weapon.IsTwoHanded` picks which `AttachmentType` (and therefore which bone) a weapon
+resolves to** — `OneHandedWeapon` vs `TwoHandedWeapon` in `BoneAttachmentManager.
+GetAttachmentType`, e.g. the Mage's `1H_Wand` vs `2H_Staff`. Getting the flag wrong doesn't
+error; it silently attaches the model to the wrong bone (the Mage's staffs did exactly this
+for a while — flagged one-handed, they attached to the wand bone that was never sized/posed for
+a full-length staff, until `IsTwoHanded` was corrected to route them to the already-authored
+`2H_Staff` bone). `IsTwoHanded` is also not cosmetic-only: `Inventory.Equip` auto-unequips the
+shield slot when a two-handed weapon goes on (and vice versa), so it's a real gameplay/balance
+lever. When authoring a new weapon, check its actual model size against sibling items on the
+same bone (see the `assets` skill's in-hand verification section) rather than guessing from the
+name alone.
+
 Import detail: Idle/Walking loop modes are per-GLB import settings (`_subresources` in the
 `.glb.import` files). All four adventurer imports carry them; without the override an
 animation plays once and freezes.
