@@ -295,8 +295,6 @@ anim_player = NodePath("../../Pivot/Skeleton_Warrior/AnimationPlayer")
 [node name="LootTableComponent" parent="." index="3"]
 Table = ExtResource("10_loot")
 DropChance = 1.0
-DropCountMin = 1
-DropCountMax = 2
 
 [node name="DeathComponent" parent="." index="5"]
 Xp = 30

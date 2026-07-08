@@ -103,5 +103,3 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 
 [node name="LootTableComponent" parent="." instance=ExtResource("4_loot_comp")]
 Table = ExtResource("5_loot_table")
-DropCountMin = 1
-DropCountMax = 2
