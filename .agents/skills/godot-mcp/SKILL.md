@@ -58,6 +58,13 @@ Concrete corrections — each is a mistake that happens without being told other
   generation continues and logs `Map generated.` It is a NavigationServer-in-headless
   limitation, not a real failure. Confirm `Map generated.` and that the player spawns; bake
   navmesh visually in the editor when it actually matters.
+- **`_ready()` on freshly-added nodes is deferred, not synchronous.** In a `--script` main-loop
+  script, `some_node.add_child(x)` does NOT run `x`'s (or an autoload's) `_ready()` before the
+  next call returns — it fires on a later frame. Calling logic that depends on a node's own
+  `_ready()`-wired references (e.g. `MapGenerator.GenerateMap()`, which needs its GridMap child
+  refs) immediately after `add_child` runs against not-yet-initialized state and silently
+  produces empty/wrong results, no error printed. Wait at least one `_process()` tick after
+  adding the node before calling into it (see `render_level_topdown.gd`'s state machine).
 
 ## Core workflow
 
@@ -101,6 +108,27 @@ Run a GDScript file as the main loop to exercise the project without the editor:
   scratchpad that loads a resource and calls its marshalable methods / reads its properties
   (see the GDScript gotcha above), then run it with `--script`. Do not commit one-offs.
 
+## Visual verification: top-down level/room screenshots
+
+Reasoning about tile coordinates or trusting an editor-only gizmo (e.g. `DoorwayMarker`'s arrow,
+which only draws inside the actual Godot editor process) can't confirm what a generated level or
+room actually looks like. `scripts/render_level_topdown.gd` renders a real top-down screenshot of
+a generated level instead, with an overlay drawn straight from `MapGenerator.GetConnectorDebugInfo()`
+(Godot-native return types, since `MapData` itself can't marshal to GDScript) showing every
+connector's position and per-direction open (green) / sealed (red) status, plus doorway (yellow)
+vs inferred (cyan) markers. This must run **windowed**, not headless — the headless renderer
+produces blank images:
+
+```bash
+.agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" --script \
+  .agents/skills/godot-mcp/scripts/render_level_topdown.gd -- <outfile.png> [seed] [image_size]
+```
+
+Then `Read` the resulting PNG to inspect it. Use this whenever a change to room layout, doorway
+placement, wall generation, or rotation needs a visual sanity check instead of (or in addition to)
+numeric probes/tests — e.g. confirming a doorway's connector tile is flush with its wall gap, or
+that a rotated room's markers still point the right way.
+
 ## MCP tools
 
 When the MCP server is correctly configured, prefer it for editor/runtime interaction:
@@ -114,6 +142,8 @@ changes). If MCP reports `ENOENT` on `Godot.app`, use `scripts/godot.sh` via Bas
 - `scripts/godot.sh` — resolves the working Godot binary and runs it with the given args.
 - `scripts/inspect_resource.gd` — loads one or more `res://` resources and prints their script
   properties; reports `OK`/`FAIL`/`MISSING` per path. The reusable resource validator.
+- `scripts/render_level_topdown.gd` — renders a windowed top-down screenshot of a generated
+  level with a connector/doorway overlay. See "Visual verification" above.
 
 ## Authoring `.tres` / `.tscn` by text
 

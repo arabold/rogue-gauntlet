@@ -76,7 +76,7 @@ shadow_mesh = SubResource("ArrayMesh_wavfr")
 [sub_resource type="BoxShape3D" id="BoxShape3D_t1utv"]
 size = Vector3(4, 1, 4)
 
-[node name="FloorTrap" type="Node3D"]
+[node name="FloorTrap" type="Node3D" groups=["prop"]]
 script = ExtResource("1_064fn")
 
 [node name="floor_tile_big_spikes" type="MeshInstance3D" parent="."]

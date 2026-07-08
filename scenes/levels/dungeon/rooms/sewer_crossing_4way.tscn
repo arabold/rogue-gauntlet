@@ -54,24 +54,24 @@ transform = Transform3D(1.31134e-07, 0, 1, 0, 1, 0, -1, 0, 1.31134e-07, -6, 0, -
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 2)
 
 [node name="DoorwayNorth" type="Node3D" parent="." unique_id=1425701069]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8)
 script = ExtResource("doorway_marker")
 EditorLabel = "&"
 
 [node name="DoorwayWest" type="Node3D" parent="." unique_id=521611394]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -4)
 script = ExtResource("doorway_marker")
 Directions = 8
 EditorLabel = "&"
 
 [node name="DoorwayEast" type="Node3D" parent="." unique_id=1842230974]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -4)
 script = ExtResource("doorway_marker")
 Directions = 2
 EditorLabel = "&"
 
 [node name="DoorwaySouth" type="Node3D" parent="." unique_id=1142917388]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 script = ExtResource("doorway_marker")
 Directions = 4
 EditorLabel = "&"
