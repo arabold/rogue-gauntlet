@@ -113,7 +113,7 @@ public partial class EnemyBehaviorComponent : Node
 		// The context is the shared blackboard the behavior states read and mutate; the state machine
 		// owns the behavior layer. The timed-action layer (spawn, hit, attack, death) stays on this
 		// host as a gate above the machine - see _PhysicsProcess.
-		_context = new EnemyContext(Actor, MovementComponent, _perception, _navigation, _profile, RequestMeleeAttack);
+		_context = new EnemyContext(Actor, MovementComponent, _perception, _navigation, _profile, RequestMeleeAttack, RequestRangedAttack);
 		_machine = new EnemyStateMachine(_context, new IEnemyState[]
 		{
 			new IdleState(),
@@ -151,6 +151,15 @@ public partial class EnemyBehaviorComponent : Node
 			MovementComponent.Stop();
 			_navigation.ResetStuckTracking();
 
+			// Keep turning to face the target through the attack wind-up so a moving target does not
+			// slip the swing/shot. This is the main fix for enemies whiffing: without it they attack in
+			// whatever direction they were facing when the attack started (movement rotation is off
+			// while stopped).
+			if (IsAttacking && Target != null && GodotObject.IsInstanceValid(Target))
+			{
+				MovementComponent.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition);
+			}
+
 			if (_actionCooldown.Tick(delta))
 			{
 				SetAction(EnemyAction.None);
@@ -172,6 +181,16 @@ public partial class EnemyBehaviorComponent : Node
 	{
 		SetAction(EnemyAction.MeeleAttack);
 		TriggerMeleeAttack();
+	}
+
+	/// <summary>
+	/// Starts a ranged attack through the action layer, mirroring <see cref="RequestMeleeAttack"/>.
+	/// Handed to <see cref="EnemyContext"/> so the Chasing state can request it for caster enemies.
+	/// </summary>
+	private void RequestRangedAttack()
+	{
+		SetAction(EnemyAction.RangedAttack);
+		TriggerRangedAttack();
 	}
 
 	/// <summary>
@@ -231,6 +250,33 @@ public partial class EnemyBehaviorComponent : Node
 		);
 	}
 
+	private void TriggerRangedAttack()
+	{
+		if (_attackController == null)
+		{
+			GD.PushError($"{Actor.Name} cannot start ranged attack without AttackController.");
+			return;
+		}
+
+		AttackDefinition def = _profile.RangedAttackDefinition;
+		if (def == null)
+		{
+			GD.PushError($"{Actor.Name} cannot start ranged attack without a RangedAttackDefinition on its profile.");
+			return;
+		}
+
+		uint targetMask = 4; // Targets player (HurtBoxComponent is on Layer 3 / Mask 4)
+
+		_attackController.StartAttack(
+			def,
+			_profile.RangedAttackMinDamage,
+			_profile.RangedAttackMaxDamage,
+			_profile.RangedAttackAccuracy,
+			_profile.RangedAttackCritChance,
+			targetMask
+		);
+	}
+
 	private AttackDefinition CreateDefaultMeleeAttackDefinition()
 	{
 		var def = new AttackDefinition();
@@ -240,9 +286,12 @@ public partial class EnemyBehaviorComponent : Node
 		def.HitWindowStart = 0.3f * duration;
 		def.HitWindowEnd = 0.7f * duration;
 
+		// Generous frontal wedge anchored to the actor. Combined with facing the target through the
+		// wind-up, this lets an attack connect as long as the player is roughly in front, instead of
+		// requiring the player to be dead-center of a narrow box.
 		def.AttachHitBoxToWeapon = false;
-		def.HitBoxSize = new Vector3(1.5f, 2.2f, 2.2f);
-		def.HitBoxOffset = new Vector3(0.0f, 1.0f, -1.1f);
+		def.HitBoxSize = new Vector3(2.6f, 2.2f, 2.8f);
+		def.HitBoxOffset = new Vector3(0.0f, 1.0f, -1.3f);
 		return def;
 	}
 

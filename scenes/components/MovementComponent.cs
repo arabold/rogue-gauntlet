@@ -43,6 +43,13 @@ public partial class MovementComponent : Node
 	private Vector3 _pushDirection = Vector3.Zero;
 	private float _pushStrength = 0.0f;
 
+	// A one-frame facing request that overrides movement-based facing for this physics frame.
+	// Re-issue it every frame (e.g. while attacking) to keep the actor turned toward a target;
+	// stop issuing it and facing falls back to the movement direction. Kept as a per-frame request
+	// so it never lingers and fights normal locomotion.
+	private Vector3 _requestedFacing = Vector3.Zero;
+	private bool _hasRequestedFacing = false;
+
 	public override void _Ready()
 	{
 		LookAtDirection = -Actor.GlobalTransform.Basis.Z;
@@ -63,6 +70,24 @@ public partial class MovementComponent : Node
 	public void SetLookAtDirection(Vector3 lookAtDirection)
 	{
 		LookAtDirection = lookAtDirection.Normalized();
+	}
+
+	/// <summary>
+	/// Requests a smooth turn toward a world-space direction for this physics frame, independent of
+	/// movement. Call it every physics frame while the facing should hold (e.g. during an attack
+	/// wind-up) so a stationary actor still rotates to face its target; it takes priority over the
+	/// movement direction for that frame and clears itself once it is no longer re-issued.
+	/// </summary>
+	public void FaceDirection(Vector3 worldDirection)
+	{
+		worldDirection.Y = 0;
+		if (worldDirection.LengthSquared() < 0.0001f)
+		{
+			return;
+		}
+
+		_requestedFacing = worldDirection.Normalized();
+		_hasRequestedFacing = true;
 	}
 
 	public void Stop()
@@ -145,24 +170,33 @@ public partial class MovementComponent : Node
 
 	private void SmoothRotateToward(double delta)
 	{
-		if (TargetDirection != Vector3.Zero)
+		// An explicit facing request (e.g. attack aim-assist) wins over the movement direction for
+		// this frame; otherwise face where we are moving. Consume the request either way so it does
+		// not linger past the frame it was issued.
+		Vector3 lookAt = _hasRequestedFacing
+			? _requestedFacing
+			: (TargetDirection != Vector3.Zero ? new Vector3(TargetDirection.X, 0, TargetDirection.Z).Normalized() : Vector3.Zero);
+		_hasRequestedFacing = false;
+
+		if (lookAt == Vector3.Zero)
 		{
-			var lookAt = new Vector3(TargetDirection.X, 0, TargetDirection.Z).Normalized();
-			if (lookAt.IsEqualApprox(LookAtDirection))
+			return;
+		}
+
+		if (lookAt.IsEqualApprox(LookAtDirection))
+		{
+			LookAtDirection = lookAt;
+		}
+		else
+		{
+			// Handle the case where lookAt is exactly opposite to LookAtDirection
+			if (lookAt.Dot(LookAtDirection) < -0.999f)
 			{
-				LookAtDirection = lookAt;
+				lookAt += new Vector3(0.001f, 0, 0).Normalized();
 			}
-			else
-			{
-				// Handle the case where lookAt is exactly opposite to LookAtDirection
-				if (lookAt.Dot(LookAtDirection) < -0.999f)
-				{
-					lookAt += new Vector3(0.001f, 0, 0).Normalized();
-				}
-				LookAtDirection = LookAtDirection.Slerp(
-					lookAt, RotationSpeed * (float)delta
-				).Normalized();
-			}
+			LookAtDirection = LookAtDirection.Slerp(
+				lookAt, RotationSpeed * (float)delta
+			).Normalized();
 		}
 	}
 }

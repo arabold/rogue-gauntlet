@@ -12,6 +12,17 @@ public partial class AttackController : Node
 	[Export] public bool DebugDrawEnabled { get; set; } = false;
 	public static bool GlobalDebugDrawEnabled { get; set; } = false;
 
+	/// <summary>
+	/// Maximum distance a melee attack will auto-turn the actor toward a target ("aim assist"), so a
+	/// swing connects as long as the target is roughly in front rather than requiring exact facing.
+	/// </summary>
+	[Export] public float MeleeAimAssistRange { get; set; } = 3.0f;
+
+	/// <summary>
+	/// Half-angle, in degrees, of the melee aim-assist cone measured from the actor's forward.
+	/// </summary>
+	[Export] public float MeleeAimAssistAngle { get; set; } = 90.0f;
+
 	private bool _isAttacking;
 	private float _elapsedTime;
 	private AttackDefinition _currentAttack;
@@ -510,6 +521,36 @@ public partial class AttackController : Node
 		if (node.GetParent() is EnemyBase parentEnemy) return !parentEnemy.IsDead;
 		if (node.GetParent() is Player parentPlayer) return !parentPlayer.IsDead;
 		return true;
+	}
+
+	/// <summary>
+	/// Returns the best target to auto-face for a melee swing: the opponent nearest to the actor's
+	/// forward direction within the aim-assist cone and range, or null when nothing qualifies. Used
+	/// to turn the attacker toward its target so hits do not require pixel-perfect facing.
+	/// </summary>
+	public Node3D FindMeleeAimAssistTarget()
+	{
+		if (_actor == null)
+		{
+			return null;
+		}
+
+		string targetGroup = _actor.IsInGroup("player") ? "enemy" : "player";
+		return GetTree().GetNodesInGroup(targetGroup).OfType<Node3D>()
+			.Where(target => IsValidAimTarget(target) && WithinMeleeAimAssist(target))
+			.OrderBy(GetAimAngle)
+			.ThenBy(target => _actor.GlobalPosition.DistanceTo(target.GlobalPosition))
+			.FirstOrDefault();
+	}
+
+	private bool WithinMeleeAimAssist(Node3D target)
+	{
+		if (_actor.GlobalPosition.DistanceTo(target.GlobalPosition) > MeleeAimAssistRange)
+		{
+			return false;
+		}
+
+		return GetAimAngle(target) <= MeleeAimAssistAngle;
 	}
 
 	private float GetAimAngle(Node3D target)

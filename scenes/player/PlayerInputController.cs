@@ -25,7 +25,20 @@ public partial class PlayerInputController : Node
 		if (Player.IsPerformingAction)
 		{
 			MovementComponent.SetInputDirection(Vector3.Zero);
-			MovementComponent.SetLookAtDirection(InputComponent.InputDirection);
+
+			// Aim-assist: while attacking, turn toward the locked target so the player does not have to
+			// face the enemy exactly. With no target, keep facing the movement/aim input as before.
+			Vector3 assistFacing = Player.AttackController?.GetAimAssistFacing() ?? Vector3.Zero;
+			if (assistFacing != Vector3.Zero)
+			{
+				MovementComponent.FaceDirection(assistFacing);
+			}
+			else if (InputComponent.InputDirection != Vector3.Zero)
+			{
+				// No aim-assist target: face where the player is aiming. Leave the current facing
+				// untouched when there is no input so we never zero out the stored look direction.
+				MovementComponent.SetLookAtDirection(InputComponent.InputDirection);
+			}
 			return;
 		}
 
