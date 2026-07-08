@@ -23,6 +23,14 @@ parse errors rather than at compile time.
 
 - The `uid` is a hint; a path-only `ext_resource` still loads (Godot warns and uses the
   path). Include the `uid` to match existing files.
+- **Paths must include the `res://` prefix.** A `path="scenes/items/weapons/foo.tscn"` (missing
+  `res://`) is NOT rejected at parse time — Godot resolves it relative to the *referencing*
+  file's directory instead, silently doubling the path
+  (`res://scenes/items/weapons/scenes/items/weapons/foo.tscn`). This only surfaces as
+  `Cannot open file` on the next `--import`/load, not immediately when you write the file — if
+  you're bulk-rewriting `ext_resource` paths (e.g. a script generating many files), always
+  re-run `--import` afterward and grep its output for real `ERROR:` lines rather than trusting a
+  zero exit code.
 
 ## sub_resource (inline resources)
 
@@ -67,6 +75,41 @@ must reference:
   Godot generates the `.cs.uid` for you, then read it for the `.tres`.
 - Manual fallback: create `<name>.cs.uid` with a unique `uid://...` string (chars `0-9a-z`),
   and reference that exact uid from the `.tres`. Godot keeps an existing sidecar on import.
+
+## Wrapping a raw `.glb` for grip/orientation/scale corrections
+
+An item's `Scene` field can reference a `.glb` directly (proven pattern — see
+`sword_rare.tres`), or a thin wrapper `.tscn` around it when the raw model needs a correction.
+Prefer wrapping **every** weapon/shield in this project now (not just ones that need a fix) so
+model swaps stay a one-line `ext_resource` change and future corrections don't require an
+unwrap/rewrap — but the correction technique below applies either way:
+
+```
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" uid="uid://..." path="res://assets/kaykit-.../model.gltf.glb" id="1_glb"]
+
+[node name="ItemName" type="Node3D"]
+
+[node name="model" parent="." instance=ExtResource("1_glb")]
+rotation_degrees = Vector3(-90, 0, 0)
+```
+
+- Name the wrapper file after the **item** (`sword_common.tscn` for `sword_common.tres`), not
+  the underlying asset — the whole point is that the asset can change later without a rename.
+- A wrong local-axis convention (the model's "extends away from grip" axis doesn't match what
+  the target bone's rest pose expects) makes the model invisible from every normal camera angle,
+  not just visibly mis-rotated — see the `assets` skill's in-hand verification section for how
+  to diagnose and derive the correction.
+- A scale correction is a uniform `transform = Transform3D(s, 0, 0, 0, s, 0, 0, 0, s, 0, 0, 0)`
+  on the same child node, for models that render fine but are inconsistently sized against a
+  sibling in the same item ladder.
+- The wrapper's OWN root stays at identity — put the correction on the **child** instance, not
+  the wrapper's root `[node]` line. A non-identity root transform breaks any code that frames
+  the model by wrapping it in a fresh pivot and centering on its computed AABB (both
+  `Preview.cs`'s in-game item preview and `render_item_catalog.gd` do this) — the two known
+  warhammer files have exactly this bug (root-level `transform = Transform3D(2, 0, 0, ...)`)
+  and are still on the list to fix.
 
 ## Always validate after authoring
 

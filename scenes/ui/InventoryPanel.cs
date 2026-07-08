@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Linq;
 
 public partial class InventoryPanel : ScrollContainer
 {
@@ -7,16 +8,44 @@ public partial class InventoryPanel : ScrollContainer
 
 	[Export] public PackedScene InventoryItemScene;
 
+	/// <summary>
+	/// Banner shown while choosing a target for a scroll effect. Lives outside this
+	/// scene (authored above the inventory area in <c>character_dialog.tscn</c>) and is
+	/// injected by the parent, since a <see cref="ScrollContainer"/> can only lay out
+	/// one scrollable child.
+	/// </summary>
+	[Export] public Label TargetingBanner { get; set; }
+
 	public GridContainer InventoryGrid;
 	private Inventory _inventory;
+	private Player _player;
 	private Action _unsubscribeInventory = () => { };
+	private InventoryTargetRequest _activeTarget;
 
 	public override void _Ready()
 	{
 		InventoryGrid = GetNode<GridContainer>("%InventoryGrid");
 		Resized += RecalculateColumns;
 		RecalculateColumns();
+
+		var contextMenu = GetNode<InventoryItemContextMenu>("%InventoryItemContextMenu");
+		contextMenu.TargetedUseRequested += OnTargetedUseRequested;
+
 		Update();
+	}
+
+	public override void _UnhandledInput(InputEvent @event)
+	{
+		if (_activeTarget == null)
+		{
+			return;
+		}
+
+		if (@event.IsActionReleased("ui_cancel"))
+		{
+			CancelTargeting();
+			GetViewport().SetInputAsHandled();
+		}
 	}
 
 	private void RecalculateColumns()
@@ -26,12 +55,15 @@ public partial class InventoryPanel : ScrollContainer
 		InventoryGrid.Columns = Mathf.Max(1, Mathf.FloorToInt((availableWidth + separation) / (ItemSlotWidth + separation)));
 	}
 
-	public void Initialize(Inventory inventory)
+	public void Initialize(Inventory inventory, Player player = null)
 	{
+		CancelTargeting();
+
 		_unsubscribeInventory();
 		_unsubscribeInventory = () => { };
 
 		_inventory = inventory;
+		_player = player;
 		if (_inventory != null)
 		{
 			_unsubscribeInventory = this.SubscribeUntilExit(
@@ -83,6 +115,8 @@ public partial class InventoryPanel : ScrollContainer
 
 			InventoryGrid.AddChild(itemSlotPanel);
 		}
+
+		ApplyTargetingVisuals();
 	}
 
 	private void OnItemEquipped(EquipableItem item, EquipmentSlot slot)
@@ -102,6 +136,16 @@ public partial class InventoryPanel : ScrollContainer
 			return;
 		}
 
+		if (_activeTarget != null)
+		{
+			// The button is disabled for ineligible slots, so any click that reaches here
+			// is on an eligible target.
+			InventoryTargetRequest request = _activeTarget;
+			EndTargeting();
+			request.Confirmed?.Invoke(itemSlotPanel.Slot);
+			return;
+		}
+
 		var contextMenu = GetNode<InventoryItemContextMenu>("%InventoryItemContextMenu");
 		contextMenu.Initialize(_inventory, itemSlotPanel.Slot);
 
@@ -112,5 +156,117 @@ public partial class InventoryPanel : ScrollContainer
 
 		// contextMenu.PopupExclusive(this);
 		contextMenu.Popup();
+	}
+
+	private void OnTargetedUseRequested(InventoryItemSlot scrollSlot)
+	{
+		if (_inventory == null || scrollSlot.Item is not Scroll { Effect: not null } scroll)
+		{
+			return;
+		}
+
+		// Targeted effects (identify, enchant, ...) act on the player; without one there is
+		// nothing valid to target, so don't enter targeting mode at all. Initialize(inventory)
+		// permits a null player, so this can genuinely happen.
+		if (_player == null)
+		{
+			ShowBannerMessage("Nothing suitable — the scroll stays rolled up.");
+			return;
+		}
+
+		ScrollEffect effect = scroll.Effect;
+		bool AnyTarget() => _inventory.Items.Any(slot => slot != scrollSlot && effect.IsValidTarget(_player, slot));
+
+		if (!AnyTarget())
+		{
+			ShowBannerMessage("Nothing suitable — the scroll stays rolled up.");
+			return;
+		}
+
+		// Reading far enough to pick a target reveals the scroll itself, even if the
+		// player then cancels without picking anything.
+		GameSession.Instance?.IdentifyItemType(scroll);
+
+		BeginTargeting(new InventoryTargetRequest
+		{
+			Prompt = effect.TargetPrompt,
+			IsEligible = slot => slot != scrollSlot && effect.IsValidTarget(_player, slot),
+			Confirmed = slot =>
+			{
+				effect.ApplyToTarget(_player, slot);
+				_inventory.Consume(scrollSlot);
+			},
+		});
+	}
+
+	private void BeginTargeting(InventoryTargetRequest request)
+	{
+		_activeTarget = request;
+		if (TargetingBanner != null)
+		{
+			TargetingBanner.Text = $"{request.Prompt}  (Esc cancels)";
+			TargetingBanner.Visible = true;
+		}
+
+		ApplyTargetingVisuals();
+	}
+
+	private void CancelTargeting()
+	{
+		if (_activeTarget == null)
+		{
+			return;
+		}
+
+		InventoryTargetRequest request = _activeTarget;
+		EndTargeting();
+		request.Cancelled?.Invoke();
+	}
+
+	/// <summary>Clears targeting state and its visuals, without invoking either callback.</summary>
+	private void EndTargeting()
+	{
+		_activeTarget = null;
+		if (TargetingBanner != null)
+		{
+			TargetingBanner.Visible = false;
+		}
+
+		ApplyTargetingVisuals();
+	}
+
+	private void ApplyTargetingVisuals()
+	{
+		foreach (Node child in InventoryGrid.GetChildren())
+		{
+			if (child is not ItemSlotPanel panel)
+			{
+				continue;
+			}
+
+			SlotTargetingState state = _activeTarget == null
+				? SlotTargetingState.None
+				: _activeTarget.IsEligible(panel.Slot) ? SlotTargetingState.Eligible : SlotTargetingState.Ineligible;
+			panel.SetTargetingState(state);
+		}
+	}
+
+	/// <summary>A transient banner message, e.g. when a scroll has nothing to target.</summary>
+	private void ShowBannerMessage(string message)
+	{
+		if (TargetingBanner == null)
+		{
+			return;
+		}
+
+		TargetingBanner.Text = message;
+		TargetingBanner.Visible = true;
+		GetTree().CreateTimer(1.5).Timeout += () =>
+		{
+			if (_activeTarget == null && IsInstanceValid(TargetingBanner))
+			{
+				TargetingBanner.Visible = false;
+			}
+		};
 	}
 }

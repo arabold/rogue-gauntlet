@@ -124,12 +124,70 @@ directory (posed in Idle, 3/4 camera) — used to build `docs/monster-catalog/`.
   --script .agents/skills/assets/scripts/render_catalog.gd -- docs/monster-catalog res://assets/quaternius-monsters
 ```
 
+`scripts/render_item_catalog.gd` does the equivalent for items: loads each item `.tres`,
+instances its `Scene`, auto-centers/auto-rotates it (mirroring `Preview.cs`'s in-game inventory
+preview framing) and screenshots it alone against a transparent background — used to build
+`docs/item-catalog/`.
+
+```bash
+.agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" \
+  --script .agents/skills/assets/scripts/render_item_catalog.gd -- docs/item-catalog res://scenes/items/weapons/axe_common.tres [more...]
+```
+
 - **Run WINDOWED — not `--headless`.** Headless uses the dummy renderer: viewport captures come
   back blank and the script hangs. A real window opens briefly and renders on the GPU. (`timeout`
   isn't on macOS — rely on the runner's own time cap if you need a guard.)
-- Pass the dir to the script and let it scan (`DirAccess`); don't word-split a file list on the
-  shell — zsh doesn't split unquoted `$VARS` like bash, so only one path reaches the script.
-- After regenerating, update the table in `docs/monster-catalog/README.md`.
+- Pass the dir to `render_catalog.gd` and let it scan (`DirAccess`); don't word-split a file list
+  on the shell — zsh doesn't split unquoted `$VARS` like bash, so only one path reaches the
+  script. `render_item_catalog.gd` takes explicit item paths instead (items live scattered
+  across `scenes/items/<category>/`, not one flat asset folder).
+- After regenerating, update the table in `docs/monster-catalog/README.md` or
+  `docs/item-catalog/README.md`.
+
+## In-hand weapon/shield verification (does NOT catch everything the catalog does)
+
+**The floating catalog render above is not sufficient to validate a new weapon or shield.**
+It auto-frames and auto-rotates for a nice thumbnail, which can hide exactly the two defects
+that only show up once a model is actually bone-attached to the player:
+
+1. **Wrong local-axis convention.** `BoneAttachmentManager` parents the item's `Scene` directly
+   under a `BoneAttachment3D` with zero corrective transform, so the model's own local axes must
+   already match what that bone's rest pose expects. Different weapon-hand bones expect
+   different conventions (a melee bone expects "extends away from grip" along local **+Y**; a
+   raw bow/crossbow-style asset instead puts its aim along local **Z** with limbs along X) — get
+   it wrong and the model can end up thin-edge-on to every normal camera angle, reading as fully
+   invisible, not just "rotated a bit wrong."
+2. **Cross-tier scale inconsistency.** A raw downloaded model isn't guaranteed to be scaled
+   consistently with an existing baked-mesh sibling in the same item ladder (e.g. a new tier-2
+   `.glb` coming in at half the height of the tier-1 item it's supposed to visually escalate from).
+
+`scripts/render_held_items.gd` equips a sequence of items on a standalone player (no
+GameSession/class active — the authored Barbarian rig) and screenshots the character from three
+angles per item (front, weapon-hand 3/4, shield-hand 3/4), so whichever hand an item lands in is
+covered without needing to guess the right camera angle up front:
+
+```bash
+.agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" \
+  --script .agents/skills/assets/scripts/render_held_items.gd -- /tmp/held_test \
+  res://scenes/items/weapons/axe_rare.tres res://scenes/items/armor/shield_rare.tres [more...]
+```
+
+- **Windowed only**, same reason as above.
+- Requires a floor: the player is a physics-driven `CharacterBody3D` and free-falls under gravity
+  in an otherwise-empty scene (for however many physics ticks elapse before the first idle frame
+  — decoupled from frame count and inflated by first-load shader/asset stalls), landing at an
+  unpredictable height by the time you'd screenshot. The script adds a `StaticBody3D` floor and
+  waits `SETTLE_FRAMES` before measuring/framing; don't drop this if you fork the script.
+- If an item is invisible in ALL three angles (not just badly positioned in one), suspect the
+  local-axis convention, not scale/position. Diagnose by rendering the raw `.glb` alone at
+  identity transform with RGB axis gizmos (R=+X, G=+Y, B=-Z), then compare against a **sibling
+  weapon on the same bone that's known to render correctly** rendered the same way — the
+  direction its long axis points tells you which local axis needs to land on which. Fix with a
+  thin corrective wrapper `.tscn` (`rotation_degrees` on the instanced child); see the
+  `godot-mcp` skill's `tres-authoring.md` for the pattern.
+- `IsTwoHanded` on a `Weapon` changes which `BoneAttachment3D` it resolves to (see
+  `docs/character-classes.md`), so re-verify in-hand appearance after changing it — a weapon
+  that looked right on one bone isn't guaranteed to look right on another.
 
 ## Authoring our own (image-to-3D) — experimental
 

@@ -5,12 +5,12 @@
 
 [resource]
 script = ExtResource("2_wslmm")
-Tier = 4
+Tier = 3
 Level = 0
-RequiredStrength = 16
+RequiredStrength = 14
 Accuracy = 1.0
 DamageMin = 6.0
-DamageMax = 11.0
+DamageMax = 12.0
 CritChance = 0.0
 IsTwoHanded = true
 AnimationId = "melee_attack"
@@ -19,7 +19,7 @@ PerformDuration = 0.5
 CooldownDuration = 0.0
 ValidSlots = 256
 Rarity = 0
-Name = "Battle Axe"
+Name = "Skeleton Battle Axe"
 Scene = ExtResource("1_8ei86")
 Quality = 1.0
 Value = 0

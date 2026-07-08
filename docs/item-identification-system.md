@@ -10,9 +10,9 @@ effect — by using the item, or later by reading a scroll of identify. Once a t
 is identified, every item of that type is shown by its true name for the rest of
 the run.
 
-This document describes the identification framework. Potions are the first
-category to use it; scrolls, rings, and wands are intended to reuse the same
-pieces by swapping the appearance pool.
+This document describes the identification framework. Potions, scrolls, and jewelry
+(rings/amulets) all use it today, each with its own `AppearancePool`; wands/staves
+are the remaining category intended to reuse the same pieces.
 
 Identification is **per run**. The type→appearance assignment is derived
 deterministically from the run `Seed`, so it re-randomizes on each new game and
@@ -173,27 +173,78 @@ when behavior genuinely diverges.
 Good and bad outcomes sharing the same disguise pool is what creates the
 risk/reward of drinking an unknown potion.
 
-## Reusing The Framework
+## The `IIdentifiable` Interface
 
-Other Rogue categories reuse the same three pieces by swapping the
-`AppearancePool`:
+Potions hang their identity fields off `IdentifiableItem : BuffedItem`. Jewelry needs the
+same identity fields *and* `EquipableItem`'s slot/rarity/affix machinery, but C# single
+inheritance means `IdentifiableItem` and `EquipableItem` can't share a base class — both are
+sibling branches of `BuffedItem`. `IIdentifiable` (`common/interfaces/IIdentifiable.cs`) is
+the shared contract (`TypeId`, `IdentityCategory`, `TrueName`, `UnidentifiedNameTemplate`,
+`HasIdentity`, `Name`) both branches implement, and `IdentificationService`/`ItemIdentity`
+consume the interface instead of either concrete type. `IdentityCategory.Types` is typed as
+the base `Item` (Godot cannot export a typed array of an interface); callers filter with
+`.OfType<IIdentifiable>()`.
 
-- **Scrolls**: appearance pool of random titles
-  (`UnidentifiedNameTemplate = "scroll labeled {descriptor}"`); one-shot effects via
-  an `IPlayerAction` consumable.
-- **Rings**: gem descriptors; equip-time persistent buffs through `EquipableItem` +
-  `BuffedItem`.
-- **Wands / Staves**: material descriptors; behavior continues to come from the
-  existing `MagicStaff` / attack-definition pipeline.
+`GameSession.IdentifyItemType(item)` is the single hub that records discovery and emits
+`SignalBus.ItemIdentified` — reading a scroll (`ItemConsumed`) and wearing jewelry
+(`ItemEquipped`) both funnel through it, so a scroll of identify calling it directly is the
+same code path.
 
-## Rollout
+`ItemIdentity.IsIdentified(item)` (true for non-identifiable items, or once discovered) gates
+every UI surface that could otherwise leak a rolled item's rarity or stats before it's
+identified: `RarityPalette.TextColor`, `ItemDetailsView`'s rarity/affix/intrinsic-modifier
+lines, and `ItemSlotPanel`'s rarity background tint all check it before showing anything
+beyond the disguised name.
 
-1. **Framework**: `ItemAppearance`, `AppearancePool`, `IdentifiableItem`,
-   `IdentificationService`; save field (version bump); wire `ItemConsumed` →
-   `Identify` and relabel UI/world.
-2. **Content**: author a potion appearance pool; convert existing healing potions to
+## Scrolls: A Resource-Strategy Effect, Not A Buff
+
+Scroll effects like identify, enchant, teleport, or summon aren't stat buffs, so they can't
+reuse `BuffedItem.Buff`. `ScrollEffect : Resource` (`scenes/items/scrolls/ScrollEffect.cs`) is
+an authored strategy exported on `Scroll : ConsumableItem`: `Apply(player)` for untargeted
+effects (teleport, summon), or `RequiresTarget = true` plus `IsValidTarget`/`ApplyToTarget`
+for effects that need a chosen inventory slot (identify, enchant). Pure buff/debuff scrolls
+(haste, protection, rage, weakness) need no `ScrollEffect` at all — they just set `Buff`,
+exactly like a potion.
+
+**Targeting flow**: reading a targeted scroll's "Read" button emits
+`InventoryItemContextMenu.TargetedUseRequested` instead of consuming immediately.
+`InventoryPanel` handles it: if nothing is a valid target, it shows a transient banner and
+the scroll is *not* consumed; otherwise it identifies the scroll's own type (reading it far
+enough to pick a target reveals what it is, even on cancel) and enters targeting mode via
+`InventoryTargetRequest` — ineligible slots dim and disable their button
+(`ItemSlotPanel.SetTargetingState`), `Esc` cancels, and confirming an eligible slot applies
+the effect and *then* consumes the scroll. This ordering means a cancelled or no-target read
+never wastes the scroll. Enchant reuses the identical mechanism with a different predicate.
+
+## Jewelry
+
+`IdentifiableEquipableItem : EquipableItem, IIdentifiable` (`scenes/items/IdentifiableEquipableItem.cs`)
+is the ring/amulet base: it duplicates `IdentifiableItem`'s four identity exports (the
+accepted cost of the sibling-branch split) and adds `IntrinsicModifiers` — a plain
+`StatModifier[]` rather than a `Buff`, so two worn instances of the same ring type register
+their stat contributions under distinct item-instance sources and reverse independently on
+unequip. Rings use `ValidSlots = LeftRing | RightRing` (192); amulets use `Neck` (32). World
+models are authored primitives (`TorusMesh`/`SphereMesh` in `scenes/items/jewelry/`) since no
+ring/amulet art exists in the KayKit packs — untextured primitives still tint correctly via
+`ItemIdentity`'s flat-color fallback when a surface has no albedo texture.
+
+Wearing jewelry identifies it for free: `GameSession` subscribes
+`SignalBus.ItemEquipped += (player, item) => IdentifyItemType(item)` in `_Ready`, so no
+jewelry-specific wiring was needed beyond the existing consume-identifies-it hook.
+
+## Rollout (complete)
+
+1. **Framework**: `ItemAppearance`, `AppearancePool`, `IdentifiableItem`, `IIdentifiable`,
+   `IdentificationService`; save field (version bump); `GameSession.IdentifyItemType` wired to
+   both `ItemConsumed` and `ItemEquipped`.
+2. **Potions**: `potion_appearances.tres`; healing/haste/poison/regeneration/slowness potions
    carry a `TypeId`.
-3. **Effects & loot**: add `StatModifierBuff`, `ConfusionBuff`, etc., new potion
-   `.tres` files, and entries in the shared `LootTable` resources
-   (`scenes/items/loot/`) that chests and enemies draw from.
-4. **Generalize**: scrolls, then rings and wands.
+3. **Scrolls**: `ScrollEffect`/`Scroll`, `scroll_appearances.tres` (gibberish titles),
+   identify/enchant/teleport/summon effects, plus haste/protection/rage/weakness buff scrolls;
+   the inventory targeting flow (`InventoryTargetRequest`, `InventoryPanel`,
+   `ItemSlotPanel.SetTargetingState`) for the two targeted effects.
+4. **Jewelry**: `IdentifiableEquipableItem`, `ring_appearances.tres` /
+   `amulet_appearances.tres`, 10 rings + 4 amulets, anti-leak UI gating via
+   `ItemIdentity.IsIdentified`.
+5. **Wands / Staves (future)**: material descriptors; behavior continues to come from the
+   existing `MagicStaff` / attack-definition pipeline — not yet given hidden identity.

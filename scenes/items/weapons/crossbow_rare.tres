@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="RangedWeapon" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/crossbow_rare.tscn" id="1_crossrare"]
+[ext_resource type="Script" uid="uid://ddieqpfh5m7w8" path="res://scenes/items/RangedWeapon.cs" id="2_crossrare"]
+
+[resource]
+script = ExtResource("2_crossrare")
+ProjectileSpeed = 17.0
+Range = 22.0
+AimingAngle = 40.0
+Tier = 4
+Level = 0
+RequiredStrength = 15
+Accuracy = 1.0
+DamageMin = 10.0
+DamageMax = 17.0
+CritChance = 0.0
+IsTwoHanded = true
+AnimationId = "ranged_attack"
+Delay = 0.3
+PerformDuration = 0.5
+CooldownDuration = 0.0
+ValidSlots = 256
+Rarity = 0
+Name = "Arbalest"
+Scene = ExtResource("1_crossrare")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_crossrare")

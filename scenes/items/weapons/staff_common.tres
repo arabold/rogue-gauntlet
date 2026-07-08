@@ -5,14 +5,14 @@
 
 [resource]
 script = ExtResource("2_qrt1b")
-Tier = 2
+Tier = 1
 Level = 0
 RequiredStrength = 12
 Accuracy = 1.0
 DamageMin = 2.0
 DamageMax = 7.0
 CritChance = 0.0
-IsTwoHanded = false
+IsTwoHanded = true
 AnimationId = "melee_attack"
 Delay = 0.0
 PerformDuration = 0.5

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="Armor" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/items/armor/shield_uncommon.tscn" id="1_shieldunc"]
+[ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="2_shieldunc"]
+
+[resource]
+script = ExtResource("2_shieldunc")
+Tier = 3
+Level = 0
+RequiredStrength = 12
+ArmorPoints = 5
+AccuracyModifier = 1.0
+SpeedModifier = 0.97
+ValidSlots = 512
+Rarity = 0
+Name = "Reinforced Shield"
+Scene = ExtResource("1_shieldunc")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_shieldunc")

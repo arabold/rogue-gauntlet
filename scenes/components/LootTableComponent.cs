@@ -12,6 +12,10 @@ public partial class LootTableComponent : Node
 	[Export] public PackedScene LootableItemScene { get; private set; }
 	/// <summary>The shared, weighted pool this spawner can drop from.</summary>
 	[Export] public LootTable Table { get; private set; }
+	/// <summary>Minimum number of separate drops rolled from <see cref="Table"/> per event.</summary>
+	[Export] public int DropCountMin { get; private set; } = 1;
+	/// <summary>Maximum number of separate drops rolled from <see cref="Table"/> per event.</summary>
+	[Export] public int DropCountMax { get; private set; } = 1;
 
     private bool _isDropped = false;
 
@@ -31,29 +35,44 @@ public partial class LootTableComponent : Node
             rng.Randomize();
         }
 
-        var selectedItem = rng.Randf() <= DropChance ? Table?.PickWeightedEntry(rng) : null;
-        if (selectedItem != null)
+        uint depth = GameSession.Instance?.ActiveDungeonDepth ?? 1;
+        int dropCount = 0;
+
+        if (rng.Randf() <= DropChance && Table != null)
         {
-            if (LootableItemScene == null)
+            int minCount = Mathf.Max(0, DropCountMin);
+            int maxCount = Mathf.Max(0, DropCountMax);
+            int rolls = rng.RandiRange(Mathf.Min(minCount, maxCount), Mathf.Max(minCount, maxCount));
+            for (int i = 0; i < rolls; i++)
             {
-                GD.PrintErr($"{Name} has no lootable item scene assigned.");
-                _isDropped = true;
-                return;
+                LootTableItem selectedItem = Table.PickEntry(depth, rng);
+                if (selectedItem == null)
+                {
+                    continue;
+                }
+
+                if (LootableItemScene == null)
+                {
+                    GD.PrintErr($"{Name} has no lootable item scene assigned.");
+                    continue;
+                }
+
+                // Equipables drop as rolled instances (rarity + affixes); other items pass through.
+                Item item = LootRoller.Roll(selectedItem.Item, depth, rng);
+                int quantity = selectedItem.QuantityAt(depth);
+                GD.Print($"Dropping {quantity}x {item.Name}");
+
+                var lootableItem = LootableItemScene.Instantiate<LootableItem>();
+                lootableItem.Item = item;
+                lootableItem.Quantity = quantity;
+
+                Level ??= this.GetAncestorOrNull<Level>();
+                Level.AddWorldNode(lootableItem, GetOwner<Node3D>().GlobalPosition);
+                dropCount++;
             }
-
-            // Equipables drop as rolled instances (rarity + affixes); other items pass through.
-            uint depth = GameSession.Instance?.ActiveDungeonDepth ?? 1;
-            Item item = LootRoller.Roll(selectedItem.Item, depth, rng);
-            GD.Print($"Dropping {selectedItem.Quantity}x {item.Name}");
-
-            var lootableItem = LootableItemScene.Instantiate<LootableItem>();
-            lootableItem.Item = item;
-            lootableItem.Quantity = selectedItem.Quantity;
-
-            Level ??= this.GetAncestorOrNull<Level>();
-            Level.AddWorldNode(lootableItem, GetOwner<Node3D>().GlobalPosition);
         }
-        else
+
+        if (dropCount == 0)
         {
             GD.Print("No loot dropped");
         }

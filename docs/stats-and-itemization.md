@@ -116,6 +116,44 @@ save does not depend on replaying the draw order — the rolled affixes are pers
 suffix fragment ("Vicious Broadsword of the Bear"); extra affixes add stats but not name (like a
 rare item). `ItemIdentity.ResolveDisplayName` applies it on top of the identification name.
 
+## Layer 4 — Base item ladder and depth-gated drops
+
+Every `EquipableItem` carries a `Tier` (1–5): the base item's ladder rung, independent of
+rolled `Rarity`. A Tier-4 "Royal Axe" can still roll Common; tier and rarity are separate
+axes — tier is about the *base item*, rarity is about the *roll*.
+
+| Tier | Nominal depth band | 1H avg damage | 2H avg damage |
+| --- | --- | --- | --- |
+| 1 | 1–3 | ~3 | ~4.5 |
+| 2 | 2–5 | ~5.5 | ~8 |
+| 3 | 4–8 | ~9 | ~12 |
+| 4 | 7–12 | ~13.5 | ~18 |
+| 5 | 10–∞ | ~21 | ~26 |
+
+`Affix.MinTier` gates affix potency by the item's tier (independently of `MinRarity`), so
+high-end affixes only roll on high-tier bases — `AffixPool.RollAffixes`/`RollSingleAffix`
+take the item's `Tier` alongside its slots and rarity.
+
+Depth gating for *drops* (as opposed to affix eligibility) lives on the loot entry, not the
+item: `LootTableItem.MinDepth`/`MaxDepth` (0 = unbounded) mark which depths an entry is
+eligible at, and `QuantityPerDepth` scales stackable quantity (e.g. gold) with depth.
+`LootTable.PickEntry(depth, rng)` does a weighted pick among only the eligible entries. This
+keeps one authored table per drop source (`LootTableComponent.Table`) instead of one table
+per depth band, and extends uniformly to any future item category (a scroll or jewelry entry
+is just another banded row). `LootTableComponent.DropCountMin`/`DropCountMax` control how many
+separate entries a single drop event rolls.
+
+## Layer 5 — Enchantment
+
+`LootRoller.EnsureInstance(item)` duplicates a shared definition into a rolled instance
+(stamping `SourceDefinitionPath`) or returns an already-rolled instance unchanged.
+`LootRoller.Enchant(item, rng)` bumps `Rarity` one step (capped at Legendary) and adds one
+new affix via `AffixPool.RollSingleAffix`, which excludes name fragments the item already
+carries so it never stacks the same affix twice. The Scroll of Enchantment
+(`EnchantScrollEffect`) unequips the target first, enchants it, then re-equips it — mutating
+an equipped item in place would leave its old stat modifiers (registered under the pre-enchant
+instance) stale.
+
 ## Display
 
 Both the inventory hover tooltip and the right-click context menu render the same reusable
@@ -148,9 +186,27 @@ conveys rarity (the low-alpha colors authored on `ItemSlotPanel`).
 - **A new stat**: add a `StatType` value, give it a base field + resolver in `PlayerStats`, and
   (if attribute-driven) a coefficient in `StatProfile`.
 - **A new affix**: add an `Affix` sub-resource to `affix_pool.tres` with its `NameFragment`,
-  `Kind`, `AffixModifierRange`s, `AllowedSlots`, `Weight`, and `MinRarity`.
+  `Kind`, `AffixModifierRange`s, `AllowedSlots`, `Weight`, `MinRarity`, and `MinTier`.
 - **Tune drop rarity**: edit the `RarityWeights` (base + per-depth) and `RollCounts` on
   `affix_pool.tres`.
+- **A new base item / ladder rung**: author an `EquipableItem` `.tres` with a `Tier` matching
+  the depth band table above. Every weapon/shield goes through a thin wrapper `.tscn` around its
+  model (named after the item, e.g. `sword_common.tscn`, not the underlying asset) rather than
+  referencing a `.glb` directly, so the model can be swapped or corrected later with a one-line
+  `ext_resource` change — see the `godot-mcp` skill's `tres-authoring.md` for the wrapper
+  pattern. For a `Weapon`, set `IsTwoHanded` based on the model's actual measured size against a
+  sibling on the same bone, not a guess from the name (see `docs/character-classes.md`) — it's a
+  real gameplay flag (blocks the shield slot), not cosmetic. **Always verify the new item
+  equipped on the player**, not just in the floating item catalog — the two don't share failure
+  modes (a wrong local-axis convention or a scale inconsistent with a sibling tier can both pass
+  a floating render and fail badly once bone-attached). See the `assets` skill's in-hand
+  verification section (`render_held_items.gd`).
+- **Tune where an item drops**: edit `MinDepth`/`MaxDepth`/`QuantityPerDepth` on its
+  `LootTableItem` entry in the relevant loot table (`scenes/items/loot/`).
+- **Make a new item spawnable from the in-game debug menu**: nothing to do — `DebugMenu`
+  auto-discovers every `.tres` under each category folder (`scenes/items/weapons/`, `armor/`,
+  `potions/`, `scrolls/`, `jewelry/`, `gold/`) via `SpawnableCategories`. Authoring the item's
+  `.tres` in the right folder is sufficient; don't hand-list it anywhere.
 - **A class/race profile (future)**: author a new `StatProfile` (and starting attributes) and
   point `PlayerStats.Profile` at it.
 

@@ -58,6 +58,15 @@ Concrete corrections — each is a mistake that happens without being told other
   generation continues and logs `Map generated.` It is a NavigationServer-in-headless
   limitation, not a real failure. Confirm `Map generated.` and that the player spawns; bake
   navmesh visually in the editor when it actually matters.
+- **Bulk-generating files via Bash bypasses the Read-before-Write safety check.** Writing many
+  new files at once (e.g. a script/heredoc loop creating a batch of wrapper `.tscn`s) is easy to
+  reach for over N individual Write calls, but it skips the "must Read before overwrite"
+  protection Write gets — a filename collision with an existing (even orphaned/dead) file
+  silently clobbers it with no diff shown. Check `git status`/existence for every target
+  filename first, or use Write per-file when the count is manageable.
+- **A model that renders fine in the item catalog can still be broken when equipped.** See the
+  `assets` skill's in-hand verification section — floating-and-auto-framed vs. bone-attached
+  are different enough contexts that one passing does not imply the other passes.
 - **`_ready()` on freshly-added nodes is deferred, not synchronous.** In a `--script` main-loop
   script, `some_node.add_child(x)` does NOT run `x`'s (or an autoload's) `_ready()` before the
   next call returns — it fires on a later frame. Calling logic that depends on a node's own
@@ -149,8 +158,9 @@ changes). If MCP reports `ENOENT` on `Godot.app`, use `scripts/godot.sh` via Bas
 
 Before creating or editing a `.tres`/`.tscn` in a text editor (rather than the Godot editor),
 **read `references/tres-authoring.md`** — it covers `load_steps` counting, enum-as-int and
-array serialization, sub-resource layout, the one-`[GlobalClass]`-per-file rule, and UID
-sidecars. Always validate the result with `inspect_resource.gd`.
+array serialization, sub-resource layout, the one-`[GlobalClass]`-per-file rule, UID sidecars,
+the missing-`res://`-prefix trap, and the wrapper-`.tscn` pattern for correcting a raw model's
+grip orientation or scale. Always validate the result with `inspect_resource.gd`.
 
 ## Rules
 

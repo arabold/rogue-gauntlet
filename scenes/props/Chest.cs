@@ -21,14 +21,14 @@ public partial class Chest : Node3D
 
 	private InteractiveComponent _interactiveComponent;
 	private LootTableComponent _lootTableComponent;
-	private MeshInstance3D _chest;
-	private MeshInstance3D _chestLid;
+	private Node3D _chest;
+	private Node3D _chestLid;
 	private bool _isAnimating;
 
 	public override void _Ready()
 	{
-		_chest = GetNode<MeshInstance3D>("chest");
-		_chestLid = GetNode<MeshInstance3D>("chest/chest_lid");
+		_chest = GetNode<Node3D>("chest");
+		_chestLid = GetNode<Node3D>("chest/chest_lid");
 
 		if (!Engine.IsEditorHint())
 		{

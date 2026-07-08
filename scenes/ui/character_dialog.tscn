@@ -66,8 +66,21 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_mu81i")
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="InventoryPanel" parent="VBoxContainer/MarginContainer/Content" instance=ExtResource("5_q7doa")]
+[node name="InventoryColumn" type="VBoxContainer" parent="VBoxContainer/MarginContainer/Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="TargetingBanner" type="Label" parent="VBoxContainer/MarginContainer/Content/InventoryColumn"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="InventoryPanel" parent="VBoxContainer/MarginContainer/Content/InventoryColumn" instance=ExtResource("5_q7doa")]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(552, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3

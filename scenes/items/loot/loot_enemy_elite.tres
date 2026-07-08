@@ -1,0 +1,568 @@
+[gd_resource type="Resource" script_class="LootTable" load_steps=115 format=3 uid="uid://clootwarrior01"]
+
+[ext_resource type="Script" path="res://scenes/components/LootTable.cs" id="1_table"]
+[ext_resource type="Script" uid="uid://b2kapi7dsmanb" path="res://scenes/components/LootTableItem.cs" id="2_item"]
+[ext_resource type="Resource" uid="uid://dnxrasu67oe6k" path="res://scenes/items/gold/gold.tres" id="3_gold_e"]
+[ext_resource type="Resource" uid="uid://b2vo50ixkurnb" path="res://scenes/items/potions/healing_potion_medium.tres" id="4_heal_medium_e"]
+[ext_resource type="Resource" uid="uid://b7ama245i2u14" path="res://scenes/items/potions/healing_potion_large.tres" id="5_heal_large_e"]
+[ext_resource type="Resource" uid="uid://dregenptres01" path="res://scenes/items/potions/regeneration_potion.tres" id="6_regen_e"]
+[ext_resource type="Resource" uid="uid://bc4es25jpb62o" path="res://scenes/items/weapons/axe_common.tres" id="7_axe_common"]
+[ext_resource type="Resource" uid="uid://bylnwqmg1nm57" path="res://scenes/items/weapons/axe_old.tres" id="8_axe_old"]
+[ext_resource type="Resource" uid="uid://biricifur5j8u" path="res://scenes/items/weapons/crossbow_common.tres" id="9_crossbow_common"]
+[ext_resource type="Resource" uid="uid://cfjd6iimvn0lp" path="res://scenes/items/weapons/dagger_common.tres" id="10_dagger_common"]
+[ext_resource type="Resource" uid="uid://csyxpvgdbtld2" path="res://scenes/items/weapons/shortsword_common.tres" id="11_shortsword_common"]
+[ext_resource type="Resource" uid="uid://dak88bwl5ipcv" path="res://scenes/items/weapons/staff_common.tres" id="12_staff_common"]
+[ext_resource type="Resource" uid="uid://b0npueya07rvp" path="res://scenes/items/weapons/wand.tres" id="13_wand"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axe_uncommon.tres" id="14_axe_uncommon"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/dagger_uncommon.tres" id="15_dagger_uncommon"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_uncommon.tres" id="16_staff_uncommon"]
+[ext_resource type="Resource" uid="uid://btk1o3ydc6yaf" path="res://scenes/items/weapons/sword_common.tres" id="17_sword_common"]
+[ext_resource type="Resource" uid="uid://l6l5vxvpavp5" path="res://scenes/items/weapons/hammer_common.tres" id="18_hammer_common"]
+[ext_resource type="Resource" uid="uid://bal38w8u6iir4" path="res://scenes/items/weapons/saber_skeleton.tres" id="19_saber_skeleton"]
+[ext_resource type="Resource" uid="uid://qmeb2ougex4n" path="res://scenes/items/weapons/crossbow_spiked.tres" id="20_crossbow_spiked"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_fire.tres" id="21_staff_fire"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_water.tres" id="22_staff_water"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_air.tres" id="23_staff_air"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_earth.tres" id="24_staff_earth"]
+[ext_resource type="Resource" uid="uid://b111md1aceaul" path="res://scenes/items/weapons/staff_skeleton.tres" id="25_staff_skeleton"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axedouble_common.tres" id="26_axedouble_common"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/hammer_uncommon.tres" id="27_hammer_uncommon"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_uncommon.tres" id="28_crossbow_uncommon"]
+[ext_resource type="Resource" uid="uid://c3cgdlchx0g5u" path="res://scenes/items/weapons/battleaxe_common.tres" id="29_battleaxe_common"]
+[ext_resource type="Resource" uid="uid://cldnonwxiehlh" path="res://scenes/items/weapons/battleaxe_skeleton.tres" id="30_battleaxe_skeleton"]
+[ext_resource type="Resource" uid="uid://cl7ybfrf3tkam" path="res://scenes/items/weapons/broadsword_common.tres" id="31_broadsword_common"]
+[ext_resource type="Resource" uid="uid://cnfavj2kn13nw" path="res://scenes/items/weapons/broadsword_rare.tres" id="32_broadsword_rare"]
+[ext_resource type="Resource" uid="uid://0a6ne7ik2tb7" path="res://scenes/items/weapons/crossbow_2handed.tres" id="33_crossbow_2handed"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/sword_rare.tres" id="34_sword_rare"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axe_rare.tres" id="35_axe_rare"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/dagger_rare.tres" id="36_dagger_rare"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/hammer_rare.tres" id="37_hammer_rare"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axedouble_uncommon.tres" id="38_axedouble_uncommon"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_rare.tres" id="39_crossbow_rare"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_rare.tres" id="40_staff_rare"]
+[ext_resource type="Resource" uid="uid://c2aj2q6oitlgh" path="res://scenes/items/weapons/warhammer.tres" id="41_warhammer"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axedouble_rare.tres" id="42_axedouble_rare"]
+[ext_resource type="Resource" uid="uid://ddlbimgglj7ai" path="res://scenes/items/weapons/warhammer_gold.tres" id="43_warhammer_gold"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_common.tres" id="44_shield_common"]
+[ext_resource type="Resource" uid="uid://cqdfgea0e6iwr" path="res://scenes/items/armor/shield_badge.tres" id="45_shield_badge"]
+[ext_resource type="Resource" uid="uid://kgk80xoii6kd" path="res://scenes/items/armor/shield_badge_color.tres" id="46_shield_badge_color"]
+[ext_resource type="Resource" uid="uid://cwxiym2epfskd" path="res://scenes/items/armor/shield_round_blue.tres" id="47_shield_round_blue"]
+[ext_resource type="Resource" uid="uid://b6piy51qeve40" path="res://scenes/items/armor/shield_round_common.tres" id="48_shield_round_common"]
+[ext_resource type="Resource" uid="uid://blgp6vsl5gs22" path="res://scenes/items/armor/shield_round_old.tres" id="49_shield_round_old"]
+[ext_resource type="Resource" uid="uid://bfupq3j33nceb" path="res://scenes/items/armor/shield_round_red.tres" id="50_shield_round_red"]
+[ext_resource type="Resource" uid="uid://6ryjigdys0sw" path="res://scenes/items/armor/shield_badge_spikes.tres" id="51_shield_badge_spikes"]
+[ext_resource type="Resource" uid="uid://bfb3phrx3qf0t" path="res://scenes/items/armor/shield_badge_spikes_red.tres" id="52_shield_badge_spikes_red"]
+[ext_resource type="Resource" uid="uid://uh4368ubd16l" path="res://scenes/items/armor/shield_large_skull.tres" id="53_shield_large_skull"]
+[ext_resource type="Resource" uid="uid://b3uaf6x2561vr" path="res://scenes/items/armor/shield_large_spikes.tres" id="54_shield_large_spikes"]
+[ext_resource type="Resource" uid="uid://d0ped1vfmlucw" path="res://scenes/items/armor/shield_square.tres" id="55_shield_square"]
+[ext_resource type="Resource" uid="uid://sg2evoroonef" path="res://scenes/items/armor/shield_square_red.tres" id="56_shield_square_red"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_uncommon.tres" id="57_shield_uncommon"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_rare.tres" id="58_shield_rare"]
+
+[sub_resource type="Resource" id="Item_gold_e"]
+script = ExtResource("2_item")
+Weight = 10.0
+Item = ExtResource("3_gold_e")
+Quantity = 20
+QuantityPerDepth = 6.0
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_heal_medium_e"]
+script = ExtResource("2_item")
+Weight = 6
+Item = ExtResource("4_heal_medium_e")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_heal_large_e"]
+script = ExtResource("2_item")
+Weight = 4
+Item = ExtResource("5_heal_large_e")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_regen_e"]
+script = ExtResource("2_item")
+Weight = 2
+Item = ExtResource("6_regen_e")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_axe_common"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("7_axe_common")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_axe_old"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("8_axe_old")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_crossbow_common"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("9_crossbow_common")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_dagger_common"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("10_dagger_common")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shortsword_common"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("11_shortsword_common")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_staff_common"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("12_staff_common")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_wand"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("13_wand")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_axe_uncommon"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("14_axe_uncommon")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_dagger_uncommon"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("15_dagger_uncommon")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_staff_uncommon"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("16_staff_uncommon")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_sword_common"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("17_sword_common")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_hammer_common"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("18_hammer_common")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_saber_skeleton"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("19_saber_skeleton")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_crossbow_spiked"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("20_crossbow_spiked")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_staff_fire"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("21_staff_fire")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_staff_water"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("22_staff_water")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_staff_air"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("23_staff_air")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_staff_earth"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("24_staff_earth")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_staff_skeleton"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("25_staff_skeleton")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_axedouble_common"]
+script = ExtResource("2_item")
+Weight = 3.6
+Item = ExtResource("26_axedouble_common")
+Quantity = 1
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_hammer_uncommon"]
+script = ExtResource("2_item")
+Weight = 3.6
+Item = ExtResource("27_hammer_uncommon")
+Quantity = 1
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_crossbow_uncommon"]
+script = ExtResource("2_item")
+Weight = 3.6
+Item = ExtResource("28_crossbow_uncommon")
+Quantity = 1
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_battleaxe_common"]
+script = ExtResource("2_item")
+Weight = 3.6
+Item = ExtResource("29_battleaxe_common")
+Quantity = 1
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_battleaxe_skeleton"]
+script = ExtResource("2_item")
+Weight = 3.6
+Item = ExtResource("30_battleaxe_skeleton")
+Quantity = 1
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_broadsword_common"]
+script = ExtResource("2_item")
+Weight = 3.6
+Item = ExtResource("31_broadsword_common")
+Quantity = 1
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_broadsword_rare"]
+script = ExtResource("2_item")
+Weight = 3.6
+Item = ExtResource("32_broadsword_rare")
+Quantity = 1
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_crossbow_2handed"]
+script = ExtResource("2_item")
+Weight = 3.6
+Item = ExtResource("33_crossbow_2handed")
+Quantity = 1
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_sword_rare"]
+script = ExtResource("2_item")
+Weight = 3.0
+Item = ExtResource("34_sword_rare")
+Quantity = 1
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_axe_rare"]
+script = ExtResource("2_item")
+Weight = 3.0
+Item = ExtResource("35_axe_rare")
+Quantity = 1
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_dagger_rare"]
+script = ExtResource("2_item")
+Weight = 3.0
+Item = ExtResource("36_dagger_rare")
+Quantity = 1
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_hammer_rare"]
+script = ExtResource("2_item")
+Weight = 3.0
+Item = ExtResource("37_hammer_rare")
+Quantity = 1
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_axedouble_uncommon"]
+script = ExtResource("2_item")
+Weight = 3.0
+Item = ExtResource("38_axedouble_uncommon")
+Quantity = 1
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_crossbow_rare"]
+script = ExtResource("2_item")
+Weight = 3.0
+Item = ExtResource("39_crossbow_rare")
+Quantity = 1
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_staff_rare"]
+script = ExtResource("2_item")
+Weight = 3.0
+Item = ExtResource("40_staff_rare")
+Quantity = 1
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_warhammer"]
+script = ExtResource("2_item")
+Weight = 3.0
+Item = ExtResource("41_warhammer")
+Quantity = 1
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_axedouble_rare"]
+script = ExtResource("2_item")
+Weight = 2.4
+Item = ExtResource("42_axedouble_rare")
+Quantity = 1
+MinDepth = 10
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_warhammer_gold"]
+script = ExtResource("2_item")
+Weight = 2.4
+Item = ExtResource("43_warhammer_gold")
+Quantity = 1
+MinDepth = 10
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_common"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("44_shield_common")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_badge"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("45_shield_badge")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_badge_color"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("46_shield_badge_color")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_round_blue"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("47_shield_round_blue")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_round_common"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("48_shield_round_common")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_round_old"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("49_shield_round_old")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_round_red"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("50_shield_round_red")
+Quantity = 1
+MinDepth = 0
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_badge_spikes"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("51_shield_badge_spikes")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_badge_spikes_red"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("52_shield_badge_spikes_red")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_large_skull"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("53_shield_large_skull")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_large_spikes"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("54_shield_large_spikes")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_square"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("55_shield_square")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_square_red"]
+script = ExtResource("2_item")
+Weight = 4.5
+Item = ExtResource("56_shield_square_red")
+Quantity = 1
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_uncommon"]
+script = ExtResource("2_item")
+Weight = 3.6
+Item = ExtResource("57_shield_uncommon")
+Quantity = 1
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("2_item")
+
+[sub_resource type="Resource" id="Item_shield_rare"]
+script = ExtResource("2_item")
+Weight = 3.0
+Item = ExtResource("58_shield_rare")
+Quantity = 1
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("2_item")
+
+[resource]
+script = ExtResource("1_table")
+Items = [SubResource("Item_gold_e"), SubResource("Item_heal_medium_e"), SubResource("Item_heal_large_e"), SubResource("Item_regen_e"), SubResource("Item_axe_common"), SubResource("Item_axe_old"), SubResource("Item_crossbow_common"), SubResource("Item_dagger_common"), SubResource("Item_shortsword_common"), SubResource("Item_staff_common"), SubResource("Item_wand"), SubResource("Item_axe_uncommon"), SubResource("Item_dagger_uncommon"), SubResource("Item_staff_uncommon"), SubResource("Item_sword_common"), SubResource("Item_hammer_common"), SubResource("Item_saber_skeleton"), SubResource("Item_crossbow_spiked"), SubResource("Item_staff_fire"), SubResource("Item_staff_water"), SubResource("Item_staff_air"), SubResource("Item_staff_earth"), SubResource("Item_staff_skeleton"), SubResource("Item_axedouble_common"), SubResource("Item_hammer_uncommon"), SubResource("Item_crossbow_uncommon"), SubResource("Item_battleaxe_common"), SubResource("Item_battleaxe_skeleton"), SubResource("Item_broadsword_common"), SubResource("Item_broadsword_rare"), SubResource("Item_crossbow_2handed"), SubResource("Item_sword_rare"), SubResource("Item_axe_rare"), SubResource("Item_dagger_rare"), SubResource("Item_hammer_rare"), SubResource("Item_axedouble_uncommon"), SubResource("Item_crossbow_rare"), SubResource("Item_staff_rare"), SubResource("Item_warhammer"), SubResource("Item_axedouble_rare"), SubResource("Item_warhammer_gold"), SubResource("Item_shield_common"), SubResource("Item_shield_badge"), SubResource("Item_shield_badge_color"), SubResource("Item_shield_round_blue"), SubResource("Item_shield_round_common"), SubResource("Item_shield_round_old"), SubResource("Item_shield_round_red"), SubResource("Item_shield_badge_spikes"), SubResource("Item_shield_badge_spikes_red"), SubResource("Item_shield_large_skull"), SubResource("Item_shield_large_spikes"), SubResource("Item_shield_square"), SubResource("Item_shield_square_red"), SubResource("Item_shield_uncommon"), SubResource("Item_shield_rare")]
+metadata/_custom_type_script = ExtResource("1_table")

@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="IdentifiableEquipableItem" load_steps=6 format=3]
+
+[ext_resource type="Script" uid="uid://cadjyq7h2j4fb" path="res://scenes/items/IdentifiableEquipableItem.cs" id="1_item"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet.tscn" id="2_scene"]
+[ext_resource type="Script" uid="uid://cstatmod0000001" path="res://scenes/player/resources/StatModifier.cs" id="3_mod"]
+
+[sub_resource type="Resource" id="Resource_mod0"]
+script = ExtResource("3_mod")
+Stat = 0
+Op = 0
+Value = 3.0
+metadata/_custom_type_script = ExtResource("3_mod")
+
+[sub_resource type="Resource" id="Resource_mod1"]
+script = ExtResource("3_mod")
+Stat = 11
+Op = 0
+Value = -4.0
+metadata/_custom_type_script = ExtResource("3_mod")
+
+[resource]
+script = ExtResource("1_item")
+TypeId = "amulet.titan"
+IdentityCategory = "amulet"
+TrueName = "Amulet of the Titan"
+UnidentifiedNameTemplate = "{descriptor} amulet"
+IntrinsicModifiers = [SubResource("Resource_mod0"), SubResource("Resource_mod1")]
+ValidSlots = 32
+Rarity = 0
+Name = "Amulet of the Titan"
+Scene = ExtResource("2_scene")
+Quality = 1.0
+Value = 220
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("1_item")

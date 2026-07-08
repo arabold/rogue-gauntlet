@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://csyxpvgdbtld2"]
 
-[ext_resource type="PackedScene" uid="uid://ddkigg2atj5wo" path="res://assets/kaykit-dungeon-legacy/sword_common.gltf.glb" id="1_gl564"]
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/shortsword_common.tscn" id="1_gl564"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_7qsia"]
 
 [resource]

@@ -1650,6 +1650,42 @@ public partial class MapGenerator : Node3D
 	}
 
 	/// <summary>
+	/// Picks a uniformly random free floor/corridor tile anywhere on the map, for effects
+	/// like a teleport scroll that relocate the player rather than spawn near a point.
+	/// Uses its own RNG rather than the run's seeded loot RNG, since a teleport's outcome
+	/// should not consume or depend on the loot-roll sequence.
+	/// </summary>
+	public bool TryPickRandomFreePosition(out Vector3 position)
+	{
+		List<Vector3> candidates = GetOpenTileCandidates(proceduralRoomsOnly: false);
+		if (candidates.Count == 0)
+		{
+			position = default;
+			return false;
+		}
+
+		var rng = new RandomNumberGenerator();
+		rng.Randomize();
+		for (int i = candidates.Count - 1; i > 0; i--)
+		{
+			int j = rng.RandiRange(0, i);
+			(candidates[i], candidates[j]) = (candidates[j], candidates[i]);
+		}
+
+		foreach (Vector3 candidate in candidates)
+		{
+			if (IsSpawnPositionFree(candidate))
+			{
+				position = candidate;
+				return true;
+			}
+		}
+
+		position = default;
+		return false;
+	}
+
+	/// <summary>
 	/// Finds a free world position close to <paramref name="origin"/> for a runtime spawn. Probes the
 	/// origin first, then samples points on expanding rings out to <paramref name="maxRadius"/> world
 	/// units, returning the nearest one that sits on a room/corridor floor tile whose column is clear

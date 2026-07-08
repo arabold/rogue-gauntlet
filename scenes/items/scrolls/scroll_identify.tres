@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="Scroll" load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://tl6phiqa232t" path="res://scenes/items/scrolls/Scroll.cs" id="1_scroll"]
+[ext_resource type="Script" uid="uid://c4twbo4qk7arj" path="res://scenes/items/scrolls/IdentifyScrollEffect.cs" id="2_effect"]
+[ext_resource type="PackedScene" uid="uid://fc5k4daomt7i" path="res://assets/kaykit-dungeon-legacy/bookA.gltf.glb" id="3_scene"]
+
+[sub_resource type="Resource" id="Resource_identify"]
+script = ExtResource("2_effect")
+TargetPrompt = "Identify which item?"
+
+[resource]
+script = ExtResource("1_scroll")
+Effect = SubResource("Resource_identify")
+AnimationId = "drink_potion"
+Name = "Scroll of Identification"
+TypeId = "scroll.identify"
+IdentityCategory = "scroll"
+TrueName = "Scroll of Identification"
+UnidentifiedNameTemplate = "scroll labeled {descriptor}"
+Scene = ExtResource("3_scene")
+Value = 80
+IsStackable = true
+metadata/_custom_type_script = ExtResource("1_scroll")

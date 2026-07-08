@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/hammer_rare.tscn" id="1_hamrare"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_hamrare"]
+
+[resource]
+script = ExtResource("2_hamrare")
+Tier = 4
+Level = 0
+RequiredStrength = 16
+Accuracy = 1.0
+DamageMin = 8.0
+DamageMax = 15.0
+CritChance = 0.0
+IsTwoHanded = false
+AnimationId = "melee_attack"
+Delay = 0.0
+PerformDuration = 0.5
+CooldownDuration = 0.0
+ValidSlots = 256
+Rarity = 0
+Name = "Royal Hammer"
+Scene = ExtResource("1_hamrare")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_hamrare")

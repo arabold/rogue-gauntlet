@@ -5,9 +5,9 @@
 
 [resource]
 script = ExtResource("2_v6yg1")
-Tier = 4
+Tier = 3
 Level = 0
-RequiredStrength = 16
+RequiredStrength = 15
 Accuracy = 1.0
 DamageMin = 6.0
 DamageMax = 13.0

@@ -15,6 +15,11 @@ public partial class IdentityCategory : Resource
 
 	[Export] public AppearancePool AppearancePool { get; set; }
 
-	/// <summary>All item types in this category whose identity is hidden until use.</summary>
-	[Export] public Array<IdentifiableItem> Types { get; set; } = new();
+	/// <summary>
+	/// All item types in this category whose identity is hidden until use. Typed as
+	/// the base <see cref="Item"/> (not <see cref="IIdentifiable"/>) because Godot
+	/// cannot export a typed array of an interface; callers filter with
+	/// <c>OfType&lt;IIdentifiable&gt;()</c>.
+	/// </summary>
+	[Export] public Array<Item> Types { get; set; } = new();
 }

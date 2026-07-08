@@ -1,6 +1,14 @@
 using Godot;
 using System;
 
+/// <summary>Whether a slot is a valid pick while the inventory is in targeting mode.</summary>
+public enum SlotTargetingState
+{
+	None,
+	Eligible,
+	Ineligible,
+}
+
 [Tool]
 public partial class ItemSlotPanel : PanelContainer
 {
@@ -14,6 +22,14 @@ public partial class ItemSlotPanel : PanelContainer
 	[Export] public Color DefaultColor = new(0.8f, 0.8f, 0.8f, 0.1f);
 
 	private Action _unsubscribeSlot = () => { };
+	/// <summary>
+	/// Whether the button should stay disabled for a reason other than targeting-mode
+	/// ineligibility (currently always false — no such condition exists yet). Composed with
+	/// targeting ineligibility in <see cref="SetTargetingState"/> rather than that method
+	/// unconditionally overwriting <c>Disabled</c>, so a future base-disabled reason can't be
+	/// silently re-enabled by leaving targeting mode.
+	/// </summary>
+	private bool _baseDisabled;
 
 	public bool IsEquipped
 	{
@@ -79,6 +95,18 @@ public partial class ItemSlotPanel : PanelContainer
 		Update();
 	}
 
+	/// <summary>
+	/// Applies the inventory's targeting-mode visuals. Ineligible slots dim and disable
+	/// their button so the eligibility signal is unambiguous at a glance; eligible slots
+	/// (and no active targeting) look and behave normally.
+	/// </summary>
+	public void SetTargetingState(SlotTargetingState state)
+	{
+		var button = GetNode<ItemSlotButton>("%Button");
+		button.Disabled = _baseDisabled || state == SlotTargetingState.Ineligible;
+		Modulate = state == SlotTargetingState.Ineligible ? new Color(1f, 1f, 1f, 0.35f) : Colors.White;
+	}
+
 	private void Update()
 	{
 		var button = GetNode<ItemSlotButton>("%Button");
@@ -96,7 +124,7 @@ public partial class ItemSlotPanel : PanelContainer
 			quantityLabel.Text = Slot.Quantity > 1 ? Slot.Quantity.ToString() : "";
 			equippedBorder.Visible = IsEquipped;
 
-			if (Slot.Item is EquipableItem equipableItem)
+			if (Slot.Item is EquipableItem equipableItem && ItemIdentity.IsIdentified(Slot.Item))
 			{
 				colorRect.Color = equipableItem.Rarity switch
 				{

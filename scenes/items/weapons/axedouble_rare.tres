@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/axedouble_rare.tscn" id="1_axedblrare"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_axedblrare"]
+
+[resource]
+script = ExtResource("2_axedblrare")
+Tier = 5
+Level = 0
+RequiredStrength = 23
+Accuracy = 1.0
+DamageMin = 16.0
+DamageMax = 30.0
+CritChance = 0.0
+IsTwoHanded = true
+AnimationId = "melee_attack"
+Delay = 0.0
+PerformDuration = 0.5
+CooldownDuration = 0.0
+ValidSlots = 256
+Rarity = 0
+Name = "Royal Double Axe"
+Scene = ExtResource("1_axedblrare")
+Quality = 1.0
+Value = 0
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_axedblrare")

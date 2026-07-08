@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" uid="uid://de533d5ctod6e" path="res://assets/kaykit-dungeon-legacy/sword_rare.gltf.glb" id="1_glb"]
+
+[node name="SwordRare" type="Node3D"]
+
+[node name="sword_rare" parent="." instance=ExtResource("1_glb")]

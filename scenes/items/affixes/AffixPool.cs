@@ -49,11 +49,11 @@ public partial class AffixPool : Resource
 	}
 
 	/// <summary>
-	/// Rolls a set of distinct affixes eligible for the given slots and rarity, each with
-	/// rolled values. Picks weighted and without replacement so an item never stacks the
-	/// same affix twice.
+	/// Rolls a set of distinct affixes eligible for the given slots, rarity, and base item
+	/// tier, each with rolled values. Picks weighted and without replacement so an item never
+	/// stacks the same affix twice.
 	/// </summary>
-	public RolledAffix[] RollAffixes(ValidSlots slots, EquipableItemRarity rarity, RandomNumberGenerator rng)
+	public RolledAffix[] RollAffixes(ValidSlots slots, EquipableItemRarity rarity, int tier, RandomNumberGenerator rng)
 	{
 		int count = RollAffixCount(rarity, rng);
 		if (count <= 0 || Affixes == null || Affixes.Length == 0)
@@ -61,7 +61,7 @@ public partial class AffixPool : Resource
 			return [];
 		}
 
-		List<Affix> eligible = Affixes.Where(a => a != null && a.CanRollOn(slots, rarity)).ToList();
+		List<Affix> eligible = Affixes.Where(a => a != null && a.CanRollOn(slots, rarity, tier)).ToList();
 		var rolled = new List<RolledAffix>();
 		for (int i = 0; i < count && eligible.Count > 0; i++)
 		{
@@ -71,6 +71,37 @@ public partial class AffixPool : Resource
 		}
 
 		return rolled.ToArray();
+	}
+
+	/// <summary>
+	/// Rolls one affix eligible for the given slots/rarity/tier, excluding any name
+	/// fragment already present, or null if nothing is eligible. Used by the Enchant
+	/// scroll to add a single affix without re-rolling an item's existing ones.
+	/// </summary>
+	public RolledAffix RollSingleAffix(
+		ValidSlots slots,
+		EquipableItemRarity rarity,
+		int tier,
+		IEnumerable<string> excludeNameFragments,
+		RandomNumberGenerator rng)
+	{
+		if (Affixes == null || Affixes.Length == 0)
+		{
+			return null;
+		}
+
+		var exclude = new HashSet<string>(excludeNameFragments ?? Enumerable.Empty<string>());
+		List<Affix> eligible = Affixes
+			.Where(a => a != null && a.CanRollOn(slots, rarity, tier) && !exclude.Contains(a.NameFragment))
+			.ToList();
+
+		if (eligible.Count == 0)
+		{
+			return null;
+		}
+
+		int index = PickWeightedIndex(eligible, rng);
+		return eligible[index].Roll(rng);
 	}
 
 	private static int PickWeightedIndex(List<Affix> affixes, RandomNumberGenerator rng)

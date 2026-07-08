@@ -5,10 +5,6 @@ using System;
 public partial class Weapon : EquipableItem, IPlayerAction
 {
 	/// <summary>
-	/// Weapon tier (1, 2, 3, etc.)
-	/// </summary>
-	[Export] public int Tier { get; protected set => SetValue(ref field, value); } = 1;
-	/// <summary>
 	/// Weapon level modifier (-1, +0, +1, etc.); affects weapon stats.
 	/// </summary>
 	[Export] public int Level { get; protected set => SetValue(ref field, value); } = 0;

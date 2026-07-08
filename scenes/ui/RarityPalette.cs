@@ -19,7 +19,11 @@ public static class RarityPalette
 		_ => Default,
 	};
 
-	/// <summary>Color for an item that has no rarity (consumables, quest items, …).</summary>
+	/// <summary>
+	/// Color for an item that has no rarity (consumables, quest items, …), and for any
+	/// unidentified item — an unworn ring must not leak its rolled rarity through the
+	/// tooltip's text color before it has been identified.
+	/// </summary>
 	public static Color TextColor(Item item) =>
-		item is EquipableItem equipable ? TextColor(equipable.Rarity) : Default;
+		item is EquipableItem equipable && ItemIdentity.IsIdentified(item) ? TextColor(equipable.Rarity) : Default;
 }
