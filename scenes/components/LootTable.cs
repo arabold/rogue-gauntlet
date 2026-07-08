@@ -20,6 +20,11 @@ public partial class LootTable : Resource
 	/// </summary>
 	public LootTableItem PickEntry(uint depth, RandomNumberGenerator rng)
 	{
+		if (Items == null || Items.Length == 0 || rng == null)
+		{
+			return null;
+		}
+
 		LootTableItem[] eligible = Items.Where(i => i != null && i.IsEligibleAt(depth)).ToArray();
 		if (eligible.Length == 0)
 		{

@@ -25,9 +25,14 @@ public partial class LootTableItem : Resource
 		return (MinDepth == 0 || depth >= MinDepth) && (MaxDepth == 0 || depth <= MaxDepth);
 	}
 
-	/// <summary>The quantity to drop at the given depth, scaled by <see cref="QuantityPerDepth"/>.</summary>
+	/// <summary>
+	/// The quantity to drop at the given depth, scaled by <see cref="QuantityPerDepth"/>.
+	/// Clamped to a non-negative <see cref="int"/> so a misauthored negative rate or an
+	/// extreme depth can't underflow/overflow into a nonsensical drop quantity.
+	/// </summary>
 	public int QuantityAt(uint depth)
 	{
-		return Quantity + (int)(QuantityPerDepth * depth);
+		double scaled = Quantity + (double)QuantityPerDepth * depth;
+		return (int)System.Math.Clamp(scaled, 0, int.MaxValue);
 	}
 }

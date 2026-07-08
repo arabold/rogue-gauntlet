@@ -35,6 +35,11 @@ public static class LootRoller
 	/// </summary>
 	public static EquipableItem EnsureInstance(EquipableItem item)
 	{
+		if (item == null)
+		{
+			return null;
+		}
+
 		if (!string.IsNullOrEmpty(item.SourceDefinitionPath))
 		{
 			return item;

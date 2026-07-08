@@ -40,7 +40,9 @@ public partial class LootTableComponent : Node
 
         if (rng.Randf() <= DropChance && Table != null)
         {
-            int rolls = rng.RandiRange(Mathf.Min(DropCountMin, DropCountMax), Mathf.Max(DropCountMin, DropCountMax));
+            int minCount = Mathf.Max(0, DropCountMin);
+            int maxCount = Mathf.Max(0, DropCountMax);
+            int rolls = rng.RandiRange(Mathf.Min(minCount, maxCount), Mathf.Max(minCount, maxCount));
             for (int i = 0; i < rolls; i++)
             {
                 LootTableItem selectedItem = Table.PickEntry(depth, rng);
