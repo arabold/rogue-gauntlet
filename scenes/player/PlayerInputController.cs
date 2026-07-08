@@ -33,8 +33,10 @@ public partial class PlayerInputController : Node
 			{
 				MovementComponent.FaceDirection(assistFacing);
 			}
-			else
+			else if (InputComponent.InputDirection != Vector3.Zero)
 			{
+				// No aim-assist target: face where the player is aiming. Leave the current facing
+				// untouched when there is no input so we never zero out the stored look direction.
 				MovementComponent.SetLookAtDirection(InputComponent.InputDirection);
 			}
 			return;

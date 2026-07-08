@@ -91,7 +91,7 @@ public sealed class EnemyContext
 	/// </summary>
 	public bool HasLineOfSightToTarget()
 	{
-		return Target != null && Perception.CanSee(Target);
+		return Target != null && GodotObject.IsInstanceValid(Target) && Perception.CanSee(Target);
 	}
 
 	/// <summary>
