@@ -11,21 +11,24 @@ public enum XrayCategory
 }
 
 /// <summary>
-/// Draws see-through-wall silhouettes for an actor's meshes, the same way <see cref="Door"/>
-/// does for doors: for every <see cref="MeshInstance3D"/> under <see cref="TargetRoot"/> it
-/// builds a duplicate mesh whose shader (<c>door_xray.gdshader</c>) only survives where the
-/// original is occluded by scene geometry, so the actor reads through walls but stays invisible
-/// when already in plain view.
+/// Draws see-through-wall silhouettes for an actor's meshes: for every <see cref="MeshInstance3D"/>
+/// under <see cref="TargetRoot"/> it builds two drawn-on-top duplicates — a stencil "mask" and the
+/// visible x-ray. The mask marks the pixels where the actor is actually visible; the x-ray then
+/// draws only where the actor is hidden (stencil != 1). Because the gate is per-pixel rather than
+/// per-fragment, the actor never x-rays through its own body, regardless of how deep or complex
+/// it is (see the two <c>occlusion_xray*.gdshader</c> files).
 ///
-/// Silhouettes are shown only when the category's global toggle is on
-/// (<see cref="GameDebug"/>) AND the actor is in a discovered room
-/// (<see cref="MapGenerator.IsRevealedAt"/>), matching how the door indicator is gated to
-/// revealed areas.
+/// Silhouettes are shown only when the category's global toggle is on (<see cref="GameDebug"/>)
+/// AND the actor is in a discovered room (<see cref="MapGenerator.IsRevealedAt"/>), matching how
+/// the door indicator is gated to revealed areas.
 /// </summary>
 [GlobalClass]
 public partial class OcclusionXrayComponent : Node
 {
-	private const string XrayShaderPath = "res://scenes/props/door_xray.gdshader";
+	private const string MaskShaderPath = "res://scenes/effects/shaders/occlusion_xray_mask.gdshader";
+	private const string XrayShaderPath = "res://scenes/effects/shaders/occlusion_xray.gdshader";
+	// Transparent draw order: every mask must render (and write its stencil) before any x-ray reads it.
+	private const int MaskRenderPriority = 0;
 	private const int XrayRenderPriority = 8;
 	private const double PollInterval = 0.3;
 
@@ -36,7 +39,9 @@ public partial class OcclusionXrayComponent : Node
 	/// <summary>Which debug toggle enables this component.</summary>
 	[Export] public XrayCategory Category { get; set; } = XrayCategory.Monster;
 
+	private static Shader _maskShader;
 	private static Shader _xrayShader;
+	private static Shader MaskShader => _maskShader ??= GD.Load<Shader>(MaskShaderPath);
 	private static Shader XrayShader => _xrayShader ??= GD.Load<Shader>(XrayShaderPath);
 
 	private readonly List<MeshInstance3D> _silhouettes = new();
@@ -95,27 +100,16 @@ public partial class OcclusionXrayComponent : Node
 	}
 
 	/// <summary>
-	/// Creates a silhouette duplicate for every mesh under <paramref name="node"/>. Each
-	/// duplicate is parented next to its source and inherits the source's local transform,
-	/// skin, and skeleton binding, so skinned enemy meshes deform with their animation.
+	/// Creates the mask + x-ray duplicate pair for every mesh under <paramref name="node"/>. Each
+	/// duplicate is parented next to its source and inherits the source's local transform, skin,
+	/// and skeleton binding, so skinned enemy meshes deform with their animation.
 	/// </summary>
 	private void BuildSilhouettes(Node node)
 	{
 		if (node is MeshInstance3D src && src.Mesh != null)
 		{
-			var silhouette = new MeshInstance3D
-			{
-				Name = $"{src.Name}_Xray",
-				Mesh = src.Mesh,
-				Skin = src.Skin,
-				Skeleton = src.Skeleton,
-				MaterialOverride = CreateMaterial(),
-				CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
-				Transform = src.Transform,
-				Visible = false,
-			};
-			src.GetParent().AddChild(silhouette);
-			_silhouettes.Add(silhouette);
+			AddDuplicate(src, CreateMaskMaterial());
+			AddDuplicate(src, CreateXrayMaterial());
 		}
 
 		foreach (Node child in node.GetChildren())
@@ -124,7 +118,30 @@ public partial class OcclusionXrayComponent : Node
 		}
 	}
 
-	private ShaderMaterial CreateMaterial()
+	private void AddDuplicate(MeshInstance3D src, ShaderMaterial material)
+	{
+		var duplicate = new MeshInstance3D
+		{
+			Name = $"{src.Name}_Xray",
+			Mesh = src.Mesh,
+			Skin = src.Skin,
+			Skeleton = src.Skeleton,
+			MaterialOverride = material,
+			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+			Transform = src.Transform,
+			Visible = false,
+		};
+		src.GetParent().AddChild(duplicate);
+		_silhouettes.Add(duplicate);
+	}
+
+	private ShaderMaterial CreateMaskMaterial() => new()
+	{
+		Shader = MaskShader,
+		RenderPriority = MaskRenderPriority,
+	};
+
+	private ShaderMaterial CreateXrayMaterial()
 	{
 		var material = new ShaderMaterial
 		{
