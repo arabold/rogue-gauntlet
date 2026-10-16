@@ -46,13 +46,13 @@ MATERIALS = {**{slot: dict(metallic=0.5, roughness=0.3, crease=45.0)
                 for slot in ("iron", "iron_light", "iron_worn", "iron_dark", "rivet_iron")},
              **{slot: dict(metallic=0.25, roughness=0.6, crease=50.0) for slot in ("rust", "rust_dark")},
              **{slot: dict(emissive=True, crease=60.0) for slot in ("glow", "halo", "crystal")},
-             **{slot: dict(metallic=0.1, roughness=0.15, crease=60.0) for slot in ("eye", "iris")},
+             **{slot: dict(metallic=0.08, roughness=0.10, crease=75.0) for slot in ("eye", "iris")},
              **{slot: dict(metallic=0.0, roughness=0.85, crease=50.0)
                 for slot in ("bone", "bone_light", "bone_worn", "bone_dark", "tusk", "tusk_tip", "horn",
                              "leather", "leather_light", "leather_worn", "leather_dark", "stitch",
                              "hide", "hide_light", "hide_worn", "hide_dark", "dirt", "grime", "rope")},
              **{slot: dict(metallic=0.0, roughness=0.9, crease=62.0)
-                for slot in ("skin", "skin_dark", "skin_light", "ear", "ear_dark", "lip", "mouth", "nostril")},
+                for slot in ("skin", "skin_dark", "skin_light", "ear", "ear_dark", "lip", "mouth", "nostril", "socket", "ring", "makeup")},
              # hair, fur, feathers, wraps and cloth stay matte and shade smoothly along loops/folds:
              **{slot: dict(metallic=0.0, roughness=1.0, crease=60.0)
                 for slot in ("brow", "hair", "beard", "fur", "fur_trim", "pelt", "pelt_dark", "feather",
@@ -225,11 +225,19 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
     if missing:
         raise ValueError(f"no color for slots {missing}")
     label = {s: i for i, s in enumerate(used)}
-    cell, pad = 8, 4
-    size = 1 << int(np.ceil(np.log2(max(64, len(used) * cell + 2 * pad))))
-    atlas = mm.Atlas([slot_colors[s] for s in used], size=size, pad=pad, cell=cell)
+    atlas = mm.Atlas([slot_colors[s] for s in used], pad=4, col_w=16, col_h=128, looks=looks, slot_names=used)
     base = g["materials"][0]
     material_specs = [None]  # 0: the template's matte material
+
+    FLAT_SLOTS = {
+        'paint', 'warpaint', 'scar', 'scars',
+        'lip', 'lip_mid', 'lips',
+        'eye', 'iris', 'glint', 'pupil', 'bead', 'rings', 'makeup',
+        'nostril', 'nostrils',
+        'tusk', 'tusk_tip', 'teeth', 'tooth',
+        'rivet', 'rivets', 'buckle', 'buckles', 'stud', 'studs',
+        'nail', 'gem', 'stitch',
+    }
 
     def material(slot):
         spec = looks.get(str(slot))
@@ -246,7 +254,37 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
         else:
             slot_crease = {s: _crease_of(looks.get(str(s)), crease) for s in used}
             N = corner_normals(*(normals_from or (verts, faces)), crease=crease, slots=slots, slot_crease=slot_crease).reshape(-1, 3)
-        uv = np.repeat(np.array([atlas.flat_uv(label[str(s)]) for s in slots]), 3, axis=0)
+        
+        n_faces = len(tri)
+        if n_faces == 0:
+            uv = np.zeros((0, 2), float)
+        else:
+            N_tri = N.reshape(n_faces, 3, 3)
+            y_min, y_max = verts[:, 1].min(), verts[:, 1].max()
+            y_span = max(y_max - y_min, 1e-4)
+
+            h_weight = float(np.clip(y_span / 0.08, 0.25, 0.85))
+            y_verts = tri[:, :, 1]
+            t_h = 1.0 - (y_verts - y_min) / y_span
+            t_h_centered = 0.5 + (t_h - 0.5) * h_weight
+            ny = N_tri[:, :, 1]
+            t_slope = np.clip(-ny * 0.35, -0.25, 0.25)
+            t_val = np.clip(t_h_centered + t_slope, 0.06, 0.94)
+
+            # Check which slots are flat details
+            is_flat = np.array([
+                (str(s) in FLAT_SLOTS or
+                 any(str(s).startswith(f"{p}_") or str(s).endswith(f"_{p}") for p in FLAT_SLOTS) or
+                 looks.get(str(s), {}).get("emissive", False))
+                for s in slots
+            ], dtype=bool)
+
+            t_val[is_flat] = 0.5
+
+            label_indices = np.array([label[str(s)] for s in slots])
+            lbl_expanded = np.repeat(label_indices[:, None], 3, axis=1)
+
+            uv = atlas.gradient_uv(lbl_expanded, t_val)
         cols = [verts, N, uv]
         if bones is not None:
             J = np.vectorize(lambda b: joint_of.get(b, 0))(bones).astype(np.uint8)

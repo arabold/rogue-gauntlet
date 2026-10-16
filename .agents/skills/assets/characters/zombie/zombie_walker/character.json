@@ -10,16 +10,16 @@
       "brow": 0.06
     },
     "eyes": {
-      "style": "glow",
-      "w": 0.28,
-      "h": 0.3,
+      "style": "bead",
+      "w": 0.15,
+      "h": 0.15,
       "y": -0.16,
-      "x": 0.4,
-      "pupil": true,
+      "x": 0.38,
       "glint": false,
-      "outline": 0.12,
-      "socket": 0.9,
-      "uneven": 1.6
+      "uneven": 1.5,
+      "socket": 0.55,
+      "carve_socket": true,
+      "socket_depth": 0.055
     },
     "brows": {
       "angle": -8,
@@ -81,20 +81,15 @@
         60,
         46
       ],
-      "iris": [
-        232,
-        228,
-        196
-      ],
       "eye": [
-        60,
-        66,
-        50
+        18,
+        18,
+        20
       ],
       "socket": [
-        82,
-        96,
-        78
+        54,
+        64,
+        50
       ],
       "mouth": [
         44,

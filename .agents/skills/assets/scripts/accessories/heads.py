@@ -236,22 +236,91 @@ def slab(poly, depth, slot, embed=0.015, bevel=0.004):
 # ---------------------------------------------------------------------------
 # Features
 # ---------------------------------------------------------------------------
-def eyes(head, style="dot", x=0.42, y=-0.2, w=0.2, h=0.27, angry=0.0, pupil=False, glint=False, outline=0.32,
-         socket=0.0, liner=0.0, flick=0.3, lashes=0, halo=0.0, uneven=1.0, cut="round"):
+def bead_mesh(w, h, d=None, p=2.0, sides=16, rings=8, slot="eye", angry=0.0):
     """
-    Both eyes. `bead`: small solid un-split bead catching specular light reflections. `dot`: KayKit's dark rounded
-    pills. `glow`: a colored iris (slot `iris`) in a dark rim (slot `eye`, `outline` its margin as a share of the iris)
-    with an optional `pupil` and an optional `glint`. `angry` slants the top edge down toward the nose (0 .. 1).
+    A 3D rounded bead centered at (0, 0, 0) with width `w`, height `h`, and depth `d`.
+    Its equator (z = 0) divides the bead:
+      z in [-d/2, 0]: back half, sunk into the head or socket
+      z in [0, +d/2]: front half, protruding outward
+    Normals are outward facing and smooth.
+    """
+    if d is None:
+        d = 0.85 * min(w, h)
+    u = 2 * np.pi * np.arange(sides) / sides
+    v = np.linspace(-np.pi / 2, np.pi / 2, rings + 1)
 
-    Around them: `socket` > 0 sets the eye in a shadowed patch (slot `socket`) that much bigger, sagging below it
-    (a brute's sunken eyes); `liner` draws a heavy upper lid (slot `liner`, its thickness a share of the eye's
-    height) that sweeps past the outer corner by `flick` (a share of its width) with `lashes` strokes; `halo` rings
+    verts = []
+    verts.append([0.0, 0.0, -d / 2])
+
+    sp = lambda val, exp: np.sign(val) * (np.abs(val) ** exp)
+
+    for vi in v[1:-1]:
+        cv = np.cos(vi)
+        sv = np.sin(vi)
+        r_scale = sp(cv, 2.0 / p)
+        xs = (w / 2) * r_scale * sp(np.cos(u), 2.0 / p)
+        ys = (h / 2) * r_scale * sp(np.sin(u), 2.0 / p)
+        zs = np.full(sides, (d / 2) * sv)
+        for x, y, z in zip(xs, ys, zs):
+            verts.append([x, y, z])
+
+    verts.append([0.0, 0.0, d / 2])
+    verts = np.asarray(verts, float)
+
+    if angry and abs(w - h) > 1e-4:
+        ang = np.radians(-angry * 15.0)
+        R = np.array([[np.cos(ang), -np.sin(ang), 0.0],
+                      [np.sin(ang),  np.cos(ang), 0.0],
+                      [0.0,          0.0,         1.0]])
+        verts = verts @ R.T
+
+    faces = []
+    for i in range(sides):
+        nxt = (i + 1) % sides
+        faces.append([0, 1 + nxt, 1 + i])
+
+    for r in range(rings - 2):
+        r1 = 1 + r * sides
+        r2 = 1 + (r + 1) * sides
+        for i in range(sides):
+            nxt = (i + 1) % sides
+            faces.append([r1 + i, r1 + nxt, r2 + nxt])
+            faces.append([r1 + i, r2 + nxt, r2 + i])
+
+    top_pole = len(verts) - 1
+    last_r = 1 + (rings - 2) * sides
+    for i in range(sides):
+        nxt = (i + 1) % sides
+        faces.append([last_r + i, last_r + nxt, top_pole])
+
+    faces = np.asarray(faces, int)
+    return kit.Piece(verts, faces, slot)
+
+
+def eyes(head, style="dot", x=0.42, y=-0.2, w=0.2, h=0.27, angry=0.0, pupil=False, glint=False, outline=0.32,
+         socket=0.0, liner=0.0, flick=0.3, lashes=0, halo=0.0, uneven=1.0, cut="round",
+         carve_socket=False, socket_depth=None, socket_slot="socket", depth=None, out=None,
+         slot=None, glow=False, ring=0.0, rings=None, makeup=None, ring_slot="ring",
+         outline_slot="eye", iris_slot="iris", outer=False, outer_shape=False, bead_scale=None):
+    """
+    Both eyes. `bead`: small solid 3D rounded bead catching specular light reflections (sunk halfway).
+    `dot`: KayKit's dark rounded pills. `glow`: a colored iris (slot `iris`) in a dark rim (slot `eye`,
+    `outline` its margin as a share of the iris) with an optional `pupil` and an optional `glint`.
+    `angry` slants the top edge down toward the nose (0 .. 1).
+
+    Around them: `socket` > 0 sets the eye in a shadowed patch (slot `socket`) that much bigger;
+    `carve_socket` carves the eye socket as a 3D recess in the cranium (for ghoul and zombie);
+    `ring` / `makeup` / `rings` draws rings or makeup patches of customizable size and slot around the eyes;
+    `liner` draws a heavy upper lid (slot `liner`, its thickness a share of the eye's height) that
+    sweeps past the outer corner by `flick` (a share of its width) with `lashes` strokes; `halo` rings
     a glowing eye in a lighter glow (slot `halo`) that much bigger; `uneven` scales the right eye (a zombie's
     mismatched stare). `cut="triangle"` gives a devilish eye: the slanted top meets a straight edge rising from the
     bottom in a sharp inner corner (an imp's); `pupil="slit"` a cat's narrow upright pupil.
     """
     A = head.A
     W, H = w * A, h * A
+    x0, y0 = x * A, head.y(y)
+    bead_slot = slot or ("glow" if (glow or style == "glow_bead") else "eye")
 
     def top_line(margin):  # the slanted lid of an angry eye: y <= c + slope * x
         return angry * H / W, 0.55 * H - 0.5 * angry * H + margin
@@ -262,20 +331,96 @@ def eyes(head, style="dot", x=0.42, y=-0.2, w=0.2, h=0.27, angry=0.0, pupil=Fals
             slope, c = top_line(margin)
             poly = clip(poly, -slope, 1.0, c)
             if cut == "triangle":  # a straight lower-inner edge from the inner corner down to the bottom
-                x0, y0 = -0.5 * W * k, c - slope * 0.5 * W * k
-                s2 = (-0.5 * H * k - y0) / (0.65 * W * k)
-                poly = clip(poly, s2, -1.0, -y0 - s2 * (-x0) + 0.0)
+                x0_, y0_ = -0.5 * W * k, c - slope * 0.5 * W * k
+                s2 = (-0.5 * H * k - y0_) / (0.65 * W * k)
+                poly = clip(poly, s2, -1.0, -y0_ - s2 * (-x0_) + 0.0)
         return poly
 
-    rim = 1.0 + (outline if style not in ("dot", "bead") else 0.0)
+    has_outer = bool(pupil or cut == "triangle" or outer or outer_shape)
+    rim = 1.0 + (outline if (outline is not None and (has_outer or style not in ("dot", "bead", "glow_bead"))) else 0.0)
     skin_cuts = []  # (slot, polygon) in eye coordinates, cut into the face around it: never patches laid on it
-    if socket:
-        skin_cuts.append(("socket", blob(W * (1 + socket), H * (1 + 1.1 * socket)) + [0.04 * W, -0.22 * socket * H]))
+    carve_list = []
+
+    if carve_socket:
+        sw = W * (1.0 + (socket if socket > 0 else 0.55))
+        sh = H * (1.0 + 1.1 * (socket if socket > 0 else 0.55))
+        sox = 0.02 * W
+        soy = -0.12 * H
+        sp_poly = blob(sw, sh) + [sox, soy]
+        poly_left = sp_poly + [x0, y0]
+        poly_right = ((blob(sw * uneven, sh * uneven) + [sox * uneven, soy * uneven]) * [-1, 1] + [-x0, y0])[::-1]
+        c_depth = (socket_depth if socket_depth is not None else 0.055) * A
+        carve_list.append((socket_slot, [poly_left], poly_left, c_depth))
+        carve_list.append((socket_slot, [poly_right], poly_right, c_depth))
+        bead_out = out if out is not None else (-c_depth * 0.55)
+    else:
+        if socket:
+            skin_cuts.append((socket_slot, blob(W * (1 + socket), H * (1 + 1.1 * socket)) + [0.04 * W, -0.22 * socket * H]))
+        bead_out = out if out is not None else 0.0
+
+    # Collect rings / makeup specifications around the eyes
+    ring_entries = []
+    if makeup is not None and not ring and not rings:
+        ring = makeup
+
+    if rings:
+        if isinstance(rings, (list, tuple)):
+            for r in rings:
+                if isinstance(r, dict):
+                    ring_entries.append((r.get("slot", ring_slot), float(r.get("scale", r.get("ring", 1.0))),
+                                         float(r.get("x", 0.04 * W)), float(r.get("y", -0.15 * H))))
+                elif isinstance(r, (list, tuple)):
+                    sl_ = r[0] if isinstance(r[0], str) else ring_slot
+                    sc_ = float(r[1] if isinstance(r[0], str) else r[0])
+                    ox_ = float(r[2]) if len(r) > 2 else 0.04 * W
+                    oy_ = float(r[3]) if len(r) > 3 else -0.15 * sc_ * H
+                    ring_entries.append((sl_, sc_, ox_, oy_))
+                else:
+                    sc_ = float(r)
+                    ring_entries.append((ring_slot, sc_, 0.04 * W, -0.15 * sc_ * H))
+    elif ring:
+        if isinstance(ring, dict):
+            ring_entries.append((ring.get("slot", ring_slot), float(ring.get("scale", 1.0)),
+                                 float(ring.get("x", 0.04 * W)), float(ring.get("y", -0.15 * H))))
+        else:
+            sc_ = float(ring)
+            ring_entries.append((ring_slot, sc_, 0.04 * W, -0.15 * sc_ * H))
+
+    for r_slot, r_scale, rox, roy in ring_entries:
+        rw = W * (1.0 + r_scale)
+        rh = H * (1.0 + 1.1 * r_scale)
+        skin_cuts.append((r_slot, blob(rw, rh) + [rox, roy]))
+
     if halo:
         skin_cuts.append(("halo", shape(rim + halo, (rim + halo - 1) * 0.5 * H)))
-    if style in ("dot", "bead"):  # the eyeball, one shell; specular light reflections come from PBR roughness
+
+    if style in ("bead", "glow_bead", "glow"):
+        if has_outer:
+            # Outer eye shape retained by color on the head mesh
+            if outline > 0:
+                skin_cuts.append((outline_slot or "eye", shape(rim)))
+            if pupil or cut == "triangle":
+                skin_cuts.append((iris_slot or "iris", shape(1.0)))
+
+            if bead_scale is not None:
+                if isinstance(bead_scale, (tuple, list)):
+                    bw, bh = W * bead_scale[0], H * bead_scale[1]
+                else:
+                    bw, bh = W * bead_scale, H * bead_scale
+            elif pupil == "slit":
+                bw, bh = W * 0.35, H * 0.65
+            elif pupil:
+                bw, bh = W * 0.55, H * 0.60
+            else:
+                bw, bh = W * 0.50, H * 0.50
+        else:
+            bw, bh = W, H
+
+        ball = bead_mesh(bw, bh, d=depth * A if depth is not None else None, angry=angry * 0.5 if has_outer else angry, slot=bead_slot)
+        cuts = []  # specular light reflections come from PBR roughness, no white paint cuts
+    elif style == "dot":
         ball = slab(shape(1.0), 0.022, "eye")
-        cuts = [("glint", blob(0.3 * W, 0.3 * W) + [0.18 * W, 0.18 * H], {"eye"})] if (glint and style != "bead") else []
+        cuts = [("glint", blob(0.3 * W, 0.3 * W) + [0.18 * W, 0.18 * H], {"eye"})] if glint else []
     else:
         m = outline * H
         ball = slab(shape(rim, m), 0.026, "eye")
@@ -286,8 +431,10 @@ def eyes(head, style="dot", x=0.42, y=-0.2, w=0.2, h=0.27, angry=0.0, pupil=Fals
             cuts.append(("eye", clip(blob(0.38 * W, 0.62 * H), -angry * H / W, 1.0, 0.3 * H), {"iris"}))
         if glint:
             cuts.append(("glint", blob(0.26 * W, 0.26 * W) + [0.2 * W, 0.08 * H], {"iris", "eye"}))
+
     for sl, poly, on in cuts:
         ball = kit.paint_cut(ball, [poly], sl, on)
+
     if liner:
         t = np.linspace(np.pi * 0.98, np.pi * 0.02, 11)  # along the upper edge, inner corner to outer
         ex, ey = 0.5 * W * rim * _spow(np.cos(t), 2 / 2.4), 0.5 * H * rim * _spow(np.sin(t), 2 / 2.4)
@@ -310,8 +457,8 @@ def eyes(head, style="dot", x=0.42, y=-0.2, w=0.2, h=0.27, angry=0.0, pupil=Fals
             d = np.array([np.cos(0.9 + 0.35 * i_), np.sin(0.9 + 0.35 * i_)])
             skin_cuts.append(("liner", np.array([base_ - 0.35 * T * d[::-1] * [1, -1], base_ + 0.35 * T * d[::-1] * [1, -1],
                                                  base_ + 1.6 * T * d])))
-    x0, y0 = x * A, head.y(y)
-    one = head.conform(ball, x0, y0)
+
+    one = head.conform(ball, x0, y0, out=bead_out)
     other = one.mirrored()
     if uneven != 1.0:  # one eye bigger than the other (a zombie's), grown about its own centre across the face
         c = other.verts.mean(0)
@@ -323,6 +470,7 @@ def eyes(head, style="dot", x=0.42, y=-0.2, w=0.2, h=0.27, angry=0.0, pupil=Fals
         paint_.append((sl, q + [x0, y0]))
         paint_.append((sl, (q * [-uneven, uneven] + [-x0, y0])[::-1]))
     both.paint = paint_
+    both.carve = carve_list
     return both
 
 
@@ -1185,9 +1333,11 @@ def build(recipe, center=(0.0, 1.72, 0.0)):
         for sl, strips, outline, depth in carved:
             cranium = kit.carve(cranium, strips, outline, sl, depth, head.centre, bare, min_facing=0.3)
     if painted:  # paint and scars: the skin itself recolored inside their outlines (cranium, nose, jaw)
-        bare = {skin_slot, "skin", "skin_dark", *(v[0] for v in (shade or {}).values())}
-        on_top = ["liner", "mouth", "lip", "lip_mid", "scar", "paint", "nostril", "halo", "socket"]  # the first cut on a face wins
-        for sl in sorted({s_ for s_, _ in painted}, key=lambda x: on_top.index(x) if x in on_top else 3.5):
+        makeup_slots = {s_ for s_, _ in painted if any(k in s_ for k in ("ring", "makeup", "shadow"))}
+        eye_slots = {s_ for s_, _ in painted if s_ in ("eye", "socket", "iris")}
+        bare = {skin_slot, "skin", "skin_dark", *makeup_slots, *eye_slots, *(v[0] for v in (shade or {}).values())}
+        on_top = ["eye", "socket", "iris", "liner", "mouth", "lip", "lip_mid", "scar", "paint", "nostril", "ring_inner", "makeup_inner", "ring", "makeup", "ring_outer", "makeup_outer", "halo"]
+        for sl in sorted({s_ for s_, _ in painted}, key=lambda x: on_top.index(x) if x in on_top else 50.0):
             polys = [q for s_, q in painted if s_ == sl]
             cranium = kit.paint_cut(cranium, polys, sl, bare, min_facing=0.3)  # the face, not over the crown
             cut = {id(p): kit.paint_cut(p, polys, sl, bare) for p in skin}
@@ -1226,23 +1376,24 @@ ROSTER = {
         paint={"strokes": "war"},
         lip=["lip", 0.4, 0.56],
         shade={"top": ["skin_light", 0.5], "bottom": ["skin_dark", -0.72]},
-        colors={"skin": [132, 196, 58], "skin_dark": [98, 152, 44], "brow": [96, 74, 50], "hair": [120, 94, 64], "eye": [24, 26, 24], "glint": [250, 250, 245], "tusk": [226, 196, 160], "tusk_tip": [244, 236, 222], "paint": [226, 70, 46], "nostril": [52, 84, 32], "lip": [104, 104, 52], "metal": [150, 156, 166], "skin_light": [146, 202, 62]}),
+        colors={"skin": [132, 196, 58], "skin_dark": [98, 152, 44], "brow": [96, 74, 50], "hair": [120, 94, 64], "eye": [18, 18, 20], "glint": [250, 250, 245], "tusk": [226, 196, 160], "tusk_tip": [244, 236, 222], "paint": [226, 70, 46], "nostril": [52, 84, 32], "lip": [104, 104, 52], "metal": [150, 156, 166], "skin_light": [146, 202, 62]}),
     "mummy": dict(
         form=dict(width=1.0, height=1.04, depth=1.0, p=2.2, q=2.2),
         skin="wrap_dark",
         wraps=dict(),
-        eyes=dict(style="glow", angry=0.6, w=0.22, h=0.22, y=-0.12, glint=False, outline=0.12),
-        brows=dict(angle=26, thickness=0.09, length=0.42, y=0.1, slot="dark", depth=0.06),
-        colors=dict(wrap=(232, 214, 160), wrap_dark=(190, 164, 112), iris=(246, 160, 40), eye=(40, 30, 24),
+        eyes=dict(style="bead", glow=True, angry=0.5, w=0.14, h=0.14, y=-0.12, ring=0.75, ring_slot="dark"),
+        brows=dict(angle=26, thickness=0.08, length=0.40, y=0.08, slot="dark", depth=0.05),
+        colors=dict(wrap=(232, 214, 160), wrap_dark=(190, 164, 112), glow=(250, 200, 40), eye=(250, 200, 40),
                     dark=(44, 34, 28))),
     "wraith": dict(
         form=dict(width=0.98, height=0.96, depth=0.96, p=2.2, q=2.3),
-        eyes=dict(style="glow", angry=0.5, w=0.25, h=0.25, y=-0.16, outline=0.2, halo=0.35),
+        eyes=dict(style="bead", glow=True, angry=0.5, w=0.16, h=0.16, y=-0.16,
+                  rings=[("dark", 0.55), ("halo", 1.2)]),
         brows=dict(style="arc", angle=22, thickness=0.11, length=0.46, y=0.08, arch=0.12, taper=0.5),
         nose=dict(style="button", size=0.65, y=-0.4),
         hair=dict(style="sculpt", name="hair_spiky"),
-        colors=dict(skin=(66, 170, 142), brow=(34, 92, 82), iris=(196, 252, 248), eye=(30, 84, 80),
-                    halo=(120, 220, 214), hair=(172, 228, 214))),
+        colors=dict(skin=(66, 170, 142), brow=(34, 92, 82), glow=(245, 230, 105), eye=(245, 230, 105),
+                    halo=(45, 125, 115), dark=(26, 70, 66), hair=(172, 228, 214))),
     "golem": dict(  # the orc's jaw without tusks, on a blocky brute
         form=dict(FORMS["brute"], p=3.2, q=3.2),
         eyes=dict(style="glow", angry=0.3, w=0.16, h=0.12, y=-0.12, glint=False, outline=0.25, halo=0.5),
@@ -1252,7 +1403,7 @@ ROSTER = {
                     halo=(230, 120, 40))),
     "goblin": dict(
         form=dict(width=1.0, height=1.02, depth=0.94, p=2.3, q=2.4, jaw=-0.3, chin=0.16, brow=0.14),
-        eyes=dict(style="glow", angry=0.4, pupil=True, w=0.36, h=0.34, y=-0.12, x=0.42, outline=0.2),
+        eyes=dict(style="bead", angry=0.4, pupil=True, w=0.36, h=0.34, y=-0.12, x=0.42, outline=0.2),
         brows=dict(angle=24, thickness=0.12, length=0.56, y=0.16, depth=0.07, slot="skin_dark"),
         nose=dict(style="hooked", y=-0.05, size=1.15),
         mouth=dict(style="open", y=-0.6, width=0.72, curve=0.26, height=0.16,

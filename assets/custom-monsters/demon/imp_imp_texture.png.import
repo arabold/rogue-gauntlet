@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ba8vo852u8gqj"
-path="res://.godot/imported/imp_imp_texture.png-85c8e37a7700c8f73fc1de4fd472345a.ctex"
+path.s3tc="res://.godot/imported/imp_imp_texture.png-85c8e37a7700c8f73fc1de4fd472345a.s3tc.ctex"
+path.etc2="res://.godot/imported/imp_imp_texture.png-85c8e37a7700c8f73fc1de4fd472345a.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "910a6e741ec79011bada1159ffe9bf35"
+"md5": "049229660ff69f7510a75126a6331611"
 }
 
 [deps]
 
 source_file="res://assets/custom-monsters/demon/imp_imp_texture.png"
-dest_files=["res://.godot/imported/imp_imp_texture.png-85c8e37a7700c8f73fc1de4fd472345a.ctex"]
+dest_files=["res://.godot/imported/imp_imp_texture.png-85c8e37a7700c8f73fc1de4fd472345a.s3tc.ctex", "res://.godot/imported/imp_imp_texture.png-85c8e37a7700c8f73fc1de4fd472345a.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

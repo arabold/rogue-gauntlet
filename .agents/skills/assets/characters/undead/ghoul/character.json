@@ -13,15 +13,17 @@
       "crown": 0.06
     },
     "eyes": {
-      "style": "glow",
-      "w": 0.3,
-      "h": 0.3,
+      "style": "bead",
+      "w": 0.16,
+      "h": 0.16,
       "y": -0.14,
-      "x": 0.4,
+      "x": 0.38,
       "glint": false,
-      "outline": 0.22,
-      "socket": 1.25,
-      "halo": 0.25
+      "socket": 0.45,
+      "carve_socket": true,
+      "socket_depth": 0.055,
+      "ring": 1.3,
+      "ring_slot": "ring"
     },
     "nose": {
       "style": "snub",
@@ -63,25 +65,20 @@
         132,
         148
       ],
-      "iris": [
-        250,
-        226,
-        110
-      ],
       "eye": [
-        30,
-        30,
-        30
+        205,
+        224,
+        234
       ],
       "socket": [
-        40,
-        44,
-        52
+        36,
+        42,
+        48
       ],
-      "halo": [
-        250,
-        210,
-        90
+      "ring": [
+        112,
+        130,
+        142
       ],
       "mouth": [
         36,

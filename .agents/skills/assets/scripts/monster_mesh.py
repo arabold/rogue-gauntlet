@@ -1506,21 +1506,99 @@ def read_glb(path):
 # ---------------------------------------------------------------------------
 class Atlas:
     """
-    The palette as one texture: a strip of flat `cell`-px swatches (`flat_uv`), edge-padded so texture filtering
-    never bleeds a neighbour in. Every face takes one swatch (`flat_colored`), the vertex-color look in a form the
-    GLB and Godot's import keep exact.
+    The palette as one texture: vertical gradient swatches per color slot, edge-padded so texture
+    filtering never bleeds a neighbour in.
+    Supports:
+      - `flat_uv(label)`: center midtone UV coordinate of the swatch (solid base color).
+      - `gradient_uv(label, t)`: vertical gradient UV coordinate where t in [0, 1] (0=top/light, 1=bottom/shadow).
     """
 
-    def __init__(self, palette, size=2048, pad=6, cell=16):
-        self.size, self.pad, self.cell = size, pad, cell
-        pal = np.asarray(palette, np.uint8)
-        strip = np.repeat(np.arange(len(pal)), cell)[None, :].repeat(cell, 0)
-        self.image = Image.new("RGB", (size, size), tuple(int(c) for c in pal[-1]))
-        self.image.paste(Image.fromarray(np.pad(pal[strip], ((pad, pad), (pad, pad), (0, 0)), mode="edge")), (0, 0))
+    def __init__(self, palette, size=None, pad=4, col_w=16, col_h=128, looks=None, slot_names=None):
+        self.pad, self.col_w, self.col_h = pad, col_w, col_h
+        pal = np.asarray(palette, float)
+        n_slots = len(pal)
+        total_w = n_slots * (col_w + pad) + pad
+        total_h = col_h + 2 * pad
+        self.size_w = 1 << int(np.ceil(np.log2(max(128, total_w))))
+        self.size_h = 1 << int(np.ceil(np.log2(max(128, total_h))))
+        if size is not None:
+            self.size_w = max(self.size_w, size)
+            self.size_h = max(self.size_h, size)
+        self.size = max(self.size_w, self.size_h)
+
+        img_arr = np.zeros((self.size_h, self.size_w, 3), dtype=np.uint8)
+        self.u_coords = np.zeros(n_slots, float)
+        self.v_top = np.zeros(n_slots, float)
+        self.v_mid = np.zeros(n_slots, float)
+        self.v_bot = np.zeros(n_slots, float)
+
+        ts = np.linspace(0.0, 1.0, col_h)
+        m1 = ts <= 0.5
+        k1 = ts[m1] / 0.5
+        k1 = k1 * k1 * (3.0 - 2.0 * k1)
+        m2 = ts > 0.5
+        k2 = (ts[m2] - 0.5) / 0.5
+        k2 = k2 * k2 * (3.0 - 2.0 * k2)
+
+        for idx in range(n_slots):
+            c_base = pal[idx]
+            s_name = slot_names[idx] if slot_names and idx < len(slot_names) else str(idx)
+            spec = (looks or {}).get(s_name, {})
+            if spec.get("emissive"):
+                c_light = c_base.copy()
+                c_shadow = c_base.copy()
+            elif "metallic" in spec:
+                c_light = np.clip(c_base * np.array([1.28, 1.25, 1.20]) + 18.0, 0, 255)
+                c_shadow = np.clip(c_base * np.array([0.55, 0.50, 0.45]), 0, 255)
+            else:
+                c_light = np.clip(c_base * np.array([1.18, 1.16, 1.12]) + 12.0, 0, 255)
+                c_shadow = np.clip(c_base * np.array([0.72, 0.68, 0.62]), 0, 255)
+
+            ramp = np.zeros((col_h, 3), float)
+            ramp[m1] = (1.0 - k1)[:, None] * c_light + k1[:, None] * c_base
+            ramp[m2] = (1.0 - k2)[:, None] * c_base + k2[:, None] * c_shadow
+
+            ramp_2d = np.repeat(ramp[:, None, :], col_w, axis=1)
+            padded_ramp = np.pad(ramp_2d, ((pad, pad), (pad, pad), (0, 0)), mode="edge")
+
+            x0 = pad + idx * (col_w + pad)
+            y0 = pad
+            x1 = x0 + col_w
+            y1 = y0 + col_h
+
+            img_arr[y0 - pad:y1 + pad, x0 - pad:x1 + pad, :3] = np.round(padded_ramp).astype(np.uint8)
+
+            self.u_coords[idx] = (x0 + x1) * 0.5 / self.size_w
+            self.v_top[idx] = (y0 + 2) / self.size_h
+            self.v_mid[idx] = (y0 + y1) * 0.5 / self.size_h
+            self.v_bot[idx] = (y1 - 2) / self.size_h
+
+        self.image = Image.fromarray(img_arr)
 
     def flat_uv(self, label):
-        """UV of the flat swatch for palette `label`."""
-        return np.array([self.pad + (label + 0.5) * self.cell, self.pad + 0.5 * self.cell]) / self.size
+        """UV of the flat swatch (midtone / base color) for palette `label`."""
+        if isinstance(label, (int, np.integer)):
+            return np.array([self.u_coords[label], self.v_mid[label]])
+        label = np.asarray(label)
+        return np.column_stack([self.u_coords[label], self.v_mid[label]])
+
+    def gradient_uv(self, label, t):
+        """
+        UV coordinate(s) along the vertical shading ramp.
+        t: 0.0 (top / highlight) to 1.0 (bottom / shadow).
+        Can accept scalar or arrays for label and t.
+        """
+        label = np.asarray(label)
+        t = np.clip(np.asarray(t, float), 0.05, 0.95)
+        u = self.u_coords[label]
+        v_top = self.v_top[label]
+        v_bot = self.v_bot[label]
+        v = v_top + t * (v_bot - v_top)
+        if u.ndim == 0 and v.ndim == 0:
+            return np.array([u, v])
+        if u.shape != v.shape:
+            u = np.broadcast_to(u, v.shape)
+        return np.column_stack([u.ravel(), v.ravel()])
 
     def save(self, path):
         self.image.save(path)

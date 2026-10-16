@@ -13,7 +13,7 @@
       "brow": 0.08
     },
     "eyes": {
-      "style": "glow",
+      "style": "bead",
       "cut": "triangle",
       "angry": 0.8,
       "w": 0.42,
@@ -21,8 +21,7 @@
       "y": -0.1,
       "x": 0.34,
       "pupil": "slit",
-      "glint": false,
-      "outline": 0.12
+      "outline": 0.14
     },
     "brows": {
       "angle": 22,

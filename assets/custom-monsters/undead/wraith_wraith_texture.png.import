@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cxdwf1xt2xcaw"
-path="res://.godot/imported/wraith_wraith_texture.png-d463e94ec24802676864c29802abbf2c.ctex"
+path.s3tc="res://.godot/imported/wraith_wraith_texture.png-d463e94ec24802676864c29802abbf2c.s3tc.ctex"
+path.etc2="res://.godot/imported/wraith_wraith_texture.png-d463e94ec24802676864c29802abbf2c.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "957f387b15e7e260c9b5b37006eb0a88"
+"md5": "bec64db8de8508ff22544112ff9ebb46"
 }
 
 [deps]
 
 source_file="res://assets/custom-monsters/undead/wraith_wraith_texture.png"
-dest_files=["res://.godot/imported/wraith_wraith_texture.png-d463e94ec24802676864c29802abbf2c.ctex"]
+dest_files=["res://.godot/imported/wraith_wraith_texture.png-d463e94ec24802676864c29802abbf2c.s3tc.ctex", "res://.godot/imported/wraith_wraith_texture.png-d463e94ec24802676864c29802abbf2c.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
