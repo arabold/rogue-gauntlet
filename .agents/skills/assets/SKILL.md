@@ -189,19 +189,450 @@ covered without needing to guess the right camera angle up front:
   `docs/character-classes.md`), so re-verify in-hand appearance after changing it — a weapon
   that looked right on one bone isn't guaranteed to look right on another.
 
-## Authoring our own (image-to-3D) — experimental
+## Authoring our own 3D items (End-to-End Pipeline)
 
-`scripts/hf_image_to_3d.py` runs image-to-3D on HF hardware (TripoSR Space) via `gradio_client`.
-Honest scope before you invest:
-- Output is **high-poly PBR + unrigged** — needs a manual Blender low-poly/palette pass and
-  skinning to the KayKit rig. HF solves compute, not the style/rig gap.
-- The GPU step needs **ZeroGPU quota**; a free token usually hits the wall (validated). Reliable
-  routes: HF Pro, or duplicate the Space to a dedicated GPU.
-- Needs `gradio_client`: `python3 -m venv .venv && .venv/bin/pip install gradio_client`.
+For static equipment, consumables, and jewelry (`weapons`, `armor`, `potions`, `scrolls`, `jewelry`), `scripts/build_item_asset.py` runs the full pipeline end-to-end — completely locally with `--backend contour` (or from a concept image) to produce a KayKit-palette low-poly `.glb`, Godot `.tscn` + `.tres`, headless import/validation, and visual verification previews:
 
 ```bash
-.venv/bin/python scripts/hf_image_to_3d.py concept.png monster.glb 256
+python3 .agents/skills/assets/scripts/build_item_asset.py \
+  --id ring_gold_ruby \
+  --name "Gold Ruby Ring" \
+  --archetype ring \
+  --palette "brass,amber,gold,magenta,crimson,rose,obsidian,ivory" \
+  --tier 3 \
+  --backend contour
 ```
+
+### What the 5-step pipeline does
+1. **`[Step 1/5]` Concept Image:** Uses `--image <path.png>` (or synthesizes a clean silhouette concept image locally when `--backend contour` is used).
+2. **`[Step 2/5]` 3D Mesh Reconstruction:** Runs locally via the built-in parametric low-poly builder (`--backend contour`), or queries `stabilityai/TripoSR` via `scripts/hf_image_to_3d.py` when `--backend hf` is selected.
+3. **`[Step 3/5]` KayKit Low-Poly Stylization, Palette UV Remapping, & Grip Alignment (`scripts/stylize_and_align.py`):**
+   - Builds or decimates meshes to flat-shaded low-poly (~150–600 tris) with unwelded per-face normals.
+   - Aligns local principal axes, scale, and grip/floor origin `(0,0,0)` to match the exact measured KayKit AABB for `--archetype` (`battleaxe`, `axe`, `sword`, `broadsword`, `dagger`, `hammer`, `warhammer`, `staff`, `wand`, `crossbow`, `shield`, `helmet`, `chestplate`, `potion_small`, `potion_medium`, `potion_large`, `magic_scroll`, `ring`, `amulet`).
+   - Maps every face's color onto the $8 \times 4$ swatches of `assets/kaykit-dungeon-remastered/dungeon_texture.png` (`steel`, `dark_iron`, `wood`, `gold`, `amber`, `brass`, `copper`, `crimson`, `teal`, `silver`, etc.) and embeds the 17 KB palette PNG into `assets/custom-items/<category>/<archetype>/<id>.glb`.
+   - Saves an instant 3-angle (`Front`, `3/4 Isometric`, `Profile`) shaded preview with a green `(0,0,0)` origin crosshair to `<verify-dir>/<id>_3angle.png`, plus a **Frontal + Side View of the playable character** (`<verify-dir>/<id>_player_worn.png` — equipped in-hand for weapons/armor, or standing beside the `2x` world-scale drop on the ground for potions, scrolls, rings, and amulets).
+4. **`[Step 4/5]` Godot Integration & Validation:**
+   - Ensures `assets/custom-items` is registered in `assets/ATTRIBUTIONS.json`.
+   - Writes `scenes/items/<category>/<archetype>/<id>.tscn` (applying any archetype wrapper transforms such as `crossbow`'s `-90°` X rotation or `2x` world scale for `potion_*`, `magic_scroll`, `ring`, and `amulet`) and `scenes/items/<category>/<archetype>/<id>.tres`.
+   - Runs headless `godot.sh --headless --path "$PWD" --import` and `inspect_resource.gd`.
+5. **`[Step 5/5]` Visual Verification:**
+   - Optionally runs `render_item_catalog.gd` and `render_held_items.gd` (or pass `--skip-renders` to rely on the fast `<verify-dir>/<id>_3angle.png` and `<id>_player_worn.png` previews).
+
+## Authoring rigged humanoid monsters (concept image -> KayKit-rigged GLB)
+
+`scripts/build_monster.py` turns a one-line description into a rigged, animated monster on the shared KayKit
+skeleton (`Skeleton_Warrior.glb`, all 95 clips). It is generic: no per-monster code, every decision lives in
+editable files under the monster's `src/`. Run it with the repo venv (`numpy`, `pillow`, `scipy`,
+`fast-simplification`, `google-genai`, `openai`, `gradio_client`; see `requirements.txt` next to this skill). Keys
+come from `.env` (`GEMINI_API_KEY` or `OPENAI_API_KEY`; `HF_TOKEN` for image-to-3D heads).
+
+```bash
+.venv/bin/python .agents/skills/assets/scripts/build_monster.py all mage/necromancer --prompt "Evil female necromancer in a long robe with skull belt and scythe in hand. Horned crown."
+# or stage by stage (paid stages skip existing outputs unless --force):
+.venv/bin/python .agents/skills/assets/scripts/build_monster.py concept mage/necromancer --prompt "..."
+.venv/bin/python .agents/skills/assets/scripts/build_monster.py analyze mage/necromancer
+.venv/bin/python .agents/skills/assets/scripts/build_monster.py split   mage/necromancer [--only body,belt] [--force]
+.venv/bin/python .agents/skills/assets/scripts/build_monster.py build   mage/necromancer   # local, free, ~10 s
+```
+
+| Stage | What it does | Cost |
+|---|---|---|
+| `concept` | A text LLM expands the request into a KayKit-ready brief (`src/design.json`, editable; reused while the request is unchanged), then the image model draws a T-pose front/side/back turnaround **in the style of real KayKit renders** (`style-reference/*.png`, made with `scripts/render_turnaround.gd`) | 1 LLM + 1 image call |
+| `analyze` | Vision LLM -> `src/manifest.json`: core parts + up to 6 accessories, each with a front-view box, a `build` kind, host, mount, style/count, stature | 1 LLM call |
+| `split` | `parts/body.png` = the concept redrawn with every accessory removed (hair stays); `parts/head.png` = that bare head alone as its own turnaround (kept only if it lines up with the body's head, else retried); for a head with `"shape": "image3d"`, `head.glb` (TRELLIS.2 on this Mac when the local port is installed, else TRELLIS on a Hugging Face Space with a free daily quota; see below) plus, with the manifest's `hair`, `head_hair.png` (that hair drawn on) and `head_hair.glb`; `landmarks.json` = the bare body's chin row (vision model over numbered guide lines); one eye-level image per accessory (hair needs none) | 2-3 + N image calls |
+| `build` | Smooth body from the bare body, head from the head drawing, accessories by kind, flat palette, skinning, height calibration, GLB, previews | free |
+
+Outputs: `assets/custom-monsters/<family>/<id>/<id>.glb` and `src/` (Godot-ignored via `.gdignore`): design,
+concept, manifest, part images, `texture.png`, `stages.png` (flat label maps per view - check these first when
+colors look wrong) and `preview.png` (windowed Godot render via `scripts/render_monster.gd`; `close` mode for
+detail shots).
+
+How `build` works (`scripts/monster_body.py` for the smooth body, `scripts/monster_mesh.py` for views, head,
+color and wraps, `scripts/monster_shapes.py` for the hand-made accessory primitives):
+- **Organic parts are automatic, accessories hand-made.** The bare body is one smooth signed-distance field of
+  simple forms measured from the drawing (`monster_body.fit_body`, after img2threejs's humanoid): three
+  superellipsoids least-squares fitted to the torso's front widths and side depths, round-cone chains for neck,
+  arms and legs (legs with elliptic sections), ending in prefab fists and shoes, and for brutes whose shoulders rise
+  beside the jaw a sloped trapezius yoke. Smooth unions turn joints into deltoids and hips; the drawing's
+  muscles never become bumps. It is polygonized (surface nets), decimated (`style.body_tris`, 2600) and skinned
+  as one mesh, each region to its own bones and blended where regions meet.
+- **The rig fixes the bone positions** (every clip keys every bone's translation): the whole figure is mapped at
+  ONE uniform scale anchored on the drawn shoulder line (the rig's arm bones) and the soles (the floor), so the
+  drawing's proportions survive; the hip joint simply sits wherever the drawn thighs put it. (Fitting the drawn
+  crotch onto the rig's hips squashed long legs and stretched the chest.) Arms are stretched to the rig's fists
+  and straightened onto the shoulder line; neck and head land wherever the drawing puts them. Textures are projected back through the same maps, blended across region borders.
+- **The side view is often not a T-pose** (the arm reaching forward, a fist in front of the chest), so torso
+  depth is read only outside the arm band and below the chin; the fitted forms bridge the gap. The concept
+  prompt asks for the arm end-on.
+- **The head comes from its own drawing.** `parts/head.png` shows the whole head down to the jaw, which the
+  body drawing often hides (a brute's chin rests on its shoulders). It is placed on the body drawing by masked
+  cross-correlation of the faces (`place_head`), which also gives the chin row; without a usable head drawing
+  the head is cut from the body at its neck landmark. Two head builds:
+  - `"shape": "image3d"` (`monster_image3d`): TRELLIS reconstructs the bald head drawing with its ears. The mesh
+    is welded (TRELLIS splits vertices at texture seams, which a decimator tears open) and turned to face +z
+    (TRELLIS faces its first view toward +x), then **tilted upright**: TRELLIS returns heads tilted back by
+    10-15 degrees, which keeps the outline but lifts every sculpted feature off its drawn place, so the tilt
+    whose render of the reconstruction's own colors (painted exactly on its sculpt) best matches the drawing
+    wins. It is fitted onto the drawing's silhouette, the neck stump cut, decimated
+    (`style.head_tris`, 1600), and the drawing is registered to the reconstruction's painted features with a smooth warp
+    (`align_view`) so painted brows, eyes, nose and tusks land on the sculpted ones. Colors: one flat palette
+    color per face, boundaries snapped onto the drawn curves (up to `style.head_face_tris`, 3500; hair from
+    `style.hair_tris`, 3000), painted shading flattened. Every part is colored this way; the GLB's texture is just
+    a strip of palette swatches.
+  - **Hair is its own mesh** (`"hair": "thick dreadlocks ..."` on the head part): the head is also
+    reconstructed with that hair drawn on and matched to the bald head on the face; the hair is the volume the
+    head with hair has beyond the bald skull (both voxelized, the skull grown by a small margin), minus the face
+    and minus what the hair drawing paints in non-hair colors close to the skull (the two reconstructions' ears
+    never coincide and would leave hair-colored ear shells), polygonized as solid locks and colored flat per face;
+    the scalp under it takes the hair's colors. It is rigid on the head bone; crowns fit around head and hair
+    together (slices with the ears opened away, so a crown sits on the hair instead of becoming a brim).
+    `style.hair_mode: "together"` uses the head-with-hair reconstruction as the head instead (one mesh). Tested on
+    the orc king and wraith: equal on short-to-medium hair, much worse for tall hair (TRELLIS spends its grid on
+    the hair, so the face comes out coarse, and one mesh blends skin and hair colors along the hairline), so
+    `"separate"` stays the default.
+  - **Tusks and fangs are separate parts** (img2threejs's head construction): small, pointed, light regions in
+    the lower face of the head drawing are erased from its texture and rebuilt as curved low-poly horns anchored
+    in the jaw, tip at the narrow end (orc tusks up, fangs down).
+  - The head sits on the drawn chin (`landmarks.json`) when the head drawing's jaw comes out longer than the
+    body drawing's; the torso still starts where the shoulders emerge beside the face-aligned head.
+  - otherwise a rounded superellipsoid (`HeadPart`) fitted with a robust outline; ears are add-ons (`ears`
+    primitive), declared by the analysis or detected as what sticks out of the outline, and trimmed from its
+    texture.
+- **Hands and feet are KayKit prefabs** (`monster_prefabs`): the Rogue's mitten fists and rounded shoes, cut out
+  of its arm and leg meshes by the joints that drive them, scaled to the drawn fist and foot, colored with the
+  drawing's color there, and skinned with KayKit's own weights. Shins end inside the shoes; soles are flat.
+- **Accessories by `build` kind.** The hand-made primitives read cleanest: `band` (plain ring), `crown` (band
+  with spikes; a style mentioning horns adds a curved pair), `belt` (tube with a buckle), `horns`, `dome` (shoulder pads, round helmets), `skirt` (straight A-line robe that clears the legs
+  and the hanging arms). Each is sized and placed from its concept box and colored with one palette color from
+  its drawing. `wrap` keeps a band's drawn outline and pattern (the mummy's collar and apron belt); `solid`
+  rebuilds free-form items from their drawings (buckles, emblems).
+- **Weapons are existing items, not generated, baked into the GLB** (monsters never switch weapons). The design
+  and analysis steps pick the closest weapon from the game's catalog (`scenes/items/weapons/**/*.tres`); the
+  manifest part gets `build: item` and the item's path. `dump_item_mesh.gd` exports the item's colored
+  triangles, which are skinned rigidly to `handslot.r` exactly as the player's BoneAttachmentManager attaches
+  items (turned 180 degrees, 0.033 forward), at true human size whatever the rig scale.
+- **Placement** maps concept boxes onto the body drawing by anatomy (neck row, feet, torso centre), not crop
+  edges, so tall headgear doesn't push everything down. The vision model's boxes are loose, so each is first
+  tightened to the item's own colors in the concept (plain bands and crowns use their typical lower edge, not
+  a front piece dipping between the brows).
+- **Weapons** go to the right hand the KayKit way: grip on `handslot.r`, pointing forward (+Z) in the T-pose,
+  which keeps them forward in Idle and matches the attack animations. Small monsters keep human-sized weapons.
+- **Flat KayKit color:** one palette clustered from all images (`style.palette_size`; `style.l_weight` 0.8 keeps
+  drawn lines such as bandage edges as their own color; rare but distinct accents like glowing eyes survive),
+  despeckled label maps (`style.simplify`), then painted lighting flattened (`merge_shades`, `style.flat_shading`):
+  broad patches in a lighter or darker shade of a material become that material, thin drawn lines stay. Each
+  face is projected from the front or back view into a flat-color atlas. The side view sizes the simple forms (head depth, belly, feet; `style.side_depth` picks the parts)
+  but never colors them (that duplicated facial features) and never shapes a face (a drawn profile made a
+  muzzle). Bands are solid from the body surface out; torso bands may rise behind the head, stay straight above
+  the shoulders and sit below the chin at the front. Faces get extra care: the head adds its own small palette
+  (nose, mouth, eye shadow would otherwise fold into the skin) and is despeckled lightly so thin brows survive.
+  Check faces with `render_monster.gd ... portrait`.
+- **Size calibration:** `stature` 1.0 = the KayKit adventurers' bare-head height (2.17); the rig scale is
+  computed from the monster's measured height, so a 1.8 troll or 0.6 kobold lands exactly there. Scale the
+  enemy scene's capsule by `stature`.
+- **Side-view facing is detected, not trusted:** image models often draw the side view facing left; the feet
+  tell, and the view is mirrored.
+
+**Local image-to-3D (recommended):** TRELLIS.2 runs on Apple Silicon through the community port
+[`shivampkumar/trellis-mac`](https://github.com/shivampkumar/trellis-mac), installed beside the repo at
+`~/Projects/Personal/trellis-mac` (override with `TRELLIS_MAC_DIR`; `MONSTER_3D=space` forces the Space). Setup
+notes for this machine: full Xcode plus `xcodebuild -downloadComponent MetalToolchain`; the Metal packages in
+`deps/` need `-std=c++20` for current PyTorch and `o-voxel` needs its Eigen submodule
+(`git submodule update --init` in `deps/trellis2-apple`); install them with
+`uv pip install --python .venv/bin/python --no-build-isolation deps/<pkg>` (setup's own `uv` call can target the
+wrong environment). Hugging Face needs access to the gated DINOv3 weights; the background remover RMBG-2.0 is
+non-commercial and never used (`trellis_local_runner.py` feeds RGBA drawings with our own masks and stubs it out).
+The port's texture bakers (Metal and KDTree alike) scramble the UV atlas on this machine while TRELLIS.2's own
+voxel colors are clean, so the runner skips baking: each GLB is the reconstruction simplified to 200k faces with
+vertex colors (`COLOR_0`, linear): every raw vertex takes its own voxel's base color, and each simplified vertex
+averages the raw vertices that collapsed into it. Looking voxels up at simplified positions instead speckles
+the surface: TRELLIS.2's sheets are non-manifold and partly doubled, with differently colored voxels on both
+sides. `monster_image3d.load_glb_textured` reads vertex colors or a texture (the Space's GLBs). Godot's runtime
+glTF loader shows such a GLB white; inspect it with `monster_image3d._rasterize` instead.
+Cost: ~80 s model load per `split`, then ~1 min per head; front view only (the back is inferred). Its output has
+holes and non-manifold seams, so every reconstruction is rebuilt as one clean solid (`monster_image3d.remesh_solid`:
+voxelized, holes closed by the narrowest dilation that lets the inside fill, blurred by `style.head_smooth` voxels,
+default 1.5 — raise it for smoother, rounder heads) before it is decimated and colored.
+
+Pipeline rules learned the hard way (each was a bug):
+- **Drawings are flat-colored** (`build_monster.FLAT`, in the body, head, hair and accessory prompts): no shading,
+  ambient occlusion or cast shadows, designed details (face, muscle lines, seams) as crisp shapes, nothing pure
+  white. Lit drawings quantize their shadows into palette colors of their own (a wraith's jaw shadow into its hair
+  color) that the per-face coloring paints onto the mesh, and no rule can tell a shadow from a material of similar
+  color. TRELLIS reconstructs flat heads just as well. Caveat: restyling in every split edit drifts the design
+  (ears, hair, face), so the next step is a flat concept, with the edits only isolating. TRELLIS's own colors are
+  no substitute: clean on the orc, noisy and dark on the wraith.
+- **Paper-white holes are background:** near-white regions that are mostly pure white are the background seen
+  through a chain link or a crown's opening, enclosed or not (`foreground_mask`); counted as the item, they
+  became white "gems" and buckles.
+- **Per-face colors follow the drawn curves** (`monster_image3d.color_faces`): faces the drawing colors split at
+  their midpoints down to `edge` x the part's size (0.03 heads, 0.02 everything else) within 1.25 x the budget,
+  each face takes its color, the vertices between two colors slide onto the drawn boundary (the zero of the two
+  colors' blurred masks, `snap_to_colors`), and the regions of one color are decimated back with their borders
+  kept (`simplify_within_colors`). Cutting edges where the color changes instead stair-stepped every curve inside
+  a big face (blocky eyes), and more budget didn't help. Boundary vertices can't be simplified away, so they set
+  the face count: the cap keeps busy patterns (bandages, Egyptian belts) near their budgets. Every head gets
+  `style.head_face_tris` (3500).
+- **Accessory placement:** concept boxes map onto the bare-body drawing anchored on the T-pose shoulder line and the
+  feet (headgear on the neck, then moved with the head when it is raised onto the drawn chin). Heights then go
+  through the rig's own maps: torso scale above the crotch, the legs' stretched map below it, so hems land where
+  the legs are.
+- **Shading:** `merge_shades` folds only *darker* same-hue tones into a material (a lighter tone of a similar hue is
+  often its own material: tusks, teeth, bone) and never merges one material's main color into another. Drawn
+  creases (pecs, belly, collarbone) are too subtle for the palette, so body parts repaint them as lines in the
+  skin's shadow tone (`creases`), and the body's color cuts go fine enough to keep them.
+- **Belts and crowns are programmatic:** `belt` = a tube plus a buckle plate at the front (a disc for round
+  buckles) in the drawing's second color; `crown` = a straight tube resting on the head, flat pyramid points, and
+  cut gems on the band when the drawing shows a second color (`_accent_label`). `wrap` stays only for drawn
+  patterns (patterned collars, aprons).
+- **Shoulder pads** (`dome` on the arm) are pauldrons: a flattened cap tilted outward over the shoulder, its top on
+  the drawn top edge, skinned half to the chest and half to the upper arm (on the chest alone, like KayKit's
+  Knight, they float off the shoulder when the arms hang; on the arm alone they swing down to the elbow). **Skirts** take the typical lower edge of their drawing as the hem, so a back flap showing
+  between the legs doesn't lengthen the whole skirt.
+- **Teeth:** on a 3D-reconstructed head the sculpted tusks keep their paint (protected from merging); only simple
+  rounded heads get drawn tusks rebuilt as jaw-anchored horns.
+- **Feature alignment:** a folding warp is retried stiffer, then its global fit alone; a head whose bake already
+  matches (correlation >= 0.8) is left as is, and a failed registration is printed as a WARNING.
+- **Reconstruction failures:** a TRELLIS error (free Hugging Face quota) skips that mesh with a message. The build
+  falls back to a rounded head with a WARNING, but refuses to build a head whose `hair` has no reconstruction rather
+  than produce a bald monster.
+
+Known limits: skirts are skinned to the thighs, so a long stride opens the robe on the stepping leg; emissive
+eyes are plain color; the head drawing may draw the jaw a little longer than the body drawing (the head then
+sits slightly lower over the shoulders); a painted ear stays visible on the head's side next to the ear add-on. The older
+`build_humanoid_monster.py` / `build_golem_monsters.py` / `build_wave2_monsters.py` scripts hand-code geometry
+per monster and are superseded; `build_monster.py` still reuses `build_humanoid_monster.py` for the skeleton
+template and GLB packer.
+
+## Scripted character kit (replacing KayKit's characters and the reconstructed monsters)
+
+Script-built pieces read better than reconstructions, so characters are moving to a kit in KayKit's own
+vocabulary: separate, overlapping, closed pieces per bone (KayKit's `Knight.glb` head is one cranium plus separate
+eye, brow, nose and ear shells), one flat color per material slot, colors picked from the concept. Every piece
+stays its own named mesh with a stable host, so equipment can later dress and undress a character (a helmet hides
+the hair). Package `scripts/accessories/`:
+
+- `kit.py`: the building blocks (`Piece` with per-face slots; hulls, chamfered boxes, sweeps, tubes along
+  splines, caps, host bands that follow a host's cross-sections).
+- `belts.py`, `crowns.py`, `pauldrons.py`: accessories with `VARIANTS`, fitted to any host's `section(y)`.
+- `heads.py`: `Head`, a superellipsoid cranium (jaw, chin, brow ridge, crown sliders) that is also a host, so
+  crowns and wraps fit it; face pieces modelled flat and bent onto it (`Head.conform`); recipes (`FORMS`,
+  `ROSTER`). Features: eyes (KayKit dots or glowing irises, plus shadowed sockets, eyeliner with lashes, a glow
+  halo), brows (bars or tapered arcs), noses, mouths, ears, scars, hair caps, a topknot, mummy wraps, and a `jaw`:
+  a smooth patch grown out of the lower face that sinks back into it at its sides and bottom, its mouth line
+  drooping at the corners, its `tusks` optional and varied per tooth (pairs, an odd small one, a broken one): an
+  orc's with them, a golem's without.
+- **Face paint and painted scars** (`paint` strokes: a path, widths, a slot) are thin ribbons projected onto the
+  built skin straight from the front (cranium, jaw and nose; lifted along the face each ray hits), so they follow
+  the nose and the jaw. Paint stays geometry: one flat color per slot, no texture or UVs, no cutting the cranium.
+  `WARPAINT` has examples (a stripe down the face, under the eyes, a mask).
+- `sculpts.py`: hairdos kept from image-to-3D builds (`hair_spiky`, `hair_dreadlocks`) in
+  `.agents/skills/assets/sculpts/*.npz`, recolored by slot and refitted to any head: each hair point keeps its
+  direction (in the head's proportions) and its height over the old head's real surface. The scalp under a
+  sculpted hairdo is painted in its color (the old head's painted scalp, plus gaps the hair covers), never given a
+  scripted cap as well: the two don't read as one hairdo. Heads stay scripted (a reconstructed orc head did not
+  fit the kit).
+- `body.py`: KayKit's split on the rig's joints (`JOINTS`): `Body` (a `Trunk`, bean-shaped like KayKit's torsos:
+  `TORSOS` kaykit, hero, brute, round, skinny), `ArmLeft`/`ArmRight` with the hand (`ARMS` normal, thin, muscular,
+  bony; hands mitten, fist, claw, bony), `LegLeft`/`LegRight` with the foot (`LEGS` normal, stocky, thin; feet
+  boot, bare, paw). Torso and limbs are hosts too; a limb is modelled along its own vertical axis and placed by its
+  frame, so a bracer or a boot is a band on it.
+- `clothes.py`: garments as shells a `thickness` off a host, flaring at either end (tunics, breastplates, sleeves,
+  boot shafts), a `robe` running on into a bell skirt (straight or `ragged` hem), shorts and pants, cuffs and
+  bracers, collars (studded, Egyptian broad collar), an apron, a mummy's wraps, shackles with a broken chain.
+- `armor.py`: torso armor from separate pieces (each its own mesh), fitted over whatever the torso already wears:
+  plates with raised trim and rivets whose relief is chiseled from separate chunky pieces (`figure`: male pec slabs
+  and a six-pack of blocks, a brute's bigger `muscle`, `female` faceted spheres, a `plain` ridge, the back's blade
+  slabs and spine) — KayKit models shape with distinct hard-edged pieces, never smooth bulges on a dense grid
+  (`SCULPTS` keeps the smooth reliefs for quilting and the like), `lames` (a fauld or a
+  whole segmented cuirass), `mail` (ridged rows, scalloped hem), `scales`, `quilted` (a gambeson), `tabard`,
+  `straps` with a ring boss, `fur_collar`, `emblem` (sunburst, cross, skull, gem) and `spikes`; a two-part
+  `knight` breastplate (V neckline, chevron seam, faceted plates on coarse grids), `faulds` (a plate skirt),
+  `limb_plate` (vambraces, rerebraces, greaves with gold bands and straps) and `cop` (elbow and knee caps). `VARIANTS` combine
+  them: knight, paladin, maiden, segmented, crusader, scale, gambeson, barbarian, brigandine, dark knight.
+- **Bare torsos are slimmed** (`body.SLIM`, 0.86 across x 0.92 deep): the presets were shaped like KayKit's
+  dressed bodies, and the kit dresses them with real garments and armor on top. A recipe's torso sets its own
+  `slim` (a number or [across, depth]) for a bulkier or skinnier type.
+- **Belts are pulled taut** round what the torso really wears at their height (`clothes.Fitted`: the convex hull
+  of the body and the garments so far, used by `kit.ring_points` when a host has an `outline`), not round the
+  worst-case layer stack `Worn` records, so they never float.
+- **Torsos keep KayKit's shape:** a rounded box about as wide at the shoulders as at the hips with a flat belly
+  (`TORSOS`); a pear widest at the belly reads as overweight. Only `round` is meant to look fat.
+- **Exaggerate accessories like the concepts do:** buckles, skulls, crown points, pauldron spikes, studs and rivets
+  are drawn larger than life (`buckle_scale`, `point_scale`, `spike_height`, `stud_radius`); realistic sizes look
+  timid next to KayKit-proportioned characters.
+- `cuirass.py`: plate armor rebuilt after concept designs (`parts/breastplate_*`): each plate one closed shell
+  whose edges roll up into rounded rims colored as trim (its own faces), sculpted by displacing the same surface,
+  riveted along the rims' crests; overlapping plates (a chest plate over a belly plate) are separate shells;
+  raised seams (`ridge`) lift the surface and recolor it. Variants `knight` (chest plate with keel and chevron,
+  belly plate, back plate, a flared skirt with a front notch; mail shows at the sides), `corset` (cups, pointed
+  waist, seams under the cups and down the panels, laced sides, skull clasp), `orc` (uneven bolted iron plates,
+  jagged edges, skull boss, straps over the shoulders). Garment kind `cuirass`. The older `armor.plate` still lays
+  trim bands on top: move remaining users to `cuirass.plate`.
+- `helmets.py`: helmets as separate pieces over a head: `bear` (KayKit's barbarian hood: ears, snout, nose, a
+  zigzag of teeth round the rim), `horned` (a riveted viking helm with a nose guard; `horns=0` an iron half-helm,
+  `guard_upright` keeps the guard plumb under a heavy brow), `headdress` (a shaman's war bonnet: horned animal skull,
+  a fan of two-toned feathers splaying out toward the temples) and `wizard` (a crooked pointed hat, drooping brim,
+  a band with rune plates).
+- **KayKit-level detail, kit-wide:** organic parts are rounded, never boxy: `kit.rounded_box` (a superellipsoid)
+  for fists, boots and flat noses, finer `kit.lump`s, heads at 32x16 and bodies at 28x16 segments. Noses include
+  `teardrop` (KayKit's knight) and `flat` (its barbarian); `round` ears are cups with a darker inner fold; `bar`
+  brows are soft rounded bars. Crowns have rims, rivets, finials and set gems; belts can `swell` taller at the
+  front behind a stepped octagonal `boss`. `kit.extrude` builds any outline, concave included (bat wings: one
+  membrane with scalloped edges between finger bones).
+- **Heads are one smooth form** (`heads.Head`): `bite` pushes the face below the `mouth` line forward in a step
+  `edge` tall (an underbite that is part of the head, never a bolted-on jaw block), `relief` sculpts mirrored
+  bumps and dents (brow ridge, sunken sockets, cheekbones, muzzle), `shade` adds KayKit's gradient as flat bands
+  (a lighter crown, darker under the jaw; edges follow mesh rings). Reusable face parts: `chevron` nose (rounded
+  cross-sections deepening to a broad V-shaped tip: a solid wedge in profile, no separate nostril balls), `bushy`
+  brows (ragged top, arch; keep them shallow, deep brows read as a cap's peak),
+  two-tone `tusks` (`tip`, `split`), `tuft` hair (stacked faceted clumps), ears lofted as rounded leaves (`heads._ear_shape`: soft rims,
+  thinning to the tip, the inside a sunken bowl colored by whole quads, never a patch on top) with `rings` through
+  the lower rim and an optional rounded `notch` in the upper rim of one or both ears, and `WARPAINT` patterns any head can wear by name (`paint={"strokes":
+  "war"}`, mixable with own strokes). Hair, brows, fur, feathers and cloth export matte (`export.MATERIALS`).
+- **Never fake an inset or a color by laying a shape on top of a mesh.** Colors are the mesh's own faces, cut
+  along the outline (`kit.paint_cut`; `kit.carve` also sinks them into a real recess); a socket, a mouth or a
+  nostril is a dent in the surface, never a dark plate on it. Separate pieces are for things that are separate
+  objects (eyeballs, teeth, brows, buckles, rings), not for coloring or for holes.
+- Applied kit-wide: open mouths are carved recesses with their lips cut into the skin; line mouths are creases cut
+  in; eyes are one eyeball shell with iris, pupil and glint cut into its own faces, sockets/halos/eyeliner cut
+  into the skin around them; `wide`/`snub` nostrils are carved dents; the lower lip on an underbite is a rounded
+  band cut into the step (`lip`); the Egyptian apron is one plate with cut panels. Teeth and tusks are two-tone by
+  default (`tusk` root, `tusk_tip` point). `q_low` squares off a head's lower half (a blunt chin). The golem's
+  moss stays an overlay: it reads as a real layer of growth with depth (the user's call).
+- **Moving things on a face:** every feature takes `move` = [dx, dy] (face shares; paired features move apart for
+  dx > 0), and `heads.layout` spaces features automatically before building (`LAYOUT`: a mouth gives way below the
+  eyes and the nose); what it moved is on `head.layout`. Brows may overlap the eyes and a hooked nose may hang over
+  the mouth on purpose, so those pairs don't count.
+- **Attached parts sink into the skull:** a nose's back, an ear's root, a horn's base and a bun run on into the
+  head (`nose(embed=...)`), so the rounded skull never shows a gap around them.
+- **Paint and scars are cut into the skin, never raised:** `paint` strokes and `scar`s become outlines that
+  `kit.paint_cut` cuts into the cranium, jaw and nose, recoloring the faces inside (a jaw's mouth crease too).
+- **Skin under snug clothing is removed** (`characters.hide_covered`): skin and cloth are skinned slightly
+  differently, so leftover skin pokes through in deep poses. Garments take their weights from the character's own
+  skin right under them (`rig.body_skin`), so cloth moves with what it covers. Pants close at the crotch.
+- Faces: `mouth(style="open")` is a sculpted mouth: a dark opening tapering shut at the corners, raised lips, and
+  `upper`/`lower` teeth fitted inside it, following its curve (`row`: one white band notched into teeth, never
+  separate blocks; `fang`, `needle`, capped in width; `crooked`): an imp's grin, a ghoul's needles, a zombie's
+  gappy jaw. Eyes take `cut="triangle"` (slanted top meeting a straight lower edge in a sharp inner corner,
+  a devil's) and `pupil="slit"`.
+- Monster parts added for the roster: head `horns`, `uneven` eyes, line-mouth `teeth`, `hooked` nose, `leaf` ears with
+  an earring; `ribs`, `necklace` (fangs and beads), bat `wings` and a `tail` (rigid on the chest and hips: the rig
+  has no bones for them), a robe hem `trim`, a `high` wizard collar, pauldrons and boots on one `side` only. Heads also grow a `beard`
+  (sideburns to the temples, tufts, a jagged point, a mustache), part of the base like hair.
+- `characters.py`: whole characters, each a recipe in its own folder (`characters/<family>/<name>/character.json`:
+  head preset or recipe + body recipe + outfit, a list of garments and accessories by `kind`, `GARMENTS`), built
+  as KayKit's named pieces plus one piece per garment, so a character can be dressed and undressed. Garments are
+  worn in order: each one grows its host (`clothes.Worn`, layers accumulate), so a belt goes over the robe and a
+  cape over a backplate instead of z-fighting them; list base layers first. A recipe can extend another (`base`):
+  `heroes/barbarian_base` (bearded head, body with bare feet) is dressed as `heroes/barbarian` (hood, cape, tunic,
+  fur trim, baldric, belt, bracers, pants, boots) and as `heroes/knight` (mail, plates, horned helm).
+- **Design by drawing, build by script, check by silhouette** (`match.py`): render a character (or some of its
+  pieces) front and side on white, have the image model redraw it as fantasy game art with the same camera and
+  framing, redesigning only the part in `--brief` (one paid call; reuse it with `--reference`), then rebuild what
+  the drawing shows as script features and compare: the overlay is red where only the drawing has shape (grow
+  there) and blue where only ours does (shrink there), with the overlap per view. `match.tune()` then searches the
+  piece's numeric parameters for the best overlap (the horned helm's horns went from 81% to 92% this way).
+  `--regions` also matches the inside: the drawing's flat colors clustered and each joined to the slot covering
+  most of it, scored per slot. Whole-character drawings drift (the model shrinks heads, lowers arms despite the
+  prompt's locked T-pose), so for full outfits compare side by side by eye and keep silhouette scores for single
+  parts. Image models design well; the script keeps the result clean, low-poly and dressable.
+- **Another hairdo = a generator job:** build a throwaway character whose head part is `image3d` with that `hair`
+  (separate hair mode, flat drawing), then `sculpts.harvest()` its `<Name>_HeadDetails` mesh (cut by face color,
+  with `<Name>_Head` as the head it was made on; `reach` trims leftovers of the old head's ears). Script a hairdo
+  only when it is a simple shape (a cap, a bun).
+
+```bash
+cd .agents/skills/assets/scripts
+python accessories/catalog.py belts crowns pauldrons -o accessories.png       # contact sheet, one view
+python accessories/catalog.py heads sculpts -o heads.png --yaws 0,-40,-90,180  # four views per variant
+python accessories/catalog.py body characters -o characters.png --yaws 0,-35,-90,180
+python accessories/match.py heroes/knight --pieces Head,Helmet --brief "the horned viking helmet" -o out/
+```
+
+`kit.Frame` refuses a left-handed (mirroring) frame: it would turn every piece placed with it inside out; mirror a
+piece with `Piece.mirrored()` instead.
+
+### Character pipeline (`character_kit.py`): sources, export, import
+
+Every character is a folder of sources next to this skill, outside Godot's asset tree (Godot never scans
+dot-folders), and exports into the game's assets, one folder per family like the old monsters:
+
+```
+.agents/skills/assets/characters/<family>/<name>/
+    character.json   recipe + export settings (template, scale, weapons, base, concept)
+    reference.png    the concept drawing (`reference`: KayKit's mannequin in the idle pose, redrawn; a paid call)
+    preview.png      the drawing, then the build in KayKit's idle pose (front, side) and in the T-pose
+    lineup.png       the exported GLB in Godot beside the KayKit model it replaces, in three of the game's clips
+    weapons.json     cached meshes of baked weapons (dumped from the game's items; delete to refresh)
+-> assets/custom-heroes/<name>.glb               (family `heroes`)
+-> assets/custom-monsters/<family>/<name>.glb    (every other family)
+```
+
+```bash
+cd .agents/skills/assets/scripts
+python character_kit.py list                                   # characters, templates, references, exported?
+python character_kit.py new heroes/elf --base heroes/barbarian_base
+python character_kit.py reference goblin/goblin --brief "turn this mannequin into a sneaky goblin with ..."
+python character_kit.py preview goblin/goblin                  # iterate on character.json against the drawing
+python character_kit.py export goblin/goblin heroes/barbarian  # GLB + .import, Godot import, structure check
+python character_kit.py lineup goblin/goblin                   # windowed Godot render beside the template
+```
+
+**An export is a KayKit drop-in, built on a real KayKit GLB** (`accessories/export.py`, `TEMPLATES`): the game
+plays clips baked into the model's own AnimationPlayer (`player.tscn` and the enemy scenes' AnimationTrees name
+KayKit clips: `Idle`, `Walking_B`, `Idle_Combat`, `Walking_D_Skeletons`...), finds `Rig/Skeleton3D`, and the class
+resources look props up by name (`1H_Axe`, `Barbarian_Hat`...). So the template's `Rig`, 41 joints, skin and clips
+are copied unchanged and only the meshes are ours: pieces skinned with the mannequin's weights in the rig's bind
+space. Clothing is **soft or hard**. Anything worn round the body is soft and blends like skin, its copied weights
+smoothed across its surface (`rig.smooth_weights`: vertex-by-vertex copies leave seams where neighbours took the
+hips and a thigh, and the cloth tears there); a rigid belt would part from the waist when it bends. Hard things
+never bend, since even one shared blend of two bones shears a rigid shape: things fixed at one place
+(`rig.HARD`: helmets, wings, tails) and the bits hung on a band (`rig.TRIMMED`: a belt's buckle and studs, a
+necklace's charms) ride the single bone that carries most of them; rings on a limb (`rig.LIMB_HARD`: fur cuffs,
+bracers) ride one bone per side. Garments take their weights from the body part they belong to
+(`rig.WEIGHT_SOURCES`; a limb garment is named `Arm…`/`Leg…` and weighted to the limbs alone). (size and orientation match KayKit exactly), headgear and capes in the template's hat and cape prop nodes
+(rigid on `head` / `chest`), the template's other props emptied to a speck (Godot only makes a named
+`BoneAttachment3D` for a prop node with a mesh; the game strips them anyway), weapons in new nodes on the hand
+slots, `scale` on the `Rig` node. Templates: `skeleton` (Skeleton_Warrior, 95 clips) for monsters,
+`barbarian`/`knight`/`mage`/`rogue` for heroes (76 clips, that class's prop names; monster templates' props are
+renamed after the character). Metal and glowing slots get their own materials (`export.MATERIALS`, a recipe's `materials` overrides: gold, metal,
+rivets, armor shine; glow, halo, crystal emit), and baked weapons keep each surface's metallic and roughness
+(`dump_item_mesh.gd` records them), so a gold warhammer still reads as gold. The `.import` copies the template's
+parameters: `gltf/naming_version=1` (with 2,
+Godot turns props into plain children of a bone attachment named after the bone, and the classes lose their
+attachment points) and the template's looping clips (glTF has no loop flag). `inspect_character.gd` checks an
+import; `render_character_lineup.gd` renders one under studio lighting (a sky to light and reflect, a shadowing key
+light, fill and rim lights, filmic tonemapping, ambient occlusion; rendered transparent and laid over white, since
+tonemapping greys a white backdrop): flat lighting hides metal.
+
+The KayKit Character Animations pack (`assets/kaykit-character-animations/`, its `Rig_Medium` armature and renamed
+clips) is for previews and posing (`rig.py`): the game doesn't use it yet. `Rig_Large` characters (golems) have no
+KayKit template with the game's clips, so they preview but don't export yet. Old monsters at the same paths
+(`orc/orc_king`, `undead/mummy`, `undead/wraith`) are overwritten by an export: re-export those deliberately.
+
+**Large creatures (`accessories/golems.py`, `accessories/rig.py`).** Golems sit on `Rig_Large`, read straight from
+the animation pack by `rig.Rig` (rest transforms, clips sampled at a time). Every boulder is bound rigidly to one
+bone: stone doesn't bend, so there are no weights to paint. A golem is **authored in the rig's idle pose**
+(`Idle_A`, frame 0), where a concept drawing maps directly onto it, then moved back to the rest pose bone by bone
+(`Rig.pose(..., inverse=True)`); the right side is the left mirrored *in the rest pose* (the idle isn't symmetric).
+Shoulder slabs ride a helper bone turned half as far as the upper arm (`HELPERS`), so they stay upright beside the
+head. Boulders are `rock()` (chamfered, jittered, slightly bulged blocks); moss is a thin overlay of noise-contour
+blobs (`moss()`), so the boulders stay low-poly (~4k tris for the whole golem). Compare against the drawing in the
+idle pose, not the T-pose: concept drawings never hold a T-pose.
+
+**Small creatures (goblins, kobolds).** The pack has no small rig: only `Rig_Medium` and `Rig_Large`. Small
+creatures are kit characters on `Rig_Medium`, scaled down at export like the existing goblins (`rig_scale = 0.74`),
+so all of the medium clips play. To compare a kit character with an idle-pose drawing, `rig.skinned()` skins its
+pieces with weights copied from KayKit's own mannequin (nearest mannequin vertex of the same piece, `transfer_weights`;
+garments search the whole mannequin) and poses them. Draw the reference over the mannequin in the idle pose
+(`character_kit.py reference`). `characters/goblin/goblin` is the example: `leaf` ears, a `hooked` nose (a wedge set rigidly on the face: features that stick out far must not
+be bent onto it with `conform`), a grin with `teeth`, the `goblin` pot-belly torso, a `loincloth`.
+
+**Weapons are baked into the exported monster GLB**, rigidly on the `handslot.l`/`handslot.r` bone, following the
+held-equipment rule in Gotchas: small creatures keep **full-size** weapons (counter-scaled by `1 / rig_scale`, a
+goblin's sword reads a little comically big, on purpose); huge creatures (an ogre, a golem) get **custom-made large
+weapons** fitted to their hands, never standard weapons scaled up.
 
 ## Gotchas
 
@@ -218,4 +649,6 @@ Honest scope before you invest:
   and `mipmaps/generate=false` on the atlas `.import` and reimport. (Large UV textures like
   KayKit's 1024² are fine with the default.)
 - **Don't commit the scratch venv or downloaded archives.** Keep `.venv/` and any zips out of git.
+- **Never scale held weapons or shields with monster stature (`build_humanoid_monster.py`).** When authoring smaller monsters (like Goblins at `rig_scale = 0.74`) on the shared KayKit `Rig`, always counter-scale held weapons around the hand grip origin `(0, 0, 0)` by `1.0 / rig_scale` so they remain at **true `1.0x` full world-space size** (avoiding the "shrunk-down big monster" look). Only helmets/headgear are fitted to the creature's head; huge/boss monsters must use custom-authored large weapons rather than scaled-up standard weapons.
 - For Godot import/scene/resource specifics, defer to the `godot-mcp` skill.
+

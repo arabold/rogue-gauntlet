@@ -1,0 +1,150 @@
+{
+  "base": "heroes/barbarian_base",
+  "template": "knight",
+  "outfit": [
+    {
+      "kind": "shorts",
+      "down": 0.62,
+      "slot": "pants"
+    },
+    {
+      "kind": "armor",
+      "element": "mail",
+      "y0": 0.44,
+      "y1": 1.2
+    },
+    {
+      "kind": "cuirass",
+      "variant": "knight"
+    },
+    {
+      "kind": "belt",
+      "y": 0.66,
+      "height": 0.09,
+      "variant": "studded",
+      "band": "leather",
+      "buckle_slot": "trim",
+      "stud_slot": "rivet"
+    },
+    {
+      "kind": "limb_plate",
+      "limb": "arm",
+      "y0": 0.12,
+      "y1": 0.44,
+      "straps": 1
+    },
+    {
+      "kind": "cop",
+      "limb": "arm",
+      "at": 0.55,
+      "theta": 4.712389,
+      "size": 0.075
+    },
+    {
+      "kind": "limb_plate",
+      "limb": "arm",
+      "y0": 0.62,
+      "y1": 0.96,
+      "straps": 2,
+      "flare": [
+        0.0,
+        0.02
+      ]
+    },
+    {
+      "kind": "gloves"
+    },
+    {
+      "kind": "boots",
+      "y0": 0.6,
+      "slot": "armor",
+      "sole": "leather"
+    },
+    {
+      "kind": "limb_plate",
+      "limb": "leg",
+      "y0": 0.6,
+      "y1": 0.97,
+      "straps": 2,
+      "flare": [
+        0.02,
+        0.0
+      ]
+    },
+    {
+      "kind": "cop",
+      "limb": "leg",
+      "at": 0.55,
+      "size": 0.07
+    },
+    {
+      "kind": "pauldrons",
+      "x": 0.35,
+      "y": 1.32,
+      "size": 0.23,
+      "variant": "layered",
+      "plate": "armor",
+      "rim": "trim",
+      "rivet": "rivet"
+    },
+    {
+      "kind": "cape",
+      "hem": 0.12,
+      "width": 76,
+      "slot": "cloth",
+      "trim": "trim",
+      "flare": 0.14
+    },
+    {
+      "kind": "helmet",
+      "style": "horned"
+    }
+  ],
+  "colors": {
+    "skin": [
+      244,
+      190,
+      150
+    ],
+    "pants": [
+      80,
+      60,
+      52
+    ],
+    "cloth": [
+      156,
+      40,
+      46
+    ],
+    "trim": [
+      226,
+      178,
+      64
+    ],
+    "rivet": [
+      236,
+      196,
+      90
+    ],
+    "armor": [
+      178,
+      186,
+      200
+    ],
+    "leather": [
+      116,
+      74,
+      50
+    ],
+    "glove": [
+      116,
+      74,
+      50
+    ],
+    "metal": [
+      178,
+      186,
+      200
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "template": "skeleton",
+  "scale": 1.12,
+  "head": "wraith",
+  "body": {
+    "torso": "skinny",
+    "arms": {
+      "style": "thin",
+      "hand": "claw"
+    },
+    "legs": {
+      "style": "thin",
+      "foot": "bare"
+    }
+  },
+  "outfit": [
+    {
+      "kind": "robe",
+      "hem": 0.16,
+      "waist": 0.66,
+      "hem_a": 0.34,
+      "hem_b": 0.3,
+      "slot": "cloth",
+      "ragged": 9,
+      "jag": 0.1
+    },
+    {
+      "kind": "belt",
+      "y": 0.7,
+      "variant": "chain",
+      "height": 0.08
+    },
+    {
+      "kind": "shackles"
+    }
+  ],
+  "colors": {
+    "cloth": [
+      62,
+      92,
+      132
+    ],
+    "dark": [
+      150,
+      80,
+      44
+    ],
+    "rust": [
+      150,
+      80,
+      44
+    ]
+  }
+}

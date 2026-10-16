@@ -1,0 +1,196 @@
+{
+  "template": "skeleton",
+  "scale": 1.0,
+  "head": {
+    "form": {
+      "width": 0.94,
+      "height": 1.04,
+      "depth": 0.96,
+      "jaw": 0.04,
+      "brow": 0.06
+    },
+    "eyes": {
+      "style": "glow",
+      "w": 0.28,
+      "h": 0.3,
+      "y": -0.16,
+      "x": 0.4,
+      "pupil": true,
+      "glint": false,
+      "outline": 0.12,
+      "socket": 0.9,
+      "uneven": 1.6
+    },
+    "brows": {
+      "angle": -8,
+      "thickness": 0.08,
+      "length": 0.36,
+      "y": 0.12,
+      "slot": "brow"
+    },
+    "nose": {
+      "style": "button",
+      "size": 0.8,
+      "y": -0.42
+    },
+    "mouth": {
+      "style": "open",
+      "y": -0.66,
+      "width": 0.52,
+      "curve": -0.1,
+      "height": 0.3,
+      "seed": 3,
+      "upper": {
+        "count": 5,
+        "shape": "row",
+        "length": 0.45,
+        "crooked": 0.9
+      },
+      "lower": {
+        "count": 4,
+        "shape": "row",
+        "length": 0.35,
+        "crooked": 0.9
+      }
+    },
+    "ears": {
+      "style": "round"
+    },
+    "hair": {
+      "style": "sculpt",
+      "name": "hair_dreadlocks"
+    },
+    "colors": {
+      "skin": [
+        130,
+        150,
+        126
+      ],
+      "skin_dark": [
+        100,
+        116,
+        96
+      ],
+      "hair": [
+        138,
+        110,
+        70
+      ],
+      "brow": [
+        70,
+        60,
+        46
+      ],
+      "iris": [
+        232,
+        228,
+        196
+      ],
+      "eye": [
+        60,
+        66,
+        50
+      ],
+      "socket": [
+        82,
+        96,
+        78
+      ],
+      "mouth": [
+        44,
+        32,
+        30
+      ],
+      "tusk": [
+        222,
+        204,
+        146
+      ]
+    }
+  },
+  "body": {
+    "torso": "skinny",
+    "arms": {
+      "style": "thin",
+      "hand": "mitten"
+    },
+    "legs": {
+      "style": "normal",
+      "foot": "bare"
+    }
+  },
+  "outfit": [
+    {
+      "kind": "shorts",
+      "down": 0.85,
+      "top": 0.62,
+      "slot": "pants"
+    },
+    {
+      "kind": "robe",
+      "hem": 0.55,
+      "waist": 0.66,
+      "hem_a": 0.31,
+      "hem_b": 0.27,
+      "slot": "shirt",
+      "ragged": 7,
+      "jag": 0.07
+    },
+    {
+      "kind": "sleeves",
+      "y1": 0.32,
+      "thickness": 0.025,
+      "flare": [
+        0.0,
+        0.03
+      ],
+      "slot": "shirt"
+    },
+    {
+      "kind": "wraps",
+      "limb": "arm",
+      "y0": 0.4,
+      "y1": 0.62,
+      "count": 2,
+      "slot": "bandage",
+      "gap": 0.1,
+      "thickness": 0.016,
+      "tilt": 0.5
+    },
+    {
+      "kind": "boots",
+      "side": "right",
+      "y0": 0.8,
+      "thickness": 0.03,
+      "slot": "shoe"
+    }
+  ],
+  "colors": {
+    "pants": [
+      62,
+      78,
+      112
+    ],
+    "shirt": [
+      118,
+      92,
+      64
+    ],
+    "bandage": [
+      214,
+      206,
+      180
+    ],
+    "shoe": [
+      96,
+      66,
+      44
+    ],
+    "sole": [
+      56,
+      40,
+      30
+    ]
+  },
+  "concept": "turn this mannequin into a shambling zombie: grey-green rotting skin, one eye bigger than the other, a slack jaw with crooked teeth, stringy messy hair, a torn ragged shirt and torn trousers with patches and stitches, bandaged spots, one bare foot and one worn shoe; for the whole roster: a chunky stylized dungeon-crawler monster with KayKit proportions (big head, short limbs), a bold readable silhouette, exaggerated oversized accessories, a limited palette of four to six flat colors, empty hands (no weapons)"
+}

@@ -20,3 +20,7 @@ tests/**/*.uid
 
 # Runner scene the GdUnit4 test adapter generates at run time for [RequireGodotRuntime] tests.
 gdunit4_testadapter_v5/
+
+# Python tooling (asset pipeline scripts)
+.venv/
+__pycache__/

@@ -101,6 +101,14 @@ Honest scope: fully-automated "prompt → shippable KayKit monster" is not achie
 style and rig-compatibility steps are craft. Easiest cohesive monster wins remain non-AI:
 **kitbash/recolor the modular Skeletons we own**, and fetch free KayKit props for atmosphere.
 
+### Monster & Equipment Scaling Rule (Never Scale Held Equipment)
+
+When authoring smaller or larger monsters on a shared rig (e.g., Goblins at `0.74x` stature or large boss monsters):
+
+- **Never scale weapons, shields, or held equipment up or down with the monster's body.** Scaling held equipment alongside the rig makes a monster look like a uniformly shrunk or enlarged human rather than a genuinely smaller or larger creature living in the same world.
+- **Small monsters (e.g., Goblins):** Keep all held weapons at **true `1.0x` world-space size** (counter-scaling by `1.0 / rig_scale` around the hand grip origin `(0, 0, 0)` when the root `Rig` node is scaled). A full-size dagger or sword naturally reads as slightly oversized/hefty in a small creature's hands. Headgear/helmets may be fitted to the creature's head so they sit properly.
+- **Huge monsters / Bosses:** Do **not** uniformly scale up standard human-sized weapons; instead, author **custom-fit large weapons** designed specifically for their proportions and voxel/facet density.
+
 ## Licensing rules
 
 - **This is an open-source project: assets must be freely *and openly* downloadable.** Every

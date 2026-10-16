@@ -1,0 +1,109 @@
+{
+  "template": "skeleton",
+  "scale": 1.02,
+  "head": "mummy",
+  "body": {
+    "torso": "kaykit",
+    "arms": {
+      "hand": "mitten"
+    },
+    "legs": {
+      "foot": "bare"
+    },
+    "skin": "wrap_dark"
+  },
+  "outfit": [
+    {
+      "kind": "wraps",
+      "y0": 0.36,
+      "y1": 1.2,
+      "count": 8,
+      "gap": 0.06,
+      "thickness": 0.014,
+      "tilt": 0.5,
+      "sides": 24
+    },
+    {
+      "kind": "wraps",
+      "limb": "arm",
+      "y0": 0.12,
+      "y1": 1.0,
+      "count": 5,
+      "gap": 0.06,
+      "thickness": 0.014,
+      "tilt": 0.5,
+      "sides": 24
+    },
+    {
+      "kind": "wraps",
+      "limb": "leg",
+      "y0": 0.0,
+      "y1": 0.95,
+      "count": 4,
+      "gap": 0.06,
+      "thickness": 0.014,
+      "tilt": 0.5,
+      "sides": 24
+    },
+    {
+      "kind": "collar",
+      "style": "broad",
+      "height": 0.07,
+      "rays": 10
+    },
+    {
+      "kind": "cuffs",
+      "at": 0.3,
+      "width": 0.09,
+      "thickness": 0.035,
+      "slot": "gold"
+    },
+    {
+      "kind": "cuffs",
+      "at": 0.92,
+      "width": 0.08,
+      "thickness": 0.035,
+      "slot": "gold"
+    },
+    {
+      "kind": "belt",
+      "y": 0.62,
+      "variant": "scarab",
+      "buckle_scale": 2.6,
+      "buckle_slot": "gold_dark"
+    },
+    {
+      "kind": "apron",
+      "y": 0.58
+    },
+    {
+      "kind": "crown",
+      "y0": 0.4,
+      "y1": 0.56,
+      "variant": "circlet",
+      "thickness": 0.05
+    }
+  ],
+  "colors": {
+    "gold": [
+      240,
+      186,
+      40
+    ],
+    "gem": [
+      40,
+      80,
+      200
+    ],
+    "dark": [
+      60,
+      44,
+      30
+    ],
+    "gold_dark": [
+      212,
+      148,
+      28
+    ]
+  }
+}

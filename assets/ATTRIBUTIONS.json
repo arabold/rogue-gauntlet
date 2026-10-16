@@ -42,6 +42,23 @@
 			"notes": "Rigged/animated humanoid characters (Knight, Mage, Rogue, Barbarian) plus held weapon meshes. Player character source."
 		},
 		{
+			"id": "kaykit-character-animations",
+			"name": "KayKit - Character Animations (1.1)",
+			"dir": "assets/kaykit-character-animations",
+			"author": "Kay Lousberg (KayKit)",
+			"source": "https://kaylousberg.itch.io/kaykit-character-animations",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"3d",
+				"animation"
+			],
+			"compatibility_group": "kaykit",
+			"acquired": "2026-10-15",
+			"notes": "Standalone animation set (no characters) as glTF: Rig_Medium (133 clips in General, MovementBasic/Advanced, CombatMelee/Ranged, Simulation, Special, Tools) and Rig_Large (fewer clips, a bigger skeleton with different proportions), plus bare mannequins. Rig_Medium matches the Skeleton_Warrior rig our kit characters use (same bones, rest pose identical), so its clips play on them unchanged; it omits the old IK/control helper bones. Clip names differ from the clips embedded in the older KayKit characters (e.g. 1H_Melee_Attack_Chop -> Melee_1H_Attack_Chop, Spellcast_Raise -> Ranged_Magic_Raise). FBX copies left out."
+		},
+		{
 			"id": "kaykit-dungeon-legacy",
 			"name": "KayKit - Dungeon Pack (legacy / pre-remaster)",
 			"dir": "assets/kaykit-dungeon-legacy",
@@ -138,6 +155,54 @@
 			"compatibility_group": "unsorted",
 			"acquired": "unknown (predates manifest)",
 			"notes": "main_menu_background.png has no recorded source or license. MUST be triaged before shipping: confirm origin/terms, or replace with an asset of known provenance."
+		},
+		{
+			"id": "custom-items",
+			"name": "Rogue Gauntlet - Custom Generated 3D Items",
+			"dir": "assets/custom-items",
+			"author": "Rogue Gauntlet contributors (AI-assisted + KayKit palette)",
+			"source": "Self-authored via .agents/skills/assets/scripts/build_item_asset.py",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"3d"
+			],
+			"compatibility_group": "kaykit",
+			"acquired": "2026-10-11",
+			"notes": "Low-poly flat-shaded 3D items UV-mapped to KayKit's dungeon_texture.png and aligned to KayKit reference AABBs."
+		},
+		{
+			"id": "custom-monsters",
+			"name": "Rogue Gauntlet - Custom KayKit-Rigged Monsters",
+			"dir": "assets/custom-monsters",
+			"author": "Rogue Gauntlet contributors (scripted character kit on KayKit CC0 rigs and clips)",
+			"source": "Self-authored via .agents/skills/assets/scripts/character_kit.py from .agents/skills/assets/characters/<family>/<name>/",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"3d"
+			],
+			"compatibility_group": "kaykit",
+			"acquired": "2026-10-12",
+			"notes": "Monsters built from the scripted character kit (heads, bodies, garments, armor and accessories by script), one folder per family: goblin/goblin (0.74x), mage/necromancer, mage/dark_wizard, orc/orc_king, orc/orc_warrior, orc/orc_shaman, undead/mummy, undead/wraith, undead/ghoul (0.92x), zombie/zombie_walker and demon/imp (0.68x). Each GLB is a drop-in on a copy of KayKit's Skeleton_Warrior.glb (its Rig, 41 joints and 95 clips) with only the meshes ours; weapons are the game's own items baked in at true size. Sources (recipes, concept drawings by Google gemini-3-pro-image over KayKit's CC0 mannequin, previews) live outside the Godot assets in .agents/skills/assets/characters/. The earlier reconstructed monsters (2026-10-12) were removed."
+		},
+		{
+			"id": "custom-heroes",
+			"name": "Rogue Gauntlet - Custom KayKit-Rigged Heroes",
+			"dir": "assets/custom-heroes",
+			"author": "Rogue Gauntlet contributors (scripted character kit on KayKit CC0 rigs and clips)",
+			"source": "Self-authored via .agents/skills/assets/scripts/character_kit.py from .agents/skills/assets/characters/heroes/",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"3d"
+			],
+			"compatibility_group": "kaykit",
+			"acquired": "2026-10-16",
+			"notes": "Hero models built from the scripted character kit (head, body, outfit pieces). Each GLB is a drop-in for the KayKit adventurer it names as template (kaykit-adventurers/<Class>.glb): that model's Rig, 41 joints, baked clips and prop nodes (1H_Axe, <Class>_Hat, ...) are copied unchanged and only the meshes are ours, so size, orientation, clip names and attachment names match. Concept drawings: Google gemini-3-pro-image over KayKit's CC0 mannequin."
 		}
 	]
 }

@@ -1,0 +1,119 @@
+{
+  "template": "skeleton",
+  "scale": 1.25,
+  "head": "orc_king",
+  "body": {
+    "torso": "brute",
+    "arms": {
+      "style": "muscular",
+      "hand": "fist",
+      "hand_size": 1.25
+    },
+    "legs": {
+      "style": "stocky",
+      "foot": "boot",
+      "foot_size": 1.2
+    }
+  },
+  "outfit": [
+    {
+      "kind": "tunic",
+      "y0": 0.6,
+      "thickness": 0.03,
+      "slot": "leather"
+    },
+    {
+      "kind": "shorts",
+      "down": 0.45,
+      "slot": "pants"
+    },
+    {
+      "kind": "boots",
+      "y0": 0.5,
+      "thickness": 0.03,
+      "flare": [
+        0.035,
+        0.0
+      ],
+      "slot": "boot"
+    },
+    {
+      "kind": "cuirass",
+      "variant": "orc"
+    },
+    {
+      "kind": "cuffs",
+      "at": 0.76,
+      "width": 0.22,
+      "thickness": 0.05,
+      "slot": "armor_dark",
+      "studs": 5,
+      "stud_radius": 0.03
+    },
+    {
+      "kind": "pauldrons",
+      "x": 0.36,
+      "y": 1.36,
+      "size": 0.36,
+      "variant": "spiked",
+      "spike_height": 0.85
+    },
+    {
+      "kind": "crown",
+      "y0": 0.46,
+      "y1": 0.68,
+      "variant": "jagged",
+      "point_scale": 1.5
+    }
+  ],
+  "colors": {
+    "armor": [
+      84,
+      74,
+      74
+    ],
+    "armor_dark": [
+      52,
+      46,
+      46
+    ],
+    "leather": [
+      66,
+      52,
+      46
+    ],
+    "pants": [
+      140,
+      40,
+      40
+    ],
+    "boot": [
+      40,
+      36,
+      38
+    ],
+    "sole": [
+      26,
+      24,
+      26
+    ],
+    "dark": [
+      50,
+      44,
+      46
+    ],
+    "metal": [
+      160,
+      150,
+      150
+    ],
+    "bone": [
+      232,
+      222,
+      196
+    ]
+  },
+  "weapons": {
+    "handslot.r": "res://scenes/items/weapons/warhammer_gold.tres"
+  }
+}
