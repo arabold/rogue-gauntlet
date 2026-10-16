@@ -1,0 +1,49 @@
+using Godot;
+
+[GlobalClass]
+public partial class FoodItem : ConsumableItem
+{
+	[Export] public float PoisonChance { get; set; } = 0.2f;
+	[Export] public PoisonBuff PoisonEffect { get; set; }
+
+	public bool IsPoisoned { get; private set; } = false;
+
+	public override void _Ready()
+	{
+		if (PoisonChance > 0 && GD.Randf() < PoisonChance)
+		{
+			IsPoisoned = true;
+			GD.Print($"{Name} was spawned as POISONED!");
+		}
+	}
+
+	public override void PerformAction(Player player)
+	{
+		GD.Print($"Consuming food: {Name}");
+		
+		// Apply the beneficial effect (from ConsumableItem.ApplyBuff)
+		base.PerformAction(player);
+
+		// If the item was already marked as poisoned when it spawned
+		if (IsPoisoned)
+		{
+			if (PoisonEffect != null)
+			{
+				GD.Print($"{player.Name} has been poisoned by {Name}!");
+				player.BuffController.ApplyBuff(PoisonEffect);
+			}
+			else
+			{
+				GD.PushError($"FoodItem: {Name} has PoisonChance > 0 but no PoisonEffect assigned!");
+			}
+		}
+	}
+}
+
+			else
+			{
+				GD.PushError($"FoodItem: {Name} has PoisonChance > 0 but no PoisonEffect assigned!");
+			}
+		}
+	}
+}
