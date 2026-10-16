@@ -73,9 +73,15 @@ def _over_crown(head, theta, phi0, phi1, out, n=14):
     return np.vstack([up, down])
 
 
+def _head_frame(head, theta, phi, out):
+    """A surface `Frame` (`z` = outward normal, `y` = up) on `head` at `(theta, phi)` lifted `out`."""
+    (P,), (n,) = head.surface(theta, phi, out, normals=True)
+    return kit.Frame.make(P, n, up=(0.0, 1.0, 0.0))
+
+
 def horned(head, brim=0.22, thickness=0.06, slot="metal", band="leather", horn="bone", rivet="metal", horns=1.0,
            horn_height=0.54, horn_angle=np.pi / 2, horn_radius=0.2, horn_spread=0.42, guard=1.0, ridge=True,
-           seams=True, guard_upright=False):
+           seams=True, guard_upright=False, patina=False, dents=False):
     """
     A round viking helm down to the brow (`brim`, a height share): a raised `ridge` from front to back over the crown
     and `seams` down its sides, a riveted leather band round the brow, a long nose guard with a knob where it meets
@@ -83,28 +89,81 @@ def horned(head, brim=0.22, thickness=0.06, slot="metal", band="leather", horn="
     iron half-helm; `horn_angle` radians from the
     front, at `horn_height`) sweeping out by `horn_spread` of their length and then straight up.
     """
+    from accessories.export import corner_normals
     A = head.A
     line = ((0, brim), (90, brim - 0.08), (180, brim - 0.15))
-    parts = [heads.hair_cap(head, line=line, thickness=thickness, slot=slot, sides=32),
-             heads.surface_band(head, brim + 0.06, 0.18, thickness + 0.025, band, tilt=(0.04, 0.0), sides=32)]
+    cap = heads.hair_cap(head, line=line, thickness=thickness, slot=slot, sides=32)
+    brow_band = heads.surface_band(head, brim + 0.06, 0.18, thickness + 0.025, band, tilt=(0.04, 0.0), sides=32)
+
+    if patina or dents:
+        cap.normals = corner_normals(cap.verts, cap.faces, crease=60.0)
+        brow_band.normals = corner_normals(brow_band.verts, brow_band.faces, crease=55.0)
+        light_s, worn_s, dark_s = f"{slot}_light", f"{slot}_worn", f"{slot}_dark"
+        paintable_cap = {slot, light_s, worn_s, dark_s, "tarnish", "rust"}
+        if patina:
+            cap = kit.weather(cap, slot, light_slot=light_s, worn_slot=worn_s, dark_slot=dark_s)
+            # Polygonal patina/rust stains on lower dome plates (flush with surface)
+            p_rust = np.array([(-0.07, -0.035), (0.06, -0.04), (0.08, 0.03), (-0.03, 0.05)]) * A
+            cap = kit.paint_cut_local(cap, _head_frame(head, FRONT + 0.52, head.phi(brim + 0.28), thickness),
+                                      [p_rust], "tarnish", paintable=paintable_cap)
+            cap = kit.paint_cut_local(cap, _head_frame(head, FRONT - 0.58, head.phi(brim + 0.28), thickness),
+                                      [p_rust], "rust", paintable=paintable_cap)
+            is_l_band = "leather" in band or "hide" in band
+            brow_band = kit.weather(brow_band, band, worn_slot="grime" if is_l_band else "tarnish",
+                                    dark_slot="dirt" if is_l_band else "rust")
+            p_band_rust = np.array([(-0.06, -0.03), (0.05, -0.03), (0.07, 0.025), (-0.02, 0.035)]) * A
+            brow_band = kit.paint_cut_local(
+                brow_band, _head_frame(head, FRONT + 0.35, head.phi(brim + 0.06), thickness + 0.025),
+                [p_band_rust], "rust" if not is_l_band else "grime")
+        d_cnt, d_scale = kit.parse_dents(dents, max_allowed=2)
+        if d_cnt >= 1:
+            # 1. Deep, long diagonal battle gash on the front-left dome plate (exaggerated)
+            f_d1 = _head_frame(head, FRONT + 0.44, head.phi(brim + 0.46), thickness).rotated(32.0, "z")
+            cap = kit.gash(cap, f_d1, length=0.48 * A * d_scale, width=0.13 * A * d_scale, depth=0.032 * A * d_scale,
+                           slot=worn_s, shadow_slot=dark_s, paintable=paintable_cap)
+        if d_cnt >= 2:
+            # 2. Angled battle scratch on the front-right dome plate
+            f_d2 = _head_frame(head, FRONT - 0.46, head.phi(brim + 0.52), thickness).rotated(-36.0, "z")
+            cap = kit.gash(cap, f_d2, length=0.36 * A * d_scale, width=0.11 * A * d_scale, depth=0.026 * A * d_scale,
+                           slot=worn_s, shadow_slot=dark_s, paintable=paintable_cap)
+            # Subtle nick on the brow band
+            paintable_band = {band, "tarnish", "rust", "grime", "dirt"}
+            f_b1 = _head_frame(head, FRONT + 0.58, head.phi(brim + 0.07), thickness + 0.025).rotated(18.0, "z")
+            brow_band = kit.gash(brow_band, f_b1, length=0.18 * A * d_scale, width=0.062 * A * d_scale, depth=0.016 * A * d_scale,
+                                 slot="tarnish", shadow_slot="rust", paintable=paintable_band)
+
+    parts = [cap, brow_band]
     if ridge:  # a comb from the brow band over the crown to the back
         path = _over_crown(head, FRONT, head.phi(brim + 0.14), head.phi(brim + 0.02), thickness + 0.012)
-        parts.append(kit.sweep(path, kit.rect_profile(0.2 * A, 0.04, 0.012), slot, up=(0.0, 0.0, 1.0)))
+        ridge_slot = f"{slot}_worn" if patina else slot
+        r_piece = kit.sweep(path, kit.rect_profile(0.2 * A, 0.04, 0.012), ridge_slot, up=(0.0, 0.0, 1.0))
+        if patina:
+            r_piece = kit.weather(r_piece, ridge_slot, light_slot=f"{slot}_light", dark_slot=f"{slot}_dark",
+                                  rust_slot="tarnish", seed=23)
+        parts.append(r_piece)
     if seams:
+        seam_slot = f"{slot}_dark" if patina else slot
         for th in (FRONT - 0.9, FRONT + 0.9, 3 * np.pi / 2 - 0.9, 3 * np.pi / 2 + 0.9):
             path = head.surface(np.full(10, th), np.linspace(head.phi(brim + 0.16), 0.35, 10), thickness + 0.008)
-            parts.append(kit.sweep(path, kit.rect_profile(0.05 * A, 0.025, 0.006), slot, up=(0.0, 1.0, 0.0)))
+            parts.append(kit.sweep(path, kit.rect_profile(0.05 * A, 0.025, 0.006), seam_slot, up=(0.0, 1.0, 0.0)))
     (P,), (n,) = head.surface(FRONT, head.phi(brim + 0.04), thickness + 0.02, normals=True)
     g = guard * A
     # the guard follows the brim's slope, or hangs plumb (`guard_upright`) where a heavy brow would tip it out
     f = kit.Frame.make(P, n * [1.0, 0.0, 1.0] if guard_upright else n).rotated(-6.0, "x")
-    parts.append(kit.prism([(-0.15 * g, 0.08 * g), (0.15 * g, 0.08 * g), (0.1 * g, -0.45 * g), (0.0, -0.66 * g),
-                            (-0.1 * g, -0.45 * g)], 0.06 * guard, slot, bevel=0.015).moved(f))
-    parts.append(kit.gem(0.1 * g, slot, cut="diamond", depth=0.05).moved(kit.Frame(f.to_world([0, 0.03 * g, 0.05]),
-                                                                                     *f.R.T)))
-    for th in FRONT + np.radians(np.arange(-150, 151, 25)):
+    guard_piece = kit.prism([(-0.15 * g, 0.08 * g), (0.15 * g, 0.08 * g), (0.1 * g, -0.45 * g), (0.0, -0.66 * g),
+                             (-0.1 * g, -0.45 * g)], 0.06 * guard, slot, bevel=0.015)
+    if patina:
+        guard_piece.normals = corner_normals(guard_piece.verts, guard_piece.faces, crease=45.0)
+        guard_piece = kit.weather(guard_piece, slot, light_slot=f"{slot}_light", worn_slot=f"{slot}_worn",
+                                  dark_slot=f"{slot}_dark", seed=29)
+    parts.append(guard_piece.moved(f))
+    boss_slot = f"{slot}_light" if patina else slot
+    parts.append(kit.gem(0.1 * g, boss_slot, cut="diamond", depth=0.05).moved(kit.Frame(f.to_world([0, 0.03 * g, 0.05]),
+                                                                                         *f.R.T)))
+    for idx_r, th in enumerate(FRONT + np.radians(np.arange(-150, 151, 25))):
         (Pr,), (nr,) = head.surface(th, head.phi(brim + 0.11), thickness + 0.035, normals=True)
-        parts.append(kit.stud(0.05 * A, 0.025, rivet).moved(kit.Frame.make(Pr, nr)))
+        r_slot = (f"{slot}_light" if idx_r % 2 == 0 else "rust") if patina else rivet
+        parts.append(kit.stud(0.05 * A, 0.025, r_slot).moved(kit.Frame.make(Pr, nr)))
     L, r = 1.15 * A * horns, horn_radius * A * horns
     for sgn in ((-1, 1) if horns else ()):  # horns in the front plane: out from the sides, then straight up
         theta = FRONT - sgn * horn_angle

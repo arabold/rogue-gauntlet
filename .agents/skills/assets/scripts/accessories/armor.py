@@ -346,21 +346,41 @@ def _strip(torso, ends, width, thickness, slot, steps=14):
 
 
 def straps(torso, y0, y1, width=0.08, thickness=0.03, spread=62.0, slot="leather", boss="metal", sides=("front", "back"),
-           cross=True):
+           cross=True, patina=False, dents=False):
     """Crossed leather straps over the chest (and back) from each shoulder to the opposite hip, a round boss where
     they cross: a barbarian's harness. `cross` false: one baldric from the left shoulder to the right hip."""
+    from accessories.export import corner_normals
     out = []
+    ym = 0.5 * (y0 + y1)
     for side in sides:
         c = FRONT if side == "front" else BACK
-        for sgn in ((-1, 1) if cross else ((-1,) if side == "front" else (1,))):
-            out.append(_strip(torso, ((y1, c + sgn * np.radians(spread)), (y0, c - sgn * np.radians(spread))), width,
-                              thickness, slot))
+        for idx_s, sgn in enumerate((-1, 1) if cross else ((-1,) if side == "front" else (1,))):
+            st = _strip(torso, ((y1, c + sgn * np.radians(spread)), (y0, c - sgn * np.radians(spread))), width,
+                        thickness, slot)
+            d_cnt, d_scale = kit.parse_dents(dents, max_allowed=2)
+            if patina or d_cnt:
+                st.normals = corner_normals(st.verts, st.faces, crease=55.0)
+                if patina:
+                    st = kit.weather(st, slot, light_slot=f"{slot}_light", worn_slot=f"{slot}_worn",
+                                     dark_slot=f"{slot}_dark", rust_slot="grime", seed=41 + idx_s)
+                # At most 1-2 gashes total across straps, on front straps only
+                if d_cnt and side == "front" and idx_s < d_cnt:
+                    t_cut = 0.35 if idx_s == 0 else 0.65
+                    y_cut = y1 + (y0 - y1) * t_cut
+                    th_cut = c + sgn * np.radians(spread) * (1.0 - 2.0 * t_cut)
+                    f_cut = kit.band_frame(torso, y_cut, th_cut, thickness).rotated(35.0 * sgn, "z")
+                    st = kit.gash(st, f_cut, length=0.11 * d_scale, width=0.034 * d_scale, depth=0.016 * d_scale,
+                                  slot=slot, shadow_slot=f"{slot}_dark")
+            out.append(st)
         if boss:
-            ym = 0.5 * (y0 + y1)
             f = kit.band_frame(torso, ym, c, thickness)
+            ring_slot = f"{boss}_worn" if patina else boss
+            stud_slot = f"{boss}_light" if patina else boss
             ring = kit.sweep(np.array([[0.07 * np.cos(a), 0.07 * np.sin(a), 0.012] for a in np.linspace(0, 2 * np.pi, 13)[:-1]]),
-                             kit.rect_profile(0.03, 0.03, 0.008), boss, up=(0, 0, 1), closed=True)
-            out.append(kit.Piece.merge(ring, kit.stud(0.05, 0.03, boss)).moved(f))
+                             kit.rect_profile(0.03, 0.03, 0.008), ring_slot, up=(0, 0, 1), closed=True)
+            if patina:
+                ring = kit.weather(ring, ring_slot, dark_slot=f"{boss}_dark", rust_slot="rust", seed=47)
+            out.append(kit.Piece.merge(ring, kit.stud(0.05, 0.03, stud_slot)).moved(f))
     return kit.Piece.merge(*out)
 
 

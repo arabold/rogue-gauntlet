@@ -236,12 +236,12 @@ def slab(poly, depth, slot, embed=0.015, bevel=0.004):
 # ---------------------------------------------------------------------------
 # Features
 # ---------------------------------------------------------------------------
-def eyes(head, style="dot", x=0.42, y=-0.2, w=0.2, h=0.27, angry=0.0, pupil=False, glint=True, outline=0.32,
+def eyes(head, style="dot", x=0.42, y=-0.2, w=0.2, h=0.27, angry=0.0, pupil=False, glint=False, outline=0.32,
          socket=0.0, liner=0.0, flick=0.3, lashes=0, halo=0.0, uneven=1.0, cut="round"):
     """
-    Both eyes. `dot`: KayKit's dark rounded pills. `glow`: a colored iris (slot `iris`) in a dark rim (slot `eye`,
-    `outline` its margin as a share of the iris) with an optional `pupil` and a `glint`. `angry` slants the top
-    edge down toward the nose (0 .. 1).
+    Both eyes. `bead`: small solid un-split bead catching specular light reflections. `dot`: KayKit's dark rounded
+    pills. `glow`: a colored iris (slot `iris`) in a dark rim (slot `eye`, `outline` its margin as a share of the iris)
+    with an optional `pupil` and an optional `glint`. `angry` slants the top edge down toward the nose (0 .. 1).
 
     Around them: `socket` > 0 sets the eye in a shadowed patch (slot `socket`) that much bigger, sagging below it
     (a brute's sunken eyes); `liner` draws a heavy upper lid (slot `liner`, its thickness a share of the eye's
@@ -267,15 +267,15 @@ def eyes(head, style="dot", x=0.42, y=-0.2, w=0.2, h=0.27, angry=0.0, pupil=Fals
                 poly = clip(poly, s2, -1.0, -y0 - s2 * (-x0) + 0.0)
         return poly
 
-    rim = 1.0 + (outline if style != "dot" else 0.0)
+    rim = 1.0 + (outline if style not in ("dot", "bead") else 0.0)
     skin_cuts = []  # (slot, polygon) in eye coordinates, cut into the face around it: never patches laid on it
     if socket:
         skin_cuts.append(("socket", blob(W * (1 + socket), H * (1 + 1.1 * socket)) + [0.04 * W, -0.22 * socket * H]))
     if halo:
         skin_cuts.append(("halo", shape(rim + halo, (rim + halo - 1) * 0.5 * H)))
-    if style == "dot":  # the eyeball, one shell, its glint cut into its own front
-        ball = slab(shape(1.0), 0.02, "eye")
-        cuts = [("glint", blob(0.3 * W, 0.3 * W) + [0.18 * W, 0.18 * H], {"eye"})] if glint else []
+    if style in ("dot", "bead"):  # the eyeball, one shell; specular light reflections come from PBR roughness
+        ball = slab(shape(1.0), 0.022, "eye")
+        cuts = [("glint", blob(0.3 * W, 0.3 * W) + [0.18 * W, 0.18 * H], {"eye"})] if (glint and style != "bead") else []
     else:
         m = outline * H
         ball = slab(shape(rim, m), 0.026, "eye")
@@ -292,7 +292,7 @@ def eyes(head, style="dot", x=0.42, y=-0.2, w=0.2, h=0.27, angry=0.0, pupil=Fals
         t = np.linspace(np.pi * 0.98, np.pi * 0.02, 11)  # along the upper edge, inner corner to outer
         ex, ey = 0.5 * W * rim * _spow(np.cos(t), 2 / 2.4), 0.5 * H * rim * _spow(np.sin(t), 2 / 2.4)
         if angry:
-            slope, c = top_line(outline * H if style != "dot" else 0.0)
+            slope, c = top_line(outline * H if style not in ("dot", "bead") else 0.0)
             ey = np.minimum(ey, c + slope * ex)
         T = liner * H
         tip_ = np.array([ex[-1], ey[-1]]) + flick * W * np.array([np.cos(0.5), np.sin(0.5)])
@@ -773,8 +773,12 @@ def _ear_shape(style, s, base, angle, notch_depth=0.0):
     r0, r1, c1 = np.minimum(ring_i, len(ts) - 1), np.minimum(ring_i + 1, len(ts) - 1), (col_j + 1) % n
     centre = 0.25 * (info[r0 * n + col_j] + info[r0 * n + c1] + info[r1 * n + col_j] + info[r1 * n + c1])
     fi = np.where((np.arange(len(faces)) < nq)[:, None], centre, np.vstack([info, info[:1], info[-1:]])[faces].mean(1))
-    slots = np.where((fi[:, 2] < -0.35) & (fi[:, 3] > 0.25), np.where((fi[:, 0] < 0.35) & (fi[:, 3] > 0.6), "canal",
-                                                                    "inner"), "skin").astype(object)
+    in_canal = (fi[:, 0] < 0.35) & (fi[:, 3] > 0.6) & (fi[:, 2] < -0.42)
+    in_inner = (fi[:, 2] < -0.35) & (fi[:, 3] > 0.25)
+    in_mid = (fi[:, 2] < -0.20) & (fi[:, 3] > 0.12)
+    slots = np.where(in_canal, "canal",
+            np.where(in_inner, "inner",
+            np.where(in_mid, "mid", "skin"))).astype(object)
     piece = kit.Piece(verts, kit._orient_closed(verts, faces), slots)
 
     def lower_edge(t):
@@ -799,7 +803,8 @@ def ears(head, style="round", y=-0.15, size=1.0, angle=0.0, sweep=20.0, base=1.0
 
     def built(depth):
         piece, edge = _ear_shape(style, s, base, angle, depth)
-        names = {"skin": slot, "inner": inner, "canal": canal or inner}
+        mid_slot = f"{inner}_mid" if inner != slot else slot
+        names = {"skin": slot, "mid": mid_slot, "inner": inner, "canal": canal or inner}
         return kit.Piece(piece.verts, piece.faces, np.array([names[k] for k in piece.slots], object)).moved(f), edge
 
     one, lower_edge = built(0.0)
@@ -1145,13 +1150,26 @@ def build(recipe, center=(0.0, 1.72, 0.0)):
         sl, share = lip[0], lip[1]
         half_width = lip[2] if len(lip) > 2 else 0.55
         top_y = head.y(head.mouth) + 0.004
-        mid_y = head.y(head.mouth - 0.5 * share * head.edge)
         t = np.linspace(0, 2 * np.pi, 25)[:-1]
-        oval = np.column_stack([head.cx + half_width * head.A * np.cos(t),
-                                mid_y + 1.15 * (top_y - mid_y) * np.sin(t)])  # reaching `share` of the step down
-        oval = clip(oval, 0.0, 1.0, top_y)  # flat along the mouth line, rounded below and at the corners
-        bare = {skin_slot, "skin", "skin_dark"}
-        cranium = kit.paint_cut(cranium, [oval], sl, bare, min_facing=0.0)
+
+        # Softened outer transition band
+        hw_mid = half_width * 1.15
+        share_mid = share * 1.3
+        mid_y_outer = head.y(head.mouth - 0.5 * share_mid * head.edge)
+        oval_mid = np.column_stack([head.cx + hw_mid * head.A * np.cos(t),
+                                    mid_y_outer + 1.15 * (top_y - mid_y_outer) * np.sin(t)])
+        oval_mid = clip(oval_mid, 0.0, 1.0, top_y)
+
+        # Core inner lip
+        mid_y = head.y(head.mouth - 0.5 * share * head.edge)
+        oval_core = np.column_stack([head.cx + half_width * head.A * np.cos(t),
+                                     mid_y + 1.15 * (top_y - mid_y) * np.sin(t)])  # reaching `share` of the step down
+        oval_core = clip(oval_core, 0.0, 1.0, top_y)  # flat along the mouth line, rounded below and at the corners
+
+        sl_mid = f"{sl}_mid"
+        bare = {skin_slot, "skin", "skin_dark", sl_mid}
+        cranium = kit.paint_cut(cranium, [oval_mid], sl_mid, bare, min_facing=0.0)
+        cranium = kit.paint_cut(cranium, [oval_core], sl, bare, min_facing=0.0)
     shade = recipe.get("shade")
     if shade:  # KayKit's gradient as flat bands: the crown lighter (`top` = [slot, from yn]), under the jaw darker
         yv = (cranium.verts[cranium.faces][:, :, 1] - head.cy) / head.Hh  # by whole faces, so edges follow a ring
@@ -1168,7 +1186,7 @@ def build(recipe, center=(0.0, 1.72, 0.0)):
             cranium = kit.carve(cranium, strips, outline, sl, depth, head.centre, bare, min_facing=0.3)
     if painted:  # paint and scars: the skin itself recolored inside their outlines (cranium, nose, jaw)
         bare = {skin_slot, "skin", "skin_dark", *(v[0] for v in (shade or {}).values())}
-        on_top = ["liner", "mouth", "lip", "scar", "paint", "nostril", "halo", "socket"]  # the first cut on a face wins
+        on_top = ["liner", "mouth", "lip", "lip_mid", "scar", "paint", "nostril", "halo", "socket"]  # the first cut on a face wins
         for sl in sorted({s_ for s_, _ in painted}, key=lambda x: on_top.index(x) if x in on_top else 3.5):
             polys = [q for s_, q in painted if s_ == sl]
             cranium = kit.paint_cut(cranium, polys, sl, bare, min_facing=0.3)  # the face, not over the crown
@@ -1199,7 +1217,7 @@ ROSTER = {
                     mouth=(70, 90, 76), liner=(26, 26, 30))),
     "orc_king": dict(  # after KayKit's orcs (inspiration only): one smooth head, the jaw an underbite step in it
         form={"width": 0.86, "height": 1.08, "depth": 1.0, "p": 2.7, "q": 3.0, "crown": 0.16, "jaw": 0.24, "brow": 0.0, "back": 0.92, "bite": 0.34, "mouth": -0.36, "edge": 0.3, "q_low": 4.2, "relief": [[0.36, 0.22, 0.34, 0.1, 0.13], [0.37, 0.0, 0.16, 0.12, -0.035], [0.56, -0.16, 0.2, 0.14, 0.08], [0.0, -0.22, 0.32, 0.12, 0.06]]},
-        eyes={"style": "dot", "w": 0.2, "h": 0.29, "y": 0.02, "x": 0.37, "glint": True},
+        eyes={"style": "bead", "w": 0.14, "h": 0.15, "y": 0.02, "x": 0.37, "angry": 0.25, "glint": False},
         brows={"style": "bushy", "thickness": 0.27, "length": 0.56, "y": 0.32, "x": 0.42, "angle": 6, "depth": 0.05, "slot": "brow", "arch": 0.1},
         nose={"style": "chevron", "y": -0.1, "size": 0.95},
         tusks=[{"x": 0.5, "y": -0.39, "length": 0.22, "radius": 0.11, "spread": -0.03, "curve": 0.1, "out": 0.0, "tip": "tusk_tip", "split": 0.45}],

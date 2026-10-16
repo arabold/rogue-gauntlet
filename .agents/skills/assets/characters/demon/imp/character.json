@@ -21,7 +21,7 @@
       "y": -0.1,
       "x": 0.34,
       "pupil": "slit",
-      "glint": true,
+      "glint": false,
       "outline": 0.12
     },
     "brows": {

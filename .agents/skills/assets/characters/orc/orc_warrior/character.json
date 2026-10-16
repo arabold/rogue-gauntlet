@@ -81,7 +81,9 @@
       "ragged": 6,
       "jag": 0.08,
       "dip": 0.05,
-      "slot": "hide"
+      "slot": "hide",
+      "patina": true,
+      "dents": true
     },
     {
       "kind": "armor",
@@ -89,7 +91,9 @@
       "y0": 0.66,
       "y1": 1.2,
       "boss": "metal",
-      "slot": "leather"
+      "slot": "leather",
+      "patina": true,
+      "dents": true
     },
     {
       "kind": "belt",
@@ -97,7 +101,9 @@
       "height": 0.12,
       "variant": "leather",
       "buckle_slot": "metal",
-      "buckle_scale": 1.9
+      "buckle_scale": 1.9,
+      "patina": true,
+      "dents": true
     },
     {
       "kind": "wraps",
@@ -114,24 +120,32 @@
       "kind": "pauldrons",
       "side": "right",
       "x": 0.38,
-      "y": 1.42,
-      "size": 0.42,
+      "y": 1.39,
+      "size": 0.38,
       "variant": "spiked",
       "plate": "metal",
       "rim": "metal_dark",
       "spikes": "metal",
-      "spike_height": 0.8
+      "spike_count": 1,
+      "spike_along": 0.52,
+      "spike_lean": 0.65,
+      "spike_height": 0.85,
+      "patina": true,
+      "dents": true
     },
     {
       "kind": "pauldrons",
       "side": "left",
       "x": 0.38,
-      "y": 1.42,
-      "size": 0.36,
+      "y": 1.39,
+      "size": 0.33,
       "variant": "dome",
       "plate": "leather",
       "rim": "leather_dark",
-      "rivet": "metal"
+      "rivet": "metal",
+      "patina": true,
+      "dents": true,
+      "stitched": true
     },
     {
       "kind": "helmet",
@@ -142,7 +156,9 @@
       "band": "metal_dark",
       "rivet": "metal_dark",
       "guard": 0.95,
-      "guard_upright": true
+      "guard_upright": true,
+      "patina": true,
+      "dents": true
     }
   ],
   "colors": {
@@ -161,30 +177,95 @@
       36,
       30
     ],
+    "hide_light": [
+      148,
+      110,
+      72
+    ],
     "hide": [
       128,
       92,
       58
+    ],
+    "hide_worn": [
+      106,
+      75,
+      47
+    ],
+    "hide_dark": [
+      82,
+      56,
+      36
+    ],
+    "leather_light": [
+      142,
+      92,
+      60
     ],
     "leather": [
       120,
       76,
       48
     ],
+    "leather_worn": [
+      100,
+      62,
+      39
+    ],
     "leather_dark": [
-      84,
-      52,
-      34
+      80,
+      48,
+      32
+    ],
+    "stitch": [
+      196,
+      160,
+      114
+    ],
+    "metal_light": [
+      168,
+      174,
+      182
     ],
     "metal": [
       140,
       146,
       152
     ],
+    "metal_worn": [
+      116,
+      120,
+      124
+    ],
     "metal_dark": [
+      88,
       92,
-      96,
-      102
+      98
+    ],
+    "tarnish": [
+      104,
+      98,
+      88
+    ],
+    "rust": [
+      134,
+      72,
+      46
+    ],
+    "rust_dark": [
+      94,
+      48,
+      32
+    ],
+    "dirt": [
+      92,
+      70,
+      48
+    ],
+    "grime": [
+      58,
+      44,
+      34
     ],
     "dark": [
       40,

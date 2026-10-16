@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bjq10e40inpib"
-path="res://.godot/imported/ghoul_ghoul_texture.png-7c67c8156d338298ac42e027cd8ea72e.ctex"
+path.s3tc="res://.godot/imported/ghoul_ghoul_texture.png-7c67c8156d338298ac42e027cd8ea72e.s3tc.ctex"
+path.etc2="res://.godot/imported/ghoul_ghoul_texture.png-7c67c8156d338298ac42e027cd8ea72e.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "3365f4c34b03bea2d7bb78df2e672bca"
+"md5": "1483a6d14b581fec4626b5431d7dd46b"
 }
 
 [deps]
 
 source_file="res://assets/custom-monsters/undead/ghoul_ghoul_texture.png"
-dest_files=["res://.godot/imported/ghoul_ghoul_texture.png-7c67c8156d338298ac42e027cd8ea72e.ctex"]
+dest_files=["res://.godot/imported/ghoul_ghoul_texture.png-7c67c8156d338298ac42e027cd8ea72e.s3tc.ctex", "res://.godot/imported/ghoul_ghoul_texture.png-7c67c8156d338298ac42e027cd8ea72e.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

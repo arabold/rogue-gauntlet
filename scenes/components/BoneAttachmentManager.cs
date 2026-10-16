@@ -9,11 +9,14 @@ public enum AttachmentType
 	Shield,
 	Item,
 	Hat,
-	Cape
+	Cape,
+	Chest
 }
 
 public partial class BoneAttachmentManager : Node
 {
+	private const string EquippedMetaKey = "equipped_attachment";
+
 	/// <summary>
 	/// The mapping of attachment types for the current character
 	/// </summary>
@@ -39,6 +42,8 @@ public partial class BoneAttachmentManager : Node
 			RemoveAttachments(AttachmentType.OffhandWeapon);
 			RemoveAttachments(AttachmentType.Shield);
 			RemoveAttachments(AttachmentType.Item);
+			RemoveAttachments(AttachmentType.Hat);
+			RemoveAttachments(AttachmentType.Chest);
 
 			if (player != null)
 			{
@@ -64,6 +69,58 @@ public partial class BoneAttachmentManager : Node
 		}
 	}
 
+	private BoneAttachment3D GetOrCreateBoneAttachment(AttachmentType attachmentType)
+	{
+		if (AttachmentNodes == null)
+		{
+			return null;
+		}
+
+		if (AttachmentNodes.TryGetValue(attachmentType, out var boneAttachment) && boneAttachment != null)
+		{
+			return boneAttachment;
+		}
+
+		if (player == null)
+		{
+			return null;
+		}
+
+		Skeleton3D skeleton = CharacterModel.FindSkeleton(player);
+		if (skeleton == null)
+		{
+			return null;
+		}
+
+		if (attachmentType == AttachmentType.Hat && skeleton.FindBone("head") >= 0)
+		{
+			boneAttachment = new BoneAttachment3D
+			{
+				Name = "Runtime_Hat",
+				BoneName = "head",
+				Position = new Vector3(0f, -0.0255f, 0f)
+			};
+			skeleton.AddChild(boneAttachment);
+			AttachmentNodes[AttachmentType.Hat] = boneAttachment;
+			return boneAttachment;
+		}
+
+		if (attachmentType == AttachmentType.Chest && skeleton.FindBone("chest") >= 0)
+		{
+			boneAttachment = new BoneAttachment3D
+			{
+				Name = "Runtime_Chest",
+				BoneName = "chest",
+				Position = new Vector3(0f, 0.243f, 0f)
+			};
+			skeleton.AddChild(boneAttachment);
+			AttachmentNodes[AttachmentType.Chest] = boneAttachment;
+			return boneAttachment;
+		}
+
+		return null;
+	}
+
 	private void RemoveAttachments(AttachmentType attachmentType)
 	{
 		if (AttachmentNodes == null)
@@ -74,10 +131,20 @@ public partial class BoneAttachmentManager : Node
 		AttachmentNodes.TryGetValue(attachmentType, out var boneAttachment);
 		if (boneAttachment != null)
 		{
+			bool keepBuiltInProps = attachmentType == AttachmentType.Hat || attachmentType == AttachmentType.Cape;
 			GD.Print($"Removing attachments from {attachmentType}");
 			var children = boneAttachment.GetChildren();
 			foreach (Node child in children)
 			{
+				if (keepBuiltInProps && !child.HasMeta(EquippedMetaKey))
+				{
+					if (child is Node3D builtInNode)
+					{
+						builtInNode.Visible = true;
+					}
+					continue;
+				}
+
 				boneAttachment.RemoveChild(child);
 				child.QueueFree();
 			}
@@ -86,17 +153,44 @@ public partial class BoneAttachmentManager : Node
 
 	private void AddAttachment(AttachmentType attachmentType, EquipableItem item)
 	{
-		if (AttachmentNodes == null)
+		if (item?.Scene == null)
 		{
 			return;
 		}
 
-		AttachmentNodes.TryGetValue(attachmentType, out var boneAttachment);
+		var boneAttachment = GetOrCreateBoneAttachment(attachmentType);
 		if (boneAttachment != null)
 		{
+			RemoveAttachments(attachmentType);
+			if (attachmentType == AttachmentType.Hat || attachmentType == AttachmentType.Cape)
+			{
+				foreach (Node child in boneAttachment.GetChildren())
+				{
+					if (!child.HasMeta(EquippedMetaKey) && child is Node3D builtInNode)
+					{
+						builtInNode.Visible = false;
+					}
+				}
+			}
+
 			GD.Print($"Adding attachment {item.Name} to {attachmentType}");
 			var itemAttachment = item.Scene.Instantiate<Node>();
+			itemAttachment.SetMeta(EquippedMetaKey, true);
+			ApplyRenderLayers(itemAttachment, CharacterModel.PlayerRenderLayers);
 			boneAttachment.AddChild(itemAttachment);
+		}
+	}
+
+	private static void ApplyRenderLayers(Node node, uint renderLayers)
+	{
+		if (node is MeshInstance3D mesh)
+		{
+			mesh.Layers = renderLayers;
+		}
+
+		foreach (Node child in node.GetChildren())
+		{
+			ApplyRenderLayers(child, renderLayers);
 		}
 	}
 
@@ -119,6 +213,14 @@ public partial class BoneAttachmentManager : Node
 			if ((armor.ValidSlots & ValidSlots.ShieldHand) != 0)
 			{
 				attachmentType = AttachmentType.Shield;
+			}
+			else if ((armor.ValidSlots & ValidSlots.Head) != 0)
+			{
+				attachmentType = AttachmentType.Hat;
+			}
+			else if ((armor.ValidSlots & ValidSlots.Chest) != 0)
+			{
+				attachmentType = AttachmentType.Chest;
 			}
 			else
 			{

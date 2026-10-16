@@ -209,11 +209,36 @@ def apron(trunk, y, length=0.38, width=0.34, flare=1.35, slot="gold", stripe="la
     return plate.moved(f)
 
 
-def loincloth(trunk, y, hem=0.3, flare=0.05, ragged=7, jag=0.06, dip=0.08, thickness=0.025, slot="cloth"):
+def loincloth(trunk, y, hem=0.3, flare=0.05, ragged=7, jag=0.06, dip=0.08, thickness=0.025, slot="cloth",
+              patina=False, dents=False):
     """A short rag skirt wrapped round the hips from a belt at `y` down to `hem`, flaring by `flare`, its hem torn
     into `ragged` points hanging up to `jag` lower and dipping `dip` further in front and behind (the flaps)."""
+    from accessories.export import corner_normals
     _, a, _, b = (float(v[0]) for v in trunk.section([y]))
-    return robe(trunk, y, hem, y, a + flare, b + flare, thickness, slot, ragged, jag, dip)
+    piece = robe(trunk, y, hem, y, a + flare, b + flare, thickness, slot, ragged, jag, dip)
+    if patina or dents:
+        piece.normals = corner_normals(piece.verts, piece.faces, crease=60.0)
+        light_s, worn_s, dark_s = f"{slot}_light", f"{slot}_worn", f"{slot}_dark"
+        paintable = {slot, light_s, worn_s, dark_s, "dirt", "grime"}
+        if patina:
+            piece = kit.weather(piece, slot, light_slot=light_s, worn_slot=worn_s, dark_slot=dark_s, rust_slot="dirt",
+                                seed=31)
+            p_stain = np.array([(-0.04, -0.02), (0.04, -0.03), (0.05, 0.02), (-0.02, 0.03)])
+            f_st = kit.band_frame(trunk, hem + 0.34 * (y - hem), np.pi / 2 - 0.82, thickness + 0.02)
+            piece = kit.paint_cut_local(piece, f_st, [p_stain], "grime", paintable=paintable, max_z=0.12)
+        d_cnt, d_scale = kit.parse_dents(dents, max_allowed=2)
+        if d_cnt >= 1:
+            ym = hem + 0.58 * (y - hem)
+            # 1. Main dramatic battle gash on front-left with stitch (longer and exaggerated)
+            f1 = kit.band_frame(trunk, ym, np.pi / 2 + 0.34, thickness + 0.015).rotated(34.0, "z")
+            piece = kit.gash(piece, f1, length=0.22 * d_scale, width=0.056 * d_scale, depth=0.020 * d_scale,
+                             slot=worn_s, shadow_slot=dark_s, paintable=paintable, stitch_slot="stitch")
+        if d_cnt >= 2:
+            # 2. Secondary angled battle slash on front-right
+            f2 = kit.band_frame(trunk, ym - 0.03, np.pi / 2 - 0.38, thickness + 0.018).rotated(-38.0, "z")
+            piece = kit.gash(piece, f2, length=0.17 * d_scale, width=0.046 * d_scale, depth=0.017 * d_scale,
+                             slot=worn_s, shadow_slot=dark_s, paintable=paintable)
+    return piece
 
 
 def ribs(trunk, y0, y1, count=4, spread=55.0, thickness=0.014, slot="skin_dark", height=0.03):

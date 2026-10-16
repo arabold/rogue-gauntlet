@@ -224,7 +224,28 @@ def hide_covered(pieces, covers, reach=0.14):
             d = kit.ray_distance(origin + 1e-4 * n, n, cloth.verts, cloth.faces, reach=reach)
             covered &= np.nan_to_num(d, nan=np.inf) < reach
         keep = ~covered
-        out[name] = kit.Piece(p.verts, p.faces[keep], p.slots[keep])
+        norms = None if getattr(p, "normals", None) is None else p.normals[keep]
+        out[name] = kit.Piece(p.verts, p.faces[keep], p.slots[keep], normals=norms)
+    return out
+
+
+def _expand_palette(colors, explicit):
+    """Derive `<base>_light`, `<base>_worn`, `<base>_dark` and `tarnish` from a character's base colors unless
+    explicitly set in `explicit`."""
+    out = dict(colors)
+    for base in ("metal", "leather", "hide", "armor", "iron", "bone", "cloth", "gold", "boot", "pants"):
+        if base not in out:
+            continue
+        c = np.array(out[base], float)
+        if f"{base}_light" not in explicit:
+            out[f"{base}_light"] = tuple(np.round(np.clip(c * [1.15, 1.14, 1.12] + 8.0, 0, 255)).astype(int))
+        if f"{base}_worn" not in explicit:
+            out[f"{base}_worn"] = tuple(np.round(np.clip(c * [0.84, 0.81, 0.76], 0, 255)).astype(int))
+        if f"{base}_dark" not in explicit:
+            out[f"{base}_dark"] = tuple(np.round(np.clip(c * [0.65, 0.58, 0.48], 0, 255)).astype(int))
+    if "metal" in out and "tarnish" not in explicit:
+        c = np.array(out["metal"], float)
+        out["tarnish"] = tuple(np.round(np.clip(c * [0.76, 0.72, 0.64], 0, 255)).astype(int))
     return out
 
 
@@ -250,10 +271,12 @@ def build(recipe):
             covers.append(piece)
     if recipe.get("hide_covered", True):
         pieces = hide_covered(pieces, covers)
-    colors = {**kit.DEMO_COLORS, **crowns.COLORS, **cuirass.COLORS, **heads.COLORS, **body.COLORS, **clothes.COLORS, **armor.COLORS,
-              **helmets.COLORS,
-              **head_spec.get("colors", {}),
-              **recipe.get("colors", {})}
+    explicit = {**head_spec.get("colors", {}), **recipe.get("colors", {})}
+    colors = _expand_palette(
+        {**kit.DEMO_COLORS, **crowns.COLORS, **cuirass.COLORS, **heads.COLORS, **body.COLORS, **clothes.COLORS,
+         **armor.COLORS, **helmets.COLORS, **explicit},
+        explicit,
+    )
     return pieces, colors
 
 

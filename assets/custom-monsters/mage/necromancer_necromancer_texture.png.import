@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://1cjnvmivwtvr"
-path="res://.godot/imported/necromancer_necromancer_texture.png-1795ae287bc4bd5bef1b97662656fffe.ctex"
+path.s3tc="res://.godot/imported/necromancer_necromancer_texture.png-1795ae287bc4bd5bef1b97662656fffe.s3tc.ctex"
+path.etc2="res://.godot/imported/necromancer_necromancer_texture.png-1795ae287bc4bd5bef1b97662656fffe.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "2d2d71cc8259ff8d960d897c4a2be16b"
+"md5": "93f020caa84b23bc0e581e81f6f87833"
 }
 
 [deps]
 
 source_file="res://assets/custom-monsters/mage/necromancer_necromancer_texture.png"
-dest_files=["res://.godot/imported/necromancer_necromancer_texture.png-1795ae287bc4bd5bef1b97662656fffe.ctex"]
+dest_files=["res://.godot/imported/necromancer_necromancer_texture.png-1795ae287bc4bd5bef1b97662656fffe.s3tc.ctex", "res://.godot/imported/necromancer_necromancer_texture.png-1795ae287bc4bd5bef1b97662656fffe.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

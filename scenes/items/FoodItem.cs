@@ -8,7 +8,12 @@ public partial class FoodItem : ConsumableItem
 
 	public bool IsPoisoned { get; private set; } = false;
 
-	public override void _Ready()
+	public FoodItem()
+	{
+		RollPoison();
+	}
+
+	public void RollPoison()
 	{
 		if (PoisonChance > 0 && GD.Randf() < PoisonChance)
 		{
@@ -32,14 +37,6 @@ public partial class FoodItem : ConsumableItem
 				GD.Print($"{player.Name} has been poisoned by {Name}!");
 				player.BuffController.ApplyBuff(PoisonEffect);
 			}
-			else
-			{
-				GD.PushError($"FoodItem: {Name} has PoisonChance > 0 but no PoisonEffect assigned!");
-			}
-		}
-	}
-}
-
 			else
 			{
 				GD.PushError($"FoodItem: {Name} has PoisonChance > 0 but no PoisonEffect assigned!");

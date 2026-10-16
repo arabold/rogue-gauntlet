@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bo78bu7vvxx78"
-path="res://.godot/imported/orc_king_orc_king_texture.png-6ee8afe61c44e1206aa892a6738d2fc0.ctex"
+path.s3tc="res://.godot/imported/orc_king_orc_king_texture.png-6ee8afe61c44e1206aa892a6738d2fc0.s3tc.ctex"
+path.etc2="res://.godot/imported/orc_king_orc_king_texture.png-6ee8afe61c44e1206aa892a6738d2fc0.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "efd4e6c504c71d6f9d5ecf4eed7d4aca"
+"md5": "cbc847acf68b22bbd4ef846d3f1d77b5"
 }
 
 [deps]
 
 source_file="res://assets/custom-monsters/orc/orc_king_orc_king_texture.png"
-dest_files=["res://.godot/imported/orc_king_orc_king_texture.png-6ee8afe61c44e1206aa892a6738d2fc0.ctex"]
+dest_files=["res://.godot/imported/orc_king_orc_king_texture.png-6ee8afe61c44e1206aa892a6738d2fc0.s3tc.ctex", "res://.godot/imported/orc_king_orc_king_texture.png-6ee8afe61c44e1206aa892a6738d2fc0.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

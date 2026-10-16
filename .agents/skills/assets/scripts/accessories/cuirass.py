@@ -306,7 +306,7 @@ def orc(torso, waist=0.66, thickness=0.06, slot="iron", rim="iron_dark", rivet="
         for s_, centre in (("front", FRONT), ("back", BACK)):
             off = np.radians(26.0) * (sgn if s_ == "front" else -sgn)
             pieces.append(_strap(torso, mid + 0.06, top + 0.04, centre - off, 0.075, thickness + 0.035, strap))
-    c = _surface(torso, mid - 0.06, FRONT, thickness + 0.08)  # a big skull boss in the middle of the chest
+    c = _surface(torso, mid - 0.04, FRONT, thickness - 0.02)  # a big skull boss sunk into the middle of the chest
     pieces.append(skull(0.27, boss).moved(kit.Frame.make(np.asarray(c, float), (0.0, 0.0, 1.0))))
     return kit.Piece.merge(*pieces)
 

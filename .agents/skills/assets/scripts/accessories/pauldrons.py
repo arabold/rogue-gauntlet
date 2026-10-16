@@ -10,12 +10,12 @@ from accessories import kit
 from accessories.belts import skull
 
 
-def _shell(size, slot, lat=-8.0, thickness=0.03, scale=(1.0, 0.7, 0.95), start=0.0, sides=14):
+def _shell(size, slot, lat=-8.0, thickness=0.03, scale=(1.0, 0.7, 0.95), start=0.0, sides=22):
     rx, ry, rz = (size * k for k in scale)
-    return kit.cap(rx, ry, rz, lat, thickness, slot, sides=sides, rings=5, p=2.4, start=start)
+    return kit.cap(rx, ry, rz, lat, thickness, slot, sides=sides, rings=8, p=2.4, start=start)
 
 
-def _rim(size, slot, lat=-2.0, scale=(1.0, 0.7, 0.95), width=0.03, height=0.055, drop=0.0, flare=1.0, sides=14):
+def _rim(size, slot, lat=-2.0, scale=(1.0, 0.7, 0.95), width=0.03, height=0.055, drop=0.0, flare=1.0, sides=22):
     """A trim band on the shell just above its lower edge (`flare` > 1 widens it into a turned-out lip)."""
     rx, ry, rz = (size * k for k in scale)
     L = np.radians(lat)
@@ -27,14 +27,70 @@ def _rim(size, slot, lat=-2.0, scale=(1.0, 0.7, 0.95), width=0.03, height=0.055,
     return kit.sweep(path, kit.rect_profile(width, height, 0.3 * height), slot, closed=True)
 
 
-def _spikes(size, slot, count=3, height=0.55, radius=0.12, along=0.55):
+def _spikes(size, slot, count=3, height=0.55, radius=0.12, along=0.55, lean=0.58):
     """Spikes along the shell's top ridge, from the neck side out along the arm, leaning outward."""
     out = []
-    for i, x in enumerate(np.linspace(-along, along, count) * size):
+    xs = [along * size] if count == 1 else np.linspace(-along, along, count) * size
+    for i, x in enumerate(xs):
         y = 0.7 * size * np.sqrt(max(0.0, 1 - (x / size) ** 2)) - 0.01
-        h = height * size * (1.0 if i == count // 2 else 0.75)
-        out.append(kit.spike((x, y, 0.0), (x + 0.25 * h, y + h, 0.0), radius * size, slot))
+        h = height * size * (0.78 if count == 1 else (1.0 if i == count // 2 else 0.75))
+        out.append(kit.spike((x, y, 0.0), (x + lean * h, y + h, 0.0), radius * size, slot))
     return out
+
+
+def _dome_frame(size, deg_from_x, lat_deg, scale=(1.0, 0.7, 0.95)):
+    """A surface `Frame` (`z` = outward normal, `y` = up toward dome crown) on `_shell` at azimuth `deg_from_x`
+    (0 = +x outer arm, 90 = +z front) and latitude `lat_deg`."""
+    rx, ry, rz = (size * k for k in scale)
+    a, b = np.radians(deg_from_x), np.radians(lat_deg)
+    ca, sa = np.cos(a), np.sin(a)
+    ux = np.sign(ca) * np.abs(ca) ** (2 / 2.4)
+    uz = np.sign(sa) * np.abs(sa) ** (2 / 2.4)
+    P = np.array([rx * np.cos(b) * ux, ry * np.sin(b), rz * np.cos(b) * uz])
+    N = np.array([np.cos(b) * ca / max(rx, 1e-6), np.sin(b) / max(ry, 1e-6), np.cos(b) * sa / max(rz, 1e-6)])
+    N /= np.linalg.norm(N)
+    return kit.Frame.make(P, N, up=(0.0, 1.0, 0.0))
+
+
+def _weather_and_dent_shell(shell, size, base_slot, patina=False, dents=False, stitched=None):
+    """Apply multi-tone patina gradients, polygonal stain patches, and 3D carved V-groove gashes to a pauldron dome."""
+    from accessories.export import corner_normals
+    shell.normals = corner_normals(shell.verts, shell.faces, crease=60.0)
+    is_leather = "leather" in base_slot or "hide" in base_slot
+    light_s = f"{base_slot}_light"
+    worn_s = f"{base_slot}_worn"
+    dark_s = f"{base_slot}_dark"
+    stain_s = "grime" if is_leather else "tarnish"
+    rust_s = "dirt" if is_leather else "rust"
+    paintable = {base_slot, light_s, worn_s, dark_s, stain_s, rust_s}
+
+    if patina:
+        shell = kit.weather(shell, base_slot, light_slot=light_s, worn_slot=worn_s, dark_slot=dark_s, rust_slot=rust_s)
+        # Polygonal patina patches on lower slopes (flush with surface, sharing smooth normals)
+        p1 = np.array([(-0.11, -0.05), (0.09, -0.07), (0.14, 0.04), (-0.04, 0.08)]) * size
+        shell = kit.paint_cut_local(shell, _dome_frame(size, 48.0, 7.0), [p1], dark_s, paintable=paintable)
+        p2 = np.array([(-0.09, -0.04), (0.08, -0.05), (0.11, 0.05), (-0.05, 0.06)]) * size
+        shell = kit.paint_cut_local(shell, _dome_frame(size, -48.0, 10.0), [p2], stain_s, paintable=paintable)
+
+    d_cnt, d_scale = kit.parse_dents(dents, max_allowed=2)
+    if size < 0.22:
+        d_cnt = min(d_cnt, 1)
+
+    if d_cnt >= 1:
+        use_stitch = is_leather if stitched is None else bool(stitched)
+        # 1. Main dramatic battle slash across the upper front-outer dome (longer, bold and exaggerated)
+        f1 = _dome_frame(size, 42.0, 29.0).rotated(34.0, "z")
+        shell = kit.gash(shell, f1, length=0.52 * size * d_scale, width=0.135 * size * d_scale,
+                         depth=0.038 * size * d_scale,
+                         slot=worn_s, shadow_slot=dark_s, paintable=paintable,
+                         stitch_slot="stitch" if use_stitch else None)
+    if d_cnt >= 2:
+        # 2. Secondary horizontal wedge dent on the outer flank
+        f2 = _dome_frame(size, 18.0, 16.0).rotated(82.0, "z")
+        shell = kit.gash(shell, f2, length=0.36 * size * d_scale, width=0.115 * size * d_scale,
+                         depth=0.032 * size * d_scale,
+                         slot=worn_s, shadow_slot=dark_s, paintable=paintable, asymmetry=0.42)
+    return shell
 
 
 def _fur(size, slot, count=16):
@@ -73,13 +129,27 @@ def build(top, size=0.24, variant="dome", tilt=-15.0, **overrides):
     for i in range(lames):  # each lower lame steps out along the arm and down, a little wider
         k = 1.0 + 0.16 * i
         shell = _shell(size * k, v["plate"], start=0.0 if i == 0 else 30.0 + 12 * i)
+        if v.get("patina") or v.get("dents"):
+            shell = _weather_and_dent_shell(shell, size * k, v["plate"], patina=bool(v.get("patina")),
+                                            dents=v.get("dents") if i == 0 else False, stitched=v.get("stitched"))
         rim = _rim(size * k, v["rim"]) if v.get("rim") else None
+        if rim is not None and v.get("patina"):
+            is_l = "leather" in v["rim"] or "hide" in v["rim"]
+            rim = kit.weather(rim, v["rim"], worn_slot="grime" if is_l else "tarnish",
+                              rust_slot="dirt" if is_l else "rust", seed=13 + i)
         lame = kit.Piece.merge(shell, rim)
-        parts.append(kit.Piece(lame.verts + [0.22 * size * i, -0.2 * size * i, 0.0], lame.faces, lame.slots))
+        parts.append(kit.Piece(lame.verts + [0.22 * size * i, -0.2 * size * i, 0.0], lame.faces, lame.slots,
+                               normals=lame.normals))
     if v.get("flare"):
         parts.append(_rim(size, v["rim"], flare=v["flare"], width=0.07, drop=0.02))
     if v.get("spikes"):
-        parts += _spikes(size, v["spikes"], count=v.get("spike_count", 3), height=v.get("spike_height", 0.55))
+        spikes = _spikes(size, v["spikes"], count=v.get("spike_count", 3), height=v.get("spike_height", 0.55),
+                         along=v.get("spike_along", 0.55), lean=v.get("spike_lean", 0.58))
+        if v.get("patina"):
+            spikes = [kit.weather(sp, v["spikes"], light_slot=f"{v['spikes']}_light", worn_slot=f"{v['spikes']}_worn",
+                                  dark_slot=f"{v['spikes']}_dark", rust_slot="tarnish", seed=19 + j)
+                      for j, sp in enumerate(spikes)]
+        parts += spikes
     if v.get("rivet"):
         parts.append(kit.stud(0.12 * size, 0.02, v["rivet"]).moved(
             kit.Frame((0.0, 0.7 * size - 0.004, 0.0), [1, 0, 0], [0, 0, -1], [0, 1, 0])))

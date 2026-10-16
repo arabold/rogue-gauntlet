@@ -36,16 +36,27 @@ TEMPLATES = {name: os.path.join(REPO, "assets", path) for name, path in {
     "mage": "kaykit-adventurers/Mage.glb", "rogue": "kaykit-adventurers/Rogue.glb",
     "rogue_hooded": "kaykit-adventurers/Rogue_Hooded.glb", "skeleton": "kaykit-skeletons/Skeleton_Warrior.glb",
 }.items()}
-# Surface looks per material slot (everything else stays KayKit's matte default): metal shines, glows glow.
-MATERIALS = {**{slot: dict(metallic=0.5, roughness=0.3) for slot in ("gold", "gold_dark", "metal", "rivet")},
-             **{slot: dict(metallic=0.45, roughness=0.4) for slot in ("armor", "armor_dark", "trim")},
-             **{slot: dict(metallic=0.35, roughness=0.6) for slot in ("iron", "iron_dark", "rivet_iron")},
-             "rust": dict(metallic=0.25, roughness=0.6),
-             **{slot: dict(emissive=True) for slot in ("glow", "halo", "crystal")},
-             # hair, fur, feathers and cloth stay matte: KayKit's default sheen makes them look like plastic
-             **{slot: dict(metallic=0.0, roughness=1.0) for slot in ("brow", "hair", "beard", "fur", "fur_trim", "pelt",
-                                                                     "pelt_dark", "feather", "wrap", "wrap_dark",
-                                                                     "cloth", "rag")}}
+# Surface looks and shading per material slot (everything else stays KayKit's matte default): metal shines, glows glow.
+MATERIALS = {**{slot: dict(metallic=0.5, roughness=0.3, crease=45.0)
+                for slot in ("gold", "gold_light", "gold_worn", "gold_dark", "metal", "metal_light", "metal_worn",
+                             "metal_dark", "tarnish", "rivet")},
+             **{slot: dict(metallic=0.45, roughness=0.4, crease=48.0)
+                for slot in ("armor", "armor_light", "armor_worn", "armor_dark", "trim")},
+             **{slot: dict(metallic=0.35, roughness=0.6, crease=48.0)
+                for slot in ("iron", "iron_light", "iron_worn", "iron_dark", "rivet_iron")},
+             **{slot: dict(metallic=0.25, roughness=0.6, crease=50.0) for slot in ("rust", "rust_dark")},
+             **{slot: dict(emissive=True, crease=60.0) for slot in ("glow", "halo", "crystal")},
+             **{slot: dict(metallic=0.1, roughness=0.15, crease=60.0) for slot in ("eye", "iris")},
+             **{slot: dict(metallic=0.0, roughness=0.85, crease=50.0)
+                for slot in ("bone", "bone_light", "bone_worn", "bone_dark", "tusk", "tusk_tip", "horn",
+                             "leather", "leather_light", "leather_worn", "leather_dark", "stitch",
+                             "hide", "hide_light", "hide_worn", "hide_dark", "dirt", "grime", "rope")},
+             **{slot: dict(metallic=0.0, roughness=0.9, crease=62.0)
+                for slot in ("skin", "skin_dark", "skin_light", "ear", "ear_dark", "lip", "mouth", "nostril")},
+             # hair, fur, feathers, wraps and cloth stay matte and shade smoothly along loops/folds:
+             **{slot: dict(metallic=0.0, roughness=1.0, crease=60.0)
+                for slot in ("brow", "hair", "beard", "fur", "fur_trim", "pelt", "pelt_dark", "feather",
+                             "wrap", "wrap_dark", "cloth", "cloth_light", "cloth_worn", "cloth_dark", "rag")}}
 HEROES = ("barbarian", "knight", "mage", "rogue")
 GENERATOR = "Rogue Gauntlet character_kit"  # glTF asset.generator of every export (`character_kit` backs up others)  # templates whose prop node names the class resources look up
 # where KayKit grips props: weapons in the right hand turned about Y, off-hand ones as they come (`Barbarian.glb`)
@@ -53,9 +64,19 @@ WEAPON_SLOTS = {"handslot.r": dict(translation=[0.0, 0.0333, 0.0], rotation=[0.0
                 "handslot.l": dict(translation=[0.0, 0.0333, 0.0])}
 
 
-def corner_normals(verts, faces, crease=50.0):
+def _crease_of(spec, default=50.0):
+    if not isinstance(spec, dict):
+        return default
+    if spec.get("shading") == "flat":
+        return 0.0
+    if spec.get("shading") == "smooth":
+        return 180.0
+    return float(spec.get("crease", default))
+
+
+def corner_normals(verts, faces, crease=50.0, slots=None, slot_crease=None):
     """Per-corner normals (n faces, 3, 3): each the area-weighted mean of the faces around its point that turn less
-    than `crease` degrees from its own face, so curved surfaces shade smooth and sharp edges stay hard."""
+    than their material's `crease` degrees from its own face, so curved surfaces shade smooth and sharp edges stay hard."""
     welded = np.unique(np.round(verts * 1e5).astype(np.int64), axis=0, return_inverse=True)[1].ravel()
     F = welded[faces]
     tri = verts[faces]
@@ -65,10 +86,15 @@ def corner_normals(verts, faces, crease=50.0):
     corner_v = F.ravel()[order]
     cuts = np.flatnonzero(np.diff(corner_v)) + 1
     out = np.zeros((len(faces) * 3, 3))
-    cos = np.cos(np.radians(crease))
+    if slots is not None and slot_crease:
+        creases = np.array([slot_crease.get(str(s), crease) for s in slots], float)
+        cos_face = np.cos(np.radians(creases))
+    else:
+        cos_face = np.full(len(faces), np.cos(np.radians(crease)), float)
     for group in np.split(order, cuts):
         f = group // 3
-        near = (unit[f] @ unit[f].T) > cos
+        thresh = np.maximum(cos_face[f, None], cos_face[None, f])
+        near = (unit[f] @ unit[f].T) >= thresh
         out[group] = near.astype(float) @ fn[f]
     out = out.reshape(-1, 3, 3)
     return out / np.maximum(np.linalg.norm(out, axis=2, keepdims=True), 1e-12)
@@ -163,6 +189,38 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
             weapon_slots[bone].append(key)
     used = sorted({str(s) for p in [*pieces.values(), hat, cape] if p is not None for s in p.slots} |
                   {k for k in slot_colors if k.startswith("weapon")})
+    for s in list(used):
+        if s not in slot_colors and s.endswith("_mid"):
+            base_s = s[:-4]
+            if base_s in slot_colors and "skin" in slot_colors:
+                c1, c2 = np.array(slot_colors[base_s], float), np.array(slot_colors["skin"], float)
+                slot_colors[s] = tuple(np.round(0.5 * c1 + 0.5 * c2).astype(int))
+            elif base_s in slot_colors:
+                slot_colors[s] = slot_colors[base_s]
+            if s not in looks:
+                looks[s] = dict(looks.get(base_s, {}))
+        elif s not in slot_colors and s.endswith("_light"):
+            base_s = s[:-6]
+            if base_s in slot_colors:
+                c = np.array(slot_colors[base_s], float)
+                slot_colors[s] = tuple(np.round(np.clip(c * np.array([1.15, 1.14, 1.12]) + 8.0, 0, 255)).astype(int))
+            if s not in looks:
+                looks[s] = dict(looks.get(base_s, {}))
+        elif s not in slot_colors and s.endswith("_worn"):
+            base_s = s[:-5]
+            if base_s in slot_colors:
+                c = np.array(slot_colors[base_s], float)
+                slot_colors[s] = tuple(np.round(np.clip(c * np.array([0.84, 0.81, 0.76]), 0, 255)).astype(int))
+            if s not in looks:
+                looks[s] = dict(looks.get(base_s, {}))
+        elif s not in slot_colors and s.endswith("_dark"):
+            base_s = s[:-5]
+            if base_s in slot_colors:
+                c = np.array(slot_colors[base_s], float)
+                patina = np.clip(c * np.array([0.65, 0.58, 0.48]), 0, 255)
+                slot_colors[s] = tuple(np.round(patina).astype(int))
+            if s not in looks:
+                looks[s] = dict(looks.get(base_s, {}))
     missing = [s for s in used if s not in slot_colors]
     if missing:
         raise ValueError(f"no color for slots {missing}")
@@ -183,7 +241,11 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
     def mesh(tri, slots, normals_from=None, bones=None, weights=None):
         """A glTF mesh of triangles `tri` (n, 3, 3) with a slot per face; skinned when `bones` are given."""
         verts, faces = tri.reshape(-1, 3), np.arange(3 * len(tri)).reshape(-1, 3)
-        N = corner_normals(*(normals_from or (verts, faces)), crease).reshape(-1, 3)
+        if isinstance(normals_from, np.ndarray):
+            N = normals_from.reshape(-1, 3)
+        else:
+            slot_crease = {s: _crease_of(looks.get(str(s)), crease) for s in used}
+            N = corner_normals(*(normals_from or (verts, faces)), crease=crease, slots=slots, slot_crease=slot_crease).reshape(-1, 3)
         uv = np.repeat(np.array([atlas.flat_uv(label[str(s)]) for s in slots]), 3, axis=0)
         cols = [verts, N, uv]
         if bones is not None:
@@ -223,7 +285,10 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
         """`piece` (rest-pose world) as the mesh of a prop node, in that node's own frame."""
         M = np.linalg.inv(worlds[node_i])
         tri = piece.verts[piece.faces] @ M[:3, :3].T + M[:3, 3]
-        nodes[node_i]["mesh"] = mesh(tri, piece.slots, (piece.verts @ M[:3, :3].T + M[:3, 3], piece.faces))
+        norms_prop = None
+        if getattr(piece, "normals", None) is not None:
+            norms_prop = piece.normals @ M[:3, :3].T
+        nodes[node_i]["mesh"] = mesh(tri, piece.slots, norms_prop if norms_prop is not None else (piece.verts @ M[:3, :3].T + M[:3, 3], piece.faces))
 
     pieces = dict(pieces)
     for kinds, piece in ((("_Hat", "_Helmet"), hat), (("_Cape",), cape)):
@@ -244,7 +309,8 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
     for piece_name, piece in pieces.items():
         bones, weights = transfer_weights(piece.verts, piece_name, faces=piece.faces, skin=own)
         corner = piece.faces.ravel()
-        m = mesh(piece.verts[piece.faces], piece.slots, (piece.verts, piece.faces), bones[corner], weights[corner])
+        norms_body = piece.normals if getattr(piece, "normals", None) is not None else (piece.verts, piece.faces)
+        m = mesh(piece.verts[piece.faces], piece.slots, norms_body, bones[corner], weights[corner])
         nodes.append({"name": f"{name}_{piece_name}", "mesh": m, "skin": 0})
         nodes[rig]["children"].insert(0, len(nodes) - 1)
 

@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://8j7jtkqg0bkw"
-path="res://.godot/imported/dark_wizard_dark_wizard_texture.png-09efab3ea65c33c5053858764ecebd94.ctex"
+path.s3tc="res://.godot/imported/dark_wizard_dark_wizard_texture.png-09efab3ea65c33c5053858764ecebd94.s3tc.ctex"
+path.etc2="res://.godot/imported/dark_wizard_dark_wizard_texture.png-09efab3ea65c33c5053858764ecebd94.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "970928ac150422fd1e0753bbad7da217"
+"md5": "41e613a5508b6fb59f6401fd602824d9"
 }
 
 [deps]
 
 source_file="res://assets/custom-monsters/mage/dark_wizard_dark_wizard_texture.png"
-dest_files=["res://.godot/imported/dark_wizard_dark_wizard_texture.png-09efab3ea65c33c5053858764ecebd94.ctex"]
+dest_files=["res://.godot/imported/dark_wizard_dark_wizard_texture.png-09efab3ea65c33c5053858764ecebd94.s3tc.ctex", "res://.godot/imported/dark_wizard_dark_wizard_texture.png-09efab3ea65c33c5053858764ecebd94.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

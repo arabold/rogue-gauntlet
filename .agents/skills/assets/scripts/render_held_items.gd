@@ -11,9 +11,10 @@ extends SceneTree
 #   .agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" \
 #     --script .agents/skills/assets/scripts/render_held_items.gd -- <outdir> <res://item.tres> [more...]
 #
-# Produces <outdir>/<item>_front.png (2H ranged weapons aim here), <outdir>/<item>_weapon.png
-# (3/4 view favoring the weapon hand), <outdir>/<item>_shield.png (3/4 view favoring the
-# shield hand) for every item passed.
+# Produces <outdir>/<item>_front.png (frontal view of player wearing item),
+# <outdir>/<item>_side.png (side profile view from the equipped hand side),
+# <outdir>/<item>_weapon.png (front 3/4 view favoring the weapon hand), and
+# <outdir>/<item>_shield.png (front 3/4 view favoring the shield hand).
 
 var _items = []
 var _i = 0
@@ -24,6 +25,7 @@ var _vp
 var _cam
 var _player
 var _inventory
+var _current_slot = null
 var _outdir = ""
 var _started = false
 var _settle = 0
@@ -34,13 +36,13 @@ var _player_aabb_center = Vector3.ZERO
 var _player_aabb_size = Vector3.ZERO
 
 # (suffix, direction) — direction is XZ-planar (dir.y == 0) so the camera's up basis stays
-# exactly world-Y; any pitch tilts "up" to pick up X/Z components, which combined with
-# front-to-back depth differences on the model (e.g. a hat vs. a cape) skews framing
-# asymmetrically. See the godot-mcp skill's tres-authoring reference for why.
+# exactly world-Y. Note that in player.tscn, Pivot rotates Character 180 deg around Y, so
+# the player faces -Z, the weapon hand (right hand) is at +X, and the shield hand is at -X.
 const ANGLES = [
 	["front", Vector3(0, 0, -1)],
-	["weapon", Vector3(0.8, 0, 0.9)],
-	["shield", Vector3(-0.9, 0, 0.7)],
+	["side", Vector3(1.0, 0, -0.22)],
+	["weapon", Vector3(0.75, 0, -0.66)],
+	["shield", Vector3(-0.75, 0, -0.66)],
 ]
 
 func _initialize():
@@ -119,7 +121,14 @@ func _point_camera(dir: Vector3):
 	_cam.projection = Camera3D.PROJECTION_ORTHOGONAL
 	_cam.size = max(_player_aabb_size.x, _player_aabb_size.z, _player_aabb_size.y) * 1.4
 	var distance = max(_player_aabb_size.x, _player_aabb_size.y, _player_aabb_size.z) * 4.0
-	_cam.look_at_from_position(_player_aabb_center + dir * distance, _player_aabb_center, Vector3.UP)
+	_cam.look_at_from_position(_player_aabb_center + dir.normalized() * distance, _player_aabb_center, Vector3.UP)
+
+func _unequip_all_starting_items():
+	if _inventory == null:
+		return
+	for slot in _inventory.Items:
+		if slot != null and slot.IsEquipped:
+			_inventory.Unequip(slot)
 
 func _process(_d):
 	_frame_count += 1
@@ -129,6 +138,7 @@ func _process(_d):
 	if not _started:
 		_started = true
 		_inventory = _player.Inventory
+		_unequip_all_starting_items()
 		return false
 	if _settle < SETTLE_FRAMES:
 		_settle += 1
@@ -138,11 +148,18 @@ func _process(_d):
 
 	if _wait == 0:
 		if _angle_i == 0:
+			if _current_slot != null:
+				_inventory.Unequip(_current_slot)
 			var item = load(_items[_i])
-			var slot = InventoryItemSlot.new()
-			slot.Item = item
-			_inventory.Equip(slot)
-		_point_camera(ANGLES[_angle_i][1])
+			_current_slot = InventoryItemSlot.new()
+			_current_slot.Item = item
+			_inventory.Equip(_current_slot)
+		var dir = ANGLES[_angle_i][1]
+		# For shields (equipped in left/shield hand at -X), flip the "side" angle to -X
+		if ANGLES[_angle_i][0] == "side" and _current_slot != null and _current_slot.Item is Armor:
+			if (_current_slot.Item.ValidSlots & 2) != 0: # ShieldHand == 2
+				dir = Vector3(-1.0, 0, -0.22)
+		_point_camera(dir)
 		_wait = 1
 		return false
 

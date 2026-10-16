@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cau25rkkvf2mo"
-path="res://.godot/imported/mummy_mummy_texture.png-5f9613b6538371870d8fd07ae2e65e76.ctex"
+path.s3tc="res://.godot/imported/mummy_mummy_texture.png-5f9613b6538371870d8fd07ae2e65e76.s3tc.ctex"
+path.etc2="res://.godot/imported/mummy_mummy_texture.png-5f9613b6538371870d8fd07ae2e65e76.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "79a9efe8e67c98c4506e75ab1502bb8f"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-monsters/undead/mummy_mummy_texture.png"
-dest_files=["res://.godot/imported/mummy_mummy_texture.png-5f9613b6538371870d8fd07ae2e65e76.ctex"]
+dest_files=["res://.godot/imported/mummy_mummy_texture.png-5f9613b6538371870d8fd07ae2e65e76.s3tc.ctex", "res://.godot/imported/mummy_mummy_texture.png-5f9613b6538371870d8fd07ae2e65e76.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

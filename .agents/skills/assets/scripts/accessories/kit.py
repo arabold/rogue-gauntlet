@@ -17,21 +17,33 @@ import numpy as np
 from scipy.spatial import ConvexHull
 
 # Material slots, colored from the monster's palette (or `DEMO_COLORS` in the catalog).
-SLOTS = ("metal", "dark", "gold", "leather", "cloth", "gem", "bone", "fur", "trim")
+SLOTS = (
+    "metal_light", "metal", "metal_worn", "metal_dark", "tarnish", "rust", "rust_dark",
+    "leather_light", "leather", "leather_worn", "leather_dark", "stitch",
+    "hide_light", "hide", "hide_worn", "hide_dark",
+    "dark", "gold", "cloth", "gem", "bone", "fur", "trim", "dirt", "grime",
+)
 DEMO_COLORS = {
-    "metal": (176, 186, 199), "dark": (74, 76, 86), "gold": (232, 182, 64), "leather": (122, 78, 52),
-    "cloth": (150, 40, 52), "gem": (214, 48, 74), "bone": (226, 216, 190), "fur": (110, 86, 70), "trim": (240, 236, 226),
+    "metal_light": (200, 208, 220), "metal": (176, 186, 199), "metal_worn": (144, 150, 160),
+    "metal_dark": (104, 110, 120), "tarnish": (122, 118, 108), "rust": (138, 74, 46), "rust_dark": (96, 50, 32),
+    "leather_light": (146, 98, 68), "leather": (122, 78, 52), "leather_worn": (102, 64, 42),
+    "leather_dark": (82, 50, 34), "stitch": (194, 158, 112),
+    "hide_light": (152, 114, 76), "hide": (128, 92, 58), "hide_worn": (106, 76, 48), "hide_dark": (84, 58, 38),
+    "dark": (74, 76, 86), "gold": (232, 182, 64), "cloth": (150, 40, 52), "gem": (214, 48, 74),
+    "bone": (226, 216, 190), "fur": (110, 86, 70), "trim": (240, 236, 226),
+    "dirt": (94, 72, 50), "grime": (58, 44, 34),
 }
 
 
 class Piece:
     """A mesh with one material slot per face."""
 
-    def __init__(self, verts, faces, slots):
+    def __init__(self, verts, faces, slots, normals=None):
         self.verts = np.asarray(verts, float).reshape(-1, 3)
         self.faces = np.asarray(faces, np.int64).reshape(-1, 3)
         self.slots = (np.full(len(self.faces), slots, object) if isinstance(slots, str)
                       else np.asarray(slots, object))
+        self.normals = None if normals is None else np.asarray(normals, float).reshape(-1, 3, 3)
 
     @staticmethod
     def merge(*pieces):
@@ -39,19 +51,32 @@ class Piece:
         if not pieces:
             return Piece(np.zeros((0, 3)), np.zeros((0, 3)), np.zeros(0, object))
         offsets = np.cumsum([0] + [len(p.verts) for p in pieces[:-1]])
+        has_norms = any(getattr(p, "normals", None) is not None for p in pieces)
+        norms = None
+        if has_norms:
+            from accessories.export import corner_normals
+            merged_norms = []
+            for p in pieces:
+                if getattr(p, "normals", None) is not None:
+                    merged_norms.append(p.normals.reshape(-1, 3, 3))
+                else:
+                    merged_norms.append(corner_normals(p.verts, p.faces, crease=60.0).reshape(-1, 3, 3))
+            norms = np.vstack(merged_norms)
         return Piece(np.vstack([p.verts for p in pieces]), np.vstack([p.faces + o for p, o in zip(pieces, offsets)]),
-                     np.concatenate([p.slots for p in pieces]))
+                     np.concatenate([p.slots for p in pieces]), normals=norms)
 
     def moved(self, frame):
         """This piece, built in local axes (x along, y up, z out), placed in `frame`."""
-        return Piece(frame.to_world(self.verts), self.faces, self.slots)
+        norms = None if self.normals is None else (self.normals @ frame.R.T)
+        return Piece(frame.to_world(self.verts), self.faces, self.slots, normals=norms)
 
     def mirrored(self):
         """Mirrored across x = 0 (the character's other side), winding flipped to stay outward."""
-        return Piece(self.verts * [-1.0, 1.0, 1.0], self.faces[:, ::-1], self.slots)
+        norms = None if self.normals is None else (self.normals * [-1.0, 1.0, 1.0])[:, ::-1]
+        return Piece(self.verts * [-1.0, 1.0, 1.0], self.faces[:, ::-1], self.slots, normals=norms)
 
     def recolored(self, mapping):
-        return Piece(self.verts, self.faces, np.array([mapping.get(s, s) for s in self.slots], object))
+        return Piece(self.verts, self.faces, np.array([mapping.get(s, s) for s in self.slots], object), normals=self.normals)
 
 
 class Frame:
@@ -195,11 +220,31 @@ def _clip_poly(poly, nx, ny, c):
     return out
 
 
+def _barycentric_normal(P, A, B, C, NA, NB, NC):
+    """Interpolate corner normals NA, NB, NC at point P on triangle (A, B, C)."""
+    v0, v1, v2 = B - A, C - A, P - A
+    d00 = float(np.dot(v0, v0))
+    d01 = float(np.dot(v0, v1))
+    d11 = float(np.dot(v1, v1))
+    d20 = float(np.dot(v2, v0))
+    d21 = float(np.dot(v2, v1))
+    denom = d00 * d11 - d01 * d01
+    if abs(denom) < 1e-12:
+        return NA
+    v = (d11 * d20 - d01 * d21) / denom
+    w = (d00 * d21 - d01 * d20) / denom
+    u = 1.0 - v - w
+    n = u * NA + v * NB + w * NC
+    norm = np.linalg.norm(n)
+    return n / norm if norm > 1e-12 else NA
+
+
 def paint_cut(piece, polygons, slot, paintable, min_facing=0.05):
     """
     `piece` with flat paint cut into its surface: every face in a `paintable` slot that faces the front (+z) is
     split along the outlines of `polygons` (convex, in front view x, y) and the parts inside them take `slot`. The
-    paint is the surface itself, recolored: nothing stands off it.
+    paint is the surface itself, recolored: nothing stands off it. Preserves underlying surface normals so marks and
+    surrounding facets shade continuously without flat-shading halos.
     """
     if not len(piece.faces):
         return piece
@@ -212,10 +257,17 @@ def paint_cut(piece, polygons, slot, paintable, min_facing=0.05):
     facing = n[:, 2] / np.maximum(np.linalg.norm(n, axis=1), 1e-12) > min_facing
     candidates = facing & np.isin(piece.slots.astype(str), list(paintable))
     keep = ~candidates
-    out_tri, out_slots = [tri[keep]], [piece.slots[keep]]
+    if getattr(piece, "normals", None) is not None:
+        orig_norms = piece.normals.reshape(-1, 3, 3)
+    else:
+        from accessories.export import corner_normals
+        orig_norms = corner_normals(piece.verts, piece.faces, crease=62.0).reshape(-1, 3, 3)
+    out_tri, out_slots, out_norms = [tri[keep]], [piece.slots[keep]], [orig_norms[keep]]
     for f in np.flatnonzero(candidates):
         parts = [([p for p in tri[f]], piece.slots[f])]
         lo, hi = tri[f, :, :2].min(0), tri[f, :, :2].max(0)
+        f_pts = tri[f]
+        f_norms = orig_norms[f]
         for q, (qlo, qhi) in zip(polys, boxes):
             if (hi < qlo).any() or (lo > qhi).any():
                 continue
@@ -239,10 +291,15 @@ def paint_cut(piece, polygons, slot, paintable, min_facing=0.05):
                     new.append((rest, slot))
             parts = new
         for poly, sl in parts:
+            if len(poly) < 3:
+                continue
+            p_norms = np.array([_barycentric_normal(p, f_pts[0], f_pts[1], f_pts[2], f_norms[0], f_norms[1], f_norms[2]) for p in poly])
             out_tri += [np.array([[poly[0], poly[k], poly[k + 1]] for k in range(1, len(poly) - 1)])]
+            out_norms += [np.array([[p_norms[0], p_norms[k], p_norms[k + 1]] for k in range(1, len(poly) - 1)])]
             out_slots += [np.full(len(poly) - 2, sl, object)]
     T = np.vstack([t.reshape(-1, 3, 3) for t in out_tri if len(t)])
-    return Piece(T.reshape(-1, 3), np.arange(3 * len(T)).reshape(-1, 3), np.concatenate(out_slots))
+    N = np.vstack([n.reshape(-1, 3, 3) for n in out_norms if len(n)])
+    return Piece(T.reshape(-1, 3), np.arange(3 * len(T)).reshape(-1, 3), np.concatenate(out_slots), normals=N)
 
 
 def _inside(P, outline):
@@ -634,3 +691,262 @@ def tube(path, radius, slot, sides=6, taper=0.92):
 def horn(base, ctrl, tip, radius, slot, segments=8, sides=6, taper=0.92):
     """A tapering horn along the Bezier `base -> ctrl -> tip`, `sides`-gonal (KayKit horns are 5-6 sided)."""
     return tube(bezier(base, ctrl, tip, segments), radius, slot, sides, taper)
+
+
+def paint_cut_local(piece, frame, polygons, slot, paintable=None, min_facing=0.05, max_z=0.08):
+    """Run `paint_cut` in a local surface `frame` (only cutting faces within `max_z` of the frame origin)."""
+    if not len(piece.faces):
+        return piece
+    from accessories.export import corner_normals
+    V_local = (piece.verts - frame.origin) @ frame.R
+    if getattr(piece, "normals", None) is not None:
+        N_local = piece.normals @ frame.R
+    else:
+        N_local = corner_normals(piece.verts, piece.faces, crease=60.0) @ frame.R
+
+    tri_z = V_local[piece.faces][:, :, 2].mean(axis=1)
+    near_mask = np.abs(tri_z) < max_z
+    if not np.any(near_mask):
+        return piece
+
+    target = set(paintable) if paintable is not None else set(np.unique(piece.slots).astype(str))
+    temp_slots = np.array([f"__near_{s}" if (near_mask[i] and str(s) in target) else str(s)
+                           for i, s in enumerate(piece.slots)], dtype=object)
+    near_paintable = {f"__near_{s}" for s in target}
+
+    local_p = Piece(V_local, piece.faces, temp_slots, normals=N_local)
+    cut = paint_cut(local_p, polygons, slot, near_paintable, min_facing=min_facing)
+
+    restored = np.array([str(s)[7:] if str(s).startswith("__near_") else s for s in cut.slots], dtype=object)
+    return Piece(frame.to_world(cut.verts), cut.faces, restored, normals=cut.normals @ frame.R.T)
+
+
+def parse_dents(dents, max_allowed=2):
+    """
+    Parse a `dents` configuration into `(count, scale)`:
+    - `False`, `None`, or `0`: (0, 1.0)
+    - `True`: (min(2, max_allowed), 1.0)
+    - `int`: (min(max(0, dents), max_allowed), 1.0)
+    - `dict`: `count` (capped at `max_allowed`) and `scale` (multiplier for length/width/depth).
+    """
+    if not dents:
+        return 0, 1.0
+    if isinstance(dents, dict):
+        cnt = min(int(dents.get("count", max_allowed)), max_allowed)
+        scale = float(dents.get("scale", 1.0))
+        return max(0, cnt), max(0.1, scale)
+    if isinstance(dents, int) and not isinstance(dents, bool):
+        return min(max(0, dents), max_allowed), 1.0
+    return min(2, max_allowed), 1.0
+
+
+def gash(piece, frame, length, width, depth, slot=None, shadow_slot=None, paintable=None, stitch_slot=None,
+         asymmetry=0.0):
+    """
+    Carve a 3D V-groove gash / dent into `piece` at `frame` (`frame.z` = outward surface normal, `frame.y` = along
+    gash, `frame.x` = across gash). Matches KayKit's chiseled battle damage: outer diamond perimeter stays flush on
+    the surface, central spine sinks by `depth`, and the sloped bevel walls get crisp geometric normals.
+    """
+    if not len(piece.faces):
+        return piece
+    from accessories.export import corner_normals
+    V_local = (piece.verts - frame.origin) @ frame.R
+    if getattr(piece, "normals", None) is not None:
+        N_local = piece.normals @ frame.R
+    else:
+        N_local = corner_normals(piece.verts, piece.faces, crease=60.0) @ frame.R
+
+    hl, hw = length * 0.5, width * 0.5
+    max_z = max(length, width, 0.08)
+    tri_z = V_local[piece.faces][:, :, 2].mean(axis=1)
+    near_mask = np.abs(tri_z) < max_z
+    if not np.any(near_mask):
+        return piece
+
+    target = set(paintable) if paintable is not None else set(np.unique(piece.slots).astype(str))
+    near_candidates = [str(piece.slots[i]) for i in np.flatnonzero(near_mask) if str(piece.slots[i]) in target]
+    if not near_candidates:
+        return piece
+    fallback = near_candidates[0]
+
+    temp_slots = np.array([f"__near_{s}" if (near_mask[i] and str(s) in target) else str(s)
+                           for i, s in enumerate(piece.slots)], dtype=object)
+    near_paintable = {f"__near_{s}" for s in target}
+
+    w_left = hw * (1.0 + asymmetry)
+    w_right = hw * (1.0 - asymmetry)
+    T = np.array([0.0, hl])
+    L = np.array([-w_left, 0.0])
+    B = np.array([0.0, -hl])
+    R = np.array([w_right, 0.0])
+    diamond = np.array([T, L, B, R])
+
+    sentinel = "__gash_cut__"
+    local_p = Piece(V_local, piece.faces, temp_slots, normals=N_local)
+    # 1. Cut the single convex diamond perimeter so outer boundary edges match surrounding faces with zero T-junctions
+    cut = paint_cut(local_p, [diamond], sentinel, near_paintable, min_facing=0.05)
+
+    inside_faces = (cut.slots == sentinel)
+    if not np.any(inside_faces):
+        restored = np.array([str(s)[7:] if str(s).startswith("__near_") else s for s in cut.slots], dtype=object)
+        return Piece(frame.to_world(cut.verts), cut.faces, restored, normals=cut.normals @ frame.R.T)
+
+    # 2. Split only the sentinel interior triangles along x = 0 and y = 0 (which touch the diamond perimeter only at
+    # corners T, L, B, R, never splitting outer perimeter edges) so u(x,y) is strictly linear on every interior triangle
+    keep_mask = ~inside_faces
+    out_tri = [cut.verts[cut.faces[keep_mask]]]
+    out_norms = [cut.normals[keep_mask]]
+    out_slots = [cut.slots[keep_mask]]
+
+    in_tris = cut.verts[cut.faces[inside_faces]]
+    in_norms = cut.normals[inside_faces]
+    sub_tris, sub_norms = [], []
+    for f_pts, f_n in zip(in_tris, in_norms):
+        polys_q = [[p for p in f_pts]]
+        for nx, ny in ((1.0, 0.0), (0.0, 1.0)):
+            nxt = []
+            for poly in polys_q:
+                p_neg = _clip_poly(poly, nx, ny, 0.0)
+                p_pos = _clip_poly(poly, -nx, -ny, 0.0)
+                if len(p_neg) >= 3:
+                    nxt.append(p_neg)
+                if len(p_pos) >= 3:
+                    nxt.append(p_pos)
+            polys_q = nxt
+        for poly in polys_q:
+            p_n = np.array([_barycentric_normal(p, f_pts[0], f_pts[1], f_pts[2], f_n[0], f_n[1], f_n[2]) for p in poly])
+            for k in range(1, len(poly) - 1):
+                sub_tris.append([poly[0], poly[k], poly[k + 1]])
+                sub_norms.append([p_n[0], p_n[k], p_n[k + 1]])
+
+    sub_tris = np.asarray(sub_tris, float).reshape(-1, 3, 3)
+    sub_norms = np.asarray(sub_norms, float).reshape(-1, 3, 3)
+
+    # 3. Sink interior vertices: perimeter (u = 0) stays 100% flush with z_surface; interior lerps toward a smooth
+    # plane sunken by `depth` so low-poly facet ridges never kink the bottom spine of the V-trench
+    vx, vy, vz = sub_tris[:, :, 0], sub_tris[:, :, 1], sub_tris[:, :, 2]
+    w_side = np.where(vx < 0, w_left, w_right)
+    u = np.clip(1.0 - np.abs(vx) / np.maximum(w_side, 1e-9) - np.abs(vy) / max(hl, 1e-9), 0.0, 1.0)
+    rim_pts = sub_tris.reshape(-1, 3)[u.ravel() < 0.05]
+    if len(rim_pts) >= 3:
+        A = np.column_stack([rim_pts[:, 0], rim_pts[:, 1], np.ones(len(rim_pts))])
+        coef, _, _, _ = np.linalg.lstsq(A, rim_pts[:, 2], rcond=None)
+        z_plane = coef[0] * vx + coef[1] * vy + coef[2]
+    else:
+        z_plane = vz
+    sub_tris[:, :, 2] = (1.0 - u) * vz + u * (z_plane - depth)
+
+    # Crisp 2-wall chisel bevel normals for left (cx < 0) and right (cx >= 0) slopes of the V-groove
+    cx = sub_tris[:, :, 0].mean(axis=1)
+    fn = np.cross(sub_tris[:, 1] - sub_tris[:, 0], sub_tris[:, 2] - sub_tris[:, 0])
+    fn /= np.maximum(np.linalg.norm(fn, axis=1, keepdims=True), 1e-12)
+    wall_normals = {}
+    for sign_x in (-1, 1):
+        mask = (cx < 0) if sign_x < 0 else (cx >= 0)
+        if np.any(mask):
+            mean_n = fn[mask].mean(axis=0)
+            mean_n[0] *= 1.65  # accentuate chisel bevel angle for crisp light/shadow separation
+            mean_n /= max(np.linalg.norm(mean_n), 1e-12)
+            sub_norms[mask] = mean_n
+            wall_normals[sign_x] = mean_n @ frame.R.T
+
+    main_slot = slot if slot is not None else fallback
+    shad_slot = shadow_slot if shadow_slot is not None else main_slot
+    # Assign shadow_slot to whichever bevel wall faces more away from overhead-front light (invariant under x-mirroring)
+    light_dir = np.array([0.0, 0.85, 0.52])
+    n_neg = wall_normals.get(-1, np.array([-1.0, 0.0, 0.0]))
+    n_pos = wall_normals.get(1, np.array([1.0, 0.0, 0.0]))
+    neg_is_shadow = float(np.dot(n_neg, light_dir)) <= float(np.dot(n_pos, light_dir))
+    sub_slots = np.where(cx < 0, shad_slot if neg_is_shadow else main_slot,
+                         main_slot if neg_is_shadow else shad_slot).astype(object)
+
+    out_tri.append(sub_tris)
+    out_norms.append(sub_norms)
+    out_slots.append(sub_slots)
+
+    T_all = np.vstack([t.reshape(-1, 3, 3) for t in out_tri if len(t)])
+    N_all = np.vstack([n.reshape(-1, 3, 3) for n in out_norms if len(n)])
+    S_all = np.concatenate([s for s in out_slots if len(s)])
+    V = T_all.reshape(-1, 3).copy()
+    F = np.arange(3 * len(T_all)).reshape(-1, 3)
+
+    # Push any back-facing inner-shell triangles overlapping the gash inward so thin shells never self-intersect
+    fn_all = np.cross(T_all[:, 1] - T_all[:, 0], T_all[:, 2] - T_all[:, 0])
+    back_idx = np.flatnonzero(fn_all[:, 2] < -0.1)
+    if len(back_idx):
+        bt = T_all[back_idx]
+        w_max = max(w_left, w_right)
+        overlap = ((bt[:, :, 0].max(axis=1) >= -w_max * 1.2) & (bt[:, :, 0].min(axis=1) <= w_max * 1.2)
+                   & (bt[:, :, 1].max(axis=1) >= -hl * 1.2) & (bt[:, :, 1].min(axis=1) <= hl * 1.2)
+                   & (bt[:, :, 2].max(axis=1) > -0.09))
+        if np.any(overlap):
+            hit_pts = V[np.unique(F[back_idx[overlap]].ravel())]
+            # Move all inner-shell vertices at those 3D positions so adjacent inner-shell faces stay welded
+            for hp in hit_pts:
+                same = np.linalg.norm(V - hp, axis=1) < 1e-6
+                V[same, 2] -= depth * 1.5
+
+    restored = np.array([str(s)[7:] if str(s).startswith("__near_") else s for s in S_all], dtype=object)
+    out = Piece(frame.to_world(V), F, restored, normals=N_all @ frame.R.T)
+    if stitch_slot is not None:
+        st = bevel_box((width * 1.55, length * 0.22, depth * 1.15), bevel=width * 0.18, slot=stitch_slot,
+                       center=(0.0, 0.0, depth * 0.18))
+        st_f = frame.rotated(12.0, "z")
+        out = Piece.merge(out, st.moved(st_f))
+    return out
+
+
+def weather(piece, base_slot, light_slot=None, worn_slot=None, dark_slot=None, rust_slot=None, seed=7):
+    """
+    Give `piece` a clean, ring-coherent patina gradient across faces in `base_slot` (top crown highlights in
+    `light_slot`, lower rim / downward-facing bevels in `dark_slot` or `worn_slot`), pairing adjacent quad triangles
+    together so the surface stays smooth and never looks like noisy per-triangle camouflage.
+    """
+    if not len(piece.faces):
+        return piece
+    from accessories.export import corner_normals
+    norms = piece.normals if getattr(piece, "normals", None) is not None else corner_normals(
+        piece.verts, piece.faces, crease=60.0)
+    mask = (piece.slots == base_slot)
+    if not np.any(mask):
+        return Piece(piece.verts, piece.faces, piece.slots, normals=norms)
+
+    tri = piece.verts[piece.faces]
+    c = tri.mean(axis=1)
+    fn = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
+    fn /= np.maximum(np.linalg.norm(fn, axis=1, keepdims=True), 1e-12)
+
+    y_vals = c[mask, 1]
+    y_min, y_max = float(y_vals.min()), float(y_vals.max())
+    y_span = max(y_max - y_min, 1e-6)
+    y_norm = (c[:, 1] - y_min) / y_span
+
+    slots = piece.slots.copy()
+    n_faces = len(slots)
+    # Process in quad pairs (2i, 2i+1) when both belong to base_slot so lofted quads never split diagonally
+    i = 0
+    while i < n_faces:
+        if i + 1 < n_faces and mask[i] and mask[i + 1] and abs(y_norm[i] - y_norm[i + 1]) < 0.18:
+            yn = 0.5 * (y_norm[i] + y_norm[i + 1])
+            ny = 0.5 * (fn[i, 1] + fn[i + 1, 1])
+            indices = (i, i + 1)
+            i += 2
+        elif mask[i]:
+            yn, ny = y_norm[i], fn[i, 1]
+            indices = (i,)
+            i += 1
+        else:
+            i += 1
+            continue
+
+        if dark_slot and (yn < 0.12 or ny < -0.38):
+            for idx in indices:
+                slots[idx] = dark_slot
+        elif worn_slot and (yn < 0.24 or ny < -0.15):
+            for idx in indices:
+                slots[idx] = worn_slot
+        elif light_slot and (yn > 0.82 and ny > 0.55):
+            for idx in indices:
+                slots[idx] = light_slot
+    return Piece(piece.verts, piece.faces, slots, normals=norms)
+
