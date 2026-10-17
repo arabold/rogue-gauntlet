@@ -77,7 +77,7 @@ def render(piece, host=None, yaw=25.0, pitch=14.0, roll=0.0, size=240, extent=No
     lit from upper-front-left with soft top-down vertical gradient ramps, smooth normals (`crease` degrees; 0 = flat
     facets), and specular highlights on metallic/glossy slots (`eye`, `metal`, `armor`, `gold`, `gem`).
     """
-    from core.export import DEFAULT_MATERIALS, corner_normals
+    from core.export import DEFAULT_MATERIALS, corner_normals, resolve_palette
     from core.mesh import Atlas
 
     full = kit.Piece.merge(host, piece) if host is not None else piece
@@ -104,8 +104,7 @@ def render(piece, host=None, yaw=25.0, pitch=14.0, roll=0.0, size=240, extent=No
 
     palette = {**kit.DEMO_COLORS, **(colors or {})}
     used = sorted({str(s) for s in full.slots})
-    slot_colors = {s: tuple(int(x) for x in palette.get(s, (180, 180, 180))) for s in used}
-    looks = {s: dict(DEFAULT_MATERIALS.get(s, {}), color=slot_colors[s]) for s in used}
+    slot_colors, looks = resolve_palette(used, palette)
     atlas = Atlas([slot_colors[s] for s in used], pad=4, col_w=16, col_h=128, looks=looks, slot_names=used)
     atlas_arr = np.asarray(atlas.image, float)
     slot_idx = {s: i for i, s in enumerate(used)}
@@ -118,14 +117,24 @@ def render(piece, host=None, yaw=25.0, pitch=14.0, roll=0.0, size=240, extent=No
     light_world /= np.linalg.norm(light_world)
 
     slot_ids = np.repeat([slot_idx[str(s)] for s in full.slots], 3)
+    full_uv_t = getattr(full, "uv_t", None)
     if gradient_strength > 0:
         ndotl_w = np.clip(nrm_world @ light_world, -1.0, 1.0)
         t_norm = 0.5 - 0.36 * ndotl_w
         t_height = 1.0 - np.clip((pos_world[:, 1] - y_min) / y_span, 0.0, 1.0)
         t_grad = 0.5 + gradient_strength * ((0.65 * t_norm + 0.35 * t_height) - 0.5)
+        if full_uv_t is not None:
+            has_uv = np.isfinite(full_uv_t.ravel())
+            if has_uv.any():
+                t_grad = np.where(has_uv, full_uv_t.ravel(), t_grad)
         uv = atlas.gradient_uv(slot_ids, t_grad)
     else:
-        uv = np.repeat([atlas.flat_uv(slot_idx[str(s)]) for s in full.slots], 3, axis=0)
+        if full_uv_t is not None and np.isfinite(full_uv_t).any():
+            has_uv = np.isfinite(full_uv_t.ravel())
+            t_grad = np.where(has_uv, full_uv_t.ravel(), 0.5)
+            uv = atlas.gradient_uv(slot_ids, t_grad)
+        else:
+            uv = np.repeat([atlas.flat_uv(slot_idx[str(s)]) for s in full.slots], 3, axis=0)
 
     px_x = np.clip((uv[:, 0] * atlas.size_w).astype(int), 0, atlas.size_w - 1)
     px_y = np.clip((uv[:, 1] * atlas.size_h).astype(int), 0, atlas.size_h - 1)

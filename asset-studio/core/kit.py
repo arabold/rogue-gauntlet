@@ -38,12 +38,13 @@ DEMO_COLORS = {
 class Piece:
     """A mesh with one material slot per face."""
 
-    def __init__(self, verts, faces, slots, normals=None):
+    def __init__(self, verts, faces, slots, normals=None, uv_t=None):
         self.verts = np.asarray(verts, float).reshape(-1, 3)
         self.faces = np.asarray(faces, np.int64).reshape(-1, 3)
         self.slots = (np.full(len(self.faces), slots, object) if isinstance(slots, str)
                       else np.asarray(slots, object))
         self.normals = None if normals is None else np.asarray(normals, float).reshape(-1, 3, 3)
+        self.uv_t = None if uv_t is None else np.asarray(uv_t, float).reshape(len(self.faces), 3)
 
     @staticmethod
     def merge(*pieces):
@@ -62,21 +63,33 @@ class Piece:
                 else:
                     merged_norms.append(corner_normals(p.verts, p.faces, crease=60.0).reshape(-1, 3, 3))
             norms = np.vstack(merged_norms)
+        has_uv_t = any(getattr(p, "uv_t", None) is not None for p in pieces)
+        uv_t = None
+        if has_uv_t:
+            merged_uv_t = []
+            for p in pieces:
+                p_uv = getattr(p, "uv_t", None)
+                if p_uv is not None:
+                    merged_uv_t.append(p_uv.reshape(-1, 3))
+                else:
+                    merged_uv_t.append(np.full((len(p.faces), 3), np.nan))
+            uv_t = np.vstack(merged_uv_t)
         return Piece(np.vstack([p.verts for p in pieces]), np.vstack([p.faces + o for p, o in zip(pieces, offsets)]),
-                     np.concatenate([p.slots for p in pieces]), normals=norms)
+                     np.concatenate([p.slots for p in pieces]), normals=norms, uv_t=uv_t)
 
     def moved(self, frame):
         """This piece, built in local axes (x along, y up, z out), placed in `frame`."""
         norms = None if self.normals is None else (self.normals @ frame.R.T)
-        return Piece(frame.to_world(self.verts), self.faces, self.slots, normals=norms)
+        return Piece(frame.to_world(self.verts), self.faces, self.slots, normals=norms, uv_t=self.uv_t)
 
     def mirrored(self):
         """Mirrored across x = 0 (the character's other side), winding flipped to stay outward."""
         norms = None if self.normals is None else (self.normals * [-1.0, 1.0, 1.0])[:, ::-1]
-        return Piece(self.verts * [-1.0, 1.0, 1.0], self.faces[:, ::-1], self.slots, normals=norms)
+        uv_t = None if self.uv_t is None else self.uv_t[:, ::-1]
+        return Piece(self.verts * [-1.0, 1.0, 1.0], self.faces[:, ::-1], self.slots, normals=norms, uv_t=uv_t)
 
     def recolored(self, mapping):
-        return Piece(self.verts, self.faces, np.array([mapping.get(s, s) for s in self.slots], object), normals=self.normals)
+        return Piece(self.verts, self.faces, np.array([mapping.get(s, s) for s in self.slots], object), normals=self.normals, uv_t=self.uv_t)
 
 
 class Frame:

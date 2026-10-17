@@ -154,6 +154,58 @@ class _Writer:
             f.write(struct.pack("<I4s", len(self.bin), b"BIN\x00") + bytes(self.bin))
 
 
+def resolve_palette(used, colors, looks=None):
+    """Derive intermediate tints (_mid, _light, _dark, _worn) and organic ramps (ear, tusk, lip)."""
+    slot_colors = dict(colors)
+    resolved_looks = dict(looks or {})
+    for s in list(used):
+        if s not in slot_colors and s.endswith("_mid"):
+            base_s = s[:-4]
+            if base_s in slot_colors and "skin" in slot_colors:
+                c1, c2 = np.array(slot_colors[base_s], float), np.array(slot_colors["skin"], float)
+                slot_colors[s] = tuple(np.round(0.5 * c1 + 0.5 * c2).astype(int))
+            elif base_s in slot_colors:
+                slot_colors[s] = slot_colors[base_s]
+            if s not in resolved_looks:
+                resolved_looks[s] = dict(resolved_looks.get(base_s, {}))
+        elif s not in slot_colors and s.endswith("_light"):
+            base_s = s[:-6]
+            if base_s in slot_colors:
+                c = np.array(slot_colors[base_s], float)
+                slot_colors[s] = tuple(np.round(np.clip(c * np.array([1.15, 1.14, 1.12]) + 8.0, 0, 255)).astype(int))
+            if s not in resolved_looks:
+                resolved_looks[s] = dict(resolved_looks.get(base_s, {}))
+        elif s not in slot_colors and s.endswith("_worn"):
+            base_s = s[:-5]
+            if base_s in slot_colors:
+                c = np.array(slot_colors[base_s], float)
+                slot_colors[s] = tuple(np.round(np.clip(c * np.array([0.84, 0.81, 0.76]), 0, 255)).astype(int))
+            if s not in resolved_looks:
+                resolved_looks[s] = dict(resolved_looks.get(base_s, {}))
+        elif s not in slot_colors and s.endswith("_dark"):
+            base_s = s[:-5]
+            if base_s in slot_colors:
+                c = np.array(slot_colors[base_s], float)
+                patina = np.clip(c * np.array([0.65, 0.58, 0.48]), 0, 255)
+                slot_colors[s] = tuple(np.round(patina).astype(int))
+            if s not in resolved_looks:
+                resolved_looks[s] = dict(resolved_looks.get(base_s, {}))
+    if "ear" in used and "skin" in slot_colors:
+        ear_col = slot_colors.get("ear", slot_colors.get("skin_dark", slot_colors["skin"]))
+        canal_col = slot_colors.get("ear_dark", slot_colors.get("canal", (
+            int(ear_col[0] * 0.72), int(ear_col[1] * 0.68), int(ear_col[2] * 0.62)
+        )))
+        slot_colors["ear"] = ear_col
+        resolved_looks["ear"] = {**resolved_looks.get("ear", {}), "ramp": (slot_colors["skin"], canal_col, ear_col)}
+    if "tusk" in used and "tusk_tip" in slot_colors:
+        resolved_looks["tusk"] = {**resolved_looks.get("tusk", {}), "ramp": (slot_colors["tusk_tip"], slot_colors["tusk"])}
+    if "lip" in used and "skin" in slot_colors:
+        mouth_color = slot_colors.get("lip", (54, 44, 34))
+        skin_color = slot_colors["skin"]
+        resolved_looks["lip"] = {**resolved_looks.get("lip", {}), "ramp": (mouth_color, skin_color)}
+    return slot_colors, resolved_looks
+
+
 def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None, cape=None, weapons=None,
            materials=None, crease=50.0):
     """
@@ -176,57 +228,20 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
     worlds = _worlds(g)
 
     # palette: every slot any piece, prop or weapon uses; a weapon's slots are its colors with their materials
-    slot_colors, looks = dict(colors), {**MATERIALS, **(materials or {})}
+    raw_colors, raw_looks = dict(colors), {**MATERIALS, **(materials or {})}
     weapon_slots = {}
     for i, (bone, (_, rgb, mr)) in enumerate((weapons or {}).items()):
         weapon_slots[bone] = []
         for c, (m, r) in zip(np.asarray(rgb, np.uint8), np.asarray(mr, float)):
             key = f"weapon{i}:{tuple(int(v) for v in c)}:{m:.2f}:{r:.2f}"
-            slot_colors[key], looks[key] = tuple(int(v) for v in c), dict(metallic=float(m), roughness=float(r))
+            raw_colors[key], raw_looks[key] = tuple(int(v) for v in c), dict(metallic=float(m), roughness=float(r))
             weapon_slots[bone].append(key)
     used = sorted({str(s) for p in [*pieces.values(), hat, cape] if p is not None for s in p.slots} |
-                  {k for k in slot_colors if k.startswith("weapon")})
-    for s in list(used):
-        if s not in slot_colors and s.endswith("_mid"):
-            base_s = s[:-4]
-            if base_s in slot_colors and "skin" in slot_colors:
-                c1, c2 = np.array(slot_colors[base_s], float), np.array(slot_colors["skin"], float)
-                slot_colors[s] = tuple(np.round(0.5 * c1 + 0.5 * c2).astype(int))
-            elif base_s in slot_colors:
-                slot_colors[s] = slot_colors[base_s]
-            if s not in looks:
-                looks[s] = dict(looks.get(base_s, {}))
-        elif s not in slot_colors and s.endswith("_light"):
-            base_s = s[:-6]
-            if base_s in slot_colors:
-                c = np.array(slot_colors[base_s], float)
-                slot_colors[s] = tuple(np.round(np.clip(c * np.array([1.15, 1.14, 1.12]) + 8.0, 0, 255)).astype(int))
-            if s not in looks:
-                looks[s] = dict(looks.get(base_s, {}))
-        elif s not in slot_colors and s.endswith("_worn"):
-            base_s = s[:-5]
-            if base_s in slot_colors:
-                c = np.array(slot_colors[base_s], float)
-                slot_colors[s] = tuple(np.round(np.clip(c * np.array([0.84, 0.81, 0.76]), 0, 255)).astype(int))
-            if s not in looks:
-                looks[s] = dict(looks.get(base_s, {}))
-        elif s not in slot_colors and s.endswith("_dark"):
-            base_s = s[:-5]
-            if base_s in slot_colors:
-                c = np.array(slot_colors[base_s], float)
-                patina = np.clip(c * np.array([0.65, 0.58, 0.48]), 0, 255)
-                slot_colors[s] = tuple(np.round(patina).astype(int))
-            if s not in looks:
-                looks[s] = dict(looks.get(base_s, {}))
+                  {k for k in raw_colors if k.startswith("weapon")})
+    slot_colors, looks = resolve_palette(used, raw_colors, raw_looks)
     missing = [s for s in used if s not in slot_colors]
     if missing:
         raise ValueError(f"no color for slots {missing}")
-    if "tusk" in used and "tusk_tip" in slot_colors:
-        looks["tusk"] = {**looks.get("tusk", {}), "ramp": (slot_colors["tusk_tip"], slot_colors["tusk"])}
-    if "lip" in used and "skin" in slot_colors:
-        mouth_color = slot_colors.get("lip", (54, 44, 34))
-        skin_color = slot_colors["skin"]
-        looks["lip"] = {**looks.get("lip", {}), "ramp": (mouth_color, skin_color)}
     label = {s: i for i, s in enumerate(used)}
     atlas = mm.Atlas([slot_colors[s] for s in used], pad=4, col_w=16, col_h=128, looks=looks, slot_names=used)
     base = g["materials"][0]
@@ -248,7 +263,7 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
             material_specs.append(key)
         return material_specs.index(key)
 
-    def mesh(tri, slots, normals_from=None, bones=None, weights=None):
+    def mesh(tri, slots, normals_from=None, bones=None, weights=None, uv_t=None):
         """A glTF mesh of triangles `tri` (n, 3, 3) with a slot per face; skinned when `bones` are given."""
         verts, faces = tri.reshape(-1, 3), np.arange(3 * len(tri)).reshape(-1, 3)
         if isinstance(normals_from, np.ndarray):
@@ -282,6 +297,11 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
             ], dtype=bool)
 
             t_val[is_flat] = 0.5
+
+            if uv_t is not None:
+                has_uv_t = np.isfinite(uv_t)
+                if has_uv_t.any():
+                    t_val = np.where(has_uv_t, uv_t, t_val)
 
             is_tusk = np.array([str(s) == "tusk" for s in slots], dtype=bool)
             if is_tusk.any():
@@ -355,7 +375,7 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
         norms_prop = None
         if getattr(piece, "normals", None) is not None:
             norms_prop = piece.normals @ M[:3, :3].T
-        nodes[node_i]["mesh"] = mesh(tri, piece.slots, norms_prop if norms_prop is not None else (piece.verts @ M[:3, :3].T + M[:3, 3], piece.faces))
+        nodes[node_i]["mesh"] = mesh(tri, piece.slots, norms_prop if norms_prop is not None else (piece.verts @ M[:3, :3].T + M[:3, 3], piece.faces), uv_t=getattr(piece, "uv_t", None))
 
     pieces = dict(pieces)
     for kinds, piece in ((("_Hat", "_Helmet"), hat), (("_Cape",), cape)):
@@ -377,7 +397,7 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
         bones, weights = transfer_weights(piece.verts, piece_name, faces=piece.faces, skin=own)
         corner = piece.faces.ravel()
         norms_body = piece.normals if getattr(piece, "normals", None) is not None else (piece.verts, piece.faces)
-        m = mesh(piece.verts[piece.faces], piece.slots, norms_body, bones[corner], weights[corner])
+        m = mesh(piece.verts[piece.faces], piece.slots, norms_body, bones[corner], weights[corner], uv_t=getattr(piece, "uv_t", None))
         nodes.append({"name": f"{name}_{piece_name}", "mesh": m, "skin": 0})
         nodes[rig]["children"].insert(0, len(nodes) - 1)
 

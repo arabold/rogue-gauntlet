@@ -1046,20 +1046,18 @@ def _ear_shape(style, s, base, angle, notch_depth=0.0):
     n = len(phis)
     verts, faces = kit._cap_loops(verts, faces, [list(range(n)), list(range((len(ts) - 1) * n, len(ts) * n))],
                                   centers=[rings[0].mean(0), tip])
-    info = np.vstack(info)
-    nq = 2 * (len(ts) - 1) * n  # the loft's faces come in quad pairs: color whole quads, so edges follow the rows
-    quad = np.arange(len(faces)) // 2
-    ring_i, col_j = quad // n, quad % n
-    r0, r1, c1 = np.minimum(ring_i, len(ts) - 1), np.minimum(ring_i + 1, len(ts) - 1), (col_j + 1) % n
-    centre = 0.25 * (info[r0 * n + col_j] + info[r0 * n + c1] + info[r1 * n + col_j] + info[r1 * n + c1])
-    fi = np.where((np.arange(len(faces)) < nq)[:, None], centre, np.vstack([info, info[:1], info[-1:]])[faces].mean(1))
-    in_canal = (fi[:, 0] < 0.35) & (fi[:, 3] > 0.6) & (fi[:, 2] < -0.42)
-    in_inner = (fi[:, 2] < -0.35) & (fi[:, 3] > 0.25)
-    in_mid = (fi[:, 2] < -0.20) & (fi[:, 3] > 0.12)
-    slots = np.where(in_canal, "canal",
-            np.where(in_inner, "inner",
-            np.where(in_mid, "mid", "skin"))).astype(object)
-    piece = kit.Piece(verts, kit._orient_closed(verts, faces), slots)
+    info_full = np.vstack([np.vstack(info), [ts[0], 0.0, 0.0, 0.0], [ts[-1], 0.0, 0.0, 0.0]])
+    t_v, sn_v, dish_v = info_full[:, 0], info_full[:, 2], info_full[:, 3]
+    depth = np.clip(-sn_v, 0.0, 1.0) * dish_v
+    inner_depth = np.clip((depth - 0.02) / 0.45, 0.0, 1.0)
+    s_bowl = inner_depth * inner_depth * (3.0 - 2.0 * inner_depth)
+    canal = s_bowl * np.clip((0.35 - t_v) / 0.25, 0.0, 1.0)
+    s_canal = canal * canal * (3.0 - 2.0 * canal)
+    vert_uv_t = np.clip(0.5 * s_bowl + 0.45 * s_canal, 0.0, 0.95)
+    faces_orient = kit._orient_closed(verts, faces)
+    tri_uv_t = vert_uv_t[faces_orient]
+
+    piece = kit.Piece(verts, faces_orient, "ear", uv_t=tri_uv_t)
 
     def lower_edge(t):
         return L * np.sin(a) * t + 0.04 * L * t * (1 - t) - 0.94 * half_width(t), L * np.cos(a) * t
@@ -1083,9 +1081,9 @@ def ears(head, style="round", y=-0.15, size=1.0, angle=0.0, sweep=20.0, base=1.0
 
     def built(depth):
         piece, edge = _ear_shape(style, s, base, angle, depth)
-        mid_slot = f"{inner}_mid" if inner != slot else slot
-        names = {"skin": slot, "mid": mid_slot, "inner": inner, "canal": canal or inner}
-        return kit.Piece(piece.verts, piece.faces, np.array([names[k] for k in piece.slots], object)).moved(f), edge
+        ear_slot = slot if inner == slot else "ear"
+        uv_t = None if inner == slot else piece.uv_t
+        return kit.Piece(piece.verts, piece.faces, ear_slot, uv_t=uv_t).moved(f), edge
 
     one, lower_edge = built(0.0)
     cut = built(notch_depth)[0] if notch else one
