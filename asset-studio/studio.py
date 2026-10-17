@@ -138,20 +138,80 @@ def _tile(img, h):
     return img.resize((round(img.width * h / img.height), h))
 
 
-def preview(c, size=420):
-    """`preview.png`: the reference (if any), then the build in the idle pose (front, side) and the rest pose."""
-    idle, rest, colors = c.posed()
-    tiles = [catalog.render(idle, None, size=size, yaw=y, pitch=0.0, colors=colors, background=WHITE) for y in (0.0, -90.0)]
-    tiles.append(catalog.render(rest, None, size=size, yaw=-25.0, pitch=8.0, colors=colors, background=WHITE))
+def _attach_weapons(piece, weaps, rig, clip, t, colors):
+    if not weaps:
+        return piece, colors
+    all_pieces = [piece]
+    ext_colors = dict(colors)
+    w_worlds = rig.worlds(clip, t)
+    for bone, (tris, pal_cols, _) in weaps.items():
+        if bone not in w_worlds:
+            continue
+        W = w_worlds[bone]
+        w_tris = tris @ W[:3, :3].T + W[:3, 3]
+        V = w_tris.reshape(-1, 3)
+        F = np.arange(len(V)).reshape(-1, 3)
+        slots = []
+        for rgb in pal_cols:
+            s_name = f"_wep_{bone}_{rgb[0]}_{rgb[1]}_{rgb[2]}"
+            slots.append(s_name)
+            ext_colors[s_name] = tuple(int(x) for x in rgb)
+        all_pieces.append(kit.Piece(V, F, np.array(slots, dtype=object)))
+    return kit.Piece.merge(*all_pieces), ext_colors
+
+
+def lineup(c, size=420):
+    """`lineup.png`: 2D reference (if present), front view, side profile, and action poses in pure Python."""
+    r, pieces, colors = c.build()
+    template = r.get("template", "skeleton")
+    weaps = c.weapons(r)
+    builder = r.get("builder", "kit")
+
+    tiles = []
     if os.path.exists(c.reference):
-        tiles.insert(0, _tile(Image.open(c.reference).convert("RGB"), size))
+        tiles.append(_tile(Image.open(c.reference).convert("RGB"), size))
+
+    if builder == "golem":
+        rig = Rig.load("large")
+        golem_idle = rig.pose(pieces, *golems.POSE, helpers=golems.HELPERS)
+        golem_piece = kit.Piece.merge(*golem_idle.values())
+        for yaw, pitch in ((0.0, 0.0), (-90.0, 0.0), (-30.0, 6.0), (30.0, 6.0)):
+            tiles.append(catalog.render(golem_piece, None, size=size, yaw=yaw, pitch=pitch, colors=colors, background=WHITE))
+    else:
+        rig_path = export.TEMPLATES.get(template, os.path.join(STUDIO_DIR, "rigs", "templates", f"{template}.glb"))
+        rig = Rig(rig_path) if os.path.exists(rig_path) else Rig.load("medium")
+        clips = LINEUP_CLIPS.get(template, LINEUP_CLIPS.get("hero" if c.family == "heroes" else "skeleton"))
+
+        # Clip 0: Idle Front and Side
+        idle_clip, idle_t = clips[0]
+        idle_pcs = skinned(rig, pieces, idle_clip, t=idle_t)
+        idle_merged = kit.Piece.merge(*idle_pcs.values())
+        idle_final, idle_colors = _attach_weapons(idle_merged, weaps, rig, idle_clip, idle_t, colors)
+        tiles.append(catalog.render(idle_final, None, size=size, yaw=0.0, pitch=0.0, colors=idle_colors, background=WHITE))
+        tiles.append(catalog.render(idle_final, None, size=size, yaw=-90.0, pitch=0.0, colors=idle_colors, background=WHITE))
+
+        # Action clips (Attack, Walk)
+        for clip, t in clips[1:]:
+            action_pcs = skinned(rig, pieces, clip, t=t)
+            action_merged = kit.Piece.merge(*action_pcs.values())
+            action_final, action_colors = _attach_weapons(action_merged, weaps, rig, clip, t, colors)
+            tiles.append(catalog.render(action_final, None, size=size, yaw=-30.0, pitch=6.0, colors=action_colors, background=WHITE))
+
     out = Image.new("RGB", (sum(t.width for t in tiles), size), WHITE)
     x = 0
     for t in tiles:
         out.paste(t, (x, 0))
         x += t.width
+    out_path = os.path.join(c.dir, "lineup.png")
+    out.save(out_path)
     out.save(os.path.join(c.dir, "preview.png"))
-    print(f"{c.key}: {len(idle.faces)} triangles -> {os.path.relpath(os.path.join(c.dir, 'preview.png'), REPO)}")
+    print(f"{c.key}: wrote {os.path.relpath(out_path, REPO)} ({out.size[0]}x{out.size[1]})")
+    return out
+
+
+def preview(c, size=420):
+    """Alias for lineup: renders reference and animated action poses."""
+    return lineup(c, size=size)
 
 
 def reference(c, brief, provider="gemini"):
@@ -214,6 +274,7 @@ def export_glb(c):
     )
     export.import_settings(c.glb, template)
     print(f"{c.key}: {os.path.relpath(c.glb, REPO)} ({os.path.getsize(c.glb) // 1024} KB)")
+    lineup(c)
 
 
 def godot_import(chars):
@@ -239,23 +300,6 @@ def godot_import(chars):
         )
     if not ok:
         raise SystemExit("an exported character is missing what the game expects (see above)")
-
-
-def lineup(c):
-    """`lineup.png`: the rig template and the export in Godot, side by side in three of the game's clips."""
-    r = c.recipe()
-    template = r.get("template", "skeleton")
-    original = "res://" + os.path.relpath(export.TEMPLATES.get(template, template), REPO).replace(os.sep, "/")
-    args = []
-    for clip, t in LINEUP_CLIPS["skeleton" if template == "skeleton" else "hero"]:
-        args += [original, clip, str(t), c.res, clip, str(t)]
-    out = os.path.join(c.dir, "lineup.png")
-    subprocess.run(
-        [GODOT, "--path", REPO, "--script", os.path.join(GODOT_SCRIPTS, "render_character_lineup.gd"), "--", out, *args],
-        capture_output=True,
-        timeout=600,
-    )
-    print(f"{c.key}: {os.path.relpath(out, REPO)}")
 
 
 def new(c, base=None):

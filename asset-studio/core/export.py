@@ -429,7 +429,19 @@ def import_settings(glb, template="skeleton"):
     file keeps its uid and paths; Godot fills them in on the first import otherwise.
     """
     src = TEMPLATES.get(template, template) + ".import"
-    text = open(src, encoding="utf-8").read()
+    if not os.path.exists(src):
+        candidates = [
+            os.path.join(REPO, "assets", "custom-heroes", f"{template}.glb.import"),
+            os.path.join(REPO, "assets", "custom-heroes", "knight.glb.import"),
+            os.path.join(REPO, "assets", "custom-monsters", "undead", "wraith.glb.import"),
+        ]
+        for cand in candidates:
+            if os.path.exists(cand):
+                src = cand
+                break
+    text = open(src, encoding="utf-8").read() if os.path.exists(src) else ""
+    if not text or "[params]" not in text:
+        return []
     params = text[text.index("[params]"):]
     looping, clip, depth = [], None, 0
     sub = params[params.index("_subresources={"):params.index("\ngltf/")]
