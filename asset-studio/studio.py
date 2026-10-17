@@ -174,8 +174,13 @@ def lineup(c, size=420):
         rig = Rig.load("large")
         golem_idle = rig.pose(pieces, *golems.POSE, helpers=golems.HELPERS)
         golem_piece = kit.Piece.merge(*golem_idle.values())
+        V = golem_piece.verts
+        H = float(V[:, 1].max()) - min(0.0, float(V[:, 1].min()))
+        w_span = max(float(np.ptp(V[:, 0])), float(np.ptp(V[:, 2])))
+        extent = max(H / 0.84, w_span * 1.15)
+        center = [0.0, 0.42 * extent, 0.0]
         for yaw, pitch in ((0.0, 0.0), (-90.0, 0.0), (-30.0, 6.0), (30.0, 6.0)):
-            tiles.append(catalog.render(golem_piece, None, size=size, yaw=yaw, pitch=pitch, colors=colors, background=WHITE))
+            tiles.append(catalog.render(golem_piece, None, size=size, yaw=yaw, pitch=pitch, extent=extent, center=center, colors=colors, background=WHITE))
     else:
         rig_path = export.TEMPLATES.get(template, os.path.join(STUDIO_DIR, "rigs", "templates", f"{template}.glb"))
         rig = Rig(rig_path) if os.path.exists(rig_path) else Rig.load("medium")
@@ -186,15 +191,30 @@ def lineup(c, size=420):
         idle_pcs = skinned(rig, pieces, idle_clip, t=idle_t)
         idle_merged = kit.Piece.merge(*idle_pcs.values())
         idle_final, idle_colors = _attach_weapons(idle_merged, weaps, rig, idle_clip, idle_t, colors)
-        tiles.append(catalog.render(idle_final, None, size=size, yaw=0.0, pitch=0.0, colors=idle_colors, background=WHITE))
-        tiles.append(catalog.render(idle_final, None, size=size, yaw=-90.0, pitch=0.0, colors=idle_colors, background=WHITE))
 
         # Action clips (Attack, Walk)
+        actions = []
+        all_posed = [idle_final]
         for clip, t in clips[1:]:
             action_pcs = skinned(rig, pieces, clip, t=t)
             action_merged = kit.Piece.merge(*action_pcs.values())
             action_final, action_colors = _attach_weapons(action_merged, weaps, rig, clip, t, colors)
-            tiles.append(catalog.render(action_final, None, size=size, yaw=-30.0, pitch=6.0, colors=action_colors, background=WHITE))
+            actions.append((action_final, action_colors))
+            all_posed.append(action_final)
+
+        # Ground-aligned baseline framing matching concept art reference (~0.92 height baseline):
+        all_verts = np.vstack([p.verts for p in all_posed])
+        y_min, y_max = float(all_verts[:, 1].min()), float(all_verts[:, 1].max())
+        H = y_max - min(0.0, y_min)
+        w_span = max(float(np.ptp(all_verts[:, 0])), float(np.ptp(all_verts[:, 2])))
+        extent = max(H / 0.84, w_span * 1.15)
+        center = [0.0, 0.42 * extent, 0.0]
+
+        tiles.append(catalog.render(idle_final, None, size=size, yaw=0.0, pitch=0.0, extent=extent, center=center, colors=idle_colors, background=WHITE))
+        tiles.append(catalog.render(idle_final, None, size=size, yaw=-90.0, pitch=0.0, extent=extent, center=center, colors=idle_colors, background=WHITE))
+
+        for action_final, action_colors in actions:
+            tiles.append(catalog.render(action_final, None, size=size, yaw=-30.0, pitch=6.0, extent=extent, center=center, colors=action_colors, background=WHITE))
 
     out = Image.new("RGB", (sum(t.width for t in tiles), size), WHITE)
     x = 0
