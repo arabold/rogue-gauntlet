@@ -298,10 +298,11 @@ def bead_mesh(w, h, d=None, p=2.0, sides=16, rings=8, slot="eye", angry=0.0):
 
 
 def eyes(head, style="dot", x=0.42, y=-0.2, w=0.2, h=0.27, angry=0.0, pupil=False, glint=False, outline=0.32,
-         socket=0.0, liner=0.0, flick=0.3, lashes=0, halo=0.0, uneven=1.0, cut="round",
+         socket=0.0, liner=0.0, flick=0.0, lashes=0, halo=0.0, uneven=1.0, cut="round",
          carve_socket=False, socket_depth=None, socket_slot="socket", depth=None, out=None,
          slot=None, glow=False, ring=0.0, rings=None, makeup=None, ring_slot="ring",
-         outline_slot="eye", iris_slot="iris", outer=False, outer_shape=False, bead_scale=None):
+         outline_slot="eye", iris_slot="iris", outer=False, outer_shape=False, bead_scale=None,
+         gap=0.0, liner_slot="liner"):
     """
     Both eyes. `bead`: small solid 3D rounded bead catching specular light reflections (sunk halfway).
     `dot`: KayKit's dark rounded pills. `glow`: a colored iris (slot `iris`) in a dark rim (slot `eye`,
@@ -311,8 +312,9 @@ def eyes(head, style="dot", x=0.42, y=-0.2, w=0.2, h=0.27, angry=0.0, pupil=Fals
     Around them: `socket` > 0 sets the eye in a shadowed patch (slot `socket`) that much bigger;
     `carve_socket` carves the eye socket as a 3D recess in the cranium (for ghoul and zombie);
     `ring` / `makeup` / `rings` draws rings or makeup patches of customizable size and slot around the eyes;
+    `lashes` adds KayKit female winged cat-eye lash on the upper-outer corner;
     `liner` draws a heavy upper lid (slot `liner`, its thickness a share of the eye's height) that
-    sweeps past the outer corner by `flick` (a share of its width) with `lashes` strokes; `halo` rings
+    sweeps past the outer corner by `flick` (a share of its width); `halo` rings
     a glowing eye in a lighter glow (slot `halo`) that much bigger; `uneven` scales the right eye (a zombie's
     mismatched stare). `cut="triangle"` gives a devilish eye: the slanted top meets a straight edge rising from the
     bottom in a sharp inner corner (an imp's); `pupil="slit"` a cat's narrow upright pupil.
@@ -417,6 +419,24 @@ def eyes(head, style="dot", x=0.42, y=-0.2, w=0.2, h=0.27, angry=0.0, pupil=Fals
             bw, bh = W, H
 
         ball = bead_mesh(bw, bh, d=depth * A if depth is not None else None, angry=angry * 0.5 if has_outer else angry, slot=bead_slot)
+        if lashes and not liner:
+            rx, ry = 0.5 * W, 0.5 * H
+            l_sc = float(lashes) if not isinstance(lashes, bool) else 1.0
+            wing_pts = np.array([
+                [0.2 * rx, 0.4 * ry],
+                [0.2 * rx, 1.0 * ry],
+                [1.25 * rx * l_sc, 0.98 * ry],
+                [1.48 * rx * l_sc, 0.76 * ry],
+                [1.0 * rx, 0.0 * ry],
+                [0.2 * rx, 0.0 * ry],
+            ])
+            if angry:
+                ang = np.radians(-angry * 15.0)
+                R = np.array([[np.cos(ang), -np.sin(ang)], [np.sin(ang), np.cos(ang)]])
+                wing_pts = wing_pts @ R.T
+            wing_slab = slab(wing_pts, depth=0.012 * A, slot=bead_slot, embed=0.015 * A, bevel=0.002)
+            ball = kit.Piece.merge(ball, wing_slab)
+            skin_cuts.append((bead_slot, wing_pts))
         cuts = []  # specular light reflections come from PBR roughness, no white paint cuts
     elif style == "dot":
         ball = slab(shape(1.0), 0.022, "eye")
@@ -435,28 +455,43 @@ def eyes(head, style="dot", x=0.42, y=-0.2, w=0.2, h=0.27, angry=0.0, pupil=Fals
     for sl, poly, on in cuts:
         ball = kit.paint_cut(ball, [poly], sl, on)
 
-    if liner:
-        t = np.linspace(np.pi * 0.98, np.pi * 0.02, 11)  # along the upper edge, inner corner to outer
-        ex, ey = 0.5 * W * rim * _spow(np.cos(t), 2 / 2.4), 0.5 * H * rim * _spow(np.sin(t), 2 / 2.4)
-        if angry:
-            slope, c = top_line(outline * H if style not in ("dot", "bead") else 0.0)
-            ey = np.minimum(ey, c + slope * ex)
-        T = liner * H
-        tip_ = np.array([ex[-1], ey[-1]]) + flick * W * np.array([np.cos(0.5), np.sin(0.5)])
-        path = np.vstack([np.column_stack([ex, ey - 0.3 * T]), tip_])
-        widths = np.r_[np.linspace(0.5, 1.0, 6), np.ones(5), 0.15] * T
-        for k in range(len(path) - 1):  # the lid line as quads cut into the skin above the eye
-            d = path[k + 1] - path[k]
-            nrm = np.array([-d[1], d[0]]) / max(np.linalg.norm(d), 1e-9)
-            skin_cuts.append(("liner", np.array([path[k] - 0.5 * widths[k] * nrm, path[k + 1] - 0.5 * widths[k + 1] * nrm,
-                                                 path[k + 1] + 0.5 * widths[k + 1] * nrm,
-                                                 path[k] + 0.5 * widths[k] * nrm])))
-        for i_ in range(lashes):  # little strokes off the outer half of the lid
-            k = 7 + i_ * max(1, 3 // max(lashes, 1))
-            base_ = np.array([ex[min(k, 10)], ey[min(k, 10)]])
-            d = np.array([np.cos(0.9 + 0.35 * i_), np.sin(0.9 + 0.35 * i_)])
-            skin_cuts.append(("liner", np.array([base_ - 0.35 * T * d[::-1] * [1, -1], base_ + 0.35 * T * d[::-1] * [1, -1],
-                                                 base_ + 1.6 * T * d])))
+    if liner or flick:
+        l_slot = liner_slot or "liner"
+        r_x = 0.5 * W * rim
+        r_y = 0.5 * H * rim
+        T = 0.055 * A * (liner / 0.5 if liner else 1.0)
+        wing_origin = np.array([r_x * 0.95, (r_y + gap * A) * 0.45])
+        flick_len = (flick if flick else 0.5) * W * 1.15
+        flick_dir = np.array([np.cos(0.52), np.sin(0.52)])  # ~30 deg up-and-out
+
+        # 1. Cat-eye upper lid crescent with optional visual skin gap above bead
+        if liner:
+            t_lid = np.linspace(np.pi * 0.95, np.pi * 0.05, 11)
+            gap_h = gap * A * np.sin(t_lid)
+            lid_in = np.column_stack([r_x * np.cos(t_lid), r_y * np.sin(t_lid) + gap_h])
+            t_w = np.sin(np.linspace(0.1, np.pi - 0.1, 11)) ** 0.8
+            lid_out = np.column_stack([r_x * np.cos(t_lid), r_y * np.sin(t_lid) + gap_h + T * t_w])
+            for k in range(len(lid_in) - 1):
+                skin_cuts.append((l_slot, np.array([lid_in[k], lid_in[k + 1], lid_out[k + 1], lid_out[k]])))
+
+        # 2. Bold Winged Flick sweeping upward-outward toward the temple
+        if flick:
+            f_slot = l_slot if liner else (slot or "eye")
+            wing_tip = wing_origin + flick_len * flick_dir
+            wing_top = wing_origin + np.array([-0.012 * A, 0.65 * T])
+            skin_cuts.append((f_slot, np.array([wing_origin, wing_top, wing_tip])))
+
+        # 3. Flared distinct lashes fanning from the outer upper lid and wing
+        if lashes and liner:
+            lash_specs = [
+                (np.array([r_x * 0.68, (r_y + gap * A) * 0.76]), 0.82, 0.95 * flick_len, 0.22 * T),
+                (wing_origin + 0.35 * flick_len * flick_dir, 0.62, 1.05 * flick_len, 0.25 * T),
+                (wing_origin + 0.85 * flick_len * flick_dir, 0.40, 0.75 * flick_len, 0.20 * T)
+            ]
+            for b_pt, ang, l_len, l_w in lash_specs[:lashes]:
+                d = np.array([np.cos(ang), np.sin(ang)])
+                n = np.array([-d[1], d[0]]) * l_w
+                skin_cuts.append((l_slot, np.array([b_pt - n, b_pt + n, b_pt + l_len * d])))
 
     one = head.conform(ball, x0, y0, out=bead_out)
     other = one.mirrored()
@@ -508,13 +543,17 @@ def brows(head, style="bar", x=0.44, y=0.06, length=0.5, thickness=0.11, angle=0
     return kit.Piece.merge(one, one.mirrored())
 
 
-def nose(head, style="button", y=-0.38, size=1.0, slot="skin", wart=False, nostril="nostril", embed=0.12):
+def nose(head, style="button", y=-0.38, size=1.0, slot="skin", wart=False, nostril="nostril", embed=0.12,
+         width=1.0, length=1.0, height=None, depth=1.0, projection=None, w=None, h=None, d=None):
     """`button` (a small rounded knob), `chevron` (an orc's: a short rounded bridge swelling out of the face to a
     broad V-shaped tip), `teardrop` (KayKit's knight: a narrow bridge swelling to a round tip), `flat`
     (KayKit's barbarian: a broad rounded block), `wedge` (a ridge from the brow to the tip), `wide` (a broad
-    flat snout with dark nostrils), `snub` (two nostril dents, nothing raised: for undead and ghosts) or `hooked` (a
-    goblin's or a witch's: long, narrow between the eyes, humped, hooking down to its tip over flared nostril wings,
-    and with `wart` a wart on its side)."""
+    flat snout with dark nostrils), `snub` (two nostril dents, nothing raised: for undead and ghosts), `prominent`
+    (a high bridge with defined tip overhanging a mustache/beard), or `hooked` (a goblin's or a witch's).
+    Supports independent scaling: `width` (or `w`), `length` / `height` (or `h`), and `depth` / `projection` (or `d`)."""
+    sx = float(w if w is not None else width)
+    sy = float(h if h is not None else (height if height is not None else length))
+    sz = float(d if d is not None else (projection if projection is not None else depth))
     s = size * head.A
     if style == "hooked":  # too long to bend onto the face: lofted from its profile, set rigidly on it, pointing ahead
         # the side profile (y, z) from the root inside the face toward the tip, its top and bottom lines, with the
@@ -536,8 +575,11 @@ def nose(head, style="button", y=-0.38, size=1.0, slot="skin", wart=False, nostr
         if wart:
             parts.append(kit.lump((0.08 * s, -0.08 * s, 0.4 * s), (0.04 * s, 0.04 * s, 0.04 * s), "wart", n=6,
                                   lat=(-40, 20)))
+        merged = kit.Piece.merge(*parts)
+        if sx != 1.0 or sy != 1.0 or sz != 1.0:
+            merged = kit.Piece(merged.verts * [sx, sy, sz], merged.faces, merged.slots)
         (P,), _ = head.surface(*head.front_angles(0.0, head.y(y)), normals=True)
-        return kit.Piece.merge(*parts).moved(kit.Frame.make(P, (0.0, 0.0, 1.0)))
+        return merged.moved(kit.Frame.make(P, (0.0, 0.0, 1.0)))
     elif style == "teardrop":  # KayKit's knight: a narrow bridge swelling to a round tip
         bridge = [(dx * 0.05 * s, 0.3 * s, 0.025 * s) for dx in (-1, 1)] + [(0, 0.32 * s, 0.0)]
         bulb = kit.lump((0, -0.08 * s, 0.12 * s), (0.13 * s, 0.11 * s, 0.11 * s), slot, n=12,
@@ -546,31 +588,120 @@ def nose(head, style="button", y=-0.38, size=1.0, slot="skin", wart=False, nostr
         piece = kit.hull(np.vstack([bridge, bulb.verts, base]), slot)
     elif style == "flat":  # KayKit's barbarian: a broad rounded block of a nose
         piece = kit.rounded_box((0.5 * s, 0.32 * s, 0.3 * s), slot, center=(0, 0.04 * s, 0.1 * s), roundness=0.5)
-    elif style == "button":
-        t = np.radians(np.arange(0, 360, 45))
-        pts = [(0.17 * s * np.cos(a), 0.14 * s * np.sin(a), -0.02) for a in t]
-        pts += [(0.11 * s * np.cos(a), 0.08 * s * np.sin(a) - 0.02 * s, 0.14 * s) for a in t]
-        piece = kit.hull(pts, slot)
-    elif style == "chevron":  # an orc's: a short bridge swelling out of the face to a broad V-shaped tip
-        # rounded cross-sections down the nose (height, half width, depth out of the face), deepest at the tip;
-        # their hull is a solid wedge in profile and narrows to a V at the bottom seen from the front
-        k = np.linspace(-1, 1, 13)
+    elif style == "slender":  # elegant, feminine, softly sloping bridge to smooth rounded tip & subtle wings
+        k = np.linspace(-1, 1, 17)
+        pts = []
+        cross_sections = [
+            ( 0.18, 0.040, 0.020), # root between eyes (blends flush out of forehead)
+            ( 0.08, 0.050, 0.060), # upper bridge
+            ( 0.00, 0.060, 0.090), # mid bridge
+            (-0.06, 0.075, 0.115), # supratip
+            (-0.11, 0.085, 0.125), # soft rounded tip
+            (-0.15, 0.110, 0.085), # integrated nostril wings
+            (-0.19, 0.045, 0.025), # columella base tucking back into lip
+        ]
+        for y_, a_, d_ in cross_sections:
+            pts += [(a_ * s * kk, y_ * s, d_ * s * (1 - np.abs(kk) ** 2.2) ** 0.65) for kk in k]
+        for y_, a_, _ in cross_sections:
+            for kk in (-1, 0, 1):
+                pts.append((a_ * s * kk, y_ * s, -embed * s))
+        piece = kit.hull(np.asarray(pts), slot)
+    elif style in ("button", "stubby", "bulb"):  # cute, soft, compact button/bulb nose (never a pipe or tube)
+        k = np.linspace(-1, 1, 19)
+        pts = []
+        cross_sections = [
+            ( 0.14, 0.045, 0.005), # top skirt flaring flush into forehead
+            ( 0.10, 0.065, 0.035),
+            ( 0.05, 0.095, 0.080), # upper swell
+            ( 0.00, 0.115, 0.115), # mid bulb
+            (-0.06, 0.125, 0.135), # rounded tip projection
+            (-0.11, 0.115, 0.110), # lower bulb
+            (-0.16, 0.085, 0.055), # underside tucking inward
+            (-0.21, 0.050, 0.015), # bottom skirt flaring into philtrum
+            (-0.24, 0.025, 0.002), # base flush at philtrum
+        ]
+        for y_, a_, d_ in cross_sections:
+            profile = (np.maximum(0.0, 1.0 - np.abs(k) ** 2.0)) ** 1.6
+            for kk, prof in zip(k, profile):
+                pts.append((a_ * s * kk, y_ * s, d_ * s * prof))
+        for y_, a_, _ in cross_sections:
+            for sgn in (-1, 1):
+                pts.append((sgn * a_ * s * 1.15, y_ * s, 0.001 * s))
+        for y_, a_, _ in cross_sections:
+            for kk in (-1, 0, 1):
+                pts.append((a_ * s * kk, y_ * s, -embed * s))
+        piece = kit.hull(np.asarray(pts), slot)
+    elif style == "chevron":  # an orc's: a short bridge swelling out of the face to a broad V-shaped tip (flat boxer snout)
+        k = np.linspace(-1, 1, 15)
         pts = []
         for y_, a_, d_ in ((0.22, 0.06, 0.03), (0.08, 0.1, 0.1), (-0.06, 0.17, 0.2), (-0.14, 0.2, 0.25),
                            (-0.2, 0.13, 0.21), (-0.25, 0.04, 0.12)):
             pts += [(a_ * s * kk, y_ * s, d_ * s * (1 - np.abs(kk) ** 2.2) ** 0.7 - 0.02) for kk in k]
+        for y_, a_, _ in ((0.22, 0.06, 0.03), (0.08, 0.1, 0.1), (-0.06, 0.17, 0.2), (-0.14, 0.2, 0.25),
+                           (-0.2, 0.13, 0.21), (-0.25, 0.04, 0.12)):
+            for kk in (-1, 0, 1):
+                pts.append((a_ * s * kk, y_ * s, -embed * s))
         piece = kit.hull(np.asarray(pts), slot)
-    elif style == "broad":  # a chunky wedge from between the eyes to a broad, raised, rounded tip (KayKit's orcs)
-        bridge = [(dx * 0.07 * s, 0.24 * s, -0.02) for dx in (-1, 1)] + [(dx * 0.06 * s, 0.2 * s, 0.07 * s) for dx in (-1, 1)]
-        tip = kit.lump((0.0, -0.13 * s, 0.2 * s), (0.2 * s, 0.11 * s, 0.13 * s), slot, n=10, lat=(-60, -25, 10, 45))
-        wings = [(dx * 0.24 * s, -0.2 * s, -0.02) for dx in (-1, 1)] + [(dx * 0.22 * s, -0.22 * s, 0.1 * s) for dx in (-1, 1)]
-        piece = kit.hull(np.vstack([bridge, tip.verts, wings]), slot)
-    elif style == "wedge":
-        piece = kit.hull([(-0.2 * s, -0.2 * s, -0.02), (0.2 * s, -0.2 * s, -0.02), (0.0, 0.3 * s, -0.02),
-                          (-0.1 * s, -0.21 * s, 0.17 * s), (0.1 * s, -0.21 * s, 0.17 * s), (0.0, 0.26 * s, 0.04 * s)],
-                         slot)
+    elif style == "prominent":  # a high, prominent bridge with defined tip overhanging the mustache (for dark wizard)
+        k = np.linspace(-1, 1, 17)
+        pts = []
+        cross_sections = [
+            ( 0.25, 0.050, 0.005), # top blend
+            ( 0.20, 0.075, 0.040),
+            ( 0.08, 0.110, 0.110),
+            (-0.06, 0.180, 0.210),
+            (-0.14, 0.210, 0.260), # max tip projection
+            (-0.20, 0.140, 0.220),
+            (-0.25, 0.050, 0.120),
+            (-0.28, 0.030, 0.010), # bottom blend
+        ]
+        for y_, a_, d_ in cross_sections:
+            profile = (np.maximum(0.0, 1.0 - np.abs(k) ** 2.0)) ** 1.5
+            for kk, prof in zip(k, profile):
+                pts.append((a_ * s * kk, y_ * s, d_ * s * prof))
+        for y_, a_, _ in cross_sections:
+            for sgn in (-1, 1):
+                pts.append((sgn * a_ * s * 1.12, y_ * s, 0.001 * s))
+        for y_, a_, _ in cross_sections:
+            for kk in (-1, 0, 1):
+                pts.append((a_ * s * kk, y_ * s, -embed * s))
+        piece = kit.hull(np.asarray(pts), slot)
+    elif style == "broad":  # broad rounded nose with wide integrated nostrils (never separate spheres)
+        k = np.linspace(-1, 1, 17)
+        pts = []
+        cross_sections = [
+            ( 0.16, 0.080, 0.030), # broad root
+            ( 0.06, 0.100, 0.075), # bridge
+            (-0.04, 0.135, 0.120),
+            (-0.10, 0.160, 0.140), # broad tip
+            (-0.15, 0.195, 0.095), # wide integrated nostril wings
+            (-0.20, 0.080, 0.030), # base
+        ]
+        for y_, a_, d_ in cross_sections:
+            pts += [(a_ * s * kk, y_ * s, d_ * s * (1 - np.abs(kk) ** 2.2) ** 0.7) for kk in k]
+        for y_, a_, _ in cross_sections:
+            for kk in (-1, 0, 1):
+                pts.append((a_ * s * kk, y_ * s, -embed * s))
+        piece = kit.hull(np.asarray(pts), slot)
+    elif style == "wedge":  # rounded ridge from brow to tip (KayKit male humanoid)
+        k = np.linspace(-1, 1, 17)
+        pts = []
+        cross_sections = [
+            ( 0.22, 0.040, 0.025),
+            ( 0.10, 0.060, 0.070),
+            ( 0.00, 0.075, 0.110),
+            (-0.10, 0.095, 0.145),
+            (-0.18, 0.120, 0.100),
+            (-0.22, 0.050, 0.025),
+        ]
+        for y_, a_, d_ in cross_sections:
+            pts += [(a_ * s * kk, y_ * s, d_ * s * (1 - np.abs(kk) ** 2.2) ** 0.7) for kk in k]
+        for y_, a_, _ in cross_sections:
+            for kk in (-1, 0, 1):
+                pts.append((a_ * s * kk, y_ * s, -embed * s))
+        piece = kit.hull(np.asarray(pts), slot)
     elif style == "wide":
-        bridge = kit.hull([(-0.17 * s, -0.1 * s, -0.02), (0.17 * s, -0.1 * s, -0.02), (0.0, 0.16 * s, -0.02),
+        bridge = kit.hull([(-0.17 * s, -0.1 * s, -embed * s), (0.17 * s, -0.1 * s, -embed * s), (0.0, 0.16 * s, -embed * s),
                            (-0.13 * s, -0.11 * s, 0.11 * s), (0.13 * s, -0.11 * s, 0.11 * s),
                            (-0.07 * s, 0.06 * s, 0.07 * s), (0.07 * s, 0.06 * s, 0.07 * s)], slot)
         piece = bridge
@@ -583,15 +714,15 @@ def nose(head, style="button", y=-0.38, size=1.0, slot="skin", wart=False, nostr
         for dx in (-1, 1):
             a_ = np.radians(-dx * 25)
             R = np.array([[np.cos(a_), -np.sin(a_)], [np.sin(a_), np.cos(a_)]])
-            hole = blob(0.06 * s, 0.09 * s) @ R.T + [dx * 0.05 * s, head.y(y)]
-            empty.carve.append(("dark", [hole], hole, 0.03 * s))
+            hole = blob(0.06 * s * sx, 0.09 * s * sy) @ R.T + [dx * 0.05 * s * sx, head.y(y)]
+            empty.carve.append(("dark", [hole], hole, 0.03 * s * sz))
         return empty
     else:
-        return None
-    # sunk well into the skull: the face is curved, so a back cut flat on it leaves gaps at the sides
-    V = piece.verts.copy()
-    V[:, 2] = np.where(V[:, 2] < 0.02 * s, V[:, 2] - embed * s, V[:, 2])
-    return head.conform(kit.Piece(V, piece.faces, piece.slots), 0.0, head.y(y))
+        return nose(head, style="button", y=y, size=size, slot=slot, wart=wart, nostril=nostril, embed=embed,
+                    width=sx, length=sy, depth=sz)
+    if sx != 1.0 or sy != 1.0 or sz != 1.0:
+        piece = kit.Piece(piece.verts * [sx, sy, sz], piece.faces, piece.slots)
+    return head.conform(piece, 0.0, head.y(y))
 
 
 def _two_tone(poly, root_y, toward, split, depth, slot, tip, bevel=0.003):
@@ -702,12 +833,13 @@ def mouth(head, y=-0.7, width=0.32, curve=0.0, thickness=0.035, teeth=(), tooth=
 
 
 def tusks(head, x=0.2, y=-0.68, length=0.3, radius=0.07, spread=-0.2, curve=0.35, broken=0.0, mirror=True,
-          out=-0.01, slot="tusk", tip="tusk_tip", split=0.5):
+          out=-0.01, slot="tusk", tip="tusk_tip", split=0.5, blend=True):
     """
     Tusks from the lower jaw (`out` over the skin: a jaw piece's ledge), curving up past the lip by `curve`, their
     tips leaning in toward the nose (`spread` < 0) so they frame the face rather than hide the eyes. A pair at
     +-`x`, or one at `x` (`mirror` false: an odd tooth); `broken` > 0 snaps that share off the tip; `tip` colors
-    the part past `split` of its length in that slot (KayKit's yellowed tusks with white points).
+    the part past `split` of its length in that slot (KayKit's yellowed tusks with white points; blended smoothly
+    when `blend` is true).
     """
     A = head.A
     (theta,), (phi,) = head.front_angles(x * A, head.y(y))
@@ -724,7 +856,7 @@ def tusks(head, x=0.2, y=-0.68, length=0.3, radius=0.07, spread=-0.2, curve=0.35
     th = 2 * np.pi * np.arange(8) / 8
     one = kit.sweep(path[:keep], np.column_stack([radius * A * np.cos(th), 0.8 * radius * A * np.sin(th)]), slot,
                     scale=np.maximum(np.where(t < 0.15, 1.0, (1 - (t - 0.15) / 0.85) ** 0.7), 0.06))
-    if tip:  # two-toned: yellowed at the root, white toward the tip
+    if tip and not blend:  # discrete two-toned: yellowed at the root, white toward the tip
         c = one.verts[one.faces].mean(1)
         along = np.linalg.norm(c - path[0], axis=1) / max(np.linalg.norm(path[keep - 1] - path[0]), 1e-9)
         one = kit.Piece(one.verts, one.faces, np.where(along > split, tip, slot).astype(object))
@@ -1294,30 +1426,19 @@ def build(recipe, center=(0.0, 1.72, 0.0)):
                 skin.append(piece)
             parts.append(piece)
     lip = recipe.get("lip")
-    if lip and head.bite:  # the lower lip: a rounded band cut into the top of the underbite step (KayKit's darker lip)
-        sl, share = lip[0], lip[1]
-        half_width = lip[2] if len(lip) > 2 else 0.55
-        top_y = head.y(head.mouth) + 0.004
-        t = np.linspace(0, 2 * np.pi, 25)[:-1]
-
-        # Softened outer transition band
-        hw_mid = half_width * 1.15
-        share_mid = share * 1.3
-        mid_y_outer = head.y(head.mouth - 0.5 * share_mid * head.edge)
-        oval_mid = np.column_stack([head.cx + hw_mid * head.A * np.cos(t),
-                                    mid_y_outer + 1.15 * (top_y - mid_y_outer) * np.sin(t)])
-        oval_mid = clip(oval_mid, 0.0, 1.0, top_y)
-
-        # Core inner lip
-        mid_y = head.y(head.mouth - 0.5 * share * head.edge)
-        oval_core = np.column_stack([head.cx + half_width * head.A * np.cos(t),
-                                     mid_y + 1.15 * (top_y - mid_y) * np.sin(t)])  # reaching `share` of the step down
-        oval_core = clip(oval_core, 0.0, 1.0, top_y)  # flat along the mouth line, rounded below and at the corners
-
-        sl_mid = f"{sl}_mid"
-        bare = {skin_slot, "skin", "skin_dark", sl_mid}
-        cranium = kit.paint_cut(cranium, [oval_mid], sl_mid, bare, min_facing=0.0)
-        cranium = kit.paint_cut(cranium, [oval_core], sl, bare, min_facing=0.0)
+    if lip and head.bite:  # a contoured mouth line along the underbite crease, blending into the green skin
+        sl = lip[0]
+        half_width = lip[2] if len(lip) > 2 else 0.48
+        W = half_width * head.A
+        xs = np.linspace(-W, W, 21)
+        curve = 0.008
+        y_crease = head.y(head.mouth) + curve * (xs / W) ** 2
+        taper = np.clip(1.0 - (xs / W) ** 2, 0.0, 1.0) ** 0.6
+        h_up = 0.018 * taper
+        h_down = 0.024 * taper
+        poly = list(zip(head.cx + xs, y_crease + h_up)) + list(zip(head.cx + xs[::-1], (y_crease - h_down)[::-1]))
+        bare = {skin_slot, "skin", "skin_dark"}
+        cranium = kit.paint_cut(cranium, [poly], sl, bare, min_facing=0.0)
     shade = recipe.get("shade")
     if shade:  # KayKit's gradient as flat bands: the crown lighter (`top` = [slot, from yn]), under the jaw darker
         yv = (cranium.verts[cranium.faces][:, :, 1] - head.cy) / head.Hh  # by whole faces, so edges follow a ring
@@ -1341,9 +1462,42 @@ def build(recipe, center=(0.0, 1.72, 0.0)):
             polys = [q for s_, q in painted if s_ == sl]
             cranium = kit.paint_cut(cranium, polys, sl, bare, min_facing=0.3)  # the face, not over the crown
             cut = {id(p): kit.paint_cut(p, polys, sl, bare) for p in skin}
-            parts = [cut.get(id(p), p) for p in parts]
-            skin = [cut[id(p)] for p in skin]
-    return head, kit.Piece.merge(cranium, *parts)
+    merged = kit.Piece.merge(cranium, *parts)
+    if not sculpted and recipe.get("smooth_normals", True):
+        merged = smooth_head_normals(head, merged)
+    return head, merged
+
+
+def smooth_head_normals(head, merged_head, blend_zone=0.038):
+    """
+    Smooths normal transitions where facial features (nose, ears, chin, brows) connect into the cranium sphere.
+    For skin-like materials near the cranium surface, vertex normals are smoothly blended with the cranium's
+    analytical surface normal, completely eliminating harsh seam/crease lines.
+    """
+    if len(merged_head.faces) == 0:
+        return merged_head
+    from accessories.export import corner_normals
+    norms = corner_normals(merged_head.verts, merged_head.faces, crease=50.0).copy()
+    verts = merged_head.verts
+    P_surf, N_surf = head.surface(*head.front_angles(verts[:, 0], verts[:, 1]), normals=True)
+    dist = np.sum((verts - P_surf) * N_surf, axis=1)
+    zone = blend_zone * head.A
+    w_vert = np.clip(1.0 - (dist / zone), 0.0, 1.0)
+    w_vert = w_vert * w_vert * (3.0 - 2.0 * w_vert)
+    skin_slots = {"skin", "skin_dark", "skin_light", "nostril", "lip", "mouth"}
+    for fi in range(len(merged_head.faces)):
+        slot = str(merged_head.slots[fi])
+        if slot in skin_slots:
+            for ci in range(3):
+                vi = merged_head.faces[fi, ci]
+                wt = w_vert[vi]
+                if wt > 0:
+                    blended = (1.0 - wt) * norms[fi, ci] + wt * N_surf[vi]
+                    nl = np.linalg.norm(blended)
+                    if nl > 1e-6:
+                        norms[fi, ci] = blended / nl
+    merged_head.normals = norms
+    return merged_head
 
 
 FORMS = {
@@ -1357,40 +1511,39 @@ FORMS = {
 ROSTER = {
     "necromancer": dict(
         form=dict(width=0.96, height=0.98, depth=0.92, p=2.3, q=2.4),
-        eyes=dict(style="glow", angry=0.5, pupil=True, w=0.27, h=0.3, y=-0.2, x=0.43, liner=0.32, flick=0.3,
-                  lashes=3),
-        brows=dict(style="arc", angle=24, thickness=0.08, length=0.44, y=0.06, arch=0.1, taper=0.6, slot="hair"),
-        nose=dict(style="button", size=0.7, y=-0.4),
+        eyes=dict(style="bead", angry=0.25, w=0.22, h=0.31, y=-0.04, x=0.38, lashes=True),
+        brows=dict(style="arc", angle=20, thickness=0.085, length=0.44, y=0.18, arch=0.12, taper=0.6, slot="hair"),
+        nose=dict(style="button", size=1.20, y=-0.34),
         mouth=dict(curve=-0.25, width=0.22, y=-0.62),
         hair=dict(style="cap", line=((0, 0.36), (30, 0.22), (55, -0.45), (90, -0.8), (180, -0.95)), peak=0.16),
-        colors=dict(skin=(196, 226, 204), hair=(30, 30, 34), iris=(70, 226, 96), eye=(24, 40, 30),
-                    mouth=(70, 90, 76), liner=(26, 26, 30))),
+        colors=dict(skin=(196, 226, 204), hair=(30, 30, 34), eye=(24, 26, 24),
+                    mouth=(70, 90, 76))),
     "orc_king": dict(  # after KayKit's orcs (inspiration only): one smooth head, the jaw an underbite step in it
         form={"width": 0.86, "height": 1.08, "depth": 1.0, "p": 2.7, "q": 3.0, "crown": 0.16, "jaw": 0.24, "brow": 0.0, "back": 0.92, "bite": 0.34, "mouth": -0.36, "edge": 0.3, "q_low": 4.2, "relief": [[0.36, 0.22, 0.34, 0.1, 0.13], [0.37, 0.0, 0.16, 0.12, -0.035], [0.56, -0.16, 0.2, 0.14, 0.08], [0.0, -0.22, 0.32, 0.12, 0.06]]},
-        eyes={"style": "bead", "w": 0.14, "h": 0.15, "y": 0.02, "x": 0.37, "angry": 0.25, "glint": False},
+        eyes={"style": "bead", "w": 0.18, "h": 0.25, "y": 0.02, "x": 0.37, "angry": 0.25, "glint": False},
         brows={"style": "bushy", "thickness": 0.27, "length": 0.56, "y": 0.32, "x": 0.42, "angle": 6, "depth": 0.05, "slot": "brow", "arch": 0.1},
-        nose={"style": "chevron", "y": -0.1, "size": 0.95},
+        nose={"style": "chevron", "y": -0.1, "size": 0.95, "width": 1.5},
         tusks=[{"x": 0.5, "y": -0.39, "length": 0.22, "radius": 0.11, "spread": -0.03, "curve": 0.1, "out": 0.0, "tip": "tusk_tip", "split": 0.45}],
         ears={"style": "pointed", "angle": 8, "size": 0.7, "y": -0.06, "sweep": 35, "ring": "right", "rings": 2, "ring_size": 0.2, "notch": "left", "ring_slot": "metal", "base": 1.25},
         hair={"style": "tuft", "columns": 4, "height": 3, "size": 0.36},
         paint={"strokes": "war"},
-        lip=["lip", 0.4, 0.56],
+        lip=["lip", 0.4, 0.48],
         shade={"top": ["skin_light", 0.5], "bottom": ["skin_dark", -0.72]},
-        colors={"skin": [132, 196, 58], "skin_dark": [98, 152, 44], "brow": [96, 74, 50], "hair": [120, 94, 64], "eye": [18, 18, 20], "glint": [250, 250, 245], "tusk": [226, 196, 160], "tusk_tip": [244, 236, 222], "paint": [226, 70, 46], "nostril": [52, 84, 32], "lip": [104, 104, 52], "metal": [150, 156, 166], "skin_light": [146, 202, 62]}),
+        colors={"skin": [132, 196, 58], "skin_dark": [98, 152, 44], "brow": [96, 74, 50], "hair": [120, 94, 64], "eye": [18, 18, 20], "glint": [250, 250, 245], "tusk": [226, 196, 160], "tusk_tip": [244, 236, 222], "paint": [226, 70, 46], "nostril": [52, 84, 32], "lip": [54, 44, 34], "metal": [150, 156, 166], "skin_light": [146, 202, 62]}),
     "mummy": dict(
         form=dict(width=1.0, height=1.04, depth=1.0, p=2.2, q=2.2),
         skin="wrap_dark",
         wraps=dict(),
-        eyes=dict(style="bead", glow=True, angry=0.5, w=0.14, h=0.14, y=-0.12, ring=0.75, ring_slot="dark"),
-        brows=dict(angle=26, thickness=0.08, length=0.40, y=0.08, slot="dark", depth=0.05),
+        eyes=dict(style="bead", glow=True, angry=0.4, w=0.21, h=0.30, y=-0.05, ring=0.85, ring_slot="dark"),
+        brows=dict(angle=24, thickness=0.09, length=0.44, y=0.14, slot="dark", depth=0.05),
         colors=dict(wrap=(232, 214, 160), wrap_dark=(190, 164, 112), glow=(250, 200, 40), eye=(250, 200, 40),
                     dark=(44, 34, 28))),
     "wraith": dict(
         form=dict(width=0.98, height=0.96, depth=0.96, p=2.2, q=2.3),
-        eyes=dict(style="bead", glow=True, angry=0.5, w=0.16, h=0.16, y=-0.16,
-                  rings=[("dark", 0.55), ("halo", 1.2)]),
-        brows=dict(style="arc", angle=22, thickness=0.11, length=0.46, y=0.08, arch=0.12, taper=0.5),
-        nose=dict(style="button", size=0.65, y=-0.4),
+        eyes=dict(style="bead", glow=True, angry=0.45, w=0.22, h=0.31, y=-0.05,
+                  rings=[("dark", 0.65), ("halo", 1.25)]),
+        brows=dict(style="arc", angle=22, thickness=0.11, length=0.46, y=0.14, arch=0.12, taper=0.5),
+        nose=dict(style="button", size=0.9, y=-0.38),
         hair=dict(style="sculpt", name="hair_spiky"),
         colors=dict(skin=(66, 170, 142), brow=(34, 92, 82), glow=(245, 230, 105), eye=(245, 230, 105),
                     halo=(45, 125, 115), dark=(26, 70, 66), hair=(172, 228, 214))),
@@ -1403,8 +1556,8 @@ ROSTER = {
                     halo=(230, 120, 40))),
     "goblin": dict(
         form=dict(width=1.0, height=1.02, depth=0.94, p=2.3, q=2.4, jaw=-0.3, chin=0.16, brow=0.14),
-        eyes=dict(style="bead", angry=0.4, pupil=True, w=0.36, h=0.34, y=-0.12, x=0.42, outline=0.2),
-        brows=dict(angle=24, thickness=0.12, length=0.56, y=0.16, depth=0.07, slot="skin_dark"),
+        eyes=dict(style="bead", angry=0.4, pupil=True, w=0.38, h=0.46, y=-0.04, x=0.42, outline=0.2),
+        brows=dict(angle=24, thickness=0.12, length=0.56, y=0.18, depth=0.07, slot="skin_dark"),
         nose=dict(style="hooked", y=-0.05, size=1.15),
         mouth=dict(style="open", y=-0.6, width=0.72, curve=0.26, height=0.16,
                    upper=dict(count=2, shape="fang", length=0.85), lower=dict(count=4, shape="fang", length=0.5)),

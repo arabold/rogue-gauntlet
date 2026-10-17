@@ -81,7 +81,7 @@ def _head_frame(head, theta, phi, out):
 
 def horned(head, brim=0.22, thickness=0.06, slot="metal", band="leather", horn="bone", rivet="metal", horns=1.0,
            horn_height=0.54, horn_angle=np.pi / 2, horn_radius=0.2, horn_spread=0.42, guard=1.0, ridge=True,
-           seams=True, guard_upright=False, patina=False, dents=False):
+           seams=True, guard_upright=False, patina=False, dents=False, tilt=0.0, y_offset=0.0):
     """
     A round viking helm down to the brow (`brim`, a height share): a raised `ridge` from front to back over the crown
     and `seams` down its sides, a riveted leather band round the brow, a long nose guard with a knob where it meets
@@ -178,7 +178,15 @@ def horned(head, brim=0.22, thickness=0.06, slot="metal", band="leather", horn="
         ring = np.array([sock + 1.15 * r * (np.cos(a) * np.array([0, 1.0, 0]) + np.sin(a) * np.cross(nh, [0, 1.0, 0]))
                          for a in np.linspace(0, 2 * np.pi, 11)[:-1]])
         parts.append(kit.sweep(ring, kit.rect_profile(0.09 * A, 0.05, 0.01), band, up=tuple(nh), closed=True))
-    return kit.Piece.merge(*parts)
+    res = kit.Piece.merge(*parts)
+    if abs(tilt) > 1e-4 or abs(y_offset) > 1e-4:
+        c = np.array([0.0, head.cy, 0.0])
+        a_x = np.radians(tilt)
+        Rx = np.array([[1, 0, 0], [0, np.cos(a_x), -np.sin(a_x)], [0, np.sin(a_x), np.cos(a_x)]])
+        res = kit.Piece((res.verts - c) @ Rx.T + c + [0.0, y_offset, 0.0], res.faces, res.slots)
+        if getattr(res, "normals", None) is not None:
+            res.normals = res.normals @ Rx.T
+    return res
 
 
 COLORS = {"pelt": (112, 96, 88), "pelt_dark": (86, 72, 66), "dark": (28, 24, 26), "tooth": (240, 240, 236),
@@ -186,7 +194,8 @@ COLORS = {"pelt": (112, 96, 88), "pelt_dark": (86, 72, 66), "dark": (28, 24, 26)
           "feather_tip": (60, 44, 40), "hat": (40, 44, 80), "trim": (190, 196, 210), "rune": (150, 110, 230)}
 
 def headdress(head, band_y=0.24, slot="leather", skull="bone", feather="feather", tip="feather_tip", count=13,
-              length=0.95, spread=200.0, splay=(12.0, 72.0), horn_length=0.85, skull_size=0.6):
+              length=0.95, spread=200.0, splay=(12.0, 72.0), horn_length=0.85, skull_size=0.6,
+              skull_y=None, tilt=0.0, y_offset=0.0):
     """
     A shaman's war bonnet: a leather band round the brow, a horned animal skull worn on the forehead, and a fan of
     `count` feathers (two-toned, `tip` at the end) round the crown over `spread` degrees of the back and sides, each
@@ -210,7 +219,8 @@ def headdress(head, band_y=0.24, slot="leather", skull="bone", feather="feather"
                           (-0.9 * w, 0.7 * L)], 0.02, feather, bevel=0.004)
         end = kit.prism([(-0.9 * w, 0.7 * L), (0.9 * w, 0.7 * L), (0.0, L)], 0.024, tip, bevel=0.004)
         parts.append(kit.Piece.merge(vane, end).moved(kit.Frame(P, np.cross(up, z), up, z)))
-    (P,), (n,) = head.surface(FRONT, head.phi(band_y + 0.22), 0.04, normals=True)
+    actual_skull_y = band_y if skull_y is None else skull_y
+    (P,), (n,) = head.surface(FRONT, head.phi(actual_skull_y), 0.05, normals=True)
     f = kit.Frame.make(P, n * [1.0, 0.4, 1.0]).rotated(-15.0, "x")
     parts.append(belts.skull(skull_size * A, skull).moved(f))
     L, r = horn_length * A, 0.09 * A
@@ -220,7 +230,15 @@ def headdress(head, band_y=0.24, slot="leather", skull="bone", feather="feather"
         path = kit.spline([base, base + 0.55 * L * side + 0.05 * L * f.R[:, 1], base + 0.85 * L * side + 0.45 * L * f.R[:, 1],
                            base + 0.7 * L * side + 0.85 * L * f.R[:, 1]], 10)
         parts.append(kit.tube(path, r, skull, sides=6, taper=0.7))
-    return kit.Piece.merge(*parts)
+    res = kit.Piece.merge(*parts)
+    if abs(tilt) > 1e-4 or abs(y_offset) > 1e-4:
+        c = np.array([0.0, getattr(head, "cy", 0.0), 0.0])
+        a_x = np.radians(tilt)
+        Rx = np.array([[1, 0, 0], [0, np.cos(a_x), -np.sin(a_x)], [0, np.sin(a_x), np.cos(a_x)]])
+        res = kit.Piece((res.verts - c) @ Rx.T + c + [0.0, y_offset, 0.0], res.faces, res.slots)
+        if getattr(res, "normals", None) is not None:
+            res.normals = res.normals @ Rx.T
+    return res
 
 
 def wizard(head, brim_y=0.3, brim=1.75, height=2.3, bend=0.75, slot="hat", band="trim", runes="rune", sides=20):

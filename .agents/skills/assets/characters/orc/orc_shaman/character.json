@@ -5,6 +5,17 @@
     "preset": "orc_king",
     "hair": null,
     "scar": null,
+    "brows": {
+      "style": "bushy",
+      "thickness": 0.20,
+      "length": 0.50,
+      "y": 0.12,
+      "x": 0.38,
+      "angle": 8,
+      "depth": 0.05,
+      "slot": "brow",
+      "arch": 0.1
+    },
     "shade": {
       "bottom": [
         "skin_dark",
@@ -98,9 +109,9 @@
         230
       ],
       "lip": [
-        100,
-        96,
-        80
+        58,
+        48,
+        38
       ],
       "nose": [
         112,
@@ -139,7 +150,10 @@
   "body": {
     "torso": "kaykit",
     "arms": {
-      "hand": "mitten"
+      "style": "gorilla",
+      "length": 1.25,
+      "hand": "mitten",
+      "hand_size": 1.6
     },
     "legs": {
       "foot": "bare",
@@ -217,7 +231,8 @@
     },
     {
       "kind": "helmet",
-      "style": "headdress"
+      "style": "headdress",
+      "tilt": -8.0
     }
   ],
   "colors": {

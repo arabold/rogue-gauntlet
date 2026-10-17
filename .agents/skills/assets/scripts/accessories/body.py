@@ -132,6 +132,7 @@ ARMS = {  # (t from the shoulder to the wrist, half thickness across, front, bac
     "normal": [(0.0, 0.1, 0.1), (0.3, 0.085, 0.085), (0.48, 0.075, 0.075), (0.75, 0.078, 0.078), (1.0, 0.065, 0.065)],
     "thin": [(0.0, 0.075, 0.075), (0.3, 0.06, 0.06), (0.5, 0.05, 0.05), (0.75, 0.055, 0.055), (1.0, 0.045, 0.045)],
     "muscular": [(0.0, 0.16, 0.16), (0.3, 0.15, 0.155), (0.5, 0.115, 0.115), (0.72, 0.135, 0.13), (1.0, 0.1, 0.1)],
+    "gorilla": [(0.0, 0.24, 0.24), (0.28, 0.22, 0.225), (0.48, 0.18, 0.185), (0.72, 0.225, 0.22), (1.0, 0.18, 0.17)],
     "bony": [(0.0, 0.06, 0.06), (0.25, 0.04, 0.04), (0.48, 0.06, 0.06), (0.7, 0.038, 0.038), (1.0, 0.05, 0.05)],
 }
 LEGS = {  # (t from the hip to the ankle, half thickness across, front, back)
@@ -221,7 +222,7 @@ def build(recipe):
     rows = [(r[0], r[1] * sw, *(v * sd for v in r[2:])) for r in _rows(TORSOS, t["rows"])]
     trunk = Trunk(**dict(t, rows=rows))
     arms, legs = dict(recipe.get("arms", {})), dict(recipe.get("legs", {}))
-    for spec, known in ((arms, {"style", "hand", "hand_size", "hand_slot", "scale"}),
+    for spec, known in ((arms, {"style", "hand", "hand_size", "hand_slot", "scale", "length"}),
                         (legs, {"style", "foot", "foot_size", "foot_slot", "scale"})):
         if set(spec) - known:
             raise ValueError(f"unknown body options {sorted(set(spec) - known)}")
@@ -231,7 +232,8 @@ def build(recipe):
 
     sh, wr = np.array(JOINTS["shoulder"]), np.array(JOINTS["wrist"])
     root = sh - [0.08, 0.0, 0.0]  # the shoulder sinks into the torso
-    arm = Limb(scaled(_rows(ARMS, arms.get("style", "normal")), arms.get("scale", 1.0)), np.linalg.norm(wr - root),
+    arm_len = np.linalg.norm(wr - root) * arms.get("length", 1.0)
+    arm = Limb(scaled(_rows(ARMS, arms.get("style", "normal")), arms.get("scale", 1.0)), arm_len,
                root, (1.0, 0.0, 0.0))
     hand_piece = hand(arms.get("hand", "mitten"), arms.get("hand_size", 1.0), arms.get("hand_slot", skin))
     left_arm = kit.Piece.merge(arm.place(arm.local_mesh(skin)),

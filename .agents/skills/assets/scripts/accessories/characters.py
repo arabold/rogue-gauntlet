@@ -46,10 +46,11 @@ def _robe(h, thickness=0.03, **k):
     return _worn(t, t.bottom, t.top, thickness, clothes.robe(t, t.top - 0.04, thickness=thickness, **k))
 
 
-def _tunic(h, y0, y1=None, thickness=0.03, **k):
+def _tunic(h, y0, y1=None, thickness=0.03, neck="v", **k):
     t = h["torso"]
     y1 = t.top - 0.04 if y1 is None else y1
-    return _worn(t, y0, y1, thickness + max(k.get("flare", (0.0, 0.0))), clothes.shell(t, y0, y1, thickness, **k))
+    return _worn(t, y0, y1, thickness + max(k.get("flare", (0.0, 0.0))),
+                 clothes.shell(t, y0, y1, thickness, neck=neck, **k))
 
 
 def _on_limb(limb, y0, y1, thickness=0.03, **k):
@@ -194,10 +195,10 @@ def head_recipe(spec):
     return spec
 
 
-# Garments snug enough to hide the skin under them (`hide_covered`); loose or separately moving ones (capes,
-# pauldrons, helmets, wings, tails) never hide skin, or moving them would show a hole.
-COVERS = {"cuirass", "robe", "tunic", "sleeves", "shorts", "boots", "gloves", "wraps", "belt", "breastplate", "backplate",
-          "armor", "collar", "loincloth", "cuffs", "limb_plate", "cop", "apron"}
+# Garments snug and closed enough to completely hide the skin under them (`hide_covered`).
+# Partial accessories, straps, bandages, belts, flaps, collars, cuffs, and single-sided plates
+# never hide skin, so holes can never open in bare or partially-covered bodies.
+COVERS = {"cuirass", "robe", "tunic", "sleeves", "shorts", "boots", "gloves"}
 BODY_PIECES = ("Body", "ArmLeft", "ArmRight", "LegLeft", "LegRight")
 
 
@@ -267,7 +268,7 @@ def build(recipe):
         limb = g.get("limb", "")  # a limb's garment is named for it, so it is skinned to the limbs alone
         piece = GARMENTS[kind](hosts, **g)
         pieces[f"{limb.capitalize()}{kind.capitalize()}{i}"] = piece
-        if kind in COVERS or (kind == "armor" and g.get("element") not in ("spikes", "emblem")):
+        if kind in COVERS or (kind == "armor" and g.get("element") in ("mail", "quilted")):
             covers.append(piece)
     if recipe.get("hide_covered", True):
         pieces = hide_covered(pieces, covers)

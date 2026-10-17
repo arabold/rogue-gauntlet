@@ -19,13 +19,60 @@ COLORS = {"cloth": (120, 60, 150), "cloth_dark": (70, 36, 90), "armor": (84, 74,
           "wrap": (232, 214, 160), "wrap_dark": (190, 164, 112), "gold": (240, 186, 40), "lapis": (40, 80, 200)}
 
 
-def shell(host, y0, y1, thickness, slot, flare=(0.0, 0.0), sides=20, inset=0.012, bevel=0.4, rows=6):
+def neckline_dip(theta, style="v", front_dip=0.14, back_dip=0.06, front_width=np.radians(65), back_width=np.radians(55)):
+    """A neckline cutout in a garment's top edge: dipping `front_dip` in front (theta = pi/2) as a 'v' or 'u'
+    neck of angular half-width `front_width`, and dipping `back_dip` behind (theta = 3*pi/2) as a 'u' neck of
+    half-width `back_width`. Shoulders (theta = 0 and pi) stay at full shoulder height."""
+    th = np.asarray(theta, float) % (2 * np.pi)
+    d_front = np.abs((th - np.pi / 2 + np.pi) % (2 * np.pi) - np.pi)
+    d_back = np.abs((th - 3 * np.pi / 2 + np.pi) % (2 * np.pi) - np.pi)
+    dip = np.zeros_like(th)
+
+    in_front = d_front < front_width
+    u_f = d_front[in_front] / front_width
+    if style == "v":
+        f_shape = (1.0 - u_f) ** 1.1
+    else:
+        f_shape = 0.5 * (1.0 + np.cos(np.pi * u_f))
+    dip[in_front] += front_dip * f_shape
+
+    in_back = d_back < back_width
+    u_b = d_back[in_back] / back_width
+    b_shape = 0.5 * (1.0 + np.cos(np.pi * u_b))
+    dip[in_back] += back_dip * b_shape
+    return dip
+
+
+def shell(host, y0, y1, thickness, slot, flare=(0.0, 0.0), sides=20, inset=0.012, bevel=0.4, rows=6, neck=None):
     """
     A garment around a host from `y0` up to `y1`, `thickness` off its surface plus `flare` = (at y0, at y1)
-    swelling toward either end, its edges chamfered by `bevel` (a share of the thickness).
+    swelling toward either end, its edges chamfered by `bevel` (a share of the thickness). `neck` shapes the top edge
+    into a neckline cutout: 'v' (default for torso garments), 'u', a depth float, or dict(...).
     """
     c = bevel * thickness
-    dt = min(c / max(y1 - y0, 1e-9), 0.45)
+    if neck:
+        n_style = "v"
+        f_dip = 0.14
+        b_dip = 0.06
+        fw = np.radians(65)
+        bw = np.radians(55)
+        if isinstance(neck, str):
+            n_style = neck
+        elif isinstance(neck, dict):
+            n_style = neck.get("style", "v")
+            f_dip = neck.get("front", 0.14)
+            b_dip = neck.get("back", 0.06)
+            if "front_width" in neck:
+                fw = np.radians(neck["front_width"]) if neck["front_width"] > np.pi else neck["front_width"]
+            if "back_width" in neck:
+                bw = np.radians(neck["back_width"]) if neck["back_width"] > np.pi else neck["back_width"]
+        elif isinstance(neck, (int, float)):
+            f_dip = float(neck)
+            b_dip = float(neck) * 0.45
+        th = 2 * np.pi * np.arange(sides) / sides
+        y1 = y1 - neckline_dip(th, style=n_style, front_dip=f_dip, back_dip=b_dip, front_width=fw, back_width=bw)
+    span = float(np.min(y1 - y0))
+    dt = min(c / max(span, 1e-9), 0.45)
     t = np.linspace(dt, 1 - dt, rows)  # between the chamfers, so no two rings coincide on a short shell
     outer = thickness + flare[0] * (1 - t) ** 2 + flare[1] * t ** 2
     profile = [(0.0, -inset), (0.0, outer[0] - c)] + list(zip(t, outer)) + [(1.0, outer[-1] - c), (1.0, -inset)]
@@ -34,7 +81,7 @@ def shell(host, y0, y1, thickness, slot, flare=(0.0, 0.0), sides=20, inset=0.012
 
 def on_limb(limb, y0, y1, thickness, slot, **kw):
     """A `shell` on a limb, from `y0` to `y1` along it (shares of its length), moved into place."""
-    return limb.place(shell(limb, y0 * limb.length, y1 * limb.length, thickness, slot, sides=kw.pop("sides", 12), **kw))
+    return limb.place(shell(limb, y0 * limb.length, y1 * limb.length, thickness, slot, sides=kw.pop("sides", 12), neck=None, **kw))
 
 
 class _Bell:
@@ -58,16 +105,17 @@ class _Bell:
 
 
 def robe(trunk, top, hem=0.12, waist=0.62, hem_a=0.42, hem_b=0.36, thickness=0.03, slot="cloth", ragged=0, jag=0.08,
-         dip=0.0, sides=24, trim=None, trim_width=0.05):
+         dip=0.0, sides=24, trim=None, trim_width=0.05, neck="v"):
     """
-    A robe from `top` (under the neck) down over the hips into a bell skirt to `hem`; `ragged` > 0 cuts its hem into
-    that many torn points hanging `jag` below it (a wraith's rags); `dip` lets the hem hang that much lower in front
-    and behind than at the sides (a loincloth's flaps); `trim` edges a straight hem with a band in that slot.
+    A robe from `top` (under the neck) down over the hips into a bell skirt to `hem`; `neck` shapes its top opening
+    into a V-neck or U-neck showing skin; `ragged` > 0 cuts its hem into that many torn points hanging `jag` below it
+    (a wraith's rags); `dip` lets the hem hang that much lower in front and behind than at the sides (a loincloth's
+    flaps); `trim` edges a straight hem with a band in that slot.
     """
     if ragged:  # an even number of hem points per tooth: one at each tip, one at each notch
         per = max(2, 2 * int(round(sides / (2 * ragged))))
         sides = ragged * per
-    piece = shell(_Bell(trunk, waist, hem, hem_a, hem_b), hem, top, thickness, slot, sides=sides, rows=12)
+    piece = shell(_Bell(trunk, waist, hem, hem_a, hem_b), hem, top, thickness, slot, sides=sides, rows=12, neck=neck)
     if ragged:
         V = piece.verts.copy()
         low = V[:, 1] < hem + 1e-6
@@ -82,7 +130,7 @@ def robe(trunk, top, hem=0.12, waist=0.62, hem_a=0.42, hem_b=0.36, thickness=0.0
         piece = kit.Piece(V, piece.faces, piece.slots)
     if trim and not ragged and not dip:
         piece = kit.Piece.merge(piece, shell(_Bell(trunk, waist, hem, hem_a, hem_b), hem - 0.004, hem + trim_width,
-                                             thickness + 0.012, trim, sides=sides, rows=2))
+                                             thickness + 0.012, trim, sides=sides, rows=2, neck=None))
     return piece
 
 

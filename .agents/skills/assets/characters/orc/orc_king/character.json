@@ -1,13 +1,29 @@
 {
   "template": "skeleton",
   "scale": 1.25,
-  "head": "orc_king",
+  "head": {
+    "preset": "orc_king",
+    "tusks": [
+      {
+        "x": 0.52,
+        "y": -0.39,
+        "length": 0.35,
+        "radius": 0.13,
+        "spread": -0.04,
+        "curve": 0.15,
+        "out": 0.02,
+        "tip": "tusk_tip",
+        "split": 0.45
+      }
+    ]
+  },
   "body": {
     "torso": "brute",
     "arms": {
-      "style": "muscular",
+      "style": "gorilla",
+      "length": 1.30,
       "hand": "fist",
-      "hand_size": 1.25
+      "hand_size": 1.8
     },
     "legs": {
       "style": "stocky",
@@ -63,7 +79,8 @@
       "y0": 0.46,
       "y1": 0.68,
       "variant": "jagged",
-      "point_scale": 1.5
+      "point_scale": 1.5,
+      "tilt": -8.0
     }
   ],
   "colors": {

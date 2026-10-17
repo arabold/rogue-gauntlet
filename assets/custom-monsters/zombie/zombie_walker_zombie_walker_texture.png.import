@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cd8avb54c1t6x"
-path="res://.godot/imported/zombie_walker_zombie_walker_texture.png-773a8c5b4ea95919449e8e110b7fdd08.ctex"
+path.s3tc="res://.godot/imported/zombie_walker_zombie_walker_texture.png-773a8c5b4ea95919449e8e110b7fdd08.s3tc.ctex"
+path.etc2="res://.godot/imported/zombie_walker_zombie_walker_texture.png-773a8c5b4ea95919449e8e110b7fdd08.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "8c3b42e60a8ad6be85a3c4d752efefd9"
+"md5": "7673811819427156b7a2061deafd3372"
 }
 
 [deps]
 
 source_file="res://assets/custom-monsters/zombie/zombie_walker_zombie_walker_texture.png"
-dest_files=["res://.godot/imported/zombie_walker_zombie_walker_texture.png-773a8c5b4ea95919449e8e110b7fdd08.ctex"]
+dest_files=["res://.godot/imported/zombie_walker_zombie_walker_texture.png-773a8c5b4ea95919449e8e110b7fdd08.s3tc.ctex", "res://.godot/imported/zombie_walker_zombie_walker_texture.png-773a8c5b4ea95919449e8e110b7fdd08.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

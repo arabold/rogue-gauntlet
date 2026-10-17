@@ -145,7 +145,17 @@ def build(head, y0, y1, thickness=0.035, variant="royal", **overrides):
         stone = kit.gem(0.45 * band_h * 2.2, v["front_gem"], cut="diamond", depth=0.05).moved(
             _top_frame(head, 0.5 * (y0 + y1), FRONT, thickness + 0.012))
         parts += [mount, stone]
-    return kit.Piece.merge(*parts)
+    res = kit.Piece.merge(*parts)
+    tilt = v.get("tilt", 0.0)
+    y_offset = v.get("y_offset", 0.0)
+    if abs(tilt) > 1e-4 or abs(y_offset) > 1e-4:
+        c = np.array([0.0, getattr(head, "cy", 0.5 * (y0 + y1)), 0.0])
+        a_x = np.radians(tilt)
+        Rx = np.array([[1, 0, 0], [0, np.cos(a_x), -np.sin(a_x)], [0, np.sin(a_x), np.cos(a_x)]])
+        res = kit.Piece((res.verts - c) @ Rx.T + c + [0.0, y_offset, 0.0], res.faces, res.slots)
+        if getattr(res, "normals", None) is not None:
+            res.normals = res.normals @ Rx.T
+    return res
 
 
 def catalog():

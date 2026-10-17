@@ -224,6 +224,12 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
     missing = [s for s in used if s not in slot_colors]
     if missing:
         raise ValueError(f"no color for slots {missing}")
+    if "tusk" in used and "tusk_tip" in slot_colors:
+        looks["tusk"] = {**looks.get("tusk", {}), "ramp": (slot_colors["tusk_tip"], slot_colors["tusk"])}
+    if "lip" in used and "skin" in slot_colors:
+        mouth_color = slot_colors.get("lip", (54, 44, 34))
+        skin_color = slot_colors["skin"]
+        looks["lip"] = {**looks.get("lip", {}), "ramp": (mouth_color, skin_color)}
     label = {s: i for i, s in enumerate(used)}
     atlas = mm.Atlas([slot_colors[s] for s in used], pad=4, col_w=16, col_h=128, looks=looks, slot_names=used)
     base = g["materials"][0]
@@ -231,10 +237,9 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
 
     FLAT_SLOTS = {
         'paint', 'warpaint', 'scar', 'scars',
-        'lip', 'lip_mid', 'lips',
         'eye', 'iris', 'glint', 'pupil', 'bead', 'rings', 'makeup',
         'nostril', 'nostrils',
-        'tusk', 'tusk_tip', 'teeth', 'tooth',
+        'teeth', 'tooth',
         'rivet', 'rivets', 'buckle', 'buckles', 'stud', 'studs',
         'nail', 'gem', 'stitch',
     }
@@ -280,6 +285,33 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
             ], dtype=bool)
 
             t_val[is_flat] = 0.5
+
+            is_tusk = np.array([str(s) == "tusk" for s in slots], dtype=bool)
+            if is_tusk.any():
+                for sgn in [-1, 1]:
+                    side_sel = is_tusk & ((tri[:, :, 0].mean(1) * sgn) > 0)
+                    if side_sel.any():
+                        y_side = tri[side_sel, :, 1]
+                        y0, y1 = y_side.min(), y_side.max()
+                        p_tusk = np.clip((y_side - y0) / max(y1 - y0, 1e-4), 0.0, 1.0)
+                        t_val[side_sel] = np.clip(1.0 - p_tusk, 0.05, 0.95)
+
+            is_lip = np.array([str(s) == "lip" for s in slots], dtype=bool)
+            if is_lip.any():
+                lip_tri = tri[is_lip]
+                vx = lip_tri[:, :, 0]
+                vy = lip_tri[:, :, 1]
+                y_top = vy.max()
+                y_bot = vy.min()
+                y_span = max(y_top - y_bot, 1e-4)
+                x_max = max(np.abs(vx).max(), 1e-4)
+                y_c = y_top - 0.42 * y_span + 0.008 * (vx / x_max)**2 * (y_span / 0.04)
+                dy = np.abs(vy - y_c)
+                x_norm = np.clip(np.abs(vx) / x_max, 0.0, 1.0)
+                h_local = np.maximum(0.55 * y_span * np.clip(1.0 - x_norm**2, 0.08, 1.0)**0.6, 1e-4)
+                dist = np.clip(dy / h_local, 0.0, 1.0)
+                dist_s = dist * dist * (3.0 - 2.0 * dist)
+                t_val[is_lip] = np.clip(0.06 + 0.88 * dist_s, 0.05, 0.95)
 
             label_indices = np.array([label[str(s)] for s in slots])
             lbl_expanded = np.repeat(label_indices[:, None], 3, axis=1)

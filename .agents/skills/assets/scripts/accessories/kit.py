@@ -420,7 +420,8 @@ def host_band(host, y0, y1, thickness, slot, bevel=0.35, sides=16, inset=0.01, p
     """
     if profile is None:
         c = bevel * thickness
-        dt = min(c / max(y1 - y0, 1e-9), 0.45)
+        span = float(np.min(y1 - y0))
+        dt = min(c / max(span, 1e-9), 0.45)
         profile = [(0.0, -inset), (0.0, thickness - c), (dt, thickness), (1 - dt, thickness), (1.0, thickness - c),
                    (1.0, -inset)]
     th = 2 * np.pi * np.arange(sides) / sides if theta is None else np.asarray(theta, float)

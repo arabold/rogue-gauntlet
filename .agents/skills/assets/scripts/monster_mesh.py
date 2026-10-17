@@ -1544,7 +1544,11 @@ class Atlas:
             c_base = pal[idx]
             s_name = slot_names[idx] if slot_names and idx < len(slot_names) else str(idx)
             spec = (looks or {}).get(s_name, {})
-            if spec.get("emissive"):
+            if spec.get("ramp") is not None:
+                c_light = np.asarray(spec["ramp"][0], float)
+                c_shadow = np.asarray(spec["ramp"][1], float)
+                c_base = np.asarray(spec["ramp"][2], float) if len(spec["ramp"]) > 2 else 0.5 * (c_light + c_shadow)
+            elif spec.get("emissive"):
                 c_light = c_base.copy()
                 c_shadow = c_base.copy()
             elif "metallic" in spec:
