@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/tools/tool/tool_grappling_hook.glb" id="1_glb"]
+
+[node name="ToolGrapplingHook" type="Node3D"]
+
+[node name="tool_grappling_hook" parent="." instance=ExtResource("1_glb")]

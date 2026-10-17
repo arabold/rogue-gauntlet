@@ -1,0 +1,314 @@
+{
+  "template": "skeleton",
+  "scale": 1.0,
+  "head": {
+    "preset": "orc_king",
+    "hair": null,
+    "scar": null,
+    "brows": {
+      "style": "bushy",
+      "thickness": 0.20,
+      "length": 0.50,
+      "y": 0.12,
+      "x": 0.38,
+      "angle": 8,
+      "depth": 0.05,
+      "slot": "brow",
+      "arch": 0.1
+    },
+    "shade": {
+      "bottom": [
+        "skin_dark",
+        -0.72
+      ]
+    },
+    "paint": {
+      "strokes": [
+        {
+          "path": [
+            [
+              0.34,
+              -0.10
+            ],
+            [
+              0.68,
+              -0.18
+            ]
+          ],
+          "width": 0.065,
+          "mirror": true
+        },
+        {
+          "path": [
+            [
+              0.36,
+              -0.20
+            ],
+            [
+              0.66,
+              -0.29
+            ]
+          ],
+          "width": 0.055,
+          "mirror": true
+        },
+        {
+          "path": [
+            [
+              0.0,
+              0.45
+            ],
+            [
+              0.0,
+              0.1
+            ]
+          ],
+          "width": 0.09
+        }
+      ]
+    },
+    "colors": {
+      "skin": [
+        128,
+        138,
+        104
+      ],
+      "skin_dark": [
+        96,
+        104,
+        78
+      ],
+      "brow": [
+        216,
+        214,
+        206
+      ],
+      "mouth": [
+        56,
+        44,
+        34
+      ],
+      "tusk": [
+        236,
+        228,
+        200
+      ],
+      "socket": [
+        86,
+        92,
+        70
+      ],
+      "eye": [
+        18,
+        18,
+        20
+      ],
+      "paint": [
+        240,
+        238,
+        230
+      ],
+      "lip": [
+        58,
+        48,
+        38
+      ],
+      "nose": [
+        112,
+        108,
+        90
+      ],
+      "ear": [
+        120,
+        112,
+        96
+      ],
+      "ear_dark": [
+        96,
+        90,
+        76
+      ],
+      "accent": [
+        96,
+        92,
+        76
+      ]
+    },
+    "ears": {
+      "style": "pointed",
+      "angle": 14,
+      "size": 0.75,
+      "base": 1.6,
+      "y": -0.06,
+      "sweep": 30,
+      "ring": "both",
+      "rings": 1,
+      "ring_size": 0.11,
+      "ring_slot": "bone"
+    }
+  },
+  "body": {
+    "torso": "standard",
+    "arms": {
+      "style": "gorilla",
+      "length": 1.25,
+      "hand": "mitten",
+      "hand_size": 1.6
+    },
+    "legs": {
+      "foot": "bare",
+      "foot_size": 1.15
+    }
+  },
+  "outfit": [
+    {
+      "kind": "shorts",
+      "down": 0.2,
+      "top": 0.62,
+      "slot": "hide_dark"
+    },
+    {
+      "kind": "armor",
+      "element": "straps",
+      "y0": 0.72,
+      "y1": 1.14,
+      "width": 0.035,
+      "thickness": 0.004,
+      "boss": null,
+      "slot": "paint"
+    },
+    {
+      "kind": "loincloth",
+      "y": 0.62,
+      "hem": 0.24,
+      "ragged": 8,
+      "jag": 0.09,
+      "dip": 0.1,
+      "slot": "hide"
+    },
+    {
+      "kind": "wraps",
+      "limb": "arm",
+      "y0": 0.45,
+      "y1": 0.88,
+      "count": 3,
+      "slot": "wrap",
+      "gap": 0.08,
+      "thickness": 0.018,
+      "tilt": 0.4
+    },
+    {
+      "kind": "cuffs",
+      "at": 0.93,
+      "width": 0.05,
+      "thickness": 0.03,
+      "slot": "cord",
+      "studs": 7,
+      "stud_slot": "bead",
+      "stud_radius": 0.022
+    },
+    {
+      "kind": "belt",
+      "y": 0.64,
+      "height": 0.1,
+      "variant": "pouches",
+      "band": "leather",
+      "buckle_slot": "bone"
+    },
+    {
+      "kind": "necklace",
+      "drop": 0.1,
+      "count": 9,
+      "size": 0.05
+    },
+    {
+      "kind": "armor",
+      "element": "fur_collar",
+      "y": 1.13,
+      "count": 16,
+      "size": 0.16,
+      "slot": "fur"
+    },
+    {
+      "kind": "helmet",
+      "style": "headdress",
+      "tilt": -8.0
+    }
+  ],
+  "colors": {
+    "hide": [
+      120,
+      98,
+      72
+    ],
+    "wrap": [
+      196,
+      182,
+      150
+    ],
+    "cord": [
+      70,
+      50,
+      36
+    ],
+    "bead": [
+      190,
+      70,
+      50
+    ],
+    "tooth": [
+      236,
+      228,
+      200
+    ],
+    "leather": [
+      104,
+      72,
+      48
+    ],
+    "fur": [
+      92,
+      74,
+      58
+    ],
+    "bone": [
+      232,
+      222,
+      196
+    ],
+    "feather": [
+      236,
+      232,
+      220
+    ],
+    "feather_tip": [
+      48,
+      44,
+      52
+    ],
+    "dark": [
+      44,
+      36,
+      32
+    ],
+    "gold": [
+      200,
+      160,
+      60
+    ],
+    "hide_dark": [
+      92,
+      72,
+      52
+    ],
+    "paint": [
+      240,
+      238,
+      230
+    ]
+  },
+  "concept": "turn this mannequin into an old orc shaman: olive-grey wrinkled skin, a long jaw with small curved tusks, glowing pale eyes, white war-paint stripes, a tall headdress of feathers around a horned animal skull, a fur-trimmed hide shawl over the shoulders, a necklace of bones and teeth, a belt with pouches and dangling charms, a ragged hide robe to the knees, bead bracelets on wrapped arms, bare feet; for the whole roster: a chunky stylized dungeon-crawler monster with heroic stylized proportions (big head, short limbs), a bold readable silhouette, exaggerated oversized accessories, a limited palette of four to six flat colors, empty hands (no weapons)",
+  "weapons": {
+    "handslot.r": "res://scenes/items/weapons/staff_earth.tres"
+  }
+}

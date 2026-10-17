@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/tools/lamp/tool_lamp_oil.glb" id="1_glb"]
+
+[node name="ToolLampOil" type="Node3D"]
+
+[node name="tool_lamp_oil" parent="." instance=ExtResource("1_glb")]

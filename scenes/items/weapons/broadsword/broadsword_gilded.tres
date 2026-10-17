@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/broadsword/broadsword_gilded.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+Tier = 5
+Level = 0
+RequiredStrength = 21
+Accuracy = 1.0
+DamageMin = 17.0
+DamageMax = 33.0
+CritChance = 0.0
+IsTwoHanded = true
+AnimationId = "melee_attack"
+Delay = 0.0
+PerformDuration = 0.5
+CooldownDuration = 0.0
+ValidSlots = 256
+Rarity = 0
+Name = "Winged Greatsword"
+Scene = ExtResource("1_scene")
+Quality = 1.0
+Value = 200
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_script")

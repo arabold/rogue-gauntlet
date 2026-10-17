@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/tools/tool/tool_mirror_hand.glb" id="1_glb"]
+
+[node name="ToolMirrorHand" type="Node3D"]
+
+[node name="tool_mirror_hand" parent="." instance=ExtResource("1_glb")]

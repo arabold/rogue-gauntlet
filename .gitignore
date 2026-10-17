@@ -24,3 +24,7 @@ gdunit4_testadapter_v5/
 # Python tooling (asset pipeline scripts)
 .venv/
 __pycache__/
+
+# Local tool caches
+.local/
+Library/

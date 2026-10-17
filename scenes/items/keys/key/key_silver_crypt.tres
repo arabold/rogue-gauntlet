@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Item" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/items/keys/key/key_silver_crypt.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://cyllicia8xh4i" path="res://scenes/items/Item.cs" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+Name = "Silver Crypt Key"
+Scene = ExtResource("1_scene")
+Quality = 1.0
+Value = 150
+ShowInInventory = true
+IsStackable = true
+IsQuestItem = true
+metadata/_custom_type_script = ExtResource("2_script")

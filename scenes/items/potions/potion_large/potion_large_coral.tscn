@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/potions/potion_large/potion_large_coral.glb" id="1_glb"]
+
+[node name="PotionLargeCoral" type="Node3D"]
+
+[node name="potion_large_coral" parent="." instance=ExtResource("1_glb")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+layers = 32

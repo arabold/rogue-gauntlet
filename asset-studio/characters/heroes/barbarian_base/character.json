@@ -1,0 +1,54 @@
+{
+  "template": "barbarian",
+  "head": {
+    "form": {
+      "width": 0.94,
+      "height": 1.0,
+      "depth": 0.96
+    },
+    "eyes": {},
+    "brows": {
+      "thickness": 0.15,
+      "length": 0.52,
+      "angle": -6,
+      "slot": "beard"
+    },
+    "nose": {
+      "style": "button",
+      "size": 1.25
+    },
+    "ears": {
+      "style": "round"
+    },
+    "beard": {},
+    "colors": {
+      "skin": [
+        244,
+        190,
+        150
+      ],
+      "beard": [
+        178,
+        178,
+        186
+      ]
+    }
+  },
+  "body": {
+    "torso": "standard",
+    "arms": {
+      "hand": "mitten"
+    },
+    "legs": {
+      "foot": "bare"
+    }
+  },
+  "outfit": [],
+  "colors": {
+    "skin": [
+      244,
+      190,
+      150
+    ]
+  }
+}

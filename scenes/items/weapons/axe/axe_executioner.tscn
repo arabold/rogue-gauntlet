@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/weapons/axe/axe_executioner.glb" id="1_glb"]
+
+[node name="AxeExecutioner" type="Node3D"]
+
+[node name="axe_executioner" parent="." instance=ExtResource("1_glb")]

@@ -2,7 +2,7 @@
 
 Visual reference for the full enemy bestiary — KayKit skeletons (CC0) and the Quaternius
 "Ultimate Monsters" set (CC0). Renders are generated from the imported models by
-`.agents/skills/assets/scripts/render_catalog.gd` — see the `assets` skill. Ordered roughly
+`asset-studio/godot/render_catalog.gd` — see the `assets` skill. Ordered roughly
 weakest → toughest. Each row maps to its enemy scene under `scenes/enemies/`.
 
 | | Monster | Type | HP | Role |

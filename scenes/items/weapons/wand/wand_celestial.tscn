@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/weapons/wand/wand_celestial.glb" id="1_glb"]
+
+[node name="WandCelestial" type="Node3D"]
+
+[node name="wand_celestial" parent="." instance=ExtResource("1_glb")]

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EquipableItem" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/items/tools/lamp/tool_lantern_brass.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://de5x45p7jum00" path="res://scenes/items/EquipableItem.cs" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+ValidSlots = 256
+Rarity = 0
+Tier = 2
+Name = "Brass Dungeon Lantern"
+Scene = ExtResource("1_scene")
+Quality = 1.0
+Value = 70
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_script")
