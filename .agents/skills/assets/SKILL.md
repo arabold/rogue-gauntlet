@@ -42,7 +42,7 @@ All procedural 3D character, monster, and item generation code, modular prefabs,
   - **`prefabs/library.py` & `prefabs/harvest.py`**: Unified mesh loader, automatic domain router, and markdown catalog index generator (`prefabs/library.py --index`).
 - [`asset-studio/catalogs/`](file:///Users/andrerabold/Projects/Personal/rogue-gauntlet/asset-studio/catalogs): Visual multi-angle contact sheets for each domain (`anatomy_catalog.png`, `outfits_catalog.png`, `items_catalog.png`, `details_catalog.png`).
 - [`asset-studio/items/`](file:///Users/andrerabold/Projects/Personal/rogue-gauntlet/asset-studio/items): 5-stage 3D item/weapon/consumable builder (`build_item.py`, `align.py`, `hf_image3d.py`).
-- [`asset-studio/characters/`](file:///Users/andrerabold/Projects/Personal/rogue-gauntlet/asset-studio/characters): Per-character folders (`<family>/<name>/character.json`, `reference.png`, `preview.png`, `lineup.png`, `weapons.json`).
+- [`asset-studio/characters/`](file:///Users/andrerabold/Projects/Personal/rogue-gauntlet/asset-studio/characters): Per-character folders (`<family>/<name>/character.json`, `reference.png`, `lineup.png`, `weapons.json`).
 - [`asset-studio/rigs/`](file:///Users/andrerabold/Projects/Personal/rogue-gauntlet/asset-studio/rigs) & [`asset-studio/godot/`](file:///Users/andrerabold/Projects/Personal/rogue-gauntlet/asset-studio/godot): Self-contained base rigs, mannequins, animation templates, item palette, and Godot inspection/render scripts.
 
 ---
@@ -61,19 +61,15 @@ Always run `asset-studio` commands with `./.venv/bin/python`:
 ./.venv/bin/python asset-studio/studio.py schema details
 ```
 
-### Build, Preview, and Export a Character or Monster
+### Build, Inspect Lineup, and Export a Character or Monster
 1. Edit or create `asset-studio/characters/<family>/<name>/character.json` (or run `./.venv/bin/python asset-studio/studio.py new <family>/<name> --base <family>/<base>`).
-2. Render the interim preview (`asset-studio/characters/<family>/<name>/preview.png`):
-   ```bash
-   ./.venv/bin/python asset-studio/studio.py preview <family>/<name>
-   ```
-3. Export the rigged `.glb` + `.import` into `assets/` and verify in Godot:
-   ```bash
-   ./.venv/bin/python asset-studio/studio.py export <family>/<name>
-   ```
-4. Optionally render an in-engine animated lineup (`asset-studio/characters/<family>/<name>/lineup.png`):
+2. Render the multi-pose animated lineup (`asset-studio/characters/<family>/<name>/lineup.png`):
    ```bash
    ./.venv/bin/python asset-studio/studio.py lineup <family>/<name>
+   ```
+3. Export the rigged `.glb` + `.import` into `assets/` (which automatically updates `lineup.png` and validates in Godot):
+   ```bash
+   ./.venv/bin/python asset-studio/studio.py export <family>/<name>
    ```
 
 ### Render Prefab Contact Sheets & Rebuild Visual Indices

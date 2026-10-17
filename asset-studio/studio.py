@@ -9,9 +9,8 @@ lineups, weapon mesh caches, part studies) inside `asset-studio/` (ignored by Go
 
     asset-studio/characters/<family>/<name>/
         character.json   modular recipe (head, body, outfit, colors) and export settings
-        reference.png    concept drawing (`reference` command)
-        preview.png      renders of the build in idle pose and rest T-pose
-        lineup.png       exported GLB rendered in Godot beside its rig template
+        reference.png    2D concept reference art (`reference` command)
+        lineup.png       multi-pose visual strip (reference, idle front/side, attack, walk)
         weapons.json     cached weapon meshes dumped from the game's item resources
     -> assets/custom-heroes/<name>.glb                family `heroes`
     -> assets/custom-monsters/<family>/<name>.glb     every other family
@@ -204,13 +203,12 @@ def lineup(c, size=420):
         x += t.width
     out_path = os.path.join(c.dir, "lineup.png")
     out.save(out_path)
-    out.save(os.path.join(c.dir, "preview.png"))
     print(f"{c.key}: wrote {os.path.relpath(out_path, REPO)} ({out.size[0]}x{out.size[1]})")
     return out
 
 
 def preview(c, size=420):
-    """Alias for lineup: renders reference and animated action poses."""
+    """Alias for lineup: renders reference and animated action poses to lineup.png."""
     return lineup(c, size=size)
 
 

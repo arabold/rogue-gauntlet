@@ -58,7 +58,7 @@ asset-studio/
 │   ├── build_item.py         # 5-stage item generator (.glb + wrapper .tscn + .tres + Godot import)
 │   ├── align.py              # Low-poly item builders, palette UV mapper, grip/AABB alignment
 │   └── hf_image3d.py         # Image-to-3D mesh reconstruction helper
-├── characters/               # Per-character folders (<family>/<name>/character.json, reference.png, preview.png)
+├── characters/               # Per-character folders (<family>/<name>/character.json, reference.png, lineup.png)
 ├── catalogs/                 # Dedicated home for domain catalog contact sheets
 ├── rigs/                     # Self-contained base rigs, mannequins, animation templates, and item palette
 └── godot/                    # Headless/windowed GDScript helpers for inspection and catalog rendering
@@ -86,10 +86,10 @@ Run all commands using the workspace `.venv`:
 ./.venv/bin/python asset-studio/studio.py catalog items
 ./.venv/bin/python asset-studio/studio.py catalog details
 
-# Render a character's preview (idle front, idle side, rest T-pose) into asset-studio/characters/<family>/<name>/preview.png
-./.venv/bin/python asset-studio/studio.py preview mage/necromancer
+# Render a character's animated multi-pose lineup into asset-studio/characters/<family>/<name>/lineup.png
+./.venv/bin/python asset-studio/studio.py lineup mage/necromancer
 
-# Export a character's rigged GLB + .import into assets/custom-monsters/ or assets/custom-heroes/
+# Export a character's rigged GLB + .import (automatically generates lineup.png)
 ./.venv/bin/python asset-studio/studio.py export mage/necromancer
 
 # Build and integrate a 3D item/weapon/consumable
