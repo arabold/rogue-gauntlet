@@ -4,6 +4,10 @@ Rogue Gauntlet is a roguelike game built with C# in the Godot game engine. The g
 
 Currently, this project is in the early stages of development. The game is not yet playable, but the basic mechanics are in place. The game is being developed as a learning project to improve my skills with C# and the Godot game engine. It is also a fun way to explore game development and design.
 
+## Game Design & Development Plan
+
+The [Game Design Document](docs/game-design.md) describes the intended experience, core gameplay loop, dungeon progression, items, shops, and open design decisions. The [Development Roadmap](docs/development-roadmap.md) organizes that vision into playable milestones with acceptance criteria. Both are living documents; planned features are distinguished from existing foundations.
+
 ## Screenshots
 
 ![In-Game Screenshot](./docs/in-game.png)
