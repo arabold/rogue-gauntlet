@@ -1,0 +1,155 @@
+{
+  "key": "keys/key_gold_treasury",
+  "inputs": "086c25a6eb1dc4a75d23f19d3419d481556dd035b692edac38ca2f3e5a69154c",
+  "files": {
+    "key_gold_treasury.glb": "cf36c09f1ee61297d182310e494b5c4fe65c1dd2a39bb9b94a37e19a0c209154",
+    "lineup.png": "879655b327d1bb063ff02977a2076027b86d4f56ba6c11b45dce06ec4cf81e24"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Key Gold Treasury",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/keys/key/key_gold_treasury.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/keys/key/key_gold_treasury.glb",
+        "source_sha256": "10e8de834fcaa3e93e1dbb5a36bf48f601ae2e511722d3e6135e39520cc1840f",
+        "original_triangles": 544,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "gold_amber": [
+          179,
+          138,
+          64
+        ],
+        "gold_gold": [
+          183,
+          141,
+          66
+        ],
+        "gold_brass": [
+          172,
+          133,
+          62
+        ],
+        "gold_crimson": [
+          146,
+          113,
+          53
+        ],
+        "gold_rose": [
+          168,
+          129,
+          60
+        ],
+        "gold_obsidian": [
+          132,
+          102,
+          47
+        ]
+      },
+      "materials": {
+        "gold_amber": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_gold": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_brass": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_crimson": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_rose": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_obsidian": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "amber": "gold_amber",
+          "gold": "gold_gold",
+          "brass": "gold_brass",
+          "crimson": "gold_crimson",
+          "rose": "gold_rose",
+          "obsidian": "gold_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 574,
+      "bounds": [
+        [
+          -0.23999999463558197,
+          0.0,
+          -0.10000000149011612
+        ],
+        [
+          0.23999999463558197,
+          0.7599999904632568,
+          0.10000000149011612
+        ]
+      ],
+      "dimensions": [
+        0.47999998927116394,
+        0.7599999904632568,
+        0.20000000298023224
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 17,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.019940750376118286
+      },
+      "warnings": [
+        "17 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

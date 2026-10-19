@@ -1,0 +1,177 @@
+{
+  "key": "tools/tool_candle_tallow",
+  "inputs": "eda47585a80f81723e4d71aca1868366ceec402e8490466c268266b8d91cc5df",
+  "files": {
+    "tool_candle_tallow.glb": "5ad5056efb687379bd58c748ecd1a8caa0665e00ebcbb6d4301e3585420997e5",
+    "lineup.png": "c581f2a6979eec522625c95e92fcc186ebc6790a5e814e798992d1c4c11c4c43"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Tool Candle Tallow",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/tools/lamp/tool_candle_tallow.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/tools/lamp/tool_candle_tallow.glb",
+        "source_sha256": "5393b106dc12a7592daadade6e752e1f64c89c63a094ee20c1b142ff915740fc",
+        "original_triangles": 456,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "gold_amber": [
+          249,
+          170,
+          78
+        ],
+        "gold_brass": [
+          208,
+          151,
+          69
+        ],
+        "gold_gold": [
+          234,
+          194,
+          83
+        ],
+        "leather_copper": [
+          177,
+          111,
+          82
+        ],
+        "wax_tan": [
+          218,
+          174,
+          125
+        ],
+        "wax_ivory": [
+          220,
+          208,
+          195
+        ],
+        "wick_bark": [
+          107,
+          92,
+          83
+        ],
+        "wick_obsidian": [
+          19,
+          25,
+          27
+        ]
+      },
+      "materials": {
+        "gold_amber": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_brass": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_gold": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "leather_copper": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "wax_tan": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "wax_ivory": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "wick_bark": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "wick_obsidian": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "amber": "gold_amber",
+          "brass": "gold_brass",
+          "gold": "gold_gold",
+          "copper": "leather_copper",
+          "tan": "wax_tan",
+          "ivory": "wax_ivory",
+          "bark": "wick_bark",
+          "obsidian": "wick_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 456,
+      "bounds": [
+        [
+          -0.14725567400455475,
+          -0.10530884563922882,
+          -0.24251940846443176
+        ],
+        [
+          0.45500001311302185,
+          0.7547433972358704,
+          0.24251940846443176
+        ]
+      ],
+      "dimensions": [
+        0.6022556871175766,
+        0.8600522428750992,
+        0.4850388169288635
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 7,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.041742817802454514
+      },
+      "warnings": [
+        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

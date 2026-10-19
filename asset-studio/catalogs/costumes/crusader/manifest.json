@@ -1,0 +1,85 @@
+{
+  "key": "costume_crusader",
+  "inputs": "9f0c3029d678cd2062f0fa0dbff16671fd31bec9f0b647288c6695863df3617a",
+  "files": {
+    "costume.glb": "018c448270018382816254bbedce82f230979a38407567909f27fa81ef130a31",
+    "lineup.png": "5fd0c8f5d502d5f3b07b576e48a4862050bb85dc19508b05500438395dfe4b15",
+    "lineup.gif": "042fc5f57559e054ed122011b09c836ff68e6b867b846f14eb1b4946f423ea6e"
+  },
+  "metadata": {
+    "torso": "standard",
+    "colors": {
+      "mail": [
+        133,
+        143,
+        155
+      ],
+      "mail_dark": [
+        57,
+        69,
+        82
+      ],
+      "cloth": [
+        220,
+        213,
+        193
+      ],
+      "cloth_dark": [
+        165,
+        153,
+        128
+      ],
+      "heraldry": [
+        158,
+        40,
+        43
+      ],
+      "leather": [
+        84,
+        52,
+        34
+      ],
+      "trim": [
+        151,
+        157,
+        162
+      ],
+      "armor": [
+        135,
+        145,
+        154
+      ],
+      "armor_dark": [
+        45,
+        53,
+        61
+      ],
+      "cloak": [
+        204,
+        196,
+        177
+      ],
+      "cloak_dark": [
+        132,
+        46,
+        44
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "crusader"
+      },
+      {
+        "kind": "steel_shoulders",
+        "size": 0.18,
+        "gorget": false,
+        "leather_straps": true
+      }
+    ],
+    "source": "costumes/crusader/costume.json",
+    "status": "needs_visual_review",
+    "review": "Ivory tabard and short cape over mail, crimson cross and edging, with articulated steel pauldrons on fitted leather straps over the shoulder cloth."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

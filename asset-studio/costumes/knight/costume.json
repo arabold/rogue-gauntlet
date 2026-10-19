@@ -1,0 +1,49 @@
+{
+  "status": "approved",
+  "review": "Practical steel knight: plain steel edges, simple buckle, restrained wear and no gold or emblem. Gorget-mounted rigid steel shoulder caps; articulated mounts under current review.",
+  "body": {
+    "torso": "standard"
+  },
+  "outfit": [
+    {
+      "kind": "costume",
+      "variant": "knight"
+    },
+    {
+      "kind": "steel_shoulders",
+      "size": 0.18
+    }
+  ],
+  "colors": {
+    "armor": [
+      151,
+      163,
+      176
+    ],
+    "trim": [
+      118,
+      130,
+      145
+    ],
+    "rivet": [
+      179,
+      186,
+      194
+    ],
+    "leather": [
+      74,
+      53,
+      40
+    ],
+    "cloth": [
+      63,
+      70,
+      78
+    ],
+    "armor_dark": [
+      38,
+      40,
+      47
+    ]
+  }
+}

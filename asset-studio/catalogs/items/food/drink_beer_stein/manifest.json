@@ -1,0 +1,186 @@
+{
+  "key": "food/drink_beer_stein",
+  "inputs": "5a19e13497530a414e462f600280dc789e4d6bcc01c8377aeb86354f81f14f7f",
+  "files": {
+    "drink_beer_stein.glb": "589130485b8bfd7514e02748d24be4f85ff1eb934f62fc584c95ab6a3aa9d121",
+    "lineup.png": "676f4748c78d31e842838e2e37cfff41b22c33bbe04be20f00ccc6aac41dfb2b"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Drink Beer Stein",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/food/drink/drink_beer_stein.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/food/drink/drink_beer_stein.glb",
+        "source_sha256": "dcda84bc697ff52c43f09063368fce0f6b537591f0dd97611d06a53b22d941f8",
+        "original_triangles": 784,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "surface_wood": [
+          155,
+          90,
+          69
+        ],
+        "surface_copper": [
+          177,
+          111,
+          82
+        ],
+        "surface_bark": [
+          107,
+          92,
+          83
+        ],
+        "surface_dark_iron": [
+          74,
+          81,
+          85
+        ],
+        "surface_steel": [
+          129,
+          140,
+          145
+        ],
+        "surface_amber": [
+          249,
+          170,
+          78
+        ],
+        "surface_ivory": [
+          220,
+          208,
+          195
+        ],
+        "surface_tan": [
+          218,
+          174,
+          125
+        ]
+      },
+      "materials": {
+        "surface_wood": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55,
+          "double_sided": true
+        },
+        "surface_copper": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55,
+          "double_sided": true
+        },
+        "surface_bark": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55,
+          "double_sided": true
+        },
+        "surface_dark_iron": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55,
+          "double_sided": true
+        },
+        "surface_steel": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55,
+          "double_sided": true
+        },
+        "surface_amber": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55,
+          "double_sided": true
+        },
+        "surface_ivory": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55,
+          "double_sided": true
+        },
+        "surface_tan": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55,
+          "double_sided": true
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "authored_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "wood": "surface_wood",
+          "copper": "surface_copper",
+          "bark": "surface_bark",
+          "dark_iron": "surface_dark_iron",
+          "steel": "surface_steel",
+          "amber": "surface_amber",
+          "ivory": "surface_ivory",
+          "tan": "surface_tan"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 792,
+      "bounds": [
+        [
+          -0.2475000023841858,
+          0.0,
+          -0.20446886122226715
+        ],
+        [
+          0.2475000023841858,
+          0.640250027179718,
+          0.20446886122226715
+        ]
+      ],
+      "dimensions": [
+        0.4950000047683716,
+        0.640250027179718,
+        0.4089377224445343
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 9,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 6,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.07704211400152489
+      },
+      "warnings": [
+        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 6 nonmanifold_edges; review the preserved original geometry"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "name": "Scroll Crimson Othala",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/scrolls/scroll/scroll_crimson_othala.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/scrolls/scroll/scroll_crimson_othala.glb",
+    "source_sha256": "1eb0d47e3caefeccd1c54e10da8dc8b9eecbd0838eba281bceea294e786fdad9",
+    "original_triangles": 1144,
+    "quality_notes": "Original frame and paper retained; raised glyph shells converted to face colors on parchment. Source caps and winding repaired."
+  },
+  "colors": {
+    "ink_obsidian": [
+      19,
+      25,
+      27
+    ],
+    "iron_dark_iron": [
+      74,
+      81,
+      85
+    ],
+    "paper_wood": [
+      155,
+      90,
+      69
+    ],
+    "paper_bark": [
+      107,
+      92,
+      83
+    ],
+    "paper_tan": [
+      218,
+      174,
+      125
+    ],
+    "paper_copper": [
+      177,
+      111,
+      82
+    ],
+    "paper_ivory": [
+      220,
+      208,
+      195
+    ],
+    "ink_crimson": [
+      210,
+      34,
+      39
+    ],
+    "ink_rose": [
+      243,
+      114,
+      127
+    ],
+    "ink_magenta": [
+      164,
+      26,
+      90
+    ]
+  },
+  "materials": {
+    "ink_obsidian": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "iron_dark_iron": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 48.0
+    },
+    "paper_wood": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "paper_bark": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "paper_tan": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "paper_copper": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "paper_ivory": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "ink_crimson": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "ink_rose": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "ink_magenta": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "obsidian": "ink_obsidian",
+      "dark_iron": "iron_dark_iron",
+      "wood": "paper_wood",
+      "bark": "paper_bark",
+      "tan": "paper_tan",
+      "copper": "paper_copper",
+      "ivory": "paper_ivory",
+      "crimson": "ink_crimson",
+      "rose": "ink_rose",
+      "magenta": "ink_magenta"
+    },
+    "repair": "boundaries",
+    "paint": "scroll_ink"
+  },
+  "crease": 50
+}

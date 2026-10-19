@@ -1,0 +1,103 @@
+{
+  "base": "heroes/barbarian_base",
+  "body": {
+    "torso": "hero",
+    "arms": {
+      "style": "muscular",
+      "hand": "mitten"
+    },
+    "legs": {
+      "foot": "bare"
+    }
+  },
+  "outfit": [
+    {
+      "kind": "costume",
+      "variant": "barbarian_primitive"
+    },
+    {
+      "kind": "shorts",
+      "down": 0.35,
+      "slot": "hide"
+    },
+    {
+      "kind": "boots",
+      "y0": 0.65,
+      "slot": "boot"
+    },
+    {
+      "kind": "cuffs",
+      "at": 0.87,
+      "width": 0.1,
+      "thickness": 0.025,
+      "slot": "leather"
+    }
+  ],
+  "colors": {
+    "leather": [
+      143,
+      82,
+      48
+    ],
+    "leather_dark": [
+      91,
+      49,
+      29
+    ],
+    "hide": [
+      103,
+      72,
+      49
+    ],
+    "fur": [
+      224,
+      214,
+      190
+    ],
+    "trim": [
+      102,
+      111,
+      118
+    ],
+    "rivet": [
+      122,
+      130,
+      133
+    ],
+    "stitch": [
+      206,
+      181,
+      136
+    ],
+    "bone": [
+      229,
+      215,
+      180
+    ],
+    "cloth": [
+      115,
+      76,
+      48
+    ],
+    "skin": [
+      244,
+      190,
+      150
+    ],
+    "skin_dark": [
+      205,
+      145,
+      110
+    ],
+    "boot": [
+      103,
+      68,
+      44
+    ],
+    "sole": [
+      62,
+      42,
+      31
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "status": "needs_visual_review",
+  "review": "Staggered ring relief on continuous fitted mail; shared low belt and curved mail hip panels.",
+  "body": {
+    "torso": "standard"
+  },
+  "outfit": [
+    {
+      "kind": "costume",
+      "variant": "chain_mail"
+    }
+  ],
+  "colors": {
+    "mail": [
+      145,
+      154,
+      163
+    ],
+    "mail_dark": [
+      66,
+      77,
+      89
+    ],
+    "cloth": [
+      59,
+      68,
+      78
+    ],
+    "leather": [
+      79,
+      54,
+      36
+    ],
+    "trim": [
+      151,
+      158,
+      167
+    ],
+    "armor": [
+      135,
+      145,
+      154
+    ],
+    "armor_dark": [
+      45,
+      53,
+      61
+    ]
+  }
+}

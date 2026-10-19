@@ -1,0 +1,58 @@
+{
+  "key": "costume_segmented",
+  "inputs": "42bac4c301e3c25a299b1b72af10d7b5f571d7538de9ecb9e33bc11116b73523",
+  "files": {
+    "costume.glb": "95f3aab68ad2418a9b084088711358d52a09ca9eaa081c12cc240ff88a6dc886",
+    "lineup.png": "f85c809cda7e6378b7e76571f6a82ea4fb13cf7385f2ffe00b5a6bbc6ffdfce6",
+    "lineup.gif": "e4551cf1e43aa5a55e26571684dee15670d6179f2c45c64037a2f9c2addbcc11"
+  },
+  "metadata": {
+    "torso": "standard",
+    "colors": {
+      "armor": [
+        155,
+        145,
+        128
+      ],
+      "trim": [
+        122,
+        112,
+        96
+      ],
+      "rivet": [
+        205,
+        186,
+        154
+      ],
+      "cloth": [
+        63,
+        68,
+        59
+      ],
+      "leather": [
+        77,
+        54,
+        38
+      ],
+      "armor_dark": [
+        59,
+        57,
+        51
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "segmented"
+      },
+      {
+        "kind": "steel_shoulders",
+        "size": 0.18
+      }
+    ],
+    "source": "costumes/segmented/costume.json",
+    "status": "approved",
+    "review": "Real overlapping metal bands with riveted edges; approved low belt and curved hip protection. Gorget-mounted rigid steel shoulder caps; articulated mounts under current review."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

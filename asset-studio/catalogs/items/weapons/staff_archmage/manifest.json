@@ -1,0 +1,155 @@
+{
+  "key": "weapons/staff_archmage",
+  "inputs": "57a48fa4b07da0fd86e97f9c6e90c2e1640459b7ce6d203ea00aa9cd7a69739a",
+  "files": {
+    "staff_archmage.glb": "a5919bd21fd7844c4404f54b44b6597031be90e6e7cab17a58b4464f51c305f9",
+    "lineup.png": "72ccd460b92c60148f687b232182f42730a77738902e5b786e1babade80d2cbc"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Staff Archmage",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/staff/staff_archmage.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/weapons/staff/staff_archmage.glb",
+        "source_sha256": "8a24cb52629ef8b06ff1db8c18e3022554a5eb9c09b23d5fcfddf5cfafbc1484",
+        "original_triangles": 320,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "gold_gold": [
+          234,
+          194,
+          83
+        ],
+        "leather_copper": [
+          177,
+          111,
+          82
+        ],
+        "leather_wood": [
+          155,
+          90,
+          69
+        ],
+        "iron_dark_iron": [
+          74,
+          81,
+          85
+        ],
+        "surface_cobalt": [
+          37,
+          126,
+          188
+        ],
+        "surface_sky_blue": [
+          98,
+          160,
+          208
+        ]
+      },
+      "materials": {
+        "gold_gold": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "leather_copper": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "leather_wood": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "iron_dark_iron": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "surface_cobalt": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_sky_blue": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "copper": "leather_copper",
+          "wood": "leather_wood",
+          "dark_iron": "iron_dark_iron",
+          "cobalt": "surface_cobalt",
+          "sky_blue": "surface_sky_blue"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 328,
+      "bounds": [
+        [
+          -0.3400000035762787,
+          -0.7799999713897705,
+          -0.2199999988079071
+        ],
+        [
+          0.3400000035762787,
+          1.440000057220459,
+          0.2199999988079071
+        ]
+      ],
+      "dimensions": [
+        0.6800000071525574,
+        2.2200000286102295,
+        0.4399999976158142
+      ],
+      "materials": 4,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.051365645563160804
+      },
+      "warnings": [
+        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

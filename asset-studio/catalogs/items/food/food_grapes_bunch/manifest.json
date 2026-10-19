@@ -1,0 +1,166 @@
+{
+  "key": "food/food_grapes_bunch",
+  "inputs": "323c3748fe53f2b04a0cb1b1fe1c6d4f33d68466b321caaf03fb8bf3c275ef4c",
+  "files": {
+    "food_grapes_bunch.glb": "1afb763baaf07b67b6838f599cef89760a71d30f24ef066557ba6b34416d4edd",
+    "lineup.png": "79e23002ccb69e9261b33aea280cb71e34cd0ad319f1b583368963bfe36ce5d0"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Food Grapes Bunch",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/food/food/food_grapes_bunch.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/food/food/food_grapes_bunch.glb",
+        "source_sha256": "9ff971167b5e2e8b792235ac3efbd8aa2452bd9b89bd440842cff36018c4ac25",
+        "original_triangles": 1572,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "surface_magenta": [
+          112,
+          57,
+          135
+        ],
+        "surface_rose": [
+          112,
+          57,
+          135
+        ],
+        "surface_purple": [
+          112,
+          57,
+          135
+        ],
+        "surface_bark": [
+          112,
+          76,
+          47
+        ],
+        "surface_wood": [
+          112,
+          76,
+          47
+        ],
+        "surface_lime": [
+          68,
+          133,
+          63
+        ],
+        "surface_green": [
+          68,
+          133,
+          63
+        ]
+      },
+      "materials": {
+        "surface_magenta": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_rose": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_purple": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_bark": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_wood": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_lime": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_green": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "magenta": "surface_magenta",
+          "rose": "surface_rose",
+          "purple": "surface_purple",
+          "bark": "surface_bark",
+          "wood": "surface_wood",
+          "lime": "surface_lime",
+          "green": "surface_green"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 1580,
+      "bounds": [
+        [
+          -0.21699999272823334,
+          0.0,
+          -0.19099999964237213
+        ],
+        [
+          0.21699999272823334,
+          0.6045600175857544,
+          0.19099999964237213
+        ]
+      ],
+      "dimensions": [
+        0.4339999854564667,
+        0.6045600175857544,
+        0.38199999928474426
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 23,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03225801658153788
+      },
+      "warnings": [
+        "23 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

@@ -1,0 +1,69 @@
+{
+  "key": "costume_necromancer",
+  "inputs": "89df6b76cb4714d1430868efb8755d860a36fc4c580ee01eadeb3a0b7f198bf3",
+  "files": {
+    "costume.glb": "c3f4a4d85fba9e69a8590cf5d961d19fe04368aa9d4c67a3d102f0f31040e68a",
+    "lineup.png": "3699d6db480e32ed6c69fbffd174afb2d472f9b790ef0caa780a89124b899e00",
+    "lineup.gif": "4ec9a683349a04487cdfa72a93b072e74f891ee8749e527aa0eb74ca1d0cda9c"
+  },
+  "metadata": {
+    "torso": "female",
+    "colors": {
+      "armor": [
+        52,
+        39,
+        70
+      ],
+      "armor_dark": [
+        30,
+        25,
+        40
+      ],
+      "trim": [
+        137,
+        87,
+        174
+      ],
+      "rivet": [
+        219,
+        207,
+        178
+      ],
+      "leather": [
+        39,
+        30,
+        44
+      ],
+      "bone": [
+        232,
+        222,
+        196
+      ],
+      "bone_dark": [
+        149,
+        132,
+        108
+      ],
+      "dark": [
+        27,
+        24,
+        32
+      ],
+      "cloth": [
+        100,
+        55,
+        134
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "necromancer"
+      }
+    ],
+    "source": "costumes/necromancer/costume.json",
+    "status": "approved",
+    "review": "Approved female costume: shaped breast-only cuirass, fitted belly plates, oversized skull relief buckle, curved hip panels and connected purple shoulder cloth."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

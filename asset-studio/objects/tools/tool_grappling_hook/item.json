@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "name": "Tool Grappling Hook",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/tools/tool/tool_grappling_hook.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "res://assets/custom-items/tools/tool/tool_grappling_hook.glb",
+    "notes": "Original 420-triangle geometry and color-region boundaries, re-exported using the shared character surface pipeline."
+  },
+  "colors": {
+    "metal": [
+      129,
+      140,
+      145
+    ],
+    "metal_light": [
+      193,
+      203,
+      208
+    ],
+    "iron": [
+      88,
+      101,
+      109
+    ],
+    "iron_dark": [
+      52,
+      64,
+      71
+    ],
+    "leather": [
+      145,
+      91,
+      59
+    ],
+    "leather_light": [
+      177,
+      119,
+      76
+    ],
+    "leather_dark": [
+      100,
+      67,
+      47
+    ],
+    "rope": [
+      199,
+      157,
+      104
+    ],
+    "bone": [
+      220,
+      208,
+      195
+    ]
+  },
+  "materials": {},
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "steel": "metal",
+      "silver": "metal_light",
+      "dark_iron": "iron",
+      "obsidian": "iron_dark",
+      "copper": "leather_light",
+      "tan": "rope",
+      "wood": "leather",
+      "bark": "leather_dark",
+      "ivory": "bone"
+    }
+  },
+  "crease": 50
+}

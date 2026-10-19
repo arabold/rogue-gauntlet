@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "name": "Dagger Nightblade",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/weapons/dagger/dagger_nightblade.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/weapons/dagger/dagger_nightblade.glb",
+    "source_sha256": "dd2a1a5ef342707f6e1d397b9f78750cad75c2f4eb24930589ff896d7bfc0a57",
+    "original_triangles": 524,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "surface_crimson": [
+      210,
+      34,
+      39
+    ],
+    "gold_gold": [
+      234,
+      194,
+      83
+    ],
+    "leather_bark": [
+      107,
+      92,
+      83
+    ],
+    "metal_blue_steel": [
+      122,
+      141,
+      157
+    ],
+    "iron_dark_iron": [
+      74,
+      81,
+      85
+    ]
+  },
+  "materials": {
+    "surface_crimson": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55,
+      "double_sided": true
+    },
+    "gold_gold": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0,
+      "double_sided": true
+    },
+    "leather_bark": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0,
+      "double_sided": true
+    },
+    "metal_blue_steel": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0,
+      "double_sided": true
+    },
+    "iron_dark_iron": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 48.0,
+      "double_sided": true
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "authored_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "crimson": "surface_crimson",
+      "gold": "gold_gold",
+      "bark": "leather_bark",
+      "blue_steel": "metal_blue_steel",
+      "dark_iron": "iron_dark_iron"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

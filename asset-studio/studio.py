@@ -2,20 +2,20 @@
 """
 Rogue Gauntlet Asset Studio CLI (`asset-studio/studio.py`).
 
-Assembles characters, monsters, and items procedurally from modular prefabs
-(`asset-studio/prefabs/`), keeps all interim steps (recipes, concept art, previews,
-lineups, weapon mesh caches, part studies) inside `asset-studio/` (ignored by Godot via
-`.gdignore`), and exports finished `.glb` + `.import` files into the game's `assets/` tree:
+Assembles characters, monsters, and items from modular prefabs. Recipes and selected
+concepts live inside asset-studio, hidden from Godot by .gdignore. Disposable
+builds, review lineups and weapon caches live in OS temporary storage outside the
+repository. Explicit publication keeps final catalogs separate from review output;
+export writes finished GLBs into the game's assets tree:
 
     asset-studio/characters/<family>/<name>/
         character.json   modular recipe (head, body, outfit, colors) and export settings
         reference.png    2D concept reference art (`reference` command)
-        lineup.png       multi-pose visual strip (reference, idle front/side, attack, walk)
-        weapons.json     cached weapon meshes dumped from the game's item resources
     -> assets/custom-heroes/<name>.glb                family `heroes`
     -> assets/custom-monsters/<family>/<name>.glb     every other family
 
 Commands:
+    .venv/bin/python asset-studio/studio.py item --help   (3D-only item recipes and authoring)
     .venv/bin/python asset-studio/studio.py list
     .venv/bin/python asset-studio/studio.py schema [section]
     .venv/bin/python asset-studio/studio.py new heroes/elf --base heroes/barbarian_base
@@ -26,6 +26,7 @@ Commands:
     .venv/bin/python asset-studio/studio.py catalog anatomy
 """
 
+from pathlib import Path
 import argparse
 import json
 import os
@@ -33,6 +34,9 @@ import re
 import shutil
 import subprocess
 import sys
+
+# Keep the authoring tree free of Python cache directories between CLI runs.
+sys.dont_write_bytecode = True
 
 import numpy as np
 from PIL import Image
@@ -106,7 +110,10 @@ class Character:
     def weapons(self, recipe):
         """`export.export`'s weapons: each item's triangles and colors, dumped from the game once and cached."""
         spec = recipe.get("weapons") or {}
-        path = os.path.join(self.dir, "weapons.json")
+        from core.paths import work_root
+        folder = work_root(Path(STUDIO_DIR)) / "characters" / self.key
+        folder.mkdir(parents=True, exist_ok=True)
+        path = str(folder / "weapons.json")
         cache = json.load(open(path)) if os.path.exists(path) else {}
         out = {}
         for bone, item in spec.items():
@@ -221,7 +228,10 @@ def lineup(c, size=420):
     for t in tiles:
         out.paste(t, (x, 0))
         x += t.width
-    out_path = os.path.join(c.dir, "lineup.png")
+    from core.paths import work_root
+    folder = work_root(Path(STUDIO_DIR)) / "characters" / c.key
+    folder.mkdir(parents=True, exist_ok=True)
+    out_path = str(folder / "lineup.png")
     out.save(out_path)
     print(f"{c.key}: wrote {os.path.relpath(out_path, REPO)} ({out.size[0]}x{out.size[1]})")
     return out
@@ -341,7 +351,17 @@ def new(c, base=None):
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    if len(sys.argv) > 1 and sys.argv[1] == "armor":
+        from fittings import main as armor_main
+        armor_main(sys.argv[2:])
+        return
+    # Items have their own recipes and static-mesh lifecycle; retain character CLI compatibility.
+    if len(sys.argv) > 1 and sys.argv[1] == "item":
+        from items.workflow import main as item_main
+        item_main(sys.argv[2:])
+        return
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter,
+                                 epilog="For item recipes, run: studio.py item --help")
     ap.add_argument("command", choices=["list", "schema", "new", "reference", "preview", "export", "lineup", "catalog"])
     ap.add_argument("targets", nargs="*", help="family/name for character commands, or section for schema/catalog")
     ap.add_argument("--all", action="store_true", help="every character")
@@ -378,7 +398,7 @@ def main():
         else:
             chosen = [mods[which]]
         items = [it for m in chosen for it in m.catalog()]
-        out_path = args.out or os.path.join(STUDIO_DIR, "catalogs", f"{which}_catalog.png")
+        out_path = args.out or os.path.join(STUDIO_DIR, "catalogs", "prefabs", f"{which}.png")
         os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
         catalog.sheet(items, yaws=yaws).save(out_path)
         print(f"wrote {os.path.relpath(out_path, REPO)} ({len(items)} variants)")

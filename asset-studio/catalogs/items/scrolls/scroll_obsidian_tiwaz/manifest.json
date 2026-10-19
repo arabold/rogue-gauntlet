@@ -1,0 +1,178 @@
+{
+  "key": "scrolls/scroll_obsidian_tiwaz",
+  "inputs": "4931c9742c79e208b525e9fecaabe6d70436eaa6e7838781148945c92218d9e1",
+  "files": {
+    "scroll_obsidian_tiwaz.glb": "af779fc3149b4860783b2d0a09d1341b26214f1ed76066237cafea39fb42f6a4",
+    "lineup.png": "dcfa5e963e8ead98d832aedf6ebd8e65b8c64c573a67624bf50c24e8d426875b"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Scroll Obsidian Tiwaz",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/scrolls/scroll/scroll_obsidian_tiwaz.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/scrolls/scroll/scroll_obsidian_tiwaz.glb",
+        "source_sha256": "5f09da2f81132d9ca6823317e409a73f4b74033de160058b909873a4d213fa4b",
+        "original_triangles": 1186,
+        "quality_notes": "Original frame and paper retained; raised glyph shells converted to face colors on parchment. Source caps and winding repaired."
+      },
+      "colors": {
+        "ink_obsidian": [
+          19,
+          25,
+          27
+        ],
+        "iron_dark_iron": [
+          74,
+          81,
+          85
+        ],
+        "paper_wood": [
+          155,
+          90,
+          69
+        ],
+        "paper_bark": [
+          107,
+          92,
+          83
+        ],
+        "paper_tan": [
+          218,
+          174,
+          125
+        ],
+        "paper_copper": [
+          177,
+          111,
+          82
+        ],
+        "paper_ivory": [
+          220,
+          208,
+          195
+        ],
+        "metal_steel": [
+          129,
+          140,
+          145
+        ]
+      },
+      "materials": {
+        "ink_obsidian": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "iron_dark_iron": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "paper_wood": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "paper_bark": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "paper_tan": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "paper_copper": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "paper_ivory": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "metal_steel": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "ink_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "wood": "paper_wood",
+          "bark": "paper_bark",
+          "tan": "paper_tan",
+          "copper": "paper_copper",
+          "ivory": "paper_ivory",
+          "steel": "metal_steel"
+        },
+        "repair": "boundaries",
+        "paint": "scroll_ink"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 1352,
+      "bounds": [
+        [
+          -0.4399999976158142,
+          0.0,
+          -0.09000000357627869
+        ],
+        [
+          0.4399999976158142,
+          0.6399999856948853,
+          0.06954985111951828
+        ]
+      ],
+      "dimensions": [
+        0.8799999952316284,
+        0.6399999856948853,
+        0.15954985469579697
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.02740878132787582
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

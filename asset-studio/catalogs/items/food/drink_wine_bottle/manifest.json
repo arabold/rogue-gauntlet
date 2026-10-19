@@ -1,0 +1,186 @@
+{
+  "key": "food/drink_wine_bottle",
+  "inputs": "390cc79164c322baf8a567afa7701fba45c8875950ab54ec483c38056be098e0",
+  "files": {
+    "drink_wine_bottle.glb": "3a921c8fcfb19861e569d20d51f3836cbfed89af57655b19e2f0b16797f10b0d",
+    "lineup.png": "5dec44119d22ca2ce0bddc9443252fc872478ee7657cf1d84e1d742a62a3a195"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Drink Wine Bottle",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/food/drink/drink_wine_bottle.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/food/drink/drink_wine_bottle.glb",
+        "source_sha256": "52704174c4c0879693d2b04411cae10b1fe64dba3ebf01d4706787371a546920",
+        "original_triangles": 384,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "surface_sea_green": [
+          56,
+          163,
+          141
+        ],
+        "surface_green": [
+          82,
+          170,
+          72
+        ],
+        "surface_emerald": [
+          0,
+          131,
+          83
+        ],
+        "surface_tan": [
+          218,
+          174,
+          125
+        ],
+        "surface_ivory": [
+          220,
+          208,
+          195
+        ],
+        "surface_crimson": [
+          210,
+          34,
+          39
+        ],
+        "surface_rose": [
+          243,
+          114,
+          127
+        ],
+        "surface_magenta": [
+          164,
+          26,
+          90
+        ],
+        "surface_wood": [
+          155,
+          90,
+          69
+        ]
+      },
+      "materials": {
+        "surface_sea_green": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_green": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_emerald": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_tan": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_ivory": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_crimson": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_rose": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_magenta": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_wood": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "sea_green": "surface_sea_green",
+          "green": "surface_green",
+          "emerald": "surface_emerald",
+          "tan": "surface_tan",
+          "ivory": "surface_ivory",
+          "crimson": "surface_crimson",
+          "rose": "surface_rose",
+          "magenta": "surface_magenta",
+          "wood": "surface_wood"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 384,
+      "bounds": [
+        [
+          -0.14800000190734863,
+          0.0,
+          -0.14800000190734863
+        ],
+        [
+          0.14800000190734863,
+          0.7300000190734863,
+          0.14800000190734863
+        ]
+      ],
+      "dimensions": [
+        0.29600000381469727,
+        0.7300000190734863,
+        0.29600000381469727
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.029873640555296194
+      },
+      "warnings": [],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

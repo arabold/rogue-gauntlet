@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "name": "Tool Pickaxe Dwarven",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/tools/tool/tool_pickaxe_dwarven.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/tools/tool/tool_pickaxe_dwarven.glb",
+    "source_sha256": "6b92a0aa14646b9f780253eb8c7277fa6955cdf03848c6169dce151d84151bfb",
+    "original_triangles": 276,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "leather_bark": [
+      107,
+      92,
+      83
+    ],
+    "leather_wood": [
+      155,
+      90,
+      69
+    ],
+    "leather_copper": [
+      177,
+      111,
+      82
+    ],
+    "leather_tan": [
+      218,
+      174,
+      125
+    ],
+    "gold_brass": [
+      208,
+      151,
+      69
+    ],
+    "gold_gold": [
+      234,
+      194,
+      83
+    ],
+    "iron_dark_iron": [
+      74,
+      81,
+      85
+    ],
+    "metal_steel": [
+      129,
+      140,
+      145
+    ],
+    "surface_obsidian": [
+      19,
+      25,
+      27
+    ],
+    "metal_silver": [
+      212,
+      219,
+      222
+    ]
+  },
+  "materials": {
+    "leather_bark": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "leather_wood": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "leather_copper": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "leather_tan": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "gold_brass": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_gold": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "iron_dark_iron": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 48.0
+    },
+    "metal_steel": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "surface_obsidian": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "metal_silver": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "bark": "leather_bark",
+      "wood": "leather_wood",
+      "copper": "leather_copper",
+      "tan": "leather_tan",
+      "brass": "gold_brass",
+      "gold": "gold_gold",
+      "dark_iron": "iron_dark_iron",
+      "steel": "metal_steel",
+      "obsidian": "surface_obsidian",
+      "silver": "metal_silver"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

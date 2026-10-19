@@ -1,0 +1,210 @@
+{
+  "key": "tools/tool_lockpick_set",
+  "inputs": "9157f0b251a124d16006d0bf82141aaa7a8161657e682777bfc9895c7f9af0f0",
+  "files": {
+    "tool_lockpick_set.glb": "4508a620f4ca3f6efafcd214fc4057d0ca438115107aa5bd932ea9e0c7f14acc",
+    "lineup.png": "30f7db09c783c87f0851da45f0b3bf18a53de7a7c16a645c8dcdef9ba40abefd"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Tool Lockpick Set",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/tools/tool/tool_lockpick_set.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/tools/tool/tool_lockpick_set.glb",
+        "source_sha256": "8f352ed5e429633e2348004ebd45a3ae0ca0cc0f1cde2e4fc1c0a2b07669a4bd",
+        "original_triangles": 360,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "metal_silver": [
+          212,
+          219,
+          222
+        ],
+        "metal_steel": [
+          129,
+          140,
+          145
+        ],
+        "iron_dark_iron": [
+          74,
+          81,
+          85
+        ],
+        "surface_obsidian": [
+          19,
+          25,
+          27
+        ],
+        "leather_wood": [
+          155,
+          90,
+          69
+        ],
+        "leather_copper": [
+          177,
+          111,
+          82
+        ],
+        "leather_bark": [
+          107,
+          92,
+          83
+        ],
+        "gold_gold": [
+          234,
+          194,
+          83
+        ],
+        "gold_amber": [
+          249,
+          170,
+          78
+        ],
+        "gold_brass": [
+          208,
+          151,
+          69
+        ],
+        "metal_blue_steel": [
+          122,
+          141,
+          157
+        ]
+      },
+      "materials": {
+        "metal_silver": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "metal_steel": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "iron_dark_iron": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "surface_obsidian": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "leather_wood": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "leather_copper": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "leather_bark": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "gold_gold": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_amber": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_brass": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "metal_blue_steel": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "silver": "metal_silver",
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "obsidian": "surface_obsidian",
+          "wood": "leather_wood",
+          "copper": "leather_copper",
+          "bark": "leather_bark",
+          "gold": "gold_gold",
+          "amber": "gold_amber",
+          "brass": "gold_brass",
+          "blue_steel": "metal_blue_steel"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 360,
+      "bounds": [
+        [
+          -0.3375183343887329,
+          -0.30799999833106995,
+          -0.05400000140070915
+        ],
+        [
+          0.3022626042366028,
+          0.8719096779823303,
+          0.05400000140070915
+        ]
+      ],
+      "dimensions": [
+        0.6397809386253357,
+        1.1799096763134003,
+        0.1080000028014183
+      ],
+      "materials": 4,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 5,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.00778342136036778
+      },
+      "warnings": [
+        "5 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

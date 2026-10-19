@@ -1,0 +1,75 @@
+{
+  "key": "costume_maiden",
+  "inputs": "09c85bae39709a64b0d87a0a5f76b1d89a29abe0293f6fca933d75736b18c6ea",
+  "files": {
+    "costume.glb": "bbaf8ef2378c617a98e119c5093d4f59abbbd881c9a557345a0fd5de588f507a",
+    "lineup.png": "d32b76609f8faba8e3afeefa04d7b0fa81ccd6e8414dbb018ac9755067a2d817",
+    "lineup.gif": "4e03c239d4e88d07d1350f295bf43ea03ce95b53614f00583ba2fcb904951c34"
+  },
+  "metadata": {
+    "torso": "female",
+    "colors": {
+      "armor": [
+        170,
+        182,
+        197
+      ],
+      "trim": [
+        121,
+        143,
+        167
+      ],
+      "rivet": [
+        203,
+        211,
+        220
+      ],
+      "gem": [
+        43,
+        111,
+        181
+      ],
+      "leather": [
+        55,
+        48,
+        46
+      ],
+      "cloth": [
+        46,
+        68,
+        98
+      ],
+      "armor_dark": [
+        38,
+        40,
+        47
+      ],
+      "armor_lame": [
+        151,
+        164,
+        181
+      ],
+      "armor_joint": [
+        108,
+        126,
+        147
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "maiden"
+      },
+      {
+        "kind": "steel_shoulders",
+        "size": 0.165,
+        "gorget": false,
+        "leather_straps": true
+      }
+    ],
+    "source": "costumes/maiden/costume.json",
+    "status": "approved",
+    "review": "Female plate with open neckline, articulated pauldrons on fitted leather shoulder straps, blue gem and horizontal banding on both belly and back plate."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

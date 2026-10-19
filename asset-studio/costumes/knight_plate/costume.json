@@ -1,0 +1,49 @@
+{
+  "status": "style_reference",
+  "review": "Approved Paladin reference: steel armor with gold trim and sunburst emblem. Original knight_plate path retained for compatibility. Gorget-mounted rigid steel shoulder caps; articulated mounts under current review.",
+  "body": {
+    "torso": "standard"
+  },
+  "outfit": [
+    {
+      "kind": "costume",
+      "variant": "paladin"
+    },
+    {
+      "kind": "steel_shoulders",
+      "size": 0.18
+    }
+  ],
+  "colors": {
+    "armor": [
+      141,
+      158,
+      177
+    ],
+    "trim": [
+      190,
+      149,
+      72
+    ],
+    "rivet": [
+      210,
+      172,
+      96
+    ],
+    "gem": [
+      176,
+      42,
+      48
+    ],
+    "leather": [
+      96,
+      62,
+      42
+    ],
+    "cloth": [
+      54,
+      62,
+      72
+    ]
+  }
+}

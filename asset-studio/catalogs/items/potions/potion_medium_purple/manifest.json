@@ -1,0 +1,194 @@
+{
+  "key": "potions/potion_medium_purple",
+  "inputs": "f298486fa43cb16ca3a2ec6e77d07bdbdb242519aee9a00b0ecdf8f94d7e414c",
+  "files": {
+    "potion_medium_purple.glb": "a4b8bf1832299d7ee25149a34ca25166809ef6fb225c366c33973a8a5c71521f",
+    "lineup.png": "0ba62ab2aa1eca4fc47699908d1a48d1321b7b8a80e556feb4aa2fb5e49295c2"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Potion Medium Purple",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/potions/potion_medium/potion_medium_purple.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/potions/potion_medium/potion_medium_purple.glb",
+        "source_sha256": "f830416c99c507140f1688d3ef3902062b2c6e9a8d858c7008915a5f97cf19fe",
+        "original_triangles": 288,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "glass_obsidian": [
+          19,
+          25,
+          27
+        ],
+        "glass_purple": [
+          102,
+          44,
+          142
+        ],
+        "cork_tan": [
+          218,
+          174,
+          125
+        ],
+        "paper_ivory": [
+          220,
+          208,
+          195
+        ],
+        "glass_magenta": [
+          164,
+          26,
+          90
+        ],
+        "glass_blue_steel": [
+          122,
+          141,
+          157
+        ],
+        "metal_steel": [
+          129,
+          140,
+          145
+        ],
+        "metal_silver": [
+          212,
+          219,
+          222
+        ],
+        "cork_wood": [
+          155,
+          90,
+          69
+        ]
+      },
+      "materials": {
+        "glass_obsidian": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.72,
+          "double_sided": true
+        },
+        "glass_purple": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.72,
+          "double_sided": true
+        },
+        "cork_tan": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "paper_ivory": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "glass_magenta": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.72,
+          "double_sided": true
+        },
+        "glass_blue_steel": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.38,
+          "double_sided": true
+        },
+        "metal_steel": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "metal_silver": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "cork_wood": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "glass_obsidian",
+          "purple": "glass_purple",
+          "tan": "cork_tan",
+          "ivory": "paper_ivory",
+          "magenta": "glass_magenta",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 288,
+      "bounds": [
+        [
+          -0.23999999463558197,
+          0.0,
+          -0.23999999463558197
+        ],
+        [
+          0.23999999463558197,
+          0.8799999952316284,
+          0.23999999463558197
+        ]
+      ],
+      "dimensions": [
+        0.47999998927116394,
+        0.8799999952316284,
+        0.47999998927116394
+      ],
+      "materials": 4,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.11353062084926878
+      },
+      "warnings": [],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

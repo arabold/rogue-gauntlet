@@ -1,0 +1,192 @@
+{
+  "key": "shields/shield_round_wood",
+  "inputs": "8eb6f48bb190bdaf4764510853f6cc854531ba9c362a282c07db5c96921648bd",
+  "files": {
+    "shield_round_wood.glb": "4933cfe8c9876014e4de8f39d6cc59c6151866d93529307dc82f17adf41e9545",
+    "lineup.png": "86e929d224e908c3618e3e52f6695ade72803ccfe0eb489de64cdcdd26c098b0"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Barbarian Wooden Round Shield",
+      "backend": "procedural",
+      "builder": "shieldcraft",
+      "design": {
+        "kind": "barbarian",
+        "details": true
+      },
+      "reference": "res://asset-studio/objects/shields/reference.png",
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 5000,
+        "materials": 6,
+        "texture_size": 1024
+      },
+      "colors": {
+        "steel": [
+          137,
+          155,
+          168
+        ],
+        "iron": [
+          64,
+          75,
+          82
+        ],
+        "wood": [
+          120,
+          77,
+          43
+        ],
+        "bone": [
+          211,
+          192,
+          151
+        ],
+        "leather": [
+          75,
+          47,
+          31
+        ],
+        "brass": [
+          173,
+          128,
+          49
+        ],
+        "dark": [
+          43,
+          36,
+          31
+        ],
+        "wood_light": [
+          125,
+          81,
+          46
+        ],
+        "wood_dark": [
+          114,
+          73,
+          42
+        ],
+        "wood_cut": [
+          91,
+          58,
+          33
+        ],
+        "wood_repair": [
+          155,
+          112,
+          65
+        ]
+      },
+      "materials": {
+        "steel": {
+          "metallic": 0.55,
+          "roughness": 0.4,
+          "crease": 45
+        },
+        "iron": {
+          "metallic": 0.55,
+          "roughness": 0.4,
+          "crease": 45
+        },
+        "brass": {
+          "metallic": 0.55,
+          "roughness": 0.4,
+          "crease": 45
+        },
+        "wood": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "bone": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "dark": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_light": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_dark": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_cut": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_repair": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/armor/shield/shield_round_wood.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "curvature_reference": "res://assets/kaykit-dungeon-legacy/shield_uncommon.gltf.glb",
+        "quality_notes": "Curated hero/monster combination. Shallow central V ridge, flat round body, or cylindrical scutum curve. Wooden bone-themed shield has a joined bone frame, skull with real eye/nose cavities and leather bindings. Rear grip centered on origin. Art only."
+      }
+    },
+    "report": {
+      "triangles": 2858,
+      "bounds": [
+        [
+          -0.4300000071525574,
+          -0.4300000071525574,
+          -0.031999990344047546
+        ],
+        [
+          0.4300000071525574,
+          0.4300000071525574,
+          0.30000001192092896
+        ]
+      ],
+      "dimensions": [
+        0.8600000143051147,
+        0.8600000143051147,
+        0.3320000022649765
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.05875835346756198
+      },
+      "warnings": [],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

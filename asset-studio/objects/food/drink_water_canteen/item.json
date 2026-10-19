@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "name": "Drink Water Canteen",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/food/drink/drink_water_canteen.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/food/drink/drink_water_canteen.glb",
+    "source_sha256": "a91cb4ae4f5b4d7e2d673717a031edfb47fb3c6638656d80302021ee02d1d82d",
+    "original_triangles": 608,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "surface_wood": [
+      155,
+      90,
+      69
+    ],
+    "surface_tan": [
+      218,
+      174,
+      125
+    ],
+    "surface_bark": [
+      107,
+      92,
+      83
+    ],
+    "surface_copper": [
+      177,
+      111,
+      82
+    ],
+    "surface_steel": [
+      129,
+      140,
+      145
+    ],
+    "surface_silver": [
+      212,
+      219,
+      222
+    ],
+    "surface_dark_iron": [
+      74,
+      81,
+      85
+    ],
+    "surface_ivory": [
+      220,
+      208,
+      195
+    ],
+    "surface_cobalt": [
+      37,
+      126,
+      188
+    ],
+    "surface_sky_blue": [
+      98,
+      160,
+      208
+    ]
+  },
+  "materials": {
+    "surface_wood": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_tan": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_bark": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_copper": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_steel": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_silver": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_dark_iron": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_ivory": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_cobalt": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_sky_blue": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "wood": "surface_wood",
+      "tan": "surface_tan",
+      "bark": "surface_bark",
+      "copper": "surface_copper",
+      "steel": "surface_steel",
+      "silver": "surface_silver",
+      "dark_iron": "surface_dark_iron",
+      "ivory": "surface_ivory",
+      "cobalt": "surface_cobalt",
+      "sky_blue": "surface_sky_blue"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

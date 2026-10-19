@@ -21,7 +21,7 @@ import numpy as np
 
 from core import kit
 from prefabs.anatomy import bodies as body, heads
-from prefabs.outfits import armor, belts, clothes, crowns, cuirass, helmets, pauldrons
+from prefabs.outfits import armor, belts, clothes, costumes, crowns, cuirass, helmets, neckwear, pauldrons
 
 CHARACTERS = os.path.normpath(os.path.join(os.path.dirname(__file__), "../../characters"))
 
@@ -92,12 +92,17 @@ def _plate(h, side, y0=0.62, y1=None, thickness=0.045, **k):
     return _worn(t, y0, t.top - 0.06 if y1 is None else y1, thickness + 0.03, piece, side)
 
 
-def _belt(h, y=0.66, height=0.1, thickness=0.032, **k):
+def _belt(h, y=0.66, height=0.13, thickness=0.04, taut=False, conform=False, fit_slot=None, **k):
     """A belt drawn tight round what the torso really wears there (`clothes.Fitted`), recorded as worn with room
     for its studs and fur, so a cape over it clears it."""
-    fitted = clothes.Fitted(h["torso"], h["built"](), band=0.5 * height + 0.01)
-    return _worn(h["torso"], y - height / 2, y + height / 2, thickness + 0.03,
-                 belts.build(fitted, y, height, thickness, **k))
+    support=h["built"]()
+    if conform:
+        piece=belts.build_fitted(h["torso"],support,y,height,thickness,fit_slot=fit_slot,**k)
+    else:
+        fitted=(costumes.BeltHost(h["torso"],support,y,band=.5*height+.01) if taut else
+                clothes.Fitted(h["torso"],support,band=.5*height+.01))
+        piece=belts.build(fitted,y,height,thickness,**k)
+    return _worn(h["torso"],y-height/2,y+height/2,thickness+.03,piece)
 
 
 def _boots(h, y0=0.55, thickness=0.03, size=1.15, slot="boot", sole="sole", side="both", **k):
@@ -150,7 +155,67 @@ def _gloves(h, style="mitten", size=1.14, slot="glove"):
     return _pair(arm.place(kit.Piece(hand.verts + [0.0, arm.length - 0.025, 0.0], hand.faces, hand.slots)))
 
 
+TORSO_PART_EXCLUSIONS=("Head", "Arm", "Leg", "Helmet", "Crown", "Cape", "Wings", "Tail")
+
+
+def _costume_set(hosts, name):
+    """Package an existing authored garment assembly as one costume without remaking its shapes.
+
+    Named source parts retain the normal layer-host updates. The local built callback
+    includes earlier parts with the assembler’s original fitting rules. Source garment
+    names retain their skin-weight routing and cape/buckle handling after extraction.
+    Nested costume sets are rejected rather than allowing recursive authoring references.
+    """
+    import json
+    from pathlib import Path
+    if not name or any(c not in "abcdefghijklmnopqrstuvwxyz0123456789_" for c in name):
+        raise ValueError("Costume set name must use lowercase letters, digits and underscores")
+    path=Path(__file__).resolve().parents[2]/"costumes"/name/"costume.json"
+    spec=json.loads(path.read_text())
+    parts={};local=dict(hosts);layer_parts=[]
+    local["built"]=lambda:list(hosts["built"]())+[part for key,part in layer_parts
+        if not key.startswith(TORSO_PART_EXCLUSIONS)]
+    for i,entry in enumerate(spec["parts"]):
+        garment=dict(entry);kind=garment.pop("kind")
+        if kind=="costume_set":raise ValueError("Nested costume sets are not supported")
+        made=GARMENTS[kind](local,**garment)
+        if isinstance(made,dict):parts.update({f"Costume{name}{key}{i}":p for key,p in made.items()})
+        else:
+            made.cover_skin=kind in COVERS or (kind=="armor" and garment.get("element") in ("mail","quilted"))
+            parts[garment.get("limb", "").capitalize()+kind.capitalize()+str(i)]=made
+            layer_parts.append((garment.get("limb", "").capitalize()+kind.capitalize()+str(i),made))
+    return parts
+
+
+def _cape(hosts, hem=.2, width=62., slot="pelt", trim=None, fit_slot=None, **options):
+    """One complete cape, including its continuous shoulder yoke and front bib."""
+    from prefabs.outfits import capes
+    supports=hosts["built"]()
+    if fit_slot is not None:
+        supports=[kit.Piece(p.verts,p.faces[p.slots==fit_slot],fit_slot)
+                  for p in supports if np.any(p.slots==fit_slot)]
+        if not supports:
+            raise ValueError(f"Cape has no supporting surface in slot {fit_slot}")
+    return capes.build(hosts["torso"],hem,width,slot,trim,pieces=supports,**options)
+
+
+def _neckcloth(hosts, style="cowl", slot="pelt", trim="pelt_dark"):
+    """Soft shoulder-spanning cape collar, fitted before the cape's upper roots."""
+    torso=hosts["torso"]
+    piece=costumes._bound(neckwear.collar(torso,style,slot,trim),"chest")
+    torso.wear(.98,torso.top,.035)
+    return piece
+
+
 GARMENTS = {
+    "baldric": lambda h, **options: neckwear.baldric(h["torso"],**options),
+    "neckcloth": _neckcloth,
+    "costume_set": _costume_set,
+    "steel_shoulders": lambda h, size=.18, gorget=True, leather_straps=False: pauldrons.steel_assembly(
+        h["torso"],h["built"](),size,gorget,leather_straps),
+    "gorget": lambda h, slot="armor", trim="trim": {"CostumeGorget":neckwear.gorget(h["torso"],slot,trim,
+        neckwear.torso_supports(h["built"]()))},
+    "costume": lambda h, variant="knight_plate", **options: costumes.build(h["torso"], variant, **options),
     "robe": _robe,
     "limb_plate": _limb_plate,
     "cop": lambda h, limb, at, **k: _pair(armor.cop(h[limb], at, **k)),
@@ -160,8 +225,7 @@ GARMENTS = {
     "boots": _boots,
     "fur_trim": _fur_trim,
     "armor": _armor,
-    "cape": lambda h, hem=0.2, width=62.0, slot="pelt", trim=None, **k: armor.tabard(
-        h["torso"], h["torso"].top - 0.02, hem=hem, width=width, slot=slot, trim=trim, sides=("back",), **k),
+    "cape": lambda h, **options: _cape(h,**options),
     "helmet": lambda h, style="bear", **k: helmets.STYLES[style](h["head"], **k),
     "shorts": _shorts,
     "cuffs": _cuffs,
@@ -200,7 +264,7 @@ def head_recipe(spec):
 # Garments snug and closed enough to completely hide the skin under them (`hide_covered`).
 # Partial accessories, straps, bandages, belts, flaps, collars, cuffs, and single-sided plates
 # never hide skin, so holes can never open in bare or partially-covered bodies.
-COVERS = {"cuirass", "robe", "tunic", "sleeves", "shorts", "boots", "gloves"}
+COVERS = {"neckcloth", "cuirass", "robe", "tunic", "sleeves", "shorts", "boots", "gloves"}
 BODY_PIECES = ("Body", "ArmLeft", "ArmRight", "LegLeft", "LegRight")
 
 
@@ -262,16 +326,24 @@ def build(recipe):
     pieces = dict(Head=head_piece, **pieces)
     # what the torso wears so far, for garments drawn tight round it (belts): the body and torso garments
     hosts["built"] = lambda: [p for k, p in pieces.items()
-                              if not k.startswith(("Head", "Arm", "Leg", "Helmet", "Crown", "Cape", "Wings", "Tail"))]
+                              if not k.startswith(TORSO_PART_EXCLUSIONS)]
     covers = []
     for i, garment in enumerate(recipe.get("outfit", [])):
         g = dict(garment)
         kind = g.pop("kind")
         limb = g.get("limb", "")  # a limb's garment is named for it, so it is skinned to the limbs alone
         piece = GARMENTS[kind](hosts, **g)
+        if isinstance(piece, dict):
+            # A coordinated outfit remains separate rigid plates and fittings in the rigged mesh.
+            pieces.update({f"{name}{i}": part for name, part in piece.items()})
+            covers.extend(part for part in piece.values() if getattr(part,"cover_skin",True))
+            continue
         pieces[f"{limb.capitalize()}{kind.capitalize()}{i}"] = piece
         if kind in COVERS or (kind == "armor" and g.get("element") in ("mail", "quilted")):
             covers.append(piece)
+    if any(getattr(p,"garment_type",None)=="cape" for p in pieces.values()) and any(
+            "Gorget" in name for name in pieces):
+        raise ValueError("Choose a cape or a gorget; the cape includes its own shoulder yoke")
     if recipe.get("hide_covered", True):
         pieces = hide_covered(pieces, covers)
     explicit = {**head_spec.get("colors", {}), **recipe.get("colors", {})}

@@ -1,0 +1,193 @@
+{
+  "key": "shields/shield_aegis_gold",
+  "inputs": "3bf258d45c8b2f53dc7d008ceb23e2163f879edb3e13f2ca1a8b150dfa68ff3d",
+  "files": {
+    "shield_aegis_gold.glb": "81bf680cf1c7d5d37a82d7482effb7f5bff2fb01b1701f07e569b9f90893d8ee",
+    "lineup.png": "e816172ef099ac1cd8c5a927ab00ebffd7752dd1c968522e2cb5fca89d4bf88d"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Paladin Curved Aegis",
+      "backend": "procedural",
+      "builder": "shieldcraft",
+      "design": {
+        "kind": "paladin",
+        "details": true
+      },
+      "reference": "res://asset-studio/objects/shields/reference.png",
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 5000,
+        "materials": 6,
+        "texture_size": 1024
+      },
+      "colors": {
+        "steel": [
+          137,
+          155,
+          168
+        ],
+        "iron": [
+          64,
+          75,
+          82
+        ],
+        "wood": [
+          120,
+          77,
+          43
+        ],
+        "bone": [
+          211,
+          192,
+          151
+        ],
+        "leather": [
+          75,
+          47,
+          31
+        ],
+        "brass": [
+          173,
+          128,
+          49
+        ],
+        "dark": [
+          43,
+          36,
+          31
+        ],
+        "wood_light": [
+          125,
+          81,
+          46
+        ],
+        "wood_dark": [
+          114,
+          73,
+          42
+        ],
+        "wood_cut": [
+          91,
+          58,
+          33
+        ],
+        "wood_repair": [
+          155,
+          112,
+          65
+        ]
+      },
+      "materials": {
+        "steel": {
+          "metallic": 0.55,
+          "roughness": 0.4,
+          "crease": 45
+        },
+        "iron": {
+          "metallic": 0.55,
+          "roughness": 0.4,
+          "crease": 45
+        },
+        "brass": {
+          "metallic": 0.55,
+          "roughness": 0.4,
+          "crease": 45
+        },
+        "wood": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "bone": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "dark": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_light": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_dark": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_cut": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_repair": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/armor/shield/shield_aegis_gold.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "curvature_reference": "res://assets/kaykit-dungeon-legacy/shield_uncommon.gltf.glb",
+        "quality_notes": "Curated hero/monster combination. Shallow central V ridge, flat round body, or cylindrical scutum curve. Wooden bone-themed shield has a joined bone frame, skull with real eye/nose cavities and leather bindings. Rear grip centered on origin. Art only."
+      },
+      "source": "source.glb"
+    },
+    "report": {
+      "triangles": 3562,
+      "bounds": [
+        [
+          -0.44999998807907104,
+          -0.6399999856948853,
+          -0.08299998939037323
+        ],
+        [
+          0.44999998807907104,
+          0.6399999856948853,
+          0.30000001192092896
+        ]
+      ],
+      "dimensions": [
+        0.8999999761581421,
+        1.2799999713897705,
+        0.3830000013113022
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.10499903388265815
+      },
+      "warnings": [],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

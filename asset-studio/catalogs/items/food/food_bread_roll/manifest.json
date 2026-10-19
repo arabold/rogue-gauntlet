@@ -1,0 +1,177 @@
+{
+  "key": "food/food_bread_roll",
+  "inputs": "33b879331cd1060320074d823dd9d6ccee961346ed3b7c1eb671612cb9890dd6",
+  "files": {
+    "food_bread_roll.glb": "766b36d5654b5f52bf1d78d8ea8e2dda02679f541fe5e001b55fa410df7e779b",
+    "lineup.png": "09c20cdb947af1a99377ca781a4604872dbe58dad344f091884d090756f2d8de"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Food Bread Roll",
+      "backend": "procedural",
+      "placement": {
+        "pivot": "ground",
+        "dimensions": [
+          1.04,
+          0.43,
+          1.04
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/food/food/food_bread_roll.glb"
+      },
+      "provenance": {
+        "kind": "studio_refinement",
+        "previous_model_sha256": "c04f7dde63b461a1dc0c9ae6cb75de6fe7626205ed0141612e6d2c8e28b28931",
+        "notes": "Retains the separately refined sliced bread with user-requested flat base, larger footprint and fuller crown."
+      },
+      "archetype": "food",
+      "builder": "food",
+      "design": {
+        "kind": "roll",
+        "sliced": true,
+        "footprint_scale": 2,
+        "height_scale": 1.45
+      },
+      "colors": {
+        "bread_crust": [
+          218,
+          155,
+          76
+        ],
+        "bread_crumb": [
+          247,
+          222,
+          174
+        ],
+        "bread_score": [
+          239,
+          193,
+          114
+        ]
+      },
+      "materials": {
+        "bread_crust": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 25,
+          "ramp": [
+            [
+              241,
+              184,
+              101
+            ],
+            [
+              178,
+              119,
+              52
+            ],
+            [
+              218,
+              155,
+              76
+            ]
+          ]
+        },
+        "bread_crumb": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 25,
+          "ramp": [
+            [
+              255,
+              233,
+              185
+            ],
+            [
+              225,
+              194,
+              137
+            ],
+            [
+              247,
+              222,
+              174
+            ]
+          ]
+        },
+        "bread_score": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 25,
+          "ramp": [
+            [
+              250,
+              213,
+              143
+            ],
+            [
+              210,
+              164,
+              89
+            ],
+            [
+              239,
+              193,
+              114
+            ]
+          ]
+        }
+      },
+      "color_mode": "character",
+      "reference": "reference.png",
+      "concept": "One faceted golden bread roll, cut open at one end, with a thick slice leaning against it. Two carved scores and a few large crumb indentations."
+    },
+    "report": {
+      "triangles": 986,
+      "bounds": [
+        [
+          -0.47835309627923184,
+          0.0,
+          -0.52
+        ],
+        [
+          0.47835309627923184,
+          0.31505354253231677,
+          0.52
+        ]
+      ],
+      "dimensions": [
+        0.9567061925584637,
+        0.31505354253231677,
+        1.04
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.15256710438563814
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

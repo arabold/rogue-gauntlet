@@ -1,0 +1,149 @@
+{
+  "key": "weapons/club_wood_old",
+  "inputs": "6046f660fe1082911539793e631a7c9f66d809a9ca6895a896945974f430bc30",
+  "files": {
+    "club_wood_old.glb": "855bfa0709ccb49255e63bc4096d40693ebe9d272a1611249d645f1e5e499ea7",
+    "lineup.png": "e09fbfeeba939c81b6d4d850e28c442610e85dfcacffbefeeefe08ab86380938"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Club Wood Old",
+      "backend": "procedural",
+      "builder": "arsenal",
+      "design": {
+        "kind": "wooden_club"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "steel": [
+          134,
+          153,
+          166
+        ],
+        "edge": [
+          181,
+          194,
+          203
+        ],
+        "iron": [
+          65,
+          76,
+          83
+        ],
+        "wood": [
+          119,
+          78,
+          46
+        ],
+        "endgrain": [
+          148,
+          104,
+          62
+        ],
+        "leather": [
+          79,
+          47,
+          32
+        ],
+        "brass": [
+          165,
+          119,
+          48
+        ]
+      },
+      "materials": {
+        "steel": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        },
+        "edge": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        },
+        "iron": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        },
+        "brass": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        },
+        "wood": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        },
+        "endgrain": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/arsenal/club_wood_old.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Dedicated continuous blade/profile geometry, solid-unioned structural fittings, material color regions, grip-centered origin. No gameplay data."
+      }
+    },
+    "report": {
+      "triangles": 1080,
+      "bounds": [
+        [
+          -0.13877226412296295,
+          -0.2585499882698059,
+          -0.14760255813598633
+        ],
+        [
+          0.172018364071846,
+          1.059999942779541,
+          0.1357574313879013
+        ]
+      ],
+      "dimensions": [
+        0.31079062819480896,
+        1.318549931049347,
+        0.28335998952388763
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03938855496088783
+      },
+      "warnings": [],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

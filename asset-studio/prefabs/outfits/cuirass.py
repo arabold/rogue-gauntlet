@@ -39,7 +39,8 @@ def _smooth(x):
 
 def plate(torso, bottom, top, side="front", width=80.0, width_top=None, armhole=0.62, sculpt=None, thickness=0.05,
           depth=0.03, slot="armor", trim="trim", rims=("top", "bottom", "sides"), rim=0.045, rim_height=0.024,
-          rivets=None, rivet_slot="rivet", rivet_size=0.024, flare=0.0, rows=9, cols=13, bolts=0, seed=0):
+          rivets=None, rivet_slot="rivet", rivet_size=0.024, flare=0.0, rows=9, cols=13, bolts=0, seed=0,
+          azimuth=None):
     """
     One plate on the `side` ("front" or "back") of `torso`, between its `bottom` and `top` edges (rig heights, or
     functions of `u`), `width` degrees to either side, curving in to `width_top` above `armhole` of its height.
@@ -47,12 +48,16 @@ def plate(torso, bottom, top, side="front", width=80.0, width_top=None, armhole=
     `rims`: the edges ("top", "bottom", "left", "right" or "sides") rolled into a rounded rim `rim` wide (rig
     units) and `rim_height` high, colored `trim`; `rivets`: `{edge: count}` along the crests of those rims.
     `sculpt(u, t)` pushes the plate forward (a share of the torso's half width; `t` 0 .. 1 bottom to top). `bolts`
-    scatters that many more rivets over the plate's face (an orc's bolted plates).
+    scatters that many more rivets over the plate's face (an orc's bolted plates). `azimuth` overrides the
+    panel center in degrees around the body (+X = 0, front = 90), for curved hip panels and their straps.
     """
     sides = {"left", "right"} if "sides" in rims else set()
     rims = set(rims) | sides
     fwd = np.array([0.0, 0.0, 1.0 if side == "front" else -1.0])
     centre, sgn_side = (FRONT, 1.0) if side == "front" else (BACK, -1.0)
+    if azimuth is not None:
+        centre = np.radians(azimuth)
+        fwd = np.array([np.cos(centre),0,np.sin(centre)])
     W0 = np.radians(width)
     W1 = np.radians(width if width_top is None else width_top)
     y_mid = 0.5 * float(np.mean(_value(bottom, np.zeros(1)))) + 0.5 * float(np.mean(_value(top, np.zeros(1))))

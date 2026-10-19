@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "name": "Tool Candle Tallow",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/tools/lamp/tool_candle_tallow.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/tools/lamp/tool_candle_tallow.glb",
+    "source_sha256": "5393b106dc12a7592daadade6e752e1f64c89c63a094ee20c1b142ff915740fc",
+    "original_triangles": 456,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "gold_amber": [
+      249,
+      170,
+      78
+    ],
+    "gold_brass": [
+      208,
+      151,
+      69
+    ],
+    "gold_gold": [
+      234,
+      194,
+      83
+    ],
+    "leather_copper": [
+      177,
+      111,
+      82
+    ],
+    "wax_tan": [
+      218,
+      174,
+      125
+    ],
+    "wax_ivory": [
+      220,
+      208,
+      195
+    ],
+    "wick_bark": [
+      107,
+      92,
+      83
+    ],
+    "wick_obsidian": [
+      19,
+      25,
+      27
+    ]
+  },
+  "materials": {
+    "gold_amber": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_brass": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_gold": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "leather_copper": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "wax_tan": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "wax_ivory": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "wick_bark": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "wick_obsidian": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "amber": "gold_amber",
+      "brass": "gold_brass",
+      "gold": "gold_gold",
+      "copper": "leather_copper",
+      "tan": "wax_tan",
+      "ivory": "wax_ivory",
+      "bark": "wick_bark",
+      "obsidian": "wick_obsidian"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

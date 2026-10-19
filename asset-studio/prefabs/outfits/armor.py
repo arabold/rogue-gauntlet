@@ -455,18 +455,18 @@ VARIANTS = {
     "maiden": ("female", dict(armor=(200, 206, 220), trim=(180, 140, 70)), [
         ("breastplate", dict(y0=0.74, sculpt="female", neck=0.1, rivets=0)), ("emblem", dict(y=0.82, style="gem", size=0.08)),
         ("lames", dict(y0=0.52, y1=0.78, count=2)), ("backplate", dict(y0=0.6))]),
-    "segmented": ("stylized", dict(armor=(170, 150, 120), trim=(120, 90, 60)), [
+    "segmented": ("standard", dict(armor=(170, 150, 120), trim=(120, 90, 60)), [
         ("lames", dict(y0=0.5, y1=1.22, count=6, side="front", rivets=4)),
         ("lames", dict(y0=0.5, y1=1.22, count=6, side="back"))]),
     "crusader": ("hero", dict(cloth=(236, 236, 230), gold=(200, 40, 40)), [
         ("mail", dict(y0=0.42, y1=1.24)), ("tabard", dict(top=1.24)), ("emblem", dict(y=0.98, style="cross", slot="gold"))]),
-    "scale": ("stylized", dict(scale=(90, 140, 110), trim=(180, 140, 70)), [
+    "scale": ("standard", dict(scale=(90, 140, 110), trim=(180, 140, 70)), [
         ("scales", dict(y0=0.5, y1=1.2, side="front", trim="trim")), ("scales", dict(y0=0.5, y1=1.2, side="back"))]),
-    "gambeson": ("stylized", dict(cloth=(190, 170, 130)), [
+    "gambeson": ("standard", dict(cloth=(190, 170, 130)), [
         ("quilted", dict(y0=0.45, y1=1.24, side="front", trim="leather", rivets=0)),
         ("quilted", dict(y0=0.45, y1=1.24, side="back", trim="leather", rivets=0))]),
     "barbarian": ("hero", {}, [("straps", dict(y0=0.62, y1=1.18)), ("fur_collar", dict(y=1.2))]),
-    "brigandine": ("stylized", {}, [
+    "brigandine": ("standard", {}, [
         ("breastplate", dict(y0=0.5, sculpt="plain", slot="leather", rivets=6, rivet_rows=4)),
         ("backplate", dict(y0=0.5, slot="leather", rivets=6, rivet_rows=4))]),
     "dark knight": ("brute", dict(armor=(60, 56, 66), trim=(120, 30, 40), metal=(200, 204, 214)), [

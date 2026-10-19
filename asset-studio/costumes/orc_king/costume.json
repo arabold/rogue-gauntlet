@@ -1,0 +1,87 @@
+{
+  "status": "needs_visual_review",
+  "review": "Approved concept direction: asymmetric iron armor, socketed shoulder tusks, horned-skull buckle, crimson cloth and fur. Review generated fit and animation.",
+  "body": {
+    "torso": "brute",
+    "arms": {
+      "style": "gorilla",
+      "length": 1.3,
+      "hand": "fist",
+      "hand_size": 1.8
+    },
+    "legs": {
+      "style": "stocky",
+      "foot": "bare",
+      "foot_size": 1.2
+    }
+  },
+  "outfit": [
+    {
+      "kind": "costume",
+      "variant": "orc_king"
+    }
+  ],
+  "colors": {
+    "armor": [
+      68,
+      76,
+      84
+    ],
+    "armor_dark": [
+      36,
+      41,
+      47
+    ],
+    "trim": [
+      108,
+      119,
+      124
+    ],
+    "rivet": [
+      158,
+      122,
+      66
+    ],
+    "leather": [
+      113,
+      68,
+      37
+    ],
+    "leather_dark": [
+      68,
+      43,
+      26
+    ],
+    "cloth": [
+      125,
+      34,
+      34
+    ],
+    "fur": [
+      204,
+      191,
+      163
+    ],
+    "bone": [
+      225,
+      211,
+      174
+    ],
+    "hide": [
+      90,
+      54,
+      37
+    ],
+    "armor_lame": [
+      75,
+      83,
+      91
+    ],
+    "armor_joint": [
+      45,
+      51,
+      57
+    ]
+  },
+  "character": "orc/orc_king"
+}

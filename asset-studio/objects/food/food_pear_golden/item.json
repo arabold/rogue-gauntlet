@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "name": "Food Pear Golden",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/food/food/food_pear_golden.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/food/food/food_pear_golden.glb",
+    "source_sha256": "f6520e1f6c416845ee6946bc1b3f2f50cf8189d4b4d9a5cc304424a1a4061dab",
+    "original_triangles": 166,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "surface_amber": [
+      249,
+      170,
+      78
+    ],
+    "surface_tan": [
+      218,
+      174,
+      125
+    ],
+    "surface_orange": [
+      249,
+      158,
+      57
+    ],
+    "surface_wood": [
+      155,
+      90,
+      69
+    ],
+    "surface_lime": [
+      85,
+      182,
+      106
+    ],
+    "surface_green": [
+      82,
+      170,
+      72
+    ]
+  },
+  "materials": {
+    "surface_amber": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_tan": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_orange": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_wood": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_lime": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_green": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "amber": "surface_amber",
+      "tan": "surface_tan",
+      "orange": "surface_orange",
+      "wood": "surface_wood",
+      "lime": "surface_lime",
+      "green": "surface_green"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

@@ -1,0 +1,144 @@
+{
+  "version": 1,
+  "name": "Barbarian Wooden Round Shield",
+  "backend": "procedural",
+  "builder": "shieldcraft",
+  "design": {
+    "kind": "barbarian",
+    "details": true
+  },
+  "reference": "res://asset-studio/objects/shields/reference.png",
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 5000,
+    "materials": 6,
+    "texture_size": 1024
+  },
+  "colors": {
+    "steel": [
+      137,
+      155,
+      168
+    ],
+    "iron": [
+      64,
+      75,
+      82
+    ],
+    "wood": [
+      120,
+      77,
+      43
+    ],
+    "bone": [
+      211,
+      192,
+      151
+    ],
+    "leather": [
+      75,
+      47,
+      31
+    ],
+    "brass": [
+      173,
+      128,
+      49
+    ],
+    "dark": [
+      43,
+      36,
+      31
+    ],
+    "wood_light": [
+      125,
+      81,
+      46
+    ],
+    "wood_dark": [
+      114,
+      73,
+      42
+    ],
+    "wood_cut": [
+      91,
+      58,
+      33
+    ],
+    "wood_repair": [
+      155,
+      112,
+      65
+    ]
+  },
+  "materials": {
+    "steel": {
+      "metallic": 0.55,
+      "roughness": 0.4,
+      "crease": 45
+    },
+    "iron": {
+      "metallic": 0.55,
+      "roughness": 0.4,
+      "crease": 45
+    },
+    "brass": {
+      "metallic": 0.55,
+      "roughness": 0.4,
+      "crease": 45
+    },
+    "wood": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "bone": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "leather": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "dark": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "wood_light": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "wood_dark": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "wood_cut": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "wood_repair": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-items/armor/shield/shield_round_wood.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "curvature_reference": "res://assets/kaykit-dungeon-legacy/shield_uncommon.gltf.glb",
+    "quality_notes": "Curated hero/monster combination. Shallow central V ridge, flat round body, or cylindrical scutum curve. Wooden bone-themed shield has a joined bone frame, skull with real eye/nose cavities and leather bindings. Rear grip centered on origin. Art only."
+  }
+}

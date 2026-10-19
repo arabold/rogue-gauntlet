@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "name": "Warhammer Spiked",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/weapons/warhammer/warhammer_spiked.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/weapons/warhammer/warhammer_spiked.glb",
+    "source_sha256": "80465d17f150f6dd5e258cbd8f196c131ca51bde95004c03b8b23b6aa68494fb",
+    "original_triangles": 580,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "leather_copper": [
+      177,
+      111,
+      82
+    ],
+    "gold_brass": [
+      208,
+      151,
+      69
+    ],
+    "leather_wood": [
+      155,
+      90,
+      69
+    ],
+    "iron_dark_iron": [
+      74,
+      81,
+      85
+    ],
+    "metal_steel": [
+      129,
+      140,
+      145
+    ],
+    "metal_silver": [
+      212,
+      219,
+      222
+    ]
+  },
+  "materials": {
+    "leather_copper": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0,
+      "double_sided": true
+    },
+    "gold_brass": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0,
+      "double_sided": true
+    },
+    "leather_wood": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0,
+      "double_sided": true
+    },
+    "iron_dark_iron": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 48.0,
+      "double_sided": true
+    },
+    "metal_steel": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0,
+      "double_sided": true
+    },
+    "metal_silver": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0,
+      "double_sided": true
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "authored_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "copper": "leather_copper",
+      "brass": "gold_brass",
+      "wood": "leather_wood",
+      "dark_iron": "iron_dark_iron",
+      "steel": "metal_steel",
+      "silver": "metal_silver"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

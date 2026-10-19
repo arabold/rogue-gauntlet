@@ -1,0 +1,233 @@
+{
+  "version": 1,
+  "name": "Iron-Banded Tower Shield",
+  "backend": "procedural",
+  "builder": "shieldcraft",
+  "design": {
+    "kind": "iron_tower",
+    "details": true
+  },
+  "reference": "res://asset-studio/objects/shields/heroic-reference.png",
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 6000,
+    "materials": 6,
+    "texture_size": 1024
+  },
+  "colors": {
+    "steel": [
+      137,
+      155,
+      168
+    ],
+    "iron": [
+      64,
+      75,
+      82
+    ],
+    "wood": [
+      120,
+      77,
+      43
+    ],
+    "bone": [
+      211,
+      192,
+      151
+    ],
+    "leather": [
+      75,
+      47,
+      31
+    ],
+    "brass": [
+      173,
+      128,
+      49
+    ],
+    "dark": [
+      43,
+      36,
+      31
+    ],
+    "wood_light": [
+      125,
+      81,
+      46
+    ],
+    "wood_dark": [
+      114,
+      73,
+      42
+    ],
+    "wood_cut": [
+      91,
+      58,
+      33
+    ],
+    "wood_repair": [
+      155,
+      112,
+      65
+    ],
+    "azure": [
+      36,
+      111,
+      177
+    ],
+    "ivory": [
+      218,
+      211,
+      184
+    ],
+    "crimson": [
+      151,
+      42,
+      43
+    ],
+    "purple": [
+      92,
+      47,
+      123
+    ],
+    "dragon": [
+      39,
+      96,
+      75
+    ],
+    "dragon_light": [
+      48,
+      111,
+      84
+    ],
+    "dragon_dark": [
+      30,
+      75,
+      61
+    ],
+    "gold": [
+      181,
+      133,
+      51
+    ],
+    "pale_wood": [
+      156,
+      111,
+      62
+    ]
+  },
+  "materials": {
+    "steel": {
+      "metallic": 0.55,
+      "roughness": 0.4,
+      "crease": 45
+    },
+    "iron": {
+      "metallic": 0.55,
+      "roughness": 0.4,
+      "crease": 45
+    },
+    "brass": {
+      "metallic": 0.55,
+      "roughness": 0.4,
+      "crease": 45
+    },
+    "wood": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "wood_light": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "wood_dark": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "wood_cut": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "wood_repair": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "bone": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "leather": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "dark": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 52
+    },
+    "azure": {
+      "metallic": 0,
+      "roughness": 0.88,
+      "crease": 52
+    },
+    "ivory": {
+      "metallic": 0,
+      "roughness": 0.88,
+      "crease": 52
+    },
+    "crimson": {
+      "metallic": 0,
+      "roughness": 0.88,
+      "crease": 52
+    },
+    "purple": {
+      "metallic": 0,
+      "roughness": 0.88,
+      "crease": 52
+    },
+    "dragon": {
+      "metallic": 0.12,
+      "roughness": 0.64,
+      "crease": 48
+    },
+    "dragon_light": {
+      "metallic": 0.12,
+      "roughness": 0.64,
+      "crease": 48
+    },
+    "dragon_dark": {
+      "metallic": 0.12,
+      "roughness": 0.64,
+      "crease": 48
+    },
+    "gold": {
+      "metallic": 0.5,
+      "roughness": 0.36,
+      "crease": 45
+    },
+    "pale_wood": {
+      "metallic": 0,
+      "roughness": 0.88,
+      "crease": 52
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-items/armor/shield/shield_iron_tower.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Original modeled design inspired by supplied shield references. Solid-unioned fittings, surface color regions, and grip-centered origin. Curated art combination; no gameplay data."
+  }
+}

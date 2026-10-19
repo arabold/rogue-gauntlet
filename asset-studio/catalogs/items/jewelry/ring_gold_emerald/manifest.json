@@ -1,0 +1,155 @@
+{
+  "key": "jewelry/ring_gold_emerald",
+  "inputs": "a5883024f2c237d7a4d68eb91615b4d6af10bb7b5309c9b5e9176d5f97fba089",
+  "files": {
+    "ring_gold_emerald.glb": "2939eda8a955ee7a5836097cf0abc0e5daee546f497534149077b2d9c24319bb",
+    "lineup.png": "979cb5580dda520e9ccd51c2a1983ba9dbb3411e89b99ef6b8c1ac5e4bb107ab"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Ring Gold Emerald",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/jewelry/ring/ring_gold_emerald.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/jewelry/ring/ring_gold_emerald.glb",
+        "source_sha256": "51b858337a3e32214081ba74a975a7b1664471ed48fc4ffa73265accd770375c",
+        "original_triangles": 288,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "gold_amber": [
+          249,
+          170,
+          78
+        ],
+        "gold_brass": [
+          208,
+          151,
+          69
+        ],
+        "gold_gold": [
+          234,
+          194,
+          83
+        ],
+        "gem_emerald": [
+          0,
+          131,
+          83
+        ],
+        "gem_green": [
+          82,
+          170,
+          72
+        ],
+        "gem_lime": [
+          85,
+          182,
+          106
+        ]
+      },
+      "materials": {
+        "gold_amber": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_brass": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_gold": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gem_emerald": {
+          "metallic": 0.1,
+          "roughness": 0.25,
+          "crease": 45
+        },
+        "gem_green": {
+          "metallic": 0.1,
+          "roughness": 0.25,
+          "crease": 45
+        },
+        "gem_lime": {
+          "metallic": 0.1,
+          "roughness": 0.25,
+          "crease": 45
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "amber": "gold_amber",
+          "brass": "gold_brass",
+          "gold": "gold_gold",
+          "emerald": "gem_emerald",
+          "green": "gem_green",
+          "lime": "gem_lime"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 288,
+      "bounds": [
+        [
+          -0.25999999046325684,
+          0.0,
+          -0.15000000596046448
+        ],
+        [
+          0.25999999046325684,
+          0.6200000047683716,
+          0.15000000596046448
+        ]
+      ],
+      "dimensions": [
+        0.5199999809265137,
+        0.6200000047683716,
+        0.30000001192092896
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03776124387293001
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

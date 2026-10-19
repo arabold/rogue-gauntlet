@@ -3,23 +3,17 @@
   "scale": 0.96,
   "head": "necromancer",
   "body": {
-    "torso": "standard",
+    "torso": "female",
     "arms": {
       "hand": "mitten",
-      "hand_slot": "glove"
+      "hand_slot": "glove",
+      "scale": 1.25
     },
     "legs": {
       "foot": "boot"
     }
   },
   "outfit": [
-    {
-      "kind": "robe",
-      "hem": 0.26,
-      "hem_a": 0.4,
-      "hem_b": 0.36,
-      "slot": "cloth"
-    },
     {
       "kind": "boots",
       "y0": 0.35,
@@ -48,14 +42,8 @@
       "slot": "glove"
     },
     {
-      "kind": "cuirass",
-      "variant": "corset"
-    },
-    {
-      "kind": "belt",
-      "y": 0.66,
-      "height": 0.11,
-      "variant": "skull"
+      "kind": "costume",
+      "variant": "necromancer"
     },
     {
       "kind": "crown",
@@ -71,9 +59,9 @@
       204
     ],
     "cloth": [
-      112,
-      58,
-      150
+      100,
+      55,
+      134
     ],
     "glove": [
       240,
@@ -91,13 +79,13 @@
       26
     ],
     "armor_dark": [
-      40,
-      38,
-      44
+      30,
+      25,
+      40
     ],
     "dark": [
-      30,
-      28,
+      27,
+      24,
       32
     ],
     "bone": [
@@ -110,15 +98,30 @@
       150,
       160
     ],
-    "corset": [
-      44,
-      36,
-      56
+    "armor": [
+      52,
+      39,
+      70
     ],
-    "corset_trim": [
-      150,
-      96,
-      196
+    "trim": [
+      137,
+      87,
+      174
+    ],
+    "rivet": [
+      219,
+      207,
+      178
+    ],
+    "leather": [
+      39,
+      30,
+      44
+    ],
+    "bone_dark": [
+      149,
+      132,
+      108
     ]
   },
   "weapons": {

@@ -9,6 +9,7 @@ from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from core import ai  # noqa: E402
+from core.prompts import compose
 
 PROMPT = (
     "These are two views of one low-poly 3D game character in the stylized style: the FRONT view on the left and the "
@@ -42,4 +43,4 @@ PART_PROMPT = (
 def inspire(image, brief, provider="gemini", prompt=CREATURE_PROMPT):
     """A concept drawing of `image` redesigned by `brief` (one paid image call)."""
     p = ai.get_provider(provider)
-    return p.edit_image(prompt.format(brief=brief), [image], aspect="16:9")
+    return p.edit_image(compose(prompt.format(brief=brief)), [image], aspect="16:9")

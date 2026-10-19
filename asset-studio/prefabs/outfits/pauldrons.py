@@ -170,3 +170,89 @@ def catalog():
     stand = shoulder_stand().mirrored()
     for name in VARIANTS:
         yield name, build((0.38, 1.33, 0.0), variant=name), stand
+
+
+def _leather_support(pieces,mount_x,sign):
+    """A thin strap fitted to actual clothed shoulder hits, from breast to back."""
+    from items import solid
+    surface = kit.Piece.merge(*pieces)
+    angles = np.linspace(-.13,np.pi+.13,25)
+    end_x = min(mount_x,.20)
+    x = sign*(end_x+(mount_x-end_x)*np.clip(np.sin(angles),0,1)**2)
+    centers = np.column_stack([x,np.full(len(x),1.107),np.zeros(len(x))])
+    outward = np.column_stack([np.zeros(len(x)),np.sin(angles),np.cos(angles)])
+    origins = centers+.65*outward
+    hit = kit.ray_distance(origins,-outward,surface.verts,surface.faces,reach=.65)
+    if not np.isfinite(hit).all():
+        raise ValueError("No shoulder surface for fitted leather strap")
+    path = origins-hit[:,None]*outward+.004*outward
+    strap = kit.sweep(path,kit.rect_profile(.065,.016,.004),"leather",up=(0,0,1))
+    pivot = path[len(path)//2]
+    pad = kit.lump(pivot,(.035,.014,.034),"leather",n=10,lat=(-60,-30,0,30,60))
+    return solid.fuse_closed(kit.Piece.merge(strap,pad)),pivot
+
+
+def steel_assembly(torso,pieces,size=.18,gorget=True,leather_straps=False):
+    """Rigid steel caps on a gorget or independent shoulder arches, with baked half-arm hinges."""
+    from items import solid
+    from prefabs.outfits import neckwear
+    from prefabs.outfits.costumes import _bound
+    emblems = [p for p in pieces if "gem" in set(p.slots)]
+    front_drop = min(.105,1.135-max(p.verts[:,1].max() for p in emblems)-.012) if emblems else .105
+    supports = neckwear.torso_supports(pieces)
+    guard = neckwear.gorget(torso,pieces=supports,front_drop=front_drop)
+    result = {"CostumeGorget":guard} if gorget else {}
+    side_vertices = guard.verts[np.abs(guard.verts[:,2])<.02]
+    mount_x = .86*float(np.max(np.abs(side_vertices[:,0])))
+    for side,sign in (("Left",1),("Right",-1)):
+        x = sign*mount_x
+        hit = kit.ray_distance(np.array([[x,1.65,0.]]),np.array([[0.,-1.,0.]]),guard.verts,guard.faces,reach=.6)[0]
+        if not np.isfinite(hit):
+            raise ValueError(f"No gorget surface for {side} shoulder mount")
+        pivot = np.array([x,1.65-hit-.009,0.])
+        mount = kit.lump(pivot,(.049,.029,.052),"trim",n=10,lat=(-60,-30,0,30,60))
+        if not gorget and leather_straps:
+            # A removable cape is not a structural shoulder attachment.
+            mount,pivot = _leather_support([p for p in pieces
+                if getattr(p,"garment_type",None)!="cape"],mount_x,sign)
+        elif not gorget:
+            # Independent shoulder arches attach to the front/back plates, leaving the neck open.
+            support = kit.Piece.merge(*supports)
+            end_x = sign*min(mount_x,.20)
+            ends = []
+            for facing in (1,-1):
+                origin = np.array([[end_x,1.08,float(facing)]])
+                direction = np.array([[0.,0.,-float(facing)]])
+                distance = kit.ray_distance(origin,direction,support.verts,support.faces,reach=1.)[0]
+                if not np.isfinite(distance):
+                    raise ValueError(f"No plate surface for {side} shoulder arch")
+                ends.append(origin[0]+distance*direction[0])
+            front,back = ends
+            path = np.array([front,[end_x,1.19,front[2]+.015],[x,1.27,.12],pivot,
+                             [x,1.27,-.12],[end_x,1.19,back[2]-.015],back])
+            arch = kit.sweep(path,kit.rect_profile(.070,.025,.007),"armor",up=(0,1,0))
+            mount = solid.fuse_closed(kit.Piece.merge(arch,mount))
+        result[f"CostumeShoulderMount{side}"] = _bound(mount,"chest")
+        # Reuse the existing shell's actual thick dome; trim colors its rolled lower edge.
+        cap = _shell(size,"armor",lat=-8,scale=(1.,.78,1.07),sides=18)
+        centers = cap.verts[cap.faces].mean(1)
+        cap.slots[centers[:,1]<.025] = "trim"
+        center = pivot+np.array([sign*.145,-.10 if leather_straps and not gorget else -.12,0.])
+        if sign<0:
+            cap = cap.mirrored()
+        cap.verts += center
+        # A short broad neck-side lug connects the cap to a spherical pivot bearing.
+        radius = .022 if leather_straps and not gorget else .032
+        hub = kit.lump(pivot,(radius,radius,radius),"metal",n=10,lat=(-60,-30,0,30,60))
+        leather = leather_straps and not gorget
+        path = np.array([pivot,pivot+[sign*.07,.010 if leather else -.012,0],
+                         pivot+[sign*.14,.025 if leather else -.014,0]])
+        lug = kit.sweep(path,kit.rect_profile(.050,.018,.005) if leather else kit.rect_profile(.056,.035,.009),
+                       "leather" if leather else "armor",up=(0,1,0))
+        cap = solid.fuse_closed(kit.Piece.merge(cap,hub,lug))
+        name = "shoulder_cap.l" if sign>0 else "shoulder_cap.r"
+        cap.bone = name
+        cap.hinge = dict(parent="chest",follow="upperarm.l" if sign>0 else "upperarm.r",
+                         share=.5,pivot=pivot.tolist())
+        result[f"CostumePauldron{side}"] = cap
+    return result

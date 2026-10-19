@@ -1,0 +1,14 @@
+Use case: stylized-concept
+Asset type: concept reference for a cohesive low-poly fantasy game asset library.
+
+Style/medium: KayKit-inspired friendly, chunky low-poly 3D game art, matching the supplied project character references. Every asset should belong beside those characters in the same game. Treat references as style guides only; do not include their characters, equipment, or layouts unless the subject requests them.
+
+Shape language: bold readable silhouette, exaggerated proportions, substantial thickness, broad planar facets, softly chamfered edges and intentionally low polygon curves. Rounded forms still have visible large facets. Use a strong primary form plus a few distinctive secondary forms. Include recognizable functional details at a scale visible from an elevated gameplay camera: collars, rolled rims, sockets, handles, chain links, cut faces or holes when appropriate. Simplify detail into purposeful modeled shapes; do not reduce the design to a stack of generic primitives.
+
+Color and shading: restrained harmonious palette, clean solid color regions and subtle broad light-to-dark ramps like the project's character palette shading. Matte surfaces by default; stylized metal, glass or gems only where requested by the subject. Soft neutral illumination with gentle form shading and restrained contact shading. Material identity comes from color, shape and broad highlights. Keep surface colors clean and readable.
+
+Construction: depict a plausible model with real volume in all three dimensions. Parts meet at convincing attachment points; chains connect through loops, handles attach to their supports, and objects rest naturally. No unexplained floating details or disconnected decoration. Views of the same asset must agree geometrically.
+
+Presentation: plain white background, full object visible with comfortable margins. No scenery, dramatic lighting, depth of field, text, labels, logos, borders or watermark. The task-specific layout below controls views and pose.
+
+Avoid: photorealism, food photography, realistic surface scans, tiny pores, speckles, crumbs, scratches, photographic wood grain, gritty wear, painterly brushwork, outlines, glossy product photography, cinematic reflections, dense sculpted detail and smooth high-poly realism. Preserve useful medium-scale detail and character rather than adding surface noise.

@@ -1,0 +1,61 @@
+{
+  "status": "needs_visual_review",
+  "review": "Approved concept direction: bare chest, leather harness, one fur-lined shoulder, hide skirt and hip panels. Review generated fit and animation.",
+  "body": {
+    "torso": "hero"
+  },
+  "outfit": [
+    {
+      "kind": "costume",
+      "variant": "barbarian_primitive"
+    }
+  ],
+  "colors": {
+    "leather": [
+      143,
+      82,
+      48
+    ],
+    "leather_dark": [
+      91,
+      49,
+      29
+    ],
+    "hide": [
+      103,
+      72,
+      49
+    ],
+    "fur": [
+      224,
+      214,
+      190
+    ],
+    "trim": [
+      102,
+      111,
+      118
+    ],
+    "rivet": [
+      122,
+      130,
+      133
+    ],
+    "stitch": [
+      206,
+      181,
+      136
+    ],
+    "bone": [
+      229,
+      215,
+      180
+    ],
+    "cloth": [
+      115,
+      76,
+      48
+    ]
+  },
+  "character": "heroes/barbarian_primitive"
+}

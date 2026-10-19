@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "name": "Tool Lamp Oil",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/tools/lamp/tool_lamp_oil.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/tools/lamp/tool_lamp_oil.glb",
+    "source_sha256": "18df7e92c3e597428c96438bdc2f722faf36b88ae7f8f1dd3a6ef758a07e1bba",
+    "original_triangles": 536,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "gold_amber": [
+      249,
+      170,
+      78
+    ],
+    "gold_brass": [
+      208,
+      151,
+      69
+    ],
+    "gold_gold": [
+      234,
+      194,
+      83
+    ],
+    "leather_copper": [
+      167,
+      111,
+      55
+    ],
+    "surface_cobalt": [
+      141,
+      91,
+      44
+    ],
+    "surface_sky_blue": [
+      157,
+      106,
+      53
+    ],
+    "iron_dark_iron": [
+      74,
+      81,
+      85
+    ],
+    "surface_crimson": [
+      197,
+      153,
+      70
+    ],
+    "surface_rose": [
+      211,
+      170,
+      84
+    ],
+    "metal_silver": [
+      212,
+      219,
+      222
+    ],
+    "metal_steel": [
+      129,
+      140,
+      145
+    ],
+    "leather_bark": [
+      107,
+      92,
+      83
+    ],
+    "bone_ivory": [
+      220,
+      208,
+      195
+    ]
+  },
+  "materials": {
+    "gold_amber": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_brass": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_gold": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "leather_copper": {
+      "metallic": 0.5,
+      "roughness": 0.35,
+      "crease": 45
+    },
+    "surface_cobalt": {
+      "metallic": 0.5,
+      "roughness": 0.35,
+      "crease": 45
+    },
+    "surface_sky_blue": {
+      "metallic": 0.5,
+      "roughness": 0.35,
+      "crease": 45
+    },
+    "iron_dark_iron": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 48.0
+    },
+    "surface_crimson": {
+      "metallic": 0.5,
+      "roughness": 0.35,
+      "crease": 45
+    },
+    "surface_rose": {
+      "metallic": 0.5,
+      "roughness": 0.35,
+      "crease": 45
+    },
+    "metal_silver": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "metal_steel": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "leather_bark": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "bone_ivory": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "amber": "gold_amber",
+      "brass": "gold_brass",
+      "gold": "gold_gold",
+      "copper": "leather_copper",
+      "cobalt": "surface_cobalt",
+      "sky_blue": "surface_sky_blue",
+      "dark_iron": "iron_dark_iron",
+      "crimson": "surface_crimson",
+      "rose": "surface_rose",
+      "silver": "metal_silver",
+      "steel": "metal_steel",
+      "bark": "leather_bark",
+      "ivory": "bone_ivory"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

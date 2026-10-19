@@ -1,0 +1,58 @@
+{
+  "key": "costume_knight_plate",
+  "inputs": "fa6c50c62a5689f8a4d55408c79ce9fc997e2aa9eeda7ba5c997a5dcaef600e0",
+  "files": {
+    "costume.glb": "1b1f3c89a313cc7b4bc85d471700bc9f73a1bc3524ec670d0d1da7714a219348",
+    "lineup.png": "586b631a5f535f1ecc1a929d0d9ffecbcf980afa72dd99433a34673ecd76abdd",
+    "lineup.gif": "f873a670f9fece4d00a30850330e246a0759165e336645c3919b313f81ef90e7"
+  },
+  "metadata": {
+    "torso": "standard",
+    "colors": {
+      "armor": [
+        141,
+        158,
+        177
+      ],
+      "trim": [
+        190,
+        149,
+        72
+      ],
+      "rivet": [
+        210,
+        172,
+        96
+      ],
+      "gem": [
+        176,
+        42,
+        48
+      ],
+      "leather": [
+        96,
+        62,
+        42
+      ],
+      "cloth": [
+        54,
+        62,
+        72
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "paladin"
+      },
+      {
+        "kind": "steel_shoulders",
+        "size": 0.18
+      }
+    ],
+    "source": "costumes/knight_plate/costume.json",
+    "status": "style_reference",
+    "review": "Approved Paladin reference: steel armor with gold trim and sunburst emblem. Original knight_plate path retained for compatibility. Gorget-mounted rigid steel shoulder caps; articulated mounts under current review."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

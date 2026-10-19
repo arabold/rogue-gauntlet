@@ -1,0 +1,194 @@
+{
+  "key": "shields/shield_kite_crusader",
+  "inputs": "da1ffb8838a609862fe5f0d0552e200cba6fc6b1544e8b280eba368960876bfd",
+  "files": {
+    "shield_kite_crusader.glb": "f87ac7ace96ba5eef2b40457c990222c911ce624ab2ce07a32ee1a895d985dee",
+    "lineup.png": "05ede67314931b8ceecc89119bdb03230d876a41f6c305ebe930ce5000eebec4"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Bone-Framed Wooden Kite Shield",
+      "backend": "procedural",
+      "builder": "shieldcraft",
+      "design": {
+        "kind": "bone_kite",
+        "details": true,
+        "fold_degrees": 22
+      },
+      "reference": "res://asset-studio/objects/shields/reference.png",
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 5000,
+        "materials": 6,
+        "texture_size": 1024
+      },
+      "colors": {
+        "steel": [
+          137,
+          155,
+          168
+        ],
+        "iron": [
+          64,
+          75,
+          82
+        ],
+        "wood": [
+          120,
+          77,
+          43
+        ],
+        "bone": [
+          211,
+          192,
+          151
+        ],
+        "leather": [
+          75,
+          47,
+          31
+        ],
+        "brass": [
+          173,
+          128,
+          49
+        ],
+        "dark": [
+          43,
+          36,
+          31
+        ],
+        "wood_light": [
+          125,
+          81,
+          46
+        ],
+        "wood_dark": [
+          114,
+          73,
+          42
+        ],
+        "wood_cut": [
+          91,
+          58,
+          33
+        ],
+        "wood_repair": [
+          155,
+          112,
+          65
+        ]
+      },
+      "materials": {
+        "steel": {
+          "metallic": 0.55,
+          "roughness": 0.4,
+          "crease": 45
+        },
+        "iron": {
+          "metallic": 0.55,
+          "roughness": 0.4,
+          "crease": 45
+        },
+        "brass": {
+          "metallic": 0.55,
+          "roughness": 0.4,
+          "crease": 45
+        },
+        "wood": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "bone": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "dark": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_light": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_dark": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_cut": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_repair": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/armor/shield/shield_kite_crusader.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "curvature_reference": "res://assets/kaykit-dungeon-legacy/shield_uncommon.gltf.glb",
+        "quality_notes": "Curated hero/monster combination. Shallow central V ridge, flat round body, or cylindrical scutum curve. Wooden bone-themed shield has a joined bone frame, skull with real eye/nose cavities and leather bindings. Rear grip centered on origin. Art only."
+      },
+      "source": "source.glb"
+    },
+    "report": {
+      "triangles": 3640,
+      "bounds": [
+        [
+          -0.39259999990463257,
+          -0.699999988079071,
+          -0.09664418548345566
+        ],
+        [
+          0.39259999990463257,
+          0.5600000023841858,
+          0.3479999899864197
+        ]
+      ],
+      "dimensions": [
+        0.7851999998092651,
+        1.2599999904632568,
+        0.44464417546987534
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.07601956190859371
+      },
+      "warnings": [],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

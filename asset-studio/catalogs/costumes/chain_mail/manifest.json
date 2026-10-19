@@ -1,0 +1,59 @@
+{
+  "key": "costume_chain_mail",
+  "inputs": "ce70d5e9a86b080941990cbceba1750507de7e964d8d2ee670bf0f6430ed47ca",
+  "files": {
+    "costume.glb": "f612de9fe0e8e4dc428c5a9078f742b82560fe5536e6f8b9cfc44c9b53e9b9d3",
+    "lineup.png": "c1e86d87bc1bf3f4ad2761a40763c32195155d3b49103659156c7f1cc91e3420",
+    "lineup.gif": "4e5a8d09268fbd962e95e33246a212e4ca590099c3d731fc10ec49869d8e23b4"
+  },
+  "metadata": {
+    "torso": "standard",
+    "colors": {
+      "mail": [
+        145,
+        154,
+        163
+      ],
+      "mail_dark": [
+        66,
+        77,
+        89
+      ],
+      "cloth": [
+        59,
+        68,
+        78
+      ],
+      "leather": [
+        79,
+        54,
+        36
+      ],
+      "trim": [
+        151,
+        158,
+        167
+      ],
+      "armor": [
+        135,
+        145,
+        154
+      ],
+      "armor_dark": [
+        45,
+        53,
+        61
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "chain_mail"
+      }
+    ],
+    "source": "costumes/chain_mail/costume.json",
+    "status": "needs_visual_review",
+    "review": "Staggered ring relief on continuous fitted mail; shared low belt and curved mail hip panels."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

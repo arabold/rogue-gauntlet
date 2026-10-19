@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "name": "Amulet Gold Ruby",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/jewelry/amulet/amulet_gold_ruby.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/jewelry/amulet/amulet_gold_ruby.glb",
+    "source_sha256": "56a53034b9521dfa36a0776b0a06d9327eed304aa8d08423d916ebf44339107d",
+    "original_triangles": 368,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "gold_gold": [
+      234,
+      194,
+      83
+    ],
+    "gold_brass": [
+      208,
+      151,
+      69
+    ],
+    "gold_amber": [
+      249,
+      170,
+      78
+    ],
+    "gem_crimson": [
+      210,
+      34,
+      39
+    ],
+    "gem_rose": [
+      243,
+      114,
+      127
+    ],
+    "gem_magenta": [
+      164,
+      26,
+      90
+    ]
+  },
+  "materials": {
+    "gold_gold": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_brass": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_amber": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gem_crimson": {
+      "metallic": 0.1,
+      "roughness": 0.25,
+      "crease": 45
+    },
+    "gem_rose": {
+      "metallic": 0.1,
+      "roughness": 0.25,
+      "crease": 45
+    },
+    "gem_magenta": {
+      "metallic": 0.1,
+      "roughness": 0.25,
+      "crease": 45
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "gold": "gold_gold",
+      "brass": "gold_brass",
+      "amber": "gold_amber",
+      "crimson": "gem_crimson",
+      "rose": "gem_rose",
+      "magenta": "gem_magenta"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

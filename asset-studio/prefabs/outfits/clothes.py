@@ -365,13 +365,14 @@ class Fitted:
         y = np.broadcast_to(np.asarray(y, float), theta.shape)
         out = np.broadcast_to(np.asarray(out, float), theta.shape)
         res = np.zeros((len(theta), 3))
-        for yy in np.unique(np.round(y, 4)):
-            sel = np.abs(y - yy) < 5e-5
+        rounded_y = np.round(y,4)
+        for yy in np.unique(rounded_y):
+            sel = rounded_y == yy
             hull = self._hull(yy)
             if hull is None:  # nothing there: the host's own section
                 cx, a, cz, b = (float(v[0]) for v in self.host.section([yy]))
                 d = np.column_stack([np.cos(theta[sel]), np.sin(theta[sel])])
-                res[sel] = np.column_stack([cx + (a + out[sel]) * d[:, 0], np.full(sel.sum(), yy),
+                res[sel] = np.column_stack([cx + (a + out[sel]) * d[:, 0], y[sel],
                                             cz + (b + out[sel]) * d[:, 1]])
                 continue
             H, c = hull
@@ -386,8 +387,38 @@ class Fitted:
                 hit = ok & (s_ > 0) & (u_ >= -1e-9) & (u_ <= 1 + 1e-9)
                 t = np.where(hit, np.maximum(t, s_), t)
             r = t + self.clearance + out[sel]
-            res[sel] = np.column_stack([c[0] + r * d[:, 0], np.full(sel.sum(), yy), c[1] + r * d[:, 1]])
+            res[sel] = np.column_stack([c[0] + r * d[:, 0], y[sel], c[1] + r * d[:, 1]])
         return res
+
+
+class SurfaceFitted:
+    """Follow the actual dressed surface at each height, avoiding broad envelope gaps.
+
+    Suitable for soft fitted bands over a continuous garment. The caller selects
+    the support faces; hardware is seated on the same surface as the leather.
+    """
+
+    conforming=True
+
+    def __init__(self, host, pieces, clearance=.001):
+        self.host, self.clearance = host, clearance
+        self.surface = kit.Piece.merge(*pieces)
+        self.reach = max(1.,float(np.max(np.abs(self.surface.verts[:,[0,2]])))+1.)
+
+    def __getattr__(self, name):
+        return getattr(self.host,name)
+
+    def outline(self, y, theta, out):
+        theta=np.asarray(theta,float)
+        y=np.broadcast_to(np.asarray(y,float),theta.shape)
+        cx,_,cz,_=self.host.section(y)
+        center=np.column_stack([cx,y,cz])
+        direction=np.column_stack([np.cos(theta),np.zeros(len(theta)),np.sin(theta)])
+        origin=center+direction*self.reach
+        distance=kit.ray_distance(origin,-direction,self.surface.verts,self.surface.faces)
+        if not np.isfinite(distance).all():
+            raise ValueError("Fitted band extends beyond its supporting garment")
+        return origin-direction*distance[:,None]+direction*(self.clearance+np.asarray(out))[...,None]
 
 
 class Worn:

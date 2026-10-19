@@ -1,0 +1,74 @@
+{
+  "key": "costume_ranger",
+  "inputs": "fbe7857ae8f924dfbd31a817c5578088764d97c71869793efcf42a71c5f02979",
+  "files": {
+    "costume.glb": "74c5cfc04218643ee0be8e4ce0043f71e43ff64b47ade49ebc0e2e4725d63ea4",
+    "lineup.png": "62ffbd774de167a0cab0dfea0e127a939e94c49d9aec547905d61f9ce2cf43ae",
+    "lineup.gif": "b32fa5f3edfadd3c6364fe1db4bacb66488d4f4124cbb7658846b5df21b4d473"
+  },
+  "metadata": {
+    "torso": "standard",
+    "colors": {
+      "cloth": [
+        36,
+        94,
+        77
+      ],
+      "cloth_dark": [
+        25,
+        66,
+        55
+      ],
+      "wrap": [
+        174,
+        132,
+        58
+      ],
+      "wrap_dark": [
+        112,
+        79,
+        39
+      ],
+      "cloak": [
+        30,
+        75,
+        62
+      ],
+      "cloak_dark": [
+        20,
+        51,
+        42
+      ],
+      "leather": [
+        111,
+        70,
+        46
+      ],
+      "leather_dark": [
+        75,
+        47,
+        33
+      ],
+      "leather_worn": [
+        159,
+        111,
+        73
+      ],
+      "metal": [
+        159,
+        172,
+        181
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "ranger"
+      }
+    ],
+    "source": "costumes/ranger/costume.json",
+    "status": "needs_visual_review",
+    "review": "Forest tunic, ochre pointed scarf, single laced closure and traveling mantle."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

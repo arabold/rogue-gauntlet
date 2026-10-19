@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "name": "Potion Small Silver",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/potions/potion_small/potion_small_silver.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/potions/potion_small/potion_small_silver.glb",
+    "source_sha256": "92525ba5785ea04b0278dfb2a7fdc6016e073335bc1e84d1210460198acae7af",
+    "original_triangles": 224,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "glass_blue_steel": [
+      122,
+      141,
+      157
+    ],
+    "metal_silver": [
+      212,
+      219,
+      222
+    ],
+    "paper_ivory": [
+      220,
+      208,
+      195
+    ],
+    "metal_steel": [
+      129,
+      140,
+      145
+    ],
+    "cork_wood": [
+      155,
+      90,
+      69
+    ],
+    "cork_tan": [
+      218,
+      174,
+      125
+    ]
+  },
+  "materials": {
+    "glass_blue_steel": {
+      "metallic": 0,
+      "roughness": 0.2,
+      "crease": 60,
+      "alpha": 0.38,
+      "double_sided": true
+    },
+    "metal_silver": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "paper_ivory": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "metal_steel": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "cork_wood": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "cork_tan": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "blue_steel": "glass_blue_steel",
+      "silver": "metal_silver",
+      "ivory": "paper_ivory",
+      "steel": "metal_steel",
+      "wood": "cork_wood",
+      "tan": "cork_tan"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

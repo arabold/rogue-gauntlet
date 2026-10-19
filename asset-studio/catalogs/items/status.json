@@ -1,0 +1,4903 @@
+{
+  "items": 145,
+  "godot_verified_exports": 145,
+  "authored_surface_exceptions": [
+    "food/drink_beer_stein",
+    "keys/key_bronze_ornate",
+    "weapons/axe_bearded",
+    "weapons/axe_executioner",
+    "weapons/battleaxe_gilded",
+    "weapons/battleaxe_iron",
+    "weapons/broadsword_gilded",
+    "weapons/broadsword_iron",
+    "weapons/dagger_kukri",
+    "weapons/dagger_nightblade",
+    "weapons/hammer_gilded",
+    "weapons/hammer_mallet",
+    "weapons/staff_emerald",
+    "weapons/sword_knight",
+    "weapons/sword_sunblade",
+    "weapons/warhammer_iron",
+    "weapons/warhammer_spiked"
+  ],
+  "assets": [
+    {
+      "key": "food/drink_beer_stein",
+      "source_current": true,
+      "inputs": "5a19e13497530a414e462f600280dc789e4d6bcc01c8377aeb86354f81f14f7f",
+      "triangles": 792,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "wood": "surface_wood",
+          "copper": "surface_copper",
+          "bark": "surface_bark",
+          "dark_iron": "surface_dark_iron",
+          "steel": "surface_steel",
+          "amber": "surface_amber",
+          "ivory": "surface_ivory",
+          "tan": "surface_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 9,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 6,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.07704211400152489
+      },
+      "warnings": [
+        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 6 nonmanifold_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/food/drink/drink_beer_stein.glb",
+      "export_verified": true,
+      "lineup": "food/drink_beer_stein/lineup.png"
+    },
+    {
+      "key": "food/drink_water_canteen",
+      "source_current": true,
+      "inputs": "1741fec800f7b4207cef412f582a4b47a5bfadd44ab89cc21b3da8ca40195639",
+      "triangles": 608,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "wood": "surface_wood",
+          "tan": "surface_tan",
+          "bark": "surface_bark",
+          "copper": "surface_copper",
+          "steel": "surface_steel",
+          "silver": "surface_silver",
+          "dark_iron": "surface_dark_iron",
+          "ivory": "surface_ivory",
+          "cobalt": "surface_cobalt",
+          "sky_blue": "surface_sky_blue"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 5,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03234642175191947
+      },
+      "warnings": [
+        "5 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/food/drink/drink_water_canteen.glb",
+      "export_verified": true,
+      "lineup": "food/drink_water_canteen/lineup.png"
+    },
+    {
+      "key": "food/drink_wine_bottle",
+      "source_current": true,
+      "inputs": "390cc79164c322baf8a567afa7701fba45c8875950ab54ec483c38056be098e0",
+      "triangles": 384,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "sea_green": "surface_sea_green",
+          "green": "surface_green",
+          "emerald": "surface_emerald",
+          "tan": "surface_tan",
+          "ivory": "surface_ivory",
+          "crimson": "surface_crimson",
+          "rose": "surface_rose",
+          "magenta": "surface_magenta",
+          "wood": "surface_wood"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.029873640555296194
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/food/drink/drink_wine_bottle.glb",
+      "export_verified": true,
+      "lineup": "food/drink_wine_bottle/lineup.png"
+    },
+    {
+      "key": "food/food_apple_red",
+      "source_current": true,
+      "inputs": "2644351f6bd56eafaef35bbd5ae90629b7fc1f43ad9958681d48b7e3d4107f39",
+      "triangles": 170,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "crimson": "surface_crimson",
+          "rose": "surface_rose",
+          "magenta": "surface_magenta",
+          "bark": "surface_bark",
+          "wood": "surface_wood",
+          "lime": "surface_lime",
+          "green": "surface_green"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.06100357621917615
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/food/food/food_apple_red.glb",
+      "export_verified": true,
+      "lineup": "food/food_apple_red/lineup.png"
+    },
+    {
+      "key": "food/food_bread_loaf",
+      "source_current": true,
+      "inputs": "e7c72a16d12ab8dcc703af21eef78356f7ac5b08523e5911caaefe6c7b7550fa",
+      "triangles": 220,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "copper": "surface_copper",
+          "amber": "surface_amber",
+          "orange": "surface_orange",
+          "wood": "surface_wood",
+          "tan": "surface_tan",
+          "ivory": "surface_ivory"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.0318323784296121
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/food/food/food_bread_loaf.glb",
+      "export_verified": true,
+      "lineup": "food/food_bread_loaf/lineup.png"
+    },
+    {
+      "key": "food/food_bread_roll",
+      "source_current": true,
+      "inputs": "33b879331cd1060320074d823dd9d6ccee961346ed3b7c1eb671612cb9890dd6",
+      "triangles": 986,
+      "materials": 1,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.15256710438563814
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/food/food/food_bread_roll.glb",
+      "export_verified": true,
+      "lineup": "food/food_bread_roll/lineup.png"
+    },
+    {
+      "key": "food/food_cheese_wheel",
+      "source_current": true,
+      "inputs": "a832d3a5bfa3aa9272ac85fe3223a2a706ead332340ce585949e92497f542c33",
+      "triangles": 466,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "surface_gold",
+          "amber": "surface_amber",
+          "orange": "surface_orange",
+          "rust": "surface_rust"
+        },
+        "repair": "boundaries",
+        "carve": "cheese_holes"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01872186797745898
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/food/food/food_cheese_wheel.glb",
+      "export_verified": true,
+      "lineup": "food/food_cheese_wheel/lineup.png"
+    },
+    {
+      "key": "food/food_grapes_bunch",
+      "source_current": true,
+      "inputs": "323c3748fe53f2b04a0cb1b1fe1c6d4f33d68466b321caaf03fb8bf3c275ef4c",
+      "triangles": 1580,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "magenta": "surface_magenta",
+          "rose": "surface_rose",
+          "purple": "surface_purple",
+          "bark": "surface_bark",
+          "wood": "surface_wood",
+          "lime": "surface_lime",
+          "green": "surface_green"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 23,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03225801658153788
+      },
+      "warnings": [
+        "23 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/food/food/food_grapes_bunch.glb",
+      "export_verified": true,
+      "lineup": "food/food_grapes_bunch/lineup.png"
+    },
+    {
+      "key": "food/food_meat_drumstick",
+      "source_current": true,
+      "inputs": "624c2e2a3ebe4e24dc40ee8fae361a5407c0ea32ce9c4562089d22da25db0459",
+      "triangles": 268,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "tan": "surface_tan",
+          "ivory": "surface_ivory",
+          "wood": "surface_wood",
+          "copper": "surface_copper",
+          "bark": "surface_bark",
+          "rust": "surface_rust",
+          "amber": "surface_amber"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01775550074060843
+      },
+      "warnings": [
+        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/food/food/food_meat_drumstick.glb",
+      "export_verified": true,
+      "lineup": "food/food_meat_drumstick/lineup.png"
+    },
+    {
+      "key": "food/food_meat_sausage",
+      "source_current": true,
+      "inputs": "68f522eebf316b8860f28387fa98e7670f791e1b580ae6df5201ddb3c93c02ca",
+      "triangles": 752,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "copper": "surface_copper",
+          "rust": "surface_rust",
+          "ivory": "surface_ivory",
+          "tan": "surface_tan",
+          "crimson": "surface_crimson",
+          "wood": "surface_wood",
+          "bark": "surface_bark"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.015880464127853974
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/food/food/food_meat_sausage.glb",
+      "export_verified": true,
+      "lineup": "food/food_meat_sausage/lineup.png"
+    },
+    {
+      "key": "food/food_meat_steak",
+      "source_current": true,
+      "inputs": "044d87afd4c713ffbc9d49cc02895cb48539b1664c264b2c59e1c29599ccf549",
+      "triangles": 224,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "surface_bark",
+          "tan": "surface_tan",
+          "crimson": "surface_crimson",
+          "ivory": "surface_ivory",
+          "wood": "surface_wood",
+          "rust": "surface_rust",
+          "rose": "surface_rose"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.017715656387194915
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/food/food/food_meat_steak.glb",
+      "export_verified": true,
+      "lineup": "food/food_meat_steak/lineup.png"
+    },
+    {
+      "key": "food/food_pear_golden",
+      "source_current": true,
+      "inputs": "3f9212bacddad438885e9f2cded4e9cfc32a1dfe38fa39004a1ca063300da712",
+      "triangles": 170,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "amber": "surface_amber",
+          "tan": "surface_tan",
+          "orange": "surface_orange",
+          "wood": "surface_wood",
+          "lime": "surface_lime",
+          "green": "surface_green"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.0431917248314202
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/food/food/food_pear_golden.glb",
+      "export_verified": true,
+      "lineup": "food/food_pear_golden/lineup.png"
+    },
+    {
+      "key": "jewelry/amulet_gold_emerald",
+      "source_current": true,
+      "inputs": "57c863a907963b074289d493d98f48eaf0c90cab82d94bc4c60a0ed19e19e596",
+      "triangles": 380,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "brass": "gold_brass",
+          "amber": "gold_amber",
+          "green": "gem_green",
+          "lime": "gem_lime",
+          "emerald": "gem_emerald"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03134114606878069
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/amulet/amulet_gold_emerald.glb",
+      "export_verified": true,
+      "lineup": "jewelry/amulet_gold_emerald/lineup.png"
+    },
+    {
+      "key": "jewelry/amulet_gold_ruby",
+      "source_current": true,
+      "inputs": "1e40b2b4d985463e6e4acbb50a9bf541843effff6ca73d3edd3684bf9a710ded",
+      "triangles": 380,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "brass": "gold_brass",
+          "amber": "gold_amber",
+          "crimson": "gem_crimson",
+          "rose": "gem_rose",
+          "magenta": "gem_magenta"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03134114606878069
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/amulet/amulet_gold_ruby.glb",
+      "export_verified": true,
+      "lineup": "jewelry/amulet_gold_ruby/lineup.png"
+    },
+    {
+      "key": "jewelry/amulet_gold_sun_crest",
+      "source_current": true,
+      "inputs": "74bc1c1d86820d724fa3d0a8529a1e60d3950b218633b4d53fb4a8e1657b2e29",
+      "triangles": 380,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "brass": "gold_brass",
+          "amber": "gold_amber"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 7,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03889473436249399
+      },
+      "warnings": [
+        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/amulet/amulet_gold_sun_crest.glb",
+      "export_verified": true,
+      "lineup": "jewelry/amulet_gold_sun_crest/lineup.png"
+    },
+    {
+      "key": "jewelry/amulet_gold_topaz",
+      "source_current": true,
+      "inputs": "cb5e02f2d7155a0c6936068bd82d3d8c65a8245b567d25582a1976f9892952a7",
+      "triangles": 380,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "brass": "gold_brass",
+          "amber": "gold_amber",
+          "orange": "gem_orange",
+          "rust": "surface_rust"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.030654368697721996
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/amulet/amulet_gold_topaz.glb",
+      "export_verified": true,
+      "lineup": "jewelry/amulet_gold_topaz/lineup.png"
+    },
+    {
+      "key": "jewelry/amulet_silver_amethyst",
+      "source_current": true,
+      "inputs": "8266530d307ac8759581043180bbad469d0a7b36b32285dd85328cc2e0205f21",
+      "triangles": 380,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver",
+          "purple": "gem_purple",
+          "magenta": "gem_magenta",
+          "obsidian": "gem_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.030654368697721996
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/amulet/amulet_silver_amethyst.glb",
+      "export_verified": true,
+      "lineup": "jewelry/amulet_silver_amethyst/lineup.png"
+    },
+    {
+      "key": "jewelry/amulet_silver_onyx",
+      "source_current": true,
+      "inputs": "fccf7e3d558627520266ca50a4b0c9a11f12f91751b7ce8505424bc07d7f0a5a",
+      "triangles": 380,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver",
+          "blue_steel": "metal_blue_steel",
+          "obsidian": "gem_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03134114606878069
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/amulet/amulet_silver_onyx.glb",
+      "export_verified": true,
+      "lineup": "jewelry/amulet_silver_onyx/lineup.png"
+    },
+    {
+      "key": "jewelry/amulet_silver_runic_crest",
+      "source_current": true,
+      "inputs": "cb4e2a5e6366e8c9e73dc39928ee209ff333956d9939c178bce2823038952bb8",
+      "triangles": 380,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 7,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.038894734362493986
+      },
+      "warnings": [
+        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/amulet/amulet_silver_runic_crest.glb",
+      "export_verified": true,
+      "lineup": "jewelry/amulet_silver_runic_crest/lineup.png"
+    },
+    {
+      "key": "jewelry/amulet_silver_sapphire",
+      "source_current": true,
+      "inputs": "d3f83492692121aa19c9d9256734e2a3413114c237630405ce82f8d455947bf0",
+      "triangles": 380,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver",
+          "cobalt": "gem_cobalt",
+          "sky_blue": "gem_sky_blue",
+          "obsidian": "gem_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03134114606878069
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/amulet/amulet_silver_sapphire.glb",
+      "export_verified": true,
+      "lineup": "jewelry/amulet_silver_sapphire/lineup.png"
+    },
+    {
+      "key": "jewelry/amulet_wood_coral",
+      "source_current": true,
+      "inputs": "4e193507ad82e05207fbcb3c92e242b80474366184cc1cbb4980b599ea2b8498",
+      "triangles": 380,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "wood": "leather_wood",
+          "bark": "leather_bark",
+          "tan": "leather_tan",
+          "coral": "gem_coral",
+          "rose": "gem_rose",
+          "copper": "leather_copper"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03134114606878068
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/amulet/amulet_wood_coral.glb",
+      "export_verified": true,
+      "lineup": "jewelry/amulet_wood_coral/lineup.png"
+    },
+    {
+      "key": "jewelry/amulet_wood_druid_talisman",
+      "source_current": true,
+      "inputs": "f73deb3b9b2521600f06ff44374a7b10f87e09ec684058ec48c580bf9a6f42f5",
+      "triangles": 380,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "wood": "leather_wood",
+          "bark": "leather_bark",
+          "tan": "leather_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 7,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03889473436249399
+      },
+      "warnings": [
+        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/amulet/amulet_wood_druid_talisman.glb",
+      "export_verified": true,
+      "lineup": "jewelry/amulet_wood_druid_talisman/lineup.png"
+    },
+    {
+      "key": "jewelry/amulet_wood_jade",
+      "source_current": true,
+      "inputs": "5afa61ff3ca0081b6c7bf7c2a30137df486294787ea2a5b3bbde5e0d06034306",
+      "triangles": 380,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "wood": "leather_wood",
+          "bark": "leather_bark",
+          "tan": "leather_tan",
+          "sea_green": "gem_sea_green",
+          "teal": "gem_teal",
+          "emerald": "gem_emerald"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03134114606878069
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/amulet/amulet_wood_jade.glb",
+      "export_verified": true,
+      "lineup": "jewelry/amulet_wood_jade/lineup.png"
+    },
+    {
+      "key": "jewelry/amulet_wood_peridot",
+      "source_current": true,
+      "inputs": "3707ba86d85d51633cc4822b554c5e122bd053089482c7fad17fce36aa85f60b",
+      "triangles": 380,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "wood": "leather_wood",
+          "bark": "leather_bark",
+          "tan": "leather_tan",
+          "lime": "gem_lime",
+          "gold": "leather_gold",
+          "green": "gem_green"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.030654368697721996
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/amulet/amulet_wood_peridot.glb",
+      "export_verified": true,
+      "lineup": "jewelry/amulet_wood_peridot/lineup.png"
+    },
+    {
+      "key": "jewelry/ring_gold_amethyst",
+      "source_current": true,
+      "inputs": "9401dff96d6d5434d40ce6197e074e23c1a59d92ab5fb24cbc0594e5d174d9c7",
+      "triangles": 288,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "amber": "gold_amber",
+          "brass": "gold_brass",
+          "gold": "gold_gold",
+          "obsidian": "gem_obsidian",
+          "purple": "gem_purple",
+          "magenta": "gem_magenta"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03776124387293001
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/ring/ring_gold_amethyst.glb",
+      "export_verified": true,
+      "lineup": "jewelry/ring_gold_amethyst/lineup.png"
+    },
+    {
+      "key": "jewelry/ring_gold_emerald",
+      "source_current": true,
+      "inputs": "a5883024f2c237d7a4d68eb91615b4d6af10bb7b5309c9b5e9176d5f97fba089",
+      "triangles": 288,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "amber": "gold_amber",
+          "brass": "gold_brass",
+          "gold": "gold_gold",
+          "emerald": "gem_emerald",
+          "green": "gem_green",
+          "lime": "gem_lime"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03776124387293001
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/ring/ring_gold_emerald.glb",
+      "export_verified": true,
+      "lineup": "jewelry/ring_gold_emerald/lineup.png"
+    },
+    {
+      "key": "jewelry/ring_gold_ruby",
+      "source_current": true,
+      "inputs": "9a016950a2e22ecef418f9f6fd7b569890b8c2d216627bbcb723d1d16fab4654",
+      "triangles": 288,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "amber": "gold_amber",
+          "brass": "gold_brass",
+          "gold": "gold_gold",
+          "magenta": "gem_magenta",
+          "crimson": "gem_crimson",
+          "rose": "gem_rose"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03776124387293001
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/ring/ring_gold_ruby.glb",
+      "export_verified": true,
+      "lineup": "jewelry/ring_gold_ruby/lineup.png"
+    },
+    {
+      "key": "jewelry/ring_gold_signet",
+      "source_current": true,
+      "inputs": "e05d094f49c1eaf26a6866cc2f0a479a9219bef489418a19dba6448473fcec9c",
+      "triangles": 272,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "amber": "gold_amber",
+          "brass": "gold_brass",
+          "gold": "gold_gold"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03719159684754307
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/ring/ring_gold_signet.glb",
+      "export_verified": true,
+      "lineup": "jewelry/ring_gold_signet/lineup.png"
+    },
+    {
+      "key": "jewelry/ring_silver_band",
+      "source_current": true,
+      "inputs": "0b72c86bbdce921f5218ef517253330871286525dad4c7732c4a3f0c543e7c9c",
+      "triangles": 272,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03719159684754307
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/ring/ring_silver_band.glb",
+      "export_verified": true,
+      "lineup": "jewelry/ring_silver_band/lineup.png"
+    },
+    {
+      "key": "jewelry/ring_silver_diamond",
+      "source_current": true,
+      "inputs": "4c156db67afc4f7e49cec30433bf882aaf4cf4b3a9442c99bccdfe6abb027f38",
+      "triangles": 288,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver",
+          "blue_steel": "metal_blue_steel",
+          "ivory": "bone_ivory"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03776124387293001
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/ring/ring_silver_diamond.glb",
+      "export_verified": true,
+      "lineup": "jewelry/ring_silver_diamond/lineup.png"
+    },
+    {
+      "key": "jewelry/ring_silver_onyx",
+      "source_current": true,
+      "inputs": "2a3efad959f46c029a3985911a0dd75f2a2fabd021a566aa9c9ce6c348b153ed",
+      "triangles": 288,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver",
+          "obsidian": "gem_obsidian",
+          "blue_steel": "metal_blue_steel"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03776124387293001
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/ring/ring_silver_onyx.glb",
+      "export_verified": true,
+      "lineup": "jewelry/ring_silver_onyx/lineup.png"
+    },
+    {
+      "key": "jewelry/ring_silver_sapphire",
+      "source_current": true,
+      "inputs": "d03b42528fcd5a6901e2f8da9c6c7804a7ff8f4f6621c5887cb30c2c09cc4c94",
+      "triangles": 288,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver",
+          "obsidian": "gem_obsidian",
+          "cobalt": "gem_cobalt",
+          "sky_blue": "gem_sky_blue"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03776124387293001
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/ring/ring_silver_sapphire.glb",
+      "export_verified": true,
+      "lineup": "jewelry/ring_silver_sapphire/lineup.png"
+    },
+    {
+      "key": "jewelry/ring_wood_amber",
+      "source_current": true,
+      "inputs": "4612ba75a36cea143078706be04a9c00294c1405e0e9ca7a72546395859d1db1",
+      "triangles": 288,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "wood": "leather_wood",
+          "bark": "leather_bark",
+          "tan": "leather_tan",
+          "rust": "surface_rust",
+          "orange": "gem_orange",
+          "amber": "leather_amber"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03776124387293001
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/ring/ring_wood_amber.glb",
+      "export_verified": true,
+      "lineup": "jewelry/ring_wood_amber/lineup.png"
+    },
+    {
+      "key": "jewelry/ring_wood_carved",
+      "source_current": true,
+      "inputs": "3a899de70b8485f3ec92535fe60e50141531cc1d66eb8dfe264b8b2bc4197958",
+      "triangles": 272,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "wood": "leather_wood",
+          "bark": "leather_bark",
+          "tan": "leather_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03719159684754307
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/ring/ring_wood_carved.glb",
+      "export_verified": true,
+      "lineup": "jewelry/ring_wood_carved/lineup.png"
+    },
+    {
+      "key": "jewelry/ring_wood_garnet",
+      "source_current": true,
+      "inputs": "efe53b3c030ef6ffbb790c52141861143eb387dd2bbd8f86f36741757d2b871c",
+      "triangles": 288,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "wood": "leather_wood",
+          "bark": "leather_bark",
+          "tan": "leather_tan",
+          "purple": "gem_purple",
+          "magenta": "gem_magenta",
+          "rose": "gem_rose"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03776124387293001
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/ring/ring_wood_garnet.glb",
+      "export_verified": true,
+      "lineup": "jewelry/ring_wood_garnet/lineup.png"
+    },
+    {
+      "key": "jewelry/ring_wood_jade",
+      "source_current": true,
+      "inputs": "7b146169ae2ea001556c4b1fea009a538d2cdb978e29dfcbb3f3a43ad29d70c9",
+      "triangles": 288,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "wood": "leather_wood",
+          "bark": "leather_bark",
+          "tan": "leather_tan",
+          "emerald": "gem_emerald",
+          "sea_green": "gem_sea_green",
+          "teal": "gem_teal"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03776124387293001
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/jewelry/ring/ring_wood_jade.glb",
+      "export_verified": true,
+      "lineup": "jewelry/ring_wood_jade/lineup.png"
+    },
+    {
+      "key": "keys/key_arcane_crystal",
+      "source_current": true,
+      "inputs": "57c4318e5af50c93299c822b2cc4c06be7e93527142acb1e6f80a7812f8ff41b",
+      "triangles": 502,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "magenta": "iron_magenta",
+          "rose": "iron_rose",
+          "purple": "iron_purple",
+          "dark_iron": "iron_dark_iron",
+          "brass": "iron_brass",
+          "gold": "iron_gold",
+          "obsidian": "iron_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 17,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.015395153469613556
+      },
+      "warnings": [
+        "17 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/keys/key/key_arcane_crystal.glb",
+      "export_verified": true,
+      "lineup": "keys/key_arcane_crystal/lineup.png"
+    },
+    {
+      "key": "keys/key_bone_skull",
+      "source_current": true,
+      "inputs": "2d521e2fc42d16db86207bbfdd0fa1fe789e17a8795ceaa8318232507683ab2c",
+      "triangles": 838,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "tan": "iron_tan",
+          "ivory": "bone_ivory",
+          "bark": "iron_bark",
+          "obsidian": "iron_obsidian",
+          "lime": "iron_lime",
+          "emerald": "iron_emerald"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 29,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.02830590899210399
+      },
+      "warnings": [
+        "29 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/keys/key/key_bone_skull.glb",
+      "export_verified": true,
+      "lineup": "keys/key_bone_skull/lineup.png"
+    },
+    {
+      "key": "keys/key_bronze_ornate",
+      "source_current": true,
+      "inputs": "af8380fc9677b836b65f733c193102a9d51960fce0a2777e389b1e35e4b0fc8f",
+      "triangles": 654,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "copper": "gold_copper",
+          "brass": "gold_brass",
+          "bark": "gold_bark",
+          "amber": "gold_amber"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 12,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 1,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.017911366142048368
+      },
+      "warnings": [
+        "12 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 1 nonmanifold_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/keys/key/key_bronze_ornate.glb",
+      "export_verified": true,
+      "lineup": "keys/key_bronze_ornate/lineup.png"
+    },
+    {
+      "key": "keys/key_gold_treasury",
+      "source_current": true,
+      "inputs": "086c25a6eb1dc4a75d23f19d3419d481556dd035b692edac38ca2f3e5a69154c",
+      "triangles": 574,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "amber": "gold_amber",
+          "gold": "gold_gold",
+          "brass": "gold_brass",
+          "crimson": "gold_crimson",
+          "rose": "gold_rose",
+          "obsidian": "gold_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 17,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.019940750376118286
+      },
+      "warnings": [
+        "17 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/keys/key/key_gold_treasury.glb",
+      "export_verified": true,
+      "lineup": "keys/key_gold_treasury/lineup.png"
+    },
+    {
+      "key": "keys/key_iron_prison",
+      "source_current": true,
+      "inputs": "f660dd7ad073f0a4078ec7dc157e9ea4c4a51a6a3b492a167e1f02f0f254d2a4",
+      "triangles": 518,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "iron_steel",
+          "silver": "iron_silver",
+          "dark_iron": "iron_dark_iron",
+          "rust": "iron_rust",
+          "copper": "iron_copper"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 11,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.02177783755553329
+      },
+      "warnings": [
+        "11 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/keys/key/key_iron_prison.glb",
+      "export_verified": true,
+      "lineup": "keys/key_iron_prison/lineup.png"
+    },
+    {
+      "key": "keys/key_silver_crypt",
+      "source_current": true,
+      "inputs": "fca8baeba50323dbc594db7f8e8c09e7d3e90eeb56e3bcbcb05ff0e641a33ef6",
+      "triangles": 376,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "iron_steel",
+          "silver": "iron_silver",
+          "dark_iron": "iron_dark_iron",
+          "sky_blue": "iron_sky_blue",
+          "cobalt": "iron_cobalt",
+          "obsidian": "iron_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 14,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01612496617532405
+      },
+      "warnings": [
+        "14 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/keys/key/key_silver_crypt.glb",
+      "export_verified": true,
+      "lineup": "keys/key_silver_crypt/lineup.png"
+    },
+    {
+      "key": "potions/potion_large_cobalt",
+      "source_current": true,
+      "inputs": "0436008585b056a942f496cc83a1e2731ffb72b1db73b42dd53d3c46eebbccae",
+      "triangles": 336,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "cork_bark",
+          "wood": "cork_wood",
+          "obsidian": "glass_obsidian",
+          "cobalt": "glass_cobalt",
+          "steel": "metal_steel",
+          "copper": "cork_copper",
+          "silver": "metal_silver",
+          "gold": "gold_gold",
+          "sky_blue": "glass_sky_blue",
+          "blue_steel": "glass_blue_steel",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2562596458579084
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_large/potion_large_cobalt.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_large_cobalt/lineup.png"
+    },
+    {
+      "key": "potions/potion_large_coral",
+      "source_current": true,
+      "inputs": "b98e7d33548c1d9dc193390d4755cef10a01371d523dd256cfe38640ded6c547",
+      "triangles": 336,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "cork_bark",
+          "wood": "cork_wood",
+          "copper": "cork_copper",
+          "coral": "glass_coral",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "gold": "gold_gold",
+          "rose": "glass_rose",
+          "blue_steel": "glass_blue_steel",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.25625964585790834
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_large/potion_large_coral.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_large_coral/lineup.png"
+    },
+    {
+      "key": "potions/potion_large_crimson",
+      "source_current": true,
+      "inputs": "bbad128ec6f4cedc9f0a5691eac1c294ccac2003fbc80315fb6faecc9ccd7095",
+      "triangles": 336,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "cork_bark",
+          "wood": "cork_wood",
+          "magenta": "glass_magenta",
+          "crimson": "glass_crimson",
+          "steel": "metal_steel",
+          "copper": "cork_copper",
+          "silver": "metal_silver",
+          "gold": "gold_gold",
+          "rose": "glass_rose",
+          "blue_steel": "glass_blue_steel",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2562596458579084
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_large/potion_large_crimson.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_large_crimson/lineup.png"
+    },
+    {
+      "key": "potions/potion_large_emerald",
+      "source_current": true,
+      "inputs": "32164af2144dc77b2c2f44962fd86081bf0e24e62e76b71f8f9fbf7edab7057b",
+      "triangles": 336,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "cork_bark",
+          "wood": "cork_wood",
+          "emerald": "glass_emerald",
+          "green": "glass_green",
+          "steel": "metal_steel",
+          "copper": "cork_copper",
+          "silver": "metal_silver",
+          "gold": "gold_gold",
+          "lime": "glass_lime",
+          "blue_steel": "glass_blue_steel",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2562596458579084
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_large/potion_large_emerald.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_large_emerald/lineup.png"
+    },
+    {
+      "key": "potions/potion_large_gold",
+      "source_current": true,
+      "inputs": "b6fcd523e01fafb210ea19127fed6e148be30b00388eeb9d145ffadc2d78136c",
+      "triangles": 336,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "cork_bark",
+          "wood": "cork_wood",
+          "brass": "gold_brass",
+          "amber": "gold_amber",
+          "steel": "metal_steel",
+          "copper": "cork_copper",
+          "silver": "metal_silver",
+          "gold": "gold_gold",
+          "blue_steel": "glass_blue_steel",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2562596458579084
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_large/potion_large_gold.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_large_gold/lineup.png"
+    },
+    {
+      "key": "potions/potion_large_lime",
+      "source_current": true,
+      "inputs": "4526b675f764223ada7f6f960b0ffcd1d6f712fffedb9766de24e50c716c9982",
+      "triangles": 336,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "cork_bark",
+          "wood": "cork_wood",
+          "green": "glass_green",
+          "lime": "glass_lime",
+          "steel": "metal_steel",
+          "copper": "cork_copper",
+          "silver": "metal_silver",
+          "gold": "gold_gold",
+          "blue_steel": "glass_blue_steel",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2562596458579084
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_large/potion_large_lime.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_large_lime/lineup.png"
+    },
+    {
+      "key": "potions/potion_large_magenta",
+      "source_current": true,
+      "inputs": "1a8432aaefd88f727d87e3c41912ce04adec66ad25ed75de56f5021a21a4d596",
+      "triangles": 336,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "cork_bark",
+          "wood": "cork_wood",
+          "purple": "glass_purple",
+          "magenta": "glass_magenta",
+          "steel": "metal_steel",
+          "copper": "cork_copper",
+          "silver": "metal_silver",
+          "gold": "gold_gold",
+          "rose": "glass_rose",
+          "blue_steel": "glass_blue_steel",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2562596458579084
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_large/potion_large_magenta.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_large_magenta/lineup.png"
+    },
+    {
+      "key": "potions/potion_large_obsidian",
+      "source_current": true,
+      "inputs": "cebd3cf92618f313c2ad53d01541805b940844f70dad3c207a4ff12e6614e987",
+      "triangles": 336,
+      "materials": 5,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "cork_bark",
+          "wood": "cork_wood",
+          "obsidian": "glass_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "steel": "metal_steel",
+          "copper": "cork_copper",
+          "silver": "metal_silver",
+          "gold": "gold_gold",
+          "blue_steel": "glass_blue_steel",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2562596458579084
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_large/potion_large_obsidian.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_large_obsidian/lineup.png"
+    },
+    {
+      "key": "potions/potion_large_orange",
+      "source_current": true,
+      "inputs": "e7d1fafb3be386fd3a70c1d1c5d5e29f8f00642e3805ad1dc5a4427f49e4cb53",
+      "triangles": 336,
+      "materials": 5,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "cork_bark",
+          "wood": "cork_wood",
+          "rust": "surface_rust",
+          "orange": "glass_orange",
+          "steel": "metal_steel",
+          "copper": "cork_copper",
+          "silver": "metal_silver",
+          "gold": "gold_gold",
+          "amber": "gold_amber",
+          "blue_steel": "glass_blue_steel",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2562596458579084
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_large/potion_large_orange.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_large_orange/lineup.png"
+    },
+    {
+      "key": "potions/potion_large_purple",
+      "source_current": true,
+      "inputs": "21423c8706b0d54d061a0d00f38278717c60af3b46fd9accf86628672667b76f",
+      "triangles": 336,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "cork_bark",
+          "wood": "cork_wood",
+          "obsidian": "glass_obsidian",
+          "purple": "glass_purple",
+          "steel": "metal_steel",
+          "copper": "cork_copper",
+          "silver": "metal_silver",
+          "gold": "gold_gold",
+          "magenta": "glass_magenta",
+          "blue_steel": "glass_blue_steel",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2562596458579084
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_large/potion_large_purple.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_large_purple/lineup.png"
+    },
+    {
+      "key": "potions/potion_large_silver",
+      "source_current": true,
+      "inputs": "978c5814e8aaa2a17ec56581e7119c846e061e13ac1a1cbca181e9c43c5bd445",
+      "triangles": 336,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "cork_bark",
+          "wood": "cork_wood",
+          "blue_steel": "glass_blue_steel",
+          "silver": "metal_silver",
+          "steel": "metal_steel",
+          "copper": "cork_copper",
+          "gold": "gold_gold",
+          "ivory": "paper_ivory",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2562596458579084
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_large/potion_large_silver.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_large_silver/lineup.png"
+    },
+    {
+      "key": "potions/potion_large_teal",
+      "source_current": true,
+      "inputs": "66866bc5dcc33d0cfe14901f725594122ab1cc3d031820f1750f12246813101a",
+      "triangles": 336,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "cork_bark",
+          "wood": "cork_wood",
+          "emerald": "glass_emerald",
+          "sea_green": "glass_sea_green",
+          "steel": "metal_steel",
+          "copper": "cork_copper",
+          "silver": "metal_silver",
+          "gold": "gold_gold",
+          "teal": "glass_teal",
+          "blue_steel": "glass_blue_steel",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2562596458579084
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_large/potion_large_teal.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_large_teal/lineup.png"
+    },
+    {
+      "key": "potions/potion_medium_cobalt",
+      "source_current": true,
+      "inputs": "ae66141af4f4c53081ab0d7ca8c256c6ab4d3d537ba7250cd1ceda0f3aaa8abc",
+      "triangles": 288,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "glass_obsidian",
+          "cobalt": "glass_cobalt",
+          "tan": "cork_tan",
+          "ivory": "paper_ivory",
+          "sky_blue": "glass_sky_blue",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.11353062084926878
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_medium/potion_medium_cobalt.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_medium_cobalt/lineup.png"
+    },
+    {
+      "key": "potions/potion_medium_coral",
+      "source_current": true,
+      "inputs": "69ce9efdc7514cd4cdc39901659bd01a7b50cf0e6c7e60eda1a01100e416d772",
+      "triangles": 288,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "copper": "cork_copper",
+          "coral": "glass_coral",
+          "tan": "cork_tan",
+          "ivory": "paper_ivory",
+          "rose": "glass_rose",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.11353062084926875
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_medium/potion_medium_coral.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_medium_coral/lineup.png"
+    },
+    {
+      "key": "potions/potion_medium_crimson",
+      "source_current": true,
+      "inputs": "86e881077ca8dd24b9fb48e13db393f066a70faf4d99f44375aa7aef14a155fa",
+      "triangles": 288,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "magenta": "glass_magenta",
+          "crimson": "glass_crimson",
+          "tan": "cork_tan",
+          "ivory": "paper_ivory",
+          "rose": "glass_rose",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.11353062084926878
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_medium/potion_medium_crimson.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_medium_crimson/lineup.png"
+    },
+    {
+      "key": "potions/potion_medium_emerald",
+      "source_current": true,
+      "inputs": "b9c9a636fa54c319e3ca9c0f0f3674db8470d8ebc37f97be27f1d5bf3096241d",
+      "triangles": 288,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "emerald": "glass_emerald",
+          "green": "glass_green",
+          "tan": "cork_tan",
+          "ivory": "paper_ivory",
+          "lime": "glass_lime",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.11353062084926878
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_medium/potion_medium_emerald.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_medium_emerald/lineup.png"
+    },
+    {
+      "key": "potions/potion_medium_gold",
+      "source_current": true,
+      "inputs": "ed28034d2a7dbb59d2bc8fb51570e542447be4c30227f19d53cf19229f5ec774",
+      "triangles": 288,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "brass": "gold_brass",
+          "amber": "gold_amber",
+          "tan": "cork_tan",
+          "ivory": "paper_ivory",
+          "gold": "gold_gold",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.11353062084926878
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_medium/potion_medium_gold.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_medium_gold/lineup.png"
+    },
+    {
+      "key": "potions/potion_medium_lime",
+      "source_current": true,
+      "inputs": "ee36d6db92095addfe8a4edc7dff3156fe9f7c4b85950b3db9c50fd09d04dac1",
+      "triangles": 288,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "green": "glass_green",
+          "lime": "glass_lime",
+          "tan": "cork_tan",
+          "ivory": "paper_ivory",
+          "gold": "gold_gold",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.11353062084926878
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_medium/potion_medium_lime.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_medium_lime/lineup.png"
+    },
+    {
+      "key": "potions/potion_medium_magenta",
+      "source_current": true,
+      "inputs": "07101008192643b99745f9dd6a88c90ffdda3344bddc04bbe46f11bd25ca6ce0",
+      "triangles": 288,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "purple": "glass_purple",
+          "magenta": "glass_magenta",
+          "tan": "cork_tan",
+          "ivory": "paper_ivory",
+          "rose": "glass_rose",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.11353062084926878
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_medium/potion_medium_magenta.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_medium_magenta/lineup.png"
+    },
+    {
+      "key": "potions/potion_medium_obsidian",
+      "source_current": true,
+      "inputs": "a30890c8618be42b8d6b689fad683a19f1ca5a46063ec15e2b7d90ab224f2b8c",
+      "triangles": 288,
+      "materials": 5,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "glass_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "tan": "cork_tan",
+          "ivory": "paper_ivory",
+          "steel": "metal_steel",
+          "blue_steel": "glass_blue_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.11353062084926878
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_medium/potion_medium_obsidian.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_medium_obsidian/lineup.png"
+    },
+    {
+      "key": "potions/potion_medium_orange",
+      "source_current": true,
+      "inputs": "57fb0fe71e9cc02d475b30f3301a5e1d5604fc6a9f752fd85ef146fd8e6b1f28",
+      "triangles": 288,
+      "materials": 5,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "rust": "surface_rust",
+          "orange": "glass_orange",
+          "tan": "cork_tan",
+          "ivory": "paper_ivory",
+          "amber": "gold_amber",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.11353062084926878
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_medium/potion_medium_orange.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_medium_orange/lineup.png"
+    },
+    {
+      "key": "potions/potion_medium_purple",
+      "source_current": true,
+      "inputs": "f298486fa43cb16ca3a2ec6e77d07bdbdb242519aee9a00b0ecdf8f94d7e414c",
+      "triangles": 288,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "glass_obsidian",
+          "purple": "glass_purple",
+          "tan": "cork_tan",
+          "ivory": "paper_ivory",
+          "magenta": "glass_magenta",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.11353062084926878
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_medium/potion_medium_purple.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_medium_purple/lineup.png"
+    },
+    {
+      "key": "potions/potion_medium_silver",
+      "source_current": true,
+      "inputs": "7fc458385717ac397821cb669d2c882348b3a8842a76a3edd2fb52da26a90b16",
+      "triangles": 288,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "blue_steel": "glass_blue_steel",
+          "silver": "metal_silver",
+          "tan": "cork_tan",
+          "ivory": "paper_ivory",
+          "steel": "metal_steel",
+          "wood": "cork_wood"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.11353062084926879
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_medium/potion_medium_silver.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_medium_silver/lineup.png"
+    },
+    {
+      "key": "potions/potion_medium_teal",
+      "source_current": true,
+      "inputs": "2532b2f11924e71a047db38e7ffe7a47aaba7bfacf9d41baea2cf8f7f76a6bcc",
+      "triangles": 288,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "emerald": "glass_emerald",
+          "sea_green": "glass_sea_green",
+          "tan": "cork_tan",
+          "ivory": "paper_ivory",
+          "teal": "glass_teal",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.11353062084926878
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_medium/potion_medium_teal.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_medium_teal/lineup.png"
+    },
+    {
+      "key": "potions/potion_small_cobalt",
+      "source_current": true,
+      "inputs": "754d3125c574da2cffa93a1e5484afb91f7340207935a258441526a7b5c4cc5c",
+      "triangles": 224,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "glass_obsidian",
+          "cobalt": "glass_cobalt",
+          "sky_blue": "glass_sky_blue",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01697939711313407
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_small/potion_small_cobalt.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_small_cobalt/lineup.png"
+    },
+    {
+      "key": "potions/potion_small_coral",
+      "source_current": true,
+      "inputs": "b688981ff7360acb21c44b758d1d9a75a947574309fa5b76d7b193cfc5a0925d",
+      "triangles": 224,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "copper": "cork_copper",
+          "coral": "glass_coral",
+          "rose": "glass_rose",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01697939711313407
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_small/potion_small_coral.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_small_coral/lineup.png"
+    },
+    {
+      "key": "potions/potion_small_crimson",
+      "source_current": true,
+      "inputs": "ff90b3a2bdea466701a67c5425aef271dfd02d1006db5c40cafdc034e7ba5efd",
+      "triangles": 224,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "magenta": "glass_magenta",
+          "crimson": "glass_crimson",
+          "rose": "glass_rose",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01697939711313407
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_small/potion_small_crimson.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_small_crimson/lineup.png"
+    },
+    {
+      "key": "potions/potion_small_emerald",
+      "source_current": true,
+      "inputs": "82775cc31b55906024376760129463723616d1c232f9683d40e0e80eac560f00",
+      "triangles": 224,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "emerald": "glass_emerald",
+          "green": "glass_green",
+          "lime": "glass_lime",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01697939711313407
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_small/potion_small_emerald.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_small_emerald/lineup.png"
+    },
+    {
+      "key": "potions/potion_small_gold",
+      "source_current": true,
+      "inputs": "68f5751a803d2e95910b883e584b6d2b77b31a5263a8a56f9dcfd1eba1ec026d",
+      "triangles": 224,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "brass": "gold_brass",
+          "amber": "gold_amber",
+          "gold": "gold_gold",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01697939711313407
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_small/potion_small_gold.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_small_gold/lineup.png"
+    },
+    {
+      "key": "potions/potion_small_lime",
+      "source_current": true,
+      "inputs": "1546b3689379c55d258fd2e89638271fe35851c967657174ccffa89940a62eda",
+      "triangles": 224,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "green": "glass_green",
+          "lime": "glass_lime",
+          "gold": "gold_gold",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01697939711313407
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_small/potion_small_lime.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_small_lime/lineup.png"
+    },
+    {
+      "key": "potions/potion_small_magenta",
+      "source_current": true,
+      "inputs": "37318038d4aa9eac6e7c17a4815f3c099022397bf15e3adcd98286d37f2f1877",
+      "triangles": 224,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "purple": "glass_purple",
+          "magenta": "glass_magenta",
+          "rose": "glass_rose",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01697939711313407
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_small/potion_small_magenta.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_small_magenta/lineup.png"
+    },
+    {
+      "key": "potions/potion_small_obsidian",
+      "source_current": true,
+      "inputs": "5acc8842d4650fd858a11161d1f452540dbd927473e2f8fd02711a9caaa87a05",
+      "triangles": 224,
+      "materials": 5,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "glass_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "steel": "metal_steel",
+          "blue_steel": "glass_blue_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01697939711313407
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_small/potion_small_obsidian.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_small_obsidian/lineup.png"
+    },
+    {
+      "key": "potions/potion_small_orange",
+      "source_current": true,
+      "inputs": "5c7be9ae8912867526702a5a594be55f066e350d4e576156f5b961e2a0b3131c",
+      "triangles": 224,
+      "materials": 5,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "rust": "surface_rust",
+          "orange": "glass_orange",
+          "amber": "gold_amber",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01697939711313407
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_small/potion_small_orange.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_small_orange/lineup.png"
+    },
+    {
+      "key": "potions/potion_small_purple",
+      "source_current": true,
+      "inputs": "e84ce612fa1ce8ee72e03256504bee0a4943e6252117c410e7d1924422858a07",
+      "triangles": 224,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "glass_obsidian",
+          "purple": "glass_purple",
+          "magenta": "glass_magenta",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01697939711313407
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_small/potion_small_purple.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_small_purple/lineup.png"
+    },
+    {
+      "key": "potions/potion_small_silver",
+      "source_current": true,
+      "inputs": "cfb87b4f525d655d657ea58962ca65b6cbb39de30ce5c2fa4a48b055879f29ac",
+      "triangles": 224,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "blue_steel": "glass_blue_steel",
+          "silver": "metal_silver",
+          "ivory": "paper_ivory",
+          "steel": "metal_steel",
+          "wood": "cork_wood",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.016979397113134072
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_small/potion_small_silver.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_small_silver/lineup.png"
+    },
+    {
+      "key": "potions/potion_small_teal",
+      "source_current": true,
+      "inputs": "ac142bdc01e29f9f3512e2192ebcf252b142b4ce36a6a151c77abcbb7e84770f",
+      "triangles": 224,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "emerald": "glass_emerald",
+          "sea_green": "glass_sea_green",
+          "teal": "glass_teal",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01697939711313407
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/potions/potion_small/potion_small_teal.glb",
+      "export_verified": true,
+      "lineup": "potions/potion_small_teal/lineup.png"
+    },
+    {
+      "key": "scrolls/scroll_cobalt_raidho",
+      "source_current": true,
+      "inputs": "9eb21cbbf5426c551c5e18a1c8d4223df9e61fa029f4bf41ab93fb118c73d806",
+      "triangles": 1338,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "ink_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "wood": "paper_wood",
+          "bark": "paper_bark",
+          "tan": "paper_tan",
+          "copper": "paper_copper",
+          "ivory": "paper_ivory",
+          "cobalt": "ink_cobalt",
+          "sky_blue": "ink_sky_blue"
+        },
+        "repair": "boundaries",
+        "paint": "scroll_ink"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.027408781321390147
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/scrolls/scroll/scroll_cobalt_raidho.glb",
+      "export_verified": true,
+      "lineup": "scrolls/scroll_cobalt_raidho/lineup.png"
+    },
+    {
+      "key": "scrolls/scroll_coral_sowilo",
+      "source_current": true,
+      "inputs": "39697ffd0e7a8ec20f25ccee09278fa6176c53986fd3ce89fd8523418441d29b",
+      "triangles": 1248,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "ink_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "wood": "paper_wood",
+          "bark": "paper_bark",
+          "tan": "paper_tan",
+          "copper": "paper_copper",
+          "ivory": "paper_ivory",
+          "coral": "ink_coral",
+          "rose": "ink_rose"
+        },
+        "repair": "boundaries",
+        "paint": "scroll_ink"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.02740909014986444
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/scrolls/scroll/scroll_coral_sowilo.glb",
+      "export_verified": true,
+      "lineup": "scrolls/scroll_coral_sowilo/lineup.png"
+    },
+    {
+      "key": "scrolls/scroll_crimson_othala",
+      "source_current": true,
+      "inputs": "1954dba33e2aaa1b4c3a81e6257d2f5ee73c341c74a0bbf1708baf1bcf8d7710",
+      "triangles": 1316,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "ink_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "wood": "paper_wood",
+          "bark": "paper_bark",
+          "tan": "paper_tan",
+          "copper": "paper_copper",
+          "ivory": "paper_ivory",
+          "crimson": "ink_crimson",
+          "rose": "ink_rose",
+          "magenta": "ink_magenta"
+        },
+        "repair": "boundaries",
+        "paint": "scroll_ink"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.027411511148971137
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/scrolls/scroll/scroll_crimson_othala.glb",
+      "export_verified": true,
+      "lineup": "scrolls/scroll_crimson_othala/lineup.png"
+    },
+    {
+      "key": "scrolls/scroll_emerald_fehu",
+      "source_current": true,
+      "inputs": "9e880f1e9d9d0a220f11d43aef9421a936286345b1ba35295f4e84ff9cc7b42c",
+      "triangles": 1244,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "ink_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "wood": "paper_wood",
+          "bark": "paper_bark",
+          "tan": "paper_tan",
+          "copper": "paper_copper",
+          "ivory": "paper_ivory",
+          "green": "ink_green",
+          "lime": "ink_lime",
+          "emerald": "ink_emerald"
+        },
+        "repair": "boundaries",
+        "paint": "scroll_ink"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.027408781329664473
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/scrolls/scroll/scroll_emerald_fehu.glb",
+      "export_verified": true,
+      "lineup": "scrolls/scroll_emerald_fehu/lineup.png"
+    },
+    {
+      "key": "scrolls/scroll_gold_algiz",
+      "source_current": true,
+      "inputs": "3226b2b9cfe2fb0caec0d4d200ba8cef93a185e54b8c7f16d46f610b9ace48e2",
+      "triangles": 1344,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "ink_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "wood": "paper_wood",
+          "bark": "paper_bark",
+          "tan": "paper_tan",
+          "copper": "paper_copper",
+          "ivory": "paper_ivory",
+          "gold": "gold_gold",
+          "amber": "gold_amber",
+          "brass": "gold_brass"
+        },
+        "repair": "boundaries",
+        "paint": "scroll_ink"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.027408781332779557
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/scrolls/scroll/scroll_gold_algiz.glb",
+      "export_verified": true,
+      "lineup": "scrolls/scroll_gold_algiz/lineup.png"
+    },
+    {
+      "key": "scrolls/scroll_lime_hagalaz",
+      "source_current": true,
+      "inputs": "2dd28c5613756b57aaf8a9fba1e2bfef03764afda2caaf110c34604ef03fc65a",
+      "triangles": 1368,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "ink_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "wood": "paper_wood",
+          "bark": "paper_bark",
+          "tan": "paper_tan",
+          "copper": "paper_copper",
+          "ivory": "paper_ivory",
+          "lime": "ink_lime",
+          "gold": "gold_gold",
+          "green": "ink_green"
+        },
+        "repair": "boundaries",
+        "paint": "scroll_ink"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.027408781347542543
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/scrolls/scroll/scroll_lime_hagalaz.glb",
+      "export_verified": true,
+      "lineup": "scrolls/scroll_lime_hagalaz/lineup.png"
+    },
+    {
+      "key": "scrolls/scroll_magenta_berkano",
+      "source_current": true,
+      "inputs": "4ed6bf25032cc58476c007a54c0a7275969cb4229fd627f6dfe305111e75e32d",
+      "triangles": 1340,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "ink_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "wood": "paper_wood",
+          "bark": "paper_bark",
+          "tan": "paper_tan",
+          "copper": "paper_copper",
+          "ivory": "paper_ivory",
+          "magenta": "ink_magenta",
+          "rose": "ink_rose",
+          "purple": "ink_purple"
+        },
+        "repair": "boundaries",
+        "paint": "scroll_ink"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.027408781328696164
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/scrolls/scroll/scroll_magenta_berkano.glb",
+      "export_verified": true,
+      "lineup": "scrolls/scroll_magenta_berkano/lineup.png"
+    },
+    {
+      "key": "scrolls/scroll_obsidian_tiwaz",
+      "source_current": true,
+      "inputs": "4931c9742c79e208b525e9fecaabe6d70436eaa6e7838781148945c92218d9e1",
+      "triangles": 1352,
+      "materials": 1,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "ink_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "wood": "paper_wood",
+          "bark": "paper_bark",
+          "tan": "paper_tan",
+          "copper": "paper_copper",
+          "ivory": "paper_ivory",
+          "steel": "metal_steel"
+        },
+        "repair": "boundaries",
+        "paint": "scroll_ink"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.02740878132787582
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/scrolls/scroll/scroll_obsidian_tiwaz.glb",
+      "export_verified": true,
+      "lineup": "scrolls/scroll_obsidian_tiwaz/lineup.png"
+    },
+    {
+      "key": "scrolls/scroll_orange_thurisaz",
+      "source_current": true,
+      "inputs": "7a33cce62b40c01f4ddbd4827fdabe361a48d091c29d4cb1562e96af2bd4bf9e",
+      "triangles": 1280,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "ink_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "wood": "paper_wood",
+          "bark": "paper_bark",
+          "tan": "paper_tan",
+          "copper": "paper_copper",
+          "ivory": "paper_ivory",
+          "orange": "ink_orange",
+          "amber": "gold_amber",
+          "rust": "surface_rust"
+        },
+        "repair": "boundaries",
+        "paint": "scroll_ink"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.02740878134869353
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/scrolls/scroll/scroll_orange_thurisaz.glb",
+      "export_verified": true,
+      "lineup": "scrolls/scroll_orange_thurisaz/lineup.png"
+    },
+    {
+      "key": "scrolls/scroll_purple_dagaz",
+      "source_current": true,
+      "inputs": "43364c7e87b5e287e5abd3d5b1d3e71f366b0f5efe48315fa7dcacf43119a2eb",
+      "triangles": 1412,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "ink_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "wood": "paper_wood",
+          "bark": "paper_bark",
+          "tan": "paper_tan",
+          "copper": "paper_copper",
+          "ivory": "paper_ivory",
+          "purple": "ink_purple",
+          "sky_blue": "ink_sky_blue"
+        },
+        "repair": "boundaries",
+        "paint": "scroll_ink"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.027408781329397836
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/scrolls/scroll/scroll_purple_dagaz.glb",
+      "export_verified": true,
+      "lineup": "scrolls/scroll_purple_dagaz/lineup.png"
+    },
+    {
+      "key": "scrolls/scroll_silver_ingwaz",
+      "source_current": true,
+      "inputs": "365b25ebf0161dbbf5ce09894674c4540ee0cb1282290ebf8c3f73efab5d5b54",
+      "triangles": 1372,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "ink_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "wood": "paper_wood",
+          "bark": "paper_bark",
+          "tan": "paper_tan",
+          "copper": "paper_copper",
+          "ivory": "paper_ivory",
+          "silver": "metal_silver",
+          "steel": "metal_steel",
+          "blue_steel": "metal_blue_steel"
+        },
+        "repair": "boundaries",
+        "paint": "scroll_ink"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.027416110839411808
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/scrolls/scroll/scroll_silver_ingwaz.glb",
+      "export_verified": true,
+      "lineup": "scrolls/scroll_silver_ingwaz/lineup.png"
+    },
+    {
+      "key": "scrolls/scroll_teal_eihwaz",
+      "source_current": true,
+      "inputs": "922a3e8a0377a8ec098586afebc4b85f3ba5a0bff8e5cbebfef76cf90e34a187",
+      "triangles": 1300,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "ink_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "wood": "paper_wood",
+          "bark": "paper_bark",
+          "tan": "paper_tan",
+          "copper": "paper_copper",
+          "ivory": "paper_ivory",
+          "sea_green": "ink_sea_green",
+          "teal": "ink_teal",
+          "emerald": "ink_emerald"
+        },
+        "repair": "boundaries",
+        "paint": "scroll_ink"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.027408781330556853
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/scrolls/scroll/scroll_teal_eihwaz.glb",
+      "export_verified": true,
+      "lineup": "scrolls/scroll_teal_eihwaz/lineup.png"
+    },
+    {
+      "key": "shields/shield_aegis_gold",
+      "source_current": true,
+      "inputs": "3bf258d45c8b2f53dc7d008ceb23e2163f879edb3e13f2ca1a8b150dfa68ff3d",
+      "triangles": 3562,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.10499903388265815
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/armor/shield/shield_aegis_gold.glb",
+      "export_verified": true,
+      "lineup": "shields/shield_aegis_gold/lineup.png"
+    },
+    {
+      "key": "shields/shield_buckler_spiked",
+      "source_current": true,
+      "inputs": "bb0cca3d1900e389b188aae9c3163069bfe459118c86dbdbfc57fe70b3965222",
+      "triangles": 2662,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.05663342840142325
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/armor/shield/shield_buckler_spiked.glb",
+      "export_verified": true,
+      "lineup": "shields/shield_buckler_spiked/lineup.png"
+    },
+    {
+      "key": "shields/shield_dragon_scale",
+      "source_current": true,
+      "inputs": "3ebdcf5868b8e1403e5fc9d97fbb5f89b24976ffdb52b51833b31e844552a959",
+      "triangles": 3644,
+      "materials": 5,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.1713254162933464
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/armor/shield/shield_dragon_scale.glb",
+      "export_verified": true,
+      "lineup": "shields/shield_dragon_scale/lineup.png"
+    },
+    {
+      "key": "shields/shield_heater_iron",
+      "source_current": true,
+      "inputs": "f32b80d49110ebae6bc4e65fd269948ea8aa68f9bd56ba377d497c2e1411ff21",
+      "triangles": 1976,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.062351147136262365
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/armor/shield/shield_heater_iron.glb",
+      "export_verified": true,
+      "lineup": "shields/shield_heater_iron/lineup.png"
+    },
+    {
+      "key": "shields/shield_heroic_quarters",
+      "source_current": true,
+      "inputs": "d1505ff9cf5574598f226a5fc4277ad2a510661a318c2ddcc6bc1a6cd00dbc36",
+      "triangles": 1016,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.06119247527084439
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/armor/shield/shield_heroic_quarters.glb",
+      "export_verified": true,
+      "lineup": "shields/shield_heroic_quarters/lineup.png"
+    },
+    {
+      "key": "shields/shield_heroic_sun",
+      "source_current": true,
+      "inputs": "c6aac0842af8e45f1ab368b6b0fcf43b96e5cd1b548b3378939f1732462b40cb",
+      "triangles": 1244,
+      "materials": 4,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.06366930953719775
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/armor/shield/shield_heroic_sun.glb",
+      "export_verified": true,
+      "lineup": "shields/shield_heroic_sun/lineup.png"
+    },
+    {
+      "key": "shields/shield_iron_tower",
+      "source_current": true,
+      "inputs": "b677575f59b7275c427ffde2beeff21b68709092071ee16e4858c9faf417f68c",
+      "triangles": 2458,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.1137243365834996
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/armor/shield/shield_iron_tower.glb",
+      "export_verified": true,
+      "lineup": "shields/shield_iron_tower/lineup.png"
+    },
+    {
+      "key": "shields/shield_kite_crusader",
+      "source_current": true,
+      "inputs": "da1ffb8838a609862fe5f0d0552e200cba6fc6b1544e8b280eba368960876bfd",
+      "triangles": 3640,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.07601956190859371
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/armor/shield/shield_kite_crusader.glb",
+      "export_verified": true,
+      "lineup": "shields/shield_kite_crusader/lineup.png"
+    },
+    {
+      "key": "shields/shield_round_wood",
+      "source_current": true,
+      "inputs": "8eb6f48bb190bdaf4764510853f6cc854531ba9c362a282c07db5c96921648bd",
+      "triangles": 2858,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.05875835346756198
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/armor/shield/shield_round_wood.glb",
+      "export_verified": true,
+      "lineup": "shields/shield_round_wood/lineup.png"
+    },
+    {
+      "key": "shields/shield_royal_crown",
+      "source_current": true,
+      "inputs": "3ba3c4b18230236bad48de179ed819f783a41f8ebc32ec369a4bf2cf3696cf00",
+      "triangles": 922,
+      "materials": 4,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.0716950585382064
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/armor/shield/shield_royal_crown.glb",
+      "export_verified": true,
+      "lineup": "shields/shield_royal_crown/lineup.png"
+    },
+    {
+      "key": "shields/shield_royal_lily",
+      "source_current": true,
+      "inputs": "85577bceb4893865c2bb419a0ef0b0b7b240fc15a4abb009b87c1ff1f0898633",
+      "triangles": 1128,
+      "materials": 4,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.07295779359015722
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/armor/shield/shield_royal_lily.glb",
+      "export_verified": true,
+      "lineup": "shields/shield_royal_lily/lineup.png"
+    },
+    {
+      "key": "shields/shield_scutum_wood",
+      "source_current": true,
+      "inputs": "8ed7d681e8736c6d0167bcb237e61ddb648b33f625ce59f634c147073b0ab114",
+      "triangles": 4778,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.10990713609081126
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/armor/shield/shield_scutum_wood.glb",
+      "export_verified": true,
+      "lineup": "shields/shield_scutum_wood/lineup.png"
+    },
+    {
+      "key": "shields/shield_wood_simple",
+      "source_current": true,
+      "inputs": "84ad36981cba9539b4dbfab4009ae13da7174260acf1843206274ff7d9c92309",
+      "triangles": 1356,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.048411944917871964
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/armor/shield/shield_wood_simple.glb",
+      "export_verified": true,
+      "lineup": "shields/shield_wood_simple/lineup.png"
+    },
+    {
+      "key": "tools/tool_bell_silver",
+      "source_current": true,
+      "inputs": "c6f42f55299bf61a3d6c4b6ae8a6a3858f52767771be0616cfa0e22ff162753c",
+      "triangles": 368,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "silver": "metal_silver",
+          "steel": "metal_steel",
+          "blue_steel": "metal_blue_steel",
+          "gold": "metal_gold",
+          "amber": "metal_amber",
+          "brass": "metal_brass",
+          "copper": "metal_copper",
+          "wood": "leather_wood",
+          "bark": "leather_bark",
+          "dark_iron": "iron_dark_iron",
+          "obsidian": "surface_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.06332352666361078
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/tools/tool/tool_bell_silver.glb",
+      "export_verified": true,
+      "lineup": "tools/tool_bell_silver/lineup.png"
+    },
+    {
+      "key": "tools/tool_candelabrum",
+      "source_current": true,
+      "inputs": "9dc043b94efd42902864606d36537cc875a57c30e08ea16ee8fa8e4c40fe0eb0",
+      "triangles": 656,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold",
+          "amber": "gold_light",
+          "brass": "gold_worn",
+          "copper": "gold_dark",
+          "steel": "metal",
+          "silver": "metal_light",
+          "dark_iron": "iron",
+          "ivory": "wax_light",
+          "tan": "wax",
+          "obsidian": "wick",
+          "bark": "wick_worn"
+        }
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 6,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.021800388927774386
+      },
+      "warnings": [
+        "6 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/tools/lamp/tool_candelabrum.glb",
+      "export_verified": true,
+      "lineup": "tools/tool_candelabrum/lineup.png"
+    },
+    {
+      "key": "tools/tool_candle_tallow",
+      "source_current": true,
+      "inputs": "eda47585a80f81723e4d71aca1868366ceec402e8490466c268266b8d91cc5df",
+      "triangles": 456,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "amber": "gold_amber",
+          "brass": "gold_brass",
+          "gold": "gold_gold",
+          "copper": "leather_copper",
+          "tan": "wax_tan",
+          "ivory": "wax_ivory",
+          "bark": "wick_bark",
+          "obsidian": "wick_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 7,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.041742817802454514
+      },
+      "warnings": [
+        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/tools/lamp/tool_candle_tallow.glb",
+      "export_verified": true,
+      "lineup": "tools/tool_candle_tallow/lineup.png"
+    },
+    {
+      "key": "tools/tool_grappling_hook",
+      "source_current": true,
+      "inputs": "d87e055f976657a0e24d202148162b8b410a389fb130c3519dacf2c78f30d1ea",
+      "triangles": 420,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "metal",
+          "silver": "metal_light",
+          "dark_iron": "iron",
+          "obsidian": "iron_dark",
+          "copper": "leather_light",
+          "tan": "rope",
+          "wood": "leather",
+          "bark": "leather_dark",
+          "ivory": "bone"
+        }
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.02619108610682049
+      },
+      "warnings": [
+        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/tools/tool/tool_grappling_hook.glb",
+      "export_verified": true,
+      "lineup": "tools/tool_grappling_hook/lineup.png"
+    },
+    {
+      "key": "tools/tool_horn_bugle",
+      "source_current": true,
+      "inputs": "91cbe6dada0712db65e05e73ae2700dc737d0af26b6e0fa5478f7dc68dd3643b",
+      "triangles": 288,
+      "materials": 6,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "amber": "gold_amber",
+          "gold": "gold_gold",
+          "brass": "gold_brass",
+          "ivory": "bone_ivory",
+          "tan": "leather_tan",
+          "rose": "surface_rose",
+          "crimson": "surface_crimson",
+          "wood": "leather_wood",
+          "dark_iron": "iron_dark_iron",
+          "bark": "leather_bark",
+          "steel": "metal_steel",
+          "copper": "gold_copper"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.04921488326013052
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/tools/tool/tool_horn_bugle.glb",
+      "export_verified": true,
+      "lineup": "tools/tool_horn_bugle/lineup.png"
+    },
+    {
+      "key": "tools/tool_lamp_oil",
+      "source_current": true,
+      "inputs": "2fbf515a5975fb2a262230d1399d336889acf9ea88b8e49fe82448a464f6fc85",
+      "triangles": 536,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "amber": "gold_amber",
+          "brass": "gold_brass",
+          "gold": "gold_gold",
+          "copper": "leather_copper",
+          "cobalt": "surface_cobalt",
+          "sky_blue": "surface_sky_blue",
+          "dark_iron": "iron_dark_iron",
+          "crimson": "surface_crimson",
+          "rose": "surface_rose",
+          "silver": "metal_silver",
+          "steel": "metal_steel",
+          "bark": "leather_bark",
+          "ivory": "bone_ivory"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.04110103369470793
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/tools/lamp/tool_lamp_oil.glb",
+      "export_verified": true,
+      "lineup": "tools/tool_lamp_oil/lineup.png"
+    },
+    {
+      "key": "tools/tool_lantern_brass",
+      "source_current": true,
+      "inputs": "976c928cf68d5455a952ffc0f0d3a5768080217c08b9ab9c86e3891042e03224",
+      "triangles": 436,
+      "materials": 5,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "silver": "metal_silver",
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "gold": "gold_gold",
+          "brass": "gold_brass",
+          "amber": "gold_amber",
+          "obsidian": "surface_obsidian",
+          "copper": "leather_copper",
+          "sky_blue": "surface_sky_blue",
+          "ivory": "bone_ivory",
+          "teal": "surface_teal",
+          "cobalt": "surface_cobalt"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 6,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.058892066808940054
+      },
+      "warnings": [
+        "6 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/tools/lamp/tool_lantern_brass.glb",
+      "export_verified": true,
+      "lineup": "tools/tool_lantern_brass/lineup.png"
+    },
+    {
+      "key": "tools/tool_lockpick_set",
+      "source_current": true,
+      "inputs": "9157f0b251a124d16006d0bf82141aaa7a8161657e682777bfc9895c7f9af0f0",
+      "triangles": 360,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "silver": "metal_silver",
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "obsidian": "surface_obsidian",
+          "wood": "leather_wood",
+          "copper": "leather_copper",
+          "bark": "leather_bark",
+          "gold": "gold_gold",
+          "amber": "gold_amber",
+          "brass": "gold_brass",
+          "blue_steel": "metal_blue_steel"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 5,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.00778342136036778
+      },
+      "warnings": [
+        "5 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/tools/tool/tool_lockpick_set.glb",
+      "export_verified": true,
+      "lineup": "tools/tool_lockpick_set/lineup.png"
+    },
+    {
+      "key": "tools/tool_mirror_hand",
+      "source_current": true,
+      "inputs": "4a678a30f2fe8f884ec73cfc5bd42a880b35ecf850eca5d466ad0c07e39bdb70",
+      "triangles": 240,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "metal_gold",
+          "amber": "metal_amber",
+          "brass": "metal_brass",
+          "wood": "leather_wood",
+          "copper": "metal_copper",
+          "bark": "leather_bark",
+          "magenta": "surface_magenta",
+          "sky_blue": "surface_sky_blue",
+          "silver": "metal_silver",
+          "teal": "surface_teal"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.02490638515927616
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/tools/tool/tool_mirror_hand.glb",
+      "export_verified": true,
+      "lineup": "tools/tool_mirror_hand/lineup.png"
+    },
+    {
+      "key": "tools/tool_pickaxe_dwarven",
+      "source_current": true,
+      "inputs": "452daa6cd14be9c8a850a88bbd42726f5dc2613fe808319bc84978afdd66b5ed",
+      "triangles": 276,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "leather_bark",
+          "wood": "leather_wood",
+          "copper": "leather_copper",
+          "tan": "leather_tan",
+          "brass": "gold_brass",
+          "gold": "gold_gold",
+          "dark_iron": "iron_dark_iron",
+          "steel": "metal_steel",
+          "obsidian": "surface_obsidian",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01918406806005746
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/tools/tool/tool_pickaxe_dwarven.glb",
+      "export_verified": true,
+      "lineup": "tools/tool_pickaxe_dwarven/lineup.png"
+    },
+    {
+      "key": "tools/tool_torch_iron",
+      "source_current": true,
+      "inputs": "979dbfa21cae03af3088c74897993d6f995912e3fec797732722b6a0ecd59c5b",
+      "triangles": 942,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "dark_iron": "iron_dark_iron",
+          "steel": "metal_steel",
+          "obsidian": "surface_obsidian",
+          "silver": "metal_silver",
+          "brass": "gold_brass",
+          "gold": "gold_gold",
+          "bark": "leather_bark"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 13,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.036896354847252726
+      },
+      "warnings": [
+        "13 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/tools/lamp/tool_torch_iron.glb",
+      "export_verified": true,
+      "lineup": "tools/tool_torch_iron/lineup.png"
+    },
+    {
+      "key": "tools/tool_torch_wooden",
+      "source_current": true,
+      "inputs": "d4ec9bcc382ca692dfdf7f4b1b4a9f8fa0278a1fe0745e79081e750476ed71da",
+      "triangles": 400,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "leather_bark",
+          "wood": "leather_wood",
+          "copper": "leather_copper",
+          "tan": "leather_tan",
+          "dark_iron": "iron_dark_iron",
+          "steel": "metal_steel",
+          "obsidian": "surface_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 5,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.028173790035937018
+      },
+      "warnings": [
+        "5 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/tools/lamp/tool_torch_wooden.glb",
+      "export_verified": true,
+      "lineup": "tools/tool_torch_wooden/lineup.png"
+    },
+    {
+      "key": "weapons/axe_bearded",
+      "source_current": true,
+      "inputs": "3dfc3ebd4d1e8d216bac325e0d9501ab8897920dc386e2a7cb35a6b1122794fe",
+      "triangles": 1740,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "brass": "gold_brass",
+          "steel": "metal_steel",
+          "wood": "leather_wood",
+          "copper": "leather_copper",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 12,
+        "boundary_edges": 42,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.02950973006992531
+      },
+      "warnings": [
+        "12 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/axe/axe_bearded.glb",
+      "export_verified": true,
+      "lineup": "weapons/axe_bearded/lineup.png"
+    },
+    {
+      "key": "weapons/axe_executioner",
+      "source_current": true,
+      "inputs": "c5a4209274632bebc01ae6d54fda2e64d0f08c29134b78583bc6188f0edaa2a0",
+      "triangles": 1739,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "wood": "leather_wood",
+          "copper": "leather_copper",
+          "dark_iron": "iron_dark_iron",
+          "steel": "metal_steel",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 12,
+        "boundary_edges": 45,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.028669269400963263
+      },
+      "warnings": [
+        "12 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 45 boundary_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/axe/axe_executioner.glb",
+      "export_verified": true,
+      "lineup": "weapons/axe_executioner/lineup.png"
+    },
+    {
+      "key": "weapons/battleaxe_gilded",
+      "source_current": true,
+      "inputs": "636003e78e497506c864d8e9cfaa3539ca4ad9be7c6e4393ceb0aba0668495ef",
+      "triangles": 2818,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "wood": "leather_wood",
+          "copper": "leather_copper",
+          "dark_iron": "iron_dark_iron",
+          "steel": "metal_steel",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 14,
+        "boundary_edges": 42,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.1922473725808914
+      },
+      "warnings": [
+        "14 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/battleaxe/battleaxe_gilded.glb",
+      "export_verified": true,
+      "lineup": "weapons/battleaxe_gilded/lineup.png"
+    },
+    {
+      "key": "weapons/battleaxe_iron",
+      "source_current": true,
+      "inputs": "2f3903ffdb70a9f03b44db7b0760392e5434cc83d5f4cce1e9a7338214d4beab",
+      "triangles": 2818,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "brass": "gold_brass",
+          "steel": "metal_steel",
+          "wood": "leather_wood",
+          "copper": "leather_copper",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 14,
+        "boundary_edges": 42,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.19081131055688347
+      },
+      "warnings": [
+        "14 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/battleaxe/battleaxe_iron.glb",
+      "export_verified": true,
+      "lineup": "weapons/battleaxe_iron/lineup.png"
+    },
+    {
+      "key": "weapons/broadsword_gilded",
+      "source_current": true,
+      "inputs": "1db8b163bc57ce357c07bf4a5a14639fac566e6a6723a8f523905d37039f7065",
+      "triangles": 536,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "crimson": "surface_crimson",
+          "gold": "gold_gold",
+          "wood": "leather_wood",
+          "silver": "metal_silver",
+          "steel": "metal_steel"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 9,
+        "boundary_edges": 42,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.06553934063007535
+      },
+      "warnings": [
+        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/broadsword/broadsword_gilded.glb",
+      "export_verified": true,
+      "lineup": "weapons/broadsword_gilded/lineup.png"
+    },
+    {
+      "key": "weapons/broadsword_iron",
+      "source_current": true,
+      "inputs": "7818886e9111919f89a19c74c80d4a59c813bdc6bfce96db18fa3db4d80ec493",
+      "triangles": 536,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver",
+          "steel": "metal_steel",
+          "wood": "leather_wood",
+          "copper": "leather_copper"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 9,
+        "boundary_edges": 42,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.06520248304201304
+      },
+      "warnings": [
+        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/broadsword/broadsword_iron.glb",
+      "export_verified": true,
+      "lineup": "weapons/broadsword_iron/lineup.png"
+    },
+    {
+      "key": "weapons/broadsword_steel",
+      "source_current": true,
+      "inputs": "92738f65ca2a373da7c8392c48117cfc7e5f6a2f255b04e143ec64854c504809",
+      "triangles": 1420,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01829176106066739
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/arsenal/broadsword_steel.glb",
+      "export_verified": true,
+      "lineup": "weapons/broadsword_steel/lineup.png"
+    },
+    {
+      "key": "weapons/club_steel",
+      "source_current": true,
+      "inputs": "cedd78adca260ab2cee877080dab012b4b04d6b0ce8d6bf65260464e7be4c806",
+      "triangles": 1408,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03461798025836866
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/arsenal/club_steel.glb",
+      "export_verified": true,
+      "lineup": "weapons/club_steel/lineup.png"
+    },
+    {
+      "key": "weapons/club_wood_old",
+      "source_current": true,
+      "inputs": "6046f660fe1082911539793e631a7c9f66d809a9ca6895a896945974f430bc30",
+      "triangles": 1080,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03938855496088783
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/arsenal/club_wood_old.glb",
+      "export_verified": true,
+      "lineup": "weapons/club_wood_old/lineup.png"
+    },
+    {
+      "key": "weapons/crossbow_gilded",
+      "source_current": true,
+      "inputs": "c9aa430f57d640039b4bbbf8a6251199cc359659424a2812b8d1c724111593e3",
+      "triangles": 248,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "copper": "leather_copper",
+          "gold": "gold_gold",
+          "crimson": "surface_crimson",
+          "wood": "leather_wood",
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 16,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.06279078122358704
+      },
+      "warnings": [
+        "16 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/weapons/crossbow/crossbow_gilded.glb",
+      "export_verified": true,
+      "lineup": "weapons/crossbow_gilded/lineup.png"
+    },
+    {
+      "key": "weapons/dagger_kukri",
+      "source_current": true,
+      "inputs": "9dcc562ddc340393d363677d29f0161f5d7bdb8c2bf323467aa647aa71fdd66b",
+      "triangles": 534,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver",
+          "steel": "metal_steel",
+          "wood": "leather_wood",
+          "copper": "leather_copper"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 10,
+        "boundary_edges": 48,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.011530452718079379
+      },
+      "warnings": [
+        "10 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 48 boundary_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/dagger/dagger_kukri.glb",
+      "export_verified": true,
+      "lineup": "weapons/dagger_kukri/lineup.png"
+    },
+    {
+      "key": "weapons/dagger_nightblade",
+      "source_current": true,
+      "inputs": "651e49855db898b782577d5188f8be9d7fe6bf2607a6e5d8df6d1cf23e0a3ffe",
+      "triangles": 534,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "crimson": "surface_crimson",
+          "gold": "gold_gold",
+          "bark": "leather_bark",
+          "blue_steel": "metal_blue_steel",
+          "dark_iron": "iron_dark_iron"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 10,
+        "boundary_edges": 48,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.010825615656402103
+      },
+      "warnings": [
+        "10 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 48 boundary_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/dagger/dagger_nightblade.glb",
+      "export_verified": true,
+      "lineup": "weapons/dagger_nightblade/lineup.png"
+    },
+    {
+      "key": "weapons/dagger_short",
+      "source_current": true,
+      "inputs": "047a62ac92b2d20b0e172a1012eb7bf71e9bfd333f8b069137260fe7d7ee64d4",
+      "triangles": 1348,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.0054212289472577065
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/arsenal/dagger_short.glb",
+      "export_verified": true,
+      "lineup": "weapons/dagger_short/lineup.png"
+    },
+    {
+      "key": "weapons/greatsword_steel",
+      "source_current": true,
+      "inputs": "3f5b869606500c194b17f8d0e21ea39ccf6af477faa8aa5d2d279227be1d7a29",
+      "triangles": 1376,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.023690561845629145
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/arsenal/greatsword_steel.glb",
+      "export_verified": true,
+      "lineup": "weapons/greatsword_steel/lineup.png"
+    },
+    {
+      "key": "weapons/halberd_steel",
+      "source_current": true,
+      "inputs": "b5d0147981944098b919e58cf15bb560e0d4f9e29bc729ecb69e9d12e688c764",
+      "triangles": 2322,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.037439371198947684
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/arsenal/halberd_steel.glb",
+      "export_verified": true,
+      "lineup": "weapons/halberd_steel/lineup.png"
+    },
+    {
+      "key": "weapons/hammer_gilded",
+      "source_current": true,
+      "inputs": "1149088424311bc8f81e760297073bb9098ad41bf9bd91764ac8f670b693f9fe",
+      "triangles": 594,
+      "materials": 2,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "wood": "leather_wood",
+          "copper": "leather_copper",
+          "steel": "metal_steel",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 7,
+        "boundary_edges": 42,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.1252954070987253
+      },
+      "warnings": [
+        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/hammer/hammer_gilded.glb",
+      "export_verified": true,
+      "lineup": "weapons/hammer_gilded/lineup.png"
+    },
+    {
+      "key": "weapons/hammer_mallet",
+      "source_current": true,
+      "inputs": "038a21fd6b208e3b4fa47bf29db364aabcba323a99a0f5a460444d0cbcbd5c4a",
+      "triangles": 594,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "dark_iron": "iron_dark_iron",
+          "steel": "metal_steel",
+          "wood": "leather_wood",
+          "copper": "leather_copper"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 7,
+        "boundary_edges": 42,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.1252954070987253
+      },
+      "warnings": [
+        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/hammer/hammer_mallet.glb",
+      "export_verified": true,
+      "lineup": "weapons/hammer_mallet/lineup.png"
+    },
+    {
+      "key": "weapons/morning_star_iron",
+      "source_current": true,
+      "inputs": "3a1294e824cbeb467e8b6ee6b2db38894e37580e4be52703087678fece5808d8",
+      "triangles": 1650,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.0313720632016359
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/arsenal/morning_star_iron.glb",
+      "export_verified": true,
+      "lineup": "weapons/morning_star_iron/lineup.png"
+    },
+    {
+      "key": "weapons/rapier_steel",
+      "source_current": true,
+      "inputs": "6f0ec84831da5b6add9498d4bfe9277719e251de0216a0f6d02408af01b76530",
+      "triangles": 1750,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.007771656510575871
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/arsenal/rapier_steel.glb",
+      "export_verified": true,
+      "lineup": "weapons/rapier_steel/lineup.png"
+    },
+    {
+      "key": "weapons/saber_steel",
+      "source_current": true,
+      "inputs": "683b4f1ec849545c1cb3faf92903d96bd3173aa8f896e3d224b4afd433da35c1",
+      "triangles": 1542,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.011241736454912728
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/arsenal/saber_steel.glb",
+      "export_verified": true,
+      "lineup": "weapons/saber_steel/lineup.png"
+    },
+    {
+      "key": "weapons/scythe_iron",
+      "source_current": true,
+      "inputs": "a6b2cfb673d152e4a827495efb6a7a21b1c81aa48f623568b98d82d3fa4b2b6f",
+      "triangles": 2050,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.026911741436715878
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/arsenal/scythe_iron.glb",
+      "export_verified": true,
+      "lineup": "weapons/scythe_iron/lineup.png"
+    },
+    {
+      "key": "weapons/spear_steel",
+      "source_current": true,
+      "inputs": "4f580e6005db294dc1f3acd838b2fe4955dabeefc5cdebe0accebc6efe79a09c",
+      "triangles": 1944,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01947839481313012
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/arsenal/spear_steel.glb",
+      "export_verified": true,
+      "lineup": "weapons/spear_steel/lineup.png"
+    },
+    {
+      "key": "weapons/staff_archmage",
+      "source_current": true,
+      "inputs": "57a48fa4b07da0fd86e97f9c6e90c2e1640459b7ce6d203ea00aa9cd7a69739a",
+      "triangles": 328,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "copper": "leather_copper",
+          "wood": "leather_wood",
+          "dark_iron": "iron_dark_iron",
+          "cobalt": "surface_cobalt",
+          "sky_blue": "surface_sky_blue"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.051365645563160804
+      },
+      "warnings": [
+        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/weapons/staff/staff_archmage.glb",
+      "export_verified": true,
+      "lineup": "weapons/staff_archmage/lineup.png"
+    },
+    {
+      "key": "weapons/staff_emerald",
+      "source_current": true,
+      "inputs": "6fdc356b278ad2bed6e5ee434a17851724caeb4cf608c679a6e3b3445b70d344",
+      "triangles": 366,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "copper": "leather_copper",
+          "wood": "leather_wood",
+          "dark_iron": "iron_dark_iron",
+          "lime": "surface_lime"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 4,
+        "boundary_edges": 22,
+        "nonmanifold_edges": 6,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.07807142870122373
+      },
+      "warnings": [
+        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 22 boundary_edges; review the preserved original geometry",
+        "Authored surface exception: 6 nonmanifold_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/staff/staff_emerald.glb",
+      "export_verified": true,
+      "lineup": "weapons/staff_emerald/lineup.png"
+    },
+    {
+      "key": "weapons/sword_knight",
+      "source_current": true,
+      "inputs": "b38db852a384bb14261c3e037888693d42db159321bc1ab82cbf460054a1465f",
+      "triangles": 536,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver",
+          "steel": "metal_steel",
+          "wood": "leather_wood",
+          "copper": "leather_copper"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 9,
+        "boundary_edges": 42,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.02631478754037205
+      },
+      "warnings": [
+        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/sword/sword_knight.glb",
+      "export_verified": true,
+      "lineup": "weapons/sword_knight/lineup.png"
+    },
+    {
+      "key": "weapons/sword_sunblade",
+      "source_current": true,
+      "inputs": "5130f0ebf770ccaf736bf1fa9feea4e7a83c0867ce10148fadedae5ce32642ba",
+      "triangles": 536,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "crimson": "surface_crimson",
+          "gold": "gold_gold",
+          "wood": "leather_wood",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 9,
+        "boundary_edges": 42,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.02631478769972163
+      },
+      "warnings": [
+        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/sword/sword_sunblade.glb",
+      "export_verified": true,
+      "lineup": "weapons/sword_sunblade/lineup.png"
+    },
+    {
+      "key": "weapons/wand_celestial",
+      "source_current": true,
+      "inputs": "8b71b2b69aee3d2044c6bb8b485509bd3d1f11c8d2fec71209f6215c3cd651a8",
+      "triangles": 328,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "copper": "leather_copper",
+          "wood": "leather_wood",
+          "bark": "leather_bark",
+          "cobalt": "surface_cobalt",
+          "sky_blue": "surface_sky_blue"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.011522096818500785
+      },
+      "warnings": [
+        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/weapons/wand/wand_celestial.glb",
+      "export_verified": true,
+      "lineup": "weapons/wand_celestial/lineup.png"
+    },
+    {
+      "key": "weapons/wand_ruby",
+      "source_current": true,
+      "inputs": "3a44dc92cd24fe6773ddc9e59a26ac46afaf6c2af6354efba30384168074b301",
+      "triangles": 328,
+      "materials": 4,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "crimson": "surface_crimson",
+          "gold": "gold_gold",
+          "copper": "leather_copper",
+          "wood": "leather_wood",
+          "dark_iron": "iron_dark_iron"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.011522096818500789
+      },
+      "warnings": [
+        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-items/weapons/wand/wand_ruby.glb",
+      "export_verified": true,
+      "lineup": "weapons/wand_ruby/lineup.png"
+    },
+    {
+      "key": "weapons/warhammer_iron",
+      "source_current": true,
+      "inputs": "49befea678ecacfcc86038a78f37d7fc31e842522376b99b89551a2539a0023d",
+      "triangles": 594,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "dark_iron": "iron_dark_iron",
+          "steel": "metal_steel",
+          "wood": "leather_wood",
+          "copper": "leather_copper",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 7,
+        "boundary_edges": 42,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.33615834129145
+      },
+      "warnings": [
+        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/warhammer/warhammer_iron.glb",
+      "export_verified": true,
+      "lineup": "weapons/warhammer_iron/lineup.png"
+    },
+    {
+      "key": "weapons/warhammer_spiked",
+      "source_current": true,
+      "inputs": "75aa9677896d3e85f786ce72b42514257e9e87cc9883d4dc08581685716d2bd8",
+      "triangles": 594,
+      "materials": 3,
+      "source": "source.glb",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "copper": "leather_copper",
+          "brass": "gold_brass",
+          "wood": "leather_wood",
+          "dark_iron": "iron_dark_iron",
+          "steel": "metal_steel",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "topology_policy": "authored_assembly",
+      "topology": {
+        "components": 7,
+        "boundary_edges": 42,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2932445736025548
+      },
+      "warnings": [
+        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
+      ],
+      "export": "res://assets/custom-items/weapons/warhammer/warhammer_spiked.glb",
+      "export_verified": true,
+      "lineup": "weapons/warhammer_spiked/lineup.png"
+    }
+  ]
+}

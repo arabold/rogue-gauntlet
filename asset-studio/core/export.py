@@ -38,7 +38,7 @@ DEFAULT_MATERIALS = MATERIALS = {**{slot: dict(metallic=0.5, roughness=0.3, crea
                 for slot in ("gold", "gold_light", "gold_worn", "gold_dark", "metal", "metal_light", "metal_worn",
                              "metal_dark", "tarnish", "rivet")},
              **{slot: dict(metallic=0.45, roughness=0.4, crease=48.0)
-                for slot in ("armor", "armor_light", "armor_worn", "armor_dark", "trim")},
+                for slot in ("armor", "armor_light", "armor_worn", "armor_dark", "armor_lame", "armor_joint", "trim")},
              **{slot: dict(metallic=0.35, roughness=0.6, crease=48.0)
                 for slot in ("iron", "iron_light", "iron_worn", "iron_dark", "rivet_iron")},
              **{slot: dict(metallic=0.25, roughness=0.6, crease=50.0) for slot in ("rust", "rust_dark")},
@@ -53,7 +53,13 @@ DEFAULT_MATERIALS = MATERIALS = {**{slot: dict(metallic=0.5, roughness=0.3, crea
              # hair, fur, feathers, wraps and cloth stay matte and shade smoothly along loops/folds:
              **{slot: dict(metallic=0.0, roughness=1.0, crease=60.0)
                 for slot in ("brow", "hair", "beard", "fur", "fur_trim", "pelt", "pelt_dark", "feather",
-                             "wrap", "wrap_dark", "cloth", "cloth_light", "cloth_worn", "cloth_dark", "rag")}}
+                             "heraldry", "wrap", "wrap_dark", "cloth", "cloth_light", "cloth_worn", "cloth_dark", "rag",
+                             "cloak", "cloak_dark")}}
+# The same surface response as the approved dragon-scale shield.
+MATERIALS.update({slot:dict(metallic=.12,roughness=.64,crease=48.0)
+                  for slot in ("dragon","dragon_light","dragon_dark")})
+MATERIALS.update({slot:dict(metallic=.45,roughness=.5,crease=55.0) for slot in ("mail","mail_dark")})
+MATERIALS.update({slot:dict(MATERIALS["armor"]) for slot in ("steel_scale","steel_scale_light","steel_scale_dark")})
 HEROES = ("barbarian", "knight", "mage", "rogue")
 GENERATOR = "Rogue Gauntlet asset-studio"  # glTF asset.generator of every export (`character_kit` backs up others)  # templates whose prop node names the class resources look up
 # where standard grips props: weapons in the right hand turned about Y, off-hand ones as they come (`Barbarian.glb`)
@@ -100,7 +106,14 @@ def corner_normals(verts, faces, crease=50.0, slots=None, slot_crease=None):
 class _Writer:
     """A new GLB built from a template: template accessors are copied over on demand, new data appended."""
 
-    def __init__(self, template):
+    def __init__(self, template=None):
+        if template is None:
+            self.src, self.src_bin = {}, b""
+            self.g = {"asset": {"version": "2.0", "generator": GENERATOR}, "scene": 0,
+                      "scenes": [{"nodes": [0]}], "nodes": [{"name": "Item", "mesh": 0}],
+                      "meshes": [], "accessors": [], "bufferViews": []}
+            self.bin, self._views, self._accessors = bytearray(), {}, {}
+            return
         self.src, self.src_bin, _ = mm.read_glb(template)
         self.g = json.loads(json.dumps(self.src))
         self.g["bufferViews"], self.g["accessors"], self.bin = [], [], bytearray()
@@ -206,6 +219,88 @@ def resolve_palette(used, colors, looks=None):
     return slot_colors, resolved_looks
 
 
+def gradient_coordinates(triangles, normals):
+    """Shared character/item ramp coordinates from vertex height and surface slope."""
+    tri = np.asarray(triangles)
+    y_min, y_max = tri[:, :, 1].min(), tri[:, :, 1].max()
+    y_span = max(y_max - y_min, 1e-4)
+    h_weight = float(np.clip(y_span / 0.08, 0.25, 0.85))
+    t_h = 1.0 - (tri[:, :, 1] - y_min) / y_span
+    t_h_centered = 0.5 + (t_h - 0.5) * h_weight
+    t_slope = np.clip(-np.asarray(normals).reshape(-1, 3, 3)[:, :, 1] * 0.35, -0.25, 0.25)
+    return np.clip(t_h_centered + t_slope, 0.06, 0.94)
+
+
+def surface_material(base, name, spec):
+    """The same palette texture, PBR, and emission definition for static items and skinned characters."""
+    spec = dict(spec or {})
+    pbr = dict(base["pbrMetallicRoughness"], baseColorTexture={"index": 0})
+    mat = dict(base, name=name, pbrMetallicRoughness=pbr)
+    if "metallic" in spec:
+        pbr["metallicFactor"], pbr["roughnessFactor"] = spec["metallic"], spec["roughness"]
+    if spec.get("emissive"):
+        mat["emissiveTexture"], mat["emissiveFactor"] = {"index": 0}, [1.0, 1.0, 1.0]
+    if "alpha" in spec:
+        alpha = float(spec["alpha"])
+        if not 0 <= alpha <= 1:
+            raise ValueError("Material alpha must be between zero and one")
+        pbr["baseColorFactor"] = [1, 1, 1, alpha]
+        if alpha < 1:
+            mat["alphaMode"] = "BLEND"
+    if spec.get("double_sided"):
+        mat["doubleSided"] = True
+    return mat
+
+
+def export_static(path, name, piece, colors, materials=None, crease=50.0):
+    """Export an item through the character surface model, without a skeleton or template geometry."""
+    w = _Writer()
+    used = sorted(set(str(s) for s in piece.slots))
+    palette, looks = resolve_palette(used, colors, {**DEFAULT_MATERIALS, **(materials or {})})
+    atlas = mm.Atlas([palette[s] for s in used], pad=4, col_w=16, col_h=128, looks=looks, slot_names=used)
+    indices = {s: i for i, s in enumerate(used)}
+    tri = piece.verts[piece.faces]
+    if piece.normals is not None:
+        normals = np.asarray(piece.normals, float)
+        if normals.shape != tri.shape or not np.isfinite(normals).all() or np.any(np.linalg.norm(normals, axis=2) < 1e-8):
+            raise ValueError("Authored static corner normals must be finite, nonzero and match the triangles")
+        normals = normals / np.linalg.norm(normals, axis=2, keepdims=True)
+    else:
+        normals = corner_normals(piece.verts, piece.faces, crease=crease, slots=piece.slots,
+                                 slot_crease={s: _crease_of(looks.get(s), crease) for s in used})
+    t = gradient_coordinates(tri, normals)
+    for i, slot in enumerate(piece.slots):
+        if looks.get(str(slot), {}).get("emissive") or str(slot) in {"paint", "gem", "stitch", "rivet"}:
+            t[i] = .5
+    labels = np.repeat(np.array([indices[str(s)] for s in piece.slots])[:, None], 3, axis=1)
+    uv = atlas.gradient_uv(labels, t)
+    attrs = {"POSITION": w.add(tri.reshape(-1, 3), "VEC3", 5126, 34962, bounds=True),
+             "NORMAL": w.add(normals.reshape(-1, 3), "VEC3", 5126, 34962),
+             "TEXCOORD_0": w.add(uv, "VEC2", 5126, 34962)}
+    # Surface groups follow physical shading, independent of the palette's color count.
+    specs, groups = [], []
+    for slot in piece.slots:
+        spec = looks.get(str(slot), {})
+        shading = {key: spec[key] for key in ("metallic", "roughness", "emissive", "alpha", "double_sided") if key in spec}
+        if shading not in specs:
+            specs.append(shading)
+        groups.append(specs.index(shading))
+    f = np.arange(len(tri) * 3).reshape(-1, 3)
+    primitives = []
+    for i in range(len(specs)):
+        index = w.add(f[np.array(groups) == i].ravel(), "SCALAR", 5125, 34963)
+        primitives.append({"attributes": attrs, "indices": index, "material": i})
+    w.g["meshes"] = [{"name": name, "primitives": primitives}]
+    png = io.BytesIO()
+    atlas.image.save(png, "PNG")
+    w.g["images"] = [{"name": "surface_palette", "mimeType": "image/png", "bufferView": w._view(png.getvalue())}]
+    w.g["samplers"] = [{"magFilter": 9729, "minFilter": 9729, "wrapS": 33071, "wrapT": 33071}]
+    w.g["textures"] = [{"source": 0, "sampler": 0}]
+    base = {"pbrMetallicRoughness": {"metallicFactor": 0, "roughnessFactor": .5}}
+    w.g["materials"] = [surface_material(base, f"{name}_{i}", spec) for i, spec in enumerate(specs)]
+    w.save(path)
+
+
 def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None, cape=None, weapons=None,
            materials=None, crease=50.0):
     """
@@ -215,7 +310,10 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
     prop nodes; `weapons`: `{"handslot.r" | "handslot.l": (verts (n, 3, 3) triangles in the item's own frame,
     their colors (n, 3), their metallic and roughness (n, 2))}`; `colors`: slot -> RGB; `materials`: slot ->
     `dict(metallic, roughness)` or `dict(emissive=True)` over `MATERIALS`. Returns the bind-pose height of the
-    character, unscaled.
+    character, unscaled. A piece may declare `bone` for an explicit rigid attachment (plate armor); otherwise
+    weights are transferred from the mannequin. A rigid piece may also declare `hinge` (parent, follow,
+    rotation share and mount pivot); its extra joint and baked clip channels are exported automatically.
+    Unknown attachment bones fail validation.
     """
     w = _Writer(TEMPLATES.get(template, template))
     g = w.g
@@ -226,6 +324,14 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
     parent = {c: i for i, nd in enumerate(nodes) for c in nd.get("children", [])}
     rig = index["Rig"]
     worlds = _worlds(g)
+    from core import hinges
+    hinge_specs = hinges.specifications(pieces)
+    hinge_source = None
+    if hinge_specs:
+        from core.rig import Rig
+        hinge_source = Rig(TEMPLATES.get(template,template))
+        hinges.install(w,hinge_source,hinge_specs)
+        joint_of = {nodes[n]["name"]:j for j,n in enumerate(skin["joints"])}
 
     # palette: every slot any piece, prop or weapon uses; a weapon's slots are its colors with their materials
     raw_colors, raw_looks = dict(colors), {**MATERIALS, **(materials or {})}
@@ -276,17 +382,7 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
         if n_faces == 0:
             uv = np.zeros((0, 2), float)
         else:
-            N_tri = N.reshape(n_faces, 3, 3)
-            y_min, y_max = verts[:, 1].min(), verts[:, 1].max()
-            y_span = max(y_max - y_min, 1e-4)
-
-            h_weight = float(np.clip(y_span / 0.08, 0.25, 0.85))
-            y_verts = tri[:, :, 1]
-            t_h = 1.0 - (y_verts - y_min) / y_span
-            t_h_centered = 0.5 + (t_h - 0.5) * h_weight
-            ny = N_tri[:, :, 1]
-            t_slope = np.clip(-ny * 0.35, -0.25, 0.25)
-            t_val = np.clip(t_h_centered + t_slope, 0.06, 0.94)
+            t_val = gradient_coordinates(tri, N)
 
             # Check which slots are flat details
             is_flat = np.array([
@@ -394,7 +490,15 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
 
     own = body_skin(pieces)
     for piece_name, piece in pieces.items():
-        bones, weights = transfer_weights(piece.verts, piece_name, faces=piece.faces, skin=own)
+        attachment = getattr(piece, "bone", None)
+        if attachment is not None:
+            if attachment not in joint_of:
+                raise ValueError(f"{piece_name}: unknown attachment bone {attachment!r}")
+            bones = np.full((len(piece.verts), 4), attachment, object)
+            weights = np.zeros((len(piece.verts), 4))
+            weights[:, 0] = 1.0
+        else:
+            bones, weights = transfer_weights(piece.verts, piece_name, faces=piece.faces, skin=own)
         corner = piece.faces.ravel()
         norms_body = piece.normals if getattr(piece, "normals", None) is not None else (piece.verts, piece.faces)
         m = mesh(piece.verts[piece.faces], piece.slots, norms_body, bones[corner], weights[corner], uv_t=getattr(piece, "uv_t", None))
@@ -411,10 +515,13 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
         nodes[rig]["scale"] = [float(scale)] * 3
 
     # skin and clips keep their template data
-    skin["inverseBindMatrices"] = w.copy(skin["inverseBindMatrices"])
+    if not hinge_specs:
+        skin["inverseBindMatrices"] = w.copy(skin["inverseBindMatrices"])
     for anim in g.get("animations", []):
         for s in anim["samplers"]:
             s["input"], s["output"] = w.copy(s["input"]), w.copy(s["output"])
+    if hinge_specs:
+        hinges.bake(w,hinge_source,hinge_specs)
 
     png = io.BytesIO()
     atlas.image.save(png, "PNG")
@@ -422,13 +529,7 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
     g["textures"] = [{"sampler": 0, "source": 0}]
     g["materials"] = []
     for i, spec in enumerate(material_specs):
-        spec = dict(spec or {})
-        pbr = dict(base["pbrMetallicRoughness"], baseColorTexture={"index": 0})
-        mat = dict(base, name=f"{name.lower()}_material" + (f"_{i}" if i else ""), pbrMetallicRoughness=pbr)
-        if "metallic" in spec:
-            pbr["metallicFactor"], pbr["roughnessFactor"] = spec["metallic"], spec["roughness"]
-        if spec.get("emissive"):
-            mat["emissiveTexture"], mat["emissiveFactor"] = {"index": 0}, [1.0, 1.0, 1.0]
+        mat = surface_material(base, f"{name.lower()}_material" + (f"_{i}" if i else ""), spec)
         g["materials"].append(mat)
     g["asset"] = dict(g.get("asset", {}), generator=GENERATOR)
     w.save(path)

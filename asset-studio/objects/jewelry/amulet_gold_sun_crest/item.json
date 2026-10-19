@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "name": "Amulet Gold Sun Crest",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/jewelry/amulet/amulet_gold_sun_crest.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/jewelry/amulet/amulet_gold_sun_crest.glb",
+    "source_sha256": "10605c33bfa3a4e1ad7aae80f4bbf6b796b7232b4b0dbcc325dd16924a2979cb",
+    "original_triangles": 360,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "gold_gold": [
+      234,
+      194,
+      83
+    ],
+    "gold_brass": [
+      208,
+      151,
+      69
+    ],
+    "gold_amber": [
+      249,
+      170,
+      78
+    ]
+  },
+  "materials": {
+    "gold_gold": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_brass": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_amber": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "gold": "gold_gold",
+      "brass": "gold_brass",
+      "amber": "gold_amber"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

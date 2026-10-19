@@ -1,0 +1,216 @@
+{
+  "key": "potions/potion_large_teal",
+  "inputs": "66866bc5dcc33d0cfe14901f725594122ab1cc3d031820f1750f12246813101a",
+  "files": {
+    "potion_large_teal.glb": "9480d846a148e51989f442a8b94bb854f7168ad4233d5bc4ae0bef3ea89f3cb2",
+    "lineup.png": "8bdad8d47fce442ce468558ac9270a0647db6f6be12177c27b7e7e5e7c782c75"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Potion Large Teal",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/potions/potion_large/potion_large_teal.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/potions/potion_large/potion_large_teal.glb",
+        "source_sha256": "f3d6bf7d749c5e8cf1be4c8124b7deeb7fc5d0e05c56e73c129b7eb26b5bf5a0",
+        "original_triangles": 336,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "cork_bark": [
+          107,
+          92,
+          83
+        ],
+        "cork_wood": [
+          155,
+          90,
+          69
+        ],
+        "glass_emerald": [
+          0,
+          131,
+          83
+        ],
+        "glass_sea_green": [
+          56,
+          163,
+          141
+        ],
+        "metal_steel": [
+          129,
+          140,
+          145
+        ],
+        "cork_copper": [
+          177,
+          111,
+          82
+        ],
+        "metal_silver": [
+          212,
+          219,
+          222
+        ],
+        "gold_gold": [
+          234,
+          194,
+          83
+        ],
+        "glass_teal": [
+          80,
+          170,
+          174
+        ],
+        "glass_blue_steel": [
+          122,
+          141,
+          157
+        ],
+        "cork_tan": [
+          218,
+          174,
+          125
+        ]
+      },
+      "materials": {
+        "cork_bark": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "cork_wood": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "glass_emerald": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.72,
+          "double_sided": true
+        },
+        "glass_sea_green": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.72,
+          "double_sided": true
+        },
+        "metal_steel": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "cork_copper": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "metal_silver": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_gold": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "glass_teal": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.72,
+          "double_sided": true
+        },
+        "glass_blue_steel": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.38,
+          "double_sided": true
+        },
+        "cork_tan": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "cork_bark",
+          "wood": "cork_wood",
+          "emerald": "glass_emerald",
+          "sea_green": "glass_sea_green",
+          "steel": "metal_steel",
+          "copper": "cork_copper",
+          "silver": "metal_silver",
+          "gold": "gold_gold",
+          "teal": "glass_teal",
+          "blue_steel": "glass_blue_steel",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 336,
+      "bounds": [
+        [
+          -0.36000001430511475,
+          0.0,
+          -0.36000001430511475
+        ],
+        [
+          0.36000001430511475,
+          1.1200000047683716,
+          0.36000001430511475
+        ]
+      ],
+      "dimensions": [
+        0.7200000286102295,
+        1.1200000047683716,
+        0.7200000286102295
+      ],
+      "materials": 4,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2562596458579084
+      },
+      "warnings": [],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

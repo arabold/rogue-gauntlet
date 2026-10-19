@@ -1,0 +1,166 @@
+{
+  "key": "keys/key_arcane_crystal",
+  "inputs": "57c4318e5af50c93299c822b2cc4c06be7e93527142acb1e6f80a7812f8ff41b",
+  "files": {
+    "key_arcane_crystal.glb": "19c7d7bff12fa55c4304949c44c036c3ed3d4dfede213e95628a84da45d273ac",
+    "lineup.png": "40cf673b52ab73a542f14fc009b68c37eecba8938b685afef181714343abca7d"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Key Arcane Crystal",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/keys/key/key_arcane_crystal.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/keys/key/key_arcane_crystal.glb",
+        "source_sha256": "523a0d2f5aa8340c9b2379d2a6512105e4298b746978fcb73da090955a3ad11a",
+        "original_triangles": 490,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "iron_magenta": [
+          115,
+          122,
+          128
+        ],
+        "iron_rose": [
+          135,
+          143,
+          150
+        ],
+        "iron_purple": [
+          116,
+          123,
+          129
+        ],
+        "iron_dark_iron": [
+          120,
+          127,
+          133
+        ],
+        "iron_brass": [
+          139,
+          147,
+          154
+        ],
+        "iron_gold": [
+          148,
+          157,
+          164
+        ],
+        "iron_obsidian": [
+          107,
+          113,
+          118
+        ]
+      },
+      "materials": {
+        "iron_magenta": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_rose": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_purple": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_dark_iron": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_brass": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_gold": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_obsidian": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "magenta": "iron_magenta",
+          "rose": "iron_rose",
+          "purple": "iron_purple",
+          "dark_iron": "iron_dark_iron",
+          "brass": "iron_brass",
+          "gold": "iron_gold",
+          "obsidian": "iron_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 502,
+      "bounds": [
+        [
+          -0.23999999463558197,
+          0.0,
+          -0.10000000149011612
+        ],
+        [
+          0.23999999463558197,
+          0.7599999904632568,
+          0.10000000149011612
+        ]
+      ],
+      "dimensions": [
+        0.47999998927116394,
+        0.7599999904632568,
+        0.20000000298023224
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 17,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.015395153469613556
+      },
+      "warnings": [
+        "17 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

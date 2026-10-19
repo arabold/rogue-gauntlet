@@ -1,0 +1,155 @@
+{
+  "key": "jewelry/amulet_wood_peridot",
+  "inputs": "3707ba86d85d51633cc4822b554c5e122bd053089482c7fad17fce36aa85f60b",
+  "files": {
+    "amulet_wood_peridot.glb": "b68c949abe7987ecc78b67bbf752a9aaae94698cc175fab5c7153fd032236285",
+    "lineup.png": "71b6327fe531ce7d8d6ef94418e74471a9cb217e7cf8aa1bcd5cc595cd0aa952"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Amulet Wood Peridot",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/jewelry/amulet/amulet_wood_peridot.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/jewelry/amulet/amulet_wood_peridot.glb",
+        "source_sha256": "275765eec156d5229a9f62e673d89c2ab146414d61ddb5504fee0cca71ae612e",
+        "original_triangles": 368,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "leather_wood": [
+          155,
+          90,
+          69
+        ],
+        "leather_bark": [
+          107,
+          92,
+          83
+        ],
+        "leather_tan": [
+          218,
+          174,
+          125
+        ],
+        "gem_lime": [
+          85,
+          182,
+          106
+        ],
+        "leather_gold": [
+          234,
+          194,
+          83
+        ],
+        "gem_green": [
+          82,
+          170,
+          72
+        ]
+      },
+      "materials": {
+        "leather_wood": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "leather_bark": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "leather_tan": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "gem_lime": {
+          "metallic": 0.1,
+          "roughness": 0.25,
+          "crease": 45
+        },
+        "leather_gold": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "gem_green": {
+          "metallic": 0.1,
+          "roughness": 0.25,
+          "crease": 45
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "wood": "leather_wood",
+          "bark": "leather_bark",
+          "tan": "leather_tan",
+          "lime": "gem_lime",
+          "gold": "leather_gold",
+          "green": "gem_green"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 380,
+      "bounds": [
+        [
+          -0.2800000011920929,
+          0.0,
+          -0.12999999523162842
+        ],
+        [
+          0.2800000011920929,
+          0.7200000286102295,
+          0.12999999523162842
+        ]
+      ],
+      "dimensions": [
+        0.5600000023841858,
+        0.7200000286102295,
+        0.25999999046325684
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.030654368697721996
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

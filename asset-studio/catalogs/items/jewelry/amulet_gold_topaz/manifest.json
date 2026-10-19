@@ -1,0 +1,144 @@
+{
+  "key": "jewelry/amulet_gold_topaz",
+  "inputs": "cb5e02f2d7155a0c6936068bd82d3d8c65a8245b567d25582a1976f9892952a7",
+  "files": {
+    "amulet_gold_topaz.glb": "44913b421acad6a2079848891554ea8308be38a374a0ebadc634c4c9200fe8c8",
+    "lineup.png": "c60f051f76ede106dbf7c4f7cb271dfde2aa708ae8347b9bb68707f00305497d"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Amulet Gold Topaz",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/jewelry/amulet/amulet_gold_topaz.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/jewelry/amulet/amulet_gold_topaz.glb",
+        "source_sha256": "d384d6e26c06242481196c44a0f3794db226605788c00b1d9da27bf010f6800e",
+        "original_triangles": 368,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "gold_gold": [
+          234,
+          194,
+          83
+        ],
+        "gold_brass": [
+          208,
+          151,
+          69
+        ],
+        "gold_amber": [
+          249,
+          170,
+          78
+        ],
+        "gem_orange": [
+          249,
+          158,
+          57
+        ],
+        "surface_rust": [
+          195,
+          101,
+          50
+        ]
+      },
+      "materials": {
+        "gold_gold": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_brass": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_amber": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gem_orange": {
+          "metallic": 0.1,
+          "roughness": 0.25,
+          "crease": 45
+        },
+        "surface_rust": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "brass": "gold_brass",
+          "amber": "gold_amber",
+          "orange": "gem_orange",
+          "rust": "surface_rust"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 380,
+      "bounds": [
+        [
+          -0.2800000011920929,
+          0.0,
+          -0.12999999523162842
+        ],
+        [
+          0.2800000011920929,
+          0.7200000286102295,
+          0.12999999523162842
+        ]
+      ],
+      "dimensions": [
+        0.5600000023841858,
+        0.7200000286102295,
+        0.25999999046325684
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.030654368697721996
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

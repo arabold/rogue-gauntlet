@@ -15,11 +15,19 @@ FRONT = np.pi / 2  # angle of the front (+z) on a host ring
 
 def _band(host, y, height, thickness, slot, sides=32, swell=0.0):
     """The leather band: rounded edges, and with `swell` taller at the front (stylized's barbarian belt)."""
+    profile=None
+    if getattr(host,"conforming",False):
+        # Sample the tunic's taper through the band's height, including its wider front.
+        c=.6*thickness
+        dt=min(c/height,.45)
+        profile=[(0.,-.01),(0.,thickness-c)]
+        profile += [(t,thickness) for t in np.linspace(dt,1-dt,9)]
+        profile += [(1.,thickness-c),(1.,-.01)]
     return kit.host_band(host, y - height / 2, y + height / 2, thickness, slot, bevel=0.6, sides=sides,
-                         swell=swell * height)
+                         swell=swell * height,profile=profile)
 
 
-def _fur_edges(host, y, height, thickness, swell, slot, count=26, length=0.055):
+def _fur_edges(host, y, height, thickness, swell, slot, count=26, length=0.055, top=True, bottom=True):
     """Fur teeth along the band's top edge pointing up and its bottom edge pointing down, rooted on the band's
     surface so no gap opens between them, following its `swell` toward the front."""
     out = []
@@ -28,7 +36,7 @@ def _fur_edges(host, y, height, thickness, swell, slot, count=26, length=0.055):
     for k in range(count):
         theta = 2 * np.pi * (k + 0.5) / count
         grow = swell * max(np.cos(theta - FRONT), 0.0) ** 2
-        for sgn in (1, -1):
+        for sgn in [sign for sign,enabled in ((1,top),(-1,bottom)) if enabled]:
             edge = y + sgn * (height / 2 + grow / 2 - 0.012)
             tooth = kit.prism([(-0.55 * w, 0.0), (0.55 * w, 0.0), (0.0, sgn * length)][::sgn], 0.022, slot,
                               bevel=0.004)
@@ -36,19 +44,39 @@ def _fur_edges(host, y, height, thickness, swell, slot, count=26, length=0.055):
     return out
 
 
+def _fur_lining(host,y,height,thickness,swell,slot,count=20,length=.027,sign=-1):
+    """A continuous pelt backing tucked into either leather edge, with broad uneven tufts.
+
+    Its entire root loop overlaps the corresponding leather bevel. Solid union removes the
+    hidden interface so the visible fringe is part of the belt's exterior surface.
+    """
+    from prefabs.details import fur
+    samples=count*4
+    theta=np.arange(samples)*2*np.pi/samples
+    grow=swell*height*np.clip(np.sin(theta),0,1)**2
+    root_y=y+sign*(height*.5+grow*.5-.007)
+    path=kit.ring_points(host,root_y,thickness-.012,samples,theta)
+    tangent=np.roll(path,-1,axis=0)-np.roll(path,1,axis=0)
+    outward=np.column_stack([tangent[:,2],np.zeros(samples),-tangent[:,0]])
+    return fur.edge(path,outward,fall=(0,sign,0),length=length,thickness=.018,
+                    slot=slot,variation=.004)
+
+
 def _at(host, y, theta, out):
     return kit.band_frame(host, y, theta, out)
 
 
 def frame_buckle(height, slot):
-    """A rectangular metal frame with a prong, stylized's plain buckle (local axes: x along the belt, z out)."""
-    w, h, bar, d = 1.3 * height, 1.35 * height, 0.27 * height, 0.045
-    bars = [kit.bevel_box((w, bar, d), 0.3 * bar, slot, center=(0, (h - bar) / 2, d / 2)),
-            kit.bevel_box((w, bar, d), 0.3 * bar, slot, center=(0, -(h - bar) / 2, d / 2)),
-            kit.bevel_box((bar, h, d), 0.3 * bar, slot, center=((w - bar) / 2, 0, d / 2)),
-            kit.bevel_box((bar, h, d), 0.3 * bar, slot, center=(-(w - bar) / 2, 0, d / 2)),
-            kit.bevel_box((0.55 * w, 0.32 * bar, 0.6 * d), 0.1 * bar, slot, center=(0, 0, 0.45 * d))]
-    return kit.Piece.merge(*bars)
+    """Bold closed frame and attached tongue; one solid avoids coincident corner bars."""
+    import manifold3d as mf
+    from items import solid
+    w, h, d, bar = height*1.3, height*1.15, max(.018,height*.24), height*.20
+    body = solid.box((w,h,d),(0,0,d/2),bevel=min(.004,height*.10))
+    hole = mf.Manifold.cube((w-2*bar,h-2*bar,d*3),True).translate((0,0,d/2))
+    assembly = solid.Assembly().add(body,slot)
+    assembly.parts = [assembly.parts[0]-hole]
+    assembly.add(solid.box((w*.62,bar*.35,d*.6),(-w*.20,0,d*.65),bevel=min(.002,height*.05)),slot)
+    return assembly.build()
 
 
 def plate_buckle(height, slot, rivet_slot):
@@ -384,7 +412,7 @@ VARIANTS = {
 }
 
 
-def build(host, y, height=0.10, thickness=0.032, variant="leather", **overrides):
+def build(host, y, height=0.13, thickness=0.04, variant="leather", **overrides):
     """
     The belt `variant` around `host` at height `y` (its middle), `height` tall and `thickness` off the surface.
     `overrides` replace the variant's parameters (e.g. `buckle="skull"`, `band="cloth"`). Buckles are drawn larger
@@ -401,7 +429,9 @@ def build(host, y, height=0.10, thickness=0.032, variant="leather", **overrides)
                 _at(host, y + dy * height, FRONT - 0.12 * np.sign(dy), thickness)))
         return kit.Piece.merge(*parts)
     if v.get("band"):
-        band_p = _band(host, y, height, thickness, v["band"], swell=v.get("swell", 0.0))
+        band_p = _band(host, y, height, thickness, v["band"],
+                       sides=v.get("fur_count",20)*4 if v.get("fur_style")=="lining" else 32,
+                       swell=v.get("swell", 0.0))
         d_cnt, d_scale = kit.parse_dents(v.get("dents"), max_allowed=2)
         if v.get("patina") or d_cnt:
             from core.export import corner_normals
@@ -453,17 +483,47 @@ def build(host, y, height=0.10, thickness=0.032, variant="leather", **overrides)
         parts.append(sash_knot(height, v["band"]).moved(_at(host, y, FRONT - 0.7, thickness)))
     if v.get("studs"):
         parts += _studs(host, y, thickness, v.get("stud_slot", "metal"), v["studs"], radius=0.026)
-    if v.get("fur"):  # stylized's barbarian: zigzags of fur along both edges, following the band's swell
-        parts += _fur_edges(host, y, height, thickness, v.get("swell", 0.0) * height, v["fur"])
+    if v.get("fur"):
+        if v.get("fur_style")=="lining":
+            from prefabs.details import fur
+            linings=[_fur_lining(host,y,height,thickness,v.get("swell",0),v["fur"],
+                                count=v.get("fur_count",20),length=v.get("fur_length",.027),sign=sign)
+                     for sign,enabled in ((1,v.get("fur_top",True)),(-1,v.get("fur_bottom",True)))
+                     if enabled]
+            # Replace the band itself; retain separate hardware's existing material/weight rules.
+            parts[0]=fur.attach(parts[0],*linings)
+        else:
+            parts += _fur_edges(host, y, height, thickness, v.get("swell", 0.0) * height, v["fur"],
+                                count=v.get("fur_count",26),length=v.get("fur_length",.055),
+                                top=v.get("fur_top",True),bottom=v.get("fur_bottom",True))
     if v.get("pouches"):
         for theta in (FRONT - 0.8, FRONT + 0.8):
             parts.append(pouch(height, "leather", "dark", "gold").moved(_at(host, y, theta, thickness)))
     return kit.Piece.merge(*parts)
 
 
+
+def build_fitted(host, supports, y, height=.13, thickness=.04, variant="leather",
+                 fit_slot=None, **overrides):
+    """Build a belt against actual armor triangles, with integrated fur when requested.
+
+    Fit to the completed load-bearing garment, excluding decorative straps that
+    tuck beneath the belt. Select a material slot when only that surface supports
+    the band. Sparse/open armor requires an authored continuous backing first.
+    """
+    from prefabs.outfits.clothes import SurfaceFitted
+    supports=list(supports)
+    if fit_slot is not None:
+        supports=[kit.Piece(p.verts,p.faces[p.slots==fit_slot],fit_slot)
+                  for p in supports if np.any(p.slots==fit_slot)]
+    if not supports:
+        raise ValueError("Fitted belt requires supporting armor faces")
+    overrides.setdefault("fur_style","lining")
+    return build(SurfaceFitted(host,supports),y,height,thickness,variant,**overrides)
+
 def catalog():
     """Every variant on the mannequin waist (`catalog.WAIST`)."""
     from core.catalog import WAIST
     host = WAIST.mesh(0.62, 1.25)
     for name in VARIANTS:
-        yield name, build(WAIST, 0.9, variant=name), host
+        yield name, build(WAIST, 0.9, variant=name), host, {"fur_trim": (110, 86, 70)}

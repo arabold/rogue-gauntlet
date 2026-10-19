@@ -34,3 +34,18 @@ def catalog():
     yield "slashed plate", gash(base_plate, frame, 0.28, 0.06, 0.03, slot="armor_dark"), None, {
         "armor": (130, 140, 150), "armor_dark": (70, 75, 80)
     }
+
+
+def solid_gash(length=.22, width=.025, depth=.012, slot='iron'):
+    """Closed cutter for the character armor's chiseled V-groove damage language.
+
+    Local XY is the support surface at Z=0. Subtract this solid from an authored
+    closed body; its diamond perimeter meets the surface and its spine sinks
+    into it. This complements the existing surface-patch `gash` operation.
+    """
+    from core import kit
+    return kit.hull([(0,length/2,.008),(-width/2,0,.008),(0,-length/2,.008),(width/2,0,.008),
+                     (0,length*.30,-depth),(0,-length*.30,-depth)],slot)
+
+
+WEAR['solid_gash']=solid_gash

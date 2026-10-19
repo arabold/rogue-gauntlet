@@ -1,0 +1,59 @@
+{
+  "key": "costume_gambeson",
+  "inputs": "89977e8d65e430d2bc78912b3b3bc058af0483fc391b2dcacb71314e73dc312d",
+  "files": {
+    "costume.glb": "5e3a73303fecd1efee6f23340c7a48082ea126f134508e21b7bab656b6682e35",
+    "lineup.png": "c32deaaa8e574c7e1f7b9164e6b9e94d73c30e20b5a87ff8aa7594fea2185a25",
+    "lineup.gif": "b76b5f8d3b80d777f78d28f549be971507232cf99f74d9b9ab6adf3ef1294b65"
+  },
+  "metadata": {
+    "torso": "standard",
+    "colors": {
+      "cloth": [
+        185,
+        155,
+        107
+      ],
+      "cloth_dark": [
+        121,
+        98,
+        69
+      ],
+      "leather": [
+        87,
+        59,
+        38
+      ],
+      "trim": [
+        135,
+        141,
+        146
+      ],
+      "iron": [
+        148,
+        155,
+        162
+      ],
+      "armor": [
+        150,
+        155,
+        160
+      ],
+      "armor_dark": [
+        59,
+        57,
+        51
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "gambeson"
+      }
+    ],
+    "source": "costumes/gambeson/costume.json",
+    "status": "approved",
+    "review": "Padded cloth torso with integrated diamond stitching, fitted leather belt and curved hip panels."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

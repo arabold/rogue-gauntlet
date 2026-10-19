@@ -1,0 +1,149 @@
+{
+  "key": "weapons/broadsword_steel",
+  "inputs": "92738f65ca2a373da7c8392c48117cfc7e5f6a2f255b04e143ec64854c504809",
+  "files": {
+    "broadsword_steel.glb": "7efd71de499a86b15c8433572de51a416d0d816ceaa1ca9d3745caaa12db58cd",
+    "lineup.png": "279794e526261aadd9efb3d57d66c69c98f2496c691c3b499f1c1d9d49da5733"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Broadsword Steel",
+      "backend": "procedural",
+      "builder": "arsenal",
+      "design": {
+        "kind": "broadsword"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "steel": [
+          134,
+          153,
+          166
+        ],
+        "edge": [
+          181,
+          194,
+          203
+        ],
+        "iron": [
+          65,
+          76,
+          83
+        ],
+        "wood": [
+          119,
+          78,
+          46
+        ],
+        "endgrain": [
+          148,
+          104,
+          62
+        ],
+        "leather": [
+          79,
+          47,
+          32
+        ],
+        "brass": [
+          165,
+          119,
+          48
+        ]
+      },
+      "materials": {
+        "steel": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        },
+        "edge": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        },
+        "iron": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        },
+        "brass": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        },
+        "wood": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        },
+        "endgrain": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/arsenal/broadsword_steel.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Dedicated continuous blade/profile geometry, solid-unioned structural fittings, material color regions, grip-centered origin. No gameplay data."
+      }
+    },
+    "report": {
+      "triangles": 1420,
+      "bounds": [
+        [
+          -0.290800005197525,
+          -0.27015000581741333,
+          -0.0729999989271164
+        ],
+        [
+          0.290800005197525,
+          1.3899999856948853,
+          0.0729999989271164
+        ]
+      ],
+      "dimensions": [
+        0.58160001039505,
+        1.6601499915122986,
+        0.1459999978542328
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01829176106066739
+      },
+      "warnings": [],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

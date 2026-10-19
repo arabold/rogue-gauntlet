@@ -1,0 +1,122 @@
+{
+  "key": "jewelry/amulet_silver_runic_crest",
+  "inputs": "cb4e2a5e6366e8c9e73dc39928ee209ff333956d9939c178bce2823038952bb8",
+  "files": {
+    "amulet_silver_runic_crest.glb": "1643b1219878af55657e6c8a6978fe7d9c75ab8ec01c6a13d11bb911a8ae1c6e",
+    "lineup.png": "4a1dcc8156446b6298f6b77772ea11ff1634bc8b4773060d2bc68096a1b6defd"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Amulet Silver Runic Crest",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/jewelry/amulet/amulet_silver_runic_crest.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/jewelry/amulet/amulet_silver_runic_crest.glb",
+        "source_sha256": "01f6cd924d37f95f1a7172e8fe4afd9e142eb5cebeafe491d6b2c901107caa74",
+        "original_triangles": 360,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "metal_steel": [
+          129,
+          140,
+          145
+        ],
+        "iron_dark_iron": [
+          74,
+          81,
+          85
+        ],
+        "metal_silver": [
+          212,
+          219,
+          222
+        ]
+      },
+      "materials": {
+        "metal_steel": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "iron_dark_iron": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "metal_silver": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 380,
+      "bounds": [
+        [
+          -0.2800000011920929,
+          0.0,
+          -0.12999999523162842
+        ],
+        [
+          0.2800000011920929,
+          0.7200000286102295,
+          0.12999999523162842
+        ]
+      ],
+      "dimensions": [
+        0.5600000023841858,
+        0.7200000286102295,
+        0.25999999046325684
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 7,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.038894734362493986
+      },
+      "warnings": [
+        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

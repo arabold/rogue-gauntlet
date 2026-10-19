@@ -1,0 +1,194 @@
+{
+  "key": "shields/shield_heater_iron",
+  "inputs": "f32b80d49110ebae6bc4e65fd269948ea8aa68f9bd56ba377d497c2e1411ff21",
+  "files": {
+    "shield_heater_iron.glb": "0fa08f1ba2b686827bc7e0baaa86ddd65a3a0086b2ab4caf0f87095aec542bf0",
+    "lineup.png": "eed970a325543f66f798b0525f561e86b1ba517fab37ae839f1725c193b55e0e"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Knight Steel V Shield",
+      "backend": "procedural",
+      "builder": "shieldcraft",
+      "design": {
+        "kind": "knight",
+        "details": true,
+        "fold_degrees": 22
+      },
+      "reference": "res://asset-studio/objects/shields/reference.png",
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 5000,
+        "materials": 6,
+        "texture_size": 1024
+      },
+      "colors": {
+        "steel": [
+          137,
+          155,
+          168
+        ],
+        "iron": [
+          64,
+          75,
+          82
+        ],
+        "wood": [
+          120,
+          77,
+          43
+        ],
+        "bone": [
+          211,
+          192,
+          151
+        ],
+        "leather": [
+          75,
+          47,
+          31
+        ],
+        "brass": [
+          173,
+          128,
+          49
+        ],
+        "dark": [
+          43,
+          36,
+          31
+        ],
+        "wood_light": [
+          125,
+          81,
+          46
+        ],
+        "wood_dark": [
+          114,
+          73,
+          42
+        ],
+        "wood_cut": [
+          91,
+          58,
+          33
+        ],
+        "wood_repair": [
+          155,
+          112,
+          65
+        ]
+      },
+      "materials": {
+        "steel": {
+          "metallic": 0.55,
+          "roughness": 0.4,
+          "crease": 45
+        },
+        "iron": {
+          "metallic": 0.55,
+          "roughness": 0.4,
+          "crease": 45
+        },
+        "brass": {
+          "metallic": 0.55,
+          "roughness": 0.4,
+          "crease": 45
+        },
+        "wood": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "bone": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "dark": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_light": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_dark": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_cut": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        },
+        "wood_repair": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 52
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/armor/shield/shield_heater_iron.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "curvature_reference": "res://assets/kaykit-dungeon-legacy/shield_uncommon.gltf.glb",
+        "quality_notes": "Curated hero/monster combination. Shallow central V ridge, flat round body, or cylindrical scutum curve. Wooden bone-themed shield has a joined bone frame, skull with real eye/nose cavities and leather bindings. Rear grip centered on origin. Art only."
+      },
+      "source": "source.glb"
+    },
+    "report": {
+      "triangles": 1976,
+      "bounds": [
+        [
+          -0.42000001668930054,
+          -0.5799999833106995,
+          -0.09664418548345566
+        ],
+        [
+          0.42000001668930054,
+          0.5199999809265137,
+          0.45000001788139343
+        ]
+      ],
+      "dimensions": [
+        0.8400000333786011,
+        1.0999999642372131,
+        0.5466442033648491
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.062351147136262365
+      },
+      "warnings": [],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

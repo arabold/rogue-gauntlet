@@ -80,7 +80,9 @@ def render(piece, host=None, yaw=25.0, pitch=14.0, roll=0.0, size=240, extent=No
     from core.export import DEFAULT_MATERIALS, corner_normals, resolve_palette
     from core.mesh import Atlas
 
-    full = kit.Piece.merge(host, piece) if host is not None else piece
+    # Stand-in hosts are neutral context and need no character palette.
+    neutral_host = kit.Piece(host.verts, host.faces, "__catalog_host", normals=host.normals) if host is not None else None
+    full = kit.Piece.merge(neutral_host, piece) if neutral_host is not None else piece
     if not len(full.faces):
         return Image.new("RGB", (size, size), tuple(background))
     R = kit.rotation([0, 0, 1], roll) @ kit.rotation([1, 0, 0], pitch) @ kit.rotation([0, 1, 0], yaw)
@@ -102,7 +104,7 @@ def render(piece, host=None, yaw=25.0, pitch=14.0, roll=0.0, size=240, extent=No
     ndotl = np.clip(n @ light, 0, 1)
     shade = 0.48 + 0.54 * ndotl
 
-    palette = {**kit.DEMO_COLORS, **(colors or {})}
+    palette = {**kit.DEMO_COLORS, "__catalog_host": (186, 188, 192), **(colors or {})}
     used = sorted({str(s) for s in full.slots})
     slot_colors, looks = resolve_palette(used, palette)
     atlas = Atlas([slot_colors[s] for s in used], pad=4, col_w=16, col_h=128, looks=looks, slot_names=used)

@@ -28,3 +28,4 @@ __pycache__/
 # Local tool caches
 .local/
 Library/
+asset-studio/.cache/

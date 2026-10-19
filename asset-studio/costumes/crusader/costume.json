@@ -1,0 +1,76 @@
+{
+  "status": "needs_visual_review",
+  "review": "One continuous ivory tabard-cape runs over the shoulders down the full front and back, with a crimson cross painted into its front surface. No separate neck bib, gorget or front tabard. Fitted belt and leather-supported steel pauldrons remain independent.",
+  "body": {
+    "torso": "standard"
+  },
+  "outfit": [
+    {
+      "kind": "costume",
+      "variant": "crusader"
+    },
+    {
+      "kind": "steel_shoulders",
+      "size": 0.18,
+      "gorget": false,
+      "leather_straps": true
+    }
+  ],
+  "colors": {
+    "mail": [
+      133,
+      143,
+      155
+    ],
+    "mail_dark": [
+      57,
+      69,
+      82
+    ],
+    "cloth": [
+      220,
+      213,
+      193
+    ],
+    "cloth_dark": [
+      165,
+      153,
+      128
+    ],
+    "heraldry": [
+      158,
+      40,
+      43
+    ],
+    "leather": [
+      84,
+      52,
+      34
+    ],
+    "trim": [
+      151,
+      157,
+      162
+    ],
+    "armor": [
+      135,
+      145,
+      154
+    ],
+    "armor_dark": [
+      45,
+      53,
+      61
+    ],
+    "cloak": [
+      204,
+      196,
+      177
+    ],
+    "cloak_dark": [
+      132,
+      46,
+      44
+    ]
+  }
+}

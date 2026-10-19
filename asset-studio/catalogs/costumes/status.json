@@ -1,0 +1,137 @@
+[
+  {
+    "key": "costume_adventurer",
+    "source": "costumes/adventurer/costume.json",
+    "torso": "standard",
+    "status": "needs_visual_review",
+    "source_current": true,
+    "inputs": "374bc88bd9bd76d0fb25d2d3e06da50e628c97df5a35cd5b6c7190ff695f480b",
+    "review": "Warm linen split work tunic, blue neckerchief, twin pouches and a blue traveling mantle."
+  },
+  {
+    "key": "costume_arcanist",
+    "source": "costumes/arcanist/costume.json",
+    "torso": "standard",
+    "status": "needs_visual_review",
+    "source_current": true,
+    "inputs": "77d6a7952b0f239c6d46452458f4f885e0239cfdb2300845df17aee7733717d7",
+    "review": "Divided indigo coat, lavender scarf, silver buttons, utility pouch and compact scroll case."
+  },
+  {
+    "key": "costume_brigandine",
+    "source": "costumes/brigandine/costume.json",
+    "torso": "standard",
+    "status": "approved",
+    "source_current": true,
+    "inputs": "a45d43f8e03e1169ad72703d8ca61e7e1510b5ade6b7728b04965a62b15f9db8",
+    "review": "Riveted leather shell with a front closure, integrated seams and seated iron hardware."
+  },
+  {
+    "key": "costume_chain_mail",
+    "source": "costumes/chain_mail/costume.json",
+    "torso": "standard",
+    "status": "needs_visual_review",
+    "source_current": true,
+    "inputs": "ce70d5e9a86b080941990cbceba1750507de7e964d8d2ee670bf0f6430ed47ca",
+    "review": "Staggered ring relief on continuous fitted mail; shared low belt and curved mail hip panels."
+  },
+  {
+    "key": "costume_crusader",
+    "source": "costumes/crusader/costume.json",
+    "torso": "standard",
+    "status": "needs_visual_review",
+    "source_current": true,
+    "inputs": "9f0c3029d678cd2062f0fa0dbff16671fd31bec9f0b647288c6695863df3617a",
+    "review": "Ivory tabard and short cape over mail, crimson cross and edging, with articulated steel pauldrons on fitted leather straps over the shoulder cloth."
+  },
+  {
+    "key": "costume_dark_knight",
+    "source": "costumes/dark_knight/costume.json",
+    "torso": "hero",
+    "status": "approved",
+    "source_current": true,
+    "inputs": "dda8161fe4baa42db8aa07e3f716e5401278e385fa100ea3838684b98e2962cc",
+    "review": "Dark knight: broader keeled cuirass, dark steel, red gem and seated chest/hip spikes; shared fitted waist and hip protection. Gorget-mounted rigid steel shoulder caps; articulated mounts under current review."
+  },
+  {
+    "key": "costume_gambeson",
+    "source": "costumes/gambeson/costume.json",
+    "torso": "standard",
+    "status": "approved",
+    "source_current": true,
+    "inputs": "89977e8d65e430d2bc78912b3b3bc058af0483fc391b2dcacb71314e73dc312d",
+    "review": "Padded cloth torso with integrated diamond stitching, fitted leather belt and curved hip panels."
+  },
+  {
+    "key": "costume_knight",
+    "source": "costumes/knight/costume.json",
+    "torso": "standard",
+    "status": "approved",
+    "source_current": true,
+    "inputs": "e769297442c642fb80ff74318a420555691e60213227f144e694fb7abe9ce6ec",
+    "review": "Practical steel knight: plain steel edges, simple buckle, restrained wear and no gold or emblem. Gorget-mounted rigid steel shoulder caps; articulated mounts under current review."
+  },
+  {
+    "key": "costume_knight_plate",
+    "source": "costumes/knight_plate/costume.json",
+    "torso": "standard",
+    "status": "style_reference",
+    "source_current": true,
+    "inputs": "fa6c50c62a5689f8a4d55408c79ce9fc997e2aa9eeda7ba5c997a5dcaef600e0",
+    "review": "Approved Paladin reference: steel armor with gold trim and sunburst emblem. Original knight_plate path retained for compatibility. Gorget-mounted rigid steel shoulder caps; articulated mounts under current review."
+  },
+  {
+    "key": "costume_maiden",
+    "source": "costumes/maiden/costume.json",
+    "torso": "female",
+    "status": "approved",
+    "source_current": true,
+    "inputs": "09c85bae39709a64b0d87a0a5f76b1d89a29abe0293f6fca933d75736b18c6ea",
+    "review": "Female plate with open neckline, articulated pauldrons on fitted leather shoulder straps, blue gem and horizontal banding on both belly and back plate."
+  },
+  {
+    "key": "costume_necromancer",
+    "source": "costumes/necromancer/costume.json",
+    "torso": "female",
+    "status": "approved",
+    "source_current": true,
+    "inputs": "89df6b76cb4714d1430868efb8755d860a36fc4c580ee01eadeb3a0b7f198bf3",
+    "review": "Approved female costume: shaped breast-only cuirass, fitted belly plates, oversized skull relief buckle, curved hip panels and connected purple shoulder cloth."
+  },
+  {
+    "key": "costume_ranger",
+    "source": "costumes/ranger/costume.json",
+    "torso": "standard",
+    "status": "needs_visual_review",
+    "source_current": true,
+    "inputs": "fbe7857ae8f924dfbd31a817c5578088764d97c71869793efcf42a71c5f02979",
+    "review": "Forest tunic, ochre pointed scarf, single laced closure and traveling mantle."
+  },
+  {
+    "key": "costume_scale",
+    "source": "costumes/scale/costume.json",
+    "torso": "standard",
+    "status": "needs_visual_review",
+    "source_current": true,
+    "inputs": "6e819e45dbe7d857bddb5e8199d883b408b8c559a1f1683cf604d66dd086cc56",
+    "review": "Silver steel torso scales on dark backing, plain metal skirt and hip plates, with a fitted steel gorget trial."
+  },
+  {
+    "key": "costume_scout",
+    "source": "costumes/scout/costume.json",
+    "torso": "standard",
+    "status": "needs_visual_review",
+    "source_current": true,
+    "inputs": "d16a8d299f13aa19eb6de222c524c14e90e56ee708add2bb9c4d4c20c0067ebe",
+    "review": "Asymmetric charcoal tunic, folded teal cowl, double lacing and short shoulder mantle."
+  },
+  {
+    "key": "costume_segmented",
+    "source": "costumes/segmented/costume.json",
+    "torso": "standard",
+    "status": "approved",
+    "source_current": true,
+    "inputs": "42bac4c301e3c25a299b1b72af10d7b5f571d7538de9ecb9e33bc11116b73523",
+    "review": "Real overlapping metal bands with riveted edges; approved low belt and curved hip protection. Gorget-mounted rigid steel shoulder caps; articulated mounts under current review."
+  }
+]

@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "name": "Potion Medium Teal",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/potions/potion_medium/potion_medium_teal.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/potions/potion_medium/potion_medium_teal.glb",
+    "source_sha256": "5a8ef007dc5df9279430ad4e43b568b547a5d71cafd5f9238282c7aefbc92f3c",
+    "original_triangles": 288,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "glass_emerald": [
+      0,
+      131,
+      83
+    ],
+    "glass_sea_green": [
+      56,
+      163,
+      141
+    ],
+    "cork_tan": [
+      218,
+      174,
+      125
+    ],
+    "paper_ivory": [
+      220,
+      208,
+      195
+    ],
+    "glass_teal": [
+      80,
+      170,
+      174
+    ],
+    "glass_blue_steel": [
+      122,
+      141,
+      157
+    ],
+    "metal_steel": [
+      129,
+      140,
+      145
+    ],
+    "metal_silver": [
+      212,
+      219,
+      222
+    ],
+    "cork_wood": [
+      155,
+      90,
+      69
+    ]
+  },
+  "materials": {
+    "glass_emerald": {
+      "metallic": 0,
+      "roughness": 0.2,
+      "crease": 60,
+      "alpha": 0.72,
+      "double_sided": true
+    },
+    "glass_sea_green": {
+      "metallic": 0,
+      "roughness": 0.2,
+      "crease": 60,
+      "alpha": 0.72,
+      "double_sided": true
+    },
+    "cork_tan": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "paper_ivory": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "glass_teal": {
+      "metallic": 0,
+      "roughness": 0.2,
+      "crease": 60,
+      "alpha": 0.72,
+      "double_sided": true
+    },
+    "glass_blue_steel": {
+      "metallic": 0,
+      "roughness": 0.2,
+      "crease": 60,
+      "alpha": 0.38,
+      "double_sided": true
+    },
+    "metal_steel": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "metal_silver": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "cork_wood": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "emerald": "glass_emerald",
+      "sea_green": "glass_sea_green",
+      "tan": "cork_tan",
+      "ivory": "paper_ivory",
+      "teal": "glass_teal",
+      "blue_steel": "glass_blue_steel",
+      "steel": "metal_steel",
+      "silver": "metal_silver",
+      "wood": "cork_wood"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

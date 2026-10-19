@@ -66,9 +66,19 @@ def _closed_tube(section, y0, y1, p, sides, rings, slot, cut=0.04):
 
 class Trunk:
     """The torso from `bottom` (under the crotch) to `top` (the neck), through `rows` of half sizes
-    (`_Profile`), superellipse sections of exponent `p`."""
+    (`_Profile`), superellipse sections of exponent `p`. `neck` adds an integrated clavicle slope and narrower
+    neck; `build` enables this for humanoid presets, with an explicit opt-out for other silhouettes."""
 
-    def __init__(self, rows, bottom=0.33, top=1.32, p=2.8, q=5.0, cz=0.0):
+    def __init__(self, rows, bottom=0.33, top=1.32, p=2.8, q=5.0, cz=0.0, neck=False):
+        if neck:
+            # Clavicle/shoulder slope and a distinct neck are one continuous body surface.
+            # Keep the established joint positions; a barrel taper into the head hides this anatomy.
+            original = np.array([r + (r[2],) if len(r)==3 else r for r in rows],float)
+            shoulder = np.array([np.interp(.78, original[:,0], original[:,i]) for i in (1,2,3)])
+            neck_radius = np.clip(original[-1,1:] * .50, .075, .155)
+            rows = [tuple(r) for r in original if r[0]<.78]
+            rows += [(.78,*shoulder),(.83,*(shoulder*.80)),(.88,*neck_radius),
+                     (.96,*neck_radius),(1.,*neck_radius)]
         self.profile, self.bottom, self.top, self.p, self.cz = _Profile(rows, q), bottom, top, p, cz
 
     def t(self, y):
@@ -220,6 +230,7 @@ def build(recipe):
     skin = recipe.get("skin", "skin")
     t = recipe.get("torso", "standard")
     t = dict(rows=t) if isinstance(t, (str, list)) else dict(t)
+    t.setdefault("neck", isinstance(t["rows"],str) and t["rows"] in ("standard","hero","female","brute","skinny"))
     sw, sd = np.broadcast_to(np.asarray(t.pop("slim", SLIM), float), (2,))  # the bare body under clothes and armor
     rows = [(r[0], r[1] * sw, *(v * sd for v in r[2:])) for r in _rows(TORSOS, t["rows"])]
     trunk = Trunk(**dict(t, rows=rows))

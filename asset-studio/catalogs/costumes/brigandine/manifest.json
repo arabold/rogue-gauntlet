@@ -1,0 +1,64 @@
+{
+  "key": "costume_brigandine",
+  "inputs": "a45d43f8e03e1169ad72703d8ca61e7e1510b5ade6b7728b04965a62b15f9db8",
+  "files": {
+    "costume.glb": "d2b1cff545a5c1d9a4f9535c4cd81d73bd990df8d00defd9be5f93e080ab251f",
+    "lineup.png": "adf7ec461753fd58997d646ca882a0a3c2d7149a059b2bf9cd463dc8cde901d6",
+    "lineup.gif": "251627a3d7b221db13f70c3e894856255a706b634e3d16c0740e5098fddecf0c"
+  },
+  "metadata": {
+    "torso": "standard",
+    "colors": {
+      "leather": [
+        121,
+        77,
+        49
+      ],
+      "leather_worn": [
+        96,
+        60,
+        39
+      ],
+      "leather_dark": [
+        68,
+        42,
+        31
+      ],
+      "iron": [
+        162,
+        168,
+        175
+      ],
+      "cloth": [
+        62,
+        63,
+        54
+      ],
+      "trim": [
+        134,
+        140,
+        146
+      ],
+      "armor": [
+        150,
+        155,
+        160
+      ],
+      "armor_dark": [
+        59,
+        57,
+        51
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "brigandine"
+      }
+    ],
+    "source": "costumes/brigandine/costume.json",
+    "status": "approved",
+    "review": "Riveted leather shell with a front closure, integrated seams and seated iron hardware."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

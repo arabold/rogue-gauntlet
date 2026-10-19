@@ -6,3 +6,4 @@ google-genai
 openai
 gradio_client
 scikit-image
+manifold3d>=3.5,<4

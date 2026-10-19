@@ -1,0 +1,63 @@
+{
+  "key": "costume_dark_knight",
+  "inputs": "dda8161fe4baa42db8aa07e3f716e5401278e385fa100ea3838684b98e2962cc",
+  "files": {
+    "costume.glb": "c733f22d8edb10f787d83becfe9facce24205eeb1d141111adfa37f76d276789",
+    "lineup.png": "14770922819fd6b0ca37a664f7ea29637bf34463d6f26f3a36cb90858251d42f",
+    "lineup.gif": "56d0ab317bb7d789a7aea58ba97b57eba440e2a8f8da2ef5233f9d5c88fdc7a5"
+  },
+  "metadata": {
+    "torso": "hero",
+    "colors": {
+      "armor": [
+        65,
+        69,
+        80
+      ],
+      "trim": [
+        120,
+        127,
+        144
+      ],
+      "rivet": [
+        160,
+        164,
+        174
+      ],
+      "gem": [
+        169,
+        35,
+        46
+      ],
+      "leather": [
+        43,
+        32,
+        37
+      ],
+      "cloth": [
+        65,
+        34,
+        47
+      ],
+      "armor_dark": [
+        38,
+        40,
+        47
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "dark_knight"
+      },
+      {
+        "kind": "steel_shoulders",
+        "size": 0.19
+      }
+    ],
+    "source": "costumes/dark_knight/costume.json",
+    "status": "approved",
+    "review": "Dark knight: broader keeled cuirass, dark steel, red gem and seated chest/hip spikes; shared fitted waist and hip protection. Gorget-mounted rigid steel shoulder caps; articulated mounts under current review."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

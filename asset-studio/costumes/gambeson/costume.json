@@ -1,0 +1,50 @@
+{
+  "status": "approved",
+  "review": "Padded cloth torso with integrated diamond stitching, fitted leather belt and curved hip panels.",
+  "body": {
+    "torso": "standard"
+  },
+  "outfit": [
+    {
+      "kind": "costume",
+      "variant": "gambeson"
+    }
+  ],
+  "colors": {
+    "cloth": [
+      185,
+      155,
+      107
+    ],
+    "cloth_dark": [
+      121,
+      98,
+      69
+    ],
+    "leather": [
+      87,
+      59,
+      38
+    ],
+    "trim": [
+      135,
+      141,
+      146
+    ],
+    "iron": [
+      148,
+      155,
+      162
+    ],
+    "armor": [
+      150,
+      155,
+      160
+    ],
+    "armor_dark": [
+      59,
+      57,
+      51
+    ]
+  }
+}

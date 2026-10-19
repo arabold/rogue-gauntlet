@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "name": "Key Silver Crypt",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/keys/key/key_silver_crypt.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/keys/key/key_silver_crypt.glb",
+    "source_sha256": "3cae5a27ed5b263083ff19f164a209d9a1e36ab7737f3ddef3a8b81db4065c2b",
+    "original_triangles": 364,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "iron_steel": [
+      134,
+      142,
+      149
+    ],
+    "iron_silver": [
+      154,
+      163,
+      171
+    ],
+    "iron_dark_iron": [
+      120,
+      127,
+      133
+    ],
+    "iron_sky_blue": [
+      137,
+      145,
+      152
+    ],
+    "iron_cobalt": [
+      128,
+      135,
+      142
+    ],
+    "iron_obsidian": [
+      107,
+      113,
+      118
+    ]
+  },
+  "materials": {
+    "iron_steel": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 48.0
+    },
+    "iron_silver": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 48.0
+    },
+    "iron_dark_iron": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 48.0
+    },
+    "iron_sky_blue": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 48.0
+    },
+    "iron_cobalt": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 48.0
+    },
+    "iron_obsidian": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 48.0
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "steel": "iron_steel",
+      "silver": "iron_silver",
+      "dark_iron": "iron_dark_iron",
+      "sky_blue": "iron_sky_blue",
+      "cobalt": "iron_cobalt",
+      "obsidian": "iron_obsidian"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

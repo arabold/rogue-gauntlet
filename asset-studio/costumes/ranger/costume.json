@@ -1,0 +1,55 @@
+{
+  "status": "needs_visual_review",
+  "review": "Travel costume with a single continuous cloth cape: front chest bib, shoulder yoke and back drape; no separate collar or gorget. Review updated fit and motion.",
+  "body": {
+    "torso": "standard"
+  },
+  "outfit": [
+    {
+      "kind": "costume",
+      "variant": "ranger"
+    }
+  ],
+  "colors": {
+    "cloth": [
+      36,
+      94,
+      77
+    ],
+    "cloth_dark": [
+      25,
+      66,
+      55
+    ],
+    "cloak": [
+      30,
+      75,
+      62
+    ],
+    "cloak_dark": [
+      20,
+      51,
+      42
+    ],
+    "leather": [
+      111,
+      70,
+      46
+    ],
+    "leather_dark": [
+      75,
+      47,
+      33
+    ],
+    "leather_worn": [
+      159,
+      111,
+      73
+    ],
+    "metal": [
+      159,
+      172,
+      181
+    ]
+  }
+}

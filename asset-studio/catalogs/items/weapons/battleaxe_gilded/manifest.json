@@ -1,0 +1,162 @@
+{
+  "key": "weapons/battleaxe_gilded",
+  "inputs": "636003e78e497506c864d8e9cfaa3539ca4ad9be7c6e4393ceb0aba0668495ef",
+  "files": {
+    "battleaxe_gilded.glb": "3d632ff1d0a7d51fe9feb51a3be918e772393cc99153a8c7a6e447dd7d84aa99",
+    "lineup.png": "1519dd6efbd660a81d6b488f9c17d367ab3852b9ce32e7c8ede9cc4a266d5b45"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Battleaxe Gilded",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 4096,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/battleaxe/battleaxe_gilded.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/weapons/battleaxe/battleaxe_gilded.glb",
+        "source_sha256": "8a648e011c7271ccba324e8b59316ff99f3f3140babbbcc6566b60a8724ea3ad",
+        "original_triangles": 2804,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "gold_gold": [
+          234,
+          194,
+          83
+        ],
+        "leather_wood": [
+          155,
+          90,
+          69
+        ],
+        "leather_copper": [
+          177,
+          111,
+          82
+        ],
+        "iron_dark_iron": [
+          74,
+          81,
+          85
+        ],
+        "metal_steel": [
+          129,
+          140,
+          145
+        ],
+        "metal_silver": [
+          212,
+          219,
+          222
+        ]
+      },
+      "materials": {
+        "gold_gold": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0,
+          "double_sided": true
+        },
+        "leather_wood": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0,
+          "double_sided": true
+        },
+        "leather_copper": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0,
+          "double_sided": true
+        },
+        "iron_dark_iron": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0,
+          "double_sided": true
+        },
+        "metal_steel": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0,
+          "double_sided": true
+        },
+        "metal_silver": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0,
+          "double_sided": true
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "authored_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "wood": "leather_wood",
+          "copper": "leather_copper",
+          "dark_iron": "iron_dark_iron",
+          "steel": "metal_steel",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 2818,
+      "bounds": [
+        [
+          -0.8600000143051147,
+          -0.4399999976158142,
+          -0.18000000715255737
+        ],
+        [
+          0.8600000143051147,
+          1.559999942779541,
+          0.18000000715255737
+        ]
+      ],
+      "dimensions": [
+        1.7200000286102295,
+        1.9999999403953552,
+        0.36000001430511475
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 14,
+        "boundary_edges": 42,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.1922473725808914
+      },
+      "warnings": [
+        "14 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

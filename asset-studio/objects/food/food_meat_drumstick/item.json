@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "name": "Food Meat Drumstick",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/food/food/food_meat_drumstick.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/food/food/food_meat_drumstick.glb",
+    "source_sha256": "9aace5e0c4b5c9db7b13a75c2a6f4d62d0672476e9534c0d88068e70eb7f10de",
+    "original_triangles": 268,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "surface_tan": [
+      222,
+      207,
+      177
+    ],
+    "surface_ivory": [
+      222,
+      207,
+      177
+    ],
+    "surface_wood": [
+      168,
+      101,
+      55
+    ],
+    "surface_copper": [
+      168,
+      101,
+      55
+    ],
+    "surface_bark": [
+      168,
+      101,
+      55
+    ],
+    "surface_rust": [
+      168,
+      101,
+      55
+    ],
+    "surface_amber": [
+      168,
+      101,
+      55
+    ]
+  },
+  "materials": {
+    "surface_tan": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_ivory": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_wood": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_copper": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_bark": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_rust": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_amber": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "tan": "surface_tan",
+      "ivory": "surface_ivory",
+      "wood": "surface_wood",
+      "copper": "surface_copper",
+      "bark": "surface_bark",
+      "rust": "surface_rust",
+      "amber": "surface_amber"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

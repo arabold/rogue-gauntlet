@@ -1,0 +1,122 @@
+{
+  "key": "jewelry/amulet_wood_druid_talisman",
+  "inputs": "f73deb3b9b2521600f06ff44374a7b10f87e09ec684058ec48c580bf9a6f42f5",
+  "files": {
+    "amulet_wood_druid_talisman.glb": "6d75281061901b7241afa688fb788cfd92483a317c549d40527dbd451b1e0e0a",
+    "lineup.png": "03afae05604e94a485b4b7bed6e7aa8c7c6b6953e31a6d2f332976754627945c"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Amulet Wood Druid Talisman",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/jewelry/amulet/amulet_wood_druid_talisman.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/jewelry/amulet/amulet_wood_druid_talisman.glb",
+        "source_sha256": "9f1f56aa314d8fa4470510969daa4467916a056f2499aea1dc1db8bc1b5c021b",
+        "original_triangles": 360,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "leather_wood": [
+          155,
+          90,
+          69
+        ],
+        "leather_bark": [
+          107,
+          92,
+          83
+        ],
+        "leather_tan": [
+          218,
+          174,
+          125
+        ]
+      },
+      "materials": {
+        "leather_wood": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "leather_bark": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "leather_tan": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "wood": "leather_wood",
+          "bark": "leather_bark",
+          "tan": "leather_tan"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 380,
+      "bounds": [
+        [
+          -0.2800000011920929,
+          0.0,
+          -0.12999999523162842
+        ],
+        [
+          0.2800000011920929,
+          0.7200000286102295,
+          0.12999999523162842
+        ]
+      ],
+      "dimensions": [
+        0.5600000023841858,
+        0.7200000286102295,
+        0.25999999046325684
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 7,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03889473436249399
+      },
+      "warnings": [
+        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

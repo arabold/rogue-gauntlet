@@ -1,0 +1,199 @@
+{
+  "key": "food/drink_water_canteen",
+  "inputs": "1741fec800f7b4207cef412f582a4b47a5bfadd44ab89cc21b3da8ca40195639",
+  "files": {
+    "drink_water_canteen.glb": "68e2a5c55e23ad4de6f3f2e84f489af879bf05a534b3362e8b15c73bb2b62036",
+    "lineup.png": "a44c8f1c483523810bc061f71c92265bc99231e8f4e2f0cf7ba077ee98a4d9cb"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Drink Water Canteen",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/food/drink/drink_water_canteen.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/food/drink/drink_water_canteen.glb",
+        "source_sha256": "a91cb4ae4f5b4d7e2d673717a031edfb47fb3c6638656d80302021ee02d1d82d",
+        "original_triangles": 608,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "surface_wood": [
+          155,
+          90,
+          69
+        ],
+        "surface_tan": [
+          218,
+          174,
+          125
+        ],
+        "surface_bark": [
+          107,
+          92,
+          83
+        ],
+        "surface_copper": [
+          177,
+          111,
+          82
+        ],
+        "surface_steel": [
+          129,
+          140,
+          145
+        ],
+        "surface_silver": [
+          212,
+          219,
+          222
+        ],
+        "surface_dark_iron": [
+          74,
+          81,
+          85
+        ],
+        "surface_ivory": [
+          220,
+          208,
+          195
+        ],
+        "surface_cobalt": [
+          37,
+          126,
+          188
+        ],
+        "surface_sky_blue": [
+          98,
+          160,
+          208
+        ]
+      },
+      "materials": {
+        "surface_wood": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_tan": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_bark": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_copper": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_steel": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_silver": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_dark_iron": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_ivory": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_cobalt": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_sky_blue": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "wood": "surface_wood",
+          "tan": "surface_tan",
+          "bark": "surface_bark",
+          "copper": "surface_copper",
+          "steel": "surface_steel",
+          "silver": "surface_silver",
+          "dark_iron": "surface_dark_iron",
+          "ivory": "surface_ivory",
+          "cobalt": "surface_cobalt",
+          "sky_blue": "surface_sky_blue"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 608,
+      "bounds": [
+        [
+          -0.23800000548362732,
+          0.0,
+          -0.14000000059604645
+        ],
+        [
+          0.23800000548362732,
+          0.6299999952316284,
+          0.14000000059604645
+        ]
+      ],
+      "dimensions": [
+        0.47600001096725464,
+        0.6299999952316284,
+        0.2800000011920929
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 5,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03234642175191947
+      },
+      "warnings": [
+        "5 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

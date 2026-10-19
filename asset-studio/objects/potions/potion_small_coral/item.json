@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "name": "Potion Small Coral",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/potions/potion_small/potion_small_coral.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/potions/potion_small/potion_small_coral.glb",
+    "source_sha256": "c4f1d89f66d8764b75a197399427f6529c49bfdbc567340bef11303f3ba73a8f",
+    "original_triangles": 224,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "cork_copper": [
+      177,
+      111,
+      82
+    ],
+    "glass_coral": [
+      246,
+      147,
+      114
+    ],
+    "glass_rose": [
+      243,
+      114,
+      127
+    ],
+    "glass_blue_steel": [
+      122,
+      141,
+      157
+    ],
+    "metal_steel": [
+      129,
+      140,
+      145
+    ],
+    "metal_silver": [
+      212,
+      219,
+      222
+    ],
+    "cork_wood": [
+      155,
+      90,
+      69
+    ],
+    "cork_tan": [
+      218,
+      174,
+      125
+    ]
+  },
+  "materials": {
+    "cork_copper": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "glass_coral": {
+      "metallic": 0,
+      "roughness": 0.2,
+      "crease": 60,
+      "alpha": 0.72,
+      "double_sided": true
+    },
+    "glass_rose": {
+      "metallic": 0,
+      "roughness": 0.2,
+      "crease": 60,
+      "alpha": 0.72,
+      "double_sided": true
+    },
+    "glass_blue_steel": {
+      "metallic": 0,
+      "roughness": 0.2,
+      "crease": 60,
+      "alpha": 0.38,
+      "double_sided": true
+    },
+    "metal_steel": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "metal_silver": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "cork_wood": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "cork_tan": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "copper": "cork_copper",
+      "coral": "glass_coral",
+      "rose": "glass_rose",
+      "blue_steel": "glass_blue_steel",
+      "steel": "metal_steel",
+      "silver": "metal_silver",
+      "wood": "cork_wood",
+      "tan": "cork_tan"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

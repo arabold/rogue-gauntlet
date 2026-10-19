@@ -1,0 +1,138 @@
+{
+  "key": "weapons/sword_sunblade",
+  "inputs": "5130f0ebf770ccaf736bf1fa9feea4e7a83c0867ce10148fadedae5ce32642ba",
+  "files": {
+    "sword_sunblade.glb": "be3e05002df60f2b24a9d6fff81eb97f09e6ebd354c47c7403fb29cb6651e0ed",
+    "lineup.png": "74d930d5d01553eba9f2b0fb1f96464879ab6f264f1d0fa07335ba2db4145037"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Sword Sunblade",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/sword/sword_sunblade.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/weapons/sword/sword_sunblade.glb",
+        "source_sha256": "5f9f655de15b9c0056baf8b7de610ff280baa6666d35a02621c4eebf180c1bd5",
+        "original_triangles": 524,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "surface_crimson": [
+          210,
+          34,
+          39
+        ],
+        "gold_gold": [
+          234,
+          194,
+          83
+        ],
+        "leather_wood": [
+          155,
+          90,
+          69
+        ],
+        "metal_silver": [
+          212,
+          219,
+          222
+        ]
+      },
+      "materials": {
+        "surface_crimson": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55,
+          "double_sided": true
+        },
+        "gold_gold": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0,
+          "double_sided": true
+        },
+        "leather_wood": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0,
+          "double_sided": true
+        },
+        "metal_silver": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0,
+          "double_sided": true
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "authored_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "crimson": "surface_crimson",
+          "gold": "gold_gold",
+          "wood": "leather_wood",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 536,
+      "bounds": [
+        [
+          -0.3199999928474426,
+          -0.3400000035762787,
+          -0.09000000357627869
+        ],
+        [
+          0.3199999928474426,
+          1.4800000190734863,
+          0.09000000357627869
+        ]
+      ],
+      "dimensions": [
+        0.6399999856948853,
+        1.820000022649765,
+        0.18000000715255737
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 9,
+        "boundary_edges": 42,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.02631478769972163
+      },
+      "warnings": [
+        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
+        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

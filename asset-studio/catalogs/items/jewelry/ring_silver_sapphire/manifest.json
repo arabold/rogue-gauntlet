@@ -1,0 +1,155 @@
+{
+  "key": "jewelry/ring_silver_sapphire",
+  "inputs": "d03b42528fcd5a6901e2f8da9c6c7804a7ff8f4f6621c5887cb30c2c09cc4c94",
+  "files": {
+    "ring_silver_sapphire.glb": "7ed30134a8e796a0b2b3e6fac502a6927c983854b84466189cbc0f7830f006b8",
+    "lineup.png": "c3b1a029258c14d6721fd2ffe7622a5938a3c6b35d30b870bca1ce7c7e7b6af3"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Ring Silver Sapphire",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/jewelry/ring/ring_silver_sapphire.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/jewelry/ring/ring_silver_sapphire.glb",
+        "source_sha256": "b93577147c252692bd95db8a1ba933cd98ecc334dc7102ccd52bd1c25c42d08d",
+        "original_triangles": 288,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "metal_steel": [
+          129,
+          140,
+          145
+        ],
+        "iron_dark_iron": [
+          74,
+          81,
+          85
+        ],
+        "metal_silver": [
+          212,
+          219,
+          222
+        ],
+        "gem_obsidian": [
+          19,
+          25,
+          27
+        ],
+        "gem_cobalt": [
+          37,
+          126,
+          188
+        ],
+        "gem_sky_blue": [
+          98,
+          160,
+          208
+        ]
+      },
+      "materials": {
+        "metal_steel": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "iron_dark_iron": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "metal_silver": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gem_obsidian": {
+          "metallic": 0.1,
+          "roughness": 0.25,
+          "crease": 45
+        },
+        "gem_cobalt": {
+          "metallic": 0.1,
+          "roughness": 0.25,
+          "crease": 45
+        },
+        "gem_sky_blue": {
+          "metallic": 0.1,
+          "roughness": 0.25,
+          "crease": 45
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver",
+          "obsidian": "gem_obsidian",
+          "cobalt": "gem_cobalt",
+          "sky_blue": "gem_sky_blue"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 288,
+      "bounds": [
+        [
+          -0.25999999046325684,
+          0.0,
+          -0.15000000596046448
+        ],
+        [
+          0.25999999046325684,
+          0.6200000047683716,
+          0.15000000596046448
+        ]
+      ],
+      "dimensions": [
+        0.5199999809265137,
+        0.6200000047683716,
+        0.30000001192092896
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03776124387293001
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

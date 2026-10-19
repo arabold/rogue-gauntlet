@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "name": "Amulet Wood Jade",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/jewelry/amulet/amulet_wood_jade.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/jewelry/amulet/amulet_wood_jade.glb",
+    "source_sha256": "0a8c412c07e9842bfed42ef62e2ffa2a978dce524f2452e3c40225fc3f739b58",
+    "original_triangles": 368,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "leather_wood": [
+      155,
+      90,
+      69
+    ],
+    "leather_bark": [
+      107,
+      92,
+      83
+    ],
+    "leather_tan": [
+      218,
+      174,
+      125
+    ],
+    "gem_sea_green": [
+      56,
+      163,
+      141
+    ],
+    "gem_teal": [
+      80,
+      170,
+      174
+    ],
+    "gem_emerald": [
+      0,
+      131,
+      83
+    ]
+  },
+  "materials": {
+    "leather_wood": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "leather_bark": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "leather_tan": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "gem_sea_green": {
+      "metallic": 0.1,
+      "roughness": 0.25,
+      "crease": 45
+    },
+    "gem_teal": {
+      "metallic": 0.1,
+      "roughness": 0.25,
+      "crease": 45
+    },
+    "gem_emerald": {
+      "metallic": 0.1,
+      "roughness": 0.25,
+      "crease": 45
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "wood": "leather_wood",
+      "bark": "leather_bark",
+      "tan": "leather_tan",
+      "sea_green": "gem_sea_green",
+      "teal": "gem_teal",
+      "emerald": "gem_emerald"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

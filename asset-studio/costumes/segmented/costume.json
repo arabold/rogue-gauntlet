@@ -1,0 +1,49 @@
+{
+  "status": "approved",
+  "review": "Real overlapping metal bands with riveted edges; approved low belt and curved hip protection. Gorget-mounted rigid steel shoulder caps; articulated mounts under current review.",
+  "body": {
+    "torso": "standard"
+  },
+  "outfit": [
+    {
+      "kind": "costume",
+      "variant": "segmented"
+    },
+    {
+      "kind": "steel_shoulders",
+      "size": 0.18
+    }
+  ],
+  "colors": {
+    "armor": [
+      155,
+      145,
+      128
+    ],
+    "trim": [
+      122,
+      112,
+      96
+    ],
+    "rivet": [
+      205,
+      186,
+      154
+    ],
+    "cloth": [
+      63,
+      68,
+      59
+    ],
+    "leather": [
+      77,
+      54,
+      38
+    ],
+    "armor_dark": [
+      59,
+      57,
+      51
+    ]
+  }
+}

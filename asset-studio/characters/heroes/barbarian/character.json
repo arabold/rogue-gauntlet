@@ -2,16 +2,8 @@
   "base": "heroes/barbarian_base",
   "outfit": [
     {
-      "kind": "shorts",
-      "down": 0.6,
-      "slot": "pants",
-      "thickness": 0.02
-    },
-    {
-      "kind": "tunic",
-      "y0": 0.5,
-      "thickness": 0.03,
-      "slot": "cloth"
+      "kind": "costume_set",
+      "name": "barbarian"
     },
     {
       "kind": "sleeves",
@@ -42,33 +34,11 @@
       "length": 0.06
     },
     {
-      "kind": "armor",
-      "element": "straps",
-      "y0": 0.62,
-      "y1": 1.2,
-      "cross": false,
-      "boss": null,
-      "slot": "strap"
-    },
-    {
-      "kind": "belt",
-      "y": 0.64,
-      "height": 0.18,
-      "variant": "barbarian",
-      "thickness": 0.045,
-      "boss_rim": "metal_dark"
-    },
-    {
       "kind": "cuffs",
       "at": 0.86,
       "width": 0.16,
       "thickness": 0.035,
       "slot": "strap"
-    },
-    {
-      "kind": "cape",
-      "hem": 0.2,
-      "width": 64
     },
     {
       "kind": "helmet",
@@ -130,6 +100,11 @@
       118,
       126,
       140
+    ],
+    "pelt_dark": [
+      85,
+      72,
+      64
     ]
   }
 }

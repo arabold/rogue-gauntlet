@@ -1,0 +1,74 @@
+{
+  "key": "costume_scout",
+  "inputs": "d16a8d299f13aa19eb6de222c524c14e90e56ee708add2bb9c4d4c20c0067ebe",
+  "files": {
+    "costume.glb": "3f7dc4e8dba8fa867bac34e43ef6ca83be20719615bccd137754130a215a7444",
+    "lineup.png": "ea0f5f4add0b7cb82b1025bcf5022715373aaf8916ab054d549ce84d662edddc",
+    "lineup.gif": "357795fb5f013e00e47350237cb2aaa5374fa584a5b988e629a8843f5b18fd0f"
+  },
+  "metadata": {
+    "torso": "standard",
+    "colors": {
+      "cloth": [
+        53,
+        64,
+        75
+      ],
+      "cloth_dark": [
+        35,
+        42,
+        52
+      ],
+      "wrap": [
+        42,
+        116,
+        112
+      ],
+      "wrap_dark": [
+        28,
+        77,
+        78
+      ],
+      "cloak": [
+        32,
+        63,
+        67
+      ],
+      "cloak_dark": [
+        22,
+        43,
+        46
+      ],
+      "leather": [
+        111,
+        70,
+        46
+      ],
+      "leather_dark": [
+        75,
+        47,
+        33
+      ],
+      "leather_worn": [
+        159,
+        111,
+        73
+      ],
+      "metal": [
+        159,
+        172,
+        181
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "scout"
+      }
+    ],
+    "source": "costumes/scout/costume.json",
+    "status": "needs_visual_review",
+    "review": "Asymmetric charcoal tunic, folded teal cowl, double lacing and short shoulder mantle."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

@@ -1,0 +1,166 @@
+{
+  "key": "food/food_meat_drumstick",
+  "inputs": "624c2e2a3ebe4e24dc40ee8fae361a5407c0ea32ce9c4562089d22da25db0459",
+  "files": {
+    "food_meat_drumstick.glb": "3d3d904988fbd6d9ad8180d24e62b5f50c7fbd9239521ff57d8d7b285b2fea8b",
+    "lineup.png": "c635120a82cd44557667c5e584f0b771c30355d00938dc30698ef5959ba0ada0"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Food Meat Drumstick",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/food/food/food_meat_drumstick.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/food/food/food_meat_drumstick.glb",
+        "source_sha256": "9aace5e0c4b5c9db7b13a75c2a6f4d62d0672476e9534c0d88068e70eb7f10de",
+        "original_triangles": 268,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "surface_tan": [
+          222,
+          207,
+          177
+        ],
+        "surface_ivory": [
+          222,
+          207,
+          177
+        ],
+        "surface_wood": [
+          168,
+          101,
+          55
+        ],
+        "surface_copper": [
+          168,
+          101,
+          55
+        ],
+        "surface_bark": [
+          168,
+          101,
+          55
+        ],
+        "surface_rust": [
+          168,
+          101,
+          55
+        ],
+        "surface_amber": [
+          168,
+          101,
+          55
+        ]
+      },
+      "materials": {
+        "surface_tan": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_ivory": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_wood": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_copper": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_bark": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_rust": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_amber": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "tan": "surface_tan",
+          "ivory": "surface_ivory",
+          "wood": "surface_wood",
+          "copper": "surface_copper",
+          "bark": "surface_bark",
+          "rust": "surface_rust",
+          "amber": "surface_amber"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 268,
+      "bounds": [
+        [
+          -0.15199999511241913,
+          0.0,
+          -0.13124579191207886
+        ],
+        [
+          0.15199999511241913,
+          0.5968000292778015,
+          0.13124579191207886
+        ]
+      ],
+      "dimensions": [
+        0.30399999022483826,
+        0.5968000292778015,
+        0.2624915838241577
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01775550074060843
+      },
+      "warnings": [
+        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

@@ -1,0 +1,144 @@
+{
+  "key": "jewelry/amulet_silver_onyx",
+  "inputs": "fccf7e3d558627520266ca50a4b0c9a11f12f91751b7ce8505424bc07d7f0a5a",
+  "files": {
+    "amulet_silver_onyx.glb": "352606c55d9a16d9fe72c77e4c81566fe2569be8cb28a324bad77fef50c1a2dd",
+    "lineup.png": "5903af909ffae66f43363951a521e97032d71c0cd8c52b05310946f892ad02f2"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Amulet Silver Onyx",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/jewelry/amulet/amulet_silver_onyx.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/jewelry/amulet/amulet_silver_onyx.glb",
+        "source_sha256": "2de3741e82b08473ed6bb6775ad43f44233da95b8a1d2bf90259a364bf484d51",
+        "original_triangles": 368,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "metal_steel": [
+          129,
+          140,
+          145
+        ],
+        "iron_dark_iron": [
+          74,
+          81,
+          85
+        ],
+        "metal_silver": [
+          212,
+          219,
+          222
+        ],
+        "metal_blue_steel": [
+          122,
+          141,
+          157
+        ],
+        "gem_obsidian": [
+          19,
+          25,
+          27
+        ]
+      },
+      "materials": {
+        "metal_steel": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "iron_dark_iron": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "metal_silver": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "metal_blue_steel": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gem_obsidian": {
+          "metallic": 0.1,
+          "roughness": 0.25,
+          "crease": 45
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver",
+          "blue_steel": "metal_blue_steel",
+          "obsidian": "gem_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 380,
+      "bounds": [
+        [
+          -0.2800000011920929,
+          0.0,
+          -0.12999999523162842
+        ],
+        [
+          0.2800000011920929,
+          0.7200000286102295,
+          0.12999999523162842
+        ]
+      ],
+      "dimensions": [
+        0.5600000023841858,
+        0.7200000286102295,
+        0.25999999046325684
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03134114606878069
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

@@ -1,0 +1,74 @@
+{
+  "key": "costume_adventurer",
+  "inputs": "374bc88bd9bd76d0fb25d2d3e06da50e628c97df5a35cd5b6c7190ff695f480b",
+  "files": {
+    "costume.glb": "a04ad4d7d0c354fc7836d1220ad99af81949905fd2d1589abf2bfb309165d05e",
+    "lineup.png": "63c8ea8111886538e66ee6ce2933ce7157c918f36f139cf676a324af4d6266c7",
+    "lineup.gif": "266d16c601821046c3e97d7119aa110fd80a833f11903c0f9580b04c711538cf"
+  },
+  "metadata": {
+    "torso": "standard",
+    "colors": {
+      "cloth": [
+        184,
+        164,
+        129
+      ],
+      "cloth_dark": [
+        127,
+        108,
+        81
+      ],
+      "wrap": [
+        43,
+        119,
+        154
+      ],
+      "wrap_dark": [
+        29,
+        77,
+        104
+      ],
+      "cloak": [
+        34,
+        82,
+        112
+      ],
+      "cloak_dark": [
+        23,
+        56,
+        76
+      ],
+      "leather": [
+        111,
+        70,
+        46
+      ],
+      "leather_dark": [
+        75,
+        47,
+        33
+      ],
+      "leather_worn": [
+        159,
+        111,
+        73
+      ],
+      "metal": [
+        159,
+        172,
+        181
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "adventurer"
+      }
+    ],
+    "source": "costumes/adventurer/costume.json",
+    "status": "needs_visual_review",
+    "review": "Warm linen split work tunic, blue neckerchief, twin pouches and a blue traveling mantle."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

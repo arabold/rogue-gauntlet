@@ -21,7 +21,7 @@
     "torso": "brute",
     "arms": {
       "style": "gorilla",
-      "length": 1.30,
+      "length": 1.3,
       "hand": "fist",
       "hand_size": 1.8
     },
@@ -33,10 +33,8 @@
   },
   "outfit": [
     {
-      "kind": "tunic",
-      "y0": 0.6,
-      "thickness": 0.03,
-      "slot": "leather"
+      "kind": "costume",
+      "variant": "orc_king"
     },
     {
       "kind": "shorts",
@@ -54,10 +52,6 @@
       "slot": "boot"
     },
     {
-      "kind": "cuirass",
-      "variant": "orc"
-    },
-    {
       "kind": "cuffs",
       "at": 0.76,
       "width": 0.22,
@@ -65,14 +59,6 @@
       "slot": "armor_dark",
       "studs": 5,
       "stud_radius": 0.03
-    },
-    {
-      "kind": "pauldrons",
-      "x": 0.36,
-      "y": 1.36,
-      "size": 0.36,
-      "variant": "spiked",
-      "spike_height": 0.85
     },
     {
       "kind": "crown",
@@ -85,19 +71,19 @@
   ],
   "colors": {
     "armor": [
-      84,
-      74,
-      74
+      68,
+      76,
+      84
     ],
     "armor_dark": [
-      52,
-      46,
-      46
+      36,
+      41,
+      47
     ],
     "leather": [
-      66,
-      52,
-      46
+      113,
+      68,
+      37
     ],
     "pants": [
       140,
@@ -125,9 +111,49 @@
       150
     ],
     "bone": [
-      232,
-      222,
-      196
+      225,
+      211,
+      174
+    ],
+    "trim": [
+      108,
+      119,
+      124
+    ],
+    "rivet": [
+      158,
+      122,
+      66
+    ],
+    "leather_dark": [
+      68,
+      43,
+      26
+    ],
+    "cloth": [
+      125,
+      34,
+      34
+    ],
+    "fur": [
+      204,
+      191,
+      163
+    ],
+    "hide": [
+      90,
+      54,
+      37
+    ],
+    "armor_lame": [
+      75,
+      83,
+      91
+    ],
+    "armor_joint": [
+      45,
+      51,
+      57
     ]
   },
   "weapons": {

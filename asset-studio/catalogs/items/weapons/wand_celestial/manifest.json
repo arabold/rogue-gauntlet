@@ -1,0 +1,155 @@
+{
+  "key": "weapons/wand_celestial",
+  "inputs": "8b71b2b69aee3d2044c6bb8b485509bd3d1f11c8d2fec71209f6215c3cd651a8",
+  "files": {
+    "wand_celestial.glb": "7ba320d3ed8ec3f04a6af67518c51830b179addd12c3ad17267cd01ccdd694dc",
+    "lineup.png": "41ff197470ad201298cbb8563f0eb5b8cabbcf45301729544b0fb407127dbda0"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Wand Celestial",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/wand/wand_celestial.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/weapons/wand/wand_celestial.glb",
+        "source_sha256": "9cc592dd8c671c2fa44e0d9d2e5760f03178e0dbfa9277b770c117cac9592954",
+        "original_triangles": 320,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "gold_gold": [
+          234,
+          194,
+          83
+        ],
+        "leather_copper": [
+          177,
+          111,
+          82
+        ],
+        "leather_wood": [
+          155,
+          90,
+          69
+        ],
+        "leather_bark": [
+          107,
+          92,
+          83
+        ],
+        "surface_cobalt": [
+          37,
+          126,
+          188
+        ],
+        "surface_sky_blue": [
+          98,
+          160,
+          208
+        ]
+      },
+      "materials": {
+        "gold_gold": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "leather_copper": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "leather_wood": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "leather_bark": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "surface_cobalt": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_sky_blue": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "copper": "leather_copper",
+          "wood": "leather_wood",
+          "bark": "leather_bark",
+          "cobalt": "surface_cobalt",
+          "sky_blue": "surface_sky_blue"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 328,
+      "bounds": [
+        [
+          -0.18000000715255737,
+          -0.23999999463558197,
+          -0.14000000059604645
+        ],
+        [
+          0.18000000715255737,
+          0.8799999952316284,
+          0.14000000059604645
+        ]
+      ],
+      "dimensions": [
+        0.36000001430511475,
+        1.1199999898672104,
+        0.2800000011920929
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.011522096818500785
+      },
+      "warnings": [
+        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

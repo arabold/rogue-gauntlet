@@ -1,0 +1,166 @@
+{
+  "key": "tools/tool_torch_wooden",
+  "inputs": "d4ec9bcc382ca692dfdf7f4b1b4a9f8fa0278a1fe0745e79081e750476ed71da",
+  "files": {
+    "tool_torch_wooden.glb": "a280408fe8c015c75b65545fe9c8d8c009f6216db35209a6240a9c29d1a361af",
+    "lineup.png": "bf82646e37cd51996d9dc4cff93d5d46d66ad5eb75484f6f1406487f9b538638"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Tool Torch Wooden",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/tools/lamp/tool_torch_wooden.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/tools/lamp/tool_torch_wooden.glb",
+        "source_sha256": "67d4db49b1ea96dc135af9b4d83b0955c34ef37691ed161259fc3b18da74132e",
+        "original_triangles": 400,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "leather_bark": [
+          107,
+          92,
+          83
+        ],
+        "leather_wood": [
+          155,
+          90,
+          69
+        ],
+        "leather_copper": [
+          177,
+          111,
+          82
+        ],
+        "leather_tan": [
+          218,
+          174,
+          125
+        ],
+        "iron_dark_iron": [
+          74,
+          81,
+          85
+        ],
+        "metal_steel": [
+          129,
+          140,
+          145
+        ],
+        "surface_obsidian": [
+          19,
+          25,
+          27
+        ]
+      },
+      "materials": {
+        "leather_bark": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "leather_wood": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "leather_copper": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "leather_tan": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "iron_dark_iron": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "metal_steel": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "surface_obsidian": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "leather_bark",
+          "wood": "leather_wood",
+          "copper": "leather_copper",
+          "tan": "leather_tan",
+          "dark_iron": "iron_dark_iron",
+          "steel": "metal_steel",
+          "obsidian": "surface_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 400,
+      "bounds": [
+        [
+          -0.1599999964237213,
+          -0.27000001072883606,
+          -0.1599999964237213
+        ],
+        [
+          0.1599999964237213,
+          0.8399999737739563,
+          0.1599999964237213
+        ]
+      ],
+      "dimensions": [
+        0.3199999928474426,
+        1.1099999845027924,
+        0.3199999928474426
+      ],
+      "materials": 4,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 5,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.028173790035937018
+      },
+      "warnings": [
+        "5 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

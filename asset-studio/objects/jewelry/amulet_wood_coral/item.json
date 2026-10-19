@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "name": "Amulet Wood Coral",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/jewelry/amulet/amulet_wood_coral.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/jewelry/amulet/amulet_wood_coral.glb",
+    "source_sha256": "5cced4320300539aca8acb7f62a8330fedac05aa12a4b3157ed9bdc06ed4ce7a",
+    "original_triangles": 368,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "leather_wood": [
+      155,
+      90,
+      69
+    ],
+    "leather_bark": [
+      107,
+      92,
+      83
+    ],
+    "leather_tan": [
+      218,
+      174,
+      125
+    ],
+    "gem_coral": [
+      246,
+      147,
+      114
+    ],
+    "gem_rose": [
+      243,
+      114,
+      127
+    ],
+    "leather_copper": [
+      177,
+      111,
+      82
+    ]
+  },
+  "materials": {
+    "leather_wood": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "leather_bark": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "leather_tan": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "gem_coral": {
+      "metallic": 0.1,
+      "roughness": 0.25,
+      "crease": 45
+    },
+    "gem_rose": {
+      "metallic": 0.1,
+      "roughness": 0.25,
+      "crease": 45
+    },
+    "leather_copper": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "wood": "leather_wood",
+      "bark": "leather_bark",
+      "tan": "leather_tan",
+      "coral": "gem_coral",
+      "rose": "gem_rose",
+      "copper": "leather_copper"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

@@ -1,0 +1,144 @@
+{
+  "key": "keys/key_iron_prison",
+  "inputs": "f660dd7ad073f0a4078ec7dc157e9ea4c4a51a6a3b492a167e1f02f0f254d2a4",
+  "files": {
+    "key_iron_prison.glb": "22a1c68f5757c57b550593509107044f66fe41bf9f0ace8fccd5fbc54e4c64d4",
+    "lineup.png": "b04aa26978ef0006ee2cc6bb763728032fe7505753c48db68165a48901bf5250"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Key Iron Prison",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/keys/key/key_iron_prison.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/keys/key/key_iron_prison.glb",
+        "source_sha256": "713fe3f8441c12fd9592980ec790fce2f5c490e6320cdf66525d01271f68d9b4",
+        "original_triangles": 500,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "iron_steel": [
+          134,
+          142,
+          149
+        ],
+        "iron_silver": [
+          154,
+          163,
+          171
+        ],
+        "iron_dark_iron": [
+          120,
+          127,
+          133
+        ],
+        "iron_rust": [
+          129,
+          137,
+          143
+        ],
+        "iron_copper": [
+          131,
+          138,
+          145
+        ]
+      },
+      "materials": {
+        "iron_steel": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_silver": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_dark_iron": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_rust": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_copper": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "iron_steel",
+          "silver": "iron_silver",
+          "dark_iron": "iron_dark_iron",
+          "rust": "iron_rust",
+          "copper": "iron_copper"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 518,
+      "bounds": [
+        [
+          -0.23999999463558197,
+          0.0,
+          -0.10000000149011612
+        ],
+        [
+          0.23999999463558197,
+          0.7599999904632568,
+          0.10000000149011612
+        ]
+      ],
+      "dimensions": [
+        0.47999998927116394,
+        0.7599999904632568,
+        0.20000000298023224
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 11,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.02177783755553329
+      },
+      "warnings": [
+        "11 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

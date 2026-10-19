@@ -124,7 +124,7 @@ def mannequin(size="medium"):
 # toward the body.
 WEIGHT_SOURCES = {kind: ("Body",) for kind in ("collar", "belt", "apron", "breastplate", "backplate", "armor", "tunic",
                                                "cape", "wings", "tail", "ribs", "necklace", "fur_trim",
-                                               "cuirass")}
+                                               "cuirass", "baldric", "costumecape")}
 WEIGHT_SOURCES.update({kind: ("Head",) for kind in ("helmet", "crown", "hat")})
 WEIGHT_SOURCES.update({kind: ("ArmLeft", "ArmRight", "LegLeft", "LegRight")  # flared cuffs must not reach the body
                        for kind in ("cuffs", "sleeves", "gloves", "boots")})
@@ -272,11 +272,21 @@ def skin(D, verts, bones, weights):
 
 def skinned(rig, pieces, clip, t=0.0, size="medium"):
     """`{name: piece}` in the rest pose, skinned with weights from the standard mannequin (`transfer_weights`) and moved
-    into `clip` at time `t`."""
-    D = rig.deltas(clip, t)
+    into `clip` at time `t`. Declared rigid hinges use the same mounted rotations as the GLB exporter."""
+    from core import hinges
+    D = hinges.pose_deltas(rig.deltas(clip,t),hinges.specifications(pieces))
     own = body_skin(pieces, size)
-    return {name: kit.Piece(skin(D, p.verts, *transfer_weights(p.verts, name, size, p.faces, own)), p.faces, p.slots)
-            for name, p in pieces.items()}
+    result = {}
+    for name, p in pieces.items():
+        bone = getattr(p, "bone", None)
+        if bone is not None:
+            if bone not in D:
+                raise ValueError(f"{name}: unknown attachment bone {bone!r}")
+            vertices = p.verts @ D[bone][:3, :3].T + D[bone][:3, 3]
+        else:
+            vertices = skin(D, p.verts, *transfer_weights(p.verts, name, size, p.faces, own))
+        result[name] = kit.Piece(vertices, p.faces, p.slots)
+    return result
 
 
 def skinned_meshes(path):

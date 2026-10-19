@@ -1,0 +1,166 @@
+{
+  "key": "weapons/crossbow_gilded",
+  "inputs": "c9aa430f57d640039b4bbbf8a6251199cc359659424a2812b8d1c724111593e3",
+  "files": {
+    "crossbow_gilded.glb": "88952593fb15b34bbd4c9d7c5d5bdbf7c9abf796ca65a72bb9acf010430ce36d",
+    "lineup.png": "1c5ecabea8fdbb719dc55042a031af0198b0644c123413da22223e2277a25a95"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Crossbow Gilded",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/crossbow/crossbow_gilded.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/weapons/crossbow/crossbow_gilded.glb",
+        "source_sha256": "6febcbf8410aca1f4e532760679bda0051de435b74bfb41267eef65d49adc762",
+        "original_triangles": 240,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "leather_copper": [
+          177,
+          111,
+          82
+        ],
+        "gold_gold": [
+          234,
+          194,
+          83
+        ],
+        "surface_crimson": [
+          210,
+          34,
+          39
+        ],
+        "leather_wood": [
+          155,
+          90,
+          69
+        ],
+        "metal_steel": [
+          129,
+          140,
+          145
+        ],
+        "iron_dark_iron": [
+          74,
+          81,
+          85
+        ],
+        "metal_silver": [
+          212,
+          219,
+          222
+        ]
+      },
+      "materials": {
+        "leather_copper": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "gold_gold": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "surface_crimson": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "leather_wood": {
+          "metallic": 0.0,
+          "roughness": 0.85,
+          "crease": 50.0
+        },
+        "metal_steel": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "iron_dark_iron": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "metal_silver": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "copper": "leather_copper",
+          "gold": "gold_gold",
+          "crimson": "surface_crimson",
+          "wood": "leather_wood",
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 248,
+      "bounds": [
+        [
+          -0.2199999988079071,
+          -0.3400000035762787,
+          -0.6800000071525574
+        ],
+        [
+          0.2199999988079071,
+          1.1200000047683716,
+          0.6800000071525574
+        ]
+      ],
+      "dimensions": [
+        0.4399999976158142,
+        1.4600000083446503,
+        1.3600000143051147
+      ],
+      "materials": 4,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 16,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.06279078122358704
+      },
+      "warnings": [
+        "16 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

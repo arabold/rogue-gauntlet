@@ -1,0 +1,132 @@
+{
+  "key": "food/food_cheese_wheel",
+  "inputs": "a832d3a5bfa3aa9272ac85fe3223a2a706ead332340ce585949e92497f542c33",
+  "files": {
+    "food_cheese_wheel.glb": "a360d0f8e3c735f71048c6aca4c395ce8eb803181220782e515d562766fe8014",
+    "lineup.png": "e9de55ba5a517896c7eb71b2aab3f4883e99f23e44f26d36f14dc40033c01e9d"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Food Cheese Wheel",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/food/food/food_cheese_wheel.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/food/food/food_cheese_wheel.glb",
+        "source_sha256": "e3ba768e8773bcac776653e2c904faeef0a01904e0b88dd637ee4c5fbb418f9b",
+        "original_triangles": 268,
+        "quality_notes": "Original wedge retained; raised hole spots replaced with actual carved cavities and one through-hole."
+      },
+      "colors": {
+        "surface_gold": [
+          234,
+          194,
+          83
+        ],
+        "surface_amber": [
+          249,
+          170,
+          78
+        ],
+        "surface_orange": [
+          249,
+          158,
+          57
+        ],
+        "surface_rust": [
+          193,
+          139,
+          52
+        ]
+      },
+      "materials": {
+        "surface_gold": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_amber": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_orange": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_rust": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "surface_gold",
+          "amber": "surface_amber",
+          "orange": "surface_orange",
+          "rust": "surface_rust"
+        },
+        "repair": "boundaries",
+        "carve": "cheese_holes"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 466,
+      "bounds": [
+        [
+          -0.23000000417232513,
+          0.0,
+          -0.14524473249912262
+        ],
+        [
+          0.23000000417232513,
+          0.2800000011920929,
+          0.14524473249912262
+        ]
+      ],
+      "dimensions": [
+        0.46000000834465027,
+        0.2800000011920929,
+        0.29048946499824524
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01872186797745898
+      },
+      "warnings": [],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

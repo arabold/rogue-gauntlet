@@ -1,0 +1,67 @@
+{
+  "key": "costume_scale",
+  "inputs": "6e819e45dbe7d857bddb5e8199d883b408b8c559a1f1683cf604d66dd086cc56",
+  "files": {
+    "costume.glb": "ee28997984acdd9912e469a84179a9d059231e29af08a49afd89167dd06957e1",
+    "lineup.png": "f22497d7c64a821aa4d175c6214b46ca4cfcdec88eaf7fd3516e5ee9e9b479ca",
+    "lineup.gif": "3fe0220372d3631bb13e2010aa8b77c0b17b7affed6f1c2c1ab6d5e82a644f3f"
+  },
+  "metadata": {
+    "torso": "standard",
+    "colors": {
+      "leather": [
+        65,
+        46,
+        34
+      ],
+      "cloth": [
+        57,
+        69,
+        84
+      ],
+      "trim": [
+        115,
+        130,
+        147
+      ],
+      "armor": [
+        151,
+        163,
+        177
+      ],
+      "armor_dark": [
+        49,
+        59,
+        72
+      ],
+      "steel_scale": [
+        164,
+        176,
+        190
+      ],
+      "steel_scale_light": [
+        176,
+        187,
+        199
+      ],
+      "steel_scale_dark": [
+        150,
+        162,
+        176
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "scale"
+      },
+      {
+        "kind": "gorget"
+      }
+    ],
+    "source": "costumes/scale/costume.json",
+    "status": "needs_visual_review",
+    "review": "Silver steel torso scales on dark backing, plain metal skirt and hip plates, with a fitted steel gorget trial."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

@@ -41,6 +41,7 @@ Key directories include:
 - `/scenes`: Contains Godot scene files (`.tscn`).
 - `/scripts`: Holds core C# logic, singletons, and base classes.
 - `/assets`: Stores art, sound, models, etc.
+- `/asset-studio`: Authoring tools and recipes for characters, monsters, and standalone 3D items. See the [Asset Studio guide](asset-studio/README.md) for AI references, Blender authoring, previews, and export. Gameplay definitions are authored separately.
 
 For a detailed explanation of the architecture, core systems, design patterns, and a full directory breakdown, please refer to the **[ARCHITECTURE.md](./ARCHITECTURE.md)** file.
 

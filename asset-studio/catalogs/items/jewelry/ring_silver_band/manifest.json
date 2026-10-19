@@ -1,0 +1,122 @@
+{
+  "key": "jewelry/ring_silver_band",
+  "inputs": "0b72c86bbdce921f5218ef517253330871286525dad4c7732c4a3f0c543e7c9c",
+  "files": {
+    "ring_silver_band.glb": "84afbbd39bd0139fdc3dc3654e6637978bf0c35a3f1e921687e4f422e14aaeca",
+    "lineup.png": "a572a5e6ecd9d09a0f31b45900ea5f9037cff3afe2463fc957c13bb06ebbd1a4"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Ring Silver Band",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/jewelry/ring/ring_silver_band.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/jewelry/ring/ring_silver_band.glb",
+        "source_sha256": "efda4cbb4f27ed05df611fc65cb2c26741786c8d9b07a46320abcc1fabab0bdf",
+        "original_triangles": 272,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "metal_steel": [
+          129,
+          140,
+          145
+        ],
+        "iron_dark_iron": [
+          74,
+          81,
+          85
+        ],
+        "metal_silver": [
+          212,
+          219,
+          222
+        ]
+      },
+      "materials": {
+        "metal_steel": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "iron_dark_iron": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "metal_silver": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "metal_steel",
+          "dark_iron": "iron_dark_iron",
+          "silver": "metal_silver"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 272,
+      "bounds": [
+        [
+          -0.25999999046325684,
+          0.0,
+          -0.15000000596046448
+        ],
+        [
+          0.25999999046325684,
+          0.6200000047683716,
+          0.15000000596046448
+        ]
+      ],
+      "dimensions": [
+        0.5199999809265137,
+        0.6200000047683716,
+        0.30000001192092896
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03719159684754307
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

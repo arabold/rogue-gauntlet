@@ -1,0 +1,160 @@
+{
+  "version": 1,
+  "name": "Tool Bell Silver",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/tools/tool/tool_bell_silver.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/tools/tool/tool_bell_silver.glb",
+    "source_sha256": "2b79f8c0ba630dc5938d4a4c60bad3fe3ad1f717096191d2e5648250f08c6cb9",
+    "original_triangles": 368,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "metal_silver": [
+      212,
+      219,
+      222
+    ],
+    "metal_steel": [
+      129,
+      140,
+      145
+    ],
+    "metal_blue_steel": [
+      122,
+      141,
+      157
+    ],
+    "metal_gold": [
+      234,
+      194,
+      83
+    ],
+    "metal_amber": [
+      249,
+      170,
+      78
+    ],
+    "metal_brass": [
+      208,
+      151,
+      69
+    ],
+    "metal_copper": [
+      177,
+      111,
+      82
+    ],
+    "leather_wood": [
+      155,
+      90,
+      69
+    ],
+    "leather_bark": [
+      107,
+      92,
+      83
+    ],
+    "iron_dark_iron": [
+      74,
+      81,
+      85
+    ],
+    "surface_obsidian": [
+      19,
+      25,
+      27
+    ]
+  },
+  "materials": {
+    "metal_silver": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "metal_steel": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "metal_blue_steel": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "metal_gold": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "metal_amber": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "metal_brass": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "metal_copper": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "leather_wood": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "leather_bark": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "iron_dark_iron": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 48.0
+    },
+    "surface_obsidian": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "silver": "metal_silver",
+      "steel": "metal_steel",
+      "blue_steel": "metal_blue_steel",
+      "gold": "metal_gold",
+      "amber": "metal_amber",
+      "brass": "metal_brass",
+      "copper": "metal_copper",
+      "wood": "leather_wood",
+      "bark": "leather_bark",
+      "dark_iron": "iron_dark_iron",
+      "obsidian": "surface_obsidian"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

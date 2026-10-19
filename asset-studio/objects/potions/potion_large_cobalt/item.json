@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "name": "Potion Large Cobalt",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/potions/potion_large/potion_large_cobalt.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/potions/potion_large/potion_large_cobalt.glb",
+    "source_sha256": "50f7dd636fe994d570aaec714b3cc453139f9d6b1dbd24e1fde18992fddfb06b",
+    "original_triangles": 336,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "cork_bark": [
+      107,
+      92,
+      83
+    ],
+    "cork_wood": [
+      155,
+      90,
+      69
+    ],
+    "glass_obsidian": [
+      19,
+      25,
+      27
+    ],
+    "glass_cobalt": [
+      37,
+      126,
+      188
+    ],
+    "metal_steel": [
+      129,
+      140,
+      145
+    ],
+    "cork_copper": [
+      177,
+      111,
+      82
+    ],
+    "metal_silver": [
+      212,
+      219,
+      222
+    ],
+    "gold_gold": [
+      234,
+      194,
+      83
+    ],
+    "glass_sky_blue": [
+      98,
+      160,
+      208
+    ],
+    "glass_blue_steel": [
+      122,
+      141,
+      157
+    ],
+    "cork_tan": [
+      218,
+      174,
+      125
+    ]
+  },
+  "materials": {
+    "cork_bark": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "cork_wood": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "glass_obsidian": {
+      "metallic": 0,
+      "roughness": 0.2,
+      "crease": 60,
+      "alpha": 0.72,
+      "double_sided": true
+    },
+    "glass_cobalt": {
+      "metallic": 0,
+      "roughness": 0.2,
+      "crease": 60,
+      "alpha": 0.72,
+      "double_sided": true
+    },
+    "metal_steel": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "cork_copper": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    },
+    "metal_silver": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_gold": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "glass_sky_blue": {
+      "metallic": 0,
+      "roughness": 0.2,
+      "crease": 60,
+      "alpha": 0.72,
+      "double_sided": true
+    },
+    "glass_blue_steel": {
+      "metallic": 0,
+      "roughness": 0.2,
+      "crease": 60,
+      "alpha": 0.38,
+      "double_sided": true
+    },
+    "cork_tan": {
+      "metallic": 0,
+      "roughness": 1,
+      "crease": 60
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "bark": "cork_bark",
+      "wood": "cork_wood",
+      "obsidian": "glass_obsidian",
+      "cobalt": "glass_cobalt",
+      "steel": "metal_steel",
+      "copper": "cork_copper",
+      "silver": "metal_silver",
+      "gold": "gold_gold",
+      "sky_blue": "glass_sky_blue",
+      "blue_steel": "glass_blue_steel",
+      "tan": "cork_tan"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

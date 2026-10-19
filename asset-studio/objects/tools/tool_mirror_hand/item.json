@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "name": "Tool Mirror Hand",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/tools/tool/tool_mirror_hand.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/tools/tool/tool_mirror_hand.glb",
+    "source_sha256": "272fe32840d56688903f6ec72942f8eaf84344f6dc9884d0821b7a4864627968",
+    "original_triangles": 240,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "metal_gold": [
+      234,
+      194,
+      83
+    ],
+    "metal_amber": [
+      249,
+      170,
+      78
+    ],
+    "metal_brass": [
+      208,
+      151,
+      69
+    ],
+    "leather_wood": [
+      155,
+      90,
+      69
+    ],
+    "metal_copper": [
+      177,
+      111,
+      82
+    ],
+    "leather_bark": [
+      107,
+      92,
+      83
+    ],
+    "surface_magenta": [
+      142,
+      96,
+      45
+    ],
+    "surface_sky_blue": [
+      166,
+      188,
+      201
+    ],
+    "metal_silver": [
+      166,
+      188,
+      201
+    ],
+    "surface_teal": [
+      166,
+      188,
+      201
+    ]
+  },
+  "materials": {
+    "metal_gold": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "metal_amber": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "metal_brass": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "leather_wood": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "metal_copper": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "leather_bark": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "surface_magenta": {
+      "metallic": 0.5,
+      "roughness": 0.35,
+      "crease": 45
+    },
+    "surface_sky_blue": {
+      "metallic": 0.85,
+      "roughness": 0.18,
+      "crease": 60
+    },
+    "metal_silver": {
+      "metallic": 0.85,
+      "roughness": 0.18,
+      "crease": 60
+    },
+    "surface_teal": {
+      "metallic": 0.85,
+      "roughness": 0.18,
+      "crease": 60
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "gold": "metal_gold",
+      "amber": "metal_amber",
+      "brass": "metal_brass",
+      "wood": "leather_wood",
+      "copper": "metal_copper",
+      "bark": "leather_bark",
+      "magenta": "surface_magenta",
+      "sky_blue": "surface_sky_blue",
+      "silver": "metal_silver",
+      "teal": "surface_teal"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

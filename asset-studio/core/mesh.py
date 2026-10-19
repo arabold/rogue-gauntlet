@@ -1504,7 +1504,8 @@ def read_glb(path):
     A GLB's JSON header, its binary chunk and an accessor reader `acc(i)`: a read-only `(count, components)` view
     of accessor `i`, strided buffer views included (normalized integers stay raw).
     """
-    data = open(path, "rb").read()
+    with open(path, "rb") as stream:
+        data = stream.read()
     n = struct.unpack_from("<I", data, 12)[0]
     g = json.loads(data[20:20 + n])
     binary = data[20 + n + 8:]

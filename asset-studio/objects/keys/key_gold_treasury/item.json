@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "name": "Key Gold Treasury",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/keys/key/key_gold_treasury.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/keys/key/key_gold_treasury.glb",
+    "source_sha256": "10e8de834fcaa3e93e1dbb5a36bf48f601ae2e511722d3e6135e39520cc1840f",
+    "original_triangles": 544,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "gold_amber": [
+      179,
+      138,
+      64
+    ],
+    "gold_gold": [
+      183,
+      141,
+      66
+    ],
+    "gold_brass": [
+      172,
+      133,
+      62
+    ],
+    "gold_crimson": [
+      146,
+      113,
+      53
+    ],
+    "gold_rose": [
+      168,
+      129,
+      60
+    ],
+    "gold_obsidian": [
+      132,
+      102,
+      47
+    ]
+  },
+  "materials": {
+    "gold_amber": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_gold": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_brass": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_crimson": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_rose": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_obsidian": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "amber": "gold_amber",
+      "gold": "gold_gold",
+      "brass": "gold_brass",
+      "crimson": "gold_crimson",
+      "rose": "gold_rose",
+      "obsidian": "gold_obsidian"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}

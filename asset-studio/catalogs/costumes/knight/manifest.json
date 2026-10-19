@@ -1,0 +1,58 @@
+{
+  "key": "costume_knight",
+  "inputs": "e769297442c642fb80ff74318a420555691e60213227f144e694fb7abe9ce6ec",
+  "files": {
+    "costume.glb": "bf711598549a7bcdef650ca214f785a8d83c911866440c663f46ff75e2b4b0db",
+    "lineup.png": "e327ed2fdf6ffcc02c51b8db4b20080b01afe693506408069bcd1658af6856c5",
+    "lineup.gif": "c43e14774449431f66dace3be99c619ad61e37ed9ad9ed5632f322202ef16899"
+  },
+  "metadata": {
+    "torso": "standard",
+    "colors": {
+      "armor": [
+        151,
+        163,
+        176
+      ],
+      "trim": [
+        118,
+        130,
+        145
+      ],
+      "rivet": [
+        179,
+        186,
+        194
+      ],
+      "leather": [
+        74,
+        53,
+        40
+      ],
+      "cloth": [
+        63,
+        70,
+        78
+      ],
+      "armor_dark": [
+        38,
+        40,
+        47
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "knight"
+      },
+      {
+        "kind": "steel_shoulders",
+        "size": 0.18
+      }
+    ],
+    "source": "costumes/knight/costume.json",
+    "status": "approved",
+    "review": "Practical steel knight: plain steel edges, simple buckle, restrained wear and no gold or emblem. Gorget-mounted rigid steel shoulder caps; articulated mounts under current review."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

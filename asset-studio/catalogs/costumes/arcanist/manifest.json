@@ -1,0 +1,74 @@
+{
+  "key": "costume_arcanist",
+  "inputs": "77d6a7952b0f239c6d46452458f4f885e0239cfdb2300845df17aee7733717d7",
+  "files": {
+    "costume.glb": "74bf7d92d23b1a60db4740b2fc4d5c5e4f594ac70abaecd421e74035ee1f23af",
+    "lineup.png": "b1672abb93da0f1fe755bdc7b1b3cf78b3925d5b94453edf0f2d53b5a18669d2",
+    "lineup.gif": "745510977a193793d49fa572eb1e3c1ca01806650147e180ae8ae1d34f2a7080"
+  },
+  "metadata": {
+    "torso": "standard",
+    "colors": {
+      "cloth": [
+        68,
+        64,
+        114
+      ],
+      "cloth_dark": [
+        43,
+        40,
+        79
+      ],
+      "wrap": [
+        127,
+        113,
+        161
+      ],
+      "wrap_dark": [
+        81,
+        71,
+        115
+      ],
+      "cloak": [
+        106,
+        43,
+        79
+      ],
+      "cloak_dark": [
+        72,
+        29,
+        54
+      ],
+      "leather": [
+        111,
+        70,
+        46
+      ],
+      "leather_dark": [
+        75,
+        47,
+        33
+      ],
+      "leather_worn": [
+        159,
+        111,
+        73
+      ],
+      "metal": [
+        159,
+        172,
+        181
+      ]
+    },
+    "outfit": [
+      {
+        "kind": "costume",
+        "variant": "arcanist"
+      }
+    ],
+    "source": "costumes/arcanist/costume.json",
+    "status": "needs_visual_review",
+    "review": "Divided indigo coat, lavender scarf, silver buttons, utility pouch and compact scroll case."
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

@@ -14,9 +14,9 @@ import inspect
 from prefabs import library
 from prefabs.anatomy import appendages, bodies, extremities, faces, heads, limbs
 from prefabs.creatures import characters, golems
-from prefabs.details import fasteners, trophies, wear
+from prefabs.details import fasteners, trophies, wear, construction, heraldry, primal, fur
 from prefabs.items import props, shields, weapons
-from prefabs.outfits import armor, belts, clothes, crowns, cuirass, helmets, pauldrons
+from prefabs.outfits import armor, belts, capes, clothes, costumes, crowns, cuirass, helmets, pauldrons
 
 
 def _sig_params(fn):
@@ -44,6 +44,10 @@ def _sig_params(fn):
 def get_schema():
     """Return the complete modular prefab catalog and parameter schema as a JSON-serializable dict."""
     details_schema = {
+        "fur": {name: _sig_params(fn) for name, fn in fur.FUR.items()},
+        "primal": {name: _sig_params(fn) for name, fn in primal.PRIMAL.items()},
+        "heraldry": {name: _sig_params(fn) for name, fn in heraldry.HERALDRY.items()},
+        "construction": {name: _sig_params(fn) for name, fn in construction.CONSTRUCTION.items()},
         "fasteners": {name: _sig_params(fn) for name, fn in fasteners.FASTENERS.items()},
         "trophies": {name: _sig_params(fn) for name, fn in trophies.TROPHIES.items()},
         "wear": {name: _sig_params(fn) for name, fn in wear.WEAR.items()},
@@ -95,9 +99,13 @@ def get_schema():
             },
         },
         "outfits": {
+            "costumes": list(costumes.VARIANTS),
+            "costume_parameters": {name: _sig_params(builder) for name, builder in costumes.VARIANTS.items()},
             "helmets": list(helmets.STYLES.keys()),
             "cuirass": list(cuirass.VARIANTS.keys()),
             "pauldrons": _sig_params(pauldrons.build),
+            "cape": _sig_params(capes.build),
+            "fitted_belt": _sig_params(belts.build_fitted),
             "belts": list(belts.VARIANTS.keys()),
             "crowns": _sig_params(crowns.build),
             "garments": {name: _sig_params(fn) for name, fn in characters.GARMENTS.items()},

@@ -1,0 +1,66 @@
+{
+  "status": "approved",
+  "review": "Female plate with open neckline, articulated pauldrons on fitted leather shoulder straps, blue gem and horizontal banding on both belly and back plate.",
+  "body": {
+    "torso": "female"
+  },
+  "outfit": [
+    {
+      "kind": "costume",
+      "variant": "maiden"
+    },
+    {
+      "kind": "steel_shoulders",
+      "size": 0.165,
+      "gorget": false,
+      "leather_straps": true
+    }
+  ],
+  "colors": {
+    "armor": [
+      170,
+      182,
+      197
+    ],
+    "trim": [
+      121,
+      143,
+      167
+    ],
+    "rivet": [
+      203,
+      211,
+      220
+    ],
+    "gem": [
+      43,
+      111,
+      181
+    ],
+    "leather": [
+      55,
+      48,
+      46
+    ],
+    "cloth": [
+      46,
+      68,
+      98
+    ],
+    "armor_dark": [
+      38,
+      40,
+      47
+    ],
+    "armor_lame": [
+      151,
+      164,
+      181
+    ],
+    "armor_joint": [
+      108,
+      126,
+      147
+    ]
+  }
+}

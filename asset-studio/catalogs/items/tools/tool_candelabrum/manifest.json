@@ -1,0 +1,172 @@
+{
+  "key": "tools/tool_candelabrum",
+  "inputs": "9dc043b94efd42902864606d36537cc875a57c30e08ea16ee8fa8e4c40fe0eb0",
+  "files": {
+    "tool_candelabrum.glb": "d8e348291b40df95b98104cde188f588a387a4843937fd24852ad024d929b5f5",
+    "lineup.png": "7bdf79abc9d7b8ff5e992bc8ece0698f312ec01fb0a38ceb79294d7cea30089b"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Tool Candelabrum",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/tools/lamp/tool_candelabrum.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "res://assets/custom-items/tools/lamp/tool_candelabrum.glb",
+        "notes": "Preserves all 656 original triangles, candle holders and wicks; uses shared character shading."
+      },
+      "colors": {
+        "gold": [
+          192,
+          144,
+          51
+        ],
+        "gold_light": [
+          211,
+          165,
+          73
+        ],
+        "gold_worn": [
+          180,
+          132,
+          49
+        ],
+        "gold_dark": [
+          157,
+          103,
+          38
+        ],
+        "metal": [
+          129,
+          140,
+          145
+        ],
+        "metal_light": [
+          193,
+          203,
+          208
+        ],
+        "iron": [
+          88,
+          101,
+          109
+        ],
+        "wax": [
+          224,
+          205,
+          166
+        ],
+        "wax_light": [
+          241,
+          224,
+          188
+        ],
+        "wick": [
+          40,
+          34,
+          29
+        ],
+        "wick_worn": [
+          71,
+          53,
+          39
+        ]
+      },
+      "materials": {
+        "wax": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "wax_light": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "wick": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "wick_worn": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "crease": 50,
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold",
+          "amber": "gold_light",
+          "brass": "gold_worn",
+          "copper": "gold_dark",
+          "steel": "metal",
+          "silver": "metal_light",
+          "dark_iron": "iron",
+          "ivory": "wax_light",
+          "tan": "wax",
+          "obsidian": "wick",
+          "bark": "wick_worn"
+        }
+      }
+    },
+    "report": {
+      "triangles": 656,
+      "bounds": [
+        [
+          -0.3619999885559082,
+          -0.25999999046325684,
+          -0.13500000536441803
+        ],
+        [
+          0.3619999885559082,
+          0.9300000071525574,
+          0.13500000536441803
+        ]
+      ],
+      "dimensions": [
+        0.7239999771118164,
+        1.1899999976158142,
+        0.27000001072883606
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 6,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.021800388927774386
+      },
+      "warnings": [
+        "6 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

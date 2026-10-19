@@ -1,0 +1,155 @@
+{
+  "key": "jewelry/amulet_gold_emerald",
+  "inputs": "57c863a907963b074289d493d98f48eaf0c90cab82d94bc4c60a0ed19e19e596",
+  "files": {
+    "amulet_gold_emerald.glb": "3cf2c11f7f5638d6f9a64a2a22ac7b7467a9cf3a1972164a4d8445b5bfa3663e",
+    "lineup.png": "0fefb12d79d4db6ed95ceee9ab6a8ba8bbef76bf90594fcf55744e69c4d0428c"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Amulet Gold Emerald",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/jewelry/amulet/amulet_gold_emerald.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/jewelry/amulet/amulet_gold_emerald.glb",
+        "source_sha256": "efcf629c6b371d80693d15368e6497fe9f2ed5e32142cd10219a66d165a0fd3d",
+        "original_triangles": 368,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "gold_gold": [
+          234,
+          194,
+          83
+        ],
+        "gold_brass": [
+          208,
+          151,
+          69
+        ],
+        "gold_amber": [
+          249,
+          170,
+          78
+        ],
+        "gem_green": [
+          82,
+          170,
+          72
+        ],
+        "gem_lime": [
+          85,
+          182,
+          106
+        ],
+        "gem_emerald": [
+          0,
+          131,
+          83
+        ]
+      },
+      "materials": {
+        "gold_gold": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_brass": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gold_amber": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "gem_green": {
+          "metallic": 0.1,
+          "roughness": 0.25,
+          "crease": 45
+        },
+        "gem_lime": {
+          "metallic": 0.1,
+          "roughness": 0.25,
+          "crease": 45
+        },
+        "gem_emerald": {
+          "metallic": 0.1,
+          "roughness": 0.25,
+          "crease": 45
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "gold": "gold_gold",
+          "brass": "gold_brass",
+          "amber": "gold_amber",
+          "green": "gem_green",
+          "lime": "gem_lime",
+          "emerald": "gem_emerald"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 380,
+      "bounds": [
+        [
+          -0.2800000011920929,
+          0.0,
+          -0.12999999523162842
+        ],
+        [
+          0.2800000011920929,
+          0.7200000286102295,
+          0.12999999523162842
+        ]
+      ],
+      "dimensions": [
+        0.5600000023841858,
+        0.7200000286102295,
+        0.25999999046325684
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03134114606878069
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

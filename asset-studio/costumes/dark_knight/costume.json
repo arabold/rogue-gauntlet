@@ -1,0 +1,54 @@
+{
+  "status": "approved",
+  "review": "Dark knight: broader keeled cuirass, dark steel, red gem and seated chest/hip spikes; shared fitted waist and hip protection. Gorget-mounted rigid steel shoulder caps; articulated mounts under current review.",
+  "body": {
+    "torso": "hero"
+  },
+  "outfit": [
+    {
+      "kind": "costume",
+      "variant": "dark_knight"
+    },
+    {
+      "kind": "steel_shoulders",
+      "size": 0.19
+    }
+  ],
+  "colors": {
+    "armor": [
+      65,
+      69,
+      80
+    ],
+    "trim": [
+      120,
+      127,
+      144
+    ],
+    "rivet": [
+      160,
+      164,
+      174
+    ],
+    "gem": [
+      169,
+      35,
+      46
+    ],
+    "leather": [
+      43,
+      32,
+      37
+    ],
+    "cloth": [
+      65,
+      34,
+      47
+    ],
+    "armor_dark": [
+      38,
+      40,
+      47
+    ]
+  }
+}

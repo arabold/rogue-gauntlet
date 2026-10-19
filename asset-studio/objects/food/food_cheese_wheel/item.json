@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "name": "Food Cheese Wheel",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/food/food/food_cheese_wheel.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/food/food/food_cheese_wheel.glb",
+    "source_sha256": "e3ba768e8773bcac776653e2c904faeef0a01904e0b88dd637ee4c5fbb418f9b",
+    "original_triangles": 268,
+    "quality_notes": "Original wedge retained; raised hole spots replaced with actual carved cavities and one through-hole."
+  },
+  "colors": {
+    "surface_gold": [
+      234,
+      194,
+      83
+    ],
+    "surface_amber": [
+      249,
+      170,
+      78
+    ],
+    "surface_orange": [
+      249,
+      158,
+      57
+    ],
+    "surface_rust": [
+      193,
+      139,
+      52
+    ]
+  },
+  "materials": {
+    "surface_gold": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_amber": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_orange": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "surface_rust": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "gold": "surface_gold",
+      "amber": "surface_amber",
+      "orange": "surface_orange",
+      "rust": "surface_rust"
+    },
+    "repair": "boundaries",
+    "carve": "cheese_holes"
+  },
+  "crease": 50
+}

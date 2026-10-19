@@ -1,0 +1,200 @@
+{
+  "key": "scrolls/scroll_teal_eihwaz",
+  "inputs": "922a3e8a0377a8ec098586afebc4b85f3ba5a0bff8e5cbebfef76cf90e34a187",
+  "files": {
+    "scroll_teal_eihwaz.glb": "ddf68c10f57c8ea9d77d3166534411a786d79305d9dfe1804a2f5860b0810b8d",
+    "lineup.png": "cc342ce878b5e90d69c7f083c1bb0bf2f6f296c29724d3939656ec1afc3f1258"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Scroll Teal Eihwaz",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/scrolls/scroll/scroll_teal_eihwaz.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/scrolls/scroll/scroll_teal_eihwaz.glb",
+        "source_sha256": "13bfb3209ea9a2735e804da7d3392f4a9056bb6f41a2ddac023387f2d686cbb6",
+        "original_triangles": 1144,
+        "quality_notes": "Original frame and paper retained; raised glyph shells converted to face colors on parchment. Source caps and winding repaired."
+      },
+      "colors": {
+        "ink_obsidian": [
+          19,
+          25,
+          27
+        ],
+        "iron_dark_iron": [
+          74,
+          81,
+          85
+        ],
+        "paper_wood": [
+          155,
+          90,
+          69
+        ],
+        "paper_bark": [
+          107,
+          92,
+          83
+        ],
+        "paper_tan": [
+          218,
+          174,
+          125
+        ],
+        "paper_copper": [
+          177,
+          111,
+          82
+        ],
+        "paper_ivory": [
+          220,
+          208,
+          195
+        ],
+        "ink_sea_green": [
+          56,
+          163,
+          141
+        ],
+        "ink_teal": [
+          80,
+          170,
+          174
+        ],
+        "ink_emerald": [
+          0,
+          131,
+          83
+        ]
+      },
+      "materials": {
+        "ink_obsidian": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "iron_dark_iron": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "paper_wood": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "paper_bark": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "paper_tan": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "paper_copper": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "paper_ivory": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "ink_sea_green": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "ink_teal": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "ink_emerald": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "ink_obsidian",
+          "dark_iron": "iron_dark_iron",
+          "wood": "paper_wood",
+          "bark": "paper_bark",
+          "tan": "paper_tan",
+          "copper": "paper_copper",
+          "ivory": "paper_ivory",
+          "sea_green": "ink_sea_green",
+          "teal": "ink_teal",
+          "emerald": "ink_emerald"
+        },
+        "repair": "boundaries",
+        "paint": "scroll_ink"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 1300,
+      "bounds": [
+        [
+          -0.4399999976158142,
+          0.0,
+          -0.09000000357627869
+        ],
+        [
+          0.4399999976158142,
+          0.6399999856948853,
+          0.06954985111951828
+        ]
+      ],
+      "dimensions": [
+        0.8799999952316284,
+        0.6399999856948853,
+        0.15954985469579697
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.027408781330556853
+      },
+      "warnings": [
+        "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

@@ -1,0 +1,183 @@
+{
+  "key": "potions/potion_small_cobalt",
+  "inputs": "754d3125c574da2cffa93a1e5484afb91f7340207935a258441526a7b5c4cc5c",
+  "files": {
+    "potion_small_cobalt.glb": "9ce639f49932398acac27c808f5dd80cf8a2c44b7d3890fc6c771e01f931e275",
+    "lineup.png": "b4d20ad83dd8fbb810ed1f26202120c7276d947c8a9149dcdebd0fb72f1f2c41"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Potion Small Cobalt",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/potions/potion_small/potion_small_cobalt.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/potions/potion_small/potion_small_cobalt.glb",
+        "source_sha256": "1a91fd0a0bbee3608984a3261dd03792525825ea450b3836d80675bd83f0e529",
+        "original_triangles": 224,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "glass_obsidian": [
+          19,
+          25,
+          27
+        ],
+        "glass_cobalt": [
+          37,
+          126,
+          188
+        ],
+        "glass_sky_blue": [
+          98,
+          160,
+          208
+        ],
+        "glass_blue_steel": [
+          122,
+          141,
+          157
+        ],
+        "metal_steel": [
+          129,
+          140,
+          145
+        ],
+        "metal_silver": [
+          212,
+          219,
+          222
+        ],
+        "cork_wood": [
+          155,
+          90,
+          69
+        ],
+        "cork_tan": [
+          218,
+          174,
+          125
+        ]
+      },
+      "materials": {
+        "glass_obsidian": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.72,
+          "double_sided": true
+        },
+        "glass_cobalt": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.72,
+          "double_sided": true
+        },
+        "glass_sky_blue": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.72,
+          "double_sided": true
+        },
+        "glass_blue_steel": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.38,
+          "double_sided": true
+        },
+        "metal_steel": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "metal_silver": {
+          "metallic": 0.5,
+          "roughness": 0.3,
+          "crease": 45.0
+        },
+        "cork_wood": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        },
+        "cork_tan": {
+          "metallic": 0,
+          "roughness": 1,
+          "crease": 60
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "obsidian": "glass_obsidian",
+          "cobalt": "glass_cobalt",
+          "sky_blue": "glass_sky_blue",
+          "blue_steel": "glass_blue_steel",
+          "steel": "metal_steel",
+          "silver": "metal_silver",
+          "wood": "cork_wood",
+          "tan": "cork_tan"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 224,
+      "bounds": [
+        [
+          -0.10999999940395355,
+          0.0,
+          -0.10999999940395355
+        ],
+        [
+          0.10999999940395355,
+          0.5400000214576721,
+          0.10999999940395355
+        ]
+      ],
+      "dimensions": [
+        0.2199999988079071,
+        0.5400000214576721,
+        0.2199999988079071
+      ],
+      "materials": 4,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01697939711313407
+      },
+      "warnings": [],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

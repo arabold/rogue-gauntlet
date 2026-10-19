@@ -1,0 +1,55 @@
+{
+  "status": "approved",
+  "review": "Riveted leather shell with a front closure, integrated seams and seated iron hardware.",
+  "body": {
+    "torso": "standard"
+  },
+  "outfit": [
+    {
+      "kind": "costume",
+      "variant": "brigandine"
+    }
+  ],
+  "colors": {
+    "leather": [
+      121,
+      77,
+      49
+    ],
+    "leather_worn": [
+      96,
+      60,
+      39
+    ],
+    "leather_dark": [
+      68,
+      42,
+      31
+    ],
+    "iron": [
+      162,
+      168,
+      175
+    ],
+    "cloth": [
+      62,
+      63,
+      54
+    ],
+    "trim": [
+      134,
+      140,
+      146
+    ],
+    "armor": [
+      150,
+      155,
+      160
+    ],
+    "armor_dark": [
+      59,
+      57,
+      51
+    ]
+  }
+}

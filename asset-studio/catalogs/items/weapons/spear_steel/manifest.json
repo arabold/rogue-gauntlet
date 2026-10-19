@@ -1,0 +1,149 @@
+{
+  "key": "weapons/spear_steel",
+  "inputs": "4f580e6005db294dc1f3acd838b2fe4955dabeefc5cdebe0accebc6efe79a09c",
+  "files": {
+    "spear_steel.glb": "2f79277ff4af921b61d6797c5e4c826b2827050b7c4959b02b0426fa4927385e",
+    "lineup.png": "cfae23e4bd1ac82857befd797cf22723ff8e90844cabd49ad45e9e7ebd5e60c0"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Spear Steel",
+      "backend": "procedural",
+      "builder": "arsenal",
+      "design": {
+        "kind": "spear"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "steel": [
+          134,
+          153,
+          166
+        ],
+        "edge": [
+          181,
+          194,
+          203
+        ],
+        "iron": [
+          65,
+          76,
+          83
+        ],
+        "wood": [
+          119,
+          78,
+          46
+        ],
+        "endgrain": [
+          148,
+          104,
+          62
+        ],
+        "leather": [
+          79,
+          47,
+          32
+        ],
+        "brass": [
+          165,
+          119,
+          48
+        ]
+      },
+      "materials": {
+        "steel": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        },
+        "edge": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        },
+        "iron": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        },
+        "brass": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        },
+        "wood": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        },
+        "endgrain": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/arsenal/spear_steel.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Dedicated continuous blade/profile geometry, solid-unioned structural fittings, material color regions, grip-centered origin. No gameplay data."
+      }
+    },
+    "report": {
+      "triangles": 1944,
+      "bounds": [
+        [
+          -0.13300000131130219,
+          -0.800000011920929,
+          -0.0729999989271164
+        ],
+        [
+          0.13300000131130219,
+          2.130000114440918,
+          0.0729999989271164
+        ]
+      ],
+      "dimensions": [
+        0.26600000262260437,
+        2.930000126361847,
+        0.1459999978542328
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01947839481313012
+      },
+      "warnings": [],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

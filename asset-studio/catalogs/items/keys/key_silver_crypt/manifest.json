@@ -1,0 +1,155 @@
+{
+  "key": "keys/key_silver_crypt",
+  "inputs": "fca8baeba50323dbc594db7f8e8c09e7d3e90eeb56e3bcbcb05ff0e641a33ef6",
+  "files": {
+    "key_silver_crypt.glb": "c7bafc9cc54349a9ffec58d53dd478a6da006ced9d7d276890471758817a4068",
+    "lineup.png": "5249b5a3ce134af9f5e4aec698d927fffa65ecd0f0fa2be740418ecd34394648"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Key Silver Crypt",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/keys/key/key_silver_crypt.glb"
+      },
+      "provenance": {
+        "kind": "original_geometry_character_surface",
+        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+        "original_path": "assets/custom-items/keys/key/key_silver_crypt.glb",
+        "source_sha256": "3cae5a27ed5b263083ff19f164a209d9a1e36ab7737f3ddef3a8b81db4065c2b",
+        "original_triangles": 364,
+        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+      },
+      "colors": {
+        "iron_steel": [
+          134,
+          142,
+          149
+        ],
+        "iron_silver": [
+          154,
+          163,
+          171
+        ],
+        "iron_dark_iron": [
+          120,
+          127,
+          133
+        ],
+        "iron_sky_blue": [
+          137,
+          145,
+          152
+        ],
+        "iron_cobalt": [
+          128,
+          135,
+          142
+        ],
+        "iron_obsidian": [
+          107,
+          113,
+          118
+        ]
+      },
+      "materials": {
+        "iron_steel": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_silver": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_dark_iron": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_sky_blue": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_cobalt": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        },
+        "iron_obsidian": {
+          "metallic": 0.35,
+          "roughness": 0.6,
+          "crease": 48.0
+        }
+      },
+      "color_mode": "character",
+      "source": "source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "steel": "iron_steel",
+          "silver": "iron_silver",
+          "dark_iron": "iron_dark_iron",
+          "sky_blue": "iron_sky_blue",
+          "cobalt": "iron_cobalt",
+          "obsidian": "iron_obsidian"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    },
+    "report": {
+      "triangles": 376,
+      "bounds": [
+        [
+          -0.23999999463558197,
+          0.0,
+          -0.10000000149011612
+        ],
+        [
+          0.23999999463558197,
+          0.7599999904632568,
+          0.10000000149011612
+        ]
+      ],
+      "dimensions": [
+        0.47999998927116394,
+        0.7599999904632568,
+        0.20000000298023224
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 14,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01612496617532405
+      },
+      "warnings": [
+        "14 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    }
+  },
+  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+}

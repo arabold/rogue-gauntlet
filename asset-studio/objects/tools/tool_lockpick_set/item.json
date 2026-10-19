@@ -1,0 +1,160 @@
+{
+  "version": 1,
+  "name": "Tool Lockpick Set",
+  "backend": "source",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 8,
+    "texture_size": 2048
+  },
+  "export": {
+    "glb": "res://assets/custom-items/tools/tool/tool_lockpick_set.glb"
+  },
+  "provenance": {
+    "kind": "original_geometry_character_surface",
+    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
+    "original_path": "assets/custom-items/tools/tool/tool_lockpick_set.glb",
+    "source_sha256": "8f352ed5e429633e2348004ebd45a3ae0ca0cc0f1cde2e4fc1c0a2b07669a4bd",
+    "original_triangles": 360,
+    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
+  },
+  "colors": {
+    "metal_silver": [
+      212,
+      219,
+      222
+    ],
+    "metal_steel": [
+      129,
+      140,
+      145
+    ],
+    "iron_dark_iron": [
+      74,
+      81,
+      85
+    ],
+    "surface_obsidian": [
+      19,
+      25,
+      27
+    ],
+    "leather_wood": [
+      155,
+      90,
+      69
+    ],
+    "leather_copper": [
+      177,
+      111,
+      82
+    ],
+    "leather_bark": [
+      107,
+      92,
+      83
+    ],
+    "gold_gold": [
+      234,
+      194,
+      83
+    ],
+    "gold_amber": [
+      249,
+      170,
+      78
+    ],
+    "gold_brass": [
+      208,
+      151,
+      69
+    ],
+    "metal_blue_steel": [
+      122,
+      141,
+      157
+    ]
+  },
+  "materials": {
+    "metal_silver": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "metal_steel": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "iron_dark_iron": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 48.0
+    },
+    "surface_obsidian": {
+      "metallic": 0,
+      "roughness": 0.95,
+      "crease": 55
+    },
+    "leather_wood": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "leather_copper": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "leather_bark": {
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "crease": 50.0
+    },
+    "gold_gold": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_amber": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "gold_brass": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    },
+    "metal_blue_steel": {
+      "metallic": 0.5,
+      "roughness": 0.3,
+      "crease": 45.0
+    }
+  },
+  "color_mode": "character",
+  "source": "source.glb",
+  "topology": "closed_assembly",
+  "surface": {
+    "palette": "studio_grid",
+    "slots": {
+      "silver": "metal_silver",
+      "steel": "metal_steel",
+      "dark_iron": "iron_dark_iron",
+      "obsidian": "surface_obsidian",
+      "wood": "leather_wood",
+      "copper": "leather_copper",
+      "bark": "leather_bark",
+      "gold": "gold_gold",
+      "amber": "gold_amber",
+      "brass": "gold_brass",
+      "blue_steel": "metal_blue_steel"
+    },
+    "repair": "boundaries"
+  },
+  "crease": 50
+}
