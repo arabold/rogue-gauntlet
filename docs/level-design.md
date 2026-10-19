@@ -1,5 +1,7 @@
 # Level Design
 
+Status: current-system documentation. Future ideas, where included, are proposals rather than implemented behavior. See the [documentation index](README.md) for related systems and implementation plans. Shared RNG ownership and seed behavior are documented in [Randomness and Seeds](randomness-and-seeds.md).
+
 ## Overview
 
 This document explains the level generation, connectivity, and visibility (fog of war) systems in Rogue Gauntlet, covering core concepts and implementation details for both developers and level designers.

@@ -1,5 +1,7 @@
 # Item Identification System
 
+Status: current-system documentation. Future ideas, where included, are proposals rather than implemented behavior. See the [documentation index](README.md) for related systems and implementation plans. Shared RNG ownership and seed behavior are documented in [Randomness and Seeds](randomness-and-seeds.md).
+
 ## Overview
 
 Rogue Gauntlet draws on the original *Rogue* for consumables: potions, scrolls,

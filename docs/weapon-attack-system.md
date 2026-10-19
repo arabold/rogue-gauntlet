@@ -1,5 +1,7 @@
 # Weapon And Attack System
 
+Status: current-system documentation. Future ideas, where included, are proposals rather than implemented behavior. See the [documentation index](README.md) for related systems and implementation plans.
+
 ## Overview
 
 Rogue Gauntlet uses one shared action and attack pipeline for melee weapons, ranged weapons, elemental staffs, and future wand or spell-like items. Staffs should not become a separate gameplay system unless they need fundamentally different input or ownership rules.

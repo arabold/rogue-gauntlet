@@ -2,6 +2,8 @@
 
 Status: living design draft, October 19, 2026. This document describes the intended game; it is not a claim that every feature is implemented. The [development roadmap](development-roadmap.md) separates existing foundations from upcoming work.
 
+Use the [documentation index](README.md) for current implemented systems and proposed technical plans. Seeded generation already exists; [Randomness and Seeds](randomness-and-seeds.md) records its current behavior and limitations. This GDD owns the intended experience, not the implementation inventory.
+
 ## Game vision
 
 Rogue Gauntlet is a real-time dungeon crawler about descending into an unpredictable dungeon, surviving dangerous encounters, and making the most of the equipment and supplies found along the way. Each run should produce a different combination of discoveries, risks, and character-building decisions.
@@ -70,6 +72,10 @@ Current combat and character foundations are described in [weapon attacks](weapo
 
 Floors combine procedural layout with authored rooms. Players discover space through exploration, encounter enemies and hazards, find loose items, open chests, and reach the next descent.
 
+Seeded generation is a core principle: the run seed and level-specific generators recreate the initial scenario, including encounter choices and positions. Separate random streams keep unrelated gameplay and cosmetic activity from altering that baseline. Save only differences caused by play, such as defeated monsters, collected loot, opened chests, changed items, and player drops. Regeneration followed by those changes restores the supported world state; untouched future floors need no stored state. Whether moved or injured living enemies reset on revisit or retain actor-specific changes remains an explicit design decision.
+
+Repeatability applies to the same build, content, and relevant inputs. Changing code, content ordering, or RNG consumption between builds may change the whole scenario, which is acceptable during development. Separately seeded level, monster, and item generators limit accidental coupling; they do not promise that monsters remain in the same places if the level layout changes. Historical seed outputs do not need compatibility support.
+
 Room purpose should influence its contents: a storeroom can contain supplies, a treasury can reward overcoming a lock, and a dangerous guarded room can offer better equipment. Start with a small set of readable room roles and expand them as their gameplay becomes useful.
 
 Locks initially protect optional rewards. Any future required lock must have a guaranteed solution reachable before the lock, without depending on a random shop purchase or monster drop. Tools may provide alternative access where explicitly supported.
@@ -97,7 +103,7 @@ Every item has an authored definition, a particular instance when state is neede
 
 ### Instance state and persistence
 
-Creation initializes an item's random state once. Pickup, inventory transfer, equipping, dropping, trading, floor transitions, and save/load preserve that state. Loading restores results rather than rolling them again.
+Creation initializes an item's random state once. Pickup, inventory transfer, equipping, dropping, trading, floor transitions, and save/load preserve that state. Loading restores results rather than rolling them again. During development before public release, this guarantee applies to the current supported save version. Saves may break between versions; incompatible or unversioned saves require a new run and are not migrated.
 
 Relevant state includes equipment rarity and affixes, food contamination, remaining fuel or charges, and a key's lock association. Store only state required by supported behavior. Authored definitions remain unchanged by play.
 
@@ -107,7 +113,7 @@ Plain arrows or bolts are examples of potential stackable varieties. Blunt, meta
 
 Food does not stack, including food that happens to be wholesome. Each piece retains its own contamination state and is selected individually when consumed. Stack behavior therefore cannot distinguish poisoned food from unpoisoned food.
 
-Persistence must cover carried items, player-dropped items, remaining floor loot, opened or emptied containers, and shop stock. Regenerating a layout must not replenish rewards already collected or discard player changes.
+Persistence must cover carried items, player-dropped items, remaining floor loot, opened or emptied containers, and shop stock. Recreate unchanged content from seeds and store removals, overrides, and additions rather than complete lists of untouched floor objects. Regenerating a layout must not replenish rewards already collected or discard player changes.
 
 ### Backpack capacity and carrying choices
 

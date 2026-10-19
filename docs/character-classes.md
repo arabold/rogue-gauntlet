@@ -1,5 +1,7 @@
 # Character Classes
 
+Status: current-system documentation. Future ideas, where included, are proposals rather than implemented behavior. See the [documentation index](README.md) for related systems and implementation plans.
+
 Playable classes give each run a distinct starting identity: a different KayKit adventurer
 model, attribute spread, stat-derivation profile, and starting gear. The class is chosen on
 the character-select panel after picking a save slot for a new game, stored in the save file,

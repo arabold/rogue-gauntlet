@@ -1,5 +1,7 @@
 # Stats & Itemization System
 
+Status: current-system documentation. Future ideas, where included, are proposals rather than implemented behavior. See the [documentation index](README.md) for related systems and implementation plans. Shared RNG ownership and seed behavior are documented in [Randomness and Seeds](randomness-and-seeds.md).
+
 ## Overview
 
 Player stats are a **composable layer** rather than fixed fields, and equipment carries
@@ -106,11 +108,10 @@ them.
   the item's slots/rarity, and returns the instance. Non-equipables and a missing pool pass
   through unchanged.
 
-Rolling is seeded: `GameSession.CreateLootRng()` returns an RNG derived from the run/depth seed
-and a persisted counter (`_lootRollsConsumed`), advancing each draw so successive drops differ and
-the sequence resumes after a load. `LootTableComponent` draws its drop chance, item pick, and
-affix rolls from that RNG, then rolls equipables through `LootRoller`. Exact fidelity across a
-save does not depend on replaying the draw order — the rolled affixes are persisted on the item.
+`LootTableComponent` uses the existing seeded loot-event stream for drop selection and equipment
+rolls; see [Randomness and Seeds](randomness-and-seeds.md#existing-loot-sequence) for seed derivation,
+counter persistence, and current reconstruction limits. Rolled inventory equipment saves its concrete
+affixes rather than depending on replaying the loot-event sequence.
 
 `EquipableItem.ComposeName(baseName)` builds the display name from the first prefix and first
 suffix fragment ("Vicious Broadsword of the Bear"); extra affixes add stats but not name (like a
