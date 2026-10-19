@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch, call
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from core import publication
@@ -69,3 +70,57 @@ class PublicationTest(unittest.TestCase):
         self.assertTrue(all(key.startswith("costume_") for key in inventory))
         self.assertNotIn("armor_barbarian", inventory)
         self.assertNotIn("cuirass_orc", inventory)
+
+    def test_shared_hashes_reuse_inputs_without_caching_recipe_or_source_edits(self):
+        with tempfile.TemporaryDirectory() as folder:
+            studio=Path(folder)/"asset-studio"
+            (studio/"core").mkdir(parents=True)
+            shader=studio/"core/export.py"
+            shader.write_text("shading")
+            recipes=[]
+            for name in ("one","two"):
+                recipe=studio/"objects/tools"/name/"item.json"
+                recipe.parent.mkdir(parents=True)
+                recipe.write_text(json.dumps({"source":"source.glb"}))
+                recipe.with_name("source.glb").write_bytes(name.encode())
+                recipes.append(recipe)
+            expected=[publication.fingerprint(studio,p) for p in recipes]
+            shared=publication.shared_hashes(studio)
+            original=dict(shared)
+            self.assertEqual(expected,[publication.fingerprint(studio,p,shared) for p in recipes])
+            self.assertEqual(shared,original,"Per-recipe inputs must not leak into the shared map")
+            recipes[0].with_name("source.glb").write_bytes(b"changed source")
+            self.assertNotEqual(expected[0],publication.fingerprint(studio,recipes[0],shared))
+            self.assertEqual(expected[1],publication.fingerprint(studio,recipes[1],shared))
+            shader.write_text("changed shading")
+            self.assertNotEqual(expected[1],publication.fingerprint(studio,recipes[1]))
+
+    def test_costume_batch_refreshes_once_after_success(self):
+        import fittings
+        with patch.object(fittings,"publish_costume") as publish, patch.object(fittings,"catalog") as catalog:
+            fittings.publish_costumes(["one","two"])
+            self.assertEqual(publish.call_args_list,[call("one",refresh=False),call("two",refresh=False)])
+            catalog.assert_called_once_with()
+
+    def test_costume_batch_refreshes_partial_success_and_preserves_failure(self):
+        import fittings
+        failure=ValueError("stale second costume")
+        with patch.object(fittings,"publish_costume",side_effect=[None,failure]), patch.object(fittings,"catalog") as catalog:
+            with self.assertRaises(ValueError) as caught:
+                fittings.publish_costumes(["one","two"])
+            self.assertIs(caught.exception,failure)
+            catalog.assert_called_once_with()
+        with patch.object(fittings,"publish_costume",side_effect=failure), patch.object(fittings,"catalog") as catalog:
+            with self.assertRaises(ValueError):
+                fittings.publish_costumes(["one"])
+            catalog.assert_not_called()
+
+    def test_costume_batch_keeps_original_error_when_refresh_also_fails(self):
+        import fittings
+        failure=ValueError("publication failed")
+        with patch.object(fittings,"publish_costume",side_effect=[None,failure]), patch.object(
+                fittings,"catalog",side_effect=OSError("catalog failed")):
+            with self.assertRaises(ValueError) as caught:
+                fittings.publish_costumes(["one","two"])
+            self.assertIs(caught.exception,failure)
+            self.assertIn("catalog failed",failure.__notes__[0])

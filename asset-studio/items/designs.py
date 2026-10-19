@@ -96,9 +96,6 @@ def shield(design):
         points = [(-.38, .43), (.38, .43), (.38, -.02), (.22, -.32), (0, -.55), (-.22, -.32), (-.38, -.02)]
         if kind == "kite":
             points = [(x, y * 1.22) for x, y in points]
-    shell = piece(polygon(points, .11), "wood")
-    centers = shell.verts[shell.faces].mean(1)
-    shell.slots = np.where((np.abs(centers[:, 2]) < .05) | (np.abs(centers[:, 0]) > .29), "metal", "cloth").astype(object)
     # An integral grip on the back, welded through two intersecting supports.
     assembly = Assembly().add(polygon(points, .11), "wood")
     assembly.add(sphere((0, 0, .048), (.17, .17, .09)), "metal")
@@ -254,10 +251,6 @@ def lamp(design):
     kind = design.get("kind", "lantern")
     assembly = Assembly()
     if kind == "lantern":
-        body = profile_piece([(.15, 0), (.21, .045), (.21, .10), (.17, .14), (.17, .46),
-                              (.23, .48), (.13, .60), (.07, .63)], "glass", 8)
-        y = body.verts[body.faces].mean(1)[:, 1]
-        body.slots[(y < .14) | (y > .46)] = "metal"
         # Union handles into the actual shell, then restore pane colors on the exterior.
         assembly.add(lathe([(.15, 0), (.21, .045), (.21, .10), (.17, .14), (.17, .46),
                             (.23, .48), (.13, .60), (.07, .63)], 8), "metal")

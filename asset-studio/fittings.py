@@ -31,7 +31,7 @@ def studies():
     result = {}
     for path in sorted((STUDIO / "costumes").glob("*/costume.json")):
         spec = json.loads(path.read_text())
-        if spec.get("status") == "draft" or path.parent.name == "gorget_study":
+        if spec.get("status") in ("draft", "legacy") or path.parent.name == "gorget_study":
             continue
         result["costume_" + path.parent.name] = dict(torso=spec["body"]["torso"], body=spec["body"], colors=spec["colors"],
             outfit=spec["outfit"], source=str(path.relative_to(STUDIO)),
@@ -62,14 +62,33 @@ def published_path(key):
     return OUTPUT / key.removeprefix("costume_") / "lineup.png"
 
 
-def publish_costume(key):
+def publish_costume(key, refresh=True):
     """Publish the current reviewed wearable, still and motion to the final catalog."""
     spec = studies()[key]
     folder = lineup_path(key).parent
     files = ("costume.glb", "lineup.png", "lineup.gif")
     publication.publish(folder, published_path(key).parent, key,
         publication.fingerprint(STUDIO, source_path(key)), files, spec)
-    catalog()
+    if refresh:
+        catalog()
+
+
+def publish_costumes(keys):
+    """Refresh the catalog once, including partial success without masking a publication error."""
+    completed=False
+    try:
+        for key in keys:
+            publish_costume(key,refresh=False)
+            completed=True
+    except Exception as error:
+        if completed:
+            try:
+                catalog()
+            except Exception as refresh_error:
+                error.add_note(f"Catalog refresh also failed: {refresh_error}")
+        raise
+    if completed:
+        catalog()
 
 
 def build(keys):
@@ -86,12 +105,11 @@ def build(keys):
         export.export(str(path), key, pieces, colors, template="knight",
                       materials={"mail": dict(metallic=.45, roughness=.5, crease=55),
                                  "scale": dict(metallic=.35, roughness=.5, crease=48)})
-        if key.startswith("costume_"):
-            # The wearable GLB contains the coordinated outfit and rig, without the fitting dummy.
-            wearable = {name: p for name, p in pieces.items()
-                        if name not in {"Head", "Body", "ArmLeft", "ArmRight", "LegLeft", "LegRight"}}
-            costume_path = lineup_path(key).parent / "costume.glb"
-            export.export(str(costume_path), key, wearable, colors, template="knight")
+        # The wearable GLB contains the coordinated outfit and rig, without the fitting dummy.
+        wearable = {name: p for name, p in pieces.items()
+                    if name not in {"Head", "Body", "ArmLeft", "ArmRight", "LegLeft", "LegRight"}}
+        costume_path = lineup_path(key).parent / "costume.glb"
+        export.export(str(costume_path), key, wearable, colors, template="knight")
         publication.stage_stamp(lineup_path(key).parent, publication.fingerprint(STUDIO, source_path(key)))
         records.append(dict(key=key, source=spec["source"], torso=spec["torso"],
                             triangles=sum(len(p.faces) for p in pieces.values()),
@@ -104,7 +122,7 @@ def compose(records):
     """Compose temporary review lineups without publishing catalog output."""
     for record in records:
         key = record["key"]
-        columns = 4 if key.startswith("costume_") else len(SHOTS)
+        columns = 4
         rows = (len(SHOTS) + columns - 1) // columns
         strip = Image.new("RGB", (columns * 360, rows * 388 + 10), (20, 23, 31))
         draw = ImageDraw.Draw(strip)
@@ -124,8 +142,9 @@ def catalog():
     current = [key for key in specs if (published_path(key).parent / "manifest.json").exists()]
     if not current:
         raise ValueError("No published costumes; use armor publish <costume_key>")
+    shared = publication.shared_hashes(STUDIO)
     receipts = {key: publication.read(published_path(key).parent,
-        publication.fingerprint(STUDIO, source_path(key))) for key in current}
+        publication.fingerprint(STUDIO, source_path(key), shared)) for key in current}
     sheet = Image.new("RGB", (5 * 280, ((len(current) + 4) // 5) * 310), (20, 23, 31))
     draw = ImageDraw.Draw(sheet)
     for i, key in enumerate(current):
@@ -326,16 +345,15 @@ def main(argv):
     keys = list(available) if args.all else args.targets
     if not keys or set(keys) - available.keys():
         parser.error("choose known armor studies or --all; use armor list")
-    if args.command in ("compare","export") and (len(keys)!=1 or not keys[0].startswith("costume_")):
+    if args.command in ("compare","export") and len(keys)!=1:
         parser.error("compare/export requires one authored costume study")
     if args.command == "character":
-        if len(keys)!=1 or not keys[0].startswith("costume_"):
+        if len(keys)!=1:
             parser.error("character requires one authored costume study")
         character_review(keys[0], args.empty_hands)
         return
     if args.command == "publish":
-        for key in keys:
-            publish_costume(key)
+        publish_costumes(keys)
         return
     records = build(keys)
     if args.command in ("lineup", "compare", "export"):

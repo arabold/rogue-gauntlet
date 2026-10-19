@@ -1,9 +1,13 @@
-# Outfits & Headgear Mesh Prefabs
+# Outfits mesh sources
 
-Curated uncolored 3D geometry prefabs for `outfits`.
+Reusable harvested source geometry. These are parts, not complete costumes.
 
-| Preview | Prefab Name | Tris / Verts | Dimensions (W × H × D) | Example Code |
-| :---: | :--- | :---: | :---: | :--- |
-| ![knight_helmet](meshes/previews/knight_helmet.png) | **`knight_helmet`** | 480 tris<br>504 verts | 1.14 × 1.36 × 1.25m | `library.load("knight_helmet", slot="metal")` |
-| ![wizard_hat](meshes/previews/wizard_hat.png) | **`wizard_hat`** | 396 tris<br>402 verts | 2.09 × 1.13 × 2.09m | `library.load("wizard_hat", slot="cloth")` |
-| ![wizard_hat_ragged](meshes/previews/wizard_hat_ragged.png) | **`wizard_hat_ragged`** | 308 tris<br>340 verts | 1.79 × 1.27 × 1.74m | `library.load("wizard_hat_ragged", slot="cloth")` |
+[Published part catalog](../../catalogs/prefabs/outfits.png) · [Complete costumes](../../costumes/README.md)
+
+Generate preview candidates with `studio.py catalog outfits`. After review, publish with `studio.py catalog outfits --publish`.
+
+| Prefab | Triangles | Vertices | Dimensions (W × H × D) |
+| --- | ---: | ---: | --- |
+| `knight_helmet` | 480 | 504 | 1.14 × 1.36 × 1.25 m |
+| `wizard_hat` | 396 | 402 | 2.09 × 1.13 × 2.09 m |
+| `wizard_hat_ragged` | 308 | 340 | 1.79 × 1.27 × 1.74 m |

@@ -1,8 +1,12 @@
-# Details & Hardware Mesh Prefabs
+# Details mesh sources
 
-Curated uncolored 3D geometry prefabs for `details`.
+Reusable harvested source geometry. These are parts, not complete costumes.
 
-| Preview | Prefab Name | Tris / Verts | Dimensions (W × H × D) | Example Code |
-| :---: | :--- | :---: | :---: | :--- |
-| ![gem_diamond](meshes/previews/gem_diamond.png) | **`gem_diamond`** | 168 tris<br>170 verts | 0.49 × 0.49 × 0.29m | `library.load("gem_diamond", slot="gem")` |
-| ![horn_curved](meshes/previews/horn_curved.png) | **`horn_curved`** | 49 tris<br>35 verts | 0.37 × 0.43 × 0.49m | `library.load("horn_curved", slot="horn")` |
+[Published part catalog](../../catalogs/prefabs/details.png) · [Complete costumes](../../costumes/README.md)
+
+Generate preview candidates with `studio.py catalog details`. After review, publish with `studio.py catalog details --publish`.
+
+| Prefab | Triangles | Vertices | Dimensions (W × H × D) |
+| --- | ---: | ---: | --- |
+| `gem_diamond` | 168 | 170 | 0.49 × 0.49 × 0.29 m |
+| `horn_curved` | 49 | 35 | 0.37 × 0.43 × 0.49 m |

@@ -332,7 +332,8 @@ class ArmorFittingTest(unittest.TestCase):
     def test_necromancer_uses_female_costume_and_keeps_skulls_seated_during_motion(self):
         recipe = characters.load("mage/necromancer")
         self.assertEqual(recipe["body"]["torso"],"female")
-        self.assertIn({"kind":"costume","variant":"necromancer"},recipe["outfit"])
+        self.assertIn({"kind":"costume_ref","name":"necromancer"},recipe["outfit"])
+        self.assertIn({"kind":"costume","variant":"necromancer"},characters.resolve_costumes(recipe)["outfit"])
         self.assertFalse(any(g["kind"] in ("belt","cuirass","robe") for g in recipe["outfit"]))
         hosts,_ = bodies.build(recipe["body"])
         parts = costumes.build(hosts["torso"],"necromancer")

@@ -172,8 +172,18 @@ def _plate_costume(torso, belt_y=.625, belt_height=.105, style="paladin",fit_lip
     if style=="maiden":
         pieces["CostumeBack"] = _bound(_horizontal_bands(pieces["CostumeBack"],side="back",
             bands=((.805,.895),(.975,1.065)),seams=(.805,.895,.975,1.065)),"chest")
-    # All waist plates follow one continuous close-to-flared profile.
     waist_host = WaistHost(torso)
+    waist_parts = _waist_parts(pieces,waist_host,style,fit_lip)
+    _add_belt(pieces,waist_host,waist_parts,belt_y,belt_height,necromancer)
+    _add_hip_supports(pieces,waist_host,belt_y,dark)
+    _add_side_straps(pieces,torso)
+    return pieces
+
+
+def _waist_parts(pieces,waist_host,style="knight",fit_lip=False):
+    """Build the existing articulated waist independently of the upper armor."""
+    female=style in ("necromancer","maiden")
+    # All waist plates follow one continuous close-to-flared profile.
     waist_parts = []
     # Underlapping lames are actual separate plates; only the last edge carries brass.
     for side in ("front", "back"):
@@ -199,6 +209,11 @@ def _plate_costume(torso, belt_y=.625, belt_height=.105, style="paladin",fit_lip
             pieces[f"Costume{side.title()}Lame{i}"] = _bound(part,"spine" if i==0 else "hips")
             if i==0:
                 part.underlap_upper = upper
+    return waist_parts
+
+
+def _add_belt(pieces,waist_host,waist_parts,belt_y,belt_height,necromancer=False):
+    """Seat the existing belt and relief on the completed waist shell."""
     # Pull the belt against the actual waist shell, not an inflated layer estimate.
     belt_host = BeltHost(waist_host,waist_parts,belt_y)
     strap = belts._band(belt_host,belt_y,belt_height,.018,"leather")
@@ -207,27 +222,36 @@ def _plate_costume(torso, belt_y=.625, belt_height=.105, style="paladin",fit_lip
     if necromancer:
         mount = kit.band_frame(belt_host,belt_y,np.pi/2,.013)
         pieces["CostumeBuckleSkull"] = _skull_mount(mount.origin,.280,"hips",mount.R,front_half=True)
+
+
+def _add_hip_supports(pieces,waist_host,belt_y,dark=False,panels=True):
+    """Create curved suspension straps, optionally with the original hip plates."""
     for sign,suffix in ((1,"Left"),(-1,"Right")):
         angle = 0 if sign>0 else 180
-        plate = _hip_panel(waist_host,belt_y,angle)
-        studs = []
-        for u in (-.72,0,.72):
-            p0 = plate.surface_at(u,.86)
-            dx = plate.surface_at(u+.01,.86)-p0
-            dy = plate.surface_at(u,.87)-p0
-            normal = np.cross(dx,dy)
-            if normal @ (p0-[0,p0[1],0]) < 0:
-                normal = -normal
-            studs.append(cuirass._rivet(p0,normal,.014,"rivet"))
-        if dark:
-            for u,length in ((-.40,.075),(.40,.055)):
-                point,normal = _surface_frame(plate.surface_at,u,.60)
-                studs.append(kit.spike(point-.006*normal,point+length*normal,.024,"trim"))
-        pieces[f"CostumeTasset{suffix}"] = _bound(kit.Piece.merge(plate,*studs),"hips")
+        if panels:
+            plate = _hip_panel(waist_host,belt_y,angle)
+            studs = []
+            for u in (-.72,0,.72):
+                p0 = plate.surface_at(u,.86)
+                dx = plate.surface_at(u+.01,.86)-p0
+                dy = plate.surface_at(u,.87)-p0
+                normal = np.cross(dx,dy)
+                if normal @ (p0-[0,p0[1],0]) < 0:
+                    normal = -normal
+                studs.append(cuirass._rivet(p0,normal,.014,"rivet"))
+            if dark:
+                for u,length in ((-.40,.075),(.40,.055)):
+                    point,normal = _surface_frame(plate.surface_at,u,.60)
+                    studs.append(kit.spike(point-.006*normal,point+length*normal,.024,"trim"))
+            pieces[f"CostumeTasset{suffix}"] = _bound(kit.Piece.merge(plate,*studs),"hips")
         # Narrow curved straps overlap the belt and the lap plate on the same carrying bone.
         straps = [cuirass.plate(waist_host,belt_y-.105,belt_y+.015,width=3,thickness=.045,depth=.015,
             rows=3,cols=3,rims=(),slot="leather",azimuth=angle+offset) for offset in (-56,0,56)]
         pieces[f"CostumeHangers{suffix}"] = _bound(kit.Piece.merge(*straps),"hips")
+
+
+def _add_side_straps(pieces,torso):
+    """Close the front/back sides independently of their material-family surfaces."""
     # Side buckled straps join front and back shells across the open armhole sides.
     for sign, suffix in ((1,"Left"),(-1,"Right")):
         parts=[]
@@ -236,6 +260,20 @@ def _plate_costume(torso, belt_y=.625, belt_height=.105, style="paladin",fit_lip
             parts.append(kit.bevel_box((.22,.046,.025),.006,"leather").moved(f))
             parts.append(_buckle(.036).moved(f))
         pieces[f"CostumeSideStraps{suffix}"]=_bound(kit.Piece.merge(*parts),"chest")
+
+
+def _costume_foundation(torso,belt_y,belt_height,waist=True,panels=True):
+    """Request only the shared pieces a material family retains."""
+    pieces={"CostumeShoulderCloth":_shoulder_bridge()}
+    host=WaistHost(torso)
+    if waist:
+        waist_parts=_waist_parts(pieces,host)
+        _add_belt(pieces,host,waist_parts,belt_y,belt_height)
+    else:
+        # Reserve the established GLB part order; mail supplies its belt after its own torso.
+        pieces["CostumeBelt"]=None
+    _add_hip_supports(pieces,host,belt_y,panels=panels)
+    _add_side_straps(pieces,torso)
     return pieces
 
 

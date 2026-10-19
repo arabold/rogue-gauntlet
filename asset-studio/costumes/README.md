@@ -95,3 +95,14 @@ These helpers are discoverable through `studio.py schema`: `outfits.fitted_belt`
 Use a full body to author and fit clothing, but retain only visible skin in the assembled render. `characters.hide_covered` already removes body triangles conservatively under sufficiently enclosing clothing at build time. It samples face centers and near-corners against the covering garment. Partial straps and open capes do not count as skin-covering garments. This is bind-pose coverage processing, not a dynamic collision solver or runtime equipment mask.
 
 For future interchangeable player armor, export or author equipment-specific body-region/triangle masks and apply the combined coverage of equipped pieces when composing the character in Godot. Keep the intact body source and restore skin when a garment is removed. Preserve overlap margins at neck, wrists and hems; bare-chested and cutout outfits must leave their visible skin. Shared skeletons, suitable skin weights, rigid plate attachments and motion reviews are still required at visible boundaries and between overlapping equipment. Runtime masks and gameplay equipment composition belong to the later Godot integration step.
+
+## Character costume references
+
+Use `kind: costume_ref` and `name` to select an entire authored costume from a character recipe. This shares the
+assembly and palette with the fitting workflow while preserving the character body and explicit color overrides.
+The low-level `kind: costume` is a geometry builder used inside the authored outfit.
+
+The knight uses the practical steel costume. Necromancer, primitive barbarian and royal orc use their named
+costumes. Preserved [orc warrior](orc_warrior/README.md), [orc shaman](orc_shaman/README.md) and
+[goblin](goblin/README.md) sets are marked legacy and excluded from current fittings until reworked. They retain
+their previous geometry; packaging alone does not bring them up to the approved construction standard.

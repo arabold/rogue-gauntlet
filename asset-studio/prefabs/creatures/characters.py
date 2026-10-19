@@ -9,11 +9,12 @@ An outfit is a list of garments, each `dict(kind=..., ...)` with that kind's arg
 order: the hosts (torso, arm, leg, head) are filled in, each garment grows its host (`clothes.Worn`) so the next one
 sits on top of it, and limb garments come in pairs.
 
-A character's folder also keeps its concept drawing (`reference.png`) and previews; `studio.py` builds,
+A character's folder keeps its concept drawing (`reference.png`); temporary previews stay outside the repo. `studio.py` builds,
 previews and exports it (see there for the recipe's export entries).
 """
 
 import json
+from pathlib import Path
 import os
 
 import numpy as np
@@ -141,13 +142,6 @@ def _limb_plate(h, limb, y0, y1, thickness=0.035, **k):
     return _worn(h[limb], y0 * L, y1 * L, thickness + 0.012 + max(k.get("flare", (0.0, 0.0))), piece)
 
 
-def _cuirass(h, variant="knight", **k):
-    """Plate armor round the torso (`cuirass.VARIANTS`), worn with room for its rims and rivets."""
-    t = h["torso"]
-    piece = cuirass.build(t, variant, **k)
-    return _worn(t, float(piece.verts[:, 1].min()), t.top, 0.1, piece)
-
-
 def _gloves(h, style="mitten", size=1.14, slot="glove"):
     """Gloves: the hand's own shape a size up, over the bare hand."""
     arm = h["arm"]
@@ -241,7 +235,6 @@ GARMENTS = {
     "wings": lambda h, y=1.05, **k: clothes.wings(h["torso"], y, **k),
     "tail": lambda h, y=0.6, **k: clothes.tail(h["torso"], y, **k),
     "ribs": lambda h, y0=0.8, y1=1.08, **k: clothes.ribs(h["torso"], y0, y1, **k),
-    "cuirass": lambda h, variant="knight", **k: _cuirass(h, variant, **k),
     "necklace": lambda h, y=None, **k: clothes.necklace(h["torso"], h["torso"].top - 0.1 if y is None else y, **k),
     "loincloth": lambda h, y=0.6, hem=0.3, thickness=0.025, **k: _worn(
         h["torso"], hem, y, thickness, clothes.loincloth(h["torso"], y, hem, thickness=thickness, **k)),
@@ -264,7 +257,7 @@ def head_recipe(spec):
 # Garments snug and closed enough to completely hide the skin under them (`hide_covered`).
 # Partial accessories, straps, bandages, belts, flaps, collars, cuffs, and single-sided plates
 # never hide skin, so holes can never open in bare or partially-covered bodies.
-COVERS = {"neckcloth", "cuirass", "robe", "tunic", "sleeves", "shorts", "boots", "gloves"}
+COVERS = {"neckcloth", "robe", "tunic", "sleeves", "shorts", "boots", "gloves"}
 BODY_PIECES = ("Body", "ArmLeft", "ArmRight", "LegLeft", "LegRight")
 
 
@@ -316,9 +309,33 @@ def _expand_palette(colors, explicit):
     return out
 
 
+def resolve_costumes(recipe, stack=()):
+    """Expand authored outfits in place; character body and explicit colors take precedence.
+
+    Low-level `costume` entries remain procedural builders. `costume_ref` selects
+    the complete authored assembly, including shoulders and its palette.
+    """
+    outfit, colors = [], {}
+    for entry in recipe.get("outfit", []):
+        if entry["kind"] != "costume_ref":
+            outfit.append(entry)
+            continue
+        name = entry["name"]
+        if not name or any(c not in "abcdefghijklmnopqrstuvwxyz0123456789_" for c in name):
+            raise ValueError("Costume reference name must use lowercase letters, digits and underscores")
+        if name in stack:
+            raise ValueError("Cyclic costume reference: " + " -> ".join((*stack, name)))
+        path = Path(__file__).resolve().parents[2] / "costumes" / name / "costume.json"
+        spec = resolve_costumes(json.loads(path.read_text()), (*stack, name))
+        outfit.extend(spec["outfit"])
+        colors.update(spec.get("colors", {}))
+    return {**recipe, "outfit": outfit, "colors": {**colors, **recipe.get("colors", {})}}
+
+
 def build(recipe):
     """`(pieces, colors)`: the named pieces of a character recipe (`head`: see `head_recipe`; `body`: a `body`
     recipe; `outfit`: garments) and the colors of every slot they use."""
+    recipe = resolve_costumes(recipe)
     head_spec = head_recipe(recipe["head"])
     head, head_piece = heads.build(head_spec)
     hosts, pieces = body.build(recipe["body"])

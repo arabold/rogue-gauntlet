@@ -103,13 +103,16 @@ For reference comparisons, `studio.py armor compare costume_knight_plate` loads 
 
 ### Render Prefab Contact Sheets & Rebuild Visual Indices
 ```bash
-# Render reusable-part contact sheets into asset-studio/catalogs/prefabs/
+# Render reusable-part candidates in OS temporary storage; inspect before publication:
 ./.venv/bin/python asset-studio/studio.py catalog anatomy
 ./.venv/bin/python asset-studio/studio.py catalog outfits
 ./.venv/bin/python asset-studio/studio.py catalog items
 ./.venv/bin/python asset-studio/studio.py catalog details
 
-# Rebuild markdown visual tables & previews in prefabs/*/README.md
+# Publish the existing reviewed sheet, without rerendering:
+./.venv/bin/python asset-studio/studio.py catalog outfits --publish
+
+# Rebuild metadata tables only in prefabs/*/README.md (no images):
 ./.venv/bin/python asset-studio/prefabs/library.py --index
 ```
 
@@ -191,3 +194,7 @@ For horn-to-shield joins, use substantial `construction.horn_socket` mounting bo
 Keep current authoring state only: recipe, original source GLB/Blender project, one selected reference and prompt. Store reproducible models, candidate lineups, software previews and technical reports in OS temporary storage outside the repository; the hidden `.export.json` is only the current export-ownership receipt. `catalogs/items/` owns one overview, category images, README, `status.json` and final per-item folders. `catalogs/costumes/` owns final wearable models, still/motion lineups and manifests. Shields are authored in `objects/shields/`; existing game paths `assets/custom-items/armor/shield/` remain compatible. Prefab catalogs belong in `catalogs/prefabs/`.
 
 Do not create `reviews/`, numbered review images, rejected-recipe copies or duplicate source snapshots inside Studio. Use Git history for previous versions and the image tool’s preview history for unselected concepts. Remove temporary Godot shot frames and manifests after composing the current lineup. CLI catalog generation overwrites the current files and removes stale category images.
+
+### Complete character costume references
+
+Use `{"kind":"costume_ref","name":"knight"}` in character outfits to select the entire authored `costumes/knight/costume.json` assembly and palette, including shoulders. Character anatomy and explicit colors take precedence. Low-level `kind: costume` entries select procedural builders inside costume definitions. Orc warrior, shaman and goblin sets are preserved legacy designs requiring rework, not current quality references. Prefab sheets exclude retired complete armor presets; source mesh folders never receive generated previews. `catalog <domain>` stages externally and `catalog <domain> --publish` validates and copies the reviewed candidate to the final catalog.

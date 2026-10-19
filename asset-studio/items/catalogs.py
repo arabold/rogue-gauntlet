@@ -42,9 +42,10 @@ def write_catalogs(items, destination):
 
     categories = defaultdict(list)
     records = []
+    shared = publication.shared_hashes(STUDIO)
     for item in items:
         categories[item.category].append(item)
-        receipt = publication.read(destination / item.key, publication.fingerprint(STUDIO, item.path))
+        receipt = publication.read(destination / item.key, publication.fingerprint(STUDIO, item.path, shared))
         recipe = receipt["metadata"]["recipe"]
         report = receipt["metadata"]["report"]
         owner = item.folder / ".export.json"

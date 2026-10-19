@@ -11,10 +11,8 @@ a robe or another layer), in chunky stylized proportions.
 - `straps`: crossed leather straps with a ring boss; `fur_collar`: a ruff of fur round the shoulders.
 - `emblem` (a sunburst, a cross, a skull, a gem) and `spikes` to put on any of them.
 
-`VARIANTS` combines them (knight, paladin, maiden, segmented, crusader, scale, gambeson, barbarian, brigandine,
-dark knight); `outfit(variant, torso)` builds one as named pieces.
-
-    python asset-studio/studio.py catalog armor -o armor.png --yaws 0,-40,-90,180
+Complete outfits are authored in `costumes/<name>/costume.json`. This module retains
+only reusable geometry used by character recipes and the current costume builders.
 """
 
 import numpy as np
@@ -444,54 +442,7 @@ COLORS = {"armor": (150, 158, 170), "trim": (90, 96, 110), "rivet": (220, 200, 1
           "cloth": (70, 96, 170), "gem": (200, 40, 60), "metal": (176, 186, 199), "dark": (60, 54, 60),
           "scale_back": (70, 54, 44)}
 
-# Outfits: (torso preset, colors, [(element, arguments), ...]); `y`s are rig heights on the default torso.
-VARIANTS = {
-    "knight": ("hero", {}, [("breastplate", dict(y0=0.72, sculpt="plain", gorget="armor")),
-                            ("lames", dict(y0=0.5, y1=0.76, count=3)),
-                            ("backplate", dict(y0=0.6))]),
-    "paladin": ("hero", dict(trim=(232, 182, 64)), [
-        ("breastplate", dict(y0=0.66, sculpt="male", rivets=0)), ("emblem", dict(y=1.13, style="sunburst", size=0.1)),
-        ("lames", dict(y0=0.46, y1=0.7, count=3)), ("backplate", dict(y0=0.6))]),
-    "maiden": ("female", dict(armor=(200, 206, 220), trim=(180, 140, 70)), [
-        ("breastplate", dict(y0=0.74, sculpt="female", neck=0.1, rivets=0)), ("emblem", dict(y=0.82, style="gem", size=0.08)),
-        ("lames", dict(y0=0.52, y1=0.78, count=2)), ("backplate", dict(y0=0.6))]),
-    "segmented": ("standard", dict(armor=(170, 150, 120), trim=(120, 90, 60)), [
-        ("lames", dict(y0=0.5, y1=1.22, count=6, side="front", rivets=4)),
-        ("lames", dict(y0=0.5, y1=1.22, count=6, side="back"))]),
-    "crusader": ("hero", dict(cloth=(236, 236, 230), gold=(200, 40, 40)), [
-        ("mail", dict(y0=0.42, y1=1.24)), ("tabard", dict(top=1.24)), ("emblem", dict(y=0.98, style="cross", slot="gold"))]),
-    "scale": ("standard", dict(scale=(90, 140, 110), trim=(180, 140, 70)), [
-        ("scales", dict(y0=0.5, y1=1.2, side="front", trim="trim")), ("scales", dict(y0=0.5, y1=1.2, side="back"))]),
-    "gambeson": ("standard", dict(cloth=(190, 170, 130)), [
-        ("quilted", dict(y0=0.45, y1=1.24, side="front", trim="leather", rivets=0)),
-        ("quilted", dict(y0=0.45, y1=1.24, side="back", trim="leather", rivets=0))]),
-    "barbarian": ("hero", {}, [("straps", dict(y0=0.62, y1=1.18)), ("fur_collar", dict(y=1.2))]),
-    "brigandine": ("standard", {}, [
-        ("breastplate", dict(y0=0.5, sculpt="plain", slot="leather", rivets=6, rivet_rows=4)),
-        ("backplate", dict(y0=0.5, slot="leather", rivets=6, rivet_rows=4))]),
-    "dark knight": ("brute", dict(armor=(60, 56, 66), trim=(120, 30, 40), metal=(200, 204, 214)), [
-        ("breastplate", dict(y0=0.66, sculpt="muscle", point=0.06)), ("spikes", dict(y=1.2, count=3, height=0.16, spread=55)),
-        ("lames", dict(y0=0.46, y1=0.7, count=2)), ("backplate", dict(y0=0.6)),
-        ("spikes", dict(y=1.0, side="back", count=3))]),
-}
-
 ELEMENTS = {"breastplate": breastplate, "backplate": backplate, "plate": plate, "lames": lames, "faulds": faulds,
             "mail": mail,
             "scales": scales, "quilted": quilted, "straps": straps, "fur_collar": fur_collar, "emblem": emblem,
             "spikes": spikes, "tabard": tabard}
-
-
-def outfit(variant, torso):
-    """The `VARIANTS` outfit on `torso` (a host, ideally `clothes.Worn`), one named piece per element."""
-    return {f"{name.capitalize()}{i}": ELEMENTS[name](torso, **kw) for i, (name, kw) in enumerate(VARIANTS[variant][2])}
-
-
-def catalog():
-    """Each variant on a plain body of its torso preset."""
-    from prefabs.anatomy import bodies as body
-    from prefabs.outfits import clothes
-    for name, (torso, colors, _) in VARIANTS.items():
-        hosts, pieces = body.build(dict(torso=torso))
-        worn = clothes.Worn(hosts["torso"])
-        yield name, kit.Piece.merge(*pieces.values(), *outfit(name, worn).values()), None, {**body.COLORS, **COLORS,
-                                                                                               **colors}

@@ -9,6 +9,7 @@ var job_index := 0
 var shot := 0
 var frames := 0
 var bounds: AABB
+const MOTION_FRAMES := 24
 const SHOTS = ["front", "three_quarter", "side", "back", "walking", "attack", "game_context"]
 const SurfaceColors = preload("res://asset-studio/godot/item_surface_colors.gd")
 
@@ -64,7 +65,26 @@ func start_job() -> void:
 	DirAccess.make_dir_recursive_absolute(jobs[job_index][1])
 	shot = 0
 	frames = 0
+	prepare_captures()
 	configure()
+
+func prepare_captures() -> void:
+	pass
+
+static func capture_schedule(include_motion: bool = false) -> Array[Dictionary]:
+	var clips := ["T-Pose", "T-Pose", "T-Pose", "T-Pose", "Walking_A", "1H_Melee_Attack_Chop", "Idle"]
+	var phases := [0., 0., 0., 0., .22, .45, 0.]
+	var directions := [Vector3(0,.04,1), Vector3(.7,.25,1), Vector3(1,.04,0), Vector3(0,.04,-1),
+		Vector3(.7,.25,1), Vector3(.7,.25,1), Vector3(6.8,11.5,6.8)]
+	var schedule: Array[Dictionary] = []
+	for i in range(SHOTS.size()):
+		schedule.append({"label":SHOTS[i], "clip":clips[i], "phase":phases[i], "direction":directions[i]})
+	if include_motion:
+		for clip in ["Walking_A", "1H_Melee_Attack_Chop"]:
+			for i in range(MOTION_FRAMES):
+				schedule.append({"label":"motion_%s_%02d" % [clip,i], "clip":clip,
+					"phase":float(i)/MOTION_FRAMES, "direction":Vector3(.7,.25,1)})
+	return schedule
 
 func find_player(node: Node) -> AnimationPlayer:
 	if node is AnimationPlayer:
@@ -85,16 +105,9 @@ func measure(node: Node3D) -> AABB:
 	return box
 
 func configure() -> void:
-	var animation := "T-Pose"
-	var phase := .0
-	if shot == 4:
-		animation = "Walking_A"
-		phase = .22
-	elif shot == 5:
-		animation = "1H_Melee_Attack_Chop"
-		phase = .45
-	elif shot == 6:
-		animation = "Idle"
+	var capture := capture_schedule()[shot]
+	var animation: String = capture.clip
+	var phase: float = capture.phase
 	if not player.has_animation(animation):
 		push_error("Missing armor fitting animation: " + animation)
 		quit(1)
@@ -105,9 +118,7 @@ func configure() -> void:
 	var center := bounds.get_center()
 	var extent := maxf(bounds.size.x, maxf(bounds.size.y, bounds.size.z))
 	camera.size = extent * 1.23
-	var directions := [Vector3(0, .04, 1), Vector3(.7, .25, 1), Vector3(1, .04, 0),
-		Vector3(0, .04, -1), Vector3(.7, .25, 1), Vector3(.7, .25, 1), Vector3(6.8, 11.5, 6.8)]
-	camera.look_at_from_position(center + directions[shot].normalized() * extent * 4, center)
+	camera.look_at_from_position(center + capture.direction.normalized() * extent * 4, center)
 
 func _process(_delta: float) -> bool:
 	frames += 1

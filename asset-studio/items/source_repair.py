@@ -4,6 +4,7 @@ from collections import Counter, defaultdict, deque
 import numpy as np
 import manifold3d as mf
 from core import kit
+from core.mesh import signed_volume
 from items.solid import welded, inspect
 
 
@@ -165,8 +166,7 @@ def repair(piece):
                     queue.append(j)
         group_set = set(group)
         open_part = any(len(linked) == 1 and linked[0][0] in group_set for linked in linked_edges.values())
-        tri = p[f[group]]
-        volume = float(np.einsum("ij,ij->i", tri[:, 0], np.cross(tri[:, 1], tri[:, 2])).sum() / 6)
+        volume = signed_volume(p, f[group])
         if not open_part and volume < -1e-12:
             f[group] = f[group, ::-1]
             outward_parts += 1

@@ -8,6 +8,7 @@ Export seams are welded by position for inspection; authoring meshes are untouch
 import numpy as np
 import manifold3d as mf
 from core import kit
+from core.mesh import signed_volume
 from collections import defaultdict
 from scipy.spatial import cKDTree
 
@@ -43,8 +44,7 @@ def inspect(vertices, faces):
     nonmanifold = sum(len(a) > 2 for a in edges.values())
     inconsistent = sum(len(a) == 2 and a[0][1] == a[1][1] for a in edges.values())
     duplicates = len(f) - len(np.unique(np.sort(f, axis=1), axis=0))
-    tri = p[f]
-    volume = float(np.einsum("ij,ij->i", tri[:, 0], np.cross(tri[:, 1], tri[:, 2])).sum() / 6)
+    volume = signed_volume(p, f)
     return {"components": components, "boundary_edges": boundary, "nonmanifold_edges": nonmanifold,
             "inconsistent_edges": inconsistent, "duplicate_faces": duplicates, "signed_volume": volume}
 

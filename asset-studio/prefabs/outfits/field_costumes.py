@@ -31,9 +31,8 @@ def _quilt(plate, side="front"):
 
 def build(torso, style, belt_y=.625, belt_height=.105):
     """Reuse the approved lower construction and replace the torso with each material's own structure."""
-    from prefabs.outfits.costumes import _plate_costume, _bound, _mesh_mount, _tucked_waist_lip, WaistHost
-    parts = _plate_costume(torso,belt_y,belt_height,style="knight",fit_lip=False)
-    del parts["CostumeChest"],parts["CostumeBack"]
+    from prefabs.outfits.costumes import _costume_foundation, _bound, _mesh_mount, _tucked_waist_lip, WaistHost
+    parts = _costume_foundation(torso,belt_y,belt_height)
     if style in ("brigandine","gambeson"):
         material = "leather" if style=="brigandine" else "cloth"
         mapping = {"armor":material,"armor_dark":material+"_dark","trim":material+"_worn" if style=="brigandine" else "cloth_dark",

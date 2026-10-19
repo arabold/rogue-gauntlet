@@ -215,8 +215,6 @@ def _get_modules():
         "appendages": appendages,
         # Outfits sub-parts
         "helmets": helmets,
-        "cuirass": cuirass,
-        "armor": armor,
         "pauldrons": pauldrons,
         "belts": belts,
         "crowns": crowns,

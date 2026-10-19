@@ -6,7 +6,6 @@ the legacy contour builder is an opt-in procedural backend for known archetypes.
 """
 
 import argparse
-import hashlib
 import json
 import math
 import re
@@ -19,6 +18,7 @@ from PIL import Image, ImageDraw
 
 from core.paths import work_root
 from core import publication
+from core.publication import digest
 from items import align, model
 from items.builders import BUILDERS
 from items.designs import FAMILIES, COLORS, MATERIALS
@@ -535,11 +535,6 @@ class Item:
                 raise ValueError("Existing import metadata has no [params] section")
             text = text.replace("[params]", "[params]\n" + setting, 1)
         path.write_text(text)
-
-
-def digest(path):
-    """Content hash for detecting stale builds and manual edits to published assets."""
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
 def run_godot(args, headless=True):

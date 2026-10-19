@@ -8,23 +8,8 @@
       "slot": "pants"
     },
     {
-      "kind": "armor",
-      "element": "mail",
-      "y0": 0.44,
-      "y1": 1.2
-    },
-    {
-      "kind": "cuirass",
-      "variant": "knight"
-    },
-    {
-      "kind": "belt",
-      "y": 0.66,
-      "height": 0.09,
-      "variant": "studded",
-      "band": "leather",
-      "buckle_slot": "trim",
-      "stud_slot": "rivet"
+      "kind": "costume_ref",
+      "name": "knight"
     },
     {
       "kind": "limb_plate",
@@ -78,24 +63,6 @@
       "size": 0.07
     },
     {
-      "kind": "pauldrons",
-      "x": 0.35,
-      "y": 1.32,
-      "size": 0.23,
-      "variant": "layered",
-      "plate": "armor",
-      "rim": "trim",
-      "rivet": "rivet"
-    },
-    {
-      "kind": "cape",
-      "hem": 0.12,
-      "width": 76,
-      "slot": "cloth",
-      "trim": "trim",
-      "flare": 0.14
-    },
-    {
       "kind": "helmet",
       "style": "horned"
     }
@@ -110,31 +77,6 @@
       80,
       60,
       52
-    ],
-    "cloth": [
-      156,
-      40,
-      46
-    ],
-    "trim": [
-      226,
-      178,
-      64
-    ],
-    "rivet": [
-      236,
-      196,
-      90
-    ],
-    "armor": [
-      178,
-      186,
-      200
-    ],
-    "leather": [
-      116,
-      74,
-      50
     ],
     "glove": [
       116,

@@ -12,8 +12,8 @@
   },
   "outfit": [
     {
-      "kind": "costume",
-      "variant": "barbarian_primitive"
+      "kind": "costume_ref",
+      "name": "barbarian_primitive"
     },
     {
       "kind": "shorts",
@@ -34,51 +34,6 @@
     }
   ],
   "colors": {
-    "leather": [
-      143,
-      82,
-      48
-    ],
-    "leather_dark": [
-      91,
-      49,
-      29
-    ],
-    "hide": [
-      103,
-      72,
-      49
-    ],
-    "fur": [
-      224,
-      214,
-      190
-    ],
-    "trim": [
-      102,
-      111,
-      118
-    ],
-    "rivet": [
-      122,
-      130,
-      133
-    ],
-    "stitch": [
-      206,
-      181,
-      136
-    ],
-    "bone": [
-      229,
-      215,
-      180
-    ],
-    "cloth": [
-      115,
-      76,
-      48
-    ],
     "skin": [
       244,
       190,

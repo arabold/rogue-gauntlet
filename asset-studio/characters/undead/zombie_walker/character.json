@@ -11,7 +11,7 @@
     },
     "eyes": {
       "style": "bead",
-      "w": 0.20,
+      "w": 0.2,
       "h": 0.28,
       "y": -0.05,
       "x": 0.38,
@@ -31,7 +31,7 @@
     "nose": {
       "style": "button",
       "size": 1.05,
-      "y": -0.40
+      "y": -0.4
     },
     "mouth": {
       "style": "open",
@@ -186,5 +186,8 @@
       30
     ]
   },
-  "concept": "turn this mannequin into a shambling zombie: grey-green rotting skin, one eye bigger than the other, a slack jaw with crooked teeth, stringy messy hair, a torn ragged shirt and torn trousers with patches and stitches, bandaged spots, one bare foot and one worn shoe; for the whole roster: a chunky stylized dungeon-crawler monster with heroic stylized proportions (big head, short limbs), a bold readable silhouette, exaggerated oversized accessories, a limited palette of four to six flat colors, empty hands (no weapons)"
+  "concept": "turn this mannequin into a shambling zombie: grey-green rotting skin, one eye bigger than the other, a slack jaw with crooked teeth, stringy messy hair, a torn ragged shirt and torn trousers with patches and stitches, bandaged spots, one bare foot and one worn shoe; for the whole roster: a chunky stylized dungeon-crawler monster with heroic stylized proportions (big head, short limbs), a bold readable silhouette, exaggerated oversized accessories, a limited palette of four to six flat colors, empty hands (no weapons)",
+  "export": {
+    "glb": "res://assets/custom-monsters/zombie/zombie_walker.glb"
+  }
 }

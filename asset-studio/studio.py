@@ -81,6 +81,17 @@ class Character:
             else os.path.join(REPO, "assets", "custom-monsters", self.family, f"{self.name}.glb")
         )
 
+        # Source categories may change without relocating already-consumed game art.
+        if os.path.isfile(self.recipe_path):
+            target = self.recipe().get("export", {}).get("glb")
+            if target:
+                if not target.startswith("res://assets/"):
+                    raise ValueError("Character export.glb must be under res://assets/")
+                path = Path(REPO, target[6:]).resolve()
+                if not path.is_relative_to(Path(REPO, "assets").resolve()) or path.suffix != ".glb":
+                    raise ValueError("Character export.glb must name a GLB inside assets/")
+                self.glb = str(path)
+
     @property
     def res(self):
         return "res://" + os.path.relpath(self.glb, REPO).replace(os.sep, "/")
@@ -371,7 +382,8 @@ def main():
     ap.add_argument("--no-import", action="store_true", help="export: leave the Godot import for later")
     ap.add_argument("-o", "--out", help="catalog: output PNG path")
     ap.add_argument("--yaws", default="0,32,90,180", help="catalog: comma-separated yaw angles in degrees")
-    ap.add_argument("--index", action="store_true", help="catalog: generate markdown index and individual previews for library")
+    ap.add_argument("--index", action="store_true", help="catalog: update source metadata indexes without rendering")
+    ap.add_argument("--publish", action="store_true", help="catalog: publish the existing reviewed temporary sheet")
     args = ap.parse_args()
 
     if args.command == "schema":
@@ -386,11 +398,20 @@ def main():
         if args.index or (args.targets and args.targets[0] == "library" and args.index):
             from prefabs import library
             library.generate_index()
+            return
 
         mods = catalog._get_modules()
         which = args.targets[0] if args.targets else "all"
         if which not in mods and which != "all":
             raise SystemExit(f"unknown catalog module {which!r}; choose from: {', '.join([*mods, 'all'])}")
+        from core import prefab_catalogs
+        if args.out and Path(args.out).resolve().is_relative_to(Path(REPO).resolve()):
+            raise SystemExit("Preview output must be outside the repo; use --publish for final catalogs")
+        if args.publish:
+            if args.out:
+                raise SystemExit("--publish uses the final catalog path; omit --out")
+            print(f"published {prefab_catalogs.publish(Path(STUDIO_DIR), which)}")
+            return
         yaws = [float(a) for a in args.yaws.split(",")]
         if which == "all":
             primary = ["anatomy", "outfits", "items", "details", "characters", "golems"]
@@ -398,10 +419,11 @@ def main():
         else:
             chosen = [mods[which]]
         items = [it for m in chosen for it in m.catalog()]
-        out_path = args.out or os.path.join(STUDIO_DIR, "catalogs", "prefabs", f"{which}.png")
-        os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
-        catalog.sheet(items, yaws=yaws).save(out_path)
-        print(f"wrote {os.path.relpath(out_path, REPO)} ({len(items)} variants)")
+        candidate = prefab_catalogs.render(Path(STUDIO_DIR), which, items, yaws)
+        if args.out:
+            Path(args.out).resolve().parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(candidate, args.out)
+        print(f"review candidate: {candidate} ({len(items)} variants)")
         return
 
     keys = characters.keys() if args.all or args.command == "list" else args.targets

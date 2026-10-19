@@ -19,7 +19,6 @@ if STUDIO_DIR not in sys.path:
     sys.path.insert(0, STUDIO_DIR)
 
 import numpy as np
-from PIL import Image
 
 from core import catalog as cat_renderer, kit
 
@@ -142,75 +141,30 @@ def catalog():
 
 
 def generate_index():
-    """Generate visual preview strips and Markdown tables for each domain."""
-    print("Generating visual domain indexes...")
-
-    domain_titles = {
-        "anatomy": "Anatomy & Skeletal Mesh Prefabs",
-        "outfits": "Outfits & Headgear Mesh Prefabs",
-        "items": "Items & Equipment Mesh Prefabs",
-        "details": "Details & Hardware Mesh Prefabs",
-    }
-
+    """Write source metadata tables without creating previews in authoring folders."""
     for domain, d_path in DOMAINS.items():
-        if not d_path.exists():
-            continue
         files = sorted(d_path.glob("*.npz"))
-        if not files:
-            continue
-
-        prev_dir = d_path / "previews"
-        prev_dir.mkdir(exist_ok=True)
-
-        lines = [
-            f"# {domain_titles.get(domain, domain.capitalize())}",
-            "",
-            f"Curated uncolored 3D geometry prefabs for `{domain}`.",
-            "",
-            "| Preview | Prefab Name | Tris / Verts | Dimensions (W × H × D) | Example Code |",
-            "| :---: | :--- | :---: | :---: | :--- |",
-        ]
-
-        for p in files:
-            data = np.load(p)
-            meta = json.loads(str(data["meta"]))
-            name = meta["name"]
-            cat = meta.get("category", domain)
-
-            if name in ITEM_COLORS:
-                slot, col = ITEM_COLORS[name]
-            elif cat in PREF_COLORS:
-                slot, col = PREF_COLORS[cat]
-            else:
-                slot, col = "base", (160, 160, 160)
-
-            piece = kit.Piece(data["verts"].astype(float), data["faces"].astype(np.int64), np.full(len(data["faces"]), slot, dtype=object))
-
-            # Render 2-view preview strip (front + 3/4 isometric)
-            cell = 140
-            im1 = cat_renderer.render(piece, yaw=0.0, pitch=10.0, size=cell, colors={slot: col})
-            im2 = cat_renderer.render(piece, yaw=32.0, pitch=18.0, size=cell, colors={slot: col})
-            strip = Image.new("RGB", (cell * 2 + 2, cell), (255, 255, 255))
-            strip.paste(im1, (0, 0))
-            strip.paste(im2, (cell + 2, 0))
-            strip_path = prev_dir / f"{name}.png"
-            strip.save(strip_path)
-
+        lines = [f"# {domain.capitalize()} mesh sources", "",
+            "Reusable harvested source geometry. These are parts, not complete costumes.", "",
+            f"[Published part catalog](../../catalogs/prefabs/{domain}.png) · "
+            "[Complete costumes](../../costumes/README.md)", "",
+            "Generate preview candidates with `studio.py catalog " + domain + "`. "
+            "After review, publish with `studio.py catalog " + domain + " --publish`.", "",
+            "| Prefab | Triangles | Vertices | Dimensions (W × H × D) |",
+            "| --- | ---: | ---: | --- |"]
+        for path in files:
+            with np.load(path) as data:
+                meta = json.loads(str(data["meta"]))
             span = meta.get("span", [0, 0, 0])
-            dim_str = f"{span[0]:.2f} × {span[1]:.2f} × {span[2]:.2f}m"
-            code_str = f"`library.load(\"{name}\", slot=\"{slot}\")`"
-            lines.append(
-                f"| ![{name}](meshes/previews/{name}.png) | **`{name}`** | {meta['tris']} tris<br>{meta['verts']} verts | {dim_str} | {code_str} |"
-            )
-
-        readme_path = PREFABS_DIR / domain / "README.md"
-        readme_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        print(f"  [+] Wrote {domain}/README.md ({len(files)} prefabs)")
+            dims = " × ".join(f"{v:.2f}" for v in span)
+            lines.append(f"| `{meta['name']}` | {meta['tris']} | {meta['verts']} | {dims} m |")
+        (PREFABS_DIR / domain / "README.md").write_text("\n".join(lines) + "\n")
+        print(f"{domain}: indexed {len(files)} source meshes (no renders)")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--index", action="store_true", help="Regenerate domain preview strips and indexes")
+    parser.add_argument("--index", action="store_true", help="Regenerate source metadata indexes without rendering")
     args = parser.parse_args()
     if args.index:
         generate_index()

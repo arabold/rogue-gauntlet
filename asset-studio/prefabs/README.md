@@ -29,7 +29,7 @@ You can inspect the entire schema or specific domains programmatically:
 
 ## Regenerating Visual Catalogs & Previews
 
-To regenerate the multi-angle visual contact sheets:
+Render multi-angle review candidates in OS temporary storage:
 ```bash
 ./.venv/bin/python asset-studio/studio.py catalog anatomy
 ./.venv/bin/python asset-studio/studio.py catalog outfits
@@ -37,7 +37,9 @@ To regenerate the multi-angle visual contact sheets:
 ./.venv/bin/python asset-studio/studio.py catalog details
 ```
 
-To harvest new geometry from CC0 models and update all markdown tables and thumbnail previews:
+After reviewing a candidate, publish it explicitly with `studio.py catalog outfits --publish`. Source changes or image edits invalidate the candidate. Complete armor is cataloged under [`costumes/`](../costumes/README.md); prefab sheets contain reusable parts only.
+
+To harvest new geometry and refresh source metadata tables without generating images:
 ```bash
 ./.venv/bin/python asset-studio/prefabs/harvest.py
 ./.venv/bin/python asset-studio/prefabs/library.py --index

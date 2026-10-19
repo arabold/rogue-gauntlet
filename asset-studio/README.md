@@ -157,11 +157,12 @@ Run all commands using the workspace `.venv`:
 ./.venv/bin/python asset-studio/studio.py schema items
 ./.venv/bin/python asset-studio/studio.py schema details
 
-# Render reusable-part contact sheets into asset-studio/catalogs/prefabs/
+# Render reusable-part candidates outside the repo; inspect before publishing:
 ./.venv/bin/python asset-studio/studio.py catalog anatomy
 ./.venv/bin/python asset-studio/studio.py catalog outfits
 ./.venv/bin/python asset-studio/studio.py catalog items
 ./.venv/bin/python asset-studio/studio.py catalog details
+./.venv/bin/python asset-studio/studio.py catalog outfits --publish
 
 # Render a character's multi-pose review into OS temporary storage
 ./.venv/bin/python asset-studio/studio.py lineup mage/necromancer
@@ -341,7 +342,7 @@ For `prefab`, use a `parts` list such as `[{"mesh": "flask_potion", "slot": "tea
 
 ### Existing custom items
 
-The 125 original `custom-items` entries have been recreated as fresh solid-family recipes. Their IDs and destinations remain stable. The old art supplies only each recipe's placement envelope; builders do not reuse its meshes. Godot wrappers and gameplay definitions stay in the separate resource-authoring layer.
+The approved migration for original `custom-items` preserves their detailed source geometry and applies the shared character surface/shading workflow. Keep IDs and export destinations stable. Capture the original GLB as a local authoring source before changing it; adoption alone neither improves nor visually validates the model. Godot wrappers and gameplay definitions stay in the separate resource-authoring layer.
 
 ```bash
 ./.venv/bin/python asset-studio/studio.py item list --existing
@@ -351,7 +352,7 @@ The 125 original `custom-items` entries have been recreated as fresh solid-famil
 
 Adoption is idempotent. Before changing an adopted asset, copy its GLB into its recipe folder as `source.glb` and change `source` to `source.glb`. This retains the original as an authoring input and prevents repeated placement from accumulating on an exported model. Existing models have not been regenerated or certified visually just by adoption; builds report geometry problems for explicit cleanup.
 
-`item recreate <key>` or `item recreate --all` migrates supported adopted legacy recipes to the fresh families. It records the previous model hash and preserves its export path and placement envelope. It does not publish art or overwrite custom recipes; rerunning the catalog migration skips recipes already recreated. Build, inspect lineups, and then explicitly export replacements. The catalog uses shared family designs; named variants currently vary their persisted design and/or palette, and additional distinctive ornaments can be authored without weakening the solid-geometry gate.
+Use `item preserve --all --revision <original-revision>` for the approved source-preservation migration described above. `item recreate <key>` and `recreate --all` are optional family/blockout experiments for an explicitly requested new design, not the production migration path. They preserve export paths and placement envelopes, record the previous model hash and skip already recreated recipes. They do not publish art or overwrite custom recipes. Build, inspect lineups, then explicitly publish or export any selected replacement.
 
 Generated builds, preview sheets, validation reports, and export receipts stay local via `objects/.gitignore`. Commit recipes, references, source models, and Blender files when appropriate. A changed recipe, source, or staged GLB requires rebuilding before export.
 
@@ -383,3 +384,28 @@ The five steel armor costumes now include gorget-mounted pauldrons through `kind
 `costumes/barbarian_primitive/` is a separate bare-chested hero-body costume: a continuous leather harness, one hinged fur-lined pauldron, a fitted belt, hide skirt and curved hip panels. `costumes/orc_king/` fits the brute torso and retains the king's established head, crown and limbs while replacing his obsolete torso and shoulder armor. Their selected image concepts and exact master prompts are authoring inputs; generated models remain visual-review candidates until publication. Other orc costumes are unchanged.
 
 Reusable connected fur borders and horned-skull buckle reliefs live in `prefabs/details/primal.py` and are discoverable under `studio.py schema details primal`. The new shoulder fittings reuse horn sockets and curved horns, maintain actual contact and bake the existing half-arm hinge into standard animation clips. Fitting recipes can carry a complete `body` preset so broader orc arms and legs are visible in review instead of silently substituting human limbs.
+
+
+### Complete costumes versus prefab parts
+
+A character selects a complete authored outfit with `{"kind":"costume_ref","name":"knight"}`.
+This expands `costumes/knight/costume.json` in place, including steel shoulders and the costume palette.
+The character keeps its own anatomy, head, scale, equipment and explicit color overrides. Character colors
+win over costume colors; later costume references win over earlier references. Cyclic references are rejected.
+The lower-level `kind: costume` selects only a procedural builder; use it inside a costume definition.
+`costume_set` remains available for the preserved blue barbarian assembly.
+
+The knight now selects the practical steel costume. Necromancer, primitive barbarian and orc king select their
+complete authored costumes. Orc warrior, shaman and goblin clothing has been extracted without geometry changes
+into named `status: legacy` costume recipes. These distinct designs still need art rework and are excluded from
+the current armor fitting catalog. Their reusable straps, collars and limb armor remain available as parts.
+Unused complete-outfit presets were removed from `prefabs/outfits/armor.py`; its shared geometry is retained.
+
+Prefab source folders contain code, harvested `.npz` geometry and metadata indexes only. `catalog <domain>`
+stages a sheet in OS temporary storage. `catalog <domain> --publish` publishes the existing reviewed candidate,
+checking source and image hashes without rerendering. `--out` accepts external preview destinations only.
+`catalog library --index` refreshes metadata tables without generating images. Complete costumes belong in
+`catalogs/costumes/`; prefab sheets show reusable parts. Superseded knight, barbarian, necromancer and orc king
+character previews were removed. Regenerating a character review does not update the game's exported GLB.
+
+Character categories group zombies, ghouls, mummies and wraiths under `characters/undead/`. An optional recipe `export.glb` (`res://assets/...glb`) preserves an existing game-art destination when an authoring category moves; the zombie retains its historical export path for compatibility.

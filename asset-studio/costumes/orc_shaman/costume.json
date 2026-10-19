@@ -1,0 +1,160 @@
+{
+  "status": "legacy",
+  "review": "Preserved character clothing, packaged without changing geometry. Needs rework and visual review against the current costume style guide.",
+  "body": {
+    "torso": "standard",
+    "arms": {
+      "style": "gorilla",
+      "length": 1.25,
+      "hand": "mitten",
+      "hand_size": 1.6
+    },
+    "legs": {
+      "foot": "bare",
+      "foot_size": 1.15
+    }
+  },
+  "outfit": [
+    {
+      "kind": "shorts",
+      "down": 0.2,
+      "top": 0.62,
+      "slot": "hide_dark"
+    },
+    {
+      "kind": "armor",
+      "element": "straps",
+      "y0": 0.72,
+      "y1": 1.14,
+      "width": 0.035,
+      "thickness": 0.004,
+      "boss": null,
+      "slot": "paint"
+    },
+    {
+      "kind": "loincloth",
+      "y": 0.62,
+      "hem": 0.24,
+      "ragged": 8,
+      "jag": 0.09,
+      "dip": 0.1,
+      "slot": "hide"
+    },
+    {
+      "kind": "wraps",
+      "limb": "arm",
+      "y0": 0.45,
+      "y1": 0.88,
+      "count": 3,
+      "slot": "wrap",
+      "gap": 0.08,
+      "thickness": 0.018,
+      "tilt": 0.4
+    },
+    {
+      "kind": "cuffs",
+      "at": 0.93,
+      "width": 0.05,
+      "thickness": 0.03,
+      "slot": "cord",
+      "studs": 7,
+      "stud_slot": "bead",
+      "stud_radius": 0.022
+    },
+    {
+      "kind": "belt",
+      "y": 0.64,
+      "height": 0.1,
+      "variant": "pouches",
+      "band": "leather",
+      "buckle_slot": "bone"
+    },
+    {
+      "kind": "necklace",
+      "drop": 0.1,
+      "count": 9,
+      "size": 0.05
+    },
+    {
+      "kind": "armor",
+      "element": "fur_collar",
+      "y": 1.13,
+      "count": 16,
+      "size": 0.16,
+      "slot": "fur"
+    }
+  ],
+  "colors": {
+    "hide": [
+      120,
+      98,
+      72
+    ],
+    "wrap": [
+      196,
+      182,
+      150
+    ],
+    "cord": [
+      70,
+      50,
+      36
+    ],
+    "bead": [
+      190,
+      70,
+      50
+    ],
+    "tooth": [
+      236,
+      228,
+      200
+    ],
+    "leather": [
+      104,
+      72,
+      48
+    ],
+    "fur": [
+      92,
+      74,
+      58
+    ],
+    "bone": [
+      232,
+      222,
+      196
+    ],
+    "feather": [
+      236,
+      232,
+      220
+    ],
+    "feather_tip": [
+      48,
+      44,
+      52
+    ],
+    "dark": [
+      44,
+      36,
+      32
+    ],
+    "gold": [
+      200,
+      160,
+      60
+    ],
+    "hide_dark": [
+      92,
+      72,
+      52
+    ],
+    "paint": [
+      240,
+      238,
+      230
+    ]
+  },
+  "character": "orc/orc_shaman"
+}

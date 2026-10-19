@@ -84,11 +84,8 @@ def _cross(plate,side):
 
 def build(torso,style,belt_y=.625,belt_height=.105):
     """Shared fit, distinct ring/scale surfaces and actual fitted tabard/belt layering."""
-    from prefabs.outfits.costumes import _plate_costume, _bound, WaistHost, BeltHost
-    parts = _plate_costume(torso,belt_y,belt_height,style="knight",fit_lip=False)
-    for name in list(parts):
-        if name in ("CostumeChest","CostumeBack") or "Lame" in name or "Tasset" in name:
-            del parts[name]
+    from prefabs.outfits.costumes import _costume_foundation, _bound, WaistHost, BeltHost
+    parts = _costume_foundation(torso,belt_y,belt_height,waist=False,panels=False)
     host = WaistHost(torso)
     top = min(torso.top-.14,1.18)
     scale = style=="scale"

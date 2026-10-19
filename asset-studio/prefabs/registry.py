@@ -99,10 +99,11 @@ def get_schema():
             },
         },
         "outfits": {
+            "costume_ref": {"name": "costumes/<name>/costume.json; complete outfit and palette; character overrides win"},
             "costumes": list(costumes.VARIANTS),
             "costume_parameters": {name: _sig_params(builder) for name, builder in costumes.VARIANTS.items()},
             "helmets": list(helmets.STYLES.keys()),
-            "cuirass": list(cuirass.VARIANTS.keys()),
+            "cuirass": {"plate": _sig_params(cuirass.plate), "ridge": _sig_params(cuirass.ridge)},
             "pauldrons": _sig_params(pauldrons.build),
             "cape": _sig_params(capes.build),
             "fitted_belt": _sig_params(belts.build_fitted),

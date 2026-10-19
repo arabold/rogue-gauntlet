@@ -5,7 +5,6 @@ var reference_player: AnimationPlayer
 var captures: Array[Dictionary] = []
 var member := 0
 const BODY_MESHES = ["Knight_Body", "Knight_Head", "Knight_ArmLeft", "Knight_ArmRight", "Knight_LegLeft", "Knight_LegRight"]
-const MOTION_FRAMES := 24
 
 func load_model(path: String) -> Node3D:
 	var document := GLTFDocument.new()
@@ -49,16 +48,8 @@ func start_job() -> void:
 		return
 	# World origins and skeleton scale are unchanged. Never normalize each model's height separately.
 	bounds = visible_bounds(visual).merge(visible_bounds(reference))
-	var names := ["front", "three_quarter", "side", "back", "walking", "attack", "game_context"]
-	var clips := ["T-Pose", "T-Pose", "T-Pose", "T-Pose", "Walking_A", "1H_Melee_Attack_Chop", "Idle"]
-	var phases := [0., 0., 0., 0., .22, .45, 0.]
-	var directions := [Vector3(0,.04,1), Vector3(.7,.25,1), Vector3(1,.04,0), Vector3(0,.04,-1),
-		Vector3(.7,.25,1), Vector3(.7,.25,1), Vector3(6.8,11.5,6.8)]
-	for i in range(names.size()):
-		add_capture(names[i], clips[i], phases[i], directions[i])
-	for clip in ["Walking_A", "1H_Melee_Attack_Chop"]:
-		for i in range(MOTION_FRAMES):
-			add_capture("motion_%s_%02d" % [clip, i], clip, float(i)/MOTION_FRAMES, Vector3(.7,.25,1))
+	for capture in capture_schedule(true):
+		add_capture(capture.label,capture.clip,capture.phase,capture.direction)
 	DirAccess.make_dir_recursive_absolute(jobs[job_index][1])
 	shot = 0
 	frames = 0

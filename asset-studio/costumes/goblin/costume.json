@@ -1,0 +1,83 @@
+{
+  "status": "legacy",
+  "review": "Preserved character clothing, packaged without changing geometry. Needs rework and visual review against the current costume style guide.",
+  "body": {
+    "torso": "goblin",
+    "arms": {
+      "style": "thin",
+      "hand": "claw",
+      "hand_size": 1.8
+    },
+    "legs": {
+      "style": "thin",
+      "foot": "bare",
+      "foot_size": 1.5
+    }
+  },
+  "outfit": [
+    {
+      "kind": "shorts",
+      "down": 0.12,
+      "top": 0.6,
+      "slot": "cloth_dark"
+    },
+    {
+      "kind": "loincloth",
+      "y": 0.6,
+      "hem": 0.32
+    },
+    {
+      "kind": "belt",
+      "y": 0.6,
+      "height": 0.05,
+      "variant": "sash",
+      "band": "rope",
+      "buckle_slot": "rope"
+    },
+    {
+      "kind": "armor",
+      "element": "straps",
+      "y0": 0.62,
+      "y1": 1.2,
+      "cross": false,
+      "boss": "metal",
+      "slot": "leather",
+      "width": 0.07
+    },
+    {
+      "kind": "cuffs",
+      "at": 0.8,
+      "width": 0.14,
+      "thickness": 0.03,
+      "slot": "leather"
+    }
+  ],
+  "colors": {
+    "cloth": [
+      118,
+      82,
+      52
+    ],
+    "cloth_dark": [
+      84,
+      58,
+      40
+    ],
+    "rope": [
+      176,
+      140,
+      90
+    ],
+    "leather": [
+      110,
+      72,
+      46
+    ],
+    "metal": [
+      150,
+      150,
+      150
+    ]
+  },
+  "character": "goblin/goblin"
+}

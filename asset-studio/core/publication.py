@@ -9,13 +9,22 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def fingerprint(studio, recipe):
-    """Conservatively invalidate review when shared modeling, shading or rig inputs change."""
-    studio, recipe = Path(studio), Path(recipe)
-    paths = {recipe}
+def shared_hashes(studio):
+    """Hash shared inputs once for a read-only catalog operation; never cache across operations."""
+    studio = Path(studio)
+    paths = set()
     for directory in ("core", "prefabs", "items", "godot", "rigs"):
         paths.update(p for p in (studio / directory).rglob("*")
-                     if p.is_file() and p.suffix in (".py", ".gd", ".glb", ".png"))
+                     if p.is_file() and p.suffix in (".py", ".gd", ".glb", ".png", ".npz"))
+    paths.update((studio / "costumes").glob("*/costume.json"))
+    return {str(p.relative_to(studio.parent)): digest(p) for p in sorted(paths)}
+
+
+def fingerprint(studio, recipe, shared=None):
+    """Conservatively invalidate review when shared modeling, shading or rig inputs change."""
+    studio, recipe = Path(studio), Path(recipe)
+    hashes = dict(shared_hashes(studio) if shared is None else shared)
+    paths = {recipe}
     paths.update(p for p in recipe.parent.iterdir() if p.is_file()
                  and (p.name.startswith("source.") or p.name.startswith("reference.")))
     data = json.loads(recipe.read_text())
@@ -27,7 +36,7 @@ def fingerprint(studio, recipe):
                 paths.add(path)
     else:
         paths.add(studio / "fittings.py")
-    hashes = {str(p.relative_to(studio.parent)): digest(p) for p in sorted(paths)}
+    hashes.update({str(p.relative_to(studio.parent)): digest(p) for p in sorted(paths)})
     return hashlib.sha256(json.dumps(hashes, sort_keys=True).encode()).hexdigest()
 
 

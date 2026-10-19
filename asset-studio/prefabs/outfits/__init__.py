@@ -6,10 +6,8 @@ __all__ = ["armor", "belts", "capes", "clothes", "costumes", "crowns", "cuirass"
 
 
 def catalog():
-    """Yield representative outfit and armor studies for catalog rendering."""
+    """Yield reusable wearable parts for catalog rendering."""
     yield from helmets.catalog()
-    yield from cuirass.catalog()
-    yield from armor.catalog()
     yield from pauldrons.catalog()
     yield from belts.catalog()
     yield from crowns.catalog()
