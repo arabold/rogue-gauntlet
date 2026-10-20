@@ -48,8 +48,8 @@ public class RoomRotationTest
 		var failures = new List<string>();
 		for (ulong seed = 1; seed <= SeedCount; seed++)
 		{
-			GD.Seed(seed);
-			Room room = builder.BuildRoom();
+			using var rng = new RandomNumberGenerator { Seed = seed };
+			Room room = builder.BuildRoom(rng);
 			room.BakeTileMap();
 			CheckRotationSweep(room, $"seed {seed}", strictContentChecks: true, failures);
 			room.QueueFree();
@@ -173,8 +173,8 @@ public class RoomRotationTest
 		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
-		GD.Seed(1);
-		Room room = builder.BuildRoom();
+		using var rng = new RandomNumberGenerator { Seed = 1 };
+		Room room = builder.BuildRoom(rng);
 		room.BakeTileMap();
 
 		var tiltedProp = new Node3D
@@ -215,8 +215,8 @@ public class RoomRotationTest
 		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
-		GD.Seed(1);
-		Room room = builder.BuildRoom();
+		using var rng = new RandomNumberGenerator { Seed = 1 };
+		Room room = builder.BuildRoom(rng);
 		room.BakeTileMap();
 
 		// Far outside the room's own generated content, so this doesn't collide with

@@ -8,9 +8,9 @@ public partial class DungeonMobFactory : MobFactory
 	// Keep enemy scenes as paths so the level only loads enemy variants it actually spawns.
 	[Export] public Array<string> EnemyScenePaths { get; set; }
 
-	public override PackedScene CreateEnemy(uint dungeonDepth)
+	public override PackedScene CreateEnemy(uint dungeonDepth, RandomNumberGenerator rng)
 	{
-		string scenePath = EnemyScenePaths.PickRandom();
+		string scenePath = EnemyScenePaths[rng.RandiRange(0, EnemyScenePaths.Count - 1)];
 		if (string.IsNullOrEmpty(scenePath))
 		{
 			GD.PrintErr("Dungeon mob factory has an empty scene path.");

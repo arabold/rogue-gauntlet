@@ -106,3 +106,9 @@ transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
 [node name="hammer_rare" type="MeshInstance3D" parent="."]
 mesh = SubResource("ArrayMesh_5fgih")
 skeleton = NodePath("")
+
+[node name="TrailBase" type="Marker3D" parent="."]
+position = Vector3(-0.67549, 0.89419, 0)
+
+[node name="TrailTip" type="Marker3D" parent="."]
+position = Vector3(-0.67549, 1.28869, 0)

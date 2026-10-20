@@ -27,8 +27,8 @@ public class ProceduralRoomBuilderTest
 
 		for (ulong seed = 1; seed <= SeedCount; seed++)
 		{
-			GD.Seed(seed);
-			Room room = builder.BuildRoom();
+			using var rng = new RandomNumberGenerator { Seed = seed };
+			Room room = builder.BuildRoom(rng);
 			if (room == null)
 			{
 				failures.Add($"seed {seed}: builder returned null");
@@ -65,8 +65,8 @@ public class ProceduralRoomBuilderTest
 		var failures = new List<string>();
 		for (ulong seed = 1; seed <= SeedCount; seed++)
 		{
-			GD.Seed(seed);
-			Room room = builder.BuildRoom();
+			using var rng = new RandomNumberGenerator { Seed = seed };
+			Room room = builder.BuildRoom(rng);
 			room.BakeTileMap();
 			foreach (string failure in FindDoorwayContractViolations(room))
 			{
@@ -93,8 +93,8 @@ public class ProceduralRoomBuilderTest
 		var failures = new List<string>();
 		for (ulong seed = 1; seed <= SeedCount; seed++)
 		{
-			GD.Seed(seed);
-			Room room = builder.BuildRoom();
+			using var rng = new RandomNumberGenerator { Seed = seed };
+			Room room = builder.BuildRoom(rng);
 			room.BakeTileMap();
 			foreach (Vector3I cell in room.DecorationGridMap.GetUsedCells())
 			{
@@ -133,8 +133,8 @@ public class ProceduralRoomBuilderTest
 		var failures = new List<string>();
 		for (ulong seed = 1; seed <= SeedCount; seed++)
 		{
-			GD.Seed(seed);
-			Room room = builder.BuildRoom();
+			using var rng = new RandomNumberGenerator { Seed = seed };
+			Room room = builder.BuildRoom(rng);
 			room.BakeTileMap();
 			foreach (string failure in FindFloorCoverageViolations(room))
 			{
@@ -161,8 +161,8 @@ public class ProceduralRoomBuilderTest
 		var failures = new List<string>();
 		for (ulong seed = 1; seed <= SeedCount; seed++)
 		{
-			GD.Seed(seed);
-			Room room = builder.BuildRoom();
+			using var rng = new RandomNumberGenerator { Seed = seed };
+			Room room = builder.BuildRoom(rng);
 			room.BakeTileMap();
 			foreach (string failure in FindFloorCoverageViolations(room))
 			{
@@ -222,7 +222,7 @@ public class ProceduralRoomBuilderTest
 	{
 		var footprint = MakeRectFootprint(8, 6);
 		var builder = new ProceduralRoomBuilder { ColumnChance = 1f };
-		var corners = new HashSet<Vector2I>(builder.GetSymmetricScatterColumns(footprint));
+		var corners = new HashSet<Vector2I>(builder.GetSymmetricScatterColumns(footprint, new RandomNumberGenerator { Seed = 1 }));
 		AssertBool(corners.Count > 0).IsTrue();
 		foreach (Vector2I corner in corners)
 		{

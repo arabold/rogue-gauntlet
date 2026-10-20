@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c76xbhl6lod7w"
-path="res://.godot/imported/drink_beer_stein_surface_palette.png-77da8234465211343b06794026b7b5cb.ctex"
+path.s3tc="res://.godot/imported/drink_beer_stein_surface_palette.png-77da8234465211343b06794026b7b5cb.s3tc.ctex"
+path.etc2="res://.godot/imported/drink_beer_stein_surface_palette.png-77da8234465211343b06794026b7b5cb.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "783247a741f3bab41a1c3af94c8ce783"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/food/drink/drink_beer_stein_surface_palette.png"
-dest_files=["res://.godot/imported/drink_beer_stein_surface_palette.png-77da8234465211343b06794026b7b5cb.ctex"]
+dest_files=["res://.godot/imported/drink_beer_stein_surface_palette.png-77da8234465211343b06794026b7b5cb.s3tc.ctex", "res://.godot/imported/drink_beer_stein_surface_palette.png-77da8234465211343b06794026b7b5cb.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

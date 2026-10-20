@@ -78,15 +78,6 @@ public partial class CharacterClass : Resource
 	/// </summary>
 	public Inventory CreateStartingInventory(int capacity)
 	{
-		var inventory = new Inventory { Capacity = capacity };
-		foreach (InventoryItemSlot slot in StartingItems)
-		{
-			if (slot?.Item != null)
-			{
-				inventory.Items.Add(slot.CreateRuntimeCopy());
-			}
-		}
-
-		return inventory;
+		return new Inventory { Capacity = capacity, Items = StartingItems }.CreateRuntimeCopy();
 	}
 }

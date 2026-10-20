@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="AppearancePool" load_steps=14 format=3]
+[gd_resource type="Resource" script_class="AppearancePool" load_steps=15 format=3]
 
 [ext_resource type="Script" uid="uid://cappearpool01" path="res://scenes/items/identity/AppearancePool.cs" id="1_pool"]
 [ext_resource type="Script" uid="uid://citemappear01" path="res://scenes/items/identity/ItemAppearance.cs" id="2_appr"]

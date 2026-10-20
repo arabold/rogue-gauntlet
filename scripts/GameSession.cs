@@ -54,6 +54,8 @@ public partial class GameSession : Node
 	private bool _isSceneTransitioning;
 	private bool _saveAfterNextSpawn;
 	private uint _lootRollsConsumed;
+	/// <summary>Read-only continuation cursor for gameplay-time randomness and diagnostics.</summary>
+	public uint LootRollsConsumed => _lootRollsConsumed;
 	private CanvasLayer _levelFadeLayer;
 	private ColorRect _levelFadeRect;
 	private Tween _levelFadeTween;
@@ -153,6 +155,20 @@ public partial class GameSession : Node
 			return;
 		}
 
+		try
+		{
+			InventorySaveCodec.Restore(saveGame.Player.Inventory);
+			foreach (var changes in saveGame.World.ItemChanges)
+			{
+				foreach (var record in changes.Overrides.Concat(changes.AddedItems)) { ItemSaveCodec.Restore(record.Item); }
+			}
+		}
+		catch (Exception error)
+		{
+			GD.PushError($"Cannot load item state: {error.Message}");
+			return;
+		}
+
 		ActiveSlotId = slotId;
 		ActiveSeed = saveGame.Seed;
 		ActiveDungeonDepth = saveGame.DungeonDepth;
@@ -233,13 +249,22 @@ public partial class GameSession : Node
 		}
 
 		Player player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
-		if (player == null)
+		if (player == null || player.InventoryController.IsCommittingItemOperation || CurrentItemPersistence()?.IsCommitting == true)
 		{
 			return false;
 		}
 
 		EnsureActiveSave();
-		_activeSave.Player = CapturePlayerForLevelTransition(player);
+		try
+		{
+			StoreLevelItemChanges();
+			_activeSave.Player = CapturePlayerForLevelTransition(player);
+		}
+		catch (Exception error)
+		{
+			GD.PushError($"Cannot leave floor with invalid item state: {error.Message}");
+			return false;
+		}
 		_pendingLoadedSave = _activeSave;
 
 		if (direction == LevelTravelDirection.Down)
@@ -323,7 +348,24 @@ public partial class GameSession : Node
 		_activeSave.World.ClearedEntityIds.RemoveAll(entityId =>
 			entityId.StartsWith($"depth:{ActiveDungeonDepth}:", StringComparison.Ordinal));
 		_activeSave.World.RevealedLevels.RemoveAll(level => level.DungeonDepth == ActiveDungeonDepth);
+		_activeSave.World.ItemChanges.RemoveAll(level => level.Depth == ActiveDungeonDepth);
 		_pendingLoadedSave = null;
+	}
+
+	/// <summary>Per-depth differences are applied to freshly regenerated seeded baselines.</summary>
+	public LevelItemDeltaSaveData FindLevelItemChanges(uint depth) =>
+		_activeSave?.World?.ItemChanges?.FirstOrDefault(change => change.Depth == depth);
+
+	private LevelItemPersistence CurrentItemPersistence() => GetTree().CurrentScene?
+		.FindChildren("*", "", true, false).OfType<LevelItemPersistence>().FirstOrDefault();
+
+	private void StoreLevelItemChanges()
+	{
+		var persistence = CurrentItemPersistence();
+		if (persistence == null) { return; }
+		var data = persistence.Capture();
+		_activeSave.World.ItemChanges.RemoveAll(change => change.Depth == data.Depth);
+		_activeSave.World.ItemChanges.Add(data);
 	}
 
 	private RevealedLevelSaveData FindRevealedLevel()
@@ -364,28 +406,41 @@ public partial class GameSession : Node
 		}
 
 		Player player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
-		if (player == null)
+		if (player == null || player.InventoryController.IsCommittingItemOperation || CurrentItemPersistence()?.IsCommitting == true)
 		{
-			GD.PrintErr("Cannot save because no player is active.");
+			GD.PrintErr("Cannot save while the player is unavailable or an item operation is committing.");
 			return false;
 		}
 
 		EnsureActiveSave();
 		SaveGame saveGame = _activeSave;
-
-		saveGame.Version = SaveGame.CurrentVersion;
-		saveGame.SlotId = ActiveSlotId;
-		saveGame.CharacterClassId = ActiveCharacterClassId;
-		saveGame.SavedAtUtc = DateTime.UtcNow.ToString("O");
-		saveGame.Seed = ActiveSeed;
-		saveGame.DungeonDepth = ActiveDungeonDepth;
-		saveGame.PlayTimeSeconds += GetSessionElapsedSeconds();
-		saveGame.LootRollsConsumed = _lootRollsConsumed;
-		saveGame.Player = CapturePlayer(player);
-		saveGame.Identification = CaptureIdentification();
-
-		if (!SaveService.Save(saveGame))
+		double previousPlayTime = saveGame.PlayTimeSeconds;
+		try
 		{
+
+			saveGame.Version = SaveGame.CurrentVersion;
+			saveGame.SlotId = ActiveSlotId;
+			saveGame.CharacterClassId = ActiveCharacterClassId;
+			saveGame.SavedAtUtc = DateTime.UtcNow.ToString("O");
+			saveGame.Seed = ActiveSeed;
+			saveGame.DungeonDepth = ActiveDungeonDepth;
+			saveGame.PlayTimeSeconds += GetSessionElapsedSeconds();
+			saveGame.LootRollsConsumed = _lootRollsConsumed;
+			StoreLevelItemChanges();
+			saveGame.Player = CapturePlayer(player);
+			saveGame.Identification = CaptureIdentification();
+
+			if (!SaveService.Save(saveGame))
+			{
+				saveGame.PlayTimeSeconds = previousPlayTime;
+				return false;
+			}
+
+		}
+		catch (Exception error)
+		{
+			saveGame.PlayTimeSeconds = previousPlayTime;
+			GD.PushError($"Cannot capture item state: {error.Message}");
 			return false;
 		}
 
@@ -414,8 +469,7 @@ public partial class GameSession : Node
 	}
 
 	/// <summary>
-	/// Resolves the run's class from the catalog. Unknown or empty ids (pre-class saves,
-	/// removed classes) fall back to the catalog's default so old slots keep loading.
+	/// Resolves the run's class from the catalog. Unknown or empty ids use the catalog's default class.
 	/// </summary>
 	private void ResolveCharacterClass(string characterClassId)
 	{
@@ -669,138 +723,7 @@ public partial class GameSession : Node
 		};
 	}
 
-	private static InventorySaveData CaptureInventory(Inventory inventory)
-	{
-		var saveData = new InventorySaveData();
-		var savedItemIndexes = new Dictionary<InventoryItemSlot, int>();
-		for (int i = 0; i < inventory.Items.Count; i++)
-		{
-			InventoryItemSlot itemSlot = inventory.Items[i];
-			if (itemSlot?.Item == null)
-			{
-				continue;
-			}
-
-			// A rolled instance has an empty ResourcePath but knows its source definition;
-			// fall back to that so the base item can be reloaded and re-stamped on load.
-			var rolled = itemSlot.Item as EquipableItem;
-			string path = !string.IsNullOrEmpty(itemSlot.Item.ResourcePath)
-				? itemSlot.Item.ResourcePath
-				: rolled?.SourceDefinitionPath;
-			if (string.IsNullOrEmpty(path))
-			{
-				continue;
-			}
-
-			var itemData = new InventoryItemSaveData
-			{
-				ItemPath = path,
-				Quantity = itemSlot.Quantity,
-			};
-
-			if (rolled != null && !string.IsNullOrEmpty(rolled.SourceDefinitionPath))
-			{
-				itemData.Rarity = (int)rolled.Rarity;
-				itemData.Affixes = CaptureAffixes(rolled.Affixes);
-			}
-
-			savedItemIndexes[itemSlot] = saveData.Items.Count;
-			saveData.Items.Add(itemData);
-		}
-
-		for (int i = 0; i < inventory.Items.Count; i++)
-		{
-			InventoryItemSlot itemSlot = inventory.Items[i];
-			if (!savedItemIndexes.TryGetValue(itemSlot, out int savedItemIndex))
-			{
-				continue;
-			}
-
-			foreach ((EquipmentSlot slot, InventoryItemSlot equippedItemSlot) in inventory.EquippedItems)
-			{
-				if (equippedItemSlot == itemSlot)
-				{
-					saveData.EquippedItems.Add(new EquippedItemSaveData
-					{
-						ItemIndex = savedItemIndex,
-						Slot = slot.ToString(),
-					});
-				}
-			}
-		}
-
-		return saveData;
-	}
-
-	private static List<RolledAffixSaveData> CaptureAffixes(Godot.Collections.Array<RolledAffix> affixes)
-	{
-		var list = new List<RolledAffixSaveData>();
-		if (affixes == null)
-		{
-			return list;
-		}
-
-		foreach (RolledAffix affix in affixes)
-		{
-			if (affix == null)
-			{
-				continue;
-			}
-
-			var data = new RolledAffixSaveData { NameFragment = affix.NameFragment, Kind = (int)affix.Kind };
-			if (affix.Modifiers != null)
-			{
-				foreach (StatModifier modifier in affix.Modifiers)
-				{
-					if (modifier != null)
-					{
-						data.Modifiers.Add(new StatModifierSaveData
-						{
-							Stat = (int)modifier.Stat,
-							Op = (int)modifier.Op,
-							Value = modifier.Value,
-						});
-					}
-				}
-			}
-
-			list.Add(data);
-		}
-
-		return list;
-	}
-
-	private static Godot.Collections.Array<RolledAffix> BuildAffixes(List<RolledAffixSaveData> saved)
-	{
-		var affixes = new Godot.Collections.Array<RolledAffix>();
-		if (saved == null)
-		{
-			return affixes;
-		}
-
-		foreach (RolledAffixSaveData data in saved)
-		{
-			var modifiers = new List<StatModifier>();
-			foreach (StatModifierSaveData modifier in data.Modifiers)
-			{
-				modifiers.Add(new StatModifier
-				{
-					Stat = (StatType)modifier.Stat,
-					Op = (ModifierOp)modifier.Op,
-					Value = modifier.Value,
-				});
-			}
-
-			affixes.Add(new RolledAffix
-			{
-				NameFragment = data.NameFragment,
-				Kind = (AffixKind)data.Kind,
-				Modifiers = modifiers.ToArray(),
-			});
-		}
-
-		return affixes;
-	}
+	private static InventorySaveData CaptureInventory(Inventory inventory) => InventorySaveCodec.Capture(inventory);
 
 	private static void ApplyPlayerSave(Player player, PlayerSaveData saveData)
 	{
@@ -817,65 +740,19 @@ public partial class GameSession : Node
 
 	private static void ApplyInventory(Player player, InventorySaveData saveData)
 	{
+		Inventory restored = InventorySaveCodec.Restore(saveData);
 		Inventory inventory = player.Inventory;
 		player.ActionManager.ClearActions();
-		// Unequip (not just null out) so ItemUnequipped fires and the auto-equipped class
-		// starting gear reverses its stat modifiers and attached meshes before the saved
-		// inventory takes over.
-		foreach (EquipmentSlot slot in inventory.EquippedItems.Keys.ToArray())
-		{
-			inventory.Unequip(slot);
-		}
-
+		foreach (EquipmentSlot slot in inventory.EquippedItems.Keys.ToArray()) { inventory.Unequip(slot); }
 		inventory.Items.Clear();
-		foreach (InventoryItemSaveData itemSaveData in saveData.Items)
+		inventory.Capacity = restored.Capacity;
+		foreach (InventoryItemSlot entry in restored.Items) { inventory.Items.Add(entry); }
+		foreach (EquippedItemSaveData equipment in saveData.EquippedItems)
 		{
-			Item item = ResourceLoader.Load<Item>(itemSaveData.ItemPath);
-			if (item == null)
-			{
-				GD.PrintErr($"Could not load saved item: {itemSaveData.ItemPath}");
-				continue;
-			}
-
-			// Reconstruct a rolled instance: duplicate the base definition and re-stamp the
-			// saved rarity and affixes. Plain items (Rarity -1, no affixes) load as-is.
-			if (item is EquipableItem definition
-				&& (itemSaveData.Rarity >= 0 || itemSaveData.Affixes.Count > 0))
-			{
-				var instance = (EquipableItem)definition.Duplicate(true);
-				instance.SourceDefinitionPath = itemSaveData.ItemPath;
-				if (itemSaveData.Rarity >= 0)
-				{
-					instance.Rarity = (EquipableItemRarity)itemSaveData.Rarity;
-				}
-
-				instance.Affixes = BuildAffixes(itemSaveData.Affixes);
-				item = instance;
-			}
-
-			inventory.Items.Add(new InventoryItemSlot
-			{
-				Item = item,
-				Quantity = itemSaveData.Quantity,
-			});
+			var entry = inventory.Items.First(i => i.Item.InstanceId == equipment.ItemInstanceId);
+			inventory.Equip(entry, Enum.Parse<EquipmentSlot>(equipment.Slot));
 		}
-
-		foreach (EquippedItemSaveData equippedItemSaveData in saveData.EquippedItems)
-		{
-			if (equippedItemSaveData.ItemIndex < 0 || equippedItemSaveData.ItemIndex >= inventory.Items.Count)
-			{
-				continue;
-			}
-
-			if (Enum.TryParse(equippedItemSaveData.Slot, out EquipmentSlot slot))
-			{
-				inventory.Equip(inventory.Items[equippedItemSaveData.ItemIndex], slot);
-			}
-			else
-			{
-				inventory.Equip(inventory.Items[equippedItemSaveData.ItemIndex]);
-			}
-		}
+		inventory.EmitChanged();
 	}
 
 	private static void ClearBuffs(Player player)

@@ -15,6 +15,7 @@ public partial class CharacterDialog : PanelContainer
 
 		InventoryPanel = GetNode<InventoryPanel>("%InventoryPanel");
 		InventoryPanel.TargetingBanner = GetNode<Label>("%TargetingBanner");
+		InventoryPanel.CapacityLabel = GetNode<Label>("%CapacityLabel");
 		EquipmentPanel = GetNode<EquipmentPanel>("%EquipmentPanel");
 		QuickStatsPanel = GetNode<QuickStatsPanel>("%QuickStatsPanel");
 	}

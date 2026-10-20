@@ -11,5 +11,6 @@ Quality = 1.0
 Value = 250
 ShowInInventory = true
 IsStackable = true
+MaxStackSize = 20
 IsQuestItem = true
 metadata/_custom_type_script = ExtResource("2_script")

@@ -14,49 +14,37 @@ public partial class LootTable : Resource
 	/// <summary>Weighted entries this table can yield. Empty means nothing drops.</summary>
 	[Export] public LootTableItem[] Items { get; set; } = [];
 
-	/// <summary>
-	/// Weighted pick among the entries eligible at the given depth, or null if none are
-	/// eligible or every eligible entry has zero weight (RandWeighted returns -1 for an
-	/// all-zero distribution rather than throwing).
-	/// </summary>
-	public LootTableItem PickEntry(uint depth, RandomNumberGenerator rng)
+	/// <summary>Optional category budgets; use these or flat Items, not both.</summary>
+	[Export] public LootTableGroup[] Groups { get; set; } = [];
+
+	/// <summary>All configured entries, for authoring diagnostics and validation.</summary>
+	public LootTableItem[] Entries => Groups?.Length > 0
+		? Groups.Where(g => g != null).SelectMany(g => g.Items ?? []).ToArray() : Items ?? [];
+
+	/// <summary>Chooses an eligible category, then an eligible variety within that budget.</summary>
+	public LootTableItem PickEntry(uint depth, RandomNumberGenerator rng) => Pick(rng, depth);
+
+	/// <summary>Chooses from the configured pool without depth filtering, for authoring previews.</summary>
+	public LootTableItem PickWeightedEntry(RandomNumberGenerator rng) => Pick(rng, null);
+
+	private LootTableItem Pick(RandomNumberGenerator rng, uint? depth)
 	{
-		if (Items == null || Items.Length == 0 || rng == null)
+		if (rng == null) { return null; }
+		bool Eligible(LootTableItem entry) => entry?.Item != null && float.IsFinite(entry.Weight)
+			&& entry.Weight > 0 && (!depth.HasValue || entry.IsEligibleAt(depth.Value));
+		LootTableItem[] candidates;
+		if (Groups?.Length > 0)
 		{
-			return null;
+			var groups = Groups.Where(g => g != null && float.IsFinite(g.Weight) && g.Weight > 0
+				&& g.Items?.Any(Eligible) == true).ToArray();
+			if (groups.Length == 0) { return null; }
+			long selected = rng.RandWeighted(groups.Select(g => g.Weight).ToArray());
+			if (selected < 0) { return null; }
+			candidates = groups[selected].Items.Where(Eligible).ToArray();
 		}
-
-		LootTableItem[] eligible = Items.Where(i => i != null && i.IsEligibleAt(depth)).ToArray();
-		if (eligible.Length == 0)
-		{
-			return null;
-		}
-
-		float[] weights = eligible.Select(i => i.Weight).ToArray();
-		long index = rng.RandWeighted(weights);
-		return index >= 0 ? eligible[index] : null;
-	}
-
-	/// <summary>
-	/// Picks one entry using each item's <see cref="LootTableItem.Weight"/>, ignoring depth
-	/// eligibility, or null if the table is empty, <paramref name="rng"/> is null, or every
-	/// entry has zero weight.
-	/// </summary>
-	public LootTableItem PickWeightedEntry(RandomNumberGenerator rng)
-	{
-		if (Items == null || Items.Length == 0 || rng == null)
-		{
-			return null;
-		}
-
-		LootTableItem[] entries = Items.Where(i => i != null).ToArray();
-		if (entries.Length == 0)
-		{
-			return null;
-		}
-
-		float[] weights = entries.Select(i => i.Weight).ToArray();
-		long index = rng.RandWeighted(weights);
-		return index >= 0 ? entries[index] : null;
+		else { candidates = (Items ?? []).Where(Eligible).ToArray(); }
+		if (candidates.Length == 0) { return null; }
+		long index = rng.RandWeighted(candidates.Select(entry => entry.Weight).ToArray());
+		return index < 0 ? null : candidates[index];
 	}
 }

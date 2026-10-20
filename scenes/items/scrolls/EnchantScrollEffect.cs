@@ -9,6 +9,8 @@ using Godot;
 [GlobalClass]
 public partial class EnchantScrollEffect : ScrollEffect
 {
+	[Export] public AffixPool Affixes { get; set; }
+
 	public override bool RequiresTarget => true;
 
 	public override bool IsValidTarget(Player player, InventoryItemSlot slot)
@@ -40,7 +42,7 @@ public partial class EnchantScrollEffect : ScrollEffect
 		}
 
 		EquipableItem instance = LootRoller.EnsureInstance((EquipableItem)slot.Item);
-		LootRoller.Enchant(instance, GameSession.Instance?.CreateLootRng() ?? new RandomNumberGenerator());
+		LootRoller.Enchant(instance, GameSession.Instance?.CreateLootRng() ?? new RandomNumberGenerator(), Affixes);
 		slot.Item = instance;
 
 		if (equippedIn.HasValue)

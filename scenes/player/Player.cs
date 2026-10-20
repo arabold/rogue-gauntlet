@@ -14,7 +14,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	public bool IsHit => MovementComponent.IsPushed;
 	public bool IsMoving => MovementComponent.IsMoving;
 	public bool IsFalling => MovementComponent.IsFalling;
-	public bool IsPerformingAction => ActionManager.CurrentAnimationId != null;
+	public bool IsPerformingAction => ActionManager.IsBusy || AttackController.IsAttacking;
 	public string CurrentActionId => ActionManager.CurrentAnimationId;
 
 	public HealthComponent HealthComponent { get; protected set; }

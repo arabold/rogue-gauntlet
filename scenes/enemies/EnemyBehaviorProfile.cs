@@ -41,6 +41,9 @@ public partial class EnemyBehaviorProfile : Resource
 	/// Distance from the target at which the enemy can start a melee attack.
 	/// </summary>
 	[Export] public float MeleeAttackRange { get; set; } = 2.0f;
+	[Export] public MeleeAttackProfile MeleeContact { get; set; }
+	public float EffectiveMeleeRange => Mathf.Min(MeleeAttackRange,
+		(MeleeAttackDefinition?.MeleeContact ?? MeleeContact)?.EngagementDistance ?? MeleeAttackRange);
 
 	/// <summary>
 	/// Accuracy used by this enemy's melee attack.

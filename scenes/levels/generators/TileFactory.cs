@@ -4,9 +4,9 @@ using Godot;
 [GlobalClass]
 public abstract partial class TileFactory : Resource
 {
-	public abstract int GetCorridorTileIndex();
-	public abstract int GetWallTileIndex();
-	public virtual int GetWallHalfTileIndex() => GetWallTileIndex();
-	public virtual int GetWallCornerTileIndex() => GetWallTileIndex();
+	public abstract int GetCorridorTileIndex(RandomNumberGenerator rng);
+	public abstract int GetWallTileIndex(RandomNumberGenerator rng);
+	public virtual int GetWallHalfTileIndex(RandomNumberGenerator rng) => GetWallTileIndex(rng);
+	public virtual int GetWallCornerTileIndex(RandomNumberGenerator rng) => GetWallTileIndex(rng);
 	public virtual void Reset() { }
 }

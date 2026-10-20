@@ -56,6 +56,9 @@ public partial class Chest : Node3D
 		_isAnimating = true;
 		_interactiveComponent.IsInteractive = false;
 		IsOpen = true;
+		// Commit the reward with opening, rather than after the animation: a save
+		// during the tween must not restore an empty opened chest.
+		_lootTableComponent?.DropLoot();
 
 		var tween = CreateTween();
 		tween.TweenProperty(_chestLid, "rotation_degrees:x", OpenRotationDegrees, AnimationDuration)
@@ -78,5 +81,12 @@ public partial class Chest : Node3D
 	{
 		_lootTableComponent?.DropLoot();
 		EmitSignalOpened(this);
+	}
+
+	public void RestoreOpenState()
+	{
+		IsOpen = true;
+		if (_interactiveComponent != null) { _interactiveComponent.IsInteractive = false; }
+		Update();
 	}
 }

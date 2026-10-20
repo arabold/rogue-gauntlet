@@ -5,6 +5,8 @@
 [ext_resource type="Resource" uid="uid://clootminion001" path="res://scenes/items/loot/loot_enemy_common.tres" id="3_loot"]
 [ext_resource type="Resource" path="res://scenes/enemies/ghost/ghost_behavior.tres" id="4_profile"]
 
+[ext_resource type="Resource" path="res://scenes/attacks/animation_profiles/ghost.tres" id="attack_animation_profile"]
+
 [sub_resource type="AnimationNodeAnimation" id="anim_attack"]
 animation = &"CharacterArmature|Punch"
 
@@ -38,12 +40,12 @@ advance_expression = "!IsMoving"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_attack"]
 advance_mode = 2
-advance_expression = "IsAttacking"
+advance_expression = "false"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_attack"]
 xfade_time = 0.3
 advance_mode = 2
-advance_expression = "IsAttacking"
+advance_expression = "false"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="t_attack_idle"]
 switch_mode = 2
@@ -148,3 +150,8 @@ shape = SubResource("cap_body")
 
 [node name="FloatingHealthBar" parent="." index="9"]
 texture = SubResource("ViewportTexture_80ad7")
+
+[node name="AttackAnimationComponent" parent="." index="9"]
+AnimationPlayerPath = NodePath("../Pivot/GhostModel/AnimationPlayer")
+AnimationTreePath = NodePath("../EnemyBehaviorComponent/AnimationTree")
+Profile = ExtResource("attack_animation_profile")

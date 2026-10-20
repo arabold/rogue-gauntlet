@@ -74,7 +74,7 @@ public partial class MainMenu : Control
 	{
 		_mainButtons.Visible = true;
 		_slotPanel.Visible = false;
-		_loadGameButton.Disabled = !SaveService.ListSlots().Any(slot => slot.HasSave);
+		_loadGameButton.Disabled = !SaveService.ListSlots().Any(slot => slot.CanLoad);
 		_newGameButton.CallDeferred(Control.MethodName.GrabFocus);
 	}
 
@@ -100,7 +100,7 @@ public partial class MainMenu : Control
 		{
 			Button button = _slotButtons[slot.SlotId - 1];
 			button.Text = FormatSlotLabel(slot);
-			button.Disabled = _slotMode == SlotMode.LoadGame && !slot.HasSave;
+			button.Disabled = _slotMode == SlotMode.LoadGame && !slot.CanLoad;
 		}
 
 		Button focusButton = _slotButtons.FirstOrDefault(button => !button.Disabled) ?? _backButton;
@@ -145,6 +145,10 @@ public partial class MainMenu : Control
 
 	private string FormatSlotLabel(SaveSlotMetadata slot)
 	{
+		if (slot.HasSave && !slot.CanLoad)
+		{
+			return $"Slot {slot.SlotId} — incompatible or unreadable save (new run required)";
+		}
 		if (!slot.HasSave)
 		{
 			return $"Slot {slot.SlotId}\nEmpty";

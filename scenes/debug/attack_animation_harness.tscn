@@ -1,0 +1,121 @@
+[gd_scene load_steps=21 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="player"]
+
+[ext_resource type="Script" path="res://scenes/debug/AttackAnimationHarness.cs" id="harness"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/sword_common.tres" id="weapon_0"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axe_common.tres" id="weapon_1"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/broadsword_common.tres" id="weapon_2"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/spear_steel.tres" id="weapon_3"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/halberd_steel.tres" id="weapon_4"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/dagger_common.tres" id="weapon_5"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_common.tres" id="weapon_6"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow/crossbow_gilded.tres" id="weapon_7"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_fire.tres" id="weapon_8"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_water.tres" id="weapon_9"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/hammer_common.tres" id="weapon_10"]
+
+[ext_resource type="PackedScene" path="res://scenes/debug/combat_practice_target.tscn" id="practice_target"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/yeti/yeti.tscn" id="monster_yeti"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/skeleton/skeleton_warrior.tscn" id="monster_skeleton"]
+
+[sub_resource type="BoxShape3D" id="floor_shape"]
+size = Vector3(20, 1, 20)
+
+[sub_resource type="BoxMesh" id="floor_mesh"]
+size = Vector3(20, 1, 20)
+
+[sub_resource type="Environment" id="environment"]
+background_mode = 1
+background_color = Color(0.09, 0.1, 0.13, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.7, 0.75, 0.8, 1)
+ambient_light_energy = 0.7
+
+[sub_resource type="Theme" id="controls_theme"]
+default_font_size = 18
+
+[node name="AttackPlayground" type="Node3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(4, 3, -5)
+rotation_degrees = Vector3(-20, 142, 0)
+current = true
+projection = 1
+size = 8.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("environment")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-45, 30, 0)
+light_energy = 1.3
+
+[node name="Floor" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("floor_mesh")
+
+[node name="Player" parent="." instance=ExtResource("player")]
+
+[node name="PracticeTarget" parent="." instance=ExtResource("practice_target")]
+position = Vector3(0, 0, -2)
+
+[node name="Instructions" type="CanvasLayer" parent="." node_paths=PackedStringArray("Player", "PracticeTarget")]
+script = ExtResource("harness")
+Player = NodePath("../Player")
+PracticeTarget = NodePath("../PracticeTarget")
+Monsters = [ExtResource("monster_yeti"), ExtResource("monster_skeleton")]
+Weapons = [ExtResource("weapon_0"), ExtResource("weapon_1"), ExtResource("weapon_2"), ExtResource("weapon_3"), ExtResource("weapon_4"), ExtResource("weapon_5"), ExtResource("weapon_6"), ExtResource("weapon_7"), ExtResource("weapon_8"), ExtResource("weapon_9"), ExtResource("weapon_10")]
+
+[node name="Controls" type="VBoxContainer" parent="Instructions"]
+theme = SubResource("controls_theme")
+custom_minimum_size = Vector2(340, 0)
+offset_left = 16.0
+offset_top = 16.0
+
+[node name="Label" type="Label" parent="Instructions/Controls"]
+text = "Combat playground"
+
+[node name="Weapons" type="OptionButton" parent="Instructions/Controls"]
+
+[node name="Attack" type="Button" parent="Instructions/Controls"]
+text = "Attack"
+
+[node name="Status" type="Label" parent="Instructions/Controls"]
+autowrap_mode = 2
+
+[node name="Volumes" type="CheckButton" parent="Instructions/Controls"]
+text = "Show active hit volumes"
+button_pressed = true
+
+[node name="Effects" type="CheckButton" parent="Instructions/Controls"]
+text = "Show swooshes"
+button_pressed = true
+
+[node name="Moving" type="CheckButton" parent="Instructions/Controls"]
+text = "Moving practice target"
+
+[node name="SlowMotion" type="CheckButton" parent="Instructions/Controls"]
+text = "Slow motion"
+
+[node name="Defense" type="OptionButton" parent="Instructions/Controls"]
+
+[node name="Monsters" type="OptionButton" parent="Instructions/Controls"]
+
+[node name="SpawnMonster" type="Button" parent="Instructions/Controls"]
+text = "Spawn/reset selected monster"
+
+[node name="MonsterAttack" type="Button" parent="Instructions/Controls"]
+text = "Monster melee attack"
+
+[node name="Reset" type="Button" parent="Instructions/Controls"]
+text = "Reset health"
+
+[node name="Feedback" type="Label" parent="Instructions/Controls"]
+autowrap_mode = 2
+text = "Contact outcomes appear here."

@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=16 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" uid="uid://dufyxbs8mado1" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
@@ -11,6 +11,9 @@
 [ext_resource type="PackedScene" uid="uid://cap6wqfjubqjx" path="res://scenes/props/floor_trap.tscn" id="9_trap"]
 [ext_resource type="PackedScene" uid="uid://ccltoxuycom37" path="res://scenes/items/lootable_item.tscn" id="10_lootitem"]
 [ext_resource type="Resource" uid="uid://clootchest0001" path="res://scenes/items/loot/loot_chest_common.tres" id="11_loottable"]
+
+[ext_resource type="Resource" path="res://scenes/items/dungeon_item_policy.tres" id="12_policy"]
+[ext_resource type="Script" path="res://scenes/levels/LevelItemPersistence.cs" id="13_persistence"]
 
 [sub_resource type="Resource" id="Resource_mbbpy"]
 script = ExtResource("3_xog87")
@@ -36,3 +39,8 @@ ChestScene = ExtResource("8_chest")
 TrapScene = ExtResource("9_trap")
 LooseItemScene = ExtResource("10_lootitem")
 LooseItemLootTable = ExtResource("11_loottable")
+ItemCreationPolicy = ExtResource("12_policy")
+
+[node name="ItemPersistence" type="Node" parent="."]
+script = ExtResource("13_persistence")
+PickupScene = ExtResource("10_lootitem")

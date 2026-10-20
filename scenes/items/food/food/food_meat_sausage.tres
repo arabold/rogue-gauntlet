@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="ConsumableItem" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="FoodItem" load_steps=6 format=3]
 
 [ext_resource type="Script" uid="uid://irr1yr02p4rg" path="res://scenes/buffs/HealingBuff.cs" id="1_buff"]
-[ext_resource type="Texture2D" uid="uid://dq1fvu6l25b3r" path="res://icon.svg" id="2_icon"]
 [ext_resource type="PackedScene" path="res://scenes/items/food/food/food_meat_sausage.tscn" id="3_scene"]
-[ext_resource type="Script" uid="uid://c15rgkjymw2e6" path="res://scenes/items/ConsumableItem.cs" id="4_script"]
+[ext_resource type="Script" path="res://scenes/items/FoodItem.cs" id="4_script"]
+
+[ext_resource type="Resource" path="res://scenes/items/food/food_poison.tres" id="5_poison"]
 
 [sub_resource type="Resource" id="Resource_buff"]
 script = ExtResource("1_buff")
@@ -16,17 +17,14 @@ metadata/_custom_type_script = ExtResource("1_buff")
 [resource]
 script = ExtResource("4_script")
 Buff = SubResource("Resource_buff")
+PoisonChance = 0.15
+PoisonEffect = ExtResource("5_poison")
 Scene = ExtResource("3_scene")
-Icon = ExtResource("2_icon")
 Name = "Smoked Hunter's Sausage"
-TypeId = "food.food_meat_sausage"
-IdentityCategory = "food"
 TrueName = "Smoked Hunter's Sausage"
 UnidentifiedNameTemplate = "Smoked Hunter's Sausage"
-Durability = 1.0
 Quality = 1.0
 Value = 30
-Weight = 1.0
 ShowInInventory = true
-IsStackable = true
+IsStackable = false
 metadata/_custom_type_script = ExtResource("4_script")

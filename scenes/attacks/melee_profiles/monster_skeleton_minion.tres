@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MeleeAttackProfile" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/attacks/MeleeAttackProfile.cs" id="profile"]
+[ext_resource type="PackedScene" path="res://scenes/effects/melee_swoosh_chop.tscn" id="swoosh"]
+
+[resource]
+script = ExtResource("profile")
+Volume = 0
+Reach = 2.75
+Width = 1.9
+Height = 2.2
+CenterHeight = 1.1
+ArcDegrees = 120
+EngagementMargin = 0.4
+SwooshScene = ExtResource("swoosh")

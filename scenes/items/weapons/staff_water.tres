@@ -1,5 +1,6 @@
-[gd_resource type="Resource" script_class="MagicStaff" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="MagicStaff" load_steps=8 format=3]
 
+[ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="PackedScene" uid="uid://d4fu1vvr3w8ur" path="res://scenes/items/weapons/staff_common.tscn" id="1_staff"]
 [ext_resource type="Script" uid="uid://bncpld6hbytsn" path="res://scenes/items/MagicStaff.cs" id="2_magic"]
 [ext_resource type="Script" uid="uid://dirab7d4baxkb" path="res://scenes/attacks/AttackDefinition.cs" id="3_attack_script"]
@@ -23,6 +24,8 @@ AimingAngle = 50.0
 
 [resource]
 script = ExtResource("2_magic")
+AttackStyle = &"staff.cast"
+Grip = ExtResource("weapon_grip")
 Element = 1
 ProjectileSpeed = 16.0
 Range = 18.0

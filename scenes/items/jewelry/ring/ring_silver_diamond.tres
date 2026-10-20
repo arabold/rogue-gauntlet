@@ -1,30 +1,27 @@
 [gd_resource type="Resource" script_class="IdentifiableEquipableItem" load_steps=5 format=3]
 
-[ext_resource type="Script" uid="uid://cadjyq7h2j4fb" path="res://scenes/items/IdentifiableEquipableItem.cs" id="1_item"]
-[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_silver_diamond.tscn" id="2_scene"]
-[ext_resource type="Script" uid="uid://cstatmod0000001" path="res://scenes/player/resources/StatModifier.cs" id="3_mod"]
+[ext_resource type="Script" path="res://scenes/items/IdentifiableEquipableItem.cs" id="item"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_silver_diamond.tscn" id="scene"]
+[ext_resource type="Script" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
 
-[sub_resource type="Resource" id="Resource_mod0"]
-script = ExtResource("3_mod")
-Stat = 0
+[sub_resource type="Resource" id="Modifier"]
+script = ExtResource("mod")
+Stat = 10
 Op = 0
-Value = 2.0
-metadata/_custom_type_script = ExtResource("3_mod")
+Value = 3.0
+metadata/_custom_type_script = ExtResource("mod")
 
 [resource]
-script = ExtResource("1_item")
-TypeId = "ring.ring_silver_diamond"
+script = ExtResource("item")
+Scene = ExtResource("scene")
+Name = "Silver Ring of Protection"
+TrueName = "Silver Ring of Protection"
+TypeId = "ring.protection"
 IdentityCategory = "ring"
-TrueName = "Silver Diamond Ring"
 UnidentifiedNameTemplate = "{descriptor} ring"
-IntrinsicModifiers = [SubResource("Resource_mod0")]
+IntrinsicModifiers = [SubResource("Modifier")]
 ValidSlots = 192
-Rarity = 0
-Name = "Silver Diamond Ring"
-Scene = ExtResource("2_scene")
-Quality = 1.0
+Tier = 2
 Value = 150
-ShowInInventory = true
 IsStackable = false
-IsQuestItem = false
-metadata/_custom_type_script = ExtResource("1_item")
+metadata/_custom_type_script = ExtResource("item")

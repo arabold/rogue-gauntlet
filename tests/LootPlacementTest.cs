@@ -194,8 +194,7 @@ public class LootPlacementTest
 	[TestCase]
 	public void PickWeightedEntryOnlyReturnsConfiguredItemsAndHandlesEmptyTables()
 	{
-		// LootTable.Items has a private setter (only authored via .tres), so exercise the
-		// real resource every placed chest already uses rather than a synthetic one.
+		// Exercise the real grouped resource every placed chest already uses.
 		var table = GD.Load<LootTable>("res://scenes/items/loot/loot_chest_common.tres");
 		var rng = new RandomNumberGenerator { Seed = 1 };
 
@@ -203,7 +202,7 @@ public class LootPlacementTest
 		{
 			var entry = table.PickWeightedEntry(rng);
 			AssertObject(entry).IsNotNull();
-			AssertBool(System.Array.IndexOf(table.Items, entry) >= 0).IsTrue();
+			AssertBool(System.Array.IndexOf(table.Entries, entry) >= 0).IsTrue();
 		}
 
 		var emptyTable = new LootTable();

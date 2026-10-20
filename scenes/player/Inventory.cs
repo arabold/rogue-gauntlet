@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 using System;
+using System.Linq;
 
 /// <summary>
 /// Equipment slots for equipable items.
@@ -57,61 +58,130 @@ public partial class Inventory : Resource
 
 	public bool IsFull => Items.Count >= Capacity;
 
+	private int _updateDepth;
+	private bool _changed;
+
+	/// <summary>Holds UI notifications until a coordinated transfer has committed both owners.</summary>
+	public IDisposable DeferChanges()
+	{
+		_updateDepth++;
+		return new UpdateScope(this);
+	}
+
+	private sealed class UpdateScope(Inventory inventory) : IDisposable
+	{
+		public void Dispose()
+		{
+			if (--inventory._updateDepth == 0 && inventory._changed)
+			{
+				inventory._changed = false;
+				inventory.EmitChanged();
+			}
+		}
+	}
+
+	private void NotifyChanged()
+	{
+		if (_updateDepth > 0) { _changed = true; } else { EmitChanged(); }
+	}
+
 	public Inventory CreateRuntimeCopy()
 	{
 		var inventory = new Inventory { Capacity = Capacity };
-
-		foreach (var item in Items)
+		foreach (var entry in Items)
 		{
-			inventory.Items.Add(item.CreateRuntimeCopy());
+			foreach (var copy in ItemFactory.CreateBatch(entry.Item, entry.Quantity))
+			{
+				inventory.Items.Add(new InventoryItemSlot { Item = copy.Item, Quantity = copy.Quantity });
+			}
 		}
-
 		return inventory;
 	}
 
-	public void AddItem(Item item, int quantity = 1)
+	public ItemOperationResult CanAdd(Item item, int quantity = 1)
 	{
-		if (IsFull)
+		if (item == null || quantity <= 0 || (!item.CanStack && quantity != 1))
+		{ return new(ItemFailure.InvalidQuantity); }
+		if (Items.Any(e => e.Item == item || e.Item.InstanceId == item.InstanceId && item.IsRuntimeInstance))
+		{ return new(ItemFailure.NotOwned); }
+		long remaining = quantity;
+		if (item.CanStack)
 		{
-			GD.Print("Inventory is full");
-			return;
+			foreach (var entry in Items.Where(e => CanMerge(e.Item, item)))
+			{ remaining -= Math.Max(0, item.MaxStackSize - entry.Quantity); }
 		}
-
-		if (quantity <= 0)
-		{
-			return;
-		}
-
-		// Find an existing stackable item
-		foreach (var slot in Items)
-		{
-			if (slot.Item == item && slot.IsStackable)
-			{
-				slot.Quantity += quantity;
-				GD.Print($"Stacked {item.Name} ({slot.Quantity}) in inventory");
-				EmitChanged();
-				return;
-			}
-		}
-
-		// Add a new item
-		var newSlot = new InventoryItemSlot { Item = item, Quantity = quantity };
-		Items.Add(newSlot);
-		GD.Print($"{quantity}x {item.Name} added to inventory");
-		EmitChanged();
+		int cap = item.CanStack ? item.MaxStackSize : 1;
+		long slots = Math.Max(0, (remaining + cap - 1) / cap);
+		return slots <= Math.Max(0, Capacity - Items.Count) ? ItemOperationResult.Ok : new(ItemFailure.InsufficientSpace);
 	}
 
-	public void RemoveItem(InventoryItemSlot itemSlot, int quantity)
+	private static bool CanMerge(Item a, Item b) => a.CanStack && b.CanStack
+		&& !string.IsNullOrEmpty(a.DefinitionPath) && a.DefinitionPath == b.DefinitionPath;
+
+	public ItemOperationResult TryAdd(Item item, int quantity = 1)
 	{
-		quantity = Math.Clamp(quantity, 0, itemSlot.Quantity);
-		itemSlot.Quantity -= quantity;
-		if (itemSlot.Quantity <= 0)
+		ItemOperationResult check = CanAdd(item, quantity);
+		if (!check.Success) { return check; }
+		if (!item.IsRuntimeInstance) { item = ItemFactory.Create(item); }
+		int remaining = quantity;
+		if (item.CanStack)
 		{
-			Items.Remove(itemSlot);
+			foreach (var entry in Items.Where(e => CanMerge(e.Item, item)))
+			{
+				int count = Math.Min(remaining, Math.Max(0, item.MaxStackSize - entry.Quantity));
+				entry.Quantity += count;
+				remaining -= count;
+				if (remaining == 0) { break; }
+			}
 		}
-		GD.Print($"{quantity}x {itemSlot.Item.Name} removed from inventory");
-		EmitChanged();
-		return;
+		bool first = true;
+		while (remaining > 0)
+		{
+			int count = Math.Min(remaining, item.CanStack ? item.MaxStackSize : 1);
+			Items.Add(new InventoryItemSlot { Item = first ? item : ItemFactory.CopyDefinition(item), Quantity = count });
+			first = false;
+			remaining -= count;
+		}
+		NotifyChanged();
+		return ItemOperationResult.Ok;
+	}
+
+	public void AddItem(Item item, int quantity = 1) => TryAdd(item, quantity);
+
+	public ItemOperationResult CanRemove(InventoryItemSlot entry, int quantity)
+	{
+		if (entry == null || !Items.Contains(entry)) { return new(ItemFailure.NotOwned); }
+		return quantity > 0 && quantity <= entry.Quantity ? ItemOperationResult.Ok : new(ItemFailure.InvalidQuantity);
+	}
+
+	public void RemoveItem(InventoryItemSlot entry, int quantity)
+	{
+		if (!CanRemove(entry, quantity).Success) { return; }
+		if (quantity == entry.Quantity) { Unequip(entry); Items.Remove(entry); }
+		else { entry.Quantity -= quantity; }
+		NotifyChanged();
+	}
+
+	public ItemOperationResult TrySplit(InventoryItemSlot entry, int quantity)
+	{
+		if (!CanRemove(entry, quantity).Success) { return new(ItemFailure.NotOwned); }
+		if (!entry.Item.CanStack || quantity >= entry.Quantity) { return new(ItemFailure.InvalidQuantity); }
+		if (IsFull) { return new(ItemFailure.InsufficientSpace); }
+		entry.Quantity -= quantity;
+		Items.Add(new InventoryItemSlot { Item = ItemFactory.CopyDefinition(entry.Item), Quantity = quantity });
+		NotifyChanged();
+		return ItemOperationResult.Ok;
+	}
+
+	public ItemOperationResult TryMerge(InventoryItemSlot source, InventoryItemSlot target)
+	{
+		if (source == target || !Items.Contains(source) || !Items.Contains(target)) { return new(ItemFailure.NotOwned); }
+		if (!CanMerge(source.Item, target.Item) || source.Quantity > target.Item.MaxStackSize - target.Quantity)
+		{ return new(ItemFailure.IncompatibleStack); }
+		target.Quantity += source.Quantity;
+		Items.Remove(source);
+		NotifyChanged();
+		return ItemOperationResult.Ok;
 	}
 
 	public bool IsEquipped(InventoryItemSlot itemSlot)
@@ -128,7 +198,7 @@ public partial class Inventory : Resource
 
 	public void Equip(InventoryItemSlot itemSlot)
 	{
-		var item = itemSlot.Item as EquipableItem;
+		if (itemSlot == null || !Items.Contains(itemSlot) || itemSlot.Item is not EquipableItem item) { return; }
 		var validSlots = (int)item.ValidSlots;
 
 		if (validSlots == 0)
@@ -160,7 +230,7 @@ public partial class Inventory : Resource
 
 	public void Equip(InventoryItemSlot itemSlot, EquipmentSlot equipSlot)
 	{
-		var item = itemSlot.Item as EquipableItem;
+		if (itemSlot == null || !Items.Contains(itemSlot) || itemSlot.Item is not EquipableItem item) { return; }
 		var validSlots = (int)item.ValidSlots;
 		if ((validSlots & (int)equipSlot) == 0)
 		{
@@ -175,6 +245,8 @@ public partial class Inventory : Resource
 			return;
 		}
 
+		using var update = DeferChanges();
+		Unequip(itemSlot);
 		Unequip(equipSlot);
 
 		if (isTwoHanded)
@@ -190,6 +262,7 @@ public partial class Inventory : Resource
 
 		EquippedItems[equipSlot] = itemSlot;
 		EmitSignalItemEquipped(item, equipSlot);
+		NotifyChanged();
 	}
 
 	public void Unequip(InventoryItemSlot itemSlot)
@@ -215,65 +288,20 @@ public partial class Inventory : Resource
 		GD.Print($"{item.Name} unequipped from {equipSlot}");
 		EquippedItems[equipSlot] = null;
 		EmitSignalItemUnequipped(item, equipSlot);
+		NotifyChanged();
 	}
 
-	public void Consume(InventoryItemSlot itemSlot)
+	internal void NotifyConsumed(ConsumableItem item) => EmitSignalItemConsumed(item);
+	internal void NotifyDropped(Item item, int quantity) => EmitSignalItemDropped(item, quantity);
+
+	public void DestroyItem(InventoryItemSlot entry)
 	{
-		GD.Print($"Consuming {itemSlot.Item.Name} from inventory...");
-		EmitSignalItemConsumed(itemSlot.Item as ConsumableItem);
-		RemoveItem(itemSlot, 1);
+		if (entry == null || !Items.Contains(entry) || entry.Item.IsQuestItem) { return; }
+		using var update = DeferChanges();
+		int count = entry.Quantity;
+		RemoveItem(entry, count);
+		EmitSignalItemDestroyed(entry.Item, count);
 	}
 
-	public void DropItem(InventoryItemSlot itemSlot)
-	{
-		var item = itemSlot.Item;
-		if (item.IsQuestItem)
-		{
-			GD.PrintErr($"{itemSlot.Item.Name} is a quest item and cannot be dropped");
-			return;
-		}
-
-		// Unequip the item first
-		Unequip(itemSlot);
-
-		var quantity = itemSlot.Quantity;
-		GD.Print($"Dropping {quantity}x {itemSlot.Item.Name} from inventory...");
-		EmitSignalItemDropped(itemSlot.Item, quantity);
-		RemoveItem(itemSlot, quantity);
-	}
-
-	public void DestroyItem(InventoryItemSlot itemSlot)
-	{
-		var item = itemSlot.Item;
-		if (item.IsQuestItem)
-		{
-			GD.PrintErr($"{itemSlot.Item.Name} is a quest item and cannot be destroyed");
-			return;
-		}
-
-		// Unequip the item first
-		Unequip(itemSlot);
-
-		var quantity = itemSlot.Quantity;
-		GD.Print($"Destroying {quantity}x {itemSlot.Item.Name} from inventory...");
-		EmitSignalItemDestroyed(itemSlot.Item, quantity);
-		RemoveItem(itemSlot, quantity);
-	}
-
-	public void SplitItem(InventoryItemSlot itemSlot, int newQuantity)
-	{
-		if (IsFull)
-		{
-			GD.Print("Inventory is full");
-			return;
-		}
-
-		newQuantity = Math.Clamp(newQuantity, 0, itemSlot.Quantity - 1);
-		if (newQuantity > 0)
-		{
-			GD.Print($"Splitting {itemSlot.Quantity}x {itemSlot.Item.Name} in inventory...");
-			RemoveItem(itemSlot, newQuantity);
-			AddItem(itemSlot.Item, newQuantity);
-		}
-	}
+	public void SplitItem(InventoryItemSlot entry, int quantity) => TrySplit(entry, quantity);
 }

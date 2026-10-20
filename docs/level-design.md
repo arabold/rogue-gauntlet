@@ -69,7 +69,7 @@ coordinate, and a position belongs to the tile whose center is nearest.** Concre
    - Bakes the navigation mesh for AI.
    - Places the player spawn point and enemy spawn points from logical room/corridor tiles, avoiding occupied decoration/prop tiles, stairs, transitions, and other spawn points.
 
-Generation is seed-based (`GameSession.GetLevelSeed(seed, depth)`), so a given run + depth always produces the same layout — this is what lets fog reveal be persisted compactly (see below).
+Generation is seed-based (`GameSession.GetLevelSeed(seed, depth)`), with explicit layout, monster, item-placement, and decoration streams recreated per generation. Strategies take their RNG as an input; generation no longer reseeds the global RNG. This supports same-build baseline reconstruction and compact fog changes. See [Randomness and Seeds](randomness-and-seeds.md) for source reward seeds and scope.
 
 ## Connectivity: doorways vs. open edges
 

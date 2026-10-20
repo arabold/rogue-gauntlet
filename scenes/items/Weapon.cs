@@ -33,6 +33,12 @@ public partial class Weapon : EquipableItem, IPlayerAction
 	/// </summary>
 	[Export] public bool IsTwoHanded { get; protected set => SetValue(ref field, value); } = false;
 
+	/// <summary>Semantic motion requested from the wielder's animation profile.</summary>
+	[Export] public StringName AttackStyle { get; set; } = "";
+	/// <summary>Rig adapter independent of handedness and the character's built-in prop meshes.</summary>
+	[Export] public WeaponGrip Grip { get; set; }
+	[Export] public MeleeAttackProfile MeleeContact { get; set; }
+
 	[Export] public AttackDefinition CustomAttackDefinition { get; protected set; }
 
 	[Export] public string AnimationId { get; protected set => SetValue(ref field, value); } = "melee_attack";

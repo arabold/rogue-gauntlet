@@ -19,7 +19,7 @@ This keeps regular weapons, bows, staffs, and later spells scaling through the s
 ## Core Types
 
 - `IPlayerAction`: Common interface for anything the player can trigger from an action slot.
-- `Weapon`: Base equipable action item. Adds damage, accuracy, crit, action timing, and optional `CustomAttackDefinition`.
+- `Weapon`: Base equipable action item. Adds damage, accuracy, crit, action timing, an explicit `AttackStyle`, a `Grip` Resource, and optional `CustomAttackDefinition`.
 - `RangedWeapon`: Weapon subtype that triggers the ranged attack path and adds base projectile speed/range/aiming fields.
 - `MagicStaff`: Ranged weapon marker with a `MagicElement`; staff behavior still comes from its authored `AttackDefinition`.
 - `AttackDefinition`: Resource that defines attack timing, hit shape, projectile pattern, effect scenes, and placement/AoE parameters.
@@ -107,3 +107,77 @@ Keep the authored `.tres` attack definition as the base value source. Apply scal
 - Add optional per-field scaling flags or curves for weapons that should not scale every value.
 - Consider authored affixes that modify attack fields, e.g. `+1 projectile`, `+20% area radius`, or `+15% projectile speed`.
 - Add resistances or elemental reactions only after the shared attack data model is stable.
+
+## Attack styles, rig profiles, and timing
+
+Every active weapon explicitly requests an `AttackStyle`, independent of handedness, stats,
+and projectile behavior. `AttackDefinition.AttackStyle`, when set, overrides the weapon's
+style. `AttackAnimationProfile` and its `AttackAnimationBinding` Resources map styles to
+actor-native clips and normalized contact windows. The shared player profile covers slash,
+chop, thrust, spin, crossbow, bow, casting, and unarmed styles across all four class rigs.
+There is no active bow item yet; its two-handed ranged binding is a prepared authoring seam.
+
+`ActionSlot` prepares before accepting a weapon action. `AttackController` snapshots authored
+attack data, resolves contact times against the weapon's perform duration, and advances both
+clip playback and hit/projectile execution from its physics clock through recovery.
+`AttackAnimationComponent` temporarily owns the AnimationPlayer while disabling the actor's
+AnimationTree, then restores the tree for movement and other actions. Animation method/audio
+tracks do not schedule damage. Non-weapon actions retain their existing animation-ID path.
+Equipment replacement, interruption, death, and scene exit cancel the active attack; a cancelled
+wind-up cannot release a projectile later. Missing/invalid clip mappings reject acceptance.
+
+Monsters retain two AI attack slots, `melee` and `ranged`. Each of the 19 scenes assigns its own
+animation profile, so native bites, punches, and skeleton weapon swings need no hardcoded
+monster-to-clip switch. The enemy behavior profile supplies damage and requested duration;
+the executor owns attack completion. Single-attack models deliberately map both slots to the
+same native clip. The wizard currently reuses its bite animation for ranged attacks; a more
+suitable clip is still an art/content follow-up.
+
+Weapons also assign a `WeaponGrip` Resource: a bone name and local adapter transform.
+`BoneAttachmentManager` mounts the visual through this shared hand socket rather than a rig's
+original prop-specific bone. The melee adapter reproduces the KayKit Barbarian axe socket;
+the crossbow adapter reproduces the Rogue crossbow socket. These preserve the canonical item
+wrapper axes and work across all four class rigs. To inspect grip changes live, edit the runtime weapon in the Remote Inspector and re-equip
+it to rebuild the adapter; recreate items after changing authored definitions. Profile binding
+and timing edits are captured by the next accepted attack. Editing imported clip tracks during
+an active attack is not a supported live-edit operation.
+
+Use [the attack playground](../scenes/debug/attack_animation_harness.tscn) to select equipment
+and invoke the production action-slot path. Animation profiles live under
+`scenes/attacks/animation_profiles/`; grip adapters live under `scenes/items/grips/`.
+`AttackAnimationTest` verifies rig coverage, definition overrides, timing snapshots, native
+grip transforms, exactly-once release, cancellation, and equipment switching. See the
+[program design](specs/attack-animation-plan.md) for contracts and delivery boundaries.
+
+## Reliable melee contact
+
+Weapons assign a `MeleeAttackProfile` Resource; an `AttackDefinition` can override it, with
+an actor default as fallback. Monster behavior profiles assign the same Resource for their
+melee slot. Profiles under `scenes/attacks/melee_profiles/` define arc, box, forward capsule
+or radial geometry, reach, width, height, engagement margin and blocker layers. Actor scenes
+compose a local `MeleeHitDetector`; no weapon-bone collider or transient overlap-entry signal
+is required. Accepted attacks snapshot the profile.
+
+During contact the executor queries current physics overlaps, including stationary targets.
+A physics step crossing the whole contact window still queries once. Bodies and hurtboxes
+resolve to one damage owner, hit once per attack; full query batches are paged to handle crowds.
+World/wall/prop occlusion blocks contact. Facing commits when contact begins; monsters use a
+conservative engagement distance derived from the same reach. Interruption ends queries.
+
+Swing weapon scenes expose `TrailBase` and `TrailTip` markers along their striking section.
+Swooshes sample those points from the evaluated animation, so their plane, length and direction
+follow the equipped blade, including overhead chops and two-handed swings. Intermediate pose
+samples preserve a continuous ribbon across large physics steps. The attachment is refreshed
+before sampling and the current pose restored before rendering. Markers are editable in Godot;
+geometry is authored rather than inferred from mesh bounds at runtime.
+
+Natural attacks without markers and radial specials retain the generic cosmetic arc. Thrusts
+usually omit effects. A cosmetic fade cannot extend damage, and disabling visuals preserves
+hits. KayKit grip transforms and item axes are unchanged.
+
+Run `scenes/debug/attack_animation_harness.tscn` with **F6** in Godot to exercise real equipment
+and action slots. Toggle volumes, swooshes, moving targets, slow motion and defense modes;
+spawn a yeti or skeleton and trigger its native melee attack. Feedback distinguishes contact,
+evasion, armor absorption, invulnerability, obstruction and interruption. `MeleeContactTest`
+verifies actual physics overlap and hero/monster execution; see the
+[implementation plan](specs/melee-contact-plan.md).

@@ -16,18 +16,18 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 	/// </summary>
 	[Export] public int Retries = 3;
 
-	public override List<RoomPlacement> GenerateRooms(MapData map, RoomFactory factory, uint maxRooms)
+	public override List<RoomPlacement> GenerateRooms(MapData map, RoomFactory factory, uint maxRooms, RandomNumberGenerator rng)
 	{
 		List<RoomPlacement> rooms = new();
 
 		// Factories load content lazily. If a scene path is broken, skip generation
 		// gracefully so content mistakes show as editor/runtime errors instead of crashes.
-		var entranceRoom = PrepareConnectableRoom(factory.CreateEntrance());
+		var entranceRoom = PrepareConnectableRoom(factory.CreateEntrance(rng));
 		if (entranceRoom == null)
 		{
 			return rooms;
 		}
-		var entrancePlacement = TryPlaceRoom(map, entranceRoom.Map, 99);
+		var entrancePlacement = TryPlaceRoom(map, entranceRoom.Map, 99, rng);
 		if (entrancePlacement == null)
 		{
 			GD.PrintErr("SimpleRoomLayout: Failed to place the entrance room; map is too crowded.");
@@ -37,12 +37,12 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		rooms.Add(new RoomPlacement(entranceRoom, entrancePlacement.Value));
 		StampRoom(map, entranceRoom.Map, entrancePlacement.Value);
 
-		var exitRoom = PrepareConnectableRoom(factory.CreateExit());
+		var exitRoom = PrepareConnectableRoom(factory.CreateExit(rng));
 		if (exitRoom == null)
 		{
 			return rooms;
 		}
-		var exitPlacement = TryPlaceRoom(map, exitRoom.Map, 99);
+		var exitPlacement = TryPlaceRoom(map, exitRoom.Map, 99, rng);
 		if (exitPlacement == null)
 		{
 			GD.PrintErr("SimpleRoomLayout: Failed to place the exit room; map is too crowded.");
@@ -52,21 +52,21 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		rooms.Add(new RoomPlacement(exitRoom, exitPlacement.Value));
 		StampRoom(map, exitRoom.Map, exitPlacement.Value);
 
-		var countSpecialRooms = PickSpecialRoomCount(maxRooms);
+		var countSpecialRooms = PickSpecialRoomCount(maxRooms, rng);
 		for (int i = 0; i < maxRooms; i++)
 		{
 			var retries = Retries;
 			do
 			{
 				var room = PrepareConnectableRoom((i < countSpecialRooms)
-					? factory.CreateSpecialRoom()
-					: factory.CreateStandardRoom());
+					? factory.CreateSpecialRoom(rng)
+					: factory.CreateStandardRoom(rng));
 				if (room == null)
 				{
 					continue;
 				}
 
-				var placement = TryPlaceRoom(map, room.Map, retries);
+				var placement = TryPlaceRoom(map, room.Map, retries, rng);
 				if (placement != null)
 				{
 					// Add the room to the map
@@ -85,15 +85,15 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		return rooms;
 	}
 
-	private Vector2I? TryPlaceRoom(MapData map, MapData roomMap, int retries)
+	private Vector2I? TryPlaceRoom(MapData map, MapData roomMap, int retries, RandomNumberGenerator rng)
 	{
 		bool overlaps;
 		Vector2I placement;
 		do
 		{
 			// Place the room at a  position on the map
-			int roomX = GD.RandRange(2, map.Width - roomMap.Width - 1);
-			int roomZ = GD.RandRange(2, map.Height - roomMap.Height - 1);
+			int roomX = rng.RandiRange(2, map.Width - roomMap.Width - 1);
+			int roomZ = rng.RandiRange(2, map.Height - roomMap.Height - 1);
 			placement = new Vector2I(roomX, roomZ);
 
 			// Check if the room placement overlaps with any existing rooms

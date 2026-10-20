@@ -8,19 +8,8 @@ public partial class FoodItem : ConsumableItem
 
 	public bool IsPoisoned { get; private set; } = false;
 
-	public FoodItem()
-	{
-		RollPoison();
-	}
-
-	public void RollPoison()
-	{
-		if (PoisonChance > 0 && GD.Randf() < PoisonChance)
-		{
-			IsPoisoned = true;
-			GD.Print($"{Name} was spawned as POISONED!");
-		}
-	}
+	/// <summary>Only factory creation or save restoration sets contamination; loading a definition never rolls.</summary>
+	internal void RestorePoison(bool poisoned) => IsPoisoned = poisoned;
 
 	public override void PerformAction(Player player)
 	{

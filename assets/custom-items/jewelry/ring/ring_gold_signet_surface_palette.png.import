@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dp1m1y2ad8doa"
-path="res://.godot/imported/ring_gold_signet_surface_palette.png-c3c006154c84ddc57b3db26b3494d00e.ctex"
+path.s3tc="res://.godot/imported/ring_gold_signet_surface_palette.png-c3c006154c84ddc57b3db26b3494d00e.s3tc.ctex"
+path.etc2="res://.godot/imported/ring_gold_signet_surface_palette.png-c3c006154c84ddc57b3db26b3494d00e.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "92d7a135d4c3bf6dbcae36c71ba23783"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/jewelry/ring/ring_gold_signet_surface_palette.png"
-dest_files=["res://.godot/imported/ring_gold_signet_surface_palette.png-c3c006154c84ddc57b3db26b3494d00e.ctex"]
+dest_files=["res://.godot/imported/ring_gold_signet_surface_palette.png-c3c006154c84ddc57b3db26b3494d00e.s3tc.ctex", "res://.godot/imported/ring_gold_signet_surface_palette.png-c3c006154c84ddc57b3db26b3494d00e.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

@@ -14,18 +14,22 @@ These documents explain code that exists today. Any proposed extension or future
 
 | Document | Coverage |
 | --- | --- |
-| [Randomness and seeds](randomness-and-seeds.md) | Existing run/level seeds, generation RNG, loot RNG, identification, and saved world changes; known limits versus proposed isolation |
+| [Randomness and seeds](randomness-and-seeds.md) | Existing run/level seeds, generation RNG, loot RNG, identification, and saved world changes; isolation and current persistence limits |
 | [Level design](level-design.md) | Procedural layouts, room authoring, connectivity, and fog of war |
+| [Gameplay item catalog](item-catalog.md) | All active definitions, effect families, source budgets, and deferred tools/keys |
 | [Stats and itemization](stats-and-itemization.md) | Attributes, modifiers, equipment tiers, loot rolls, and enchantment |
 | [Item identification](item-identification-system.md) | Per-run disguises, discovery, jewelry, and scroll targeting |
 | [Character classes](character-classes.md) | Authored classes, starting gear, stat profiles, and model integration |
 | [Weapon attacks](weapon-attack-system.md) | Existing weapon and attack behavior |
 
-## Proposed implementation plans
+## Program designs
 
 | Document | Status and scope |
 | --- | --- |
-| [Item lifecycle program design](specs/item-lifecycle-plan.md) | Proposed; extends current Resources, inventory, RNG, and persistence. Contains contracts and delivery slices, not implemented behavior |
+| [Attack animation styles](specs/attack-animation-plan.md) | Implemented weapon styles, actor-specific animation Resources and shared timing |
+| [Reliable melee contact](specs/melee-contact-plan.md) | Implemented independent contact volumes, optional swooshes and combat playground diagnostics |
+| [Item catalog completion](specs/item-catalog-plan.md) | Definition/effect audit, grouped loot, identity coverage, and validation |
+| [Item lifecycle program design](specs/item-lifecycle-plan.md) | Implemented milestone 1: Resource creation policies, runtime items, stacks, food, floor deltas, and a playable item playground |
 
 Use the repository's [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial implementation planning. Plans link to current-system documentation instead of redescribing unchanged functionality. As work lands, update the system document and mark verified plan/roadmap outcomes; keep remaining proposals explicit.
 

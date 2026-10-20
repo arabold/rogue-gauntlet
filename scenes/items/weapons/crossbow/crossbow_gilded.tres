@@ -1,10 +1,16 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="RangedWeapon" load_steps=4 format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/items/weapons/crossbow/crossbow_gilded.tscn" id="1_scene"]
-[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_script"]
+[ext_resource type="Resource" path="res://scenes/items/grips/kaykit_crossbow.tres" id="weapon_grip"]
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/crossbow/crossbow_gilded.tscn" id="1_crossrare"]
+[ext_resource type="Script" path="res://scenes/items/RangedWeapon.cs" id="2_crossrare"]
 
 [resource]
-script = ExtResource("2_script")
+script = ExtResource("2_crossrare")
+AttackStyle = &"crossbow.shoot"
+Grip = ExtResource("weapon_grip")
+ProjectileSpeed = 17.0
+Range = 22.0
+AimingAngle = 40.0
 Tier = 5
 Level = 0
 RequiredStrength = 21
@@ -13,17 +19,17 @@ DamageMin = 15.0
 DamageMax = 27.0
 CritChance = 0.0
 IsTwoHanded = true
-AnimationId = "melee_attack"
-Delay = 0.0
+AnimationId = "ranged_attack"
+Delay = 0.3
 PerformDuration = 0.5
 CooldownDuration = 0.0
 ValidSlots = 256
 Rarity = 0
 Name = "Gilded Siege Arbalest"
-Scene = ExtResource("1_scene")
+Scene = ExtResource("1_crossrare")
 Quality = 1.0
 Value = 200
 ShowInInventory = true
 IsStackable = false
 IsQuestItem = false
-metadata/_custom_type_script = ExtResource("2_script")
+metadata/_custom_type_script = ExtResource("2_crossrare")

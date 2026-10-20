@@ -10,7 +10,7 @@ public abstract partial class RoomLayoutStrategy : Resource
 	/// <summary>
 	/// Populates the map with room data (e.g., which tiles are rooms)
 	/// </summary>
-	public abstract List<RoomPlacement> GenerateRooms(MapData map, RoomFactory factory, uint maxRooms);
+	public abstract List<RoomPlacement> GenerateRooms(MapData map, RoomFactory factory, uint maxRooms, RandomNumberGenerator rng);
 	public virtual void Reset() { }
 
 	/// <summary>
@@ -97,8 +97,8 @@ public abstract partial class RoomLayoutStrategy : Resource
 	}
 
 	/// <summary>Rolls how many of a level's rooms should be special rooms rather than standard ones.</summary>
-	protected static int PickSpecialRoomCount(uint maxRooms)
+	protected static int PickSpecialRoomCount(uint maxRooms, RandomNumberGenerator rng)
 	{
-		return GD.RandRange(1, 1 + (int)Mathf.Floor(maxRooms / 3));
+		return rng.RandiRange(1, 1 + (int)Mathf.Floor(maxRooms / 3));
 	}
 }

@@ -103,13 +103,13 @@ them.
   persists and restores without the pool.
 - `AffixPool` (Resource, `affix_pool.tres`): the affix catalog plus the rules —
   `RollCounts` (affixes per rarity) and `RarityWeights` (depth-scaled `BaseWeight + WeightPerDepth × depth`).
-- `LootRoller` (static): turns a dropped equipable definition into a rolled instance — it
-  `Duplicate()`s the definition, records `SourceDefinitionPath`, rolls a rarity, rolls affixes for
-  the item's slots/rarity, and returns the instance. Non-equipables and a missing pool pass
-  through unchanged.
+- `ItemFactory` (static): copies authored definitions and stamps runtime provenance/identity. An
+  exported `ItemCreationPolicy` selects fixed creation or equipment/food rolls with an explicit RNG.
+- `LootRoller.ApplyRoll` / `Enchant`: mutate validated runtime equipment using a supplied affix pool.
+  Copying and save restoration never reroll state.
 
-`LootTableComponent` uses the existing seeded loot-event stream for drop selection and equipment
-rolls; see [Randomness and Seeds](randomness-and-seeds.md#existing-loot-sequence) for seed derivation,
+`LootTableComponent` uses the source-derived loot streams for stable generated rewards (or the ongoing gameplay stream for dynamic sources) for drop selection and equipment
+rolls; see [Randomness and Seeds](randomness-and-seeds.md#generation-streams-and-source-rewards) for seed derivation,
 counter persistence, and current reconstruction limits. Rolled inventory equipment saves its concrete
 affixes rather than depending on replaying the loot-event sequence.
 
@@ -138,7 +138,9 @@ take the item's `Tier` alongside its slots and rarity.
 Depth gating for *drops* (as opposed to affix eligibility) lives on the loot entry, not the
 item: `LootTableItem.MinDepth`/`MaxDepth` (0 = unbounded) mark which depths an entry is
 eligible at, and `QuantityPerDepth` scales stackable quantity (e.g. gold) with depth.
-`LootTable.PickEntry(depth, rng)` does a weighted pick among only the eligible entries. This
+`LootTable.PickEntry(depth, rng)` selects an eligible category budget, then an eligible variety
+inside that `LootTableGroup`. Adding equipment variants preserves supply-group probability. Flat
+`Items` is also available for simple custom tables; author either Groups or Items. This
 keeps one authored table per drop source (`LootTableComponent.Table`) instead of one table
 per depth band, and extends uniformly to any future item category (a scroll or jewelry entry
 is just another banded row). `LootTableComponent.DropCountMin`/`DropCountMax` control how many
@@ -148,7 +150,7 @@ separate entries a single drop event rolls.
 
 `LootRoller.EnsureInstance(item)` duplicates a shared definition into a rolled instance
 (stamping `SourceDefinitionPath`) or returns an already-rolled instance unchanged.
-`LootRoller.Enchant(item, rng)` bumps `Rarity` one step (capped at Legendary) and adds one
+`LootRoller.Enchant(item, rng, pool)` bumps `Rarity` one step (capped at Legendary) and adds one
 new affix via `AffixPool.RollSingleAffix`, which excludes name fragments the item already
 carries so it never stacks the same affix twice. The Scroll of Enchantment
 (`EnchantScrollEffect`) unequips the target first, enchants it, then re-equips it — mutating
@@ -206,7 +208,7 @@ conveys rarity (the low-alpha colors authored on `ItemSlotPanel`).
   `LootTableItem` entry in the relevant loot table (`scenes/items/loot/`).
 - **Make a new item spawnable from the in-game debug menu**: nothing to do — `DebugMenu`
   auto-discovers every `.tres` under each category folder (`scenes/items/weapons/`, `armor/`,
-  `potions/`, `scrolls/`, `jewelry/`, `gold/`) via `SpawnableCategories`. Authoring the item's
+  `potions/`, `scrolls/`, `jewelry/`, `gold/`) recursively via `SpawnableCategories`. Deferred tools/keys are excluded. Authoring the item's
   `.tres` in the right folder is sufficient; don't hand-list it anywhere.
 - **A class/race profile (future)**: author a new `StatProfile` (and starting attributes) and
   point `PlayerStats.Profile` at it.
@@ -220,3 +222,27 @@ After editing any `.tres`, validate it loads — see the `godot-mcp` skill's `in
   `.tres` sub-resources reference an unambiguous script.
 - Shared authored resources are definitions; `LootRoller` duplicates an equipable before stamping
   instance-specific rolls, so the authored `.tres` is never mutated at runtime.
+
+## Item ownership, food, and persistence
+
+Every carried/world item is a runtime Resource with definition provenance and an instance ID.
+The initial backpack counts 20 entries including equipped gear; gold stays in stats. Potions and
+scrolls explicitly stack to 20, identical variety only. Food/equipment never stack. Backpack UI
+shows capacity and provides split/combine actions; failed pickup preserves its world source.
+
+`PlayerInventoryController` coordinates fallible pickup, use, drop, and equipment commands.
+Use applies one effect, removes one unit, then notifies observers. Food definitions reference a
+recovery buff and a poison effect; the dungeon creation policy rolls contamination per piece,
+while fixed starting supplies stay wholesome. Food has no type-wide hidden identity.
+
+`ItemSaveCodec` / `InventorySaveCodec` restore exact state without RNG. `LevelItemPersistence`
+regenerates the initial floor and activated source rewards, then reapplies removals, overrides,
+and player-added objects. Saves use exact version 7 with no migrations. Active timed buffs and
+living-enemy movement/injuries are outside this save increment.
+
+See the [delivered item lifecycle design](specs/item-lifecycle-plan.md) for contracts and editor
+acceptance. Run `scenes/debug/item_lifecycle_harness.tscn` for the authored playground.
+
+The [gameplay item catalog](item-catalog.md) lists active definitions, deliberate effect families,
+category budgets, depth eligibility, and deferred mechanics. All 145 exported custom item models
+have matching definitions/wrappers; legacy definitions remain available beside them.

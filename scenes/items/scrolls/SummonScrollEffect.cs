@@ -25,10 +25,12 @@ public partial class SummonScrollEffect : ScrollEffect
 			return;
 		}
 
+		using var rng = GameSession.Instance?.CreateLootRng()
+			?? GenerationRandom.Create(generator.Seed, "summon");
 		Vector3 playerPosition = player.GlobalPosition;
 		for (int i = 0; i < Count; i++)
 		{
-			PackedScene enemyScene = generator.MobFactory.CreateEnemy(generator.DungeonDepth);
+			PackedScene enemyScene = generator.MobFactory.CreateEnemy(generator.DungeonDepth, rng);
 			if (enemyScene == null)
 			{
 				continue;

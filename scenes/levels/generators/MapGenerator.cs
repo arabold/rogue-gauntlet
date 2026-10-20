@@ -31,6 +31,7 @@ public partial class MapGenerator : Node3D
 	/// <summary>Loose ground-item prop. Unset skips loose-item placement.</summary>
 	[Export] public PackedScene LooseItemScene { get; set => SetProperty(ref field, value); }
 	/// <summary>Weighted pool loose items are rolled from. Unset skips loose-item placement.</summary>
+	[Export] public ItemCreationPolicy ItemCreationPolicy { get; set; }
 	[Export] public LootTable LooseItemLootTable { get; set => SetProperty(ref field, value); }
 	[Export(PropertyHint.Range, "0,10")] public int MinLooseItems { get; set => SetProperty(ref field, value); } = 0;
 	[Export(PropertyHint.Range, "0,10")] public int MaxLooseItems { get; set => SetProperty(ref field, value); } = 4;
@@ -198,21 +199,43 @@ public partial class MapGenerator : Node3D
 		}
 	}
 
+	private LevelGenerationContext _random;
+
+	/// <summary>Recreates a reward stream without advancing generation or gameplay RNGs.</summary>
+	public RandomNumberGenerator CreateSourceLootRng(string sourceId)
+	{
+		return GenerationRandom.Create(Seed, GenerationRandom.Loot, sourceId);
+	}
+
 	private void GenerateRooms()
 	{
 		GD.Print("Generating rooms...");
 
 		var roomPlacements = RoomLayout.GenerateRooms(
-			Map, RoomFactory, MaxRooms);
+			Map, RoomFactory, MaxRooms, _random.Layout);
 		PlaceRooms(roomPlacements);
 	}
 
 	private void PlaceRooms(List<RoomPlacement> roomPlacements)
 	{
 		GD.Print("Placing rooms...");
-		foreach (var placement in roomPlacements)
+		for (int roomIndex = 0; roomIndex < roomPlacements.Count; roomIndex++)
 		{
+			var placement = roomPlacements[roomIndex];
 			var room = placement.Room;
+			foreach (Node source in room.FindChildren("*", "", true, false))
+			{
+				if (source is LootableItem)
+				{ source.SetMeta("persistent_id", $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(source)}"); }
+				if (source is LootTableComponent loot)
+				{
+					loot.SourceId = $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(source)}";
+				}
+				if (source is SpawnPoint spawn && string.IsNullOrEmpty(spawn.PersistentId))
+				{
+					spawn.PersistentId = $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(source)}";
+				}
+			}
 			var position = new Vector3I(placement.Position.X, 0, placement.Position.Y);
 			MergeRoomGridMaps(room, position);
 
@@ -457,7 +480,7 @@ public partial class MapGenerator : Node3D
 				var position = TileToWorld(x, 0, z);
 				if ((Map.IsCorridor(x, z) || Map.IsConnector(x, z)) && FloorGridMap.GetCellItem(position) < 0)
 				{
-					int tileIndex = TileFactory.GetCorridorTileIndex();
+					int tileIndex = TileFactory.GetCorridorTileIndex(_random.Decoration);
 					FloorGridMap.SetCellItem(position, tileIndex, 0);
 				}
 			}
@@ -494,7 +517,7 @@ public partial class MapGenerator : Node3D
 		{
 			if (WallGridMap.GetCellItem(wall.Position) < 0)
 			{
-				WallGridMap.SetCellItem(wall.Position, TileFactory.GetWallTileIndex(), wall.Orientation);
+				WallGridMap.SetCellItem(wall.Position, TileFactory.GetWallTileIndex(_random.Decoration), wall.Orientation);
 			}
 		}
 
@@ -569,15 +592,15 @@ public partial class MapGenerator : Node3D
 		(int Item, int Orientation)[] candidates = horizontal
 			? new[]
 			{
-				(TileFactory.GetWallTileIndex(), HorizontalWallOrientation),
-				(TileFactory.GetWallHalfTileIndex(), HorizontalWallOrientation),
-				(TileFactory.GetWallHalfTileIndex(), HorizontalWallWestHalfOrientation),
+				(TileFactory.GetWallTileIndex(_random.Decoration), HorizontalWallOrientation),
+				(TileFactory.GetWallHalfTileIndex(_random.Decoration), HorizontalWallOrientation),
+				(TileFactory.GetWallHalfTileIndex(_random.Decoration), HorizontalWallWestHalfOrientation),
 			}
 			: new[]
 			{
-				(TileFactory.GetWallTileIndex(), VerticalWallOrientation),
-				(TileFactory.GetWallHalfTileIndex(), VerticalWallOrientation),
-				(TileFactory.GetWallHalfTileIndex(), VerticalWallSouthHalfOrientation),
+				(TileFactory.GetWallTileIndex(_random.Decoration), VerticalWallOrientation),
+				(TileFactory.GetWallHalfTileIndex(_random.Decoration), VerticalWallOrientation),
+				(TileFactory.GetWallHalfTileIndex(_random.Decoration), VerticalWallSouthHalfOrientation),
 			};
 
 		float bestOverlap = WallCoverageEps;
@@ -745,7 +768,7 @@ public partial class MapGenerator : Node3D
 		var cellPosition = new Vector3I(position.X, 0, position.Y);
 		if (WallGridMap.GetCellItem(cellPosition) < 0)
 		{
-			WallGridMap.SetCellItem(cellPosition, TileFactory.GetWallCornerTileIndex(), orientation);
+			WallGridMap.SetCellItem(cellPosition, TileFactory.GetWallCornerTileIndex(_random.Decoration), orientation);
 		}
 	}
 
@@ -1225,12 +1248,12 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		int count = GD.RandRange(MinChests, MaxChests);
+		int count = _random.Items.RandiRange(MinChests, MaxChests);
 		var remaining = new List<(Vector3 Point, float RotationDegrees)>(candidates);
 		int placed = 0;
 		while (placed < count && remaining.Count > 0)
 		{
-			int index = GD.RandRange(0, remaining.Count - 1);
+			int index = _random.Items.RandiRange(0, remaining.Count - 1);
 			var candidate = remaining[index];
 			remaining.RemoveAt(index);
 			if (IsBlockedLootPoint(candidate.Point, placedLootPoints, LootSpawnSpacing))
@@ -1239,6 +1262,7 @@ public partial class MapGenerator : Node3D
 			}
 
 			var chest = ChestScene.Instantiate<Node3D>();
+			chest.SetMeta("persistent_id", $"depth:{DungeonDepth}:chest:{placed}");
 			// A chest is a solid StaticBody3D: parent it under NavigationRegion (like rooms
 			// and the GridMap copies BakeNavigationMesh adds) so it becomes a navmesh
 			// obstacle. Do NOT route this through SpawnPoint: it parents under Level instead
@@ -1275,12 +1299,12 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		int count = GD.RandRange(MinTraps, MaxTraps);
+		int count = _random.Items.RandiRange(MinTraps, MaxTraps);
 		var remaining = new List<Vector3>(candidates);
 		int placed = 0;
 		while (placed < count && remaining.Count > 0)
 		{
-			int index = GD.RandRange(0, remaining.Count - 1);
+			int index = _random.Items.RandiRange(0, remaining.Count - 1);
 			var point = remaining[index];
 			remaining.RemoveAt(index);
 			if (IsBlockedLootPoint(point, placedLootPoints, LootSpawnSpacing))
@@ -1323,23 +1347,13 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		// Loot *rolls* (what's inside) stay on the run's own seeded loot sequence, the same
-		// one LootTableComponent.DropLoot draws from -- kept separate from the dungeon-layout
-		// RNG so rebalancing loot tables never perturbs level layout, and vice versa.
-		RandomNumberGenerator rng = GameSession.Instance?.CreateLootRng();
-		if (rng == null)
-		{
-			rng = new RandomNumberGenerator();
-			rng.Randomize();
-		}
-
-		uint depth = GameSession.Instance?.ActiveDungeonDepth ?? DungeonDepth;
-		int count = GD.RandRange(MinLooseItems, MaxLooseItems);
+		uint depth = DungeonDepth;
+		int count = _random.Items.RandiRange(MinLooseItems, MaxLooseItems);
 		var remaining = new List<Vector3>(candidates);
 		int placed = 0;
 		while (placed < count && remaining.Count > 0)
 		{
-			int index = GD.RandRange(0, remaining.Count - 1);
+			int index = _random.Items.RandiRange(0, remaining.Count - 1);
 			var point = remaining[index];
 			remaining.RemoveAt(index);
 			if (IsBlockedLootPoint(point, placedLootPoints, LootSpawnSpacing))
@@ -1347,18 +1361,25 @@ public partial class MapGenerator : Node3D
 				continue;
 			}
 
-			var entry = LooseItemLootTable.PickWeightedEntry(rng);
+			string sourceId = $"depth:{DungeonDepth}:loose:{placed}";
+			using var rng = CreateSourceLootRng(sourceId);
+			var entry = LooseItemLootTable.PickEntry(depth, rng);
 			if (entry == null)
 			{
 				break; // Table is empty; no point trying further candidates.
 			}
 
-			Item item = LootRoller.Roll(entry.Item, depth, rng);
-			var lootableItem = LooseItemScene.Instantiate<LootableItem>();
-			lootableItem.Item = item;
-			lootableItem.Quantity = entry.Quantity;
-			NavigationRegion.AddChild(lootableItem);
-			lootableItem.GlobalPosition = point + Vector3.Up * GetFloorSurfaceHeight(point);
+			int quantity = entry.QuantityAt(depth);
+			if (quantity <= 0) { continue; }
+			foreach (var record in ItemFactory.CreateBatch(entry.Item, quantity, ItemCreationPolicy, depth, rng, sourceId))
+			{
+				var lootableItem = LooseItemScene.Instantiate<LootableItem>();
+				lootableItem.Item = record.Item;
+				lootableItem.Quantity = record.Quantity;
+				lootableItem.SetMeta("persistent_id", sourceId);
+				NavigationRegion.AddChild(lootableItem);
+				lootableItem.GlobalPosition = point + Vector3.Up * GetFloorSurfaceHeight(point);
+			}
 
 			placedLootPoints.Add(point);
 			placed++;
@@ -1570,15 +1591,11 @@ public partial class MapGenerator : Node3D
 
 	private void GenerateEnemySpawnPoints()
 	{
-		uint mobCount = 3 + DungeonDepth % 5 + (GD.Randi() % 3);
+		uint mobCount = 3 + DungeonDepth % 5 + (uint)_random.Encounters.RandiRange(0, 2);
 		GD.Print($"Generating {mobCount} enemy spawn points...");
 
-		if (NavigationRegion.NavigationMesh.GetVertices().Length == 0)
-		{
-			GD.PrintErr("Cannot generate enemy spawn points: navigation mesh has no vertices.");
-			return;
-		}
-
+		// Candidate selection uses map tiles and collision clearance, not navmesh paths.
+		// Keep the initial encounter baseline reproducible even in headless validation.
 		var candidates = GetOpenTileCandidates(proceduralRoomsOnly: false);
 		if (candidates.Count == 0)
 		{
@@ -1598,7 +1615,7 @@ public partial class MapGenerator : Node3D
 			spawnPoints.Add(point);
 
 			// Enemy scenes are loaded lazily by the factory to keep unused variants out of memory.
-			var enemyScene = MobFactory.CreateEnemy(DungeonDepth);
+			var enemyScene = MobFactory.CreateEnemy(DungeonDepth, _random.Encounters);
 			if (enemyScene == null)
 			{
 				continue;
@@ -1611,7 +1628,7 @@ public partial class MapGenerator : Node3D
 			AddChild(spawnPointNode);
 
 			spawnPointNode.GlobalPosition = point;
-			spawnPointNode.Rotation = new Vector3(0, (float)(GD.Randf() * 2 * Math.PI), 0);
+			spawnPointNode.Rotation = new Vector3(0, (float)(_random.Encounters.Randf() * 2 * Math.PI), 0);
 
 			EnemySpawnPoints.Add(spawnPointNode);
 		}
@@ -1925,7 +1942,7 @@ public partial class MapGenerator : Node3D
 		var remainingCandidates = new List<Vector3>(candidates);
 		while (remainingCandidates.Count > 0)
 		{
-			int index = (int)(GD.Randi() % (ulong)remainingCandidates.Count);
+			int index = _random.Encounters.RandiRange(0, remainingCandidates.Count - 1);
 			var candidate = remainingCandidates[index];
 			remainingCandidates.RemoveAt(index);
 
@@ -2230,7 +2247,7 @@ public partial class MapGenerator : Node3D
 	private void Reset()
 	{
 		GD.Print("Resetting map generator...");
-		GD.Seed(Seed);
+		_random = new LevelGenerationContext(Seed);
 
 		_roomRegions.Clear();
 		_tileToRoom.Clear();

@@ -1,4 +1,5 @@
 using Godot;
+using System.Linq;
 
 public partial class InventoryItemContextMenu : PopupPanel
 {
@@ -7,6 +8,9 @@ public partial class InventoryItemContextMenu : PopupPanel
 	/// pressed. <see cref="InventoryPanel"/> handles it by entering targeting mode; the
 	/// scroll is only consumed once a valid target is confirmed.
 	/// </summary>
+	[Signal] public delegate void OperationFailedEventHandler(string message);
+	private Player _player;
+
 	[Signal] public delegate void TargetedUseRequestedEventHandler(InventoryItemSlot slot);
 
 	private Label _titleLabel;
@@ -15,6 +19,8 @@ public partial class InventoryItemContextMenu : PopupPanel
 	private Button _dropButton;
 	private Button _equipButton;
 	private Button _unequipButton;
+	private Button _splitButton;
+	private Button _mergeButton;
 
 	private Inventory _inventory;
 	private InventoryItemSlot _slot;
@@ -40,6 +46,21 @@ public partial class InventoryItemContextMenu : PopupPanel
 		_equipButton.ButtonUp += () => EquipItem(_inventory, _slot);
 		_unequipButton = GetNode<Button>("%UnequipButton");
 		_unequipButton.ButtonUp += () => UnequipItem(_inventory, _slot);
+		_splitButton = GetNode<Button>("%SplitButton");
+		_splitButton.ButtonUp += () =>
+		{
+			var result = _inventory.TrySplit(_slot, _slot.Quantity / 2);
+			if (!result.Success) { EmitSignalOperationFailed("Make room in your backpack before splitting."); }
+			Hide();
+		};
+		_mergeButton = GetNode<Button>("%MergeButton");
+		_mergeButton.ButtonUp += () =>
+		{
+			var target = FindMergeTarget();
+			if (target != null) { _inventory.TryMerge(_slot, target); }
+			else { EmitSignalOperationFailed("No matching stack has enough room."); }
+			Hide();
+		};
 		PopupHide += () =>
 		{
 			_inventory = null;
@@ -47,8 +68,9 @@ public partial class InventoryItemContextMenu : PopupPanel
 		};
 	}
 
-	public void Initialize(Inventory inventory, InventoryItemSlot slot)
+	public void Initialize(Inventory inventory, InventoryItemSlot slot, Player player = null)
 	{
+		_player = player;
 		_inventory = inventory;
 		_slot = slot;
 
@@ -57,8 +79,11 @@ public partial class InventoryItemContextMenu : PopupPanel
 		// (and width) track the item rather than a fixed authored size.
 		CallDeferred(Window.MethodName.ResetSize);
 		_useButton.Visible = slot.Item is ConsumableItem;
-		_useButton.Text = slot.Item is Scroll ? "Read" : "Use";
+		_useButton.Text = slot.Item is Scroll ? "Read" : slot.Item is FoodItem ? "Eat" : "Drink";
 		_dropButton.Visible = true;
+		_splitButton.Visible = slot.Item.CanStack && slot.Quantity > 1;
+		_mergeButton.Visible = slot.Item.CanStack;
+		_mergeButton.Disabled = FindMergeTarget() == null;
 
 		if (inventory.IsEquipped(slot))
 		{
@@ -74,6 +99,16 @@ public partial class InventoryItemContextMenu : PopupPanel
 		}
 	}
 
+	private InventoryItemSlot FindMergeTarget() => _inventory.Items.FirstOrDefault(entry => entry != _slot
+		&& entry.Item.CanStack && entry.Item.DefinitionPath == _slot.Item.DefinitionPath
+		&& entry.Item.MaxStackSize - entry.Quantity >= _slot.Quantity);
+
+	private void ShowResult(ItemOperationResult? result)
+	{
+		if (result?.Success != true)
+		{ EmitSignalOperationFailed(_player?.InventoryController.LastOperationMessage ?? "No player is available."); }
+	}
+
 	private void UseItem(Inventory inventory, InventoryItemSlot slot)
 	{
 		if (slot.Item is Scroll { RequiresTarget: true })
@@ -85,7 +120,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 
 		if (slot.Item is ConsumableItem)
 		{
-			inventory.Consume(slot);
+			ShowResult(_player?.InventoryController.TryUse(slot));
 		}
 		else
 		{
@@ -96,7 +131,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 
 	private void DropItem(Inventory inventory, InventoryItemSlot slot)
 	{
-		inventory.DropItem(slot);
+		ShowResult(_player?.InventoryController.TryDrop(slot, slot.Quantity));
 		Hide();
 	}
 
@@ -104,7 +139,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 	{
 		if (slot.Item is EquipableItem)
 		{
-			inventory.Equip(slot);
+			ShowResult(_player?.InventoryController.TryEquip(slot));
 		}
 		else
 		{
@@ -117,7 +152,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 	{
 		if (slot.Item is EquipableItem)
 		{
-			inventory.Unequip(slot);
+			ShowResult(_player?.InventoryController.TryUnequip(slot));
 		}
 		else
 		{

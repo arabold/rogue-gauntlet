@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dsvwyihwihufg"
-path="res://.godot/imported/food_pear_golden_surface_palette.png-f4231f6afee6165311c25d782f8f8227.ctex"
+path.s3tc="res://.godot/imported/food_pear_golden_surface_palette.png-f4231f6afee6165311c25d782f8f8227.s3tc.ctex"
+path.etc2="res://.godot/imported/food_pear_golden_surface_palette.png-f4231f6afee6165311c25d782f8f8227.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "5371192431843106aa1b78e0b5493755"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/food/food/food_pear_golden_surface_palette.png"
-dest_files=["res://.godot/imported/food_pear_golden_surface_palette.png-f4231f6afee6165311c25d782f8f8227.ctex"]
+dest_files=["res://.godot/imported/food_pear_golden_surface_palette.png-f4231f6afee6165311c25d782f8f8227.s3tc.ctex", "res://.godot/imported/food_pear_golden_surface_palette.png-f4231f6afee6165311c25d782f8f8227.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

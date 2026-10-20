@@ -1,32 +1,24 @@
-[gd_resource type="Resource" script_class="ConsumableItem" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="Scroll" load_steps=5 format=3]
 
-[ext_resource type="Script" uid="uid://irr1yr02p4rg" path="res://scenes/buffs/HealingBuff.cs" id="1_buff"]
-[ext_resource type="Texture2D" uid="uid://dq1fvu6l25b3r" path="res://icon.svg" id="2_icon"]
+[ext_resource type="Script" path="res://scenes/items/scrolls/Scroll.cs" id="1_scroll"]
+[ext_resource type="Script" uid="uid://dg40jgktjrquo" path="res://scenes/items/scrolls/TeleportScrollEffect.cs" id="2_effect"]
 [ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_cobalt_raidho.tscn" id="3_scene"]
-[ext_resource type="Script" uid="uid://c15rgkjymw2e6" path="res://scenes/items/ConsumableItem.cs" id="4_script"]
 
-[sub_resource type="Resource" id="Resource_buff"]
-script = ExtResource("1_buff")
-HealthPointsPerTick = 5
-Name = "Cobalt Raidho Scroll"
-Duration = 1.0
-TicksPerSecond = 10
-metadata/_custom_type_script = ExtResource("1_buff")
+[sub_resource type="Resource" id="Resource_teleport"]
+script = ExtResource("2_effect")
+TargetPrompt = "Choose an item"
 
 [resource]
-script = ExtResource("4_script")
-Buff = SubResource("Resource_buff")
-Scene = ExtResource("3_scene")
-Icon = ExtResource("2_icon")
-Name = "Cobalt Raidho Scroll"
-TypeId = "scroll.scroll_cobalt_raidho"
+script = ExtResource("1_scroll")
+Effect = SubResource("Resource_teleport")
+AnimationId = "drink_potion"
+Name = "Scroll of Teleportation"
+TypeId = "scroll.teleport"
 IdentityCategory = "scroll"
-TrueName = "Cobalt Raidho Scroll"
-UnidentifiedNameTemplate = "{{descriptor}} scroll"
-Durability = 1.0
-Quality = 1.0
+TrueName = "Scroll of Teleportation"
+UnidentifiedNameTemplate = "scroll labeled {descriptor}"
+Scene = ExtResource("3_scene")
 Value = 150
-Weight = 1.0
-ShowInInventory = true
 IsStackable = true
-metadata/_custom_type_script = ExtResource("4_script")
+MaxStackSize = 20
+metadata/_custom_type_script = ExtResource("1_scroll")

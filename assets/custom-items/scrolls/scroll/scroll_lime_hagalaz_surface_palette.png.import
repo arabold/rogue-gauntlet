@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c0jsxphdjr610"
-path="res://.godot/imported/scroll_lime_hagalaz_surface_palette.png-a1cb7143f3df03ed7783c84a6ab77f3c.ctex"
+path.s3tc="res://.godot/imported/scroll_lime_hagalaz_surface_palette.png-a1cb7143f3df03ed7783c84a6ab77f3c.s3tc.ctex"
+path.etc2="res://.godot/imported/scroll_lime_hagalaz_surface_palette.png-a1cb7143f3df03ed7783c84a6ab77f3c.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "cff784c527e9f24a0321adf2e30984a8"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/scrolls/scroll/scroll_lime_hagalaz_surface_palette.png"
-dest_files=["res://.godot/imported/scroll_lime_hagalaz_surface_palette.png-a1cb7143f3df03ed7783c84a6ab77f3c.ctex"]
+dest_files=["res://.godot/imported/scroll_lime_hagalaz_surface_palette.png-a1cb7143f3df03ed7783c84a6ab77f3c.s3tc.ctex", "res://.godot/imported/scroll_lime_hagalaz_surface_palette.png-a1cb7143f3df03ed7783c84a6ab77f3c.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

@@ -13,6 +13,7 @@ Value = 1
 Weight = 0.0
 ShowInInventory = false
 IsStackable = true
+MaxStackSize = 999
 IsConsumable = null
 IsEquipable = null
 metadata/_custom_type_script = ExtResource("2_fe4b1")

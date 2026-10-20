@@ -1,5 +1,6 @@
 namespace RogueGauntlet.Tests;
 
+using System.Threading.Tasks;
 using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
@@ -32,4 +33,30 @@ public class InventoryEquipSlotTest
 		AssertObject(inventory.EquippedItems[EquipmentSlot.LeftRing]).IsEqual(slotA);
 		AssertObject(inventory.EquippedItems[EquipmentSlot.RightRing]).IsEqual(slotB);
 	}
+
+	[TestCase]
+	public async Task OpeningEquipmentPanelShowsTwoHandedWeaponInBothHands()
+	{
+		ISceneRunner runner = ISceneRunner.Load("res://scenes/ui/equipment_panel.tscn", true);
+		await runner.SimulateFrames(1);
+		var panel = (EquipmentPanel)runner.Scene();
+		var inventory = new Inventory();
+		var weapon = (Weapon)ItemFactory.Create(GD.Load<Item>("res://scenes/items/weapons/crossbow_common.tres"));
+		inventory.TryAdd(weapon);
+		inventory.Equip(inventory.Items[0]);
+
+		panel.Initialize(inventory);
+		AssertObject(panel.WeaponPanel.GetNode<ItemSlotPanel>("%ItemSlotPanel").Slot.Item).IsEqual(weapon);
+		AssertObject(panel.ShieldPanel.GetNode<ItemSlotPanel>("%ItemSlotPanel").Slot.Item).IsEqual(weapon);
+		// The mirrored preview must not create a second equipment owner.
+		AssertObject(inventory.EquippedItems[EquipmentSlot.ShieldHand]).IsNull();
+
+		panel.Initialize(null);
+		panel.Initialize(inventory);
+		AssertObject(panel.ShieldPanel.GetNode<ItemSlotPanel>("%ItemSlotPanel").Slot.Item).IsEqual(weapon);
+		inventory.Unequip(EquipmentSlot.WeaponHand);
+		AssertObject(panel.WeaponPanel.GetNode<ItemSlotPanel>("%ItemSlotPanel").Slot.Item).IsNull();
+		AssertObject(panel.ShieldPanel.GetNode<ItemSlotPanel>("%ItemSlotPanel").Slot.Item).IsNull();
+	}
+
 }

@@ -5,3 +5,9 @@
 [node name="AxeRare" type="Node3D"]
 
 [node name="axe_rare" parent="." instance=ExtResource("1_glb")]
+
+[node name="TrailBase" type="Marker3D" parent="."]
+position = Vector3(-0.32320, 0.50468, 0)
+
+[node name="TrailTip" type="Marker3D" parent="."]
+position = Vector3(-0.32320, 0.72734, 0)

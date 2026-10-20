@@ -6,6 +6,7 @@ using Godot;
 public partial class PlayerAttackController : AttackController
 {
 	[Export] public Player Player { get; set; }
+	[Export] public MeleeAttackProfile SpecialMeleeContact { get; set; }
 
 	/// <summary>
 	/// Target locked in at the start of the current attack for aim-assist facing, so the player turns
@@ -13,6 +14,7 @@ public partial class PlayerAttackController : AttackController
 	/// target was in range/cone; the input controller then falls back to the movement facing.
 	/// </summary>
 	private Node3D _aimAssistTarget;
+	private Weapon _activeWeapon;
 
 	public override void _Ready()
 	{
@@ -27,7 +29,8 @@ public partial class PlayerAttackController : AttackController
 	/// </summary>
 	public Vector3 GetAimAssistFacing()
 	{
-		if (_aimAssistTarget == null || !GodotObject.IsInstanceValid(_aimAssistTarget))
+		if (HasCommittedFacing && IsAttacking) return CommittedFacing;
+		if (!IsAttacking || _aimAssistTarget == null || !GodotObject.IsInstanceValid(_aimAssistTarget))
 		{
 			return Vector3.Zero;
 		}
@@ -54,7 +57,6 @@ public partial class PlayerAttackController : AttackController
 
 	private void PerformWeaponAttack(bool isSpecial)
 	{
-		var stats = Player.Stats;
 		var inventory = Player.Inventory;
 
 		Weapon weapon = null;
@@ -63,33 +65,39 @@ public partial class PlayerAttackController : AttackController
 			weapon = equippedItem?.Item as Weapon;
 		}
 
-		AttackDefinition def = null;
-		if (weapon != null)
+		if (TryPrepareWeaponAttack(weapon, out var attack, isSpecial))
 		{
-			def = weapon.CustomAttackDefinition;
+			StartPreparedWeaponAttack(attack, weapon);
 		}
+	}
 
-		// Fallback to generate a default definition if none is authored in resource
-		if (def == null)
-		{
-			def = CreateDefaultDefinition(weapon, isSpecial);
-		}
+	/// <summary>Prepare without mutating resources or starting action cooldowns.</summary>
+	public bool TryPrepareWeaponAttack(Weapon weapon, out PreparedAttack attack, bool isSpecial = false)
+	{
+		var definition = weapon?.CustomAttackDefinition ?? CreateDefaultDefinition(weapon, isSpecial);
+		return TryPrepareAttack(definition, weapon?.AttackStyle ?? "unarmed.punch",
+			weapon?.PerformDuration ?? 0.5, out attack, isSpecial ? SpecialMeleeContact : weapon?.MeleeContact);
+	}
 
-		// Target mask is 24 (enemies + props)
-		uint targetMask = 24;
-
-		// Lock an aim-assist target so the player turns toward the enemy they are attacking. This is
-		// what makes melee forgiving: the swing no longer requires exact manual facing.
+	/// <summary>Start the accepted snapshot with current actor stats and local aim assistance.</summary>
+	public bool StartPreparedWeaponAttack(PreparedAttack attack, Weapon weapon = null)
+	{
+		if (Player.IsDead || Player.IsHit || IsAttacking) return false;
+		_activeWeapon = weapon;
 		_aimAssistTarget = FindMeleeAimAssistTarget();
+		var stats = Player.Stats;
+		return StartAttack(attack, stats.MinDamage, stats.MaxDamage, stats.Accuracy, stats.CritChance, 24);
+	}
 
-		StartAttack(
-			def,
-			stats.MinDamage,
-			stats.MaxDamage,
-			stats.Accuracy,
-			stats.CritChance,
-			targetMask
-		);
+	public override void _PhysicsProcess(double delta)
+	{
+		if (IsAttacking && _activeWeapon != null
+			&& (!Player.Inventory.EquippedItems.TryGetValue(EquipmentSlot.WeaponHand, out var slot)
+				|| !ReferenceEquals(slot?.Item, _activeWeapon)))
+		{
+			CancelAttack();
+		}
+		base._PhysicsProcess(delta);
 	}
 
 	private AttackDefinition CreateDefaultDefinition(Weapon weapon, bool isSpecial)
@@ -110,23 +118,10 @@ public partial class PlayerAttackController : AttackController
 			}
 		}
 
-		if (!def.IsRanged && !isSpecial)
-		{
-			// Forgiving frontal arc anchored to the actor rather than the swinging weapon bone, so the
-			// hit volume is consistent frame-to-frame and connects across a wide wedge in front of the
-			// player. Aim-assist turns the player toward the target, so this only needs to be generous,
-			// not precisely aligned with the weapon.
-			def.AttachHitBoxToWeapon = false;
-			def.HitBoxSize = new Vector3(2.6f, 2.0f, 2.6f);
-			def.HitBoxOffset = new Vector3(0.0f, 0.9f, -1.3f);
-		}
-
 		if (isSpecial)
 		{
+			def.AttackStyle = "sword.2h.spin";
 			def.AnimationId = "spin_attack"; // special spin/heavy swing attack
-			def.AttachHitBoxToWeapon = false;
-			def.HitBoxSize = new Vector3(2.8f, 2.0f, 2.8f); // larger hit area for special spin
-			def.HitBoxOffset = new Vector3(0.0f, 0.7f, 0.0f);
 			def.HitWindowStart = 0.1f;
 			def.HitWindowEnd = 0.4f;
 		}

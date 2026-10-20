@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Armor" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/items/Armor.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/items/armor/shield/shield_dragon_scale.tscn" id="scene"]
+
+
+[resource]
+script = ExtResource("script")
+Scene = ExtResource("scene")
+Name = "Dragonscale Shield"
+Tier = 5
+ValidSlots = 512
+Value = 200
+IsStackable = false
+RequiredStrength = 21
+ArmorPoints = 12
+SpeedModifier = 0.95
+AccuracyModifier = 1
+metadata/_custom_type_script = ExtResource("script")

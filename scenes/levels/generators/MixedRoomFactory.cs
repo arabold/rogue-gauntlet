@@ -24,31 +24,31 @@ public partial class MixedRoomFactory : RoomFactory
 	// without flooding the output on every room placement attempt.
 	private bool _loggedMissingAuthoredFactory;
 
-	public override Room CreateEntrance()
+	public override Room CreateEntrance(RandomNumberGenerator rng)
 	{
 		WarnIfAuthoredFactoryMissing();
-		return AuthoredFactory?.CreateEntrance();
+		return AuthoredFactory?.CreateEntrance(rng);
 	}
 
-	public override Room CreateExit()
+	public override Room CreateExit(RandomNumberGenerator rng)
 	{
 		WarnIfAuthoredFactoryMissing();
-		return AuthoredFactory?.CreateExit();
+		return AuthoredFactory?.CreateExit(rng);
 	}
 
-	public override Room CreateSpecialRoom()
+	public override Room CreateSpecialRoom(RandomNumberGenerator rng)
 	{
 		WarnIfAuthoredFactoryMissing();
-		return AuthoredFactory?.CreateSpecialRoom();
+		return AuthoredFactory?.CreateSpecialRoom(rng);
 	}
 
-	public override Room CreateStandardRoom()
+	public override Room CreateStandardRoom(RandomNumberGenerator rng)
 	{
-		if (RoomBuilder != null && GD.Randf() < ProceduralShare)
+		if (RoomBuilder != null && rng.Randf() < ProceduralShare)
 		{
 			// Fall back to an authored room on misconfiguration (e.g. a renamed mesh
 			// item) instead of returning null and silently starving the layout of rooms.
-			Room room = RoomBuilder.BuildRoom();
+			Room room = RoomBuilder.BuildRoom(rng);
 			if (room != null)
 			{
 				return room;
@@ -56,7 +56,7 @@ public partial class MixedRoomFactory : RoomFactory
 		}
 
 		WarnIfAuthoredFactoryMissing();
-		return AuthoredFactory?.CreateStandardRoom();
+		return AuthoredFactory?.CreateStandardRoom(rng);
 	}
 
 	public override void Reset()

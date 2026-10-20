@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="PoisonBuff" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://ifyt4ybqwlva" path="res://scenes/buffs/PoisonBuff.cs" id="1_poison"]
+
+[resource]
+script = ExtResource("1_poison")
+DamagePointsPerTick = 1
+Name = "Food poisoning"
+Duration = 6.0
+TicksPerSecond = 1.0
+metadata/_custom_type_script = ExtResource("1_poison")

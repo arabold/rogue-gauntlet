@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ciwyugyysncwu"
-path="res://.godot/imported/scroll_orange_thurisaz_surface_palette.png-f63669c4e5017f31b839987e18294c0a.ctex"
+path.s3tc="res://.godot/imported/scroll_orange_thurisaz_surface_palette.png-f63669c4e5017f31b839987e18294c0a.s3tc.ctex"
+path.etc2="res://.godot/imported/scroll_orange_thurisaz_surface_palette.png-f63669c4e5017f31b839987e18294c0a.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "7e60dcdedd38cc817c52f3dd74aa06e8"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/scrolls/scroll/scroll_orange_thurisaz_surface_palette.png"
-dest_files=["res://.godot/imported/scroll_orange_thurisaz_surface_palette.png-f63669c4e5017f31b839987e18294c0a.ctex"]
+dest_files=["res://.godot/imported/scroll_orange_thurisaz_surface_palette.png-f63669c4e5017f31b839987e18294c0a.s3tc.ctex", "res://.godot/imported/scroll_orange_thurisaz_surface_palette.png-f63669c4e5017f31b839987e18294c0a.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

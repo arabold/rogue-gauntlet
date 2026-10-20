@@ -192,7 +192,7 @@ public class LayoutConnectivityTest
 
 		AssertString(second)
 			.OverrideFailureMessage("Two generations with the same seed produced different maps with "
-				+ "procedural rooms. All procedural decisions must draw from the seeded global RNG.")
+				+ "procedural rooms. All procedural decisions must draw from the explicit seeded layout RNG.")
 			.IsEqual(first);
 	}
 

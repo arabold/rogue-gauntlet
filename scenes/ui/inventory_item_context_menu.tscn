@@ -54,3 +54,15 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Drop"
 alignment = 0
+
+[node name="SplitButton" type="Button" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Split stack in half"
+alignment = 0
+
+[node name="MergeButton" type="Button" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Combine matching stack"
+alignment = 0

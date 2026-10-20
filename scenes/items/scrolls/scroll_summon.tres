@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Scroll" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="Scroll" load_steps=5 format=3]
 
 [ext_resource type="Script" uid="uid://tl6phiqa232t" path="res://scenes/items/scrolls/Scroll.cs" id="1_scroll"]
 [ext_resource type="Script" uid="uid://cu8dqqjh8n1i1" path="res://scenes/items/scrolls/SummonScrollEffect.cs" id="2_effect"]
@@ -22,4 +22,5 @@ UnidentifiedNameTemplate = "scroll labeled {descriptor}"
 Scene = ExtResource("3_scene")
 Value = 10
 IsStackable = true
+MaxStackSize = 20
 metadata/_custom_type_script = ExtResource("1_scroll")

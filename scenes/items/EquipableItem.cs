@@ -59,13 +59,6 @@ public partial class EquipableItem : BuffedItem
 	/// </summary>
 	[Export] public Array<RolledAffix> Affixes { get; set => SetValue(ref field, value); } = new();
 
-	/// <summary>
-	/// Resource path of the definition this instance was rolled from. Set on rolled
-	/// duplicates (whose own <see cref="Resource.ResourcePath"/> is empty) so the save can
-	/// reload the base item and re-attach the rolled affixes. Empty on shared definitions.
-	/// </summary>
-	public string SourceDefinitionPath { get; set; } = "";
-
 	public virtual void OnEquipped(Player player)
 	{
 		ApplyBuff(player);

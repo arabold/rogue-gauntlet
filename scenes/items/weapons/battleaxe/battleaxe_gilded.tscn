@@ -5,3 +5,9 @@
 [node name="BattleaxeGilded" type="Node3D"]
 
 [node name="battleaxe_gilded" parent="." instance=ExtResource("1_glb")]
+
+[node name="TrailBase" type="Marker3D" parent="."]
+position = Vector3(-0.68800, 1.06080, 0)
+
+[node name="TrailTip" type="Marker3D" parent="."]
+position = Vector3(-0.68800, 1.52880, 0)

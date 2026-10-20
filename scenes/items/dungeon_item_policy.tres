@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemCreationPolicy" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/items/ItemCreationPolicy.cs" id="1_policy"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/affix_pool.tres" id="2_pool"]
+
+[resource]
+script = ExtResource("1_policy")
+RollEquipment = true
+EquipmentAffixes = ExtResource("2_pool")
+RollFoodContamination = true
+metadata/_custom_type_script = ExtResource("1_policy")

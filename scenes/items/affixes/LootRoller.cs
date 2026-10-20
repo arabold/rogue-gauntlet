@@ -2,30 +2,17 @@ using Godot;
 
 /// <summary>
 /// Turns a shared equipable definition into a rolled loot instance: a duplicate carrying a
-/// depth-scaled rarity and a set of rolled affixes. Non-equipables, a missing affix pool, or
-/// a null RNG return the item unchanged, which keeps fixed/authored drops and the editor
-/// working. The affix pool is loaded once from a known path, mirroring the identity catalog.
+/// depth-scaled rarity and a set of rolled affixes. The caller supplies an authored affix pool and the RNG.
+/// Fixed creation copies authored state without randomizing it.
 /// </summary>
 public static class LootRoller
 {
-	private const string PoolPath = "res://scenes/items/affixes/affix_pool.tres";
-
-	private static AffixPool _pool;
-	private static AffixPool Pool => _pool ??= ResourceLoader.Load<AffixPool>(PoolPath);
-
-	public static Item Roll(Item item, uint depth, RandomNumberGenerator rng)
+	public static void ApplyRoll(EquipableItem instance, uint depth, RandomNumberGenerator rng, AffixPool pool)
 	{
-		if (item is not EquipableItem definition || Pool == null || rng == null)
-		{
-			return item;
-		}
-
-		var instance = (EquipableItem)definition.Duplicate(true);
-		instance.SourceDefinitionPath = definition.ResourcePath;
-		instance.Rarity = Pool.RollRarity(depth, rng);
+		if (!instance.IsRuntimeInstance) { throw new System.InvalidOperationException("Cannot roll a shared definition."); }
+		instance.Rarity = pool.RollRarity(depth, rng);
 		instance.Affixes = new Godot.Collections.Array<RolledAffix>(
-			Pool.RollAffixes(instance.ValidSlots, instance.Rarity, instance.Tier, rng));
-		return instance;
+			pool.RollAffixes(instance.ValidSlots, instance.Rarity, instance.Tier, rng));
 	}
 
 	/// <summary>
@@ -40,14 +27,12 @@ public static class LootRoller
 			return null;
 		}
 
-		if (!string.IsNullOrEmpty(item.SourceDefinitionPath))
+		if (item.IsRuntimeInstance)
 		{
 			return item;
 		}
 
-		var instance = (EquipableItem)item.Duplicate(true);
-		instance.SourceDefinitionPath = item.ResourcePath;
-		return instance;
+		return (EquipableItem)ItemFactory.CopyDefinition(item);
 	}
 
 	/// <summary>
@@ -55,12 +40,14 @@ public static class LootRoller
 	/// newly rolled affix eligible for the item's slots/tier, skipping name fragments the
 	/// item already carries so it never stacks the same affix twice.
 	/// </summary>
-	public static void Enchant(EquipableItem item, RandomNumberGenerator rng)
+	public static void Enchant(EquipableItem item, RandomNumberGenerator rng, AffixPool pool)
 	{
-		if (item == null || Pool == null || rng == null)
+		if (item == null || pool == null || rng == null)
 		{
 			return;
 		}
+
+		if (!item.IsRuntimeInstance) { throw new System.InvalidOperationException("Cannot enchant a shared definition."); }
 
 		if (item.Rarity < EquipableItemRarity.Legendary)
 		{
@@ -76,7 +63,7 @@ public static class LootRoller
 			}
 		}
 
-		RolledAffix newAffix = Pool.RollSingleAffix(item.ValidSlots, item.Rarity, item.Tier, existingNames, rng);
+		RolledAffix newAffix = pool.RollSingleAffix(item.ValidSlots, item.Rarity, item.Tier, existingNames, rng);
 		if (newAffix == null)
 		{
 			return;

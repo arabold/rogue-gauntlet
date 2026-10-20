@@ -1,29 +1,57 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="MagicStaff" load_steps=9 format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/items/weapons/staff/staff_archmage.tscn" id="1_scene"]
-[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_script"]
+[ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/staff/staff_archmage.tscn" id="1_staff"]
+[ext_resource type="Script" uid="uid://bncpld6hbytsn" path="res://scenes/items/MagicStaff.cs" id="2_magic"]
+[ext_resource type="Script" uid="uid://dirab7d4baxkb" path="res://scenes/attacks/AttackDefinition.cs" id="3_attack_script"]
+[ext_resource type="PackedScene" path="res://scenes/attacks/air_blade_projectile.tscn" id="4_projectile"]
+[ext_resource type="PackedScene" path="res://scenes/effects/air_whirlwind.tscn" id="5_whirlwind"]
+[ext_resource type="PackedScene" path="res://scenes/effects/staff_muzzle_burst_air.tscn" id="6_muzzle"]
+
+[sub_resource type="Resource" id="Resource_air_attack"]
+script = ExtResource("3_attack_script")
+AnimationId = "ranged_attack"
+HitWindowStart = 0.12
+IsRanged = true
+ProjectileScene = ExtResource("4_projectile")
+MuzzleEffectScene = ExtResource("6_muzzle")
+CastEffectScene = ExtResource("5_whirlwind")
+ProjectilePattern = 2
+ProjectileCount = 10
+SpreadAngle = 360.0
+ProjectileDamageScale = 0.32
+ProjectileSpeed = 18.0
+Range = 12.0
+AimingAngle = 180.0
 
 [resource]
-script = ExtResource("2_script")
+script = ExtResource("2_magic")
+AttackStyle = &"staff.cast"
+Grip = ExtResource("weapon_grip")
+Element = 3
+ProjectileSpeed = 18.0
+Range = 12.0
+AimingAngle = 180.0
 Tier = 5
 Level = 0
 RequiredStrength = 21
-Accuracy = 1.0
+Accuracy = 1.15
 DamageMin = 14.0
 DamageMax = 26.0
-CritChance = 0.0
+CritChance = 0.03
 IsTwoHanded = true
-AnimationId = "melee_attack"
-Delay = 0.0
-PerformDuration = 0.5
-CooldownDuration = 0.0
+CustomAttackDefinition = SubResource("Resource_air_attack")
+AnimationId = "ranged_attack"
+Delay = 0.05
+PerformDuration = 0.45
+CooldownDuration = 0.35
 ValidSlots = 256
-Rarity = 0
+Rarity = 1
 Name = "Archmage Astral Staff"
-Scene = ExtResource("1_scene")
+Scene = ExtResource("1_staff")
 Quality = 1.0
 Value = 200
 ShowInInventory = true
 IsStackable = false
 IsQuestItem = false
-metadata/_custom_type_script = ExtResource("2_script")
+metadata/_custom_type_script = ExtResource("2_magic")

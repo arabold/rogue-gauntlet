@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://j3soyw7jw5le"
-path="res://.godot/imported/staff_emerald_surface_palette.png-b4f4672bc752f94aae767e4eb8955d96.ctex"
+path.s3tc="res://.godot/imported/staff_emerald_surface_palette.png-b4f4672bc752f94aae767e4eb8955d96.s3tc.ctex"
+path.etc2="res://.godot/imported/staff_emerald_surface_palette.png-b4f4672bc752f94aae767e4eb8955d96.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "37eb2f42a112bc37cd71f5159a6afc98"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/weapons/staff/staff_emerald_surface_palette.png"
-dest_files=["res://.godot/imported/staff_emerald_surface_palette.png-b4f4672bc752f94aae767e4eb8955d96.ctex"]
+dest_files=["res://.godot/imported/staff_emerald_surface_palette.png-b4f4672bc752f94aae767e4eb8955d96.s3tc.ctex", "res://.godot/imported/staff_emerald_surface_palette.png-b4f4672bc752f94aae767e4eb8955d96.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

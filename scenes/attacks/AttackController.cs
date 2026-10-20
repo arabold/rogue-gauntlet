@@ -7,7 +7,25 @@ using System.Collections.Generic;
 /// </summary>
 public partial class AttackController : Node
 {
-	[Export] public PackedScene HitBoxScene { get; set; }
+	[Export] public AttackAnimationComponent AnimationComponent { get; set; }
+	public bool IsAttacking => _isAttacking;
+	public double PerformDuration => _preparedAttack?.Duration ?? 0;
+	public StringName CurrentStyle => _preparedAttack?.Playback?.Style ?? "";
+	private PreparedAttack _preparedAttack;
+
+	[Export] public MeleeHitDetector MeleeDetector { get; set; }
+	[Export] public MeleeAttackProfile DefaultMeleeContact { get; set; }
+	[Export] public bool EffectsEnabled { get; set; } = true;
+	[Signal] public delegate void AttackFeedbackEventHandler(string result, float damage);
+	public string LastResult { get; private set; } = "Ready";
+	public float LastDamage { get; private set; }
+	public int ContactCount { get; private set; }
+	public bool HasCommittedFacing { get; private set; }
+	public Vector3 CommittedFacing { get; private set; }
+	private Basis _contactBasis;
+	private bool _contactEvaluated;
+	private bool _blockedContact;
+	private MeleeSwoosh _swoosh;
 	[Export] public PackedScene DefaultProjectileScene { get; set; }
 	[Export] public bool DebugDrawEnabled { get; set; } = false;
 	public static bool GlobalDebugDrawEnabled { get; set; } = false;
@@ -32,8 +50,6 @@ public partial class AttackController : Node
 	private float _currentCritChance;
 	private uint _targetMask;
 
-	private HitBoxComponent _activeHitBox;
-	private bool _hitWindowOpen;
 	private bool _projectileSpawned;
 	private HashSet<Node> _hitTargets = new HashSet<Node>();
 
@@ -45,28 +61,58 @@ public partial class AttackController : Node
 		_actor = GetParent<Node3D>();
 		AddToGroup("attack_controller");
 		_random.Randomize();
+		SetPhysicsProcess(false);
 	}
 
 	/// <summary>
 	/// Begins playing an attack with its stats and targeting parameters.
 	/// </summary>
-	public void StartAttack(AttackDefinition def, float minDamage, float maxDamage, float accuracy, float critChance, uint targetMask)
+	public bool StartAttack(AttackDefinition def, float minDamage, float maxDamage, float accuracy, float critChance, uint targetMask)
 	{
-		if (def == null)
-		{
-			GD.PushError($"{Name} cannot start attack without an AttackDefinition.");
-			return;
-		}
+		return TryPrepareAttack(def, "", 0, out var attack)
+			&& StartAttack(attack, minDamage, maxDamage, accuracy, critChance, targetMask);
+	}
 
+	/// <summary>Validate and capture the complete attack before animations, timers or hits start.</summary>
+	public bool TryPrepareAttack(AttackDefinition definition, StringName weaponStyle, double duration, out PreparedAttack attack, MeleeAttackProfile weaponContact = null)
+	{
+		attack = null;
 		_actor ??= GetParent<Node3D>();
-		if (_actor == null)
+		if (definition == null || _actor == null) return false;
+		StringName style = string.IsNullOrWhiteSpace(definition.AttackStyle) ? weaponStyle : definition.AttackStyle;
+		AttackPlayback playback = null;
+		if (AnimationComponent != null && !AnimationComponent.TryResolve(style, out playback))
 		{
-			GD.PushError($"{Name} cannot start attack because it has no Node3D parent actor.");
-			return;
+			GD.PushWarning($"{_actor.Name}: missing/invalid attack animation style '{style}' in {AnimationComponent.Profile?.ResourcePath}.");
+			return false;
 		}
+		if (duration == 0) duration = playback?.ClipLength ?? System.Math.Max(definition.HitWindowEnd, definition.HitWindowStart + 0.1f);
+		if (!double.IsFinite(duration) || duration <= 0) return false;
+		var copy = (AttackDefinition)definition.Duplicate();
+		if (!copy.IsRanged)
+		{
+			var contact = definition.MeleeContact ?? weaponContact ?? DefaultMeleeContact;
+			if (contact == null || !contact.IsValid || MeleeDetector == null) return false;
+			copy.MeleeContact = (MeleeAttackProfile)contact.Duplicate();
+		}
+		if (playback != null)
+		{
+			copy.HitWindowStart = (float)duration * playback.ContactStart;
+			copy.HitWindowEnd = (float)duration * playback.ContactEnd;
+		}
+		attack = new PreparedAttack(copy, playback, duration);
+		return true;
+	}
+
+	/// <summary>Commit an already validated execution snapshot to this actor.</summary>
+	public bool StartAttack(PreparedAttack attack, float minDamage, float maxDamage, float accuracy, float critChance, uint targetMask)
+	{
+		if (attack == null || _actor == null) return false;
+		var def = attack.Definition;
 
 		CancelAttack();
 
+		_preparedAttack = attack;
 		_currentAttack = def;
 		_currentMinDamage = minDamage;
 		_currentMaxDamage = maxDamage;
@@ -76,171 +122,152 @@ public partial class AttackController : Node
 
 		_elapsedTime = 0.0f;
 		_isAttacking = true;
-		_hitWindowOpen = false;
+		HasCommittedFacing = false;
+		_contactEvaluated = _blockedContact = false;
+		ContactCount = 0;
+		LastDamage = 0;
+		LastResult = "Preparing";
+		if (!def.IsRanged) MeleeDetector.Begin(_actor, def.MeleeContact, targetMask, DebugDrawEnabled || GlobalDebugDrawEnabled);
 		_projectileSpawned = false;
 		_hitTargets.Clear();
 
 		GameDebug.Combat($"{_actor.Name} starting attack: {def.AnimationId} (Ranged: {def.IsRanged})");
 
-		SetProcess(true);
+		if (attack.Playback != null) AnimationComponent.Begin(attack.Playback);
+		SetPhysicsProcess(true);
+		return true;
 	}
 
 	/// <summary>
 	/// Cancels any active attack and cleans up active hitboxes.
 	/// </summary>
-	public void CancelAttack()
+	public void CancelAttack() => FinishAttack(true);
+
+	private void FinishAttack(bool interrupted)
 	{
 		if (!_isAttacking) return;
-
-		EndHitWindow();
-
+		CloseContact();
+		MeleeDetector?.End();
+		if (interrupted) ReportFeedback("Interrupted");
+		else if (!_currentAttack.IsRanged && ContactCount == 0) ReportFeedback(_blockedContact ? "Obstructed" : "No contact");
 		_isAttacking = false;
 		_currentAttack = null;
-		SetProcess(false);
+		_preparedAttack = null;
+		AnimationComponent?.End();
+		SetPhysicsProcess(false);
 	}
 
-	public override void _Process(double delta)
+	public override void _PhysicsProcess(double delta)
 	{
-		if (!_isAttacking || _currentAttack == null)
+		if (!_isAttacking || _currentAttack == null) { SetPhysicsProcess(false); return; }
+		if ((_actor is Player player && (player.IsDead || player.IsHit))
+			|| (_actor is EnemyBase enemy && (enemy.IsDead || enemy.MovementComponent.IsPushed)))
 		{
-			SetProcess(false);
+			CancelAttack();
 			return;
 		}
-
+		float previous = _elapsedTime;
 		_elapsedTime += (float)delta;
+		if (_preparedAttack.Playback != null)
+			AnimationComponent.Sample(_preparedAttack.Playback, _elapsedTime / _preparedAttack.Duration);
 
 		if (_currentAttack.IsRanged)
 		{
-			// Spawn projectile exactly when hit window start is reached
 			if (_elapsedTime >= _currentAttack.HitWindowStart && !_projectileSpawned)
 			{
 				SpawnProjectile();
 				_projectileSpawned = true;
 			}
 		}
-		else
+		else if (_elapsedTime >= _currentAttack.HitWindowStart && previous <= _currentAttack.HitWindowEnd
+			&& (!_contactEvaluated || previous < _currentAttack.HitWindowEnd))
 		{
-			// Open hit window
-			if (_elapsedTime >= _currentAttack.HitWindowStart && !_hitWindowOpen)
+			// Interval intersection, not just the current timestamp: even a whole skipped window queries once.
+			if (!HasCommittedFacing)
 			{
-				BeginHitWindow();
+				CommittedFacing = GetActorForward();
+				_contactBasis = Basis.LookingAt(CommittedFacing, Vector3.Up);
+				HasCommittedFacing = true;
 			}
-
-			// Close hit window
-			if (_elapsedTime >= _currentAttack.HitWindowEnd && _hitWindowOpen)
+			var profile = _currentAttack.MeleeContact;
+			var frame = new Transform3D(_contactBasis, _actor.GlobalPosition + Vector3.Up * profile.CenterHeight);
+			var execution = _preparedAttack;
+			foreach (var target in MeleeDetector.Sample(frame))
 			{
-				EndHitWindow();
+				ApplyMeleeContact(target);
+				if (!ReferenceEquals(execution, _preparedAttack)) return;
 			}
-		}
-
-		// Finished playing the attack active window
-		float totalDuration = _currentAttack.IsRanged ? _currentAttack.HitWindowStart + 0.1f : _currentAttack.HitWindowEnd;
-		if (_elapsedTime >= totalDuration)
-		{
-			CancelAttack();
-		}
-	}
-
-	private void BeginHitWindow()
-	{
-		if (_hitWindowOpen || _currentAttack == null) return;
-
-		if (HitBoxScene == null)
-		{
-			GD.PushError($"{Name} cannot open hit window without a HitBoxScene.");
-			CancelAttack();
-			return;
-		}
-
-		Node3D attachParent = _currentAttack.AttachHitBoxToWeapon ? FindWeaponInstance() : _actor;
-		attachParent ??= _actor;
-
-		GameDebug.Combat($"{_actor.Name} opening hit window under: {attachParent.Name}");
-
-		_activeHitBox = HitBoxScene.Instantiate<HitBoxComponent>();
-		attachParent.AddChild(_activeHitBox);
-
-		_activeHitBox.CollisionMask = _targetMask;
-		_activeHitBox.Monitoring = true;
-		_activeHitBox.HitDetected += OnHitDetected;
-
-		var collisionShape = new CollisionShape3D();
-		var boxShape = new BoxShape3D();
-		boxShape.Size = _currentAttack.HitBoxSize;
-		collisionShape.Shape = boxShape;
-		collisionShape.Position = _currentAttack.HitBoxOffset;
-		_activeHitBox.AddChild(collisionShape);
-
-		if (DebugDrawEnabled || GlobalDebugDrawEnabled)
-		{
-			var debugMeshInstance = new MeshInstance3D();
-			debugMeshInstance.AddToGroup("debug_mesh");
-			var boxMesh = new BoxMesh();
-			boxMesh.Size = _currentAttack.HitBoxSize;
-			
-			var material = new StandardMaterial3D();
-			material.AlbedoColor = new Color(1.0f, 0.2f, 0.0f, 0.35f);
-			material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
-			material.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
-			
-			debugMeshInstance.Mesh = boxMesh;
-			debugMeshInstance.MaterialOverride = material;
-			debugMeshInstance.Position = _currentAttack.HitBoxOffset;
-			_activeHitBox.AddChild(debugMeshInstance);
-		}
-
-		_hitWindowOpen = true;
-	}
-
-	private void EndHitWindow()
-	{
-		if (!_hitWindowOpen) return;
-
-		GameDebug.Combat($"{_actor.Name} closing hit window");
-
-		if (GodotObject.IsInstanceValid(_activeHitBox))
-		{
-			_activeHitBox.Monitoring = false;
-			_activeHitBox.HitDetected -= OnHitDetected;
-			_activeHitBox.QueueFree();
-		}
-
-		_activeHitBox = null;
-		_hitWindowOpen = false;
-	}
-
-	private void OnHitDetected(Node3D target)
-	{
-		if (!_hitWindowOpen || _currentAttack == null) return;
-
-		// Prevent hit on the attacker itself
-		if (target == _actor || _actor.IsAncestorOf(target) || target.IsAncestorOf(_actor))
-		{
-			return;
-		}
-
-		if (target is IDamageable damageable)
-		{
-			// Resolve the root entity node to prevent double-hits on multiple collision representations (e.g. HurtBox vs. CharacterBody3D)
-			Node damageOwner = target is HurtBoxComponent hurtBox ? (hurtBox.GetParent() ?? target) : target;
-
-			if (_hitTargets.Contains(damageOwner)) return;
-
-			_hitTargets.Add(damageOwner);
-
-			GameDebug.Combat($"{_actor.Name} hits {target.Name} (Owner: {damageOwner.Name}) with {_currentAttack.AnimationId}!");
-
-			var direction = -_actor.GlobalTransform.Basis.Z;
-			var damage = (float)GD.RandRange(_currentMinDamage, _currentMaxDamage);
-			if (GD.Randf() < _currentCritChance)
+			_blockedContact |= MeleeDetector.BlockedContacts > 0;
+			_contactEvaluated = true;
+			if (EffectsEnabled && profile.SwooshScene != null)
 			{
-				damage *= 2;
-				GameDebug.Combat("Critical hit!");
+				if (_swoosh == null)
+				{
+					_swoosh = ScenePool.Spawn<MeleeSwoosh>(profile.SwooshScene, GetTree().CurrentScene ?? _actor.GetParent());
+					_swoosh.Initialize(frame, profile.Reach, profile.Volume == MeleeVolume.Radial ? null : FindWeaponInstance());
+				}
+				SampleSwoosh(frame, previous);
 			}
+		}
+		if (!_currentAttack.IsRanged && _elapsedTime >= _currentAttack.HitWindowEnd) CloseContact();
+		if (_elapsedTime >= _preparedAttack.Duration) FinishAttack(false);
+	}
 
-			damageable.TakeDamage(_currentAccuracy, damage, direction, _actor);
+	/// <summary>Trace cosmetics through intermediate poses, keeping collision independent of animation geometry.</summary>
+	private void SampleSwoosh(Transform3D frame, float previous)
+	{
+		float start = _currentAttack.HitWindowStart, end = _currentAttack.HitWindowEnd;
+		float window = Mathf.Max(.0001f, end - start);
+		if (_swoosh.FollowsWeapon && _preparedAttack.Playback != null)
+		{
+			float from = Mathf.Max(previous, start), to = Mathf.Min(_elapsedTime, end);
+			int steps = Mathf.Clamp(Mathf.CeilToInt((to - from) / (float)_preparedAttack.Duration * 60), 1, 32);
+			for (int i = 0; i <= steps; i++)
+			{
+				float time = Mathf.Lerp(from, to, (float)i / steps);
+				AnimationComponent.Sample(_preparedAttack.Playback, time / _preparedAttack.Duration);
+				_swoosh.Sample(frame, (time - start) / window);
+			}
+			AnimationComponent.Sample(_preparedAttack.Playback, _elapsedTime / _preparedAttack.Duration);
+			_swoosh.RefreshWeaponPose();
+		}
+		else _swoosh.Sample(frame, (_elapsedTime - start) / window);
+	}
+
+	private void CloseContact()
+	{
+		MeleeDetector?.CloseWindow();
+		if (GodotObject.IsInstanceValid(_swoosh)) _swoosh.Finish();
+		_swoosh = null;
+	}
+
+	private void ApplyMeleeContact(Node3D target)
+	{
+		Node owner = target is HurtBoxComponent ? target.GetParent() : target;
+		if (!_hitTargets.Add(owner)) return;
+		if (target is HurtBoxComponent { HealthComponent: { IsDead: true } }) return;
+		ContactCount++;
+		float damage = _random.RandfRange(_currentMinDamage, _currentMaxDamage);
+		if (_random.Randf() < _currentCritChance) damage *= 2;
+		if (target is HurtBoxComponent hurtBox)
+		{
+			var result = hurtBox.ResolveDamage(_currentAccuracy, damage, CommittedFacing, _actor, random: _random);
+			ReportFeedback(result.Outcome.ToString(), result.Amount);
+		}
+		else if (target is IDamageable damageable)
+		{
+			damageable.TakeDamage(_currentAccuracy, damage, CommittedFacing, _actor);
+			ReportFeedback("Contact", damage);
 		}
 	}
+
+	private void ReportFeedback(string result, float damage = 0)
+	{
+		LastResult = result; LastDamage = damage;
+		EmitSignalAttackFeedback(result, damage);
+	}
+
+	public override void _ExitTree() => CancelAttack();
 
 	private void SpawnProjectile()
 	{
@@ -266,7 +293,7 @@ public partial class AttackController : Node
 
 		foreach (Vector3 direction in GetProjectileDirections(aimedDirection))
 		{
-			Projectile projectile = ScenePool.Spawn<Projectile>(scene, GetTree().CurrentScene);
+			Projectile projectile = ScenePool.Spawn<Projectile>(scene, (GetTree().CurrentScene ?? _actor.GetParent()));
 			ApplyProjectileOverrides(projectile);
 			projectile.Initialize(
 				origin,
@@ -293,7 +320,7 @@ public partial class AttackController : Node
 		{
 			Vector3 dropOrigin = targetPosition + Vector3.Up * _currentAttack.SpawnHeight;
 			Vector3 direction = Vector3.Down;
-			Projectile projectile = ScenePool.Spawn<Projectile>(scene, GetTree().CurrentScene);
+			Projectile projectile = ScenePool.Spawn<Projectile>(scene, (GetTree().CurrentScene ?? _actor.GetParent()));
 			ApplyProjectileOverrides(projectile);
 			projectile.Initialize(
 				dropOrigin,
@@ -326,7 +353,7 @@ public partial class AttackController : Node
 	private IEnumerable<Vector3> GetAreaDropLandingPositions()
 	{
 		int count = Mathf.Max(1, _currentAttack.ProjectileCount);
-		Level level = _actor.GetAncestorOrNull<Level>() ?? GetTree().CurrentScene?.GetNodeOrNull<Level>("Level");
+		Level level = _actor.GetAncestorOrNull<Level>() ?? (GetTree().CurrentScene ?? _actor.GetParent())?.GetNodeOrNull<Level>("Level");
 		for (int i = 0; i < count; i++)
 		{
 			if (TryGetAreaDropLandingPosition(i, count, _random, level?.MapGenerator, out Vector3 landingPosition))
@@ -408,7 +435,7 @@ public partial class AttackController : Node
 	{
 		if (effectScene == null) return;
 
-		Node3D effect = ScenePool.Spawn<Node3D>(effectScene, GetTree().CurrentScene);
+		Node3D effect = ScenePool.Spawn<Node3D>(effectScene, (GetTree().CurrentScene ?? _actor.GetParent()));
 		effect.GlobalPosition = origin;
 		if (direction.LengthSquared() > 0)
 		{

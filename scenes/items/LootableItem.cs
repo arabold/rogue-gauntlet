@@ -51,6 +51,15 @@ public partial class LootableItem : Node3D
 	private Player _player;
 	private bool _armed;
 	private bool _collected;
+	public bool IsCollected => _collected;
+
+	public void CommitCollected()
+	{
+		_collected = true;
+		QueueFree();
+	}
+
+	[Export] public ItemCreationPolicy CreationPolicy { get; set; }
 	private bool _pickupBlocked;
 
 	public override void _Ready()
@@ -75,6 +84,17 @@ public partial class LootableItem : Node3D
 			GD.PrintErr("LootableItem's item has no scene assigned");
 			QueueFree();
 			return;
+		}
+
+		if (!Item.IsRuntimeInstance)
+		{
+			if (Quantity <= 0 || Quantity > (Item.CanStack ? Item.MaxStackSize : 1))
+			{ GD.PushError("Authored pickup must fit a single valid item record."); QueueFree(); return; }
+			var level = this.GetAncestorOrNull<Level>();
+			string source = HasMeta("persistent_id") ? GetMeta("persistent_id").AsString() : GetPath().ToString();
+			using var rng = GenerationRandom.Create(level?.MapGenerator.Seed ?? 42, GenerationRandom.Items, source);
+			Item = ItemFactory.Create(Item, CreationPolicy, level?.MapGenerator.DungeonDepth ?? 1, rng,
+				HasMeta("persistent_id") ? source + ":0" : null);
 		}
 
 		Pivot = GetNode<Node3D>("Pivot");
@@ -218,14 +238,20 @@ public partial class LootableItem : Node3D
 			return;
 		}
 
-		if (player.PickupItem(Item, Quantity))
+		if (player.InventoryController.TryPickup(this).Success)
 		{
-			_collected = true;
-			QueueFree();
+			// Controller has committed ownership and queued this representation for deletion.
 		}
 		else
 		{
 			_pickupBlocked = true;
+			var label = new Label3D
+			{
+				Text = player.InventoryController.LastOperationMessage, Position = Vector3.Up * 1.5f,
+				Billboard = BaseMaterial3D.BillboardModeEnum.Enabled, FontSize = 32, NoDepthTest = true,
+			};
+			AddChild(label);
+			GetTree().CreateTimer(2).Timeout += () => { if (IsInstanceValid(label)) { label.QueueFree(); } };
 		}
 	}
 }

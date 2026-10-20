@@ -1,4 +1,4 @@
-[gd_scene load_steps=66 format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=73 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
@@ -24,8 +24,14 @@
 [ext_resource type="Script" path="res://scenes/player/PlayerInventoryController.cs" id="15_gknh4"]
 [ext_resource type="Script" path="res://scenes/player/PlayerInputController.cs" id="16_1atg5"]
 [ext_resource type="Script" path="res://scenes/player/PlayerAttackController.cs" id="17_sh3lf"]
-[ext_resource type="PackedScene" uid="uid://blsurcr8183cv" path="res://scenes/components/hit_box_component.tscn" id="18_hitbox"]
 [ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/attacks/projectile.tscn" id="19_projectile"]
+
+[ext_resource type="Script" path="res://scenes/attacks/AttackAnimationComponent.cs" id="attack_animation_script"]
+[ext_resource type="Resource" path="res://scenes/attacks/animation_profiles/kaykit_player.tres" id="attack_animation_profile"]
+
+[ext_resource type="Script" path="res://scenes/attacks/MeleeHitDetector.cs" id="melee_detector_script"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/unarmed.tres" id="melee_default"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/spin.tres" id="melee_spin"]
 
 [sub_resource type="Resource" id="Resource_3j4b4"]
 script = ExtResource("3_uf5tr")
@@ -470,9 +476,12 @@ MovementComponent = NodePath("../MovementComponent")
 ActionManager = NodePath("../ActionManager")
 InteractionController = NodePath("../PlayerInteractionController")
 
-[node name="PlayerAttackController" type="Node" parent="."]
+[node name="PlayerAttackController" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "MeleeDetector")]
 script = ExtResource("17_sh3lf")
-HitBoxScene = ExtResource("18_hitbox")
+AnimationComponent = NodePath("../AttackAnimationComponent")
+MeleeDetector = NodePath("../MeleeHitDetector")
+DefaultMeleeContact = ExtResource("melee_default")
+SpecialMeleeContact = ExtResource("melee_spin")
 DefaultProjectileScene = ExtResource("19_projectile")
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor", "StairsTrigger") instance=ExtResource("7_7mjdt")]
@@ -483,3 +492,12 @@ StairsTrigger = NodePath("../StairsTrigger")
 [node name="InputComponent" parent="." instance=ExtResource("9_p85oa")]
 
 [editable path="Pivot/Character"]
+
+[node name="AttackAnimationComponent" type="Node" parent="."]
+script = ExtResource("attack_animation_script")
+AnimationPlayerPath = NodePath("../Pivot/Character/AnimationPlayer")
+AnimationTreePath = NodePath("../AnimationTree")
+Profile = ExtResource("attack_animation_profile")
+
+[node name="MeleeHitDetector" type="Node" parent="."]
+script = ExtResource("melee_detector_script")

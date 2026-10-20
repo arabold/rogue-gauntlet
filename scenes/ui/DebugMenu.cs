@@ -33,6 +33,8 @@ public partial class DebugMenu : HBoxContainer
 		{ "Potions", "res://scenes/items/potions/" },
 		{ "Scrolls", "res://scenes/items/scrolls/" },
 		{ "Jewelry", "res://scenes/items/jewelry/" },
+		{ "Food", "res://scenes/items/food/food/" },
+		{ "Drinks", "res://scenes/items/food/drink/" },
 		{ "Gold", "res://scenes/items/gold/" },
 	};
 
@@ -143,7 +145,7 @@ public partial class DebugMenu : HBoxContainer
 	}
 
 	/// <summary>
-	/// Loads every top-level <c>.tres</c> in a folder as an <see cref="Item"/>, sorted by
+	/// Recursively loads every <c>.tres</c> in a folder as an <see cref="Item"/>, sorted by
 	/// display name. Entries that fail to load or aren't an <see cref="Item"/> are skipped.
 	/// </summary>
 	private static List<Item> LoadItemsInDirectory(string directory)
@@ -158,10 +160,12 @@ public partial class DebugMenu : HBoxContainer
 		dir.ListDirBegin();
 		for (string fileName = dir.GetNext(); fileName != ""; fileName = dir.GetNext())
 		{
-			if (dir.CurrentIsDir() || !fileName.EndsWith(".tres"))
+			if (dir.CurrentIsDir())
 			{
+				if (!fileName.StartsWith(".")) { items.AddRange(LoadItemsInDirectory(directory.PathJoin(fileName))); }
 				continue;
 			}
+			if (!fileName.EndsWith(".tres")) { continue; }
 
 			Item item = ResourceLoader.Load<Item>(directory.PathJoin(fileName));
 			if (item != null)

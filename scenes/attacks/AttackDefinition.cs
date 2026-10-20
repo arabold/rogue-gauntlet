@@ -14,6 +14,9 @@ public enum ProjectilePattern
 [GlobalClass]
 public partial class AttackDefinition : Resource
 {
+	/// <summary>Optional style override; an empty value uses the weapon's authored style.</summary>
+	[Export] public StringName AttackStyle { get; set; } = "";
+
 	/// <summary>
 	/// The animation state/ID inside the AnimationTree to transition to.
 	/// </summary>
@@ -29,20 +32,8 @@ public partial class AttackDefinition : Resource
 	/// </summary>
 	[Export] public float HitWindowEnd { get; set; } = 0.35f;
 
-	/// <summary>
-	/// The dimensions of the melee hit detection box.
-	/// </summary>
-	[Export] public Vector3 HitBoxSize { get; set; } = new Vector3(1.2f, 2.0f, 1.6f);
-
-	/// <summary>
-	/// Local offset of the hit box relative to the weapon attachment or fist/bone node.
-	/// </summary>
-	[Export] public Vector3 HitBoxOffset { get; set; } = new Vector3(0.0f, 0.7f, -0.45f);
-
-	/// <summary>
-	/// Whether melee collision should follow the active weapon/bone attachment instead of the actor root.
-	/// </summary>
-	[Export] public bool AttachHitBoxToWeapon { get; set; } = true;
+	/// <summary>Stable gameplay volume; null uses the weapon or actor default contact profile.</summary>
+	[Export] public MeleeAttackProfile MeleeContact { get; set; }
 
 	/// <summary>
 	/// Is this attack a ranged projectile attack?

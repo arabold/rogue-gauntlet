@@ -69,6 +69,29 @@ public partial class BoneAttachmentManager : Node
 		}
 	}
 
+	private readonly System.Collections.Generic.Dictionary<AttachmentType, BoneAttachment3D> _weaponMounts = new();
+
+	/// <summary>Use the shared hand socket rather than a character's weapon-specific prop bone.</summary>
+	private BoneAttachment3D GetWeaponMount(AttachmentType type, WeaponGrip grip)
+	{
+		Skeleton3D skeleton = CharacterModel.FindSkeleton(player);
+		if (skeleton == null || skeleton.FindBone(grip.Bone) < 0)
+		{
+			GD.PushWarning($"{Name}: missing weapon grip bone '{grip.Bone}'.");
+			return null;
+		}
+		if (!_weaponMounts.TryGetValue(type, out var mount))
+		{
+			RemoveAttachments(type);
+			mount = new BoneAttachment3D { Name = $"Runtime_{type}", BoneName = grip.Bone };
+			skeleton.AddChild(mount);
+			_weaponMounts[type] = mount;
+			AttachmentNodes[type] = mount;
+		}
+		mount.BoneName = grip.Bone;
+		return mount;
+	}
+
 	private BoneAttachment3D GetOrCreateBoneAttachment(AttachmentType attachmentType)
 	{
 		if (AttachmentNodes == null)
@@ -158,7 +181,8 @@ public partial class BoneAttachmentManager : Node
 			return;
 		}
 
-		var boneAttachment = GetOrCreateBoneAttachment(attachmentType);
+		var boneAttachment = item is Weapon { Grip: not null } weapon
+			? GetWeaponMount(attachmentType, weapon.Grip) : GetOrCreateBoneAttachment(attachmentType);
 		if (boneAttachment != null)
 		{
 			RemoveAttachments(attachmentType);
@@ -177,7 +201,17 @@ public partial class BoneAttachmentManager : Node
 			var itemAttachment = item.Scene.Instantiate<Node>();
 			itemAttachment.SetMeta(EquippedMetaKey, true);
 			ApplyRenderLayers(itemAttachment, CharacterModel.PlayerRenderLayers);
-			boneAttachment.AddChild(itemAttachment);
+			if (item is Weapon { Grip: not null } equippedWeapon)
+			{
+				var adapter = new Node3D { Name = "Grip", Transform = equippedWeapon.Grip.Transform };
+				adapter.SetMeta(EquippedMetaKey, true);
+				adapter.AddChild(itemAttachment);
+				boneAttachment.AddChild(adapter);
+			}
+			else
+			{
+				boneAttachment.AddChild(itemAttachment);
+			}
 		}
 	}
 

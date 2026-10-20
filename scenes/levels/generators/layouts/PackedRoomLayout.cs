@@ -43,12 +43,12 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 	/// </summary>
 	[Export(PropertyHint.Range, "0,10")] public float ScoreTolerance { get; set; } = 1f;
 
-	public override List<RoomPlacement> GenerateRooms(MapData map, RoomFactory factory, uint maxRooms)
+	public override List<RoomPlacement> GenerateRooms(MapData map, RoomFactory factory, uint maxRooms, RandomNumberGenerator rng)
 	{
 		List<RoomPlacement> rooms = new();
 
 		// The entrance anchors the cluster at the map center so it can grow in every direction.
-		var entranceRoom = PrepareConnectableRoom(factory.CreateEntrance());
+		var entranceRoom = PrepareConnectableRoom(factory.CreateEntrance(rng));
 		if (entranceRoom == null)
 		{
 			return rooms;
@@ -71,22 +71,22 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 		// `rooms` so the exit-placement rollback below can free space by dropping filler
 		// content only -- never the entrance or a special room.
 		var removableRooms = new List<RoomPlacement>();
-		var countSpecialRooms = PickSpecialRoomCount(maxRooms);
+		var countSpecialRooms = PickSpecialRoomCount(maxRooms, rng);
 		for (int i = 0; i < maxRooms; i++)
 		{
 			bool isSpecial = i < countSpecialRooms;
 			int countBefore = rooms.Count;
 			var clusterCenter = ComputeClusterCenter(rooms);
 			TryAddPackedRoom(map, rooms,
-				() => isSpecial ? factory.CreateSpecialRoom() : factory.CreateStandardRoom(),
-				(placement, roomMap, connectors) => ScoreCompactPlacement(map, clusterCenter, placement, roomMap, connectors));
+				() => isSpecial ? factory.CreateSpecialRoom(rng) : factory.CreateStandardRoom(rng),
+				(placement, roomMap, connectors) => ScoreCompactPlacement(map, clusterCenter, placement, roomMap, connectors), rng);
 			if (!isSpecial && rooms.Count > countBefore)
 			{
 				removableRooms.Add(rooms[^1]);
 			}
 		}
 
-		PlaceExit(map, rooms, factory, entranceCenter, removableRooms);
+		PlaceExit(map, rooms, factory, entranceCenter, removableRooms, rng);
 		return rooms;
 	}
 
@@ -99,14 +99,14 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 	/// </summary>
 	private void PlaceExit(
 		MapData map, List<RoomPlacement> rooms, RoomFactory factory, Vector2 entranceCenter,
-		List<RoomPlacement> removableRooms)
+		List<RoomPlacement> removableRooms, RandomNumberGenerator rng)
 	{
 		while (true)
 		{
-			bool placed = TryAddPackedRoom(map, rooms, factory.CreateExit,
+			bool placed = TryAddPackedRoom(map, rooms, () => factory.CreateExit(rng),
 				(placement, roomMap, connectors) =>
 					(RectCenter(placement, roomMap) - entranceCenter).Length()
-					+ CountAlignedConnectors(map, placement, connectors) * DoorwayAlignmentBonus);
+					+ CountAlignedConnectors(map, placement, connectors) * DoorwayAlignmentBonus, rng);
 			if (placed)
 			{
 				return;
@@ -131,7 +131,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 
 	private bool TryAddPackedRoom(
 		MapData map, List<RoomPlacement> rooms, Func<Room> createRoom,
-		Func<Vector2I, MapData, List<(Vector2I Tile, Vector2I Direction)>, float> score)
+		Func<Vector2I, MapData, List<(Vector2I Tile, Vector2I Direction)>, float> score, RandomNumberGenerator rng)
 	{
 		for (int attempt = 0; attempt < Retries; attempt++)
 		{
@@ -141,7 +141,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 				continue;
 			}
 
-			if (TryFindBestPlacementAcrossRotations(map, rooms, room, score, out var placement))
+			if (TryFindBestPlacementAcrossRotations(map, rooms, room, score, rng, out var placement))
 			{
 				AddPlacement(map, rooms, room, placement);
 				return true;
@@ -165,7 +165,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 	/// </summary>
 	private bool TryFindBestPlacementAcrossRotations(
 		MapData map, List<RoomPlacement> rooms, Room room,
-		Func<Vector2I, MapData, List<(Vector2I Tile, Vector2I Direction)>, float> score,
+		Func<Vector2I, MapData, List<(Vector2I Tile, Vector2I Direction)>, float> score, RandomNumberGenerator rng,
 		out Vector2I bestPlacement)
 	{
 		bestPlacement = default;
@@ -186,7 +186,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 			{
 				GD.PrintErr($"PackedRoomLayout: {room.Name} has no connector at {steps * 90} degrees of rotation, skipping this orientation.");
 			}
-			else if (TryFindBestPlacement(map, rooms, room.Map, score, out var placement, out float placementScore)
+			else if (TryFindBestPlacement(map, rooms, room.Map, score, rng, out var placement, out float placementScore)
 				&& placementScore > bestScore)
 			{
 				bestScore = placementScore;
@@ -222,7 +222,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 
 	private bool TryFindBestPlacement(
 		MapData map, List<RoomPlacement> rooms, MapData roomMap,
-		Func<Vector2I, MapData, List<(Vector2I Tile, Vector2I Direction)>, float> score,
+		Func<Vector2I, MapData, List<(Vector2I Tile, Vector2I Direction)>, float> score, RandomNumberGenerator rng,
 		out Vector2I placement, out float placementScore)
 	{
 		var connectors = GetRoomConnectors(roomMap);
@@ -248,7 +248,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 		// insertion-ordered (not hash-ordered), so the same seed yields the same layout.
 		float best = scored.Max(c => c.Score);
 		var top = scored.Where(c => c.Score >= best - Mathf.Max(ScoreTolerance, 0f)).ToList();
-		var chosen = top[GD.RandRange(0, top.Count - 1)];
+		var chosen = top[rng.RandiRange(0, top.Count - 1)];
 		placement = chosen.Position;
 		// Report the CHOSEN candidate's score, not the max -- the caller compares this
 		// across rotations to pick the winning orientation, so it must reflect the

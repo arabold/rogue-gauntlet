@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://68ge7aab1iy0"
-path="res://.godot/imported/potion_small_purple_surface_palette.png-3c42e95597f9c5d6514822aa9dc90cfc.ctex"
+path.s3tc="res://.godot/imported/potion_small_purple_surface_palette.png-3c42e95597f9c5d6514822aa9dc90cfc.s3tc.ctex"
+path.etc2="res://.godot/imported/potion_small_purple_surface_palette.png-3c42e95597f9c5d6514822aa9dc90cfc.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "dc9812f00e3807c386574ea209c36502"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/potions/potion_small/potion_small_purple_surface_palette.png"
-dest_files=["res://.godot/imported/potion_small_purple_surface_palette.png-3c42e95597f9c5d6514822aa9dc90cfc.ctex"]
+dest_files=["res://.godot/imported/potion_small_purple_surface_palette.png-3c42e95597f9c5d6514822aa9dc90cfc.s3tc.ctex", "res://.godot/imported/potion_small_purple_surface_palette.png-3c42e95597f9c5d6514822aa9dc90cfc.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

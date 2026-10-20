@@ -36,7 +36,7 @@ public partial class InventoryItemSlot : Resource
 	{
 		return new InventoryItemSlot
 		{
-			Item = Item,
+			Item = ItemFactory.CopyDefinition(Item),
 			Quantity = Quantity
 		};
 	}

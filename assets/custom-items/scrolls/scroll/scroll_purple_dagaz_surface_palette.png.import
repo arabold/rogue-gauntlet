@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b0xe4chfg6ef7"
-path="res://.godot/imported/scroll_purple_dagaz_surface_palette.png-621904aa59fb7033aae166052d3e33cc.ctex"
+path.s3tc="res://.godot/imported/scroll_purple_dagaz_surface_palette.png-621904aa59fb7033aae166052d3e33cc.s3tc.ctex"
+path.etc2="res://.godot/imported/scroll_purple_dagaz_surface_palette.png-621904aa59fb7033aae166052d3e33cc.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "6b40594bf16169c7646416a5cd012526"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/scrolls/scroll/scroll_purple_dagaz_surface_palette.png"
-dest_files=["res://.godot/imported/scroll_purple_dagaz_surface_palette.png-621904aa59fb7033aae166052d3e33cc.ctex"]
+dest_files=["res://.godot/imported/scroll_purple_dagaz_surface_palette.png-621904aa59fb7033aae166052d3e33cc.s3tc.ctex", "res://.godot/imported/scroll_purple_dagaz_surface_palette.png-621904aa59fb7033aae166052d3e33cc.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

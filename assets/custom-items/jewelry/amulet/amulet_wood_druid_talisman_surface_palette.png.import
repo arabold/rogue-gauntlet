@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://47q3r4icnqu0"
-path="res://.godot/imported/amulet_wood_druid_talisman_surface_palette.png-d5ece2558c13e559ccde572c12846654.ctex"
+path.s3tc="res://.godot/imported/amulet_wood_druid_talisman_surface_palette.png-d5ece2558c13e559ccde572c12846654.s3tc.ctex"
+path.etc2="res://.godot/imported/amulet_wood_druid_talisman_surface_palette.png-d5ece2558c13e559ccde572c12846654.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "fff831aabf937212ad0eb9ae3f3dcf23"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/jewelry/amulet/amulet_wood_druid_talisman_surface_palette.png"
-dest_files=["res://.godot/imported/amulet_wood_druid_talisman_surface_palette.png-d5ece2558c13e559ccde572c12846654.ctex"]
+dest_files=["res://.godot/imported/amulet_wood_druid_talisman_surface_palette.png-d5ece2558c13e559ccde572c12846654.s3tc.ctex", "res://.godot/imported/amulet_wood_druid_talisman_surface_palette.png-d5ece2558c13e559ccde572c12846654.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

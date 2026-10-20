@@ -106,7 +106,7 @@ public partial class ProceduralRoomBuilder : Resource
 	/// Builds a new room. Returns null when the configuration is unusable (missing
 	/// libraries or none of the configured items exist).
 	/// </summary>
-	public Room BuildRoom()
+	public Room BuildRoom(RandomNumberGenerator rng)
 	{
 		if (FloorLibrary == null || WallLibrary == null || DecorationLibrary == null)
 		{
@@ -114,23 +114,23 @@ public partial class ProceduralRoomBuilder : Resource
 			return null;
 		}
 
-		int floorItem = PickItem(FloorLibrary, FloorItems);
+		int floorItem = PickItem(FloorLibrary, FloorItems, rng);
 		if (floorItem < 0)
 		{
 			GD.PrintErr("ProceduralRoomBuilder: no configured floor item exists in the floor library.");
 			return null;
 		}
 
-		var footprint = GenerateFootprint();
+		var footprint = GenerateFootprint(rng);
 
 		var room = new Room { Name = "ProceduralRoom" };
 		room.FloorGridMap = AddGridMap(room, "FloorGridMap", FloorLibrary);
 		room.WallGridMap = AddGridMap(room, "WallGridMap", WallLibrary);
 		room.DecorationGridMap = AddGridMap(room, "DecorationGridMap", DecorationLibrary);
 
-		PlaceFloors(room.FloorGridMap, floorItem, footprint);
-		PlaceColumns(room.DecorationGridMap, footprint);
-		PlaceDoorways(room, footprint);
+		PlaceFloors(room.FloorGridMap, floorItem, footprint, rng);
+		PlaceColumns(room.DecorationGridMap, footprint, rng);
+		PlaceDoorways(room, footprint, rng);
 		return room;
 	}
 
@@ -161,12 +161,12 @@ public partial class ProceduralRoomBuilder : Resource
 		}
 	}
 
-	private Footprint GenerateFootprint()
+	private Footprint GenerateFootprint(RandomNumberGenerator rng)
 	{
 		int minTiles = Mathf.Max(3, MinTiles);
 		int maxTiles = Mathf.Max(minTiles, MaxTiles);
-		int width = GD.RandRange(minTiles, maxTiles);
-		int height = GD.RandRange(minTiles, maxTiles);
+		int width = rng.RandiRange(minTiles, maxTiles);
+		int height = rng.RandiRange(minTiles, maxTiles);
 		var tiles = new bool[width, height];
 		for (int x = 0; x < width; x++)
 		{
@@ -176,24 +176,24 @@ public partial class ProceduralRoomBuilder : Resource
 			}
 		}
 
-		switch (GD.RandRange(0, 2))
+		switch (rng.RandiRange(0, 2))
 		{
 			case 0:
 				// Plain rectangle; large ones may hold an interior chasm pit. Only
 				// rectangles get pits: an L/union notch could merge with a pit into a
 				// region touching the room bounds, which would not bake into a chasm.
-				if (width >= 4 && height >= 4 && GD.Randf() < ChasmChance)
+				if (width >= 4 && height >= 4 && rng.Randf() < ChasmChance)
 				{
-					CarvePit(tiles, width, height);
+					CarvePit(tiles, width, height, rng);
 				}
 				break;
 
 			case 1:
-				CarveCorner(tiles, width, height);
+				CarveCorner(tiles, width, height, rng);
 				break;
 
 			case 2:
-				CarveUnionNotches(tiles, width, height);
+				CarveUnionNotches(tiles, width, height, rng);
 				break;
 		}
 
@@ -201,12 +201,12 @@ public partial class ProceduralRoomBuilder : Resource
 	}
 
 	/// <summary>Removes a random corner rectangle, leaving an L-shaped room.</summary>
-	private static void CarveCorner(bool[,] tiles, int width, int height)
+	private static void CarveCorner(bool[,] tiles, int width, int height, RandomNumberGenerator rng)
 	{
-		int carveWidth = GD.RandRange(1, width - 2);
-		int carveHeight = GD.RandRange(1, height - 2);
-		bool east = GD.Randf() < 0.5f;
-		bool south = GD.Randf() < 0.5f;
+		int carveWidth = rng.RandiRange(1, width - 2);
+		int carveHeight = rng.RandiRange(1, height - 2);
+		bool east = rng.Randf() < 0.5f;
+		bool south = rng.Randf() < 0.5f;
 		for (int x = 0; x < carveWidth; x++)
 		{
 			for (int z = 0; z < carveHeight; z++)
@@ -220,17 +220,17 @@ public partial class ProceduralRoomBuilder : Resource
 	/// Removes two opposing corner rectangles, producing the union of two overlapping
 	/// rectangles (an S/T-like shape).
 	/// </summary>
-	private static void CarveUnionNotches(bool[,] tiles, int width, int height)
+	private static void CarveUnionNotches(bool[,] tiles, int width, int height, RandomNumberGenerator rng)
 	{
 		if (width < 4 || height < 4)
 		{
-			CarveCorner(tiles, width, height);
+			CarveCorner(tiles, width, height, rng);
 			return;
 		}
 
-		int carveWidth = GD.RandRange(1, width / 2 - 1);
-		int carveHeight = GD.RandRange(1, height / 2 - 1);
-		bool mirrored = GD.Randf() < 0.5f;
+		int carveWidth = rng.RandiRange(1, width / 2 - 1);
+		int carveHeight = rng.RandiRange(1, height / 2 - 1);
+		bool mirrored = rng.Randf() < 0.5f;
 		for (int x = 0; x < carveWidth; x++)
 		{
 			for (int z = 0; z < carveHeight; z++)
@@ -242,12 +242,12 @@ public partial class ProceduralRoomBuilder : Resource
 	}
 
 	/// <summary>Carves a small interior pit, at least one tile away from every room edge.</summary>
-	private static void CarvePit(bool[,] tiles, int width, int height)
+	private static void CarvePit(bool[,] tiles, int width, int height, RandomNumberGenerator rng)
 	{
-		int pitWidth = Mathf.Min(GD.RandRange(1, 2), width - 3);
-		int pitHeight = Mathf.Min(GD.RandRange(1, 2), height - 3);
-		int pitX = GD.RandRange(1, width - 1 - pitWidth);
-		int pitZ = GD.RandRange(1, height - 1 - pitHeight);
+		int pitWidth = Mathf.Min(rng.RandiRange(1, 2), width - 3);
+		int pitHeight = Mathf.Min(rng.RandiRange(1, 2), height - 3);
+		int pitX = rng.RandiRange(1, width - 1 - pitWidth);
+		int pitZ = rng.RandiRange(1, height - 1 - pitHeight);
 		for (int x = 0; x < pitWidth; x++)
 		{
 			for (int z = 0; z < pitHeight; z++)
@@ -265,14 +265,14 @@ public partial class ProceduralRoomBuilder : Resource
 	/// have different footprint sizes: <see cref="PlaceFloorTile"/> resolves size
 	/// per-tile.
 	/// </summary>
-	private void PlaceFloors(GridMap floorGridMap, int floorItem, Footprint footprint)
+	private void PlaceFloors(GridMap floorGridMap, int floorItem, Footprint footprint, RandomNumberGenerator rng)
 	{
 		int accentItem = -1;
 		Func<int, int, bool> isAccentTile = null;
-		if (AccentFloorItems.Length > 0 && GD.Randf() < FloorAccentChance)
+		if (AccentFloorItems.Length > 0 && rng.Randf() < FloorAccentChance)
 		{
-			accentItem = PickItem(FloorLibrary, AccentFloorItems);
-			isAccentTile = GD.Randf() < 0.5f ? GetCenterAccentRegion(footprint) : GetBorderAccentRegion(footprint);
+			accentItem = PickItem(FloorLibrary, AccentFloorItems, rng);
+			isAccentTile = rng.Randf() < 0.5f ? GetCenterAccentRegion(footprint) : GetBorderAccentRegion(footprint);
 		}
 
 		for (int x = 0; x < footprint.Width; x++)
@@ -345,10 +345,10 @@ public partial class ProceduralRoomBuilder : Resource
 	/// rhythmically spaced along the walls -- mirroring how real rooms place columns,
 	/// rather than scattering them independently at random per corner.
 	/// </summary>
-	private void PlaceColumns(GridMap decorationGridMap, Footprint footprint)
+	private void PlaceColumns(GridMap decorationGridMap, Footprint footprint, RandomNumberGenerator rng)
 	{
-		int columnItem = PickItem(DecorationLibrary, ColumnItems);
-		if (columnItem < 0 || GD.Randf() >= ColumnChance)
+		int columnItem = PickItem(DecorationLibrary, ColumnItems, rng);
+		if (columnItem < 0 || rng.Randf() >= ColumnChance)
 		{
 			return;
 		}
@@ -358,9 +358,9 @@ public partial class ProceduralRoomBuilder : Resource
 			GetCenterSingleColumns,
 			GetCenterClusterColumns,
 			candidate => GetWallColonnadeColumns(candidate, ColumnSpacing),
-			GetSymmetricScatterColumns,
+			candidate => GetSymmetricScatterColumns(candidate, rng),
 		};
-		List<Vector2I> corners = patterns[GD.RandRange(0, patterns.Length - 1)](footprint);
+		List<Vector2I> corners = patterns[rng.RandiRange(0, patterns.Length - 1)](footprint);
 
 		// Patterns may propose corners outside the footprint or in an L/union notch
 		// (invalid) and, for the colonnade, the same corner from two sides (harmless
@@ -453,7 +453,7 @@ public partial class ProceduralRoomBuilder : Resource
 	/// organic variety while guaranteeing the result always reads as intentional
 	/// (mirror-symmetric) instead of lopsided.
 	/// </summary>
-	internal List<Vector2I> GetSymmetricScatterColumns(Footprint footprint)
+	internal List<Vector2I> GetSymmetricScatterColumns(Footprint footprint, RandomNumberGenerator rng)
 	{
 		var corners = new List<Vector2I>();
 		int maxX = footprint.Width / 2;
@@ -462,7 +462,7 @@ public partial class ProceduralRoomBuilder : Resource
 		{
 			for (int z = 1; z <= maxZ; z++)
 			{
-				if (GD.Randf() >= ColumnScatterChance)
+				if (rng.Randf() >= ColumnScatterChance)
 				{
 					continue;
 				}
@@ -485,14 +485,14 @@ public partial class ProceduralRoomBuilder : Resource
 	/// for why this is safe without separately authoring walls), each independently
 	/// getting a real door with <see cref="DoorChance"/> probability.
 	/// </summary>
-	private void PlaceDoorways(Room room, Footprint footprint)
+	private void PlaceDoorways(Room room, Footprint footprint, RandomNumberGenerator rng)
 	{
-		if (GD.Randf() >= DoorwayChance)
+		if (rng.Randf() >= DoorwayChance)
 		{
 			return; // Stay fully open: BakeInferredConnectors covers every edge.
 		}
 
-		var candidates = CollectDoorwayCandidates(footprint);
+		var candidates = CollectDoorwayCandidates(footprint, rng);
 		if (candidates.Count == 0)
 		{
 			return;
@@ -500,8 +500,8 @@ public partial class ProceduralRoomBuilder : Resource
 
 		int minDoorways = Mathf.Max(1, MinDoorways);
 		int maxDoorways = Mathf.Max(minDoorways, MaxDoorways);
-		int count = Mathf.Min(GD.RandRange(minDoorways, maxDoorways), candidates.Count);
-		Shuffle(candidates);
+		int count = Mathf.Min(rng.RandiRange(minDoorways, maxDoorways), candidates.Count);
+		Shuffle(candidates, rng);
 
 		for (int i = 0; i < count; i++)
 		{
@@ -512,7 +512,7 @@ public partial class ProceduralRoomBuilder : Resource
 				Directions = DoorwayMarker.GetDirectionFlag(direction),
 			});
 
-			if (DoorScene != null && GD.Randf() < DoorChance)
+			if (DoorScene != null && rng.Randf() < DoorChance)
 			{
 				PlaceDoor(room, tile, direction);
 			}
@@ -535,7 +535,7 @@ public partial class ProceduralRoomBuilder : Resource
 	/// connect through the direction the door does NOT face, leaving that door pointless
 	/// against a generated wall while the real passage sits open on the other side.
 	/// </summary>
-	private static List<(Vector2I Tile, Vector2I Direction)> CollectDoorwayCandidates(Footprint footprint)
+	private static List<(Vector2I Tile, Vector2I Direction)> CollectDoorwayCandidates(Footprint footprint, RandomNumberGenerator rng)
 	{
 		var directionsByTile = new Dictionary<Vector2I, List<Vector2I>>();
 		for (int x = 0; x < footprint.Width; x++)
@@ -571,7 +571,7 @@ public partial class ProceduralRoomBuilder : Resource
 		var candidates = new List<(Vector2I, Vector2I)>();
 		foreach (var (tile, directions) in directionsByTile)
 		{
-			candidates.Add((tile, directions[GD.RandRange(0, directions.Count - 1)]));
+			candidates.Add((tile, directions[rng.RandiRange(0, directions.Count - 1)]));
 		}
 
 		return candidates;
@@ -588,11 +588,11 @@ public partial class ProceduralRoomBuilder : Resource
 		room.AddChild(door);
 	}
 
-	private static void Shuffle<T>(List<T> items)
+	private static void Shuffle<T>(List<T> items, RandomNumberGenerator rng)
 	{
 		for (int i = items.Count - 1; i > 0; i--)
 		{
-			int j = GD.RandRange(0, i);
+			int j = rng.RandiRange(0, i);
 			(items[i], items[j]) = (items[j], items[i]);
 		}
 	}
@@ -613,7 +613,7 @@ public partial class ProceduralRoomBuilder : Resource
 	}
 
 	/// <summary>Picks a random configured item that exists in the library, or -1.</summary>
-	private static int PickItem(MeshLibrary library, string[] itemNames)
+	private static int PickItem(MeshLibrary library, string[] itemNames, RandomNumberGenerator rng)
 	{
 		var available = new List<int>();
 		foreach (string name in itemNames ?? [])
@@ -629,7 +629,7 @@ public partial class ProceduralRoomBuilder : Resource
 			}
 		}
 
-		return available.Count > 0 ? available[GD.RandRange(0, available.Count - 1)] : -1;
+		return available.Count > 0 ? available[rng.RandiRange(0, available.Count - 1)] : -1;
 	}
 
 	/// <summary>Mesh footprint size in cells, measured from its AABB (e.g. 2x2 or 4x4 floors).</summary>

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dqfo53c2i321h"
-path="res://.godot/imported/spear_steel_surface_palette.png-652ef411c38cd0b080299cfb853f0771.ctex"
+path.s3tc="res://.godot/imported/spear_steel_surface_palette.png-652ef411c38cd0b080299cfb853f0771.s3tc.ctex"
+path.etc2="res://.godot/imported/spear_steel_surface_palette.png-652ef411c38cd0b080299cfb853f0771.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e02f4515ccc5175899a891a916d19e5f"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/weapons/arsenal/spear_steel_surface_palette.png"
-dest_files=["res://.godot/imported/spear_steel_surface_palette.png-652ef411c38cd0b080299cfb853f0771.ctex"]
+dest_files=["res://.godot/imported/spear_steel_surface_palette.png-652ef411c38cd0b080299cfb853f0771.s3tc.ctex", "res://.godot/imported/spear_steel_surface_palette.png-652ef411c38cd0b080299cfb853f0771.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

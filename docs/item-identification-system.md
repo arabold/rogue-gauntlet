@@ -32,7 +32,7 @@ The effect side already exists and is unchanged:
 - `Buff` / `StatModifierBuff` / `PeriodicBuff` (`HealingBuff`, `PoisonBuff`) define the
   effect through `OnApply` / `OnTick` / `OnRemove`, applied via `BuffController`. See
   [stats & itemization](stats-and-itemization.md) for the modifier model.
-- Inventory persists items by `ResourcePath`; the run `Seed` lives in
+- Inventory persists runtime items by their definition provenance and instance ID; the run `Seed` lives in
   `GameSession` / `SaveGame`.
 - `SignalBus.ItemConsumed(player, item)` already fires when a consumable is used.
 
@@ -215,7 +215,7 @@ the scroll is *not* consumed; otherwise it identifies the scroll's own type (rea
 enough to pick a target reveals what it is, even on cancel) and enters targeting mode via
 `InventoryTargetRequest` — ineligible slots dim and disable their button
 (`ItemSlotPanel.SetTargetingState`), `Esc` cancels, and confirming an eligible slot applies
-the effect and *then* consumes the scroll. This ordering means a cancelled or no-target read
+`PlayerInventoryController.TryUse`, which revalidates both entries, applies the effect once, and then consumes the scroll. This ordering means a cancelled or no-target read
 never wastes the scroll. Enchant reuses the identical mechanism with a different predicate.
 
 ## Jewelry

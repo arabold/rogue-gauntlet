@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bs2ljy0brgj25"
-path="res://.godot/imported/potion_medium_gold_surface_palette.png-919b27625737483dbfa8bada1b3a5b9f.ctex"
+path.s3tc="res://.godot/imported/potion_medium_gold_surface_palette.png-919b27625737483dbfa8bada1b3a5b9f.s3tc.ctex"
+path.etc2="res://.godot/imported/potion_medium_gold_surface_palette.png-919b27625737483dbfa8bada1b3a5b9f.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "6aef80ca156164dae6314194fc1dd1fb"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/potions/potion_medium/potion_medium_gold_surface_palette.png"
-dest_files=["res://.godot/imported/potion_medium_gold_surface_palette.png-919b27625737483dbfa8bada1b3a5b9f.ctex"]
+dest_files=["res://.godot/imported/potion_medium_gold_surface_palette.png-919b27625737483dbfa8bada1b3a5b9f.s3tc.ctex", "res://.godot/imported/potion_medium_gold_surface_palette.png-919b27625737483dbfa8bada1b3a5b9f.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

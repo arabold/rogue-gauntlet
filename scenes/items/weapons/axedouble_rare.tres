@@ -1,10 +1,15 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="Weapon" load_steps=5 format=3]
 
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_2h.tres" id="melee_contact"]
+[ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="PackedScene" path="res://scenes/items/weapons/axedouble_rare.tscn" id="1_axedblrare"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_axedblrare"]
 
 [resource]
 script = ExtResource("2_axedblrare")
+MeleeContact = ExtResource("melee_contact")
+AttackStyle = &"axe.2h.chop"
+Grip = ExtResource("weapon_grip")
 Tier = 5
 Level = 0
 RequiredStrength = 23
@@ -22,7 +27,7 @@ Rarity = 0
 Name = "Royal Double Axe"
 Scene = ExtResource("1_axedblrare")
 Quality = 1.0
-Value = 0
+Value = 200
 ShowInInventory = true
 IsStackable = false
 IsQuestItem = false

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bl4dgmb8tbeur"
-path="res://.godot/imported/food_apple_red_surface_palette.png-98b4f6c457c1e9f810ac9b8a492f26c8.ctex"
+path.s3tc="res://.godot/imported/food_apple_red_surface_palette.png-98b4f6c457c1e9f810ac9b8a492f26c8.s3tc.ctex"
+path.etc2="res://.godot/imported/food_apple_red_surface_palette.png-98b4f6c457c1e9f810ac9b8a492f26c8.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "3e63788111b9ec59d61d42080cc370d3"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/food/food/food_apple_red_surface_palette.png"
-dest_files=["res://.godot/imported/food_apple_red_surface_palette.png-98b4f6c457c1e9f810ac9b8a492f26c8.ctex"]
+dest_files=["res://.godot/imported/food_apple_red_surface_palette.png-98b4f6c457c1e9f810ac9b8a492f26c8.s3tc.ctex", "res://.godot/imported/food_apple_red_surface_palette.png-98b4f6c457c1e9f810ac9b8a492f26c8.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

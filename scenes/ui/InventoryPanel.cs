@@ -15,6 +15,7 @@ public partial class InventoryPanel : ScrollContainer
 	/// one scrollable child.
 	/// </summary>
 	[Export] public Label TargetingBanner { get; set; }
+	[Export] public Label CapacityLabel { get; set; }
 
 	public GridContainer InventoryGrid;
 	private Inventory _inventory;
@@ -30,6 +31,7 @@ public partial class InventoryPanel : ScrollContainer
 
 		var contextMenu = GetNode<InventoryItemContextMenu>("%InventoryItemContextMenu");
 		contextMenu.TargetedUseRequested += OnTargetedUseRequested;
+		contextMenu.OperationFailed += ShowBannerMessage;
 
 		Update();
 	}
@@ -107,6 +109,8 @@ public partial class InventoryPanel : ScrollContainer
 			return;
 		}
 
+		if (CapacityLabel != null) { CapacityLabel.Text = $"Backpack: {_inventory.Items.Count} / {_inventory.Capacity}"; }
+
 		foreach (InventoryItemSlot slot in _inventory.Items)
 		{
 			var itemSlotPanel = InventoryItemScene.Instantiate<ItemSlotPanel>();
@@ -147,7 +151,7 @@ public partial class InventoryPanel : ScrollContainer
 		}
 
 		var contextMenu = GetNode<InventoryItemContextMenu>("%InventoryItemContextMenu");
-		contextMenu.Initialize(_inventory, itemSlotPanel.Slot);
+		contextMenu.Initialize(_inventory, itemSlotPanel.Slot, _player);
 
 		var rect = itemSlotPanel.GetGlobalRect();
 		contextMenu.Position =
@@ -193,8 +197,8 @@ public partial class InventoryPanel : ScrollContainer
 			IsEligible = slot => slot != scrollSlot && effect.IsValidTarget(_player, slot),
 			Confirmed = slot =>
 			{
-				effect.ApplyToTarget(_player, slot);
-				_inventory.Consume(scrollSlot);
+				var result = _player.InventoryController.TryUse(scrollSlot, slot);
+				if (!result.Success) { ShowBannerMessage(_player.InventoryController.LastOperationMessage); }
 			},
 		});
 	}

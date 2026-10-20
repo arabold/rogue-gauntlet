@@ -46,3 +46,9 @@ shadow_mesh = SubResource("ArrayMesh_l5b4j")
 [node name="Skeleton_Blade" type="MeshInstance3D" parent="."]
 mesh = SubResource("ArrayMesh_vjbkr")
 skeleton = NodePath("")
+
+[node name="TrailBase" type="Marker3D" parent="."]
+position = Vector3(0.00000, 0.39704, 0)
+
+[node name="TrailTip" type="Marker3D" parent="."]
+position = Vector3(0.00000, 1.14441, 0)

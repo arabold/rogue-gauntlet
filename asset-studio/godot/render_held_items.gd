@@ -1,7 +1,7 @@
 extends SceneTree
 #
 # Equips a sequence of weapons/shields on a standalone player and screenshots the
-# character from three angles per item, to visually verify in-hand scale/position/
+# character from four angles per item, to visually verify in-hand scale/position/
 # orientation. Complements render_item_catalog.gd, which frames an item alone and
 # auto-rotates for a nice thumbnail — that framing can hide exactly the defects that
 # only show up once a model is actually bone-attached (wrong local-axis convention,
@@ -28,6 +28,7 @@ var _inventory
 var _current_slot = null
 var _outdir = ""
 var _started = false
+var _finish_frames = 0
 var _settle = 0
 const SETTLE_FRAMES = 30 # let gravity/collision settle the character on the floor first
 var _frame_count = 0
@@ -127,10 +128,13 @@ func _unequip_all_starting_items():
 	if _inventory == null:
 		return
 	for slot in _inventory.Items:
-		if slot != null and slot.IsEquipped:
+		if slot != null and _inventory.IsEquipped(slot):
 			_inventory.Unequip(slot)
 
 func _process(_d):
+	if _finish_frames > 0:
+		_finish_frames -= 1
+		return _finish_frames == 0
 	_frame_count += 1
 	if _frame_count > MAX_FRAMES:
 		push_error("render_held_items: MAX_FRAMES safety cap hit, aborting")
@@ -143,6 +147,8 @@ func _process(_d):
 	if _settle < SETTLE_FRAMES:
 		_settle += 1
 		if _settle == SETTLE_FRAMES:
+			# Freeze the same rig pose for every reference and candidate in this run.
+			_player.process_mode = Node.PROCESS_MODE_DISABLED
 			_measure_player()
 		return false
 
@@ -150,14 +156,16 @@ func _process(_d):
 		if _angle_i == 0:
 			if _current_slot != null:
 				_inventory.Unequip(_current_slot)
+				_inventory.RemoveItem(_current_slot, _current_slot.Quantity)
 			var item = load(_items[_i])
-			_current_slot = InventoryItemSlot.new()
-			_current_slot.Item = item
+			_inventory.AddItem(item, 1)
+			_current_slot = _inventory.Items[_inventory.Items.size() - 1]
 			_inventory.Equip(_current_slot)
+		_measure_player() # Include the equipped model so long weapons remain inside the review frame.
 		var dir = ANGLES[_angle_i][1]
 		# For shields (equipped in left/shield hand at -X), flip the "side" angle to -X
 		if ANGLES[_angle_i][0] == "side" and _current_slot != null and _current_slot.Item is Armor:
-			if (_current_slot.Item.ValidSlots & 2) != 0: # ShieldHand == 2
+			if (_current_slot.Item.ValidSlots & 512) != 0: # ShieldHand == 512
 				dir = Vector3(-1.0, 0, -0.22)
 		_point_camera(dir)
 		_wait = 1
@@ -181,6 +189,13 @@ func _process(_d):
 	_angle_i = 0
 	_i += 1
 	if _i >= _items.size():
-		return true
+		_current_slot = null
+		_inventory = null
+		_player = null
+		_cam = null
+		_vp.queue_free()
+		_vp = null
+		_finish_frames = 3
+		return false
 	_wait = 0
 	return false

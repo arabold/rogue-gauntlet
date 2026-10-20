@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/armor/shield/shield_royal_lily.glb" id="1_model"]
+
+[node name="ShieldRoyalLily" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]

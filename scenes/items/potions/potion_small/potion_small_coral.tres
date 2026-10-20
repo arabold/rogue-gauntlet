@@ -1,32 +1,34 @@
-[gd_resource type="Resource" script_class="ConsumableItem" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="ConsumableItem" load_steps=7 format=3]
 
-[ext_resource type="Script" uid="uid://irr1yr02p4rg" path="res://scenes/buffs/HealingBuff.cs" id="1_buff"]
-[ext_resource type="Texture2D" uid="uid://dq1fvu6l25b3r" path="res://icon.svg" id="2_icon"]
-[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_coral.tscn" id="3_scene"]
-[ext_resource type="Script" uid="uid://c15rgkjymw2e6" path="res://scenes/items/ConsumableItem.cs" id="4_script"]
+[ext_resource type="Script" path="res://scenes/items/ConsumableItem.cs" id="item"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_coral.tscn" id="scene"]
+[ext_resource type="Script" path="res://scenes/buffs/StatModifierBuff.cs" id="buff"]
+[ext_resource type="Script" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
 
-[sub_resource type="Resource" id="Resource_buff"]
-script = ExtResource("1_buff")
-HealthPointsPerTick = 2
-Name = "Small Coral Potion"
-Duration = 1.0
-TicksPerSecond = 10
-metadata/_custom_type_script = ExtResource("1_buff")
+[sub_resource type="Resource" id="Modifier"]
+script = ExtResource("mod")
+Stat = 5
+Op = 1
+Value = 50
+metadata/_custom_type_script = ExtResource("mod")
+
+[sub_resource type="Resource" id="Buff"]
+script = ExtResource("buff")
+Name = "Small Potion of Slowness"
+Duration = 20.0
+Modifiers = [SubResource("Modifier")]
+metadata/_custom_type_script = ExtResource("buff")
 
 [resource]
-script = ExtResource("4_script")
-Buff = SubResource("Resource_buff")
-Scene = ExtResource("3_scene")
-Icon = ExtResource("2_icon")
-Name = "Small Coral Potion"
-TypeId = "potion.potion_small_coral"
+script = ExtResource("item")
+Scene = ExtResource("scene")
+Buff = SubResource("Buff")
+Name = "Small Potion of Slowness"
+TrueName = "Small Potion of Slowness"
+TypeId = "potion.slowness"
 IdentityCategory = "potion"
-TrueName = "Small Coral Potion"
-UnidentifiedNameTemplate = "{{descriptor}} potion"
-Durability = 1.0
-Quality = 1.0
+UnidentifiedNameTemplate = "{descriptor} potion"
 Value = 50
-Weight = 1.0
-ShowInInventory = true
 IsStackable = true
-metadata/_custom_type_script = ExtResource("4_script")
+MaxStackSize = 20
+metadata/_custom_type_script = ExtResource("item")

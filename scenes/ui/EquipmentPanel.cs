@@ -58,7 +58,12 @@ public partial class EquipmentPanel : PanelContainer
 
 			foreach (var slot in _inventory.EquippedItems)
 			{
-				OnItemEquipped(slot.Value?.Item as EquipableItem, slot.Key);
+				// Empty slots were already cleared; replaying one would erase the
+				// offhand preview supplied by an equipped two-handed weapon.
+				if (slot.Value?.Item is EquipableItem item)
+				{
+					OnItemEquipped(item, slot.Key);
+				}
 			}
 		}
 	}

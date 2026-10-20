@@ -1,0 +1,56 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/components/hurt_box_component.tscn" id="hurtbox"]
+[ext_resource type="PackedScene" path="res://scenes/components/health_component.tscn" id="health"]
+
+[sub_resource type="CapsuleShape3D" id="shape"]
+radius = 0.4
+height = 2.0
+
+[sub_resource type="CapsuleMesh" id="mesh"]
+radius = 0.4
+height = 2.0
+
+[sub_resource type="StandardMaterial3D" id="material"]
+albedo_color = Color(0.8, 0.35, 0.12, 1)
+
+[sub_resource type="CylinderMesh" id="base"]
+top_radius = 0.55
+bottom_radius = 0.55
+height = 0.1
+
+[node name="PracticeTarget" type="StaticBody3D" groups=["enemy"]]
+collision_layer = 8
+collision_mask = 0
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1, 0)
+mesh = SubResource("mesh")
+material_override = SubResource("material")
+
+[node name="Base" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.05, 0)
+mesh = SubResource("base")
+
+[node name="Label" type="Label3D" parent="."]
+position = Vector3(0, 2.3, 0)
+billboard = 1
+text = "Practice target"
+font_size = 40
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 1, 0)
+shape = SubResource("shape")
+
+[node name="HealthComponent" parent="." instance=ExtResource("health")]
+MaxHealth = 1000.0
+CurrentHealth = 1000.0
+
+[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("hurtbox")]
+position = Vector3(0, 1, 0)
+collision_layer = 8
+HealthComponent = NodePath("../HealthComponent")
+DamageFilter = 31
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent"]
+shape = SubResource("shape")

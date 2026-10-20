@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://6vgapk0t4d78"
-path="res://.godot/imported/morning_star_iron_surface_palette.png-a84f43fdd4da6ff0e779b90b3fb41346.ctex"
+path.s3tc="res://.godot/imported/morning_star_iron_surface_palette.png-a84f43fdd4da6ff0e779b90b3fb41346.s3tc.ctex"
+path.etc2="res://.godot/imported/morning_star_iron_surface_palette.png-a84f43fdd4da6ff0e779b90b3fb41346.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e4b2d0f088e6131519f1926195f94f6d"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/weapons/arsenal/morning_star_iron_surface_palette.png"
-dest_files=["res://.godot/imported/morning_star_iron_surface_palette.png-a84f43fdd4da6ff0e779b90b3fb41346.ctex"]
+dest_files=["res://.godot/imported/morning_star_iron_surface_palette.png-a84f43fdd4da6ff0e779b90b3fb41346.s3tc.ctex", "res://.godot/imported/morning_star_iron_surface_palette.png-a84f43fdd4da6ff0e779b90b3fb41346.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

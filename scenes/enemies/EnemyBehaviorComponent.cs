@@ -61,6 +61,7 @@ public partial class EnemyBehaviorComponent : Node
 	/// Authored behavior tuning for this enemy type.
 	/// </summary>
 	[Export] public EnemyBehaviorProfile Profile { get; set; }
+	[Export] public bool AIEnabled { get; set; } = true;
 
 	public EnemyBehaviorState CurrentBehavior => _machine?.CurrentId ?? EnemyBehaviorState.Idle;
 	public EnemyAction CurrentAction { get; private set; } = EnemyAction.Spawning;
@@ -157,15 +158,16 @@ public partial class EnemyBehaviorComponent : Node
 			// while stopped).
 			if (IsAttacking && Target != null && GodotObject.IsInstanceValid(Target))
 			{
-				MovementComponent.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition);
+				MovementComponent.FaceDirection(_attackController.HasCommittedFacing
+					? _attackController.CommittedFacing : Target.GlobalPosition - Actor.GlobalPosition);
 			}
 
-			if (_actionCooldown.Tick(delta))
+			if (IsAttacking ? !_attackController.IsAttacking : _actionCooldown.Tick(delta))
 			{
 				SetAction(EnemyAction.None);
 			}
 		}
-		else
+		else if (AIEnabled)
 		{
 			_machine.Tick(delta);
 		}
@@ -174,13 +176,19 @@ public partial class EnemyBehaviorComponent : Node
 	/// <summary>
 	/// Starts a melee attack through the action layer. Handed to <see cref="EnemyContext"/> so the
 	/// Chasing state can request an attack without touching <see cref="CurrentAction"/> directly. The
-	/// action starts even when no AttackController is present (TriggerMeleeAttack logs the error),
-	/// preserving the original ordering.
+	/// action is accepted only after its animation and hit timing can be resolved.
 	/// </summary>
 	private void RequestMeleeAttack()
 	{
+		TryMeleeAttack();
+	}
+
+	/// <summary>Production melee entry point, also available to local combat playgrounds.</summary>
+	public bool TryMeleeAttack()
+	{
+		if (CurrentAction != EnemyAction.None || IsDead || MovementComponent.IsPushed || !TriggerMeleeAttack()) return false;
 		SetAction(EnemyAction.MeeleAttack);
-		TriggerMeleeAttack();
+		return true;
 	}
 
 	/// <summary>
@@ -189,8 +197,7 @@ public partial class EnemyBehaviorComponent : Node
 	/// </summary>
 	private void RequestRangedAttack()
 	{
-		SetAction(EnemyAction.RangedAttack);
-		TriggerRangedAttack();
+		if (TriggerRangedAttack()) SetAction(EnemyAction.RangedAttack);
 	}
 
 	/// <summary>
@@ -228,20 +235,21 @@ public partial class EnemyBehaviorComponent : Node
 		}
 	}
 
-	private void TriggerMeleeAttack()
+	private bool TriggerMeleeAttack()
 	{
 		if (_attackController == null)
 		{
 			GD.PushError($"{Actor.Name} cannot start melee attack without AttackController.");
-			return;
+			return false;
 		}
 
 		var def = _profile.MeleeAttackDefinition ?? CreateDefaultMeleeAttackDefinition();
 
 		uint targetMask = 4; // Targets player (HurtBoxComponent is on Layer 3 / Mask 4)
 
-		_attackController.StartAttack(
-			def,
+		if (!_attackController.TryPrepareAttack(def, "melee", _profile.GetActionDuration(EnemyAction.MeeleAttack), out var attack, _profile.MeleeContact)) return false;
+		return _attackController.StartAttack(
+			attack,
 			_profile.MeleeAttackMinDamage,
 			_profile.MeleeAttackMaxDamage,
 			_profile.MeleeAttackAccuracy,
@@ -250,25 +258,26 @@ public partial class EnemyBehaviorComponent : Node
 		);
 	}
 
-	private void TriggerRangedAttack()
+	private bool TriggerRangedAttack()
 	{
 		if (_attackController == null)
 		{
 			GD.PushError($"{Actor.Name} cannot start ranged attack without AttackController.");
-			return;
+			return false;
 		}
 
 		AttackDefinition def = _profile.RangedAttackDefinition;
 		if (def == null)
 		{
 			GD.PushError($"{Actor.Name} cannot start ranged attack without a RangedAttackDefinition on its profile.");
-			return;
+			return false;
 		}
 
 		uint targetMask = 4; // Targets player (HurtBoxComponent is on Layer 3 / Mask 4)
 
-		_attackController.StartAttack(
-			def,
+		if (!_attackController.TryPrepareAttack(def, "ranged", _profile.GetActionDuration(EnemyAction.RangedAttack), out var attack)) return false;
+		return _attackController.StartAttack(
+			attack,
 			_profile.RangedAttackMinDamage,
 			_profile.RangedAttackMaxDamage,
 			_profile.RangedAttackAccuracy,
@@ -286,12 +295,6 @@ public partial class EnemyBehaviorComponent : Node
 		def.HitWindowStart = 0.3f * duration;
 		def.HitWindowEnd = 0.7f * duration;
 
-		// Generous frontal wedge anchored to the actor. Combined with facing the target through the
-		// wind-up, this lets an attack connect as long as the player is roughly in front, instead of
-		// requiring the player to be dead-center of a narrow box.
-		def.AttachHitBoxToWeapon = false;
-		def.HitBoxSize = new Vector3(2.6f, 2.2f, 2.8f);
-		def.HitBoxOffset = new Vector3(0.0f, 1.0f, -1.3f);
 		return def;
 	}
 

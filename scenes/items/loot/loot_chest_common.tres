@@ -1,818 +1,2380 @@
-[gd_resource type="Resource" script_class="LootTable" load_steps=165 format=3 uid="uid://clootchest0001"]
+[gd_resource type="Resource" script_class="LootTable" load_steps=433 format=3 uid="uid://clootchest0001"]
 
-[ext_resource type="Script" path="res://scenes/components/LootTable.cs" id="1_table"]
-[ext_resource type="Script" uid="uid://b2kapi7dsmanb" path="res://scenes/components/LootTableItem.cs" id="2_item"]
-[ext_resource type="Resource" uid="uid://dnxrasu67oe6k" path="res://scenes/items/gold/gold.tres" id="3_gold"]
-[ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion_small.tres" id="4_heal_small"]
-[ext_resource type="Resource" uid="uid://b2vo50ixkurnb" path="res://scenes/items/potions/healing_potion_medium.tres" id="5_heal_medium"]
-[ext_resource type="Resource" uid="uid://dhasteptres01" path="res://scenes/items/potions/haste_potion.tres" id="6_haste"]
-[ext_resource type="Resource" uid="uid://dregenptres01" path="res://scenes/items/potions/regeneration_potion.tres" id="7_regen"]
-[ext_resource type="Resource" uid="uid://dpoisonptres1" path="res://scenes/items/potions/poison_potion.tres" id="8_poison"]
-[ext_resource type="Resource" uid="uid://dslowptres001" path="res://scenes/items/potions/slowness_potion.tres" id="9_slow"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_identify.tres" id="10_scroll_identify"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_enchant.tres" id="11_scroll_enchant"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_teleport.tres" id="12_scroll_teleport"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_haste.tres" id="13_scroll_haste"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_protection.tres" id="14_scroll_protection"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_rage.tres" id="15_scroll_rage"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_weakness.tres" id="16_scroll_weakness"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_summon.tres" id="17_scroll_summon"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_strength.tres" id="18_ring_strength"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_dexterity.tres" id="19_ring_dexterity"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_vitality.tres" id="20_ring_vitality"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_mind.tres" id="21_ring_mind"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_protection.tres" id="22_ring_protection"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_evasion.tres" id="23_ring_evasion"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_precision.tres" id="24_ring_precision"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_savagery.tres" id="25_ring_savagery"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_lethargy.tres" id="26_ring_lethargy"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_frailty.tres" id="27_ring_frailty"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_health.tres" id="28_amulet_health"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_swiftness.tres" id="29_amulet_swiftness"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_titan.tres" id="30_amulet_titan"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_dread.tres" id="31_amulet_dread"]
-[ext_resource type="Resource" uid="uid://bc4es25jpb62o" path="res://scenes/items/weapons/axe_common.tres" id="32_axe_common"]
-[ext_resource type="Resource" uid="uid://bylnwqmg1nm57" path="res://scenes/items/weapons/axe_old.tres" id="33_axe_old"]
-[ext_resource type="Resource" uid="uid://biricifur5j8u" path="res://scenes/items/weapons/crossbow_common.tres" id="34_crossbow_common"]
-[ext_resource type="Resource" uid="uid://cfjd6iimvn0lp" path="res://scenes/items/weapons/dagger_common.tres" id="35_dagger_common"]
-[ext_resource type="Resource" uid="uid://csyxpvgdbtld2" path="res://scenes/items/weapons/shortsword_common.tres" id="36_shortsword_common"]
-[ext_resource type="Resource" uid="uid://dak88bwl5ipcv" path="res://scenes/items/weapons/staff_common.tres" id="37_staff_common"]
-[ext_resource type="Resource" uid="uid://b0npueya07rvp" path="res://scenes/items/weapons/wand.tres" id="38_wand"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/axe_uncommon.tres" id="39_axe_uncommon"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/dagger_uncommon.tres" id="40_dagger_uncommon"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/staff_uncommon.tres" id="41_staff_uncommon"]
-[ext_resource type="Resource" uid="uid://btk1o3ydc6yaf" path="res://scenes/items/weapons/sword_common.tres" id="42_sword_common"]
-[ext_resource type="Resource" uid="uid://l6l5vxvpavp5" path="res://scenes/items/weapons/hammer_common.tres" id="43_hammer_common"]
-[ext_resource type="Resource" uid="uid://bal38w8u6iir4" path="res://scenes/items/weapons/saber_skeleton.tres" id="44_saber_skeleton"]
-[ext_resource type="Resource" uid="uid://qmeb2ougex4n" path="res://scenes/items/weapons/crossbow_spiked.tres" id="45_crossbow_spiked"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/staff_fire.tres" id="46_staff_fire"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/staff_water.tres" id="47_staff_water"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/staff_air.tres" id="48_staff_air"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/staff_earth.tres" id="49_staff_earth"]
-[ext_resource type="Resource" uid="uid://b111md1aceaul" path="res://scenes/items/weapons/staff_skeleton.tres" id="50_staff_skeleton"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/axedouble_common.tres" id="51_axedouble_common"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/hammer_uncommon.tres" id="52_hammer_uncommon"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_uncommon.tres" id="53_crossbow_uncommon"]
-[ext_resource type="Resource" uid="uid://c3cgdlchx0g5u" path="res://scenes/items/weapons/battleaxe_common.tres" id="54_battleaxe_common"]
-[ext_resource type="Resource" uid="uid://cldnonwxiehlh" path="res://scenes/items/weapons/battleaxe_skeleton.tres" id="55_battleaxe_skeleton"]
-[ext_resource type="Resource" uid="uid://cl7ybfrf3tkam" path="res://scenes/items/weapons/broadsword_common.tres" id="56_broadsword_common"]
-[ext_resource type="Resource" uid="uid://cnfavj2kn13nw" path="res://scenes/items/weapons/broadsword_rare.tres" id="57_broadsword_rare"]
-[ext_resource type="Resource" uid="uid://0a6ne7ik2tb7" path="res://scenes/items/weapons/crossbow_2handed.tres" id="58_crossbow_2handed"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/sword_rare.tres" id="59_sword_rare"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/axe_rare.tres" id="60_axe_rare"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/dagger_rare.tres" id="61_dagger_rare"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/hammer_rare.tres" id="62_hammer_rare"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/axedouble_uncommon.tres" id="63_axedouble_uncommon"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_rare.tres" id="64_crossbow_rare"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/staff_rare.tres" id="65_staff_rare"]
-[ext_resource type="Resource" uid="uid://c2aj2q6oitlgh" path="res://scenes/items/weapons/warhammer.tres" id="66_warhammer"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/axedouble_rare.tres" id="67_axedouble_rare"]
-[ext_resource type="Resource" uid="uid://ddlbimgglj7ai" path="res://scenes/items/weapons/warhammer_gold.tres" id="68_warhammer_gold"]
-[ext_resource type="Resource" path="res://scenes/items/armor/shield_common.tres" id="69_shield_common"]
-[ext_resource type="Resource" uid="uid://cqdfgea0e6iwr" path="res://scenes/items/armor/shield_badge.tres" id="70_shield_badge"]
-[ext_resource type="Resource" uid="uid://kgk80xoii6kd" path="res://scenes/items/armor/shield_badge_color.tres" id="71_shield_badge_color"]
-[ext_resource type="Resource" uid="uid://cwxiym2epfskd" path="res://scenes/items/armor/shield_round_blue.tres" id="72_shield_round_blue"]
-[ext_resource type="Resource" uid="uid://b6piy51qeve40" path="res://scenes/items/armor/shield_round_common.tres" id="73_shield_round_common"]
-[ext_resource type="Resource" uid="uid://blgp6vsl5gs22" path="res://scenes/items/armor/shield_round_old.tres" id="74_shield_round_old"]
-[ext_resource type="Resource" uid="uid://bfupq3j33nceb" path="res://scenes/items/armor/shield_round_red.tres" id="75_shield_round_red"]
-[ext_resource type="Resource" uid="uid://6ryjigdys0sw" path="res://scenes/items/armor/shield_badge_spikes.tres" id="76_shield_badge_spikes"]
-[ext_resource type="Resource" uid="uid://bfb3phrx3qf0t" path="res://scenes/items/armor/shield_badge_spikes_red.tres" id="77_shield_badge_spikes_red"]
-[ext_resource type="Resource" uid="uid://uh4368ubd16l" path="res://scenes/items/armor/shield_large_skull.tres" id="78_shield_large_skull"]
-[ext_resource type="Resource" uid="uid://b3uaf6x2561vr" path="res://scenes/items/armor/shield_large_spikes.tres" id="79_shield_large_spikes"]
-[ext_resource type="Resource" uid="uid://d0ped1vfmlucw" path="res://scenes/items/armor/shield_square.tres" id="80_shield_square"]
-[ext_resource type="Resource" uid="uid://sg2evoroonef" path="res://scenes/items/armor/shield_square_red.tres" id="81_shield_square_red"]
-[ext_resource type="Resource" path="res://scenes/items/armor/shield_uncommon.tres" id="82_shield_uncommon"]
-[ext_resource type="Resource" path="res://scenes/items/armor/shield_rare.tres" id="83_shield_rare"]
+[ext_resource type="Script" path="res://scenes/components/LootTable.cs" id="table"]
+[ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
+[ext_resource type="Script" path="res://scenes/components/LootTableGroup.cs" id="group"]
+[ext_resource type="Resource" path="res://scenes/items/gold/gold.tres" id="item_210"]
+[ext_resource type="Resource" path="res://scenes/items/food/drink/drink_beer_stein.tres" id="item_135"]
+[ext_resource type="Resource" path="res://scenes/items/food/drink/drink_water_canteen.tres" id="item_136"]
+[ext_resource type="Resource" path="res://scenes/items/food/drink/drink_wine_bottle.tres" id="item_137"]
+[ext_resource type="Resource" path="res://scenes/items/food/food/food_apple_red.tres" id="item_138"]
+[ext_resource type="Resource" path="res://scenes/items/food/food/food_bread_loaf.tres" id="item_139"]
+[ext_resource type="Resource" path="res://scenes/items/food/food/food_bread_roll.tres" id="item_140"]
+[ext_resource type="Resource" path="res://scenes/items/food/food/food_cheese_wheel.tres" id="item_141"]
+[ext_resource type="Resource" path="res://scenes/items/food/food/food_grapes_bunch.tres" id="item_142"]
+[ext_resource type="Resource" path="res://scenes/items/food/food/food_meat_drumstick.tres" id="item_143"]
+[ext_resource type="Resource" path="res://scenes/items/food/food/food_meat_sausage.tres" id="item_144"]
+[ext_resource type="Resource" path="res://scenes/items/food/food/food_meat_steak.tres" id="item_145"]
+[ext_resource type="Resource" path="res://scenes/items/food/food/food_pear_golden.tres" id="item_146"]
+[ext_resource type="Resource" path="res://scenes/items/potions/haste_potion.tres" id="item_147"]
+[ext_resource type="Resource" path="res://scenes/items/potions/healing_potion_large.tres" id="item_148"]
+[ext_resource type="Resource" path="res://scenes/items/potions/healing_potion_medium.tres" id="item_149"]
+[ext_resource type="Resource" path="res://scenes/items/potions/healing_potion_small.tres" id="item_150"]
+[ext_resource type="Resource" path="res://scenes/items/potions/poison_potion.tres" id="item_151"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_cobalt.tres" id="item_152"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_coral.tres" id="item_153"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_crimson.tres" id="item_154"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_emerald.tres" id="item_155"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_gold.tres" id="item_156"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_lime.tres" id="item_157"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_magenta.tres" id="item_158"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_obsidian.tres" id="item_159"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_orange.tres" id="item_160"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_purple.tres" id="item_161"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_silver.tres" id="item_162"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_teal.tres" id="item_163"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_cobalt.tres" id="item_164"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_coral.tres" id="item_165"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_crimson.tres" id="item_166"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_emerald.tres" id="item_167"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_gold.tres" id="item_168"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_lime.tres" id="item_169"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_magenta.tres" id="item_170"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_obsidian.tres" id="item_171"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_orange.tres" id="item_172"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_purple.tres" id="item_173"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_silver.tres" id="item_174"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_teal.tres" id="item_175"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_cobalt.tres" id="item_176"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_coral.tres" id="item_177"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_crimson.tres" id="item_178"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_emerald.tres" id="item_179"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_gold.tres" id="item_180"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_lime.tres" id="item_181"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_magenta.tres" id="item_182"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_obsidian.tres" id="item_183"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_orange.tres" id="item_184"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_purple.tres" id="item_185"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_silver.tres" id="item_186"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_teal.tres" id="item_187"]
+[ext_resource type="Resource" path="res://scenes/items/potions/regeneration_potion.tres" id="item_188"]
+[ext_resource type="Resource" path="res://scenes/items/potions/slowness_potion.tres" id="item_189"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_cobalt_raidho.tres" id="item_190"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_coral_sowilo.tres" id="item_191"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_crimson_othala.tres" id="item_192"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_emerald_fehu.tres" id="item_193"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_gold_algiz.tres" id="item_194"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_lime_hagalaz.tres" id="item_195"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_magenta_berkano.tres" id="item_196"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_obsidian_tiwaz.tres" id="item_197"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_orange_thurisaz.tres" id="item_198"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_purple_dagaz.tres" id="item_199"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_silver_ingwaz.tres" id="item_200"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_teal_eihwaz.tres" id="item_201"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_enchant.tres" id="item_202"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_haste.tres" id="item_203"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_identify.tres" id="item_204"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_protection.tres" id="item_205"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_rage.tres" id="item_206"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_summon.tres" id="item_207"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_teleport.tres" id="item_208"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_weakness.tres" id="item_209"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/broadsword_steel.tres" id="item_0"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/club_steel.tres" id="item_1"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/club_wood_old.tres" id="item_2"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/dagger_short.tres" id="item_3"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/greatsword_steel.tres" id="item_4"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/halberd_steel.tres" id="item_5"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/morning_star_iron.tres" id="item_6"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/rapier_steel.tres" id="item_7"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/saber_steel.tres" id="item_8"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/scythe_iron.tres" id="item_9"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/spear_steel.tres" id="item_10"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axe/axe_bearded.tres" id="item_11"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axe/axe_executioner.tres" id="item_12"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axe_common.tres" id="item_13"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axe_old.tres" id="item_14"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axe_rare.tres" id="item_15"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axe_uncommon.tres" id="item_16"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axedouble_common.tres" id="item_17"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axedouble_rare.tres" id="item_18"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/axedouble_uncommon.tres" id="item_19"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/battleaxe/battleaxe_gilded.tres" id="item_20"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/battleaxe/battleaxe_iron.tres" id="item_21"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/battleaxe_common.tres" id="item_22"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/battleaxe_skeleton.tres" id="item_23"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/battleaxe_starter.tres" id="item_24"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/broadsword/broadsword_gilded.tres" id="item_25"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/broadsword/broadsword_iron.tres" id="item_26"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/broadsword_common.tres" id="item_27"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/broadsword_rare.tres" id="item_28"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow/crossbow_gilded.tres" id="item_29"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_2handed.tres" id="item_30"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_common.tres" id="item_31"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_rare.tres" id="item_32"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_spiked.tres" id="item_33"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_uncommon.tres" id="item_34"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/dagger/dagger_kukri.tres" id="item_35"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/dagger/dagger_nightblade.tres" id="item_36"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/dagger_common.tres" id="item_37"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/dagger_rare.tres" id="item_38"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/dagger_uncommon.tres" id="item_39"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/hammer/hammer_gilded.tres" id="item_40"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/hammer/hammer_mallet.tres" id="item_41"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/hammer_common.tres" id="item_42"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/hammer_rare.tres" id="item_43"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/hammer_uncommon.tres" id="item_44"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/longsword_common.tres" id="item_45"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/saber_skeleton.tres" id="item_46"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/shortsword_common.tres" id="item_47"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff/staff_archmage.tres" id="item_48"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff/staff_emerald.tres" id="item_49"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_air.tres" id="item_50"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_common.tres" id="item_51"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_earth.tres" id="item_52"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_fire.tres" id="item_53"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_rare.tres" id="item_54"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_skeleton.tres" id="item_55"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_uncommon.tres" id="item_56"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_water.tres" id="item_57"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/sword/sword_knight.tres" id="item_58"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/sword/sword_sunblade.tres" id="item_59"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/sword_common.tres" id="item_60"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/sword_rare.tres" id="item_61"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/wand/wand_celestial.tres" id="item_62"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/wand/wand_ruby.tres" id="item_63"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/wand.tres" id="item_64"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/warhammer/warhammer_iron.tres" id="item_65"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/warhammer/warhammer_spiked.tres" id="item_66"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/warhammer.tres" id="item_67"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/warhammer_gold.tres" id="item_68"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_aegis_gold.tres" id="item_69"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_buckler_spiked.tres" id="item_70"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_dragon_scale.tres" id="item_71"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_heater_iron.tres" id="item_72"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_heroic_quarters.tres" id="item_73"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_heroic_sun.tres" id="item_74"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_iron_tower.tres" id="item_75"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_kite_crusader.tres" id="item_76"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_round_wood.tres" id="item_77"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_royal_crown.tres" id="item_78"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_royal_lily.tres" id="item_79"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_scutum_wood.tres" id="item_80"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_wood_simple.tres" id="item_81"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_badge.tres" id="item_82"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_badge_color.tres" id="item_83"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_badge_spikes.tres" id="item_84"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_badge_spikes_red.tres" id="item_85"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_common.tres" id="item_86"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_large_skull.tres" id="item_87"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_large_spikes.tres" id="item_88"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_rare.tres" id="item_89"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_round_blue.tres" id="item_90"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_round_common.tres" id="item_91"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_round_old.tres" id="item_92"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_round_red.tres" id="item_93"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_square.tres" id="item_94"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_square_red.tres" id="item_95"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_uncommon.tres" id="item_96"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_emerald.tres" id="item_97"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_ruby.tres" id="item_98"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_sun_crest.tres" id="item_99"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_topaz.tres" id="item_100"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_amethyst.tres" id="item_101"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_onyx.tres" id="item_102"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_runic_crest.tres" id="item_103"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_sapphire.tres" id="item_104"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_coral.tres" id="item_105"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_druid_talisman.tres" id="item_106"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_jade.tres" id="item_107"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_peridot.tres" id="item_108"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_dread.tres" id="item_109"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_health.tres" id="item_110"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_swiftness.tres" id="item_111"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_titan.tres" id="item_112"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_amethyst.tres" id="item_113"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_emerald.tres" id="item_114"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_ruby.tres" id="item_115"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_signet.tres" id="item_116"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_band.tres" id="item_117"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_diamond.tres" id="item_118"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_onyx.tres" id="item_119"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_sapphire.tres" id="item_120"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_amber.tres" id="item_121"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_carved.tres" id="item_122"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_garnet.tres" id="item_123"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_jade.tres" id="item_124"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_dexterity.tres" id="item_125"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_evasion.tres" id="item_126"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_frailty.tres" id="item_127"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_lethargy.tres" id="item_128"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_mind.tres" id="item_129"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_precision.tres" id="item_130"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_protection.tres" id="item_131"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_savagery.tres" id="item_132"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_strength.tres" id="item_133"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_vitality.tres" id="item_134"]
 
-[sub_resource type="Resource" id="Item_gold"]
-script = ExtResource("2_item")
+[sub_resource type="Resource" id="Entry_210"]
+script = ExtResource("entry")
+Item = ExtResource("item_210")
+Weight = 1.0
+Quantity = 15
+QuantityPerDepth = 3.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Group_gold"]
+resource_name = "Gold"
+script = ExtResource("group")
 Weight = 20.0
-Item = ExtResource("3_gold")
-Quantity = 20
-QuantityPerDepth = 8.0
-metadata/_custom_type_script = ExtResource("2_item")
+Items = [SubResource("Entry_210")]
+metadata/_custom_type_script = ExtResource("group")
 
-[sub_resource type="Resource" id="Item_heal_small"]
-script = ExtResource("2_item")
-Weight = 2.0
-Item = ExtResource("4_heal_small")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_heal_medium"]
-script = ExtResource("2_item")
-Weight = 1.5
-Item = ExtResource("5_heal_medium")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_haste"]
-script = ExtResource("2_item")
+[sub_resource type="Resource" id="Entry_135"]
+script = ExtResource("entry")
+Item = ExtResource("item_135")
 Weight = 1.0
-Item = ExtResource("6_haste")
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_regen"]
-script = ExtResource("2_item")
+[sub_resource type="Resource" id="Entry_136"]
+script = ExtResource("entry")
+Item = ExtResource("item_136")
 Weight = 1.0
-Item = ExtResource("7_regen")
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_poison"]
-script = ExtResource("2_item")
-Weight = 0.5
-Item = ExtResource("8_poison")
+[sub_resource type="Resource" id="Entry_137"]
+script = ExtResource("entry")
+Item = ExtResource("item_137")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_slow"]
-script = ExtResource("2_item")
-Weight = 0.5
-Item = ExtResource("9_slow")
+[sub_resource type="Resource" id="Entry_138"]
+script = ExtResource("entry")
+Item = ExtResource("item_138")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_scroll_identify"]
-script = ExtResource("2_item")
-Weight = 1.5
-Item = ExtResource("10_scroll_identify")
+[sub_resource type="Resource" id="Entry_139"]
+script = ExtResource("entry")
+Item = ExtResource("item_139")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_scroll_enchant"]
-script = ExtResource("2_item")
-Weight = 0.5
-Item = ExtResource("11_scroll_enchant")
+[sub_resource type="Resource" id="Entry_140"]
+script = ExtResource("entry")
+Item = ExtResource("item_140")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_scroll_teleport"]
-script = ExtResource("2_item")
-Weight = 0.8
-Item = ExtResource("12_scroll_teleport")
+[sub_resource type="Resource" id="Entry_141"]
+script = ExtResource("entry")
+Item = ExtResource("item_141")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_scroll_haste"]
-script = ExtResource("2_item")
-Weight = 0.6
-Item = ExtResource("13_scroll_haste")
+[sub_resource type="Resource" id="Entry_142"]
+script = ExtResource("entry")
+Item = ExtResource("item_142")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_scroll_protection"]
-script = ExtResource("2_item")
-Weight = 0.6
-Item = ExtResource("14_scroll_protection")
+[sub_resource type="Resource" id="Entry_143"]
+script = ExtResource("entry")
+Item = ExtResource("item_143")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_scroll_rage"]
-script = ExtResource("2_item")
-Weight = 0.6
-Item = ExtResource("15_scroll_rage")
+[sub_resource type="Resource" id="Entry_144"]
+script = ExtResource("entry")
+Item = ExtResource("item_144")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_scroll_weakness"]
-script = ExtResource("2_item")
-Weight = 0.5
-Item = ExtResource("16_scroll_weakness")
+[sub_resource type="Resource" id="Entry_145"]
+script = ExtResource("entry")
+Item = ExtResource("item_145")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_scroll_summon"]
-script = ExtResource("2_item")
-Weight = 0.5
-Item = ExtResource("17_scroll_summon")
+[sub_resource type="Resource" id="Entry_146"]
+script = ExtResource("entry")
+Item = ExtResource("item_146")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_ring_strength"]
-script = ExtResource("2_item")
-Weight = 0.6
-Item = ExtResource("18_ring_strength")
+[sub_resource type="Resource" id="Group_food"]
+resource_name = "Food"
+script = ExtResource("group")
+Weight = 15.0
+Items = [SubResource("Entry_135"), SubResource("Entry_136"), SubResource("Entry_137"), SubResource("Entry_138"), SubResource("Entry_139"), SubResource("Entry_140"), SubResource("Entry_141"), SubResource("Entry_142"), SubResource("Entry_143"), SubResource("Entry_144"), SubResource("Entry_145"), SubResource("Entry_146")]
+metadata/_custom_type_script = ExtResource("group")
+
+[sub_resource type="Resource" id="Entry_147"]
+script = ExtResource("entry")
+Item = ExtResource("item_147")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_ring_dexterity"]
-script = ExtResource("2_item")
-Weight = 0.6
-Item = ExtResource("19_ring_dexterity")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_ring_vitality"]
-script = ExtResource("2_item")
-Weight = 0.6
-Item = ExtResource("20_ring_vitality")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_ring_mind"]
-script = ExtResource("2_item")
-Weight = 0.6
-Item = ExtResource("21_ring_mind")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_ring_protection"]
-script = ExtResource("2_item")
-Weight = 0.6
-Item = ExtResource("22_ring_protection")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_ring_evasion"]
-script = ExtResource("2_item")
-Weight = 0.6
-Item = ExtResource("23_ring_evasion")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_ring_precision"]
-script = ExtResource("2_item")
-Weight = 0.6
-Item = ExtResource("24_ring_precision")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_ring_savagery"]
-script = ExtResource("2_item")
-Weight = 0.5
-Item = ExtResource("25_ring_savagery")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_ring_lethargy"]
-script = ExtResource("2_item")
-Weight = 0.4
-Item = ExtResource("26_ring_lethargy")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_ring_frailty"]
-script = ExtResource("2_item")
-Weight = 0.4
-Item = ExtResource("27_ring_frailty")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_amulet_health"]
-script = ExtResource("2_item")
-Weight = 0.5
-Item = ExtResource("28_amulet_health")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_amulet_swiftness"]
-script = ExtResource("2_item")
-Weight = 0.5
-Item = ExtResource("29_amulet_swiftness")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_amulet_titan"]
-script = ExtResource("2_item")
-Weight = 0.4
-Item = ExtResource("30_amulet_titan")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_amulet_dread"]
-script = ExtResource("2_item")
-Weight = 0.4
-Item = ExtResource("31_amulet_dread")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_axe_common"]
-script = ExtResource("2_item")
+[sub_resource type="Resource" id="Entry_148"]
+script = ExtResource("entry")
+Item = ExtResource("item_148")
 Weight = 3.0
-Item = ExtResource("32_axe_common")
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_149"]
+script = ExtResource("entry")
+Item = ExtResource("item_149")
+Weight = 3.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_150"]
+script = ExtResource("entry")
+Item = ExtResource("item_150")
+Weight = 3.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_151"]
+script = ExtResource("entry")
+Item = ExtResource("item_151")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_152"]
+script = ExtResource("entry")
+Item = ExtResource("item_152")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_153"]
+script = ExtResource("entry")
+Item = ExtResource("item_153")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_154"]
+script = ExtResource("entry")
+Item = ExtResource("item_154")
+Weight = 3.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_155"]
+script = ExtResource("entry")
+Item = ExtResource("item_155")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_156"]
+script = ExtResource("entry")
+Item = ExtResource("item_156")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_157"]
+script = ExtResource("entry")
+Item = ExtResource("item_157")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_158"]
+script = ExtResource("entry")
+Item = ExtResource("item_158")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_159"]
+script = ExtResource("entry")
+Item = ExtResource("item_159")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_160"]
+script = ExtResource("entry")
+Item = ExtResource("item_160")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_161"]
+script = ExtResource("entry")
+Item = ExtResource("item_161")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_162"]
+script = ExtResource("entry")
+Item = ExtResource("item_162")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_163"]
+script = ExtResource("entry")
+Item = ExtResource("item_163")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_164"]
+script = ExtResource("entry")
+Item = ExtResource("item_164")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_165"]
+script = ExtResource("entry")
+Item = ExtResource("item_165")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_166"]
+script = ExtResource("entry")
+Item = ExtResource("item_166")
+Weight = 3.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_167"]
+script = ExtResource("entry")
+Item = ExtResource("item_167")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_168"]
+script = ExtResource("entry")
+Item = ExtResource("item_168")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_169"]
+script = ExtResource("entry")
+Item = ExtResource("item_169")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_170"]
+script = ExtResource("entry")
+Item = ExtResource("item_170")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_171"]
+script = ExtResource("entry")
+Item = ExtResource("item_171")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_172"]
+script = ExtResource("entry")
+Item = ExtResource("item_172")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_173"]
+script = ExtResource("entry")
+Item = ExtResource("item_173")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_174"]
+script = ExtResource("entry")
+Item = ExtResource("item_174")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_175"]
+script = ExtResource("entry")
+Item = ExtResource("item_175")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_176"]
+script = ExtResource("entry")
+Item = ExtResource("item_176")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_177"]
+script = ExtResource("entry")
+Item = ExtResource("item_177")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_178"]
+script = ExtResource("entry")
+Item = ExtResource("item_178")
+Weight = 3.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_179"]
+script = ExtResource("entry")
+Item = ExtResource("item_179")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_180"]
+script = ExtResource("entry")
+Item = ExtResource("item_180")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_181"]
+script = ExtResource("entry")
+Item = ExtResource("item_181")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_182"]
+script = ExtResource("entry")
+Item = ExtResource("item_182")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_183"]
+script = ExtResource("entry")
+Item = ExtResource("item_183")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_184"]
+script = ExtResource("entry")
+Item = ExtResource("item_184")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_185"]
+script = ExtResource("entry")
+Item = ExtResource("item_185")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_186"]
+script = ExtResource("entry")
+Item = ExtResource("item_186")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_187"]
+script = ExtResource("entry")
+Item = ExtResource("item_187")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_188"]
+script = ExtResource("entry")
+Item = ExtResource("item_188")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_189"]
+script = ExtResource("entry")
+Item = ExtResource("item_189")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Group_potions"]
+resource_name = "Potions"
+script = ExtResource("group")
+Weight = 20.0
+Items = [SubResource("Entry_147"), SubResource("Entry_148"), SubResource("Entry_149"), SubResource("Entry_150"), SubResource("Entry_151"), SubResource("Entry_152"), SubResource("Entry_153"), SubResource("Entry_154"), SubResource("Entry_155"), SubResource("Entry_156"), SubResource("Entry_157"), SubResource("Entry_158"), SubResource("Entry_159"), SubResource("Entry_160"), SubResource("Entry_161"), SubResource("Entry_162"), SubResource("Entry_163"), SubResource("Entry_164"), SubResource("Entry_165"), SubResource("Entry_166"), SubResource("Entry_167"), SubResource("Entry_168"), SubResource("Entry_169"), SubResource("Entry_170"), SubResource("Entry_171"), SubResource("Entry_172"), SubResource("Entry_173"), SubResource("Entry_174"), SubResource("Entry_175"), SubResource("Entry_176"), SubResource("Entry_177"), SubResource("Entry_178"), SubResource("Entry_179"), SubResource("Entry_180"), SubResource("Entry_181"), SubResource("Entry_182"), SubResource("Entry_183"), SubResource("Entry_184"), SubResource("Entry_185"), SubResource("Entry_186"), SubResource("Entry_187"), SubResource("Entry_188"), SubResource("Entry_189")]
+metadata/_custom_type_script = ExtResource("group")
+
+[sub_resource type="Resource" id="Entry_190"]
+script = ExtResource("entry")
+Item = ExtResource("item_190")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_191"]
+script = ExtResource("entry")
+Item = ExtResource("item_191")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_192"]
+script = ExtResource("entry")
+Item = ExtResource("item_192")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_193"]
+script = ExtResource("entry")
+Item = ExtResource("item_193")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_194"]
+script = ExtResource("entry")
+Item = ExtResource("item_194")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_195"]
+script = ExtResource("entry")
+Item = ExtResource("item_195")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_196"]
+script = ExtResource("entry")
+Item = ExtResource("item_196")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_197"]
+script = ExtResource("entry")
+Item = ExtResource("item_197")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_198"]
+script = ExtResource("entry")
+Item = ExtResource("item_198")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_199"]
+script = ExtResource("entry")
+Item = ExtResource("item_199")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_200"]
+script = ExtResource("entry")
+Item = ExtResource("item_200")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_201"]
+script = ExtResource("entry")
+Item = ExtResource("item_201")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_202"]
+script = ExtResource("entry")
+Item = ExtResource("item_202")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_203"]
+script = ExtResource("entry")
+Item = ExtResource("item_203")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_204"]
+script = ExtResource("entry")
+Item = ExtResource("item_204")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_205"]
+script = ExtResource("entry")
+Item = ExtResource("item_205")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_206"]
+script = ExtResource("entry")
+Item = ExtResource("item_206")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_207"]
+script = ExtResource("entry")
+Item = ExtResource("item_207")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_208"]
+script = ExtResource("entry")
+Item = ExtResource("item_208")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_209"]
+script = ExtResource("entry")
+Item = ExtResource("item_209")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Group_scrolls"]
+resource_name = "Scrolls"
+script = ExtResource("group")
+Weight = 10.0
+Items = [SubResource("Entry_190"), SubResource("Entry_191"), SubResource("Entry_192"), SubResource("Entry_193"), SubResource("Entry_194"), SubResource("Entry_195"), SubResource("Entry_196"), SubResource("Entry_197"), SubResource("Entry_198"), SubResource("Entry_199"), SubResource("Entry_200"), SubResource("Entry_201"), SubResource("Entry_202"), SubResource("Entry_203"), SubResource("Entry_204"), SubResource("Entry_205"), SubResource("Entry_206"), SubResource("Entry_207"), SubResource("Entry_208"), SubResource("Entry_209")]
+metadata/_custom_type_script = ExtResource("group")
+
+[sub_resource type="Resource" id="Entry_0"]
+script = ExtResource("entry")
+Item = ExtResource("item_0")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_1"]
+script = ExtResource("entry")
+Item = ExtResource("item_1")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_2"]
+script = ExtResource("entry")
+Item = ExtResource("item_2")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 3
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_axe_old"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("33_axe_old")
+[sub_resource type="Resource" id="Entry_3"]
+script = ExtResource("entry")
+Item = ExtResource("item_3")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 3
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_crossbow_common"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("34_crossbow_common")
+[sub_resource type="Resource" id="Entry_4"]
+script = ExtResource("entry")
+Item = ExtResource("item_4")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
-MaxDepth = 3
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_dagger_common"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("35_dagger_common")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 3
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_shortsword_common"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("36_shortsword_common")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 3
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_staff_common"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("37_staff_common")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 3
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_wand"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("38_wand")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 3
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_axe_uncommon"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("39_axe_uncommon")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_dagger_uncommon"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("40_dagger_uncommon")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_staff_uncommon"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("41_staff_uncommon")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_sword_common"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("42_sword_common")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_hammer_common"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("43_hammer_common")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_saber_skeleton"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("44_saber_skeleton")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_crossbow_spiked"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("45_crossbow_spiked")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_staff_fire"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("46_staff_fire")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_staff_water"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("47_staff_water")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_staff_air"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("48_staff_air")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_staff_earth"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("49_staff_earth")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_staff_skeleton"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("50_staff_skeleton")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_axedouble_common"]
-script = ExtResource("2_item")
-Weight = 2.4
-Item = ExtResource("51_axedouble_common")
-Quantity = 1
-MinDepth = 4
-MaxDepth = 8
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_hammer_uncommon"]
-script = ExtResource("2_item")
-Weight = 2.4
-Item = ExtResource("52_hammer_uncommon")
-Quantity = 1
-MinDepth = 4
-MaxDepth = 8
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_crossbow_uncommon"]
-script = ExtResource("2_item")
-Weight = 2.4
-Item = ExtResource("53_crossbow_uncommon")
-Quantity = 1
-MinDepth = 4
-MaxDepth = 8
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_battleaxe_common"]
-script = ExtResource("2_item")
-Weight = 2.4
-Item = ExtResource("54_battleaxe_common")
-Quantity = 1
-MinDepth = 4
-MaxDepth = 8
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_battleaxe_skeleton"]
-script = ExtResource("2_item")
-Weight = 2.4
-Item = ExtResource("55_battleaxe_skeleton")
-Quantity = 1
-MinDepth = 4
-MaxDepth = 8
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_broadsword_common"]
-script = ExtResource("2_item")
-Weight = 2.4
-Item = ExtResource("56_broadsword_common")
-Quantity = 1
-MinDepth = 4
-MaxDepth = 8
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_broadsword_rare"]
-script = ExtResource("2_item")
-Weight = 2.4
-Item = ExtResource("57_broadsword_rare")
-Quantity = 1
-MinDepth = 4
-MaxDepth = 8
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_crossbow_2handed"]
-script = ExtResource("2_item")
-Weight = 2.4
-Item = ExtResource("58_crossbow_2handed")
-Quantity = 1
-MinDepth = 4
-MaxDepth = 8
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_sword_rare"]
-script = ExtResource("2_item")
-Weight = 2.0
-Item = ExtResource("59_sword_rare")
-Quantity = 1
+QuantityPerDepth = 0.0
 MinDepth = 7
 MaxDepth = 12
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_axe_rare"]
-script = ExtResource("2_item")
-Weight = 2.0
-Item = ExtResource("60_axe_rare")
+[sub_resource type="Resource" id="Entry_5"]
+script = ExtResource("entry")
+Item = ExtResource("item_5")
+Weight = 1.0
 Quantity = 1
-MinDepth = 7
-MaxDepth = 12
-metadata/_custom_type_script = ExtResource("2_item")
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_dagger_rare"]
-script = ExtResource("2_item")
-Weight = 2.0
-Item = ExtResource("61_dagger_rare")
+[sub_resource type="Resource" id="Entry_6"]
+script = ExtResource("entry")
+Item = ExtResource("item_6")
+Weight = 1.0
 Quantity = 1
-MinDepth = 7
-MaxDepth = 12
-metadata/_custom_type_script = ExtResource("2_item")
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_hammer_rare"]
-script = ExtResource("2_item")
-Weight = 2.0
-Item = ExtResource("62_hammer_rare")
+[sub_resource type="Resource" id="Entry_7"]
+script = ExtResource("entry")
+Item = ExtResource("item_7")
+Weight = 1.0
 Quantity = 1
-MinDepth = 7
-MaxDepth = 12
-metadata/_custom_type_script = ExtResource("2_item")
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_axedouble_uncommon"]
-script = ExtResource("2_item")
-Weight = 2.0
-Item = ExtResource("63_axedouble_uncommon")
+[sub_resource type="Resource" id="Entry_8"]
+script = ExtResource("entry")
+Item = ExtResource("item_8")
+Weight = 1.0
 Quantity = 1
-MinDepth = 7
-MaxDepth = 12
-metadata/_custom_type_script = ExtResource("2_item")
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_crossbow_rare"]
-script = ExtResource("2_item")
-Weight = 2.0
-Item = ExtResource("64_crossbow_rare")
+[sub_resource type="Resource" id="Entry_9"]
+script = ExtResource("entry")
+Item = ExtResource("item_9")
+Weight = 1.0
 Quantity = 1
-MinDepth = 7
-MaxDepth = 12
-metadata/_custom_type_script = ExtResource("2_item")
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_staff_rare"]
-script = ExtResource("2_item")
-Weight = 2.0
-Item = ExtResource("65_staff_rare")
+[sub_resource type="Resource" id="Entry_10"]
+script = ExtResource("entry")
+Item = ExtResource("item_10")
+Weight = 1.0
 Quantity = 1
-MinDepth = 7
-MaxDepth = 12
-metadata/_custom_type_script = ExtResource("2_item")
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_warhammer"]
-script = ExtResource("2_item")
-Weight = 2.0
-Item = ExtResource("66_warhammer")
+[sub_resource type="Resource" id="Entry_11"]
+script = ExtResource("entry")
+Item = ExtResource("item_11")
+Weight = 1.0
 Quantity = 1
-MinDepth = 7
-MaxDepth = 12
-metadata/_custom_type_script = ExtResource("2_item")
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_axedouble_rare"]
-script = ExtResource("2_item")
-Weight = 1.6
-Item = ExtResource("67_axedouble_rare")
+[sub_resource type="Resource" id="Entry_12"]
+script = ExtResource("entry")
+Item = ExtResource("item_12")
+Weight = 1.0
 Quantity = 1
+QuantityPerDepth = 0.0
 MinDepth = 10
 MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_warhammer_gold"]
-script = ExtResource("2_item")
-Weight = 1.6
-Item = ExtResource("68_warhammer_gold")
+[sub_resource type="Resource" id="Entry_13"]
+script = ExtResource("entry")
+Item = ExtResource("item_13")
+Weight = 1.0
 Quantity = 1
-MinDepth = 10
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_shield_common"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("69_shield_common")
-Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 3
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_shield_badge"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("70_shield_badge")
+[sub_resource type="Resource" id="Entry_14"]
+script = ExtResource("entry")
+Item = ExtResource("item_14")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
+QuantityPerDepth = 0.0
+MinDepth = 1
 MaxDepth = 3
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Item_shield_badge_color"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("71_shield_badge_color")
+[sub_resource type="Resource" id="Entry_15"]
+script = ExtResource("entry")
+Item = ExtResource("item_15")
+Weight = 1.0
 Quantity = 1
-MinDepth = 0
-MaxDepth = 3
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_shield_round_blue"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("72_shield_round_blue")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 3
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_shield_round_common"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("73_shield_round_common")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 3
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_shield_round_old"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("74_shield_round_old")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 3
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_shield_round_red"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("75_shield_round_red")
-Quantity = 1
-MinDepth = 0
-MaxDepth = 3
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_shield_badge_spikes"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("76_shield_badge_spikes")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_shield_badge_spikes_red"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("77_shield_badge_spikes_red")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_shield_large_skull"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("78_shield_large_skull")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_shield_large_spikes"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("79_shield_large_spikes")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_shield_square"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("80_shield_square")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_shield_square_red"]
-script = ExtResource("2_item")
-Weight = 3.0
-Item = ExtResource("81_shield_square_red")
-Quantity = 1
-MinDepth = 2
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_shield_uncommon"]
-script = ExtResource("2_item")
-Weight = 2.4
-Item = ExtResource("82_shield_uncommon")
-Quantity = 1
-MinDepth = 4
-MaxDepth = 8
-metadata/_custom_type_script = ExtResource("2_item")
-
-[sub_resource type="Resource" id="Item_shield_rare"]
-script = ExtResource("2_item")
-Weight = 2.0
-Item = ExtResource("83_shield_rare")
-Quantity = 1
+QuantityPerDepth = 0.0
 MinDepth = 7
 MaxDepth = 12
-metadata/_custom_type_script = ExtResource("2_item")
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_16"]
+script = ExtResource("entry")
+Item = ExtResource("item_16")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_17"]
+script = ExtResource("entry")
+Item = ExtResource("item_17")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_18"]
+script = ExtResource("entry")
+Item = ExtResource("item_18")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 10
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_19"]
+script = ExtResource("entry")
+Item = ExtResource("item_19")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_20"]
+script = ExtResource("entry")
+Item = ExtResource("item_20")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 10
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_21"]
+script = ExtResource("entry")
+Item = ExtResource("item_21")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_22"]
+script = ExtResource("entry")
+Item = ExtResource("item_22")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_23"]
+script = ExtResource("entry")
+Item = ExtResource("item_23")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_24"]
+script = ExtResource("entry")
+Item = ExtResource("item_24")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_25"]
+script = ExtResource("entry")
+Item = ExtResource("item_25")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 10
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_26"]
+script = ExtResource("entry")
+Item = ExtResource("item_26")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_27"]
+script = ExtResource("entry")
+Item = ExtResource("item_27")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_28"]
+script = ExtResource("entry")
+Item = ExtResource("item_28")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_29"]
+script = ExtResource("entry")
+Item = ExtResource("item_29")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 10
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_30"]
+script = ExtResource("entry")
+Item = ExtResource("item_30")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_31"]
+script = ExtResource("entry")
+Item = ExtResource("item_31")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_32"]
+script = ExtResource("entry")
+Item = ExtResource("item_32")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_33"]
+script = ExtResource("entry")
+Item = ExtResource("item_33")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_34"]
+script = ExtResource("entry")
+Item = ExtResource("item_34")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_35"]
+script = ExtResource("entry")
+Item = ExtResource("item_35")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_36"]
+script = ExtResource("entry")
+Item = ExtResource("item_36")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 10
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_37"]
+script = ExtResource("entry")
+Item = ExtResource("item_37")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_38"]
+script = ExtResource("entry")
+Item = ExtResource("item_38")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_39"]
+script = ExtResource("entry")
+Item = ExtResource("item_39")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_40"]
+script = ExtResource("entry")
+Item = ExtResource("item_40")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 10
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_41"]
+script = ExtResource("entry")
+Item = ExtResource("item_41")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_42"]
+script = ExtResource("entry")
+Item = ExtResource("item_42")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_43"]
+script = ExtResource("entry")
+Item = ExtResource("item_43")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_44"]
+script = ExtResource("entry")
+Item = ExtResource("item_44")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_45"]
+script = ExtResource("entry")
+Item = ExtResource("item_45")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_46"]
+script = ExtResource("entry")
+Item = ExtResource("item_46")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_47"]
+script = ExtResource("entry")
+Item = ExtResource("item_47")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_48"]
+script = ExtResource("entry")
+Item = ExtResource("item_48")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 10
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_49"]
+script = ExtResource("entry")
+Item = ExtResource("item_49")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_50"]
+script = ExtResource("entry")
+Item = ExtResource("item_50")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_51"]
+script = ExtResource("entry")
+Item = ExtResource("item_51")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_52"]
+script = ExtResource("entry")
+Item = ExtResource("item_52")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_53"]
+script = ExtResource("entry")
+Item = ExtResource("item_53")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_54"]
+script = ExtResource("entry")
+Item = ExtResource("item_54")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_55"]
+script = ExtResource("entry")
+Item = ExtResource("item_55")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_56"]
+script = ExtResource("entry")
+Item = ExtResource("item_56")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_57"]
+script = ExtResource("entry")
+Item = ExtResource("item_57")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_58"]
+script = ExtResource("entry")
+Item = ExtResource("item_58")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_59"]
+script = ExtResource("entry")
+Item = ExtResource("item_59")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 10
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_60"]
+script = ExtResource("entry")
+Item = ExtResource("item_60")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_61"]
+script = ExtResource("entry")
+Item = ExtResource("item_61")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_62"]
+script = ExtResource("entry")
+Item = ExtResource("item_62")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 10
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_63"]
+script = ExtResource("entry")
+Item = ExtResource("item_63")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_64"]
+script = ExtResource("entry")
+Item = ExtResource("item_64")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_65"]
+script = ExtResource("entry")
+Item = ExtResource("item_65")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_66"]
+script = ExtResource("entry")
+Item = ExtResource("item_66")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_67"]
+script = ExtResource("entry")
+Item = ExtResource("item_67")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_68"]
+script = ExtResource("entry")
+Item = ExtResource("item_68")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 10
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Group_weapons"]
+resource_name = "Weapons"
+script = ExtResource("group")
+Weight = 18.0
+Items = [SubResource("Entry_0"), SubResource("Entry_1"), SubResource("Entry_2"), SubResource("Entry_3"), SubResource("Entry_4"), SubResource("Entry_5"), SubResource("Entry_6"), SubResource("Entry_7"), SubResource("Entry_8"), SubResource("Entry_9"), SubResource("Entry_10"), SubResource("Entry_11"), SubResource("Entry_12"), SubResource("Entry_13"), SubResource("Entry_14"), SubResource("Entry_15"), SubResource("Entry_16"), SubResource("Entry_17"), SubResource("Entry_18"), SubResource("Entry_19"), SubResource("Entry_20"), SubResource("Entry_21"), SubResource("Entry_22"), SubResource("Entry_23"), SubResource("Entry_24"), SubResource("Entry_25"), SubResource("Entry_26"), SubResource("Entry_27"), SubResource("Entry_28"), SubResource("Entry_29"), SubResource("Entry_30"), SubResource("Entry_31"), SubResource("Entry_32"), SubResource("Entry_33"), SubResource("Entry_34"), SubResource("Entry_35"), SubResource("Entry_36"), SubResource("Entry_37"), SubResource("Entry_38"), SubResource("Entry_39"), SubResource("Entry_40"), SubResource("Entry_41"), SubResource("Entry_42"), SubResource("Entry_43"), SubResource("Entry_44"), SubResource("Entry_45"), SubResource("Entry_46"), SubResource("Entry_47"), SubResource("Entry_48"), SubResource("Entry_49"), SubResource("Entry_50"), SubResource("Entry_51"), SubResource("Entry_52"), SubResource("Entry_53"), SubResource("Entry_54"), SubResource("Entry_55"), SubResource("Entry_56"), SubResource("Entry_57"), SubResource("Entry_58"), SubResource("Entry_59"), SubResource("Entry_60"), SubResource("Entry_61"), SubResource("Entry_62"), SubResource("Entry_63"), SubResource("Entry_64"), SubResource("Entry_65"), SubResource("Entry_66"), SubResource("Entry_67"), SubResource("Entry_68")]
+metadata/_custom_type_script = ExtResource("group")
+
+[sub_resource type="Resource" id="Entry_69"]
+script = ExtResource("entry")
+Item = ExtResource("item_69")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 10
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_70"]
+script = ExtResource("entry")
+Item = ExtResource("item_70")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_71"]
+script = ExtResource("entry")
+Item = ExtResource("item_71")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 10
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_72"]
+script = ExtResource("entry")
+Item = ExtResource("item_72")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_73"]
+script = ExtResource("entry")
+Item = ExtResource("item_73")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_74"]
+script = ExtResource("entry")
+Item = ExtResource("item_74")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_75"]
+script = ExtResource("entry")
+Item = ExtResource("item_75")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_76"]
+script = ExtResource("entry")
+Item = ExtResource("item_76")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_77"]
+script = ExtResource("entry")
+Item = ExtResource("item_77")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_78"]
+script = ExtResource("entry")
+Item = ExtResource("item_78")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_79"]
+script = ExtResource("entry")
+Item = ExtResource("item_79")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_80"]
+script = ExtResource("entry")
+Item = ExtResource("item_80")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_81"]
+script = ExtResource("entry")
+Item = ExtResource("item_81")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_82"]
+script = ExtResource("entry")
+Item = ExtResource("item_82")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_83"]
+script = ExtResource("entry")
+Item = ExtResource("item_83")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_84"]
+script = ExtResource("entry")
+Item = ExtResource("item_84")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_85"]
+script = ExtResource("entry")
+Item = ExtResource("item_85")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_86"]
+script = ExtResource("entry")
+Item = ExtResource("item_86")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_87"]
+script = ExtResource("entry")
+Item = ExtResource("item_87")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_88"]
+script = ExtResource("entry")
+Item = ExtResource("item_88")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_89"]
+script = ExtResource("entry")
+Item = ExtResource("item_89")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 7
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_90"]
+script = ExtResource("entry")
+Item = ExtResource("item_90")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_91"]
+script = ExtResource("entry")
+Item = ExtResource("item_91")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_92"]
+script = ExtResource("entry")
+Item = ExtResource("item_92")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_93"]
+script = ExtResource("entry")
+Item = ExtResource("item_93")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 3
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_94"]
+script = ExtResource("entry")
+Item = ExtResource("item_94")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_95"]
+script = ExtResource("entry")
+Item = ExtResource("item_95")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 5
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_96"]
+script = ExtResource("entry")
+Item = ExtResource("item_96")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 8
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Group_armor"]
+resource_name = "Armor"
+script = ExtResource("group")
+Weight = 8.0
+Items = [SubResource("Entry_69"), SubResource("Entry_70"), SubResource("Entry_71"), SubResource("Entry_72"), SubResource("Entry_73"), SubResource("Entry_74"), SubResource("Entry_75"), SubResource("Entry_76"), SubResource("Entry_77"), SubResource("Entry_78"), SubResource("Entry_79"), SubResource("Entry_80"), SubResource("Entry_81"), SubResource("Entry_82"), SubResource("Entry_83"), SubResource("Entry_84"), SubResource("Entry_85"), SubResource("Entry_86"), SubResource("Entry_87"), SubResource("Entry_88"), SubResource("Entry_89"), SubResource("Entry_90"), SubResource("Entry_91"), SubResource("Entry_92"), SubResource("Entry_93"), SubResource("Entry_94"), SubResource("Entry_95"), SubResource("Entry_96")]
+metadata/_custom_type_script = ExtResource("group")
+
+[sub_resource type="Resource" id="Entry_97"]
+script = ExtResource("entry")
+Item = ExtResource("item_97")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_98"]
+script = ExtResource("entry")
+Item = ExtResource("item_98")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_99"]
+script = ExtResource("entry")
+Item = ExtResource("item_99")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_100"]
+script = ExtResource("entry")
+Item = ExtResource("item_100")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_101"]
+script = ExtResource("entry")
+Item = ExtResource("item_101")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_102"]
+script = ExtResource("entry")
+Item = ExtResource("item_102")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_103"]
+script = ExtResource("entry")
+Item = ExtResource("item_103")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_104"]
+script = ExtResource("entry")
+Item = ExtResource("item_104")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_105"]
+script = ExtResource("entry")
+Item = ExtResource("item_105")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_106"]
+script = ExtResource("entry")
+Item = ExtResource("item_106")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_107"]
+script = ExtResource("entry")
+Item = ExtResource("item_107")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_108"]
+script = ExtResource("entry")
+Item = ExtResource("item_108")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_109"]
+script = ExtResource("entry")
+Item = ExtResource("item_109")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_110"]
+script = ExtResource("entry")
+Item = ExtResource("item_110")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_111"]
+script = ExtResource("entry")
+Item = ExtResource("item_111")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_112"]
+script = ExtResource("entry")
+Item = ExtResource("item_112")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_113"]
+script = ExtResource("entry")
+Item = ExtResource("item_113")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_114"]
+script = ExtResource("entry")
+Item = ExtResource("item_114")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_115"]
+script = ExtResource("entry")
+Item = ExtResource("item_115")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_116"]
+script = ExtResource("entry")
+Item = ExtResource("item_116")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 4
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_117"]
+script = ExtResource("entry")
+Item = ExtResource("item_117")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_118"]
+script = ExtResource("entry")
+Item = ExtResource("item_118")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_119"]
+script = ExtResource("entry")
+Item = ExtResource("item_119")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_120"]
+script = ExtResource("entry")
+Item = ExtResource("item_120")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 2
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_121"]
+script = ExtResource("entry")
+Item = ExtResource("item_121")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_122"]
+script = ExtResource("entry")
+Item = ExtResource("item_122")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_123"]
+script = ExtResource("entry")
+Item = ExtResource("item_123")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_124"]
+script = ExtResource("entry")
+Item = ExtResource("item_124")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_125"]
+script = ExtResource("entry")
+Item = ExtResource("item_125")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_126"]
+script = ExtResource("entry")
+Item = ExtResource("item_126")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_127"]
+script = ExtResource("entry")
+Item = ExtResource("item_127")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_128"]
+script = ExtResource("entry")
+Item = ExtResource("item_128")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_129"]
+script = ExtResource("entry")
+Item = ExtResource("item_129")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_130"]
+script = ExtResource("entry")
+Item = ExtResource("item_130")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_131"]
+script = ExtResource("entry")
+Item = ExtResource("item_131")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_132"]
+script = ExtResource("entry")
+Item = ExtResource("item_132")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_133"]
+script = ExtResource("entry")
+Item = ExtResource("item_133")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_134"]
+script = ExtResource("entry")
+Item = ExtResource("item_134")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Group_jewelry"]
+resource_name = "Jewelry"
+script = ExtResource("group")
+Weight = 9.0
+Items = [SubResource("Entry_97"), SubResource("Entry_98"), SubResource("Entry_99"), SubResource("Entry_100"), SubResource("Entry_101"), SubResource("Entry_102"), SubResource("Entry_103"), SubResource("Entry_104"), SubResource("Entry_105"), SubResource("Entry_106"), SubResource("Entry_107"), SubResource("Entry_108"), SubResource("Entry_109"), SubResource("Entry_110"), SubResource("Entry_111"), SubResource("Entry_112"), SubResource("Entry_113"), SubResource("Entry_114"), SubResource("Entry_115"), SubResource("Entry_116"), SubResource("Entry_117"), SubResource("Entry_118"), SubResource("Entry_119"), SubResource("Entry_120"), SubResource("Entry_121"), SubResource("Entry_122"), SubResource("Entry_123"), SubResource("Entry_124"), SubResource("Entry_125"), SubResource("Entry_126"), SubResource("Entry_127"), SubResource("Entry_128"), SubResource("Entry_129"), SubResource("Entry_130"), SubResource("Entry_131"), SubResource("Entry_132"), SubResource("Entry_133"), SubResource("Entry_134")]
+metadata/_custom_type_script = ExtResource("group")
 
 [resource]
-script = ExtResource("1_table")
-Items = [SubResource("Item_gold"), SubResource("Item_heal_small"), SubResource("Item_heal_medium"), SubResource("Item_haste"), SubResource("Item_regen"), SubResource("Item_poison"), SubResource("Item_slow"), SubResource("Item_scroll_identify"), SubResource("Item_scroll_enchant"), SubResource("Item_scroll_teleport"), SubResource("Item_scroll_haste"), SubResource("Item_scroll_protection"), SubResource("Item_scroll_rage"), SubResource("Item_scroll_weakness"), SubResource("Item_scroll_summon"), SubResource("Item_ring_strength"), SubResource("Item_ring_dexterity"), SubResource("Item_ring_vitality"), SubResource("Item_ring_mind"), SubResource("Item_ring_protection"), SubResource("Item_ring_evasion"), SubResource("Item_ring_precision"), SubResource("Item_ring_savagery"), SubResource("Item_ring_lethargy"), SubResource("Item_ring_frailty"), SubResource("Item_amulet_health"), SubResource("Item_amulet_swiftness"), SubResource("Item_amulet_titan"), SubResource("Item_amulet_dread"), SubResource("Item_axe_common"), SubResource("Item_axe_old"), SubResource("Item_crossbow_common"), SubResource("Item_dagger_common"), SubResource("Item_shortsword_common"), SubResource("Item_staff_common"), SubResource("Item_wand"), SubResource("Item_axe_uncommon"), SubResource("Item_dagger_uncommon"), SubResource("Item_staff_uncommon"), SubResource("Item_sword_common"), SubResource("Item_hammer_common"), SubResource("Item_saber_skeleton"), SubResource("Item_crossbow_spiked"), SubResource("Item_staff_fire"), SubResource("Item_staff_water"), SubResource("Item_staff_air"), SubResource("Item_staff_earth"), SubResource("Item_staff_skeleton"), SubResource("Item_axedouble_common"), SubResource("Item_hammer_uncommon"), SubResource("Item_crossbow_uncommon"), SubResource("Item_battleaxe_common"), SubResource("Item_battleaxe_skeleton"), SubResource("Item_broadsword_common"), SubResource("Item_broadsword_rare"), SubResource("Item_crossbow_2handed"), SubResource("Item_sword_rare"), SubResource("Item_axe_rare"), SubResource("Item_dagger_rare"), SubResource("Item_hammer_rare"), SubResource("Item_axedouble_uncommon"), SubResource("Item_crossbow_rare"), SubResource("Item_staff_rare"), SubResource("Item_warhammer"), SubResource("Item_axedouble_rare"), SubResource("Item_warhammer_gold"), SubResource("Item_shield_common"), SubResource("Item_shield_badge"), SubResource("Item_shield_badge_color"), SubResource("Item_shield_round_blue"), SubResource("Item_shield_round_common"), SubResource("Item_shield_round_old"), SubResource("Item_shield_round_red"), SubResource("Item_shield_badge_spikes"), SubResource("Item_shield_badge_spikes_red"), SubResource("Item_shield_large_skull"), SubResource("Item_shield_large_spikes"), SubResource("Item_shield_square"), SubResource("Item_shield_square_red"), SubResource("Item_shield_uncommon"), SubResource("Item_shield_rare")]
-metadata/_custom_type_script = ExtResource("1_table")
+script = ExtResource("table")
+Groups = [SubResource("Group_gold"), SubResource("Group_food"), SubResource("Group_potions"), SubResource("Group_scrolls"), SubResource("Group_weapons"), SubResource("Group_armor"), SubResource("Group_jewelry")]
+metadata/_custom_type_script = ExtResource("table")

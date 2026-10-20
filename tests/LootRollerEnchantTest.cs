@@ -50,7 +50,7 @@ public class LootRollerEnchantTest
 		AssertInt((int)instance.Rarity).IsEqual((int)EquipableItemRarity.Common);
 		AssertInt(instance.Affixes.Count).IsEqual(0);
 
-		LootRoller.Enchant(instance, rng);
+		LootRoller.Enchant(instance, rng, GD.Load<AffixPool>("res://scenes/items/affixes/affix_pool.tres"));
 
 		AssertInt((int)instance.Rarity).IsEqual((int)EquipableItemRarity.Uncommon);
 		AssertInt(instance.Affixes.Count).IsEqual(1);
@@ -66,7 +66,7 @@ public class LootRollerEnchantTest
 
 		for (int i = 0; i < 5; i++)
 		{
-			LootRoller.Enchant(instance, rng);
+			LootRoller.Enchant(instance, rng, GD.Load<AffixPool>("res://scenes/items/affixes/affix_pool.tres"));
 		}
 
 		var seen = new System.Collections.Generic.HashSet<string>();
@@ -84,7 +84,7 @@ public class LootRollerEnchantTest
 		var rng = new RandomNumberGenerator();
 		rng.Seed = 123;
 
-		LootRoller.Enchant(instance, rng);
+		LootRoller.Enchant(instance, rng, GD.Load<AffixPool>("res://scenes/items/affixes/affix_pool.tres"));
 
 		AssertInt((int)definition.Rarity).IsEqual((int)EquipableItemRarity.Common);
 		AssertInt(definition.Affixes.Count).IsEqual(0);

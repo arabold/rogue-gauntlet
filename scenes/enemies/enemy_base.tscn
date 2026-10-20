@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://cvvu87irfmqm1"]
+[gd_scene load_steps=16 format=3 uid="uid://cvvu87irfmqm1"]
 
 [ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="1_j62no"]
 [ext_resource type="PackedScene" uid="uid://dt3ptc0tqgy5s" path="res://scenes/enemies/enemy_behavior_component.tscn" id="2_sr21q"]
@@ -10,8 +10,12 @@
 [ext_resource type="PackedScene" uid="uid://cs2dyf0ews4ob" path="res://scenes/effects/hit_effect.tscn" id="9_d4q6w"]
 [ext_resource type="PackedScene" uid="uid://c6i0b6qufb14m" path="res://scenes/components/floating_health_bar.tscn" id="10_oansv"]
 [ext_resource type="Script" path="res://scenes/attacks/AttackController.cs" id="11_attack"]
-[ext_resource type="PackedScene" uid="uid://blsurcr8183cv" path="res://scenes/components/hit_box_component.tscn" id="12_hitbox"]
 [ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/attacks/projectile.tscn" id="13_projectile"]
+
+[ext_resource type="Script" path="res://scenes/attacks/AttackAnimationComponent.cs" id="attack_animation_script"]
+
+[ext_resource type="Script" path="res://scenes/attacks/MeleeHitDetector.cs" id="melee_detector_script"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/monster_default.tres" id="melee_default"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_6flps"]
 viewport_path = NodePath("SubViewport")
@@ -31,9 +35,11 @@ Actor = NodePath("..")
 MovementComponent = NodePath("../MovementComponent")
 HealthComponent = NodePath("../HealthComponent")
 
-[node name="AttackController" type="Node" parent="."]
+[node name="AttackController" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "MeleeDetector")]
 script = ExtResource("11_attack")
-HitBoxScene = ExtResource("12_hitbox")
+AnimationComponent = NodePath("../AttackAnimationComponent")
+MeleeDetector = NodePath("../MeleeHitDetector")
+DefaultMeleeContact = ExtResource("melee_default")
 DefaultProjectileScene = ExtResource("13_projectile")
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor") instance=ExtResource("4_qc6m8")]
@@ -58,3 +64,9 @@ HitEffect = ExtResource("9_d4q6w")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 texture = SubResource("ViewportTexture_6flps")
 HealthComponent = NodePath("../HealthComponent")
+
+[node name="AttackAnimationComponent" type="Node" parent="."]
+script = ExtResource("attack_animation_script")
+
+[node name="MeleeHitDetector" type="Node" parent="."]
+script = ExtResource("melee_detector_script")

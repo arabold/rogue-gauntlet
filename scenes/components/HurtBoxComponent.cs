@@ -17,6 +17,7 @@ public enum DamageSourceFlags
 public partial class HurtBoxComponent : Area3D, IDamageable
 {
 	// Signal emitted when damage is taken
+	[Signal] public delegate void DamageResolvedEventHandler(int outcome, float amount);
 	[Signal]
 	public delegate void DamageTakenEventHandler(float amount, Vector3 attackDirection);
 
@@ -33,44 +34,34 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 	/// </summary>
 	[Export] public DamageSourceFlags DamageFilter { get; set; } = DamageSourceFlags.Player | DamageSourceFlags.Boss | DamageSourceFlags.Environment;
 
+	/// <summary>Preserves the common damage contract while publishing the resolved contact outcome.</summary>
 	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null, DamageSourceFlags attackerFaction = DamageSourceFlags.None)
 	{
-		if (attackerFaction == DamageSourceFlags.None)
-		{
-			attackerFaction = GetDamageSource(attacker);
-		}
+		ResolveDamage(accuracy, amount, attackDirection, attacker, attackerFaction);
+	}
 
-		if ((DamageFilter & attackerFaction) == 0)
-		{
-			GameDebug.Combat($"{GetParent().Name}'s hurtbox filtered out damage from {GetAttackerName(attacker)} ({attackerFaction})");
-			return;
-		}
+	/// <summary>Resolve defense separately from geometric contact; melee supplies its actor-owned RNG.</summary>
+	public DamageResolution ResolveDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null,
+		DamageSourceFlags attackerFaction = DamageSourceFlags.None, RandomNumberGenerator random = null)
+	{
+		if (attackerFaction == DamageSourceFlags.None) attackerFaction = GetDamageSource(attacker);
+		if ((DamageFilter & attackerFaction) == 0) return Report(DamageOutcome.Filtered);
+		float Roll(float maximum) => random?.RandfRange(0, Mathf.Max(0, maximum)) ?? (float)GD.RandRange(0f, Mathf.Max(0, maximum));
+		if (Roll(Evasion) > Roll(accuracy)) return Report(DamageOutcome.Evaded);
+		if (Invulnerable) return Report(DamageOutcome.Invulnerable);
+		float finalDamage = Mathf.Max(0, amount - Roll(Armor));
+		if (finalDamage <= 0) return Report(DamageOutcome.Absorbed);
+		EmitSignalDamageTaken(finalDamage, attackDirection);
+		HealthComponent?.TakeDamage(finalDamage);
+		MovementComponent?.Push(attackDirection, 3);
+		SpawnHitEffect(attackDirection);
+		return Report(DamageOutcome.Damaged, finalDamage);
+	}
 
-		var attack = GD.RandRange(0f, accuracy);
-		var defense = GD.RandRange(0f, Evasion);
-		if (defense > attack)
-		{
-			GameDebug.Combat($"{GetParent().Name} evaded the attack!");
-			return;
-		}
-
-		if (Invulnerable)
-		{
-			GameDebug.Combat($"{GetParent().Name} is invulnerable!");
-			return;
-		}
-
-		var armor = (float)GD.RandRange(0f, Armor);
-		GameDebug.Combat($"{GetParent().Name} took {amount} damage with {armor} armor");
-
-		var finalDamage = Mathf.Max(0, amount - armor);
-		if (finalDamage > 0)
-		{
-			EmitSignalDamageTaken(finalDamage, attackDirection);
-			HealthComponent?.TakeDamage(finalDamage);
-			MovementComponent?.Push(attackDirection, 3.0f);
-			SpawnHitEffect(attackDirection);
-		}
+	private DamageResolution Report(DamageOutcome outcome, float amount = 0)
+	{
+		EmitSignalDamageResolved((int)outcome, amount);
+		return new DamageResolution(outcome, amount);
 	}
 
 	private void SpawnHitEffect(Vector3 attackDirection)

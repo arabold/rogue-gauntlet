@@ -45,7 +45,7 @@ public static class SaveService
 
 		try
 		{
-			return JsonSerializer.Deserialize<SaveGame>(file.GetAsText(), JsonOptions);
+			return DeserializeCurrentVersion(file.GetAsText());
 		}
 		catch (Exception ex)
 		{
@@ -54,22 +54,53 @@ public static class SaveService
 		}
 	}
 
+	/// <summary>
+	/// Rejects old or unversioned development saves before constructing current DTOs.
+	/// No missing-field defaults or migrations are used to infer compatibility.
+	/// </summary>
+	internal static SaveGame DeserializeCurrentVersion(string json)
+	{
+		using JsonDocument document = JsonDocument.Parse(json);
+		if (document.RootElement.ValueKind != JsonValueKind.Object
+			|| !document.RootElement.TryGetProperty(nameof(SaveGame.Version), out JsonElement version)
+			|| version.ValueKind != JsonValueKind.Number
+			|| !version.TryGetInt32(out int number) || number != SaveGame.CurrentVersion)
+		{
+			throw new JsonException("Incompatible save version. Start a new run; development saves are not migrated.");
+		}
+		return JsonSerializer.Deserialize<SaveGame>(json, JsonOptions);
+	}
+
 	public static bool Save(SaveGame saveGame)
 	{
 		ValidateSlot(saveGame.SlotId);
-		EnsureSaveDirectory();
-
-		string path = GetSlotPath(saveGame.SlotId);
-		string json = JsonSerializer.Serialize(saveGame, JsonOptions);
-		using FileAccess file = FileAccess.Open(path, FileAccess.ModeFlags.Write);
-		if (file == null)
+		// Serialize before opening anything; replace only after the complete temporary file is flushed.
+		try
 		{
-			GD.PrintErr($"Could not write save file: {path}");
+			EnsureSaveDirectory();
+			string path = ProjectSettings.GlobalizePath(GetSlotPath(saveGame.SlotId));
+			string json = JsonSerializer.Serialize(saveGame, JsonOptions);
+			WriteAtomically(path, json);
+			return true;
+		}
+		catch (Exception error)
+		{
+			GD.PushError($"Could not save game: {error.Message}");
 			return false;
 		}
+	}
 
-		file.StoreString(json);
-		return true;
+	/// <summary>Same-directory replacement keeps the last valid slot intact if preparation fails.</summary>
+	internal static void WriteAtomically(string absolutePath, string json)
+	{
+		string temporaryPath = absolutePath + ".tmp";
+		using (var stream = new System.IO.FileStream(temporaryPath, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+		{
+			byte[] bytes = System.Text.Encoding.UTF8.GetBytes(json);
+			stream.Write(bytes);
+			stream.Flush(true);
+		}
+		System.IO.File.Move(temporaryPath, absolutePath, overwrite: true);
 	}
 
 	public static IReadOnlyList<SaveSlotMetadata> ListSlots()
@@ -88,13 +119,16 @@ public static class SaveService
 	{
 		if (saveGame == null)
 		{
-			return new SaveSlotMetadata { SlotId = slotId, HasSave = false };
+			// A rejected/corrupt file still occupies its slot. New-game overwrite
+			// confirmation must not treat it as an empty slot.
+			return new SaveSlotMetadata { SlotId = slotId, HasSave = HasSave(slotId), CanLoad = false };
 		}
 
 		return new SaveSlotMetadata
 		{
 			SlotId = slotId,
 			HasSave = true,
+			CanLoad = true,
 			RunId = saveGame.RunId,
 			CharacterClassId = saveGame.CharacterClassId,
 			SavedAtUtc = saveGame.SavedAtUtc,

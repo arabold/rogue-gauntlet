@@ -5,12 +5,14 @@ using System;
 public partial class ActionManager : Node
 {
 	public int ActionSlotCount => _actionSlots.Count;
-	public string CurrentAnimationId => _currentAction?.AnimationId;
+	public string CurrentAnimationId => _currentAction is Weapon ? null : _currentAction?.AnimationId;
+	public bool IsBusy => _actionSlots != null && System.Linq.Enumerable.Any(_actionSlots, slot => slot.IsDelayed || slot.IsPerformingAction);
 
 	private Player _player;
 	private Array<ActionSlot> _actionSlots;
 	private Array<float> _cooldownRemainingTime;
 	private IPlayerAction _currentAction;
+	private ActionSlot _currentSlot;
 
 	public override void _Ready()
 	{
@@ -27,8 +29,7 @@ public partial class ActionManager : Node
 		foreach (var actionSlot in _actionSlots)
 		{
 			actionSlot.PerformAction += () => OnActionPerformed(actionSlot);
-			actionSlot.ActionPerformed += OnActionPerformed;
-			actionSlot.CooldownEnded += OnActionPerformed;
+			actionSlot.ActionPerformed += () => OnActionCompleted(actionSlot);
 		}
 
 		_cooldownRemainingTime = new Array<float>(new float[_actionSlots.Count]);
@@ -99,22 +100,21 @@ public partial class ActionManager : Node
 
 	public void TryPerformAction(int slotIndex)
 	{
-		if (slotIndex < 0 || slotIndex >= _actionSlots.Count)
-		{
-			GD.PushError("Invalid slot index");
-			return;
-		}
+		if (IsBusy || _player.AttackController.IsAttacking || _player.IsDead || _player.IsHit || slotIndex < 0 || slotIndex >= _actionSlots.Count) return;
 
 		_actionSlots[slotIndex].TryPerformAction(_player);
 	}
 
 	private void OnActionPerformed(ActionSlot actionSlot)
 	{
+		_currentSlot = actionSlot;
 		_currentAction = actionSlot.AssignedAction;
 	}
 
-	private void OnActionPerformed()
+	private void OnActionCompleted(ActionSlot slot)
 	{
+		if (_currentSlot != slot) return;
+		_currentSlot = null;
 		_currentAction = null;
 	}
 }

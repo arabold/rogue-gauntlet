@@ -6,3 +6,9 @@
 
 [node name="staff_rare" parent="." instance=ExtResource("1_glb")]
 transform = Transform3D(1.85, 0, 0, 0, 1.85, 0, 0, 0, 1.85, 0, 0, 0)
+
+[node name="TrailBase" type="Marker3D" parent="."]
+position = Vector3(-0.15934, 0.89742, 0)
+
+[node name="TrailTip" type="Marker3D" parent="."]
+position = Vector3(-0.15934, 1.29335, 0)

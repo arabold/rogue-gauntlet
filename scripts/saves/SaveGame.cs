@@ -5,9 +5,9 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 4;
+	public const int CurrentVersion = 7;
 
-	/// <summary>Fallback class for pre-v4 saves, matching the previously hardcoded player model.</summary>
+	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
 
 	public int Version { get; set; } = CurrentVersion;
@@ -15,7 +15,7 @@ public sealed class SaveGame
 	public string RunId { get; set; } = string.Empty;
 	public string CreatedAtUtc { get; set; } = string.Empty;
 	public string SavedAtUtc { get; set; } = string.Empty;
-	/// <summary>Character class chosen at run start; pre-v4 saves lack this key and deserialize to the default.</summary>
+	/// <summary>Character class chosen at run start.</summary>
 	public string CharacterClassId { get; set; } = DefaultCharacterClassId;
 	public ulong Seed { get; set; }
 	public uint DungeonDepth { get; set; } = 1;
@@ -29,11 +29,7 @@ public sealed class SaveGame
 
 /// <summary>
 /// Per-run identification state. Stores both which item types the player has
-/// discovered and the full type-to-appearance assignment, so a restored save
-/// always shows the same disguise for the same effect — even if a later game
-/// version adds or reorders item types (which would shift a purely seed-derived
-/// assignment). Newly added types not present in a save fall back to the
-/// deterministic seed-based assignment.
+/// discovered and the full type-to-appearance assignment for a same-version round trip.
 /// </summary>
 public sealed class IdentificationSaveData
 {
@@ -52,6 +48,7 @@ public sealed class SaveSlotMetadata
 {
 	public int SlotId { get; set; }
 	public bool HasSave { get; set; }
+	public bool CanLoad { get; set; }
 	public string RunId { get; set; } = string.Empty;
 	public string CharacterClassId { get; set; } = string.Empty;
 	public string SavedAtUtc { get; set; } = string.Empty;
@@ -78,8 +75,7 @@ public sealed class PlayerStatsSaveData
 	public int Gold { get; set; }
 	public int DungeonDepth { get; set; }
 
-	// Primary attributes. Defaulted to the standard starting values so pre-v3 saves (which
-	// lack these keys) load as a baseline character instead of a zeroed-out one.
+	// Primary attributes with standard new-character defaults.
 	public float BaseStrength { get; set; } = 10;
 	public float BaseDexterity { get; set; } = 10;
 	public float BaseVitality { get; set; } = 10;
@@ -99,18 +95,19 @@ public sealed class PlayerStatsSaveData
 
 public sealed class InventorySaveData
 {
-	public List<InventoryItemSaveData> Items { get; set; } = [];
+	public int Capacity { get; set; } = 20;
+	public List<ItemEntrySaveData> Items { get; set; } = [];
 	public List<EquippedItemSaveData> EquippedItems { get; set; } = [];
 }
 
-public sealed class InventoryItemSaveData
+public sealed class ItemEntrySaveData
 {
 	public string ItemPath { get; set; } = string.Empty;
+	public string InstanceId { get; set; } = string.Empty;
+	public FoodItemSaveData Food { get; set; }
 	public int Quantity { get; set; }
 
-	// Instance-level rolls for a rolled equipable. Rarity is -1 (and Affixes empty) for plain
-	// shared items, which load directly from ItemPath; otherwise ItemPath is the base
-	// definition that gets duplicated and re-stamped with this rarity and these affixes.
+	// Exact equipment state. Non-equipment records leave rarity at -1.
 	public int Rarity { get; set; } = -1;
 	public List<RolledAffixSaveData> Affixes { get; set; } = [];
 }
@@ -131,7 +128,7 @@ public sealed class StatModifierSaveData
 
 public sealed class EquippedItemSaveData
 {
-	public int ItemIndex { get; set; }
+	public string ItemInstanceId { get; set; } = string.Empty;
 	public string Slot { get; set; } = string.Empty;
 }
 
@@ -144,8 +141,36 @@ public sealed class Vector3SaveData
 
 public sealed class WorldSaveData
 {
+	public List<LevelItemDeltaSaveData> ItemChanges { get; set; } = [];
 	public List<string> ClearedEntityIds { get; set; } = [];
 	public List<RevealedLevelSaveData> RevealedLevels { get; set; } = [];
+}
+
+public sealed class LevelItemDeltaSaveData
+{
+	public uint Depth { get; set; }
+	public List<string> RemovedItemIds { get; set; } = [];
+	public List<WorldItemSaveData> Overrides { get; set; } = [];
+	public List<WorldItemSaveData> AddedItems { get; set; } = [];
+	public List<RewardSourceSaveData> ActivatedSources { get; set; } = [];
+}
+
+public sealed class WorldItemSaveData
+{
+	public ItemEntrySaveData Item { get; set; }
+	public Vector3SaveData Position { get; set; }
+}
+
+/// <summary>Only activated sources need a descriptor; their item outcomes still regenerate from their seed.</summary>
+public sealed class RewardSourceSaveData
+{
+	public string SourceId { get; set; }
+	public string TablePath { get; set; }
+	public string PolicyPath { get; set; }
+	public float Chance { get; set; }
+	public int CountMin { get; set; }
+	public int CountMax { get; set; }
+	public Vector3SaveData Position { get; set; }
 }
 
 /// <summary>
@@ -164,4 +189,9 @@ public sealed class Vector2ISaveData
 {
 	public int X { get; set; }
 	public int Y { get; set; }
+}
+
+public sealed class FoodItemSaveData
+{
+	public bool IsPoisoned { get; set; }
 }

@@ -63,7 +63,12 @@ public partial class SpawnPoint : Node3D
 			return null;
 		}
 
-		var scene = Scenes.PickRandom();
+		// Generated encounters already carry a concrete scene; authored multi-scene
+		// spawns derive a local stream instead of depending on callback/global draw order.
+		using var rng = GenerationRandom.Create(Level.MapGenerator.Seed,
+			GenerationRandom.Monsters, string.IsNullOrEmpty(PersistentId)
+				? Level.GetPathTo(this).ToString() : PersistentId);
+		var scene = Scenes[rng.RandiRange(0, Scenes.Count - 1)];
 		var node = scene.Instantiate<Node3D>();
 		node.GlobalTransform = GlobalTransform;
 		node.Rotate(Vector3.Up, Mathf.DegToRad(180)); // FIXME: Why?

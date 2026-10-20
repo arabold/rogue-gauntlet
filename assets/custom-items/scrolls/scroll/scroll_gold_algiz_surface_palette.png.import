@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://curx6rjl7nb7k"
-path="res://.godot/imported/scroll_gold_algiz_surface_palette.png-8d92ec827c24a5c0397ffa58f766cb0e.ctex"
+path.s3tc="res://.godot/imported/scroll_gold_algiz_surface_palette.png-8d92ec827c24a5c0397ffa58f766cb0e.s3tc.ctex"
+path.etc2="res://.godot/imported/scroll_gold_algiz_surface_palette.png-8d92ec827c24a5c0397ffa58f766cb0e.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "3c75926e925bd0bf212f8ab77106451c"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/scrolls/scroll/scroll_gold_algiz_surface_palette.png"
-dest_files=["res://.godot/imported/scroll_gold_algiz_surface_palette.png-8d92ec827c24a5c0397ffa58f766cb0e.ctex"]
+dest_files=["res://.godot/imported/scroll_gold_algiz_surface_palette.png-8d92ec827c24a5c0397ffa58f766cb0e.s3tc.ctex", "res://.godot/imported/scroll_gold_algiz_surface_palette.png-8d92ec827c24a5c0397ffa58f766cb0e.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

@@ -1,10 +1,15 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3 uid="uid://c3cgdlchx0g5u"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=5 format=3 uid="uid://c3cgdlchx0g5u"]
 
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_2h.tres" id="melee_contact"]
+[ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="PackedScene" uid="uid://b3nqntuy7vgn3" path="res://scenes/items/weapons/battleaxe_common.tscn" id="1_c5hji"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_rmilr"]
 
 [resource]
 script = ExtResource("2_rmilr")
+MeleeContact = ExtResource("melee_contact")
+AttackStyle = &"axe.2h.chop"
+Grip = ExtResource("weapon_grip")
 Tier = 3
 Level = 0
 RequiredStrength = 14
@@ -22,7 +27,7 @@ Rarity = 0
 Name = "Battle Axe"
 Scene = ExtResource("1_c5hji")
 Quality = 1.0
-Value = 0
+Value = 120
 ShowInInventory = true
 IsStackable = false
 IsQuestItem = false

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="AppearancePool" load_steps=11 format=3 uid="uid://dpotionapprs1"]
+[gd_resource type="Resource" script_class="AppearancePool" load_steps=15 format=3 uid="uid://dpotionapprs1"]
 
 [ext_resource type="Script" uid="uid://cappearpool01" path="res://scenes/items/identity/AppearancePool.cs" id="1_pool"]
 [ext_resource type="Script" uid="uid://citemappear01" path="res://scenes/items/identity/ItemAppearance.cs" id="2_appr"]
@@ -51,7 +51,31 @@ Descriptor = "bubbling orange"
 TintColor = Color(0.95, 0.5, 0.12, 1)
 metadata/_custom_type_script = ExtResource("2_appr")
 
+[sub_resource type="Resource" id="Appearance_catalog_0"]
+script = ExtResource("2_appr")
+Descriptor = "iridescent"
+TintColor = Color(0.300, 0.650, 0.450, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_catalog_1"]
+script = ExtResource("2_appr")
+Descriptor = "smoky"
+TintColor = Color(0.345, 0.625, 0.485, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_catalog_2"]
+script = ExtResource("2_appr")
+Descriptor = "speckled"
+TintColor = Color(0.390, 0.600, 0.520, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_catalog_3"]
+script = ExtResource("2_appr")
+Descriptor = "opalescent"
+TintColor = Color(0.435, 0.575, 0.555, 1)
+metadata/_custom_type_script = ExtResource("2_appr")
+
 [resource]
 script = ExtResource("1_pool")
-Appearances = Array[ItemAppearance]([SubResource("Appearance_crimson"), SubResource("Appearance_green"), SubResource("Appearance_azure"), SubResource("Appearance_golden"), SubResource("Appearance_violet"), SubResource("Appearance_milky"), SubResource("Appearance_inky"), SubResource("Appearance_orange")])
+Appearances = Array[ItemAppearance]([SubResource("Appearance_crimson"), SubResource("Appearance_green"), SubResource("Appearance_azure"), SubResource("Appearance_golden"), SubResource("Appearance_violet"), SubResource("Appearance_milky"), SubResource("Appearance_inky"), SubResource("Appearance_orange"), SubResource("Appearance_catalog_0"), SubResource("Appearance_catalog_1"), SubResource("Appearance_catalog_2"), SubResource("Appearance_catalog_3")])
 metadata/_custom_type_script = ExtResource("1_pool")

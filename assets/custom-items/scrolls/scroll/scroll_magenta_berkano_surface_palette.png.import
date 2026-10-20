@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://wugos2mvs0l"
-path="res://.godot/imported/scroll_magenta_berkano_surface_palette.png-d5e16b1f1bfcf39b058712224815bd57.ctex"
+path.s3tc="res://.godot/imported/scroll_magenta_berkano_surface_palette.png-d5e16b1f1bfcf39b058712224815bd57.s3tc.ctex"
+path.etc2="res://.godot/imported/scroll_magenta_berkano_surface_palette.png-d5e16b1f1bfcf39b058712224815bd57.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "aaf31216e8b09390aa8a9b8917a33199"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/scrolls/scroll/scroll_magenta_berkano_surface_palette.png"
-dest_files=["res://.godot/imported/scroll_magenta_berkano_surface_palette.png-d5e16b1f1bfcf39b058712224815bd57.ctex"]
+dest_files=["res://.godot/imported/scroll_magenta_berkano_surface_palette.png-d5e16b1f1bfcf39b058712224815bd57.s3tc.ctex", "res://.godot/imported/scroll_magenta_berkano_surface_palette.png-d5e16b1f1bfcf39b058712224815bd57.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

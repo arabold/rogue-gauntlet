@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bhnmlq3l8wh0h"
-path="res://.godot/imported/broadsword_iron_surface_palette.png-f2413c8beb325d24f19049c4b979dff1.ctex"
+path.s3tc="res://.godot/imported/broadsword_iron_surface_palette.png-f2413c8beb325d24f19049c4b979dff1.s3tc.ctex"
+path.etc2="res://.godot/imported/broadsword_iron_surface_palette.png-f2413c8beb325d24f19049c4b979dff1.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f3f29b1b50b70e254e4a1fb4dc9fdc52"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/weapons/broadsword/broadsword_iron_surface_palette.png"
-dest_files=["res://.godot/imported/broadsword_iron_surface_palette.png-f2413c8beb325d24f19049c4b979dff1.ctex"]
+dest_files=["res://.godot/imported/broadsword_iron_surface_palette.png-f2413c8beb325d24f19049c4b979dff1.s3tc.ctex", "res://.godot/imported/broadsword_iron_surface_palette.png-f2413c8beb325d24f19049c4b979dff1.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

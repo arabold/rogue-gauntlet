@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Scroll" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="Scroll" load_steps=7 format=3]
 
 [ext_resource type="Script" uid="uid://cstatmodbuff0001" path="res://scenes/buffs/StatModifierBuff.cs" id="1_buff"]
 [ext_resource type="Script" uid="uid://cstatmod0000001" path="res://scenes/player/resources/StatModifier.cs" id="2_mod"]
@@ -31,4 +31,5 @@ UnidentifiedNameTemplate = "scroll labeled {descriptor}"
 Scene = ExtResource("3_scene")
 Value = 100
 IsStackable = true
+MaxStackSize = 20
 metadata/_custom_type_script = ExtResource("4_scroll")

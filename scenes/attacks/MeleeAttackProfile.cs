@@ -1,0 +1,66 @@
+using Godot;
+using System;
+using System.Collections.Generic;
+
+public enum MeleeVolume { Arc, Box, Capsule, Radial }
+
+/// <summary>Stable gameplay reach and optional presentation, independent of weapon-bone motion.</summary>
+[GlobalClass]
+public partial class MeleeAttackProfile : Resource
+{
+	[Export] public MeleeVolume Volume { get; set; } = MeleeVolume.Arc;
+	[Export(PropertyHint.Range, "0.1,12,0.05")] public float Reach { get; set; } = 2.6f;
+	[Export(PropertyHint.Range, "0.1,8,0.05")] public float Width { get; set; } = 1.4f;
+	[Export(PropertyHint.Range, "0.1,8,0.05")] public float Height { get; set; } = 2;
+	[Export] public float CenterHeight { get; set; } = 1;
+	[Export(PropertyHint.Range, "1,180,1")] public float ArcDegrees { get; set; } = 120;
+	[Export] public float EngagementMargin { get; set; } = 0.4f;
+	[Export(PropertyHint.Layers3DPhysics)] public uint BlockingMask { get; set; } = 19;
+	[Export] public PackedScene SwooshScene { get; set; }
+	public float EngagementDistance => Mathf.Max(0.1f, Reach - EngagementMargin);
+
+	public bool IsValid => Enum.IsDefined(Volume) && float.IsFinite(Reach) && Reach > 0
+		&& float.IsFinite(Width) && Width > 0 && float.IsFinite(Height) && Height > 0
+		&& float.IsFinite(CenterHeight) && CenterHeight >= 0
+		&& float.IsFinite(ArcDegrees) && ArcDegrees > 0 && ArcDegrees <= 180
+		&& float.IsFinite(EngagementMargin) && EngagementMargin >= 0 && EngagementMargin < Reach
+		&& (Volume != MeleeVolume.Capsule || Width <= Reach);
+
+	/// <summary>Build one convex query volume per accepted attack; forward is local -Z.</summary>
+	public Shape3D CreateShape()
+	{
+		if (!IsValid) throw new InvalidOperationException("Invalid melee contact profile.");
+		if (Volume == MeleeVolume.Radial) return new CylinderShape3D { Radius = Reach, Height = Height };
+		var points = new List<Vector3>();
+		void Add(float x, float z)
+		{
+			points.Add(new Vector3(x, -Height / 2, z));
+			points.Add(new Vector3(x, Height / 2, z));
+		}
+		if (Volume == MeleeVolume.Box)
+		{
+			Add(-Width / 2, 0); Add(Width / 2, 0);
+			Add(-Width / 2, -Reach); Add(Width / 2, -Reach);
+		}
+		else if (Volume == MeleeVolume.Capsule)
+		{
+			float radius = Width / 2;
+			for (int i = 0; i <= 12; i++)
+			{
+				float angle = Mathf.Pi * i / 12;
+				Add(Mathf.Cos(angle) * radius, -radius + Mathf.Sin(angle) * radius);
+				Add(-Mathf.Cos(angle) * radius, -Reach + radius - Mathf.Sin(angle) * radius);
+			}
+		}
+		else
+		{
+			Add(0, 0);
+			for (int i = 0; i <= 24; i++)
+			{
+				float angle = Mathf.DegToRad(-ArcDegrees / 2 + ArcDegrees * i / 24);
+				Add(Mathf.Sin(angle) * Reach, -Mathf.Cos(angle) * Reach);
+			}
+		}
+		return new ConvexPolygonShape3D { Points = points.ToArray() };
+	}
+}

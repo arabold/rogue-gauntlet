@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=5 format=3]
+
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_1h.tres" id="melee_contact"]
+[ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
+[ext_resource type="Script" path="res://scenes/items/Weapon.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/arsenal/club_steel.tscn" id="scene"]
+
+
+[resource]
+script = ExtResource("script")
+MeleeContact = ExtResource("melee_contact")
+AttackStyle = &"blunt.1h.chop"
+Grip = ExtResource("weapon_grip")
+Scene = ExtResource("scene")
+Name = "Steel Cudgel"
+Tier = 2
+ValidSlots = 256
+Value = 80
+IsStackable = false
+RequiredStrength = 10
+DamageMin = 3.0
+DamageMax = 6.0
+CritChance = 0
+IsTwoHanded = false
+AnimationId = "melee_attack"
+PerformDuration = 0.65
+metadata/_custom_type_script = ExtResource("script")

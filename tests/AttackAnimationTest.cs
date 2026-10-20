@@ -1,0 +1,238 @@
+namespace RogueGauntlet.Tests;
+
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Godot;
+using GdUnit4;
+using static GdUnit4.Assertions;
+
+/// <summary>Exercises authored rig coverage and the shared animation/contact execution clock.</summary>
+[TestSuite]
+[RequireGodotRuntime]
+public class AttackAnimationTest
+{
+	private readonly AttackAnimationProfile _profile = GD.Load<AttackAnimationProfile>("res://scenes/attacks/animation_profiles/kaykit_player.tres");
+
+	[TestCase]
+	public void EveryPlayerRigHasEveryAuthoredStyleClip()
+	{
+		AssertInt(_profile.Bindings.Length).IsGreater(10);
+		foreach (string id in new[] { "barbarian", "knight", "rogue", "mage" })
+		{
+			var character = GD.Load<CharacterClass>($"res://scenes/player/classes/class_{id}.tres");
+			var model = character.CharacterScene.Instantiate<Node3D>();
+			var animations = model.GetNode<AnimationPlayer>("AnimationPlayer");
+			foreach (var binding in _profile.Bindings)
+			{
+				AssertBool(binding.IsValid).IsTrue();
+				AssertBool(CharacterModel.FindSkeleton(model).FindBone("handslot.r") >= 0).IsTrue();
+				AssertBool(animations.HasAnimation(binding.Clip)).OverrideFailureMessage($"{id}: missing {binding.Clip}").IsTrue();
+				AssertBool(animations.GetAnimation(binding.Clip).Length > 0).IsTrue();
+			}
+			if (id == "barbarian" || id == "rogue")
+			{
+				var grip = GD.Load<WeaponGrip>(id == "rogue" ? "res://scenes/items/grips/kaykit_crossbow.tres" : "res://scenes/items/grips/kaykit_melee.tres");
+				var skeleton = CharacterModel.FindSkeleton(model);
+				var native = skeleton.GetBoneRest(skeleton.FindBone(id == "rogue" ? "2H_Crossbow" : "1H_Axe"));
+				AssertBool(grip.Transform.IsEqualApprox(native)).IsTrue();
+			}
+			model.Free();
+		}
+	}
+
+	[TestCase]
+	public void EveryMonsterHasTwoResolvableAttackSlots()
+	{
+		// Keep roots alive while auditing shared native Resources across different scenes.
+		var scenes = Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/enemies"), "*.tscn", SearchOption.AllDirectories)
+			.Where(path => Path.GetDirectoryName(path) != ProjectSettings.GlobalizePath("res://scenes/enemies").TrimEnd('/'))
+			.Select(path => GD.Load<PackedScene>("res://" + Path.GetRelativePath(ProjectSettings.GlobalizePath("res://"), path))).ToArray();
+		AssertInt(scenes.Length).IsGreater(10);
+		foreach (var scene in scenes)
+		{
+			var actor = scene.Instantiate<Node3D>();
+			var component = actor.GetNode<AttackAnimationComponent>("AttackAnimationComponent");
+			AssertInt(component.Profile.Bindings.Length).IsEqual(2);
+			AssertBool(component.TryResolve("melee", out _)).OverrideFailureMessage(scene.ResourcePath + " melee").IsTrue();
+			AssertBool(component.TryResolve("ranged", out _)).OverrideFailureMessage(scene.ResourcePath + " ranged").IsTrue();
+			actor.Free();
+		}
+		GC.KeepAlive(scenes);
+	}
+
+	[TestCase]
+	public void DuplicateOrInvalidBindingsAreRejected()
+	{
+		using var profile = new AttackAnimationProfile { Bindings = new[] {
+			new AttackAnimationBinding { Style = "same", Clip = "Idle" },
+			new AttackAnimationBinding { Style = "same", Clip = "Other" }
+		} };
+		AssertBool(profile.TryGetBinding("same", out _)).IsFalse();
+		profile.Bindings = new[] { new AttackAnimationBinding { Style = "bad", Clip = "Idle", ContactStart = .8f, ContactEnd = .2f } };
+		AssertBool(profile.TryGetBinding("bad", out _)).IsFalse();
+		AssertBool(_profile.TryGetBinding("missing", out _)).IsFalse();
+	}
+
+	[TestCase]
+	public async Task DefinitionOverrideAndTimingAreCapturedWithoutMutatingResources()
+	{
+		var runner = ISceneRunner.Load("res://scenes/debug/attack_animation_harness.tscn", true);
+		await runner.SimulateFrames(3);
+		var player = runner.Scene().GetNode<Player>("Player");
+		var controller = player.AttackController;
+		using var definition = new AttackDefinition { AttackStyle = "spear.2h.thrust", HitWindowStart = 9, HitWindowEnd = 10 };
+		AssertBool(controller.TryPrepareAttack(definition, "sword.1h.slash", 2, out var attack)).IsTrue();
+		AssertString(attack.Playback.Style).IsEqual("spear.2h.thrust");
+		AssertFloat(attack.Definition.HitWindowStart).IsEqualApprox(.6f, .0001);
+		AssertFloat(attack.Definition.HitWindowEnd).IsEqualApprox(1.2f, .0001);
+		AssertFloat(definition.HitWindowStart).IsEqual(9);
+		AssertFloat(definition.HitWindowEnd).IsEqual(10);
+		definition.AttackStyle = "axe.1h.chop";
+		AssertString(attack.Playback.Style).IsEqual("spear.2h.thrust");
+		AssertBool(controller.TryPrepareAttack(definition, "sword.1h.slash", double.NaN, out _)).IsFalse();
+	}
+
+	[TestCase]
+	public async Task PlaybackAndExecutorShareRecoveryAndCancellation()
+	{
+		var runner = ISceneRunner.Load("res://scenes/debug/attack_animation_harness.tscn", true);
+		await runner.SimulateFrames(3);
+		var player = runner.Scene().GetNode<Player>("Player");
+		var controller = player.AttackController;
+		var animation = player.GetNode<AttackAnimationComponent>("AttackAnimationComponent");
+		using var definition = new AttackDefinition { AttackStyle = "axe.1h.chop" };
+		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
+		AssertBool(controller.StartAttack(attack, 1, 1, 1, 0, 0)).IsTrue();
+		controller.SetPhysicsProcess(false);
+		var skeleton = CharacterModel.FindSkeleton(player);
+		int hand = skeleton.FindBone("hand.r");
+		var initialPose = skeleton.GetBoneGlobalPose(hand);
+		controller._PhysicsProcess(.2);
+		AssertBool(initialPose.IsEqualApprox(skeleton.GetBoneGlobalPose(hand))).IsFalse();
+		AssertBool(animation.IsPlaying).IsTrue();
+		AssertBool(player.GetNode<AnimationTree>("AnimationTree").Active).IsFalse();
+		controller._PhysicsProcess(.6);
+		AssertBool(controller.IsAttacking).IsTrue();
+		controller.CancelAttack();
+		AssertBool(animation.IsPlaying).IsFalse();
+		AssertBool(player.GetNode<AnimationTree>("AnimationTree").Active).IsTrue();
+		controller._PhysicsProcess(1);
+		AssertBool(controller.IsAttacking).IsFalse();
+	}
+
+	[TestCase]
+	public async Task RangedReleaseOccursOnceAndCancellationPreventsADeferredShot()
+	{
+		var runner = ISceneRunner.Load("res://scenes/debug/attack_animation_harness.tscn", true);
+		await runner.SimulateFrames(3);
+		var player = runner.Scene().GetNode<Player>("Player");
+		var controller = player.AttackController;
+		Node parent = player.GetTree().CurrentScene ?? runner.Scene();
+		var before = parent.GetChildren().OfType<Projectile>().ToArray();
+		using var definition = new AttackDefinition { AttackStyle = "crossbow.shoot", IsRanged = true };
+		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
+		controller.StartAttack(attack, 1, 1, 1, 0, 0);
+		controller.SetPhysicsProcess(false);
+		controller._PhysicsProcess(.5);
+		var released = parent.GetChildren().OfType<Projectile>().Except(before).ToArray();
+		AssertInt(released.Length).IsEqual(1);
+		controller._PhysicsProcess(.2);
+		AssertInt(parent.GetChildren().OfType<Projectile>().Except(before).Count()).IsEqual(1);
+		controller.CancelAttack();
+		foreach (var projectile in released) ScenePool.Despawn(projectile);
+		controller.StartAttack(attack, 1, 1, 1, 0, 0);
+		controller.SetPhysicsProcess(false);
+		controller._PhysicsProcess(.2);
+		controller.CancelAttack();
+		controller._PhysicsProcess(1);
+		AssertInt(parent.GetChildren().OfType<Projectile>().Except(before).Count()).IsEqual(0);
+	}
+
+	[TestCase]
+	public async Task EquipmentSwitchCancelsTheAcceptedSwing()
+	{
+		var runner = ISceneRunner.Load("res://scenes/debug/attack_animation_harness.tscn", true);
+		await runner.SimulateFrames(3);
+		var player = runner.Scene().GetNode<Player>("Player");
+		var slot = player.Inventory.EquippedItems[EquipmentSlot.WeaponHand];
+		var weapon = (Weapon)slot.Item;
+		AssertBool(player.AttackController.TryPrepareWeaponAttack(weapon, out var attack)).IsTrue();
+		AssertBool(player.AttackController.StartPreparedWeaponAttack(attack, weapon)).IsTrue();
+		player.Inventory.Unequip(slot);
+		player.AttackController._PhysicsProcess(.01);
+		AssertBool(player.AttackController.IsAttacking).IsFalse();
+		AssertBool(player.GetNode<AttackAnimationComponent>("AttackAnimationComponent").IsPlaying).IsFalse();
+	}
+
+	[TestCase]
+	public async Task MissingStyleDoesNotAcceptAnActionOrStartCooldown()
+	{
+		var runner = ISceneRunner.Load("res://scenes/debug/attack_animation_harness.tscn", true);
+		await runner.SimulateFrames(3);
+		var player = runner.Scene().GetNode<Player>("Player");
+		var weapon = (Weapon)player.Inventory.EquippedItems[EquipmentSlot.WeaponHand].Item;
+		weapon.AttackStyle = "missing.style";
+		var slot = player.ActionManager.GetChildren().OfType<ActionSlot>().First(value => ReferenceEquals(value.AssignedAction, weapon));
+		slot.TryPerformAction(player);
+		AssertBool(slot.IsPerformingAction || slot.IsDelayed || slot.IsOnCooldown).IsFalse();
+		AssertFloat(slot.RemainingTime).IsEqual(0);
+		AssertBool(player.AttackController.IsAttacking).IsFalse();
+	}
+
+	[TestCase]
+	public async Task PlaygroundSelectionAndButtonUseTheRealActionSlotTimeline()
+	{
+		var runner = ISceneRunner.Load("res://scenes/debug/attack_animation_harness.tscn", true);
+		await runner.SimulateFrames(3);
+		var harness = runner.Scene().GetNode<AttackAnimationHarness>("Instructions");
+		AssertInt(harness.Weapons.Length).IsEqual(11);
+		AssertObject(harness.GetNode<Label>("Controls/Status")).IsNotNull();
+		harness.EquipPreview(3);
+		harness.Attack();
+		var controller = harness.Player.AttackController;
+		AssertBool(harness.Player.ActionManager.IsBusy).IsTrue();
+		AssertString(controller.CurrentStyle).IsEqual("spear.2h.thrust");
+		controller.SetPhysicsProcess(false);
+		controller._PhysicsProcess(controller.PerformDuration + .01);
+		await runner.SimulateFrames(2);
+		AssertBool(controller.IsAttacking).IsFalse();
+		AssertBool(harness.Player.ActionManager.IsBusy).IsFalse();
+	}
+
+	[TestCase]
+	public async Task HitDuringCrossbowPreparationCannotFireAfterKnockbackEnds()
+	{
+		var runner = ISceneRunner.Load("res://scenes/debug/attack_animation_harness.tscn", true);
+		await runner.SimulateFrames(3);
+		var harness = runner.Scene().GetNode<AttackAnimationHarness>("Instructions");
+		harness.EquipPreview(6);
+		harness.Attack();
+		var slot = harness.Player.ActionManager.GetChildren().OfType<ActionSlot>().First(value => value.IsDelayed);
+		AssertBool(harness.Player.AttackController.IsAttacking).IsFalse();
+		harness.Player.MovementComponent.Push(Vector3.Right, 1);
+		slot._PhysicsProcess(.01);
+		AssertBool(harness.Player.ActionManager.IsBusy).IsFalse();
+		await runner.SimulateFrames(30);
+		AssertBool(harness.Player.AttackController.IsAttacking).IsFalse();
+		AssertBool(slot.IsDelayed || slot.IsPerformingAction).IsFalse();
+	}
+
+	[TestCase]
+	public void EveryWeaponExplicitlyRequestsASupportedStyle()
+	{
+		var roots = Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/items/weapons"), "*.tres", SearchOption.AllDirectories)
+			.Select(path => GD.Load<Resource>("res://" + Path.GetRelativePath(ProjectSettings.GlobalizePath("res://"), path))).ToArray();
+		var weapons = roots.OfType<Weapon>().ToArray();
+		AssertInt(weapons.Length).IsGreater(50);
+		foreach (var weapon in weapons)
+		{
+			AssertBool(_profile.TryGetBinding(weapon.AttackStyle, out _)).OverrideFailureMessage(weapon.ResourcePath).IsTrue();
+			AssertObject(weapon.Grip).IsNotNull();
+			if (weapon.CustomAttackDefinition is { } definition && !string.IsNullOrEmpty(definition.AttackStyle))
+				AssertBool(_profile.TryGetBinding(definition.AttackStyle, out _)).IsTrue();
+		}
+		GC.KeepAlive(roots);
+	}
+}

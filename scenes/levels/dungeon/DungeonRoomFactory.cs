@@ -17,17 +17,17 @@ public partial class DungeonRoomFactory : RoomFactory
 	private readonly HashSet<string> _usedStandardRooms = new();
 	private readonly HashSet<string> _usedSpecialRooms = new();
 
-	public override Room CreateEntrance()
+	public override Room CreateEntrance(RandomNumberGenerator rng)
 	{
-		return InstantiateRoom(LoadScene(EntranceScenePaths.PickRandom()));
+		return InstantiateRoom(LoadScene(EntranceScenePaths[rng.RandiRange(0, EntranceScenePaths.Count - 1)]));
 	}
 
-	public override Room CreateExit()
+	public override Room CreateExit(RandomNumberGenerator rng)
 	{
-		return InstantiateRoom(LoadScene(ExitScenePaths.PickRandom()));
+		return InstantiateRoom(LoadScene(ExitScenePaths[rng.RandiRange(0, ExitScenePaths.Count - 1)]));
 	}
 
-	public override Room CreateStandardRoom()
+	public override Room CreateStandardRoom(RandomNumberGenerator rng)
 	{
 		// Track by path because scenes are loaded on demand; comparing PackedScene
 		// instances here would not reliably detect reuse across separate loads.
@@ -39,12 +39,12 @@ public partial class DungeonRoomFactory : RoomFactory
 			availableRooms = StandardRoomScenePaths;
 		}
 
-		string scenePath = availableRooms.PickRandom();
+		string scenePath = availableRooms[rng.RandiRange(0, availableRooms.Count - 1)];
 		_usedStandardRooms.Add(scenePath);
 		return InstantiateRoom(LoadScene(scenePath));
 	}
 
-	public override Room CreateSpecialRoom()
+	public override Room CreateSpecialRoom(RandomNumberGenerator rng)
 	{
 		// Track by path because scenes are loaded on demand; comparing PackedScene
 		// instances here would not reliably detect reuse across separate loads.
@@ -56,7 +56,7 @@ public partial class DungeonRoomFactory : RoomFactory
 			availableRooms = SpecialRoomScenePaths;
 		}
 
-		string scenePath = availableRooms.PickRandom();
+		string scenePath = availableRooms[rng.RandiRange(0, availableRooms.Count - 1)];
 		_usedSpecialRooms.Add(scenePath);
 		return InstantiateRoom(LoadScene(scenePath));
 	}

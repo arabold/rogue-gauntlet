@@ -92,7 +92,7 @@ public sealed class ChasingState : IEnemyState
 		}
 
 		float distance = ctx.Actor.GlobalPosition.DistanceTo(ctx.Target.GlobalPosition);
-		return distance < ctx.Profile.MeleeAttackRange;
+		return distance < ctx.Profile.EffectiveMeleeRange;
 	}
 
 	/// <summary>
@@ -111,7 +111,7 @@ public sealed class ChasingState : IEnemyState
 		float distance = ctx.Actor.GlobalPosition.DistanceTo(ctx.Target.GlobalPosition);
 
 		// Prefer melee when the target is right on top of the caster rather than firing point-blank.
-		if (distance < ctx.Profile.MeleeAttackRange)
+		if (distance < ctx.Profile.EffectiveMeleeRange)
 		{
 			return false;
 		}

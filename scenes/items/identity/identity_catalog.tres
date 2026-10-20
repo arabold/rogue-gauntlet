@@ -1,68 +1,142 @@
-[gd_resource type="Resource" script_class="IdentityCatalog" load_steps=38 format=3 uid="uid://didentitycat1"]
+[gd_resource type="Resource" script_class="IdentityCatalog" load_steps=112 format=3 uid="uid://didentitycat1"]
 
-[ext_resource type="Script" uid="uid://cidcatalog001" path="res://scenes/items/identity/IdentityCatalog.cs" id="1_cat"]
-[ext_resource type="Script" uid="uid://cidcategory01" path="res://scenes/items/identity/IdentityCategory.cs" id="2_cat"]
-[ext_resource type="Resource" uid="uid://dpotionapprs1" path="res://scenes/items/identity/potion_appearances.tres" id="3_pool"]
-[ext_resource type="Resource" uid="uid://b2vo50ixkurnb" path="res://scenes/items/potions/healing_potion_medium.tres" id="4_healing"]
-[ext_resource type="Resource" uid="uid://dpoisonptres1" path="res://scenes/items/potions/poison_potion.tres" id="5_poison"]
-[ext_resource type="Resource" uid="uid://dhasteptres01" path="res://scenes/items/potions/haste_potion.tres" id="6_haste"]
-[ext_resource type="Resource" uid="uid://dregenptres01" path="res://scenes/items/potions/regeneration_potion.tres" id="7_regen"]
-[ext_resource type="Resource" uid="uid://dslowptres001" path="res://scenes/items/potions/slowness_potion.tres" id="8_slow"]
-[ext_resource type="Resource" path="res://scenes/items/identity/scroll_appearances.tres" id="9_scroll_pool"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_teleport.tres" id="10_teleport"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_haste.tres" id="11_scroll_haste"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_protection.tres" id="12_protection"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_rage.tres" id="13_rage"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_weakness.tres" id="14_weakness"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_summon.tres" id="15_summon"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_identify.tres" id="16_identify"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_enchant.tres" id="17_enchant"]
-[ext_resource type="Resource" path="res://scenes/items/identity/ring_appearances.tres" id="18_ring_pool"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_strength.tres" id="19_ring_str"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_dexterity.tres" id="20_ring_dex"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_vitality.tres" id="21_ring_vit"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_mind.tres" id="22_ring_mind"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_protection.tres" id="23_ring_prot"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_evasion.tres" id="24_ring_eva"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_precision.tres" id="25_ring_prec"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_savagery.tres" id="26_ring_sav"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_lethargy.tres" id="27_ring_leth"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_frailty.tres" id="28_ring_frail"]
-[ext_resource type="Resource" path="res://scenes/items/identity/amulet_appearances.tres" id="29_amulet_pool"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_health.tres" id="30_amulet_health"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_swiftness.tres" id="31_amulet_swift"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_titan.tres" id="32_amulet_titan"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_dread.tres" id="33_amulet_dread"]
+[ext_resource type="Script" path="res://scenes/items/identity/IdentityCatalog.cs" id="catalog"]
+[ext_resource type="Script" path="res://scenes/items/identity/IdentityCategory.cs" id="category"]
+[ext_resource type="Resource" path="res://scenes/items/identity/potion_appearances.tres" id="pool_potion"]
+[ext_resource type="Resource" path="res://scenes/items/potions/haste_potion.tres" id="item_3"]
+[ext_resource type="Resource" path="res://scenes/items/potions/healing_potion_large.tres" id="item_4"]
+[ext_resource type="Resource" path="res://scenes/items/potions/healing_potion_medium.tres" id="item_5"]
+[ext_resource type="Resource" path="res://scenes/items/potions/healing_potion_small.tres" id="item_6"]
+[ext_resource type="Resource" path="res://scenes/items/potions/poison_potion.tres" id="item_7"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_cobalt.tres" id="item_8"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_coral.tres" id="item_9"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_crimson.tres" id="item_10"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_emerald.tres" id="item_11"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_gold.tres" id="item_12"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_lime.tres" id="item_13"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_magenta.tres" id="item_14"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_obsidian.tres" id="item_15"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_orange.tres" id="item_16"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_purple.tres" id="item_17"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_silver.tres" id="item_18"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_large/potion_large_teal.tres" id="item_19"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_cobalt.tres" id="item_20"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_coral.tres" id="item_21"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_crimson.tres" id="item_22"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_emerald.tres" id="item_23"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_gold.tres" id="item_24"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_lime.tres" id="item_25"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_magenta.tres" id="item_26"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_obsidian.tres" id="item_27"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_orange.tres" id="item_28"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_purple.tres" id="item_29"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_silver.tres" id="item_30"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_medium/potion_medium_teal.tres" id="item_31"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_cobalt.tres" id="item_32"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_coral.tres" id="item_33"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_crimson.tres" id="item_34"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_emerald.tres" id="item_35"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_gold.tres" id="item_36"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_lime.tres" id="item_37"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_magenta.tres" id="item_38"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_obsidian.tres" id="item_39"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_orange.tres" id="item_40"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_purple.tres" id="item_41"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_silver.tres" id="item_42"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_small/potion_small_teal.tres" id="item_43"]
+[ext_resource type="Resource" path="res://scenes/items/potions/regeneration_potion.tres" id="item_44"]
+[ext_resource type="Resource" path="res://scenes/items/potions/slowness_potion.tres" id="item_45"]
+[ext_resource type="Resource" path="res://scenes/items/identity/scroll_appearances.tres" id="pool_scroll"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_cobalt_raidho.tres" id="item_47"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_coral_sowilo.tres" id="item_48"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_crimson_othala.tres" id="item_49"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_emerald_fehu.tres" id="item_50"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_gold_algiz.tres" id="item_51"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_lime_hagalaz.tres" id="item_52"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_magenta_berkano.tres" id="item_53"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_obsidian_tiwaz.tres" id="item_54"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_orange_thurisaz.tres" id="item_55"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_purple_dagaz.tres" id="item_56"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_silver_ingwaz.tres" id="item_57"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_teal_eihwaz.tres" id="item_58"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_enchant.tres" id="item_59"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_haste.tres" id="item_60"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_identify.tres" id="item_61"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_protection.tres" id="item_62"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_rage.tres" id="item_63"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_summon.tres" id="item_64"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_teleport.tres" id="item_65"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_weakness.tres" id="item_66"]
+[ext_resource type="Resource" path="res://scenes/items/identity/ring_appearances.tres" id="pool_ring"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_amethyst.tres" id="item_68"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_emerald.tres" id="item_69"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_ruby.tres" id="item_70"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_signet.tres" id="item_71"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_band.tres" id="item_72"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_diamond.tres" id="item_73"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_onyx.tres" id="item_74"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_sapphire.tres" id="item_75"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_amber.tres" id="item_76"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_carved.tres" id="item_77"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_garnet.tres" id="item_78"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_jade.tres" id="item_79"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_dexterity.tres" id="item_80"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_evasion.tres" id="item_81"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_frailty.tres" id="item_82"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_lethargy.tres" id="item_83"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_mind.tres" id="item_84"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_precision.tres" id="item_85"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_protection.tres" id="item_86"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_savagery.tres" id="item_87"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_strength.tres" id="item_88"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_vitality.tres" id="item_89"]
+[ext_resource type="Resource" path="res://scenes/items/identity/amulet_appearances.tres" id="pool_amulet"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_emerald.tres" id="item_91"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_ruby.tres" id="item_92"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_sun_crest.tres" id="item_93"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_topaz.tres" id="item_94"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_amethyst.tres" id="item_95"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_onyx.tres" id="item_96"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_runic_crest.tres" id="item_97"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_sapphire.tres" id="item_98"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_coral.tres" id="item_99"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_druid_talisman.tres" id="item_100"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_jade.tres" id="item_101"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_peridot.tres" id="item_102"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_dread.tres" id="item_103"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_health.tres" id="item_104"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_swiftness.tres" id="item_105"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_titan.tres" id="item_106"]
 
 [sub_resource type="Resource" id="Category_potion"]
-script = ExtResource("2_cat")
+script = ExtResource("category")
 Category = "potion"
-AppearancePool = ExtResource("3_pool")
-Types = Array[Item]([ExtResource("4_healing"), ExtResource("5_poison"), ExtResource("6_haste"), ExtResource("7_regen"), ExtResource("8_slow")])
-metadata/_custom_type_script = ExtResource("2_cat")
+AppearancePool = ExtResource("pool_potion")
+Types = [ExtResource("item_3"), ExtResource("item_4"), ExtResource("item_5"), ExtResource("item_6"), ExtResource("item_7"), ExtResource("item_8"), ExtResource("item_9"), ExtResource("item_10"), ExtResource("item_11"), ExtResource("item_12"), ExtResource("item_13"), ExtResource("item_14"), ExtResource("item_15"), ExtResource("item_16"), ExtResource("item_17"), ExtResource("item_18"), ExtResource("item_19"), ExtResource("item_20"), ExtResource("item_21"), ExtResource("item_22"), ExtResource("item_23"), ExtResource("item_24"), ExtResource("item_25"), ExtResource("item_26"), ExtResource("item_27"), ExtResource("item_28"), ExtResource("item_29"), ExtResource("item_30"), ExtResource("item_31"), ExtResource("item_32"), ExtResource("item_33"), ExtResource("item_34"), ExtResource("item_35"), ExtResource("item_36"), ExtResource("item_37"), ExtResource("item_38"), ExtResource("item_39"), ExtResource("item_40"), ExtResource("item_41"), ExtResource("item_42"), ExtResource("item_43"), ExtResource("item_44"), ExtResource("item_45")]
+metadata/_custom_type_script = ExtResource("category")
 
 [sub_resource type="Resource" id="Category_scroll"]
-script = ExtResource("2_cat")
+script = ExtResource("category")
 Category = "scroll"
-AppearancePool = ExtResource("9_scroll_pool")
-Types = Array[Item]([ExtResource("10_teleport"), ExtResource("11_scroll_haste"), ExtResource("12_protection"), ExtResource("13_rage"), ExtResource("14_weakness"), ExtResource("15_summon"), ExtResource("16_identify"), ExtResource("17_enchant")])
-metadata/_custom_type_script = ExtResource("2_cat")
+AppearancePool = ExtResource("pool_scroll")
+Types = [ExtResource("item_47"), ExtResource("item_48"), ExtResource("item_49"), ExtResource("item_50"), ExtResource("item_51"), ExtResource("item_52"), ExtResource("item_53"), ExtResource("item_54"), ExtResource("item_55"), ExtResource("item_56"), ExtResource("item_57"), ExtResource("item_58"), ExtResource("item_59"), ExtResource("item_60"), ExtResource("item_61"), ExtResource("item_62"), ExtResource("item_63"), ExtResource("item_64"), ExtResource("item_65"), ExtResource("item_66")]
+metadata/_custom_type_script = ExtResource("category")
 
 [sub_resource type="Resource" id="Category_ring"]
-script = ExtResource("2_cat")
+script = ExtResource("category")
 Category = "ring"
-AppearancePool = ExtResource("18_ring_pool")
-Types = Array[Item]([ExtResource("19_ring_str"), ExtResource("20_ring_dex"), ExtResource("21_ring_vit"), ExtResource("22_ring_mind"), ExtResource("23_ring_prot"), ExtResource("24_ring_eva"), ExtResource("25_ring_prec"), ExtResource("26_ring_sav"), ExtResource("27_ring_leth"), ExtResource("28_ring_frail")])
-metadata/_custom_type_script = ExtResource("2_cat")
+AppearancePool = ExtResource("pool_ring")
+Types = [ExtResource("item_68"), ExtResource("item_69"), ExtResource("item_70"), ExtResource("item_71"), ExtResource("item_72"), ExtResource("item_73"), ExtResource("item_74"), ExtResource("item_75"), ExtResource("item_76"), ExtResource("item_77"), ExtResource("item_78"), ExtResource("item_79"), ExtResource("item_80"), ExtResource("item_81"), ExtResource("item_82"), ExtResource("item_83"), ExtResource("item_84"), ExtResource("item_85"), ExtResource("item_86"), ExtResource("item_87"), ExtResource("item_88"), ExtResource("item_89")]
+metadata/_custom_type_script = ExtResource("category")
 
 [sub_resource type="Resource" id="Category_amulet"]
-script = ExtResource("2_cat")
+script = ExtResource("category")
 Category = "amulet"
-AppearancePool = ExtResource("29_amulet_pool")
-Types = Array[Item]([ExtResource("30_amulet_health"), ExtResource("31_amulet_swift"), ExtResource("32_amulet_titan"), ExtResource("33_amulet_dread")])
-metadata/_custom_type_script = ExtResource("2_cat")
+AppearancePool = ExtResource("pool_amulet")
+Types = [ExtResource("item_91"), ExtResource("item_92"), ExtResource("item_93"), ExtResource("item_94"), ExtResource("item_95"), ExtResource("item_96"), ExtResource("item_97"), ExtResource("item_98"), ExtResource("item_99"), ExtResource("item_100"), ExtResource("item_101"), ExtResource("item_102"), ExtResource("item_103"), ExtResource("item_104"), ExtResource("item_105"), ExtResource("item_106")]
+metadata/_custom_type_script = ExtResource("category")
 
 [resource]
-script = ExtResource("1_cat")
-Categories = Array[IdentityCategory]([SubResource("Category_potion"), SubResource("Category_scroll"), SubResource("Category_ring"), SubResource("Category_amulet")])
-metadata/_custom_type_script = ExtResource("1_cat")
+script = ExtResource("catalog")
+Categories = [SubResource("Category_potion"), SubResource("Category_scroll"), SubResource("Category_ring"), SubResource("Category_amulet")]
+metadata/_custom_type_script = ExtResource("catalog")

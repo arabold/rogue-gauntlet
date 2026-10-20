@@ -6,6 +6,7 @@ public partial class Level : Node
 	[Export] public bool AutoGenerateOnReady { get; set; } = true;
 
 	public MapGenerator MapGenerator { get; private set; }
+	public LevelItemPersistence ItemPersistence { get; private set; }
 	private Node _runtimeWorldRoot;
 
 	public void AddWorldNode(Node node)
@@ -31,6 +32,12 @@ public partial class Level : Node
 		}
 
 		_runtimeWorldRoot = GetOrCreateRuntimeWorldRoot();
+		ItemPersistence = GetNodeOrNull<LevelItemPersistence>("ItemPersistence");
+		if (ItemPersistence == null)
+		{
+			ItemPersistence = new LevelItemPersistence { Name = "ItemPersistence" };
+			AddChild(ItemPersistence);
+		}
 
 		if (AutoGenerateOnReady)
 		{
@@ -51,6 +58,18 @@ public partial class Level : Node
 		// level is regenerated in place rather than replaced by a full scene reload.
 		ClearWorldNodes();
 		MapGenerator.GenerateMap();
+		ItemPersistence.Initialize(this);
+		try
+		{
+			ItemPersistence.RecordInitialBaseline();
+			ItemPersistence.Apply(GameSession.Instance?.FindLevelItemChanges(MapGenerator.DungeonDepth));
+		}
+		catch (System.Exception error)
+		{
+			GD.PushError($"Cannot restore floor items: {error.Message}");
+			GameSession.Instance?.CallDeferred(nameof(GameSession.ReturnToMenu));
+			return;
+		}
 
 		// Live under RuntimeWorld so they are cleared and rebuilt with each
 		// generation. FogOfWar must subscribe before RoomManager's first poll, so
