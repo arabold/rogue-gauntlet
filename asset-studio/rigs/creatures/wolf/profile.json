@@ -1,0 +1,60 @@
+{
+  "family": "quadruped",
+  "scale": 0.38,
+  "clips": {
+    "Idle": "Idle",
+    "Walk": "Walk",
+    "Attack": "Attack",
+    "Death": "Death",
+    "Eating": "Eating",
+    "Run": "Run",
+    "Jump": "Jump",
+    "Land": "Land",
+    "Hit_Left": "Hit_Left",
+    "Hit_Right": "Hit_Right",
+    "Idle_Low": "Idle_Low",
+    "Idle_Look": "Idle_Look"
+  },
+  "loops": [
+    "Idle",
+    "Walk",
+    "Run",
+    "Eating",
+    "Idle_Low",
+    "Idle_Look"
+  ],
+  "bones": {
+    "body": "Body",
+    "head": "Head",
+    "back": "Back",
+    "tail": "Tail1",
+    "front_left": "FrontUpperLeg.L",
+    "front_right": "FrontUpperLeg.R",
+    "back_left": "BackUpperLeg.L",
+    "back_right": "BackUpperLeg.R"
+  },
+  "source": "https://poly.pizza/m/P1gU3Qkr9r",
+  "version": 1,
+  "license": "CC0-1.0",
+  "author": "Quaternius",
+  "acquired": "2026-10-20",
+  "status": "technical_rig",
+  "forward": "+Z",
+  "up": "+Y",
+  "source_clips": {
+    "Idle": "Idle",
+    "Walk": "Walk",
+    "Attack": "Attack",
+    "Death": "Death",
+    "Eating": "Eating",
+    "Run": "Gallop",
+    "Jump": "Gallop_Jump",
+    "Land": "Jump_ToIdle",
+    "Hit_Left": "Idle_HitReact_Left",
+    "Hit_Right": "Idle_HitReact_Right",
+    "Idle_Low": "Idle_2_HeadLow",
+    "Idle_Look": "Idle_2"
+  },
+  "original_sha256": "16ac96339d06f7def9af20d5d9b27622d61e53580dab43970c9edb1bffbe8f84",
+  "rig_sha256": "b81838830399620021b83e7dc2f93a43247dc6ea1711d3b39b3c3c6616b4cb28"
+}

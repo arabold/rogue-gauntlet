@@ -52,7 +52,7 @@ With the backpack nearly full, the player chooses between carrying spare armor, 
 
 Before descending, the player uses a lamp to explore a dark branch, spending fuel in exchange for better visibility. A later encounter brings a much larger crowd, changing the immediate problem from dueling an enemy to finding space and controlling the approach. The player survives, decides whether current supplies are enough, and descends. Saving and returning preserves discoveries, carried objects, spent fuel, and purchased stock.
 
-The intended first complete run needs a defined endpoint and a clear loss condition. Its exact objective, length, death rules, and any return journey remain open decisions. The proposed starting point is a finite descent with a final encounter or objective, and death ending the active run. Save/load should support resuming play without changing previously created items or rewards.
+The complete run is structured as a 24-depth descent divided into 8 distinct realms (the Sunken Epochs), each spanning 3 depths. The final objective is reaching Depth 24 to confront the guardian of the World-Anchor and sever the gravitational tether dragging civilizations into the crust, achieving run victory. Death ends the active run. An optional return journey (an escape ascent against collapsing ruins) is reserved as an advanced post-victory challenge mode rather than a requirement for the initial game. Save/load preserves discoveries, carried inventory, spent resources, shop state, and persistent floor modifications.
 
 Permanent power progression between runs is undecided. Do not make it a dependency of the first complete run.
 
@@ -72,19 +72,19 @@ Current combat and character foundations are described in [weapon attacks](weapo
 
 ## Dungeon exploration
 
-Floors combine procedural layout with authored rooms. Players discover space through exploration, encounter enemies and hazards, find loose items, open chests, and reach the next descent.
+Floors combine realm-specific authored room pools with procedural rooms and corridors. A floor recipe defines required locations, optional branches, and progression conditions. A location can be required to exist, required to be traversed, or associated with an objective required before descent; these are separate guarantees. Room purpose should influence contents and rewards.
 
-Seeded generation is a core principle: the run seed and level-specific generators recreate the initial scenario, including encounter choices and positions. Separate random streams keep unrelated gameplay and cosmetic activity from altering that baseline. Save only differences caused by play, such as defeated monsters, collected loot, opened chests, changed items, and player drops. Regeneration followed by those changes restores the supported world state; untouched future floors need no stored state. Whether moved or injured living enemies reset on revisit or retain actor-specific changes remains an explicit design decision.
+[Dungeon Layout, Access, and Discovery](dungeon-exploration-design.md) owns the detailed exploration concept. Doors compose opening/closing with optional locks and discovery. Predefined and generated rooms can have locked doors. Prison cells may require lockpicks, with matching keys as an authored alternative; color coding is an optional presentation feature, not a universal key rule. Initial mechanical locks protect optional content.
 
-Repeatability applies to the same build, content, and relevant inputs. Changing code, content ordering, or RNG consumption between builds may change the whole scenario, which is acceptable during development. Separately seeded level, monster, and item generators limit accidental coupling; they do not promise that monsters remain in the same places if the level layout changes. Historical seed outputs do not need compatibility support.
+Secrets occur at variable generated corridor or procedural-room wall segments, not predictable sockets in predefined rooms. Approaching from a reachable side reveals a concealed opening; unlocking, opening, and discovering the destination remain separate actions. Secrets and tools offer optional exploration choices without becoming hidden prerequisites for the required route.
 
-Room purpose should influence its contents: a storeroom can contain supplies, a treasury can reward overcoming a lock, and a dangerous guarded room can offer better equipment. Start with a small set of readable room roles and expand them as their gameplay becomes useful.
+Realm bosses initially gate descent through visible magical stair seals that lift automatically on defeat. Reaching or running around the boss does not satisfy completion. Arena lockdown and guaranteed boss-key alternatives remain separate encounter choices. Required access solutions must be reachable and cannot depend on random loot, shop stock, or an inventory-capacity failure.
 
-Locks initially protect optional rewards. Any future required lock must have a guaranteed solution reachable before the lock, without depending on a random shop purchase or monster drop. Tools may provide alternative access where explicitly supported.
+Seeded generation recreates initial room choices, encounters, connections, access assignments, secrets, and source loot. Separate RNG streams isolate unrelated generation, gameplay and cosmetics. Save player-caused differences rather than full floor copies. Reproduction applies to the same build/content; historical seed compatibility is excluded during development. See [Randomness and Seeds](randomness-and-seeds.md) for current guarantees and limits, including supported actor reset behavior.
 
 Proposed darkness and portable lighting should affect exploration or perception enough to justify carrying fuel. Fog of war represents discovered space; illumination represents current visibility. Their exact relationship, and whether enemies respond to carried light, remain to be designed.
 
-See [level design](level-design.md) for the current generation and visibility implementation.
+[Level design](level-design.md) describes the current generator and its limitations; the [implementation plan](specs/level-progression-prototype-plan.md) describes remaining engineering work.
 
 ## Items and their lifecycle
 
@@ -99,7 +99,7 @@ Every item has an authored definition, a particular instance when state is neede
 | Scrolls | Situational solutions | Read for an effect, sometimes selecting a target |
 | Rings and amulets | Passive specialization and discovery | Equip for benefits or drawbacks; use the identification system |
 | Lamps and torches | Portable illumination | Activate or extinguish; consume fuel while active |
-| Keys | Access to matching locks | Unlock by an explicit matching rule; consumption depends on the key definition |
+| Keys | Access to matching locks | Explicit matching scope; initially reusable, with consumption deferred |
 | Tools | Alternative ways to interact with the dungeon | Start with lockpicks; add other tools alongside the world interactions they require |
 | Currency | Purchasing decisions | Collect, spend, and receive through trade |
 
@@ -107,7 +107,7 @@ Every item has an authored definition, a particular instance when state is neede
 
 Creation initializes an item's random state once. Pickup, inventory transfer, equipping, dropping, trading, floor transitions, and save/load preserve that state. Loading restores results rather than rolling them again. During development before public release, this guarantee applies to the current supported save version. Saves may break between versions; incompatible or unversioned saves require a new run and are not migrated.
 
-Relevant state includes equipment rarity and affixes, food contamination, remaining fuel or charges, and a key's lock association. Store only state required by supported behavior. Authored definitions remain unchanged by play.
+Relevant state includes equipment rarity and affixes, food contamination, and remaining fuel or charges where implemented. Initial key matching uses the authored key definition; per-instance lock associations are unnecessary until a supported mechanic requires them. Store only state required by supported behavior. Authored definitions remain unchanged by play.
 
 Stackability is explicitly authored and defaults to disabled. An approved stackable variety has interchangeable units with no individual variation, including hidden properties. Any item with per-unit rolls or mutable state remains individual. Splitting and merging preserve variety and total quantity.
 
@@ -186,7 +186,7 @@ Crafting, complex survival simulation, broad tool combinations, elaborate mercha
 
 | Decision | Working direction | Resolve before |
 | --- | --- | --- |
-| Run objective, length, and victory | Finite descent with a final objective | First complete run milestone |
+| Run objective, length, and victory | 24 depths across 8 realms (Sunken Epochs); World-Anchor victory at Depth 24 | Resolved (see [Realms and Monster Design](realms-and-monster-design.md)) |
 | Death and between-run progression | Death ends the run; permanent power undecided | First complete run milestone |
 | Inventory and shop pause behavior | Open | Balancing item-use timing and shop encounters |
 | Food contamination and detection | Per-instance creation roll; probability and detection open | Food integration |
@@ -195,7 +195,7 @@ Crafting, complex survival simulation, broad tool combinations, elaborate mercha
 | Crowd encounter scale and pacing | Mix tactical fights with occasional overwhelming groups; counts and performance targets open | Encounter balancing |
 | Lighting, fuel pacing, and equipment occupancy | One useful portable light; exact visibility and hand/slot rules open | Lighting integration |
 | Armor tradeoffs and visual coverage | Small set with readable differences | Armor integration |
-| Keys and lockpicks | Matching keys; optional locked rewards first | Lock integration |
+| Keys and lockpicks | Optional mechanical locks; matching keys or timed picking with a reusable tool; duration and later resource costs need tuning | Lock integration |
 | Merchant knowledge, prices, and frequency | Persistent finite stock scaled by depth | Shop integration |
 
 Update this document when intended behavior changes. Record implementation details in the linked feature documents and track delivery in the [roadmap](development-roadmap.md).

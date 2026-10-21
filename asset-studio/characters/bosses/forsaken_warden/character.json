@@ -1,0 +1,176 @@
+{
+  "builder": "warden",
+  "rig": "large",
+  "scale": 1.15,
+  "shield": true,
+  "roles": {
+    "Idle": "Idle_A",
+    "Walk": "Walking_A",
+    "Run": "Running_A",
+    "Attack": "Melee_1H_Slash",
+    "Block": "Melee_Block",
+    "Hit": "Hit_A",
+    "Death": "Death_A"
+  },
+  "export": {
+    "glb": "res://assets/custom-monsters/bosses/forsaken_warden.glb"
+  },
+  "colors": {
+    "armor": [
+      94,
+      103,
+      119
+    ],
+    "armor_dark": [
+      36,
+      41,
+      51
+    ],
+    "trim": [
+      178,
+      142,
+      77
+    ],
+    "rivet": [
+      189,
+      156,
+      93
+    ],
+    "gem": [
+      139,
+      41,
+      43
+    ],
+    "cloth": [
+      109,
+      43,
+      44
+    ],
+    "leather": [
+      76,
+      50,
+      36
+    ],
+    "dark": [
+      17,
+      21,
+      28
+    ],
+    "eyes": [
+      255,
+      181,
+      55
+    ],
+    "steel": [
+      132,
+      145,
+      163
+    ],
+    "edge": [
+      184,
+      194,
+      207
+    ],
+    "iron": [
+      73,
+      82,
+      98
+    ],
+    "brass": [
+      178,
+      142,
+      77
+    ],
+    "horn": [
+      195,
+      170,
+      123
+    ],
+    "sole": [
+      44,
+      37,
+      33
+    ],
+    "mail": [
+      69,
+      75,
+      83
+    ]
+  },
+  "materials": {
+    "armor": {
+      "metallic": 0.42,
+      "roughness": 0.48
+    },
+    "trim": {
+      "metallic": 0.42,
+      "roughness": 0.48
+    },
+    "rivet": {
+      "metallic": 0.42,
+      "roughness": 0.48
+    },
+    "steel": {
+      "metallic": 0.42,
+      "roughness": 0.48
+    },
+    "edge": {
+      "metallic": 0.42,
+      "roughness": 0.48
+    },
+    "iron": {
+      "metallic": 0.42,
+      "roughness": 0.48
+    },
+    "brass": {
+      "metallic": 0.42,
+      "roughness": 0.48
+    },
+    "cloth": {
+      "metallic": 0,
+      "roughness": 0.9
+    },
+    "leather": {
+      "metallic": 0,
+      "roughness": 0.9
+    },
+    "dark": {
+      "metallic": 0,
+      "roughness": 0.9
+    },
+    "horn": {
+      "metallic": 0,
+      "roughness": 0.9
+    },
+    "sole": {
+      "metallic": 0,
+      "roughness": 0.9
+    },
+    "eyes": {
+      "emissive": true
+    },
+    "gem": {
+      "metallic": 0.08,
+      "roughness": 0.25
+    },
+    "armor_dark": {
+      "metallic": 0.2,
+      "roughness": 0.65
+    },
+    "mail": {
+      "metallic": 0.18,
+      "roughness": 0.75
+    }
+  },
+  "triangle_budget": 30000,
+  "head_scale": 0.8,
+  "shield_fit": {
+    "yaw": -12.0,
+    "standoff": 0.27,
+    "fold_degrees": 12.0
+  },
+  "shieldless_roles": {
+    "Slam": "Melee_2H_Slam",
+    "Attack": "Melee_2H_Attack"
+  }
+}

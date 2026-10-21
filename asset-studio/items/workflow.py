@@ -539,7 +539,7 @@ class Item:
 
 def run_godot(args, headless=True):
     """Fail on engine diagnostics as well as process errors; imports can exit zero on resource errors."""
-    command = [str(REPO / ".agents/skills/godot-mcp/scripts/godot.sh"),
+    command = [str(STUDIO / "godot/godot.sh"),
                *(["--headless"] if headless else []), "--path", str(REPO), *args]
     result = subprocess.run(command, capture_output=True, text=True, timeout=600)
     if result.returncode or any(marker in result.stdout + result.stderr for marker in ["ERROR:", "SCRIPT ERROR:", "Parse Error"]):

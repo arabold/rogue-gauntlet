@@ -1,0 +1,13 @@
+{
+  "key": "bosses/forsaken_warden",
+  "inputs": "0631328b6e26846e5fef4f3d6fcb9835a8c2ee2ad283af3245b1bb42e50b9faf",
+  "files": {
+    "model.glb": "8f5c4f973b3453e5b790e6ded1ac022fc3654ecc94fbbd84fa91bc73e6bfc0a9",
+    "lineup.png": "c9cbf0a0ec91db635031a662de8dbe4a705556974c933020450e37e3966a9201",
+    "lineup.gif": "29165507172c2ad33e9dd0c36918ca3f9a0eec4cf34a236e6b4de3fec29840d3",
+    "asset.json": "edbbfc92700a3a551cc9a46d80fcf68a86777017f225b07629b0776525609627"
+  },
+  "metadata": {
+    "engine_import_verified": true
+  }
+}

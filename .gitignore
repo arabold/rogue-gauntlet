@@ -29,3 +29,6 @@ __pycache__/
 .local/
 Library/
 asset-studio/.cache/
+
+# Disposable Blender backups; selected editable sources remain tracked.
+asset-studio/**/*.blend[0-9]*

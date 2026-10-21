@@ -200,6 +200,7 @@ public partial class MapGenerator : Node3D
 	}
 
 	private LevelGenerationContext _random;
+	public int GenerationAttempt { get; private set; }
 
 	/// <summary>Recreates a reward stream without advancing generation or gameplay RNGs.</summary>
 	public RandomNumberGenerator CreateSourceLootRng(string sourceId)
@@ -1591,7 +1592,8 @@ public partial class MapGenerator : Node3D
 
 	private void GenerateEnemySpawnPoints()
 	{
-		uint mobCount = 3 + DungeonDepth % 5 + (uint)_random.Encounters.RandiRange(0, 2);
+		var encounter = MobFactory.CreateEncounter(DungeonDepth, _random.Encounters);
+		int mobCount = encounter.Count;
 		GD.Print($"Generating {mobCount} enemy spawn points...");
 
 		// Candidate selection uses map tiles and collision clearance, not navmesh paths.
@@ -1615,7 +1617,7 @@ public partial class MapGenerator : Node3D
 			spawnPoints.Add(point);
 
 			// Enemy scenes are loaded lazily by the factory to keep unused variants out of memory.
-			var enemyScene = MobFactory.CreateEnemy(DungeonDepth, _random.Encounters);
+			var enemyScene = encounter[i];
 			if (enemyScene == null)
 			{
 				continue;
@@ -1664,6 +1666,60 @@ public partial class MapGenerator : Node3D
 	private bool IsOccupiedSpawnTile(int x, int z)
 	{
 		return HasDecorationInTile(x, z) || HasPropInTile(x, z);
+	}
+
+	/// <summary>Checks a room-local circular footprint against floor edges, decoration and authored props.</summary>
+	public bool IsEncounterFootprintClear(Vector3 point, float radius, int roomId)
+	{
+		if (roomId < 0 || radius <= 0) return false;
+		var center = WorldToTile(point);
+		int extent = Mathf.CeilToInt(radius / TileSize + .5f);
+		float half = TileSize * .5f;
+		for (int x = center.X - extent; x <= center.X + extent; x++)
+		{
+			for (int z = center.Y - extent; z <= center.Y + extent; z++)
+			{
+				Vector3 tileCenter = TileToWorld(x, 0, z);
+				float dx = Mathf.Max(0, Mathf.Abs(point.X - tileCenter.X) - half);
+				float dz = Mathf.Max(0, Mathf.Abs(point.Z - tileCenter.Z) - half);
+				if (dx * dx + dz * dz >= radius * radius) continue;
+				if (GetRoomIdAt(new Vector2I(x, z)) != roomId || IsOccupiedSpawnTile(x, z)) return false;
+			}
+		}
+		return true;
+	}
+
+	/// <summary>Prefer a roomy room interior near descent, keeping an oversized actor out of corridors.</summary>
+	public bool TryFindLargeEncounterPosition(Vector3 reference, float minimumRadius, float preferredRadius, out Vector3 position)
+	{
+		position = default;
+		float best = float.NegativeInfinity;
+		var occupied = new List<Vector3>();
+		foreach (var tilePoint in GetOpenTileCandidates(proceduralRoomsOnly: false))
+		{
+			// Half-tile offsets also find clear 2x2 spaces between cell centers.
+			for (int dx = 0; dx <= 1; dx++)
+			{
+				for (int dz = 0; dz <= 1; dz++)
+				{
+					var point = tilePoint + new Vector3(dx * TileSize * .5f, 0, dz * TileSize * .5f);
+					int roomId = GetRoomIdAt(WorldToTile(point));
+					if (IsBlockedEnemySpawnPoint(point, occupied)
+						|| !IsEncounterFootprintClear(point, minimumRadius, roomId)) continue;
+					float clearance = minimumRadius;
+					for (float radius = minimumRadius + .2f; radius <= preferredRadius; radius += .2f)
+					{
+						if (!IsEncounterFootprintClear(point, radius, roomId)) break;
+						clearance = radius;
+					}
+					float score = clearance * 1000 - point.DistanceTo(reference);
+					if (score <= best) continue;
+					best = score;
+					position = point;
+				}
+			}
+		}
+		return float.IsFinite(best);
 	}
 
 	/// <summary>
@@ -1997,6 +2053,21 @@ public partial class MapGenerator : Node3D
 
 	public void GenerateMap(bool includeGameplay = true)
 	{
+		for (GenerationAttempt = 0; GenerationAttempt < 8; GenerationAttempt++)
+		{
+			GenerateMapAttempt(includeGameplay);
+			if (!includeGameplay || MobFactory is not RealmEncounterFactory realm
+				|| realm.FloorIndex(DungeonDepth) != 2 || realm.GatekeeperFit == null
+				|| GatekeeperSpawnMarker.Find(this.GetAncestorOrNull<Level>()) != null) return;
+			if (TryFindLargeEncounterPosition(Vector3.Zero, realm.GatekeeperFit.MinimumClearance,
+				realm.GatekeeperFit.PreferredClearance, out _)) return;
+			GD.Print($"No room fits the gatekeeper; retrying layout (attempt {GenerationAttempt + 1}/8).");
+		}
+		throw new InvalidOperationException("No generated room can accommodate the gatekeeper after eight layout attempts.");
+	}
+
+	private void GenerateMapAttempt(bool includeGameplay)
+	{
 		Reset();
 
 		GD.Print("Generating map...");
@@ -2247,7 +2318,7 @@ public partial class MapGenerator : Node3D
 	private void Reset()
 	{
 		GD.Print("Resetting map generator...");
-		_random = new LevelGenerationContext(Seed);
+		_random = new LevelGenerationContext(Seed, GenerationAttempt);
 
 		_roomRegions.Clear();
 		_tileToRoom.Clear();
@@ -2271,6 +2342,7 @@ public partial class MapGenerator : Node3D
 		{
 			foreach (var spawnPoint in EnemySpawnPoints)
 			{
+				RemoveChild(spawnPoint);
 				spawnPoint.QueueFree();
 			}
 		}

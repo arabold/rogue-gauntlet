@@ -1,4 +1,54 @@
 {
   "builder": "golem",
-  "rig": "large"
+  "rig": "large",
+  "colors": {
+    "stone": [
+      152,
+      146,
+      128
+    ],
+    "stone_dark": [
+      108,
+      103,
+      94
+    ],
+    "moss": [
+      98,
+      132,
+      54
+    ],
+    "crystal": [
+      70,
+      170,
+      235
+    ],
+    "glow": [
+      200,
+      248,
+      255
+    ]
+  },
+  "materials": {
+    "stone": {
+      "metallic": 0,
+      "roughness": 0.9
+    },
+    "stone_dark": {
+      "metallic": 0,
+      "roughness": 0.94
+    },
+    "moss": {
+      "metallic": 0,
+      "roughness": 1
+    },
+    "crystal": {
+      "metallic": 0.12,
+      "roughness": 0.28,
+      "emissive": false
+    },
+    "glow": {
+      "emissive": true
+    }
+  },
+  "crease": 50
 }

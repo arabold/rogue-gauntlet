@@ -28,6 +28,23 @@
 	},
 	"packs": [
 		{
+			"id": "studio-creature-rigs",
+			"name": "CC0 creature skeleton and motion references",
+			"dir": "asset-studio/rigs/creatures",
+			"author": "Quaternius",
+			"source": "https://poly.pizza/m/P1gU3Qkr9r",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"3d",
+				"animation"
+			],
+			"compatibility_group": "quaternius",
+			"acquired": "2026-10-20 (wolf/rat); June/July 2026 (existing spider/blob)",
+			"notes": "Authoring-only wolf, rat, spider and blob rigs. Wolf: https://poly.pizza/m/P1gU3Qkr9r ; rat: https://poly.pizza/m/iltq5bVNaV . Public source-metadata.json records exact CC0 editions; profiles record hashes, clip maps, scales and bone roles. Spider/blob are existing project CC0 acquisitions. These source models are motion/weight references, not approved visual replacements or new gameplay enemies. Preserve original authorship and edition-specific CC0 evidence; current general site license differs."
+		},
+		{
 			"id": "kaykit-adventurers",
 			"name": "KayKit - Character Pack : Adventurers",
 			"dir": "assets/kaykit-adventurers",
@@ -36,7 +53,9 @@
 			"license": "CC0-1.0",
 			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
 			"attribution_required": false,
-			"types": ["3d"],
+			"types": [
+				"3d"
+			],
 			"compatibility_group": "kaykit",
 			"acquired": "unknown (predates manifest)",
 			"notes": "Rigged/animated humanoid characters (Knight, Mage, Rogue, Barbarian) plus held weapon meshes. Player character source."
@@ -67,7 +86,9 @@
 			"license": "CC0-1.0",
 			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
 			"attribution_required": false,
-			"types": ["3d"],
+			"types": [
+				"3d"
+			],
 			"compatibility_group": "kaykit",
 			"acquired": "unknown (predates manifest)",
 			"notes": "Older dungeon prop/weapon set using the *.gltf.glb naming and rarity suffixes (_common/_uncommon/_rare). Kept alongside the remaster; prefer remastered where equivalents exist."
@@ -81,7 +102,9 @@
 			"license": "CC0-1.0",
 			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
 			"attribution_required": false,
-			"types": ["3d"],
+			"types": [
+				"3d"
+			],
 			"compatibility_group": "kaykit",
 			"acquired": "unknown (predates manifest)",
 			"notes": "Primary dungeon environment set (~200 modular pieces): walls, floors, banners, props. Drives level generation tiling."
@@ -95,7 +118,9 @@
 			"license": "CC0-1.0",
 			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
 			"attribution_required": false,
-			"types": ["3d"],
+			"types": [
+				"3d"
+			],
 			"compatibility_group": "kaykit",
 			"acquired": "unknown (predates manifest)",
 			"notes": "Animated skeleton enemies + modular skeleton parts/weapons. Current enemy source."
@@ -109,7 +134,9 @@
 			"license": "CC0-1.0",
 			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
 			"attribution_required": false,
-			"types": ["2d"],
+			"types": [
+				"2d"
+			],
 			"compatibility_group": "kenney-2d",
 			"acquired": "unknown (predates manifest)",
 			"notes": "Keyboard + Xbox controller button prompt SVGs for UI hints. Directory name keeps the original 'kenny' spelling."
@@ -123,7 +150,9 @@
 			"license": "CC-BY-3.0",
 			"license_url": "https://creativecommons.org/licenses/by/3.0/",
 			"attribution_required": true,
-			"types": ["2d"],
+			"types": [
+				"2d"
+			],
 			"compatibility_group": "game-icons-net",
 			"acquired": "unknown (predates manifest)",
 			"notes": "ATTRIBUTION REQUIRED. Item/equipment SVG icons. Each icon has an individual author that must be credited in shipped builds. Per-icon authorship is not yet recorded here — needs backfill (see AGENTS.md)."
@@ -137,7 +166,9 @@
 			"license": "CC0-1.0",
 			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
 			"attribution_required": false,
-			"types": ["3d"],
+			"types": [
+				"3d"
+			],
 			"compatibility_group": "quaternius",
 			"acquired": "2026-06-28",
 			"notes": "Coherent CC0 monster set. Initial 7 fetched via the Poly Pizza channel (orc, blue-demon, ghost, yeti, slime-enemy, bat, spider; .glb). 10 more added from the locally-downloaded Quaternius 'Ultimate Monsters' pack (.gltf, self-contained base64): orc-skull, dino, demon, cactoro, mushroom-king, ghost-skull, dragon, squidle, spiky-blob, wizard. Wired as enemies under scenes/enemies/<creature>/ and registered in dungeon_mob_factory.tres. NOTES: Quaternius ships multiple visual sub-series; the textured-atlas EnemyArmature ones (goblin, zombie) clashed and were excluded. The .gltf imports use BARE clip names (Idle/Punch/...), the .glb exports use armature-prefixed names (CharacterArmature|Idle); rigs differ per body type. Each model's import sets loop_mode on its looping clips; each scene maps its own clip names. Scales are per-model starting points to be eyeballed; flyers (bat, ghost, ghost-skull, dragon, squidle) get a model Y-offset to hover (movement still ground-based). Catalog renders in docs/monster-catalog/."
@@ -151,7 +182,9 @@
 			"license": "UNKNOWN",
 			"license_url": "",
 			"attribution_required": null,
-			"types": ["2d"],
+			"types": [
+				"2d"
+			],
 			"compatibility_group": "unsorted",
 			"acquired": "unknown (predates manifest)",
 			"notes": "main_menu_background.png has no recorded source or license. MUST be triaged before shipping: confirm origin/terms, or replace with an asset of known provenance."
@@ -174,9 +207,9 @@
 		},
 		{
 			"id": "custom-monsters",
-			"name": "Rogue Gauntlet - Custom KayKit-Rigged Monsters",
+			"name": "Rogue Gauntlet - Custom Monsters",
 			"dir": "assets/custom-monsters",
-			"author": "Rogue Gauntlet contributors (scripted character kit on KayKit CC0 rigs and clips)",
+			"author": "Rogue Gauntlet contributors; CC0 rigs/animations by Kay Lousberg and Quaternius; wolf/rat geometry adapted from Quaternius",
 			"source": "Self-authored via asset-studio/studio.py from asset-studio/characters/<family>/<name>/",
 			"license": "CC0-1.0",
 			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
@@ -186,7 +219,7 @@
 			],
 			"compatibility_group": "kaykit",
 			"acquired": "2026-10-12",
-			"notes": "Monsters built from the scripted character kit (heads, bodies, garments, armor and accessories by script), one folder per family: goblin/goblin (0.74x), mage/necromancer, mage/dark_wizard, orc/orc_king, orc/orc_warrior, orc/orc_shaman, undead/mummy, undead/wraith, undead/ghoul (0.92x), undead/zombie_walker and demon/imp (0.68x). Each GLB is a drop-in on a copy of KayKit's Skeleton_Warrior.glb (its Rig, 41 joints and 95 clips) with only the meshes ours; weapons are the game's own items baked in at true size. Sources (recipes, concept drawings by Google gemini-3-pro-image over KayKit's CC0 mannequin, previews) live outside the Godot assets in asset-studio/characters/. The earlier reconstructed monsters (2026-10-12) were removed."
+			"notes": "Monsters built from the scripted character kit (heads, bodies, garments, armor and accessories by script), one folder per family: goblin/goblin (0.74x), mage/necromancer, mage/dark_wizard, orc/orc_king, orc/orc_warrior, orc/orc_shaman, undead/mummy, undead/wraith, undead/ghoul (0.92x), undead/zombie_walker and demon/imp (0.68x). Each GLB is a drop-in on a copy of KayKit's Skeleton_Warrior.glb (its Rig, 41 joints and 95 clips) with only the meshes ours; weapons are the game's own items baked in at true size. Sources (recipes, concept drawings by Google gemini-3-pro-image over KayKit's CC0 mannequin, previews) live outside the Godot assets in asset-studio/characters/. The earlier reconstructed monsters (2026-10-12) were removed. Selected wolf and rat are credited CC0 derivatives under beasts/, with bound sources and provenance in asset-studio/characters/beasts/. Stone golem is procedural rigid geometry on the local large rig. Studio exports art and animation metadata only; gameplay definitions are separate."
 		},
 		{
 			"id": "custom-heroes",

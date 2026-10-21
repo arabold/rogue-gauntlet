@@ -1,0 +1,40 @@
+{
+  "kind": "cc0_surface_derivative",
+  "status": "visual_review",
+  "author": "Quaternius",
+  "source": "res://assets/quaternius-monsters/spider.glb",
+  "acquired": "2026-06-28 / 2026-07-02",
+  "license": "CC0-1.0",
+  "original_sha256": "d759e35f6cf5adc7eb7e3f70135cd2a808787fc36337a523015592ba840ccd6d",
+  "adopted_sha256": "792f284db5feca11c37838f7d29afb72cd556646f9d10172a40cdebe3dc0f747",
+  "adoption_recipe": {
+    "version": 1,
+    "name": "Dungeon spider",
+    "shape_changes": false,
+    "native_to_game_scale": 0.18,
+    "crease": 55,
+    "colors": {
+      "shell": [
+        57,
+        61,
+        68
+      ],
+      "eyes": [
+        176,
+        43,
+        40
+      ]
+    },
+    "materials": {
+      "shell": {
+        "metallic": 0.25,
+        "roughness": 0.3
+      },
+      "eyes": {
+        "metallic": 0,
+        "roughness": 0.22
+      }
+    }
+  },
+  "notes": "Original geometry, proportions, inverse binds, skin weights and keyed motion preserved. Shared Studio atlas and crease normals retain a restrained metallic shell sheen. Role names and constant reset tracks normalized. 85 sampled poses match original triangle corners within 2e-7 game units."
+}

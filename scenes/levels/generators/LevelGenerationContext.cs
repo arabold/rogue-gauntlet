@@ -12,10 +12,11 @@ public sealed class LevelGenerationContext
 	public RandomNumberGenerator Items { get; }
 	public RandomNumberGenerator Decoration { get; }
 
-	public LevelGenerationContext(ulong levelSeed)
+	public LevelGenerationContext(ulong levelSeed, int layoutAttempt = 0)
 	{
 		LevelSeed = levelSeed;
-		Layout = GenerationRandom.Create(levelSeed, GenerationRandom.Layout);
+		Layout = GenerationRandom.Create(levelSeed, GenerationRandom.Layout,
+			layoutAttempt == 0 ? "" : $"fit-attempt:{layoutAttempt}");
 		Encounters = GenerationRandom.Create(levelSeed, GenerationRandom.Monsters);
 		Items = GenerationRandom.Create(levelSeed, GenerationRandom.Items);
 		Decoration = GenerationRandom.Create(levelSeed, GenerationRandom.Decoration);

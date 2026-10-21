@@ -8,7 +8,7 @@ Currently, this project is in the early stages of development. A playable protot
 
 The [Game Design Document](docs/game-design.md) describes the intended experience, core gameplay loop, dungeon progression, items, shops, and open design decisions. The [Development Roadmap](docs/development-roadmap.md) organizes that vision into playable milestones with acceptance criteria. Both are living documents; planned features are distinguished from existing foundations.
 
-The [documentation index](docs/README.md) separates current implemented systems, proposed implementation plans, and content references. Start with [Randomness and Seeds](docs/randomness-and-seeds.md) for the existing seeded-generation and persistence design.
+[Dungeon Layout, Access, and Discovery](docs/dungeon-exploration-design.md) defines intended room selection, route obligations, locks, boss seals, and generated secrets; its separate [implementation plan](docs/specs/level-progression-prototype-plan.md) describes remaining work. The [documentation index](docs/README.md) separates concepts, current implemented systems, proposed implementation plans, and content references. Start with [Randomness and Seeds](docs/randomness-and-seeds.md) for the existing seeded-generation and persistence design.
 
 Run [`scenes/debug/item_lifecycle_harness.tscn`](scenes/debug/item_lifecycle_harness.tscn) with F6 in Godot to try item creation, food, equipment, stack operations, and backpack limits. Definitions, creation policy, seed, depth, and quantity are editable in its Inspector. See the [item lifecycle design](docs/specs/item-lifecycle-plan.md) for contracts and save/travel acceptance, and the [gameplay item catalog](docs/item-catalog.md) for active content and deferred mechanics.
 

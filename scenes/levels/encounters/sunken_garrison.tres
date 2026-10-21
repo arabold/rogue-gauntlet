@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="RealmEncounterFactory" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/encounters/RealmEncounterFactory.cs" id="factory"]
+[ext_resource type="Script" path="res://scenes/levels/encounters/MobSpawnEntry.cs" id="entry"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/dungeon_mob_factory.tres" id="fallback"]
+[ext_resource type="PackedScene" path="res://scenes/levels/encounters/bone_nest.tscn" id="nest"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/bosses/forsaken_warden.tscn" id="boss"]
+
+[ext_resource type="Resource" path="res://scenes/enemies/bosses/forsaken_warden_fit.tres" id="fit"]
+
+[sub_resource type="Resource" id="minion"]
+script = ExtResource("entry")
+ScenePath = "res://scenes/enemies/skeleton/skeleton_minion.tscn"
+Threat = 2
+Weight = 5
+
+[sub_resource type="Resource" id="warrior"]
+script = ExtResource("entry")
+ScenePath = "res://scenes/enemies/skeleton/skeleton_warrior.tscn"
+Threat = 4
+Weight = 2
+
+[sub_resource type="Resource" id="crossbow"]
+script = ExtResource("entry")
+ScenePath = "res://scenes/enemies/skeleton/skeleton_crossbow.tscn"
+Threat = 4
+Weight = 3
+
+[resource]
+script = ExtResource("factory")
+RealmName = "The Sunken Garrison"
+FirstDepth = 1
+FloorBudgets = PackedInt32Array(12, 20, 16)
+Entries = [SubResource("minion"), SubResource("warrior"), SubResource("crossbow")]
+Fallback = ExtResource("fallback")
+NestScene = ExtResource("nest")
+GatekeeperScene = ExtResource("boss")
+GatekeeperFit = ExtResource("fit")
+GatekeeperName = "the Forsaken Warden"

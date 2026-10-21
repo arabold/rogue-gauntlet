@@ -10,7 +10,7 @@ from core import kit
 from items.solid import Assembly, lathe, tube, polygon, loop, box
 
 KINDS = ('wooden_club', 'steel_club', 'morning_star', 'short_dagger', 'saber',
-         'rapier', 'greatsword', 'broadsword', 'scythe', 'halberd', 'spear')
+         'rapier', 'executioner', 'greatsword', 'broadsword', 'scythe', 'halberd', 'spear')
 COLORS = {'steel': [134, 153, 166], 'edge': [181, 194, 203], 'iron': [65, 76, 83],
           'wood': [119, 78, 46], 'endgrain': [148, 104, 62], 'leather': [79, 47, 32],
           'brass': [165, 119, 48]}
@@ -153,7 +153,10 @@ def club(kind):
 
 def sword(kind):
     a=Assembly()
-    if kind=='greatsword':
+    if kind=='executioner':
+        grip(a,-.36,.22,.075);pommel(a,-.43,.11,'brass');guard(a,.47,.28,.025,'brass')
+        stations=[(0,.25,.21,.065),(0,.44,.30,.070),(0,2.38,.30,.060),(0,2.50,.23,.045)]
+    elif kind=='greatsword':
         grip(a,-.34,.19,.051);pommel(a,-.395,.086)
         guard(a,.34,.25,.07)
         stations=[(0,.22,.075,.035),(0,.40,.083,.037),(0,.52,.115,.036),

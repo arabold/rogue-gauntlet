@@ -1,0 +1,46 @@
+{
+  "family": "blob",
+  "scale": 0.5,
+  "clips": {
+    "Idle": "Idle",
+    "Walk": "Walk",
+    "Jump": "Jump",
+    "Death": "Death",
+    "Dance": "Dance",
+    "No": "No",
+    "Yes": "Yes",
+    "Attack": "Attack",
+    "Hit": "Hit"
+  },
+  "loops": [
+    "Idle",
+    "Walk",
+    "Dance"
+  ],
+  "bones": {
+    "body": "Body",
+    "head": "Head",
+    "crown": "Head3"
+  },
+  "source": "res://assets/quaternius-monsters/spiky-blob.gltf",
+  "version": 1,
+  "license": "CC0-1.0",
+  "author": "Quaternius",
+  "acquired": "2026-06-28 / 2026-07-02",
+  "status": "technical_rig",
+  "forward": "+Z",
+  "up": "+Y",
+  "source_clips": {
+    "Idle": "Idle",
+    "Walk": "Walk",
+    "Jump": "Jump",
+    "Death": "Death",
+    "Dance": "Dance",
+    "No": "No",
+    "Yes": "Yes",
+    "Attack": "Bite_Front",
+    "Hit": "HitRecieve"
+  },
+  "original_sha256": "69f96a588d3a4139cc55382fbaebebe2bf23008f49c288b6487b06a4a2316faa",
+  "rig_sha256": "e93e55eeb9687766570ec746380e4f2942d71dfb5a3b9af95490a15abafb5686"
+}

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "source": "res://assets/kaykit-adventurers/Knight.glb",
+  "source_sha256": "60428e3abc09ba83e595d256e3af8c5c976b46cdae599f0802fc82b4a3445168",
+  "notes": "Technical child-to-hand-slot transforms only; no original appearance data. Native attachment axes: sword +Y blade, shield +Y top/+Z front. Original local offsets are retained before the character scale.",
+  "frames": {
+    "sword": {
+      "bone": "handslot.r",
+      "translation": [
+        0,
+        0.03330930517626057,
+        -1.2071546962033608e-07
+      ],
+      "rotation": [
+        -1.4007341064825596e-07,
+        -1,
+        1.0331601174584648e-07,
+        9.11950781556925e-09
+      ]
+    },
+    "shield": {
+      "bone": "handslot.l",
+      "translation": [
+        0,
+        0.01701178596925984,
+        0.15588533878326416
+      ],
+      "rotation": [
+        -1.0331633149007757e-07,
+        1.6853415729656263e-07,
+        1.4002976058691274e-06,
+        1
+      ]
+    }
+  }
+}

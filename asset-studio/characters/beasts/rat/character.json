@@ -1,0 +1,32 @@
+{
+  "builder": "skinned_source",
+  "rig": "rat",
+  "source": "source.glb",
+  "surface": "surface.json",
+  "scale": 1.0,
+  "colors": {
+    "coat": [
+      64,
+      59,
+      66
+    ],
+    "skin": [
+      145,
+      94,
+      97
+    ],
+    "muzzle": [
+      85,
+      76,
+      79
+    ],
+    "eyes": [
+      17,
+      19,
+      24
+    ]
+  },
+  "export": {
+    "glb": "res://assets/custom-monsters/beasts/rat.glb"
+  }
+}

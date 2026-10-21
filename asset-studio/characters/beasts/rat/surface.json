@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "source_sha256": "3c5e0fc1a63fdcc87fcd19feaa3611b7daa0cfae9b4cff8722f5f7f6e11180f8",
+  "slots": [
+    "coat",
+    "eyes",
+    "muzzle",
+    "skin"
+  ],
+  "colors": {
+    "coat": [
+      64,
+      59,
+      66
+    ],
+    "skin": [
+      145,
+      94,
+      97
+    ],
+    "muzzle": [
+      85,
+      76,
+      79
+    ],
+    "eyes": [
+      17,
+      19,
+      24
+    ]
+  },
+  "materials": {
+    "coat": {
+      "metallic": 0,
+      "roughness": 0.86
+    },
+    "skin": {
+      "metallic": 0,
+      "roughness": 0.86
+    },
+    "muzzle": {
+      "metallic": 0,
+      "roughness": 0.86
+    },
+    "eyes": {
+      "metallic": 0,
+      "roughness": 0.86
+    }
+  },
+  "image": 0,
+  "u_coords": [
+    0.09375,
+    0.25,
+    0.40625,
+    0.5625
+  ]
+}

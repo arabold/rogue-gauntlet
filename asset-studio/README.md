@@ -19,7 +19,7 @@ Start at **[catalogs/items/README.md](catalogs/items/README.md)** for every recr
 | `costumes/<name>/` | Art-only outfit recipe, construction notes and selected concept/prompt |
 | `catalogs/items/<category>/<name>/` | Final GLB, Godot lineup and fingerprint manifest |
 | `catalogs/costumes/<name>/` | Final wearable GLB, Godot fitting lineup, walk/attack GIF and fingerprint manifest |
-| `catalogs/characters/` | Current selected character previews |
+| `catalogs/characters/` | Current selected previews; bound/golem entries also keep the final GLB, motion, art metadata and fingerprint receipt |
 | `catalogs/prefabs/` | Current reusable-part catalogs |
 | OS temporary work root | Every build, technical report, software preview, review comparison, weapon cache and render job |
 
@@ -41,6 +41,43 @@ The hidden `.export.json` beside an item recipe records ownership of its game ex
 
 
 ---
+
+## Creature art and rig exports
+
+Wolf, rat and stone golem use the same normal character entry points as heroes and other
+monsters. Sources and rig/animation inputs are local to the Studio; no donor model or
+previous game export is needed for these builds.
+
+```bash
+./.venv/bin/python asset-studio/studio.py lineup beasts/wolf beasts/rat golem/stone_golem
+./.venv/bin/python asset-studio/studio.py export beasts/wolf beasts/rat golem/stone_golem
+./.venv/bin/python asset-studio/studio.py audit
+```
+
+`export` writes the finished GLB, deliberate Godot import settings and art metadata to the
+recipe's configured game destination, verifies the actual import, and updates the current
+character catalog. `lineup` only stages temporary GPU reviews. Source/skin fidelity,
+constant reset tracks, clip roles and loop settings are validated without humanoid node
+assumptions. `--no-import` explicitly defers Godot verification.
+
+The selected [wolf](characters/beasts/wolf/README.md) and [rat](characters/beasts/rat/README.md)
+are bound sources with editable named palettes and optional additional uniform scale. The
+[golem](characters/golem/stone_golem/README.md) exports rigid stone parts and baked shoulder
+helpers on its local large rig. No enemy scenes or gameplay Resources are generated.
+
+`beasts/spider` is a registered surface-polished review candidate using the same
+bound-source workflow. Its original proportions and five clips are preserved;
+`lineup beasts/spider` previews its charcoal shell and red-eye palette.
+
+The [Forsaken Warden](characters/bosses/forsaken_warden/README.md) is a large-rig
+boss assembled from the approved plate vocabulary, with glowing eyes and a broad
+executioner blade. `lineup bosses/forsaken_warden` and `export bosses/forsaken_warden`
+use the same character workflow; the GLB keeps sword/shield/horn as separate meshes.
+
+See [Studio architecture](ARCHITECTURE.md) for source ownership, export boundaries and the
+remaining older weapon-preview dependencies. [Technical creature rigs](rigs/creatures/README.md)
+cover blob/spider/wolf/rat extraction and explicit external-donor tools. The old
+`creature study` builders are superseded by the normal production recipes.
 
 ## Wearable armor fitting
 
@@ -240,7 +277,7 @@ The `steak` builder demonstrates this: one closed exterior surface, with fat, me
 
 ### Additional weapon designs
 
-The `arsenal` procedural builder contains dedicated designs for `wooden_club`, `steel_club`, `morning_star`, `short_dagger`, `saber`, `rapier`, `greatsword`, `broadsword`, `scythe`, `halberd`, and `spear`. These use continuous profiled grips, beveled diamond-section blades, curved guards, ferrules and solid-unioned structural details. A morning star is the rigid spiked-mace design. The rapier has a swept knuckle guard and pierced ring; the scythe has a crescent blade and two side grips. Color regions represent wood, leather, steel, honed edges and brass.
+The `arsenal` procedural builder contains dedicated designs for `wooden_club`, `steel_club`, `morning_star`, `short_dagger`, `saber`, `rapier`, `executioner`, `greatsword`, `broadsword`, `scythe`, `halberd`, and `spear`. These use continuous profiled grips, beveled diamond-section blades, curved guards, ferrules and solid-unioned structural details. A morning star is the rigid spiked-mace design. The rapier has a swept knuckle guard and pierced ring; the scythe has a crescent blade and two side grips. Color regions represent wood, leather, steel, honed edges and brass.
 
 Recipes live under `objects/weapons/`, using `"builder": "arsenal"` and an explicit `"design": {"kind": "saber"}`. Each model is authored around a grip-centered origin, carries a 3,500-triangle budget and uses the shared character surface model. The long sword has a two-hand grip; mannequin previews use a static right-hand mount for scale, without posing the second hand. Exported art contains no equipment rules or gameplay resources. Review the current [weapons catalog](catalogs/items/weapons.png) and individual lineups from the [catalog index](catalogs/items/README.md).
 

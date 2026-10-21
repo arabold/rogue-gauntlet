@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "source_sha256": "0f0937fa05b869f7429bdb39fe56896fff5b61923483a3877e390dc487a98cef",
+  "slots": [
+    "coat",
+    "eyes",
+    "markings",
+    "nose"
+  ],
+  "colors": {
+    "coat": [
+      99,
+      112,
+      136
+    ],
+    "markings": [
+      193,
+      193,
+      181
+    ],
+    "eyes": [
+      25,
+      28,
+      35
+    ],
+    "nose": [
+      39,
+      43,
+      52
+    ]
+  },
+  "materials": {
+    "coat": {
+      "metallic": 0,
+      "roughness": 0.86
+    },
+    "markings": {
+      "metallic": 0,
+      "roughness": 0.86
+    },
+    "eyes": {
+      "metallic": 0,
+      "roughness": 0.86
+    },
+    "nose": {
+      "metallic": 0,
+      "roughness": 0.86
+    }
+  },
+  "image": 0,
+  "u_coords": [
+    0.09375,
+    0.25,
+    0.40625,
+    0.5625
+  ]
+}

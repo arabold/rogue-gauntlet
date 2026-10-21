@@ -118,20 +118,37 @@ def _above(tri, f):
     return np.asarray(out, float).reshape(-1, 3, 3)
 
 
-def moss(piece, cover=0.5, scale=0.26, up=0.3, seed=3, slot="moss", lift=0.006):
+def moss(piece, cover=0.5, scale=0.26, up=0.3, seed=3, slot="moss"):
+    """Partition the actual stone surface into moss and stone, without overlay shells.
+
+    Clip both sides of one noise contour so area and silhouette are conserved. Carry
+    the original corner normals through subdivision/clipping to avoid shading seams
+    or changing rock facets at moss boundaries.
     """
-    `piece` grown over with moss: thin patches lying `lift` above its stone faces, blobs about `scale` across cut
-    along the contour of a noise field (more of them with `cover`), favouring faces turned up by `up`. The faces are split
-    once first, so the blob outlines come out rounder than the boulders' own facets.
-    """
-    tri = piece.verts[piece.faces][piece.slots == "stone"]
-    tri = _split(tri)
+    from core.export import corner_normals
+    normals = corner_normals(piece.verts, piece.faces, crease=50.0)
+    stone = piece.slots == "stone"
+    tri = _split(piece.verts[piece.faces][stone])
+    smooth = _split(normals[stone])
     n = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
     n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)
     field = (_noise(tri.reshape(-1, 3), scale, seed).reshape(-1, 3) - 0.5) * 2.0 + 0.5 + up * n[:, 1:2] - (1.5 - cover)
-    live = (field > 0).any(1) & (n[:, 1] > -0.3)
-    patches = _above(tri[live] + lift * n[live][:, None], field[live])
-    return kit.Piece.merge(piece, kit.Piece(patches.reshape(-1, 3), np.arange(3 * len(patches)).reshape(-1, 3), slot))
+    field[n[:, 1] <= -0.3] = -1.0
+    # Leave uncovered source triangles intact rather than subdividing every boulder.
+    touched = (field.reshape(4, stone.sum(), 3) > 0).any(axis=(0, 2))
+    keep = ~stone.copy()
+    keep[stone] = ~touched
+    active = np.tile(touched, 4)
+    tri, smooth, field = tri[active], smooth[active], field[active]
+    pieces = [kit.Piece(piece.verts, piece.faces[keep], piece.slots[keep], normals=normals[keep])]
+    for name, values in ((slot, field), ("stone", -field)):
+        faces = _above(tri, values)
+        shading = _above(smooth, values)
+        if not len(faces):
+            continue
+        shading /= np.maximum(np.linalg.norm(shading, axis=2, keepdims=True), 1e-12)
+        pieces.append(kit.Piece(faces.reshape(-1, 3), np.arange(len(faces) * 3).reshape(-1, 3), name, normals=shading))
+    return kit.Piece.merge(*pieces)
 
 
 def stone_golem(rig, seed=7):
@@ -184,10 +201,10 @@ def stone_golem(rig, seed=7):
     return {bone: moss(kit.Piece.merge(*pieces), seed=seed + k) for k, (bone, pieces) in enumerate(parts.items())}
 
 
-def build(make=stone_golem, size="large"):
+def build(make=stone_golem, size="large", rig=None):
     """`{bone: piece}` in the rig's rest pose, both sides: the golem authored in `POSE`, moved back to rest bone by
     bone, its left side mirrored onto the right."""
-    rig = Rig.load(size)
+    rig = rig or Rig.load(size)
     rest = rig.pose(make(rig), *POSE, helpers=HELPERS, inverse=True)
     rest.update({b[:-2] + ".r": p.mirrored() for b, p in rest.items() if b.endswith(".l")})
     return rest

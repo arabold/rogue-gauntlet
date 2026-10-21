@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "source_sha256": "792f284db5feca11c37838f7d29afb72cd556646f9d10172a40cdebe3dc0f747",
+  "slots": [
+    "eyes",
+    "shell"
+  ],
+  "colors": {
+    "shell": [
+      57,
+      61,
+      68
+    ],
+    "eyes": [
+      176,
+      43,
+      40
+    ]
+  },
+  "materials": {
+    "shell": {
+      "metallic": 0.25,
+      "roughness": 0.3
+    },
+    "eyes": {
+      "metallic": 0,
+      "roughness": 0.22
+    }
+  },
+  "image": 0,
+  "u_coords": [
+    0.09375,
+    0.25
+  ]
+}

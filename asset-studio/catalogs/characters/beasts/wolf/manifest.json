@@ -1,0 +1,13 @@
+{
+  "key": "beasts/wolf",
+  "inputs": "2d1c9af736f02d030559d04f158fceb249b791feb2a53117f53437e407b1418a",
+  "files": {
+    "model.glb": "0f0937fa05b869f7429bdb39fe56896fff5b61923483a3877e390dc487a98cef",
+    "lineup.png": "54d4d94d3e2e0faf3148926d3010d8e5b00e3d135d189b63611b41093952c57f",
+    "lineup.gif": "9af7f01116ac6e85a9c25b2db008b8ff295b923a3b0a4e637ff29a7764331a9a",
+    "asset.json": "1728e0229c5bae007de63da8ffdfce4bfdbf633bb702769a4882a0ef9efba558"
+  },
+  "metadata": {
+    "engine_import_verified": true
+  }
+}

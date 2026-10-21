@@ -1,0 +1,6 @@
+CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Author: Quaternius
+Source: https://poly.pizza/m/iltq5bVNaV
+This model edition is explicitly identified as CC0 1.0 by the acquisition API; see source-metadata.json.

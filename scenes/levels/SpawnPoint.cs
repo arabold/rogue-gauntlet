@@ -19,6 +19,9 @@ public partial class SpawnPoint : Node3D
 	/// </summary>
 	[Export] public bool SpawnOnStart { get; set; } = true;
 
+	/// <summary>Local notification for encounter-specific wiring after actor initialization.</summary>
+	public event Action<Node3D> Spawned;
+
 	public override void _Ready()
 	{
 		Level ??= this.GetAncestorOrNull<Level>();
@@ -40,7 +43,7 @@ public partial class SpawnPoint : Node3D
 
 	private void OnLevelLoaded(Level level)
 	{
-		if (SpawnOnStart && !Engine.IsEditorHint())
+		if (level == Level && SpawnOnStart && !Engine.IsEditorHint())
 		{
 			Spawn();
 		}
@@ -79,6 +82,7 @@ public partial class SpawnPoint : Node3D
 		}
 
 		Level.AddWorldNode(node);
+		Spawned?.Invoke(node);
 
 		GD.Print($"Spawned {node.Name} at {node.GlobalPosition}");
 

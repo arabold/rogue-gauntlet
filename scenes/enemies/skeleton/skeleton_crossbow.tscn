@@ -1,0 +1,20 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/enemies/skeleton/skeleton_minion.tscn" id="base"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-skeletons/Skeleton_Crossbow.gltf" id="crossbow"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_crossbow_behavior.tres" id="behavior"]
+[ext_resource type="Resource" path="res://scenes/attacks/animation_profiles/skeleton_crossbow.tres" id="animation"]
+
+[node name="SkeletonCrossbow" instance=ExtResource("base")]
+
+[node name="Skeleton_Blade2" parent="Pivot/Skeleton_Minion/Rig/Skeleton3D/BoneAttachment3D"]
+visible = false
+
+[node name="Skeleton_Crossbow" parent="Pivot/Skeleton_Minion/Rig/Skeleton3D/BoneAttachment3D" instance=ExtResource("crossbow")]
+transform = Transform3D(0.11715, -0.540757, -0.832982, -0.954895, 0.169115, -0.244082, 0.27286, 0.824003, -0.496553, 0.0188615, 0.123601, -0.0437959)
+
+[node name="EnemyBehaviorComponent" parent="."]
+Profile = ExtResource("behavior")
+
+[node name="AttackAnimationComponent" parent="."]
+Profile = ExtResource("animation")

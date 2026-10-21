@@ -1,5 +1,5 @@
 """
-the standard rigs from the Character Animations pack (`assets/standard-character-animations`), read as data: bone rest
+Studio-local technical rigs and animation clips, read as data: bone rest
 transforms and clips sampled at a time, so rigidly bound kit parts can be shown in a real animation pose.
 
     rig = Rig.load("large")
@@ -51,7 +51,7 @@ class Rig:
     @functools.lru_cache(maxsize=None)
     def load(size="large", file="General"):
         """The rig of `size` ("medium" or "large") from the pack file `Rig_<Size>_<file>.glb`."""
-        return Rig(os.path.join(RIGS_DIR, f"rig_{size}.glb"))
+        return Rig(os.path.join(RIGS_DIR, "large", "rig.glb") if size == "large" else os.path.join(RIGS_DIR, f"rig_{size}.glb"))
 
     def joint(self, bone):
         """A bone's rest position in world space."""

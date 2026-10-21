@@ -51,6 +51,7 @@ public partial class PlayerSpawnPoint : Node3D
 
 	private void OnLevelLoaded(Level level)
 	{
+		if (level != this.GetAncestorOrNull<Level>()) return;
 		var travelDirection = GameSession.Instance?.PendingTravelDirection ?? GameSession.LevelTravelDirection.Down;
 		bool shouldSpawn = travelDirection == SpawnAfterTravelDirection;
 

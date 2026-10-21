@@ -53,6 +53,8 @@ See [IdentificationService](../scripts/IdentificationService.cs) and [item ident
 The project already reconstructs maps from seeds and stores some changes rather than complete floor snapshots:
 
 - Generated monster spawn points receive deterministic `PersistentId` values based on depth and placement index. `DeathComponent` records cleared IDs; `SpawnPoint.Spawn` skips those entities on regeneration.
+- Large gatekeeper placement may retry up to eight layouts. Attempt zero uses the normal layout seed; later attempts derive `fit-attempt:N` layout streams. Encounter/item streams remain independently derived. The same seed/content reproduces the same successful attempt. Authored `GatekeeperSpawnMarker` anchors bypass this search and retain the same gatekeeper persistent ID.
+- First-realm nests and gatekeepers share cleared-entity persistence. Nest summons derive RNG and stable IDs from the nest source and finite slot number. Destroyed nests collapse bound survivors; killed slots do not refill. Gatekeeper defeat restores unlocked descent on regeneration. Surviving health, AI positions and summon timers reset. See [first-realm encounters](level-design.md#first-realm-encounter-prototype).
 - `WorldSaveData.RevealedLevels` records revealed room IDs and opened door connectors per depth. Fog and door state can be reapplied to the regenerated map.
 - `WorldSaveData.ItemChanges` records collected/moved/modified baseline items, added/player-dropped objects, and claimed reward sources per depth. `Level` reconstructs the transient baseline before applying these differences. Inventory and world records use the same item codec.
 
@@ -66,13 +68,14 @@ Relevant sources: [SpawnPoint](../scenes/levels/SpawnPoint.cs), [DeathComponent]
 | --- | --- |
 | [GenerationRandomTest](../tests/GenerationRandomTest.cs) | Stable, distinct, unambiguously encoded domain/source keys |
 | [GenerationBaselineTest](../tests/GenerationBaselineTest.cs) | Domain isolation, source reward order, regenerated map/encounter/loot outcomes, and unchanged gameplay counter |
+| [RealmEncounterTest](../tests/RealmEncounterTest.cs) | Authored threat budgets/fallback, finite nests, cleared-source revisits, gatekeeper unlock/restoration, and crossbow shooting/projectile setup |
 | [SaveGameVersionTest](../tests/SaveGameVersionTest.cs) | Exact version gate and current-version seed/counter round trips |
 | [SeedDeterminismTest](../tests/SeedDeterminismTest.cs) | Stable run/depth seed derivation and differing input seeds/depths |
 | [LootDeterminismTest](../tests/LootDeterminismTest.cs) | Equal initial session state yields equal loot-generator seeds/values; successive requests differ |
 | [LayoutConnectivityTest](../tests/LayoutConnectivityTest.cs) | Includes repeated same-seed map comparisons for packed and procedural layouts, alongside connectivity coverage |
 | [IdentificationServiceTest](../tests/IdentificationServiceTest.cs) | Identification behavior and seeded appearance assignment; consult individual cases for exact scope |
 
-These checks do not imply deterministic replay of physics, AI, or arbitrary gameplay history. Save format 7 rejects previous or unversioned saves before current DTO deserialization; occupied incompatible slots require a new run and are not silently overwritten.
+These checks do not imply deterministic replay of physics, AI, or arbitrary gameplay history. Save format 9 rejects previous or unversioned saves before current DTO deserialization; occupied incompatible slots require a new run and are not silently overwritten.
 
 ## Intended contract and remaining extensions
 

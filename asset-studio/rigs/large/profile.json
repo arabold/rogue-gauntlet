@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "family": "large",
+  "clips": {
+    "Idle": "Idle_A",
+    "Walk": "Walking_A",
+    "Run": "Running_A",
+    "Attack": "Melee_Unarmed_Smash",
+    "Hit": "Hit_A",
+    "Death": "Death_A"
+  },
+  "loops": [
+    "Idle_A",
+    "Idle_B",
+    "Walking_A",
+    "Running_A",
+    "Melee_2H_Idle",
+    "Melee_Unarmed_Idle",
+    "Melee_Blocking"
+  ],
+  "bones": {
+    "body": "root",
+    "head": "head",
+    "chest": "chest",
+    "left_arm": "upperarm.l",
+    "right_arm": "upperarm.r"
+  },
+  "license": "CC0-1.0",
+  "author": "Kay Lousberg",
+  "source": "https://kaylousberg.itch.io/kaykit-animations",
+  "rig_sha256": "5482744e4b79eb0d88f5b681c121cfbf7179699fcb3625d5a920d04421805479"
+}

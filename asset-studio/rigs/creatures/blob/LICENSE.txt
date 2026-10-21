@@ -1,0 +1,6 @@
+CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Author: Quaternius
+Source: res://assets/quaternius-monsters/spiky-blob.gltf
+Existing project CC0 acquisition; see assets/ATTRIBUTIONS.json and June/July 2026 Git history.

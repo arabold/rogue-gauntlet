@@ -1,0 +1,68 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/encounters/DestructibleNest.cs" id="nest"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/skeleton/skeleton_minion.tscn" id="minion"]
+[ext_resource type="PackedScene" path="res://scenes/components/health_component.tscn" id="health"]
+[ext_resource type="PackedScene" path="res://scenes/components/hurt_box_component.tscn" id="hurtbox"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-skeletons/Skeleton_Shield_Small_B.gltf" id="shield"]
+
+[ext_resource type="PackedScene" path="res://scenes/components/floating_health_bar.tscn" id="bar"]
+
+[sub_resource type="CylinderShape3D" id="body"]
+radius = 1.0
+height = 1.0
+
+[sub_resource type="SphereShape3D" id="hit"]
+radius = 1.25
+
+[sub_resource type="CylinderMesh" id="pile"]
+top_radius = 0.65
+bottom_radius = 1.1
+height = 0.7
+radial_segments = 7
+
+[sub_resource type="StandardMaterial3D" id="bone"]
+albedo_color = Color(0.5, 0.43, 0.31, 1)
+roughness = 0.9
+
+[node name="BoneNest" type="StaticBody3D" groups=["enemy", "prop"]]
+script = ExtResource("nest")
+collision_layer = 16
+collision_mask = 0
+MinionScene = ExtResource("minion")
+
+[node name="HealthComponent" parent="." instance=ExtResource("health")]
+MaxHealth = 24.0
+CurrentHealth = 24.0
+
+[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("hurtbox")]
+position = Vector3(0, 0.6, 0)
+collision_layer = 8
+HealthComponent = NodePath("../HealthComponent")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent"]
+shape = SubResource("hit")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.5, 0)
+shape = SubResource("body")
+
+[node name="Pile" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.35, 0)
+mesh = SubResource("pile")
+material_override = SubResource("bone")
+
+[node name="BrokenShield" parent="." instance=ExtResource("shield")]
+position = Vector3(0, 0.65, 0)
+rotation_degrees = Vector3(65, 20, 0)
+
+[node name="Title" type="Label3D" parent="."]
+position = Vector3(0, 2.4, 0)
+billboard = 1
+text = "Bone Nest"
+font_size = 40
+pixel_size = 0.008
+
+[node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("bar")]
+position = Vector3(0, 1.9, 0)
+HealthComponent = NodePath("../HealthComponent")

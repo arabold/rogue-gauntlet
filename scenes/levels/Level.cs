@@ -8,6 +8,8 @@ public partial class Level : Node
 	public MapGenerator MapGenerator { get; private set; }
 	public LevelItemPersistence ItemPersistence { get; private set; }
 	private Node _runtimeWorldRoot;
+	public RealmEncounterController Encounters { get; private set; }
+	public bool CanDescend => Encounters?.DescentUnlocked != false;
 
 	public void AddWorldNode(Node node)
 	{
@@ -57,7 +59,13 @@ public partial class Level : Node
 		// Clear previous runtime spawns before rebuilding the map. This matters if a
 		// level is regenerated in place rather than replaced by a full scene reload.
 		ClearWorldNodes();
-		MapGenerator.GenerateMap();
+		try { MapGenerator.GenerateMap(); }
+		catch (System.InvalidOperationException error)
+		{
+			GD.PushError($"Cannot generate playable floor: {error.Message}");
+			GameSession.Instance?.CallDeferred(nameof(GameSession.ReturnToMenu));
+			return;
+		}
 		ItemPersistence.Initialize(this);
 		try
 		{
@@ -81,6 +89,14 @@ public partial class Level : Node
 		var roomManager = new RoomManager { Name = "RoomManager" };
 		AddWorldNode(roomManager);
 		roomManager.Initialize(MapGenerator);
+
+		Encounters = null;
+		if (MapGenerator.MobFactory is RealmEncounterFactory definition && definition.ContainsDepth(MapGenerator.DungeonDepth))
+		{
+			Encounters = new RealmEncounterController { Name = "Encounters" };
+			AddWorldNode(Encounters);
+			Encounters.Initialize(this, definition);
+		}
 
 		GD.Print("Level is ready");
 		SignalBus.EmitLevelLoaded(this);

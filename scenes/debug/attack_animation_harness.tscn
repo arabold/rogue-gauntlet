@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="player"]
 
@@ -18,6 +18,8 @@
 [ext_resource type="PackedScene" path="res://scenes/debug/combat_practice_target.tscn" id="practice_target"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/yeti/yeti.tscn" id="monster_yeti"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/skeleton/skeleton_warrior.tscn" id="monster_skeleton"]
+
+[ext_resource type="PackedScene" path="res://scenes/enemies/bosses/forsaken_warden.tscn" id="monster_warden"]
 
 [sub_resource type="BoxShape3D" id="floor_shape"]
 size = Vector3(20, 1, 20)
@@ -69,7 +71,7 @@ position = Vector3(0, 0, -2)
 script = ExtResource("harness")
 Player = NodePath("../Player")
 PracticeTarget = NodePath("../PracticeTarget")
-Monsters = [ExtResource("monster_yeti"), ExtResource("monster_skeleton")]
+Monsters = [ExtResource("monster_yeti"), ExtResource("monster_skeleton"), ExtResource("monster_warden")]
 Weapons = [ExtResource("weapon_0"), ExtResource("weapon_1"), ExtResource("weapon_2"), ExtResource("weapon_3"), ExtResource("weapon_4"), ExtResource("weapon_5"), ExtResource("weapon_6"), ExtResource("weapon_7"), ExtResource("weapon_8"), ExtResource("weapon_9"), ExtResource("weapon_10")]
 
 [node name="Controls" type="VBoxContainer" parent="Instructions"]

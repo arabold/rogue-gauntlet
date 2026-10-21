@@ -1,0 +1,97 @@
+{
+  "triangles": 4060,
+  "joints": 31,
+  "bounds": [
+    [
+      -0.3405449392527535,
+      0.0005858045206021834,
+      -1.2108166465800616
+    ],
+    [
+      0.7241248725784595,
+      0.6342581226920728,
+      0.6106073224580318
+    ]
+  ],
+  "clips": [
+    "Attack",
+    "Death",
+    "Idle",
+    "Jump",
+    "Run",
+    "Walk"
+  ],
+  "key": "beasts/rat",
+  "rig": "rat",
+  "roles": {
+    "Idle": "Idle",
+    "Walk": "Walk",
+    "Run": "Run",
+    "Attack": "Attack",
+    "Jump": "Jump",
+    "Death": "Death"
+  },
+  "loops": [
+    "Idle",
+    "Walk",
+    "Run"
+  ],
+  "scale": 1.0,
+  "source_inputs": "b89e83f04b7256ccfa94e6bf3429a88233251e7adaaa99931ce88b65221a09b0",
+  "gameplay": false,
+  "provenance": {
+    "kind": "selected_cc0_derivative",
+    "author": "Quaternius",
+    "source": "https://poly.pizza/m/iltq5bVNaV",
+    "license": "CC0-1.0",
+    "original_sha256": "68f67077981102e957059fd00aaf3799e6867c269de900bd52c9f12cec1d5f56",
+    "adopted_sha256": "3c5e0fc1a63fdcc87fcd19feaa3611b7daa0cfae9b4cff8722f5f7f6e11180f8",
+    "adoption_recipe": {
+      "version": 1,
+      "status": "draft",
+      "name": "Dungeon rat",
+      "scale": 2.0,
+      "body_width": 1.42,
+      "body_length": 0.86,
+      "leg_height": 0.9,
+      "head_scale": [
+        1.42,
+        1.25,
+        0.84
+      ],
+      "ear_width": 1.85,
+      "ear_height": 1.5,
+      "limb_thickness": 1.35,
+      "tail_thickness": 1.3,
+      "crease": 55,
+      "colors": {
+        "coat": [
+          64,
+          59,
+          66
+        ],
+        "skin": [
+          145,
+          94,
+          97
+        ],
+        "muzzle": [
+          85,
+          76,
+          79
+        ],
+        "eyes": [
+          17,
+          19,
+          24
+        ]
+      },
+      "nose_scale": [
+        0.78,
+        1.35,
+        2.8
+      ]
+    },
+    "notes": "Selected bound art including adapted joints, original motion keys and completed reset tracks; rat includes baked ground correction."
+  }
+}

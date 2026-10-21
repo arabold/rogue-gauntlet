@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=6 format=3]
+
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/monster_skeleton_minion.tres" id="melee_contact"]
+[ext_resource type="Script" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="1_profile"]
+
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+[ext_resource type="PackedScene" path="res://scenes/attacks/projectile.tscn" id="arrow"]
+
+[sub_resource type="Resource" id="shoot"]
+script = ExtResource("attack")
+AnimationId = "ranged_attack"
+IsRanged = true
+ProjectileScene = ExtResource("arrow")
+ProjectileSpeed = 16.0
+Range = 20.0
+HitWindowStart = 0.45
+
+[resource]
+script = ExtResource("1_profile")
+MeleeContact = ExtResource("melee_contact")
+InitialBehavior = 1
+InitialAction = 1
+DetectionRange = 18.0
+DetectionAngle = 55.0
+CloseDetectionRangeMultiplier = 0.5
+MeleeAttackRange = 2.4
+MeleeAttackAccuracy = 0.8
+MeleeAttackMinDamage = 1.0
+MeleeAttackMaxDamage = 5.0
+MeleeAttackCritChance = 0.0
+RoamRadius = 7.0
+RoamPauseMin = 0.75
+RoamPauseMax = 2.25
+RoamTargetDistance = 0.75
+RoamTargetAttempts = 8
+SpawningActionDuration = 3.5
+StandingUpActionDuration = 2.33
+HitActionDuration = 0.35
+MeleeAttackActionDuration = 1.0
+RangedAttackActionDuration = 1.0
+DyingActionDuration = 2.0
+
+RangedAttackDefinition = SubResource("shoot")
+RangedAttackRange = 14.0
+RangedAttackAccuracy = 0.9
+RangedAttackMinDamage = 3.0
+RangedAttackMaxDamage = 6.0

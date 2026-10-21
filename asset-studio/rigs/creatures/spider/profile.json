@@ -1,0 +1,45 @@
+{
+  "family": "arachnid",
+  "scale": 0.18,
+  "clips": {
+    "Idle": "Idle",
+    "Walk": "Walk",
+    "Attack": "Attack",
+    "Jump": "Jump",
+    "Death": "Death"
+  },
+  "loops": [
+    "Idle",
+    "Walk"
+  ],
+  "bones": {
+    "body": "Body",
+    "head": "Head",
+    "abdomen": "Abdomen",
+    "front_left": "FrontLeg.L",
+    "front_right": "FrontLeg.R",
+    "rear_left": "BackLeg.L",
+    "rear_right": "BackLeg.R",
+    "middle_front_left": "MidFrontLeg.L",
+    "middle_front_right": "MidFrontLeg.R",
+    "middle_rear_left": "MidBackLeg.L",
+    "middle_rear_right": "MidBackLeg.R"
+  },
+  "source": "res://assets/quaternius-monsters/spider.glb",
+  "version": 1,
+  "license": "CC0-1.0",
+  "author": "Quaternius",
+  "acquired": "2026-06-28 / 2026-07-02",
+  "status": "technical_rig",
+  "forward": "+Z",
+  "up": "+Y",
+  "source_clips": {
+    "Idle": "SpiderArmature|Spider_Idle",
+    "Walk": "SpiderArmature|Spider_Walk",
+    "Attack": "SpiderArmature|Spider_Attack",
+    "Jump": "SpiderArmature|Spider_Jump",
+    "Death": "SpiderArmature|Spider_Death"
+  },
+  "original_sha256": "d759e35f6cf5adc7eb7e3f70135cd2a808787fc36337a523015592ba840ccd6d",
+  "rig_sha256": "6a0505198eabd41ea8bde540edc77d0afdff86a1974021ad8eedcb4329c6ab0b"
+}

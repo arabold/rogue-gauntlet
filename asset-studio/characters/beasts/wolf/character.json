@@ -1,0 +1,32 @@
+{
+  "builder": "skinned_source",
+  "rig": "wolf",
+  "source": "source.glb",
+  "surface": "surface.json",
+  "scale": 1.0,
+  "colors": {
+    "coat": [
+      99,
+      112,
+      136
+    ],
+    "markings": [
+      193,
+      193,
+      181
+    ],
+    "eyes": [
+      25,
+      28,
+      35
+    ],
+    "nose": [
+      39,
+      43,
+      52
+    ]
+  },
+  "export": {
+    "glb": "res://assets/custom-monsters/beasts/wolf.glb"
+  }
+}

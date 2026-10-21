@@ -53,7 +53,7 @@ func start_job() -> void:
 		push_error("Cannot load armor study")
 		quit(1)
 		return
-	visual = document.generate_scene(state) as Node3D
+	visual = generate_visual(document, state)
 	SurfaceColors.apply(visual)
 	viewport.add_child(visual)
 	player = find_player(visual)
@@ -67,6 +67,9 @@ func start_job() -> void:
 	frames = 0
 	prepare_captures()
 	configure()
+
+func generate_visual(document: GLTFDocument, state: GLTFState) -> Node3D:
+	return document.generate_scene(state) as Node3D
 
 func prepare_captures() -> void:
 	pass

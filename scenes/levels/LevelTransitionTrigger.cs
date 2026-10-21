@@ -49,7 +49,8 @@ public partial class LevelTransitionTrigger : Area3D
 			return;
 		}
 
-		_isTransitioning = GameSession.Instance?.ChangeDungeonDepth(Direction) == true;
+		bool allowed = Direction != GameSession.LevelTravelDirection.Down || this.GetAncestorOrNull<Level>()?.CanDescend != false;
+		_isTransitioning = allowed && GameSession.Instance?.ChangeDungeonDepth(Direction) == true;
 		if (!_isTransitioning && RejectedWalkDirection != Vector3.Zero)
 		{
 			StairAutoWalk.Start(player, GlobalTransform.Basis * RejectedWalkDirection, RejectedWalkSeconds);

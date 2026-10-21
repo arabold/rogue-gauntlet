@@ -10,6 +10,8 @@ Existing RNG and world-state behavior is documented in [Randomness and Seeds](ra
 
 Asset Studio supplies a growing visual catalog and some corresponding gameplay definitions. Food now participates in the item lifecycle. Tools, keys, and additional wearable armor still need behavior, integration, or validation appropriate to their intended roles.
 
+Asset Studio now exports the selected wolf, rat and rigid large-rig stone golem through the normal character commands, with local technical rigs and art-only Godot import validation. See [Studio architecture](../asset-studio/ARCHITECTURE.md) for the export/gameplay boundary and remaining legacy weapon-preview dependencies. This does not create playable enemy definitions.
+
 ## Milestone 1 — Items retain their identity and state
 
 Status: implemented core loop; final visual/stairs acceptance remains an editor playtest. Runtime checks cover creation, capped stacks, individual food, pickup/use/drop, codecs, and seeded floor reconstruction.
@@ -53,12 +55,12 @@ Depends on milestones 1–2. Deliver the following in small playable increments.
 - **Food (implemented):** authored food provides recovery and per-instance contamination, with persistent item state. Tune supply rates and recovery through playtesting.
 - **Armor:** all exported custom shields now have definitions, protection/tradeoffs, depth eligibility, and held visuals. Additional wearable body armor still needs slot and visual integration.
 - **Lighting:** settle visibility and equipment-slot rules; add one light source with activation, fuel consumption, and feedback.
-- **Access:** add matching keys and optional locked reward chests. Add lockpicks only with explicit eligibility and cost rules.
+- **Access:** compose door motion, mechanical locks, and encounter conditions. Add optional pickable prison cells and matching-key rewards; initial lockpicking is a timed action with a reusable tool. Key color is presentation. Follow [Dungeon Layout, Access, and Discovery](dungeon-exploration-design.md) and the separate [implementation plan](specs/level-progression-prototype-plan.md).
 - **Carrying capacity:** add a larger backpack upgrade available later in the descent, preserving contents and enforcing the chosen slot-accounting rules. Decide its acquisition method and size through playtesting.
 - **Attack animation styles (implemented):** explicit weapon styles and per-actor animation profiles distinguish handedness, slash/chop/thrust, ranged, and casting motions. Contact/release, recovery, and interruption share one execution clock; monsters use their own melee/ranged clip mappings. Independent melee contact volumes and optional slash/chop swooshes are implemented for heroes and monsters. See the [animation design](specs/attack-animation-plan.md) and [melee contact design](specs/melee-contact-plan.md). Bow gameplay, final balance tuning and improved single-clip monster presentation remain follow-ups.
 - **Presentation:** verify world pickups, inventory previews, item details, and worn or held objects at gameplay scale.
 
-**Acceptance:** in one playable descent, find and consume food, loot and wear armor, use a portable light, discover a key, and unlock a reward chest. Acquire a larger backpack and verify its capacity increase and contents survive save/load. Locks cannot block the required route, and each tool has an observable purpose.
+**Acceptance:** in one playable descent, find and consume food, loot and wear armor, use a portable light, discover a key, and unlock a reward chest. Acquire a larger backpack and verify its capacity increase and contents survive save/load. Initial mechanical locks cannot obstruct required progression, and each tool has an observable purpose.
 
 ## Milestone 4 — A meaningful shop visit
 
@@ -78,13 +80,14 @@ Depends on milestones 1–3 and decisions about interface pause behavior and mer
 
 ## Milestone 5 — First complete run
 
-Status: proposed scope; run length, objective, and death rules need design decisions.
+Status: first-realm encounter prototype implemented; full-run integration remains planned. The intended run is 24 depths across eight realms, with World-Anchor victory and run-ending death; permanent progression remains undecided. The playable first-realm slice uses skeleton budgets, a crossbow variant, finite nests and the large Forsaken Warden with a persistent descent check. See [Level design](level-design.md#first-realm-encounter-prototype) for current behavior. Recipe routes, locks, secrets, visible seals, shops, bespoke boss phases and the ending are not completed by that slice.
 
 Depends on milestones 1–4.
 
 **Outcome:** a short run has a recognizable beginning, progression, and ending.
 
-- Define the initial dungeon length, final objective, victory, and death flow.
+- Integrate the defined run length, World-Anchor objective, victory and death flow; decide permanent progression separately.
+- Deliver realm room pools and floor recipes, composed access with a visible Warden stair seal, optional mechanical locks, then secrets at generated corridor/procedural-room walls. Validate required routes and solvability in actual geometry; fixed secret sockets in predefined rooms are excluded. The [progression plan](specs/level-progression-prototype-plan.md) owns engineering slices and checks.
 - Connect class selection, descent, rewards, preparation, shops, and the ending.
 - Tune encounter difficulty, recovery availability, equipment progression, and currency together.
 - Prototype crowd encounters alongside smaller tactical fights. Establish a target enemy count and frame-time budget on a named test machine; verify navigation, hit feedback, visibility, and escape options at that scale before expanding density.

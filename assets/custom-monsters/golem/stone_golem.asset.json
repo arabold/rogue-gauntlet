@@ -1,0 +1,66 @@
+{
+  "triangles": 3948,
+  "joints": 25,
+  "bounds": [
+    [
+      -3.325566578011134,
+      -0.7434457680503213,
+      -3.6694667683135713
+    ],
+    [
+      3.32556633199272,
+      5.2646099598936535,
+      4.480715131592554
+    ]
+  ],
+  "clips": [
+    "Death_A",
+    "Death_A_Pose",
+    "Hit_A",
+    "Idle_A",
+    "Idle_B",
+    "Melee_1H_Slash",
+    "Melee_1H_Stab",
+    "Melee_2H_Attack",
+    "Melee_2H_Idle",
+    "Melee_2H_Slam",
+    "Melee_Block",
+    "Melee_Block_Attack",
+    "Melee_Block_Hit",
+    "Melee_Blocking",
+    "Melee_Dualwield_Slash",
+    "Melee_Dualwield_SlashCombo",
+    "Melee_Unarmed_Idle",
+    "Melee_Unarmed_Kick",
+    "Melee_Unarmed_Punch",
+    "Melee_Unarmed_Smash",
+    "Running_A",
+    "T-Pose",
+    "Walking_A"
+  ],
+  "key": "golem/stone_golem",
+  "rig": "large",
+  "roles": {
+    "Idle": "Idle_A",
+    "Walk": "Walking_A",
+    "Run": "Running_A",
+    "Attack": "Melee_Unarmed_Smash",
+    "Hit": "Hit_A",
+    "Death": "Death_A"
+  },
+  "loops": [
+    "Idle_A",
+    "Idle_B",
+    "Walking_A",
+    "Running_A",
+    "Melee_2H_Idle",
+    "Melee_Unarmed_Idle",
+    "Melee_Blocking"
+  ],
+  "scale": 1,
+  "source_inputs": "b0767859676e01f6604d206fbe6bb7333cbf2c36994e8afda28cbc9334c0400b",
+  "gameplay": false,
+  "provenance": {
+    "kind": "procedural_geometry"
+  }
+}

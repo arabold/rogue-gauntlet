@@ -1,0 +1,45 @@
+{
+  "family": "quadruped",
+  "scale": 0.13,
+  "clips": {
+    "Idle": "Idle",
+    "Walk": "Walk",
+    "Run": "Run",
+    "Attack": "Attack",
+    "Jump": "Jump",
+    "Death": "Death"
+  },
+  "loops": [
+    "Idle",
+    "Walk",
+    "Run"
+  ],
+  "bones": {
+    "body": "Body",
+    "head": "Head",
+    "back": "Back",
+    "tail": "Tail1",
+    "front_left": "FrontUpLeg.L",
+    "front_right": "FrontUpLeg.R",
+    "back_left": "BackUpLeg.L",
+    "back_right": "BackUpLeg.R"
+  },
+  "source": "https://poly.pizza/m/iltq5bVNaV",
+  "version": 1,
+  "license": "CC0-1.0",
+  "author": "Quaternius",
+  "acquired": "2026-10-20",
+  "status": "technical_rig",
+  "forward": "+Z",
+  "up": "+Y",
+  "source_clips": {
+    "Idle": "RatArmature|Rat_Idle",
+    "Walk": "RatArmature|Rat_Walk",
+    "Run": "RatArmature|Rat_Run",
+    "Attack": "RatArmature|Rat_Attack",
+    "Jump": "RatArmature|Rat_Jump",
+    "Death": "RatArmature|Rat_Death"
+  },
+  "original_sha256": "68f67077981102e957059fd00aaf3799e6867c269de900bd52c9f12cec1d5f56",
+  "rig_sha256": "84da24a26b11b6f95d2d8a31830c92ad4955af8027ad96d931fcd15c8ecc9bd7"
+}

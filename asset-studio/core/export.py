@@ -551,15 +551,7 @@ def import_settings(glb, template="skeleton"):
     """
     src = TEMPLATES.get(template, template) + ".import"
     if not os.path.exists(src):
-        candidates = [
-            os.path.join(REPO, "assets", "custom-heroes", f"{template}.glb.import"),
-            os.path.join(REPO, "assets", "custom-heroes", "knight.glb.import"),
-            os.path.join(REPO, "assets", "custom-monsters", "undead", "wraith.glb.import"),
-        ]
-        for cand in candidates:
-            if os.path.exists(cand):
-                src = cand
-                break
+        raise ValueError(f"Missing Studio-local template import settings: {src}")
     text = open(src, encoding="utf-8").read() if os.path.exists(src) else ""
     if not text or "[params]" not in text:
         return []

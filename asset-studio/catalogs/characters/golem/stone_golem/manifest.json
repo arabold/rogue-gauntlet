@@ -1,0 +1,13 @@
+{
+  "key": "golem/stone_golem",
+  "inputs": "b0767859676e01f6604d206fbe6bb7333cbf2c36994e8afda28cbc9334c0400b",
+  "files": {
+    "model.glb": "ab2481142f697fb289ad3d14a4a1590586f41639d67329ba5aad63e17de48d3b",
+    "lineup.png": "93478ce9f079f23077da3a9bb694047e36306ee8c9cb69eeb7947d5b8c390c66",
+    "lineup.gif": "dce8f81b319d431d6fab80131fd5d067480897cdbdc5b291b291002db47a59e3",
+    "asset.json": "1834de1c8d20cf44255e6a58f2703bbc99fc47664c06941b30eca4d9be218c5d"
+  },
+  "metadata": {
+    "engine_import_verified": true
+  }
+}

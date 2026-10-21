@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 7;
+	public const int CurrentVersion = 9;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";

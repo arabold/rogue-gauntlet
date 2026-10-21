@@ -216,6 +216,12 @@ public partial class GameSession : Node
 
 	public bool CanUseTransition(LevelTravelDirection direction)
 	{
+		Node scene = GetTree().CurrentScene;
+		if (direction == LevelTravelDirection.Down && (scene is Level currentLevel && !currentLevel.CanDescend
+			|| scene?.FindChildren("*", "", true, false).OfType<Level>().Any(level => !level.CanDescend) == true))
+		{
+			return false;
+		}
 		if (direction == LevelTravelDirection.Up && ActiveDungeonDepth == 1)
 		{
 			return false;
@@ -338,7 +344,10 @@ public partial class GameSession : Node
 			: level.OpenedDoors.Select(door => new Vector2I(door.X, door.Y)).ToList();
 	}
 
-	public void ResetCurrentLevelDebugState()
+	public void ResetCurrentLevelDebugState() => ResetLevelDebugState(ActiveDungeonDepth);
+
+	/// <summary>Reset one floor's deltas for focused debug playtests without changing run depth.</summary>
+	public void ResetLevelDebugState(uint depth)
 	{
 		if (_activeSave?.World == null)
 		{
@@ -346,9 +355,9 @@ public partial class GameSession : Node
 		}
 
 		_activeSave.World.ClearedEntityIds.RemoveAll(entityId =>
-			entityId.StartsWith($"depth:{ActiveDungeonDepth}:", StringComparison.Ordinal));
-		_activeSave.World.RevealedLevels.RemoveAll(level => level.DungeonDepth == ActiveDungeonDepth);
-		_activeSave.World.ItemChanges.RemoveAll(level => level.Depth == ActiveDungeonDepth);
+			entityId.StartsWith($"depth:{depth}:", StringComparison.Ordinal));
+		_activeSave.World.RevealedLevels.RemoveAll(level => level.DungeonDepth == depth);
+		_activeSave.World.ItemChanges.RemoveAll(level => level.Depth == depth);
 		_pendingLoadedSave = null;
 	}
 

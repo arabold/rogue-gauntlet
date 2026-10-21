@@ -1,0 +1,22 @@
+{
+  "builder": "skinned_source",
+  "rig": "spider",
+  "source": "source.glb",
+  "surface": "surface.json",
+  "scale": 1.0,
+  "colors": {
+    "shell": [
+      57,
+      61,
+      68
+    ],
+    "eyes": [
+      176,
+      43,
+      40
+    ]
+  },
+  "export": {
+    "glb": "res://assets/custom-monsters/beasts/spider.glb"
+  }
+}

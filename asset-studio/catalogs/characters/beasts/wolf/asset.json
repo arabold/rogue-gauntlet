@@ -1,0 +1,111 @@
+{
+  "triangles": 1962,
+  "joints": 51,
+  "bounds": [
+    [
+      -0.8706049579371892,
+      -0.17987381694283813,
+      -1.7763424118022297
+    ],
+    [
+      2.4146039662704517,
+      2.0534901537832013,
+      1.733304716993825
+    ]
+  ],
+  "clips": [
+    "Attack",
+    "Death",
+    "Eating",
+    "Hit_Left",
+    "Hit_Right",
+    "Idle",
+    "Idle_Look",
+    "Idle_Low",
+    "Jump",
+    "Land",
+    "Run",
+    "Walk"
+  ],
+  "key": "beasts/wolf",
+  "rig": "wolf",
+  "roles": {
+    "Idle": "Idle",
+    "Walk": "Walk",
+    "Attack": "Attack",
+    "Death": "Death",
+    "Eating": "Eating",
+    "Run": "Run",
+    "Jump": "Jump",
+    "Land": "Land",
+    "Hit_Left": "Hit_Left",
+    "Hit_Right": "Hit_Right",
+    "Idle_Low": "Idle_Low",
+    "Idle_Look": "Idle_Look"
+  },
+  "loops": [
+    "Idle",
+    "Walk",
+    "Run",
+    "Eating",
+    "Idle_Low",
+    "Idle_Look"
+  ],
+  "scale": 1.0,
+  "source_inputs": "2d1c9af736f02d030559d04f158fceb249b791feb2a53117f53437e407b1418a",
+  "gameplay": false,
+  "provenance": {
+    "kind": "selected_cc0_derivative",
+    "author": "Quaternius",
+    "source": "https://poly.pizza/m/P1gU3Qkr9r",
+    "license": "CC0-1.0",
+    "original_sha256": "16ac96339d06f7def9af20d5d9b27622d61e53580dab43970c9edb1bffbe8f84",
+    "adopted_sha256": "0f0937fa05b869f7429bdb39fe56896fff5b61923483a3877e390dc487a98cef",
+    "adoption_recipe": {
+      "version": 1,
+      "status": "draft",
+      "name": "Dire wolf",
+      "body_width": 1.18,
+      "body_length": 0.78,
+      "leg_height": 0.68,
+      "head_scale": [
+        1.6,
+        2.05,
+        1.02
+      ],
+      "ear_height": 0.72,
+      "limb_thickness": 1.42,
+      "paw_width": 1.35,
+      "paw_length": 1.35,
+      "neck_width": 1.3,
+      "crease": 55,
+      "colors": {
+        "coat": [
+          99,
+          112,
+          136
+        ],
+        "markings": [
+          193,
+          193,
+          181
+        ],
+        "eyes": [
+          25,
+          28,
+          35
+        ],
+        "nose": [
+          39,
+          43,
+          52
+        ]
+      },
+      "paw_height": 1.5,
+      "body_depth": 1.45,
+      "scale": 2.0,
+      "crown_height": 0.3
+    },
+    "notes": "Selected bound art including adapted joints, original motion keys and completed reset tracks; rat includes baked ground correction."
+  }
+}

@@ -15,6 +15,7 @@ export writes finished GLBs into the game's assets tree:
     -> assets/custom-monsters/<family>/<name>.glb     every other family
 
 Commands:
+    .venv/bin/python asset-studio/studio.py creature --help   (independent creature rigs and motion)
     .venv/bin/python asset-studio/studio.py item --help   (3D-only item recipes and authoring)
     .venv/bin/python asset-studio/studio.py list
     .venv/bin/python asset-studio/studio.py schema [section]
@@ -52,7 +53,7 @@ from prefabs.creatures import characters, golems  # noqa: E402
 from prefabs import registry  # noqa: E402
 
 REPO = export.REPO
-GODOT = os.path.join(REPO, ".agents", "skills", "godot-mcp", "scripts", "godot.sh")
+GODOT = os.path.join(STUDIO_DIR, "godot", "godot.sh")
 GODOT_SCRIPTS = os.path.join(STUDIO_DIR, "godot")
 WHITE = (255, 255, 255)
 HAT_KINDS, CAPE_KINDS = ("helmet", "crown"), ("cape",)
@@ -179,6 +180,11 @@ def _attach_weapons(piece, weaps, rig, clip, t, colors):
 
 def lineup(c, size=420):
     """`lineup.png`: 2D reference (if present), front view, side profile, and action poses in pure Python."""
+    if c.recipe().get("builder") in {"skinned_source", "golem", "warden"}:
+        from core import character_workflow
+        folder = character_workflow.lineup(c)
+        print(f"{c.key}: {folder / 'lineup.png'}")
+        return Image.open(folder / "lineup.png").copy()
     r, pieces, colors = c.build()
     template = r.get("template", "skeleton")
     weaps = c.weapons(r)
@@ -284,8 +290,11 @@ def _write(path, data):
         f.write("\n")
 
 
-def export_glb(c):
+def export_glb(c, no_import=False):
     """Write the character's GLB to `assets/` and its `.import` (template import settings, looping clips)."""
+    if c.recipe().get("builder") in {"skinned_source", "golem", "warden"}:
+        from core import character_workflow
+        return character_workflow.export_asset(c, no_import=no_import)
     r, pieces, colors = c.build()
     if r.get("builder", "kit") != "kit":
         raise SystemExit(f"{c.key}: the {r['builder']} builder has no GLB export yet")
@@ -294,7 +303,10 @@ def export_glb(c):
     cape = [p for k, p in pieces.items() if kind[k] in CAPE_KINDS]
     worn = {k: p for k, p in pieces.items() if kind[k] not in HAT_KINDS + CAPE_KINDS}
     template = r.get("template", "skeleton")
-    legacy = os.path.join(c.dir, "legacy.glb")
+    from core.paths import work_root
+    legacy_dir = work_root(Path(STUDIO_DIR)) / "characters" / c.key
+    legacy_dir.mkdir(parents=True, exist_ok=True)
+    legacy = str(legacy_dir / "previous-game-export.glb")
     if os.path.exists(c.glb) and not os.path.exists(legacy):
         if mm.read_glb(c.glb)[0].get("asset", {}).get("generator") not in KNOWN_GENERATORS:
             shutil.copy2(c.glb, legacy)
@@ -362,6 +374,10 @@ def new(c, base=None):
 
 
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "creature":
+        from core.creature_rigs import main as creature_main
+        creature_main(sys.argv[2:])
+        return
     if len(sys.argv) > 1 and sys.argv[1] == "armor":
         from fittings import main as armor_main
         armor_main(sys.argv[2:])
@@ -372,8 +388,8 @@ def main():
         item_main(sys.argv[2:])
         return
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter,
-                                 epilog="For item recipes, run: studio.py item --help")
-    ap.add_argument("command", choices=["list", "schema", "new", "reference", "preview", "export", "lineup", "catalog"])
+                                 epilog="For item recipes: studio.py item --help; for creature rigs: studio.py creature --help")
+    ap.add_argument("command", choices=["list", "schema", "new", "reference", "preview", "export", "lineup", "catalog", "audit"])
     ap.add_argument("targets", nargs="*", help="family/name for character commands, or section for schema/catalog")
     ap.add_argument("--all", action="store_true", help="every character")
     ap.add_argument("--base", help="new: the character to extend")
@@ -385,6 +401,14 @@ def main():
     ap.add_argument("--index", action="store_true", help="catalog: update source metadata indexes without rendering")
     ap.add_argument("--publish", action="store_true", help="catalog: publish the existing reviewed temporary sheet")
     args = ap.parse_args()
+
+    if args.command == "audit":
+        from core.authoring_audit import audit
+        report = audit()
+        print(json.dumps(report, indent=2))
+        if report["issues"]:
+            raise SystemExit(1)
+        return
 
     if args.command == "schema":
         schema = registry.get_schema()
@@ -448,11 +472,14 @@ def main():
         for c in chars:
             preview(c)
     elif args.command == "export":
-        chars = [c for c in chars if not args.all or c.recipe().get("builder", "kit") == "kit"]
+        unsupported = [c.key for c in chars if c.recipe().get("builder", "kit") not in {"kit", "skinned_source", "golem", "warden"}]
+        if unsupported:
+            raise SystemExit("No art exporter for: " + ", ".join(unsupported))
         for c in chars:
-            export_glb(c)
-        if not args.no_import:
-            godot_import(chars)
+            export_glb(c, no_import=args.no_import)
+        kit_chars = [c for c in chars if c.recipe().get("builder", "kit") == "kit"]
+        if not args.no_import and kit_chars:
+            godot_import(kit_chars)
     elif args.command == "lineup":
         for c in chars:
             lineup(c)
