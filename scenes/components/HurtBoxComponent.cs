@@ -14,7 +14,7 @@ public enum DamageSourceFlags
 /// <summary>
 /// Defines the area that can be hit or receive damage.
 /// </summary>
-public partial class HurtBoxComponent : Area3D, IDamageable
+public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 {
 	// Signal emitted when damage is taken
 	[Signal] public delegate void DamageResolvedEventHandler(int outcome, float amount);
@@ -38,6 +38,11 @@ public partial class HurtBoxComponent : Area3D, IDamageable
 	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null, DamageSourceFlags attackerFaction = DamageSourceFlags.None)
 	{
 		ResolveDamage(accuracy, amount, attackDirection, attacker, attackerFaction);
+	}
+
+	public DamageResolution ResolveDamage(in DamageContext contact)
+	{
+		return ResolveDamage(contact.Accuracy, contact.Amount, contact.IncomingDirection, contact.SourceNode, contact.Faction);
 	}
 
 	/// <summary>Resolve defense separately from geometric contact; melee supplies its actor-owned RNG.</summary>

@@ -6,6 +6,12 @@
 [node name="ActionManager" type="Node"]
 script = ExtResource("1_lj302")
 
+[node name="PrimaryAttackSlot" parent="." instance=ExtResource("1_f7uw6")]
+ActionKind = 1
+
+[node name="SecondaryTechniqueSlot" parent="." instance=ExtResource("1_f7uw6")]
+ActionKind = 2
+
 [node name="ActionSlot_1" parent="." instance=ExtResource("1_f7uw6")]
 
 [node name="ActionSlot_2" parent="." instance=ExtResource("1_f7uw6")]
@@ -13,7 +19,3 @@ script = ExtResource("1_lj302")
 [node name="ActionSlot_3" parent="." instance=ExtResource("1_f7uw6")]
 
 [node name="ActionSlot_4" parent="." instance=ExtResource("1_f7uw6")]
-
-[node name="ActionSlot_5" parent="." instance=ExtResource("1_f7uw6")]
-
-[node name="ActionSlot_6" parent="." instance=ExtResource("1_f7uw6")]

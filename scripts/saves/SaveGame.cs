@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 9;
+	public const int CurrentVersion = 10;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -65,6 +65,21 @@ public sealed class PlayerSaveData
 	public Vector3SaveData Rotation { get; set; } = new();
 	public PlayerStatsSaveData Stats { get; set; } = new();
 	public InventorySaveData Inventory { get; set; } = new();
+	public PlayerActionSaveData Actions { get; set; } = new();
+}
+
+public sealed class PlayerActionSaveData
+{
+	public List<QuickItemBindingSaveData> QuickSlots { get; set; } = [];
+	public Dictionary<string, float> VarietyCooldowns { get; set; } = [];
+}
+
+public sealed class QuickItemBindingSaveData
+{
+	public int SlotIndex { get; set; }
+	public string Kind { get; set; } = "Unassigned";
+	public string DefinitionPath { get; set; } = string.Empty;
+	public string InstanceId { get; set; } = string.Empty;
 }
 
 public sealed class PlayerStatsSaveData

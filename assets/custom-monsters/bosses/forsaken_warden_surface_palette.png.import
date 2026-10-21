@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dic8isbcp1x34"
-path="res://.godot/imported/forsaken_warden_surface_palette.png-4bf4edc2c917186f93c5a4e71740647c.ctex"
+path.s3tc="res://.godot/imported/forsaken_warden_surface_palette.png-4bf4edc2c917186f93c5a4e71740647c.s3tc.ctex"
+path.etc2="res://.godot/imported/forsaken_warden_surface_palette.png-4bf4edc2c917186f93c5a4e71740647c.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "af752fd346866632e4a89a7395bf77c0"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-monsters/bosses/forsaken_warden_surface_palette.png"
-dest_files=["res://.godot/imported/forsaken_warden_surface_palette.png-4bf4edc2c917186f93c5a4e71740647c.ctex"]
+dest_files=["res://.godot/imported/forsaken_warden_surface_palette.png-4bf4edc2c917186f93c5a4e71740647c.s3tc.ctex", "res://.godot/imported/forsaken_warden_surface_palette.png-4bf4edc2c917186f93c5a4e71740647c.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

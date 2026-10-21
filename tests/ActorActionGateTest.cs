@@ -1,0 +1,104 @@
+namespace RogueGauntlet.Tests;
+
+using System;
+using GdUnit4;
+using static GdUnit4.Assertions;
+
+[TestSuite]
+[RequireGodotRuntime]
+public partial class ActorActionGateTest
+{
+	[TestCase]
+	public void InitialGateIsIdle()
+	{
+		var gate = new ActorActionGateComponent();
+		AssertBool(gate.IsBusy).IsFalse();
+		AssertInt((int)gate.CurrentKind).IsEqual((int)ActorActionKind.None);
+		AssertInt((int)gate.CurrentPhase).IsEqual((int)ActorActionPhase.None);
+	}
+
+	[TestCase]
+	public void AcquireSetsOwnershipAndReturnsValidLease()
+	{
+		var gate = new ActorActionGateComponent();
+		var result = gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease);
+		AssertInt((int)result).IsEqual((int)ActorActionRequestResult.Success);
+		AssertBool(lease.IsValid).IsTrue();
+		AssertBool(gate.IsBusy).IsTrue();
+		AssertInt((int)gate.CurrentKind).IsEqual((int)ActorActionKind.PrimaryAttack);
+		AssertInt((int)gate.CurrentPhase).IsEqual((int)ActorActionPhase.WindUp);
+	}
+
+	[TestCase]
+	public void CompetingAttackDuringWindUpIsRejectedAsBusy()
+	{
+		var gate = new ActorActionGateComponent();
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease1);
+		var result = gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease2);
+		AssertInt((int)result).IsEqual((int)ActorActionRequestResult.Busy);
+		AssertBool(lease2.IsValid).IsFalse();
+	}
+
+	[TestCase]
+	public void ItemUseDuringAttackIsRejected()
+	{
+		var gate = new ActorActionGateComponent();
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out _);
+		var result = gate.TryAcquire(ActorActionKind.ItemUse, ActorActionPhase.Channeling, null, out var lease);
+		AssertInt((int)result).IsEqual((int)ActorActionRequestResult.Busy);
+		AssertBool(lease.IsValid).IsFalse();
+	}
+
+	[TestCase]
+	public void ForcedReactionInterruptsActiveActionAndCallsInterruptionCallback()
+	{
+		var gate = new ActorActionGateComponent();
+		ActionInterruptReason capturedReason = ActionInterruptReason.None;
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.Active, reason => capturedReason = reason, out var attackLease);
+
+		var result = gate.TryAcquire(ActorActionKind.ForcedReaction, ActorActionPhase.Stagger, null, out var reactionLease);
+		AssertInt((int)result).IsEqual((int)ActorActionRequestResult.Success);
+		AssertBool(reactionLease.IsValid).IsTrue();
+		AssertInt((int)capturedReason).IsEqual((int)ActionInterruptReason.NewAction);
+		AssertBool(gate.IsLeaseCurrent(attackLease)).IsFalse();
+	}
+
+	[TestCase]
+	public void ReleaseClearsCurrentAction()
+	{
+		var gate = new ActorActionGateComponent();
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.Active, null, out var lease);
+		gate.Release(lease);
+		AssertBool(gate.IsBusy).IsFalse();
+		AssertInt((int)gate.CurrentKind).IsEqual((int)ActorActionKind.None);
+	}
+
+	[TestCase]
+	public void StaleLeaseCannotReleaseOrReportPhase()
+	{
+		var gate = new ActorActionGateComponent();
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var oldLease);
+		gate.CancelCurrent(ActionInterruptReason.Damage);
+
+		gate.TryAcquire(ActorActionKind.ItemUse, ActorActionPhase.Channeling, null, out var newLease);
+		gate.ReportPhase(oldLease, ActorActionPhase.Active);
+		AssertInt((int)gate.CurrentPhase).IsEqual((int)ActorActionPhase.Channeling);
+
+		gate.Release(oldLease);
+		AssertBool(gate.IsBusy).IsTrue();
+		AssertInt((int)gate.CurrentKind).IsEqual((int)ActorActionKind.ItemUse);
+	}
+
+	[TestCase]
+	public void CommittedItemUseDeniesVoluntaryCancellation()
+	{
+		var gate = new ActorActionGateComponent();
+		gate.TryAcquire(ActorActionKind.ItemUse, ActorActionPhase.Channeling, null, out _);
+
+		var attackResult = gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out _);
+		AssertInt((int)attackResult).IsEqual((int)ActorActionRequestResult.Busy);
+
+		var dodgeResult = gate.TryAcquire(ActorActionKind.Dodge, ActorActionPhase.Active, null, out _);
+		AssertInt((int)dodgeResult).IsEqual((int)ActorActionRequestResult.Busy);
+	}
+}

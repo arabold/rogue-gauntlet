@@ -58,15 +58,7 @@ public partial class AttackAnimationHarness : CanvasLayer
 	public void Attack()
 	{
 		Configure(Player.AttackController);
-		if (!Player.Inventory.EquippedItems.TryGetValue(EquipmentSlot.WeaponHand, out var equipped)) return;
-		for (int i = 0; i < Player.ActionManager.ActionSlotCount; i++)
-		{
-			if (ReferenceEquals(Player.ActionManager.GetAction(i), equipped?.Item))
-			{
-				Player.ActionManager.TryPerformAction(i);
-				return;
-			}
-		}
+		Player.ActionManager.TryPerformPrimary();
 	}
 
 	/// <summary>Spawn a native actor with AI decisions disabled; its real attack executor remains active.</summary>

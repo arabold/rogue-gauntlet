@@ -39,10 +39,20 @@ public partial class KeyBinding : TextureRect
 
 	private void Update()
 	{
-		if (KeyboardDict.ContainsKey(ActionBinding))
+		string key = ActionBinding;
+		if (key != null && key.StartsWith("quick_item_"))
 		{
-			Texture = KeyboardDict[ActionBinding];
-			Modulate = IsDisabled ? new Color(0.5f, 0.5f, 0.5f, 1) : new Color(1, 1, 1, 1);
+			string altKey = "action_" + key.Substring("quick_item_".Length);
+			if (!KeyboardDict.ContainsKey(key) && KeyboardDict.ContainsKey(altKey))
+			{
+				key = altKey;
+			}
+		}
+
+		if (key != null && KeyboardDict.TryGetValue(key, out var tex))
+		{
+			Texture = tex;
+			Modulate = IsDisabled ? new Color(0.5f, 0.5f, 0.5f, 1) : Colors.White;
 		}
 		else
 		{

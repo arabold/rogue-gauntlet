@@ -3,14 +3,17 @@ using Godot.Collections;
 using System.Linq;
 
 /// <summary>
-/// Tracks nearby interactives and invokes interaction for the player.
+/// Tracks nearby interactives, ranks focus by facing/distance, and coordinates interaction sessions.
 /// </summary>
 public partial class PlayerInteractionController : Node
 {
 	[Export] public Player Player { get; set; }
 	[Export] public InteractionArea InteractionArea { get; set; }
 
-	private Array<Node> _nearbyInteractives = new();
+	public Node FocusedInteractive { get; private set; }
+	public IInteractionTarget FocusedTarget => FocusedInteractive as IInteractionTarget;
+
+	private readonly System.Collections.Generic.List<Node> _nearbyInteractives = new();
 
 	public override void _Ready()
 	{
@@ -27,26 +30,148 @@ public partial class PlayerInteractionController : Node
 			interactionArea => interactionArea.InteractiveExited -= OnInteractiveExited);
 	}
 
-	public void TryInteract()
+	public override void _PhysicsProcess(double delta)
 	{
-		if (_nearbyInteractives.Count == 0)
+		UpdateFocus();
+	}
+
+	private void UpdateFocus()
+	{
+		// While an interaction channel is actively running, lock focus onto the current target
+		if (Player?.InteractionComponent?.IsActive == true)
 		{
 			return;
 		}
 
-		if (_nearbyInteractives.Last() is IInteractive interactive)
+		if (_nearbyInteractives.Count == 0)
 		{
-			interactive.Interact(Player);
+			SetFocusedNode(null);
+			return;
 		}
+
+		for (int i = _nearbyInteractives.Count - 1; i >= 0; i--)
+		{
+			if (!GodotObject.IsInstanceValid(_nearbyInteractives[i]))
+			{
+				_nearbyInteractives.RemoveAt(i);
+			}
+		}
+
+		if (_nearbyInteractives.Count == 0)
+		{
+			SetFocusedNode(null);
+			return;
+		}
+
+		Vector3 playerPos = Player.GlobalPosition;
+		Vector3 facing = Player?.MovementComponent?.LookAtDirection ?? -Player.GlobalTransform.Basis.Z;
+		facing.Y = 0;
+		if (facing.LengthSquared() > 0.001f) facing = facing.Normalized();
+
+		var context = new ActorInteractionContext(Player, Player.Capabilities, Player.Inventory);
+		Node bestCandidate = null;
+		float bestScore = float.NegativeInfinity;
+		ulong bestId = 0;
+
+		foreach (var node in _nearbyInteractives)
+		{
+			if (node is not Node3D node3D) continue;
+			if (node is not IInteractionTarget target || !target.IsInteractive) continue;
+
+			Vector3 targetPos = target.TargetNode?.GlobalPosition ?? node3D.GlobalPosition;
+			Vector3 toTarget = targetPos - playerPos;
+			float vertDist = Mathf.Abs(toTarget.Y);
+			if (vertDist > 2.5f) continue;
+
+			var offer = target.GetOffer(context);
+			if (!offer.IsValid) continue;
+			if (!context.HasPermission(offer.RequiredPermission)) continue;
+
+			toTarget.Y = 0;
+			float horizDist = toTarget.Length();
+			if (horizDist > offer.Range) continue;
+
+			if (horizDist > 0.001f) toTarget /= horizDist;
+
+			float facingDot = facing.Dot(toTarget);
+			if (horizDist > 0.8f && facingDot < -0.2f) continue;
+
+			float score = facingDot * 2.0f - horizDist * 0.5f;
+			ulong id = node.GetInstanceId();
+
+			if (score > bestScore || (Mathf.IsEqualApprox(score, bestScore) && id > bestId))
+			{
+				bestCandidate = node;
+				bestScore = score;
+				bestId = id;
+			}
+		}
+
+		SetFocusedNode(bestCandidate);
+	}
+
+	private void SetFocusedNode(Node node)
+	{
+		if (FocusedInteractive == node) return;
+
+		if (FocusedInteractive is InteractiveComponent prevComp)
+		{
+			prevComp.SetFocused(false);
+		}
+
+		FocusedInteractive = node;
+
+		if (FocusedInteractive is InteractiveComponent newComp)
+		{
+			newComp.SetFocused(true);
+		}
+	}
+
+	public void HandleInteractInput(bool isPressed)
+	{
+		if (Player?.InteractionComponent == null) return;
+
+		if (isPressed)
+		{
+			if (!Player.InteractionComponent.IsActive && FocusedTarget != null)
+			{
+				var context = new ActorInteractionContext(Player, Player.Capabilities, Player.Inventory);
+				var offer = FocusedTarget.GetOffer(context);
+				if (offer.IsValid)
+				{
+					Player.MovementComponent?.Stop();
+					Player.InteractionComponent.TryBegin(offer, context);
+				}
+			}
+		}
+		else
+		{
+			if (Player.InteractionComponent.IsActive)
+			{
+				Player.InteractionComponent.Cancel(InteractionCancelReason.InputReleased);
+			}
+		}
+	}
+
+	public void TryInteract()
+	{
+		HandleInteractInput(true);
 	}
 
 	private void OnInteractiveEntered(Node node)
 	{
-		_nearbyInteractives.Add(node);
+		if (!_nearbyInteractives.Contains(node))
+		{
+			_nearbyInteractives.Add(node);
+		}
 	}
 
 	private void OnInteractiveExited(Node node)
 	{
 		_nearbyInteractives.Remove(node);
+		if (FocusedInteractive == node)
+		{
+			SetFocusedNode(null);
+		}
 	}
 }

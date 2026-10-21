@@ -2,6 +2,8 @@ using Godot;
 
 public partial class FloatingHealthBar : Sprite3D
 {
+	public const int HealthBarRenderPriority = 15;
+
 	/// <summary>
 	/// The health component to track.
 	/// </summary>
@@ -16,6 +18,8 @@ public partial class FloatingHealthBar : Sprite3D
 	public override void _EnterTree()
 	{
 		base._EnterTree();
+		RenderPriority = HealthBarRenderPriority;
+		NoDepthTest = true;
 		var subViewport = GetNode<SubViewport>("SubViewport");
 		Texture = subViewport.GetTexture();
 	}

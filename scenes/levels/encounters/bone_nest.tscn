@@ -59,6 +59,8 @@ rotation_degrees = Vector3(65, 20, 0)
 [node name="Title" type="Label3D" parent="."]
 position = Vector3(0, 2.4, 0)
 billboard = 1
+no_depth_test = true
+render_priority = 20
 text = "Bone Nest"
 font_size = 40
 pixel_size = 0.008

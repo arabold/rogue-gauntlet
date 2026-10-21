@@ -1,4 +1,6 @@
 using Godot;
+using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// Handles inventory side effects for a player actor.
@@ -11,6 +13,11 @@ public partial class PlayerInventoryController : Node
 	[Export] public PlayerStatsController StatsController { get; set; }
 	[Export] public Level Level { get; set; }
 	[Export] public PackedScene LootableItemScene { get; set; }
+
+	private readonly HashSet<InventoryItemSlot> _reservedSlots = new();
+	private ulong _itemUseGeneration = 0;
+
+	public bool IsItemUseChannelActive => _reservedSlots.Count > 0;
 
 	public override void _Ready()
 	{
@@ -83,19 +90,96 @@ public partial class PlayerInventoryController : Node
 			}
 			source?.CommitCollected();
 			item.OnPickup(Player, quantity);
+			Player?.QuickItemController?.OnItemAcquired(item, quantity);
 			return Report(ItemFailure.None);
 		}
 		finally { IsCommittingItemOperation = false; }
 	}
 
-	public ItemOperationResult TryUse(InventoryItemSlot source, InventoryItemSlot target = null)
+	public ItemOperationResult TryBeginItemUse(InventoryItemSlot source, InventoryItemSlot target = null)
 	{
-		if (IsCommittingItemOperation) { return Report(ItemFailure.Busy); }
+		if (IsCommittingItemOperation || _reservedSlots.Contains(source)) { return Report(ItemFailure.Busy); }
 		if (!Inventory.CanRemove(source, 1).Success || source.Item is not ConsumableItem consumable)
 		{ return Report(ItemFailure.NotOwned); }
 		Scroll scroll = consumable as Scroll;
 		if (scroll?.RequiresTarget == true && (target == source || !Inventory.Items.Contains(target)
 			|| !scroll.Effect.IsValidTarget(Player, target))) { return Report(ItemFailure.InvalidTarget); }
+
+		if (Player?.QuickItemController?.IsVarietyOnCooldown(consumable.DefinitionPath) == true)
+		{
+			return Report(ItemFailure.Busy);
+		}
+
+		ActorActionLease lease = ActorActionLease.None;
+		if (Player?.ActionGate != null)
+		{
+			var gateResult = Player.ActionGate.TryAcquire(
+				ActorActionKind.ItemUse,
+				ActorActionPhase.Channeling,
+				reason => CancelItemUse(reason),
+				out lease);
+			if (gateResult != ActorActionRequestResult.Success)
+			{
+				return Report(ItemFailure.Busy);
+			}
+		}
+
+		_reservedSlots.Add(source);
+		if (consumable.CooldownDuration > 0)
+		{
+			Player?.QuickItemController?.StartVarietyCooldown(consumable.DefinitionPath, consumable.CooldownDuration);
+		}
+
+		ulong generation = ++_itemUseGeneration;
+		double duration = consumable.Delay + consumable.PerformDuration;
+
+		if (duration <= 0)
+		{
+			_reservedSlots.Remove(source);
+			if (Player?.ActionGate != null) Player.ActionGate.Release(lease);
+			return TryCommitItemUse(source, consumable, target);
+		}
+
+		ExecuteItemUseChannel(generation, source, consumable, target, lease, duration);
+		return Report(ItemFailure.None);
+	}
+
+	private async void ExecuteItemUseChannel(
+		ulong generation,
+		InventoryItemSlot source,
+		ConsumableItem consumable,
+		InventoryItemSlot target,
+		ActorActionLease lease,
+		double duration)
+	{
+		await ToSignal(GetTree().CreateTimer(duration, false, true), SceneTreeTimer.SignalName.Timeout);
+
+		if (generation != _itemUseGeneration || Player == null || Player.IsDead)
+		{
+			_reservedSlots.Remove(source);
+			if (Player?.ActionGate != null) Player.ActionGate.Release(lease);
+			return;
+		}
+
+		_reservedSlots.Remove(source);
+		if (Player?.ActionGate != null) Player.ActionGate.Release(lease);
+
+		if (Inventory.CanRemove(source, 1).Success)
+		{
+			TryCommitItemUse(source, consumable, target);
+		}
+	}
+
+	public void CancelItemUse(ActionInterruptReason reason)
+	{
+		_itemUseGeneration++;
+		_reservedSlots.Clear();
+	}
+
+	private ItemOperationResult TryCommitItemUse(InventoryItemSlot source, ConsumableItem consumable, InventoryItemSlot target)
+	{
+		if (IsCommittingItemOperation) { return Report(ItemFailure.Busy); }
+		Scroll scroll = consumable as Scroll;
 		IsCommittingItemOperation = true;
 		try
 		{
@@ -110,9 +194,14 @@ public partial class PlayerInventoryController : Node
 		finally { IsCommittingItemOperation = false; }
 	}
 
+	public ItemOperationResult TryUse(InventoryItemSlot source, InventoryItemSlot target = null)
+	{
+		return TryBeginItemUse(source, target);
+	}
+
 	public ItemOperationResult TryDrop(InventoryItemSlot source, int quantity)
 	{
-		if (IsCommittingItemOperation) { return Report(ItemFailure.Busy); }
+		if (IsCommittingItemOperation || _reservedSlots.Contains(source)) { return Report(ItemFailure.Busy); }
 		if (!Inventory.CanRemove(source, quantity).Success) { return Report(ItemFailure.NotOwned); }
 		if (source.Item.IsQuestItem) { return Report(ItemFailure.ProtectedItem); }
 		Level ??= this.GetAncestorOrNull<Level>();
@@ -164,9 +253,10 @@ public partial class PlayerInventoryController : Node
 		StatsController.SyncStats();
 		SignalBus.EmitItemEquipped(Player, item);
 
-		if (item is IPlayerAction action)
+		if (item is Weapon weapon && slot == EquipmentSlot.WeaponHand)
 		{
-			ActionManager.AssignFirstAvailableAction(action, item.Scene);
+			ActionManager.AssignPrimary(weapon, weapon.Scene);
+			ActionManager.AssignSecondary(new MartialTechniqueAction(weapon), weapon.Scene);
 		}
 	}
 
@@ -176,9 +266,10 @@ public partial class PlayerInventoryController : Node
 		StatsController.SyncStats();
 		SignalBus.EmitItemUnequipped(Player, item);
 
-		if (item is IPlayerAction action)
+		if (item is Weapon && slot == EquipmentSlot.WeaponHand)
 		{
-			ActionManager.ClearAction(action);
+			ActionManager.AssignPrimary(UnarmedAttackAction.Instance, null);
+			ActionManager.AssignSecondary(null, null);
 		}
 	}
 

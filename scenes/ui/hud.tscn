@@ -67,34 +67,64 @@ layout_mode = 2
 size_flags_vertical = 8
 theme_override_constants/separation = 16
 
+[node name="PrimaryActionContainer" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
+layout_mode = 2
+Slot = -1
+ActionBinding = "primary_action"
+
+[node name="SecondaryActionContainer" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
+layout_mode = 2
+Slot = -2
+ActionBinding = "secondary_action"
+
+[node name="Spacer" type="Control" parent="HBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(16, 0)
+layout_mode = 2
+
 [node name="ActionContainer1" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2
-ActionBinding = "action_1"
+ActionBinding = "quick_item_1"
 
 [node name="ActionContainer2" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2
 Slot = 1
-ActionBinding = "action_2"
+ActionBinding = "quick_item_2"
 
 [node name="ActionContainer3" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2
 Slot = 2
-ActionBinding = "action_3"
+ActionBinding = "quick_item_3"
 
 [node name="ActionContainer4" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
 layout_mode = 2
 Slot = 3
-ActionBinding = "action_4"
+ActionBinding = "quick_item_4"
 
-[node name="ActionContainer5" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
+[node name="InteractionContainer" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+visible = false
 layout_mode = 2
-Slot = 4
-ActionBinding = "action_5"
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 8
 
-[node name="ActionContainer6" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
+[node name="InteractionLabel" type="Label" parent="InteractionContainer"]
+unique_name_in_owner = true
 layout_mode = 2
-Slot = 5
-ActionBinding = "action_6"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 18
+text = "Opening..."
+horizontal_alignment = 1
+
+[node name="InteractionProgressBar" type="ProgressBar" parent="InteractionContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 16)
+layout_mode = 2
+size_flags_horizontal = 4
+value = 50.0
+show_percentage = false
 
 [node name="DebugMenu" parent="." instance=ExtResource("3_debug_menu")]
 layout_mode = 2

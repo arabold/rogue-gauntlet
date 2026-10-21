@@ -3,6 +3,7 @@ using Godot;
 [GlobalClass]
 public partial class ConsumableItem : IdentifiableItem, IPlayerAction
 {
+	[Export] public bool AllowQuickUse { get; set; } = true;
 	[Export] public string AnimationId { get; protected set => SetValue(ref field, value); } = "drink_potion";
 	[Export] public float Delay { get; protected set => SetValue(ref field, value); } = 0f;
 	[Export] public float PerformDuration { get; protected set => SetValue(ref field, value); } = 0.5f;

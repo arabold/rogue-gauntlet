@@ -35,6 +35,8 @@ mesh = SubResource("base")
 [node name="Label" type="Label3D" parent="."]
 position = Vector3(0, 2.3, 0)
 billboard = 1
+no_depth_test = true
+render_priority = 20
 text = "Practice target"
 font_size = 40
 

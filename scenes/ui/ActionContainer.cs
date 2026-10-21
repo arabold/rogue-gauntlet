@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Linq;
 
 public partial class ActionContainer : PanelContainer
 {
@@ -28,6 +29,8 @@ public partial class ActionContainer : PanelContainer
 	private ProgressBar _cooldownProgressBar;
 	private KeyBinding _keyBinding;
 	private Preview _preview;
+	private SubViewportContainer _viewportContainer;
+	private Label _quantityLabel;
 
 	public override void _Ready()
 	{
@@ -39,6 +42,8 @@ public partial class ActionContainer : PanelContainer
 
 		_preview = GetNode<Preview>("%Preview");
 		_preview.SetScene(PreviewScene);
+		_viewportContainer = GetNodeOrNull<SubViewportContainer>("SubViewportContainer");
+		_quantityLabel = GetNodeOrNull<Label>("%QuantityLabel");
 
 		this.SubscribeUntilExit(
 			SignalBus.Instance,
@@ -48,8 +53,30 @@ public partial class ActionContainer : PanelContainer
 			SignalBus.Instance,
 			signalBus => signalBus.CooldownUpdated += OnCooldownUpdated,
 			signalBus => signalBus.CooldownUpdated -= OnCooldownUpdated);
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			signalBus => signalBus.PlayerSpawned += OnPlayerSpawned,
+			signalBus => signalBus.PlayerSpawned -= OnPlayerSpawned);
+
+		var player = GetTree()?.GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
+		if (player != null)
+		{
+			OnPlayerSpawned(player);
+		}
 
 		OnCooldownUpdated(Slot, 0, 0);
+	}
+
+	private void OnPlayerSpawned(Player player)
+	{
+		if (player?.ActionManager != null)
+		{
+			var actionSlot = player.ActionManager.GetActionSlot(Slot);
+			if (actionSlot != null)
+			{
+				OnActionSlotChanged(Slot, actionSlot);
+			}
+		}
 	}
 
 	private void OnActionSlotChanged(int slotIndex, ActionSlot action)
@@ -57,9 +84,22 @@ public partial class ActionContainer : PanelContainer
 		if (slotIndex == Slot)
 		{
 			// Tint disguised consumables so the action bar matches the inventory preview.
-			Color? tint = action?.AssignedAction is Item item ? ItemIdentity.ResolveTint(item) : null;
+			Item item = action?.AssignedAction as Item;
+			Color? tint = item != null ? ItemIdentity.ResolveTint(item) : null;
 			_preview.SetScene(action?.PreviewScene, tint);
-			_keyBinding.IsDisabled = action?.AssignedAction == null;
+			bool isDepleted = action != null && action.AssignedAction != null && action.Quantity == 0;
+			if (_viewportContainer != null)
+			{
+				_viewportContainer.Modulate = isDepleted ? new Color(0.4f, 0.4f, 0.4f, 0.6f) : new Color(1, 1, 1, 1);
+			}
+			bool disabled = Slot != ActionManager.PrimarySlotIndex && (action?.AssignedAction == null || isDepleted);
+			_keyBinding.IsDisabled = disabled;
+
+			if (_quantityLabel != null)
+			{
+				bool isStackable = item != null && item.CanStack;
+				_quantityLabel.Text = (isStackable && action != null) ? action.Quantity.ToString() : "";
+			}
 		}
 	}
 

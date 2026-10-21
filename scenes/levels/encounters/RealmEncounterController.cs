@@ -30,6 +30,7 @@ public partial class RealmEncounterController : Node
 			exit.RejectedWalkDirection = Vector3.Forward;
 			_objective = new Label3D { Text = DescentUnlocked ? $"{definition.GatekeeperName} defeated — descent open" : $"Defeat {definition.GatekeeperName} to descend", Position = Vector3.Up * 4,
 				Billboard = BaseMaterial3D.BillboardModeEnum.Enabled, FontSize = 48, PixelSize = .008f,
+				NoDepthTest = true, RenderPriority = FloatingLabel.LabelRenderPriority,
 				Modulate = new Color(1, .72f, .25f) };
 			exit.AddChild(_objective);
 		}

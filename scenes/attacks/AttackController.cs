@@ -204,7 +204,7 @@ public partial class AttackController : Node
 				if (_swoosh == null)
 				{
 					_swoosh = ScenePool.Spawn<MeleeSwoosh>(profile.SwooshScene, GetTree().CurrentScene ?? _actor.GetParent());
-					_swoosh.Initialize(frame, profile.Reach, profile.Volume == MeleeVolume.Radial ? null : FindWeaponInstance());
+					_swoosh.Initialize(frame, profile.Reach, FindWeaponInstance());
 				}
 				SampleSwoosh(frame, previous);
 			}

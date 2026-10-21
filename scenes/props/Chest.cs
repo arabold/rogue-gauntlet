@@ -33,7 +33,8 @@ public partial class Chest : Node3D
 		if (!Engine.IsEditorHint())
 		{
 			_interactiveComponent = GetNode<InteractiveComponent>("InteractiveComponent");
-			_interactiveComponent.Interacted += OnInteract;
+			_interactiveComponent.OfferProvider = GetChestOffer;
+			_interactiveComponent.CommitHandler = OnCommitInteraction;
 
 			_lootTableComponent = GetNodeOrNull<LootTableComponent>("LootTableComponent");
 		}
@@ -72,6 +73,26 @@ public partial class Chest : Node3D
 		};
 	}
 
+	private InteractionOffer GetChestOffer()
+	{
+		if (IsOpen) return InteractionOffer.None;
+		return new InteractionOffer(
+			_interactiveComponent,
+			"open_chest",
+			"Open Chest",
+			1.0f,
+			2.5f,
+			InteractionPermission.OpenContainers,
+			_interactiveComponent.StateRevision);
+	}
+
+	private InteractionCommitResult OnCommitInteraction(InteractionReservation reservation)
+	{
+		if (IsOpen || _isAnimating) return InteractionCommitResult.TargetInvalidated;
+		OpenChest();
+		return InteractionCommitResult.Success;
+	}
+
 	private void OnInteract(Player actor)
 	{
 		OpenChest();
@@ -79,7 +100,6 @@ public partial class Chest : Node3D
 
 	public void OnOpened()
 	{
-		_lootTableComponent?.DropLoot();
 		EmitSignalOpened(this);
 	}
 

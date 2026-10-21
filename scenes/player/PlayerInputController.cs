@@ -1,7 +1,7 @@
 using Godot;
 
 /// <summary>
-/// Coordinates player input with movement, action slots, and interactions.
+/// Coordinates player input with movement, action slots, dedicated weapon actions, and interactions.
 /// </summary>
 public partial class PlayerInputController : Node
 {
@@ -22,6 +22,32 @@ public partial class PlayerInputController : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
+		// Active world interaction channel: check for input cancellation
+		if (Player.InteractionComponent?.IsActive == true)
+		{
+			MovementComponent.SetInputDirection(Vector3.Zero);
+
+			if (!InputComponent.IsInteractPressed())
+			{
+				Player.InteractionComponent.Cancel(InteractionCancelReason.InputReleased);
+				return;
+			}
+
+			if (InputComponent.IsMoving())
+			{
+				Player.InteractionComponent.Cancel(InteractionCancelReason.Movement);
+				return;
+			}
+
+			if (InputComponent.IsPrimaryActionPressed() || InputComponent.IsSecondaryActionJustPressed())
+			{
+				Player.InteractionComponent.Cancel(InteractionCancelReason.CombatIntent);
+				return;
+			}
+
+			return;
+		}
+
 		if (Player.IsPerformingAction)
 		{
 			MovementComponent.SetInputDirection(Vector3.Zero);
@@ -33,7 +59,7 @@ public partial class PlayerInputController : Node
 			{
 				MovementComponent.FaceDirection(assistFacing);
 			}
-			else if (InputComponent.InputDirection != Vector3.Zero)
+			else if (InputComponent.IsMoving())
 			{
 				// No aim-assist target: face where the player is aiming. Leave the current facing
 				// untouched when there is no input so we never zero out the stored look direction.
@@ -42,18 +68,37 @@ public partial class PlayerInputController : Node
 			return;
 		}
 
-		for (int i = 0; i < ActionManager.ActionSlotCount; i++)
+		// Secondary technique: one request per new press
+		if (InputComponent.IsSecondaryActionJustPressed())
 		{
-			if (InputComponent.IsActionSlotPressed(i))
+			ActionManager.TryPerformSecondary();
+		}
+		// Primary action: press or hold to repeat complete basic attacks at normal cadence
+		else if (InputComponent.IsPrimaryActionPressed())
+		{
+			ActionManager.TryPerformPrimary();
+		}
+		else
+		{
+			// Quick items 1..4: one request per new press; never repeat while held
+			for (int i = 0; i < ActionManager.ActionSlotCount; i++)
 			{
-				ActionManager.TryPerformAction(i);
+				if (InputComponent.IsQuickItemJustPressed(i))
+				{
+					if (Player.QuickItemController != null)
+					{
+						Player.QuickItemController.TryUseSlot(i);
+					}
+					else
+					{
+						ActionManager.TryPerformAction(i);
+					}
+					break;
+				}
 			}
 		}
 
-		if (InputComponent.IsInteractPressed())
-		{
-			InteractionController.TryInteract();
-		}
+		InteractionController.HandleInteractInput(InputComponent.IsInteractPressed());
 
 		MovementComponent.SetInputDirection(InputComponent.InputDirection);
 	}

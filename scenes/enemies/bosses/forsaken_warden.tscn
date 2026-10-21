@@ -155,6 +155,8 @@ position = Vector3(0, 5.1, 0)
 [node name="BossTitle" type="Label3D" parent="."]
 position = Vector3(0, 5.65, 0)
 billboard = 1
+no_depth_test = true
+render_priority = 20
 text = "The Forsaken Warden"
 font_size = 48
 pixel_size = 0.008

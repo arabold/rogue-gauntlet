@@ -32,7 +32,8 @@ public partial class Door : Node3D
 		if (!Engine.IsEditorHint())
 		{
 			_interactiveComponent = GetNode<InteractiveComponent>("InteractiveComponent");
-			_interactiveComponent.Interacted += OnInteract;
+			_interactiveComponent.OfferProvider = GetDoorOffer;
+			_interactiveComponent.CommitHandler = OnCommitInteraction;
 			CreateIndicator();
 
 			this.SubscribeUntilExit(
@@ -165,6 +166,26 @@ public partial class Door : Node3D
 			Update();
 			_interactiveComponent.IsInteractive = true;
 		};
+	}
+
+	private InteractionOffer GetDoorOffer()
+	{
+		return new InteractionOffer(
+			_interactiveComponent,
+			IsOpen ? "close" : "open",
+			IsOpen ? "Close Door" : "Open Door",
+			1.0f,
+			2.5f,
+			InteractionPermission.OpenDoors,
+			_interactiveComponent.StateRevision);
+	}
+
+	private InteractionCommitResult OnCommitInteraction(InteractionReservation reservation)
+	{
+		if (_isAnimating) return InteractionCommitResult.Busy;
+		if (IsOpen) CloseDoor();
+		else OpenDoor();
+		return InteractionCommitResult.Success;
 	}
 
 	public void OnInteract(Player actor)

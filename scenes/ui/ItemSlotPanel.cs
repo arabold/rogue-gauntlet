@@ -121,7 +121,7 @@ public partial class ItemSlotPanel : PanelContainer
 			// Plain text is the fallback; the rich hover tooltip is built by ItemSlotButton.
 			button.Item = Slot.Item;
 			button.TooltipText = ItemIdentity.ResolveDisplayName(Slot.Item);
-			quantityLabel.Text = Slot.Quantity > 1 ? Slot.Quantity.ToString() : "";
+			quantityLabel.Text = Slot.Item.CanStack ? Slot.Quantity.ToString() : "";
 			equippedBorder.Visible = IsEquipped;
 
 			if (Slot.Item is EquipableItem equipableItem && ItemIdentity.IsIdentified(Slot.Item))

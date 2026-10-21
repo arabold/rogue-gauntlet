@@ -15,6 +15,7 @@ bg_color = Color(1, 0, 0, 1)
 layers = 256
 billboard = 1
 no_depth_test = true
+render_priority = 15
 texture = SubResource("ViewportTexture_tiay2")
 script = ExtResource("2_s53ct")
 

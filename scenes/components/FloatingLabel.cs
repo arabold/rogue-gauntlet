@@ -3,6 +3,8 @@ using Godot;
 [Tool]
 public partial class FloatingLabel : Sprite3D
 {
+	public const int LabelRenderPriority = 20;
+
 	/// <summary>
 	/// The text to display.
 	/// </summary>
@@ -29,6 +31,7 @@ public partial class FloatingLabel : Sprite3D
 			field = value;
 			if (IsNodeReady())
 			{
+				_keyBinding.ActionBinding = value;
 				_keyBinding.Visible = !string.IsNullOrEmpty(value);
 			}
 		}
@@ -40,6 +43,8 @@ public partial class FloatingLabel : Sprite3D
 	public override void _EnterTree()
 	{
 		base._EnterTree();
+		RenderPriority = LabelRenderPriority;
+		NoDepthTest = true;
 		var subViewport = GetNode<SubViewport>("SubViewport");
 		Texture = subViewport.GetTexture();
 	}
@@ -52,10 +57,12 @@ public partial class FloatingLabel : Sprite3D
 
 	public override void _Ready()
 	{
+		Visible = false;
 		_label = GetNode<Label>("%Label");
 		_label.Text = Text;
 
 		_keyBinding = GetNode<KeyBinding>("%KeyBinding");
+		_keyBinding.ActionBinding = ActionBinding;
 		_keyBinding.Visible = !string.IsNullOrEmpty(ActionBinding);
 	}
 }

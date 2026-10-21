@@ -38,6 +38,7 @@ public partial class EquipableItem : BuffedItem
 	/// <summary>
 	/// Type of this item
 	/// </summary>
+	[Export] public GuardDefinition Guard { get; set; }
 	[Export] public ValidSlots ValidSlots { get; set => SetValue(ref field, value); } = 0;
 	/// <summary>
 	/// Rarity of this item

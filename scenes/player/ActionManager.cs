@@ -1,93 +1,157 @@
 using Godot;
 using Godot.Collections;
-using System;
+using System.Collections.Generic;
 
 public partial class ActionManager : Node
 {
-	public int ActionSlotCount => _actionSlots.Count;
+	public const int PrimarySlotIndex = -1;
+	public const int SecondarySlotIndex = -2;
+
+	[Export] public ActionSlot PrimaryAttackSlot { get; set; }
+	[Export] public ActionSlot SecondaryTechniqueSlot { get; set; }
+
+	public int ActionSlotCount => _quickItemSlots.Count;
 	public string CurrentAnimationId => _currentAction is Weapon ? null : _currentAction?.AnimationId;
-	public bool IsBusy => _actionSlots != null && System.Linq.Enumerable.Any(_actionSlots, slot => slot.IsDelayed || slot.IsPerformingAction);
+	public bool IsBusy
+	{
+		get
+		{
+			if (_player?.ActionGate?.IsBusy == true) return true;
+			if (PrimaryAttackSlot?.IsDelayed == true || PrimaryAttackSlot?.IsPerformingAction == true) return true;
+			if (SecondaryTechniqueSlot?.IsDelayed == true || SecondaryTechniqueSlot?.IsPerformingAction == true) return true;
+			if (_quickItemSlots != null)
+			{
+				for (int i = 0; i < _quickItemSlots.Count; i++)
+				{
+					var slot = _quickItemSlots[i];
+					if (slot.IsDelayed || slot.IsPerformingAction) return true;
+				}
+			}
+			return false;
+		}
+	}
 
 	private Player _player;
-	private Array<ActionSlot> _actionSlots;
-	private Array<float> _cooldownRemainingTime;
+	private readonly List<ActionSlot> _quickItemSlots = new();
 	private IPlayerAction _currentAction;
 	private ActionSlot _currentSlot;
 
 	public override void _Ready()
 	{
 		_player = GetParent<Player>();
-		_actionSlots = new Array<ActionSlot>();
-		foreach (var child in GetChildren())
+
+		// Wire or create dedicated primary slot
+		PrimaryAttackSlot ??= GetNodeOrNull<ActionSlot>("PrimaryAttackSlot");
+		if (PrimaryAttackSlot == null)
 		{
-			if (child is ActionSlot actionSlot)
+			PrimaryAttackSlot = new ActionSlot { Name = "PrimaryAttackSlot", ActionKind = ActorActionKind.PrimaryAttack };
+			AddChild(PrimaryAttackSlot);
+		}
+		PrimaryAttackSlot.ActionKind = ActorActionKind.PrimaryAttack;
+		PrimaryAttackSlot.SlotIndex = PrimarySlotIndex;
+		PrimaryAttackSlot.PerformAction += () => OnActionPerformed(PrimaryAttackSlot);
+		PrimaryAttackSlot.ActionPerformed += () => OnActionCompleted(PrimaryAttackSlot);
+
+		// Wire or create dedicated secondary technique slot
+		SecondaryTechniqueSlot ??= GetNodeOrNull<ActionSlot>("SecondaryTechniqueSlot");
+		if (SecondaryTechniqueSlot == null)
+		{
+			SecondaryTechniqueSlot = new ActionSlot { Name = "SecondaryTechniqueSlot", ActionKind = ActorActionKind.SecondaryTechnique };
+			AddChild(SecondaryTechniqueSlot);
+		}
+		SecondaryTechniqueSlot.ActionKind = ActorActionKind.SecondaryTechnique;
+		SecondaryTechniqueSlot.SlotIndex = SecondarySlotIndex;
+		SecondaryTechniqueSlot.PerformAction += () => OnActionPerformed(SecondaryTechniqueSlot);
+		SecondaryTechniqueSlot.ActionPerformed += () => OnActionCompleted(SecondaryTechniqueSlot);
+
+		// Default primary fallback is unarmed
+		AssignPrimary(UnarmedAttackAction.Instance, null);
+
+		// Quick item slots (ActionSlot_1 .. ActionSlot_4)
+		_quickItemSlots.Clear();
+		for (int i = 1; i <= 4; i++)
+		{
+			var slot = GetNodeOrNull<ActionSlot>($"ActionSlot_{i}");
+			if (slot != null)
 			{
-				_actionSlots.Add(actionSlot);
+				slot.ActionKind = ActorActionKind.ItemUse;
+				_quickItemSlots.Add(slot);
 			}
 		}
 
-		foreach (var actionSlot in _actionSlots)
+		if (_quickItemSlots.Count == 0)
 		{
+			foreach (var child in GetChildren())
+			{
+				if (child is ActionSlot slot && slot != PrimaryAttackSlot && slot != SecondaryTechniqueSlot)
+				{
+					slot.ActionKind = ActorActionKind.ItemUse;
+					_quickItemSlots.Add(slot);
+					if (_quickItemSlots.Count == 4) break;
+				}
+			}
+		}
+
+		while (_quickItemSlots.Count < 4)
+		{
+			var newSlot = new ActionSlot { Name = $"ActionSlot_{_quickItemSlots.Count + 1}", ActionKind = ActorActionKind.ItemUse };
+			AddChild(newSlot);
+			_quickItemSlots.Add(newSlot);
+		}
+
+		for (int i = 0; i < _quickItemSlots.Count; i++)
+		{
+			var actionSlot = _quickItemSlots[i];
 			actionSlot.PerformAction += () => OnActionPerformed(actionSlot);
 			actionSlot.ActionPerformed += () => OnActionCompleted(actionSlot);
 		}
-
-		_cooldownRemainingTime = new Array<float>(new float[_actionSlots.Count]);
 	}
 
-	public IPlayerAction GetAction(int slotIndex)
+	public ActionSlot GetActionSlot(int slotIndex)
 	{
-		if (slotIndex < 0 || slotIndex >= _actionSlots.Count)
-		{
-			GD.PushError("Invalid slot index");
-			return null;
-		}
-
-		return _actionSlots[slotIndex].AssignedAction;
+		if (slotIndex == PrimarySlotIndex) return PrimaryAttackSlot;
+		if (slotIndex == SecondarySlotIndex) return SecondaryTechniqueSlot;
+		if (slotIndex < 0 || slotIndex >= _quickItemSlots.Count) return null;
+		return _quickItemSlots[slotIndex];
 	}
+
+	public IPlayerAction GetAction(int slotIndex) => GetActionSlot(slotIndex)?.AssignedAction;
 
 	public void AssignAction(int slotIndex, IPlayerAction action, PackedScene previewScene)
 	{
-		if (slotIndex < 0 || slotIndex >= _actionSlots.Count)
+		if (slotIndex < 0 || slotIndex >= _quickItemSlots.Count)
 		{
 			GD.PushError("Invalid slot index");
 			return;
 		}
 
-		ActionSlot slot = _actionSlots[slotIndex];
+		ActionSlot slot = _quickItemSlots[slotIndex];
 		slot.AssignAction(slotIndex, action, previewScene);
 		SignalBus.EmitPlayerActionSlotChanged(slotIndex, slot);
-
-		// Reset cooldown
-		_cooldownRemainingTime[slotIndex] = 0;
 	}
 
-	public bool AssignFirstAvailableAction(IPlayerAction action, PackedScene previewScene)
+	public void AssignPrimary(ICombatAttackAction action, PackedScene previewScene)
 	{
-		for (int i = 0; i < ActionSlotCount; i++)
-		{
-			if (GetAction(i) == null)
-			{
-				AssignAction(i, action, previewScene);
-				return true;
-			}
-		}
-
-		return false;
+		PrimaryAttackSlot?.AssignAction(PrimarySlotIndex, action as IPlayerAction, previewScene);
+		SignalBus.EmitPlayerActionSlotChanged(PrimarySlotIndex, PrimaryAttackSlot);
 	}
 
-	public bool ClearAction(IPlayerAction action)
+	public void AssignSecondary(ICombatAttackAction action, PackedScene previewScene)
 	{
-		for (int i = 0; i < ActionSlotCount; i++)
-		{
-			if (GetAction(i) == action)
-			{
-				AssignAction(i, null, null);
-				return true;
-			}
-		}
+		SecondaryTechniqueSlot?.AssignAction(SecondarySlotIndex, action as IPlayerAction, previewScene);
+		SignalBus.EmitPlayerActionSlotChanged(SecondarySlotIndex, SecondaryTechniqueSlot);
+	}
 
-		return false;
+	public void TryPerformPrimary()
+	{
+		if (_player == null || _player.IsDead || _player.IsHit) return;
+		PrimaryAttackSlot?.TryPerformAction(_player);
+	}
+
+	public void TryPerformSecondary()
+	{
+		if (_player == null || _player.IsDead || _player.IsHit || SecondaryTechniqueSlot?.AssignedAction == null) return;
+		SecondaryTechniqueSlot?.TryPerformAction(_player);
 	}
 
 	public void ClearActions()
@@ -100,9 +164,9 @@ public partial class ActionManager : Node
 
 	public void TryPerformAction(int slotIndex)
 	{
-		if (IsBusy || _player.AttackController.IsAttacking || _player.IsDead || _player.IsHit || slotIndex < 0 || slotIndex >= _actionSlots.Count) return;
+		if (IsBusy || _player.AttackController.IsAttacking || _player.IsDead || _player.IsHit || slotIndex < 0 || slotIndex >= _quickItemSlots.Count) return;
 
-		_actionSlots[slotIndex].TryPerformAction(_player);
+		_quickItemSlots[slotIndex].TryPerformAction(_player);
 	}
 
 	private void OnActionPerformed(ActionSlot actionSlot)

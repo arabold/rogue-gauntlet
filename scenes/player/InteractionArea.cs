@@ -28,6 +28,10 @@ public partial class InteractionArea : Area3D
 			interactive.OnPlayerNearby(_player);
 			EmitSignalInteractiveEntered(body);
 		}
+		else if (body is IInteractionTarget)
+		{
+			EmitSignalInteractiveEntered(body);
+		}
 	}
 
 	private void OnAreaExited(Node body)
@@ -36,6 +40,10 @@ public partial class InteractionArea : Area3D
 		if (body is IInteractive interactive)
 		{
 			interactive.OnPlayerLeft(_player);
+			EmitSignalInteractiveExited(body);
+		}
+		else if (body is IInteractionTarget)
+		{
 			EmitSignalInteractiveExited(body);
 		}
 	}

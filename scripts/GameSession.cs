@@ -693,6 +693,7 @@ public partial class GameSession : Node
 			Rotation = CaptureVector3(player.Rotation),
 			Stats = CaptureStats(player.Stats),
 			Inventory = CaptureInventory(player.Inventory),
+			Actions = CaptureActions(player),
 		};
 	}
 
@@ -703,6 +704,7 @@ public partial class GameSession : Node
 			ApplyTransform = false,
 			Stats = CaptureStats(player.Stats),
 			Inventory = CaptureInventory(player.Inventory),
+			Actions = CaptureActions(player),
 		};
 	}
 
@@ -738,12 +740,80 @@ public partial class GameSession : Node
 	{
 		ClearBuffs(player);
 		ApplyInventory(player, saveData.Inventory);
+		ApplyActions(player, saveData.Actions);
 		ApplyStats(player.Stats, saveData.Stats);
 		player.StatsController.SyncStats();
 		if (saveData.ApplyTransform)
 		{
 			player.GlobalPosition = ToVector3(saveData.Position);
 			player.Rotation = ToVector3(saveData.Rotation);
+		}
+	}
+
+	private static PlayerActionSaveData CaptureActions(Player player)
+	{
+		var data = new PlayerActionSaveData();
+		if (player.QuickItemController != null)
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				var binding = player.QuickItemController.GetBinding(i);
+				data.QuickSlots.Add(new QuickItemBindingSaveData
+				{
+					SlotIndex = i,
+					Kind = binding.Kind.ToString(),
+					DefinitionPath = binding.DefinitionPath,
+					InstanceId = binding.InstanceId
+				});
+			}
+
+			foreach (var kvp in player.QuickItemController.GetVarietyCooldowns())
+			{
+				data.VarietyCooldowns[kvp.Key] = kvp.Value;
+			}
+		}
+		return data;
+	}
+
+	private static void ApplyActions(Player player, PlayerActionSaveData data)
+	{
+		if (player.QuickItemController == null || data == null) return;
+		player.QuickItemController.IsRestoringSave = true;
+		try
+		{
+			if (data.QuickSlots != null)
+			{
+				foreach (var slotData in data.QuickSlots)
+				{
+					if (slotData.SlotIndex < 0 || slotData.SlotIndex >= 4) continue;
+					if (System.Enum.TryParse<QuickItemBindingKind>(slotData.Kind, out var kind))
+					{
+						switch (kind)
+						{
+							case QuickItemBindingKind.Variety:
+								player.QuickItemController.RestoreSlot(slotData.SlotIndex, QuickItemBinding.ForVariety(slotData.DefinitionPath));
+								break;
+							case QuickItemBindingKind.Instance:
+								player.QuickItemController.RestoreSlot(slotData.SlotIndex, QuickItemBinding.ForInstance(slotData.InstanceId, slotData.DefinitionPath));
+								break;
+							default:
+								player.QuickItemController.RestoreSlot(slotData.SlotIndex, QuickItemBinding.Unassigned());
+								break;
+						}
+					}
+				}
+			}
+
+			if (data.VarietyCooldowns != null)
+			{
+				player.QuickItemController.RestoreVarietyCooldowns(data.VarietyCooldowns);
+			}
+
+			player.QuickItemController.RefreshCounts();
+		}
+		finally
+		{
+			player.QuickItemController.IsRestoringSave = false;
 		}
 	}
 

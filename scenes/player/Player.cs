@@ -10,12 +10,16 @@ public partial class Player : CharacterBody3D, IDamageable
 	[Export] public PackedScene LootableItemScene { get; protected set; }
 
 	// The following states are used for animation
-	public bool IsDead => HealthComponent.CurrentHealth <= 0;
-	public bool IsHit => MovementComponent.IsPushed;
-	public bool IsMoving => MovementComponent.IsMoving;
-	public bool IsFalling => MovementComponent.IsFalling;
-	public bool IsPerformingAction => ActionManager.IsBusy || AttackController.IsAttacking;
-	public string CurrentActionId => ActionManager.CurrentAnimationId;
+	public bool IsDead => HealthComponent != null && HealthComponent.CurrentHealth <= 0;
+	public bool IsHit => MovementComponent != null && MovementComponent.IsPushed;
+	public bool IsMoving => MovementComponent != null && MovementComponent.IsMoving;
+	public bool IsFalling => MovementComponent != null && MovementComponent.IsFalling;
+	public bool IsPerformingAction => (ActionGate != null && ActionGate.IsBusy) || (ActionManager != null && ActionManager.IsBusy) || (AttackController != null && AttackController.IsAttacking);
+	[Export] public ActorCapabilities Capabilities { get; set; }
+	public ActorActionGateComponent ActionGate { get; protected set; }
+	public PlayerQuickItemController QuickItemController { get; protected set; }
+	public ActorInteractionComponent InteractionComponent { get; protected set; }
+	public string CurrentActionId => ActionManager?.CurrentAnimationId;
 
 	public HealthComponent HealthComponent { get; protected set; }
 	public HurtBoxComponent HurtBoxComponent { get; protected set; }
@@ -111,6 +115,44 @@ public partial class Player : CharacterBody3D, IDamageable
 		InventoryController = GetNode<PlayerInventoryController>("PlayerInventoryController");
 		InputController = GetNode<PlayerInputController>("PlayerInputController");
 		AttackController = GetNode<PlayerAttackController>("PlayerAttackController");
+		ActionGate = GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
+		if (ActionGate == null)
+		{
+			ActionGate = new ActorActionGateComponent { Name = "ActorActionGateComponent" };
+			AddChild(ActionGate);
+		}
+		QuickItemController = GetNodeOrNull<PlayerQuickItemController>("PlayerQuickItemController");
+		if (QuickItemController == null)
+		{
+			QuickItemController = new PlayerQuickItemController { Name = "PlayerQuickItemController" };
+			AddChild(QuickItemController);
+		}
+		InteractionComponent = GetNodeOrNull<ActorInteractionComponent>("ActorInteractionComponent");
+		if (InteractionComponent == null)
+		{
+			InteractionComponent = new ActorInteractionComponent { Name = "ActorInteractionComponent", Actor = this, ActionGate = ActionGate };
+			AddChild(InteractionComponent);
+		}
+		Capabilities ??= new ActorCapabilities
+		{
+			CanOpenDoors = true,
+			CanOpenContainers = true,
+			CanUseMechanisms = true,
+			CanPickMechanicalLocks = true
+		};
+		if (HurtBoxComponent != null)
+		{
+			HurtBoxComponent.DamageTaken += (amount, dir) =>
+			{
+				if (amount > 0 && ActionGate?.IsBusy == true)
+				{
+					if (ActionGate.CurrentKind == ActorActionKind.ItemUse || ActionGate.CurrentKind == ActorActionKind.WorldInteraction)
+					{
+						ActionGate.CancelCurrent(ActionInterruptReason.Damage);
+					}
+				}
+			};
+		}
 
 		InteractionArea = GetNode<InteractionArea>("InteractionArea");
 		InventoryController.AutoEquipItems();

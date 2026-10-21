@@ -12,18 +12,85 @@ public partial class InputComponent : Node
 		return InputDirection != Vector3.Zero;
 	}
 
-	/// <summary>
-	/// Check if the action button is pressed.
-	/// </summary>
-	/// <param name="slotIndex">0-based index of the action slot.</param>
+	private static readonly StringName ActionPrimary = "primary_action";
+	private static readonly StringName ActionSecondary = "secondary_action";
+	private static readonly StringName ActionInteract = "interact";
+	private static readonly StringName ActionDodge = "dodge";
+	private static readonly StringName ActionGuard = "guard";
+	private static readonly StringName ActionMoveRight = "move_right";
+	private static readonly StringName ActionMoveLeft = "move_left";
+	private static readonly StringName ActionMoveUp = "move_up";
+	private static readonly StringName ActionMoveDown = "move_down";
+
+	private static readonly StringName[] QuickItemActions =
+	[
+		"quick_item_1",
+		"quick_item_2",
+		"quick_item_3",
+		"quick_item_4"
+	];
+
+	private static readonly StringName[] LegacyActions =
+	[
+		"action_1",
+		"action_2",
+		"action_3",
+		"action_4"
+	];
+
+	public bool IsPrimaryActionPressed()
+	{
+		return Input.IsActionPressed(ActionPrimary);
+	}
+
+	public bool IsPrimaryActionJustPressed()
+	{
+		return Input.IsActionJustPressed(ActionPrimary);
+	}
+
+	public bool IsSecondaryActionJustPressed()
+	{
+		return Input.IsActionJustPressed(ActionSecondary);
+	}
+
+	public bool IsQuickItemJustPressed(int slotIndex)
+	{
+		if ((uint)slotIndex < (uint)QuickItemActions.Length)
+		{
+			return Input.IsActionJustPressed(QuickItemActions[slotIndex])
+				|| Input.IsActionJustPressed(LegacyActions[slotIndex]);
+		}
+		return false;
+	}
+
 	public bool IsActionSlotPressed(int slotIndex)
 	{
-		return Input.IsActionPressed($"action_{slotIndex + 1}");
+		return IsQuickItemJustPressed(slotIndex);
 	}
 
 	public bool IsInteractPressed()
 	{
-		return Input.IsActionPressed("action_1");
+		return Input.IsActionPressed(ActionInteract);
+	}
+
+	public bool IsInteractJustPressed()
+	{
+		return Input.IsActionJustPressed(ActionInteract);
+	}
+
+	public bool IsDodgeJustPressed()
+	{
+		return Input.IsActionJustPressed(ActionDodge);
+	}
+
+	public bool IsGuardPressed()
+	{
+		return Input.IsActionPressed(ActionGuard);
+	}
+
+	public bool IsGuardJustPressed()
+	{
+		return Input.IsActionJustPressed(ActionGuard);
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -35,19 +102,19 @@ public partial class InputComponent : Node
 		var direction = Vector3.Zero;
 
 		// We check for each move input and update the direction accordingly.
-		if (Input.IsActionPressed("move_right"))
+		if (Input.IsActionPressed(ActionMoveRight))
 		{
 			direction += cameraRight;
 		}
-		if (Input.IsActionPressed("move_left"))
+		if (Input.IsActionPressed(ActionMoveLeft))
 		{
 			direction -= cameraRight;
 		}
-		if (Input.IsActionPressed("move_up"))
+		if (Input.IsActionPressed(ActionMoveUp))
 		{
 			direction -= cameraForward;
 		}
-		if (Input.IsActionPressed("move_down"))
+		if (Input.IsActionPressed(ActionMoveDown))
 		{
 			direction += cameraForward;
 		}

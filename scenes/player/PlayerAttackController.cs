@@ -67,26 +67,33 @@ public partial class PlayerAttackController : AttackController
 
 		if (TryPrepareWeaponAttack(weapon, out var attack, isSpecial))
 		{
-			StartPreparedWeaponAttack(attack, weapon);
+			StartPreparedWeaponAttack(attack, weapon, isSpecial);
 		}
 	}
 
 	/// <summary>Prepare without mutating resources or starting action cooldowns.</summary>
-	public bool TryPrepareWeaponAttack(Weapon weapon, out PreparedAttack attack, bool isSpecial = false)
+	public bool TryPrepareWeaponAttack(Weapon weapon, out PreparedAttack attack, bool isSpecial = false, double duration = 0)
 	{
-		var definition = weapon?.CustomAttackDefinition ?? CreateDefaultDefinition(weapon, isSpecial);
-		return TryPrepareAttack(definition, weapon?.AttackStyle ?? "unarmed.punch",
-			weapon?.PerformDuration ?? 0.5, out attack, isSpecial ? SpecialMeleeContact : weapon?.MeleeContact);
+		var definition = (!isSpecial ? weapon?.CustomAttackDefinition : weapon?.SecondaryCustomAttackDefinition)
+			?? CreateDefaultDefinition(weapon, isSpecial);
+		var style = isSpecial ? (weapon?.GetEffectiveSecondaryStyle() ?? "unarmed.kick") : (weapon?.AttackStyle ?? "unarmed.punch");
+		if (duration <= 0)
+		{
+			duration = isSpecial ? (weapon?.SecondaryPerformDuration ?? 0.6) : (weapon?.PerformDuration ?? 0.5);
+		}
+		var contact = isSpecial ? (weapon?.GetEffectiveSecondaryMeleeContact(SpecialMeleeContact) ?? SpecialMeleeContact) : weapon?.MeleeContact;
+		return TryPrepareAttack(definition, style, duration, out attack, contact);
 	}
 
 	/// <summary>Start the accepted snapshot with current actor stats and local aim assistance.</summary>
-	public bool StartPreparedWeaponAttack(PreparedAttack attack, Weapon weapon = null)
+	public bool StartPreparedWeaponAttack(PreparedAttack attack, Weapon weapon = null, bool isSpecial = false)
 	{
 		if (Player.IsDead || Player.IsHit || IsAttacking) return false;
 		_activeWeapon = weapon;
 		_aimAssistTarget = FindMeleeAimAssistTarget();
 		var stats = Player.Stats;
-		return StartAttack(attack, stats.MinDamage, stats.MaxDamage, stats.Accuracy, stats.CritChance, 24);
+		float multiplier = isSpecial ? (weapon?.SecondaryDamageMultiplier ?? 1.5f) : 1.0f;
+		return StartAttack(attack, stats.MinDamage * multiplier, stats.MaxDamage * multiplier, stats.Accuracy, stats.CritChance, 24);
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -105,25 +112,26 @@ public partial class PlayerAttackController : AttackController
 		var def = new AttackDefinition();
 		if (weapon != null)
 		{
-			def.AnimationId = weapon.AnimationId;
-			def.HitWindowStart = 0.3f * weapon.PerformDuration;
-			def.HitWindowEnd = 0.7f * weapon.PerformDuration;
+			def.AnimationId = isSpecial ? weapon.SecondaryAnimationId : weapon.AnimationId;
+			def.AttackStyle = isSpecial ? weapon.GetEffectiveSecondaryStyle() : weapon.AttackStyle;
+			float duration = isSpecial ? weapon.SecondaryPerformDuration : weapon.PerformDuration;
+			def.HitWindowStart = (isSpecial ? 0.25f : 0.3f) * duration;
+			def.HitWindowEnd = (isSpecial ? 0.75f : 0.7f) * duration;
 			def.Range = weapon is RangedWeapon ranged ? ranged.Range : 20.0f;
 			def.IsRanged = weapon is RangedWeapon;
 
 			if (weapon is RangedWeapon rangedWeapon)
 			{
-				def.ProjectileSpeed = rangedWeapon.ProjectileSpeed;
+				def.ProjectileSpeed = rangedWeapon.ProjectileSpeed * (isSpecial ? 1.25f : 1.0f);
 				def.AimingAngle = rangedWeapon.AimingAngle;
 			}
 		}
-
-		if (isSpecial)
+		else
 		{
-			def.AttackStyle = "sword.2h.spin";
-			def.AnimationId = "spin_attack"; // special spin/heavy swing attack
-			def.HitWindowStart = 0.1f;
-			def.HitWindowEnd = 0.4f;
+			def.AnimationId = isSpecial ? "special_attack" : "melee_attack";
+			def.AttackStyle = isSpecial ? "unarmed.kick" : "unarmed.punch";
+			def.HitWindowStart = 0.2f;
+			def.HitWindowEnd = 0.6f;
 		}
 
 		return def;

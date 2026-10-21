@@ -371,6 +371,33 @@ public class MeleeContactTest
 	}
 
 	[TestCase]
+	public async Task SpecialSpinAttackSwooshFollowsWeaponBladeTrail()
+	{
+		var (runner, harness) = await Load();
+		foreach (int weaponIndex in new[] { 0, 1, 2 })
+		{
+			harness.EquipPreview(weaponIndex);
+			var controller = harness.Player.AttackController;
+			controller.EffectsEnabled = true;
+			var weapon = (Weapon)harness.Player.Inventory.EquippedItems[EquipmentSlot.WeaponHand].Item;
+			AssertBool(controller.TryPrepareWeaponAttack(weapon, out var attack, isSpecial: true)).IsTrue();
+			AssertBool(controller.StartPreparedWeaponAttack(attack, weapon, isSpecial: true)).IsTrue();
+			controller.SetPhysicsProcess(false);
+			controller._PhysicsProcess(.25);
+			var swoosh = harness.Player.GetParent().GetChildren().OfType<MeleeSwoosh>().Last();
+			AssertBool(swoosh.FollowsWeapon).IsTrue();
+			AssertInt(swoosh.TrailSampleCount).IsGreater(2);
+			var manager = harness.Player.GetNode<BoneAttachmentManager>("BoneAttachmentManager");
+			var mount = manager.AttachmentNodes[weapon.IsTwoHanded ? AttachmentType.TwoHandedWeapon : AttachmentType.OneHandedWeapon];
+			var tip = (Marker3D)mount.FindChild("TrailTip", true, false);
+			var bladeBase = (Marker3D)mount.FindChild("TrailBase", true, false);
+			AssertBool(swoosh.LastBladeTip.IsEqualApprox(tip.GlobalPosition)).IsTrue();
+			AssertBool(swoosh.LastBladeBase.IsEqualApprox(bladeBase.GlobalPosition)).IsTrue();
+			controller.CancelAttack();
+		}
+	}
+
+	[TestCase]
 	public async Task SkippedContactWindowStillBuildsTheBladeTrailAndPoolingClearsIt()
 	{
 		var (_, harness) = await Load();
@@ -414,5 +441,112 @@ public class MeleeContactTest
 		AssertFloat(enemy.EffectiveMeleeRange).IsEqualApprox(1.6, .0001);
 		contact.Reach = float.NaN;
 		AssertBool(contact.IsValid).IsFalse();
+	}
+	[TestCase]
+	public void SecondaryAttackDerivesCorrectArchetypeStyleAndContactProfile()
+	{
+		using var sword1h = new Weapon { AttackStyle = "sword.1h.slash" };
+		AssertString(sword1h.GetEffectiveSecondaryStyle().ToString()).IsEqual("sword.1h.special");
+		AssertString(sword1h.GetEffectiveSecondaryMeleeContact().ResourcePath).EndsWith("slash_2h.tres");
+
+		using var sword2h = new Weapon { AttackStyle = "sword.2h.slash" };
+		AssertString(sword2h.GetEffectiveSecondaryStyle().ToString()).IsEqual("sword.2h.special");
+		AssertString(sword2h.GetEffectiveSecondaryMeleeContact().ResourcePath).EndsWith("spin.tres");
+
+		using var axe1h = new Weapon { AttackStyle = "axe.1h.chop" };
+		AssertString(axe1h.GetEffectiveSecondaryStyle().ToString()).IsEqual("axe.1h.special");
+		AssertString(axe1h.GetEffectiveSecondaryMeleeContact().ResourcePath).EndsWith("slash_2h.tres");
+
+		using var axe2h = new Weapon { AttackStyle = "axe.2h.chop" };
+		AssertString(axe2h.GetEffectiveSecondaryStyle().ToString()).IsEqual("axe.2h.special");
+		AssertString(axe2h.GetEffectiveSecondaryMeleeContact().ResourcePath).EndsWith("slash_2h.tres");
+
+		using var spear2h = new Weapon { AttackStyle = "spear.2h.thrust" };
+		AssertString(spear2h.GetEffectiveSecondaryStyle().ToString()).IsEqual("spear.2h.special");
+		AssertString(spear2h.GetEffectiveSecondaryMeleeContact().ResourcePath).EndsWith("slash_2h.tres");
+
+		using var blunt2h = new Weapon { AttackStyle = "blunt.2h.chop" };
+		AssertString(blunt2h.GetEffectiveSecondaryStyle().ToString()).IsEqual("blunt.2h.special");
+		AssertString(blunt2h.GetEffectiveSecondaryMeleeContact().ResourcePath).EndsWith("spin.tres");
+
+		using var ranged = new RangedWeapon { AttackStyle = "crossbow.shoot" };
+		AssertString(ranged.GetEffectiveSecondaryStyle().ToString()).IsEqual("crossbow.shoot.special");
+		AssertObject(ranged.GetEffectiveSecondaryMeleeContact()).IsNull();
+		AssertFloat(ranged.SecondaryDamageMultiplier).IsEqual(2.0f);
+	}
+
+	[TestCase]
+	public void MartialTechniqueActionDerivesWeaponSecondaryProperties()
+	{
+		using var weapon = new Weapon
+		{
+			AttackStyle = "axe.1h.chop",
+			SecondaryAnimationId = "custom_anim",
+			SecondaryDelay = 0.2f,
+			SecondaryPerformDuration = 0.7f,
+			SecondaryCooldownDuration = 1.4f,
+			SecondaryDamageMultiplier = 1.8f
+		};
+
+		var action = new MartialTechniqueAction(weapon);
+		AssertString(action.AnimationId).IsEqual("custom_anim");
+		AssertFloat(action.Delay).IsEqual(0.2f);
+		AssertFloat(action.PerformDuration).IsEqual(0.7f);
+		AssertFloat(action.CooldownDuration).IsEqual(1.4f);
+		AssertString(action.CooldownKey).IsEqual("axe.1h.special");
+	}
+
+	[TestCase]
+	public async Task SecondaryAttackAppliesSecondaryDamageMultiplier()
+	{
+		var (_, harness) = await Load();
+		harness.Player.Inventory.Unequip(EquipmentSlot.WeaponHand);
+		harness.Player.Stats.BaseMinDamage = 0;
+		harness.Player.Stats.BaseMaxDamage = 0;
+		harness.Player.Stats.BaseCritChance = 0;
+		var controller = harness.Player.AttackController;
+
+		using var def = new Weapon
+		{
+			AttackStyle = "axe.1h.chop",
+			DamageMin = 10,
+			DamageMax = 10,
+			ValidSlots = ValidSlots.WeaponHand,
+			SecondaryDamageMultiplier = 2.0f,
+			MeleeContact = GD.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/slash_1h.tres")
+		};
+		AssertBool(harness.Player.Inventory.TryAdd(def).Success).IsTrue();
+		var slot = harness.Player.Inventory.Items.Last();
+		var weapon = (Weapon)slot.Item;
+		harness.Player.Inventory.Equip(slot);
+
+		Health(harness).SetHealth(1000, 1000);
+		AssertBool(controller.TryPrepareWeaponAttack(weapon, out var primaryAttack, isSpecial: false)).IsTrue();
+		AssertBool(controller.StartPreparedWeaponAttack(primaryAttack, weapon, isSpecial: false)).IsTrue();
+		controller.SetPhysicsProcess(false);
+		controller._PhysicsProcess(2);
+		float primaryDamage = 1000 - Health(harness).CurrentHealth;
+		AssertFloat(primaryDamage).IsEqual(11.0f);
+
+		Health(harness).SetHealth(1000, 1000);
+		var action = new MartialTechniqueAction(weapon);
+		AssertBool(action.TryPrepare(harness.Player, out var secondaryAttack)).IsTrue();
+		AssertBool(action.StartPrepared(harness.Player, secondaryAttack)).IsTrue();
+		controller._PhysicsProcess(2);
+		float secondaryDamage = 1000 - Health(harness).CurrentHealth;
+		AssertFloat(secondaryDamage).IsEqual(22.0f);
+		AssertFloat(secondaryDamage).IsEqualApprox(primaryDamage * 2.0f, 0.001f);
+
+		using var crossbow = new RangedWeapon
+		{
+			AttackStyle = "crossbow.shoot",
+			Range = 20.0f,
+			ProjectileSpeed = 10.0f,
+			SecondaryDamageMultiplier = 2.0f
+		};
+		AssertBool(controller.TryPrepareWeaponAttack(crossbow, out var primaryRanged, isSpecial: false)).IsTrue();
+		AssertFloat(primaryRanged.Definition.ProjectileSpeed).IsEqual(10.0f);
+		AssertBool(controller.TryPrepareWeaponAttack(crossbow, out var secondaryRanged, isSpecial: true)).IsTrue();
+		AssertFloat(secondaryRanged.Definition.ProjectileSpeed).IsEqual(12.5f);
 	}
 }
