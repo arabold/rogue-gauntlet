@@ -45,7 +45,7 @@ project/assembly_name="Rogue Gauntlet"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/phantom_camera/plugin.cfg")
+enabled=PackedStringArray("res://addons/phantom_camera/plugin.cfg", "res://addons/room_generator/plugin.cfg")
 
 [global_group]
 

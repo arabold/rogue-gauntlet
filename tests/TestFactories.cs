@@ -38,7 +38,8 @@ public static class TestFactories
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		builder.DoorwayChance = 1f;
-		builder.DoorChance = 0.5f;
+		builder.MinDoors = 1;
+		builder.MaxDoors = 2;
 		builder.MaxDoorways = 4;
 		return new MixedRoomFactory
 		{

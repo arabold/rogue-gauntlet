@@ -42,7 +42,8 @@ public class RoomRotationTest
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		builder.DoorwayChance = 1f;
-		builder.DoorChance = 1f;
+		builder.MinDoors = 4;
+		builder.MaxDoors = 4;
 		builder.MaxDoorways = 4;
 
 		var failures = new List<string>();
@@ -50,7 +51,6 @@ public class RoomRotationTest
 		{
 			using var rng = new RandomNumberGenerator { Seed = seed };
 			Room room = builder.BuildRoom(rng);
-			room.BakeTileMap();
 			CheckRotationSweep(room, $"seed {seed}", strictContentChecks: true, failures);
 			room.QueueFree();
 		}

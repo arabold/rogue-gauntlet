@@ -6,6 +6,7 @@ using Godot;
 /// Base class for a room in the level.
 /// </summary>
 [Tool]
+[GlobalClass]
 public partial class Room : Node3D
 {
 	/// <summary>
@@ -124,10 +125,17 @@ public partial class Room : Node3D
 		// parity trick also avoids integer division entirely -- int '/' truncates
 		// toward zero, which floors positive cells but CEILS negative ones, silently
 		// shifting rooms that extend into negative coordinates.
-		int minCellX = usedCells.MinBy(cell => cell.X).X;
-		int maxCellX = usedCells.MaxBy(cell => cell.X).X;
-		int minCellZ = usedCells.MinBy(cell => cell.Z).Z;
-		int maxCellZ = usedCells.MaxBy(cell => cell.Z).Z;
+		int minCellX = int.MaxValue;
+		int maxCellX = int.MinValue;
+		int minCellZ = int.MaxValue;
+		int maxCellZ = int.MinValue;
+		foreach (Vector3I cell in usedCells)
+		{
+			if (cell.X < minCellX) minCellX = cell.X;
+			if (cell.X > maxCellX) maxCellX = cell.X;
+			if (cell.Z < minCellZ) minCellZ = cell.Z;
+			if (cell.Z > maxCellZ) maxCellZ = cell.Z;
+		}
 
 		int roomXMin = minCellX + (minCellX & 1);
 		int roomXMax = maxCellX - (maxCellX & 1);
@@ -142,7 +150,7 @@ public partial class Room : Node3D
 
 		_wallFootprints = WallFootprints.Collect(WallGridMap);
 
-		var mapSize = ToTilePosition(Bounds.Size.X, 0, Bounds.Size.Y);
+		var mapSize = Bounds.Size / TileSize;
 		var map = new MapData(mapSize.X, mapSize.Y);
 
 		// Each logical tile is a 4x4 block of GridMap cells centered on its
@@ -157,15 +165,16 @@ public partial class Room : Node3D
 				var gridZ = center.Z - TileSize / 2;
 
 				// Check for floors
-				for (var dx = 0; dx < TileSize; dx++)
+				var hasFloor = false;
+				for (var dx = 0; dx < TileSize && !hasFloor; dx++)
 				{
 					for (var dz = 0; dz < TileSize; dz++)
 					{
 						var floorVec = new Vector3I(gridX + dx, 0, gridZ + dz);
-						var floorCell = FloorGridMap.GetCellItem(floorVec);
-						if (floorCell != -1)
+						if (FloorGridMap.GetCellItem(floorVec) != -1)
 						{
 							map.SetTile(x, z, MapTile.Room);
+							hasFloor = true;
 							break;
 						}
 					}
@@ -197,6 +206,11 @@ public partial class Room : Node3D
 
 		Map = map;
 		GD.Print($"Room map generated: {Map.Width}x{Map.Height}");
+
+		if (Engine.IsEditorHint() && IsInsideTree() && GetTree()?.EditedSceneRoot == this && ShowDebugOverlay)
+		{
+			CreateDebugOverlay();
+		}
 	}
 
 	/// <summary>
@@ -675,30 +689,6 @@ public partial class Room : Node3D
 		}
 
 		return isHole ? holeCells : null;
-	}
-
-	protected Vector2I ToTilePosition(Vector3I position)
-	{
-		return ToTilePosition(position.X, 0, position.Z);
-	}
-
-	protected Vector2I ToTilePosition(int x, int y, int z)
-	{
-		var tileX = Mathf.FloorToInt(x / TileSize);
-		var tileZ = Mathf.FloorToInt(z / TileSize);
-		return new Vector2I(tileX, tileZ);
-	}
-
-	protected Vector3I ToGridPosition(Vector2I position)
-	{
-		return ToGridPosition(position.X, 0, position.Y);
-	}
-
-	protected Vector3I ToGridPosition(int x, int y, int z)
-	{
-		var gridX = x * TileSize;
-		var gridZ = z * TileSize;
-		return new Vector3I(gridX, y, gridZ);
 	}
 
 	/// <summary>

@@ -91,14 +91,6 @@ public partial class MapGenerator : Node3D
 	private const float FogRevealFadeSeconds = 0.6f;
 
 	private const int OcclusionItemId = 0;
-	private const int HorizontalWallOrientation = 0;
-	private const int HorizontalWallWestHalfOrientation = 10;
-	private const int VerticalWallOrientation = 16;
-	private const int VerticalWallSouthHalfOrientation = 22;
-	private const int NorthWestCornerOrientation = 16;
-	private const int NorthEastCornerOrientation = 0;
-	private const int SouthWestCornerOrientation = 10;
-	private const int SouthEastCornerOrientation = 22;
 	private const float EnemySpawnPlayerClearance = 20f;
 	private const float EnemySpawnPointSpacing = 5f;
 	private const float EnemySpawnBlockedAreaClearance = 7f;
@@ -491,318 +483,26 @@ public partial class MapGenerator : Node3D
 	private void PlaceWalls()
 	{
 		GD.Print("Placing walls...");
-		var cornerEdges = new System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges>();
-		// A HashSet, not a List: an interior room/corridor edge is a wall-source tile on
-		// both sides (unlike a void-facing edge, which only ever has one walkable side),
-		// so both sides independently request the same wall at the same position and
-		// orientation. WallStraightRequest is a record struct, so this dedupes for free.
-		var straightWalls = new HashSet<WallStraightRequest>();
-		var authoredWallBoxes = CollectWallFootprints();
-
-		// Decision pass: one rule per tile edge (see NeedsWallToward) collects every
-		// edge that must end up sealed.
+		var sourceTiles = new List<(Vector2I Tile, Vector3I BasePosition)>();
 		for (int x = 0; x < Map.Width; x++)
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				if (IsWallSourceTile(x, z))
+				if (Map.IsWalkable(x, z))
 				{
-					PlaceWallModulesForTile(x, z, cornerEdges, straightWalls, authoredWallBoxes);
+					sourceTiles.Add((new Vector2I(x, z), TileToWorld(x, 0, z)));
 				}
 			}
 		}
 
-		// Fast path: a full-width wall on each edge whose midpoint cell is free -- the
-		// overwhelmingly common case.
-		foreach (var wall in straightWalls)
-		{
-			if (WallGridMap.GetCellItem(wall.Position) < 0)
-			{
-				WallGridMap.SetCellItem(wall.Position, TileFactory.GetWallTileIndex(_random.Decoration), wall.Orientation);
-			}
-		}
-
-		// Coverage pass: re-measure the actual mesh footprints now in the grid (authored
-		// + just-generated) and patch any required edge still showing daylight. Coverage
-		// is judged from real geometry rather than parallel bookkeeping, so authored
-		// frame posts, corner pieces, and rotated perpendicular walls that merely occupy
-		// anchor CELLS without covering the edge LINE cannot fool it -- that exact
-		// confusion previously left an unconnected authored doorway open to the void
-		// (silently: the old half-wall fallback gave up when its two fixed anchor cells
-		// were taken). A required edge that cannot be sealed is now a loud error.
-		var wallBoxes = CollectWallFootprints();
-		foreach (var wall in straightWalls)
-		{
-			EnsureEdgeCovered(wall, wallBoxes);
-		}
-
-		PlaceWallCorners(cornerEdges);
-	}
-
-	/// <summary>
-	/// Seals whatever parts of a required edge are still uncovered, placing full or half
-	/// wall pieces anchored at any free cell along the edge row whose measured footprint
-	/// actually covers the hole. Errors loudly when a hole cannot be sealed -- a visible
-	/// gap in the dungeon must never be silent.
-	/// </summary>
-	private void EnsureEdgeCovered(WallStraightRequest wall, List<Aabb> wallBoxes)
-	{
-		bool horizontal = wall.Orientation == HorizontalWallOrientation;
-		float lineCoord = horizontal ? wall.Position.Z : wall.Position.X;
-		float spanMin = (horizontal ? wall.Position.X : wall.Position.Z) - TileSize / 2f;
-		float spanMax = spanMin + TileSize;
-
-		// Each successful fill covers a positive part of the hole, so a handful of
-		// pieces always suffices for a TileSize-wide edge; the bound only guards
-		// against a degenerate mesh library (e.g. zero-width wall meshes).
-		for (int attempt = 0; attempt < TileSize; attempt++)
-		{
-			if (!WallFootprints.TryGetUncoveredSpan(wallBoxes, horizontal, lineCoord, spanMin, spanMax, out var gap))
-			{
-				return; // Fully sealed.
-			}
-
-			if (!TryFillEdgeGap(horizontal, lineCoord, gap, wallBoxes))
-			{
-				break;
-			}
-		}
-
-		if (WallFootprints.TryGetUncoveredSpan(wallBoxes, horizontal, lineCoord, spanMin, spanMax, out var remaining))
-		{
-			GD.PrintErr($"Wall gap could not be sealed on the {(horizontal ? "horizontal" : "vertical")} edge at "
-				+ $"{(horizontal ? "z" : "x")}={lineCoord}, span [{remaining.A:F1},{remaining.B:F1}] near {wall.Position}: "
-				+ "no free cell on the edge row fits a covering wall piece.");
-		}
-	}
-
-	/// <summary>
-	/// Places the single candidate piece (full or half wall, any orientation valid for
-	/// the edge axis, anchored at any free cell along the edge row) whose measured mesh
-	/// footprint covers the most of <paramref name="gap"/>. Candidates are judged by
-	/// their real rotated AABB footprint, never by which cell they anchor on.
-	/// </summary>
-	private bool TryFillEdgeGap(bool horizontal, float lineCoord, (float A, float B) gap, List<Aabb> wallBoxes)
-	{
-		MeshLibrary library = WallGridMap.MeshLibrary;
-		if (library == null)
-		{
-			return false;
-		}
-
-		(int Item, int Orientation)[] candidates = horizontal
-			? new[]
-			{
-				(TileFactory.GetWallTileIndex(_random.Decoration), HorizontalWallOrientation),
-				(TileFactory.GetWallHalfTileIndex(_random.Decoration), HorizontalWallOrientation),
-				(TileFactory.GetWallHalfTileIndex(_random.Decoration), HorizontalWallWestHalfOrientation),
-			}
-			: new[]
-			{
-				(TileFactory.GetWallTileIndex(_random.Decoration), VerticalWallOrientation),
-				(TileFactory.GetWallHalfTileIndex(_random.Decoration), VerticalWallOrientation),
-				(TileFactory.GetWallHalfTileIndex(_random.Decoration), VerticalWallSouthHalfOrientation),
-			};
-
-		float bestOverlap = WallCoverageEps;
-		Vector3I bestCell = default;
-		(int Item, int Orientation) bestCandidate = default;
-		Aabb bestFootprint = default;
-
-		int gapCenter = Mathf.RoundToInt((gap.A + gap.B) / 2f);
-		for (int offset = -(int)TileSize / 2; offset <= (int)TileSize / 2; offset++)
-		{
-			var cell = horizontal
-				? new Vector3I(gapCenter + offset, 0, Mathf.RoundToInt(lineCoord))
-				: new Vector3I(Mathf.RoundToInt(lineCoord), 0, gapCenter + offset);
-			if (WallGridMap.GetCellItem(cell) >= 0)
-			{
-				continue;
-			}
-
-			foreach (var candidate in candidates)
-			{
-				Mesh mesh = library.GetItemMesh(candidate.Item);
-				if (mesh == null)
-				{
-					continue;
-				}
-
-				Aabb footprint = WallFootprints.FootprintWorld(mesh.GetAabb(), candidate.Orientation, cell);
-				float perpMin = horizontal ? footprint.Position.Z : footprint.Position.X;
-				float perpMax = horizontal ? footprint.End.Z : footprint.End.X;
-				if (lineCoord < perpMin - WallCoverageEps || lineCoord > perpMax + WallCoverageEps)
-				{
-					continue; // Doesn't sit on the edge line.
-				}
-
-				float a = horizontal ? footprint.Position.X : footprint.Position.Z;
-				float b = horizontal ? footprint.End.X : footprint.End.Z;
-				float overlap = Mathf.Min(b, gap.B) - Mathf.Max(a, gap.A);
-				if (overlap > bestOverlap)
-				{
-					bestOverlap = overlap;
-					bestCell = cell;
-					bestCandidate = candidate;
-					bestFootprint = footprint;
-				}
-			}
-		}
-
-		if (bestOverlap <= WallCoverageEps)
-		{
-			return false;
-		}
-
-		WallGridMap.SetCellItem(bestCell, bestCandidate.Item, bestCandidate.Orientation);
-		wallBoxes.Add(bestFootprint);
-		return true;
-	}
-
-	private void PlaceWallModulesForTile(int x, int z, System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, HashSet<WallStraightRequest> straightWalls, List<Aabb> authoredWallBoxes)
-	{
-		int tileCenter = (int)TileSize / 2;
-		var basePosition = TileToWorld(x, 0, z);
-		int westX = basePosition.X - tileCenter;
-		int eastX = basePosition.X + tileCenter;
-		int northZ = basePosition.Z - tileCenter;
-		int southZ = basePosition.Z + tileCenter;
-
-		// Generate a wall on each edge that faces void, or that needs interior separation
-		// (an unsanctioned room/corridor contact; see MapData.RequiresInteriorWall) --
-		// unless the room template already authored a wall that fully covers that edge
-		// (checked against real mesh footprints).
-		bool north = NeedsWallToward(x, z, 0, -1) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: true, northZ, westX, eastX);
-		bool south = NeedsWallToward(x, z, 0, 1) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: true, southZ, westX, eastX);
-		bool west = NeedsWallToward(x, z, -1, 0) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: false, westX, northZ, southZ);
-		bool east = NeedsWallToward(x, z, 1, 0) && !EdgeFullyAuthored(authoredWallBoxes, horizontal: false, eastX, northZ, southZ);
-
-		if (north)
-		{
-			AddHorizontalCornerEdge(cornerEdges, new Vector2I(westX, northZ), extendsEast: true);
-			AddHorizontalCornerEdge(cornerEdges, new Vector2I(eastX, northZ), extendsEast: false);
-			straightWalls.Add(new(basePosition + new Vector3I(0, 0, -tileCenter), HorizontalWallOrientation));
-		}
-
-		if (south)
-		{
-			AddHorizontalCornerEdge(cornerEdges, new Vector2I(westX, southZ), extendsEast: true);
-			AddHorizontalCornerEdge(cornerEdges, new Vector2I(eastX, southZ), extendsEast: false);
-			straightWalls.Add(new(basePosition + new Vector3I(0, 0, tileCenter), HorizontalWallOrientation));
-		}
-
-		if (west)
-		{
-			AddVerticalCornerEdge(cornerEdges, new Vector2I(westX, northZ), extendsSouth: true);
-			AddVerticalCornerEdge(cornerEdges, new Vector2I(westX, southZ), extendsSouth: false);
-			straightWalls.Add(new(basePosition + new Vector3I(-tileCenter, 0, 0), VerticalWallOrientation));
-		}
-
-		if (east)
-		{
-			AddVerticalCornerEdge(cornerEdges, new Vector2I(eastX, northZ), extendsSouth: true);
-			AddVerticalCornerEdge(cornerEdges, new Vector2I(eastX, southZ), extendsSouth: false);
-			straightWalls.Add(new(basePosition + new Vector3I(tileCenter, 0, 0), VerticalWallOrientation));
-		}
-	}
-
-	private void AddHorizontalCornerEdge(System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, Vector2I position, bool extendsEast)
-	{
-		cornerEdges.TryGetValue(position, out var edges);
-		if (extendsEast)
-		{
-			edges.HorizontalEast = true;
-		}
-		else
-		{
-			edges.HorizontalWest = true;
-		}
-
-		cornerEdges[position] = edges;
-	}
-
-	private void AddVerticalCornerEdge(System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges, Vector2I position, bool extendsSouth)
-	{
-		cornerEdges.TryGetValue(position, out var edges);
-		if (extendsSouth)
-		{
-			edges.VerticalSouth = true;
-		}
-		else
-		{
-			edges.VerticalNorth = true;
-		}
-
-		cornerEdges[position] = edges;
-	}
-
-	private void PlaceWallCorners(System.Collections.Generic.Dictionary<Vector2I, WallCornerEdges> cornerEdges)
-	{
-		foreach (var (position, edges) in cornerEdges)
-		{
-			if (edges.HorizontalEast && edges.VerticalSouth)
-			{
-				PlaceWallCorner(position, NorthWestCornerOrientation);
-			}
-			else if (edges.HorizontalWest && edges.VerticalSouth)
-			{
-				PlaceWallCorner(position, NorthEastCornerOrientation);
-			}
-			else if (edges.HorizontalEast && edges.VerticalNorth)
-			{
-				PlaceWallCorner(position, SouthWestCornerOrientation);
-			}
-			else if (edges.HorizontalWest && edges.VerticalNorth)
-			{
-				PlaceWallCorner(position, SouthEastCornerOrientation);
-			}
-		}
-	}
-
-	private void PlaceWallCorner(Vector2I position, int orientation)
-	{
-		// A corner is pure polish at the join of two edges; the full-width straight walls
-		// already seal both edges. So just drop a corner mesh on the corner cell when it is
-		// free, and otherwise leave it. The previous code fell back to scattering half-walls
-		// into neighbouring cells, which could occupy a straight wall's midpoint cell and
-		// leave that edge with a gap.
-		var cellPosition = new Vector3I(position.X, 0, position.Y);
-		if (WallGridMap.GetCellItem(cellPosition) < 0)
-		{
-			WallGridMap.SetCellItem(cellPosition, TileFactory.GetWallCornerTileIndex(_random.Decoration), orientation);
-		}
-	}
-
-	private const float WallCoverageEps = WallFootprints.Eps;
-
-	/// <summary>
-	/// World-space XZ footprints of every wall currently in the grid. Called before
-	/// generation (yielding the room-authored walls, to skip edges they already seal)
-	/// and again after the fast placement pass (yielding authored + generated, as the
-	/// baseline for the coverage-patching pass).
-	/// </summary>
-	private List<Aabb> CollectWallFootprints()
-	{
-		return WallFootprints.Collect(WallGridMap);
-	}
-
-	/// <summary>
-	/// True when authored wall footprints fully cover a logical tile edge. The edge runs
-	/// along X at z=<paramref name="lineCoord"/> when <paramref name="horizontal"/>, else
-	/// along Z at x=<paramref name="lineCoord"/>; <paramref name="spanMin"/>..spanMax is its
-	/// 4-unit extent on that axis.
-	/// </summary>
-	private static bool EdgeFullyAuthored(List<Aabb> authoredWallBoxes, bool horizontal, float lineCoord, float spanMin, float spanMax)
-	{
-		return !WallFootprints.TryGetUncoveredSpan(authoredWallBoxes, horizontal, lineCoord, spanMin, spanMax, out _);
-	}
-
-	private readonly record struct WallStraightRequest(Vector3I Position, int Orientation);
-
-	private bool IsWallSourceTile(int x, int z)
-	{
-		return Map.IsWithinBounds(x, z)
-			&& (Map.IsRoom(x, z) || Map.IsConnector(x, z) || Map.IsCorridor(x, z));
+		WallFootprints.PlaceWalls(
+			WallGridMap,
+			(int)TileSize,
+			sourceTiles,
+			(tile, dx, dz) => NeedsWallToward(tile.X, tile.Y, dx, dz),
+			() => TileFactory.GetWallTileIndex(_random.Decoration),
+			() => TileFactory.GetWallHalfTileIndex(_random.Decoration),
+			() => TileFactory.GetWallCornerTileIndex(_random.Decoration));
 	}
 
 	private bool NeedsGeneratedWallAgainst(int x, int z)
@@ -814,14 +514,6 @@ public partial class MapGenerator : Node3D
 	{
 		return NeedsGeneratedWallAgainst(x + dx, z + dz)
 			|| Map.RequiresInteriorWall(x, z, new Vector2I(dx, dz));
-	}
-
-	private struct WallCornerEdges
-	{
-		public bool HorizontalWest;
-		public bool HorizontalEast;
-		public bool VerticalNorth;
-		public bool VerticalSouth;
 	}
 
 	/// <summary>

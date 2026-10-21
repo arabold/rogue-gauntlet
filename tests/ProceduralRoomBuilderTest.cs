@@ -18,6 +18,8 @@ public class ProceduralRoomBuilderTest
 {
 	private const int SeedCount = 60;
 	private const int TileSize = Room.TileSize;
+	private const string TestDir = "res://tests/temp_rooms/";
+	private const string TestScenePath = TestDir + "test_generated_room.tscn";
 
 	[TestCase]
 	public void BuiltRoomsSatisfyRoomContract()
@@ -35,7 +37,6 @@ public class ProceduralRoomBuilderTest
 				continue;
 			}
 
-			room.BakeTileMap();
 			foreach (string failure in FindRoomContractViolations(room, builder))
 			{
 				failures.Add($"seed {seed}: {failure}");
@@ -59,7 +60,8 @@ public class ProceduralRoomBuilderTest
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		builder.DoorwayChance = 1f;
-		builder.DoorChance = 1f;
+		builder.MinDoors = 4;
+		builder.MaxDoors = 4;
 		builder.MaxDoorways = 4;
 
 		var failures = new List<string>();
@@ -67,7 +69,6 @@ public class ProceduralRoomBuilderTest
 		{
 			using var rng = new RandomNumberGenerator { Seed = seed };
 			Room room = builder.BuildRoom(rng);
-			room.BakeTileMap();
 			foreach (string failure in FindDoorwayContractViolations(room))
 			{
 				failures.Add($"seed {seed}: {failure}");
@@ -95,7 +96,6 @@ public class ProceduralRoomBuilderTest
 		{
 			using var rng = new RandomNumberGenerator { Seed = seed };
 			Room room = builder.BuildRoom(rng);
-			room.BakeTileMap();
 			foreach (Vector3I cell in room.DecorationGridMap.GetUsedCells())
 			{
 				int tileX = (cell.X + TileSize / 2) / TileSize;
@@ -119,63 +119,312 @@ public class ProceduralRoomBuilderTest
 	}
 
 	[TestCase]
-	public void SmallFloorItemsTileWithoutGaps()
+	public void PopulateRoomGeneratesAllShapeArchetypes()
 	{
-		// The default resource only configures "large" (4x4) floor items, so the
-		// generalized any-size anchor formula in ProceduralRoomBuilder.PlaceFloorTile
-		// otherwise never gets exercised by "small" (2x2) items.
 		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
-		builder.FloorItems = new[] { "floor_dirt_small_A" };
-		builder.AccentFloorItems = System.Array.Empty<string>();
+		var room = new Room();
 
-		var failures = new List<string>();
-		for (ulong seed = 1; seed <= SeedCount; seed++)
+		RoomShapeArchetype[] archetypes =
+		[
+			RoomShapeArchetype.Rectangle,
+			RoomShapeArchetype.LShape,
+			RoomShapeArchetype.SteppedZ,
+			RoomShapeArchetype.Cross,
+			RoomShapeArchetype.TJunction,
+			RoomShapeArchetype.UShape,
+		];
+
+		foreach (var shape in archetypes)
 		{
-			using var rng = new RandomNumberGenerator { Seed = seed };
-			Room room = builder.BuildRoom(rng);
-			room.BakeTileMap();
-			foreach (string failure in FindFloorCoverageViolations(room))
-			{
-				failures.Add($"seed {seed}: {failure}");
-			}
+			using var rng = new RandomNumberGenerator { Seed = 42 };
+			builder.ShapeArchetype = shape;
+			bool success = builder.PopulateRoom(room, rng);
 
-			room.QueueFree();
+			AssertBool(success).IsTrue();
+			AssertObject(room.FloorGridMap).IsNotNull();
+			AssertObject(room.WallGridMap).IsNotNull();
+			AssertObject(room.DecorationGridMap).IsNotNull();
+			AssertBool(room.FloorGridMap.GetUsedCells().Count > 0).IsTrue();
+			AssertObject(room.Map).IsNotNull();
+			AssertBool(room.Bounds.Size.X > 0 && room.Bounds.Size.Y > 0).IsTrue();
+			AssertInt(room.Bounds.Size.X % Room.TileSize).IsEqual(0);
+			AssertInt(room.Bounds.Size.Y % Room.TileSize).IsEqual(0);
 		}
 
+		room.QueueFree();
+	}
+
+	[TestCase]
+	public void AllMaterialsAndPurposesTileWithoutOverlapOrGaps()
+	{
+		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
+			cacheMode: ResourceLoader.CacheMode.Ignore);
+		var room = new Room();
+		var failures = new List<string>();
+
+		RoomMaterial[] materials =
+		[
+			RoomMaterial.StoneSlab,
+			RoomMaterial.CobbleGrid,
+			RoomMaterial.WoodPlanks,
+			RoomMaterial.StoneAndWood,
+			RoomMaterial.Earthen,
+			RoomMaterial.RuinedMix,
+		];
+
+		RoomPurpose[] purposes =
+		[
+			RoomPurpose.Chamber,
+			RoomPurpose.GreatHall,
+			RoomPurpose.Temple,
+			RoomPurpose.Colonnade,
+			RoomPurpose.SewerCistern,
+			RoomPurpose.SewerAqueduct,
+			RoomPurpose.RuinedCollapse,
+		];
+
+		ulong seed = 100;
+		foreach (var material in materials)
+		{
+			foreach (var purpose in purposes)
+			{
+				seed++;
+				using var rng = new RandomNumberGenerator { Seed = seed };
+				builder.Material = material;
+				builder.Purpose = purpose;
+				builder.MinTiles = 4;
+				builder.MaxTiles = 6;
+				builder.PopulateRoom(room, rng);
+
+				foreach (string coverageFailure in FindFloorCoverageViolations(room))
+				{
+					failures.Add($"{material}/{purpose} (seed {seed}): {coverageFailure}");
+				}
+
+				MeshLibrary lib = room.FloorGridMap.MeshLibrary;
+				var nonCornerRects = new List<(Vector3I Cell, string Name, Rect2 Rect)>();
+				int? woodOrientation = null;
+
+				foreach (Vector3I cell in room.FloorGridMap.GetUsedCells())
+				{
+					int item = room.FloorGridMap.GetCellItem(cell);
+					string itemName = lib.GetItemName(item);
+					int rot = room.FloorGridMap.GetCellItemOrientation(cell);
+
+					if (itemName.StartsWith("floor_wood_"))
+					{
+						if (woodOrientation == null)
+						{
+							woodOrientation = rot;
+						}
+						else if (woodOrientation.Value != rot)
+						{
+							failures.Add($"{material}/{purpose} (seed {seed}): wood tile '{itemName}' at {cell} has orientation {rot}, expected uniform {woodOrientation.Value}");
+						}
+					}
+
+					// Corner tiles are the only ones allowed to overlay a base tile.
+					if (itemName.EndsWith("_corner"))
+					{
+						continue;
+					}
+
+					Aabb worldAabb = WallFootprints.FootprintWorld(lib.GetItemMesh(item).GetAabb(), rot, cell);
+					// Shrink slightly by 0.05 to test interior overlap rather than shared boundary edges.
+					var rect = new Rect2(
+						new Vector2(worldAabb.Position.X + 0.05f, worldAabb.Position.Z + 0.05f),
+						new Vector2(worldAabb.Size.X - 0.1f, worldAabb.Size.Z - 0.1f));
+					nonCornerRects.Add((cell, itemName, rect));
+				}
+
+				for (int i = 0; i < nonCornerRects.Count; i++)
+				{
+					for (int j = i + 1; j < nonCornerRects.Count; j++)
+					{
+						if (nonCornerRects[i].Rect.Intersects(nonCornerRects[j].Rect))
+						{
+							failures.Add($"{material}/{purpose} (seed {seed}): '{nonCornerRects[i].Name}' at {nonCornerRects[i].Cell} overlaps '{nonCornerRects[j].Name}' at {nonCornerRects[j].Cell}");
+						}
+					}
+				}
+			}
+		}
+
+		room.QueueFree();
 		AssertArray(failures)
-			.OverrideFailureMessage($"Found {failures.Count} floor coverage violation(s) across {SeedCount} seeds:\n  "
-				+ string.Join("\n  ", failures))
+			.OverrideFailureMessage("Floor coverage/overlap/wood orientation violations:\n  " + string.Join("\n  ", failures))
 			.IsEmpty();
 	}
 
 	[TestCase]
-	public void MixedAccentFloorTilesWithoutGaps()
+	public void ChasmsAreDisabledByDefaultAndConfigurable()
 	{
 		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
-		builder.FloorAccentChance = 1f;
+		AssertBool(builder.EnableChasms).IsFalse();
 
-		var failures = new List<string>();
-		for (ulong seed = 1; seed <= SeedCount; seed++)
+		builder.ShapeArchetype = RoomShapeArchetype.Rectangle;
+		builder.ChasmChance = 1f;
+		var room = new Room();
+
+		for (ulong seed = 1; seed <= 20; seed++)
 		{
 			using var rng = new RandomNumberGenerator { Seed = seed };
-			Room room = builder.BuildRoom(rng);
-			room.BakeTileMap();
-			foreach (string failure in FindFloorCoverageViolations(room))
+			builder.PopulateRoom(room, rng);
+			for (int x = 0; x < room.Map.Width; x++)
 			{
-				failures.Add($"seed {seed}: {failure}");
+				for (int z = 0; z < room.Map.Height; z++)
+				{
+					AssertBool(room.Map.IsChasm(x, z)).IsFalse();
+				}
 			}
-
-			room.QueueFree();
 		}
 
-		AssertArray(failures)
-			.OverrideFailureMessage($"Found {failures.Count} floor coverage violation(s) across {SeedCount} seeds:\n  "
-				+ string.Join("\n  ", failures))
-			.IsEmpty();
+		builder.EnableChasms = true;
+		builder.MinTiles = 5;
+		builder.MaxTiles = 6;
+		using var chasmRng = new RandomNumberGenerator { Seed = 1 };
+		builder.PopulateRoom(room, chasmRng);
+
+		bool foundChasm = false;
+		for (int x = 0; x < room.Map.Width; x++)
+		{
+			for (int z = 0; z < room.Map.Height; z++)
+			{
+				if (room.Map.IsChasm(x, z))
+				{
+					foundChasm = true;
+				}
+			}
+		}
+		AssertBool(foundChasm).IsTrue();
+
+		room.QueueFree();
+	}
+
+	[TestCase]
+	public void GenerateWallsRespectsOpeningsAndDoorsRange()
+	{
+		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
+			cacheMode: ResourceLoader.CacheMode.Ignore);
+		builder.GenerateWalls = true;
+		builder.MinDoorways = 2;
+		builder.MaxDoorways = 3;
+		builder.MinDoors = 1;
+		builder.MaxDoors = 2;
+
+		var room = new Room();
+		for (ulong seed = 1; seed <= 25; seed++)
+		{
+			using var rng = new RandomNumberGenerator { Seed = seed };
+			bool ok = builder.PopulateRoom(room, rng);
+			AssertBool(ok).IsTrue();
+			AssertBool(room.WallGridMap.GetUsedCells().Count > 0).IsTrue();
+
+			int markers = 0;
+			int doors = 0;
+			foreach (Node child in room.GetChildren())
+			{
+				if (child is DoorwayMarker)
+				{
+					markers++;
+				}
+				else if (child is Door)
+				{
+					doors++;
+				}
+			}
+
+			AssertBool(markers >= 2 && markers <= 3).IsTrue();
+			AssertBool(doors >= 1 && doors <= 2 && doors <= markers).IsTrue();
+
+			// Verify every DoorwayMarker validated into a real connector (not blocked by a generated wall).
+			int connectorCount = 0;
+			for (int x = 0; x < room.Map.Width; x++)
+			{
+				for (int z = 0; z < room.Map.Height; z++)
+				{
+					if (room.Map.IsConnector(x, z))
+					{
+						connectorCount++;
+					}
+				}
+			}
+			AssertInt(connectorCount).IsEqual(markers);
+		}
+
+		room.QueueFree();
+	}
+
+	[TestCase]
+	public void SaveRoomScenePacksAndReloadsValidRoom()
+	{
+		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
+			cacheMode: ResourceLoader.CacheMode.Ignore);
+		builder.ShapeArchetype = RoomShapeArchetype.Cross;
+		builder.GenerateWalls = true;
+
+		bool saved = builder.SaveRoomScene(TestScenePath, 101);
+		AssertBool(saved).IsTrue();
+		AssertBool(FileAccess.FileExists(TestScenePath)).IsTrue();
+
+		PackedScene loadedScene = ResourceLoader.Load<PackedScene>(TestScenePath, cacheMode: ResourceLoader.CacheMode.Ignore);
+		AssertObject(loadedScene).IsNotNull();
+
+		Room reloadedRoom = loadedScene.Instantiate<Room>();
+		AssertObject(reloadedRoom).IsNotNull();
+		reloadedRoom.InitGridMaps();
+
+		AssertObject(reloadedRoom.FloorGridMap).IsNotNull();
+		AssertObject(reloadedRoom.WallGridMap).IsNotNull();
+		AssertObject(reloadedRoom.DecorationGridMap).IsNotNull();
+		AssertBool(reloadedRoom.FloorGridMap.GetUsedCells().Count > 0).IsTrue();
+		AssertBool(reloadedRoom.WallGridMap.GetUsedCells().Count > 0).IsTrue();
+
+		reloadedRoom.BakeTileMap();
+		AssertBool(reloadedRoom.Bounds.Size.X > 0 && reloadedRoom.Bounds.Size.Y > 0).IsTrue();
+		AssertObject(reloadedRoom.Map).IsNotNull();
+
+		reloadedRoom.QueueFree();
+
+		if (FileAccess.FileExists(TestScenePath))
+		{
+			DirAccess.RemoveAbsolute(TestScenePath);
+		}
+		if (DirAccess.DirExistsAbsolute(TestDir))
+		{
+			DirAccess.RemoveAbsolute(TestDir);
+		}
+	}
+
+	[TestCase]
+	public void OverwriteGuardPreventsAccidentalOverwrite()
+	{
+		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
+			cacheMode: ResourceLoader.CacheMode.Ignore);
+		builder.ShapeArchetype = RoomShapeArchetype.Rectangle;
+
+		bool firstSave = builder.SaveRoomScene(TestScenePath, 202, overwrite: true);
+		AssertBool(firstSave).IsTrue();
+
+		bool secondSave = builder.SaveRoomScene(TestScenePath, 203, overwrite: false);
+		AssertBool(secondSave).IsFalse();
+
+		if (FileAccess.FileExists(TestScenePath))
+		{
+			DirAccess.RemoveAbsolute(TestScenePath);
+		}
+		if (DirAccess.DirExistsAbsolute(TestDir))
+		{
+			DirAccess.RemoveAbsolute(TestDir);
+		}
 	}
 
 	[TestCase]
@@ -200,6 +449,20 @@ public class ProceduralRoomBuilderTest
 			AssertBool(ProceduralRoomBuilder.IsInteriorCorner(footprint, corner.X, corner.Y)).IsTrue();
 			AssertBool(Mathf.Abs(corner.X - footprint.Width / 2f) <= 1f).IsTrue();
 			AssertBool(Mathf.Abs(corner.Y - footprint.Height / 2f) <= 1f).IsTrue();
+		}
+	}
+
+	[TestCase]
+	public void HallAisleColumnsFlankCentralWalkway()
+	{
+		var footprint = MakeRectFootprint(7, 5);
+		var corners = ProceduralRoomBuilder.GetHallAisleColumns(footprint, spacing: 2);
+		AssertBool(corners.Count > 0).IsTrue();
+		int cz = footprint.Height / 2;
+		foreach (Vector2I corner in corners)
+		{
+			AssertBool(ProceduralRoomBuilder.IsInteriorCorner(footprint, corner.X, corner.Y)).IsTrue();
+			AssertBool(corner.Y == cz || corner.Y == cz + 1).IsTrue();
 		}
 	}
 
@@ -262,13 +525,10 @@ public class ProceduralRoomBuilderTest
 			if (child is DoorwayMarker marker)
 			{
 				markers.Add(marker);
-				// Matches Room.LocalToTile: nearest tile CENTER, relative to
-				// Bounds.Position (which is the first tile's center cell).
-				int tileX = Mathf.FloorToInt((marker.Position.X - room.Bounds.Position.X + TileSize / 2f) / TileSize);
-				int tileZ = Mathf.FloorToInt((marker.Position.Z - room.Bounds.Position.Y + TileSize / 2f) / TileSize);
-				if (!room.Map.IsWithinBounds(tileX, tileZ) || !room.Map.IsConnector(tileX, tileZ))
+				Vector2I tile = room.LocalToTile(marker.Position);
+				if (!room.Map.IsWithinBounds(tile.X, tile.Y) || !room.Map.IsConnector(tile.X, tile.Y))
 				{
-					failures.Add($"doorway marker at tile ({tileX},{tileZ}) is not a connector");
+					failures.Add($"doorway marker at tile ({tile.X},{tile.Y}) is not a connector");
 				}
 
 				// Exactly one direction flag, not a combined corner (see
@@ -278,7 +538,7 @@ public class ProceduralRoomBuilderTest
 				var directions = marker.GetDirectionVectors();
 				if (directions.Count != 1)
 				{
-					failures.Add($"doorway marker at tile ({tileX},{tileZ}) has {directions.Count} "
+					failures.Add($"doorway marker at tile ({tile.X},{tile.Y}) has {directions.Count} "
 						+ "sanctioned directions instead of exactly 1");
 				}
 			}
@@ -384,9 +644,9 @@ public class ProceduralRoomBuilderTest
 
 	/// <summary>
 	/// Every walkable tile must be fully floor-covered and every chasm tile floorless,
-	/// regardless of which floor item(s)/sizes were used -- shared so the size-generalized
-	/// and accent-mixing tests below can reuse the exact same coverage contract as the
-	/// general room contract test.
+	/// regardless of which floor item(s)/sizes were used -- shared so the floor-style
+	/// and gutter tests can reuse the exact same coverage contract as the general room
+	/// contract test.
 	/// </summary>
 	private static List<string> FindFloorCoverageViolations(Room room)
 	{
@@ -438,10 +698,11 @@ public class ProceduralRoomBuilderTest
 				continue;
 			}
 
-			Aabb aabb = mesh.GetAabb();
+			int rot = room.FloorGridMap.GetCellItemOrientation(cell);
+			Aabb worldAabb = WallFootprints.FootprintWorld(mesh.GetAabb(), rot, cell);
 			footprints.Add(new Rect2(
-				new Vector2(cell.X + aabb.Position.X, cell.Z + aabb.Position.Z),
-				new Vector2(aabb.Size.X, aabb.Size.Z)));
+				new Vector2(worldAabb.Position.X, worldAabb.Position.Z),
+				new Vector2(worldAabb.Size.X, worldAabb.Size.Z)));
 		}
 
 		return footprints;
@@ -449,14 +710,11 @@ public class ProceduralRoomBuilderTest
 
 	private static IEnumerable<Vector2> TileQuadrantCenters(Room room, int tileX, int tileZ)
 	{
-		// Tile (x,z) covers grid units [x*4 + bounds.X - 2, x*4 + bounds.X + 2)
-		// (see Room.BakeTileMap); its quadrant centers sit 1 unit off the tile center.
-		float centerX = tileX * TileSize + room.Bounds.Position.X;
-		float centerZ = tileZ * TileSize + room.Bounds.Position.Y;
-		yield return new Vector2(centerX - 1, centerZ - 1);
-		yield return new Vector2(centerX + 1, centerZ - 1);
-		yield return new Vector2(centerX - 1, centerZ + 1);
-		yield return new Vector2(centerX + 1, centerZ + 1);
+		Vector3I center = room.TileCenterCell(tileX, tileZ);
+		yield return new Vector2(center.X - 1, center.Z - 1);
+		yield return new Vector2(center.X + 1, center.Z - 1);
+		yield return new Vector2(center.X - 1, center.Z + 1);
+		yield return new Vector2(center.X + 1, center.Z + 1);
 	}
 
 	private static bool IsCovered(List<Rect2> footprints, Vector2 point)
