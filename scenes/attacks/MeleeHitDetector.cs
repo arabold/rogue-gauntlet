@@ -8,8 +8,9 @@ public partial class MeleeHitDetector : Node
 	private Node3D _actor;
 	private MeleeAttackProfile _profile;
 	private Shape3D _shape;
+	private Shape3D _bodyShape;
 	private uint _targetMask;
-	private MeshInstance3D _debugMesh;
+	private MeshInstance3D _debugMesh, _bodyDebugMesh;
 	private readonly Godot.Collections.Array<Rid> _self = new();
 	public int BlockedContacts { get; private set; }
 
@@ -19,19 +20,51 @@ public partial class MeleeHitDetector : Node
 		End();
 		_actor = actor; _profile = profile; _targetMask = mask;
 		_shape = profile.CreateShape();
+		_bodyShape = CreateBodyContactShape(actor);
 		_self.Clear();
 		CollectRids(actor, _self);
 		if (debug)
 		{
-			_debugMesh = new MeshInstance3D { Mesh = _shape.GetDebugMesh(), CastShadow = GeometryInstance3D.ShadowCastingSetting.Off };
-			_debugMesh.MaterialOverride = new StandardMaterial3D {
-				ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded, AlbedoColor = new Color(0.2f, 1, 0.4f, 0.12f),
-				Transparency = BaseMaterial3D.TransparencyEnum.Alpha, NoDepthTest = true
-			};
-			actor.AddChild(_debugMesh);
-			_debugMesh.TopLevel = true;
-			_debugMesh.Visible = false;
+			_debugMesh = CreateDebugMesh(_shape);
+			if (_bodyShape != null) _bodyDebugMesh = CreateDebugMesh(_bodyShape);
 		}
+	}
+
+	/// <summary>
+	/// Cover the physical body's footprint, including its rear, during the same contact window.
+	/// Keep this separate from the forward shape so convex hulls cannot fill unintended flank space.
+	/// </summary>
+	private static Shape3D CreateBodyContactShape(Node3D actor)
+	{
+		var body = actor.GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
+		if (body?.Shape == null || body.Disabled) return null;
+		float radius = body.Shape switch
+		{
+			SphereShape3D sphere => sphere.Radius,
+			CapsuleShape3D capsule => capsule.Radius,
+			CylinderShape3D cylinder => cylinder.Radius,
+			BoxShape3D box => new Vector2(box.Size.X, box.Size.Z).Length() * .5f,
+			_ => 0
+		};
+		if (radius <= 0) return null;
+		Vector3 scale = body.GlobalBasis.Scale.Abs();
+		Vector3 offset = body.GlobalPosition - actor.GlobalPosition;
+		radius = radius * Mathf.Max(scale.X, scale.Z) + new Vector2(offset.X, offset.Z).Length();
+		// Physical bodies rest just outside each other; allow a small contact skin.
+		return new CylinderShape3D { Radius = radius + .1f, Height = MeleeAttackProfile.ContactHeight };
+	}
+
+	private MeshInstance3D CreateDebugMesh(Shape3D shape)
+	{
+		var mesh = new MeshInstance3D { Mesh = shape.GetDebugMesh(), CastShadow = GeometryInstance3D.ShadowCastingSetting.Off };
+		mesh.MaterialOverride = new StandardMaterial3D {
+			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded, AlbedoColor = new Color(0.2f, 1, 0.4f, 0.12f),
+			Transparency = BaseMaterial3D.TransparencyEnum.Alpha, NoDepthTest = true
+		};
+		_actor.AddChild(mesh);
+		mesh.TopLevel = true;
+		mesh.Visible = false;
+		return mesh;
 	}
 
 	/// <summary>Query existing overlaps immediately, paging collider RIDs to avoid crowd truncation.</summary>
@@ -40,12 +73,25 @@ public partial class MeleeHitDetector : Node
 		var contacts = new Godot.Collections.Array<Node3D>();
 		if (_shape == null || !_actor.IsInsideTree()) return contacts;
 		BlockedContacts = 0;
+		// Presentation can sit at the weapon's height; collision stays centered on the actor.
+		frame.Origin = new Vector3(frame.Origin.X, _actor.GlobalPosition.Y, frame.Origin.Z);
 		if (_debugMesh != null) { _debugMesh.Visible = true; _debugMesh.GlobalTransform = frame; }
-		var exclude = new Godot.Collections.Array<Rid>(_self);
+		if (_bodyDebugMesh != null) { _bodyDebugMesh.Visible = true; _bodyDebugMesh.GlobalTransform = frame; }
 		var seen = new HashSet<ulong>();
+		foreach (var shape in new[] { _shape, _bodyShape })
+		{
+			if (shape == null) continue;
+			SampleShape(shape, frame, seen, contacts);
+		}
+		return contacts;
+	}
+
+	private void SampleShape(Shape3D shape, Transform3D frame, HashSet<ulong> seen, Godot.Collections.Array<Node3D> contacts)
+	{
+		var exclude = new Godot.Collections.Array<Rid>(_self);
 		var excludedRids = new HashSet<Rid>(_self);
 		using var query = new PhysicsShapeQueryParameters3D {
-			Shape = _shape, Transform = frame, CollisionMask = _targetMask,
+			Shape = shape, Transform = frame, CollisionMask = _targetMask,
 			CollideWithAreas = true, CollideWithBodies = true, Exclude = exclude
 		};
 		var space = _actor.GetWorld3D().DirectSpaceState;
@@ -69,15 +115,18 @@ public partial class MeleeHitDetector : Node
 			if (results.Count < batch || !progressed) break;
 			query.Exclude = exclude;
 		}
-		return contacts;
 	}
 
 	private bool IsBlocked(PhysicsDirectSpaceState3D space, Vector3 origin, Node3D target, Rid targetRid)
 	{
-		if (_profile.BlockingMask == 0 || origin.DistanceSquaredTo(target.GlobalPosition) < .0001f) return false;
+		// Ignore target/weapon elevation for obstruction as well: low targets must not
+		// send a ray into the floor, and high targets must not bypass a closed door.
+		origin.Y = MeleeAttackProfile.BlockingHeight;
+		var destination = new Vector3(target.GlobalPosition.X, origin.Y, target.GlobalPosition.Z);
+		if (_profile.BlockingMask == 0 || origin.DistanceSquaredTo(destination) < .0001f) return false;
 		var excluded = new Godot.Collections.Array<Rid>(_self) { targetRid };
 		if (target.GetParent() is CollisionObject3D body) excluded.Add(body.GetRid());
-		using var ray = PhysicsRayQueryParameters3D.Create(origin, target.GlobalPosition, _profile.BlockingMask, excluded);
+		using var ray = PhysicsRayQueryParameters3D.Create(origin, destination, _profile.BlockingMask, excluded);
 		ray.CollideWithAreas = false;
 		ray.HitFromInside = true;
 		return space.IntersectRay(ray).Count > 0;
@@ -89,13 +138,19 @@ public partial class MeleeHitDetector : Node
 		foreach (Node child in node.GetChildren()) CollectRids(child, rids);
 	}
 
-	public void CloseWindow() { if (GodotObject.IsInstanceValid(_debugMesh)) _debugMesh.Visible = false; }
+	public void CloseWindow()
+	{
+		if (GodotObject.IsInstanceValid(_debugMesh)) _debugMesh.Visible = false;
+		if (GodotObject.IsInstanceValid(_bodyDebugMesh)) _bodyDebugMesh.Visible = false;
+	}
 
 	public void End()
 	{
 		if (GodotObject.IsInstanceValid(_debugMesh)) _debugMesh.QueueFree();
-		_debugMesh = null;
+		if (GodotObject.IsInstanceValid(_bodyDebugMesh)) _bodyDebugMesh.QueueFree();
+		_debugMesh = _bodyDebugMesh = null;
 		_shape?.Dispose(); _shape = null;
+		_bodyShape?.Dispose(); _bodyShape = null;
 		_profile = null; _actor = null;
 		_self.Clear();
 	}

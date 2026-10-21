@@ -38,6 +38,117 @@ public class MeleeContactTest
 	private static HealthComponent Health(AttackAnimationHarness harness) => harness.PracticeTarget.GetNode<HealthComponent>("HealthComponent");
 
 	[TestCase]
+	public async Task BodyContactIsTimedAndCanBeEnteredAfterTheWindowOpens()
+	{
+		var (runner, harness) = await Load();
+		harness.PracticeTarget.Position = new Vector3(0, 0, 1.3f); // touching the rear of the hero's physical body
+		await runner.SimulateFrames(2);
+		var controller = Start(harness);
+		controller._PhysicsProcess(.05);
+		AssertInt(controller.ContactCount).IsEqual(0);
+		AssertFloat(Health(harness).CurrentHealth).IsEqual(1000);
+		harness.PracticeTarget.Position = new Vector3(0, 0, 5);
+		await runner.SimulateFrames(2);
+		controller._PhysicsProcess(.35); // window opens while the target is absent
+		AssertInt(controller.ContactCount).IsEqual(0);
+		harness.PracticeTarget.Position = new Vector3(0, 0, 1.3f);
+		await runner.SimulateFrames(2);
+		controller._PhysicsProcess(.1);
+		AssertInt(controller.ContactCount).IsEqual(1);
+		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
+		controller._PhysicsProcess(.1);
+		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
+		// The body envelope obeys the same wall test as the forward swing.
+		Health(harness).SetHealth(1000, 1000);
+		var wall = new StaticBody3D { Position = new Vector3(0, 1, .65f), CollisionLayer = 2 };
+		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(3, 2, .1f) } });
+		runner.Scene().AddChild(wall);
+		await runner.SimulateFrames(2);
+		controller = Start(harness);
+		controller._PhysicsProcess(2);
+		AssertFloat(Health(harness).CurrentHealth).IsEqual(1000);
+		AssertString(controller.LastResult).IsEqual("Obstructed");
+	}
+
+	[TestCase]
+	public async Task MeleeVolumesCoverTheirFullWidthAtTheAttackersCenter()
+	{
+		var (runner, harness) = await Load();
+		var shape = new CapsuleShape3D { Radius = .08f, Height = .2f };
+		harness.PracticeTarget.GetNode<CollisionShape3D>("CollisionShape3D").Shape = shape;
+		harness.PracticeTarget.GetNode<CollisionShape3D>("HurtBoxComponent/CollisionShape3D").Shape = shape;
+		foreach (string profileName in new[] { "slash_1h", "chop_1h", "thrust", "spin" })
+		{
+			var profile = GD.Load<MeleeAttackProfile>($"res://scenes/attacks/melee_profiles/{profileName}.tres");
+			foreach (float side in new[] { -1f, 0, 1f })
+			{
+				harness.PracticeTarget.Position = new Vector3(side * profile.Width * .4f, 0, -.03f);
+				Health(harness).SetHealth(1000, 1000);
+				await runner.SimulateFrames(2);
+				var controller = Start(harness, profileName);
+				controller._PhysicsProcess(2);
+				AssertInt(controller.ContactCount).OverrideFailureMessage($"{profileName}, side {side}: close contact").IsEqual(1);
+				AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
+			}
+		}
+	}
+
+	[TestCase]
+	public async Task AllMeleeFootprintsHitLowAndFlyingTargetsWithoutHeightAiming()
+	{
+		var (runner, harness) = await Load();
+		var bodyShape = harness.PracticeTarget.GetNode<CollisionShape3D>("CollisionShape3D");
+		var hurtbox = harness.PracticeTarget.GetNode<HurtBoxComponent>("HurtBoxComponent");
+		bodyShape.Shape = new CapsuleShape3D { Radius = .15f, Height = .3f };
+		hurtbox.GetNode<CollisionShape3D>("CollisionShape3D").Shape = bodyShape.Shape;
+		bodyShape.Position = Vector3.Up * .15f;
+		hurtbox.Position = Vector3.Up * .15f;
+		foreach (string profile in new[] { "slash_1h", "chop_1h", "thrust", "spin" })
+		{
+			foreach (float height in new[] { -.1f, 0, 5, 24 })
+			{
+				Health(harness).SetHealth(1000, 1000);
+				harness.PracticeTarget.Position = new Vector3(0, height, -1.8f);
+				await runner.SimulateFrames(2);
+				var controller = Start(harness, profile);
+				controller._PhysicsProcess(2);
+				AssertInt(controller.ContactCount).IsEqual(1);
+				AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
+			}
+		}
+		// Vertical tolerance must not extend the horizontal reach or hit behind a slash.
+		foreach (var position in new[] { new Vector3(0, 12, -5), new Vector3(0, 12, 2) })
+		{
+			Health(harness).SetHealth(1000, 1000);
+			harness.PracticeTarget.Position = position;
+			await runner.SimulateFrames(2);
+			Start(harness)._PhysicsProcess(2);
+			AssertFloat(Health(harness).CurrentHealth).IsEqual(1000);
+		}
+	}
+
+	[TestCase]
+	public async Task VisualElevationCannotBypassWallsAndMeleeAimAssistUsesHorizontalRange()
+	{
+		var (runner, harness) = await Load();
+		harness.Player.Position += Vector3.Up * 8;
+		harness.PracticeTarget.Position = new Vector3(0, 12, -2);
+		var wall = new StaticBody3D { Position = new Vector3(0, 1, -1), CollisionLayer = 2 };
+		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(3, 2, .2f) } });
+		runner.Scene().AddChild(wall);
+		await runner.SimulateFrames(3);
+		AssertObject(harness.Player.AttackController.FindMeleeAimAssistTarget()).IsSame(harness.PracticeTarget);
+		var controller = Start(harness);
+		controller._PhysicsProcess(2);
+		AssertFloat(Health(harness).CurrentHealth).IsEqual(1000);
+		AssertString(controller.LastResult).IsEqual("Obstructed");
+		wall.QueueFree();
+		await runner.SimulateFrames(2);
+		Start(harness)._PhysicsProcess(2);
+		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
+	}
+
+	[TestCase]
 	public async Task ExistingOverlapHitsImmediatelyAndOnlyOnceAcrossBodyAndHurtbox()
 	{
 		var (_, harness) = await Load();

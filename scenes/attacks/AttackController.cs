@@ -566,13 +566,16 @@ public partial class AttackController : Node
 		return GetTree().GetNodesInGroup(targetGroup).OfType<Node3D>()
 			.Where(target => IsValidAimTarget(target) && WithinMeleeAimAssist(target))
 			.OrderBy(GetAimAngle)
-			.ThenBy(target => _actor.GlobalPosition.DistanceTo(target.GlobalPosition))
+			.ThenBy(target => new Vector2(_actor.GlobalPosition.X, _actor.GlobalPosition.Z)
+				.DistanceSquaredTo(new Vector2(target.GlobalPosition.X, target.GlobalPosition.Z)))
 			.FirstOrDefault();
 	}
 
 	private bool WithinMeleeAimAssist(Node3D target)
 	{
-		if (_actor.GlobalPosition.DistanceTo(target.GlobalPosition) > MeleeAimAssistRange)
+		Vector3 offset = target.GlobalPosition - _actor.GlobalPosition;
+		offset.Y = 0;
+		if (offset.Length() > MeleeAimAssistRange)
 		{
 			return false;
 		}

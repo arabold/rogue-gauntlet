@@ -8,7 +8,6 @@ script = ExtResource("profile")
 Volume = 0
 Reach = 3.1
 Width = 1.4
-Height = 2.2
 CenterHeight = 1.1
 ArcDegrees = 140
 EngagementMargin = 0.4

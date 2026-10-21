@@ -91,8 +91,9 @@ public sealed class ChasingState : IEnemyState
 			return false;
 		}
 
-		float distance = ctx.Actor.GlobalPosition.DistanceTo(ctx.Target.GlobalPosition);
-		return distance < ctx.Profile.EffectiveMeleeRange;
+		var offset = ctx.Target.GlobalPosition - ctx.Actor.GlobalPosition;
+		offset.Y = 0;
+		return offset.Length() < ctx.Profile.EffectiveMeleeRange;
 	}
 
 	/// <summary>

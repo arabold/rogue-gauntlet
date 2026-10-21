@@ -183,20 +183,13 @@ public partial class MovementComponent : Node
 			return;
 		}
 
-		if (lookAt.IsEqualApprox(LookAtDirection))
-		{
-			LookAtDirection = lookAt;
-		}
-		else
-		{
-			// Handle the case where lookAt is exactly opposite to LookAtDirection
-			if (lookAt.Dot(LookAtDirection) < -0.999f)
-			{
-				lookAt += new Vector3(0.001f, 0, 0).Normalized();
-			}
-			LookAtDirection = LookAtDirection.Slerp(
-				lookAt, RotationSpeed * (float)delta
-			).Normalized();
-		}
+		// Rotate by signed horizontal yaw. Perturbing an opposite direction before
+		// Slerp can cancel a leftward target to zero and leave the actor facing away forever.
+		Vector3 current = LookAtDirection;
+		current.Y = 0;
+		current = current.LengthSquared() > .0001f ? current.Normalized() : lookAt;
+		float yaw = Mathf.Atan2(current.Cross(lookAt).Y, current.Dot(lookAt));
+		float fraction = Mathf.Clamp(RotationSpeed * (float)delta, 0, 1);
+		LookAtDirection = current.Rotated(Vector3.Up, yaw * fraction).Normalized();
 	}
 }

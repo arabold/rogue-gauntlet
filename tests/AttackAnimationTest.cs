@@ -43,7 +43,7 @@ public class AttackAnimationTest
 	}
 
 	[TestCase]
-	public void EveryMonsterHasTwoResolvableAttackSlots()
+	public void EveryMonsterResolvesItsAuthoredAndEnabledAttackSlots()
 	{
 		// Keep roots alive while auditing shared native Resources across different scenes.
 		var scenes = Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/enemies"), "*.tscn", SearchOption.AllDirectories)
@@ -54,9 +54,12 @@ public class AttackAnimationTest
 		{
 			var actor = scene.Instantiate<Node3D>();
 			var component = actor.GetNode<AttackAnimationComponent>("AttackAnimationComponent");
-			AssertInt(component.Profile.Bindings.Length).IsEqual(2);
+			AssertInt(component.Profile.Bindings.Length).IsGreater(0);
+			foreach (var binding in component.Profile.Bindings)
+				AssertBool(component.TryResolve(binding.Style, out _)).OverrideFailureMessage(scene.ResourcePath + " " + binding.Style).IsTrue();
 			AssertBool(component.TryResolve("melee", out _)).OverrideFailureMessage(scene.ResourcePath + " melee").IsTrue();
-			AssertBool(component.TryResolve("ranged", out _)).OverrideFailureMessage(scene.ResourcePath + " ranged").IsTrue();
+			if (actor.GetNode<EnemyBehaviorComponent>("EnemyBehaviorComponent").Profile?.RangedAttackDefinition != null)
+				AssertBool(component.TryResolve("ranged", out _)).OverrideFailureMessage(scene.ResourcePath + " ranged").IsTrue();
 			actor.Free();
 		}
 		GC.KeepAlive(scenes);
