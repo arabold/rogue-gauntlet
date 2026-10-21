@@ -45,6 +45,7 @@ public partial class OcclusionXrayComponent : Node
 	private static Shader XrayShader => _xrayShader ??= GD.Load<Shader>(XrayShaderPath);
 
 	private readonly List<MeshInstance3D> _silhouettes = new();
+	private readonly List<Label3D> _labels = new();
 	private Node3D _targetRoot;
 	private MapGenerator _mapGenerator;
 	private HealthComponent _health;
@@ -68,11 +69,28 @@ public partial class OcclusionXrayComponent : Node
 		_health = GetParent()?.GetNodeOrNull<HealthComponent>("HealthComponent");
 
 		BuildSilhouettes(_targetRoot);
+		CollectLabels(GetParent());
+		if (_targetRoot != GetParent())
+		{
+			CollectLabels(_targetRoot);
+		}
+
+		if (_health != null)
+		{
+			this.SubscribeUntilExit(
+				_health,
+				h => h.Died += Evaluate,
+				h => h.Died -= Evaluate);
+		}
 
 		this.SubscribeUntilExit(
 			SignalBus.Instance,
 			bus => bus.RoomEntered += OnRoomEntered,
 			bus => bus.RoomEntered -= OnRoomEntered);
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			bus => bus.DoorOpened += OnDoorOpened,
+			bus => bus.DoorOpened -= OnDoorOpened);
 		this.SubscribeUntilExit(
 			SignalBus.Instance,
 			bus => bus.XraySettingsChanged += OnXraySettingsChanged,
@@ -86,7 +104,7 @@ public partial class OcclusionXrayComponent : Node
 		// Actors move, so re-check "is in a discovered room" on a low-frequency poll.
 		// Loot is static and would be covered by RoomEntered alone, but polling keeps
 		// one code path and the cost is a single dictionary lookup.
-		if (_silhouettes.Count == 0)
+		if (_silhouettes.Count == 0 && _labels.Count == 0)
 		{
 			return;
 		}
@@ -158,12 +176,39 @@ public partial class OcclusionXrayComponent : Node
 		_ => GameDebug.MonsterXrayEnabled,
 	};
 
-	/// <summary>Recomputes and applies silhouette visibility from the toggle + reveal + alive state.</summary>
-	private void Evaluate()
+	private void CollectLabels(Node node)
 	{
-		if (_silhouettes.Count == 0 || _targetRoot == null)
+		if (node == null)
 		{
 			return;
+		}
+
+		if (node is Label3D label && !_labels.Contains(label))
+		{
+			_labels.Add(label);
+		}
+
+		foreach (Node child in node.GetChildren())
+		{
+			if (child is EnemyBase && child != node)
+			{
+				continue;
+			}
+			CollectLabels(child);
+		}
+	}
+
+	/// <summary>Recomputes and applies silhouette and label visibility from the toggle + reveal + alive state.</summary>
+	private void Evaluate()
+	{
+		if ((_silhouettes.Count == 0 && _labels.Count == 0) || _targetRoot == null)
+		{
+			return;
+		}
+
+		if (_mapGenerator == null)
+		{
+			_mapGenerator = this.GetAncestorOrNull<Level>()?.MapGenerator;
 		}
 
 		bool revealed = _mapGenerator == null || _mapGenerator.IsRevealedAt(_targetRoot.GlobalPosition);
@@ -174,9 +219,16 @@ public partial class OcclusionXrayComponent : Node
 		{
 			silhouette.Visible = visible;
 		}
+
+		foreach (Label3D label in _labels)
+		{
+			label.Visible = visible;
+		}
 	}
 
 	private void OnRoomEntered(int roomId) => Evaluate();
+
+	private void OnDoorOpened(Node3D door) => Evaluate();
 
 	private void OnXraySettingsChanged() => Evaluate();
 }

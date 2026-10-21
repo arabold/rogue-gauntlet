@@ -57,6 +57,7 @@ position = Vector3(0, 0.65, 0)
 rotation_degrees = Vector3(65, 20, 0)
 
 [node name="Title" type="Label3D" parent="."]
+visible = false
 position = Vector3(0, 2.4, 0)
 billboard = 1
 no_depth_test = true

@@ -153,6 +153,7 @@ RotationSpeed = 5.0
 position = Vector3(0, 5.1, 0)
 
 [node name="BossTitle" type="Label3D" parent="."]
+visible = false
 position = Vector3(0, 5.65, 0)
 billboard = 1
 no_depth_test = true

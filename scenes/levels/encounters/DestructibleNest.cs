@@ -25,6 +25,15 @@ public partial class DestructibleNest : StaticBody3D, IDamageable
 		_health = GetNode<HealthComponent>("HealthComponent");
 		_hurtbox = GetNode<HurtBoxComponent>("HurtBoxComponent");
 		_health.Died += OnDestroyed;
+
+		var xray = new OcclusionXrayComponent
+		{
+			Name = "OcclusionXrayComponent",
+			Category = XrayCategory.Monster,
+			XrayColor = new Color(1f, 0.32f, 0.32f, 0.85f),
+			TargetRoot = ".",
+		};
+		AddChild(xray);
 	}
 
 	public override void _Process(double delta)
