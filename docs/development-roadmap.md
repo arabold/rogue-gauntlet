@@ -12,6 +12,14 @@ Asset Studio supplies a growing visual catalog and some corresponding gameplay d
 
 Asset Studio now exports the selected wolf, rat and rigid large-rig stone golem through the normal character commands, with local technical rigs and art-only Godot import validation. See [Studio architecture](../asset-studio/ARCHITECTURE.md) for the export/gameplay boundary and remaining legacy weapon-preview dependencies. This does not create playable enemy definitions.
 
+## Action and interaction improvement track
+
+Status: proposed; unified controls, timed interactions and dodge/guard/parry are not implemented yet. This track can be exercised in the existing encounter prototype without waiting for shops or full dungeon progression. [Actor actions and world interactions](actor-actions-and-interactions.md) owns the concept; its [implementation plan](specs/actor-actions-and-interactions-plan.md) owns contracts and delivery slices.
+
+Deliver one shared actor action boundary, separate weapon primary/secondary actions from the four item-only quick slots, and auto-assign eligible pickups only into unassigned slots. Replace attack/interact input overlap with a dedicated hold interaction and progress ring. Ordinary operations start at one second; mechanical picking uses its own five/ten-second duration through the same executor. Add dodge, guard/timed parry and restrained enemy requests through that action model. Bodies, equipment and tools grant independent capabilities; monsters do not need a player quick bar. Add a fire-magic vertical slice (free projectile, Fireball/Wall of Fire, learned selection and mana), then expand to four staff families with five spells each. Classes define starting kits/stat affinities, not exclusive magic access. Controls and spell placement must work with keyboard and gamepad.
+
+**Acceptance:** all four item slots assigned while primary/secondary still work; compatible learned spells and mana costs, cross-class casting, no swap-based cooldown/resource reset; no accidental attacks while opening a chest; safe pickup/stack identity and depleted-slot handling; visible cancellable one/five/ten-second operations with no effects before completion; actor-specific door/tool permissions; body-contact dodge, guardable projectile and parry interruption. Verify movement/damage/same-tick cancellation, stale callbacks, deterministic reward claims and current-version binding/cooldown/world-state restoration. Coordinate mechanical-lock authority with the dungeon progression plan rather than creating a second lock/timer system.
+
 ## Milestone 1 — Items retain their identity and state
 
 Status: implemented core loop; final visual/stairs acceptance remains an editor playtest. Runtime checks cover creation, capped stacks, individual food, pickup/use/drop, codecs, and seeded floor reconstruction.

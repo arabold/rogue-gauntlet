@@ -102,3 +102,8 @@ animation plays once and freezes.
    completeness, attachments, and the preview animation.
 4. Eyeball it in the editor: selector framing, in-game props stripped, weapon in the right
    hand.
+
+
+## Proposed action and magic progression
+
+[Actor actions and world interactions](actor-actions-and-interactions.md) extends the starting-kit model with weapon primary/secondary actions and learned elemental magic. Classes provide different initial stats, equipment and spell grants; they do not hard-lock access to an element. Any class may learn an elemental spell and cast it with the matching equipped staff, sufficient mana and an available secondary action. One selected spell per element is character state, separate from the four item-only quick slots. The [implementation plan](specs/actor-actions-and-interactions-plan.md) owns proposed knowledge, point/mana/cooldown persistence and keyboard/gamepad targeting; none of this section claims those systems are implemented.

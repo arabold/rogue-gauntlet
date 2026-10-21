@@ -14,6 +14,7 @@ These documents define world building, game mechanics, and feature designs that 
 
 | Document | Concept coverage |
 | --- | --- |
+| [Actor actions and world interactions](actor-actions-and-interactions.md) | Proposed coherent player/monster actions: keyboard/gamepad primary/secondary, elemental staff/learned-spell/mana rules, four item quick slots, timed interactions and defenses |
 | [Dungeon layout, access, and discovery](dungeon-exploration-design.md) | Realm room pools, floor recipes, required locations/routes/objectives, composed doors and locks, visible boss seals, and random generated secrets |
 | [Realms and monster design](realms-and-monster-design.md) | The 24-depth Sinking World, eight Sunken Epochs, 3-depth realm cadence, prototype bestiary, and Gatekeeper encounters |
 | [Character classes](character-classes.md) | Authored classes, starting gear, stat profiles, and model integration |
@@ -39,6 +40,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Reliable melee contact](specs/melee-contact-plan.md) | Implemented independent contact volumes, optional swooshes and combat playground diagnostics |
 | [Item catalog completion](specs/item-catalog-plan.md) | Definition/effect audit, grouped loot, identity coverage, and validation |
 | [Item lifecycle program design](specs/item-lifecycle-plan.md) | Implemented milestone 1: Resource creation policies, runtime items, stacks, food, floor deltas, and a playable item playground |
+| [Actor actions and interactions](specs/actor-actions-and-interactions-plan.md) | Proposed shared action ownership, primary/secondary/quick-item separation, spell progression/mana, pickup auto-assignment, timed interactions, defense and actor rollout |
 | [Dungeon progression implementation plan](specs/level-progression-prototype-plan.md) | Remaining Garrison work: realm pools/recipe routes, composed access and persistence, optional locks, then generated secrets; existing encounter systems are reused |
 
 Use the repository's [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial implementation planning. Plans link to current-system documentation instead of redescribing unchanged functionality. As work lands, update the system document and mark verified plan/roadmap outcomes; keep remaining proposals explicit.

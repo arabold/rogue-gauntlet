@@ -56,6 +56,9 @@ Small flags such as pickability are appropriate within a capability. Avoid a sin
 
 ## Locks and unlocking methods
 
+[Actor actions and world interactions](actor-actions-and-interactions.md) owns interaction timing, interruption and progress feedback. This document owns access eligibility and solvability. Ordinary operations use an initial one-second total hold; picking uses the lock's authored total duration (for example five or ten seconds), through the same actor-neutral executor. Keys/tools are validated at completion, and abandoned picking retains no partial progress.
+
+
 | Access mechanism | Suitable use | Appearance |
 | --- | --- | --- |
 | Pickable mechanical lock | Prison cells, storage, optional treasure | Conventional lock; communicates that tools apply |

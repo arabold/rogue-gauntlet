@@ -154,9 +154,26 @@ grip transforms, exactly-once release, cancellation, and equipment switching. Se
 Weapons assign a `MeleeAttackProfile` Resource; an `AttackDefinition` can override it, with
 an actor default as fallback. Monster behavior profiles assign the same Resource for their
 melee slot. Profiles under `scenes/attacks/melee_profiles/` define arc, box, forward capsule
-or radial geometry, reach, width, height, engagement margin and blocker layers. Actor scenes
+or radial geometry, horizontal reach/width, engagement margin and blocker layers. Actor scenes
 compose a local `MeleeHitDetector`; no weapon-bone collider or transient overlap-entry signal
-is required. Accepted attacks snapshot the profile.
+is required. Accepted attacks snapshot the profile. Every forward contact footprint starts at its full
+authored width through the attacker's center; sectors and thrusts do not taper to a point
+beside the body. A separate contact column also covers the attacker's physical sphere,
+capsule, cylinder or box footprint, with a small physics contact skin. This prevents a target
+pressed into the body from finding a safe pocket even just behind the committed swing.
+It uses the same timed window, faction mask, wall blocking and once-per-attack damage rules;
+it is not a permanent contact-damage aura. Forward reach remains unchanged, and targets
+farther behind the body are still outside ordinary forward attacks. Debug volumes show both
+shapes. Opposite-facing turns use signed horizontal yaw so a target directly behind cannot
+cancel the steering vector and leave an actor permanently facing away.
+
+Melee is planar gameplay: weapon pose, creature size, crouching and flying height do not
+change contact eligibility. All query shapes use one shared 128-unit vertical column centered
+on the attacker (the game's visual elevation envelope), rather than per-weapon height.
+`CenterHeight` only places cosmetic effects. Aim assist and melee engagement use XZ distance.
+Blocker rays run horizontally at the shared gameplay plane, one unit above world Y=0, so
+floor-level targets cannot send them into the ground and elevated targets cannot bypass walls.
+Stacked combat floors and height-based dodging are not supported by this model.
 
 During contact the executor queries current physics overlaps, including stationary targets.
 A physics step crossing the whole contact window still queries once. Bodies and hurtboxes
@@ -177,7 +194,12 @@ hits. KayKit grip transforms and item axes are unchanged.
 
 Run `scenes/debug/attack_animation_harness.tscn` with **F6** in Godot to exercise real equipment
 and action slots. Toggle volumes, swooshes, moving targets, slow motion and defense modes;
-spawn a yeti or skeleton and trigger its native melee attack. Feedback distinguishes contact,
+spawn a yeti, skeleton or Forsaken Warden and trigger its native melee attack. Feedback distinguishes contact,
 evasion, armor absorption, invulnerability, obstruction and interruption. `MeleeContactTest`
 verifies actual physics overlap and hero/monster execution; see the
 [implementation plan](specs/melee-contact-plan.md).
+
+
+## Planned unified actions and interactions
+
+[Actor actions and world interactions](actor-actions-and-interactions.md) consolidates intended primary attack, item quick actions, timed world interaction and active defense; its separate [implementation plan](specs/actor-actions-and-interactions-plan.md) owns proposed integration. Primary attack will leave the four item-only slots, and interaction will use a dedicated hold input rather than action_1. Successful eligible pickups can fill unassigned quick slots. One shared action boundary will arbitrate these operations with dodge, guard/parry and forced reactions. The current instant interaction/use paths and general Invulnerable flag are not implementations of that proposal.
