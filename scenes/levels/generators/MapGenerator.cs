@@ -78,11 +78,12 @@ public partial class MapGenerator : Node3D
 	public readonly uint TileSize = 4;
 
 	/// <summary>
-	/// Y level the flat void occluder caps sit at (one tile up, i.e. wall-top
-	/// height). A horizontal cap has no tall front face, so it hides the void
+	/// Y level the flat void occluder caps sit at (slightly above wall-top
+	/// height at 4.0f to prevent z-fighting with the wall copings underneath).
+	/// A horizontal cap has no tall front face, so it hides the void
 	/// without clipping rooms behind it in the isometric view. Tune visually.
 	/// </summary>
-	public readonly float OcclusionCapHeight = 4f;
+	public readonly float OcclusionCapHeight = 4.02f;
 
 	/// <summary>
 	/// Seconds the black caps over a newly revealed area take to fade out, so exploring
