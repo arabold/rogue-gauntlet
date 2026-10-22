@@ -24,26 +24,35 @@ public partial class DestructibleNest : StaticBody3D, IDamageable
 		_level = this.GetAncestorOrNull<Level>();
 		_health = GetNode<HealthComponent>("HealthComponent");
 		_hurtbox = GetNode<HurtBoxComponent>("HurtBoxComponent");
-		_health.Died += OnDestroyed;
+		this.SubscribeUntilExit(
+			_health,
+			h => h.Died += OnDestroyed,
+			h => h.Died -= OnDestroyed);
 
 		var xray = new OcclusionXrayComponent
 		{
 			Name = "OcclusionXrayComponent",
 			Category = XrayCategory.Monster,
 			XrayColor = new Color(1f, 0.32f, 0.32f, 0.85f),
-			TargetRoot = ".",
 		};
 		AddChild(xray);
 	}
 
 	public override void _Process(double delta)
 	{
+		if (_health.IsDead || _level == null) return;
+		if (SummonsReleased >= TotalSummons && LivingMinions == 0)
+		{
+			SetProcess(false);
+			return;
+		}
+
 		_remaining -= delta;
-		if (_remaining > 0 || _health.IsDead || _level == null) return;
+		if (_remaining > 0) return;
 		_remaining = SpawnInterval;
 		if (!_level.MapGenerator.IsRevealedAt(GlobalPosition)) return;
-		if (!GetTree().GetNodesInGroup("player").OfType<Node3D>()
-			.Any(p => p.GlobalPosition.DistanceSquaredTo(GlobalPosition) <= ActivationRange * ActivationRange)) return;
+		var player = GetTree().GetFirstNodeInGroup("player") as Node3D;
+		if (player == null || player.GlobalPosition.DistanceSquaredTo(GlobalPosition) > ActivationRange * ActivationRange) return;
 		ReleaseMinion();
 	}
 

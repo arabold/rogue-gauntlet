@@ -25,7 +25,7 @@ public partial class LargeActorFitComponent : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (_map == null || Actor.IsDead) return;
+		if (_map == null || Actor.IsDead || Movement == null || Movement.TargetDirection.IsZeroApprox() || Movement.Speed <= 0) return;
 		var next = Actor.GlobalPosition + Movement.TargetDirection * Movement.Speed * (float)delta;
 		if (!_map.IsEncounterFootprintClear(next, MovementClearance, HomeRoomId)) Movement.Stop();
 	}

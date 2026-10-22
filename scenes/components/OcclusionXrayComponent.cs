@@ -44,6 +44,13 @@ public partial class OcclusionXrayComponent : Node
 	private static Shader MaskShader => _maskShader ??= GD.Load<Shader>(MaskShaderPath);
 	private static Shader XrayShader => _xrayShader ??= GD.Load<Shader>(XrayShaderPath);
 
+	private static ShaderMaterial _sharedMaskMaterial;
+	private static ShaderMaterial MaskMaterial => _sharedMaskMaterial ??= new()
+	{
+		Shader = MaskShader,
+		RenderPriority = MaskRenderPriority,
+	};
+
 	private readonly List<MeshInstance3D> _silhouettes = new();
 	private readonly List<Label3D> _labels = new();
 	private Node3D _targetRoot;
@@ -58,10 +65,12 @@ public partial class OcclusionXrayComponent : Node
 			return;
 		}
 
-		_targetRoot = GetNodeOrNull<Node3D>(TargetRoot);
+		_targetRoot = TargetRoot != null && !TargetRoot.IsEmpty
+			? GetNodeOrNull<Node3D>(TargetRoot)
+			: GetParentOrNull<Node3D>();
 		if (_targetRoot == null)
 		{
-			GD.PrintErr($"{Name}: OcclusionXrayComponent has no valid TargetRoot.");
+			GD.PrintErr($"{Name}: OcclusionXrayComponent has no valid TargetRoot or 3D parent.");
 			return;
 		}
 
@@ -70,7 +79,7 @@ public partial class OcclusionXrayComponent : Node
 
 		BuildSilhouettes(_targetRoot);
 		CollectLabels(GetParent());
-		if (_targetRoot != GetParent())
+		if (_targetRoot != null && _targetRoot != GetParent() && !GetParent().IsAncestorOf(_targetRoot))
 		{
 			CollectLabels(_targetRoot);
 		}
@@ -79,8 +88,8 @@ public partial class OcclusionXrayComponent : Node
 		{
 			this.SubscribeUntilExit(
 				_health,
-				h => h.Died += Evaluate,
-				h => h.Died -= Evaluate);
+				h => h.Died += OnDied,
+				h => h.Died -= OnDied);
 		}
 
 		this.SubscribeUntilExit(
@@ -95,6 +104,11 @@ public partial class OcclusionXrayComponent : Node
 			SignalBus.Instance,
 			bus => bus.XraySettingsChanged += OnXraySettingsChanged,
 			bus => bus.XraySettingsChanged -= OnXraySettingsChanged);
+
+		if (Category == XrayCategory.Loot)
+		{
+			SetProcess(false);
+		}
 
 		Evaluate();
 	}
@@ -126,7 +140,7 @@ public partial class OcclusionXrayComponent : Node
 	{
 		if (node is MeshInstance3D src && src.Mesh != null)
 		{
-			AddDuplicate(src, CreateMaskMaterial());
+			AddDuplicate(src, MaskMaterial);
 			AddDuplicate(src, CreateXrayMaterial());
 		}
 
@@ -152,12 +166,6 @@ public partial class OcclusionXrayComponent : Node
 		src.GetParent().AddChild(duplicate);
 		_silhouettes.Add(duplicate);
 	}
-
-	private ShaderMaterial CreateMaskMaterial() => new()
-	{
-		Shader = MaskShader,
-		RenderPriority = MaskRenderPriority,
-	};
 
 	private ShaderMaterial CreateXrayMaterial()
 	{
@@ -231,4 +239,10 @@ public partial class OcclusionXrayComponent : Node
 	private void OnDoorOpened(Node3D door) => Evaluate();
 
 	private void OnXraySettingsChanged() => Evaluate();
+
+	private void OnDied()
+	{
+		SetProcess(false);
+		Evaluate();
+	}
 }

@@ -46,7 +46,6 @@ public partial class FloatingHealthBar : Sprite3D
 
 	private void OnHealthChanged(float health, float maxHealth)
 	{
-		GD.Print($"Updating health bar: {health}/{maxHealth}");
 		_progressBar.MaxValue = maxHealth;
 		_progressBar.Value = health;
 

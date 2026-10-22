@@ -83,7 +83,7 @@ public partial class MapGenerator : Node3D
 	/// A horizontal cap has no tall front face, so it hides the void
 	/// without clipping rooms behind it in the isometric view. Tune visually.
 	/// </summary>
-	public readonly float OcclusionCapHeight = 4.02f;
+	public const float OcclusionCapHeight = 4.02f;
 
 	/// <summary>
 	/// Seconds the black caps over a newly revealed area take to fade out, so exploring

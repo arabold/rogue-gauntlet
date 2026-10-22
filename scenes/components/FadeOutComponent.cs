@@ -111,6 +111,9 @@ public partial class FadeOutComponent : Node
 			case SpriteBase3D sprite:
 				result.Add((sprite, "modulate:a"));
 				break;
+			case Label3D label:
+				result.Add((label, "modulate:a"));
+				break;
 		}
 
 		foreach (var child in node.GetChildren())
