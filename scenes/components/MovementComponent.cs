@@ -28,7 +28,7 @@ public partial class MovementComponent : Node
 	/// </summary>
 	[Export] public float MaxFallSpeed = 50.0f;
 	/// <summary>
-	/// Stairs step height 
+	/// Stairs step height
 	/// </summary>
 	[Export] public float StairsStepHeight = 0.5f;
 
@@ -43,6 +43,54 @@ public partial class MovementComponent : Node
 	private Vector3 _pushDirection = Vector3.Zero;
 	private float _pushStrength = 0.0f;
 
+	private object _locomotionOverrideOwner;
+	private Vector3 _overrideDirection = Vector3.Zero;
+	private float _overrideSpeed = 0f;
+	private bool _hasOverrideVelocity = false;
+	private float _speedMultiplier = 1.0f;
+	private Vector3? _fixedFacing;
+
+	public ActorActionGateComponent ActionGate { get; set; }
+
+	public Vector3 LocomotionDirection => _hasOverrideVelocity ? _overrideDirection : TargetDirection;
+	public float LocomotionSpeed => _hasOverrideVelocity ? _overrideSpeed : Speed * _speedMultiplier;
+	public void HaltLocomotion() { _hasOverrideVelocity = false; Stop(); }
+	public bool HasOverrideVelocity => _hasOverrideVelocity;
+	public float SpeedMultiplier => _speedMultiplier;
+
+	public void SetLocomotionOverride(object owner, Vector3 direction, float speed)
+	{
+		_locomotionOverrideOwner = owner;
+		_overrideDirection = direction.Normalized();
+		_overrideSpeed = speed;
+		_hasOverrideVelocity = true;
+	}
+
+	public void SetSpeedMultiplier(object owner, float multiplier)
+	{
+		_locomotionOverrideOwner = owner;
+		_speedMultiplier = multiplier;
+	}
+
+	public void SetFixedFacing(object owner, Vector3 facing)
+	{
+		_locomotionOverrideOwner = owner;
+		_fixedFacing = facing.LengthSquared() > 0.0001f ? facing.Normalized() : null;
+	}
+
+	public void ClearLocomotionOverride(object owner)
+	{
+		if (_locomotionOverrideOwner == owner)
+		{
+			_locomotionOverrideOwner = null;
+			_hasOverrideVelocity = false;
+			_speedMultiplier = 1.0f;
+			_fixedFacing = null;
+		}
+	}
+
+	public void RequestFacing(Vector3 direction) => FaceDirection(direction);
+
 	// A one-frame facing request that overrides movement-based facing for this physics frame.
 	// Re-issue it every frame (e.g. while attacking) to keep the actor turned toward a target;
 	// stop issuing it and facing falls back to the movement direction. Kept as a per-frame request
@@ -52,6 +100,8 @@ public partial class MovementComponent : Node
 
 	public override void _Ready()
 	{
+		ProcessPhysicsPriority = CombatPhysics.Movement;
+		ActionGate ??= Actor.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
 		LookAtDirection = -Actor.GlobalTransform.Basis.Z;
 	}
 
@@ -59,6 +109,7 @@ public partial class MovementComponent : Node
 	{
 		_pushDirection = direction.Normalized();
 		_pushStrength = strength;
+		_hasOverrideVelocity = false;
 	}
 
 	public void SetInputDirection(Vector3 inputDirection)
@@ -90,6 +141,20 @@ public partial class MovementComponent : Node
 		_hasRequestedFacing = true;
 	}
 
+	/// <summary>Discard scene-local motion and ownership before restoring a saved actor.</summary>
+	public void ResetTransientMotion()
+	{
+		Stop();
+		_pushDirection = Vector3.Zero;
+		_pushStrength = 0;
+		_locomotionOverrideOwner = null;
+		_hasOverrideVelocity = false;
+		_speedMultiplier = 1;
+		_fixedFacing = null;
+		_hasRequestedFacing = false;
+		if (GodotObject.IsInstanceValid(Actor)) Actor.Velocity = Vector3.Zero;
+	}
+
 	public void Stop()
 	{
 		TargetDirection = Vector3.Zero;
@@ -114,6 +179,16 @@ public partial class MovementComponent : Node
 		}
 		Actor.Velocity = Velocity;
 		Actor.MoveAndSlide();
+
+		if (_hasOverrideVelocity && Actor != null && Actor.GetSlideCollisionCount() > 0)
+		{
+			Vector3 realHoriz = Actor.GetRealVelocity();
+			realHoriz.Y = 0;
+			if (realHoriz.LengthSquared() < 0.05f * _overrideSpeed * _overrideSpeed)
+			{
+				_hasOverrideVelocity = false;
+			}
+		}
 	}
 
 	private void UpdateVelocity(double delta)
@@ -121,16 +196,25 @@ public partial class MovementComponent : Node
 		Vector3 velocity;
 
 		// Apply horizontal velocity
-		if (_pushStrength > 0.1f)
+		if (ActionGate?.Disabled == true || ActionGate?.IsStaggered == true)
+		{
+			velocity = Vector3.Zero;
+			_pushStrength = 0;
+		}
+		else if (_pushStrength > 0.1f)
 		{
 			// Pushed by an external force
 			velocity = _pushDirection * _pushStrength;
 			_pushStrength -= Speed * (float)delta; // Decrease push strength over time
 		}
-		else if (TargetDirection != Vector3.Zero)
+		else if (_hasOverrideVelocity)
+		{
+			velocity = _overrideDirection * _overrideSpeed;
+		}
+		else if (TargetDirection != Vector3.Zero && ActionGate?.AllowsLocomotion != false)
 		{
 			// General movement
-			velocity = TargetDirection * Speed;
+			velocity = TargetDirection * (Speed * _speedMultiplier);
 		}
 		else
 		{
@@ -173,9 +257,23 @@ public partial class MovementComponent : Node
 		// An explicit facing request (e.g. attack aim-assist) wins over the movement direction for
 		// this frame; otherwise face where we are moving. Consume the request either way so it does
 		// not linger past the frame it was issued.
-		Vector3 lookAt = _hasRequestedFacing
-			? _requestedFacing
-			: (TargetDirection != Vector3.Zero ? new Vector3(TargetDirection.X, 0, TargetDirection.Z).Normalized() : Vector3.Zero);
+		Vector3 lookAt;
+		if (_fixedFacing.HasValue)
+		{
+			lookAt = _fixedFacing.Value;
+		}
+		else if (_hasRequestedFacing)
+		{
+			lookAt = _requestedFacing;
+		}
+		else if (TargetDirection != Vector3.Zero)
+		{
+			lookAt = new Vector3(TargetDirection.X, 0, TargetDirection.Z).Normalized();
+		}
+		else
+		{
+			lookAt = Vector3.Zero;
+		}
 		_hasRequestedFacing = false;
 
 		if (lookAt == Vector3.Zero)

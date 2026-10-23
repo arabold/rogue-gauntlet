@@ -93,6 +93,8 @@ public partial class InputComponent : Node
 		return Input.IsActionJustPressed(ActionGuard);
 	}
 
+	public override void _Ready() { ProcessPhysicsPriority = CombatPhysics.Input; }
+
 	public override void _PhysicsProcess(double delta)
 	{
 		// Get the camera's forward and right vectors

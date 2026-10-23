@@ -1,27 +1,25 @@
-[gd_resource type="Resource" script_class="IdentifiableEquipableItem" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="IdentifiableEquipableItem" format=3 uid="uid://cuyom2pthg1y"]
 
-[ext_resource type="Script" path="res://scenes/items/IdentifiableEquipableItem.cs" id="item"]
+[ext_resource type="Script" uid="uid://b8oa1aglmosdk" path="res://scenes/items/affixes/RolledAffix.cs" id="1_bgw8a"]
+[ext_resource type="Script" uid="uid://cadjyq7h2j4fb" path="res://scenes/items/IdentifiableEquipableItem.cs" id="item"]
+[ext_resource type="Script" uid="uid://b2ecrfjb74yc3" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
 [ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_wood_peridot.tscn" id="scene"]
-[ext_resource type="Script" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
 
 [sub_resource type="Resource" id="Modifier"]
 script = ExtResource("mod")
 Stat = 4
-Op = 0
 Value = 8.0
 metadata/_custom_type_script = ExtResource("mod")
 
 [resource]
 script = ExtResource("item")
-Scene = ExtResource("scene")
-Name = "Wood Amulet of Health"
-TrueName = "Wood Amulet of Health"
 TypeId = "amulet.health"
 IdentityCategory = "amulet"
+TrueName = "Wood Amulet of Health"
 UnidentifiedNameTemplate = "{descriptor} amulet"
 IntrinsicModifiers = [SubResource("Modifier")]
 ValidSlots = 32
-Tier = 1
+Name = "Wood Amulet of Health"
+Scene = ExtResource("scene")
 Value = 75
-IsStackable = false
 metadata/_custom_type_script = ExtResource("item")

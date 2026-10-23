@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="IdentifiableEquipableItem" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="IdentifiableEquipableItem" format=3 uid="uid://c0as22o4fwt22"]
 
-[ext_resource type="Script" path="res://scenes/items/IdentifiableEquipableItem.cs" id="item"]
+[ext_resource type="Script" uid="uid://b8oa1aglmosdk" path="res://scenes/items/affixes/RolledAffix.cs" id="1_xq01o"]
+[ext_resource type="Script" uid="uid://cadjyq7h2j4fb" path="res://scenes/items/IdentifiableEquipableItem.cs" id="item"]
+[ext_resource type="Script" uid="uid://b2ecrfjb74yc3" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
 [ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_gold_topaz.tscn" id="scene"]
-[ext_resource type="Script" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
 
 [sub_resource type="Resource" id="Modifier"]
 script = ExtResource("mod")
@@ -13,15 +14,14 @@ metadata/_custom_type_script = ExtResource("mod")
 
 [resource]
 script = ExtResource("item")
-Scene = ExtResource("scene")
-Name = "Gold Amulet of Precision"
-TrueName = "Gold Amulet of Precision"
 TypeId = "amulet.precision"
 IdentityCategory = "amulet"
+TrueName = "Gold Amulet of Precision"
 UnidentifiedNameTemplate = "{descriptor} amulet"
 IntrinsicModifiers = [SubResource("Modifier")]
 ValidSlots = 32
 Tier = 3
+Name = "Gold Amulet of Precision"
+Scene = ExtResource("scene")
 Value = 225
-IsStackable = false
 metadata/_custom_type_script = ExtResource("item")

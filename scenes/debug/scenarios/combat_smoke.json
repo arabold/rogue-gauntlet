@@ -1,0 +1,20 @@
+[
+  { "Frame": 0, "Command": "spawn", "Value": 1 },
+  { "Frame": 0, "Command": "defense", "Value": 4 },
+  { "Frame": 6, "Command": "attack" },
+  { "Frame": 24, "Command": "guard" },
+  { "Frame": 45, "Command": "defense", "Value": 0 },
+  { "Frame": 50, "Command": "release_guard" },
+  { "Frame": 85, "Command": "monster_attack" },
+  { "Frame": 97, "Command": "guard" },
+  { "Frame": 120, "Command": "release_guard" },
+  { "Frame": 148, "Command": "move", "X": 1 },
+  { "Frame": 150, "Command": "dodge", "Z": 1 },
+  { "Frame": 180, "Command": "move" },
+  { "Frame": 190, "Command": "position_player", "X": 0, "Z": 0 },
+  { "Frame": 200, "Command": "equip", "Value": 6 },
+  { "Frame": 210, "Command": "attack" },
+  { "Frame": 270, "Command": "spawn", "Value": 1 },
+  { "Frame": 280, "Command": "equip", "Value": 8 },
+  { "Frame": 290, "Command": "attack" }
+]

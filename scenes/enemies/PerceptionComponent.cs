@@ -78,6 +78,20 @@ public partial class PerceptionComponent : Node
 	/// DetectionAngle of its facing direction). This gates long-range sight detection so the
 	/// player can slip past behind an enemy; it does not test for occluding geometry.
 	/// </summary>
+	public bool CanPerceive(Node3D node)
+	{
+		if (_actor == null || _profile == null || _sightRay == null) return false;
+		float distance = _actor.GlobalPosition.DistanceTo(node.GlobalPosition);
+		if (distance > _profile.DetectionRange) return false;
+		if (distance >= _profile.DetectionRange * _profile.CloseDetectionRangeMultiplier && !IsWithinVisionCone(node)) return false;
+		Vector3 eye = _sightRay.GlobalPosition;
+		Vector3 to = new(node.GlobalPosition.X, eye.Y, node.GlobalPosition.Z);
+		var query = PhysicsRayQueryParameters3D.Create(eye, to, 1 | 2 | 16);
+		query.Exclude = new Godot.Collections.Array<Rid> { _actor.GetRid() };
+		var result = _sightRay.GetWorld3D().DirectSpaceState.IntersectRay(query);
+		return result.Count == 0 || result["collider"].Obj == node;
+	}
+
 	private bool IsWithinVisionCone(Node3D node)
 	{
 		Vector3 direction = (node.GlobalPosition - _actor.GlobalPosition).Normalized();

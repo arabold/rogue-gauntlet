@@ -68,7 +68,9 @@ public static class SaveService
 		{
 			throw new JsonException("Incompatible save version. Start a new run; development saves are not migrated.");
 		}
-		return JsonSerializer.Deserialize<SaveGame>(json, JsonOptions);
+		var save = JsonSerializer.Deserialize<SaveGame>(json, JsonOptions);
+		save?.Player?.Actions?.ValidateCombatTimers();
+		return save;
 	}
 
 	public static bool Save(SaveGame saveGame)

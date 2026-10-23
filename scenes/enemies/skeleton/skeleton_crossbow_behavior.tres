@@ -10,6 +10,8 @@
 script = ExtResource("attack")
 AnimationId = "ranged_attack"
 IsRanged = true
+DefenseTraits = 3
+AreaDefenseTraits = 1
 ProjectileScene = ExtResource("arrow")
 ProjectileSpeed = 16.0
 Range = 20.0

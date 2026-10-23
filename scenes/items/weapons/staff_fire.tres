@@ -12,6 +12,7 @@
 script = ExtResource("3_attack_script")
 AnimationId = "ranged_attack"
 HitWindowStart = 0.2
+DefenseTraits = 3
 IsRanged = true
 ProjectileScene = ExtResource("4_projectile")
 MuzzleEffectScene = ExtResource("5_muzzle")

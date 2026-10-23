@@ -28,6 +28,7 @@ public partial class ActorInteractionComponent : Node
 
 	public override void _Ready()
 	{
+		ProcessPhysicsPriority = CombatPhysics.Commit;
 		Actor ??= GetOwner<Node3D>() ?? GetParent<Node3D>();
 		ActionGate ??= Actor?.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
 		SetPhysicsProcess(false);

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ConsumableItem" load_steps=5 format=3 uid="uid://dregenptres01"]
+[gd_resource type="Resource" script_class="ConsumableItem" format=3 uid="uid://dregenptres01"]
 
 [ext_resource type="Script" uid="uid://irr1yr02p4rg" path="res://scenes/buffs/HealingBuff.cs" id="1_buff"]
 [ext_resource type="PackedScene" uid="uid://cregenpot0001" path="res://scenes/items/potions/regeneration_potion.tscn" id="3_scene"]
@@ -7,23 +7,19 @@
 [sub_resource type="Resource" id="Resource_regen"]
 script = ExtResource("1_buff")
 HealthPointsPerTick = 1
+TicksPerSecond = 2.0
 Name = "Regeneration"
 Duration = 10.0
-TicksPerSecond = 2.0
 metadata/_custom_type_script = ExtResource("1_buff")
 
 [resource]
 script = ExtResource("4_item")
-Buff = SubResource("Resource_regen")
 TypeId = "potion.regeneration"
-IdentityCategory = "potion"
 TrueName = "Potion of Regeneration"
-UnidentifiedNameTemplate = "{descriptor} potion"
-Scene = ExtResource("3_scene")
+Buff = SubResource("Resource_regen")
 Name = "Regeneration Potion"
-Quality = 1.0
+Scene = ExtResource("3_scene")
 Value = 150
-ShowInInventory = true
 IsStackable = true
 MaxStackSize = 20
 metadata/_custom_type_script = ExtResource("4_item")

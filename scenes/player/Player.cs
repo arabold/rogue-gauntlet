@@ -3,7 +3,7 @@ using Godot;
 /// <summary>
 /// The main player character.
 /// </summary>
-public partial class Player : CharacterBody3D, IDamageable
+public partial class Player : CharacterBody3D, IDamageable, IStaggerable
 {
 	[Export] public PlayerStats Stats { get; protected set; }
 	[Export] public Inventory Inventory { get; protected set; }
@@ -11,7 +11,7 @@ public partial class Player : CharacterBody3D, IDamageable
 
 	// The following states are used for animation
 	public bool IsDead => HealthComponent != null && HealthComponent.CurrentHealth <= 0;
-	public bool IsHit => MovementComponent != null && MovementComponent.IsPushed;
+	public bool IsHit => MovementComponent?.IsPushed == true || ActionGate?.IsStaggered == true;
 	public bool IsMoving => MovementComponent != null && MovementComponent.IsMoving;
 	public bool IsFalling => MovementComponent != null && MovementComponent.IsFalling;
 	public bool IsPerformingAction => (ActionGate != null && ActionGate.IsBusy) || (ActionManager != null && ActionManager.IsBusy) || (AttackController != null && AttackController.IsAttacking);
@@ -19,6 +19,12 @@ public partial class Player : CharacterBody3D, IDamageable
 	public ActorActionGateComponent ActionGate { get; protected set; }
 	public PlayerQuickItemController QuickItemController { get; protected set; }
 	public ActorInteractionComponent InteractionComponent { get; protected set; }
+	public DodgeComponent DodgeComponent { get; protected set; }
+	public GuardComponent GuardComponent { get; protected set; }
+	public bool TryStagger(float duration)
+	{
+		return ActionGate?.TryStagger(duration) ?? false;
+	}
 	public string CurrentActionId => ActionManager?.CurrentAnimationId;
 
 	public HealthComponent HealthComponent { get; protected set; }
@@ -115,12 +121,15 @@ public partial class Player : CharacterBody3D, IDamageable
 		InventoryController = GetNode<PlayerInventoryController>("PlayerInventoryController");
 		InputController = GetNode<PlayerInputController>("PlayerInputController");
 		AttackController = GetNode<PlayerAttackController>("PlayerAttackController");
+		AttackController.ConfigureRandom(GenerationRandom.DeriveSeed(GameSession.Instance?.ActiveSeed ?? 42, "combat.attack", "player"));
 		ActionGate = GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
 		if (ActionGate == null)
 		{
 			ActionGate = new ActorActionGateComponent { Name = "ActorActionGateComponent" };
 			AddChild(ActionGate);
 		}
+		MovementComponent.ActionGate = ActionGate;
+		HealthComponent.Died += () => ActionGate.Disable();
 		QuickItemController = GetNodeOrNull<PlayerQuickItemController>("PlayerQuickItemController");
 		if (QuickItemController == null)
 		{
@@ -138,8 +147,30 @@ public partial class Player : CharacterBody3D, IDamageable
 			CanOpenDoors = true,
 			CanOpenContainers = true,
 			CanUseMechanisms = true,
-			CanPickMechanicalLocks = true
+			CanPickMechanicalLocks = true,
+
+
 		};
+
+		DodgeComponent = GetNodeOrNull<DodgeComponent>("DodgeComponent");
+		if (DodgeComponent != null)
+		{
+			DodgeComponent.Actor ??= this;
+			DodgeComponent.MovementComponent ??= MovementComponent;
+			DodgeComponent.ActionGate ??= ActionGate;
+			DodgeComponent.DodgeDef ??= Capabilities?.InnateDodge;
+		}
+
+		GuardComponent = GetNodeOrNull<GuardComponent>("GuardComponent");
+		if (GuardComponent != null)
+		{
+			GuardComponent.Actor ??= this;
+			GuardComponent.MovementComponent ??= MovementComponent;
+			GuardComponent.ActionGate ??= ActionGate;
+		}
+		HurtBoxComponent?.RegisterDefenseEvaluator(DodgeComponent);
+		HurtBoxComponent?.RegisterDefenseEvaluator(GuardComponent);
+
 		if (HurtBoxComponent != null)
 		{
 			HurtBoxComponent.DamageTaken += (amount, dir) =>
@@ -192,7 +223,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	/// <summary>
 	/// Implement the `IDamageable` interface, so the player can take damage
 	/// when attacked or walking into a trap.
-	/// 
+	///
 	/// The amount of damage is taking the armor into account.
 	/// </summary>
 	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null, DamageSourceFlags attackerFaction = DamageSourceFlags.None)
@@ -206,7 +237,7 @@ public partial class Player : CharacterBody3D, IDamageable
 	/// Public function that can be called when the player should take damage
 	/// without a specific attack direction. This is useful for poison or other
 	/// damage-over-time effects.
-	/// 
+	///
 	/// Armor is not taken into account here.
 	/// </summary>
 	/// <param name="amount"></param>

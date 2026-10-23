@@ -86,14 +86,14 @@ public partial class PlayerAttackController : AttackController
 	}
 
 	/// <summary>Start the accepted snapshot with current actor stats and local aim assistance.</summary>
-	public bool StartPreparedWeaponAttack(PreparedAttack attack, Weapon weapon = null, bool isSpecial = false)
+	public bool StartPreparedWeaponAttack(PreparedAttack attack, Weapon weapon = null, bool isSpecial = false, ActorActionLease lease = default)
 	{
 		if (Player.IsDead || Player.IsHit || IsAttacking) return false;
 		_activeWeapon = weapon;
 		_aimAssistTarget = FindMeleeAimAssistTarget();
 		var stats = Player.Stats;
 		float multiplier = isSpecial ? (weapon?.SecondaryDamageMultiplier ?? 1.5f) : 1.0f;
-		return StartAttack(attack, stats.MinDamage * multiplier, stats.MaxDamage * multiplier, stats.Accuracy, stats.CritChance, 24);
+		return StartAttack(attack, stats.MinDamage * multiplier, stats.MaxDamage * multiplier, stats.Accuracy, stats.CritChance, 24, lease);
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -119,6 +119,7 @@ public partial class PlayerAttackController : AttackController
 			def.HitWindowEnd = (isSpecial ? 0.75f : 0.7f) * duration;
 			def.Range = weapon is RangedWeapon ranged ? ranged.Range : 20.0f;
 			def.IsRanged = weapon is RangedWeapon;
+			if (def.IsRanged) def.DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable;
 
 			if (weapon is RangedWeapon rangedWeapon)
 			{

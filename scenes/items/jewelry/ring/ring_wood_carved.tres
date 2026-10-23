@@ -1,27 +1,23 @@
-[gd_resource type="Resource" script_class="IdentifiableEquipableItem" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="IdentifiableEquipableItem" format=3 uid="uid://ckpu8vll5royj"]
 
-[ext_resource type="Script" path="res://scenes/items/IdentifiableEquipableItem.cs" id="item"]
+[ext_resource type="Script" uid="uid://b8oa1aglmosdk" path="res://scenes/items/affixes/RolledAffix.cs" id="1_uvr4y"]
+[ext_resource type="Script" uid="uid://cadjyq7h2j4fb" path="res://scenes/items/IdentifiableEquipableItem.cs" id="item"]
+[ext_resource type="Script" uid="uid://b2ecrfjb74yc3" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
 [ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_wood_carved.tscn" id="scene"]
-[ext_resource type="Script" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
 
 [sub_resource type="Resource" id="Modifier"]
 script = ExtResource("mod")
 Stat = 10
-Op = 0
 Value = 2.0
 metadata/_custom_type_script = ExtResource("mod")
 
 [resource]
 script = ExtResource("item")
-Scene = ExtResource("scene")
-Name = "Wood Ring of Protection"
-TrueName = "Wood Ring of Protection"
 TypeId = "ring.protection"
-IdentityCategory = "ring"
-UnidentifiedNameTemplate = "{descriptor} ring"
+TrueName = "Wood Ring of Protection"
 IntrinsicModifiers = [SubResource("Modifier")]
 ValidSlots = 192
-Tier = 1
+Name = "Wood Ring of Protection"
+Scene = ExtResource("scene")
 Value = 75
-IsStackable = false
 metadata/_custom_type_script = ExtResource("item")

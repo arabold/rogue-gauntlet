@@ -13,19 +13,20 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public class MeleeContactTest
 {
-	private static async Task<(ISceneRunner Runner, AttackAnimationHarness Harness)> Load()
+	private static async Task<(ISceneRunner Runner, CombatHarness Harness)> Load()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/attack_animation_harness.tscn", true);
+		var runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
 		await runner.SimulateFrames(4);
-		var harness = runner.Scene().GetNode<AttackAnimationHarness>("Instructions");
+		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
 		return (runner, harness);
 	}
 
-	private static AttackController Start(AttackAnimationHarness harness, string profile = "slash_1h", uint mask = 8, bool effects = false)
+	private static AttackController Start(CombatHarness harness, string profile = "slash_1h", uint mask = 8, bool effects = false)
 	{
 		var controller = harness.Player.AttackController;
+		controller.CancelAttack();
 		controller.EffectsEnabled = effects;
 		var definition = new AttackDefinition { AttackStyle = "sword.1h.slash",
 			MeleeContact = GD.Load<MeleeAttackProfile>($"res://scenes/attacks/melee_profiles/{profile}.tres") };
@@ -35,7 +36,7 @@ public class MeleeContactTest
 		return controller;
 	}
 
-	private static HealthComponent Health(AttackAnimationHarness harness) => harness.PracticeTarget.GetNode<HealthComponent>("HealthComponent");
+	private static HealthComponent Health(CombatHarness harness) => harness.PracticeTarget.GetNode<HealthComponent>("HealthComponent");
 
 	[TestCase]
 	public async Task BodyContactIsTimedAndCanBeEnteredAfterTheWindowOpens()
@@ -278,6 +279,9 @@ public class MeleeContactTest
 		var (_, harness) = await Load();
 		harness.SpawnMonster();
 		var monster = harness.Player.GetParent().GetChildren().OfType<EnemyBase>().Single();
+		monster.GlobalPosition = harness.Player.GlobalPosition + Vector3.Forward * 1.8f;
+		harness.Player.HurtBoxComponent.Evasion = 0;
+		harness.Player.HurtBoxComponent.Armor = 0;
 		float health = harness.Player.HealthComponent.CurrentHealth;
 		harness.MonsterAttack();
 		var controller = monster.GetNode<AttackController>("AttackController");

@@ -15,6 +15,7 @@ public partial class LargeActorFitComponent : Node
 
 	public override void _Ready()
 	{
+		ProcessPhysicsPriority = CombatPhysics.Clearance;
 		_map = this.GetAncestorOrNull<Level>()?.MapGenerator;
 		MovementClearance = Profile.MinimumClearance;
 		if (_map != null)
@@ -23,11 +24,13 @@ public partial class LargeActorFitComponent : Node
 		}
 	}
 
+	public bool CanMoveTo(Vector3 position) => _map == null || _map.IsEncounterFootprintClear(position, MovementClearance, HomeRoomId);
+
 	public override void _PhysicsProcess(double delta)
 	{
-		if (_map == null || Actor.IsDead || Movement == null || Movement.TargetDirection.IsZeroApprox() || Movement.Speed <= 0) return;
-		var next = Actor.GlobalPosition + Movement.TargetDirection * Movement.Speed * (float)delta;
-		if (!_map.IsEncounterFootprintClear(next, MovementClearance, HomeRoomId)) Movement.Stop();
+		if (_map == null || Actor.IsDead || Movement == null || Movement.LocomotionDirection.IsZeroApprox() || Movement.Speed <= 0) return;
+		var next = Actor.GlobalPosition + Movement.LocomotionDirection * Movement.LocomotionSpeed * (float)delta;
+		if (!CanMoveTo(next)) Movement.HaltLocomotion();
 	}
 
 	public override void _Process(double delta)

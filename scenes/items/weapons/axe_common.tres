@@ -1,11 +1,13 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=5 format=3 uid="uid://bc4es25jpb62o"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=6 format=3 uid="uid://bc4es25jpb62o"]
 
+[ext_resource type="Resource" path="res://scenes/combat/definitions/weapon_guard.tres" id="guard_weapon"]
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_1h.tres" id="melee_contact"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="PackedScene" uid="uid://l0ojnwtgehmw" path="res://scenes/items/weapons/axe_common.tscn" id="1_w1nru"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_nvcxl"]
 
 [resource]
+Guard = ExtResource("guard_weapon")
 script = ExtResource("2_nvcxl")
 MeleeContact = ExtResource("melee_contact")
 AttackStyle = &"axe.1h.chop"

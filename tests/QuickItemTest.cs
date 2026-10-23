@@ -370,7 +370,7 @@ public partial class QuickItemTest
 			attack = new PreparedAttack(null, null, 0.2);
 			return true;
 		}
-		public bool StartPrepared(Player player, PreparedAttack attack) => true;
+		public bool StartPrepared(Player player, PreparedAttack attack, ActorActionLease lease = default) => true;
 		public void PerformAction(Player player) { }
 	}
 

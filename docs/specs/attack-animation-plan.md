@@ -41,7 +41,7 @@ concurrent actions and retains the existing animation-ID path for non-weapon act
 
 `PlayerAttackController` selects the weapon's default or custom definition and style, then
 `AttackController` duplicates the definition and resolves normalized contact timing against the
-requested perform duration. `AttackAnimationComponent` temporarily disables the actor's
+requested perform duration. `CombatAnimationComponent` temporarily disables the actor's
 AnimationTree and evaluates the selected AnimationPlayer clip from that same physics clock.
 On completion/interruption it restores the tree and its Idle entry; the tree continues to own
 locomotion, hit/death transitions, and other actions. No animation library/state-machine assets
@@ -79,7 +79,7 @@ One `[GlobalClass]` Resource per script, authored in the Inspector:
 // AttackAnimationProfile : Resource
 [Export] public AttackAnimationBinding[] Bindings { get; set; }
 
-// AttackAnimationComponent : Node; injected from the actor scene.
+// CombatAnimationComponent : Node; injected from the actor scene.
 [Export] public NodePath AnimationTreePath { get; set; }
 [Export] public NodePath AnimationPlayerPath { get; set; }
 [Export] public AttackAnimationProfile Profile { get; set; }
@@ -145,7 +145,7 @@ Runtime tests cover all player rigs and monster slots, style precedence, invalid
 resource immutability, moving poses, recovery, interruption, and exactly-once ranged release.
 The native melee/crossbow grip transforms are checked against the original KayKit bones.
 
-`scenes/debug/attack_animation_harness.tscn` provides a floor, player, camera, eleven selectable
+`scenes/debug/combat_harness.tscn` provides a floor, player, camera, eleven selectable
 weapons, and an Attack button using real inventory and action slots. Inspect the component,
 profiles, and grips through Godot's Inspector/Remote tree. Visual checks have exercised slash,
 chop, thrust, crossbow, and casting poses; clip contact fractions remain initial tuning values.

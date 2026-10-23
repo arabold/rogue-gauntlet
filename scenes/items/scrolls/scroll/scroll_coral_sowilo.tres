@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="Scroll" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="Scroll" format=3 uid="uid://ds8yih3e1mer8"]
 
-[ext_resource type="Script" path="res://scenes/buffs/StatModifierBuff.cs" id="1_buff"]
-[ext_resource type="Script" uid="uid://cstatmod0000001" path="res://scenes/player/resources/StatModifier.cs" id="2_mod"]
+[ext_resource type="Script" uid="uid://de7pjydt2w7pk" path="res://scenes/buffs/StatModifierBuff.cs" id="1_buff"]
+[ext_resource type="Script" uid="uid://b2ecrfjb74yc3" path="res://scenes/player/resources/StatModifier.cs" id="2_mod"]
 [ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_coral_sowilo.tscn" id="3_scene"]
 [ext_resource type="Script" uid="uid://tl6phiqa232t" path="res://scenes/items/scrolls/Scroll.cs" id="4_scroll"]
 
@@ -14,20 +14,19 @@ metadata/_custom_type_script = ExtResource("2_mod")
 
 [sub_resource type="Resource" id="Resource_haste"]
 script = ExtResource("1_buff")
+Modifiers = [SubResource("Resource_hastemod")]
 Name = "Haste"
 Duration = 30.0
-Modifiers = [SubResource("Resource_hastemod")]
 metadata/_custom_type_script = ExtResource("1_buff")
 
 [resource]
 script = ExtResource("4_scroll")
-Buff = SubResource("Resource_haste")
-AnimationId = "drink_potion"
-Name = "Scroll of Haste"
 TypeId = "scroll.haste"
 IdentityCategory = "scroll"
 TrueName = "Scroll of Haste"
 UnidentifiedNameTemplate = "scroll labeled {descriptor}"
+Buff = SubResource("Resource_haste")
+Name = "Scroll of Haste"
 Scene = ExtResource("3_scene")
 Value = 100
 IsStackable = true

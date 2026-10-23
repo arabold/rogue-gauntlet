@@ -1,15 +1,14 @@
-[gd_resource type="Resource" script_class="AffixPool" load_steps=82 format=3 uid="uid://daffixpoolres01"]
+[gd_resource type="Resource" script_class="AffixPool" format=3 uid="uid://co6fy0aelsujc"]
 
-[ext_resource type="Script" uid="uid://caffixpool000001" path="res://scenes/items/affixes/AffixPool.cs" id="1_pool"]
-[ext_resource type="Script" uid="uid://caffix000000001" path="res://scenes/items/affixes/Affix.cs" id="2_affix"]
-[ext_resource type="Script" uid="uid://caffixrange00001" path="res://scenes/items/affixes/AffixModifierRange.cs" id="3_range"]
-[ext_resource type="Script" uid="uid://caffixrollcount1" path="res://scenes/items/affixes/AffixRollCount.cs" id="4_count"]
-[ext_resource type="Script" uid="uid://crarityweight0001" path="res://scenes/items/affixes/RarityWeight.cs" id="5_weight"]
+[ext_resource type="Script" uid="uid://lbo8256p4dca" path="res://scenes/items/affixes/AffixPool.cs" id="1_pool"]
+[ext_resource type="Script" uid="uid://cb5nn7f4pvq3y" path="res://scenes/items/affixes/Affix.cs" id="2_affix"]
+[ext_resource type="Script" uid="uid://lbqt10kp4dca" path="res://scenes/items/affixes/AffixModifierRange.cs" id="3_range"]
+[ext_resource type="Script" uid="uid://lbq8y5iexy5a" path="res://scenes/items/affixes/AffixRollCount.cs" id="4_count"]
+[ext_resource type="Script" uid="uid://xujfyoh8ij33" path="res://scenes/items/affixes/RarityWeight.cs" id="5_weight"]
 
 [sub_resource type="Resource" id="R_vic_max"]
 script = ExtResource("3_range")
 Stat = 8
-Op = 0
 MinValue = 1.0
 MaxValue = 4.0
 metadata/_custom_type_script = ExtResource("3_range")
@@ -17,18 +16,31 @@ metadata/_custom_type_script = ExtResource("3_range")
 [sub_resource type="Resource" id="R_vic_min"]
 script = ExtResource("3_range")
 Stat = 7
-Op = 0
-MinValue = 0.0
 MaxValue = 2.0
 metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="A_vicious"]
+script = ExtResource("2_affix")
+NameFragment = "Vicious"
+Modifiers = [SubResource("R_vic_max"), SubResource("R_vic_min")]
+AllowedSlots = 256
+Weight = 10.0
+metadata/_custom_type_script = ExtResource("2_affix")
 
 [sub_resource type="Resource" id="R_keen"]
 script = ExtResource("3_range")
 Stat = 9
-Op = 0
 MinValue = 0.02
 MaxValue = 0.08
 metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="A_keen"]
+script = ExtResource("2_affix")
+NameFragment = "Keen"
+Modifiers = [SubResource("R_keen")]
+AllowedSlots = 256
+Weight = 8.0
+metadata/_custom_type_script = ExtResource("2_affix")
 
 [sub_resource type="Resource" id="R_savage"]
 script = ExtResource("3_range")
@@ -38,37 +50,74 @@ MinValue = 0.1
 MaxValue = 0.3
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_savage"]
+script = ExtResource("2_affix")
+NameFragment = "Savage"
+Modifiers = [SubResource("R_savage")]
+AllowedSlots = 256
+Weight = 4.0
+MinRarity = 2
+MinTier = 2
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_sturdy"]
 script = ExtResource("3_range")
 Stat = 10
-Op = 0
 MinValue = 1.0
 MaxValue = 5.0
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_sturdy"]
+script = ExtResource("2_affix")
+NameFragment = "Sturdy"
+Modifiers = [SubResource("R_sturdy")]
+AllowedSlots = 543
+Weight = 8.0
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_ox"]
 script = ExtResource("3_range")
-Stat = 0
-Op = 0
 MinValue = 2.0
 MaxValue = 6.0
 metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="A_ox"]
+script = ExtResource("2_affix")
+NameFragment = "of the Ox"
+Kind = 1
+Modifiers = [SubResource("R_ox")]
+Weight = 8.0
+metadata/_custom_type_script = ExtResource("2_affix")
 
 [sub_resource type="Resource" id="R_fox"]
 script = ExtResource("3_range")
 Stat = 1
-Op = 0
 MinValue = 2.0
 MaxValue = 6.0
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_fox"]
+script = ExtResource("2_affix")
+NameFragment = "of the Fox"
+Kind = 1
+Modifiers = [SubResource("R_fox")]
+Weight = 8.0
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_bear"]
 script = ExtResource("3_range")
 Stat = 2
-Op = 0
 MinValue = 2.0
 MaxValue = 6.0
 metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="A_bear"]
+script = ExtResource("2_affix")
+NameFragment = "of the Bear"
+Kind = 1
+Modifiers = [SubResource("R_bear")]
+Weight = 8.0
+metadata/_custom_type_script = ExtResource("2_affix")
 
 [sub_resource type="Resource" id="R_haste"]
 script = ExtResource("3_range")
@@ -78,6 +127,15 @@ MinValue = 0.05
 MaxValue = 0.15
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_haste"]
+script = ExtResource("2_affix")
+NameFragment = "of Haste"
+Kind = 1
+Modifiers = [SubResource("R_haste")]
+Weight = 5.0
+MinRarity = 1
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_ward"]
 script = ExtResource("3_range")
 Stat = 10
@@ -86,93 +144,11 @@ MinValue = 0.1
 MaxValue = 0.25
 metadata/_custom_type_script = ExtResource("3_range")
 
-[sub_resource type="Resource" id="A_vicious"]
-script = ExtResource("2_affix")
-NameFragment = "Vicious"
-Kind = 0
-Modifiers = [SubResource("R_vic_max"), SubResource("R_vic_min")]
-AllowedSlots = 256
-Weight = 10.0
-MinRarity = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_keen"]
-script = ExtResource("2_affix")
-NameFragment = "Keen"
-Kind = 0
-Modifiers = [SubResource("R_keen")]
-AllowedSlots = 256
-Weight = 8.0
-MinRarity = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_savage"]
-script = ExtResource("2_affix")
-NameFragment = "Savage"
-Kind = 0
-Modifiers = [SubResource("R_savage")]
-AllowedSlots = 256
-Weight = 4.0
-MinRarity = 2
-MinTier = 2
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_sturdy"]
-script = ExtResource("2_affix")
-NameFragment = "Sturdy"
-Kind = 0
-Modifiers = [SubResource("R_sturdy")]
-AllowedSlots = 543
-Weight = 8.0
-MinRarity = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_ox"]
-script = ExtResource("2_affix")
-NameFragment = "of the Ox"
-Kind = 1
-Modifiers = [SubResource("R_ox")]
-AllowedSlots = 0
-Weight = 8.0
-MinRarity = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_fox"]
-script = ExtResource("2_affix")
-NameFragment = "of the Fox"
-Kind = 1
-Modifiers = [SubResource("R_fox")]
-AllowedSlots = 0
-Weight = 8.0
-MinRarity = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_bear"]
-script = ExtResource("2_affix")
-NameFragment = "of the Bear"
-Kind = 1
-Modifiers = [SubResource("R_bear")]
-AllowedSlots = 0
-Weight = 8.0
-MinRarity = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_haste"]
-script = ExtResource("2_affix")
-NameFragment = "of Haste"
-Kind = 1
-Modifiers = [SubResource("R_haste")]
-AllowedSlots = 0
-Weight = 5.0
-MinRarity = 1
-metadata/_custom_type_script = ExtResource("2_affix")
-
 [sub_resource type="Resource" id="A_ward"]
 script = ExtResource("2_affix")
 NameFragment = "of Warding"
 Kind = 1
 Modifiers = [SubResource("R_ward")]
-AllowedSlots = 0
 Weight = 5.0
 MinRarity = 1
 metadata/_custom_type_script = ExtResource("2_affix")
@@ -180,10 +156,17 @@ metadata/_custom_type_script = ExtResource("2_affix")
 [sub_resource type="Resource" id="R_precise"]
 script = ExtResource("3_range")
 Stat = 6
-Op = 0
 MinValue = 0.05
 MaxValue = 0.15
 metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="A_precise"]
+script = ExtResource("2_affix")
+NameFragment = "Precise"
+Modifiers = [SubResource("R_precise")]
+AllowedSlots = 256
+Weight = 8.0
+metadata/_custom_type_script = ExtResource("2_affix")
 
 [sub_resource type="Resource" id="R_swift"]
 script = ExtResource("3_range")
@@ -193,18 +176,34 @@ MinValue = 0.05
 MaxValue = 0.1
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_swift"]
+script = ExtResource("2_affix")
+NameFragment = "Swift"
+Modifiers = [SubResource("R_swift")]
+AllowedSlots = 256
+Weight = 5.0
+MinRarity = 1
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_arcane"]
 script = ExtResource("3_range")
 Stat = 3
-Op = 0
 MinValue = 2.0
 MaxValue = 6.0
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_arcane"]
+script = ExtResource("2_affix")
+NameFragment = "Arcane"
+Modifiers = [SubResource("R_arcane")]
+AllowedSlots = 256
+Weight = 5.0
+MinRarity = 1
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_brutal_min"]
 script = ExtResource("3_range")
 Stat = 7
-Op = 0
 MinValue = 2.0
 MaxValue = 5.0
 metadata/_custom_type_script = ExtResource("3_range")
@@ -212,18 +211,36 @@ metadata/_custom_type_script = ExtResource("3_range")
 [sub_resource type="Resource" id="R_brutal_max"]
 script = ExtResource("3_range")
 Stat = 8
-Op = 0
 MinValue = 3.0
 MaxValue = 7.0
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_brutal"]
+script = ExtResource("2_affix")
+NameFragment = "Brutal"
+Modifiers = [SubResource("R_brutal_min"), SubResource("R_brutal_max")]
+AllowedSlots = 256
+Weight = 4.0
+MinRarity = 2
+MinTier = 3
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_deadly"]
 script = ExtResource("3_range")
 Stat = 9
-Op = 0
 MinValue = 0.05
 MaxValue = 0.12
 metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="A_deadly"]
+script = ExtResource("2_affix")
+NameFragment = "Deadly"
+Modifiers = [SubResource("R_deadly")]
+AllowedSlots = 256
+Weight = 4.0
+MinRarity = 2
+MinTier = 3
+metadata/_custom_type_script = ExtResource("2_affix")
 
 [sub_resource type="Resource" id="R_merciless"]
 script = ExtResource("3_range")
@@ -233,29 +250,63 @@ MinValue = 0.25
 MaxValue = 0.5
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_merciless"]
+script = ExtResource("2_affix")
+NameFragment = "Merciless"
+Modifiers = [SubResource("R_merciless")]
+AllowedSlots = 256
+Weight = 2.0
+MinRarity = 3
+MinTier = 4
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_nimble"]
 script = ExtResource("3_range")
 Stat = 11
-Op = 0
 MinValue = 1.0
 MaxValue = 4.0
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_nimble"]
+script = ExtResource("2_affix")
+NameFragment = "Nimble"
+Modifiers = [SubResource("R_nimble")]
+AllowedSlots = 543
+Weight = 8.0
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_stalwart"]
 script = ExtResource("3_range")
 Stat = 4
-Op = 0
 MinValue = 5.0
 MaxValue = 15.0
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_stalwart"]
+script = ExtResource("2_affix")
+NameFragment = "Stalwart"
+Modifiers = [SubResource("R_stalwart")]
+AllowedSlots = 543
+Weight = 6.0
+MinRarity = 1
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_fortified"]
 script = ExtResource("3_range")
 Stat = 10
-Op = 0
 MinValue = 3.0
 MaxValue = 8.0
 metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="A_fortified"]
+script = ExtResource("2_affix")
+NameFragment = "Fortified"
+Modifiers = [SubResource("R_fortified")]
+AllowedSlots = 543
+Weight = 4.0
+MinRarity = 2
+MinTier = 3
+metadata/_custom_type_script = ExtResource("2_affix")
 
 [sub_resource type="Resource" id="R_impenetrable"]
 script = ExtResource("3_range")
@@ -265,29 +316,62 @@ MinValue = 0.25
 MaxValue = 0.5
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_impenetrable"]
+script = ExtResource("2_affix")
+NameFragment = "Impenetrable"
+Modifiers = [SubResource("R_impenetrable")]
+AllowedSlots = 543
+Weight = 2.0
+MinRarity = 3
+MinTier = 4
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_owl"]
 script = ExtResource("3_range")
 Stat = 3
-Op = 0
 MinValue = 2.0
 MaxValue = 6.0
 metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="A_owl"]
+script = ExtResource("2_affix")
+NameFragment = "of the Owl"
+Kind = 1
+Modifiers = [SubResource("R_owl")]
+Weight = 8.0
+metadata/_custom_type_script = ExtResource("2_affix")
 
 [sub_resource type="Resource" id="R_wind"]
 script = ExtResource("3_range")
 Stat = 11
-Op = 0
 MinValue = 2.0
 MaxValue = 6.0
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_wind"]
+script = ExtResource("2_affix")
+NameFragment = "of the Wind"
+Kind = 1
+Modifiers = [SubResource("R_wind")]
+Weight = 5.0
+MinRarity = 1
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_vitality"]
 script = ExtResource("3_range")
 Stat = 4
-Op = 0
 MinValue = 10.0
 MaxValue = 25.0
 metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="A_vitality"]
+script = ExtResource("2_affix")
+NameFragment = "of Vitality"
+Kind = 1
+Modifiers = [SubResource("R_vitality")]
+Weight = 5.0
+MinRarity = 1
+metadata/_custom_type_script = ExtResource("2_affix")
 
 [sub_resource type="Resource" id="R_precision"]
 script = ExtResource("3_range")
@@ -297,18 +381,34 @@ MinValue = 0.05
 MaxValue = 0.15
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_precision"]
+script = ExtResource("2_affix")
+NameFragment = "of Precision"
+Kind = 1
+Modifiers = [SubResource("R_precision")]
+Weight = 5.0
+MinRarity = 1
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_titan"]
 script = ExtResource("3_range")
-Stat = 0
-Op = 0
 MinValue = 4.0
 MaxValue = 9.0
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_titan"]
+script = ExtResource("2_affix")
+NameFragment = "of the Titan"
+Kind = 1
+Modifiers = [SubResource("R_titan")]
+Weight = 3.0
+MinRarity = 2
+MinTier = 3
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_assassin_dex"]
 script = ExtResource("3_range")
 Stat = 1
-Op = 0
 MinValue = 3.0
 MaxValue = 7.0
 metadata/_custom_type_script = ExtResource("3_range")
@@ -316,15 +416,23 @@ metadata/_custom_type_script = ExtResource("3_range")
 [sub_resource type="Resource" id="R_assassin_crit"]
 script = ExtResource("3_range")
 Stat = 9
-Op = 0
 MinValue = 0.03
 MaxValue = 0.06
 metadata/_custom_type_script = ExtResource("3_range")
 
+[sub_resource type="Resource" id="A_assassin"]
+script = ExtResource("2_affix")
+NameFragment = "of the Assassin"
+Kind = 1
+Modifiers = [SubResource("R_assassin_dex"), SubResource("R_assassin_crit")]
+Weight = 3.0
+MinRarity = 2
+MinTier = 3
+metadata/_custom_type_script = ExtResource("2_affix")
+
 [sub_resource type="Resource" id="R_fortress_armor"]
 script = ExtResource("3_range")
 Stat = 10
-Op = 0
 MinValue = 4.0
 MaxValue = 10.0
 metadata/_custom_type_script = ExtResource("3_range")
@@ -332,10 +440,20 @@ metadata/_custom_type_script = ExtResource("3_range")
 [sub_resource type="Resource" id="R_fortress_hp"]
 script = ExtResource("3_range")
 Stat = 4
-Op = 0
 MinValue = 5.0
 MaxValue = 15.0
 metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="A_fortress"]
+script = ExtResource("2_affix")
+NameFragment = "of the Fortress"
+Kind = 1
+Modifiers = [SubResource("R_fortress_armor"), SubResource("R_fortress_hp")]
+AllowedSlots = 543
+Weight = 3.0
+MinRarity = 2
+MinTier = 3
+metadata/_custom_type_script = ExtResource("2_affix")
 
 [sub_resource type="Resource" id="R_alacrity"]
 script = ExtResource("3_range")
@@ -344,6 +462,16 @@ Op = 1
 MinValue = 0.1
 MaxValue = 0.2
 metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="A_alacrity"]
+script = ExtResource("2_affix")
+NameFragment = "of Alacrity"
+Kind = 1
+Modifiers = [SubResource("R_alacrity")]
+Weight = 3.0
+MinRarity = 2
+MinTier = 3
+metadata/_custom_type_script = ExtResource("2_affix")
 
 [sub_resource type="Resource" id="R_slaughter_min"]
 script = ExtResource("3_range")
@@ -361,228 +489,6 @@ MinValue = 0.1
 MaxValue = 0.25
 metadata/_custom_type_script = ExtResource("3_range")
 
-[sub_resource type="Resource" id="R_colossus_str"]
-script = ExtResource("3_range")
-Stat = 0
-Op = 0
-MinValue = 3.0
-MaxValue = 7.0
-metadata/_custom_type_script = ExtResource("3_range")
-
-[sub_resource type="Resource" id="R_colossus_vit"]
-script = ExtResource("3_range")
-Stat = 2
-Op = 0
-MinValue = 3.0
-MaxValue = 7.0
-metadata/_custom_type_script = ExtResource("3_range")
-
-[sub_resource type="Resource" id="R_juggernaut"]
-script = ExtResource("3_range")
-Stat = 4
-Op = 1
-MinValue = 0.1
-MaxValue = 0.2
-metadata/_custom_type_script = ExtResource("3_range")
-
-[sub_resource type="Resource" id="A_precise"]
-script = ExtResource("2_affix")
-NameFragment = "Precise"
-Kind = 0
-Modifiers = [SubResource("R_precise")]
-AllowedSlots = 256
-Weight = 8.0
-MinRarity = 0
-MinTier = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_swift"]
-script = ExtResource("2_affix")
-NameFragment = "Swift"
-Kind = 0
-Modifiers = [SubResource("R_swift")]
-AllowedSlots = 256
-Weight = 5.0
-MinRarity = 1
-MinTier = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_arcane"]
-script = ExtResource("2_affix")
-NameFragment = "Arcane"
-Kind = 0
-Modifiers = [SubResource("R_arcane")]
-AllowedSlots = 256
-Weight = 5.0
-MinRarity = 1
-MinTier = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_brutal"]
-script = ExtResource("2_affix")
-NameFragment = "Brutal"
-Kind = 0
-Modifiers = [SubResource("R_brutal_min"), SubResource("R_brutal_max")]
-AllowedSlots = 256
-Weight = 4.0
-MinRarity = 2
-MinTier = 3
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_deadly"]
-script = ExtResource("2_affix")
-NameFragment = "Deadly"
-Kind = 0
-Modifiers = [SubResource("R_deadly")]
-AllowedSlots = 256
-Weight = 4.0
-MinRarity = 2
-MinTier = 3
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_merciless"]
-script = ExtResource("2_affix")
-NameFragment = "Merciless"
-Kind = 0
-Modifiers = [SubResource("R_merciless")]
-AllowedSlots = 256
-Weight = 2.0
-MinRarity = 3
-MinTier = 4
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_nimble"]
-script = ExtResource("2_affix")
-NameFragment = "Nimble"
-Kind = 0
-Modifiers = [SubResource("R_nimble")]
-AllowedSlots = 543
-Weight = 8.0
-MinRarity = 0
-MinTier = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_stalwart"]
-script = ExtResource("2_affix")
-NameFragment = "Stalwart"
-Kind = 0
-Modifiers = [SubResource("R_stalwart")]
-AllowedSlots = 543
-Weight = 6.0
-MinRarity = 1
-MinTier = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_fortified"]
-script = ExtResource("2_affix")
-NameFragment = "Fortified"
-Kind = 0
-Modifiers = [SubResource("R_fortified")]
-AllowedSlots = 543
-Weight = 4.0
-MinRarity = 2
-MinTier = 3
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_impenetrable"]
-script = ExtResource("2_affix")
-NameFragment = "Impenetrable"
-Kind = 0
-Modifiers = [SubResource("R_impenetrable")]
-AllowedSlots = 543
-Weight = 2.0
-MinRarity = 3
-MinTier = 4
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_owl"]
-script = ExtResource("2_affix")
-NameFragment = "of the Owl"
-Kind = 1
-Modifiers = [SubResource("R_owl")]
-AllowedSlots = 0
-Weight = 8.0
-MinRarity = 0
-MinTier = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_wind"]
-script = ExtResource("2_affix")
-NameFragment = "of the Wind"
-Kind = 1
-Modifiers = [SubResource("R_wind")]
-AllowedSlots = 0
-Weight = 5.0
-MinRarity = 1
-MinTier = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_vitality"]
-script = ExtResource("2_affix")
-NameFragment = "of Vitality"
-Kind = 1
-Modifiers = [SubResource("R_vitality")]
-AllowedSlots = 0
-Weight = 5.0
-MinRarity = 1
-MinTier = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_precision"]
-script = ExtResource("2_affix")
-NameFragment = "of Precision"
-Kind = 1
-Modifiers = [SubResource("R_precision")]
-AllowedSlots = 0
-Weight = 5.0
-MinRarity = 1
-MinTier = 0
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_titan"]
-script = ExtResource("2_affix")
-NameFragment = "of the Titan"
-Kind = 1
-Modifiers = [SubResource("R_titan")]
-AllowedSlots = 0
-Weight = 3.0
-MinRarity = 2
-MinTier = 3
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_assassin"]
-script = ExtResource("2_affix")
-NameFragment = "of the Assassin"
-Kind = 1
-Modifiers = [SubResource("R_assassin_dex"), SubResource("R_assassin_crit")]
-AllowedSlots = 0
-Weight = 3.0
-MinRarity = 2
-MinTier = 3
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_fortress"]
-script = ExtResource("2_affix")
-NameFragment = "of the Fortress"
-Kind = 1
-Modifiers = [SubResource("R_fortress_armor"), SubResource("R_fortress_hp")]
-AllowedSlots = 543
-Weight = 3.0
-MinRarity = 2
-MinTier = 3
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="A_alacrity"]
-script = ExtResource("2_affix")
-NameFragment = "of Alacrity"
-Kind = 1
-Modifiers = [SubResource("R_alacrity")]
-AllowedSlots = 0
-Weight = 3.0
-MinRarity = 2
-MinTier = 3
-metadata/_custom_type_script = ExtResource("2_affix")
-
 [sub_resource type="Resource" id="A_slaughter"]
 script = ExtResource("2_affix")
 NameFragment = "of Slaughter"
@@ -594,66 +500,49 @@ MinRarity = 3
 MinTier = 4
 metadata/_custom_type_script = ExtResource("2_affix")
 
+[sub_resource type="Resource" id="R_colossus_str"]
+script = ExtResource("3_range")
+MinValue = 3.0
+MaxValue = 7.0
+metadata/_custom_type_script = ExtResource("3_range")
+
+[sub_resource type="Resource" id="R_colossus_vit"]
+script = ExtResource("3_range")
+Stat = 2
+MinValue = 3.0
+MaxValue = 7.0
+metadata/_custom_type_script = ExtResource("3_range")
+
 [sub_resource type="Resource" id="A_colossus"]
 script = ExtResource("2_affix")
 NameFragment = "of the Colossus"
 Kind = 1
 Modifiers = [SubResource("R_colossus_str"), SubResource("R_colossus_vit")]
-AllowedSlots = 0
 Weight = 2.0
 MinRarity = 3
 MinTier = 4
 metadata/_custom_type_script = ExtResource("2_affix")
+
+[sub_resource type="Resource" id="R_juggernaut"]
+script = ExtResource("3_range")
+Stat = 4
+Op = 1
+MinValue = 0.1
+MaxValue = 0.2
+metadata/_custom_type_script = ExtResource("3_range")
 
 [sub_resource type="Resource" id="A_juggernaut"]
 script = ExtResource("2_affix")
 NameFragment = "of the Juggernaut"
 Kind = 1
 Modifiers = [SubResource("R_juggernaut")]
-AllowedSlots = 0
 Weight = 2.0
 MinRarity = 3
 MinTier = 4
 metadata/_custom_type_script = ExtResource("2_affix")
 
-[sub_resource type="Resource" id="RC_common"]
-script = ExtResource("4_count")
-Rarity = 0
-MinAffixes = 1
-MaxAffixes = 1
-metadata/_custom_type_script = ExtResource("4_count")
-
-[sub_resource type="Resource" id="RC_unc"]
-script = ExtResource("4_count")
-Rarity = 1
-MinAffixes = 1
-MaxAffixes = 2
-metadata/_custom_type_script = ExtResource("4_count")
-
-[sub_resource type="Resource" id="RC_rare"]
-script = ExtResource("4_count")
-Rarity = 2
-MinAffixes = 2
-MaxAffixes = 3
-metadata/_custom_type_script = ExtResource("4_count")
-
-[sub_resource type="Resource" id="RC_leg"]
-script = ExtResource("4_count")
-Rarity = 3
-MinAffixes = 3
-MaxAffixes = 4
-metadata/_custom_type_script = ExtResource("4_count")
-
-[sub_resource type="Resource" id="RC_uniq"]
-script = ExtResource("4_count")
-Rarity = 4
-MinAffixes = 4
-MaxAffixes = 5
-metadata/_custom_type_script = ExtResource("4_count")
-
 [sub_resource type="Resource" id="RW_common"]
 script = ExtResource("5_weight")
-Rarity = 0
 BaseWeight = 100.0
 WeightPerDepth = -5.0
 metadata/_custom_type_script = ExtResource("5_weight")
@@ -685,6 +574,40 @@ Rarity = 4
 BaseWeight = 0.5
 WeightPerDepth = 0.3
 metadata/_custom_type_script = ExtResource("5_weight")
+
+[sub_resource type="Resource" id="RC_common"]
+script = ExtResource("4_count")
+MinAffixes = 1
+MaxAffixes = 1
+metadata/_custom_type_script = ExtResource("4_count")
+
+[sub_resource type="Resource" id="RC_unc"]
+script = ExtResource("4_count")
+Rarity = 1
+MinAffixes = 1
+MaxAffixes = 2
+metadata/_custom_type_script = ExtResource("4_count")
+
+[sub_resource type="Resource" id="RC_rare"]
+script = ExtResource("4_count")
+Rarity = 2
+MinAffixes = 2
+MaxAffixes = 3
+metadata/_custom_type_script = ExtResource("4_count")
+
+[sub_resource type="Resource" id="RC_leg"]
+script = ExtResource("4_count")
+Rarity = 3
+MinAffixes = 3
+MaxAffixes = 4
+metadata/_custom_type_script = ExtResource("4_count")
+
+[sub_resource type="Resource" id="RC_uniq"]
+script = ExtResource("4_count")
+Rarity = 4
+MinAffixes = 4
+MaxAffixes = 5
+metadata/_custom_type_script = ExtResource("4_count")
 
 [resource]
 script = ExtResource("1_pool")

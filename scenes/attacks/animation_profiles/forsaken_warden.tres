@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="AttackAnimationProfile" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="AttackAnimationProfile" format=3 uid="uid://bv4d4imfyq5si"]
 
-[ext_resource type="Script" path="res://scenes/attacks/AttackAnimationProfile.cs" id="profile"]
-[ext_resource type="Script" path="res://scenes/attacks/AttackAnimationBinding.cs" id="binding"]
+[ext_resource type="Script" uid="uid://dbpmhvkb54j6i" path="res://scenes/attacks/AttackAnimationBinding.cs" id="binding"]
+[ext_resource type="Script" uid="uid://bvtqukotxhie4" path="res://scenes/attacks/AttackAnimationProfile.cs" id="profile"]
 
 [sub_resource type="Resource" id="slash"]
 script = ExtResource("binding")

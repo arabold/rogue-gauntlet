@@ -51,6 +51,46 @@ public partial class PlayerInventoryController : Node
 				Inventory.Equip(item);
 			}
 		}
+		RefreshEffectiveGuard();
+	}
+
+	public void RefreshEffectiveGuard()
+	{
+		if (Player?.GuardComponent == null) return;
+
+		GuardDefinition effectiveGuard = null;
+		if (Inventory?.EquippedItems != null)
+		{
+			Inventory.EquippedItems.TryGetValue(EquipmentSlot.WeaponHand, out var weaponSlot);
+			Inventory.EquippedItems.TryGetValue(EquipmentSlot.ShieldHand, out var shieldSlot);
+
+			Weapon weapon = weaponSlot?.Item as Weapon;
+			EquipableItem shield = shieldSlot?.Item as EquipableItem;
+
+			bool isTwoHanded = weapon != null && weapon.IsTwoHanded;
+
+			if (!isTwoHanded && shield?.Guard != null)
+			{
+				effectiveGuard = shield.Guard;
+			}
+			else if (weapon?.Guard != null)
+			{
+				effectiveGuard = weapon.Guard;
+			}
+			else if (weapon != null && weapon is not RangedWeapon)
+			{
+				effectiveGuard = Player?.Capabilities?.InnateGuard;
+			}
+			else if (weapon is RangedWeapon && shield == null)
+			{
+				// Ranged weapons without a shield cannot guard/parry
+				Player.GuardComponent.ApplyGuardDefinition(null);
+				return;
+			}
+		}
+
+		effectiveGuard ??= Player?.Capabilities?.InnateGuard;
+		Player.GuardComponent.ApplyGuardDefinition(effectiveGuard);
 	}
 
 	public bool IsCommittingItemOperation { get; private set; }
@@ -249,6 +289,8 @@ public partial class PlayerInventoryController : Node
 
 	private void OnItemEquipped(EquipableItem item, EquipmentSlot slot)
 	{
+		if (slot is EquipmentSlot.WeaponHand or EquipmentSlot.ShieldHand)
+			Player.GuardComponent?.Cancel(ActionInterruptReason.EquipChanged);
 		item.OnEquipped(Player);
 		StatsController.SyncStats();
 		SignalBus.EmitItemEquipped(Player, item);
@@ -258,10 +300,13 @@ public partial class PlayerInventoryController : Node
 			ActionManager.AssignPrimary(weapon, weapon.Scene);
 			ActionManager.AssignSecondary(new MartialTechniqueAction(weapon), weapon.Scene);
 		}
+		RefreshEffectiveGuard();
 	}
 
 	private void OnItemUnequipped(EquipableItem item, EquipmentSlot slot)
 	{
+		if (slot is EquipmentSlot.WeaponHand or EquipmentSlot.ShieldHand)
+			Player.GuardComponent?.Cancel(ActionInterruptReason.EquipChanged);
 		item.OnUnequipped(Player);
 		StatsController.SyncStats();
 		SignalBus.EmitItemUnequipped(Player, item);
@@ -271,6 +316,7 @@ public partial class PlayerInventoryController : Node
 			ActionManager.AssignPrimary(UnarmedAttackAction.Instance, null);
 			ActionManager.AssignSecondary(null, null);
 		}
+		RefreshEffectiveGuard();
 	}
 
 	private void OnItemDestroyed(Item item, int quantity)

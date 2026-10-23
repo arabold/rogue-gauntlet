@@ -104,7 +104,7 @@ public class RealmEncounterTest
 		using var runner = ISceneRunner.Load("res://scenes/enemies/skeleton/skeleton_crossbow.tscn", true);
 		await runner.SimulateFrames(2);
 		var actor = runner.Scene();
-		var animation = actor.GetNode<AttackAnimationComponent>("AttackAnimationComponent");
+		var animation = actor.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
 		AssertBool(animation.TryResolve("ranged", out var playback)).IsTrue();
 		AssertString(playback.Clip.ToString()).IsEqual("1H_Ranged_Shoot");
 		var behavior = actor.GetNode<EnemyBehaviorComponent>("EnemyBehaviorComponent").Profile;

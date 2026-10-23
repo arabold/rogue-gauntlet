@@ -25,9 +25,9 @@ public partial class MartialTechniqueAction : RefCounted, ICombatAttackAction
 		return player.AttackController.TryPrepareWeaponAttack(Weapon, out attack, isSpecial: true, duration: PerformDuration);
 	}
 
-	public bool StartPrepared(Player player, PreparedAttack attack)
+	public bool StartPrepared(Player player, PreparedAttack attack, ActorActionLease lease = default)
 	{
-		return player.AttackController.StartPreparedWeaponAttack(attack, Weapon, isSpecial: true);
+		return player.AttackController.StartPreparedWeaponAttack(attack, Weapon, isSpecial: true, lease: lease);
 	}
 
 	public void PerformAction(Player player)

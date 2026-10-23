@@ -151,7 +151,7 @@ shape = SubResource("cap_body")
 [node name="FloatingHealthBar" parent="." index="9"]
 texture = SubResource("ViewportTexture_olqtf")
 
-[node name="AttackAnimationComponent" parent="." index="9"]
+[node name="CombatAnimationComponent" parent="." index="9"]
 AnimationPlayerPath = NodePath("../Pivot/OrcModel/AnimationPlayer")
 AnimationTreePath = NodePath("../EnemyBehaviorComponent/AnimationTree")
 Profile = ExtResource("attack_animation_profile")

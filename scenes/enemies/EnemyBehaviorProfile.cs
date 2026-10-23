@@ -164,6 +164,27 @@ public partial class EnemyBehaviorProfile : Resource
 	/// </summary>
 	[Export] public float DyingActionDuration { get; set; } = 2.0f;
 
+	/// <summary>Probability (0.0 to 1.0) of attempting to raise guard when perceiving an attack.</summary>
+	[Export] public float GuardChance { get; set; } = 0.0f;
+
+	/// <summary>Probability (0.0 to 1.0) of attempting an evasive dodge when perceiving an attack.</summary>
+	[Export] public float DodgeChance { get; set; } = 0.0f;
+
+	/// <summary>Reaction delay in seconds before an enemy reacts to a perceived attack wind-up.</summary>
+	[Export] public float DefenseReactionDelay { get; set; } = 0.04f;
+
+	/// <summary>Duration to maintain guard after the last blocked impact or observed attack before dropping.</summary>
+	[Export] public float GuardPressureWindow { get; set; } = 0.85f;
+
+	/// <summary>Probability (0.0 to 1.0) of launching a riposte counter-attack after successfully holding guard through a combo or landing a parry.</summary>
+	[Export] public float RiposteChance { get; set; } = 0.65f;
+
+	/// <summary>Maximum consecutive duration in seconds to hold guard under continuous attack before dropping.</summary>
+	[Export] public float MaxGuardDuration { get; set; } = 3.5f;
+
+	/// <summary>Whether this enemy attempts to guard or dodge airborne projectiles.</summary>
+	[Export] public bool CanDefendProjectiles { get; set; } = true;
+
 	/// <summary>
 	/// Returns the configured duration for an action.
 	/// </summary>

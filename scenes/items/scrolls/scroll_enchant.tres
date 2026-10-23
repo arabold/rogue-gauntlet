@@ -1,10 +1,9 @@
-[gd_resource type="Resource" script_class="Scroll" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="Scroll" format=3 uid="uid://crxfq8ewtdyo"]
 
 [ext_resource type="Script" uid="uid://tl6phiqa232t" path="res://scenes/items/scrolls/Scroll.cs" id="1_scroll"]
 [ext_resource type="Script" uid="uid://byq4rbby1yx21" path="res://scenes/items/scrolls/EnchantScrollEffect.cs" id="2_effect"]
 [ext_resource type="PackedScene" uid="uid://fc5k4daomt7i" path="res://assets/kaykit-dungeon-legacy/bookA.gltf.glb" id="3_scene"]
-
-[ext_resource type="Resource" path="res://scenes/items/affixes/affix_pool.tres" id="4_pool"]
+[ext_resource type="Resource" uid="uid://co6fy0aelsujc" path="res://scenes/items/affixes/affix_pool.tres" id="4_pool"]
 
 [sub_resource type="Resource" id="Resource_enchant"]
 script = ExtResource("2_effect")
@@ -14,12 +13,11 @@ TargetPrompt = "Enchant which item?"
 [resource]
 script = ExtResource("1_scroll")
 Effect = SubResource("Resource_enchant")
-AnimationId = "drink_potion"
-Name = "Scroll of Enchantment"
 TypeId = "scroll.enchant"
 IdentityCategory = "scroll"
 TrueName = "Scroll of Enchantment"
 UnidentifiedNameTemplate = "scroll labeled {descriptor}"
+Name = "Scroll of Enchantment"
 Scene = ExtResource("3_scene")
 Value = 200
 IsStackable = true

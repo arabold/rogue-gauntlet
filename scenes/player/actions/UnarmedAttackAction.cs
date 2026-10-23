@@ -16,9 +16,9 @@ public partial class UnarmedAttackAction : Resource, ICombatAttackAction
 		return player.AttackController.TryPrepareWeaponAttack(null, out attack, isSpecial: false);
 	}
 
-	public bool StartPrepared(Player player, PreparedAttack attack)
+	public bool StartPrepared(Player player, PreparedAttack attack, ActorActionLease lease = default)
 	{
-		return player.AttackController.StartPreparedWeaponAttack(attack, null);
+		return player.AttackController.StartPreparedWeaponAttack(attack, null, lease: lease);
 	}
 
 	public void PerformAction(Player player)

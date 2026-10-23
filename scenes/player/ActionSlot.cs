@@ -33,8 +33,8 @@ public partial class ActionSlot : Node
 	/// <summary>Invalidate old asynchronous work when equipment or slot ownership changes.</summary>
 	public void AssignAction(int slotIndex, IPlayerAction action, PackedScene previewScene)
 	{
+		if (IsDelayed || IsPerformingAction) CancelExecution(ActionInterruptReason.EquipChanged);
 		_generation++;
-		if (IsPerformingAction) EmitSignalActionPerformed();
 		ReleaseGateLease();
 		IsDelayed = IsPerformingAction = IsOnCooldown = false;
 		RemainingTime = 0;
@@ -45,6 +45,7 @@ public partial class ActionSlot : Node
 
 	public void CancelExecution(ActionInterruptReason reason)
 	{
+		bool wasPerforming = IsPerformingAction;
 		_generation++;
 		if (_actor != null && _actor.AttackController.IsAttacking)
 		{
@@ -52,6 +53,7 @@ public partial class ActionSlot : Node
 		}
 		ReleaseGateLease();
 		Reset();
+		if (wasPerforming) EmitSignalActionPerformed();
 	}
 
 	/// <summary>Resolve weapon animation/timing before accepting an action or publishing its cooldown.</summary>
@@ -80,7 +82,7 @@ public partial class ActionSlot : Node
 
 		// Acquire shared action gate lease
 		ActorActionKind kind = ActionKind;
-		ActorActionPhase initialPhase = delay > 0 ? ActorActionPhase.WindUp : ActorActionPhase.Active;
+		ActorActionPhase initialPhase = (delay > 0 || attackAction != null) ? ActorActionPhase.WindUp : ActorActionPhase.Active;
 
 		if (player.ActionGate != null)
 		{
@@ -99,11 +101,7 @@ public partial class ActionSlot : Node
 		{
 			IsDelayed = true;
 			await ToSignal(GetTree().CreateTimer(delay, false), SceneTreeTimer.SignalName.Timeout);
-			if (!IsCurrent(generation))
-			{
-				ReleaseGateLease();
-				return;
-			}
+			if (!IsCurrent(generation)) return;
 		}
 		IsDelayed = false;
 		if (player.IsDead || player.IsHit || (weapon != null && !IsEquipped(player, weapon)))
@@ -113,14 +111,14 @@ public partial class ActionSlot : Node
 			return;
 		}
 
-		if (player.ActionGate != null && _activeLease.IsValid)
+		if (attackAction == null && player.ActionGate != null && _activeLease.IsValid)
 		{
 			player.ActionGate.ReportPhase(_activeLease, ActorActionPhase.Active);
 		}
 
 		if (attackAction != null)
 		{
-			if (!attackAction.StartPrepared(player, attack))
+			if (!attackAction.StartPrepared(player, attack, _activeLease))
 			{
 				ReleaseGateLease();
 				Reset();
@@ -144,9 +142,8 @@ public partial class ActionSlot : Node
 			}
 		}
 
-		ReleaseGateLease();
-
 		if (!IsCurrent(generation)) return;
+		ReleaseGateLease();
 		IsPerformingAction = false;
 		EmitSignalActionPerformed();
 

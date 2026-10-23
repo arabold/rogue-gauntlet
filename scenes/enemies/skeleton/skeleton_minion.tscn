@@ -324,7 +324,7 @@ shape = SubResource("CapsuleShape3D_m4sjw")
 
 [editable path="Pivot/Skeleton_Minion"]
 
-[node name="AttackAnimationComponent" parent="." index="9"]
+[node name="CombatAnimationComponent" parent="." index="9"]
 AnimationPlayerPath = NodePath("../Pivot/Skeleton_Minion/AnimationPlayer")
 AnimationTreePath = NodePath("../EnemyBehaviorComponent/AnimationTree")
 Profile = ExtResource("attack_animation_profile")

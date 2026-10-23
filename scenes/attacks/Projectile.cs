@@ -26,6 +26,13 @@ public partial class Projectile : Node3D, IPooledNode
 
 	private HitBoxComponent _hitBoxComponent;
 	private float _distanceTravelled;
+	private AttackIdentity _executionId;
+	private AttackIdentity _parentExecution;
+	private AttackDefenseTraits _defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable;
+	private AttackDefenseTraits _areaDefenseTraits;
+	private readonly RandomNumberGenerator _random = new();
+	public AttackIdentity ExecutionId => _executionId;
+	private static ulong _projectileSequence = 0;
 	private Node _attacker;
 	private DamageSourceFlags _attackerFaction = DamageSourceFlags.Environment;
 	private bool _hasResolvedHit;
@@ -47,8 +54,13 @@ public partial class Projectile : Node3D, IPooledNode
 	};
 	private readonly HashSet<Node> _damagedImpactOwners = [];
 
+	public Node Attacker => GetValidAttacker();
+	public DamageSourceFlags AttackerFaction => _attackerFaction;
+
 	public override void _Ready()
 	{
+		ProcessPhysicsPriority = CombatPhysics.Damage;
+		AddToGroup("projectile");
 		_defaultImpactRadius = ImpactRadius;
 		_defaultImpactRadiusMinDamageScale = ImpactRadiusMinDamageScale;
 		_impactQuery.Shape = _impactShape;
@@ -66,12 +78,18 @@ public partial class Projectile : Node3D, IPooledNode
 	{
 		SetPhysicsProcess(false);
 		_attacker = null;
+		_parentExecution = default;
 		_attackerFaction = DamageSourceFlags.Environment;
 		SetHitBoxMonitoring(false, deferred: true);
 	}
 
-	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float accuracy, float minDamage, float maxDamage, float critChance, Node attacker = null)
+	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float accuracy, float minDamage, float maxDamage, float critChance, Node attacker = null, AttackDefenseTraits defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, AttackDefenseTraits areaDefenseTraits = AttackDefenseTraits.Dodgeable, ulong randomSeed = 42, AttackIdentity parentExecution = default)
 	{
+		_parentExecution = parentExecution;
+		_areaDefenseTraits = areaDefenseTraits;
+		_random.Seed = randomSeed;
+		_executionId = new AttackIdentity((ulong)GetInstanceId(), ++_projectileSequence);
+		_defenseTraits = defenseTraits;
 		Direction = direction.Normalized();
 		Speed = speed;
 		Range = range;
@@ -83,6 +101,10 @@ public partial class Projectile : Node3D, IPooledNode
 		_attackerFaction = HurtBoxComponent.GetDamageSource(attacker);
 		_distanceTravelled = 0.0f;
 		_hasResolvedHit = false;
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.spawned", ("execution", _executionId.Sequence), ("execution_source", _executionId.SourceInstanceId),
+			("parent_execution", _parentExecution.Sequence), ("parent_source", _parentExecution.SourceInstanceId), ("owner", CombatTrace.Identity(attacker)),
+			("origin", CombatTrace.Vector(origin)), ("direction", CombatTrace.Vector(Direction)), ("speed", speed), ("range", range),
+			("traits", defenseTraits.ToString()), ("area_traits", areaDefenseTraits.ToString()), ("seed", randomSeed));
 		SetPhysicsProcess(true);
 
 		GlobalTransform = new Transform3D(Basis.Identity, origin);
@@ -110,6 +132,7 @@ public partial class Projectile : Node3D, IPooledNode
 		if (TryHitWorld(start, end, out Vector3 hitPosition, out Vector3 hitNormal))
 		{
 			GlobalPosition = hitPosition;
+			if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.world_impact", ("execution", _executionId.Sequence), ("position", CombatTrace.Vector(hitPosition)), ("radius", ImpactRadius));
 			StickThenFree(hitNormal);
 			return;
 		}
@@ -119,6 +142,7 @@ public partial class Projectile : Node3D, IPooledNode
 
 		if (_distanceTravelled >= Range)
 		{
+			if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.expired", ("execution", _executionId.Sequence));
 			GameDebug.Combat("Projectile reached max range");
 			SpawnExpireEffect();
 			CallDeferred(MethodName.ReturnToPoolOrFree);
@@ -132,13 +156,39 @@ public partial class Projectile : Node3D, IPooledNode
 		GameDebug.Combat($"Projectile hit {body.Name}");
 		if (TryGetDamageTarget(body, out Node damageOwner, out IDamageable damageable))
 		{
-			var damage = (float)GD.RandRange(MinDamage, MaxDamage);
-			if (GD.Randf() < CritChance)
+			var damage = (float)_random.RandfRange(MinDamage, MaxDamage);
+			float baseDamage = damage;
+			bool critical = _random.Randf() < CritChance;
+			if (critical)
 			{
 				damage *= 2;
 				GameDebug.Combat("Critical hit!");
 			}
-			damageable.TakeDamage(Accuracy, damage, Direction, GetValidAttacker(), _attackerFaction);
+
+			if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.contact", ("execution", _executionId.Sequence), ("target", CombatTrace.Identity(damageOwner)), ("base_damage", baseDamage), ("critical", critical), ("raw_damage", damage));
+			var context = new DamageContext
+			{
+				ExecutionId = _executionId,
+				SourceNode = this,
+				OwnerNode = GetValidAttacker(),
+				Faction = _attackerFaction,
+				Amount = damage,
+				Accuracy = Accuracy,
+				Random = _random,
+				IncomingDirection = Direction,
+				DefenseTraits = _defenseTraits,
+				DeliveryKind = DamageDeliveryKind.Projectile
+			};
+
+			if (damageable is ICombatDamageable combatDamageable)
+			{
+				combatDamageable.ResolveDamage(in context);
+			}
+			else
+			{
+				damageable.TakeDamage(Accuracy, damage, Direction, GetValidAttacker(), _attackerFaction);
+			}
+
 			_hasResolvedHit = true;
 			SetPhysicsProcess(false);
 			SetHitBoxMonitoring(false, deferred: true);
@@ -250,8 +300,8 @@ public partial class Projectile : Node3D, IPooledNode
 				}
 
 				float damageScale = GetImpactRadiusDamageScale(damageOwner);
-				float damage = (float)GD.RandRange(MinDamage, MaxDamage) * damageScale;
-				if (GD.Randf() < CritChance)
+				float damage = (float)_random.RandfRange(MinDamage, MaxDamage) * damageScale;
+				if (_random.Randf() < CritChance)
 				{
 					damage *= 2;
 					GameDebug.Combat("Critical impact radius hit!");
@@ -265,7 +315,28 @@ public partial class Projectile : Node3D, IPooledNode
 					pushDirection = Direction;
 				}
 
-				damageable.TakeDamage(Accuracy, damage, pushDirection, GetValidAttacker(), _attackerFaction);
+				var areaContext = new DamageContext
+				{
+					ExecutionId = _executionId,
+					SourceNode = this,
+					OwnerNode = GetValidAttacker(),
+					Faction = _attackerFaction,
+					Amount = damage,
+					Accuracy = Accuracy,
+				Random = _random,
+					IncomingDirection = pushDirection,
+					DefenseTraits = _areaDefenseTraits,
+					DeliveryKind = DamageDeliveryKind.AreaImpact
+				};
+
+				if (damageable is ICombatDamageable areaCombatDamageable)
+				{
+					areaCombatDamageable.ResolveDamage(in areaContext);
+				}
+				else
+				{
+					damageable.TakeDamage(Accuracy, damage, pushDirection, GetValidAttacker(), _attackerFaction);
+				}
 			}
 		}
 		finally
@@ -290,6 +361,15 @@ public partial class Projectile : Node3D, IPooledNode
 			return true;
 		}
 
+		HurtBoxComponent childHurtBox = collider.GetNodeOrNull<HurtBoxComponent>("%HurtBoxComponent")
+			?? collider.GetNodeOrNull<HurtBoxComponent>("HurtBoxComponent");
+		if (childHurtBox != null)
+		{
+			damageOwner = collider;
+			damageable = childHurtBox;
+			return true;
+		}
+
 		if (collider is IDamageable directDamageable)
 		{
 			damageOwner = collider;
@@ -302,15 +382,6 @@ public partial class Projectile : Node3D, IPooledNode
 		{
 			damageOwner = parent;
 			damageable = parentDamageable;
-			return true;
-		}
-
-		HurtBoxComponent childHurtBox = collider.GetNodeOrNull<HurtBoxComponent>("%HurtBoxComponent")
-			?? collider.GetNodeOrNull<HurtBoxComponent>("HurtBoxComponent");
-		if (childHurtBox != null)
-		{
-			damageOwner = collider;
-			damageable = childHurtBox;
 			return true;
 		}
 

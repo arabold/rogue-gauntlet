@@ -16,5 +16,5 @@ transform = Transform3D(0.11715, -0.540757, -0.832982, -0.954895, 0.169115, -0.2
 [node name="EnemyBehaviorComponent" parent="."]
 Profile = ExtResource("behavior")
 
-[node name="AttackAnimationComponent" parent="."]
+[node name="CombatAnimationComponent" parent="."]
 Profile = ExtResource("animation")

@@ -255,7 +255,7 @@ public partial class GameSession : Node
 		}
 
 		Player player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
-		if (player == null || player.InventoryController.IsCommittingItemOperation || CurrentItemPersistence()?.IsCommitting == true)
+		if (player == null || player.ActionGate?.IsBusy == true || player.InventoryController.IsCommittingItemOperation || CurrentItemPersistence()?.IsCommitting == true)
 		{
 			return false;
 		}
@@ -415,7 +415,7 @@ public partial class GameSession : Node
 		}
 
 		Player player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
-		if (player == null || player.InventoryController.IsCommittingItemOperation || CurrentItemPersistence()?.IsCommitting == true)
+		if (player == null || player.ActionGate?.IsBusy == true || player.InventoryController.IsCommittingItemOperation || CurrentItemPersistence()?.IsCommitting == true)
 		{
 			GD.PrintErr("Cannot save while the player is unavailable or an item operation is committing.");
 			return false;
@@ -772,12 +772,20 @@ public partial class GameSession : Node
 				data.VarietyCooldowns[kvp.Key] = kvp.Value;
 			}
 		}
+
+		data.DodgeCooldownRemaining = player.DodgeComponent?.CooldownRemaining ?? 0f;
+		data.ParryRearmRemaining = player.GuardComponent?.ParryRearmRemaining ?? 0f;
+		data.RecoveryLockoutRemaining = Mathf.Max(player.ActionGate?.StaggerRemaining ?? 0,
+			Mathf.Max(player.AttackController?.RecoveryRemaining ?? 0,
+			Mathf.Max(player.DodgeComponent?.RecoveryRemaining ?? 0, player.GuardComponent?.RecoveryRemaining ?? 0)));
+
 		return data;
 	}
 
 	private static void ApplyActions(Player player, PlayerActionSaveData data)
 	{
 		if (player.QuickItemController == null || data == null) return;
+		data.ValidateCombatTimers();
 		player.QuickItemController.IsRestoringSave = true;
 		try
 		{
@@ -815,6 +823,14 @@ public partial class GameSession : Node
 		{
 			player.QuickItemController.IsRestoringSave = false;
 		}
+
+		player.ActionGate?.CancelCurrent(ActionInterruptReason.Invalidated);
+		player.AttackController?.CancelAttack();
+		player.MovementComponent?.ResetTransientMotion();
+		player.DodgeComponent?.RestoreCooldown(data.DodgeCooldownRemaining);
+		player.GuardComponent?.RestoreCooldown(data.ParryRearmRemaining);
+		player.InputController?.RequireFreshDefenseInput();
+		if (data.RecoveryLockoutRemaining > 0) player.ActionGate?.TryStagger(data.RecoveryLockoutRemaining);
 	}
 
 	private static void ApplyInventory(Player player, InventorySaveData saveData)

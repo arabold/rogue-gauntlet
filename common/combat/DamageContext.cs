@@ -29,6 +29,7 @@ public readonly record struct DamageContext
 	public DamageSourceFlags Faction { get; init; }
 	public float Amount { get; init; }
 	public float Accuracy { get; init; }
+	public RandomNumberGenerator Random { get; init; }
 	public Vector3 IncomingDirection { get; init; }
 	public AttackDefenseTraits DefenseTraits { get; init; }
 	public DamageDeliveryKind DeliveryKind { get; init; }

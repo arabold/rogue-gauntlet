@@ -32,6 +32,11 @@ public partial class AttackDefinition : Resource
 	/// </summary>
 	[Export] public float HitWindowEnd { get; set; } = 0.35f;
 
+	/// <summary>Defensive traits (dodgeable, guardable, parryable) for this attack.</summary>
+	[Export] public AttackDefenseTraits DefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable;
+
+	[Export] public AttackDefenseTraits AreaDefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable;
+
 	/// <summary>Stable gameplay volume; null uses the weapon or actor default contact profile.</summary>
 	[Export] public MeleeAttackProfile MeleeContact { get; set; }
 

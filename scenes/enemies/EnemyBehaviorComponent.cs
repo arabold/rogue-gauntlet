@@ -74,7 +74,7 @@ public partial class EnemyBehaviorComponent : Node
 	public bool IsAttacking => CurrentAction == EnemyAction.MeeleAttack || CurrentAction == EnemyAction.RangedAttack;
 	public bool IsMeleeAttack => CurrentAction == EnemyAction.MeeleAttack;
 	public bool IsRangedAttack => CurrentAction == EnemyAction.RangedAttack;
-	public bool IsHit => MovementComponent.IsPushed;
+	public bool IsHit => MovementComponent.IsPushed || (Actor as EnemyBase)?.ActionGate?.IsStaggered == true;
 	public bool IsSpawning => CurrentAction == EnemyAction.Spawning;
 
 	/// <summary>
@@ -92,6 +92,7 @@ public partial class EnemyBehaviorComponent : Node
 
 	public override void _Ready()
 	{
+		ProcessPhysicsPriority = CombatPhysics.Steering;
 		base._Ready();
 
 		_profile = Profile ?? new EnemyBehaviorProfile();
@@ -143,6 +144,13 @@ public partial class EnemyBehaviorComponent : Node
 	public override void _PhysicsProcess(double delta)
 	{
 		_context.TickThrottles(delta);
+		var gate = (Actor as EnemyBase)?.ActionGate;
+		if (gate?.Disabled == true || (gate?.IsBusy == true && !IsAttacking))
+		{
+			MovementComponent.Stop();
+			_navigation.ResetStuckTracking();
+			return;
+		}
 
 		// Action layer: timed actions (spawn, stand up, hit, attack, death) interrupt the behavior
 		// layer. While one is active the body holds still and the state machine does not tick; when it

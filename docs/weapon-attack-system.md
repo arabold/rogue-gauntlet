@@ -120,7 +120,7 @@ There is no active bow item yet; its two-handed ranged binding is a prepared aut
 `ActionSlot` prepares before accepting a weapon action. `AttackController` snapshots authored
 attack data, resolves contact times against the weapon's perform duration, and advances both
 clip playback and hit/projectile execution from its physics clock through recovery.
-`AttackAnimationComponent` temporarily owns the AnimationPlayer while disabling the actor's
+`CombatAnimationComponent` temporarily owns the AnimationPlayer while disabling the actor's
 AnimationTree, then restores the tree for movement and other actions. Animation method/audio
 tracks do not schedule damage. Non-weapon actions retain their existing animation-ID path.
 Equipment replacement, interruption, death, and scene exit cancel the active attack; a cancelled
@@ -142,7 +142,7 @@ it to rebuild the adapter; recreate items after changing authored definitions. P
 and timing edits are captured by the next accepted attack. Editing imported clip tracks during
 an active attack is not a supported live-edit operation.
 
-Use [the attack playground](../scenes/debug/attack_animation_harness.tscn) to select equipment
+Use [the combat harness](../scenes/debug/combat_harness.tscn) to select equipment
 and invoke the production action-slot path. Animation profiles live under
 `scenes/attacks/animation_profiles/`; grip adapters live under `scenes/items/grips/`.
 `AttackAnimationTest` verifies rig coverage, definition overrides, timing snapshots, native
@@ -192,7 +192,7 @@ Natural attacks without markers and radial specials retain the generic cosmetic 
 usually omit effects. A cosmetic fade cannot extend damage, and disabling visuals preserves
 hits. KayKit grip transforms and item axes are unchanged.
 
-Run `scenes/debug/attack_animation_harness.tscn` with **F6** in Godot to exercise real equipment
+Run `scenes/debug/combat_harness.tscn` with **F6** in Godot to exercise real equipment
 and action slots. Toggle volumes, swooshes, moving targets, slow motion and defense modes;
 spawn a yeti, skeleton or Forsaken Warden and trigger its native melee attack. Feedback distinguishes contact,
 evasion, armor absorption, invulnerability, obstruction and interruption. `MeleeContactTest`
@@ -200,6 +200,6 @@ verifies actual physics overlap and hero/monster execution; see the
 [implementation plan](specs/melee-contact-plan.md).
 
 
-## Planned unified actions and interactions
+## Unified action ownership and defense
 
-[Actor actions and world interactions](actor-actions-and-interactions.md) consolidates intended primary attack, item quick actions, timed world interaction and active defense; its separate [implementation plan](specs/actor-actions-and-interactions-plan.md) owns proposed integration. Primary attack will leave the four item-only slots, and interaction will use a dedicated hold input rather than action_1. Successful eligible pickups can fill unassigned quick slots. One shared action boundary will arbitrate these operations with dodge, guard/parry and forced reactions. The current instant interaction/use paths and general Invulnerable flag are not implementations of that proposal.
+Primary/secondary attacks are separate from the four item quick slots. Player preparation transfers an accepted lease to the shared attack executor, which reports actual contact/recovery phases. Enemies and direct harness requests use the same gate. Dodge, guard/parry and forced stagger compose with movement and the shared pose owner; see [combat actions and defense](combat-system.md) for implemented rules and [the combat harness](combat-harness.md) for scripted diagnostics. The broader [action design](actor-actions-and-interactions.md) still includes proposed spell/mana and interaction extensions; its [implementation plan](specs/actor-actions-and-interactions-plan.md) tracks remaining scope.

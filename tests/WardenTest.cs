@@ -104,9 +104,9 @@ public class WardenTest
 	[TestCase]
 	public async Task ShieldedSwordAttackUsesLargeRigAndDamagesHeroOnce()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/attack_animation_harness.tscn", true);
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
 		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<AttackAnimationHarness>("Instructions");
+		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
 		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/bosses/forsaken_warden.tscn")];
@@ -115,7 +115,7 @@ public class WardenTest
 		boss.GlobalPosition = harness.Player.GlobalPosition + Vector3.Back * 3.1f + Vector3.Up * 8;
 		boss.MovementComponent.SetPhysicsProcess(false);
 		boss.LookAt(harness.Player.GlobalPosition);
-		var animation = boss.GetNode<AttackAnimationComponent>("AttackAnimationComponent");
+		var animation = boss.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
 		AssertBool(animation.TryResolve("melee", out var playback)).IsTrue();
 		AssertString(playback.Clip.ToString()).IsEqual("Melee_1H_Slash");
 		var player = harness.Player;
@@ -139,9 +139,9 @@ public class WardenTest
 	[TestCase]
 	public async Task SwordSweepHitsTheHeroAtBothSidesOfItsCenterWithoutRefacing()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/attack_animation_harness.tscn", true);
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
 		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<AttackAnimationHarness>("Instructions");
+		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
 		harness.Player.HurtBoxComponent.Armor = 0;
@@ -174,9 +174,9 @@ public class WardenTest
 	[TestCase]
 	public async Task WardenCanTurnTowardAnExactlyOppositeTargetWhileStopped()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/attack_animation_harness.tscn", true);
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
 		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<AttackAnimationHarness>("Instructions");
+		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/bosses/forsaken_warden.tscn")];
 		harness.SpawnMonster();
 		var boss = runner.Scene().GetChildren().OfType<EnemyBase>().Single();
@@ -194,9 +194,9 @@ public class WardenTest
 	[TestCase]
 	public async Task RunningIntoTheWardenCannotCreateAContactPocket()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/attack_animation_harness.tscn", true);
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
 		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<AttackAnimationHarness>("Instructions");
+		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.PracticeTarget.Position = new Vector3(15, 0, 15);
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.InputComponent.SetPhysicsProcess(false);

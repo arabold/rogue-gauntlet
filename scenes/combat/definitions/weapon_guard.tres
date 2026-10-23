@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="GuardDefinition" format=3 uid="uid://c6impykd7marf"]
+
+[ext_resource type="Script" uid="uid://biisu6m3hlqx" path="res://scenes/combat/GuardDefinition.cs" id="1_guard"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="animation"]
+
+[resource]
+script = ExtResource("1_guard")
+RaiseDuration = 0.05
+ParryWindow = 0.18
+ReleaseRecovery = 0.15
+RearmInterval = 0.8
+MinimumReleaseInterval = 0.2
+FacingSectorDegrees = 90.0
+DamageMultiplier = 0.45
+ParryStaggerDuration = 0.3
+AnimationProfile = ExtResource("animation")

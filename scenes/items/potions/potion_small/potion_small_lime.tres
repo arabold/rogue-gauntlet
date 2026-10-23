@@ -1,33 +1,30 @@
-[gd_resource type="Resource" script_class="ConsumableItem" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="ConsumableItem" format=3 uid="uid://cprqb4vspntu1"]
 
-[ext_resource type="Script" path="res://scenes/items/ConsumableItem.cs" id="item"]
+[ext_resource type="Script" uid="uid://de7pjydt2w7pk" path="res://scenes/buffs/StatModifierBuff.cs" id="buff"]
+[ext_resource type="Script" uid="uid://c15rgkjymw2e6" path="res://scenes/items/ConsumableItem.cs" id="item"]
+[ext_resource type="Script" uid="uid://b2ecrfjb74yc3" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
 [ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_lime.tscn" id="scene"]
-[ext_resource type="Script" path="res://scenes/buffs/StatModifierBuff.cs" id="buff"]
-[ext_resource type="Script" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
 
 [sub_resource type="Resource" id="Modifier"]
 script = ExtResource("mod")
 Stat = 5
 Op = 1
-Value = 50
 metadata/_custom_type_script = ExtResource("mod")
 
 [sub_resource type="Resource" id="Buff"]
 script = ExtResource("buff")
+Modifiers = [SubResource("Modifier")]
 Name = "Small Potion of Haste"
 Duration = 20.0
-Modifiers = [SubResource("Modifier")]
 metadata/_custom_type_script = ExtResource("buff")
 
 [resource]
 script = ExtResource("item")
-Scene = ExtResource("scene")
+TypeId = "potion.haste"
+TrueName = "Small Potion of Haste"
 Buff = SubResource("Buff")
 Name = "Small Potion of Haste"
-TrueName = "Small Potion of Haste"
-TypeId = "potion.haste"
-IdentityCategory = "potion"
-UnidentifiedNameTemplate = "{descriptor} potion"
+Scene = ExtResource("scene")
 Value = 50
 IsStackable = true
 MaxStackSize = 20

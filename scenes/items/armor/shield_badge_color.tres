@@ -1,23 +1,17 @@
-[gd_resource type="Resource" script_class="Armor" load_steps=3 format=3 uid="uid://kgk80xoii6kd"]
+[gd_resource type="Resource" script_class="Armor" format=3 uid="uid://kgk80xoii6kd"]
 
+[ext_resource type="Script" uid="uid://b8oa1aglmosdk" path="res://scenes/items/affixes/RolledAffix.cs" id="1_eto8s"]
 [ext_resource type="PackedScene" uid="uid://dcf3vxfivy452" path="res://scenes/items/armor/shield_badge_color.tscn" id="1_h050v"]
 [ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="2_47uxn"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/shield_guard.tres" id="guard_shield"]
 
 [resource]
 script = ExtResource("2_47uxn")
-Tier = 1
-Level = 0
 RequiredStrength = 10
 ArmorPoints = 3
-AccuracyModifier = 1.0
-SpeedModifier = 1.0
+Guard = ExtResource("guard_shield")
 ValidSlots = 512
-Rarity = 0
 Name = "Common Shield"
 Scene = ExtResource("1_h050v")
-Quality = 1.0
 Value = 40
-ShowInInventory = true
-IsStackable = false
-IsQuestItem = false
 metadata/_custom_type_script = ExtResource("2_47uxn")

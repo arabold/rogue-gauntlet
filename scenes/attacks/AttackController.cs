@@ -5,13 +5,22 @@ using System.Collections.Generic;
 /// <summary>
 /// Handles timing-synchronized hit detection and projectile spawning for actors.
 /// </summary>
-public partial class AttackController : Node
+public partial class AttackController : Node, IParryInterruptible
 {
-	[Export] public AttackAnimationComponent AnimationComponent { get; set; }
+	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
 	public bool IsAttacking => _isAttacking;
 	public double PerformDuration => _preparedAttack?.Duration ?? 0;
 	public StringName CurrentStyle => _preparedAttack?.Playback?.Style ?? "";
+	public AttackDefinition CurrentAttack => _currentAttack;
+	public bool IsRanged => _currentAttack?.IsRanged ?? false;
 	private PreparedAttack _preparedAttack;
+	private ActorActionGateComponent _actionGate;
+	private ActorActionLease _actionLease;
+	public float RecoveryRemaining => _isAttacking ? Mathf.Max(0, (float)_preparedAttack.Duration - _elapsedTime) : 0;
+	public ActorActionPhase Phase => !_isAttacking ? ActorActionPhase.None
+		: _elapsedTime < _currentAttack.HitWindowStart ? ActorActionPhase.WindUp
+		: _elapsedTime <= _currentAttack.HitWindowEnd ? ActorActionPhase.Active : ActorActionPhase.Recovery;
+	public void ConfigureRandom(ulong seed) => _random.Seed = seed;
 
 	[Export] public MeleeHitDetector MeleeDetector { get; set; }
 	[Export] public MeleeAttackProfile DefaultMeleeContact { get; set; }
@@ -50,6 +59,9 @@ public partial class AttackController : Node
 	private float _currentCritChance;
 	private uint _targetMask;
 
+	private ulong _executionSequence = 0;
+	public AttackIdentity CurrentExecutionId => new((ulong)GetInstanceId(), _executionSequence);
+
 	private bool _projectileSpawned;
 	private HashSet<Node> _hitTargets = new HashSet<Node>();
 
@@ -59,8 +71,10 @@ public partial class AttackController : Node
 	public override void _Ready()
 	{
 		_actor = GetParent<Node3D>();
+		ProcessPhysicsPriority = CombatPhysics.Damage;
+		_actionGate = _actor.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
 		AddToGroup("attack_controller");
-		_random.Randomize();
+		_random.Seed = 42;
 		SetPhysicsProcess(false);
 	}
 
@@ -105,13 +119,26 @@ public partial class AttackController : Node
 	}
 
 	/// <summary>Commit an already validated execution snapshot to this actor.</summary>
-	public bool StartAttack(PreparedAttack attack, float minDamage, float maxDamage, float accuracy, float critChance, uint targetMask)
+	public bool StartAttack(PreparedAttack attack, float minDamage, float maxDamage, float accuracy, float critChance, uint targetMask, ActorActionLease lease = default)
 	{
 		if (attack == null || _actor == null) return false;
 		var def = attack.Definition;
 
-		CancelAttack();
-
+		_actionGate ??= _actor.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
+		if (_actor is Player { IsDead: true } || _actor is EnemyBase { IsDead: true }) return false;
+		if (_isAttacking) return false;
+		if (_actionGate != null)
+		{
+			if (lease.IsValid)
+			{
+				if (lease.Kind is not (ActorActionKind.PrimaryAttack or ActorActionKind.SecondaryTechnique)
+					|| !_actionGate.Adopt(lease, _ => CancelAttack())) return false;
+			}
+			else if (_actionGate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp,
+				_ => CancelAttack(), out lease) != ActorActionRequestResult.Success) return false;
+		}
+		_actionLease = lease;
+		_executionSequence++;
 		_preparedAttack = attack;
 		_currentAttack = def;
 		_currentMinDamage = minDamage;
@@ -133,6 +160,10 @@ public partial class AttackController : Node
 
 		GameDebug.Combat($"{_actor.Name} starting attack: {def.AnimationId} (Ranged: {def.IsRanged})");
 
+		_actionGate?.ReportPhase(_actionLease, Phase);
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.started", ("execution", _executionSequence), ("execution_source", GetInstanceId()), ("style", CurrentStyle.ToString()),
+			("contact_start", def.HitWindowStart), ("contact_end", def.HitWindowEnd), ("duration", attack.Duration),
+			("traits", def.DefenseTraits.ToString()), ("min_damage", minDamage), ("max_damage", maxDamage));
 		if (attack.Playback != null) AnimationComponent.Begin(attack.Playback);
 		SetPhysicsProcess(true);
 		return true;
@@ -143,6 +174,25 @@ public partial class AttackController : Node
 	/// </summary>
 	public void CancelAttack() => FinishAttack(true);
 
+	public bool TryInterruptForParry(AttackIdentity execution, float staggerDuration)
+	{
+		if (!_isAttacking || _preparedAttack == null) return false;
+		if (CurrentExecutionId != execution) return false;
+
+		_actor ??= GetParent<Node3D>();
+		CancelAttack();
+
+		if (_actor is IStaggerable staggerable)
+		{
+			staggerable.TryStagger(staggerDuration);
+		}
+		else if (_actor?.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent") is ActorActionGateComponent gate)
+		{
+			gate.TryStagger(staggerDuration);
+		}
+		return true;
+	}
+
 	private void FinishAttack(bool interrupted)
 	{
 		if (!_isAttacking) return;
@@ -150,7 +200,10 @@ public partial class AttackController : Node
 		MeleeDetector?.End();
 		if (interrupted) ReportFeedback("Interrupted");
 		else if (!_currentAttack.IsRanged && ContactCount == 0) ReportFeedback(_blockedContact ? "Obstructed" : "No contact");
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.ended", ("execution", _executionSequence), ("interrupted", interrupted), ("contacts", ContactCount), ("result", LastResult));
 		_isAttacking = false;
+		_actionGate?.Release(_actionLease);
+		_actionLease = ActorActionLease.None;
 		_currentAttack = null;
 		_preparedAttack = null;
 		AnimationComponent?.End();
@@ -168,6 +221,7 @@ public partial class AttackController : Node
 		}
 		float previous = _elapsedTime;
 		_elapsedTime += (float)delta;
+		_actionGate?.ReportPhase(_actionLease, Phase);
 		if (_preparedAttack.Playback != null)
 			AnimationComponent.Sample(_preparedAttack.Playback, _elapsedTime / _preparedAttack.Duration);
 
@@ -192,7 +246,8 @@ public partial class AttackController : Node
 			var profile = _currentAttack.MeleeContact;
 			var frame = new Transform3D(_contactBasis, _actor.GlobalPosition + Vector3.Up * profile.CenterHeight);
 			var execution = _preparedAttack;
-			foreach (var target in MeleeDetector.Sample(frame))
+			foreach (var target in MeleeDetector.Sample(frame).OrderBy(node =>
+				(node is HurtBoxComponent ? node.GetParent() : node).GetInstanceId()))
 			{
 				ApplyMeleeContact(target);
 				if (!ReferenceEquals(execution, _preparedAttack)) return;
@@ -248,15 +303,46 @@ public partial class AttackController : Node
 		if (target is HurtBoxComponent { HealthComponent: { IsDead: true } }) return;
 		ContactCount++;
 		float damage = _random.RandfRange(_currentMinDamage, _currentMaxDamage);
-		if (_random.Randf() < _currentCritChance) damage *= 2;
-		if (target is HurtBoxComponent hurtBox)
+		float baseDamage = damage;
+		bool critical = _random.Randf() < _currentCritChance;
+		if (critical) damage *= 2;
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.contact", ("execution", _executionSequence), ("execution_source", GetInstanceId()),
+			("target", CombatTrace.Identity(target)), ("base_damage", baseDamage), ("critical", critical), ("raw_damage", damage));
+
+		Vector3 incomingDir = CommittedFacing;
+		if (target != null && _actor != null)
 		{
-			var result = hurtBox.ResolveDamage(_currentAccuracy, damage, CommittedFacing, _actor, random: _random);
+			Vector3 offset = target.GlobalPosition - _actor.GlobalPosition;
+			offset.Y = 0;
+			if (offset.LengthSquared() > 0.0001f)
+			{
+				incomingDir = offset.Normalized();
+			}
+		}
+
+		var traits = _currentAttack?.DefenseTraits ?? (AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable);
+		var context = new DamageContext
+		{
+			ExecutionId = CurrentExecutionId,
+			SourceNode = this,
+			OwnerNode = _actor,
+			Faction = HurtBoxComponent.GetDamageSource(_actor),
+			Amount = damage,
+			Accuracy = _currentAccuracy,
+			Random = _random,
+			IncomingDirection = incomingDir,
+			DefenseTraits = traits,
+			DeliveryKind = DamageDeliveryKind.DirectMelee
+		};
+
+		if (target is ICombatDamageable combatDamageable)
+		{
+			var result = combatDamageable.ResolveDamage(in context);
 			ReportFeedback(result.Outcome.ToString(), result.Amount);
 		}
 		else if (target is IDamageable damageable)
 		{
-			damageable.TakeDamage(_currentAccuracy, damage, CommittedFacing, _actor);
+			damageable.TakeDamage(_currentAccuracy, damage, incomingDir, _actor);
 			ReportFeedback("Contact", damage);
 		}
 	}
@@ -304,7 +390,7 @@ public partial class AttackController : Node
 				_currentMinDamage * _currentAttack.ProjectileDamageScale,
 				_currentMaxDamage * _currentAttack.ProjectileDamageScale,
 				_currentCritChance,
-				_actor);
+				_actor, _currentAttack.DefenseTraits, _currentAttack.AreaDefenseTraits, _random.Randi(), CurrentExecutionId);
 
 			GameDebug.Combat($"{_actor.Name} spawned projectile flying {direction}");
 		}
@@ -331,7 +417,7 @@ public partial class AttackController : Node
 				_currentMinDamage * _currentAttack.ProjectileDamageScale,
 				_currentMaxDamage * _currentAttack.ProjectileDamageScale,
 				_currentCritChance,
-				_actor);
+				_actor, _currentAttack.DefenseTraits, _currentAttack.AreaDefenseTraits, _random.Randi(), CurrentExecutionId);
 
 			GameDebug.Combat($"{_actor.Name} spawned area drop at {targetPosition}");
 		}

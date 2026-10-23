@@ -9,8 +9,9 @@ public partial class GuardDefinition : Resource
 	[Export] public float RearmInterval { get; set; } = 0.65f;
 	[Export] public float MinimumReleaseInterval { get; set; } = 0.15f;
 	[Export] public float FacingSectorDegrees { get; set; } = 120f;
-	[Export] public float MovementSpeedMultiplier { get; set; } = 0.35f;
+	[Export] public float MovementSpeedMultiplier { get; set; } = 0.0f;
 	[Export] public float DamageMultiplier { get; set; } = 0.25f;
 	[Export] public float ParryStaggerDuration { get; set; } = 0.35f;
 	[Export] public bool CanParry { get; set; } = true;
+	[Export] public DefenseAnimationProfile AnimationProfile { get; set; }
 }

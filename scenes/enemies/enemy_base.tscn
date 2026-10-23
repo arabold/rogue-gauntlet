@@ -12,7 +12,7 @@
 [ext_resource type="Script" path="res://scenes/attacks/AttackController.cs" id="11_attack"]
 [ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/attacks/projectile.tscn" id="13_projectile"]
 
-[ext_resource type="Script" path="res://scenes/attacks/AttackAnimationComponent.cs" id="attack_animation_script"]
+[ext_resource type="Script" path="res://scenes/attacks/CombatAnimationComponent.cs" id="attack_animation_script"]
 
 [ext_resource type="Script" path="res://scenes/attacks/MeleeHitDetector.cs" id="melee_detector_script"]
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/monster_default.tres" id="melee_default"]
@@ -37,7 +37,7 @@ HealthComponent = NodePath("../HealthComponent")
 
 [node name="AttackController" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "MeleeDetector")]
 script = ExtResource("11_attack")
-AnimationComponent = NodePath("../AttackAnimationComponent")
+AnimationComponent = NodePath("../CombatAnimationComponent")
 MeleeDetector = NodePath("../MeleeHitDetector")
 DefaultMeleeContact = ExtResource("melee_default")
 DefaultProjectileScene = ExtResource("13_projectile")
@@ -65,7 +65,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 texture = SubResource("ViewportTexture_6flps")
 HealthComponent = NodePath("../HealthComponent")
 
-[node name="AttackAnimationComponent" type="Node" parent="."]
+[node name="CombatAnimationComponent" type="Node" parent="."]
 script = ExtResource("attack_animation_script")
 
 [node name="MeleeHitDetector" type="Node" parent="."]

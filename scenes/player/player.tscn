@@ -1,4 +1,4 @@
-[gd_scene load_steps=73 format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=85 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
@@ -26,12 +26,31 @@
 [ext_resource type="Script" path="res://scenes/player/PlayerAttackController.cs" id="17_sh3lf"]
 [ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/attacks/projectile.tscn" id="19_projectile"]
 
-[ext_resource type="Script" path="res://scenes/attacks/AttackAnimationComponent.cs" id="attack_animation_script"]
+[ext_resource type="Script" path="res://scenes/attacks/CombatAnimationComponent.cs" id="attack_animation_script"]
 [ext_resource type="Resource" path="res://scenes/attacks/animation_profiles/kaykit_player.tres" id="attack_animation_profile"]
 
 [ext_resource type="Script" path="res://scenes/attacks/MeleeHitDetector.cs" id="melee_detector_script"]
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/unarmed.tres" id="melee_default"]
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/spin.tres" id="melee_spin"]
+[ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="action_gate_script"]
+[ext_resource type="Script" path="res://scenes/combat/DodgeComponent.cs" id="dodge_script"]
+[ext_resource type="Script" path="res://scenes/combat/GuardComponent.cs" id="guard_script"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/player_dodge.tres" id="dodge_def"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/shield_guard.tres" id="guard_def"]
+
+[ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="defense_animation"]
+
+[ext_resource type="Script" path="res://scenes/actions/ActorCapabilities.cs" id="capabilities_script"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/weapon_guard.tres" id="innate_guard"]
+
+[sub_resource type="Resource" id="player_capabilities"]
+script = ExtResource("capabilities_script")
+CanOpenDoors = true
+CanOpenContainers = true
+CanUseMechanisms = true
+CanPickMechanicalLocks = true
+InnateDodge = ExtResource("dodge_def")
+InnateGuard = ExtResource("innate_guard")
 
 [sub_resource type="Resource" id="Resource_3j4b4"]
 script = ExtResource("3_uf5tr")
@@ -125,11 +144,23 @@ advance_expression = "!IsMoving"
 advance_mode = 2
 advance_expression = "IsHit"
 
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_hit"]
+advance_mode = 2
+advance_expression = "IsHit"
+
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_h4auy"]
 switch_mode = 2
 advance_mode = 2
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_dqlug"]
+advance_mode = 2
+advance_expression = "IsDead"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_hit_dying"]
+advance_mode = 2
+advance_expression = "IsDead"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_dying"]
 advance_mode = 2
 advance_expression = "IsDead"
 
@@ -234,7 +265,7 @@ states/Start/position = Vector2(321.828, 104.605)
 "states/Use Item/position" = Vector2(895.157, 323.531)
 states/Walking/node = SubResource("AnimationNodeAnimation_5dfu0")
 states/Walking/position = Vector2(709.334, 414.077)
-transitions = ["Idle", "Walking", SubResource("AnimationNodeStateMachineTransition_5p13e"), "Walking", "Melee Attack", SubResource("AnimationNodeStateMachineTransition_walk_melee"), "Walking", "Spin Attack", SubResource("AnimationNodeStateMachineTransition_walk_special"), "Walking", "Ranged Attack", SubResource("AnimationNodeStateMachineTransition_walk_ranged"), "Walking", "Idle", SubResource("AnimationNodeStateMachineTransition_a2x46"), "Idle", "Hit", SubResource("AnimationNodeStateMachineTransition_1rbd1"), "Hit", "Idle", SubResource("AnimationNodeStateMachineTransition_h4auy"), "Idle", "Dying", SubResource("AnimationNodeStateMachineTransition_dqlug"), "Dying", "Dead", SubResource("AnimationNodeStateMachineTransition_33ov3"), "Idle", "Melee Attack", SubResource("AnimationNodeStateMachineTransition_lryud"), "Melee Attack", "Idle", SubResource("AnimationNodeStateMachineTransition_lasb5"), "Start", "Idle", SubResource("AnimationNodeStateMachineTransition_1r4ca"), "Idle", "Spin Attack", SubResource("AnimationNodeStateMachineTransition_7ustp"), "Idle", "Use Item", SubResource("AnimationNodeStateMachineTransition_83vkb"), "Use Item", "Idle", SubResource("AnimationNodeStateMachineTransition_fya0a"), "Spin Attack", "Idle", SubResource("AnimationNodeStateMachineTransition_54ps3"), "Idle", "Cast Spell", SubResource("AnimationNodeStateMachineTransition_ccoj4"), "Cast Spell", "Idle", SubResource("AnimationNodeStateMachineTransition_75dqn"), "Idle", "Ranged Attack", SubResource("AnimationNodeStateMachineTransition_3i8mw"), "Ranged Attack", "Idle", SubResource("AnimationNodeStateMachineTransition_5fcea"), "Idle", "Falling", SubResource("AnimationNodeStateMachineTransition_lhye1"), "Falling", "Idle", SubResource("AnimationNodeStateMachineTransition_35rvo")]
+transitions = ["Idle", "Walking", SubResource("AnimationNodeStateMachineTransition_5p13e"), "Walking", "Melee Attack", SubResource("AnimationNodeStateMachineTransition_walk_melee"), "Walking", "Spin Attack", SubResource("AnimationNodeStateMachineTransition_walk_special"), "Walking", "Ranged Attack", SubResource("AnimationNodeStateMachineTransition_walk_ranged"), "Walking", "Idle", SubResource("AnimationNodeStateMachineTransition_a2x46"), "Idle", "Hit", SubResource("AnimationNodeStateMachineTransition_1rbd1"), "Walking", "Hit", SubResource("AnimationNodeStateMachineTransition_walk_hit"), "Hit", "Idle", SubResource("AnimationNodeStateMachineTransition_h4auy"), "Idle", "Dying", SubResource("AnimationNodeStateMachineTransition_dqlug"), "Walking", "Dying", SubResource("AnimationNodeStateMachineTransition_walk_dying"), "Hit", "Dying", SubResource("AnimationNodeStateMachineTransition_hit_dying"), "Dying", "Dead", SubResource("AnimationNodeStateMachineTransition_33ov3"), "Idle", "Melee Attack", SubResource("AnimationNodeStateMachineTransition_lryud"), "Melee Attack", "Idle", SubResource("AnimationNodeStateMachineTransition_lasb5"), "Start", "Idle", SubResource("AnimationNodeStateMachineTransition_1r4ca"), "Idle", "Spin Attack", SubResource("AnimationNodeStateMachineTransition_7ustp"), "Idle", "Use Item", SubResource("AnimationNodeStateMachineTransition_83vkb"), "Use Item", "Idle", SubResource("AnimationNodeStateMachineTransition_fya0a"), "Spin Attack", "Idle", SubResource("AnimationNodeStateMachineTransition_54ps3"), "Idle", "Cast Spell", SubResource("AnimationNodeStateMachineTransition_ccoj4"), "Cast Spell", "Idle", SubResource("AnimationNodeStateMachineTransition_75dqn"), "Idle", "Ranged Attack", SubResource("AnimationNodeStateMachineTransition_3i8mw"), "Ranged Attack", "Idle", SubResource("AnimationNodeStateMachineTransition_5fcea"), "Idle", "Falling", SubResource("AnimationNodeStateMachineTransition_lhye1"), "Falling", "Idle", SubResource("AnimationNodeStateMachineTransition_35rvo")]
 graph_offset = Vector2(216.424, -286.722)
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_liqyg"]
@@ -250,6 +281,7 @@ collision_mask = 251
 platform_floor_layers = 4294901761
 platform_wall_layers = 2
 script = ExtResource("1_5y8vd")
+Capabilities = SubResource("player_capabilities")
 Stats = ExtResource("2_sug4b")
 Inventory = SubResource("Resource_yj68g")
 LootableItemScene = ExtResource("11_wj3nu")
@@ -478,7 +510,7 @@ InteractionController = NodePath("../PlayerInteractionController")
 
 [node name="PlayerAttackController" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "MeleeDetector")]
 script = ExtResource("17_sh3lf")
-AnimationComponent = NodePath("../AttackAnimationComponent")
+AnimationComponent = NodePath("../CombatAnimationComponent")
 MeleeDetector = NodePath("../MeleeHitDetector")
 DefaultMeleeContact = ExtResource("melee_default")
 SpecialMeleeContact = ExtResource("melee_spin")
@@ -493,7 +525,7 @@ StairsTrigger = NodePath("../StairsTrigger")
 
 [editable path="Pivot/Character"]
 
-[node name="AttackAnimationComponent" type="Node" parent="."]
+[node name="CombatAnimationComponent" type="Node" parent="."]
 script = ExtResource("attack_animation_script")
 AnimationPlayerPath = NodePath("../Pivot/Character/AnimationPlayer")
 AnimationTreePath = NodePath("../AnimationTree")
@@ -501,3 +533,24 @@ Profile = ExtResource("attack_animation_profile")
 
 [node name="MeleeHitDetector" type="Node" parent="."]
 script = ExtResource("melee_detector_script")
+
+[node name="ActorActionGateComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent")]
+script = ExtResource("action_gate_script")
+AnimationProfile = ExtResource("defense_animation")
+AnimationComponent = NodePath("../CombatAnimationComponent")
+
+[node name="DodgeComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "Actor", "MovementComponent", "ActionGate")]
+script = ExtResource("dodge_script")
+AnimationComponent = NodePath("../CombatAnimationComponent")
+Actor = NodePath("..")
+MovementComponent = NodePath("../MovementComponent")
+ActionGate = NodePath("../ActorActionGateComponent")
+DodgeDef = ExtResource("dodge_def")
+
+[node name="GuardComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "Actor", "MovementComponent", "ActionGate")]
+script = ExtResource("guard_script")
+AnimationComponent = NodePath("../CombatAnimationComponent")
+Actor = NodePath("..")
+MovementComponent = NodePath("../MovementComponent")
+ActionGate = NodePath("../ActorActionGateComponent")
+GuardDef = ExtResource("guard_def")

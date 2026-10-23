@@ -1,33 +1,32 @@
-[gd_resource type="Resource" script_class="Scroll" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="Scroll" format=3 uid="uid://dm5r6t0urjlnv"]
 
-[ext_resource type="Script" path="res://scenes/items/scrolls/Scroll.cs" id="item"]
+[ext_resource type="Script" uid="uid://de7pjydt2w7pk" path="res://scenes/buffs/StatModifierBuff.cs" id="buff"]
+[ext_resource type="Script" uid="uid://tl6phiqa232t" path="res://scenes/items/scrolls/Scroll.cs" id="item"]
+[ext_resource type="Script" uid="uid://b2ecrfjb74yc3" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
 [ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_crimson_othala.tscn" id="scene"]
-[ext_resource type="Script" path="res://scenes/buffs/StatModifierBuff.cs" id="buff"]
-[ext_resource type="Script" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
 
 [sub_resource type="Resource" id="Modifier"]
 script = ExtResource("mod")
 Stat = 2
-Op = 0
 Value = 5.0
 metadata/_custom_type_script = ExtResource("mod")
 
 [sub_resource type="Resource" id="Buff"]
 script = ExtResource("buff")
+Modifiers = [SubResource("Modifier")]
 Name = "Scroll of Vitality"
 Duration = 30.0
-Modifiers = [SubResource("Modifier")]
 metadata/_custom_type_script = ExtResource("buff")
 
 [resource]
 script = ExtResource("item")
-Scene = ExtResource("scene")
-Buff = SubResource("Buff")
-Name = "Scroll of Vitality"
-TrueName = "Scroll of Vitality"
 TypeId = "scroll.vitality"
 IdentityCategory = "scroll"
+TrueName = "Scroll of Vitality"
 UnidentifiedNameTemplate = "scroll labeled {descriptor}"
+Buff = SubResource("Buff")
+Name = "Scroll of Vitality"
+Scene = ExtResource("scene")
 Value = 100
 IsStackable = true
 MaxStackSize = 20

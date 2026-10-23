@@ -11,8 +11,25 @@ public partial class PlayerInputController : Node
 	[Export] public ActionManager ActionManager { get; set; }
 	[Export] public PlayerInteractionController InteractionController { get; set; }
 
+	private bool _requireDefenseRelease;
+	private bool _guardIntent;
+	public void SetGuardIntent(bool held) => _guardIntent = held;
+	private bool IsGuardHeld => _guardIntent || InputComponent.IsGuardPressed();
+	public void RequireFreshDefenseInput()
+	{
+		_requireDefenseRelease = true;
+		_guardIntent = false;
+		Player?.GuardComponent?.EndGuard();
+	}
+
+	public override void _Notification(int what)
+	{
+		if (what == NotificationPaused || what == NotificationWMWindowFocusOut) RequireFreshDefenseInput();
+	}
+
 	public override void _Ready()
 	{
+		ProcessPhysicsPriority = CombatPhysics.Intent;
 		Player ??= GetOwner<Player>();
 		InputComponent ??= Player.InputComponent;
 		MovementComponent ??= Player.MovementComponent;
@@ -22,10 +39,21 @@ public partial class PlayerInputController : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
+		if (Player.IsDead) { MovementComponent.Stop(); return; }
+		if (_requireDefenseRelease && !IsGuardHeld) _requireDefenseRelease = false;
 		// Active world interaction channel: check for input cancellation
 		if (Player.InteractionComponent?.IsActive == true)
 		{
 			MovementComponent.SetInputDirection(Vector3.Zero);
+
+			if (InputComponent.IsDodgeJustPressed())
+			{
+				Vector3 dodgeDir = GetDodgeDirection();
+				if (Player.DodgeComponent?.TryDodge(dodgeDir) == DefenseRequestResult.Success)
+				{
+					return;
+				}
+			}
 
 			if (!InputComponent.IsInteractPressed())
 			{
@@ -45,6 +73,42 @@ public partial class PlayerInputController : Node
 				return;
 			}
 
+			return;
+		}
+
+		// 1. Dodge: evaluated before other voluntary actions; can cancel attack startup or held guard
+		if (InputComponent.IsDodgeJustPressed())
+		{
+			Vector3 dodgeDir = GetDodgeDirection();
+			if (Player.DodgeComponent?.TryDodge(dodgeDir) == DefenseRequestResult.Success)
+			{
+				return;
+			}
+		}
+
+		// 2. Guard: raise, hold, release
+		if (!_requireDefenseRelease && InputComponent.IsGuardJustPressed())
+		{
+			if (Player.GuardComponent?.IsGuarding != true)
+			{
+				Player.GuardComponent?.TryBeginGuard(MovementComponent.LookAtDirection);
+			}
+		}
+
+		if (Player.GuardComponent?.IsGuarding == true && !IsGuardHeld)
+		{
+			Player.GuardComponent.EndGuard();
+		}
+
+		if (Player.GuardComponent?.IsGuarding == true || Player.GuardComponent?.IsGuardRecovering == true)
+		{
+			MovementComponent.SetInputDirection(Player.GuardComponent.IsGuarding ? InputComponent.InputDirection : Vector3.Zero);
+			return;
+		}
+
+		if (Player.DodgeComponent?.IsDodging == true)
+		{
+			MovementComponent.SetInputDirection(Vector3.Zero);
 			return;
 		}
 
@@ -101,5 +165,36 @@ public partial class PlayerInputController : Node
 		InteractionController.HandleInteractInput(InputComponent.IsInteractPressed());
 
 		MovementComponent.SetInputDirection(InputComponent.InputDirection);
+	}
+
+	public Vector3 GetDodgeDirection()
+	{
+		Vector3 facing = MovementComponent != null && MovementComponent.LookAtDirection != Vector3.Zero
+			? MovementComponent.LookAtDirection
+			: (Player != null ? -Player.GlobalTransform.Basis.Z : Vector3.Forward);
+		facing.Y = 0;
+		if (facing.LengthSquared() > 0.0001f)
+		{
+			facing = facing.Normalized();
+		}
+		else
+		{
+			facing = Vector3.Forward;
+		}
+
+		if (InputComponent == null || !InputComponent.IsMoving())
+		{
+			return -facing;
+		}
+
+		Vector3 input = InputComponent.InputDirection;
+		input.Y = 0;
+		if (input.LengthSquared() < 0.0001f)
+		{
+			return -facing;
+		}
+		input = input.Normalized();
+
+		return input;
 	}
 }

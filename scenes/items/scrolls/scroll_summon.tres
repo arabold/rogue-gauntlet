@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Scroll" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="Scroll" format=3 uid="uid://hwq1rsevthtc"]
 
 [ext_resource type="Script" uid="uid://tl6phiqa232t" path="res://scenes/items/scrolls/Scroll.cs" id="1_scroll"]
 [ext_resource type="Script" uid="uid://cu8dqqjh8n1i1" path="res://scenes/items/scrolls/SummonScrollEffect.cs" id="2_effect"]
@@ -6,19 +6,15 @@
 
 [sub_resource type="Resource" id="Resource_summon"]
 script = ExtResource("2_effect")
-Count = 3
-Radius = 4.0
-TargetPrompt = "Choose an item"
 
 [resource]
 script = ExtResource("1_scroll")
 Effect = SubResource("Resource_summon")
-AnimationId = "drink_potion"
-Name = "Scroll of Summoning"
 TypeId = "scroll.summon"
 IdentityCategory = "scroll"
 TrueName = "Scroll of Summoning"
 UnidentifiedNameTemplate = "scroll labeled {descriptor}"
+Name = "Scroll of Summoning"
 Scene = ExtResource("3_scene")
 Value = 10
 IsStackable = true

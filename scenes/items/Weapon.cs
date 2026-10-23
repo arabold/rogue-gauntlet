@@ -131,9 +131,9 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 		return player.AttackController.TryPrepareWeaponAttack(this, out attack, isSpecial: false);
 	}
 
-	public bool StartPrepared(Player player, PreparedAttack attack)
+	public bool StartPrepared(Player player, PreparedAttack attack, ActorActionLease lease = default)
 	{
-		return player.AttackController.StartPreparedWeaponAttack(attack, this);
+		return player.AttackController.StartPreparedWeaponAttack(attack, this, lease: lease);
 	}
 
 	public string CooldownKey => !string.IsNullOrEmpty(AttackStyle) ? AttackStyle.ToString() : (DefinitionPath ?? Name);

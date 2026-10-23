@@ -1,30 +1,24 @@
-[gd_resource type="Resource" script_class="FoodItem" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="FoodItem" format=3 uid="uid://blivi8w4wh2je"]
 
 [ext_resource type="Script" uid="uid://irr1yr02p4rg" path="res://scenes/buffs/HealingBuff.cs" id="1_buff"]
 [ext_resource type="PackedScene" path="res://scenes/items/food/food/food_meat_drumstick.tscn" id="3_scene"]
-[ext_resource type="Script" path="res://scenes/items/FoodItem.cs" id="4_script"]
-
+[ext_resource type="Script" uid="uid://cxc6oi616r2g5" path="res://scenes/items/FoodItem.cs" id="4_script"]
 [ext_resource type="Resource" path="res://scenes/items/food/food_poison.tres" id="5_poison"]
 
 [sub_resource type="Resource" id="Resource_buff"]
 script = ExtResource("1_buff")
 HealthPointsPerTick = 1
 Name = "Roasted Turkey Drumstick"
-Duration = 1.0
-TicksPerSecond = 10
 metadata/_custom_type_script = ExtResource("1_buff")
 
 [resource]
 script = ExtResource("4_script")
-Buff = SubResource("Resource_buff")
 PoisonChance = 0.15
 PoisonEffect = ExtResource("5_poison")
-Scene = ExtResource("3_scene")
-Name = "Roasted Turkey Drumstick"
 TrueName = "Roasted Turkey Drumstick"
 UnidentifiedNameTemplate = "Roasted Turkey Drumstick"
-Quality = 1.0
+Buff = SubResource("Resource_buff")
+Name = "Roasted Turkey Drumstick"
+Scene = ExtResource("3_scene")
 Value = 30
-ShowInInventory = true
-IsStackable = false
 metadata/_custom_type_script = ExtResource("4_script")

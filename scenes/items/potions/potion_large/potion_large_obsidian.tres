@@ -1,26 +1,23 @@
-[gd_resource type="Resource" script_class="ConsumableItem" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="ConsumableItem" format=3 uid="uid://cwe4u5hwo1thh"]
 
-[ext_resource type="Script" path="res://scenes/items/ConsumableItem.cs" id="item"]
+[ext_resource type="Script" uid="uid://ifyt4ybqwlva" path="res://scenes/buffs/PoisonBuff.cs" id="buff"]
+[ext_resource type="Script" uid="uid://c15rgkjymw2e6" path="res://scenes/items/ConsumableItem.cs" id="item"]
 [ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_obsidian.tscn" id="scene"]
-[ext_resource type="Script" path="res://scenes/buffs/PoisonBuff.cs" id="buff"]
 
 [sub_resource type="Resource" id="Buff"]
 script = ExtResource("buff")
+DamagePointsPerTick = 3
 Name = "Large Potion of Poison"
 Duration = 6.0
-DamagePointsPerTick = 3
-TicksPerSecond = 1.0
 metadata/_custom_type_script = ExtResource("buff")
 
 [resource]
 script = ExtResource("item")
-Scene = ExtResource("scene")
+TypeId = "potion.poison"
+TrueName = "Large Potion of Poison"
 Buff = SubResource("Buff")
 Name = "Large Potion of Poison"
-TrueName = "Large Potion of Poison"
-TypeId = "potion.poison"
-IdentityCategory = "potion"
-UnidentifiedNameTemplate = "{descriptor} potion"
+Scene = ExtResource("scene")
 Value = 200
 IsStackable = true
 MaxStackSize = 20

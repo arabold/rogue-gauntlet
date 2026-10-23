@@ -59,7 +59,7 @@ monster Resources, then presentation/playground acceptance.
 - `+ scenes/effects/MeleeSwoosh.cs`, slash/chop scenes; optional Resource references.
 - `~ HurtBoxComponent.cs`, `+ common/combat/DamageResolution.cs`: preserve existing damage
   callers and return observable outcomes for melee. Armor/evasion rules remain intact.
-- `~ attack_animation_harness.tscn` and harness script; add an authored practice target and
+- `~ combat_harness.tscn` and harness script; add an authored practice target and
   controllable native monster. Include volume/effect toggles, defense modes and diagnostics.
 - `+ tests/MeleeContactTest.cs`: actual physics overlap for pre-existing contacts, skipped
   windows, once-per-target, target edges, rotations, outside/behind targets, wall blockers,

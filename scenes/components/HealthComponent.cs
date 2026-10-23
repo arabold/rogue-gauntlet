@@ -9,7 +9,7 @@ public partial class HealthComponent : Node
 	[Export] public float CurrentHealth { get; private set; } = 10;
 	public bool IsDead => CurrentHealth <= 0;
 
-	HealthComponent()
+	public HealthComponent()
 	{
 		CurrentHealth = MaxHealth;
 	}
@@ -20,7 +20,7 @@ public partial class HealthComponent : Node
 		{
 			MaxHealth = maxHealth;
 			CurrentHealth = Mathf.Clamp(health, 0, MaxHealth);
-			GD.Print($"Updated {GetOwner().Name} health to {CurrentHealth}/{MaxHealth}.");
+			GD.Print($"Updated {GetOwner()?.Name ?? Name} health to {CurrentHealth}/{MaxHealth}.");
 			EmitSignalHealthChanged(CurrentHealth, MaxHealth);
 		}
 	}
@@ -29,7 +29,7 @@ public partial class HealthComponent : Node
 	{
 		if (CurrentHealth > 0)
 		{
-			GD.Print($"{GetOwner().Name} took {amount} damage.");
+			GD.Print($"{GetOwner()?.Name ?? Name} took {amount} damage.");
 			CurrentHealth -= amount;
 			EmitSignalHealthChanged(CurrentHealth, MaxHealth);
 
@@ -41,7 +41,7 @@ public partial class HealthComponent : Node
 	}
 
 	/// <summary>
-	/// Heals the player by the specified amount. 
+	/// Heals the player by the specified amount.
 	/// </summary>
 	/// <param name="amount"></param>
 	public void Heal(float amount)
