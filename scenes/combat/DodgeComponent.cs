@@ -30,11 +30,7 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 
 	public override void _Ready()
 	{
-		Actor ??= GetParentOrNull<CharacterBody3D>();
-		MovementComponent ??= Actor?.GetNodeOrNull<MovementComponent>("MovementComponent") ?? GetNodeOrNull<MovementComponent>("MovementComponent");
-		ActionGate ??= Actor?.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent") ?? GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
 		ProcessPhysicsPriority = CombatPhysics.Defense;
-		AnimationComponent ??= Actor?.GetNodeOrNull<CombatAnimationComponent>("CombatAnimationComponent");
 		SetPhysicsProcess(false);
 	}
 

@@ -1,5 +1,7 @@
 # Actor Actions and Interactions Implementation Plan
 
+Monster-specific composition, tactical strategies and the first-realm roster now belong to the [monster authoring plan](monster-authoring-plan.md). Use [Combat actions and defense](../combat-system.md) for delivered execution behavior; this document retains the broader player actions/magic/interaction work.
+
 Status: in progress (Slices 1, 2, 4 & 5 complete), October 22, 2026. [Actor Actions and World Interactions](../actor-actions-and-interactions.md) owns gameplay rules and initial tuning. Follow [AGENTS.md](../../AGENTS.md) and the [program-design skill](../../.agents/skills/program-design/SKILL.md). Existing [weapon attacks](../weapon-attack-system.md), [stats](../stats-and-itemization.md), and [RNG/save behavior](../randomness-and-seeds.md) remain the baseline.
 
 ## Current implementation and remaining scope
@@ -17,7 +19,7 @@ All names below are proposed. The gate covers attacks, abilities, defense, inter
 | Type / home | Kind and contract |
 | --- | --- |
 | `scenes/actions/ActorActionGateComponent.cs` | Actor-local Node; exclusive committed-action ownership and allowed transitions, generation-stamped leases; no independent animation or duration clock |
-| `scenes/combat/DefenseComponent.cs` | Actor-local Node; dodge/guard/parry and parry-stagger phase, facing/direction snapshots, cooldown/rearm/recovery clocks and accepted-defense notifications |
+| `scenes/combat/{DodgeComponent,GuardComponent}.cs` | Implemented actor-local capability Nodes; displacement/guard/parry, snapshots, cooldown/rearm/recovery and notifications; see current combat docs |
 | `scenes/combat/DodgeDefinition.cs` | GlobalClass Resource; distance, travel/recovery duration, immunity start/end, cooldown; nonnegative finite values, immunity contained in travel |
 | `scenes/combat/GuardDefinition.cs` | GlobalClass Resource; raise/parry/release timings, rearm/minimum-release intervals, facing sector, movement multiplier, damage multiplier, parry stagger duration; parry can be disabled |
 | `scenes/actions/ActorCapabilities.cs` | GlobalClass Resource on actor; innate dodge/guard definitions, explicit world-interaction permissions and actor-specific defense presentation profile; null capability means unavailable |
@@ -25,8 +27,7 @@ All names below are proposed. The gate covers attacks, abilities, defense, inter
 | `common/actions/ActorActionLease.cs` | Ordinary C# token, action kind and phase enums; stale lease releases/notifications cannot affect a newer action |
 | `common/combat/DamageContext.cs` | Ordinary C# immutable record: execution identity, source/owner/faction, amount/accuracy, incoming XZ direction, authored defense traits and delivery kind |
 | `common/interfaces/ICombatDamageable.cs` | Optional typed contract returning `DamageResolution` for a `DamageContext`; hurtboxes implement it; props can retain `IDamageable` |
-| `scenes/enemies/EnemyDefenseController.cs` | Actor-local observer/decision Node; reaction timer, per-threat decision and runtime RNG; requests the same `DefenseComponent` commands |
-| `scenes/enemies/EnemyDefensePolicy.cs` | GlobalClass Resource; enabled choices, probability per observed threat, reaction range/delay, consideration distance and safe-destination rules; no mutable RNG or remembered threats |
+| `scenes/enemies/EnemyDefenseController.cs` | Implemented actor-local observer; per-threat runtime state/RNG and requests to guard/dodge; authored-policy extraction belongs to the monster authoring plan |
 | `scenes/interactions/ActorInteractionComponent.cs` | Actor-local Node; stationary channel clock, target/verb snapshot and reservation, cancellation and progress; player and AI invoke the same executor |
 | `scenes/interactions/InteractionDefinition.cs` | GlobalClass Resource; verb ID/label, nonnegative duration, interaction range, displacement tolerance and required permission; no runtime progress |
 | `common/interactions/{ActorInteractionContext,InteractionOffer,InteractionReservation}.cs` | Ordinary C# snapshots/tokens identifying actor, target state revision, operation, duration and prerequisites; not saved Nodes |
@@ -268,7 +269,7 @@ Use SaveGame.CurrentVersion when schema changes land; reject incompatible saves 
 + scenes/combat/DefenseComponent.cs
 + scenes/combat/{DodgeDefinition,GuardDefinition,DefenseAnimationProfile}.cs
 + scenes/combat/definitions/*.tres                   player/body/equipment tuning
-+ scenes/enemies/{EnemyDefenseController,EnemyDefensePolicy}.cs
+~ scenes/enemies/EnemyDefenseController.cs                   implemented; policy extraction in monster authoring plan
 ~ scenes/components/{MovementComponent,HurtBoxComponent,InputComponent}.cs
 ~ scenes/attacks/{AttackController,AttackDefinition,Projectile,CombatAnimationComponent}.cs
 ~ scenes/player/{Player,PlayerInputController,PlayerInventoryController,ActionManager,ActionSlot}.cs
@@ -310,7 +311,7 @@ Hybrid delivery with one coherent action model; do not bolt defense onto the old
 4. **Shared playable dodge.** [Delivered] `DodgeComponent` owns displacement, immunity, recovery and cooldown, using the shared gate and movement override. Production requests preserve cooldowns, collision-stopped displacement and recovery locks; player input can cancel actual attack startup or held guard. Engine regressions exercise authored distance and prevent stale movement resuming during recovery.
 5. **Guard, timed parry and shared stagger.** [Delivered] `GuardComponent` owns raising, frontal protection, one consumed parry window, rearm and release recovery. `ActorActionGateComponent` owns speed-independent stagger. `CombatAnimationComponent` is the shared pose owner. The typed damage pipeline retains passive evasion, explicit actor/projectile RNG and chip suppression. Equipment rebinding cancels guard without resetting timers. Version 12 restores actual remaining combat time as neutral lockout. `CombatDefenseTest`, `CombatIntegrationTest` and existing contact/animation/gate tests verify these contracts; see the current-system documents rather than historical test counts.
 6. **Fire-magic vertical slice.** Add learned spell progression, stable selection/point ledger, mana and secondary resolution, then prototype Firebolt primary and Fireball/Wall of Fire secondary with one fire-staff family. Use keyboard/gamepad-compatible targeting/previews, captured power/location, timed field pulses and current-version save/load. Verify a barbarian and mage can learn/cast under the same focus rule, unlearned/wrong-element/no-mana/invalid-target rejection with no cost, exactly-once spend, interrupted-cast costs, startup swap cancellation, active/recovery swap denial, selection/copy swap cooldown continuity, no capacity-refill exploit and no level-up point regrant. Ground spells cannot track a hidden or moved target after capture. Keep quick items and guard untouched by spell selection.
-7. **Enemy intentions and content rollout.** Add restrained visible-threat defense decisions and local humanoid door intentions. Verify one delayed decision per observed attack, no hidden input reads, cancelled goals, direction commitment, invalid destinations, actor-specific permission failures, independent RNG streams, isolated shared Resources and transient reset on revisit. Roll out skeleton guard/parry first; rat scuttle, Warden shield and golem brace require actual gameplay scenes and valid presentation. Rat cannot open doors or pick locks. Do not grant every base enemy every action or build a new global navigation planner.
+7. **Enemy intentions and content rollout.** [Partially delivered] Skeleton visible-threat guard/dodge and pressure/riposte behavior exist; see [Combat](../combat-system.md). The [monster authoring plan](monster-authoring-plan.md) now owns retained skeletons, rat and Warden, basic movement/attack/defense strategy Resources and retirement of the old roster. Keep actor-specific door permissions/local intentions in this broader action work; rats cannot open doors or pick locks. Do not duplicate policy types or make a new global navigation planner. Golem and additional monster defenses are later content.
 
 8. **Four-element content completion.** After the fire prototype is fun, author earth/fire/water/wind staff families and five learned spell nodes per element, with valid prerequisites and distinct battlefield roles. Complete authored delivery/buff/obstacle behaviors and effects rather than treating twenty names as twenty working skills. Test one selected compatible spell at a time, retained per-element selection across staff tiers/copies, all classes' eligibility, field lifetimes/stack limits and physical wall navigation/door/stair restrictions. No spell-cycling input, expanded active spell bar, cross-element automatic conversion or account progression is required.
 

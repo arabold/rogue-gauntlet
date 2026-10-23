@@ -62,6 +62,7 @@ public partial class EnemyDefenseTest
 			GuardDef = guardDef
 		};
 		enemy.AddChild(guard);
+		enemy.GuardComponent = guard;
 
 		hurtbox.RegisterDefenseEvaluator(guard);
 
@@ -74,6 +75,7 @@ public partial class EnemyDefenseTest
 			ReactionDelay = 0.05f
 		};
 		enemy.AddChild(controller);
+		enemy.DefenseController = controller;
 
 		return (enemy, controller, guard, hurtbox, health);
 	}
@@ -128,6 +130,7 @@ public partial class EnemyDefenseTest
 			DodgeDef = dodgeDef
 		};
 		enemy.AddChild(dodge);
+		enemy.DodgeComponent = dodge;
 
 		hurtbox.RegisterDefenseEvaluator(dodge);
 
@@ -140,6 +143,7 @@ public partial class EnemyDefenseTest
 			ReactionDelay = 0.05f
 		};
 		enemy.AddChild(controller);
+		enemy.DefenseController = controller;
 
 		return (enemy, controller, dodge, hurtbox, health);
 	}

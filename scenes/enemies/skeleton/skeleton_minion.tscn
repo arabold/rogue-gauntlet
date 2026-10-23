@@ -3,10 +3,12 @@
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_u7kdf"]
 [ext_resource type="PackedScene" uid="uid://dx6rvie14m5bg" path="res://assets/kaykit-skeletons/Skeleton_Minion.glb" id="2_lb3ug"]
 [ext_resource type="PackedScene" uid="uid://poi1cfpu8w0h" path="res://assets/kaykit-skeletons/Skeleton_Blade.gltf" id="3_7afn0"]
-[ext_resource type="Resource" uid="uid://clootminion001" path="res://scenes/items/loot/loot_enemy_common.tres" id="4_loot"]
-[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_behavior.tres" id="7_profile"]
 
 [ext_resource type="Resource" path="res://scenes/attacks/animation_profiles/skeleton_minion.tres" id="attack_animation_profile"]
+
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_definition.tres" id="monster_definition"]
+
+[ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="action_gate_script"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rfhfv"]
 animation = &"1H_Melee_Attack_Chop"
@@ -165,7 +167,9 @@ viewport_path = NodePath("SubViewport")
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m4sjw"]
 radius = 0.75
 
-[node name="SkeletonMinion" instance=ExtResource("1_u7kdf")]
+[node name="SkeletonMinion" instance=ExtResource("1_u7kdf") node_paths=PackedStringArray("ActionGate")]
+Definition = ExtResource("monster_definition")
+ActionGate = NodePath("ActorActionGateComponent")
 
 [node name="Skeleton_Minion" parent="Pivot" index="0" instance=ExtResource("2_lb3ug")]
 
@@ -290,7 +294,6 @@ layers = 8
 layers = 8
 
 [node name="EnemyBehaviorComponent" parent="." index="1"]
-Profile = ExtResource("7_profile")
 
 [node name="AnimationTree" type="AnimationTree" parent="EnemyBehaviorComponent" index="2"]
 root_node = NodePath("../../Pivot/Skeleton_Minion")
@@ -299,15 +302,11 @@ advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../../Pivot/Skeleton_Minion/AnimationPlayer")
 
 [node name="LootTableComponent" parent="." index="3"]
-Table = ExtResource("4_loot")
 DropChance = 0.55
 
 [node name="HealthComponent" parent="." index="4"]
-MaxHealth = 8.0
-CurrentHealth = 8.0
 
 [node name="DeathComponent" parent="." index="5"]
-Xp = 2
 
 [node name="HurtBoxComponent" parent="." index="6"]
 Evasion = 0.3
@@ -328,3 +327,9 @@ shape = SubResource("CapsuleShape3D_m4sjw")
 AnimationPlayerPath = NodePath("../Pivot/Skeleton_Minion/AnimationPlayer")
 AnimationTreePath = NodePath("../EnemyBehaviorComponent/AnimationTree")
 Profile = ExtResource("attack_animation_profile")
+[node name="ActorActionGateComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent")]
+script = ExtResource("action_gate_script")
+AnimationComponent = NodePath("../CombatAnimationComponent")
+
+[node name="MovementComponent" parent="." node_paths=PackedStringArray("ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")

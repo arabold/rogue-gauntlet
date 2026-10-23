@@ -154,7 +154,7 @@ public partial class CombatIntegrationTest
 			AssertBool(guard.IsGuarding).IsTrue();
 			AssertInt(ripostes).IsEqual(0);
 			float reactionDuration = (float)enemy.GetNode<CombatAnimationComponent>("CombatAnimationComponent").PoseLength(guard);
-			float minimumSequence = Mathf.Max(enemy.EnemyBehaviorComponent.Profile.GuardPressureWindow, reactionDuration)
+			float minimumSequence = Mathf.Max(enemy.EnemyBehaviorComponent.Profile.DefenseStrategy.GuardPressureWindow, reactionDuration)
 				+ definition.ReleaseRecovery;
 			ulong contactFrame = Engine.GetPhysicsFrames();
 			bool sawRecovery = false;
@@ -367,8 +367,9 @@ public partial class CombatIntegrationTest
 			harness.ExecuteCommand("defense", 2, Vector3.Zero);
 			var enemy = harness.Monster;
 			var profile = (EnemyBehaviorProfile)enemy.EnemyBehaviorComponent.Profile.Duplicate();
-			profile.DodgeChance = 1;
-			profile.GuardChance = 0;
+			profile.DefenseStrategy = (EnemyDefenseStrategy)profile.DefenseStrategy.Duplicate();
+			profile.DefenseStrategy.DodgeChance = 1;
+			profile.DefenseStrategy.GuardChance = 0;
 			enemy.EnemyBehaviorComponent.Profile = profile;
 			AssertInt((int)enemy.DodgeComponent.TryDodge(Vector3.Left)).IsEqual((int)DefenseRequestResult.Success);
 			await PhysicsFrames(runner, 19);

@@ -1,6 +1,6 @@
 # Realms and Monster Design
 
-Status: concept and system design document, October 2026. Defines the 24-depth world concept, the eight Sunken Epochs, the 3-depth realm cadence, and the complete monster and boss bestiary for the initial prototype realms (Realms 1, 2, and 4). World themes and encounter concepts live here; room/access/discovery rules live in [Dungeon Layout, Access, and Discovery](dungeon-exploration-design.md). See the [Game Design Document](game-design.md), current [Level Design](level-design.md), and remaining [implementation plan](specs/level-progression-prototype-plan.md) for their separate responsibilities.
+Status: world concept, revised October 23, 2026. The eight-realm, 24-depth descent is the current direction; later realm order, placement and rosters remain provisional. Delivery focuses on playable depths 1–3. [Monster design and authoring](monster-authoring-design.md) owns roster, capabilities and balancing rules; its [implementation plan](specs/monster-authoring-plan.md) owns the rollout. Room/access/discovery rules live in [Dungeon Layout, Access, and Discovery](dungeon-exploration-design.md). See the [Game Design Document](game-design.md), current [Level Design](level-design.md), and remaining [implementation plan](specs/level-progression-prototype-plan.md) for their separate responsibilities.
 
 ---
 
@@ -23,7 +23,7 @@ At the bottom of all history—at Depth 24—lies the **World-Anchor** (also kno
 
 ## 2. The Eight Sunken Epochs (Depths 1 to 24)
 
-The descent spans 24 depths partitioned into eight distinct, 3-depth realms. Each realm represents an entirely different historical civilization with its own architectural kits, hazards, room topologies, and monster ecologies.
+The current world concept spans 24 depths partitioned into eight 3-depth realms. Each realm represents a fallen civilization with its own architecture, hazards and ecology. The order and depth assignments below are a provisional world-building sketch, not fixed content IDs or a requirement for the first-three-floor implementation.
 
 ```
 [Surface Kingdom]
@@ -87,7 +87,7 @@ A future sanctum can place a peaceful merchant near the entrance. High-tier boss
 
 ## 4. Prototype Environmental Styling (Using Existing Dungeon Assets)
 
-To prototype without immediately modeling new 3D tile kits, the initial implementation targets **Realms 1, 2, and 4** by re-dressing the existing modular dungeon assets with distinct lighting, fog, props, and room selections.
+To prototype without immediately modeling new 3D tile kits, later realm experiments can explore the Garrison, Cisterns and Scriptorium by re-dressing the existing modular dungeon assets with distinct lighting, fog, props, and room selections.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────┐
@@ -113,101 +113,18 @@ To prototype without immediately modeling new 3D tile kits, the initial implemen
 
 ---
 
-## 5. The Prototype Bestiary (Realms 1, 2, and 4)
+## 5. First-realm roster and encounters
 
-### Reference Player Baselines
-- Player HP: 90–120 (Knight: 120, Barbarian: 115, Rogue: 95, Mage: 90).
-- Player Walk Speed: ~4.0 units/second.
-- Player Basic Weapon Damage: ~6–15 per hit (depending on weapon and attributes).
+The initial playable roster is the skeleton minion, shield-bearing skeleton warrior, skeleton crossbowman, Plague Rat and Forsaken Warden. These replace the earlier speculative Garrison roster; deserters, sergeants and extra bosses are not required. Keep the three existing skeletons and approved Warden visual. Add the rat through the Studio export and Godot composition workflow.
 
----
+The first floor introduces direct melee, frontal defense and readable ranged pressure. The second combines these roles with rats and finite nest pressure. The third leads to the Warden and rewards learned positioning/defense. Monster identity, fixed strength, movement/attack/defense policies, threat and XP are defined in [Monster design and authoring](monster-authoring-design.md). Concrete numbers live in authored Godot Resources; [Level design](level-design.md#first-realm-encounter-prototype) records current implemented budgets, nests and gatekeeper behavior.
 
-### Realm 1: The Sunken Garrison (Depths 1–3)
-*Tactical focus: Teaching weapon reach, recovery timing, stamina control, and doorway chokepoints.*
+The Warden remains a single-phase encounter for the initial rollout. A larger silhouette and committed swings can make it distinct without phase scripting. Summoning, leaps, shockwaves, weapon changes and enrage phases are deferred rather than prerequisites for a playable third floor.
 
-| Monster | Silhouette & Size | Threat | HP | Damage | Speed | Tactical Behavior & Attack Profile |
-|---|---|---|---|---|---|---|
-| **Plague Rat** *(Swarmer)* | Tiny ($0.4\text{m}$) quadruped | 1 | 5 | 2–4 | 4.6 | Fast scuttler. Lunges forward in packs of 3–5. Easily cleaved in chokepoints. Emitted by *Bone/Carcass Nests* on Depth 2. |
-| **Deserter Scout** *(Skirmisher)* | Medium ($1.0\text{m}$) humanoid | 2 | 10 | 4–7 | 3.4 | Light shortsword slash ($0.5\text{s}$ windup). Steps backward after striking to evade counter-swings. |
-| **Brittle Skeleton** *(Bruiser)* | Medium ($1.1\text{m}$) undead | 4 | 18 | 5–9 | 2.5 | Wields a rusted buckler (blocks 50% frontal damage until poise broken) and strikes with heavy axe chops. |
-| **Renegade Crossbowman** *(Specialist)* | Medium ($1.0\text{m}$) humanoid | 6 | 10 | 6–10 | 2.8 | Maintains distance at corridor ends; fires a high-damage bolt preceded by a 0.8s red line telegraph. |
-| **Ironclad Sergeant** *(Minor Boss / Elite)* | Large ($1.5\text{m}$) armored brute | 12 | 45 | 9–15 | 2.7 | Wields a greatsword with a wide $180^\circ$ sweep that knocks players back. Guards optional Depth 2 vaults. |
+Later realm monsters and bosses remain open design work. Choose them to support a realm's tactical focus after the first realm is enjoyable. Earlier detailed HP/damage tables, threat-class ranges and room-budget formulas have been retired: they were speculative and conflicted with the implemented roster. A later realm need not reuse those exact creatures or numbers.
 
-#### Realm 1 Gatekeeper (Depth 3 Boss): The Forsaken Warden
-- **Silhouette & Size:** Huge ($2.0\text{m}$ tall armored revenant in battered full plate).
-- **Attributes:** 110 HP, 10–18 damage per hit, 2.8 move speed.
-- **Location and access:** Warden's hall or barracks courtyard, with a visibly sealed descent that unlocks automatically on defeat. Iron-portcullis arena lockdown is an optional later encounter feature.
-- **Three-Phase Encounter:**
-  1. *Phase 1 ($100\%\rightarrow 65\%$ HP):* Heavy two-handed executioner swings and short-range shield bashes. Teaches sidestepping and attack windows.
-  2. *Phase 2 ($65\%\rightarrow 30\%$ HP):* War horn roar (summons 3 Plague Rats) followed by a leaping ground slam with an expanding ring shockwave.
-  3. *Phase 3 ($<30\%$ HP):* Enraged frenzy. Drops the shield to two-hand the blade; attack recovery time decreases by 30%, leaving ignited friction trails on the stone.
+## 6. Encounter direction
 
----
+Mix complementary roles within finite threat budgets and respect available fighting space. Selection frequency, threat cost and actual combat strength are separate tuning decisions. Realm pools and depth eligibility control where monsters appear; monsters do not automatically scale with dungeon depth.
 
-### Realm 2: The Drowned Cisterns / Forum (Depths 4–6)
-*Tactical focus: Positioning on dry stone versus wading in water; dodging thrust attacks; managing aquatic ambushes.*
-
-| Monster | Silhouette & Size | Threat | HP | Damage | Speed | Tactical Behavior & Attack Profile |
-|---|---|---|---|---|---|---|
-| **Mire Leech** *(Swarmer)* | Small ($0.5\text{m}$) slithering worm | 1 | 7 | 3–5 | 4.4 water / 2.2 land | Hides submerged in shallow water; lunges onto dry platforms in pairs. Emitted by *Algae Basins* on Depth 5. |
-| **Drowned Spearman** *(Skirmisher)* | Medium ($1.1\text{m}$) water-logged zombie | 2 | 14 | 5–8 | 2.9 | Thrusts with a long polearm ($3.2\text{m}$ reach). Pushes players backward off dry stones into deep water. |
-| **Slime Hulk** *(Bruiser)* | Large ($1.8\text{m}$ wide) amorphous blob | 5 | 28 | 8–13 | 2.4 | Immune to water slow penalties. Unleashes a heavy body slam that creates a caustic splash zone. |
-| **Siren Harpy** *(Specialist)* | Medium ($1.2\text{m}$) flying raptor-human | 7 | 12 | 5–8 | 3.8 | Flies over water and pits; unleashes a concussive shriek that interrupts player weapon actions. |
-| **Abyssal Eel-Drake** *(Minor Boss / Elite)* | Large ($2.4\text{m}$ long) aquatic serpent | 14 | 55 | 10–16 | 4.2 water | Dives beneath water surfaces, resurfaces behind the player, and emits a short-range electrical shockwave. |
-
-#### Realm 2 Gatekeeper (Depth 6 Boss): The Gorgon Praetor
-- **Silhouette & Size:** Large ($1.8\text{m}$ tall, half-humanoid, half-serpentine stone guardian).
-- **Attributes:** 160 HP, 12–20 damage, 3.2 move speed.
-- **Arena:** Flooded circular forum with four raised dry marble platforms and crumbling pillars.
-- **Three-Phase Encounter:**
-  1. *Phase 1 ($100\%\rightarrow 65\%$ HP):* Sweeping bronze halberd combos and tail sweeps that knock the player into water channels.
-  2. *Phase 2 ($65\%\rightarrow 35\%$ HP):* **Petrifying Gaze Telegraph**: Eyes flare emerald for $1.2\text{s}$ with a sharp audio cue. If the player is facing the boss when it fires, they are turned to stone (frozen in place) for $1.5\text{s}$. The player must turn away or duck behind a pillar.
-  3. *Phase 3 ($<35\%$ HP):* Floods the outer perimeter completely, breaking two pillars and summoning Mire Leech swarms while moving faster across water.
-
----
-
-### Realm 4: The Ashen Scriptorium (Depths 10–12)
-*Tactical focus: Countering teleporting ranged casters; damage-type choices (blunt vs. slashing); breaking line-of-sight with tall bookcases.*
-
-| Monster | Silhouette & Size | Threat | HP | Damage | Speed | Tactical Behavior & Attack Profile |
-|---|---|---|---|---|---|---|
-| **Flying Grimoire** *(Swarmer)* | Small ($0.4\text{m}$) animated book | 1 | 9 | 3–6 | 4.0 | Erratic fluttering flyer. Casts sharp paper volleys from mid-range. Emitted by *Cursed Lecterns* on Depth 11. |
-| **Wax Homunculus** *(Skirmisher)* | Medium ($1.0\text{m}$) malleable clay/wax form | 3 | 18 | 6–10 | 3.5 | Fast blunt fists. **Special mechanic:** If slain by a slashing weapon, splits into 2 mini-homunculi ($6\text{HP}$ each). Blunt/magic damage kills cleanly. |
-| **Granite Scribe** *(Bruiser)* | Large ($1.6\text{m}$) stone gargoyle | 6 | 36 | 10–16 | 2.2 | Sits motionless on plinths until player approaches within $6\text{m}$; awakens with a diving ground pound. High armor defense. |
-| **Curator Magus** *(Specialist)* | Medium ($1.2\text{m}$) floating hooded caster | 8 | 16 | 7–13 | 3.0 | Teleports when melee attackers get close. Casts a gravitational vortex that drags actors toward its center. |
-| **Animated Book Golem** *(Minor Boss / Elite)* | Large ($2.2\text{m}$) swirling cyclone of folios | 16 | 75 | 12–18 | 3.2 | Spins in a whirlwind state deflecting arrows/bolts and launching page shrapnel radially. |
-
-#### Realm 4 Gatekeeper (Depth 12 Boss): The High Archivist (Lamassu Construct)
-- **Silhouette & Size:** Huge ($2.4\text{m}$ winged stone lion construct with a bearded sage head).
-- **Attributes:** 240 HP, 15–26 damage, 3.0 move speed.
-- **Arena:** Grand reading rotunda with four massive stone book archives.
-- **Three-Phase Encounter:**
-  1. *Phase 1 ($100\%\rightarrow 65\%$ HP):* Dual burning staves firing rotating radial arcane runes. Player must use the library shelves to break line of sight.
-  2. *Phase 2 ($65\%\rightarrow 30\%$ HP):* Drops **Arcane Silence Domes** onto the arena floor (standing in them disables scrolls and magic weapons). Awakens two Granite Scribes from wall alcoves.
-  3. *Phase 3 ($<30\%$ HP):* Collapses two of the book shelves into rubble, cutting down safe cover, and unleashes rapid charging rushes across the room.
-
----
-
-## 6. Spawning Rules and Threat Budgets
-
-### Threat Cost Classes
-- **Swarmer (1 pt):** Fragile crowd pressure, easily cleaved in groups.
-- **Skirmisher (2–3 pts):** Standard direct combatant.
-- **Bruiser (4–6 pts):** Tanky frontline, forces repositioning and stamina care.
-- **Specialist (6–8 pts):** Ranged sniper, buffer, or disruptor.
-- **Elite / Minor Boss (12–16 pts):** High health, guards major rewards.
-- **Gatekeeper (25+ pts):** Realm climax encounter.
-
-### Room Threat Budgets
-Every placed room receives a threat budget calculated as:
-$$\text{Budget} = \text{BaseBudget}(\text{Depth}) \times \text{RoomRoleMultiplier} \times \text{SizeFactor}$$
-
-- **Corridors:** 0–2 points (occasional solo wanderer or pair of swarmers).
-- **Standard Rooms (Floor 1):** 4–8 points (e.g., 2 Skirmishers + 2 Swarmers).
-- **Standard Rooms (Floor 2):** 10–16 points (e.g., 1 Bruiser + 2 Skirmishers + 4 Swarmers).
-- **Guarded Vaults:** 15–25 points (e.g., 1 Specialist + 1 Bruiser + 4 Skirmishers).
-- **Nest Chambers (Floor 2):** 1 Destructible Nest + 4–8 initial guard points.
-
-### Destructible Nests (Swarm Mechanics)
-
-Damageable realm props (Bone Piles, Algae Basins, Cursed Lecterns) supply bounded reinforcement pressure. Their authored encounter tuning controls interval, batch size, simultaneous cap and total summon budget. Destroying the source stops further summons. The first Garrison prototype has finite skeleton slots and collapses surviving bound summons on destruction; see [Level design](level-design.md#first-realm-encounter-prototype) for the implemented values. Expanding pressure or changing summon ownership requires explicit balance and persistence work.
+Nests provide bounded reinforcement pressure, with authored interval, batch size, simultaneous cap and total summon slots. Destroying a source stops further summons; the current implementation also collapses surviving bound summons without rewards. See [Level design](level-design.md#first-realm-encounter-prototype) for current persistence and values. The monster rollout may change the summoned roster without changing those ownership rules.

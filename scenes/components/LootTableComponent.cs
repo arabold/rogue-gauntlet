@@ -31,6 +31,9 @@ public partial class LootTableComponent : Node
 	/// <summary>Maximum number of separate drops rolled from <see cref="Table"/> per event.</summary>
 	[Export] public int DropCountMax { get; private set; } = 1;
 
+	/// <summary>Apply a monster definition before readiness without claiming or rerolling its loot.</summary>
+	public void ConfigureTable(LootTable table) => Table = table;
+
 	private bool _isDropped;
 	public void RestoreClaimed(bool claimed) => _isDropped = claimed;
 

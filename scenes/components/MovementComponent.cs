@@ -50,7 +50,7 @@ public partial class MovementComponent : Node
 	private float _speedMultiplier = 1.0f;
 	private Vector3? _fixedFacing;
 
-	public ActorActionGateComponent ActionGate { get; set; }
+	[Export] public ActorActionGateComponent ActionGate { get; set; }
 
 	public Vector3 LocomotionDirection => _hasOverrideVelocity ? _overrideDirection : TargetDirection;
 	public float LocomotionSpeed => _hasOverrideVelocity ? _overrideSpeed : Speed * _speedMultiplier;
@@ -101,7 +101,6 @@ public partial class MovementComponent : Node
 	public override void _Ready()
 	{
 		ProcessPhysicsPriority = CombatPhysics.Movement;
-		ActionGate ??= Actor.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
 		LookAtDirection = -Actor.GlobalTransform.Basis.Z;
 	}
 

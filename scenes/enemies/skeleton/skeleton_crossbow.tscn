@@ -1,11 +1,14 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/enemies/skeleton/skeleton_minion.tscn" id="base"]
 [ext_resource type="PackedScene" path="res://assets/kaykit-skeletons/Skeleton_Crossbow.gltf" id="crossbow"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_crossbow_behavior.tres" id="behavior"]
 [ext_resource type="Resource" path="res://scenes/attacks/animation_profiles/skeleton_crossbow.tres" id="animation"]
 
+[ext_resource type="Resource" path="res://scenes/items/loot/loot_enemy_common.tres" id="loot"]
+
 [node name="SkeletonCrossbow" instance=ExtResource("base")]
+Definition = null
 
 [node name="Skeleton_Blade2" parent="Pivot/Skeleton_Minion/Rig/Skeleton3D/BoneAttachment3D"]
 visible = false
@@ -18,3 +21,13 @@ Profile = ExtResource("behavior")
 
 [node name="CombatAnimationComponent" parent="."]
 Profile = ExtResource("animation")
+
+[node name="HealthComponent" parent="."]
+MaxHealth = 8.0
+CurrentHealth = 8.0
+
+[node name="DeathComponent" parent="."]
+Xp = 2
+
+[node name="LootTableComponent" parent="."]
+Table = ExtResource("loot")

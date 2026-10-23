@@ -1,0 +1,87 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="1_j62no"]
+[ext_resource type="PackedScene" uid="uid://dt3ptc0tqgy5s" path="res://scenes/enemies/enemy_behavior_component.tscn" id="2_sr21q"]
+[ext_resource type="PackedScene" uid="uid://c6276kjx70mps" path="res://scenes/components/movement_component.tscn" id="4_qc6m8"]
+[ext_resource type="PackedScene" uid="uid://dud0hid1mwmdw" path="res://scenes/components/loot_table_component.tscn" id="5_qpnrt"]
+[ext_resource type="PackedScene" uid="uid://bfol3ridi0ig8" path="res://scenes/components/health_component.tscn" id="6_g62l6"]
+[ext_resource type="PackedScene" uid="uid://prsvhvx843w0" path="res://scenes/components/death_component.tscn" id="7_2q7cy"]
+[ext_resource type="PackedScene" uid="uid://doui3rts7bdo7" path="res://scenes/components/hurt_box_component.tscn" id="8_b88gg"]
+[ext_resource type="PackedScene" uid="uid://cs2dyf0ews4ob" path="res://scenes/effects/hit_effect.tscn" id="9_d4q6w"]
+[ext_resource type="PackedScene" uid="uid://c6i0b6qufb14m" path="res://scenes/components/floating_health_bar.tscn" id="10_oansv"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackController.cs" id="11_attack"]
+[ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/attacks/projectile.tscn" id="13_projectile"]
+
+[ext_resource type="Script" path="res://scenes/attacks/CombatAnimationComponent.cs" id="attack_animation_script"]
+
+[ext_resource type="Script" path="res://scenes/attacks/MeleeHitDetector.cs" id="melee_detector_script"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/monster_default.tres" id="melee_default"]
+
+[ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="gate_script"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_6flps"]
+viewport_path = NodePath("SubViewport")
+
+[node name="Enemy" type="CharacterBody3D" node_paths=PackedStringArray("AttackController", "ActionGate", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+collision_layer = 8
+collision_mask = 87
+platform_floor_layers = 4294901761
+platform_wall_layers = 2
+script = ExtResource("1_j62no")
+AttackController = NodePath("AttackController")
+ActionGate = NodePath("ActorActionGateComponent")
+EnemyBehaviorComponent = NodePath("EnemyBehaviorComponent")
+MovementComponent = NodePath("MovementComponent")
+HealthComponent = NodePath("HealthComponent")
+HurtBoxComponent = NodePath("HurtBoxComponent")
+DeathComponent = NodePath("DeathComponent")
+LootTableComponent = NodePath("LootTableComponent")
+
+[node name="Pivot" type="Node3D" parent="."]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
+
+[node name="EnemyBehaviorComponent" parent="." node_paths=PackedStringArray("Actor", "MovementComponent", "HealthComponent") instance=ExtResource("2_sr21q")]
+Actor = NodePath("..")
+MovementComponent = NodePath("../MovementComponent")
+HealthComponent = NodePath("../HealthComponent")
+
+[node name="AttackController" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "MeleeDetector")]
+script = ExtResource("11_attack")
+AnimationComponent = NodePath("../CombatAnimationComponent")
+MeleeDetector = NodePath("../MeleeHitDetector")
+DefaultMeleeContact = ExtResource("melee_default")
+DefaultProjectileScene = ExtResource("13_projectile")
+
+[node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor", "ActionGate") instance=ExtResource("4_qc6m8")]
+ActionGate = NodePath("../ActorActionGateComponent")
+Actor = NodePath("..")
+
+[node name="LootTableComponent" parent="." instance=ExtResource("5_qpnrt")]
+
+[node name="HealthComponent" parent="." instance=ExtResource("6_g62l6")]
+
+[node name="DeathComponent" parent="." node_paths=PackedStringArray("HealthComponent", "LootTableComponent") instance=ExtResource("7_2q7cy")]
+HealthComponent = NodePath("../HealthComponent")
+LootTableComponent = NodePath("../LootTableComponent")
+
+[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent", "MovementComponent") instance=ExtResource("8_b88gg")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00378418, 1.01208, -0.00549316)
+collision_layer = 8
+HealthComponent = NodePath("../HealthComponent")
+MovementComponent = NodePath("../MovementComponent")
+HitEffect = ExtResource("9_d4q6w")
+
+[node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("10_oansv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+texture = SubResource("ViewportTexture_6flps")
+HealthComponent = NodePath("../HealthComponent")
+
+[node name="CombatAnimationComponent" type="Node" parent="."]
+script = ExtResource("attack_animation_script")
+
+[node name="MeleeHitDetector" type="Node" parent="."]
+script = ExtResource("melee_detector_script")
+
+[node name="ActorActionGateComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent")]
+script = ExtResource("gate_script")
+AnimationComponent = NodePath("../CombatAnimationComponent")

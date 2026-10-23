@@ -75,7 +75,7 @@ Relevant sources: [SpawnPoint](../scenes/levels/SpawnPoint.cs), [DeathComponent]
 | [LayoutConnectivityTest](../tests/LayoutConnectivityTest.cs) | Includes repeated same-seed map comparisons for packed and procedural layouts, alongside connectivity coverage |
 | [IdentificationServiceTest](../tests/IdentificationServiceTest.cs) | Identification behavior and seeded appearance assignment; consult individual cases for exact scope |
 
-These checks do not imply deterministic replay of physics, AI, or arbitrary gameplay history. Save format 9 rejects previous or unversioned saves before current DTO deserialization; occupied incompatible slots require a new run and are not silently overwritten.
+These checks do not imply deterministic replay of physics, AI, or arbitrary gameplay history. `SaveGame.CurrentVersion` identifies the supported format and rejects previous or unversioned saves before current DTO deserialization; occupied incompatible slots require a new run and are not silently overwritten.
 
 ## Intended contract and remaining extensions
 

@@ -34,6 +34,21 @@ public sealed class ChasingState : IEnemyState
 			return EnemyBehaviorState.Searching;
 		}
 
+		if (ctx.UsesMonsterDefinition)
+		{
+			// Preserve a doorway crossing before allowing a new strategy to stop/repath the actor.
+			if (crossingDoorway) { NavigateToTarget(ctx); return null; }
+			var intent = ctx.Profile.MovementStrategy.Evaluate(ctx);
+			if (intent.Goal == EnemyMovementGoal.Approach)
+			{
+				ctx.UpdateTargetPositionThrottled();
+				NavigateToTarget(ctx);
+			}
+			else ctx.Navigation.Stop();
+			if (intent.AllowAttack) ctx.RequestMeleeAttack();
+			return null;
+		}
+
 		// Caster enemies stand off and fire while the target is within ranged distance and in sight.
 		// This falls through to the melee chase below when a shot is not viable (target too close, out
 		// of range, or behind cover), so the caster repositions to regain a clear shot. Skipped mid

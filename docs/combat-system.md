@@ -32,6 +32,14 @@ Attack and projectile randomness stays local. Enemy hosts derive separate attack
 
 Enemy defense observes its current perceived opponent's visible startup, not player inputs. An explicitly injected harness target is supported. Sight and range are revalidated when the reaction delay expires. One probability decision is made per observed attack/projectile execution; projectile exposure over multiple ticks cannot repeatedly reroll the chance. Forced harness modes change probability, retaining production delay and cooldown rules.
 
+Current skeleton guard definitions use a 120° frontal cone; rear and side hits outside it bypass guard/parry and continue through ordinary damage resolution.
+
 Blocked and parried contacts both refresh guard pressure. Enemies finish their guard hold and release recovery before attempting a riposte; a parry never bypasses the defensive sequence. Melee reach and visibility are checked again when the riposte is attempted. Riposte success is announced only after an attack is accepted, with a visible target in range and no conflicting action.
 
 Save version 12 stores dodge cooldown, parry rearm and the actual remaining combat commitment as a neutral reload lockout. Loading cancels transient action/animation/movement ownership, restores timers, and recreates the lockout without immunity. Guard requires a fresh press after load, pause or focus loss. Stair travel rejects committed actions. Older development saves require a new run; no migration is performed.
+
+## Monster authoring rollout
+
+[Monster design and authoring](monster-authoring-design.md) defines independent attack/guard/dodge capabilities and basic tactical policies. Minion and warrior now use `MonsterDefinition` defaults and explicit close-distance/melee strategies through the existing attack executor. Warrior defense uses a shared `EnemyDefenseStrategy`: one categorical draw selects dodge, guard or no response. Legacy actors retain their existing independent dodge-first rolls until migration.
+
+Ripostes on definition-driven actors request their configured attack through `TryAttack`, revalidating range and sight after guard release. The delivered policies are melee-only; projectile policies, ranged ripostes and retreat remain in the [rollout plan](specs/monster-authoring-plan.md). Existing pressure, release/recovery, cooldown and directional checks remain the execution foundation.

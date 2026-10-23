@@ -1,6 +1,6 @@
 # Rogue Gauntlet — Development Roadmap
 
-Status: initial roadmap, October 19, 2026. Milestones are ordered by dependencies and playable outcomes, without delivery-date commitments. The [Game Design Document](game-design.md) describes the intended experience and open design decisions.
+Status: revised October 23, 2026. Milestones are ordered by dependencies and playable outcomes, without delivery-date commitments. The [Game Design Document](game-design.md) describes the intended experience and open design decisions.
 
 ## Existing foundations
 
@@ -8,13 +8,25 @@ The repository already contains procedural floors and fog of war, character clas
 
 Existing RNG and world-state behavior is documented in [Randomness and Seeds](randomness-and-seeds.md); this is an extension of seeded generation already in the game, not a new RNG foundation. The [documentation index](README.md) links the other implemented systems.
 
-Asset Studio supplies a growing visual catalog and some corresponding gameplay definitions. Food now participates in the item lifecycle. Tools, keys, and additional wearable armor still need behavior, integration, or validation appropriate to their intended roles.
+Asset Studio supplies a growing visual catalog; corresponding gameplay definitions are authored separately in Godot. Food now participates in the item lifecycle. Tools, keys, and additional wearable armor still need behavior, integration, or validation appropriate to their intended roles.
 
 Asset Studio now exports the selected wolf, rat and rigid large-rig stone golem through the normal character commands, with local technical rigs and art-only Godot import validation. See [Studio architecture](../asset-studio/ARCHITECTURE.md) for the export/gameplay boundary and remaining legacy weapon-preview dependencies. This does not create playable enemy definitions.
 
+## Current priority — Playable depths 1–3 and monster authoring
+
+Status: authoring foundation implemented for minion/warrior; ranged/retreat tactics, Studio rollout and roster cleanup remain planned. This bounded first-realm delivery does not wait for shops, later realm order or a complete 24-depth run. [Monster design and authoring](monster-authoring-design.md) owns design decisions; the [implementation plan](specs/monster-authoring-plan.md) owns contracts, retirement rules and delivery slices.
+
+- Retain skeleton minion, warrior and crossbowman. Introduce the approved Studio rat and move the Warden into its own gameplay folder; preserve visuals and Studio sources.
+- Author monsters manually in Godot using copyable assemblies, instanced components and Inspector-editable Resources. Keep art-only Studio recipes separate from gameplay configuration.
+- Deliver close, keep-distance and attack-then-retreat tactics, plus optional bounded low-health retreat. Each monster has one melee or clear-sight projectile attack; guard/dodge probabilities and conditional riposte are independent capabilities. Defer flanking, group shelter and weapon switching.
+- Retire the old Quaternius gameplay roster only after pools, debug/test callers and references are repaired. Preserve adopted Studio-source provenance. Use fixed authored strength, explicit XP and realm/depth encounter eligibility.
+- Tune the five-monster roster, finite nests, rewards/recovery and single-phase Warden together. Wolf, spider, golem and later realms follow after the authoring workflow and first realm work well.
+
+**Acceptance:** create/customize a monster in the Godot UI without code, validate independent instances, and play depths 1–3 with two contrasting classes and three seeds, including save/resume and revisit. Review attack readability, useful defenses/escape, doorway congestion, recovery pressure and boss openings. Automated checks cover composition, actual seeded encounters/rewards and persistence; editor playtests establish navigation and balance.
+
 ## Action and interaction improvement track
 
-Status: proposed; unified controls, timed interactions and dodge/guard/parry are not implemented yet. This track can be exercised in the existing encounter prototype without waiting for shops or full dungeon progression. [Actor actions and world interactions](actor-actions-and-interactions.md) owns the concept; its [implementation plan](specs/actor-actions-and-interactions-plan.md) owns contracts and delivery slices.
+Status: partially implemented. Shared action ownership, timed interaction foundations and dodge/guard/parry exist; broader controls, magic and content rollout remain planned. See [Combat actions and defense](combat-system.md) for current behavior. This track can be exercised in the existing encounter prototype without waiting for shops or full dungeon progression. [Actor actions and world interactions](actor-actions-and-interactions.md) owns the concept; its [implementation plan](specs/actor-actions-and-interactions-plan.md) owns contracts and delivery slices.
 
 Deliver one shared actor action boundary, separate weapon primary/secondary actions from the four item-only quick slots, and auto-assign eligible pickups only into unassigned slots. Replace attack/interact input overlap with a dedicated hold interaction and progress ring. Ordinary operations start at one second; mechanical picking uses its own five/ten-second duration through the same executor. Add dodge, guard/timed parry and restrained enemy requests through that action model. Bodies, equipment and tools grant independent capabilities; monsters do not need a player quick bar. Add a fire-magic vertical slice (free projectile, Fireball/Wall of Fire, learned selection and mana), then expand to four staff families with five spells each. Classes define starting kits/stat affinities, not exclusive magic access. Controls and spell placement must work with keyboard and gamepad.
 
@@ -88,7 +100,7 @@ Depends on milestones 1–3 and decisions about interface pause behavior and mer
 
 ## Milestone 5 — First complete run
 
-Status: first-realm encounter prototype implemented; full-run integration remains planned. The intended run is 24 depths across eight realms, with World-Anchor victory and run-ending death; permanent progression remains undecided. The playable first-realm slice uses skeleton budgets, a crossbow variant, finite nests and the large Forsaken Warden with a persistent descent check. See [Level design](level-design.md#first-realm-encounter-prototype) for current behavior. Recipe routes, locks, secrets, visible seals, shops, bespoke boss phases and the ending are not completed by that slice.
+Status: first-realm encounter prototype implemented; full-run integration remains planned. The current full-run concept is 24 depths across eight realms (later realm order remains provisional), with World-Anchor victory and run-ending death; permanent progression remains undecided. The playable first-realm slice uses skeleton budgets, a crossbow variant, finite nests and the large Forsaken Warden with a persistent descent check. See [Level design](level-design.md#first-realm-encounter-prototype) for current behavior. Recipe routes, locks, secrets, visible seals, shops, bespoke boss phases and the ending are not completed by that slice.
 
 Depends on milestones 1–4.
 

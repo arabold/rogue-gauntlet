@@ -92,6 +92,7 @@ public partial class EnemyBehaviorComponent : Node
 
 	public override void _Ready()
 	{
+		if (Actor is EnemyBase { DefinitionValid: false }) return;
 		ProcessPhysicsPriority = CombatPhysics.Steering;
 		base._Ready();
 
@@ -106,7 +107,7 @@ public partial class EnemyBehaviorComponent : Node
 		_navigation = GetNode<NavigationComponent>("Navigation");
 		_navigation.Initialize(Actor, MovementComponent, GetNode<NavigationAgent3D>("NavigationAgent3D"));
 
-		_attackController = Actor.GetNodeOrNull<AttackController>("AttackController");
+		_attackController = Actor is EnemyBase enemy ? enemy.AttackController : Actor.GetNodeOrNull<AttackController>("AttackController");
 		if (_attackController == null)
 		{
 			GD.PushError($"{Actor.Name} has no AttackController child; melee attacks will not deal damage.");
@@ -143,6 +144,7 @@ public partial class EnemyBehaviorComponent : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
+		if (_context == null) return;
 		_context.TickThrottles(delta);
 		var gate = (Actor as EnemyBase)?.ActionGate;
 		if (gate?.Disabled == true || (gate?.IsBusy == true && !IsAttacking))
@@ -194,8 +196,22 @@ public partial class EnemyBehaviorComponent : Node
 	/// <summary>Production melee entry point, also available to local combat playgrounds.</summary>
 	public bool TryMeleeAttack()
 	{
+		if (Actor is EnemyBase { Definition: not null }) return TryAttack();
 		if (CurrentAction != EnemyAction.None || IsDead || MovementComponent.IsPushed || !TriggerMeleeAttack()) return false;
 		SetAction(EnemyAction.MeeleAttack);
+		return true;
+	}
+
+	/// <summary>Execute the one authored monster attack after range, sight and action validation.</summary>
+	public bool TryAttack()
+	{
+		if (Actor is not EnemyBase { Definition: not null }) return TryMeleeAttack();
+		var policy = Profile?.AttackStrategy;
+		if (_context == null || policy == null || CurrentAction != EnemyAction.None || IsDead
+			|| MovementComponent.IsPushed || !policy.CanAttack(_context)) return false;
+		if (!_attackController.TryPrepareAttack(policy.Attack, policy.Style, policy.Duration, out var attack)) return false;
+		if (!_attackController.StartAttack(attack, policy.MinDamage, policy.MaxDamage, policy.Accuracy, policy.CritChance, 4)) return false;
+		SetAction(policy.Attack.IsRanged ? EnemyAction.RangedAttack : EnemyAction.MeeleAttack);
 		return true;
 	}
 

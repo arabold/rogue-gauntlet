@@ -1,11 +1,9 @@
-[gd_scene load_steps=50 format=3 uid="uid://coev873edfqw6"]
+[gd_scene load_steps=49 format=3 uid="uid://coev873edfqw6"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_p3la7"]
 [ext_resource type="PackedScene" uid="uid://c7qnx3sxaoosn" path="res://assets/kaykit-skeletons/Skeleton_Warrior.glb" id="2_srno3"]
 [ext_resource type="PackedScene" uid="uid://mqwwxa8pvcxx" path="res://assets/kaykit-skeletons/Skeleton_Axe.gltf" id="3_t2b4n"]
 [ext_resource type="PackedScene" uid="uid://c8g78nlylc3kb" path="res://assets/kaykit-skeletons/Skeleton_Shield_Small_B.gltf" id="4_4cr0r"]
-[ext_resource type="Resource" uid="uid://clootwarrior01" path="res://scenes/items/loot/loot_enemy_elite.tres" id="10_loot"]
-[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_warrior_behavior.tres" id="9_profile"]
 
 [ext_resource type="Resource" path="res://scenes/attacks/animation_profiles/skeleton_warrior.tres" id="attack_animation_profile"]
 [ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="action_gate_script"]
@@ -16,6 +14,8 @@
 [ext_resource type="Resource" path="res://scenes/combat/definitions/player_dodge.tres" id="dodge_def"]
 
 [ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="defense_animation"]
+
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_warrior_definition.tres" id="monster_definition"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rfhfv"]
 animation = &"1H_Melee_Attack_Chop"
@@ -175,7 +175,12 @@ viewport_path = NodePath("SubViewport")
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4cr0r"]
 radius = 0.75
 
-[node name="SkeletonWarrior" instance=ExtResource("1_p3la7")]
+[node name="SkeletonWarrior" instance=ExtResource("1_p3la7") node_paths=PackedStringArray("GuardComponent", "DodgeComponent", "DefenseController", "ActionGate")]
+GuardComponent = NodePath("GuardComponent")
+DodgeComponent = NodePath("DodgeComponent")
+DefenseController = NodePath("EnemyDefenseController")
+Definition = ExtResource("monster_definition")
+ActionGate = NodePath("ActorActionGateComponent")
 
 [node name="Skeleton_Warrior" parent="Pivot" index="0" instance=ExtResource("2_srno3")]
 
@@ -294,7 +299,6 @@ transform = Transform3D(0.918956, -0.000218019, 0.394361, 0.000216532, 1, 4.8537
 
 [node name="EnemyBehaviorComponent" parent="." index="1"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00311279, 0, -0.00170898)
-Profile = ExtResource("9_profile")
 
 [node name="AnimationTree" type="AnimationTree" parent="EnemyBehaviorComponent" index="2"]
 root_node = NodePath("../../Pivot/Skeleton_Warrior")
@@ -303,11 +307,9 @@ advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../../Pivot/Skeleton_Warrior/AnimationPlayer")
 
 [node name="LootTableComponent" parent="." index="3"]
-Table = ExtResource("10_loot")
 DropChance = 1.0
 
 [node name="DeathComponent" parent="." index="5"]
-Xp = 30
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
 shape = SubResource("CapsuleShape3D_5rbcv")
@@ -347,6 +349,11 @@ MovementComponent = NodePath("../MovementComponent")
 ActionGate = NodePath("../ActorActionGateComponent")
 DodgeDef = ExtResource("dodge_def")
 
-[node name="EnemyDefenseController" type="Node" parent="." index="13" node_paths=PackedStringArray("Enemy")]
+[node name="EnemyDefenseController" type="Node" parent="." index="13" node_paths=PackedStringArray("Enemy", "GuardComponent", "DodgeComponent")]
 script = ExtResource("defense_controller_script")
 Enemy = NodePath("..")
+GuardComponent = NodePath("../GuardComponent")
+DodgeComponent = NodePath("../DodgeComponent")
+
+[node name="MovementComponent" parent="." node_paths=PackedStringArray("ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")

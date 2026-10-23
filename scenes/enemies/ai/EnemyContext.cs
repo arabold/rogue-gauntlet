@@ -31,6 +31,17 @@ public sealed class EnemyContext
 	public PerceptionComponent Perception { get; }
 	public NavigationComponent Navigation { get; }
 	public EnemyBehaviorProfile Profile { get; }
+	public bool UsesMonsterDefinition => Actor is EnemyBase { Definition: not null };
+	public float HorizontalTargetDistance
+	{
+		get
+		{
+			if (Target == null) return float.PositiveInfinity;
+			var offset = Target.GlobalPosition - Actor.GlobalPosition;
+			offset.Y = 0;
+			return offset.Length();
+		}
+	}
 
 	/// <summary>
 	/// Starts a melee attack through the host's timed-action layer. Wired by

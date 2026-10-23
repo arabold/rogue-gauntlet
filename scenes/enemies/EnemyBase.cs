@@ -7,18 +7,40 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, IStaggerable
 {
 	public Node3D Pivot;
 	public CollisionShape3D CollisionShape;
-	public EnemyBehaviorComponent EnemyBehaviorComponent;
-	public MovementComponent MovementComponent;
-	public HealthComponent HealthComponent;
-	public HurtBoxComponent HurtBoxComponent;
+	[Export] public EnemyBehaviorComponent EnemyBehaviorComponent;
+	[Export] public MovementComponent MovementComponent;
+	[Export] public HealthComponent HealthComponent;
+	[Export] public HurtBoxComponent HurtBoxComponent;
 	public FloatingHealthBar HealthBar;
-	public DeathComponent DeathComponent;
-	public LootTableComponent LootTableComponent;
-	public ActorActionGateComponent ActionGate { get; protected set; }
-	public GuardComponent GuardComponent => GetNodeOrNull<GuardComponent>("GuardComponent");
-	public DodgeComponent DodgeComponent => GetNodeOrNull<DodgeComponent>("DodgeComponent");
-	public EnemyDefenseController DefenseController => GetNodeOrNull<EnemyDefenseController>("EnemyDefenseController");
-	public AttackController AttackController => GetNodeOrNull<AttackController>("AttackController");
+	[Export] public DeathComponent DeathComponent;
+	[Export] public LootTableComponent LootTableComponent;
+	[Export] public ActorActionGateComponent ActionGate { get; set; }
+	[Export] public GuardComponent GuardComponent { get; set; }
+	[Export] public DodgeComponent DodgeComponent { get; set; }
+	[Export] public EnemyDefenseController DefenseController { get; set; }
+	[Export] public AttackController AttackController { get; set; }
+
+	[Export] public MonsterDefinition Definition { get; set; }
+	public bool DefinitionValid { get; private set; } = true;
+
+	/// <summary>Initialize authored defaults before child readiness; never mutate the definition.</summary>
+	public override void _EnterTree()
+	{
+		if (Engine.IsEditorHint() || Definition == null) return;
+		var errors = MonsterSceneValidator.Validate(this);
+		DefinitionValid = errors.Length == 0;
+		if (!DefinitionValid)
+		{
+			foreach (var error in errors) GD.PushError($"{Name}: {error}");
+			ProcessMode = ProcessModeEnum.Disabled;
+			return;
+		}
+		HealthComponent.SetHealth(Definition.MaxHealth, Definition.MaxHealth);
+		MovementComponent.Speed = Definition.MoveSpeed;
+		DeathComponent.Xp = Definition.XpReward;
+		LootTableComponent.ConfigureTable(Definition.LootTable);
+		EnemyBehaviorComponent.Profile = Definition.Behavior;
+	}
 
 	public bool IsDead => EnemyBehaviorComponent?.IsDead ?? HealthComponent?.IsDead ?? false;
 
@@ -29,48 +51,30 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, IStaggerable
 
 	public override void _Ready()
 	{
+		if (Engine.IsEditorHint() || !DefinitionValid) return;
 		Pivot = GetNode<Node3D>("Pivot");
 		CollisionShape = GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
-		EnemyBehaviorComponent = GetNodeOrNull<EnemyBehaviorComponent>("EnemyBehaviorComponent");
-		MovementComponent = GetNodeOrNull<MovementComponent>("MovementComponent");
-		HealthComponent = GetNodeOrNull<HealthComponent>("HealthComponent");
-		HurtBoxComponent = GetNodeOrNull<HurtBoxComponent>("HurtBoxComponent");
+		EnemyBehaviorComponent ??= GetNodeOrNull<EnemyBehaviorComponent>("EnemyBehaviorComponent");
+		MovementComponent ??= GetNodeOrNull<MovementComponent>("MovementComponent");
+		HealthComponent ??= GetNodeOrNull<HealthComponent>("HealthComponent");
+		HurtBoxComponent ??= GetNodeOrNull<HurtBoxComponent>("HurtBoxComponent");
 		HealthBar = GetNodeOrNull<FloatingHealthBar>("FloatingHealthBar");
-		DeathComponent = GetNodeOrNull<DeathComponent>("DeathComponent");
-		LootTableComponent = GetNodeOrNull<LootTableComponent>("LootTableComponent");
+		DeathComponent ??= GetNodeOrNull<DeathComponent>("DeathComponent");
+		LootTableComponent ??= GetNodeOrNull<LootTableComponent>("LootTableComponent");
 
-		ActionGate = GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
-		if (ActionGate == null)
+		ActionGate ??= GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
+		if (ActionGate == null && Definition == null)
 		{
 			ActionGate = new ActorActionGateComponent { Name = "ActorActionGateComponent" };
 			AddChild(ActionGate);
 		}
 
-		MovementComponent.ActionGate = ActionGate;
+		if (Definition == null) MovementComponent.ActionGate = ActionGate;
 		HealthComponent.Died += () => ActionGate.Disable();
-
-		if (GuardComponent != null)
-		{
-			GuardComponent.Actor ??= this;
-			GuardComponent.MovementComponent ??= MovementComponent;
-			GuardComponent.ActionGate ??= ActionGate;
-		}
-		if (DodgeComponent != null)
-		{
-			DodgeComponent.Actor ??= this;
-			DodgeComponent.MovementComponent ??= MovementComponent;
-			DodgeComponent.ActionGate ??= ActionGate;
-		}
-		if (DefenseController != null)
-		{
-			DefenseController.Enemy ??= this;
-			DefenseController.GuardComponent ??= GuardComponent;
-			DefenseController.DodgeComponent ??= DodgeComponent;
-		}
 
 		var levelSeed = this.GetAncestorOrNull<Level>()?.MapGenerator?.Seed ?? 42;
 		ConfigureCombatRandom(levelSeed, GetMeta("persistent_id", IsInsideTree() ? GetPath().ToString() : Name.ToString()).AsString());
-		ActionGate.AnimationComponent ??= GetNodeOrNull<CombatAnimationComponent>("CombatAnimationComponent");
+		if (Definition == null) ActionGate.AnimationComponent ??= GetNodeOrNull<CombatAnimationComponent>("CombatAnimationComponent");
 
 		// Hide the mesh until the animations are fully initialized to
 		// prevent any flickering
@@ -106,6 +110,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, IStaggerable
 
 	public override void _PhysicsProcess(double delta)
 	{
+		if (Engine.IsEditorHint() || !DefinitionValid) return;
 		Visible = true;
 		SetPhysicsProcess(false);
 	}

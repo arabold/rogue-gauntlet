@@ -516,7 +516,8 @@ DefaultMeleeContact = ExtResource("melee_default")
 SpecialMeleeContact = ExtResource("melee_spin")
 DefaultProjectileScene = ExtResource("19_projectile")
 
-[node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor", "StairsTrigger") instance=ExtResource("7_7mjdt")]
+[node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor", "StairsTrigger", "ActionGate") instance=ExtResource("7_7mjdt")]
+ActionGate = NodePath("../ActorActionGateComponent")
 Actor = NodePath("..")
 Speed = 14.0
 StairsTrigger = NodePath("../StairsTrigger")

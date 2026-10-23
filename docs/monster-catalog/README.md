@@ -1,5 +1,7 @@
 # Monster Catalog
 
+Status: current legacy gameplay reference, pending retirement. The [monster authoring design](../monster-authoring-design.md) selects the three skeletons, Studio rat and Warden for depths 1–3; the [implementation plan](../specs/monster-authoring-plan.md) owns replacement and catalog refresh. Most entries below will be removed, not recreated. This table is not the future roster or a balance source of truth.
+
 Visual reference for the full enemy bestiary — KayKit skeletons (CC0) and the Quaternius
 "Ultimate Monsters" set (CC0). Renders are generated from the imported models by
 `asset-studio/godot/render_catalog.gd` — see the `assets` skill. Ordered roughly

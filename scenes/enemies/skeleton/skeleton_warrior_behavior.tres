@@ -1,23 +1,22 @@
-[gd_resource type="Resource" script_class="EnemyBehaviorProfile" format=3 uid="uid://3fpex72q8n3i"]
+[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=5 format=3 uid="uid://3fpex72q8n3i"]
 
 [ext_resource type="Script" uid="uid://ct7oj3p7ppsoa" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="1_profile"]
-[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/monster_skeleton_warrior.tres" id="melee_contact"]
+
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_warrior_attack.tres" id="attack_strategy"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/close_distance.tres" id="movement_strategy"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_warrior_defense.tres" id="defense_strategy"]
 
 [resource]
 script = ExtResource("1_profile")
 InitialAction = 0
 DetectionRange = 22.0
 DetectionAngle = 60.0
-MeleeAttackRange = 2.7
-MeleeContact = ExtResource("melee_contact")
-MeleeAttackAccuracy = 0.8
-MeleeAttackMaxDamage = 15.0
 RoamRadius = 9.0
 RoamPauseMax = 2.75
 RoamTargetAttempts = 10
 StandingUpActionDuration = 2.33
 HitActionDuration = 0.35
-GuardChance = 0.75
-DefenseReactionDelay = 0.04
-GuardPressureWindow = 0.85
-RiposteChance = 0.7
+
+MovementStrategy = ExtResource("movement_strategy")
+AttackStrategy = ExtResource("attack_strategy")
+DefenseStrategy = ExtResource("defense_strategy")

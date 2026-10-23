@@ -55,6 +55,12 @@ public partial class EnemyDefenseController : Node
 	/// <summary>Maximum distance to target to authorize a riposte counter-attack. If 0, uses the enemy profile's melee range.</summary>
 	[Export] public float MaxRiposteDistance { get; set; } = 0f;
 
+	// During the bounded roster migration, each actor uses exactly one configuration authority.
+	private bool UsesDefinition => Enemy?.Definition != null;
+	private EnemyDefenseStrategy Strategy => UsesDefinition ? Enemy?.EnemyBehaviorComponent?.Profile?.DefenseStrategy : null;
+	private EnemyBehaviorProfile LegacyProfile => UsesDefinition ? null : Enemy?.EnemyBehaviorComponent?.Profile;
+	private float PressureWindow => Strategy?.GuardPressureWindow ?? LegacyProfile?.GuardPressureWindow ?? GuardHoldDuration;
+
 	private AttackIdentity _lastObservedMeleeExecution;
 	private float _meleeReactionTimer;
 	private Node3D _pendingMeleeAttacker;
@@ -75,9 +81,6 @@ public partial class EnemyDefenseController : Node
 	public override void _Ready()
 	{
 		ProcessPhysicsPriority = CombatPhysics.Intent;
-		Enemy ??= GetParentOrNull<EnemyBase>();
-		SetGuardComponent(GuardComponent ?? Enemy?.GetNodeOrNull<GuardComponent>("GuardComponent") ?? GetNodeOrNull<GuardComponent>("GuardComponent"));
-		DodgeComponent ??= Enemy?.GetNodeOrNull<DodgeComponent>("DodgeComponent") ?? GetNodeOrNull<DodgeComponent>("DodgeComponent");
 		_rng.Seed = 42;
 	}
 
@@ -113,9 +116,7 @@ public partial class EnemyDefenseController : Node
 	/// <summary>Every defended contact sustains guard; parries never bypass the hold or release sequence.</summary>
 	private void RegisterDefendedContact()
 	{
-		var profile = Enemy?.EnemyBehaviorComponent?.Profile;
-		float pressureWindow = profile?.GuardPressureWindow ?? GuardHoldDuration;
-		_pressureRemaining = pressureWindow;
+		_pressureRemaining = PressureWindow;
 		_consecutiveBlockedHits++;
 	}
 
@@ -132,8 +133,6 @@ public partial class EnemyDefenseController : Node
 			return;
 		}
 
-		GuardComponent ??= Enemy?.GetNodeOrNull<GuardComponent>("GuardComponent") ?? GetNodeOrNull<GuardComponent>("GuardComponent");
-		DodgeComponent ??= Enemy?.GetNodeOrNull<DodgeComponent>("DodgeComponent") ?? GetNodeOrNull<DodgeComponent>("DodgeComponent");
 
 		if (!HasGuardCapability && !HasDodgeCapability) return;
 
@@ -152,8 +151,8 @@ public partial class EnemyDefenseController : Node
 	{
 		if (GuardComponent == null || !GuardComponent.IsGuarding) return;
 
-		var profile = Enemy?.EnemyBehaviorComponent?.Profile;
-		float maxDuration = profile?.MaxGuardDuration ?? 3.5f;
+		var profile = LegacyProfile;
+		float maxDuration = Strategy?.MaxGuardDuration ?? profile?.MaxGuardDuration ?? 3.5f;
 
 		_totalGuardTime += dt;
 		if (_pressureRemaining > 0)
@@ -172,7 +171,7 @@ public partial class EnemyDefenseController : Node
 
 			if (wasDefending)
 			{
-				float riposteChance = Mode == EnemyDefenseMode.GuardParry ? 1.0f : (profile?.RiposteChance ?? 0.65f);
+				float riposteChance = Mode == EnemyDefenseMode.GuardParry ? 1.0f : (Strategy?.RiposteChance ?? profile?.RiposteChance ?? 0.65f);
 				if (_rng.Randf() <= riposteChance)
 				{
 					_ripostePending = true;
@@ -202,7 +201,8 @@ public partial class EnemyDefenseController : Node
 			Enemy.MovementComponent?.FaceDirection(toTarget.Normalized());
 		}
 
-		bool accepted = Enemy.EnemyBehaviorComponent?.TryMeleeAttack() ?? false;
+		Enemy.EnemyBehaviorComponent?.SetTarget(target);
+		bool accepted = Enemy.EnemyBehaviorComponent?.TryAttack() ?? false;
 		RecordRiposte(accepted, accepted ? "accepted" : "attack_rejected", target, distance, reach);
 		if (accepted) EmitSignalRiposteTriggered();
 		return accepted;
@@ -278,14 +278,12 @@ public partial class EnemyDefenseController : Node
 		if (GuardComponent != null && GuardComponent.IsGuarding)
 		{
 			_lastObservedMeleeExecution = execution;
-			var profile = Enemy?.EnemyBehaviorComponent?.Profile;
-			float pressureWindow = profile?.GuardPressureWindow ?? GuardHoldDuration;
-			_pressureRemaining = pressureWindow;
+			_pressureRemaining = PressureWindow;
 			return;
 		}
 
-		var behaviorProfile = Enemy?.EnemyBehaviorComponent?.Profile;
-		float delay = behaviorProfile?.DefenseReactionDelay ?? ReactionDelay;
+		var behaviorProfile = LegacyProfile;
+		float delay = Strategy?.ReactionDelay ?? behaviorProfile?.DefenseReactionDelay ?? ReactionDelay;
 		EnemyDefenseMode chosen = ResolveDefenseMode(behaviorProfile);
 
 		_lastObservedMeleeExecution = execution;
@@ -316,6 +314,15 @@ public partial class EnemyDefenseController : Node
 
 	private EnemyDefenseMode ResolveDefenseMode(EnemyBehaviorProfile behaviorProfile)
 	{
+		if (UsesDefinition)
+		{
+			var roll = _rng.Randf();
+			var chosen = Mode != EnemyDefenseMode.ProfileDefault ? Mode
+				: Strategy?.Choose(HasGuardCapability, HasDodgeCapability, roll) ?? EnemyDefenseMode.None;
+			if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.decision", ("mode", Mode.ToString()),
+				("decision", chosen.ToString()), ("roll", roll));
+			return chosen;
+		}
 		float dodgeChance = HasDodgeCapability ? behaviorProfile?.DodgeChance ?? 0 : 0;
 		float guardChance = HasGuardCapability ? behaviorProfile?.GuardChance ?? 0 : 0;
 		float dodgeRoll = _rng.Randf(), guardRoll = _rng.Randf();
@@ -366,8 +373,7 @@ public partial class EnemyDefenseController : Node
 			{
 				if (GuardComponent.TryBeginGuard(faceDir) == DefenseRequestResult.Success)
 				{
-					var profile = Enemy?.EnemyBehaviorComponent?.Profile;
-					_pressureRemaining = profile?.GuardPressureWindow ?? GuardHoldDuration;
+					_pressureRemaining = PressureWindow;
 					_totalGuardTime = 0f;
 					_consecutiveBlockedHits = 0;
 					return true;
@@ -402,8 +408,8 @@ public partial class EnemyDefenseController : Node
 
 	private void UpdateProjectileThreatObservation(float dt)
 	{
-		var profile = Enemy?.EnemyBehaviorComponent?.Profile;
-		if (Mode == EnemyDefenseMode.ProfileDefault && profile != null && !profile.CanDefendProjectiles)
+		var profile = LegacyProfile;
+		if (Mode == EnemyDefenseMode.ProfileDefault && !(Strategy?.CanDefendProjectiles ?? profile?.CanDefendProjectiles ?? !UsesDefinition))
 		{
 			return;
 		}
@@ -454,7 +460,7 @@ public partial class EnemyDefenseController : Node
 					if (!GuardComponent.IsGuarding && !GuardComponent.IsGuardRecovering)
 					{
 						if (GuardComponent.TryBeginGuard(-projDir.Normalized()) != DefenseRequestResult.Success) continue;
-						_pressureRemaining = profile?.GuardPressureWindow ?? GuardHoldDuration;
+						_pressureRemaining = PressureWindow;
 						_totalGuardTime = 0f;
 						_consecutiveBlockedHits = 0;
 						break;

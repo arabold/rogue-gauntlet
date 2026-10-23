@@ -52,11 +52,13 @@ With the backpack nearly full, the player chooses between carrying spare armor, 
 
 Before descending, the player uses a lamp to explore a dark branch, spending fuel in exchange for better visibility. A later encounter brings a much larger crowd, changing the immediate problem from dueling an enemy to finding space and controlling the approach. The player survives, decides whether current supplies are enough, and descends. Saving and returning preserves discoveries, carried objects, spent fuel, and purchased stock.
 
-The complete run is structured as a 24-depth descent divided into 8 distinct realms (the Sunken Epochs), each spanning 3 depths. The final objective is reaching Depth 24 to confront the guardian of the World-Anchor and sever the gravitational tether dragging civilizations into the crust, achieving run victory. Death ends the active run. An optional return journey (an escape ascent against collapsing ruins) is reserved as an advanced post-victory challenge mode rather than a requirement for the initial game. Save/load preserves discoveries, carried inventory, spent resources, shop state, and persistent floor modifications.
+The current full-run concept is a 24-depth descent divided into 8 realms (the Sunken Epochs), each spanning 3 depths. Later realm order and rosters remain provisional; the immediate priority is making depths 1–3 playable and enjoyable. The final objective is reaching Depth 24 to confront the guardian of the World-Anchor and sever the gravitational tether dragging civilizations into the crust, achieving run victory. Death ends the active run. An optional return journey (an escape ascent against collapsing ruins) is reserved as an advanced post-victory challenge mode rather than a requirement for the initial game. Save/load preserves discoveries, carried inventory, spent resources, shop state, and persistent floor modifications.
 
 Permanent power progression between runs is undecided. Do not make it a dependency of the first complete run.
 
 ## Characters and combat
+
+[Monster design and authoring](monster-authoring-design.md) defines the first-realm roster and editable Godot composition workflow. Monsters use fixed authored strength, a single melee or projectile attack, independent defensive capabilities and basic movement strategies. More advanced tactics follow first-realm playtesting.
 
 Character classes provide distinct starting attributes, equipment, and strengths. Existing classes are Barbarian, Knight, Rogue, and Mage. Items found during a run should allow adaptation beyond the starting loadout.
 
@@ -194,7 +196,7 @@ Crafting, complex survival simulation, broad tool combinations, elaborate mercha
 
 | Decision | Working direction | Resolve before |
 | --- | --- | --- |
-| Run objective, length, and victory | 24 depths across 8 realms (Sunken Epochs); World-Anchor victory at Depth 24 | Resolved (see [Realms and Monster Design](realms-and-monster-design.md)) |
+| Run objective, length, and victory | 24 depths across 8 realms (Sunken Epochs); World-Anchor victory at Depth 24 | Current direction; later realm order provisional (see [Realms and Monster Design](realms-and-monster-design.md)) |
 | Death and between-run progression | Death ends the run; permanent power undecided | First complete run milestone |
 | Inventory and shop pause behavior | Open | Balancing item-use timing and shop encounters |
 | Food contamination and detection | Per-instance creation roll; probability and detection open | Food integration |

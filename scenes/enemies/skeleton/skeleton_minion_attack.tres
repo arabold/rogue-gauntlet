@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="MeleeAttackStrategy" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/strategies/MeleeAttackStrategy.cs" id="policy"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/monster_skeleton_minion.tres" id="contact"]
+
+[sub_resource type="Resource" id="melee"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("contact")
+HitWindowStart = 0.3
+HitWindowEnd = 0.7
+
+[resource]
+script = ExtResource("policy")
+Attack = SubResource("melee")
+EngagementDistance = 2.4
+MinDamage = 1.0
+MaxDamage = 5.0
+Accuracy = 0.8
+Duration = 1.0

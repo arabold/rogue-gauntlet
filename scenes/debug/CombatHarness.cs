@@ -223,7 +223,7 @@ public partial class CombatHarness : CanvasLayer
 		if (!GodotObject.IsInstanceValid(_monster)) return;
 
 		Configure(_monster.GetNode<AttackController>("AttackController"));
-		if (!_monster.EnemyBehaviorComponent.TryMeleeAttack()) Feedback("Monster", "Busy / interrupted", 0);
+		if (!_monster.EnemyBehaviorComponent.TryAttack()) Feedback("Monster", "Busy / interrupted", 0);
 	}
 
 	public void ResetHealth()
@@ -417,7 +417,7 @@ public partial class CombatHarness : CanvasLayer
 			case "move": Player.InputComponent.InputDirection = direction.Normalized(); Player.MovementComponent.SetInputDirection(direction); accepted = true; break;
 			case "monster_attack":
 				accepted = GodotObject.IsInstanceValid(_monster) && !_monster.IsDead;
-				if (accepted) { Configure(_monster.AttackController); accepted = _monster.EnemyBehaviorComponent.TryMeleeAttack(); }
+				if (accepted) { Configure(_monster.AttackController); accepted = _monster.EnemyBehaviorComponent.TryAttack(); }
 				break;
 			case "monster_guard": accepted = GodotObject.IsInstanceValid(_monster) && _monster.GuardComponent?.TryBeginGuard(direction) == DefenseRequestResult.Success; break;
 			case "monster_dodge": accepted = GodotObject.IsInstanceValid(_monster) && _monster.DodgeComponent?.TryDodge(direction) == DefenseRequestResult.Success; break;

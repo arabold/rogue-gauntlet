@@ -10,6 +10,11 @@ using Godot;
 [GlobalClass]
 public partial class EnemyBehaviorProfile : Resource
 {
+	[ExportGroup("Monster strategies")]
+	[Export] public EnemyMovementStrategy MovementStrategy { get; set; }
+	[Export] public EnemyAttackStrategy AttackStrategy { get; set; }
+	[Export] public EnemyDefenseStrategy DefenseStrategy { get; set; }
+	[ExportGroup("Perception and legacy tuning")]
 	/// <summary>
 	/// Behavior state the enemy enters when it is initialized.
 	/// </summary>
@@ -42,7 +47,7 @@ public partial class EnemyBehaviorProfile : Resource
 	/// </summary>
 	[Export] public float MeleeAttackRange { get; set; } = 2.0f;
 	[Export] public MeleeAttackProfile MeleeContact { get; set; }
-	public float EffectiveMeleeRange => Mathf.Min(MeleeAttackRange,
+	public float EffectiveMeleeRange => AttackStrategy?.EffectiveRange ?? Mathf.Min(MeleeAttackRange,
 		(MeleeAttackDefinition?.MeleeContact ?? MeleeContact)?.EngagementDistance ?? MeleeAttackRange);
 
 	/// <summary>
