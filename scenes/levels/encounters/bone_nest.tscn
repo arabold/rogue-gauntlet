@@ -1,7 +1,7 @@
 [gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/encounters/DestructibleNest.cs" id="nest"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/skeleton/skeleton_minion.tscn" id="minion"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/rat/rat.tscn" id="minion"]
 [ext_resource type="PackedScene" path="res://scenes/components/health_component.tscn" id="health"]
 [ext_resource type="PackedScene" path="res://scenes/components/hurt_box_component.tscn" id="hurtbox"]
 [ext_resource type="PackedScene" path="res://assets/kaykit-skeletons/Skeleton_Shield_Small_B.gltf" id="shield"]

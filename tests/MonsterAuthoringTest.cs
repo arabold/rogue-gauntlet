@@ -15,6 +15,10 @@ public partial class MonsterAuthoringTest
 	[TestCase("skeleton/skeleton_minion")]
 	[TestCase("skeleton/skeleton_warrior")]
 	[TestCase("templates/melee_enemy")]
+	[TestCase("templates/projectile_enemy")]
+	[TestCase("skeleton/skeleton_crossbow")]
+	[TestCase("rat/rat")]
+	[TestCase("forsaken_warden/forsaken_warden")]
 	public void AuthoredExampleHasCompleteDefinition(string path)
 	{
 		var actor = GD.Load<PackedScene>($"res://scenes/enemies/{path}.tscn").Instantiate<EnemyBase>();

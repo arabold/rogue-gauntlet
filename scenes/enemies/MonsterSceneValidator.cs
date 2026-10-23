@@ -38,7 +38,7 @@ public static class MonsterSceneValidator
 			Check(Object<Node>(movement, "ActionGate") == gate, "MovementComponent.ActionGate: assign this actor's action gate.");
 		}
 		if (death != null) Check(Object<Node>(death, "HealthComponent") == health && Object<Node>(death, "LootTableComponent") == loot, "DeathComponent: bind this actor's health and loot.");
-		if (hurtbox != null) Check(Object<Node>(hurtbox, "HealthComponent") == health && Object<Node>(hurtbox, "MovementComponent") == movement, "HurtBoxComponent: bind this actor's health and movement.");
+		if (hurtbox != null) Check(Object<Node>(hurtbox, "HealthComponent") == health && (Object<Node>(hurtbox, "MovementComponent") == null || Object<Node>(hurtbox, "MovementComponent") == movement), "HurtBoxComponent: bind this actor's health and movement.");
 		if (behavior != null)
 		{
 			Check(Object<Node>(behavior, "Actor") == actor && Object<Node>(behavior, "HealthComponent") == health
@@ -72,7 +72,8 @@ public static class MonsterSceneValidator
 			Check(Nonnegative(Number(policy, "MinDamage")) && float.IsFinite(Number(policy, "MaxDamage"))
 				&& Number(policy, "MaxDamage") >= Number(policy, "MinDamage") && Probability(Number(policy, "Accuracy"))
 				&& Probability(Number(policy, "CritChance")), "AttackStrategy: invalid damage range, accuracy or critical chance.");
-			var style = attack?.Get("IsRanged").AsBool() == true ? "ranged" : "melee";
+			var style = attack?.Get("AttackStyle").AsString();
+			if (string.IsNullOrEmpty(style)) style = attack?.Get("IsRanged").AsBool() == true ? "ranged" : "melee";
 			var animationProfile = Object<Resource>(animation, "Profile");
 			var bindings = animationProfile?.Get("Bindings").AsGodotArray();
 			var bindingList = bindings?.Select(value => value.AsGodotObject() as Resource).ToArray() ?? Array.Empty<Resource>();
@@ -85,7 +86,28 @@ public static class MonsterSceneValidator
 					"MeleeAttackStrategy: assign a melee definition with an explicit contact profile.");
 				Check(Object<Node>(controller, "MeleeDetector") != null, "AttackController.MeleeDetector: assign a hit detector.");
 			}
+			if (Object<Script>(policy, "script")?.ResourcePath.EndsWith("/ProjectileAttackStrategy.cs") == true)
+				Check(attack?.Get("IsRanged").AsBool() == true && Object<PackedScene>(attack, "ProjectileScene") != null,
+					"ProjectileAttackStrategy: assign a projectile definition and scene.");
+
 		}
+		var movementPolicy = Object<Resource>(profile, "MovementStrategy");
+		var movementScript = Object<Script>(movementPolicy, "script")?.ResourcePath ?? "";
+		if (movementScript.EndsWith("/MaintainDistanceStrategy.cs"))
+		{
+			float minimum = Number(movementPolicy, "MinimumDistance"), preferred = Number(movementPolicy, "PreferredDistance"), maximum = Number(movementPolicy, "MaximumDistance");
+			Check(Nonnegative(minimum) && float.IsFinite(preferred) && Positive(maximum) && minimum < preferred && preferred < maximum
+				&& policy != null && maximum <= Number(policy, "EngagementDistance"), "MovementStrategy: require minimum < preferred < maximum <= attack engagement distance.");
+		}
+		if (movementScript.EndsWith("/AttackThenRetreatStrategy.cs"))
+			Check(Positive(Number(movementPolicy, "RetreatDistance")) && Positive(Number(movementPolicy, "MaximumRetreatDuration"))
+				&& Nonnegative(Number(movementPolicy, "ReengagementDelay")), "MovementStrategy: invalid retreat distance, duration or delay.");
+		var retreat = Object<Resource>(profile, "RetreatCondition");
+		if (retreat != null)
+			Check(Probability(Number(retreat, "EnterHealthFraction")) && Probability(Number(retreat, "ExitHealthFraction"))
+				&& Number(retreat, "EnterHealthFraction") < Number(retreat, "ExitHealthFraction") && Positive(Number(retreat, "DesiredDistance"))
+				&& Positive(Number(retreat, "MaximumDuration")), "RetreatCondition: require ordered health thresholds and positive distance/duration.");
+
 		var defense = Object<Resource>(profile, "DefenseStrategy");
 		if (defense != null)
 		{
@@ -119,6 +141,21 @@ public static class MonsterSceneValidator
 			}
 		}
 		return errors.ToArray();
+	}
+
+	/// <summary>Validate a saved actor without entering the tree or consuming generation RNG.</summary>
+	public static string[] ValidateScene(PackedScene scene, out string definitionId)
+	{
+		definitionId = "";
+		if (scene == null) return new[] { "Scene: assign a monster PackedScene." };
+		var actor = scene.Instantiate<Node>();
+		try
+		{
+			if (actor is not EnemyBase) return new[] { "Scene: the root must be an EnemyBase actor." };
+			definitionId = Object<Resource>(actor, "Definition")?.Get("Id").AsString() ?? "";
+			return Validate(actor);
+		}
+		finally { actor.Free(); }
 	}
 
 	private static T Object<T>(GodotObject owner, StringName property) where T : GodotObject => owner?.Get(property).AsGodotObject() as T;

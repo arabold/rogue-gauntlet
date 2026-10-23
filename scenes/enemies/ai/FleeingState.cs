@@ -1,35 +1,15 @@
-/// <summary>
-/// Backs away from the target's last known position. Fleeing intentionally just steers directly away
-/// without wall-sliding or stuck recovery, and resets stuck tracking each frame so a later chase
-/// starts clean. No state currently transitions into Fleeing on its own, but the behavior is kept so
-/// a profile or future trigger can drive an enemy into it.
-/// </summary>
+/// <summary>Explicit flee-state entry uses the authored bounded health-retreat rule and normal navigation safety.</summary>
 public sealed class FleeingState : IEnemyState
 {
 	public EnemyBehaviorState Id => EnemyBehaviorState.Fleeing;
-
-	public void Enter(EnemyContext ctx)
+	public void Enter(EnemyContext context) { }
+	public EnemyBehaviorState? Update(EnemyContext context, double delta)
 	{
-	}
-
-	public EnemyBehaviorState? Update(EnemyContext ctx, double delta)
-	{
-		ctx.UpdateTargetPositionThrottled();
-
-		if (ctx.Target == null)
-		{
-			ctx.Movement.Stop();
-		}
-		else
-		{
-			ctx.Navigation.FollowPathAway();
-		}
-
-		ctx.Navigation.ResetStuckTracking();
+		if (context.Target == null || context.Profile.RetreatCondition == null) return EnemyBehaviorState.Idle;
+		var intent = context.EvaluateMovement();
+		if (intent.Goal != EnemyMovementGoal.Retreat) return EnemyBehaviorState.Chasing;
+		context.FollowRetreat(intent.DesiredDistance);
 		return null;
 	}
-
-	public void Exit(EnemyContext ctx)
-	{
-	}
+	public void Exit(EnemyContext context) { }
 }

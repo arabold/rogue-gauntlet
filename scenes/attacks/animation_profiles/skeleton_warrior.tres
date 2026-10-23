@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="AttackAnimationProfile" format=3 uid="uid://c3onlljn3lc1o"]
+[gd_resource type="Resource" script_class="AttackAnimationProfile" load_steps=4 format=3 uid="uid://c3onlljn3lc1o"]
 
 [ext_resource type="Script" uid="uid://dbpmhvkb54j6i" path="res://scenes/attacks/AttackAnimationBinding.cs" id="binding"]
 [ext_resource type="Script" uid="uid://bvtqukotxhie4" path="res://scenes/attacks/AttackAnimationProfile.cs" id="profile"]
@@ -10,13 +10,6 @@ Clip = &"1H_Melee_Attack_Chop"
 ContactStart = 0.3
 ContactEnd = 0.7
 
-[sub_resource type="Resource" id="binding_1"]
-script = ExtResource("binding")
-Style = &"ranged"
-Clip = &"1H_Melee_Attack_Chop"
-ContactStart = 0.45
-ContactEnd = 0.45
-
 [resource]
 script = ExtResource("profile")
-Bindings = [SubResource("binding_0"), SubResource("binding_1")]
+Bindings = [SubResource("binding_0")]

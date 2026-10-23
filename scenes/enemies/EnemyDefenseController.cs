@@ -52,14 +52,8 @@ public partial class EnemyDefenseController : Node
 	/// <summary>Fallback duration in seconds to hold guard against an attack before lowering.</summary>
 	[Export] public float GuardHoldDuration { get; set; } = 0.55f;
 
-	/// <summary>Maximum distance to target to authorize a riposte counter-attack. If 0, uses the enemy profile's melee range.</summary>
-	[Export] public float MaxRiposteDistance { get; set; } = 0f;
-
-	// During the bounded roster migration, each actor uses exactly one configuration authority.
-	private bool UsesDefinition => Enemy?.Definition != null;
-	private EnemyDefenseStrategy Strategy => UsesDefinition ? Enemy?.EnemyBehaviorComponent?.Profile?.DefenseStrategy : null;
-	private EnemyBehaviorProfile LegacyProfile => UsesDefinition ? null : Enemy?.EnemyBehaviorComponent?.Profile;
-	private float PressureWindow => Strategy?.GuardPressureWindow ?? LegacyProfile?.GuardPressureWindow ?? GuardHoldDuration;
+	private EnemyDefenseStrategy Strategy => Enemy?.EnemyBehaviorComponent?.Profile?.DefenseStrategy;
+	private float PressureWindow => Strategy?.GuardPressureWindow ?? GuardHoldDuration;
 
 	private AttackIdentity _lastObservedMeleeExecution;
 	private float _meleeReactionTimer;
@@ -151,8 +145,7 @@ public partial class EnemyDefenseController : Node
 	{
 		if (GuardComponent == null || !GuardComponent.IsGuarding) return;
 
-		var profile = LegacyProfile;
-		float maxDuration = Strategy?.MaxGuardDuration ?? profile?.MaxGuardDuration ?? 3.5f;
+		float maxDuration = Strategy?.MaxGuardDuration ?? 3.5f;
 
 		_totalGuardTime += dt;
 		if (_pressureRemaining > 0)
@@ -171,7 +164,7 @@ public partial class EnemyDefenseController : Node
 
 			if (wasDefending)
 			{
-				float riposteChance = Mode == EnemyDefenseMode.GuardParry ? 1.0f : (Strategy?.RiposteChance ?? profile?.RiposteChance ?? 0.65f);
+				float riposteChance = Mode == EnemyDefenseMode.GuardParry ? 1.0f : (Strategy?.RiposteChance ?? 0.65f);
 				if (_rng.Randf() <= riposteChance)
 				{
 					_ripostePending = true;
@@ -192,7 +185,7 @@ public partial class EnemyDefenseController : Node
 		Vector3 toTarget = GetPosition(target) - GetPosition(Enemy);
 		toTarget.Y = 0;
 		float distance = toTarget.Length();
-		float reach = MaxRiposteDistance > 0 ? MaxRiposteDistance : GetDefaultMeleeRange();
+		float reach = Enemy.EnemyBehaviorComponent?.Profile?.AttackStrategy?.EffectiveRange ?? 0;
 		if (distance > reach) return RecordRiposte(false, "out_of_reach", target, distance, reach);
 
 		if (toTarget.LengthSquared() > 0.001f)
@@ -213,15 +206,6 @@ public partial class EnemyDefenseController : Node
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.riposte", ("accepted", accepted), ("reason", reason),
 			("target", CombatTrace.Identity(target)), ("distance", distance), ("reach", reach));
 		return accepted;
-	}
-
-	public float GetDefaultMeleeRange()
-	{
-		var profile = Enemy?.EnemyBehaviorComponent?.Profile;
-		float range = profile != null
-			? (profile.EffectiveMeleeRange > 0 ? profile.EffectiveMeleeRange : profile.MeleeAttackRange)
-			: MeleeThreatDistance;
-		return range;
 	}
 
 	private static Vector3 GetPosition(Node3D node) =>
@@ -282,9 +266,8 @@ public partial class EnemyDefenseController : Node
 			return;
 		}
 
-		var behaviorProfile = LegacyProfile;
-		float delay = Strategy?.ReactionDelay ?? behaviorProfile?.DefenseReactionDelay ?? ReactionDelay;
-		EnemyDefenseMode chosen = ResolveDefenseMode(behaviorProfile);
+		float delay = Strategy?.ReactionDelay ?? ReactionDelay;
+		EnemyDefenseMode chosen = ResolveDefenseMode();
 
 		_lastObservedMeleeExecution = execution;
 
@@ -312,26 +295,14 @@ public partial class EnemyDefenseController : Node
 		}
 	}
 
-	private EnemyDefenseMode ResolveDefenseMode(EnemyBehaviorProfile behaviorProfile)
+	private EnemyDefenseMode ResolveDefenseMode()
 	{
-		if (UsesDefinition)
-		{
-			var roll = _rng.Randf();
-			var chosen = Mode != EnemyDefenseMode.ProfileDefault ? Mode
-				: Strategy?.Choose(HasGuardCapability, HasDodgeCapability, roll) ?? EnemyDefenseMode.None;
-			if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.decision", ("mode", Mode.ToString()),
-				("decision", chosen.ToString()), ("roll", roll));
-			return chosen;
-		}
-		float dodgeChance = HasDodgeCapability ? behaviorProfile?.DodgeChance ?? 0 : 0;
-		float guardChance = HasGuardCapability ? behaviorProfile?.GuardChance ?? 0 : 0;
-		float dodgeRoll = _rng.Randf(), guardRoll = _rng.Randf();
-		var decision = Mode != EnemyDefenseMode.ProfileDefault ? Mode
-			: dodgeRoll < dodgeChance ? EnemyDefenseMode.Dodge
-			: guardRoll < guardChance ? EnemyDefenseMode.GuardParry : EnemyDefenseMode.None;
-		if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.decision", ("mode", Mode.ToString()), ("decision", decision.ToString()),
-			("dodge_chance", dodgeChance), ("guard_chance", guardChance), ("dodge_roll", dodgeRoll), ("guard_roll", guardRoll));
-		return decision;
+		var roll = _rng.Randf();
+		var chosen = Mode != EnemyDefenseMode.ProfileDefault ? Mode
+			: Strategy?.Choose(HasGuardCapability, HasDodgeCapability, roll) ?? EnemyDefenseMode.None;
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.decision", ("mode", Mode.ToString()),
+			("decision", chosen.ToString()), ("roll", roll));
+		return chosen;
 	}
 
 	private void TryExecuteMeleeDefense()
@@ -408,8 +379,7 @@ public partial class EnemyDefenseController : Node
 
 	private void UpdateProjectileThreatObservation(float dt)
 	{
-		var profile = LegacyProfile;
-		if (Mode == EnemyDefenseMode.ProfileDefault && !(Strategy?.CanDefendProjectiles ?? profile?.CanDefendProjectiles ?? !UsesDefinition))
+		if (Mode == EnemyDefenseMode.ProfileDefault && Strategy?.CanDefendProjectiles != true)
 		{
 			return;
 		}
@@ -442,7 +412,7 @@ public partial class EnemyDefenseController : Node
 
 			if (dist <= ProjectileThreatDistance && CanObserve(projectile) && _observedProjectiles.Add(projectile.ExecutionId))
 			{
-				EnemyDefenseMode chosen = ResolveDefenseMode(profile);
+				EnemyDefenseMode chosen = ResolveDefenseMode();
 				if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.observed", ("source", CombatTrace.Identity(projectile)), ("execution", projectile.ExecutionId.Sequence), ("decision", chosen.ToString()), ("distance", dist));
 
 				if (chosen == EnemyDefenseMode.Dodge && HasDodgeCapability)

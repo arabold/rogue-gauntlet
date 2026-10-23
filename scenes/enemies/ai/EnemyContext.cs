@@ -10,7 +10,7 @@ using System;
 /// <remarks>
 /// States read and mutate this context; the host <see cref="EnemyBehaviorComponent"/> ticks the
 /// throttle timers each physics frame and bridges the timed-action layer through
-/// <see cref="RequestMeleeAttack"/> so states never poke <c>CurrentAction</c> directly. Detection
+/// <see cref="RequestAttack"/> so states never poke <c>CurrentAction</c> directly. Detection
 /// and locomotion themselves live in the perception/navigation components - this only coordinates
 /// them; see docs/level-design.md for the authoritative behavior description.
 /// </remarks>
@@ -31,7 +31,10 @@ public sealed class EnemyContext
 	public PerceptionComponent Perception { get; }
 	public NavigationComponent Navigation { get; }
 	public EnemyBehaviorProfile Profile { get; }
-	public bool UsesMonsterDefinition => Actor is EnemyBase { Definition: not null };
+	public EnemyTacticsState Tactics { get; } = new();
+	public double Delta { get; private set; }
+	private float _retreatRefresh;
+	private bool _retreatDestinationValid;
 	public float HorizontalTargetDistance
 	{
 		get
@@ -43,22 +46,15 @@ public sealed class EnemyContext
 		}
 	}
 
-	/// <summary>
-	/// Starts a melee attack through the host's timed-action layer. Wired by
-	/// <see cref="EnemyBehaviorComponent"/> so states request attacks without reaching into the
-	/// action gate themselves.
-	/// </summary>
-	public Action RequestMeleeAttack { get; }
-
-	/// <summary>
-	/// Starts a ranged (projectile) attack through the host's timed-action layer, mirroring
-	/// <see cref="RequestMeleeAttack"/>. Only meaningful when the profile has a
-	/// <see cref="EnemyBehaviorProfile.RangedAttackDefinition"/>; see <see cref="CanUseRangedAttack"/>.
-	/// </summary>
-	public Action RequestRangedAttack { get; }
+	public Action RequestAttack { get; }
 
 	/// <summary>The player currently being chased, or null when the enemy has no target.</summary>
-	public Node3D Target { get; set; }
+	private Node3D _target;
+	public Node3D Target
+	{
+		get => _target;
+		set { if (_target != value) { Tactics.ClearTarget(); _retreatDestinationValid = false; _retreatRefresh = 0; } _target = value; }
+	}
 
 	/// <summary>
 	/// Where the target was last known to be. Written while chasing (in sight) and read by Searching
@@ -80,21 +76,16 @@ public sealed class EnemyContext
 		PerceptionComponent perception,
 		NavigationComponent navigation,
 		EnemyBehaviorProfile profile,
-		Action requestMeleeAttack,
-		Action requestRangedAttack)
+		Action requestAttack)
 	{
 		Actor = actor;
 		Movement = movement;
 		Perception = perception;
 		Navigation = navigation;
 		Profile = profile;
-		RequestMeleeAttack = requestMeleeAttack;
-		RequestRangedAttack = requestRangedAttack;
+		RequestAttack = requestAttack;
 		HomePosition = actor.GlobalPosition;
 	}
-
-	/// <summary>True when this enemy is authored as a shooter (has a ranged attack definition).</summary>
-	public bool CanUseRangedAttack => Profile.RangedAttackDefinition != null;
 
 	/// <summary>
 	/// True when the enemy currently has an unobstructed line of sight to its target. Reuses the
@@ -111,6 +102,8 @@ public sealed class EnemyContext
 	/// </summary>
 	public void TickThrottles(double delta)
 	{
+		Delta = delta;
+		_retreatRefresh -= (float)delta;
 		_scanCooldown.Tick(delta);
 		_pathRefreshCooldown.Tick(delta);
 		_reachabilityCooldown.Tick(delta);
@@ -221,6 +214,40 @@ public sealed class EnemyContext
 
 		_pathRefreshCooldown.Start(TargetPathRefreshInterval);
 		return UpdateTargetPosition();
+	}
+
+	/// <summary>Low-health movement temporarily overrides ordinary tactics after action commitment permits it.</summary>
+	public EnemyMovementIntent EvaluateMovement()
+	{
+		var retreat = Profile.RetreatCondition;
+		if (retreat != null)
+		{
+			var health = (Actor as EnemyBase)?.HealthComponent;
+			float fraction = health != null && health.MaxHealth > 0 ? health.CurrentHealth / health.MaxHealth : 1;
+			if (Tactics.EvaluateLowHealth(Delta, fraction, Target != null, retreat.EnterHealthFraction,
+				retreat.ExitHealthFraction, retreat.MaximumDuration))
+				return HorizontalTargetDistance < retreat.DesiredDistance
+					? new(EnemyMovementGoal.Retreat, false, retreat.DesiredDistance) : new(EnemyMovementGoal.Hold, false);
+		}
+		return Profile.MovementStrategy.Evaluate(this);
+	}
+
+	public void EndRetreatMovement() { _retreatRefresh = 0; _retreatDestinationValid = false; }
+
+	/// <summary>Bound and throttle retreat destination checks. Failed movement permits an eligible attack.</summary>
+	public bool FollowRetreat(float desiredDistance)
+	{
+		if (Target == null) return false;
+		if (_retreatRefresh <= 0)
+		{
+			_retreatRefresh = .2f;
+			_retreatDestinationValid = Navigation.TrySetRetreatDestination(Target.GlobalPosition,
+				Mathf.Max(.6f, desiredDistance - HorizontalTargetDistance));
+		}
+		if (!_retreatDestinationValid || Navigation.IsStuck) { Navigation.Stop(); return false; }
+		Navigation.FollowPath(Target);
+		Movement.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition);
+		return true;
 	}
 
 	/// <summary>Uniform random float in [min, max).</summary>

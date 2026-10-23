@@ -40,6 +40,7 @@ public partial class NavigationComponent : Node
 	private CharacterBody3D _actor;
 	private MovementComponent _movement;
 	private NavigationAgent3D _navigationAgent;
+	private LargeActorFitComponent _largeActorFit;
 
 	private Vector3 _lastStuckCheckPosition;
 	private float _stuckCheckTimer;
@@ -57,11 +58,12 @@ public partial class NavigationComponent : Node
 	/// where it is authored in the scene (a direct child of the behavior component) so inherited
 	/// enemy scenes are not disturbed; this component only references it.
 	/// </summary>
-	public void Initialize(CharacterBody3D actor, MovementComponent movement, NavigationAgent3D navigationAgent)
+	public void Initialize(CharacterBody3D actor, MovementComponent movement, NavigationAgent3D navigationAgent, LargeActorFitComponent largeActorFit = null)
 	{
 		_actor = actor;
 		_movement = movement;
 		_navigationAgent = navigationAgent;
+		_largeActorFit = largeActorFit;
 		ResetStuckTracking();
 	}
 
@@ -118,16 +120,29 @@ public partial class NavigationComponent : Node
 		UpdateStuckTracking();
 	}
 
-	/// <summary>
-	/// Steers the body directly away from its current path waypoint (used while fleeing). Does not
-	/// wall-slide or track stuck progress; fleeing intentionally just backs away.
-	/// </summary>
-	public void FollowPathAway()
+	/// <summary>Try three local away destinations; reject walls, unsupported floors and unreachable/large-actor-invalid endpoints.</summary>
+	public bool TrySetRetreatDestination(Vector3 threatPosition, float distance)
 	{
-		Vector3 destination = _navigationAgent.GetNextPathPosition();
-		Vector3 localDestination = destination - _actor.GlobalPosition;
-		var direction = new Vector3(localDestination.X, 0, localDestination.Z).Normalized();
-		_movement.SetInputDirection(-direction);
+		if (!_actor.IsInsideTree() || !float.IsFinite(distance) || distance <= 0) return false;
+		Vector3 away = _actor.GlobalPosition - threatPosition;
+		away.Y = 0;
+		if (away.LengthSquared() < .001f) away = -_actor.GlobalTransform.Basis.Z;
+		away = away.Normalized();
+		foreach (float angle in new[] { 0f, -.5f, .5f })
+		{
+			Vector3 destination = GetClosestNavPoint(_actor.GlobalPosition + away.Rotated(Vector3.Up, angle) * distance);
+			Vector3 motion = destination - _actor.GlobalPosition;
+			motion.Y = 0;
+			if (motion.LengthSquared() < .04f || HorizontalDistance(destination, threatPosition)
+				<= HorizontalDistance(_actor.GlobalPosition, threatPosition) + .1f) continue;
+			if (!IsReachable(destination) || _actor.TestMove(_actor.GlobalTransform, motion)
+				|| (_largeActorFit != null && !_largeActorFit.CanMoveTo(destination))) continue;
+			var floor = PhysicsRayQueryParameters3D.Create(destination + Vector3.Up, destination - Vector3.Up * 2, 1);
+			if (_actor.GetWorld3D().DirectSpaceState.IntersectRay(floor).Count == 0) continue;
+			SetDestination(destination);
+			return true;
+		}
+		return false;
 	}
 
 	/// <summary>

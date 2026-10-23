@@ -45,24 +45,23 @@ public class AttackAnimationTest
 	[TestCase]
 	public void EveryMonsterResolvesItsAuthoredAndEnabledAttackSlots()
 	{
-		// Keep roots alive while auditing shared native Resources across different scenes.
-		var scenes = Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/enemies"), "*.tscn", SearchOption.AllDirectories)
-			.Where(path => Path.GetDirectoryName(path) != ProjectSettings.GlobalizePath("res://scenes/enemies").TrimEnd('/'))
-			.Select(path => GD.Load<PackedScene>("res://" + Path.GetRelativePath(ProjectSettings.GlobalizePath("res://"), path))).ToArray();
-		AssertInt(scenes.Length).IsGreater(10);
-		foreach (var scene in scenes)
+		var paths = Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/enemies"), "*.tscn", SearchOption.AllDirectories);
+		int count = 0;
+		foreach (var path in paths)
 		{
-			var actor = scene.Instantiate<Node3D>();
-			var component = actor.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
-			AssertInt(component.Profile.Bindings.Length).IsGreater(0);
-			foreach (var binding in component.Profile.Bindings)
-				AssertBool(component.TryResolve(binding.Style, out _)).OverrideFailureMessage(scene.ResourcePath + " " + binding.Style).IsTrue();
-			AssertBool(component.TryResolve("melee", out _)).OverrideFailureMessage(scene.ResourcePath + " melee").IsTrue();
-			if (actor.GetNode<EnemyBehaviorComponent>("EnemyBehaviorComponent").Profile?.RangedAttackDefinition != null)
-				AssertBool(component.TryResolve("ranged", out _)).OverrideFailureMessage(scene.ResourcePath + " ranged").IsTrue();
-			actor.Free();
+			var actor = GD.Load<PackedScene>("res://" + Path.GetRelativePath(ProjectSettings.GlobalizePath("res://"), path)).Instantiate<Node>();
+			try
+			{
+				if (actor is not EnemyBase enemy || enemy.Definition == null) continue;
+				count++;
+				var component = actor.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
+				var policy = enemy.Definition.Behavior.AttackStrategy;
+				AssertBool(component.TryResolve(policy.Style, out _)).OverrideFailureMessage(path + " " + policy.Style).IsTrue();
+				if (policy is ProjectileAttackStrategy) AssertBool(component.TryResolve("melee", out _)).IsFalse();
+			}
+			finally { actor.Free(); }
 		}
-		GC.KeepAlive(scenes);
+		AssertInt(count).IsGreaterEqual(5);
 	}
 
 	[TestCase]

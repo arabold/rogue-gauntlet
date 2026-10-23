@@ -50,7 +50,7 @@ the shield, as in the boss's final phase; `shieldless_roles` records the intende
 and attack clips. These are art
 animations, not an implemented multi-phase boss encounter or a gameplay timing contract.
 
-Export writes `assets/custom-monsters/bosses/forsaken_warden.glb` plus import options and
+Export writes `assets/custom-monsters/forsaken_warden/forsaken_warden.glb` plus import options and
 art metadata. It creates no actor scene, AI, stats, collisions or scripted eye effects.
 The source rig's acquisition and CC0 license are retained in `rigs/large/`.
 

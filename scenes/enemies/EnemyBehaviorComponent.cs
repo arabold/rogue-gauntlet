@@ -105,7 +105,7 @@ public partial class EnemyBehaviorComponent : Node
 		_perception = GetNode<PerceptionComponent>("Perception");
 		_perception.Initialize(Actor, _profile, GetNode<RayCast3D>("SightRay"));
 		_navigation = GetNode<NavigationComponent>("Navigation");
-		_navigation.Initialize(Actor, MovementComponent, GetNode<NavigationAgent3D>("NavigationAgent3D"));
+		_navigation.Initialize(Actor, MovementComponent, GetNode<NavigationAgent3D>("NavigationAgent3D"), (Actor as EnemyBase)?.LargeActorFit);
 
 		_attackController = Actor is EnemyBase enemy ? enemy.AttackController : Actor.GetNodeOrNull<AttackController>("AttackController");
 		if (_attackController == null)
@@ -116,7 +116,8 @@ public partial class EnemyBehaviorComponent : Node
 		// The context is the shared blackboard the behavior states read and mutate; the state machine
 		// owns the behavior layer. The timed-action layer (spawn, hit, attack, death) stays on this
 		// host as a gate above the machine - see _PhysicsProcess.
-		_context = new EnemyContext(Actor, MovementComponent, _perception, _navigation, _profile, RequestMeleeAttack, RequestRangedAttack);
+		_context = new EnemyContext(Actor, MovementComponent, _perception, _navigation, _profile, RequestAttack);
+		if (_attackController != null) _attackController.AttackFinished += OnAttackFinished;
 		_machine = new EnemyStateMachine(_context, new IEnemyState[]
 		{
 			new IdleState(),
@@ -183,45 +184,26 @@ public partial class EnemyBehaviorComponent : Node
 		}
 	}
 
-	/// <summary>
-	/// Starts a melee attack through the action layer. Handed to <see cref="EnemyContext"/> so the
-	/// Chasing state can request an attack without touching <see cref="CurrentAction"/> directly. The
-	/// action is accepted only after its animation and hit timing can be resolved.
-	/// </summary>
-	private void RequestMeleeAttack()
-	{
-		TryMeleeAttack();
-	}
+	private void RequestAttack() => TryAttack();
 
-	/// <summary>Production melee entry point, also available to local combat playgrounds.</summary>
-	public bool TryMeleeAttack()
+	private void OnAttackFinished(AttackIdentity identity, bool interrupted) => _context?.Tactics.AttackFinished(identity, interrupted);
+
+	public override void _ExitTree()
 	{
-		if (Actor is EnemyBase { Definition: not null }) return TryAttack();
-		if (CurrentAction != EnemyAction.None || IsDead || MovementComponent.IsPushed || !TriggerMeleeAttack()) return false;
-		SetAction(EnemyAction.MeeleAttack);
-		return true;
+		if (_attackController != null) _attackController.AttackFinished -= OnAttackFinished;
 	}
 
 	/// <summary>Execute the one authored monster attack after range, sight and action validation.</summary>
 	public bool TryAttack()
 	{
-		if (Actor is not EnemyBase { Definition: not null }) return TryMeleeAttack();
 		var policy = Profile?.AttackStrategy;
 		if (_context == null || policy == null || CurrentAction != EnemyAction.None || IsDead
 			|| MovementComponent.IsPushed || !policy.CanAttack(_context)) return false;
 		if (!_attackController.TryPrepareAttack(policy.Attack, policy.Style, policy.Duration, out var attack)) return false;
 		if (!_attackController.StartAttack(attack, policy.MinDamage, policy.MaxDamage, policy.Accuracy, policy.CritChance, 4)) return false;
+		if (Profile.MovementStrategy is AttackThenRetreatStrategy) _context.Tactics.TrackAttack(_attackController.CurrentExecutionId);
 		SetAction(policy.Attack.IsRanged ? EnemyAction.RangedAttack : EnemyAction.MeeleAttack);
 		return true;
-	}
-
-	/// <summary>
-	/// Starts a ranged attack through the action layer, mirroring <see cref="RequestMeleeAttack"/>.
-	/// Handed to <see cref="EnemyContext"/> so the Chasing state can request it for caster enemies.
-	/// </summary>
-	private void RequestRangedAttack()
-	{
-		if (TriggerRangedAttack()) SetAction(EnemyAction.RangedAttack);
 	}
 
 	/// <summary>
@@ -259,71 +241,9 @@ public partial class EnemyBehaviorComponent : Node
 		}
 	}
 
-	private bool TriggerMeleeAttack()
-	{
-		if (_attackController == null)
-		{
-			GD.PushError($"{Actor.Name} cannot start melee attack without AttackController.");
-			return false;
-		}
-
-		var def = _profile.MeleeAttackDefinition ?? CreateDefaultMeleeAttackDefinition();
-
-		uint targetMask = 4; // Targets player (HurtBoxComponent is on Layer 3 / Mask 4)
-
-		if (!_attackController.TryPrepareAttack(def, "melee", _profile.GetActionDuration(EnemyAction.MeeleAttack), out var attack, _profile.MeleeContact)) return false;
-		return _attackController.StartAttack(
-			attack,
-			_profile.MeleeAttackMinDamage,
-			_profile.MeleeAttackMaxDamage,
-			_profile.MeleeAttackAccuracy,
-			_profile.MeleeAttackCritChance,
-			targetMask
-		);
-	}
-
-	private bool TriggerRangedAttack()
-	{
-		if (_attackController == null)
-		{
-			GD.PushError($"{Actor.Name} cannot start ranged attack without AttackController.");
-			return false;
-		}
-
-		AttackDefinition def = _profile.RangedAttackDefinition;
-		if (def == null)
-		{
-			GD.PushError($"{Actor.Name} cannot start ranged attack without a RangedAttackDefinition on its profile.");
-			return false;
-		}
-
-		uint targetMask = 4; // Targets player (HurtBoxComponent is on Layer 3 / Mask 4)
-
-		if (!_attackController.TryPrepareAttack(def, "ranged", _profile.GetActionDuration(EnemyAction.RangedAttack), out var attack)) return false;
-		return _attackController.StartAttack(
-			attack,
-			_profile.RangedAttackMinDamage,
-			_profile.RangedAttackMaxDamage,
-			_profile.RangedAttackAccuracy,
-			_profile.RangedAttackCritChance,
-			targetMask
-		);
-	}
-
-	private AttackDefinition CreateDefaultMeleeAttackDefinition()
-	{
-		var def = new AttackDefinition();
-		def.AnimationId = "melee_attack";
-
-		float duration = _profile.GetActionDuration(EnemyAction.MeeleAttack);
-		def.HitWindowStart = 0.3f * duration;
-		def.HitWindowEnd = 0.7f * duration;
-
-		return def;
-	}
-
 	public void OnDie()
 	{
+		_context?.Tactics.ClearTarget();
 		SetAction(EnemyAction.Dying);
 		SetBehavior(EnemyBehaviorState.Dead);
 		MovementComponent.Stop();

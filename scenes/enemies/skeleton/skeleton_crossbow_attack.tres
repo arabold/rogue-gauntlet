@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ProjectileAttackStrategy" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/strategies/ProjectileAttackStrategy.cs" id="policy"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+[ext_resource type="PackedScene" path="res://scenes/attacks/projectile.tscn" id="projectile"]
+[sub_resource type="Resource" id="shot"]
+script = ExtResource("attack")
+AnimationId = "ranged_attack"
+IsRanged = true
+DefenseTraits = 3
+ProjectileScene = ExtResource("projectile")
+ProjectileSpeed = 16.0
+Range = 20.0
+HitWindowStart = 0.45
+
+[resource]
+script = ExtResource("policy")
+Attack = SubResource("shot")
+EngagementDistance = 14.0
+MinDamage = 3.0
+MaxDamage = 6.0
+Accuracy = 0.9
+Duration = 1.0

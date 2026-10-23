@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="MeleeAttackStrategy" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/strategies/MeleeAttackStrategy.cs" id="policy"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/forsaken_warden.tres" id="contact"]
+[sub_resource type="Resource" id="swing"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("contact")
+
+[resource]
+script = ExtResource("policy")
+Attack = SubResource("swing")
+EngagementDistance = 3.2
+MinDamage = 10.0
+MaxDamage = 18.0
+Accuracy = 0.9
+Duration = 1.5

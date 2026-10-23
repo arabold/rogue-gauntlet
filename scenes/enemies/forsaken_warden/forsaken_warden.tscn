@@ -1,0 +1,186 @@
+[gd_scene load_steps=35 format=3]
+
+[ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://assets/custom-monsters/forsaken_warden/forsaken_warden.glb" id="2_glb"]
+
+[ext_resource type="Resource" path="res://scenes/attacks/animation_profiles/forsaken_warden.tres" id="attack_animation_profile"]
+
+[ext_resource type="Script" path="res://scenes/enemies/LargeActorFitComponent.cs" id="fit"]
+[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_fit.tres" id="fit_profile"]
+
+[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_definition.tres" id="definition"]
+[ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="gate_script"]
+[ext_resource type="Script" path="res://scenes/combat/GuardComponent.cs" id="guard_script"]
+[ext_resource type="Script" path="res://scenes/enemies/EnemyDefenseController.cs" id="defense_script"]
+[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_guard.tres" id="guard"]
+[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_defense_animation.tres" id="defense_animation"]
+
+[sub_resource type="AnimationNodeAnimation" id="anim_idle"]
+animation = &"Idle_A"
+[sub_resource type="AnimationNodeAnimation" id="anim_walk"]
+animation = &"Walking_A"
+[sub_resource type="AnimationNodeAnimation" id="anim_attack"]
+animation = &"Melee_1H_Slash"
+[sub_resource type="AnimationNodeAnimation" id="anim_hit"]
+animation = &"Hit_A"
+[sub_resource type="AnimationNodeAnimation" id="anim_dying"]
+animation = &"Death_A"
+[sub_resource type="AnimationNodeAnimation" id="anim_dead"]
+animation = &"Death_A_Pose"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_start_idle"]
+advance_mode = 2
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_walk"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsMoving"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_idle"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "!IsMoving"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_attack"]
+advance_mode = 2
+advance_expression = "false"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_attack"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "false"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_attack_idle"]
+switch_mode = 2
+advance_mode = 2
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_hit"]
+advance_mode = 2
+advance_expression = "IsHit"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_hit"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsHit"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_hit_idle"]
+switch_mode = 2
+advance_mode = 2
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_dying"]
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_dying"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_hit_dying"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_attack_dying"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_dying_dead"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachine" id="sm"]
+states/Attack/node = SubResource("anim_attack")
+states/Attack/position = Vector2(440, 100)
+states/Dead/node = SubResource("anim_dead")
+states/Dead/position = Vector2(820, 100)
+states/Dying/node = SubResource("anim_dying")
+states/Dying/position = Vector2(640, 100)
+states/Hit/node = SubResource("anim_hit")
+states/Hit/position = Vector2(440, 220)
+states/Idle/node = SubResource("anim_idle")
+states/Idle/position = Vector2(240, 100)
+states/Start/position = Vector2(60, 100)
+states/Walking/node = SubResource("anim_walk")
+states/Walking/position = Vector2(240, 320)
+transitions = ["Start", "Idle", SubResource("t_start_idle"), "Idle", "Walking", SubResource("t_idle_walk"), "Walking", "Idle", SubResource("t_walk_idle"), "Idle", "Attack", SubResource("t_idle_attack"), "Walking", "Attack", SubResource("t_walk_attack"), "Attack", "Idle", SubResource("t_attack_idle"), "Idle", "Hit", SubResource("t_idle_hit"), "Walking", "Hit", SubResource("t_walk_hit"), "Hit", "Idle", SubResource("t_hit_idle"), "Idle", "Dying", SubResource("t_idle_dying"), "Walking", "Dying", SubResource("t_walk_dying"), "Hit", "Dying", SubResource("t_hit_dying"), "Attack", "Dying", SubResource("t_attack_dying"), "Dying", "Dead", SubResource("t_dying_dead")]
+graph_offset = Vector2(0, 40)
+
+[sub_resource type="CapsuleShape3D" id="cap_hurt"]
+radius = 1.6
+height = 4.5
+[sub_resource type="CapsuleShape3D" id="cap_body"]
+radius = 1.0
+height = 4.5
+
+[node name="ForsakenWarden" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate", "GuardComponent", "DefenseController", "LargeActorFit")]
+Definition = ExtResource("definition")
+ActionGate = NodePath("ActorActionGateComponent")
+GuardComponent = NodePath("GuardComponent")
+DefenseController = NodePath("EnemyDefenseController")
+LargeActorFit = NodePath("LargeActorFitComponent")
+
+[node name="WardenModel" parent="Pivot" index="0" instance=ExtResource("2_glb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="EnemyBehaviorComponent" parent="." index="1"]
+
+[node name="AnimationTree" type="AnimationTree" parent="EnemyBehaviorComponent" index="2"]
+root_node = NodePath("../../Pivot/WardenModel")
+tree_root = SubResource("sm")
+advance_expression_base_node = NodePath("..")
+anim_player = NodePath("../../Pivot/WardenModel/AnimationPlayer")
+
+[node name="LootTableComponent" parent="." index="3"]
+DropChance = 1.0
+
+[node name="HealthComponent" parent="." index="4"]
+
+[node name="DeathComponent" parent="." index="5"]
+
+[node name="HurtBoxComponent" parent="." index="6" node_paths=PackedStringArray("MovementComponent")]
+position = Vector3(0, 2.25, 0)
+MovementComponent = NodePath("")
+Evasion = 0.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
+shape = SubResource("cap_hurt")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="8"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, 0)
+shape = SubResource("cap_body")
+
+[node name="CombatAnimationComponent" parent="." index="9"]
+AnimationPlayerPath = NodePath("../Pivot/WardenModel/AnimationPlayer")
+AnimationTreePath = NodePath("../EnemyBehaviorComponent/AnimationTree")
+Profile = ExtResource("attack_animation_profile")
+
+[node name="LargeActorFitComponent" type="Node" parent="." index="3" node_paths=PackedStringArray("Actor", "Movement")]
+script = ExtResource("fit")
+Profile = ExtResource("fit_profile")
+Actor = NodePath("..")
+Movement = NodePath("../MovementComponent")
+
+[node name="MovementComponent" parent="." node_paths=PackedStringArray("ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")
+process_physics_priority = 1
+RotationSpeed = 5.0
+
+[node name="FloatingHealthBar" parent="."]
+position = Vector3(0, 5.1, 0)
+
+[node name="BossTitle" type="Label3D" parent="."]
+visible = false
+position = Vector3(0, 5.65, 0)
+billboard = 1
+no_depth_test = true
+render_priority = 20
+text = "The Forsaken Warden"
+font_size = 48
+pixel_size = 0.008
+modulate = Color(1, 0.7, 0.2, 1)
+[node name="ActorActionGateComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent")]
+script = ExtResource("gate_script")
+AnimationComponent = NodePath("../CombatAnimationComponent")
+AnimationProfile = ExtResource("defense_animation")
+
+[node name="GuardComponent" type="Node" parent="." node_paths=PackedStringArray("Actor", "ActionGate", "MovementComponent", "AnimationComponent")]
+script = ExtResource("guard_script")
+Actor = NodePath("..")
+ActionGate = NodePath("../ActorActionGateComponent")
+MovementComponent = NodePath("../MovementComponent")
+AnimationComponent = NodePath("../CombatAnimationComponent")
+GuardDef = ExtResource("guard")
+
+[node name="EnemyDefenseController" type="Node" parent="." node_paths=PackedStringArray("Enemy", "GuardComponent")]
+script = ExtResource("defense_script")
+Enemy = NodePath("..")
+GuardComponent = NodePath("../GuardComponent")

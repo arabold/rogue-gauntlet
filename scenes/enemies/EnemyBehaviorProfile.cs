@@ -14,7 +14,8 @@ public partial class EnemyBehaviorProfile : Resource
 	[Export] public EnemyMovementStrategy MovementStrategy { get; set; }
 	[Export] public EnemyAttackStrategy AttackStrategy { get; set; }
 	[Export] public EnemyDefenseStrategy DefenseStrategy { get; set; }
-	[ExportGroup("Perception and legacy tuning")]
+	[Export] public EnemyRetreatCondition RetreatCondition { get; set; }
+	[ExportGroup("Perception and lifecycle")]
 	/// <summary>
 	/// Behavior state the enemy enters when it is initialized.
 	/// </summary>
@@ -41,72 +42,6 @@ public partial class EnemyBehaviorProfile : Resource
 	/// when they share a room rather than through walls.
 	/// </summary>
 	[Export] public float CloseDetectionRangeMultiplier { get; set; } = 0.5f;
-
-	/// <summary>
-	/// Distance from the target at which the enemy can start a melee attack.
-	/// </summary>
-	[Export] public float MeleeAttackRange { get; set; } = 2.0f;
-	[Export] public MeleeAttackProfile MeleeContact { get; set; }
-	public float EffectiveMeleeRange => AttackStrategy?.EffectiveRange ?? Mathf.Min(MeleeAttackRange,
-		(MeleeAttackDefinition?.MeleeContact ?? MeleeContact)?.EngagementDistance ?? MeleeAttackRange);
-
-	/// <summary>
-	/// Accuracy used by this enemy's melee attack.
-	/// </summary>
-	[Export] public float MeleeAttackAccuracy { get; set; } = 0.8f;
-
-	/// <summary>
-	/// Minimum damage dealt by this enemy's melee attack.
-	/// </summary>
-	[Export] public float MeleeAttackMinDamage { get; set; } = 1.0f;
-
-	/// <summary>
-	/// Maximum damage dealt by this enemy's melee attack.
-	/// </summary>
-	[Export] public float MeleeAttackMaxDamage { get; set; } = 5.0f;
-
-	/// <summary>
-	/// Critical hit chance used by this enemy's melee attack.
-	/// </summary>
-	[Export] public float MeleeAttackCritChance { get; set; } = 0.0f;
-
-	/// <summary>
-	/// Optional authored attack definition for enemy melee hit shape and timing overrides.
-	/// </summary>
-	[Export] public AttackDefinition MeleeAttackDefinition { get; set; }
-
-	/// <summary>
-	/// Authored ranged attack (projectile) definition. When set, the enemy becomes a caster/shooter:
-	/// it stands off and fires this attack while the target is within <see cref="RangedAttackRange"/>
-	/// and in sight, falling back to melee only when the target closes inside melee range. Leave null
-	/// for melee-only enemies.
-	/// </summary>
-	[Export] public AttackDefinition RangedAttackDefinition { get; set; }
-
-	/// <summary>
-	/// Maximum distance from the target at which the enemy will use its ranged attack.
-	/// </summary>
-	[Export] public float RangedAttackRange { get; set; } = 12.0f;
-
-	/// <summary>
-	/// Accuracy used by this enemy's ranged attack.
-	/// </summary>
-	[Export] public float RangedAttackAccuracy { get; set; } = 0.9f;
-
-	/// <summary>
-	/// Minimum damage dealt by this enemy's ranged attack.
-	/// </summary>
-	[Export] public float RangedAttackMinDamage { get; set; } = 1.0f;
-
-	/// <summary>
-	/// Maximum damage dealt by this enemy's ranged attack.
-	/// </summary>
-	[Export] public float RangedAttackMaxDamage { get; set; } = 4.0f;
-
-	/// <summary>
-	/// Critical hit chance used by this enemy's ranged attack.
-	/// </summary>
-	[Export] public float RangedAttackCritChance { get; set; } = 0.0f;
 
 	/// <summary>
 	/// Maximum distance from its spawn point that the enemy can pick roam destinations.
@@ -155,40 +90,9 @@ public partial class EnemyBehaviorProfile : Resource
 	[Export] public float HitActionDuration { get; set; } = 0.35f;
 
 	/// <summary>
-	/// Time spent in the melee attack action before normal behavior resumes.
-	/// </summary>
-	[Export] public float MeleeAttackActionDuration { get; set; } = 1.0f;
-
-	/// <summary>
-	/// Time spent in the ranged attack action before normal behavior resumes.
-	/// </summary>
-	[Export] public float RangedAttackActionDuration { get; set; } = 1.0f;
-
-	/// <summary>
 	/// Time spent in the dying action before the enemy is fully dead.
 	/// </summary>
 	[Export] public float DyingActionDuration { get; set; } = 2.0f;
-
-	/// <summary>Probability (0.0 to 1.0) of attempting to raise guard when perceiving an attack.</summary>
-	[Export] public float GuardChance { get; set; } = 0.0f;
-
-	/// <summary>Probability (0.0 to 1.0) of attempting an evasive dodge when perceiving an attack.</summary>
-	[Export] public float DodgeChance { get; set; } = 0.0f;
-
-	/// <summary>Reaction delay in seconds before an enemy reacts to a perceived attack wind-up.</summary>
-	[Export] public float DefenseReactionDelay { get; set; } = 0.04f;
-
-	/// <summary>Duration to maintain guard after the last blocked impact or observed attack before dropping.</summary>
-	[Export] public float GuardPressureWindow { get; set; } = 0.85f;
-
-	/// <summary>Probability (0.0 to 1.0) of launching a riposte counter-attack after successfully holding guard through a combo or landing a parry.</summary>
-	[Export] public float RiposteChance { get; set; } = 0.65f;
-
-	/// <summary>Maximum consecutive duration in seconds to hold guard under continuous attack before dropping.</summary>
-	[Export] public float MaxGuardDuration { get; set; } = 3.5f;
-
-	/// <summary>Whether this enemy attempts to guard or dodge airborne projectiles.</summary>
-	[Export] public bool CanDefendProjectiles { get; set; } = true;
 
 	/// <summary>
 	/// Returns the configured duration for an action.
@@ -200,8 +104,8 @@ public partial class EnemyBehaviorProfile : Resource
 			EnemyAction.Spawning => SpawningActionDuration,
 			EnemyAction.StandingUp => StandingUpActionDuration,
 			EnemyAction.Hit => HitActionDuration,
-			EnemyAction.MeeleAttack => MeleeAttackActionDuration,
-			EnemyAction.RangedAttack => RangedAttackActionDuration,
+			EnemyAction.MeeleAttack => AttackStrategy?.Duration ?? 0,
+			EnemyAction.RangedAttack => AttackStrategy?.Duration ?? 0,
 			EnemyAction.Dying => DyingActionDuration,
 			_ => 0,
 		};

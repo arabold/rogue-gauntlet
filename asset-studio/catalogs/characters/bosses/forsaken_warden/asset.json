@@ -59,7 +59,7 @@
     "Melee_Blocking"
   ],
   "scale": 1.15,
-  "source_inputs": "0631328b6e26846e5fef4f3d6fcb9835a8c2ee2ad283af3245b1bb42e50b9faf",
+  "source_inputs": "0e8c0bd207c742c4a51e1437292a52e708e52130ff47aee5b780ded339ded107",
   "gameplay": false,
   "provenance": {
     "kind": "procedural_geometry"

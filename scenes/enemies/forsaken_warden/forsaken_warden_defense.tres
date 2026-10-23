@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyDefenseStrategy" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/strategies/EnemyDefenseStrategy.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+GuardChance = 0.25
+RiposteChance = 0.35
+ReactionDelay = 0.04
+GuardPressureWindow = 0.7
+MaxGuardDuration = 1.5

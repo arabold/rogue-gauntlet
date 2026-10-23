@@ -172,7 +172,7 @@ public partial class CombatIntegrationTest
 				{
 					sawRecovery = true;
 					if (retreat)
-						harness.Player.Position = enemy.Position + Vector3.Back * (enemy.EnemyBehaviorComponent.Profile.EffectiveMeleeRange + .2f);
+						harness.Player.Position = enemy.Position + Vector3.Back * (enemy.EnemyBehaviorComponent.Profile.AttackStrategy.EffectiveRange + .2f);
 				}
 				if (sawRecovery && !guard.IsGuardRecovering && !guard.IsGuarding)
 				{
@@ -201,17 +201,17 @@ public partial class CombatIntegrationTest
 			harness.ExecuteCommand("spawn", 1, Vector3.Zero);
 			var enemy = harness.Monster;
 			AssertInt((int)enemy.GuardComponent.TryBeginGuard(Vector3.Back)).IsEqual((int)DefenseRequestResult.Success);
-			AssertBool(enemy.EnemyBehaviorComponent.TryMeleeAttack()).IsFalse();
+			AssertBool(enemy.EnemyBehaviorComponent.TryAttack()).IsFalse();
 			enemy.GuardComponent.EndGuard(true);
 			AssertBool(enemy.TryStagger(.35f)).IsTrue();
 			enemy.MovementComponent.SetInputDirection(Vector3.Right);
 			await PhysicsFrames(runner, 7);
 			AssertBool(enemy.ActionGate.IsStaggered).IsTrue();
-			AssertBool(enemy.EnemyBehaviorComponent.TryMeleeAttack()).IsFalse();
+			AssertBool(enemy.EnemyBehaviorComponent.TryAttack()).IsFalse();
 			AssertFloat(new Vector2(enemy.Velocity.X, enemy.Velocity.Z).Length()).IsEqualApprox(0, .001);
 			await PhysicsFrames(runner, 18);
 			AssertBool(enemy.ActionGate.IsBusy).IsFalse();
-			AssertBool(enemy.EnemyBehaviorComponent.TryMeleeAttack()).IsTrue();
+			AssertBool(enemy.EnemyBehaviorComponent.TryAttack()).IsTrue();
 		}
 	}
 

@@ -6,7 +6,7 @@ Authoring recipes, original models and selected concepts live inside `asset-stud
 
 Final outputs live in `catalogs/` and change only through explicit publication. Rendering never publishes. `export` separately writes finished game art to `assets/custom-heroes/`, `assets/custom-monsters/` or `assets/custom-items/`. Existing game shield paths remain `assets/custom-items/armor/shield/` for compatibility.
 
-The studio owns **3D art only**. Damage, stats, equipment rules, item identities, effects, `.tres` definitions, and gameplay `.tscn` composition belong to a separate Godot resource-authoring step. Godot import/mesh validation here verifies the exported art. The agreed [monster authoring workflow](../docs/monster-authoring-design.md) and proposed [first-realm rollout](../docs/specs/monster-authoring-plan.md) compose gameplay separately in the Godot editor; monster balance, tactics and realm eligibility do not belong in Studio JSON.
+The studio owns **3D art only**. Damage, stats, equipment rules, item identities, effects, `.tres` definitions, and gameplay `.tscn` composition belong to a separate Godot resource-authoring step. Godot import/mesh validation here verifies the exported art. The agreed [monster authoring workflow](../docs/monster-authoring-design.md) and [first-realm rollout](../docs/specs/monster-authoring-plan.md) compose gameplay separately in the Godot editor; monster balance, tactics and realm eligibility do not belong in Studio JSON.
 
 ## Current catalogs and folder policy
 

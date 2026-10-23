@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/MonsterDefinition.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_behavior.tres" id="behavior"]
+[ext_resource type="Resource" path="res://scenes/items/loot/loot_enemy_elite.tres" id="loot"]
+
+[resource]
+script = ExtResource("script")
+Id = "forsaken_warden"
+DisplayName = "The Forsaken Warden"
+MaxHealth = 110.0
+MoveSpeed = 2.8
+XpReward = 150
+LootTable = ExtResource("loot")
+Behavior = ExtResource("behavior")

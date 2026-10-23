@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AttackThenRetreatStrategy" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/strategies/AttackThenRetreatStrategy.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+RetreatDistance = 3.5
+MaximumRetreatDuration = 1.0
+ReengagementDelay = 0.35

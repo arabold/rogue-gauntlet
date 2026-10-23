@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AttackAnimationProfile" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/attacks/AttackAnimationProfile.cs" id="script"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackAnimationBinding.cs" id="binding"]
+[sub_resource type="Resource" id="bite"]
+script = ExtResource("binding")
+Style = &"melee"
+Clip = &"Attack"
+ContactStart = 0.35
+ContactEnd = 0.65
+
+[resource]
+script = ExtResource("script")
+Bindings = [SubResource("bite")]

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EnemyRetreatCondition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/strategies/EnemyRetreatCondition.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+EnterHealthFraction = 0.3
+ExitHealthFraction = 0.5
+DesiredDistance = 5.0
+MaximumDuration = 1.5

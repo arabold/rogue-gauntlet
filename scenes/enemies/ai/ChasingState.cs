@@ -34,46 +34,24 @@ public sealed class ChasingState : IEnemyState
 			return EnemyBehaviorState.Searching;
 		}
 
-		if (ctx.UsesMonsterDefinition)
+		if (crossingDoorway) { NavigateToTarget(ctx); return null; }
+		var intent = ctx.EvaluateMovement();
+		bool allowAttack = intent.AllowAttack;
+		if (intent.Goal != EnemyMovementGoal.Retreat) ctx.EndRetreatMovement();
+		switch (intent.Goal)
 		{
-			// Preserve a doorway crossing before allowing a new strategy to stop/repath the actor.
-			if (crossingDoorway) { NavigateToTarget(ctx); return null; }
-			var intent = ctx.Profile.MovementStrategy.Evaluate(ctx);
-			if (intent.Goal == EnemyMovementGoal.Approach)
-			{
+			case EnemyMovementGoal.Approach:
 				ctx.UpdateTargetPositionThrottled();
 				NavigateToTarget(ctx);
-			}
-			else ctx.Navigation.Stop();
-			if (intent.AllowAttack) ctx.RequestMeleeAttack();
-			return null;
+				break;
+			case EnemyMovementGoal.Retreat:
+				if (!ctx.FollowRetreat(intent.DesiredDistance)) allowAttack = true;
+				break;
+			default:
+				ctx.Navigation.Stop();
+				break;
 		}
-
-		// Caster enemies stand off and fire while the target is within ranged distance and in sight.
-		// This falls through to the melee chase below when a shot is not viable (target too close, out
-		// of range, or behind cover), so the caster repositions to regain a clear shot. Skipped mid
-		// doorway crossing so firing does not strand the agent on the off-mesh doorway link.
-		if (!crossingDoorway && ctx.CanUseRangedAttack && TryRangedAttack(ctx))
-		{
-			return null;
-		}
-
-		// Retention is reachability-based, not sight-based: as long as the navmesh can reach the
-		// target we keep repathing to its live position, so the enemy pursues around corners and
-		// through doors where it has no line of sight. Skipped while crossing a doorway link, where
-		// the agent is briefly off-mesh and repathing would snap the path start across the gap.
-		if (!crossingDoorway)
-		{
-			ctx.UpdateTargetPositionThrottled();
-		}
-
-		NavigateToTarget(ctx);
-
-		if (IsNearTarget(ctx))
-		{
-			ctx.RequestMeleeAttack();
-		}
-
+		if (allowAttack) ctx.RequestAttack();
 		return null;
 	}
 
@@ -99,45 +77,4 @@ public sealed class ChasingState : IEnemyState
 		}
 	}
 
-	private static bool IsNearTarget(EnemyContext ctx)
-	{
-		if (ctx.Target == null)
-		{
-			return false;
-		}
-
-		var offset = ctx.Target.GlobalPosition - ctx.Actor.GlobalPosition;
-		offset.Y = 0;
-		return offset.Length() < ctx.Profile.EffectiveMeleeRange;
-	}
-
-	/// <summary>
-	/// Ranged "standoff" decision for caster enemies. Fires and holds position (returns true) when the
-	/// target is within ranged range, in sight, and not already inside melee range; returns false to
-	/// let the caller fall back to the melee chase (repositioning to close a gap, regain sight, or
-	/// bite a target that has closed in).
-	/// </summary>
-	private static bool TryRangedAttack(EnemyContext ctx)
-	{
-		if (ctx.Target == null)
-		{
-			return false;
-		}
-
-		float distance = ctx.Actor.GlobalPosition.DistanceTo(ctx.Target.GlobalPosition);
-
-		// Prefer melee when the target is right on top of the caster rather than firing point-blank.
-		if (distance < ctx.Profile.EffectiveMeleeRange)
-		{
-			return false;
-		}
-
-		if (distance > ctx.Profile.RangedAttackRange || !ctx.HasLineOfSightToTarget())
-		{
-			return false;
-		}
-
-		ctx.RequestRangedAttack();
-		return true;
-	}
 }

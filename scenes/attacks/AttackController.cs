@@ -7,6 +7,8 @@ using System.Collections.Generic;
 /// </summary>
 public partial class AttackController : Node, IParryInterruptible
 {
+	/// <summary>One completion notification per accepted execution, after releasing its action/pose ownership.</summary>
+	public event System.Action<AttackIdentity, bool> AttackFinished;
 	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
 	public bool IsAttacking => _isAttacking;
 	public double PerformDuration => _preparedAttack?.Duration ?? 0;
@@ -196,6 +198,7 @@ public partial class AttackController : Node, IParryInterruptible
 	private void FinishAttack(bool interrupted)
 	{
 		if (!_isAttacking) return;
+		var identity = CurrentExecutionId;
 		CloseContact();
 		MeleeDetector?.End();
 		if (interrupted) ReportFeedback("Interrupted");
@@ -208,6 +211,7 @@ public partial class AttackController : Node, IParryInterruptible
 		_preparedAttack = null;
 		AnimationComponent?.End();
 		SetPhysicsProcess(false);
+		AttackFinished?.Invoke(identity, interrupted);
 	}
 
 	public override void _PhysicsProcess(double delta)

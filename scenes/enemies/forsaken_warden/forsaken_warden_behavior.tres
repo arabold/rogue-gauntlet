@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=5 format=3]
+[ext_resource type="Script" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_attack.tres" id="attack"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/close_distance.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_defense.tres" id="defense"]
+[resource]
+script = ExtResource("script")
+InitialAction = 0
+DetectionRange = 24.0
+DetectionAngle = 100.0
+RoamRadius = 2.0
+RoamPauseMin = 1.0
+RoamPauseMax = 2.5
+HitActionDuration = 0.7
+DyingActionDuration = 1.667
+AttackStrategy = ExtResource("attack")
+MovementStrategy = ExtResource("movement")
+DefenseStrategy = ExtResource("defense")

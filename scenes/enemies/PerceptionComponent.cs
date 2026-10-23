@@ -126,8 +126,9 @@ public partial class PerceptionComponent : Node
 
 		var space = _sightRay.GetWorld3D().DirectSpaceState;
 		var query = PhysicsRayQueryParameters3D.Create(from, to, _sightRay.CollisionMask);
+		query.Exclude = new Godot.Collections.Array<Rid> { _actor.GetRid() };
 		var result = space.IntersectRay(query);
-		// A clear line means the first thing the ray hits IS the target (not a wall/door in between).
-		return result.Count > 0 && result["collider"].Obj == node;
+		// A tall or short actor can cast above/below the target body. An empty ray is still clear.
+		return result.Count == 0 || result["collider"].Obj == node;
 	}
 }

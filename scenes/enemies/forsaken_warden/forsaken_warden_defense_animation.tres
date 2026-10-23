@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="DefenseAnimationProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/combat/DefenseAnimationProfile.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+GuardHoldClip = &"Melee_Blocking"
+ParryClip = &"Melee_Block_Attack"
+BlockHitClip = &"Melee_Block_Hit"
+RecoveryClip = &"Idle_A"
+StaggerClip = &"Hit_A"

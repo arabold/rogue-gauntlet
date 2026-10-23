@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="GuardDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/combat/GuardDefinition.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_defense_animation.tres" id="animation"]
+
+[resource]
+script = ExtResource("script")
+AnimationProfile = ExtResource("animation")
+CanParry = false
+RaiseDuration = 0.06
+ParryWindow = 0.06
+ReleaseRecovery = 0.35
+DamageMultiplier = 0.5

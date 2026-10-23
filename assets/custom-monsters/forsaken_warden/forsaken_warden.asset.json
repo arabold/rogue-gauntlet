@@ -1,0 +1,67 @@
+{
+  "triangles": 27380,
+  "joints": 25,
+  "bounds": [
+    [
+      -7.3267201330574006,
+      -1.0529316137572058,
+      -4.364828592461478
+    ],
+    [
+      3.9052382055763846,
+      6.172368830700817,
+      6.65653442659961
+    ]
+  ],
+  "clips": [
+    "Death_A",
+    "Death_A_Pose",
+    "Hit_A",
+    "Idle_A",
+    "Idle_B",
+    "Melee_1H_Slash",
+    "Melee_1H_Stab",
+    "Melee_2H_Attack",
+    "Melee_2H_Idle",
+    "Melee_2H_Slam",
+    "Melee_Block",
+    "Melee_Block_Attack",
+    "Melee_Block_Hit",
+    "Melee_Blocking",
+    "Melee_Dualwield_Slash",
+    "Melee_Dualwield_SlashCombo",
+    "Melee_Unarmed_Idle",
+    "Melee_Unarmed_Kick",
+    "Melee_Unarmed_Punch",
+    "Melee_Unarmed_Smash",
+    "Running_A",
+    "T-Pose",
+    "Walking_A"
+  ],
+  "key": "bosses/forsaken_warden",
+  "rig": "large",
+  "roles": {
+    "Idle": "Idle_A",
+    "Walk": "Walking_A",
+    "Run": "Running_A",
+    "Attack": "Melee_1H_Slash",
+    "Block": "Melee_Block",
+    "Hit": "Hit_A",
+    "Death": "Death_A"
+  },
+  "loops": [
+    "Idle_A",
+    "Idle_B",
+    "Walking_A",
+    "Running_A",
+    "Melee_2H_Idle",
+    "Melee_Unarmed_Idle",
+    "Melee_Blocking"
+  ],
+  "scale": 1.15,
+  "source_inputs": "0e8c0bd207c742c4a51e1437292a52e708e52130ff47aee5b780ded339ded107",
+  "gameplay": false,
+  "provenance": {
+    "kind": "procedural_geometry"
+  }
+}

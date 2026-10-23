@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/MonsterDefinition.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/enemies/rat/rat_behavior.tres" id="behavior"]
+[ext_resource type="Resource" path="res://scenes/items/loot/loot_enemy_common.tres" id="loot"]
+
+[resource]
+script = ExtResource("script")
+Id = "rat"
+DisplayName = "Plague Rat"
+MaxHealth = 6.0
+MoveSpeed = 4.6
+XpReward = 3
+LootTable = ExtResource("loot")
+Behavior = ExtResource("behavior")

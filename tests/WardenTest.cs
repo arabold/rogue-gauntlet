@@ -109,7 +109,7 @@ public class WardenTest
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
-		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/bosses/forsaken_warden.tscn")];
+		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
 		harness.SpawnMonster();
 		var boss = runner.Scene().GetChildren().OfType<EnemyBase>().Single();
 		boss.GlobalPosition = harness.Player.GlobalPosition + Vector3.Back * 3.1f + Vector3.Up * 8;
@@ -123,7 +123,7 @@ public class WardenTest
 		player.HurtBoxComponent.Evasion = 0;
 		await runner.SimulateFrames(2);
 		float before = player.HealthComponent.CurrentHealth;
-		AssertBool(boss.EnemyBehaviorComponent.TryMeleeAttack()).IsTrue();
+		AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
 		var attack = boss.GetNode<AttackController>("AttackController");
 		attack.SetPhysicsProcess(false);
 		attack.EffectsEnabled = true;
@@ -146,7 +146,7 @@ public class WardenTest
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
 		harness.Player.HurtBoxComponent.Armor = 0;
 		harness.Player.HurtBoxComponent.Evasion = 0;
-		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/bosses/forsaken_warden.tscn")];
+		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
 		harness.SpawnMonster();
 		var boss = runner.Scene().GetChildren().OfType<EnemyBase>().Single();
 		boss.MovementComponent.SetPhysicsProcess(false);
@@ -163,7 +163,7 @@ public class WardenTest
 			harness.Player.HurtBoxComponent.Armor = 0;
 			harness.Player.HurtBoxComponent.Evasion = 0;
 			boss.EnemyBehaviorComponent.SetAction(EnemyAction.None);
-			AssertBool(boss.EnemyBehaviorComponent.TryMeleeAttack()).IsTrue();
+			AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
 			attack.SetPhysicsProcess(false);
 			attack._PhysicsProcess(.7);
 			AssertInt(attack.ContactCount).OverrideFailureMessage($"Warden close contact, side {side}").IsEqual(1);
@@ -177,7 +177,7 @@ public class WardenTest
 		using var runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
 		await runner.SimulateFrames(3);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/bosses/forsaken_warden.tscn")];
+		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
 		harness.SpawnMonster();
 		var boss = runner.Scene().GetChildren().OfType<EnemyBase>().Single();
 		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
@@ -201,7 +201,7 @@ public class WardenTest
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.InputComponent.SetPhysicsProcess(false);
 		harness.Player.HurtBoxComponent.MovementComponent = null; // do not knock the test subject out of contact
-		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/bosses/forsaken_warden.tscn")];
+		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
 		harness.SpawnMonster();
 		var boss = runner.Scene().GetChildren().OfType<EnemyBase>().Single();
 		var attack = boss.GetNode<AttackController>("AttackController");
@@ -213,7 +213,7 @@ public class WardenTest
 			harness.Player.GlobalPosition = boss.GlobalPosition + side * 2.05f;
 			harness.Player.HealthComponent.SetHealth(100, 100);
 			await runner.SimulateFrames(2);
-			AssertBool(boss.EnemyBehaviorComponent.TryMeleeAttack()).IsTrue();
+			AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
 			for (int frame = 0; frame < 75; frame++)
 			{
 				harness.Player.HurtBoxComponent.Armor = 0;

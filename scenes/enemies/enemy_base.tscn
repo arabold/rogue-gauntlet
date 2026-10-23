@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://cvvu87irfmqm1"]
+[gd_scene load_steps=15 format=3 uid="uid://cvvu87irfmqm1"]
 
 [ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="1_j62no"]
 [ext_resource type="PackedScene" uid="uid://dt3ptc0tqgy5s" path="res://scenes/enemies/enemy_behavior_component.tscn" id="2_sr21q"]
@@ -15,7 +15,6 @@
 [ext_resource type="Script" path="res://scenes/attacks/CombatAnimationComponent.cs" id="attack_animation_script"]
 
 [ext_resource type="Script" path="res://scenes/attacks/MeleeHitDetector.cs" id="melee_detector_script"]
-[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/monster_default.tres" id="melee_default"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_6flps"]
 viewport_path = NodePath("SubViewport")
@@ -46,7 +45,6 @@ HealthComponent = NodePath("../HealthComponent")
 script = ExtResource("11_attack")
 AnimationComponent = NodePath("../CombatAnimationComponent")
 MeleeDetector = NodePath("../MeleeHitDetector")
-DefaultMeleeContact = ExtResource("melee_default")
 DefaultProjectileScene = ExtResource("13_projectile")
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor") instance=ExtResource("4_qc6m8")]

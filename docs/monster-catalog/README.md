@@ -1,34 +1,20 @@
-# Monster Catalog
+# Active monster catalog
 
-Status: current legacy gameplay reference, pending retirement. The [monster authoring design](../monster-authoring-design.md) selects the three skeletons, Studio rat and Warden for depths 1–3; the [implementation plan](../specs/monster-authoring-plan.md) owns replacement and catalog refresh. Most entries below will be removed, not recreated. This table is not the future roster or a balance source of truth.
+The playable roster contains five monsters. Gameplay definitions and policies in Godot Resources are authoritative; this is a reference summary, not a second stat database. See [Monster authoring](../monster-authoring-design.md) for composition and [Level design](../level-design.md#first-realm-encounter-prototype) for encounter budgets and persistence.
 
-Visual reference for the full enemy bestiary — KayKit skeletons (CC0) and the Quaternius
-"Ultimate Monsters" set (CC0). Renders are generated from the imported models by
-`asset-studio/godot/render_catalog.gd` — see the `assets` skill. Ordered roughly
-weakest → toughest. Each row maps to its enemy scene under `scenes/enemies/`.
+| Monster | HP | XP | Movement / attack | Defense | First-realm eligibility |
+| --- | ---: | ---: | --- | --- | --- |
+| [Skeleton Minion](../../scenes/enemies/skeleton/skeleton_minion_definition.tres) | 8 | 2 | Close / melee | None | Depths 1–3 |
+| [Skeleton Warrior](../../scenes/enemies/skeleton/skeleton_warrior_definition.tres) | 10 | 30 | Close / melee | Guard, dodge, conditional riposte | Depths 1–3 |
+| [Skeleton Crossbowman](../../scenes/enemies/skeleton/skeleton_crossbow_definition.tres) | 8 | 4 | Maintain distance / projectile only | None | Depths 1–3 |
+| [Plague Rat](../../scenes/enemies/rat/rat_definition.tres) | 6 | 3 | Bite then retreat / low-health override | None | Depths 2–3 and finite nest slots |
+| [Forsaken Warden](../../scenes/enemies/forsaken_warden/forsaken_warden_definition.tres) | 110 | 150 | Close / sword sweep | Guard, conditional sword riposte | Depth 3 gatekeeper |
 
-| | Monster | Type | HP | Role |
-|---|---|---|---|---|
-| ![Bat](./bat.png) | **Bat** | Flyer | 4 | fast, dodgy swarm flyer |
-| ![Ghost](./ghost.png) | **Ghost** | Flyer | 6 | evasive hovering harasser |
-| ![Squidle](./squidle.png) | **Squidle** | Flyer | 7 | eldritch floater |
-| ![Spider](./spider.png) | **Spider** | Crawler | 7 | quick melee |
-| ![Skeleton Minion](./skeleton-minion.png) | **Skeleton Minion** | Undead | 8 | baseline undead melee |
-| ![Slime](./slime-enemy.png) | **Slime** | Blob | 8 | slow chaser |
-| ![Ghost Skull](./ghost-skull.png) | **Ghost Skull** | Flyer | 8 | undead flyer |
-| ![Wizard](./wizard.png) | **Wizard** | Caster | 8 | long detection range |
-| ![Spiky Blob](./spiky-blob.png) | **Spiky Blob** | Blob | 9 | spiky bruiser |
-| ![Cactoro](./cactoro.png) | **Cactoro** | Brute | 10 | spiky cactus brute |
-| ![Skeleton Warrior](./skeleton-warrior.png) | **Skeleton Warrior** | Undead | 10 | armored, shield + axe |
-| ![Orc](./orc.png) | **Orc** | Brute | 12 | baseline melee |
-| ![Dino](./dino.png) | **Dino** | Brute | 12 | reptile melee |
-| ![Orc Skull](./orc-skull.png) | **Orc Skull** | Brute | 14 | tougher undead orc |
-| ![Red Demon](./demon.png) | **Red Demon** | Brute | 16 | heavy hitter |
-| ![Yeti](./yeti.png) | **Yeti** | Brute | 16 | heavy melee |
-| ![Blue Demon](./blue-demon.png) | **Blue Demon** | Brute | 18 | heavy hitter |
-| ![Dragon](./dragon.png) | **Dragon** | Flyer (boss) | 28 | flying mini-boss |
-| ![Mushroom King](./mushroom-king.png) | **Mushroom King** | Brute (boss) | 30 | mini-boss |
+These are starting values, awaiting first-three-floor balance. In particular, the warrior retains its existing 30 XP and elite loot while the other ordinary monsters use common loot; reward consistency is a playtest/tuning item. No automatic depth-based stat scaling or monster-level field is used. Later depths currently use the four ordinary monsters as a development fallback.
 
-> Stats are the current `*_behavior.tres` / `HealthComponent` starting values and are easy to tune.
-> Models are CC0 (KayKit + Quaternius — see `assets/ATTRIBUTIONS.json`). Regenerate these images by
-> re-running the catalog script after adding/removing monsters.
+![Skeleton Minion](skeleton-minion.png)
+![Skeleton Warrior](skeleton-warrior.png)
+
+The crossbowman reuses the retained KayKit skeleton rig with its own visible crossbow and animation. Approved Studio lineups show the [rat](../../asset-studio/catalogs/characters/beasts/rat/lineup.png) and [Warden](../../asset-studio/catalogs/characters/bosses/forsaken_warden/lineup.png). Skeleton models are KayKit CC0; Studio sources retain their own recorded provenance in [attributions](../../assets/ATTRIBUTIONS.json).
+
+The retired direct Quaternius gameplay roster and its images are removed. Studio art for future monsters remains available without automatically adding those monsters to encounters.

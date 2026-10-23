@@ -10,7 +10,7 @@ extends SceneTree
 #   .agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" \
 #     --script asset-studio/godot/render_catalog.gd -- <outdir> <res://indir>
 #
-# e.g. -- docs/monster-catalog res://assets/quaternius-monsters
+# e.g. -- docs/monster-catalog res://assets/kaykit-skeletons
 #
 var _models = []; var _i = 0; var _wait = 0; var _vp; var _holder
 

@@ -77,7 +77,7 @@ public class RealmEncounterTest
 		var boss = level.FindChildren("*", "", true, false).OfType<EnemyBase>()
 			.Single(e => e.GetMeta("persistent_id", "").AsString() == level.Encounters.GatekeeperId);
 		AssertFloat(boss.HealthComponent.CurrentHealth).IsEqual(110);
-		AssertString(boss.SceneFilePath).IsEqual("res://scenes/enemies/bosses/forsaken_warden.tscn");
+		AssertString(boss.SceneFilePath).IsEqual("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn");
 		var tree = level.GetTree();
 		Node previousScene = tree.CurrentScene;
 		tree.CurrentScene = runner.Scene();
@@ -108,10 +108,10 @@ public class RealmEncounterTest
 		AssertBool(animation.TryResolve("ranged", out var playback)).IsTrue();
 		AssertString(playback.Clip.ToString()).IsEqual("1H_Ranged_Shoot");
 		var behavior = actor.GetNode<EnemyBehaviorComponent>("EnemyBehaviorComponent").Profile;
-		AssertBool(behavior.RangedAttackDefinition.IsRanged).IsTrue();
-		AssertObject(behavior.RangedAttackDefinition.ProjectileScene).IsNotNull();
+		AssertBool(behavior.AttackStrategy.Attack.IsRanged).IsTrue();
+		AssertObject(behavior.AttackStrategy.Attack.ProjectileScene).IsNotNull();
 		var controller = actor.GetNode<AttackController>("AttackController");
-		AssertBool(controller.TryPrepareAttack(behavior.RangedAttackDefinition, "ranged", 1, out var attack)).IsTrue();
+		AssertBool(controller.TryPrepareAttack(behavior.AttackStrategy.Attack, "ranged", 1, out var attack)).IsTrue();
 		AssertBool(controller.StartAttack(attack, 3, 6, .9f, 0, 4)).IsTrue();
 		Node projectileParent = actor.GetTree().CurrentScene ?? actor.GetParent();
 		var before = projectileParent.GetChildren().OfType<Projectile>().ToHashSet();

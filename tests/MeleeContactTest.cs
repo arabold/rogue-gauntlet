@@ -441,8 +441,9 @@ public class MeleeContactTest
 	public void ProfileValidationAndMonsterEngagementUseTheSameReach()
 	{
 		using var contact = new MeleeAttackProfile { Reach = 2, EngagementMargin = .4f };
-		using var enemy = new EnemyBehaviorProfile { MeleeAttackRange = 8, MeleeContact = contact };
-		AssertFloat(enemy.EffectiveMeleeRange).IsEqualApprox(1.6, .0001);
+		using var attack = new AttackDefinition { MeleeContact = contact };
+		using var enemy = new MeleeAttackStrategy { EngagementDistance = 8, Attack = attack };
+		AssertFloat(enemy.EffectiveRange).IsEqualApprox(1.6, .0001);
 		contact.Reach = float.NaN;
 		AssertBool(contact.IsValid).IsFalse();
 	}

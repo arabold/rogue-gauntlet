@@ -35,7 +35,7 @@ Scripts are JSON arrays, ordered by `Frame` (physics-frame offset), retaining fi
 | Command | Arguments |
 | --- | --- |
 | `equip` | `Value`: weapon index, shown in the weapon selector |
-| `spawn` | `Value`: monster index (0 yeti, 1 skeleton, 2 Warden) |
+| `spawn` | `Value`: monster index (0 minion, 1 warrior, 2 Warden, 3 crossbowman, 4 rat) |
 | `defense` | `Value`: 0 disabled, 1 invulnerable, 2 profile, 3 forced dodge, 4 forced guard/parry |
 | `attack`, `secondary`, `monster_attack` | No arguments; same action ownership as gameplay |
 | `guard`, `release_guard` | Set or release the hero's held guard intention |

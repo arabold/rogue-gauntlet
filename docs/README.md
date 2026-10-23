@@ -17,7 +17,7 @@ These documents define world building, game mechanics, and feature designs that 
 | [Actor actions and world interactions](actor-actions-and-interactions.md) | Proposed coherent player/monster actions: keyboard/gamepad primary/secondary, elemental staff/learned-spell/mana rules, four item quick slots, timed interactions and defenses |
 | [Dungeon layout, access, and discovery](dungeon-exploration-design.md) | Realm room pools, floor recipes, required locations/routes/objectives, composed doors and locks, visible boss seals, and random generated secrets |
 | [Realms and monster design](realms-and-monster-design.md) | Sinking World, provisional realm order, floor cadence and first-realm encounter direction |
-| [Monster design and authoring](monster-authoring-design.md) | Agreed first-three-floor roster and policies; delivered minion/warrior definitions, editable melee assembly and editor validation |
+| [Monster design and authoring](monster-authoring-design.md) | Implemented five-monster roster, definitions and tactical policies; editable melee/projectile assemblies and editor validation |
 | [Character classes](character-classes.md) | Authored classes, starting gear, stat profiles, and model integration |
 | [Gameplay item catalog](item-catalog.md) | All active definitions, effect families, source budgets, and deferred tools/keys |
 
@@ -44,7 +44,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Item catalog completion](specs/item-catalog-plan.md) | Definition/effect audit, grouped loot, identity coverage, and validation |
 | [Item lifecycle program design](specs/item-lifecycle-plan.md) | Implemented milestone 1: Resource creation policies, runtime items, stacks, food, floor deltas, and a playable item playground |
 | [Actor actions and interactions](specs/actor-actions-and-interactions-plan.md) | Proposed shared action ownership, primary/secondary/quick-item separation, spell progression/mana, pickup auto-assignment, timed interactions, defense and actor rollout |
-| [Monster authoring and first-realm rollout](specs/monster-authoring-plan.md) | Slice 1 delivered: editable minion/warrior foundation. Remaining: ranged/retreat tactics, Studio rat/Warden integration and retirement of the old roster |
+| [Monster authoring and first-realm rollout](specs/monster-authoring-plan.md) | Roster and basic tactics delivered. Remaining: interactive authoring acceptance and three-floor balance/playtests |
 | [Combat integration](specs/combat-integration-plan.md) | Ownership, presentation, physics and harness integration contract; implemented |
 | [Game logging and log feed](specs/logging-plan.md) | Proposed Player/Internal/Debug log channels, colored in-game feed, console and JSONL sinks, CLI flags for QA/agents |
 | [Dungeon progression implementation plan](specs/level-progression-prototype-plan.md) | Remaining Garrison work: realm pools/recipe routes, composed access and persistence, optional locks, then generated secrets; existing encounter systems are reused |

@@ -20,13 +20,14 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, IStaggerable
 	[Export] public EnemyDefenseController DefenseController { get; set; }
 	[Export] public AttackController AttackController { get; set; }
 
+	[Export] public LargeActorFitComponent LargeActorFit { get; set; }
 	[Export] public MonsterDefinition Definition { get; set; }
 	public bool DefinitionValid { get; private set; } = true;
 
 	/// <summary>Initialize authored defaults before child readiness; never mutate the definition.</summary>
 	public override void _EnterTree()
 	{
-		if (Engine.IsEditorHint() || Definition == null) return;
+		if (Engine.IsEditorHint()) return;
 		var errors = MonsterSceneValidator.Validate(this);
 		DefinitionValid = errors.Length == 0;
 		if (!DefinitionValid)
@@ -54,27 +55,12 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, IStaggerable
 		if (Engine.IsEditorHint() || !DefinitionValid) return;
 		Pivot = GetNode<Node3D>("Pivot");
 		CollisionShape = GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
-		EnemyBehaviorComponent ??= GetNodeOrNull<EnemyBehaviorComponent>("EnemyBehaviorComponent");
-		MovementComponent ??= GetNodeOrNull<MovementComponent>("MovementComponent");
-		HealthComponent ??= GetNodeOrNull<HealthComponent>("HealthComponent");
-		HurtBoxComponent ??= GetNodeOrNull<HurtBoxComponent>("HurtBoxComponent");
 		HealthBar = GetNodeOrNull<FloatingHealthBar>("FloatingHealthBar");
-		DeathComponent ??= GetNodeOrNull<DeathComponent>("DeathComponent");
-		LootTableComponent ??= GetNodeOrNull<LootTableComponent>("LootTableComponent");
 
-		ActionGate ??= GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
-		if (ActionGate == null && Definition == null)
-		{
-			ActionGate = new ActorActionGateComponent { Name = "ActorActionGateComponent" };
-			AddChild(ActionGate);
-		}
-
-		if (Definition == null) MovementComponent.ActionGate = ActionGate;
 		HealthComponent.Died += () => ActionGate.Disable();
 
 		var levelSeed = this.GetAncestorOrNull<Level>()?.MapGenerator?.Seed ?? 42;
 		ConfigureCombatRandom(levelSeed, GetMeta("persistent_id", IsInsideTree() ? GetPath().ToString() : Name.ToString()).AsString());
-		if (Definition == null) ActionGate.AnimationComponent ??= GetNodeOrNull<CombatAnimationComponent>("CombatAnimationComponent");
 
 		// Hide the mesh until the animations are fully initialized to
 		// prevent any flickering

@@ -1,11 +1,11 @@
 {
   "key": "beasts/rat",
-  "inputs": "b89e83f04b7256ccfa94e6bf3429a88233251e7adaaa99931ce88b65221a09b0",
+  "inputs": "9e2ba4b56a5aaea27f63aeb0ee550eb1bdc6601e54f4c015322a265953b9ffd4",
   "files": {
     "model.glb": "3c5e0fc1a63fdcc87fcd19feaa3611b7daa0cfae9b4cff8722f5f7f6e11180f8",
     "lineup.png": "4433cff1258f3e7124f164c109ddfa8d410fc2f55e529222d42bb37956119928",
-    "lineup.gif": "29a65fed021bac7e22c6c75e79fa943483b441f3b0f8b961effd7c13c2952582",
-    "asset.json": "345fe41e54ed7686c0ab2e4579e105ddc2b43a83dd6932dad655e78e0f469d9a"
+    "lineup.gif": "baf5175792fa99b705f739a08752da2e477bce1234fa2cba9227ba76423b4c1f",
+    "asset.json": "7ae9415c7d156ebe2423f3830f6596f576a4754052eb112354037d0c46de3bfa"
   },
   "metadata": {
     "engine_import_verified": true

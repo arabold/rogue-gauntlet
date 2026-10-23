@@ -1,4 +1,4 @@
-[gd_scene load_steps=56 format=3]
+[gd_scene load_steps=55 format=3]
 
 [ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="b_1_j62no"]
 
@@ -26,7 +26,6 @@
 
 [ext_resource type="Script" path="res://scenes/attacks/MeleeHitDetector.cs" id="b_melee_detector_script"]
 
-[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/monster_default.tres" id="b_melee_default"]
 
 [ext_resource type="PackedScene" uid="uid://dx6rvie14m5bg" path="res://assets/kaykit-skeletons/Skeleton_Minion.glb" id="m_2_lb3ug"]
 
@@ -228,7 +227,6 @@ HealthComponent = NodePath("../HealthComponent")
 script = ExtResource("b_11_attack")
 AnimationComponent = NodePath("../CombatAnimationComponent")
 MeleeDetector = NodePath("../MeleeHitDetector")
-DefaultMeleeContact = ExtResource("b_melee_default")
 DefaultProjectileScene = ExtResource("b_13_projectile")
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor", "ActionGate") instance=ExtResource("b_4_qc6m8")]

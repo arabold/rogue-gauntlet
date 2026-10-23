@@ -6,7 +6,7 @@
 			"scale": "Real-world-ish, Y-up, ~1 Godot unit = 1 meter. Humanoids ~1.7-1.8u tall. Dungeon pieces snap to a 1-unit modular grid.",
 			"rig": "Shared KayKit humanoid skeleton; all KayKit characters reuse the KayKit Character Animations set.",
 			"texture": "A single shared palette PNG atlas per pack (e.g. *_texture.png); recoloring = remap UVs on the atlas, not per-mesh textures.",
-			"notes": "This is the project's primary 3D style. New 3D should join this group whenever possible — same-creator is the only hard guarantee that models blend."
+			"notes": "This is the project's primary 3D style. New 3D should join this group whenever possible \u2014 same-creator is the only hard guarantee that models blend."
 		},
 		"kenney-2d": {
 			"look": "Clean vector/flat UI and input-prompt iconography.",
@@ -19,11 +19,11 @@
 		"quaternius": {
 			"look": "Flat-shaded low-poly, cleaner/cartoonier than KayKit, single Atlas texture per model, slightly chunkier proportions.",
 			"scale": "Y-up, ~1 Godot unit = 1m, rigged humanoid armature (EnemyArmature/CharacterArmature) with its own animation set (Idle/Walk/Run/Attack/Death/HitReact).",
-			"notes": "A deliberate SECOND 3D style group, brought in for free CC0 animated monsters (KayKit has none free). Reads more cartoony than KayKit — acceptable for enemies, verified by in-engine side-by-side. Animation names differ per model; the enemy AnimationTree maps them per-monster."
+			"notes": "A deliberate SECOND 3D style group, brought in for free CC0 animated monsters (KayKit has none free). Reads more cartoony than KayKit \u2014 acceptable for enemies, verified by in-engine side-by-side. Animation names differ per model; the enemy AnimationTree maps them per-monster."
 		},
 		"unsorted": {
 			"look": "Not yet classified.",
-			"notes": "Triage required — assign a real group or document why it stands alone."
+			"notes": "Triage required \u2014 assign a real group or document why it stands alone."
 		}
 	},
 	"packs": [
@@ -155,29 +155,13 @@
 			],
 			"compatibility_group": "game-icons-net",
 			"acquired": "unknown (predates manifest)",
-			"notes": "ATTRIBUTION REQUIRED. Item/equipment SVG icons. Each icon has an individual author that must be credited in shipped builds. Per-icon authorship is not yet recorded here — needs backfill (see AGENTS.md)."
-		},
-		{
-			"id": "quaternius-monsters",
-			"name": "Quaternius low-poly animated monsters (via Poly Pizza)",
-			"dir": "assets/quaternius-monsters",
-			"author": "Quaternius",
-			"source": "https://poly.pizza/u/Quaternius",
-			"license": "CC0-1.0",
-			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-			"attribution_required": false,
-			"types": [
-				"3d"
-			],
-			"compatibility_group": "quaternius",
-			"acquired": "2026-06-28",
-			"notes": "Coherent CC0 monster set. Initial 7 fetched via the Poly Pizza channel (orc, blue-demon, ghost, yeti, slime-enemy, bat, spider; .glb). 10 more added from the locally-downloaded Quaternius 'Ultimate Monsters' pack (.gltf, self-contained base64): orc-skull, dino, demon, cactoro, mushroom-king, ghost-skull, dragon, squidle, spiky-blob, wizard. Wired as enemies under scenes/enemies/<creature>/ and registered in dungeon_mob_factory.tres. NOTES: Quaternius ships multiple visual sub-series; the textured-atlas EnemyArmature ones (goblin, zombie) clashed and were excluded. The .gltf imports use BARE clip names (Idle/Punch/...), the .glb exports use armature-prefixed names (CharacterArmature|Idle); rigs differ per body type. Each model's import sets loop_mode on its looping clips; each scene maps its own clip names. Scales are per-model starting points to be eyeballed; flyers (bat, ghost, ghost-skull, dragon, squidle) get a model Y-offset to hover (movement still ground-based). Catalog renders in docs/monster-catalog/."
+			"notes": "ATTRIBUTION REQUIRED. Item/equipment SVG icons. Each icon has an individual author that must be credited in shipped builds. Per-icon authorship is not yet recorded here \u2014 needs backfill (see AGENTS.md)."
 		},
 		{
 			"id": "ui",
 			"name": "UI background art (unverified)",
 			"dir": "assets/ui",
-			"author": "UNKNOWN — needs triage",
+			"author": "UNKNOWN \u2014 needs triage",
 			"source": "UNKNOWN",
 			"license": "UNKNOWN",
 			"license_url": "",
@@ -219,7 +203,7 @@
 			],
 			"compatibility_group": "kaykit",
 			"acquired": "2026-10-12",
-			"notes": "Monsters built from the scripted character kit (heads, bodies, garments, armor and accessories by script), one folder per family: goblin/goblin (0.74x), mage/necromancer, mage/dark_wizard, orc/orc_king, orc/orc_warrior, orc/orc_shaman, undead/mummy, undead/wraith, undead/ghoul (0.92x), undead/zombie_walker and demon/imp (0.68x). Each GLB is a drop-in on a copy of KayKit's Skeleton_Warrior.glb (its Rig, 41 joints and 95 clips) with only the meshes ours; weapons are the game's own items baked in at true size. Sources (recipes, concept drawings by Google gemini-3-pro-image over KayKit's CC0 mannequin, previews) live outside the Godot assets in asset-studio/characters/. The earlier reconstructed monsters (2026-10-12) were removed. Selected wolf and rat are credited CC0 derivatives under beasts/, with bound sources and provenance in asset-studio/characters/beasts/. Stone golem is procedural rigid geometry on the local large rig. Studio exports art and animation metadata only; gameplay definitions are separate."
+			"notes": "Monsters built from the scripted character kit (heads, bodies, garments, armor and accessories by script), one folder per family: goblin/goblin (0.74x), mage/necromancer, mage/dark_wizard, orc/orc_king, orc/orc_warrior, orc/orc_shaman, undead/mummy, undead/wraith, undead/ghoul (0.92x), undead/zombie_walker and demon/imp (0.68x). Each GLB is a drop-in on a copy of KayKit's Skeleton_Warrior.glb (its Rig, 41 joints and 95 clips) with only the meshes ours; weapons are the game's own items baked in at true size. Sources (recipes, concept drawings by Google gemini-3-pro-image over KayKit's CC0 mannequin, previews) live outside the Godot assets in asset-studio/characters/. The earlier reconstructed monsters (2026-10-12) were removed. Selected wolf and rat are credited CC0 derivatives under beasts/, with bound sources and provenance in asset-studio/characters/beasts/. Stone golem is procedural rigid geometry on the local large rig. Studio exports art and animation metadata only; gameplay definitions are separate. The retired direct Quaternius gameplay pack was removed; adopted CC0 creature sources, rigs and provenance remain in Asset Studio. The active first-realm roster uses Studio rat art and the Warden in its own forsaken_warden/ export folder."
 		},
 		{
 			"id": "custom-heroes",

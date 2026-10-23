@@ -13,7 +13,7 @@
     "Death": "Death_A"
   },
   "export": {
-    "glb": "res://assets/custom-monsters/bosses/forsaken_warden.glb"
+    "glb": "res://assets/custom-monsters/forsaken_warden/forsaken_warden.glb"
   },
   "colors": {
     "armor": [

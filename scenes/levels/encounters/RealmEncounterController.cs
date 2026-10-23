@@ -34,6 +34,14 @@ public partial class RealmEncounterController : Node
 				Modulate = new Color(1, .72f, .25f) };
 			exit.AddChild(_objective);
 		}
+		var bossErrors = MonsterSceneValidator.ValidateScene(definition.GatekeeperScene, out _);
+		if (bossErrors.Length > 0)
+		{
+			DescentUnlocked = false;
+			if (_objective != null) _objective.Text = "Invalid gatekeeper configuration — descent locked";
+			GD.PushError("Invalid gatekeeper scene: " + string.Join("; ", bossErrors));
+			return;
+		}
 		var marker = GatekeeperSpawnMarker.Find(level);
 		var pointForBoss = points.OrderBy(p => (marker?.GlobalPosition ?? exit?.GlobalPosition ?? Vector3.Zero)
 			.DistanceSquaredTo(p.GlobalPosition)).FirstOrDefault();
