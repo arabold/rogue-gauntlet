@@ -2,7 +2,7 @@
 
 Status: **proposed**. Covers statuses applied by attacks: monster attacks that poison the player (venomous bites, poisoned bolts) and player weapons that poison monsters. It builds on [combat actions and defense](../combat-system.md), [weapon attacks](../weapon-attack-system.md), [stats and itemization](../stats-and-itemization.md) and [monster design and authoring](../monster-authoring-design.md).
 
-**Prerequisite:** the status-condition foundation from [screen effect wiring](screen-effect-wiring-plan.md), slices 1 and 2: `StatusCondition`, `Buff.Condition`, and on `BuffController` the `ConditionGained`/`ConditionLost` signals, `HasCondition` and `ClearBuffs`. That work is implemented on its own branch and not yet merged here. This plan uses those contracts unchanged. Any buff carrying `poisoned.tres` already turns on the player's poison overlay, so poisoning the player needs no presentation work.
+**Prerequisite:** the status-condition foundation delivered by [screen effect wiring](screen-effect-wiring-plan.md): `StatusCondition` (identity is the external `.tres`, such as `scenes/buffs/conditions/poisoned.tres`), `Buff.Condition`, and on `BuffController` the `ConditionGained`/`ConditionLost` signals, `HasCondition` and `ClearBuffs`. Its current behavior is described in [stats and itemization](../stats-and-itemization.md#buffs-and-status-conditions) and [screen effects](../screen-effects.md). That work is implemented on its own branch and not yet merged here, so these links resolve only after the merge. This plan uses those contracts unchanged. Any buff carrying `poisoned.tres` already turns on the player's poison overlay, so poisoning the player needs no presentation work.
 
 ## Target behavior
 
@@ -330,7 +330,7 @@ Delivery is vertical: each slice ends with a status that can be played in the co
      - The editor acceptance exercise below.
    - Limitation: one tint at a time, chosen by list order. There are no HUD icons.
 
-No slice depends on a later one. Slice 3 needs the screen plan's condition signals; slices 1 and 2 only need `Buff.Condition` and `ClearBuffs` from it.
+No slice depends on a later one. Slice 3 needs the condition signals; slices 1 and 2 only need `Buff.Condition` and `ClearBuffs`.
 
 ## Tests
 
