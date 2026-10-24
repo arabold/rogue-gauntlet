@@ -19,8 +19,27 @@ public partial class GameSession : Node
 	public uint ActiveDungeonDepth { get; private set; } = 1;
 	public bool IsGameActive => ActiveSlotId > 0;
 
-	/// <summary>Per-run hidden-identity state for potions, scrolls, and similar items.</summary>
-	public IdentificationService Identification { get; } = new();
+	private readonly IdentificationService _identification = new();
+	private bool _identificationReady;
+
+	/// <summary>
+	/// Per-run hidden-identity state for potions, scrolls, and similar items. Starting or loading a run initializes
+	/// it; anything that plays without one (a scene run directly, or back at the menu) gets the default run's
+	/// disguises from <see cref="ActiveSeed"/> on first use, so the catalog never loads at boot.
+	/// </summary>
+	public IdentificationService Identification
+	{
+		get
+		{
+			if (!_identificationReady)
+			{
+				_identification.Initialize(ActiveSeed);
+				_identificationReady = true;
+			}
+
+			return _identification;
+		}
+	}
 
 	/// <summary>Id of the run's character class; empty when no game is active.</summary>
 	public string ActiveCharacterClassId { get; private set; } = "";
@@ -114,7 +133,8 @@ public partial class GameSession : Node
 		_pendingLoadedSave = null;
 		_saveAfterNextSpawn = true;
 		_lootRollsConsumed = 0;
-		Identification.Initialize(ActiveSeed);
+		_identification.Initialize(ActiveSeed);
+		_identificationReady = true;
 		ResolveCharacterClass(characterClassId);
 
 		// The hero knows their own supplies: class starting consumables are never disguised.
@@ -178,7 +198,8 @@ public partial class GameSession : Node
 		_saveAfterNextSpawn = false;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
 		_lootRollsConsumed = saveGame.LootRollsConsumed;
-		Identification.Initialize(ActiveSeed, saveGame.Identification?.IdentifiedTypeIds, BuildAssignmentMap(saveGame.Identification));
+		_identification.Initialize(ActiveSeed, saveGame.Identification?.IdentifiedTypeIds, BuildAssignmentMap(saveGame.Identification));
+		_identificationReady = true;
 		ResolveCharacterClass(saveGame.CharacterClassId);
 
 		GetTree().Paused = false;
@@ -512,6 +533,7 @@ public partial class GameSession : Node
 		_isSceneTransitioning = false;
 		_saveAfterNextSpawn = false;
 		_lootRollsConsumed = 0;
+		_identificationReady = false;
 	}
 
 	private double GetSessionElapsedSeconds()
@@ -738,7 +760,7 @@ public partial class GameSession : Node
 
 	private static void ApplyPlayerSave(Player player, PlayerSaveData saveData)
 	{
-		ClearBuffs(player);
+		player.BuffController.ClearBuffs();
 		ApplyInventory(player, saveData.Inventory);
 		ApplyActions(player, saveData.Actions);
 		ApplyStats(player.Stats, saveData.Stats);
@@ -848,17 +870,6 @@ public partial class GameSession : Node
 			inventory.Equip(entry, Enum.Parse<EquipmentSlot>(equipment.Slot));
 		}
 		inventory.EmitChanged();
-	}
-
-	private static void ClearBuffs(Player player)
-	{
-		foreach (ActiveBuff activeBuff in player.BuffController.ActiveBuffs.ToArray())
-		{
-			activeBuff.Deactivate();
-			player.BuffController.ActiveBuffs.Remove(activeBuff);
-			player.BuffController.RemoveChild(activeBuff);
-			activeBuff.QueueFree();
-		}
 	}
 
 	private static void ApplyStats(PlayerStats stats, PlayerStatsSaveData saveData)

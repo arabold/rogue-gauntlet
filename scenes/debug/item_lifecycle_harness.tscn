@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" path="res://scenes/items/lootable_item.tscn" id="3_pickup"]
 [ext_resource type="Resource" path="res://scenes/items/dungeon_item_policy.tres" id="4_policy"]
 [ext_resource type="Resource" path="res://scenes/items/food/food/food_apple_red.tres" id="5_food"]
-[ext_resource type="Resource" path="res://scenes/items/potions/healing_potion_small.tres" id="6_potion"]
+[ext_resource type="Resource" uid="uid://b0ek7egdqm8bc" path="res://scenes/items/potions/potion_healing_small.tres" id="6_potion"]
 [ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_enchant.tres" id="7_scroll"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring_strength.tres" id="8_ring"]
 [ext_resource type="Resource" path="res://scenes/items/armor/shield_common.tres" id="9_shield"]

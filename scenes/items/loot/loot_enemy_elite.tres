@@ -149,49 +149,27 @@
 [ext_resource type="Resource" uid="uid://b8iejsa6ebp34" path="res://scenes/items/food/food/food_meat_sausage.tres" id="item_144"]
 [ext_resource type="Resource" uid="uid://q88njg1bj4vx" path="res://scenes/items/food/food/food_meat_steak.tres" id="item_145"]
 [ext_resource type="Resource" uid="uid://dhp07xidg2xdn" path="res://scenes/items/food/food/food_pear_golden.tres" id="item_146"]
-[ext_resource type="Resource" uid="uid://dhasteptres01" path="res://scenes/items/potions/haste_potion.tres" id="item_147"]
-[ext_resource type="Resource" uid="uid://b7ama245i2u14" path="res://scenes/items/potions/healing_potion_large.tres" id="item_148"]
-[ext_resource type="Resource" uid="uid://b2vo50ixkurnb" path="res://scenes/items/potions/healing_potion_medium.tres" id="item_149"]
-[ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion_small.tres" id="item_150"]
-[ext_resource type="Resource" uid="uid://dpoisonptres1" path="res://scenes/items/potions/poison_potion.tres" id="item_151"]
-[ext_resource type="Resource" uid="uid://4ohp20o5delb" path="res://scenes/items/potions/potion_large/potion_large_cobalt.tres" id="item_152"]
-[ext_resource type="Resource" uid="uid://d0whsjng816at" path="res://scenes/items/potions/potion_large/potion_large_coral.tres" id="item_153"]
-[ext_resource type="Resource" uid="uid://b0fxsr0kyyrj" path="res://scenes/items/potions/potion_large/potion_large_crimson.tres" id="item_154"]
-[ext_resource type="Resource" uid="uid://co78kdxwl3mkl" path="res://scenes/items/potions/potion_large/potion_large_emerald.tres" id="item_155"]
-[ext_resource type="Resource" uid="uid://xj73wmdgmc80" path="res://scenes/items/potions/potion_large/potion_large_gold.tres" id="item_156"]
-[ext_resource type="Resource" uid="uid://53kf7d3dq32r" path="res://scenes/items/potions/potion_large/potion_large_lime.tres" id="item_157"]
-[ext_resource type="Resource" uid="uid://4cvgrmvj8eqy" path="res://scenes/items/potions/potion_large/potion_large_magenta.tres" id="item_158"]
-[ext_resource type="Resource" uid="uid://cwe4u5hwo1thh" path="res://scenes/items/potions/potion_large/potion_large_obsidian.tres" id="item_159"]
-[ext_resource type="Resource" uid="uid://btuyxpuqonbof" path="res://scenes/items/potions/potion_large/potion_large_orange.tres" id="item_160"]
-[ext_resource type="Resource" uid="uid://c0djfnxymv7kd" path="res://scenes/items/potions/potion_large/potion_large_purple.tres" id="item_161"]
-[ext_resource type="Resource" uid="uid://bnus1iqa5oi3l" path="res://scenes/items/potions/potion_large/potion_large_silver.tres" id="item_162"]
-[ext_resource type="Resource" uid="uid://8q4cv1eqh4p1" path="res://scenes/items/potions/potion_large/potion_large_teal.tres" id="item_163"]
-[ext_resource type="Resource" uid="uid://bn727iqn81vty" path="res://scenes/items/potions/potion_medium/potion_medium_cobalt.tres" id="item_164"]
-[ext_resource type="Resource" uid="uid://b654nacykbkfr" path="res://scenes/items/potions/potion_medium/potion_medium_coral.tres" id="item_165"]
-[ext_resource type="Resource" uid="uid://bcbnk0ocrjssw" path="res://scenes/items/potions/potion_medium/potion_medium_crimson.tres" id="item_166"]
-[ext_resource type="Resource" uid="uid://duc3by6sjh2hm" path="res://scenes/items/potions/potion_medium/potion_medium_emerald.tres" id="item_167"]
-[ext_resource type="Resource" uid="uid://b2n0lcbi0s1od" path="res://scenes/items/potions/potion_medium/potion_medium_gold.tres" id="item_168"]
-[ext_resource type="Resource" uid="uid://cdinobmw031rq" path="res://scenes/items/potions/potion_medium/potion_medium_lime.tres" id="item_169"]
-[ext_resource type="Resource" uid="uid://b5onjvyg2yp1b" path="res://scenes/items/potions/potion_medium/potion_medium_magenta.tres" id="item_170"]
-[ext_resource type="Resource" uid="uid://5hbcb0kygpqj" path="res://scenes/items/potions/potion_medium/potion_medium_obsidian.tres" id="item_171"]
-[ext_resource type="Resource" uid="uid://cciifhgm4l58t" path="res://scenes/items/potions/potion_medium/potion_medium_orange.tres" id="item_172"]
-[ext_resource type="Resource" uid="uid://dsyy4q24rthif" path="res://scenes/items/potions/potion_medium/potion_medium_purple.tres" id="item_173"]
-[ext_resource type="Resource" uid="uid://4gkjxlalxhlh" path="res://scenes/items/potions/potion_medium/potion_medium_silver.tres" id="item_174"]
-[ext_resource type="Resource" uid="uid://johotgd8nrjs" path="res://scenes/items/potions/potion_medium/potion_medium_teal.tres" id="item_175"]
-[ext_resource type="Resource" uid="uid://dnf4tucojxwjd" path="res://scenes/items/potions/potion_small/potion_small_cobalt.tres" id="item_176"]
-[ext_resource type="Resource" uid="uid://coud1vpojlt3v" path="res://scenes/items/potions/potion_small/potion_small_coral.tres" id="item_177"]
-[ext_resource type="Resource" uid="uid://b0ek7egdqm8bc" path="res://scenes/items/potions/potion_small/potion_small_crimson.tres" id="item_178"]
-[ext_resource type="Resource" uid="uid://7j3cpb6s1q1y" path="res://scenes/items/potions/potion_small/potion_small_emerald.tres" id="item_179"]
-[ext_resource type="Resource" uid="uid://b6m82alb7olic" path="res://scenes/items/potions/potion_small/potion_small_gold.tres" id="item_180"]
-[ext_resource type="Resource" uid="uid://cprqb4vspntu1" path="res://scenes/items/potions/potion_small/potion_small_lime.tres" id="item_181"]
-[ext_resource type="Resource" uid="uid://ba0n4ypxt32nj" path="res://scenes/items/potions/potion_small/potion_small_magenta.tres" id="item_182"]
-[ext_resource type="Resource" uid="uid://beihvhdjknaud" path="res://scenes/items/potions/potion_small/potion_small_obsidian.tres" id="item_183"]
-[ext_resource type="Resource" uid="uid://ddqh0ws61k85u" path="res://scenes/items/potions/potion_small/potion_small_orange.tres" id="item_184"]
-[ext_resource type="Resource" uid="uid://s56ddo74vavs" path="res://scenes/items/potions/potion_small/potion_small_purple.tres" id="item_185"]
-[ext_resource type="Resource" uid="uid://sy8mbgy3shxb" path="res://scenes/items/potions/potion_small/potion_small_silver.tres" id="item_186"]
-[ext_resource type="Resource" uid="uid://cd3g3doee44n8" path="res://scenes/items/potions/potion_small/potion_small_teal.tres" id="item_187"]
-[ext_resource type="Resource" uid="uid://dregenptres01" path="res://scenes/items/potions/regeneration_potion.tres" id="item_188"]
-[ext_resource type="Resource" uid="uid://dslowptres001" path="res://scenes/items/potions/slowness_potion.tres" id="item_189"]
+[ext_resource type="Resource" uid="uid://4ohp20o5delb" path="res://scenes/items/potions/potion_intelligence_large.tres" id="item_152"]
+[ext_resource type="Resource" uid="uid://d0whsjng816at" path="res://scenes/items/potions/potion_slowness_large.tres" id="item_153"]
+[ext_resource type="Resource" uid="uid://b0fxsr0kyyrj" path="res://scenes/items/potions/potion_healing_large.tres" id="item_154"]
+[ext_resource type="Resource" uid="uid://4cvgrmvj8eqy" path="res://scenes/items/potions/potion_dexterity_large.tres" id="item_158"]
+[ext_resource type="Resource" uid="uid://cwe4u5hwo1thh" path="res://scenes/items/potions/potion_poison_large.tres" id="item_159"]
+[ext_resource type="Resource" uid="uid://btuyxpuqonbof" path="res://scenes/items/potions/potion_vitality_large.tres" id="item_160"]
+[ext_resource type="Resource" uid="uid://c0djfnxymv7kd" path="res://scenes/items/potions/potion_strength_large.tres" id="item_161"]
+[ext_resource type="Resource" uid="uid://bn727iqn81vty" path="res://scenes/items/potions/potion_intelligence_medium.tres" id="item_164"]
+[ext_resource type="Resource" uid="uid://b654nacykbkfr" path="res://scenes/items/potions/potion_slowness_medium.tres" id="item_165"]
+[ext_resource type="Resource" uid="uid://bcbnk0ocrjssw" path="res://scenes/items/potions/potion_healing_medium.tres" id="item_166"]
+[ext_resource type="Resource" uid="uid://b5onjvyg2yp1b" path="res://scenes/items/potions/potion_dexterity_medium.tres" id="item_170"]
+[ext_resource type="Resource" uid="uid://5hbcb0kygpqj" path="res://scenes/items/potions/potion_poison_medium.tres" id="item_171"]
+[ext_resource type="Resource" uid="uid://cciifhgm4l58t" path="res://scenes/items/potions/potion_vitality_medium.tres" id="item_172"]
+[ext_resource type="Resource" uid="uid://dsyy4q24rthif" path="res://scenes/items/potions/potion_strength_medium.tres" id="item_173"]
+[ext_resource type="Resource" uid="uid://dnf4tucojxwjd" path="res://scenes/items/potions/potion_intelligence_small.tres" id="item_176"]
+[ext_resource type="Resource" uid="uid://coud1vpojlt3v" path="res://scenes/items/potions/potion_slowness_small.tres" id="item_177"]
+[ext_resource type="Resource" uid="uid://b0ek7egdqm8bc" path="res://scenes/items/potions/potion_healing_small.tres" id="item_178"]
+[ext_resource type="Resource" uid="uid://ba0n4ypxt32nj" path="res://scenes/items/potions/potion_dexterity_small.tres" id="item_182"]
+[ext_resource type="Resource" uid="uid://beihvhdjknaud" path="res://scenes/items/potions/potion_poison_small.tres" id="item_183"]
+[ext_resource type="Resource" uid="uid://ddqh0ws61k85u" path="res://scenes/items/potions/potion_vitality_small.tres" id="item_184"]
+[ext_resource type="Resource" uid="uid://s56ddo74vavs" path="res://scenes/items/potions/potion_strength_small.tres" id="item_185"]
 [ext_resource type="Resource" uid="uid://08tft1dkw8nf" path="res://scenes/items/scrolls/scroll/scroll_cobalt_raidho.tres" id="item_190"]
 [ext_resource type="Resource" uid="uid://ds8yih3e1mer8" path="res://scenes/items/scrolls/scroll/scroll_coral_sowilo.tres" id="item_191"]
 [ext_resource type="Resource" uid="uid://dm5r6t0urjlnv" path="res://scenes/items/scrolls/scroll/scroll_crimson_othala.tres" id="item_192"]
@@ -215,6 +193,12 @@
 [ext_resource type="Resource" uid="uid://dnxrasu67oe6k" path="res://scenes/items/gold/gold.tres" id="item_210"]
 [ext_resource type="Script" uid="uid://cikyvi0i1bfcu" path="res://scenes/components/LootTable.cs" id="table"]
 
+[ext_resource type="Resource" uid="uid://cpotionblindnesslarge" path="res://scenes/items/potions/potion_blindness_large.tres" id="potion_blindness_large"]
+[ext_resource type="Resource" uid="uid://cpotionconfusionlarge" path="res://scenes/items/potions/potion_confusion_large.tres" id="potion_confusion_large"]
+[ext_resource type="Resource" uid="uid://cpotionblindnessmedium" path="res://scenes/items/potions/potion_blindness_medium.tres" id="potion_blindness_medium"]
+[ext_resource type="Resource" uid="uid://cpotionconfusionmedium" path="res://scenes/items/potions/potion_confusion_medium.tres" id="potion_confusion_medium"]
+[ext_resource type="Resource" uid="uid://cpotionblindnesssmall" path="res://scenes/items/potions/potion_blindness_small.tres" id="potion_blindness_small"]
+[ext_resource type="Resource" uid="uid://cpotionconfusionsmall" path="res://scenes/items/potions/potion_confusion_small.tres" id="potion_confusion_small"]
 [sub_resource type="Resource" id="Entry_210"]
 script = ExtResource("entry")
 Item = ExtResource("item_210")
@@ -309,41 +293,6 @@ Weight = 10.0
 Items = [SubResource("Entry_135"), SubResource("Entry_136"), SubResource("Entry_137"), SubResource("Entry_138"), SubResource("Entry_139"), SubResource("Entry_140"), SubResource("Entry_141"), SubResource("Entry_142"), SubResource("Entry_143"), SubResource("Entry_144"), SubResource("Entry_145"), SubResource("Entry_146")]
 metadata/_custom_type_script = ExtResource("group")
 
-[sub_resource type="Resource" id="Entry_147"]
-script = ExtResource("entry")
-Item = ExtResource("item_147")
-MinDepth = 1
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_148"]
-script = ExtResource("entry")
-Weight = 3.0
-Item = ExtResource("item_148")
-MinDepth = 7
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_149"]
-script = ExtResource("entry")
-Weight = 3.0
-Item = ExtResource("item_149")
-MinDepth = 3
-MaxDepth = 9
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_150"]
-script = ExtResource("entry")
-Weight = 3.0
-Item = ExtResource("item_150")
-MinDepth = 1
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_151"]
-script = ExtResource("entry")
-Item = ExtResource("item_151")
-MinDepth = 1
-metadata/_custom_type_script = ExtResource("entry")
-
 [sub_resource type="Resource" id="Entry_152"]
 script = ExtResource("entry")
 Item = ExtResource("item_152")
@@ -360,24 +309,6 @@ metadata/_custom_type_script = ExtResource("entry")
 script = ExtResource("entry")
 Weight = 3.0
 Item = ExtResource("item_154")
-MinDepth = 7
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_155"]
-script = ExtResource("entry")
-Item = ExtResource("item_155")
-MinDepth = 7
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_156"]
-script = ExtResource("entry")
-Item = ExtResource("item_156")
-MinDepth = 7
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_157"]
-script = ExtResource("entry")
-Item = ExtResource("item_157")
 MinDepth = 7
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -405,18 +336,6 @@ Item = ExtResource("item_161")
 MinDepth = 7
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_162"]
-script = ExtResource("entry")
-Item = ExtResource("item_162")
-MinDepth = 7
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_163"]
-script = ExtResource("entry")
-Item = ExtResource("item_163")
-MinDepth = 7
-metadata/_custom_type_script = ExtResource("entry")
-
 [sub_resource type="Resource" id="Entry_164"]
 script = ExtResource("entry")
 Item = ExtResource("item_164")
@@ -435,27 +354,6 @@ metadata/_custom_type_script = ExtResource("entry")
 script = ExtResource("entry")
 Weight = 3.0
 Item = ExtResource("item_166")
-MinDepth = 3
-MaxDepth = 9
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_167"]
-script = ExtResource("entry")
-Item = ExtResource("item_167")
-MinDepth = 3
-MaxDepth = 9
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_168"]
-script = ExtResource("entry")
-Item = ExtResource("item_168")
-MinDepth = 3
-MaxDepth = 9
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_169"]
-script = ExtResource("entry")
-Item = ExtResource("item_169")
 MinDepth = 3
 MaxDepth = 9
 metadata/_custom_type_script = ExtResource("entry")
@@ -488,20 +386,6 @@ MinDepth = 3
 MaxDepth = 9
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_174"]
-script = ExtResource("entry")
-Item = ExtResource("item_174")
-MinDepth = 3
-MaxDepth = 9
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_175"]
-script = ExtResource("entry")
-Item = ExtResource("item_175")
-MinDepth = 3
-MaxDepth = 9
-metadata/_custom_type_script = ExtResource("entry")
-
 [sub_resource type="Resource" id="Entry_176"]
 script = ExtResource("entry")
 Item = ExtResource("item_176")
@@ -520,27 +404,6 @@ metadata/_custom_type_script = ExtResource("entry")
 script = ExtResource("entry")
 Weight = 3.0
 Item = ExtResource("item_178")
-MinDepth = 1
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_179"]
-script = ExtResource("entry")
-Item = ExtResource("item_179")
-MinDepth = 1
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_180"]
-script = ExtResource("entry")
-Item = ExtResource("item_180")
-MinDepth = 1
-MaxDepth = 5
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_181"]
-script = ExtResource("entry")
-Item = ExtResource("item_181")
 MinDepth = 1
 MaxDepth = 5
 metadata/_custom_type_script = ExtResource("entry")
@@ -573,37 +436,57 @@ MinDepth = 1
 MaxDepth = 5
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_186"]
+[sub_resource type="Resource" id="Entry_potion_blindness_large"]
 script = ExtResource("entry")
-Item = ExtResource("item_186")
+Weight = 3.0
+Item = ExtResource("potion_blindness_large")
+MinDepth = 7
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_potion_confusion_large"]
+script = ExtResource("entry")
+Weight = 3.0
+Item = ExtResource("potion_confusion_large")
+MinDepth = 7
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_potion_blindness_medium"]
+script = ExtResource("entry")
+Weight = 3.0
+Item = ExtResource("potion_blindness_medium")
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_potion_confusion_medium"]
+script = ExtResource("entry")
+Weight = 3.0
+Item = ExtResource("potion_confusion_medium")
+MinDepth = 3
+MaxDepth = 9
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_potion_blindness_small"]
+script = ExtResource("entry")
+Weight = 3.0
+Item = ExtResource("potion_blindness_small")
 MinDepth = 1
 MaxDepth = 5
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_187"]
+[sub_resource type="Resource" id="Entry_potion_confusion_small"]
 script = ExtResource("entry")
-Item = ExtResource("item_187")
+Weight = 3.0
+Item = ExtResource("potion_confusion_small")
 MinDepth = 1
 MaxDepth = 5
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_188"]
-script = ExtResource("entry")
-Item = ExtResource("item_188")
-MinDepth = 1
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_189"]
-script = ExtResource("entry")
-Item = ExtResource("item_189")
-MinDepth = 1
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Group_potions"]
 resource_name = "Potions"
 script = ExtResource("group")
 Weight = 15.0
-Items = [SubResource("Entry_147"), SubResource("Entry_148"), SubResource("Entry_149"), SubResource("Entry_150"), SubResource("Entry_151"), SubResource("Entry_152"), SubResource("Entry_153"), SubResource("Entry_154"), SubResource("Entry_155"), SubResource("Entry_156"), SubResource("Entry_157"), SubResource("Entry_158"), SubResource("Entry_159"), SubResource("Entry_160"), SubResource("Entry_161"), SubResource("Entry_162"), SubResource("Entry_163"), SubResource("Entry_164"), SubResource("Entry_165"), SubResource("Entry_166"), SubResource("Entry_167"), SubResource("Entry_168"), SubResource("Entry_169"), SubResource("Entry_170"), SubResource("Entry_171"), SubResource("Entry_172"), SubResource("Entry_173"), SubResource("Entry_174"), SubResource("Entry_175"), SubResource("Entry_176"), SubResource("Entry_177"), SubResource("Entry_178"), SubResource("Entry_179"), SubResource("Entry_180"), SubResource("Entry_181"), SubResource("Entry_182"), SubResource("Entry_183"), SubResource("Entry_184"), SubResource("Entry_185"), SubResource("Entry_186"), SubResource("Entry_187"), SubResource("Entry_188"), SubResource("Entry_189")]
+Items = [SubResource("Entry_152"), SubResource("Entry_153"), SubResource("Entry_154"), SubResource("Entry_158"), SubResource("Entry_159"), SubResource("Entry_160"), SubResource("Entry_161"), SubResource("Entry_164"), SubResource("Entry_165"), SubResource("Entry_166"), SubResource("Entry_170"), SubResource("Entry_171"), SubResource("Entry_172"), SubResource("Entry_173"), SubResource("Entry_176"), SubResource("Entry_177"), SubResource("Entry_178"), SubResource("Entry_182"), SubResource("Entry_183"), SubResource("Entry_184"), SubResource("Entry_185"), SubResource("Entry_potion_blindness_large"), SubResource("Entry_potion_confusion_large"), SubResource("Entry_potion_blindness_medium"), SubResource("Entry_potion_confusion_medium"), SubResource("Entry_potion_blindness_small"), SubResource("Entry_potion_confusion_small")]
 metadata/_custom_type_script = ExtResource("group")
 
 [sub_resource type="Resource" id="Entry_190"]

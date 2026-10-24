@@ -99,14 +99,9 @@ public partial class LootableItem : Node3D
 
 		Pivot = GetNode<Node3D>("Pivot");
 
-		// The item keeps its own model; only a per-run tint is applied when unidentified.
-		var itemScene = Item.Scene.Instantiate<Node>();
+		// Identifiable items show their type's run appearance model, identified or not.
+		var itemScene = ItemIdentity.ResolveScene(Item).Instantiate<Node>();
 		UpdateItemNodeProperties(itemScene);
-		Color? tint = ItemIdentity.ResolveTint(Item);
-		if (tint.HasValue)
-		{
-			ItemIdentity.ApplyTint(itemScene, tint.Value);
-		}
 
 		Pivot.AddChild(itemScene);
 		Pivot.RotateY((float)(GD.Randf() * 2 * Math.PI));

@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="StatusCondition" load_steps=2 format=3 uid="uid://cstatuspoisoned"]
+
+[ext_resource type="Script" uid="uid://b06jcqqcjmgqh" path="res://scenes/buffs/StatusCondition.cs" id="1_condition"]
+
+[resource]
+resource_name = "Poisoned"
+script = ExtResource("1_condition")
+metadata/_custom_type_script = ExtResource("1_condition")

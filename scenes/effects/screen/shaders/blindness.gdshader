@@ -28,7 +28,9 @@ void fragment() {
 	float wobble = 1.0 + edge_wobble * sin(angle * 5.0 + TIME * 1.3) * sin(angle * 3.0 - TIME * 0.7);
 
 	float radius = mix(2.0, sight_radius, intensity) * wobble;
-	float sight = 1.0 - smoothstep(radius * (1.0 - edge_softness), radius, length(offset));
+	// smoothstep is undefined when both edges meet (edge_softness or sight_radius at 0), so keep a minimal falloff.
+	float inner = radius * (1.0 - edge_softness);
+	float sight = 1.0 - smoothstep(inner, inner + max(radius * edge_softness, 0.001), length(offset));
 
 	vec3 blind = mix(scene, gray, intensity) * sight;
 	COLOR = vec4(blind, 1.0);

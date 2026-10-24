@@ -25,6 +25,13 @@ public partial class IdentifiableItem : BuffedItem, IIdentifiable
 	/// <summary>Unidentified label template; "{descriptor}" is replaced at runtime.</summary>
 	[Export] public string UnidentifiedNameTemplate { get; protected set => SetValue(ref field, value); } = "{descriptor} potion";
 
+	/// <summary>
+	/// Which model of the run's appearance this item shows: a potion's "small", "medium" or "large" bottle,
+	/// or "" for categories with one model per appearance. Size is a potion's strength, so every size of a
+	/// type shares the type's color.
+	/// </summary>
+	[Export] public string AppearanceForm { get; protected set => SetValue(ref field, value); } = "";
+
 	/// <summary>Whether this item participates in the identification system.</summary>
 	public bool HasIdentity => !string.IsNullOrEmpty(TypeId);
 }

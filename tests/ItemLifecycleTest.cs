@@ -13,7 +13,7 @@ using static GdUnit4.Assertions;
 public class ItemLifecycleTest
 {
 	private const string Apple = "res://scenes/items/food/food/food_apple_red.tres";
-	private const string Potion = "res://scenes/items/potions/healing_potion_small.tres";
+	private const string Potion = "res://scenes/items/potions/potion_healing_small.tres";
 	private const string Ring = "res://scenes/items/jewelry/ring_strength.tres";
 
 	[TestCase]
@@ -62,7 +62,7 @@ public class ItemLifecycleTest
 	{
 		var inventory = new Inventory { Capacity = 3 };
 		inventory.TryAdd(ItemFactory.Create(GD.Load<Item>(Potion)), 1);
-		inventory.TryAdd(ItemFactory.Create(GD.Load<Item>("res://scenes/items/potions/poison_potion.tres")), 1);
+		inventory.TryAdd(ItemFactory.Create(GD.Load<Item>("res://scenes/items/potions/potion_poison_small.tres")), 1);
 		AssertBool(inventory.TryMerge(inventory.Items[0], inventory.Items[1]).Success).IsFalse();
 		AssertInt(inventory.Items.Count).IsEqual(2);
 		var batch = ItemFactory.CreateBatch(GD.Load<Item>(Apple), 3);

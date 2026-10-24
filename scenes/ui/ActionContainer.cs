@@ -83,10 +83,9 @@ public partial class ActionContainer : PanelContainer
 	{
 		if (slotIndex == Slot)
 		{
-			// Tint disguised consumables so the action bar matches the inventory preview.
+			// The preview scene is already the run appearance model (see PlayerQuickItemController).
 			Item item = action?.AssignedAction as Item;
-			Color? tint = item != null ? ItemIdentity.ResolveTint(item) : null;
-			_preview.SetScene(action?.PreviewScene, tint);
+			_preview.SetScene(action?.PreviewScene);
 			bool isDepleted = action != null && action.AssignedAction != null && action.Quantity == 0;
 			if (_viewportContainer != null)
 			{

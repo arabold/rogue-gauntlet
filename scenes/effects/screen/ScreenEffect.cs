@@ -46,17 +46,12 @@ public partial class ScreenEffect : Control
 	}
 
 	/// <summary>Smoothly animates <see cref="Intensity"/> to <paramref name="target"/>, replacing any running fade.</summary>
-	public Tween FadeTo(float target, float duration)
+	public void FadeTo(float target, float duration)
 	{
 		_fade?.Kill();
 		_fade = CreateTween();
 		_fade.TweenProperty(this, PropertyName.Intensity.ToString(), Mathf.Clamp(target, 0f, 1f), Mathf.Max(duration, 0f));
-		return _fade;
 	}
-
-	public Tween FadeIn(float duration) => FadeTo(1f, duration);
-
-	public Tween FadeOut(float duration) => FadeTo(0f, duration);
 
 	private void ApplyIntensity()
 	{

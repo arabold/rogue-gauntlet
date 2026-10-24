@@ -6,8 +6,8 @@ Status: current-system documentation. Future ideas, where included, are proposal
 
 Rogue Gauntlet draws on the original *Rogue* for consumables: potions, scrolls,
 rings, and wands have a hidden identity. Each run randomly assigns every item
-**type** (e.g. "Healing", "Confusion") a disguising **appearance** (e.g. "fizzy
-crimson potion"). The player sees only the appearance until they discover the
+**type** (e.g. "Healing", "Confusion") a disguising **appearance**: a model and a
+name ("small crimson potion"). The player sees only the appearance until they discover the
 effect — by using the item, or later by reading a scroll of identify. Once a type
 is identified, every item of that type is shown by its true name for the rest of
 the run.
@@ -42,9 +42,9 @@ has been discovered.
 
 ## Core Types
 
-- `ItemAppearance` (Resource): one disguise — a `Descriptor` ("fizzy crimson") and a
-  `TintColor`. The item's own mesh is recolored with `TintColor` while unidentified,
-  which reads as a differently colored bottle without new art.
+- `ItemAppearance` (Resource): one disguise, made of a `Descriptor` ("crimson", "red wooden") and the
+  `Models` it is shown with, keyed by appearance form. Scrolls and jewelry have one model (form `""`).
+  Potions have one per size (`small`, `medium`, `large`). The model is the disguise.
 - `AppearancePool` (Resource): an ordered list of `ItemAppearance`s for one category
   ("potion", "scroll", "ring", "wand"). Authored once per category.
 - `IdentifiableItem` (Resource): base for any item with a hidden identity. Sits
@@ -52,7 +52,8 @@ has been discovered.
   - `TypeId`: stable identity key (e.g. `"potion.healing"`), independent of file path.
   - `IdentityCategory`: which `AppearancePool` to disguise with.
   - `TrueName`: shown once identified ("Potion of Healing").
-  - `UnidentifiedNameTemplate`: e.g. `"{descriptor} potion"`.
+  - `UnidentifiedNameTemplate`: e.g. `"small {descriptor} potion"`.
+  - `AppearanceForm`: which of the appearance's models this item shows, a potion's bottle size.
 - `IdentificationService`: per-run state owned by `GameSession`. Resolves
   appearances and tracks discovery.
 
@@ -76,7 +77,7 @@ category.
 - `IsIdentified(item)` / `Identify(typeId)`: read/record discovery (`Identify` returns
   true when the type was newly discovered).
 - `GetDisplayName(item)`: `TrueName` when identified, otherwise the templated
-  descriptor ("fizzy crimson potion").
+  descriptor ("small crimson potion").
 - `GetIdentifiedTypeIds()` / `GetAssignmentDescriptors()`: the discovered ids and the
   current type→descriptor assignment, for persistence.
 
@@ -91,46 +92,51 @@ and identifying one reveals the whole stack.
 ## Display Resolution
 
 UI and world pickups ask the service for presentation instead of reading the
-item's true `Name` directly. The guiding rule: **an item's model never changes — only
-its label does.** A potion is shown as its authored bottle, tinted with the per-run
-disguise colour, for the whole run; identifying it swaps the name from
-"inky black potion" to "Potion of Poison" but leaves the bottle exactly as it looked.
+item's true `Name` or `Scene` directly. The guiding rule: **an item looks like its type's
+run appearance for the whole run, identified or not; only its label changes.** Healing
+might be a crimson bottle this run and a cobalt one the next. Identifying a "small inky
+black potion" renames it "Small Potion of Poison" but leaves the bottle as it looked.
 
 - **Inventory / labels**: `ItemIdentity.ResolveDisplayName(item)` returns the disguised
   descriptor name until identified, then the true name. It surfaces as the item slot's
   hover tooltip and the title of the inventory context menu. When a type is discovered,
   `GameSession` emits `SignalBus.ItemIdentified`; each `ItemSlotPanel` listens and
-  relabels, so every stack of that type reveals at once. The model/tint is the same
+  relabels, so every stack of that type reveals at once. The model is the same
   either way.
-- **World + preview model**: an item keeps its own `Scene` (its bottle), and
-  `ItemIdentity.ResolveTint(item)` returns the per-run appearance `TintColor` — applied
-  whether or not the item is identified, by `LootableItem`/`Preview`. This keeps world,
-  inventory preview, and labels consistent.
-- **Tinting** (`ItemIdentity.ApplyTint`): the KayKit bottles are a single mesh sharing
-  one baked atlas material, so there is no separate "liquid" surface to recolor and a
-  flat-colour override would erase all surface detail. Instead a small spatial shader
-  (`item_tint.gdshader`) keeps the original albedo texture's luminance for light/dark
-  detail and multiplies in the disguise hue. It is assigned as a per-surface override,
-  leaving the `MaterialOverride`/`MaterialOverlay` slots free (the pickup highlight uses
-  the overlay).
+- **World, preview and action-bar model**: `ItemIdentity.ResolveScene(item)` returns the
+  run appearance's model for the item's `AppearanceForm`. `LootableItem`, `ItemSlotPanel`'s
+  `Preview`, the action bar (`PlayerQuickItemController` → `ActionContainer`) and
+  `BoneAttachmentManager` all show it, so world, inventory and labels stay consistent. A
+  definition's own `Scene` is only the fallback for the editor and for tools. It is always a
+  model no appearance uses, so a fallback never wears another type's disguise:
+  - potions use the silver bottle of their size;
+  - jewelry uses the generic `ring.tscn`/`amulet.tscn`;
+  - scrolls use the book model.
 
-### Shape vs colour: two independent channels
+  `ItemCatalogTest` enforces this.
+- **Running a scene directly**: `GameSession.Identification` initializes itself from the
+  default seed on first use when no run was started or loaded, so a directly run `main.tscn`
+  shows disguises exactly like a run started from the menu, and nothing loads at boot.
 
-- **Colour = per-run disguise.** Each type is assigned a random appearance tint at run
-  start (reset every run). The colour is deliberately *unrelated* to the effect — it is
-  pure disguise, the only thing the player learns to associate with an effect, and only
-  after identifying it.
-- **Shape = potency, authored via the bottle.** Bottles come in three sizes —
-  `bottle_A` (small), `bottle_B` (medium), `bottle_C` (large). A potion's `Scene`
-  simply uses the bottle that matches its strength, so silhouette hints at potency
-  without revealing the effect. Same-effect variants of different potency share one
-  `TypeId` (so they share the run colour) and differ only by bottle size and magnitude
-  — e.g. small/medium/large healing all show the same mystery colour in different
-  sizes. Potency is authored entirely in the scene/buff; there is no separate tier
-  field.
+### Model and size: two independent channels
 
-The bottle is tinted at runtime, so a single green base model yields every disguise
-colour; there is no separate "unknown" model and no model swap on identification.
+- **Model = per-run disguise.** Every category draws its appearances from Asset Studio
+  models:
+  - potions: 11 colors, each in three sizes (silver is the neutral fallback, never a disguise);
+  - scrolls: 12 color-and-rune models, paired with the NetHack-style labels;
+  - rings and amulets: 12 material-and-gem models each.
+
+  Each type gets a random appearance at run start. The model is deliberately *unrelated*
+  to the effect; it is the only thing the player learns to associate with an effect, and
+  only after identifying it. Jewelry material is part of that disguise, not the tier, so
+  a "red wooden amulet" can turn out to be an "Amulet of Strength". Jewelry true names
+  carry no material.
+- **Size = potency (potions only).** A potion type has small, medium and large
+  definitions that share one `TypeId`, so they share the run's color and differ only in
+  bottle size and magnitude. Potency is authored entirely in the buff; there is no
+  separate tier field.
+
+There is no separate "unknown" model and no model swap on identification.
 
 ## Save Schema
 
@@ -152,25 +158,26 @@ seed-derived deterministic shuffle remains as a baseline only for types not pres
 in the save (newly added content). Items already persist by `ResourcePath`; nothing
 about inventory saving changes.
 
-## Effects To Grow Into
+## Potion Effects
 
-Effects map onto the existing `Buff` model. A generic `StatModifierBuff` (a stat
-field plus a delta, applied on `OnApply` and reversed on `OnRemove`) covers most
-buff/debuff potions without a dedicated class each. Add dedicated buff classes only
-when behavior genuinely diverges.
+Potions follow Rogue and NetHack. Effects map onto the `Buff` model. A status with no
+behavior of its own is a plain `Buff` carrying a [status condition](stats-and-itemization.md#buffs-and-status-conditions),
+and the systems that care react to the condition. Add dedicated buff classes only when behavior
+genuinely diverges. Every type comes in small, medium and large, and size sets the strength.
 
 | Potion | Effect | Buff |
 | --- | --- | --- |
-| Healing (S/M/L) | restore health over time | `HealingBuff` (exists) |
-| Extra Healing | heal + raise max health | `HealingBuff` + `StatModifierBuff` |
-| Strength | permanent damage up | `StatModifierBuff` (Duration 0, exists) |
-| Haste Self | temporary speed up | `StatModifierBuff` (exists) |
-| Poison | damage over time (bad) | `PoisonBuff` (exists) |
-| Confusion | scramble input | `ConfusionBuff` (new) |
-| Blindness | reduce vision radius | `BlindnessBuff` (new) |
-| Levitation | ignore floor traps | `LevitationBuff` (new) |
-| Detect Monsters / Magic | reveal on minimap | instantaneous, via `SignalBus` |
-| Raise Level | grant XP | instantaneous |
+| Healing | heals over a few seconds; cures blindness | `HealingBuff` with `CuredConditions` |
+| Strength, Dexterity, Vitality, Intelligence | timed attribute boost | `StatModifierBuff` |
+| Poison | damage over time | `PoisonBuff` + `poisoned` |
+| Slowness | slows the whole game, monsters and hero alike | `TimeScaleBuff` (`TimeScaleComponent`) |
+| Blindness | vision closes to a circle around the hero | `Buff` + `blinded` (blindness screen effect) |
+| Confusion | movement staggers off course; faint poison overlay | `Buff` + `confused` (`ConfusionComponent`) |
+
+Not yet implemented:
+- Raise Level: XP accumulates, but nothing raises the character's level yet.
+- Hallucination: fake monsters popping in and out of existence.
+- Detect Monsters / Magic, See Invisible and Levitation: each needs its system first.
 
 Good and bad outcomes sharing the same disguise pool is what creates the
 risk/reward of drinking an unknown potion.
@@ -226,9 +233,9 @@ accepted cost of the sibling-branch split) and adds `IntrinsicModifiers` — a p
 `StatModifier[]` rather than a `Buff`, so two worn instances of the same ring type register
 their stat contributions under distinct item-instance sources and reverse independently on
 unequip. Rings use `ValidSlots = LeftRing | RightRing` (192); amulets use `Neck` (32). World
-models are authored primitives (`TorusMesh`/`SphereMesh` in `scenes/items/jewelry/`) since no
-ring/amulet art exists in the KayKit packs — untextured primitives still tint correctly via
-`ItemIdentity`'s flat-color fallback when a surface has no albedo texture.
+models come from the run appearance (the Asset Studio rings and amulets in
+`scenes/items/jewelry/ring/` and `amulet/`); the older primitive `ring.tscn`/`amulet.tscn` scenes
+are only definition fallbacks.
 
 Wearing jewelry identifies it for free: `GameSession` subscribes
 `SignalBus.ItemEquipped += (player, item) => IdentifyItemType(item)` in `_Ready`, so no
@@ -239,8 +246,8 @@ jewelry-specific wiring was needed beyond the existing consume-identifies-it hoo
 1. **Framework**: `ItemAppearance`, `AppearancePool`, `IdentifiableItem`, `IIdentifiable`,
    `IdentificationService`; save field (version bump); `GameSession.IdentifyItemType` wired to
    both `ItemConsumed` and `ItemEquipped`.
-2. **Potions**: `potion_appearances.tres`; healing/haste/poison/regeneration/slowness potions
-   carry a `TypeId`.
+2. **Potions**: `potion_appearances.tres` (11 colors × three sizes); nine types in three sizes
+   each (see [Potion Effects](#potion-effects)).
 3. **Scrolls**: `ScrollEffect`/`Scroll`, `scroll_appearances.tres` (gibberish titles),
    identify/enchant/teleport/summon effects, plus haste/protection/rage/weakness buff scrolls;
    the inventory targeting flow (`InventoryTargetRequest`, `InventoryPanel`,

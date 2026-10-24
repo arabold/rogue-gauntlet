@@ -10,6 +10,9 @@ public partial class Main : Node
 	private Node3D _pcam;
 	private Player _player;
 
+	/// <summary>Full-screen status overlays bound to the player when it spawns. Optional: unassigned means no screen effects.</summary>
+	[Export] public ScreenEffectsLayer ScreenEffects { get; set; }
+
 	public override void _Ready()
 	{
 		GD.Print("Main scene is ready");
@@ -36,6 +39,7 @@ public partial class Main : Node
 	{
 		GD.Print($"{player.Name} spawned. Setting camera target...");
 		_player = player;
+		ScreenEffects?.Bind(player);
 		CenterCameraOnPlayer();
 	}
 

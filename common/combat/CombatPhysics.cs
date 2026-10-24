@@ -2,6 +2,8 @@
 public static class CombatPhysics
 {
 	public const int Input = -60;
+	/// <summary>Status effects that distort raw input (e.g. confusion) before intent reads it.</summary>
+	public const int InputModifier = -55;
 	public const int Intent = -50;
 	public const int Defense = -40;
 	public const int Steering = -30;

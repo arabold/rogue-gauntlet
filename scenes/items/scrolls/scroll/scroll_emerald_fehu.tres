@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://tl6phiqa232t" path="res://scenes/items/scrolls/Scroll.cs" id="1_scroll"]
 [ext_resource type="Script" uid="uid://c4twbo4qk7arj" path="res://scenes/items/scrolls/IdentifyScrollEffect.cs" id="2_effect"]
-[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_emerald_fehu.tscn" id="3_scene"]
+[ext_resource type="PackedScene" uid="uid://fc5k4daomt7i" path="res://assets/kaykit-dungeon-legacy/bookA.gltf.glb" id="3_scene"]
 
 [sub_resource type="Resource" id="Resource_identify"]
 script = ExtResource("2_effect")
