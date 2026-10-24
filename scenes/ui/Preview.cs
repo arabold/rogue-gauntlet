@@ -9,7 +9,6 @@ public partial class Preview : SubViewport
 	private Node3D _pivot;
 	private Node3D _object;
 	private Camera3D _camera;
-	private Color? _tint;
 
 	public override void _Ready()
 	{
@@ -21,15 +20,13 @@ public partial class Preview : SubViewport
 
 	public void SetScene(PackedScene scene)
 	{
-		Scene = scene;
-		_tint = null;
-		Refresh();
-	}
+		// The preview depends only on the scene, so re-setting the shown one would just rebuild the same model.
+		if (scene == Scene && _object != null)
+		{
+			return;
+		}
 
-	public void SetScene(PackedScene scene, Color? tint)
-	{
 		Scene = scene;
-		_tint = tint;
 		Refresh();
 	}
 
@@ -85,20 +82,21 @@ public partial class Preview : SubViewport
 
 	public void Refresh()
 	{
+		// Before _Ready there is no camera; _Ready refreshes once it exists, so building now would only orphan a copy.
+		if (_camera == null)
+		{
+			return;
+		}
+
 		_pivot?.QueueFree();
 		_pivot = null;
 		_object = Scene?.Instantiate<Node3D>();
-		if (_object != null && _camera != null)
+		if (_object != null)
 		{
 			GD.Print($"Rendering preview for {_object.Name}");
 			_pivot = new Node3D();
 			AddChild(_pivot);
 			_pivot.AddChild(_object);
-			if (_tint.HasValue)
-			{
-				ItemIdentity.ApplyTint(_object, _tint.Value);
-			}
-
 			CenterObjectToCamera(_object, _pivot);
 		}
 	}

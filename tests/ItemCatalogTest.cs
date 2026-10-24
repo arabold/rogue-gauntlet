@@ -64,16 +64,28 @@ public class ItemCatalogTest
 	}
 
 	[TestCase]
-	public void EveryCustomExportHasItsOwnDefinitionAndInstantiableModelWrapper()
+	public void EveryCustomExportIsADisguiseOrADefinitionModelButNeverBoth()
 	{
-		_ = Definitions().ToArray();
+		var catalog = GD.Load<IdentityCatalog>("res://scenes/items/identity/identity_catalog.tres");
+		// Identity types show their run appearance model, so a model that is a disguise must belong to exactly one
+		// appearance and never be a definition's own fallback model, or that fallback would wear another type's look.
+		string[] appearanceModels = catalog.Categories
+			.SelectMany(category => category.AppearancePool.Appearances)
+			.SelectMany(appearance => appearance.Models.Values)
+			.Select(scene => scene.ResourcePath)
+			.ToArray();
+		var definitionModels = Definitions().Select(item => item.Scene.ResourcePath).ToHashSet();
 		foreach (string model in Paths("res://assets/custom-items", ".glb"))
 		{
-			string definitionPath = model.Replace("assets/custom-items", "scenes/items").Replace(".glb", ".tres");
-			AssertBool(ResourceLoader.Exists(definitionPath)).IsTrue();
-			Item item = GD.Load<Item>(definitionPath);
-			AssertString(item.Scene.ResourcePath).IsEqual(definitionPath.Replace(".tres", ".tscn"));
-			Node modelNode = item.Scene.Instantiate();
+			string wrapperPath = model.Replace("assets/custom-items", "scenes/items").Replace(".glb", ".tscn");
+			AssertBool(ResourceLoader.Exists(wrapperPath)).OverrideFailureMessage($"Missing wrapper {wrapperPath}").IsTrue();
+			int appearanceUses = appearanceModels.Count(path => path == wrapperPath);
+			bool definitionUse = definitionModels.Contains(wrapperPath);
+			AssertBool(appearanceUses == 1 ^ definitionUse)
+				.OverrideFailureMessage($"{wrapperPath}: {appearanceUses} appearances, definition model {definitionUse}").IsTrue();
+			AssertInt(appearanceUses).IsLessEqual(1);
+
+			Node modelNode = GD.Load<PackedScene>(wrapperPath).Instantiate();
 			AssertInt(modelNode.FindChildren("*", "MeshInstance3D", true, false).Count).IsGreater(0);
 			modelNode.Free();
 		}
@@ -124,9 +136,40 @@ public class ItemCatalogTest
 		}
 		foreach (var item in Definitions().OfType<IIdentifiable>().Where(item => item.HasIdentity))
 		{
-			AssertObject(service.GetAppearance(item)).IsNotNull();
+			ItemAppearance appearance = service.GetAppearance(item);
+			AssertObject(appearance).IsNotNull();
+			AssertObject(appearance.GetModel(item.AppearanceForm))
+				.OverrideFailureMessage($"{item.TypeId} has no '{item.AppearanceForm}' model in its appearance").IsNotNull();
 			AssertBool(service.GetDisplayName(item).Contains('{') || service.GetDisplayName(item).Contains('}')).IsFalse();
 		}
+	}
+
+	[TestCase]
+	public void EveryPotionTypeComesInThreeSizesSharingOneIdentity()
+	{
+		IdentifiableItem[] potions = Definitions().OfType<IdentifiableItem>()
+			.Where(item => item.ResourcePath.StartsWith("res://scenes/items/potions/", StringComparison.Ordinal))
+			.ToArray();
+		AssertInt(potions.Length).IsEqual(27);
+		foreach (var family in potions.GroupBy(potion => potion.TypeId))
+		{
+			AssertArray(family.Select(potion => potion.AppearanceForm).OrderBy(form => form).ToArray())
+				.OverrideFailureMessage($"{family.Key} sizes").ContainsExactly("large", "medium", "small");
+		}
+	}
+
+	[TestCase]
+	public void EveryAuthoredPoisonCarriesThePoisonedCondition()
+	{
+		// A poison source authored without the condition would poison the player without the overlay.
+		var poisoned = GD.Load<StatusCondition>("res://scenes/buffs/conditions/poisoned.tres");
+		Item[] items = Definitions().ToArray();
+		Buff[] poisons = items.OfType<BuffedItem>().Select(item => item.Buff)
+			.Concat(items.OfType<FoodItem>().Select(item => (Buff)item.PoisonEffect))
+			.Where(buff => buff is PoisonBuff)
+			.ToArray();
+		AssertInt(poisons.Length).IsGreaterEqual(4);
+		AssertBool(poisons.All(buff => buff.Condition == poisoned)).IsTrue();
 	}
 
 	[TestCase]

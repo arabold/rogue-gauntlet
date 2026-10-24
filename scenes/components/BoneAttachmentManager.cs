@@ -198,7 +198,7 @@ public partial class BoneAttachmentManager : Node
 			}
 
 			GD.Print($"Adding attachment {item.Name} to {attachmentType}");
-			var itemAttachment = item.Scene.Instantiate<Node>();
+			var itemAttachment = ItemIdentity.ResolveScene(item).Instantiate<Node>();
 			itemAttachment.SetMeta(EquippedMetaKey, true);
 			ApplyRenderLayers(itemAttachment, CharacterModel.PlayerRenderLayers);
 			if (item is Weapon { Grip: not null } equippedWeapon)

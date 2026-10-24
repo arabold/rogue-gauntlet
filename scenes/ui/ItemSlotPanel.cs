@@ -91,7 +91,7 @@ public partial class ItemSlotPanel : PanelContainer
 
 	private void OnItemIdentified(string typeId)
 	{
-		// Cheap to refresh unconditionally; only the matching type changes name/tint.
+		// Cheap to refresh unconditionally; only the matching type's name changes (its model stays the same).
 		Update();
 	}
 
@@ -117,7 +117,7 @@ public partial class ItemSlotPanel : PanelContainer
 
 		if (Slot != null && Slot.Item != null)
 		{
-			preview.SetScene(Slot.Item.Scene, ItemIdentity.ResolveTint(Slot.Item));
+			preview.SetScene(ItemIdentity.ResolveScene(Slot.Item));
 			// Plain text is the fallback; the rich hover tooltip is built by ItemSlotButton.
 			button.Item = Slot.Item;
 			button.TooltipText = ItemIdentity.ResolveDisplayName(Slot.Item);

@@ -25,9 +25,14 @@ public partial class BlindnessScreenEffect : ScreenEffect
 
 	public override void _Process(double delta)
 	{
+		if (!Visible)
+		{
+			return;
+		}
+
 		ShaderMaterial material = EffectMaterial;
 		Camera3D camera = GetViewport().GetCamera3D();
-		if (!Visible || material == null || camera == null || !IsInstanceValid(Focus))
+		if (material == null || camera == null || !IsInstanceValid(Focus))
 		{
 			return;
 		}

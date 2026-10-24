@@ -34,7 +34,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Weapon attacks](weapon-attack-system.md) | Existing weapon and attack behavior |
 | [Combat actions and defense](combat-system.md) | Shared action ownership, dodge, guard/parry, stagger, RNG and persistence |
 | [Combat harness and traces](combat-harness.md) | Interactive/scripted combat, JSONL event schema, capture flags and analyzer |
-| [Screen effects](screen-effects.md) | Blindness/poison/near-death post-process overlays, their gameplay wiring through health and status conditions, and the debug harness |
+| [Screen effects](screen-effects.md) | Blindness/poison/near-death post-process overlays, their gameplay wiring through health and status conditions (including confusion and slowness), and the debug harness |
 
 ## Program designs
 
@@ -48,7 +48,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Monster authoring and first-realm rollout](specs/monster-authoring-plan.md) | Roster and basic tactics delivered. Remaining: interactive authoring acceptance and three-floor balance/playtests |
 | [Combat integration](specs/combat-integration-plan.md) | Ownership, presentation, physics and harness integration contract; implemented |
 | [Game logging and log feed](specs/logging-plan.md) | Proposed Player/Internal/Debug log channels, colored in-game feed, console and JSONL sinks, CLI flags for QA/agents |
-| [Screen effect wiring](specs/screen-effect-wiring-plan.md) | Near-death and poison wiring and status conditions implemented. Remaining: blindness via a Potion of Blindness |
+| [Potion catalog and model appearances](specs/potion-catalog-plan.md) | Implemented: per-run model appearances replace tint for every identity category; Rogue/NetHack potion set with blindness, confusion and slowness. Deferred: Raise Level, Hallucination, detection potions |
 | [Dungeon progression implementation plan](specs/level-progression-prototype-plan.md) | Remaining Garrison work: realm pools/recipe routes, composed access and persistence, optional locks, then generated secrets; existing encounter systems are reused |
 
 Use the repository's [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial implementation planning. Plans link to current-system documentation instead of redescribing unchanged functionality. As work lands, update the system document and mark verified plan/roadmap outcomes; keep remaining proposals explicit.

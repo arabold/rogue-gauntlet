@@ -1,81 +1,108 @@
-[gd_resource type="Resource" script_class="AppearancePool" load_steps=15 format=3 uid="uid://dpotionapprs1"]
+[gd_resource type="Resource" script_class="AppearancePool" load_steps=47 format=3 uid="uid://dpotionapprs1"]
 
 [ext_resource type="Script" uid="uid://cappearpool01" path="res://scenes/items/identity/AppearancePool.cs" id="1_pool"]
 [ext_resource type="Script" uid="uid://citemappear01" path="res://scenes/items/identity/ItemAppearance.cs" id="2_appr"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_crimson.tscn" id="m1"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_medium/potion_medium_crimson.tscn" id="m2"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_crimson.tscn" id="m3"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_emerald.tscn" id="m4"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_medium/potion_medium_emerald.tscn" id="m5"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_emerald.tscn" id="m6"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_lime.tscn" id="m7"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_medium/potion_medium_lime.tscn" id="m8"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_lime.tscn" id="m9"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_obsidian.tscn" id="m10"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_medium/potion_medium_obsidian.tscn" id="m11"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_obsidian.tscn" id="m12"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_coral.tscn" id="m13"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_medium/potion_medium_coral.tscn" id="m14"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_coral.tscn" id="m15"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_purple.tscn" id="m16"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_medium/potion_medium_purple.tscn" id="m17"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_purple.tscn" id="m18"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_magenta.tscn" id="m19"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_medium/potion_medium_magenta.tscn" id="m20"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_magenta.tscn" id="m21"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_orange.tscn" id="m22"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_medium/potion_medium_orange.tscn" id="m23"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_orange.tscn" id="m24"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_cobalt.tscn" id="m25"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_medium/potion_medium_cobalt.tscn" id="m26"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_cobalt.tscn" id="m27"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_gold.tscn" id="m28"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_medium/potion_medium_gold.tscn" id="m29"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_gold.tscn" id="m30"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_teal.tscn" id="m31"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_medium/potion_medium_teal.tscn" id="m32"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_teal.tscn" id="m33"]
 
 [sub_resource type="Resource" id="Appearance_crimson"]
 script = ExtResource("2_appr")
-Descriptor = "fizzy crimson"
-TintColor = Color(0.78, 0.12, 0.12, 1)
+Descriptor = "crimson"
+Models = Dictionary[String, PackedScene]({"small": ExtResource("m1"), "medium": ExtResource("m2"), "large": ExtResource("m3")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_green"]
+[sub_resource type="Resource" id="Appearance_emerald"]
 script = ExtResource("2_appr")
-Descriptor = "murky green"
-TintColor = Color(0.27, 0.45, 0.18, 1)
+Descriptor = "emerald"
+Models = Dictionary[String, PackedScene]({"small": ExtResource("m4"), "medium": ExtResource("m5"), "large": ExtResource("m6")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_azure"]
+[sub_resource type="Resource" id="Appearance_lime"]
 script = ExtResource("2_appr")
-Descriptor = "cloudy azure"
-TintColor = Color(0.2, 0.45, 0.85, 1)
+Descriptor = "lime green"
+Models = Dictionary[String, PackedScene]({"small": ExtResource("m7"), "medium": ExtResource("m8"), "large": ExtResource("m9")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_golden"]
-script = ExtResource("2_appr")
-Descriptor = "golden"
-TintColor = Color(0.92, 0.78, 0.2, 1)
-metadata/_custom_type_script = ExtResource("2_appr")
-
-[sub_resource type="Resource" id="Appearance_violet"]
-script = ExtResource("2_appr")
-Descriptor = "dusky violet"
-TintColor = Color(0.5, 0.25, 0.7, 1)
-metadata/_custom_type_script = ExtResource("2_appr")
-
-[sub_resource type="Resource" id="Appearance_milky"]
-script = ExtResource("2_appr")
-Descriptor = "milky white"
-TintColor = Color(0.92, 0.92, 0.95, 1)
-metadata/_custom_type_script = ExtResource("2_appr")
-
-[sub_resource type="Resource" id="Appearance_inky"]
+[sub_resource type="Resource" id="Appearance_obsidian"]
 script = ExtResource("2_appr")
 Descriptor = "inky black"
-TintColor = Color(0.12, 0.12, 0.14, 1)
+Models = Dictionary[String, PackedScene]({"small": ExtResource("m10"), "medium": ExtResource("m11"), "large": ExtResource("m12")})
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_coral"]
+script = ExtResource("2_appr")
+Descriptor = "coral"
+Models = Dictionary[String, PackedScene]({"small": ExtResource("m13"), "medium": ExtResource("m14"), "large": ExtResource("m15")})
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_purple"]
+script = ExtResource("2_appr")
+Descriptor = "purple"
+Models = Dictionary[String, PackedScene]({"small": ExtResource("m16"), "medium": ExtResource("m17"), "large": ExtResource("m18")})
+metadata/_custom_type_script = ExtResource("2_appr")
+
+[sub_resource type="Resource" id="Appearance_magenta"]
+script = ExtResource("2_appr")
+Descriptor = "magenta"
+Models = Dictionary[String, PackedScene]({"small": ExtResource("m19"), "medium": ExtResource("m20"), "large": ExtResource("m21")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_orange"]
 script = ExtResource("2_appr")
-Descriptor = "bubbling orange"
-TintColor = Color(0.95, 0.5, 0.12, 1)
+Descriptor = "orange"
+Models = Dictionary[String, PackedScene]({"small": ExtResource("m22"), "medium": ExtResource("m23"), "large": ExtResource("m24")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_catalog_0"]
+[sub_resource type="Resource" id="Appearance_cobalt"]
 script = ExtResource("2_appr")
-Descriptor = "iridescent"
-TintColor = Color(0.300, 0.650, 0.450, 1)
+Descriptor = "cobalt blue"
+Models = Dictionary[String, PackedScene]({"small": ExtResource("m25"), "medium": ExtResource("m26"), "large": ExtResource("m27")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_catalog_1"]
+[sub_resource type="Resource" id="Appearance_gold"]
 script = ExtResource("2_appr")
-Descriptor = "smoky"
-TintColor = Color(0.345, 0.625, 0.485, 1)
+Descriptor = "golden"
+Models = Dictionary[String, PackedScene]({"small": ExtResource("m28"), "medium": ExtResource("m29"), "large": ExtResource("m30")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_catalog_2"]
+[sub_resource type="Resource" id="Appearance_teal"]
 script = ExtResource("2_appr")
-Descriptor = "speckled"
-TintColor = Color(0.390, 0.600, 0.520, 1)
-metadata/_custom_type_script = ExtResource("2_appr")
-
-[sub_resource type="Resource" id="Appearance_catalog_3"]
-script = ExtResource("2_appr")
-Descriptor = "opalescent"
-TintColor = Color(0.435, 0.575, 0.555, 1)
+Descriptor = "teal"
+Models = Dictionary[String, PackedScene]({"small": ExtResource("m31"), "medium": ExtResource("m32"), "large": ExtResource("m33")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [resource]
 script = ExtResource("1_pool")
-Appearances = Array[ItemAppearance]([SubResource("Appearance_crimson"), SubResource("Appearance_green"), SubResource("Appearance_azure"), SubResource("Appearance_golden"), SubResource("Appearance_violet"), SubResource("Appearance_milky"), SubResource("Appearance_inky"), SubResource("Appearance_orange"), SubResource("Appearance_catalog_0"), SubResource("Appearance_catalog_1"), SubResource("Appearance_catalog_2"), SubResource("Appearance_catalog_3")])
+Appearances = [SubResource("Appearance_crimson"), SubResource("Appearance_emerald"), SubResource("Appearance_lime"), SubResource("Appearance_obsidian"), SubResource("Appearance_coral"), SubResource("Appearance_purple"), SubResource("Appearance_magenta"), SubResource("Appearance_orange"), SubResource("Appearance_cobalt"), SubResource("Appearance_gold"), SubResource("Appearance_teal")]
 metadata/_custom_type_script = ExtResource("1_pool")

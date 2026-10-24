@@ -33,7 +33,7 @@ public partial class QuickItemTest
 		AssertObject(actionManager.PrimaryAttackSlot.AssignedAction).IsEqual(axe);
 		AssertObject(((MartialTechniqueAction)actionManager.SecondaryTechniqueSlot.AssignedAction).Weapon).IsEqual(axe);
 
-		var potion = GD.Load<ConsumableItem>("res://scenes/items/potions/healing_potion_small.tres");
+		var potion = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
 		for (int i = 0; i < 4; i++)
 		{
 			actionManager.AssignAction(i, potion, null);
@@ -61,7 +61,7 @@ public partial class QuickItemTest
 		var inventory = new Inventory { Capacity = 10 };
 		var quick = new PlayerQuickItemController { Inventory = inventory };
 
-		var potion1 = GD.Load<ConsumableItem>("res://scenes/items/potions/healing_potion_small.tres");
+		var potion1 = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
 		inventory.TryAdd(potion1, 1);
 		var carried1 = inventory.Items.First(e => e.Item.DefinitionPath == potion1.DefinitionPath).Item;
 		quick.OnItemAcquired(carried1, 1);
@@ -71,7 +71,7 @@ public partial class QuickItemTest
 		AssertInt(quick.GetSlotCount(0)).IsEqual(1);
 		AssertInt((int)quick.GetBinding(1).Kind).IsEqual((int)QuickItemBindingKind.Unassigned);
 
-		var potion2 = GD.Load<ConsumableItem>("res://scenes/items/potions/haste_potion.tres");
+		var potion2 = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_strength_small.tres");
 		inventory.TryAdd(potion2, 1);
 		var carried2 = inventory.Items.First(e => e.Item.DefinitionPath == potion2.DefinitionPath).Item;
 		quick.OnItemAcquired(carried2, 1);
@@ -87,7 +87,7 @@ public partial class QuickItemTest
 		var inventory = new Inventory { Capacity = 10 };
 		var quick = new PlayerQuickItemController { Inventory = inventory };
 
-		var potion = GD.Load<ConsumableItem>("res://scenes/items/potions/healing_potion_small.tres");
+		var potion = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
 		inventory.TryAdd(potion, 1);
 		var carried = inventory.Items.First(e => e.Item.DefinitionPath == potion.DefinitionPath).Item;
 		quick.OnItemAcquired(carried, 1);
@@ -110,10 +110,10 @@ public partial class QuickItemTest
 
 		string[] paths = new[]
 		{
-			"res://scenes/items/potions/healing_potion_small.tres",
-			"res://scenes/items/potions/healing_potion_medium.tres",
-			"res://scenes/items/potions/healing_potion_large.tres",
-			"res://scenes/items/potions/haste_potion.tres"
+			"res://scenes/items/potions/potion_healing_small.tres",
+			"res://scenes/items/potions/potion_healing_medium.tres",
+			"res://scenes/items/potions/potion_healing_large.tres",
+			"res://scenes/items/potions/potion_strength_small.tres"
 		};
 
 		for (int i = 0; i < 4; i++)
@@ -131,7 +131,7 @@ public partial class QuickItemTest
 		}
 
 		// 5th item
-		var extra = GD.Load<ConsumableItem>("res://scenes/items/potions/regeneration_potion.tres");
+		var extra = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_dexterity_small.tres");
 		inventory.TryAdd(extra, 1);
 		var carriedExtra = inventory.Items.First(e => e.Item.DefinitionPath == extra.ResourcePath).Item;
 		quick.OnItemAcquired(carriedExtra, 1);
@@ -146,7 +146,7 @@ public partial class QuickItemTest
 		var inventory = new Inventory { Capacity = 10 };
 		var quick = new PlayerQuickItemController { Inventory = inventory };
 
-		var potion = GD.Load<ConsumableItem>("res://scenes/items/potions/healing_potion_small.tres");
+		var potion = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
 		inventory.TryAdd(potion, 1);
 		var carried = inventory.Items.First(e => e.Item.DefinitionPath == potion.DefinitionPath).Item;
 		quick.OnItemAcquired(carried, 1);
@@ -158,7 +158,7 @@ public partial class QuickItemTest
 		AssertBool(quick.GetBinding(0).IsAssigned).IsTrue();
 
 		// Pickup a new item; it must NOT overwrite slot 0, but instead go to slot 1
-		var manaPotion = GD.Load<ConsumableItem>("res://scenes/items/potions/haste_potion.tres");
+		var manaPotion = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_strength_small.tres");
 		inventory.TryAdd(manaPotion, 1);
 		var carriedMana = inventory.Items.First(e => e.Item.DefinitionPath == manaPotion.DefinitionPath).Item;
 		quick.OnItemAcquired(carriedMana, 1);
@@ -219,7 +219,7 @@ public partial class QuickItemTest
 	[TestCase]
 	public void StackableItemsDisplayCountIncludingZeroAndOne()
 	{
-		var potion = GD.Load<ConsumableItem>("res://scenes/items/potions/healing_potion_small.tres");
+		var potion = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
 		var food = GD.Load<Item>("res://scenes/items/food/food/food_apple_red.tres");
 
 		AssertBool(potion.CanStack).IsTrue();
@@ -278,15 +278,15 @@ public partial class QuickItemTest
 	{
 		var quick = new PlayerQuickItemController();
 
-		AssertBool(quick.TryAssignVariety(0, "res://scenes/items/potions/healing_potion_small.tres")).IsTrue();
+		AssertBool(quick.TryAssignVariety(0, "res://scenes/items/potions/potion_healing_small.tres")).IsTrue();
 		// Reassigning same variety to slot 1 is rejected
-		AssertBool(quick.TryAssignVariety(1, "res://scenes/items/potions/healing_potion_small.tres")).IsFalse();
+		AssertBool(quick.TryAssignVariety(1, "res://scenes/items/potions/potion_healing_small.tres")).IsFalse();
 		AssertBool(quick.GetBinding(1).IsAssigned).IsFalse();
 
 		// Swap slots
 		quick.SwapSlots(0, 2);
 		AssertBool(quick.GetBinding(0).IsAssigned).IsFalse();
-		AssertString(quick.GetBinding(2).DefinitionPath).IsEqual("res://scenes/items/potions/healing_potion_small.tres");
+		AssertString(quick.GetBinding(2).DefinitionPath).IsEqual("res://scenes/items/potions/potion_healing_small.tres");
 
 		// Clear slot
 		quick.ClearSlot(2);
@@ -297,27 +297,27 @@ public partial class QuickItemTest
 	public void VarietyCooldownPersistsAcrossSlotChanges()
 	{
 		var quick = new PlayerQuickItemController();
-		quick.TryAssignVariety(0, "res://scenes/items/potions/healing_potion_small.tres");
+		quick.TryAssignVariety(0, "res://scenes/items/potions/potion_healing_small.tres");
 
-		quick.StartVarietyCooldown("res://scenes/items/potions/healing_potion_small.tres", 5.0f);
-		AssertBool(quick.IsVarietyOnCooldown("res://scenes/items/potions/healing_potion_small.tres")).IsTrue();
+		quick.StartVarietyCooldown("res://scenes/items/potions/potion_healing_small.tres", 5.0f);
+		AssertBool(quick.IsVarietyOnCooldown("res://scenes/items/potions/potion_healing_small.tres")).IsTrue();
 
 		// Move or clear slot: cooldown remains running on the variety
 		quick.ClearSlot(0);
-		AssertBool(quick.IsVarietyOnCooldown("res://scenes/items/potions/healing_potion_small.tres")).IsTrue();
+		AssertBool(quick.IsVarietyOnCooldown("res://scenes/items/potions/potion_healing_small.tres")).IsTrue();
 
 		// Reassigning to another slot still sees running cooldown
-		quick.TryAssignVariety(3, "res://scenes/items/potions/healing_potion_small.tres");
-		AssertBool(quick.IsVarietyOnCooldown("res://scenes/items/potions/healing_potion_small.tres")).IsTrue();
+		quick.TryAssignVariety(3, "res://scenes/items/potions/potion_healing_small.tres");
+		AssertBool(quick.IsVarietyOnCooldown("res://scenes/items/potions/potion_healing_small.tres")).IsTrue();
 	}
 
 	[TestCase]
 	public void SaveRestoreRoundTripPreservesBindingsAndCooldowns()
 	{
 		var quick = new PlayerQuickItemController();
-		quick.TryAssignVariety(0, "res://scenes/items/potions/healing_potion_small.tres");
+		quick.TryAssignVariety(0, "res://scenes/items/potions/potion_healing_small.tres");
 		quick.TryAssignInstance(1, "instance_123", "res://scenes/items/food/food/food_apple_red.tres");
-		quick.StartVarietyCooldown("res://scenes/items/potions/healing_potion_small.tres", 3.5f);
+		quick.StartVarietyCooldown("res://scenes/items/potions/potion_healing_small.tres", 3.5f);
 
 		var save = new PlayerActionSaveData();
 		for (int i = 0; i < 4; i++)
@@ -351,11 +351,11 @@ public partial class QuickItemTest
 		restoredQuick.IsRestoringSave = false;
 
 		AssertInt((int)restoredQuick.GetBinding(0).Kind).IsEqual((int)QuickItemBindingKind.Variety);
-		AssertString(restoredQuick.GetBinding(0).DefinitionPath).IsEqual("res://scenes/items/potions/healing_potion_small.tres");
+		AssertString(restoredQuick.GetBinding(0).DefinitionPath).IsEqual("res://scenes/items/potions/potion_healing_small.tres");
 		AssertInt((int)restoredQuick.GetBinding(1).Kind).IsEqual((int)QuickItemBindingKind.Instance);
 		AssertString(restoredQuick.GetBinding(1).InstanceId).IsEqual("instance_123");
 		AssertInt((int)restoredQuick.GetBinding(2).Kind).IsEqual((int)QuickItemBindingKind.Unassigned);
-		AssertBool(restoredQuick.IsVarietyOnCooldown("res://scenes/items/potions/healing_potion_small.tres")).IsTrue();
+		AssertBool(restoredQuick.IsVarietyOnCooldown("res://scenes/items/potions/potion_healing_small.tres")).IsTrue();
 	}
 
 	private class TestAttackAction : ICombatAttackAction

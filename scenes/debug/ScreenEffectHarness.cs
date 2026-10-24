@@ -5,8 +5,8 @@ using Godot.Collections;
 /// Debug harness for screen effects: runs the real gameplay scene (generated level, player, monsters), whose
 /// <c>Main</c> binds the player to its screen-effects layer, and adds a panel to drive each effect.
 /// Number keys 1–9 fade the matching effect in or out; sliders set intensity directly. The health slider sets
-/// the player's real health, and the buff buttons apply real buffs, so the health and status drivers are
-/// exercised end to end.
+/// the player's real health, and the potion buttons apply the real potions' buffs, so the health and status
+/// drivers and the status components (confusion, slowness) are exercised end to end.
 /// </summary>
 public partial class ScreenEffectHarness : Node
 {
@@ -19,8 +19,8 @@ public partial class ScreenEffectHarness : Node
 	/// <summary>Effects listed in the panel, in key order.</summary>
 	[Export] public Array<ScreenEffect> Effects { get; set; } = [];
 
-	/// <summary>Buffs the panel can apply to the player, e.g. a poison carrying the poisoned condition.</summary>
-	[Export] public Array<Buff> StatusBuffs { get; set; } = [];
+	/// <summary>Potions whose buffs the panel can apply to the player, e.g. poison, blindness and slowness.</summary>
+	[Export] public Array<BuffedItem> Potions { get; set; } = [];
 
 	/// <summary>Container the harness fills with controls.</summary>
 	[Export] public Container Controls { get; set; }
@@ -116,10 +116,10 @@ public partial class ScreenEffectHarness : Node
 
 	private void BuildBuffRows()
 	{
-		foreach (Buff buff in StatusBuffs)
+		foreach (BuffedItem potion in Potions)
 		{
-			var apply = new Button { Text = $"Apply {buff.Name}", FocusMode = Control.FocusModeEnum.None };
-			apply.Pressed += () => _player.ApplyBuff(buff);
+			var apply = new Button { Text = $"Apply {potion.Buff.Name}", FocusMode = Control.FocusModeEnum.None };
+			apply.Pressed += () => _player.ApplyBuff(potion.Buff);
 			Controls.AddChild(apply);
 		}
 

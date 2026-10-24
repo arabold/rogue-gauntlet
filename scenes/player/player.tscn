@@ -1,4 +1,4 @@
-[gd_scene load_steps=85 format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=88 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
@@ -42,6 +42,9 @@
 
 [ext_resource type="Script" path="res://scenes/actions/ActorCapabilities.cs" id="capabilities_script"]
 [ext_resource type="Resource" path="res://scenes/combat/definitions/weapon_guard.tres" id="innate_guard"]
+[ext_resource type="Script" path="res://scenes/player/TimeScaleComponent.cs" id="time_scale_script"]
+[ext_resource type="Script" path="res://scenes/player/ConfusionComponent.cs" id="confusion_script"]
+[ext_resource type="Resource" uid="uid://cstatusconfused" path="res://scenes/buffs/conditions/confused.tres" id="confused_condition"]
 
 [sub_resource type="Resource" id="player_capabilities"]
 script = ExtResource("capabilities_script")
@@ -480,6 +483,16 @@ player = NodePath("..")
 [node name="BuffController" type="Node" parent="." node_paths=PackedStringArray("Player")]
 script = ExtResource("12_t4bx0")
 Player = NodePath("..")
+
+[node name="TimeScaleComponent" type="Node" parent="." node_paths=PackedStringArray("Buffs")]
+script = ExtResource("time_scale_script")
+Buffs = NodePath("../BuffController")
+
+[node name="ConfusionComponent" type="Node" parent="." node_paths=PackedStringArray("Input", "Buffs")]
+script = ExtResource("confusion_script")
+Input = NodePath("../InputComponent")
+Buffs = NodePath("../BuffController")
+Condition = ExtResource("confused_condition")
 
 [node name="PlayerInteractionController" type="Node" parent="." node_paths=PackedStringArray("Player", "InteractionArea")]
 script = ExtResource("13_0dcb4")

@@ -1,4 +1,5 @@
 using Godot;
+using System;
 
 /// <summary>
 /// Drives a <see cref="ScreenEffect"/> from a <see cref="HealthComponent"/>: the effect stays off while the
@@ -9,6 +10,8 @@ using Godot;
 public partial class HealthScreenEffectDriver : Node
 {
 	private HealthComponent _health;
+	private Action _unsubscribe = () => { };
+	private float _target;
 
 	/// <summary>Effect to drive. Required.</summary>
 	[Export] public ScreenEffect Effect { get; set; }
@@ -28,11 +31,10 @@ public partial class HealthScreenEffectDriver : Node
 				return;
 			}
 
-			Unsubscribe();
 			_health = value;
 			if (IsInsideTree())
 			{
-				Subscribe();
+				Bind();
 			}
 		}
 	}
@@ -51,26 +53,16 @@ public partial class HealthScreenEffectDriver : Node
 		}
 	}
 
-	public override void _EnterTree() => Subscribe();
+	public override void _EnterTree() => Bind();
 
-	public override void _ExitTree() => Unsubscribe();
-
-	private void Subscribe()
+	/// <summary>Replaces the observed health's subscription (released automatically when leaving the tree) and syncs.</summary>
+	private void Bind()
 	{
-		if (!IsInstanceValid(_health))
-		{
-			return;
-		}
-
-		_health.HealthChanged += OnHealthChanged;
-		OnHealthChanged(_health.CurrentHealth, _health.MaxHealth);
-	}
-
-	private void Unsubscribe()
-	{
+		_unsubscribe();
+		_unsubscribe = this.SubscribeUntilExit(_health, health => health.HealthChanged += OnHealthChanged, health => health.HealthChanged -= OnHealthChanged);
 		if (IsInstanceValid(_health))
 		{
-			_health.HealthChanged -= OnHealthChanged;
+			OnHealthChanged(_health.CurrentHealth, _health.MaxHealth);
 		}
 	}
 
@@ -82,7 +74,15 @@ public partial class HealthScreenEffectDriver : Node
 		}
 
 		float fraction = Mathf.Clamp(currentHealth / maxHealth, 0f, 1f);
-		float intensity = 1f - Mathf.Clamp(fraction / Threshold, 0f, 1f);
-		Effect.FadeTo(intensity, ResponseTime);
+		float target = 1f - Mathf.Clamp(fraction / Threshold, 0f, 1f);
+
+		// An unchanged target (e.g. every hit while healthy) keeps any running fade instead of restarting it.
+		if (Mathf.IsEqualApprox(target, _target))
+		{
+			return;
+		}
+
+		_target = target;
+		Effect.FadeTo(target, ResponseTime);
 	}
 }

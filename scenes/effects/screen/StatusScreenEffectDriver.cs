@@ -1,21 +1,29 @@
 using Godot;
+using Godot.Collections;
+using System;
 
 /// <summary>
-/// Drives a <see cref="ScreenEffect"/> from one <see cref="StatusCondition"/> on a <see cref="BuffController"/>:
-/// the effect fades in while any active buff carries the condition and fades out once the last one ends.
-/// Status sources only apply buffs; they never touch effects. Each status with a screen effect gets its own
-/// driver in <c>screen_effects.tscn</c>.
+/// Drives a <see cref="ScreenEffect"/> from <see cref="StatusCondition"/>s on a <see cref="BuffController"/>.
+/// Each listed condition shows the effect at its own intensity, and the effect follows the strongest
+/// active one: the poison overlay plays fully while poisoned and faintly while only confused. Status
+/// sources only apply buffs; they never touch effects. Each effect that reacts to statuses gets its
+/// own driver in <c>screen_effects.tscn</c>.
 /// </summary>
 [GlobalClass]
 public partial class StatusScreenEffectDriver : Node
 {
 	private BuffController _buffs;
+	private Action _unsubscribe = () => { };
+	private float _target;
 
 	/// <summary>Effect to drive. Required.</summary>
 	[Export] public ScreenEffect Effect { get; set; }
 
-	/// <summary>Condition that shows the effect. Required; reference the shared condition <c>.tres</c>.</summary>
-	[Export] public StatusCondition Condition { get; set; }
+	/// <summary>
+	/// Condition → effect intensity while that condition is active. Required; reference the shared
+	/// condition <c>.tres</c> files.
+	/// </summary>
+	[Export] public Dictionary<StatusCondition, float> Conditions { get; set; } = [];
 
 	/// <summary>
 	/// Observed buffs. Runtime context, normally assigned by <see cref="ScreenEffectsLayer.Bind"/> once the player
@@ -32,19 +40,18 @@ public partial class StatusScreenEffectDriver : Node
 				return;
 			}
 
-			Unsubscribe();
 			_buffs = value;
 			if (IsInsideTree())
 			{
-				Subscribe();
+				Bind();
 			}
 		}
 	}
 
-	/// <summary>Seconds to fade in when the condition starts.</summary>
+	/// <summary>Seconds to fade in when a condition starts or a stronger one takes over.</summary>
 	[Export(PropertyHint.Range, "0,3,0.05,suffix:s")] public float FadeInTime { get; set; } = 0.5f;
 
-	/// <summary>Seconds to fade out after the condition ends, so recovery reads gradually.</summary>
+	/// <summary>Seconds to fade down after a condition ends, so recovery reads gradually.</summary>
 	[Export(PropertyHint.Range, "0,5,0.05,suffix:s")] public float FadeOutTime { get; set; } = 1.5f;
 
 	public override void _Ready()
@@ -54,57 +61,44 @@ public partial class StatusScreenEffectDriver : Node
 			GD.PushError($"{Name}: {nameof(StatusScreenEffectDriver)} requires an {nameof(Effect)}.");
 		}
 
-		if (Condition == null)
+		if (Conditions.Count == 0)
 		{
-			GD.PushError($"{Name}: {nameof(StatusScreenEffectDriver)} requires a {nameof(Condition)}.");
+			GD.PushError($"{Name}: {nameof(StatusScreenEffectDriver)} requires at least one entry in {nameof(Conditions)}.");
 		}
 	}
 
-	public override void _EnterTree() => Subscribe();
+	public override void _EnterTree() => Bind();
 
-	public override void _ExitTree() => Unsubscribe();
-
-	private void Subscribe()
+	/// <summary>Replaces the observed controller's subscription (released automatically when leaving the tree) and syncs.</summary>
+	private void Bind()
 	{
+		_unsubscribe();
+		_unsubscribe = this.SubscribeUntilExit(_buffs, buffs => buffs.BuffsChanged += Sync, buffs => buffs.BuffsChanged -= Sync);
+		Sync();
+	}
+
+	/// <summary>Fades the effect toward the intensity of the strongest active condition (0 when none).</summary>
+	private void Sync()
+	{
+		float target = 0f;
 		if (IsInstanceValid(_buffs))
 		{
-			_buffs.ConditionGained += OnConditionGained;
-			_buffs.ConditionLost += OnConditionLost;
-			SetActive(_buffs.HasCondition(Condition));
+			foreach ((StatusCondition condition, float intensity) in Conditions)
+			{
+				if (_buffs.HasCondition(condition))
+				{
+					target = Mathf.Max(target, intensity);
+				}
+			}
 		}
-		else if (Effect != null && Effect.Intensity > 0f)
-		{
-			SetActive(false);
-		}
-	}
 
-	private void Unsubscribe()
-	{
-		if (IsInstanceValid(_buffs))
+		// An unchanged target keeps any fade already heading there instead of restarting it.
+		if (Effect == null || Mathf.IsEqualApprox(target, _target))
 		{
-			_buffs.ConditionGained -= OnConditionGained;
-			_buffs.ConditionLost -= OnConditionLost;
+			return;
 		}
-	}
 
-	private void OnConditionGained(StatusCondition condition)
-	{
-		if (condition == Condition)
-		{
-			SetActive(true);
-		}
-	}
-
-	private void OnConditionLost(StatusCondition condition)
-	{
-		if (condition == Condition)
-		{
-			SetActive(false);
-		}
-	}
-
-	private void SetActive(bool active)
-	{
-		Effect?.FadeTo(active ? 1f : 0f, active ? FadeInTime : FadeOutTime);
+		Effect.FadeTo(target, target > _target ? FadeInTime : FadeOutTime);
+		_target = target;
 	}
 }

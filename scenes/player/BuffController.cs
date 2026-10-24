@@ -1,27 +1,18 @@
 using Godot;
 using Godot.Collections;
+using System;
 using System.Linq;
 
 /// <summary>
-/// Owns runtime buff instances applied to a player and tracks the <see cref="StatusCondition"/>s they impose.
-/// A condition is active while at least one active buff carries it, so overlapping sources (poisoned food
-/// followed by a poison potion) report one continuous condition.
+/// Owns runtime buff instances applied to a player. A buff may impose a <see cref="StatusCondition"/>; the
+/// condition is active while at least one active buff carries it, so overlapping sources (poisoned food
+/// followed by a poison potion) read as one continuous condition. Observers re-read what they need on
+/// <see cref="BuffsChanged"/>.
 /// </summary>
 public partial class BuffController : Node
 {
-	/// <summary>
-	/// Fired when the first active buff carrying <paramref name="condition"/> is applied, after its
-	/// <see cref="Buff.OnApply"/> ran, so <see cref="HasCondition"/> is already true in handlers.
-	/// </summary>
-	[Signal] public delegate void ConditionGainedEventHandler(StatusCondition condition);
-
-	/// <summary>
-	/// Fired when the last active buff carrying <paramref name="condition"/> expires or is removed, after its
-	/// <see cref="Buff.OnRemove"/> ran, so <see cref="HasCondition"/> is already false in handlers.
-	/// </summary>
-	[Signal] public delegate void ConditionLostEventHandler(StatusCondition condition);
-
-	private readonly System.Collections.Generic.Dictionary<StatusCondition, int> _conditionCounts = [];
+	/// <summary>Fired once after buffs were applied, removed, expired or cleared.</summary>
+	[Signal] public delegate void BuffsChangedEventHandler();
 
 	[Export] public Player Player { get; set; }
 
@@ -34,28 +25,29 @@ public partial class BuffController : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		for (int i = ActiveBuffs.Count - 1; i >= 0; i--)
+		if (RemoveWhere(active => active.IsExpired))
 		{
-			if (ActiveBuffs[i].IsExpired)
-				RemoveActiveBuff(ActiveBuffs[i]);
+			EmitSignalBuffsChanged();
 		}
 	}
 
 	/// <summary>Whether any active buff currently imposes <paramref name="condition"/>.</summary>
 	public bool HasCondition(StatusCondition condition)
 	{
-		return condition != null && _conditionCounts.ContainsKey(condition);
+		return condition != null && ActiveBuffs.Any(active => active.Buff.Condition == condition);
 	}
 
+	/// <summary>Applies <paramref name="buff"/>, first ending the conditions it cures (e.g. healing ends blindness).</summary>
 	public void ApplyBuff(Buff buff)
 	{
 		GD.Print($"{Player?.Name ?? Name} applied buff {buff.Name}");
+		RemoveWhere(active => active.Buff.Condition != null && buff.CuredConditions.Contains(active.Buff.Condition));
 		var activeBuff = new ActiveBuff();
 		activeBuff.Initialize(Player, buff);
 		ActiveBuffs.Add(activeBuff);
 
 		AddChild(activeBuff);
-		AcquireCondition(buff.Condition);
+		EmitSignalBuffsChanged();
 	}
 
 	public void RemoveBuff(Buff buff)
@@ -64,60 +56,42 @@ public partial class BuffController : Node
 		if (activeBuff != null)
 		{
 			GD.Print($"{Player?.Name ?? Name} removed buff {buff.Name}");
-			RemoveActiveBuff(activeBuff);
+			RemoveWhere(active => active == activeBuff);
+			EmitSignalBuffsChanged();
+		}
+	}
+
+	/// <summary>Removes every active buff, reversing each exactly once, e.g. before a saved player state is restored.</summary>
+	public void ClearBuffs()
+	{
+		if (RemoveWhere(_ => true))
+		{
+			EmitSignalBuffsChanged();
 		}
 	}
 
 	/// <summary>
-	/// Removes every active buff, reversing each exactly once and reporting each condition that ends, e.g. before
-	/// a saved player state is restored.
+	/// Reverses and frees every active buff matching <paramref name="predicate"/>. Callers emit
+	/// <see cref="BuffsChanged"/> once afterwards, so observers see one change per operation.
 	/// </summary>
-	public void ClearBuffs()
+	private bool RemoveWhere(Func<ActiveBuff, bool> predicate)
 	{
+		bool removed = false;
 		for (int i = ActiveBuffs.Count - 1; i >= 0; i--)
 		{
-			RemoveActiveBuff(ActiveBuffs[i]);
-		}
-	}
+			ActiveBuff activeBuff = ActiveBuffs[i];
+			if (!predicate(activeBuff))
+			{
+				continue;
+			}
 
-	private void RemoveActiveBuff(ActiveBuff activeBuff)
-	{
-		activeBuff.Deactivate();
-		ActiveBuffs.Remove(activeBuff);
-		RemoveChild(activeBuff);
-		activeBuff.QueueFree();
-		ReleaseCondition(activeBuff.Buff.Condition);
-	}
-
-	private void AcquireCondition(StatusCondition condition)
-	{
-		if (condition == null)
-		{
-			return;
+			activeBuff.Deactivate();
+			ActiveBuffs.RemoveAt(i);
+			RemoveChild(activeBuff);
+			activeBuff.QueueFree();
+			removed = true;
 		}
 
-		_conditionCounts.TryGetValue(condition, out int count);
-		_conditionCounts[condition] = count + 1;
-		if (count == 0)
-		{
-			EmitSignalConditionGained(condition);
-		}
-	}
-
-	private void ReleaseCondition(StatusCondition condition)
-	{
-		if (condition == null || !_conditionCounts.TryGetValue(condition, out int count))
-		{
-			return;
-		}
-
-		if (count > 1)
-		{
-			_conditionCounts[condition] = count - 1;
-			return;
-		}
-
-		_conditionCounts.Remove(condition);
-		EmitSignalConditionLost(condition);
+		return removed;
 	}
 }

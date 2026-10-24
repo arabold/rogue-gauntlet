@@ -12,5 +12,7 @@ public interface IIdentifiable
 	string IdentityCategory { get; }
 	string TrueName { get; }
 	string UnidentifiedNameTemplate { get; }
+	/// <summary>Which of the appearance's models this item shows, e.g. a potion's bottle size; "" for one model.</summary>
+	string AppearanceForm { get; }
 	bool HasIdentity { get; }
 }

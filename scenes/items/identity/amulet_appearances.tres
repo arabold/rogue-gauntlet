@@ -1,81 +1,93 @@
-[gd_resource type="Resource" script_class="AppearancePool" load_steps=15 format=3]
+[gd_resource type="Resource" script_class="AppearancePool" load_steps=27 format=3]
 
 [ext_resource type="Script" uid="uid://cappearpool01" path="res://scenes/items/identity/AppearancePool.cs" id="1_pool"]
 [ext_resource type="Script" uid="uid://citemappear01" path="res://scenes/items/identity/ItemAppearance.cs" id="2_appr"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_gold_emerald.tscn" id="m1"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_gold_ruby.tscn" id="m2"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_gold_sun_crest.tscn" id="m3"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_gold_topaz.tscn" id="m4"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_silver_amethyst.tscn" id="m5"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_silver_onyx.tscn" id="m6"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_silver_runic_crest.tscn" id="m7"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_silver_sapphire.tscn" id="m8"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_wood_coral.tscn" id="m9"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_wood_druid_talisman.tscn" id="m10"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_wood_jade.tscn" id="m11"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_wood_peridot.tscn" id="m12"]
 
-[sub_resource type="Resource" id="Appearance_tarnished"]
+[sub_resource type="Resource" id="Appearance_gold_emerald"]
 script = ExtResource("2_appr")
-Descriptor = "tarnished"
-TintColor = Color(0.55, 0.45, 0.32, 1)
+Descriptor = "green golden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m1")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_gleaming"]
+[sub_resource type="Resource" id="Appearance_gold_ruby"]
 script = ExtResource("2_appr")
-Descriptor = "gleaming"
-TintColor = Color(0.85, 0.88, 0.92, 1)
+Descriptor = "red golden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m2")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_bone"]
+[sub_resource type="Resource" id="Appearance_gold_sun_crest"]
 script = ExtResource("2_appr")
-Descriptor = "carved bone"
-TintColor = Color(0.9, 0.86, 0.72, 1)
+Descriptor = "sun-crested golden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m3")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_coral"]
+[sub_resource type="Resource" id="Appearance_gold_topaz"]
 script = ExtResource("2_appr")
-Descriptor = "coral"
-TintColor = Color(0.9, 0.45, 0.4, 1)
+Descriptor = "yellow golden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m4")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_leaden"]
+[sub_resource type="Resource" id="Appearance_silver_amethyst"]
 script = ExtResource("2_appr")
-Descriptor = "leaden"
-TintColor = Color(0.4, 0.42, 0.48, 1)
+Descriptor = "violet silver"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m5")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_catalog_0"]
+[sub_resource type="Resource" id="Appearance_silver_onyx"]
 script = ExtResource("2_appr")
-Descriptor = "iridescent"
-TintColor = Color(0.300, 0.650, 0.450, 1)
+Descriptor = "black silver"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m6")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_catalog_1"]
+[sub_resource type="Resource" id="Appearance_silver_runic_crest"]
 script = ExtResource("2_appr")
-Descriptor = "smoky"
-TintColor = Color(0.345, 0.625, 0.485, 1)
+Descriptor = "runic silver"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m7")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_catalog_2"]
+[sub_resource type="Resource" id="Appearance_silver_sapphire"]
 script = ExtResource("2_appr")
-Descriptor = "speckled"
-TintColor = Color(0.390, 0.600, 0.520, 1)
+Descriptor = "blue silver"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m8")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_catalog_3"]
+[sub_resource type="Resource" id="Appearance_wood_coral"]
 script = ExtResource("2_appr")
-Descriptor = "opalescent"
-TintColor = Color(0.435, 0.575, 0.555, 1)
+Descriptor = "red wooden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m9")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_catalog_4"]
+[sub_resource type="Resource" id="Appearance_wood_druid_talisman"]
 script = ExtResource("2_appr")
-Descriptor = "verdigris"
-TintColor = Color(0.480, 0.550, 0.590, 1)
+Descriptor = "druidic wooden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m10")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_catalog_5"]
+[sub_resource type="Resource" id="Appearance_wood_jade"]
 script = ExtResource("2_appr")
-Descriptor = "etched"
-TintColor = Color(0.525, 0.525, 0.625, 1)
+Descriptor = "green wooden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m11")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_catalog_6"]
+[sub_resource type="Resource" id="Appearance_wood_peridot"]
 script = ExtResource("2_appr")
-Descriptor = "braided"
-TintColor = Color(0.570, 0.500, 0.660, 1)
+Descriptor = "olive wooden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m12")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [resource]
 script = ExtResource("1_pool")
-Appearances = Array[ItemAppearance]([SubResource("Appearance_tarnished"), SubResource("Appearance_gleaming"), SubResource("Appearance_bone"), SubResource("Appearance_coral"), SubResource("Appearance_leaden"), SubResource("Appearance_catalog_0"), SubResource("Appearance_catalog_1"), SubResource("Appearance_catalog_2"), SubResource("Appearance_catalog_3"), SubResource("Appearance_catalog_4"), SubResource("Appearance_catalog_5"), SubResource("Appearance_catalog_6")])
+Appearances = [SubResource("Appearance_gold_emerald"), SubResource("Appearance_gold_ruby"), SubResource("Appearance_gold_sun_crest"), SubResource("Appearance_gold_topaz"), SubResource("Appearance_silver_amethyst"), SubResource("Appearance_silver_onyx"), SubResource("Appearance_silver_runic_crest"), SubResource("Appearance_silver_sapphire"), SubResource("Appearance_wood_coral"), SubResource("Appearance_wood_druid_talisman"), SubResource("Appearance_wood_jade"), SubResource("Appearance_wood_peridot")]
 metadata/_custom_type_script = ExtResource("1_pool")

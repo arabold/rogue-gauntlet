@@ -11,8 +11,8 @@ Full-screen status overlays such as blindness, poison and near death. Each effec
 
 | Scene | Component | Driven by |
 | --- | --- | --- |
-| `blindness_effect.tscn` | `BlindnessScreenEffect` | No driver yet. `Focus` is the bound player; `SightRadius` is set in world units and re-projected every frame. |
-| `poison_effect.tscn` | `ScreenEffect` | `PoisonDriver` (`StatusScreenEffectDriver`, condition `poisoned`) |
+| `blindness_effect.tscn` | `BlindnessScreenEffect` | `BlindnessDriver` (`blinded` at 1). `Focus` is the bound player; `SightRadius` is set in world units and re-projected every frame. |
+| `poison_effect.tscn` | `ScreenEffect` | `PoisonDriver` (`poisoned` at 1, `confused` at 0.35) |
 | `near_death_effect.tscn` | `ScreenEffect` | `NearDeathDriver` (`HealthScreenEffectDriver`) |
 
 ## Gameplay wiring
@@ -20,11 +20,13 @@ Full-screen status overlays such as blindness, poison and near death. Each effec
 `main.tscn` instances `screen_effects.tscn`, and `Main.ScreenEffects` references it. When the player spawns, `Main` calls `ScreenEffectsLayer.Bind(player)`. The layer is the only adapter between the player and the effects: it sets the blindness `Focus` and hands the player's `HealthComponent` and `BuffController` to the drivers listed in its `HealthDrivers` and `StatusDrivers`. Each driver syncs to the new player's state immediately. Floor travel reloads the gameplay scene, so effects start clean on every floor.
 
 - `HealthScreenEffectDriver` maps health to an effect. The effect stays off above `Threshold` (35% health by default) and reaches full intensity at zero health. It stays on at death; there is no game-over screen yet.
-- `StatusScreenEffectDriver` maps one `StatusCondition` to an effect. It fades in (`FadeInTime`) while any active buff carries the condition and fades out (`FadeOutTime`) after the last one ends.
+- `StatusScreenEffectDriver` maps `Conditions` (condition → intensity) to an effect and follows the strongest active one. It fades up (`FadeInTime`) when a condition starts or a stronger one takes over, and fades down (`FadeOutTime`) after one ends. This is how confusion shows a faint version of the poison overlay without a separate effect.
 
-Status sources never touch effects. A buff declares the condition it imposes in `Buff.Condition`, and `BuffController` reports when a condition starts and ends (see [stats and itemization](stats-and-itemization.md#buffs-and-status-conditions)). Poison potions and poisoned food carry `scenes/buffs/conditions/poisoned.tres`, so the poison overlay appears exactly when the poison applies. An unidentified potion or a poisoned apple reveals nothing before it is used.
+Status sources never touch effects. A buff declares the condition it imposes in `Buff.Condition`, and `BuffController` notifies observers whenever its buffs change (see [stats and itemization](stats-and-itemization.md#buffs-and-status-conditions)). Poison potions and poisoned food carry `poisoned`, Potions of Blindness carry `blinded` and Potions of Confusion carry `confused`, all under `scenes/buffs/conditions/`. Each overlay therefore appears exactly when its status applies; an unidentified potion or a poisoned apple reveals nothing before it is used. Healing cures blindness, which fades the blindness overlay out.
 
-To give a status a screen effect: create its condition `.tres` under `scenes/buffs/conditions/`, set it on the buffs that impose it, then add the effect scene and a `StatusScreenEffectDriver` to `screen_effects.tscn` and list the driver in `StatusDrivers`. No code is needed. Blindness via a Potion of Blindness is planned in the [screen effect wiring plan](specs/screen-effect-wiring-plan.md).
+To give a status a screen effect: create its condition `.tres` under `scenes/buffs/conditions/`, set it on the buffs that impose it, then add the condition to an existing driver's `Conditions`, or add the effect scene and a new `StatusScreenEffectDriver` to `screen_effects.tscn` and list the driver in `StatusDrivers`. No code is needed.
+
+Two statuses act through player components rather than screen effects: `ConfusionComponent` turns the hero's movement off course while `confused`, and `TimeScaleComponent` slows the whole game while a `TimeScaleBuff` (Slowness) is active.
 
 ## Harness
 
@@ -32,6 +34,6 @@ Run `scenes/debug/screen_effect_harness.tscn` with F6. It runs the real gameplay
 
 - `1`–`3` or the buttons fade an effect in or out; the sliders set intensity directly.
 - "Player health" sets the player's real health, exercising the near-death driver end to end.
-- "Apply Poison" applies a real poison buff carrying the `poisoned` condition; "Clear buffs" removes all buffs, so the poison driver fades the effect out.
+- The "Apply …" buttons apply the real buffs of a Poison, Blindness, Confusion, Slowness and Healing potion. "Clear buffs" removes all buffs, so the drivers fade their effects out.
 
 `ScreenEffectWiringTest` covers the same binding and triggers automatically. Check the shader look with the harness, because headless renders are blank.
