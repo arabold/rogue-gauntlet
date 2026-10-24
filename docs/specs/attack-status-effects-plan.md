@@ -2,7 +2,13 @@
 
 Status: **proposed**. Covers statuses applied by attacks: monster attacks that poison the player (venomous bites, poisoned bolts) and player weapons that poison monsters. It builds on [combat actions and defense](../combat-system.md), [weapon attacks](../weapon-attack-system.md), [stats and itemization](../stats-and-itemization.md) and [monster design and authoring](../monster-authoring-design.md).
 
-**Prerequisite:** the status-condition foundation delivered by [screen effect wiring](screen-effect-wiring-plan.md): `StatusCondition` (identity is the external `.tres`, such as `scenes/buffs/conditions/poisoned.tres`), `Buff.Condition`, and on `BuffController` the `ConditionGained`/`ConditionLost` signals, `HasCondition` and `ClearBuffs`. Its current behavior is described in [stats and itemization](../stats-and-itemization.md#buffs-and-status-conditions) and [screen effects](../screen-effects.md). That work is implemented on its own branch and not yet merged here, so these links resolve only after the merge. This plan uses those contracts unchanged. Any buff carrying `poisoned.tres` already turns on the player's poison overlay, so poisoning the player needs no presentation work.
+**Foundation:** this plan builds on the implemented [status conditions](../stats-and-itemization.md#buffs-and-status-conditions) and [screen effects](../screen-effects.md) and uses their contracts unchanged:
+
+- `StatusCondition`, whose identity is the external `.tres` (`scenes/buffs/conditions/poisoned.tres`).
+- `Buff.Condition` and `Buff.CuredConditions`.
+- On `BuffController`: `HasCondition`, `ClearBuffs`, and one `BuffsChanged` notification per application, removal, expiry sweep or clear, after which observers re-read what they need.
+
+Any buff carrying `poisoned.tres` already turns on the player's poison overlay, so poisoning the player needs no presentation work.
 
 ## Target behavior
 
@@ -25,7 +31,12 @@ Status: **proposed**. Covers statuses applied by attacks: monster attacks that p
 - **Player weapons.** Only staffs and wands author `Weapon.CustomAttackDefinition`. All other weapons get a definition built per attack by `PlayerAttackController.CreateDefaultDefinition`, so a weapon-wide property cannot live on `AttackDefinition` alone. `Weapon.TryPrepare`, `MartialTechniqueAction` and `UnarmedAttackAction` all go through `TryPrepareWeaponAttack`. `tests/QuickItemTest.cs` constructs `new PreparedAttack(null, null, 0.2)`.
 - **Resolution.** `HurtBoxComponent.ResolveDamageInternal` runs in this order: faction filter, death, active defense (`IDefenseEvaluator`), debug invulnerability, evasion against accuracy, armor, `DamageTaken`, `HealthComponent.TakeDamage`, hit stun/push/effect, `Resolved`. Every roll uses `contact.Random` and falls back to the global RNG only when no RNG is supplied.
 - **Combat RNG.** `EnemyBase.ConfigureCombatRandom` derives `combat.attack` and `combat.defense` from the level seed and the spawn's persistent ID. `Player._Ready` derives `combat.attack` from the run seed. The streams are local to each actor and outside generation isolation (see [randomness and seeds](../randomness-and-seeds.md#gameplay-time-randomness)).
-- **Buffs.** These are player-only. `Buff.OnApply/OnRemove(Player)` and `PeriodicBuff.OnTick(Player)` take a player, `ActiveBuff.Initialize(Player, Buff)` stores one, and `BuffController` exports `Player` with a `GetOwner<Player>()` fallback. `PoisonBuff` and `HealingBuff` only use the player's `HealthComponent`, while `StatModifierBuff` uses `Player.Stats`. `ApplyBuff` always adds a new instance and returns nothing. Only `player.tscn` has a `BuffController`.
+- **Buffs.** These are player-only.
+  - `Buff.OnApply/OnRemove(Player)` and `PeriodicBuff.OnTick(Player)` take a player, `ActiveBuff.Initialize(Player, Buff)` stores one, and `BuffController` exports `Player` with a `GetOwner<Player>()` fallback.
+  - `PoisonBuff` and `HealingBuff` only use the player's `HealthComponent`, and `StatModifierBuff` uses `Player.Stats`.
+  - A plain `Buff` carrying only a condition (blinded, confused) and `TimeScaleBuff` have no callbacks. Player components that wire `Buffs` in the Inspector read them: `ConfusionComponent`, `TimeScaleComponent` and the screen drivers.
+  - `ApplyBuff` first ends the conditions in `CuredConditions`, then always adds a new instance, fires `BuffsChanged` and returns nothing.
+  - Only `player.tscn` has a `BuffController`.
 - **Enemy scenes.** `enemy_base.tscn` is inherited by the rat, minion, warrior and Warden. `skeleton_crossbow.tscn` and the three templates (`melee_enemy`, `projectile_enemy`, `mobile_enemy`) are standalone roots, so each needs its own wiring. `MonsterSceneValidator` reads stored properties, which is safe for editor placeholders, and `EnemyBase._EnterTree` disables an actor that fails validation.
 - **Hit reactions.** A monster reacts to hits through the hurtbox path (`IsHit`, push), not through `HealthChanged`. Periodic damage through `HealthComponent.TakeDamage` therefore never staggers it. `DeathComponent` grants XP on `HealthComponent.Died` whatever the killing source. `FadeOutComponent` replaces the corpse's `MaterialOverride`. No monster mesh uses `MaterialOverlay`.
 - **Persistence.** Live monster health is not saved; only cleared spawn IDs are. The player's timed buffs are not saved either: loading calls `ClearBuffs`.
@@ -44,14 +55,14 @@ Status: **proposed**. Covers statuses applied by attacks: monster attacks that p
 6. **The chance roll uses the attacker's stream.** It draws from `contact.Random`: the attacker's `combat.attack` stream for melee, or the projectile's seeded RNG. This matches how crit, evasion and armor are already rolled. Each status in list order makes one draw (`Randf() < Chance`), after the armor roll and only on a qualifying contact. Nothing is drawn when `Chance` is 1, when the outcome does not qualify, or when the hurtbox has no `Buffs`. The roll happens before `ApplyBuff`, so the draw count does not depend on whether the buff is accepted. Adding a payload shifts that attacker's later rolls. That is acceptable, since reproducibility is only promised for the same build and content. No generation stream or `GameSession` loot counter is touched.
    - Rejected: a separate `combat.status` stream for each actor. It would need another seed in the actor and in projectile plumbing, for no current benefit.
    - Rejected: an RNG owned by the target. The outcome would then depend on the victim's history across several attackers.
-7. **Stacking is authored on the buff.** `Buff.Stacking` is `Stack`, the default, or `Refresh`. `Stack` keeps today's behavior for potions and food. With `Refresh`, applying a buff instance that is already active resets its remaining duration and does nothing else: no `OnApply`, no condition signal. Venoms use `Refresh`. Matching is by reference, and attack payloads reference shared external `.tres` buffs, so bites from several rats refresh one venom. Item buffs are per-instance copies from `ItemFactory`, so they never refresh each other.
-8. **Buffs target any actor through `IBuffTarget`.** `IBuffTarget` exposes `HealthComponent Health` and `PlayerStats Stats` (null when the actor has no stat block). `BuffController` implements it. Buff callbacks take an `IBuffTarget` instead of a `Player`. `Buff.CanApplyTo` lets `StatModifierBuff` reject actors without stats; `ApplyBuff` then reports `Rejected` and has no side effects. `BuffController` replaces its `Player` export with an Inspector-wired `Health`. `Player` injects its runtime `Stats` copy as runtime context.
+7. **Stacking is authored on the buff.** `Buff.Stacking` is `Stack`, the default, or `Refresh`. `Stack` keeps today's behavior for potions and food. With `Refresh`, applying a buff instance that is already active resets its remaining duration without a second `OnApply`. It still fires `BuffsChanged`, like any application. Venoms use `Refresh`. Matching is by reference, and attack payloads reference shared external `.tres` buffs, so bites from several rats refresh one venom. Item buffs are per-instance copies from `ItemFactory`, so they never refresh each other.
+8. **Buffs target any actor through `IBuffTarget`.** `IBuffTarget` exposes `HealthComponent Health` and `PlayerStats Stats` (null when the actor has no stat block). `BuffController` implements it. Buff callbacks take an `IBuffTarget` instead of a `Player`. `Buff.CanApplyTo` lets `StatModifierBuff` reject actors without stats; `ApplyBuff` then reports `Rejected` and has no side effects. Plain condition buffs and `TimeScaleBuff` are accepted on monsters but do nothing there, because no monster component reads them. `BuffController` replaces its `Player` export with an Inspector-wired `Health`. `Player` injects its runtime `Stats` copy as runtime context.
    - Rejected: giving monsters a `PlayerStats`. Nothing reads monster stats today.
    - Rejected: `OnApply(Node actor)` with lookups inside buffs. That discovers dependencies by name.
 9. **Death clears buffs.** `BuffController` subscribes to `Health.Died` and calls `ClearBuffs` deferred. A poison tick that kills the actor therefore never removes the `ActiveBuff` that is still inside its own `_PhysicsProcess`. `ApplyBuff` rejects a dead actor. Player death clears too; it is terminal today.
 10. **One tint presenter per monster owns the overlay slot.** `StatusTintPresenter` maps conditions to tints. It holds an ordered list of `StatusTint` entries (condition and color), and the first active entry wins. It is the only writer of `MaterialOverlay` on the meshes it collects, and it sets the overlay only while a tint is visible.
     - Rejected: one presenter per condition. Two presenters would fight over the single overlay slot.
-    - Rejected: a buff referencing its own visual. This is the same reason the screen plan rejected it.
+    - Rejected: a buff referencing its own visual. As with screen effects, status sources never reference presentation.
     - Rejected: swapping `MaterialOverride`. That conflicts with `FadeOutComponent` and loses the model's albedo.
 11. **Invalid payloads fail loudly.** `OnHitStatus.IsValid` requires a non-null `Buff`, `Buff.Duration > 0` (on-hit statuses must expire) and `0 < Chance ≤ 1`. `TryPrepareAttack` rejects an attack with an invalid entry, as it already does for an invalid contact profile. `MonsterSceneValidator` reports it, so the monster is disabled with an error at spawn instead of silently never attacking. Tests cover weapons and monsters as content. On-hit buffs and their conditions are external `.tres` files, never embedded.
 
@@ -140,9 +151,9 @@ public partial class BuffController : Node, IBuffTarget
 
 `ApplyBuff` contract:
 
-- It returns `Rejected` when `buff` is null (with `PushError`), when `Health` is dead (from slice 2, when `Health` exists), or when `buff.CanApplyTo(this)` is false. A rejection creates no `ActiveBuff`, calls no callbacks and fires no signals.
-- With `Refresh` stacking, if an `ActiveBuff` holds the same instance and has not yet expired, it calls `Refresh` and returns `Refreshed`. The condition count is unchanged.
-- Otherwise it returns `Applied`, with the existing sequence: `OnApply`, listing, then `ConditionGained` when the count goes from 0 to 1. An expired instance waiting for the sweep does not count as active. The new instance raises the count first, so the condition does not flicker.
+- It returns `Rejected` when `buff` is null (with `PushError`), when `Health` is dead (from slice 2, when `Health` exists), or when `buff.CanApplyTo(this)` is false. A rejection cures nothing, creates no `ActiveBuff`, calls no callbacks and fires no `BuffsChanged`.
+- With `Refresh` stacking, if an `ActiveBuff` holds the same instance and has not yet expired, it runs the existing cure step, calls `Refresh`, fires `BuffsChanged` and returns `Refreshed`.
+- Otherwise it returns `Applied`, with the existing sequence: cure, `OnApply`, listing, `BuffsChanged`. An expired instance waiting for the sweep does not count as active. The new instance is listed before the sweep removes the old one, so `HasCondition` stays true throughout.
 
 The `Player.ApplyBuff` wrapper and the item callers ignore the result. `Player._EnterTree` assigns `BuffController.Stats` immediately after `Stats.CreateRuntimeCopy()`, before any child `_Ready` and before `AutoEquipItems` can apply an equipment buff. `ActiveBuff` stops its tick loop as soon as `Deactivate` has run.
 
@@ -169,7 +180,7 @@ public partial class StatusTintPresenter : Node
 }
 ```
 
-The presenter mirrors `StatusScreenEffectDriver`. It subscribes in `_Ready` and unsubscribes in `_ExitTree`, and it syncs to `HasCondition` once at start. It tweens the duplicated material's `tint` uniform. It assigns `MaterialOverlay` when fading toward a visible tint and clears it when a fade-out completes. A missing required export produces `PushError` in `_Ready`, and the presenter stays idle. `FadeOutTime` must stay below `DeathComponent.Delay` (2 s), so the tint is gone before the corpse fades. Meshes are collected in the presenter's `_Ready`, which runs before `EnemyBase._Ready` adds the x-ray silhouettes, so the silhouettes are never tinted.
+The presenter mirrors `StatusScreenEffectDriver`. It subscribes to `BuffsChanged` until it exits the tree, and on each notification and once at start it re-reads `HasCondition` for every entry. It tweens the duplicated material's `tint` uniform. It assigns `MaterialOverlay` when fading toward a visible tint and clears it when a fade-out completes. A missing required export produces `PushError` in `_Ready`, and the presenter stays idle. `FadeOutTime` must stay below `DeathComponent.Delay` (2 s), so the tint is gone before the corpse fades. Meshes are collected in the presenter's `_Ready`, which runs before `EnemyBase._Ready` adds the x-ray silhouettes, so the silhouettes are never tinted.
 
 ## Scene and resource wiring
 
@@ -221,8 +232,8 @@ EnemyBehaviorComponent.TryAttack
       ├─ + Damaged, Health alive, Buffs assigned → for each status in order:
       │     Chance < 1 ? draw Randf() : no draw;  draw ≥ Chance → trace chance_failed
       │     else Buffs.ApplyBuff(buff) → Applied | Refreshed | Rejected     → trace status.resolved
-      │       Applied → OnApply · listed · ConditionGained(poisoned) on 0→1
-      │                 └─ PoisonDriver fades the screen overlay in         (screen effect wiring)
+      │       Applied → cure · OnApply · listed · BuffsChanged
+      │                 └─ PoisonDriver re-reads HasCondition(poisoned) and fades the overlay in   (existing)
       └─ Resolved(Damaged) → damage.resolved trace · DamageResolved signal  ← observers already see the status
 ```
 
@@ -256,8 +267,8 @@ ActiveBuff._PhysicsProcess → PoisonBuff.OnTick(target) → target.Health.TakeD
 └─ HealthComponent.Died
    ├─ DeathComponent: clear spawn ID, loot, XP                                         (existing)
    ├─ EnemyBase: ActionGate.Disable                                                     (existing)
-   └─ + BuffController: CallDeferred(ClearBuffs) → OnRemove · ConditionLost(poisoned)
-      └─ StatusTintPresenter fades out within FadeOutTime < DeathComponent.Delay
+   └─ + BuffController: CallDeferred(ClearBuffs) → OnRemove for each · one BuffsChanged
+      └─ StatusTintPresenter re-reads, fades out within FadeOutTime < DeathComponent.Delay
 ```
 
 ## Affected files
@@ -289,9 +300,9 @@ ActiveBuff._PhysicsProcess → PoisonBuff.OnTick(target) → target.Health.TakeD
 + tests/OnHitStatusTest.cs                                         1, extended in 2
 + tests/CombatTestActors.cs, ~ tests/CombatDefenseTest.cs         1  shared dodge/guard actor builders
 ~ tests/CombatIntegrationTest.cs                                   1, 2
-~ tests/StatusConditionTest.cs                                     1  content check covers on-hit statuses
-~ tests/ActiveBuffTest.cs                                          2  IBuffTarget signatures
-~ tests/MonsterAuthoringTest.cs, tests/ItemCatalogTest.cs          1, 2
+~ tests/ItemCatalogTest.cs                                         1  poison content check covers on-hit statuses; 2  weapon payloads
+~ tests/ActiveBuffTest.cs, tests/StatusConditionTest.cs            2  IBuffTarget signatures
+~ tests/MonsterAuthoringTest.cs                                    1, 2
 + tests/StatusTintPresenterTest.cs                                 3
 ~ docs/combat-system.md, docs/combat-harness.md                    1
 ~ docs/stats-and-itemization.md                                    1, 2
@@ -330,7 +341,7 @@ Delivery is vertical: each slice ends with a status that can be played in the co
      - The editor acceptance exercise below.
    - Limitation: one tint at a time, chosen by list order. There are no HUD icons.
 
-No slice depends on a later one. Slice 3 needs the condition signals; slices 1 and 2 only need `Buff.Condition` and `ClearBuffs`.
+No slice depends on a later one, and the condition foundation is already on `main`.
 
 ## Tests
 
@@ -356,7 +367,7 @@ No slice depends on a later one. Slice 3 needs the condition signals; slices 1 a
 
 Content checks:
 
-- `StatusConditionTest.EveryAuthoredPoisonCarriesThePoisonedCondition` also walks `OnHitStatuses` on weapons under `scenes/items` and on attack strategies under `scenes/enemies`. Every on-hit `PoisonBuff` must carry `poisoned`, be an external file and be timed.
+- `ItemCatalogTest.EveryAuthoredPoisonCarriesThePoisonedCondition` also walks `OnHitStatuses` on weapons under `scenes/items` and on attack strategies under `scenes/enemies`. Every on-hit `PoisonBuff` must carry `poisoned`, be an external file and be timed.
 - `ItemCatalogTest` checks that every weapon's statuses are valid.
 - `MonsterAuthoringTest` checks that an invalid payload or broken `Buffs` wiring is reported, and that the five monsters and three templates validate.
 
@@ -373,7 +384,7 @@ Not automated: navmesh-dependent approach (see `AGENTS.md`) and the tint's look.
 
 ## Persistence
 
-No save data changes, and `SaveGame.CurrentVersion` stays at 13. Payloads are authored on definitions, and weapons are rebuilt from their definition path, so authored `OnHitStatuses` come back on load. Timed buffs are not saved on any actor, and live monster health is not saved either. A save taken while something is poisoned loses the remaining ticks, as player poison does today. Nothing changes generation or loot draws.
+No save data changes, and `SaveGame.CurrentVersion` (currently 14) stays unchanged. Payloads are authored on definitions, and weapons are rebuilt from their definition path, so authored `OnHitStatuses` come back on load. Timed buffs are not saved on any actor, and live monster health is not saved either. A save taken while something is poisoned loses the remaining ticks, as player poison does today. Nothing changes generation or loot draws.
 
 ## Open decisions
 
@@ -384,6 +395,6 @@ No save data changes, and `SaveGame.CurrentVersion` stays at 13. Payloads are au
 ## Not covered
 
 - Coatings applied to a single weapon at runtime (a poison vial used on a blade) need item save fields. Rolled affixes such as "of Venom" would need `RolledAffix` to carry statuses. Both extend the weapon surface from decision 2.
-- Stat-changing statuses on monsters, such as slow or weaken, stay `Rejected` until monsters have a stat block.
+- Stat-changing statuses on monsters, such as slow or weaken, stay `Rejected` until monsters have a stat block. Monster AI reacting to `blinded` or `confused` would read `HasCondition` on the monster's `BuffController`.
 - Cure effects, resistances, HUD or health-bar status icons, player log lines (see the [logging plan](logging-plan.md)), and weapon tooltip lines. No weapon stat UI exists today.
 - Poison darts and other traps. `FloorTrap` uses the legacy damage path, but it could pass a payload through `DamageContext` later.
