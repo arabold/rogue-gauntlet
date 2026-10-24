@@ -2,10 +2,11 @@ using Godot;
 using Godot.Collections;
 
 /// <summary>
-/// Debug harness for screen effects: runs the real gameplay scene (generated level, player, monsters)
-/// under a production <c>screen_effects.tscn</c> layer and adds a panel to drive each effect.
-/// Number keys 1–9 fade the matching effect in or out; sliders set intensity directly; the health slider
-/// sets the player's real health so the near-death driver is exercised end to end.
+/// Debug harness for screen effects: runs the real gameplay scene (generated level, player, monsters), whose
+/// <c>Main</c> binds the player to its screen-effects layer, and adds a panel to drive each effect.
+/// Number keys 1–9 fade the matching effect in or out; sliders set intensity directly. The health slider sets
+/// the player's real health, and the buff buttons apply real buffs, so the health and status drivers are
+/// exercised end to end.
 /// </summary>
 public partial class ScreenEffectHarness : Node
 {
@@ -18,11 +19,8 @@ public partial class ScreenEffectHarness : Node
 	/// <summary>Effects listed in the panel, in key order.</summary>
 	[Export] public Array<ScreenEffect> Effects { get; set; } = [];
 
-	/// <summary>Blindness effect to focus on the spawned player.</summary>
-	[Export] public BlindnessScreenEffect Blindness { get; set; }
-
-	/// <summary>Health driver to bind to the spawned player.</summary>
-	[Export] public HealthScreenEffectDriver HealthDriver { get; set; }
+	/// <summary>Buffs the panel can apply to the player, e.g. a poison carrying the poisoned condition.</summary>
+	[Export] public Array<Buff> StatusBuffs { get; set; } = [];
 
 	/// <summary>Container the harness fills with controls.</summary>
 	[Export] public Container Controls { get; set; }
@@ -43,28 +41,14 @@ public partial class ScreenEffectHarness : Node
 		}
 	}
 
-	/// <summary>Injects the spawned player as runtime context for the focus and health-driven effects.</summary>
+	/// <summary>Tracks the spawned player for the health and buff controls; Main binds the effects themselves.</summary>
 	private void BindPlayer(Player player)
 	{
-		if (_player == player)
-		{
-			return;
-		}
-
 		_player = player;
-		if (Blindness != null)
-		{
-			Blindness.Focus = _player;
-		}
-
-		if (HealthDriver != null)
-		{
-			HealthDriver.Health = _player.HealthComponent;
-		}
-
 		if (_healthSlider == null)
 		{
 			BuildHealthRow();
+			BuildBuffRows();
 		}
 	}
 
@@ -128,6 +112,20 @@ public partial class ScreenEffectHarness : Node
 			health.SetHealth(Mathf.Max((float)value * health.MaxHealth, 0.01f), health.MaxHealth);
 		};
 		AddRow(label, _healthSlider);
+	}
+
+	private void BuildBuffRows()
+	{
+		foreach (Buff buff in StatusBuffs)
+		{
+			var apply = new Button { Text = $"Apply {buff.Name}", FocusMode = Control.FocusModeEnum.None };
+			apply.Pressed += () => _player.ApplyBuff(buff);
+			Controls.AddChild(apply);
+		}
+
+		var clear = new Button { Text = "Clear buffs", FocusMode = Control.FocusModeEnum.None };
+		clear.Pressed += () => _player.BuffController.ClearBuffs();
+		Controls.AddChild(clear);
 	}
 
 	private static HSlider CreateSlider() => new()

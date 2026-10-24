@@ -68,6 +68,7 @@ public class ItemLifecycleIntegrationTest
 		}
 		AssertBool(callbackWasGuarded).IsTrue();
 		AssertInt(player.BuffController.ActiveBuffs.Count(b => b.Buff is PoisonBuff)).IsEqual(1);
+		AssertBool(player.BuffController.HasCondition(GD.Load<StatusCondition>("res://scenes/buffs/conditions/poisoned.tres"))).IsTrue();
 		AssertBool(controller.TryUse(foodSlot).Success).IsFalse();
 		AssertInt(player.BuffController.ActiveBuffs.Count(b => b.Buff is PoisonBuff)).IsEqual(1);
 

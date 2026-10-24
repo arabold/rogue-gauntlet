@@ -90,7 +90,7 @@ graph TD
 - **Character Classes:** Playable classes are designer-authored `CharacterClass` resources (visual model, attribute block, class `StatProfile`, starting gear, pre-identified item types) collected in an ordered `CharacterCatalog`. The class is chosen in a menu carousel at new-game start, persisted per save slot by id, resolved by `GameSession`, and applied by the player on spawn — including swapping the shared-rig KayKit model at runtime. Classes supply the `StatProfile` seam described above. See `docs/character-classes.md`.
 - **UI System:** Responsible for displaying all user interface elements, such as the HUD, menus, inventory screens, and dialog boxes. Primarily reacts to signals from the `SignalBus` to update displayed information based on game state changes.
 - **Camera System:** Controls the game camera's behavior, potentially following the player or other targets, framing action, or executing specific camera movements. May be influenced by player actions or game events.
-- **Effects System:** Manages visual and audio effects, such as particle effects for attacks, sound effects for actions, or screen shakes. Often triggered by signals from other systems (e.g., `CombatSystem`).
+- **Effects System:** Manages visual and audio effects, such as particle effects for attacks, sound effects for actions, or screen shakes. Often triggered by signals from other systems (e.g., `CombatSystem`). Full-screen status overlays live on a screen-effects layer in the gameplay scene, between the 3D world and the HUD. `Main` binds the spawned player to it, and drivers map player health and the `StatusCondition`s that buffs declare to effects, so status sources never reference presentation.
 
 ## Directory Structure Overview
 

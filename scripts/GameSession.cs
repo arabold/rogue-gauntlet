@@ -738,7 +738,7 @@ public partial class GameSession : Node
 
 	private static void ApplyPlayerSave(Player player, PlayerSaveData saveData)
 	{
-		ClearBuffs(player);
+		player.BuffController.ClearBuffs();
 		ApplyInventory(player, saveData.Inventory);
 		ApplyActions(player, saveData.Actions);
 		ApplyStats(player.Stats, saveData.Stats);
@@ -848,17 +848,6 @@ public partial class GameSession : Node
 			inventory.Equip(entry, Enum.Parse<EquipmentSlot>(equipment.Slot));
 		}
 		inventory.EmitChanged();
-	}
-
-	private static void ClearBuffs(Player player)
-	{
-		foreach (ActiveBuff activeBuff in player.BuffController.ActiveBuffs.ToArray())
-		{
-			activeBuff.Deactivate();
-			player.BuffController.ActiveBuffs.Remove(activeBuff);
-			player.BuffController.RemoveChild(activeBuff);
-			activeBuff.QueueFree();
-		}
 	}
 
 	private static void ApplyStats(PlayerStats stats, PlayerStatsSaveData saveData)
