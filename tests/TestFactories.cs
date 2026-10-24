@@ -5,10 +5,25 @@ using Godot;
 using GdUnit4;
 
 /// <summary>
-/// Shared factory and scene-runner setups for generation tests.
+/// Shared factory, scene-runner, and scene-tree setups for tests.
 /// </summary>
 public static class TestFactories
 {
+	/// <summary>
+	/// Adds a node to the running scene tree so its own <c>_Ready</c> runs, and registers it
+	/// with GdUnit4's auto-free so it leaves the tree after the test. Never call <c>_Ready()</c>
+	/// on a detached node instead: <see cref="NodeSubscriptionExtensions.SubscribeUntilExit"/>
+	/// unhooks <see cref="SignalBus"/> handlers on tree exit, which a never-attached node never
+	/// gets, so freeing it leaves dead handlers on the shared autoload. The bus dispatches each
+	/// signal as one multicast delegate, so a dead handler throws on every later emit and stops
+	/// every subscriber after it from running in all following tests.
+	/// </summary>
+	public static T AddToSceneTree<T>(T node) where T : Node
+	{
+		((SceneTree)Engine.GetMainLoop()).Root.AddChild(Assertions.AutoFree(node));
+		return node;
+	}
+
 	/// <summary>
 	/// A factory whose standard rooms are all procedurally built (entrance/exit stay
 	/// authored — they carry required gameplay content), for stress-testing the

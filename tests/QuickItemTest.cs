@@ -228,7 +228,7 @@ public partial class QuickItemTest
 		var scene = GD.Load<PackedScene>("res://scenes/ui/action_container.tscn");
 		var container = scene.Instantiate<ActionContainer>();
 		container.Slot = 0;
-		container._Ready();
+		TestFactories.AddToSceneTree(container);
 		var label = container.GetNode<Label>("%QuantityLabel");
 
 		var actionSlot = new ActionSlot();
@@ -254,8 +254,7 @@ public partial class QuickItemTest
 
 		// Check inventory item slot panel displays 1 for stackables and empty for non-stackables
 		var itemSlotPanelScene = GD.Load<PackedScene>("res://scenes/ui/item_slot_panel.tscn");
-		var panel = itemSlotPanelScene.Instantiate<ItemSlotPanel>();
-		panel._Ready();
+		var panel = TestFactories.AddToSceneTree(itemSlotPanelScene.Instantiate<ItemSlotPanel>());
 		var panelQtyLabel = panel.GetNode<Label>("%QuantityLabel");
 
 		var inventorySlot = new InventoryItemSlot { Item = potion, Quantity = 1 };
@@ -268,9 +267,6 @@ public partial class QuickItemTest
 		var foodSlot = new InventoryItemSlot { Item = food, Quantity = 1 };
 		panel.SetItem(foodSlot, false);
 		AssertString(panelQtyLabel.Text).IsEqual("");
-
-		panel.Free();
-		container.Free();
 	}
 
 	[TestCase]
