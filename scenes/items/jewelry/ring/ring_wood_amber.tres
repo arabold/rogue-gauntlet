@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://b8oa1aglmosdk" path="res://scenes/items/affixes/RolledAffix.cs" id="1_vnw18"]
 [ext_resource type="Script" uid="uid://cadjyq7h2j4fb" path="res://scenes/items/IdentifiableEquipableItem.cs" id="item"]
 [ext_resource type="Script" uid="uid://b2ecrfjb74yc3" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
-[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_wood_amber.tscn" id="scene"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring.tscn" id="scene"]
 
 [sub_resource type="Resource" id="Modifier"]
 script = ExtResource("mod")
@@ -14,10 +14,10 @@ metadata/_custom_type_script = ExtResource("mod")
 [resource]
 script = ExtResource("item")
 TypeId = "ring.health"
-TrueName = "Wood Ring of Health"
+TrueName = "Ring of Health"
 IntrinsicModifiers = [SubResource("Modifier")]
 ValidSlots = 192
-Name = "Wood Ring of Health"
+Name = "Ring of Health"
 Scene = ExtResource("scene")
 Value = 75
 metadata/_custom_type_script = ExtResource("item")

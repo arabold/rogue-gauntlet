@@ -305,7 +305,7 @@ public partial class PlayerQuickItemController : Node
 			return;
 		}
 
-		ActionManager?.AssignAction(slotIndex, itemDef as IPlayerAction, itemDef?.Scene);
+		ActionManager?.AssignAction(slotIndex, itemDef as IPlayerAction, ItemIdentity.ResolveScene(itemDef));
 		var actionSlot = ActionManager?.GetActionSlot(slotIndex);
 		if (actionSlot != null)
 		{

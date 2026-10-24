@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://b8oa1aglmosdk" path="res://scenes/items/affixes/RolledAffix.cs" id="1_6ed7p"]
 [ext_resource type="Script" uid="uid://cadjyq7h2j4fb" path="res://scenes/items/IdentifiableEquipableItem.cs" id="item"]
 [ext_resource type="Script" uid="uid://b2ecrfjb74yc3" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
-[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet/amulet_wood_jade.tscn" id="scene"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/amulet.tscn" id="scene"]
 
 [sub_resource type="Resource" id="Modifier"]
 script = ExtResource("mod")
@@ -15,11 +15,11 @@ metadata/_custom_type_script = ExtResource("mod")
 script = ExtResource("item")
 TypeId = "amulet.evasion"
 IdentityCategory = "amulet"
-TrueName = "Wood Amulet of Evasion"
+TrueName = "Amulet of Evasion"
 UnidentifiedNameTemplate = "{descriptor} amulet"
 IntrinsicModifiers = [SubResource("Modifier")]
 ValidSlots = 32
-Name = "Wood Amulet of Evasion"
+Name = "Amulet of Evasion"
 Scene = ExtResource("scene")
 Value = 75
 metadata/_custom_type_script = ExtResource("item")

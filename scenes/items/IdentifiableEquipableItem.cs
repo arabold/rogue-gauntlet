@@ -25,6 +25,9 @@ public partial class IdentifiableEquipableItem : EquipableItem, IIdentifiable
 	/// <summary>Unidentified label template; "{descriptor}" is replaced at runtime.</summary>
 	[Export] public string UnidentifiedNameTemplate { get; protected set => SetValue(ref field, value); } = "{descriptor} ring";
 
+	/// <summary>Jewelry has one model per appearance; its material belongs to the disguise, not the tier.</summary>
+	public string AppearanceForm => "";
+
 	/// <summary>
 	/// Stats this item grants intrinsically (its "effect"), on top of any rolled affixes.
 	/// A plain modifier list rather than a <see cref="Buff"/> so two worn instances of

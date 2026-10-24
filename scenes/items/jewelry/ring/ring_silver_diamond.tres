@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://b8oa1aglmosdk" path="res://scenes/items/affixes/RolledAffix.cs" id="1_uoo67"]
 [ext_resource type="Script" uid="uid://cadjyq7h2j4fb" path="res://scenes/items/IdentifiableEquipableItem.cs" id="item"]
 [ext_resource type="Script" uid="uid://b2ecrfjb74yc3" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
-[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_silver_diamond.tscn" id="scene"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring.tscn" id="scene"]
 
 [sub_resource type="Resource" id="Modifier"]
 script = ExtResource("mod")
@@ -14,11 +14,11 @@ metadata/_custom_type_script = ExtResource("mod")
 [resource]
 script = ExtResource("item")
 TypeId = "ring.protection"
-TrueName = "Silver Ring of Protection"
+TrueName = "Ring of Protection"
 IntrinsicModifiers = [SubResource("Modifier")]
 ValidSlots = 192
 Tier = 2
-Name = "Silver Ring of Protection"
+Name = "Ring of Protection"
 Scene = ExtResource("scene")
 Value = 150
 metadata/_custom_type_script = ExtResource("item")

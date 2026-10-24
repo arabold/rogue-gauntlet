@@ -5,7 +5,7 @@
 [ext_resource type="Resource" uid="uid://cprofmage000001" path="res://scenes/player/classes/stat_profile_mage.tres" id="3_profile"]
 [ext_resource type="Script" uid="uid://s73gxicbccb2" path="res://scenes/player/InventoryItemSlot.cs" id="4_slot"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/staff_fire.tres" id="5_staff"]
-[ext_resource type="Resource" uid="uid://2fvrpt5amg6e" path="res://scenes/items/potions/healing_potion_small.tres" id="6_potion"]
+[ext_resource type="Resource" uid="uid://b0ek7egdqm8bc" path="res://scenes/items/potions/potion_healing_small.tres" id="6_potion"]
 
 [sub_resource type="Resource" id="Slot_staff"]
 script = ExtResource("4_slot")

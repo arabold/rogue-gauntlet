@@ -8,7 +8,8 @@ uniform sampler2D screen_texture : hint_screen_texture, filter_linear, repeat_di
 uniform float intensity : hint_range(0.0, 1.0) = 0.0;
 uniform float max_tilt_degrees : hint_range(0.0, 30.0) = 7.0;
 uniform float tilt_speed : hint_range(0.0, 5.0) = 0.6;
-// Slight zoom keeps the tilted image covering the screen corners.
+// Slight zoom for the swaying look. The warp zooms in further whenever the tilt needs it to keep the
+// screen corners covered, so `max_tilt_degrees` can be tuned without exposing the clamped screen edge.
 uniform float zoom : hint_range(0.0, 0.5) = 0.12;
 uniform float wave_amplitude : hint_range(0.0, 0.05) = 0.01;
 uniform float wave_frequency : hint_range(0.0, 40.0) = 8.0;
@@ -28,6 +29,8 @@ vec2 warp(vec2 uv, float aspect, float time) {
 	p = mat2(vec2(c, s), vec2(-s, c)) * p;
 
 	float breathe = 1.0 + intensity * (zoom + 0.03 * sin(time * 1.1));
+	// A view rotated by `angle` only covers the screen when scaled by at least cos + aspect * sin.
+	breathe = max(breathe, abs(c) + max(aspect, 1.0 / aspect) * abs(s));
 	p /= breathe;
 
 	float amp = wave_amplitude * intensity;

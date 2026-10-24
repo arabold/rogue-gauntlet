@@ -25,29 +25,18 @@ copies once; `ItemSaveCodec` restores exact state without rolling. See the
 
 ## Effects
 
-Potion sizes scale healing/damage, attributes, or timed effect strength/duration. Legacy potions
-keep their existing effects. Custom potion colors select these authored families; per-run
-disguise tints remain independent of the source model color.
-
-| Potion model color | Effect family |
-| --- | --- |
-| Crimson | Healing |
-| Emerald | Regeneration |
-| Lime | Haste |
-| Obsidian | Poison |
-| Coral | Slowness |
-| Purple | Strength |
-| Magenta | Dexterity |
-| Orange | Vitality |
-| Cobalt | Intelligence |
-| Gold | Protection |
-| Teal | Evasion |
-| Silver | Precision |
+Potions follow Rogue and NetHack (see [potion effects](item-identification-system.md#potion-effects)):
+Healing, Strength, Dexterity, Vitality, Intelligence, Poison, Slowness, Blindness and Confusion.
+Each type has small, medium and large definitions (`potion_<type>_<size>.tres`); size scales healing,
+damage, attribute gain or duration. No model or color belongs to a type: each run assigns every type a
+random color from the Asset Studio potion models, shared by all three sizes.
 
 Custom scrolls share the existing identify/enchant/teleport/summon/haste/protection/rage/weakness
 strategies and add clarity, vitality, precision, and evasion buffs through existing Resources.
-They are all `Scroll` definitions, so the UI offers Read. Jewelry uses explicit intrinsic
-modifier profiles; material controls tier/potency while gem/design selects its effect family.
+They are all `Scroll` definitions, so the UI offers Read. Scroll and jewelry definitions keep their
+own model files as fallbacks only: in play every identity type shows its run appearance model.
+Jewelry uses explicit intrinsic modifier profiles; its tier lives in the data, while material and
+gem are part of the run disguise.
 Food recovery and per-piece contamination use their authored buffs; there is no hunger system.
 
 ## Source budgets and eligibility
@@ -189,34 +178,34 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 
 | Definition | Family / role | Depth |
 | --- | --- | --- |
-| [Gold Amulet of Vitality](../scenes/items/jewelry/amulet/amulet_gold_emerald.tres) | `amulet.vitality` | 4+ |
-| [Gold Amulet of Strength](../scenes/items/jewelry/amulet/amulet_gold_ruby.tres) | `amulet.strength` | 4+ |
-| [Gold Amulet of Protection](../scenes/items/jewelry/amulet/amulet_gold_sun_crest.tres) | `amulet.protection` | 4+ |
-| [Gold Amulet of Precision](../scenes/items/jewelry/amulet/amulet_gold_topaz.tres) | `amulet.precision` | 4+ |
-| [Silver Amulet of Mind](../scenes/items/jewelry/amulet/amulet_silver_amethyst.tres) | `amulet.mind` | 2+ |
-| [Silver Amulet of Evasion](../scenes/items/jewelry/amulet/amulet_silver_onyx.tres) | `amulet.evasion` | 2+ |
-| [Silver Amulet of Mind](../scenes/items/jewelry/amulet/amulet_silver_runic_crest.tres) | `amulet.mind` | 2+ |
-| [Silver Amulet of Swiftness](../scenes/items/jewelry/amulet/amulet_silver_sapphire.tres) | `amulet.swiftness` | 2+ |
-| [Wood Amulet of Health](../scenes/items/jewelry/amulet/amulet_wood_coral.tres) | `amulet.health` | 1+ |
-| [Wood Amulet of Vitality](../scenes/items/jewelry/amulet/amulet_wood_druid_talisman.tres) | `amulet.vitality` | 1+ |
-| [Wood Amulet of Evasion](../scenes/items/jewelry/amulet/amulet_wood_jade.tres) | `amulet.evasion` | 1+ |
-| [Wood Amulet of Health](../scenes/items/jewelry/amulet/amulet_wood_peridot.tres) | `amulet.health` | 1+ |
+| [Amulet of Vitality](../scenes/items/jewelry/amulet/amulet_gold_emerald.tres) | `amulet.vitality` | 4+ |
+| [Amulet of Strength](../scenes/items/jewelry/amulet/amulet_gold_ruby.tres) | `amulet.strength` | 4+ |
+| [Amulet of Protection](../scenes/items/jewelry/amulet/amulet_gold_sun_crest.tres) | `amulet.protection` | 4+ |
+| [Amulet of Precision](../scenes/items/jewelry/amulet/amulet_gold_topaz.tres) | `amulet.precision` | 4+ |
+| [Amulet of Mind](../scenes/items/jewelry/amulet/amulet_silver_amethyst.tres) | `amulet.mind` | 2+ |
+| [Amulet of Evasion](../scenes/items/jewelry/amulet/amulet_silver_onyx.tres) | `amulet.evasion` | 2+ |
+| [Amulet of Mind](../scenes/items/jewelry/amulet/amulet_silver_runic_crest.tres) | `amulet.mind` | 2+ |
+| [Amulet of Swiftness](../scenes/items/jewelry/amulet/amulet_silver_sapphire.tres) | `amulet.swiftness` | 2+ |
+| [Amulet of Health](../scenes/items/jewelry/amulet/amulet_wood_coral.tres) | `amulet.health` | 1+ |
+| [Amulet of Vitality](../scenes/items/jewelry/amulet/amulet_wood_druid_talisman.tres) | `amulet.vitality` | 1+ |
+| [Amulet of Evasion](../scenes/items/jewelry/amulet/amulet_wood_jade.tres) | `amulet.evasion` | 1+ |
+| [Amulet of Health](../scenes/items/jewelry/amulet/amulet_wood_peridot.tres) | `amulet.health` | 1+ |
 | [Amulet of Dread](../scenes/items/jewelry/amulet_dread.tres) | `amulet.dread` | 1+ |
 | [Amulet of Vigor](../scenes/items/jewelry/amulet_health.tres) | `amulet.health` | 1+ |
 | [Amulet of Swiftness](../scenes/items/jewelry/amulet_swiftness.tres) | `amulet.swiftness` | 1+ |
 | [Amulet of the Titan](../scenes/items/jewelry/amulet_titan.tres) | `amulet.titan` | 1+ |
-| [Gold Ring of Mind](../scenes/items/jewelry/ring/ring_gold_amethyst.tres) | `ring.mind` | 4+ |
-| [Gold Ring of Vitality](../scenes/items/jewelry/ring/ring_gold_emerald.tres) | `ring.vitality` | 4+ |
-| [Gold Ring of Strength](../scenes/items/jewelry/ring/ring_gold_ruby.tres) | `ring.strength` | 4+ |
-| [Gold Ring of Precision](../scenes/items/jewelry/ring/ring_gold_signet.tres) | `ring.precision` | 4+ |
-| [Silver Ring of Mind](../scenes/items/jewelry/ring/ring_silver_band.tres) | `ring.mind` | 2+ |
-| [Silver Ring of Protection](../scenes/items/jewelry/ring/ring_silver_diamond.tres) | `ring.protection` | 2+ |
-| [Silver Ring of Savagery](../scenes/items/jewelry/ring/ring_silver_onyx.tres) | `ring.savagery` | 2+ |
-| [Silver Ring of Dexterity](../scenes/items/jewelry/ring/ring_silver_sapphire.tres) | `ring.dexterity` | 2+ |
-| [Wood Ring of Health](../scenes/items/jewelry/ring/ring_wood_amber.tres) | `ring.health` | 1+ |
-| [Wood Ring of Protection](../scenes/items/jewelry/ring/ring_wood_carved.tres) | `ring.protection` | 1+ |
-| [Wood Ring of Strength](../scenes/items/jewelry/ring/ring_wood_garnet.tres) | `ring.strength` | 1+ |
-| [Wood Ring of Evasion](../scenes/items/jewelry/ring/ring_wood_jade.tres) | `ring.evasion` | 1+ |
+| [Ring of Mind](../scenes/items/jewelry/ring/ring_gold_amethyst.tres) | `ring.mind` | 4+ |
+| [Ring of Vitality](../scenes/items/jewelry/ring/ring_gold_emerald.tres) | `ring.vitality` | 4+ |
+| [Ring of Strength](../scenes/items/jewelry/ring/ring_gold_ruby.tres) | `ring.strength` | 4+ |
+| [Ring of Precision](../scenes/items/jewelry/ring/ring_gold_signet.tres) | `ring.precision` | 4+ |
+| [Ring of Mind](../scenes/items/jewelry/ring/ring_silver_band.tres) | `ring.mind` | 2+ |
+| [Ring of Protection](../scenes/items/jewelry/ring/ring_silver_diamond.tres) | `ring.protection` | 2+ |
+| [Ring of Savagery](../scenes/items/jewelry/ring/ring_silver_onyx.tres) | `ring.savagery` | 2+ |
+| [Ring of Dexterity](../scenes/items/jewelry/ring/ring_silver_sapphire.tres) | `ring.dexterity` | 2+ |
+| [Ring of Health](../scenes/items/jewelry/ring/ring_wood_amber.tres) | `ring.health` | 1+ |
+| [Ring of Protection](../scenes/items/jewelry/ring/ring_wood_carved.tres) | `ring.protection` | 1+ |
+| [Ring of Strength](../scenes/items/jewelry/ring/ring_wood_garnet.tres) | `ring.strength` | 1+ |
+| [Ring of Evasion](../scenes/items/jewelry/ring/ring_wood_jade.tres) | `ring.evasion` | 1+ |
 | [Ring of Dexterity](../scenes/items/jewelry/ring_dexterity.tres) | `ring.dexterity` | 1+ |
 | [Ring of Evasion](../scenes/items/jewelry/ring_evasion.tres) | `ring.evasion` | 1+ |
 | [Ring of Frailty](../scenes/items/jewelry/ring_frailty.tres) | `ring.frailty` | 1+ |
@@ -245,53 +234,37 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Grilled T-Bone Steak](../scenes/items/food/food/food_meat_steak.tres) | `recovery; per-piece contamination` | 1+ |
 | [Golden Pear](../scenes/items/food/food/food_pear_golden.tres) | `recovery; per-piece contamination` | 1+ |
 
-### Potions (43)
+### Potions (27)
 
 | Definition | Family / role | Depth |
 | --- | --- | --- |
-| [Haste Potion](../scenes/items/potions/haste_potion.tres) | `potion.haste` | 1+ |
-| [Healing Potion](../scenes/items/potions/healing_potion_large.tres) | `potion.healing` | 7+ |
-| [Healing Potion](../scenes/items/potions/healing_potion_medium.tres) | `potion.healing` | 3–9 |
-| [Healing Potion](../scenes/items/potions/healing_potion_small.tres) | `potion.healing` | 1–5 |
-| [Poison Potion](../scenes/items/potions/poison_potion.tres) | `potion.poison` | 1+ |
-| [Large Potion of Intelligence](../scenes/items/potions/potion_large/potion_large_cobalt.tres) | `potion.intelligence` | 7+ |
-| [Large Potion of Slowness](../scenes/items/potions/potion_large/potion_large_coral.tres) | `potion.slowness` | 7+ |
-| [Large Potion of Healing](../scenes/items/potions/potion_large/potion_large_crimson.tres) | `potion.healing` | 7+ |
-| [Large Potion of Regeneration](../scenes/items/potions/potion_large/potion_large_emerald.tres) | `potion.regeneration` | 7+ |
-| [Large Potion of Protection](../scenes/items/potions/potion_large/potion_large_gold.tres) | `potion.protection` | 7+ |
-| [Large Potion of Haste](../scenes/items/potions/potion_large/potion_large_lime.tres) | `potion.haste` | 7+ |
-| [Large Potion of Dexterity](../scenes/items/potions/potion_large/potion_large_magenta.tres) | `potion.dexterity` | 7+ |
-| [Large Potion of Poison](../scenes/items/potions/potion_large/potion_large_obsidian.tres) | `potion.poison` | 7+ |
-| [Large Potion of Vitality](../scenes/items/potions/potion_large/potion_large_orange.tres) | `potion.vitality` | 7+ |
-| [Large Potion of Strength](../scenes/items/potions/potion_large/potion_large_purple.tres) | `potion.strength` | 7+ |
-| [Large Potion of Precision](../scenes/items/potions/potion_large/potion_large_silver.tres) | `potion.precision` | 7+ |
-| [Large Potion of Evasion](../scenes/items/potions/potion_large/potion_large_teal.tres) | `potion.evasion` | 7+ |
-| [Medium Potion of Intelligence](../scenes/items/potions/potion_medium/potion_medium_cobalt.tres) | `potion.intelligence` | 3–9 |
-| [Medium Potion of Slowness](../scenes/items/potions/potion_medium/potion_medium_coral.tres) | `potion.slowness` | 3–9 |
-| [Medium Potion of Healing](../scenes/items/potions/potion_medium/potion_medium_crimson.tres) | `potion.healing` | 3–9 |
-| [Medium Potion of Regeneration](../scenes/items/potions/potion_medium/potion_medium_emerald.tres) | `potion.regeneration` | 3–9 |
-| [Medium Potion of Protection](../scenes/items/potions/potion_medium/potion_medium_gold.tres) | `potion.protection` | 3–9 |
-| [Medium Potion of Haste](../scenes/items/potions/potion_medium/potion_medium_lime.tres) | `potion.haste` | 3–9 |
-| [Medium Potion of Dexterity](../scenes/items/potions/potion_medium/potion_medium_magenta.tres) | `potion.dexterity` | 3–9 |
-| [Medium Potion of Poison](../scenes/items/potions/potion_medium/potion_medium_obsidian.tres) | `potion.poison` | 3–9 |
-| [Medium Potion of Vitality](../scenes/items/potions/potion_medium/potion_medium_orange.tres) | `potion.vitality` | 3–9 |
-| [Medium Potion of Strength](../scenes/items/potions/potion_medium/potion_medium_purple.tres) | `potion.strength` | 3–9 |
-| [Medium Potion of Precision](../scenes/items/potions/potion_medium/potion_medium_silver.tres) | `potion.precision` | 3–9 |
-| [Medium Potion of Evasion](../scenes/items/potions/potion_medium/potion_medium_teal.tres) | `potion.evasion` | 3–9 |
-| [Small Potion of Intelligence](../scenes/items/potions/potion_small/potion_small_cobalt.tres) | `potion.intelligence` | 1–5 |
-| [Small Potion of Slowness](../scenes/items/potions/potion_small/potion_small_coral.tres) | `potion.slowness` | 1–5 |
-| [Small Potion of Healing](../scenes/items/potions/potion_small/potion_small_crimson.tres) | `potion.healing` | 1–5 |
-| [Small Potion of Regeneration](../scenes/items/potions/potion_small/potion_small_emerald.tres) | `potion.regeneration` | 1–5 |
-| [Small Potion of Protection](../scenes/items/potions/potion_small/potion_small_gold.tres) | `potion.protection` | 1–5 |
-| [Small Potion of Haste](../scenes/items/potions/potion_small/potion_small_lime.tres) | `potion.haste` | 1–5 |
-| [Small Potion of Dexterity](../scenes/items/potions/potion_small/potion_small_magenta.tres) | `potion.dexterity` | 1–5 |
-| [Small Potion of Poison](../scenes/items/potions/potion_small/potion_small_obsidian.tres) | `potion.poison` | 1–5 |
-| [Small Potion of Vitality](../scenes/items/potions/potion_small/potion_small_orange.tres) | `potion.vitality` | 1–5 |
-| [Small Potion of Strength](../scenes/items/potions/potion_small/potion_small_purple.tres) | `potion.strength` | 1–5 |
-| [Small Potion of Precision](../scenes/items/potions/potion_small/potion_small_silver.tres) | `potion.precision` | 1–5 |
-| [Small Potion of Evasion](../scenes/items/potions/potion_small/potion_small_teal.tres) | `potion.evasion` | 1–5 |
-| [Regeneration Potion](../scenes/items/potions/regeneration_potion.tres) | `potion.regeneration` | 1+ |
-| [Slowness Potion](../scenes/items/potions/slowness_potion.tres) | `potion.slowness` | 1+ |
+| [Small Potion of Healing](../scenes/items/potions/potion_healing_small.tres) | `potion.healing` | 1–5 |
+| [Medium Potion of Healing](../scenes/items/potions/potion_healing_medium.tres) | `potion.healing` | 3–9 |
+| [Large Potion of Healing](../scenes/items/potions/potion_healing_large.tres) | `potion.healing` | 7+ |
+| [Small Potion of Strength](../scenes/items/potions/potion_strength_small.tres) | `potion.strength` | 1–5 |
+| [Medium Potion of Strength](../scenes/items/potions/potion_strength_medium.tres) | `potion.strength` | 3–9 |
+| [Large Potion of Strength](../scenes/items/potions/potion_strength_large.tres) | `potion.strength` | 7+ |
+| [Small Potion of Dexterity](../scenes/items/potions/potion_dexterity_small.tres) | `potion.dexterity` | 1–5 |
+| [Medium Potion of Dexterity](../scenes/items/potions/potion_dexterity_medium.tres) | `potion.dexterity` | 3–9 |
+| [Large Potion of Dexterity](../scenes/items/potions/potion_dexterity_large.tres) | `potion.dexterity` | 7+ |
+| [Small Potion of Vitality](../scenes/items/potions/potion_vitality_small.tres) | `potion.vitality` | 1–5 |
+| [Medium Potion of Vitality](../scenes/items/potions/potion_vitality_medium.tres) | `potion.vitality` | 3–9 |
+| [Large Potion of Vitality](../scenes/items/potions/potion_vitality_large.tres) | `potion.vitality` | 7+ |
+| [Small Potion of Intelligence](../scenes/items/potions/potion_intelligence_small.tres) | `potion.intelligence` | 1–5 |
+| [Medium Potion of Intelligence](../scenes/items/potions/potion_intelligence_medium.tres) | `potion.intelligence` | 3–9 |
+| [Large Potion of Intelligence](../scenes/items/potions/potion_intelligence_large.tres) | `potion.intelligence` | 7+ |
+| [Small Potion of Poison](../scenes/items/potions/potion_poison_small.tres) | `potion.poison` | 1–5 |
+| [Medium Potion of Poison](../scenes/items/potions/potion_poison_medium.tres) | `potion.poison` | 3–9 |
+| [Large Potion of Poison](../scenes/items/potions/potion_poison_large.tres) | `potion.poison` | 7+ |
+| [Small Potion of Slowness](../scenes/items/potions/potion_slowness_small.tres) | `potion.slowness` | 1–5 |
+| [Medium Potion of Slowness](../scenes/items/potions/potion_slowness_medium.tres) | `potion.slowness` | 3–9 |
+| [Large Potion of Slowness](../scenes/items/potions/potion_slowness_large.tres) | `potion.slowness` | 7+ |
+| [Small Potion of Blindness](../scenes/items/potions/potion_blindness_small.tres) | `potion.blindness` | 1–5 |
+| [Medium Potion of Blindness](../scenes/items/potions/potion_blindness_medium.tres) | `potion.blindness` | 3–9 |
+| [Large Potion of Blindness](../scenes/items/potions/potion_blindness_large.tres) | `potion.blindness` | 7+ |
+| [Small Potion of Confusion](../scenes/items/potions/potion_confusion_small.tres) | `potion.confusion` | 1–5 |
+| [Medium Potion of Confusion](../scenes/items/potions/potion_confusion_medium.tres) | `potion.confusion` | 3–9 |
+| [Large Potion of Confusion](../scenes/items/potions/potion_confusion_large.tres) | `potion.confusion` | 7+ |
 
 ### Scrolls (20)
 

@@ -44,6 +44,26 @@ affixes are **instance-level rolls** (this particular axe rolled +5 Strength).
   `OnRemove`. `Duration 0` means permanent (e.g. a strength potion). Periodic effects still use
   a `PeriodicBuff` subclass (`HealingBuff`, `PoisonBuff`).
 
+### Buffs and status conditions
+
+A buff can declare the status it imposes in `Buff.Condition`, a `StatusCondition` Resource such as
+`scenes/buffs/conditions/poisoned.tres`. The condition file is the identity and is compared by
+reference, so always reference it as an external resource: `ItemFactory`'s deep duplicate copies
+embedded buffs but keeps external conditions shared. `BuffController.HasCondition` is true while
+any active buff carries the condition, so overlapping sources, such as poisoned food followed by a
+poison potion, read as one continuous condition. `BuffController` fires one `BuffsChanged` per
+application, removal, expiry sweep or `ClearBuffs`, and observers re-read what they need.
+Presentation, such as [screen effects](screen-effects.md), and gameplay react to conditions for
+statuses without a magnitude, and to buff subclasses for effects with one:
+
+- A plain `Buff` with only a `Condition` is a status with no behavior of its own: blindness
+  (`blinded`) and confusion (`confused`). The blindness overlay and the player's
+  `ConfusionComponent` react to those conditions.
+- `TimeScaleBuff` (Slowness) slows the whole game. The player's `TimeScaleComponent` applies the
+  slowest active one to `Engine.TimeScale` and restores normal speed when the last one ends or the
+  scene unloads. Durations count game time.
+- `Buff.CuredConditions` ends conditions when any buff is applied; healing potions cure blindness.
+
 `PlayerStats` owns a registry of active modifiers keyed by the object that added them:
 
 - `AddModifiers(source, modifiers)` / `AddModifier(source, modifier)` — register under a source.

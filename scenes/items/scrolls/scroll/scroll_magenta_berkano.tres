@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://de7pjydt2w7pk" path="res://scenes/buffs/StatModifierBuff.cs" id="buff"]
 [ext_resource type="Script" uid="uid://tl6phiqa232t" path="res://scenes/items/scrolls/Scroll.cs" id="item"]
 [ext_resource type="Script" uid="uid://b2ecrfjb74yc3" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
-[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_magenta_berkano.tscn" id="scene"]
+[ext_resource type="PackedScene" uid="uid://fc5k4daomt7i" path="res://assets/kaykit-dungeon-legacy/bookA.gltf.glb" id="scene"]
 
 [sub_resource type="Resource" id="Modifier"]
 script = ExtResource("mod")

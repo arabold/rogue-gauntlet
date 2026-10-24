@@ -1,81 +1,93 @@
-[gd_resource type="Resource" script_class="AppearancePool" load_steps=15 format=3]
+[gd_resource type="Resource" script_class="AppearancePool" load_steps=27 format=3]
 
 [ext_resource type="Script" uid="uid://cappearpool01" path="res://scenes/items/identity/AppearancePool.cs" id="1_pool"]
 [ext_resource type="Script" uid="uid://citemappear01" path="res://scenes/items/identity/ItemAppearance.cs" id="2_appr"]
+[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_cobalt_raidho.tscn" id="m1"]
+[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_coral_sowilo.tscn" id="m2"]
+[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_crimson_othala.tscn" id="m3"]
+[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_emerald_fehu.tscn" id="m4"]
+[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_gold_algiz.tscn" id="m5"]
+[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_lime_hagalaz.tscn" id="m6"]
+[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_magenta_berkano.tscn" id="m7"]
+[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_obsidian_tiwaz.tscn" id="m8"]
+[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_orange_thurisaz.tscn" id="m9"]
+[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_purple_dagaz.tscn" id="m10"]
+[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_silver_ingwaz.tscn" id="m11"]
+[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_teal_eihwaz.tscn" id="m12"]
 
-[sub_resource type="Resource" id="Appearance_zelgo"]
+[sub_resource type="Resource" id="Appearance_cobalt_raidho"]
 script = ExtResource("2_appr")
 Descriptor = "ZELGO MER"
-TintColor = Color(0.82, 0.7, 0.48, 1)
+Models = Dictionary[String, PackedScene]({"": ExtResource("m1")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_juyed"]
+[sub_resource type="Resource" id="Appearance_coral_sowilo"]
 script = ExtResource("2_appr")
 Descriptor = "JUYED AWK YACC"
-TintColor = Color(0.75, 0.75, 0.72, 1)
+Models = Dictionary[String, PackedScene]({"": ExtResource("m2")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_nr9"]
+[sub_resource type="Resource" id="Appearance_crimson_othala"]
 script = ExtResource("2_appr")
 Descriptor = "NR 9"
-TintColor = Color(0.92, 0.9, 0.82, 1)
+Models = Dictionary[String, PackedScene]({"": ExtResource("m3")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_xixaxa"]
+[sub_resource type="Resource" id="Appearance_emerald_fehu"]
 script = ExtResource("2_appr")
 Descriptor = "XIXAXA XOXAXA XUXAXA"
-TintColor = Color(0.62, 0.52, 0.72, 1)
+Models = Dictionary[String, PackedScene]({"": ExtResource("m4")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_pratyavayah"]
+[sub_resource type="Resource" id="Appearance_gold_algiz"]
 script = ExtResource("2_appr")
 Descriptor = "PRATYAVAYAH"
-TintColor = Color(0.85, 0.55, 0.55, 1)
+Models = Dictionary[String, PackedScene]({"": ExtResource("m5")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_daiyen"]
+[sub_resource type="Resource" id="Appearance_lime_hagalaz"]
 script = ExtResource("2_appr")
 Descriptor = "DAIYEN FOOELS"
-TintColor = Color(0.55, 0.65, 0.42, 1)
+Models = Dictionary[String, PackedScene]({"": ExtResource("m6")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_lepgex"]
+[sub_resource type="Resource" id="Appearance_magenta_berkano"]
 script = ExtResource("2_appr")
 Descriptor = "LEP GEX VEN ZEA"
-TintColor = Color(0.55, 0.68, 0.85, 1)
+Models = Dictionary[String, PackedScene]({"": ExtResource("m7")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_velox"]
+[sub_resource type="Resource" id="Appearance_obsidian_tiwaz"]
 script = ExtResource("2_appr")
 Descriptor = "VELOX NEB"
-TintColor = Color(0.85, 0.72, 0.3, 1)
+Models = Dictionary[String, PackedScene]({"": ExtResource("m8")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_foobie"]
+[sub_resource type="Resource" id="Appearance_orange_thurisaz"]
 script = ExtResource("2_appr")
 Descriptor = "FOOBIE BLETCH"
-TintColor = Color(0.35, 0.33, 0.32, 1)
+Models = Dictionary[String, PackedScene]({"": ExtResource("m9")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_temov"]
+[sub_resource type="Resource" id="Appearance_purple_dagaz"]
 script = ExtResource("2_appr")
 Descriptor = "TEMOV"
-TintColor = Color(0.72, 0.42, 0.25, 1)
+Models = Dictionary[String, PackedScene]({"": ExtResource("m10")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_garven"]
+[sub_resource type="Resource" id="Appearance_silver_ingwaz"]
 script = ExtResource("2_appr")
 Descriptor = "GARVEN DEH"
-TintColor = Color(0.35, 0.62, 0.6, 1)
+Models = Dictionary[String, PackedScene]({"": ExtResource("m11")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_elbib"]
+[sub_resource type="Resource" id="Appearance_teal_eihwaz"]
 script = ExtResource("2_appr")
 Descriptor = "ELBIB YLOH"
-TintColor = Color(0.9, 0.82, 0.55, 1)
+Models = Dictionary[String, PackedScene]({"": ExtResource("m12")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [resource]
 script = ExtResource("1_pool")
-Appearances = Array[ItemAppearance]([SubResource("Appearance_zelgo"), SubResource("Appearance_juyed"), SubResource("Appearance_nr9"), SubResource("Appearance_xixaxa"), SubResource("Appearance_pratyavayah"), SubResource("Appearance_daiyen"), SubResource("Appearance_lepgex"), SubResource("Appearance_velox"), SubResource("Appearance_foobie"), SubResource("Appearance_temov"), SubResource("Appearance_garven"), SubResource("Appearance_elbib")])
+Appearances = [SubResource("Appearance_cobalt_raidho"), SubResource("Appearance_coral_sowilo"), SubResource("Appearance_crimson_othala"), SubResource("Appearance_emerald_fehu"), SubResource("Appearance_gold_algiz"), SubResource("Appearance_lime_hagalaz"), SubResource("Appearance_magenta_berkano"), SubResource("Appearance_obsidian_tiwaz"), SubResource("Appearance_orange_thurisaz"), SubResource("Appearance_purple_dagaz"), SubResource("Appearance_silver_ingwaz"), SubResource("Appearance_teal_eihwaz")]
 metadata/_custom_type_script = ExtResource("1_pool")

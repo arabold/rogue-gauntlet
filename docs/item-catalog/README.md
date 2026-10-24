@@ -107,17 +107,11 @@ Visual + data reference for every item definition in the game — the itemizatio
 
 ## Potions
 
-All potions carry a hidden identity — see `docs/item-identification-system.md`.
-
-| | Potion | Effect | TypeId | Value |
-|---|---|---|---|---|
-| ![Potion of Slowness](./slowness_potion.png) | **Potion of Slowness** | Slowness: -50% Speed for 8s | `potion.slowness` | 30 |
-| ![Potion of Poison](./poison_potion.png) | **Potion of Poison** | Poison: 6 damage over 6s | `potion.poison` | 40 |
-| ![Potion of Healing](./healing_potion_medium.png) | **Potion of Healing** | Healing: 20 HP over 1s | `potion.healing` | 100 |
-| ![Potion of Healing](./healing_potion_small.png) | **Potion of Healing** | Healing: 10 HP over 1s | `potion.healing` | 100 |
-| ![Potion of Healing](./healing_potion_large.png) | **Potion of Healing** | Healing: 50 HP over 1s | `potion.healing` | 100 |
-| ![Potion of Haste](./haste_potion.png) | **Potion of Haste** | Haste: +60% Speed for 15s | `potion.haste` | 120 |
-| ![Potion of Regeneration](./regeneration_potion.png) | **Potion of Regeneration** | Regeneration: 20 HP over 10s | `potion.regeneration` | 150 |
+All potions carry a hidden identity, and their look is that identity's run appearance: a random color
+from the Asset Studio potion models, in the bottle size that sets the potion's strength. A potion
+therefore has no fixed image. See the [Asset Studio item lineups](../../asset-studio/catalogs/items/README.md)
+for the bottles, [potion effects](../item-identification-system.md#potion-effects) for the nine types,
+and the [item catalog](../item-catalog.md) for every definition.
 
 ## Scrolls
 
@@ -136,7 +130,7 @@ Scroll effects that aren't stat buffs are authored `ScrollEffect` strategies (id
 
 ## Jewelry
 
-Rings and amulets carry a hidden identity like potions/scrolls, and show only a disguised name ("a jade ring") until worn or identified. World models are authored primitives (no ring/amulet art exists in any owned asset pack).
+Rings and amulets carry a hidden identity like potions/scrolls, and show only a disguised name ("a red wooden amulet") until worn or identified. In play they show their run appearance model from the Asset Studio rings and amulets; the images below are the definitions' fallback models.
 
 ### Rings
 
@@ -170,4 +164,4 @@ Rings and amulets carry a hidden identity like potions/scrolls, and show only a 
 |---|---|---|
 | ![Gold](./gold.png) | **Gold** | Stackable; drop quantity scales with dungeon depth via `LootTableItem.QuantityPerDepth` |
 
-> 37 weapons, 15 shields, 7 potions, 8 scrolls, 10 rings, 4 amulets, and gold — 82 item definitions total (excludes class-starter weapons, which aren't part of the loot ladder). Regenerate images after adding/removing items — see the command in `render_item_catalog.gd`'s header comment.
+> 37 weapons, 15 shields, 8 scrolls, 10 rings, 4 amulets, and gold are pictured here; potions have no fixed image (see above) and are listed in [the item catalog](../item-catalog.md) (excludes class-starter weapons, which aren't part of the loot ladder). Regenerate images after adding/removing items — see the command in `render_item_catalog.gd`'s header comment.

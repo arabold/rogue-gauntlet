@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="ConsumableItem" format=3 uid="uid://b0fxsr0kyyrj"]
+
+[ext_resource type="Script" uid="uid://irr1yr02p4rg" path="res://scenes/buffs/HealingBuff.cs" id="buff"]
+[ext_resource type="Resource" uid="uid://cstatusblinded" path="res://scenes/buffs/conditions/blinded.tres" id="blinded"]
+[ext_resource type="Script" uid="uid://c15rgkjymw2e6" path="res://scenes/items/ConsumableItem.cs" id="item"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_silver.tscn" id="scene"]
+
+[sub_resource type="Resource" id="Buff"]
+script = ExtResource("buff")
+HealthPointsPerTick = 24
+CuredConditions = [ExtResource("blinded")]
+Name = "Large Potion of Healing"
+Duration = 3.0
+metadata/_custom_type_script = ExtResource("buff")
+
+[resource]
+script = ExtResource("item")
+TypeId = "potion.healing"
+TrueName = "Large Potion of Healing"
+AppearanceForm = "large"
+UnidentifiedNameTemplate = "large {descriptor} potion"
+Buff = SubResource("Buff")
+Name = "Large Potion of Healing"
+Scene = ExtResource("scene")
+Value = 200
+IsStackable = true
+MaxStackSize = 20
+metadata/_custom_type_script = ExtResource("item")

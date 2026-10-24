@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://de7pjydt2w7pk" path="res://scenes/buffs/StatModifierBuff.cs" id="1_buff"]
 [ext_resource type="Script" uid="uid://b2ecrfjb74yc3" path="res://scenes/player/resources/StatModifier.cs" id="2_mod"]
-[ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_lime_hagalaz.tscn" id="3_scene"]
+[ext_resource type="PackedScene" uid="uid://fc5k4daomt7i" path="res://assets/kaykit-dungeon-legacy/bookA.gltf.glb" id="3_scene"]
 [ext_resource type="Script" uid="uid://tl6phiqa232t" path="res://scenes/items/scrolls/Scroll.cs" id="4_scroll"]
 
 [sub_resource type="Resource" id="Resource_weakstr"]

@@ -27,7 +27,7 @@ public class ItemLifecycleIntegrationTest
 		AssertInt(initial.AddedItems.Count + initial.RemovedItemIds.Count + initial.Overrides.Count).IsEqual(0);
 
 		// Failed pickup leaves its world object and quantity intact; a later retry transfers it once.
-		var item = ItemFactory.Create(GD.Load<Item>("res://scenes/items/potions/healing_potion_small.tres"));
+		var item = ItemFactory.Create(GD.Load<Item>("res://scenes/items/potions/potion_healing_small.tres"));
 		var pickup = GD.Load<PackedScene>("res://scenes/items/lootable_item.tscn").Instantiate<LootableItem>();
 		pickup.Item = item; pickup.Quantity = 2; pickup.WaitForPlayerExited = true;
 		level.AddWorldNode(pickup, player.GlobalPosition + new Vector3(20, 0, 0));
@@ -68,6 +68,7 @@ public class ItemLifecycleIntegrationTest
 		}
 		AssertBool(callbackWasGuarded).IsTrue();
 		AssertInt(player.BuffController.ActiveBuffs.Count(b => b.Buff is PoisonBuff)).IsEqual(1);
+		AssertBool(player.BuffController.HasCondition(GD.Load<StatusCondition>("res://scenes/buffs/conditions/poisoned.tres"))).IsTrue();
 		AssertBool(controller.TryUse(foodSlot).Success).IsFalse();
 		AssertInt(player.BuffController.ActiveBuffs.Count(b => b.Buff is PoisonBuff)).IsEqual(1);
 

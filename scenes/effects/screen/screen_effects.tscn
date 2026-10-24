@@ -1,12 +1,22 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/blindness_effect.tscn" id="1_blind"]
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/poison_effect.tscn" id="2_poison"]
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/near_death_effect.tscn" id="3_near_death"]
 [ext_resource type="Script" path="res://scenes/effects/screen/HealthScreenEffectDriver.cs" id="4_driver"]
+[ext_resource type="Script" path="res://scenes/effects/screen/ScreenEffectsLayer.cs" id="5_layer"]
+[ext_resource type="Script" path="res://scenes/effects/screen/StatusScreenEffectDriver.cs" id="6_status_driver"]
+[ext_resource type="Resource" uid="uid://cstatuspoisoned" path="res://scenes/buffs/conditions/poisoned.tres" id="7_poisoned"]
+[ext_resource type="Resource" uid="uid://cstatusconfused" path="res://scenes/buffs/conditions/confused.tres" id="8_confused"]
+[ext_resource type="Resource" uid="uid://cstatusblinded" path="res://scenes/buffs/conditions/blinded.tres" id="9_blinded"]
+[ext_resource type="Script" uid="uid://b06jcqqcjmgqh" path="res://scenes/buffs/StatusCondition.cs" id="10_condition_script"]
 
-[node name="ScreenEffects" type="CanvasLayer"]
+[node name="ScreenEffects" type="CanvasLayer" node_paths=PackedStringArray("Blindness", "HealthDrivers", "StatusDrivers")]
 layer = -1
+script = ExtResource("5_layer")
+Blindness = NodePath("Blindness")
+HealthDrivers = [NodePath("NearDeathDriver")]
+StatusDrivers = [NodePath("BlindnessDriver"), NodePath("PoisonDriver")]
 
 [node name="Blindness" parent="." instance=ExtResource("1_blind")]
 
@@ -17,3 +27,14 @@ layer = -1
 [node name="NearDeathDriver" type="Node" parent="." node_paths=PackedStringArray("Effect")]
 script = ExtResource("4_driver")
 Effect = NodePath("../NearDeath")
+
+[node name="BlindnessDriver" type="Node" parent="." node_paths=PackedStringArray("Effect")]
+script = ExtResource("6_status_driver")
+Effect = NodePath("../Blindness")
+Conditions = Dictionary[ExtResource("10_condition_script"), float]({ExtResource("9_blinded"): 1.0})
+FadeInTime = 1.0
+
+[node name="PoisonDriver" type="Node" parent="." node_paths=PackedStringArray("Effect")]
+script = ExtResource("6_status_driver")
+Effect = NodePath("../Poison")
+Conditions = Dictionary[ExtResource("10_condition_script"), float]({ExtResource("7_poisoned"): 1.0, ExtResource("8_confused"): 0.35})

@@ -286,8 +286,7 @@ public partial class TimedInteractionTest
 	public void DoorAndChestComponentsCommitAuthorityThroughInteraction()
 	{
 		var doorScene = GD.Load<PackedScene>("res://scenes/props/door.tscn");
-		var door = doorScene.Instantiate<Door>();
-		door._Ready();
+		var door = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
 
 		var (actor, gate, interaction) = CreateTestActor(new ActorCapabilities { CanOpenDoors = true });
 		var comp = door.GetNode<InteractiveComponent>("InteractiveComponent");
@@ -307,7 +306,6 @@ public partial class TimedInteractionTest
 		AssertBool(interaction.IsActive).IsFalse();
 
 		actor.Free();
-		door.Free();
 	}
 
 	[TestCase]
@@ -316,7 +314,7 @@ public partial class TimedInteractionTest
 		var doorScene = GD.Load<PackedScene>("res://scenes/props/door.tscn");
 		var door = doorScene.Instantiate<Door>();
 		door.Position = Vector3.Zero;
-		door._Ready();
+		TestFactories.AddToSceneTree(door);
 
 		var (actor, gate, interaction) = CreateTestActor(new ActorCapabilities { CanOpenDoors = true });
 		var comp = door.GetNode<InteractiveComponent>("InteractiveComponent");
@@ -339,20 +337,16 @@ public partial class TimedInteractionTest
 		interaction.Cancel(InteractionCancelReason.ActionInterrupted);
 
 		actor.Free();
-		door.Free();
 	}
 
 	[TestCase]
 	public void DoorIndicatorBindsCorrectKeyAndPromptsOnlyWhenFocused()
 	{
 		var doorScene = GD.Load<PackedScene>("res://scenes/props/door.tscn");
-		var door = doorScene.Instantiate<Door>();
-		door._Ready();
+		var door = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
 
 		var comp = door.GetNode<InteractiveComponent>("InteractiveComponent");
-		comp._Ready();
 		var floatingLabel = comp.GetNode<FloatingLabel>("FloatingLabel");
-		floatingLabel._Ready();
 		var keyBinding = floatingLabel.GetNode<KeyBinding>("%KeyBinding");
 
 		// KeyBinding must have resolved "interact" (key E)
@@ -371,7 +365,5 @@ public partial class TimedInteractionTest
 
 		comp.SetFocused(false);
 		AssertBool(floatingLabel.Visible).IsFalse();
-
-		door.Free();
 	}
 }

@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://ds1fgmaafnkkj"]
+[gd_scene load_steps=12 format=3 uid="uid://ds1fgmaafnkkj"]
 
 [ext_resource type="Script" uid="uid://cdal8n3nlw3ng" path="res://scenes/main/Main.cs" id="1_dl2xl"]
 [ext_resource type="PackedScene" uid="uid://beddkxj3k6x7i" path="res://scenes/ui/hud.tscn" id="3_stuk7"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://csjccrhj5wnx7" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="7_wl18x"]
 [ext_resource type="Script" uid="uid://8umksf8e80fw" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="8_qd7vr"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="9_pause"]
+[ext_resource type="PackedScene" path="res://scenes/effects/screen/screen_effects.tscn" id="10_effects"]
 
 [sub_resource type="Environment" id="Environment_cxo8v"]
 background_mode = 1
@@ -19,10 +20,13 @@ glow_enabled = true
 [sub_resource type="Resource" id="Resource_3h1r8"]
 script = ExtResource("8_qd7vr")
 
-[node name="Main" type="Node" unique_id=488156596]
+[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects")]
 script = ExtResource("1_dl2xl")
+ScreenEffects = NodePath("ScreenEffects")
 
 [node name="HUD" parent="." unique_id=2078119296 instance=ExtResource("3_stuk7")]
+
+[node name="ScreenEffects" parent="." instance=ExtResource("10_effects")]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=51815958]
 environment = SubResource("Environment_cxo8v")

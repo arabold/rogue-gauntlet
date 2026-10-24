@@ -1,81 +1,93 @@
-[gd_resource type="Resource" script_class="AppearancePool" load_steps=15 format=3]
+[gd_resource type="Resource" script_class="AppearancePool" load_steps=27 format=3]
 
 [ext_resource type="Script" uid="uid://cappearpool01" path="res://scenes/items/identity/AppearancePool.cs" id="1_pool"]
 [ext_resource type="Script" uid="uid://citemappear01" path="res://scenes/items/identity/ItemAppearance.cs" id="2_appr"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_gold_amethyst.tscn" id="m1"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_gold_emerald.tscn" id="m2"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_gold_ruby.tscn" id="m3"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_gold_signet.tscn" id="m4"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_silver_band.tscn" id="m5"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_silver_diamond.tscn" id="m6"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_silver_onyx.tscn" id="m7"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_silver_sapphire.tscn" id="m8"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_wood_amber.tscn" id="m9"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_wood_carved.tscn" id="m10"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_wood_garnet.tscn" id="m11"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring/ring_wood_jade.tscn" id="m12"]
 
-[sub_resource type="Resource" id="Appearance_jade"]
+[sub_resource type="Resource" id="Appearance_gold_amethyst"]
 script = ExtResource("2_appr")
-Descriptor = "jade"
-TintColor = Color(0.35, 0.65, 0.4, 1)
+Descriptor = "violet golden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m1")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_ruby"]
+[sub_resource type="Resource" id="Appearance_gold_emerald"]
 script = ExtResource("2_appr")
-Descriptor = "ruby"
-TintColor = Color(0.8, 0.15, 0.2, 1)
+Descriptor = "green golden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m2")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_sapphire"]
+[sub_resource type="Resource" id="Appearance_gold_ruby"]
 script = ExtResource("2_appr")
-Descriptor = "sapphire"
-TintColor = Color(0.18, 0.3, 0.8, 1)
+Descriptor = "red golden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m3")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_obsidian"]
+[sub_resource type="Resource" id="Appearance_gold_signet"]
 script = ExtResource("2_appr")
-Descriptor = "obsidian"
-TintColor = Color(0.15, 0.13, 0.16, 1)
+Descriptor = "golden signet"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m4")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_pearl"]
+[sub_resource type="Resource" id="Appearance_silver_band"]
 script = ExtResource("2_appr")
-Descriptor = "pearl"
-TintColor = Color(0.92, 0.9, 0.88, 1)
+Descriptor = "plain silver"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m5")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_topaz"]
+[sub_resource type="Resource" id="Appearance_silver_diamond"]
 script = ExtResource("2_appr")
-Descriptor = "topaz"
-TintColor = Color(0.95, 0.7, 0.2, 1)
+Descriptor = "sparkling silver"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m6")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_amethyst"]
+[sub_resource type="Resource" id="Appearance_silver_onyx"]
 script = ExtResource("2_appr")
-Descriptor = "amethyst"
-TintColor = Color(0.55, 0.3, 0.75, 1)
+Descriptor = "black silver"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m7")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_emerald"]
+[sub_resource type="Resource" id="Appearance_silver_sapphire"]
 script = ExtResource("2_appr")
-Descriptor = "emerald"
-TintColor = Color(0.1, 0.6, 0.35, 1)
+Descriptor = "blue silver"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m8")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_garnet"]
+[sub_resource type="Resource" id="Appearance_wood_amber"]
 script = ExtResource("2_appr")
-Descriptor = "garnet"
-TintColor = Color(0.6, 0.15, 0.25, 1)
+Descriptor = "amber wooden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m9")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_opal"]
+[sub_resource type="Resource" id="Appearance_wood_carved"]
 script = ExtResource("2_appr")
-Descriptor = "opal"
-TintColor = Color(0.8, 0.85, 0.9, 1)
+Descriptor = "carved wooden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m10")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_moonstone"]
+[sub_resource type="Resource" id="Appearance_wood_garnet"]
 script = ExtResource("2_appr")
-Descriptor = "moonstone"
-TintColor = Color(0.75, 0.78, 0.9, 1)
+Descriptor = "red wooden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m11")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
-[sub_resource type="Resource" id="Appearance_onyx"]
+[sub_resource type="Resource" id="Appearance_wood_jade"]
 script = ExtResource("2_appr")
-Descriptor = "onyx"
-TintColor = Color(0.25, 0.25, 0.3, 1)
+Descriptor = "green wooden"
+Models = Dictionary[String, PackedScene]({"": ExtResource("m12")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [resource]
 script = ExtResource("1_pool")
-Appearances = Array[ItemAppearance]([SubResource("Appearance_jade"), SubResource("Appearance_ruby"), SubResource("Appearance_sapphire"), SubResource("Appearance_obsidian"), SubResource("Appearance_pearl"), SubResource("Appearance_topaz"), SubResource("Appearance_amethyst"), SubResource("Appearance_emerald"), SubResource("Appearance_garnet"), SubResource("Appearance_opal"), SubResource("Appearance_moonstone"), SubResource("Appearance_onyx")])
+Appearances = [SubResource("Appearance_gold_amethyst"), SubResource("Appearance_gold_emerald"), SubResource("Appearance_gold_ruby"), SubResource("Appearance_gold_signet"), SubResource("Appearance_silver_band"), SubResource("Appearance_silver_diamond"), SubResource("Appearance_silver_onyx"), SubResource("Appearance_silver_sapphire"), SubResource("Appearance_wood_amber"), SubResource("Appearance_wood_carved"), SubResource("Appearance_wood_garnet"), SubResource("Appearance_wood_jade")]
 metadata/_custom_type_script = ExtResource("1_pool")

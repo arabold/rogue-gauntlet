@@ -1,22 +1,23 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scenes/debug/ScreenEffectHarness.cs" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/main/main.tscn" id="2_main"]
-[ext_resource type="PackedScene" path="res://scenes/effects/screen/screen_effects.tscn" id="3_effects"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_poison_small.tres" id="3_poison"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_blindness_medium.tres" id="4_blindness"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_confusion_medium.tres" id="5_confusion"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_slowness_medium.tres" id="6_slowness"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_healing_small.tres" id="7_healing"]
 
-[node name="ScreenEffectHarness" type="Node" node_paths=PackedStringArray("Effects", "Blindness", "HealthDriver", "Controls")]
+[node name="ScreenEffectHarness" type="Node" node_paths=PackedStringArray("Effects", "Controls")]
 script = ExtResource("1_script")
-Effects = [NodePath("ScreenEffects/Blindness"), NodePath("ScreenEffects/Poison"), NodePath("ScreenEffects/NearDeath")]
-Blindness = NodePath("ScreenEffects/Blindness")
-HealthDriver = NodePath("ScreenEffects/NearDeathDriver")
+Effects = [NodePath("Main/ScreenEffects/Blindness"), NodePath("Main/ScreenEffects/Poison"), NodePath("Main/ScreenEffects/NearDeath")]
+Potions = [ExtResource("3_poison"), ExtResource("4_blindness"), ExtResource("5_confusion"), ExtResource("6_slowness"), ExtResource("7_healing")]
 Controls = NodePath("DebugUI/Panel/Margin/Rows")
 
 [node name="SceneDebugEnvironment" type="Node" parent="."]
 editor_description = "Marker that opts this scene out of SceneDebugBootstrap's floor, light and camera; the gameplay scene provides its own."
 
 [node name="Main" parent="." instance=ExtResource("2_main")]
-
-[node name="ScreenEffects" parent="." instance=ExtResource("3_effects")]
 
 [node name="DebugUI" type="CanvasLayer" parent="."]
 layer = 10
