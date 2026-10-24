@@ -2,6 +2,7 @@
 extends EditorPlugin
 
 const DEFAULT_BUILDER_PATH = "res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres"
+const DEFAULT_ARRANGEMENTS_PATH = "res://scenes/levels/garrison/arrangements/garrison_arrangements.tres"
 const DEFAULT_ROOMS_DIR = "res://scenes/levels/dungeon/rooms/"
 
 const SHAPE_NAMES: PackedStringArray = [
@@ -53,7 +54,10 @@ var _open_scene_check: CheckBox
 
 # Configuration Dialog Controls
 var _config_dialog: AcceptDialog
+var _cfg_generator_edit: LineEdit
 var _cfg_builder_edit: LineEdit
+var _cfg_arrangements_check: CheckBox
+var _cfg_arrangements_edit: LineEdit
 var _cfg_min_size: SpinBox
 var _cfg_max_size: SpinBox
 var _cfg_generate_walls_check: CheckBox
@@ -195,13 +199,13 @@ func _create_toolbar() -> void:
 
 	var reroll_btn = Button.new()
 	reroll_btn.text = "🎲 Re-Roll"
-	reroll_btn.tooltip_text = "Regenerate the floor, walls, grates, columns, and openings for this room scene."
+	reroll_btn.tooltip_text = "Regenerate the floor, walls, grates, columns, openings, and arrangements for this room scene."
 	reroll_btn.pressed.connect(_on_reroll_pressed)
 	_toolbar.add_child(reroll_btn)
 
 	var config_btn = Button.new()
 	config_btn.text = "⚙ Config"
-	config_btn.tooltip_text = "Configure room size, walls, openings, doors, wear, weeds, columns, chasms, and seed."
+	config_btn.tooltip_text = "Configure room size, walls, openings, doors, wear, weeds, columns, chasms, arrangements, and seed."
 	config_btn.pressed.connect(_on_config_pressed)
 	_toolbar.add_child(config_btn)
 
@@ -210,6 +214,18 @@ func _create_toolbar() -> void:
 
 
 func _load_configured_builder(shape_idx: int, material_idx: int, purpose_idx: int) -> Resource:
+	var generator_path = _cfg_generator_edit.text.strip_edges()
+	if not generator_path.is_empty():
+		var generator = load(generator_path)
+		if not generator is RoomGenerator:
+			printerr("RoomGenerator: Assign a RoomGenerator preset.")
+			return null
+		var errors = generator.Validate()
+		if not errors.is_empty():
+			printerr("RoomGenerator: ", errors)
+			return null
+		return generator
+
 	var builder_path = _cfg_builder_edit.text.strip_edges()
 	if builder_path.is_empty():
 		builder_path = DEFAULT_BUILDER_PATH
@@ -242,6 +258,18 @@ func _load_configured_builder(shape_idx: int, material_idx: int, purpose_idx: in
 	temp_builder.ColumnChance = _cfg_column_chance.value / 100.0
 	temp_builder.EnableChasms = _cfg_enable_chasms_check.button_pressed
 	temp_builder.ChasmChance = _cfg_chasm_chance.value / 100.0
+	if _cfg_arrangements_check.button_pressed:
+		var pool = load(_cfg_arrangements_edit.text.strip_edges())
+		if not pool or not pool.get("PlacementStrategy") or not pool.has_method("Validate"):
+			printerr("RoomGenerator: Assign a valid arrangement pool.")
+			return null
+		var errors = pool.Validate()
+		if not errors.is_empty():
+			printerr("RoomGenerator: ", errors)
+			return null
+		temp_builder.ArrangementPool = pool
+	else:
+		temp_builder.ArrangementPool = null
 	return temp_builder
 
 
@@ -265,14 +293,16 @@ func _on_reroll_pressed() -> void:
 	else:
 		rng.seed = int(_cfg_seed_spin.value)
 
-	if temp_builder.PopulateRoom(edited_root, rng):
-		print("RoomGenerator: Re-rolled room '%s' [Shape: %s, Material: %s, Purpose: %s, Walls: %s, Seed: %d]." % [
-			edited_root.name,
-			SHAPE_NAMES[_shape_dropdown.selected],
-			MATERIAL_NAMES[_material_dropdown.selected],
-			PURPOSE_NAMES[_purpose_dropdown.selected],
-			str(temp_builder.GenerateWalls),
-			rng.seed
+	# The C# bridge requires explicit optional arguments when called from GDScript.
+	var populated: bool
+	if temp_builder is RoomGenerator:
+		populated = temp_builder.PopulateRoom(edited_root, rng, true, true)
+	else:
+		populated = temp_builder.PopulateRoom(edited_root, rng)
+	if populated:
+		EditorInterface.mark_scene_as_unsaved()
+		print("RoomGenerator: Re-rolled room '%s' [Preset: %s, Seed: %d]." % [
+			edited_root.name, temp_builder.resource_path, rng.seed
 		])
 	else:
 		printerr("RoomGenerator: Failed to re-roll room layout.")
@@ -301,10 +331,27 @@ func _create_config_dialog() -> void:
 	grid.add_theme_constant_override("v_separation", 6)
 	vbox.add_child(grid)
 
+	_cfg_generator_edit = LineEdit.new()
+	_cfg_generator_edit.placeholder_text = "Optional res://...generator.tres"
+	_cfg_generator_edit.tooltip_text = "Coded recipe preset. When assigned, its Inspector settings replace the generic shell and furnishing controls below. Seed controls still apply."
+	_cfg_generator_edit.custom_minimum_size = Vector2(260, 0)
+	_add_labeled_control(grid, "Coded Generator Preset:", _cfg_generator_edit)
+
 	_cfg_builder_edit = LineEdit.new()
 	_cfg_builder_edit.text = DEFAULT_BUILDER_PATH
 	_cfg_builder_edit.custom_minimum_size = Vector2(260, 0)
 	_add_labeled_control(grid, "Builder Preset:", _cfg_builder_edit)
+
+	_cfg_arrangements_check = CheckBox.new()
+	_cfg_arrangements_check.text = "Place optional arrangements"
+	_cfg_arrangements_check.button_pressed = true
+	_add_labeled_control(grid, "Furnishings:", _cfg_arrangements_check)
+
+	_cfg_arrangements_edit = LineEdit.new()
+	_cfg_arrangements_edit.text = DEFAULT_ARRANGEMENTS_PATH
+	_cfg_arrangements_edit.tooltip_text = "RoomArrangementPool resource. Re-roll replaces existing arrangements."
+	_cfg_arrangements_check.toggled.connect(func(enabled: bool): _cfg_arrangements_edit.editable = enabled)
+	_add_labeled_control(grid, "Arrangement Pool:", _cfg_arrangements_edit)
 
 	var size_spins = _add_spin_range_row(grid, "Min / Max Room Size (Tiles):", 3, 12, 3, 6)
 	_cfg_min_size = size_spins[0]
@@ -464,7 +511,12 @@ func _on_new_room_confirmed() -> void:
 	if not temp_builder:
 		return
 
-	if not temp_builder.SaveRoomScene(file_path, 0):
+	var rng = RandomNumberGenerator.new()
+	if _cfg_random_seed_check.button_pressed:
+		rng.randomize()
+	else:
+		rng.seed = int(_cfg_seed_spin.value)
+	if not temp_builder.SaveRoomScene(file_path, rng.seed, true):
 		printerr("RoomGenerator: Failed to create room scene at: ", file_path)
 		return
 

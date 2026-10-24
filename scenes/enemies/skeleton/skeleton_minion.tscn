@@ -309,7 +309,6 @@ DropChance = 0.55
 [node name="DeathComponent" parent="." index="5"]
 
 [node name="HurtBoxComponent" parent="." index="6"]
-Evasion = 0.3
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
 shape = SubResource("CapsuleShape3D_fv4r8")

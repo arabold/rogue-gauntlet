@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 14;
+	public const int CurrentVersion = 25;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -108,12 +108,10 @@ public sealed class PlayerStatsSaveData
 
 	public float BaseSpeed { get; set; }
 	public float BaseMaxHealth { get; set; }
-	public float BaseAccuracy { get; set; }
 	public float BaseMinDamage { get; set; }
 	public float BaseMaxDamage { get; set; }
 	public float BaseCritChance { get; set; }
 	public float BaseArmor { get; set; }
-	public float BaseEvasion { get; set; }
 	public float XpModifier { get; set; } = 1f;
 	public float GoldModifier { get; set; } = 1f;
 }

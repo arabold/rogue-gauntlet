@@ -93,7 +93,7 @@ public partial class PlayerAttackController : AttackController
 		_aimAssistTarget = FindMeleeAimAssistTarget();
 		var stats = Player.Stats;
 		float multiplier = isSpecial ? (weapon?.SecondaryDamageMultiplier ?? 1.5f) : 1.0f;
-		return StartAttack(attack, stats.MinDamage * multiplier, stats.MaxDamage * multiplier, stats.Accuracy, stats.CritChance, 24, lease);
+		return StartAttack(attack, stats.MinDamage * multiplier, stats.MaxDamage * multiplier, stats.CritChance, 24, lease);
 	}
 
 	public override void _PhysicsProcess(double delta)

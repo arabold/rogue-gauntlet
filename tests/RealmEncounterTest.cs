@@ -64,7 +64,7 @@ public class RealmEncounterTest
 		AssertObject(nest.ReleaseMinion()).IsNotNull();
 		AssertInt(nest.SummonsReleased).IsEqual(4);
 		AssertObject(nest.ReleaseMinion()).IsNull();
-		nest.TakeDamage(1, 1000, Vector3.Forward, faction: DamageSourceFlags.Player);
+		nest.TakeDamage(1000, Vector3.Forward, faction: DamageSourceFlags.Player);
 		AssertBool(GameSession.Instance.IsEntityCleared(nestId)).IsTrue();
 		await runner.SimulateFrames(1);
 		level.Generate();
@@ -112,7 +112,7 @@ public class RealmEncounterTest
 		AssertObject(behavior.AttackStrategy.Attack.ProjectileScene).IsNotNull();
 		var controller = actor.GetNode<AttackController>("AttackController");
 		AssertBool(controller.TryPrepareAttack(behavior.AttackStrategy.Attack, "ranged", 1, out var attack)).IsTrue();
-		AssertBool(controller.StartAttack(attack, 3, 6, .9f, 0, 4)).IsTrue();
+		AssertBool(controller.StartAttack(attack, 3, 6, 0, 4)).IsTrue();
 		Node projectileParent = actor.GetTree().CurrentScene ?? actor.GetParent();
 		var before = projectileParent.GetChildren().OfType<Projectile>().ToHashSet();
 		controller._PhysicsProcess(.5); // cross the authored release time without relying on frame timing

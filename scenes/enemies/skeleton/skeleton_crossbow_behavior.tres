@@ -1,7 +1,9 @@
-[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=5 format=3]
 [ext_resource type="Script" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="script"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_crossbow_attack.tres" id="attack"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_crossbow_movement.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/shooter_tactics.tres" id="tactics"]
+
 [resource]
 script = ExtResource("script")
 InitialAction = 1
@@ -12,3 +14,5 @@ RoamPauseMin = 0.75
 RoamPauseMax = 2.25
 AttackStrategy = ExtResource("attack")
 MovementStrategy = ExtResource("movement")
+
+TacticalStrategy = ExtResource("tactics")

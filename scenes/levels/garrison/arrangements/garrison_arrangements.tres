@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="RoomArrangementPool" load_steps=13 format=3]
+
+[ext_resource type="Script" uid="uid://dpad32o3ygk5x" path="res://scenes/levels/arrangements/RoomArrangementPool.cs" id="pool"]
+[ext_resource type="Script" uid="uid://bv1yr23imyfx1" path="res://scenes/levels/arrangements/strategies/ConnectedArrangementStrategy.cs" id="strategy"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/furniture/table_edge.tres" id="table"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/barrel_edge.tres" id="barrel"]
+
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/furniture/table_chairs.tres" id="chairs"]
+
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/wall/wall_torch.tres" id="torch"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/wall/wall_banner.tres" id="banner"]
+
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/furniture/table_banquet.tres" id="banquet"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/wall/wall_sword_shield.tres" id="sword_shield"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/crate_cache.tres" id="crates"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/debris/rubble_mound.tres" id="rubble"]
+
+[sub_resource type="Resource" id="Strategy"]
+script = ExtResource("strategy")
+metadata/_custom_type_script = ExtResource("strategy")
+
+[resource]
+script = ExtResource("pool")
+Entries = [ExtResource("table"), ExtResource("barrel"), ExtResource("chairs"), ExtResource("torch"), ExtResource("banner"), ExtResource("banquet"), ExtResource("sword_shield"), ExtResource("crates"), ExtResource("rubble")]
+PlacementStrategy = SubResource("Strategy")
+MaximumPerRoom = 2
+MaximumWallPerRoom = 2
+MaximumOccupiedFraction = 0.25
+metadata/_custom_type_script = ExtResource("pool")

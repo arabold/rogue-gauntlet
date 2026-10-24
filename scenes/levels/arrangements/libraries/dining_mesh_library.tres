@@ -1,0 +1,18 @@
+[gd_resource type="MeshLibrary" load_steps=5 format=3]
+
+[ext_resource type="ArrayMesh" path="res://scenes/levels/arrangements/libraries/meshes/table.res" id="table"]
+[ext_resource type="ArrayMesh" path="res://scenes/levels/arrangements/libraries/meshes/chair.res" id="chair"]
+
+[sub_resource type="BoxShape3D" id="TableShape"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="BoxShape3D" id="ChairShape"]
+size = Vector3(0.75, 1.23, 0.75)
+
+[resource]
+item/0/name = "table_small"
+item/0/mesh = ExtResource("table")
+item/0/shapes = [SubResource("TableShape"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)]
+item/1/name = "chair"
+item/1/mesh = ExtResource("chair")
+item/1/shapes = [SubResource("ChairShape"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.615, 0)]

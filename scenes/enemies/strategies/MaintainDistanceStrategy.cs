@@ -10,7 +10,7 @@ public partial class MaintainDistanceStrategy : EnemyMovementStrategy
 
 	public override EnemyMovementIntent Evaluate(EnemyContext context)
 	{
-		if (context.HorizontalTargetDistance < MinimumDistance) return new(EnemyMovementGoal.Retreat, false, PreferredDistance);
+		if (context.HorizontalTargetDistance < (context.TacticalSelector?.IsRetreating == true ? PreferredDistance : MinimumDistance)) return new(EnemyMovementGoal.Retreat, false, PreferredDistance);
 		if (context.HorizontalTargetDistance > MaximumDistance || !context.HasLineOfSightToTarget()) return new(EnemyMovementGoal.Approach, false);
 		return new(EnemyMovementGoal.Hold, true);
 	}

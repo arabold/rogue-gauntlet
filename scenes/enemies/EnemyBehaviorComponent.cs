@@ -81,6 +81,8 @@ public partial class EnemyBehaviorComponent : Node
 	/// The target node that the enemy is chasing
 	/// </summary>
 	public Node3D Target => _context?.Target;
+	/// <summary>Latest engagement choice for debug tools; changes are also emitted to the combat trace.</summary>
+	public string TacticalDecisionReason => _context?.TacticalDecisionReason ?? "inactive";
 
 	private PerceptionComponent _perception;
 	private NavigationComponent _navigation;
@@ -186,7 +188,11 @@ public partial class EnemyBehaviorComponent : Node
 
 	private void RequestAttack() => TryAttack();
 
-	private void OnAttackFinished(AttackIdentity identity, bool interrupted) => _context?.Tactics.AttackFinished(identity, interrupted);
+	private void OnAttackFinished(AttackIdentity identity, bool interrupted)
+	{
+		_context?.Tactics.AttackFinished(identity, interrupted);
+		_context?.TacticalSelector?.AttackFinished(identity);
+	}
 
 	public override void _ExitTree()
 	{
@@ -200,7 +206,8 @@ public partial class EnemyBehaviorComponent : Node
 		if (_context == null || policy == null || CurrentAction != EnemyAction.None || IsDead
 			|| MovementComponent.IsPushed || !policy.CanAttack(_context)) return false;
 		if (!_attackController.TryPrepareAttack(policy.Attack, policy.Style, policy.Duration, out var attack)) return false;
-		if (!_attackController.StartAttack(attack, policy.MinDamage, policy.MaxDamage, policy.Accuracy, policy.CritChance, 4)) return false;
+		if (!_attackController.StartAttack(attack, policy.MinDamage, policy.MaxDamage, policy.CritChance, 4)) return false;
+		_context.TacticalSelector?.AttackAccepted(_attackController.CurrentExecutionId);
 		if (Profile.MovementStrategy is AttackThenRetreatStrategy) _context.Tactics.TrackAttack(_attackController.CurrentExecutionId);
 		SetAction(policy.Attack.IsRanged ? EnemyAction.RangedAttack : EnemyAction.MeeleAttack);
 		return true;
@@ -244,6 +251,7 @@ public partial class EnemyBehaviorComponent : Node
 	public void OnDie()
 	{
 		_context?.Tactics.ClearTarget();
+		_context?.TacticalSelector?.ClearTarget();
 		SetAction(EnemyAction.Dying);
 		SetBehavior(EnemyBehaviorState.Dead);
 		MovementComponent.Stop();

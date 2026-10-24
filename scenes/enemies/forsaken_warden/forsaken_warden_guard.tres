@@ -6,8 +6,8 @@
 [resource]
 script = ExtResource("script")
 AnimationProfile = ExtResource("animation")
-CanParry = false
+CanParry = true
 RaiseDuration = 0.06
-ParryWindow = 0.06
+ParryWindow = 0.24
 ReleaseRecovery = 0.35
 DamageMultiplier = 0.5

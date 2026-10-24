@@ -19,5 +19,4 @@ Attack = SubResource("shot")
 EngagementDistance = 14.0
 MinDamage = 3.0
 MaxDamage = 6.0
-Accuracy = 0.9
 Duration = 1.0

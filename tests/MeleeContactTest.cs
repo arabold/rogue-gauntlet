@@ -15,7 +15,7 @@ public class MeleeContactTest
 {
 	private static async Task<(ISceneRunner Runner, CombatHarness Harness)> Load()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
+		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
 		await runner.SimulateFrames(4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.Player.InputController.SetPhysicsProcess(false);
@@ -31,7 +31,7 @@ public class MeleeContactTest
 		var definition = new AttackDefinition { AttackStyle = "sword.1h.slash",
 			MeleeContact = GD.Load<MeleeAttackProfile>($"res://scenes/attacks/melee_profiles/{profile}.tres") };
 		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
-		AssertBool(controller.StartAttack(attack, 10, 10, 1, 0, mask)).IsTrue();
+		AssertBool(controller.StartAttack(attack, 10, 10, 0, mask)).IsTrue();
 		controller.SetPhysicsProcess(false);
 		return controller;
 	}
@@ -235,7 +235,7 @@ public class MeleeContactTest
 	public async Task SmallQueryBatchesDoNotTruncateCrowdedAttacks()
 	{
 		var (runner, harness) = await Load();
-		var scene = GD.Load<PackedScene>("res://scenes/debug/combat_practice_target.tscn");
+		var scene = GD.Load<PackedScene>("res://scenes/debug/combat/combat_practice_target.tscn");
 		var targets = Enumerable.Range(0, 12).Select(_ => scene.Instantiate<Node3D>()).ToArray();
 		foreach (var target in targets) { target.Position = new Vector3(0, 0, -2); runner.Scene().AddChild(target); }
 		await runner.SimulateFrames(3);
@@ -280,7 +280,6 @@ public class MeleeContactTest
 		harness.SpawnMonster();
 		var monster = harness.Player.GetParent().GetChildren().OfType<EnemyBase>().Single();
 		monster.GlobalPosition = harness.Player.GlobalPosition + Vector3.Forward * 1.8f;
-		harness.Player.HurtBoxComponent.Evasion = 0;
 		harness.Player.HurtBoxComponent.Armor = 0;
 		float health = harness.Player.HealthComponent.CurrentHealth;
 		harness.MonsterAttack();
@@ -294,19 +293,17 @@ public class MeleeContactTest
 	}
 
 	[TestCase]
-	public async Task DamageResolutionDistinguishesEvasionArmorAndImmunityFromMisses()
+	public async Task DamageResolutionDistinguishesArmorAndImmunityFromMisses()
 	{
 		var (_, harness) = await Load();
 		var hurtBox = harness.PracticeTarget.GetNode<HurtBoxComponent>("HurtBoxComponent");
 		using var random = new RandomNumberGenerator { Seed = 42 };
 		hurtBox.Invulnerable = true;
-		AssertBool(hurtBox.ResolveDamage(1, 10, Vector3.Forward, attackerFaction: DamageSourceFlags.Player, random: random).Outcome == DamageOutcome.Invulnerable).IsTrue();
-		hurtBox.Invulnerable = false; hurtBox.Evasion = 1000;
-		AssertBool(hurtBox.ResolveDamage(0, 10, Vector3.Forward, attackerFaction: DamageSourceFlags.Player, random: random).Outcome == DamageOutcome.Evaded).IsTrue();
-		hurtBox.Evasion = 0;
-		AssertBool(hurtBox.ResolveDamage(1, 0, Vector3.Forward, attackerFaction: DamageSourceFlags.Player, random: random).Outcome == DamageOutcome.Absorbed).IsTrue();
+		AssertBool(hurtBox.ResolveDamage(10, Vector3.Forward, attackerFaction: DamageSourceFlags.Player, random: random).Outcome == DamageOutcome.Invulnerable).IsTrue();
+		hurtBox.Invulnerable = false;
+		AssertBool(hurtBox.ResolveDamage(0, Vector3.Forward, attackerFaction: DamageSourceFlags.Player, random: random).Outcome == DamageOutcome.Absorbed).IsTrue();
 		hurtBox.DamageFilter = DamageSourceFlags.None;
-		AssertBool(hurtBox.ResolveDamage(1, 10, Vector3.Forward, attackerFaction: DamageSourceFlags.Player, random: random).Outcome == DamageOutcome.Filtered).IsTrue();
+		AssertBool(hurtBox.ResolveDamage(10, Vector3.Forward, attackerFaction: DamageSourceFlags.Player, random: random).Outcome == DamageOutcome.Filtered).IsTrue();
 		AssertFloat(Health(harness).CurrentHealth).IsEqual(1000);
 	}
 
@@ -354,7 +351,7 @@ public class MeleeContactTest
 			controller.EffectsEnabled = true;
 			var definition = new AttackDefinition { AttackStyle = weapon.AttackStyle };
 			AssertBool(controller.TryPrepareAttack(definition, weapon.AttackStyle, 1, out var attack, weapon.MeleeContact)).IsTrue();
-			AssertBool(controller.StartAttack(attack, 10, 10, 1, 0, 8)).IsTrue();
+			AssertBool(controller.StartAttack(attack, 10, 10, 0, 8)).IsTrue();
 			controller.SetPhysicsProcess(false);
 			controller._PhysicsProcess(.42);
 			var swoosh = harness.Player.GetParent().GetChildren().OfType<MeleeSwoosh>().Last();

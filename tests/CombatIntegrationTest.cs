@@ -16,7 +16,7 @@ public partial class CombatIntegrationTest
 {
 	private static async Task<(ISceneRunner, CombatHarness)> Load()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
+		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
 		await PhysicsFrames(runner, 4);
 		return (runner, runner.Scene().GetNode<CombatHarness>("Instructions"));
 	}
@@ -37,7 +37,7 @@ public partial class CombatIntegrationTest
 	public async Task AuthoredCheckboxStatesApplyOnStartupAndToSpawnedMonsters(bool enabled)
 	{
 		double originalTimeScale = Engine.TimeScale;
-		var scene = GD.Load<PackedScene>("res://scenes/debug/combat_harness.tscn").Instantiate();
+		var scene = GD.Load<PackedScene>("res://scenes/debug/combat/combat_harness.tscn").Instantiate();
 		var harness = scene.GetNode<CombatHarness>("Instructions");
 		foreach (string name in new[] { "Volumes", "Hurtboxes", "Effects", "Moving", "SlowMotion", "TraceConsole", "TraceFrames" })
 			harness.GetNode<CheckButton>($"%Controls/{name}").SetPressedNoSignal(enabled);
@@ -74,6 +74,42 @@ public partial class CombatIntegrationTest
 		}
 		finally { scene.Free(); }
 		AssertFloat(Engine.TimeScale).IsEqualApprox(originalTimeScale, .001);
+	}
+
+	/// <summary>Neither faction can reject confirmed contact through a passive stat roll.</summary>
+	[TestCase]
+	public async Task ConfirmedContactsAlwaysDamageBothFactionsWithoutAnActiveDefense()
+	{
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		await runner.SimulateFrames(3);
+		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		harness.ExecuteCommand("spawn", 1, Vector3.Zero);
+		await runner.SimulateFrames(3);
+		// High Dexterity must not confer any hidden chance to discard confirmed contact.
+		harness.Player.Stats.BaseDexterity = 1000;
+		harness.Player.Stats.BaseMaxHealth = 2000;
+		harness.Player.Stats.Health = 1000;
+		harness.Player.Stats.BaseArmor -= harness.Player.Stats.Armor;
+		foreach (var hurtbox in new[] { harness.Player.HurtBoxComponent, harness.Monster.HurtBoxComponent })
+		{
+			hurtbox.HealthComponent.SetHealth(1000, 1000);
+			hurtbox.Armor = 0;
+			using var random = new RandomNumberGenerator { Seed = 123 };
+			for (int i = 0; i < 100; i++)
+			{
+				var result = hurtbox.ResolveDamage(new DamageContext
+				{
+					Amount = 1, Random = random,
+					Faction = hurtbox == harness.Player.HurtBoxComponent ? DamageSourceFlags.Enemy : DamageSourceFlags.Player,
+					DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable,
+					DeliveryKind = i % 2 == 0 ? DamageDeliveryKind.DirectMelee : DamageDeliveryKind.Projectile,
+					IncomingDirection = Vector3.Forward
+				});
+				AssertObject(result.Outcome).IsEqual(DamageOutcome.Damaged);
+				AssertFloat(result.Amount).IsEqual(1);
+			}
+			AssertFloat(hurtbox.HealthComponent.CurrentHealth).IsEqual(900);
+		}
 	}
 
 	/// <summary>Exercise scene-authored UI signals so a disconnected harness cannot pass command-only tests.</summary>
@@ -395,7 +431,7 @@ public partial class CombatIntegrationTest
 			float before = enemy.HealthComponent.CurrentHealth;
 			var projectile = GD.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
 			runner.Scene().AddChild(projectile);
-			projectile.Initialize(Vector3.Up, Vector3.Forward, 10, 10, 1, 5, 5, 0,
+			projectile.Initialize(Vector3.Up, Vector3.Forward, 10, 10, 5, 5, 0,
 				harness.Player, AttackDefenseTraits.None);
 			await PhysicsFrames(runner, 18);
 			AssertFloat(enemy.HealthComponent.CurrentHealth).IsEqualApprox(before - 5, .001);
@@ -420,10 +456,9 @@ public partial class CombatIntegrationTest
 			definition.DamageMultiplier = .9f;
 			await PhysicsFrames(runner, 4);
 			harness.Player.HurtBoxComponent.Armor = 0;
-			harness.Player.HurtBoxComponent.Evasion = 0;
 			var resolution = harness.Player.HurtBoxComponent.ResolveDamage(new DamageContext
 			{
-				Amount = 40, Accuracy = 1, IncomingDirection = Vector3.Back,
+				Amount = 40, IncomingDirection = Vector3.Back,
 				Faction = DamageSourceFlags.Enemy, DefenseTraits = AttackDefenseTraits.Guardable,
 			});
 			AssertInt((int)resolution.Outcome).IsEqual((int)DamageOutcome.Blocked);
@@ -441,10 +476,8 @@ public partial class CombatIntegrationTest
 		using var hurtbox = new HurtBoxComponent { HealthComponent = health, Armor = 10, DamageFilter = DamageSourceFlags.All };
 		using var first = new RandomNumberGenerator { Seed = 123 };
 		using var second = new RandomNumberGenerator { Seed = 123 };
-		float expectedArmor = second.RandfRange(0, 0); // evasion
-		second.RandfRange(0, 1); // accuracy
-		expectedArmor = second.RandfRange(0, 10);
-		var context = new DamageContext { Amount = 20, Accuracy = 1, Random = first, Faction = DamageSourceFlags.Player };
+		float expectedArmor = second.RandfRange(0, 10);
+		var context = new DamageContext { Amount = 20, Random = first, Faction = DamageSourceFlags.Player };
 		AssertFloat(hurtbox.ResolveDamage(context).Amount).IsEqualApprox(20 - expectedArmor, .001);
 		using var gate = new ActorActionGateComponent();
 		actor.AddChild(gate);

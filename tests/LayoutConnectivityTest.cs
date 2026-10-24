@@ -264,7 +264,7 @@ public class LayoutConnectivityTest
 			.IsEmpty();
 	}
 
-	private static List<string> FindConnectivityFailures(MapGenerator mapGenerator)
+	internal static List<string> FindConnectivityFailures(MapGenerator mapGenerator)
 	{
 		var failures = new List<string>();
 		MapData map = mapGenerator.Map;

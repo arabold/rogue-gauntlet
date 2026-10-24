@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RoomArrangementPool" load_steps=6 format=3]
+[ext_resource type="Script" path="res://scenes/levels/arrangements/RoomArrangementPool.cs" id="pool"]
+[ext_resource type="Script" path="res://scenes/levels/arrangements/strategies/PerimeterStorageStrategy.cs" id="strategy"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/crate_cache.tres" id="crate_cache"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/stacked_boxes.tres" id="stacked_boxes"]
+
+[sub_resource type="Resource" id="Strategy"]
+script = ExtResource("strategy")
+[resource]
+script = ExtResource("pool")
+Entries = [ExtResource("crate_cache"), ExtResource("stacked_boxes")]
+PlacementStrategy = SubResource("Strategy")
+MaximumPerRoom = 2
+MaximumWallPerRoom = 0
+MaximumOccupiedFraction = 0.25
+PassageRadius = 1.0

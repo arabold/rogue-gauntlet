@@ -17,7 +17,7 @@ public partial class LargeActorFitComponent : Node
 	{
 		ProcessPhysicsPriority = CombatPhysics.Clearance;
 		_map = this.GetAncestorOrNull<Level>()?.MapGenerator;
-		MovementClearance = Profile.MinimumClearance;
+		MovementClearance = Profile.MovementClearance;
 		if (_map != null)
 		{
 			HomeRoomId = _map.GetRoomIdAt(_map.WorldToTile(Actor.GlobalPosition));

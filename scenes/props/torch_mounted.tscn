@@ -51,7 +51,7 @@ width = 64
 height = 64
 noise = SubResource("FastNoiseLite_7q2e4")
 
-[node name="TorchMounted" type="Node3D" groups=["prop"]]
+[node name="TorchMounted" type="Node3D"]
 
 [node name="torch_mounted" type="MeshInstance3D" parent="."]
 mesh = SubResource("ArrayMesh_t1pbs")

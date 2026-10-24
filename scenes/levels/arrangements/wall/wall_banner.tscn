@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/arrangements/RoomArrangement.cs" id="root"]
+[ext_resource type="ArrayMesh" path="res://scenes/levels/arrangements/libraries/meshes/banner.res" id="banner"]
+
+[node name="WallBanner" type="Node3D" node_paths=PackedStringArray("Content") groups=["room_arrangement"]]
+script = ExtResource("root")
+Content = NodePath("Content")
+PlacementBounds = AABB(-0.51, 0.33, 0.2454, 1.02, 2.11, 0.203)
+
+[node name="Content" type="Node3D" parent="."]
+
+[node name="Banner" type="MeshInstance3D" parent="Content"]
+scale = Vector3(0.65, 0.65, 0.65)
+mesh = ExtResource("banner")

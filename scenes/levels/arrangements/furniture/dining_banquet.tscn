@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/arrangements/RoomArrangement.cs" id="root"]
+[ext_resource type="PackedScene" path="res://scenes/levels/arrangements/furniture/table_banquet.tscn" id="banquet"]
+
+[node name="DiningBanquet" type="Node3D" node_paths=PackedStringArray("Content") groups=["prop", "room_arrangement"]]
+script = ExtResource("root")
+Content = NodePath("Banquet")
+PlacementBounds = AABB(-2.06, -0.05, -1.40, 4.12, 2.02, 2.80)
+
+[node name="Banquet" parent="." instance=ExtResource("banquet")]
+position = Vector3(-2, 0, 0)

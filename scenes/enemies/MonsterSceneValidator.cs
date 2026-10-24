@@ -51,6 +51,11 @@ public static class MonsterSceneValidator
 		Check(profile != null, "Definition.Behavior: assign a behavior Resource.");
 		if (profile == null) return errors.ToArray();
 		Check(Object<Resource>(profile, "MovementStrategy") != null, "Behavior.MovementStrategy: assign a positioning strategy.");
+		var tactics = Object<Resource>(profile, "TacticalStrategy");
+		Check(tactics != null, "Behavior.TacticalStrategy: assign an engagement priority strategy.");
+		if (tactics != null)
+			Check(Positive(Number(tactics, "MaximumRetreatDuration")) && Nonnegative(Number(tactics, "RetreatRetryDelay"))
+				&& Nonnegative(Number(tactics, "StandAndFightDistance")), "TacticalStrategy: require positive retreat duration and nonnegative finite retry/stand distances.");
 		var policy = Object<Resource>(profile, "AttackStrategy");
 		Check(policy != null, "Behavior.AttackStrategy: assign the monster's single attack policy.");
 		var animation = actor.GetNodeOrNull<Node>("CombatAnimationComponent");
@@ -70,8 +75,7 @@ public static class MonsterSceneValidator
 			Check(attack != null, "AttackStrategy.Attack: assign an AttackDefinition.");
 			Check(Positive(Number(policy, "Duration")) && Positive(Number(policy, "EngagementDistance")), "AttackStrategy: duration and engagement distance must be positive and finite.");
 			Check(Nonnegative(Number(policy, "MinDamage")) && float.IsFinite(Number(policy, "MaxDamage"))
-				&& Number(policy, "MaxDamage") >= Number(policy, "MinDamage") && Probability(Number(policy, "Accuracy"))
-				&& Probability(Number(policy, "CritChance")), "AttackStrategy: invalid damage range, accuracy or critical chance.");
+				&& Number(policy, "MaxDamage") >= Number(policy, "MinDamage") && Probability(Number(policy, "CritChance")), "AttackStrategy: invalid damage range or critical chance.");
 			var style = attack?.Get("AttackStyle").AsString();
 			if (string.IsNullOrEmpty(style)) style = attack?.Get("IsRanged").AsBool() == true ? "ranged" : "melee";
 			var animationProfile = Object<Resource>(animation, "Profile");

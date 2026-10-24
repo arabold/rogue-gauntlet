@@ -18,9 +18,71 @@ public class MonsterRosterTest
 	}
 
 	[TestCase]
+	public async Task UnreachableRetreatDispatchesTheRealShotInsteadOfLeavingTheShooterIdle()
+	{
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		await runner.SimulateFrames(3);
+		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		await Frames(runner.Scene(), 2);
+		var actor = harness.Monster;
+		actor.Position = harness.Player.Position + Vector3.Forward * 3;
+		actor.MovementComponent.SetPhysicsProcess(false);
+		harness.Player.MovementComponent.SetPhysicsProcess(false);
+		var behavior = actor.EnemyBehaviorComponent;
+		var navigation = behavior.GetNode<NavigationComponent>("Navigation");
+		// This harness deliberately has no baked navmesh: retreat cannot produce a reachable endpoint.
+		bool accepted = false;
+		var context = new EnemyContext(actor, actor.MovementComponent, behavior.GetNode<PerceptionComponent>("Perception"),
+			navigation, actor.Definition.Behavior, () => accepted = behavior.TryAttack());
+		context.Target = harness.Player;
+		context.TickThrottles(1.0 / 60);
+		context.ExecuteTactics();
+		AssertString(context.TacticalDecisionReason).IsEqual("retreat_blocked");
+		AssertBool(accepted).IsTrue();
+		AssertBool(actor.AttackController.IsRanged).IsTrue();
+	}
+
+	[TestCase]
+	public async Task ShooterPolicyFactoryIsolatesActorsAndRetreatContinuesBeyondMinimumDistance()
+	{
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		await runner.SimulateFrames(3);
+		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		await Frames(runner.Scene(), 2);
+		var actor = harness.Monster;
+		var profile = actor.Definition.Behavior;
+		var first = profile.TacticalStrategy.CreateRuntime();
+		var second = profile.TacticalStrategy.CreateRuntime();
+		first.Select(new(EnemyMovementGoal.Retreat, false, 7), 3, true);
+		first.RetreatBlocked(true);
+		AssertBool(second.Select(new(EnemyMovementGoal.Retreat, false, 7), 3, true).Intent.AllowAttack).IsFalse();
+		actor.MovementComponent.SetPhysicsProcess(false);
+		harness.Player.MovementComponent.SetPhysicsProcess(false);
+		var context = new EnemyContext(actor, actor.MovementComponent, actor.EnemyBehaviorComponent.GetNode<PerceptionComponent>("Perception"), null, profile, () => { });
+		context.Target = harness.Player;
+		actor.Position = harness.Player.Position + Vector3.Forward * 3;
+		var initial = profile.MovementStrategy.Evaluate(context);
+		context.TacticalSelector.Select(initial, 3, true);
+		actor.Position = harness.Player.Position + Vector3.Forward * 5;
+		AssertObject(profile.MovementStrategy.Evaluate(context).Goal).IsEqual(EnemyMovementGoal.Retreat);
+		actor.Position = harness.Player.Position + Vector3.Forward * 7;
+		AssertObject(profile.MovementStrategy.Evaluate(context).Goal).IsEqual(EnemyMovementGoal.Hold);
+		// At the preferred distance the authored strategy returns to its sight/attack choice.
+		context.TacticalSelector.ClearTarget();
+		var invalid = (EnemyTacticalStrategy)profile.TacticalStrategy.Duplicate();
+		actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
+		actor.Definition.Behavior = (EnemyBehaviorProfile)profile.Duplicate();
+		actor.Definition.Behavior.TacticalStrategy = invalid;
+		invalid.MaximumRetreatDuration = float.NaN;
+		AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.StartsWith("TacticalStrategy:"))).IsTrue();
+	}
+
+	[TestCase]
 	public async Task ShooterUsesOnlyProjectilesAndRejectsOccludedTargetsWithoutStartingAnExecution()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
 		await runner.SimulateFrames(3);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
@@ -53,7 +115,7 @@ public class MonsterRosterTest
 	[TestCase(true)]
 	public async Task WardenReactsToAnOrdinaryHeroSwingBlocksAndRipostesWithAuthoredTiming(bool alreadyWindingUp)
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
 		await runner.SimulateFrames(3);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.ExecuteCommand("spawn", 2, Vector3.Zero);
@@ -66,7 +128,6 @@ public class MonsterRosterTest
 		boss.LookAt(player.GlobalPosition);
 		player.MovementComponent.SetLookAtDirection(Vector3.Forward);
 		boss.HurtBoxComponent.Armor = 0;
-		boss.HurtBoxComponent.Evasion = 0;
 		// Select a reproducible stream whose first defense and subsequent riposte rolls succeed.
 		// Keep the shipped probabilities, reaction delay, raise/recovery and hero weapon unchanged.
 		var policy = boss.Definition.Behavior.DefenseStrategy;
@@ -100,7 +161,7 @@ public class MonsterRosterTest
 	[TestCase]
 	public async Task RatBiteReachesTheHeroAtPhysicalContact()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
 		await runner.SimulateFrames(3);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.ExecuteCommand("spawn", 4, Vector3.Zero);
@@ -110,7 +171,6 @@ public class MonsterRosterTest
 		rat.Position = harness.Player.Position + Vector3.Forward * 1.22f;
 		rat.LookAt(harness.Player.GlobalPosition);
 		harness.Player.HurtBoxComponent.Armor = 0;
-		harness.Player.HurtBoxComponent.Evasion = 0;
 		await Frames(runner.Scene(), 2);
 		AssertBool(rat.EnemyBehaviorComponent.TryAttack()).IsTrue();
 		rat.AttackController._PhysicsProcess(.5);
@@ -120,7 +180,7 @@ public class MonsterRosterTest
 	[TestCase]
 	public async Task ShooterCanComposeGuardAndRiposteWithItsSameProjectilePolicy()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
 		await runner.SimulateFrames(3);
 		var player = runner.Scene().GetNode<CombatHarness>("Instructions").Player;
 		player.MovementComponent.SetPhysicsProcess(false);
@@ -162,7 +222,7 @@ public class MonsterRosterTest
 	[TestCase]
 	public async Task CompletionReportsTheAcceptedIdentityOnceAfterReleasingTheGate()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
 		await runner.SimulateFrames(3);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.ExecuteCommand("spawn", 1, Vector3.Zero);

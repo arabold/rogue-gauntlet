@@ -101,10 +101,10 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, IStaggerable
 		SetPhysicsProcess(false);
 	}
 
-	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null, DamageSourceFlags attackerFaction = DamageSourceFlags.None)
+	public void TakeDamage(float amount, Vector3 attackDirection, Node attacker = null, DamageSourceFlags attackerFaction = DamageSourceFlags.None)
 	{
 		// Forward the damage to the hurtbox component which
 		// does the actual damage calculations
-		HurtBoxComponent?.TakeDamage(accuracy, amount, attackDirection, attacker, attackerFaction);
+		HurtBoxComponent?.TakeDamage(amount, attackDirection, attacker, attackerFaction);
 	}
 }

@@ -23,7 +23,7 @@ Everything is designer-authored resources under `scenes/player/classes/`:
   well-known path `CharacterCatalog.DefaultCatalogPath`.
 - **Per-class `StatProfile`** (`stat_profile_*.tres`) — the attribute-derivation seam: e.g.
   the Mage's profile has `DamagePerIntelligence > 0` so spell-capable characters scale damage
-  with INT, while the Rogue doubles `CritChancePerDexterity` and evasion gain.
+  with INT, while the Rogue doubles `CritChancePerDexterity`.
 
 ## The shipped roster
 
@@ -31,7 +31,7 @@ Everything is designer-authored resources under `scenes/player/classes/`:
 |---|---|---|---|---|---|---|---|
 | Barbarian | 14 | 8 | 13 | 5 | 115 | +50% damage per STR | Worn Battle Axe (2H) |
 | Knight | 12 | 8 | 14 | 6 | 120 | — | Sword + shield |
-| Rogue | 8 | 15 | 9 | 8 | 95 | 2× crit/DEX, 2× evasion/DEX | Crossbow + dagger |
+| Rogue | 8 | 15 | 9 | 8 | 95 | 2× crit/DEX | Crossbow + dagger |
 | Mage | 6 | 10 | 8 | 16 | 90 | damage scales with INT | Fire staff + healing potion (pre-identified) |
 
 Only the Mage starts with a healing potion, pre-identified via

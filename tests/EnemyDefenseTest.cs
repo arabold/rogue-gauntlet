@@ -191,7 +191,7 @@ public partial class EnemyDefenseTest
 			HitWindowEnd = 0.6f,
 			MeleeContact = attackCtrl.DefaultMeleeContact
 		};
-		AssertBool(attackCtrl.StartAttack(def, 10, 10, 1.0f, 0, 8)).IsTrue();
+		AssertBool(attackCtrl.StartAttack(def, 10, 10, 0, 8)).IsTrue();
 
 		// Detect and react
 		controller._PhysicsProcess(0.02f);
@@ -206,7 +206,6 @@ public partial class EnemyDefenseTest
 		{
 			ExecutionId = attackCtrl.CurrentExecutionId,
 			Amount = 20f,
-			Accuracy = 1.0f,
 			IncomingDirection = new Vector3(0, 0, -1),
 			SourceNode = attackCtrl,
 			OwnerNode = player,
@@ -243,7 +242,7 @@ public partial class EnemyDefenseTest
 			HitWindowEnd = 0.6f,
 			MeleeContact = attackCtrl.DefaultMeleeContact
 		};
-		AssertBool(attackCtrl.StartAttack(def, 10, 10, 1.0f, 0, 8)).IsTrue();
+		AssertBool(attackCtrl.StartAttack(def, 10, 10, 0, 8)).IsTrue();
 
 		controller._PhysicsProcess(0.02f);
 		controller._PhysicsProcess(0.05f);
@@ -336,7 +335,7 @@ public partial class EnemyDefenseTest
 			HitWindowEnd = 0.6f,
 			MeleeContact = attackCtrl.DefaultMeleeContact
 		};
-		attackCtrl.StartAttack(def, 10, 10, 1.0f, 0, 8);
+		attackCtrl.StartAttack(def, 10, 10, 0, 8);
 
 		controller._PhysicsProcess(0.02f);
 		controller._PhysicsProcess(0.05f);
@@ -349,7 +348,6 @@ public partial class EnemyDefenseTest
 		{
 			ExecutionId = attackCtrl.CurrentExecutionId,
 			Amount = 10f,
-			Accuracy = 1.0f,
 			IncomingDirection = new Vector3(0, 0, -1),
 			SourceNode = attackCtrl,
 			OwnerNode = player,
@@ -385,7 +383,6 @@ public partial class EnemyDefenseTest
 		var context = new DamageContext
 		{
 			Amount = 20f,
-			Accuracy = 1.0f,
 			IncomingDirection = new Vector3(0, 0, -1),
 			Faction = DamageSourceFlags.Player,
 			DefenseTraits = AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable
@@ -438,7 +435,6 @@ public partial class EnemyDefenseTest
 		var context = new DamageContext
 		{
 			Amount = 15f,
-			Accuracy = 1.0f,
 			IncomingDirection = new Vector3(0, 0, -1),
 			Faction = DamageSourceFlags.Player,
 			DefenseTraits = AttackDefenseTraits.Guardable
@@ -477,7 +473,6 @@ public partial class EnemyDefenseTest
 		var context = new DamageContext
 		{
 			Amount = 15f,
-			Accuracy = 1.0f,
 			IncomingDirection = new Vector3(0, 0, -1),
 			Faction = DamageSourceFlags.Player,
 			DefenseTraits = AttackDefenseTraits.Guardable
@@ -499,7 +494,7 @@ public partial class EnemyDefenseTest
 	[TestCase]
 	public async System.Threading.Tasks.Task HarnessSkeletonParriesPlayerAttack()
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
+		ISceneRunner runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
 		await runner.SimulateFrames(3);
 
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
@@ -533,7 +528,7 @@ public partial class EnemyDefenseTest
 	[TestCase]
 	public async System.Threading.Tasks.Task HarnessSkeletonDodgesPlayerAttack()
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/debug/combat_harness.tscn", true);
+		ISceneRunner runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
 		await runner.SimulateFrames(3);
 
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");

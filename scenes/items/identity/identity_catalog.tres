@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="IdentityCatalog" load_steps=96 format=3 uid="uid://didentitycat1"]
+[gd_resource type="Resource" script_class="IdentityCatalog" load_steps=87 format=3 uid="uid://didentitycat1"]
 
 [ext_resource type="Script" path="res://scenes/items/identity/IdentityCatalog.cs" id="catalog"]
 [ext_resource type="Script" path="res://scenes/items/identity/IdentityCategory.cs" id="category"]
@@ -14,8 +14,6 @@
 [ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_obsidian_tiwaz.tres" id="item_54"]
 [ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_orange_thurisaz.tres" id="item_55"]
 [ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_purple_dagaz.tres" id="item_56"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_silver_ingwaz.tres" id="item_57"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_teal_eihwaz.tres" id="item_58"]
 [ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_enchant.tres" id="item_59"]
 [ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_haste.tres" id="item_60"]
 [ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_identify.tres" id="item_61"]
@@ -28,7 +26,6 @@
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_amethyst.tres" id="item_68"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_emerald.tres" id="item_69"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_ruby.tres" id="item_70"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_signet.tres" id="item_71"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_band.tres" id="item_72"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_diamond.tres" id="item_73"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_onyx.tres" id="item_74"]
@@ -36,13 +33,10 @@
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_amber.tres" id="item_76"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_carved.tres" id="item_77"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_garnet.tres" id="item_78"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_jade.tres" id="item_79"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring_dexterity.tres" id="item_80"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_evasion.tres" id="item_81"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring_frailty.tres" id="item_82"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring_lethargy.tres" id="item_83"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring_mind.tres" id="item_84"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_precision.tres" id="item_85"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring_protection.tres" id="item_86"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring_savagery.tres" id="item_87"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring_strength.tres" id="item_88"]
@@ -51,14 +45,11 @@
 [ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_emerald.tres" id="item_91"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_ruby.tres" id="item_92"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_sun_crest.tres" id="item_93"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_topaz.tres" id="item_94"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_amethyst.tres" id="item_95"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_onyx.tres" id="item_96"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_runic_crest.tres" id="item_97"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_sapphire.tres" id="item_98"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_coral.tres" id="item_99"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_druid_talisman.tres" id="item_100"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_jade.tres" id="item_101"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_peridot.tres" id="item_102"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_dread.tres" id="item_103"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_health.tres" id="item_104"]
@@ -103,21 +94,21 @@ metadata/_custom_type_script = ExtResource("category")
 script = ExtResource("category")
 Category = "scroll"
 AppearancePool = ExtResource("pool_scroll")
-Types = [ExtResource("item_47"), ExtResource("item_48"), ExtResource("item_49"), ExtResource("item_50"), ExtResource("item_51"), ExtResource("item_52"), ExtResource("item_53"), ExtResource("item_54"), ExtResource("item_55"), ExtResource("item_56"), ExtResource("item_57"), ExtResource("item_58"), ExtResource("item_59"), ExtResource("item_60"), ExtResource("item_61"), ExtResource("item_62"), ExtResource("item_63"), ExtResource("item_64"), ExtResource("item_65"), ExtResource("item_66")]
+Types = [ExtResource("item_47"), ExtResource("item_48"), ExtResource("item_49"), ExtResource("item_50"), ExtResource("item_51"), ExtResource("item_52"), ExtResource("item_53"), ExtResource("item_54"), ExtResource("item_55"), ExtResource("item_56"), ExtResource("item_59"), ExtResource("item_60"), ExtResource("item_61"), ExtResource("item_62"), ExtResource("item_63"), ExtResource("item_64"), ExtResource("item_65"), ExtResource("item_66")]
 metadata/_custom_type_script = ExtResource("category")
 
 [sub_resource type="Resource" id="Category_ring"]
 script = ExtResource("category")
 Category = "ring"
 AppearancePool = ExtResource("pool_ring")
-Types = [ExtResource("item_68"), ExtResource("item_69"), ExtResource("item_70"), ExtResource("item_71"), ExtResource("item_72"), ExtResource("item_73"), ExtResource("item_74"), ExtResource("item_75"), ExtResource("item_76"), ExtResource("item_77"), ExtResource("item_78"), ExtResource("item_79"), ExtResource("item_80"), ExtResource("item_81"), ExtResource("item_82"), ExtResource("item_83"), ExtResource("item_84"), ExtResource("item_85"), ExtResource("item_86"), ExtResource("item_87"), ExtResource("item_88"), ExtResource("item_89")]
+Types = [ExtResource("item_68"), ExtResource("item_69"), ExtResource("item_70"), ExtResource("item_72"), ExtResource("item_73"), ExtResource("item_74"), ExtResource("item_75"), ExtResource("item_76"), ExtResource("item_77"), ExtResource("item_78"), ExtResource("item_80"), ExtResource("item_82"), ExtResource("item_83"), ExtResource("item_84"), ExtResource("item_86"), ExtResource("item_87"), ExtResource("item_88"), ExtResource("item_89")]
 metadata/_custom_type_script = ExtResource("category")
 
 [sub_resource type="Resource" id="Category_amulet"]
 script = ExtResource("category")
 Category = "amulet"
 AppearancePool = ExtResource("pool_amulet")
-Types = [ExtResource("item_91"), ExtResource("item_92"), ExtResource("item_93"), ExtResource("item_94"), ExtResource("item_95"), ExtResource("item_96"), ExtResource("item_97"), ExtResource("item_98"), ExtResource("item_99"), ExtResource("item_100"), ExtResource("item_101"), ExtResource("item_102"), ExtResource("item_103"), ExtResource("item_104"), ExtResource("item_105"), ExtResource("item_106")]
+Types = [ExtResource("item_91"), ExtResource("item_92"), ExtResource("item_93"), ExtResource("item_95"), ExtResource("item_97"), ExtResource("item_98"), ExtResource("item_99"), ExtResource("item_100"), ExtResource("item_102"), ExtResource("item_103"), ExtResource("item_104"), ExtResource("item_105"), ExtResource("item_106")]
 metadata/_custom_type_script = ExtResource("category")
 
 [resource]

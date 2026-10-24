@@ -248,7 +248,6 @@ collision_layer = 8
 HealthComponent = NodePath("../HealthComponent")
 MovementComponent = NodePath("../MovementComponent")
 HitEffect = ExtResource("b_9_d4q6w")
-Evasion = 0.3
 
 [node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("b_10_oansv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)

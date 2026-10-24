@@ -13,10 +13,6 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	/// </summary>
 	[Export] public int RequiredStrength { get; protected set => SetValue(ref field, value); } = 0;
 	/// <summary>
-	/// Weapon accuracy.
-	/// </summary>
-	[Export] public float Accuracy { get; protected set => SetValue(ref field, value); } = 1.0f;
-	/// <summary>
 	/// Minimum damage bonus for this item (absolute value). Stacks up with other items' damage bonus.
 	/// </summary>
 	[Export] public float DamageMin { get; set => SetValue(ref field, value); } = 0f;

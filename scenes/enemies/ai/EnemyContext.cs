@@ -32,6 +32,9 @@ public sealed class EnemyContext
 	public NavigationComponent Navigation { get; }
 	public EnemyBehaviorProfile Profile { get; }
 	public EnemyTacticsState Tactics { get; } = new();
+	public EnemyTacticalSelector TacticalSelector { get; }
+	private EnemyTacticalDecision? _lastDecision;
+	public string TacticalDecisionReason => _lastDecision?.Reason ?? "inactive";
 	public double Delta { get; private set; }
 	private float _retreatRefresh;
 	private bool _retreatDestinationValid;
@@ -53,7 +56,7 @@ public sealed class EnemyContext
 	public Node3D Target
 	{
 		get => _target;
-		set { if (_target != value) { Tactics.ClearTarget(); _retreatDestinationValid = false; _retreatRefresh = 0; } _target = value; }
+		set { if (_target != value) { Tactics.ClearTarget(); TacticalSelector?.ClearTarget(); _lastDecision = null; _retreatDestinationValid = false; _retreatRefresh = 0; } _target = value; }
 	}
 
 	/// <summary>
@@ -83,6 +86,7 @@ public sealed class EnemyContext
 		Perception = perception;
 		Navigation = navigation;
 		Profile = profile;
+		TacticalSelector = profile.TacticalStrategy?.CreateRuntime();
 		RequestAttack = requestAttack;
 		HomePosition = actor.GlobalPosition;
 	}
@@ -103,6 +107,7 @@ public sealed class EnemyContext
 	public void TickThrottles(double delta)
 	{
 		Delta = delta;
+		TacticalSelector?.Tick(delta);
 		_retreatRefresh -= (float)delta;
 		_scanCooldown.Tick(delta);
 		_pathRefreshCooldown.Tick(delta);
@@ -230,6 +235,43 @@ public sealed class EnemyContext
 					? new(EnemyMovementGoal.Retreat, false, retreat.DesiredDistance) : new(EnemyMovementGoal.Hold, false);
 		}
 		return Profile.MovementStrategy.Evaluate(this);
+	}
+
+	/// <summary>Resolve tactical priorities and navigation failure before submitting an ordinary attack request.</summary>
+	public void ExecuteTactics(EnemyMovementIntent? preference = null)
+	{
+		var decision = TacticalSelector.Select(preference ?? EvaluateMovement(), HorizontalTargetDistance, Profile.AttackStrategy.CanAttack(this));
+		if (decision.Intent.Goal == EnemyMovementGoal.Retreat && !FollowRetreat(decision.Intent.DesiredDistance))
+			decision = TacticalSelector.RetreatBlocked(Profile.AttackStrategy.CanAttack(this));
+		if (decision.Intent.Goal != EnemyMovementGoal.Retreat) EndRetreatMovement();
+		if (decision.Intent.Goal == EnemyMovementGoal.Approach)
+		{
+			// Retreat replaces the agent destination independently of the chase refresh cache.
+			if (_lastDecision?.Intent.Goal == EnemyMovementGoal.Retreat || decision.Reason == "retreat_blocked")
+				UpdateTargetPosition();
+			else UpdateTargetPositionThrottled();
+			FollowTargetPath();
+		}
+		else if (decision.Intent.Goal == EnemyMovementGoal.Hold) Navigation.Stop();
+		if (_lastDecision != decision)
+		{
+			_lastDecision = decision;
+			if (CombatTrace.Enabled) CombatTrace.Write(Actor, "ai.tactical_decision", ("goal", decision.Intent.Goal.ToString()),
+				("reason", decision.Reason), ("allow_attack", decision.Intent.AllowAttack));
+		}
+		if (decision.Intent.AllowAttack) RequestAttack();
+	}
+
+	/// <summary>Follow the existing chase path, including committed door crossings, with shared stuck recovery.</summary>
+	public void FollowTargetPath()
+	{
+		if (Target == null) { Movement.Stop(); return; }
+		Navigation.FollowPath(Target);
+		if (Navigation.IsStuck)
+		{
+			Navigation.ResetStuckTracking();
+			Navigation.SetDestination(LastKnownTargetPosition);
+		}
 	}
 
 	public void EndRetreatMovement() { _retreatRefresh = 0; _retreatDestinationValid = false; }

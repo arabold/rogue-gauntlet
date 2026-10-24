@@ -57,7 +57,6 @@ public partial class AttackController : Node, IParryInterruptible
 	private AttackDefinition _currentAttack;
 	private float _currentMinDamage;
 	private float _currentMaxDamage;
-	private float _currentAccuracy;
 	private float _currentCritChance;
 	private uint _targetMask;
 
@@ -83,10 +82,10 @@ public partial class AttackController : Node, IParryInterruptible
 	/// <summary>
 	/// Begins playing an attack with its stats and targeting parameters.
 	/// </summary>
-	public bool StartAttack(AttackDefinition def, float minDamage, float maxDamage, float accuracy, float critChance, uint targetMask)
+	public bool StartAttack(AttackDefinition def, float minDamage, float maxDamage, float critChance, uint targetMask)
 	{
 		return TryPrepareAttack(def, "", 0, out var attack)
-			&& StartAttack(attack, minDamage, maxDamage, accuracy, critChance, targetMask);
+			&& StartAttack(attack, minDamage, maxDamage, critChance, targetMask);
 	}
 
 	/// <summary>Validate and capture the complete attack before animations, timers or hits start.</summary>
@@ -121,7 +120,7 @@ public partial class AttackController : Node, IParryInterruptible
 	}
 
 	/// <summary>Commit an already validated execution snapshot to this actor.</summary>
-	public bool StartAttack(PreparedAttack attack, float minDamage, float maxDamage, float accuracy, float critChance, uint targetMask, ActorActionLease lease = default)
+	public bool StartAttack(PreparedAttack attack, float minDamage, float maxDamage, float critChance, uint targetMask, ActorActionLease lease = default)
 	{
 		if (attack == null || _actor == null) return false;
 		var def = attack.Definition;
@@ -145,7 +144,6 @@ public partial class AttackController : Node, IParryInterruptible
 		_currentAttack = def;
 		_currentMinDamage = minDamage;
 		_currentMaxDamage = maxDamage;
-		_currentAccuracy = accuracy;
 		_currentCritChance = critChance;
 		_targetMask = targetMask;
 
@@ -332,7 +330,6 @@ public partial class AttackController : Node, IParryInterruptible
 			OwnerNode = _actor,
 			Faction = HurtBoxComponent.GetDamageSource(_actor),
 			Amount = damage,
-			Accuracy = _currentAccuracy,
 			Random = _random,
 			IncomingDirection = incomingDir,
 			DefenseTraits = traits,
@@ -346,7 +343,7 @@ public partial class AttackController : Node, IParryInterruptible
 		}
 		else if (target is IDamageable damageable)
 		{
-			damageable.TakeDamage(_currentAccuracy, damage, incomingDir, _actor);
+			damageable.TakeDamage(damage, incomingDir, _actor);
 			ReportFeedback("Contact", damage);
 		}
 	}
@@ -390,7 +387,6 @@ public partial class AttackController : Node, IParryInterruptible
 				direction,
 				_currentAttack.ProjectileSpeed,
 				_currentAttack.Range,
-				_currentAccuracy,
 				_currentMinDamage * _currentAttack.ProjectileDamageScale,
 				_currentMaxDamage * _currentAttack.ProjectileDamageScale,
 				_currentCritChance,
@@ -417,7 +413,6 @@ public partial class AttackController : Node, IParryInterruptible
 				direction,
 				_currentAttack.ProjectileSpeed,
 				_currentAttack.SpawnHeight + 1.0f,
-				_currentAccuracy,
 				_currentMinDamage * _currentAttack.ProjectileDamageScale,
 				_currentMaxDamage * _currentAttack.ProjectileDamageScale,
 				_currentCritChance,

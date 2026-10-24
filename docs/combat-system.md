@@ -1,45 +1,35 @@
 # Combat actions and active defense
 
-This describes the implemented system. [Actor actions and world interactions](actor-actions-and-interactions.md) contains the broader intended gameplay; [weapon attacks](weapon-attack-system.md) covers contact volumes and weapon styles. Use the [combat harness](combat-harness.md) to exercise these paths.
+Implemented rules for players and monsters. See [weapon attacks](weapon-attack-system.md) for attack authoring, [monster authoring](monster-authoring-design.md) for AI policy, and the [combat harness](combat-harness.md) for diagnostics. The broader [action design](actor-actions-and-interactions.md) distinguishes future magic and interaction work.
 
-## Ownership and clocks
+## Action ownership
 
-Each actor has an `ActorActionGateComponent`. Attacks, dodge, guard, item use, interactions and forced reactions compete for one generation-stamped lease. A rejected request cannot change its owner. Attack startup can be replaced by dodge/guard; active contact and recovery cannot. Committed item use blocks voluntary replacement. Forced stagger interrupts voluntary actions. Death disables the gate and cancels its current owner.
+Each actor can own one committed action: attack, dodge, guard, item use, interaction or forced reaction. Rejected requests change nothing. Dodge or guard can replace attack startup, but cannot interrupt active contact or recovery. Committed item use prevents voluntary replacement. Stagger interrupts voluntary actions; death cancels and disables them. Ordinary movement remains separate but obeys the current action's restrictions.
 
-`ActionSlot` owns player preparation. It hands the accepted lease to `AttackController`, which reports its actual wind-up, active and recovery phases and releases the lease on completion or interruption. Enemy and direct debug attacks acquire through this same executor. Enemy AI suspends ordinary steering and attack requests while defense or stagger owns the actor. Movement reads the gate directly: stagger duration is independent of movement speed, and recovery cannot resume retained locomotion input.
+The executor owns its timing and releases ownership on completion or interruption. Movement and animation follow that same commitment; stale callbacks cannot complete an old action or cancel a newer one. Shared authored Resources are definitions. Accepted actions snapshot their settings so live edits cannot change an action halfway through.
 
-Physics priorities in `CombatPhysics` order input sampling, intentions, defense clocks, AI steering, large-actor clearance, movement, attack/projectile damage, interaction completion and trace snapshots. Rendering frames are not physics ticks; engine tests wait for physics boundaries when asserting durations or displacement.
+## Dodge, guard and parry
 
-## Definitions and presentation
+Dodge combines physical displacement with an authored immunity interval, recovery and cooldown. Collision may stop displacement without extending immunity. AI must also find a supported, clear destination before dodging.
 
-`DodgeComponent` owns displacement, immunity, recovery and cooldown. Physical collisions halt displacement without extending immunity. AI also checks the proposed path and endpoint for collisions, floor support and large-actor clearance before accepting a dodge.
+Guard commits to a frontal facing and progresses through raising, held protection and release recovery. Its optional opening parry window is single-use. Shields take precedence over an eligible one-handed weapon, then innate guard; two-handed weapons suppress the offhand source. A shield visual alone grants no protection. Rebinding equipment cancels guard while retaining defensive cooldowns.
 
-`GuardComponent` owns fixed frontal facing, raising, a single-use opening parry window, held blocking, release recovery and rearm. Shields take precedence over one-handed weapons, then an authored innate guard. Two-handed weapons suppress the offhand shield; ranged weapons without an effective shield have no guard. The authored movement multiplier controls strafing while guard is active (initial definitions use zero); release recovery remains stationary. Normal release finishes any in-progress block/parry reaction before the release pose and recovery timer complete; forced cancellation can interrupt both. Equipment rebinding cancels an active guard and preserves rearm. Repeated release does not extend recovery; pressing guard during release recovery is rejected.
+Guard pressure can prolong a response within its maximum hold. Normal release finishes the current reaction and recovery before an enemy may riposte. A riposte uses the actor's ordinary attack, rechecking range, sight and availability. It grants no extra action or immunity.
 
-Definitions are shared authored Resources. An accepted defense takes its own snapshot; edits to its source do not change that action. `DefenseAnimationProfile` supplies humanoid clips through dodge/guard definitions and the gate's stagger binding. `CombatAnimationComponent` owns the rig using tokens, so attacks, defenses and stagger cannot run competing mixers. Gameplay clocks sample clips; shared Animation resources are never modified to force looping. Actors without an explicit stagger clip retain their authored AnimationTree hit reaction through `IsHit`. Missing assigned presentation clips reject defense availability instead of searching unrelated descendants or guessing rig paths.
+Presentation is explicitly assigned in the actor scene. Attacks, defenses and stagger share one pose owner and gameplay clock. Missing required clips make the capability unavailable rather than silently selecting unrelated animations.
 
 ## Contact resolution
 
-`DamageContext` carries execution identity, source and owner, faction, delivery, defensive eligibility, damage, accuracy, direction and an explicit RNG. Actor roots register their composed `IDefenseEvaluator` implementations with the hurtbox; the hurtbox does not discover concrete guard/dodge types.
+Confirmed contact resolves faction/death filtering, eligible active defense, debug immunity, armor and health. There is **no passive evasion or accuracy contest**. Dexterity currently contributes critical chance, not an invisible defense roll. Physical movement can avoid contact; timed dodge/parry can reject eligible contact; guard reduces damage before armor.
 
-Resolution applies faction/death filtering, eligible active defense, debug invulnerability, passive evasion, armor and health. Dodge/parry suppress ordinary hit stun and damage. Blocks report final chip damage and suppress normal knockback; armor and passive evasion still apply. Positive unprotected damage cancels committed actions before applying knockback. A parry consumes its eligibility before callbacks and interrupts only the captured source execution; a stale source cannot stagger a newer owner.
+Dodged/parried contacts suppress ordinary damage and hit stun. Blocks report final chip damage without ordinary knockback. Positive unprotected damage interrupts committed actions before knockback. Parry interrupts only the source execution it actually intercepted. Each swing resolves once per defender, including a defended contact; projectile splash cannot hit its directly resolved target a second time.
 
-Ordinary melee is dodgeable, guardable and parryable. Ordinary projectile defaults are dodgeable/guardable; authored flags are passed through when spawning. Area impacts have a separate authored flag set, initially dodgeable. Legacy environmental damage grants no active-defense eligibility. A direct projectile's resolved target is excluded from its splash, including when the direct contact was defended.
+Defense eligibility is authored per attack: ordinary melee allows dodge, guard and parry; ordinary projectiles allow dodge/guard; area impacts have independent flags. Environmental damage does not automatically grant defense eligibility. Unavoidable content needs clear presentation.
 
-Attack and projectile randomness stays local. Enemy hosts derive separate attack and defense streams from floor seed plus persistent source identity; standalone scenes use a fixed default seed. These reproduce scenarios within the same build and relevant inputs, not arbitrary gameplay histories or physics replay.
+## Enemy decisions and persistence
 
-## Enemy policy and persistence
+Enemies react to visible, plausible threats after an authored delay. They cannot read player inputs or reroll each frame: one threat produces one categorical dodge/guard/no-response choice. Directional checks, cooldowns, pressure and recovery still govern execution. See [monster policies](monster-authoring-design.md#independent-capabilities-and-policies).
 
-Enemy defense observes its current perceived opponent's visible startup, not player inputs. An explicitly injected harness target is supported. Sight and range are revalidated when the reaction delay expires. One probability decision is made per observed attack/projectile execution; projectile exposure over multiple ticks cannot repeatedly reroll the chance. Forced harness modes change probability, retaining production delay and cooldown rules.
+Saving retains defensive cooldowns and remaining combat commitment. Loading cancels transient actions and restores a neutral lockout without immunity; held guard requires a fresh press after load, pause or focus loss. Stair travel rejects committed actions. [Randomness and saves](randomness-and-seeds.md) owns reconstruction and compatibility rules.
 
-Current skeleton guard definitions use a 120° frontal cone; rear and side hits outside it bypass guard/parry and continue through ordinary damage resolution.
-
-Blocked and parried contacts both refresh guard pressure. Enemies finish their guard hold and release recovery before attempting a riposte; a parry never bypasses the defensive sequence. Configured attack reach and visibility are checked again when the riposte is attempted. Riposte success is announced only after an attack is accepted, with a visible target in range and no conflicting action.
-
-Save version 13 stores dodge cooldown, parry rearm and the actual remaining combat commitment as a neutral reload lockout. Loading cancels transient action/animation/movement ownership, restores timers, and recreates the lockout without immunity. Guard requires a fresh press after load, pause or focus loss. Stair travel rejects committed actions. Older development saves require a new run; no migration is performed.
-
-## Monster authoring rollout
-
-[Monster design and authoring](monster-authoring-design.md) defines the implemented actor composition and basic tactics. Every active monster uses definition defaults and a single melee or projectile policy through the shared attack executor. Close-distance, maintain-distance, attack-then-retreat and an optional bounded low-health override operate through ordinary navigation. Crossbowmen never fall back to melee.
-
-`EnemyDefenseStrategy` makes one categorical draw per observed threat: dodge, guard or no response. Ripostes request the same configured attack through `TryAttack`, revalidating range and sight after guard release/recovery. Guard can accompany either attack type. Pressure, maximum hold, cooldown and directional checks remain on the local defense executor. Matching normal attack completion can start a retreat cycle; interruption cannot. Strategy Resources contain tuning only; timers and execution identities belong to each actor.
+Future Dexterity-based defense tuning must affect an explicitly activated action, never introduce passive hit rejection. Balance and generated-room movement remain playtest work in the [roadmap](development-roadmap.md).

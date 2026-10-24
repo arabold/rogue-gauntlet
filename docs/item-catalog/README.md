@@ -142,9 +142,7 @@ Rings and amulets carry a hidden identity like potions/scrolls, and show only a 
 | ![Ring of the Mind](./ring_mind.png) | **Ring of the Mind** | +2 Intelligence | `ring.mind` | 150 |
 | ![Ring of Dexterity](./ring_dexterity.png) | **Ring of Dexterity** | +2 Dexterity | `ring.dexterity` | 150 |
 | ![Ring of Vitality](./ring_vitality.png) | **Ring of Vitality** | +2 Vitality | `ring.vitality` | 150 |
-| ![Ring of Evasion](./ring_evasion.png) | **Ring of Evasion** | +6 Evasion | `ring.evasion` | 160 |
 | ![Ring of Protection](./ring_protection.png) | **Ring of Protection** | +4 Armor | `ring.protection` | 160 |
-| ![Ring of Precision](./ring_precision.png) | **Ring of Precision** | +10% Accuracy | `ring.precision` | 160 |
 | ![Ring of Savagery](./ring_savagery.png) | **Ring of Savagery** | +2 MinDamage, +3 MaxDamage | `ring.savagery` | 180 |
 
 ### Amulets
@@ -154,7 +152,6 @@ Rings and amulets carry a hidden identity like potions/scrolls, and show only a 
 | ![Amulet of Dread](./amulet_dread.png) | **Amulet of Dread** ⚠️ | -10% MinDamage, -10% MaxDamage | `amulet.dread` | 50 |
 | ![Amulet of Swiftness](./amulet_swiftness.png) | **Amulet of Swiftness** | +10% Speed | `amulet.swiftness` | 200 |
 | ![Amulet of Vigor](./amulet_health.png) | **Amulet of Vigor** | +25 MaxHealth | `amulet.health` | 200 |
-| ![Amulet of the Titan](./amulet_titan.png) | **Amulet of the Titan** | +3 Strength, -4 Evasion | `amulet.titan` | 220 |
 
 > ⚠️ marks intentionally cursed jewelry (a net-negative effect) — the risk/reward gamble of wearing an unidentified ring.
 

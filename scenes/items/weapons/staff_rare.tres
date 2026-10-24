@@ -13,7 +13,6 @@ Grip = ExtResource("weapon_grip")
 Tier = 4
 Level = 0
 RequiredStrength = 10
-Accuracy = 1.0
 DamageMin = 9.0
 DamageMax = 16.0
 CritChance = 0.03

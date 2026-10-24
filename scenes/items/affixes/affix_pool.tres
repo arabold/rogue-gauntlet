@@ -153,21 +153,6 @@ Weight = 5.0
 MinRarity = 1
 metadata/_custom_type_script = ExtResource("2_affix")
 
-[sub_resource type="Resource" id="R_precise"]
-script = ExtResource("3_range")
-Stat = 6
-MinValue = 0.05
-MaxValue = 0.15
-metadata/_custom_type_script = ExtResource("3_range")
-
-[sub_resource type="Resource" id="A_precise"]
-script = ExtResource("2_affix")
-NameFragment = "Precise"
-Modifiers = [SubResource("R_precise")]
-AllowedSlots = 256
-Weight = 8.0
-metadata/_custom_type_script = ExtResource("2_affix")
-
 [sub_resource type="Resource" id="R_swift"]
 script = ExtResource("3_range")
 Stat = 5
@@ -260,21 +245,6 @@ MinRarity = 3
 MinTier = 4
 metadata/_custom_type_script = ExtResource("2_affix")
 
-[sub_resource type="Resource" id="R_nimble"]
-script = ExtResource("3_range")
-Stat = 11
-MinValue = 1.0
-MaxValue = 4.0
-metadata/_custom_type_script = ExtResource("3_range")
-
-[sub_resource type="Resource" id="A_nimble"]
-script = ExtResource("2_affix")
-NameFragment = "Nimble"
-Modifiers = [SubResource("R_nimble")]
-AllowedSlots = 543
-Weight = 8.0
-metadata/_custom_type_script = ExtResource("2_affix")
-
 [sub_resource type="Resource" id="R_stalwart"]
 script = ExtResource("3_range")
 Stat = 4
@@ -341,22 +311,6 @@ Modifiers = [SubResource("R_owl")]
 Weight = 8.0
 metadata/_custom_type_script = ExtResource("2_affix")
 
-[sub_resource type="Resource" id="R_wind"]
-script = ExtResource("3_range")
-Stat = 11
-MinValue = 2.0
-MaxValue = 6.0
-metadata/_custom_type_script = ExtResource("3_range")
-
-[sub_resource type="Resource" id="A_wind"]
-script = ExtResource("2_affix")
-NameFragment = "of the Wind"
-Kind = 1
-Modifiers = [SubResource("R_wind")]
-Weight = 5.0
-MinRarity = 1
-metadata/_custom_type_script = ExtResource("2_affix")
-
 [sub_resource type="Resource" id="R_vitality"]
 script = ExtResource("3_range")
 Stat = 4
@@ -369,23 +323,6 @@ script = ExtResource("2_affix")
 NameFragment = "of Vitality"
 Kind = 1
 Modifiers = [SubResource("R_vitality")]
-Weight = 5.0
-MinRarity = 1
-metadata/_custom_type_script = ExtResource("2_affix")
-
-[sub_resource type="Resource" id="R_precision"]
-script = ExtResource("3_range")
-Stat = 6
-Op = 1
-MinValue = 0.05
-MaxValue = 0.15
-metadata/_custom_type_script = ExtResource("3_range")
-
-[sub_resource type="Resource" id="A_precision"]
-script = ExtResource("2_affix")
-NameFragment = "of Precision"
-Kind = 1
-Modifiers = [SubResource("R_precision")]
 Weight = 5.0
 MinRarity = 1
 metadata/_custom_type_script = ExtResource("2_affix")
@@ -611,7 +548,7 @@ metadata/_custom_type_script = ExtResource("4_count")
 
 [resource]
 script = ExtResource("1_pool")
-Affixes = [SubResource("A_vicious"), SubResource("A_keen"), SubResource("A_savage"), SubResource("A_sturdy"), SubResource("A_ox"), SubResource("A_fox"), SubResource("A_bear"), SubResource("A_haste"), SubResource("A_ward"), SubResource("A_precise"), SubResource("A_swift"), SubResource("A_arcane"), SubResource("A_brutal"), SubResource("A_deadly"), SubResource("A_merciless"), SubResource("A_nimble"), SubResource("A_stalwart"), SubResource("A_fortified"), SubResource("A_impenetrable"), SubResource("A_owl"), SubResource("A_wind"), SubResource("A_vitality"), SubResource("A_precision"), SubResource("A_titan"), SubResource("A_assassin"), SubResource("A_fortress"), SubResource("A_alacrity"), SubResource("A_slaughter"), SubResource("A_colossus"), SubResource("A_juggernaut")]
+Affixes = [SubResource("A_vicious"), SubResource("A_keen"), SubResource("A_savage"), SubResource("A_sturdy"), SubResource("A_ox"), SubResource("A_fox"), SubResource("A_bear"), SubResource("A_haste"), SubResource("A_ward"), SubResource("A_swift"), SubResource("A_arcane"), SubResource("A_brutal"), SubResource("A_deadly"), SubResource("A_merciless"), SubResource("A_stalwart"), SubResource("A_fortified"), SubResource("A_impenetrable"), SubResource("A_owl"), SubResource("A_vitality"), SubResource("A_titan"), SubResource("A_assassin"), SubResource("A_fortress"), SubResource("A_alacrity"), SubResource("A_slaughter"), SubResource("A_colossus"), SubResource("A_juggernaut")]
 RollCounts = [SubResource("RC_common"), SubResource("RC_unc"), SubResource("RC_rare"), SubResource("RC_leg"), SubResource("RC_uniq")]
 RarityWeights = [SubResource("RW_common"), SubResource("RW_unc"), SubResource("RW_rare"), SubResource("RW_leg"), SubResource("RW_uniq")]
 metadata/_custom_type_script = ExtResource("1_pool")

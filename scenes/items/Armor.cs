@@ -17,10 +17,6 @@ public partial class Armor : EquipableItem
 	/// </summary>
 	[Export] public int ArmorPoints { get; set => SetValue(ref field, value); } = 0;
 	/// <summary>
-	/// Accuracy modifier for this armor
-	/// </summary>
-	[Export] public float AccuracyModifier { get; set => SetValue(ref field, value); } = 1.0f;
-	/// <summary>
 	/// Speed modifier for this armor
 	/// </summary>
 	[Export] public float SpeedModifier { get; set => SetValue(ref field, value); } = 1.0f;
@@ -33,9 +29,8 @@ public partial class Armor : EquipableItem
 		}
 
 		yield return new StatModifier { Stat = StatType.Armor, Op = ModifierOp.Flat, Value = ArmorPoints };
-		// AccuracyModifier/SpeedModifier are authored as multipliers (1.0 = no change), so a
+		// SpeedModifier are authored as multipliers (1.0 = no change), so a
 		// value of 0.9 becomes a -10% percent modifier.
-		yield return new StatModifier { Stat = StatType.Accuracy, Op = ModifierOp.Percent, Value = AccuracyModifier - 1f };
 		yield return new StatModifier { Stat = StatType.Speed, Op = ModifierOp.Percent, Value = SpeedModifier - 1f };
 	}
 

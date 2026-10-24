@@ -12,6 +12,7 @@ public static class GenerationRandom
 	public const string Layout = "layout";
 	public const string Monsters = "monsters";
 	public const string Items = "items";
+	public const string Arrangements = "arrangements";
 	public const string Decoration = "decoration";
 	public const string Loot = "loot";
 

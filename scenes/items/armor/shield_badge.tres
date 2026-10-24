@@ -9,7 +9,6 @@ Tier = 1
 Level = 0
 RequiredStrength = 10
 ArmorPoints = 3
-AccuracyModifier = 1.0
 SpeedModifier = 1.0
 ValidSlots = 512
 Rarity = 0

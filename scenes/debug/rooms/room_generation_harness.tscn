@@ -1,0 +1,77 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" uid="uid://dmt5scqvd325o" path="res://scenes/debug/rooms/RoomGenerationHarness.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/levels/level.tscn" id="level"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/factories/garrison_mixed_room_factory.tres" id="factory"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/arrangements/garrison_arrangements.tres" id="arrangements"]
+
+[sub_resource type="Environment" id="Environment"]
+background_mode = 1
+background_color = Color(0.05, 0.06, 0.08, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.75, 0.8, 0.9, 1)
+ambient_light_energy = 0.7
+
+[sub_resource type="Theme" id="Theme"]
+default_font_size = 16
+
+[node name="RoomGenerationHarness" type="Node3D" node_paths=PackedStringArray("Generator", "PreviewRoot", "PreviewCamera", "Controls", "Status")]
+script = ExtResource("script")
+Factory = ExtResource("factory")
+Generator = NodePath("Level/MapGenerator")
+PreviewRoot = NodePath("PreviewRoot")
+PreviewCamera = NodePath("Camera3D")
+Controls = NodePath("UI/Panel/Margin/Controls")
+Status = NodePath("UI/Panel/Margin/Controls/Status")
+
+[node name="Level" parent="." instance=ExtResource("level")]
+AutoGenerateOnReady = false
+
+[node name="MapGenerator" parent="Level" index="0"]
+MapWidth = 26
+MapDepth = 26
+MaxRooms = 6
+Seed = 2
+RoomFactory = ExtResource("factory")
+ArrangementPool = ExtResource("arrangements")
+
+[node name="PreviewRoot" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(0, 85, 40)
+rotation_degrees = Vector3(-65, 0, 0)
+projection = 1
+size = 110.0
+current = true
+far = 250.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-60, -25, 0)
+light_energy = 1.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Panel" type="PanelContainer" parent="UI"]
+theme = SubResource("Theme")
+offset_left = 16.0
+offset_top = 16.0
+
+[node name="Margin" type="MarginContainer" parent="UI/Panel"]
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Controls" type="VBoxContainer" parent="UI/Panel/Margin"]
+custom_minimum_size = Vector2(480, 0)
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="UI/Panel/Margin/Controls"]
+text = "Room generation"
+theme_override_font_sizes/font_size = 22
+
+[node name="Status" type="Label" parent="UI/Panel/Margin/Controls"]
+text = "Generating…"

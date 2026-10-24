@@ -14,6 +14,9 @@ public partial class DungeonRoomFactory : RoomFactory
 	[Export] public Array<string> StandardRoomScenePaths { get; set; }
 	[Export] public Array<string> SpecialRoomScenePaths { get; set; }
 
+	/// <summary>When disabled, exhausted optional landmarks return null until Reset instead of repeating.</summary>
+	[Export] public bool RepeatSpecialRooms { get; set; } = true;
+
 	private readonly HashSet<string> _usedStandardRooms = new();
 	private readonly HashSet<string> _usedSpecialRooms = new();
 
@@ -52,6 +55,7 @@ public partial class DungeonRoomFactory : RoomFactory
 		if (availableRooms.Count == 0)
 		{
 			// Reset after exhausting the pool so long levels can reuse rooms only when necessary.
+			if (!RepeatSpecialRooms || SpecialRoomScenePaths.Count == 0) return null;
 			_usedSpecialRooms.Clear();
 			availableRooms = SpecialRoomScenePaths;
 		}

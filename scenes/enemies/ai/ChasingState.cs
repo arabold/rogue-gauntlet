@@ -34,47 +34,13 @@ public sealed class ChasingState : IEnemyState
 			return EnemyBehaviorState.Searching;
 		}
 
-		if (crossingDoorway) { NavigateToTarget(ctx); return null; }
-		var intent = ctx.EvaluateMovement();
-		bool allowAttack = intent.AllowAttack;
-		if (intent.Goal != EnemyMovementGoal.Retreat) ctx.EndRetreatMovement();
-		switch (intent.Goal)
-		{
-			case EnemyMovementGoal.Approach:
-				ctx.UpdateTargetPositionThrottled();
-				NavigateToTarget(ctx);
-				break;
-			case EnemyMovementGoal.Retreat:
-				if (!ctx.FollowRetreat(intent.DesiredDistance)) allowAttack = true;
-				break;
-			default:
-				ctx.Navigation.Stop();
-				break;
-		}
-		if (allowAttack) ctx.RequestAttack();
+		if (crossingDoorway) { ctx.FollowTargetPath(); return null; }
+		ctx.ExecuteTactics();
 		return null;
 	}
 
 	public void Exit(EnemyContext ctx)
 	{
-	}
-
-	private static void NavigateToTarget(EnemyContext ctx)
-	{
-		if (ctx.Target == null)
-		{
-			ctx.Movement.Stop();
-			return;
-		}
-
-		// The target is passed as the ignored collider so the enemy slides along walls but never
-		// treats the player as a wall to orbit.
-		ctx.Navigation.FollowPath(ctx.Target);
-		if (ctx.Navigation.IsStuck)
-		{
-			ctx.Navigation.ResetStuckTracking();
-			ctx.Navigation.SetDestination(ctx.LastKnownTargetPosition);
-		}
 	}
 
 }

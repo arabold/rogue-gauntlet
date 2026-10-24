@@ -1,0 +1,46 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scenes/debug/effects/ScreenEffectHarness.cs" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/main/main.tscn" id="2_main"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_poison_small.tres" id="3_poison"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_blindness_medium.tres" id="4_blindness"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_confusion_medium.tres" id="5_confusion"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_slowness_medium.tres" id="6_slowness"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_healing_small.tres" id="7_healing"]
+
+[node name="ScreenEffectHarness" type="Node" node_paths=PackedStringArray("Effects", "Controls")]
+script = ExtResource("1_script")
+Effects = [NodePath("Main/ScreenEffects/Blindness"), NodePath("Main/ScreenEffects/Poison"), NodePath("Main/ScreenEffects/NearDeath")]
+Potions = [ExtResource("3_poison"), ExtResource("4_blindness"), ExtResource("5_confusion"), ExtResource("6_slowness"), ExtResource("7_healing")]
+Controls = NodePath("DebugUI/Panel/Margin/Rows")
+
+[node name="SceneDebugEnvironment" type="Node" parent="."]
+editor_description = "Marker that opts this scene out of SceneDebugBootstrap's floor, light and camera; the gameplay scene provides its own."
+
+[node name="Main" parent="." instance=ExtResource("2_main")]
+
+[node name="DebugUI" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="Panel" type="PanelContainer" parent="DebugUI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -380.0
+offset_top = 12.0
+offset_right = -12.0
+grow_horizontal = 0
+
+[node name="Margin" type="MarginContainer" parent="DebugUI/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="Rows" type="VBoxContainer" parent="DebugUI/Panel/Margin"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="DebugUI/Panel/Margin/Rows"]
+layout_mode = 2
+text = "Screen effects · keys 1-3 fade in/out"

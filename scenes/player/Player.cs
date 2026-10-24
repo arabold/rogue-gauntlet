@@ -226,11 +226,11 @@ public partial class Player : CharacterBody3D, IDamageable, IStaggerable
 	///
 	/// The amount of damage is taking the armor into account.
 	/// </summary>
-	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null, DamageSourceFlags attackerFaction = DamageSourceFlags.None)
+	public void TakeDamage(float amount, Vector3 attackDirection, Node attacker = null, DamageSourceFlags attackerFaction = DamageSourceFlags.None)
 	{
 		// Forward the damage to the HurtBoxComponent which handles
 		// the actual damage calculation
-		HurtBoxComponent.TakeDamage(accuracy, amount, attackDirection, attacker, attackerFaction);
+		HurtBoxComponent.TakeDamage(amount, attackDirection, attacker, attackerFaction);
 	}
 
 	/// <summary>

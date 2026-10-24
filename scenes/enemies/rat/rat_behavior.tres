@@ -1,9 +1,11 @@
-[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="script"]
 [ext_resource type="Resource" path="res://scenes/enemies/rat/rat_attack.tres" id="attack"]
 [ext_resource type="Resource" path="res://scenes/enemies/rat/rat_movement.tres" id="movement"]
 [ext_resource type="Resource" path="res://scenes/enemies/rat/rat_retreat.tres" id="retreat"]
+
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
 
 [resource]
 script = ExtResource("script")
@@ -15,3 +17,5 @@ DyingActionDuration = 1.1
 AttackStrategy = ExtResource("attack")
 MovementStrategy = ExtResource("movement")
 RetreatCondition = ExtResource("retreat")
+
+TacticalStrategy = ExtResource("tactics")

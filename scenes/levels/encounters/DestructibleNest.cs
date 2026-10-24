@@ -77,8 +77,8 @@ public partial class DestructibleNest : StaticBody3D, IDamageable
 		return minion;
 	}
 
-	public void TakeDamage(float accuracy, float amount, Vector3 direction, Node attacker = null,
-		DamageSourceFlags faction = DamageSourceFlags.None) => _hurtbox.TakeDamage(accuracy, amount, direction, attacker, faction);
+	public void TakeDamage(float amount, Vector3 direction, Node attacker = null,
+		DamageSourceFlags faction = DamageSourceFlags.None) => _hurtbox.TakeDamage(amount, direction, attacker, faction);
 
 	private void OnDestroyed()
 	{

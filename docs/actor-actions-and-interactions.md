@@ -1,6 +1,6 @@
 # Actor Actions and World Interactions
 
-Status: intended gameplay, October 21, 2026; proposed, not implemented. This consolidates the earlier defense concept into one player/monster action model. The separate [implementation plan](specs/actor-actions-and-interactions-plan.md) defines code contracts and delivery. [Weapon attacks](weapon-attack-system.md) describes current combat; [dungeon access and discovery](dungeon-exploration-design.md) owns which locks and passages exist.
+Status: mixed current and intended gameplay. Dedicated weapon inputs, four item quick slots, ordinary timed interactions and active defenses are implemented; learned spells/mana and mechanical locks remain proposed. [Combat](combat-system.md) and [items](stats-and-itemization.md) own current rules; the [remaining plan](specs/actor-actions-and-interactions-plan.md) covers extensions. [Dungeon design](dungeon-exploration-design.md) owns which locks and passages exist.
 
 ## Purpose and shared rules
 
@@ -8,7 +8,7 @@ Combat, movement, abilities and interactions must feel like one game. The actor 
 
 Ordinary movement does not occupy an action slot. An actor can own only one committed action at a time: primary attack, secondary technique/spell, item use, dodge, guard, world interaction, or forced reaction. Action-specific policies determine movement and cancellation; being busy is not one universal uninterruptible state. A cancelled action cannot later complete through a stale timer.
 
-Melee remains horizontal gameplay with reliable timed contact, including around the physical body. Height and visual blade position do not create safe pockets. Existing armor and random evasion remain distinct from deliberate dodge/guard/parry. Elaborate boss patterns, stamina/posture meters, cinematic ripostes, large general-purpose ability bars and complex lockpicking minigames are outside the initial scope.
+Melee remains horizontal gameplay with reliable timed contact, including around the physical body. Height and visual blade position do not create safe pockets. Armor mitigates contact damage; avoiding confirmed contact requires deliberate dodge/guard/parry. Elaborate boss patterns, stamina/posture meters, cinematic ripostes, large general-purpose ability bars and complex lockpicking minigames are outside the initial scope.
 
 ## Player controls and four item quick-action slots
 
@@ -92,7 +92,7 @@ Non-stackable consumables with individual state (notably food) bind a specific o
 
 Each press consumes at most one unit, through the same ownership/target validation and inventory-use transaction as inventory UI. A targeted scroll opens the existing target-selection flow; cancellation spends nothing. Revalidate the owned source and selected target before committing. A missing source, invalid target, busy actor or active item cooldown reports a reason and never invokes another slot or falls back to attack. Quick-use cooldown belongs to the consumable variety, not its button position: moving/clearing/reassigning a binding cannot reset it. Manual duplicate variety bindings are rejected initially.
 
-Item use is a committed action, with the item's existing authored preparation/use time (for example a short drinking/reading animation). The effect and one-unit consumption commit together at completion after final validation. Positive damage/hit stun or invalid prerequisites before that point can cancel without consuming the item; no effect can execute later from an obsolete callback. Actor movement and voluntary attacks/defenses are denied during accepted item use initially. This differs deliberately from a long world interaction that the player can abandon to flee. Cooldown starts when use is accepted and is not refunded on interruption; an invalid request that never starts spends nothing. The duration/commit change is proposed, not a description of current instant inventory use.
+Item use is a committed action, with the item's existing authored preparation/use time (for example a short drinking/reading animation). The effect and one-unit consumption commit together at completion after final validation. Positive damage/hit stun or invalid prerequisites before that point can cancel without consuming the item; no effect can execute later from an obsolete callback. Actor movement and voluntary attacks/defenses are denied during accepted item use initially. This differs deliberately from a long world interaction that the player can abandon to flee. Cooldown starts when use is accepted and is not refunded on interruption; an invalid request that never starts spends nothing. The [current combat and item docs](combat-system.md) describe delivered execution; any extension must preserve these ownership rules.
 
 Monsters do not need a quick bar. Their innate attacks, named abilities and world-operation intentions request the shared actor action rules directly. Monster consumption of carried potions is not part of the initial rollout and is not implied by player quick-item support.
 
@@ -140,70 +140,11 @@ Only one actor may reserve a target operation at once. Another actor sees Busy; 
 
 An accessibility toggle-to-channel may replace the physical hold later, with identical duration, immobility and interruption. It must not bypass the risk model.
 
-## Action conflicts and interruption
+## Action conflicts and active defense
 
-| Current commitment | Accepted next intent |
-| --- | --- |
-| Idle / ordinary movement | Primary/secondary action, available quick item/defense; interaction additionally requires stationary valid focus |
-| Attack wind-up before contact | Dodge/guard may cancel; interaction, another attack and item use are denied; spent costs and attack cooldown remain spent |
-| Attack active contact or recovery | New voluntary actions wait; no queued input initially |
-| Held guard | Dodge may replace it; attacking/interaction requires release and guard-release recovery |
-| World interaction channel | Release, movement or fresh combat/quick-item intent cancels channel; execute the new request only after cancellation and validation |
-| Committed consumable use | Defense/interaction denied initially; movement and voluntary cancellation are denied until completion or an external interruption |
-| Dodge/recovery, guard-release recovery, hit stun/stagger, spawning/death | Actions denied until their state permits them; death clears pending work |
+The implemented [combat rules](combat-system.md) own interruption, dodge, frontal guard/parry and contact resolution. There is no passive hit rejection. All actors use the same execution rules with explicitly composed capabilities; monster species or a shield visual alone grants none.
 
-On one frame, forced reactions win. For voluntary input use dodge, guard, secondary, primary, quick-item slots in numeric order, then interact; accept at most one committed action. Movement is evaluated before starting interaction. A pending interaction cancellation is processed before the replacement request; releasing interact never falls through to attack. No rejected request silently invokes another intent. Different named-action cancel policies can be authored later; no generic "cancel anything" shortcut.
-
-## Dodge
-
-Capture a horizontal direction when the action begins: current movement input, otherwise current facing. Commit it for the dash. Movement is authoritative, not animation root motion. No target lock, automatic enemy crossing, teleport, or mid-dash steering is required.
-
-Walls, closed doors, props, map boundaries and actor bodies remain solid. The dash stops its displacement at an obstacle; it does not move through enemies initially. A blocked dash still consumes its cooldown and cannot be retriggered to refresh immunity. Large-monster movement constraints remain effective. Immunity covers eligible attack contacts only; it does not disable the hurtbox, stop overlaps being queried, grant flight, or prevent damage from excluded hazards.
-
-Initial tuning proposal: 3.6 units over 0.28 seconds, immunity during [0.02, 0.20), then 0.17 seconds of recovery; one second between accepted dodge starts. These are Inspector-authored starting values, not final balance or universal monster values. A rat can use a shorter scuttle, with its own timings and cooldown.
-
-## Guard and parry
-
-Capture horizontal facing when guard begins. It stays fixed while held, allowing the player to strafe or retreat without turning the shield away. Release and raise again to change facing; the same rule applies to an enemy's accepted guard. The initial frontal sector is 120 degrees total. Body-contact attacks use the actual direction from attacker to defender, so standing inside a large model cannot confuse the front/back test. A projectile uses its incoming travel direction.
-
-Proposed starting values: defense begins after 0.03 seconds; parry lasts until 0.21 seconds after acceptance; ordinary guard reduces eligible damage by 75%, and movement is 35% of normal speed. Guard release has 0.12 seconds of recovery. Damage reduction applies before armor. Guard can deal chip damage, but blocked contacts do not produce ordinary hit stun or knockback, including when chip damage is nonzero.
-
-A successful parry consumes the window after one contact, produces distinct audiovisual feedback, interrupts the attacker and causes 0.35 seconds of stagger. Guard remains held afterward. It creates an ordinary attack opportunity, not a special execution or guaranteed critical hit. Initial melee attackers can be staggered by parry; sustained boss stagger immunity and diminishing returns are deferred.
-
-Releasing and immediately pressing again must not refresh parry. A new window requires both 0.65 seconds since the previous eligible guard raise and at least 0.15 seconds released. Raising during rearm can still guard, but supplies no parry window. Rearm is spent when a window opens, even if it catches nothing. Changing equipment cannot reset these timers. Simultaneous hits use stable resolution order: the first qualifying contact consumes the parry, later eligible contacts receive ordinary guard.
-
-## Contact eligibility and outcomes
-
-Melee remains planar: height and the visible blade trajectory do not decide whether a defense works. The existing timed forward and body contact volumes still detect a dodging/guarding actor. Defense changes the resolution of that contact, not the geometry or swing window.
-
-| Incoming contact | Dodge | Guard | Parry |
-| --- | --- | --- | --- |
-| Ordinary melee, including animal bites and physical body strikes | Yes | Yes | Yes |
-| Ordinary arrow/bolt projectile | Yes | Yes | No initially |
-| Spell explosion / area impact | Yes when authored dodgeable | No initially | No |
-| Persistent hazards, poison ticks, falling or environmental damage | No by default | No by default | No |
-
-These are authored attack properties, independent of faction, model, weapon ownership and the defender's capability. An explicitly unavoidable or unblockable attack needs a clear presentation before entering normal content. Boss status alone never bypasses defense. No projectile reflection or catch-and-return in the first implementation.
-
-Resolution checks faction/death/debug immunity first, then active dodge, then frontal parry/guard, then existing random evasion and armor as applicable. A valid parry does not depend on an evasion roll. Ordinary guard can still benefit from evasion; a blocked hit's reduced damage then meets armor. Report distinct Dodged, Parried, Blocked, Evaded, Absorbed and Damaged outcomes.
-
-Each melee execution resolves once per defender, including a dodge or parry. Staying inside the hit area after immunity expires does not let that same swing retry. Separate attacks can still hit when immunity ends. An ordinary projectile that contacts a dodging or guarding target is consumed without reflection; an impact blocked/parried/actively dodged at that target must not apply splash damage to it again under another contact ID. Nearby third parties may still receive an authored explosion.
-
-## Capability examples and readable enemies
-
-| Actor | Starting authoring intent |
-| --- | --- |
-| Player | Body supplies dodge; suitable shield or weapon supplies guard with optional parry |
-| Rat | Body supplies evasive scuttle; no guard or parry |
-| Skeleton swordsman | Weapon guard and occasional parry; no dodge initially |
-| Forsaken Warden | Strong shield guard and optional shield parry; no dodge |
-| Golem | Stone-arm brace; optional physical parry; no weapon requirement |
-
-This is a rollout matrix, not a claim these gameplay actors or animations all exist. Adopt capabilities incrementally. Prefer an equipped offhand guard source, then an eligible main-hand weapon, then an innate body guard. A two-handed weapon suppresses the offhand source. Sources replace rather than stack. Innate dodge is independent; equipment dodge overrides are deferred.
-
-Enemies may observe visible attack wind-ups with line of sight, plausible range and a reaction delay. They cannot read input presses, hidden action reservations, random damage rolls, or future committed facing. Roll defensive intent once per newly observed attack, not each frame. Commit to a chosen direction or guard facing; no perfect last-instant retargeting. Use a cooldown, restrained probability and normal recovery so groups still offer openings. Suggested starting point for a rat: roughly 0.15–0.25 seconds of reaction and an occasional attempt, tuned in play rather than a universal success rate.
-
-Show a clear dash/afterimage, a held guard pose, and a distinctive parry flash and sound. Show defensive cooldown availability without obscuring attack feedback. Missing specialized animations may use a clearly authored fallback lean/brace and VFX; gameplay never depends on finding a bone collider. A defense may not be advertised as available without valid readable presentation.
+Readable animation, timing, direction and recovery must match a defense's effect. Later Dexterity tuning may improve an activated action's timing/mitigation, but never grants an automatic evasion roll. Stamina/posture, reflection and cinematic riposte systems remain outside the first scope.
 
 ## Player and monster world capabilities
 
@@ -221,4 +162,4 @@ Acceptance must exercise combat and interaction together: all four quick-item sl
 
 ## Monster rollout boundary
 
-[Monster design and authoring](monster-authoring-design.md) owns the agreed first-realm roster and basic movement/attack/defense policies; its [implementation plan](specs/monster-authoring-plan.md) owns remaining monster integration. Generic examples above do not grant a rat a dodge/guard animation or require every monster to have active defense. Compose only capabilities with authored gameplay and valid presentation. The first rollout excludes weapon switching, flanking, group shelter and boss phases.
+[Monster design and authoring](monster-authoring-design.md) owns the agreed first-realm roster and basic movement/attack/defense policies; the [roadmap](development-roadmap.md#first-three-floor-acceptance) owns remaining monster acceptance. Generic examples above do not grant a rat a dodge/guard animation or require every monster to have active defense. Compose only capabilities with authored gameplay and valid presentation. The first rollout excludes weapon switching, flanking, group shelter and boss phases.

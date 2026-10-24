@@ -13,7 +13,6 @@ public partial class Projectile : Node3D, IPooledNode
 	[Export] public float Speed = 10f;
 	[Export] public float Range = 30f;
 	[Export] public Vector3 Direction = Vector3.Forward;
-	[Export] public float Accuracy;
 	[Export] public float MinDamage;
 	[Export] public float MaxDamage;
 	[Export] public float CritChance;
@@ -83,7 +82,7 @@ public partial class Projectile : Node3D, IPooledNode
 		SetHitBoxMonitoring(false, deferred: true);
 	}
 
-	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float accuracy, float minDamage, float maxDamage, float critChance, Node attacker = null, AttackDefenseTraits defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, AttackDefenseTraits areaDefenseTraits = AttackDefenseTraits.Dodgeable, ulong randomSeed = 42, AttackIdentity parentExecution = default)
+	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float minDamage, float maxDamage, float critChance, Node attacker = null, AttackDefenseTraits defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, AttackDefenseTraits areaDefenseTraits = AttackDefenseTraits.Dodgeable, ulong randomSeed = 42, AttackIdentity parentExecution = default)
 	{
 		_parentExecution = parentExecution;
 		_areaDefenseTraits = areaDefenseTraits;
@@ -93,7 +92,6 @@ public partial class Projectile : Node3D, IPooledNode
 		Direction = direction.Normalized();
 		Speed = speed;
 		Range = range;
-		Accuracy = accuracy;
 		MinDamage = minDamage;
 		MaxDamage = maxDamage;
 		CritChance = critChance;
@@ -173,7 +171,6 @@ public partial class Projectile : Node3D, IPooledNode
 				OwnerNode = GetValidAttacker(),
 				Faction = _attackerFaction,
 				Amount = damage,
-				Accuracy = Accuracy,
 				Random = _random,
 				IncomingDirection = Direction,
 				DefenseTraits = _defenseTraits,
@@ -186,7 +183,7 @@ public partial class Projectile : Node3D, IPooledNode
 			}
 			else
 			{
-				damageable.TakeDamage(Accuracy, damage, Direction, GetValidAttacker(), _attackerFaction);
+				damageable.TakeDamage(damage, Direction, GetValidAttacker(), _attackerFaction);
 			}
 
 			_hasResolvedHit = true;
@@ -322,7 +319,6 @@ public partial class Projectile : Node3D, IPooledNode
 					OwnerNode = GetValidAttacker(),
 					Faction = _attackerFaction,
 					Amount = damage,
-					Accuracy = Accuracy,
 				Random = _random,
 					IncomingDirection = pushDirection,
 					DefenseTraits = _areaDefenseTraits,
@@ -335,7 +331,7 @@ public partial class Projectile : Node3D, IPooledNode
 				}
 				else
 				{
-					damageable.TakeDamage(Accuracy, damage, pushDirection, GetValidAttacker(), _attackerFaction);
+					damageable.TakeDamage(damage, pushDirection, GetValidAttacker(), _attackerFaction);
 				}
 			}
 		}

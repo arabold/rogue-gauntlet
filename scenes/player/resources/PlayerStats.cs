@@ -105,12 +105,10 @@ public partial class PlayerStats : ObservableResource
 	public float BaseMaxHealth { get; set => SetValue(ref field, value); } = 50;
 
 	// Attack and defense base stats (without any derivation or modifiers applied)
-	public float BaseAccuracy { get; set => SetValue(ref field, value); } = 1.0f;
 	public float BaseMinDamage { get; set => SetValue(ref field, value); } = 0;
 	public float BaseMaxDamage { get; set => SetValue(ref field, value); } = 2;
 	public float BaseCritChance { get; set => SetValue(ref field, value); } = 0;
 	public float BaseArmor { get; set => SetValue(ref field, value); } = 0;
-	public float BaseEvasion { get; set => SetValue(ref field, value); } = 0;
 
 	// Economy multipliers (not part of the stat pipeline)
 	public float XpModifier { get; set => SetValue(ref field, value); } = 1.0f;
@@ -127,14 +125,12 @@ public partial class PlayerStats : ObservableResource
 	public float MaxHealth => ResolveStat(StatType.MaxHealth, BaseMaxHealth + Vitality * Coefficient(p => p.HealthPerVitality));
 
 	// Attack Stats
-	public float Accuracy => ResolveStat(StatType.Accuracy, BaseAccuracy);
 	public float MinDamage => ResolveStat(StatType.MinDamage, BaseMinDamage + DamageFromAttributes);
 	public float MaxDamage => ResolveStat(StatType.MaxDamage, BaseMaxDamage + DamageFromAttributes);
 	public float CritChance => ResolveStat(StatType.CritChance, BaseCritChance + Dexterity * Coefficient(p => p.CritChancePerDexterity));
 
 	// Defense Stats
 	public float Armor => ResolveStat(StatType.Armor, BaseArmor);
-	public float Evasion => ResolveStat(StatType.Evasion, BaseEvasion + Dexterity * Coefficient(p => p.EvasionPerDexterity));
 
 	private float DamageFromAttributes =>
 		Strength * Coefficient(p => p.DamagePerStrength) + Intelligence * Coefficient(p => p.DamagePerIntelligence);
@@ -158,12 +154,10 @@ public partial class PlayerStats : ObservableResource
 			BaseIntelligence = BaseIntelligence,
 			BaseSpeed = BaseSpeed,
 			BaseMaxHealth = BaseMaxHealth,
-			BaseAccuracy = BaseAccuracy,
 			BaseMinDamage = BaseMinDamage,
 			BaseMaxDamage = BaseMaxDamage,
 			BaseCritChance = BaseCritChance,
 			BaseArmor = BaseArmor,
-			BaseEvasion = BaseEvasion,
 			XpModifier = XpModifier,
 			GoldModifier = GoldModifier,
 		};

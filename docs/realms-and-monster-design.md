@@ -1,6 +1,6 @@
 # Realms and Monster Design
 
-Status: world concept, revised October 23, 2026. The eight-realm, 24-depth descent is the current direction; later realm order, placement and rosters remain provisional. Delivery focuses on playable depths 1–3. [Monster design and authoring](monster-authoring-design.md) owns roster, capabilities and balancing rules; its [implementation plan](specs/monster-authoring-plan.md) owns the rollout. Room/access/discovery rules live in [Dungeon Layout, Access, and Discovery](dungeon-exploration-design.md). See the [Game Design Document](game-design.md), current [Level Design](level-design.md), and remaining [implementation plan](specs/level-progression-prototype-plan.md) for their separate responsibilities.
+Status: world concept, revised October 23, 2026. The eight-realm, 24-depth descent is the current direction; later realm order, placement and rosters remain provisional. Delivery focuses on playable depths 1–3. [Monster design and authoring](monster-authoring-design.md) owns roster, capabilities and balancing rules; its [current system](development-roadmap.md#first-three-floor-acceptance) owns the rollout. Room/access/discovery rules live in [Dungeon Layout, Access, and Discovery](dungeon-exploration-design.md). See the [Game Design Document](game-design.md), current [Level Design](level-design.md), and remaining [implementation plan](specs/level-progression-prototype-plan.md) for their separate responsibilities.
 
 ---
 

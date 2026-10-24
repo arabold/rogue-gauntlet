@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RoomDressingProfile" load_steps=8 format=3]
+[ext_resource type="Script" path="res://scenes/levels/arrangements/RoomDressingProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/levels/arrangements/RoomLightingProfile.cs" id="lighting"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/wall/wall_torch.tres" id="lit"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/wall/wall_torch_unlit.tres" id="unlit"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/arrangements/footlockers.tres" id="clutter"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/furniture/barracks_bed.tres" id="bed"]
+
+[sub_resource type="Resource" id="Lighting"]
+script = ExtResource("lighting")
+LitTorch = ExtResource("lit")
+UnlitTorch = ExtResource("unlit")
+LitChance = 0.8
+BedArrangement = ExtResource("bed")
+BedChance = 0.45
+[resource]
+script = ExtResource("profile")
+Lighting = SubResource("Lighting")
+Clutter = ExtResource("clutter")

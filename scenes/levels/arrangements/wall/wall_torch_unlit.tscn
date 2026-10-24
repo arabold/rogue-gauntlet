@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/arrangements/RoomArrangement.cs" id="root"]
+[ext_resource type="PackedScene" path="res://scenes/props/torch_mounted.tscn" id="torch"]
+
+[node name="WallTorchUnlit" type="Node3D" node_paths=PackedStringArray("Content") groups=["room_arrangement"]]
+script = ExtResource("root")
+Content = NodePath("Content")
+PlacementBounds = AABB(-0.29, -0.40, 0, 0.58, 1.10, 0.62)
+
+[node name="Content" parent="." instance=ExtResource("torch")]
+
+[node name="FlickerLight" parent="Content" index="1"]
+visible = false
+process_mode = 4
+
+[node name="Fire" parent="Content" index="2"]
+visible = false
+process_mode = 4
+
+[node name="GPUParticles3D" parent="Content/Fire" index="0"]
+emitting = false
+
+[editable path="Content"]
+[editable path="Content/Fire"]

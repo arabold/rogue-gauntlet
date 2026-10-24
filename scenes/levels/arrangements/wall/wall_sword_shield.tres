@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RoomArrangementDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/arrangements/RoomArrangementDefinition.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/levels/arrangements/wall/wall_sword_shield.tscn" id="scene"]
+
+[resource]
+script = ExtResource("script")
+Id = "garrison.wall_sword_shield"
+Scene = ExtResource("scene")
+Weight = 1.0
+MaximumPerRoom = 1
+AllowedPurposes = 79
+Placement = 1
+MountHeight = 2.0
+WallInset = 0.17
+RequiresWall = true
+WallPositionWeight = 1.0
+InteriorPositionWeight = 0.0
+metadata/_custom_type_script = ExtResource("script")

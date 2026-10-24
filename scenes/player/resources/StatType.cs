@@ -15,10 +15,8 @@ public enum StatType
 	// Secondary / derived stats
 	MaxHealth,
 	Speed,
-	Accuracy,
-	MinDamage,
+	MinDamage = 7,
 	MaxDamage,
 	CritChance,
 	Armor,
-	Evasion,
 }

@@ -129,7 +129,6 @@ DropChance = 1.0
 [node name="HurtBoxComponent" parent="." index="6" node_paths=PackedStringArray("MovementComponent")]
 position = Vector3(0, 2.25, 0)
 MovementComponent = NodePath("")
-Evasion = 0.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
 shape = SubResource("cap_hurt")

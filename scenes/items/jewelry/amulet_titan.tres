@@ -10,19 +10,13 @@ script = ExtResource("3_mod")
 Value = 3.0
 metadata/_custom_type_script = ExtResource("3_mod")
 
-[sub_resource type="Resource" id="Resource_mod1"]
-script = ExtResource("3_mod")
-Stat = 11
-Value = -4.0
-metadata/_custom_type_script = ExtResource("3_mod")
-
 [resource]
 script = ExtResource("1_item")
 TypeId = "amulet.titan"
 IdentityCategory = "amulet"
 TrueName = "Amulet of the Titan"
 UnidentifiedNameTemplate = "{descriptor} amulet"
-IntrinsicModifiers = [SubResource("Resource_mod0"), SubResource("Resource_mod1")]
+IntrinsicModifiers = [SubResource("Resource_mod0")]
 ValidSlots = 32
 Name = "Amulet of the Titan"
 Scene = ExtResource("2_scene")

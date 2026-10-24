@@ -13,5 +13,4 @@ Attack = SubResource("swing")
 EngagementDistance = 3.2
 MinDamage = 10.0
 MaxDamage = 18.0
-Accuracy = 0.9
 Duration = 1.5

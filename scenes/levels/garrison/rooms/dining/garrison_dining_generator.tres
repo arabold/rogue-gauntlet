@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DiningRoomGenerator" load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://b5e15slj7uea5" path="res://scenes/levels/generators/rooms/DiningRoomGenerator.cs" id="generator"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/rooms/shared/garrison_furnished_shell.tres" id="shell"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/furniture/dining_banquet.tres" id="asset"]
+
+[ext_resource type="Resource" path="res://scenes/levels/garrison/rooms/dining/garrison_dining_dressing.tres" id="dressing"]
+
+[resource]
+script = ExtResource("generator")
+ShellBuilder = ExtResource("shell")
+Dressing = ExtResource("dressing")
+TableArrangement = ExtResource("asset")
+TableRows = PackedInt32Array(2, 3)
+metadata/_custom_type_script = ExtResource("generator")

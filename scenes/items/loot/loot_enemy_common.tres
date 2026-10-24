@@ -102,14 +102,11 @@
 [ext_resource type="Resource" uid="uid://bm7spsoei7prk" path="res://scenes/items/jewelry/amulet/amulet_gold_emerald.tres" id="item_97"]
 [ext_resource type="Resource" uid="uid://du1f1vtdfo0lu" path="res://scenes/items/jewelry/amulet/amulet_gold_ruby.tres" id="item_98"]
 [ext_resource type="Resource" uid="uid://b4b7dofrw6r0g" path="res://scenes/items/jewelry/amulet/amulet_gold_sun_crest.tres" id="item_99"]
-[ext_resource type="Resource" uid="uid://c0as22o4fwt22" path="res://scenes/items/jewelry/amulet/amulet_gold_topaz.tres" id="item_100"]
 [ext_resource type="Resource" uid="uid://k4giq2icc0ri" path="res://scenes/items/jewelry/amulet/amulet_silver_amethyst.tres" id="item_101"]
-[ext_resource type="Resource" uid="uid://dhi2r1pp5i875" path="res://scenes/items/jewelry/amulet/amulet_silver_onyx.tres" id="item_102"]
 [ext_resource type="Resource" uid="uid://b3x7juqks0cru" path="res://scenes/items/jewelry/amulet/amulet_silver_runic_crest.tres" id="item_103"]
 [ext_resource type="Resource" uid="uid://bknwi3ghoba0f" path="res://scenes/items/jewelry/amulet/amulet_silver_sapphire.tres" id="item_104"]
 [ext_resource type="Resource" uid="uid://mpjmn3abpp70" path="res://scenes/items/jewelry/amulet/amulet_wood_coral.tres" id="item_105"]
 [ext_resource type="Resource" uid="uid://3o88ic5k62u6" path="res://scenes/items/jewelry/amulet/amulet_wood_druid_talisman.tres" id="item_106"]
-[ext_resource type="Resource" uid="uid://cfnbu0u6m14p7" path="res://scenes/items/jewelry/amulet/amulet_wood_jade.tres" id="item_107"]
 [ext_resource type="Resource" uid="uid://cuyom2pthg1y" path="res://scenes/items/jewelry/amulet/amulet_wood_peridot.tres" id="item_108"]
 [ext_resource type="Resource" uid="uid://bcyo2pis2vepi" path="res://scenes/items/jewelry/amulet_dread.tres" id="item_109"]
 [ext_resource type="Resource" uid="uid://i7grljfsrp7k" path="res://scenes/items/jewelry/amulet_health.tres" id="item_110"]
@@ -118,7 +115,6 @@
 [ext_resource type="Resource" uid="uid://ckmycmgjpfqaa" path="res://scenes/items/jewelry/ring/ring_gold_amethyst.tres" id="item_113"]
 [ext_resource type="Resource" uid="uid://cuwxiftr8thvw" path="res://scenes/items/jewelry/ring/ring_gold_emerald.tres" id="item_114"]
 [ext_resource type="Resource" uid="uid://p0pmc6dn6uqg" path="res://scenes/items/jewelry/ring/ring_gold_ruby.tres" id="item_115"]
-[ext_resource type="Resource" uid="uid://b6x713a66cxh6" path="res://scenes/items/jewelry/ring/ring_gold_signet.tres" id="item_116"]
 [ext_resource type="Resource" uid="uid://fp34soj8dd3p" path="res://scenes/items/jewelry/ring/ring_silver_band.tres" id="item_117"]
 [ext_resource type="Resource" uid="uid://gyyd0r8gw68w" path="res://scenes/items/jewelry/ring/ring_silver_diamond.tres" id="item_118"]
 [ext_resource type="Resource" uid="uid://bbrhm2rf6ylcg" path="res://scenes/items/jewelry/ring/ring_silver_onyx.tres" id="item_119"]
@@ -126,13 +122,10 @@
 [ext_resource type="Resource" uid="uid://dwy11m4lu0evp" path="res://scenes/items/jewelry/ring/ring_wood_amber.tres" id="item_121"]
 [ext_resource type="Resource" uid="uid://ckpu8vll5royj" path="res://scenes/items/jewelry/ring/ring_wood_carved.tres" id="item_122"]
 [ext_resource type="Resource" uid="uid://b16m21rfgu5s6" path="res://scenes/items/jewelry/ring/ring_wood_garnet.tres" id="item_123"]
-[ext_resource type="Resource" uid="uid://boestx1nk2hs4" path="res://scenes/items/jewelry/ring/ring_wood_jade.tres" id="item_124"]
 [ext_resource type="Resource" uid="uid://b7xm6p1ccy3j5" path="res://scenes/items/jewelry/ring_dexterity.tres" id="item_125"]
-[ext_resource type="Resource" uid="uid://dvva1gsnug6ey" path="res://scenes/items/jewelry/ring_evasion.tres" id="item_126"]
 [ext_resource type="Resource" uid="uid://dagsihm3oqumf" path="res://scenes/items/jewelry/ring_frailty.tres" id="item_127"]
 [ext_resource type="Resource" uid="uid://0uhpcsmj1ktv" path="res://scenes/items/jewelry/ring_lethargy.tres" id="item_128"]
 [ext_resource type="Resource" uid="uid://v357801ss7cp" path="res://scenes/items/jewelry/ring_mind.tres" id="item_129"]
-[ext_resource type="Resource" uid="uid://binc3fh08qdun" path="res://scenes/items/jewelry/ring_precision.tres" id="item_130"]
 [ext_resource type="Resource" uid="uid://tdv32n4hesag" path="res://scenes/items/jewelry/ring_protection.tres" id="item_131"]
 [ext_resource type="Resource" uid="uid://cusfqu78b86b8" path="res://scenes/items/jewelry/ring_savagery.tres" id="item_132"]
 [ext_resource type="Resource" uid="uid://ov52oxjpwppb" path="res://scenes/items/jewelry/ring_strength.tres" id="item_133"]
@@ -180,8 +173,6 @@
 [ext_resource type="Resource" uid="uid://dfw0lrxbf2jhl" path="res://scenes/items/scrolls/scroll/scroll_obsidian_tiwaz.tres" id="item_197"]
 [ext_resource type="Resource" uid="uid://b0wgbpr1ntsem" path="res://scenes/items/scrolls/scroll/scroll_orange_thurisaz.tres" id="item_198"]
 [ext_resource type="Resource" uid="uid://ybwv0yqnaarn" path="res://scenes/items/scrolls/scroll/scroll_purple_dagaz.tres" id="item_199"]
-[ext_resource type="Resource" uid="uid://rtfmyf78q4cm" path="res://scenes/items/scrolls/scroll/scroll_silver_ingwaz.tres" id="item_200"]
-[ext_resource type="Resource" uid="uid://cg4k36fw10050" path="res://scenes/items/scrolls/scroll/scroll_teal_eihwaz.tres" id="item_201"]
 [ext_resource type="Resource" uid="uid://crxfq8ewtdyo" path="res://scenes/items/scrolls/scroll_enchant.tres" id="item_202"]
 [ext_resource type="Resource" uid="uid://efmdvhh2g7xs" path="res://scenes/items/scrolls/scroll_haste.tres" id="item_203"]
 [ext_resource type="Resource" uid="uid://dugi60t1urnyh" path="res://scenes/items/scrolls/scroll_identify.tres" id="item_204"]
@@ -549,18 +540,6 @@ Item = ExtResource("item_199")
 MinDepth = 2
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_200"]
-script = ExtResource("entry")
-Item = ExtResource("item_200")
-MinDepth = 1
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_201"]
-script = ExtResource("entry")
-Item = ExtResource("item_201")
-MinDepth = 1
-metadata/_custom_type_script = ExtResource("entry")
-
 [sub_resource type="Resource" id="Entry_202"]
 script = ExtResource("entry")
 Item = ExtResource("item_202")
@@ -613,7 +592,7 @@ metadata/_custom_type_script = ExtResource("entry")
 resource_name = "Scrolls"
 script = ExtResource("group")
 Weight = 5.0
-Items = [SubResource("Entry_190"), SubResource("Entry_191"), SubResource("Entry_192"), SubResource("Entry_193"), SubResource("Entry_194"), SubResource("Entry_195"), SubResource("Entry_196"), SubResource("Entry_197"), SubResource("Entry_198"), SubResource("Entry_199"), SubResource("Entry_200"), SubResource("Entry_201"), SubResource("Entry_202"), SubResource("Entry_203"), SubResource("Entry_204"), SubResource("Entry_205"), SubResource("Entry_206"), SubResource("Entry_207"), SubResource("Entry_208"), SubResource("Entry_209")]
+Items = [SubResource("Entry_190"), SubResource("Entry_191"), SubResource("Entry_192"), SubResource("Entry_193"), SubResource("Entry_194"), SubResource("Entry_195"), SubResource("Entry_196"), SubResource("Entry_197"), SubResource("Entry_198"), SubResource("Entry_199"), SubResource("Entry_202"), SubResource("Entry_203"), SubResource("Entry_204"), SubResource("Entry_205"), SubResource("Entry_206"), SubResource("Entry_207"), SubResource("Entry_208"), SubResource("Entry_209")]
 metadata/_custom_type_script = ExtResource("group")
 
 [sub_resource type="Resource" id="Entry_0"]
@@ -1314,21 +1293,9 @@ Item = ExtResource("item_99")
 MinDepth = 4
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_100"]
-script = ExtResource("entry")
-Item = ExtResource("item_100")
-MinDepth = 4
-metadata/_custom_type_script = ExtResource("entry")
-
 [sub_resource type="Resource" id="Entry_101"]
 script = ExtResource("entry")
 Item = ExtResource("item_101")
-MinDepth = 2
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_102"]
-script = ExtResource("entry")
-Item = ExtResource("item_102")
 MinDepth = 2
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1353,12 +1320,6 @@ metadata/_custom_type_script = ExtResource("entry")
 [sub_resource type="Resource" id="Entry_106"]
 script = ExtResource("entry")
 Item = ExtResource("item_106")
-MinDepth = 1
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_107"]
-script = ExtResource("entry")
-Item = ExtResource("item_107")
 MinDepth = 1
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1410,12 +1371,6 @@ Item = ExtResource("item_115")
 MinDepth = 4
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_116"]
-script = ExtResource("entry")
-Item = ExtResource("item_116")
-MinDepth = 4
-metadata/_custom_type_script = ExtResource("entry")
-
 [sub_resource type="Resource" id="Entry_117"]
 script = ExtResource("entry")
 Item = ExtResource("item_117")
@@ -1458,21 +1413,9 @@ Item = ExtResource("item_123")
 MinDepth = 1
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_124"]
-script = ExtResource("entry")
-Item = ExtResource("item_124")
-MinDepth = 1
-metadata/_custom_type_script = ExtResource("entry")
-
 [sub_resource type="Resource" id="Entry_125"]
 script = ExtResource("entry")
 Item = ExtResource("item_125")
-MinDepth = 1
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_126"]
-script = ExtResource("entry")
-Item = ExtResource("item_126")
 MinDepth = 1
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1491,12 +1434,6 @@ metadata/_custom_type_script = ExtResource("entry")
 [sub_resource type="Resource" id="Entry_129"]
 script = ExtResource("entry")
 Item = ExtResource("item_129")
-MinDepth = 1
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_130"]
-script = ExtResource("entry")
-Item = ExtResource("item_130")
 MinDepth = 1
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1528,7 +1465,7 @@ metadata/_custom_type_script = ExtResource("entry")
 resource_name = "Jewelry"
 script = ExtResource("group")
 Weight = 3.0
-Items = [SubResource("Entry_97"), SubResource("Entry_98"), SubResource("Entry_99"), SubResource("Entry_100"), SubResource("Entry_101"), SubResource("Entry_102"), SubResource("Entry_103"), SubResource("Entry_104"), SubResource("Entry_105"), SubResource("Entry_106"), SubResource("Entry_107"), SubResource("Entry_108"), SubResource("Entry_109"), SubResource("Entry_110"), SubResource("Entry_111"), SubResource("Entry_112"), SubResource("Entry_113"), SubResource("Entry_114"), SubResource("Entry_115"), SubResource("Entry_116"), SubResource("Entry_117"), SubResource("Entry_118"), SubResource("Entry_119"), SubResource("Entry_120"), SubResource("Entry_121"), SubResource("Entry_122"), SubResource("Entry_123"), SubResource("Entry_124"), SubResource("Entry_125"), SubResource("Entry_126"), SubResource("Entry_127"), SubResource("Entry_128"), SubResource("Entry_129"), SubResource("Entry_130"), SubResource("Entry_131"), SubResource("Entry_132"), SubResource("Entry_133"), SubResource("Entry_134")]
+Items = [SubResource("Entry_97"), SubResource("Entry_98"), SubResource("Entry_99"), SubResource("Entry_101"), SubResource("Entry_103"), SubResource("Entry_104"), SubResource("Entry_105"), SubResource("Entry_106"), SubResource("Entry_108"), SubResource("Entry_109"), SubResource("Entry_110"), SubResource("Entry_111"), SubResource("Entry_112"), SubResource("Entry_113"), SubResource("Entry_114"), SubResource("Entry_115"), SubResource("Entry_117"), SubResource("Entry_118"), SubResource("Entry_119"), SubResource("Entry_120"), SubResource("Entry_121"), SubResource("Entry_122"), SubResource("Entry_123"), SubResource("Entry_125"), SubResource("Entry_127"), SubResource("Entry_128"), SubResource("Entry_129"), SubResource("Entry_131"), SubResource("Entry_132"), SubResource("Entry_133"), SubResource("Entry_134")]
 metadata/_custom_type_script = ExtResource("group")
 
 [resource]

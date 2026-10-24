@@ -8,7 +8,7 @@ public sealed class FleeingState : IEnemyState
 		if (context.Target == null || context.Profile.RetreatCondition == null) return EnemyBehaviorState.Idle;
 		var intent = context.EvaluateMovement();
 		if (intent.Goal != EnemyMovementGoal.Retreat) return EnemyBehaviorState.Chasing;
-		context.FollowRetreat(intent.DesiredDistance);
+		context.ExecuteTactics(intent);
 		return null;
 	}
 	public void Exit(EnemyContext context) { }

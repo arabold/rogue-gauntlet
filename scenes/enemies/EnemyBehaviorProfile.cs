@@ -11,6 +11,7 @@ using Godot;
 public partial class EnemyBehaviorProfile : Resource
 {
 	[ExportGroup("Monster strategies")]
+	[Export] public EnemyTacticalStrategy TacticalStrategy { get; set; }
 	[Export] public EnemyMovementStrategy MovementStrategy { get; set; }
 	[Export] public EnemyAttackStrategy AttackStrategy { get; set; }
 	[Export] public EnemyDefenseStrategy DefenseStrategy { get; set; }

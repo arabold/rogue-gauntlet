@@ -16,5 +16,4 @@ Attack = SubResource("melee")
 EngagementDistance = 2.4
 MinDamage = 1.0
 MaxDamage = 5.0
-Accuracy = 0.8
 Duration = 1.0

@@ -30,7 +30,7 @@ Two statuses act through player components rather than screen effects: `Confusio
 
 ## Harness
 
-Run `scenes/debug/screen_effect_harness.tscn` with F6. It runs the real gameplay scene, whose `Main` binds the player to its layer, and adds a panel:
+Run `scenes/debug/effects/screen_effect_harness.tscn` with F6. It runs the real gameplay scene, whose `Main` binds the player to its layer, and adds a panel:
 
 - `1`–`3` or the buttons fade an effect in or out; the sliders set intensity directly.
 - "Player health" sets the player's real health, exercising the near-death driver end to end.

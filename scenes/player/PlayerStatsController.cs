@@ -41,7 +41,6 @@ public partial class PlayerStatsController : Node
 	{
 		MovementComponent.Speed = Stats.Speed;
 		HurtBoxComponent.Armor = Stats.Armor;
-		HurtBoxComponent.Evasion = Stats.Evasion;
 		HealthComponent.SetHealth(Stats.Health, Stats.MaxHealth);
 
 		SignalBus.EmitPlayerStatsChanged(Stats);

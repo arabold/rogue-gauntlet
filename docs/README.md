@@ -17,9 +17,6 @@ These documents define world building, game mechanics, and feature designs that 
 | [Actor actions and world interactions](actor-actions-and-interactions.md) | Proposed coherent player/monster actions: keyboard/gamepad primary/secondary, elemental staff/learned-spell/mana rules, four item quick slots, timed interactions and defenses |
 | [Dungeon layout, access, and discovery](dungeon-exploration-design.md) | Realm room pools, floor recipes, required locations/routes/objectives, composed doors and locks, visible boss seals, and random generated secrets |
 | [Realms and monster design](realms-and-monster-design.md) | Sinking World, provisional realm order, floor cadence and first-realm encounter direction |
-| [Monster design and authoring](monster-authoring-design.md) | Implemented five-monster roster, definitions and tactical policies; editable melee/projectile assemblies and editor validation |
-| [Character classes](character-classes.md) | Authored classes, starting gear, stat profiles, and model integration |
-| [Gameplay item catalog](item-catalog.md) | All active definitions, effect families, source budgets, and deferred tools/keys |
 
 ## Implemented systems
 
@@ -27,8 +24,11 @@ These documents explain code that exists today. Any proposed extension or future
 
 | Document | Coverage |
 | --- | --- |
+| [Monster design and authoring](monster-authoring-design.md) | Implemented five-monster roster, definitions and tactical policies; editable melee/projectile assemblies and editor validation |
+| [Character classes](character-classes.md) | Authored classes, starting gear, stat profiles, and model integration |
+| [Gameplay item catalog](item-catalog.md) | All active definitions, effect families, source budgets, and deferred tools/keys |
 | [Randomness and seeds](randomness-and-seeds.md) | Existing run/level seeds, generation RNG, loot RNG, identification, and saved world changes; isolation and current persistence limits |
-| [Level design](level-design.md) | Procedural layouts, room authoring, fog of war, and the first-realm encounter prototype |
+| [Level design](level-design.md) | Procedural layouts, reusable arrangements, room authoring, fog of war and encounters |
 | [Stats and itemization](stats-and-itemization.md) | Attributes, modifiers, equipment tiers, loot rolls, and enchantment |
 | [Item identification](item-identification-system.md) | Per-run disguises, discovery, jewelry, and scroll targeting |
 | [Weapon attacks](weapon-attack-system.md) | Existing weapon and attack behavior |
@@ -36,25 +36,23 @@ These documents explain code that exists today. Any proposed extension or future
 | [Combat harness and traces](combat-harness.md) | Interactive/scripted combat, JSONL event schema, capture flags and analyzer |
 | [Screen effects](screen-effects.md) | Blindness/poison/near-death post-process overlays, their gameplay wiring through health and status conditions (including confusion and slowness), and the debug harness |
 
-## Program designs
+## Remaining implementation plans
 
-| Document | Status and scope |
+| Document | Remaining scope |
 | --- | --- |
-| [Attack animation styles](specs/attack-animation-plan.md) | Implemented weapon styles, actor-specific animation Resources and shared timing |
-| [Reliable melee contact](specs/melee-contact-plan.md) | Implemented independent contact volumes, optional swooshes and combat playground diagnostics |
-| [Item catalog completion](specs/item-catalog-plan.md) | Definition/effect audit, grouped loot, identity coverage, and validation |
-| [Item lifecycle program design](specs/item-lifecycle-plan.md) | Implemented milestone 1: Resource creation policies, runtime items, stacks, food, floor deltas, and a playable item playground |
-| [Actor actions and interactions](specs/actor-actions-and-interactions-plan.md) | Proposed shared action ownership, primary/secondary/quick-item separation, spell progression/mana, pickup auto-assignment, timed interactions, defense and actor rollout |
-| [Monster authoring and first-realm rollout](specs/monster-authoring-plan.md) | Roster and basic tactics delivered. Remaining: interactive authoring acceptance and three-floor balance/playtests |
-| [Combat integration](specs/combat-integration-plan.md) | Ownership, presentation, physics and harness integration contract; implemented |
-| [Attack status effects](specs/attack-status-effects-plan.md) | Proposed on-hit status payloads on attacks and weapons, application after defense resolution, actor-agnostic buffs for monsters and a monster status tint; first slice lets venomous monster attacks poison the player |
-| [Game logging and log feed](specs/logging-plan.md) | Proposed Player/Internal/Debug log channels, colored in-game feed, console and JSONL sinks, CLI flags for QA/agents |
-| [Potion catalog and model appearances](specs/potion-catalog-plan.md) | Implemented: per-run model appearances replace tint for every identity category; Rogue/NetHack potion set with blindness, confusion and slowness. Deferred: Raise Level, Hallucination, detection potions |
-| [Dungeon progression implementation plan](specs/level-progression-prototype-plan.md) | Remaining Garrison work: realm pools/recipe routes, composed access and persistence, optional locks, then generated secrets; existing encounter systems are reused |
+| [Dungeon progression](specs/level-progression-prototype-plan.md) | Realm pools/recipes, composed access, optional locks and generated secrets |
+| [Actions and interactions](specs/actor-actions-and-interactions-plan.md) | Lock integration, learned spells/mana and further actor intentions/content |
+| [Attack status effects](specs/attack-status-effects-plan.md) | Proposed on-hit status payloads, actor-agnostic buffs for monsters and a monster status tint; first slice lets venomous monster attacks poison the player |
+| [Potion catalog](specs/potion-catalog-plan.md) | Deferred Raise Level, Hallucination and detection potions |
+| [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
 
-Use the repository's [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial implementation planning. Plans link to current-system documentation instead of redescribing unchanged functionality. As work lands, update the system document and mark verified plan/roadmap outcomes; keep remaining proposals explicit.
+Completed plans are consolidated into current-system documents. The [roadmap](development-roadmap.md) owns priority and acceptance. Use the [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial future changes; a plan describes proposed work, not delivered behavior.
 
 ## Content and authoring references
+
+- [Level generation folders](../scenes/levels/README.md): generator code, room presets and arrangement assets.
+- [Debug harnesses](../scenes/debug/README.md): room, combat, item and effects entry points.
+- [Arrangement authoring](../scenes/levels/arrangements/README.md): editable furnishings, Inspector settings, room-generator commands and room/floor harness.
 
 - [Gameplay item catalog](item-catalog/README.md) and [monster catalog](monster-catalog/README.md): references for authored gameplay content; catalog counts and images may lag recent asset work.
 - [Asset Studio](../asset-studio/README.md), its [architecture and export boundary](../asset-studio/ARCHITECTURE.md), and its [item visual catalog](../asset-studio/catalogs/items/README.md): visual authoring and published models. A published model does not imply completed gameplay behavior.
@@ -63,4 +61,4 @@ Use the repository's [program-design skill](../.agents/skills/program-design/SKI
 
 Keep the current flat feature-document paths to preserve links. Keep implementation plans in `docs/specs/`, separate from these current-system references. Add a current-system document when a feature needs an explanation of its implemented design; new documents are not limited to future work.
 
-The GDD owns intended gameplay, feature documents own current design and behavior, implementation plans own proposed code changes, and the roadmap owns delivery status. Prefer a link over a second copy of the same rules. Clearly label known limitations, proposals, and open decisions. Changes to a plan alone do not change the current-system description.
+The GDD owns intended gameplay, feature documents own current design and behavior, implementation plans own proposed code changes, and the roadmap owns delivery status. Prefer a link over a second copy of the same rules. Clearly label known limitations, proposals, and open decisions. Changes to a plan alone do not change the current-system description. Consolidate completed plans into the owning feature document and remove obsolete plans. Keep algorithms, call stacks and implementation details in code; keep test logs, benchmark runs and debugging history out of living documentation.

@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("profile")
+MovementClearance = 1.0
 MinimumClearance = 3.6
 PreferredClearance = 5.8

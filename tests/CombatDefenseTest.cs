@@ -153,7 +153,6 @@ public partial class CombatDefenseTest
 		var context = new DamageContext
 		{
 			Amount = 25f,
-			Accuracy = 1.0f,
 			IncomingDirection = new Vector3(0, 0, -1),
 			Faction = DamageSourceFlags.Enemy,
 			DefenseTraits = AttackDefenseTraits.Dodgeable
@@ -236,7 +235,6 @@ public partial class CombatDefenseTest
 		var context = new DamageContext
 		{
 			Amount = 40f,
-			Accuracy = 1.0f,
 			IncomingDirection = new Vector3(0, 0, 1), // Heading forward (-Z) from front
 			Faction = DamageSourceFlags.Enemy,
 			DefenseTraits = AttackDefenseTraits.Guardable
@@ -259,7 +257,6 @@ public partial class CombatDefenseTest
 		var context = new DamageContext
 		{
 			Amount = 40f,
-			Accuracy = 1.0f,
 			IncomingDirection = new Vector3(-1, 0, 0), // 90 degrees flank
 			Faction = DamageSourceFlags.Enemy,
 			DefenseTraits = AttackDefenseTraits.Guardable
@@ -280,7 +277,6 @@ public partial class CombatDefenseTest
 		var context = new DamageContext
 		{
 			Amount = 40f,
-			Accuracy = 1.0f,
 			IncomingDirection = new Vector3(0, 0, -1), // Arriving from rear (180 deg)
 			Faction = DamageSourceFlags.Enemy,
 			DefenseTraits = AttackDefenseTraits.Guardable
@@ -307,7 +303,7 @@ public partial class CombatDefenseTest
 		attacker.AddChild(detector);
 		attackCtrl.MeleeDetector = detector;
 		attackCtrl.DefaultMeleeContact = GD.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/slash_1h.tres");
-		AssertBool(attackCtrl.StartAttack(new AttackDefinition(), 1, 1, 1, 0, 8)).IsTrue();
+		AssertBool(attackCtrl.StartAttack(new AttackDefinition(), 1, 1, 0, 8)).IsTrue();
 		guard.TryBeginGuard(new Vector3(0, 0, 1));
 		// Advance within parry window (0.05s < 0.21s)
 		guard._PhysicsProcess(0.05f);
@@ -315,7 +311,6 @@ public partial class CombatDefenseTest
 		var context = new DamageContext
 		{
 			Amount = 30f,
-			Accuracy = 1.0f,
 			IncomingDirection = new Vector3(0, 0, -1),
 			ExecutionId = attackCtrl.CurrentExecutionId,
 			SourceNode = attackCtrl,

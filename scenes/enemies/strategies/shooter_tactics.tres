@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EnemyTacticalStrategy" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://4wnir66o03je" path="res://scenes/enemies/strategies/EnemyTacticalStrategy.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+MaximumRetreatDuration = 0.9
+RetreatRetryDelay = 1.2
+StandAndFightDistance = 2.2
+RequireAttackAfterRetreat = true

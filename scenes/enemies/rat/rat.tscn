@@ -118,7 +118,6 @@ DropChance = 0.55
 
 [node name="HurtBoxComponent" parent="." index="6"]
 position = Vector3(0, 0.375, 0)
-Evasion = 0.2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
 shape = SubResource("cap_hurt")

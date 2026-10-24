@@ -8,5 +8,4 @@ HealthPerVitality = 5.0
 DamagePerStrength = 0.1
 DamagePerIntelligence = 0.0
 CritChancePerDexterity = 0.005
-EvasionPerDexterity = 0.2
 metadata/_custom_type_script = ExtResource("1_profile")

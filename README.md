@@ -12,11 +12,11 @@ The [Game Design Document](docs/game-design.md) describes the intended experienc
 
 [Actor actions and world interactions](docs/actor-actions-and-interactions.md) defines proposed player/monster actions, keyboard/gamepad primary/secondary actions, elemental spell progression/mana, four item quick slots, timed world interaction and active defense; its [implementation plan](docs/specs/actor-actions-and-interactions-plan.md) specifies integration and independently playable slices.
 
-[Monster design and authoring](docs/monster-authoring-design.md) defines the agreed first-three-floor roster, editable Godot assemblies and basic tactical strategies; its [remaining plan](docs/specs/monster-authoring-plan.md) covers authoring acceptance and first-realm tuning. Later realm order remains provisional.
+[Monster design and authoring](docs/monster-authoring-design.md) defines the agreed first-three-floor roster, editable Godot assemblies and basic tactical strategies; the [roadmap](docs/development-roadmap.md#first-three-floor-acceptance) covers authoring acceptance and first-realm tuning. Later realm order remains provisional.
 
 [Combat actions and defense](docs/combat-system.md) describes the implemented shared action gate, dodge, guard/parry and stagger. Run the [combat harness](docs/combat-harness.md) to exercise attacks and defenses interactively or capture a seeded JSONL scenario for automated analysis.
 
-Run [`scenes/debug/item_lifecycle_harness.tscn`](scenes/debug/item_lifecycle_harness.tscn) with F6 in Godot to try item creation, food, equipment, stack operations, and backpack limits. Definitions, creation policy, seed, depth, and quantity are editable in its Inspector. See the [item lifecycle design](docs/specs/item-lifecycle-plan.md) for contracts and save/travel acceptance, and the [gameplay item catalog](docs/item-catalog.md) for active content and deferred mechanics.
+Run [`scenes/debug/items/item_lifecycle_harness.tscn`](scenes/debug/items/item_lifecycle_harness.tscn) with F6 in Godot to try item creation, food, equipment, stack operations, and backpack limits. Definitions, creation policy, seed, depth, and quantity are editable in its Inspector. See the [item ownership](docs/stats-and-itemization.md#item-ownership-food-and-persistence) for contracts and save/travel acceptance, and the [gameplay item catalog](docs/item-catalog.md) for active content and deferred mechanics.
 
 ## Screenshots
 

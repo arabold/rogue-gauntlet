@@ -18,6 +18,4 @@ public partial class StatProfile : Resource
 	[Export] public float DamagePerIntelligence { get; set; } = 0f;
 	/// <summary>Critical-hit chance (0-1) gained per point of Dexterity.</summary>
 	[Export] public float CritChancePerDexterity { get; set; } = 0.005f;
-	/// <summary>Evasion gained per point of Dexterity.</summary>
-	[Export] public float EvasionPerDexterity { get; set; } = 0.2f;
 }

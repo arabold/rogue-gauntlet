@@ -19,6 +19,14 @@ public partial class Room : Node3D
 	/// </summary>
 	public Rect2I Bounds { get; private set; }
 
+	/// <summary>Concrete architectural purpose retained for furnishing eligibility and authored-scene editing.</summary>
+	[Export] public RoomPurpose Purpose { get; set; } = RoomPurpose.Chamber;
+
+	/// <summary>Assigned coded recipe; saved authored rooms retain this for editor rerolls only.</summary>
+	[Export] public RoomGenerator Generator { get; set; }
+	/// <summary>Authored/generated circulation axis; zero means the room has no primary aisle.</summary>
+	[Export] public Vector2I LayoutAxis { get; set; }
+
 	[Export] public GridMap FloorGridMap;
 	[Export] public GridMap WallGridMap;
 	[Export] public GridMap DecorationGridMap;
@@ -237,6 +245,8 @@ public partial class Room : Node3D
 			return;
 		}
 
+		var axis = RotatePosition(new Vector3(LayoutAxis.X, 0, LayoutAxis.Y), steps);
+		LayoutAxis = new((int)axis.X, (int)axis.Z);
 		InitGridMaps();
 		RotateGridMapCells(FloorGridMap, steps);
 		RotateGridMapCells(WallGridMap, steps);

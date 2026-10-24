@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="DungeonRoomFactory" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://dkri5g6bwyqmd" path="res://scenes/levels/dungeon/DungeonRoomFactory.cs" id="1_uxyt0"]
+
+[resource]
+script = ExtResource("1_uxyt0")
+EntranceScenePaths = Array[String](["res://scenes/levels/dungeon/rooms/level_entrance.tscn", "res://scenes/levels/dungeon/rooms/level_entrance2.tscn"])
+ExitScenePaths = Array[String](["res://scenes/levels/dungeon/rooms/level_exit.tscn"])
+StandardRoomScenePaths = Array[String](["res://scenes/levels/dungeon/rooms/hall.tscn"])
+SpecialRoomScenePaths = Array[String](["res://scenes/levels/dungeon/rooms/barracks.tscn", "res://scenes/levels/dungeon/rooms/storage_room_small.tscn"])
+RepeatSpecialRooms = false

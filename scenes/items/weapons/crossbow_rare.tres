@@ -14,7 +14,6 @@ AimingAngle = 40.0
 Tier = 4
 Level = 0
 RequiredStrength = 15
-Accuracy = 1.0
 DamageMin = 10.0
 DamageMax = 17.0
 CritChance = 0.0

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RoomArrangementDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/arrangements/RoomArrangementDefinition.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/levels/arrangements/furniture/library_stack.tscn" id="scene"]
+
+[resource]
+script = ExtResource("script")
+Id = "garrison.library_stack"
+Scene = ExtResource("scene")
+AllowedPurposes = 1
+MaximumPerRoom = 1
+RequiresWall = false
+HorizontalClearance = 0.0
+WallPositionWeight = 1.0
+InteriorPositionWeight = 1.0
+OccupiedTiles = [Vector2i(0, 0)]
+metadata/_custom_type_script = ExtResource("script")

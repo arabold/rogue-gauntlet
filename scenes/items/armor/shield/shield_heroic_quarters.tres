@@ -15,5 +15,4 @@ IsStackable = false
 RequiredStrength = 15
 ArmorPoints = 7
 SpeedModifier = 0.95
-AccuracyModifier = 1
 metadata/_custom_type_script = ExtResource("script")

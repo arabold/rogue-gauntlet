@@ -80,7 +80,9 @@ public partial class SceneDebugBootstrap : Node
 
 	private static bool ShouldSkip(Node currentScene)
 	{
-		return currentScene.SceneFilePath == MenuScenePath
+		// Harness scenes author their own lights, cameras and staging.
+		return currentScene.SceneFilePath.StartsWith("res://scenes/debug/")
+			|| currentScene.SceneFilePath == MenuScenePath
 			|| currentScene.SceneFilePath == GameplayScenePath;
 	}
 

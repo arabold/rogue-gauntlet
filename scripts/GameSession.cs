@@ -745,12 +745,10 @@ public partial class GameSession : Node
 			BaseIntelligence = stats.BaseIntelligence,
 			BaseSpeed = stats.BaseSpeed,
 			BaseMaxHealth = stats.BaseMaxHealth,
-			BaseAccuracy = stats.BaseAccuracy,
 			BaseMinDamage = stats.BaseMinDamage,
 			BaseMaxDamage = stats.BaseMaxDamage,
 			BaseCritChance = stats.BaseCritChance,
 			BaseArmor = stats.BaseArmor,
-			BaseEvasion = stats.BaseEvasion,
 			XpModifier = stats.XpModifier,
 			GoldModifier = stats.GoldModifier,
 		};
@@ -885,12 +883,10 @@ public partial class GameSession : Node
 		stats.BaseIntelligence = saveData.BaseIntelligence;
 		stats.BaseSpeed = saveData.BaseSpeed;
 		stats.BaseMaxHealth = saveData.BaseMaxHealth;
-		stats.BaseAccuracy = saveData.BaseAccuracy;
 		stats.BaseMinDamage = saveData.BaseMinDamage;
 		stats.BaseMaxDamage = saveData.BaseMaxDamage;
 		stats.BaseCritChance = saveData.BaseCritChance;
 		stats.BaseArmor = saveData.BaseArmor;
-		stats.BaseEvasion = saveData.BaseEvasion;
 		stats.XpModifier = saveData.XpModifier;
 		stats.GoldModifier = saveData.GoldModifier;
 	}

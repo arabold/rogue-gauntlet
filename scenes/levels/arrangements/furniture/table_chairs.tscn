@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" uid="uid://b0j8axjt5kodx" path="res://scenes/levels/arrangements/RoomArrangement.cs" id="root"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/arrangements/libraries/dining_mesh_library.tres" id="library"]
+
+[node name="TableChairs" type="Node3D" node_paths=PackedStringArray("Content") groups=["prop", "room_arrangement"]]
+script = ExtResource("root")
+Content = NodePath("Geometry")
+PlacementBounds = AABB(-0.52, -0.02, -1.40, 1.04, 1.27, 2.80)
+
+[node name="Geometry" type="GridMap" parent="."]
+mesh_library = ExtResource("library")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+collision_layer = 16
+collision_mask = 0
+data = {
+"cells": PackedInt32Array(0, 0, 0, 0, -1, 1048577, 0, 1, 1441793)
+}

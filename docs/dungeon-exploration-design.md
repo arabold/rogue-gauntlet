@@ -4,7 +4,7 @@ Status: intended gameplay design, October 20, 2026. This document defines the ag
 
 ## Design goals
 
-A floor should belong to a recognizable realm, provide a deliberate progression experience, and vary between runs. Authored rooms supply memorable locations and combat spaces; procedural rooms, corridors, branches, and secrets supply changing geography. Players should learn the realm without learning a fixed checklist of secret-door locations.
+A floor should belong to a recognizable realm, provide a deliberate progression experience, and vary between runs. Generated ordinary rooms gain variety from small authored furnishing arrangements; complete authored rooms supply memorable landmarks and deliberate gameplay spaces. Corridors, branches and secrets vary the geography. The [current arrangement system](level-design.md#reusable-room-arrangements) reuses compositions while preserving access to every remaining free area. Players should learn the realm without learning a fixed checklist of secret-door locations.
 
 Layout, access, and discovery are independent:
 

@@ -2,12 +2,10 @@
 
 The Godot `.tres` definitions below are the gameplay catalog. Exported art under
 `assets/custom-items/` supplies visuals; it does not determine effects by itself.
-This pass covers 211 active definitions and 18 deferred definitions, including legacy items.
-Every exported custom model has a matching gameplay definition and wrapper.
+Exported custom models retain visual wrappers. Passive avoidance/accuracy-only effects are retired from gameplay.
 
 Definitions and stateless strategies are authored in Godot. `ItemFactory` creates runtime
-copies once; `ItemSaveCodec` restores exact state without rolling. See the
-[item lifecycle design](specs/item-lifecycle-plan.md) and [catalog implementation design](specs/item-catalog-plan.md).
+copies once; `ItemSaveCodec` restores exact state without rolling. See [item ownership and authoring](stats-and-itemization.md) for runtime creation and inventory rules.
 
 ## Authoring rules
 
@@ -32,11 +30,14 @@ damage, attribute gain or duration. No model or color belongs to a type: each ru
 random color from the Asset Studio potion models, shared by all three sizes.
 
 Custom scrolls share the existing identify/enchant/teleport/summon/haste/protection/rage/weakness
-strategies and add clarity, vitality, precision, and evasion buffs through existing Resources.
+strategies and add clarity and vitality buffs through existing Resources.
 They are all `Scroll` definitions, so the UI offers Read. Scroll and jewelry definitions keep their
 own model files as fallbacks only: in play every identity type shows its run appearance model.
 Jewelry uses explicit intrinsic modifier profiles; its tier lives in the data, while material and
 gem are part of the run disguise.
+
+Passive accuracy/evasion effects do not enter gameplay loot or identification pools. Their former
+scroll and jewelry models remain run appearances for the active types.
 Food recovery and per-piece contamination use their authored buffs; there is no hunger system.
 
 ## Source budgets and eligibility
@@ -47,19 +48,7 @@ therefore cannot displace the potion or food budget. Empty/ineligible groups red
 weight among the remaining eligible groups. Flat `LootTable.Items` remains available for simple
 custom tables; do not mix flat Items and Groups in one authored table.
 
-| Source | Gold | Food | Potions | Scrolls | Weapons | Armor | Jewelry |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Common enemy | 50 | 15 | 15 | 5 | 8 | 4 | 3 |
-| Elite enemy | 30 | 10 | 15 | 10 | 17 | 8 | 10 |
-| Common chest / loose finds | 20 | 15 | 20 | 10 | 18 | 8 | 9 |
-| Uncommon chest | 20 | 10 | 20 | 12 | 18 | 10 | 10 |
-| Rare chest | 20 | 5 | 15 | 15 | 20 | 12 | 13 |
-
-Equipment tier windows: 1 → depths 1–3; 2 → 2–5; 3 → 4–8; 4 → 7–12; 5 → 10+.
-Jewelry starts at its tier's minimum and remains available deeper. Small potion bottles appear
-at 1–5, medium at 3–9, large at 7+. Other basic supplies remain available throughout the descent.
-Enchant/summon scrolls start at depth 2. Every active definition is in each of the five source
-pools with its own eligibility, though source drop chance/count still belongs to the spawner.
+Actual category weights, depth bounds and quantity scaling live in the [loot table Resources](../scenes/items/loot/), not a second numeric table here. Common enemies favor currency/recovery; rarer chests favor equipment. Base tier eligibility and rolled rarity are independent. Deferred tools and keys remain outside normal loot until their mechanics are implemented.
 
 ## Active definitions
 
@@ -174,21 +163,18 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Square Shield](../scenes/items/armor/shield_square_red.tres) | `tier 2` | 2–5 |
 | [Reinforced Shield](../scenes/items/armor/shield_uncommon.tres) | `tier 3` | 4–8 |
 
-### Jewelry (38)
+### Jewelry (31)
 
 | Definition | Family / role | Depth |
 | --- | --- | --- |
 | [Amulet of Vitality](../scenes/items/jewelry/amulet/amulet_gold_emerald.tres) | `amulet.vitality` | 4+ |
 | [Amulet of Strength](../scenes/items/jewelry/amulet/amulet_gold_ruby.tres) | `amulet.strength` | 4+ |
 | [Amulet of Protection](../scenes/items/jewelry/amulet/amulet_gold_sun_crest.tres) | `amulet.protection` | 4+ |
-| [Amulet of Precision](../scenes/items/jewelry/amulet/amulet_gold_topaz.tres) | `amulet.precision` | 4+ |
 | [Amulet of Mind](../scenes/items/jewelry/amulet/amulet_silver_amethyst.tres) | `amulet.mind` | 2+ |
-| [Amulet of Evasion](../scenes/items/jewelry/amulet/amulet_silver_onyx.tres) | `amulet.evasion` | 2+ |
 | [Amulet of Mind](../scenes/items/jewelry/amulet/amulet_silver_runic_crest.tres) | `amulet.mind` | 2+ |
 | [Amulet of Swiftness](../scenes/items/jewelry/amulet/amulet_silver_sapphire.tres) | `amulet.swiftness` | 2+ |
 | [Amulet of Health](../scenes/items/jewelry/amulet/amulet_wood_coral.tres) | `amulet.health` | 1+ |
 | [Amulet of Vitality](../scenes/items/jewelry/amulet/amulet_wood_druid_talisman.tres) | `amulet.vitality` | 1+ |
-| [Amulet of Evasion](../scenes/items/jewelry/amulet/amulet_wood_jade.tres) | `amulet.evasion` | 1+ |
 | [Amulet of Health](../scenes/items/jewelry/amulet/amulet_wood_peridot.tres) | `amulet.health` | 1+ |
 | [Amulet of Dread](../scenes/items/jewelry/amulet_dread.tres) | `amulet.dread` | 1+ |
 | [Amulet of Vigor](../scenes/items/jewelry/amulet_health.tres) | `amulet.health` | 1+ |
@@ -197,7 +183,6 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Ring of Mind](../scenes/items/jewelry/ring/ring_gold_amethyst.tres) | `ring.mind` | 4+ |
 | [Ring of Vitality](../scenes/items/jewelry/ring/ring_gold_emerald.tres) | `ring.vitality` | 4+ |
 | [Ring of Strength](../scenes/items/jewelry/ring/ring_gold_ruby.tres) | `ring.strength` | 4+ |
-| [Ring of Precision](../scenes/items/jewelry/ring/ring_gold_signet.tres) | `ring.precision` | 4+ |
 | [Ring of Mind](../scenes/items/jewelry/ring/ring_silver_band.tres) | `ring.mind` | 2+ |
 | [Ring of Protection](../scenes/items/jewelry/ring/ring_silver_diamond.tres) | `ring.protection` | 2+ |
 | [Ring of Savagery](../scenes/items/jewelry/ring/ring_silver_onyx.tres) | `ring.savagery` | 2+ |
@@ -205,13 +190,10 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Ring of Health](../scenes/items/jewelry/ring/ring_wood_amber.tres) | `ring.health` | 1+ |
 | [Ring of Protection](../scenes/items/jewelry/ring/ring_wood_carved.tres) | `ring.protection` | 1+ |
 | [Ring of Strength](../scenes/items/jewelry/ring/ring_wood_garnet.tres) | `ring.strength` | 1+ |
-| [Ring of Evasion](../scenes/items/jewelry/ring/ring_wood_jade.tres) | `ring.evasion` | 1+ |
 | [Ring of Dexterity](../scenes/items/jewelry/ring_dexterity.tres) | `ring.dexterity` | 1+ |
-| [Ring of Evasion](../scenes/items/jewelry/ring_evasion.tres) | `ring.evasion` | 1+ |
 | [Ring of Frailty](../scenes/items/jewelry/ring_frailty.tres) | `ring.frailty` | 1+ |
 | [Ring of Lethargy](../scenes/items/jewelry/ring_lethargy.tres) | `ring.lethargy` | 1+ |
 | [Ring of the Mind](../scenes/items/jewelry/ring_mind.tres) | `ring.mind` | 1+ |
-| [Ring of Precision](../scenes/items/jewelry/ring_precision.tres) | `ring.precision` | 1+ |
 | [Ring of Protection](../scenes/items/jewelry/ring_protection.tres) | `ring.protection` | 1+ |
 | [Ring of Savagery](../scenes/items/jewelry/ring_savagery.tres) | `ring.savagery` | 1+ |
 | [Ring of Strength](../scenes/items/jewelry/ring_strength.tres) | `ring.strength` | 1+ |
@@ -266,7 +248,7 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Medium Potion of Confusion](../scenes/items/potions/potion_confusion_medium.tres) | `potion.confusion` | 3–9 |
 | [Large Potion of Confusion](../scenes/items/potions/potion_confusion_large.tres) | `potion.confusion` | 7+ |
 
-### Scrolls (20)
+### Scrolls (18)
 
 | Definition | Family / role | Depth |
 | --- | --- | --- |
@@ -280,8 +262,6 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Scroll of Summoning](../scenes/items/scrolls/scroll/scroll_obsidian_tiwaz.tres) | `scroll.summon` | 2+ |
 | [Scroll of Rage](../scenes/items/scrolls/scroll/scroll_orange_thurisaz.tres) | `scroll.rage` | 1+ |
 | [Scroll of Enchantment](../scenes/items/scrolls/scroll/scroll_purple_dagaz.tres) | `scroll.enchant` | 2+ |
-| [Scroll of Precision](../scenes/items/scrolls/scroll/scroll_silver_ingwaz.tres) | `scroll.precision` | 1+ |
-| [Scroll of Evasion](../scenes/items/scrolls/scroll/scroll_teal_eihwaz.tres) | `scroll.evasion` | 1+ |
 | [Scroll of Enchantment](../scenes/items/scrolls/scroll_enchant.tres) | `scroll.enchant` | 2+ |
 | [Scroll of Haste](../scenes/items/scrolls/scroll_haste.tres) | `scroll.haste` | 1+ |
 | [Scroll of Identification](../scenes/items/scrolls/scroll_identify.tres) | `scroll.identify` | 1+ |
@@ -330,7 +310,7 @@ All 69 weapon definitions explicitly assign an attack style and a KayKit grip ad
 Player profiles select distinct one-/two-handed slash/chop/thrust, ranged, and casting clips;
 monsters use actor-specific melee/ranged mappings. Timing and interruption are shared with the
 attack executor. See the implemented [attack system](weapon-attack-system.md#attack-styles-rig-profiles-and-timing)
-and its [program design](specs/attack-animation-plan.md).
+and its [current system](weapon-attack-system.md#attack-styles-rig-profiles-and-timing).
 
 All non-ranged weapons assign contact profiles with authored reach and geometry. Optional
 slash/chop swooshes trace editable blade markers on the shared contact timeline; gameplay

@@ -31,7 +31,6 @@ ProjectileSpeed = 16.0
 Range = 18.0
 AimingAngle = 50.0
 RequiredStrength = 6
-Accuracy = 1.05
 DamageMin = 2.0
 DamageMax = 4.0
 CritChance = 0.02

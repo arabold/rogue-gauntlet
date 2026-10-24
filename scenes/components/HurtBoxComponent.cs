@@ -26,7 +26,6 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	[Export] public PackedScene HitEffect { get; set; }
 
 	[Export] public float Armor { get; set; } = 0;
-	[Export] public float Evasion { get; set; } = 0;
 	[Export] public bool Invulnerable { get; set; } = false;
 
 	private readonly System.Collections.Generic.List<IDefenseEvaluator> _defenseEvaluators = new();
@@ -54,9 +53,9 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	[Export] public DamageSourceFlags DamageFilter { get; set; } = DamageSourceFlags.Player | DamageSourceFlags.Boss | DamageSourceFlags.Environment;
 
 	/// <summary>Preserves the common damage contract while publishing the resolved contact outcome.</summary>
-	public void TakeDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null, DamageSourceFlags attackerFaction = DamageSourceFlags.None)
+	public void TakeDamage(float amount, Vector3 attackDirection, Node attacker = null, DamageSourceFlags attackerFaction = DamageSourceFlags.None)
 	{
-		ResolveDamage(accuracy, amount, attackDirection, attacker, attackerFaction);
+		ResolveDamage(amount, attackDirection, attacker, attackerFaction);
 	}
 
 	public DamageResolution ResolveDamage(in DamageContext contact)
@@ -65,12 +64,11 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	}
 
 	/// <summary>Resolve defense separately from geometric contact; melee supplies its actor-owned RNG.</summary>
-	public DamageResolution ResolveDamage(float accuracy, float amount, Vector3 attackDirection, Node attacker = null,
+	public DamageResolution ResolveDamage(float amount, Vector3 attackDirection, Node attacker = null,
 		DamageSourceFlags attackerFaction = DamageSourceFlags.None, RandomNumberGenerator random = null)
 	{
 		var context = new DamageContext
 		{
-			Accuracy = accuracy,
 			Amount = amount,
 			IncomingDirection = attackDirection,
 			SourceNode = attacker,
@@ -85,15 +83,15 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	private DamageResolution ResolveDamageInternal(in DamageContext contact, RandomNumberGenerator random)
 	{
 		var snapshot = contact;
-		float armorRoll = 0, evasionRoll = 0, accuracyRoll = 0;
+		float armorRoll = 0;
 		DamageResolution Resolved(DamageOutcome outcome, float amount = 0)
 		{
 			if (CombatTrace.Enabled) CombatTrace.Write(this, "damage.resolved", ("source", CombatTrace.Identity(snapshot.SourceNode)),
 				("owner", CombatTrace.Identity(snapshot.OwnerNode)), ("execution", snapshot.ExecutionId.Sequence),
 				("execution_source", snapshot.ExecutionId.SourceInstanceId), ("delivery", snapshot.DeliveryKind.ToString()),
 				("traits", snapshot.DefenseTraits.ToString()), ("incoming", CombatTrace.Vector(snapshot.IncomingDirection)),
-				("raw_damage", snapshot.Amount), ("accuracy", snapshot.Accuracy), ("evasion", Evasion), ("armor", Armor),
-				("evasion_roll", evasionRoll), ("accuracy_roll", accuracyRoll), ("armor_roll", armorRoll),
+				("raw_damage", snapshot.Amount), ("armor", Armor),
+				("armor_roll", armorRoll),
 				("outcome", outcome.ToString()), ("damage", amount), ("health", HealthComponent?.CurrentHealth));
 			return Report(outcome, amount);
 		}
@@ -130,10 +128,6 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 
 		bool isBlocked = defenseEval.Outcome == DamageOutcome.Blocked;
 		if (Invulnerable) return isBlocked ? Resolved(DamageOutcome.Blocked, 0f) : Resolved(DamageOutcome.Invulnerable, 0f);
-
-		evasionRoll = Roll(random, Evasion);
-		accuracyRoll = Roll(random, contact.Accuracy);
-		if (evasionRoll > accuracyRoll) return Resolved(DamageOutcome.Evaded);
 
 		float incomingAmount = isBlocked ? defenseEval.Amount : contact.Amount;
 		armorRoll = Roll(random, Armor);
