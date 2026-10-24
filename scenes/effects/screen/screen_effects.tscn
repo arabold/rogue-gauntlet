@@ -1,0 +1,19 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/effects/screen/blindness_effect.tscn" id="1_blind"]
+[ext_resource type="PackedScene" path="res://scenes/effects/screen/poison_effect.tscn" id="2_poison"]
+[ext_resource type="PackedScene" path="res://scenes/effects/screen/near_death_effect.tscn" id="3_near_death"]
+[ext_resource type="Script" path="res://scenes/effects/screen/HealthScreenEffectDriver.cs" id="4_driver"]
+
+[node name="ScreenEffects" type="CanvasLayer"]
+layer = -1
+
+[node name="Blindness" parent="." instance=ExtResource("1_blind")]
+
+[node name="Poison" parent="." instance=ExtResource("2_poison")]
+
+[node name="NearDeath" parent="." instance=ExtResource("3_near_death")]
+
+[node name="NearDeathDriver" type="Node" parent="." node_paths=PackedStringArray("Effect")]
+script = ExtResource("4_driver")
+Effect = NodePath("../NearDeath")
