@@ -46,6 +46,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Actor actions and interactions](specs/actor-actions-and-interactions-plan.md) | Proposed shared action ownership, primary/secondary/quick-item separation, spell progression/mana, pickup auto-assignment, timed interactions, defense and actor rollout |
 | [Monster authoring and first-realm rollout](specs/monster-authoring-plan.md) | Roster and basic tactics delivered. Remaining: interactive authoring acceptance and three-floor balance/playtests |
 | [Combat integration](specs/combat-integration-plan.md) | Ownership, presentation, physics and harness integration contract; implemented |
+| [Attack status effects](specs/attack-status-effects-plan.md) | Proposed on-hit status payloads on attacks and weapons, application after defense resolution, actor-agnostic buffs for monsters and a monster status tint; first slice lets venomous monster attacks poison the player |
 | [Game logging and log feed](specs/logging-plan.md) | Proposed Player/Internal/Debug log channels, colored in-game feed, console and JSONL sinks, CLI flags for QA/agents |
 | [Dungeon progression implementation plan](specs/level-progression-prototype-plan.md) | Remaining Garrison work: realm pools/recipe routes, composed access and persistence, optional locks, then generated secrets; existing encounter systems are reused |
 
