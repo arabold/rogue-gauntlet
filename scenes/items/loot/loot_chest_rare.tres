@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LootTable" load_steps=355 format=3]
+[gd_resource type="Resource" script_class="LootTable" load_steps=339 format=3]
 
 [ext_resource type="Script" path="res://scenes/components/LootTable.cs" id="table"]
 [ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
@@ -37,16 +37,8 @@
 [ext_resource type="Resource" uid="uid://beihvhdjknaud" path="res://scenes/items/potions/potion_poison_small.tres" id="item_183"]
 [ext_resource type="Resource" uid="uid://ddqh0ws61k85u" path="res://scenes/items/potions/potion_vitality_small.tres" id="item_184"]
 [ext_resource type="Resource" uid="uid://s56ddo74vavs" path="res://scenes/items/potions/potion_strength_small.tres" id="item_185"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_cobalt_raidho.tres" id="item_190"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_coral_sowilo.tres" id="item_191"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_crimson_othala.tres" id="item_192"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_emerald_fehu.tres" id="item_193"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_gold_algiz.tres" id="item_194"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_lime_hagalaz.tres" id="item_195"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_magenta_berkano.tres" id="item_196"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_obsidian_tiwaz.tres" id="item_197"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_orange_thurisaz.tres" id="item_198"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_purple_dagaz.tres" id="item_199"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_vitality.tres" id="item_192"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_clarity.tres" id="item_196"]
 [ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_enchant.tres" id="item_202"]
 [ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_haste.tres" id="item_203"]
 [ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_identify.tres" id="item_204"]
@@ -597,59 +589,9 @@ Weight = 15.0
 Items = [SubResource("Entry_152"), SubResource("Entry_153"), SubResource("Entry_154"), SubResource("Entry_158"), SubResource("Entry_159"), SubResource("Entry_160"), SubResource("Entry_161"), SubResource("Entry_164"), SubResource("Entry_165"), SubResource("Entry_166"), SubResource("Entry_170"), SubResource("Entry_171"), SubResource("Entry_172"), SubResource("Entry_173"), SubResource("Entry_176"), SubResource("Entry_177"), SubResource("Entry_178"), SubResource("Entry_182"), SubResource("Entry_183"), SubResource("Entry_184"), SubResource("Entry_185"), SubResource("Entry_potion_blindness_large"), SubResource("Entry_potion_confusion_large"), SubResource("Entry_potion_blindness_medium"), SubResource("Entry_potion_confusion_medium"), SubResource("Entry_potion_blindness_small"), SubResource("Entry_potion_confusion_small")]
 metadata/_custom_type_script = ExtResource("group")
 
-[sub_resource type="Resource" id="Entry_190"]
-script = ExtResource("entry")
-Item = ExtResource("item_190")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 1
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_191"]
-script = ExtResource("entry")
-Item = ExtResource("item_191")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 1
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
 [sub_resource type="Resource" id="Entry_192"]
 script = ExtResource("entry")
 Item = ExtResource("item_192")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 1
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_193"]
-script = ExtResource("entry")
-Item = ExtResource("item_193")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 1
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_194"]
-script = ExtResource("entry")
-Item = ExtResource("item_194")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 1
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_195"]
-script = ExtResource("entry")
-Item = ExtResource("item_195")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -664,36 +606,6 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_197"]
-script = ExtResource("entry")
-Item = ExtResource("item_197")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_198"]
-script = ExtResource("entry")
-Item = ExtResource("item_198")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 1
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_199"]
-script = ExtResource("entry")
-Item = ExtResource("item_199")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 2
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -791,7 +703,7 @@ metadata/_custom_type_script = ExtResource("entry")
 resource_name = "Scrolls"
 script = ExtResource("group")
 Weight = 15.0
-Items = [SubResource("Entry_190"), SubResource("Entry_191"), SubResource("Entry_192"), SubResource("Entry_193"), SubResource("Entry_194"), SubResource("Entry_195"), SubResource("Entry_196"), SubResource("Entry_197"), SubResource("Entry_198"), SubResource("Entry_199"), SubResource("Entry_202"), SubResource("Entry_203"), SubResource("Entry_204"), SubResource("Entry_205"), SubResource("Entry_206"), SubResource("Entry_207"), SubResource("Entry_208"), SubResource("Entry_209"), SubResource("Entry_scroll_remove_curse")]
+Items = [SubResource("Entry_192"), SubResource("Entry_196"), SubResource("Entry_202"), SubResource("Entry_203"), SubResource("Entry_204"), SubResource("Entry_205"), SubResource("Entry_206"), SubResource("Entry_207"), SubResource("Entry_208"), SubResource("Entry_209"), SubResource("Entry_scroll_remove_curse")]
 metadata/_custom_type_script = ExtResource("group")
 
 [sub_resource type="Resource" id="Entry_0"]

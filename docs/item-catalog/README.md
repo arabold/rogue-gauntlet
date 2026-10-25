@@ -115,36 +115,29 @@ and the [item catalog](../item-catalog.md) for every definition.
 
 ## Scrolls
 
-Scroll effects that aren't stat buffs are authored `ScrollEffect` strategies (identify, enchant, teleport, summon); the rest are plain buff/debuff scrolls, same as potions. "Target" scrolls open the inventory targeting mode when read.
+Scrolls work like potions: every type's look is its run appearance, a random one of the 12 Asset Studio
+rune scrolls, so a scroll has no fixed image. See the [Asset Studio scroll lineup](../../asset-studio/catalogs/items/scrolls.png).
+Effects that aren't stat buffs are authored `ScrollEffect` strategies; the rest are plain buff/debuff
+scrolls, same as potions. "Target" scrolls open the inventory targeting mode when read. Every scroll is
+worth 100, so a price can never reveal an unidentified type.
 
-| | Scroll | Effect | Target | TypeId | Value |
-|---|---|---|---|---|---|
-| ![Scroll of Summoning](./scroll_summon.png) | **Scroll of Summoning** | Summons 3 enemies within 4u (BAD) | — | `scroll.summon` | 10 |
-| ![Scroll of Weakness](./scroll_weakness.png) | **Scroll of Weakness** | Weakness: -4 Strength, -15% Speed for 45s | — | `scroll.weakness` | 20 |
-| ![Scroll of Identification](./scroll_identify.png) | **Scroll of Identification** | Reveals a chosen item's true identity | Yes | `scroll.identify` | 80 |
-| ![Scroll of Haste](./scroll_haste.png) | **Scroll of Haste** | Haste: +30% Speed for 30s | — | `scroll.haste` | 100 |
-| ![Scroll of Protection](./scroll_protection.png) | **Scroll of Protection** | Protection: +8 Armor for 60s | — | `scroll.protection` | 110 |
-| ![Scroll of Rage](./scroll_rage.png) | **Scroll of Rage** | Rage: +25% MinDamage, +25% MaxDamage for 30s | — | `scroll.rage` | 130 |
-| ![Scroll of Teleportation](./scroll_teleport.png) | **Scroll of Teleportation** | Relocates the player to a random free tile | — | `scroll.teleport` | 150 |
-| ![Scroll of Enchantment](./scroll_enchant.png) | **Scroll of Enchantment** | Adds one affix (making the item Magic or Rare) and lifts a curse | Yes | `scroll.enchant` | 200 |
+| Scroll | Effect | Target | TypeId |
+|---|---|---|---|
+| **Scroll of Summoning** | Summons 3 enemies within 4u (BAD) | — | `scroll.summon` |
+| **Scroll of Weakness** | Weakness: -4 Strength, -15% Speed for 45s (BAD) | — | `scroll.weakness` |
+| **Scroll of Identification** | Reveals a chosen item's true identity | Yes | `scroll.identify` |
+| **Scroll of Haste** | Haste: +30% Speed for 30s | — | `scroll.haste` |
+| **Scroll of Vitality** | +5 Vitality for 30s | — | `scroll.vitality` |
+| **Scroll of Clarity** | +5 Intelligence for 30s | — | `scroll.clarity` |
+| **Scroll of Remove Curse** | Lifts the curse from a chosen item | Yes | `scroll.remove_curse` |
+| **Scroll of Protection** | Protection: +8 Armor for 60s | — | `scroll.protection` |
+| **Scroll of Rage** | Rage: +25% MinDamage, +25% MaxDamage for 30s | — | `scroll.rage` |
+| **Scroll of Teleportation** | Relocates the player to a random free tile | — | `scroll.teleport` |
+| **Scroll of Enchantment** | Adds one affix (making the item Magic or Rare) and lifts a curse | Yes | `scroll.enchant` |
 
 ## Jewelry
 
-Rings and amulets carry a hidden identity like potions/scrolls, and show only a disguised name ("a red wooden amulet") until worn or identified. In play they show their run appearance model from the Asset Studio rings and amulets. See the [current jewelry visual catalog](../../asset-studio/catalogs/items/jewelry.png) and [individual lineups](../../asset-studio/catalogs/items/README.md#jewelry) for their appearances; the amulet images below show the definitions' fallback models.
-
-### Rings
-
-Current ring definitions and hidden families are listed in the [gameplay item catalog](../item-catalog.md#jewelry-31). Use the [Asset Studio jewelry catalog](../../asset-studio/catalogs/items/README.md#jewelry) for models and previews.
-
-### Amulets
-
-| | Amulet | Effect | TypeId | Value |
-|---|---|---|---|---|
-| ![Amulet of Dread](./amulet_dread.png) | **Amulet of Dread** ⚠️ | -10% MinDamage, -10% MaxDamage | `amulet.dread` | 50 |
-| ![Amulet of Swiftness](./amulet_swiftness.png) | **Amulet of Swiftness** | +10% Speed | `amulet.swiftness` | 200 |
-| ![Amulet of Vigor](./amulet_health.png) | **Amulet of Vigor** | +25 MaxHealth | `amulet.health` | 200 |
-
-> ⚠️ marks intentionally cursed jewelry (a net-negative effect) — the risk/reward gamble of wearing an unidentified ring.
+Rings and amulets carry a hidden identity like potions/scrolls, and show only a disguised name ("a red wooden amulet") until worn or identified. Like every identity type they have no model of their own: in play they show their run appearance from the Asset Studio rings and amulets. Current ring and amulet definitions and hidden families are listed in the [gameplay item catalog](../item-catalog.md#jewelry-16); see the [current jewelry visual catalog](../../asset-studio/catalogs/items/jewelry.png) and [individual lineups](../../asset-studio/catalogs/items/README.md#jewelry) for their appearances.
 
 ## Currency
 
@@ -152,4 +145,4 @@ Current ring definitions and hidden families are listed in the [gameplay item ca
 |---|---|---|
 | ![Gold](./gold.png) | **Gold** | Stackable; drop quantity scales with dungeon depth via `LootTableItem.QuantityPerDepth` |
 
-> Weapon, shield, scroll, amulet fallback and currency previews are pictured here. Current gameplay definitions are listed in [the item catalog](../item-catalog.md); current ring and potion models are shown in the [Asset Studio visual catalog](../../asset-studio/catalogs/items/README.md).
+> Weapon, shield and currency previews are pictured here. Current gameplay definitions are listed in [the item catalog](../item-catalog.md); potion, scroll, ring and amulet models are run appearances, shown in the [Asset Studio visual catalog](../../asset-studio/catalogs/items/README.md).

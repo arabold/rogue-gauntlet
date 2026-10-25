@@ -266,7 +266,7 @@ public partial class PlayerInventoryController : Node
 		if (!removable.Success) { return Report(ItemFailure.NotOwned); }
 		if (source.Item.IsQuestItem) { return Report(ItemFailure.ProtectedItem); }
 		Level ??= this.GetAncestorOrNull<Level>();
-		if (Level == null || LootableItemScene == null || source.Item.Scene == null)
+		if (Level == null || LootableItemScene == null || ItemIdentity.ResolveScene(source.Item) == null)
 		{ return Report(ItemFailure.WorldUnavailable); }
 		// Prepare off-tree first: failure cannot remove equipment or inventory contents.
 		Node prepared = LootableItemScene.Instantiate();

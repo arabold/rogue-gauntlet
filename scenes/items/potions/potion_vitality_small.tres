@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://de7pjydt2w7pk" path="res://scenes/buffs/StatModifierBuff.cs" id="buff"]
 [ext_resource type="Script" uid="uid://c15rgkjymw2e6" path="res://scenes/items/ConsumableItem.cs" id="item"]
 [ext_resource type="Script" uid="uid://b2ecrfjb74yc3" path="res://scenes/player/resources/StatModifier.cs" id="mod"]
-[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_silver.tscn" id="scene"]
 
 [sub_resource type="Resource" id="Modifier"]
 script = ExtResource("mod")
@@ -25,7 +24,6 @@ AppearanceForm = "small"
 UnidentifiedNameTemplate = "small {descriptor} potion"
 Buff = SubResource("Buff")
 Name = "Small Potion of Vitality"
-Scene = ExtResource("scene")
 Value = 50
 IsStackable = true
 MaxStackSize = 20

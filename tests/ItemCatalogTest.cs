@@ -42,7 +42,9 @@ public class ItemCatalogTest
 		{
 			AssertBool(definition.IsRuntimeInstance).IsFalse();
 			AssertBool(!string.IsNullOrWhiteSpace(definition.Name)).IsTrue();
-			AssertObject(definition.Scene).IsNotNull();
+			// Identity types only ever show their run appearance, so they carry no model of their own.
+			if (definition is IIdentifiable { HasIdentity: true }) { AssertObject(definition.Scene).IsNull(); }
+			else { AssertObject(definition.Scene).IsNotNull(); }
 			Item runtime = ItemFactory.Create(definition, ExcludedFromLoot(definition) ? null : policy, 10, rng);
 			AssertString(runtime.DefinitionPath).IsEqual(definition.ResourcePath);
 			var record = ItemSaveCodec.Capture(runtime, 1);
@@ -67,14 +69,14 @@ public class ItemCatalogTest
 	public void EveryCustomExportIsADisguiseOrADefinitionModelButNeverBoth()
 	{
 		var catalog = GD.Load<IdentityCatalog>("res://scenes/items/identity/identity_catalog.tres");
-		// Identity types show their run appearance model, so a model that is a disguise must belong to exactly one
-		// appearance and never be a definition's own fallback model, or that fallback would wear another type's look.
+		// A model that is a disguise must belong to exactly one appearance and never also be a definition's own model,
+		// or two items would share a look; every other custom export must be some definition's model.
 		string[] appearanceModels = catalog.Categories
 			.SelectMany(category => category.AppearancePool.Appearances)
 			.SelectMany(appearance => appearance.Models.Values)
 			.Select(scene => scene.ResourcePath)
 			.ToArray();
-		var definitionModels = Definitions().Select(item => item.Scene.ResourcePath).ToHashSet();
+		var definitionModels = Definitions().Where(item => item.Scene != null).Select(item => item.Scene.ResourcePath).ToHashSet();
 		foreach (string model in Paths("res://assets/custom-items", ".glb"))
 		{
 			string wrapperPath = model.Replace("assets/custom-items", "scenes/items").Replace(".glb", ".tscn");

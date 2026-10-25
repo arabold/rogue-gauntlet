@@ -26,6 +26,11 @@ func _initialize():
 	var args = OS.get_cmdline_user_args()
 	var outdir = args[0]
 	for src in args.slice(1):
+		# Identity types (potions, scrolls, jewelry) have no model of their own; their looks are
+		# the per-run appearances shown in the Asset Studio lineups.
+		if load(src).get("Scene") == null:
+			print("skip %s: no own model" % src)
+			continue
 		var name = src.get_file().get_basename()
 		_items.append([src, outdir.path_join(name + ".png")])
 	print("found %d items" % _items.size())

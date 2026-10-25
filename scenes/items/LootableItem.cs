@@ -82,9 +82,9 @@ public partial class LootableItem : Node3D
 			QueueFree();
 			return;
 		}
-		if (Item.Scene == null)
+		if (ItemIdentity.ResolveScene(Item) == null)
 		{
-			GD.PrintErr("LootableItem's item has no scene assigned");
+			GD.PrintErr("LootableItem's item has no model to show");
 			QueueFree();
 			return;
 		}

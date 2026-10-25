@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://ifyt4ybqwlva" path="res://scenes/buffs/PoisonBuff.cs" id="buff"]
 [ext_resource type="Resource" uid="uid://cstatuspoisoned" path="res://scenes/buffs/conditions/poisoned.tres" id="poisoned"]
 [ext_resource type="Script" uid="uid://c15rgkjymw2e6" path="res://scenes/items/ConsumableItem.cs" id="item"]
-[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_medium/potion_medium_silver.tscn" id="scene"]
 
 [sub_resource type="Resource" id="Buff"]
 script = ExtResource("buff")
@@ -21,7 +20,6 @@ AppearanceForm = "medium"
 UnidentifiedNameTemplate = "medium {descriptor} potion"
 Buff = SubResource("Buff")
 Name = "Medium Potion of Poison"
-Scene = ExtResource("scene")
 Value = 100
 IsStackable = true
 MaxStackSize = 20

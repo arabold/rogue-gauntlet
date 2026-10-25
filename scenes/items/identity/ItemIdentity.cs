@@ -6,7 +6,7 @@ using Godot;
 /// whole run, identified or not; only its label changes from the disguised descriptor to the
 /// true name. Centralizes that logic so world pickups, inventory and action-bar previews and
 /// labels stay consistent, and falls back to the item's own data when no game session
-/// applies, which keeps the editor working.
+/// applies, which keeps the editor working. Identifiable types have no model of their own.
 /// </summary>
 public static class ItemIdentity
 {
@@ -14,8 +14,8 @@ public static class ItemIdentity
 
 	/// <summary>
 	/// The model to show for <paramref name="item"/>: its type's run appearance model for the item's
-	/// <see cref="IIdentifiable.AppearanceForm"/>, else the definition's own <see cref="Item.Scene"/>
-	/// (items without a hidden identity, or no active session in the editor/tests).
+	/// <see cref="IIdentifiable.AppearanceForm"/>, else the definition's own <see cref="Item.Scene"/>.
+	/// Identifiable types leave <see cref="Item.Scene"/> empty, so they have no model outside a session.
 	/// </summary>
 	public static PackedScene ResolveScene(Item item)
 	{

@@ -176,7 +176,8 @@ public partial class BoneAttachmentManager : Node
 
 	private void AddAttachment(AttachmentType attachmentType, EquipableItem item, EquipmentSlot slot)
 	{
-		if (item?.Scene == null)
+		PackedScene scene = item is PortableLightItem portableLight ? portableLight.HeldScene : ItemIdentity.ResolveScene(item);
+		if (scene == null)
 		{
 			return;
 		}
@@ -199,7 +200,6 @@ public partial class BoneAttachmentManager : Node
 			}
 
 			GD.Print($"Adding attachment {item.Name} to {attachmentType}");
-			var scene = item is PortableLightItem portableLight ? portableLight.HeldScene : ItemIdentity.ResolveScene(item);
 			var itemAttachment = scene.Instantiate<Node>();
 			itemAttachment.SetMeta(EquippedMetaKey, true);
 			ApplyRenderLayers(itemAttachment, CharacterModel.PlayerRenderLayers);

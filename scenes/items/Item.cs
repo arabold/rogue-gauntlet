@@ -6,6 +6,10 @@ using System.Collections.Generic;
 public partial class Item : ObservableResource
 {
 	[Export] public string Name { get; protected set => SetValue(ref field, value); }
+	/// <summary>
+	/// The item's own world model. Identifiable types (potions, scrolls, jewelry) leave it empty: they only ever
+	/// show their run appearance, so read the shown model through <see cref="ItemIdentity.ResolveScene"/>.
+	/// </summary>
 	[Export] public PackedScene Scene { get; protected set => SetValue(ref field, value); }
 	[Export] public int Value { get; protected set => SetValue(ref field, value); } = 0;
 	[Export] public bool ShowInInventory { get; protected set => SetValue(ref field, value); } = true;

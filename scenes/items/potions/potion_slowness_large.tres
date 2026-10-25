@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://bu7s2ip2kii42" path="res://scenes/buffs/TimeScaleBuff.cs" id="buff"]
 [ext_resource type="Script" uid="uid://c15rgkjymw2e6" path="res://scenes/items/ConsumableItem.cs" id="item"]
-[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_silver.tscn" id="scene"]
 
 [sub_resource type="Resource" id="Buff"]
 script = ExtResource("buff")
@@ -19,7 +18,6 @@ AppearanceForm = "large"
 UnidentifiedNameTemplate = "large {descriptor} potion"
 Buff = SubResource("Buff")
 Name = "Large Potion of Slowness"
-Scene = ExtResource("scene")
 Value = 200
 IsStackable = true
 MaxStackSize = 20

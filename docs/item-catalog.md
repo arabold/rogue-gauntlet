@@ -33,10 +33,11 @@ Each type has small, medium and large definitions (`potion_<type>_<size>.tres`);
 damage, attribute gain or duration. No model or color belongs to a type: each run assigns every type a
 random color from the Asset Studio potion models, shared by all three sizes.
 
-Custom scrolls share the existing identify/enchant/remove-curse/teleport/summon/haste/protection/rage/weakness
-strategies and add clarity and vitality buffs through existing Resources.
-They are all `Scroll` definitions, so the UI offers Read. Scroll and jewelry definitions keep their
-own model files as fallbacks only: in play every identity type shows its run appearance model.
+Scrolls work the same way: one definition per type (`scroll_<type>.tres`), all `Scroll` definitions, so
+the UI offers Read. Identify, enchant, remove curse, teleport and summon are `ScrollEffect` strategies;
+haste, protection, rage, weakness, vitality and clarity are plain buffs. No model belongs to a type: each
+run assigns every type one of the 12 Asset Studio rune scrolls. Potion, scroll and jewelry definitions
+have no model of their own: every identity type only ever shows its run appearance model.
 Each jewelry type has one definition with a baseline intrinsic profile, which its quality scales or
 extends with affixes per item. The three harmful types (Frailty, Lethargy, Dread) have no positive
 effect and are always created cursed, so wearing one is a trap. Material and gem are part of the run disguise, never a sign of strength.
@@ -238,28 +239,21 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Medium Potion of Confusion](../scenes/items/potions/potion_confusion_medium.tres) | `potion.confusion` | 3–9 |
 | [Large Potion of Confusion](../scenes/items/potions/potion_confusion_large.tres) | `potion.confusion` | 7+ |
 
-### Scrolls (18)
+### Scrolls (11)
 
 | Definition | Family / role | Depth |
 | --- | --- | --- |
-| [Scroll of Teleportation](../scenes/items/scrolls/scroll/scroll_cobalt_raidho.tres) | `scroll.teleport` | 1+ |
-| [Scroll of Haste](../scenes/items/scrolls/scroll/scroll_coral_sowilo.tres) | `scroll.haste` | 1+ |
-| [Scroll of Vitality](../scenes/items/scrolls/scroll/scroll_crimson_othala.tres) | `scroll.vitality` | 1+ |
-| [Scroll of Identification](../scenes/items/scrolls/scroll/scroll_emerald_fehu.tres) | `scroll.identify` | 1+ |
-| [Scroll of Protection](../scenes/items/scrolls/scroll/scroll_gold_algiz.tres) | `scroll.protection` | 1+ |
-| [Scroll of Weakness](../scenes/items/scrolls/scroll/scroll_lime_hagalaz.tres) | `scroll.weakness` | 1+ |
-| [Scroll of Clarity](../scenes/items/scrolls/scroll/scroll_magenta_berkano.tres) | `scroll.clarity` | 1+ |
-| [Scroll of Summoning](../scenes/items/scrolls/scroll/scroll_obsidian_tiwaz.tres) | `scroll.summon` | 2+ |
-| [Scroll of Rage](../scenes/items/scrolls/scroll/scroll_orange_thurisaz.tres) | `scroll.rage` | 1+ |
-| [Scroll of Enchantment](../scenes/items/scrolls/scroll/scroll_purple_dagaz.tres) | `scroll.enchant` | 2+ |
-| [Scroll of Enchantment](../scenes/items/scrolls/scroll_enchant.tres) | `scroll.enchant` | 2+ |
+| [Scroll of Teleportation](../scenes/items/scrolls/scroll_teleport.tres) | `scroll.teleport` | 1+ |
 | [Scroll of Haste](../scenes/items/scrolls/scroll_haste.tres) | `scroll.haste` | 1+ |
+| [Scroll of Vitality](../scenes/items/scrolls/scroll_vitality.tres) | `scroll.vitality` | 1+ |
 | [Scroll of Identification](../scenes/items/scrolls/scroll_identify.tres) | `scroll.identify` | 1+ |
 | [Scroll of Protection](../scenes/items/scrolls/scroll_protection.tres) | `scroll.protection` | 1+ |
-| [Scroll of Rage](../scenes/items/scrolls/scroll_rage.tres) | `scroll.rage` | 1+ |
-| [Scroll of Summoning](../scenes/items/scrolls/scroll_summon.tres) | `scroll.summon` | 2+ |
-| [Scroll of Teleportation](../scenes/items/scrolls/scroll_teleport.tres) | `scroll.teleport` | 1+ |
 | [Scroll of Weakness](../scenes/items/scrolls/scroll_weakness.tres) | `scroll.weakness` | 1+ |
+| [Scroll of Clarity](../scenes/items/scrolls/scroll_clarity.tres) | `scroll.clarity` | 1+ |
+| [Scroll of Summoning](../scenes/items/scrolls/scroll_summon.tres) | `scroll.summon` | 2+ |
+| [Scroll of Rage](../scenes/items/scrolls/scroll_rage.tres) | `scroll.rage` | 1+ |
+| [Scroll of Enchantment](../scenes/items/scrolls/scroll_enchant.tres) | `scroll.enchant` | 2+ |
+| [Scroll of Remove Curse](../scenes/items/scrolls/scroll_remove_curse.tres) | `scroll.remove_curse` | 1+ |
 
 ### Gold (1)
 

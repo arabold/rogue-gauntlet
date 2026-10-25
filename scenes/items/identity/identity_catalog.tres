@@ -1,19 +1,11 @@
-[gd_resource type="Resource" script_class="IdentityCatalog" load_steps=73 format=3 uid="uid://didentitycat1"]
+[gd_resource type="Resource" script_class="IdentityCatalog" load_steps=65 format=3 uid="uid://didentitycat1"]
 
 [ext_resource type="Script" path="res://scenes/items/identity/IdentityCatalog.cs" id="catalog"]
 [ext_resource type="Script" path="res://scenes/items/identity/IdentityCategory.cs" id="category"]
 [ext_resource type="Resource" path="res://scenes/items/identity/potion_appearances.tres" id="pool_potion"]
 [ext_resource type="Resource" path="res://scenes/items/identity/scroll_appearances.tres" id="pool_scroll"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_cobalt_raidho.tres" id="item_47"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_coral_sowilo.tres" id="item_48"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_crimson_othala.tres" id="item_49"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_emerald_fehu.tres" id="item_50"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_gold_algiz.tres" id="item_51"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_lime_hagalaz.tres" id="item_52"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_magenta_berkano.tres" id="item_53"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_obsidian_tiwaz.tres" id="item_54"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_orange_thurisaz.tres" id="item_55"]
-[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll/scroll_purple_dagaz.tres" id="item_56"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_vitality.tres" id="item_49"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_clarity.tres" id="item_53"]
 [ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_enchant.tres" id="item_59"]
 [ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_haste.tres" id="item_60"]
 [ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_identify.tres" id="item_61"]
@@ -80,7 +72,7 @@ metadata/_custom_type_script = ExtResource("category")
 script = ExtResource("category")
 Category = "scroll"
 AppearancePool = ExtResource("pool_scroll")
-Types = [ExtResource("item_47"), ExtResource("item_48"), ExtResource("item_49"), ExtResource("item_50"), ExtResource("item_51"), ExtResource("item_52"), ExtResource("item_53"), ExtResource("item_54"), ExtResource("item_55"), ExtResource("item_56"), ExtResource("item_59"), ExtResource("item_60"), ExtResource("item_61"), ExtResource("item_62"), ExtResource("item_63"), ExtResource("item_64"), ExtResource("item_65"), ExtResource("item_66"), ExtResource("scroll_remove_curse")]
+Types = [ExtResource("item_49"), ExtResource("item_53"), ExtResource("item_59"), ExtResource("item_60"), ExtResource("item_61"), ExtResource("item_62"), ExtResource("item_63"), ExtResource("item_64"), ExtResource("item_65"), ExtResource("item_66"), ExtResource("scroll_remove_curse")]
 metadata/_custom_type_script = ExtResource("category")
 
 [sub_resource type="Resource" id="Category_ring"]

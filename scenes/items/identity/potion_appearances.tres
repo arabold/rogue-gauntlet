@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="AppearancePool" load_steps=47 format=3 uid="uid://dpotionapprs1"]
+[gd_resource type="Resource" script_class="AppearancePool" load_steps=51 format=3 uid="uid://dpotionapprs1"]
 
 [ext_resource type="Script" uid="uid://cappearpool01" path="res://scenes/items/identity/AppearancePool.cs" id="1_pool"]
 [ext_resource type="Script" uid="uid://citemappear01" path="res://scenes/items/identity/ItemAppearance.cs" id="2_appr"]
@@ -35,6 +35,9 @@
 [ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_teal.tscn" id="m31"]
 [ext_resource type="PackedScene" path="res://scenes/items/potions/potion_medium/potion_medium_teal.tscn" id="m32"]
 [ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_teal.tscn" id="m33"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_small/potion_small_silver.tscn" id="m34"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_medium/potion_medium_silver.tscn" id="m35"]
+[ext_resource type="PackedScene" path="res://scenes/items/potions/potion_large/potion_large_silver.tscn" id="m36"]
 
 [sub_resource type="Resource" id="Appearance_crimson"]
 script = ExtResource("2_appr")
@@ -102,7 +105,13 @@ Descriptor = "teal"
 Models = Dictionary[String, PackedScene]({"small": ExtResource("m31"), "medium": ExtResource("m32"), "large": ExtResource("m33")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
+[sub_resource type="Resource" id="Appearance_silver"]
+script = ExtResource("2_appr")
+Descriptor = "silver"
+Models = Dictionary[String, PackedScene]({"small": ExtResource("m34"), "medium": ExtResource("m35"), "large": ExtResource("m36")})
+metadata/_custom_type_script = ExtResource("2_appr")
+
 [resource]
 script = ExtResource("1_pool")
-Appearances = [SubResource("Appearance_crimson"), SubResource("Appearance_emerald"), SubResource("Appearance_lime"), SubResource("Appearance_obsidian"), SubResource("Appearance_coral"), SubResource("Appearance_purple"), SubResource("Appearance_magenta"), SubResource("Appearance_orange"), SubResource("Appearance_cobalt"), SubResource("Appearance_gold"), SubResource("Appearance_teal")]
+Appearances = [SubResource("Appearance_crimson"), SubResource("Appearance_emerald"), SubResource("Appearance_lime"), SubResource("Appearance_obsidian"), SubResource("Appearance_coral"), SubResource("Appearance_purple"), SubResource("Appearance_magenta"), SubResource("Appearance_orange"), SubResource("Appearance_cobalt"), SubResource("Appearance_gold"), SubResource("Appearance_teal"), SubResource("Appearance_silver")]
 metadata/_custom_type_script = ExtResource("1_pool")

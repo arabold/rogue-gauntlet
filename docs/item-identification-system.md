@@ -109,14 +109,9 @@ black potion" renames it "Small Potion of Poison" but leaves the bottle as it lo
 - **World, preview and action-bar model**: `ItemIdentity.ResolveScene(item)` returns the
   run appearance's model for the item's `AppearanceForm`. `LootableItem`, `ItemSlotPanel`'s
   `Preview`, the action bar (`PlayerQuickItemController` → `ActionContainer`) and
-  `BoneAttachmentManager` all show it, so world, inventory and labels stay consistent. A
-  definition's own `Scene` is only the fallback for the editor and for tools. It is always a
-  model no appearance uses, so a fallback never wears another type's disguise:
-  - potions use the silver bottle of their size;
-  - jewelry uses the generic `ring.tscn`/`amulet.tscn`;
-  - scrolls use the book model.
-
-  `ItemCatalogTest` enforces this.
+  `BoneAttachmentManager` all show it, so world, inventory and labels stay consistent. Identity
+  definitions leave their own `Scene` empty, so no model is tied to a type; pickup, drop and
+  equip check the resolved model instead. `ItemCatalogTest` enforces this.
 - **Running a scene directly**: `GameSession.Identification` initializes itself from the
   default seed on first use when no run was started or loaded, so a directly run `main.tscn`
   shows disguises exactly like a run started from the menu, and nothing loads at boot.
@@ -125,7 +120,7 @@ black potion" renames it "Small Potion of Poison" but leaves the bottle as it lo
 
 - **Model = per-run disguise.** Every category draws its appearances from Asset Studio
   models:
-  - potions: 11 colors, each in three sizes (silver is the neutral fallback, never a disguise);
+  - potions: 12 colors, each in three sizes;
   - scrolls: 12 color-and-rune models, paired with the NetHack-style labels;
   - rings and amulets: 12 material-and-gem models each.
 
@@ -256,8 +251,8 @@ Scroll effects like identify, enchant, teleport, or summon aren't stat buffs, so
 reuse `BuffedItem.Buff`. `ScrollEffect : Resource` (`scenes/items/scrolls/ScrollEffect.cs`) is
 an authored strategy exported on `Scroll : ConsumableItem`: `Apply(player)` for untargeted
 effects (teleport, summon), or `RequiresTarget = true` plus `IsValidTarget`/`ApplyToTarget`
-for effects that need a chosen inventory slot (identify, enchant). Pure buff/debuff scrolls
-(haste, protection, rage, weakness) need no `ScrollEffect` at all — they just set `Buff`,
+for effects that need a chosen inventory slot (identify, enchant, remove curse). Pure buff/debuff
+scrolls (haste, protection, rage, weakness, vitality, clarity) need no `ScrollEffect` at all — they just set `Buff`,
 exactly like a potion.
 
 **Targeting flow**: reading a targeted scroll's "Read" button emits
@@ -284,8 +279,7 @@ types (Health, Mind, Protection, Strength, Swiftness, Vitality, cursed Dread), o
 each in `scenes/items/jewelry/{ring,amulet}/`. Amulet baselines are about 1.5× a ring's,
 because the neck has one slot and the hands two. Rings use `ValidSlots = LeftRing | RightRing` (192); amulets use `Neck` (32). World
 models come from the run appearance (the Asset Studio rings and amulets in
-`scenes/items/jewelry/ring/` and `amulet/`); the older primitive `ring.tscn`/`amulet.tscn` scenes
-are only definition fallbacks.
+`scenes/items/jewelry/ring/` and `amulet/`).
 
 Wearing jewelry identifies its type and its own attributes for free: `GameSession` subscribes
 `SignalBus.ItemEquipped += (player, item) => IdentifyItemType(item)` in `_Ready`, the same hook
