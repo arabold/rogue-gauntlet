@@ -1,4 +1,4 @@
-[gd_scene load_steps=89 format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=90 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
@@ -47,6 +47,8 @@
 [ext_resource type="Resource" uid="uid://cstatusconfused" path="res://scenes/buffs/conditions/confused.tres" id="confused_condition"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/invisibility_component.tscn" id="invisibility"]
+
+[ext_resource type="Script" uid="uid://bmrka2rigbvvg" path="res://scenes/components/FloorLightingComponent.cs" id="floor_lighting"]
 
 [sub_resource type="Resource" id="player_capabilities"]
 script = ExtResource("capabilities_script")
@@ -420,24 +422,53 @@ layers = 4
 [node name="Barbarian_LegRight" parent="Pivot/Character/Rig/Skeleton3D" index="12"]
 layers = 4
 
-[node name="FlickerLight" parent="Pivot" instance=ExtResource("3_3qxnv")]
+[node name="NormalLighting" type="Node3D" parent="Pivot"]
+
+[node name="FlickerLight" parent="Pivot/NormalLighting" instance=ExtResource("3_3qxnv")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 1)
 shadow_caster_mask = 4294966527
-omni_range = 12.5
-omni_attenuation = 1.0
+omni_range = 25.0
+omni_attenuation = 0.25
 noiseTexture = SubResource("NoiseTexture2D_rio2h")
-Min = 0.125
-Max = 0.5
+Min = 0.25
+Max = 1.0
 
-[node name="ObjectHighlight" type="OmniLight3D" parent="Pivot"]
+[node name="ObjectHighlight" type="OmniLight3D" parent="Pivot/NormalLighting"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)
 layers = 256
 light_specular = 0.0
 light_bake_mode = 0
 light_cull_mask = 4294966504
-light_energy = 0.5
-omni_range = 15.0
-omni_attenuation = 1.0
+light_energy = 1.0
+omni_range = 30.0
+omni_attenuation = 0.0
+
+[node name="DarkLighting" type="Node3D" parent="Pivot"]
+visible = false
+
+[node name="FlickerLight" parent="Pivot/DarkLighting" instance=ExtResource("3_3qxnv")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 1)
+shadow_caster_mask = 4294966527
+omni_range = 6.0
+omni_attenuation = 1.8
+noiseTexture = SubResource("NoiseTexture2D_rio2h")
+Min = 0.04
+Max = 0.12
+
+[node name="ObjectHighlight" type="OmniLight3D" parent="Pivot/DarkLighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+layers = 256
+light_specular = 0.0
+light_bake_mode = 0
+light_cull_mask = 4294966504
+light_energy = 0.08
+omni_range = 6.0
+omni_attenuation = 1.8
+
+[node name="FloorLightingComponent" type="Node" parent="Pivot" node_paths=PackedStringArray("NormalLighting", "DarkLighting")]
+script = ExtResource("floor_lighting")
+NormalLighting = NodePath("../NormalLighting")
+DarkLighting = NodePath("../DarkLighting")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/items/tools/lamp/tool_torch_iron.tscn" id="model"]
 [ext_resource type="PackedScene" path="res://scenes/effects/fire.tscn" id="fire"]
+
+[ext_resource type="Script" uid="uid://bmrka2rigbvvg" path="res://scenes/components/FloorLightingComponent.cs" id="floor_lighting"]
 
 [node name="HeldLight" type="Node3D"]
 
@@ -21,3 +23,7 @@ omni_attenuation = 0.7
 rotation_degrees = Vector3(0, 0, -90)
 position = Vector3(0.75, -0, 0)
 scale = Vector3(0.18, 0.18, 0.18)
+
+[node name="FloorLightingComponent" type="Node" parent="." node_paths=PackedStringArray("DarkLighting")]
+script = ExtResource("floor_lighting")
+DarkLighting = NodePath("../Light")

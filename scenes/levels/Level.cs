@@ -14,7 +14,7 @@ public partial class Level : Node
 	private float _normalAmbientEnergy;
 	private Environment _lightingEnvironment;
 
-	/// <summary>Extinguishes environmental fixtures and ambient light without changing exploration or player lights.</summary>
+	/// <summary>Changes floor illumination and notifies local player/fixture lighting without changing exploration.</summary>
 	public void SetDark(bool isDark)
 	{
 		if (IsDark == isDark) { return; }

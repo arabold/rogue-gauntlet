@@ -46,6 +46,47 @@ public class PortableLightTest
 		AssertObject(inventory.EquippedItems[EquipmentSlot.ShieldHand]).IsNull();
 	}
 
+	/// <summary>Bright floors use the original player lights; held illumination only contributes on dark floors.</summary>
+	[TestCase]
+	public async Task CarriedLightsOnlyExtendVisibilityOnDarkFloors()
+	{
+		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		await runner.SimulateFrames(5);
+		var level = runner.Scene().GetNode<Level>("Level");
+		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
+		var normal = player.GetNode<Node3D>("Pivot/NormalLighting");
+		var dark = player.GetNode<Node3D>("Pivot/DarkLighting");
+		var normalLight = normal.GetNode<FlickerLight>("FlickerLight");
+		var darkLight = dark.GetNode<FlickerLight>("FlickerLight");
+		AssertFloat(normalLight.OmniRange).IsEqual(25f);
+		AssertFloat(normalLight.Min).IsEqual(0.25f);
+		AssertFloat(normalLight.Max).IsEqual(1f);
+		AssertFloat(normal.GetNode<OmniLight3D>("ObjectHighlight").OmniRange).IsEqual(30f);
+		AssertFloat(darkLight.OmniRange).IsEqual(6f);
+		AssertFloat(darkLight.Min).IsEqual(0.04f);
+		AssertFloat(darkLight.Max).IsEqual(0.12f);
+		foreach (var hand in player.Inventory.EquippedItems.Keys.ToArray()) { player.Inventory.Unequip(hand); }
+		player.Inventory.Items.Clear();
+		foreach (string name in new[] { "tool_candelabrum", "tool_candle_tallow", "tool_lamp_oil", "tool_lantern_brass", "tool_torch_iron", "tool_torch_wooden" })
+		{
+			var entry = Add(player.Inventory, $"res://scenes/items/tools/lamp/{name}.tres");
+			AssertBool(player.InventoryController.TryEquip(entry, EquipmentSlot.ShieldHand).Success).IsTrue();
+			var mount = player.GetNode<BoneAttachmentManager>("BoneAttachmentManager").AttachmentNodes[AttachmentType.OffhandWeapon];
+			var heldLight = mount.FindChildren("*", "OmniLight3D", true, false).OfType<OmniLight3D>().Single();
+			AssertBool(normal.IsVisibleInTree()).IsTrue();
+			AssertBool(dark.IsVisibleInTree()).IsFalse();
+			AssertBool(heldLight.IsVisibleInTree()).IsFalse();
+			level.SetDark(true);
+			AssertBool(normal.IsVisibleInTree()).IsFalse();
+			AssertBool(dark.IsVisibleInTree()).IsTrue();
+			AssertBool(heldLight.IsVisibleInTree()).IsTrue();
+			level.SetDark(false);
+			AssertBool(normal.IsVisibleInTree()).IsTrue();
+			AssertBool(dark.IsVisibleInTree()).IsFalse();
+			AssertBool(heldLight.IsVisibleInTree()).IsFalse();
+		}
+	}
+
 	[TestCase]
 	public async Task InventoryMenuOffersBothHandsAndUnequippingRemovesLight()
 	{
@@ -140,7 +181,7 @@ public class PortableLightTest
 				AssertString(mount.BoneName).IsEqual(definition.GripFor(hand).Bone.ToString());
 				var light = mount.FindChildren("*", "OmniLight3D", true, false).OfType<OmniLight3D>().Single();
 				AssertBool(light.IsVisibleInTree()).IsTrue();
-				AssertFloat(light.OmniRange).IsGreater(player.GetNode<OmniLight3D>("Pivot/FlickerLight").OmniRange);
+				AssertFloat(light.OmniRange).IsGreater(player.GetNode<OmniLight3D>("Pivot/DarkLighting/FlickerLight").OmniRange);
 				AssertBool(player.InventoryController.TryUnequip(entry).Success).IsTrue();
 				AssertInt(mount.GetChildCount()).IsEqual(0);
 			}
