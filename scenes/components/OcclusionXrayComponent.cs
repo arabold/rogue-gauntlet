@@ -39,6 +39,21 @@ public partial class OcclusionXrayComponent : Node
 	/// <summary>Which debug toggle enables this component.</summary>
 	[Export] public XrayCategory Category { get; set; } = XrayCategory.Monster;
 
+	/// <summary>Allows the owning prop to suppress its silhouette after it has been used.</summary>
+	[Export]
+	public bool IsEnabled
+	{
+		get;
+		set
+		{
+			field = value;
+			if (IsNodeReady()) Evaluate();
+		}
+	} = true;
+
+	/// <summary>Optional authored occlusion material. Unassigned uses the shared actor stencil pair.</summary>
+	[Export] public ShaderMaterial OcclusionMaterial { get; set; }
+
 	private static Shader _maskShader;
 	private static Shader _xrayShader;
 	private static Shader MaskShader => _maskShader ??= GD.Load<Shader>(MaskShaderPath);
@@ -65,6 +80,19 @@ public partial class OcclusionXrayComponent : Node
 			return;
 		}
 
+		// Authored components become ready before their parent; wait until it can accept
+		// sibling mesh helpers. Runtime-added components can initialize immediately.
+		if (GetParent()?.IsNodeReady() != true)
+		{
+			Callable.From(Initialize).CallDeferred();
+			return;
+		}
+		Initialize();
+	}
+
+	private void Initialize()
+	{
+		if (!IsInsideTree()) return;
 		_targetRoot = TargetRoot != null && !TargetRoot.IsEmpty
 			? GetNodeOrNull<Node3D>(TargetRoot)
 			: GetParentOrNull<Node3D>();
@@ -132,7 +160,7 @@ public partial class OcclusionXrayComponent : Node
 	}
 
 	/// <summary>
-	/// Creates the mask + x-ray duplicate pair for every mesh under <paramref name="node"/>. Each
+	/// Creates an occlusion silhouette (or the default mask + x-ray pair) for each mesh under <paramref name="node"/>. Each
 	/// duplicate is parented next to its source and inherits the source's local transform, skin,
 	/// and skeleton binding, so skinned enemy meshes deform with their animation.
 	/// </summary>
@@ -140,8 +168,15 @@ public partial class OcclusionXrayComponent : Node
 	{
 		if (node is MeshInstance3D src && src.Mesh != null)
 		{
-			AddDuplicate(src, MaskMaterial);
-			AddDuplicate(src, CreateXrayMaterial());
+			if (OcclusionMaterial != null)
+			{
+				AddDuplicate(src, OcclusionMaterial);
+			}
+			else
+			{
+				AddDuplicate(src, MaskMaterial);
+				AddDuplicate(src, CreateXrayMaterial());
+			}
 		}
 
 		foreach (Node child in node.GetChildren())
@@ -221,7 +256,7 @@ public partial class OcclusionXrayComponent : Node
 
 		bool revealed = _mapGenerator == null || _mapGenerator.IsRevealedAt(_targetRoot.GlobalPosition);
 		bool alive = _health == null || !_health.IsDead;
-		bool visible = GlobalFlagEnabled() && revealed && alive;
+		bool visible = IsEnabled && GlobalFlagEnabled() && revealed && alive;
 
 		foreach (MeshInstance3D silhouette in _silhouettes)
 		{

@@ -74,7 +74,7 @@ Closed doors block physics, sight and navigation. Open doors enable their naviga
 
 Black caps hide void and undiscovered space under the rotating isometric camera. Gameplay begins covered; editor previews expose generated space. Entering a room reveals it and connected open corridors, stopping at closed doors. Standing against a closed doorway does not count as entering the room. Reveal respects sanctioned connections rather than leaking through adjacent walls.
 
-Closed-door x-ray silhouettes appear only when occluded, nearby and adjacent to revealed space, so they do not disclose unexplored doors. Revealed room/door state survives travel and save/load. This behavior is not secret-door support: concealed passages need their own discovery rules in the [dungeon design](dungeon-exploration-design.md#random-secrets).
+Closed-door x-ray silhouettes appear only when occluded, nearby and adjacent to revealed space, so they do not disclose unexplored doors. Unopened treasure chests use a golden occlusion silhouette in revealed rooms, controlled by the loot X-ray toggle; opening a chest or restoring it as opened removes the highlight. Revealed room/door state survives travel and save/load. This behavior is not secret-door support: concealed passages need their own discovery rules in the [dungeon design](dungeon-exploration-design.md#random-secrets).
 
 ## Reusable room arrangements
 

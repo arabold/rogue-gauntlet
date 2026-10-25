@@ -1,10 +1,19 @@
-[gd_scene load_steps=12 format=4 uid="uid://cgi3a5fi0sxu6"]
+[gd_scene load_steps=15 format=4 uid="uid://cgi3a5fi0sxu6"]
 
 [ext_resource type="Script" uid="uid://nft3v52nfsps" path="res://scenes/props/Chest.cs" id="1_3h5at"]
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="2_fidv6"]
 [ext_resource type="PackedScene" uid="uid://dekj8iq2d1qp5" path="res://scenes/components/interactive_component.tscn" id="3_p08mt"]
 [ext_resource type="PackedScene" uid="uid://dud0hid1mwmdw" path="res://scenes/components/loot_table_component.tscn" id="4_loot_comp"]
 [ext_resource type="Resource" uid="uid://clootchest0001" path="res://scenes/items/loot/loot_chest_common.tres" id="5_loot_table"]
+
+[ext_resource type="Script" uid="uid://c2wpig74i81r4" path="res://scenes/components/OcclusionXrayComponent.cs" id="xray_script"]
+
+[ext_resource type="Shader" path="res://scenes/props/door_xray.gdshader" id="door_xray_shader"]
+
+[sub_resource type="ShaderMaterial" id="ChestXrayMaterial"]
+render_priority = 8
+shader = ExtResource("door_xray_shader")
+shader_parameter/xray_color = Color(1, 0.72, 0.3, 0.85)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hy3g6"]
 resource_name = "texture"
@@ -78,8 +87,9 @@ shadow_mesh = SubResource("ArrayMesh_wuvpp")
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_ioc10"]
 points = PackedVector3Array(-0.605012, 0.0249606, -0.6, -0.650117, -2.38419e-07, -0.575001, -0.8, -2.38419e-07, -0.500004, -0.605012, 0.49998, -0.6, 0.604855, 0.0249606, -0.6, 0.649961, -2.38419e-07, -0.575001, -0.8, -2.38419e-07, 0.499955, -0.8, 0.6, -0.500004, -0.650117, 0.525, -0.575001, 0.604855, 0.49998, -0.6, 0.8, -2.38419e-07, -0.500004, -0.8, 0.6, 0.499955, -0.650117, -2.38419e-07, 0.574952, -0.605012, 0.0249606, 0.599951, -0.546594, 0.119988, 0.63434, 0.8, 0.6, -0.500004, 0.649961, 0.525, -0.575001, 0.8, -2.38419e-07, 0.499955, -0.605012, 0.49998, 0.599951, -0.650117, 0.525, 0.574952, 0.8, 0.6, 0.499955, 0.649961, -2.38419e-07, 0.574952, -0.500078, 0.073414, 0.63434, -0.500078, 0.119988, 0.645802, 0.604855, 0.0249606, 0.599951, 0.546437, 0.119988, 0.63434, 0.604855, 0.49998, 0.599951, 0.649961, 0.525, 0.574952, 0.499922, 0.073414, 0.63434, 0.499922, 0.119988, 0.645802)
 
-[node name="Chest" type="Node3D" groups=["prop"]]
+[node name="Chest" type="Node3D" node_paths=PackedStringArray("Xray") groups=["prop"]]
 script = ExtResource("1_3h5at")
+Xray = NodePath("OcclusionXrayComponent")
 
 [node name="chest" type="MeshInstance3D" parent="."]
 layers = 16
@@ -103,3 +113,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 
 [node name="LootTableComponent" parent="." instance=ExtResource("4_loot_comp")]
 Table = ExtResource("5_loot_table")
+
+[node name="OcclusionXrayComponent" type="Node" parent="."]
+script = ExtResource("xray_script")
+TargetRoot = NodePath("../chest")
+XrayColor = Color(1, 0.72, 0.3, 0.85)
+Category = 1
+OcclusionMaterial = SubResource("ChestXrayMaterial")

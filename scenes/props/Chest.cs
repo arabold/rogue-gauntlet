@@ -16,6 +16,9 @@ public partial class Chest : Node3D
 		}
 	} = false;
 
+	/// <summary>Golden occlusion indicator for an unopened chest; optional when authoring other chest variants.</summary>
+	[Export] public OcclusionXrayComponent Xray { get; set; }
+
 	private const float OpenRotationDegrees = -45f;
 	private const float AnimationDuration = 0.5f;
 
@@ -44,6 +47,7 @@ public partial class Chest : Node3D
 
 	private void Update()
 	{
+		if (!Engine.IsEditorHint() && Xray != null) Xray.IsEnabled = !IsOpen;
 		if (_chestLid == null)
 			return;
 		_chestLid.RotationDegrees = new Vector3(IsOpen ? OpenRotationDegrees : 0, 0, 0);
@@ -57,6 +61,7 @@ public partial class Chest : Node3D
 		_isAnimating = true;
 		_interactiveComponent.IsInteractive = false;
 		IsOpen = true;
+		if (Xray != null) Xray.IsEnabled = false;
 		// Commit the reward with opening, rather than after the animation: a save
 		// during the tween must not restore an empty opened chest.
 		_lootTableComponent?.DropLoot();
