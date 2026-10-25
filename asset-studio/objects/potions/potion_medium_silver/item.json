@@ -52,6 +52,11 @@
       155,
       90,
       69
+    ],
+    "liquid": [
+      212,
+      219,
+      222
     ]
   },
   "materials": {
@@ -86,6 +91,13 @@
       "metallic": 0,
       "roughness": 1,
       "crease": 60
+    },
+    "liquid": {
+      "metallic": 0,
+      "roughness": 0.2,
+      "crease": 60,
+      "alpha": 0.72,
+      "double_sided": true
     }
   },
   "color_mode": "character",
@@ -101,7 +113,9 @@
       "steel": "metal_steel",
       "wood": "cork_wood"
     },
-    "repair": "boundaries"
+    "repair": "boundaries",
+    "paint": "potion_liquid",
+    "potion_size": "medium"
   },
   "crease": 50
 }

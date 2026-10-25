@@ -1,11 +1,48 @@
 {
   "key": "potions/potion_large_magenta",
-  "inputs": "1a8432aaefd88f727d87e3c41912ce04adec66ad25ed75de56f5021a21a4d596",
+  "inputs": "5323507e7ac617793217e6ff4a4d231f8120ec93dbb47a7e0811b3ffd946d368",
   "files": {
-    "potion_large_magenta.glb": "207172d0f15a5a0ad523c7f98f668fc10330a29994cbc6ee75a1a7106562463d",
-    "lineup.png": "ce6abdec73303c36cd2c66e9ee5ff4e7d32d727704236be525674624fdc6b5ed"
+    "potion_large_magenta.glb": "999014533c1b91c410622d82ebd025e0a202aa235034d4d2d38f690420ff5731",
+    "lineup.png": "1f99d9c136c4410043a7413f70988d61b1a3d378bd59eacf1568fc519e4d6e88"
   },
   "metadata": {
+    "report": {
+      "triangles": 336,
+      "bounds": [
+        [
+          -0.36000001430511475,
+          0.0,
+          -0.36000001430511475
+        ],
+        [
+          0.36000001430511475,
+          1.1200000047683716,
+          0.36000001430511475
+        ]
+      ],
+      "dimensions": [
+        0.7200000286102295,
+        1.1200000047683716,
+        0.7200000286102295
+      ],
+      "materials": 4,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2562596458579084
+      },
+      "warnings": [],
+      "errors": []
+    },
     "recipe": {
       "version": 1,
       "name": "Potion Large Magenta",
@@ -85,6 +122,11 @@
           218,
           174,
           125
+        ],
+        "liquid": [
+          164,
+          26,
+          90
         ]
       },
       "materials": {
@@ -150,6 +192,13 @@
           "metallic": 0,
           "roughness": 1,
           "crease": 60
+        },
+        "liquid": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.72,
+          "double_sided": true
         }
       },
       "color_mode": "character",
@@ -170,47 +219,11 @@
           "blue_steel": "glass_blue_steel",
           "tan": "cork_tan"
         },
-        "repair": "boundaries"
+        "repair": "boundaries",
+        "paint": "potion_liquid",
+        "potion_size": "large"
       },
       "crease": 50
-    },
-    "report": {
-      "triangles": 336,
-      "bounds": [
-        [
-          -0.36000001430511475,
-          0.0,
-          -0.36000001430511475
-        ],
-        [
-          0.36000001430511475,
-          1.1200000047683716,
-          0.36000001430511475
-        ]
-      ],
-      "dimensions": [
-        0.7200000286102295,
-        1.1200000047683716,
-        0.7200000286102295
-      ],
-      "materials": 4,
-      "textures": [
-        [
-          256,
-          256
-        ]
-      ],
-      "topology": {
-        "components": 1,
-        "boundary_edges": 0,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.2562596458579084
-      },
-      "warnings": [],
-      "errors": []
     }
-  },
-  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+  }
 }

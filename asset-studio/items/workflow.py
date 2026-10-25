@@ -53,7 +53,8 @@ SCHEMA = {
         "surface": {"type": "object", "additionalProperties": False, "required": ["palette"],
                     "properties": {"palette": {"enum": ["studio_grid"]}, "slots": {"type": "object"},
                                    "repair": {"enum": ["boundaries"]},
-                                   "paint": {"enum": ["scroll_ink"]},
+                                   "paint": {"enum": ["scroll_ink", "potion_liquid"]},
+                                   "potion_size": {"enum": ["small", "medium", "large"]},
                                    "carve": {"enum": ["cheese_holes"]}}},
         "topology": {"enum": ["closed_assembly", "closed_surface", "authored_assembly"]},
         "crease": {"type": "number", "minimum": 0, "maximum": 180},
@@ -251,8 +252,12 @@ class Item:
                 from core.export import export_static
                 piece, colors = palette_piece(source, PALETTE, data["surface"].get("slots"))
                 if data["surface"].get("paint"):
-                    from items.surface_marks import scroll_ink
-                    piece, report = scroll_ink(piece)
+                    if data["surface"]["paint"] == "potion_liquid":
+                        from items.source_surface import potion_liquid
+                        piece, report = potion_liquid(piece, data["surface"].get("potion_size"))
+                    else:
+                        from items.surface_marks import scroll_ink
+                        piece, report = scroll_ink(piece)
                     save(self.built.parent / "surface-marks.json", report)
                 if data["surface"].get("repair"):
                     from items.source_repair import repair
@@ -403,7 +408,7 @@ class Item:
                               STUDIO / "items/align.py", STUDIO / "core/export.py", STUDIO / "core/mesh.py"])
                 if data["surface"].get("repair"):
                     paths.append(STUDIO / "items/source_repair.py")
-                if data["surface"].get("paint"):
+                if data["surface"].get("paint") == "scroll_ink":
                     paths.extend([STUDIO / "items/surface_marks.py", STUDIO / "items/solid.py"])
                 if data["surface"].get("carve"):
                     paths.extend([STUDIO / "items/cheese.py", STUDIO / "items/solid.py"])

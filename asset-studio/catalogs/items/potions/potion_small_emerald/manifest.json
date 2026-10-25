@@ -1,11 +1,48 @@
 {
   "key": "potions/potion_small_emerald",
-  "inputs": "82775cc31b55906024376760129463723616d1c232f9683d40e0e80eac560f00",
+  "inputs": "7a74708886af4f08ad04df7f2a5516e5bdedc35c9bbc4419cd1c0130e1833a7c",
   "files": {
-    "potion_small_emerald.glb": "f349687d8ad564a0879f752c668241a69ee7d3e3aa0dcda5c4d6ffb39391ab45",
-    "lineup.png": "058ef58cd4648c6187f57d81d40ed0e2d09fe623fe9fbdc09345b3db2367fe39"
+    "potion_small_emerald.glb": "54f77328a50e2c2ed095d59c5eea8efbd0cbce9b20ef88774fa50e9f4069a2df",
+    "lineup.png": "5fe88ddff6657154cf5c1a3b731e3c05c59cc6be93ba60f53a38b14ac23fb322"
   },
   "metadata": {
+    "report": {
+      "triangles": 224,
+      "bounds": [
+        [
+          -0.10999999940395355,
+          0.0,
+          -0.10999999940395355
+        ],
+        [
+          0.10999999940395355,
+          0.5400000214576721,
+          0.10999999940395355
+        ]
+      ],
+      "dimensions": [
+        0.2199999988079071,
+        0.5400000214576721,
+        0.2199999988079071
+      ],
+      "materials": 4,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.01697939711313407
+      },
+      "warnings": [],
+      "errors": []
+    },
     "recipe": {
       "version": 1,
       "name": "Potion Small Emerald",
@@ -70,6 +107,11 @@
           218,
           174,
           125
+        ],
+        "liquid": [
+          82,
+          170,
+          72
         ]
       },
       "materials": {
@@ -120,6 +162,13 @@
           "metallic": 0,
           "roughness": 1,
           "crease": 60
+        },
+        "liquid": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.72,
+          "double_sided": true
         }
       },
       "color_mode": "character",
@@ -137,47 +186,11 @@
           "wood": "cork_wood",
           "tan": "cork_tan"
         },
-        "repair": "boundaries"
+        "repair": "boundaries",
+        "paint": "potion_liquid",
+        "potion_size": "small"
       },
       "crease": 50
-    },
-    "report": {
-      "triangles": 224,
-      "bounds": [
-        [
-          -0.10999999940395355,
-          0.0,
-          -0.10999999940395355
-        ],
-        [
-          0.10999999940395355,
-          0.5400000214576721,
-          0.10999999940395355
-        ]
-      ],
-      "dimensions": [
-        0.2199999988079071,
-        0.5400000214576721,
-        0.2199999988079071
-      ],
-      "materials": 4,
-      "textures": [
-        [
-          256,
-          256
-        ]
-      ],
-      "topology": {
-        "components": 1,
-        "boundary_edges": 0,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.01697939711313407
-      },
-      "warnings": [],
-      "errors": []
     }
-  },
-  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+  }
 }

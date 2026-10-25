@@ -1,11 +1,48 @@
 {
   "key": "potions/potion_medium_teal",
-  "inputs": "2532b2f11924e71a047db38e7ffe7a47aaba7bfacf9d41baea2cf8f7f76a6bcc",
+  "inputs": "90fe47df84c29ac29472a3bb5d54c62af49c55b8592ad258bfe3a45b9c496a1a",
   "files": {
-    "potion_medium_teal.glb": "6c57f993f5decd87e6b82569426c9184c7e18b0ac2e3cc72fe7ed708901cd823",
-    "lineup.png": "61e185bb6023357a645657800849306d9effa1039543aeb0f077a9de2aaa5587"
+    "potion_medium_teal.glb": "472b88fd0dbdd7a14794d3210e8c3583da1e72b628388f95c30f018f4874ee74",
+    "lineup.png": "5c2bf65b5dd03421710e29aeb1b1fb2e444ce917073bca486620117bb9438581"
   },
   "metadata": {
+    "report": {
+      "triangles": 288,
+      "bounds": [
+        [
+          -0.23999999463558197,
+          0.0,
+          -0.23999999463558197
+        ],
+        [
+          0.23999999463558197,
+          0.8799999952316284,
+          0.23999999463558197
+        ]
+      ],
+      "dimensions": [
+        0.47999998927116394,
+        0.8799999952316284,
+        0.47999998927116394
+      ],
+      "materials": 4,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.11353062084926878
+      },
+      "warnings": [],
+      "errors": []
+    },
     "recipe": {
       "version": 1,
       "name": "Potion Medium Teal",
@@ -75,6 +112,11 @@
           155,
           90,
           69
+        ],
+        "liquid": [
+          56,
+          163,
+          141
         ]
       },
       "materials": {
@@ -130,6 +172,13 @@
           "metallic": 0,
           "roughness": 1,
           "crease": 60
+        },
+        "liquid": {
+          "metallic": 0,
+          "roughness": 0.2,
+          "crease": 60,
+          "alpha": 0.72,
+          "double_sided": true
         }
       },
       "color_mode": "character",
@@ -148,47 +197,11 @@
           "silver": "metal_silver",
           "wood": "cork_wood"
         },
-        "repair": "boundaries"
+        "repair": "boundaries",
+        "paint": "potion_liquid",
+        "potion_size": "medium"
       },
       "crease": 50
-    },
-    "report": {
-      "triangles": 288,
-      "bounds": [
-        [
-          -0.23999999463558197,
-          0.0,
-          -0.23999999463558197
-        ],
-        [
-          0.23999999463558197,
-          0.8799999952316284,
-          0.23999999463558197
-        ]
-      ],
-      "dimensions": [
-        0.47999998927116394,
-        0.8799999952316284,
-        0.47999998927116394
-      ],
-      "materials": 4,
-      "textures": [
-        [
-          256,
-          256
-        ]
-      ],
-      "topology": {
-        "components": 1,
-        "boundary_edges": 0,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.11353062084926878
-      },
-      "warnings": [],
-      "errors": []
     }
-  },
-  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+  }
 }

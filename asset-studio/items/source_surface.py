@@ -7,6 +7,36 @@ from core import kit, mesh
 from items import align, model
 
 
+def potion_liquid(piece, size):
+    """Unify liquid regions in the preserved octagonal bottle layouts.
+
+    Source swatches are also used by labels, straps and collars, so color identity
+    alone cannot distinguish liquid. Use the authored profile and label facets;
+    leave every triangle and all non-liquid slots untouched.
+    """
+    heights = {"small": .54, "medium": .68, "large": .84}
+    if size not in heights:
+        raise ValueError(f"Unknown preserved potion size: {size}")
+    triangles = piece.verts[piece.faces]
+    low, high = piece.verts[:, 1].min(), piece.verts[:, 1].max()
+    y = (triangles[:, :, 1].mean(axis=1) - low) / (high - low) * heights[size]
+    if size == "small":
+        liquid = y < .365
+    elif size == "large":
+        liquid = ((y > .045) & (y < .215)) | ((y > .345) & (y < .590))
+    else:
+        centers = triangles.mean(axis=1)
+        facet = (np.rint(np.arctan2(-centers[:, 2], centers[:, 0]) / (np.pi / 4)).astype(int) - 1) % 8
+        label = (y > .115) & (y < .364) & np.isin(facet, [4, 5, 6])
+        rune = (y > .225) & (y < .255) & (facet == 5)
+        liquid = (y < .480) & (~label | rune)
+    if not np.any(liquid):
+        raise ValueError("Preserved potion contains no liquid faces")
+    slots = piece.slots.copy()
+    slots[liquid] = "liquid"
+    return kit.Piece(piece.verts, piece.faces, slots), {"liquid_triangles": int(liquid.sum()), "size": size}
+
+
 def palette_piece(source, palette, slots=None):
     """Read the verified studio 8×4 palette; arbitrary textures require authored regions."""
     p, f, _ = model.geometry(source)

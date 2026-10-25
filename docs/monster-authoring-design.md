@@ -1,6 +1,6 @@
 # Monster design and authoring
 
-The active roster is Skeleton Minion, Skeleton Warrior, Skeleton Crossbowman, Plague Rat and Forsaken Warden. See the [catalog](monster-catalog/README.md) for definitions and the [level system](level-design.md#first-realm-encounter-prototype) for encounter integration. The priority remains enjoyable depths 1–3; later realm order and additional monsters are provisional.
+The active roster is Skeleton Minion, Skeleton Warrior, Skeleton Crossbowman, Plague Rat and Forsaken Warden. See the [gameplay monster catalog](monster-catalog/README.md) for definitions, the [Asset Studio character catalog](../asset-studio/catalogs/characters/README.md) for published art and previews, and the [level system](level-design.md#first-realm-encounter-prototype) for encounter integration. The priority remains enjoyable depths 1–3; later realm order and additional monsters are provisional.
 
 ## Authoring ownership
 

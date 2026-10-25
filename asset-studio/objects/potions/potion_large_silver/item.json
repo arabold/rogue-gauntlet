@@ -67,6 +67,11 @@
       218,
       174,
       125
+    ],
+    "liquid": [
+      212,
+      219,
+      222
     ]
   },
   "materials": {
@@ -116,6 +121,13 @@
       "metallic": 0,
       "roughness": 1,
       "crease": 60
+    },
+    "liquid": {
+      "metallic": 0,
+      "roughness": 0.2,
+      "crease": 60,
+      "alpha": 0.72,
+      "double_sided": true
     }
   },
   "color_mode": "character",
@@ -134,7 +146,9 @@
       "ivory": "paper_ivory",
       "tan": "cork_tan"
     },
-    "repair": "boundaries"
+    "repair": "boundaries",
+    "paint": "potion_liquid",
+    "potion_size": "large"
   },
   "crease": 50
 }

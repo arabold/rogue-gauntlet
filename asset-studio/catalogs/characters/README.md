@@ -4,6 +4,7 @@ Selected current previews; new review renders go to OS temporary storage.
 
 - [beasts/wolf](beasts/wolf/lineup.png) · [motion](beasts/wolf/lineup.gif) · [GLB](beasts/wolf/model.glb)
 - [beasts/rat](beasts/rat/lineup.png) · [motion](beasts/rat/lineup.gif) · [GLB](beasts/rat/model.glb)
+- [bosses/forsaken_warden](bosses/forsaken_warden/lineup.png) · [motion](bosses/forsaken_warden/lineup.gif) · [GLB](bosses/forsaken_warden/model.glb)
 - [demon/imp](demon/imp/lineup.png)
 - [goblin/goblin](goblin/goblin/lineup.png)
 - [golem/stone_golem](golem/stone_golem/lineup.png) · [motion](golem/stone_golem/lineup.gif) · [GLB](golem/stone_golem/model.glb)

@@ -54,8 +54,8 @@ Completed plans are consolidated into current-system documents. The [roadmap](de
 - [Debug harnesses](../scenes/debug/README.md): room, combat, item and effects entry points.
 - [Arrangement authoring](../scenes/levels/arrangements/README.md): editable furnishings, Inspector settings, room-generator commands and room/floor harness.
 
-- [Gameplay item catalog](item-catalog/README.md) and [monster catalog](monster-catalog/README.md): references for authored gameplay content; catalog counts and images may lag recent asset work.
-- [Asset Studio](../asset-studio/README.md), its [architecture and export boundary](../asset-studio/ARCHITECTURE.md), and its [item visual catalog](../asset-studio/catalogs/items/README.md): visual authoring and published models. A published model does not imply completed gameplay behavior.
+- [Gameplay item catalog](item-catalog.md) and [monster catalog](monster-catalog/README.md): references for authored gameplay content. Use the Asset Studio catalogs below for published models and previews.
+- [Asset Studio](../asset-studio/README.md), its [architecture and export boundary](../asset-studio/ARCHITECTURE.md), [item visual catalog](../asset-studio/catalogs/items/README.md), and [character visual catalog](../asset-studio/catalogs/characters/README.md): visual authoring and published models. A published model does not imply completed gameplay behavior.
 
 ## Organization rules
 

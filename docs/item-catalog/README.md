@@ -130,20 +130,11 @@ Scroll effects that aren't stat buffs are authored `ScrollEffect` strategies (id
 
 ## Jewelry
 
-Rings and amulets carry a hidden identity like potions/scrolls, and show only a disguised name ("a red wooden amulet") until worn or identified. In play they show their run appearance model from the Asset Studio rings and amulets; the images below are the definitions' fallback models.
+Rings and amulets carry a hidden identity like potions/scrolls, and show only a disguised name ("a red wooden amulet") until worn or identified. In play they show their run appearance model from the Asset Studio rings and amulets. See the [current jewelry visual catalog](../../asset-studio/catalogs/items/jewelry.png) and [individual lineups](../../asset-studio/catalogs/items/README.md#jewelry) for their appearances; the amulet images below show the definitions' fallback models.
 
 ### Rings
 
-| | Ring | Effect | TypeId | Value |
-|---|---|---|---|---|
-| ![Ring of Lethargy](./ring_lethargy.png) | **Ring of Lethargy** ⚠️ | -15% Speed | `ring.lethargy` | 40 |
-| ![Ring of Frailty](./ring_frailty.png) | **Ring of Frailty** ⚠️ | -15 MaxHealth | `ring.frailty` | 40 |
-| ![Ring of Strength](./ring_strength.png) | **Ring of Strength** | +2 Strength | `ring.strength` | 150 |
-| ![Ring of the Mind](./ring_mind.png) | **Ring of the Mind** | +2 Intelligence | `ring.mind` | 150 |
-| ![Ring of Dexterity](./ring_dexterity.png) | **Ring of Dexterity** | +2 Dexterity | `ring.dexterity` | 150 |
-| ![Ring of Vitality](./ring_vitality.png) | **Ring of Vitality** | +2 Vitality | `ring.vitality` | 150 |
-| ![Ring of Protection](./ring_protection.png) | **Ring of Protection** | +4 Armor | `ring.protection` | 160 |
-| ![Ring of Savagery](./ring_savagery.png) | **Ring of Savagery** | +2 MinDamage, +3 MaxDamage | `ring.savagery` | 180 |
+Current ring definitions and hidden families are listed in the [gameplay item catalog](../item-catalog.md#jewelry-31). Use the [Asset Studio jewelry catalog](../../asset-studio/catalogs/items/README.md#jewelry) for models and previews.
 
 ### Amulets
 
@@ -161,4 +152,4 @@ Rings and amulets carry a hidden identity like potions/scrolls, and show only a 
 |---|---|---|
 | ![Gold](./gold.png) | **Gold** | Stackable; drop quantity scales with dungeon depth via `LootTableItem.QuantityPerDepth` |
 
-> 37 weapons, 15 shields, 8 scrolls, 10 rings, 4 amulets, and gold are pictured here; potions have no fixed image (see above) and are listed in [the item catalog](../item-catalog.md) (excludes class-starter weapons, which aren't part of the loot ladder). Regenerate images after adding/removing items — see the command in `render_item_catalog.gd`'s header comment.
+> Weapon, shield, scroll, amulet fallback and currency previews are pictured here. Current gameplay definitions are listed in [the item catalog](../item-catalog.md); current ring and potion models are shown in the [Asset Studio visual catalog](../../asset-studio/catalogs/items/README.md).

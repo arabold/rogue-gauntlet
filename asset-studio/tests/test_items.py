@@ -621,6 +621,30 @@ class ItemWorkflowTest(unittest.TestCase):
         item.export(no_import=True)
         self.assertTrue(item.destination(data).exists())
 
+    def test_potion_liquid_preserves_labels_harnesses_and_collars_for_every_tint(self):
+        from items.source_surface import palette_piece, potion_liquid
+        originals = workflow.STUDIO / "objects/potions"
+        for size in ["small", "medium", "large"]:
+            reference = originals / f"potion_{size}_crimson"
+            data = json.loads((reference / "item.json").read_text())
+            piece, _ = palette_piece(reference / "source.glb", workflow.PALETTE, data["surface"]["slots"])
+            # Crimson's three source swatches are unique to liquid, providing an
+            # independent oracle even when other tints share swatches with hardware.
+            expected = np.isin(piece.slots, ["glass_magenta", "glass_crimson", "glass_rose"])
+            for folder in sorted(originals.glob(f"potion_{size}_*")):
+                with self.subTest(potion=folder.name):
+                    data = json.loads((folder / "item.json").read_text())
+                    source, _ = palette_piece(folder / "source.glb", workflow.PALETTE, data["surface"]["slots"])
+                    painted, report = potion_liquid(source, size)
+                    np.testing.assert_array_equal(painted.verts, source.verts)
+                    np.testing.assert_array_equal(painted.faces, source.faces)
+                    np.testing.assert_array_equal(painted.slots == "liquid", expected)
+                    np.testing.assert_array_equal(painted.slots[~expected], source.slots[~expected])
+                    self.assertEqual(report["liquid_triangles"], int(expected.sum()))
+                    self.assertEqual(data["surface"]["paint"], "potion_liquid")
+                    self.assertIn("liquid", data["colors"])
+                    self.assertEqual(data["materials"]["liquid"]["metallic"], 0)
+
     def test_surface_conversion_rejects_unknown_color_encoding(self):
         from items.source_surface import palette_piece
         p, f, _ = model.geometry(self.source)
