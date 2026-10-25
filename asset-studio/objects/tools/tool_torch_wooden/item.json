@@ -4,7 +4,12 @@
   "backend": "source",
   "placement": {
     "pivot": "authored",
-    "scale": 1
+    "scale": 1,
+    "rotation_degrees": [
+      0,
+      0,
+      -90
+    ]
   },
   "budget": {
     "triangles": 2400,

@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/items/tools/lamp/tool_torch_iron.tscn" id="model"]
+[ext_resource type="PackedScene" path="res://scenes/effects/fire.tscn" id="fire"]
+
+[node name="HeldLight" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("model")]
+
+[node name="Light" type="OmniLight3D" parent="."]
+position = Vector3(0.75, -0, 0)
+light_color = Color(1, 0.82, 0.59, 1)
+light_energy = 1.0
+light_specular = 0.0
+shadow_enabled = true
+shadow_caster_mask = 4294967291
+omni_range = 25.0
+omni_attenuation = 0.7
+
+[node name="Flame" parent="." instance=ExtResource("fire")]
+rotation_degrees = Vector3(0, 0, -90)
+position = Vector3(0.75, -0, 0)
+scale = Vector3(0.18, 0.18, 0.18)

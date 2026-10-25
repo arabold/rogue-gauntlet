@@ -174,15 +174,16 @@ public partial class BoneAttachmentManager : Node
 		}
 	}
 
-	private void AddAttachment(AttachmentType attachmentType, EquipableItem item)
+	private void AddAttachment(AttachmentType attachmentType, EquipableItem item, EquipmentSlot slot)
 	{
 		if (item?.Scene == null)
 		{
 			return;
 		}
 
-		var boneAttachment = item is Weapon { Grip: not null } weapon
-			? GetWeaponMount(attachmentType, weapon.Grip) : GetOrCreateBoneAttachment(attachmentType);
+		WeaponGrip grip = item is PortableLightItem light ? light.GripFor(slot) : (item as Weapon)?.Grip;
+		var boneAttachment = grip != null
+			? GetWeaponMount(attachmentType, grip) : GetOrCreateBoneAttachment(attachmentType);
 		if (boneAttachment != null)
 		{
 			RemoveAttachments(attachmentType);
@@ -198,12 +199,13 @@ public partial class BoneAttachmentManager : Node
 			}
 
 			GD.Print($"Adding attachment {item.Name} to {attachmentType}");
-			var itemAttachment = ItemIdentity.ResolveScene(item).Instantiate<Node>();
+			var scene = item is PortableLightItem portableLight ? portableLight.HeldScene : ItemIdentity.ResolveScene(item);
+			var itemAttachment = scene.Instantiate<Node>();
 			itemAttachment.SetMeta(EquippedMetaKey, true);
 			ApplyRenderLayers(itemAttachment, CharacterModel.PlayerRenderLayers);
-			if (item is Weapon { Grip: not null } equippedWeapon)
+			if (grip != null)
 			{
-				var adapter = new Node3D { Name = "Grip", Transform = equippedWeapon.Grip.Transform };
+				var adapter = new Node3D { Name = "Grip", Transform = grip.Transform };
 				adapter.SetMeta(EquippedMetaKey, true);
 				adapter.AddChild(itemAttachment);
 				boneAttachment.AddChild(adapter);
@@ -228,9 +230,13 @@ public partial class BoneAttachmentManager : Node
 		}
 	}
 
-	private AttachmentType GetAttachmentType(EquipableItem item)
+	private AttachmentType GetAttachmentType(EquipableItem item, EquipmentSlot slot)
 	{
 		AttachmentType attachmentType = AttachmentType.Item;
+		if (item is PortableLightItem)
+		{
+			return slot == EquipmentSlot.ShieldHand ? AttachmentType.OffhandWeapon : AttachmentType.OneHandedWeapon;
+		}
 		if (item is Weapon weapon)
 		{
 			if (weapon.IsTwoHanded)
@@ -266,19 +272,19 @@ public partial class BoneAttachmentManager : Node
 
 	private void OnItemEquipped(EquipableItem item, EquipmentSlot slot)
 	{
-		var attachmentType = GetAttachmentType(item);
+		var attachmentType = GetAttachmentType(item, slot);
 		if (attachmentType == AttachmentType.Item)
 		{
 			// We don't need to show items on the character
 			return;
 		}
 
-		AddAttachment(attachmentType, item);
+		AddAttachment(attachmentType, item, slot);
 	}
 
 	private void OnItemUnequipped(EquipableItem item, EquipmentSlot slot)
 	{
-		var attachmentType = GetAttachmentType(item);
+		var attachmentType = GetAttachmentType(item, slot);
 		RemoveAttachments(attachmentType);
 	}
 }

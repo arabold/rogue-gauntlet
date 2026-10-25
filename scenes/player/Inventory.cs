@@ -214,16 +214,11 @@ public partial class Inventory : Resource
 		}
 		else
 		{
-			// Try to find an empty slot to equip the item
-			EquipmentSlot equipSlot = (EquipmentSlot)(validSlots & -validSlots); // Get lowest set bit as default
-			for (int i = 1; i <= (int)EquipmentSlot.Arrows; i <<= 1)
-			{
-				if ((validSlots & i) != 0 && EquippedItems[(EquipmentSlot)i] == null)
-				{
-					equipSlot = (EquipmentSlot)i;
-					break;
-				}
-			}
+			// Lights prefer the shield hand, preserving a one-handed weapon when both hands are occupied.
+			EquipmentSlot[] candidates = item is PortableLightItem
+				? new[] { EquipmentSlot.ShieldHand, EquipmentSlot.WeaponHand }.Where(slot => (validSlots & (int)slot) != 0).ToArray()
+				: Enum.GetValues<EquipmentSlot>().Where(slot => (validSlots & (int)slot) != 0).ToArray();
+			EquipmentSlot equipSlot = candidates.FirstOrDefault(slot => EquippedItems[slot] == null, candidates[0]);
 			Equip(itemSlot, equipSlot);
 		}
 	}
@@ -235,6 +230,12 @@ public partial class Inventory : Resource
 		if ((validSlots & (int)equipSlot) == 0)
 		{
 			GD.PrintErr($"{item.Name} cannot be equipped in {equipSlot}");
+			return;
+		}
+
+		if (item is PortableLightItem light && (light.HeldScene == null || light.GripFor(equipSlot) == null))
+		{
+			GD.PushError($"{item.Name}: assign HeldScene and the selected hand's grip before equipping.");
 			return;
 		}
 

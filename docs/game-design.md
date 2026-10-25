@@ -92,7 +92,13 @@ Realm bosses initially gate descent through visible magical stair seals that lif
 
 Seeded generation recreates initial room choices, encounters, connections, access assignments, secrets, and source loot. Separate RNG streams isolate unrelated generation, gameplay and cosmetics. Save player-caused differences rather than full floor copies. Reproduction applies to the same build/content; historical seed compatibility is excluded during development. See [Randomness and Seeds](randomness-and-seeds.md) for current guarantees and limits, including supported actor reset behavior.
 
-Proposed darkness and portable lighting should affect exploration or perception enough to justify carrying fuel. Fog of war represents discovered space; illumination represents current visibility. Their exact relationship, and whether enemies respond to carried light, remain to be designed.
+### Dark floors and portable lighting (planned)
+
+Darkness is a property of the generated level, determined by its existing level seed alongside the layout; it needs no separate seed. Floors before depth 4 are never dark. From depth 4 onward, the initial tuning proposal is a 20% chance per floor. Across the intended 24-depth run this averages 4.2 dark floors, aiming for roughly 3–5 per playthrough without guaranteeing that count. Revisits and save/load preserve the floor's generated darkness.
+
+Dark floors have no ambient light or environmental illumination: all torches and other light fixtures are extinguished. The player's small innate light provides baseline visibility. A lit torch or lamp carried in either hand increases illumination around the player; storing it in inventory provides no light. A weapon and lamp can be carried together, but the lamp occupies a hand that could otherwise hold a shield. Using a lamp therefore requires putting the shield in inventory, and a two-handed weapon cannot be used together with a lamp or torch.
+
+Fog-of-war reveal works identically on normal and dark floors. Revealing a room removes its exploration cover but does not illuminate it; on dark floors, revealed geometry remains dark outside the player's light. No additional darkness reveal system is needed. Light radius, fuel pacing, and whether enemies respond to carried light remain open tuning/design decisions.
 
 [Level design](level-design.md) describes the current generator and its limitations; the [implementation plan](specs/level-progression-prototype-plan.md) describes remaining engineering work.
 
@@ -108,7 +114,7 @@ Every item has an authored definition, a particular instance when state is neede
 | Potions | Immediate tactical effects | Consume; discover hidden identities through supported identification rules |
 | Scrolls | Situational solutions | Read for an effect, sometimes selecting a target |
 | Rings and amulets | Passive specialization and discovery | Equip for benefits or drawbacks; use the identification system |
-| Lamps and torches | Portable illumination | Activate or extinguish; consume fuel while active |
+| Lamps and torches | Portable illumination | Hold lit in either hand to extend player light; competes with shields and two-handed weapons; activate or extinguish, consume fuel while active |
 | Keys | Access to matching locks | Explicit matching scope; initially reusable, with consumption deferred |
 | Tools | Alternative ways to interact with the dungeon | Start with lockpicks; add other tools alongside the world interactions they require |
 | Currency | Purchasing decisions | Collect, spend, and receive through trade |
@@ -203,7 +209,7 @@ Crafting, complex survival simulation, broad tool combinations, elaborate mercha
 | Backpack capacity and upgrades | Implemented 20-entry backpack; food/equipment individual; larger packs later | Upgrade integration |
 | Capacity accounting and stack limits | Equipped entries count; currency stays in stats; potion/scroll caps are 20; upgrade size remains open | Backpack upgrade design |
 | Crowd encounter scale and pacing | Mix tactical fights with occasional overwhelming groups; counts and performance targets open | Encounter balancing |
-| Lighting, fuel pacing, and equipment occupancy | One useful portable light; exact visibility and hand/slot rules open | Lighting integration |
+| Lighting and fuel pacing | Seeded dark floors from depth 4, proposed 20% chance; either-hand lights compete with shields/two-handed weapons; light radius, fuel pacing and enemy response open | Lighting integration |
 | Armor tradeoffs and visual coverage | Small set with readable differences | Armor integration |
 | Keys and lockpicks | Optional mechanical locks; matching keys or timed picking with a reusable tool; duration and later resource costs need tuning | Lock integration |
 | Merchant knowledge, prices, and frequency | Persistent finite stock scaled by depth | Shop integration |

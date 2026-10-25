@@ -44,6 +44,14 @@ Source tables own depth bounds, quantities and category budgets. Items do not in
 
 See the [catalog](item-catalog.md#source-budgets-and-eligibility) and the source `.tres` files for actual eligibility and weights. Monster threat and item tier are selection/tuning concepts, not automatic depth-based stat scaling.
 
+## Portable-light equipment
+
+Six `PortableLightItem` definitions provide held illumination. Each explicitly assigns a `HeldScene` and `WeaponHandGrip`/`ShieldHandGrip` adapters; its ordinary `Scene` remains the unlit pickup/inventory model. The attachment manager instances the held scene only while equipped, so removing, dropping or displacing a light removes its model, flame and illumination together. The level darkness flag affects environmental fixtures, not held lights.
+
+The inventory menu offers left (shield) and right (weapon) hands. Automatic equip prefers an empty hand, checking the shield hand first; when both hands are occupied it replaces the shield. A light displaces that hand's occupant, and a shield-hand light also displaces a two-handed weapon. Equipping a two-handed weapon removes either held light. Displaced gear stays in the backpack. Current-version saves preserve the item identity and hand assignment; restoring equipment recreates the held light.
+
+Lights currently illuminate whenever equipped, with no fuel consumption or manual ignition. They are available in the debug spawn menu but excluded from normal loot and quality rolls pending supply and fuel design. Asset Studio recipes export these models with their tops pointing upward in idle and walking poses, so their model wrappers need no extra rotation. The right hand reuses the existing melee grip; the left-hand adapter accounts for its mirrored socket. Light and flame placements follow the authored model rotation.
+
 ## Item ownership, food, and persistence
 
 Authored definitions remain shared and immutable. Every runtime individual or homogeneous stack owns its Resource, definition provenance and instance identity. Equipment references inventory entries rather than a second copy. Whole-item transfers preserve identity; splitting creates another record, and merging retires the source record.

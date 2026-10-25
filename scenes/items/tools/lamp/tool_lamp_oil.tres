@@ -1,7 +1,11 @@
-[gd_resource type="Resource" script_class="Item" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="PortableLightItem" load_steps=6 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/items/tools/lamp/tool_lamp_oil.tscn" id="1_scene"]
-[ext_resource type="Script" path="res://scenes/items/Item.cs" id="2_script"]
+[ext_resource type="Script" path="res://scenes/items/PortableLightItem.cs" id="2_script"]
+
+[ext_resource type="PackedScene" path="res://scenes/items/tools/lamp/held/tool_lamp_oil_held.tscn" id="held"]
+[ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="right_grip"]
+[ext_resource type="Resource" path="res://scenes/items/grips/portable_light_left.tres" id="left_grip"]
 
 [resource]
 script = ExtResource("2_script")
@@ -10,6 +14,10 @@ Scene = ExtResource("1_scene")
 Quality = 1.0
 Value = 105
 ShowInInventory = true
+ValidSlots = 768
+HeldScene = ExtResource("held")
+WeaponHandGrip = ExtResource("right_grip")
+ShieldHandGrip = ExtResource("left_grip")
 IsStackable = false
 IsQuestItem = false
 metadata/_custom_type_script = ExtResource("2_script")

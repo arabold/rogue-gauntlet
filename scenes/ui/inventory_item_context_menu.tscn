@@ -43,6 +43,13 @@ layout_mode = 2
 text = "Equip"
 alignment = 0
 
+[node name="EquipOtherHandButton" type="Button" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Equip in right hand"
+alignment = 0
+
 [node name="UnequipButton" type="Button" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2

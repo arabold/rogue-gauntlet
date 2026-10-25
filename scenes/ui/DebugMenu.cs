@@ -18,6 +18,7 @@ public partial class DebugMenu : HBoxContainer
 	private const int ToggleDoorXrayId = 9;
 	private const int ToggleMonsterXrayId = 10;
 	private const int ToggleLootXrayId = 11;
+	private const int ToggleDarkLevelId = 12;
 
 	/// <summary>
 	/// Category label to res:// folder the "Spawn item" submenu is built from. Every
@@ -36,7 +37,11 @@ public partial class DebugMenu : HBoxContainer
 		{ "Food", "res://scenes/items/food/food/" },
 		{ "Drinks", "res://scenes/items/food/drink/" },
 		{ "Gold", "res://scenes/items/gold/" },
+		{ "Lamps and torches", "res://scenes/items/tools/lamp/" },
 	};
+
+	/// <summary>Gameplay floor controlled by this menu, explicitly wired by the containing scene.</summary>
+	[Export] public Level ActiveLevel { get; set; }
 
 	private readonly List<Item> _spawnableItems = [];
 
@@ -94,6 +99,8 @@ public partial class DebugMenu : HBoxContainer
 		_debugMenu.AddCheckItem("Door x-ray", ToggleDoorXrayId);
 		_debugMenu.AddCheckItem("Monster x-ray", ToggleMonsterXrayId);
 		_debugMenu.AddCheckItem("Loot x-ray", ToggleLootXrayId);
+		_debugMenu.AddCheckItem("Dark level", ToggleDarkLevelId);
+		_debugMenu.AboutToPopup += RefreshDarkLevel;
 		_debugMenu.AddItem("Reveal map", RevealMapId);
 		_debugMenu.AddItem("Restart level", RestartLevelId);
 		_debugMenu.AddSeparator();
@@ -210,6 +217,11 @@ public partial class DebugMenu : HBoxContainer
 				SetChecked(ToggleLootXrayId, GameDebug.LootXrayEnabled);
 				SignalBus.EmitXraySettingsChanged();
 				break;
+			case ToggleDarkLevelId:
+				var level = GetLevel();
+				level?.SetDark(!level.IsDark);
+				RefreshDarkLevel();
+				break;
 			case RevealMapId:
 				RevealMap();
 				break;
@@ -317,6 +329,14 @@ public partial class DebugMenu : HBoxContainer
 		}
 	}
 
+	/// <summary>Read the active level on opening so the checkbox follows level changes and external overrides.</summary>
+	private void RefreshDarkLevel()
+	{
+		var level = GetLevel();
+		_debugMenu.SetItemDisabled(_debugMenu.GetItemIndex(ToggleDarkLevelId), level == null);
+		SetChecked(ToggleDarkLevelId, level?.IsDark == true);
+	}
+
 	private void RevealMap()
 	{
 		GetLevel()?.MapGenerator?.RevealAllFog();
@@ -366,7 +386,7 @@ public partial class DebugMenu : HBoxContainer
 
 	private Level GetLevel()
 	{
-		return this.GetAncestorOrNull<Level>() ?? GetTree().CurrentScene?.GetNodeOrNull<Level>("Level");
+		return ActiveLevel ?? this.GetAncestorOrNull<Level>() ?? GetTree().CurrentScene?.GetNodeOrNull<Level>("Level");
 	}
 
 	private void UpdateFpsLabel()

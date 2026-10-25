@@ -277,6 +277,19 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | --- | --- | --- |
 | [Gold](../scenes/items/gold/gold.tres) | `currency` | 1+ |
 
+## Portable lights
+
+All six lights are `PortableLightItem` definitions available through **Debug → Spawn item → Lamps and torches**. Their inventory menus offer either hand; equipping attaches a lit model, and unequipping or dropping removes the illumination. They are excluded from normal loot and quality rolls for now. Fuel and manual ignition remain deferred. See [portable-light equipment](stats-and-itemization.md#portable-light-equipment).
+
+| Definition | Behavior |
+| --- | --- |
+| [Candelabrum of Invocation](../scenes/items/tools/lamp/tool_candelabrum.tres) | One-hand portable illumination |
+| [Tallow Candle Holder](../scenes/items/tools/lamp/tool_candle_tallow.tres) | One-hand portable illumination |
+| [Brass Oil Lamp](../scenes/items/tools/lamp/tool_lamp_oil.tres) | One-hand portable illumination |
+| [Brass Dungeon Lantern](../scenes/items/tools/lamp/tool_lantern_brass.tres) | One-hand portable illumination |
+| [Iron Brazier Torch](../scenes/items/tools/lamp/tool_torch_iron.tres) | One-hand portable illumination |
+| [Wooden Pitch Torch](../scenes/items/tools/lamp/tool_torch_wooden.tres) | One-hand portable illumination |
+
 ## Deferred definitions
 
 These remain valid inventory definitions and can be inspected/spawned deliberately, but are
@@ -285,12 +298,6 @@ capability until the required mechanic exists; tools are plain `Item` Resources.
 
 | Definition | Missing mechanic |
 | --- | --- |
-| [Candelabrum of Invocation](../scenes/items/tools/lamp/tool_candelabrum.tres) | Dark levels, light activation, and equipment/consumption rules |
-| [Tallow Candle Holder](../scenes/items/tools/lamp/tool_candle_tallow.tres) | Dark levels, light activation, and equipment/consumption rules |
-| [Brass Oil Lamp](../scenes/items/tools/lamp/tool_lamp_oil.tres) | Dark levels, light activation, and equipment/consumption rules |
-| [Brass Dungeon Lantern](../scenes/items/tools/lamp/tool_lantern_brass.tres) | Dark levels, light activation, and equipment/consumption rules |
-| [Iron Brazier Torch](../scenes/items/tools/lamp/tool_torch_iron.tres) | Dark levels, light activation, and equipment/consumption rules |
-| [Wooden Pitch Torch](../scenes/items/tools/lamp/tool_torch_wooden.tres) | Dark levels, light activation, and equipment/consumption rules |
 | [Silver Ritual Bell](../scenes/items/tools/tool/tool_bell_silver.tres) | Noise/attention interaction and use rules |
 | [Iron Grappling Hook](../scenes/items/tools/tool/tool_grappling_hook.tres) | Traversal anchors and movement action |
 | [Brass Tooled Horn](../scenes/items/tools/tool/tool_horn_bugle.tres) | Noise/attention interaction and use rules |

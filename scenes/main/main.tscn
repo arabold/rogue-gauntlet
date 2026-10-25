@@ -27,12 +27,16 @@ GameCamera = NodePath("Camera3D")
 
 [node name="HUD" parent="." unique_id=2078119296 instance=ExtResource("3_stuk7")]
 
+[node name="DebugMenu" parent="HUD" index="2" node_paths=PackedStringArray("ActiveLevel")]
+ActiveLevel = NodePath("../../Level")
+
 [node name="ScreenEffects" parent="." instance=ExtResource("10_effects")]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=51815958]
 environment = SubResource("Environment_cxo8v")
 
-[node name="Level" parent="." unique_id=1654143163 instance=ExtResource("5_nxjfc")]
+[node name="Level" parent="." unique_id=1654143163 node_paths=PackedStringArray("LightingEnvironment") instance=ExtResource("5_nxjfc")]
+LightingEnvironment = NodePath("../WorldEnvironment")
 AutoGenerateOnReady = false
 
 [node name="MapGenerator" parent="Level" index="0"]
@@ -74,3 +78,4 @@ unique_name_in_owner = true
 visible = false
 
 [editable path="Level"]
+[editable path="HUD"]

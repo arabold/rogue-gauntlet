@@ -269,12 +269,18 @@ public partial class PlayerInventoryController : Node
 	}
 
 	/// <summary>Equipment callbacks run under the same save/transfer guard as consumables.</summary>
-	public ItemOperationResult TryEquip(InventoryItemSlot source)
+	public ItemOperationResult TryEquip(InventoryItemSlot source, EquipmentSlot? targetSlot = null)
 	{
 		if (IsCommittingItemOperation) { return Report(ItemFailure.Busy); }
 		if (!Inventory.Items.Contains(source) || source.Item is not EquipableItem) { return Report(ItemFailure.NotOwned); }
 		IsCommittingItemOperation = true;
-		try { using var update = Inventory.DeferChanges(); Inventory.Equip(source); return Report(ItemFailure.None); }
+		try
+		{
+			using var update = Inventory.DeferChanges();
+			if (targetSlot.HasValue) { Inventory.Equip(source, targetSlot.Value); }
+			else { Inventory.Equip(source); }
+			return Report(ItemFailure.None);
+		}
 		finally { IsCommittingItemOperation = false; }
 	}
 

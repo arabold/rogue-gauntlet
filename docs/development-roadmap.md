@@ -42,6 +42,8 @@ Dedicated weapon inputs, four item quick slots, ordinary timed interactions and 
 
 After the first-three-floor loop is satisfactory, build one fire-magic slice with shared targeting, learning, selection and mana before completing four elemental trees. Portable lighting/fuel, wearable armor integration, backpack upgrades and tool interactions should each add an observable choice. Model exports alone do not implement these capabilities. Reward usefulness, supply rates and visual presentation still need tuning.
 
+[Dark floors and portable lighting](game-design.md#dark-floors-and-portable-lighting-planned) make visibility an equipment choice. The debug darkness override and six either-hand portable lights are implemented, including shield/two-handed conflicts and equipment restoration through current-version save/load. Seeded dark-floor selection, normal loot supply, fuel and manual ignition remain planned. Acceptance for automatic darkness must cover reproducible floors on revisits/save-load, extinguished environmental lighting and zero ambient light, unchanged fog-of-war reveal and baseline player light. Frequency, light radius and fuel pacing need playtesting.
+
 ## Later delivery
 
 - **Message feed:** the [logging proposal](specs/logging-plan.md) remains separate from existing combat traces.

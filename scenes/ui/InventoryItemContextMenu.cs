@@ -19,6 +19,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 	private Button _dropButton;
 	private Button _equipButton;
 	private Button _unequipButton;
+	private Button _equipOtherHandButton;
 	private Button _splitButton;
 	private Button _mergeButton;
 
@@ -44,6 +45,12 @@ public partial class InventoryItemContextMenu : PopupPanel
 		_dropButton.ButtonUp += () => DropItem(_inventory, _slot);
 		_equipButton = GetNode<Button>("%EquipButton");
 		_equipButton.ButtonUp += () => EquipItem(_inventory, _slot);
+		_equipOtherHandButton = GetNode<Button>("%EquipOtherHandButton");
+		_equipOtherHandButton.ButtonUp += () =>
+		{
+			ShowResult(_player?.InventoryController.TryEquip(_slot, EquipmentSlot.WeaponHand));
+			Hide();
+		};
 		_unequipButton = GetNode<Button>("%UnequipButton");
 		_unequipButton.ButtonUp += () => UnequipItem(_inventory, _slot);
 		_splitButton = GetNode<Button>("%SplitButton");
@@ -85,9 +92,13 @@ public partial class InventoryItemContextMenu : PopupPanel
 		_mergeButton.Visible = slot.Item.CanStack;
 		_mergeButton.Disabled = FindMergeTarget() == null;
 
+		bool portableLight = slot.Item is PortableLightItem;
+		_equipButton.Text = portableLight ? "Equip in left hand" : "Equip";
+		_equipOtherHandButton.Visible = portableLight && inventory.EquippedItems[EquipmentSlot.WeaponHand] != slot;
+
 		if (inventory.IsEquipped(slot))
 		{
-			_equipButton.Visible = false;
+			_equipButton.Visible = portableLight && inventory.EquippedItems[EquipmentSlot.ShieldHand] != slot;
 			_unequipButton.Visible = true;
 			_dropButton.Disabled = true;
 		}
@@ -139,7 +150,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 	{
 		if (slot.Item is EquipableItem)
 		{
-			ShowResult(_player?.InventoryController.TryEquip(slot));
+			ShowResult(_player?.InventoryController.TryEquip(slot, slot.Item is PortableLightItem ? EquipmentSlot.ShieldHand : null));
 		}
 		else
 		{

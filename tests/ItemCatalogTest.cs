@@ -59,7 +59,7 @@ public class ItemCatalogTest
 				AssertBool(consumable.Buff != null || consumable is Scroll { Effect: not null }).IsTrue();
 				if (definition is not FoodItem) { AssertInt(definition.MaxStackSize).IsEqual(20); }
 			}
-			if (Deferred(definition)) { AssertBool(definition is EquipableItem).IsFalse(); }
+			if (Deferred(definition) && definition is not PortableLightItem) { AssertBool(definition is EquipableItem).IsFalse(); }
 		}
 	}
 

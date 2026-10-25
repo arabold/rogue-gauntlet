@@ -420,9 +420,11 @@ layers = 4
 [node name="FlickerLight" parent="Pivot" instance=ExtResource("3_3qxnv")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 1)
 shadow_caster_mask = 4294966527
-omni_range = 25.0
-omni_attenuation = 0.25
+omni_range = 12.5
+omni_attenuation = 1.0
 noiseTexture = SubResource("NoiseTexture2D_rio2h")
+Min = 0.125
+Max = 0.5
 
 [node name="ObjectHighlight" type="OmniLight3D" parent="Pivot"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)
@@ -430,8 +432,9 @@ layers = 256
 light_specular = 0.0
 light_bake_mode = 0
 light_cull_mask = 4294966504
-omni_range = 30.0
-omni_attenuation = 0.0
+light_energy = 0.5
+omni_range = 15.0
+omni_attenuation = 1.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

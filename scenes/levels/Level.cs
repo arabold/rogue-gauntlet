@@ -5,6 +5,26 @@ public partial class Level : Node
 {
 	[Export] public bool AutoGenerateOnReady { get; set; } = true;
 
+	/// <summary>Optional scene environment whose ambient illumination follows this floor's darkness.</summary>
+	[Export] public WorldEnvironment LightingEnvironment { get; set; }
+	[Signal] public delegate void DarknessChangedEventHandler(bool isDark);
+	/// <summary>Current floor illumination override; debug changes last for this level instance only.</summary>
+	public bool IsDark { get; private set; }
+	private float _normalAmbientEnergy;
+	private Environment _lightingEnvironment;
+
+	/// <summary>Extinguishes environmental fixtures and ambient light without changing exploration or player lights.</summary>
+	public void SetDark(bool isDark)
+	{
+		if (IsDark == isDark) { return; }
+		IsDark = isDark;
+		if (_lightingEnvironment != null)
+		{
+			_lightingEnvironment.AmbientLightEnergy = isDark ? 0f : _normalAmbientEnergy;
+		}
+		EmitSignal(SignalName.DarknessChanged, isDark);
+	}
+
 	public MapGenerator MapGenerator { get; private set; }
 	public LevelItemPersistence ItemPersistence { get; private set; }
 	private Node _runtimeWorldRoot;
@@ -33,6 +53,14 @@ public partial class Level : Node
 			return;
 		}
 
+		if (LightingEnvironment?.Environment != null)
+		{
+			// Own the runtime copy so a debug override cannot mutate the shared scene definition.
+			_lightingEnvironment = (Environment)LightingEnvironment.Environment.Duplicate();
+			_normalAmbientEnergy = _lightingEnvironment.AmbientLightEnergy;
+			LightingEnvironment.Environment = _lightingEnvironment;
+			_lightingEnvironment.AmbientLightEnergy = IsDark ? 0f : _normalAmbientEnergy;
+		}
 		_runtimeWorldRoot = GetOrCreateRuntimeWorldRoot();
 		ItemPersistence = GetNodeOrNull<LevelItemPersistence>("ItemPersistence");
 		if (ItemPersistence == null)
