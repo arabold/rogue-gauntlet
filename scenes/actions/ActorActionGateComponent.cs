@@ -206,9 +206,10 @@ public partial class ActorActionGateComponent : Node
 		// Item use: committed channel denies voluntary cancellation
 		if (currentKind == ActorActionKind.ItemUse) return false;
 
-		// Attack wind-up: dodge/guard may cancel; interaction, another attack and item use are denied
+		// Dodge can also cancel recovery; active contact remains committed and cannot be undone.
 		if (currentKind == ActorActionKind.PrimaryAttack || currentKind == ActorActionKind.SecondaryTechnique)
 		{
+			if (currentPhase == ActorActionPhase.Recovery && newKind == ActorActionKind.Dodge) return true;
 			if (currentPhase == ActorActionPhase.WindUp)
 			{
 				return newKind == ActorActionKind.Dodge || newKind == ActorActionKind.Guard;

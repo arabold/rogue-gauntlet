@@ -3,7 +3,7 @@ using Godot;
 /// <summary>
 /// The main player character.
 /// </summary>
-public partial class Player : CharacterBody3D, IDamageable, IStaggerable
+public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable
 {
 	[Export] public PlayerStats Stats { get; protected set; }
 	[Export] public Inventory Inventory { get; protected set; }
@@ -220,12 +220,10 @@ public partial class Player : CharacterBody3D, IDamageable, IStaggerable
 		return InventoryController.PickupItem(item, quantity);
 	}
 
-	/// <summary>
-	/// Implement the `IDamageable` interface, so the player can take damage
-	/// when attacked or walking into a trap.
-	///
-	/// The amount of damage is taking the armor into account.
-	/// </summary>
+	/// <summary>Preserve contact identity and defense eligibility when physics hits the body or one of its child colliders.</summary>
+	public DamageResolution ResolveDamage(in DamageContext contact) => HurtBoxComponent.ResolveDamage(in contact);
+
+	/// <summary>Forward untyped damage, such as a trap contact, through armor and health resolution.</summary>
 	public void TakeDamage(float amount, Vector3 attackDirection, Node attacker = null, DamageSourceFlags attackerFaction = DamageSourceFlags.None)
 	{
 		// Forward the damage to the HurtBoxComponent which handles

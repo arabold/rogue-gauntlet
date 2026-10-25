@@ -16,7 +16,11 @@ Attack style is independent of handedness and damage delivery. A weapon requests
 
 Preparation validates the definition, animation and local dependencies before acceptance. Playback, contact/projectile release and recovery use one gameplay clock. A cancelled wind-up cannot release a projectile later. Invalid mappings reject the action rather than silently choosing another clip. Profile edits affect the next accepted attack.
 
+An animation binding can assign an optional `WindUpClip`. It plays during preparation up to the normalized contact start, then the main `Clip` plays from its beginning through the remaining action. The crossbow skeleton uses `1H_Ranged_Aiming` through tracking and aim commitment, switching to `1H_Ranged_Shoot` when the projectile releases. Both clips are validated and captured on acceptance; this presentation does not change shot timing or aim locking.
+
 Grip adapters and visual wrappers preserve attachment axes. Verify equipped items on the actual rig, not only in a floating catalog preview. Runtime grip edits require re-equipping; imported clip-track edits during playback are unsupported. Bow animation support exists, but active bow gameplay remains unfinished.
+
+The skeleton crossbowman and projectile-monster template mount their crossbow on `handslot.r`, with the same authored transform as `kaykit_crossbow.tres`. The raw crossbow's barrel follows local +Z; the aiming pose must align that axis with the target once the weapon is raised and aim locks. Do not reuse a blade's wrist attachment/offset for a crossbow. Tests check these fixed scene mounts against the player grip and sample the actual aiming pose during the locked interval.
 
 ## Reliable melee contact
 

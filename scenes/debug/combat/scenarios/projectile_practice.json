@@ -1,0 +1,13 @@
+[
+  { "Frame": 0, "Command": "spawn_distance", "Value": 6 },
+  { "Frame": 1, "Command": "spawn", "Value": 3 },
+  { "Frame": 2, "Command": "automation", "Value": 1 },
+  { "Frame": 42, "Command": "move", "X": 1 },
+  { "Frame": 43, "Command": "dodge" },
+  { "Frame": 75, "Command": "move" },
+  { "Frame": 100, "Command": "position_player" },
+  { "Frame": 129, "Command": "move", "X": -1 },
+  { "Frame": 130, "Command": "dodge" },
+  { "Frame": 165, "Command": "move" },
+  { "Frame": 190, "Command": "automation", "Value": 0 }
+]

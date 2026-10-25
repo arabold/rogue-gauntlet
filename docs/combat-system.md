@@ -4,7 +4,7 @@ Implemented rules for players and monsters. See [weapon attacks](weapon-attack-s
 
 ## Action ownership
 
-Each actor can own one committed action: attack, dodge, guard, item use, interaction or forced reaction. Rejected requests change nothing. Dodge or guard can replace attack startup, but cannot interrupt active contact or recovery. Committed item use prevents voluntary replacement. Stagger interrupts voluntary actions; death cancels and disables them. Ordinary movement remains separate but obeys the current action's restrictions.
+Each actor can own one committed action: attack, dodge, guard, item use, interaction or forced reaction. Rejected requests change nothing. Dodge or guard can replace attack startup; dodge can also replace attack recovery. Active contact remains committed. Committed item use prevents voluntary replacement. Stagger interrupts voluntary actions; death cancels and disables them. Ordinary movement remains separate but obeys the current action's restrictions.
 
 The executor owns its timing and releases ownership on completion or interruption. Movement and animation follow that same commitment; stale callbacks cannot complete an old action or cancel a newer one. Shared authored Resources are definitions. Accepted actions snapshot their settings so live edits cannot change an action halfway through.
 
@@ -12,15 +12,25 @@ The executor owns its timing and releases ownership on completion or interruptio
 
 Dodge combines physical displacement with an authored immunity interval, recovery and cooldown. Collision may stop displacement without extending immunity. AI must also find a supported, clear destination before dodging.
 
+The player snapshots current steering for dodge direction; with no steering, they backstep relative to facing. External motion never supplies steering. Dodge interrupts turning and holds the facing angle reached at acceptance, choosing its forward/backward/sidestep animation relative to that angle. Movement starts immediately in the requested direction; held steering resumes turning from the preserved angle after recovery. The player dodge travels 2.4 units over 0.15 seconds, protects against eligible weapon/projectile contact throughout travel, and has 0.02 seconds of recovery with a 0.6-second cooldown from acceptance. The directional dodge animation follows the same shorter travel clock for a quick hop. Hazards and environmental damage bypass dodge, including existing damage-over-time effects; elemental projectiles remain eligible attacks. These values are initial playtest tuning.
+
 Guard commits to a frontal facing and progresses through raising, held protection and release recovery. Its optional opening parry window is single-use. Shields take precedence over an eligible one-handed weapon, then innate guard; two-handed weapons suppress the offhand source. A shield visual alone grants no protection. Rebinding equipment cancels guard while retaining defensive cooldowns.
 
 Guard pressure can prolong a response within its maximum hold. Normal release finishes the current reaction and recovery before an enemy may riposte. A riposte uses the actor's ordinary attack, rechecking range, sight and availability. It grants no extra action or immunity.
 
 Presentation is explicitly assigned in the actor scene. Attacks, defenses and stagger share one pose owner and gameplay clock. Missing required clips make the capability unavailable rather than silently selecting unrelated animations.
 
+## Projectile warnings
+
+Crossbowmen show a subdued dashed aiming guide during preparation. It becomes wider, solid and arrow-tipped with a short sound when aim locks, 0.3 seconds before release. The shot uses that captured origin and direction even if the player moves afterward. Release, interruption and target death remove the warning; an interrupted preparation cannot fire later. Walls suppress the guide.
+
+`AttackDefinition.ProjectileAimLockDuration` opts single/spread shots into this behavior; zero retains release-time aiming. The attack executor owns tracking and commitment independently of effects/debug toggles. Assign its optional `AimIndicator` explicitly to the reusable `projectile_aim_indicator.tscn`; the crossbowman and projectile template are prewired, and monster validation flags missing warning assignments for locked shots. The indicator draws the trajectory and plays its assigned sound without choosing targets or applying damage. Radial and area-drop patterns require different warning shapes and do not accept this setting.
+
 ## Contact resolution
 
 Confirmed contact resolves faction/death filtering, eligible active defense, debug immunity, armor and health. There is **no passive evasion or accuracy contest**. Dexterity currently contributes critical chance, not an invisible defense roll. Physical movement can avoid contact; timed dodge/parry can reject eligible contact; guard reduces damage before armor.
+
+Player and enemy facades forward complete `ICombatDamageable` contacts to their authored hurtboxes. Body or child-collider contact must retain attack identity, delivery kind and defense eligibility, just like a direct hurtbox contact. Non-damageable detection areas (interaction, pickup or stairs) are ignored by projectile contact and splash queries; their parent actor does not make them combat surfaces.
 
 Dodged/parried contacts suppress ordinary damage and hit stun. Blocks report final chip damage without ordinary knockback. Positive unprotected damage interrupts committed actions before knockback. Parry interrupts only the source execution it actually intercepted. Each swing resolves once per defender, including a defended contact; projectile splash cannot hit its directly resolved target a second time.
 

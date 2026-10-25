@@ -153,6 +153,90 @@ public class AttackAnimationTest
 	}
 
 	[TestCase]
+	public async Task CrossbowAimsThroughCommitmentThenShootsAtReleaseAndCancelsCleanly()
+	{
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		await runner.SimulateFrames(3);
+		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
+		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		await runner.SimulateFrames(2);
+		var shooter = harness.Monster;
+		var controller = shooter.AttackController;
+		var player = shooter.GetNode<AnimationPlayer>("Pivot/Skeleton_Minion/AnimationPlayer");
+		var tree = shooter.GetNode<AnimationTree>("EnemyBehaviorComponent/AnimationTree");
+		AssertBool(shooter.EnemyBehaviorComponent.TryAttack()).IsTrue();
+		controller.SetPhysicsProcess(false);
+		AssertString(player.AssignedAnimation).IsEqual("1H_Ranged_Aiming");
+		AssertBool(tree.Active).IsFalse();
+		controller._PhysicsProcess(.35);
+		AssertBool(controller.IsProjectileAimLocked).IsTrue();
+		AssertString(player.AssignedAnimation).IsEqual("1H_Ranged_Aiming");
+		controller._PhysicsProcess(.3);
+		AssertString(player.AssignedAnimation).IsEqual("1H_Ranged_Shoot");
+		var shots = runner.Scene().GetChildren().OfType<Projectile>().Where(p => p.Attacker == shooter).ToArray();
+		AssertInt(shots.Length).IsEqual(1);
+		controller.CancelAttack();
+		AssertBool(tree.Active).IsTrue();
+		foreach (var shot in shots) ScenePool.Despawn(shot);
+		shooter.EnemyBehaviorComponent.SetAction(EnemyAction.None);
+		AssertBool(shooter.EnemyBehaviorComponent.TryAttack()).IsTrue();
+		controller.SetPhysicsProcess(false);
+		controller._PhysicsProcess(.1);
+		controller.CancelAttack();
+		controller._PhysicsProcess(1);
+		AssertBool(tree.Active).IsTrue();
+		AssertInt(runner.Scene().GetChildren().OfType<Projectile>().Count(p => p.Attacker == shooter)).IsEqual(0);
+	}
+
+	[TestCase]
+	public async Task MissingWindUpClipRejectsPreparationBeforeAcquiringTheActionGate()
+	{
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		await runner.SimulateFrames(3);
+		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		var shooter = harness.Monster;
+		var component = shooter.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
+		component.Profile = (AttackAnimationProfile)component.Profile.Duplicate(true);
+		component.Profile.Bindings[0].WindUpClip = "missing_aim";
+		AssertBool(shooter.EnemyBehaviorComponent.TryAttack()).IsFalse();
+		AssertBool(shooter.ActionGate.IsBusy).IsFalse();
+		AssertBool(shooter.AttackController.IsAttacking).IsFalse();
+	}
+
+	[TestCase("res://scenes/enemies/skeleton/skeleton_crossbow.tscn")]
+	[TestCase("res://scenes/enemies/templates/projectile_enemy.tscn")]
+	public async Task SkeletonCrossbowUsesPlayerGripAndPointsAtTargetOnceAimLocks(string path)
+	{
+		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		await runner.SimulateFrames(3);
+		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		harness.Monsters = [GD.Load<PackedScene>(path)];
+		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
+		harness.ExecuteCommand("spawn", 0, Vector3.Zero);
+		await runner.SimulateFrames(2);
+		var shooter = harness.Monster;
+		var mount = shooter.GetNode<BoneAttachment3D>("Pivot/Skeleton_Minion/Rig/Skeleton3D/BoneAttachment3D");
+		var crossbow = mount.GetNode<Node3D>("Skeleton_Crossbow");
+		var grip = GD.Load<WeaponGrip>("res://scenes/items/grips/kaykit_crossbow.tres");
+		AssertString(mount.BoneName).IsEqual(grip.Bone);
+		AssertBool(crossbow.Transform.IsEqualApprox(grip.Transform)).IsTrue();
+		AssertBool(shooter.EnemyBehaviorComponent.TryAttack()).IsTrue();
+		shooter.AttackController.SetPhysicsProcess(false);
+		// The first part of preparation raises the weapon; check barrel alignment throughout the locked interval.
+		foreach (double delta in new[] { .35, .1, .1 })
+		{
+			shooter.AttackController._PhysicsProcess(delta);
+			await runner.SimulateFrames(2); // Let Skeleton3D update the attached visual from the sampled pose.
+			Vector3 targetDirection = harness.Player.GlobalPosition - shooter.GlobalPosition;
+			targetDirection.Y = 0;
+			// Both KayKit crossbow meshes use local +Z along the barrel, independently of actor -Z facing.
+			AssertFloat(crossbow.GlobalBasis.Z.Normalized().Dot(targetDirection.Normalized())).IsGreater(.98f);
+		}
+	}
+
+	[TestCase]
 	public async Task EquipmentSwitchCancelsTheAcceptedSwing()
 	{
 		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);

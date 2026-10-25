@@ -108,7 +108,8 @@ public partial class PlayerInputController : Node
 
 		if (Player.DodgeComponent?.IsDodging == true)
 		{
-			MovementComponent.SetInputDirection(Vector3.Zero);
+			// The dodge override owns travel; keep fresh intent ready for the moment it releases.
+			MovementComponent.SetInputDirection(InputComponent.InputDirection);
 			return;
 		}
 
@@ -167,6 +168,7 @@ public partial class PlayerInputController : Node
 		MovementComponent.SetInputDirection(InputComponent.InputDirection);
 	}
 
+	/// <summary>Use steering intent, never physical velocity; idle input backsteps from facing.</summary>
 	public Vector3 GetDodgeDirection()
 	{
 		Vector3 facing = MovementComponent != null && MovementComponent.LookAtDirection != Vector3.Zero

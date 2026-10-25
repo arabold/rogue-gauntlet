@@ -283,12 +283,16 @@ public partial class CombatIntegrationTest
 			harness.PracticeTarget.Position = new Vector3(5, 0, -5);
 			await PhysicsFrames(runner, 2);
 			harness.Player.MovementComponent.SetInputDirection(Vector3.Right);
+			// Keep a measurable recovery window for this displacement/ownership regression.
+			harness.Player.DodgeComponent.DodgeDef = (DodgeDefinition)harness.Player.DodgeComponent.DodgeDef.Duplicate(true);
+			harness.Player.DodgeComponent.DodgeDef.RecoveryDuration = .1f;
 			Vector3 start = harness.Player.GlobalPosition;
 			AssertBool(harness.RequestHeroDodge(Vector3.Forward)).IsTrue();
-			await PhysicsFrames(runner, 14);
+			int framesIntoRecovery = Mathf.CeilToInt((harness.Player.DodgeComponent.DodgeDef.TravelDuration + .05f) * Engine.PhysicsTicksPerSecond);
+			await PhysicsFrames(runner, framesIntoRecovery);
 			AssertBool(harness.Player.DodgeComponent.IsDodging).IsTrue();
 			AssertFloat(harness.Player.GlobalPosition.X).IsEqualApprox(start.X, .01);
-			AssertFloat(start.Z - harness.Player.GlobalPosition.Z).IsEqualApprox(1.2f, .11);
+			AssertFloat(start.Z - harness.Player.GlobalPosition.Z).IsEqualApprox(harness.Player.DodgeComponent.DodgeDef.Distance, .11);
 			AssertFloat(new Vector2(harness.Player.Velocity.X, harness.Player.Velocity.Z).Length()).IsEqualApprox(0, .01);
 		}
 	}

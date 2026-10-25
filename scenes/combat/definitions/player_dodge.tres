@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DodgeDefinition" format=3 uid="uid://b0hniequ3jca"]
+[gd_resource type="Resource" script_class="DodgeDefinition" load_steps=3 format=3 uid="uid://b0hniequ3jca"]
 
 [ext_resource type="Script" uid="uid://dcnhlp866igcm" path="res://scenes/combat/DodgeDefinition.cs" id="1_dodge"]
 [ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="animation"]
@@ -6,8 +6,8 @@
 [resource]
 script = ExtResource("1_dodge")
 AnimationProfile = ExtResource("animation")
-Distance = 1.2
-TravelDuration = 0.2
-ImmunityEnd = 0.2
-RecoveryDuration = 0.08
+Distance = 2.4
+TravelDuration = 0.15
+ImmunityEnd = 0.15
+RecoveryDuration = 0.02
 CooldownDuration = 0.6

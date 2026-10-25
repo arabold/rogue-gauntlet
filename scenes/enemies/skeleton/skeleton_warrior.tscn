@@ -11,7 +11,7 @@
 [ext_resource type="Script" path="res://scenes/enemies/EnemyDefenseController.cs" id="defense_controller_script"]
 [ext_resource type="Resource" path="res://scenes/combat/definitions/shield_guard.tres" id="shield_guard_def"]
 [ext_resource type="Script" path="res://scenes/combat/DodgeComponent.cs" id="dodge_script"]
-[ext_resource type="Resource" path="res://scenes/combat/definitions/player_dodge.tres" id="dodge_def"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_dodge.tres" id="dodge_def"]
 
 [ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="defense_animation"]
 

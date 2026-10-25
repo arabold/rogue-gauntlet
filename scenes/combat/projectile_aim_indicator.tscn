@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/combat/ProjectileAimIndicator.cs" id="indicator"]
+[ext_resource type="AudioStream" path="res://scenes/combat/audio/aim_lock.wav" id="sound"]
+
+[node name="ProjectileAimIndicator" type="MeshInstance3D" node_paths=PackedStringArray("CommitSound")]
+script = ExtResource("indicator")
+CommitSound = NodePath("CommitSound")
+
+[node name="CommitSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("sound")
+volume_db = -14.0
+max_distance = 24.0

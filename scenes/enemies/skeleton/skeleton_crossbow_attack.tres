@@ -10,6 +10,7 @@ IsRanged = true
 DefenseTraits = 3
 ProjectileScene = ExtResource("projectile")
 ProjectileSpeed = 16.0
+ProjectileAimLockDuration = 0.3
 Range = 20.0
 HitWindowStart = 0.45
 
@@ -19,4 +20,4 @@ Attack = SubResource("shot")
 EngagementDistance = 14.0
 MinDamage = 3.0
 MaxDamage = 6.0
-Duration = 1.0
+Duration = 1.4

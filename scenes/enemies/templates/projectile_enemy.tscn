@@ -1,4 +1,4 @@
-[gd_scene load_steps=56 format=3]
+[gd_scene load_steps=57 format=3]
 
 [ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="b_1_j62no"]
 
@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://c6i0b6qufb14m" path="res://scenes/components/floating_health_bar.tscn" id="b_10_oansv"]
 
 [ext_resource type="Script" path="res://scenes/attacks/AttackController.cs" id="b_11_attack"]
+[ext_resource type="PackedScene" path="res://scenes/combat/projectile_aim_indicator.tscn" id="aim_indicator"]
 
 [ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/attacks/projectile.tscn" id="b_13_projectile"]
 
@@ -225,10 +226,11 @@ Actor = NodePath("..")
 MovementComponent = NodePath("../MovementComponent")
 HealthComponent = NodePath("../HealthComponent")
 
-[node name="AttackController" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "MeleeDetector")]
+[node name="AttackController" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "MeleeDetector", "AimIndicator")]
 script = ExtResource("b_11_attack")
 AnimationComponent = NodePath("../CombatAnimationComponent")
 MeleeDetector = NodePath("../MeleeHitDetector")
+AimIndicator = NodePath("../ProjectileAimIndicator")
 DefaultProjectileScene = ExtResource("b_13_projectile")
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor", "ActionGate") instance=ExtResource("b_4_qc6m8")]
@@ -353,9 +355,8 @@ bones/40/rotation = Quaternion(-0.758253, -1.52737e-07, 0.651961, -1.11759e-08)
 bones/40/scale = Vector3(1, 1, 1)
 
 [node name="BoneAttachment3D" type="BoneAttachment3D" parent="Pivot/Skeleton_Minion/Rig/Skeleton3D" index="0"]
-transform = Transform3D(-0.552931, -0.501906, -0.665099, -0.203457, -0.69273, 0.691902, -0.808005, 0.517893, 0.280916, -0.510857, 0.788296, 0.0597427)
-bone_name = "wrist.r"
-bone_idx = 11
+bone_name = "handslot.r"
+bone_idx = 13
 
 [node name="Skeleton_Blade2" parent="Pivot/Skeleton_Minion/Rig/Skeleton3D/BoneAttachment3D" index="0" instance=ExtResource("m_3_7afn0")]
 visible = false
@@ -405,7 +406,9 @@ shape = SubResource("m_CapsuleShape3D_m4sjw")
 script = ExtResource("m_action_gate_script")
 AnimationComponent = NodePath("../CombatAnimationComponent")
 
+[node name="ProjectileAimIndicator" parent="." instance=ExtResource("aim_indicator")]
+
 [editable path="Pivot/Skeleton_Minion"]
 
 [node name="Skeleton_Crossbow" parent="Pivot/Skeleton_Minion/Rig/Skeleton3D/BoneAttachment3D" instance=ExtResource("crossbow_visual")]
-transform = Transform3D(0.11715, -0.540757, -0.832982, -0.954895, 0.169115, -0.244082, 0.27286, 0.824003, -0.496553, 0.0188615, 0.123601, -0.0437959)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -0.104628, -0.010374, 0)

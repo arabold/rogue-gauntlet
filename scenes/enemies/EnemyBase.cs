@@ -3,7 +3,7 @@ using Godot;
 /// <summary>
 /// Represents an enemy character in the game.
 /// </summary>
-public partial class EnemyBase : CharacterBody3D, IDamageable, IStaggerable
+public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable
 {
 	public Node3D Pivot;
 	public CollisionShape3D CollisionShape;
@@ -100,6 +100,10 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, IStaggerable
 		Visible = true;
 		SetPhysicsProcess(false);
 	}
+
+	/// <summary>Forward complete contacts through the authored hurtbox even when a child collider was hit first.</summary>
+	public DamageResolution ResolveDamage(in DamageContext contact) => HurtBoxComponent != null
+		? HurtBoxComponent.ResolveDamage(in contact) : new DamageResolution(DamageOutcome.Filtered, 0);
 
 	public void TakeDamage(float amount, Vector3 attackDirection, Node attacker = null, DamageSourceFlags attackerFaction = DamageSourceFlags.None)
 	{

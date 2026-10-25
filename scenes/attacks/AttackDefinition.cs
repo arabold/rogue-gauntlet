@@ -11,6 +11,7 @@ public enum ProjectilePattern
 /// <summary>
 /// Defines designer-authored data and timing for a specific attack (melee, ranged, or special).
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class AttackDefinition : Resource
 {
@@ -84,6 +85,9 @@ public partial class AttackDefinition : Resource
 	/// Speed of the spawned projectile (ranged only).
 	/// </summary>
 	[Export] public float ProjectileSpeed { get; set; } = 15.0f;
+
+	/// <summary>Seconds before release to freeze an aimed single/spread shot. Zero keeps ordinary release-time aiming.</summary>
+	[Export(PropertyHint.Range, "0,2,0.01")] public float ProjectileAimLockDuration { get; set; }
 
 	/// <summary>
 	/// Maximum range of the attack or spawned projectile.

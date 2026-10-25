@@ -25,6 +25,7 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 
 	private float _dodgeElapsed;
 	private Vector3 _dodgeDirection;
+	private Vector3 _dodgeFacing;
 	private float _dodgeSpeed;
 	private ActorActionLease _dodgeLease = ActorActionLease.None;
 
@@ -79,7 +80,8 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 			|| !float.IsFinite(DodgeDef.ImmunityStart) || !float.IsFinite(DodgeDef.ImmunityEnd)
 			|| DodgeDef.ImmunityStart < 0 || DodgeDef.ImmunityEnd < DodgeDef.ImmunityStart || DodgeDef.ImmunityEnd > DodgeDef.TravelDuration)
 			return DefenseRequestResult.InvalidDefinition;
-		if (AnimationComponent != null && !AnimationComponent.HasClip(ChooseDodgeClip())) return DefenseRequestResult.Unavailable;
+		Vector3 facing = MovementComponent?.LookAtDirection ?? (Actor != null ? -Actor.GlobalTransform.Basis.Z : Vector3.Forward);
+		if (AnimationComponent != null && !AnimationComponent.HasClip(ChooseDodgeClip(facing, DodgeDef.AnimationProfile))) return DefenseRequestResult.Unavailable;
 
 		var acquireResult = ActionGate.TryAcquire(
 			ActorActionKind.Dodge,
@@ -96,10 +98,12 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		_dodgeLease = newLease;
 		IsDodging = true;
 		_dodgeElapsed = 0f;
+		_dodgeFacing = facing;
 		_dodgeSpeed = EffectiveDefinition.Distance / Mathf.Max(0.01f, EffectiveDefinition.TravelDuration);
 
 		MovementComponent?.SetInputDirection(Vector3.Zero);
 		MovementComponent?.SetLocomotionOverride(this, _dodgeDirection, _dodgeSpeed);
+		MovementComponent?.SetFixedFacing(this, _dodgeFacing);
 		CooldownRemaining = EffectiveDefinition.CooldownDuration;
 
 		SetPhysicsProcess(true);
@@ -128,7 +132,8 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 
 	public bool TryEvaluate(in DamageContext contact, out DefenseEvaluation evaluation)
 	{
-		if (IsDodging && DodgeDef != null
+		if (contact.DeliveryKind is not (DamageDeliveryKind.Hazard or DamageDeliveryKind.Environmental)
+			&& IsDodging && DodgeDef != null
 			&& _dodgeElapsed >= EffectiveDefinition.ImmunityStart
 			&& _dodgeElapsed < EffectiveDefinition.ImmunityEnd)
 		{
@@ -164,6 +169,8 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 			else if (MovementComponent?.HasOverrideVelocity == true && dt > 0)
 				MovementComponent.SetLocomotionOverride(this, _dodgeDirection,
 					_dodgeSpeed * Mathf.Min(1, (EffectiveDefinition.TravelDuration - previous) / dt));
+			// Fresh steering may queue the next turn, but a sidestep keeps its starting orientation through recovery.
+			MovementComponent?.SetFixedFacing(this, _dodgeFacing);
 
 			if (_dodgeElapsed >= EffectiveDefinition.TravelDuration && ActionGate?.CurrentPhase == ActorActionPhase.Active)
 			{
@@ -230,15 +237,13 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		}
 	}
 
-	private void PlayDodgeAnimation() => AnimationComponent?.BeginPose(this, ChooseDodgeClip(), 0.08f);
+	private void PlayDodgeAnimation() => AnimationComponent?.BeginPose(this, ChooseDodgeClip(_dodgeFacing, EffectiveDefinition.AnimationProfile), 0.08f);
 	private void PlayDodgeExitAnimation(float duration) => AnimationComponent?.BeginPose(this, EffectiveDefinition.AnimationProfile?.RecoveryClip ?? "", duration, true);
 	private void StopDodgeAnimation() => AnimationComponent?.EndPose(this);
 	private void RestoreTreePlayback() => AnimationComponent?.EndPose(this);
-	private StringName ChooseDodgeClip()
+	private StringName ChooseDodgeClip(Vector3 forward, DefenseAnimationProfile profile)
 	{
-		var profile = DodgeDef?.AnimationProfile;
 		if (profile == null) return "";
-		Vector3 forward = MovementComponent?.LookAtDirection ?? Vector3.Forward;
 		Vector3 right = forward.Cross(Vector3.Up);
 		float fwd = _dodgeDirection.Dot(forward), side = _dodgeDirection.Dot(right);
 		return Mathf.Abs(fwd) >= Mathf.Abs(side)

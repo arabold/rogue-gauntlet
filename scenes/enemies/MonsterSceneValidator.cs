@@ -84,6 +84,9 @@ public static class MonsterSceneValidator
 			var matches = bindingList.Where(value => value != null && value.Get("Style").AsString() == style).ToArray();
 			Check(tree != null && matches.Length == 1 && HasClip(matches[0].Get("Clip").AsStringName()),
 				"CombatAnimationComponent: assign a valid attack style/clip and AnimationPlayer/Tree paths.");
+			if (matches.Length == 1 && !string.IsNullOrWhiteSpace(matches[0].Get("WindUpClip").AsString()))
+				Check(HasClip(matches[0].Get("WindUpClip").AsStringName()) && Number(matches[0], "ContactStart") > 0,
+					"CombatAnimationComponent: assign a valid WindUpClip with positive contact start.");
 			if (Object<Script>(policy, "script")?.ResourcePath.EndsWith("/MeleeAttackStrategy.cs") == true)
 			{
 				Check(attack?.Get("IsRanged").AsBool() == false && Object<Resource>(attack, "MeleeContact") != null,
@@ -93,6 +96,17 @@ public static class MonsterSceneValidator
 			if (Object<Script>(policy, "script")?.ResourcePath.EndsWith("/ProjectileAttackStrategy.cs") == true)
 				Check(attack?.Get("IsRanged").AsBool() == true && Object<PackedScene>(attack, "ProjectileScene") != null,
 					"ProjectileAttackStrategy: assign a projectile definition and scene.");
+			float aimLock = attack != null ? Number(attack, "ProjectileAimLockDuration") : 0;
+			Check(Nonnegative(aimLock), "Attack.ProjectileAimLockDuration: must be nonnegative and finite.");
+			if (aimLock > 0)
+			{
+				Check(Local(Object<Node>(controller, "AimIndicator")), "AttackController.AimIndicator: assign this actor's projectile warning.");
+				Check(attack.Get("IsRanged").AsBool() && attack.Get("ProjectilePattern").AsInt32() is 0 or 1,
+					"Attack.ProjectileAimLockDuration: only aimed single/spread shots support locking.");
+				if (matches.Length == 1)
+					Check(aimLock <= Number(policy, "Duration") * Number(matches[0], "ContactStart"),
+						"Attack.ProjectileAimLockDuration: cannot exceed the prepared wind-up.");
+			}
 
 		}
 		var movementPolicy = Object<Resource>(profile, "MovementStrategy");

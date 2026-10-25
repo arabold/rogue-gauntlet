@@ -357,6 +357,9 @@ public partial class Projectile : Node3D, IPooledNode
 			return true;
 		}
 
+		// Detection areas (interaction, pickup, stairs) are not combat surfaces, even on a damageable actor.
+		if (collider is Area3D && collider is not IDamageable) return false;
+
 		HurtBoxComponent childHurtBox = collider.GetNodeOrNull<HurtBoxComponent>("%HurtBoxComponent")
 			?? collider.GetNodeOrNull<HurtBoxComponent>("HurtBoxComponent");
 		if (childHurtBox != null)

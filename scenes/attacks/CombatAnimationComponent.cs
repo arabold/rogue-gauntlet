@@ -31,7 +31,15 @@ public partial class CombatAnimationComponent : Node
 		if (!Resolve() || Profile == null || !Profile.TryGetBinding(style, out var binding) || !HasClip(binding.Clip)) return false;
 		double length = _player.GetAnimation(binding.Clip).Length;
 		if (!double.IsFinite(length) || length <= 0) return false;
-		playback = new AttackPlayback(style, binding.Clip, length, binding.ContactStart, binding.ContactEnd);
+		double windUpLength = 0;
+		if (!string.IsNullOrWhiteSpace(binding.WindUpClip))
+		{
+			if (!HasClip(binding.WindUpClip)) return false;
+			windUpLength = _player.GetAnimation(binding.WindUpClip).Length;
+			if (!double.IsFinite(windUpLength) || windUpLength <= 0) return false;
+		}
+		playback = new AttackPlayback(style, binding.Clip, length, binding.ContactStart, binding.ContactEnd,
+			binding.WindUpClip, windUpLength);
 		return true;
 	}
 
@@ -77,9 +85,28 @@ public partial class CombatAnimationComponent : Node
 
 	public void Begin(AttackPlayback playback)
 	{
-		if (BeginPose(this, playback.Clip)) CurrentStyle = playback.Style;
+		if (BeginPose(this, playback.WindUpClipLength > 0 ? playback.WindUpClip : playback.Clip)) CurrentStyle = playback.Style;
 	}
-	public void Sample(AttackPlayback playback, double progress) => SamplePose(this, Mathf.Clamp(progress, 0, 1) * playback.ClipLength);
+
+	/// <summary>Optional preparation and release clips share the execution clock; switching clips never changes contact timing.</summary>
+	public void Sample(AttackPlayback playback, double progress)
+	{
+		progress = Mathf.Clamp(progress, 0, 1);
+		if (playback.WindUpClipLength <= 0)
+		{
+			SamplePose(this, progress * playback.ClipLength);
+			return;
+		}
+		bool preparing = progress < playback.ContactStart;
+		StringName clip = preparing ? playback.WindUpClip : playback.Clip;
+		// Sampling a stale execution cannot reacquire a pose from dodge, stagger or a newer action.
+		if (!ReferenceEquals(_owner, this)) return;
+		if (_clip != clip) BeginPose(this, clip);
+		double seconds = preparing
+			? progress / playback.ContactStart * playback.WindUpClipLength
+			: (progress - playback.ContactStart) / System.Math.Max(.0001, 1 - playback.ContactStart) * playback.ClipLength;
+		SamplePose(this, seconds);
+	}
 	public void End() => EndPose(this);
 	public override void _ExitTree() { if (_owner != null) EndPose(_owner); }
 }

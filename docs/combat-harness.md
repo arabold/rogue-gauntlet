@@ -4,6 +4,10 @@ Open `scenes/debug/combat/combat_harness.tscn` and run it with F6. The arena use
 
 Checkbox defaults apply immediately on startup and to newly spawned monsters. `--combat-console` also checks the console logging option.
 
+For arrow practice, choose **Skeleton Crossbow**, set **Spawn distance** to 6, spawn it, and select **Repeat attack**. The dashed guide tracks you, then becomes a solid arrow with a short sound before the shot. Move sideways or dodge on commitment; enable **Hero invulnerable (practice)** to learn the timing without dying. Slow motion helps inspect both phases. Protection outcomes still resolve before debug invulnerability.
+
+**Automatic behavior** also supports repeating dodge or guard on monsters that have those capabilities. A guard cycle holds for 0.6 seconds before release. The minimum request interval uses gameplay time; normal cooldowns, action ownership, range and sight still apply. Dodge alternates lateral directions. Manual/reactive mode and Repeat attack retain the existing Defense selector; repeating dodge/guard suspends reactive decisions so the two controllers cannot compete. Changing modes changes future requests and lets accepted actions finish. Unsupported modes report unavailability instead of adding components. Spawn distance affects the next spawn; repeat requests never reposition actors. The arena is deliberately wider for movement practice and still hosts one selected monster at a time.
+
 Hitboxes appear only during an attack’s contact window; use slow motion to inspect them. Hurtboxes remain visible while their toggle is enabled.
 
 The harness replaces the former animation playground. Animation binding tests remain useful, but the scene is now a combat simulation and diagnostics surface.
@@ -26,6 +30,8 @@ python3 scripts/analyze_combat_trace.py /tmp/combat.jsonl --require-complete
 
 The supplied scenario covers melee, parry/stagger, counterattack, held guard/release, dodge, equipment changes and projectiles. It also intentionally requests guard while staggered to capture a rejected action. This is a regression exercise, not a promise that every requested attack will hit: geometry, timing and active defense remain active.
 
+Use `scenes/debug/combat/scenarios/projectile_practice.json` with `--combat-frames=240` for repeated crossbow shots, steering-directed dodges and aim-lock records.
+
 `--combat-console` additionally echoes records with the `COMBAT ` prefix. `--combat-log` accepts an absolute path or `user://` path and creates a fresh file, flushing each entry. The destination directory must exist. Without a path the recorder keeps the most recent 2048 records in memory, exposed as `Recorder.RecentRecordsJson`; a file capture retains the complete run. Inspector `Seed`, `TracePath`, recorder `CaptureFrames` and `EchoToConsole` configure interactive sessions. Console/frame-capture checkboxes are available in the arena. Engine errors remain in the separate Godot log, so retain both files when investigating a failure.
 
 ## Commands
@@ -41,6 +47,8 @@ Scripts are JSON arrays, ordered by `Frame` (physics-frame offset), retaining fi
 | `guard`, `release_guard` | Set or release the hero's held guard intention |
 | `dodge` | `X`, `Z`: direction; zero uses the player's movement/backstep choice |
 | `monster_guard`, `monster_dodge` | `X`, `Z`: facing/direction |
+| `automation` | `Value`: 0 manual/reactive, 1 repeat attack, 2 repeat dodge, 3 repeat guard; unsupported capabilities reject the command |
+| `spawn_distance` | `Value`: distance 1–12 for the next monster spawn |
 | `move` | `X`, `Z`: movement input; zero stops input |
 | `position_player`, `position_monster` | `X`, `Z`: explicit arena placement; height is retained |
 | `reset` | Restore hero/practice-target health and cancel hero commitment; heal a living monster |
@@ -58,6 +66,8 @@ Each line is one JSON object with `schema`, `run`, monotonically increasing `seq
 | `harness.equipped`, `harness.spawned` | Authored weapon/monster path, style and seed |
 | `action.acquired`, `action.phase`, `action.released`, `action.interrupted` | Kind, phase, lease or interruption reason |
 | `attack.started`, `attack.contact`, `attack.ended` | Execution/source, style, contact timing, duration, target, base damage, crit, interruption and contact count |
+| `attack.aim_locked` | Execution, captured origin/direction and time until projectile release |
+| `harness.automatic_action` | Accepted repeated behavior; ordinary executor events describe the resulting action |
 | `defense.decision`, `defense.observed`, `defense.request`, `defense.started`, `defense.riposte` | Policy chances/rolls, source observation, delay/distance, selected defense, accepted timing/sector/chip settings and actual request result; riposte acceptance or rejection reason, current distance and reach |
 | `projectile.spawned`, `projectile.contact`, `projectile.world_impact`, `projectile.expired` | Projectile identity, parent attack identity, owner, origin/direction, speed/range, seed, defensive flags, contact and impact |
 | `damage.resolved` | Source/owner/execution, delivery/eligibility, incoming direction, raw amount, armor and its roll, final outcome, damage and health |

@@ -94,7 +94,7 @@ public class MonsterRosterTest
 		AssertBool(shooter.EnemyBehaviorComponent.TryAttack()).IsTrue();
 		AssertBool(shooter.AttackController.IsRanged).IsTrue();
 		AssertBool(shooter.GetNode<CombatAnimationComponent>("CombatAnimationComponent").TryResolve("melee", out _)).IsFalse();
-		shooter.AttackController._PhysicsProcess(.6);
+		shooter.AttackController._PhysicsProcess(.8);
 		var released = runner.Scene().GetChildren().OfType<Projectile>().Where(projectile => projectile.Attacker == shooter).ToArray();
 		AssertInt(released.Length).IsEqual(1);
 		foreach (var projectile in released) projectile.QueueFree();

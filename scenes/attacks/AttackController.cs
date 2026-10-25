@@ -10,6 +10,7 @@ public partial class AttackController : Node, IParryInterruptible
 	/// <summary>One completion notification per accepted execution, after releasing its action/pose ownership.</summary>
 	public event System.Action<AttackIdentity, bool> AttackFinished;
 	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
+	[Export] public ProjectileAimIndicator AimIndicator { get; set; }
 	public bool IsAttacking => _isAttacking;
 	public double PerformDuration => _preparedAttack?.Duration ?? 0;
 	public StringName CurrentStyle => _preparedAttack?.Playback?.Style ?? "";
@@ -64,6 +65,11 @@ public partial class AttackController : Node, IParryInterruptible
 	public AttackIdentity CurrentExecutionId => new((ulong)GetInstanceId(), _executionSequence);
 
 	private bool _projectileSpawned;
+	private Node3D _projectileAimTarget;
+	private Vector3 _projectileAimOrigin;
+	private Vector3 _projectileAimDirection;
+	private float _projectileAimLength;
+	public bool IsProjectileAimLocked => IsRanged && HasCommittedFacing;
 	private HashSet<Node> _hitTargets = new HashSet<Node>();
 
 	private Node3D _actor;
@@ -115,6 +121,10 @@ public partial class AttackController : Node, IParryInterruptible
 			copy.HitWindowStart = (float)duration * playback.ContactStart;
 			copy.HitWindowEnd = (float)duration * playback.ContactEnd;
 		}
+		if (!float.IsFinite(copy.ProjectileAimLockDuration) || copy.ProjectileAimLockDuration < 0) return false;
+		if (copy.ProjectileAimLockDuration > 0 && (!copy.IsRanged
+			|| copy.ProjectilePattern is not (ProjectilePattern.Single or ProjectilePattern.Spread)
+			|| copy.ProjectileAimLockDuration > copy.HitWindowStart)) return false;
 		attack = new PreparedAttack(copy, playback, duration);
 		return true;
 	}
@@ -124,6 +134,8 @@ public partial class AttackController : Node, IParryInterruptible
 	{
 		if (attack == null || _actor == null) return false;
 		var def = attack.Definition;
+		Node3D aimTarget = def.ProjectileAimLockDuration > 0 ? FindProjectileAimTarget(def.Range, def.AimingAngle) : null;
+		if (def.ProjectileAimLockDuration > 0 && aimTarget == null) return false;
 
 		_actionGate ??= _actor.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
 		if (_actor is Player { IsDead: true } || _actor is EnemyBase { IsDead: true }) return false;
@@ -156,6 +168,13 @@ public partial class AttackController : Node, IParryInterruptible
 		LastResult = "Preparing";
 		if (!def.IsRanged) MeleeDetector.Begin(_actor, def.MeleeContact, targetMask, DebugDrawEnabled || GlobalDebugDrawEnabled);
 		_projectileSpawned = false;
+		_projectileAimTarget = null;
+		AimIndicator?.Clear();
+		if (def.ProjectileAimLockDuration > 0)
+		{
+			_projectileAimTarget = aimTarget;
+			UpdateProjectileAim();
+		}
 		_hitTargets.Clear();
 
 		GameDebug.Combat($"{_actor.Name} starting attack: {def.AnimationId} (Ranged: {def.IsRanged})");
@@ -203,6 +222,8 @@ public partial class AttackController : Node, IParryInterruptible
 		else if (!_currentAttack.IsRanged && ContactCount == 0) ReportFeedback(_blockedContact ? "Obstructed" : "No contact");
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.ended", ("execution", _executionSequence), ("interrupted", interrupted), ("contacts", ContactCount), ("result", LastResult));
 		_isAttacking = false;
+		AimIndicator?.Clear();
+		_projectileAimTarget = null;
 		_actionGate?.Release(_actionLease);
 		_actionLease = ActorActionLease.None;
 		_currentAttack = null;
@@ -229,10 +250,20 @@ public partial class AttackController : Node, IParryInterruptible
 
 		if (_currentAttack.IsRanged)
 		{
+			if (_currentAttack.ProjectileAimLockDuration > 0 && !_projectileSpawned)
+			{
+				if (!GodotObject.IsInstanceValid(_projectileAimTarget) || !IsValidAimTarget(_projectileAimTarget))
+				{
+					CancelAttack();
+					return;
+				}
+				UpdateProjectileAim();
+			}
 			if (_elapsedTime >= _currentAttack.HitWindowStart && !_projectileSpawned)
 			{
 				SpawnProjectile();
 				_projectileSpawned = true;
+				AimIndicator?.Clear();
 			}
 		}
 		else if (_elapsedTime >= _currentAttack.HitWindowStart && previous <= _currentAttack.HitWindowEnd
@@ -367,14 +398,14 @@ public partial class AttackController : Node, IParryInterruptible
 			return;
 		}
 
-		Vector3 origin = GetProjectileOrigin();
+		Vector3 origin = IsProjectileAimLocked ? _projectileAimOrigin : GetProjectileOrigin();
 		if (_currentAttack.ProjectilePattern == ProjectilePattern.AreaDrop)
 		{
 			SpawnAreaDrop(origin, scene);
 			return;
 		}
 
-		Vector3 aimedDirection = Aim(origin, _currentAttack.Range, _currentAttack.AimingAngle);
+		Vector3 aimedDirection = IsProjectileAimLocked ? _projectileAimDirection : Aim(origin, _currentAttack.Range, _currentAttack.AimingAngle);
 		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, GetActorForward());
 		SpawnEffect(_currentAttack.MuzzleEffectScene, origin, aimedDirection);
 
@@ -607,6 +638,49 @@ public partial class AttackController : Node, IParryInterruptible
 		return GetActorForward();
 	}
 
+	/// <summary>Keep the AI's chosen target when available; never switch targets after accepting an aimed shot.</summary>
+	private Node3D FindProjectileAimTarget(float range, float aimingAngle)
+	{
+		if (_actor is EnemyBase enemy && GodotObject.IsInstanceValid(enemy.EnemyBehaviorComponent?.Target))
+		{
+			var target = enemy.EnemyBehaviorComponent.Target;
+			// The strategy already chose this target; wind-up turns toward it even before the body has rotated.
+			return TestLineOfSight(target, range, 180) ? target : null;
+		}
+		string group = _actor.IsInGroup("player") ? "enemy" : "player";
+		return GetTree().GetNodesInGroup(group).OfType<Node3D>()
+			.Where(target => TestLineOfSight(target, range, aimingAngle))
+			.OrderBy(GetAimAngle).ThenBy(target => _actor.GlobalPosition.DistanceSquaredTo(target.GlobalPosition))
+			.FirstOrDefault();
+	}
+
+	/// <summary>One gameplay clock owns tracking, commitment and release; presentation never supplies aim.</summary>
+	private void UpdateProjectileAim()
+	{
+		if (!GodotObject.IsInstanceValid(_projectileAimTarget)) return;
+		if (!HasCommittedFacing)
+		{
+			_projectileAimOrigin = GetProjectileOrigin();
+			_projectileAimDirection = GetDirectionToTarget(_projectileAimOrigin, _projectileAimTarget, 1);
+			_projectileAimLength = Mathf.Min(_currentAttack.Range,
+				_projectileAimOrigin.DistanceTo(GetTargetCenter(_projectileAimTarget, 1)) + .75f);
+			if (_elapsedTime >= _currentAttack.HitWindowStart - _currentAttack.ProjectileAimLockDuration)
+			{
+				HasCommittedFacing = true;
+				CommittedFacing = _projectileAimDirection;
+				if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.aim_locked", ("execution", _executionSequence),
+					("origin", CombatTrace.Vector(_projectileAimOrigin)), ("direction", CombatTrace.Vector(CommittedFacing)),
+					("release_in", _currentAttack.HitWindowStart - _elapsedTime));
+			}
+		}
+		Vector3 end = _projectileAimOrigin + _projectileAimDirection * _projectileAimLength;
+		// Only incoming shots get warnings. Ordinary depth testing and sight checks avoid revealing shooters through walls.
+		bool visible = _actor.IsInGroup("enemy") && _projectileAimTarget.IsInGroup("player")
+			&& HasClearProjectileSight(_projectileAimOrigin, end);
+		if (visible) AimIndicator?.ShowAim(_projectileAimOrigin, end, HasCommittedFacing);
+		else AimIndicator?.Clear();
+	}
+
 	private Vector3 GetDirectionToTarget(Vector3 origin, Node3D target, float fallbackHeight)
 	{
 		Vector3 direction = GetTargetCenter(target, fallbackHeight) - origin;
@@ -684,6 +758,16 @@ public partial class AttackController : Node, IParryInterruptible
 		return forward.LengthSquared() > 0 ? forward.Normalized() : Vector3.Forward;
 	}
 
+	/// <summary>Projectile sight is blocked by world geometry, walls and props; hitting the intended prop itself is allowed.</summary>
+	private bool HasClearProjectileSight(Vector3 from, Vector3 to, Node3D target = null)
+	{
+		const uint blockers = 1u | 2u | 16u;
+		var hit = _actor.GetWorld3D().DirectSpaceState.IntersectRay(PhysicsRayQueryParameters3D.Create(from, to, blockers));
+		if (hit.Count == 0) return true;
+		return target != null && hit["collider"].AsGodotObject() is Node node
+			&& (node == target || target.IsAncestorOf(node) || node.IsAncestorOf(target));
+	}
+
 	private bool TestLineOfSight(Node3D target, float range, float aimingAngle)
 	{
 		if (!IsValidAimTarget(target)) return false;
@@ -699,6 +783,6 @@ public partial class AttackController : Node, IParryInterruptible
 		float angle = Mathf.RadToDeg(GetActorForward().AngleTo(directionToTarget));
 		if (angle > aimingAngle) return false;
 
-		return true;
+		return HasClearProjectileSight(GetProjectileOrigin(), GetTargetCenter(target, 1), target);
 	}
 }

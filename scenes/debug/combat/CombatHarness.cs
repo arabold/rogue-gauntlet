@@ -29,6 +29,11 @@ public partial class CombatHarness : CanvasLayer
 	private double _previousTimeScale;
 	private readonly Queue<string> _history = new();
 	private readonly Dictionary<HurtBoxComponent, MeshInstance3D> _hurtboxMeshes = new();
+	private enum MonsterAutomation { Manual, Attack, Dodge, Guard }
+	private MonsterAutomation _automation;
+	private float _automaticPause;
+	private float _automaticGuardRemaining;
+	private bool _dodgeRight;
 
 	public override void _Ready()
 	{
@@ -83,6 +88,9 @@ public partial class CombatHarness : CanvasLayer
 		if (Monsters.Length > 0) monsters.Selected = 0;
 		GetNode<Button>("%Controls/SpawnMonster").Pressed += () => ExecuteCommand("spawn", GetNode<OptionButton>("%Controls/Monsters").Selected, Vector3.Zero);
 		GetNode<Button>("%Controls/MonsterAttack").Pressed += () => ExecuteCommand("monster_attack", 0, Vector3.Zero);
+		var automation = GetNode<OptionButton>("%Controls/Automation");
+		foreach (string mode in new[] { "Manual / react to hero", "Repeat attack", "Repeat dodge", "Repeat guard" }) automation.AddItem(mode);
+		automation.ItemSelected += value => ExecuteCommand("automation", (int)value, Vector3.Zero);
 		GetNode<Button>("%Controls/Reset").Pressed += () => ExecuteCommand("reset", 0, Vector3.Zero);
 
 		BindToggle("TraceConsole", value => Recorder.EchoToConsole = value);
@@ -91,6 +99,7 @@ public partial class CombatHarness : CanvasLayer
 		BindToggle("Hurtboxes", UpdateHurtboxDebugDraw);
 		BindToggle("Volumes", _ => ConfigureAttackPresentation());
 		BindToggle("Effects", _ => ConfigureAttackPresentation());
+		BindToggle("HeroInvulnerable", value => Player.HurtBoxComponent.Invulnerable = value);
 		Recorder.Start(GetParent(), Seed, TracePath);
 
 		Player.AttackController.AttackFeedback += (result, amount) => Feedback("Hero", result, amount);
@@ -174,7 +183,7 @@ public partial class CombatHarness : CanvasLayer
 		if (selected < 0 || selected >= Monsters.Length) selected = 0;
 		_monster = Monsters[selected].Instantiate<EnemyBase>();
 		PracticeTarget.Position = new Vector3(-3, 0, -2);
-		_monster.Position = Player.Position + Vector3.Forward * 2;
+		_monster.Position = Player.Position + Vector3.Forward * (float)GetNode<SpinBox>("%Controls/SpawnDistance").Value;
 		_monster.GetNode<EnemyBehaviorComponent>("EnemyBehaviorComponent").AIEnabled = false;
 		Player.GetParent().AddChild(_monster);
 		_monster.ConfigureCombatRandom(Seed, "harness.monster");
@@ -209,6 +218,7 @@ public partial class CombatHarness : CanvasLayer
 		}
 		Configure(controller);
 		ApplyDefense();
+		if (!SetAutomation((int)_automation)) SetAutomation(0);
 
 		var hurtboxesToggle = GetNodeOrNull<CheckButton>("%Controls/Hurtboxes");
 		if (hurtboxesToggle != null && hurtboxesToggle.ButtonPressed)
@@ -224,6 +234,66 @@ public partial class CombatHarness : CanvasLayer
 
 		Configure(_monster.GetNode<AttackController>("AttackController"));
 		if (!_monster.EnemyBehaviorComponent.TryAttack()) Feedback("Monster", "Busy / interrupted", 0);
+	}
+
+	/// <summary>Change future requests only; automated actors retain their authored capabilities and normal action gates.</summary>
+	public bool SetAutomation(int mode)
+	{
+		if (mode < 0 || mode > 3) return false;
+		bool spawned = GodotObject.IsInstanceValid(_monster);
+		if (spawned && (mode == 2 && _monster.DodgeComponent == null || mode == 3 && _monster.GuardComponent == null))
+		{
+			Feedback("Monster", "Selected behavior unavailable for this monster", 0);
+			GetNode<OptionButton>("%Controls/Automation").Selected = (int)_automation;
+			return false;
+		}
+		if (_automation == MonsterAutomation.Guard && spawned) _monster.GuardComponent?.EndGuard();
+		_automation = (MonsterAutomation)mode;
+		_automaticPause = _automaticGuardRemaining = 0;
+		GetNode<OptionButton>("%Controls/Automation").Selected = mode;
+		if (spawned && _monster.DefenseController != null)
+			_monster.DefenseController.SetPhysicsProcess(mode < 2);
+		return true;
+	}
+
+	/// <summary>Repeat production requests in gameplay time; never teleport actors, refill cooldowns or synthesize missing components.</summary>
+	private void UpdateAutomation(float delta)
+	{
+		if (_automation == MonsterAutomation.Manual || !GodotObject.IsInstanceValid(_monster) || _monster.IsDead || Player.IsDead) return;
+		_automaticPause = Mathf.Max(0, _automaticPause - delta);
+		if (_automation == MonsterAutomation.Guard && _monster.GuardComponent?.IsGuarding == true)
+		{
+			_automaticGuardRemaining -= delta;
+			if (_automaticGuardRemaining <= 0) _monster.GuardComponent.EndGuard();
+			return;
+		}
+		if (_automaticPause > 0 || _monster.ActionGate.IsBusy || _monster.MovementComponent.IsPushed) return;
+		Vector3 toward = Player.GlobalPosition - _monster.GlobalPosition;
+		toward.Y = 0;
+		if (toward.IsZeroApprox()) toward = Vector3.Back;
+		toward = toward.Normalized();
+		_monster.MovementComponent.FaceDirection(toward);
+		bool accepted = false;
+		switch (_automation)
+		{
+			case MonsterAutomation.Attack:
+				accepted = _monster.EnemyBehaviorComponent.TryAttack();
+				break;
+			case MonsterAutomation.Dodge:
+				if (_monster.DodgeComponent.CooldownRemaining > 0) return;
+				accepted = _monster.DodgeComponent.TryDodge(toward.Cross(Vector3.Up) * (_dodgeRight ? 1 : -1)) == DefenseRequestResult.Success;
+				if (accepted) _dodgeRight = !_dodgeRight;
+				break;
+			case MonsterAutomation.Guard:
+				accepted = _monster.GuardComponent.TryBeginGuard(toward) == DefenseRequestResult.Success;
+				if (accepted) _automaticGuardRemaining = .6f;
+				break;
+		}
+		if (accepted)
+		{
+			_automaticPause = (float)GetNode<SpinBox>("%Controls/RepeatPause").Value;
+			CombatTrace.Write(this, "harness.automatic_action", ("behavior", _automation.ToString()));
+		}
 	}
 
 	public void ResetHealth()
@@ -350,6 +420,7 @@ public partial class CombatHarness : CanvasLayer
 		_motionTime += (float)delta;
 		if (GetNode<CheckButton>("%Controls/Moving").ButtonPressed)
 			PracticeTarget.Position = new Vector3(Mathf.Sin(_motionTime * 1.5f) * 1.3f, 0, -2);
+		UpdateAutomation((float)delta);
 	}
 
 	public override void _ExitTree()
@@ -418,6 +489,11 @@ public partial class CombatHarness : CanvasLayer
 			case "monster_attack":
 				accepted = GodotObject.IsInstanceValid(_monster) && !_monster.IsDead;
 				if (accepted) { Configure(_monster.AttackController); accepted = _monster.EnemyBehaviorComponent.TryAttack(); }
+				break;
+			case "automation": accepted = SetAutomation(value); break;
+			case "spawn_distance":
+				accepted = value >= 1 && value <= 12;
+				if (accepted) GetNode<SpinBox>("%Controls/SpawnDistance").Value = value;
 				break;
 			case "monster_guard": accepted = GodotObject.IsInstanceValid(_monster) && _monster.GuardComponent?.TryBeginGuard(direction) == DefenseRequestResult.Success; break;
 			case "monster_dodge": accepted = GodotObject.IsInstanceValid(_monster) && _monster.DodgeComponent?.TryDodge(direction) == DefenseRequestResult.Success; break;
