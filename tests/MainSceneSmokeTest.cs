@@ -35,4 +35,52 @@ public class MainSceneSmokeTest
 		Godot.Collections.Array<Node> players = scene.GetTree().GetNodesInGroup("player");
 		AssertInt(players.Count).IsGreater(0);
 	}
+
+	/// <summary>Exercises zoom limits and simultaneous orbiting through the real gameplay input and camera wiring.</summary>
+	[TestCase]
+	public async Task CameraZoomClampsAndWorksWhileRotating()
+	{
+		ISceneRunner runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		await runner.SimulateFrames(30);
+		var main = (Main)runner.Scene();
+		main.SetProcess(false);
+		Camera3D camera = main.GameCamera;
+		var pcam = main.GetNode<Node3D>("PhantomCamera3D");
+		AssertFloat(camera.Size).IsEqualApprox(20f, 0.001f);
+		AssertBool(InputMap.ActionGetEvents("camera_zoom_in")[0] is InputEventKey { PhysicalKeycode: Key.Apostrophe }).IsTrue();
+		AssertBool(InputMap.ActionGetEvents("camera_zoom_out")[0] is InputEventKey { PhysicalKeycode: Key.Slash }).IsTrue();
+
+		try
+		{
+			Basis before = pcam.GlobalBasis;
+			Input.ActionPress("camera_zoom_in");
+			Input.ActionPress("camera_rotate_right");
+			main._Process(0.25);
+			AssertFloat(camera.Size).IsEqualApprox(17f, 0.001f);
+			AssertBool(pcam.GlobalBasis.IsEqualApprox(before)).IsFalse();
+			main._Process(2);
+			AssertFloat(camera.Size).IsEqualApprox(10f, 0.001f);
+			Input.ActionRelease("camera_rotate_right");
+			Input.ActionPress("camera_zoom_out");
+			main._Process(0.25);
+			AssertFloat(camera.Size).IsEqualApprox(10f, 0.001f);
+			Input.ActionRelease("camera_zoom_in");
+			main._Process(0.25);
+			AssertFloat(camera.Size).IsEqualApprox(13f, 0.001f);
+			main._Process(3);
+			AssertFloat(camera.Size).IsEqualApprox(32f, 0.001f);
+			Input.ActionRelease("camera_zoom_out");
+			var player = (Node3D)main.GetTree().GetFirstNodeInGroup("player");
+			AssertBool((pcam.GlobalPosition - player.GlobalPosition).Normalized().IsEqualApprox(pcam.GlobalBasis.Z)).IsTrue();
+			main.SetProcess(true);
+			await runner.SimulateFrames(3);
+			AssertFloat(camera.Size).IsEqualApprox(32f, 0.001f);
+		}
+		finally
+		{
+			Input.ActionRelease("camera_zoom_in");
+			Input.ActionRelease("camera_zoom_out");
+			Input.ActionRelease("camera_rotate_right");
+		}
+	}
 }

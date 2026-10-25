@@ -5,6 +5,9 @@ public partial class Main : Node
 {
 	private const int FollowModeNone = 0;
 	private const float CameraRotationSpeed = Mathf.Pi;
+	private const float CameraZoomSpeed = 12f;
+	private const float CameraMinSize = 10f;
+	private const float CameraMaxSize = 32f;
 
 	// TODO: There's no PhantomCamera3D in C# API
 	private Node3D _pcam;
@@ -12,6 +15,9 @@ public partial class Main : Node
 
 	/// <summary>Full-screen status overlays bound to the player when it spawns. Optional: unassigned means no screen effects.</summary>
 	[Export] public ScreenEffectsLayer ScreenEffects { get; set; }
+
+	/// <summary>Orthographic gameplay camera whose visible area is adjusted by zoom input.</summary>
+	[Export] public Camera3D GameCamera { get; set; }
 
 	public override void _Ready()
 	{
@@ -54,6 +60,15 @@ public partial class Main : Node
 		if (!Mathf.IsZeroApprox(rotationInput))
 		{
 			UpdateCameraRotation(rotationInput * CameraRotationSpeed * (float)delta);
+		}
+
+		float zoomInput = Input.GetAxis("camera_zoom_in", "camera_zoom_out");
+		if (GameCamera != null && !Mathf.IsZeroApprox(zoomInput))
+		{
+			// Orthographic zoom changes the visible area; moving the camera would not change scale.
+			GameCamera.Size = Mathf.Clamp(
+				GameCamera.Size + zoomInput * CameraZoomSpeed * (float)delta,
+				CameraMinSize, CameraMaxSize);
 		}
 
 		CenterCameraOnPlayer();

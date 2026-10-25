@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/encounters/DestructibleNest.cs" id="nest"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/rat/rat.tscn" id="minion"]
@@ -7,6 +7,8 @@
 [ext_resource type="PackedScene" path="res://assets/kaykit-skeletons/Skeleton_Shield_Small_B.gltf" id="shield"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/floating_health_bar.tscn" id="bar"]
+
+[ext_resource type="Script" uid="uid://wi1l4pav2ehr" path="res://scenes/components/ConstantScreenSize3D.cs" id="constant_screen_size"]
 
 [sub_resource type="CylinderShape3D" id="body"]
 radius = 1.0
@@ -69,3 +71,7 @@ pixel_size = 0.008
 [node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("bar")]
 position = Vector3(0, 1.9, 0)
 HealthComponent = NodePath("../HealthComponent")
+
+[node name="ConstantScreenSize3D" type="Node" parent="Title" node_paths=PackedStringArray("Target")]
+script = ExtResource("constant_screen_size")
+Target = NodePath("..")

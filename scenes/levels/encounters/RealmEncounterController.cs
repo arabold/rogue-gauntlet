@@ -32,6 +32,7 @@ public partial class RealmEncounterController : Node
 				Billboard = BaseMaterial3D.BillboardModeEnum.Enabled, FontSize = 48, PixelSize = .008f,
 				NoDepthTest = true, RenderPriority = FloatingLabel.LabelRenderPriority,
 				Modulate = new Color(1, .72f, .25f) };
+			_objective.AddChild(new ConstantScreenSize3D { Target = _objective });
 			exit.AddChild(_objective);
 		}
 		var bossErrors = MonsterSceneValidator.ValidateScene(definition.GatekeeperScene, out _);

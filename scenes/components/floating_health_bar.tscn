@@ -1,6 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://c6i0b6qufb14m"]
+[gd_scene load_steps=6 format=3 uid="uid://c6i0b6qufb14m"]
 
 [ext_resource type="Script" uid="uid://berlk6wwuxusk" path="res://scenes/components/FloatingHealthBar.cs" id="2_s53ct"]
+
+[ext_resource type="Script" uid="uid://wi1l4pav2ehr" path="res://scenes/components/ConstantScreenSize3D.cs" id="constant_screen_size"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_tiay2"]
 viewport_path = NodePath("SubViewport")
@@ -35,3 +37,7 @@ step = 1.0
 value = 75.0
 rounded = true
 show_percentage = false
+
+[node name="ConstantScreenSize3D" type="Node" parent="." node_paths=PackedStringArray("Target")]
+script = ExtResource("constant_screen_size")
+Target = NodePath("..")

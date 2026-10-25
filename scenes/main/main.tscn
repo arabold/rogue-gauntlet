@@ -20,9 +20,10 @@ glow_enabled = true
 [sub_resource type="Resource" id="Resource_3h1r8"]
 script = ExtResource("8_qd7vr")
 
-[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects")]
+[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects", "GameCamera")]
 script = ExtResource("1_dl2xl")
 ScreenEffects = NodePath("ScreenEffects")
+GameCamera = NodePath("Camera3D")
 
 [node name="HUD" parent="." unique_id=2078119296 instance=ExtResource("3_stuk7")]
 

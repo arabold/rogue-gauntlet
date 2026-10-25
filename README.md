@@ -30,6 +30,10 @@ To run the game, you will need to have the Godot Engine with .NET installed. You
 
 Once you have the engine installed, you can open the project by selecting the `project.godot` file in the root directory of the project and run the default scene.
 
+## Camera Controls
+
+Hold `,` / `.` to rotate and `'` / `/` to zoom in / out. Rotation and zoom work together while the camera stays centered on the player. Zoom smoothly adjusts the orthographic view from 10 to 32 world units (starting at 20). Floating interaction prompts, names, messages, and enemy health bars keep their default screen size throughout the zoom range.
+
 ## Getting Started with Development
 
 Interested in contributing or understanding the codebase? Here's a quick guide:

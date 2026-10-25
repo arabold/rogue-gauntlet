@@ -1,7 +1,9 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/components/hurt_box_component.tscn" id="hurtbox"]
 [ext_resource type="PackedScene" path="res://scenes/components/health_component.tscn" id="health"]
+
+[ext_resource type="Script" uid="uid://wi1l4pav2ehr" path="res://scenes/components/ConstantScreenSize3D.cs" id="constant_screen_size"]
 
 [sub_resource type="CapsuleShape3D" id="shape"]
 radius = 0.4
@@ -56,3 +58,7 @@ DamageFilter = 31
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent"]
 shape = SubResource("shape")
+
+[node name="ConstantScreenSize3D" type="Node" parent="Label" node_paths=PackedStringArray("Target")]
+script = ExtResource("constant_screen_size")
+Target = NodePath("..")

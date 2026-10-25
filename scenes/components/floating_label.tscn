@@ -1,8 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://bwn75e8ldk4nt"]
+[gd_scene load_steps=6 format=3 uid="uid://bwn75e8ldk4nt"]
 
 [ext_resource type="Script" uid="uid://b2mbnj58veou5" path="res://scenes/components/FloatingLabel.cs" id="1_lm8es"]
 [ext_resource type="PackedScene" uid="uid://cr2cd42w861x0" path="res://scenes/components/key_binding.tscn" id="2_scbep"]
 [ext_resource type="Texture2D" uid="uid://c6rdgh17kn84w" path="res://assets/kenny-input-prompts/keyboard/keyboard_1.svg" id="3_ki1k4"]
+
+[ext_resource type="Script" uid="uid://wi1l4pav2ehr" path="res://scenes/components/ConstantScreenSize3D.cs" id="constant_screen_size"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_ki1k4"]
 viewport_path = NodePath("SubViewport")
@@ -41,3 +43,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 10
 text = "Text"
 vertical_alignment = 1
+
+[node name="ConstantScreenSize3D" type="Node" parent="." node_paths=PackedStringArray("Target")]
+script = ExtResource("constant_screen_size")
+Target = NodePath("..")

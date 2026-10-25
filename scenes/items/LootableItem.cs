@@ -245,6 +245,7 @@ public partial class LootableItem : Node3D
 				Text = player.InventoryController.LastOperationMessage, Position = Vector3.Up * 1.5f,
 				Billboard = BaseMaterial3D.BillboardModeEnum.Enabled, FontSize = 32, NoDepthTest = true, RenderPriority = FloatingLabel.LabelRenderPriority,
 			};
+			label.AddChild(new ConstantScreenSize3D { Target = label });
 			AddChild(label);
 			GetTree().CreateTimer(2).Timeout += () => { if (IsInstanceValid(label)) { label.QueueFree(); } };
 		}

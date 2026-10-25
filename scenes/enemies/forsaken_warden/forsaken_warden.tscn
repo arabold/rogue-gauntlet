@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3]
+[gd_scene load_steps=36 format=3]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
 [ext_resource type="PackedScene" path="res://assets/custom-monsters/forsaken_warden/forsaken_warden.glb" id="2_glb"]
@@ -14,6 +14,8 @@
 [ext_resource type="Script" path="res://scenes/enemies/EnemyDefenseController.cs" id="defense_script"]
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_guard.tres" id="guard"]
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_defense_animation.tres" id="defense_animation"]
+
+[ext_resource type="Script" uid="uid://wi1l4pav2ehr" path="res://scenes/components/ConstantScreenSize3D.cs" id="constant_screen_size"]
 
 [sub_resource type="AnimationNodeAnimation" id="anim_idle"]
 animation = &"Idle_A"
@@ -183,3 +185,7 @@ GuardDef = ExtResource("guard")
 script = ExtResource("defense_script")
 Enemy = NodePath("..")
 GuardComponent = NodePath("../GuardComponent")
+
+[node name="ConstantScreenSize3D" type="Node" parent="BossTitle" node_paths=PackedStringArray("Target")]
+script = ExtResource("constant_screen_size")
+Target = NodePath("..")
