@@ -1,20 +1,19 @@
-[gd_resource type="Resource" script_class="Armor" load_steps=3 format=3 uid="uid://bfupq3j33nceb"]
+[gd_resource type="Resource" script_class="Armor" load_steps=4 format=3 uid="uid://bfupq3j33nceb"]
 
 [ext_resource type="PackedScene" uid="uid://dmgl45amqnh2d" path="res://scenes/items/armor/shield_round_red.tscn" id="1_ge4dv"]
 [ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="2_q12ae"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/shield.tres" id="roll_table"]
 
 [resource]
 script = ExtResource("2_q12ae")
 Tier = 1
-Level = 0
 RequiredStrength = 9
 ArmorPoints = 2
 SpeedModifier = 1.0
 ValidSlots = 512
-Rarity = 0
+RollTable = ExtResource("roll_table")
 Name = "Round Shield"
 Scene = ExtResource("1_ge4dv")
-Quality = 1.0
 Value = 40
 ShowInInventory = true
 IsStackable = false

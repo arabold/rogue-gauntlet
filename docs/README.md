@@ -26,8 +26,9 @@ These documents explain code that exists today. Any proposed extension or future
 | --- | --- |
 | [Monster design and authoring](monster-authoring-design.md) | Implemented five-monster roster, definitions and tactical policies; editable melee/projectile assemblies and editor validation |
 | [Character classes](character-classes.md) | Authored classes, starting gear, stat profiles, and model integration |
-| [Gameplay item catalog](item-catalog.md) | All active definitions, effect families, source budgets, and deferred tools/keys |
+| [Gameplay item catalog](item-catalog.md) | All active definitions, effect families, source budgets, access keys/picks and deferred tools |
 | [Randomness and seeds](randomness-and-seeds.md) | Existing run/level seeds, generation RNG, loot RNG, identification, and saved world changes; isolation and current persistence limits |
+| [Door access](door-access.md) | Implemented locks, consumable keys/picks, colored door markers, secret pockets, discovery and saved access state |
 | [Level design](level-design.md) | Procedural layouts, reusable arrangements, room authoring, fog of war and encounters |
 | [Stats and itemization](stats-and-itemization.md) | Attributes, modifiers, equipment tiers, loot rolls, and enchantment |
 | [Item identification](item-identification-system.md) | Per-run disguises, discovery, jewelry, and scroll targeting |
@@ -35,16 +36,19 @@ These documents explain code that exists today. Any proposed extension or future
 | [Combat actions and defense](combat-system.md) | Shared action ownership, dodge, guard/parry, stagger, RNG and persistence |
 | [Combat harness and traces](combat-harness.md) | Interactive/scripted combat, JSONL event schema, capture flags and analyzer |
 | [Screen effects](screen-effects.md) | Blindness/poison/near-death post-process overlays, their gameplay wiring through health and status conditions (including confusion and slowness), and the debug harness |
+| [Actor invisibility](invisibility.md) | Shared player/monster cloak shader, equipment coverage, reversible materials and effect-harness preview |
 
 ## Remaining implementation plans
 
 | Document | Remaining scope |
 | --- | --- |
+| [Secret doors and locks](specs/secret-doors-and-locks-plan.md) | Remaining tuning, hidden mechanisms, consumable key chains and secret shortcuts |
 | [Dungeon progression](specs/level-progression-prototype-plan.md) | Realm pools/recipes, composed access, optional locks and generated secrets |
 | [Actions and interactions](specs/actor-actions-and-interactions-plan.md) | Lock integration, learned spells/mana and further actor intentions/content |
 | [Attack status effects](specs/attack-status-effects-plan.md) | Proposed on-hit status payloads, actor-agnostic buffs for monsters and a monster status tint; first slice lets venomous monster attacks poison the player |
 | [Potion catalog](specs/potion-catalog-plan.md) | Deferred Raise Level, Hallucination and detection potions |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
+| [Item quality, affixes and curses](specs/item-quality-affixes-and-curses-plan.md) | Quality, affixes, per-item identification and curses landed; remaining richer source ladders, generated Rare names, Unique items and new affix families |
 
 Completed plans are consolidated into current-system documents. The [roadmap](development-roadmap.md) owns priority and acceptance. Use the [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial future changes; a plan describes proposed work, not delivered behavior.
 

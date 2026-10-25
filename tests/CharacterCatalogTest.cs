@@ -56,6 +56,21 @@ public partial class CharacterCatalogTest
 	}
 
 	[TestCase]
+	public void StartingEquipmentStaysInTheFirstTier()
+	{
+		foreach (CharacterClass characterClass in CharacterCatalog.LoadDefault().Classes)
+		{
+			foreach (var slot in characterClass.StartingItems)
+			{
+				if (slot.Item is EquipableItem equipment)
+				{
+					AssertInt(equipment.Tier).OverrideFailureMessage($"{characterClass.Id} starts with T{equipment.Tier} {equipment.Name}").IsEqual(1);
+				}
+			}
+		}
+	}
+
+	[TestCase]
 	public void ApplyToStatsDerivesClassHealth()
 	{
 		CharacterCatalog catalog = CharacterCatalog.LoadDefault();

@@ -10,8 +10,11 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_body"]
 size = Vector3(1.84, 0.81, 1.1)
 
-[node name="Chest" type="Node3D" groups=["prop"]]
+[node name="Chest" type="Node3D" node_paths=PackedStringArray("Interactive", "LootTable", "Lid") groups=["prop"]]
 script = ExtResource("1_script")
+Interactive = NodePath("InteractiveComponent")
+LootTable = NodePath("LootTableComponent")
+Lid = NodePath("chest/chest_lid")
 
 [node name="chest" parent="." instance=ExtResource("2_body")]
 layers = 16

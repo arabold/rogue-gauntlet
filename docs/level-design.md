@@ -1,6 +1,6 @@
 # Level design
 
-Implemented generation, room authoring, encounters and visibility. [Dungeon layout, access and discovery](dungeon-exploration-design.md) owns intended realm pools, recipes, locks and secrets; the [remaining plan](specs/level-progression-prototype-plan.md) describes that future work.
+Implemented generation, room authoring, encounters and visibility. [Dungeon layout, access and discovery](dungeon-exploration-design.md) owns intended realm pools, recipes, locks and secrets; [door access](door-access.md) describes implemented locks/secrets and the [progression plan](specs/level-progression-prototype-plan.md) retains future realm recipes and seals.
 
 See the [folder guide](../scenes/levels/README.md) for code and preset locations, and the [room generation harness](../scenes/debug/README.md#room-generation) for single-room and full-floor previews.
 
@@ -10,7 +10,7 @@ Gameplay uses the [Garrison factory preset](../scenes/levels/garrison/factories/
 
 This is a curated first-realm preset, currently shared by all depths, rather than a realm/depth resolver. Per-depth room roles and required routes remain proposed. In the builder Inspector, **RandomPurposeMask** limits random purposes; a fixed **Purpose** overrides it. Empty/unknown random masks fail before replacing existing geometry. The generic room builder remains available for other presets. The editor’s **Coded Generator Preset** selects a room recipe; the arrangement playground uses the gameplay factory.
 
-Generation packs and rotates rooms around an entrance, prefers a geometrically distant exit, connects rooms and explicit doorways, resolves walls/doors, furnishes procedural rooms, then places loot and bakes navigation. Encounters use the completed geometry. Ordinary connectivity and a distant exit do not guarantee a mandatory route or encounter order.
+Generation packs and rotates rooms around an entrance, prefers a geometrically distant exit, connects rooms and explicit doorways, resolves walls/doors, reserves optional secret pockets, furnishes procedural rooms, assigns validated lock/key pairs, then places other loot and bakes navigation. Encounters use the completed geometry. Ordinary connectivity and a distant exit do not guarantee a mandatory route or encounter order.
 
 Generation settings and factories are assigned in [level.tscn](../scenes/levels/level.tscn). [Randomness and seeds](randomness-and-seeds.md) owns reproducibility and saved differences. Normal map dimensions are unchanged by the arrangement playground.
 
@@ -76,9 +76,9 @@ Closed doors block physics, sight and navigation. Open doors enable their naviga
 
 ## Map occlusion and fog of war
 
-Black caps hide void and undiscovered space under the rotating isometric camera. Gameplay begins covered; editor previews expose generated space. Entering a room reveals it and connected open corridors, stopping at closed doors. Standing against a closed doorway does not count as entering the room. Reveal respects sanctioned connections rather than leaking through adjacent walls.
+Black caps hide void and undiscovered space under the rotating isometric camera. Gameplay begins covered; editor previews expose generated space. Entering a room reveals it and connected open corridors, stopping at closed doors. Standing against a closed doorway does not count as entering the room. Reveal respects sanctioned connections rather than leaking through adjacent walls. Torch flames rise above the caps, so an `ExplorationGateComponent` at the flame hides the torch, its fire and its light until that tile is explored. The debug fog reveal marks the whole interior explored, so gated loot, traps and effects appear with it.
 
-Closed-door x-ray silhouettes appear only when occluded, nearby and adjacent to revealed space, so they do not disclose unexplored doors. Unopened treasure chests use a golden occlusion silhouette in revealed rooms, controlled by the loot X-ray toggle; opening a chest or restoring it as opened removes the highlight. Revealed room/door state survives travel and save/load. This behavior is not secret-door support: concealed passages need their own discovery rules in the [dungeon design](dungeon-exploration-design.md#random-secrets).
+Closed-door x-ray silhouettes appear only when occluded, nearby and adjacent to revealed space, so they do not disclose unexplored doors. Unopened treasure chests use a golden occlusion silhouette in revealed rooms, controlled by the loot X-ray toggle; opening a chest or restoring it as opened removes the highlight. Revealed room/door state survives travel and save/load. [Door access](door-access.md) adds optional concealed wall entrances with proximity rolls, mechanical locks and colored key markers. Concealed doors expose no silhouette/prompt/marker; discovery reveals a closed door. Physical current door state and explored space persist independently.
 
 ## Reusable room arrangements
 

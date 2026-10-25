@@ -1,8 +1,27 @@
-[gd_scene load_steps=10 format=4 uid="uid://dbns86sg2gnll"]
+[gd_scene load_steps=18 format=4 uid="uid://dbns86sg2gnll"]
 
 [ext_resource type="Script" uid="uid://bbavd8jl8n263" path="res://scenes/props/Door.cs" id="1_rychn"]
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="2_yt2ch"]
 [ext_resource type="PackedScene" uid="uid://dekj8iq2d1qp5" path="res://scenes/components/interactive_component.tscn" id="3_0wdxa"]
+
+[ext_resource type="Script" path="res://scenes/levels/access/DoorLockComponent.cs" id="lock_script"]
+[ext_resource type="Script" path="res://scenes/levels/access/SecretDoorComponent.cs" id="secret_script"]
+
+[ext_resource type="Texture2D" path="res://scenes/props/key_marker.svg" id="key_marker_texture"]
+
+[ext_resource type="PackedScene" path="res://scenes/effects/discovery_pulse.tscn" id="discovery_effect"]
+[ext_resource type="Script" uid="uid://cgw68vsnlt58" path="res://scenes/levels/access/ProximityDiscoveryComponent.cs" id="discovery_script"]
+[ext_resource type="Resource" path="res://scenes/levels/access/proximity_detection.tres" id="detection"]
+
+[sub_resource type="QuadMesh" id="KeyDiamond"]
+size = Vector2(0.65, 0.65)
+
+[sub_resource type="StandardMaterial3D" id="KeyMarkerMaterial"]
+shading_mode = 0
+billboard_mode = 1
+transparency = 2
+albedo_texture = ExtResource("key_marker_texture")
+albedo_color = Color(1, 0.7, 0.15, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xy2m3"]
 resource_name = "texture"
@@ -78,8 +97,16 @@ shadow_mesh = SubResource("ArrayMesh_yxqci")
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_ce1s2"]
 points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, -0.5, -2, 0, 0.5, -2, 4, -0.5, -2, 0, -0.5)
 
-[node name="Door" type="Node3D" groups=["door", "prop"]]
+[node name="Door" type="Node3D" node_paths=PackedStringArray("Lock", "Secret", "Interactive", "KeyMarker", "DoorVisual", "Leaf", "Collision", "NavigationLink") groups=["door", "prop"]]
 script = ExtResource("1_rychn")
+Lock = NodePath("DoorLock")
+Secret = NodePath("SecretDoor")
+Interactive = NodePath("InteractiveComponent")
+KeyMarker = NodePath("KeyMarker")
+DoorVisual = NodePath("wall_doorway")
+Leaf = NodePath("wall_doorway/wall_doorway_door")
+Collision = NodePath("StaticBody3D/CollisionShape3D")
+NavigationLink = NodePath("NavigationLink3D")
 
 [node name="wall_doorway" type="MeshInstance3D" parent="."]
 layers = 16
@@ -107,3 +134,29 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 start_position = Vector3(0, 0.1, -1.5)
 end_position = Vector3(0, 0.1, 1.5)
 enabled = false
+
+[node name="DoorLock" type="Node" parent="."]
+script = ExtResource("lock_script")
+
+[node name="SecretDoor" type="Node" parent="." node_paths=PackedStringArray("Door", "DiscoveryEffect", "Discovery")]
+script = ExtResource("secret_script")
+Door = NodePath("..")
+DiscoveryEffect = NodePath("../DiscoveryEffect")
+Discovery = NodePath("ProximityDiscovery")
+
+[node name="ProximityDiscovery" type="Node" parent="SecretDoor" node_paths=PackedStringArray("Subject")]
+script = ExtResource("discovery_script")
+Subject = NodePath("..")
+Profile = ExtResource("detection")
+
+[node name="KeyMarker" type="MeshInstance3D" parent="."]
+visible = false
+position = Vector3(0, 4.7, 0)
+rotation = Vector3(0, 0, 0)
+mesh = SubResource("KeyDiamond")
+material_override = SubResource("KeyMarkerMaterial")
+cast_shadow = 0
+
+[node name="DiscoveryEffect" parent="." instance=ExtResource("discovery_effect")]
+position = Vector3(0, 2, 0)
+rotation = Vector3(1.5707963, 0, 0)

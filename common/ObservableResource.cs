@@ -8,6 +8,7 @@ using System.Collections.Generic;
 /// This class provides a SetValue method that will update the value of a field 
 /// and emit a changed signal if the value has changed.
 /// </summary>
+[Tool]
 [GlobalClass]
 public abstract partial class ObservableResource : Resource
 {

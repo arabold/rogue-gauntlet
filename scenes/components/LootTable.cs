@@ -8,6 +8,7 @@ using System.Linq;
 /// rolled; the table just describes what can drop, how likely each entry is, and at which
 /// depths it is eligible.
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class LootTable : Resource
 {
@@ -21,17 +22,13 @@ public partial class LootTable : Resource
 	public LootTableItem[] Entries => Groups?.Length > 0
 		? Groups.Where(g => g != null).SelectMany(g => g.Items ?? []).ToArray() : Items ?? [];
 
-	/// <summary>Chooses an eligible category, then an eligible variety within that budget.</summary>
-	public LootTableItem PickEntry(uint depth, RandomNumberGenerator rng) => Pick(rng, depth);
-
-	/// <summary>Chooses from the configured pool without depth filtering, for authoring previews.</summary>
-	public LootTableItem PickWeightedEntry(RandomNumberGenerator rng) => Pick(rng, null);
-
-	private LootTableItem Pick(RandomNumberGenerator rng, uint? depth)
+	/// <summary>Chooses an eligible category, then an eligible variety within that budget. Depth is required: entry
+	/// depth windows are the only fence keeping higher-tier items off early floors.</summary>
+	public LootTableItem PickEntry(uint depth, RandomNumberGenerator rng)
 	{
 		if (rng == null) { return null; }
 		bool Eligible(LootTableItem entry) => entry?.Item != null && float.IsFinite(entry.Weight)
-			&& entry.Weight > 0 && (!depth.HasValue || entry.IsEligibleAt(depth.Value));
+			&& entry.Weight > 0 && entry.IsEligibleAt(depth);
 		LootTableItem[] candidates;
 		if (Groups?.Length > 0)
 		{

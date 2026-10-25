@@ -10,6 +10,7 @@ using Godot;
 /// An empty <see cref="TypeId"/> means the item has no hidden identity and is always
 /// shown as itself (e.g. food, or a basic potion that needs no disguise).
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class IdentifiableItem : BuffedItem, IIdentifiable
 {

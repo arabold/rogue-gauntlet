@@ -1,53 +1,32 @@
 using Godot;
 
 /// <summary>
-/// Scroll of Enchantment: bumps the chosen equipable's rarity and adds one affix via
-/// <see cref="LootRoller.Enchant"/>. Unequips the item first and re-equips it after, since
-/// <see cref="EquipableItem.OnEquipped"/> registered its stat modifiers under the old item
-/// instance and mutating in place would leave stale modifiers active.
+/// Scroll of Enchantment: adds one affix eligible at the current depth to the chosen equipable via
+/// <see cref="LootRoller.Enchant"/>, making it Magic or Rare and lifting any curse. Runs through
+/// <see cref="Inventory.ChangeItem"/>, so a worn item's stats are re-registered after the change.
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class EnchantScrollEffect : ScrollEffect
 {
-	[Export] public AffixPool Affixes { get; set; }
+	/// <summary>Quality rules: how many affixes Magic holds before an item turns Rare, and Rare's maximum.</summary>
+	[Export] public QualityLadder QualityLadder { get; set; }
 
 	public override bool RequiresTarget => true;
 
 	public override bool IsValidTarget(Player player, InventoryItemSlot slot)
 	{
-		return slot?.Item is EquipableItem;
+		return slot?.Item is EquipableItem item && LootRoller.CanEnchant(item, QualityLadder);
 	}
 
 	public override void ApplyToTarget(Player player, InventoryItemSlot slot)
 	{
-		if (player == null || slot?.Item is not EquipableItem)
+		if (player == null || slot?.Item is not EquipableItem target || !LootRoller.CanEnchant(target, QualityLadder))
 		{
 			return;
 		}
 
-		Inventory inventory = player.Inventory;
-		EquipmentSlot? equippedIn = null;
-		foreach (var pair in inventory.EquippedItems)
-		{
-			if (pair.Value == slot)
-			{
-				equippedIn = pair.Key;
-				break;
-			}
-		}
-
-		if (equippedIn.HasValue)
-		{
-			inventory.Unequip(equippedIn.Value);
-		}
-
-		EquipableItem instance = LootRoller.EnsureInstance((EquipableItem)slot.Item);
-		LootRoller.Enchant(instance, GameSession.Instance?.CreateLootRng() ?? new RandomNumberGenerator(), Affixes);
-		slot.Item = instance;
-
-		if (equippedIn.HasValue)
-		{
-			inventory.Equip(slot, equippedIn.Value);
-		}
+		player.Inventory.ChangeItem(slot, item => LootRoller.Enchant(item, GameSession.Instance?.ActiveDungeonDepth ?? 1,
+			GameSession.Instance?.CreateLootRng() ?? new RandomNumberGenerator(), QualityLadder));
 	}
 }

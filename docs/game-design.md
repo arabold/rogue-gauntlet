@@ -84,9 +84,9 @@ Current combat and character foundations are described in [weapon attacks](weapo
 
 Floors combine realm-specific authored room pools with procedural rooms and corridors. A floor recipe defines required locations, optional branches, and progression conditions. A location can be required to exist, required to be traversed, or associated with an objective required before descent; these are separate guarantees. Room purpose should influence contents and rewards.
 
-[Dungeon Layout, Access, and Discovery](dungeon-exploration-design.md) owns the detailed exploration concept. Doors compose opening/closing with optional locks and discovery. Predefined and generated rooms can have locked doors. Prison cells may require lockpicks, with matching keys as an authored alternative; color coding is an optional presentation feature, not a universal key rule. Initial mechanical locks protect optional content.
+[Dungeon Layout, Access, and Discovery](dungeon-exploration-design.md) owns the detailed exploration concept. Doors compose opening/closing with optional locks and discovery. Predefined and generated rooms can have locked doors. Prison cells may require lockpicks, with matching keys as an authored alternative; color coding is an optional presentation feature, not a universal key rule. Initial mechanical locks protect optional content, with guaranteed matching keys reachable before their locks and pickability enabled. Successful unlocking consumes one matching key or lockpick; both stack to 20.
 
-Secrets occur at variable generated corridor or procedural-room wall segments, not predictable sockets in predefined rooms. Approaching from a reachable side reveals a concealed opening; unlocking, opening, and discovering the destination remain separate actions. Secrets and tools offer optional exploration choices without becoming hidden prerequisites for the required route.
+Secrets occur at variable generated corridor or procedural-room wall segments, not predictable sockets in predefined rooms. Nearby discovery rolls every 0.5 seconds use Intelligence initially; successful discovery from an accessible side reveals a closed door; unlocking, opening, and discovering the destination remain separate actions. Traps use similar proximity discovery and remain dangerous after being found. A short yellow glow blends the original surface into the discovered trap or door, then disappears. Traps are detected from farther away to provide advance warning. Locked rooms and secrets are occasional, capped features; secrets are more common. Secrets and tools offer optional exploration choices without becoming hidden prerequisites for the required route.
 
 Realm bosses initially gate descent through visible magical stair seals that lift automatically on defeat. Reaching or running around the boss does not satisfy completion. Arena lockdown and guaranteed boss-key alternatives remain separate encounter choices. Required access solutions must be reachable and cannot depend on random loot, shop stock, or an inventory-capacity failure.
 
@@ -115,15 +115,15 @@ Every item has an authored definition, a particular instance when state is neede
 | Scrolls | Situational solutions | Read for an effect, sometimes selecting a target |
 | Rings and amulets | Passive specialization and discovery | Equip for benefits or drawbacks; use the identification system |
 | Lamps and torches | Portable illumination | Hold lit in either hand to extend player light; competes with shields and two-handed weapons; activate or extinguish, consume fuel while active |
-| Keys | Access to matching locks | Explicit matching scope; initially reusable, with consumption deferred |
-| Tools | Alternative ways to interact with the dungeon | Start with lockpicks; add other tools alongside the world interactions they require |
+| Keys | Access to matching locks | Matching key identity/color; stack to 20 and consume one per successful unlock |
+| Tools | Alternative ways to interact with the dungeon | Rare consumable lockpicks bypass pickable locks; Rogue starts with two, regular floors do not supply them, shops are a later source |
 | Currency | Purchasing decisions | Collect, spend, and receive through trade |
 
 ### Instance state and persistence
 
 Creation initializes an item's random state once. Pickup, inventory transfer, equipping, dropping, trading, floor transitions, and save/load preserve that state. Loading restores results rather than rolling them again. During development before public release, this guarantee applies to the current supported save version. Saves may break between versions; incompatible or unversioned saves require a new run and are not migrated.
 
-Relevant state includes equipment rarity and affixes, food contamination, and remaining fuel or charges where implemented. Initial key matching uses the authored key definition; per-instance lock associations are unnecessary until a supported mechanic requires them. Store only state required by supported behavior. Authored definitions remain unchanged by play.
+Relevant state includes equipment quality, value scale, affixes and curses, food contamination, and remaining fuel or charges where implemented. Initial key matching uses the authored key definition; per-instance lock associations are unnecessary until a supported mechanic requires them. Store only state required by supported behavior. Authored definitions remain unchanged by play.
 
 Stackability is explicitly authored and defaults to disabled. An approved stackable variety has interchangeable units with no individual variation, including hidden properties. Any item with per-unit rolls or mutable state remains individual. Splitting and merging preserve variety and total quantity.
 
@@ -147,7 +147,7 @@ Offer verbs appropriate to the object: eat, drink, read, equip, light, extinguis
 
 Keep type knowledge separate from instance knowledge. Discovering a potion's effect can identify that type across the run. Discovering that one apple is poisoned must not mark every apple as poisoned. Current jewelry identification on wearing remains the baseline; restrictive curses and curse removal are future proposals.
 
-Names, models, descriptions, rarity colors, stacking behavior, and prices must respect the intended information boundary. Players should understand observed effects without unintentionally seeing hidden properties.
+Names, models, descriptions, quality colors, stacking behavior, and prices must respect the intended information boundary. Players should understand observed effects without unintentionally seeing hidden properties.
 
 Food initially provides recovery and contamination risk. Hunger, spoilage, cooking, and nutrition are deferred until exploration pacing demonstrates a need for them.
 
@@ -168,7 +168,7 @@ Generation considers dungeon depth, source, and any supported region or reward m
 | Floor finds | Useful supplies, occasional equipment, and exploration surprises |
 | Shops | Curated, purchasable choices appropriate to local depth |
 
-Keep four concepts distinct: **tier** is base equipment strength; **rarity** describes its rolled magical properties; **potency** describes an effect's magnitude; **availability** describes how often something can be found. A high-tier weapon can have common rarity. A basic utility scroll can remain valuable deep in the dungeon.
+Keep four concepts distinct: **tier** is base equipment strength; **quality** is an item's rolled, always-visible grade: Poor and Superior scale its base values, while Magic and Rare add affixes; **potency** describes an effect's magnitude; **availability** describes how often something can be found. A high-tier weapon can roll Poor. A basic utility scroll can remain valuable deep in the dungeon.
 
 Deeper floors shift rewards toward stronger bases, eligible affixes, and suitable consumable potency. Use overlapping bands to retain variety and occasional exceptional finds. Set explicit bounds on above-band rewards. Keep essential supplies available instead of replacing every object with a stronger version.
 
@@ -211,7 +211,7 @@ Crafting, complex survival simulation, broad tool combinations, elaborate mercha
 | Crowd encounter scale and pacing | Mix tactical fights with occasional overwhelming groups; counts and performance targets open | Encounter balancing |
 | Lighting and fuel pacing | Seeded dark floors from depth 4, proposed 20% chance; either-hand lights compete with shields/two-handed weapons; light radius, fuel pacing and enemy response open | Lighting integration |
 | Armor tradeoffs and visual coverage | Small set with readable differences | Armor integration |
-| Keys and lockpicks | Optional mechanical locks; matching keys or timed picking with a reusable tool; duration and later resource costs need tuning | Lock integration |
+| Keys and lockpicks | Optional mechanical locks; matching keys or deterministic timed picking; consume one key/pick on success, stack to 20, guarantee reachable matching keys | Lock integration |
 | Merchant knowledge, prices, and frequency | Persistent finite stock scaled by depth | Shop integration |
 
 Update this document when intended behavior changes. Record implementation details in the linked feature documents and track delivery in the [roadmap](development-roadmap.md).

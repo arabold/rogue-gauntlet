@@ -1,4 +1,4 @@
-[gd_scene load_steps=57 format=3]
+[gd_scene load_steps=56 format=3]
 
 [ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="b_1_j62no"]
 
@@ -42,8 +42,7 @@
 
 [ext_resource type="PackedScene" path="res://assets/kaykit-skeletons/Skeleton_Crossbow.gltf" id="crossbow_visual"]
 
-[sub_resource type="ViewportTexture" id="b_ViewportTexture_6flps"]
-viewport_path = NodePath("SubViewport")
+[ext_resource type="PackedScene" path="res://scenes/components/invisibility_component.tscn" id="invisibility"]
 
 [sub_resource type="AnimationNodeAnimation" id="m_AnimationNodeAnimation_rfhfv"]
 animation = &"1H_Melee_Attack_Chop"
@@ -196,13 +195,11 @@ graph_offset = Vector2(-0.209959, 273.549)
 [sub_resource type="CapsuleShape3D" id="m_CapsuleShape3D_fv4r8"]
 radius = 0.75
 
-[sub_resource type="ViewportTexture" id="m_ViewportTexture_6flps"]
-viewport_path = NodePath("SubViewport")
-
 [sub_resource type="CapsuleShape3D" id="m_CapsuleShape3D_m4sjw"]
 radius = 0.75
 
-[node name="SkeletonCrossbow" type="CharacterBody3D" node_paths=PackedStringArray("AttackController", "ActionGate", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+[node name="SkeletonCrossbow" type="CharacterBody3D" node_paths=PackedStringArray("Invisibility", "AttackController", "ActionGate", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+Invisibility = NodePath("InvisibilityComponent")
 collision_layer = 8
 collision_mask = 87
 platform_floor_layers = 4294901761
@@ -253,10 +250,10 @@ HealthComponent = NodePath("../HealthComponent")
 MovementComponent = NodePath("../MovementComponent")
 HitEffect = ExtResource("b_9_d4q6w")
 
-[node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("b_10_oansv")]
+[node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("HealthComponent", "Invisibility") instance=ExtResource("b_10_oansv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
-texture = SubResource("m_ViewportTexture_6flps")
 HealthComponent = NodePath("../HealthComponent")
+Invisibility = NodePath("../InvisibilityComponent")
 
 [node name="CombatAnimationComponent" type="Node" parent="."]
 script = ExtResource("b_attack_animation_script")
@@ -405,6 +402,11 @@ shape = SubResource("m_CapsuleShape3D_m4sjw")
 [node name="ActorActionGateComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent")]
 script = ExtResource("m_action_gate_script")
 AnimationComponent = NodePath("../CombatAnimationComponent")
+
+
+[node name="InvisibilityComponent" parent="." node_paths=PackedStringArray("Target", "Health") instance=ExtResource("invisibility")]
+Target = NodePath("../Pivot")
+Health = NodePath("../HealthComponent")
 
 [node name="ProjectileAimIndicator" parent="." instance=ExtResource("aim_indicator")]
 

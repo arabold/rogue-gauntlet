@@ -11,6 +11,7 @@ AllowedPurposes = 1
 MaximumPerRoom = 1
 RequiresWall = true
 AlignToWall = true
+WallPlaneDistance = 1.5
 HorizontalClearance = 0.0
 WallPositionWeight = 1.0
 InteriorPositionWeight = 1.0

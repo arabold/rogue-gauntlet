@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dcf3vxfivy452" path="res://scenes/items/armor/shield_badge_color.tscn" id="1_h050v"]
 [ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="2_47uxn"]
 [ext_resource type="Resource" path="res://scenes/combat/definitions/shield_guard.tres" id="guard_shield"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/shield.tres" id="roll_table"]
 
 [resource]
 script = ExtResource("2_47uxn")
@@ -11,7 +12,8 @@ RequiredStrength = 10
 ArmorPoints = 3
 Guard = ExtResource("guard_shield")
 ValidSlots = 512
-Name = "Common Shield"
+RollTable = ExtResource("roll_table")
+Name = "Shield"
 Scene = ExtResource("1_h050v")
 Value = 40
 metadata/_custom_type_script = ExtResource("2_47uxn")

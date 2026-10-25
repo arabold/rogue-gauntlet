@@ -11,6 +11,7 @@ using Godot;
 /// flow, which calls <see cref="ApplyToTarget"/> on the chosen slot *before* the scroll
 /// is consumed, so a cancelled read never wastes the scroll.
 /// </summary>
+[Tool]
 [GlobalClass]
 public abstract partial class ScrollEffect : Resource
 {

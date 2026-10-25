@@ -5,6 +5,7 @@ using Godot;
 /// ephemeral (no <see cref="SpawnPoint.PersistentId"/>), so unlike authored map spawns
 /// they do not survive a save/reload — acceptable for a one-shot curse effect.
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class SummonScrollEffect : ScrollEffect
 {

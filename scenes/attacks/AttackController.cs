@@ -676,7 +676,8 @@ public partial class AttackController : Node, IParryInterruptible
 		Vector3 end = _projectileAimOrigin + _projectileAimDirection * _projectileAimLength;
 		// Only incoming shots get warnings. Ordinary depth testing and sight checks avoid revealing shooters through walls.
 		bool visible = _actor.IsInGroup("enemy") && _projectileAimTarget.IsInGroup("player")
-			&& HasClearProjectileSight(_projectileAimOrigin, end);
+			&& (_actor as EnemyBase)?.Invisibility?.IsInvisible != true
+			&& WorldSight.IsClear(_actor.GetWorld3D(), _projectileAimOrigin, end);
 		if (visible) AimIndicator?.ShowAim(_projectileAimOrigin, end, HasCommittedFacing);
 		else AimIndicator?.Clear();
 	}
@@ -758,16 +759,6 @@ public partial class AttackController : Node, IParryInterruptible
 		return forward.LengthSquared() > 0 ? forward.Normalized() : Vector3.Forward;
 	}
 
-	/// <summary>Projectile sight is blocked by world geometry, walls and props; hitting the intended prop itself is allowed.</summary>
-	private bool HasClearProjectileSight(Vector3 from, Vector3 to, Node3D target = null)
-	{
-		const uint blockers = 1u | 2u | 16u;
-		var hit = _actor.GetWorld3D().DirectSpaceState.IntersectRay(PhysicsRayQueryParameters3D.Create(from, to, blockers));
-		if (hit.Count == 0) return true;
-		return target != null && hit["collider"].AsGodotObject() is Node node
-			&& (node == target || target.IsAncestorOf(node) || node.IsAncestorOf(target));
-	}
-
 	private bool TestLineOfSight(Node3D target, float range, float aimingAngle)
 	{
 		if (!IsValidAimTarget(target)) return false;
@@ -783,6 +774,7 @@ public partial class AttackController : Node, IParryInterruptible
 		float angle = Mathf.RadToDeg(GetActorForward().AngleTo(directionToTarget));
 		if (angle > aimingAngle) return false;
 
-		return HasClearProjectileSight(GetProjectileOrigin(), GetTargetCenter(target, 1), target);
+		return WorldSight.IsClear(_actor.GetWorld3D(), GetProjectileOrigin(), GetTargetCenter(target, 1),
+			(collider, _) => collider is Node node && (node == target || target.IsAncestorOf(node) || node.IsAncestorOf(target)));
 	}
 }

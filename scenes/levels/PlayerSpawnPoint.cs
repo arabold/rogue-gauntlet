@@ -5,7 +5,7 @@ using System;
 /// Starting point for the player character in the map
 /// </summary>
 [Tool]
-public partial class PlayerSpawnPoint : Node3D
+public partial class PlayerSpawnPoint : Node3D, IProgressionAnchor
 {
 	[Export] public GameSession.LevelTravelDirection SpawnAfterTravelDirection { get; set; } = GameSession.LevelTravelDirection.Down;
 	[Export] public Vector3 AutoWalkDirection { get; set; } = Vector3.Zero;

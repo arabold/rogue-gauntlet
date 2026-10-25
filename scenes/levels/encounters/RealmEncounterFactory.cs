@@ -18,6 +18,9 @@ public partial class RealmEncounterFactory : MobFactory
 
 	public bool ContainsDepth(uint depth) => depth >= FirstDepth && depth - FirstDepth < FloorBudgets.Length;
 	public int FloorIndex(uint depth) => ContainsDepth(depth) ? (int)(depth - FirstDepth) : -1;
+	/// <summary>Realm floor index whose descent is sealed by the gatekeeper encounter.</summary>
+	public const int GatekeeperFloorIndex = 2;
+	public bool IsGatekeeperFloor(uint depth) => FloorIndex(depth) == GatekeeperFloorIndex;
 
 	public override PackedScene CreateEnemy(uint depth, RandomNumberGenerator rng)
 	{

@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>One current-format codec for carried and world item records. Restoration never rolls.</summary>
 public static class ItemSaveCodec
@@ -17,7 +18,12 @@ public static class ItemSaveCodec
 		};
 		if (item is EquipableItem equipment)
 		{
-			data.Rarity = (int)equipment.Rarity;
+			data.Quality = (int)equipment.Quality;
+			data.MagnitudeScale = equipment.MagnitudeScale;
+			data.QualityAdjective = equipment.QualityAdjective;
+			data.AttributesKnown = equipment.AttributesKnown;
+			data.CursePenalty = CaptureModifiers(equipment.CursePenalty);
+			data.CurseStatusKnown = equipment.CurseStatusKnown;
 			data.Affixes = CaptureAffixes(equipment.Affixes);
 		}
 		return data;
@@ -32,9 +38,14 @@ public static class ItemSaveCodec
 		Item item = ItemFactory.CopyDefinition(definition, data.InstanceId);
 		if (item is EquipableItem equipment)
 		{
-			if (!Enum.IsDefined(typeof(EquipableItemRarity), data.Rarity))
-			{ throw new InvalidOperationException("Invalid saved equipment rarity."); }
-			equipment.Rarity = (EquipableItemRarity)data.Rarity;
+			if (!Enum.IsDefined(typeof(ItemQuality), data.Quality) || !float.IsFinite(data.MagnitudeScale) || data.MagnitudeScale <= 0f)
+			{ throw new InvalidOperationException("Invalid saved equipment quality."); }
+			equipment.Quality = (ItemQuality)data.Quality;
+			equipment.MagnitudeScale = data.MagnitudeScale;
+			equipment.QualityAdjective = data.QualityAdjective ?? "";
+			equipment.AttributesKnown = data.AttributesKnown;
+			equipment.CursePenalty = BuildModifiers(data.CursePenalty);
+			equipment.CurseStatusKnown = data.CurseStatusKnown;
 			equipment.Affixes = BuildAffixes(data.Affixes);
 		}
 		if (item is FoodItem food)
@@ -50,36 +61,12 @@ public static class ItemSaveCodec
 	internal static List<RolledAffixSaveData> CaptureAffixes(Godot.Collections.Array<RolledAffix> affixes)
 	{
 		var list = new List<RolledAffixSaveData>();
-		if (affixes == null)
+		foreach (RolledAffix affix in affixes ?? new Godot.Collections.Array<RolledAffix>())
 		{
-			return list;
-		}
-
-		foreach (RolledAffix affix in affixes)
-		{
-			if (affix == null)
+			if (affix != null)
 			{
-				continue;
+				list.Add(CaptureAffix(affix));
 			}
-
-			var data = new RolledAffixSaveData { NameFragment = affix.NameFragment, Kind = (int)affix.Kind };
-			if (affix.Modifiers != null)
-			{
-				foreach (StatModifier modifier in affix.Modifiers)
-				{
-					if (modifier != null)
-					{
-						data.Modifiers.Add(new StatModifierSaveData
-						{
-							Stat = (int)modifier.Stat,
-							Op = (int)modifier.Op,
-							Value = modifier.Value,
-						});
-					}
-				}
-			}
-
-			list.Add(data);
 		}
 
 		return list;
@@ -88,36 +75,42 @@ public static class ItemSaveCodec
 	internal static Godot.Collections.Array<RolledAffix> BuildAffixes(List<RolledAffixSaveData> saved)
 	{
 		var affixes = new Godot.Collections.Array<RolledAffix>();
-		if (saved == null)
+		foreach (RolledAffixSaveData data in saved ?? [])
 		{
-			return affixes;
-		}
-
-		foreach (RolledAffixSaveData data in saved)
-		{
-			if (!Enum.IsDefined(typeof(AffixKind), data.Kind)) { throw new InvalidOperationException("Invalid saved affix kind."); }
-			var modifiers = new List<StatModifier>();
-			foreach (StatModifierSaveData modifier in data.Modifiers)
-			{
-				if (!Enum.IsDefined(typeof(StatType), modifier.Stat) || !Enum.IsDefined(typeof(ModifierOp), modifier.Op)
-					|| !float.IsFinite(modifier.Value)) { throw new InvalidOperationException("Invalid saved modifier."); }
-				modifiers.Add(new StatModifier
-				{
-					Stat = (StatType)modifier.Stat,
-					Op = (ModifierOp)modifier.Op,
-					Value = modifier.Value,
-				});
-			}
-
-			affixes.Add(new RolledAffix
-			{
-				NameFragment = data.NameFragment,
-				Kind = (AffixKind)data.Kind,
-				Modifiers = modifiers.ToArray(),
-			});
+			affixes.Add(BuildAffix(data));
 		}
 
 		return affixes;
 	}
+
+	private static RolledAffixSaveData CaptureAffix(RolledAffix affix) => new()
+	{
+		NameFragment = affix.NameFragment,
+		Group = affix.Group,
+		Kind = (int)affix.Kind,
+		Modifiers = CaptureModifiers(affix.Modifiers),
+	};
+
+	private static RolledAffix BuildAffix(RolledAffixSaveData data)
+	{
+		if (!Enum.IsDefined(typeof(AffixKind), data.Kind)) { throw new InvalidOperationException("Invalid saved affix kind."); }
+		return new RolledAffix
+		{
+			NameFragment = data.NameFragment,
+			Group = data.Group ?? "",
+			Kind = (AffixKind)data.Kind,
+			Modifiers = BuildModifiers(data.Modifiers),
+		};
+	}
+
+	private static List<StatModifierSaveData> CaptureModifiers(IEnumerable<StatModifier> modifiers) =>
+		(modifiers ?? []).Where(modifier => modifier != null)
+			.Select(modifier => new StatModifierSaveData { Stat = (int)modifier.Stat, Op = (int)modifier.Op, Value = modifier.Value })
+			.ToList();
+
+	private static StatModifier[] BuildModifiers(List<StatModifierSaveData> saved) => (saved ?? []).Select(modifier =>
+		Enum.IsDefined(typeof(StatType), modifier.Stat) && Enum.IsDefined(typeof(ModifierOp), modifier.Op) && float.IsFinite(modifier.Value)
+			? new StatModifier { Stat = (StatType)modifier.Stat, Op = (ModifierOp)modifier.Op, Value = modifier.Value }
+			: throw new InvalidOperationException("Invalid saved modifier.")).ToArray();
 
 }

@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=6 format=3 uid="uid://bc4es25jpb62o"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=7 format=3 uid="uid://bc4es25jpb62o"]
 
 [ext_resource type="Resource" path="res://scenes/combat/definitions/weapon_guard.tres" id="guard_weapon"]
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_1h.tres" id="melee_contact"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="PackedScene" uid="uid://l0ojnwtgehmw" path="res://scenes/items/weapons/axe_common.tscn" id="1_w1nru"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_nvcxl"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
 
 [resource]
 Guard = ExtResource("guard_weapon")
@@ -13,7 +14,6 @@ MeleeContact = ExtResource("melee_contact")
 AttackStyle = &"axe.1h.chop"
 Grip = ExtResource("weapon_grip")
 Tier = 1
-Level = 0
 RequiredStrength = 10
 DamageMin = 1.0
 DamageMax = 5.0
@@ -24,10 +24,9 @@ Delay = 0.0
 PerformDuration = 0.5
 CooldownDuration = 0.0
 ValidSlots = 256
-Rarity = 0
+RollTable = ExtResource("roll_table")
 Name = "Axe"
 Scene = ExtResource("1_w1nru")
-Quality = 1.0
 Value = 40
 ShowInInventory = true
 IsStackable = false

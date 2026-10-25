@@ -7,6 +7,7 @@ using Godot;
 /// modifier (e.g. a strength potion or equipment bonus); periodic effects still use a
 /// <see cref="PeriodicBuff"/> subclass.
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class StatModifierBuff : Buff
 {

@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=6 format=3 uid="uid://cbattleaxestart"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=7 format=3 uid="uid://cbattleaxestart"]
 
 [ext_resource type="Resource" path="res://scenes/combat/definitions/weapon_guard.tres" id="guard_weapon"]
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_2h.tres" id="melee_contact"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="PackedScene" uid="uid://b3nqntuy7vgn3" path="res://scenes/items/weapons/battleaxe_common.tscn" id="1_c5hji"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_rmilr"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
 
 [resource]
 script = ExtResource("2_rmilr")
@@ -13,10 +14,9 @@ MeleeContact = ExtResource("melee_contact")
 AttackStyle = &"axe.2h.chop"
 Grip = ExtResource("weapon_grip")
 Tier = 1
-Level = 0
 RequiredStrength = 8
 DamageMin = 2.0
-DamageMax = 7.0
+DamageMax = 6.0
 CritChance = 0.0
 IsTwoHanded = true
 AnimationId = "melee_attack"
@@ -24,10 +24,9 @@ Delay = 0.0
 PerformDuration = 0.5
 CooldownDuration = 0.0
 ValidSlots = 256
-Rarity = 0
-Name = "Worn Battle Axe"
+RollTable = ExtResource("roll_table")
+Name = "Battle Axe"
 Scene = ExtResource("1_c5hji")
-Quality = 1.0
 Value = 40
 ShowInInventory = true
 IsStackable = false

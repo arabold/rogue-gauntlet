@@ -8,6 +8,7 @@ using System.Text.Json;
 /// Level-local baseline comparison. Only removals, overrides, added objects, and activated
 /// reward-source descriptors reach disk. Untouched items are reconstructed from source seeds.
 /// </summary>
+[Tool] // Referenced by the tool Level script; it has no editor-time behavior.
 public partial class LevelItemPersistence : Node
 {
 	[Export] public PackedScene PickupScene { get; set; }

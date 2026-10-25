@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="Affix" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/items/affixes/Affix.cs" id="1_affix"]
+[ext_resource type="Script" path="res://scenes/items/affixes/AffixModifierRange.cs" id="2_range"]
+
+[sub_resource type="Resource" id="Range_0"]
+script = ExtResource("2_range")
+Stat = 7
+Op = 1
+MinValue = -0.1
+MaxValue = -0.05
+metadata/_custom_type_script = ExtResource("2_range")
+
+[sub_resource type="Resource" id="Range_1"]
+script = ExtResource("2_range")
+Stat = 8
+Op = 1
+MinValue = -0.1
+MaxValue = -0.05
+metadata/_custom_type_script = ExtResource("2_range")
+
+[resource]
+script = ExtResource("1_affix")
+Modifiers = [SubResource("Range_0"), SubResource("Range_1")]
+metadata/_custom_type_script = ExtResource("1_affix")

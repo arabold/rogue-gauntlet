@@ -42,7 +42,7 @@ has been discovered.
 
 ## Core Types
 
-- `ItemAppearance` (Resource): one disguise, made of a `Descriptor` ("crimson", "red wooden") and the
+- `ItemAppearance` (Resource): one disguise, made of a `Descriptor` ("crimson", "golden ruby") and the
   `Models` it is shown with, keyed by appearance form. Scrolls and jewelry have one model (form `""`).
   Potions have one per size (`small`, `medium`, `large`). The model is the disguise.
 - `AppearancePool` (Resource): an ordered list of `ItemAppearance`s for one category
@@ -52,7 +52,9 @@ has been discovered.
   - `TypeId`: stable identity key (e.g. `"potion.healing"`), independent of file path.
   - `IdentityCategory`: which `AppearancePool` to disguise with.
   - `TrueName`: shown once identified ("Potion of Healing").
-  - `UnidentifiedNameTemplate`: e.g. `"small {descriptor} potion"`.
+  - `UnidentifiedNameTemplate`: e.g. `"small {descriptor} potion"` or `"{descriptor} ring"`.
+    Equipment names are then led by their visible quality word: the Poor or Superior adjective, "magic"
+    or "rare", and nothing for Normal.
   - `AppearanceForm`: which of the appearance's models this item shows, a potion's bottle size.
 - `IdentificationService`: per-run state owned by `GameSession`. Resolves
   appearances and tracks discovery.
@@ -76,8 +78,9 @@ category.
 - `GetAppearance(item)`: the disguise assigned to the item's type, or null.
 - `IsIdentified(item)` / `Identify(typeId)`: read/record discovery (`Identify` returns
   true when the type was newly discovered).
-- `GetDisplayName(item)`: `TrueName` when identified, otherwise the templated
-  descriptor ("small crimson potion").
+- `GetDisplayName(item)`: `TrueName` when identified, otherwise the filled template
+  ("small crimson potion", "golden ruby ring"). `ItemIdentity.ComposeDisplayName` adds the
+  quality word, "cursed" and capitalization once ("Small crimson potion", "Shiny golden ruby ring").
 - `GetIdentifiedTypeIds()` / `GetAssignmentDescriptors()`: the discovered ids and the
   current type→descriptor assignment, for persistence.
 
@@ -128,9 +131,17 @@ black potion" renames it "Small Potion of Poison" but leaves the bottle as it lo
 
   Each type gets a random appearance at run start. The model is deliberately *unrelated*
   to the effect; it is the only thing the player learns to associate with an effect, and
-  only after identifying it. Jewelry material is part of that disguise, not the tier, so
-  a "red wooden amulet" can turn out to be an "Amulet of Strength". Jewelry true names
+  only after identifying it. Jewelry descriptors read `{material} {gem}` ("golden ruby",
+  "wooden jade"), and material is part of the disguise, never a sign of strength: a
+  "wooden coral amulet" can turn out to be an "Amulet of Strength". Jewelry true names
   carry no material.
+- **Quality = per-item strength (jewelry).** Like NetHack's per-ring enchantment, each ring or
+  amulet rolls a visible [quality](stats-and-itemization.md#equipment-quality-affixes-and-enchantment):
+  Poor and Superior scale its bonus, harmful types included, and Magic and Rare add affixes
+  from the jewelry roll tables. The quality is never part of the disguise: its word leads the
+  unidentified name and its color shows everywhere, so "shiny golden ruby ring" and "magic
+  golden ruby ring" are the same unknown type in two qualities. One type cannot look different
+  in different qualities, which is why each jewelry type has exactly one definition.
 - **Size = potency (potions only).** A potion type has small, medium and large
   definitions that share one `TypeId`, so they share the run's color and differ only in
   bottle size and magnitude. Potency is authored entirely in the buff; there is no
@@ -185,7 +196,7 @@ risk/reward of drinking an unknown potion.
 ## The `IIdentifiable` Interface
 
 Potions hang their identity fields off `IdentifiableItem : BuffedItem`. Jewelry needs the
-same identity fields *and* `EquipableItem`'s slot/rarity/affix machinery, but C# single
+same identity fields *and* `EquipableItem`'s slot/quality/affix machinery, but C# single
 inheritance means `IdentifiableItem` and `EquipableItem` can't share a base class — both are
 sibling branches of `BuffedItem`. `IIdentifiable` (`common/interfaces/IIdentifiable.cs`) is
 the shared contract (`TypeId`, `IdentityCategory`, `TrueName`, `UnidentifiedNameTemplate`,
@@ -194,16 +205,50 @@ consume the interface instead of either concrete type. `IdentityCategory.Types` 
 the base `Item` (Godot cannot export a typed array of an interface); callers filter with
 `.OfType<IIdentifiable>()`.
 
-`GameSession.IdentifyItemType(item)` is the single hub that records discovery and emits
-`SignalBus.ItemIdentified` — reading a scroll (`ItemConsumed`) and wearing jewelry
-(`ItemEquipped`) both funnel through it, so a scroll of identify calling it directly is the
-same code path.
+## Per-item knowledge
 
-`ItemIdentity.IsIdentified(item)` (true for non-identifiable items, or once discovered) gates
-every UI surface that could otherwise leak a rolled item's rarity or stats before it's
-identified: `RarityPalette.TextColor`, `ItemDetailsView`'s rarity/affix/intrinsic-modifier
-lines, and `ItemSlotPanel`'s rarity background tint all check it before showing anything
-beyond the disguised name.
+Type knowledge is per run; attribute and curse knowledge belong to each equipment instance, and
+both are saved with the item:
+- `EquipableItem.AttributesKnown` is false for Magic and Rare items when they drop. It is true for
+  every other class, for definitions and for fixed creation.
+- `EquipableItem.CurseStatusKnown` is false for every rolled item. See
+  [curses](stats-and-itemization.md#equipment-quality-affixes-and-enchantment).
+
+| Learned by | Type (run-wide) | This item's attributes | Curse status |
+| --- | --- | --- | --- |
+| Consuming a potion or scroll | ✓ | – | – |
+| Wearing equipment | ✓ | ✓ | – |
+| Trying to remove a worn cursed item | – | – | ✓ (cursed) |
+| Scroll of Identify | ✓ | ✓ | ✓ |
+| Scroll of Enchantment | – | ✓ | ✓ (lifted) |
+| Scroll of Remove Curse | – | – | ✓ (lifted) |
+
+Run-wide and per-item knowledge have separate owners:
+- **Types:** `GameSession.IdentifyItemType(item)` records type discovery for consuming
+  (`ItemConsumed`), wearing (`ItemEquipped`) and the scroll of identify. It emits
+  `SignalBus.ItemIdentified(typeId)`, and every open item slot relabels.
+- **One item:** each `EquipableItem` owns what is known about it.
+  - `RevealAttributes()` runs from `OnEquipped`, from the scroll of identify and from enchanting.
+  - `RevealCurseStatus()` runs from the scroll of identify, and from `PlayerInventoryController` when the
+    player's own unequip, equip or drop is blocked by a curse.
+  - `LiftCurse()` runs from Enchant and Remove Curse.
+
+  Each emits the item's own `Changed`, which `ItemSlotPanel` follows to relabel just that slot.
+
+`ItemIdentity` gates every UI surface that could leak hidden knowledge:
+- `IsTypeKnown(item)` hides a jewelry, potion or scroll type behind its disguise.
+- `AreStatsKnown(item)` additionally needs the item's own attributes, which unidentified Magic and
+  Rare items hide along with their affixes and rolled value. It gates `ItemDetailsView`'s stat lines,
+  which show "Unidentified" instead. The name is then just the quality word and base name: "Magic
+  Broadsword", or "Magic Ring of Strength" once another ring revealed the type.
+- `IsFullyIdentified(item)` also needs the curse status. It is what makes an item a valid target
+  for the scroll of identify.
+
+`EquipableItem.CurseStatusKnown` gates the "Cursed"/"Uncursed" tooltip line, the penalty lines and
+the "Cursed" name prefix.
+
+The quality is deliberately visible either way, so name color, the tooltip's quality line and
+`ItemSlotPanel`'s tint use `ItemQualityPalette` without those checks.
 
 ## Scrolls: A Resource-Strategy Effect, Not A Buff
 
@@ -232,28 +277,33 @@ is the ring/amulet base: it duplicates `IdentifiableItem`'s four identity export
 accepted cost of the sibling-branch split) and adds `IntrinsicModifiers` — a plain
 `StatModifier[]` rather than a `Buff`, so two worn instances of the same ring type register
 their stat contributions under distinct item-instance sources and reverse independently on
-unequip. Rings use `ValidSlots = LeftRing | RightRing` (192); amulets use `Neck` (32). World
+unequip. The authored values are the baseline; the item's `MagnitudeScale` scales them when
+stats are built. Jewelry rolls no affixes. There are nine ring types (Strength, Dexterity,
+Vitality, Mind, Health, Protection, Savagery, cursed Frailty and Lethargy) and seven amulet
+types (Health, Mind, Protection, Strength, Swiftness, Vitality, cursed Dread), one definition
+each in `scenes/items/jewelry/{ring,amulet}/`. Amulet baselines are about 1.5× a ring's,
+because the neck has one slot and the hands two. Rings use `ValidSlots = LeftRing | RightRing` (192); amulets use `Neck` (32). World
 models come from the run appearance (the Asset Studio rings and amulets in
 `scenes/items/jewelry/ring/` and `amulet/`); the older primitive `ring.tscn`/`amulet.tscn` scenes
 are only definition fallbacks.
 
-Wearing jewelry identifies it for free: `GameSession` subscribes
-`SignalBus.ItemEquipped += (player, item) => IdentifyItemType(item)` in `_Ready`, so no
-jewelry-specific wiring was needed beyond the existing consume-identifies-it hook.
+Wearing jewelry identifies its type and its own attributes for free: `GameSession` subscribes
+`SignalBus.ItemEquipped += (player, item) => IdentifyItemType(item)` in `_Ready`, the same hook
+that identifies consumed items, and `EquipableItem.OnEquipped` reveals the item's attributes.
 
 ## Rollout (complete)
 
 1. **Framework**: `ItemAppearance`, `AppearancePool`, `IdentifiableItem`, `IIdentifiable`,
-   `IdentificationService`; save field (version bump); `GameSession.IdentifyItemType` wired to
+   `IdentificationService`; save field (version bump); `GameSession.IdentifyItem` wired to
    both `ItemConsumed` and `ItemEquipped`.
 2. **Potions**: `potion_appearances.tres` (11 colors × three sizes); nine types in three sizes
    each (see [Potion Effects](#potion-effects)).
 3. **Scrolls**: `ScrollEffect`/`Scroll`, `scroll_appearances.tres` (gibberish titles),
-   identify/enchant/teleport/summon effects, plus haste/protection/rage/weakness buff scrolls;
-   the inventory targeting flow (`InventoryTargetRequest`, `InventoryPanel`,
-   `ItemSlotPanel.SetTargetingState`) for the two targeted effects.
+   identify/enchant/remove-curse/teleport/summon effects, plus haste/protection/rage/weakness buff
+   scrolls; the inventory targeting flow (`InventoryTargetRequest`, `InventoryPanel`,
+   `ItemSlotPanel.SetTargetingState`) for the targeted effects.
 4. **Jewelry**: `IdentifiableEquipableItem`, `ring_appearances.tres` /
-   `amulet_appearances.tres`, 10 rings + 4 amulets, anti-leak UI gating via
-   `ItemIdentity.IsIdentified`.
+   `amulet_appearances.tres`, 9 ring and 7 amulet types graded by visible quality,
+   anti-leak UI gating via `ItemIdentity.IsIdentified`.
 5. **Wands / Staves (future)**: material descriptors; behavior continues to come from the
    existing `MagicStaff` / attack-definition pipeline — not yet given hidden identity.

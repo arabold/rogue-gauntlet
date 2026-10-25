@@ -112,23 +112,24 @@ The same action family need not imply the same animation, duration, damage or ca
 
 ## Timed world interactions
 
-Use one target-authored duration and one execution/progress mechanism. Proposed ordinary door/chest operation is **one second total**. A simple mechanical lock might take **five seconds total**, a difficult one **ten seconds total**. Lock difficulty selects its authored picking duration; these are initial tuning values. Do not charge a separate one-second hold threshold before starting the five/ten-second action.
+Use one target-authored duration and one execution/progress mechanism. Opening an unlocked door takes **half a second**; closing a door or opening a chest takes **one second total**. A simple mechanical lock might take **five seconds total**, a difficult one **ten seconds total**. Lock difficulty selects its authored picking duration; these are initial tuning values. Do not charge a separate one-second hold threshold before starting the five/ten-second action.
 
 | Target / verb | Initial duration / policy |
 | --- | --- |
-| Open/close ordinary door; open chest | 1.0 second; movement and combat are unavailable while the hold continues |
-| Open using a matching reusable key | 1.0 second total; key validated again at completion |
-| Pick and open mechanical lock | Authored 5/10-second examples; requires a reusable lockpick; success is deterministic initially |
+| Open unlocked door | 0.5 seconds; movement and combat are unavailable while the hold continues |
+| Close door; open chest | 1.0 second; movement and combat are unavailable while the hold continues |
+| Unlock and open using a matching consumable key | 1.0 second total; consume one matching key only at successful completion |
+| Pick and open mechanical lock | Authored 5/10-second examples; requires one consumable lockpick and a pickable lock; success is deterministic initially |
 | Operate a lever or mechanism | Authored duration, default 1.0 second when introduced |
 | Automatic pickup, inventory/UI actions, staircase overlap | Keep their explicit existing policies; do not blindly add a hold to everything |
 
-Pick-and-open is one authored compound verb: after successful final validation, unlock and request opening. It does not demand another arbitrary one-second hold. If a matching key is carried, prefer the key/open verb over picking. A sealed or otherwise ineligible object explains the missing condition rather than starting a progress bar that cannot succeed. Required encounter seals remain unpickable. Tools/keys are reusable initially; no pick breakage, hidden failure roll or consumable costs are added by this action design.
+Pick-and-open is one authored compound verb: after successful final validation, unlock and request opening. It does not demand another arbitrary one-second hold. If a matching key is carried, prefer the key/open verb over picking. A sealed or otherwise ineligible object explains the missing condition rather than starting a progress bar that cannot succeed. Required encounter seals remain unpickable. Successful unlocking consumes exactly one matching key or one lockpick, committed with the unlock after final validation. Cancellation and failed validation consume nothing. Both item varieties stack to 20; key matching, pickability and guaranteed acquisition follow [dungeon access design](dungeon-exploration-design.md#locks-and-unlocking-methods). Random pick breakage and hidden failure rolls remain outside scope.
 
 ### Focus, progress and commitment
 
 Select one eligible nearby target using visibility, reachable interaction range, facing preference and distance, with a stable tie-break. It must not be selected through a wall or reveal a concealed passage. Show its verb, bound input, duration or unmet prerequisite. Other nearby objects do not compete with simultaneous full prompts. Selection must not depend on which object entered the overlap area most recently.
 
-A fresh hold locks the target and verb for the entire attempt. Show a circular progress indicator filling from zero to completion, anchored consistently near the selected target/prompt, with the verb ("Opening", "Picking lock") and remaining time for long actions. The ring represents accepted gameplay progress, not a speculative input threshold. Invalid/busy requests show a reason and do not fill. Only the player receives the input glyph; a monster's ongoing interaction can have readable activity/progress without a fictitious key prompt.
+A fresh hold locks the target and verb for the entire attempt. Show a circular progress indicator filling from zero to completion, anchored consistently near the selected target/prompt, without an accompanying message or countdown. The ring represents accepted gameplay progress, not a speculative input threshold. Invalid/busy requests show a reason and do not fill. Only the player receives the input glyph; a monster's ongoing interaction can have readable activity/progress without a fictitious key prompt.
 
 Starting requires being stationary, in range, with a valid capability/tool and no conflicting action. There is no automatic walk-to-target initially. While channeling, neither attacking, moving, guarding nor dodging progresses simultaneously. A movement or fresh combat/quick-item request cancels the interaction first; the new action may then begin if independently valid. Releasing interact also cancels. Thus the player can abandon a dangerous lock immediately, but loses the time invested. This is commitment through opportunity cost, not forced paralysis.
 

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Affix" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/items/affixes/Affix.cs" id="1_affix"]
+[ext_resource type="Script" path="res://scenes/items/affixes/AffixModifierRange.cs" id="2_range"]
+
+[sub_resource type="Resource" id="Range_0"]
+script = ExtResource("2_range")
+Stat = 9
+MinValue = 0.05
+MaxValue = 0.08
+metadata/_custom_type_script = ExtResource("2_range")
+
+[resource]
+script = ExtResource("1_affix")
+NameFragment = "Deadly"
+Group = "keenness"
+MinDepth = 12
+Weight = 5.0
+Modifiers = [SubResource("Range_0")]
+metadata/_custom_type_script = ExtResource("1_affix")

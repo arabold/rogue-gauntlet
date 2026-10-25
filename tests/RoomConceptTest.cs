@@ -61,6 +61,12 @@ public class RoomConceptTest
 					foreach (var placement in plan)
 					{
 						AssertBool(placement.Occupied.Any(region.ConnectorTiles.Contains)).IsFalse();
+						if (placement.Definition.WallPlaneDistance > 0)
+						{
+							var outward = ConnectedArrangementStrategy.Rotate(Vector2I.Up, placement.QuarterTurns);
+							var normal = new Vector3(outward.X, 0, outward.Y);
+							AssertBool(Mathf.Abs((placement.Transform.Origin - Center(placement.Anchor)).Dot(normal) - 1.195f) < .002f).IsTrue();
+						}
 						AssertBool(region.FurnishingSlots.Any(slot => slot.Definition.Id == placement.Definition.Id && slot.Anchor == placement.Anchor && (placement.Definition.AlignToWall || slot.Transform.IsEqualApprox(placement.Transform)))).IsTrue();
 						var instance = placement.Definition.Instantiate();
 						try { blocking.AddRange(instance.GetBlockingBounds().Select(box => placement.Transform * box)); }

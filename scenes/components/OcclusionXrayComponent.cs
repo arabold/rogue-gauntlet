@@ -34,6 +34,7 @@ public partial class OcclusionXrayComponent : Node
 
 	/// <summary>Root whose <see cref="MeshInstance3D"/> descendants get silhouettes.</summary>
 	[Export] public NodePath TargetRoot { get; set; }
+	[Export] public InvisibilityComponent Invisibility { get; set; }
 	/// <summary>Silhouette tint (alpha is honored; the shader fades it further with distance).</summary>
 	[Export] public Color XrayColor { get; set; } = new(1f, 0.35f, 0.35f, 0.85f);
 	/// <summary>Which debug toggle enables this component.</summary>
@@ -69,7 +70,7 @@ public partial class OcclusionXrayComponent : Node
 	private readonly List<MeshInstance3D> _silhouettes = new();
 	private readonly List<Label3D> _labels = new();
 	private Node3D _targetRoot;
-	private MapGenerator _mapGenerator;
+	private ExplorationVisibility _exploration;
 	private HealthComponent _health;
 	private double _pollAccumulator;
 
@@ -102,7 +103,7 @@ public partial class OcclusionXrayComponent : Node
 			return;
 		}
 
-		_mapGenerator = this.GetAncestorOrNull<Level>()?.MapGenerator;
+		_exploration = new ExplorationVisibility(this);
 		_health = GetParent()?.GetNodeOrNull<HealthComponent>("HealthComponent");
 
 		BuildSilhouettes(_targetRoot);
@@ -138,6 +139,7 @@ public partial class OcclusionXrayComponent : Node
 			SetProcess(false);
 		}
 
+		if (Invisibility != null) this.SubscribeUntilExit(Invisibility, c => c.Changed += Evaluate, c => c.Changed -= Evaluate);
 		Evaluate();
 	}
 
@@ -198,6 +200,7 @@ public partial class OcclusionXrayComponent : Node
 			Transform = src.Transform,
 			Visible = false,
 		};
+		VisualHelper.Mark(duplicate);
 		src.GetParent().AddChild(duplicate);
 		_silhouettes.Add(duplicate);
 	}
@@ -249,14 +252,9 @@ public partial class OcclusionXrayComponent : Node
 			return;
 		}
 
-		if (_mapGenerator == null)
-		{
-			_mapGenerator = this.GetAncestorOrNull<Level>()?.MapGenerator;
-		}
-
-		bool revealed = _mapGenerator == null || _mapGenerator.IsRevealedAt(_targetRoot.GlobalPosition);
+		bool revealed = _exploration.IsRevealed(_targetRoot.GlobalPosition);
 		bool alive = _health == null || !_health.IsDead;
-		bool visible = IsEnabled && GlobalFlagEnabled() && revealed && alive;
+		bool visible = IsEnabled && GlobalFlagEnabled() && revealed && alive && Invisibility?.IsInvisible != true;
 
 		foreach (MeshInstance3D silhouette in _silhouettes)
 		{

@@ -5,6 +5,7 @@ public partial class Level : Node
 {
 	[Export] public bool AutoGenerateOnReady { get; set; } = true;
 
+	[Export] public MapGenerator MapGenerator { get; set; }
 	/// <summary>Optional scene environment whose ambient illumination follows this floor's darkness.</summary>
 	[Export] public WorldEnvironment LightingEnvironment { get; set; }
 	[Signal] public delegate void DarknessChangedEventHandler(bool isDark);
@@ -25,8 +26,8 @@ public partial class Level : Node
 		EmitSignal(SignalName.DarknessChanged, isDark);
 	}
 
-	public MapGenerator MapGenerator { get; private set; }
-	public LevelItemPersistence ItemPersistence { get; private set; }
+	/// <summary>Required to generate a playable floor: it records and replays this floor's item deltas.</summary>
+	[Export] public LevelItemPersistence ItemPersistence { get; set; }
 	private Node _runtimeWorldRoot;
 	public RealmEncounterController Encounters { get; private set; }
 	public bool CanDescend => Encounters?.DescentUnlocked != false;
@@ -47,7 +48,12 @@ public partial class Level : Node
 
 	public override void _Ready()
 	{
-		MapGenerator = GetNode<MapGenerator>("MapGenerator");
+		if (MapGenerator == null)
+		{
+			GD.PushError($"{Name}: assign the level's MapGenerator.");
+			return;
+		}
+
 		if (Engine.IsEditorHint())
 		{
 			return;
@@ -62,13 +68,6 @@ public partial class Level : Node
 			_lightingEnvironment.AmbientLightEnergy = IsDark ? 0f : _normalAmbientEnergy;
 		}
 		_runtimeWorldRoot = GetOrCreateRuntimeWorldRoot();
-		ItemPersistence = GetNodeOrNull<LevelItemPersistence>("ItemPersistence");
-		if (ItemPersistence == null)
-		{
-			ItemPersistence = new LevelItemPersistence { Name = "ItemPersistence" };
-			AddChild(ItemPersistence);
-		}
-
 		if (AutoGenerateOnReady)
 		{
 			Generate();
@@ -81,8 +80,30 @@ public partial class Level : Node
 		MapGenerator.DungeonDepth = dungeonDepth;
 	}
 
+	/// <summary>True while an item operation is mid-commit; capturing then would record a half-applied floor.</summary>
+	public bool IsCommittingFloorChanges => ItemPersistence?.IsCommitting == true;
+
+	/// <summary>This floor's deviations from its seeded baseline; the inverse of <see cref="RestoreFloorDeltas"/>.</summary>
+	public (LevelItemDeltaSaveData Items, RevealedLevelSaveData Exploration) CaptureFloorDeltas() =>
+		(ItemPersistence.Capture(), MapGenerator.CaptureExploration());
+
+	/// <summary>Replays the session's saved deltas for this depth onto the freshly generated baseline.</summary>
+	private void RestoreFloorDeltas()
+	{
+		uint depth = MapGenerator.DungeonDepth;
+		ItemPersistence.RecordInitialBaseline();
+		ItemPersistence.Apply(GameSession.Instance?.FindLevelItemChanges(depth));
+		MapGenerator.RestoreExploration(GameSession.Instance?.GetLevelExploration(depth));
+	}
+
 	public void Generate()
 	{
+		if (ItemPersistence == null)
+		{
+			GD.PushError($"{Name}: assign ItemPersistence before generating a playable floor.");
+			return;
+		}
+
 		GD.Print("Initializing level...");
 		// Clear previous runtime spawns before rebuilding the map. This matters if a
 		// level is regenerated in place rather than replaced by a full scene reload.
@@ -97,8 +118,7 @@ public partial class Level : Node
 		ItemPersistence.Initialize(this);
 		try
 		{
-			ItemPersistence.RecordInitialBaseline();
-			ItemPersistence.Apply(GameSession.Instance?.FindLevelItemChanges(MapGenerator.DungeonDepth));
+			RestoreFloorDeltas();
 		}
 		catch (System.Exception error)
 		{

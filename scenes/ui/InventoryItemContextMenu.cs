@@ -32,7 +32,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 
 		_titleLabel = GetNode<Label>("%TitleLabel");
 		// Reuse the same details component as the hover tooltip so click and hover show the
-		// same rarity-colored name and affix lines. It replaces the plain title label.
+		// same quality-colored name and stat lines. It replaces the plain title label.
 		_details = new ItemDetailsView();
 		Node header = _titleLabel.GetParent();
 		header.AddChild(_details);

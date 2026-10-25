@@ -1,6 +1,7 @@
 using Godot;
 
 /// <summary>Separate encounter staging space from the body clearance required during room-local movement.</summary>
+[Tool]
 [GlobalClass]
 public partial class LargeActorFitProfile : Resource
 {

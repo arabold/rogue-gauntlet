@@ -3,7 +3,7 @@ using Godot;
 /// <summary>
 /// The pickup cue for dropped loot: a radial floor glow and rising sparks — both additive so the
 /// world's glow blooms them. Everything is tinted to a single <see cref="BeamColor"/> (resolved
-/// from item rarity/type by <see cref="LootVisuals"/>). The floor circle identifies the item and
+/// from item quality/type by <see cref="LootVisuals"/>). The floor circle identifies the item and
 /// the sparks add life; the item's own model provides the central visual.
 ///
 /// Built entirely in code so each instance owns its own materials (per-item color) without
@@ -35,6 +35,8 @@ public partial class LootBeam : Node3D
 	private ShaderMaterial _glowMat;
 	private ShaderMaterial _sparkMat;
 	private OmniLight3D _light;
+	private GpuParticles3D _sparks;
+	private bool _active = true;
 
 	public override void _Ready()
 	{
@@ -46,6 +48,20 @@ public partial class LootBeam : Node3D
 		}
 
 		ApplyColor();
+	}
+
+	/// <summary>Suppress all rendering and particle emission until the owning loot is discovered.</summary>
+	public void SetActive(bool active)
+	{
+		Visible = active;
+		if (_active == active) return;
+		_active = active;
+		if (_sparks != null)
+		{
+			_sparks.Emitting = active;
+			if (active) _sparks.Restart();
+		}
+		if (_light != null) _light.Visible = active;
 	}
 
 	private void BuildGlow()
@@ -80,7 +96,7 @@ public partial class LootBeam : Node3D
 			EmissionBoxExtents = new Vector3(0.16f, 0.02f, 0.16f),
 		};
 
-		var sparks = new GpuParticles3D
+		_sparks = new GpuParticles3D
 		{
 			Name = "Sparks",
 			Amount = 26,
@@ -89,9 +105,9 @@ public partial class LootBeam : Node3D
 			DrawPass1 = new SphereMesh { Radius = 0.055f, Height = 0.11f, RadialSegments = 6, Rings = 3 },
 			MaterialOverride = _sparkMat,
 			Explosiveness = 0f,
-			Emitting = true,
+			Emitting = _active,
 		};
-		AddChild(sparks);
+		AddChild(_sparks);
 	}
 
 	private void BuildLight()
@@ -99,6 +115,7 @@ public partial class LootBeam : Node3D
 		_light = new OmniLight3D
 		{
 			Name = "Light",
+			Visible = _active,
 			OmniRange = 3.0f,
 			LightEnergy = 0.8f,
 			ShadowEnabled = false,

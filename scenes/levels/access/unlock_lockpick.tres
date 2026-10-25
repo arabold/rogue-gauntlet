@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="LockpickUnlockMethod" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://p8frwprcyd35" path="res://scenes/levels/access/LockpickUnlockMethod.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+Label = "Pick lock"
+Duration = 5.0

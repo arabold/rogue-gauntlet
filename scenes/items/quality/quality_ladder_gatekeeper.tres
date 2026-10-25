@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="QualityLadder" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scenes/items/quality/QualityLadder.cs" id="1_ladder"]
+[ext_resource type="Script" path="res://scenes/items/quality/QualityLevel.cs" id="2_level"]
+
+[sub_resource type="Resource" id="Level_poor"]
+script = ExtResource("2_level")
+Quality = 0
+MinScale = 0.7
+MaxScale = 0.9
+metadata/_custom_type_script = ExtResource("2_level")
+
+[sub_resource type="Resource" id="Level_normal"]
+script = ExtResource("2_level")
+metadata/_custom_type_script = ExtResource("2_level")
+
+[sub_resource type="Resource" id="Level_superior"]
+script = ExtResource("2_level")
+Quality = 2
+MinScale = 1.1
+MaxScale = 1.25
+metadata/_custom_type_script = ExtResource("2_level")
+
+[sub_resource type="Resource" id="Level_magic"]
+script = ExtResource("2_level")
+Quality = 3
+StartWeight = 70.0
+MinAffixes = 1
+MaxAffixes = 2
+metadata/_custom_type_script = ExtResource("2_level")
+
+[sub_resource type="Resource" id="Level_rare"]
+script = ExtResource("2_level")
+Quality = 4
+StartWeight = 30.0
+MinAffixes = 3
+MaxAffixes = 4
+metadata/_custom_type_script = ExtResource("2_level")
+
+[resource]
+script = ExtResource("1_ladder")
+Levels = [SubResource("Level_poor"), SubResource("Level_normal"), SubResource("Level_superior"), SubResource("Level_magic"), SubResource("Level_rare")]
+metadata/_custom_type_script = ExtResource("1_ladder")

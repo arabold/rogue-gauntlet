@@ -17,19 +17,19 @@
 
 [sub_resource type="Resource" id="Appearance_gold_amethyst"]
 script = ExtResource("2_appr")
-Descriptor = "violet golden"
+Descriptor = "golden amethyst"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m1")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_gold_emerald"]
 script = ExtResource("2_appr")
-Descriptor = "green golden"
+Descriptor = "golden emerald"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m2")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_gold_ruby"]
 script = ExtResource("2_appr")
-Descriptor = "red golden"
+Descriptor = "golden ruby"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m3")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
@@ -47,25 +47,25 @@ metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_silver_diamond"]
 script = ExtResource("2_appr")
-Descriptor = "sparkling silver"
+Descriptor = "silver diamond"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m6")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_silver_onyx"]
 script = ExtResource("2_appr")
-Descriptor = "black silver"
+Descriptor = "silver onyx"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m7")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_silver_sapphire"]
 script = ExtResource("2_appr")
-Descriptor = "blue silver"
+Descriptor = "silver sapphire"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m8")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_wood_amber"]
 script = ExtResource("2_appr")
-Descriptor = "amber wooden"
+Descriptor = "wooden amber"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m9")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
@@ -77,13 +77,13 @@ metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_wood_garnet"]
 script = ExtResource("2_appr")
-Descriptor = "red wooden"
+Descriptor = "wooden garnet"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m11")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_wood_jade"]
 script = ExtResource("2_appr")
-Descriptor = "green wooden"
+Descriptor = "wooden jade"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m12")})
 metadata/_custom_type_script = ExtResource("2_appr")
 

@@ -96,4 +96,24 @@ public static class TestFactories
 		mapGenerator.LooseItemScene = GD.Load<PackedScene>("res://scenes/items/lootable_item.tscn");
 		mapGenerator.LooseItemLootTable = GD.Load<LootTable>("res://scenes/items/loot/loot_chest_common.tres");
 	}
+
+	/// <summary>
+	/// An ungenerated level with its map generator attached, for exploration tests. Attach
+	/// content first, then add the level with <see cref="AddToSceneTree{T}"/>.
+	/// </summary>
+	public static (Level Level, MapGenerator Map) UngeneratedLevel()
+	{
+		var map = GD.Load<PackedScene>("res://scenes/levels/generators/map_generator.tscn").Instantiate<MapGenerator>();
+		var level = new Level { AutoGenerateOnReady = false, MapGenerator = map };
+		level.AddChild(map);
+		return (level, map);
+	}
+
+	/// <summary>Marks only the tile under <paramref name="point"/> explored, as a save restore would.</summary>
+	public static void RevealTileAt(MapGenerator map, Vector3 point)
+	{
+		var tile = map.WorldToTile(point);
+		map.RestoreExploration(new RevealedLevelSaveData { DungeonDepth = map.DungeonDepth,
+			ExploredTiles = [new Vector2ISaveData { X = tile.X, Y = tile.Y }] });
+	}
 }

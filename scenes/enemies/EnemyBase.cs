@@ -7,6 +7,8 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 {
 	public Node3D Pivot;
 	public CollisionShape3D CollisionShape;
+	[Export] public InvisibilityComponent Invisibility { get; set; }
+
 	[Export] public EnemyBehaviorComponent EnemyBehaviorComponent;
 	[Export] public MovementComponent MovementComponent;
 	[Export] public HealthComponent HealthComponent;
@@ -83,6 +85,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 			Category = XrayCategory.Monster,
 			XrayColor = new Color(1f, 0.32f, 0.32f, 0.85f),
 			TargetRoot = "../Pivot",
+			Invisibility = Invisibility,
 		};
 		AddChild(xray);
 	}

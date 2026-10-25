@@ -1,43 +1,31 @@
 using Godot;
 using System;
 
+[Tool]
 [GlobalClass]
 public partial class Armor : EquipableItem
 {
-	/// <summary>
-	/// Armor level modifier (-1, +0, +1, etc.); affects armor stats.
-	/// </summary>
-	[Export] public int Level { get; protected set => SetValue(ref field, value); } = 0;
 	/// <summary>
 	/// Strength required to wear this armor effectively.
 	/// </summary>
 	[Export] public int RequiredStrength { get; protected set => SetValue(ref field, value); } = 0;
 	/// <summary>
-	/// Armor bonus for this item (absolute value). Stacks up with other items' armor bonus.
+	/// Authored armor bonus at quality scale 1. Stacks up with other items' armor bonus; the wearer gets
+	/// <see cref="ScaledArmorPoints"/>.
 	/// </summary>
 	[Export] public int ArmorPoints { get; set => SetValue(ref field, value); } = 0;
+	/// <summary>Armor bonus after quality scaling, rounded to whole points.</summary>
+	public int ScaledArmorPoints => (int)ScaleWhole(ArmorPoints);
 	/// <summary>
-	/// Speed modifier for this armor
+	/// Speed modifier for this armor. Quality does not scale it.
 	/// </summary>
 	[Export] public float SpeedModifier { get; set => SetValue(ref field, value); } = 1.0f;
 
-	protected override System.Collections.Generic.IEnumerable<StatModifier> BuildStatModifiers()
+	protected override System.Collections.Generic.IEnumerable<StatModifier> BuildIntrinsicModifiers()
 	{
-		foreach (StatModifier modifier in base.BuildStatModifiers())
-		{
-			yield return modifier;
-		}
-
-		yield return new StatModifier { Stat = StatType.Armor, Op = ModifierOp.Flat, Value = ArmorPoints };
+		yield return new StatModifier { Stat = StatType.Armor, Op = ModifierOp.Flat, Value = ScaledArmorPoints };
 		// SpeedModifier are authored as multipliers (1.0 = no change), so a
 		// value of 0.9 becomes a -10% percent modifier.
 		yield return new StatModifier { Stat = StatType.Speed, Op = ModifierOp.Percent, Value = SpeedModifier - 1f };
-	}
-
-	public void UpgradeLevel()
-	{
-		Level++;
-		ArmorPoints += 1;
-		RequiredStrength -= 1;
 	}
 }

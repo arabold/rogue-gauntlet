@@ -7,7 +7,6 @@
 script = ExtResource("2_script")
 Name = "Silver Ritual Bell"
 Scene = ExtResource("1_scene")
-Quality = 1.0
 Value = 105
 ShowInInventory = true
 IsStackable = false

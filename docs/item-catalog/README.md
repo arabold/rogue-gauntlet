@@ -2,7 +2,7 @@
 
 Visual + data reference for every item definition in the game — the itemization counterpart to the [monster catalog](../monster-catalog/README.md). Renders are generated from each item's actual world model (the same one shown in the inventory preview and dropped in the world) by `asset-studio/godot/render_item_catalog.gd` — see the `assets` skill. Each row maps to its `.tres` definition under `scenes/items/`.
 
-> `Tier` is the base item's ladder rung (1–5), independent of the `Rarity` an instance rolls when it drops — see `docs/stats-and-itemization.md`. Rows are grouped by tier for weapons/shields since that's the nominal dungeon-depth progression.
+> `Tier` is the base item's ladder rung (1–5), independent of the quality (Poor to Rare) an instance rolls when it drops — see `docs/stats-and-itemization.md`. Rows are grouped by tier for weapons/shields since that's the nominal dungeon-depth progression.
 
 ## Weapons
 
@@ -126,7 +126,7 @@ Scroll effects that aren't stat buffs are authored `ScrollEffect` strategies (id
 | ![Scroll of Protection](./scroll_protection.png) | **Scroll of Protection** | Protection: +8 Armor for 60s | — | `scroll.protection` | 110 |
 | ![Scroll of Rage](./scroll_rage.png) | **Scroll of Rage** | Rage: +25% MinDamage, +25% MaxDamage for 30s | — | `scroll.rage` | 130 |
 | ![Scroll of Teleportation](./scroll_teleport.png) | **Scroll of Teleportation** | Relocates the player to a random free tile | — | `scroll.teleport` | 150 |
-| ![Scroll of Enchantment](./scroll_enchant.png) | **Scroll of Enchantment** | Bumps a chosen item's rarity + adds one affix | Yes | `scroll.enchant` | 200 |
+| ![Scroll of Enchantment](./scroll_enchant.png) | **Scroll of Enchantment** | Adds one affix (making the item Magic or Rare) and lifts a curse | Yes | `scroll.enchant` | 200 |
 
 ## Jewelry
 

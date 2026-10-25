@@ -1,6 +1,6 @@
 # Dungeon Layout, Access, and Discovery
 
-Status: intended gameplay design, October 20, 2026. This document defines the agreed exploration concept; it does not describe completed implementation. The [implementation plan](specs/level-progression-prototype-plan.md) defines proposed code changes and delivery slices. [Level design](level-design.md) describes the generator and encounter prototype that exist today. [Realms and monster design](realms-and-monster-design.md) owns world themes, realm cadence, and encounter concepts.
+Status: intended gameplay design, updated October 24, 2026. [Door access](door-access.md) describes the implemented first version; its [remaining plan](specs/secret-doors-and-locks-plan.md) covers later extensions and tuning. This document defines the agreed exploration concept; it does not describe completed implementation. The [implementation plan](specs/level-progression-prototype-plan.md) defines proposed code changes and delivery slices. [Level design](level-design.md) describes the generator and encounter prototype that exist today. [Realms and monster design](realms-and-monster-design.md) owns world themes, realm cadence, and encounter concepts.
 
 ## Design goals
 
@@ -65,13 +65,15 @@ Small flags such as pickability are appropriate within a capability. Avoid a sin
 | Matching key | A guard's cells, quarters, treasury | Key/lock identity; color coding is optional |
 | Encounter seal | Boss-gated descent | Readable magical barrier tied to the encounter |
 
-A mechanical lock can accept a matching key, lockpicks, or either method. A cell may be pick-only; an authored alternative such as a guard's prison key can open a defined group of cells. Matching scope must be intentional. A reusable prison key and a one-door treasury key need not share a rule.
+A mechanical lock declares its matching key and the methods that may open it (matching key, lockpick). Generated locks initially permit picking; one lockpick bypasses any pickable mechanical lock regardless of its key requirement. An unpickable mechanical lock requires its matching key. Encounter seals remain separate conditions and cannot be bypassed by a key or pick. Initial generated locks accept both their matching key and a lockpick; pick-only authored locks may omit a key deliberately.
 
-Color is presentation rather than the matching rule. A blue door/blue key puzzle is an explicit special feature, not the default for prison cells. Revealing or recoloring a door never satisfies its lock.
+Keys of the same color/variety share one canonical identity and item definition, and stack to 20. Different colors/identities never merge. A small colored diamond above a discovered locked door shows the required key variety and disappears on unlock; the interaction text also names the key. Concealed doors suppress this marker entirely. Matching uses identity, not a sampled visual color or display name; names/icons should also communicate the variety. Lockpicks stack to 20. Prefer a matching key over picking when both are carried. Key and pick items are used contextually at doors rather than assigned automatically to quick slots.
 
-The initial working direction for lockpicking requires the appropriate tool and an interruptible timed action with deterministic success. The tool is reusable initially; duration is tuning. Pick breakage, charges, probabilistic failure, character skill, and key consumption are later decisions. This gives pickable cells an observable mechanic without introducing an unsupported resource economy.
+Successful unlocking consumes exactly one matching key or one lockpick. Picking is an interruptible timed action with deterministic success; its duration is authored tuning. Validate the item again at completion and commit consumption with the unlock exactly once. Cancellation or failed validation spends nothing. Unlocking persists; closing and reopening a door never charges another item. Random pick failure, breakage and partial progress are outside the initial scope.
 
-Initial mechanical locks protect optional content. Any later required mechanical lock needs a guaranteed solution reachable before that lock, independent of random loot or shop stock. If a mandatory solution is an item, acquisition, inventory capacity, dropping, consumption, and persistence must all be unable to strand the run. Ordinary optional keys continue to obey normal inventory capacity.
+Initial mechanical locks protect optional content. Floors may contain no locked room: the current Garrison tuning makes a 20% placement attempt with a hard maximum of one generated locked door. Secret-room attempts are more frequent at 45%, capped at one pocket, with no guarantee of either feature on a floor. Lockpicks are exceptional supplies rather than floor loot; the Rogue starts with two and shops may sell them later. Every generated keyed lock reserves a guaranteed matching-key pickup reachable before unlocking its protected region; random loot, shops, secrets and lockpicks do not satisfy this guarantee. Initially all these keys are placed in the openly reachable region, avoiding lock chains. Multiple locks sharing an identity require sufficient key quantities for all of them. Validate actual walkable geometry and every relevant entrance, not room-center adjacency alone. If an optional lock/key pair cannot fit, omit that pair or retry within a bound.
+
+Any later required mechanical lock needs a guaranteed solution reachable before that lock, independent of random loot or shop stock. If a mandatory solution is an item, acquisition, inventory capacity, dropping, consumption, and persistence must all be unable to strand the run. Ordinary optional keys continue to obey normal inventory capacity.
 
 ## Gatekeepers and sealed stairs
 
@@ -83,7 +85,7 @@ A guaranteed boss key is a possible later alternative. It must use the same solv
 
 ## Random secrets
 
-Secret doors originate from generated geometry: a variable wall segment along a corridor, or a variable wall segment in a generated room. They are not fixed sockets in predefined room templates, and existing authored doors are not randomly relabeled as secrets. Predefined rooms can remain recognizable without teaching recurring secret-door positions.
+Secret doors originate from generated geometry: a variable wall segment along a corridor, or a variable wall segment in a generated room. Complete authored/scripted room scenes never receive generated secret entrances, either as the host or hidden destination. Procedural recipe rooms and corridor walls are eligible; being generated by code does not make a room an excluded scripted room. Secrets are not fixed sockets in predefined room templates, and existing authored doors are not randomly relabeled as secrets. Predefined rooms can remain recognizable without teaching recurring secret-door positions.
 
 The generator chooses a suitable host wall and reserves space for the concealed destination or connecting passage during layout. The room/passage exists from generation; approaching the secret does not reroll content or attach new geography. Placement checks include available space, wall style, structural corners, existing openings, and compatible concealed-wall visuals. Neither an obvious seam nor a distinctive prop should advertise every candidate.
 
@@ -93,9 +95,17 @@ A secret room has no ordinary visible entrance. A secret passage may deliberatel
 
 ### Discovery and opening
 
+Traps follow the same proximity-roll discovery rule from any accessible side. Discovery exposes the trap plate without disarming it. Traps have a larger discovery radius for advance warning. Secret doors and traps share a brief yellow surface glow and blend on live discovery, which clears completely; loaded discoveries restore silently. Keys remain guaranteed when a generated lock is placed, while lockpicks are not generated as regular supplies.
+
 An undiscovered passage looks like continuous surrounding wall, remains closed to movement and navigation, and exposes no door prompt, x-ray indicator, map icon, or fog reveal beyond it. A tool or interaction aimed at ordinary walls must not identify secret candidates through differing feedback.
 
-Initial discovery is automatic when the player approaches the concealed segment from a reachable side within a small authored radius. Proximity alone through an intervening wall, from another floor height, or from the inaccessible destination does not count. Once found, the wall reveals its door/passage treatment and ordinary interaction becomes available. It remains closed until opened and still obeys any lock.
+Retain the actual ordinary wall tile selected for the concealed segment, including mesh-library identity, orientation, material and collision; do not use a recognizable secret-wall variant. On discovery, replace its presentation with the doorway/door assembly while keeping passage blocked until opening.
+
+Initial discovery rolls every 0.5 seconds of active gameplay for eligible nearby secrets. Use current resolved Intelligence through an authored detection profile, since no Perception stat/talent exists yet; the profile can select a different stat later without changing door behavior. Chance depends on the selected stat and the secret's difficulty, with tunable bounded probabilities. Each eligible secret gets at most one roll per interval; pause/menu time and frame stalls must not accumulate a burst of checks. Repeated checks while standing nearby are intentional.
+
+Eligibility requires a small authored radius, compatible floor height and an unobstructed approach from an accessible side. Proximity through another wall or from an inaccessible destination does not count. Success permanently reveals a closed door and enables ordinary interaction; it neither unlocks nor opens it and does not reveal the unopened destination. Gameplay detection randomness is separate from generation randomness.
+
+Reveal, unlock and open are separate operations. Future hidden buttons can use the same discovery behavior and target a stable connection identity. Secrets may allow proximity discovery, a mechanism trigger, or both; button-only secrets disable proximity checks. A button may reveal, reveal and open, or explicitly unlock as well. Opening still checks any remaining lock or encounter condition. Only these extension seams are in scope now; button content and a puzzle framework are deferred.
 
 Fog discovery and secret discovery are different. Revealing a corridor must not reveal the hidden branch; discovering the opening must not reveal the unopened room. Opening the passage can reveal through it under normal exploration rules. Enemies cannot use an undiscovered or closed secret connection as an invisible route.
 
@@ -115,4 +125,4 @@ Generation uses bounded retries. If required content cannot be placed, report a 
 
 ## Delivery boundary
 
-Implement realm pools and recipe-driven placement, then composed access with the visible Warden seal and optional mechanical locks, then generated secret branches and discovery. Each step must retain current-version save/load and playable generation. [The implementation plan](specs/level-progression-prototype-plan.md) owns types, scene wiring, algorithms, failure handling, and verification; this document owns the gameplay rules.
+The first [access implementation](door-access.md) delivers consumable locks and saved access state, guaranteed generated lock/key pairs, secret pockets and random discovery. Its [remaining plan](specs/secret-doors-and-locks-plan.md) covers later extensions and tuning. Remaining per-depth realm recipes and the visible Warden seal are separate progression work, not prerequisites for this delivery. Each step must retain current-version save/load and playable generation. [The implementation plan](specs/level-progression-prototype-plan.md) owns types, scene wiring, algorithms, failure handling, and verification; this document owns the gameplay rules.

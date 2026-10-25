@@ -192,7 +192,7 @@ public class LootPlacementTest
 	}
 
 	[TestCase]
-	public void PickWeightedEntryOnlyReturnsConfiguredItemsAndHandlesEmptyTables()
+	public void PickEntryOnlyReturnsConfiguredItemsAndHandlesEmptyTables()
 	{
 		// Exercise the real grouped resource every placed chest already uses.
 		var table = GD.Load<LootTable>("res://scenes/items/loot/loot_chest_common.tres");
@@ -200,13 +200,14 @@ public class LootPlacementTest
 
 		for (int i = 0; i < 50; i++)
 		{
-			var entry = table.PickWeightedEntry(rng);
+			var entry = table.PickEntry(1, rng);
 			AssertObject(entry).IsNotNull();
 			AssertBool(System.Array.IndexOf(table.Entries, entry) >= 0).IsTrue();
+			AssertBool(entry.IsEligibleAt(1)).IsTrue();
 		}
 
 		var emptyTable = new LootTable();
-		AssertObject(emptyTable.PickWeightedEntry(rng)).IsNull();
+		AssertObject(emptyTable.PickEntry(1, rng)).IsNull();
 	}
 
 	private static IEnumerable<Chest> FindChests(MapGenerator mapGenerator)

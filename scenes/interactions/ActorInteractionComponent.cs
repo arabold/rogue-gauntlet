@@ -23,6 +23,7 @@ public partial class ActorInteractionComponent : Node
 	public float Progress => Duration > 0 ? Mathf.Clamp(Elapsed / Duration, 0f, 1f) : 1f;
 	public ulong Generation { get; private set; }
 
+	private ActorInteractionContext _context;
 	private ActorActionLease _currentLease = ActorActionLease.None;
 	private Vector3 _startActorPosition = Vector3.Zero;
 
@@ -51,7 +52,7 @@ public partial class ActorInteractionComponent : Node
 			return InteractionRequestResult.ActorDead;
 		}
 
-		if (!offer.IsValid || offer.Target == null || !offer.Target.IsInteractive)
+		if (context.Actor != Actor || !HasLineOfSight(offer.Target) || !offer.IsValid || offer.Target == null || !offer.Target.IsInteractive || offer.IsBlocked)
 		{
 			return InteractionRequestResult.NoOffer;
 		}
@@ -99,6 +100,7 @@ public partial class ActorInteractionComponent : Node
 			}
 		}
 
+		_context = context;
 		IsActive = true;
 		SetPhysicsProcess(true);
 		Generation++;
@@ -182,6 +184,7 @@ public partial class ActorInteractionComponent : Node
 		IsActive = false;
 		SetPhysicsProcess(false);
 		CurrentTarget = null;
+		_context = default;
 		CurrentReservation = InteractionReservation.None;
 		_currentLease = ActorActionLease.None;
 		Elapsed = 0f;
@@ -209,10 +212,21 @@ public partial class ActorInteractionComponent : Node
 	private void Commit()
 	{
 		var offer = CurrentOffer;
-		var result = CurrentTarget?.TryCommit(CurrentReservation) ?? InteractionCommitResult.TargetInvalidated;
+		var result = !_context.HasPermission(offer.RequiredPermission) || !HasLineOfSight(CurrentTarget) ? InteractionCommitResult.PrerequisitesFailed
+			: CurrentTarget?.TryCommit(CurrentReservation, _context) ?? InteractionCommitResult.TargetInvalidated;
 
 		TeardownSession(out _, out _);
 		EmitSignalInteractionCompleted(offer.VerbLabel, (int)result);
+	}
+
+	/// <summary>Whether nothing in the world/walls/props blocks the actor's view of the target. Focus selection uses the
+	/// same check as begin/commit so a prompt is never offered for an interaction that would be rejected.</summary>
+	public bool HasLineOfSight(IInteractionTarget target)
+	{
+		if (target?.TargetNode == null || !Actor.IsInsideTree() || !target.TargetNode.IsInsideTree()) return true;
+		var root = target.TargetNode.GetParent();
+		return WorldSight.IsClear(Actor.GetWorld3D(), Actor.GlobalPosition + Vector3.Up * 1.5f, target.TargetNode.GlobalPosition,
+			(collider, _) => root != null && collider is Node node && (node == root || root.IsAncestorOf(node)));
 	}
 
 	// Variant-compatible debug helpers

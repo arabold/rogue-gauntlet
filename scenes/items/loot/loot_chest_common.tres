@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LootTable" load_steps=383 format=3 uid="uid://clootchest0001"]
+[gd_resource type="Resource" script_class="LootTable" load_steps=355 format=3 uid="uid://clootchest0001"]
 
 [ext_resource type="Script" path="res://scenes/components/LootTable.cs" id="table"]
 [ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
@@ -152,37 +152,6 @@
 [ext_resource type="Resource" path="res://scenes/items/armor/shield_square.tres" id="item_94"]
 [ext_resource type="Resource" path="res://scenes/items/armor/shield_square_red.tres" id="item_95"]
 [ext_resource type="Resource" path="res://scenes/items/armor/shield_uncommon.tres" id="item_96"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_emerald.tres" id="item_97"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_ruby.tres" id="item_98"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_gold_sun_crest.tres" id="item_99"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_amethyst.tres" id="item_101"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_runic_crest.tres" id="item_103"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_silver_sapphire.tres" id="item_104"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_coral.tres" id="item_105"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_druid_talisman.tres" id="item_106"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_wood_peridot.tres" id="item_108"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_dread.tres" id="item_109"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_health.tres" id="item_110"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_swiftness.tres" id="item_111"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet_titan.tres" id="item_112"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_amethyst.tres" id="item_113"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_emerald.tres" id="item_114"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_gold_ruby.tres" id="item_115"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_band.tres" id="item_117"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_diamond.tres" id="item_118"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_onyx.tres" id="item_119"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_silver_sapphire.tres" id="item_120"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_amber.tres" id="item_121"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_carved.tres" id="item_122"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_wood_garnet.tres" id="item_123"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_dexterity.tres" id="item_125"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_frailty.tres" id="item_127"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_lethargy.tres" id="item_128"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_mind.tres" id="item_129"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_protection.tres" id="item_131"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_savagery.tres" id="item_132"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_strength.tres" id="item_133"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_vitality.tres" id="item_134"]
 
 [ext_resource type="Resource" uid="uid://cpotionblindnesslarge" path="res://scenes/items/potions/potion_blindness_large.tres" id="potion_blindness_large"]
 [ext_resource type="Resource" uid="uid://cpotionconfusionlarge" path="res://scenes/items/potions/potion_confusion_large.tres" id="potion_confusion_large"]
@@ -190,6 +159,23 @@
 [ext_resource type="Resource" uid="uid://cpotionconfusionmedium" path="res://scenes/items/potions/potion_confusion_medium.tres" id="potion_confusion_medium"]
 [ext_resource type="Resource" uid="uid://cpotionblindnesssmall" path="res://scenes/items/potions/potion_blindness_small.tres" id="potion_blindness_small"]
 [ext_resource type="Resource" uid="uid://cpotionconfusionsmall" path="res://scenes/items/potions/potion_confusion_small.tres" id="potion_confusion_small"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_strength.tres" id="ring_strength"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_dexterity.tres" id="ring_dexterity"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_vitality.tres" id="ring_vitality"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_mind.tres" id="ring_mind"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_health.tres" id="ring_health"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_protection.tres" id="ring_protection"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_savagery.tres" id="ring_savagery"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_frailty.tres" id="ring_frailty"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_lethargy.tres" id="ring_lethargy"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_health.tres" id="amulet_health"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_mind.tres" id="amulet_mind"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_protection.tres" id="amulet_protection"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_strength.tres" id="amulet_strength"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_swiftness.tres" id="amulet_swiftness"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_vitality.tres" id="amulet_vitality"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_dread.tres" id="amulet_dread"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_remove_curse.tres" id="scroll_remove_curse"]
 [sub_resource type="Resource" id="Entry_210"]
 script = ExtResource("entry")
 Item = ExtResource("item_210")
@@ -791,11 +777,21 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
+[sub_resource type="Resource" id="Entry_scroll_remove_curse"]
+script = ExtResource("entry")
+Item = ExtResource("scroll_remove_curse")
+Weight = 1.0
+Quantity = 1
+QuantityPerDepth = 0.0
+MinDepth = 1
+MaxDepth = 0
+metadata/_custom_type_script = ExtResource("entry")
+
 [sub_resource type="Resource" id="Group_scrolls"]
 resource_name = "Scrolls"
 script = ExtResource("group")
 Weight = 10.0
-Items = [SubResource("Entry_190"), SubResource("Entry_191"), SubResource("Entry_192"), SubResource("Entry_193"), SubResource("Entry_194"), SubResource("Entry_195"), SubResource("Entry_196"), SubResource("Entry_197"), SubResource("Entry_198"), SubResource("Entry_199"), SubResource("Entry_202"), SubResource("Entry_203"), SubResource("Entry_204"), SubResource("Entry_205"), SubResource("Entry_206"), SubResource("Entry_207"), SubResource("Entry_208"), SubResource("Entry_209")]
+Items = [SubResource("Entry_190"), SubResource("Entry_191"), SubResource("Entry_192"), SubResource("Entry_193"), SubResource("Entry_194"), SubResource("Entry_195"), SubResource("Entry_196"), SubResource("Entry_197"), SubResource("Entry_198"), SubResource("Entry_199"), SubResource("Entry_202"), SubResource("Entry_203"), SubResource("Entry_204"), SubResource("Entry_205"), SubResource("Entry_206"), SubResource("Entry_207"), SubResource("Entry_208"), SubResource("Entry_209"), SubResource("Entry_scroll_remove_curse")]
 metadata/_custom_type_script = ExtResource("group")
 
 [sub_resource type="Resource" id="Entry_0"]
@@ -804,8 +800,8 @@ Item = ExtResource("item_0")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_1"]
@@ -814,8 +810,8 @@ Item = ExtResource("item_1")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_2"]
@@ -825,7 +821,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_3"]
@@ -835,7 +831,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_4"]
@@ -844,8 +840,8 @@ Item = ExtResource("item_4")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_5"]
@@ -854,8 +850,8 @@ Item = ExtResource("item_5")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_6"]
@@ -864,8 +860,8 @@ Item = ExtResource("item_6")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_7"]
@@ -874,8 +870,8 @@ Item = ExtResource("item_7")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_8"]
@@ -884,8 +880,8 @@ Item = ExtResource("item_8")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_9"]
@@ -894,8 +890,8 @@ Item = ExtResource("item_9")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_10"]
@@ -904,8 +900,8 @@ Item = ExtResource("item_10")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_11"]
@@ -914,8 +910,8 @@ Item = ExtResource("item_11")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_12"]
@@ -924,7 +920,7 @@ Item = ExtResource("item_12")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 10
+MinDepth = 19
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -935,7 +931,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_14"]
@@ -945,7 +941,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_15"]
@@ -954,8 +950,8 @@ Item = ExtResource("item_15")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_16"]
@@ -964,8 +960,8 @@ Item = ExtResource("item_16")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_17"]
@@ -974,8 +970,8 @@ Item = ExtResource("item_17")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_18"]
@@ -984,7 +980,7 @@ Item = ExtResource("item_18")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 10
+MinDepth = 19
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -994,8 +990,8 @@ Item = ExtResource("item_19")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_20"]
@@ -1004,7 +1000,7 @@ Item = ExtResource("item_20")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 10
+MinDepth = 19
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1014,8 +1010,8 @@ Item = ExtResource("item_21")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_22"]
@@ -1024,8 +1020,8 @@ Item = ExtResource("item_22")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_23"]
@@ -1034,8 +1030,8 @@ Item = ExtResource("item_23")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_24"]
@@ -1045,7 +1041,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_25"]
@@ -1054,7 +1050,7 @@ Item = ExtResource("item_25")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 10
+MinDepth = 19
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1064,8 +1060,8 @@ Item = ExtResource("item_26")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_27"]
@@ -1074,8 +1070,8 @@ Item = ExtResource("item_27")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_28"]
@@ -1084,8 +1080,8 @@ Item = ExtResource("item_28")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_29"]
@@ -1094,7 +1090,7 @@ Item = ExtResource("item_29")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 10
+MinDepth = 19
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1104,8 +1100,8 @@ Item = ExtResource("item_30")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_31"]
@@ -1115,7 +1111,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_32"]
@@ -1124,8 +1120,8 @@ Item = ExtResource("item_32")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_33"]
@@ -1134,8 +1130,8 @@ Item = ExtResource("item_33")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_34"]
@@ -1144,8 +1140,8 @@ Item = ExtResource("item_34")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_35"]
@@ -1154,8 +1150,8 @@ Item = ExtResource("item_35")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_36"]
@@ -1164,7 +1160,7 @@ Item = ExtResource("item_36")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 10
+MinDepth = 19
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1175,7 +1171,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_38"]
@@ -1184,8 +1180,8 @@ Item = ExtResource("item_38")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_39"]
@@ -1194,8 +1190,8 @@ Item = ExtResource("item_39")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_40"]
@@ -1204,7 +1200,7 @@ Item = ExtResource("item_40")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 10
+MinDepth = 19
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1215,7 +1211,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_42"]
@@ -1224,8 +1220,8 @@ Item = ExtResource("item_42")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_43"]
@@ -1234,8 +1230,8 @@ Item = ExtResource("item_43")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_44"]
@@ -1244,8 +1240,8 @@ Item = ExtResource("item_44")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_45"]
@@ -1255,7 +1251,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_46"]
@@ -1264,8 +1260,8 @@ Item = ExtResource("item_46")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_47"]
@@ -1275,7 +1271,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_48"]
@@ -1284,7 +1280,7 @@ Item = ExtResource("item_48")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 10
+MinDepth = 19
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1294,8 +1290,8 @@ Item = ExtResource("item_49")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_50"]
@@ -1304,8 +1300,8 @@ Item = ExtResource("item_50")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_51"]
@@ -1315,7 +1311,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_52"]
@@ -1324,8 +1320,8 @@ Item = ExtResource("item_52")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_53"]
@@ -1334,8 +1330,8 @@ Item = ExtResource("item_53")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_54"]
@@ -1344,8 +1340,8 @@ Item = ExtResource("item_54")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_55"]
@@ -1354,8 +1350,8 @@ Item = ExtResource("item_55")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_56"]
@@ -1364,8 +1360,8 @@ Item = ExtResource("item_56")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_57"]
@@ -1374,8 +1370,8 @@ Item = ExtResource("item_57")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_58"]
@@ -1384,8 +1380,8 @@ Item = ExtResource("item_58")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_59"]
@@ -1394,7 +1390,7 @@ Item = ExtResource("item_59")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 10
+MinDepth = 19
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1404,8 +1400,8 @@ Item = ExtResource("item_60")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_61"]
@@ -1414,8 +1410,8 @@ Item = ExtResource("item_61")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_62"]
@@ -1424,7 +1420,7 @@ Item = ExtResource("item_62")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 10
+MinDepth = 19
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1434,8 +1430,8 @@ Item = ExtResource("item_63")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_64"]
@@ -1445,7 +1441,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_65"]
@@ -1454,8 +1450,8 @@ Item = ExtResource("item_65")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_66"]
@@ -1464,8 +1460,8 @@ Item = ExtResource("item_66")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_67"]
@@ -1474,8 +1470,8 @@ Item = ExtResource("item_67")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_68"]
@@ -1484,7 +1480,7 @@ Item = ExtResource("item_68")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 10
+MinDepth = 19
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1501,7 +1497,7 @@ Item = ExtResource("item_69")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 10
+MinDepth = 19
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1511,8 +1507,8 @@ Item = ExtResource("item_70")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_71"]
@@ -1521,7 +1517,7 @@ Item = ExtResource("item_71")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 10
+MinDepth = 19
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -1531,8 +1527,8 @@ Item = ExtResource("item_72")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_73"]
@@ -1541,8 +1537,8 @@ Item = ExtResource("item_73")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_74"]
@@ -1551,8 +1547,8 @@ Item = ExtResource("item_74")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_75"]
@@ -1561,8 +1557,8 @@ Item = ExtResource("item_75")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_76"]
@@ -1571,8 +1567,8 @@ Item = ExtResource("item_76")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_77"]
@@ -1582,7 +1578,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_78"]
@@ -1591,8 +1587,8 @@ Item = ExtResource("item_78")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_79"]
@@ -1601,8 +1597,8 @@ Item = ExtResource("item_79")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_80"]
@@ -1611,8 +1607,8 @@ Item = ExtResource("item_80")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_81"]
@@ -1622,7 +1618,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_82"]
@@ -1632,7 +1628,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_83"]
@@ -1642,7 +1638,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_84"]
@@ -1651,8 +1647,8 @@ Item = ExtResource("item_84")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_85"]
@@ -1661,8 +1657,8 @@ Item = ExtResource("item_85")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_86"]
@@ -1672,7 +1668,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_87"]
@@ -1681,8 +1677,8 @@ Item = ExtResource("item_87")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_88"]
@@ -1691,8 +1687,8 @@ Item = ExtResource("item_88")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_89"]
@@ -1701,8 +1697,8 @@ Item = ExtResource("item_89")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 7
-MaxDepth = 12
+MinDepth = 16
+MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_90"]
@@ -1712,7 +1708,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_91"]
@@ -1722,7 +1718,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_92"]
@@ -1732,7 +1728,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_93"]
@@ -1742,7 +1738,7 @@ Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
 MinDepth = 1
-MaxDepth = 3
+MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_94"]
@@ -1751,8 +1747,8 @@ Item = ExtResource("item_94")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_95"]
@@ -1761,8 +1757,8 @@ Item = ExtResource("item_95")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 5
+MinDepth = 4
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_96"]
@@ -1771,8 +1767,8 @@ Item = ExtResource("item_96")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 8
+MinDepth = 10
+MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Group_armor"]
@@ -1782,69 +1778,9 @@ Weight = 8.0
 Items = [SubResource("Entry_69"), SubResource("Entry_70"), SubResource("Entry_71"), SubResource("Entry_72"), SubResource("Entry_73"), SubResource("Entry_74"), SubResource("Entry_75"), SubResource("Entry_76"), SubResource("Entry_77"), SubResource("Entry_78"), SubResource("Entry_79"), SubResource("Entry_80"), SubResource("Entry_81"), SubResource("Entry_82"), SubResource("Entry_83"), SubResource("Entry_84"), SubResource("Entry_85"), SubResource("Entry_86"), SubResource("Entry_87"), SubResource("Entry_88"), SubResource("Entry_89"), SubResource("Entry_90"), SubResource("Entry_91"), SubResource("Entry_92"), SubResource("Entry_93"), SubResource("Entry_94"), SubResource("Entry_95"), SubResource("Entry_96")]
 metadata/_custom_type_script = ExtResource("group")
 
-[sub_resource type="Resource" id="Entry_97"]
+[sub_resource type="Resource" id="Entry_ring_strength"]
 script = ExtResource("entry")
-Item = ExtResource("item_97")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_98"]
-script = ExtResource("entry")
-Item = ExtResource("item_98")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_99"]
-script = ExtResource("entry")
-Item = ExtResource("item_99")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_101"]
-script = ExtResource("entry")
-Item = ExtResource("item_101")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_103"]
-script = ExtResource("entry")
-Item = ExtResource("item_103")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_104"]
-script = ExtResource("entry")
-Item = ExtResource("item_104")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_105"]
-script = ExtResource("entry")
-Item = ExtResource("item_105")
+Item = ExtResource("ring_strength")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -1852,9 +1788,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_106"]
+[sub_resource type="Resource" id="Entry_ring_dexterity"]
 script = ExtResource("entry")
-Item = ExtResource("item_106")
+Item = ExtResource("ring_dexterity")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -1862,9 +1798,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_108"]
+[sub_resource type="Resource" id="Entry_ring_vitality"]
 script = ExtResource("entry")
-Item = ExtResource("item_108")
+Item = ExtResource("ring_vitality")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -1872,9 +1808,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_109"]
+[sub_resource type="Resource" id="Entry_ring_mind"]
 script = ExtResource("entry")
-Item = ExtResource("item_109")
+Item = ExtResource("ring_mind")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -1882,9 +1818,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_110"]
+[sub_resource type="Resource" id="Entry_ring_health"]
 script = ExtResource("entry")
-Item = ExtResource("item_110")
+Item = ExtResource("ring_health")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -1892,9 +1828,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_111"]
+[sub_resource type="Resource" id="Entry_ring_protection"]
 script = ExtResource("entry")
-Item = ExtResource("item_111")
+Item = ExtResource("ring_protection")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -1902,9 +1838,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_112"]
+[sub_resource type="Resource" id="Entry_ring_savagery"]
 script = ExtResource("entry")
-Item = ExtResource("item_112")
+Item = ExtResource("ring_savagery")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -1912,79 +1848,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_113"]
+[sub_resource type="Resource" id="Entry_ring_frailty"]
 script = ExtResource("entry")
-Item = ExtResource("item_113")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_114"]
-script = ExtResource("entry")
-Item = ExtResource("item_114")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_115"]
-script = ExtResource("entry")
-Item = ExtResource("item_115")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 4
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_117"]
-script = ExtResource("entry")
-Item = ExtResource("item_117")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_118"]
-script = ExtResource("entry")
-Item = ExtResource("item_118")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_119"]
-script = ExtResource("entry")
-Item = ExtResource("item_119")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_120"]
-script = ExtResource("entry")
-Item = ExtResource("item_120")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 2
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_121"]
-script = ExtResource("entry")
-Item = ExtResource("item_121")
+Item = ExtResource("ring_frailty")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -1992,9 +1858,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_122"]
+[sub_resource type="Resource" id="Entry_ring_lethargy"]
 script = ExtResource("entry")
-Item = ExtResource("item_122")
+Item = ExtResource("ring_lethargy")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -2002,9 +1868,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_123"]
+[sub_resource type="Resource" id="Entry_amulet_health"]
 script = ExtResource("entry")
-Item = ExtResource("item_123")
+Item = ExtResource("amulet_health")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -2012,9 +1878,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_125"]
+[sub_resource type="Resource" id="Entry_amulet_mind"]
 script = ExtResource("entry")
-Item = ExtResource("item_125")
+Item = ExtResource("amulet_mind")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -2022,9 +1888,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_127"]
+[sub_resource type="Resource" id="Entry_amulet_protection"]
 script = ExtResource("entry")
-Item = ExtResource("item_127")
+Item = ExtResource("amulet_protection")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -2032,9 +1898,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_128"]
+[sub_resource type="Resource" id="Entry_amulet_strength"]
 script = ExtResource("entry")
-Item = ExtResource("item_128")
+Item = ExtResource("amulet_strength")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -2042,9 +1908,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_129"]
+[sub_resource type="Resource" id="Entry_amulet_swiftness"]
 script = ExtResource("entry")
-Item = ExtResource("item_129")
+Item = ExtResource("amulet_swiftness")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -2052,9 +1918,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_131"]
+[sub_resource type="Resource" id="Entry_amulet_vitality"]
 script = ExtResource("entry")
-Item = ExtResource("item_131")
+Item = ExtResource("amulet_vitality")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -2062,29 +1928,9 @@ MinDepth = 1
 MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_132"]
+[sub_resource type="Resource" id="Entry_amulet_dread"]
 script = ExtResource("entry")
-Item = ExtResource("item_132")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 1
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_133"]
-script = ExtResource("entry")
-Item = ExtResource("item_133")
-Weight = 1.0
-Quantity = 1
-QuantityPerDepth = 0.0
-MinDepth = 1
-MaxDepth = 0
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_134"]
-script = ExtResource("entry")
-Item = ExtResource("item_134")
+Item = ExtResource("amulet_dread")
 Weight = 1.0
 Quantity = 1
 QuantityPerDepth = 0.0
@@ -2096,7 +1942,7 @@ metadata/_custom_type_script = ExtResource("entry")
 resource_name = "Jewelry"
 script = ExtResource("group")
 Weight = 9.0
-Items = [SubResource("Entry_97"), SubResource("Entry_98"), SubResource("Entry_99"), SubResource("Entry_101"), SubResource("Entry_103"), SubResource("Entry_104"), SubResource("Entry_105"), SubResource("Entry_106"), SubResource("Entry_108"), SubResource("Entry_109"), SubResource("Entry_110"), SubResource("Entry_111"), SubResource("Entry_112"), SubResource("Entry_113"), SubResource("Entry_114"), SubResource("Entry_115"), SubResource("Entry_117"), SubResource("Entry_118"), SubResource("Entry_119"), SubResource("Entry_120"), SubResource("Entry_121"), SubResource("Entry_122"), SubResource("Entry_123"), SubResource("Entry_125"), SubResource("Entry_127"), SubResource("Entry_128"), SubResource("Entry_129"), SubResource("Entry_131"), SubResource("Entry_132"), SubResource("Entry_133"), SubResource("Entry_134")]
+Items = [SubResource("Entry_ring_strength"), SubResource("Entry_ring_dexterity"), SubResource("Entry_ring_vitality"), SubResource("Entry_ring_mind"), SubResource("Entry_ring_health"), SubResource("Entry_ring_protection"), SubResource("Entry_ring_savagery"), SubResource("Entry_ring_frailty"), SubResource("Entry_ring_lethargy"), SubResource("Entry_amulet_health"), SubResource("Entry_amulet_mind"), SubResource("Entry_amulet_protection"), SubResource("Entry_amulet_strength"), SubResource("Entry_amulet_swiftness"), SubResource("Entry_amulet_vitality"), SubResource("Entry_amulet_dread")]
 metadata/_custom_type_script = ExtResource("group")
 
 [resource]

@@ -1,20 +1,19 @@
-[gd_resource type="Resource" script_class="Armor" load_steps=3 format=3 uid="uid://uh4368ubd16l"]
+[gd_resource type="Resource" script_class="Armor" load_steps=4 format=3 uid="uid://uh4368ubd16l"]
 
 [ext_resource type="PackedScene" uid="uid://dcqcr5cg5kqx5" path="res://scenes/items/armor/shield_large_skull.tscn" id="1_xp8qr"]
 [ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="2_ftlxq"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/shield.tres" id="roll_table"]
 
 [resource]
 script = ExtResource("2_ftlxq")
 Tier = 2
-Level = 0
 RequiredStrength = 10
 ArmorPoints = 3
 SpeedModifier = 1.0
 ValidSlots = 512
-Rarity = 0
+RollTable = ExtResource("roll_table")
 Name = "Skull Shield"
 Scene = ExtResource("1_xp8qr")
-Quality = 1.0
 Value = 80
 ShowInInventory = true
 IsStackable = false

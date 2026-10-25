@@ -3,7 +3,7 @@ using Godot;
 /// <summary>
 /// The clickable button inside an <see cref="ItemSlotPanel"/>. Beyond a normal button it
 /// renders a rich hover tooltip — the shared <see cref="ItemDetailsView"/> — so hover shows
-/// the same rarity-colored name and affix lines as the right-click context menu. Falls back
+/// the same quality-colored name and stat lines as the right-click context menu. Falls back
 /// to the default text tooltip when no item is set.
 /// </summary>
 [GlobalClass]

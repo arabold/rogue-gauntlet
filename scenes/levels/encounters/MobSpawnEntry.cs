@@ -1,6 +1,7 @@
 using Godot;
 
 /// <summary>Immutable encounter weight and threat cost for an existing actor scene.</summary>
+[Tool]
 [GlobalClass]
 public partial class MobSpawnEntry : Resource
 {

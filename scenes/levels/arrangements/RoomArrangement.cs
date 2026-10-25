@@ -41,8 +41,7 @@ public partial class RoomArrangement : Node3D
 		foreach (Vector3I cell in grid.GetUsedCells())
 		{
 			int item = grid.GetCellItem(cell);
-			var transform = toParent * new Transform3D(grid.GetBasisWithOrthogonalIndex(
-				grid.GetCellItemOrientation(cell)).Scaled(Vector3.One * grid.CellScale), grid.MapToLocal(cell));
+			var transform = toParent * grid.GetCellTransform(cell);
 			var mesh = grid.MeshLibrary.GetItemMesh(item);
 			if (includeVisuals && mesh != null) boxes.Add(transform * grid.MeshLibrary.GetItemMeshTransform(item) * mesh.GetAabb());
 			if ((grid.CollisionLayer & 19) == 0) continue;

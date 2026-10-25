@@ -1,12 +1,14 @@
-[gd_resource type="Resource" script_class="Armor" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="Armor" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scenes/items/Armor.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/items/armor/shield/shield_heroic_quarters.tscn" id="scene"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/shield.tres" id="roll_table"]
 
 
 [resource]
 script = ExtResource("script")
 Scene = ExtResource("scene")
+RollTable = ExtResource("roll_table")
 Name = "Quartered Heroic Shield"
 Tier = 3
 ValidSlots = 512

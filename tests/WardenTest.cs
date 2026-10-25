@@ -235,14 +235,26 @@ public class WardenTest
 		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
 		var fit = boss.LargeActorFit;
 		await runner.SimulateFrames(2);
-		var destination = boss.GlobalPosition + Vector3.Back * 2;
-		AssertBool(level.MapGenerator.IsEncounterFootprintClear(destination,
-			fit.Profile.MinimumClearance, fit.HomeRoomId)).IsFalse();
-		AssertBool(fit.CanMoveTo(destination)).IsTrue();
+		// Find a nearby supported movement direction rather than depending on a historical seed's exact boss position.
+		Vector3 direction = Vector3.Zero;
+		foreach (var candidate in new[] { Vector3.Back, Vector3.Forward, Vector3.Left, Vector3.Right })
+		{
+			for (float distance = 2; distance <= 6; distance += 0.5f)
+			{
+				var destination = boss.GlobalPosition + candidate * distance;
+				if (level.MapGenerator.IsEncounterFootprintClear(destination, fit.Profile.MinimumClearance, fit.HomeRoomId)) continue;
+				bool pathClear = true;
+				for (float step = 0.5f; step <= distance; step += 0.5f)
+					if (!fit.CanMoveTo(boss.GlobalPosition + candidate * step)) { pathClear = false; break; }
+				if (pathClear) { direction = candidate; break; }
+			}
+			if (direction != Vector3.Zero) break;
+		}
+		AssertBool(direction != Vector3.Zero).IsTrue();
 		Vector3 start = boss.GlobalPosition;
 		for (int frame = 0; frame < 30; frame++)
 		{
-			boss.MovementComponent.SetInputDirection(Vector3.Back);
+			boss.MovementComponent.SetInputDirection(direction);
 			await runner.SimulateFrames(1);
 		}
 		AssertFloat(boss.GlobalPosition.DistanceTo(start)).IsGreater(1f);

@@ -9,16 +9,11 @@ public partial class FogOfWar : Node
 {
 	private MapGenerator _mapGenerator;
 
+	/// <summary>Binds the reveal target. Saved exploration is restored by <see cref="Level"/> together with the
+	/// other floor deltas, so a rejected save is handled in one place.</summary>
 	public void Initialize(MapGenerator mapGenerator)
 	{
 		_mapGenerator = mapGenerator;
-
-		// Re-apply the reveal the player had already uncovered on this depth.
-		var session = GameSession.Instance;
-		if (session != null)
-		{
-			_mapGenerator.RestoreReveal(session.GetRevealedRoomIds(), session.GetOpenedDoors());
-		}
 	}
 
 	public override void _Ready()
@@ -40,16 +35,11 @@ public partial class FogOfWar : Node
 	private void OnRoomEntered(int roomId)
 	{
 		_mapGenerator?.RevealRoom(roomId);
-		GameSession.Instance?.MarkRoomRevealed(roomId);
 	}
 
 	private void OnDoorOpened(Node3D door)
 	{
-		Vector2I? connector = _mapGenerator?.OpenDoorAt(door.GlobalPosition);
-		if (connector.HasValue)
-		{
-			GameSession.Instance?.MarkDoorOpened(connector.Value);
-		}
+		_mapGenerator?.OpenDoorAt(door.GlobalPosition);
 	}
 
 	private void OnDoorClosed(Node3D door)

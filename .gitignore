@@ -25,9 +25,9 @@ gdunit4_testadapter_v5/
 .venv/
 __pycache__/
 
-# Local tool caches
+# Local tool caches (root only: a bare Library/ also matched scenes/levels/garrison/rooms/library on case-insensitive filesystems)
 .local/
-Library/
+/Library/
 asset-studio/.cache/
 
 # Disposable Blender backups; selected editable sources remain tracked.

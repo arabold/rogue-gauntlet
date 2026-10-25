@@ -118,7 +118,7 @@ public class GenerationBaselineTest
 		var result = new StringBuilder(item.DefinitionPath).Append(item.InstanceId);
 		if (item is FoodItem food) { result.Append(food.IsPoisoned); }
 		if (item is not EquipableItem equipment) { return result.ToString(); }
-		result.Append(equipment.Rarity);
+		result.Append(equipment.Quality).Append(equipment.QualityAdjective).Append(equipment.MagnitudeScale);
 		foreach (RolledAffix affix in equipment.Affixes)
 		{
 			result.Append(affix.NameFragment);

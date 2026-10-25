@@ -11,6 +11,7 @@ public enum MagicElement
 /// <summary>
 /// Ranged weapon marker for elemental staffs; casting still uses the shared projectile attack pipeline.
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class MagicStaff : RangedWeapon
 {

@@ -1,11 +1,25 @@
-[gd_resource type="Resource" script_class="ItemCreationPolicy" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ItemCreationPolicy" load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scenes/items/ItemCreationPolicy.cs" id="1_policy"]
-[ext_resource type="Resource" path="res://scenes/items/affixes/affix_pool.tres" id="2_pool"]
+[ext_resource type="Resource" path="res://scenes/items/quality/quality_ladder.tres" id="3_ladder"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/curses/frailty_1.tres" id="curse_0"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/curses/frailty_2.tres" id="curse_1"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/curses/weakness_1.tres" id="curse_2"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/curses/weakness_2.tres" id="curse_3"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/curses/clumsiness_1.tres" id="curse_4"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/curses/clumsiness_2.tres" id="curse_5"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/curses/lethargy_1.tres" id="curse_6"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/curses/lethargy_2.tres" id="curse_7"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/curses/dread_1.tres" id="curse_8"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/curses/dread_2.tres" id="curse_9"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/curses/brittleness_1.tres" id="curse_10"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/curses/brittleness_2.tres" id="curse_11"]
 
 [resource]
 script = ExtResource("1_policy")
 RollEquipment = true
-EquipmentAffixes = ExtResource("2_pool")
+QualityLadder = ExtResource("3_ladder")
+CurseChance = 0.1
+CursePenalties = [ExtResource("curse_0"), ExtResource("curse_1"), ExtResource("curse_2"), ExtResource("curse_3"), ExtResource("curse_4"), ExtResource("curse_5"), ExtResource("curse_6"), ExtResource("curse_7"), ExtResource("curse_8"), ExtResource("curse_9"), ExtResource("curse_10"), ExtResource("curse_11")]
 RollFoodContamination = true
 metadata/_custom_type_script = ExtResource("1_policy")

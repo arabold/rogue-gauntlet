@@ -1,4 +1,4 @@
-[gd_scene load_steps=49 format=3 uid="uid://coev873edfqw6"]
+[gd_scene load_steps=48 format=3 uid="uid://coev873edfqw6"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_p3la7"]
 [ext_resource type="PackedScene" uid="uid://c7qnx3sxaoosn" path="res://assets/kaykit-skeletons/Skeleton_Warrior.glb" id="2_srno3"]
@@ -169,9 +169,6 @@ graph_offset = Vector2(-45.75, -25.415)
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_5rbcv"]
 radius = 0.75
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_6flps"]
-viewport_path = NodePath("SubViewport")
-
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4cr0r"]
 radius = 0.75
 
@@ -315,7 +312,6 @@ DropChance = 1.0
 shape = SubResource("CapsuleShape3D_5rbcv")
 
 [node name="FloatingHealthBar" parent="." index="7"]
-texture = SubResource("ViewportTexture_6flps")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." index="8"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00756836, 1.2, 0.0137939)

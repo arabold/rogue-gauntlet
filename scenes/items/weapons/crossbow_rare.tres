@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="RangedWeapon" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="RangedWeapon" load_steps=5 format=3]
 
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_crossbow.tres" id="weapon_grip"]
 [ext_resource type="PackedScene" path="res://scenes/items/weapons/crossbow_rare.tscn" id="1_crossrare"]
 [ext_resource type="Script" uid="uid://ddieqpfh5m7w8" path="res://scenes/items/RangedWeapon.cs" id="2_crossrare"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/wooden_weapon.tres" id="roll_table"]
 
 [resource]
 script = ExtResource("2_crossrare")
@@ -12,7 +13,6 @@ ProjectileSpeed = 17.0
 Range = 22.0
 AimingAngle = 40.0
 Tier = 4
-Level = 0
 RequiredStrength = 15
 DamageMin = 10.0
 DamageMax = 17.0
@@ -23,10 +23,9 @@ Delay = 0.3
 PerformDuration = 0.5
 CooldownDuration = 0.0
 ValidSlots = 256
-Rarity = 0
+RollTable = ExtResource("roll_table")
 Name = "Arbalest"
 Scene = ExtResource("1_crossrare")
-Quality = 1.0
 Value = 160
 ShowInInventory = true
 IsStackable = false

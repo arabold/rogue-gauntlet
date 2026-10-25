@@ -1,27 +1,29 @@
 using Godot;
 using System;
 
+[Tool]
 [GlobalClass]
 public partial class Weapon : EquipableItem, ICombatAttackAction
 {
-	/// <summary>
-	/// Weapon level modifier (-1, +0, +1, etc.); affects weapon stats.
-	/// </summary>
-	[Export] public int Level { get; protected set => SetValue(ref field, value); } = 0;
 	/// <summary>
 	/// Strength required to wield this weapon effectively.
 	/// </summary>
 	[Export] public int RequiredStrength { get; protected set => SetValue(ref field, value); } = 0;
 	/// <summary>
-	/// Minimum damage bonus for this item (absolute value). Stacks up with other items' damage bonus.
+	/// Authored minimum damage bonus at quality scale 1. Stacks up with other items' damage bonus; the wielder gets
+	/// <see cref="ScaledDamageMin"/>.
 	/// </summary>
 	[Export] public float DamageMin { get; set => SetValue(ref field, value); } = 0f;
 	/// <summary>
-	/// Maximum damage bonus for this item (absolute value). Stacks up with other items' damage bonus.
+	/// Authored maximum damage bonus at quality scale 1; the wielder gets <see cref="ScaledDamageMax"/>.
 	/// </summary>
 	[Export] public float DamageMax { get; set => SetValue(ref field, value); } = 0f;
+	/// <summary>Minimum damage after quality scaling, rounded to whole points.</summary>
+	public float ScaledDamageMin => ScaleWhole(DamageMin);
+	/// <summary>Maximum damage after quality scaling, never below <see cref="ScaledDamageMin"/>.</summary>
+	public float ScaledDamageMax => Mathf.Max(ScaledDamageMin, ScaleWhole(DamageMax));
 	/// <summary>
-	/// Critical hit chance for this weapon (stacks up with other items' crit chance)
+	/// Critical hit chance for this weapon (stacks up with other items' crit chance). Quality does not scale it.
 	/// </summary>
 	[Export] public float CritChance { get; protected set => SetValue(ref field, value); } = 0f;
 	/// <summary>
@@ -96,15 +98,10 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 		return _defaultSlash2hProfile ?? fallback;
 	}
 
-	protected override System.Collections.Generic.IEnumerable<StatModifier> BuildStatModifiers()
+	protected override System.Collections.Generic.IEnumerable<StatModifier> BuildIntrinsicModifiers()
 	{
-		foreach (StatModifier modifier in base.BuildStatModifiers())
-		{
-			yield return modifier;
-		}
-
-		yield return new StatModifier { Stat = StatType.MinDamage, Op = ModifierOp.Flat, Value = DamageMin };
-		yield return new StatModifier { Stat = StatType.MaxDamage, Op = ModifierOp.Flat, Value = DamageMax };
+		yield return new StatModifier { Stat = StatType.MinDamage, Op = ModifierOp.Flat, Value = ScaledDamageMin };
+		yield return new StatModifier { Stat = StatType.MaxDamage, Op = ModifierOp.Flat, Value = ScaledDamageMax };
 		yield return new StatModifier { Stat = StatType.CritChance, Op = ModifierOp.Flat, Value = CritChance };
 	}
 
@@ -112,14 +109,6 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	{
 		GD.Print($"{player.Name} is performing a melee attack with {Name}");
 		player.MeleeAttack();
-	}
-
-	public void UpgradeLevel()
-	{
-		Level++;
-		DamageMin += 1;
-		DamageMax += Tier;
-		RequiredStrength -= 1;
 	}
 
 	public bool TryPrepare(Player player, out PreparedAttack attack)

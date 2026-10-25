@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/attacks/earth_shard_projectile.tscn" id="4_projectile"]
 [ext_resource type="PackedScene" path="res://scenes/effects/staff_muzzle_burst_earth.tscn" id="5_muzzle"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/wooden_weapon.tres" id="roll_table"]
 
 [sub_resource type="Resource" id="Resource_earth_attack"]
 script = ExtResource("3_attack_script")
@@ -42,8 +43,8 @@ Delay = 0.2
 PerformDuration = 0.7
 CooldownDuration = 0.25
 ValidSlots = 256
-Rarity = 1
 Tier = 3
+RollTable = ExtResource("roll_table")
 Name = "Emerald Crescent Staff"
 Scene = ExtResource("1_staff")
 Value = 120

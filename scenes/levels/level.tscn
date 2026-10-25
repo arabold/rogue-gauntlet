@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=18 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" uid="uid://dufyxbs8mado1" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
@@ -17,6 +17,8 @@
 
 [ext_resource type="Resource" path="res://scenes/levels/garrison/arrangements/garrison_arrangements.tres" id="14_arrangements"]
 
+[ext_resource type="Resource" path="res://scenes/levels/access/garrison_access.tres" id="access_profile"]
+
 [sub_resource type="Resource" id="Resource_mbbpy"]
 script = ExtResource("3_xog87")
 RoomGap = 1
@@ -27,11 +29,14 @@ metadata/_custom_type_script = ExtResource("3_xog87")
 script = ExtResource("4_mssmn")
 metadata/_custom_type_script = ExtResource("4_mssmn")
 
-[node name="Level" type="Node3D"]
+[node name="Level" type="Node3D" node_paths=PackedStringArray("MapGenerator", "ItemPersistence")]
 script = ExtResource("1_37vyo")
+MapGenerator = NodePath("MapGenerator")
+ItemPersistence = NodePath("ItemPersistence")
 
 [node name="MapGenerator" parent="." instance=ExtResource("2_dtjl1")]
 ArrangementPool = ExtResource("14_arrangements")
+AccessProfile = ExtResource("access_profile")
 Seed = 23
 RoomLayout = SubResource("Resource_mbbpy")
 CorridorConnector = SubResource("Resource_ouxo3")

@@ -20,7 +20,7 @@ public class PortableLightTest
 	}
 
 	[TestCase]
-	public void LightPrefersOffhandAndHonorsTwoHandedConflicts()
+	public void LightPrefersOffhandAndHandConflictsAreAtomic()
 	{
 		var inventory = new Inventory();
 		var weapon = Add(inventory, "res://scenes/items/weapons/sword_common.tres");
@@ -29,15 +29,20 @@ public class PortableLightTest
 		var twoHanded = Add(inventory, "res://scenes/items/weapons/crossbow_common.tres");
 		inventory.Equip(weapon);
 		inventory.Equip(shield);
-		inventory.Equip(lamp);
+		((EquipableItem)shield.Item).CursePenalty = [new StatModifier { Stat = StatType.Strength, Value = -1 }];
+		AssertBool(inventory.Equip(lamp).Failure == ItemFailure.Cursed).IsTrue();
+		AssertObject(inventory.EquippedItems[EquipmentSlot.ShieldHand]).IsSame(shield);
+		AssertObject(inventory.EquippedItems[EquipmentSlot.WeaponHand]).IsSame(weapon);
+		((EquipableItem)shield.Item).LiftCurse();
+		AssertBool(inventory.Equip(lamp).Success).IsTrue();
 		AssertObject(inventory.EquippedItems[EquipmentSlot.ShieldHand]).IsSame(lamp);
 		AssertObject(inventory.EquippedItems[EquipmentSlot.WeaponHand]).IsSame(weapon);
 		AssertBool(inventory.Items.Contains(shield)).IsTrue();
-		inventory.Equip(twoHanded);
+		AssertBool(inventory.Equip(twoHanded).Success).IsTrue();
 		AssertObject(inventory.EquippedItems[EquipmentSlot.ShieldHand]).IsNull();
-		inventory.Equip(lamp, EquipmentSlot.ShieldHand);
+		AssertBool(inventory.Equip(lamp, EquipmentSlot.ShieldHand).Success).IsTrue();
 		AssertObject(inventory.EquippedItems[EquipmentSlot.WeaponHand]).IsNull();
-		inventory.Equip(lamp, EquipmentSlot.WeaponHand);
+		AssertBool(inventory.Equip(lamp, EquipmentSlot.WeaponHand).Success).IsTrue();
 		AssertObject(inventory.EquippedItems[EquipmentSlot.ShieldHand]).IsNull();
 	}
 
@@ -78,7 +83,7 @@ public class PortableLightTest
 		player.MovementComponent.SetPhysicsProcess(false);
 		player.GetNode<AnimationTree>("AnimationTree").Active = false;
 		var animation = player.GetNode<AnimationPlayer>("Pivot/Character/AnimationPlayer");
-		foreach (var slot in player.Inventory.EquippedItems.Keys.ToArray()) { player.Inventory.Unequip(slot); }
+		player.Inventory.ReleaseAll();
 		player.Inventory.Items.Clear();
 		foreach (string name in new[] { "tool_candelabrum", "tool_candle_tallow", "tool_lamp_oil", "tool_lantern_brass", "tool_torch_iron", "tool_torch_wooden" })
 		{
@@ -118,7 +123,7 @@ public class PortableLightTest
 		level.SetDark(true);
 		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
 		var inventory = player.Inventory;
-		foreach (var slot in inventory.EquippedItems.Keys.ToArray()) { inventory.Unequip(slot); }
+		inventory.ReleaseAll();
 		inventory.Items.Clear();
 		foreach (string name in new[] { "tool_candelabrum", "tool_candle_tallow", "tool_lamp_oil", "tool_lantern_brass", "tool_torch_iron", "tool_torch_wooden" })
 		{
@@ -143,13 +148,13 @@ public class PortableLightTest
 			var saved = JsonSerializer.Deserialize<InventorySaveData>(JsonSerializer.Serialize(InventorySaveCodec.Capture(inventory)));
 			var restored = InventorySaveCodec.Restore(saved);
 			AssertBool(restored.Items.Single().Item is PortableLightItem).IsTrue();
-			foreach (var slot in inventory.EquippedItems.Keys.ToArray()) { inventory.Unequip(slot); }
+			inventory.ReleaseAll();
 			inventory.Items.Clear();
 			foreach (var restoredEntry in restored.Items) { inventory.Items.Add(restoredEntry); }
 			foreach (var equipment in saved.EquippedItems)
 			{
-				inventory.Equip(inventory.Items.Single(i => i.Item.InstanceId == equipment.ItemInstanceId),
-					Enum.Parse<EquipmentSlot>(equipment.Slot));
+				AssertBool(inventory.Equip(inventory.Items.Single(i => i.Item.InstanceId == equipment.ItemInstanceId),
+					Enum.Parse<EquipmentSlot>(equipment.Slot)).Success).IsTrue();
 			}
 			var offhand = player.GetNode<BoneAttachmentManager>("BoneAttachmentManager").AttachmentNodes[AttachmentType.OffhandWeapon];
 			AssertInt(offhand.FindChildren("*", "OmniLight3D", true, false).Count).IsEqual(1);

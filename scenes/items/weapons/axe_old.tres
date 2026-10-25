@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=5 format=3 uid="uid://bylnwqmg1nm57"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=6 format=3 uid="uid://bylnwqmg1nm57"]
 
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_1h.tres" id="melee_contact"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="PackedScene" uid="uid://bcaymd3eo2cxa" path="res://scenes/items/weapons/axe_old.tscn" id="1_8uo2c"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_xikgy"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
 
 [resource]
 script = ExtResource("2_xikgy")
@@ -11,7 +12,6 @@ MeleeContact = ExtResource("melee_contact")
 AttackStyle = &"axe.1h.chop"
 Grip = ExtResource("weapon_grip")
 Tier = 1
-Level = 0
 RequiredStrength = 10
 DamageMin = 1.0
 DamageMax = 5.0
@@ -22,10 +22,9 @@ Delay = 0.0
 PerformDuration = 0.5
 CooldownDuration = 0.0
 ValidSlots = 256
-Rarity = 0
-Name = "Old Axe"
+RollTable = ExtResource("roll_table")
+Name = "Woodcutter's Axe"
 Scene = ExtResource("1_8uo2c")
-Quality = 1.0
 Value = 40
 ShowInInventory = true
 IsStackable = false

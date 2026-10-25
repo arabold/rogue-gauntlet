@@ -1,20 +1,19 @@
-[gd_resource type="Resource" script_class="Armor" load_steps=3 format=3 uid="uid://cqdfgea0e6iwr"]
+[gd_resource type="Resource" script_class="Armor" load_steps=4 format=3 uid="uid://cqdfgea0e6iwr"]
 
 [ext_resource type="PackedScene" uid="uid://b7ci5hc55vbfx" path="res://scenes/items/armor/shield_badge.tscn" id="1_s8giy"]
 [ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="2_ovud5"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/shield.tres" id="roll_table"]
 
 [resource]
 script = ExtResource("2_ovud5")
 Tier = 1
-Level = 0
 RequiredStrength = 10
 ArmorPoints = 3
 SpeedModifier = 1.0
 ValidSlots = 512
-Rarity = 0
-Name = "Common Shield"
+RollTable = ExtResource("roll_table")
+Name = "Shield"
 Scene = ExtResource("1_s8giy")
-Quality = 1.0
 Value = 40
 ShowInInventory = true
 IsStackable = false

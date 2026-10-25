@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=5 format=3 uid="uid://bal38w8u6iir4"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=6 format=3 uid="uid://bal38w8u6iir4"]
 
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/slash_1h.tres" id="melee_contact"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="PackedScene" uid="uid://dc0ppe5q235ts" path="res://scenes/items/weapons/saber_skeleton.tscn" id="1_j2fue"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_ci3fm"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
 
 [resource]
 script = ExtResource("2_ci3fm")
@@ -11,7 +12,6 @@ MeleeContact = ExtResource("melee_contact")
 AttackStyle = &"sword.1h.slash"
 Grip = ExtResource("weapon_grip")
 Tier = 2
-Level = 0
 RequiredStrength = 12
 DamageMin = 2.0
 DamageMax = 7.0
@@ -22,10 +22,9 @@ Delay = 0.0
 PerformDuration = 0.5
 CooldownDuration = 0.0
 ValidSlots = 256
-Rarity = 0
-Name = "Old Saber"
+RollTable = ExtResource("roll_table")
+Name = "Saber"
 Scene = ExtResource("1_j2fue")
-Quality = 1.0
 Value = 80
 ShowInInventory = true
 IsStackable = false

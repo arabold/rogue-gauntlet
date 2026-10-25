@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemCreationPolicy" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/items/ItemCreationPolicy.cs" id="1_policy"]
+[ext_resource type="Resource" path="res://scenes/items/quality/quality_ladder_gatekeeper.tres" id="2_ladder"]
+
+[resource]
+script = ExtResource("1_policy")
+RollEquipment = true
+QualityLadder = ExtResource("2_ladder")
+metadata/_custom_type_script = ExtResource("1_policy")

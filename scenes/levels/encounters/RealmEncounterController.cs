@@ -20,7 +20,7 @@ public partial class RealmEncounterController : Node
 				point.PersistentId += ":nest";
 			}
 		}
-		if (floor != 2) return;
+		if (floor != RealmEncounterFactory.GatekeeperFloorIndex) return;
 		GatekeeperId = $"depth:{level.MapGenerator.DungeonDepth}:gatekeeper";
 		DescentUnlocked = GameSession.Instance?.IsEntityCleared(GatekeeperId) == true;
 		var exit = level.FindChildren("*", "", true, false).OfType<LevelTransitionTrigger>()

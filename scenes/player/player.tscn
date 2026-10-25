@@ -1,4 +1,4 @@
-[gd_scene load_steps=88 format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=89 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
@@ -45,6 +45,8 @@
 [ext_resource type="Script" path="res://scenes/player/TimeScaleComponent.cs" id="time_scale_script"]
 [ext_resource type="Script" path="res://scenes/player/ConfusionComponent.cs" id="confusion_script"]
 [ext_resource type="Resource" uid="uid://cstatusconfused" path="res://scenes/buffs/conditions/confused.tres" id="confused_condition"]
+
+[ext_resource type="PackedScene" path="res://scenes/components/invisibility_component.tscn" id="invisibility"]
 
 [sub_resource type="Resource" id="player_capabilities"]
 script = ExtResource("capabilities_script")
@@ -278,7 +280,8 @@ radius = 2.0
 radius = 0.75
 height = 2.5
 
-[node name="Player" type="CharacterBody3D" groups=["player"]]
+[node name="Player" type="CharacterBody3D" groups=["player"] node_paths=PackedStringArray("Invisibility")]
+Invisibility = NodePath("InvisibilityComponent")
 collision_layer = 4
 collision_mask = 251
 platform_floor_layers = 4294901761
@@ -539,6 +542,11 @@ Speed = 14.0
 StairsTrigger = NodePath("../StairsTrigger")
 
 [node name="InputComponent" parent="." instance=ExtResource("9_p85oa")]
+
+
+[node name="InvisibilityComponent" parent="." node_paths=PackedStringArray("Target", "Health") instance=ExtResource("invisibility")]
+Target = NodePath("../Pivot")
+Health = NodePath("../HealthComponent")
 
 [editable path="Pivot/Character"]
 

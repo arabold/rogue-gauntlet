@@ -29,10 +29,12 @@ Everything is designer-authored resources under `scenes/player/classes/`:
 
 | Class | STR | DEX | VIT | INT | HP | Profile twist | Starting gear |
 |---|---|---|---|---|---|---|---|
-| Barbarian | 14 | 8 | 13 | 5 | 115 | +50% damage per STR | Worn Battle Axe (2H) |
+| Barbarian | 14 | 8 | 13 | 5 | 115 | +50% damage per STR | Battle Axe (T1, 2–6, 2H) |
 | Knight | 12 | 8 | 14 | 6 | 120 | — | Sword + shield |
-| Rogue | 8 | 15 | 9 | 8 | 95 | 2× crit/DEX | Crossbow + dagger |
-| Mage | 6 | 10 | 8 | 16 | 90 | damage scales with INT | Fire staff + healing potion (pre-identified) |
+| Rogue | 8 | 15 | 9 | 8 | 95 | 2× crit/DEX | Crossbow + dagger + two lockpicks |
+| Mage | 6 | 10 | 8 | 16 | 90 | damage scales with INT | Wand (T1, ranged) + healing potion (pre-identified) |
+
+All starting equipment is first-tier (T1), Normal quality at its authored values; better gear comes from the dungeon.
 
 Only the Mage starts with a healing potion, pre-identified via
 `GameSession.Identification.Identify("potion.healing")` (`PreIdentifiedTypeIds` on its

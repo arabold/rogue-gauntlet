@@ -9,6 +9,7 @@ using Godot;
 /// as an external resource and never embed it: <c>ItemFactory</c>'s deep duplicate copies embedded
 /// sub-resources but shares external ones. <see cref="Resource.ResourceName"/> is the display name.
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class StatusCondition : Resource
 {

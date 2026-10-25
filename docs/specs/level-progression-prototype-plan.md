@@ -16,35 +16,24 @@ Selection permissions/weights do not guarantee placement. Optional content may b
 
 The existing Garrison preset already curates architectural purposes and optional non-repeating landmarks. Extend that selection with per-depth roles and existing scenes as role placeholders. Required route recipes follow without expanding realm order, map size or the monster roster.
 
-## Local access composition
+## Extend existing access for encounter seals
 
-Proposed Nodes under `scenes/levels/access/` separate door motion, access conditions, locks, encounter seals and secret discovery. Door remains a thin scene facade. An access gate requires all explicitly assigned conditions; no conditions means ordinary unrestricted operation. Motion owns physical/navigation state; access checks do not manipulate its tween directly.
+[Door access](../door-access.md) already implements local lock/discovery composition, actor-context interactions, stable connection identity, exact explored tiles and saved current door state. Reuse that state/interaction boundary instead of adding competing door lists or timers. The separate [access follow-up plan](secret-doors-and-locks-plan.md) owns tuning, buttons, chains and shortcuts.
 
-Level supplies encounter-completion dependencies to seals from existing cleared-source state. Lock picking uses the existing actor interaction executor; there is no second timer. Discovery controls concealed presentation and local detection, without granting permission to unlock/open. Use local signals and explicit references, not a gameplay registry.
+The visible Warden stair seal remains work: bind an explicitly assigned encounter condition to existing cleared-source state, show a readable barrier and enforce it for physical passage and both travel callers. Existing Warden completion remains the authority; ordinary picks cannot bypass it. Opening a route and discovering space remain independent. No new global gameplay registry.
 
 ```text
-Seed + realm recipe → plan required/optional locations and approved connections
-  → place/route → validate real topology and access solutions
-  → compose doors/seals/discovery with stable endpoint identities
-  → restore validated access differences and exploration history
-  → finish navigation/encounters and permit gameplay
+Seed + realm recipe -> required/optional locations and approved connections
+  -> realize geometry -> validate required topology and access solutions
+  -> existing door access + explicit encounter condition
+  -> restore access/item/exploration differences before gameplay
 ```
 
-Keep ordinary door links, fog and AI crossings consistent. A visible boss seal must reject both physical passage and travel requests until the existing Warden objective is complete.
+The access generator reserves required large-encounter space and excludes gated regions from final boss placement. New recipe constraints must preserve those guarantees in actual geometry. Same-version saves retain completion and supported access state; incompatible generation/schema changes bump the save version without migrations.
 
-## Persistence and solvability
+## Remaining delivery and acceptance
 
-Stable recipe-slot/connection IDs survive translation and rotation within the same build/content. Separate layout, encounter and source-loot streams; runtime discovery/picking must not consume generation RNG.
+1. **Realm pools and recipes:** per-depth Garrison selection, required locations, must-traverse checkpoint and intentional loops. Required roles use existing scenes as placeholders. Sweep realized geometry, route obligations and bounded failures; optional access cannot invalidate required content.
+2. **Visible stair seal:** compose the encounter condition with current access state and Warden completion. Check death, revisit, reload, physical blocking and both travel callers. Ordinary locks/secrets are already delivered and need not wait for this work.
 
-Save access differences from the generated baseline: discovered, unlocked and currently open states. Exploration history and current physical openness must have separate meanings, so revisiting a revealed door does not reopen one the player closed. Replace the old opened-door authority coherently rather than maintain competing lists. Boss completion still derives from existing cleared encounter IDs.
-
-Restore all access state before exposing interaction or traversal. Invalid IDs/states fail safely. Key-behind-own-lock cycles and bypassed required encounters are invalid; initial mandatory routes require no mechanical picking tool. Incompatible changes bump the code's save version, never add migration adapters.
-
-## Delivery and acceptance
-
-1. **Realm pools and recipes:** per-depth Garrison selection, required slots, a must-traverse checkpoint and intentional loops. Sweep realized geometry and bounded failures; no locks/secrets yet.
-2. **Visible stair seal:** compose access/motion, persist current door state and bind the existing Warden completion. Check death, revisit, reload, physical blocking and both travel callers.
-3. **Optional locks:** pickable prison cells and one matching-key alternative through the shared interaction executor. Reusable tools, deterministic success, no mandatory lock or breakage. Check missing tools, wrong keys, interruptions, alternate routes and duplicate rewards.
-4. **Generated secrets:** vary corridor/procedural-wall candidates and destinations, with no fixed secret sockets in authored rooms. Prevent prompts, outlines or fog leaks before reachable-side discovery. Test shortcut versus secret-room topology and save restoration.
-
-Use actual editor navigation and concealed-wall review alongside seeded topology/state tests. Update current-system docs as behavior lands; report remaining acceptance rather than append test logs here.
+Use actual editor navigation alongside seeded topology/state tests. Consolidate completed slices into current-system docs; keep this plan focused on remaining work.

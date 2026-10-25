@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public enum MeleeVolume { Arc, Box, Capsule, Radial }
 
 /// <summary>Stable gameplay reach and optional presentation, independent of weapon-bone motion.</summary>
+[Tool]
 [GlobalClass]
 public partial class MeleeAttackProfile : Resource
 {

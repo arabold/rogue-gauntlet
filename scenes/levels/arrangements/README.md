@@ -17,6 +17,7 @@ Arrangements are editable furnishing compositions placed within generated rooms.
    | Placement | Floor furnishing or elevated Wall mount |
    | RequiresWall | Require a backing wall on local North (-Z); always required for Wall placement |
    | AlignToWall | For floor furniture, move its backing edge against the actual supporting wall; requires RequiresWall |
+   | WallPlaneDistance | Optional fixed distance from anchor to backing surface; zero follows wall geometry. Bookshelves use 1.5 to overlap wall trim and remain straight |
    | HorizontalClearance | Horizontal gap around floor furniture; zero permits adjoining shelf sections |
    | MountHeight | Wall scene root height above the floor |
    | WallInset | Recess from projecting wall trim to the mounting surface; calibrated for the wall kit |

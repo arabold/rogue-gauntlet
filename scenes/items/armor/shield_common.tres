@@ -1,22 +1,21 @@
-[gd_resource type="Resource" script_class="Armor" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="Armor" load_steps=5 format=3]
 
 [ext_resource type="Resource" path="res://scenes/combat/definitions/shield_guard.tres" id="guard_shield"]
 [ext_resource type="PackedScene" path="res://scenes/items/armor/shield_common.tscn" id="1_shieldcom"]
 [ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="2_shieldcom"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/shield.tres" id="roll_table"]
 
 [resource]
 script = ExtResource("2_shieldcom")
 Guard = ExtResource("guard_shield")
 Tier = 1
-Level = 0
 RequiredStrength = 6
 ArmorPoints = 2
 SpeedModifier = 1.0
 ValidSlots = 512
-Rarity = 0
+RollTable = ExtResource("roll_table")
 Name = "Wooden Shield"
 Scene = ExtResource("1_shieldcom")
-Quality = 1.0
 Value = 40
 ShowInInventory = true
 IsStackable = false

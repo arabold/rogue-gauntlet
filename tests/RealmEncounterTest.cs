@@ -111,16 +111,27 @@ public class RealmEncounterTest
 		AssertBool(behavior.AttackStrategy.Attack.IsRanged).IsTrue();
 		AssertObject(behavior.AttackStrategy.Attack.ProjectileScene).IsNotNull();
 		var controller = actor.GetNode<AttackController>("AttackController");
+		AssertFloat(behavior.AttackStrategy.Attack.ProjectileAimLockDuration).IsGreater(0);
+		// The shot locks onto a target before release, so place a player-group target straight ahead within range.
+		var shooter = (Node3D)actor;
+		Vector3 forward = (-shooter.GlobalTransform.Basis.Z with { Y = 0 }).Normalized();
+		var target = new Node3D { Name = "AimTarget" };
+		target.AddToGroup("player");
+		shooter.GetParent().AddChild(target);
+		target.GlobalPosition = shooter.GlobalPosition + forward * 6;
 		AssertBool(controller.TryPrepareAttack(behavior.AttackStrategy.Attack, "ranged", 1, out var attack)).IsTrue();
 		AssertBool(controller.StartAttack(attack, 3, 6, 0, 4)).IsTrue();
 		Node projectileParent = actor.GetTree().CurrentScene ?? actor.GetParent();
 		var before = projectileParent.GetChildren().OfType<Projectile>().ToHashSet();
-		controller._PhysicsProcess(.5); // cross the authored release time without relying on frame timing
+		controller._PhysicsProcess(.5); // cross the aim lock and the authored release time without relying on frame timing
+		AssertBool(controller.HasCommittedFacing).IsTrue();
 		var arrow = projectileParent.GetChildren().OfType<Projectile>().Single(p => !before.Contains(p));
 		AssertFloat(arrow.Speed).IsEqual(16);
 		AssertFloat(arrow.MinDamage).IsEqual(3);
 		AssertInt((int)arrow.GetNode<HitBoxComponent>("%HitBoxComponent").CollisionMask).IsEqual(4);
+		AssertFloat((arrow.Direction with { Y = 0 }).Normalized().Dot(forward)).IsGreater(0.95f);
 		ScenePool.Despawn(arrow);
 		controller.CancelAttack();
+		target.QueueFree();
 	}
 }

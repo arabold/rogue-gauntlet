@@ -40,6 +40,10 @@ public partial class PlayerInventoryController : Node
 			Inventory,
 			inventory => inventory.ItemDestroyed += OnItemDestroyed,
 			inventory => inventory.ItemDestroyed -= OnItemDestroyed);
+		this.SubscribeUntilExit(
+			Inventory,
+			inventory => inventory.EquippedItemChanged += OnEquippedItemChanged,
+			inventory => inventory.EquippedItemChanged -= OnEquippedItemChanged);
 	}
 
 	public void AutoEquipItems()
@@ -104,9 +108,24 @@ public partial class PlayerInventoryController : Node
 			ItemFailure.InsufficientSpace => "Backpack full. Make room or combine supplies.",
 			ItemFailure.WorldUnavailable => "Cannot drop an item here.",
 			ItemFailure.InvalidTarget => "That item cannot be used on this target.",
+			ItemFailure.Cursed => "You can't remove it. It is cursed.",
 			_ => "That item is no longer available for this action.",
 		};
 		return new(failure);
+	}
+
+	/// <summary>
+	/// Reports an operation's result. A cursed item blocking the player's own action teaches them it is cursed; checks
+	/// inside <see cref="Inventory"/> reveal nothing by themselves.
+	/// </summary>
+	private ItemOperationResult Report(ItemOperationResult result)
+	{
+		if (result.Failure == ItemFailure.Cursed)
+		{
+			(result.Subject as EquipableItem)?.RevealCurseStatus();
+		}
+
+		return Report(result.Failure);
 	}
 
 	public bool PickupItem(Item item, int quantity = 1) => Acquire(item, quantity, null).Success;
@@ -242,7 +261,9 @@ public partial class PlayerInventoryController : Node
 	public ItemOperationResult TryDrop(InventoryItemSlot source, int quantity)
 	{
 		if (IsCommittingItemOperation || _reservedSlots.Contains(source)) { return Report(ItemFailure.Busy); }
-		if (!Inventory.CanRemove(source, quantity).Success) { return Report(ItemFailure.NotOwned); }
+		ItemOperationResult removable = Inventory.CanRemove(source, quantity);
+		if (removable.Failure == ItemFailure.Cursed) { return Report(removable); }
+		if (!removable.Success) { return Report(ItemFailure.NotOwned); }
 		if (source.Item.IsQuestItem) { return Report(ItemFailure.ProtectedItem); }
 		Level ??= this.GetAncestorOrNull<Level>();
 		if (Level == null || LootableItemScene == null || source.Item.Scene == null)
@@ -274,13 +295,8 @@ public partial class PlayerInventoryController : Node
 		if (IsCommittingItemOperation) { return Report(ItemFailure.Busy); }
 		if (!Inventory.Items.Contains(source) || source.Item is not EquipableItem) { return Report(ItemFailure.NotOwned); }
 		IsCommittingItemOperation = true;
-		try
-		{
-			using var update = Inventory.DeferChanges();
-			if (targetSlot.HasValue) { Inventory.Equip(source, targetSlot.Value); }
-			else { Inventory.Equip(source); }
-			return Report(ItemFailure.None);
-		}
+		try { using var update = Inventory.DeferChanges(); return Report(targetSlot.HasValue
+			? Inventory.Equip(source, targetSlot.Value) : Inventory.Equip(source)); }
 		finally { IsCommittingItemOperation = false; }
 	}
 
@@ -289,7 +305,7 @@ public partial class PlayerInventoryController : Node
 		if (IsCommittingItemOperation) { return Report(ItemFailure.Busy); }
 		if (!Inventory.Items.Contains(source)) { return Report(ItemFailure.NotOwned); }
 		IsCommittingItemOperation = true;
-		try { using var update = Inventory.DeferChanges(); Inventory.Unequip(source); return Report(ItemFailure.None); }
+		try { using var update = Inventory.DeferChanges(); return Report(Inventory.Unequip(source)); }
 		finally { IsCommittingItemOperation = false; }
 	}
 
@@ -307,6 +323,13 @@ public partial class PlayerInventoryController : Node
 			ActionManager.AssignSecondary(new MartialTechniqueAction(weapon), weapon.Scene);
 		}
 		RefreshEffectiveGuard();
+	}
+
+	/// <summary>A worn item changed in place (enchanted, uncursed): only its stats need re-registering.</summary>
+	private void OnEquippedItemChanged(EquipableItem item)
+	{
+		item.RefreshStats(Player);
+		StatsController.SyncStats();
 	}
 
 	private void OnItemUnequipped(EquipableItem item, EquipmentSlot slot)

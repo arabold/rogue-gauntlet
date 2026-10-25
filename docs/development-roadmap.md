@@ -4,7 +4,7 @@ The priority is a varied, readable and enjoyable first three depths. [Game desig
 
 ## Existing foundations
 
-The game has seeded mixed room generation, fog/doors, five playable monsters, threat budgets, finite nests and a Warden descent check. Combat includes shared action ownership, timed contact, active dodge/guard/parry and bounded tactical retreat. Items have runtime identity, stacks/capacity, food, affixes, identification, grouped loot and seeded floor deltas. These systems exist; they do not establish final pacing, balance or a complete run.
+The game has seeded mixed room generation, fog/doors, five playable monsters, threat budgets, finite nests and a Warden descent check. Combat includes shared action ownership, timed contact, active dodge/guard/parry and bounded tactical retreat. Items have runtime identity, stacks/capacity, food, Diablo II-style [item quality](stats-and-itemization.md#equipment-quality-affixes-and-enchantment) with depth-tiered affixes, per-item identification and hidden sticky curses ([remaining work](specs/item-quality-affixes-and-curses-plan.md)), identification, grouped loot and seeded floor deltas. These systems exist; they do not establish final pacing, balance or a complete run.
 
 Studio exports supply art independently of Godot gameplay definitions. Available models do not require adding content before its role and behavior are useful.
 
@@ -32,7 +32,7 @@ Authoring acceptance also requires duplicating an actor in Godot, adding/removin
 
 ## Dungeon progression
 
-[Dungeon design](dungeon-exploration-design.md) and its [remaining plan](specs/level-progression-prototype-plan.md) cover realm pools, required locations/routes, composed access and secrets. Deliver them in order: curated pools and recipes; a visible Warden stair seal; optional mechanical locks using the existing interaction executor; generated secret branches. Existing encounters/rewards are reused.
+[Dungeon design](dungeon-exploration-design.md) and its [remaining plan](specs/level-progression-prototype-plan.md) cover realm pools, required locations/routes, composed access and secrets. Implemented [door access](door-access.md) includes consumable keys/picks, matching colored markers, guaranteed accessible key sources, occasional capped secret pockets and locks, random Intelligence-based door/trap discovery, shared discovery feedback and separate saved exploration/current door state. Regular floors supply no lockpicks; the Rogue starts with two. [Remaining access work](specs/secret-doors-and-locks-plan.md) is tuning and later mechanisms/chains/shortcuts. Per-depth recipes and the visible Warden stair seal remain separately planned. Existing encounters/rewards are reused.
 
 Acceptance must validate actual geometry and access solutions, including loops, locked/closed states, discovery and save/load. Required rooms and routes cannot disappear when optional content does not fit. Full later realm order remains provisional.
 

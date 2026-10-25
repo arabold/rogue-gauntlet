@@ -63,6 +63,8 @@ public partial class ConnectedArrangementStrategy : RoomArrangementPlacementStra
 							if (weight <= 0) continue;
 							var basis = new Basis(Vector3.Up, turn * Mathf.Pi / 2);
 							var transform = CandidateTransform(room, definition, anchor, turn, new Transform3D(basis, tileCenter(anchor)));
+							Vector3? backingPlane = definition.WallPlaneDistance > 0
+								? transform.Origin + new Vector3(outward.X, 0, outward.Y) * definition.WallPlaneDistance : null;
 							if (wallMount && !WallArrangementMount.TryPlace(geometry[definition][0], basis, transform.Origin, outward,
 								definition.MountHeight, walls, out transform, definition.WallInset)) continue;
 							if (definition.AlignToWall)
@@ -70,14 +72,14 @@ public partial class ConnectedArrangementStrategy : RoomArrangementPlacementStra
 								var support = geometry[definition][0];
 								support.Size = new(support.Size.X, support.End.Y, support.Size.Z);
 								support.Position = new(support.Position.X, 0, support.Position.Z);
-								if (!WallArrangementMount.TryPlace(support, basis, transform.Origin, outward, 0, walls, out transform, definition.WallInset)) continue;
+								if (!WallArrangementMount.TryPlace(support, basis, transform.Origin, outward, 0, walls, out transform, definition.WallInset, definition.WallPlaneDistance)) continue;
 							}
 							var boxes = geometry[definition].Select(box => transform * box).ToArray();
 							if (boxes.Any(box => wallMount
 								? occupiedBoxes.Any(other => WallArrangementMount.Overlaps(box, other))
 									|| walls.Any(wall => WallArrangementMount.OverlapsWall(box, wall, outward, definition.WallInset))
 								: definition.AlignToWall
-									? occupiedBoxes.Any(other => Overlaps(box, other, definition.HorizontalClearance)) || walls.Any(wall => WallArrangementMount.OverlapsWall(box, wall, outward, definition.WallInset))
+									? occupiedBoxes.Any(other => Overlaps(box, other, definition.HorizontalClearance)) || walls.Any(wall => WallArrangementMount.OverlapsWall(box, wall, outward, definition.WallInset, backingPlane))
 									: occupiedBoxes.Concat(walls).Any(other => Overlaps(box, other, definition.HorizontalClearance)))) continue;
 							var blocking = collision[definition].Select(box => transform * box).ToArray();
 							if (!passage.IsConnected(acceptedBoxes.Concat(blocking).ToArray())) continue;

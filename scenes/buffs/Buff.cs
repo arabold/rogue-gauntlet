@@ -7,6 +7,7 @@ using Godot.Collections;
 /// the systems that care react to the condition. Subclasses add behavior with a magnitude on apply,
 /// tick or removal (healing, poison, stat modifiers, game speed).
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class Buff : Resource
 {

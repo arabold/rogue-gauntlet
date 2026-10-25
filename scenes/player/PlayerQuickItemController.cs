@@ -277,9 +277,7 @@ public partial class PlayerQuickItemController : Node
 		var binding = _bindings[slotIndex];
 		if (!binding.IsAssigned)
 		{
-			ActionManager?.AssignAction(slotIndex, null, null);
-			var slot = ActionManager?.GetActionSlot(slotIndex);
-			if (slot != null) slot.SetQuantity(0);
+			ActionManager?.AssignAction(slotIndex, null, null, 0);
 			return;
 		}
 
@@ -299,18 +297,12 @@ public partial class PlayerQuickItemController : Node
 		if (Inventory != null && (binding.Kind == QuickItemBindingKind.Instance || (itemDef != null && !itemDef.CanStack)) && count <= 0)
 		{
 			_bindings[slotIndex] = QuickItemBinding.Unassigned();
-			ActionManager?.AssignAction(slotIndex, null, null);
-			var slot = ActionManager?.GetActionSlot(slotIndex);
-			if (slot != null) slot.SetQuantity(0);
+			ActionManager?.AssignAction(slotIndex, null, null, 0);
 			return;
 		}
 
-		ActionManager?.AssignAction(slotIndex, itemDef as IPlayerAction, ItemIdentity.ResolveScene(itemDef));
-		var actionSlot = ActionManager?.GetActionSlot(slotIndex);
-		if (actionSlot != null)
-		{
-			actionSlot.SetQuantity(count);
-		}
+		// The quantity travels with the assignment, so the HUD's single notification shows the current count.
+		ActionManager?.AssignAction(slotIndex, itemDef as IPlayerAction, ItemIdentity.ResolveScene(itemDef), count);
 	}
 
 	public override void _Process(double delta)

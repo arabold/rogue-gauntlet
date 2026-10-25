@@ -5,6 +5,7 @@ using Godot;
 /// picks a concrete value in [<see cref="MinValue"/>, <see cref="MaxValue"/>] and produces a
 /// <see cref="StatModifier"/>.
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class AffixModifierRange : Resource
 {

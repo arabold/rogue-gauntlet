@@ -7,7 +7,6 @@ public partial class Hud : Control
 	private Label _xpLabel;
 	private Label _goldLabel;
 	private Control _interactionContainer;
-	private Label _interactionLabel;
 	private ProgressBar _interactionProgressBar;
 	private ActorInteractionComponent _subscribedInteractionComponent;
 
@@ -18,7 +17,6 @@ public partial class Hud : Control
 		_xpLabel = GetNode<Label>("%XpLabel");
 		_goldLabel = GetNode<Label>("%GoldLabel");
 		_interactionContainer = GetNodeOrNull<Control>("%InteractionContainer");
-		_interactionLabel = GetNodeOrNull<Label>("%InteractionLabel");
 		_interactionProgressBar = GetNodeOrNull<ProgressBar>("%InteractionProgressBar");
 		if (_interactionContainer != null) _interactionContainer.Visible = false;
 
@@ -76,7 +74,6 @@ public partial class Hud : Control
 		if (_interactionContainer != null)
 		{
 			_interactionContainer.Visible = true;
-			if (_interactionLabel != null) _interactionLabel.Text = verb;
 			if (_interactionProgressBar != null) _interactionProgressBar.Value = 0;
 		}
 	}

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 /// A component that the player and actors can interact with.
 /// Implements both IInteractionTarget and legacy IInteractive.
 /// </summary>
+[Tool]
 public partial class InteractiveComponent : Area3D, IInteractionTarget, IInteractive
 {
 	[Export]
@@ -37,6 +38,8 @@ public partial class InteractiveComponent : Area3D, IInteractionTarget, IInterac
 	} = true;
 
 	[Export] public InteractionDefinition Definition { get; set; }
+	/// <summary>Optional prompt shown while focused; leave it unassigned for interactives without one.</summary>
+	[Export] public FloatingLabel Prompt { get; set; }
 
 	/// <summary>
 	/// Signal emitted when an actor commits interaction with the object.
@@ -54,9 +57,10 @@ public partial class InteractiveComponent : Area3D, IInteractionTarget, IInterac
 	public ulong StateRevision { get; private set; } = 1;
 	public InteractionReservation ActiveReservation => _currentReservation;
 
-	public Func<InteractionOffer> OfferProvider { get; set; }
-	public Func<InteractionReservation, InteractionCommitResult> CommitHandler { get; set; }
+	public Func<ActorInteractionContext, InteractionOffer> OfferProvider { get; set; }
+	public Func<InteractionReservation, ActorInteractionContext, InteractionCommitResult> CommitHandler { get; set; }
 
+	// Runtime alias of Prompt, so editor-time property edits never rewrite the authored prompt.
 	private FloatingLabel _floatingLabel;
 	private InteractionReservation _currentReservation = InteractionReservation.None;
 	private ulong _nextToken = 0;
@@ -64,7 +68,9 @@ public partial class InteractiveComponent : Area3D, IInteractionTarget, IInterac
 
 	public override void _Ready()
 	{
-		_floatingLabel = GetNodeOrNull<FloatingLabel>("FloatingLabel");
+		// Tool only so tool scripts such as Door can reference it; the prompt is runtime-only.
+		if (Engine.IsEditorHint()) return;
+		_floatingLabel = Prompt;
 		if (_floatingLabel != null)
 		{
 			_floatingLabel.Visible = false;
@@ -81,7 +87,7 @@ public partial class InteractiveComponent : Area3D, IInteractionTarget, IInterac
 
 		if (OfferProvider != null)
 		{
-			return OfferProvider();
+			return OfferProvider(actor);
 		}
 
 		if (Definition != null)
@@ -119,9 +125,9 @@ public partial class InteractiveComponent : Area3D, IInteractionTarget, IInterac
 		return true;
 	}
 
-	public InteractionCommitResult TryCommit(in InteractionReservation reservation)
+	public InteractionCommitResult TryCommit(in InteractionReservation reservation, in ActorInteractionContext actor)
 	{
-		if (reservation.Token != _currentReservation.Token || reservation.TargetRevision != StateRevision)
+		if (!reservation.IsValid || reservation != _currentReservation || actor.Actor != reservation.Actor || reservation.TargetRevision != StateRevision)
 		{
 			return InteractionCommitResult.InvalidReservation;
 		}
@@ -137,7 +143,7 @@ public partial class InteractiveComponent : Area3D, IInteractionTarget, IInterac
 
 		if (CommitHandler != null)
 		{
-			var result = CommitHandler(reservation);
+			var result = CommitHandler(reservation, actor);
 			if (result == InteractionCommitResult.Success)
 			{
 				EmitSignalCommitted(reservation.Actor, reservation.OperationId);
@@ -163,14 +169,9 @@ public partial class InteractiveComponent : Area3D, IInteractionTarget, IInterac
 
 	public void Interact(Player actor)
 	{
-		if (!IsInteractive)
-			return;
-
-		StateRevision++;
-		GD.Print($"{actor.Name} interacted with {GetParent()?.Name}");
-		CommitHandler?.Invoke(new InteractionReservation(this, actor, "interact", 0, StateRevision));
-		EmitSignalCommitted(actor, "interact");
-		EmitSignalInteracted(actor);
+		if (!IsInteractive || actor?.InteractionComponent == null) return;
+		var context = actor.InteractionContext;
+		actor.InteractionComponent.TryBegin(GetOffer(context), context);
 	}
 
 	public void OnPlayerNearby(Player player)
@@ -181,9 +182,16 @@ public partial class InteractiveComponent : Area3D, IInteractionTarget, IInterac
 	{
 	}
 
-	public void SetFocused(bool focused)
+	/// <summary>Shows or hides the prompt. While focused, the prompt mirrors the focusing actor's current offer,
+	/// including blocked offers such as a missing key.</summary>
+	public void SetFocused(bool focused, in InteractionOffer offer = default)
 	{
 		_isFocused = focused;
+		if (focused && offer.IsValid)
+		{
+			if (Text != offer.VerbLabel) Text = offer.VerbLabel;
+			if (_floatingLabel != null) _floatingLabel.IsAvailable = offer.IsActionable;
+		}
 		Update();
 	}
 

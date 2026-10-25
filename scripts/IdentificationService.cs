@@ -101,7 +101,10 @@ public sealed class IdentificationService
 			: null;
 	}
 
-	/// <summary>True name when identified, otherwise the templated descriptor.</summary>
+	/// <summary>
+	/// True name when identified, otherwise the template filled with the type's descriptor, e.g. "golden ruby ring" or
+	/// "small crimson potion". <see cref="ItemIdentity"/> adds the quality word and casing.
+	/// </summary>
 	public string GetDisplayName(IIdentifiable item)
 	{
 		if (item == null)

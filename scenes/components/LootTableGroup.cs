@@ -4,6 +4,7 @@ using Godot;
 /// A category budget within a loot table. Adding varieties changes selection within the
 /// group without displacing other eligible groups such as recovery supplies.
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class LootTableGroup : Resource
 {

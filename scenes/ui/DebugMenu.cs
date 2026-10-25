@@ -40,6 +40,12 @@ public partial class DebugMenu : HBoxContainer
 		{ "Lamps and torches", "res://scenes/items/tools/lamp/" },
 	};
 
+	/// <summary>
+	/// Creation policy (quality ladder and curse penalties) for the "Spawn quality" picker. Without it the picker is
+	/// unavailable and equipment spawns as authored: Normal at scale 1. Affixes come from each definition's roll table.
+	/// </summary>
+	[Export] public ItemCreationPolicy SpawnPolicy { get; set; }
+
 	/// <summary>Gameplay floor controlled by this menu, explicitly wired by the containing scene.</summary>
 	[Export] public Level ActiveLevel { get; set; }
 
@@ -49,6 +55,12 @@ public partial class DebugMenu : HBoxContainer
 	private MenuButton _menuButton;
 	private PopupMenu _debugMenu;
 	private PopupMenu _spawnItemMenu;
+	private PopupMenu _spawnQualityMenu;
+	/// <summary>Quality stamped onto spawned equipment; null spawns it as authored.</summary>
+	private ItemQuality? _spawnQuality;
+	/// <summary>Whether spawned equipment is cursed, with its curse status still unknown.</summary>
+	private bool _spawnCursed;
+	private const int SpawnCursedId = 100;
 	private bool _debugMeshesEnabled;
 	private bool _navigationEnabled;
 	private double _fpsUpdateSeconds;
@@ -65,6 +77,7 @@ public partial class DebugMenu : HBoxContainer
 		_menuButton = GetNode<MenuButton>("%DebugMenuButton");
 		_debugMenu = _menuButton.GetPopup();
 		_spawnItemMenu = new PopupMenu { Name = "SpawnItemMenu" };
+		_spawnQualityMenu = new PopupMenu { Name = "SpawnQualityMenu" };
 
 		BuildMenu();
 		SetDebugMeshesEnabled(false);
@@ -113,6 +126,16 @@ public partial class DebugMenu : HBoxContainer
 		_debugMenu.IdPressed += OnDebugMenuPressed;
 		_debugMenu.AddChild(_spawnItemMenu);
 		_debugMenu.AddSubmenuNodeItem("Spawn item", _spawnItemMenu);
+		if (SpawnPolicy?.QualityLadder != null)
+		{
+			BuildSpawnQualityMenu();
+			_debugMenu.AddChild(_spawnQualityMenu);
+			_debugMenu.AddSubmenuNodeItem("Spawn quality", _spawnQualityMenu);
+		}
+		else if (SpawnPolicy != null)
+		{
+			GD.PushError("DebugMenu: SpawnPolicy needs a quality ladder.");
+		}
 
 		SetChecked(ToggleCombatLogsId, GameDebug.CombatLogsEnabled);
 		SetChecked(ToggleAiLogsId, GameDebug.AiLogsEnabled);
@@ -132,17 +155,23 @@ public partial class DebugMenu : HBoxContainer
 
 		foreach (var (label, directory) in SpawnableCategories)
 		{
-			List<Item> items = LoadItemsInDirectory(directory);
-			if (items.Count == 0)
+			var entries = LoadItemsInDirectory(directory)
+				.OrderBy(e => e.Item.Name, System.StringComparer.Ordinal)
+				.ThenBy(e => (e.Item as EquipableItem)?.Tier ?? 0)
+				.ThenBy(e => e.Path, System.StringComparer.Ordinal)
+				.ToList();
+			if (entries.Count == 0)
 			{
 				continue;
 			}
 
 			var categoryMenu = new PopupMenu { Name = $"Spawn{label}Menu" };
-			foreach (Item item in items)
+			string[] labels = DescribeEntries(entries);
+			for (int i = 0; i < entries.Count; i++)
 			{
-				_spawnableItems.Add(item);
-				categoryMenu.AddItem(item.Name, _spawnableItems.Count - 1);
+				_spawnableItems.Add(entries[i].Item);
+				categoryMenu.AddItem(labels[i], _spawnableItems.Count - 1);
+				categoryMenu.SetItemTooltip(i, entries[i].Path);
 			}
 
 			categoryMenu.IdPressed += OnSpawnItemPressed;
@@ -152,12 +181,82 @@ public partial class DebugMenu : HBoxContainer
 	}
 
 	/// <summary>
-	/// Recursively loads every <c>.tres</c> in a folder as an <see cref="Item"/>, sorted by
-	/// display name. Entries that fail to load or aren't an <see cref="Item"/> are skipped.
+	/// Radio list of spawn qualities plus a "Cursed" toggle. Id 0 spawns equipment as authored; quality ids are their
+	/// <see cref="ItemQuality"/> plus one.
 	/// </summary>
-	private static List<Item> LoadItemsInDirectory(string directory)
+	private void BuildSpawnQualityMenu()
 	{
-		var items = new List<Item>();
+		_spawnQualityMenu.Clear();
+		_spawnQualityMenu.AddRadioCheckItem("Authored", 0);
+		foreach (ItemQuality quality in System.Enum.GetValues<ItemQuality>())
+		{
+			_spawnQualityMenu.AddRadioCheckItem(quality.ToString(), (int)quality + 1);
+		}
+
+		_spawnQualityMenu.SetItemChecked(0, true);
+		_spawnQualityMenu.AddSeparator();
+		_spawnQualityMenu.AddCheckItem("Cursed", SpawnCursedId);
+		_spawnQualityMenu.IdPressed += OnSpawnQualityPressed;
+	}
+
+	private void OnSpawnQualityPressed(long id)
+	{
+		if (id == SpawnCursedId)
+		{
+			_spawnCursed = !_spawnCursed;
+			_spawnQualityMenu.SetItemChecked(_spawnQualityMenu.GetItemIndex(SpawnCursedId), _spawnCursed);
+			return;
+		}
+
+		_spawnQuality = id == 0 ? null : (ItemQuality)(id - 1);
+		for (int i = 0; i < _spawnQualityMenu.ItemCount; i++)
+		{
+			if (_spawnQualityMenu.IsItemRadioCheckable(i))
+			{
+				_spawnQualityMenu.SetItemChecked(i, _spawnQualityMenu.GetItemId(i) == id);
+			}
+		}
+	}
+
+	/// <summary>
+	/// The picked definition itself, or for equipment with a picked quality or the cursed toggle a copy rolled like a drop
+	/// at the current depth with that quality (Normal when only cursed) and curse forced.
+	/// </summary>
+	private Item CreateSpawnItem(Item definition)
+	{
+		if (_spawnQuality == null && !_spawnCursed || definition is not EquipableItem { RollTable: not null })
+		{
+			return definition;
+		}
+
+		var item = (EquipableItem)ItemFactory.Create(definition);
+		var rng = new RandomNumberGenerator();
+		rng.Randomize();
+		LootRoller.ApplyRoll(item, GetLevel()?.MapGenerator?.DungeonDepth ?? 1, rng, SpawnPolicy,
+			_spawnQuality ?? ItemQuality.Normal, _spawnCursed);
+		return item;
+	}
+
+	/// <summary>
+	/// Display names repeat across tiers and model variants, so equipment shows its tier and any
+	/// remaining clash adds the resource name. The full path is in each entry's tooltip.
+	/// </summary>
+	private static string[] DescribeEntries(List<(Item Item, string Path)> entries)
+	{
+		static string Describe(Item item) => item is EquipableItem equipable ? $"{item.Name} · T{equipable.Tier}" : item.Name;
+		var collisions = entries.GroupBy(e => Describe(e.Item)).Where(g => g.Count() > 1).Select(g => g.Key).ToHashSet();
+		return entries.Select(e => collisions.Contains(Describe(e.Item))
+			? $"{Describe(e.Item)} · {e.Path.GetFile().GetBaseName()}"
+			: Describe(e.Item)).ToArray();
+	}
+
+	/// <summary>
+	/// Recursively loads every <c>.tres</c> in a folder as an <see cref="Item"/> with its path.
+	/// Entries that fail to load or aren't an <see cref="Item"/> are skipped.
+	/// </summary>
+	private static List<(Item Item, string Path)> LoadItemsInDirectory(string directory)
+	{
+		var items = new List<(Item Item, string Path)>();
 		DirAccess dir = DirAccess.Open(directory);
 		if (dir == null)
 		{
@@ -174,15 +273,15 @@ public partial class DebugMenu : HBoxContainer
 			}
 			if (!fileName.EndsWith(".tres")) { continue; }
 
-			Item item = ResourceLoader.Load<Item>(directory.PathJoin(fileName));
+			string path = directory.PathJoin(fileName);
+			Item item = ResourceLoader.Load<Item>(path);
 			if (item != null)
 			{
-				items.Add(item);
+				items.Add((item, path));
 			}
 		}
 
 		dir.ListDirEnd();
-		items.Sort((a, b) => string.Compare(a.Name, b.Name, System.StringComparison.Ordinal));
 		return items;
 	}
 
@@ -253,7 +352,7 @@ public partial class DebugMenu : HBoxContainer
 		}
 
 		LootableItem lootableItem = player.LootableItemScene.Instantiate<LootableItem>();
-		lootableItem.Item = _spawnableItems[(int)id];
+		lootableItem.Item = CreateSpawnItem(_spawnableItems[(int)id]);
 		lootableItem.Quantity = 1;
 		lootableItem.WaitForPlayerExited = true;
 

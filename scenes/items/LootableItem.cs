@@ -3,7 +3,7 @@ using System;
 
 
 /// <summary>
-/// Represents an item that can be picked up by the player. Shows a rarity/type-colored loot
+/// Represents an item that can be picked up by the player. Shows a quality/type-colored loot
 /// beam and, when within magnet range, floats to the player and is collected automatically.
 /// </summary>
 public partial class LootableItem : Node3D
@@ -49,6 +49,9 @@ public partial class LootableItem : Node3D
 	public Node3D Pivot;
 
 	private Player _player;
+	private ExplorationVisibility _exploration;
+	private LootBeam _beam;
+	private bool? _discovered;
 	private bool _armed;
 	private bool _collected;
 	public bool IsCollected => _collected;
@@ -106,8 +109,13 @@ public partial class LootableItem : Node3D
 		Pivot.AddChild(itemScene);
 		Pivot.RotateY((float)(GD.Randf() * 2 * Math.PI));
 
+		_exploration = new ExplorationVisibility(this);
+		Visible = false; // No spawn-frame flash before the caller assigns the final world position.
 		AddLootBeam();
 		AddXray();
+		// Dungeon spawners position pickups after AddChild. First process/collection checks
+		// see that final position; standalone item previews can display immediately.
+		if (!_exploration.HasLevelContext) RefreshDiscoveryVisibility();
 
 		// FIXME: Hardcoded check for gold is not ideal
 		if (Item is Gold || !Animate)
@@ -127,6 +135,8 @@ public partial class LootableItem : Node3D
 		{
 			return;
 		}
+
+		if (!RefreshDiscoveryVisibility()) return;
 
 		if (_player == null || !GodotObject.IsInstanceValid(_player))
 		{
@@ -165,6 +175,11 @@ public partial class LootableItem : Node3D
 			return;
 		}
 
+		if (dist <= MagnetRadius && IsInsideTree())
+		{
+			if (!WorldSight.IsClear(GetWorld3D(), GlobalPosition + Vector3.Up * 0.8f, target)) return;
+		}
+
 		if (dist <= CollectRadius)
 		{
 			TryCollect(_player);
@@ -179,10 +194,22 @@ public partial class LootableItem : Node3D
 		}
 	}
 
+	/// <summary>Exploration gates the whole loot presentation and collection, including runtime drops outside the generator subtree.</summary>
+	private bool RefreshDiscoveryVisibility()
+	{
+		bool visible = _exploration?.IsRevealed(GlobalPosition) == true;
+		if (_discovered == visible) return visible;
+		_discovered = visible;
+		Visible = visible; // Gates the entire subtree, including the model, helpers, labels and the beam's light.
+		_beam?.SetActive(visible);
+		return visible;
+	}
+
 	private void AddLootBeam()
 	{
-		var beam = new LootBeam { Name = "LootBeam", BeamColor = LootVisuals.ResolveColor(Item) };
-		AddChild(beam);
+		_beam = new LootBeam { Name = "LootBeam", BeamColor = LootVisuals.ResolveColor(Item) };
+		_beam.SetActive(Visible);
+		AddChild(_beam);
 	}
 
 	private void AddXray()
@@ -228,7 +255,7 @@ public partial class LootableItem : Node3D
 	/// </summary>
 	private void TryCollect(Player player)
 	{
-		if (_collected || player == null)
+		if (_collected || player == null || !RefreshDiscoveryVisibility())
 		{
 			return;
 		}

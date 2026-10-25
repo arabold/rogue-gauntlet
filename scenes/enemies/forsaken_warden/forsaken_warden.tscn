@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3]
+[gd_scene load_steps=37 format=3]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
 [ext_resource type="PackedScene" path="res://assets/custom-monsters/forsaken_warden/forsaken_warden.glb" id="2_glb"]
@@ -9,6 +9,7 @@
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_fit.tres" id="fit_profile"]
 
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_definition.tres" id="definition"]
+[ext_resource type="Resource" path="res://scenes/items/gatekeeper_item_policy.tres" id="gatekeeper_policy"]
 [ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="gate_script"]
 [ext_resource type="Script" path="res://scenes/combat/GuardComponent.cs" id="guard_script"]
 [ext_resource type="Script" path="res://scenes/enemies/EnemyDefenseController.cs" id="defense_script"]
@@ -123,6 +124,7 @@ anim_player = NodePath("../../Pivot/WardenModel/AnimationPlayer")
 
 [node name="LootTableComponent" parent="." index="3"]
 DropChance = 1.0
+CreationPolicy = ExtResource("gatekeeper_policy")
 
 [node name="HealthComponent" parent="." index="4"]
 

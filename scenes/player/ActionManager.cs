@@ -117,7 +117,10 @@ public partial class ActionManager : Node
 
 	public IPlayerAction GetAction(int slotIndex) => GetActionSlot(slotIndex)?.AssignedAction;
 
-	public void AssignAction(int slotIndex, IPlayerAction action, PackedScene previewScene)
+	/// <summary>
+	/// Assigns a quick slot's action, preview and shown quantity, then notifies the HUD once with the complete state.
+	/// </summary>
+	public void AssignAction(int slotIndex, IPlayerAction action, PackedScene previewScene, int quantity = 1)
 	{
 		if (slotIndex < 0 || slotIndex >= _quickItemSlots.Count)
 		{
@@ -127,6 +130,7 @@ public partial class ActionManager : Node
 
 		ActionSlot slot = _quickItemSlots[slotIndex];
 		slot.AssignAction(slotIndex, action, previewScene);
+		slot.SetQuantity(quantity);
 		SignalBus.EmitPlayerActionSlotChanged(slotIndex, slot);
 	}
 

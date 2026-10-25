@@ -1,8 +1,9 @@
-[gd_scene load_steps=10 format=4 uid="uid://cyhr68psc2ku"]
+[gd_scene load_steps=11 format=4 uid="uid://cyhr68psc2ku"]
 
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="1_ydphq"]
 [ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flicker_light.tscn" id="2_excks"]
 [ext_resource type="PackedScene" uid="uid://cdpdt64lfmt86" path="res://scenes/effects/fire.tscn" id="3_gja5y"]
+[ext_resource type="Script" uid="uid://cqxw2ow56hai2" path="res://scenes/components/ExplorationGateComponent.cs" id="4_gate"]
 
 [ext_resource type="Script" uid="uid://c7jefenbk3vi0" path="res://scenes/components/EnvironmentalLightComponent.cs" id="5_lighting"]
 
@@ -65,6 +66,11 @@ noiseTexture = SubResource("NoiseTexture2D_p5w04")
 
 [node name="Fire" parent="." instance=ExtResource("3_gja5y")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.37741, 0.323494)
+
+[node name="ExplorationGateComponent" type="Node3D" parent="." node_paths=PackedStringArray("Target")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.37741, 0.323494)
+script = ExtResource("4_gate")
+Target = NodePath("..")
 
 [node name="EnvironmentalLightComponent" type="Node" parent="." node_paths=PackedStringArray("Light", "Flame")]
 script = ExtResource("5_lighting")

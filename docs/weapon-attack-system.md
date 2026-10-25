@@ -4,7 +4,7 @@ Players and monsters share an attack executor for melee, projectiles and current
 
 ## Authoring attacks
 
-A weapon supplies stats, timing, an explicit attack style, grip and optional custom attack definition. `AttackDefinition` describes delivery, projectile pattern, targeting and effects without depending on rarity, a particular actor rig or session state. Runtime attacks snapshot definitions rather than mutate shared Resources.
+A weapon supplies stats, timing, an explicit attack style, grip and optional custom attack definition. `AttackDefinition` describes delivery, projectile pattern, targeting and effects without depending on quality, a particular actor rig or session state. Runtime attacks snapshot definitions rather than mutate shared Resources.
 
 Reuse generic projectile patterns—single, spread, radial and area drop—and their count, spread, speed, range, damage and impact-area settings before adding new mechanics. Projectile scenes carry movement, collision and effects; attack definitions may override their impact area/falloff. Direct targets are excluded from the same projectile's splash, including defended direct hits.
 

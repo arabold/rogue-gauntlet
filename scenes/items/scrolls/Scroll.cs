@@ -6,6 +6,7 @@ using Godot;
 /// plumbing; <see cref="Effect"/> is only set for scrolls whose behavior is not a simple
 /// stat buff (buff/debuff scrolls just author <see cref="BuffedItem.Buff"/>, like potions).
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class Scroll : ConsumableItem
 {

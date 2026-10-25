@@ -10,12 +10,16 @@ copies once; `ItemSaveCodec` restores exact state without rolling. See [item own
 ## Authoring rules
 
 - Food and equipment are individual. Potions/scrolls stack to 20 of the exact same definition;
-  gold pickups cap at 999. Keys are deferred exact-variety stacks of 20.
+  gold pickups cap at 999. Keys and lockpicks stack to 20; [door access](door-access.md) consumes one matching key/pick on a successful unlock.
 - A hidden type ID identifies an effect family across visual/size variants, not one mesh.
   Potency and intrinsic modifiers remain definition data. Different definitions do not merge.
 - All active hidden families are in `identity_catalog.tres`; each category has enough distinct
-  appearances for a one-to-one per-run assignment. Unidentified labels use `{descriptor}`.
-- Equipment base tiers use the depth windows below; rarity/affixes are rolled separately.
+  appearances for a one-to-one per-run assignment. Unidentified labels use `{descriptor}`; jewelry
+  labels are led by the visible quality word.
+- Weapon and armor base tiers use the depth windows below. The [quality](stats-and-itemization.md#equipment-quality-affixes-and-enchantment),
+  its adjective, value scale and affixes are rolled separately from the definition's roll table. Base
+  names carry no condition words such as "Old" or "Worn"; the quality names the condition, and each
+  base name belongs to one tier. Every equipment definition references an `EquipmentRollTable`.
   Strength requirements remain the existing authored advisory values, not new equip restrictions.
 - Spear/halberd/scythe use the existing melee attack. Dedicated thrust/reach/cleave behavior is
   not implied by their names. Casting weapons use the existing ranged/elemental strategies.
@@ -29,12 +33,13 @@ Each type has small, medium and large definitions (`potion_<type>_<size>.tres`);
 damage, attribute gain or duration. No model or color belongs to a type: each run assigns every type a
 random color from the Asset Studio potion models, shared by all three sizes.
 
-Custom scrolls share the existing identify/enchant/teleport/summon/haste/protection/rage/weakness
+Custom scrolls share the existing identify/enchant/remove-curse/teleport/summon/haste/protection/rage/weakness
 strategies and add clarity and vitality buffs through existing Resources.
 They are all `Scroll` definitions, so the UI offers Read. Scroll and jewelry definitions keep their
 own model files as fallbacks only: in play every identity type shows its run appearance model.
-Jewelry uses explicit intrinsic modifier profiles; its tier lives in the data, while material and
-gem are part of the run disguise.
+Each jewelry type has one definition with a baseline intrinsic profile, which its quality scales or
+extends with affixes per item. The three harmful types (Frailty, Lethargy, Dread) have no positive
+effect and are always created cursed, so wearing one is a trap. Material and gem are part of the run disguise, never a sign of strength.
 
 Passive accuracy/evasion effects do not enter gameplay loot or identification pools. Their former
 scroll and jewelry models remain run appearances for the active types.
@@ -48,7 +53,7 @@ therefore cannot displace the potion or food budget. Empty/ineligible groups red
 weight among the remaining eligible groups. Flat `LootTable.Items` remains available for simple
 custom tables; do not mix flat Items and Groups in one authored table.
 
-Actual category weights, depth bounds and quantity scaling live in the [loot table Resources](../scenes/items/loot/), not a second numeric table here. Common enemies favor currency/recovery; rarer chests favor equipment. Base tier eligibility and rolled rarity are independent. Deferred tools and keys remain outside normal loot until their mechanics are implemented.
+Actual category weights, depth bounds and quantity scaling live in the [loot table Resources](../scenes/items/loot/), not a second numeric table here. Common enemies favor currency/recovery; rarer chests favor equipment. Base tier eligibility and rolled quality are independent, and both are fenced by depth. Every jewelry type is eligible from depth 1; its quality carries the progression. Guaranteed matching keys are placed by the level access profile separately from random loot. Lockpicks never spawn in normal floors or loot tables; the Rogue starts with two, and future shops may stock them. Other deferred tools remain outside normal loot until their mechanics are implemented.
 
 ## Active definitions
 
@@ -60,144 +65,129 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 
 | Definition | Family / role | Depth |
 | --- | --- | --- |
-| [Steel Broadsword](../scenes/items/weapons/arsenal/broadsword_steel.tres) | `tier 3` | 4–8 |
-| [Steel Cudgel](../scenes/items/weapons/arsenal/club_steel.tres) | `tier 2` | 2–5 |
-| [Old Wooden Club](../scenes/items/weapons/arsenal/club_wood_old.tres) | `tier 1` | 1–3 |
-| [Short Steel Dagger](../scenes/items/weapons/arsenal/dagger_short.tres) | `tier 1` | 1–3 |
-| [Steel Greatsword](../scenes/items/weapons/arsenal/greatsword_steel.tres) | `tier 4` | 7–12 |
-| [Steel Halberd](../scenes/items/weapons/arsenal/halberd_steel.tres) | `tier 3` | 4–8 |
-| [Iron Morning Star](../scenes/items/weapons/arsenal/morning_star_iron.tres) | `tier 3` | 4–8 |
-| [Steel Rapier](../scenes/items/weapons/arsenal/rapier_steel.tres) | `tier 2` | 2–5 |
-| [Steel Saber](../scenes/items/weapons/arsenal/saber_steel.tres) | `tier 2` | 2–5 |
-| [Iron War Scythe](../scenes/items/weapons/arsenal/scythe_iron.tres) | `tier 3` | 4–8 |
-| [Steel Spear](../scenes/items/weapons/arsenal/spear_steel.tres) | `tier 2` | 2–5 |
-| [Bearded Viking Axe](../scenes/items/weapons/axe/axe_bearded.tres) | `tier 3` | 4–8 |
-| [Executioner's Gilded Hatchet](../scenes/items/weapons/axe/axe_executioner.tres) | `tier 5` | 10+ |
-| [Axe](../scenes/items/weapons/axe_common.tres) | `tier 1` | 1–3 |
-| [Old Axe](../scenes/items/weapons/axe_old.tres) | `tier 1` | 1–3 |
-| [Royal Axe](../scenes/items/weapons/axe_rare.tres) | `tier 4` | 7–12 |
-| [War Axe](../scenes/items/weapons/axe_uncommon.tres) | `tier 2` | 2–5 |
-| [Double Axe](../scenes/items/weapons/axedouble_common.tres) | `tier 3` | 4–8 |
-| [Royal Double Axe](../scenes/items/weapons/axedouble_rare.tres) | `tier 5` | 10+ |
-| [Great Axe](../scenes/items/weapons/axedouble_uncommon.tres) | `tier 4` | 7–12 |
-| [Gilded Runic Battleaxe](../scenes/items/weapons/battleaxe/battleaxe_gilded.tres) | `tier 5` | 10+ |
-| [Iron Cleaver Greataxe](../scenes/items/weapons/battleaxe/battleaxe_iron.tres) | `tier 2` | 2–5 |
-| [Battle Axe](../scenes/items/weapons/battleaxe_common.tres) | `tier 3` | 4–8 |
-| [Skeleton Battle Axe](../scenes/items/weapons/battleaxe_skeleton.tres) | `tier 3` | 4–8 |
-| [Worn Battle Axe](../scenes/items/weapons/battleaxe_starter.tres) | `tier 1` | 1–3 |
-| [Winged Greatsword](../scenes/items/weapons/broadsword/broadsword_gilded.tres) | `tier 5` | 10+ |
-| [Iron Claymore](../scenes/items/weapons/broadsword/broadsword_iron.tres) | `tier 2` | 2–5 |
-| [Broadsword](../scenes/items/weapons/broadsword_common.tres) | `tier 3` | 4–8 |
-| [Royal Broadsword](../scenes/items/weapons/broadsword_rare.tres) | `tier 4` | 7–12 |
-| [Gilded Siege Arbalest](../scenes/items/weapons/crossbow/crossbow_gilded.tres) | `tier 5` | 10+ |
-| [Large Crossbow](../scenes/items/weapons/crossbow_2handed.tres) | `tier 3` | 4–8 |
-| [Crossbow](../scenes/items/weapons/crossbow_common.tres) | `tier 1` | 1–3 |
-| [Arbalest](../scenes/items/weapons/crossbow_rare.tres) | `tier 4` | 7–12 |
-| [Spiked Crossbow](../scenes/items/weapons/crossbow_spiked.tres) | `tier 2` | 2–5 |
-| [Heavy Crossbow](../scenes/items/weapons/crossbow_uncommon.tres) | `tier 3` | 4–8 |
-| [Heavy Hunting Dirk](../scenes/items/weapons/dagger/dagger_kukri.tres) | `tier 3` | 4–8 |
-| [Obsidian Fang Dagger](../scenes/items/weapons/dagger/dagger_nightblade.tres) | `tier 5` | 10+ |
-| [Dagger](../scenes/items/weapons/dagger_common.tres) | `tier 1` | 1–3 |
-| [Assassin's Dagger](../scenes/items/weapons/dagger_rare.tres) | `tier 4` | 7–12 |
-| [Stiletto](../scenes/items/weapons/dagger_uncommon.tres) | `tier 2` | 2–5 |
-| [Gilded Paladin Mace](../scenes/items/weapons/hammer/hammer_gilded.tres) | `tier 5` | 10+ |
-| [Wooden Cudgel Mallet](../scenes/items/weapons/hammer/hammer_mallet.tres) | `tier 1` | 1–3 |
-| [Hammer](../scenes/items/weapons/hammer_common.tres) | `tier 2` | 2–5 |
-| [Royal Hammer](../scenes/items/weapons/hammer_rare.tres) | `tier 4` | 7–12 |
-| [Battle Hammer](../scenes/items/weapons/hammer_uncommon.tres) | `tier 3` | 4–8 |
-| [Sword](../scenes/items/weapons/longsword_common.tres) | `tier 1` | 1–3 |
-| [Old Saber](../scenes/items/weapons/saber_skeleton.tres) | `tier 2` | 2–5 |
-| [Shortsword](../scenes/items/weapons/shortsword_common.tres) | `tier 1` | 1–3 |
-| [Archmage Astral Staff](../scenes/items/weapons/staff/staff_archmage.tres) | `tier 5` | 10+ |
-| [Emerald Crescent Staff](../scenes/items/weapons/staff/staff_emerald.tres) | `tier 3` | 4–8 |
-| [Air Staff](../scenes/items/weapons/staff_air.tres) | `tier 2` | 2–5 |
-| [Staff](../scenes/items/weapons/staff_common.tres) | `tier 1` | 1–3 |
-| [Earth Staff](../scenes/items/weapons/staff_earth.tres) | `tier 2` | 2–5 |
-| [Fire Staff](../scenes/items/weapons/staff_fire.tres) | `tier 2` | 2–5 |
-| [Rune Staff](../scenes/items/weapons/staff_rare.tres) | `tier 4` | 7–12 |
-| [Skeleton Staff](../scenes/items/weapons/staff_skeleton.tres) | `tier 2` | 2–5 |
-| [Ash Staff](../scenes/items/weapons/staff_uncommon.tres) | `tier 2` | 2–5 |
-| [Frost Staff](../scenes/items/weapons/staff_water.tres) | `tier 2` | 2–5 |
-| [Knightly Broadblade](../scenes/items/weapons/sword/sword_knight.tres) | `tier 3` | 4–8 |
-| [Gilded Sunblade](../scenes/items/weapons/sword/sword_sunblade.tres) | `tier 5` | 10+ |
-| [Longsword](../scenes/items/weapons/sword_common.tres) | `tier 2` | 2–5 |
-| [Royal Sword](../scenes/items/weapons/sword_rare.tres) | `tier 4` | 7–12 |
-| [Celestial Golden Wand](../scenes/items/weapons/wand/wand_celestial.tres) | `tier 5` | 10+ |
-| [Ruby Scepter Wand](../scenes/items/weapons/wand/wand_ruby.tres) | `tier 3` | 4–8 |
-| [Wand](../scenes/items/weapons/wand.tres) | `tier 1` | 1–3 |
-| [Heavy Sledge](../scenes/items/weapons/warhammer/warhammer_iron.tres) | `tier 2` | 2–5 |
-| [Spiked Maul](../scenes/items/weapons/warhammer/warhammer_spiked.tres) | `tier 3` | 4–8 |
-| [Warhammer](../scenes/items/weapons/warhammer.tres) | `tier 4` | 7–12 |
-| [Gilded Warhammer](../scenes/items/weapons/warhammer_gold.tres) | `tier 5` | 10+ |
+| [Steel Broadsword](../scenes/items/weapons/arsenal/broadsword_steel.tres) | `tier 3` | 10–18 |
+| [Steel Cudgel](../scenes/items/weapons/arsenal/club_steel.tres) | `tier 2` | 4–12 |
+| [Wooden Club](../scenes/items/weapons/arsenal/club_wood_old.tres) | `tier 1` | 1–6 |
+| [Short Steel Dagger](../scenes/items/weapons/arsenal/dagger_short.tres) | `tier 1` | 1–6 |
+| [Steel Greatsword](../scenes/items/weapons/arsenal/greatsword_steel.tres) | `tier 4` | 16–21 |
+| [Steel Halberd](../scenes/items/weapons/arsenal/halberd_steel.tres) | `tier 3` | 10–18 |
+| [Iron Morning Star](../scenes/items/weapons/arsenal/morning_star_iron.tres) | `tier 3` | 10–18 |
+| [Steel Rapier](../scenes/items/weapons/arsenal/rapier_steel.tres) | `tier 2` | 4–12 |
+| [Steel Saber](../scenes/items/weapons/arsenal/saber_steel.tres) | `tier 2` | 4–12 |
+| [Iron War Scythe](../scenes/items/weapons/arsenal/scythe_iron.tres) | `tier 3` | 10–18 |
+| [Steel Spear](../scenes/items/weapons/arsenal/spear_steel.tres) | `tier 2` | 4–12 |
+| [Bearded Viking Axe](../scenes/items/weapons/axe/axe_bearded.tres) | `tier 3` | 10–18 |
+| [Executioner's Gilded Hatchet](../scenes/items/weapons/axe/axe_executioner.tres) | `tier 5` | 19+ |
+| [Axe](../scenes/items/weapons/axe_common.tres) | `tier 1` | 1–6 |
+| [Woodcutter's Axe](../scenes/items/weapons/axe_old.tres) | `tier 1` | 1–6 |
+| [Royal Axe](../scenes/items/weapons/axe_rare.tres) | `tier 4` | 16–21 |
+| [War Axe](../scenes/items/weapons/axe_uncommon.tres) | `tier 2` | 4–12 |
+| [Double Axe](../scenes/items/weapons/axedouble_common.tres) | `tier 3` | 10–18 |
+| [Royal Double Axe](../scenes/items/weapons/axedouble_rare.tres) | `tier 5` | 19+ |
+| [Great Axe](../scenes/items/weapons/axedouble_uncommon.tres) | `tier 4` | 16–21 |
+| [Gilded Runic Battleaxe](../scenes/items/weapons/battleaxe/battleaxe_gilded.tres) | `tier 5` | 19+ |
+| [Iron Cleaver Greataxe](../scenes/items/weapons/battleaxe/battleaxe_iron.tres) | `tier 2` | 4–12 |
+| [Steel Battle Axe](../scenes/items/weapons/battleaxe_common.tres) | `tier 3` | 10–18 |
+| [Skeleton Battle Axe](../scenes/items/weapons/battleaxe_skeleton.tres) | `tier 3` | 10–18 |
+| [Battle Axe](../scenes/items/weapons/battleaxe_starter.tres) | `tier 1` | 1–6 |
+| [Winged Greatsword](../scenes/items/weapons/broadsword/broadsword_gilded.tres) | `tier 5` | 19+ |
+| [Iron Claymore](../scenes/items/weapons/broadsword/broadsword_iron.tres) | `tier 2` | 4–12 |
+| [Broadsword](../scenes/items/weapons/broadsword_common.tres) | `tier 3` | 10–18 |
+| [Royal Broadsword](../scenes/items/weapons/broadsword_rare.tres) | `tier 4` | 16–21 |
+| [Gilded Siege Arbalest](../scenes/items/weapons/crossbow/crossbow_gilded.tres) | `tier 5` | 19+ |
+| [Large Crossbow](../scenes/items/weapons/crossbow_2handed.tres) | `tier 3` | 10–18 |
+| [Crossbow](../scenes/items/weapons/crossbow_common.tres) | `tier 1` | 1–6 |
+| [Arbalest](../scenes/items/weapons/crossbow_rare.tres) | `tier 4` | 16–21 |
+| [Spiked Crossbow](../scenes/items/weapons/crossbow_spiked.tres) | `tier 2` | 4–12 |
+| [Heavy Crossbow](../scenes/items/weapons/crossbow_uncommon.tres) | `tier 3` | 10–18 |
+| [Heavy Hunting Dirk](../scenes/items/weapons/dagger/dagger_kukri.tres) | `tier 3` | 10–18 |
+| [Obsidian Fang Dagger](../scenes/items/weapons/dagger/dagger_nightblade.tres) | `tier 5` | 19+ |
+| [Dagger](../scenes/items/weapons/dagger_common.tres) | `tier 1` | 1–6 |
+| [Assassin's Dagger](../scenes/items/weapons/dagger_rare.tres) | `tier 4` | 16–21 |
+| [Stiletto](../scenes/items/weapons/dagger_uncommon.tres) | `tier 2` | 4–12 |
+| [Gilded Paladin Mace](../scenes/items/weapons/hammer/hammer_gilded.tres) | `tier 5` | 19+ |
+| [Wooden Cudgel Mallet](../scenes/items/weapons/hammer/hammer_mallet.tres) | `tier 1` | 1–6 |
+| [Hammer](../scenes/items/weapons/hammer_common.tres) | `tier 2` | 4–12 |
+| [Royal Hammer](../scenes/items/weapons/hammer_rare.tres) | `tier 4` | 16–21 |
+| [Battle Hammer](../scenes/items/weapons/hammer_uncommon.tres) | `tier 3` | 10–18 |
+| [Sword](../scenes/items/weapons/longsword_common.tres) | `tier 1` | 1–6 |
+| [Saber](../scenes/items/weapons/saber_skeleton.tres) | `tier 2` | 4–12 |
+| [Shortsword](../scenes/items/weapons/shortsword_common.tres) | `tier 1` | 1–6 |
+| [Archmage Astral Staff](../scenes/items/weapons/staff/staff_archmage.tres) | `tier 5` | 19+ |
+| [Emerald Crescent Staff](../scenes/items/weapons/staff/staff_emerald.tres) | `tier 3` | 10–18 |
+| [Air Staff](../scenes/items/weapons/staff_air.tres) | `tier 2` | 4–12 |
+| [Staff](../scenes/items/weapons/staff_common.tres) | `tier 1` | 1–6 |
+| [Earth Staff](../scenes/items/weapons/staff_earth.tres) | `tier 2` | 4–12 |
+| [Fire Staff](../scenes/items/weapons/staff_fire.tres) | `tier 2` | 4–12 |
+| [Rune Staff](../scenes/items/weapons/staff_rare.tres) | `tier 4` | 16–21 |
+| [Skeleton Staff](../scenes/items/weapons/staff_skeleton.tres) | `tier 2` | 4–12 |
+| [Ash Staff](../scenes/items/weapons/staff_uncommon.tres) | `tier 2` | 4–12 |
+| [Frost Staff](../scenes/items/weapons/staff_water.tres) | `tier 2` | 4–12 |
+| [Knightly Broadblade](../scenes/items/weapons/sword/sword_knight.tres) | `tier 3` | 10–18 |
+| [Gilded Sunblade](../scenes/items/weapons/sword/sword_sunblade.tres) | `tier 5` | 19+ |
+| [Longsword](../scenes/items/weapons/sword_common.tres) | `tier 2` | 4–12 |
+| [Royal Sword](../scenes/items/weapons/sword_rare.tres) | `tier 4` | 16–21 |
+| [Wand](../scenes/items/weapons/wand.tres) | `tier 1` | 1–6 |
+| [Celestial Golden Wand](../scenes/items/weapons/wand/wand_celestial.tres) | `tier 5` | 19+ |
+| [Ruby Scepter Wand](../scenes/items/weapons/wand/wand_ruby.tres) | `tier 3` | 10–18 |
+| [Warhammer](../scenes/items/weapons/warhammer.tres) | `tier 4` | 16–21 |
+| [Heavy Sledge](../scenes/items/weapons/warhammer/warhammer_iron.tres) | `tier 2` | 4–12 |
+| [Spiked Maul](../scenes/items/weapons/warhammer/warhammer_spiked.tres) | `tier 3` | 10–18 |
+| [Gilded Warhammer](../scenes/items/weapons/warhammer_gold.tres) | `tier 5` | 19+ |
 
 ### Armor (28)
 
 | Definition | Family / role | Depth |
 | --- | --- | --- |
-| [Gilded Aegis Bulwark](../scenes/items/armor/shield/shield_aegis_gold.tres) | `tier 5` | 10+ |
-| [Spiked Iron Buckler](../scenes/items/armor/shield/shield_buckler_spiked.tres) | `tier 2` | 2–5 |
-| [Dragonscale Shield](../scenes/items/armor/shield/shield_dragon_scale.tres) | `tier 5` | 10+ |
-| [Iron-Strapped Heater Shield](../scenes/items/armor/shield/shield_heater_iron.tres) | `tier 3` | 4–8 |
-| [Quartered Heroic Shield](../scenes/items/armor/shield/shield_heroic_quarters.tres) | `tier 3` | 4–8 |
-| [Heroic Sun Shield](../scenes/items/armor/shield/shield_heroic_sun.tres) | `tier 4` | 7–12 |
-| [Iron Tower Shield](../scenes/items/armor/shield/shield_iron_tower.tres) | `tier 3` | 4–8 |
-| [Crimson Kite Shield](../scenes/items/armor/shield/shield_kite_crusader.tres) | `tier 4` | 7–12 |
-| [Round Wooden Shield](../scenes/items/armor/shield/shield_round_wood.tres) | `tier 1` | 1–3 |
-| [Royal Crown Shield](../scenes/items/armor/shield/shield_royal_crown.tres) | `tier 4` | 7–12 |
-| [Royal Lily Shield](../scenes/items/armor/shield/shield_royal_lily.tres) | `tier 4` | 7–12 |
-| [Wooden Guard Scutum](../scenes/items/armor/shield/shield_scutum_wood.tres) | `tier 2` | 2–5 |
-| [Simple Wooden Shield](../scenes/items/armor/shield/shield_wood_simple.tres) | `tier 1` | 1–3 |
-| [Common Shield](../scenes/items/armor/shield_badge.tres) | `tier 1` | 1–3 |
-| [Common Shield](../scenes/items/armor/shield_badge_color.tres) | `tier 1` | 1–3 |
-| [Spiked Shield](../scenes/items/armor/shield_badge_spikes.tres) | `tier 2` | 2–5 |
-| [Spiked Shield](../scenes/items/armor/shield_badge_spikes_red.tres) | `tier 2` | 2–5 |
-| [Wooden Shield](../scenes/items/armor/shield_common.tres) | `tier 1` | 1–3 |
-| [Skull Shield](../scenes/items/armor/shield_large_skull.tres) | `tier 2` | 2–5 |
-| [Spiked Shield](../scenes/items/armor/shield_large_spikes.tres) | `tier 2` | 2–5 |
-| [Royal Shield](../scenes/items/armor/shield_rare.tres) | `tier 4` | 7–12 |
-| [Round Shield](../scenes/items/armor/shield_round_blue.tres) | `tier 1` | 1–3 |
-| [Round Shield](../scenes/items/armor/shield_round_common.tres) | `tier 1` | 1–3 |
-| [Round Shield](../scenes/items/armor/shield_round_old.tres) | `tier 1` | 1–3 |
-| [Round Shield](../scenes/items/armor/shield_round_red.tres) | `tier 1` | 1–3 |
-| [Square Shield](../scenes/items/armor/shield_square.tres) | `tier 2` | 2–5 |
-| [Square Shield](../scenes/items/armor/shield_square_red.tres) | `tier 2` | 2–5 |
-| [Reinforced Shield](../scenes/items/armor/shield_uncommon.tres) | `tier 3` | 4–8 |
+| [Gilded Aegis Bulwark](../scenes/items/armor/shield/shield_aegis_gold.tres) | `tier 5` | 19+ |
+| [Spiked Iron Buckler](../scenes/items/armor/shield/shield_buckler_spiked.tres) | `tier 2` | 4–12 |
+| [Dragonscale Shield](../scenes/items/armor/shield/shield_dragon_scale.tres) | `tier 5` | 19+ |
+| [Iron-Strapped Heater Shield](../scenes/items/armor/shield/shield_heater_iron.tres) | `tier 3` | 10–18 |
+| [Quartered Heroic Shield](../scenes/items/armor/shield/shield_heroic_quarters.tres) | `tier 3` | 10–18 |
+| [Heroic Sun Shield](../scenes/items/armor/shield/shield_heroic_sun.tres) | `tier 4` | 16–21 |
+| [Iron Tower Shield](../scenes/items/armor/shield/shield_iron_tower.tres) | `tier 3` | 10–18 |
+| [Crimson Kite Shield](../scenes/items/armor/shield/shield_kite_crusader.tres) | `tier 4` | 16–21 |
+| [Round Wooden Shield](../scenes/items/armor/shield/shield_round_wood.tres) | `tier 1` | 1–6 |
+| [Royal Crown Shield](../scenes/items/armor/shield/shield_royal_crown.tres) | `tier 4` | 16–21 |
+| [Royal Lily Shield](../scenes/items/armor/shield/shield_royal_lily.tres) | `tier 4` | 16–21 |
+| [Wooden Guard Scutum](../scenes/items/armor/shield/shield_scutum_wood.tres) | `tier 2` | 4–12 |
+| [Simple Wooden Shield](../scenes/items/armor/shield/shield_wood_simple.tres) | `tier 1` | 1–6 |
+| [Shield](../scenes/items/armor/shield_badge.tres) | `tier 1` | 1–6 |
+| [Shield](../scenes/items/armor/shield_badge_color.tres) | `tier 1` | 1–6 |
+| [Spiked Shield](../scenes/items/armor/shield_badge_spikes.tres) | `tier 2` | 4–12 |
+| [Spiked Shield](../scenes/items/armor/shield_badge_spikes_red.tres) | `tier 2` | 4–12 |
+| [Wooden Shield](../scenes/items/armor/shield_common.tres) | `tier 1` | 1–6 |
+| [Skull Shield](../scenes/items/armor/shield_large_skull.tres) | `tier 2` | 4–12 |
+| [Spiked Shield](../scenes/items/armor/shield_large_spikes.tres) | `tier 2` | 4–12 |
+| [Royal Shield](../scenes/items/armor/shield_rare.tres) | `tier 4` | 16–21 |
+| [Round Shield](../scenes/items/armor/shield_round_blue.tres) | `tier 1` | 1–6 |
+| [Round Shield](../scenes/items/armor/shield_round_common.tres) | `tier 1` | 1–6 |
+| [Round Shield](../scenes/items/armor/shield_round_old.tres) | `tier 1` | 1–6 |
+| [Round Shield](../scenes/items/armor/shield_round_red.tres) | `tier 1` | 1–6 |
+| [Square Shield](../scenes/items/armor/shield_square.tres) | `tier 2` | 4–12 |
+| [Square Shield](../scenes/items/armor/shield_square_red.tres) | `tier 2` | 4–12 |
+| [Reinforced Shield](../scenes/items/armor/shield_uncommon.tres) | `tier 3` | 10–18 |
 
-### Jewelry (31)
+### Jewelry (16)
 
 | Definition | Family / role | Depth |
 | --- | --- | --- |
-| [Amulet of Vitality](../scenes/items/jewelry/amulet/amulet_gold_emerald.tres) | `amulet.vitality` | 4+ |
-| [Amulet of Strength](../scenes/items/jewelry/amulet/amulet_gold_ruby.tres) | `amulet.strength` | 4+ |
-| [Amulet of Protection](../scenes/items/jewelry/amulet/amulet_gold_sun_crest.tres) | `amulet.protection` | 4+ |
-| [Amulet of Mind](../scenes/items/jewelry/amulet/amulet_silver_amethyst.tres) | `amulet.mind` | 2+ |
-| [Amulet of Mind](../scenes/items/jewelry/amulet/amulet_silver_runic_crest.tres) | `amulet.mind` | 2+ |
-| [Amulet of Swiftness](../scenes/items/jewelry/amulet/amulet_silver_sapphire.tres) | `amulet.swiftness` | 2+ |
-| [Amulet of Health](../scenes/items/jewelry/amulet/amulet_wood_coral.tres) | `amulet.health` | 1+ |
-| [Amulet of Vitality](../scenes/items/jewelry/amulet/amulet_wood_druid_talisman.tres) | `amulet.vitality` | 1+ |
-| [Amulet of Health](../scenes/items/jewelry/amulet/amulet_wood_peridot.tres) | `amulet.health` | 1+ |
-| [Amulet of Dread](../scenes/items/jewelry/amulet_dread.tres) | `amulet.dread` | 1+ |
-| [Amulet of Vigor](../scenes/items/jewelry/amulet_health.tres) | `amulet.health` | 1+ |
-| [Amulet of Swiftness](../scenes/items/jewelry/amulet_swiftness.tres) | `amulet.swiftness` | 1+ |
-| [Amulet of the Titan](../scenes/items/jewelry/amulet_titan.tres) | `amulet.titan` | 1+ |
-| [Ring of Mind](../scenes/items/jewelry/ring/ring_gold_amethyst.tres) | `ring.mind` | 4+ |
-| [Ring of Vitality](../scenes/items/jewelry/ring/ring_gold_emerald.tres) | `ring.vitality` | 4+ |
-| [Ring of Strength](../scenes/items/jewelry/ring/ring_gold_ruby.tres) | `ring.strength` | 4+ |
-| [Ring of Mind](../scenes/items/jewelry/ring/ring_silver_band.tres) | `ring.mind` | 2+ |
-| [Ring of Protection](../scenes/items/jewelry/ring/ring_silver_diamond.tres) | `ring.protection` | 2+ |
-| [Ring of Savagery](../scenes/items/jewelry/ring/ring_silver_onyx.tres) | `ring.savagery` | 2+ |
-| [Ring of Dexterity](../scenes/items/jewelry/ring/ring_silver_sapphire.tres) | `ring.dexterity` | 2+ |
-| [Ring of Health](../scenes/items/jewelry/ring/ring_wood_amber.tres) | `ring.health` | 1+ |
-| [Ring of Protection](../scenes/items/jewelry/ring/ring_wood_carved.tres) | `ring.protection` | 1+ |
-| [Ring of Strength](../scenes/items/jewelry/ring/ring_wood_garnet.tres) | `ring.strength` | 1+ |
-| [Ring of Dexterity](../scenes/items/jewelry/ring_dexterity.tres) | `ring.dexterity` | 1+ |
-| [Ring of Frailty](../scenes/items/jewelry/ring_frailty.tres) | `ring.frailty` | 1+ |
-| [Ring of Lethargy](../scenes/items/jewelry/ring_lethargy.tres) | `ring.lethargy` | 1+ |
-| [Ring of the Mind](../scenes/items/jewelry/ring_mind.tres) | `ring.mind` | 1+ |
-| [Ring of Protection](../scenes/items/jewelry/ring_protection.tres) | `ring.protection` | 1+ |
-| [Ring of Savagery](../scenes/items/jewelry/ring_savagery.tres) | `ring.savagery` | 1+ |
-| [Ring of Strength](../scenes/items/jewelry/ring_strength.tres) | `ring.strength` | 1+ |
-| [Ring of Vitality](../scenes/items/jewelry/ring_vitality.tres) | `ring.vitality` | 1+ |
+| [Amulet of Dread](../scenes/items/jewelry/amulet/amulet_dread.tres) | `amulet.dread` | 1+ |
+| [Amulet of Health](../scenes/items/jewelry/amulet/amulet_health.tres) | `amulet.health` | 1+ |
+| [Amulet of Mind](../scenes/items/jewelry/amulet/amulet_mind.tres) | `amulet.mind` | 1+ |
+| [Amulet of Protection](../scenes/items/jewelry/amulet/amulet_protection.tres) | `amulet.protection` | 1+ |
+| [Amulet of Strength](../scenes/items/jewelry/amulet/amulet_strength.tres) | `amulet.strength` | 1+ |
+| [Amulet of Swiftness](../scenes/items/jewelry/amulet/amulet_swiftness.tres) | `amulet.swiftness` | 1+ |
+| [Amulet of Vitality](../scenes/items/jewelry/amulet/amulet_vitality.tres) | `amulet.vitality` | 1+ |
+| [Ring of Dexterity](../scenes/items/jewelry/ring/ring_dexterity.tres) | `ring.dexterity` | 1+ |
+| [Ring of Frailty](../scenes/items/jewelry/ring/ring_frailty.tres) | `ring.frailty` | 1+ |
+| [Ring of Health](../scenes/items/jewelry/ring/ring_health.tres) | `ring.health` | 1+ |
+| [Ring of Lethargy](../scenes/items/jewelry/ring/ring_lethargy.tres) | `ring.lethargy` | 1+ |
+| [Ring of Mind](../scenes/items/jewelry/ring/ring_mind.tres) | `ring.mind` | 1+ |
+| [Ring of Protection](../scenes/items/jewelry/ring/ring_protection.tres) | `ring.protection` | 1+ |
+| [Ring of Savagery](../scenes/items/jewelry/ring/ring_savagery.tres) | `ring.savagery` | 1+ |
+| [Ring of Strength](../scenes/items/jewelry/ring/ring_strength.tres) | `ring.strength` | 1+ |
+| [Ring of Vitality](../scenes/items/jewelry/ring/ring_vitality.tres) | `ring.vitality` | 1+ |
 
 ### Food (12)
 
@@ -277,6 +267,20 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | --- | --- | --- |
 | [Gold](../scenes/items/gold/gold.tres) | `currency` | 1+ |
 
+## Access keys and picks
+
+All six key models have published game scenes and typed identity/color definitions. The initial level profile uses gold, silver and blue crystal keys. Matching key sources are guaranteed outside their locks. Picks offer a rare consumable alternative, with two in the Rogue starting inventory and none generated in regular levels. These use door interactions rather than quick slots. See [door access](door-access.md).
+
+| Definition | Behavior |
+| --- | --- |
+| [Thief's Lockpick Set](../scenes/items/tools/tool/tool_lockpick_set.tres) | Stackable contextual access item; one spent per successful unlock |
+| [Arcane Crystal Key](../scenes/items/keys/key/key_arcane_crystal.tres) | Stackable contextual access item; one spent per successful unlock |
+| [Bone Skull Key](../scenes/items/keys/key/key_bone_skull.tres) | Stackable contextual access item; one spent per successful unlock |
+| [Ornate Bronze Key](../scenes/items/keys/key/key_bronze_ornate.tres) | Stackable contextual access item; one spent per successful unlock |
+| [Gold Treasury Key](../scenes/items/keys/key/key_gold_treasury.tres) | Stackable contextual access item; one spent per successful unlock |
+| [Rusty Iron Prison Key](../scenes/items/keys/key/key_iron_prison.tres) | Stackable contextual access item; one spent per successful unlock |
+| [Silver Crypt Key](../scenes/items/keys/key/key_silver_crypt.tres) | Stackable contextual access item; one spent per successful unlock |
+
 ## Portable lights
 
 All six lights are `PortableLightItem` definitions available through **Debug → Spawn item → Lamps and torches**. Their inventory menus offer either hand; equipping attaches a lit model, and unequipping or dropping removes the illumination. They are excluded from normal loot and quality rolls for now. Fuel and manual ignition remain deferred. See [portable-light equipment](stats-and-itemization.md#portable-light-equipment).
@@ -301,15 +305,8 @@ capability until the required mechanic exists; tools are plain `Item` Resources.
 | [Silver Ritual Bell](../scenes/items/tools/tool/tool_bell_silver.tres) | Noise/attention interaction and use rules |
 | [Iron Grappling Hook](../scenes/items/tools/tool/tool_grappling_hook.tres) | Traversal anchors and movement action |
 | [Brass Tooled Horn](../scenes/items/tools/tool/tool_horn_bugle.tres) | Noise/attention interaction and use rules |
-| [Thief's Lockpick Set](../scenes/items/tools/tool/tool_lockpick_set.tres) | Locks, eligibility, and attempt cost |
 | [Gilded Looking Glass](../scenes/items/tools/tool/tool_mirror_hand.tres) | Reflection/inspection interaction |
 | [Dwarven Pickaxe](../scenes/items/tools/tool/tool_pickaxe_dwarven.tres) | Mineable terrain and tool actions |
-| [Arcane Crystal Key](../scenes/items/keys/key/key_arcane_crystal.tres) | Matching lock identity, access rules, and acquisition guarantees |
-| [Bone Skull Key](../scenes/items/keys/key/key_bone_skull.tres) | Matching lock identity, access rules, and acquisition guarantees |
-| [Ornate Bronze Key](../scenes/items/keys/key/key_bronze_ornate.tres) | Matching lock identity, access rules, and acquisition guarantees |
-| [Gold Treasury Key](../scenes/items/keys/key/key_gold_treasury.tres) | Matching lock identity, access rules, and acquisition guarantees |
-| [Rusty Iron Prison Key](../scenes/items/keys/key/key_iron_prison.tres) | Matching lock identity, access rules, and acquisition guarantees |
-| [Silver Crypt Key](../scenes/items/keys/key/key_silver_crypt.tres) | Matching lock identity, access rules, and acquisition guarantees |
 
 ## Attack animation coverage
 

@@ -114,7 +114,7 @@ public partial class MapGenerator : Node3D
 
 	// Physics layers a runtime spawn must stay clear of: world (1) | walls (2) | props (5).
 	// Keeps items out of stairs, transition blockers, walls, and props via a single overlap test.
-	private const uint SpawnObstructionMask = 1u | 2u | 16u;
+	private const uint SpawnObstructionMask = WorldSight.Blockers;
 	private const uint EffectLandingSurfaceMask = 1u;
 	private const float EffectLandingRayHeight = 10.0f;
 	private const float EffectLandingRayDepth = 14.0f;
@@ -226,8 +226,10 @@ public partial class MapGenerator : Node3D
 		{
 			var placement = roomPlacements[roomIndex];
 			var room = placement.Room;
+			var traps = new List<(FloorTrap Trap, string Id)>();
 			foreach (Node source in room.FindChildren("*", "", true, false))
 			{
+				if (source is FloorTrap trap) traps.Add((trap, $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(source)}"));
 				if (source is LootableItem)
 				{ source.SetMeta("persistent_id", $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(source)}"); }
 				if (source is LootTableComponent loot)
@@ -249,6 +251,9 @@ public partial class MapGenerator : Node3D
 
 			var roomOffset = new Vector3I(room.Bounds.Position.X, 0, room.Bounds.Position.Y);
 			room.Translate(TileToWorld(position) - roomOffset);
+			// Placed and merged: each authored trap can now find the floor cell it conceals.
+			foreach (var (trap, id) in traps)
+				trap.Initialize(id, Seed, FloorGridMap, FloorGridMap.LocalToMap(FloorGridMap.ToLocal(trap.GlobalPosition)));
 
 			RegisterRoomRegion(placement);
 		}
@@ -472,7 +477,8 @@ public partial class MapGenerator : Node3D
 	{
 		if (!EnableFurnishings) return;
 		var obstacles = RoomArrangement.GetGridBounds(DecorationGridMap, DecorationGridMap.Transform)
-			.Concat(RoomArrangement.GetStaticPropBounds(NavigationRegion, GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform)).ToList();
+			.Concat(RoomArrangement.GetStaticPropBounds(NavigationRegion, GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform))
+			.Concat(SecretThresholdBounds()).ToList();
 		var walls = RoomArrangement.GetGridBounds(WallGridMap, WallGridMap.Transform);
 		foreach (var room in _roomRegions.Where(room => room.IsProcedural))
 		{
@@ -485,8 +491,8 @@ public partial class MapGenerator : Node3D
 			var region = new RoomRegion(room.Id) { IsProcedural = true, Purpose = room.Purpose, LayoutAxis = room.LayoutAxis };
 			region.FurnishingSlots.AddRange(room.FurnishingSlots);
 			region.Tiles.AddRange(room.Tiles);
-			region.ConnectorTiles.AddRange(room.ConnectorTiles.Where(tile => Map.GetConnectorDirections(tile.X, tile.Y)
-				.Any(direction => { var next = tile + direction; return Map.IsWithinBounds(next.X, next.Y) && Map.IsCorridor(next.X, next.Y); })));
+			// A secret pocket's connector opens onto its host, which may be a room tile rather than a corridor.
+			region.ConnectorTiles.AddRange(room.ConnectorTiles.Where(tile => IsSecretConnector(tile) || IsConnectorConnected(tile)));
 			var placements = pool.PlacementStrategy.Plan(Map, [region], pool, Seed,
 				GenerationAttempt, tile => TileToWorld(tile.X, 0, tile.Y), obstacles, walls);
 			if (room.Dressing != null) placements.AddRange(room.Dressing.Plan(Map, region, Seed, GenerationAttempt,
@@ -546,19 +552,26 @@ public partial class MapGenerator : Node3D
 
 	private void PlaceWalls()
 	{
-		GD.Print("Placing walls...");
-		var sourceTiles = new List<(Vector2I Tile, Vector3I BasePosition)>();
+		var tiles = new List<Vector2I>();
 		for (int x = 0; x < Map.Width; x++)
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				if (Map.IsWalkable(x, z))
-				{
-					sourceTiles.Add((new Vector2I(x, z), TileToWorld(x, 0, z)));
-				}
+				tiles.Add(new Vector2I(x, z));
 			}
 		}
 
+		PlaceWallsAround(tiles);
+	}
+
+	/// <summary>
+	/// Seals every required edge of the given tiles that is not already covered by a wall. Pass tiles in x-then-z order:
+	/// wall variants are drawn from the decoration stream in that order, matching a full-map pass.
+	/// </summary>
+	private void PlaceWallsAround(IEnumerable<Vector2I> tiles)
+	{
+		GD.Print("Placing walls...");
+		var sourceTiles = tiles.Where(tile => Map.IsWalkable(tile.X, tile.Y)).Select(tile => (tile, TileToWorld(tile.X, 0, tile.Y)));
 		WallFootprints.PlaceWalls(
 			WallGridMap,
 			(int)TileSize,
@@ -634,15 +647,20 @@ public partial class MapGenerator : Node3D
 		{
 			for (int z = -OcclusionMargin; z < Map.Height + OcclusionMargin; z++)
 			{
-				bool isVisibleInterior = Map.IsWithinBounds(x, z)
-					&& (Map.IsRoom(x, z) || Map.IsConnector(x, z)
-						|| Map.IsCorridor(x, z) || Map.IsChasm(x, z));
-				if (fog || !isVisibleInterior)
+				if (fog || !IsVisibleInterior(x, z))
 				{
 					OcclusionGridMap.SetCellItem(TileToWorld(x, 0, z), OcclusionItemId, 0);
 				}
 			}
 		}
+	}
+
+	/// <summary>Playable surfaces that fog can uncover; everything else is void that stays capped.</summary>
+	private bool IsVisibleInterior(int x, int z)
+	{
+		return Map.IsWithinBounds(x, z)
+			&& (Map.IsRoom(x, z) || Map.IsConnector(x, z)
+				|| Map.IsCorridor(x, z) || Map.IsChasm(x, z));
 	}
 
 	/// <summary>
@@ -728,34 +746,27 @@ public partial class MapGenerator : Node3D
 
 	/// <summary>
 	/// Unseals the doored connector nearest the opened door and reveals through it,
-	/// so opening a door flows the fog into the corridor and rooms beyond. Returns
-	/// the unsealed connector tile (for persistence), or null if none matched.
+	/// so opening a door flows the fog into the corridor and rooms beyond.
 	/// </summary>
-	public Vector2I? OpenDoorAt(Vector3 worldPosition)
+	public void OpenDoorAt(Vector3 worldPosition)
 	{
-		if (!TryFindNearestDoorConnector(worldPosition, out Vector2I connectorTile))
+		if (TryFindNearestDoorConnector(worldPosition, out Vector2I connectorTile))
 		{
-			return null;
+			OpenConnector(connectorTile);
 		}
-
-		OpenConnector(connectorTile);
-		return connectorTile;
 	}
 
 	/// <summary>
 	/// Marks the connector guarded by a closed door as sealed again. Fog remains revealed;
 	/// this only updates logical reachability for enemy decisions.
 	/// </summary>
-	public Vector2I? CloseDoorAt(Vector3 worldPosition)
+	public void CloseDoorAt(Vector3 worldPosition)
 	{
-		if (!TryFindNearestDoorConnector(worldPosition, out Vector2I connectorTile))
+		if (TryFindNearestDoorConnector(worldPosition, out Vector2I connectorTile))
 		{
-			return null;
+			_dooredConnectors.Add(connectorTile);
+			UpdateDoorIndicators();
 		}
-
-		_dooredConnectors.Add(connectorTile);
-		UpdateDoorIndicators();
-		return connectorTile;
 	}
 
 	private bool TryFindNearestDoorConnector(Vector3 worldPosition, out Vector2I connectorTile)
@@ -777,46 +788,29 @@ public partial class MapGenerator : Node3D
 		return found;
 	}
 
-	/// <summary>
-	/// Restores a previously explored level: re-opens the doors that were opened and
-	/// re-reveals the rooms that were entered. Combined with deterministic map
-	/// generation, this reproduces the exact area the player had uncovered.
-	/// </summary>
-	public void RestoreReveal(IEnumerable<int> revealedRoomIds, IEnumerable<Vector2I> openedDoors)
-	{
-		// Unseal every opened door first so cascades can flow through all of them.
-		foreach (var connector in openedDoors)
-		{
-			_dooredConnectors.Remove(connector);
-		}
-
-		foreach (var roomId in revealedRoomIds)
-		{
-			RevealRoom(roomId, animate: false);
-		}
-
-		// Reveal through doors opened from the corridor side (no room was entered).
-		foreach (var connector in openedDoors)
-		{
-			if (_connectorToRoom.TryGetValue(connector, out int roomId))
-			{
-				RevealRoom(roomId, animate: false);
-			}
-		}
-	}
 
 	/// <summary>
 	/// Clears gameplay fog across the generated level for runtime debugging.
 	/// </summary>
 	public void RevealAllFog()
 	{
-		if (OcclusionGridMap == null)
+		if (OcclusionGridMap == null || Map == null)
 		{
 			return;
 		}
 
-		OcclusionGridMap.Clear();
-		PlaceOcclusion(false);
+		// Mark the interior explored rather than only clearing caps, so exploration-gated
+		// loot, traps and effects appear along with the cleared fog. Void caps stay.
+		for (int x = 0; x < Map.Width; x++)
+		{
+			for (int z = 0; z < Map.Height; z++)
+			{
+				if (IsVisibleInterior(x, z))
+				{
+					RevealTile(new Vector2I(x, z));
+				}
+			}
+		}
 
 		foreach (var (door, _) in _doorIndicators)
 		{
@@ -985,7 +979,7 @@ public partial class MapGenerator : Node3D
 	/// </summary>
 	private void PlaceLoot()
 	{
-		var placedLootPoints = new List<Vector3>();
+		var placedLootPoints = new List<Vector3>(_accessPickupPoints);
 		PlaceChests(placedLootPoints);
 		PlaceTraps(placedLootPoints);
 		PlaceLooseItems(placedLootPoints);
@@ -1104,6 +1098,10 @@ public partial class MapGenerator : Node3D
 			var trap = TrapScene.Instantiate<Node3D>();
 			NavigationRegion.AddChild(trap);
 			trap.GlobalPosition = point;
+			if (trap is FloorTrap floorTrap)
+			{
+				floorTrap.Initialize($"depth:{DungeonDepth}:trap:{placed}", Seed, FloorGridMap, FloorGridMap.LocalToMap(FloorGridMap.ToLocal(point)));
+			}
 
 			placedLootPoints.Add(point);
 			placed++;
@@ -1155,12 +1153,7 @@ public partial class MapGenerator : Node3D
 			if (quantity <= 0) { continue; }
 			foreach (var record in ItemFactory.CreateBatch(entry.Item, quantity, ItemCreationPolicy, depth, rng, sourceId))
 			{
-				var lootableItem = LooseItemScene.Instantiate<LootableItem>();
-				lootableItem.Item = record.Item;
-				lootableItem.Quantity = record.Quantity;
-				lootableItem.SetMeta("persistent_id", sourceId);
-				NavigationRegion.AddChild(lootableItem);
-				lootableItem.GlobalPosition = point + Vector3.Up * GetFloorSurfaceHeight(point);
+				SpawnPickup(record.Item, record.Quantity, sourceId, point);
 			}
 
 			placedLootPoints.Add(point);
@@ -1476,6 +1469,7 @@ public partial class MapGenerator : Node3D
 		position = default;
 		float best = float.NegativeInfinity;
 		var occupied = new List<Vector3>();
+		var accessible = FreelyAccessibleTiles();
 		foreach (var tilePoint in GetOpenTileCandidates(proceduralRoomsOnly: false))
 		{
 			// Half-tile offsets also find clear 2x2 spaces between cell centers.
@@ -1485,7 +1479,8 @@ public partial class MapGenerator : Node3D
 				{
 					var point = tilePoint + new Vector3(dx * TileSize * .5f, 0, dz * TileSize * .5f);
 					int roomId = GetRoomIdAt(WorldToTile(point));
-					if (IsBlockedEnemySpawnPoint(point, occupied)
+					if (accessible != null && !accessible.Contains(WorldToTile(point))
+						|| IsBlockedEnemySpawnPoint(point, occupied)
 						|| !IsEncounterFootprintClear(point, minimumRadius, roomId)) continue;
 					float clearance = minimumRadius;
 					for (float radius = minimumRadius + .2f; radius <= preferredRadius; radius += .2f)
@@ -1511,7 +1506,9 @@ public partial class MapGenerator : Node3D
 	/// </summary>
 	public bool TryPickRandomFreePosition(out Vector3 position)
 	{
-		List<Vector3> candidates = GetOpenTileCandidates(proceduralRoomsOnly: false);
+		var accessible = FreelyAccessibleTiles();
+		List<Vector3> candidates = GetOpenTileCandidates(proceduralRoomsOnly: false)
+			.Where(p => accessible == null || accessible.Contains(WorldToTile(p))).ToList();
 		if (candidates.Count == 0)
 		{
 			position = default;
@@ -1817,7 +1814,7 @@ public partial class MapGenerator : Node3D
 				continue;
 			}
 
-			if ((node is PlayerSpawnPoint || node is LevelTransitionTrigger || node.IsInGroup("stairs"))
+			if ((node is IProgressionAnchor || node.IsInGroup("stairs"))
 				&& HorizontalDistance(point, node3D.GlobalPosition) < EnemySpawnBlockedAreaClearance)
 			{
 				return true;
@@ -1838,7 +1835,7 @@ public partial class MapGenerator : Node3D
 		{
 			GenerateMapAttempt(includeGameplay);
 			if (!includeGameplay || MobFactory is not RealmEncounterFactory realm
-				|| realm.FloorIndex(DungeonDepth) != 2 || realm.GatekeeperFit == null
+				|| !realm.IsGatekeeperFloor(DungeonDepth) || realm.GatekeeperFit == null
 				|| GatekeeperSpawnMarker.Find(this.GetAncestorOrNull<Level>()) != null) return;
 			if (TryFindLargeEncounterPosition(Vector3.Zero, realm.GatekeeperFit.MinimumClearance,
 				realm.GatekeeperFit.PreferredClearance, out _)) return;
@@ -1872,6 +1869,8 @@ public partial class MapGenerator : Node3D
 
 		// Step 2b.2: Hide doorway-marker gizmos left pointing at a wall for the same reason.
 		FinalizeMarkers();
+		AccessProfile?.Validate();
+		CreateSecretBranches();
 		PlaceArrangements();
 
 		// Step 2c: Place the black occluder caps. In gameplay the whole map starts
@@ -1893,6 +1892,7 @@ public partial class MapGenerator : Node3D
 		// Step 3b: Scatter chests/traps/loose items. Must run before BakeNavigationMesh so
 		// chests are included as navmesh obstacles, and before GenerateEnemySpawnPoints so
 		// enemy-spawn clearance (which already checks the "prop" group) naturally avoids them.
+		PlaceAccess();
 		PlaceLoot();
 
 		// Step 4: Bake navigation mesh
@@ -1966,12 +1966,12 @@ public partial class MapGenerator : Node3D
 		// mesh, so each doorway bridge is visible (whether the door is open or closed).
 		foreach (Node node in GetTree().GetNodesInGroup("door"))
 		{
-			if (node is not Door)
+			if (node is not Door door)
 			{
 				continue;
 			}
 
-			var doorLink = node.GetNodeOrNull<NavigationLink3D>("NavigationLink3D");
+			var doorLink = door.NavigationLink;
 			if (doorLink != null)
 			{
 				hasGeometry |= AppendLinkStrip(
@@ -2102,6 +2102,7 @@ public partial class MapGenerator : Node3D
 		GD.Print("Resetting map generator...");
 		_random = new LevelGenerationContext(Seed, GenerationAttempt);
 
+		ResetAccess();
 		_roomRegions.Clear();
 		_arrangementReservations.Clear();
 		ArrangementCount = 0;

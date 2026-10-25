@@ -1,9 +1,12 @@
-[gd_scene load_steps=10 format=4 uid="uid://cap6wqfjubqjx"]
+[gd_scene load_steps=13 format=4 uid="uid://cap6wqfjubqjx"]
 
 [ext_resource type="Script" uid="uid://d33rvrl7g5ltg" path="res://scenes/props/FloorTrap.cs" id="1_064fn"]
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="2_ev4jl"]
 [ext_resource type="PackedScene" uid="uid://d2l47r6atc27d" path="res://scenes/components/trigger_component.tscn" id="3_ny7u4"]
 
+[ext_resource type="Resource" path="res://scenes/levels/access/trap_detection.tres" id="detection"]
+[ext_resource type="PackedScene" path="res://scenes/effects/discovery_pulse.tscn" id="discovery_effect"]
+[ext_resource type="Script" uid="uid://cgw68vsnlt58" path="res://scenes/levels/access/ProximityDiscoveryComponent.cs" id="discovery_script"]
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_glrei"]
 resource_name = "texture"
 albedo_texture = ExtResource("2_ev4jl")
@@ -76,8 +79,13 @@ shadow_mesh = SubResource("ArrayMesh_wavfr")
 [sub_resource type="BoxShape3D" id="BoxShape3D_t1utv"]
 size = Vector3(4, 1, 4)
 
-[node name="FloorTrap" type="Node3D" groups=["prop"]]
+[node name="FloorTrap" type="Node3D" node_paths=PackedStringArray("Trigger", "Spikes", "DiscoveryEffect", "FloorSurface", "Discovery") groups=["prop"]]
 script = ExtResource("1_064fn")
+Trigger = NodePath("TriggerComponent")
+Spikes = NodePath("floor_tile_big_spikes/spikes")
+DiscoveryEffect = NodePath("DiscoveryEffect")
+FloorSurface = NodePath("floor_tile_big_spikes")
+Discovery = NodePath("ProximityDiscovery")
 
 [node name="floor_tile_big_spikes" type="MeshInstance3D" parent="."]
 mesh = SubResource("ArrayMesh_2pbfq")
@@ -93,3 +101,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="TriggerComponent"]
 shape = SubResource("BoxShape3D_t1utv")
+
+[node name="DiscoveryEffect" parent="." instance=ExtResource("discovery_effect")]
+position = Vector3(0, 0.75, 0)
+
+[node name="ProximityDiscovery" type="Node" parent="." node_paths=PackedStringArray("Subject")]
+script = ExtResource("discovery_script")
+Subject = NodePath("..")
+Profile = ExtResource("detection")

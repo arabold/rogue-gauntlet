@@ -48,7 +48,7 @@ public partial class TimedInteractionTest
 			return true;
 		}
 
-		public InteractionCommitResult TryCommit(in InteractionReservation reservation)
+		public InteractionCommitResult TryCommit(in InteractionReservation reservation, in ActorInteractionContext actor)
 		{
 			if (reservation.Token != _currentReservation.Token || reservation.TargetRevision != StateRevision)
 			{
@@ -294,13 +294,16 @@ public partial class TimedInteractionTest
 		var context = new ActorInteractionContext(actor, new ActorCapabilities { CanOpenDoors = true });
 		var offer = comp.GetOffer(context);
 		AssertString(offer.VerbLabel).IsEqual("Open Door");
-		AssertFloat(offer.Duration).IsEqual(1.0f);
+		AssertFloat(offer.Duration).IsEqual(0.5f);
 
-		// Channel interaction for 1.0 second
+		// An unlocked door completes at half a second.
 		var beginResult = interaction.TryBegin(offer, context);
 		AssertInt((int)beginResult).IsEqual((int)InteractionRequestResult.Success);
 
-		interaction._PhysicsProcess(1.05f);
+		interaction._PhysicsProcess(0.45f);
+		AssertBool(door.IsOpen).IsFalse();
+		AssertBool(interaction.IsActive).IsTrue();
+		interaction._PhysicsProcess(0.1f);
 
 		AssertBool(door.IsOpen).IsTrue();
 		AssertBool(interaction.IsActive).IsFalse();

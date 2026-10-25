@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 37;
+	public const int CurrentVersion = 38;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -130,14 +130,20 @@ public sealed class ItemEntrySaveData
 	public FoodItemSaveData Food { get; set; }
 	public int Quantity { get; set; }
 
-	// Exact equipment state. Non-equipment records leave rarity at -1.
-	public int Rarity { get; set; } = -1;
+	// Exact equipment state. Non-equipment records leave quality at -1 and scale at 0.
+	public int Quality { get; set; } = -1;
+	public string QualityAdjective { get; set; } = string.Empty;
+	public bool AttributesKnown { get; set; } = true;
+	public List<StatModifierSaveData> CursePenalty { get; set; } = [];
+	public bool CurseStatusKnown { get; set; } = true;
+	public float MagnitudeScale { get; set; }
 	public List<RolledAffixSaveData> Affixes { get; set; } = [];
 }
 
 public sealed class RolledAffixSaveData
 {
 	public string NameFragment { get; set; } = string.Empty;
+	public string Group { get; set; } = string.Empty;
 	public int Kind { get; set; }
 	public List<StatModifierSaveData> Modifiers { get; set; } = [];
 }
@@ -197,15 +203,15 @@ public sealed class RewardSourceSaveData
 }
 
 /// <summary>
-/// Fog-of-war reveal state for one dungeon depth. The map regenerates
-/// deterministically from its seed, so replaying the rooms the player entered and
-/// the doors they opened reproduces the exact revealed area.
+/// Exploration deltas for one dungeon depth. The map regenerates deterministically
+/// from its seed; explored tiles, door access and found traps are replayed on top.
 /// </summary>
 public sealed class RevealedLevelSaveData
 {
 	public uint DungeonDepth { get; set; }
-	public List<int> RevealedRoomIds { get; set; } = [];
-	public List<Vector2ISaveData> OpenedDoors { get; set; } = [];
+	public List<Vector2ISaveData> ExploredTiles { get; set; } = [];
+	public List<DoorAccessSaveData> Doors { get; set; } = [];
+	public List<string> DiscoveredTrapIds { get; set; } = [];
 }
 
 public sealed class Vector2ISaveData
@@ -217,4 +223,17 @@ public sealed class Vector2ISaveData
 public sealed class FoodItemSaveData
 {
 	public bool IsPoisoned { get; set; }
+}
+/// <summary>Access deviation from a seeded floor, independent of explored-space history.</summary>
+public sealed class DoorAccessSaveData
+{
+	public string ConnectionId { get; set; } = "";
+	public bool IsDiscovered { get; set; } = true;
+	public bool IsLocked { get; set; }
+	public bool IsOpen { get; set; }
+	public void Validate()
+	{
+		if (string.IsNullOrWhiteSpace(ConnectionId) || IsOpen && (!IsDiscovered || IsLocked))
+			throw new System.InvalidOperationException("Invalid saved door access state.");
+	}
 }

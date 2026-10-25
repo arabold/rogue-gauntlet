@@ -15,6 +15,7 @@ A new run chooses one seed; saves retain it and the current depth. Each depth de
 | Item placement | Chests, traps and loose finds |
 | Decoration | Corridor/wall mesh variants |
 | Arrangements | Independent per-room furnishing choices |
+| Access | Independently derived lock/key placement, secret-pocket layout and local discovery streams |
 | Source loot | Rewards derived from stable source identity |
 | Identification | Per-run, per-category appearance assignment |
 
@@ -26,14 +27,14 @@ Generated enemies, authored spawns and reward sources receive stable identities 
 
 Dynamic operations such as enchantment and rewards without a stable source use a separate saved continuation counter. It advances per RNG request, not per draw. Actor combat streams are local to their explicit source/identity; navigation, physics and AI decisions are not a deterministic replay system.
 
-Identification uses separate category streams and saves both appearance assignments and discoveries. Item copies and restoration preserve actual rolls without requesting randomness.
+Secret and trap detection use local gameplay streams separate from generation and source loot. Saved discoveries persist, but future failed/successful rolls are not a replay guarantee after reload. Identification uses separate category streams and saves both appearance assignments and discoveries. Item copies and restoration preserve actual rolls without requesting randomness.
 
 ## Saved world differences
 
 Untouched floor content regenerates from its seed. Saves retain deviations rather than full floor snapshots:
 
 - Cleared enemies, destroyed nests, killed finite summon slots and gatekeeper defeat.
-- Revealed rooms and opened-door state per depth.
+- Exact explored tiles, discovered trap identities and discovered/locked/current-open door deviations per depth; closing an explored door does not reopen it on restore.
 - Removed or changed baseline items, added/player-dropped items and activated reward sources.
 - Carried item identities, quantities, rolls, food state and equipment references.
 

@@ -5,6 +5,8 @@ using Godot;
 /// </summary>
 public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable
 {
+	[Export] public InvisibilityComponent Invisibility { get; set; }
+
 	[Export] public PlayerStats Stats { get; protected set; }
 	[Export] public Inventory Inventory { get; protected set; }
 	[Export] public PackedScene LootableItemScene { get; protected set; }
@@ -16,6 +18,8 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 	public bool IsFalling => MovementComponent != null && MovementComponent.IsFalling;
 	public bool IsPerformingAction => (ActionGate != null && ActionGate.IsBusy) || (ActionManager != null && ActionManager.IsBusy) || (AttackController != null && AttackController.IsAttacking);
 	[Export] public ActorCapabilities Capabilities { get; set; }
+	/// <summary>The player as an interaction actor: who acts, what they may do and what they carry.</summary>
+	public ActorInteractionContext InteractionContext => new(this, Capabilities, Inventory);
 	public ActorActionGateComponent ActionGate { get; protected set; }
 	public PlayerQuickItemController QuickItemController { get; protected set; }
 	public ActorInteractionComponent InteractionComponent { get; protected set; }

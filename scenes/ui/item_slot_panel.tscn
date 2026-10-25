@@ -31,11 +31,6 @@ offset_right = 128.0
 offset_bottom = 128.0
 mouse_filter = 1
 script = ExtResource("1_pe6wt")
-CommonColor = Color(0, 0, 0, 0.25098)
-UncommonColor = Color(0, 0.8, 0, 0.25098)
-RareColor = Color(0, 0, 0.8, 0.25098)
-LegendaryColor = Color(0.8, 0, 0.8, 0.25098)
-UniqueColor = Color(1, 0.698039, 0, 0.25098)
 DefaultColor = Color(0, 0, 0, 0.25098)
 
 [node name="Button" type="Button" parent="."]

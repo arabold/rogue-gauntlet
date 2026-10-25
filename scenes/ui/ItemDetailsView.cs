@@ -1,14 +1,16 @@
 using Godot;
 
 /// <summary>
-/// Reusable read-out of an item's display info — rarity-colored name, rarity, and one line
-/// per rolled affix modifier. Shared by the hover tooltip (via <see cref="ItemSlotButton"/>)
+/// Reusable read-out of an item's display info — quality-colored name, quality, and one line
+/// per stat the item grants. Shared by the hover tooltip (via <see cref="ItemSlotButton"/>)
 /// and the right-click context menu so both show the same base information. Builds its labels
 /// in <see cref="SetItem"/>, so it works whether or not it is already in the tree.
 /// </summary>
 public partial class ItemDetailsView : VBoxContainer
 {
 	private const int MinWidth = 220;
+	private static readonly Color CursedColor = new("e05252");
+	private static readonly Color UncursedColor = new(0.7f, 0.7f, 0.7f);
 
 	public void SetItem(Item item)
 	{
@@ -27,50 +29,40 @@ public partial class ItemDetailsView : VBoxContainer
 			return;
 		}
 
-		Color rarityColor = RarityPalette.TextColor(item);
-		AddLine(ItemIdentity.ResolveDisplayName(item), rarityColor);
+		Color qualityColor = ItemQualityPalette.Color(item);
+		AddLine(ItemIdentity.ResolveDisplayName(item), qualityColor);
 
 		if (item is not EquipableItem equipable)
 		{
 			return;
 		}
 
-		// An unidentified equipable (e.g. an unworn ring) shows only its disguised name —
-		// rarity and rolled/intrinsic stats stay hidden until identified.
-		if (!ItemIdentity.IsIdentified(item))
+		// The quality is never secret; an unidentified type or item (an unworn ring, a Magic sword) hides only its stats.
+		AddLine(equipable.Quality.ToString(), qualityColor);
+		if (ItemIdentity.AreStatsKnown(item))
 		{
-			AddLine("Unidentified", rarityColor);
-			return;
+			AddModifierLines(equipable.AttributeModifiers, Colors.White);
+		}
+		else
+		{
+			AddLine("Unidentified", Colors.White);
 		}
 
-		AddLine(equipable.Rarity.ToString(), rarityColor);
-
-		if (equipable is IdentifiableEquipableItem identifiable && identifiable.IntrinsicModifiers != null)
+		// The curse status shows once known, with the penalty only after the curse itself is revealed.
+		if (equipable.CurseStatusKnown)
 		{
-			foreach (StatModifier modifier in identifiable.IntrinsicModifiers)
-			{
-				if (modifier != null)
-				{
-					AddLine(FormatModifier(modifier), Colors.White);
-				}
-			}
+			AddLine(equipable.IsCursed ? "Cursed" : "Uncursed", equipable.IsCursed ? CursedColor : UncursedColor);
+			AddModifierLines(equipable.CurseModifiers, CursedColor);
 		}
+	}
 
-		if (equipable.Affixes == null)
+	private void AddModifierLines(System.Collections.Generic.IEnumerable<StatModifier> modifiers, Color color)
+	{
+		foreach (StatModifier modifier in modifiers)
 		{
-			return;
-		}
-
-		foreach (RolledAffix affix in equipable.Affixes)
-		{
-			if (affix?.Modifiers == null)
+			if (modifier.Value != 0f)
 			{
-				continue;
-			}
-
-			foreach (StatModifier modifier in affix.Modifiers)
-			{
-				AddLine(FormatModifier(modifier), Colors.White);
+				AddLine($"{modifier.FormatValue()} {modifier.Stat}", color);
 			}
 		}
 	}
@@ -86,13 +78,5 @@ public partial class ItemDetailsView : VBoxContainer
 		};
 		label.AddThemeColorOverride("font_color", color);
 		AddChild(label);
-	}
-
-	private static string FormatModifier(StatModifier modifier)
-	{
-		string sign = modifier.Value < 0 ? "" : "+";
-		return modifier.Op == ModifierOp.Percent
-			? $"{sign}{modifier.Value * 100:0}% {modifier.Stat}"
-			: $"{sign}{modifier.Value:0.##} {modifier.Stat}";
 	}
 }

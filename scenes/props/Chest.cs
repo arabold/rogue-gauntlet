@@ -1,6 +1,7 @@
 using Godot;
 
-[Tool]
+/// <summary>A lootable chest. Not a tool script: its gameplay components stay inert in the editor, so none of their
+/// resources need editor-side script instances.</summary>
 public partial class Chest : Node3D
 {
 	[Signal] public delegate void OpenedEventHandler(Chest chest);
@@ -16,41 +17,38 @@ public partial class Chest : Node3D
 		}
 	} = false;
 
+	[Export] public InteractiveComponent Interactive { get; set; }
+	/// <summary>Optional: without it the chest opens empty.</summary>
+	[Export] public LootTableComponent LootTable { get; set; }
+	/// <summary>The hinged lid that swings open.</summary>
+	[Export] public Node3D Lid { get; set; }
 	/// <summary>Golden occlusion indicator for an unopened chest; optional when authoring other chest variants.</summary>
 	[Export] public OcclusionXrayComponent Xray { get; set; }
 
 	private const float OpenRotationDegrees = -45f;
 	private const float AnimationDuration = 0.5f;
 
-	private InteractiveComponent _interactiveComponent;
-	private LootTableComponent _lootTableComponent;
-	private Node3D _chest;
-	private Node3D _chestLid;
 	private bool _isAnimating;
 
 	public override void _Ready()
 	{
-		_chest = GetNode<Node3D>("chest");
-		_chestLid = GetNode<Node3D>("chest/chest_lid");
-
-		if (!Engine.IsEditorHint())
+		if (Interactive == null || Lid == null)
 		{
-			_interactiveComponent = GetNode<InteractiveComponent>("InteractiveComponent");
-			_interactiveComponent.OfferProvider = GetChestOffer;
-			_interactiveComponent.CommitHandler = OnCommitInteraction;
-
-			_lootTableComponent = GetNodeOrNull<LootTableComponent>("LootTableComponent");
+			GD.PushError($"{Name}: a chest requires assigned Interactive and Lid nodes.");
+			return;
 		}
 
+		Interactive.OfferProvider = GetChestOffer;
+		Interactive.CommitHandler = OnCommitInteraction;
 		Update();
 	}
 
 	private void Update()
 	{
-		if (!Engine.IsEditorHint() && Xray != null) Xray.IsEnabled = !IsOpen;
-		if (_chestLid == null)
+		if (Xray != null) Xray.IsEnabled = !IsOpen;
+		if (Lid == null)
 			return;
-		_chestLid.RotationDegrees = new Vector3(IsOpen ? OpenRotationDegrees : 0, 0, 0);
+		Lid.RotationDegrees = new Vector3(IsOpen ? OpenRotationDegrees : 0, 0, 0);
 	}
 
 	private void OpenChest()
@@ -59,15 +57,15 @@ public partial class Chest : Node3D
 			return;
 
 		_isAnimating = true;
-		_interactiveComponent.IsInteractive = false;
+		Interactive.IsInteractive = false;
 		IsOpen = true;
 		if (Xray != null) Xray.IsEnabled = false;
 		// Commit the reward with opening, rather than after the animation: a save
 		// during the tween must not restore an empty opened chest.
-		_lootTableComponent?.DropLoot();
+		LootTable?.DropLoot();
 
 		var tween = CreateTween();
-		tween.TweenProperty(_chestLid, "rotation_degrees:x", OpenRotationDegrees, AnimationDuration)
+		tween.TweenProperty(Lid, "rotation_degrees:x", OpenRotationDegrees, AnimationDuration)
 			.SetTrans(Tween.TransitionType.Sine)
 			.SetEase(Tween.EaseType.Out);
 		tween.Finished += () =>
@@ -78,20 +76,20 @@ public partial class Chest : Node3D
 		};
 	}
 
-	private InteractionOffer GetChestOffer()
+	private InteractionOffer GetChestOffer(ActorInteractionContext actor)
 	{
 		if (IsOpen) return InteractionOffer.None;
 		return new InteractionOffer(
-			_interactiveComponent,
+			Interactive,
 			"open_chest",
 			"Open Chest",
 			1.0f,
 			2.5f,
 			InteractionPermission.OpenContainers,
-			_interactiveComponent.StateRevision);
+			Interactive.StateRevision);
 	}
 
-	private InteractionCommitResult OnCommitInteraction(InteractionReservation reservation)
+	private InteractionCommitResult OnCommitInteraction(InteractionReservation reservation, ActorInteractionContext actor)
 	{
 		if (IsOpen || _isAnimating) return InteractionCommitResult.TargetInvalidated;
 		OpenChest();
@@ -111,7 +109,7 @@ public partial class Chest : Node3D
 	public void RestoreOpenState()
 	{
 		IsOpen = true;
-		if (_interactiveComponent != null) { _interactiveComponent.IsInteractive = false; }
+		if (Interactive != null) { Interactive.IsInteractive = false; }
 		Update();
 	}
 }

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Affix" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/items/affixes/Affix.cs" id="1_affix"]
+[ext_resource type="Script" path="res://scenes/items/affixes/AffixModifierRange.cs" id="2_range"]
+
+[sub_resource type="Resource" id="Range_0"]
+script = ExtResource("2_range")
+Stat = 2
+MinValue = 5.0
+MaxValue = 7.0
+metadata/_custom_type_script = ExtResource("2_range")
+
+[resource]
+script = ExtResource("1_affix")
+NameFragment = "of the Colossus"
+Group = "vitality"
+MinDepth = 16
+Weight = 4.0
+Modifiers = [SubResource("Range_0")]
+metadata/_custom_type_script = ExtResource("1_affix")

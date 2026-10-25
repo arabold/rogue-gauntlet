@@ -4,7 +4,7 @@ using System.Collections.Generic;
 /// <summary>
 /// Requests a dungeon depth transition when the player reaches the active end of a staircase.
 /// </summary>
-public partial class LevelTransitionTrigger : Area3D
+public partial class LevelTransitionTrigger : Area3D, IProgressionAnchor
 {
 	[Export] public GameSession.LevelTravelDirection Direction { get; set; } = GameSession.LevelTravelDirection.Down;
 	[Export] public bool RequireExitBeforeActivation { get; set; } = true;

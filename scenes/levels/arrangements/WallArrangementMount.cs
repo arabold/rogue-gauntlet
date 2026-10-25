@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public static class WallArrangementMount
 {
 	public static bool TryPlace(Aabb localBounds, Basis rotation, Vector3 tileCenter, Vector2I outward,
-		float height, IReadOnlyList<Aabb> walls, out Transform3D transform, float wallInset = 0)
+		float height, IReadOnlyList<Aabb> walls, out Transform3D transform, float wallInset = 0, float wallPlaneDistance = 0)
 	{
 		transform = new Transform3D(rotation, tileCenter + Vector3.Up * height);
 		var rotated = new Transform3D(rotation, Vector3.Zero) * localBounds;
@@ -28,6 +28,7 @@ public static class WallArrangementMount
 			supported = true;
 		}
 		if (!supported) return false;
+		if (wallPlaneDistance > 0) closest = wallPlaneDistance;
 		float back = alongX ? (outward.X > 0 ? rotated.End.X : -rotated.Position.X)
 			: (outward.Y > 0 ? rotated.End.Z : -rotated.Position.Z);
 		transform = new Transform3D(rotation, transform.Origin + new Vector3(outward.X, 0, outward.Y) * (closest + wallInset - back - .005f));
@@ -35,9 +36,23 @@ public static class WallArrangementMount
 	}
 
 	/// <summary>Use the recessed face only for a span backing the whole mount; adjacent walls retain their full bounds.</summary>
-	public static bool OverlapsWall(Aabb decoration, Aabb wall, Vector2I outward, float inset)
+	public static bool OverlapsWall(Aabb decoration, Aabb wall, Vector2I outward, float inset, Vector3? backingPlane = null)
 	{
 		bool alongX = outward.X != 0;
+		if (backingPlane is Vector3 plane)
+		{
+			var normal = new Vector3(outward.X, 0, outward.Y);
+			// Only the backing wall strip may intersect. Perpendicular walls and room obstacles retain their bounds.
+			if (wall.GetCenter().Dot(normal) >= plane.Dot(normal) - .001f)
+			{
+				var start = wall.Position;
+				var end = wall.End;
+				if (alongX) { if (outward.X > 0) start.X = Mathf.Max(start.X, plane.X); else end.X = Mathf.Min(end.X, plane.X); }
+				else { if (outward.Y > 0) start.Z = Mathf.Max(start.Z, plane.Z); else end.Z = Mathf.Min(end.Z, plane.Z); }
+				return Overlaps(decoration, new Aabb(start, end - start));
+			}
+			return Overlaps(decoration, wall);
+		}
 		bool covers = wall.Position.Y <= decoration.Position.Y && wall.End.Y >= decoration.End.Y
 			&& (alongX ? wall.Position.Z <= decoration.Position.Z && wall.End.Z >= decoration.End.Z
 				: wall.Position.X <= decoration.Position.X && wall.End.X >= decoration.End.X);

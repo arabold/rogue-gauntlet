@@ -1,76 +1,80 @@
 using Godot;
+using System.Linq;
 
 /// <summary>
-/// Turns a shared equipable definition into a rolled loot instance: a duplicate carrying a
-/// depth-scaled rarity and a set of rolled affixes. The caller supplies an authored affix pool and the RNG.
+/// Turns a shared equipable definition into a rolled loot instance: a duplicate carrying a quality from the depth's odds,
+/// its Poor or Superior adjective, a base-stat scale inside the quality's band and, for Magic and Rare, affixes from the
+/// definition's <see cref="EquipmentRollTable"/>, then possibly a hidden curse. Everything is rolled here, once, at
+/// creation; nothing rolls later.
 /// Fixed creation copies authored state without randomizing it.
 /// </summary>
 public static class LootRoller
 {
-	public static void ApplyRoll(EquipableItem instance, uint depth, RandomNumberGenerator rng, AffixPool pool)
+	/// <summary>
+	/// Rolls a created instance from one RNG in a fixed order: quality, adjective, scale, affix count, affixes, curse, penalty.
+	/// A forced <paramref name="quality"/> or <paramref name="cursed"/> skips that draw, which the debug spawner uses.
+	/// Harmful types are always cursed, Magic and Rare attributes start hidden, and every rolled item starts with an
+	/// unknown curse status.
+	/// </summary>
+	public static void ApplyRoll(EquipableItem instance, uint depth, RandomNumberGenerator rng, ItemCreationPolicy policy,
+		ItemQuality? quality = null, bool? cursed = null)
 	{
 		if (!instance.IsRuntimeInstance) { throw new System.InvalidOperationException("Cannot roll a shared definition."); }
-		instance.Rarity = pool.RollRarity(depth, rng);
+		EquipmentRollTable table = instance.RollTable
+			?? throw new System.InvalidOperationException($"{instance.Name} has no roll table.");
+		QualityLadder ladder = policy.QualityLadder;
+		instance.Quality = quality ?? ladder.Roll(depth, rng);
+		instance.QualityAdjective = table.RollAdjective(instance.Quality, rng);
+		instance.MagnitudeScale = ladder.RollScale(instance.Quality, rng);
+		int count = ladder.RollAffixCount(instance.Quality, rng);
 		instance.Affixes = new Godot.Collections.Array<RolledAffix>(
-			pool.RollAffixes(instance.ValidSlots, instance.Rarity, instance.Tier, rng));
+			count > 0 ? table.RollAffixes(depth, count, rng) : System.Array.Empty<RolledAffix>());
+		instance.AttributesKnown = instance.Quality < ItemQuality.Magic;
+		bool isCursed = cursed ?? (instance.AlwaysCursed || rng.Randf() < policy.CurseChance);
+		instance.CursePenalty = isCursed ? RollPenalty(depth, rng, policy.CursePenalties) : [];
+		instance.CurseStatusKnown = false;
 	}
 
-	/// <summary>
-	/// The item itself if it is already a rolled instance (has a source definition path),
-	/// else a duplicate stamped with its source path. Used by the Enchant scroll so
-	/// enchanting a shared definition never mutates the authored <c>.tres</c>.
-	/// </summary>
-	public static EquipableItem EnsureInstance(EquipableItem item)
+	/// <summary>The modifiers of one curse penalty eligible at <paramref name="depth"/>; a curse always has one.</summary>
+	private static StatModifier[] RollPenalty(uint depth, RandomNumberGenerator rng, Affix[] penalties)
 	{
-		if (item == null)
-		{
-			return null;
-		}
-
-		if (item.IsRuntimeInstance)
-		{
-			return item;
-		}
-
-		return (EquipableItem)ItemFactory.CopyDefinition(item);
+		Affix[] eligible = (penalties ?? []).Where(penalty => penalty != null && penalty.MinDepth <= depth).ToArray();
+		if (eligible.Length == 0) { throw new System.InvalidOperationException($"No curse penalty is eligible at depth {depth}."); }
+		return Affix.PickWeighted(eligible, rng).RollModifiers(rng);
 	}
 
+	/// <summary>True when enchanting can still add an affix: the item has a roll table and fewer than Rare's maximum.</summary>
+	public static bool CanEnchant(EquipableItem item, QualityLadder ladder) =>
+		item?.RollTable != null && (item.Affixes?.Count ?? 0) < (ladder?.Level(ItemQuality.Rare)?.MaxAffixes ?? 0);
+
 	/// <summary>
-	/// Scroll of Enchantment: bumps rarity one step (capped at Legendary) and appends one
-	/// newly rolled affix eligible for the item's slots/tier, skipping name fragments the
-	/// item already carries so it never stacks the same affix twice.
+	/// Scroll of Enchantment: adds one affix from the item's table eligible at <paramref name="depth"/>, never stacking a
+	/// family it already holds. The quality becomes Magic or Rare to match the new affix count, so the Poor or Superior adjective
+	/// goes while the base scale stays; the item's attributes become known and any curse is lifted.
+	/// Spending a found scroll is not depth-fenced beyond affix eligibility. Returns false when nothing could be added.
 	/// </summary>
-	public static void Enchant(EquipableItem item, RandomNumberGenerator rng, AffixPool pool)
+	public static bool Enchant(EquipableItem item, uint depth, RandomNumberGenerator rng, QualityLadder ladder)
 	{
-		if (item == null || pool == null || rng == null)
+		if (item == null || ladder == null || rng == null || !CanEnchant(item, ladder))
 		{
-			return;
+			return false;
 		}
 
 		if (!item.IsRuntimeInstance) { throw new System.InvalidOperationException("Cannot enchant a shared definition."); }
 
-		if (item.Rarity < EquipableItemRarity.Legendary)
-		{
-			item.Rarity++;
-		}
-
-		var existingNames = new System.Collections.Generic.List<string>();
-		foreach (RolledAffix affix in item.Affixes ?? new Godot.Collections.Array<RolledAffix>())
-		{
-			if (!string.IsNullOrEmpty(affix?.NameFragment))
-			{
-				existingNames.Add(affix.NameFragment);
-			}
-		}
-
-		RolledAffix newAffix = pool.RollSingleAffix(item.ValidSlots, item.Rarity, item.Tier, existingNames, rng);
-		if (newAffix == null)
-		{
-			return;
-		}
-
 		var affixes = new Godot.Collections.Array<RolledAffix>(item.Affixes ?? new Godot.Collections.Array<RolledAffix>());
-		affixes.Add(newAffix);
+		RolledAffix added = item.RollTable.RollAdditional(depth, affixes, rng);
+		if (added == null)
+		{
+			return false;
+		}
+
+		affixes.Add(added);
 		item.Affixes = affixes;
+		item.QualityAdjective = "";
+		item.RevealAttributes();
+		item.LiftCurse();
+		item.Quality = affixes.Count > (ladder.Level(ItemQuality.Magic)?.MaxAffixes ?? 0) ? ItemQuality.Rare : ItemQuality.Magic;
+		return true;
 	}
 }

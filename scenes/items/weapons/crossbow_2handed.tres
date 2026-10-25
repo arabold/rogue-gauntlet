@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="RangedWeapon" load_steps=4 format=3 uid="uid://0a6ne7ik2tb7"]
+[gd_resource type="Resource" script_class="RangedWeapon" load_steps=5 format=3 uid="uid://0a6ne7ik2tb7"]
 
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_crossbow.tres" id="weapon_grip"]
 [ext_resource type="PackedScene" uid="uid://bmgxp3twebo5d" path="res://scenes/items/weapons/crossbow_2handed.tscn" id="1_0l2f5"]
 [ext_resource type="Script" uid="uid://ddieqpfh5m7w8" path="res://scenes/items/RangedWeapon.cs" id="2_hepbj"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/wooden_weapon.tres" id="roll_table"]
 
 [resource]
 script = ExtResource("2_hepbj")
@@ -12,7 +13,6 @@ ProjectileSpeed = 15.0
 Range = 20.0
 AimingAngle = 45.0
 Tier = 3
-Level = 0
 RequiredStrength = 12
 DamageMin = 7.0
 DamageMax = 12.0
@@ -23,10 +23,9 @@ Delay = 0.3
 PerformDuration = 0.5
 CooldownDuration = 0.0
 ValidSlots = 256
-Rarity = 0
+RollTable = ExtResource("roll_table")
 Name = "Large Crossbow"
 Scene = ExtResource("1_0l2f5")
-Quality = 1.0
 Value = 120
 ShowInInventory = true
 IsStackable = false

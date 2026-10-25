@@ -7,7 +7,7 @@
 [ext_resource type="Resource" path="res://scenes/items/food/food/food_apple_red.tres" id="5_food"]
 [ext_resource type="Resource" uid="uid://b0ek7egdqm8bc" path="res://scenes/items/potions/potion_healing_small.tres" id="6_potion"]
 [ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_enchant.tres" id="7_scroll"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring_strength.tres" id="8_ring"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_strength.tres" id="8_ring"]
 [ext_resource type="Resource" path="res://scenes/items/armor/shield_common.tres" id="9_shield"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/sword_common.tres" id="10_weapon"]
 

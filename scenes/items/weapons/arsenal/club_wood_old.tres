@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="Weapon" load_steps=6 format=3]
 
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_1h.tres" id="melee_contact"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="Script" path="res://scenes/items/Weapon.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/items/weapons/arsenal/club_wood_old.tscn" id="scene"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/wooden_weapon.tres" id="roll_table"]
 
 
 [resource]
@@ -12,7 +13,8 @@ MeleeContact = ExtResource("melee_contact")
 AttackStyle = &"blunt.1h.chop"
 Grip = ExtResource("weapon_grip")
 Scene = ExtResource("scene")
-Name = "Old Wooden Club"
+RollTable = ExtResource("roll_table")
+Name = "Wooden Club"
 Tier = 1
 ValidSlots = 256
 Value = 40

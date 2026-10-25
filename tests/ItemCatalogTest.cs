@@ -28,7 +28,7 @@ public class ItemCatalogTest
 		return _catalogRoots.OfType<Item>();
 	}
 
-	private static bool Deferred(Item item) => item.ResourcePath.StartsWith("res://scenes/items/tools/", StringComparison.Ordinal)
+	private static bool ExcludedFromLoot(Item item) => item.ResourcePath.StartsWith("res://scenes/items/tools/", StringComparison.Ordinal)
 		|| item.ResourcePath.StartsWith("res://scenes/items/keys/", StringComparison.Ordinal);
 
 	[TestCase]
@@ -36,14 +36,14 @@ public class ItemCatalogTest
 	{
 		var policy = GD.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
 		AssertObject(policy).IsNotNull();
-		AssertInt(Definitions().Count()).IsGreater(200);
+		AssertInt(Definitions().Count()).IsGreater(180);
 		using var rng = GenerationRandom.Create(42, "catalog-validation");
 		foreach (Item definition in Definitions())
 		{
 			AssertBool(definition.IsRuntimeInstance).IsFalse();
 			AssertBool(!string.IsNullOrWhiteSpace(definition.Name)).IsTrue();
 			AssertObject(definition.Scene).IsNotNull();
-			Item runtime = ItemFactory.Create(definition, Deferred(definition) ? null : policy, 10, rng);
+			Item runtime = ItemFactory.Create(definition, ExcludedFromLoot(definition) ? null : policy, 10, rng);
 			AssertString(runtime.DefinitionPath).IsEqual(definition.ResourcePath);
 			var record = ItemSaveCodec.Capture(runtime, 1);
 			var restored = ItemSaveCodec.Restore(record);
@@ -59,7 +59,7 @@ public class ItemCatalogTest
 				AssertBool(consumable.Buff != null || consumable is Scroll { Effect: not null }).IsTrue();
 				if (definition is not FoodItem) { AssertInt(definition.MaxStackSize).IsEqual(20); }
 			}
-			if (Deferred(definition) && definition is not PortableLightItem) { AssertBool(definition is EquipableItem).IsFalse(); }
+			if (ExcludedFromLoot(definition) && definition is not PortableLightItem) { AssertBool(definition is EquipableItem).IsFalse(); }
 		}
 	}
 
@@ -105,7 +105,7 @@ public class ItemCatalogTest
 			AssertFloat(table.Groups.Sum(group => group.Weight)).IsEqual(100);
 			foreach (var entry in table.Entries)
 			{
-				AssertBool(Deferred(entry.Item)).IsFalse();
+				AssertBool(ExcludedFromLoot(entry.Item)).IsFalse();
 				AssertBool(float.IsFinite(entry.Weight) && entry.Weight > 0 && entry.Quantity > 0).IsTrue();
 				AssertBool(entry.MaxDepth == 0 || entry.MaxDepth >= entry.MinDepth).IsTrue();
 				paths.Add(entry.Item.ResourcePath);
@@ -116,7 +116,7 @@ public class ItemCatalogTest
 				for (int i = 0; i < 100; i++) { AssertBool(table.PickEntry(depth, rng)?.IsEligibleAt(depth) == true).IsTrue(); }
 			}
 		}
-		foreach (Item item in Definitions()) { AssertBool(paths.Contains(item.ResourcePath)).IsEqual(!Deferred(item)); }
+		foreach (Item item in Definitions()) { AssertBool(paths.Contains(item.ResourcePath)).IsEqual(!ExcludedFromLoot(item)); }
 	}
 
 	[TestCase]
@@ -141,6 +141,43 @@ public class ItemCatalogTest
 			AssertObject(appearance.GetModel(item.AppearanceForm))
 				.OverrideFailureMessage($"{item.TypeId} has no '{item.AppearanceForm}' model in its appearance").IsNotNull();
 			AssertBool(service.GetDisplayName(item).Contains('{') || service.GetDisplayName(item).Contains('}')).IsFalse();
+		}
+	}
+
+	[TestCase]
+	public void JewelryHasOneDefinitionPerTypeGradedByQuality()
+	{
+		IdentifiableEquipableItem[] jewelry = Definitions().OfType<IdentifiableEquipableItem>().ToArray();
+		AssertInt(jewelry.Count(item => item.IdentityCategory == "ring")).IsEqual(9);
+		AssertInt(jewelry.Count(item => item.IdentityCategory == "amulet")).IsEqual(7);
+		AssertInt(jewelry.Select(item => item.TypeId).Distinct().Count()).IsEqual(jewelry.Length);
+		foreach (IdentifiableEquipableItem item in jewelry)
+		{
+			AssertObject(item.RollTable).OverrideFailureMessage($"{item.TypeId} has no roll table").IsNotNull();
+			AssertBool(item.UnidentifiedNameTemplate.StartsWith("{descriptor} ")).IsTrue();
+			AssertInt(item.IntrinsicModifiers.Length).IsGreater(0);
+			AssertInt(item.Tier).IsEqual(1);
+		}
+	}
+
+	[TestCase]
+	public void EquipmentNamesLeaveConditionToQualityAndNameOneBaseTier()
+	{
+		var words = Paths("res://scenes/items/quality/tables", ".tres").Select(path => GD.Load<EquipmentRollTable>(path))
+			.SelectMany(table => table.PoorAdjectives.Concat(table.SuperiorAdjectives)).Append("old").Append("common").Append("worn")
+			.ToHashSet(StringComparer.OrdinalIgnoreCase);
+		EquipableItem[] equipment = Definitions().OfType<EquipableItem>().Where(item => item is not IdentifiableEquipableItem).ToArray();
+		foreach (EquipableItem item in equipment)
+		{
+			if (!ExcludedFromLoot(item))
+			{ AssertObject(item.RollTable).OverrideFailureMessage($"{item.ResourcePath} has no roll table").IsNotNull(); }
+			AssertBool(item.Name.Split(' ').Any(words.Contains)).OverrideFailureMessage($"'{item.Name}' carries a condition word").IsFalse();
+		}
+		// A base name stands for one base tier, so "Battle Axe" never names two different strengths.
+		foreach (IGrouping<string, EquipableItem> sameName in equipment.GroupBy(item => item.Name))
+		{
+			AssertInt(sameName.Select(item => item.Tier).Distinct().Count())
+				.OverrideFailureMessage($"'{sameName.Key}' names several tiers").IsEqual(1);
 		}
 	}
 

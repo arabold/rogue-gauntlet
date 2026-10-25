@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://scenes/effects/DiscoveryPulse.cs" id="script"]
+[node name="DiscoveryPulse" type="Node3D"]
+visible = false
+script = ExtResource("script")
+Duration = 0.6
+GlowStrength = 1.8

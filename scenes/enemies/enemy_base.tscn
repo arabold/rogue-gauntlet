@@ -16,10 +16,10 @@
 
 [ext_resource type="Script" path="res://scenes/attacks/MeleeHitDetector.cs" id="melee_detector_script"]
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_6flps"]
-viewport_path = NodePath("SubViewport")
+[ext_resource type="PackedScene" path="res://scenes/components/invisibility_component.tscn" id="invisibility"]
 
-[node name="Enemy" type="CharacterBody3D" node_paths=PackedStringArray("AttackController", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+[node name="Enemy" type="CharacterBody3D" node_paths=PackedStringArray("Invisibility", "AttackController", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+Invisibility = NodePath("InvisibilityComponent")
 collision_layer = 8
 collision_mask = 87
 platform_floor_layers = 4294901761
@@ -65,13 +65,17 @@ HealthComponent = NodePath("../HealthComponent")
 MovementComponent = NodePath("../MovementComponent")
 HitEffect = ExtResource("9_d4q6w")
 
-[node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("10_oansv")]
+[node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("HealthComponent", "Invisibility") instance=ExtResource("10_oansv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
-texture = SubResource("ViewportTexture_6flps")
 HealthComponent = NodePath("../HealthComponent")
+Invisibility = NodePath("../InvisibilityComponent")
 
 [node name="CombatAnimationComponent" type="Node" parent="."]
 script = ExtResource("attack_animation_script")
 
 [node name="MeleeHitDetector" type="Node" parent="."]
 script = ExtResource("melee_detector_script")
+
+[node name="InvisibilityComponent" parent="." node_paths=PackedStringArray("Target", "Health") instance=ExtResource("invisibility")]
+Target = NodePath("../Pivot")
+Health = NodePath("../HealthComponent")

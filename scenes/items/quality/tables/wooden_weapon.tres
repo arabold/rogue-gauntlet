@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="EquipmentRollTable" load_steps=25 format=3]
+
+[ext_resource type="Script" path="res://scenes/items/quality/EquipmentRollTable.cs" id="1_table"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/sharpness/sharp.tres" id="affix_sharp"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/sharpness/vicious.tres" id="affix_vicious"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/sharpness/brutal.tres" id="affix_brutal"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/ferocity/savage.tres" id="affix_savage"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/ferocity/merciless.tres" id="affix_merciless"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/keenness/keen.tres" id="affix_keen"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/keenness/deadly.tres" id="affix_deadly"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/keenness/vorpal.tres" id="affix_vorpal"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/strength/of_the_ox.tres" id="affix_of_the_ox"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/strength/of_the_titan.tres" id="affix_of_the_titan"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/strength/of_the_giant.tres" id="affix_of_the_giant"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/dexterity/of_the_fox.tres" id="affix_of_the_fox"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/dexterity/of_the_elves.tres" id="affix_of_the_elves"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/dexterity/of_shadows.tres" id="affix_of_shadows"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/vitality/of_the_bear.tres" id="affix_of_the_bear"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/vitality/of_the_troll.tres" id="affix_of_the_troll"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/vitality/of_the_colossus.tres" id="affix_of_the_colossus"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/intelligence/of_the_owl.tres" id="affix_of_the_owl"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/intelligence/of_the_sage.tres" id="affix_of_the_sage"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/intelligence/of_the_magi.tres" id="affix_of_the_magi"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/health/of_vigor.tres" id="affix_of_vigor"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/health/of_life.tres" id="affix_of_life"]
+[ext_resource type="Resource" path="res://scenes/items/affixes/health/of_the_juggernaut.tres" id="affix_of_the_juggernaut"]
+
+[resource]
+script = ExtResource("1_table")
+PoorAdjectives = PackedStringArray("cracked", "worn", "warped", "splintered")
+SuperiorAdjectives = PackedStringArray("sturdy", "carved", "fine", "exquisite")
+Prefixes = [ExtResource("affix_sharp"), ExtResource("affix_vicious"), ExtResource("affix_brutal"), ExtResource("affix_savage"), ExtResource("affix_merciless"), ExtResource("affix_keen"), ExtResource("affix_deadly"), ExtResource("affix_vorpal")]
+Suffixes = [ExtResource("affix_of_the_ox"), ExtResource("affix_of_the_titan"), ExtResource("affix_of_the_giant"), ExtResource("affix_of_the_fox"), ExtResource("affix_of_the_elves"), ExtResource("affix_of_shadows"), ExtResource("affix_of_the_bear"), ExtResource("affix_of_the_troll"), ExtResource("affix_of_the_colossus"), ExtResource("affix_of_the_owl"), ExtResource("affix_of_the_sage"), ExtResource("affix_of_the_magi"), ExtResource("affix_of_vigor"), ExtResource("affix_of_life"), ExtResource("affix_of_the_juggernaut")]
+metadata/_custom_type_script = ExtResource("1_table")

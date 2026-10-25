@@ -1,20 +1,19 @@
-[gd_resource type="Resource" script_class="Armor" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="Armor" load_steps=4 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/items/armor/shield/shield_kite_crusader.tscn" id="1_scene"]
 [ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="2_script"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/shield.tres" id="roll_table"]
 
 [resource]
 script = ExtResource("2_script")
 Tier = 4
-Level = 0
 RequiredStrength = 17
 ArmorPoints = 8
 SpeedModifier = 1.0
 ValidSlots = 512
-Rarity = 0
+RollTable = ExtResource("roll_table")
 Name = "Crimson Kite Shield"
 Scene = ExtResource("1_scene")
-Quality = 1.0
 Value = 140
 ShowInInventory = true
 IsStackable = false

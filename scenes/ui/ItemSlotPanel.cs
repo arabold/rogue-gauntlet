@@ -14,14 +14,14 @@ public partial class ItemSlotPanel : PanelContainer
 {
 	[Signal] public delegate void ItemSelectedEventHandler(ItemSlotPanel itemSlotPanel);
 
-	[Export] public Color CommonColor = new(0.8f, 0.8f, 0.0f, 0.1f);
-	[Export] public Color UncommonColor = new(0.0f, 0.8f, 0.0f, 0.1f);
-	[Export] public Color RareColor = new(0.0f, 0.0f, 0.8f, 0.1f);
-	[Export] public Color LegendaryColor = new(0.8f, 0.0f, 0.8f, 0.1f);
-	[Export] public Color UniqueColor = new(0.8f, 0.8f, 0.0f, 0.1f);
+	/// <summary>Opacity of the <see cref="ItemQualityPalette"/> tint behind Magic and Rare equipment.</summary>
+	[Export(PropertyHint.Range, "0,1,0.01")] public float QualityTintAlpha = 0.25f;
 	[Export] public Color DefaultColor = new(0.8f, 0.8f, 0.8f, 0.1f);
 
 	private Action _unsubscribeSlot = () => { };
+	private Action _unsubscribeItem = () => { };
+	/// <summary>The item whose own <c>Changed</c> relabels this slot, e.g. when its attributes or curse are revealed.</summary>
+	private Item _observedItem;
 	/// <summary>
 	/// Whether the button should stay disabled for a reason other than targeting-mode
 	/// ineligibility (currently always false — no such condition exists yet). Composed with
@@ -53,11 +53,13 @@ public partial class ItemSlotPanel : PanelContainer
 
 	public override void _Ready()
 	{
+		// Tool only for the authored layout; slot content, its script-typed nodes and bus events are runtime concerns.
+		if (Engine.IsEditorHint()) return;
 		var button = GetNode<Button>("%Button");
 		button.ButtonUp += () => EmitSignalItemSelected(this);
 
-		// Relabel live when a hidden identity is discovered elsewhere this run, so
-		// every stack of the identified type reveals its true name at once.
+		// Relabel live when a hidden type is discovered elsewhere this run, so every stack of
+		// the identified type reveals its true name at once.
 		this.SubscribeUntilExit(
 			SignalBus.Instance,
 			signalBus => signalBus.ItemIdentified += OnItemIdentified,
@@ -70,6 +72,7 @@ public partial class ItemSlotPanel : PanelContainer
 	{
 		_unsubscribeSlot();
 		_unsubscribeSlot = () => { };
+		ObserveItem(null);
 		base._ExitTree();
 	}
 
@@ -107,8 +110,18 @@ public partial class ItemSlotPanel : PanelContainer
 		Modulate = state == SlotTargetingState.Ineligible ? new Color(1f, 1f, 1f, 0.35f) : Colors.White;
 	}
 
+	/// <summary>Follows the shown item's own <c>Changed</c>, so per-item reveals and in-place changes relabel the slot.</summary>
+	private void ObserveItem(Item item)
+	{
+		if (item == _observedItem) { return; }
+		_unsubscribeItem();
+		_observedItem = item;
+		_unsubscribeItem = this.SubscribeUntilExit(item, observed => observed.Changed += Update, observed => observed.Changed -= Update);
+	}
+
 	private void Update()
 	{
+		ObserveItem(Slot?.Item);
 		var button = GetNode<ItemSlotButton>("%Button");
 		var colorRect = GetNode<ColorRect>("%ColorRect");
 		var preview = GetNode<Preview>("%Preview");
@@ -124,22 +137,10 @@ public partial class ItemSlotPanel : PanelContainer
 			quantityLabel.Text = Slot.Item.CanStack ? Slot.Quantity.ToString() : "";
 			equippedBorder.Visible = IsEquipped;
 
-			if (Slot.Item is EquipableItem equipableItem && ItemIdentity.IsIdentified(Slot.Item))
-			{
-				colorRect.Color = equipableItem.Rarity switch
-				{
-					EquipableItemRarity.Common => CommonColor,
-					EquipableItemRarity.Uncommon => UncommonColor,
-					EquipableItemRarity.Rare => RareColor,
-					EquipableItemRarity.Legendary => LegendaryColor,
-					EquipableItemRarity.Unique => UniqueColor,
-					_ => DefaultColor,
-				};
-			}
-			else
-			{
-				colorRect.Color = DefaultColor;
-			}
+			// The quality is never secret, so unidentified items tint too; only Magic and Rare stand out.
+			colorRect.Color = Slot.Item is EquipableItem { Quality: >= ItemQuality.Magic } equipment
+				? ItemQualityPalette.Color(equipment.Quality) with { A = QualityTintAlpha }
+				: DefaultColor;
 		}
 		else
 		{

@@ -1,6 +1,7 @@
 using Godot;
 
 /// <summary>Relocates the player to a random free tile anywhere on the current map.</summary>
+[Tool]
 [GlobalClass]
 public partial class TeleportScrollEffect : ScrollEffect
 {

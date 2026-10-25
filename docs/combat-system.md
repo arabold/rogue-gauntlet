@@ -22,7 +22,7 @@ Presentation is explicitly assigned in the actor scene. Attacks, defenses and st
 
 ## Projectile warnings
 
-Crossbowmen show a subdued dashed aiming guide during preparation. It becomes wider, solid and arrow-tipped with a short sound when aim locks, 0.3 seconds before release. The shot uses that captured origin and direction even if the player moves afterward. Release, interruption and target death remove the warning; an interrupted preparation cannot fire later. Walls suppress the guide.
+Crossbowmen show a subdued dashed aiming guide during preparation. It becomes wider, solid and arrow-tipped with a short sound when aim locks, 0.3 seconds before release. The shot uses that captured origin and direction even if the player moves afterward. Release, interruption and target death remove the warning; an interrupted preparation cannot fire later. Walls and invisible shooters suppress the guide.
 
 `AttackDefinition.ProjectileAimLockDuration` opts single/spread shots into this behavior; zero retains release-time aiming. The attack executor owns tracking and commitment independently of effects/debug toggles. Assign its optional `AimIndicator` explicitly to the reusable `projectile_aim_indicator.tscn`; the crossbowman and projectile template are prewired, and monster validation flags missing warning assignments for locked shots. The indicator draws the trajectory and plays its assigned sound without choosing targets or applying damage. Radial and area-drop patterns require different warning shapes and do not accept this setting.
 

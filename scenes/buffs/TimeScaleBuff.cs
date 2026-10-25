@@ -6,6 +6,7 @@ using Godot;
 /// <see cref="Engine.TimeScale"/>, so overlapping sources never fight over the global value.
 /// <see cref="Buff.Duration"/> counts game time, so a slowed buff also lasts longer in real time.
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class TimeScaleBuff : Buff
 {

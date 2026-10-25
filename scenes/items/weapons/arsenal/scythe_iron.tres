@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="Weapon" load_steps=6 format=3]
 
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/slash_2h.tres" id="melee_contact"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="Script" path="res://scenes/items/Weapon.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/items/weapons/arsenal/scythe_iron.tscn" id="scene"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
 
 
 [resource]
@@ -12,6 +13,7 @@ MeleeContact = ExtResource("melee_contact")
 AttackStyle = &"sword.2h.slash"
 Grip = ExtResource("weapon_grip")
 Scene = ExtResource("scene")
+RollTable = ExtResource("roll_table")
 Name = "Iron War Scythe"
 Tier = 3
 ValidSlots = 256

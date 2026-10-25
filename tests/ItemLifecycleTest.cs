@@ -14,7 +14,7 @@ public class ItemLifecycleTest
 {
 	private const string Apple = "res://scenes/items/food/food/food_apple_red.tres";
 	private const string Potion = "res://scenes/items/potions/potion_healing_small.tres";
-	private const string Ring = "res://scenes/items/jewelry/ring_strength.tres";
+	private const string Ring = "res://scenes/items/jewelry/ring/ring_strength.tres";
 
 	[TestCase]
 	public void FixedCreationDoesNotRollAndFoodPiecesKeepIndependentState()
@@ -78,7 +78,10 @@ public class ItemLifecycleTest
 	{
 		var definition = GD.Load<EquipableItem>(Ring);
 		var item = (EquipableItem)ItemFactory.Create(definition);
-		item.Rarity = EquipableItemRarity.Rare;
+		item.Quality = ItemQuality.Superior;
+		item.MagnitudeScale = 1.37f;
+		item.QualityAdjective = "shiny";
+		item.AttributesKnown = false;
 		item.Affixes.Add(new RolledAffix { NameFragment = "Test", Modifiers = [new StatModifier { Value = 7 }] });
 		var copy = (EquipableItem)ItemFactory.CopyDefinition(item);
 		copy.Affixes[0].Modifiers[0].Value = 99;
@@ -93,7 +96,10 @@ public class ItemLifecycleTest
 		AssertInt(restored.Capacity).IsEqual(23);
 		var restoredItem = (EquipableItem)restored.Items[0].Item;
 		AssertString(restoredItem.InstanceId).IsEqual(item.InstanceId);
-		AssertInt((int)restoredItem.Rarity).IsEqual((int)item.Rarity);
+		AssertInt((int)restoredItem.Quality).IsEqual((int)item.Quality);
+		AssertFloat(restoredItem.MagnitudeScale).IsEqual(item.MagnitudeScale);
+		AssertString(restoredItem.QualityAdjective).IsEqual("shiny");
+		AssertBool(restoredItem.AttributesKnown).IsFalse();
 		AssertFloat(restoredItem.Affixes[0].Modifiers[0].Value).IsEqual(7);
 		AssertString(data.EquippedItems[0].ItemInstanceId).IsEqual(item.InstanceId);
 	}

@@ -10,6 +10,7 @@ using System.Linq;
 /// both implement <see cref="IIdentifiable"/> so the identification system can treat
 /// them uniformly.
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class IdentifiableEquipableItem : EquipableItem, IIdentifiable
 {
@@ -22,23 +23,29 @@ public partial class IdentifiableEquipableItem : EquipableItem, IIdentifiable
 	/// <summary>Name shown once identified, e.g. "Ring of Strength".</summary>
 	[Export] public string TrueName { get; protected set => SetValue(ref field, value); } = "";
 
-	/// <summary>Unidentified label template; "{descriptor}" is replaced at runtime.</summary>
+	/// <summary>Unidentified label template; "{descriptor}" is replaced at runtime and the quality word leads it.</summary>
 	[Export] public string UnidentifiedNameTemplate { get; protected set => SetValue(ref field, value); } = "{descriptor} ring";
 
-	/// <summary>Jewelry has one model per appearance; its material belongs to the disguise, not the tier.</summary>
+	/// <summary>Jewelry has one model per appearance; its material belongs to the disguise, never to its quality.</summary>
 	public string AppearanceForm => "";
 
 	/// <summary>
-	/// Stats this item grants intrinsically (its "effect"), on top of any rolled affixes.
-	/// A plain modifier list rather than a <see cref="Buff"/> so two worn instances of
-	/// the same type register under distinct item sources and reverse independently.
+	/// Stats this item grants intrinsically (its "effect") at scale 1. A Poor or Superior quality scales every one,
+	/// harmful types included, so a superior Ring of Frailty is the worst of its kind. A plain modifier list rather than a
+	/// <see cref="Buff"/> so two worn instances of the same type register under distinct item sources and reverse
+	/// independently.
 	/// </summary>
 	[Export] public StatModifier[] IntrinsicModifiers { get; protected set => SetValue(ref field, value); } = [];
 
 	public bool HasIdentity => !string.IsNullOrEmpty(TypeId);
 
-	protected override IEnumerable<StatModifier> BuildStatModifiers()
-	{
-		return base.BuildStatModifiers().Concat(IntrinsicModifiers?.Where(modifier => modifier != null) ?? []);
-	}
+	protected override IEnumerable<StatModifier> BuildIntrinsicModifiers() =>
+		IntrinsicModifiers?.Where(modifier => modifier != null).Select(Scale) ?? [];
+
+	/// <summary>
+	/// Jewelry names end in the signed primary value: "Ring of Strength +3", "Shiny Ring of Strength +4", "Keen Ring of
+	/// Strength +3". Suffixes only show in the tooltip, since the true name already reads "… of …".
+	/// </summary>
+	protected override string NameTail => IntrinsicModifiers?.FirstOrDefault(modifier => modifier != null) is { } primary
+		? StatModifier.FormatValue(ScaledValue(primary), primary.IsFraction) : null;
 }

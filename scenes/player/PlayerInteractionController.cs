@@ -17,8 +17,12 @@ public partial class PlayerInteractionController : Node
 
 	public override void _Ready()
 	{
-		Player ??= GetOwner<Player>();
-		InteractionArea ??= Player.InteractionArea;
+		if (Player == null || InteractionArea == null)
+		{
+			GD.PushError($"{Name}: assign Player and InteractionArea in the player scene.");
+			SetPhysicsProcess(false);
+			return;
+		}
 
 		this.SubscribeUntilExit(
 			InteractionArea,
@@ -68,8 +72,9 @@ public partial class PlayerInteractionController : Node
 		facing.Y = 0;
 		if (facing.LengthSquared() > 0.001f) facing = facing.Normalized();
 
-		var context = new ActorInteractionContext(Player, Player.Capabilities, Player.Inventory);
+		var context = Player.InteractionContext;
 		Node bestCandidate = null;
+		InteractionOffer bestOffer = default;
 		float bestScore = float.NegativeInfinity;
 		ulong bestId = 0;
 
@@ -99,31 +104,41 @@ public partial class PlayerInteractionController : Node
 			float score = facingDot * 2.0f - horizDist * 0.5f;
 			ulong id = node.GetInstanceId();
 
-			if (score > bestScore || (Mathf.IsEqualApprox(score, bestScore) && id > bestId))
+			// An actionable offer outranks a blocked one (e.g. a locked door's "key needed"); then facing and distance decide.
+			bool beatsBest = bestCandidate == null
+				|| (offer.IsActionable != bestOffer.IsActionable ? offer.IsActionable
+					: score > bestScore || (Mathf.IsEqualApprox(score, bestScore) && id > bestId));
+			// Same sight rule as TryBegin, so no prompt is shown for an interaction that would be rejected.
+			// Checked last: only a candidate that would win pays for the raycast.
+			if (beatsBest && Player.InteractionComponent?.HasLineOfSight(target) != false)
 			{
 				bestCandidate = node;
+				bestOffer = offer;
 				bestScore = score;
 				bestId = id;
 			}
 		}
 
-		SetFocusedNode(bestCandidate);
+		SetFocusedNode(bestCandidate, bestOffer);
 	}
 
-	private void SetFocusedNode(Node node)
+	/// <summary>Moves focus and refreshes the focused prompt with this frame's offer, so it tracks changes such as a
+	/// newly carried key while the player stays focused.</summary>
+	private void SetFocusedNode(Node node, in InteractionOffer offer = default)
 	{
-		if (FocusedInteractive == node) return;
-
-		if (FocusedInteractive is InteractiveComponent prevComp)
+		if (FocusedInteractive != node)
 		{
-			prevComp.SetFocused(false);
-		}
+			if (FocusedInteractive is InteractiveComponent prevComp)
+			{
+				prevComp.SetFocused(false);
+			}
 
-		FocusedInteractive = node;
+			FocusedInteractive = node;
+		}
 
 		if (FocusedInteractive is InteractiveComponent newComp)
 		{
-			newComp.SetFocused(true);
+			newComp.SetFocused(true, offer);
 		}
 	}
 
@@ -135,9 +150,9 @@ public partial class PlayerInteractionController : Node
 		{
 			if (!Player.InteractionComponent.IsActive && FocusedTarget != null)
 			{
-				var context = new ActorInteractionContext(Player, Player.Capabilities, Player.Inventory);
+				var context = Player.InteractionContext;
 				var offer = FocusedTarget.GetOffer(context);
-				if (offer.IsValid)
+				if (offer.IsActionable)
 				{
 					Player.MovementComponent?.Stop();
 					Player.InteractionComponent.TryBegin(offer, context);

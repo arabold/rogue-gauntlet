@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="Affix" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/items/affixes/Affix.cs" id="1_affix"]
+[ext_resource type="Script" path="res://scenes/items/affixes/AffixModifierRange.cs" id="2_range"]
+
+[sub_resource type="Resource" id="Range_0"]
+script = ExtResource("2_range")
+Stat = 7
+MinValue = 2.0
+MaxValue = 4.0
+metadata/_custom_type_script = ExtResource("2_range")
+
+[sub_resource type="Resource" id="Range_1"]
+script = ExtResource("2_range")
+Stat = 8
+MinValue = 4.0
+MaxValue = 7.0
+metadata/_custom_type_script = ExtResource("2_range")
+
+[resource]
+script = ExtResource("1_affix")
+NameFragment = "Brutal"
+Group = "sharpness"
+MinDepth = 14
+Weight = 4.0
+Modifiers = [SubResource("Range_0"), SubResource("Range_1")]
+metadata/_custom_type_script = ExtResource("1_affix")

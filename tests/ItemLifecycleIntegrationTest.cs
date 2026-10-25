@@ -83,7 +83,13 @@ public class ItemLifecycleIntegrationTest
 		// Chest activation must stay claimed and the exact surviving drop must reappear.
 		var chest = level.FindChildren("*", "", true, false).OfType<Chest>().FirstOrDefault();
 		AssertObject(chest).IsNotNull();
+		// Use the production timed channel; legacy Interact no longer bypasses range/time.
+		player.MovementComponent.Stop();
+		player.GlobalPosition = chest.GlobalPosition + new Vector3(0, 0, 1.5f);
 		chest.GetNode<InteractiveComponent>("InteractiveComponent").Interact(player);
+		AssertBool(player.InteractionComponent.IsActive).IsTrue();
+		player.InteractionComponent._PhysicsProcess(1.01);
+		AssertBool(chest.IsOpen).IsTrue();
 		string chestSource = chest.GetNode<LootTableComponent>("LootTableComponent").ResolvedSourceId;
 		var delta = level.ItemPersistence.Capture();
 		AssertBool(delta.AddedItems.Any(e => e.Item.InstanceId == item.InstanceId)).IsTrue();

@@ -25,9 +25,18 @@ public static class ItemFactory
 		{
 			throw new ArgumentException("Creation requires an authored item definition.", nameof(definition));
 		}
-		if (policy?.RollEquipment == true && policy.EquipmentAffixes == null)
+		if (policy?.RollEquipment == true && policy.QualityLadder == null)
 		{
-			throw new ArgumentException("Equipment rolling requires an authored affix pool.", nameof(policy));
+			throw new ArgumentException("Equipment rolling requires an authored quality ladder.", nameof(policy));
+		}
+		if (policy?.RollEquipment == true && definition is EquipableItem { RollTable: null })
+		{
+			throw new ArgumentException("Rolled equipment requires an authored roll table.", nameof(definition));
+		}
+		if (policy?.RollEquipment == true && definition is EquipableItem equipable
+			&& (equipable.AlwaysCursed || policy.CurseChance > 0) && (policy.CursePenalties?.Length ?? 0) == 0)
+		{
+			throw new ArgumentException("Cursed equipment requires authored curse penalties.", nameof(policy));
 		}
 		if ((policy?.RollEquipment == true && definition is EquipableItem
 			|| policy?.RollFoodContamination == true && definition is FoodItem) && rng == null)
@@ -40,7 +49,7 @@ public static class ItemFactory
 		Item item = CopyDefinition(definition, instanceId);
 		if (item is EquipableItem equipment && policy?.RollEquipment == true)
 		{
-			LootRoller.ApplyRoll(equipment, depth, rng, policy.EquipmentAffixes);
+			LootRoller.ApplyRoll(equipment, depth, rng, policy);
 		}
 		if (item is FoodItem food)
 		{

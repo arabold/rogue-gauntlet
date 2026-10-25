@@ -85,6 +85,44 @@ public class RoomDressingTest
 		finally { room.Free(); }
 	}
 
+	[TestCase(0)]
+	[TestCase(1)]
+	[TestCase(2)]
+	[TestCase(3)]
+	public void BookshelfBacksStayOnOnePlaneDespiteWallProjections(int turn)
+	{
+		var definition = GD.Load<RoomArrangementDefinition>("res://scenes/levels/arrangements/furniture/library_bookcase.tres");
+		var instance = definition.Instantiate();
+		try
+		{
+			var basis = new Basis(Vector3.Up, turn * Mathf.Pi / 2);
+			var rotation = new Transform3D(basis, Vector3.Zero);
+			var outward = ConnectedArrangementStrategy.Rotate(Vector2I.Up, turn);
+			var normal = new Vector3(outward.X, 0, outward.Y);
+			var plane = normal * definition.WallPlaneDistance;
+			var support = instance.PlacementBounds;
+			support.Size = new(support.Size.X, support.End.Y, support.Size.Z);
+			support.Position = new(support.Position.X, 0, support.Position.Z);
+			foreach (float projection in new[] { 0f, .13f, .4f })
+			{
+				var wall = rotation * new Aabb(-2, 0, -2.5f, 4, 4, 1 + projection);
+				AssertBool(WallArrangementMount.TryPlace(support, basis, Vector3.Zero, outward, 0,
+					[wall], out var transform, wallPlaneDistance: definition.WallPlaneDistance)).IsTrue();
+				var bounds = transform * instance.PlacementBounds;
+				float back = bounds.GetCenter().Dot(normal) + (bounds.Size.X * Mathf.Abs(normal.X) + bounds.Size.Z * Mathf.Abs(normal.Z)) / 2;
+				AssertBool(Mathf.Abs(back - (definition.WallPlaneDistance - .005f)) < .001f).IsTrue();
+				AssertBool(WallArrangementMount.OverlapsWall(bounds, wall, outward, 0, plane)).IsFalse();
+				if (projection > 0) AssertBool(WallArrangementMount.Overlaps(bounds, wall)).IsTrue();
+				var columnInFront = rotation * new Aabb(-.3f, 0, -1.3f, .6f, 3, .6f);
+				AssertBool(WallArrangementMount.OverlapsWall(bounds, columnInFront, outward, 0, plane)).IsTrue();
+			}
+			var lintel = rotation * new Aabb(-2, 3, -2.5f, 4, 1, 1);
+			AssertBool(WallArrangementMount.TryPlace(support, basis, Vector3.Zero, outward, 0,
+				[lintel], out _, wallPlaneDistance: definition.WallPlaneDistance)).IsFalse();
+		}
+		finally { instance.Free(); }
+	}
+
 	[TestCase]
 	public void StoragePaletteIncludesMixedCratesAndBarrelsWithValidBounds()
 	{

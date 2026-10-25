@@ -6,7 +6,7 @@ Status: proposed extensions. Shared action ownership, dedicated weapon inputs, f
 
 ## Mechanical locks
 
-Use the [dungeon progression plan](level-progression-prototype-plan.md) for lock definitions, access conditions and saved state. The existing actor interaction component remains the sole channel/progress owner. Add optional five/ten-second pick-and-open fixtures and a matching reusable key with a one-second operation. Required encounter seals cannot be picked.
+The implemented [door access system](../door-access.md) supplies optional locks, consumable keys/picks, final actor-context validation and saved state. The existing actor interaction component remains the sole channel/progress owner, with one-second key/open and authored pick/open durations. Further lock extensions follow the [remaining access plan](secret-doors-and-locks-plan.md). Required encounter seals cannot be picked.
 
 Validate tools, target revision, range and reservation at completion. Cancellation commits nothing and retains no partial progress. Key/tool loss, wrong keys, interruption and repeated input cannot unlock or reward twice. Actor permissions remain explicit; a rat does not gain door or picking capability by proximity.
 

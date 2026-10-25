@@ -1,6 +1,7 @@
 using Godot;
 
 /// <summary>Authored adapter from an actor hand bone to an item's canonical local grip.</summary>
+[Tool]
 [GlobalClass]
 public partial class WeaponGrip : Resource
 {

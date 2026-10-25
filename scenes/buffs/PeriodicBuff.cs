@@ -1,5 +1,6 @@
 using Godot;
 
+[Tool]
 [GlobalClass]
 public abstract partial class PeriodicBuff : Buff
 {

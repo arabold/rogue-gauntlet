@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="IdentifiableEquipableItem" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/items/IdentifiableEquipableItem.cs" id="1_item"]
+[ext_resource type="PackedScene" path="res://scenes/items/jewelry/ring.tscn" id="2_scene"]
+[ext_resource type="Script" path="res://scenes/player/resources/StatModifier.cs" id="3_modifier"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/ring.tres" id="roll_table"]
+
+[sub_resource type="Resource" id="Modifier_0"]
+script = ExtResource("3_modifier")
+Stat = 2
+Value = 2.0
+metadata/_custom_type_script = ExtResource("3_modifier")
+
+[resource]
+script = ExtResource("1_item")
+TypeId = "ring.vitality"
+TrueName = "Ring of Vitality"
+IntrinsicModifiers = [SubResource("Modifier_0")]
+ValidSlots = 192
+RollTable = ExtResource("roll_table")
+Name = "Ring of Vitality"
+Scene = ExtResource("2_scene")
+Value = 150
+metadata/_custom_type_script = ExtResource("1_item")

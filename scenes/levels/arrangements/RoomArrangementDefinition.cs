@@ -25,6 +25,8 @@ public partial class RoomArrangementDefinition : Resource
 	[Export] public bool RequiresWall { get; set; }
 	/// <summary>Floor furniture whose backing edge must touch an actual supporting wall face.</summary>
 	[Export] public bool AlignToWall { get; set; }
+	/// <summary>Optional backing-plane distance from the anchor. Zero follows geometry; a positive value permits backing-wall trim to intersect the furniture.</summary>
+	[Export(PropertyHint.Range, "0,2.5,0.05")] public float WallPlaneDistance { get; set; }
 	/// <summary>Deliberate shelf banks may abut; ordinary furniture retains a small visual gap.</summary>
 	[Export(PropertyHint.Range, "0,0.5,0.01")] public float HorizontalClearance { get; set; } = .2f;
 	[Export] public float WallPositionWeight { get; set; } = 3;
@@ -52,6 +54,8 @@ public partial class RoomArrangementDefinition : Resource
 			errors.Add("Assign a valid placement kind, wall mount height and inset.");
 		if (!float.IsFinite(HorizontalClearance) || HorizontalClearance < 0 || HorizontalClearance > .5f) errors.Add("Horizontal clearance must be between zero and 0.5.");
 		if (AlignToWall && (!RequiresWall || Placement != ArrangementPlacement.Floor)) errors.Add("Wall-aligned furniture must be a floor arrangement requiring a wall.");
+		if (!float.IsFinite(WallPlaneDistance) || WallPlaneDistance < 0 || WallPlaneDistance > 2.5f
+			|| (WallPlaneDistance > 0 && (!AlignToWall || WallInset != 0))) errors.Add("A fixed wall plane requires wall-aligned floor furniture, no wall inset, and a distance up to 2.5.");
 		if (Scene == null) errors.Add("Assign a RoomArrangement scene.");
 		else
 		{

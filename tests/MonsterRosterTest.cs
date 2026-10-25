@@ -113,7 +113,7 @@ public class MonsterRosterTest
 
 	[TestCase(false)]
 	[TestCase(true)]
-	public async Task WardenReactsToAnOrdinaryHeroSwingBlocksAndRipostesWithAuthoredTiming(bool alreadyWindingUp)
+	public async Task WardenReactsToAnOrdinaryHeroSwingParriesAndRipostesWithAuthoredTiming(bool alreadyWindingUp)
 	{
 		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
 		await runner.SimulateFrames(3);
@@ -140,8 +140,9 @@ public class MonsterRosterTest
 		}
 		AssertBool(seed < 1000).IsTrue();
 		boss.DefenseController.ConfigureRandom(seed);
-		int blocks = 0, ripostes = 0;
+		int parries = 0, blocks = 0, ripostes = 0;
 		bool animatedGuard = false;
+		boss.GuardComponent.ParrySuccessful += () => parries++;
 		boss.GuardComponent.BlockSuccessful += _ => blocks++;
 		boss.DefenseController.RiposteTriggered += () => ripostes++;
 		if (alreadyWindingUp) AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
@@ -154,7 +155,9 @@ public class MonsterRosterTest
 				&& boss.GetNode<CombatAnimationComponent>("CombatAnimationComponent").IsPlaying;
 		}
 		AssertBool(animatedGuard).OverrideFailureMessage("Authored Warden must react during the hero swing and acquire its guard pose").IsTrue();
-		AssertInt(blocks).IsEqual(1);
+		// The authored shield parries early contact; an ordinary swing it reacts to arrives inside that window.
+		AssertInt(parries).IsEqual(1);
+		AssertInt(blocks).IsEqual(0);
 		AssertInt(ripostes).IsEqual(1);
 	}
 

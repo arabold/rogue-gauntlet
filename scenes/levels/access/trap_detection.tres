@@ -1,0 +1,5 @@
+[gd_resource type="Resource" script_class="SecretDetectionProfile" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scenes/levels/access/SecretDetectionProfile.cs" id="script"]
+[resource]
+script = ExtResource("script")
+Radius = 12.0

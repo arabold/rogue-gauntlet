@@ -276,7 +276,7 @@ public partial class GameSession : Node
 		}
 
 		Player player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
-		if (player == null || player.ActionGate?.IsBusy == true || player.InventoryController.IsCommittingItemOperation || CurrentItemPersistence()?.IsCommitting == true)
+		if (player == null || player.ActionGate?.IsBusy == true || player.InventoryController.IsCommittingItemOperation || CurrentLevel()?.IsCommittingFloorChanges == true)
 		{
 			return false;
 		}
@@ -284,7 +284,7 @@ public partial class GameSession : Node
 		EnsureActiveSave();
 		try
 		{
-			StoreLevelItemChanges();
+			StoreFloorDeltas();
 			_activeSave.Player = CapturePlayerForLevelTransition(player);
 		}
 		catch (Exception error)
@@ -332,38 +332,8 @@ public partial class GameSession : Node
 		}
 	}
 
-	/// <summary>Records that the player entered (and thus revealed) a room on the current depth.</summary>
-	public void MarkRoomRevealed(int roomId)
-	{
-		RevealedLevelSaveData level = GetOrCreateRevealedLevel();
-		if (!level.RevealedRoomIds.Contains(roomId))
-		{
-			level.RevealedRoomIds.Add(roomId);
-		}
-	}
-
-	/// <summary>Records that a door at the given connector tile was opened on the current depth.</summary>
-	public void MarkDoorOpened(Vector2I connector)
-	{
-		RevealedLevelSaveData level = GetOrCreateRevealedLevel();
-		if (!level.OpenedDoors.Any(door => door.X == connector.X && door.Y == connector.Y))
-		{
-			level.OpenedDoors.Add(new Vector2ISaveData { X = connector.X, Y = connector.Y });
-		}
-	}
-
-	public IReadOnlyList<int> GetRevealedRoomIds()
-	{
-		return FindRevealedLevel()?.RevealedRoomIds ?? (IReadOnlyList<int>)Array.Empty<int>();
-	}
-
-	public IReadOnlyList<Vector2I> GetOpenedDoors()
-	{
-		RevealedLevelSaveData level = FindRevealedLevel();
-		return level == null
-			? Array.Empty<Vector2I>()
-			: level.OpenedDoors.Select(door => new Vector2I(door.X, door.Y)).ToList();
-	}
+	public RevealedLevelSaveData GetLevelExploration(uint dungeonDepth) => _activeSave?.World?.RevealedLevels?
+		.FirstOrDefault(level => level.DungeonDepth == dungeonDepth);
 
 	public void ResetCurrentLevelDebugState() => ResetLevelDebugState(ActiveDungeonDepth);
 
@@ -386,35 +356,20 @@ public partial class GameSession : Node
 	public LevelItemDeltaSaveData FindLevelItemChanges(uint depth) =>
 		_activeSave?.World?.ItemChanges?.FirstOrDefault(change => change.Depth == depth);
 
-	private LevelItemPersistence CurrentItemPersistence() => GetTree().CurrentScene?
-		.FindChildren("*", "", true, false).OfType<LevelItemPersistence>().FirstOrDefault();
+	private Level CurrentLevel() => GetTree().CurrentScene?
+		.FindChildren("*", "", true, false).OfType<Level>().FirstOrDefault();
 
-	private void StoreLevelItemChanges()
+	/// <summary>Store the current floor's item and exploration deltas before travel or disk capture.</summary>
+	private void StoreFloorDeltas()
 	{
-		var persistence = CurrentItemPersistence();
-		if (persistence == null) { return; }
-		var data = persistence.Capture();
-		_activeSave.World.ItemChanges.RemoveAll(change => change.Depth == data.Depth);
-		_activeSave.World.ItemChanges.Add(data);
-	}
-
-	private RevealedLevelSaveData FindRevealedLevel()
-	{
-		return _activeSave?.World?.RevealedLevels?
-			.FirstOrDefault(level => level.DungeonDepth == ActiveDungeonDepth);
-	}
-
-	private RevealedLevelSaveData GetOrCreateRevealedLevel()
-	{
-		EnsureActiveSave();
-		RevealedLevelSaveData level = FindRevealedLevel();
-		if (level == null)
-		{
-			level = new RevealedLevelSaveData { DungeonDepth = ActiveDungeonDepth };
-			_activeSave.World.RevealedLevels.Add(level);
-		}
-
-		return level;
+		var level = CurrentLevel();
+		if (level == null) { return; }
+		var (items, exploration) = level.CaptureFloorDeltas();
+		_activeSave.World.ItemChanges.RemoveAll(change => change.Depth == items.Depth);
+		_activeSave.World.ItemChanges.Add(items);
+		if (exploration.DungeonDepth != ActiveDungeonDepth) { return; }
+		_activeSave.World.RevealedLevels.RemoveAll(revealed => revealed.DungeonDepth == exploration.DungeonDepth);
+		_activeSave.World.RevealedLevels.Add(exploration);
 	}
 
 	private void EnsureActiveSave()
@@ -436,7 +391,7 @@ public partial class GameSession : Node
 		}
 
 		Player player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
-		if (player == null || player.ActionGate?.IsBusy == true || player.InventoryController.IsCommittingItemOperation || CurrentItemPersistence()?.IsCommitting == true)
+		if (player == null || player.ActionGate?.IsBusy == true || player.InventoryController.IsCommittingItemOperation || CurrentLevel()?.IsCommittingFloorChanges == true)
 		{
 			GD.PrintErr("Cannot save while the player is unavailable or an item operation is committing.");
 			return false;
@@ -456,7 +411,7 @@ public partial class GameSession : Node
 			saveGame.DungeonDepth = ActiveDungeonDepth;
 			saveGame.PlayTimeSeconds += GetSessionElapsedSeconds();
 			saveGame.LootRollsConsumed = _lootRollsConsumed;
-			StoreLevelItemChanges();
+			StoreFloorDeltas();
 			saveGame.Player = CapturePlayer(player);
 			saveGame.Identification = CaptureIdentification();
 
@@ -546,9 +501,9 @@ public partial class GameSession : Node
 	private void OnItemEquipped(Player player, EquipableItem item) => IdentifyItemType(item);
 
 	/// <summary>
-	/// Records discovery of an item's hidden type and notifies the UI. A safe no-op for
-	/// items with no hidden identity or a type already discovered. Shared by consuming
-	/// a potion/scroll, wearing jewelry, and a future scroll of identify.
+	/// Records discovery of an item's hidden type for the rest of the run and notifies the UI. A safe no-op for items
+	/// with no hidden type or a type already discovered. Shared by consuming, wearing and the scroll of identify; what
+	/// one item reveals about itself is the item's own business (<see cref="EquipableItem.RevealAttributes"/>).
 	/// </summary>
 	public bool IdentifyItemType(Item item)
 	{
@@ -858,7 +813,7 @@ public partial class GameSession : Node
 		Inventory restored = InventorySaveCodec.Restore(saveData);
 		Inventory inventory = player.Inventory;
 		player.ActionManager.ClearActions();
-		foreach (EquipmentSlot slot in inventory.EquippedItems.Keys.ToArray()) { inventory.Unequip(slot); }
+		inventory.ReleaseAll();
 		inventory.Items.Clear();
 		inventory.Capacity = restored.Capacity;
 		foreach (InventoryItemSlot entry in restored.Items) { inventory.Items.Add(entry); }
