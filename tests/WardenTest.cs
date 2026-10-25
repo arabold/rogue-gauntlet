@@ -79,7 +79,7 @@ public class WardenTest
 		var title = boss.GetNode<Label3D>("BossTitle");
 		AssertBool(boss.Visible).IsFalse();
 		AssertBool(title.Visible).IsFalse();
-		level.MapGenerator.RevealRoom(fit.HomeRoomId, false);
+		level.MapGenerator.RevealRoom(fit.HomeRoomId);
 		SignalBus.EmitRoomEntered(fit.HomeRoomId);
 		await runner.SimulateFrames(1);
 		AssertBool(boss.Visible).IsTrue();

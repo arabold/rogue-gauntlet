@@ -83,7 +83,7 @@ public class ChestXrayTest
 		{
 			GameDebug.LootXrayEnabled = true;
 			int roomId = map.GetRoomIdAt(map.WorldToTile(point));
-			map.RevealRoom(roomId, animate: false);
+			map.RevealRoom(roomId);
 			SignalBus.EmitRoomEntered(roomId);
 			AssertBool(Silhouettes(chest).All(m => m.Visible)).IsTrue();
 		}

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 38;
+	public const int CurrentVersion = 39;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -209,15 +209,10 @@ public sealed class RewardSourceSaveData
 public sealed class RevealedLevelSaveData
 {
 	public uint DungeonDepth { get; set; }
-	public List<Vector2ISaveData> ExploredTiles { get; set; } = [];
+	/// <summary>Row-major indices in the eight-samples-per-tile discovery grid.</summary>
+	public List<int> ExploredSamples { get; set; } = [];
 	public List<DoorAccessSaveData> Doors { get; set; } = [];
 	public List<string> DiscoveredTrapIds { get; set; } = [];
-}
-
-public sealed class Vector2ISaveData
-{
-	public int X { get; set; }
-	public int Y { get; set; }
 }
 
 public sealed class FoodItemSaveData

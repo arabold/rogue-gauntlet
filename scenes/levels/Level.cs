@@ -128,8 +128,7 @@ public partial class Level : Node
 		}
 
 		// Live under RuntimeWorld so they are cleared and rebuilt with each
-		// generation. FogOfWar must subscribe before RoomManager's first poll, so
-		// create it first.
+		// generation. Exploration polls the player independently of room-entry notifications.
 		var fogOfWar = new FogOfWar { Name = "FogOfWar" };
 		AddWorldNode(fogOfWar);
 		fogOfWar.Initialize(MapGenerator);

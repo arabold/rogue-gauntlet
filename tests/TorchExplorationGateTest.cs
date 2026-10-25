@@ -73,7 +73,7 @@ public class TorchExplorationGateTest
 		// A gate probing the wall plane or the void behind it would stay dark forever.
 		// The debug reveal must mark tiles explored too, not just clear the caps.
 		if (debugRevealAll) map.RevealAllFog();
-		else for (int room = 0; room < map.RoomRegions.Count; room++) map.RevealRoom(room, false);
+		else for (int room = 0; room < map.RoomRegions.Count; room++) map.RevealRoom(room);
 		await runner.SimulateFrames(2);
 		AssertArray(gates.Where(g => !g.Target.Visible).Select(g => g.GetPath().ToString()).ToArray()).IsEmpty();
 	}

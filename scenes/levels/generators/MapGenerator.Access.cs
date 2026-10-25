@@ -68,7 +68,7 @@ public partial class MapGenerator
 				FloorGridMap.SetCellItem(TileToWorld(tile.X, 0, tile.Y), TileFactory.GetCorridorTileIndex(floorRng));
 			}
 			Map.SetConnector(connector.X, connector.Y, [-direction]);
-			_tileToRoom.Remove(connector); region.ConnectorTiles.Add(connector); _connectorToRoom[connector] = region.Id;
+			_tileToRoom.Remove(connector); region.ConnectorTiles.Add(connector);
 			_roomRegions.Add(region); _secretRoomIds.Add(region.Id);
 			var door = CreateConnectorDoor(connector, -direction); // Sits on wallCell, the host/pocket edge.
 			door.Secret.Initialize(WallGridMap, wallCell, new Vector3(-direction.X, 0, -direction.Y), AccessProfile.Detection,
@@ -205,7 +205,7 @@ public partial class MapGenerator
 		DungeonDepth = DungeonDepth,
 		Doors = LiveNodes<Door>().Where(d => _accessBaseline.ContainsKey(d.ConnectionId)).Select(CaptureDoor)
 			.Where(d => { var b = _accessBaseline[d.ConnectionId]; return d.IsDiscovered != b.IsDiscovered || d.IsLocked != b.IsLocked || d.IsOpen != b.IsOpen; }).ToList(),
-		ExploredTiles = _revealedTiles.OrderBy(t => t.X).ThenBy(t => t.Y).Select(t => new Vector2ISaveData { X = t.X, Y = t.Y }).ToList(),
+		ExploredSamples = _discovery?.Explored.OrderBy(i => i).ToList() ?? [],
 		DiscoveredTrapIds = LiveNodes<FloorTrap>().Where(t => t.IsDiscovered).Select(t => t.PersistentId).OrderBy(id => id, StringComparer.Ordinal).ToList(),
 	};
 	public void RestoreExploration(RevealedLevelSaveData saved)
@@ -224,12 +224,15 @@ public partial class MapGenerator
 				|| state.IsLocked && door.Lock?.Definition == null || !state.IsDiscovered && door.Secret?.IsSecret != true)
 				throw new InvalidOperationException("Unknown, duplicate or incompatible saved door.");
 		}
-		if (saved.ExploredTiles.Any(t => !Map.IsWithinBounds(t.X, t.Y))) throw new InvalidOperationException("Invalid explored tile.");
+		if (saved.ExploredSamples == null || saved.ExploredSamples.Distinct().Count() != saved.ExploredSamples.Count
+			|| saved.ExploredSamples.Any(i => _discovery == null || i < 0 || i >= _discovery.Width * _discovery.Height
+				|| !IsVisibleInterior(_discovery.TileAt(i).X, _discovery.TileAt(i).Y)))
+			throw new InvalidOperationException("Invalid explored samples; a new run is required.");
 		foreach (var state in saved.Doors) doors[state.ConnectionId].RestoreAccess(state);
 		foreach (var id in saved.DiscoveredTrapIds) traps[id].RestoreDiscovered(true);
 		foreach (var (door, connector) in _doorIndicators)
 			if (door.IsOpen) _dooredConnectors.Remove(connector); else _dooredConnectors.Add(connector);
-		foreach (var tile in saved.ExploredTiles) RevealTile(new Vector2I(tile.X, tile.Y));
+		RecordSamples(saved.ExploredSamples, true);
 		UpdateDoorIndicators();
 	}
 }

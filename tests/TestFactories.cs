@@ -113,7 +113,6 @@ public static class TestFactories
 	public static void RevealTileAt(MapGenerator map, Vector3 point)
 	{
 		var tile = map.WorldToTile(point);
-		map.RestoreExploration(new RevealedLevelSaveData { DungeonDepth = map.DungeonDepth,
-			ExploredTiles = [new Vector2ISaveData { X = tile.X, Y = tile.Y }] });
+		map.RevealTile(tile);
 	}
 }

@@ -58,15 +58,10 @@ public partial class MapGenerator : Node3D
 	internal IReadOnlyList<RoomRegion> RoomRegions => _roomRegions;
 	// Interior floor tile -> room id, for "which room is the player in" detection.
 	private readonly System.Collections.Generic.Dictionary<Vector2I, int> _tileToRoom = new();
-	// Connector tile -> room id (every connector). Drives the reveal cascade.
-	private readonly System.Collections.Generic.Dictionary<Vector2I, int> _connectorToRoom = new();
-	// Connectors guarded by a door; the reveal cascade stops here until it opens.
+	// Connectors guarded by a closed door; block sight and logical reachability.
 	private readonly HashSet<Vector2I> _dooredConnectors = new();
 	private readonly HashSet<Vector2I> _revealedTiles = new();
-	// Tiles uncovered by the in-progress RevealRoom call, batched so they fade out
-	// together as one overlay. Null when a reveal should apply instantly (e.g. on load).
-	private List<Vector2I> _revealBatch;
-	// Shared unlit black cap mesh, reused by the static occlusion grid and the fade overlay.
+	// Shared unlit black cap mesh for permanent void coverage.
 	private PlaneMesh _occlusionCapMesh;
 	// Doors paired with the connector they guard, for toggling their x-ray indicator.
 	private readonly List<(Door Door, Vector2I Connector)> _doorIndicators = new();
@@ -93,12 +88,6 @@ public partial class MapGenerator : Node3D
 	/// without clipping rooms behind it in the isometric view. Tune visually.
 	/// </summary>
 	public const float OcclusionCapHeight = 4.02f;
-
-	/// <summary>
-	/// Seconds the black caps over a newly revealed area take to fade out, so exploring
-	/// eases an area into view instead of popping it.
-	/// </summary>
-	private const float FogRevealFadeSeconds = 0.6f;
 
 	private const int OcclusionItemId = 0;
 	private const float EnemySpawnPlayerClearance = 20f;
@@ -294,7 +283,7 @@ public partial class MapGenerator : Node3D
 				region.Tiles.Add(tile);
 
 				// Only interior floor tiles count as "the player is in this room".
-				// Connectors are doorway thresholds: counting them would reveal a room
+				// Connectors are doorway thresholds: counting them would announce room entry
 				// when the player merely stands against its closed door, since the
 				// position rounds onto the connector tile.
 				if (isRoom)
@@ -305,7 +294,6 @@ public partial class MapGenerator : Node3D
 				if (isConnector)
 				{
 					region.ConnectorTiles.Add(tile);
-					_connectorToRoom[tile] = region.Id;
 				}
 			}
 		}
@@ -614,8 +602,7 @@ public partial class MapGenerator : Node3D
 	}
 
 	/// <summary>
-	/// The shared unlit black cap covering one tile footprint. Used both by the static
-	/// occlusion grid and by the temporary overlay that fades a revealed area into view.
+	/// The shared unlit black cap covering one void tile footprint.
 	/// Visible from both sides so the cap reads as black at any camera yaw.
 	/// </summary>
 	private PlaneMesh OcclusionCapMesh => _occlusionCapMesh ??= new PlaneMesh
@@ -629,13 +616,8 @@ public partial class MapGenerator : Node3D
 		},
 	};
 
-	/// <summary>
-	/// Places the black occluder caps across the map (plus a margin band so edge
-	/// rooms' outer walls stay hidden). When <paramref name="fog"/> is set every
-	/// tile is covered so rooms start hidden and are revealed during play; without
-	/// it only the void/border is covered and interior surfaces stay visible.
-	/// </summary>
-	private void PlaceOcclusion(bool fog)
+	/// <summary>Caps permanent void and the outer margin. Gameplay exploration is rendered separately.</summary>
+	private void PlaceOcclusion()
 	{
 		GD.Print("Placing occlusion...");
 		if (OcclusionGridMap == null)
@@ -647,7 +629,7 @@ public partial class MapGenerator : Node3D
 		{
 			for (int z = -OcclusionMargin; z < Map.Height + OcclusionMargin; z++)
 			{
-				if (fog || !IsVisibleInterior(x, z))
+				if (!IsVisibleInterior(x, z))
 				{
 					OcclusionGridMap.SetCellItem(TileToWorld(x, 0, z), OcclusionItemId, 0);
 				}
@@ -663,60 +645,12 @@ public partial class MapGenerator : Node3D
 				|| Map.IsCorridor(x, z) || Map.IsChasm(x, z));
 	}
 
-	/// <summary>
-	/// Reveals a room and everything reachable from it without crossing a door:
-	/// the room footprint, its connected corridors, and any further rooms joined by
-	/// door-free connectors. A doored connector blocks the cascade so the corridor
-	/// beyond a closed door stays hidden, but the doorway tile itself (part of the
-	/// room) is revealed; the closed door and the hidden corridor are the seal.
-	/// When <paramref name="animate"/> is set the newly uncovered tiles fade out
-	/// together; pass false to apply the reveal instantly (e.g. restoring a save).
-	/// </summary>
-	public void RevealRoom(int roomId, bool animate = true)
+	/// <summary>Explicit debug/test reveal of one room, without revealing connected corridors or rooms.</summary>
+	internal void RevealRoom(int roomId)
 	{
-		if (roomId < 0 || roomId >= _roomRegions.Count || OcclusionGridMap == null)
-		{
-			return;
-		}
-
-		// Batch the tiles uncovered by this call so they can fade out as one overlay.
-		// Guard against re-entrancy so a single batch spans the whole cascade.
-		bool ownsBatch = animate && _revealBatch == null;
-		if (ownsBatch)
-		{
-			_revealBatch = new List<Vector2I>();
-		}
-
-		var roomQueue = new Queue<int>();
-		var queuedRooms = new HashSet<int> { roomId };
-		roomQueue.Enqueue(roomId);
-
-		while (roomQueue.Count > 0)
-		{
-			var region = _roomRegions[roomQueue.Dequeue()];
-			foreach (var tile in region.Tiles)
-			{
-				RevealTile(tile);
-			}
-
-			foreach (var connector in region.ConnectorTiles)
-			{
-				if (_dooredConnectors.Contains(connector))
-				{
-					continue; // The door gates the cascade.
-				}
-
-				FloodCorridors(connector, roomQueue, queuedRooms);
-			}
-		}
-
+		if (roomId < 0 || roomId >= _roomRegions.Count) return;
+		foreach (var tile in _roomRegions[roomId].Tiles) RevealTile(tile);
 		UpdateDoorIndicators();
-
-		if (ownsBatch)
-		{
-			SpawnRevealFade(_revealBatch);
-			_revealBatch = null;
-		}
 	}
 
 	/// <summary>
@@ -745,20 +679,20 @@ public partial class MapGenerator : Node3D
 	}
 
 	/// <summary>
-	/// Unseals the doored connector nearest the opened door and reveals through it,
-	/// so opening a door flows the fog into the corridor and rooms beyond.
+	/// Unseals the nearest doored connector for subsequent sight checks and enemy reachability.
 	/// </summary>
 	public void OpenDoorAt(Vector3 worldPosition)
 	{
 		if (TryFindNearestDoorConnector(worldPosition, out Vector2I connectorTile))
 		{
-			OpenConnector(connectorTile);
+			_dooredConnectors.Remove(connectorTile);
+			UpdateDoorIndicators();
 		}
 	}
 
 	/// <summary>
 	/// Marks the connector guarded by a closed door as sealed again. Fog remains revealed;
-	/// this only updates logical reachability for enemy decisions.
+	/// this blocks subsequent discovery rays and updates logical reachability for enemy decisions.
 	/// </summary>
 	public void CloseDoorAt(Vector3 worldPosition)
 	{
@@ -816,145 +750,6 @@ public partial class MapGenerator : Node3D
 		{
 			door.SetIndicatorVisible(true);
 		}
-	}
-
-	private void OpenConnector(Vector2I connector)
-	{
-		_dooredConnectors.Remove(connector);
-		RevealRoom(_connectorToRoom[connector]);
-	}
-
-	private void FloodCorridors(Vector2I startConnector, Queue<int> roomQueue,
-		HashSet<int> queuedRooms)
-	{
-		var queue = new Queue<Vector2I>();
-		var visited = new HashSet<Vector2I>();
-
-		foreach (var offset in CardinalOffsets)
-		{
-			// Gate the seed the same way the cascade gates arriving at a connector
-			// (below): a corridor can pass alongside startConnector's walled,
-			// non-sanctioned side (RequiresInteriorWall keeps that contact sealed), and
-			// seeding from it would reveal that corridor tile through solid wall.
-			if (!ConnectorOpensToward(startConnector, offset))
-			{
-				continue;
-			}
-
-			var seed = startConnector + offset;
-			if (Map.IsWithinBounds(seed.X, seed.Y) && Map.IsCorridor(seed.X, seed.Y)
-				&& visited.Add(seed))
-			{
-				queue.Enqueue(seed);
-			}
-		}
-
-		while (queue.Count > 0)
-		{
-			var tile = queue.Dequeue();
-			RevealTile(tile);
-			foreach (var offset in CardinalOffsets)
-			{
-				var n = tile + offset;
-				if (!Map.IsWithinBounds(n.X, n.Y))
-				{
-					continue;
-				}
-
-				if (Map.IsCorridor(n.X, n.Y))
-				{
-					if (visited.Add(n))
-					{
-						queue.Enqueue(n);
-					}
-				}
-				else if (Map.IsConnector(n.X, n.Y))
-				{
-					// Reached another room. A doored connector stays sealed (black); an
-					// open one cascades into that room -- but only through one of its own
-					// sanctioned directions, so a corridor merely passing alongside a
-					// connector's walled (non-open) side does not leak the reveal through
-					// that wall (see MapData.RequiresInteriorWall).
-					if (!_dooredConnectors.Contains(n)
-						&& ConnectorOpensToward(n, -offset)
-						&& _connectorToRoom.TryGetValue(n, out int otherRoom)
-						&& queuedRooms.Add(otherRoom))
-					{
-						roomQueue.Enqueue(otherRoom);
-					}
-				}
-			}
-		}
-	}
-
-	private void RevealTile(Vector2I tile)
-	{
-		if (!_revealedTiles.Add(tile))
-		{
-			return;
-		}
-
-		// -1 clears the cell (GridMap.InvalidCellItem).
-		OcclusionGridMap.SetCellItem(TileToWorld(tile.X, 0, tile.Y), -1);
-
-		// Hand the just-cleared cap to the fade overlay so it eases out instead of popping.
-		_revealBatch?.Add(tile);
-	}
-
-	/// <summary>
-	/// Spawns a short-lived black overlay covering the just-revealed tiles and fades it
-	/// out, so a newly explored area eases into view. The caps were already cleared from
-	/// the static occlusion grid; this batched <see cref="MultiMeshInstance3D"/> stands in
-	/// for them only for the fade, then frees itself. It carries its own alpha-blended
-	/// material override (starting fully opaque, so there is no flash when it takes over
-	/// from the grid), leaving the shared opaque cap material untouched.
-	/// </summary>
-	private void SpawnRevealFade(List<Vector2I> tiles)
-	{
-		if (tiles == null || tiles.Count == 0 || OcclusionGridMap == null)
-		{
-			return;
-		}
-
-		var multiMesh = new MultiMesh
-		{
-			TransformFormat = MultiMesh.TransformFormatEnum.Transform3D,
-			Mesh = OcclusionCapMesh,
-			InstanceCount = tiles.Count,
-		};
-
-		for (int i = 0; i < tiles.Count; i++)
-		{
-			Vector3 origin = TileToWorld(tiles[i].X, 0, tiles[i].Y);
-			origin.Y += OcclusionCapHeight;
-			multiMesh.SetInstanceTransform(i, new Transform3D(Basis.Identity, origin));
-		}
-
-		// A fresh alpha-blended material override drives the fade without mutating the
-		// shared cap material that the static occlusion grid still relies on.
-		var fadeMaterial = new StandardMaterial3D
-		{
-			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
-			AlbedoColor = Colors.Black,
-			CullMode = BaseMaterial3D.CullModeEnum.Disabled,
-			Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
-		};
-
-		var overlay = new MultiMeshInstance3D
-		{
-			Multimesh = multiMesh,
-			MaterialOverride = fadeMaterial,
-		};
-
-		// Parent to the occlusion grid so the caps share its coordinate space and align
-		// exactly with the cells they replace.
-		OcclusionGridMap.AddChild(overlay);
-
-		var tween = overlay.CreateTween();
-		tween.TweenProperty(fadeMaterial, "albedo_color:a", 0.0f, FogRevealFadeSeconds)
-			.SetTrans(Tween.TransitionType.Sine)
-			.SetEase(Tween.EaseType.Out);
-		tween.Finished += overlay.QueueFree;
 	}
 
 	private void SetPlayerSpawnPoint()
@@ -1873,10 +1668,9 @@ public partial class MapGenerator : Node3D
 		CreateSecretBranches();
 		PlaceArrangements();
 
-		// Step 2c: Place the black occluder caps. In gameplay the whole map starts
-		// covered (fog of war) and rooms are carved out as the player explores; in
-		// the editor preview only the void is covered so the layout stays visible.
-		PlaceOcclusion(includeGameplay);
+		// Step 2c: Cap permanent void; gameplay additionally starts with an empty exploration mask.
+		PlaceOcclusion();
+		if (includeGameplay) InitializeDiscovery();
 
 		if (!includeGameplay)
 		{
@@ -2107,8 +1901,8 @@ public partial class MapGenerator : Node3D
 		_arrangementReservations.Clear();
 		ArrangementCount = 0;
 		_tileToRoom.Clear();
+		ClearDiscovery();
 		_revealedTiles.Clear();
-		_connectorToRoom.Clear();
 		_dooredConnectors.Clear();
 		_doorIndicators.Clear();
 		_markerIndicators.Clear();
@@ -2174,8 +1968,8 @@ public partial class MapGenerator : Node3D
 	}
 
 	/// <summary>
-	/// Whether the tile under the given world position has been uncovered by the fog
-	/// reveal. Used to gate monster/loot x-ray silhouettes to discovered areas, the
+	/// Whether any sample on the tile under the given world position has been discovered.
+	/// Used to gate monster/loot x-ray silhouettes to discovered areas, the
 	/// same way <see cref="HasRevealedNeighbor"/> gates the door indicator.
 	/// </summary>
 	public bool IsRevealedAt(Vector3 worldPosition)

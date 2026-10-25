@@ -233,7 +233,7 @@ public class DoorAccessTest
 				AssertBool(locked[0].Lock.TryUnlock(Context(carried), "key_open")).IsTrue();
 			}
 			foreach (var trap in generator.NavigationRegion.GetChildren().OfType<FloorTrap>()) trap.Reveal(false);
-			generator.RevealRoom(0, false);
+			generator.RevealRoom(0);
 			var snapshot = JsonSerializer.Deserialize<RevealedLevelSaveData>(JsonSerializer.Serialize(generator.CaptureExploration()));
 			string signature = string.Join("|", doors.Select(d => d.ConnectionId + ":" + d.Lock.Definition?.RequiredKey?.DefinitionPath));
 			generator.GenerateMap();
@@ -241,7 +241,7 @@ public class DoorAccessTest
 			AssertString(string.Join("|", regenerated.Select(d => d.ConnectionId + ":" + d.Lock.Definition?.RequiredKey?.DefinitionPath))).IsEqual(signature);
 			generator.RestoreExploration(snapshot);
 			var recaptured = generator.CaptureExploration();
-			AssertInt(recaptured.ExploredTiles.Count).IsEqual(snapshot.ExploredTiles.Count);
+			AssertInt(recaptured.ExploredSamples.Count).IsEqual(snapshot.ExploredSamples.Count);
 			AssertString(string.Join("|", recaptured.DiscoveredTrapIds)).IsEqual(string.Join("|", snapshot.DiscoveredTrapIds));
 			foreach (var state in snapshot.Doors)
 			{

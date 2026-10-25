@@ -98,7 +98,7 @@ Darkness is a property of the generated level, determined by its existing level 
 
 Dark floors have no ambient light or environmental illumination: all torches and other light fixtures are extinguished. The player's small innate light provides baseline visibility on dark floors. Normal floors retain the original broad player illumination; carrying a light there does not add brightness. On dark floors, a lit torch or lamp carried in either hand increases illumination around the player; storing it in inventory provides no light. A weapon and lamp can be carried together, but the lamp occupies a hand that could otherwise hold a shield. Using a lamp therefore requires putting the shield in inventory, and a two-handed weapon cannot be used together with a lamp or torch.
 
-Fog-of-war reveal works identically on normal and dark floors. Revealing a room removes its exploration cover but does not illuminate it; on dark floors, revealed geometry remains dark outside the player's light. No additional darkness reveal system is needed. Light radius, fuel pacing, and whether enemies respond to carried light remain open tuning/design decisions.
+Fog-of-war reveal works identically on normal and dark floors. Discovering space removes its exploration cover but does not illuminate it; on dark floors, revealed geometry remains dark outside the player's light. No additional darkness reveal system is needed. Light radius, fuel pacing, and whether enemies respond to carried light remain open tuning/design decisions.
 
 [Level design](level-design.md) describes the current generator and its limitations; the [implementation plan](specs/level-progression-prototype-plan.md) describes remaining engineering work.
 
