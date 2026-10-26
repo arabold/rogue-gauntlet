@@ -235,7 +235,6 @@ public partial class ProceduralRoomBuilder : Resource
 		ulong furnishingSeed = rng.Seed;
 		room.Generator = null;
 		room.LayoutAxis = Vector2I.Zero;
-		room.InitGridMaps();
 		room.FloorGridMap ??= AddGridMap(room, "FloorGridMap", FloorLibrary);
 		room.WallGridMap ??= AddGridMap(room, "WallGridMap", WallLibrary);
 		room.DecorationGridMap ??= AddGridMap(room, "DecorationGridMap", DecorationLibrary);

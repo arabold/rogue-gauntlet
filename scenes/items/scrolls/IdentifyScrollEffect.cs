@@ -22,7 +22,7 @@ public partial class IdentifyScrollEffect : ScrollEffect
 			return;
 		}
 
-		GameSession.Instance?.IdentifyItemType(slot.Item);
+		player?.GetAncestorOrNull<Level>()?.Run.IdentifyItemType(slot.Item);
 		if (slot.Item is EquipableItem equipment)
 		{
 			equipment.RevealAttributes();

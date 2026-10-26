@@ -133,8 +133,8 @@ public partial class NavigationComponent : Node
 			Vector3 destination = GetClosestNavPoint(_actor.GlobalPosition + away.Rotated(Vector3.Up, angle) * distance);
 			Vector3 motion = destination - _actor.GlobalPosition;
 			motion.Y = 0;
-			if (motion.LengthSquared() < .04f || HorizontalDistance(destination, threatPosition)
-				<= HorizontalDistance(_actor.GlobalPosition, threatPosition) + .1f) continue;
+			if (motion.LengthSquared() < .04f || destination.HorizontalDistanceTo(threatPosition)
+				<= _actor.GlobalPosition.HorizontalDistanceTo(threatPosition) + .1f) continue;
 			if (!IsReachable(destination) || _actor.TestMove(_actor.GlobalTransform, motion)
 				|| (_largeActorFit != null && !_largeActorFit.CanMoveTo(destination))) continue;
 			var floor = PhysicsRayQueryParameters3D.Create(destination + Vector3.Up, destination - Vector3.Up * 2, 1);
@@ -195,7 +195,7 @@ public partial class NavigationComponent : Node
 		}
 
 		Vector3 closest = NavigationServer3D.MapGetClosestPoint(navigationMap, _actor.GlobalPosition);
-		return HorizontalDistance(_actor.GlobalPosition, closest) > DoorwayCrossingOffMeshDistance;
+		return _actor.GlobalPosition.HorizontalDistanceTo(closest) > DoorwayCrossingOffMeshDistance;
 	}
 
 	/// <summary>
@@ -252,7 +252,7 @@ public partial class NavigationComponent : Node
 			return;
 		}
 
-		float progress = HorizontalDistance(_actor.GlobalPosition, _lastStuckCheckPosition);
+		float progress = _actor.GlobalPosition.HorizontalDistanceTo(_lastStuckCheckPosition);
 		_stuckTime = progress < StuckMinimumProgress ? _stuckTime + _stuckCheckTimer : 0;
 		_lastStuckCheckPosition = _actor.GlobalPosition;
 		_stuckCheckTimer = 0;
@@ -273,10 +273,5 @@ public partial class NavigationComponent : Node
 		_stuckCheckTimer = 0;
 		_stuckTime = 0;
 		IsStuck = false;
-	}
-
-	private static float HorizontalDistance(Vector3 a, Vector3 b)
-	{
-		return new Vector2(a.X, a.Z).DistanceTo(new Vector2(b.X, b.Z));
 	}
 }

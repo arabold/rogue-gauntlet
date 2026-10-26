@@ -50,14 +50,13 @@ public class GenerationBaselineTest
 	{
 		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProcedural());
 		TestFactories.WireLootScenes(generator);
-		generator.ItemCreationPolicy = GD.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
 		generator.MapWidth = generator.MapDepth = 40;
 		generator.MaxRooms = 12;
 		generator.MinChests = generator.MaxChests = 2;
 		generator.MinLooseItems = generator.MaxLooseItems = 3;
 		generator.DungeonDepth = 4;
-		generator.Seed = GameSession.GetLevelSeed(12345, 4);
-		uint lootCounter = GameSession.Instance?.LootRollsConsumed ?? 0;
+		generator.Seed = RunState.GetLevelSeed(12345, 4);
+		uint lootCounter = GameSession.Instance.Run.LootRollsConsumed;
 		generator.GenerateMap();
 		string first = Fingerprint(generator);
 		AssertInt(generator.EnemySpawnPoints.Count).IsGreater(0);
@@ -70,7 +69,7 @@ public class GenerationBaselineTest
 		otherReward.Randi();
 		generator.GenerateMap();
 		AssertString(Fingerprint(generator)).IsEqual(first);
-		AssertBool((GameSession.Instance?.LootRollsConsumed ?? 0) == lootCounter).IsTrue();
+		AssertBool(GameSession.Instance.Run.LootRollsConsumed == lootCounter).IsTrue();
 		await runner.SimulateFrames(1);
 	}
 

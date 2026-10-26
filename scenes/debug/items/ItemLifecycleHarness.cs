@@ -15,16 +15,18 @@ public partial class ItemLifecycleHarness : CanvasLayer
 	[Export(PropertyHint.Range, "1,20")] public uint Depth { get; set; } = 1;
 	[Export(PropertyHint.Range, "1,100")] public int Quantity { get; set; } = 1;
 	public string LastResult { get; private set; } = "";
-	public ulong LevelSeed => GameSession.GetLevelSeed(RunSeed, Depth);
+	public ulong LevelSeed => RunState.GetLevelSeed(RunSeed, Depth);
 	private uint _spawnIndex;
 	private OptionButton _selection;
 	private Label _status;
 
 	public override void _Ready()
 	{
-		if (Level.MapGenerator.Seed != LevelSeed || Level.MapGenerator.DungeonDepth != Depth)
+		if (Level.Seed != LevelSeed || Level.Depth != Depth)
 		{
-			Level.ConfigureGeneration(LevelSeed, Depth);
+			// The session's run, not a private one: item labels read identification from the session.
+			GameSession.Instance.StartUnsavedRun(RunSeed);
+			Level.ConfigureGeneration(GameSession.Instance.Run, Depth, null, null);
 			Level.Generate();
 		}
 		_selection = GetNode<OptionButton>("Panel/Controls/Selection");

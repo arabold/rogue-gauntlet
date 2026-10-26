@@ -184,7 +184,8 @@ public class DoorAccessTest
 	[TestCase]
 	public async Task GeneratedPairsAreReachableAndSecretsRestoreAsClosedDoors()
 	{
-		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProcedural());
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.AllProcedural());
+		var generator = level.MapGenerator;
 		TestFactories.WireLootScenes(generator);
 		generator.AccessProfile = (LevelAccessProfile)GD.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
 		// Solvability coverage deliberately requests dense content; player-facing scarcity is tested separately.
@@ -195,7 +196,7 @@ public class DoorAccessTest
 		int lockedCount = 0, secretCount = 0;
 		for (ulong seed = 1; seed <= 8; seed++)
 		{
-			generator.Seed = seed; generator.GenerateMap();
+			generator.Seed = seed; level.Generate();
 			var doors = generator.NavigationRegion.FindChildren("*", "", true, false).OfType<Door>().Where(d => !d.IsQueuedForDeletion()).ToArray();
 			var locked = doors.Where(d => d.Lock.IsLocked).ToArray(); lockedCount += locked.Length;
 			var blocked = generator.GeneratedSecrets.Select(s => s.Connector).ToHashSet();
@@ -203,12 +204,12 @@ public class DoorAccessTest
 			{
 				var id = door.ConnectionId.Split(':'); blocked.Add(new Vector2I(int.Parse(id[1]), int.Parse(id[2])));
 			}
-			var reached = AccessSolutionValidator.Reachable(generator.Map, generator.WorldToTile(generator.PlayerSpawnPoint.GlobalPosition), blocked);
+			var reached = AccessSolutionValidator.Reachable(generator.Map, generator.Map.WorldToTile(generator.Floor.Arrival.GlobalPosition), blocked);
 			AssertBool(generator.NavigationRegion.GetChildren().OfType<LootableItem>().All(p => p.Item is not LockpickItem)).IsTrue();
 			var keys = generator.NavigationRegion.GetChildren().OfType<LootableItem>().Where(p => p.Item is KeyItem).ToArray();
-			foreach (var key in keys) AssertBool(reached.Contains(generator.WorldToTile(key.GlobalPosition))).IsTrue();
-			foreach (var secret in generator.GeneratedSecrets) AssertBool(generator.FreelyAccessibleTiles().Contains(secret.Connector)).IsFalse();
-			if (generator.TryPickRandomFreePosition(out var landing)) AssertBool(generator.FreelyAccessibleTiles().Contains(generator.WorldToTile(landing))).IsTrue();
+			foreach (var key in keys) AssertBool(reached.Contains(generator.Map.WorldToTile(key.GlobalPosition))).IsTrue();
+			foreach (var secret in generator.GeneratedSecrets) AssertBool(generator.Floor.FreelyAccessibleTiles().Contains(secret.Connector)).IsFalse();
+			if (generator.Floor.TryPickRandomFreePosition(out var landing)) AssertBool(generator.Floor.FreelyAccessibleTiles().Contains(generator.Map.WorldToTile(landing))).IsTrue();
 			foreach (var color in locked.GroupBy(d => d.Lock.Definition.RequiredKey.DefinitionPath))
 				AssertInt(keys.Where(p => p.Item.DefinitionPath == color.Key).Sum(p => p.Quantity)).IsEqual(color.Count());
 			foreach (var secret in generator.GeneratedSecrets)
@@ -223,8 +224,8 @@ public class DoorAccessTest
 				AssertBool(secret.Door.Secret.AcceptsSightHit(generator.WallGridMap, secret.Door.GlobalPosition + Vector3.Up * 2)).IsTrue();
 				AssertBool(secret.Door.Secret.AcceptsSightHit(generator.WallGridMap, secret.Door.GlobalPosition + approach * 4)).IsFalse();
 				secret.Door.Secret.Reveal(); AssertBool(secret.Door.IsOpen).IsFalse();
-				var state = generator.CaptureExploration();
-				generator.RestoreExploration(JsonSerializer.Deserialize<RevealedLevelSaveData>(JsonSerializer.Serialize(state)));
+				var state = level.CaptureExploration();
+				level.RestoreExploration(JsonSerializer.Deserialize<RevealedLevelSaveData>(JsonSerializer.Serialize(state)));
 				AssertBool(secret.Door.IsDiscovered).IsTrue(); AssertBool(secret.Door.IsOpen).IsFalse();
 			}
 			if (locked.Length > 0)
@@ -233,14 +234,14 @@ public class DoorAccessTest
 				AssertBool(locked[0].Lock.TryUnlock(Context(carried), "key_open")).IsTrue();
 			}
 			foreach (var trap in generator.NavigationRegion.GetChildren().OfType<FloorTrap>()) trap.Reveal(false);
-			generator.RevealRoom(0);
-			var snapshot = JsonSerializer.Deserialize<RevealedLevelSaveData>(JsonSerializer.Serialize(generator.CaptureExploration()));
+			level.Discovery.RevealRoom(0);
+			var snapshot = JsonSerializer.Deserialize<RevealedLevelSaveData>(JsonSerializer.Serialize(level.CaptureExploration()));
 			string signature = string.Join("|", doors.Select(d => d.ConnectionId + ":" + d.Lock.Definition?.RequiredKey?.DefinitionPath));
-			generator.GenerateMap();
+			level.Generate();
 			var regenerated = generator.NavigationRegion.FindChildren("*", "", true, false).OfType<Door>().Where(d => !d.IsQueuedForDeletion());
 			AssertString(string.Join("|", regenerated.Select(d => d.ConnectionId + ":" + d.Lock.Definition?.RequiredKey?.DefinitionPath))).IsEqual(signature);
-			generator.RestoreExploration(snapshot);
-			var recaptured = generator.CaptureExploration();
+			level.RestoreExploration(snapshot);
+			var recaptured = level.CaptureExploration();
 			AssertInt(recaptured.ExploredSamples.Count).IsEqual(snapshot.ExploredSamples.Count);
 			AssertString(string.Join("|", recaptured.DiscoveredTrapIds)).IsEqual(string.Join("|", snapshot.DiscoveredTrapIds));
 			foreach (var state in snapshot.Doors)

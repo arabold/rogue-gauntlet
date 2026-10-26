@@ -56,6 +56,10 @@ public class ItemCatalogTest
 				AssertBool(food.CanStack || food.IsPoisoned).IsFalse();
 				AssertObject(food.PoisonEffect).IsNotNull();
 			}
+			if (definition is BuffedItem { Buff: StatModifierBuff statBuff })
+			{
+				AssertArray(statBuff.Validate()).OverrideFailureMessage($"{definition.ResourcePath} has an invalid stat buff").IsEmpty();
+			}
 			if (definition is ConsumableItem consumable)
 			{
 				AssertBool(consumable.Buff != null || consumable is Scroll { Effect: not null }).IsTrue();
@@ -100,8 +104,9 @@ public class ItemCatalogTest
 		var paths = new HashSet<string>();
 		foreach (string path in Paths("res://scenes/items/loot", ".tres"))
 		{
-			var table = GD.Load<LootTable>(path);
-			AssertObject(table).OverrideFailureMessage($"Cannot load table: {path}").IsNotNull();
+			// Pools are checked through the tables that weight them.
+			if (ResourceLoader.Load<Resource>(path) is not LootTable table) { continue; }
+			AssertArray(table.Validate()).OverrideFailureMessage($"Invalid table: {path}").IsEmpty();
 			AssertInt(table.Items.Length).IsEqual(0);
 			AssertInt(table.Groups.Length).IsEqual(7);
 			AssertFloat(table.Groups.Sum(group => group.Weight)).IsEqual(100);

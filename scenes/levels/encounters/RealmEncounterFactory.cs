@@ -18,9 +18,20 @@ public partial class RealmEncounterFactory : MobFactory
 
 	public bool ContainsDepth(uint depth) => depth >= FirstDepth && depth - FirstDepth < FloorBudgets.Length;
 	public int FloorIndex(uint depth) => ContainsDepth(depth) ? (int)(depth - FirstDepth) : -1;
+	/// <summary>Realm floor index whose first two encounter slots become destructible nests.</summary>
+	public const int NestFloorIndex = 1;
 	/// <summary>Realm floor index whose descent is sealed by the gatekeeper encounter.</summary>
 	public const int GatekeeperFloorIndex = 2;
-	public bool IsGatekeeperFloor(uint depth) => FloorIndex(depth) == GatekeeperFloorIndex;
+
+	/// <summary>Every realm floor has a plan, so its level runs the realm's encounter controller; floors outside defer to the fallback.</summary>
+	public override EncounterPlan PlanEncounters(uint depth)
+	{
+		int floor = FloorIndex(depth);
+		if (floor < 0) return Fallback?.PlanEncounters(depth);
+		bool gatekeeper = floor == GatekeeperFloorIndex;
+		return new EncounterPlan(this, floor == NestFloorIndex ? NestScene : null, gatekeeper ? GatekeeperScene : null,
+			gatekeeper ? GatekeeperFit : null, gatekeeper ? $"depth:{depth}:gatekeeper" : null);
+	}
 
 	public override PackedScene CreateEnemy(uint depth, RandomNumberGenerator rng)
 	{

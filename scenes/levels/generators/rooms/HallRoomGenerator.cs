@@ -31,7 +31,9 @@ public partial class HallRoomGenerator : RoomGenerator
 		if (rng.Randf() < SideOpeningChance) openings.Add(side);
 		if (!builder.PopulateRoomAtSize(room, rng, WidthTiles, length, openings.ToArray())) return false;
 		room.LayoutAxis = end;
-		using var columns = GenerationRandom.Create(rng.Seed, GenerationRandom.Decoration, "hall-columns");
+		// Key the cosmetic stream on the layout stream's current state, which differs per room, without drawing from it:
+		// its Seed is the floor-wide start value, which gave every hall on a floor the same column.
+		using var columns = GenerationRandom.Create(rng.State, GenerationRandom.Decoration, "hall-columns");
 		int column = builder.DecorationLibrary.FindItemByName(ColumnItems[columns.RandiRange(0, ColumnItems.Length - 1)]);
 		// Corner coordinates reflect across the room center. Stop before opposing rows crowd each other.
 		for (int near = 1; near * 2 <= length; near += ColumnSpacing)

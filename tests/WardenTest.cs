@@ -19,14 +19,14 @@ public class WardenTest
 		GameSession.Instance.ResetLevelDebugState(3);
 		foreach (ulong seed in new ulong[] { 42, 12345, 1, 2, 3, 4, 5, 6 })
 		{
-			level.ConfigureGeneration(seed, 3);
+			level.ConfigureGeneration(new RunState(seed), 3, null, null);
 			level.Generate();
 			var boss = Boss(level);
 			var fit = boss.GetNode<LargeActorFitComponent>("LargeActorFitComponent");
-			AssertBool(level.MapGenerator.IsEncounterFootprintClear(boss.GlobalPosition,
+			AssertBool(level.Floor.IsFootprintClear(boss.GlobalPosition,
 				fit.Profile.MinimumClearance, fit.HomeRoomId)).IsTrue();
 			AssertBool(fit.HomeRoomId >= 0).IsTrue();
-			AssertBool(level.MapGenerator.Seed == seed).IsTrue();
+			AssertBool(level.Seed == RunState.GetLevelSeed(seed, 3)).IsTrue();
 			Vector3 firstPosition = boss.GlobalPosition;
 			int attempt = level.MapGenerator.GenerationAttempt;
 			// Different room content may fit on the first attempt; only the bound and reproducibility are contractual.
@@ -45,7 +45,7 @@ public class WardenTest
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		GameSession.Instance.ResetLevelDebugState(3);
-		level.ConfigureGeneration(42, 3);
+		level.ConfigureGeneration(new RunState(42), 3, null, null);
 		level.Generate();
 		var marker = new GatekeeperSpawnMarker { Name = "WardenAnchor", Position = Boss(level).GlobalPosition,
 			Rotation = new Vector3(0, .7f, 0) };
@@ -68,7 +68,7 @@ public class WardenTest
 		var level = (Level)runner.Scene();
 		GameSession.Instance.ResetLevelDebugState(3);
 		GameSession.Instance.ResetCurrentLevelDebugState();
-		level.ConfigureGeneration(42, 3);
+		level.ConfigureGeneration(new RunState(42), 3, null, null);
 		level.Generate();
 		// Keep player-driven reveal out of this component-specific visibility check.
 		level.FindChildren("*", "", true, false).OfType<RoomManager>().Single().SetPhysicsProcess(false);
@@ -79,7 +79,7 @@ public class WardenTest
 		var title = boss.GetNode<Label3D>("BossTitle");
 		AssertBool(boss.Visible).IsFalse();
 		AssertBool(title.Visible).IsFalse();
-		level.MapGenerator.RevealRoom(fit.HomeRoomId);
+		level.Discovery.RevealRoom(fit.HomeRoomId);
 		SignalBus.EmitRoomEntered(fit.HomeRoomId);
 		await runner.SimulateFrames(1);
 		AssertBool(boss.Visible).IsTrue();
@@ -229,7 +229,7 @@ public class WardenTest
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		GameSession.Instance.ResetLevelDebugState(3);
-		level.ConfigureGeneration(12345, 3);
+		level.ConfigureGeneration(new RunState(12345), 3, null, null);
 		level.Generate();
 		var boss = Boss(level);
 		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
@@ -242,7 +242,7 @@ public class WardenTest
 			for (float distance = 2; distance <= 6; distance += 0.5f)
 			{
 				var destination = boss.GlobalPosition + candidate * distance;
-				if (level.MapGenerator.IsEncounterFootprintClear(destination, fit.Profile.MinimumClearance, fit.HomeRoomId)) continue;
+				if (level.Floor.IsFootprintClear(destination, fit.Profile.MinimumClearance, fit.HomeRoomId)) continue;
 				bool pathClear = true;
 				for (float step = 0.5f; step <= distance; step += 0.5f)
 					if (!fit.CanMoveTo(boss.GlobalPosition + candidate * step)) { pathClear = false; break; }

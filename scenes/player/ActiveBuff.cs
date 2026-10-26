@@ -22,7 +22,7 @@ public partial class ActiveBuff : Node
 		Buff = buff;
 		RemainingDuration = buff.Duration;
 
-		Buff.OnApply(Player);
+		Buff.OnApply(this);
 	}
 
 	/// <summary>
@@ -37,7 +37,7 @@ public partial class ActiveBuff : Node
 		}
 
 		_removed = true;
-		Buff.OnRemove(Player);
+		Buff.OnRemove(this);
 	}
 
 	public override void _PhysicsProcess(double delta)

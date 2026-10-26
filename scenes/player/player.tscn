@@ -1,4 +1,4 @@
-[gd_scene load_steps=90 format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=92 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
@@ -49,6 +49,8 @@
 [ext_resource type="PackedScene" path="res://scenes/components/invisibility_component.tscn" id="invisibility"]
 
 [ext_resource type="Script" uid="uid://bmrka2rigbvvg" path="res://scenes/components/FloorLightingComponent.cs" id="floor_lighting"]
+[ext_resource type="Script" uid="uid://dd4dxnyubvshs" path="res://scenes/player/PlayerQuickItemController.cs" id="quick_items_script"]
+[ext_resource type="Script" uid="uid://dgiq0d302k3ul" path="res://scenes/interactions/ActorInteractionComponent.cs" id="interaction_script"]
 
 [sub_resource type="Resource" id="player_capabilities"]
 script = ExtResource("capabilities_script")
@@ -282,7 +284,28 @@ radius = 2.0
 radius = 0.75
 height = 2.5
 
-[node name="Player" type="CharacterBody3D" groups=["player"] node_paths=PackedStringArray("Invisibility")]
+[node name="Player" type="CharacterBody3D" groups=["player"] node_paths=PackedStringArray("Invisibility", "ActionGate", "QuickItemController", "InteractionComponent", "DodgeComponent", "GuardComponent", "HealthComponent", "HurtBoxComponent", "MovementComponent", "InputComponent", "ActionManager", "BuffController", "InteractionController", "StatsController", "InventoryController", "InputController", "AttackController", "InteractionArea", "Pivot", "CharacterModelNode", "AnimationTree", "AttachmentManager")]
+ActionGate = NodePath("ActorActionGateComponent")
+QuickItemController = NodePath("PlayerQuickItemController")
+InteractionComponent = NodePath("ActorInteractionComponent")
+DodgeComponent = NodePath("DodgeComponent")
+GuardComponent = NodePath("GuardComponent")
+HealthComponent = NodePath("HealthComponent")
+HurtBoxComponent = NodePath("HurtBoxComponent")
+MovementComponent = NodePath("MovementComponent")
+InputComponent = NodePath("InputComponent")
+ActionManager = NodePath("ActionManager")
+BuffController = NodePath("BuffController")
+InteractionController = NodePath("PlayerInteractionController")
+StatsController = NodePath("PlayerStatsController")
+InventoryController = NodePath("PlayerInventoryController")
+InputController = NodePath("PlayerInputController")
+AttackController = NodePath("PlayerAttackController")
+InteractionArea = NodePath("InteractionArea")
+Pivot = NodePath("Pivot")
+CharacterModelNode = NodePath("Pivot/Character")
+AnimationTree = NodePath("AnimationTree")
+AttachmentManager = NodePath("BoneAttachmentManager")
 Invisibility = NodePath("InvisibilityComponent")
 collision_layer = 4
 collision_mask = 251
@@ -610,3 +633,14 @@ Actor = NodePath("..")
 MovementComponent = NodePath("../MovementComponent")
 ActionGate = NodePath("../ActorActionGateComponent")
 GuardDef = ExtResource("guard_def")
+
+[node name="PlayerQuickItemController" type="Node" parent="." node_paths=PackedStringArray("Player", "ActionManager", "InventoryController")]
+script = ExtResource("quick_items_script")
+Player = NodePath("..")
+ActionManager = NodePath("../ActionManager")
+InventoryController = NodePath("../PlayerInventoryController")
+
+[node name="ActorInteractionComponent" type="Node" parent="." node_paths=PackedStringArray("Actor", "ActionGate")]
+script = ExtResource("interaction_script")
+Actor = NodePath("..")
+ActionGate = NodePath("../ActorActionGateComponent")

@@ -19,10 +19,7 @@ public class ItemQualityTest
 	private const string LadderPath = "res://scenes/items/quality/quality_ladder.tres";
 
 	/// <summary>Base-tier depth windows (MaxDepth 0 is open-ended); see docs/stats-and-itemization.md.</summary>
-	private static readonly Dictionary<int, (uint Min, uint Max)> TierBands = new()
-	{
-		[1] = (1, 6), [2] = (4, 12), [3] = (10, 18), [4] = (16, 21), [5] = (19, 0),
-	};
+	private static TierDepthBands TierBands => GD.Load<TierDepthBands>("res://scenes/items/quality/tier_depth_bands.tres");
 
 	private static QualityLadder Ladder => GD.Load<QualityLadder>(LadderPath);
 	private static ItemCreationPolicy Policy => GD.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
@@ -213,8 +210,8 @@ public class ItemQualityTest
 				}
 				else if (entry.Item is EquipableItem equipment)
 				{
-					(uint min, uint max) = TierBands[equipment.Tier];
-					AssertBool(entry.MinDepth == min && entry.MaxDepth == max)
+					Vector2I band = TierBands.For(equipment.Tier);
+					AssertBool(entry.MinDepth == band.X && entry.MaxDepth == band.Y)
 						.OverrideFailureMessage($"{entry.Item.ResourcePath}: T{equipment.Tier} drops {entry.MinDepth}-{entry.MaxDepth}").IsTrue();
 				}
 			}
@@ -226,7 +223,7 @@ public class ItemQualityTest
 				{
 					if (table.PickEntry(depth, rng)?.Item is EquipableItem picked)
 					{
-						AssertBool(depth >= TierBands[picked.Tier].Min).IsTrue();
+						AssertBool(depth >= TierBands.For(picked.Tier).X).IsTrue();
 					}
 				}
 			}

@@ -20,7 +20,7 @@ public partial class StatusConditionTest
 	{
 		public int RemoveCount;
 
-		public override void OnRemove(Player player) => RemoveCount++;
+		public override void OnRemove(ActiveBuff activation) => RemoveCount++;
 	}
 
 	private static (BuffController Controller, System.Func<int> Changes) NewController()

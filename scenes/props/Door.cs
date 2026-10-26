@@ -100,6 +100,12 @@ public partial class Door : Node3D
 		RefreshIndicator();
 	}
 
+	/// <summary>The access state a save records; the inverse of <see cref="RestoreAccess"/>.</summary>
+	public DoorAccessSaveData CaptureAccess() => new()
+	{
+		ConnectionId = ConnectionId, IsDiscovered = IsDiscovered, IsLocked = Lock?.IsLocked ?? false, IsOpen = IsOpen,
+	};
+
 	public void RestoreAccess(DoorAccessSaveData state)
 	{
 		state.Validate();

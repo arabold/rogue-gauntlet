@@ -33,11 +33,11 @@
 
 ## Architecture
 - Autoload singletons are declared in `project.godot`: `SignalBus` (`scripts/SignalBus.cs`), `GameSession` (`scripts/GameSession.cs`), `ScenePool` (`scripts/ScenePool.cs`), `SceneDebugBootstrap` (`scripts/SceneDebugBootstrap.cs`), and the GDScript Phantom Camera manager.
-- `GameSession` is the focused run/session-flow coordinator (e.g. per-run state such as item identification via `IdentificationService.cs`); it is intentionally *not* a generic gameplay registry. Keep it scoped to session/run flow rather than absorbing component or entity-lookup responsibilities.
-- `Main.cs` wires camera and inventory UI; `Level.cs` runs `MapGenerator.GenerateMap()` on ready; `MapGenerator.cs` owns room layout, corridor connection, gridmap merge, navigation bake, and spawn-point creation. See `docs/level-design.md` for the full generation pipeline.
+- `GameSession` is the focused session-flow coordinator: save slots, run identity and level transitions. Run-wide state lives in a plain `RunState` (`scripts/RunState.cs`: run seed, loot counter, cleared entities, item identification) that it hands to each `Level`; it is intentionally *not* a generic gameplay registry. Gameplay code gets run and floor context from its `Level` (`Seed`, `Depth`, `Run`, `Floor`, `Discovery`), resolved once in `_EnterTree`, never from the autoload. `ItemIdentity`'s UI-wide display is the one documented exception.
+- `Main.cs` wires camera and inventory UI and has `GameSession` configure the `Level` before `Level.Generate()`; `MapGenerator.cs` (with its `.Access` and `.Loot` partials) owns room layout, corridor connection, gridmap merge, access, loot, navigation bake, and spawn-point creation, and hands gameplay a frozen `GeneratedFloor`. See `docs/level-design.md` for the full generation pipeline.
 - Do not add a `GameManager`-style gameplay registry; use local dependencies, signals, or local group queries instead.
 - Decoupled game/UI updates go through `SignalBus` static emit helpers. Add new bus events there instead of introducing direct cross-system references when reacting to gameplay state.
-- Player behavior is component-scene based: `Player.cs` expects named child nodes such as `MovementComponent`, `InputComponent`, `HealthComponent`, `HurtBoxComponent`, `ActionManager`, and attack nodes.
+- Player behavior is component-scene based: `Player.cs` exports its components (`MovementComponent`, `InputComponent`, `HealthComponent`, `HurtBoxComponent`, `ActionManager`, attack and inventory controllers) and `player.tscn` wires them; it injects only runtime state such as the per-run inventory copy.
 - Data authored in Godot resources matters: items, player stats, dungeon factories, mesh libraries, and rooms are `.tres`/`.tscn` assets under `scenes/`; C# changes often need matching exported properties/resources in scenes.
 
 ## Architecture Guidelines

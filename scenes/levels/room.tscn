@@ -5,8 +5,11 @@
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_0ugaa"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="4_uqg86"]
 
-[node name="Room" type="Node3D"]
+[node name="Room" type="Node3D" node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap")]
 script = ExtResource("1_5ov2y")
+FloorGridMap = NodePath("FloorGridMap")
+WallGridMap = NodePath("WallGridMap")
+DecorationGridMap = NodePath("DecorationGridMap")
 
 [node name="FloorGridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("2_rh25h")

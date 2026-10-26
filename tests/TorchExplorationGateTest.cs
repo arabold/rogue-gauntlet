@@ -37,14 +37,14 @@ public class TorchExplorationGateTest
 		region.AddChild(unlit);
 		TestFactories.AddToSceneTree(level);
 		AssertEffects(lit, false); // An initializing level fails closed.
-		map.Map = new MapData(20, 20);
+		var floor = TestFactories.StartEmptyFloor(level, map);
 		await runner.SimulateFrames(3);
 		AssertEffects(lit, false);
 		// Uncovering a neighboring cell must not expose the flame rising above this cell's cap.
-		TestFactories.RevealTileAt(map, Gate(lit).GlobalPosition + Vector3.Right * 4);
+		TestFactories.RevealTileAt(level.Discovery, floor.Map, Gate(lit).GlobalPosition + Vector3.Right * 4);
 		await runner.SimulateFrames(2); AssertEffects(lit, false);
-		TestFactories.RevealTileAt(map, Gate(lit).GlobalPosition);
-		TestFactories.RevealTileAt(map, Gate(unlit).GlobalPosition);
+		TestFactories.RevealTileAt(level.Discovery, floor.Map, Gate(lit).GlobalPosition);
+		TestFactories.RevealTileAt(level.Discovery, floor.Map, Gate(unlit).GlobalPosition);
 		await runner.SimulateFrames(2);
 		AssertEffects(lit, true);
 		AssertBool(lit.IsVisibleInTree()).IsTrue();
@@ -66,14 +66,14 @@ public class TorchExplorationGateTest
 	{
 		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
 		await runner.SimulateFrames(5);
-		var map = runner.Scene().GetNode<Level>("Level").MapGenerator;
-		var gates = map.FindChildren("*", nameof(ExplorationGateComponent), true, false).OfType<ExplorationGateComponent>().ToArray();
+		var level = runner.Scene().GetNode<Level>("Level");
+		var gates = level.MapGenerator.FindChildren("*", nameof(ExplorationGateComponent), true, false).OfType<ExplorationGateComponent>().ToArray();
 		AssertBool(gates.Length > 0).IsTrue();
 		AssertBool(gates.Any(g => !g.Target.Visible)).IsTrue(); // Torches beyond the start room are still in the fog.
 		// A gate probing the wall plane or the void behind it would stay dark forever.
 		// The debug reveal must mark tiles explored too, not just clear the caps.
-		if (debugRevealAll) map.RevealAllFog();
-		else for (int room = 0; room < map.RoomRegions.Count; room++) map.RevealRoom(room);
+		if (debugRevealAll) level.Discovery.RevealAll();
+		else for (int room = 0; room < level.Floor.Rooms.Count; room++) level.Discovery.RevealRoom(room);
 		await runner.SimulateFrames(2);
 		AssertArray(gates.Where(g => !g.Target.Visible).Select(g => g.GetPath().ToString()).ToArray()).IsEmpty();
 	}

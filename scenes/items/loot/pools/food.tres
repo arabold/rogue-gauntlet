@@ -1,0 +1,93 @@
+[gd_resource type="Resource" script_class="LootPool" load_steps=27 format=3]
+
+[ext_resource type="Script" path="res://scenes/components/LootPool.cs" id="pool"]
+[ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
+[ext_resource type="Resource" uid="uid://h520ltprotco" path="res://scenes/items/food/drink/drink_beer_stein.tres" id="item_drink_beer_stein"]
+[ext_resource type="Resource" uid="uid://co1nrehexbuax" path="res://scenes/items/food/drink/drink_water_canteen.tres" id="item_drink_water_canteen"]
+[ext_resource type="Resource" uid="uid://dfrnoxdrg7fvb" path="res://scenes/items/food/drink/drink_wine_bottle.tres" id="item_drink_wine_bottle"]
+[ext_resource type="Resource" uid="uid://85p0g3wgi5wt" path="res://scenes/items/food/food/food_apple_red.tres" id="item_food_apple_red"]
+[ext_resource type="Resource" uid="uid://boghi6jhnn5ku" path="res://scenes/items/food/food/food_bread_loaf.tres" id="item_food_bread_loaf"]
+[ext_resource type="Resource" uid="uid://ckg22fpngqemx" path="res://scenes/items/food/food/food_bread_roll.tres" id="item_food_bread_roll"]
+[ext_resource type="Resource" uid="uid://rqvmcpxykhpg" path="res://scenes/items/food/food/food_cheese_wheel.tres" id="item_food_cheese_wheel"]
+[ext_resource type="Resource" uid="uid://djgmwege6majm" path="res://scenes/items/food/food/food_grapes_bunch.tres" id="item_food_grapes_bunch"]
+[ext_resource type="Resource" uid="uid://blivi8w4wh2je" path="res://scenes/items/food/food/food_meat_drumstick.tres" id="item_food_meat_drumstick"]
+[ext_resource type="Resource" uid="uid://b8iejsa6ebp34" path="res://scenes/items/food/food/food_meat_sausage.tres" id="item_food_meat_sausage"]
+[ext_resource type="Resource" uid="uid://q88njg1bj4vx" path="res://scenes/items/food/food/food_meat_steak.tres" id="item_food_meat_steak"]
+[ext_resource type="Resource" uid="uid://dhp07xidg2xdn" path="res://scenes/items/food/food/food_pear_golden.tres" id="item_food_pear_golden"]
+
+[sub_resource type="Resource" id="Entry_drink_beer_stein"]
+script = ExtResource("entry")
+Item = ExtResource("item_drink_beer_stein")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_drink_water_canteen"]
+script = ExtResource("entry")
+Item = ExtResource("item_drink_water_canteen")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_drink_wine_bottle"]
+script = ExtResource("entry")
+Item = ExtResource("item_drink_wine_bottle")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_food_apple_red"]
+script = ExtResource("entry")
+Item = ExtResource("item_food_apple_red")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_food_bread_loaf"]
+script = ExtResource("entry")
+Item = ExtResource("item_food_bread_loaf")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_food_bread_roll"]
+script = ExtResource("entry")
+Item = ExtResource("item_food_bread_roll")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_food_cheese_wheel"]
+script = ExtResource("entry")
+Item = ExtResource("item_food_cheese_wheel")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_food_grapes_bunch"]
+script = ExtResource("entry")
+Item = ExtResource("item_food_grapes_bunch")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_food_meat_drumstick"]
+script = ExtResource("entry")
+Item = ExtResource("item_food_meat_drumstick")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_food_meat_sausage"]
+script = ExtResource("entry")
+Item = ExtResource("item_food_meat_sausage")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_food_meat_steak"]
+script = ExtResource("entry")
+Item = ExtResource("item_food_meat_steak")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_food_pear_golden"]
+script = ExtResource("entry")
+Item = ExtResource("item_food_pear_golden")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[resource]
+script = ExtResource("pool")
+Items = [SubResource("Entry_drink_beer_stein"), SubResource("Entry_drink_water_canteen"), SubResource("Entry_drink_wine_bottle"), SubResource("Entry_food_apple_red"), SubResource("Entry_food_bread_loaf"), SubResource("Entry_food_bread_roll"), SubResource("Entry_food_cheese_wheel"), SubResource("Entry_food_grapes_bunch"), SubResource("Entry_food_meat_drumstick"), SubResource("Entry_food_meat_sausage"), SubResource("Entry_food_meat_steak"), SubResource("Entry_food_pear_golden")]
+metadata/_custom_type_script = ExtResource("pool")

@@ -1,11 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://dud0hid1mwmdw"]
+[gd_scene load_steps=3 format=3 uid="uid://dud0hid1mwmdw"]
 
 [ext_resource type="Script" path="res://scenes/components/LootTableComponent.cs" id="1_ppr6f"]
 [ext_resource type="PackedScene" uid="uid://ccltoxuycom37" path="res://scenes/items/lootable_item.tscn" id="2_85fo6"]
 
-[ext_resource type="Resource" path="res://scenes/items/dungeon_item_policy.tres" id="3_policy"]
-
 [node name="LootTableComponent" type="Node"]
 script = ExtResource("1_ppr6f")
 LootableItemScene = ExtResource("2_85fo6")
-CreationPolicy = ExtResource("3_policy")

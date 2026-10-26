@@ -11,6 +11,7 @@ using System.Text.Json;
 [Tool] // Referenced by the tool Level script; it has no editor-time behavior.
 public partial class LevelItemPersistence : Node
 {
+	/// <summary>Required: the pickup scene used to rebuild saved world items.</summary>
 	[Export] public PackedScene PickupScene { get; set; }
 	public bool IsCommitting { get; internal set; }
 	private Level _level;
@@ -20,7 +21,7 @@ public partial class LevelItemPersistence : Node
 	public void Initialize(Level level)
 	{
 		_level = level;
-		PickupScene ??= level.MapGenerator.LooseItemScene;
+		if (PickupScene == null) GD.PushError($"{Name}: assign a PickupScene; saved world items cannot be rebuilt without it.");
 		_baseline.Clear();
 		_rewards.Clear();
 	}
@@ -64,7 +65,7 @@ public partial class LevelItemPersistence : Node
 	{
 		if (IsCommitting) { throw new InvalidOperationException("Item transfer is still committing."); }
 		var current = Pickups().ToDictionary(p => p.Item.InstanceId, CapturePickup);
-		var data = new LevelItemDeltaSaveData { Depth = _level.MapGenerator.DungeonDepth, ActivatedSources = _rewards.Values.ToList() };
+		var data = new LevelItemDeltaSaveData { Depth = _level.Depth, ActivatedSources = _rewards.Values.ToList() };
 		foreach (var pair in _baseline)
 		{
 			if (!current.TryGetValue(pair.Key, out var record)) { data.RemovedItemIds.Add(pair.Key); }
@@ -78,7 +79,7 @@ public partial class LevelItemPersistence : Node
 	public void Apply(LevelItemDeltaSaveData changes)
 	{
 		if (changes == null) { return; }
-		if (changes.Depth != _level.MapGenerator.DungeonDepth) { throw new InvalidOperationException("Wrong floor item delta."); }
+		if (changes.Depth != _level.Depth) { throw new InvalidOperationException("Wrong floor item delta."); }
 		foreach (var source in changes.ActivatedSources)
 		{
 			ValidatePosition(source.Position);
@@ -88,7 +89,7 @@ public partial class LevelItemPersistence : Node
 				?? throw new InvalidOperationException("Missing reward table.");
 			ItemCreationPolicy policy = string.IsNullOrEmpty(source.PolicyPath) ? null : ResourceLoader.Load<ItemCreationPolicy>(source.PolicyPath)
 				?? throw new InvalidOperationException("Missing creation policy.");
-			using var rng = _level.MapGenerator.CreateSourceLootRng(source.SourceId);
+			using var rng = _level.CreateSourceLootRng(source.SourceId);
 			RegisterReward(source, LootTableComponent.GenerateOutcome(table, policy, source.Chance, source.CountMin,
 				source.CountMax, changes.Depth, rng, source.SourceId));
 		}

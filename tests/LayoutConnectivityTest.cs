@@ -325,7 +325,7 @@ public class LayoutConnectivityTest
 		var roomIds = new HashSet<int>();
 		foreach (var tile in walkable)
 		{
-			int id = mapGenerator.GetRoomIdAt(tile);
+			int id = mapGenerator.Floor.RoomIdAt(tile);
 			if (id >= 0)
 			{
 				roomIds.Add(id);

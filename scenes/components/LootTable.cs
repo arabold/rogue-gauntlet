@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
@@ -20,7 +21,7 @@ public partial class LootTable : Resource
 
 	/// <summary>All configured entries, for authoring diagnostics and validation.</summary>
 	public LootTableItem[] Entries => Groups?.Length > 0
-		? Groups.Where(g => g != null).SelectMany(g => g.Items ?? []).ToArray() : Items ?? [];
+		? Groups.Where(g => g != null).SelectMany(g => g.Pool?.Items ?? []).ToArray() : Items ?? [];
 
 	/// <summary>Chooses an eligible category, then an eligible variety within that budget. Depth is required: entry
 	/// depth windows are the only fence keeping higher-tier items off early floors.</summary>
@@ -33,15 +34,28 @@ public partial class LootTable : Resource
 		if (Groups?.Length > 0)
 		{
 			var groups = Groups.Where(g => g != null && float.IsFinite(g.Weight) && g.Weight > 0
-				&& g.Items?.Any(Eligible) == true).ToArray();
+				&& g.Pool?.Items?.Any(Eligible) == true).ToArray();
 			if (groups.Length == 0) { return null; }
 			long selected = rng.RandWeighted(groups.Select(g => g.Weight).ToArray());
 			if (selected < 0) { return null; }
-			candidates = groups[selected].Items.Where(Eligible).ToArray();
+			candidates = groups[selected].Pool.Items.Where(Eligible).ToArray();
 		}
 		else { candidates = (Items ?? []).Where(Eligible).ToArray(); }
 		if (candidates.Length == 0) { return null; }
 		long index = rng.RandWeighted(candidates.Select(entry => entry.Weight).ToArray());
 		return index < 0 ? null : candidates[index];
+	}
+
+	/// <summary>Authoring problems: flat items and groups together, groups without a pool, and invalid pools.</summary>
+	public string[] Validate()
+	{
+		var problems = new List<string>();
+		if (Items?.Length > 0 && Groups?.Length > 0) { problems.Add($"{ResourcePath}: use flat Items or Groups, not both."); }
+		foreach (LootTableGroup group in Groups ?? [])
+		{
+			if (group?.Pool == null) { problems.Add($"{ResourcePath}: every group needs a pool."); continue; }
+			problems.AddRange(group.Pool.Validate());
+		}
+		return problems.Distinct().ToArray();
 	}
 }

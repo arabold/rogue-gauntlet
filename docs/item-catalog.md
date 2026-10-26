@@ -48,13 +48,19 @@ Food recovery and per-piece contamination use their authored buffs; there is no 
 
 ## Source budgets and eligibility
 
-Source tables contain seven Inspector-editable `LootTableGroup` Resources. Select a positive-weight
-eligible group first, then a positive-weight eligible variety inside it. Adding weapon models
-therefore cannot displace the potion or food budget. Empty/ineligible groups redistribute their
-weight among the remaining eligible groups. Flat `LootTable.Items` remains available for simple
-custom tables; do not mix flat Items and Groups in one authored table.
+Source tables contain seven Inspector-editable `LootTableGroup`s, each a weight plus a shared
+`LootPool` from [`scenes/items/loot/pools/`](../scenes/items/loot/pools/). A pool lists one category's
+varieties with their depth windows and quantities, so adding an item is one edit for every table.
+Select a positive-weight eligible group first, then a positive-weight eligible variety inside it.
+Adding weapon models therefore cannot displace the potion or food budget. Empty/ineligible groups
+redistribute their weight among the remaining eligible groups. Flat `LootTable.Items` remains
+available for simple custom tables; `LootTable.Validate()` rejects mixing flat Items and Groups.
 
-Actual category weights, depth bounds and quantity scaling live in the [loot table Resources](../scenes/items/loot/), not a second numeric table here. Common enemies favor currency/recovery; rarer chests favor equipment. Base tier eligibility and rolled quality are independent, and both are fenced by depth. Every jewelry type is eligible from depth 1; its quality carries the progression. Guaranteed matching keys are placed by the level access profile separately from random loot. Lockpicks never spawn in normal floors or loot tables; the Rogue starts with two, and future shops may stock them. Other deferred tools remain outside normal loot until their mechanics are implemented.
+A source's `LootDropProfile` names its table, drop chance, roll count and item creation policy.
+Monster definitions and chest scenes reference shared profiles in
+[`scenes/items/loot/drops/`](../scenes/items/loot/drops/).
+
+Actual category weights live in the [loot table Resources](../scenes/items/loot/), and depth bounds and quantity scaling in their pools, not a second numeric table here. Common enemies favor currency/recovery; rarer chests favor equipment. Base tier eligibility and rolled quality are independent, and both are fenced by depth. Every jewelry type is eligible from depth 1; its quality carries the progression. Guaranteed matching keys are placed by the level access profile separately from random loot. Lockpicks never spawn in normal floors or loot tables; the Rogue starts with two, and future shops may stock them. Other deferred tools remain outside normal loot until their mechanics are implemented.
 
 ## Active definitions
 

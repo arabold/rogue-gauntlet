@@ -336,7 +336,7 @@ public class RoomArrangementTest
 				foreach (int id in roomIds)
 				{
 					furnishedRooms++;
-					var region = generator.RoomRegions.Single(room => room.Id == id);
+					var region = generator.Floor.Rooms.Single(room => room.Id == id);
 					foreach (var arrangement in generator.NavigationRegion.GetChildren().OfType<RoomArrangement>()
 						.Where(node => node.GetMeta("room_id").AsInt32() == id))
 						AssertBool(Pool().Entries.Single(entry => entry.Id == arrangement.GetMeta("arrangement_id").AsString())

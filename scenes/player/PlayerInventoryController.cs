@@ -8,10 +8,12 @@ using System.Linq;
 public partial class PlayerInventoryController : Node
 {
 	[Export] public Player Player { get; set; }
-	[Export] public Inventory Inventory { get; set; }
+	/// <summary>The player's runtime inventory, injected by <see cref="Player"/> when it creates the copy.</summary>
+	public Inventory Inventory { get; set; }
 	[Export] public ActionManager ActionManager { get; set; }
 	[Export] public PlayerStatsController StatsController { get; set; }
-	[Export] public Level Level { get; set; }
+	/// <summary>The level the player is in: runtime context, resolved from the tree on entry rather than authored.</summary>
+	public Level Level { get; private set; }
 	[Export] public PackedScene LootableItemScene { get; set; }
 
 	private readonly HashSet<InventoryItemSlot> _reservedSlots = new();
@@ -19,15 +21,10 @@ public partial class PlayerInventoryController : Node
 
 	public bool IsItemUseChannelActive => _reservedSlots.Count > 0;
 
+	public override void _EnterTree() => Level = this.GetAncestorOrNull<Level>();
+
 	public override void _Ready()
 	{
-		Player ??= GetOwner<Player>();
-		Inventory ??= Player.Inventory;
-		ActionManager ??= Player.ActionManager;
-		StatsController ??= Player.StatsController;
-		Level ??= this.GetAncestorOrNull<Level>();
-		LootableItemScene ??= Player.LootableItemScene;
-
 		this.SubscribeUntilExit(
 			Inventory,
 			inventory => inventory.ItemEquipped += OnItemEquipped,
@@ -45,6 +42,12 @@ public partial class PlayerInventoryController : Node
 			inventory => inventory.EquippedItemChanged += OnEquippedItemChanged,
 			inventory => inventory.EquippedItemChanged -= OnEquippedItemChanged);
 	}
+
+	/// <summary>Reading a targeted scroll far enough to pick a target reveals its type, even if the player then cancels.</summary>
+	public void BeginTargeting(Scroll scroll) => IdentifyItemType(scroll);
+
+	/// <summary>Records the item's hidden type with the run. A player outside a level (previews, harnesses) learns nothing.</summary>
+	private void IdentifyItemType(Item item) => Level?.Run.IdentifyItemType(item);
 
 	public void AutoEquipItems()
 	{
@@ -246,6 +249,8 @@ public partial class PlayerInventoryController : Node
 			if (scroll?.RequiresTarget == true) { scroll.Effect.ApplyToTarget(Player, target); }
 			else { consumable.PerformAction(Player); }
 			Inventory.RemoveItem(source, 1);
+			// Using an item reveals its type before anyone observes the consumption.
+			IdentifyItemType(consumable);
 			Inventory.NotifyConsumed(consumable);
 			SignalBus.EmitItemConsumed(Player, consumable);
 			return Report(ItemFailure.None);
@@ -265,7 +270,6 @@ public partial class PlayerInventoryController : Node
 		if (removable.Failure == ItemFailure.Cursed) { return Report(removable); }
 		if (!removable.Success) { return Report(ItemFailure.NotOwned); }
 		if (source.Item.IsQuestItem) { return Report(ItemFailure.ProtectedItem); }
-		Level ??= this.GetAncestorOrNull<Level>();
 		if (Level == null || LootableItemScene == null || ItemIdentity.ResolveScene(source.Item) == null)
 		{ return Report(ItemFailure.WorldUnavailable); }
 		// Prepare off-tree first: failure cannot remove equipment or inventory contents.
@@ -315,6 +319,8 @@ public partial class PlayerInventoryController : Node
 			Player.GuardComponent?.Cancel(ActionInterruptReason.EquipChanged);
 		item.OnEquipped(Player);
 		StatsController.SyncStats();
+		// Wearing an item reveals its type, auto-equipped starting gear included.
+		IdentifyItemType(item);
 		SignalBus.EmitItemEquipped(Player, item);
 
 		if (item is Weapon weapon && slot == EquipmentSlot.WeaponHand)

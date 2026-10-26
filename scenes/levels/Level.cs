@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 [Tool]
@@ -9,6 +11,8 @@ public partial class Level : Node
 	/// <summary>Optional scene environment whose ambient illumination follows this floor's darkness.</summary>
 	[Export] public WorldEnvironment LightingEnvironment { get; set; }
 	[Signal] public delegate void DarknessChangedEventHandler(bool isDark);
+	/// <summary>The floor could not be generated or its saved deltas could not be restored; the session decides what follows.</summary>
+	[Signal] public delegate void GenerationFailedEventHandler(string reason);
 	/// <summary>Current floor illumination override; debug changes last for this level instance only.</summary>
 	public bool IsDark { get; private set; }
 	private float _normalAmbientEnergy;
@@ -28,6 +32,8 @@ public partial class Level : Node
 
 	/// <summary>Required to generate a playable floor: it records and replays this floor's item deltas.</summary>
 	[Export] public LevelItemPersistence ItemPersistence { get; set; }
+	/// <summary>The floor's exploration and fog. Unassigned, fog is disabled and everything shows.</summary>
+	[Export] public FloorDiscovery Discovery { get; set; }
 	private Node _runtimeWorldRoot;
 	public RealmEncounterController Encounters { get; private set; }
 	public bool CanDescend => Encounters?.DescentUnlocked != false;
@@ -53,11 +59,16 @@ public partial class Level : Node
 			GD.PushError($"{Name}: assign the level's MapGenerator.");
 			return;
 		}
-
 		if (Engine.IsEditorHint())
 		{
 			return;
 		}
+
+		if (Discovery == null)
+		{
+			GD.PushError($"{Name}: assign the level's FloorDiscovery; fog is disabled.");
+		}
+		Run ??= new RunState(RunState.DefaultSeed);
 
 		if (LightingEnvironment?.Environment != null)
 		{
@@ -74,26 +85,88 @@ public partial class Level : Node
 		}
 	}
 
-	public void ConfigureGeneration(ulong seed, uint dungeonDepth)
+	/// <summary>
+	/// Sets up the next generation: the run this floor belongs to, its depth, and the saved deltas to replay onto it.
+	/// The level seed derives from the run seed and depth. Nothing under <see cref="Generate"/> reads the session.
+	/// </summary>
+	public void ConfigureGeneration(RunState run, uint depth, LevelItemDeltaSaveData savedItems, RevealedLevelSaveData savedExploration)
 	{
-		MapGenerator.Seed = seed;
-		MapGenerator.DungeonDepth = dungeonDepth;
+		Run = run;
+		MapGenerator.Seed = RunState.GetLevelSeed(run.RunSeed, depth);
+		MapGenerator.DungeonDepth = depth;
+		_savedItems = savedItems;
+		_savedExploration = savedExploration;
 	}
+
+	/// <summary>The run this floor belongs to. A level never configured (previews, harnesses, tests) plays the default run.</summary>
+	public RunState Run { get; private set; }
+	private LevelItemDeltaSaveData _savedItems;
+	private RevealedLevelSaveData _savedExploration;
+
+	/// <summary>This floor's level seed. The generator export is its single store: configured here, or authored for previews and tests.</summary>
+	public ulong Seed => MapGenerator.Seed;
+	public uint Depth => MapGenerator.DungeonDepth;
+	/// <summary>The generated floor gameplay queries; null until generation succeeds.</summary>
+	public GeneratedFloor Floor { get; private set; }
+
+	/// <summary>Recreates a reward stream without advancing generation or gameplay RNGs.</summary>
+	public RandomNumberGenerator CreateSourceLootRng(string sourceId) => MapGenerator.CreateSourceLootRng(sourceId);
 
 	/// <summary>True while an item operation is mid-commit; capturing then would record a half-applied floor.</summary>
 	public bool IsCommittingFloorChanges => ItemPersistence?.IsCommitting == true;
 
 	/// <summary>This floor's deviations from its seeded baseline; the inverse of <see cref="RestoreFloorDeltas"/>.</summary>
 	public (LevelItemDeltaSaveData Items, RevealedLevelSaveData Exploration) CaptureFloorDeltas() =>
-		(ItemPersistence.Capture(), MapGenerator.CaptureExploration());
+		(ItemPersistence.Capture(), CaptureExploration());
+
+	/// <summary>This floor's door, trap and exploration deviations from its seeded baseline; the inverse of <see cref="RestoreExploration"/>.</summary>
+	public RevealedLevelSaveData CaptureExploration()
+	{
+		if (Floor == null) throw new System.InvalidOperationException("No generated floor to capture.");
+		return new RevealedLevelSaveData
+		{
+			DungeonDepth = Depth,
+			Doors = Floor.DoorBaselines.Values.Where(pair => IsInstanceValid(pair.Door))
+				.Select(pair => (Current: pair.Door.CaptureAccess(), pair.Baseline))
+				.Where(pair => pair.Current.IsDiscovered != pair.Baseline.IsDiscovered || pair.Current.IsLocked != pair.Baseline.IsLocked
+					|| pair.Current.IsOpen != pair.Baseline.IsOpen)
+				.Select(pair => pair.Current).ToList(),
+			ExploredSamples = Discovery?.CaptureSamples() ?? [],
+			DiscoveredTrapIds = Floor.Traps.Where(trap => IsInstanceValid(trap) && trap.IsDiscovered).Select(trap => trap.PersistentId)
+				.OrderBy(id => id, System.StringComparer.Ordinal).ToList(),
+		};
+	}
+
+	/// <summary>Replays saved exploration onto the freshly generated floor. Validates everything before changing anything;
+	/// door seals follow the restored doors on their own.</summary>
+	public void RestoreExploration(RevealedLevelSaveData saved)
+	{
+		if (saved == null) return;
+		if (saved.DungeonDepth != Depth) throw new System.InvalidOperationException("Wrong exploration floor.");
+		var traps = Floor.Traps.Where(IsInstanceValid).ToDictionary(trap => trap.PersistentId);
+		if (saved.DiscoveredTrapIds.Distinct().Count() != saved.DiscoveredTrapIds.Count || saved.DiscoveredTrapIds.Any(id => !traps.ContainsKey(id)))
+			throw new System.InvalidOperationException("Unknown or duplicate saved trap discovery.");
+		var ids = new HashSet<string>();
+		foreach (var state in saved.Doors)
+		{
+			state.Validate();
+			if (!ids.Add(state.ConnectionId) || !Floor.DoorBaselines.TryGetValue(state.ConnectionId, out var pair) || !IsInstanceValid(pair.Door)
+				|| state.IsLocked && pair.Door.Lock?.Definition == null || !state.IsDiscovered && pair.Door.Secret?.IsSecret != true)
+				throw new System.InvalidOperationException("Unknown, duplicate or incompatible saved door.");
+		}
+		// Validated against the floor even without a discovery node, so a bad record never survives a save round trip.
+		DungeonDiscovery.ValidateSamples(Floor.Map, saved.ExploredSamples);
+		foreach (var state in saved.Doors) Floor.DoorBaselines[state.ConnectionId].Door.RestoreAccess(state);
+		foreach (var id in saved.DiscoveredTrapIds) traps[id].RestoreDiscovered(true);
+		Discovery?.RestoreSamples(saved.ExploredSamples);
+	}
 
 	/// <summary>Replays the session's saved deltas for this depth onto the freshly generated baseline.</summary>
 	private void RestoreFloorDeltas()
 	{
-		uint depth = MapGenerator.DungeonDepth;
 		ItemPersistence.RecordInitialBaseline();
-		ItemPersistence.Apply(GameSession.Instance?.FindLevelItemChanges(depth));
-		MapGenerator.RestoreExploration(GameSession.Instance?.GetLevelExploration(depth));
+		ItemPersistence.Apply(_savedItems);
+		RestoreExploration(_savedExploration);
 	}
 
 	public void Generate()
@@ -108,13 +181,17 @@ public partial class Level : Node
 		// Clear previous runtime spawns before rebuilding the map. This matters if a
 		// level is regenerated in place rather than replaced by a full scene reload.
 		ClearWorldNodes();
+		Floor = null;
+		Discovery?.Clear();
 		try { MapGenerator.GenerateMap(); }
 		catch (System.InvalidOperationException error)
 		{
 			GD.PushError($"Cannot generate playable floor: {error.Message}");
-			GameSession.Instance?.CallDeferred(nameof(GameSession.ReturnToMenu));
+			EmitSignal(SignalName.GenerationFailed, error.Message);
 			return;
 		}
+		Floor = MapGenerator.Floor;
+		Discovery?.Initialize(Floor);
 		ItemPersistence.Initialize(this);
 		try
 		{
@@ -123,26 +200,22 @@ public partial class Level : Node
 		catch (System.Exception error)
 		{
 			GD.PushError($"Cannot restore floor items: {error.Message}");
-			GameSession.Instance?.CallDeferred(nameof(GameSession.ReturnToMenu));
+			EmitSignal(SignalName.GenerationFailed, error.Message);
 			return;
 		}
 
-		// Live under RuntimeWorld so they are cleared and rebuilt with each
-		// generation. Exploration polls the player independently of room-entry notifications.
-		var fogOfWar = new FogOfWar { Name = "FogOfWar" };
-		AddWorldNode(fogOfWar);
-		fogOfWar.Initialize(MapGenerator);
-
+		// Lives under RuntimeWorld so it is cleared and rebuilt with each generation.
+		// Exploration polls the player independently of room-entry notifications.
 		var roomManager = new RoomManager { Name = "RoomManager" };
 		AddWorldNode(roomManager);
-		roomManager.Initialize(MapGenerator);
+		roomManager.Initialize(Floor);
 
 		Encounters = null;
-		if (MapGenerator.MobFactory is RealmEncounterFactory definition && definition.ContainsDepth(MapGenerator.DungeonDepth))
+		if (Floor.Encounter != null)
 		{
 			Encounters = new RealmEncounterController { Name = "Encounters" };
 			AddWorldNode(Encounters);
-			Encounters.Initialize(this, definition);
+			Encounters.Initialize(this, Floor.Encounter);
 		}
 
 		GD.Print("Level is ready");

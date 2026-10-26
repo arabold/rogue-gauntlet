@@ -48,8 +48,9 @@ points = PackedVector3Array(-0.23885, 0.770804, -0.392957, 0.00780376, 0.772202,
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_vrtfn"]
 height = 1.0
 
-[node name="Barrel" type="Node3D" groups=["prop"]]
+[node name="Barrel" type="Node3D" groups=["prop"] node_paths=PackedStringArray("HealthComponent")]
 script = ExtResource("1_hqi8w")
+HealthComponent = NodePath("HealthComponent")
 
 [node name="barrel_small" type="MeshInstance3D" parent="."]
 layers = 16

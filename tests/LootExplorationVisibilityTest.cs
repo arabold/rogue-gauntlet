@@ -17,9 +17,9 @@ public class LootExplorationVisibilityTest
 		pickup.Animate = false;
 		return pickup;
 	}
-	private static void Reveal(MapGenerator map, Vector3 point)
+	private static void Reveal(Level level, GeneratedFloor floor, Vector3 point)
 	{
-		TestFactories.RevealTileAt(map, point);
+		TestFactories.RevealTileAt(level.Discovery, floor.Map, point);
 		SignalBus.EmitRoomEntered(-1);
 	}
 	private static void AssertPresentation(LootableItem pickup, bool revealed)
@@ -50,16 +50,16 @@ public class LootExplorationVisibilityTest
 		AssertPresentation(pickup, false);
 		await runner.SimulateFrames(3);
 		AssertPresentation(pickup, false); // The map has not been generated yet either.
-		map.Map = new MapData(20, 20);
+		var floor = TestFactories.StartEmptyFloor(level, map);
 		await runner.SimulateFrames(3);
 		AssertPresentation(pickup, false);
 		var helpers = pickup.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>()
 			.Where(m => VisualHelper.IsHelper(m)).ToArray();
 		AssertBool(helpers.Length > 0).IsTrue(); AssertBool(helpers.All(m => !m.Visible)).IsTrue();
 		// Uncovering a neighboring cell must not expose this pickup or its tall particles.
-		Reveal(map, pickup.GlobalPosition + Vector3.Right * 4);
+		Reveal(level, floor, pickup.GlobalPosition + Vector3.Right * 4);
 		await runner.SimulateFrames(2); AssertPresentation(pickup, false);
-		Reveal(map, pickup.GlobalPosition);
+		Reveal(level, floor, pickup.GlobalPosition);
 		await runner.SimulateFrames(3); AssertPresentation(pickup, true);
 		AssertBool(helpers.Any(m => m.Visible)).IsEqual(GameDebug.LootXrayEnabled);
 		// Moving into unexplored space must suppress even previously running particles and lights.

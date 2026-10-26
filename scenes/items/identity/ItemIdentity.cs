@@ -10,7 +10,8 @@ using Godot;
 /// </summary>
 public static class ItemIdentity
 {
-	private static IdentificationService Service => GameSession.Instance?.Identification;
+	// UI-wide display has no level of its own, so it reads the session's active run: the one documented exception.
+	private static IdentificationService Service => GameSession.Instance?.Run.Identification;
 
 	/// <summary>
 	/// The model to show for <paramref name="item"/>: its type's run appearance model for the item's

@@ -75,16 +75,40 @@ public static class TestFactories
 		await runner.SimulateFrames(2); // let MapGenerator._Ready cache the child GridMaps
 
 		var mapGenerator = (MapGenerator)runner.Scene();
+		Configure(mapGenerator, layout, factory);
+		return (runner, mapGenerator);
+	}
+
+	/// <summary>
+	/// The authored level scene with its generator configured like <see cref="LoadGenerator"/>, for tests that need the
+	/// floor's runtime services: discovery and exploration saves. Regenerate with <see cref="Level.Generate"/>.
+	/// </summary>
+	public static async Task<(ISceneRunner Runner, Level Level)> LoadLevel(RoomLayoutStrategy layout, RoomFactory factory = null)
+	{
+		ISceneRunner runner = ISceneRunner.Load("res://scenes/levels/level.tscn", true);
+		await runner.SimulateFrames(2);
+		var level = (Level)runner.Scene();
+		var map = level.MapGenerator;
+		Configure(map, layout, factory);
+		map.ArrangementPool = null;
+		map.AccessProfile = null;
+		map.ChestScene = map.TrapScene = map.LooseItemScene = null;
+		map.LooseItems = null;
+		GameSession.Instance.ResetLevelDebugState(level.Depth);
+		return (runner, level);
+	}
+
+	private static void Configure(MapGenerator mapGenerator, RoomLayoutStrategy layout, RoomFactory factory)
+	{
 		mapGenerator.RoomLayout = layout;
 		mapGenerator.CorridorConnector = new AStarCorridorConnector();
 		mapGenerator.RoomFactory = factory ?? GD.Load<RoomFactory>("res://scenes/levels/dungeon/dungeon_room_factory.tres");
 		mapGenerator.MobFactory = GD.Load<MobFactory>("res://scenes/levels/dungeon/dungeon_mob_factory.tres");
 		mapGenerator.TileFactory = GD.Load<TileFactory>("res://scenes/levels/dungeon/dungeon_tile_factory.tres");
-		return (runner, mapGenerator);
 	}
 
 	/// <summary>
-	/// Wires the real chest/trap/loose-item scenes and loot table onto a generator loaded
+	/// Wires the real chest/trap/loose-item scenes and loose-item profile onto a generator loaded
 	/// via <see cref="LoadGenerator"/> -- <c>map_generator.tscn</c> itself doesn't set these
 	/// (only <c>level.tscn</c> does), so tests that exercise loot placement need this
 	/// explicitly.
@@ -94,25 +118,34 @@ public static class TestFactories
 		mapGenerator.ChestScene = GD.Load<PackedScene>("res://scenes/props/chest.tscn");
 		mapGenerator.TrapScene = GD.Load<PackedScene>("res://scenes/props/floor_trap.tscn");
 		mapGenerator.LooseItemScene = GD.Load<PackedScene>("res://scenes/items/lootable_item.tscn");
-		mapGenerator.LooseItemLootTable = GD.Load<LootTable>("res://scenes/items/loot/loot_chest_common.tres");
+		mapGenerator.LooseItems = GD.Load<LootDropProfile>("res://scenes/items/loot/drops/loose_items.tres");
 	}
 
 	/// <summary>
-	/// An ungenerated level with its map generator attached, for exploration tests. Attach
+	/// An ungenerated level with its map generator and discovery attached, for exploration tests. Attach
 	/// content first, then add the level with <see cref="AddToSceneTree{T}"/>.
 	/// </summary>
 	public static (Level Level, MapGenerator Map) UngeneratedLevel()
 	{
 		var map = GD.Load<PackedScene>("res://scenes/levels/generators/map_generator.tscn").Instantiate<MapGenerator>();
-		var level = new Level { AutoGenerateOnReady = false, MapGenerator = map };
+		var discovery = GD.Load<PackedScene>("res://scenes/levels/floor_discovery.tscn").Instantiate<FloorDiscovery>();
+		var level = new Level { AutoGenerateOnReady = false, MapGenerator = map, Discovery = discovery };
 		level.AddChild(map);
+		level.AddChild(discovery);
 		return (level, map);
 	}
 
-	/// <summary>Marks only the tile under <paramref name="point"/> explored, as a save restore would.</summary>
-	public static void RevealTileAt(MapGenerator map, Vector3 point)
+	/// <summary>Starts the level's discovery on an empty floor of the given size, as if generation had just finished.</summary>
+	public static GeneratedFloor StartEmptyFloor(Level level, MapGenerator map, int size = 20)
 	{
-		var tile = map.WorldToTile(point);
-		map.RevealTile(tile);
+		var floor = new GeneratedFloor(new MapData(size, size), map, map.FloorGridMap, map.DecorationGridMap);
+		level.Discovery.Initialize(floor);
+		return floor;
+	}
+
+	/// <summary>Marks only the tile under <paramref name="point"/> explored, as a save restore would.</summary>
+	public static void RevealTileAt(FloorDiscovery discovery, MapData map, Vector3 point)
+	{
+		discovery.RevealTiles([map.WorldToTile(point)]);
 	}
 }

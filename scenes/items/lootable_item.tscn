@@ -67,8 +67,11 @@ _data = {
 &"spin": SubResource("Animation_b0fih")
 }
 
-[node name="LootableItem" type="Node3D" groups=["prop"]]
+[node name="LootableItem" type="Node3D" groups=["prop"] node_paths=PackedStringArray("Pivot", "Trigger", "AnimationPlayer")]
 script = ExtResource("1_an4ny")
+Pivot = NodePath("Pivot")
+Trigger = NodePath("TriggerComponent")
+AnimationPlayer = NodePath("AnimationPlayer")
 
 [node name="Pivot" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

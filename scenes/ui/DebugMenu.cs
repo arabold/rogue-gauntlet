@@ -48,6 +48,7 @@ public partial class DebugMenu : HBoxContainer
 
 	/// <summary>Gameplay floor controlled by this menu, explicitly wired by the containing scene.</summary>
 	[Export] public Level ActiveLevel { get; set; }
+	private NavigationDebugOverlay _navigationOverlay;
 
 	private readonly List<Item> _spawnableItems = [];
 
@@ -232,7 +233,7 @@ public partial class DebugMenu : HBoxContainer
 		var item = (EquipableItem)ItemFactory.Create(definition);
 		var rng = new RandomNumberGenerator();
 		rng.Randomize();
-		LootRoller.ApplyRoll(item, GetLevel()?.MapGenerator?.DungeonDepth ?? 1, rng, SpawnPolicy,
+		LootRoller.ApplyRoll(item, ActiveLevel?.Depth ?? 1, rng, SpawnPolicy,
 			_spawnQuality ?? ItemQuality.Normal, _spawnCursed);
 		return item;
 	}
@@ -317,7 +318,7 @@ public partial class DebugMenu : HBoxContainer
 				SignalBus.EmitXraySettingsChanged();
 				break;
 			case ToggleDarkLevelId:
-				var level = GetLevel();
+				var level = ActiveLevel;
 				level?.SetDark(!level.IsDark);
 				RefreshDarkLevel();
 				break;
@@ -344,7 +345,7 @@ public partial class DebugMenu : HBoxContainer
 		}
 
 		Player player = GetPlayer();
-		Level level = GetLevel();
+		Level level = ActiveLevel;
 		if (player == null || level == null || player.LootableItemScene == null)
 		{
 			GD.PrintErr("Cannot spawn item without an active player, level, and lootable item scene.");
@@ -357,7 +358,7 @@ public partial class DebugMenu : HBoxContainer
 		lootableItem.WaitForPlayerExited = true;
 
 		Vector3 origin = player.GlobalPosition - player.GlobalTransform.Basis.Z.Normalized() * 2.0f;
-		Vector3 spawnPosition = level.MapGenerator?.FindFreeSpawnPositionNear(origin) ?? origin;
+		Vector3 spawnPosition = level.Floor?.FindFreePositionNear(origin) ?? origin;
 		level.AddWorldNode(lootableItem, spawnPosition);
 	}
 
@@ -402,7 +403,16 @@ public partial class DebugMenu : HBoxContainer
 			}
 		}
 
-		GetLevel()?.MapGenerator?.SetNavigationDebugVisible(enabled);
+		// Rebuilt on every enable, so the overlay follows the current bake and door states.
+		if (IsInstanceValid(_navigationOverlay))
+		{
+			_navigationOverlay.QueueFree();
+		}
+		_navigationOverlay = enabled ? NavigationDebugOverlay.Build(ActiveLevel?.MapGenerator.NavigationRegion) : null;
+		if (_navigationOverlay != null)
+		{
+			ActiveLevel.AddWorldNode(_navigationOverlay);
+		}
 
 		SetChecked(ToggleNavigationId, enabled);
 	}
@@ -431,14 +441,14 @@ public partial class DebugMenu : HBoxContainer
 	/// <summary>Read the active level on opening so the checkbox follows level changes and external overrides.</summary>
 	private void RefreshDarkLevel()
 	{
-		var level = GetLevel();
+		var level = ActiveLevel;
 		_debugMenu.SetItemDisabled(_debugMenu.GetItemIndex(ToggleDarkLevelId), level == null);
 		SetChecked(ToggleDarkLevelId, level?.IsDark == true);
 	}
 
 	private void RevealMap()
 	{
-		GetLevel()?.MapGenerator?.RevealAllFog();
+		ActiveLevel?.Discovery?.RevealAll();
 	}
 
 	private void RestartLevel()
@@ -481,11 +491,6 @@ public partial class DebugMenu : HBoxContainer
 		int nodes = (int)Performance.GetMonitor(Performance.Monitor.ObjectNodeCount);
 		int drawCalls = (int)Performance.GetMonitor(Performance.Monitor.RenderTotalDrawCallsInFrame);
 		return $"Enemies: {enemies}  Nodes: {nodes}  Draw: {drawCalls}\n{ScenePool.GetDebugSummary()}";
-	}
-
-	private Level GetLevel()
-	{
-		return ActiveLevel ?? this.GetAncestorOrNull<Level>() ?? GetTree().CurrentScene?.GetNodeOrNull<Level>("Level");
 	}
 
 	private void UpdateFpsLabel()

@@ -6,6 +6,7 @@
 
 [sub_resource type="Resource" id="Modifier"]
 script = ExtResource("mod")
+Value = 6.0
 metadata/_custom_type_script = ExtResource("mod")
 
 [sub_resource type="Resource" id="Buff"]

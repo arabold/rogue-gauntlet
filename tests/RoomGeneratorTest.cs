@@ -198,7 +198,7 @@ public class RoomGeneratorTest
 					AssertBool(ends[0].GetDirectionVectors().Single() == -ends[1].GetDirectionVectors().Single()).IsTrue();
 					foreach (var marker in ends)
 					{
-						var tile = generator.WorldToTile(marker.GlobalPosition);
+						var tile = generator.Map.WorldToTile(marker.GlobalPosition);
 						var outside = tile + marker.GetDirectionVectors().Single();
 						AssertBool(generator.Map.IsDoorway(tile.X, tile.Y)).IsTrue();
 						AssertBool(generator.Map.IsCorridor(outside.X, outside.Y)).IsTrue();
@@ -207,7 +207,7 @@ public class RoomGeneratorTest
 				var arrangements = generator.NavigationRegion.GetChildren().OfType<RoomArrangement>().ToArray();
 				foreach (var arrangement in arrangements.Where(a => !a.GetMeta("is_room_detail", false).AsBool()))
 				{
-					var region = generator.RoomRegions.Single(r => r.Id == arrangement.GetMeta("room_id").AsInt32());
+					var region = generator.Floor.Rooms.Single(r => r.Id == arrangement.GetMeta("room_id").AsInt32());
 					AssertObject(region.InteriorPool).IsNotNull();
 					var definition = region.InteriorPool.Entries.Single(d => d.Id == arrangement.GetMeta("arrangement_id").AsString());
 					if (region.Purpose == RoomPurpose.GreatHall) AssertBool(definition.Placement == ArrangementPlacement.Wall).IsTrue();

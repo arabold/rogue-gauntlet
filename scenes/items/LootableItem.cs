@@ -46,7 +46,9 @@ public partial class LootableItem : Node3D
 	/// </summary>
 	public bool WaitForPlayerExited = false;
 
-	public Node3D Pivot;
+	[Export] public Node3D Pivot;
+	[Export] private TriggerComponent Trigger { get; set; }
+	[Export] private AnimationPlayer AnimationPlayer { get; set; }
 
 	private Player _player;
 	private ExplorationVisibility _exploration;
@@ -64,6 +66,21 @@ public partial class LootableItem : Node3D
 
 	[Export] public ItemCreationPolicy CreationPolicy { get; set; }
 	private bool _pickupBlocked;
+	private Level _level;
+
+	public override void _EnterTree() => _level = this.GetAncestorOrNull<Level>();
+
+	/// <summary>
+	/// Turns an authored pickup's definition into this floor's instance, rolled from the level's item stream so the
+	/// same seed restores the same item. Outside a level there is no stream to roll from, so it stays unrolled.
+	/// </summary>
+	private Item CreateAuthoredInstance()
+	{
+		if (_level == null) return ItemFactory.Create(Item);
+		string source = HasMeta("persistent_id") ? GetMeta("persistent_id").AsString() : GetPath().ToString();
+		using var rng = GenerationRandom.Create(_level.Seed, GenerationRandom.Items, source);
+		return ItemFactory.Create(Item, CreationPolicy, _level.Depth, rng, HasMeta("persistent_id") ? source + ":0" : null);
+	}
 
 	public override void _Ready()
 	{
@@ -71,9 +88,8 @@ public partial class LootableItem : Node3D
 
 		if (!Engine.IsEditorHint())
 		{
-			var trigger = GetNode<TriggerComponent>("TriggerComponent");
-			trigger.WaitForBodyExited = WaitForPlayerExited;
-			trigger.Triggered += OnTriggered;
+			Trigger.WaitForBodyExited = WaitForPlayerExited;
+			Trigger.Triggered += OnTriggered;
 		}
 
 		if (Item == null)
@@ -93,14 +109,8 @@ public partial class LootableItem : Node3D
 		{
 			if (Quantity <= 0 || Quantity > (Item.CanStack ? Item.MaxStackSize : 1))
 			{ GD.PushError("Authored pickup must fit a single valid item record."); QueueFree(); return; }
-			var level = this.GetAncestorOrNull<Level>();
-			string source = HasMeta("persistent_id") ? GetMeta("persistent_id").AsString() : GetPath().ToString();
-			using var rng = GenerationRandom.Create(level?.MapGenerator.Seed ?? 42, GenerationRandom.Items, source);
-			Item = ItemFactory.Create(Item, CreationPolicy, level?.MapGenerator.DungeonDepth ?? 1, rng,
-				HasMeta("persistent_id") ? source + ":0" : null);
+			Item = CreateAuthoredInstance();
 		}
-
-		Pivot = GetNode<Node3D>("Pivot");
 
 		// Identifiable items show their type's run appearance model, identified or not.
 		var itemScene = ItemIdentity.ResolveScene(Item).Instantiate<Node>();
@@ -124,8 +134,7 @@ public partial class LootableItem : Node3D
 		}
 		else if (Animate)
 		{
-			var animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
-			animationPlayer.Play("spin");
+			AnimationPlayer.Play("spin");
 		}
 	}
 

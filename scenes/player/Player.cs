@@ -20,40 +20,46 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 	[Export] public ActorCapabilities Capabilities { get; set; }
 	/// <summary>The player as an interaction actor: who acts, what they may do and what they carry.</summary>
 	public ActorInteractionContext InteractionContext => new(this, Capabilities, Inventory);
-	public ActorActionGateComponent ActionGate { get; protected set; }
-	public PlayerQuickItemController QuickItemController { get; protected set; }
-	public ActorInteractionComponent InteractionComponent { get; protected set; }
-	public DodgeComponent DodgeComponent { get; protected set; }
-	public GuardComponent GuardComponent { get; protected set; }
+	[Export] public ActorActionGateComponent ActionGate { get; protected set; }
+	[Export] public PlayerQuickItemController QuickItemController { get; protected set; }
+	[Export] public ActorInteractionComponent InteractionComponent { get; protected set; }
+	/// <summary>Optional: without it the player cannot dodge.</summary>
+	[Export] public DodgeComponent DodgeComponent { get; protected set; }
+	/// <summary>Optional: without it the player cannot guard.</summary>
+	[Export] public GuardComponent GuardComponent { get; protected set; }
 	public bool TryStagger(float duration)
 	{
 		return ActionGate?.TryStagger(duration) ?? false;
 	}
 	public string CurrentActionId => ActionManager?.CurrentAnimationId;
 
-	public HealthComponent HealthComponent { get; protected set; }
-	public HurtBoxComponent HurtBoxComponent { get; protected set; }
-	public MovementComponent MovementComponent { get; protected set; }
-	public InputComponent InputComponent { get; protected set; }
-	public ActionManager ActionManager { get; protected set; }
-	public BuffController BuffController { get; protected set; }
-	public PlayerInteractionController InteractionController { get; protected set; }
-	public PlayerStatsController StatsController { get; protected set; }
-	public PlayerInventoryController InventoryController { get; protected set; }
-	public PlayerInputController InputController { get; protected set; }
-	public PlayerAttackController AttackController { get; protected set; }
+	[Export] public HealthComponent HealthComponent { get; protected set; }
+	[Export] public HurtBoxComponent HurtBoxComponent { get; protected set; }
+	[Export] public MovementComponent MovementComponent { get; protected set; }
+	[Export] public InputComponent InputComponent { get; protected set; }
+	[Export] public ActionManager ActionManager { get; protected set; }
+	[Export] public BuffController BuffController { get; protected set; }
+	[Export] public PlayerInteractionController InteractionController { get; protected set; }
+	[Export] public PlayerStatsController StatsController { get; protected set; }
+	[Export] public PlayerInventoryController InventoryController { get; protected set; }
+	[Export] public PlayerInputController InputController { get; protected set; }
+	[Export] public PlayerAttackController AttackController { get; protected set; }
 
-	public InteractionArea InteractionArea { get; protected set; }
+	[Export] public InteractionArea InteractionArea { get; protected set; }
 
-	private Node3D _pivot;
-	private AnimationTree _animationTree;
+	[Export] private Node3D Pivot { get; set; }
+	/// <summary>The current character model under <see cref="Pivot"/>; a class swaps it on spawn.</summary>
+	[Export] private Node3D CharacterModelNode { get; set; }
+	[Export] private AnimationTree AnimationTree { get; set; }
+	[Export] private BoneAttachmentManager AttachmentManager { get; set; }
 	private AnimationNodeStateMachinePlayback _animationStateMachine;
-	private BoneAttachmentManager _attachmentManager;
 	private bool _hasRuntimeState;
+	private Level _level;
 
 	public override void _EnterTree()
 	{
 		base._EnterTree();
+		_level = this.GetAncestorOrNull<Level>();
 		if (_hasRuntimeState)
 		{
 			return;
@@ -77,6 +83,9 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 			Inventory = Inventory.CreateRuntimeCopy();
 		}
 
+		// The controllers act on this runtime copy, never on the authored inventory, so it is injected rather than wired.
+		InventoryController.Inventory = Inventory;
+		QuickItemController.Inventory = Inventory;
 		_hasRuntimeState = true;
 	}
 
@@ -89,89 +98,31 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 	/// </summary>
 	private void ApplyCharacterModel(CharacterClass characterClass)
 	{
-		Node3D pivot = GetNode<Node3D>("Pivot");
-		Node3D oldCharacter = pivot.GetNode<Node3D>("Character");
+		Node3D oldCharacter = CharacterModelNode;
 		Node3D newCharacter = CharacterModel.Instantiate(characterClass);
-		newCharacter.Name = "Character";
+		// The AnimationTree's root path names the model, so the replacement keeps its name.
+		newCharacter.Name = oldCharacter.Name;
 		newCharacter.Transform = oldCharacter.Transform;
 		int childIndex = oldCharacter.GetIndex();
-		pivot.RemoveChild(oldCharacter);
+		Pivot.RemoveChild(oldCharacter);
 		oldCharacter.QueueFree();
-		pivot.AddChild(newCharacter);
-		pivot.MoveChild(newCharacter, childIndex);
+		Pivot.AddChild(newCharacter);
+		Pivot.MoveChild(newCharacter, childIndex);
+		CharacterModelNode = newCharacter;
 
-		var attachmentManager = GetNode<BoneAttachmentManager>("BoneAttachmentManager");
-		attachmentManager.AttachmentNodes = CharacterModel.ResolveAttachments(newCharacter, characterClass);
+		AttachmentManager.AttachmentNodes = CharacterModel.ResolveAttachments(newCharacter, characterClass);
 	}
 
 	public override void _Ready()
 	{
 		base._Ready();
 
-		_pivot = GetNode<Node3D>("Pivot");
-		_attachmentManager = GetNode<BoneAttachmentManager>("BoneAttachmentManager");
-		_animationTree = GetNode<AnimationTree>("AnimationTree");
-		_animationStateMachine = (AnimationNodeStateMachinePlayback)_animationTree.Get("parameters/playback");
+		_animationStateMachine = (AnimationNodeStateMachinePlayback)AnimationTree.Get("parameters/playback");
 		_animationStateMachine.Start("Idle");
 
-		ActionManager = GetNode<ActionManager>("ActionManager");
-		MovementComponent = GetNode<MovementComponent>("MovementComponent");
-		InputComponent = GetNode<InputComponent>("InputComponent");
-		HealthComponent = GetNode<HealthComponent>("HealthComponent");
-		HurtBoxComponent = GetNode<HurtBoxComponent>("HurtBoxComponent");
-		BuffController = GetNode<BuffController>("BuffController");
-		InteractionController = GetNode<PlayerInteractionController>("PlayerInteractionController");
-		StatsController = GetNode<PlayerStatsController>("PlayerStatsController");
-		InventoryController = GetNode<PlayerInventoryController>("PlayerInventoryController");
-		InputController = GetNode<PlayerInputController>("PlayerInputController");
-		AttackController = GetNode<PlayerAttackController>("PlayerAttackController");
-		AttackController.ConfigureRandom(GenerationRandom.DeriveSeed(GameSession.Instance?.ActiveSeed ?? 42, "combat.attack", "player"));
-		ActionGate = GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
-		if (ActionGate == null)
-		{
-			ActionGate = new ActorActionGateComponent { Name = "ActorActionGateComponent" };
-			AddChild(ActionGate);
-		}
-		MovementComponent.ActionGate = ActionGate;
+		// A player outside a level (previews, harnesses) plays the default run.
+		AttackController.ConfigureRandom(GenerationRandom.DeriveSeed(_level?.Run.RunSeed ?? RunState.DefaultSeed, "combat.attack", "player"));
 		HealthComponent.Died += () => ActionGate.Disable();
-		QuickItemController = GetNodeOrNull<PlayerQuickItemController>("PlayerQuickItemController");
-		if (QuickItemController == null)
-		{
-			QuickItemController = new PlayerQuickItemController { Name = "PlayerQuickItemController" };
-			AddChild(QuickItemController);
-		}
-		InteractionComponent = GetNodeOrNull<ActorInteractionComponent>("ActorInteractionComponent");
-		if (InteractionComponent == null)
-		{
-			InteractionComponent = new ActorInteractionComponent { Name = "ActorInteractionComponent", Actor = this, ActionGate = ActionGate };
-			AddChild(InteractionComponent);
-		}
-		Capabilities ??= new ActorCapabilities
-		{
-			CanOpenDoors = true,
-			CanOpenContainers = true,
-			CanUseMechanisms = true,
-			CanPickMechanicalLocks = true,
-
-
-		};
-
-		DodgeComponent = GetNodeOrNull<DodgeComponent>("DodgeComponent");
-		if (DodgeComponent != null)
-		{
-			DodgeComponent.Actor ??= this;
-			DodgeComponent.MovementComponent ??= MovementComponent;
-			DodgeComponent.ActionGate ??= ActionGate;
-			DodgeComponent.DodgeDef ??= Capabilities?.InnateDodge;
-		}
-
-		GuardComponent = GetNodeOrNull<GuardComponent>("GuardComponent");
-		if (GuardComponent != null)
-		{
-			GuardComponent.Actor ??= this;
-			GuardComponent.MovementComponent ??= MovementComponent;
-			GuardComponent.ActionGate ??= ActionGate;
-		}
 		HurtBoxComponent?.RegisterDefenseEvaluator(DodgeComponent);
 		HurtBoxComponent?.RegisterDefenseEvaluator(GuardComponent);
 
@@ -189,7 +140,6 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 			};
 		}
 
-		InteractionArea = GetNode<InteractionArea>("InteractionArea");
 		InventoryController.AutoEquipItems();
 
 		// Configure Player's HurtBox to only take damage from Enemies, Bosses, Traps, and environmental hazards

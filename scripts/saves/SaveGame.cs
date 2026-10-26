@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 40;
+	public const int CurrentVersion = 41;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -98,7 +98,6 @@ public sealed class PlayerStatsSaveData
 	public int Xp { get; set; }
 	public int XpLevel { get; set; }
 	public int Gold { get; set; }
-	public int DungeonDepth { get; set; }
 
 	// Primary attributes with standard new-character defaults.
 	public float BaseStrength { get; set; } = 10;

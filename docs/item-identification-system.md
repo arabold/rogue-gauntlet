@@ -33,7 +33,7 @@ The effect side already exists and is unchanged:
   effect through `OnApply` / `OnTick` / `OnRemove`, applied via `BuffController`. See
   [stats & itemization](stats-and-itemization.md) for the modifier model.
 - Inventory persists runtime items by their definition provenance and instance ID; the run `Seed` lives in
-  `GameSession` / `SaveGame`.
+  `RunState` / `SaveGame`.
 - `SignalBus.ItemConsumed(player, item)` already fires when a consumable is used.
 
 Identification adds a **disguise layer** on top: a stable type id, a pool of
@@ -56,7 +56,7 @@ has been discovered.
     Equipment names are then led by their visible quality word: the Poor or Superior adjective, "magic"
     or "rare", and nothing for Normal.
   - `AppearanceForm`: which of the appearance's models this item shows, a potion's bottle size.
-- `IdentificationService`: per-run state owned by `GameSession`. Resolves
+- `IdentificationService`: per-run state owned by the run's `RunState`. Resolves
   appearances and tracks discovery.
 
 ### Appearance assignment
@@ -84,9 +84,9 @@ category.
 - `GetIdentifiedTypeIds()` / `GetAssignmentDescriptors()`: the discovered ids and the
   current type→descriptor assignment, for persistence.
 
-Discovery is driven by existing events: `GameSession` (or a small listener) hooks
-`SignalBus.ItemConsumed`, calls `Identify(item.TypeId)`, and re-emits so the
-inventory relabels. A future "scroll of identify" calls `Identify` directly.
+Discovery is driven by the player's own item operations: the inventory controller identifies
+what it consumes or equips through the run, which re-emits so the inventory relabels. The scroll
+of identify calls the same `IdentifyItemType` directly.
 
 Identity is **type-level**, not instance-level, so item stacking and inventory
 saving are unaffected: two unidentified potions of the same type stack normally,
@@ -103,7 +103,7 @@ black potion" renames it "Small Potion of Poison" but leaves the bottle as it lo
 - **Inventory / labels**: `ItemIdentity.ResolveDisplayName(item)` returns the disguised
   descriptor name until identified, then the true name. It surfaces as the item slot's
   hover tooltip and the title of the inventory context menu. When a type is discovered,
-  `GameSession` emits `SignalBus.ItemIdentified`; each `ItemSlotPanel` listens and
+  the run's `RunState` emits `SignalBus.ItemIdentified`; each `ItemSlotPanel` listens and
   relabels, so every stack of that type reveals at once. The model is the same
   either way.
 - **World, preview and action-bar model**: `ItemIdentity.ResolveScene(item)` returns the
@@ -112,9 +112,11 @@ black potion" renames it "Small Potion of Poison" but leaves the bottle as it lo
   `BoneAttachmentManager` all show it, so world, inventory and labels stay consistent. Identity
   definitions leave their own `Scene` empty, so no model is tied to a type; pickup, drop and
   equip check the resolved model instead. `ItemCatalogTest` enforces this.
-- **Running a scene directly**: `GameSession.Identification` initializes itself from the
-  default seed on first use when no run was started or loaded, so a directly run `main.tscn`
-  shows disguises exactly like a run started from the menu, and nothing loads at boot.
+- **Running a scene directly**: `GameSession.Run` creates the default run on first use when none
+  was started or loaded, and its `Identification` initializes itself from that seed on first use,
+  so a directly run `main.tscn` shows disguises exactly like a run started from the menu, and
+  nothing loads at boot. `ItemIdentity` reads the session's run for UI-wide display; gameplay
+  reads the same run through its `Level`.
 
 ### Model and size: two independent channels
 
@@ -219,8 +221,10 @@ both are saved with the item:
 | Scroll of Remove Curse | – | – | ✓ (lifted) |
 
 Run-wide and per-item knowledge have separate owners:
-- **Types:** `GameSession.IdentifyItemType(item)` records type discovery for consuming
-  (`ItemConsumed`), wearing (`ItemEquipped`) and the scroll of identify. It emits
+- **Types:** `RunState.IdentifyItemType(item)` records type discovery. `PlayerInventoryController`
+  calls it when an item is consumed (before `ItemConsumed` is emitted), when one is equipped
+  (auto-equipped starting gear included) and when a targeted scroll is read far enough to pick a
+  target; the scroll of identify calls it for its target. It emits
   `SignalBus.ItemIdentified(typeId)`, and every open item slot relabels.
 - **One item:** each `EquipableItem` owns what is known about it.
   - `RevealAttributes()` runs from `OnEquipped`, from the scroll of identify and from enchanting.
@@ -281,15 +285,14 @@ because the neck has one slot and the hands two. Rings use `ValidSlots = LeftRin
 models come from the run appearance (the Asset Studio rings and amulets in
 `scenes/items/jewelry/ring/` and `amulet/`).
 
-Wearing jewelry identifies its type and its own attributes for free: `GameSession` subscribes
-`SignalBus.ItemEquipped += (player, item) => IdentifyItemType(item)` in `_Ready`, the same hook
-that identifies consumed items, and `EquipableItem.OnEquipped` reveals the item's attributes.
+Wearing jewelry identifies its type and its own attributes for free: the inventory controller's
+equip hook identifies the type, as its consume hook does for consumed items, and
+`EquipableItem.OnEquipped` reveals the item's attributes.
 
 ## Rollout (complete)
 
 1. **Framework**: `ItemAppearance`, `AppearancePool`, `IdentifiableItem`, `IIdentifiable`,
-   `IdentificationService`; save field (version bump); `GameSession.IdentifyItem` wired to
-   both `ItemConsumed` and `ItemEquipped`.
+   `IdentificationService`; save field (version bump); type discovery on consume and equip.
 2. **Potions**: `potion_appearances.tres` (11 colors × three sizes); nine types in three sizes
    each (see [Potion Effects](#potion-effects)).
 3. **Scrolls**: `ScrollEffect`/`Scroll`, `scroll_appearances.tres` (gibberish titles),

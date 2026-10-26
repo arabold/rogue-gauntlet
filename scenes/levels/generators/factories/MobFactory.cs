@@ -17,5 +17,7 @@ public abstract partial class MobFactory : Resource
 		}
 		return result;
 	}
+	/// <summary>The floor's special encounters, or null when it has none. Decided before generation places anything.</summary>
+	public virtual EncounterPlan PlanEncounters(uint depth) => null;
 	public virtual void Reset() { }
 }

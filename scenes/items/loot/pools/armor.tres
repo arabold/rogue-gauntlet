@@ -1,0 +1,233 @@
+[gd_resource type="Resource" script_class="LootPool" load_steps=60 format=3]
+
+[ext_resource type="Script" path="res://scenes/components/LootPool.cs" id="pool"]
+[ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tier_depth_bands.tres" id="bands"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_aegis_gold.tres" id="item_shield_aegis_gold"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_buckler_spiked.tres" id="item_shield_buckler_spiked"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_dragon_scale.tres" id="item_shield_dragon_scale"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_heater_iron.tres" id="item_shield_heater_iron"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_heroic_quarters.tres" id="item_shield_heroic_quarters"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_heroic_sun.tres" id="item_shield_heroic_sun"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_iron_tower.tres" id="item_shield_iron_tower"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_kite_crusader.tres" id="item_shield_kite_crusader"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_round_wood.tres" id="item_shield_round_wood"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_royal_crown.tres" id="item_shield_royal_crown"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_royal_lily.tres" id="item_shield_royal_lily"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_scutum_wood.tres" id="item_shield_scutum_wood"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_wood_simple.tres" id="item_shield_wood_simple"]
+[ext_resource type="Resource" uid="uid://cqdfgea0e6iwr" path="res://scenes/items/armor/shield_badge.tres" id="item_shield_badge"]
+[ext_resource type="Resource" uid="uid://kgk80xoii6kd" path="res://scenes/items/armor/shield_badge_color.tres" id="item_shield_badge_color"]
+[ext_resource type="Resource" uid="uid://6ryjigdys0sw" path="res://scenes/items/armor/shield_badge_spikes.tres" id="item_shield_badge_spikes"]
+[ext_resource type="Resource" uid="uid://bfb3phrx3qf0t" path="res://scenes/items/armor/shield_badge_spikes_red.tres" id="item_shield_badge_spikes_red"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_common.tres" id="item_shield_common"]
+[ext_resource type="Resource" uid="uid://uh4368ubd16l" path="res://scenes/items/armor/shield_large_skull.tres" id="item_shield_large_skull"]
+[ext_resource type="Resource" uid="uid://b3uaf6x2561vr" path="res://scenes/items/armor/shield_large_spikes.tres" id="item_shield_large_spikes"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_rare.tres" id="item_shield_rare"]
+[ext_resource type="Resource" uid="uid://cwxiym2epfskd" path="res://scenes/items/armor/shield_round_blue.tres" id="item_shield_round_blue"]
+[ext_resource type="Resource" uid="uid://b6piy51qeve40" path="res://scenes/items/armor/shield_round_common.tres" id="item_shield_round_common"]
+[ext_resource type="Resource" uid="uid://blgp6vsl5gs22" path="res://scenes/items/armor/shield_round_old.tres" id="item_shield_round_old"]
+[ext_resource type="Resource" uid="uid://bfupq3j33nceb" path="res://scenes/items/armor/shield_round_red.tres" id="item_shield_round_red"]
+[ext_resource type="Resource" uid="uid://d0ped1vfmlucw" path="res://scenes/items/armor/shield_square.tres" id="item_shield_square"]
+[ext_resource type="Resource" uid="uid://sg2evoroonef" path="res://scenes/items/armor/shield_square_red.tres" id="item_shield_square_red"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_uncommon.tres" id="item_shield_uncommon"]
+
+[sub_resource type="Resource" id="Entry_shield_aegis_gold"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_aegis_gold")
+MinDepth = 19
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_buckler_spiked"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_buckler_spiked")
+MinDepth = 4
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_dragon_scale"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_dragon_scale")
+MinDepth = 19
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_heater_iron"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_heater_iron")
+MinDepth = 10
+MaxDepth = 18
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_heroic_quarters"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_heroic_quarters")
+MinDepth = 10
+MaxDepth = 18
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_heroic_sun"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_heroic_sun")
+MinDepth = 16
+MaxDepth = 21
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_iron_tower"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_iron_tower")
+MinDepth = 10
+MaxDepth = 18
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_kite_crusader"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_kite_crusader")
+MinDepth = 16
+MaxDepth = 21
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_round_wood"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_round_wood")
+MinDepth = 1
+MaxDepth = 6
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_royal_crown"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_royal_crown")
+MinDepth = 16
+MaxDepth = 21
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_royal_lily"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_royal_lily")
+MinDepth = 16
+MaxDepth = 21
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_scutum_wood"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_scutum_wood")
+MinDepth = 4
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_wood_simple"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_wood_simple")
+MinDepth = 1
+MaxDepth = 6
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_badge"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_badge")
+MinDepth = 1
+MaxDepth = 6
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_badge_color"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_badge_color")
+MinDepth = 1
+MaxDepth = 6
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_badge_spikes"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_badge_spikes")
+MinDepth = 4
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_badge_spikes_red"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_badge_spikes_red")
+MinDepth = 4
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_common"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_common")
+MinDepth = 1
+MaxDepth = 6
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_large_skull"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_large_skull")
+MinDepth = 4
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_large_spikes"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_large_spikes")
+MinDepth = 4
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_rare"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_rare")
+MinDepth = 16
+MaxDepth = 21
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_round_blue"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_round_blue")
+MinDepth = 1
+MaxDepth = 6
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_round_common"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_round_common")
+MinDepth = 1
+MaxDepth = 6
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_round_old"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_round_old")
+MinDepth = 1
+MaxDepth = 6
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_round_red"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_round_red")
+MinDepth = 1
+MaxDepth = 6
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_square"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_square")
+MinDepth = 4
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_square_red"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_square_red")
+MinDepth = 4
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_shield_uncommon"]
+script = ExtResource("entry")
+Item = ExtResource("item_shield_uncommon")
+MinDepth = 10
+MaxDepth = 18
+metadata/_custom_type_script = ExtResource("entry")
+
+[resource]
+script = ExtResource("pool")
+Items = [SubResource("Entry_shield_aegis_gold"), SubResource("Entry_shield_buckler_spiked"), SubResource("Entry_shield_dragon_scale"), SubResource("Entry_shield_heater_iron"), SubResource("Entry_shield_heroic_quarters"), SubResource("Entry_shield_heroic_sun"), SubResource("Entry_shield_iron_tower"), SubResource("Entry_shield_kite_crusader"), SubResource("Entry_shield_round_wood"), SubResource("Entry_shield_royal_crown"), SubResource("Entry_shield_royal_lily"), SubResource("Entry_shield_scutum_wood"), SubResource("Entry_shield_wood_simple"), SubResource("Entry_shield_badge"), SubResource("Entry_shield_badge_color"), SubResource("Entry_shield_badge_spikes"), SubResource("Entry_shield_badge_spikes_red"), SubResource("Entry_shield_common"), SubResource("Entry_shield_large_skull"), SubResource("Entry_shield_large_spikes"), SubResource("Entry_shield_rare"), SubResource("Entry_shield_round_blue"), SubResource("Entry_shield_round_common"), SubResource("Entry_shield_round_old"), SubResource("Entry_shield_round_red"), SubResource("Entry_shield_square"), SubResource("Entry_shield_square_red"), SubResource("Entry_shield_uncommon")]
+TierBands = ExtResource("bands")
+metadata/_custom_type_script = ExtResource("pool")

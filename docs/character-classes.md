@@ -37,7 +37,7 @@ Everything is designer-authored resources under `scenes/player/classes/`:
 All starting equipment is first-tier (T1), Normal quality at its authored values; better gear comes from the dungeon.
 
 Only the Mage starts with a healing potion, pre-identified via
-`GameSession.Identification.Identify("potion.healing")` (`PreIdentifiedTypeIds` on its
+`GameSession.Run.Identification.Identify("potion.healing")` (`PreIdentifiedTypeIds` on its
 `CharacterClass`). The other three classes start without one and must identify healing
 potions the normal way — a deliberate balance choice, not a limitation of the system;
 any class's `.tres` can add `StartingItems`/`PreIdentifiedTypeIds` entries the same way.

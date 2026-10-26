@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/enemies/MonsterDefinition.cs" id="definition"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_behavior.tres" id="behavior"]
-[ext_resource type="Resource" path="res://scenes/items/loot/loot_enemy_common.tres" id="loot"]
+[ext_resource type="Resource" path="res://scenes/items/loot/drops/enemy_common.tres" id="loot"]
 
 [resource]
 script = ExtResource("definition")
@@ -11,5 +11,5 @@ DisplayName = "Melee Example"
 MaxHealth = 8.0
 MoveSpeed = 3.0
 XpReward = 2
-LootTable = ExtResource("loot")
+Loot = ExtResource("loot")
 Behavior = ExtResource("behavior")

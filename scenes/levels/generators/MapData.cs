@@ -19,6 +19,9 @@ public class MapData
 {
     private static readonly IReadOnlyList<Vector2I> EmptyConnectorDirections = System.Array.Empty<Vector2I>();
 
+    /// <summary>The four edge neighbors of a tile.</summary>
+    public static readonly IReadOnlyList<Vector2I> CardinalOffsets = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)];
+
     public int Width { get; }
     public int Height { get; }
     public MapTile[,] Tiles { get; }
@@ -129,6 +132,19 @@ public class MapData
     }
 
     /// <summary>
+    /// World position of a tile's center. The generator sits at the world origin with the
+    /// map centered on it, so this is also the GridMap cell the tile's content is anchored at.
+    /// </summary>
+    public Vector3I TileToWorld(int x, int z) => new((x - Width / 2) * Room.TileSize, 0, (z - Height / 2) * Room.TileSize);
+
+    public Vector3I TileToWorld(Vector2I tile) => TileToWorld(tile.X, tile.Y);
+
+    /// <summary>The tile containing a world position; the inverse of <see cref="TileToWorld(int,int)"/>.</summary>
+    public Vector2I WorldToTile(Vector3 world) => new(
+        Mathf.RoundToInt(world.X / Room.TileSize) + Width / 2,
+        Mathf.RoundToInt(world.Z / Room.TileSize) + Height / 2);
+
+    /// <summary>
     /// Checks if the given cell is on the boundary of the map.
     /// </summary>
     public bool IsOnBoundary(int x, int y)
@@ -205,4 +221,7 @@ public class MapData
     public bool IsEmpty(int x, int y) => Tiles[x, y] == MapTile.Empty;
     public bool IsWallOrEmpty(int x, int y) => IsEmpty(x, y) || IsWall(x, y);
     public bool IsWalkable(int x, int y) => IsRoom(x, y) || IsConnector(x, y) || IsCorridor(x, y);
+
+    /// <summary>Playable surfaces exploration can uncover, chasms included; everything else is void that stays capped.</summary>
+    public bool IsExplorable(int x, int y) => IsWithinBounds(x, y) && (IsWalkable(x, y) || IsChasm(x, y));
 }

@@ -1,0 +1,86 @@
+[gd_resource type="Resource" script_class="LootPool" load_steps=25 format=3]
+
+[ext_resource type="Script" path="res://scenes/components/LootPool.cs" id="pool"]
+[ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
+[ext_resource type="Resource" uid="uid://dm5r6t0urjlnv" path="res://scenes/items/scrolls/scroll_vitality.tres" id="item_scroll_vitality"]
+[ext_resource type="Resource" uid="uid://flquiwhe487i" path="res://scenes/items/scrolls/scroll_clarity.tres" id="item_scroll_clarity"]
+[ext_resource type="Resource" uid="uid://crxfq8ewtdyo" path="res://scenes/items/scrolls/scroll_enchant.tres" id="item_scroll_enchant"]
+[ext_resource type="Resource" uid="uid://efmdvhh2g7xs" path="res://scenes/items/scrolls/scroll_haste.tres" id="item_scroll_haste"]
+[ext_resource type="Resource" uid="uid://dugi60t1urnyh" path="res://scenes/items/scrolls/scroll_identify.tres" id="item_scroll_identify"]
+[ext_resource type="Resource" uid="uid://ctb8db6bp7487" path="res://scenes/items/scrolls/scroll_protection.tres" id="item_scroll_protection"]
+[ext_resource type="Resource" uid="uid://d8pfmnkebusg" path="res://scenes/items/scrolls/scroll_rage.tres" id="item_scroll_rage"]
+[ext_resource type="Resource" uid="uid://hwq1rsevthtc" path="res://scenes/items/scrolls/scroll_summon.tres" id="item_scroll_summon"]
+[ext_resource type="Resource" uid="uid://bu6e6ayylfs28" path="res://scenes/items/scrolls/scroll_teleport.tres" id="item_scroll_teleport"]
+[ext_resource type="Resource" uid="uid://2vrfb6l44x1k" path="res://scenes/items/scrolls/scroll_weakness.tres" id="item_scroll_weakness"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_remove_curse.tres" id="item_scroll_remove_curse"]
+
+[sub_resource type="Resource" id="Entry_scroll_vitality"]
+script = ExtResource("entry")
+Item = ExtResource("item_scroll_vitality")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_scroll_clarity"]
+script = ExtResource("entry")
+Item = ExtResource("item_scroll_clarity")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_scroll_enchant"]
+script = ExtResource("entry")
+Item = ExtResource("item_scroll_enchant")
+MinDepth = 2
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_scroll_haste"]
+script = ExtResource("entry")
+Item = ExtResource("item_scroll_haste")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_scroll_identify"]
+script = ExtResource("entry")
+Item = ExtResource("item_scroll_identify")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_scroll_protection"]
+script = ExtResource("entry")
+Item = ExtResource("item_scroll_protection")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_scroll_rage"]
+script = ExtResource("entry")
+Item = ExtResource("item_scroll_rage")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_scroll_summon"]
+script = ExtResource("entry")
+Item = ExtResource("item_scroll_summon")
+MinDepth = 2
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_scroll_teleport"]
+script = ExtResource("entry")
+Item = ExtResource("item_scroll_teleport")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_scroll_weakness"]
+script = ExtResource("entry")
+Item = ExtResource("item_scroll_weakness")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_scroll_remove_curse"]
+script = ExtResource("entry")
+Item = ExtResource("item_scroll_remove_curse")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[resource]
+script = ExtResource("pool")
+Items = [SubResource("Entry_scroll_vitality"), SubResource("Entry_scroll_clarity"), SubResource("Entry_scroll_enchant"), SubResource("Entry_scroll_haste"), SubResource("Entry_scroll_identify"), SubResource("Entry_scroll_protection"), SubResource("Entry_scroll_rage"), SubResource("Entry_scroll_summon"), SubResource("Entry_scroll_teleport"), SubResource("Entry_scroll_weakness"), SubResource("Entry_scroll_remove_curse")]
+metadata/_custom_type_script = ExtResource("pool")

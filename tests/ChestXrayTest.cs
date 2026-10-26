@@ -72,7 +72,7 @@ public class ChestXrayTest
 		// Pick a real floor cell that is still under fog and has a room to reveal.
 		Vector3 point = map.FloorGridMap.GetUsedCells()
 			.Select(cell => map.FloorGridMap.ToGlobal(map.FloorGridMap.MapToLocal(cell)))
-			.First(p => !map.IsRevealedAt(p) && map.GetRoomIdAt(map.WorldToTile(p)) >= 0);
+			.First(p => !level.Discovery.IsRevealedAt(p) && map.Floor.RoomIdAt(map.Map.WorldToTile(p)) >= 0);
 		chest.Position = point;
 		level.AddChild(chest);
 		await Settle(chest);
@@ -82,8 +82,8 @@ public class ChestXrayTest
 		try
 		{
 			GameDebug.LootXrayEnabled = true;
-			int roomId = map.GetRoomIdAt(map.WorldToTile(point));
-			map.RevealRoom(roomId);
+			int roomId = map.Floor.RoomIdAt(map.Map.WorldToTile(point));
+			level.Discovery.RevealRoom(roomId);
 			SignalBus.EmitRoomEntered(roomId);
 			AssertBool(Silhouettes(chest).All(m => m.Visible)).IsTrue();
 		}

@@ -132,7 +132,7 @@ public partial class RoomGenerationHarness : Node3D
 				Generator.EnableFurnishings = Furnishings;
 				Generator.GenerateMap(false);
 				FramePreview(Mathf.Max(Generator.MapWidth, Generator.MapDepth) * Room.TileSize + 12);
-				Status.Text = $"Floor · Seed {Seed} · {Generator.RoomRegions.Count} rooms · {Generator.ArrangementCount} arrangements";
+				Status.Text = $"Floor · Seed {Seed} · {Generator.Floor.Rooms.Count} rooms · {Generator.ArrangementCount} arrangements";
 			}
 		}
 		catch (InvalidOperationException error)

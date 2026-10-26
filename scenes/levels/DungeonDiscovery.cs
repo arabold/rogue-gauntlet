@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 /// <summary>Persistent sub-tile exploration, independent of rendering and room entry. Sight crosses only explicitly
@@ -10,6 +11,8 @@ public sealed class DungeonDiscovery
 	public int Width { get; }
 	public int Height { get; }
 	public HashSet<int> Explored { get; } = new();
+	/// <summary>Tiles holding at least one explored sample: the granularity gameplay asks about.</summary>
+	public HashSet<Vector2I> RevealedTiles { get; } = new();
 
 	public DungeonDiscovery(int tileWidth, int tileHeight)
 	{
@@ -18,6 +21,31 @@ public sealed class DungeonDiscovery
 	}
 
 	public Vector2I TileAt(int index) => new(index % Width / SamplesPerTile, index / Width / SamplesPerTile);
+
+	/// <summary>Throws unless every sample is unique and lies on an explorable tile of <paramref name="map"/>.</summary>
+	public static void ValidateSamples(MapData map, IReadOnlyList<int> samples)
+	{
+		int width = map.Width * SamplesPerTile;
+		int count = width * map.Height * SamplesPerTile;
+		if (samples == null || samples.Distinct().Count() != samples.Count
+			|| samples.Any(i => i < 0 || i >= count || !map.IsExplorable(i % width / SamplesPerTile, i / width / SamplesPerTile)))
+			throw new InvalidOperationException("Invalid explored samples; a new run is required.");
+	}
+
+	/// <summary>Explores one sample and its tile; false when the sample already was explored.</summary>
+	public bool Explore(int index)
+	{
+		if (!Explored.Add(index)) return false;
+		RevealedTiles.Add(TileAt(index));
+		return true;
+	}
+
+	public IEnumerable<int> TileSamples(Vector2I tile)
+	{
+		for (int y = 0; y < SamplesPerTile; y++)
+		for (int x = 0; x < SamplesPerTile; x++)
+			yield return (tile.Y * SamplesPerTile + y) * Width + tile.X * SamplesPerTile + x;
+	}
 
 	/// <summary>Discovers sample centers within a circular radius. Previously explored samples never become hidden.</summary>
 	public List<int> Reveal(Vector2 origin, float radius, Func<Vector2I, Vector2I, bool> canCross)
@@ -34,7 +62,7 @@ public sealed class DungeonDiscovery
 			if (Explored.Contains(index)) continue;
 			var target = new Vector2((x + 0.5f) / SamplesPerTile, (y + 0.5f) / SamplesPerTile);
 			if (origin.DistanceSquaredTo(target) > radius * radius || !HasSight(origin, target, canCross)) continue;
-			Explored.Add(index);
+			Explore(index);
 			added.Add(index);
 		}
 		return added;

@@ -27,8 +27,10 @@ radial_segments = 7
 albedo_color = Color(0.5, 0.43, 0.31, 1)
 roughness = 0.9
 
-[node name="BoneNest" type="StaticBody3D" groups=["enemy", "prop"]]
+[node name="BoneNest" type="StaticBody3D" groups=["enemy", "prop"] node_paths=PackedStringArray("HealthComponent", "HurtBoxComponent")]
 script = ExtResource("nest")
+HealthComponent = NodePath("HealthComponent")
+HurtBoxComponent = NodePath("HurtBoxComponent")
 collision_layer = 16
 collision_mask = 0
 MinionScene = ExtResource("minion")

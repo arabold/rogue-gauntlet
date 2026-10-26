@@ -303,9 +303,6 @@ tree_root = SubResource("AnimationNodeStateMachine_mq8v6")
 advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../../Pivot/Skeleton_Warrior/AnimationPlayer")
 
-[node name="LootTableComponent" parent="." index="3"]
-DropChance = 1.0
-
 [node name="DeathComponent" parent="." index="5"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]

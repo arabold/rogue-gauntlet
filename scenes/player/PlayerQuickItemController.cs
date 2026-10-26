@@ -10,7 +10,8 @@ using System.Linq;
 public partial class PlayerQuickItemController : Node
 {
 	[Export] public Player Player { get; set; }
-	[Export] public Inventory Inventory { get; set; }
+	/// <summary>The player's runtime inventory, injected by <see cref="Player"/> when it creates the copy.</summary>
+	public Inventory Inventory { get; set; }
 	[Export] public ActionManager ActionManager { get; set; }
 	[Export] public PlayerInventoryController InventoryController { get; set; }
 
@@ -33,14 +34,6 @@ public partial class PlayerQuickItemController : Node
 
 	public override void _Ready()
 	{
-		Player ??= GetOwner<Player>() ?? GetParent<Player>();
-		if (Player != null)
-		{
-			Inventory ??= Player.Inventory;
-			ActionManager ??= Player.ActionManager;
-			InventoryController ??= Player.InventoryController;
-		}
-
 		if (Inventory != null)
 		{
 			this.SubscribeUntilExit(
@@ -222,7 +215,6 @@ public partial class PlayerQuickItemController : Node
 			return new(ItemFailure.NotOwned);
 		}
 
-		InventoryController ??= Player?.InventoryController;
 		if (InventoryController == null)
 		{
 			return new(ItemFailure.NotOwned);
@@ -272,8 +264,6 @@ public partial class PlayerQuickItemController : Node
 	public void RefreshSlot(int slotIndex)
 	{
 		if (slotIndex < 0 || slotIndex >= SlotCount) return;
-		ActionManager ??= Player?.ActionManager;
-
 		var binding = _bindings[slotIndex];
 		if (!binding.IsAssigned)
 		{

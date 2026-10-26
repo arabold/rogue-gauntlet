@@ -90,25 +90,27 @@ public partial class PlayerStats : ObservableResource
 	public int Xp { get; set => SetValue(ref field, value); } = 0;
 	public int XpLevel { get; set => SetValue(ref field, value); } = 1;
 	public int Gold { get; set => SetValue(ref field, value); } = 0;
-	public int DungeonDepth { get; set => SetValue(ref field, value); } = 0;
 
 	// Primary attribute base values. The basis for character builds; persisted and
 	// mutable at runtime (leveling, gear), with the secondary stats derived from them.
-	public float BaseStrength { get; set => SetValue(ref field, value); } = 10;
-	public float BaseDexterity { get; set => SetValue(ref field, value); } = 10;
-	public float BaseVitality { get; set => SetValue(ref field, value); } = 10;
-	public float BaseIntelligence { get; set => SetValue(ref field, value); } = 10;
+	// Exported so the authored stat sheet sets them; classes then overwrite the attributes.
+	[ExportGroup("Base attributes")]
+	[Export] public float BaseStrength { get; set => SetValue(ref field, value); } = 10;
+	[Export] public float BaseDexterity { get; set => SetValue(ref field, value); } = 10;
+	[Export] public float BaseVitality { get; set => SetValue(ref field, value); } = 10;
+	[Export] public float BaseIntelligence { get; set => SetValue(ref field, value); } = 10;
 
+	[ExportGroup("Base stats")]
 	// Base secondary stats, before attribute derivation or modifiers. BaseMaxHealth is
 	// intentionally low because Vitality supplies the rest (10 Vitality * 5 = +50 -> 100).
-	public float BaseSpeed { get; set => SetValue(ref field, value); } = 10;
-	public float BaseMaxHealth { get; set => SetValue(ref field, value); } = 50;
+	[Export] public float BaseSpeed { get; set => SetValue(ref field, value); } = 10;
+	[Export] public float BaseMaxHealth { get; set => SetValue(ref field, value); } = 50;
 
 	// Attack and defense base stats (without any derivation or modifiers applied)
-	public float BaseMinDamage { get; set => SetValue(ref field, value); } = 0;
-	public float BaseMaxDamage { get; set => SetValue(ref field, value); } = 2;
-	public float BaseCritChance { get; set => SetValue(ref field, value); } = 0;
-	public float BaseArmor { get; set => SetValue(ref field, value); } = 0;
+	[Export] public float BaseMinDamage { get; set => SetValue(ref field, value); } = 0;
+	[Export] public float BaseMaxDamage { get; set => SetValue(ref field, value); } = 2;
+	[Export] public float BaseCritChance { get; set => SetValue(ref field, value); } = 0;
+	[Export] public float BaseArmor { get; set => SetValue(ref field, value); } = 0;
 
 	// Economy multipliers (not part of the stat pipeline)
 	public float XpModifier { get; set => SetValue(ref field, value); } = 1.0f;
@@ -138,29 +140,54 @@ public partial class PlayerStats : ObservableResource
 	/// <summary>Reads a derivation coefficient from the profile, or 0 when none is set.</summary>
 	private float Coefficient(System.Func<StatProfile, float> selector) => Profile != null ? selector(Profile) : 0f;
 
+	/// <summary>An instance-owned copy of this definition, so runtime changes never write back into the authored sheet.</summary>
 	public PlayerStats CreateRuntimeCopy()
 	{
-		return new PlayerStats
-		{
-			Profile = Profile,
-			Health = Health,
-			Xp = Xp,
-			XpLevel = XpLevel,
-			Gold = Gold,
-			DungeonDepth = DungeonDepth,
-			BaseStrength = BaseStrength,
-			BaseDexterity = BaseDexterity,
-			BaseVitality = BaseVitality,
-			BaseIntelligence = BaseIntelligence,
-			BaseSpeed = BaseSpeed,
-			BaseMaxHealth = BaseMaxHealth,
-			BaseMinDamage = BaseMinDamage,
-			BaseMaxDamage = BaseMaxDamage,
-			BaseCritChance = BaseCritChance,
-			BaseArmor = BaseArmor,
-			XpModifier = XpModifier,
-			GoldModifier = GoldModifier,
-		};
+		var copy = new PlayerStats { Profile = Profile };
+		copy.ApplySaveData(CreateSaveData());
+		return copy;
+	}
+
+	/// <summary>The persisted values: progress and base stats. Modifiers are rebuilt from equipment and buffs.</summary>
+	public PlayerStatsSaveData CreateSaveData() => new()
+	{
+		Health = Health,
+		Xp = Xp,
+		XpLevel = XpLevel,
+		Gold = Gold,
+		BaseStrength = BaseStrength,
+		BaseDexterity = BaseDexterity,
+		BaseVitality = BaseVitality,
+		BaseIntelligence = BaseIntelligence,
+		BaseSpeed = BaseSpeed,
+		BaseMaxHealth = BaseMaxHealth,
+		BaseMinDamage = BaseMinDamage,
+		BaseMaxDamage = BaseMaxDamage,
+		BaseCritChance = BaseCritChance,
+		BaseArmor = BaseArmor,
+		XpModifier = XpModifier,
+		GoldModifier = GoldModifier,
+	};
+
+	/// <summary>The inverse of <see cref="CreateSaveData"/>.</summary>
+	public void ApplySaveData(PlayerStatsSaveData data)
+	{
+		Health = data.Health;
+		Xp = data.Xp;
+		XpLevel = data.XpLevel;
+		Gold = data.Gold;
+		BaseStrength = data.BaseStrength;
+		BaseDexterity = data.BaseDexterity;
+		BaseVitality = data.BaseVitality;
+		BaseIntelligence = data.BaseIntelligence;
+		BaseSpeed = data.BaseSpeed;
+		BaseMaxHealth = data.BaseMaxHealth;
+		BaseMinDamage = data.BaseMinDamage;
+		BaseMaxDamage = data.BaseMaxDamage;
+		BaseCritChance = data.BaseCritChance;
+		BaseArmor = data.BaseArmor;
+		XpModifier = data.XpModifier;
+		GoldModifier = data.GoldModifier;
 	}
 
 	// Method to increase the experience points

@@ -12,13 +12,8 @@ public partial class TeleportScrollEffect : ScrollEffect
 			return;
 		}
 
-		Level level = player.GetAncestorOrNull<Level>();
-		if (level?.MapGenerator == null)
-		{
-			return;
-		}
-
-		if (level.MapGenerator.TryPickRandomFreePosition(out Vector3 position))
+		GeneratedFloor floor = player.GetAncestorOrNull<Level>()?.Floor;
+		if (floor != null && floor.TryPickRandomFreePosition(out Vector3 position))
 		{
 			player.GlobalPosition = position;
 		}

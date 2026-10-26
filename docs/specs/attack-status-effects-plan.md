@@ -32,7 +32,7 @@ Any buff carrying `poisoned.tres` already turns on the player's poison overlay, 
 - **Resolution.** `HurtBoxComponent.ResolveDamageInternal` runs in this order: faction filter, death, active defense (`IDefenseEvaluator`), debug invulnerability, evasion against accuracy, armor, `DamageTaken`, `HealthComponent.TakeDamage`, hit stun/push/effect, `Resolved`. Every roll uses `contact.Random` and falls back to the global RNG only when no RNG is supplied.
 - **Combat RNG.** `EnemyBase.ConfigureCombatRandom` derives `combat.attack` and `combat.defense` from the level seed and the spawn's persistent ID. `Player._Ready` derives `combat.attack` from the run seed. The streams are local to each actor and outside generation isolation (see [randomness and seeds](../randomness-and-seeds.md#gameplay-time-randomness)).
 - **Buffs.** These are player-only.
-  - `Buff.OnApply/OnRemove(Player)` and `PeriodicBuff.OnTick(Player)` take a player, `ActiveBuff.Initialize(Player, Buff)` stores one, and `BuffController` exports `Player` with a `GetOwner<Player>()` fallback.
+  - `Buff.OnApply/OnRemove(ActiveBuff)` take the activation, which stores the player (`ActiveBuff.Initialize(Player, Buff)`); stat modifiers register under the activation. `PeriodicBuff.OnTick(Player)` takes a player, and `BuffController` exports `Player` with a `GetOwner<Player>()` fallback.
   - `PoisonBuff` and `HealingBuff` only use the player's `HealthComponent`, and `StatModifierBuff` uses `Player.Stats`.
   - A plain `Buff` carrying only a condition (blinded, confused) and `TimeScaleBuff` have no callbacks. Player components that wire `Buffs` in the Inspector read them: `ConfusionComponent`, `TimeScaleComponent` and the screen drivers.
   - `ApplyBuff` first ends the conditions in `CuredConditions`, then always adds a new instance, fires `BuffsChanged` and returns nothing.
@@ -128,10 +128,10 @@ public interface IBuffTarget
 public enum BuffStacking { Stack, Refresh }
 [Export] public BuffStacking Stacking { get; set; } = BuffStacking.Stack;
 public virtual bool CanApplyTo(IBuffTarget target) => true;
-public virtual void OnApply(IBuffTarget target);
-public virtual void OnRemove(IBuffTarget target);
+public virtual void OnApply(ActiveBuff activation);   // unchanged; reads activation.Target
+public virtual void OnRemove(ActiveBuff activation);
 // ~ PeriodicBuff.OnTick(IBuffTarget target); PoisonBuff and HealingBuff use target.Health
-// ~ StatModifierBuff.CanApplyTo => target.Stats != null; OnApply/OnRemove use target.Stats
+// ~ StatModifierBuff.CanApplyTo => target.Stats != null; OnApply/OnRemove use activation.Target.Stats, keyed by the activation
 
 // ~ scenes/player/ActiveBuff.cs
 public IBuffTarget Target { get; private set; }  // replaces Player

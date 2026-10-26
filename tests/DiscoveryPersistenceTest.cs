@@ -16,53 +16,56 @@ public class DiscoveryPersistenceTest
 	[TestCase]
 	public async Task SampleHistorySurvivesRegenerationExactlyAndInvalidRestoreIsAtomic()
 	{
-		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProceduralWithDoors());
-		map.GenerateMap();
-		var material = (ShaderMaterial)map.GetNode<MeshInstance3D>("DiscoverySurface").MaterialOverride;
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.AllProceduralWithDoors());
+		level.Generate();
+		var material = (ShaderMaterial)level.Discovery.GetNode<MeshInstance3D>("DiscoverySurface").MaterialOverride;
 		var texture = material.GetShaderParameter("exploration").As<ImageTexture>();
 		AssertFloat(texture.GetImage().GetPixel(0, 0).R).IsEqual(0);
-		Vector3 position = map.PlayerSpawnPoint.GlobalPosition;
-		map.RevealFrom(position);
-		var saved = JsonSerializer.Deserialize<RevealedLevelSaveData>(JsonSerializer.Serialize(map.CaptureExploration()));
+		Vector3 position = level.Floor.Arrival.GlobalPosition;
+		level.Discovery.RevealFrom(position);
+		var saved = JsonSerializer.Deserialize<RevealedLevelSaveData>(JsonSerializer.Serialize(level.CaptureExploration()));
 		AssertBool(saved.ExploredSamples.Count > 0).IsTrue();
-		AssertBool(map.IsRevealedAt(position)).IsTrue();
-		map.GenerateMap();
-		AssertInt(map.CaptureExploration().ExploredSamples.Count).IsEqual(0);
-		map.RestoreExploration(saved);
-		AssertBool(map.CaptureExploration().ExploredSamples.SequenceEqual(saved.ExploredSamples)).IsTrue();
-		AssertBool(map.IsRevealedAt(position)).IsTrue();
+		AssertBool(level.Discovery.IsRevealedAt(position)).IsTrue();
+		level.Generate();
+		AssertInt(level.CaptureExploration().ExploredSamples.Count).IsEqual(0);
+		level.RestoreExploration(saved);
+		AssertBool(level.CaptureExploration().ExploredSamples.SequenceEqual(saved.ExploredSamples)).IsTrue();
+		AssertBool(level.Discovery.IsRevealedAt(position)).IsTrue();
 		saved.ExploredSamples.Add(int.MaxValue);
 		bool rejected = false;
-		try { map.RestoreExploration(saved); } catch (InvalidOperationException) { rejected = true; }
+		try { level.RestoreExploration(saved); } catch (InvalidOperationException) { rejected = true; }
 		AssertBool(rejected).IsTrue();
-		AssertInt(map.CaptureExploration().ExploredSamples.Count).IsEqual(saved.ExploredSamples.Count - 1);
+		AssertInt(level.CaptureExploration().ExploredSamples.Count).IsEqual(saved.ExploredSamples.Count - 1);
 		await runner.SimulateFrames(2);
 	}
 
 	[TestCase]
 	public async Task DoorEventsDoNotRevealAnEntireDestination()
 	{
-		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProceduralWithDoors());
-		map.GenerateMap();
-		var door = map.NavigationRegion.FindChildren("*", "", true, false).OfType<Door>().First();
-		map.OpenDoorAt(door.GlobalPosition);
-		AssertInt(map.CaptureExploration().ExploredSamples.Count).IsEqual(0);
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.AllProceduralWithDoors());
+		level.Generate();
+		var door = level.Floor.Doors[0].Door;
+		door.IsOpen = true;
+		SignalBus.EmitDoorOpened(door);
+		AssertInt(level.CaptureExploration().ExploredSamples.Count).IsEqual(0);
 		await runner.SimulateFrames(1);
 	}
+
 	[TestCase]
 	public async Task AdjacentCorridorRequiresAnOpeningAndSecretsStaySealedUntilOpened()
 	{
-		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProcedural());
-		map.GenerateMap();
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.AllProcedural());
+		var map = level.MapGenerator;
+		level.Generate();
 		map.Map.ResetToBorderedEmpty();
 		map.Map.SetTile(3, 5, MapTile.Room);
 		map.Map.SetTile(4, 5, MapTile.Corridor);
-		Vector3 Point(Vector2I tile) => new((tile.X - map.Map.Width / 2) * 4, 0, (tile.Y - map.Map.Height / 2) * 4);
-		map.RevealFrom(Point(new Vector2I(3, 5)));
-		AssertBool(map.IsRevealedAt(Point(new Vector2I(4, 5)))).IsFalse();
+		Vector3 Point(Vector2I tile) => map.Map.TileToWorld(tile);
+		level.Discovery.RevealFrom(Point(new Vector2I(3, 5)));
+		AssertBool(level.Discovery.IsRevealedAt(Point(new Vector2I(4, 5)))).IsFalse();
 		map.Map.SetConnector(3, 5, [Vector2I.Right]);
-		map.RevealFrom(Point(new Vector2I(3, 5)));
-		AssertBool(map.IsRevealedAt(Point(new Vector2I(4, 5)))).IsTrue();
+		level.Discovery.RevealFrom(Point(new Vector2I(3, 5)));
+		AssertBool(level.Discovery.IsRevealedAt(Point(new Vector2I(4, 5)))).IsTrue();
 
 		map.AccessProfile = (LevelAccessProfile)GD.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
 		map.AccessProfile.MaximumLockedRooms = 0;
@@ -70,21 +73,56 @@ public class DiscoveryPersistenceTest
 		map.MapWidth = map.MapDepth = 30; map.MaxRooms = 6;
 		for (ulong seed = 1; seed <= 8; seed++)
 		{
-			map.Seed = seed; map.GenerateMap();
+			map.Seed = seed; level.Generate();
 			if (map.GeneratedSecrets.Count > 0) break;
 			await runner.SimulateFrames(1);
 		}
 		AssertBool(map.GeneratedSecrets.Count > 0).IsTrue();
 		var secret = map.GeneratedSecrets[0];
-		map.RevealFrom(Point(secret.Host));
-		AssertBool(map.IsRevealedAt(Point(secret.Connector))).IsFalse();
+		level.Discovery.RevealFrom(Point(secret.Host));
+		AssertBool(level.Discovery.IsRevealedAt(Point(secret.Connector))).IsFalse();
 		secret.Door.Secret.Restore(true);
-		map.RevealFrom(Point(secret.Host));
-		AssertBool(map.IsRevealedAt(Point(secret.Connector))).IsFalse();
-		map.OpenDoorAt(secret.Door.GlobalPosition);
-		map.RevealFrom(Point(secret.Host));
-		AssertBool(map.IsRevealedAt(Point(secret.Connector))).IsTrue();
+		level.Discovery.RevealFrom(Point(secret.Host));
+		AssertBool(level.Discovery.IsRevealedAt(Point(secret.Connector))).IsFalse();
+		// Seals are read from the doors themselves: opening the leaf is enough, no event needed.
+		secret.Door.IsOpen = true;
+		level.Discovery.RevealFrom(Point(secret.Host));
+		AssertBool(level.Discovery.IsRevealedAt(Point(secret.Connector))).IsTrue();
 		await runner.SimulateFrames(2);
 	}
 
+	[TestCase]
+	public async Task OpeningOneOfTwoAdjacentDooredConnectorsUnsealsOnlyThatOne()
+	{
+		using var runner = ISceneRunner.Load("res://scenes/debug/effects/world_effect_harness.tscn", true);
+		await runner.SimulateFrames(2);
+		var (level, generator) = TestFactories.UngeneratedLevel();
+		TestFactories.AddToSceneTree(level);
+		// room | connector (opens right) | corridor | connector (opens left) | room
+		var map = new MapData(12, 12);
+		map.ResetToBorderedEmpty();
+		map.SetTile(2, 5, MapTile.Room);
+		map.SetConnector(3, 5, [Vector2I.Right]);
+		map.SetTile(4, 5, MapTile.Corridor);
+		map.SetConnector(5, 5, [Vector2I.Left]);
+		map.SetTile(6, 5, MapTile.Room);
+		var floor = new GeneratedFloor(map, generator, generator.FloorGridMap, generator.DecorationGridMap);
+		var doorScene = GD.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").DoorScene;
+		var near = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
+		var far = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
+		floor.AddDoor(near, new Vector2I(3, 5));
+		floor.AddDoor(far, new Vector2I(5, 5));
+		level.Discovery.Initialize(floor);
+		Vector3 origin = map.TileToWorld(2, 5);
+		level.Discovery.RevealFrom(origin);
+		AssertBool(level.Discovery.IsRevealedAt(map.TileToWorld(4, 5))).IsFalse();
+		near.IsOpen = true;
+		level.Discovery.RevealFrom(origin);
+		AssertBool(level.Discovery.IsRevealedAt(map.TileToWorld(4, 5))).IsTrue();
+		AssertBool(level.Discovery.IsRevealedAt(map.TileToWorld(6, 5))).IsFalse();
+		far.IsOpen = true;
+		level.Discovery.RevealFrom(origin);
+		AssertBool(level.Discovery.IsRevealedAt(map.TileToWorld(6, 5))).IsTrue();
+		await runner.SimulateFrames(1);
+	}
 }

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/enemies/MonsterDefinition.cs" id="definition"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_warrior_behavior.tres" id="behavior"]
-[ext_resource type="Resource" path="res://scenes/items/loot/loot_enemy_common.tres" id="loot"]
+[ext_resource type="Resource" path="res://scenes/items/loot/drops/enemy_common_guaranteed.tres" id="loot"]
 
 [resource]
 script = ExtResource("definition")
@@ -11,5 +11,5 @@ DisplayName = "Skeleton Warrior"
 MaxHealth = 10.0
 MoveSpeed = 3.0
 XpReward = 6
-LootTable = ExtResource("loot")
+Loot = ExtResource("loot")
 Behavior = ExtResource("behavior")

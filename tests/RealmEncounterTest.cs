@@ -45,7 +45,7 @@ public class RealmEncounterTest
 		AssertBool(level.CanDescend).IsTrue();
 		AssertBool(level.MapGenerator.EnemySpawnPoints.All(p => p.Scenes[0].ResourcePath.Contains("/skeleton/"))).IsTrue();
 
-		level.ConfigureGeneration(GameSession.GetLevelSeed(12345, 2), 2);
+		level.ConfigureGeneration(new RunState(12345), 2, null, null);
 		level.Generate();
 		await runner.SimulateFrames(1);
 		var nest = level.FindChildren("*", "", true, false).OfType<DestructibleNest>().First();
@@ -65,13 +65,13 @@ public class RealmEncounterTest
 		AssertInt(nest.SummonsReleased).IsEqual(4);
 		AssertObject(nest.ReleaseMinion()).IsNull();
 		nest.TakeDamage(1000, Vector3.Forward, faction: DamageSourceFlags.Player);
-		AssertBool(GameSession.Instance.IsEntityCleared(nestId)).IsTrue();
+		AssertBool(level.Run.IsCleared(nestId)).IsTrue();
 		await runner.SimulateFrames(1);
 		level.Generate();
 		AssertBool(level.FindChildren("*", "", true, false).OfType<DestructibleNest>()
 			.Any(n => n.GetMeta("persistent_id").AsString() == nestId)).IsFalse();
 
-		level.ConfigureGeneration(GameSession.GetLevelSeed(12345, 3), 3);
+		level.ConfigureGeneration(new RunState(12345), 3, null, null);
 		level.Generate();
 		AssertBool(level.CanDescend).IsFalse();
 		var boss = level.FindChildren("*", "", true, false).OfType<EnemyBase>()
@@ -90,12 +90,29 @@ public class RealmEncounterTest
 		}
 		finally { tree.CurrentScene = previousScene; }
 		AssertBool(level.CanDescend).IsTrue();
-		AssertBool(GameSession.Instance.IsEntityCleared(level.Encounters.GatekeeperId)).IsTrue();
+		AssertBool(level.Run.IsCleared(level.Encounters.GatekeeperId)).IsTrue();
 		level.Generate();
 		AssertBool(level.CanDescend).IsTrue();
 		AssertBool(level.FindChildren("*", "", true, false).OfType<EnemyBase>()
 			.Any(e => e.GetMeta("persistent_id", "").AsString() == level.Encounters.GatekeeperId)).IsFalse();
 		AssertInt(level.MapGenerator.EnemySpawnPoints.Count(p => p.PersistentId == level.Encounters.GatekeeperId)).IsEqual(1);
+	}
+
+	[TestCase]
+	public async Task GatekeeperFloorWithoutAGatekeeperSceneKeepsItsDescentSealed()
+	{
+		using var runner = ISceneRunner.Load("res://scenes/levels/level.tscn", true);
+		await runner.SimulateFrames(2);
+		var level = (Level)runner.Scene();
+		var realm = (RealmEncounterFactory)level.MapGenerator.MobFactory.Duplicate();
+		realm.GatekeeperScene = null;
+		level.MapGenerator.MobFactory = realm;
+		level.ConfigureGeneration(new RunState(12345), 3, null, null);
+		level.Generate();
+		AssertObject(level.Floor).IsNotNull();
+		AssertObject(level.Floor.GatekeeperSpawn).IsNull();
+		AssertBool(level.CanDescend).IsFalse();
+		await runner.SimulateFrames(1);
 	}
 
 	[TestCase]

@@ -1,0 +1,121 @@
+[gd_resource type="Resource" script_class="LootPool" load_steps=35 format=3]
+
+[ext_resource type="Script" path="res://scenes/components/LootPool.cs" id="pool"]
+[ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_strength.tres" id="item_ring_strength"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_dexterity.tres" id="item_ring_dexterity"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_vitality.tres" id="item_ring_vitality"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_mind.tres" id="item_ring_mind"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_health.tres" id="item_ring_health"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_protection.tres" id="item_ring_protection"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_savagery.tres" id="item_ring_savagery"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_frailty.tres" id="item_ring_frailty"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_lethargy.tres" id="item_ring_lethargy"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_health.tres" id="item_amulet_health"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_mind.tres" id="item_amulet_mind"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_protection.tres" id="item_amulet_protection"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_strength.tres" id="item_amulet_strength"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_swiftness.tres" id="item_amulet_swiftness"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_vitality.tres" id="item_amulet_vitality"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_dread.tres" id="item_amulet_dread"]
+
+[sub_resource type="Resource" id="Entry_ring_strength"]
+script = ExtResource("entry")
+Item = ExtResource("item_ring_strength")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_ring_dexterity"]
+script = ExtResource("entry")
+Item = ExtResource("item_ring_dexterity")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_ring_vitality"]
+script = ExtResource("entry")
+Item = ExtResource("item_ring_vitality")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_ring_mind"]
+script = ExtResource("entry")
+Item = ExtResource("item_ring_mind")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_ring_health"]
+script = ExtResource("entry")
+Item = ExtResource("item_ring_health")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_ring_protection"]
+script = ExtResource("entry")
+Item = ExtResource("item_ring_protection")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_ring_savagery"]
+script = ExtResource("entry")
+Item = ExtResource("item_ring_savagery")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_ring_frailty"]
+script = ExtResource("entry")
+Item = ExtResource("item_ring_frailty")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_ring_lethargy"]
+script = ExtResource("entry")
+Item = ExtResource("item_ring_lethargy")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_amulet_health"]
+script = ExtResource("entry")
+Item = ExtResource("item_amulet_health")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_amulet_mind"]
+script = ExtResource("entry")
+Item = ExtResource("item_amulet_mind")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_amulet_protection"]
+script = ExtResource("entry")
+Item = ExtResource("item_amulet_protection")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_amulet_strength"]
+script = ExtResource("entry")
+Item = ExtResource("item_amulet_strength")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_amulet_swiftness"]
+script = ExtResource("entry")
+Item = ExtResource("item_amulet_swiftness")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_amulet_vitality"]
+script = ExtResource("entry")
+Item = ExtResource("item_amulet_vitality")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_amulet_dread"]
+script = ExtResource("entry")
+Item = ExtResource("item_amulet_dread")
+MinDepth = 1
+metadata/_custom_type_script = ExtResource("entry")
+
+[resource]
+script = ExtResource("pool")
+Items = [SubResource("Entry_ring_strength"), SubResource("Entry_ring_dexterity"), SubResource("Entry_ring_vitality"), SubResource("Entry_ring_mind"), SubResource("Entry_ring_health"), SubResource("Entry_ring_protection"), SubResource("Entry_ring_savagery"), SubResource("Entry_ring_frailty"), SubResource("Entry_ring_lethargy"), SubResource("Entry_amulet_health"), SubResource("Entry_amulet_mind"), SubResource("Entry_amulet_protection"), SubResource("Entry_amulet_strength"), SubResource("Entry_amulet_swiftness"), SubResource("Entry_amulet_vitality"), SubResource("Entry_amulet_dread")]
+metadata/_custom_type_script = ExtResource("pool")

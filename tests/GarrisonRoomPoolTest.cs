@@ -88,11 +88,11 @@ public class GarrisonRoomPoolTest
 		foreach (ulong runSeed in new ulong[] { 1, 23, 12345 })
 		for (uint depth = 1; depth <= 3; depth++)
 		{
-			level.ConfigureGeneration(GameSession.GetLevelSeed(runSeed, depth), depth);
+			level.ConfigureGeneration(new RunState(runSeed), depth, null, null);
 			level.Generate();
 			AssertArray(LayoutConnectivityTest.FindConnectivityFailures(generator)).IsEmpty();
-			AssertBool(generator.RoomRegions.Where(room => room.IsProcedural).All(room => IsGarrisonPurpose(room.Purpose))).IsTrue();
-			AssertInt(generator.RoomRegions.Count(room => room.IsProcedural)).IsGreater(0);
+			AssertBool(generator.Floor.Rooms.Where(room => room.IsProcedural).All(room => IsGarrisonPurpose(room.Purpose))).IsTrue();
+			AssertInt(generator.Floor.Rooms.Count(room => room.IsProcedural)).IsGreater(0);
 			var ordinary = generator.EnemySpawnPoints.Where(spawn => encounters.Entries.Any(entry => entry.ScenePath == spawn.Scenes[0].ResourcePath)).ToArray();
 			int spent = ordinary.Sum(spawn => encounters.Entries.Single(entry => entry.ScenePath == spawn.Scenes[0].ResourcePath).Threat);
 			using var encounterRng = GenerationRandom.Create(generator.Seed, GenerationRandom.Monsters);
@@ -101,7 +101,7 @@ public class GarrisonRoomPoolTest
 			AssertInt(generator.EnemySpawnPoints.Count(spawn => spawn.Scenes[0] == encounters.NestScene)).IsEqual(depth == 2 ? 2 : 0);
 			AssertBool(level.CanDescend).IsEqual(depth != 3);
 			if (depth == 3) AssertInt(generator.EnemySpawnPoints.Count(spawn => spawn.PersistentId == level.Encounters.GatekeeperId)).IsEqual(1);
-			GD.Print($"GARRISON seed={runSeed} depth={depth} rooms={generator.RoomRegions.Count} generated={generator.RoomRegions.Count(room => room.IsProcedural)} enemies={ordinary.Length} threat={spent} arrangements={generator.ArrangementCount}");
+			GD.Print($"GARRISON seed={runSeed} depth={depth} rooms={generator.Floor.Rooms.Count} generated={generator.Floor.Rooms.Count(room => room.IsProcedural)} enemies={ordinary.Length} threat={spent} arrangements={generator.ArrangementCount}");
 			string first = Fingerprint(generator);
 			level.Generate();
 			AssertString(Fingerprint(generator)).IsEqual(first);

@@ -4,9 +4,9 @@ Implemented item ownership, inventory and stat rules. Godot Resources supply def
 
 ## Attributes and modifiers
 
-Player stats are copied per actor. Strength, Dexterity, Vitality and Intelligence feed secondary stats through an authored `StatProfile`; class profiles choose their coefficients. Modifiers apply flat contributions before percentage contributions. Equipment and buffs register contributions by source, so removing one source reverses its effects without changing another's.
+Player stats are copied per actor. Strength, Dexterity, Vitality and Intelligence feed secondary stats through an authored `StatProfile`; class profiles choose their coefficients. Modifiers apply flat contributions before percentage contributions. Equipment registers contributions under the item instance and a buff under each activation, so removing one source reverses its effects without changing another's, even two overlapping drinks from one potion stack.
 
-Supported secondary stats include maximum health, speed, damage range, critical chance and armor. Dexterity does not grant passive accuracy or evasion. Resolved values drive health, movement, damage and the HUD; maximum-health derivation must not be fed back into base stats. See [active defense](combat-system.md#contact-resolution) for hit handling.
+Supported secondary stats include maximum health, speed, damage range, critical chance and armor. Their base values and the base attributes are authored on the player's stat sheet ([`player_stats.tres`](../scenes/player/resources/player_stats.tres)); a class then overwrites the four attributes. Dexterity does not grant passive accuracy or evasion. Resolved values drive health, movement, damage and the HUD; maximum-health derivation must not be fed back into base stats. See [active defense](combat-system.md#contact-resolution) for hit handling.
 
 Timed stat buffs expire once; permanent buffs remain until explicitly removed. Periodic healing/poison use their own authored effects. Class starting profiles and gear are described in [character classes](character-classes.md).
 
@@ -87,11 +87,11 @@ Magic and Rare items drop with hidden attributes. They read "Magic Broadsword" (
 
 ## Loot eligibility
 
-Source tables own depth bounds, quantities and category budgets. Items do not infer drop eligibility from their model name. Grouped loot selects an eligible category before a variety inside it, so adding weapon variants cannot displace the authored recovery-supply budget. Simple tables may use flat entries; do not author flat and grouped forms together.
+Source tables own category budgets; shared loot pools own each category's depth bounds and quantities. Items do not infer drop eligibility from their model name. Grouped loot selects an eligible category before a variety inside it, so adding weapon variants cannot displace the authored recovery-supply budget. Simple tables may use flat entries; do not author flat and grouped forms together.
 
-A source's `LootTableComponent.CreationPolicy` decides how its items roll. The Forsaken Warden uses its own [loot table](../scenes/enemies/forsaken_warden/forsaken_warden_loot.tres) of tier-2 weapons and the [gatekeeper policy](../scenes/items/gatekeeper_item_policy.tres), whose ladder rolls only Magic (70%) or Rare (30%) and never curses. Its guaranteed drop is a clearly better weapon to carry into depth 4.
+A source's `LootDropProfile` decides its table, drop chance, roll count and how its items roll. The Forsaken Warden's [profile](../scenes/enemies/forsaken_warden/forsaken_warden_drop.tres) uses its own [loot table](../scenes/enemies/forsaken_warden/forsaken_warden_loot.tres) of tier-2 weapons and the [gatekeeper policy](../scenes/items/gatekeeper_item_policy.tres), whose ladder rolls only Magic (70%) or Rare (30%) and never curses. Its guaranteed drop is a clearly better weapon to carry into depth 4.
 
-Weapon and armor base tiers are fenced over the 24-depth run (8 realms of 3 depths), so the highest tier belongs to the final two realms. Neighboring tiers overlap to smooth transitions:
+Weapon and armor base tiers are fenced over the 24-depth run (8 realms of 3 depths), so the highest tier belongs to the final two realms. Neighboring tiers overlap to smooth transitions. The bands live in [`tier_depth_bands.tres`](../scenes/items/quality/tier_depth_bands.tres); the weapon and armor pools validate every entry against them:
 
 | Base tier | Depths | Realms |
 | --- | --- | --- |

@@ -379,7 +379,6 @@ public class ProceduralRoomBuilderTest
 
 		Room reloadedRoom = loadedScene.Instantiate<Room>();
 		AssertObject(reloadedRoom).IsNotNull();
-		reloadedRoom.InitGridMaps();
 
 		AssertObject(reloadedRoom.FloorGridMap).IsNotNull();
 		AssertObject(reloadedRoom.WallGridMap).IsNotNull();

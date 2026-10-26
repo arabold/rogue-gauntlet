@@ -1,10 +1,10 @@
 # Randomness and seeds
 
-Implemented reproducibility and persistence rules. Seeds reproduce initial scenarios within the same build/content and inputs; they do not replay arbitrary combat, physics or player history. Algorithms and seed derivation live in [GenerationRandom](../scenes/levels/generators/GenerationRandom.cs) and [GameSession](../scripts/GameSession.cs).
+Implemented reproducibility and persistence rules. Seeds reproduce initial scenarios within the same build/content and inputs; they do not replay arbitrary combat, physics or player history. Algorithms and seed derivation live in [GenerationRandom](../scenes/levels/generators/GenerationRandom.cs) and [RunState](../scripts/RunState.cs).
 
 ## Run and level seeds
 
-A new run chooses one seed; saves retain it and the current depth. Each depth derives its own level seed. Regeneration rebuilds the initial scenario rather than advancing a global RNG. Code, content ordering and draw-order changes between builds may change scenarios; historical seed outputs are not preserved before release.
+A new run chooses one seed; saves retain it and the current depth. Each depth derives its own level seed, which its `Level` exposes to everything on the floor. Run-wide state (the run seed, gameplay loot counter, cleared entities and identification) lives in one `RunState` that the session hands to each level. Regeneration rebuilds the initial scenario rather than advancing a global RNG. Code, content ordering and draw-order changes between builds may change scenarios; historical seed outputs are not preserved before release.
 
 ## Generation streams and source rewards
 
@@ -21,11 +21,11 @@ A new run chooses one seed; saves retain it and the current depth. Each depth de
 
 Strategies receive explicit RNG inputs and retain no shared mutable sequence. Isolation prevents accidental draw-order coupling, but intentional dependencies remain: different geometry changes valid encounter or loot positions.
 
-Generated enemies, authored spawns and reward sources receive stable identities within the supported build/content. Opening chest A before B does not change their initial rewards. Loose-item initialization follows the same source-derived rule. Rebuilding a floor does not consume gameplay-time loot events.
+Generated enemies, authored spawns and reward sources receive stable identities within the supported build/content. Opening chest A before B does not change their initial rewards. Each loose-item spot is a reward source too: its own stream, its profile's chance and roll count, and reward-style instance ids. Rebuilding a floor does not consume gameplay-time loot events.
 
 ## Gameplay-time randomness
 
-Dynamic operations such as enchantment and rewards without a stable source use a separate saved continuation counter. It advances per RNG request, not per draw. Actor combat streams are local to their explicit source/identity; navigation, physics and AI decisions are not a deterministic replay system.
+Dynamic operations such as enchantment and rewards without a stable source use a separate saved continuation counter. It advances per RNG request, not per draw, and each request hashes the requesting floor's level seed with the counter in the `gameplay-loot` domain, so a roll during a stair fade still belongs to the floor being left. Actor combat streams are local to their explicit source/identity; navigation, physics and AI decisions are not a deterministic replay system.
 
 Secret and trap detection use local gameplay streams separate from generation and source loot. Saved discoveries persist, but future failed/successful rolls are not a replay guarantee after reload. Identification uses separate category streams and saves both appearance assignments and discoveries. Item copies and restoration preserve actual rolls without requesting randomness.
 

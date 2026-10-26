@@ -8,13 +8,13 @@ using Godot;
 /// </summary>
 public partial class RoomManager : Node
 {
-	private MapGenerator _mapGenerator;
+	private GeneratedFloor _floor;
 	private Player _player;
 	private int _currentRoomId = -1;
 
-	public void Initialize(MapGenerator mapGenerator)
+	public void Initialize(GeneratedFloor floor)
 	{
-		_mapGenerator = mapGenerator;
+		_floor = floor;
 	}
 
 	public override void _Ready()
@@ -36,13 +36,12 @@ public partial class RoomManager : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (_player == null || _mapGenerator?.Map == null)
+		if (_player == null || _floor == null)
 		{
 			return;
 		}
 
-		var tile = _mapGenerator.WorldToTile(_player.GlobalPosition);
-		int roomId = _mapGenerator.GetRoomIdAt(tile);
+		int roomId = _floor.RoomIdAt(_floor.Map.WorldToTile(_player.GlobalPosition));
 		if (roomId == _currentRoomId)
 		{
 			return;

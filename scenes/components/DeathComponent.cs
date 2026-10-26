@@ -16,6 +16,9 @@ public partial class DeathComponent : Node
 	/// instead of popping. Set to 0 to despawn instantly.
 	/// </summary>
 	[Export] public float FadeDuration { get; set; } = 0.6f;
+	private Level _level;
+
+	public override void _EnterTree() => _level = this.GetAncestorOrNull<Level>();
 
 	public override void _Ready()
 	{
@@ -35,7 +38,7 @@ public partial class DeathComponent : Node
 			string persistentId = owner.GetMeta("persistent_id").AsString();
 			if (!string.IsNullOrEmpty(persistentId))
 			{
-				GameSession.Instance?.ClearEntity(persistentId);
+				_level?.Run.MarkCleared(persistentId);
 			}
 		}
 

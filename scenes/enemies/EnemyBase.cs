@@ -25,11 +25,13 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	[Export] public LargeActorFitComponent LargeActorFit { get; set; }
 	[Export] public MonsterDefinition Definition { get; set; }
 	public bool DefinitionValid { get; private set; } = true;
+	private Level _level;
 
 	/// <summary>Initialize authored defaults before child readiness; never mutate the definition.</summary>
 	public override void _EnterTree()
 	{
 		if (Engine.IsEditorHint()) return;
+		_level = this.GetAncestorOrNull<Level>();
 		var errors = MonsterSceneValidator.Validate(this);
 		DefinitionValid = errors.Length == 0;
 		if (!DefinitionValid)
@@ -41,7 +43,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 		HealthComponent.SetHealth(Definition.MaxHealth, Definition.MaxHealth);
 		MovementComponent.Speed = Definition.MoveSpeed;
 		DeathComponent.Xp = Definition.XpReward;
-		LootTableComponent.ConfigureTable(Definition.LootTable);
+		LootTableComponent.ConfigureProfile(Definition.Loot);
 		EnemyBehaviorComponent.Profile = Definition.Behavior;
 	}
 
@@ -61,8 +63,8 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 
 		HealthComponent.Died += () => ActionGate.Disable();
 
-		var levelSeed = this.GetAncestorOrNull<Level>()?.MapGenerator?.Seed ?? 42;
-		ConfigureCombatRandom(levelSeed, GetMeta("persistent_id", IsInsideTree() ? GetPath().ToString() : Name.ToString()).AsString());
+		// An enemy outside a level (previews, harnesses) plays the default run; each still gets its own combat streams.
+		ConfigureCombatRandom(_level?.Seed ?? RunState.DefaultSeed, GetMeta("persistent_id", GetPath().ToString()).AsString());
 
 		// Hide the mesh until the animations are fully initialized to
 		// prevent any flickering

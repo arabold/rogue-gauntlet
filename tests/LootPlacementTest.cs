@@ -1,6 +1,8 @@
 namespace RogueGauntlet.Tests;
 
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Godot;
 using GdUnit4;
@@ -51,6 +53,35 @@ public class LootPlacementTest
 			.OverrideFailureMessage($"Found {failures.Count} chest placement failure(s) across {SeedCount} seeds:\n  "
 				+ string.Join("\n  ", failures))
 			.IsEmpty();
+	}
+
+	[TestCase]
+	public async Task LooseItemsRollAsRewardSourcesAndSurviveASaveRoundTrip()
+	{
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.AllProcedural());
+		var map = level.MapGenerator;
+		TestFactories.WireLootScenes(map);
+		map.MinLooseItems = map.MaxLooseItems = 3;
+		level.Generate();
+		LootableItem[] Loose() => level.FindChildren("*", "", true, false).OfType<LootableItem>()
+			.Where(p => !p.IsQueuedForDeletion() && p.GetMeta("persistent_id", "").AsString().Contains(":loose:")).ToArray();
+		var loose = Loose();
+		AssertInt(loose.Length).IsGreater(1);
+		// Instance ids follow the reward-source scheme, so a spot's items are keyed like a chest's.
+		AssertBool(loose.All(p => p.Item.InstanceId.StartsWith(p.GetMeta("persistent_id").AsString() + ":drop:"))).IsTrue();
+		string taken = loose[0].Item.InstanceId;
+		loose[0].CommitCollected();
+		var delta = JsonSerializer.Deserialize<LevelItemDeltaSaveData>(JsonSerializer.Serialize(level.ItemPersistence.Capture()));
+		AssertBool(delta.RemovedItemIds.Contains(taken)).IsTrue();
+		var survivors = loose.Skip(1).Select(p => p.Item.InstanceId).ToArray();
+		level.Generate();
+		level.ItemPersistence.Apply(delta);
+		// Applying a delta rebuilds every world pickup from its record, so match the floor by instance id.
+		var ground = level.FindChildren("*", "", true, false).OfType<LootableItem>()
+			.Where(p => !p.IsQueuedForDeletion()).Select(p => p.Item.InstanceId).ToHashSet();
+		AssertBool(ground.Contains(taken)).IsFalse();
+		AssertBool(survivors.All(ground.Contains)).IsTrue();
+		await runner.SimulateFrames(1);
 	}
 
 	[TestCase]
@@ -151,7 +182,7 @@ public class LootPlacementTest
 
 			foreach (Node3D node in FindLootNodes(mapGenerator))
 			{
-				Vector2I tile = mapGenerator.WorldToTile(node.GlobalPosition);
+				Vector2I tile = mapGenerator.Map.WorldToTile(node.GlobalPosition);
 				if (node is FloorTrap && mapGenerator.Map.IsCorridor(tile.X, tile.Y))
 				{
 					continue;
@@ -240,7 +271,7 @@ public class LootPlacementTest
 	private static List<string> FindChestPlacementFailures(MapGenerator mapGenerator, Chest chest, ulong seed)
 	{
 		var failures = new List<string>();
-		Vector2I tile = mapGenerator.WorldToTile(chest.GlobalPosition);
+		Vector2I tile = mapGenerator.Map.WorldToTile(chest.GlobalPosition);
 		MapData map = mapGenerator.Map;
 
 		if (!map.IsRoom(tile.X, tile.Y))

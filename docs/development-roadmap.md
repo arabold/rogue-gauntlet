@@ -46,6 +46,7 @@ After the first-three-floor loop is satisfactory, build one fire-magic slice wit
 
 ## Later delivery
 
+- **Architecture cleanup:** floor services, the run state and player persistence are separated. Remaining: item use through one context (consumable and scroll-effect signatures, `ActionManager` slot creation), splitting `ProceduralRoomBuilder` from its room-styling randomness, and a scene autoload for the session-flow scene paths shared with `SceneDebugBootstrap`.
 - **Message feed:** the [logging proposal](specs/logging-plan.md) remains separate from existing combat traces.
 - **Shop:** finite depth-appropriate stock, atomic trade, persistent balances and no identification leaks or trivial resale loops.
 - **Complete run:** connect class selection, descent, recovery/preparation and a valid win/loss outcome. The intended 24-depth/eight-realm journey ends at the World-Anchor; permanent progression remains undecided.

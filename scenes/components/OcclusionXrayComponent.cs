@@ -19,7 +19,7 @@ public enum XrayCategory
 /// it is (see the two <c>occlusion_xray*.gdshader</c> files).
 ///
 /// Silhouettes are shown only when the category's global toggle is on (<see cref="GameDebug"/>)
-/// AND the actor is in a discovered room (<see cref="MapGenerator.IsRevealedAt"/>), matching how
+/// AND the actor is in a discovered room (<see cref="ExplorationVisibility"/>), matching how
 /// the door indicator is gated to revealed areas.
 /// </summary>
 [GlobalClass]

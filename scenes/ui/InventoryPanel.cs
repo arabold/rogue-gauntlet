@@ -189,7 +189,7 @@ public partial class InventoryPanel : ScrollContainer
 
 		// Reading far enough to pick a target reveals the scroll itself, even if the
 		// player then cancels without picking anything.
-		GameSession.Instance?.IdentifyItemType(scroll);
+		_player.InventoryController.BeginTargeting(scroll);
 
 		BeginTargeting(new InventoryTargetRequest
 		{

@@ -73,7 +73,10 @@ public partial class AttackController : Node, IParryInterruptible
 	private HashSet<Node> _hitTargets = new HashSet<Node>();
 
 	private Node3D _actor;
+	private Level _level;
 	private readonly RandomNumberGenerator _random = new();
+
+	public override void _EnterTree() => _level = this.GetAncestorOrNull<Level>();
 
 	public override void _Ready()
 	{
@@ -469,30 +472,30 @@ public partial class AttackController : Node, IParryInterruptible
 	private IEnumerable<Vector3> GetAreaDropLandingPositions()
 	{
 		int count = Mathf.Max(1, _currentAttack.ProjectileCount);
-		Level level = _actor.GetAncestorOrNull<Level>() ?? (GetTree().CurrentScene ?? _actor.GetParent())?.GetNodeOrNull<Level>("Level");
 		for (int i = 0; i < count; i++)
 		{
-			if (TryGetAreaDropLandingPosition(i, count, _random, level?.MapGenerator, out Vector3 landingPosition))
+			if (TryGetAreaDropLandingPosition(i, count, _random, _level?.Floor, out Vector3 landingPosition))
 			{
 				yield return landingPosition;
 			}
 		}
 	}
 
-	private bool TryGetAreaDropLandingPosition(int index, int count, RandomNumberGenerator random, MapGenerator mapGenerator, out Vector3 landingPosition)
+	/// <summary>Outside a generated level (previews, harnesses) drops land where they were aimed.</summary>
+	private bool TryGetAreaDropLandingPosition(int index, int count, RandomNumberGenerator random, GeneratedFloor floor, out Vector3 landingPosition)
 	{
 		for (int attempt = 0; attempt < 8; attempt++)
 		{
 			float angle = index / (float)count * Mathf.Tau + random.RandfRange(-0.45f, 0.45f) + attempt * 0.29f;
 			float radius = random.RandfRange(_currentAttack.TargetAreaRadius * 0.25f, _currentAttack.TargetAreaRadius);
 			Vector3 rawTarget = _actor.GlobalPosition + new Vector3(Mathf.Cos(angle) * radius, 0.0f, Mathf.Sin(angle) * radius);
-			if (mapGenerator == null)
+			if (floor == null)
 			{
 				landingPosition = rawTarget;
 				return true;
 			}
 
-			if (mapGenerator.TryFindEffectLandingPositionNear(rawTarget, 1.5f, out Vector3 candidate))
+			if (floor.TryFindEffectLandingPositionNear(rawTarget, 1.5f, out Vector3 candidate))
 			{
 				landingPosition = candidate;
 				return true;

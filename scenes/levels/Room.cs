@@ -80,23 +80,6 @@ public partial class Room : Node3D
 		}
 	}
 
-	public void InitGridMaps()
-	{
-		// Automatically find the grid maps if they are not set
-		if (FloorGridMap == null)
-		{
-			FloorGridMap = GetNodeOrNull<GridMap>("FloorGridMap");
-		}
-		if (WallGridMap == null)
-		{
-			WallGridMap = GetNodeOrNull<GridMap>("WallGridMap");
-		}
-		if (DecorationGridMap == null)
-		{
-			DecorationGridMap = GetNodeOrNull<GridMap>("DecorationGridMap");
-		}
-	}
-
 	/// <summary>
 	/// Create a map of the room based on the floor and wall grid maps.
 	/// <br/>
@@ -105,8 +88,6 @@ public partial class Room : Node3D
 	/// </summary>
 	public void BakeTileMap()
 	{
-		// Ensure the grid maps are set
-		InitGridMaps();
 		if (FloorGridMap == null || WallGridMap == null)
 		{
 			GD.PrintErr($"{Name}: FloorGridMap and WallGridMap must be set!");
@@ -247,7 +228,6 @@ public partial class Room : Node3D
 
 		var axis = RotatePosition(new Vector3(LayoutAxis.X, 0, LayoutAxis.Y), steps);
 		LayoutAxis = new((int)axis.X, (int)axis.Z);
-		InitGridMaps();
 		RotateGridMapCells(FloorGridMap, steps);
 		RotateGridMapCells(WallGridMap, steps);
 		RotateGridMapCells(DecorationGridMap, steps);

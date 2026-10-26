@@ -20,18 +20,16 @@ public partial class SummonScrollEffect : ScrollEffect
 		}
 
 		Level level = player.GetAncestorOrNull<Level>();
-		MapGenerator generator = level?.MapGenerator;
-		if (generator?.MobFactory == null)
+		if (level?.Floor == null || level.MapGenerator.MobFactory == null)
 		{
 			return;
 		}
 
-		using var rng = GameSession.Instance?.CreateLootRng()
-			?? GenerationRandom.Create(generator.Seed, "summon");
+		using var rng = level.Run.CreateLootRng(level.Seed);
 		Vector3 playerPosition = player.GlobalPosition;
 		for (int i = 0; i < Count; i++)
 		{
-			PackedScene enemyScene = generator.MobFactory.CreateEnemy(generator.DungeonDepth, rng);
+			PackedScene enemyScene = level.MapGenerator.MobFactory.CreateEnemy(level.Depth, rng);
 			if (enemyScene == null)
 			{
 				continue;
@@ -39,7 +37,7 @@ public partial class SummonScrollEffect : ScrollEffect
 
 			float angle = Mathf.Tau * i / Count;
 			var ringOffset = new Vector3(Mathf.Cos(angle) * Radius, 0, Mathf.Sin(angle) * Radius);
-			Vector3 spawnPosition = generator.FindFreeSpawnPositionNear(playerPosition + ringOffset, Radius);
+			Vector3 spawnPosition = level.Floor.FindFreePositionNear(playerPosition + ringOffset, Radius);
 
 			var enemy = enemyScene.Instantiate<Node3D>();
 			level.AddWorldNode(enemy, spawnPosition);

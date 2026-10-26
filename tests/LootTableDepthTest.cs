@@ -78,8 +78,8 @@ public class LootTableDepthTest
 		var supply = MakeItem(1, 0);
 		var weapon = MakeItem(1, 0);
 		var variants = System.Linq.Enumerable.Range(0, 20).Select(_ => MakeItem(1, 0)).ToArray();
-		var original = new LootTable { Groups = [new LootTableGroup { Weight = 75, Items = [supply] }, new LootTableGroup { Weight = 25, Items = [weapon] }] };
-		var expanded = new LootTable { Groups = [new LootTableGroup { Weight = 75, Items = [supply] }, new LootTableGroup { Weight = 25, Items = variants }] };
+		var original = new LootTable { Groups = [new LootTableGroup { Weight = 75, Pool = new LootPool { Items = [supply] } }, new LootTableGroup { Weight = 25, Pool = new LootPool { Items = [weapon] } }] };
+		var expanded = new LootTable { Groups = [new LootTableGroup { Weight = 75, Pool = new LootPool { Items = [supply] } }, new LootTableGroup { Weight = 25, Pool = new LootPool { Items = variants } }] };
 		using var first = GenerationRandom.Create(42, "budget-test");
 		using var second = GenerationRandom.Create(42, "budget-test");
 		int supplies = 0;
@@ -97,7 +97,7 @@ public class LootTableDepthTest
 	{
 		var shallow = MakeItem(1, 3);
 		var deep = MakeItem(10, 0);
-		var table = new LootTable { Groups = [new LootTableGroup { Weight = 1, Items = [shallow] }, new LootTableGroup { Weight = 999, Items = [deep] }] };
+		var table = new LootTable { Groups = [new LootTableGroup { Weight = 1, Pool = new LootPool { Items = [shallow] } }, new LootTableGroup { Weight = 999, Pool = new LootPool { Items = [deep] } }] };
 		using var rng = GenerationRandom.Create(42, "group-depth-test");
 		for (int i = 0; i < 100; i++) { AssertObject(table.PickEntry(1, rng)).IsEqual(shallow); }
 		table.Groups[0].Weight = 0;

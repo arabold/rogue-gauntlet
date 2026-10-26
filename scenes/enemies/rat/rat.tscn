@@ -109,9 +109,6 @@ tree_root = SubResource("sm")
 advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../../Pivot/RatModel/AnimationPlayer")
 
-[node name="LootTableComponent" parent="." index="3"]
-DropChance = 0.55
-
 [node name="HealthComponent" parent="." index="4"]
 
 [node name="DeathComponent" parent="." index="5"]

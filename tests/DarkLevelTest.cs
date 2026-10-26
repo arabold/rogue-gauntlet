@@ -63,7 +63,7 @@ public class DarkLevelTest
 		unlit.Transform = ((Node3D)fixtures[0].GetParent()).GlobalTransform;
 		level.AddWorldNode(lit);
 		level.AddWorldNode(unlit);
-		level.MapGenerator.RevealAllFog();
+		level.Discovery.RevealAll();
 		await runner.SimulateFrames(2);
 		AssertEffects(lit, false);
 		AssertEffects(unlit, false);

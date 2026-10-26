@@ -15,30 +15,23 @@ public partial class GameSession : Node
 	public const string GameplayScenePath = "res://scenes/main/main.tscn";
 
 	public int ActiveSlotId { get; private set; }
-	public ulong ActiveSeed { get; private set; } = 42;
 	public uint ActiveDungeonDepth { get; private set; } = 1;
 	public bool IsGameActive => ActiveSlotId > 0;
 
-	private readonly IdentificationService _identification = new();
-	private bool _identificationReady;
+	private RunState _run;
 
 	/// <summary>
-	/// Per-run hidden-identity state for potions, scrolls, and similar items. Starting or loading a run initializes
-	/// it; anything that plays without one (a scene run directly, or back at the menu) gets the default run's
-	/// disguises from <see cref="ActiveSeed"/> on first use, so the catalog never loads at boot.
+	/// The active run, handed to each level. Starting or loading a game creates it; anything that plays without one
+	/// (a scene run directly, or back at the menu) gets the default run on first use. UI-wide item display reads
+	/// identification from here; gameplay reads it from its level.
 	/// </summary>
-	public IdentificationService Identification
-	{
-		get
-		{
-			if (!_identificationReady)
-			{
-				_identification.Initialize(ActiveSeed);
-				_identificationReady = true;
-			}
+	public RunState Run => _run ??= new RunState(RunState.DefaultSeed);
 
-			return _identification;
-		}
+	/// <summary>Debug harnesses: replaces the active run with an unsaved one, so gameplay and UI share its state.</summary>
+	public void StartUnsavedRun(ulong runSeed)
+	{
+		if (IsGameActive) throw new InvalidOperationException("An unsaved run cannot replace an active game.");
+		_run = new RunState(runSeed);
 	}
 
 	/// <summary>Id of the run's character class; empty when no game is active.</summary>
@@ -72,9 +65,6 @@ public partial class GameSession : Node
 	private double _sessionStartedAtMsec;
 	private bool _isSceneTransitioning;
 	private bool _saveAfterNextSpawn;
-	private uint _lootRollsConsumed;
-	/// <summary>Read-only continuation cursor for gameplay-time randomness and diagnostics.</summary>
-	public uint LootRollsConsumed => _lootRollsConsumed;
 	private CanvasLayer _levelFadeLayer;
 	private ColorRect _levelFadeRect;
 	private Tween _levelFadeTween;
@@ -95,16 +85,6 @@ public partial class GameSession : Node
 			SignalBus.Instance,
 			signalBus => signalBus.PlayerSpawned += OnPlayerSpawned,
 			signalBus => signalBus.PlayerSpawned -= OnPlayerSpawned);
-
-		this.SubscribeUntilExit(
-			SignalBus.Instance,
-			signalBus => signalBus.ItemConsumed += OnItemConsumed,
-			signalBus => signalBus.ItemConsumed -= OnItemConsumed);
-
-		this.SubscribeUntilExit(
-			SignalBus.Instance,
-			signalBus => signalBus.ItemEquipped += OnItemEquipped,
-			signalBus => signalBus.ItemEquipped -= OnItemEquipped);
 	}
 
 	public override void _ExitTree()
@@ -126,21 +106,18 @@ public partial class GameSession : Node
 
 		SaveService.GetSlotPath(slotId);
 		ActiveSlotId = slotId;
-		ActiveSeed = (ulong)DateTime.UtcNow.Ticks;
+		_run = new RunState((ulong)DateTime.UtcNow.Ticks);
 		ActiveDungeonDepth = 1;
 		PendingTravelDirection = LevelTravelDirection.Down;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
 		_pendingLoadedSave = null;
 		_saveAfterNextSpawn = true;
-		_lootRollsConsumed = 0;
-		_identification.Initialize(ActiveSeed);
-		_identificationReady = true;
 		ResolveCharacterClass(characterClassId);
 
 		// The hero knows their own supplies: class starting consumables are never disguised.
 		foreach (string typeId in ActiveCharacterClass?.PreIdentifiedTypeIds ?? Array.Empty<string>())
 		{
-			Identification.Identify(typeId);
+			Run.Identification.Identify(typeId);
 		}
 
 		string now = DateTime.UtcNow.ToString("O");
@@ -151,7 +128,7 @@ public partial class GameSession : Node
 			CreatedAtUtc = now,
 			SavedAtUtc = now,
 			CharacterClassId = ActiveCharacterClassId,
-			Seed = ActiveSeed,
+			Seed = Run.RunSeed,
 			DungeonDepth = ActiveDungeonDepth,
 		};
 
@@ -189,17 +166,16 @@ public partial class GameSession : Node
 			return;
 		}
 
+		var identification = new IdentificationService();
+		identification.Initialize(saveGame.Seed, saveGame.Identification?.IdentifiedTypeIds, BuildAssignmentMap(saveGame.Identification));
 		ActiveSlotId = slotId;
-		ActiveSeed = saveGame.Seed;
+		_run = new RunState(saveGame.Seed, saveGame.LootRollsConsumed, saveGame.World.ClearedEntityIds, identification);
 		ActiveDungeonDepth = saveGame.DungeonDepth;
 		PendingTravelDirection = null;
 		_activeSave = saveGame;
 		_pendingLoadedSave = saveGame;
 		_saveAfterNextSpawn = false;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
-		_lootRollsConsumed = saveGame.LootRollsConsumed;
-		_identification.Initialize(ActiveSeed, saveGame.Identification?.IdentifiedTypeIds, BuildAssignmentMap(saveGame.Identification));
-		_identificationReady = true;
 		ResolveCharacterClass(saveGame.CharacterClassId);
 
 		GetTree().Paused = false;
@@ -208,32 +184,14 @@ public partial class GameSession : Node
 		GetTree().ChangeSceneToFile(GameplayScenePath);
 	}
 
+	/// <summary>Hands the level this run and the floor's saved deltas; a generation failure returns to the menu.</summary>
 	public void ConfigureLevel(Level level)
 	{
-		ulong levelSeed = GetLevelSeed(ActiveSeed, ActiveDungeonDepth);
-		level.ConfigureGeneration(levelSeed, ActiveDungeonDepth);
+		level.ConfigureGeneration(Run, ActiveDungeonDepth, FindLevelItemChanges(ActiveDungeonDepth), GetLevelExploration(ActiveDungeonDepth));
+		level.GenerationFailed += OnGenerationFailed;
 	}
 
-	public static ulong GetLevelSeed(ulong runSeed, uint depth)
-	{
-		return runSeed ^ ((ulong)depth * 0x9e3779b97f4a7c15UL);
-	}
-
-	/// <summary>
-	/// A deterministic RNG for the next loot roll this run. Seeded from the run/depth seed
-	/// and a persisted counter so successive drops differ and resume consistently across a
-	/// save/load. Rolled results are also persisted on the item, so exact fidelity does not
-	/// depend on replaying the same drop order.
-	/// </summary>
-	public RandomNumberGenerator CreateLootRng()
-	{
-		var rng = new RandomNumberGenerator
-		{
-			Seed = GetLevelSeed(ActiveSeed, ActiveDungeonDepth) ^ (_lootRollsConsumed * 0x9e3779b97f4a7c15UL),
-		};
-		_lootRollsConsumed++;
-		return rng;
-	}
+	private void OnGenerationFailed(string reason) => CallDeferred(MethodName.ReturnToMenu);
 
 	public bool CanUseTransition(LevelTravelDirection direction)
 	{
@@ -285,7 +243,7 @@ public partial class GameSession : Node
 		try
 		{
 			StoreFloorDeltas();
-			_activeSave.Player = CapturePlayerForLevelTransition(player);
+			_activeSave.Player = PlayerSaveCodec.Capture(player, includeTransform: false);
 		}
 		catch (Exception error)
 		{
@@ -308,7 +266,6 @@ public partial class GameSession : Node
 
 		PendingTravelDirection = direction;
 		_activeSave.DungeonDepth = ActiveDungeonDepth;
-		_activeSave.Player.Stats.DungeonDepth = (int)ActiveDungeonDepth;
 
 		GD.Print($"Transitioning {direction} to depth {ActiveDungeonDepth}...");
 
@@ -318,21 +275,7 @@ public partial class GameSession : Node
 		return true;
 	}
 
-	public bool IsEntityCleared(string entityId)
-	{
-		return _activeSave?.World?.ClearedEntityIds?.Contains(entityId) == true;
-	}
-
-	public void ClearEntity(string entityId)
-	{
-		EnsureActiveSave();
-		if (!_activeSave.World.ClearedEntityIds.Contains(entityId))
-		{
-			_activeSave.World.ClearedEntityIds.Add(entityId);
-		}
-	}
-
-	public RevealedLevelSaveData GetLevelExploration(uint dungeonDepth) => _activeSave?.World?.RevealedLevels?
+	private RevealedLevelSaveData GetLevelExploration(uint dungeonDepth) => _activeSave?.World?.RevealedLevels?
 		.FirstOrDefault(level => level.DungeonDepth == dungeonDepth);
 
 	public void ResetCurrentLevelDebugState() => ResetLevelDebugState(ActiveDungeonDepth);
@@ -340,20 +283,19 @@ public partial class GameSession : Node
 	/// <summary>Reset one floor's deltas for focused debug playtests without changing run depth.</summary>
 	public void ResetLevelDebugState(uint depth)
 	{
+		Run.ForgetCleared(depth);
 		if (_activeSave?.World == null)
 		{
 			return;
 		}
 
-		_activeSave.World.ClearedEntityIds.RemoveAll(entityId =>
-			entityId.StartsWith($"depth:{depth}:", StringComparison.Ordinal));
 		_activeSave.World.RevealedLevels.RemoveAll(level => level.DungeonDepth == depth);
 		_activeSave.World.ItemChanges.RemoveAll(level => level.Depth == depth);
 		_pendingLoadedSave = null;
 	}
 
 	/// <summary>Per-depth differences are applied to freshly regenerated seeded baselines.</summary>
-	public LevelItemDeltaSaveData FindLevelItemChanges(uint depth) =>
+	private LevelItemDeltaSaveData FindLevelItemChanges(uint depth) =>
 		_activeSave?.World?.ItemChanges?.FirstOrDefault(change => change.Depth == depth);
 
 	private Level CurrentLevel() => GetTree().CurrentScene?
@@ -407,12 +349,13 @@ public partial class GameSession : Node
 			saveGame.SlotId = ActiveSlotId;
 			saveGame.CharacterClassId = ActiveCharacterClassId;
 			saveGame.SavedAtUtc = DateTime.UtcNow.ToString("O");
-			saveGame.Seed = ActiveSeed;
+			saveGame.Seed = Run.RunSeed;
 			saveGame.DungeonDepth = ActiveDungeonDepth;
 			saveGame.PlayTimeSeconds += GetSessionElapsedSeconds();
-			saveGame.LootRollsConsumed = _lootRollsConsumed;
+			saveGame.LootRollsConsumed = Run.LootRollsConsumed;
+			saveGame.World.ClearedEntityIds = Run.CaptureClearedIds();
 			StoreFloorDeltas();
-			saveGame.Player = CapturePlayer(player);
+			saveGame.Player = PlayerSaveCodec.Capture(player, includeTransform: true);
 			saveGame.Identification = CaptureIdentification();
 
 			if (!SaveService.Save(saveGame))
@@ -476,7 +419,7 @@ public partial class GameSession : Node
 	private void ClearSession()
 	{
 		ActiveSlotId = 0;
-		ActiveSeed = 42;
+		_run = null;
 		ActiveDungeonDepth = 1;
 		ActiveCharacterClassId = "";
 		ActiveCharacterClass = null;
@@ -487,8 +430,6 @@ public partial class GameSession : Node
 		_stairArrivalTicks = 0;
 		_isSceneTransitioning = false;
 		_saveAfterNextSpawn = false;
-		_lootRollsConsumed = 0;
-		_identificationReady = false;
 	}
 
 	private double GetSessionElapsedSeconds()
@@ -496,35 +437,14 @@ public partial class GameSession : Node
 		return Math.Max(0, (Time.GetTicksMsec() - _sessionStartedAtMsec) / 1000.0);
 	}
 
-	private void OnItemConsumed(Player player, ConsumableItem item) => IdentifyItemType(item);
-
-	private void OnItemEquipped(Player player, EquipableItem item) => IdentifyItemType(item);
-
-	/// <summary>
-	/// Records discovery of an item's hidden type for the rest of the run and notifies the UI. A safe no-op for items
-	/// with no hidden type or a type already discovered. Shared by consuming, wearing and the scroll of identify; what
-	/// one item reveals about itself is the item's own business (<see cref="EquipableItem.RevealAttributes"/>).
-	/// </summary>
-	public bool IdentifyItemType(Item item)
-	{
-		if (item is IIdentifiable identifiable && identifiable.HasIdentity && Identification.Identify(identifiable.TypeId))
-		{
-			GD.Print($"Identified {identifiable.TypeId} as {identifiable.TrueName}.");
-			SignalBus.EmitItemIdentified(identifiable.TypeId);
-			return true;
-		}
-
-		return false;
-	}
-
 	private IdentificationSaveData CaptureIdentification()
 	{
 		var data = new IdentificationSaveData
 		{
-			IdentifiedTypeIds = Identification.GetIdentifiedTypeIds().ToList(),
+			IdentifiedTypeIds = Run.Identification.GetIdentifiedTypeIds().ToList(),
 		};
 
-		foreach (KeyValuePair<string, string> assignment in Identification.GetAssignmentDescriptors())
+		foreach (KeyValuePair<string, string> assignment in Run.Identification.GetAssignmentDescriptors())
 		{
 			data.Assignments.Add(new AppearanceAssignmentSaveData
 			{
@@ -559,7 +479,7 @@ public partial class GameSession : Node
 		{
 			// Loading still instantiates through the authored spawn point; the saved
 			// transform is applied immediately before the level is revealed.
-			ApplyPlayerSave(player, _pendingLoadedSave.Player);
+			PlayerSaveCodec.Apply(player, _pendingLoadedSave.Player);
 			_pendingLoadedSave = null;
 		}
 		else if (_saveAfterNextSpawn)
@@ -660,204 +580,5 @@ public partial class GameSession : Node
 
 		AddChild(_levelFadeLayer);
 		_levelFadeLayer.AddChild(_levelFadeRect);
-	}
-
-	private static PlayerSaveData CapturePlayer(Player player)
-	{
-		return new PlayerSaveData
-		{
-			Position = CaptureVector3(player.GlobalPosition),
-			Rotation = CaptureVector3(player.Rotation),
-			Stats = CaptureStats(player.Stats),
-			Inventory = CaptureInventory(player.Inventory),
-			Actions = CaptureActions(player),
-		};
-	}
-
-	private static PlayerSaveData CapturePlayerForLevelTransition(Player player)
-	{
-		return new PlayerSaveData
-		{
-			ApplyTransform = false,
-			Stats = CaptureStats(player.Stats),
-			Inventory = CaptureInventory(player.Inventory),
-			Actions = CaptureActions(player),
-		};
-	}
-
-	private static PlayerStatsSaveData CaptureStats(PlayerStats stats)
-	{
-		return new PlayerStatsSaveData
-		{
-			Health = stats.Health,
-			Xp = stats.Xp,
-			XpLevel = stats.XpLevel,
-			Gold = stats.Gold,
-			DungeonDepth = stats.DungeonDepth,
-			BaseStrength = stats.BaseStrength,
-			BaseDexterity = stats.BaseDexterity,
-			BaseVitality = stats.BaseVitality,
-			BaseIntelligence = stats.BaseIntelligence,
-			BaseSpeed = stats.BaseSpeed,
-			BaseMaxHealth = stats.BaseMaxHealth,
-			BaseMinDamage = stats.BaseMinDamage,
-			BaseMaxDamage = stats.BaseMaxDamage,
-			BaseCritChance = stats.BaseCritChance,
-			BaseArmor = stats.BaseArmor,
-			XpModifier = stats.XpModifier,
-			GoldModifier = stats.GoldModifier,
-		};
-	}
-
-	private static InventorySaveData CaptureInventory(Inventory inventory) => InventorySaveCodec.Capture(inventory);
-
-	private static void ApplyPlayerSave(Player player, PlayerSaveData saveData)
-	{
-		player.BuffController.ClearBuffs();
-		ApplyInventory(player, saveData.Inventory);
-		ApplyActions(player, saveData.Actions);
-		ApplyStats(player.Stats, saveData.Stats);
-		player.StatsController.SyncStats();
-		if (saveData.ApplyTransform)
-		{
-			player.GlobalPosition = ToVector3(saveData.Position);
-			player.Rotation = ToVector3(saveData.Rotation);
-		}
-	}
-
-	private static PlayerActionSaveData CaptureActions(Player player)
-	{
-		var data = new PlayerActionSaveData();
-		if (player.QuickItemController != null)
-		{
-			for (int i = 0; i < 4; i++)
-			{
-				var binding = player.QuickItemController.GetBinding(i);
-				data.QuickSlots.Add(new QuickItemBindingSaveData
-				{
-					SlotIndex = i,
-					Kind = binding.Kind.ToString(),
-					DefinitionPath = binding.DefinitionPath,
-					InstanceId = binding.InstanceId
-				});
-			}
-
-			foreach (var kvp in player.QuickItemController.GetVarietyCooldowns())
-			{
-				data.VarietyCooldowns[kvp.Key] = kvp.Value;
-			}
-		}
-
-		data.DodgeCooldownRemaining = player.DodgeComponent?.CooldownRemaining ?? 0f;
-		data.ParryRearmRemaining = player.GuardComponent?.ParryRearmRemaining ?? 0f;
-		data.RecoveryLockoutRemaining = Mathf.Max(player.ActionGate?.StaggerRemaining ?? 0,
-			Mathf.Max(player.AttackController?.RecoveryRemaining ?? 0,
-			Mathf.Max(player.DodgeComponent?.RecoveryRemaining ?? 0, player.GuardComponent?.RecoveryRemaining ?? 0)));
-
-		return data;
-	}
-
-	private static void ApplyActions(Player player, PlayerActionSaveData data)
-	{
-		if (player.QuickItemController == null || data == null) return;
-		data.ValidateCombatTimers();
-		player.QuickItemController.IsRestoringSave = true;
-		try
-		{
-			if (data.QuickSlots != null)
-			{
-				foreach (var slotData in data.QuickSlots)
-				{
-					if (slotData.SlotIndex < 0 || slotData.SlotIndex >= 4) continue;
-					if (System.Enum.TryParse<QuickItemBindingKind>(slotData.Kind, out var kind))
-					{
-						switch (kind)
-						{
-							case QuickItemBindingKind.Variety:
-								player.QuickItemController.RestoreSlot(slotData.SlotIndex, QuickItemBinding.ForVariety(slotData.DefinitionPath));
-								break;
-							case QuickItemBindingKind.Instance:
-								player.QuickItemController.RestoreSlot(slotData.SlotIndex, QuickItemBinding.ForInstance(slotData.InstanceId, slotData.DefinitionPath));
-								break;
-							default:
-								player.QuickItemController.RestoreSlot(slotData.SlotIndex, QuickItemBinding.Unassigned());
-								break;
-						}
-					}
-				}
-			}
-
-			if (data.VarietyCooldowns != null)
-			{
-				player.QuickItemController.RestoreVarietyCooldowns(data.VarietyCooldowns);
-			}
-
-			player.QuickItemController.RefreshCounts();
-		}
-		finally
-		{
-			player.QuickItemController.IsRestoringSave = false;
-		}
-
-		player.ActionGate?.CancelCurrent(ActionInterruptReason.Invalidated);
-		player.AttackController?.CancelAttack();
-		player.MovementComponent?.ResetTransientMotion();
-		player.DodgeComponent?.RestoreCooldown(data.DodgeCooldownRemaining);
-		player.GuardComponent?.RestoreCooldown(data.ParryRearmRemaining);
-		player.InputController?.RequireFreshDefenseInput();
-		if (data.RecoveryLockoutRemaining > 0) player.ActionGate?.TryStagger(data.RecoveryLockoutRemaining);
-	}
-
-	private static void ApplyInventory(Player player, InventorySaveData saveData)
-	{
-		Inventory restored = InventorySaveCodec.Restore(saveData);
-		Inventory inventory = player.Inventory;
-		player.ActionManager.ClearActions();
-		inventory.ReleaseAll();
-		inventory.Items.Clear();
-		inventory.Capacity = restored.Capacity;
-		foreach (InventoryItemSlot entry in restored.Items) { inventory.Items.Add(entry); }
-		foreach (EquippedItemSaveData equipment in saveData.EquippedItems)
-		{
-			var entry = inventory.Items.First(i => i.Item.InstanceId == equipment.ItemInstanceId);
-			inventory.Equip(entry, Enum.Parse<EquipmentSlot>(equipment.Slot));
-		}
-		inventory.EmitChanged();
-	}
-
-	private static void ApplyStats(PlayerStats stats, PlayerStatsSaveData saveData)
-	{
-		stats.Health = saveData.Health;
-		stats.Xp = saveData.Xp;
-		stats.XpLevel = saveData.XpLevel;
-		stats.Gold = saveData.Gold;
-		stats.DungeonDepth = saveData.DungeonDepth;
-		stats.BaseStrength = saveData.BaseStrength;
-		stats.BaseDexterity = saveData.BaseDexterity;
-		stats.BaseVitality = saveData.BaseVitality;
-		stats.BaseIntelligence = saveData.BaseIntelligence;
-		stats.BaseSpeed = saveData.BaseSpeed;
-		stats.BaseMaxHealth = saveData.BaseMaxHealth;
-		stats.BaseMinDamage = saveData.BaseMinDamage;
-		stats.BaseMaxDamage = saveData.BaseMaxDamage;
-		stats.BaseCritChance = saveData.BaseCritChance;
-		stats.BaseArmor = saveData.BaseArmor;
-		stats.XpModifier = saveData.XpModifier;
-		stats.GoldModifier = saveData.GoldModifier;
-	}
-
-	private static Vector3SaveData CaptureVector3(Vector3 vector)
-	{
-		return new Vector3SaveData
-		{
-			X = vector.X,
-			Y = vector.Y,
-			Z = vector.Z,
-		};
-	}
-
-	private static Vector3 ToVector3(Vector3SaveData vector)
-	{
-		return new Vector3(vector.X, vector.Y, vector.Z);
 	}
 }

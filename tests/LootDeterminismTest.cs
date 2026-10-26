@@ -1,57 +1,49 @@
+// RunState's seed API is plain integer math; these tests never construct engine objects.
+#pragma warning disable GdUnit0501
 namespace RogueGauntlet.Tests;
 
-using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
-/// Determinism tests for per-drop loot RNG. Loot must reproduce from the run seed so a
-/// reloaded save rolls identical drops; these lock that contract. They need the Godot
-/// runtime because <see cref="GameSession"/> is a Node and the RNG is Godot's
-/// <c>RandomNumberGenerator</c>.
+/// Determinism of gameplay-time loot seeds. Loot must reproduce from the run so a reloaded save rolls identical drops;
+/// these lock that contract on <see cref="RunState.NextLootSeed"/>, which needs no engine.
 /// </summary>
 [TestSuite]
-[RequireGodotRuntime]
 public class LootDeterminismTest
 {
 	[TestCase]
-	public void FreshSessionsWithTheSameStateRollIdenticalFirstRng()
+	public void RunsWithTheSameStateRollIdenticalSeeds()
 	{
-		var sessionA = AutoFree(new GameSession());
-		var sessionB = AutoFree(new GameSession());
-
-		// Two runs at the same seed/depth must seed the first drop identically.
-		RandomNumberGenerator a = sessionA.CreateLootRng();
-		RandomNumberGenerator b = sessionB.CreateLootRng();
-
-		AssertBool(a.Seed == b.Seed).IsTrue();
-		// And produce the same value stream, not just the same seed.
-		AssertBool(a.Randi() == b.Randi()).IsTrue();
+		var a = new RunState(42, lootRollsConsumed: 7);
+		var b = new RunState(42, lootRollsConsumed: 7);
+		ulong levelSeed = RunState.GetLevelSeed(42, 3);
+		AssertBool(a.NextLootSeed(levelSeed) == b.NextLootSeed(levelSeed)).IsTrue();
+		AssertBool(a.NextLootSeed(levelSeed) == b.NextLootSeed(levelSeed)).IsTrue();
 	}
 
 	[TestCase]
-	public void SuccessiveRollsAdvanceTheCounter()
+	public void EveryRequestAdvancesTheCounter()
 	{
-		var session = AutoFree(new GameSession());
-
-		RandomNumberGenerator first = session.CreateLootRng();
-		RandomNumberGenerator second = session.CreateLootRng();
-		RandomNumberGenerator third = session.CreateLootRng();
-
+		var run = new RunState(42);
+		ulong levelSeed = RunState.GetLevelSeed(42, 1);
+		ulong first = run.NextLootSeed(levelSeed);
+		ulong second = run.NextLootSeed(levelSeed);
+		ulong third = run.NextLootSeed(levelSeed);
 		// Each draw must use a distinct seed, or every drop in a run would be identical.
-		AssertBool(first.Seed != second.Seed).IsTrue();
-		AssertBool(second.Seed != third.Seed).IsTrue();
-		AssertBool(first.Seed != third.Seed).IsTrue();
+		AssertBool(first != second && second != third && first != third).IsTrue();
+		AssertInt((int)run.LootRollsConsumed).IsEqual(3);
 	}
 
 	[TestCase]
-	public void FirstRollIsKeyedToTheLevelSeed()
+	public void RollsAreKeyedToTheLevelSeedAndCounter()
 	{
-		var session = AutoFree(new GameSession());
-
-		// A fresh session is at the default seed/depth with no rolls consumed, so the first
-		// loot RNG is seeded straight from the level seed.
-		ulong expected = GameSession.GetLevelSeed(session.ActiveSeed, session.ActiveDungeonDepth);
-		AssertBool(session.CreateLootRng().Seed == expected).IsTrue();
+		var run = new RunState(42);
+		ulong levelSeed = RunState.GetLevelSeed(42, 2);
+		AssertBool(run.NextLootSeed(levelSeed) == GenerationRandom.DeriveSeed(levelSeed, GenerationRandom.GameplayLoot, "0")).IsTrue();
+		AssertBool(run.NextLootSeed(levelSeed) == GenerationRandom.DeriveSeed(levelSeed, GenerationRandom.GameplayLoot, "1")).IsTrue();
+		// A save resumes the counter, so the next roll continues the sequence instead of repeating it.
+		var resumed = new RunState(42, run.LootRollsConsumed);
+		AssertBool(resumed.NextLootSeed(levelSeed) == GenerationRandom.DeriveSeed(levelSeed, GenerationRandom.GameplayLoot, "2")).IsTrue();
 	}
 }

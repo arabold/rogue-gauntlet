@@ -2,10 +2,12 @@
 
 | Folder | What belongs here |
 | --- | --- |
-| `generators/` | Floor orchestration, map data, randomness and wall geometry |
+| `generators/` | Floor orchestration (with its access and loot partials), the `GeneratedFloor` handoff, map data, randomness and wall geometry |
 | `generators/rooms/` | Coded room generators and the shared shell builder |
 | `generators/factories/` | Room, tile and monster factory contracts/implementations |
 | `generators/layouts/`, `generators/connectors/` | Floor packing and corridor-routing strategies |
+| `encounters/` | Realm encounter factories, their per-floor plan and the descent objective |
+| `.` (this folder) | `Level`, `FloorDiscovery` (exploration and fog) and the floor-local runtime nodes |
 | `garrison/factories/` | Gameplay Garrison factory presets |
 | `garrison/rooms/<type>/` | A room's generator preset, shell and dedicated dressing/decoration policies |
 | `garrison/rooms/shared/` | Shells reused across room types and the generic builder preset |

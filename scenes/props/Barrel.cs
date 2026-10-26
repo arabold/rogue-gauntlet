@@ -3,16 +3,13 @@ using System;
 
 public partial class Barrel : Node3D
 {
-	private HealthComponent _healthComponent;
-	private HurtBoxComponent _hurtBoxComponent;
+	[Export] private HealthComponent HealthComponent { get; set; }
 
 	public override void _Ready()
 	{
 		base._Ready();
-		_hurtBoxComponent = GetNode<HurtBoxComponent>("HurtBoxComponent");
-		_healthComponent = GetNode<HealthComponent>("HealthComponent");
 		this.SubscribeUntilExit(
-			_healthComponent,
+			HealthComponent,
 			healthComponent => healthComponent.Died += OnDie,
 			healthComponent => healthComponent.Died -= OnDie);
 	}

@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="TierDepthBands" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/items/quality/TierDepthBands.cs" id="bands"]
+
+[resource]
+script = ExtResource("bands")
+Bands = Array[Vector2i]([Vector2i(1, 6), Vector2i(4, 12), Vector2i(10, 18), Vector2i(16, 21), Vector2i(19, 0)])
+metadata/_custom_type_script = ExtResource("bands")

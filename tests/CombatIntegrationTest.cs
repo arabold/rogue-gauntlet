@@ -2,7 +2,6 @@ namespace RogueGauntlet.Tests;
 
 using System;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Godot;
@@ -339,13 +338,11 @@ public partial class CombatIntegrationTest
 		{
 			AssertBool(harness.RequestHeroDodge(Vector3.Forward)).IsTrue();
 			await PhysicsFrames(runner, 4);
-			var capture = typeof(GameSession).GetMethod("CaptureActions", BindingFlags.Static | BindingFlags.NonPublic);
-			var apply = typeof(GameSession).GetMethod("ApplyActions", BindingFlags.Static | BindingFlags.NonPublic);
-			var state = (PlayerActionSaveData)capture.Invoke(null, [harness.Player]);
+			var state = PlayerSaveCodec.CaptureActions(harness.Player);
 			AssertFloat(state.RecoveryLockoutRemaining).IsEqualApprox(harness.Player.DodgeComponent.RecoveryRemaining, .001);
 			var restored = JsonSerializer.Deserialize<PlayerActionSaveData>(JsonSerializer.Serialize(state));
 			harness.Player.MovementComponent.Push(Vector3.Right, 3);
-			apply.Invoke(null, [harness.Player, restored]);
+			PlayerSaveCodec.ApplyActions(harness.Player, restored);
 			AssertBool(harness.Player.MovementComponent.IsPushed).IsFalse();
 			AssertBool(harness.Player.DodgeComponent.IsDodging).IsFalse();
 			AssertBool(harness.Player.ActionGate.IsStaggered).IsTrue();

@@ -25,9 +25,14 @@ public partial class Buff : Resource
     /// </summary>
     [Export] public Array<StatusCondition> CuredConditions { get; set; } = [];
 
-    public virtual void OnApply(Player player)
+    /// <summary>
+    /// Starts the effect for one <paramref name="activation"/>. A buff is a shared definition that can be active
+    /// several times at once, so register reversible effects under the activation, never under the buff itself.
+    /// </summary>
+    public virtual void OnApply(ActiveBuff activation)
     { }
 
-    public virtual void OnRemove(Player player)
+    /// <summary>Reverses exactly what <see cref="OnApply"/> registered for <paramref name="activation"/>.</summary>
+    public virtual void OnRemove(ActiveBuff activation)
     { }
 }

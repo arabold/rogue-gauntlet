@@ -16,17 +16,18 @@ public partial class EnchantScrollEffect : ScrollEffect
 
 	public override bool IsValidTarget(Player player, InventoryItemSlot slot)
 	{
-		return slot?.Item is EquipableItem item && LootRoller.CanEnchant(item, QualityLadder);
+		return player?.GetAncestorOrNull<Level>() != null && slot?.Item is EquipableItem item && LootRoller.CanEnchant(item, QualityLadder);
 	}
 
 	public override void ApplyToTarget(Player player, InventoryItemSlot slot)
 	{
-		if (player == null || slot?.Item is not EquipableItem target || !LootRoller.CanEnchant(target, QualityLadder))
+		Level level = player?.GetAncestorOrNull<Level>();
+		if (level == null || slot?.Item is not EquipableItem target || !LootRoller.CanEnchant(target, QualityLadder))
 		{
 			return;
 		}
 
-		player.Inventory.ChangeItem(slot, item => LootRoller.Enchant(item, GameSession.Instance?.ActiveDungeonDepth ?? 1,
-			GameSession.Instance?.CreateLootRng() ?? new RandomNumberGenerator(), QualityLadder));
+		// The floor being read on, not the session's next depth: a scroll read during a stair fade rolls this floor.
+		player.Inventory.ChangeItem(slot, item => LootRoller.Enchant(item, level.Depth, level.Run.CreateLootRng(level.Seed), QualityLadder));
 	}
 }

@@ -21,8 +21,8 @@ public partial class ActiveBuffTest
 		public int RemoveCount;
 		public int TickCount;
 
-		public override void OnApply(Player player) => ApplyCount++;
-		public override void OnRemove(Player player) => RemoveCount++;
+		public override void OnApply(ActiveBuff activation) => ApplyCount++;
+		public override void OnRemove(ActiveBuff activation) => RemoveCount++;
 		public override void OnTick(Player player) => TickCount++;
 	}
 
@@ -37,6 +37,27 @@ public partial class ActiveBuffTest
 		AssertFloat(active.RemainingDuration).IsEqual(5.0);
 		AssertBool(active.IsPermanent).IsFalse();
 		AssertBool(active.IsExpired).IsFalse();
+	}
+
+	[TestCase]
+	public void OverlappingActivationsOfOneStatBuffReverseIndependently()
+	{
+		// A potion stack shares one Buff: the first drink expiring must not strip the second drink's bonus.
+		var stats = new PlayerStats();
+		var player = AutoFree(new Player());
+		player.Set(Player.PropertyName.Stats, stats);
+		var buff = new StatModifierBuff { Duration = 5f, Modifiers = [new StatModifier { Stat = StatType.Strength, Value = 2f }] };
+		var first = AutoFree(new ActiveBuff());
+		var second = AutoFree(new ActiveBuff());
+		first.Initialize(player, buff);
+		second.Initialize(player, buff);
+		AssertFloat(stats.Strength).IsEqual(14f);
+
+		first.Deactivate();
+		AssertFloat(stats.Strength).IsEqual(12f);
+
+		second.Deactivate();
+		AssertFloat(stats.Strength).IsEqual(10f);
 	}
 
 	[TestCase]

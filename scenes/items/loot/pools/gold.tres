@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="LootPool" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/components/LootPool.cs" id="pool"]
+[ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
+[ext_resource type="Resource" uid="uid://dnxrasu67oe6k" path="res://scenes/items/gold/gold.tres" id="item_gold"]
+
+[sub_resource type="Resource" id="Entry_gold"]
+script = ExtResource("entry")
+Item = ExtResource("item_gold")
+Quantity = 15
+MinDepth = 1
+QuantityPerDepth = 3.0
+metadata/_custom_type_script = ExtResource("entry")
+
+[resource]
+script = ExtResource("pool")
+Items = [SubResource("Entry_gold")]
+metadata/_custom_type_script = ExtResource("pool")

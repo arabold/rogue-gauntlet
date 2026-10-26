@@ -10,14 +10,14 @@
 [ext_resource type="PackedScene" uid="uid://cgi3a5fi0sxu6" path="res://scenes/props/chest.tscn" id="8_chest"]
 [ext_resource type="PackedScene" uid="uid://cap6wqfjubqjx" path="res://scenes/props/floor_trap.tscn" id="9_trap"]
 [ext_resource type="PackedScene" uid="uid://ccltoxuycom37" path="res://scenes/items/lootable_item.tscn" id="10_lootitem"]
-[ext_resource type="Resource" uid="uid://clootchest0001" path="res://scenes/items/loot/loot_chest_common.tres" id="11_loottable"]
+[ext_resource type="Resource" path="res://scenes/items/loot/drops/loose_items.tres" id="11_loose_items"]
 
-[ext_resource type="Resource" path="res://scenes/items/dungeon_item_policy.tres" id="12_policy"]
 [ext_resource type="Script" path="res://scenes/levels/LevelItemPersistence.cs" id="13_persistence"]
 
 [ext_resource type="Resource" path="res://scenes/levels/garrison/arrangements/garrison_arrangements.tres" id="14_arrangements"]
 
 [ext_resource type="Resource" path="res://scenes/levels/access/garrison_access.tres" id="access_profile"]
+[ext_resource type="PackedScene" path="res://scenes/levels/floor_discovery.tscn" id="floor_discovery"]
 
 [sub_resource type="Resource" id="Resource_mbbpy"]
 script = ExtResource("3_xog87")
@@ -29,10 +29,11 @@ metadata/_custom_type_script = ExtResource("3_xog87")
 script = ExtResource("4_mssmn")
 metadata/_custom_type_script = ExtResource("4_mssmn")
 
-[node name="Level" type="Node3D" node_paths=PackedStringArray("MapGenerator", "ItemPersistence")]
+[node name="Level" type="Node3D" node_paths=PackedStringArray("MapGenerator", "ItemPersistence", "Discovery")]
 script = ExtResource("1_37vyo")
 MapGenerator = NodePath("MapGenerator")
 ItemPersistence = NodePath("ItemPersistence")
+Discovery = NodePath("FloorDiscovery")
 
 [node name="MapGenerator" parent="." instance=ExtResource("2_dtjl1")]
 ArrangementPool = ExtResource("14_arrangements")
@@ -46,9 +47,10 @@ TileFactory = ExtResource("7_icy5c")
 ChestScene = ExtResource("8_chest")
 TrapScene = ExtResource("9_trap")
 LooseItemScene = ExtResource("10_lootitem")
-LooseItemLootTable = ExtResource("11_loottable")
-ItemCreationPolicy = ExtResource("12_policy")
+LooseItems = ExtResource("11_loose_items")
 
 [node name="ItemPersistence" type="Node" parent="."]
 script = ExtResource("13_persistence")
 PickupScene = ExtResource("10_lootitem")
+
+[node name="FloorDiscovery" parent="." instance=ExtResource("floor_discovery")]

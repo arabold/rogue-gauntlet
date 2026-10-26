@@ -13,7 +13,7 @@ The [stats and itemization](../stats-and-itemization.md#equipment-quality-affixe
 Elite enemies and rare chests should roll better qualities without changing ordinary drops. The Forsaken Warden already does this with `quality_ladder_gatekeeper.tres` and `gatekeeper_item_policy.tres`.
 
 - **Resources:** author a richer `QualityLadder` (for example `quality_ladder_rich.tres`) with earlier Magic and Rare introductions and higher growth. Add an `ItemCreationPolicy` that references it, with the same curse settings.
-- **Wiring:** assign that policy on the elite enemies' and rare chests' `LootTableComponent.CreationPolicy` in their scenes. No code changes, because creation already takes the source's policy.
+- **Wiring:** assign that policy on the elite enemies' and rare chests' `LootDropProfile`s. No code changes, because creation already takes the source's policy.
 - **Verify:** a sweep over both policies shows the richer ladder's Magic and Rare shares above the ordinary ladder's at every depth, while ordinary sources are unchanged.
 
 ## Later options

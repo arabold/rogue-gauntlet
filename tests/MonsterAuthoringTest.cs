@@ -50,7 +50,7 @@ public partial class MonsterAuthoringTest
 			AssertFloat(second.MovementComponent.Speed).IsEqual(1.7f);
 			AssertInt(second.DeathComponent.Xp).IsEqual(19);
 			AssertBool(ReferenceEquals(second.EnemyBehaviorComponent.Profile, custom.Behavior)).IsTrue();
-			AssertBool(ReferenceEquals(second.LootTableComponent.Table, custom.LootTable)).IsTrue();
+			AssertBool(ReferenceEquals(second.LootTableComponent.Profile, custom.Loot)).IsTrue();
 			second.HealthComponent.TakeDamage(3);
 			AssertFloat(second.HealthComponent.CurrentHealth).IsEqual(34);
 			AssertFloat(first.HealthComponent.CurrentHealth).IsEqual(8);

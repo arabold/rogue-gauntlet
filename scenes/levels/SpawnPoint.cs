@@ -12,7 +12,8 @@ public partial class SpawnPoint : Node3D
 	/// The type of object to spawn (e.g. an enemy scene)
 	/// </summary>
 	[Export] public Array<PackedScene> Scenes;
-	[Export] public Level Level { get; set; }
+	/// <summary>The level this point spawns into: runtime context, resolved from the tree on entry.</summary>
+	public Level Level { get; private set; }
 	[Export] public string PersistentId { get; set; } = string.Empty;
 	/// <summary>
 	/// Whether to spawn immediately on scene load
@@ -22,10 +23,10 @@ public partial class SpawnPoint : Node3D
 	/// <summary>Local notification for encounter-specific wiring after actor initialization.</summary>
 	public event Action<Node3D> Spawned;
 
+	public override void _EnterTree() => Level = this.GetAncestorOrNull<Level>();
+
 	public override void _Ready()
 	{
-		Level ??= this.GetAncestorOrNull<Level>();
-
 		if (Engine.IsEditorHint())
 		{
 			// Preview the spawn point in the editor
@@ -60,7 +61,7 @@ public partial class SpawnPoint : Node3D
 			return null;
 		}
 
-		if (!string.IsNullOrEmpty(PersistentId) && GameSession.Instance?.IsEntityCleared(PersistentId) == true)
+		if (!string.IsNullOrEmpty(PersistentId) && Level.Run.IsCleared(PersistentId))
 		{
 			GD.Print($"Skipping spawn of cleared entity: {PersistentId}");
 			return null;
@@ -68,7 +69,7 @@ public partial class SpawnPoint : Node3D
 
 		// Generated encounters already carry a concrete scene; authored multi-scene
 		// spawns derive a local stream instead of depending on callback/global draw order.
-		using var rng = GenerationRandom.Create(Level.MapGenerator.Seed,
+		using var rng = GenerationRandom.Create(Level.Seed,
 			GenerationRandom.Monsters, string.IsNullOrEmpty(PersistentId)
 				? Level.GetPathTo(this).ToString() : PersistentId);
 		var scene = Scenes[rng.RandiRange(0, Scenes.Count - 1)];
