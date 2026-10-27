@@ -82,6 +82,65 @@ public partial class MonsterAuthoringTest
 	}
 
 	[TestCase]
+	public void PoiseMustBelongToTheActorAndBindItsGate()
+	{
+		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		var stranger = new PoiseComponent { Definition = new PoiseDefinition() };
+		try
+		{
+			actor.HurtBoxComponent.Poise.ActionGate = null;
+			AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.StartsWith("HurtBoxComponent.Poise:"))).IsTrue();
+			actor.HurtBoxComponent.Poise = stranger;
+			AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.StartsWith("HurtBoxComponent.Poise:"))).IsTrue();
+			actor.HurtBoxComponent.Poise = null;
+			AssertString(string.Join("; ", MonsterSceneValidator.Validate(actor))).IsEmpty();
+		}
+		finally { actor.Free(); stranger.Free(); }
+	}
+
+	[TestCase]
+	public void HeavyMeleeNeedsATelegraphAndATierLengthWindUp()
+	{
+		var actor = GD.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn").Instantiate<EnemyBase>();
+		try
+		{
+			actor.AttackController.Telegraph = null;
+			AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.StartsWith("AttackController.Telegraph:"))).IsTrue();
+		}
+		finally { actor.Free(); }
+		var minion = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		try
+		{
+			// The minion's 0.52 s chop wind-up covers Normal and Heavy but is too short for Unblockable.
+			var definition = (MonsterDefinition)minion.Definition.Duplicate();
+			definition.Behavior = (EnemyBehaviorProfile)definition.Behavior.Duplicate();
+			definition.Behavior.AttackStrategy = (EnemyAttackStrategy)definition.Behavior.AttackStrategy.Duplicate();
+			var attack = (AttackDefinition)definition.Behavior.AttackStrategy.Attack.Duplicate();
+			attack.ThreatTier = AttackThreatTier.Unblockable;
+			attack.DefenseTraits = AttackDefenseTraits.Dodgeable;
+			definition.Behavior.AttackStrategy.Attack = attack;
+			minion.Definition = definition;
+			var errors = MonsterSceneValidator.Validate(minion);
+			AssertBool(errors.Any(e => e.StartsWith("Attack: Unblockable attacks need"))).IsTrue();
+			AssertBool(errors.Any(e => e.StartsWith("Attack.ThreatTier:"))).IsFalse();
+			AssertBool(errors.Any(e => e.StartsWith("AttackController.Telegraph:"))).IsTrue();
+		}
+		finally { minion.Free(); }
+	}
+
+	[TestCase]
+	public void OverlappingVulnerabilityArcsAreReported()
+	{
+		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		try
+		{
+			actor.HurtBoxComponent.Vulnerability = new HitVulnerabilityProfile { FrontHalfAngle = 120, RearHalfAngle = 90 };
+			AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.StartsWith("HurtBoxComponent.Vulnerability:"))).IsTrue();
+		}
+		finally { actor.Free(); }
+	}
+
+	[TestCase]
 	public void InvalidNumbersAndMissingGateProduceActionableErrors()
 	{
 		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();

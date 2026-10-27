@@ -16,6 +16,12 @@ public partial class MovementComponent : Node
 	/// </summary>
 	[Export] public float RotationSpeed { get; set; } = 20.0f;
 	/// <summary>
+	/// Hard cap on smooth turning in degrees per second, on top of <see cref="RotationSpeed"/> smoothing.
+	/// Heavy actors use it so a player can outrun their turn and get behind them. Zero is unlimited.
+	/// Explicit <see cref="SetLookAtDirection"/> snaps are not capped.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,1440,1")] public float MaxTurnRate { get; set; }
+	/// <summary>
 	/// The StairsTrigger node that will be used to detect stairs.
 	/// </summary>
 	[Export] public StairsTrigger StairsTrigger;
@@ -96,6 +102,7 @@ public partial class MovementComponent : Node
 	// stop issuing it and facing falls back to the movement direction. Kept as a per-frame request
 	// so it never lingers and fights normal locomotion.
 	private Vector3 _requestedFacing = Vector3.Zero;
+	private float _requestedTurnRate;
 	private bool _hasRequestedFacing = false;
 
 	public override void _Ready()
@@ -128,7 +135,8 @@ public partial class MovementComponent : Node
 	/// wind-up) so a stationary actor still rotates to face its target; it takes priority over the
 	/// movement direction for that frame and clears itself once it is no longer re-issued.
 	/// </summary>
-	public void FaceDirection(Vector3 worldDirection)
+	/// <param name="maxDegreesPerSecond">Caps this frame's turn toward the request; zero keeps the ordinary smoothing.</param>
+	public void FaceDirection(Vector3 worldDirection, float maxDegreesPerSecond = 0)
 	{
 		worldDirection.Y = 0;
 		if (worldDirection.LengthSquared() < 0.0001f)
@@ -137,6 +145,7 @@ public partial class MovementComponent : Node
 		}
 
 		_requestedFacing = worldDirection.Normalized();
+		_requestedTurnRate = Mathf.Max(0, maxDegreesPerSecond);
 		_hasRequestedFacing = true;
 	}
 
@@ -195,16 +204,20 @@ public partial class MovementComponent : Node
 		Vector3 velocity;
 
 		// Apply horizontal velocity
-		if (ActionGate?.Disabled == true || ActionGate?.IsStaggered == true)
+		if (ActionGate?.Disabled == true)
 		{
 			velocity = Vector3.Zero;
 			_pushStrength = 0;
 		}
 		else if (_pushStrength > 0.1f)
 		{
-			// Pushed by an external force
+			// Pushed by an external force; a poise break's knockback plays out during its stagger.
 			velocity = _pushDirection * _pushStrength;
 			_pushStrength -= Speed * (float)delta; // Decrease push strength over time
+		}
+		else if (ActionGate?.IsStaggered == true)
+		{
+			velocity = Vector3.Zero;
 		}
 		else if (_hasOverrideVelocity)
 		{
@@ -257,6 +270,7 @@ public partial class MovementComponent : Node
 		// this frame; otherwise face where we are moving. Consume the request either way so it does
 		// not linger past the frame it was issued.
 		Vector3 lookAt;
+		float turnRate = MaxTurnRate;
 		if (_fixedFacing.HasValue)
 		{
 			lookAt = _fixedFacing.Value;
@@ -264,6 +278,7 @@ public partial class MovementComponent : Node
 		else if (_hasRequestedFacing)
 		{
 			lookAt = _requestedFacing;
+			if (_requestedTurnRate > 0) turnRate = turnRate > 0 ? Mathf.Min(turnRate, _requestedTurnRate) : _requestedTurnRate;
 		}
 		else if (TargetDirection != Vector3.Zero)
 		{
@@ -287,6 +302,10 @@ public partial class MovementComponent : Node
 		current = current.LengthSquared() > .0001f ? current.Normalized() : lookAt;
 		float yaw = Mathf.Atan2(current.Cross(lookAt).Y, current.Dot(lookAt));
 		float fraction = Mathf.Clamp(RotationSpeed * (float)delta, 0, 1);
-		LookAtDirection = current.Rotated(Vector3.Up, yaw * fraction).Normalized();
+		float step = yaw * fraction;
+		// A capped request (an AI wind-up tracking its target) turns no faster than its authored rate.
+		float turnCap = Mathf.DegToRad(turnRate) * (float)delta;
+		if (turnCap > 0) step = Mathf.Clamp(step, -turnCap, turnCap);
+		LookAtDirection = current.Rotated(Vector3.Up, step).Normalized();
 	}
 }

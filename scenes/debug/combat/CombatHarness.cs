@@ -303,6 +303,7 @@ public partial class CombatHarness : CanvasLayer
 		Player.MovementComponent.Stop();
 		Player.HealthComponent.SetHealth(Player.Stats.MaxHealth, Player.Stats.MaxHealth);
 		Player.MovementComponent.Push(Vector3.Zero, 0);
+		Player.HurtBoxComponent.Poise?.Restore();
 		_heroGuardHeld = false;
 		Player.InputController.RequireFreshDefenseInput();
 		if (Player.GetNode<AnimationTree>("AnimationTree").Get("parameters/playback").AsGodotObject() is AnimationNodeStateMachinePlayback playback)
@@ -312,6 +313,7 @@ public partial class CombatHarness : CanvasLayer
 		{
 			_monster.HealthComponent.SetHealth(_monster.HealthComponent.MaxHealth, _monster.HealthComponent.MaxHealth);
 			_monster.MovementComponent.Push(Vector3.Zero, 0);
+			_monster.HurtBoxComponent.Poise?.Restore();
 		}
 	}
 

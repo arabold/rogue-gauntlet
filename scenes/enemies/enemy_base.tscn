@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://cvvu87irfmqm1"]
+[gd_scene load_steps=18 format=3 uid="uid://cvvu87irfmqm1"]
 
 [ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="1_j62no"]
 [ext_resource type="PackedScene" uid="uid://dt3ptc0tqgy5s" path="res://scenes/enemies/enemy_behavior_component.tscn" id="2_sr21q"]
@@ -20,6 +20,7 @@
 
 [ext_resource type="Script" path="res://scenes/effects/world/SurfaceAppearanceController.cs" id="vfx_surface"]
 [ext_resource type="PackedScene" path="res://scenes/effects/world/actor_world_effects.tscn" id="vfx_host"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_vulnerability.tres" id="vulnerability"]
 
 [node name="Enemy" type="CharacterBody3D" node_paths=PackedStringArray("WorldEffects", "Invisibility", "AttackController", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
 WorldEffects = NodePath("WorldEffects")
@@ -63,6 +64,7 @@ HealthComponent = NodePath("../HealthComponent")
 LootTableComponent = NodePath("../LootTableComponent")
 
 [node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent", "MovementComponent") instance=ExtResource("8_b88gg")]
+Vulnerability = ExtResource("vulnerability")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00378418, 1.01208, -0.00549316)
 collision_layer = 8
 HealthComponent = NodePath("../HealthComponent")

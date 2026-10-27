@@ -8,6 +8,7 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 	[Signal] public delegate void GuardEndedEventHandler();
 	[Signal] public delegate void ParrySuccessfulEventHandler();
 	[Signal] public delegate void BlockSuccessfulEventHandler(float chipDamage);
+	[Signal] public delegate void GuardBrokenEventHandler(float damage);
 
 	[Export] public CharacterBody3D Actor { get; set; }
 	[Export] public MovementComponent MovementComponent { get; set; }
@@ -90,7 +91,9 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 			|| !float.IsFinite(GuardDef.RearmInterval) || GuardDef.RearmInterval < 0
 			|| !float.IsFinite(GuardDef.MinimumReleaseInterval) || GuardDef.MinimumReleaseInterval < 0
 			|| !float.IsFinite(GuardDef.FacingSectorDegrees) || GuardDef.FacingSectorDegrees <= 0 || GuardDef.FacingSectorDegrees > 360
-			|| !float.IsFinite(GuardDef.ParryStaggerDuration) || GuardDef.ParryStaggerDuration < 0) return DefenseRequestResult.InvalidDefinition;
+			|| !float.IsFinite(GuardDef.ParryStaggerDuration) || GuardDef.ParryStaggerDuration < 0
+			|| !float.IsFinite(GuardDef.GuardBreakStaggerDuration) || GuardDef.GuardBreakStaggerDuration < 0
+			|| !float.IsFinite(GuardDef.GuardBreakDamageMultiplier) || GuardDef.GuardBreakDamageMultiplier < 0 || GuardDef.GuardBreakDamageMultiplier > 1) return DefenseRequestResult.InvalidDefinition;
 		if (AnimationComponent != null && !AnimationComponent.HasClip(GuardDef.AnimationProfile?.GuardHoldClip ?? "")) return DefenseRequestResult.Unavailable;
 
 		var acquireResult = ActionGate.TryAcquire(
@@ -203,6 +206,20 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 		EmitSignalGuardEnded();
 	}
 
+	/// <summary>
+	/// An unparried Heavy contact breaks this guard. Staggering through the gate interrupts the guard, whose
+	/// interruption callback tears it down; without a stagger duration the guard simply ends at once.
+	/// </summary>
+	private DefenseEvaluation BreakGuard(float amount)
+	{
+		float damage = amount * EffectiveDefinition.GuardBreakDamageMultiplier;
+		float stagger = EffectiveDefinition.GuardBreakStaggerDuration;
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.guard_broken", ("damage", damage), ("stagger", stagger));
+		if (stagger <= 0 || ActionGate?.TryStagger(stagger) != true) EndGuard(immediate: true);
+		EmitSignalGuardBroken(damage);
+		return new DefenseEvaluation(DamageOutcome.GuardBroken, damage, ConsumesParry: false, SuppressHitStun: true);
+	}
+
 	public bool TryEvaluate(in DamageContext contact, out DefenseEvaluation evaluation)
 	{
 		if (IsGuarding && EffectiveDefinition != null && _guardElapsed >= EffectiveDefinition.RaiseDuration)
@@ -241,6 +258,12 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 							PlayParryAnimation();
 							EmitSignalParrySuccessful();
 							evaluation = new DefenseEvaluation(DamageOutcome.Parried, 0f, ConsumesParry: true, SuppressHitStun: true);
+							return true;
+						}
+
+						if (contact.ThreatTier == AttackThreatTier.Heavy)
+						{
+							evaluation = BreakGuard(contact.Amount);
 							return true;
 						}
 

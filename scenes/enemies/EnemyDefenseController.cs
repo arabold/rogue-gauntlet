@@ -188,11 +188,8 @@ public partial class EnemyDefenseController : Node
 		float reach = Enemy.EnemyBehaviorComponent?.Profile?.AttackStrategy?.EffectiveRange ?? 0;
 		if (distance > reach) return RecordRiposte(false, "out_of_reach", target, distance, reach);
 
-		if (toTarget.LengthSquared() > 0.001f)
-		{
-			Enemy.MovementComponent?.SetLookAtDirection(toTarget.Normalized());
-			Enemy.MovementComponent?.FaceDirection(toTarget.Normalized());
-		}
+		// Turn toward the target at the actor's normal turn rate; an attack that cannot start yet is rejected.
+		if (toTarget.LengthSquared() > 0.001f) Enemy.MovementComponent?.FaceDirection(toTarget.Normalized());
 
 		Enemy.EnemyBehaviorComponent?.SetTarget(target);
 		bool accepted = Enemy.EnemyBehaviorComponent?.TryAttack() ?? false;
@@ -268,6 +265,14 @@ public partial class EnemyDefenseController : Node
 
 		float delay = Strategy?.ReactionDelay ?? ReactionDelay;
 		EnemyDefenseMode chosen = ResolveDefenseMode();
+		// Forced harness modes are left alone so guard breaks stay reproducible.
+		if (Mode == EnemyDefenseMode.ProfileDefault)
+		{
+			var tier = attackCtrl.CurrentAttack?.ThreatTier ?? AttackThreatTier.Normal;
+			var filtered = ForThreat(chosen, tier, HasDodgeCapability);
+			if (filtered != chosen && CombatTrace.Enabled) CombatTrace.Write(this, "defense.threat_filtered", ("tier", tier.ToString()), ("decision", filtered.ToString()));
+			chosen = filtered;
+		}
 
 		_lastObservedMeleeExecution = execution;
 
@@ -305,6 +310,14 @@ public partial class EnemyDefenseController : Node
 		return chosen;
 	}
 
+	/// <summary>
+	/// Guarding a Heavy or Unblockable attack is a mistake: a guard choice becomes a dodge when the actor can
+	/// dodge, else no response. The roll already happened, so filtering never changes RNG draw order.
+	/// </summary>
+	public static EnemyDefenseMode ForThreat(EnemyDefenseMode chosen, AttackThreatTier tier, bool canDodge) =>
+		chosen != EnemyDefenseMode.GuardParry || tier == AttackThreatTier.Normal ? chosen
+			: canDodge ? EnemyDefenseMode.Dodge : EnemyDefenseMode.None;
+
 	private void TryExecuteMeleeDefense()
 	{
 		if (_pendingMeleeAttacker == null || !GodotObject.IsInstanceValid(_pendingMeleeAttacker)
@@ -337,12 +350,22 @@ public partial class EnemyDefenseController : Node
 		}
 		else if (mode == EnemyDefenseMode.GuardParry && HasGuardCapability)
 		{
+			// A guard is raised along the current facing; a threat outside its frontal sector cannot be
+			// guarded, so flanking a guarding monster works instead of snapping it around.
 			Vector3 toThreat = threatOrigin - enemyPos;
 			toThreat.Y = 0;
-			Vector3 faceDir = toThreat.LengthSquared() > 0.001f ? toThreat.Normalized() : -Enemy.GlobalTransform.Basis.Z;
+			Vector3 facing = Enemy.MovementComponent?.LookAtDirection ?? -Enemy.GlobalTransform.Basis.Z;
+			facing.Y = 0;
+			if (facing.LengthSquared() < 0.001f) facing = -Enemy.GlobalTransform.Basis.Z;
+			float sector = GuardComponent.GuardDef?.FacingSectorDegrees ?? 120f;
+			if (toThreat.LengthSquared() > 0.001f && Mathf.RadToDeg(facing.AngleTo(toThreat)) > sector * .5f)
+			{
+				if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.out_of_sector", ("angle", Mathf.RadToDeg(facing.AngleTo(toThreat))), ("sector", sector));
+				return false;
+			}
 			if (!GuardComponent.IsGuarding && !GuardComponent.IsGuardRecovering)
 			{
-				if (GuardComponent.TryBeginGuard(faceDir) == DefenseRequestResult.Success)
+				if (GuardComponent.TryBeginGuard(facing.Normalized()) == DefenseRequestResult.Success)
 				{
 					_pressureRemaining = PressureWindow;
 					_totalGuardTime = 0f;

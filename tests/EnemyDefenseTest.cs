@@ -172,6 +172,7 @@ public partial class EnemyDefenseTest
 	public void ShieldEnemyParriesMeleeAttack()
 	{
 		var (enemy, controller, guard, hurtbox, health) = CreateShieldEnemy();
+		enemy.MovementComponent.SetLookAtDirection(Vector3.Back); // face the attacker at the origin
 		controller.Mode = EnemyDefenseMode.GuardParry;
 		controller.ReactionDelay = 0.04f;
 		controller.GuardHoldDuration = 0.85f;
@@ -316,6 +317,7 @@ public partial class EnemyDefenseTest
 	public void SustainedBlockingMaintainsGuardWhileUnderPressure()
 	{
 		var (enemy, controller, guard, hurtbox, health) = CreateShieldEnemy();
+		enemy.MovementComponent.SetLookAtDirection(Vector3.Back); // face the attacker at the origin
 		controller.Mode = EnemyDefenseMode.GuardParry;
 		controller.ReactionDelay = 0.04f;
 		controller.GuardHoldDuration = 0.85f;
@@ -557,5 +559,97 @@ public partial class EnemyDefenseTest
 		GD.Print($"[TEST RESULT] Monster HP: {monster.HealthComponent.CurrentHealth}/{initialHp}, Player LastResult: {harness.Player.AttackController.LastResult}, LastDamage: {harness.Player.AttackController.LastDamage}");
 		AssertFloat(monster.HealthComponent.CurrentHealth).IsEqual(initialHp);
 		AssertString(harness.Player.AttackController.LastResult).IsEqual("Dodged");
+	}
+
+	/// <summary>Raise a forced guard against a started attack and advance it the given time.</summary>
+	private static (EnemyBase Enemy, GuardComponent Guard, HurtBoxComponent Hurtbox, HealthComponent Health, Node3D Root, AttackController Attack, CharacterBody3D Player)
+		GuardAgainst(AttackThreatTier tier, float guardTime)
+	{
+		var (enemy, controller, guard, hurtbox, health) = CreateShieldEnemy();
+		controller.Mode = EnemyDefenseMode.GuardParry;
+		controller.ReactionDelay = 0.04f;
+		var (player, attackCtrl) = CreateTestPlayer();
+		controller.Target = player;
+		enemy.Position = new Vector3(0, 0, -2);
+		enemy.MovementComponent.SetLookAtDirection(Vector3.Back); // face the attacker at the origin
+		var root = new Node3D();
+		root.AddChild(player);
+		root.AddChild(enemy);
+		var def = new AttackDefinition { HitWindowStart = 0.3f, HitWindowEnd = 0.6f, MeleeContact = attackCtrl.DefaultMeleeContact, ThreatTier = tier };
+		AssertBool(attackCtrl.StartAttack(def, 20, 20, 0, 8)).IsTrue();
+		controller._PhysicsProcess(0.02f);
+		controller._PhysicsProcess(0.05f);
+		AssertBool(guard.IsGuarding).IsTrue();
+		guard._PhysicsProcess(guardTime);
+		return (enemy, guard, hurtbox, health, root, attackCtrl, player);
+	}
+
+	private static DamageContext Swing(AttackController attack, Node player, AttackThreatTier tier) => new()
+	{
+		ExecutionId = attack.CurrentExecutionId,
+		Amount = 20f,
+		IncomingDirection = new Vector3(0, 0, -1),
+		SourceNode = attack,
+		OwnerNode = player,
+		Faction = DamageSourceFlags.Player,
+		DefenseTraits = AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable,
+		ThreatTier = tier
+	};
+
+	[TestCase]
+	public void HeavyAttackBreaksAnUnparriedGuardAndStaggersTheDefender()
+	{
+		var (_, guard, hurtbox, health, root, attack, player) = GuardAgainst(AttackThreatTier.Heavy, 0.3f);
+		var result = hurtbox.ResolveDamage(Swing(attack, player, AttackThreatTier.Heavy));
+		AssertObject(result.Outcome).IsEqual(DamageOutcome.GuardBroken);
+		AssertFloat(health.CurrentHealth).IsEqual(100f - 20f * guard.GuardDef.GuardBreakDamageMultiplier);
+		AssertBool(guard.IsGuarding).IsFalse();
+		AssertBool(guard.ActionGate.IsStaggered).IsTrue();
+		root.QueueFree();
+	}
+
+	[TestCase]
+	public void ParryStillBeatsAHeavyAttackAndNormalAttacksStillOnlyBlock()
+	{
+		var (_, _, hurtbox, health, root, attack, player) = GuardAgainst(AttackThreatTier.Heavy, 0.05f);
+		AssertObject(hurtbox.ResolveDamage(Swing(attack, player, AttackThreatTier.Heavy)).Outcome).IsEqual(DamageOutcome.Parried);
+		AssertFloat(health.CurrentHealth).IsEqual(100f);
+		root.QueueFree();
+
+		var (_, guard, normalHurtbox, _, normalRoot, normalAttack, normalPlayer) = GuardAgainst(AttackThreatTier.Normal, 0.3f);
+		AssertObject(normalHurtbox.ResolveDamage(Swing(normalAttack, normalPlayer, AttackThreatTier.Normal)).Outcome).IsEqual(DamageOutcome.Blocked);
+		AssertBool(guard.IsGuarding).IsTrue();
+		normalRoot.QueueFree();
+	}
+
+	/// <summary>A guard rises along the current facing; an attacker behind the shield is not guarded against.</summary>
+	[TestCase]
+	public void GuardIsNotRaisedAgainstAnAttackerBehind()
+	{
+		var (enemy, controller, guard, _, _) = CreateShieldEnemy();
+		controller.Mode = EnemyDefenseMode.GuardParry;
+		controller.ReactionDelay = 0.04f;
+		var (player, attackCtrl) = CreateTestPlayer();
+		controller.Target = player;
+		enemy.Position = new Vector3(0, 0, -2); // faces -Z, away from the attacker at the origin
+		var root = new Node3D();
+		root.AddChild(player);
+		root.AddChild(enemy);
+		var def = new AttackDefinition { HitWindowStart = 0.3f, HitWindowEnd = 0.6f, MeleeContact = attackCtrl.DefaultMeleeContact };
+		AssertBool(attackCtrl.StartAttack(def, 20, 20, 0, 8)).IsTrue();
+		controller._PhysicsProcess(0.02f);
+		controller._PhysicsProcess(0.05f);
+		AssertBool(guard.IsGuarding).IsFalse();
+		AssertBool(enemy.MovementComponent.LookAtDirection.IsEqualApprox(Vector3.Forward)).IsTrue();
+		root.QueueFree();
+	}
+
+	[TestCase]
+	public void AiDoesNotChooseGuardAgainstHeavyOrUnblockableAttacks()
+	{
+		AssertObject(EnemyDefenseController.ForThreat(EnemyDefenseMode.GuardParry, AttackThreatTier.Normal, true)).IsEqual(EnemyDefenseMode.GuardParry);
+		AssertObject(EnemyDefenseController.ForThreat(EnemyDefenseMode.GuardParry, AttackThreatTier.Heavy, true)).IsEqual(EnemyDefenseMode.Dodge);
+		AssertObject(EnemyDefenseController.ForThreat(EnemyDefenseMode.GuardParry, AttackThreatTier.Unblockable, false)).IsEqual(EnemyDefenseMode.None);
+		AssertObject(EnemyDefenseController.ForThreat(EnemyDefenseMode.Dodge, AttackThreatTier.Heavy, true)).IsEqual(EnemyDefenseMode.Dodge);
 	}
 }

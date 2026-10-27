@@ -27,7 +27,7 @@ Components execute capabilities; strategies request them; the [shared action gat
 
 | Policy | Supported behavior |
 | --- | --- |
-| Movement | Close distance, maintain distance, attack then retreat |
+| Movement | Close distance, engagement ring (wait for an attack slot around the player), maintain distance, attack then retreat |
 | Attack | One melee or clear-sight projectile attack using one visible weapon/natural attack |
 | Defense | One categorical guard/dodge/no-response choice per observed threat |
 | Low-health override | Optional retreat with duration bounds and health hysteresis |
@@ -38,7 +38,11 @@ The tactical policy bounds each retreat opportunity, delays retries and can requ
 
 Guard/dodge are mutually exclusive probability outcomes. Reaction delay and defense startup must fit incoming wind-ups. Guard pressure, maximum hold, cooldown and release recovery create openings; riposte requests the same attack only after that sequence, with range/sight checked again. The Warden guards with a brief parry window and conditionally ripostes; the warrior also supports dodge. Both use ordinary combat rules. Large actors author movement clearance separately from their larger spawn staging clearance; the Warden stays in his home room while pursuing.
 
-Flanking, group shelter, cover search, weapon switching and boss phases remain deferred.
+Large monsters set `MovementComponent.MaxTurnRate` and a melee `MaxStartAngle` so the player can [get behind them](combat-system.md#enemy-decisions-and-persistence). Monsters take turns through the player's [attack slots](combat-system.md#attack-slots); a boss policy sets `UsesAttackSlot = false`. An engagement ring must lie outside the attack's engagement distance. Hurtboxes share `humanoid_vulnerability.tres` for [rear and sneak hits](combat-system.md#facing-and-sneak-attacks) through `enemy_base.tscn`, the crossbowman and the templates. Heavy or Unblockable melee needs an assigned `AttackTelegraph` and a tier-length wind-up; place contact windows on the visible strike with the clip sampler described in [weapon attacks](weapon-attack-system.md#attack-styles-rig-profiles-and-timing).
+
+Hit reactions come from an optional `PoiseComponent` assigned to the hurtbox and bound to the actor's gate. Leave it empty for actors that every hit should interrupt (the rat). Validation reports a foreign or unbound component, an invalid definition, and a floating bar showing another actor's meter. Melee attacks author a facing lock lead within the wind-up and a wind-up turn rate, so slow turners such as the Warden can be sidestepped. See [poise](combat-system.md#poise-and-hit-reactions).
+
+Group shelter, cover search, weapon switching, multiple attacks per monster and boss phases remain deferred.
 
 ## Awareness and pursuit
 

@@ -19,6 +19,19 @@ public partial class Main : Node
 	/// <summary>Orthographic gameplay camera whose visible area is adjusted by zoom input.</summary>
 	[Export] public Camera3D GameCamera { get; set; }
 
+	/// <summary>Seconds a camera impulse takes to settle.</summary>
+	[ExportGroup("Hit impulses")]
+	[Export] public float ImpulseDuration { get; set; } = 0.18f;
+	/// <summary>Camera offset (world units) when the player is interrupted or staggered.</summary>
+	[Export] public float HitTakenImpulse { get; set; } = 0.25f;
+	/// <summary>Camera offset per second of hit-stop on the player's own contacts, so heavier swings shake more.</summary>
+	[Export] public float HitStopImpulsePerSecond { get; set; } = 2.5f;
+
+	private readonly RandomNumberGenerator _impulseRandom = new();
+	private float _impulseStrength;
+	private float _impulseRemaining;
+	private System.Action _unbindPlayerImpulses;
+
 	public override void _Ready()
 	{
 		GD.Print("Main scene is ready");
@@ -46,7 +59,29 @@ public partial class Main : Node
 		GD.Print($"{player.Name} spawned. Setting camera target...");
 		_player = player;
 		ScreenEffects?.Bind(player);
+		_impulseRemaining = 0;
+		// Spawning can report the same player more than once; rebind so each signal connects only once.
+		_unbindPlayerImpulses?.Invoke();
+		var unbindHits = this.SubscribeUntilExit(player.HurtBoxComponent, h => h.HitReacted += OnPlayerHitReacted, h => h.HitReacted -= OnPlayerHitReacted);
+		var unbindHitStop = this.SubscribeUntilExit(player.AttackController, a => a.HitStopStarted += OnPlayerHitStop, a => a.HitStopStarted -= OnPlayerHitStop);
+		_unbindPlayerImpulses = unbindHits + unbindHitStop;
 		CenterCameraOnPlayer();
+	}
+
+	private void OnPlayerHitReacted(int reaction, int zone, bool unaware)
+	{
+		if ((HitReaction)reaction != HitReaction.Flinch) AddCameraImpulse(HitTakenImpulse);
+	}
+
+	private void OnPlayerHitStop(float duration) => AddCameraImpulse(duration * HitStopImpulsePerSecond);
+
+	/// <summary>Start a decaying camera shake; a weaker impulse never cuts a stronger one short.</summary>
+	private void AddCameraImpulse(float strength)
+	{
+		float current = ImpulseDuration > 0 ? _impulseStrength * (_impulseRemaining / ImpulseDuration) : 0;
+		if (strength <= current) return;
+		_impulseStrength = strength;
+		_impulseRemaining = ImpulseDuration;
 	}
 
 	public override void _Process(double delta)
@@ -71,6 +106,7 @@ public partial class Main : Node
 				CameraMinSize, CameraMaxSize);
 		}
 
+		_impulseRemaining = Mathf.Max(0, _impulseRemaining - (float)delta);
 		CenterCameraOnPlayer();
 	}
 
@@ -78,6 +114,12 @@ public partial class Main : Node
 	{
 		Basis basis = _pcam.GlobalTransform.Basis.Orthonormalized();
 		Vector3 offset = basis.Z * (float)_pcam.Get("follow_distance");
+		// Recentering every frame keeps the shake transient: it never accumulates into the follow offset.
+		if (_impulseRemaining > 0 && ImpulseDuration > 0)
+		{
+			Vector2 jitter = new Vector2(_impulseRandom.RandfRange(-1, 1), _impulseRandom.RandfRange(-1, 1)).LimitLength(1);
+			offset += (basis.X * jitter.X + basis.Y * jitter.Y) * (_impulseStrength * _impulseRemaining / ImpulseDuration);
+		}
 		_pcam.GlobalTransform = new Transform3D(basis, _player.GlobalPosition + offset);
 	}
 

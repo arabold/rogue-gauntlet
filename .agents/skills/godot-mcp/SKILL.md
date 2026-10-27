@@ -153,6 +153,8 @@ changes). If MCP reports `ENOENT` on `Godot.app`, use `scripts/godot.sh` via Bas
   properties; reports `OK`/`FAIL`/`MISSING` per path. The reusable resource validator.
 - `scripts/render_level_topdown.gd` — renders a windowed top-down screenshot of a generated
   level with a connector/doorway overlay. See "Visual verification" above.
+- `scripts/sample_attack_clip.gd` — prints a bone's height, reach and speed through an attack
+  clip (headless) to place an attack profile's `ContactStart`/`ContactEnd` on the visible strike.
 
 ## Authoring `.tres` / `.tscn` by text
 

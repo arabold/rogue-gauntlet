@@ -3,7 +3,7 @@ using Godot;
 /// <summary>
 /// The main player character.
 /// </summary>
-public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable
+public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable, IAttackSlotHost
 {
 	[Export] public WorldEffectHost WorldEffects { get; set; }
 	[Export] public ItemUseWorldEffectDriver ItemUseEffects { get; set; }
@@ -29,6 +29,8 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 	[Export] public DodgeComponent DodgeComponent { get; protected set; }
 	/// <summary>Optional: without it the player cannot guard.</summary>
 	[Export] public GuardComponent GuardComponent { get; protected set; }
+	/// <summary>Turn-taking for monsters attacking the player; unassigned lets every monster strike at once.</summary>
+	[Export] public AttackSlotsComponent AttackSlots { get; protected set; }
 	public bool TryStagger(float duration)
 	{
 		return ActionGate?.TryStagger(duration) ?? false;

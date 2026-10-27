@@ -23,13 +23,15 @@ public class MeleeContactTest
 		return (runner, harness);
 	}
 
-	private static AttackController Start(CombatHarness harness, string profile = "slash_1h", uint mask = 8, bool effects = false)
+	private static AttackController Start(CombatHarness harness, string profile = "slash_1h", uint mask = 8, bool effects = false,
+		Action<AttackDefinition> configure = null)
 	{
 		var controller = harness.Player.AttackController;
 		controller.CancelAttack();
 		controller.EffectsEnabled = effects;
 		var definition = new AttackDefinition { AttackStyle = "sword.1h.slash",
 			MeleeContact = GD.Load<MeleeAttackProfile>($"res://scenes/attacks/melee_profiles/{profile}.tres") };
+		configure?.Invoke(definition);
 		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
 		AssertBool(controller.StartAttack(attack, 10, 10, 0, mask)).IsTrue();
 		controller.SetPhysicsProcess(false);
@@ -286,7 +288,10 @@ public class MeleeContactTest
 		var controller = monster.GetNode<AttackController>("AttackController");
 		controller.SetPhysicsProcess(false);
 		AssertBool(controller.IsAttacking).IsTrue();
-		controller._PhysicsProcess(.5);
+		// The minion's chop connects at 52-66% of its one-second swing, when the blade visibly comes down.
+		controller._PhysicsProcess(.45);
+		AssertInt(controller.ContactCount).IsEqual(0);
+		controller._PhysicsProcess(.15);
 		AssertBool(harness.Player.HealthComponent.CurrentHealth < health).IsTrue();
 		AssertInt(controller.ContactCount).IsEqual(1);
 		AssertString(controller.LastResult).IsEqual("Damaged");
@@ -550,5 +555,100 @@ public class MeleeContactTest
 		AssertFloat(primaryRanged.Definition.ProjectileSpeed).IsEqual(10.0f);
 		AssertBool(controller.TryPrepareWeaponAttack(crossbow, out var secondaryRanged, isSpecial: true)).IsTrue();
 		AssertFloat(secondaryRanged.Definition.ProjectileSpeed).IsEqual(12.5f);
+	}
+
+	/// <summary>A facing lock lead commits the swing early: turning afterwards cannot redirect it.</summary>
+	[TestCase(true)]
+	[TestCase(false)]
+	public async Task FacingLockLeadCommitsTheSwingBeforeContact(bool locked)
+	{
+		var (runner, harness) = await Load();
+		harness.Player.Rotation = Vector3.Zero;
+		harness.PracticeTarget.Position = new Vector3(0, 0, -2);
+		await runner.SimulateFrames(2);
+		// The slash's contact starts at 0.3 s; a 0.3 s lead commits on the first tick.
+		var controller = Start(harness, configure: d => d.FacingLockLead = locked ? .3f : 0);
+		controller._PhysicsProcess(.01);
+		AssertBool(controller.HasCommittedFacing).IsEqual(locked);
+		harness.Player.Rotation = new Vector3(0, Mathf.Pi, 0);
+		controller._PhysicsProcess(.4);
+		AssertBool(controller.CommittedFacing.IsEqualApprox(locked ? Vector3.Forward : Vector3.Back)).IsTrue();
+		AssertInt(controller.ContactCount).IsEqual(locked ? 1 : 0);
+	}
+
+	[TestCase]
+	public async Task HitStopPausesOnlyTheAttackersClockOncePerSwing()
+	{
+		var (runner, harness) = await Load();
+		harness.Player.Rotation = Vector3.Zero;
+		harness.PracticeTarget.Position = new Vector3(0, 0, -2);
+		await runner.SimulateFrames(2);
+		int pauses = 0;
+		var controller = Start(harness, configure: d => d.HitStopDuration = .1f);
+		controller.HitStopStarted += _ => pauses++;
+		controller._PhysicsProcess(.4);
+		AssertInt(controller.ContactCount).IsEqual(1);
+		float remaining = controller.RecoveryRemaining;
+		controller._PhysicsProcess(.05);
+		controller._PhysicsProcess(.06);
+		AssertFloat(controller.RecoveryRemaining).IsEqual(remaining);
+		controller._PhysicsProcess(.1);
+		AssertFloat(controller.RecoveryRemaining).IsEqualApprox(remaining - .1f, .0001);
+		AssertInt(pauses).IsEqual(1);
+	}
+
+	[TestCase]
+	public async Task HyperArmorFollowsTheNormalizedWindowAndEndsWithTheAttack()
+	{
+		var (_, harness) = await Load();
+		var gate = harness.Player.ActionGate;
+		var controller = Start(harness, configure: d => { d.HyperArmorStart = 0; d.HyperArmorEnd = .5f; });
+		AssertBool(gate.IsHyperArmored).IsTrue();
+		controller._PhysicsProcess(.6);
+		AssertBool(gate.IsHyperArmored).IsFalse();
+		controller = Start(harness, configure: d => { d.HyperArmorStart = 0; d.HyperArmorEnd = 1; });
+		AssertBool(gate.IsHyperArmored).IsTrue();
+		controller.CancelAttack();
+		AssertBool(gate.IsHyperArmored).IsFalse();
+	}
+
+	[TestCase]
+	public async Task PreparationRejectsInvalidImpactAndTracking()
+	{
+		var (_, harness) = await Load();
+		var controller = harness.Player.AttackController;
+		bool Prepare(Action<AttackDefinition> configure)
+		{
+			var definition = new AttackDefinition { AttackStyle = "sword.1h.slash",
+				MeleeContact = GD.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/slash_1h.tres") };
+			configure(definition);
+			return controller.TryPrepareAttack(definition, "", 1, out _);
+		}
+		AssertBool(Prepare(d => d.FacingLockLead = .3f)).IsTrue();
+		AssertBool(Prepare(d => d.FacingLockLead = .31f)).IsFalse();
+		AssertBool(Prepare(d => { d.IsRanged = true; d.FacingLockLead = .1f; })).IsFalse();
+		AssertBool(Prepare(d => { d.HyperArmorStart = .6f; d.HyperArmorEnd = .4f; })).IsFalse();
+		AssertBool(Prepare(d => d.PoiseDamage = -1)).IsFalse();
+		AssertBool(Prepare(d => d.Knockback = float.NaN)).IsFalse();
+		AssertBool(Prepare(d => d.WindUpTurnRate = -1)).IsFalse();
+		AssertBool(Prepare(d => d.ThreatTier = AttackThreatTier.Heavy)).IsTrue();
+		AssertBool(Prepare(d => { d.ThreatTier = AttackThreatTier.Heavy; d.DefenseTraits = AttackDefenseTraits.Dodgeable; })).IsFalse();
+		AssertBool(Prepare(d => d.ThreatTier = AttackThreatTier.Unblockable)).IsFalse();
+		AssertBool(Prepare(d => { d.ThreatTier = AttackThreatTier.Unblockable; d.DefenseTraits = AttackDefenseTraits.Dodgeable; })).IsTrue();
+	}
+
+	/// <summary>An AI wind-up's capped turn cannot snap onto a target that circles it.</summary>
+	[TestCase]
+	public async Task CappedFacingRequestsTurnNoFasterThanTheirRate()
+	{
+		var (_, harness) = await Load();
+		var movement = harness.Player.MovementComponent;
+		movement.SetLookAtDirection(Vector3.Forward);
+		movement.FaceDirection(Vector3.Right, 90);
+		movement._PhysicsProcess(.1);
+		AssertFloat(Mathf.RadToDeg(movement.LookAtDirection.AngleTo(Vector3.Forward))).IsEqualApprox(9, .1);
+		movement.FaceDirection(Vector3.Right);
+		movement._PhysicsProcess(.1);
+		AssertFloat(Mathf.RadToDeg(movement.LookAtDirection.AngleTo(Vector3.Right))).IsLess(1);
 	}
 }

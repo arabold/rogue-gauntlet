@@ -1,4 +1,4 @@
-[gd_scene load_steps=98 format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=101 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
@@ -59,6 +59,9 @@
 [ext_resource type="Resource" path="res://scenes/effects/world/strength/strength.tres" id="vfx_strength"]
 
 [ext_resource type="Resource" path="res://scenes/effects/world/runes/rune_ring.tres" id="vfx_scroll"]
+[ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/player_poise.tres" id="poise_definition"]
+[ext_resource type="Script" path="res://scenes/combat/AttackSlotsComponent.cs" id="attack_slots_script"]
 
 [sub_resource type="Resource" id="player_capabilities"]
 script = ExtResource("capabilities_script")
@@ -292,7 +295,8 @@ radius = 2.0
 radius = 0.75
 height = 2.5
 
-[node name="Player" type="CharacterBody3D" groups=["player"] node_paths=PackedStringArray("WorldEffects", "ItemUseEffects", "Invisibility", "ActionGate", "QuickItemController", "InteractionComponent", "DodgeComponent", "GuardComponent", "HealthComponent", "HurtBoxComponent", "MovementComponent", "InputComponent", "ActionManager", "BuffController", "InteractionController", "StatsController", "InventoryController", "InputController", "AttackController", "InteractionArea", "Pivot", "CharacterModelNode", "AnimationTree", "AttachmentManager")]
+[node name="Player" type="CharacterBody3D" groups=["player"] node_paths=PackedStringArray("AttackSlots", "WorldEffects", "ItemUseEffects", "Invisibility", "ActionGate", "QuickItemController", "InteractionComponent", "DodgeComponent", "GuardComponent", "HealthComponent", "HurtBoxComponent", "MovementComponent", "InputComponent", "ActionManager", "BuffController", "InteractionController", "StatsController", "InventoryController", "InputController", "AttackController", "InteractionArea", "Pivot", "CharacterModelNode", "AnimationTree", "AttachmentManager")]
+AttackSlots = NodePath("AttackSlotsComponent")
 WorldEffects = NodePath("WorldEffects")
 ItemUseEffects = NodePath("ItemUseEffects")
 ActionGate = NodePath("ActorActionGateComponent")
@@ -524,7 +528,8 @@ shape = SubResource("SphereShape3D_liqyg")
 
 [node name="StairsTrigger" parent="." instance=ExtResource("7_52dmq")]
 
-[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent", "MovementComponent") instance=ExtResource("8_lcxbs")]
+[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent", "MovementComponent", "Poise") instance=ExtResource("8_lcxbs")]
+Poise = NodePath("../PoiseComponent")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
 collision_layer = 4
 HealthComponent = NodePath("../HealthComponent")
@@ -664,3 +669,12 @@ script = ExtResource("vfx_use")
 Host = NodePath("../WorldEffects")
 ScrollReading = ExtResource("vfx_scroll")
 Cues = { &"healing": ExtResource("vfx_healing"), &"strength": ExtResource("vfx_strength") }
+
+[node name="PoiseComponent" type="Node" parent="." node_paths=PackedStringArray("ActionGate")]
+script = ExtResource("poise_script")
+Definition = ExtResource("poise_definition")
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="AttackSlotsComponent" type="Node" parent="." node_paths=PackedStringArray("Target")]
+script = ExtResource("attack_slots_script")
+Target = NodePath("..")

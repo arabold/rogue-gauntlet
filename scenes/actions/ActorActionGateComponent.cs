@@ -46,6 +46,19 @@ public partial class ActorActionGateComponent : Node
 		CancelCurrent(ActionInterruptReason.Death);
 	}
 
+	/// <summary>
+	/// True while the current action reports an armored phase: ordinary hits flinch instead of interrupting
+	/// it. Cleared whenever ownership changes, so a stale executor cannot leave an actor armored.
+	/// </summary>
+	public bool IsHyperArmored { get; private set; }
+
+	public void ReportHyperArmor(ActorActionLease lease, bool armored)
+	{
+		if (!IsLeaseCurrent(lease) || IsHyperArmored == armored) return;
+		IsHyperArmored = armored;
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "action.hyper_armor", ("kind", CurrentKind.ToString()), ("armored", armored), ("lease", lease.LeaseId));
+	}
+
 	public bool AllowsLocomotion => !IsBusy || (CurrentKind == ActorActionKind.Guard && CurrentPhase == ActorActionPhase.Active);
 	public bool IsBusy => CurrentKind != ActorActionKind.None;
 	public bool IsStaggered => CurrentKind == ActorActionKind.ForcedReaction;
@@ -161,6 +174,7 @@ public partial class ActorActionGateComponent : Node
 		CurrentLease = ActorActionLease.None;
 		CurrentKind = ActorActionKind.None;
 		CurrentPhase = ActorActionPhase.None;
+		IsHyperArmored = false;
 		_currentOnInterrupted = null;
 
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "action.released", ("kind", oldKind.ToString()));
@@ -176,6 +190,7 @@ public partial class ActorActionGateComponent : Node
 		CurrentLease = ActorActionLease.None;
 		CurrentKind = ActorActionKind.None;
 		CurrentPhase = ActorActionPhase.None;
+		IsHyperArmored = false;
 		_currentOnInterrupted = null;
 
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "action.interrupted", ("kind", oldKind.ToString()), ("reason", reason.ToString()));

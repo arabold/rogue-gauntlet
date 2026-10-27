@@ -28,7 +28,7 @@ Play two contrasting classes across three seeds, including save/resume and revis
 
 Check pressured/cornered crossbowmen still shoot, retreat never traps or indefinitely disables them, rat retreat follows completed bites, and the Warden stays within its clearance. Review skeleton animation transitions and reward pacing; the regular warrior now uses common loot and a provisional XP reward closer to the other skeletons. Cleared enemies, nest slots, boss defeat and claimed rewards must survive reconstruction.
 
-The proposed [combat redesign](specs/combat-redesign-plan.md) (poise, committed monster wind-ups, hit zones, attack slots and threat tiers) would change this combat review. It is not implemented, and its first slice should be playtested against these depths before later slices land.
+The proposed [combat redesign](specs/combat-redesign-plan.md) (poise, committed monster wind-ups, hit zones, attack slots and threat tiers) would change this combat review. Slices 1–4 (poise, committed wind-ups, rear and sneak hits, dodging through monsters, attack slots, threat tiers and strike-aligned monster timing) are implemented and need playtesting against these depths before the player-kit slice lands.
 
 Authoring acceptance also requires duplicating an actor in Godot, adding/removing guard or dodge with explicit references, saving/reopening, and checking two independent instances. The [template guide](../scenes/enemies/templates/README.md) owns that workflow. Automated checks support these reviews; real navigation and fun require playtesting.
 
@@ -56,6 +56,6 @@ The next consumable-feedback goal is [catalog-wide activation coverage](specs/co
 - **Message feed:** the [logging proposal](specs/logging-plan.md) remains separate from existing combat traces.
 - **Shop:** finite depth-appropriate stock, atomic trade, persistent balances and no identification leaks or trivial resale loops.
 - **Complete run:** connect class selection, descent, recovery/preparation and a valid win/loss outcome. The intended 24-depth/eight-realm journey ends at the World-Anchor; permanent progression remains undecided.
-- **Scale:** establish a readable crowd size and measured performance budget before increasing density or adding coordinated AI.
+- **Scale:** [attack slots](combat-system.md#attack-slots) bound simultaneous attackers; still establish a readable crowd size and measured performance budget before increasing density or adding further coordinated AI.
 
-Shops, later monsters/realms, boss phases, flanking/group shelter, crafting, hunger and permanent progression are not prerequisites for the current slice. Promote them when a playtested need supports the design pillars. Mark work complete only when its player-facing acceptance is met; keep implementation and test history in code and delivery reports.
+Shops, later monsters/realms, boss phases, group shelter, crafting, hunger and permanent progression are not prerequisites for the current slice. Promote them when a playtested need supports the design pillars. Mark work complete only when its player-facing acceptance is met; keep implementation and test history in code and delivery reports.

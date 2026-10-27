@@ -40,7 +40,7 @@ public enum EnemyAction
 /// Monster-specific tuning lives in <see cref="EnemyBehaviorProfile"/> resources so new enemy
 /// scenes can vary behavior without duplicating this controller.
 /// </remarks>
-public partial class EnemyBehaviorComponent : Node
+public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 {
 	/// <summary>
 	/// Character body moved and rotated by this behavior controller.
@@ -91,6 +91,9 @@ public partial class EnemyBehaviorComponent : Node
 	private EnemyContext _context;
 	private EnemyStateMachine _machine;
 	private Cooldown _actionCooldown;
+	// Slots of the target currently engaged, and of the target whose slot the running attack holds.
+	private AttackSlotsComponent _engagedSlots;
+	private AttackSlotsComponent _heldSlots;
 
 	public override void _Ready()
 	{
@@ -149,6 +152,7 @@ public partial class EnemyBehaviorComponent : Node
 	{
 		if (_context == null) return;
 		_context.TickThrottles(delta);
+		SyncEngagedSlots();
 		var gate = (Actor as EnemyBase)?.ActionGate;
 		if (gate?.Disabled == true || (gate?.IsBusy == true && !IsAttacking))
 		{
@@ -165,14 +169,14 @@ public partial class EnemyBehaviorComponent : Node
 			MovementComponent.Stop();
 			_navigation.ResetStuckTracking();
 
-			// Keep turning to face the target through the attack wind-up so a moving target does not
-			// slip the swing/shot. This is the main fix for enemies whiffing: without it they attack in
-			// whatever direction they were facing when the attack started (movement rotation is off
-			// while stopped).
+			// Track the target through the wind-up (movement rotation is off while stopped), no faster than
+			// the attack's authored turn rate, then hold the committed facing. An early facing lock plus a
+			// capped turn lets a target sidestep a committed swing.
 			if (IsAttacking && Target != null && GodotObject.IsInstanceValid(Target))
 			{
-				MovementComponent.FaceDirection(_attackController.HasCommittedFacing
-					? _attackController.CommittedFacing : Target.GlobalPosition - Actor.GlobalPosition);
+				if (_attackController.HasCommittedFacing) MovementComponent.FaceDirection(_attackController.CommittedFacing);
+				else MovementComponent.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition,
+					_attackController.CurrentAttack?.WindUpTurnRate ?? 0);
 			}
 
 			if (IsAttacking ? !_attackController.IsAttacking : _actionCooldown.Tick(delta))
@@ -188,8 +192,22 @@ public partial class EnemyBehaviorComponent : Node
 
 	private void RequestAttack() => TryAttack();
 
+	/// <summary>Sneak-attack window: no target yet, and not searching, chasing or fleeing.</summary>
+	public bool IsUnawareOf(Node attacker) => _context != null && !IsDead && Target == null
+		&& CurrentBehavior is EnemyBehaviorState.Sleeping or EnemyBehaviorState.Idle or EnemyBehaviorState.Guarding or EnemyBehaviorState.Patrolling;
+
+	/// <summary>A sneak attack wakes the monster and turns it on the player who struck it.</summary>
+	public void NoticeAttacker(Node attacker)
+	{
+		if (_context == null || IsDead || Target != null || attacker is not Player player) return;
+		SetTarget(player);
+		SetBehavior(EnemyBehaviorState.Chasing);
+	}
+
 	private void OnAttackFinished(AttackIdentity identity, bool interrupted)
 	{
+		if (GodotObject.IsInstanceValid(_heldSlots)) _heldSlots.Release(Actor);
+		_heldSlots = null;
 		_context?.Tactics.AttackFinished(identity, interrupted);
 		_context?.TacticalSelector?.AttackFinished(identity);
 	}
@@ -197,6 +215,23 @@ public partial class EnemyBehaviorComponent : Node
 	public override void _ExitTree()
 	{
 		if (_attackController != null) _attackController.AttackFinished -= OnAttackFinished;
+		ForgetSlots();
+	}
+
+	/// <summary>Leave the previous target's ring and slots when the target changes or is lost.</summary>
+	private void SyncEngagedSlots()
+	{
+		var slots = _context.TargetSlots;
+		if (slots == _engagedSlots) return;
+		if (GodotObject.IsInstanceValid(_engagedSlots)) _engagedSlots.Forget(Actor);
+		_engagedSlots = slots;
+	}
+
+	private void ForgetSlots()
+	{
+		if (GodotObject.IsInstanceValid(_engagedSlots)) _engagedSlots.Forget(Actor);
+		if (GodotObject.IsInstanceValid(_heldSlots)) _heldSlots.Forget(Actor);
+		_engagedSlots = _heldSlots = null;
 	}
 
 	/// <summary>Execute the one authored monster attack after range, sight and action validation.</summary>
@@ -205,8 +240,16 @@ public partial class EnemyBehaviorComponent : Node
 		var policy = Profile?.AttackStrategy;
 		if (_context == null || policy == null || CurrentAction != EnemyAction.None || IsDead
 			|| MovementComponent.IsPushed || !policy.CanAttack(_context)) return false;
-		if (!_attackController.TryPrepareAttack(policy.Attack, policy.Style, policy.Duration, out var attack)) return false;
-		if (!_attackController.StartAttack(attack, policy.MinDamage, policy.MaxDamage, policy.CritChance, 4)) return false;
+		// Take a turn through the target's attack slots; a start that fails afterwards hands the slot straight back.
+		var slots = policy.UsesAttackSlot ? _context.TargetSlots : null;
+		if (slots != null && !slots.TryReserve(Actor, policy.SlotKind)) return false;
+		if (!_attackController.TryPrepareAttack(policy.Attack, policy.Style, policy.Duration, out var attack)
+			|| !_attackController.StartAttack(attack, policy.MinDamage, policy.MaxDamage, policy.CritChance, 4))
+		{
+			slots?.Release(Actor, yield: false);
+			return false;
+		}
+		_heldSlots = slots;
 		_context.TacticalSelector?.AttackAccepted(_attackController.CurrentExecutionId);
 		if (Profile.MovementStrategy is AttackThenRetreatStrategy) _context.Tactics.TrackAttack(_attackController.CurrentExecutionId);
 		SetAction(policy.Attack.IsRanged ? EnemyAction.RangedAttack : EnemyAction.MeeleAttack);
@@ -250,6 +293,7 @@ public partial class EnemyBehaviorComponent : Node
 
 	public void OnDie()
 	{
+		ForgetSlots();
 		_context?.Tactics.ClearTarget();
 		_context?.TacticalSelector?.ClearTarget();
 		SetAction(EnemyAction.Dying);

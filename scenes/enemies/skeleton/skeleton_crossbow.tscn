@@ -1,4 +1,4 @@
-[gd_scene load_steps=58 format=3]
+[gd_scene load_steps=61 format=3]
 
 [ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="b_1_j62no"]
 
@@ -46,6 +46,9 @@
 
 [ext_resource type="Script" path="res://scenes/effects/world/SurfaceAppearanceController.cs" id="vfx_surface"]
 [ext_resource type="PackedScene" path="res://scenes/effects/world/actor_world_effects.tscn" id="vfx_host"]
+[ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_crossbow_poise.tres" id="poise_definition"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_vulnerability.tres" id="vulnerability"]
 
 [sub_resource type="AnimationNodeAnimation" id="m_AnimationNodeAnimation_rfhfv"]
 animation = &"1H_Melee_Attack_Chop"
@@ -246,7 +249,9 @@ Actor = NodePath("..")
 HealthComponent = NodePath("../HealthComponent")
 LootTableComponent = NodePath("../LootTableComponent")
 
-[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent", "MovementComponent") instance=ExtResource("b_8_b88gg")]
+[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent", "MovementComponent", "Poise") instance=ExtResource("b_8_b88gg")]
+Vulnerability = ExtResource("vulnerability")
+Poise = NodePath("../PoiseComponent")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00378418, 1.01208, -0.00549316)
 collision_layer = 8
 HealthComponent = NodePath("../HealthComponent")
@@ -423,3 +428,8 @@ Target = NodePath("../Pivot")
 [node name="WorldEffects" parent="." node_paths=PackedStringArray("SurfaceController", "Health") instance=ExtResource("vfx_host")]
 SurfaceController = NodePath("../SurfaceAppearanceController")
 Health = NodePath("../HealthComponent")
+
+[node name="PoiseComponent" type="Node" parent="." node_paths=PackedStringArray("ActionGate")]
+script = ExtResource("poise_script")
+Definition = ExtResource("poise_definition")
+ActionGate = NodePath("../ActorActionGateComponent")

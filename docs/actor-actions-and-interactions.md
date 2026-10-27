@@ -8,7 +8,7 @@ Combat, movement, abilities and interactions must feel like one game. The actor 
 
 Ordinary movement does not occupy an action slot. An actor can own only one committed action at a time: primary attack, secondary technique/spell, item use, dodge, guard, world interaction, or forced reaction. Action-specific policies determine movement and cancellation; being busy is not one universal uninterruptible state. A cancelled action cannot later complete through a stale timer.
 
-Melee remains horizontal gameplay with reliable timed contact, including around the physical body. Height and visual blade position do not create safe pockets. Armor mitigates contact damage; avoiding confirmed contact requires deliberate dodge/guard/parry. Elaborate boss patterns, stamina/posture meters, cinematic ripostes, large general-purpose ability bars and complex lockpicking minigames are outside the initial scope.
+Melee remains horizontal gameplay with reliable timed contact, including around the physical body. Height and visual blade position do not create safe pockets. Armor mitigates contact damage; avoiding confirmed contact requires deliberate dodge/guard/parry. Elaborate boss patterns, stamina meters, cinematic ripostes, large general-purpose ability bars and complex lockpicking minigames are outside the initial scope.
 
 ## Player controls and four item quick-action slots
 
@@ -68,7 +68,7 @@ Initially change selected spells through the loadout UI while the actor is neutr
 
 ### Mana, cooldowns and equipment commitments
 
-Use one actor mana pool with gameplay-time regeneration, independent of stamina/posture. Staff primary costs zero; learned secondary spells consume mana. Illustrative starting values with a 100-mana pool: Fireball 12, Wall of Fire 25, Flame Burst 35, Meteor Shower 60; regeneration around eight per second. These are tuning examples, not spell ranks or universal values. Attribute/equipment changes may affect capacity, regeneration, spell power and casting speed. Upgrading a spell need not automatically increase its mana cost; more costly variants must explicitly trade efficiency for power. Ordinary spells rely primarily on mana/cast recovery; exceptional spells can also have cooldowns. Mana potions remain consumable item quick actions.
+Use one actor mana pool with gameplay-time regeneration, independent of poise; there is no stamina. Staff primary costs zero; learned secondary spells consume mana. Illustrative starting values with a 100-mana pool: Fireball 12, Wall of Fire 25, Flame Burst 35, Meteor Shower 60; regeneration around eight per second. These are tuning examples, not spell ranks or universal values. Attribute/equipment changes may affect capacity, regeneration, spell power and casting speed. Upgrading a spell need not automatically increase its mana cost; more costly variants must explicitly trade efficiency for power. Ordinary spells rely primarily on mana/cast recovery; exceptional spells can also have cooldowns. Mana potions remain consumable item quick actions.
 
 Validate spell knowledge, staff compatibility, target, current action, mana and cooldown before acceptance. On acceptance, spend mana and start the technique cooldown atomically. Cancelling an accepted wind-up by dodge/guard or equipment loss does not refund either; a rejected request spends nothing. Mana depletion never silently switches K to primary attack. Do not repeat a costly spell merely because K remains held.
 
@@ -145,7 +145,7 @@ An accessibility toggle-to-channel may replace the physical hold later, with ide
 
 The implemented [combat rules](combat-system.md) own interruption, dodge, frontal guard/parry and contact resolution. There is no passive hit rejection. All actors use the same execution rules with explicitly composed capabilities; monster species or a shield visual alone grants none.
 
-Readable animation, timing, direction and recovery must match a defense's effect. Later Dexterity tuning may improve an activated action's timing/mitigation, but never grants an automatic evasion roll. Stamina/posture, reflection and cinematic riposte systems remain outside the first scope.
+Readable animation, timing, direction and recovery must match a defense's effect. Later Dexterity tuning may improve an activated action's timing/mitigation, but never grants an automatic evasion roll. Stamina, reflection and cinematic riposte systems remain outside the first scope. A per-actor [poise meter](combat-system.md#poise-and-hit-reactions) governs hit reactions only.
 
 ## Player and monster world capabilities
 
@@ -163,4 +163,4 @@ Acceptance must exercise combat and interaction together: all four quick-item sl
 
 ## Monster rollout boundary
 
-[Monster design and authoring](monster-authoring-design.md) owns the agreed first-realm roster and basic movement/attack/defense policies; the [roadmap](development-roadmap.md#first-three-floor-acceptance) owns remaining monster acceptance. Generic examples above do not grant a rat a dodge/guard animation or require every monster to have active defense. Compose only capabilities with authored gameplay and valid presentation. The first rollout excludes weapon switching, flanking, group shelter and boss phases.
+[Monster design and authoring](monster-authoring-design.md) owns the agreed first-realm roster and basic movement/attack/defense policies; the [roadmap](development-roadmap.md#first-three-floor-acceptance) owns remaining monster acceptance. Generic examples above do not grant a rat a dodge/guard animation or require every monster to have active defense. Compose only capabilities with authored gameplay and valid presentation. The first rollout excludes weapon switching, group shelter and boss phases. Flanking exists through [rear hits and attack slots](combat-system.md#facing-and-sneak-attacks).

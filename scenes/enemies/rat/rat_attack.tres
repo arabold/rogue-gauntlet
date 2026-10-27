@@ -6,6 +6,10 @@
 [sub_resource type="Resource" id="bite"]
 script = ExtResource("attack")
 MeleeContact = ExtResource("contact")
+PoiseDamage = 6.0
+HitStopDuration = 0.03
+FacingLockLead = 0.1
+WindUpTurnRate = 720.0
 
 [resource]
 script = ExtResource("policy")

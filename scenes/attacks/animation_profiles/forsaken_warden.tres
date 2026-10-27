@@ -7,8 +7,8 @@
 script = ExtResource("binding")
 Style = &"melee"
 Clip = &"Melee_1H_Slash"
-ContactStart = 0.3
-ContactEnd = 0.62
+ContactStart = 0.32
+ContactEnd = 0.5
 
 [resource]
 script = ExtResource("profile")

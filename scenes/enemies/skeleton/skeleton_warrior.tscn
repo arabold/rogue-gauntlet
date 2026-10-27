@@ -1,4 +1,4 @@
-[gd_scene load_steps=48 format=3 uid="uid://coev873edfqw6"]
+[gd_scene load_steps=50 format=3 uid="uid://coev873edfqw6"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_p3la7"]
 [ext_resource type="PackedScene" uid="uid://c7qnx3sxaoosn" path="res://assets/kaykit-skeletons/Skeleton_Warrior.glb" id="2_srno3"]
@@ -16,6 +16,8 @@
 [ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="defense_animation"]
 
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_warrior_definition.tres" id="monster_definition"]
+[ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_warrior_poise.tres" id="poise_definition"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rfhfv"]
 animation = &"1H_Melee_Attack_Chop"
@@ -349,4 +351,12 @@ GuardComponent = NodePath("../GuardComponent")
 DodgeComponent = NodePath("../DodgeComponent")
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("Poise")]
+Poise = NodePath("../PoiseComponent")
+
+[node name="PoiseComponent" type="Node" parent="." node_paths=PackedStringArray("ActionGate")]
+script = ExtResource("poise_script")
+Definition = ExtResource("poise_definition")
 ActionGate = NodePath("../ActorActionGateComponent")

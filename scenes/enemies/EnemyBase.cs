@@ -74,6 +74,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 		// Configure Enemy HurtBox to only take damage from Player, Boss, or environmental hazards (traps)
 		HurtBoxComponent?.RegisterDefenseEvaluator(DodgeComponent);
 		HurtBoxComponent?.RegisterDefenseEvaluator(GuardComponent);
+		if (HurtBoxComponent != null) HurtBoxComponent.Awareness = EnemyBehaviorComponent;
 
 		if (HurtBoxComponent != null)
 		{

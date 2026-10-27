@@ -9,6 +9,14 @@ using System.Linq;
 /// </summary>
 public static class MonsterSceneValidator
 {
+	/// <summary>Seconds from attack start to contact each threat tier needs so a player can read and answer it.</summary>
+	public static float MinimumWindUp(AttackThreatTier tier) => tier switch
+	{
+		AttackThreatTier.Heavy => .5f,
+		AttackThreatTier.Unblockable => .6f,
+		_ => .35f
+	};
+
 	public static string[] Validate(Node actor)
 	{
 		var errors = new List<string>();
@@ -48,6 +56,27 @@ public static class MonsterSceneValidator
 		}
 		if (death != null) Check(Object<Node>(death, "HealthComponent") == health && Object<Node>(death, "LootTableComponent") == loot, "DeathComponent: bind this actor's health and loot.");
 		if (hurtbox != null) Check(Object<Node>(hurtbox, "HealthComponent") == health && (Object<Node>(hurtbox, "MovementComponent") == null || Object<Node>(hurtbox, "MovementComponent") == movement), "HurtBoxComponent: bind this actor's health and movement.");
+		var poise = hurtbox != null ? Object<Node>(hurtbox, "Poise") : null;
+		if (poise != null)
+		{
+			Check(Local(poise) && Object<Node>(poise, "ActionGate") == gate, "HurtBoxComponent.Poise: assign this actor's poise component and bind its action gate.");
+			var poiseDefinition = Object<Resource>(poise, "Definition");
+			Check(poiseDefinition != null && Positive(Number(poiseDefinition, "MaxPoise")) && Nonnegative(Number(poiseDefinition, "RegenDelay"))
+				&& Nonnegative(Number(poiseDefinition, "RegenPerSecond")) && Positive(Number(poiseDefinition, "BreakStaggerDuration"))
+				&& Nonnegative(Number(poiseDefinition, "StaggeredDamageMultiplier")) && Probability(Number(poiseDefinition, "ArmoredPoiseDamageScale")),
+				"PoiseComponent.Definition: assign a PoiseDefinition with positive max poise and stagger and nonnegative regeneration.");
+		}
+		var vulnerability = hurtbox != null ? Object<Resource>(hurtbox, "Vulnerability") : null;
+		if (vulnerability != null)
+		{
+			float front = Number(vulnerability, "FrontHalfAngle"), rear = Number(vulnerability, "RearHalfAngle");
+			Check(front >= 0 && rear >= 0 && front + rear <= 180 && Nonnegative(Number(vulnerability, "RearDamageMultiplier"))
+				&& Nonnegative(Number(vulnerability, "RearPoiseMultiplier")) && Nonnegative(Number(vulnerability, "UnawareDamageMultiplier")),
+				"HurtBoxComponent.Vulnerability: require front + rear half-angles <= 180 and nonnegative multipliers.");
+		}
+		var healthBar = actor.GetNodeOrNull<Node>("FloatingHealthBar");
+		var barPoise = healthBar != null ? Object<Node>(healthBar, "Poise") : null;
+		Check(barPoise == null || barPoise == poise, "FloatingHealthBar.Poise: show this actor's hurtbox poise or leave it empty.");
 		if (behavior != null)
 		{
 			Check(Object<Node>(behavior, "Actor") == actor && Object<Node>(behavior, "HealthComponent") == health
@@ -83,6 +112,8 @@ public static class MonsterSceneValidator
 			var attack = Object<Resource>(policy, "Attack");
 			Check(attack != null, "AttackStrategy.Attack: assign an AttackDefinition.");
 			Check(Positive(Number(policy, "Duration")) && Positive(Number(policy, "EngagementDistance")), "AttackStrategy: duration and engagement distance must be positive and finite.");
+			float startAngle = Number(policy, "MaxStartAngle");
+			Check(startAngle >= 0 && startAngle <= 180, "AttackStrategy.MaxStartAngle: must lie between 0 and 180 degrees.");
 			Check(Nonnegative(Number(policy, "MinDamage")) && float.IsFinite(Number(policy, "MaxDamage"))
 				&& Number(policy, "MaxDamage") >= Number(policy, "MinDamage") && Probability(Number(policy, "CritChance")), "AttackStrategy: invalid damage range or critical chance.");
 			var style = attack?.Get("AttackStyle").AsString();
@@ -105,6 +136,37 @@ public static class MonsterSceneValidator
 			if (Object<Script>(policy, "script")?.ResourcePath.EndsWith("/ProjectileAttackStrategy.cs") == true)
 				Check(attack?.Get("IsRanged").AsBool() == true && Object<PackedScene>(attack, "ProjectileScene") != null,
 					"ProjectileAttackStrategy: assign a projectile definition and scene.");
+			if (attack != null)
+			{
+				Check(Nonnegative(Number(attack, "PoiseDamage")) && Nonnegative(Number(attack, "Knockback"))
+					&& Nonnegative(Number(attack, "HitStopDuration")) && Nonnegative(Number(attack, "WindUpTurnRate")),
+					"Attack: poise damage, knockback, hit-stop and wind-up turn rate must be nonnegative and finite.");
+				float armorStart = Number(attack, "HyperArmorStart"), armorEnd = Number(attack, "HyperArmorEnd");
+				Check(armorStart >= 0 && armorStart <= armorEnd && armorEnd <= 1, "Attack.HyperArmorStart/End: require 0 <= start <= end <= 1.");
+				float facingLead = Number(attack, "FacingLockLead");
+				Check(Nonnegative(facingLead), "Attack.FacingLockLead: must be nonnegative and finite.");
+				if (facingLead > 0)
+				{
+					Check(!attack.Get("IsRanged").AsBool(), "Attack.FacingLockLead: only melee attacks commit facing early; aimed shots use ProjectileAimLockDuration.");
+					if (matches.Length == 1)
+						Check(facingLead <= Number(policy, "Duration") * Number(matches[0], "ContactStart"),
+							"Attack.FacingLockLead: cannot exceed the prepared wind-up.");
+				}
+			}
+			if (attack != null)
+			{
+				var tier = (AttackThreatTier)attack.Get("ThreatTier").AsInt32();
+				var traits = (AttackDefenseTraits)attack.Get("DefenseTraits").AsInt32();
+				Check(tier != AttackThreatTier.Heavy || (traits & AttackDefenseTraits.Guardable) != 0,
+					"Attack.ThreatTier: Heavy attacks break guard, so they must be Guardable.");
+				Check(tier != AttackThreatTier.Unblockable || traits == AttackDefenseTraits.Dodgeable,
+					"Attack.ThreatTier: Unblockable attacks must be Dodgeable only.");
+				if (tier != AttackThreatTier.Normal && !attack.Get("IsRanged").AsBool())
+					Check(Local(Object<Node>(controller, "Telegraph")), "AttackController.Telegraph: assign this actor's telegraph for Heavy/Unblockable melee.");
+				if (matches.Length == 1)
+					Check(Number(policy, "Duration") * Number(matches[0], "ContactStart") >= MinimumWindUp(tier) - .001f,
+						$"Attack: {tier} attacks need at least {MinimumWindUp(tier)} s of wind-up before contact.");
+			}
 			float aimLock = attack != null ? Number(attack, "ProjectileAimLockDuration") : 0;
 			Check(Nonnegative(aimLock), "Attack.ProjectileAimLockDuration: must be nonnegative and finite.");
 			if (aimLock > 0)
@@ -126,6 +188,9 @@ public static class MonsterSceneValidator
 			Check(Nonnegative(minimum) && float.IsFinite(preferred) && Positive(maximum) && minimum < preferred && preferred < maximum
 				&& policy != null && maximum <= Number(policy, "EngagementDistance"), "MovementStrategy: require minimum < preferred < maximum <= attack engagement distance.");
 		}
+		if (movementScript.EndsWith("/EngagementRingStrategy.cs"))
+			Check(Positive(Number(movementPolicy, "RingDistance")) && policy != null && Number(movementPolicy, "RingDistance") > Number(policy, "EngagementDistance"),
+				"MovementStrategy: the engagement ring must lie outside the attack's engagement distance.");
 		if (movementScript.EndsWith("/AttackThenRetreatStrategy.cs"))
 			Check(Positive(Number(movementPolicy, "RetreatDistance")) && Positive(Number(movementPolicy, "MaximumRetreatDuration"))
 				&& Nonnegative(Number(movementPolicy, "ReengagementDelay")), "MovementStrategy: invalid retreat distance, duration or delay.");

@@ -4,7 +4,7 @@ Players and monsters share an attack executor for melee, projectiles and current
 
 ## Authoring attacks
 
-A weapon supplies stats, timing, an explicit attack style, grip and optional custom attack definition. `AttackDefinition` describes delivery, projectile pattern, targeting and effects without depending on quality, a particular actor rig or session state. Runtime attacks snapshot definitions rather than mutate shared Resources.
+A weapon supplies stats, timing, an explicit attack style, grip and optional custom attack definition. `AttackDefinition` describes delivery, projectile pattern, targeting and effects without depending on quality, a particular actor rig or session state. Its impact fields cover poise damage, knockback, a hyper-armor interval, hit-stop and the [threat tier](combat-system.md#threat-tiers-and-telegraphs) (see [poise](combat-system.md#poise-and-hit-reactions)); its tracking fields cover facing lock lead and wind-up turn rate. Preparation rejects negative or non-finite values, a reversed armor interval, a lead that is ranged or longer than the wind-up, and a tier whose defense traits contradict it. Runtime attacks snapshot definitions rather than mutate shared Resources.
 
 Reuse generic projectile patterns—single, spread, radial and area drop—and their count, spread, speed, range, damage and impact-area settings before adding new mechanics. Projectile scenes carry movement, collision and effects; attack definitions may override their impact area/falloff. Direct targets are excluded from the same projectile's splash, including defended direct hits.
 
@@ -13,6 +13,8 @@ Current staffs use authored fireball, frost-spread, radial air/whirlwind and fal
 ## Attack styles, rig profiles, and timing
 
 Attack style is independent of handedness and damage delivery. A weapon requests a semantic style; a nonempty definition override takes precedence. The actor's animation profile maps that style to a native clip and normalized contact/release window. Monsters use their own bindings and one configured attack policy; a model need not support every player style.
+
+Contact windows must match the visible strike: `ContactStart` opens as the weapon comes down, not while it is raised, and `ContactEnd` closes as the swing settles. Use `.agents/skills/godot-mcp/scripts/sample_attack_clip.gd` to print a bone's height, reach and speed through a clip. Monster profiles follow it: the skeleton chop uses 0.52–0.66, the Warden slash 0.32–0.50 and the rat bite 0.48–0.62. Player profiles still use the 0.3 default and are scheduled with the player kit in the [combat redesign](specs/combat-redesign-plan.md).
 
 Preparation validates the definition, animation and local dependencies before acceptance. Playback, contact/projectile release and recovery use one gameplay clock. A cancelled wind-up cannot release a projectile later. Invalid mappings reject the action rather than silently choosing another clip. Profile edits affect the next accepted attack.
 
@@ -28,7 +30,7 @@ The skeleton crossbowman and projectile-monster template mount their crossbow on
 
 Melee uses horizontal reach and one shared vertical contact envelope. Visual height, crouching or blade position do not create safe pockets, including beside the attacker's physical body. Stacked combat floors and height-based dodging are unsupported.
 
-During the timed contact window, stationary and moving overlaps resolve to one damage owner and one result per swing. Crossing an entire window in a physics step still checks contact. Walls and blocking props obstruct damage. Facing commits at contact; interruption stops further queries. Forward reach and engagement settings must agree with the visible attack.
+During the timed contact window, stationary and moving overlaps resolve to one damage owner and one result per swing. Crossing an entire window in a physics step still checks contact. Walls and blocking props obstruct damage. Facing commits at contact, or `FacingLockLead` seconds earlier when an attack authors a lead (melee only, at most the wind-up). An AI attacker tracks its target until then, turning no faster than `WindUpTurnRate`. Interruption stops further queries. Forward reach and engagement settings must agree with the visible attack.
 
 Optional swooshes follow authored `TrailBase`/`TrailTip` markers on the equipped weapon. Natural attacks can use a generic arc; thrusts can omit effects. Fading or disabling the visual cannot extend or remove damage.
 

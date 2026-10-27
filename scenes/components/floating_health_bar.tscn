@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://c6i0b6qufb14m"]
+[gd_scene load_steps=8 format=3 uid="uid://c6i0b6qufb14m"]
 
 [ext_resource type="Script" uid="uid://berlk6wwuxusk" path="res://scenes/components/FloatingHealthBar.cs" id="2_s53ct"]
 
@@ -12,6 +12,12 @@ bg_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_26og4"]
 bg_color = Color(1, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_poise_bg"]
+bg_color = Color(0, 0, 0, 0.6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_poise_fill"]
+bg_color = Color(1, 0.78, 0.15, 1)
 
 [node name="FloatingHealthBar" type="Sprite3D"]
 layers = 256
@@ -36,6 +42,22 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_26og4")
 step = 1.0
 value = 75.0
 rounded = true
+show_percentage = false
+
+[node name="PoiseBar" type="ProgressBar" parent="SubViewport"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -6.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/background = SubResource("StyleBoxFlat_poise_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_poise_fill")
+max_value = 1.0
+value = 1.0
 show_percentage = false
 
 [node name="ConstantScreenSize3D" type="Node" parent="." node_paths=PackedStringArray("Target")]

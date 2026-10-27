@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://cp8o80bbyblfj"]
+[gd_scene load_steps=43 format=3 uid="uid://cp8o80bbyblfj"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_u7kdf"]
 [ext_resource type="PackedScene" uid="uid://dx6rvie14m5bg" path="res://assets/kaykit-skeletons/Skeleton_Minion.glb" id="2_lb3ug"]
@@ -9,6 +9,8 @@
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_definition.tres" id="monster_definition"]
 
 [ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="action_gate_script"]
+[ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_poise.tres" id="poise_definition"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rfhfv"]
 animation = &"1H_Melee_Attack_Chop"
@@ -302,7 +304,8 @@ anim_player = NodePath("../../Pivot/Skeleton_Minion/AnimationPlayer")
 
 [node name="DeathComponent" parent="." index="5"]
 
-[node name="HurtBoxComponent" parent="." index="6"]
+[node name="HurtBoxComponent" parent="." index="6" node_paths=PackedStringArray("Poise")]
+Poise = NodePath("../PoiseComponent")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
 shape = SubResource("CapsuleShape3D_fv4r8")
@@ -324,4 +327,9 @@ script = ExtResource("action_gate_script")
 AnimationComponent = NodePath("../CombatAnimationComponent")
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="PoiseComponent" type="Node" parent="." node_paths=PackedStringArray("ActionGate")]
+script = ExtResource("poise_script")
+Definition = ExtResource("poise_definition")
 ActionGate = NodePath("../ActorActionGateComponent")

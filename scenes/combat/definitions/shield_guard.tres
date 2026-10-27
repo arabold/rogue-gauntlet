@@ -10,5 +10,5 @@ ParryWindow = 0.21
 ReleaseRecovery = 0.15
 RearmInterval = 0.65
 MinimumReleaseInterval = 0.15
-ParryStaggerDuration = 0.35
+ParryStaggerDuration = 0.9
 AnimationProfile = ExtResource("animation")

@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="1_profile"]
 
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_attack.tres" id="attack_strategy"]
-[ext_resource type="Resource" path="res://scenes/enemies/strategies/close_distance.tres" id="movement_strategy"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_ring.tres" id="movement_strategy"]
 
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
 

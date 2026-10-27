@@ -11,3 +11,4 @@ TravelDuration = 0.15
 ImmunityEnd = 0.15
 RecoveryDuration = 0.02
 CooldownDuration = 0.6
+PassThroughLayers = 8

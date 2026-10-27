@@ -13,6 +13,7 @@ ProjectileSpeed = 16.0
 ProjectileAimLockDuration = 0.3
 Range = 20.0
 HitWindowStart = 0.45
+PoiseDamage = 8.0
 
 [resource]
 script = ExtResource("policy")

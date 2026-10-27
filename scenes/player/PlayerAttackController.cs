@@ -8,6 +8,18 @@ public partial class PlayerAttackController : AttackController
 	[Export] public Player Player { get; set; }
 	[Export] public MeleeAttackProfile SpecialMeleeContact { get; set; }
 
+	/// <summary>Impact of weapon attacks without a custom definition. Custom definitions author their own.</summary>
+	[ExportGroup("Default impact")]
+	[Export] public float PrimaryPoiseDamage { get; set; } = AttackDefinition.DefaultPoiseDamage;
+	[Export] public float PrimaryHitStop { get; set; } = 0.05f;
+	[Export] public float SecondaryPoiseDamage { get; set; } = 25f;
+	[Export] public float SecondaryHitStop { get; set; } = 0.08f;
+	/// <summary>Normalized hyper-armor window of the default secondary technique, so a heavy swing can trade through light hits.</summary>
+	[Export(PropertyHint.Range, "0,1,0.01")] public float SecondaryHyperArmorStart { get; set; } = 0.1f;
+	[Export(PropertyHint.Range, "0,1,0.01")] public float SecondaryHyperArmorEnd { get; set; } = 0.75f;
+	/// <summary>Threat tier of the default melee secondary; Heavy breaks a monster's unparried guard.</summary>
+	[Export] public AttackThreatTier SecondaryThreatTier { get; set; } = AttackThreatTier.Heavy;
+
 	/// <summary>
 	/// Target locked in at the start of the current attack for aim-assist facing, so the player turns
 	/// to face the enemy they are swinging at instead of needing to line up manually. Null when no
@@ -109,7 +121,13 @@ public partial class PlayerAttackController : AttackController
 
 	private AttackDefinition CreateDefaultDefinition(Weapon weapon, bool isSpecial)
 	{
-		var def = new AttackDefinition();
+		var def = new AttackDefinition
+		{
+			PoiseDamage = isSpecial ? SecondaryPoiseDamage : PrimaryPoiseDamage,
+			HitStopDuration = isSpecial ? SecondaryHitStop : PrimaryHitStop,
+			HyperArmorStart = isSpecial ? SecondaryHyperArmorStart : 0,
+			HyperArmorEnd = isSpecial ? SecondaryHyperArmorEnd : 0
+		};
 		if (weapon != null)
 		{
 			def.AnimationId = isSpecial ? weapon.SecondaryAnimationId : weapon.AnimationId;
@@ -120,6 +138,7 @@ public partial class PlayerAttackController : AttackController
 			def.Range = weapon is RangedWeapon ranged ? ranged.Range : 20.0f;
 			def.IsRanged = weapon is RangedWeapon;
 			if (def.IsRanged) def.DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable;
+			if (isSpecial && !def.IsRanged) def.ThreatTier = SecondaryThreatTier;
 
 			if (weapon is RangedWeapon rangedWeapon)
 			{

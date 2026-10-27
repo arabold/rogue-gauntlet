@@ -10,6 +10,12 @@ public enum AttackDefenseTraits
 	Parryable = 4
 }
 
+/// <summary>
+/// Readable threat language for an attack. Normal attacks allow their authored defenses; Heavy attacks
+/// break a guard that does not parry them; Unblockable attacks can only be dodged.
+/// </summary>
+public enum AttackThreatTier { Normal, Heavy, Unblockable }
+
 public enum DamageDeliveryKind
 {
 	DirectMelee,
@@ -32,4 +38,9 @@ public readonly record struct DamageContext
 	public Vector3 IncomingDirection { get; init; }
 	public AttackDefenseTraits DefenseTraits { get; init; }
 	public DamageDeliveryKind DeliveryKind { get; init; }
+	/// <summary>Poise removed from a defender with poise; see <see cref="PoiseComponent"/>.</summary>
+	public float PoiseDamage { get; init; }
+	/// <summary>Push strength applied only when the contact interrupts or staggers its defender.</summary>
+	public float Knockback { get; init; }
+	public AttackThreatTier ThreatTier { get; init; }
 }

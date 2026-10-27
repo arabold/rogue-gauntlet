@@ -64,13 +64,16 @@ Each line is one JSON object with `schema`, `run`, monotonically increasing `seq
 | `run.started`, `run.ended` | Seed, engine version, physics tick rate, scene; a closing record distinguishes a complete capture |
 | `harness.command` | Command, arguments and acceptance, including rejected requests |
 | `harness.equipped`, `harness.spawned` | Authored weapon/monster path, style and seed |
-| `action.acquired`, `action.phase`, `action.released`, `action.interrupted` | Kind, phase, lease or interruption reason |
+| `action.acquired`, `action.phase`, `action.released`, `action.interrupted`, `action.hyper_armor` | Kind, phase, lease, interruption reason or armored state |
 | `attack.started`, `attack.contact`, `attack.ended` | Execution/source, style, contact timing, duration, target, base damage, crit, interruption and contact count |
-| `attack.aim_locked` | Execution, captured origin/direction and time until projectile release |
+| `attack.aim_locked`, `attack.facing_committed` | Execution, captured origin/direction and time until projectile release; elapsed time and committed melee facing |
+| `poise.broken` | Break stagger duration |
 | `harness.automatic_action` | Accepted repeated behavior; ordinary executor events describe the resulting action |
 | `defense.decision`, `defense.observed`, `defense.request`, `defense.started`, `defense.riposte` | Policy chances/rolls, source observation, delay/distance, selected defense, accepted timing/sector/chip settings and actual request result; riposte acceptance or rejection reason, current distance and reach |
+| `defense.threat_filtered`, `defense.out_of_sector`, `defense.guard_broken`, `defense.pass_through_exit` | Tier and replacement decision; angle of an attacker outside the guard sector; guard-break damage and stagger; time spent leaving a pass-through body |
+| `slots.reserved` | Attacker, slot kind and slots now held |
 | `projectile.spawned`, `projectile.contact`, `projectile.world_impact`, `projectile.expired` | Projectile identity, parent attack identity, owner, origin/direction, speed/range, seed, defensive flags, contact and impact |
-| `damage.resolved` | Source/owner/execution, delivery/eligibility, incoming direction, raw amount, armor and its roll, final outcome, damage and health |
+| `damage.resolved` | Source/owner/execution, delivery/eligibility, incoming direction, raw amount, armor and its roll, poise damage, hit reaction and remaining poise, hit zone, sneak attack, threat tier, final outcome, damage and health |
 | `simulation.tick`, `actor.state` | Delta/time scale; actor position, velocity, facing, health, action/phase, attack identity, stagger and defense timers, parry-window eligibility and dodge immunity |
 
 The analyzer validates schema, run identity, record sequence and monotonic clocks. It summarizes event counts, outcomes, interrupted attacks, damage per target and rejected commands. `--require-complete` rejects a truncated capture. Keep raw records for contact-by-contact analysis; aggregates alone cannot explain timing or geometry.

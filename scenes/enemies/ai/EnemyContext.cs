@@ -38,6 +38,8 @@ public sealed class EnemyContext
 	public double Delta { get; private set; }
 	private float _retreatRefresh;
 	private bool _retreatDestinationValid;
+	private float _ringRefresh;
+	private Vector3 _ringPoint;
 	public float HorizontalTargetDistance
 	{
 		get
@@ -50,6 +52,31 @@ public sealed class EnemyContext
 	}
 
 	public Action RequestAttack { get; }
+
+	/// <summary>Degrees between the actor's facing and the horizontal direction to its target; 0 without a target.</summary>
+	public float AngleToTarget
+	{
+		get
+		{
+			if (Target == null) return 0;
+			Vector3 toTarget = Target.GlobalPosition - Actor.GlobalPosition;
+			toTarget.Y = 0;
+			Vector3 facing = Movement.LookAtDirection;
+			facing.Y = 0;
+			if (toTarget.LengthSquared() < .0001f || facing.LengthSquared() < .0001f) return 0;
+			return Mathf.RadToDeg(facing.AngleTo(toTarget));
+		}
+	}
+
+	/// <summary>Attack slots of the current target; null when the target lets every attacker strike.</summary>
+	public AttackSlotsComponent TargetSlots => (Target as IAttackSlotHost)?.AttackSlots;
+
+	/// <summary>Whether this actor may start its attack now as far as the target's slots are concerned.</summary>
+	public bool CanTakeAttackSlot()
+	{
+		var policy = Profile.AttackStrategy;
+		return policy == null || !policy.UsesAttackSlot || TargetSlots?.CanReserve(Actor, policy.SlotKind) != false;
+	}
 
 	/// <summary>The player currently being chased, or null when the enemy has no target.</summary>
 	private Node3D _target;
@@ -109,6 +136,7 @@ public sealed class EnemyContext
 		Delta = delta;
 		TacticalSelector?.Tick(delta);
 		_retreatRefresh -= (float)delta;
+		_ringRefresh -= (float)delta;
 		_scanCooldown.Tick(delta);
 		_pathRefreshCooldown.Tick(delta);
 		_reachabilityCooldown.Tick(delta);
@@ -252,7 +280,13 @@ public sealed class EnemyContext
 			else UpdateTargetPositionThrottled();
 			FollowTargetPath();
 		}
-		else if (decision.Intent.Goal == EnemyMovementGoal.Hold) Navigation.Stop();
+		else if (decision.Intent.Goal == EnemyMovementGoal.Hold)
+		{
+			// Holding keeps turning toward the target, limited by the actor's movement turn rate.
+			Navigation.Stop();
+			if (Target != null) Movement.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition);
+		}
+		else if (decision.Intent.Goal == EnemyMovementGoal.Encircle) FollowEngagementRing(decision.Intent.DesiredDistance, decision.Intent.PreferRear);
 		if (_lastDecision != decision)
 		{
 			_lastDecision = decision;
@@ -275,6 +309,29 @@ public sealed class EnemyContext
 	}
 
 	public void EndRetreatMovement() { _retreatRefresh = 0; _retreatDestinationValid = false; }
+
+	/// <summary>
+	/// Wait for an attack slot at this actor's spread ring position, facing the target. The ring point
+	/// is refreshed on a throttle and snapped to the navmesh when one is near.
+	/// </summary>
+	public void FollowEngagementRing(float distance, bool preferRear)
+	{
+		var slots = TargetSlots;
+		if (Target == null || slots == null || Profile.AttackStrategy == null) { Navigation.Stop(); return; }
+		if (_ringRefresh <= 0)
+		{
+			_ringRefresh = .3f;
+			Vector3 ring = slots.GetRingPoint(Actor, Profile.AttackStrategy.SlotKind, distance, preferRear);
+			Vector3 snapped = Navigation.GetClosestNavPoint(ring);
+			_ringPoint = snapped.DistanceTo(ring) < distance ? snapped : ring;
+			Navigation.SetDestination(_ringPoint);
+		}
+		Vector3 offset = _ringPoint - Actor.GlobalPosition;
+		offset.Y = 0;
+		if (offset.Length() <= .4f) Navigation.Stop();
+		else Navigation.FollowPath(Target);
+		Movement.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition);
+	}
 
 	/// <summary>Bound and throttle retreat destination checks. Failed movement permits an eligible attack.</summary>
 	public bool FollowRetreat(float desiredDistance)
