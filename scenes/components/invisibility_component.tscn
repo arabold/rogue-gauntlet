@@ -1,11 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 [ext_resource type="Script" path="res://scenes/components/InvisibilityComponent.cs" id="script"]
-[ext_resource type="Shader" path="res://scenes/effects/shaders/invisibility.gdshader" id="shader"]
-[sub_resource type="ShaderMaterial" id="Material"]
-shader = ExtResource("shader")
-shader_parameter/body_opacity = 0.025
-shader_parameter/edge_opacity = 0.14
+[ext_resource type="Resource" path="res://scenes/effects/world/invisibility/invisibility.tres" id="effect"]
 [node name="InvisibilityComponent" type="Node"]
 script = ExtResource("script")
-EffectMaterial = SubResource("Material")
-FadeDuration = 0.25
+Effect = ExtResource("effect")

@@ -10,6 +10,8 @@ Status: **proposed**. Covers statuses applied by attacks: monster attacks that p
 
 Any buff carrying `poisoned.tres` already turns on the player's poison overlay, so poisoning the player needs no presentation work.
 
+**World-VFX integration dependency:** [shared actor surface ownership](../world-effects.md#surface-ownership-and-visibility) now exists. Before slice 3, revise the tint-rendering contract below to submit tint intent through `SurfaceAppearanceController`; its direct `MaterialOverlay` writer and independent material capture are superseded. Preserve cloak/skin priority, helper exclusion and terminal death handoff. The current controller supports cloak/skin profiles; adding tint composition belongs to that slice, not this VFX delivery. Status application and buff generalization remain separate from this rendering adjustment.
+
 ## Target behavior
 
 | Source | Target | First content | Presentation |

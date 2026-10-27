@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="AppearancePool" load_steps=27 format=3]
+[gd_resource type="Resource" script_class="AppearancePool" load_steps=39 format=3]
 
 [ext_resource type="Script" uid="uid://cappearpool01" path="res://scenes/items/identity/AppearancePool.cs" id="1_pool"]
 [ext_resource type="Script" uid="uid://citemappear01" path="res://scenes/items/identity/ItemAppearance.cs" id="2_appr"]
@@ -15,74 +15,123 @@
 [ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_silver_ingwaz.tscn" id="m11"]
 [ext_resource type="PackedScene" path="res://scenes/items/scrolls/scroll/scroll_teal_eihwaz.tscn" id="m12"]
 
+[ext_resource type="ArrayMesh" path="res://scenes/effects/world/runes/glyphs/raidho.obj" id="glyph_raidho"]
+[ext_resource type="ArrayMesh" path="res://scenes/effects/world/runes/glyphs/fehu.obj" id="glyph_fehu"]
+[ext_resource type="ArrayMesh" path="res://scenes/effects/world/runes/glyphs/dagaz.obj" id="glyph_dagaz"]
+[ext_resource type="ArrayMesh" path="res://scenes/effects/world/runes/glyphs/algiz.obj" id="glyph_algiz"]
+[ext_resource type="ArrayMesh" path="res://scenes/effects/world/runes/glyphs/eihwaz.obj" id="glyph_eihwaz"]
+[ext_resource type="ArrayMesh" path="res://scenes/effects/world/runes/glyphs/thurisaz.obj" id="glyph_thurisaz"]
+[ext_resource type="ArrayMesh" path="res://scenes/effects/world/runes/glyphs/berkano.obj" id="glyph_berkano"]
+[ext_resource type="ArrayMesh" path="res://scenes/effects/world/runes/glyphs/hagalaz.obj" id="glyph_hagalaz"]
+[ext_resource type="ArrayMesh" path="res://scenes/effects/world/runes/glyphs/sowilo.obj" id="glyph_sowilo"]
+[ext_resource type="ArrayMesh" path="res://scenes/effects/world/runes/glyphs/ingwaz.obj" id="glyph_ingwaz"]
+[ext_resource type="ArrayMesh" path="res://scenes/effects/world/runes/glyphs/tiwaz.obj" id="glyph_tiwaz"]
+[ext_resource type="ArrayMesh" path="res://scenes/effects/world/runes/glyphs/othala.obj" id="glyph_othala"]
+
 [sub_resource type="Resource" id="Appearance_cobalt_raidho"]
 script = ExtResource("2_appr")
+GlyphId = &"raidho"
+GlyphColor = Color(0.17713, 0.60319, 0.90000, 1)
+GlyphMesh = ExtResource("glyph_raidho")
 Descriptor = "ZELGO MER"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m1")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_coral_sowilo"]
 script = ExtResource("2_appr")
+GlyphId = &"sowilo"
+GlyphColor = Color(0.90000, 0.53780, 0.41707, 1)
+GlyphMesh = ExtResource("glyph_sowilo")
 Descriptor = "JUYED AWK YACC"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m2")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_crimson_othala"]
 script = ExtResource("2_appr")
+GlyphId = &"othala"
+GlyphColor = Color(0.90000, 0.14571, 0.16714, 1)
+GlyphMesh = ExtResource("glyph_othala")
 Descriptor = "NR 9"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m3")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_emerald_fehu"]
 script = ExtResource("2_appr")
+GlyphId = &"fehu"
+GlyphColor = Color(0.43412, 0.90000, 0.38118, 1)
+GlyphMesh = ExtResource("glyph_fehu")
 Descriptor = "XIXAXA XOXAXA XUXAXA"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m4")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_gold_algiz"]
 script = ExtResource("2_appr")
+GlyphId = &"algiz"
+GlyphColor = Color(0.90000, 0.74615, 0.31923, 1)
+GlyphMesh = ExtResource("glyph_algiz")
 Descriptor = "PRATYAVAYAH"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m5")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_lime_hagalaz"]
 script = ExtResource("2_appr")
+GlyphId = &"hagalaz"
+GlyphColor = Color(0.42033, 0.90000, 0.52418, 1)
+GlyphMesh = ExtResource("glyph_hagalaz")
 Descriptor = "DAIYEN FOOELS"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m6")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_magenta_berkano"]
 script = ExtResource("2_appr")
+GlyphId = &"berkano"
+GlyphColor = Color(0.90000, 0.14268, 0.49390, 1)
+GlyphMesh = ExtResource("glyph_berkano")
 Descriptor = "LEP GEX VEN ZEA"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m7")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_obsidian_tiwaz"]
 script = ExtResource("2_appr")
+GlyphId = &"tiwaz"
+GlyphColor = Color(0.78353, 0.85765, 0.90000, 1)
+GlyphMesh = ExtResource("glyph_tiwaz")
 Descriptor = "VELOX NEB"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m8")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_orange_thurisaz"]
 script = ExtResource("2_appr")
+GlyphId = &"thurisaz"
+GlyphColor = Color(0.90000, 0.57108, 0.20602, 1)
+GlyphMesh = ExtResource("glyph_thurisaz")
 Descriptor = "FOOBIE BLETCH"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m9")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_purple_dagaz"]
 script = ExtResource("2_appr")
+GlyphId = &"dagaz"
+GlyphColor = Color(0.64648, 0.27887, 0.90000, 1)
+GlyphMesh = ExtResource("glyph_dagaz")
 Descriptor = "TEMOV"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m10")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_silver_ingwaz"]
 script = ExtResource("2_appr")
+GlyphId = &"ingwaz"
+GlyphColor = Color(0.85946, 0.88784, 0.90000, 1)
+GlyphMesh = ExtResource("glyph_ingwaz")
 Descriptor = "GARVEN DEH"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m11")})
 metadata/_custom_type_script = ExtResource("2_appr")
 
 [sub_resource type="Resource" id="Appearance_teal_eihwaz"]
 script = ExtResource("2_appr")
+GlyphId = &"eihwaz"
+GlyphColor = Color(0.30920, 0.90000, 0.77853, 1)
+GlyphMesh = ExtResource("glyph_eihwaz")
 Descriptor = "ELBIB YLOH"
 Models = Dictionary[String, PackedScene]({"": ExtResource("m12")})
 metadata/_custom_type_script = ExtResource("2_appr")

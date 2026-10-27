@@ -194,6 +194,8 @@ public partial class OcclusionXrayComponent : Node
 			Name = $"{src.Name}_Xray",
 			Mesh = src.Mesh,
 			Skin = src.Skin,
+			// Stencil silhouettes must never feed back into reflection captures.
+			Layers = VisualHelper.DebugRenderLayer,
 			Skeleton = src.Skeleton,
 			MaterialOverride = material,
 			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,

@@ -12,6 +12,8 @@ public static class PlayerSaveCodec
 	/// <param name="includeTransform">False for level travel, where the next floor's arrival places the player.</param>
 	public static PlayerSaveData Capture(Player player, bool includeTransform)
 	{
+		// A committed teleport must not be lost if saving midway through its presentation.
+		player.WorldEffects?.CompleteSurfaceTransitions();
 		var data = new PlayerSaveData
 		{
 			ApplyTransform = includeTransform,

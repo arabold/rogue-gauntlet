@@ -5,6 +5,8 @@ using Godot;
 /// </summary>
 public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable
 {
+	[Export] public WorldEffectHost WorldEffects { get; set; }
+	[Export] public ItemUseWorldEffectDriver ItemUseEffects { get; set; }
 	[Export] public InvisibilityComponent Invisibility { get; set; }
 
 	[Export] public PlayerStats Stats { get; protected set; }
@@ -85,6 +87,8 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 
 		// The controllers act on this runtime copy, never on the authored inventory, so it is injected rather than wired.
 		InventoryController.Inventory = Inventory;
+		if (ItemUseEffects != null)
+		{ ItemUseEffects.Inventory = Inventory; ItemUseEffects.Identification = _level?.Run?.Identification; }
 		QuickItemController.Inventory = Inventory;
 		_hasRuntimeState = true;
 	}

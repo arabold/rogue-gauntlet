@@ -1,4 +1,4 @@
-[gd_scene load_steps=92 format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=98 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
@@ -51,6 +51,14 @@
 [ext_resource type="Script" uid="uid://bmrka2rigbvvg" path="res://scenes/components/FloorLightingComponent.cs" id="floor_lighting"]
 [ext_resource type="Script" uid="uid://dd4dxnyubvshs" path="res://scenes/player/PlayerQuickItemController.cs" id="quick_items_script"]
 [ext_resource type="Script" uid="uid://dgiq0d302k3ul" path="res://scenes/interactions/ActorInteractionComponent.cs" id="interaction_script"]
+
+[ext_resource type="Script" path="res://scenes/effects/world/SurfaceAppearanceController.cs" id="vfx_surface"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/actor_world_effects.tscn" id="vfx_host"]
+[ext_resource type="Script" path="res://scenes/effects/world/ItemUseWorldEffectDriver.cs" id="vfx_use"]
+[ext_resource type="Resource" path="res://scenes/effects/world/healing/healing.tres" id="vfx_healing"]
+[ext_resource type="Resource" path="res://scenes/effects/world/strength/strength.tres" id="vfx_strength"]
+
+[ext_resource type="Resource" path="res://scenes/effects/world/runes/rune_ring.tres" id="vfx_scroll"]
 
 [sub_resource type="Resource" id="player_capabilities"]
 script = ExtResource("capabilities_script")
@@ -284,7 +292,9 @@ radius = 2.0
 radius = 0.75
 height = 2.5
 
-[node name="Player" type="CharacterBody3D" groups=["player"] node_paths=PackedStringArray("Invisibility", "ActionGate", "QuickItemController", "InteractionComponent", "DodgeComponent", "GuardComponent", "HealthComponent", "HurtBoxComponent", "MovementComponent", "InputComponent", "ActionManager", "BuffController", "InteractionController", "StatsController", "InventoryController", "InputController", "AttackController", "InteractionArea", "Pivot", "CharacterModelNode", "AnimationTree", "AttachmentManager")]
+[node name="Player" type="CharacterBody3D" groups=["player"] node_paths=PackedStringArray("WorldEffects", "ItemUseEffects", "Invisibility", "ActionGate", "QuickItemController", "InteractionComponent", "DodgeComponent", "GuardComponent", "HealthComponent", "HurtBoxComponent", "MovementComponent", "InputComponent", "ActionManager", "BuffController", "InteractionController", "StatsController", "InventoryController", "InputController", "AttackController", "InteractionArea", "Pivot", "CharacterModelNode", "AnimationTree", "AttachmentManager")]
+WorldEffects = NodePath("WorldEffects")
+ItemUseEffects = NodePath("ItemUseEffects")
 ActionGate = NodePath("ActorActionGateComponent")
 QuickItemController = NodePath("PlayerQuickItemController")
 InteractionComponent = NodePath("ActorInteractionComponent")
@@ -598,9 +608,8 @@ StairsTrigger = NodePath("../StairsTrigger")
 [node name="InputComponent" parent="." instance=ExtResource("9_p85oa")]
 
 
-[node name="InvisibilityComponent" parent="." node_paths=PackedStringArray("Target", "Health") instance=ExtResource("invisibility")]
-Target = NodePath("../Pivot")
-Health = NodePath("../HealthComponent")
+[node name="InvisibilityComponent" parent="." node_paths=PackedStringArray("Host") instance=ExtResource("invisibility")]
+Host = NodePath("../WorldEffects")
 
 [editable path="Pivot/Character"]
 
@@ -644,3 +653,14 @@ InventoryController = NodePath("../PlayerInventoryController")
 script = ExtResource("interaction_script")
 Actor = NodePath("..")
 ActionGate = NodePath("../ActorActionGateComponent")
+[node name="SurfaceAppearanceController" type="Node" parent="." node_paths=PackedStringArray("Target")]
+script = ExtResource("vfx_surface")
+Target = NodePath("../Pivot")
+[node name="WorldEffects" parent="." node_paths=PackedStringArray("SurfaceController", "Health") instance=ExtResource("vfx_host")]
+SurfaceController = NodePath("../SurfaceAppearanceController")
+Health = NodePath("../HealthComponent")
+[node name="ItemUseEffects" type="Node" parent="." node_paths=PackedStringArray("Host")]
+script = ExtResource("vfx_use")
+Host = NodePath("../WorldEffects")
+ScrollReading = ExtResource("vfx_scroll")
+Cues = { &"healing": ExtResource("vfx_healing"), &"strength": ExtResource("vfx_strength") }

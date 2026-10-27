@@ -1,0 +1,55 @@
+shader_type spatial;
+// Solid skins must write opaque depth; alpha blending exposes back faces on double-sided meshes.
+render_mode depth_draw_opaque, cull_disabled;
+uniform float amount : hint_range(0, 1) = 1;
+uniform int skin_kind = 0;
+uniform bool faceted = false;
+uniform float polish : hint_range(0,1) = 0;
+uniform vec4 base_color : source_color = vec4(1);
+uniform sampler2D source_texture : source_color, hint_default_white;
+uniform sampler2D source_normal : hint_normal;
+uniform bool source_normal_enabled = false;
+uniform float source_normal_scale = 1;
+uniform float source_roughness = 0.7;
+uniform float source_metallic = 0;
+uniform vec3 source_uv_scale = vec3(1);
+uniform vec3 source_uv_offset = vec3(0);
+uniform float source_alpha_scissor = 0;
+uniform int source_cull = 0;
+varying vec3 local_position;
+vec2 hash2(vec2 p) { return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453); }
+void vertex() { local_position = VERTEX; }
+void fragment() {
+ if ((source_cull == 0 && !FRONT_FACING) || (source_cull == 1 && FRONT_FACING)) discard;
+ vec2 uv = UV * source_uv_scale.xy + source_uv_offset.xy;
+ vec4 original = texture(source_texture,uv)*base_color;
+ if (original.a < source_alpha_scissor) discard;
+ // Derivative normals shade existing triangles flat without rebuilding or modifying the mesh.
+ vec3 face_normal=normalize(cross(dFdx(VERTEX),dFdy(VERTEX)));
+ if(dot(face_normal,NORMAL)<0.0) face_normal=-face_normal;
+ if(faceted) NORMAL=face_normal;
+ vec3 p=local_position;
+ float brushed=0.5+0.5*sin(p.y*420.0+sin(p.x*31.0)*2.0);
+ vec3 iron=mix(vec3(0.30,0.35,0.42),vec3(0.68,0.73,0.78),brushed*mix(0.22,0.04,polish)+0.35);
+ float etch=pow(0.5+0.5*sin((p.x+p.y)*58.0),48.0);
+ vec2 cellp=(p.xy+vec2(p.z*0.37,p.z*0.61))*7.5;
+ vec2 cell=floor(cellp), f=fract(cellp);
+ float first=8.0, second=8.0;
+ for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++) {
+  vec2 g=vec2(float(x),float(y));
+  float d=length(g+hash2(cell+g)-f);
+  if(d<first) {second=first;first=d;} else {second=min(second,d);}
+ }
+ float crack=1.0-smoothstep(0.015,0.065,second-first);
+ float grain=fract(sin(dot(p,vec3(217.1,113.7,61.2)))*43758.5453);
+ vec3 stone=mix(vec3(0.31,0.34,0.36),vec3(0.48,0.46,0.40),first)*mix(0.82,1.08,grain);
+ stone=mix(stone,vec3(0.065,0.077,0.085),crack*0.88);
+ vec3 skin=skin_kind==0 ? iron : stone;
+ float reveal=smoothstep(0.0,0.15,amount-p.y*0.025);
+ ALBEDO=mix(original.rgb,skin+original.rgb*0.08,reveal);
+ METALLIC=mix(source_metallic,skin_kind==0 ? mix(0.68,0.95,polish) : 0.04,reveal);
+ ROUGHNESS=mix(source_roughness,skin_kind==0 ? mix(0.3,0.055,polish) : 0.94,reveal);
+ SPECULAR=skin_kind==0 ? mix(0.65,0.9,polish) : 0.28;
+ EMISSION=skin_kind==0 ? vec3(0.18,0.29,0.38)*etch*0.12*reveal : vec3(0.16,0.11,0.055)*crack*0.08*reveal;
+ if(source_normal_enabled && !faceted) { NORMAL_MAP=texture(source_normal,uv).rgb; NORMAL_MAP_DEPTH=source_normal_scale; }
+}

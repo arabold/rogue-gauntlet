@@ -7,6 +7,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 {
 	public Node3D Pivot;
 	public CollisionShape3D CollisionShape;
+	[Export] public WorldEffectHost WorldEffects { get; set; }
 	[Export] public InvisibilityComponent Invisibility { get; set; }
 
 	[Export] public EnemyBehaviorComponent EnemyBehaviorComponent;

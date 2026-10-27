@@ -1,0 +1,152 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/world/WorldEffectInstance.cs" id="script"]
+[ext_resource type="Shader" path="res://scenes/effects/world/shaders/energy.gdshader" id="energy"]
+[ext_resource type="Texture2D" path="res://scenes/effects/world/textures/spark.svg" id="spark"]
+
+[ext_resource type="PackedScene" path="res://scenes/effects/world/accent_light.tscn" id="accent_light"]
+[sub_resource type="Curve" id="Envelope"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.14, 1), 0.0, 0.0, 0, 0, Vector2(0.5, 0.7), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="ShaderMaterial" id="Mat0"]
+shader = ExtResource("energy")
+shader_parameter/tint = Color(0.45, 0.18, 1, 1)
+shader_parameter/shape = 4
+shader_parameter/softness = 0.018
+shader_parameter/density = 12
+shader_parameter/speed = 0.6
+shader_parameter/twist = 1
+shader_parameter/brightness = 1.2
+
+[sub_resource type="PlaneMesh" id="Mesh0"]
+size = Vector2(2.3, 2.3)
+
+[sub_resource type="ShaderMaterial" id="Mat1"]
+shader = ExtResource("energy")
+shader_parameter/tint = Color(0.45, 0.18, 1, 1)
+shader_parameter/shape = 1
+shader_parameter/softness = 0.02
+shader_parameter/density = 3
+shader_parameter/speed = -0.9
+shader_parameter/twist = 2.3
+shader_parameter/brightness = 1.2
+
+[sub_resource type="CylinderMesh" id="Mesh1"]
+top_radius = 0.6050000000000001
+bottom_radius = 0.8800000000000001
+height = 2.3
+radial_segments = 64
+rings = 8
+cap_top = false
+cap_bottom = false
+
+[sub_resource type="ShaderMaterial" id="Mat2"]
+shader = ExtResource("energy")
+shader_parameter/tint = Color(0.45, 0.18, 1, 1)
+shader_parameter/shape = 1
+shader_parameter/softness = 0.02
+shader_parameter/density = 2
+shader_parameter/speed = 1.2
+shader_parameter/twist = -2
+shader_parameter/brightness = 1.2
+
+[sub_resource type="CylinderMesh" id="Mesh2"]
+top_radius = 0.4675
+bottom_radius = 0.68
+height = 2.3
+radial_segments = 64
+rings = 8
+cap_top = false
+cap_bottom = false
+
+[sub_resource type="Gradient" id="ParticleGradient"]
+offsets = PackedFloat32Array(0, 0.12, 0.6, 1)
+colors = PackedColorArray(0.45, 0.18, 1, 0, 1, 0.95, 0.8, 1, 0.45, 0.18, 1, 0.7, 0.45, 0.18, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="Ramp"]
+gradient = SubResource("ParticleGradient")
+
+[sub_resource type="StandardMaterial3D" id="SparkMaterial"]
+shading_mode = 0
+transparency = 1
+blend_mode = 1
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("spark")
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+emission_enabled = true
+emission = Color(0.45, 0.18, 1, 1)
+emission_energy_multiplier = 1.2
+no_depth_test = false
+
+[sub_resource type="QuadMesh" id="SparkMesh"]
+material = SubResource("SparkMaterial")
+size = Vector2(0.13, 0.2)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcess"]
+particle_flag_disable_z = false
+emission_shape = 1
+emission_sphere_radius = 0.75
+direction = Vector3(0, 1, 0)
+spread = 20
+initial_velocity_min = 1.1
+initial_velocity_max = 2.2
+gravity = Vector3(0, 0.3, 0)
+radial_accel_min = 0.15
+radial_accel_max = 0.5
+tangential_accel_min = 0.15
+tangential_accel_max = 1
+scale_min = 0.35
+scale_max = 1.6
+color_ramp = SubResource("Ramp")
+
+[node name="Arcane" type="Node3D" node_paths=PackedStringArray("Layers", "Emitters", "AccentLight")]
+script = ExtResource("script")
+Duration = 0.6
+EnterTime = 0.22
+ExitTime = 0.35
+Envelope = SubResource("Envelope")
+Layers = [NodePath("Layer0"), NodePath("Layer1"), NodePath("Layer2")]
+Emitters = [NodePath("Motes")]
+AccentLight = NodePath("Light")
+
+[node name="Layer0" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.035, 0)
+cast_shadow = 0
+material_override = SubResource("Mat0")
+mesh = SubResource("Mesh0")
+
+[node name="Layer1" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.15, 0)
+cast_shadow = 0
+material_override = SubResource("Mat1")
+mesh = SubResource("Mesh1")
+
+[node name="Layer2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.15, 0)
+cast_shadow = 0
+material_override = SubResource("Mat2")
+mesh = SubResource("Mesh2")
+
+[node name="Motes" type="GPUParticles3D" parent="."]
+position = Vector3(0, 0.85, 0)
+cast_shadow = 0
+emitting = false
+amount = 52
+lifetime = 0.3
+one_shot = true
+explosiveness = 0.78
+randomness = 0.25
+local_coords = true
+use_fixed_seed = true
+visibility_aabb = AABB(-3, -1, -3, 6, 6, 6)
+process_material = SubResource("ParticleProcess")
+draw_pass_1 = SubResource("SparkMesh")
+[node name="Light" parent="." instance=ExtResource("accent_light")]
+light_color = Color(0.45, 0.18, 1, 1)
+light_energy = 0.8
+light_specular = 0.2
+shadow_enabled = false
+omni_range = 2.8

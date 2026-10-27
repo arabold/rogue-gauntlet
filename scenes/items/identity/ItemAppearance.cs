@@ -21,6 +21,12 @@ public partial class ItemAppearance : Resource
 	/// </summary>
 	[Export] public Dictionary<string, PackedScene> Models { get; set; } = [];
 
+	/// <summary>Optional authored symbol for this appearance, e.g. a scroll's run-assigned rune.</summary>
+	[Export] public StringName GlyphId { get; set; } = "";
+	[Export] public Mesh GlyphMesh { get; set; }
+	/// <summary>Authored luminous counterpart of the paper rune color, shared by its use effect and accent light.</summary>
+	[Export] public Color GlyphColor { get; set; } = Colors.White;
+
 	/// <summary>The model for <paramref name="form"/>, or null when this appearance has none for it.</summary>
 	public PackedScene GetModel(string form)
 	{

@@ -1,4 +1,4 @@
-[gd_scene load_steps=54 format=3]
+[gd_scene load_steps=56 format=3]
 
 [ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="b_1_j62no"]
 
@@ -40,6 +40,9 @@
 [ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="m_action_gate_script"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/invisibility_component.tscn" id="invisibility"]
+
+[ext_resource type="Script" path="res://scenes/effects/world/SurfaceAppearanceController.cs" id="vfx_surface"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/actor_world_effects.tscn" id="vfx_host"]
 
 [sub_resource type="AnimationNodeAnimation" id="m_AnimationNodeAnimation_rfhfv"]
 animation = &"1H_Melee_Attack_Chop"
@@ -195,7 +198,8 @@ radius = 0.75
 [sub_resource type="CapsuleShape3D" id="m_CapsuleShape3D_m4sjw"]
 radius = 0.75
 
-[node name="MeleeEnemy" type="CharacterBody3D" node_paths=PackedStringArray("Invisibility", "AttackController", "ActionGate", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+[node name="MeleeEnemy" type="CharacterBody3D" node_paths=PackedStringArray("WorldEffects", "Invisibility", "AttackController", "ActionGate", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+WorldEffects = NodePath("WorldEffects")
 Invisibility = NodePath("InvisibilityComponent")
 collision_layer = 8
 collision_mask = 87
@@ -399,8 +403,14 @@ script = ExtResource("m_action_gate_script")
 AnimationComponent = NodePath("../CombatAnimationComponent")
 
 
-[node name="InvisibilityComponent" parent="." node_paths=PackedStringArray("Target", "Health") instance=ExtResource("invisibility")]
-Target = NodePath("../Pivot")
-Health = NodePath("../HealthComponent")
+[node name="InvisibilityComponent" parent="." node_paths=PackedStringArray("Host") instance=ExtResource("invisibility")]
+Host = NodePath("../WorldEffects")
 
 [editable path="Pivot/Skeleton_Minion"]
+
+[node name="SurfaceAppearanceController" type="Node" parent="." node_paths=PackedStringArray("Target")]
+script = ExtResource("vfx_surface")
+Target = NodePath("../Pivot")
+[node name="WorldEffects" parent="." node_paths=PackedStringArray("SurfaceController", "Health") instance=ExtResource("vfx_host")]
+SurfaceController = NodePath("../SurfaceAppearanceController")
+Health = NodePath("../HealthComponent")

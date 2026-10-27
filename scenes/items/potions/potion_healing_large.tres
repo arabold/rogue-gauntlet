@@ -14,6 +14,7 @@ metadata/_custom_type_script = ExtResource("buff")
 
 [resource]
 script = ExtResource("item")
+UseCue = &"healing"
 TypeId = "potion.healing"
 TrueName = "Large Potion of Healing"
 AppearanceForm = "large"

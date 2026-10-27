@@ -36,6 +36,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Combat actions and defense](combat-system.md) | Shared action ownership, dodge, guard/parry, stagger, RNG and persistence |
 | [Combat harness and traces](combat-harness.md) | Interactive/scripted combat, JSONL event schema, capture flags and analyzer |
 | [Screen effects](screen-effects.md) | Blindness/poison/near-death post-process overlays, their gameplay wiring through health and status conditions (including confusion and slowness), and the debug harness |
+| [Actor and item world effects](world-effects.md) | Reusable burst/sustained VFX, shared cloak/skin ownership, eight authored looks, committed potion use, known-cursed item auras and the workbench |
 | [Actor invisibility](invisibility.md) | Shared player/monster cloak shader, equipment coverage, reversible materials and effect-harness preview |
 
 ## Remaining implementation plans
@@ -45,6 +46,9 @@ These documents explain code that exists today. Any proposed extension or future
 | [Secret doors and locks](specs/secret-doors-and-locks-plan.md) | Remaining tuning, hidden mechanisms, consumable key chains and secret shortcuts |
 | [Dungeon progression](specs/level-progression-prototype-plan.md) | Realm pools/recipes, composed access, optional locks and generated secrets |
 | [Actions and interactions](specs/actor-actions-and-interactions-plan.md) | Lock integration, learned spells/mana and further actor intentions/content |
+| [Potion and scroll feedback](specs/consumable-feedback-plan.md) | Proposed unique activation signature for all 20 potion/scroll types, with world and screen channels and catalog coverage checks |
+| [Actor and item VFX](specs/actor-item-vfx-plan.md) | Remaining visual-quality/skin-choice acceptance, GPU timing and in-game readability review |
+| [Combat redesign](specs/combat-redesign-plan.md) | Proposed poise and hyper-armor, committed monster wind-ups, hit zones and sneak attacks, attack slots, threat tiers with guard break, and player combos/dodge charges; lists the current combat rules it overturns |
 | [Attack status effects](specs/attack-status-effects-plan.md) | Proposed on-hit status payloads, actor-agnostic buffs for monsters and a monster status tint; first slice lets venomous monster attacks poison the player |
 | [Potion catalog](specs/potion-catalog-plan.md) | Deferred Raise Level, Hallucination and detection potions |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |

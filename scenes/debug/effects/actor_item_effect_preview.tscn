@@ -1,0 +1,116 @@
+[gd_scene load_steps=29 format=3]
+[ext_resource type="Script" path="res://scenes/debug/effects/ActorItemEffectPreview.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/actor_world_effects.tscn" id="host"]
+[ext_resource type="Resource" path="res://scenes/effects/world/iron_skin/iron_skin.tres" id="iron_skin"]
+[ext_resource type="Resource" path="res://scenes/effects/world/stone_skin/stone_skin.tres" id="stone_skin"]
+[ext_resource type="Resource" path="res://scenes/effects/world/healing/healing.tres" id="healing"]
+[ext_resource type="Resource" path="res://scenes/effects/world/strength/strength.tres" id="strength"]
+[ext_resource type="Resource" path="res://scenes/effects/world/arcane/arcane.tres" id="arcane"]
+[ext_resource type="Resource" path="res://scenes/effects/world/level_up/level_up.tres" id="level_up"]
+[ext_resource type="Resource" path="res://scenes/effects/world/blessed/blessed.tres" id="blessed"]
+[ext_resource type="Resource" path="res://scenes/effects/world/cursed_item/cursed_item.tres" id="cursed_item"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="subject0"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/skeleton/skeleton_minion.tscn" id="subject1"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/forsaken_warden/forsaken_warden.tscn" id="subject2"]
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/sword/sword_knight.tscn" id="subject3"]
+[ext_resource type="PackedScene" path="res://assets/custom-items/jewelry/ring/ring_gold_emerald.glb" id="subject4"]
+
+[ext_resource type="PackedScene" path="res://scenes/effects/world/item_curse_presenter.tscn" id="curse_presenter"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/sword/sword_knight.tres" id="sword_item"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_strength.tres" id="ring_item"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="floor_library"]
+[ext_resource type="Resource" path="res://scenes/effects/world/teleport_departure/teleport_departure.tres" id="teleport_departure"]
+[ext_resource type="Resource" path="res://scenes/effects/world/teleport_arrival/teleport_arrival.tres" id="teleport_arrival"]
+[ext_resource type="Script" path="res://scenes/debug/effects/EffectPreviewCamera.cs" id="orbit_camera"]
+[ext_resource type="PackedScene" path="res://scenes/debug/effects/effect_harness_navigation.tscn" id="navigation"]
+[ext_resource type="Resource" path="res://scenes/effects/world/invisibility/invisibility.tres" id="invisibility_effect"]
+[sub_resource type="Theme" id="Theme"]
+default_font_size = 16
+[sub_resource type="Environment" id="Environment"]
+resource_local_to_scene = true
+background_mode = 1
+background_color = Color(0.06, 0.08, 0.11, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.8, 0.85, 0.95, 1)
+ambient_light_energy = 0.65
+glow_enabled = true
+glow_intensity = 0.55
+glow_bloom = 0.04
+[sub_resource type="StandardMaterial3D" id="GroundMaterial"]
+albedo_color = Color(0.19, 0.22, 0.25, 1)
+[sub_resource type="PlaneMesh" id="Ground"]
+size = Vector2(20, 20)
+material = SubResource("GroundMaterial")
+[node name="ActorItemEffectPreview" type="Node3D" node_paths=PackedStringArray("Stage", "Camera", "Controls", "Lighting", "KeyLight", "FloorTiles")]
+script = ExtResource("script")
+FloorTiles = NodePath("FloorTiles")
+Stage = NodePath("Stage")
+Camera = NodePath("Camera3D")
+Controls = NodePath("UI/Panel/Scroll/Margin/Controls")
+Lighting = NodePath("WorldEnvironment")
+KeyLight = NodePath("DirectionalLight3D")
+CursePresentation = ExtResource("curse_presenter")
+ItemDefinitions = [ExtResource("sword_item"), ExtResource("ring_item")]
+ItemHostScene = ExtResource("host")
+TeleportDeparture = ExtResource("teleport_departure")
+TeleportArrival = ExtResource("teleport_arrival")
+Effects = [ExtResource("iron_skin"), ExtResource("stone_skin"), ExtResource("healing"), ExtResource("strength"), ExtResource("arcane"), ExtResource("level_up"), ExtResource("blessed"), ExtResource("cursed_item"), ExtResource("teleport_departure"), ExtResource("teleport_arrival"), ExtResource("invisibility_effect")]
+Subjects = [ExtResource("subject0"), ExtResource("subject1"), ExtResource("subject2"), ExtResource("subject3"), ExtResource("subject4")]
+[node name="SceneDebugEnvironment" type="Node" parent="."]
+[node name="Stage" type="Node3D" parent="."]
+[node name="FloorTiles" type="GridMap" parent="."]
+mesh_library = ExtResource("floor_library")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+[node name="Ground" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.3, 0)
+mesh = SubResource("Ground")
+[node name="Camera3D" type="Camera3D" parent="."]
+script = ExtResource("orbit_camera")
+projection = 1
+size = 12.0
+current = true
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment")
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-50, -30, 0)
+light_energy = 1.2
+shadow_enabled = true
+[node name="UI" type="CanvasLayer" parent="."]
+layer = 11
+[node name="Panel" type="PanelContainer" parent="UI"]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -380.0
+offset_top = 60.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+theme = SubResource("Theme")
+[node name="Scroll" type="ScrollContainer" parent="UI/Panel"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+[node name="Margin" type="MarginContainer" parent="UI/Panel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_bottom = 12
+[node name="Controls" type="VBoxContainer" parent="UI/Panel/Scroll/Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Navigation" parent="." instance=ExtResource("navigation")]
+SelectedPreview = 1
+
+[node name="Reflections" type="ReflectionProbe" parent="."]
+position = Vector3(0, 2, 0)
+size = Vector3(24, 10, 24)
+cull_mask = 1
+update_mode = 1
+intensity = 0.7

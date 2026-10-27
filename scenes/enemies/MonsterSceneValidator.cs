@@ -24,6 +24,15 @@ public static class MonsterSceneValidator
 		foreach (var name in new[] { "HealthComponent", "MovementComponent", "EnemyBehaviorComponent", "DeathComponent", "LootTableComponent", "HurtBoxComponent", "ActionGate" })
 			Check(Local(Object<Node>(actor, name)), $"{name}: assign a component within this actor.");
 		var health = Object<Node>(actor, "HealthComponent");
+		var effects = Object<Node>(actor, "WorldEffects");
+		if (effects != null)
+		{
+			var surfaces = Object<Node>(effects, "SurfaceController");
+			Check(Local(effects) && Object<Node>(effects, "Health") == health, "WorldEffects: bind this actor's health.");
+			Check(Local(surfaces) && Object<Node>(surfaces, "Target") == actor.GetNodeOrNull<Node>("Pivot"), "WorldEffects.SurfaceController: bind this actor's visual Pivot.");
+			var cloak = Object<Node>(actor, "Invisibility");
+			Check(cloak == null || Object<Node>(cloak, "Host") == effects, "Invisibility.Host: bind this actor's effect host.");
+		}
 		var movement = Object<Node>(actor, "MovementComponent");
 		var behavior = Object<Node>(actor, "EnemyBehaviorComponent");
 		var gate = Object<Node>(actor, "ActionGate");

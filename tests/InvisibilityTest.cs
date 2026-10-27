@@ -14,7 +14,10 @@ public class InvisibilityTest
 	private static InvisibilityComponent Cloak(Node3D target, HealthComponent health = null)
 	{
 		var component = GD.Load<PackedScene>("res://scenes/components/invisibility_component.tscn").Instantiate<InvisibilityComponent>();
-		component.Target = target; component.Health = health; target.AddChild(component); return component;
+		var surface = new SurfaceAppearanceController { Target = target }; target.AddChild(surface);
+
+		var host = new WorldEffectHost { InstancesRoot = target, OriginAnchor = target, SurfaceController = surface, Health = health };
+		component.Host = host; target.AddChild(host); target.AddChild(component); return component;
 	}
 	[TestCase]
 	public void MaterialsArePrivateAndRestoreExactlyWithoutChangingVisibilityOrCollision()
@@ -58,30 +61,36 @@ public class InvisibilityTest
 		AssertBool(gear.CastShadow == GeometryInstance3D.ShadowCastingSetting.On).IsTrue();
 	}
 	[TestCase]
-	public async Task HarnessAnimatesRealActorsAndTogglesWithoutLeavingShadersOrXrayLeaks()
+	public async Task ActorPreviewUsesTheSharedInvisibilityDefinitionAndCleanup()
 	{
-		using var runner = ISceneRunner.Load(Harness, true); await runner.SimulateFrames(2);
-		var harness = (WorldEffectHarness)runner.Scene(); harness.SelectEffect(4); await runner.SimulateFrames(2);
-		var player = harness.PreviewPlayer; var enemy = harness.PreviewMonster;
-		AssertBool(player.Invisibility.IsInvisible && enemy.Invisibility.IsInvisible).IsTrue();
-		var body = player.Invisibility.Target.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().ToArray();
-		AssertBool(body.Length > 2).IsTrue(); // Includes runtime-equipped gear.
-		AssertBool(body.All(m => m.GetActiveMaterial(0) is ShaderMaterial)).IsTrue();
-		AssertBool(enemy.HealthBar.Visible).IsFalse();
-		enemy.HealthComponent.TakeDamage(1); AssertBool(enemy.HealthBar.Visible).IsFalse();
-		var helpers = enemy.Pivot.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>()
-			.Where(m => VisualHelper.IsHelper(m)).ToArray();
-		AssertBool(helpers.Length > 0).IsTrue(); AssertBool(helpers.All(m => !m.Visible)).IsTrue();
-		harness.Replay(); await runner.SimulateFrames(25, 20);
-		AssertBool(player.Invisibility.IsInvisible || enemy.Invisibility.IsInvisible).IsFalse();
-		AssertBool(body.All(m => m.GetActiveMaterial(0) is BaseMaterial3D)).IsTrue();
-		AssertBool(enemy.HealthBar.Visible).IsTrue();
-		harness.Replay(); await runner.SimulateFrames(6, 20);
+		using var runner = ISceneRunner.Load("res://scenes/debug/effects/actor_item_effect_preview.tscn", true); await runner.SimulateFrames(2);
+		var preview = (ActorItemEffectPreview)runner.Scene(); preview.SelectEffect(10);
+		foreach (int subject in new[] { 0, 1, 2 })
+		{
+			preview.SetSubject(subject); await runner.SimulateFrames(20, 20);
+			var actor = preview.Stage.GetChild<Node3D>(0); var cloak = actor.GetNode<InvisibilityComponent>("InvisibilityComponent");
+			AssertBool(cloak.IsInvisible).IsTrue(); AssertFloat(cloak.Amount).IsEqual(1);
+			AssertInt(preview.InstanceCount).IsEqual(1);
+			preview.ClearEffects(); AssertBool(cloak.IsInvisible).IsFalse(); AssertInt(preview.InstanceCount).IsEqual(0);
+		}
+		preview.SetSubject(0); var player = preview.Stage.GetChild<Player>(0); preview.ClearEffects();
+		player.Invisibility.SetInvisible(true); await runner.SimulateFrames(6, 20);
 		AssertFloat(player.Invisibility.Amount).IsGreater(0); AssertFloat(player.Invisibility.Amount).IsLess(1);
-		harness.Replay(); await runner.SimulateFrames(25, 20);
+		player.Invisibility.SetInvisible(false); await runner.SimulateFrames(20, 20);
 		AssertBool(player.Invisibility.IsInvisible).IsFalse();
-		harness.SelectEffect(0); await runner.SimulateFrames(2);
-		AssertBool(harness.PreviewTrap.IsDiscovered).IsFalse();
+	}
+	[TestCase]
+	public async Task ReversingTheSharedCloakKeepsItsCurrentAmountAndOneInstance()
+	{
+		using var runner = ISceneRunner.Load("res://scenes/debug/effects/actor_item_effect_preview.tscn", true); await runner.SimulateFrames(2);
+		var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects(); var player = preview.Stage.GetChild<Player>(0);
+		player.Invisibility.SetInvisible(true); await runner.SimulateFrames(8, 20);
+		player.Invisibility.SetInvisible(false); await runner.SimulateFrames(3, 20);
+		float amount = player.Invisibility.Amount;
+		player.Invisibility.SetInvisible(true);
+		AssertFloat(player.Invisibility.Amount).IsEqual(amount); AssertInt(preview.InstanceCount).IsEqual(1);
+		await runner.SimulateFrames(14, 20); AssertFloat(player.Invisibility.Amount).IsEqual(1);
+		player.Invisibility.SetInvisible(false, true); AssertBool(player.Invisibility.IsInvisible).IsFalse();
 	}
 	[TestCase]
 	public void PlayerAndAllMonsterAssembliesExplicitlyAssignTheSharedComponent()
@@ -95,7 +104,7 @@ public class InvisibilityTest
 			TestFactories.AddToSceneTree(actor);
 			var cloak = actor.GetNode<InvisibilityComponent>("InvisibilityComponent");
 			AssertObject(cloak.Target).IsSame(actor.GetNode<Node3D>("Pivot"));
-			AssertObject(cloak.EffectMaterial.Shader).IsNotNull(); AssertBool(cloak.StartInvisible).IsFalse();
+			AssertObject(cloak.Effect.Scene).IsNotNull(); AssertObject(cloak.Host).IsNotNull(); AssertBool(cloak.StartInvisible).IsFalse();
 		}
 	}
 }

@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=17 format=3]
 [ext_resource type="Script" path="res://scenes/debug/effects/WorldEffectHarness.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/props/floor_trap.tscn" id="trap"]
 [ext_resource type="PackedScene" path="res://scenes/props/door.tscn" id="door"]
@@ -7,8 +7,10 @@
 [ext_resource type="PackedScene" path="res://scenes/items/keys/key/key_gold_treasury.tscn" id="loot"]
 [ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="floor"]
 [ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="walls"]
-[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="player"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/skeleton/skeleton_minion.tscn" id="monster"]
+[ext_resource type="PackedScene" path="res://scenes/debug/effects/actor_item_effect_preview.tscn" id="actor_item_preview"]
+[ext_resource type="PackedScene" path="res://scenes/debug/effects/runes/scroll_rune_study.tscn" id="scroll_runes"]
+[ext_resource type="Script" path="res://scenes/debug/effects/EffectPreviewCamera.cs" id="orbit_camera"]
+[ext_resource type="PackedScene" path="res://scenes/debug/effects/effect_harness_navigation.tscn" id="navigation"]
 [sub_resource type="Theme" id="Theme"]
 default_font_size = 16
 [sub_resource type="Environment" id="Environment"]
@@ -22,18 +24,20 @@ albedo_color = Color(0.19, 0.22, 0.25, 1)
 [sub_resource type="PlaneMesh" id="Ground"]
 size = Vector2(20, 20)
 material = SubResource("GroundMaterial")
-[node name="WorldEffectHarness" type="Node3D" node_paths=PackedStringArray("PreviewRoot", "PreviewCamera", "Controls")]
+[node name="WorldEffectHarness" type="Node3D" node_paths=PackedStringArray("PreviewRoot", "PreviewCamera", "Controls", "PreviewEnvironment", "Navigation")]
 script = ExtResource("script")
+ActorItemPreviewScene = ExtResource("actor_item_preview")
+ScrollRuneStudyScene = ExtResource("scroll_runes")
 PreviewRoot = NodePath("PreviewRoot")
 PreviewCamera = NodePath("Camera3D")
+PreviewEnvironment = NodePath("WorldEnvironment")
 Controls = NodePath("UI/Panel/Margin/Controls")
+Navigation = NodePath("Navigation")
 TrapScene = ExtResource("trap")
 DoorScene = ExtResource("door")
 ChestScene = ExtResource("chest")
 BloodScene = ExtResource("blood")
 LootModel = ExtResource("loot")
-PlayerScene = ExtResource("player")
-MonsterScene = ExtResource("monster")
 FloorLibrary = ExtResource("floor")
 WallLibrary = ExtResource("walls")
 [node name="SceneDebugEnvironment" type="Node" parent="."]
@@ -42,6 +46,8 @@ WallLibrary = ExtResource("walls")
 position = Vector3(0, -0.3, 0)
 mesh = SubResource("Ground")
 [node name="Camera3D" type="Camera3D" parent="."]
+script = ExtResource("orbit_camera")
+Focus = Vector3(0, 1.3, 0)
 projection = 1
 size = 12.0
 current = true
@@ -57,7 +63,7 @@ layer = 10
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -370.0
-offset_top = 16.0
+offset_top = 60.0
 offset_right = -16.0
 grow_horizontal = 0
 theme = SubResource("Theme")
@@ -71,3 +77,6 @@ theme_override_constants/margin_bottom = 12
 layout_mode = 2
 custom_minimum_size = Vector2(320, 0)
 theme_override_constants/separation = 10
+
+[node name="Navigation" parent="." instance=ExtResource("navigation")]
+SelectedPreview = 0

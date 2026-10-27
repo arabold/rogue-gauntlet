@@ -1,0 +1,9 @@
+[gd_scene format=3]
+
+[node name="Light" type="OmniLight3D"]
+position = Vector3(0, 1.15, 1.1)
+light_energy = 0.9
+light_specular = 0.35
+shadow_enabled = false
+omni_range = 2.8
+omni_attenuation = 1.5

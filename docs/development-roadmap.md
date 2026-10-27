@@ -28,6 +28,8 @@ Play two contrasting classes across three seeds, including save/resume and revis
 
 Check pressured/cornered crossbowmen still shoot, retreat never traps or indefinitely disables them, rat retreat follows completed bites, and the Warden stays within its clearance. Review skeleton animation transitions and reward pacing; the regular warrior now uses common loot and a provisional XP reward closer to the other skeletons. Cleared enemies, nest slots, boss defeat and claimed rewards must survive reconstruction.
 
+The proposed [combat redesign](specs/combat-redesign-plan.md) (poise, committed monster wind-ups, hit zones, attack slots and threat tiers) would change this combat review. It is not implemented, and its first slice should be playtested against these depths before later slices land.
+
 Authoring acceptance also requires duplicating an actor in Godot, adding/removing guard or dodge with explicit references, saving/reopening, and checking two independent instances. The [template guide](../scenes/enemies/templates/README.md) owns that workflow. Automated checks support these reviews; real navigation and fun require playtesting.
 
 ## Dungeon progression
@@ -40,9 +42,13 @@ Acceptance must validate actual geometry and access solutions, including loops, 
 
 Dedicated weapon inputs, four item quick slots, ordinary timed interactions and active defenses are implemented. [Action design](actor-actions-and-interactions.md) owns remaining gameplay decisions; its [plan](specs/actor-actions-and-interactions-plan.md) owns mechanical-lock integration, learned spells and mana. Statuses applied by attacks (venomous monster attacks, poisoned weapons) are proposed in the [attack status effects plan](specs/attack-status-effects-plan.md).
 
+[Actor and item world effects](world-effects.md) provide authored looks, a shared cloak/skin material owner, burst/sustained lifetimes, committed healing/strength potion feedback and known-cursed item auras. Scroll reading uses the appearance-matched rune ring; teleport scrolls have paired departure/arrival cues and monster spawns reuse arrival. The shared tabbed previews provide one effect and subject, mouse orbit, gameplay camera bindings, replay, pause/slow motion and skin finish experiments. Lifecycle combinations stay in automated tests. [Remaining acceptance](specs/actor-item-vfx-plan.md) covers final visual quality, preferred skin, GPU timing and in-game readability; preview support does not implement the corresponding gameplay mechanics.
+
 After the first-three-floor loop is satisfactory, build one fire-magic slice with shared targeting, learning, selection and mana before completing four elemental trees. Portable lighting/fuel, wearable armor integration, backpack upgrades and tool interactions should each add an observable choice. Model exports alone do not implement these capabilities. Reward usefulness, supply rates and visual presentation still need tuning.
 
 [Dark floors and portable lighting](game-design.md#dark-floors-and-portable-lighting-planned) make visibility an equipment choice. The debug darkness override and six either-hand portable lights are implemented, including shield/two-handed conflicts and equipment restoration through current-version save/load. Seeded dark-floor selection, normal loot supply, fuel and manual ignition remain planned. Acceptance for automatic darkness must cover reproducible floors on revisits/save-load, extinguished environmental lighting and zero ambient light, unchanged fog-of-war reveal and baseline player light. Frequency, light radius and fuel pacing need playtesting.
+
+The next consumable-feedback goal is [catalog-wide activation coverage](specs/consumable-feedback-plan.md): distinct world/screen signatures for all 9 potion families and 11 scroll types, independent of longer-lived status presentation. Sizes share their type's signature. This is proposed work, beyond the existing healing/strength cues, shared scroll-reading ring and teleport/spawn presentation.
 
 ## Later delivery
 

@@ -30,6 +30,7 @@ public partial class BoneAttachmentManager : Node
 	/// </summary>
 	[Export] public Player player { get; set; }
 
+	[Export] public PackedScene CursePresentation { get; set; }
 	[Export] public bool ResetAttachmentsOnReady { get; set; } = true;
 
 	public override void _Ready()
@@ -213,6 +214,11 @@ public partial class BoneAttachmentManager : Node
 			else
 			{
 				boneAttachment.AddChild(itemAttachment);
+			}
+			if (CursePresentation != null && itemAttachment is Node3D model)
+			{
+				var aura = CursePresentation.Instantiate<ItemCurseWorldEffectPresenter>();
+				aura.Initialize(item, model, player?.WorldEffects); model.AddChild(aura);
 			}
 		}
 	}

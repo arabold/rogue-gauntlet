@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="1_j62no"]
 [ext_resource type="PackedScene" uid="uid://dt3ptc0tqgy5s" path="res://scenes/enemies/enemy_behavior_component.tscn" id="2_sr21q"]
@@ -20,7 +20,11 @@
 
 [ext_resource type="PackedScene" path="res://scenes/components/invisibility_component.tscn" id="invisibility"]
 
-[node name="Enemy" type="CharacterBody3D" node_paths=PackedStringArray("Invisibility", "AttackController", "ActionGate", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+[ext_resource type="Script" path="res://scenes/effects/world/SurfaceAppearanceController.cs" id="vfx_surface"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/actor_world_effects.tscn" id="vfx_host"]
+
+[node name="Enemy" type="CharacterBody3D" node_paths=PackedStringArray("WorldEffects", "Invisibility", "AttackController", "ActionGate", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+WorldEffects = NodePath("WorldEffects")
 Invisibility = NodePath("InvisibilityComponent")
 collision_layer = 8
 collision_mask = 87
@@ -85,6 +89,12 @@ script = ExtResource("gate_script")
 AnimationComponent = NodePath("../CombatAnimationComponent")
 
 
-[node name="InvisibilityComponent" parent="." node_paths=PackedStringArray("Target", "Health") instance=ExtResource("invisibility")]
+[node name="InvisibilityComponent" parent="." node_paths=PackedStringArray("Host") instance=ExtResource("invisibility")]
+Host = NodePath("../WorldEffects")
+
+[node name="SurfaceAppearanceController" type="Node" parent="." node_paths=PackedStringArray("Target")]
+script = ExtResource("vfx_surface")
 Target = NodePath("../Pivot")
+[node name="WorldEffects" parent="." node_paths=PackedStringArray("SurfaceController", "Health") instance=ExtResource("vfx_host")]
+SurfaceController = NodePath("../SurfaceAppearanceController")
 Health = NodePath("../HealthComponent")

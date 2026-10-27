@@ -10,7 +10,7 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class WorldEffectXrayHarnessTest
 {
-	[TestCase(5), TestCase(6)]
+	[TestCase(4), TestCase(5)]
 	public async Task ProductionPropIsBehindAnOpaqueWallAndWallTogglePreservesItsState(int index)
 	{
 		bool doorFlag = GameDebug.DoorXrayEnabled, lootFlag = GameDebug.LootXrayEnabled;
@@ -24,7 +24,7 @@ public class WorldEffectXrayHarnessTest
 		bool RowVisible(string label) => harness.Controls.GetChildren().OfType<Container>()
 			.Single(c => c.GetChild(0) is Label l && l.Text == label).Visible;
 		AssertBool(RowVisible("Wall variant")).IsTrue(); AssertBool(RowVisible("Reveal glow")).IsFalse();
-		if (index == 5)
+		if (index == 4)
 		{
 			AssertBool(harness.PreviewDoor.IsOpen).IsFalse(); AssertBool(harness.PreviewDoor.IsDiscovered).IsTrue();
 			AssertBool(harness.PreviewDoor.Secret.IsSecret).IsFalse();

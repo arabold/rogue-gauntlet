@@ -18,6 +18,7 @@ metadata/_custom_type_script = ExtResource("buff")
 
 [resource]
 script = ExtResource("item")
+UseCue = &"strength"
 TypeId = "potion.strength"
 TrueName = "Medium Potion of Strength"
 AppearanceForm = "medium"

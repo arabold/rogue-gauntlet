@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WorldEffectDefinition" load_steps=3 format=3]
+[ext_resource type="Script" path="res://scenes/effects/world/WorldEffectDefinition.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/healing/healing.tscn" id="scene"]
+[resource]
+resource_name = "Healing"
+script = ExtResource("script")
+Id = &"healing"
+Scene = ExtResource("scene")
+Lifetime = 0
+Retrigger = 0
+MaxConcurrent = 2

@@ -1,0 +1,107 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/world/WorldEffectInstance.cs" id="script"]
+[ext_resource type="Shader" path="res://scenes/effects/world/shaders/energy.gdshader" id="energy"]
+[ext_resource type="Texture2D" path="res://scenes/effects/world/textures/ember.svg" id="spark"]
+[ext_resource type="Script" path="res://scenes/effects/world/SurfaceAppearanceProfile.cs" id="profile"]
+[ext_resource type="Shader" path="res://scenes/effects/world/shaders/skin.gdshader" id="skin"]
+
+[sub_resource type="Curve" id="Envelope"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.14, 1), 0.0, 0.0, 0, 0, Vector2(0.5, 0.7), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="ShaderMaterial" id="SkinMaterial"]
+shader = ExtResource("skin")
+shader_parameter/skin_kind = 1
+
+[sub_resource type="Resource" id="Surface"]
+script = ExtResource("profile")
+Material = SubResource("SkinMaterial")
+Priority = 11
+
+[sub_resource type="ShaderMaterial" id="Mat0"]
+shader = ExtResource("energy")
+shader_parameter/tint = Color(0.62, 0.49, 0.3, 1)
+shader_parameter/entry_only = true
+shader_parameter/shape = 0
+shader_parameter/softness = 0.05
+shader_parameter/density = 4
+shader_parameter/speed = 0.7
+shader_parameter/twist = 1
+shader_parameter/brightness = 0.85
+
+[sub_resource type="PlaneMesh" id="Mesh0"]
+size = Vector2(2.1, 2.1)
+
+[sub_resource type="Gradient" id="ParticleGradient"]
+offsets = PackedFloat32Array(0, 0.12, 0.6, 1)
+colors = PackedColorArray(0.62, 0.49, 0.3, 0, 1, 0.95, 0.8, 1, 0.62, 0.49, 0.3, 0.7, 0.62, 0.49, 0.3, 0)
+
+[sub_resource type="GradientTexture1D" id="Ramp"]
+gradient = SubResource("ParticleGradient")
+
+[sub_resource type="StandardMaterial3D" id="SparkMaterial"]
+shading_mode = 0
+transparency = 1
+blend_mode = 1
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("spark")
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+emission_enabled = true
+emission = Color(0.62, 0.49, 0.3, 1)
+emission_energy_multiplier = 1.2
+no_depth_test = false
+
+[sub_resource type="QuadMesh" id="SparkMesh"]
+material = SubResource("SparkMaterial")
+size = Vector2(0.13, 0.2)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcess"]
+particle_flag_disable_z = false
+emission_shape = 1
+emission_sphere_radius = 0.75
+direction = Vector3(0, 1, 0)
+spread = 65
+initial_velocity_min = 0.12
+initial_velocity_max = 0.55
+gravity = Vector3(0, -0.15, 0)
+radial_accel_min = 0.15
+radial_accel_max = 0.5
+tangential_accel_min = 0.15
+tangential_accel_max = 0.35
+scale_min = 0.35
+scale_max = 1.0
+color_ramp = SubResource("Ramp")
+
+[node name="StoneSkin" type="Node3D" node_paths=PackedStringArray("Layers", "Emitters")]
+script = ExtResource("script")
+Duration = 1.0
+EnterTime = 0.22
+ExitTime = 0.85
+Envelope = SubResource("Envelope")
+Layers = [NodePath("Layer0")]
+Emitters = [NodePath("Motes")]
+Surface = SubResource("Surface")
+
+[node name="Layer0" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.035, 0)
+cast_shadow = 0
+material_override = SubResource("Mat0")
+mesh = SubResource("Mesh0")
+
+[node name="Motes" type="GPUParticles3D" parent="."]
+position = Vector3(0, 0.85, 0)
+cast_shadow = 0
+emitting = false
+amount = 20
+lifetime = 0.75
+one_shot = true
+explosiveness = 0.78
+randomness = 0.25
+local_coords = true
+use_fixed_seed = true
+visibility_aabb = AABB(-3, -1, -3, 6, 6, 6)
+process_material = SubResource("ParticleProcess")
+draw_pass_1 = SubResource("SparkMesh")

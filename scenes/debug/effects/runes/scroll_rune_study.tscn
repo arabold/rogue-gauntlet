@@ -1,0 +1,110 @@
+[gd_scene load_steps=13 format=3]
+[ext_resource type="Script" path="res://scenes/debug/effects/runes/ScrollRuneStudy.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/items/identity/identity_catalog.tres" id="catalog"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/actor_world_effects.tscn" id="host"]
+[ext_resource type="Resource" path="res://scenes/effects/world/runes/rune_ring.tres" id="reading"]
+[ext_resource type="Script" path="res://scenes/debug/effects/EffectPreviewCamera.cs" id="orbit_camera"]
+[ext_resource type="PackedScene" path="res://scenes/debug/effects/effect_harness_navigation.tscn" id="navigation"]
+[sub_resource type="Theme" id="Theme"]
+default_font_size = 16
+[sub_resource type="Environment" id="Environment"]
+resource_local_to_scene = true
+background_mode = 1
+background_color = Color(0.035, 0.045, 0.06, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.8, 0.86, 1, 1)
+ambient_light_energy = 0.55
+glow_enabled = true
+glow_intensity = 0.5
+[sub_resource type="Environment" id="PaperEnvironment"]
+background_mode = 1
+background_color = Color(0.045, 0.055, 0.07, 1)
+ambient_light_source = 3
+ambient_light_color = Color(1, 0.95, 0.85, 1)
+ambient_light_energy = 0.8
+[sub_resource type="StandardMaterial3D" id="GroundMaterial"]
+albedo_color = Color(0.12, 0.145, 0.18, 1)
+roughness = 0.85
+[sub_resource type="PlaneMesh" id="Ground"]
+size = Vector2(28, 28)
+material = SubResource("GroundMaterial")
+[node name="ScrollRuneStudy" type="Node3D" node_paths=PackedStringArray("Stage", "PaperRoot", "PaperPreview", "Camera", "Controls", "Lighting", "KeyLight")]
+script = ExtResource("script")
+Catalog = ExtResource("catalog")
+PlayerScene = ExtResource("player")
+Stage = NodePath("Stage")
+PaperRoot = NodePath("UI/Panel/Scroll/Margin/Controls/PaperPreview/PaperViewport/PaperRoot")
+PaperPreview = NodePath("UI/Panel/Scroll/Margin/Controls/PaperPreview")
+Camera = NodePath("Camera3D")
+Controls = NodePath("UI/Panel/Scroll/Margin/Controls")
+Lighting = NodePath("WorldEnvironment")
+KeyLight = NodePath("KeyLight")
+EffectHostScene = ExtResource("host")
+ReadingEffect = ExtResource("reading")
+[node name="Stage" type="Node3D" parent="."]
+[node name="Ground" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.025, 0)
+mesh = SubResource("Ground")
+[node name="Camera3D" type="Camera3D" parent="."]
+script = ExtResource("orbit_camera")
+Focus = Vector3(1.4, 1.3, 0)
+position = Vector3(1.4, 10.3, 15)
+projection = 1
+size = 7
+current = true
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment")
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-45, -30, 0)
+light_energy = 1.1
+shadow_enabled = true
+[node name="UI" type="CanvasLayer" parent="."]
+layer = 12
+[node name="Panel" type="PanelContainer" parent="UI"]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = 60.0
+offset_right = -16.0
+offset_bottom = -16.0
+theme = SubResource("Theme")
+[node name="Scroll" type="ScrollContainer" parent="UI/Panel"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+[node name="Margin" type="MarginContainer" parent="UI/Panel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_bottom = 12
+[node name="Controls" type="VBoxContainer" parent="UI/Panel/Scroll/Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+[node name="PaperPreview" type="SubViewportContainer" parent="UI/Panel/Scroll/Margin/Controls"]
+layout_mode = 2
+custom_minimum_size = Vector2(320, 225)
+size_flags_horizontal = 3
+stretch = true
+mouse_filter = 2
+[node name="PaperViewport" type="SubViewport" parent="UI/Panel/Scroll/Margin/Controls/PaperPreview"]
+size = Vector2i(320, 225)
+own_world_3d = true
+render_target_update_mode = 4
+[node name="PaperRoot" type="Node3D" parent="UI/Panel/Scroll/Margin/Controls/PaperPreview/PaperViewport"]
+[node name="Camera3D" type="Camera3D" parent="UI/Panel/Scroll/Margin/Controls/PaperPreview/PaperViewport"]
+position = Vector3(0, 0.64, 4)
+projection = 1
+size = 1.65
+current = true
+[node name="WorldEnvironment" type="WorldEnvironment" parent="UI/Panel/Scroll/Margin/Controls/PaperPreview/PaperViewport"]
+environment = SubResource("PaperEnvironment")
+[node name="Light" type="DirectionalLight3D" parent="UI/Panel/Scroll/Margin/Controls/PaperPreview/PaperViewport"]
+rotation_degrees = Vector3(-25, -20, 0)
+light_energy = 0.9
+
+[node name="Navigation" parent="." instance=ExtResource("navigation")]
+SelectedPreview = 2

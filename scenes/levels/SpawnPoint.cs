@@ -18,6 +18,7 @@ public partial class SpawnPoint : Node3D
 	/// <summary>
 	/// Whether to spawn immediately on scene load
 	/// </summary>
+	[Export] public WorldEffectDefinition ArrivalEffect { get; set; }
 	[Export] public bool SpawnOnStart { get; set; } = true;
 
 	/// <summary>Local notification for encounter-specific wiring after actor initialization.</summary>
@@ -83,6 +84,7 @@ public partial class SpawnPoint : Node3D
 		}
 
 		Level.AddWorldNode(node);
+		if (ArrivalEffect != null && node is EnemyBase actor) actor.WorldEffects?.PlayBurst(ArrivalEffect, 271);
 		Spawned?.Invoke(node);
 
 		GD.Print($"Spawned {node.Name} at {node.GlobalPosition}");

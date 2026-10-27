@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WorldEffectDefinition" load_steps=3 format=3]
+[ext_resource type="Script" path="res://scenes/effects/world/WorldEffectDefinition.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/invisibility/invisibility.tscn" id="scene"]
+[resource]
+resource_name = "Invisibility"
+script = ExtResource("script")
+Id = &"invisibility"
+Scene = ExtResource("scene")
+Lifetime = 1
+SuppressWhileInvisible = false

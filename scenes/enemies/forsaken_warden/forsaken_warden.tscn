@@ -186,3 +186,6 @@ GuardComponent = NodePath("../GuardComponent")
 [node name="ConstantScreenSize3D" type="Node" parent="BossTitle" node_paths=PackedStringArray("Target")]
 script = ExtResource("constant_screen_size")
 Target = NodePath("..")
+
+[node name="WorldEffects" parent="."]
+scale = Vector3(2, 2, 2)
