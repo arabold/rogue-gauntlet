@@ -13,10 +13,7 @@ public static class HitZones
 	/// </summary>
 	public static HitZone Classify(Vector3 defenderForward, Vector3 incomingDirection, float frontHalfAngle, float rearHalfAngle)
 	{
-		defenderForward.Y = 0;
-		incomingDirection.Y = 0;
-		if (defenderForward.LengthSquared() < 0.0001f || incomingDirection.LengthSquared() < 0.0001f) return HitZone.Front;
-		float fromFront = Mathf.RadToDeg(defenderForward.AngleTo(-incomingDirection));
+		float fromFront = defenderForward.HorizontalAngleTo(-incomingDirection);
 		if (fromFront <= frontHalfAngle) return HitZone.Front;
 		return 180f - fromFront <= rearHalfAngle ? HitZone.Rear : HitZone.Side;
 	}

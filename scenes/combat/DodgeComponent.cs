@@ -31,6 +31,8 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 	// Layers this dodge actually removed from the actor's mask; restored on every exit path.
 	private uint _passThroughMask;
 	private float _exitElapsed;
+	// Shape queries for the exit check, built once per pass-through dodge; only their transforms change.
+	private readonly System.Collections.Generic.List<(PhysicsShapeQueryParameters3D Query, Node3D Shape)> _exitQueries = [];
 
 	public override void _Ready()
 	{
@@ -82,7 +84,8 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 			|| !float.IsFinite(DodgeDef.RecoveryDuration) || DodgeDef.RecoveryDuration < 0 || !float.IsFinite(DodgeDef.CooldownDuration) || DodgeDef.CooldownDuration < 0
 			|| !float.IsFinite(DodgeDef.ImmunityStart) || !float.IsFinite(DodgeDef.ImmunityEnd)
 			|| DodgeDef.ImmunityStart < 0 || DodgeDef.ImmunityEnd < DodgeDef.ImmunityStart || DodgeDef.ImmunityEnd > DodgeDef.TravelDuration
-			|| !float.IsFinite(DodgeDef.PassThroughExitTime) || DodgeDef.PassThroughExitTime < 0)
+			|| !float.IsFinite(DodgeDef.PassThroughExitTime) || DodgeDef.PassThroughExitTime < 0
+			|| !(DodgeDef.PassThroughExitSpeedScale >= 0 && DodgeDef.PassThroughExitSpeedScale <= 1))
 			return DefenseRequestResult.InvalidDefinition;
 		Vector3 facing = MovementComponent?.LookAtDirection ?? (Actor != null ? -Actor.GlobalTransform.Basis.Z : Vector3.Forward);
 		if (AnimationComponent != null && !AnimationComponent.HasClip(ChooseDodgeClip(facing, DodgeDef.AnimationProfile))) return DefenseRequestResult.Unavailable;
@@ -167,18 +170,19 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		{
 			float previous = _dodgeElapsed;
 			_dodgeElapsed += dt;
+			bool travelEnded = previous >= EffectiveDefinition.TravelDuration;
 			AnimationComponent?.SamplePose(this, ActionGate?.CurrentPhase == ActorActionPhase.Recovery
 				? _dodgeElapsed - EffectiveDefinition.TravelDuration
 				: _dodgeElapsed / EffectiveDefinition.TravelDuration * AnimationComponent.PoseLength(this));
 			// Ending inside a pass-through body keeps the dodge moving out, without immunity, before collision returns.
-			bool exiting = previous >= EffectiveDefinition.TravelDuration && UpdatePassThroughExit(dt);
-			if (previous >= EffectiveDefinition.TravelDuration)
+			bool exiting = travelEnded && UpdatePassThroughExit(dt);
+			if (!travelEnded)
 			{
-				if (!exiting) MovementComponent?.ClearLocomotionOverride(this);
+				if (MovementComponent?.HasOverrideVelocity == true && dt > 0)
+					MovementComponent.SetLocomotionOverride(this, _dodgeDirection,
+						_dodgeSpeed * Mathf.Min(1, (EffectiveDefinition.TravelDuration - previous) / dt));
 			}
-			else if (MovementComponent?.HasOverrideVelocity == true && dt > 0)
-				MovementComponent.SetLocomotionOverride(this, _dodgeDirection,
-					_dodgeSpeed * Mathf.Min(1, (EffectiveDefinition.TravelDuration - previous) / dt));
+			else if (!exiting) MovementComponent?.ClearLocomotionOverride(this);
 			// Fresh steering may queue the next turn, but a sidestep keeps its starting orientation through recovery.
 			MovementComponent?.SetFixedFacing(this, _dodgeFacing);
 
@@ -189,14 +193,14 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 					ActionGate?.ReportPhase(_dodgeLease, ActorActionPhase.Recovery);
 					PlayDodgeExitAnimation(0.08f);
 				}
-				else if (previous >= EffectiveDefinition.TravelDuration && !exiting)
+				else if (travelEnded && !exiting)
 				{
 					FinishDodge();
 				}
 			}
 
 			float totalDodgeTime = EffectiveDefinition.TravelDuration + EffectiveDefinition.RecoveryDuration;
-			if (_dodgeElapsed >= totalDodgeTime && !exiting && (EffectiveDefinition.RecoveryDuration > 0 || previous >= EffectiveDefinition.TravelDuration))
+			if (_dodgeElapsed >= totalDodgeTime && !exiting && (EffectiveDefinition.RecoveryDuration > 0 || travelEnded))
 			{
 				FinishDodge();
 			}
@@ -238,8 +242,22 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 	private void BeginPassThrough()
 	{
 		_exitElapsed = 0;
+		_exitQueries.Clear();
 		_passThroughMask = Actor != null ? Actor.CollisionMask & EffectiveDefinition.PassThroughLayers : 0;
-		if (_passThroughMask != 0) Actor.CollisionMask &= ~_passThroughMask;
+		if (_passThroughMask == 0) return;
+		Actor.CollisionMask &= ~_passThroughMask;
+		var exclude = new Godot.Collections.Array<Rid> { Actor.GetRid() };
+		foreach (uint owner in Actor.GetShapeOwners())
+		{
+			if (Actor.IsShapeOwnerDisabled(owner) || Actor.ShapeOwnerGetOwner(owner) is not Node3D shapeNode) continue;
+			for (int i = 0; i < Actor.ShapeOwnerGetShapeCount(owner); i++)
+				_exitQueries.Add((new PhysicsShapeQueryParameters3D
+				{
+					Shape = Actor.ShapeOwnerGetShape(owner, i),
+					CollisionMask = _passThroughMask,
+					Exclude = exclude
+				}, shapeNode));
+		}
 	}
 
 	private void EndPassThrough()
@@ -256,7 +274,7 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		if (_exitElapsed < EffectiveDefinition.PassThroughExitTime && OverlapsPassThroughBody())
 		{
 			_exitElapsed += dt;
-			MovementComponent?.SetLocomotionOverride(this, _dodgeDirection, _dodgeSpeed * 0.5f);
+			MovementComponent?.SetLocomotionOverride(this, _dodgeDirection, _dodgeSpeed * EffectiveDefinition.PassThroughExitSpeedScale);
 			return true;
 		}
 		if (CombatTrace.Enabled && _exitElapsed > 0) CombatTrace.Write(this, "defense.pass_through_exit", ("elapsed", _exitElapsed));
@@ -268,21 +286,10 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 	{
 		if (!GodotObject.IsInstanceValid(Actor) || !Actor.IsInsideTree()) return false;
 		var space = Actor.GetWorld3D().DirectSpaceState;
-		var exclude = new Godot.Collections.Array<Rid> { Actor.GetRid() };
-		foreach (uint owner in Actor.GetShapeOwners())
+		foreach (var (query, shape) in _exitQueries)
 		{
-			if (Actor.IsShapeOwnerDisabled(owner) || Actor.ShapeOwnerGetOwner(owner) is not Node3D shapeNode) continue;
-			for (int i = 0; i < Actor.ShapeOwnerGetShapeCount(owner); i++)
-			{
-				var query = new PhysicsShapeQueryParameters3D
-				{
-					Shape = Actor.ShapeOwnerGetShape(owner, i),
-					Transform = shapeNode.GlobalTransform,
-					CollisionMask = _passThroughMask,
-					Exclude = exclude
-				};
-				if (space.IntersectShape(query, 1).Count > 0) return true;
-			}
+			query.Transform = shape.GlobalTransform;
+			if (space.IntersectShape(query, 1).Count > 0) return true;
 		}
 		return false;
 	}

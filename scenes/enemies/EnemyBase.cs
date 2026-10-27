@@ -27,14 +27,19 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	[Export] public MonsterDefinition Definition { get; set; }
 	public bool DefinitionValid { get; private set; } = true;
 	private Level _level;
+	// Scenes (with their shared definition) that already validated cleanly, so repeated spawns skip the
+	// full check. Code that rewires an instance before it enters the tree must validate it itself.
+	private static readonly System.Collections.Generic.HashSet<(string Scene, ulong Definition)> ValidatedScenes = [];
 
 	/// <summary>Initialize authored defaults before child readiness; never mutate the definition.</summary>
 	public override void _EnterTree()
 	{
 		if (Engine.IsEditorHint()) return;
 		_level = this.GetAncestorOrNull<Level>();
-		var errors = MonsterSceneValidator.Validate(this);
+		var key = (SceneFilePath, Definition?.GetInstanceId() ?? 0);
+		var errors = !string.IsNullOrEmpty(SceneFilePath) && ValidatedScenes.Contains(key) ? [] : MonsterSceneValidator.Validate(this);
 		DefinitionValid = errors.Length == 0;
+		if (DefinitionValid && !string.IsNullOrEmpty(SceneFilePath)) ValidatedScenes.Add(key);
 		if (!DefinitionValid)
 		{
 			foreach (var error in errors) GD.PushError($"{Name}: {error}");

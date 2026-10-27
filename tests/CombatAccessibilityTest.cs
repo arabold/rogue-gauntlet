@@ -20,7 +20,7 @@ public partial class CombatAccessibilityTest
 	[TestCase]
 	public async Task DodgeUsesSteeringRegardlessOfFacingOrExternalVelocity()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		var player = harness.Player;
@@ -42,7 +42,7 @@ public partial class CombatAccessibilityTest
 	[TestCase]
 	public async Task FreshSteeringResumesAfterDodgeWithoutAStationaryRecoveryTail()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var player = runner.Scene().GetNode<CombatHarness>("Instructions").Player;
 		player.InputComponent.SetPhysicsProcess(false);
@@ -58,7 +58,7 @@ public partial class CombatAccessibilityTest
 	[TestCase(1)]
 	public async Task SidestepInterruptsTurningHoldsItsAngleAndResumesTurningAfterRecovery(int side)
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var player = runner.Scene().GetNode<CombatHarness>("Instructions").Player;
 		player.InputComponent.SetPhysicsProcess(false);
@@ -90,7 +90,7 @@ public partial class CombatAccessibilityTest
 	[TestCase]
 	public async Task InterruptedSidestepReleasesFacingSoLaterSteeringCanTurn()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var player = runner.Scene().GetNode<CombatHarness>("Instructions").Player;
 		player.InputComponent.SetPhysicsProcess(false);
@@ -106,7 +106,7 @@ public partial class CombatAccessibilityTest
 	[TestCase(DamageDeliveryKind.Environmental)]
 	public async Task DodgeRejectsWeaponsAndArrowsButEnvironmentalDamageStillLands(DamageDeliveryKind environment)
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		var player = harness.Player;
@@ -143,7 +143,7 @@ public partial class CombatAccessibilityTest
 	[TestCase]
 	public async Task ActualArrowContactPreservesDodgeEligibility()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
@@ -170,7 +170,7 @@ public partial class CombatAccessibilityTest
 	[TestCase]
 	public async Task ArrowsPassThroughInteractionRangeWithoutHittingThePlayer()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
@@ -190,7 +190,7 @@ public partial class CombatAccessibilityTest
 	[TestCase]
 	public async Task CrossbowTracksThenLocksAndFiresAlongTheWarningAfterPlayerMoves()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
@@ -228,7 +228,7 @@ public partial class CombatAccessibilityTest
 	[TestCase]
 	public async Task AutomaticControlsRepeatAttacksAndRespectMonsterCapabilities()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
 		harness.GetNode<CheckButton>("%Controls/HeroInvulnerable").ButtonPressed = true;

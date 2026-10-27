@@ -596,7 +596,8 @@ MovementComponent = NodePath("../MovementComponent")
 ActionManager = NodePath("../ActionManager")
 InteractionController = NodePath("../PlayerInteractionController")
 
-[node name="PlayerAttackController" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "MeleeDetector")]
+[node name="PlayerAttackController" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "MeleeDetector", "ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")
 script = ExtResource("17_sh3lf")
 AnimationComponent = NodePath("../CombatAnimationComponent")
 MeleeDetector = NodePath("../MeleeHitDetector")

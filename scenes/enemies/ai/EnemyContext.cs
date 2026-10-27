@@ -25,6 +25,10 @@ public sealed class EnemyContext
 	private const float TargetReachabilityCheckInterval = 0.35f;
 	// Minimum distance the target must have moved before an off-schedule repath is worthwhile.
 	private const float TargetPositionRefreshDistance = 0.35f;
+	// How often a monster waiting for an attack slot recomputes its ring point, and how far that point must
+	// move before it re-paths there.
+	private const float RingRefreshInterval = 0.3f;
+	private const float RingRepathDistance = 0.5f;
 
 	public CharacterBody3D Actor { get; }
 	public MovementComponent Movement { get; }
@@ -38,8 +42,9 @@ public sealed class EnemyContext
 	public double Delta { get; private set; }
 	private float _retreatRefresh;
 	private bool _retreatDestinationValid;
-	private float _ringRefresh;
+	private Cooldown _ringRefresh;
 	private Vector3 _ringPoint;
+	private bool _hasRingPoint;
 	private ulong _sightFrame = ulong.MaxValue;
 	private Node3D _sightTarget;
 	private bool _sightResult;
@@ -57,19 +62,7 @@ public sealed class EnemyContext
 	public Action RequestAttack { get; }
 
 	/// <summary>Degrees between the actor's facing and the horizontal direction to its target; 0 without a target.</summary>
-	public float AngleToTarget
-	{
-		get
-		{
-			if (Target == null) return 0;
-			Vector3 toTarget = Target.GlobalPosition - Actor.GlobalPosition;
-			toTarget.Y = 0;
-			Vector3 facing = Movement.LookAtDirection;
-			facing.Y = 0;
-			if (toTarget.LengthSquared() < .0001f || facing.LengthSquared() < .0001f) return 0;
-			return Mathf.RadToDeg(facing.AngleTo(toTarget));
-		}
-	}
+	public float AngleToTarget => Target == null ? 0 : Movement.LookAtDirection.HorizontalAngleTo(Target.GlobalPosition - Actor.GlobalPosition);
 
 	/// <summary>Attack slots of the current target; null when the target lets every attacker strike.</summary>
 	public AttackSlotsComponent TargetSlots => (Target as IAttackSlotHost)?.AttackSlots;
@@ -150,7 +143,7 @@ public sealed class EnemyContext
 		Delta = delta;
 		TacticalSelector?.Tick(delta);
 		_retreatRefresh -= (float)delta;
-		_ringRefresh -= (float)delta;
+		_ringRefresh.Tick(delta);
 		_scanCooldown.Tick(delta);
 		_pathRefreshCooldown.Tick(delta);
 		_reachabilityCooldown.Tick(delta);
@@ -298,6 +291,8 @@ public sealed class EnemyContext
 		}
 		else if (decision.Intent.Goal is EnemyMovementGoal.Hold or EnemyMovementGoal.Approach) Navigation.Stop();
 		else if (decision.Intent.Goal == EnemyMovementGoal.Encircle) FollowEngagementRing(decision.Intent.DesiredDistance, decision.Intent.PreferRear);
+		// Any other goal replaces the agent destination, so a later ring must path to its point again.
+		if (decision.Intent.Goal != EnemyMovementGoal.Encircle) _hasRingPoint = false;
 		// Every goal but an approach faces the target, limited by the actor's movement turn rate; approaching faces its path.
 		if (!approaching && Target != null) Movement.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition);
 		if (_lastDecision != decision)
@@ -331,18 +326,21 @@ public sealed class EnemyContext
 	{
 		var slots = TargetSlots;
 		if (Target == null || slots == null || Profile.AttackStrategy == null) { Navigation.Stop(); return; }
-		if (_ringRefresh <= 0)
+		if (_ringRefresh.IsReady)
 		{
-			_ringRefresh = .3f;
+			_ringRefresh.Start(RingRefreshInterval);
 			Vector3 ring = slots.GetRingPoint(Actor, Profile.AttackStrategy.SlotKind, distance, preferRear);
 			Vector3 snapped = Navigation.GetClosestNavPoint(ring);
-			_ringPoint = snapped.DistanceTo(ring) < distance ? snapped : ring;
-			Navigation.SetDestination(_ringPoint);
+			Vector3 point = snapped.DistanceTo(ring) < distance ? snapped : ring;
+			if (!_hasRingPoint || point.DistanceTo(_ringPoint) > RingRepathDistance)
+			{
+				_ringPoint = point;
+				_hasRingPoint = true;
+				Navigation.SetDestination(point);
+			}
 		}
-		Vector3 offset = _ringPoint - Actor.GlobalPosition;
-		offset.Y = 0;
-		if (offset.Length() <= .4f) Navigation.Stop();
-		else Navigation.FollowPath(Target);
+		// The navigation agent stops once it reaches the point.
+		Navigation.FollowPath(Target);
 	}
 
 	/// <summary>Bound and throttle retreat destination checks. Failed movement permits an eligible attack.</summary>

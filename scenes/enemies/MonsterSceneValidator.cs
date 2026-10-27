@@ -87,6 +87,7 @@ public static class MonsterSceneValidator
 		var controller = Object<Node>(actor, "AttackController");
 		Check(Local(controller) && animation != null && Object<Node>(controller, "AnimationComponent") == animation,
 			"AttackController.AnimationComponent: bind this actor's CombatAnimationComponent.");
+		Check(controller == null || Object<Node>(controller, "ActionGate") == gate, "AttackController.ActionGate: assign this actor's action gate.");
 		var playerPath = animation?.Get("AnimationPlayerPath").AsNodePath();
 		var player = playerPath != null && !playerPath.IsEmpty ? animation.GetNodeOrNull<AnimationPlayer>(playerPath) : null;
 		var treePath = animation?.Get("AnimationTreePath").AsNodePath();
@@ -133,8 +134,8 @@ public static class MonsterSceneValidator
 				var tier = authored.ThreatTier;
 				if (tier != AttackThreatTier.Normal && !authored.IsRanged)
 					Check(Local(Object<Node>(controller, "Telegraph")), "AttackController.Telegraph: assign this actor's telegraph for Heavy/Unblockable melee.");
-				if (windUp != null)
-					Check(windUp >= tier.MinimumWindUp() - .001f, $"Attack: {tier} attacks need at least {tier.MinimumWindUp()} s of wind-up before contact.");
+				if (windUp < tier.MinimumWindUp() - .001f)
+					errors.Add($"Attack: {tier} attacks need at least {tier.MinimumWindUp()} s of wind-up before contact.");
 			}
 			float aimLock = attack != null ? Number(attack, "ProjectileAimLockDuration") : 0;
 			Check(Nonnegative(aimLock), "Attack.ProjectileAimLockDuration: must be nonnegative and finite.");

@@ -37,9 +37,8 @@ public class PoiseTest
 
 	private static async Task<CombatHarness> LoadHarness()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(4);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 4);
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
 		return harness;
@@ -51,7 +50,7 @@ public class PoiseTest
 		var (gate, poise) = Create();
 		bool interrupted = false;
 		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, _ => interrupted = true, out var lease);
-		AssertObject(poise.Apply(5)).IsEqual(PoiseReaction.Flinch);
+		AssertBool(poise.Apply(5)).IsFalse();
 		AssertFloat(poise.Current).IsEqual(15);
 		AssertBool(gate.IsLeaseCurrent(lease)).IsTrue();
 		AssertBool(interrupted).IsFalse();
@@ -64,13 +63,13 @@ public class PoiseTest
 		var (gate, poise) = Create();
 		bool interrupted = false;
 		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, _ => interrupted = true, out _);
-		AssertObject(poise.Apply(25)).IsEqual(PoiseReaction.Break);
+		AssertBool(poise.Apply(25)).IsTrue();
 		AssertBool(interrupted).IsTrue();
 		AssertBool(gate.IsStaggered).IsTrue();
 		AssertBool(poise.IsBroken).IsTrue();
 		AssertFloat(poise.Current).IsEqual(0);
 		// Hits during the stagger cannot chain another break or drain the empty meter.
-		AssertObject(poise.Apply(25)).IsEqual(PoiseReaction.Flinch);
+		AssertBool(poise.Apply(25)).IsFalse();
 		poise._PhysicsProcess(.1);
 		AssertFloat(poise.Current).IsEqual(0);
 		gate._PhysicsProcess(.6);
@@ -126,7 +125,7 @@ public class PoiseTest
 		var (gate, poise) = Create(definition);
 		AssertBool(poise.IsAvailable).IsFalse();
 		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease);
-		AssertObject(poise.Apply(100)).IsEqual(PoiseReaction.Flinch);
+		AssertBool(poise.Apply(100)).IsFalse();
 		AssertBool(gate.IsLeaseCurrent(lease)).IsTrue();
 		Free(gate, poise);
 	}
@@ -140,7 +139,7 @@ public class PoiseTest
 		var poise = hurtbox.Poise;
 		AssertObject(poise).IsNotNull();
 		var reactions = new List<HitReaction>();
-		hurtbox.HitReacted += (reaction, _, _) => reactions.Add((HitReaction)reaction);
+		hurtbox.HitReacted += reaction => reactions.Add((HitReaction)reaction);
 		bool interrupted = false;
 		player.ActionGate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, _ => interrupted = true, out var lease);
 

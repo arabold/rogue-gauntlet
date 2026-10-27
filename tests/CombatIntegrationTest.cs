@@ -15,7 +15,7 @@ public partial class CombatIntegrationTest
 {
 	private static async Task<(ISceneRunner, CombatHarness)> Load()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		var runner = TestFactories.LoadCombatHarness();
 		await PhysicsFrames(runner, 4);
 		return (runner, runner.Scene().GetNode<CombatHarness>("Instructions"));
 	}
@@ -79,9 +79,8 @@ public partial class CombatIntegrationTest
 	[TestCase]
 	public async Task ConfirmedContactsAlwaysDamageBothFactionsWithoutAnActiveDefense()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.ExecuteCommand("spawn", 1, Vector3.Zero);
 		await runner.SimulateFrames(3);
 		// High Dexterity must not confer any hidden chance to discard confirmed contact.
@@ -482,7 +481,7 @@ public partial class CombatIntegrationTest
 		AssertFloat(hurtbox.ResolveDamage(context).Amount).IsEqualApprox(20 - expectedArmor, .001);
 		using var gate = new ActorActionGateComponent();
 		actor.AddChild(gate);
-		using var controller = new AttackController();
+		using var controller = new AttackController { ActionGate = gate };
 		actor.AddChild(controller);
 		gate.TryAcquire(ActorActionKind.ItemUse, ActorActionPhase.Channeling, null, out _);
 		using var defender = new CharacterBody3D();

@@ -1,4 +1,5 @@
 using Godot;
+using PhantomCamera.Noise;
 using System.Linq;
 
 public partial class Main : Node
@@ -19,24 +20,29 @@ public partial class Main : Node
 	/// <summary>Orthographic gameplay camera whose visible area is adjusted by zoom input.</summary>
 	[Export] public Camera3D GameCamera { get; set; }
 
-	/// <summary>Seconds a camera impulse takes to settle.</summary>
+	/// <summary>
+	/// Phantom Camera noise emitter (positional noise, decaying) used for hit impulses; its noise amplitude is
+	/// set per impulse. Unassigned means no camera shake.
+	/// </summary>
 	[ExportGroup("Hit impulses")]
-	[Export] public float ImpulseDuration { get; set; } = 0.18f;
-	/// <summary>Camera offset (world units) when the player is interrupted or staggered.</summary>
+	[Export] public Node3D HitNoiseEmitter { get; set; }
+	/// <summary>Peak camera offset (world units) when the player is interrupted or staggered.</summary>
 	[Export] public float HitTakenImpulse { get; set; } = 0.25f;
 	/// <summary>Camera offset per second of hit-stop on the player's own contacts, so heavier swings shake more.</summary>
 	[Export] public float HitStopImpulsePerSecond { get; set; } = 2.5f;
 
-	private readonly RandomNumberGenerator _impulseRandom = new();
+	// Measured with the authored hit noise: an amplitude of 30 per world unit peaks near that unit at the
+	// start of the shake, matching the impulse strengths above.
+	private const float NoiseAmplitudePerUnit = 30f;
+	private PhantomCameraNoiseEmitter3D _hitNoise;
 	private float _impulseStrength;
-	private float _impulseRemaining;
-	private System.Action _unbindPlayerImpulses;
 
 	public override void _Ready()
 	{
 		GD.Print("Main scene is ready");
 		_pcam = GetNode<Node3D>("PhantomCamera3D");
 		_pcam.Set("follow_mode", FollowModeNone);
+		if (HitNoiseEmitter != null) _hitNoise = new PhantomCameraNoiseEmitter3D(HitNoiseEmitter);
 
 		this.SubscribeUntilExit(
 			SignalBus.Instance,
@@ -57,18 +63,20 @@ public partial class Main : Node
 	private void OnPlayerSpawned(Player player)
 	{
 		GD.Print($"{player.Name} spawned. Setting camera target...");
+		// Spawning can report the same player more than once; rebind so each signal connects only once.
+		if (GodotObject.IsInstanceValid(_player))
+		{
+			_player.HurtBoxComponent.HitReacted -= OnPlayerHitReacted;
+			_player.AttackController.HitStopStarted -= OnPlayerHitStop;
+		}
 		_player = player;
 		ScreenEffects?.Bind(player);
-		_impulseRemaining = 0;
-		// Spawning can report the same player more than once; rebind so each signal connects only once.
-		_unbindPlayerImpulses?.Invoke();
-		var unbindHits = this.SubscribeUntilExit(player.HurtBoxComponent, h => h.HitReacted += OnPlayerHitReacted, h => h.HitReacted -= OnPlayerHitReacted);
-		var unbindHitStop = this.SubscribeUntilExit(player.AttackController, a => a.HitStopStarted += OnPlayerHitStop, a => a.HitStopStarted -= OnPlayerHitStop);
-		_unbindPlayerImpulses = unbindHits + unbindHitStop;
+		player.HurtBoxComponent.HitReacted += OnPlayerHitReacted;
+		player.AttackController.HitStopStarted += OnPlayerHitStop;
 		CenterCameraOnPlayer();
 	}
 
-	private void OnPlayerHitReacted(int reaction, int zone, bool unaware)
+	private void OnPlayerHitReacted(int reaction)
 	{
 		if ((HitReaction)reaction != HitReaction.Flinch) AddCameraImpulse(HitTakenImpulse);
 	}
@@ -78,10 +86,10 @@ public partial class Main : Node
 	/// <summary>Start a decaying camera shake; a weaker impulse never cuts a stronger one short.</summary>
 	private void AddCameraImpulse(float strength)
 	{
-		float current = ImpulseDuration > 0 ? _impulseStrength * (_impulseRemaining / ImpulseDuration) : 0;
-		if (strength <= current) return;
+		if (_hitNoise == null || strength <= 0 || (_hitNoise.IsEmitting() && strength < _impulseStrength)) return;
 		_impulseStrength = strength;
-		_impulseRemaining = ImpulseDuration;
+		_hitNoise.Noise.Amplitude = strength * NoiseAmplitudePerUnit;
+		_hitNoise.Emit();
 	}
 
 	public override void _Process(double delta)
@@ -106,7 +114,6 @@ public partial class Main : Node
 				CameraMinSize, CameraMaxSize);
 		}
 
-		_impulseRemaining = Mathf.Max(0, _impulseRemaining - (float)delta);
 		CenterCameraOnPlayer();
 	}
 
@@ -114,12 +121,6 @@ public partial class Main : Node
 	{
 		Basis basis = _pcam.GlobalTransform.Basis.Orthonormalized();
 		Vector3 offset = basis.Z * (float)_pcam.Get("follow_distance");
-		// Recentering every frame keeps the shake transient: it never accumulates into the follow offset.
-		if (_impulseRemaining > 0 && ImpulseDuration > 0)
-		{
-			Vector2 jitter = new Vector2(_impulseRandom.RandfRange(-1, 1), _impulseRandom.RandfRange(-1, 1)).LimitLength(1);
-			offset += (basis.X * jitter.X + basis.Y * jitter.Y) * (_impulseStrength * _impulseRemaining / ImpulseDuration);
-		}
 		_pcam.GlobalTransform = new Transform3D(basis, _player.GlobalPosition + offset);
 	}
 

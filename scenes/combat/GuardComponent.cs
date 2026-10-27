@@ -39,10 +39,8 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 	/// </summary>
 	public bool Covers(Vector3 facing, Vector3 towardThreat)
 	{
-		facing.Y = 0;
-		towardThreat.Y = 0;
-		if (EffectiveDefinition == null || facing.LengthSquared() < 0.0001f || towardThreat.LengthSquared() < 0.0001f) return false;
-		return Mathf.RadToDeg(facing.AngleTo(towardThreat)) <= EffectiveDefinition.FacingSectorDegrees * 0.5f;
+		bool degenerate = new Vector2(facing.X, facing.Z).LengthSquared() < 0.0001f || new Vector2(towardThreat.X, towardThreat.Z).LengthSquared() < 0.0001f;
+		return EffectiveDefinition != null && !degenerate && facing.HorizontalAngleTo(towardThreat) <= EffectiveDefinition.FacingSectorDegrees * 0.5f;
 	}
 
 	private float _guardElapsed;
@@ -82,7 +80,8 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 		if (IsGuardRecovering) return DefenseRequestResult.Busy;
 
 		Vector3 horiz = new(facing.X, 0, facing.Z);
-		if (horiz.LengthSquared() < 0.0001f)
+		// A turn-capped actor cannot snap around to guard; it raises the guard where it already faces.
+		if (MovementComponent is { MaxTurnRate: > 0 } || horiz.LengthSquared() < 0.0001f)
 		{
 			horiz = MovementComponent != null ? MovementComponent.LookAtDirection : (Actor != null ? -Actor.GlobalTransform.Basis.Z : Vector3.Forward);
 			horiz.Y = 0;

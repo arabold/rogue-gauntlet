@@ -4,7 +4,7 @@ Implemented rules for players and monsters. See [weapon attacks](weapon-attack-s
 
 ## Action ownership
 
-Each actor can own one committed action: attack, dodge, guard, item use, interaction or forced reaction. Rejected requests change nothing. Dodge or guard can replace attack startup; dodge can also replace attack recovery. Active contact remains committed. Committed item use prevents voluntary replacement. Stagger interrupts voluntary actions; death cancels and disables them. Ordinary movement remains separate but obeys the current action's restrictions. The current action may also report hyper-armor (see [poise](#poise-and-hit-reactions)); any change of ownership clears it.
+Each actor can own one committed action: attack, dodge, guard, item use, interaction or forced reaction. Executors receive the actor's gate through explicit `ActionGate` references, including `AttackController`. Rejected requests change nothing. Dodge or guard can replace attack startup; dodge can also replace attack recovery. Active contact remains committed. Committed item use prevents voluntary replacement. Stagger interrupts voluntary actions; death cancels and disables them. Ordinary movement remains separate but obeys the current action's restrictions. The current action may also report hyper-armor (see [poise](#poise-and-hit-reactions)); any change of ownership clears it.
 
 The executor owns its timing and releases ownership on completion or interruption. Movement and animation follow that same commitment; stale callbacks cannot complete an old action or cancel a newer one. Shared authored Resources are definitions. Accepted actions snapshot their settings so live edits cannot change an action halfway through.
 
@@ -38,7 +38,7 @@ An actor may assign a `PoiseComponent` to its hurtbox. Its shared `PoiseDefiniti
 
 Attacks author `PoiseDamage`, `Knockback` and `HitStopDuration`. Weapons without a custom definition use the player attack controller's default impact; the default secondary carries hyper-armor. Absorbed, blocked, dodged and parried contacts deal no poise damage.
 
-Hit-stop pauses only the attacker's execution clock and pose, once per swing, after a damaging or blocked contact. The main scene adds a short camera impulse when the player is interrupted or staggered, or causes hit-stop. Poise is runtime-only: loading, floor entry and harness resets start full. Sources without authored poise (traps, scripted hits) deal poise equal to their damage. Status ticks bypass the hurtbox and deal none.
+Hit-stop pauses only the attacker's execution clock and pose, once per swing, after a damaging or blocked contact. When the player is interrupted or staggered, or causes hit-stop, the main scene shakes the camera through a Phantom Camera noise emitter (`HitNoiseEmitter`), scaled per impulse. Poise is runtime-only: loading, floor entry and harness resets start full. Sources without authored poise (traps, scripted hits) deal poise equal to their damage. Status ticks bypass the hurtbox and deal none.
 
 ## Threat tiers and telegraphs
 
@@ -77,7 +77,7 @@ A hurtbox may assign a `HitVulnerabilityProfile` (monsters use `humanoid_vulnera
 - **Rear hits** deal `RearDamageMultiplier` (1.5×) damage and `RearPoiseMultiplier` (2×) poise damage.
 - **Sneak attacks** land on a monster that is unaware: no target yet, and sleeping, idle, guarding or patrolling. They deal `UnawareDamageMultiplier` (2×) damage and, by default, empty its poise. Rear and sneak bonuses do not stack; the larger applies.
 - **Noticing.** Awareness is read before the contact; afterwards the monster targets the player who struck it and starts chasing.
-- **Feedback.** Rear and sneak hits double the attacker's hit-stop and report their zone and awareness through `DamageResolution` and `HurtBoxComponent.HitReacted`.
+- **Feedback.** Rear and sneak hits scale the attacker's hit-stop by the profile's `EmphasisHitStopScale` (2×), returned in `DamageResolution`; the combat trace records zone and awareness.
 
 Modifiers are deterministic multipliers, never rolls, and apply only to unprotected contacts.
 
@@ -98,7 +98,7 @@ Heavy actors can be outmaneuvered:
 - **Turn cap.** `MovementComponent.MaxTurnRate` caps all smooth turning (degrees per second). Only explicit facing snaps ignore it, and monster defenses no longer use them.
 - **Start angle.** A melee policy's `MaxStartAngle` only lets a swing start when the target is within that angle of the monster's facing.
 - **Holding.** A monster in reach but not facing its target holds and turns toward it instead of swinging.
-- **Defenses.** A monster raises its guard along its current facing and does not guard against an attacker outside the guard's frontal sector. A riposte turns at the normal rate and is rejected if the target is not yet in front.
+- **Defenses.** A monster raises its guard along its current facing and does not guard against an attacker outside the guard's frontal sector. Any turn-capped actor raises its guard where it already faces instead of snapping toward the requested direction. A riposte turns at the normal rate and is rejected if the target is not yet in front.
 - **The Warden.** It turns at 90°/s, starts swings only within 45° and tracks a wind-up at 60°/s until 0.4 s before contact. A player who gets behind it and stays there draws no swings, but running full circles laps back through its front.
 
 Saving retains defensive cooldowns and remaining combat commitment. Loading cancels transient actions and restores a neutral lockout without immunity; held guard requires a fresh press after load, pause or focus loss. Stair travel rejects committed actions. [Randomness and saves](randomness-and-seeds.md) owns reconstruction and compatibility rules.

@@ -203,5 +203,6 @@ ActionGate = NodePath("../ActorActionGateComponent")
 
 [node name="AttackTelegraph" parent="." instance=ExtResource("telegraph")]
 
-[node name="AttackController" parent="." node_paths=PackedStringArray("Telegraph")]
+[node name="AttackController" parent="." node_paths=PackedStringArray("Telegraph", "ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")
 Telegraph = NodePath("../AttackTelegraph")

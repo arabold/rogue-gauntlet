@@ -21,7 +21,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	[Signal]
 	public delegate void DamageTakenEventHandler(float amount, Vector3 attackDirection);
 	/// <summary>Presentation hook after an unprotected damaging contact; carries a <see cref="HitReaction"/>.</summary>
-	[Signal] public delegate void HitReactedEventHandler(int reaction, int zone, bool unaware);
+	[Signal] public delegate void HitReactedEventHandler(int reaction);
 
 	[Export] public HealthComponent HealthComponent { get; set; }
 	[Export] public MovementComponent MovementComponent { get; set; }
@@ -98,6 +98,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		HitReaction? reaction = null;
 		var zone = HitZone.Front;
 		bool unaware = false;
+		float hitStopScale = 1;
 		DamageResolution Resolved(DamageOutcome outcome, float amount = 0)
 		{
 			if (CombatTrace.Enabled) CombatTrace.Write(this, "damage.resolved", ("source", CombatTrace.Identity(snapshot.SourceNode)),
@@ -108,7 +109,8 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 				("armor_roll", armorRoll), ("poise_damage", snapshot.PoiseDamage), ("reaction", reaction?.ToString() ?? "None"),
 				("poise", Poise?.Current), ("zone", zone.ToString()), ("unaware", unaware),
 				("outcome", outcome.ToString()), ("damage", amount), ("health", HealthComponent?.CurrentHealth));
-			return Report(outcome, amount, zone, unaware);
+			EmitSignalDamageResolved((int)outcome, amount);
+			return new DamageResolution(outcome, amount, hitStopScale);
 		}
 		var attackerFaction = contact.Faction != DamageSourceFlags.None ? contact.Faction : GetDamageSource(contact.OwnerNode ?? contact.SourceNode);
 		if ((DamageFilter & attackerFaction) == 0) return Resolved(DamageOutcome.Filtered);
@@ -148,7 +150,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		float incomingAmount = isDefended ? defenseEval.Amount : contact.Amount;
 		float poiseDamage = contact.PoiseDamage;
 		// Read awareness before this contact can alert the defender.
-		unaware = !isDefended && Awareness?.IsUnawareOf(contact.OwnerNode) == true;
+		unaware = !isDefended && Awareness?.IsUnaware == true;
 		if (!isDefended && Vulnerability != null && contact.DeliveryKind is DamageDeliveryKind.DirectMelee or DamageDeliveryKind.Projectile)
 		{
 			zone = HitZones.Classify(Facing, contact.IncomingDirection, Vulnerability.FrontHalfAngle, Vulnerability.RearHalfAngle);
@@ -156,6 +158,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 			incomingAmount *= Mathf.Max(zone == HitZone.Rear ? Vulnerability.RearDamageMultiplier : 1, unaware ? Vulnerability.UnawareDamageMultiplier : 1);
 			if (zone == HitZone.Rear) poiseDamage *= Vulnerability.RearPoiseMultiplier;
 			if (unaware && Vulnerability.UnawareBreaksPoise) poiseDamage = float.PositiveInfinity;
+			if (zone == HitZone.Rear || unaware) hitStopScale = Vulnerability.EmphasisHitStopScale;
 		}
 		// A staggered defender (poise break or parry) is the punish window: its hits land harder before armor.
 		if (Poise?.IsAvailable == true && Poise.ActionGate.IsStaggered)
@@ -172,32 +175,24 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		EmitSignalDamageTaken(finalDamage, contact.IncomingDirection);
 		HealthComponent?.TakeDamage(finalDamage);
 
-		if (!defenseEval.SuppressHitStun) reaction = ReactToHit(contact, poiseDamage, zone, unaware);
+		if (!defenseEval.SuppressHitStun) reaction = ReactToHit(contact, poiseDamage);
 
 		return isDefended ? Resolved(defenseEval.Outcome, finalDamage) : Resolved(DamageOutcome.Damaged, finalDamage);
 	}
 
-	/// <summary>Horizontal facing of the owning actor; the hurtbox turns with its actor.</summary>
-	private Vector3 Facing
-	{
-		get
-		{
-			Vector3 forward = -GlobalTransform.Basis.Z;
-			forward.Y = 0;
-			return forward;
-		}
-	}
+	/// <summary>The actor's facing: its movement's look direction, or the hurtbox's own forward without one.</summary>
+	private Vector3 Facing => MovementComponent?.LookAtDirection ?? -GlobalTransform.Basis.Z;
 
 	/// <summary>
 	/// Poise decides whether an unprotected hit flinches or staggers. Without poise, a hit interrupts the
 	/// current action unless the gate reports hyper-armor. Only interruptions and staggers push.
 	/// </summary>
-	private HitReaction ReactToHit(in DamageContext contact, float poiseDamage, HitZone zone, bool unaware)
+	private HitReaction ReactToHit(in DamageContext contact, float poiseDamage)
 	{
 		var gate = MovementComponent?.ActionGate;
 		HitReaction reaction;
 		if (Poise?.IsAvailable == true)
-			reaction = Poise.Apply(poiseDamage) == PoiseReaction.Break ? HitReaction.Staggered : HitReaction.Flinch;
+			reaction = Poise.Apply(poiseDamage) ? HitReaction.Staggered : HitReaction.Flinch;
 		else if (gate?.IsHyperArmored == true)
 			reaction = HitReaction.Flinch;
 		else
@@ -207,15 +202,10 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		}
 		if (reaction != HitReaction.Flinch) MovementComponent?.Push(contact.IncomingDirection, contact.Knockback);
 		SpawnHitEffect(contact.IncomingDirection);
-		EmitSignalHitReacted((int)reaction, (int)zone, unaware);
+		EmitSignalHitReacted((int)reaction);
 		return reaction;
 	}
 
-	private DamageResolution Report(DamageOutcome outcome, float amount = 0, HitZone zone = HitZone.Front, bool unaware = false)
-	{
-		EmitSignalDamageResolved((int)outcome, amount);
-		return new DamageResolution(outcome, amount, zone, unaware);
-	}
 
 	private void SpawnHitEffect(Vector3 attackDirection)
 	{

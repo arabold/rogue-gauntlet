@@ -333,3 +333,6 @@ ActionGate = NodePath("../ActorActionGateComponent")
 script = ExtResource("poise_script")
 Definition = ExtResource("poise_definition")
 ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="AttackController" parent="." node_paths=PackedStringArray("ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")

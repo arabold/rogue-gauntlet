@@ -1,7 +1,7 @@
 /// <summary>Observable contact resolution, distinct from whether the attack geometrically connected.</summary>
 public enum DamageOutcome { Damaged, Absorbed, Invulnerable, Filtered, Dodged, Parried, Blocked, GuardBroken }
-/// <summary>Zone and Unaware describe directional and sneak-attack contacts so the attacker can emphasize them.</summary>
-public readonly record struct DamageResolution(DamageOutcome Outcome, float Amount, HitZone Zone = HitZone.Front, bool Unaware = false);
+/// <summary><paramref name="HitStopScale"/> lets the defender's vulnerability emphasize rear and sneak hits in the attacker's hit-stop.</summary>
+public readonly record struct DamageResolution(DamageOutcome Outcome, float Amount, float HitStopScale = 1);
 
 /// <summary>
 /// How an unprotected damaging contact affected its defender. A flinch keeps the current action; an

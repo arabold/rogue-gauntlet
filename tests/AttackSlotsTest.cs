@@ -12,9 +12,8 @@ public class AttackSlotsTest
 {
 	private static async Task<(ISceneRunner Runner, CombatHarness Harness, EnemyBase Minion)> SpawnMinion()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.ExecuteCommand("spawn_distance", 2, Vector3.Zero);
 		harness.ExecuteCommand("spawn", 0, Vector3.Zero);
 		await runner.SimulateFrames(2);

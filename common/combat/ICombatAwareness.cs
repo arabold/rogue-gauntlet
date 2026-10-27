@@ -6,7 +6,7 @@ using Godot;
 /// </summary>
 public interface ICombatAwareness
 {
-	bool IsUnawareOf(Node attacker);
+	bool IsUnaware { get; }
 
 	/// <summary>Called after an unprotected damaging contact so an unaware actor turns on its attacker.</summary>
 	void NoticeAttacker(Node attacker);

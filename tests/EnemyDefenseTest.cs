@@ -496,7 +496,7 @@ public partial class EnemyDefenseTest
 	[TestCase]
 	public async System.Threading.Tasks.Task HarnessSkeletonParriesPlayerAttack()
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		ISceneRunner runner = TestFactories.LoadCombatHarness();
 		await runner.SimulateFrames(3);
 
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
@@ -530,7 +530,7 @@ public partial class EnemyDefenseTest
 	[TestCase]
 	public async System.Threading.Tasks.Task HarnessSkeletonDodgesPlayerAttack()
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		ISceneRunner runner = TestFactories.LoadCombatHarness();
 		await runner.SimulateFrames(3);
 
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");

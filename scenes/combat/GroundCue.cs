@@ -1,7 +1,7 @@
 using Godot;
 
 /// <summary>
-/// Shared base for flat, unshaded combat cues drawn in world space (aim guides, attack footprints). Owns the
+/// Shared base for flat, unshaded, top-level combat cues (aim guides, attack footprints). Owns the
 /// immediate mesh, its material and an optional commit sound that plays once when a cue commits. Presentation
 /// only: cues never choose targets or apply damage.
 /// </summary>

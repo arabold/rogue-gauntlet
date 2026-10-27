@@ -58,18 +58,19 @@ public partial class FloatingHealthBar : Sprite3D
 		}
 	}
 
+	/// <summary>Show the bar while the actor is hurt or off balance, unless it is invisible.</summary>
 	private void RefreshVisibility()
 	{
-		if (HealthComponent != null) OnHealthChanged(HealthComponent.CurrentHealth, HealthComponent.MaxHealth);
+		if (HealthComponent == null) return;
+		bool damaged = HealthComponent.CurrentHealth < HealthComponent.MaxHealth || (ShowsPoise && Poise.Current < Poise.Maximum);
+		Visible = (!HideWhenFull || damaged) && Invisibility?.IsInvisible != true;
 	}
 
 	private void OnHealthChanged(float health, float maxHealth)
 	{
 		_progressBar.MaxValue = maxHealth;
 		_progressBar.Value = health;
-
-		bool damaged = health < maxHealth || (ShowsPoise && Poise.Current < Poise.Maximum);
-		Visible = (!HideWhenFull || damaged) && Invisibility?.IsInvisible != true;
+		RefreshVisibility();
 	}
 
 	private void OnPoiseChanged(float current, float maximum)

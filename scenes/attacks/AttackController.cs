@@ -19,7 +19,8 @@ public partial class AttackController : Node, IParryInterruptible
 	public AttackDefinition CurrentAttack => _currentAttack;
 	public bool IsRanged => _currentAttack?.IsRanged ?? false;
 	private PreparedAttack _preparedAttack;
-	private ActorActionGateComponent _actionGate;
+	/// <summary>The actor's action gate. Unassigned runs attacks without action ownership, phases or hyper-armor.</summary>
+	[Export] public ActorActionGateComponent ActionGate { get; set; }
 	private ActorActionLease _actionLease;
 	public float RecoveryRemaining => _isAttacking ? Mathf.Max(0, (float)_preparedAttack.Duration - _elapsedTime) : 0;
 	public ActorActionPhase Phase => !_isAttacking ? ActorActionPhase.None
@@ -88,7 +89,6 @@ public partial class AttackController : Node, IParryInterruptible
 	{
 		_actor = GetParent<Node3D>();
 		ProcessPhysicsPriority = CombatPhysics.Damage;
-		_actionGate = _actor.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
 		AddToGroup("attack_controller");
 		_random.Seed = 42;
 		SetPhysicsProcess(false);
@@ -147,17 +147,16 @@ public partial class AttackController : Node, IParryInterruptible
 		Node3D aimTarget = def.ProjectileAimLockDuration > 0 ? FindProjectileAimTarget(def.Range, def.AimingAngle) : null;
 		if (def.ProjectileAimLockDuration > 0 && aimTarget == null) return false;
 
-		_actionGate ??= _actor.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
 		if (_actor is Player { IsDead: true } || _actor is EnemyBase { IsDead: true }) return false;
 		if (_isAttacking) return false;
-		if (_actionGate != null)
+		if (ActionGate != null)
 		{
 			if (lease.IsValid)
 			{
 				if (lease.Kind is not (ActorActionKind.PrimaryAttack or ActorActionKind.SecondaryTechnique)
-					|| !_actionGate.Adopt(lease, _ => CancelAttack())) return false;
+					|| !ActionGate.Adopt(lease, _ => CancelAttack())) return false;
 			}
-			else if (_actionGate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp,
+			else if (ActionGate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp,
 				_ => CancelAttack(), out lease) != ActorActionRequestResult.Success) return false;
 		}
 		_actionLease = lease;
@@ -219,9 +218,9 @@ public partial class AttackController : Node, IParryInterruptible
 		{
 			staggerable.TryStagger(staggerDuration);
 		}
-		else if (_actor?.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent") is ActorActionGateComponent gate)
+		else
 		{
-			gate.TryStagger(staggerDuration);
+			ActionGate?.TryStagger(staggerDuration);
 		}
 		return true;
 	}
@@ -240,7 +239,7 @@ public partial class AttackController : Node, IParryInterruptible
 		AimIndicator?.Clear();
 		Telegraph?.Clear();
 		_projectileAimTarget = null;
-		_actionGate?.Release(_actionLease);
+		ActionGate?.Release(_actionLease);
 		_actionLease = ActorActionLease.None;
 		_currentAttack = null;
 		_preparedAttack = null;
@@ -372,8 +371,8 @@ public partial class AttackController : Node, IParryInterruptible
 	/// <summary>Publish the phase and hyper-armor state of the current elapsed time to the action gate.</summary>
 	private void ReportProgress()
 	{
-		_actionGate?.ReportPhase(_actionLease, Phase);
-		_actionGate?.ReportHyperArmor(_actionLease, _currentAttack.IsHyperArmoredAt(_elapsedTime / (float)_preparedAttack.Duration));
+		ActionGate?.ReportPhase(_actionLease, Phase);
+		ActionGate?.ReportHyperArmor(_actionLease, _currentAttack.IsHyperArmoredAt(_elapsedTime / (float)_preparedAttack.Duration));
 	}
 
 	private void ApplyMeleeContact(Node3D target)
@@ -419,9 +418,8 @@ public partial class AttackController : Node, IParryInterruptible
 		{
 			var result = combatDamageable.ResolveDamage(in context);
 			ReportFeedback(result.Outcome.ToString(), result.Amount);
-			// Rear and sneak hits pause twice as long, so landing them reads as a stronger impact.
 			if (result.Outcome is DamageOutcome.Damaged or DamageOutcome.Blocked or DamageOutcome.GuardBroken)
-				StartHitStop(result.Zone == HitZone.Rear || result.Unaware ? 2 : 1);
+				StartHitStop(result.HitStopScale);
 		}
 		else if (target is IDamageable damageable)
 		{
@@ -804,14 +802,7 @@ public partial class AttackController : Node, IParryInterruptible
 		return GetAimAngle(target) <= MeleeAimAssistAngle;
 	}
 
-	private float GetAimAngle(Node3D target)
-	{
-		Vector3 directionToTarget = target.GlobalPosition - _actor.GlobalPosition;
-		directionToTarget.Y = 0;
-		if (directionToTarget.LengthSquared() == 0) return 0.0f;
-
-		return Mathf.RadToDeg(GetActorForward().AngleTo(directionToTarget.Normalized()));
-	}
+	private float GetAimAngle(Node3D target) => GetActorForward().HorizontalAngleTo(target.GlobalPosition - _actor.GlobalPosition);
 
 	private Vector3 GetActorForward()
 	{

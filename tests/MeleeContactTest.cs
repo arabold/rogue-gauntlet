@@ -15,9 +15,8 @@ public class MeleeContactTest
 {
 	private static async Task<(ISceneRunner Runner, CombatHarness Harness)> Load()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(4);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 4);
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
 		return (runner, harness);

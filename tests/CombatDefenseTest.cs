@@ -296,7 +296,7 @@ public partial class CombatDefenseTest
 		var attacker = new CharacterBody3D { Name = "Attacker" };
 		var attackerGate = new ActorActionGateComponent { Name = "ActorActionGateComponent" };
 		attacker.AddChild(attackerGate);
-		var attackCtrl = new AttackController { Name = "AttackController" };
+		var attackCtrl = new AttackController { Name = "AttackController", ActionGate = attackerGate };
 		attacker.AddChild(attackCtrl);
 
 		var detector = new MeleeHitDetector();

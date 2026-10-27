@@ -9,6 +9,16 @@ using GdUnit4;
 /// </summary>
 public static class TestFactories
 {
+	/// <summary>Load the combat harness scene; the caller owns (and may dispose) the runner.</summary>
+	public static ISceneRunner LoadCombatHarness() => ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+
+	/// <summary>Let a loaded combat harness finish its first frames and return its controller.</summary>
+	public static async Task<CombatHarness> SettleCombatHarness(ISceneRunner runner, uint frames = 3)
+	{
+		await runner.SimulateFrames(frames);
+		return runner.Scene().GetNode<CombatHarness>("Instructions");
+	}
+
 	/// <summary>
 	/// Adds a node to the running scene tree so its own <c>_Ready</c> runs, and registers it
 	/// with GdUnit4's auto-free so it leaves the tree after the test. Never call <c>_Ready()</c>

@@ -22,4 +22,7 @@ public partial class DodgeDefinition : Resource
 	/// out the far side before its collision returns.
 	/// </summary>
 	[Export] public float PassThroughExitTime { get; set; } = 0.3f;
+
+	/// <summary>Share of the dodge speed used while leaving a pass-through body.</summary>
+	[Export(PropertyHint.Range, "0,1,0.05")] public float PassThroughExitSpeedScale { get; set; } = 0.5f;
 }

@@ -193,7 +193,7 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	private void RequestAttack() => TryAttack();
 
 	/// <summary>Sneak-attack window: no target yet, and not searching, chasing or fleeing.</summary>
-	public bool IsUnawareOf(Node attacker) => _context != null && !IsDead && Target == null
+	public bool IsUnaware => _context != null && !IsDead && Target == null
 		&& CurrentBehavior is EnemyBehaviorState.Sleeping or EnemyBehaviorState.Idle or EnemyBehaviorState.Guarding or EnemyBehaviorState.Patrolling;
 
 	/// <summary>A sneak attack wakes the monster and turns it on the player who struck it.</summary>

@@ -20,9 +20,8 @@ public class MonsterRosterTest
 	[TestCase]
 	public async Task UnreachableRetreatDispatchesTheRealShotInsteadOfLeavingTheShooterIdle()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
 		await Frames(runner.Scene(), 2);
 		var actor = harness.Monster;
@@ -46,9 +45,8 @@ public class MonsterRosterTest
 	[TestCase]
 	public async Task ShooterPolicyFactoryIsolatesActorsAndRetreatContinuesBeyondMinimumDistance()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
 		await Frames(runner.Scene(), 2);
 		var actor = harness.Monster;
@@ -82,9 +80,8 @@ public class MonsterRosterTest
 	[TestCase]
 	public async Task ShooterUsesOnlyProjectilesAndRejectsOccludedTargetsWithoutStartingAnExecution()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
 		await Frames(runner.Scene(), 2);
 		var shooter = harness.Monster;
@@ -115,9 +112,8 @@ public class MonsterRosterTest
 	[TestCase(true)]
 	public async Task WardenReactsToAnOrdinaryHeroSwingParriesAndRipostesWithAuthoredTiming(bool alreadyWindingUp)
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.ExecuteCommand("spawn", 2, Vector3.Zero);
 		var boss = harness.Monster;
 		var player = harness.Player;
@@ -164,9 +160,8 @@ public class MonsterRosterTest
 	[TestCase]
 	public async Task RatBiteReachesTheHeroAtPhysicalContact()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.ExecuteCommand("spawn", 4, Vector3.Zero);
 		var rat = harness.Monster;
 		rat.MovementComponent.SetPhysicsProcess(false);
@@ -183,7 +178,7 @@ public class MonsterRosterTest
 	[TestCase]
 	public async Task ShooterCanComposeGuardAndRiposteWithItsSameProjectilePolicy()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		using var runner = TestFactories.LoadCombatHarness();
 		await runner.SimulateFrames(3);
 		var player = runner.Scene().GetNode<CombatHarness>("Instructions").Player;
 		player.MovementComponent.SetPhysicsProcess(false);
@@ -225,9 +220,8 @@ public class MonsterRosterTest
 	[TestCase]
 	public async Task CompletionReportsTheAcceptedIdentityOnceAfterReleasingTheGate()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.ExecuteCommand("spawn", 1, Vector3.Zero);
 		var actor = harness.Monster;
 		int count = 0;

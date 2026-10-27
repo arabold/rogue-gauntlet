@@ -14,9 +14,8 @@ public class CombatPositioningTest
 
 	private static async Task<(ISceneRunner Runner, CombatHarness Harness)> Load()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(4);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 4);
 		harness.Player.InputController.SetPhysicsProcess(false);
 		return (runner, harness);
 	}
@@ -55,6 +54,7 @@ public class CombatPositioningTest
 		var minion = await AddMinion(runner, new Vector3(6, 0, 0));
 		minion.HurtBoxComponent.Awareness = null; // isolate the directional bonus from the sneak bonus
 		minion.Rotation = Vector3.Zero; // faces -Z
+		minion.MovementComponent.SetLookAtDirection(Vector3.Forward);
 		var poise = minion.HurtBoxComponent.Poise;
 
 		AssertFloat(DamageOf(minion, Contact(harness.Player, 2, 4, Vector3.Back))).IsEqualApprox(2, .001);
@@ -73,13 +73,13 @@ public class CombatPositioningTest
 		var (runner, harness) = await Load();
 		var minion = await AddMinion(runner, new Vector3(6, 0, 0));
 		var behavior = minion.EnemyBehaviorComponent;
-		AssertBool(behavior.IsUnawareOf(harness.Player)).IsTrue();
+		AssertBool(behavior.IsUnaware).IsTrue();
 
 		AssertFloat(DamageOf(minion, Contact(harness.Player, 2, 1, Vector3.Back))).IsEqualApprox(4, .001);
 		AssertBool(minion.HurtBoxComponent.Poise.IsBroken).IsTrue();
 		AssertObject(behavior.Target).IsEqual(harness.Player);
 		AssertObject(behavior.CurrentBehavior).IsEqual(EnemyBehaviorState.Chasing);
-		AssertBool(behavior.IsUnawareOf(harness.Player)).IsFalse();
+		AssertBool(behavior.IsUnaware).IsFalse();
 		// The alerted monster takes ordinary frontal damage afterwards (still staggered, so the punish bonus applies).
 		float staggered = minion.HurtBoxComponent.Poise.Definition.StaggeredDamageMultiplier;
 		AssertFloat(DamageOf(minion, Contact(harness.Player, 2, 1, Vector3.Back))).IsEqualApprox(2 * staggered, .001);

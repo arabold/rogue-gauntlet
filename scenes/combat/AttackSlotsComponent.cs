@@ -1,11 +1,10 @@
 using Godot;
 using System.Collections.Generic;
-using System.Linq;
 
 /// <summary>
 /// Target-owned attack slots: monsters must hold one to start a wind-up against this actor, so only a
 /// few attacks are ever coming at once. Waiting monsters take spread ring positions around the target.
-/// Dead or freed attackers are pruned every physics frame; attackers forget themselves on target loss.
+/// Attackers forget themselves on death, exit and target loss; freed attackers are pruned here.
 /// Counts are snapshotted when the component first serves a request.
 /// </summary>
 [GlobalClass]
@@ -21,18 +20,20 @@ public partial class AttackSlotsComponent : Node
 
 	private AttackSlotLedger _ledger;
 	private readonly Dictionary<ulong, Node3D> _attackers = [];
+	private readonly List<ulong> _freed = [];
 	private AttackSlotLedger Ledger => _ledger ??= new(Mathf.Max(0, MeleeSlots), Mathf.Max(0, RangedSlots), Mathf.Max(0, ReacquireDelay));
 
-	public bool CanReserve(Node3D attacker, AttackSlotKind kind) => Track(attacker) && Ledger.CanReserve(attacker.GetInstanceId(), kind);
+	public bool CanReserve(Node3D attacker, AttackSlotKind kind) => Track(attacker, out ulong id) && Ledger.CanReserve(id, kind);
 
 	public bool TryReserve(Node3D attacker, AttackSlotKind kind)
 	{
-		if (!Track(attacker) || !Ledger.TryReserve(attacker.GetInstanceId(), kind)) return false;
+		if (!Track(attacker, out ulong id) || !Ledger.TryReserve(id, kind)) return false;
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "slots.reserved", ("attacker", CombatTrace.Identity(attacker)), ("kind", kind.ToString()),
 			("held", Ledger.Held(kind)));
 		return true;
 	}
 
+	/// <summary>Whether the attacker currently holds a slot; lets tools and tests observe turn-taking.</summary>
 	public bool Holds(Node3D attacker) => attacker != null && Ledger.Holds(attacker.GetInstanceId());
 
 	public void Release(Node3D attacker, bool yield = true)
@@ -42,10 +43,7 @@ public partial class AttackSlotsComponent : Node
 
 	public void Forget(Node3D attacker)
 	{
-		if (attacker == null) return;
-		ulong id = attacker.GetInstanceId();
-		Ledger.Forget(id);
-		_attackers.Remove(id);
+		if (attacker != null) Forget(attacker.GetInstanceId());
 	}
 
 	/// <summary>
@@ -54,8 +52,8 @@ public partial class AttackSlotsComponent : Node
 	/// </summary>
 	public Vector3 GetRingPoint(Node3D attacker, AttackSlotKind kind, float distance, bool preferRear)
 	{
-		if (Target == null || !Track(attacker)) return attacker?.GlobalPosition ?? Vector3.Zero;
-		int index = Ledger.Engage(attacker.GetInstanceId(), kind);
+		if (Target == null || !Track(attacker, out ulong id)) return attacker?.GlobalPosition ?? Vector3.Zero;
+		int index = Ledger.Engage(id, kind);
 		Vector3 bearing = Vector3.Back;
 		if (preferRear)
 		{
@@ -71,8 +69,11 @@ public partial class AttackSlotsComponent : Node
 	{
 		if (_ledger == null) return;
 		_ledger.Tick(delta);
-		foreach (var (id, attacker) in _attackers.ToList())
-			if (!GodotObject.IsInstanceValid(attacker) || attacker is EnemyBase { IsDead: true }) Forget(id);
+		if (_attackers.Count == 0) return;
+		_freed.Clear();
+		foreach (var (id, attacker) in _attackers)
+			if (!GodotObject.IsInstanceValid(attacker)) _freed.Add(id);
+		foreach (ulong id in _freed) Forget(id);
 	}
 
 	private void Forget(ulong id)
@@ -81,10 +82,12 @@ public partial class AttackSlotsComponent : Node
 		_attackers.Remove(id);
 	}
 
-	private bool Track(Node3D attacker)
+	private bool Track(Node3D attacker, out ulong id)
 	{
+		id = 0;
 		if (attacker == null || !GodotObject.IsInstanceValid(attacker)) return false;
-		_attackers[attacker.GetInstanceId()] = attacker;
+		id = attacker.GetInstanceId();
+		_attackers[id] = attacker;
 		return true;
 	}
 }
