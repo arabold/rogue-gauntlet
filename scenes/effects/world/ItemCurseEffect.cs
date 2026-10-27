@@ -41,7 +41,12 @@ public partial class ItemCurseEffect : WorldEffectInstance
 			}
 		}
 		float span = bounds is Aabb itemBounds ? Mathf.Max(itemBounds.Size.X, Mathf.Max(itemBounds.Size.Y, itemBounds.Size.Z)) : 1;
-		if (AccentLight != null) AccentLight.OmniRange = Mathf.Clamp(span * .45f, .12f, .8f);
+		if (AccentLight != null)
+		{
+			AccentLight.OmniRange = Mathf.Clamp(span * .45f, .12f, .8f);
+			// Model/grip origins differ; the geometry already supplies the center for its light.
+			if (bounds is Aabb box) AccentLight.Position += GlobalBasis * box.GetCenter();
+		}
 		if (points.Count > 0)
 		{
 			using var image = Image.CreateEmpty(points.Count, 1, false, Image.Format.Rgbf);

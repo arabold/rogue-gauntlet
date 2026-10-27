@@ -38,7 +38,9 @@ public partial class SurfaceAppearanceController : Node
 	public void SetAmount(object token, float amount)
 	{
 		if (!_requests.TryGetValue(token, out var request)) return;
-		request.Amount = Mathf.Clamp(amount, 0, 1);
+		amount = Mathf.Clamp(amount, 0, 1);
+		if (request.Amount == amount) return;
+		request.Amount = amount;
 		if (request == _winner) ApplyAmount();
 	}
 	public void Release(object token)
@@ -135,17 +137,11 @@ public partial class SurfaceAppearanceController : Node
 	}
 	private void OnAdded(Node node)
 	{
-		if (node is not MeshInstance3D) return;
+		if (node is not MeshInstance3D || !Target.IsAncestorOf(node)) return;
 		Callable.From(() =>
 		{
-			if (IsInsideTree() && _winner != null && IsInstanceValid(node) && Target.IsAncestorOf(node) && !IsHelperSubtree(node)) Capture(node);
+			if (IsInsideTree() && _winner != null && IsInstanceValid(node) && Target.IsAncestorOf(node) && !VisualHelper.IsInHelperSubtree(node)) Capture(node);
 		}).CallDeferred();
-	}
-	private bool IsHelperSubtree(Node node)
-	{
-		for (var current = node; current != null && current != Target; current = current.GetParent())
-			if (VisualHelper.IsHelper(current)) return true;
-		return false;
 	}
 	public override void _ExitTree() => ClearAndRestore();
 }

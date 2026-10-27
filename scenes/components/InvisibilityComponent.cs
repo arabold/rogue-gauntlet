@@ -1,5 +1,4 @@
 using Godot;
-using System.Linq;
 
 /// <summary>Gameplay cloak state adapter; the normal actor-effect host owns presentation, fading and material restoration.</summary>
 [GlobalClass]
@@ -29,14 +28,8 @@ public partial class InvisibilityComponent : Node
 		if (Host == null || Effect == null || !IsInsideTree() || (invisible && Host.IsStopped)) return;
 		if (!immediate && _requested == invisible) return;
 		_requested = invisible;
-		var result = Host.SetSustained(this, Effect, invisible, 0);
-		if (result == WorldEffectResult.Rejected) { _requested = false; return; }
-		if (!immediate) return;
-		foreach (var instance in Host.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Where(i => i.Definition == Effect && !i.IsQueuedForDeletion()).ToArray())
-		{
-			if (invisible && !instance.IsEnding) instance.EnterImmediately();
-			else if (!invisible && instance.IsEnding) instance.Stop(true);
-		}
+		var result = Host.SetSustained(this, Effect, invisible, 0, immediate: immediate);
+		if (result == WorldEffectResult.Rejected) _requested = false;
 	}
 	public override void _ExitTree()
 	{

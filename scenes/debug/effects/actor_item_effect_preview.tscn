@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3]
+[gd_scene load_steps=26 format=3]
 [ext_resource type="Script" path="res://scenes/debug/effects/ActorItemEffectPreview.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/effects/world/actor_world_effects.tscn" id="host"]
 [ext_resource type="Resource" path="res://scenes/effects/world/iron_skin/iron_skin.tres" id="iron_skin"]
@@ -15,9 +15,6 @@
 [ext_resource type="PackedScene" path="res://scenes/items/weapons/sword/sword_knight.tscn" id="subject3"]
 [ext_resource type="PackedScene" path="res://assets/custom-items/jewelry/ring/ring_gold_emerald.glb" id="subject4"]
 
-[ext_resource type="PackedScene" path="res://scenes/effects/world/item_curse_presenter.tscn" id="curse_presenter"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/sword/sword_knight.tres" id="sword_item"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_strength.tres" id="ring_item"]
 [ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="floor_library"]
 [ext_resource type="Resource" path="res://scenes/effects/world/teleport_departure/teleport_departure.tres" id="teleport_departure"]
 [ext_resource type="Resource" path="res://scenes/effects/world/teleport_arrival/teleport_arrival.tres" id="teleport_arrival"]
@@ -49,13 +46,11 @@ Camera = NodePath("Camera3D")
 Controls = NodePath("UI/Panel/Scroll/Margin/Controls")
 Lighting = NodePath("WorldEnvironment")
 KeyLight = NodePath("DirectionalLight3D")
-CursePresentation = ExtResource("curse_presenter")
-ItemDefinitions = [ExtResource("sword_item"), ExtResource("ring_item")]
 ItemHostScene = ExtResource("host")
 TeleportDeparture = ExtResource("teleport_departure")
 TeleportArrival = ExtResource("teleport_arrival")
 Effects = [ExtResource("iron_skin"), ExtResource("stone_skin"), ExtResource("healing"), ExtResource("strength"), ExtResource("arcane"), ExtResource("level_up"), ExtResource("blessed"), ExtResource("cursed_item"), ExtResource("teleport_departure"), ExtResource("teleport_arrival"), ExtResource("invisibility_effect")]
-Subjects = [ExtResource("subject0"), ExtResource("subject1"), ExtResource("subject2"), ExtResource("subject3"), ExtResource("subject4")]
+Subjects = Dictionary[String, PackedScene]({"Player": ExtResource("subject0"), "Skeleton": ExtResource("subject1"), "Warden": ExtResource("subject2"), "Sword": ExtResource("subject3"), "Ring": ExtResource("subject4")})
 [node name="SceneDebugEnvironment" type="Node" parent="."]
 [node name="Stage" type="Node3D" parent="."]
 [node name="FloorTiles" type="GridMap" parent="."]

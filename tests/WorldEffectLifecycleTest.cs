@@ -137,9 +137,9 @@ public class WorldEffectLifecycleTest
 		AssertInt(aura.Host.LeaseCount).IsEqual(1); item.LiftCurse(); AssertInt(aura.Host.LeaseCount).IsEqual(0);
 	}
 	[TestCase]
-	public async Task HelpersAddedDuringASkinAreExcludedAndTheWorkbenchUnloadsCleanly()
+	public async Task HelpersAddedDuringASkinAreExcludedAndReplayUnloadsThePreviousSubject()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/world_effect_harness.tscn", true);
+		using var runner = ISceneRunner.Load("res://scenes/debug/effects/actor_item_effect_preview.tscn", true);
 		await runner.SimulateFrames(2);
 		var (_, host, mesh, _) = Fixture();
 		host.SetSustained(new object(), Definition("iron_skin"), true, 42);
@@ -148,14 +148,14 @@ public class WorldEffectLifecycleTest
 		var auraMesh = new MeshInstance3D { Mesh = new SphereMesh(), MaterialOverride = own };
 		helper.AddChild(auraMesh); mesh.AddChild(helper); await runner.SimulateFrames(2);
 		AssertObject(auraMesh.MaterialOverride).IsSame(own);
-		var harness = (WorldEffectHarness)runner.Scene(); harness.SelectEffect(6); await runner.SimulateFrames(2);
-		var preview = harness.PreviewRoot.GetChildren().OfType<ActorItemEffectPreview>().Single();
+		var preview = (ActorItemEffectPreview)runner.Scene();
 		preview.SelectEffect(0);
 		var actor = preview.Stage.GetChildren().OfType<Player>().Single();
 		actor.WorldEffects.SetSustained(this, Definition("blessed"), true, 42);
 		actor.WorldEffects.PlayBurst(Definition("healing"), 42);
-		harness.SelectEffect(0); await runner.SimulateFrames(3);
-		AssertBool(GodotObject.IsInstanceValid(preview)).IsFalse(); AssertObject(harness.PreviewTrap).IsNotNull();
+		preview.Replay(); await runner.SimulateFrames(3);
+		AssertBool(GodotObject.IsInstanceValid(actor)).IsFalse(); AssertInt(preview.Stage.GetChildCount()).IsEqual(1);
+		AssertInt(preview.InstanceCount).IsEqual(1);
 	}
 	[TestCase]
 	public async Task HealingTicksDoNotReplayTheActivationAndCanceledUseEmitsNothing()

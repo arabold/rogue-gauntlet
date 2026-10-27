@@ -9,7 +9,6 @@ point_count = 4
 [sub_resource type="ShaderMaterial" id="Glyph"]
 shader = ExtResource("glyph_shader")
 shader_parameter/tint = Color(1, 1, 1, 0.95)
-shader_parameter/dissolves = true
 [sub_resource type="ShaderMaterial" id="Rim"]
 shader = ExtResource("energy")
 shader_parameter/tint = Color(1, 1, 1, 0.17)

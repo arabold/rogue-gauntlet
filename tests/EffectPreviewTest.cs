@@ -37,9 +37,10 @@ public class EffectPreviewTest
 	{
 		using var runner = ISceneRunner.Load(Scene, true); await runner.SimulateFrames(2);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.SelectEffect(7); preview.SetSubject(3);
-		var aura = preview.Stage.GetChild(0).FindChildren("*", "", true, false).OfType<ItemCurseWorldEffectPresenter>().Single();
-		AssertBool(aura.Scale.IsEqualApprox(Vector3.One)).IsTrue();
-		var effect = aura.Host.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Single();
+		var subject = preview.Stage.GetChild(0);
+		AssertInt(subject.FindChildren("*", "", true, false).OfType<ItemCurseWorldEffectPresenter>().Count()).IsEqual(0);
+		var host = subject.GetChildren().OfType<WorldEffectHost>().Single();
+		var effect = host.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Single();
 		AssertBool(effect is ItemCurseEffect).IsTrue(); AssertBool(effect.Layers.Any(m => m.Mesh is SphereMesh or CylinderMesh)).IsFalse();
 		var originals = preview.Stage.GetChild(0).FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().Where(m => !VisualHelper.IsInHelperSubtree(m)).ToArray();
 		foreach (var layer in effect.Layers) AssertBool(originals.Any(m => m.Mesh == layer.Mesh && m.GlobalTransform.IsEqualApprox(layer.GlobalTransform))).IsTrue();

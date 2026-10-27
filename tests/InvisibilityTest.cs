@@ -93,6 +93,22 @@ public class InvisibilityTest
 		player.Invisibility.SetInvisible(false, true); AssertBool(player.Invisibility.IsInvisible).IsFalse();
 	}
 	[TestCase]
+	public void ImmediateHostRequestsPreserveOtherOwnersAndCanFinishARetiringCloak()
+	{
+		var mesh = TestFactories.AddToSceneTree(new MeshInstance3D { Mesh = new BoxMesh() });
+		var cloak = Cloak(mesh); var host = cloak.Host; var definition = cloak.Effect;
+		var first = new object(); var second = new object();
+		host.SetSustained(first, definition, true, 42, immediate: true);
+		AssertFloat(cloak.Amount).IsEqual(1);
+		host.SetSustained(second, definition, true, 42);
+		host.SetSustained(first, definition, false, 42, immediate: true);
+		AssertBool(cloak.IsInvisible).IsTrue(); AssertInt(host.LeaseCount).IsEqual(1);
+		host.SetSustained(second, definition, false, 42);
+		AssertBool(cloak.IsInvisible).IsTrue(); AssertInt(host.LeaseCount).IsEqual(0);
+		host.SetSustained(second, definition, false, 42, immediate: true);
+		AssertBool(cloak.IsInvisible).IsFalse(); AssertInt(host.ActiveInstanceCount).IsEqual(0);
+	}
+	[TestCase]
 	public void PlayerAndAllMonsterAssembliesExplicitlyAssignTheSharedComponent()
 	{
 		foreach (string path in new[] { "player/player", "enemies/skeleton/skeleton_minion", "enemies/skeleton/skeleton_warrior",

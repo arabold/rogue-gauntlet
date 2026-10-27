@@ -1,18 +1,14 @@
 using Godot;
+using static EffectPreviewControls;
 
-public enum WorldEffectPreview { TrapDiscovery, SecretDiscovery, Loot, Blood, DoorXray, ChestXray, ActorItem, ScrollRunes }
+public enum WorldEffectPreview { TrapDiscovery, SecretDiscovery, Loot, Blood, DoorXray, ChestXray }
 
 /// <summary>Repeatable previews of production effects, without dungeon generation or combat requirements.</summary>
 public partial class WorldEffectHarness : Node3D
 {
-	[Export] public WorldEnvironment PreviewEnvironment { get; set; }
-	private Godot.Environment _environment;
-	[Export] public PackedScene ScrollRuneStudyScene { get; set; }
-	[Export] public PackedScene ActorItemPreviewScene { get; set; }
 	[Export] public Node3D PreviewRoot { get; set; }
 	[Export] public Camera3D PreviewCamera { get; set; }
 	[Export] public Container Controls { get; set; }
-	[Export] public CanvasLayer Navigation { get; set; }
 	[Export] public PackedScene TrapScene { get; set; }
 	[Export] public PackedScene DoorScene { get; set; }
 	[Export] public PackedScene ChestScene { get; set; }
@@ -38,7 +34,7 @@ public partial class WorldEffectHarness : Node3D
 	private bool _replayQueued;
 	public override void _Ready()
 	{
-		_environment = PreviewEnvironment.Environment; BuildControls(); ResetPreview();
+		BuildControls(); ResetPreview();
 	}
 	private void BuildControls()
 	{
@@ -47,31 +43,24 @@ public partial class WorldEffectHarness : Node3D
 		foreach (string label in new[] { "Trap discovery", "Secret door discovery", "Loot glow", "Blood hit", "Door x-ray", "Chest x-ray" }) _selection.AddItem(label);
 		_selection.Selected = (int)Effect;
 		_selection.ItemSelected += index => SelectEffect((int)index);
-		AddRow("Effect", _selection);
+		Row(Controls, "Effect", _selection, 130);
 		var glow = new HSlider { MinValue = 0, MaxValue = 4, Step = 0.1, Value = RevealGlow, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
 		glow.ValueChanged += value => { RevealGlow = (float)value; RequestReset(); };
-		_glowRow = AddRow("Reveal glow", glow);
+		_glowRow = Row(Controls, "Reveal glow", glow, 130);
 		var blend = new CheckBox { Text = "Blend surfaces", ButtonPressed = Blend };
 		blend.Toggled += value => { Blend = value; RequestReset(); }; Controls.AddChild(blend); _blendControl = blend;
 		var wall = new OptionButton();
 		foreach (int id in new[] { 0, 10, 22 }) wall.AddItem(WallLibrary.GetItemName(id), id);
 		wall.ItemSelected += index => { _wallItem = wall.GetItemId((int)index); RequestReset(); };
-		_wallRow = AddRow("Wall variant", wall);
-		var replay = new Button { Text = "Replay", FocusMode = Control.FocusModeEnum.None };
-		_replayButton = replay; replay.Pressed += Replay; Controls.AddChild(replay);
-		Controls.AddChild(new Label { Text = "1–9: choose effect\nQ / E: orbit · wheel: zoom", AutowrapMode = TextServer.AutowrapMode.WordSmart });
+		_wallRow = Row(Controls, "Wall variant", wall, 130);
+		_replayButton = Button(Controls, "Replay", Replay);
+		CameraHelp(Controls);
 		_status = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart }; Controls.AddChild(_status);
-	}
-	private Control AddRow(string text, Control control)
-	{
-		var row = new HBoxContainer();
-		row.AddChild(new Label { Text = text, CustomMinimumSize = new Vector2(130, 0) });
-		row.AddChild(control); Controls.AddChild(row); return row;
 	}
 	public void SelectEffect(int index)
 	{
-		if (index < 0 || index > (int)WorldEffectPreview.ScrollRunes) return;
-		Effect = (WorldEffectPreview)index; if (index < 6) _selection.Selected = index; ResetPreview();
+		if (index < 0 || index > (int)WorldEffectPreview.ChestXray) return;
+		Effect = (WorldEffectPreview)index; _selection.Selected = index; ResetPreview();
 	}
 	private void RequestReset()
 	{
@@ -89,7 +78,6 @@ public partial class WorldEffectHarness : Node3D
 	}
 	public void Replay()
 	{
-		if (Effect is WorldEffectPreview.ActorItem or WorldEffectPreview.ScrollRunes) return;
 		if (IsXrayPreview)
 		{
 			PreviewOccluder.Visible = !PreviewOccluder.Visible;
@@ -105,14 +93,6 @@ public partial class WorldEffectHarness : Node3D
 	{
 		foreach (var child in PreviewRoot.GetChildren()) { PreviewRoot.RemoveChild(child); child.QueueFree(); }
 		PreviewTrap = null; PreviewDoor = null; PreviewChest = null; PreviewOccluder = null; _lootModel = null;
-		Controls.Visible = Effect is not (WorldEffectPreview.ActorItem or WorldEffectPreview.ScrollRunes);
-		PreviewEnvironment.Environment = Controls.Visible ? _environment : null;
-		Navigation.Visible = Controls.Visible;
-		if (!Controls.Visible)
-		{
-			PackedScene scene = Effect == WorldEffectPreview.ScrollRunes ? ScrollRuneStudyScene : ActorItemPreviewScene;
-			PreviewRoot.AddChild(scene.Instantiate<Node3D>()); return;
-		}
 		PreviewCamera.Current = true;
 		var floor = Surface(FloorLibrary); floor.SetCellItem(Vector3I.Zero, 0);
 		switch (Effect)
@@ -180,7 +160,6 @@ public partial class WorldEffectHarness : Node3D
 
 	public override void _Process(double delta)
 	{
-		if (Effect is WorldEffectPreview.ActorItem or WorldEffectPreview.ScrollRunes) return;
 		if (_lootModel != null && IsInstanceValid(_lootModel)) _lootModel.RotateY((float)delta * .7f);
 	}
 }

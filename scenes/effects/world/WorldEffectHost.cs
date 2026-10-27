@@ -59,7 +59,17 @@ public partial class WorldEffectHost : Node3D
 		if (worldPosition is Vector3 position) { instance.TopLevel = true; instance.GlobalPosition = position; }
 		return WorldEffectResult.Started;
 	}
-	public WorldEffectResult SetSustained(object source, WorldEffectDefinition definition, bool active, uint cosmeticSeed, Func<WorldEffectInstance, bool> configure = null)
+	/// <summary>Own a sustained effect by source; immediate requests finish entry or an unowned exit through this host.</summary>
+	public WorldEffectResult SetSustained(object source, WorldEffectDefinition definition, bool active, uint cosmeticSeed, Func<WorldEffectInstance, bool> configure = null, bool immediate = false)
+	{
+		var result = SetSustainedCore(source, definition, active, cosmeticSeed, configure);
+		if (!immediate || result == WorldEffectResult.Rejected) return result;
+		if (active && _sustained.TryGetValue(definition, out var state)) state.Instance.EnterImmediately();
+		else if (!active && !_sustained.ContainsKey(definition))
+			foreach (var instance in _instances.Where(i => i.Definition == definition && i.IsEnding).ToArray()) instance.Stop(true);
+		return result;
+	}
+	private WorldEffectResult SetSustainedCore(object source, WorldEffectDefinition definition, bool active, uint cosmeticSeed, Func<WorldEffectInstance, bool> configure)
 	{
 		if (source == null || definition == null) return WorldEffectResult.Rejected;
 		if (!active)

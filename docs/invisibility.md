@@ -11,7 +11,7 @@ actor.Invisibility.SetInvisible(true);
 actor.Invisibility.SetInvisible(false);
 ```
 
-The host uses the same source-counted sustained lifecycle and `WorldEffectInstance` as other actor effects. The invisibility scene authors its cloak surface profile and 0.25-second entry/exit; `EnterImmediately` supports initial hidden state and immediate requests. Reversals resume an existing retiring effect from its current amount. `StartInvisible` waits for the assigned host to be ready.
+The host uses the same source-counted sustained lifecycle and `WorldEffectInstance` as other actor effects. The invisibility scene authors its cloak surface profile and 0.25-second entry/exit; The host's sustained API owns immediate entry/exit requests, including initial hidden state; the adapter never reaches into effect instances. An immediate release preserves the visual while another source still owns it. Reversals resume an existing retiring effect from its current amount. `StartInvisible` waits for the assigned host to be ready.
 
 `SurfaceAppearanceController` owns private material copies and exact baseline restoration. Cloak state comes from active cloak-profile ownership, so generic host playback and the adapter expose the same `IsInvisible`/`Amount`. Its state notification drives effect suppression, health bars and monster x-rays. Invisibility suppresses other attached effects while remaining visible itself; the definition explicitly disables self-suppression. Cloak remains above skins and teleport transitions in surface priority.
 

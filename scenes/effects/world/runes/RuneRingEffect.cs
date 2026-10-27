@@ -8,7 +8,6 @@ public partial class RuneRingEffect : WorldEffectInstance
 	[Export] public MeshInstance3D[] Glyphs { get; set; } = [];
 	[Export] public MeshInstance3D[] Rims { get; set; } = [];
 	private ItemAppearance _appearance;
-	private bool _lighting = true;
 	public bool Configure(ItemAppearance appearance)
 	{
 		_appearance = appearance;
@@ -26,13 +25,6 @@ public partial class RuneRingEffect : WorldEffectInstance
 			material.SetShaderParameter("tint", new Color(_appearance.GlyphColor, tint.A));
 		}
 		if (AccentLight != null) AccentLight.LightColor = _appearance.GlyphColor;
-	}
-	public void SetLighting(bool enabled)
-	{
-		if (_lighting == enabled) return;
-		_lighting = enabled;
-		if (AccentLight != null) AccentLight.Visible = enabled;
-		ApplyVisuals();
 	}
 	protected override float SampleBurstEnvelope(float elapsed)
 	{
@@ -56,6 +48,6 @@ public partial class RuneRingEffect : WorldEffectInstance
 			material.SetShaderParameter("dissolution", expansion);
 		}
 		foreach (var rim in Rims) rim.Scale = Vector3.One * radius;
-		if (AccentLight != null) AccentLight.LightEnergy *= _lighting ? 1 - Mathf.SmoothStep(0, 1, expansion) : 0;
+		if (AccentLight != null) AccentLight.LightEnergy *= 1 - Mathf.SmoothStep(0, 1, expansion);
 	}
 }

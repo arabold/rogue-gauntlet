@@ -61,20 +61,17 @@ public class ScrollRuneStudyTest
 		AssertBool(study.RuneRing.Glyphs.All(g => g.Mesh == study.Appearance.GlyphMesh)).IsTrue();
 	}
 	[TestCase]
-	public async Task SessionAssignmentCanBeCopiedWithoutIdentifyingOrReshufflingItemsAndModeSwitchCleansUp()
+	public async Task SessionAssignmentCanBeCopiedWithoutIdentifyingOrReshufflingItems()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/world_effect_harness.tscn", true);
-		await runner.SimulateFrames(2); var harness = (WorldEffectHarness)runner.Scene();
+		using var runner = ISceneRunner.Load("res://scenes/debug/effects/runes/scroll_rune_study.tscn", true);
+		await runner.SimulateFrames(2); var study = (ScrollRuneStudy)runner.Scene();
 		var run = GameSession.Instance.Run; var assignment = run.Identification.GetAssignmentDescriptors();
 		var known = run.Identification.GetIdentifiedTypeIds().ToArray();
-		harness.SelectEffect(7); await runner.SimulateFrames(2);
-		var study = harness.PreviewRoot.GetChildren().OfType<ScrollRuneStudy>().Single(); study.UseSessionAssignment();
+		study.UseSessionAssignment();
 		AssertObject(study.MatchedGlyph).IsSame(run.Identification.GetAppearance(study.SelectedScroll).GlyphMesh);
 		study.SetSeed(982);
 		AssertArray(run.Identification.GetIdentifiedTypeIds().ToArray()).IsEqual(known);
 		foreach (var pair in assignment) AssertString(run.Identification.GetAssignmentDescriptors()[pair.Key]).IsEqual(pair.Value);
-		harness.SelectEffect(0); await runner.SimulateFrames(3);
-		AssertBool(GodotObject.IsInstanceValid(study)).IsFalse(); AssertObject(harness.PreviewTrap).IsNotNull();
 	}
 	[TestCase]
 	public async Task RuneRingRotatesExpandsAndDissolvesWithoutSubstitutingOtherGlyphs()
@@ -89,8 +86,6 @@ public class ScrollRuneStudyTest
 		AssertBool(study.RingLight.LightColor.IsEqualApprox(study.Appearance.GlyphColor)).IsTrue();
 		AssertBool(study.RingLight.ShadowEnabled).IsFalse();
 		AssertFloat(study.RingLight.LightEnergy).IsGreater(0);
-		study.RuneRing.SetLighting(false); AssertBool(study.RingLight.Visible).IsFalse();
-		study.RuneRing.SetLighting(true); AssertBool(study.RingLight.Visible).IsTrue();
 		study.SetTime(.6f);
 		AssertFloat(new Vector2(glyphs[0].Position.X, glyphs[0].Position.Z).Length()).IsGreater(radius);
 		AssertFloat(glyphs[0].GetParent<Node3D>().Rotation.Y).IsGreater(angle);
