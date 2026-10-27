@@ -1,13 +1,13 @@
 using Godot;
 
-/// <summary>Approach until in reach, then hold and turn until the configured attack is eligible.</summary>
+/// <summary>
+/// Approach until the configured attack is eligible, then hold for its execution. An approach that is
+/// already in reach holds and turns instead (see <see cref="EnemyContext.ExecuteTactics"/>).
+/// </summary>
 [GlobalClass]
 public partial class CloseDistanceStrategy : EnemyMovementStrategy
 {
-	public override EnemyMovementIntent Evaluate(EnemyContext context)
-	{
-		var attack = context.Profile.AttackStrategy;
-		if (attack?.CanAttack(context) == true) return new(EnemyMovementGoal.Hold, true);
-		return attack?.IsInReach(context) == true ? new(EnemyMovementGoal.Hold, false) : new(EnemyMovementGoal.Approach, false);
-	}
+	public override EnemyMovementIntent Evaluate(EnemyContext context) =>
+		context.Profile.AttackStrategy?.CanAttack(context) == true
+			? new(EnemyMovementGoal.Hold, true) : new(EnemyMovementGoal.Approach, false);
 }

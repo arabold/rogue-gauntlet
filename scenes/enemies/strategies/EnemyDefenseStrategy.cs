@@ -12,11 +12,16 @@ public partial class EnemyDefenseStrategy : Resource
 	[Export] public float MaxGuardDuration { get; set; } = 3.5f;
 	[Export] public bool CanDefendProjectiles { get; set; } = true;
 
-	/// <summary>Unavailable capabilities leave their interval as no response; never reroll.</summary>
-	public EnemyDefenseMode Choose(bool canGuard, bool canDodge, float roll)
+	/// <summary>
+	/// Unavailable capabilities leave their interval as no response; never reroll. When the observed attack is
+	/// not safe to guard (not Guardable, or BreaksGuard), the guard interval dodges instead if the actor can.
+	/// </summary>
+	public EnemyDefenseMode Choose(bool canGuard, bool canDodge, float roll, bool guardSafe = true)
 	{
 		if (roll < DodgeChance) return canDodge ? EnemyDefenseMode.Dodge : EnemyDefenseMode.None;
-		if (roll < DodgeChance + GuardChance) return canGuard ? EnemyDefenseMode.GuardParry : EnemyDefenseMode.None;
+		if (roll < DodgeChance + GuardChance)
+			return guardSafe ? (canGuard ? EnemyDefenseMode.GuardParry : EnemyDefenseMode.None)
+				: canDodge ? EnemyDefenseMode.Dodge : EnemyDefenseMode.None;
 		return EnemyDefenseMode.None;
 	}
 }

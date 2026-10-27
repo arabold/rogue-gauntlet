@@ -48,7 +48,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Actions and interactions](specs/actor-actions-and-interactions-plan.md) | Lock integration, learned spells/mana and further actor intentions/content |
 | [Potion and scroll feedback](specs/consumable-feedback-plan.md) | Proposed unique activation signature for all 20 potion/scroll types, with world and screen channels and catalog coverage checks |
 | [Actor and item VFX](specs/actor-item-vfx-plan.md) | Remaining visual-quality/skin-choice acceptance, GPU timing and in-game readability review |
-| [Combat redesign](specs/combat-redesign-plan.md) | Remaining player kit: combos, input buffer, recovery cancels, dodge charges, guard walking and player contact timing; lists the current combat rules it overturns |
+| [Combat redesign](specs/combat-redesign-plan.md) | Remaining player kit (combos, input buffer, recovery cancels, dodge charges, guard walking, player contact timing) and a Warden guard-breaking attack; lists the current combat rules it overturns |
 | [Attack status effects](specs/attack-status-effects-plan.md) | Proposed on-hit status payloads, actor-agnostic buffs for monsters and a monster status tint; first slice lets venomous monster attacks poison the player |
 | [Potion catalog](specs/potion-catalog-plan.md) | Deferred Raise Level, Hallucination and detection potions |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |

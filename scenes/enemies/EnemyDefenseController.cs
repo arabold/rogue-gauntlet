@@ -264,15 +264,7 @@ public partial class EnemyDefenseController : Node
 		}
 
 		float delay = Strategy?.ReactionDelay ?? ReactionDelay;
-		EnemyDefenseMode chosen = ResolveDefenseMode();
-		// Forced harness modes are left alone so guard breaks stay reproducible.
-		if (Mode == EnemyDefenseMode.ProfileDefault)
-		{
-			var tier = attackCtrl.CurrentAttack?.ThreatTier ?? AttackThreatTier.Normal;
-			var filtered = ForThreat(chosen, tier, HasDodgeCapability);
-			if (filtered != chosen && CombatTrace.Enabled) CombatTrace.Write(this, "defense.threat_filtered", ("tier", tier.ToString()), ("decision", filtered.ToString()));
-			chosen = filtered;
-		}
+		EnemyDefenseMode chosen = ResolveDefenseMode(attackCtrl.CurrentAttack?.DefenseTraits.IsSafeToGuard() ?? true);
 
 		_lastObservedMeleeExecution = execution;
 
@@ -300,23 +292,16 @@ public partial class EnemyDefenseController : Node
 		}
 	}
 
-	private EnemyDefenseMode ResolveDefenseMode()
+	/// <summary>Forced harness modes bypass the policy, so guard breaks stay reproducible in the harness.</summary>
+	private EnemyDefenseMode ResolveDefenseMode(bool guardSafe)
 	{
 		var roll = _rng.Randf();
 		var chosen = Mode != EnemyDefenseMode.ProfileDefault ? Mode
-			: Strategy?.Choose(HasGuardCapability, HasDodgeCapability, roll) ?? EnemyDefenseMode.None;
+			: Strategy?.Choose(HasGuardCapability, HasDodgeCapability, roll, guardSafe) ?? EnemyDefenseMode.None;
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.decision", ("mode", Mode.ToString()),
-			("decision", chosen.ToString()), ("roll", roll));
+			("decision", chosen.ToString()), ("roll", roll), ("guard_safe", guardSafe));
 		return chosen;
 	}
-
-	/// <summary>
-	/// Guarding a Heavy or Unblockable attack is a mistake: a guard choice becomes a dodge when the actor can
-	/// dodge, else no response. The roll already happened, so filtering never changes RNG draw order.
-	/// </summary>
-	public static EnemyDefenseMode ForThreat(EnemyDefenseMode chosen, AttackThreatTier tier, bool canDodge) =>
-		chosen != EnemyDefenseMode.GuardParry || tier == AttackThreatTier.Normal ? chosen
-			: canDodge ? EnemyDefenseMode.Dodge : EnemyDefenseMode.None;
 
 	private void TryExecuteMeleeDefense()
 	{
@@ -352,20 +337,16 @@ public partial class EnemyDefenseController : Node
 		{
 			// A guard is raised along the current facing; a threat outside its frontal sector cannot be
 			// guarded, so flanking a guarding monster works instead of snapping it around.
-			Vector3 toThreat = threatOrigin - enemyPos;
-			toThreat.Y = 0;
 			Vector3 facing = Enemy.MovementComponent?.LookAtDirection ?? -Enemy.GlobalTransform.Basis.Z;
-			facing.Y = 0;
-			if (facing.LengthSquared() < 0.001f) facing = -Enemy.GlobalTransform.Basis.Z;
-			float sector = GuardComponent.GuardDef?.FacingSectorDegrees ?? 120f;
-			if (toThreat.LengthSquared() > 0.001f && Mathf.RadToDeg(facing.AngleTo(toThreat)) > sector * .5f)
+			if (!GuardComponent.Covers(facing, threatOrigin - enemyPos))
 			{
-				if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.out_of_sector", ("angle", Mathf.RadToDeg(facing.AngleTo(toThreat))), ("sector", sector));
+				if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.out_of_sector", ("facing", CombatTrace.Vector(facing)),
+					("threat", CombatTrace.Vector(threatOrigin - enemyPos)));
 				return false;
 			}
 			if (!GuardComponent.IsGuarding && !GuardComponent.IsGuardRecovering)
 			{
-				if (GuardComponent.TryBeginGuard(facing.Normalized()) == DefenseRequestResult.Success)
+				if (GuardComponent.TryBeginGuard(facing) == DefenseRequestResult.Success)
 				{
 					_pressureRemaining = PressureWindow;
 					_totalGuardTime = 0f;
@@ -435,7 +416,7 @@ public partial class EnemyDefenseController : Node
 
 			if (dist <= ProjectileThreatDistance && CanObserve(projectile) && _observedProjectiles.Add(projectile.ExecutionId))
 			{
-				EnemyDefenseMode chosen = ResolveDefenseMode();
+				EnemyDefenseMode chosen = ResolveDefenseMode(guardSafe: true);
 				if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.observed", ("source", CombatTrace.Identity(projectile)), ("execution", projectile.ExecutionId.Sequence), ("decision", chosen.ToString()), ("distance", dist));
 
 				if (chosen == EnemyDefenseMode.Dodge && HasDodgeCapability)

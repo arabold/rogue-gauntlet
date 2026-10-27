@@ -241,7 +241,7 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		if (_context == null || policy == null || CurrentAction != EnemyAction.None || IsDead
 			|| MovementComponent.IsPushed || !policy.CanAttack(_context)) return false;
 		// Take a turn through the target's attack slots; a start that fails afterwards hands the slot straight back.
-		var slots = policy.UsesAttackSlot ? _context.TargetSlots : null;
+		var slots = _context.PolicySlots;
 		if (slots != null && !slots.TryReserve(Actor, policy.SlotKind)) return false;
 		if (!_attackController.TryPrepareAttack(policy.Attack, policy.Style, policy.Duration, out var attack)
 			|| !_attackController.StartAttack(attack, policy.MinDamage, policy.MaxDamage, policy.CritChance, 4))

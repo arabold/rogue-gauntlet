@@ -29,9 +29,8 @@ public partial class Projectile : Node3D, IPooledNode
 	private AttackIdentity _parentExecution;
 	private AttackDefenseTraits _defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable;
 	private AttackDefenseTraits _areaDefenseTraits;
-	private float _poiseDamage = AttackDefinition.DefaultPoiseDamage;
-	private float _knockback = AttackDefinition.DefaultKnockback;
-	private AttackThreatTier _threatTier;
+	/// <summary>The releasing attack's impact, set by its executor before flight; unset projectiles use the default.</summary>
+	public AttackImpact Impact { get; set; } = AttackImpact.Default;
 	private readonly RandomNumberGenerator _random = new();
 	public AttackIdentity ExecutionId => _executionId;
 	private static ulong _projectileSequence = 0;
@@ -83,14 +82,6 @@ public partial class Projectile : Node3D, IPooledNode
 		_parentExecution = default;
 		_attackerFaction = DamageSourceFlags.Environment;
 		SetHitBoxMonitoring(false, deferred: true);
-	}
-
-	/// <summary>Carry the releasing attack's poise damage, knockback and tier; unconfigured projectiles use the attack defaults.</summary>
-	public void ConfigureImpact(float poiseDamage, float knockback, AttackThreatTier threatTier = AttackThreatTier.Normal)
-	{
-		_poiseDamage = poiseDamage;
-		_knockback = knockback;
-		_threatTier = threatTier;
 	}
 
 	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float minDamage, float maxDamage, float critChance, Node attacker = null, AttackDefenseTraits defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, AttackDefenseTraits areaDefenseTraits = AttackDefenseTraits.Dodgeable, ulong randomSeed = 42, AttackIdentity parentExecution = default)
@@ -186,9 +177,7 @@ public partial class Projectile : Node3D, IPooledNode
 				IncomingDirection = Direction,
 				DefenseTraits = _defenseTraits,
 				DeliveryKind = DamageDeliveryKind.Projectile,
-				PoiseDamage = _poiseDamage,
-				Knockback = _knockback,
-				ThreatTier = _threatTier
+				Impact = Impact
 			};
 
 			if (damageable is ICombatDamageable combatDamageable)
@@ -337,9 +326,7 @@ public partial class Projectile : Node3D, IPooledNode
 					IncomingDirection = pushDirection,
 					DefenseTraits = _areaDefenseTraits,
 					DeliveryKind = DamageDeliveryKind.AreaImpact,
-					PoiseDamage = _poiseDamage * damageScale,
-					Knockback = _knockback,
-					ThreatTier = _threatTier
+					Impact = Impact with { PoiseDamage = Impact.PoiseDamage * damageScale }
 				};
 
 				if (damageable is ICombatDamageable areaCombatDamageable)
@@ -483,9 +470,7 @@ public partial class Projectile : Node3D, IPooledNode
 		_returnVersion++;
 		ImpactRadius = _defaultImpactRadius;
 		ImpactRadiusMinDamageScale = _defaultImpactRadiusMinDamageScale;
-		_poiseDamage = AttackDefinition.DefaultPoiseDamage;
-		_knockback = AttackDefinition.DefaultKnockback;
-		_threatTier = AttackThreatTier.Normal;
+		Impact = AttackImpact.Default;
 		SetPhysicsProcess(false);
 		ConnectHitSignal();
 		if (_hitBoxComponent != null)

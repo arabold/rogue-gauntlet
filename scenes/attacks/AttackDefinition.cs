@@ -44,17 +44,12 @@ public partial class AttackDefinition : Resource
 	[Export] public AttackDefenseTraits AreaDefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable;
 
 	/// <summary>
-	/// Readable threat tier. Heavy attacks break an unparried guard and need Guardable; Unblockable attacks
-	/// must be Dodgeable only. Monster Heavy/Unblockable melee shows its footprint through an <see cref="AttackTelegraph"/>.
+	/// Threat label derived from <see cref="DefenseTraits"/>. Monster Heavy (BreaksGuard) and Unblockable (neither
+	/// Guardable nor Parryable) melee shows its footprint through an <see cref="AttackTelegraph"/>.
 	/// </summary>
-	[Export] public AttackThreatTier ThreatTier { get; set; } = AttackThreatTier.Normal;
+	public AttackThreatTier ThreatTier => DefenseTraits.ThreatTier();
 
-	public bool HasConsistentThreat => ThreatTier switch
-	{
-		AttackThreatTier.Heavy => (DefenseTraits & AttackDefenseTraits.Guardable) != 0,
-		AttackThreatTier.Unblockable => DefenseTraits == AttackDefenseTraits.Dodgeable,
-		_ => true
-	};
+	public AttackImpact Impact => new(PoiseDamage, Knockback);
 
 	/// <summary>Stable gameplay volume; null uses the weapon or actor default contact profile.</summary>
 	[Export] public MeleeAttackProfile MeleeContact { get; set; }
@@ -170,14 +165,23 @@ public partial class AttackDefinition : Resource
 	/// <summary>Whether the normalized execution progress lies inside the authored hyper-armor interval.</summary>
 	public bool IsHyperArmoredAt(float progress) => HyperArmorEnd > HyperArmorStart && progress >= HyperArmorStart && progress < HyperArmorEnd;
 
-	/// <summary>Validate impact and tracking settings against the prepared contact start (seconds).</summary>
-	public bool HasValidImpact(float contactStart) =>
+	/// <summary>Poise damage, knockback, hit-stop and wind-up turn rate are nonnegative and finite.</summary>
+	public bool HasValidImpactValues =>
 		float.IsFinite(PoiseDamage) && PoiseDamage >= 0
 		&& float.IsFinite(Knockback) && Knockback >= 0
 		&& float.IsFinite(HitStopDuration) && HitStopDuration >= 0
-		&& float.IsFinite(WindUpTurnRate) && WindUpTurnRate >= 0
-		&& HyperArmorStart >= 0 && HyperArmorStart <= HyperArmorEnd && HyperArmorEnd <= 1
-		&& float.IsFinite(FacingLockLead) && FacingLockLead >= 0
-		&& (FacingLockLead == 0 || (!IsRanged && FacingLockLead <= contactStart));
+		&& float.IsFinite(WindUpTurnRate) && WindUpTurnRate >= 0;
+
+	public bool HasValidArmorWindow => HyperArmorStart >= 0 && HyperArmorStart <= HyperArmorEnd && HyperArmorEnd <= 1;
+
+	/// <summary>A positive lead is melee-only and no longer than the prepared contact start (seconds), when one is known.</summary>
+	public bool HasValidFacingLock(float? contactStart) => float.IsFinite(FacingLockLead) && FacingLockLead >= 0
+		&& (FacingLockLead == 0 || (!IsRanged && (contactStart == null || FacingLockLead <= contactStart)));
+
+	/// <summary>
+	/// Impact and tracking rules shared by attack preparation and <see cref="MonsterSceneValidator"/>, against
+	/// the prepared contact start in seconds.
+	/// </summary>
+	public bool HasValidImpact(float contactStart) => HasValidImpactValues && HasValidArmorWindow && HasValidFacingLock(contactStart);
 
 }

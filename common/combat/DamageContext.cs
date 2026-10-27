@@ -7,14 +7,42 @@ public enum AttackDefenseTraits
 	None = 0,
 	Dodgeable = 1,
 	Guardable = 2,
-	Parryable = 4
+	Parryable = 4,
+	/// <summary>An unparried contact against a raised guard breaks it and staggers the defender.</summary>
+	BreaksGuard = 8
 }
 
 /// <summary>
-/// Readable threat language for an attack. Normal attacks allow their authored defenses; Heavy attacks
-/// break a guard that does not parry them; Unblockable attacks can only be dodged.
+/// Readable threat label derived from an attack's <see cref="AttackDefenseTraits"/>: Unblockable attacks can be
+/// neither guarded nor parried, Heavy attacks break guard, everything else is Normal. Drives telegraphs and
+/// the minimum readable wind-up; the traits remain the single source of what a defense can do.
 /// </summary>
 public enum AttackThreatTier { Normal, Heavy, Unblockable }
+
+public static class AttackThreatRules
+{
+	public static AttackThreatTier ThreatTier(this AttackDefenseTraits traits) =>
+		(traits & (AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable)) == 0 ? AttackThreatTier.Unblockable
+		: (traits & AttackDefenseTraits.BreaksGuard) != 0 ? AttackThreatTier.Heavy : AttackThreatTier.Normal;
+
+	/// <summary>A guard both stops the contact and survives it.</summary>
+	public static bool IsSafeToGuard(this AttackDefenseTraits traits) =>
+		(traits & AttackDefenseTraits.Guardable) != 0 && (traits & AttackDefenseTraits.BreaksGuard) == 0;
+
+	/// <summary>Seconds from attack start to contact a monster attack of this tier needs so a player can read and answer it.</summary>
+	public static float MinimumWindUp(this AttackThreatTier tier) => tier switch
+	{
+		AttackThreatTier.Heavy => .5f,
+		AttackThreatTier.Unblockable => .6f,
+		_ => .35f
+	};
+}
+
+/// <summary>How hard a contact hits beyond its damage: poise removed and push on interruption or stagger.</summary>
+public readonly record struct AttackImpact(float PoiseDamage, float Knockback)
+{
+	public static readonly AttackImpact Default = new(AttackDefinition.DefaultPoiseDamage, AttackDefinition.DefaultKnockback);
+}
 
 public enum DamageDeliveryKind
 {
@@ -42,5 +70,11 @@ public readonly record struct DamageContext
 	public float PoiseDamage { get; init; }
 	/// <summary>Push strength applied only when the contact interrupts or staggers its defender.</summary>
 	public float Knockback { get; init; }
-	public AttackThreatTier ThreatTier { get; init; }
+
+	/// <summary>Both impact values at once, so contact builders copy an attack's impact in one assignment.</summary>
+	public AttackImpact Impact
+	{
+		get => new(PoiseDamage, Knockback);
+		init { PoiseDamage = value.PoiseDamage; Knockback = value.Knockback; }
+	}
 }

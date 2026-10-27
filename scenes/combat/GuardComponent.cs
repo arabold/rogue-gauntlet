@@ -33,6 +33,18 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 		return GuardFacing.LengthSquared() > 0.001f ? GuardFacing.Normalized() : Vector3.Forward;
 	}
 
+	/// <summary>
+	/// Whether a threat lying along <paramref name="towardThreat"/> falls inside this guard's frontal sector
+	/// around <paramref name="facing"/>. The one sector rule for both blocking and the AI's decision to guard.
+	/// </summary>
+	public bool Covers(Vector3 facing, Vector3 towardThreat)
+	{
+		facing.Y = 0;
+		towardThreat.Y = 0;
+		if (EffectiveDefinition == null || facing.LengthSquared() < 0.0001f || towardThreat.LengthSquared() < 0.0001f) return false;
+		return Mathf.RadToDeg(facing.AngleTo(towardThreat)) <= EffectiveDefinition.FacingSectorDegrees * 0.5f;
+	}
+
 	private float _guardElapsed;
 	private float _timeSinceGuardRelease = 100f;
 	private float _guardRecoveryRemaining;
@@ -238,41 +250,34 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 					}
 				}
 
-				Vector3 horizOpposite = new(-incoming.X, 0, -incoming.Z);
-				Vector3 horizFacing = GetEffectiveGuardFacing();
-
-				if (horizOpposite.LengthSquared() > 0.0001f && horizFacing.LengthSquared() > 0.0001f)
+				if (Covers(GetEffectiveGuardFacing(), -incoming))
 				{
-					float angle = Mathf.RadToDeg(horizFacing.Normalized().AngleTo(horizOpposite.Normalized()));
-					if (angle <= EffectiveDefinition.FacingSectorDegrees * 0.5f)
+					bool parryWindowActive = _isParryEligible && _guardElapsed < EffectiveDefinition.ParryWindow;
+					if (parryWindowActive && (contact.DefenseTraits & AttackDefenseTraits.Parryable) != 0)
 					{
-						bool parryWindowActive = _isParryEligible && _guardElapsed < EffectiveDefinition.ParryWindow;
-						if (parryWindowActive && (contact.DefenseTraits & AttackDefenseTraits.Parryable) != 0)
-						{
-							_isParryEligible = false;
+						_isParryEligible = false;
 
-							// Only the captured executor can authorize interruption of its current attack.
-							if (GodotObject.IsInstanceValid(contact.SourceNode) && contact.SourceNode is IParryInterruptible source)
-								source.TryInterruptForParry(contact.ExecutionId, EffectiveDefinition.ParryStaggerDuration);
+						// Only the captured executor can authorize interruption of its current attack.
+						if (GodotObject.IsInstanceValid(contact.SourceNode) && contact.SourceNode is IParryInterruptible source)
+							source.TryInterruptForParry(contact.ExecutionId, EffectiveDefinition.ParryStaggerDuration);
 
-							PlayParryAnimation();
-							EmitSignalParrySuccessful();
-							evaluation = new DefenseEvaluation(DamageOutcome.Parried, 0f, ConsumesParry: true, SuppressHitStun: true);
-							return true;
-						}
-
-						if (contact.ThreatTier == AttackThreatTier.Heavy)
-						{
-							evaluation = BreakGuard(contact.Amount);
-							return true;
-						}
-
-						PlayBlockHitAnimation();
-						float chipDamage = contact.Amount * EffectiveDefinition.DamageMultiplier;
-						EmitSignalBlockSuccessful(chipDamage);
-						evaluation = new DefenseEvaluation(DamageOutcome.Blocked, chipDamage, ConsumesParry: false, SuppressHitStun: true);
+						PlayParryAnimation();
+						EmitSignalParrySuccessful();
+						evaluation = new DefenseEvaluation(DamageOutcome.Parried, 0f, ConsumesParry: true, SuppressHitStun: true);
 						return true;
 					}
+
+					if ((contact.DefenseTraits & AttackDefenseTraits.BreaksGuard) != 0)
+					{
+						evaluation = BreakGuard(contact.Amount);
+						return true;
+					}
+
+					PlayBlockHitAnimation();
+					float chipDamage = contact.Amount * EffectiveDefinition.DamageMultiplier;
+					EmitSignalBlockSuccessful(chipDamage);
+					evaluation = new DefenseEvaluation(DamageOutcome.Blocked, chipDamage, ConsumesParry: false, SuppressHitStun: true);
+					return true;
 				}
 			}
 		}

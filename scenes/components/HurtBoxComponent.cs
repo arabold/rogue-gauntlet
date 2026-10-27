@@ -106,7 +106,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 				("traits", snapshot.DefenseTraits.ToString()), ("incoming", CombatTrace.Vector(snapshot.IncomingDirection)),
 				("raw_damage", snapshot.Amount), ("armor", Armor),
 				("armor_roll", armorRoll), ("poise_damage", snapshot.PoiseDamage), ("reaction", reaction?.ToString() ?? "None"),
-				("poise", Poise?.Current), ("zone", zone.ToString()), ("unaware", unaware), ("tier", snapshot.ThreatTier.ToString()),
+				("poise", Poise?.Current), ("zone", zone.ToString()), ("unaware", unaware),
 				("outcome", outcome.ToString()), ("damage", amount), ("health", HealthComponent?.CurrentHealth));
 			return Report(outcome, amount, zone, unaware);
 		}

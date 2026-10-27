@@ -631,10 +631,6 @@ public class MeleeContactTest
 		AssertBool(Prepare(d => d.PoiseDamage = -1)).IsFalse();
 		AssertBool(Prepare(d => d.Knockback = float.NaN)).IsFalse();
 		AssertBool(Prepare(d => d.WindUpTurnRate = -1)).IsFalse();
-		AssertBool(Prepare(d => d.ThreatTier = AttackThreatTier.Heavy)).IsTrue();
-		AssertBool(Prepare(d => { d.ThreatTier = AttackThreatTier.Heavy; d.DefenseTraits = AttackDefenseTraits.Dodgeable; })).IsFalse();
-		AssertBool(Prepare(d => d.ThreatTier = AttackThreatTier.Unblockable)).IsFalse();
-		AssertBool(Prepare(d => { d.ThreatTier = AttackThreatTier.Unblockable; d.DefenseTraits = AttackDefenseTraits.Dodgeable; })).IsTrue();
 	}
 
 	/// <summary>An AI wind-up's capped turn cannot snap onto a target that circles it.</summary>

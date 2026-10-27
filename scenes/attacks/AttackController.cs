@@ -130,7 +130,7 @@ public partial class AttackController : Node, IParryInterruptible
 			copy.HitWindowStart = (float)duration * playback.ContactStart;
 			copy.HitWindowEnd = (float)duration * playback.ContactEnd;
 		}
-		if (!copy.HasValidImpact(copy.HitWindowStart) || !copy.HasConsistentThreat) return false;
+		if (!copy.HasValidImpact(copy.HitWindowStart)) return false;
 		if (!float.IsFinite(copy.ProjectileAimLockDuration) || copy.ProjectileAimLockDuration < 0) return false;
 		if (copy.ProjectileAimLockDuration > 0 && (!copy.IsRanged
 			|| copy.ProjectilePattern is not (ProjectilePattern.Single or ProjectilePattern.Spread)
@@ -412,9 +412,7 @@ public partial class AttackController : Node, IParryInterruptible
 			IncomingDirection = incomingDir,
 			DefenseTraits = traits,
 			DeliveryKind = DamageDeliveryKind.DirectMelee,
-			PoiseDamage = _currentAttack.PoiseDamage,
-			Knockback = _currentAttack.Knockback,
-			ThreatTier = _currentAttack.ThreatTier
+			Impact = _currentAttack.Impact
 		};
 
 		if (target is ICombatDamageable combatDamageable)
@@ -484,7 +482,6 @@ public partial class AttackController : Node, IParryInterruptible
 				_currentMaxDamage * _currentAttack.ProjectileDamageScale,
 				_currentCritChance,
 				_actor, _currentAttack.DefenseTraits, _currentAttack.AreaDefenseTraits, _random.Randi(), CurrentExecutionId);
-			projectile.ConfigureImpact(_currentAttack.PoiseDamage, _currentAttack.Knockback, _currentAttack.ThreatTier);
 
 			GameDebug.Combat($"{_actor.Name} spawned projectile flying {direction}");
 		}
@@ -511,7 +508,6 @@ public partial class AttackController : Node, IParryInterruptible
 				_currentMaxDamage * _currentAttack.ProjectileDamageScale,
 				_currentCritChance,
 				_actor, _currentAttack.DefenseTraits, _currentAttack.AreaDefenseTraits, _random.Randi(), CurrentExecutionId);
-			projectile.ConfigureImpact(_currentAttack.PoiseDamage, _currentAttack.Knockback, _currentAttack.ThreatTier);
 
 			GameDebug.Combat($"{_actor.Name} spawned area drop at {targetPosition}");
 		}
@@ -519,6 +515,7 @@ public partial class AttackController : Node, IParryInterruptible
 
 	private void ApplyProjectileOverrides(Projectile projectile)
 	{
+		projectile.Impact = _currentAttack.Impact;
 		if (_currentAttack.ImpactRadiusOverride >= 0.0f)
 		{
 			projectile.ImpactRadius = _currentAttack.ImpactRadiusOverride;

@@ -22,7 +22,7 @@ Guard pressure can prolong a response within its maximum hold. Normal release fi
 
 A parry staggers the attacker for the guard's `ParryStaggerDuration` (0.9 s for the shared weapon and shield guards), long enough to answer. Hits on the staggered attacker deal its poise definition's staggered bonus, so a riposte needs no separate system.
 
-An unparried **Heavy** contact breaks a raised guard: it returns `GuardBroken`, lands `GuardBreakDamageMultiplier` of its damage before armor, and staggers the defender for `GuardBreakStaggerDuration`. The parry window still beats a Heavy attack.
+An unparried contact with the `BreaksGuard` defense trait breaks a raised guard: it returns `GuardBroken`, lands `GuardBreakDamageMultiplier` of its damage before armor, and staggers the defender for `GuardBreakStaggerDuration`. The parry window still beats a Heavy attack.
 
 Presentation is explicitly assigned in the actor scene. Attacks, defenses and stagger share one pose owner and gameplay clock. Missing required clips make the capability unavailable rather than silently selecting unrelated animations.
 
@@ -42,15 +42,17 @@ Hit-stop pauses only the attacker's execution clock and pose, once per swing, af
 
 ## Threat tiers and telegraphs
 
-Each attack has an `AttackThreatTier`:
+An attack's `DefenseTraits` (Dodgeable, Guardable, Parryable, BreaksGuard) are the single source of what defenses do against it. Its `AttackThreatTier` is a label derived from them:
 
-| Tier | Guard | Parry | Dodge | Telegraph |
-| --- | --- | --- | --- | --- |
-| Normal | Blocks with chip damage | Yes | Yes | The wind-up animation |
-| Heavy | Breaks (see above) | Yes | Yes | Orange ground footprint |
-| Unblockable | No | No | Yes | Red ground footprint |
+| Tier | Derived from | Guard | Parry | Dodge | Telegraph |
+| --- | --- | --- | --- | --- | --- |
+| Normal | Guardable or Parryable, no BreaksGuard | Blocks with chip damage | If Parryable | If Dodgeable | The wind-up animation |
+| Heavy | BreaksGuard | Breaks (see above) | If Parryable | If Dodgeable | Orange ground footprint |
+| Unblockable | Neither Guardable nor Parryable | No | No | If Dodgeable | Red ground footprint |
 
-Preparation rejects a Heavy attack that is not Guardable and an Unblockable attack that is anything but Dodgeable. A monster's Heavy or Unblockable melee draws its contact footprint through an assigned `AttackTelegraph` (`attack_telegraph.tscn`). The footprint follows tracking, brightens with a short cue when facing commits, and disappears when the contact window closes or the attack is interrupted. It is presentation only. Validation requires the telegraph for those tiers and a minimum wind-up before contact: 0.35 s Normal, 0.5 s Heavy, 0.6 s Unblockable. The Warden's slash is Heavy; the player's default melee secondary is Heavy, so it breaks a monster's guard.
+A monster's Heavy or Unblockable melee draws its contact footprint through an assigned `AttackTelegraph` (`attack_telegraph.tscn`). The footprint is the same outline the hit detector extrudes (`MeleeAttackProfile.FootprintOutline`), so it shows the real hit area. It follows tracking, brightens with a short cue when facing commits, and disappears when the contact window closes or the attack is interrupted. It is presentation only. Validation requires the telegraph for those tiers and a minimum wind-up before contact: 0.35 s Normal, 0.5 s Heavy, 0.6 s Unblockable.
+
+The Warden's slash is Normal, so blocking it leaves time to counter-attack during its recovery: block, attack, block. The Warden keeps its `AttackTelegraph` wired for a future guard-breaking attack. The player's default melee secondary breaks guard, so it breaks a monster's guard.
 
 ## Projectile warnings
 
@@ -87,7 +89,7 @@ Monsters using `EngagementRingStrategy` (skeleton minion and warrior) approach w
 
 ## Enemy decisions and persistence
 
-Enemies react to visible, plausible threats after an authored delay. They cannot read player inputs or reroll each frame: one threat produces one categorical dodge/guard/no-response choice. A guard choice against a Heavy or Unblockable attack becomes a dodge when the monster can dodge, otherwise no response; forced harness modes are not filtered. Directional checks, cooldowns, pressure and recovery still govern execution. See [monster policies](monster-authoring-design.md#independent-capabilities-and-policies).
+Enemies react to visible, plausible threats after an authored delay. They cannot read player inputs or reroll each frame: one threat produces one categorical dodge/guard/no-response choice. The defense policy's guard interval dodges instead when the observed attack is unsafe to guard (not Guardable, or BreaksGuard) and the monster can dodge, otherwise it does not respond; forced harness modes bypass the policy. Directional checks, cooldowns, pressure and recovery still govern execution. See [monster policies](monster-authoring-design.md#independent-capabilities-and-policies).
 
 Monster melee wind-ups track their target no faster than the attack's `WindUpTurnRate`, then hold the facing committed `FacingLockLead` seconds before contact (see [reliable melee contact](weapon-attack-system.md#reliable-melee-contact)). Moving sideways during that window can make a committed swing miss.
 

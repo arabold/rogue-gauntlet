@@ -13,7 +13,6 @@ HyperArmorEnd = 0.5
 HitStopDuration = 0.05
 FacingLockLead = 0.4
 WindUpTurnRate = 60.0
-ThreatTier = 1
 
 [resource]
 script = ExtResource("policy")

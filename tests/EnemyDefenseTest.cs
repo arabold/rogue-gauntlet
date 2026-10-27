@@ -563,7 +563,7 @@ public partial class EnemyDefenseTest
 
 	/// <summary>Raise a forced guard against a started attack and advance it the given time.</summary>
 	private static (EnemyBase Enemy, GuardComponent Guard, HurtBoxComponent Hurtbox, HealthComponent Health, Node3D Root, AttackController Attack, CharacterBody3D Player)
-		GuardAgainst(AttackThreatTier tier, float guardTime)
+		GuardAgainst(bool breaksGuard, float guardTime)
 	{
 		var (enemy, controller, guard, hurtbox, health) = CreateShieldEnemy();
 		controller.Mode = EnemyDefenseMode.GuardParry;
@@ -575,7 +575,7 @@ public partial class EnemyDefenseTest
 		var root = new Node3D();
 		root.AddChild(player);
 		root.AddChild(enemy);
-		var def = new AttackDefinition { HitWindowStart = 0.3f, HitWindowEnd = 0.6f, MeleeContact = attackCtrl.DefaultMeleeContact, ThreatTier = tier };
+		var def = new AttackDefinition { HitWindowStart = 0.3f, HitWindowEnd = 0.6f, MeleeContact = attackCtrl.DefaultMeleeContact, DefenseTraits = Traits(breaksGuard) };
 		AssertBool(attackCtrl.StartAttack(def, 20, 20, 0, 8)).IsTrue();
 		controller._PhysicsProcess(0.02f);
 		controller._PhysicsProcess(0.05f);
@@ -584,7 +584,10 @@ public partial class EnemyDefenseTest
 		return (enemy, guard, hurtbox, health, root, attackCtrl, player);
 	}
 
-	private static DamageContext Swing(AttackController attack, Node player, AttackThreatTier tier) => new()
+	private static AttackDefenseTraits Traits(bool breaksGuard) =>
+		AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable | (breaksGuard ? AttackDefenseTraits.BreaksGuard : AttackDefenseTraits.None);
+
+	private static DamageContext Swing(AttackController attack, Node player, bool breaksGuard) => new()
 	{
 		ExecutionId = attack.CurrentExecutionId,
 		Amount = 20f,
@@ -592,15 +595,14 @@ public partial class EnemyDefenseTest
 		SourceNode = attack,
 		OwnerNode = player,
 		Faction = DamageSourceFlags.Player,
-		DefenseTraits = AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable,
-		ThreatTier = tier
+		DefenseTraits = Traits(breaksGuard)
 	};
 
 	[TestCase]
 	public void HeavyAttackBreaksAnUnparriedGuardAndStaggersTheDefender()
 	{
-		var (_, guard, hurtbox, health, root, attack, player) = GuardAgainst(AttackThreatTier.Heavy, 0.3f);
-		var result = hurtbox.ResolveDamage(Swing(attack, player, AttackThreatTier.Heavy));
+		var (_, guard, hurtbox, health, root, attack, player) = GuardAgainst(breaksGuard: true, 0.3f);
+		var result = hurtbox.ResolveDamage(Swing(attack, player, breaksGuard: true));
 		AssertObject(result.Outcome).IsEqual(DamageOutcome.GuardBroken);
 		AssertFloat(health.CurrentHealth).IsEqual(100f - 20f * guard.GuardDef.GuardBreakDamageMultiplier);
 		AssertBool(guard.IsGuarding).IsFalse();
@@ -611,13 +613,13 @@ public partial class EnemyDefenseTest
 	[TestCase]
 	public void ParryStillBeatsAHeavyAttackAndNormalAttacksStillOnlyBlock()
 	{
-		var (_, _, hurtbox, health, root, attack, player) = GuardAgainst(AttackThreatTier.Heavy, 0.05f);
-		AssertObject(hurtbox.ResolveDamage(Swing(attack, player, AttackThreatTier.Heavy)).Outcome).IsEqual(DamageOutcome.Parried);
+		var (_, _, hurtbox, health, root, attack, player) = GuardAgainst(breaksGuard: true, 0.05f);
+		AssertObject(hurtbox.ResolveDamage(Swing(attack, player, breaksGuard: true)).Outcome).IsEqual(DamageOutcome.Parried);
 		AssertFloat(health.CurrentHealth).IsEqual(100f);
 		root.QueueFree();
 
-		var (_, guard, normalHurtbox, _, normalRoot, normalAttack, normalPlayer) = GuardAgainst(AttackThreatTier.Normal, 0.3f);
-		AssertObject(normalHurtbox.ResolveDamage(Swing(normalAttack, normalPlayer, AttackThreatTier.Normal)).Outcome).IsEqual(DamageOutcome.Blocked);
+		var (_, guard, normalHurtbox, _, normalRoot, normalAttack, normalPlayer) = GuardAgainst(breaksGuard: false, 0.3f);
+		AssertObject(normalHurtbox.ResolveDamage(Swing(normalAttack, normalPlayer, breaksGuard: false)).Outcome).IsEqual(DamageOutcome.Blocked);
 		AssertBool(guard.IsGuarding).IsTrue();
 		normalRoot.QueueFree();
 	}
@@ -644,12 +646,26 @@ public partial class EnemyDefenseTest
 		root.QueueFree();
 	}
 
+	/// <summary>The policy's guard interval dodges (or does nothing) against attacks that are unsafe to guard.</summary>
 	[TestCase]
-	public void AiDoesNotChooseGuardAgainstHeavyOrUnblockableAttacks()
+	public void AiDoesNotChooseGuardAgainstAttacksThatAreUnsafeToGuard()
 	{
-		AssertObject(EnemyDefenseController.ForThreat(EnemyDefenseMode.GuardParry, AttackThreatTier.Normal, true)).IsEqual(EnemyDefenseMode.GuardParry);
-		AssertObject(EnemyDefenseController.ForThreat(EnemyDefenseMode.GuardParry, AttackThreatTier.Heavy, true)).IsEqual(EnemyDefenseMode.Dodge);
-		AssertObject(EnemyDefenseController.ForThreat(EnemyDefenseMode.GuardParry, AttackThreatTier.Unblockable, false)).IsEqual(EnemyDefenseMode.None);
-		AssertObject(EnemyDefenseController.ForThreat(EnemyDefenseMode.Dodge, AttackThreatTier.Heavy, true)).IsEqual(EnemyDefenseMode.Dodge);
+		AssertBool(Traits(false).IsSafeToGuard()).IsTrue();
+		AssertBool(Traits(true).IsSafeToGuard()).IsFalse();
+		AssertBool(AttackDefenseTraits.Dodgeable.IsSafeToGuard()).IsFalse();
+		using var strategy = new EnemyDefenseStrategy { DodgeChance = .2f, GuardChance = .5f };
+		AssertObject(strategy.Choose(true, true, .3f, guardSafe: true)).IsEqual(EnemyDefenseMode.GuardParry);
+		AssertObject(strategy.Choose(true, true, .3f, guardSafe: false)).IsEqual(EnemyDefenseMode.Dodge);
+		AssertObject(strategy.Choose(true, false, .3f, guardSafe: false)).IsEqual(EnemyDefenseMode.None);
+		AssertObject(strategy.Choose(true, true, .1f, guardSafe: false)).IsEqual(EnemyDefenseMode.Dodge);
+	}
+
+	[TestCase]
+	public void ThreatTierIsDerivedFromTheDefenseTraits()
+	{
+		AssertObject(Traits(false).ThreatTier()).IsEqual(AttackThreatTier.Normal);
+		AssertObject(Traits(true).ThreatTier()).IsEqual(AttackThreatTier.Heavy);
+		AssertObject(AttackDefenseTraits.Dodgeable.ThreatTier()).IsEqual(AttackThreatTier.Unblockable);
+		AssertObject((AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable).ThreatTier()).IsEqual(AttackThreatTier.Normal);
 	}
 }

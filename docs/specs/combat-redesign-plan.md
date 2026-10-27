@@ -1,6 +1,6 @@
 # Combat redesign: remaining player kit
 
-Status: slices 1–4 are implemented: poise and hit-stop, committed monster wind-ups, rear and sneak hits, dodging through monsters, attack slots with an engagement ring, threat tiers with guard break and telegraphs, and strike-aligned monster contact windows. [Combat actions and defense](../combat-system.md) and [weapon attacks](../weapon-attack-system.md) describe them; [monster authoring](../monster-authoring-design.md) covers their authoring. This plan records only the remaining player-kit slice; the [roadmap](../development-roadmap.md) owns priority. When it lands, move its rules into those documents and remove this plan.
+Status: slices 1–4 are implemented: poise and hit-stop, committed monster wind-ups, rear and sneak hits, dodging through monsters, attack slots with an engagement ring, threat tiers with guard break and telegraphs, and strike-aligned monster contact windows. [Combat actions and defense](../combat-system.md) and [weapon attacks](../weapon-attack-system.md) describe them; [monster authoring](../monster-authoring-design.md) covers their authoring. This plan records only the remaining player-kit slice and a Warden guard-breaking attack; the [roadmap](../development-roadmap.md) owns priority. When it lands, move its rules into those documents and remove this plan.
 
 ## Goal
 
@@ -83,6 +83,14 @@ public sealed class InputIntentBuffer(double window)
 - `PlayerSaveCodecTest` and `SaveGameVersionTest` round trips.
 - A harness review of buffered dodges out of a combo.
 
+## Warden guard-breaking attack
+
+The Warden's slash is now Normal, so blocking it and countering during its recovery works. Guard break then has no monster user. Give the Warden a second, clearly different attack so guarding him stays a choice rather than a habit:
+
+- **Overhead slam:** `BreaksGuard` plus Guardable, Parryable and Dodgeable traits, so it reads as Heavy with the orange footprint through the already-wired `AttackTelegraph`. A wind-up of at least the Heavy minimum (0.5 s), ideally longer than the slash, and hyper-armor through the swing. It needs a distinct clip or a slower playback of an existing one.
+- **Attack selection:** monsters currently have one `EnemyAttackStrategy`. Add an ordered list of attack policies on `EnemyBehaviorProfile` with an authored choice rule (weights, cooldown per entry, optional "target is guarding" preference from visible guard state, never player input). The executor, slots, validator and defense observation keep working per accepted attack.
+- **Verification:** validator coverage for every listed attack, a harness review of block → counter against the slash and parry/dodge against the slam, and the authoring guide updated for multiple attacks.
+
 ## Delivery and verification
 
 One vertical slice. Defaults reproduce current behavior until a weapon opts into a combo or a dodge definition into charges. Run:
@@ -125,5 +133,5 @@ docs/                                           ~ combat-system.md, weapon-attac
 - **Guard-walk animation.** KayKit rigs may lack a guarded walk. Keep `MovementSpeedMultiplier` at 0 where no matching clip exists.
 - **Charged secondary and depth-scaled attack slots.** Deferred until playtests show a need.
 - **Playtest review of slices 1–4.** Engagement-ring navigation and ring spacing in generated rooms, dodging through monsters next to walls, sneak-attack frequency, Warden guard-break and riposte pacing, and whether flinches read clearly enough (a material flash or additive hit-react blend remains open). Headless runs cannot bake a navmesh, so ring movement needs the editor.
-- **Multi-attack monster policies.** Richer tier mixes (a Warden with Normal, Heavy and Unblockable attacks, or an Unblockable area monster) need attack selection beyond one policy per monster.
+- **Further multi-attack content.** After the Warden slam, the same attack selection serves Unblockable area monsters and other tier mixes.
 - **Player rear vulnerability.** The player has no vulnerability profile; revisit if being surrounded is not dangerous enough.

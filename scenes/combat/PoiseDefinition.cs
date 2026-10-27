@@ -4,6 +4,7 @@ using Godot;
 /// Authored hit-reaction tuning for one kind of actor. Shared and immutable at runtime; each
 /// <see cref="PoiseComponent"/> keeps its own meter.
 /// </summary>
+[Tool]
 [GlobalClass]
 public partial class PoiseDefinition : Resource
 {
