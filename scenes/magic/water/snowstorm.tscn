@@ -1,0 +1,85 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/water/WaterSpellVisual.cs" id="root"]
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Script" path="res://scenes/magic/water/SnowstormVisual.cs" id="storm"]
+[ext_resource type="Shader" path="res://scenes/magic/water/snowstorm.gdshader" id="wind_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/water/snowstorm_wall.gdshader" id="wall_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/water/snowflake.gdshader" id="snow_shader"]
+[ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[sub_resource type="ShaderMaterial" id="wind_material"]
+shader = ExtResource("wind_shader")
+shader_parameter/noise_texture = ExtResource("noise")
+[sub_resource type="PlaneMesh" id="wind_mesh"]
+size = Vector2(8.75, 8.75)
+[sub_resource type="ShaderMaterial" id="wall_material"]
+shader = ExtResource("wall_shader")
+shader_parameter/noise_texture = ExtResource("noise")
+[sub_resource type="CylinderMesh" id="wall_mesh"]
+top_radius = 4.0
+bottom_radius = 4.0
+height = 3.8
+radial_segments = 64
+rings = 2
+cap_top = false
+cap_bottom = false
+[sub_resource type="ShaderMaterial" id="snow_material"]
+shader = ExtResource("snow_shader")
+[sub_resource type="QuadMesh" id="snow_mesh"]
+size = Vector2(0.36, 0.10)
+[sub_resource type="ParticleProcessMaterial" id="snow_process"]
+emission_shape = 3
+emission_box_extents = Vector3(3.7, 2.2, 3.7)
+direction = Vector3(1, -0.15, 0.35)
+spread = 26.0
+initial_velocity_min = 5.0
+initial_velocity_max = 10.0
+gravity = Vector3(0, -0.6, 0)
+angular_velocity_min = -150.0
+angular_velocity_max = 150.0
+scale_min = 0.5
+scale_max = 1.3
+
+[node name="Snowstorm" type="Node3D" node_paths=PackedStringArray("Timeline", "Snowstorm")]
+script = ExtResource("root")
+Timeline = NodePath("Timeline")
+Snowstorm = NodePath("Motion")
+Area = true
+[node name="Wind" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.12, 0)
+material_override = SubResource("wind_material")
+cast_shadow = 0
+mesh = SubResource("wind_mesh")
+[node name="WindWall" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.85, 0)
+material_override = SubResource("wall_material")
+cast_shadow = 0
+mesh = SubResource("wall_mesh")
+[node name="Snow" type="GPUParticles3D" parent="."]
+position = Vector3(0, 2.0, 0)
+material_override = SubResource("snow_material")
+cast_shadow = 0
+amount = 400
+lifetime = 1.15
+randomness = 0.8
+local_coords = true
+visibility_aabb = AABB(-10, -5, -10, 20, 14, 20)
+process_material = SubResource("snow_process")
+draw_pass_1 = SubResource("snow_mesh")
+[node name="Light" type="OmniLight3D" parent="."]
+position = Vector3(0, 1.4, 0)
+light_color = Color(0.38, 0.72, 1, 1)
+light_energy = 0.75
+omni_range = 7.0
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
+script = ExtResource("timeline")
+Surfaces = [NodePath("../Wind"), NodePath("../WindWall")]
+Lights = [NodePath("../Light")]
+Emitters = [NodePath("../Snow")]
+Duration = 3.6
+FadeIn = 0.12
+FadeOutStart = 0.7
+[node name="Motion" type="Node" parent="." node_paths=PackedStringArray("Timeline", "Snow")]
+script = ExtResource("storm")
+Timeline = NodePath("../Timeline")
+Snow = NodePath("../Snow")

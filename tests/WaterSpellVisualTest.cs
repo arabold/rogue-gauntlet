@@ -56,14 +56,58 @@ public partial class WaterSpellVisualTest
 		AssertBool(((ShaderMaterial)crystal.Mesh.SurfaceGetMaterial(0)).GetShaderParameter("area_clip_enabled").AsBool()).IsTrue();
 		await preview.ToSignal(preview.GetTree().CreateTimer(1.5), SceneTreeTimer.SignalName.Timeout);
 		AssertBool(!GodotObject.IsInstanceValid(lance) && !GodotObject.IsInstanceValid(impact)).IsTrue();
-		for (int index = 2; index < 5; index++)
+		foreach (int index in new[] { 2, 4 })
 		{
 			preview.SetLevel(3); preview.SelectSpell(index); preview.Cast();
 			var guard = preview.GetChildren().OfType<WaterSpellVisual>().Single();
-			AssertBool(guard.Crystals.GetChildCount() >= 8).IsTrue();
+			if (index == 2) AssertBool(guard.Crystals.GetChildCount() >= 8).IsTrue();
+			else AssertBool(guard.Serpent.Heads.Length == 2).IsTrue();
 			preview.ClearGuard(); AssertBool(guard.Visible).IsFalse();
 			await runner.SimulateFrames(2);
 			AssertBool(GodotObject.IsInstanceValid(guard)).IsFalse();
 		}
 	}
+	[TestCase]
+	public async Task SnowstormScalesAndClipsWithoutFreezingTargets()
+	{
+		using var runner = ISceneRunner.Load("res://scenes/debug/effects/water_spell_preview.tscn", true);
+		await runner.SimulateFrames(5);
+		var preview = (WaterSpellPreview)runner.Scene();
+		preview.SetLevel(3); preview.SelectSpell(3); preview.Cast();
+		var storm = preview.GetChildren().OfType<WaterSpellVisual>().Single();
+		AssertFloat(storm.PreviewRadius).IsEqualApprox(6.5, .001);
+		AssertInt(storm.Snowstorm.Snow.Amount).IsEqual(800);
+		var material = (ShaderMaterial)storm.Snowstorm.Snow.MaterialOverride;
+		AssertBool(material.GetShaderParameter("area_clip_enabled").AsBool()).IsTrue();
+		AssertFloat(material.GetShaderParameter("storm_radius").AsSingle()).IsEqualApprox(6.5, .001);
+		AssertBool(storm.Timeline.Surfaces.All(layer => ((ShaderMaterial)layer.MaterialOverride).GetShaderParameter("area_clip_enabled").AsBool())).IsTrue();
+		AssertBool(preview.GetChildren().OfType<Node3D>().Where(node => node.IsInGroup("enemy"))
+			.All(target => !target.GetChildren().OfType<FrozenPreview>().Any())).IsTrue();
+		await preview.ToSignal(preview.GetTree().CreateTimer(4.0), SceneTreeTimer.SignalName.Timeout);
+		AssertBool(GodotObject.IsInstanceValid(storm)).IsFalse();
+	}
+
+	[TestCase]
+	public async Task WaterSerpentUsesTieredRibbonsAndKeepsMoving()
+	{
+		using var runner = ISceneRunner.Load("res://scenes/debug/effects/water_spell_preview.tscn", true);
+		await runner.SimulateFrames(5);
+		var preview = (WaterSpellPreview)runner.Scene();
+		preview.SelectSpell(4); preview.SetLevel(1); preview.Cast();
+		var guard = preview.GetChildren().OfType<WaterSpellVisual>().Single();
+		AssertBool(guard.Serpent.SecondaryRibbon.Visible).IsFalse();
+		Vector3 before = guard.Serpent.Heads[0].Position;
+		await runner.SimulateFrames(8);
+		AssertBool(!before.IsEqualApprox(guard.Serpent.Heads[0].Position)).IsTrue();
+		AssertInt(guard.Serpent.Droplets.Amount).IsEqual(40);
+		preview.ClearGuard(); await runner.SimulateFrames(2);
+		preview.SetLevel(3); preview.Cast();
+		guard = preview.GetChildren().OfType<WaterSpellVisual>().Single();
+		AssertBool(guard.Serpent.SecondaryRibbon.Visible).IsTrue();
+		AssertInt(guard.Serpent.Droplets.Amount).IsEqual(72);
+		AssertBool(((ShaderMaterial)guard.Timeline.Surfaces[0].MaterialOverride).GetShaderParameter("area_clip_enabled").AsBool()).IsTrue();
+		preview.ClearGuard(); await runner.SimulateFrames(2);
+		AssertBool(GodotObject.IsInstanceValid(guard)).IsFalse();
+	}
+
 }
