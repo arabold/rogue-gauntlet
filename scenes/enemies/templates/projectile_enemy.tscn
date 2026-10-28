@@ -1,4 +1,4 @@
-[gd_scene load_steps=61 format=3]
+[gd_scene load_steps=63 format=3]
 
 [ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="b_1_j62no"]
 
@@ -49,6 +49,8 @@
 [ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_crossbow_poise.tres" id="poise_definition"]
 [ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_vulnerability.tres" id="vulnerability"]
+[ext_resource type="Script" path="res://scenes/components/DamageNumbersComponent.cs" id="damage_numbers"]
+[ext_resource type="PackedScene" path="res://scenes/components/damage_number.tscn" id="damage_number"]
 
 [sub_resource type="AnimationNodeAnimation" id="m_AnimationNodeAnimation_rfhfv"]
 animation = &"1H_Melee_Attack_Chop"
@@ -417,6 +419,13 @@ AnimationComponent = NodePath("../CombatAnimationComponent")
 Host = NodePath("../WorldEffects")
 
 [node name="ProjectileAimIndicator" parent="." instance=ExtResource("aim_indicator")]
+
+[node name="DamageNumbers" type="Node3D" parent="." node_paths=PackedStringArray("HurtBox", "Anchor", "Invisibility")]
+script = ExtResource("damage_numbers")
+HurtBox = NodePath("../HurtBoxComponent")
+NumberScene = ExtResource("damage_number")
+Anchor = NodePath("../FloatingHealthBar")
+Invisibility = NodePath("../InvisibilityComponent")
 
 [editable path="Pivot/Skeleton_Minion"]
 

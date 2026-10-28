@@ -10,3 +10,4 @@ RegenPerSecond = 25.0
 BreakStaggerDuration = 1.5
 StaggeredDamageMultiplier = 1.5
 ShowBar = true
+ResistsForcedPushback = true

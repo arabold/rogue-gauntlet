@@ -28,6 +28,8 @@ An unparried contact with the `BreaksGuard` defense trait breaks a raised guard:
 
 Presentation is explicitly assigned in the actor scene. Attacks, defenses and stagger share one pose owner and gameplay clock. Missing required clips make the capability unavailable rather than silently selecting unrelated animations.
 
+Monsters, nests and the harness practice target show floating damage numbers through a `DamageNumbersComponent` wired to their hurtbox and anchored above their health bar. Each resolved contact shows its rounded damage: larger and gold for a critical hit, orange for a rear or sneak hit, grey for blocked chip damage, and a short word for a dodge, parry or block. Numbers pop in, rise, fade and return to the scene pool; an invisible monster shows none.
+
 ## Poise and hit reactions
 
 An actor may assign a `PoiseComponent` to its hurtbox. Its shared `PoiseDefinition` sets max poise, regeneration delay and rate, break stagger, staggered damage multiplier, hyper-armor scale and whether the floating bar shows the meter. Each unprotected damaging contact removes the attack's `PoiseDamage`.
@@ -36,9 +38,10 @@ An actor may assign a `PoiseComponent` to its hurtbox. Its shared `PoiseDefiniti
 - **Break.** The contact that empties poise staggers the actor through its action gate and pushes it by the attack's `Knockback`. The meter stays empty during the stagger, so later hits cannot chain breaks. It refills when the stagger ends, and otherwise after the regeneration delay.
 - **Staggered target.** Contacts on a staggered actor, whether broken or parried, deal `StaggeredDamageMultiplier` damage before armor. A riposte is simply a hit in that window.
 - **Without poise.** Actors without poise (rats, practice targets) keep the older rule: every damaging hit interrupts the current action and pushes. The exception is an action reporting hyper-armor, which only flinches.
+- **Forced pushback.** An attack with `ForcePushback` also pushes a defender that would only flinch, by its `Knockback`, and interrupts its current action without a stagger or poise break. Hyper-armor still holds, a running stagger is pushed but not shortened, and poise with `ResistsForcedPushback` (the Warden) only flinches. The player's default melee secondary and the air staff's whirlwind (`Knockback` 4) force pushback.
 - **Hyper-armor.** It is authored per attack as a normalized execution interval. It scales incoming poise damage by the definition's armored scale. A break still interrupts.
 
-Attacks author `PoiseDamage`, `Knockback` and `HitStopDuration`. Weapons without a custom definition use the player attack controller's default impact; the default secondary carries hyper-armor. Absorbed, blocked, dodged and parried contacts deal no poise damage.
+Attacks author `PoiseDamage`, `Knockback`, `ForcePushback` and `HitStopDuration`. Weapons without a custom definition use the player attack controller's default impact; the default secondary carries hyper-armor. Absorbed, blocked, dodged and parried contacts deal no poise damage.
 
 Hit-stop pauses only the attacker's execution clock and pose, once per swing, after a damaging or blocked contact. When the player is interrupted or staggered, or causes hit-stop, the main scene shakes the camera through a Phantom Camera noise emitter (`HitNoiseEmitter`), scaled per impulse. Poise is runtime-only: loading, floor entry and harness resets start full. Sources without authored poise (traps, scripted hits) deal poise equal to their damage. Status ticks bypass the hurtbox and deal none.
 

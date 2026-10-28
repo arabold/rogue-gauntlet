@@ -19,6 +19,8 @@ public partial class PlayerAttackController : AttackController
 	[Export(PropertyHint.Range, "0,1,0.01")] public float SecondaryHyperArmorEnd { get; set; } = 0.75f;
 	/// <summary>The default melee secondary breaks a monster's unparried guard.</summary>
 	[Export] public bool SecondaryBreaksGuard { get; set; } = true;
+	/// <summary>The default melee secondary knocks its target back even when it only flinches.</summary>
+	[Export] public bool SecondaryForcesPushback { get; set; } = true;
 
 	/// <summary>
 	/// Target locked in at the start of the current attack for aim-assist facing, so the player turns
@@ -227,6 +229,7 @@ public partial class PlayerAttackController : AttackController
 			def.IsRanged = weapon is RangedWeapon;
 			if (def.IsRanged) def.DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable;
 			if (isSpecial && !def.IsRanged && SecondaryBreaksGuard) def.DefenseTraits |= AttackDefenseTraits.BreaksGuard;
+			def.ForcePushback = isSpecial && !def.IsRanged && SecondaryForcesPushback;
 
 			if (weapon is RangedWeapon rangedWeapon)
 			{

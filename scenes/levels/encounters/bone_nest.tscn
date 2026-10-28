@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/encounters/DestructibleNest.cs" id="nest"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/rat/rat.tscn" id="minion"]
@@ -9,6 +9,8 @@
 [ext_resource type="PackedScene" path="res://scenes/components/floating_health_bar.tscn" id="bar"]
 
 [ext_resource type="Script" uid="uid://wi1l4pav2ehr" path="res://scenes/components/ConstantScreenSize3D.cs" id="constant_screen_size"]
+[ext_resource type="Script" path="res://scenes/components/DamageNumbersComponent.cs" id="damage_numbers"]
+[ext_resource type="PackedScene" path="res://scenes/components/damage_number.tscn" id="damage_number"]
 
 [sub_resource type="CylinderShape3D" id="body"]
 radius = 1.0
@@ -77,3 +79,9 @@ HealthComponent = NodePath("../HealthComponent")
 [node name="ConstantScreenSize3D" type="Node" parent="Title" node_paths=PackedStringArray("Target")]
 script = ExtResource("constant_screen_size")
 Target = NodePath("..")
+
+[node name="DamageNumbers" type="Node3D" parent="." node_paths=PackedStringArray("HurtBox", "Anchor")]
+script = ExtResource("damage_numbers")
+HurtBox = NodePath("../HurtBoxComponent")
+NumberScene = ExtResource("damage_number")
+Anchor = NodePath("../FloatingHealthBar")

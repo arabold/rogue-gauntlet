@@ -29,9 +29,9 @@ public class PoiseTest
 		foreach (var node in nodes) node.Free();
 	}
 
-	private static DamageContext Contact(float amount, float poise, float knockback = 3) => new()
+	private static DamageContext Contact(float amount, float poise, float knockback = 3, bool forced = false) => new()
 	{
-		Amount = amount, PoiseDamage = poise, Knockback = knockback, Faction = DamageSourceFlags.Enemy,
+		Amount = amount, PoiseDamage = poise, Knockback = knockback, ForcePushback = forced, Faction = DamageSourceFlags.Enemy,
 		DeliveryKind = DamageDeliveryKind.DirectMelee, IncomingDirection = Vector3.Back
 	};
 
@@ -182,6 +182,80 @@ public class PoiseTest
 		hurtbox.ResolveDamage(Contact(1, 0, knockback: 4));
 		AssertBool(player.ActionGate.IsBusy).IsFalse();
 		AssertBool(player.MovementComponent.IsPushed).IsTrue();
+	}
+
+	[TestCase]
+	public async Task ForcedPushbackPushesAndInterruptsAFlinchWithoutBreakingPoise()
+	{
+		var harness = await LoadHarness();
+		var player = harness.Player;
+		var hurtbox = player.HurtBoxComponent;
+		var reactions = new List<HitReaction>();
+		hurtbox.HitReacted += reaction => reactions.Add((HitReaction)reaction);
+		player.ActionGate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease);
+		hurtbox.Armor = 0;
+		hurtbox.ResolveDamage(Contact(1, 1, forced: true));
+		AssertArray(reactions).ContainsExactly(HitReaction.Interrupted);
+		AssertBool(player.ActionGate.IsLeaseCurrent(lease)).IsFalse();
+		AssertBool(player.ActionGate.IsStaggered).IsFalse();
+		AssertBool(player.MovementComponent.IsPushed).IsTrue();
+		AssertFloat(hurtbox.Poise.Current).IsEqual(hurtbox.Poise.Maximum - 1);
+	}
+
+	[TestCase]
+	public async Task HyperArmorAndPushbackResistanceHoldAgainstForcedPushback()
+	{
+		var harness = await LoadHarness();
+		var player = harness.Player;
+		var hurtbox = player.HurtBoxComponent;
+		player.ActionGate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease);
+		player.ActionGate.ReportHyperArmor(lease, true);
+		hurtbox.Armor = 0;
+		hurtbox.ResolveDamage(Contact(1, 1, forced: true));
+		AssertBool(player.ActionGate.IsLeaseCurrent(lease)).IsTrue();
+		AssertBool(player.MovementComponent.IsPushed).IsFalse();
+
+		player.ActionGate.ReportHyperArmor(lease, false);
+		var resistant = (PoiseDefinition)hurtbox.Poise.Definition.Duplicate();
+		resistant.ResistsForcedPushback = true;
+		hurtbox.Poise.Definition = resistant;
+		hurtbox.Armor = 0;
+		hurtbox.ResolveDamage(Contact(1, 1, forced: true));
+		AssertBool(player.ActionGate.IsLeaseCurrent(lease)).IsTrue();
+		AssertBool(player.MovementComponent.IsPushed).IsFalse();
+	}
+
+	[TestCase]
+	public async Task ForcedPushbackMovesButNeverShortensAStagger()
+	{
+		var harness = await LoadHarness();
+		var player = harness.Player;
+		var hurtbox = player.HurtBoxComponent;
+		hurtbox.Armor = 0;
+		hurtbox.ResolveDamage(Contact(1, 100));
+		AssertBool(player.ActionGate.IsStaggered).IsTrue();
+		player.MovementComponent.ResetTransientMotion();
+		AssertBool(player.MovementComponent.IsPushed).IsFalse();
+		hurtbox.Armor = 0;
+		hurtbox.ResolveDamage(Contact(1, 1, forced: true));
+		AssertBool(player.ActionGate.IsStaggered).IsTrue();
+		AssertBool(player.MovementComponent.IsPushed).IsTrue();
+	}
+
+	[TestCase]
+	public async Task HeavyMeleeSpecialAndAirStaffForcePushback()
+	{
+		var harness = await LoadHarness();
+		var controller = harness.Player.AttackController;
+		var sword = harness.Weapons[0];
+		AssertBool(controller.TryPrepareWeaponAttack(sword, out var special, isSpecial: true)).IsTrue();
+		AssertBool(special.Definition.ForcePushback).IsTrue();
+		AssertBool(controller.TryPrepareWeaponAttack(sword, out var primary)).IsTrue();
+		AssertBool(primary.Definition.ForcePushback).IsFalse();
+		AssertBool(controller.TryPrepareWeaponAttack(harness.Weapons[6], out var bolt, isSpecial: true)).IsTrue();
+		AssertBool(bolt.Definition.ForcePushback).IsFalse();
+		var airStaff = GD.Load<Weapon>("res://scenes/items/weapons/staff_air.tres");
+		AssertBool(airStaff.CustomAttackDefinition.Impact.ForcePushback).IsTrue();
 	}
 
 	[TestCase]

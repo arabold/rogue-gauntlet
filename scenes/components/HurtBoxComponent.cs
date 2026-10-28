@@ -16,8 +16,8 @@ public enum DamageSourceFlags
 /// </summary>
 public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 {
-	// Signal emitted when damage is taken
-	[Signal] public delegate void DamageResolvedEventHandler(int outcome, float amount);
+	/// <summary>Every resolved contact: its <see cref="DamageOutcome"/>, final damage and <see cref="DamageEmphasis"/> flags.</summary>
+	[Signal] public delegate void DamageResolvedEventHandler(int outcome, float amount, int emphasis);
 	[Signal]
 	public delegate void DamageTakenEventHandler(float amount, Vector3 attackDirection);
 	/// <summary>Presentation hook after an unprotected damaging contact; carries a <see cref="HitReaction"/>.</summary>
@@ -107,9 +107,12 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 				("traits", snapshot.DefenseTraits.ToString()), ("incoming", CombatTrace.Vector(snapshot.IncomingDirection)),
 				("raw_damage", snapshot.Amount), ("armor", Armor),
 				("armor_roll", armorRoll), ("poise_damage", snapshot.PoiseDamage), ("reaction", reaction?.ToString() ?? "None"),
-				("poise", Poise?.Current), ("zone", zone.ToString()), ("unaware", unaware),
+				("poise", Poise?.Current), ("zone", zone.ToString()), ("unaware", unaware), ("critical", snapshot.Critical),
 				("outcome", outcome.ToString()), ("damage", amount), ("health", HealthComponent?.CurrentHealth));
-			EmitSignalDamageResolved((int)outcome, amount);
+			var emphasis = outcome != DamageOutcome.Damaged ? DamageEmphasis.None
+				: (snapshot.Critical ? DamageEmphasis.Critical : 0) | (zone == HitZone.Rear ? DamageEmphasis.Rear : 0)
+					| (unaware ? DamageEmphasis.Sneak : 0);
+			EmitSignalDamageResolved((int)outcome, amount, (int)emphasis);
 			return new DamageResolution(outcome, amount, hitStopScale);
 		}
 		var attackerFaction = contact.Faction != DamageSourceFlags.None ? contact.Faction : GetDamageSource(contact.OwnerNode ?? contact.SourceNode);
@@ -185,7 +188,9 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 
 	/// <summary>
 	/// Poise decides whether an unprotected hit flinches or staggers. Without poise, a hit interrupts the
-	/// current action unless the gate reports hyper-armor. Only interruptions and staggers push.
+	/// current action unless the gate reports hyper-armor. Interruptions and staggers push; a forced pushback
+	/// also pushes and interrupts a flinch, unless the defender is hyper-armored or resists it. A running
+	/// stagger is pushed but never cut short.
 	/// </summary>
 	private HitReaction ReactToHit(in DamageContext contact, float poiseDamage)
 	{
@@ -200,7 +205,14 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 			gate?.CancelCurrent(ActionInterruptReason.HitStun);
 			reaction = HitReaction.Interrupted;
 		}
-		if (reaction != HitReaction.Flinch) MovementComponent?.Push(contact.IncomingDirection, contact.Knockback);
+		bool forced = reaction == HitReaction.Flinch && contact.ForcePushback && gate?.IsHyperArmored != true
+			&& Poise?.Definition?.ResistsForcedPushback != true;
+		if (forced && gate?.IsStaggered != true)
+		{
+			gate?.CancelCurrent(ActionInterruptReason.HitStun);
+			reaction = HitReaction.Interrupted;
+		}
+		if (reaction != HitReaction.Flinch || forced) MovementComponent?.Push(contact.IncomingDirection, contact.Knockback);
 		SpawnHitEffect(contact.IncomingDirection);
 		EmitSignalHitReacted((int)reaction);
 		return reaction;

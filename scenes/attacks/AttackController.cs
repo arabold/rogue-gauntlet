@@ -411,7 +411,8 @@ public partial class AttackController : Node, IParryInterruptible
 			IncomingDirection = incomingDir,
 			DefenseTraits = traits,
 			DeliveryKind = DamageDeliveryKind.DirectMelee,
-			Impact = _currentAttack.Impact
+			Impact = _currentAttack.Impact,
+			Critical = critical
 		};
 
 		if (target is ICombatDamageable combatDamageable)

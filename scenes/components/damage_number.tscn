@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/components/DamageNumber.cs" id="number"]
+[ext_resource type="Script" path="res://scenes/components/ConstantScreenSize3D.cs" id="screen_size"]
+
+[node name="DamageNumber" type="Node3D" node_paths=PackedStringArray("Label")]
+script = ExtResource("number")
+Label = NodePath("ScreenScale/Label")
+
+[node name="ScreenScale" type="Node3D" parent="."]
+
+[node name="ConstantScreenSize3D" type="Node" parent="ScreenScale" node_paths=PackedStringArray("Target")]
+script = ExtResource("screen_size")
+Target = NodePath("..")
+
+[node name="Label" type="Label3D" parent="ScreenScale"]
+pixel_size = 0.01
+billboard = 1
+no_depth_test = true
+render_priority = 22
+outline_render_priority = 21
+text = "0"
+font_size = 64
+outline_size = 16

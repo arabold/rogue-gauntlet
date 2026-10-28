@@ -103,7 +103,7 @@ public partial class CombatHarness : CanvasLayer
 		Recorder.Start(GetParent(), Seed, TracePath);
 
 		Player.AttackController.AttackFeedback += (result, amount) => Feedback("Hero", result, amount);
-		Player.HurtBoxComponent.DamageResolved += (result, amount) => Feedback("Hero", ((DamageOutcome)result).ToString(), amount);
+		Player.HurtBoxComponent.DamageResolved += (result, amount, _) => Feedback("Hero", ((DamageOutcome)result).ToString(), amount);
 		if (Player.DodgeComponent != null)
 		{
 			Player.DodgeComponent.DodgeStarted += dir => Feedback("Hero", "Dodge", 0);
@@ -113,7 +113,7 @@ public partial class CombatHarness : CanvasLayer
 			Player.GuardComponent.ParrySuccessful += () => Feedback("Hero", "Parry!", 0);
 			Player.GuardComponent.BlockSuccessful += chip => Feedback("Hero", $"Block (-{chip:0})", chip);
 		}
-		PracticeTarget.GetNode<HurtBoxComponent>("HurtBoxComponent").DamageResolved += (result, amount) => Feedback("Target", ((DamageOutcome)result).ToString(), amount);
+		PracticeTarget.GetNode<HurtBoxComponent>("HurtBoxComponent").DamageResolved += (result, amount, _) => Feedback("Target", ((DamageOutcome)result).ToString(), amount);
 		if (Weapons.Length > 0) EquipPreview(0);
 		ApplyDefense();
 	}
@@ -202,7 +202,7 @@ public partial class CombatHarness : CanvasLayer
 		CombatTrace.Write(this, "harness.spawned", ("scene", Monsters[selected].ResourcePath), ("seed", Seed));
 		var controller = _monster.GetNode<AttackController>("AttackController");
 		controller.AttackFeedback += (result, amount) => Feedback("Monster", result, amount);
-		_monster.HurtBoxComponent.DamageResolved += (result, amount) => Feedback("Monster Defend", ((DamageOutcome)result).ToString(), amount);
+		_monster.HurtBoxComponent.DamageResolved += (result, amount, _) => Feedback("Monster Defend", ((DamageOutcome)result).ToString(), amount);
 		if (_monster.DodgeComponent != null)
 		{
 			_monster.DodgeComponent.DodgeStarted += dir => Feedback("Monster", "Dodge", 0);

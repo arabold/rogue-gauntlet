@@ -38,8 +38,11 @@ public static class AttackThreatRules
 	};
 }
 
-/// <summary>How hard a contact hits beyond its damage: poise removed and push on interruption or stagger.</summary>
-public readonly record struct AttackImpact(float PoiseDamage, float Knockback)
+/// <summary>
+/// How hard a contact hits beyond its damage: poise removed and push on interruption or stagger.
+/// <paramref name="ForcePushback"/> also pushes a defender that only flinches (see <see cref="AttackDefinition.ForcePushback"/>).
+/// </summary>
+public readonly record struct AttackImpact(float PoiseDamage, float Knockback, bool ForcePushback = false)
 {
 	public static readonly AttackImpact Default = new(AttackDefinition.DefaultPoiseDamage, AttackDefinition.DefaultKnockback);
 }
@@ -68,13 +71,17 @@ public readonly record struct DamageContext
 	public DamageDeliveryKind DeliveryKind { get; init; }
 	/// <summary>Poise removed from a defender with poise; see <see cref="PoiseComponent"/>.</summary>
 	public float PoiseDamage { get; init; }
-	/// <summary>Push strength applied only when the contact interrupts or staggers its defender.</summary>
+	/// <summary>Push strength applied only when the contact interrupts or staggers its defender, or forces pushback.</summary>
 	public float Knockback { get; init; }
+	/// <summary>Push and interrupt a defender that would only flinch, unless it is hyper-armored or resists it.</summary>
+	public bool ForcePushback { get; init; }
+	/// <summary>The attacker's critical roll succeeded; <see cref="Amount"/> already includes it. Presentation only.</summary>
+	public bool Critical { get; init; }
 
 	/// <summary>Both impact values at once, so contact builders copy an attack's impact in one assignment.</summary>
 	public AttackImpact Impact
 	{
-		get => new(PoiseDamage, Knockback);
-		init { PoiseDamage = value.PoiseDamage; Knockback = value.Knockback; }
+		get => new(PoiseDamage, Knockback, ForcePushback);
+		init { PoiseDamage = value.PoiseDamage; Knockback = value.Knockback; ForcePushback = value.ForcePushback; }
 	}
 }

@@ -177,7 +177,8 @@ public partial class Projectile : Node3D, IPooledNode
 				IncomingDirection = Direction,
 				DefenseTraits = _defenseTraits,
 				DeliveryKind = DamageDeliveryKind.Projectile,
-				Impact = Impact
+				Impact = Impact,
+				Critical = critical
 			};
 
 			if (damageable is ICombatDamageable combatDamageable)
@@ -301,7 +302,8 @@ public partial class Projectile : Node3D, IPooledNode
 
 				float damageScale = GetImpactRadiusDamageScale(damageOwner);
 				float damage = (float)_random.RandfRange(MinDamage, MaxDamage) * damageScale;
-				if (_random.Randf() < CritChance)
+				bool critical = _random.Randf() < CritChance;
+				if (critical)
 				{
 					damage *= 2;
 					GameDebug.Combat("Critical impact radius hit!");
@@ -326,7 +328,8 @@ public partial class Projectile : Node3D, IPooledNode
 					IncomingDirection = pushDirection,
 					DefenseTraits = _areaDefenseTraits,
 					DeliveryKind = DamageDeliveryKind.AreaImpact,
-					Impact = Impact with { PoiseDamage = Impact.PoiseDamage * damageScale }
+					Impact = Impact with { PoiseDamage = Impact.PoiseDamage * damageScale },
+					Critical = critical
 				};
 
 				if (damageable is ICombatDamageable areaCombatDamageable)
