@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/water/WaterSpellVisual.cs" id="root"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
@@ -7,6 +7,7 @@
 [ext_resource type="Shader" path="res://scenes/magic/water/snowstorm_wall.gdshader" id="wall_shader"]
 [ext_resource type="Shader" path="res://scenes/magic/water/snowflake.gdshader" id="snow_shader"]
 [ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[ext_resource type="Texture2D" path="res://scenes/magic/water/snowflake.svg" id="flake"]
 [sub_resource type="ShaderMaterial" id="wind_material"]
 shader = ExtResource("wind_shader")
 shader_parameter/noise_texture = ExtResource("noise")
@@ -25,8 +26,9 @@ cap_top = false
 cap_bottom = false
 [sub_resource type="ShaderMaterial" id="snow_material"]
 shader = ExtResource("snow_shader")
+shader_parameter/flake_texture = ExtResource("flake")
 [sub_resource type="QuadMesh" id="snow_mesh"]
-size = Vector2(0.36, 0.10)
+size = Vector2(0.22, 0.22)
 [sub_resource type="ParticleProcessMaterial" id="snow_process"]
 emission_shape = 3
 emission_box_extents = Vector3(3.7, 2.2, 3.7)

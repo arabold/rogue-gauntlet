@@ -79,6 +79,7 @@ public partial class WaterSpellVisualTest
 		AssertInt(storm.Snowstorm.Snow.Amount).IsEqual(800);
 		var material = (ShaderMaterial)storm.Snowstorm.Snow.MaterialOverride;
 		AssertBool(material.GetShaderParameter("area_clip_enabled").AsBool()).IsTrue();
+		AssertBool(material.GetShaderParameter("flake_texture").AsGodotObject() is Texture2D).IsTrue();
 		AssertFloat(material.GetShaderParameter("storm_radius").AsSingle()).IsEqualApprox(6.5, .001);
 		AssertBool(storm.Timeline.Surfaces.All(layer => ((ShaderMaterial)layer.MaterialOverride).GetShaderParameter("area_clip_enabled").AsBool())).IsTrue();
 		AssertBool(preview.GetChildren().OfType<Node3D>().Where(node => node.IsInGroup("enemy"))
