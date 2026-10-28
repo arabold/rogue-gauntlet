@@ -1,0 +1,54 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/water/WaterSpellVisual.cs" id="root"]
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Script" path="res://scenes/magic/shared/CrystalField.cs" id="crystals"]
+[ext_resource type="Shader" path="res://scenes/magic/water/water_shell.gdshader" id="water"]
+[ext_resource type="Shader" path="res://scenes/magic/water/ice_crystal.gdshader" id="ice"]
+[ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[sub_resource type="ShaderMaterial" id="water_material"]
+shader = ExtResource("water")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/water_color = Color(0.07, 0.5, 0.8, 1)
+[sub_resource type="SphereMesh" id="sphere"]
+radius = 1.6
+height = 3.2
+radial_segments = 24
+rings = 12
+[sub_resource type="ShaderMaterial" id="ice_material"]
+shader = ExtResource("ice")
+[node name="IceGuard" type="Node3D" node_paths=PackedStringArray("Timeline", "Crystals")]
+script = ExtResource("root")
+Timeline = NodePath("Timeline")
+Crystals = NodePath("Crystals")
+[node name="WaterShell" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.1, 0)
+material_override = SubResource("water_material")
+cast_shadow = 0
+mesh = SubResource("sphere")
+[node name="Crystals" type="Node3D" parent="." node_paths=PackedStringArray("Timeline")]
+script = ExtResource("crystals")
+Timeline = NodePath("../Timeline")
+CrystalMaterial = SubResource("ice_material")
+BaseCount = 8
+AdditionalPerLevel = 2
+Radius = 1.18
+InnerRadius = 1.18
+Height = 0.65
+HeightPerLevel = 0.12
+Width = 0.2
+CenterHeight = 1.02
+Tilt = 0.95
+RotationSpeed = 0.5
+[node name="Light" type="OmniLight3D" parent="."]
+position = Vector3(0, 1, 0)
+light_color = Color(0.3, 0.75, 1, 1)
+light_energy = 0.65
+omni_range = 4.0
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights")]
+script = ExtResource("timeline")
+Surfaces = [NodePath("../WaterShell")]
+Lights = [NodePath("../Light")]
+Duration = 0.8
+FadeIn = 0.3
+Sustained = true

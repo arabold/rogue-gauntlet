@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/ice_guard_base.tscn" id="base"]
+[ext_resource type="Shader" path="res://scenes/magic/water/water_shell.gdshader" id="water"]
+[ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[sub_resource type="ShaderMaterial" id="water_material"]
+shader = ExtResource("water")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/water_color = Color(0.18, 0.66, 0.8, 1)
+[node name="Mirrorfrost" instance=ExtResource("base")]
+[node name="WaterShell" parent="." index="0"]
+material_override = SubResource("water_material")
+[node name="Crystals" parent="." index="1"]
+BaseCount = 9
+AdditionalPerLevel = 3
+Radius = 1.35
+InnerRadius = 1.35
+Height = 0.95
+HeightPerLevel = 0.17
+Width = 0.2
+CenterHeight = 1.0
+Tilt = 1.12
+RotationSpeed = -0.55

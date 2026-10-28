@@ -21,6 +21,8 @@ public partial class MagicRibbonTrail : MeshInstance3D, IPooledNode
 	{
 		Target ??= GetParent<Node3D>();
 		TopLevel = true;
+		// Ribbon vertices are already world positions; inherited transforms would apply them twice.
+		GlobalTransform = Transform3D.Identity;
 		CastShadow = ShadowCastingSetting.Off;
 	}
 
@@ -28,6 +30,7 @@ public partial class MagicRibbonTrail : MeshInstance3D, IPooledNode
 	{
 		_points.Clear();
 		Mesh = null;
+		GlobalTransform = Transform3D.Identity;
 		_meshUpdateCooldown.Start(0.0f);
 		_meshDirty = false;
 		Target ??= GetParent<Node3D>();
@@ -79,13 +82,21 @@ public partial class MagicRibbonTrail : MeshInstance3D, IPooledNode
 		var uvs = new Vector2[_points.Count * 2];
 		var indices = new int[(_points.Count - 1) * 6];
 
-		Vector3 cameraRight = GetViewport().GetCamera3D()?.GlobalTransform.Basis.X.Normalized() ?? Vector3.Right;
+		Camera3D camera = GetViewport().GetCamera3D();
+		Vector3 cameraRight = camera?.GlobalTransform.Basis.X.Normalized() ?? Vector3.Right;
+		Vector3 cameraPosition = camera?.GlobalPosition ?? Vector3.Zero;
 
 		for (int i = 0; i < _points.Count; i++)
 		{
 			float t = i / (float)(_points.Count - 1);
 			float width = Width * Mathf.Lerp(1.0f, TailWidthScale, t);
-			Vector3 offset = cameraRight * width * 0.5f;
+			Vector3 tangent = i == 0 ? _points[0] - _points[1]
+				: i == _points.Count - 1 ? _points[i - 1] - _points[i]
+				: _points[i - 1] - _points[i + 1];
+			Vector3 view = camera != null ? cameraPosition - _points[i] : Vector3.Back;
+			Vector3 side = tangent.Cross(view).Normalized();
+			if (side.LengthSquared() < 0.001f) side = cameraRight;
+			Vector3 offset = side * width * 0.5f;
 
 			vertices[i * 2] = _points[i] - offset;
 			vertices[i * 2 + 1] = _points[i] + offset;

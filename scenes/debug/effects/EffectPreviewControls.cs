@@ -31,4 +31,11 @@ public static class EffectPreviewControls
 	{
 		parent.AddChild(new Label { Text = "Right-drag to orbit · wheel zoom\nCamera keys follow game bindings.", AutowrapMode = TextServer.AutowrapMode.WordSmart });
 	}
+	/// <summary>Add the common bright/dark lighting toggle.</summary>
+	public static void DarkLighting(Container parent, WorldEnvironment lighting, DirectionalLight3D keyLight)
+	{
+		var dark = new CheckBox { Text = "Dark lighting" };
+		dark.Toggled += enabled => { lighting.Environment.AmbientLightEnergy = enabled ? .06f : .65f; keyLight.LightEnergy = enabled ? .12f : .9f; };
+		parent.AddChild(dark);
+	}
 }

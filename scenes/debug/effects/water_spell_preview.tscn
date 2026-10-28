@@ -1,0 +1,73 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scenes/debug/effects/WaterSpellPreview.cs" id="preview"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/skeleton/skeleton_minion.tscn" id="target"]
+[ext_resource type="Script" path="res://scenes/debug/effects/EffectPreviewCamera.cs" id="camera"]
+[ext_resource type="PackedScene" path="res://scenes/debug/effects/effect_harness_navigation.tscn" id="nav"]
+[ext_resource type="PackedScene" path="res://scenes/debug/stage/debug_stage.tscn" id="debug_stage"]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/ice_lance.tscn" id="lance"]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/frost_nova.tscn" id="nova"]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/frost_guard.tscn" id="guard0"]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/glacial_bulwark.tscn" id="guard1"]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/mirrorfrost.tscn" id="guard2"]
+[ext_resource type="Script" path="res://scenes/magic/shared/DirectTargetStrategy.cs" id="strategy_script"]
+[ext_resource type="Resource" path="res://scenes/effects/world/frozen/frozen.tres" id="frozen"]
+[sub_resource type="Resource" id="target_strategy"]
+script = ExtResource("strategy_script")
+[sub_resource type="Environment" id="env"]
+background_mode = 1
+background_color = Color(0.035, 0.045, 0.06, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.7, 0.75, 0.85, 1)
+ambient_light_energy = 0.65
+glow_enabled = true
+glow_intensity = 0.7
+
+[node name="WaterSpellPreview" type="Node3D" node_paths=PackedStringArray("Caster", "Controls", "DebugStage", "Lighting", "KeyLight")]
+script = ExtResource("preview")
+Caster = NodePath("Caster")
+Controls = NodePath("UI/Panel/Margin/Controls")
+DebugStage = NodePath("DebugStage")
+Lighting = NodePath("WorldEnvironment")
+KeyLight = NodePath("DirectionalLight3D")
+LanceScene = ExtResource("lance")
+NovaScene = ExtResource("nova")
+GuardScenes = [ExtResource("guard0"), ExtResource("guard1"), ExtResource("guard2")]
+TargetStrategy = SubResource("target_strategy")
+FrozenEffect = ExtResource("frozen")
+TargetVisual = ExtResource("target")
+PlayerVisual = ExtResource("player")
+[node name="Caster" type="Node3D" parent="." groups=["player"]]
+[node name="DebugStage" parent="." instance=ExtResource("debug_stage")]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("env")
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-50, -30, 0)
+light_energy = 0.9
+[node name="Camera3D" type="Camera3D" parent="."]
+script = ExtResource("camera")
+Focus = Vector3(0, 1, 0)
+projection = 1
+size = 18.0
+current = true
+[node name="UI" type="CanvasLayer" parent="."]
+layer = 11
+[node name="Panel" type="PanelContainer" parent="UI"]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -420.0
+offset_top = 65.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+[node name="Margin" type="MarginContainer" parent="UI/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_top = 12
+[node name="Controls" type="VBoxContainer" parent="UI/Panel/Margin"]
+layout_mode = 2
+[node name="Navigation" parent="." instance=ExtResource("nav")]
+SelectedPreview = 6

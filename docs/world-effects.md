@@ -8,6 +8,7 @@ Actor/item VFX use reusable scenes under `scenes/effects/world/`. Player and mon
 | --- | --- | --- |
 | `iron_skin/iron_skin.tres` | Metallic body/gear transformation with a brief entry ring and forging sparks | Preview/API; invulnerability mechanics remain separate |
 | `stone_skin/stone_skin.tres` | Rough fractured mineral body/gear transformation and dust accent | Alternative invulnerability preview/API |
+| `frozen/frozen.tres` | Sustained icy body/gear appearance with reversible entry and exit | Actor workbench and Frost Nova visual preview; gameplay freeze is not connected |
 | `healing/healing.tres` | Crimson gathering ribbons, ground pulse and rising motes | Committed healing potion use |
 | `strength/strength.tres` | Amber rising streaks and pressure ring | Committed strength potion use |
 | `arcane/arcane.tres` | Violet counter-rotating strands and rune fragments | Preview/API; magical potion semantics remain separate |
@@ -63,7 +64,7 @@ Right-drag orbits horizontally and vertically; the wheel zooms. Keyboard and gam
 
 For skins, **Faceted shading** uses derivative face normals to shade existing triangles flat without changing the mesh. **Polished steel** reduces roughness and strengthens metallic reflections; a preview reflection probe captures the floor. Both options affect private preview materials, leaving authored defaults intact.
 
-Emissive actor/item effects have matching, short-range, shadow-free accent lights, driven by its visual envelope and cloak/death gate. Sustained emissive auras keep a subdued light; activation lights fade with the burst. Iron/stone skin and invisibility have no accent lights. Actor bursts, auras and scroll rings share `accent_light.tscn`; their light offsets stay aligned to the world as actors turn, so lighting remains consistent with scroll reading. These lights illuminate nearby surfaces too. Verify GPU cost on the target hardware before increasing light or particle counts; Metal GPU timestamps on this machine remain unavailable.
+Emissive actor/item effects have matching, short-range, shadow-free accent lights, driven by its visual envelope and cloak/death gate. Sustained emissive auras keep a subdued light; activation lights fade with the burst. Iron/stone skin, Frozen and invisibility have no accent lights. Actor bursts, auras and scroll rings share `accent_light.tscn`; their light offsets stay aligned to the world as actors turn, so lighting remains consistent with scroll reading. These lights illuminate nearby surfaces too. Verify GPU cost on the target hardware before increasing light or particle counts; Metal GPU timestamps on this machine remain unavailable.
 
 Known-cursed items use wisps on private helper copies of the actual item mesh, with a small normal offset and smoothly faded tips. Motes emit from sampled mesh vertices, scaled to the item. There is no sphere or cylinder proxy. Source meshes and materials remain intact. The workbench configures the curse effect directly on its model without manufacturing gameplay item state; inventory/curse-state operations are tested in their own suites.
 

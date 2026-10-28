@@ -1,0 +1,137 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/debug/stage/DebugStage.cs" id="script"]
+[ext_resource type="Script" path="res://scenes/debug/stage/DebugArrangement.cs" id="arrangement"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="floor_library"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/wall.gltf" id="wall_tile"]
+[sub_resource type="StandardMaterial3D" id="ground_material"]
+albedo_color = Color(0.13, 0.15, 0.18, 1)
+roughness = 1.0
+[sub_resource type="BoxShape3D" id="wall_shape"]
+size = Vector3(1, 4, 8)
+[sub_resource type="PlaneMesh" id="floor"]
+material = SubResource("ground_material")
+size = Vector2(24, 24)
+[sub_resource type="Resource" id="default"]
+script = ExtResource("arrangement")
+DisplayName = "Default"
+Walls = PackedInt32Array(0, 1, 2)
+BoundaryWalls = PackedInt32Array(0)
+HasWestWall = true
+[sub_resource type="Resource" id="one"]
+script = ExtResource("arrangement")
+DisplayName = "One wall"
+Walls = PackedInt32Array(0)
+BoundaryWalls = PackedInt32Array(0)
+HasWestWall = true
+[sub_resource type="Resource" id="open"]
+script = ExtResource("arrangement")
+DisplayName = "Open"
+Walls = PackedInt32Array()
+BoundaryWalls = PackedInt32Array()
+[sub_resource type="Resource" id="room"]
+script = ExtResource("arrangement")
+DisplayName = "Small room"
+Walls = PackedInt32Array(3, 4, 5, 6)
+BoundaryWalls = PackedInt32Array(3, 4, 5, 6)
+HasWestWall = true
+[node name="DebugStage" type="Node3D" node_paths=PackedStringArray("FloorTiles", "WestWall", "DefaultWalls", "RoomWalls") ]
+script = ExtResource("script")
+Arrangements = [SubResource("default"), SubResource("one"), SubResource("open"), SubResource("room")]
+FloorTiles = NodePath("FloorTiles")
+WestWall = NodePath("PreviewWall")
+DefaultWalls = [NodePath("EastWallSouth"), NodePath("EastWallNorth")]
+RoomWalls = [NodePath("RoomWest"), NodePath("RoomEast"), NodePath("RoomNorth"), NodePath("RoomSouth")]
+[node name="PreviewWall" type="StaticBody3D" parent="."]
+position = Vector3(-7.5, 2, 0)
+collision_layer = 1
+collision_mask = 0
+[node name="TileA" parent="PreviewWall" instance=ExtResource("wall_tile")]
+position = Vector3(0, -2, -2)
+rotation_degrees = Vector3(0, 90, 0)
+[node name="TileB" parent="PreviewWall" instance=ExtResource("wall_tile")]
+position = Vector3(0, -2, 2)
+rotation_degrees = Vector3(0, 90, 0)
+[node name="Collision" type="CollisionShape3D" parent="PreviewWall"]
+shape = SubResource("wall_shape")
+[node name="EastWallSouth" type="StaticBody3D" parent="."]
+position = Vector3(4, 0, -4)
+collision_layer = 1
+collision_mask = 0
+[node name="Tile" parent="EastWallSouth" instance=ExtResource("wall_tile")]
+rotation_degrees = Vector3(0, 90, 0)
+[node name="Collision" type="CollisionShape3D" parent="EastWallSouth"]
+position = Vector3(0, 2, 0)
+scale = Vector3(1, 1, 0.5)
+shape = SubResource("wall_shape")
+[node name="EastWallNorth" type="StaticBody3D" parent="."]
+position = Vector3(4, 0, 4)
+collision_layer = 1
+collision_mask = 0
+[node name="Tile" parent="EastWallNorth" instance=ExtResource("wall_tile")]
+rotation_degrees = Vector3(0, 90, 0)
+[node name="Collision" type="CollisionShape3D" parent="EastWallNorth"]
+position = Vector3(0, 2, 0)
+scale = Vector3(1, 1, 0.5)
+shape = SubResource("wall_shape")
+[node name="FloorTiles" type="GridMap" parent="."]
+mesh_library = ExtResource("floor_library")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+[node name="Ground" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.3, 0)
+mesh = SubResource("floor")
+[node name="RoomWest" type="StaticBody3D" parent="."]
+position = Vector3(-4, 2, 0)
+rotation_degrees = Vector3(0, 0, 0)
+collision_layer = 1
+collision_mask = 0
+[node name="TileA" parent="RoomWest" instance=ExtResource("wall_tile")]
+position = Vector3(0, -2, -2)
+rotation_degrees = Vector3(0, 90, 0)
+[node name="TileB" parent="RoomWest" instance=ExtResource("wall_tile")]
+position = Vector3(0, -2, 2)
+rotation_degrees = Vector3(0, 90, 0)
+[node name="Collision" type="CollisionShape3D" parent="RoomWest"]
+shape = SubResource("wall_shape")
+[node name="RoomEast" type="StaticBody3D" parent="."]
+position = Vector3(4, 2, 0)
+rotation_degrees = Vector3(0, 0, 0)
+collision_layer = 1
+collision_mask = 0
+[node name="TileA" parent="RoomEast" instance=ExtResource("wall_tile")]
+position = Vector3(0, -2, -2)
+rotation_degrees = Vector3(0, 90, 0)
+[node name="TileB" parent="RoomEast" instance=ExtResource("wall_tile")]
+position = Vector3(0, -2, 2)
+rotation_degrees = Vector3(0, 90, 0)
+[node name="Collision" type="CollisionShape3D" parent="RoomEast"]
+shape = SubResource("wall_shape")
+[node name="RoomNorth" type="StaticBody3D" parent="."]
+position = Vector3(0, 2, 4)
+rotation_degrees = Vector3(0, 90, 0)
+collision_layer = 1
+collision_mask = 0
+[node name="TileA" parent="RoomNorth" instance=ExtResource("wall_tile")]
+position = Vector3(0, -2, -2)
+rotation_degrees = Vector3(0, 90, 0)
+[node name="TileB" parent="RoomNorth" instance=ExtResource("wall_tile")]
+position = Vector3(0, -2, 2)
+rotation_degrees = Vector3(0, 90, 0)
+[node name="Collision" type="CollisionShape3D" parent="RoomNorth"]
+shape = SubResource("wall_shape")
+[node name="RoomSouth" type="StaticBody3D" parent="."]
+position = Vector3(0, 2, -4)
+rotation_degrees = Vector3(0, 90, 0)
+collision_layer = 1
+collision_mask = 0
+[node name="TileA" parent="RoomSouth" instance=ExtResource("wall_tile")]
+position = Vector3(0, -2, -2)
+rotation_degrees = Vector3(0, 90, 0)
+[node name="TileB" parent="RoomSouth" instance=ExtResource("wall_tile")]
+position = Vector3(0, -2, 2)
+rotation_degrees = Vector3(0, 90, 0)
+[node name="Collision" type="CollisionShape3D" parent="RoomSouth"]
+shape = SubResource("wall_shape")

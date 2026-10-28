@@ -24,6 +24,24 @@ public static class EffectPreviewStage
 			if (node is Light3D light && !VisualHelper.IsInHelperSubtree(light)) light.Visible = false;
 		}
 	}
+	/// <summary>Rebuilds the shared stationary spell fixtures and returns their visual actors.</summary>
+	public static void ResetSpellTargets(Node3D parent, PackedScene visualScene, List<Node3D> targets, List<AnimationPlayer> animations, int count, bool enemyGroup, float radius = 5f, Action<Node3D> configureTarget = null)
+	{
+		foreach (var target in targets) { parent.RemoveChild(target); target.QueueFree(); }
+		targets.Clear(); animations.RemoveAll(a => !GodotObject.IsInstanceValid(a) || !a.IsInsideTree());
+		for (int i = 0; i < count; i++)
+		{
+			float angle = Mathf.Tau * i / Mathf.Max(count, 1) + .4f;
+			var target = new Node3D { Name = $"Target{i}", Position = new Vector3(Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius) };
+			if (enemyGroup) target.AddToGroup("enemy");
+			parent.AddChild(target); targets.Add(target);
+			configureTarget?.Invoke(target);
+			var visual = visualScene.Instantiate<Node3D>(); AddSubject(visual, target, animations);
+			var xray = visual.GetNodeOrNull<OcclusionXrayComponent>("OcclusionXrayComponent");
+			if (xray != null) { xray.IsEnabled = false; xray.QueueFree(); }
+		}
+		PlayAnimations(animations, 0, 1);
+	}
 	public static void PlayAnimations(IEnumerable<AnimationPlayer> animations, int pose, float speed)
 	{
 		string[] fragments = pose switch { 1 => new[] { "Running", "Run", "Walk" }, 2 => new[] { "Melee_Attack", "Attack", "Spellcast" }, _ => new[] { "Idle" } };

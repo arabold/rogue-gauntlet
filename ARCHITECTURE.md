@@ -10,6 +10,7 @@ Rogue Gauntlet is built upon the following key principles:
 - **Event-Driven:** Communication between different systems and components is primarily handled through a centralized `SignalBus`. This decouples systems, allowing them to react to game events without direct dependencies on each other (Observer pattern).
 - **Explicit authoring:** Save authored component dependencies as exported Node/Resource assignments in scenes and Resources. Templates prewire common dependencies; missing required references are validation errors and empty optional references remain unavailable to their consumer. Runtime target acquisition and initialization of genuinely dynamic context remain separate.
 - **Scene-Oriented:** We leverage Godot's scene system extensively. Game objects, levels, and UI elements are organized as scenes, which can be easily instanced and managed within the scene tree.
+- **Effect composition:** Reusable visual scenes combine focused timing and geometry nodes. Authored strategy Resources select presentation behavior while each cast owns its mutable state.
 - **Data-Oriented:** Game configuration and authored definitions are stored with Godot Resources (`.tres`) or custom C# resources such as `ObservableResource`. Runtime-mutated state should copy from authored defaults before play instead of writing back into shared definitions.
 
 ## System Overview

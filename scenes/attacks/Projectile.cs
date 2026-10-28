@@ -37,6 +37,18 @@ public partial class Projectile : Node3D, IPooledNode
 	private Node _attacker;
 	private DamageSourceFlags _attackerFaction = DamageSourceFlags.Environment;
 	private bool _hasResolvedHit;
+	private bool _restrictedTarget;
+	private Node _assignedTarget;
+	private float _effectScale = 1f;
+
+	/// <summary>Restricts this flight to one damage owner; null produces a cosmetic-only projectile.</summary>
+	public void RestrictToTarget(Node target, float effectScale = 1f)
+	{
+		_restrictedTarget = true;
+		_assignedTarget = target;
+		_effectScale = effectScale;
+		ImpactRadius = 0;
+	}
 	private bool _hitSignalConnected;
 	private int _returnVersion;
 	private uint _damageCollisionMask;
@@ -156,6 +168,7 @@ public partial class Projectile : Node3D, IPooledNode
 		GameDebug.Combat($"Projectile hit {body.Name}");
 		if (TryGetDamageTarget(body, out Node damageOwner, out IDamageable damageable))
 		{
+			if (_restrictedTarget && (!GodotObject.IsInstanceValid(_assignedTarget) || damageOwner != _assignedTarget)) return;
 			var damage = (float)_random.RandfRange(MinDamage, MaxDamage);
 			float baseDamage = damage;
 			bool critical = _random.Randf() < CritChance;
@@ -407,8 +420,9 @@ public partial class Projectile : Node3D, IPooledNode
 	{
 		if (effectScene == null) return;
 
-		Node3D effect = ScenePool.Spawn<Node3D>(effectScene, GetTree().CurrentScene);
+		Node3D effect = SpawnImpactVisual(effectScene);
 		effect.GlobalPosition = GlobalPosition;
+		if (_restrictedTarget) effect.Scale *= _effectScale;
 		if (Direction.LengthSquared() > 0)
 		{
 			effect.LookAt(GlobalPosition + Direction, GetLookAtUpVector(Direction));
@@ -445,8 +459,18 @@ public partial class Projectile : Node3D, IPooledNode
 		Vector3 right = forward.Cross(normal).Normalized();
 		forward = normal.Cross(right).Normalized();
 
-		Node3D effect = ScenePool.Spawn<Node3D>(effectScene, GetTree().CurrentScene);
-		effect.GlobalTransform = new Transform3D(new Basis(right, forward, normal), GlobalPosition + normal * 0.03f);
+		Node3D effect = SpawnImpactVisual(effectScene);
+		effect.GlobalTransform = new Transform3D(new Basis(right, forward, normal).Scaled(Vector3.One * _effectScale), GlobalPosition + normal * 0.03f);
+	}
+
+	private Node3D SpawnImpactVisual(PackedScene scene)
+	{
+		Node parent = GetTree().CurrentScene ?? GetParent();
+		if (!_restrictedTarget) return ScenePool.Spawn<Node3D>(scene, parent);
+		// Scaled spell impacts must not leak their transform into the shared effect pool.
+		Node3D effect = scene.Instantiate<Node3D>();
+		parent.AddChild(effect);
+		return effect;
 	}
 
 	private void SpawnExpireEffect()
@@ -467,6 +491,9 @@ public partial class Projectile : Node3D, IPooledNode
 	{
 		_distanceTravelled = 0.0f;
 		_hasResolvedHit = false;
+		_restrictedTarget = false;
+		_assignedTarget = null;
+		_effectScale = 1f;
 		_returnVersion++;
 		ImpactRadius = _defaultImpactRadius;
 		ImpactRadiusMinDamageScale = _defaultImpactRadiusMinDamageScale;

@@ -1,0 +1,68 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/shared/FallingBodyMotion.cs" id="fall"]
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Script" path="res://scenes/magic/fire/FallingMeteorVisual.cs" id="motion"]
+[ext_resource type="Script" path="res://scenes/magic/fire/FireSpellVisual.cs" id="script"]
+[ext_resource type="Shader" path="res://scenes/magic/fireball/flame_particle.gdshader" id="flame"]
+[sub_resource type="StandardMaterial3D" id="stone"]
+albedo_color = Color(0.18, 0.065, 0.035, 1)
+roughness = 0.9
+emission_enabled = true
+emission = Color(0.8, 0.08, 0.01, 1)
+emission_energy_multiplier = 0.4
+[sub_resource type="PrismMesh" id="rock"]
+material = SubResource("stone")
+size = Vector3(0.8, 1.1, 0.7)
+[sub_resource type="ShaderMaterial" id="trail"]
+shader = ExtResource("flame")
+shader_parameter/brightness = 1.2
+[sub_resource type="QuadMesh" id="spark"]
+size = Vector2(0.5, 0.5)
+[sub_resource type="ParticleProcessMaterial" id="process"]
+emission_shape = 1
+emission_sphere_radius = 0.25
+direction = Vector3(0, 1, 0)
+spread = 35.0
+initial_velocity_min = 0.8
+initial_velocity_max = 1.8
+gravity = Vector3(0, 0.3, 0)
+scale_min = 0.4
+scale_max = 0.9
+[node name="MeteorDebris" type="Node3D" node_paths=PackedStringArray("Timeline", "Meteor")]
+script = ExtResource("script")
+Timeline = NodePath("Timeline")
+Meteor = NodePath("Motion")
+[node name="Meteor" type="Node3D" parent="."]
+[node name="Rock" type="MeshInstance3D" parent="Meteor"]
+rotation_degrees = Vector3(24, 15, 28)
+mesh = SubResource("rock")
+[node name="Trail" type="GPUParticles3D" parent="Meteor"]
+material_override = SubResource("trail")
+cast_shadow = 0
+amount = 12
+lifetime = 0.6
+local_coords = false
+process_material = SubResource("process")
+draw_pass_1 = SubResource("spark")
+
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
+script = ExtResource("timeline")
+Surfaces = []
+Lights = []
+Duration = 1.35
+Emitters = [NodePath("../Meteor/Trail")]
+FadeIn = 0.08
+FadeOutStart = 0.6
+[node name="Motion" type="Node" parent="." node_paths=PackedStringArray("Timeline", "VisualRoot", "Meteor", "Rock", "Shell", "Emitters", "Fall")]
+script = ExtResource("motion")
+Timeline = NodePath("../Timeline")
+VisualRoot = NodePath("..")
+Meteor = NodePath("../Meteor")
+Fall = NodePath("../Fall")
+Rock = NodePath("../Meteor/Rock")
+Emitters = [NodePath("../Meteor/Trail")]
+[node name="Fall" type="Node" parent="." node_paths=PackedStringArray("Timeline", "Body")]
+script = ExtResource("fall")
+Timeline = NodePath("../Timeline")
+Body = NodePath("../Meteor")

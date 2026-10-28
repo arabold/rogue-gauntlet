@@ -1,0 +1,42 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectInstance.cs" id="root"]
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Shader" path="res://scenes/magic/air/gust.gdshader" id="shader"]
+[ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[ext_resource type="Shader" path="res://scenes/magic/air/gust_wall.gdshader" id="wall_shader"]
+[sub_resource type="ShaderMaterial" id="wall_material"]
+shader = ExtResource("wall_shader")
+shader_parameter/noise_texture = ExtResource("noise")
+[sub_resource type="CylinderMesh" id="wall_mesh"]
+top_radius = 8.9
+bottom_radius = 8.9
+height = 1.5
+radial_segments = 64
+rings = 2
+cap_top = false
+cap_bottom = false
+[sub_resource type="ShaderMaterial" id="material"]
+shader = ExtResource("shader")
+shader_parameter/noise_texture = ExtResource("noise")
+[sub_resource type="PlaneMesh" id="plane"]
+size = Vector2(20, 20)
+[node name="Gust" type="Node3D" node_paths=PackedStringArray("Timeline")]
+script = ExtResource("root")
+Timeline = NodePath("Timeline")
+[node name="Wind" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.22, 0)
+material_override = SubResource("material")
+cast_shadow = 0
+mesh = SubResource("plane")
+[node name="WindWall" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.85, 0)
+material_override = SubResource("wall_material")
+cast_shadow = 0
+mesh = SubResource("wall_mesh")
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces")]
+script = ExtResource("timeline")
+Surfaces = [NodePath("../Wind"), NodePath("../WindWall")]
+Duration = 0.95
+FadeIn = 0.06
+FadeOutStart = 0.5

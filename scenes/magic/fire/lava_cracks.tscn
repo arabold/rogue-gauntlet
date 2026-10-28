@@ -1,0 +1,22 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectInstance.cs" id="script"]
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Shader" path="res://scenes/magic/fire/lava_cracks.gdshader" id="shader"]
+[sub_resource type="ShaderMaterial" id="mat"]
+shader = ExtResource("shader")
+[sub_resource type="PlaneMesh" id="mesh"]
+size = Vector2(4, 4)
+[node name="LavaCracks" type="Node3D" node_paths=PackedStringArray("Timeline")]
+script = ExtResource("script")
+Timeline = NodePath("Timeline")
+[node name="Surface" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.1, 0)
+cast_shadow = 0
+material_override = SubResource("mat")
+mesh = SubResource("mesh")
+
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces")]
+script = ExtResource("timeline")
+Surfaces = [NodePath("../Surface")]
+Duration = 1.8

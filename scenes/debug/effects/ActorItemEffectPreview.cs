@@ -35,7 +35,7 @@ public partial class ActorItemEffectPreview : Node3D
 	private float _speed = 1;
 	public override void _Ready()
 	{
-		for (int x = -8; x <= 8; x += 4) for (int z = -8; z <= 8; z += 4) FloorTiles.SetCellItem(new Vector3I(x, 0, z), 0);
+		DebugStage.PopulateFloor(FloorTiles);
 		BuildControls(); Rebuild();
 	}
 	private void BuildControls()

@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/fire/FireSpellVisual.cs" id="script"]
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Script" path="res://scenes/magic/fire/FireSweepMotion.cs" id="motion"]
+[ext_resource type="PackedScene" path="res://scenes/magic/fire/flame_orbit.tscn" id="orbit"]
+
+[node name="FireSpellVisual" type="Node3D" node_paths=PackedStringArray("Timeline", "Sweep")]
+script = ExtResource("script")
+Timeline = NodePath("Timeline")
+Sweep = NodePath("Motion")
+[node name="Orbit0" parent="." instance=ExtResource("orbit")]
+[node name="Orbit1" parent="." instance=ExtResource("orbit")]
+[node name="Orbit2" parent="." instance=ExtResource("orbit")]
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
+script = ExtResource("timeline")
+Surfaces = [NodePath("../Orbit0/Trail"), NodePath("../Orbit0/HotTrail"), NodePath("../Orbit0/Arm/Head/Core"), NodePath("../Orbit1/Trail"), NodePath("../Orbit1/HotTrail"), NodePath("../Orbit1/Arm/Head/Core"), NodePath("../Orbit2/Trail"), NodePath("../Orbit2/HotTrail"), NodePath("../Orbit2/Arm/Head/Core")]
+Lights = []
+Duration = 2.4
+Emitters = [NodePath("../Orbit0/Arm/Head/Flames"), NodePath("../Orbit1/Arm/Head/Flames"), NodePath("../Orbit2/Arm/Head/Flames")]
+FadeOutStart = 0.72
+[node name="Motion" type="Node" parent="." node_paths=PackedStringArray("Timeline", "Orbits", "Arms", "Heads", "Emitters")]
+script = ExtResource("motion")
+Timeline = NodePath("../Timeline")
+Orbits = [NodePath("../Orbit0"), NodePath("../Orbit1"), NodePath("../Orbit2")]
+Arms = [NodePath("../Orbit0/Arm"), NodePath("../Orbit1/Arm"), NodePath("../Orbit2/Arm")]
+Heads = [NodePath("../Orbit0/Arm/Head"), NodePath("../Orbit1/Arm/Head"), NodePath("../Orbit2/Arm/Head")]
+Emitters = [NodePath("../Orbit0/Arm/Head/Flames"), NodePath("../Orbit1/Arm/Head/Flames"), NodePath("../Orbit2/Arm/Head/Flames")]

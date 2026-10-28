@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/ice_guard_base.tscn" id="base"]
+[ext_resource type="Shader" path="res://scenes/magic/water/water_shell.gdshader" id="water"]
+[ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[sub_resource type="ShaderMaterial" id="water_material"]
+shader = ExtResource("water")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/water_color = Color(0.1, 0.4, 0.58, 1)
+[node name="GlacialBulwark" instance=ExtResource("base")]
+[node name="WaterShell" parent="." index="0"]
+material_override = SubResource("water_material")
+[node name="Crystals" parent="." index="1"]
+BaseCount = 6
+AdditionalPerLevel = 1
+Radius = 1.2
+InnerRadius = 1.2
+Height = 1.75
+HeightPerLevel = 0.3
+Width = 0.53
+CenterHeight = -0.1
+Tilt = 0.15
+RotationSpeed = 0.32
