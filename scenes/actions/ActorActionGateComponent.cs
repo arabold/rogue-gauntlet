@@ -23,6 +23,11 @@ public partial class ActorActionGateComponent : Node
 
 	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
 	[Export] public DefenseAnimationProfile AnimationProfile { get; set; }
+	/// <summary>
+	/// Lets guard and the next primary attack replace attack recovery. The player enables it; monsters keep
+	/// recovery committed, so it stays the window in which they can be punished.
+	/// </summary>
+	[Export] public bool RecoveryCancels { get; set; }
 	public bool Disabled { get; private set; }
 	public float StaggerRemaining => _staggerRemaining;
 
@@ -138,7 +143,7 @@ public partial class ActorActionGateComponent : Node
 			return ActorActionRequestResult.InvalidDefinition;
 		}
 
-		if (!CanTransition(CurrentKind, CurrentPhase, kind, phase))
+		if (!CanTransition(CurrentKind, CurrentPhase, kind, RecoveryCancels))
 		{
 			return ActorActionRequestResult.Busy;
 		}
@@ -206,11 +211,12 @@ public partial class ActorActionGateComponent : Node
 			&& lease.Kind == CurrentKind;
 	}
 
-	private static bool CanTransition(
+	/// <summary>The transition table; see <see cref="RecoveryCancels"/> for the recovery entries.</summary>
+	public static bool CanTransition(
 		ActorActionKind currentKind,
 		ActorActionPhase currentPhase,
 		ActorActionKind newKind,
-		ActorActionPhase newPhase)
+		bool recoveryCancels)
 	{
 		if (currentKind == ActorActionKind.None) return true;
 
@@ -221,15 +227,18 @@ public partial class ActorActionGateComponent : Node
 		// Item use: committed channel denies voluntary cancellation
 		if (currentKind == ActorActionKind.ItemUse) return false;
 
-		// Dodge can also cancel recovery; active contact remains committed and cannot be undone.
+		// Wind-up yields to dodge or guard and recovery to dodge; active contact stays committed. With recovery
+		// cancels, guard may also replace recovery, and the next primary step may replace primary recovery.
 		if (currentKind == ActorActionKind.PrimaryAttack || currentKind == ActorActionKind.SecondaryTechnique)
 		{
-			if (currentPhase == ActorActionPhase.Recovery && newKind == ActorActionKind.Dodge) return true;
-			if (currentPhase == ActorActionPhase.WindUp)
+			return currentPhase switch
 			{
-				return newKind == ActorActionKind.Dodge || newKind == ActorActionKind.Guard;
-			}
-			return false;
+				ActorActionPhase.WindUp => newKind is ActorActionKind.Dodge or ActorActionKind.Guard,
+				ActorActionPhase.Recovery => newKind == ActorActionKind.Dodge
+					|| (recoveryCancels && (newKind == ActorActionKind.Guard
+						|| (currentKind == ActorActionKind.PrimaryAttack && newKind == ActorActionKind.PrimaryAttack))),
+				_ => false
+			};
 		}
 
 		// Held guard: dodge may replace it

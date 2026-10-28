@@ -36,6 +36,8 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	/// <summary>Rig adapter independent of handedness and the character's built-in prop meshes.</summary>
 	[Export] public WeaponGrip Grip { get; set; }
 	[Export] public MeleeAttackProfile MeleeContact { get; set; }
+	/// <summary>Primary combo shared by the weapon family; null keeps a single repeated primary attack.</summary>
+	[Export] public AttackCombo PrimaryCombo { get; set; }
 
 	[Export] public AttackDefinition CustomAttackDefinition { get; protected set; }
 

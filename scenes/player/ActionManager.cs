@@ -146,16 +146,23 @@ public partial class ActionManager : Node
 		SignalBus.EmitPlayerActionSlotChanged(SecondarySlotIndex, SecondaryTechniqueSlot);
 	}
 
-	public void TryPerformPrimary()
+	public bool TryPerformPrimary()
 	{
-		if (_player == null || _player.IsDead || _player.IsHit) return;
-		PrimaryAttackSlot?.TryPerformAction(_player);
+		if (_player == null || _player.IsDead || _player.IsHit) return false;
+		return PrimaryAttackSlot?.TryPerformAction(_player) == true;
 	}
 
-	public void TryPerformSecondary()
+	/// <summary>Cancel the current primary step's recovery into the next step of the weapon's combo.</summary>
+	public bool TryChainPrimary()
 	{
-		if (_player == null || _player.IsDead || _player.IsHit || SecondaryTechniqueSlot?.AssignedAction == null) return;
-		SecondaryTechniqueSlot?.TryPerformAction(_player);
+		if (_player == null || _player.IsDead || _player.IsHit || _player.AttackController?.CanChainPrimary != true) return false;
+		return PrimaryAttackSlot?.TryPerformAction(_player, chain: true) == true;
+	}
+
+	public bool TryPerformSecondary()
+	{
+		if (_player == null || _player.IsDead || _player.IsHit || SecondaryTechniqueSlot?.AssignedAction == null) return false;
+		return SecondaryTechniqueSlot.TryPerformAction(_player);
 	}
 
 	public void ClearActions()

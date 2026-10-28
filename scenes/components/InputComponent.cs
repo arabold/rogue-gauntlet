@@ -7,6 +7,12 @@ public partial class InputComponent : Node
 
 	public Vector3 InputDirection { get; set; } = Vector3.Zero;
 
+	/// <summary>
+	/// Reads keyboard, mouse and gamepad state. Scripted harness runs turn it off so device state cannot
+	/// perturb them; queries then report nothing pressed and <see cref="InputDirection"/> is left to the script.
+	/// </summary>
+	public bool DeviceEnabled { get; set; } = true;
+
 	public bool IsMoving()
 	{
 		return InputDirection != Vector3.Zero;
@@ -40,25 +46,25 @@ public partial class InputComponent : Node
 
 	public bool IsPrimaryActionPressed()
 	{
-		return Input.IsActionPressed(ActionPrimary);
+		return DeviceEnabled && Input.IsActionPressed(ActionPrimary);
 	}
 
 	public bool IsPrimaryActionJustPressed()
 	{
-		return Input.IsActionJustPressed(ActionPrimary);
+		return DeviceEnabled && Input.IsActionJustPressed(ActionPrimary);
 	}
 
 	public bool IsSecondaryActionJustPressed()
 	{
-		return Input.IsActionJustPressed(ActionSecondary);
+		return DeviceEnabled && Input.IsActionJustPressed(ActionSecondary);
 	}
 
 	public bool IsQuickItemJustPressed(int slotIndex)
 	{
 		if ((uint)slotIndex < (uint)QuickItemActions.Length)
 		{
-			return Input.IsActionJustPressed(QuickItemActions[slotIndex])
-				|| Input.IsActionJustPressed(LegacyActions[slotIndex]);
+			return DeviceEnabled && (Input.IsActionJustPressed(QuickItemActions[slotIndex])
+				|| Input.IsActionJustPressed(LegacyActions[slotIndex]));
 		}
 		return false;
 	}
@@ -70,33 +76,34 @@ public partial class InputComponent : Node
 
 	public bool IsInteractPressed()
 	{
-		return Input.IsActionPressed(ActionInteract);
+		return DeviceEnabled && Input.IsActionPressed(ActionInteract);
 	}
 
 	public bool IsInteractJustPressed()
 	{
-		return Input.IsActionJustPressed(ActionInteract);
+		return DeviceEnabled && Input.IsActionJustPressed(ActionInteract);
 	}
 
 	public bool IsDodgeJustPressed()
 	{
-		return Input.IsActionJustPressed(ActionDodge);
+		return DeviceEnabled && Input.IsActionJustPressed(ActionDodge);
 	}
 
 	public bool IsGuardPressed()
 	{
-		return Input.IsActionPressed(ActionGuard);
+		return DeviceEnabled && Input.IsActionPressed(ActionGuard);
 	}
 
 	public bool IsGuardJustPressed()
 	{
-		return Input.IsActionJustPressed(ActionGuard);
+		return DeviceEnabled && Input.IsActionJustPressed(ActionGuard);
 	}
 
 	public override void _Ready() { ProcessPhysicsPriority = CombatPhysics.Input; }
 
 	public override void _PhysicsProcess(double delta)
 	{
+		if (!DeviceEnabled) return;
 		// Get the camera's forward and right vectors
 		Camera3D camera = GetViewport().GetCamera3D();
 		Vector3 cameraForward = camera.GlobalTransform.Basis.Z;

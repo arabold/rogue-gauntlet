@@ -8,7 +8,8 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public partial class CombatDefenseTest
 {
-	private static (CharacterBody3D actor, MovementComponent movement, HurtBoxComponent hurtbox, ActorActionGateComponent gate, DodgeComponent dodge, HealthComponent health) CreateDodgeActor()
+	private static (CharacterBody3D actor, MovementComponent movement, HurtBoxComponent hurtbox, ActorActionGateComponent gate, DodgeComponent dodge, HealthComponent health) CreateDodgeActor(
+		System.Action<DodgeDefinition> configure = null)
 	{
 		var actor = new CharacterBody3D { Name = "TestDodgeActor" };
 
@@ -45,6 +46,7 @@ public partial class CombatDefenseTest
 			RecoveryDuration = 0.08f,
 			CooldownDuration = 0.60f
 		};
+		configure?.Invoke(dodgeDef);
 
 		var dodge = new DodgeComponent
 		{
@@ -179,6 +181,91 @@ public partial class CombatDefenseTest
 		// Cooldown is 0.60s, only 0.30s elapsed: still on cooldown
 		var onCooldown = dodge.TryDodge(new Vector3(0, 0, -1));
 		AssertInt((int)onCooldown).IsEqual((int)DefenseRequestResult.Cooldown);
+	}
+
+	private static DodgeDefinition Charges(DodgeDefinition definition)
+	{
+		definition.CooldownDuration = 0.25f;
+		definition.MaxCharges = 2;
+		definition.ChargeRechargeDuration = 1.2f;
+		definition.PerfectWindow = 0.1f;
+		return definition;
+	}
+
+	private static DamageContext DodgeableContact() => new()
+	{
+		Amount = 25f, IncomingDirection = Vector3.Forward, Faction = DamageSourceFlags.Enemy, DefenseTraits = AttackDefenseTraits.Dodgeable
+	};
+
+	[TestCase]
+	public void ChargesAllowBackToBackDodgesAfterTheIntervalAndRefillOneAtATime()
+	{
+		var (_, _, _, _, dodge, _) = CreateDodgeActor(d => Charges(d));
+		AssertInt(dodge.ChargesRemaining).IsEqual(2);
+		AssertInt((int)dodge.TryDodge(Vector3.Forward)).IsEqual((int)DefenseRequestResult.Success);
+		dodge._PhysicsProcess(0.3);
+		AssertInt(dodge.ChargesRemaining).IsEqual(1);
+		AssertInt((int)dodge.TryDodge(Vector3.Forward)).IsEqual((int)DefenseRequestResult.Success);
+		dodge._PhysicsProcess(0.3);
+		// Both charges spent: the next dodge waits for the first recharge (1.2 s from the first dodge).
+		AssertInt(dodge.ChargesRemaining).IsEqual(0);
+		AssertFloat(dodge.CooldownRemaining).IsEqualApprox(0.6, .001);
+		AssertInt((int)dodge.TryDodge(Vector3.Forward)).IsEqual((int)DefenseRequestResult.Cooldown);
+		dodge._PhysicsProcess(0.61);
+		AssertInt(dodge.ChargesRemaining).IsEqual(1);
+		AssertFloat(dodge.RechargeRemaining).IsEqualApprox(1.19, .001);
+		dodge._PhysicsProcess(1.2);
+		AssertInt(dodge.ChargesRemaining).IsEqual(2);
+		AssertFloat(dodge.RechargeRemaining).IsEqual(0);
+	}
+
+	[TestCase]
+	public void IntervalSeparatesDodgesEvenWithChargesLeft()
+	{
+		var (_, _, _, _, dodge, _) = CreateDodgeActor(d => Charges(d));
+		dodge.TryDodge(Vector3.Forward);
+		dodge.Cancel(ActionInterruptReason.Invalidated);
+		AssertInt((int)dodge.TryDodge(Vector3.Forward)).IsEqual((int)DefenseRequestResult.Cooldown);
+		dodge._PhysicsProcess(0.26);
+		AssertInt((int)dodge.TryDodge(Vector3.Forward)).IsEqual((int)DefenseRequestResult.Success);
+	}
+
+	[TestCase]
+	public void PerfectDodgeRefundsItsChargeOnce()
+	{
+		var (_, _, hurtbox, _, dodge, _) = CreateDodgeActor(d => Charges(d));
+		dodge.TryDodge(Vector3.Forward);
+		dodge._PhysicsProcess(0.05);
+		AssertInt(dodge.ChargesRemaining).IsEqual(1);
+		AssertInt((int)hurtbox.ResolveDamage(DodgeableContact()).Outcome).IsEqual((int)DamageOutcome.Dodged);
+		AssertInt(dodge.ChargesRemaining).IsEqual(2);
+		AssertFloat(dodge.RechargeRemaining).IsEqual(0);
+		// A second evasion in the same dodge refunds nothing more.
+		AssertInt((int)hurtbox.ResolveDamage(DodgeableContact()).Outcome).IsEqual((int)DamageOutcome.Dodged);
+		AssertInt(dodge.ChargesRemaining).IsEqual(2);
+	}
+
+	[TestCase]
+	public void LateEvasionKeepsTheSpentCharge()
+	{
+		var (_, _, hurtbox, _, dodge, _) = CreateDodgeActor(d => Charges(d));
+		dodge.TryDodge(Vector3.Forward);
+		dodge._PhysicsProcess(0.15);
+		AssertInt((int)hurtbox.ResolveDamage(DodgeableContact()).Outcome).IsEqual((int)DamageOutcome.Dodged);
+		AssertInt(dodge.ChargesRemaining).IsEqual(1);
+	}
+
+	[TestCase]
+	public void RestoredChargesAreClampedToTheDefinition()
+	{
+		var (_, _, _, _, dodge, _) = CreateDodgeActor(d => Charges(d));
+		dodge.RestoreCharges(1, 0.4f, 0.1f);
+		AssertInt(dodge.ChargesRemaining).IsEqual(1);
+		AssertFloat(dodge.RechargeRemaining).IsEqualApprox(0.4, .001);
+		AssertFloat(dodge.IntervalRemaining).IsEqualApprox(0.1, .001);
+		dodge.RestoreCharges(7, 9f, 0);
+		AssertInt(dodge.ChargesRemaining).IsEqual(2);
+		AssertFloat(dodge.RechargeRemaining).IsEqual(0);
 	}
 
 	[TestCase]

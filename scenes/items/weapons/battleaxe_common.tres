@@ -1,14 +1,16 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=6 format=3 uid="uid://c3cgdlchx0g5u"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=7 format=3 uid="uid://c3cgdlchx0g5u"]
 
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_2h.tres" id="melee_contact"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="PackedScene" uid="uid://b3nqntuy7vgn3" path="res://scenes/items/weapons/battleaxe_common.tscn" id="1_c5hji"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_rmilr"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
+[ext_resource type="Resource" path="res://scenes/attacks/combos/axe_2h.tres" id="primary_combo"]
 
 [resource]
 script = ExtResource("2_rmilr")
 MeleeContact = ExtResource("melee_contact")
+PrimaryCombo = ExtResource("primary_combo")
 AttackStyle = &"axe.2h.chop"
 Grip = ExtResource("weapon_grip")
 Tier = 3

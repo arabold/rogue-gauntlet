@@ -22,6 +22,13 @@ public class MeleeContactTest
 		return (runner, harness);
 	}
 
+	/// <summary>Normalized contact start of a player style, so timing tests follow the rig profile's strike.</summary>
+	private static float ContactStart(CombatHarness harness, StringName style)
+	{
+		AssertBool(harness.Player.AttackController.AnimationComponent.Profile.TryGetBinding(style, out var binding)).IsTrue();
+		return binding.ContactStart;
+	}
+
 	private static AttackController Start(CombatHarness harness, string profile = "slash_1h", uint mask = 8, bool effects = false,
 		Action<AttackDefinition> configure = null)
 	{
@@ -357,7 +364,9 @@ public class MeleeContactTest
 			AssertBool(controller.TryPrepareAttack(definition, weapon.AttackStyle, 1, out var attack, weapon.MeleeContact)).IsTrue();
 			AssertBool(controller.StartAttack(attack, 10, 10, 0, 8)).IsTrue();
 			controller.SetPhysicsProcess(false);
-			controller._PhysicsProcess(.42);
+			// Two steps inside the weapon's contact window, which follows its strike.
+			float start = attack.Definition.HitWindowStart, step = (attack.Definition.HitWindowEnd - start) * .35f;
+			controller._PhysicsProcess(start + step);
 			var swoosh = harness.Player.GetParent().GetChildren().OfType<MeleeSwoosh>().Last();
 			AssertBool(swoosh.FollowsWeapon).IsTrue();
 			AssertInt(swoosh.TrailSampleCount).IsGreater(2);
@@ -368,7 +377,7 @@ public class MeleeContactTest
 			AssertBool(swoosh.LastBladeTip.IsEqualApprox(tip.GlobalPosition)).IsTrue();
 			AssertBool(swoosh.LastBladeBase.IsEqualApprox(bladeBase.GlobalPosition)).IsTrue();
 			var firstTip = swoosh.LastBladeTip;
-			controller._PhysicsProcess(.12);
+			controller._PhysicsProcess(step);
 			AssertBool(firstTip.DistanceTo(swoosh.LastBladeTip) > .01f).IsTrue();
 			AssertBool(swoosh.LastBladeTip.IsEqualApprox(tip.GlobalPosition)).IsTrue();
 			controller.CancelAttack();
@@ -388,7 +397,7 @@ public class MeleeContactTest
 			AssertBool(controller.TryPrepareWeaponAttack(weapon, out var attack, isSpecial: true)).IsTrue();
 			AssertBool(controller.StartPreparedWeaponAttack(attack, weapon, isSpecial: true)).IsTrue();
 			controller.SetPhysicsProcess(false);
-			controller._PhysicsProcess(.25);
+			controller._PhysicsProcess(Mathf.Lerp(attack.Definition.HitWindowStart, attack.Definition.HitWindowEnd, .6f));
 			var swoosh = harness.Player.GetParent().GetChildren().OfType<MeleeSwoosh>().Last();
 			AssertBool(swoosh.FollowsWeapon).IsTrue();
 			AssertInt(swoosh.TrailSampleCount).IsGreater(2);
@@ -565,8 +574,9 @@ public class MeleeContactTest
 		harness.Player.Rotation = Vector3.Zero;
 		harness.PracticeTarget.Position = new Vector3(0, 0, -2);
 		await runner.SimulateFrames(2);
-		// The slash's contact starts at 0.3 s; a 0.3 s lead commits on the first tick.
-		var controller = Start(harness, configure: d => d.FacingLockLead = locked ? .3f : 0);
+		// A lead as long as the slash's wind-up commits on the first tick.
+		float contactStart = ContactStart(harness, "sword.1h.slash");
+		var controller = Start(harness, configure: d => d.FacingLockLead = locked ? contactStart : 0);
 		controller._PhysicsProcess(.01);
 		AssertBool(controller.HasCommittedFacing).IsEqual(locked);
 		harness.Player.Rotation = new Vector3(0, Mathf.Pi, 0);
@@ -623,8 +633,10 @@ public class MeleeContactTest
 			configure(definition);
 			return controller.TryPrepareAttack(definition, "", 1, out _);
 		}
-		AssertBool(Prepare(d => d.FacingLockLead = .3f)).IsTrue();
-		AssertBool(Prepare(d => d.FacingLockLead = .31f)).IsFalse();
+		// One-second preparation: the lead may equal the wind-up but not exceed it.
+		float contactStart = ContactStart(harness, "sword.1h.slash");
+		AssertBool(Prepare(d => d.FacingLockLead = contactStart)).IsTrue();
+		AssertBool(Prepare(d => d.FacingLockLead = contactStart + .01f)).IsFalse();
 		AssertBool(Prepare(d => { d.IsRanged = true; d.FacingLockLead = .1f; })).IsFalse();
 		AssertBool(Prepare(d => { d.HyperArmorStart = .6f; d.HyperArmorEnd = .4f; })).IsFalse();
 		AssertBool(Prepare(d => d.PoiseDamage = -1)).IsFalse();
