@@ -83,15 +83,6 @@ public partial class EquipmentPanel : PanelContainer
 		BootsPanel.SetItem(null);
 	}
 
-	public override void _ExitTree()
-	{
-		_unsubscribeInventory();
-		_unsubscribeInventory = () => { };
-		_inventory = null;
-
-		base._ExitTree();
-	}
-
 	private void OnItemEquipped(EquipableItem item, EquipmentSlot slot)
 	{
 		switch (slot)

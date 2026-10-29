@@ -62,7 +62,7 @@ public partial class ActorInteractionComponent : Node
 			return InteractionRequestResult.PermissionDenied;
 		}
 
-		if (offer.Target.TargetNode != null)
+		if (GodotObject.IsInstanceValid(offer.Target.TargetNode))
 		{
 			Vector3 actorPos = GetActorPosition();
 			Vector3 targetPos = GetNodePosition(offer.Target.TargetNode);
@@ -156,7 +156,7 @@ public partial class ActorInteractionComponent : Node
 			return;
 		}
 
-		if (CurrentTarget.TargetNode != null)
+		if (GodotObject.IsInstanceValid(CurrentTarget.TargetNode))
 		{
 			float dist = GetActorPosition().DistanceTo(GetNodePosition(CurrentTarget.TargetNode));
 			if (dist > CurrentOffer.Range + 0.5f)
@@ -223,7 +223,7 @@ public partial class ActorInteractionComponent : Node
 	/// same check as begin/commit so a prompt is never offered for an interaction that would be rejected.</summary>
 	public bool HasLineOfSight(IInteractionTarget target)
 	{
-		if (target?.TargetNode == null || !Actor.IsInsideTree() || !target.TargetNode.IsInsideTree()) return true;
+		if (target?.TargetNode == null || !GodotObject.IsInstanceValid(target.TargetNode) || !Actor.IsInsideTree() || !target.TargetNode.IsInsideTree()) return true;
 		var root = target.TargetNode.GetParent();
 		return WorldSight.IsClear(Actor.GetWorld3D(), Actor.GlobalPosition + Vector3.Up * 1.5f, target.TargetNode.GlobalPosition,
 			(collider, _) => root != null && collider is Node node && (node == root || root.IsAncestorOf(node)));

@@ -22,6 +22,7 @@ public partial class InventoryPanel : ScrollContainer
 	private Player _player;
 	private Action _unsubscribeInventory = () => { };
 	private InventoryTargetRequest _activeTarget;
+	private Tween _bannerTween;
 
 	public override void _Ready()
 	{
@@ -86,15 +87,6 @@ public partial class InventoryPanel : ScrollContainer
 
 		RecalculateColumns();
 		Update();
-	}
-
-	public override void _ExitTree()
-	{
-		_unsubscribeInventory();
-		_unsubscribeInventory = () => { };
-		_inventory = null;
-
-		base._ExitTree();
 	}
 
 	private void Update()
@@ -265,12 +257,15 @@ public partial class InventoryPanel : ScrollContainer
 
 		TargetingBanner.Text = message;
 		TargetingBanner.Visible = true;
-		GetTree().CreateTimer(1.5).Timeout += () =>
+		_bannerTween?.Kill();
+		_bannerTween = CreateTween();
+		_bannerTween.TweenInterval(1.5);
+		_bannerTween.TweenCallback(Callable.From(() =>
 		{
 			if (_activeTarget == null && IsInstanceValid(TargetingBanner))
 			{
 				TargetingBanner.Visible = false;
 			}
-		};
+		}));
 	}
 }

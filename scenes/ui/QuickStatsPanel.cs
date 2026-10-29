@@ -31,15 +31,6 @@ public partial class QuickStatsPanel : PanelContainer
 		Update();
 	}
 
-	public override void _ExitTree()
-	{
-		_unsubscribeStats();
-		_unsubscribeStats = () => { };
-		_stats = null;
-
-		base._ExitTree();
-	}
-
 	private void Update()
 	{
 		if (_stats == null)

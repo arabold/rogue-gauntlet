@@ -90,7 +90,7 @@ public partial class LootableItem : Node3D
 		if (!Engine.IsEditorHint())
 		{
 			Trigger.WaitForBodyExited = WaitForPlayerExited;
-			Trigger.Triggered += OnTriggered;
+			this.SubscribeUntilExit(Trigger, t => t.Triggered += OnTriggered, t => t.Triggered -= OnTriggered);
 		}
 
 		if (Item == null)

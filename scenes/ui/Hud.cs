@@ -8,7 +8,7 @@ public partial class Hud : Control
 	private Label _goldLabel;
 	private Control _interactionContainer;
 	private ProgressBar _interactionProgressBar;
-	private ActorInteractionComponent _subscribedInteractionComponent;
+	private System.Action _unsubscribeInteraction = () => { };
 
 	public override void _Ready()
 	{
@@ -37,36 +37,26 @@ public partial class Hud : Control
 		}
 	}
 
-	public override void _ExitTree()
-	{
-		UnsubscribeInteractionComponent();
-	}
-
-	private void UnsubscribeInteractionComponent()
-	{
-		if (_subscribedInteractionComponent != null && GodotObject.IsInstanceValid(_subscribedInteractionComponent))
-		{
-			_subscribedInteractionComponent.InteractionStarted -= OnInteractionStarted;
-			_subscribedInteractionComponent.InteractionProgress -= OnInteractionProgress;
-			_subscribedInteractionComponent.InteractionCompleted -= OnInteractionEnded;
-			_subscribedInteractionComponent.InteractionCancelled -= OnInteractionCancelled;
-		}
-		_subscribedInteractionComponent = null;
-	}
-
 	private void OnPlayerSpawned(Player player)
 	{
 		OnPlayerStatsChanged(player.Stats);
-		UnsubscribeInteractionComponent();
-
-		_subscribedInteractionComponent = player?.InteractionComponent;
-		if (_subscribedInteractionComponent != null)
-		{
-			_subscribedInteractionComponent.InteractionStarted += OnInteractionStarted;
-			_subscribedInteractionComponent.InteractionProgress += OnInteractionProgress;
-			_subscribedInteractionComponent.InteractionCompleted += OnInteractionEnded;
-			_subscribedInteractionComponent.InteractionCancelled += OnInteractionCancelled;
-		}
+		_unsubscribeInteraction();
+		_unsubscribeInteraction = this.SubscribeUntilExit(
+			player?.InteractionComponent,
+			c =>
+			{
+				c.InteractionStarted += OnInteractionStarted;
+				c.InteractionProgress += OnInteractionProgress;
+				c.InteractionCompleted += OnInteractionEnded;
+				c.InteractionCancelled += OnInteractionCancelled;
+			},
+			c =>
+			{
+				c.InteractionStarted -= OnInteractionStarted;
+				c.InteractionProgress -= OnInteractionProgress;
+				c.InteractionCompleted -= OnInteractionEnded;
+				c.InteractionCancelled -= OnInteractionCancelled;
+			});
 	}
 
 	private void OnInteractionStarted(string verb, float duration)
@@ -103,12 +93,5 @@ public partial class Hud : Control
 		_goldLabel.Text = $"Gold: {stats.Gold}";
 		_healthBar.MaxValue = stats.MaxHealth;
 		_healthBar.Value = stats.Health;
-	}
-
-	// Handles game pause (optional UI feedback)
-	private void OnGamePaused(bool isPaused)
-	{
-		GD.Print($"Game Paused: {isPaused}");
-		// You can add additional UI changes here, like showing a "Paused" label
 	}
 }

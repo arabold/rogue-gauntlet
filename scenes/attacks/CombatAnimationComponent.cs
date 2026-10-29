@@ -20,7 +20,7 @@ public partial class CombatAnimationComponent : Node
 	{
 		_player = GetNodeOrNull<AnimationPlayer>(AnimationPlayerPath);
 		_tree = GetNodeOrNull<AnimationTree>(AnimationTreePath);
-		return _player != null && _tree != null;
+		return GodotObject.IsInstanceValid(_player) && GodotObject.IsInstanceValid(_tree);
 	}
 
 	public bool HasClip(StringName clip) => !clip.IsEmpty && Resolve() && _player.HasAnimation(clip);

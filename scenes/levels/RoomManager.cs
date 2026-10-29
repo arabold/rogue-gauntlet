@@ -36,7 +36,7 @@ public partial class RoomManager : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (_player == null || _floor == null)
+		if (!GodotObject.IsInstanceValid(_player) || _floor == null)
 		{
 			return;
 		}

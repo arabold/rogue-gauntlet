@@ -105,7 +105,8 @@ public partial class InputComponent : Node
 	{
 		if (!DeviceEnabled) return;
 		// Get the camera's forward and right vectors
-		Camera3D camera = GetViewport().GetCamera3D();
+		Camera3D camera = GetViewport()?.GetCamera3D();
+		if (camera == null) return;
 		Vector3 cameraForward = camera.GlobalTransform.Basis.Z;
 		Vector3 cameraRight = camera.GlobalTransform.Basis.X;
 		var direction = Vector3.Zero;

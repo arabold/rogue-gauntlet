@@ -32,14 +32,14 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	[Export] public bool IsTwoHanded { get; protected set => SetValue(ref field, value); } = false;
 
 	/// <summary>Semantic motion requested from the wielder's animation profile.</summary>
-	[Export] public StringName AttackStyle { get; set; } = "";
+	[Export] public StringName AttackStyle { get; set => SetValue(ref field, value); } = "";
 	/// <summary>Rig adapter independent of handedness and the character's built-in prop meshes.</summary>
-	[Export] public WeaponGrip Grip { get; set; }
-	[Export] public MeleeAttackProfile MeleeContact { get; set; }
+	[Export] public WeaponGrip Grip { get; set => SetValue(ref field, value); }
+	[Export] public MeleeAttackProfile MeleeContact { get; set => SetValue(ref field, value); }
 	/// <summary>Primary combo shared by the weapon family; null keeps a single repeated primary attack.</summary>
-	[Export] public AttackCombo PrimaryCombo { get; set; }
+	[Export] public AttackCombo PrimaryCombo { get; set => SetValue(ref field, value); }
 
-	[Export] public AttackDefinition CustomAttackDefinition { get; protected set; }
+	[Export] public AttackDefinition CustomAttackDefinition { get; protected set => SetValue(ref field, value); }
 
 	[Export] public string AnimationId { get; set => SetValue(ref field, value); } = "melee_attack";
 	[Export] public float Delay { get; set => SetValue(ref field, value); } = 0f;
@@ -47,9 +47,9 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	[Export] public float CooldownDuration { get; set => SetValue(ref field, value); } = 0f;
 
 	// Secondary Attack Configuration
-	[Export] public StringName SecondaryAttackStyle { get; set; } = "";
-	[Export] public MeleeAttackProfile SecondaryMeleeContact { get; set; }
-	[Export] public AttackDefinition SecondaryCustomAttackDefinition { get; set; }
+	[Export] public StringName SecondaryAttackStyle { get; set => SetValue(ref field, value); } = "";
+	[Export] public MeleeAttackProfile SecondaryMeleeContact { get; set => SetValue(ref field, value); }
+	[Export] public AttackDefinition SecondaryCustomAttackDefinition { get; set => SetValue(ref field, value); }
 	[Export] public string SecondaryAnimationId { get; set => SetValue(ref field, value); } = "special_attack";
 	[Export] public float SecondaryDelay { get; set => SetValue(ref field, value); } = 0.1f;
 	[Export] public float SecondaryPerformDuration { get; set => SetValue(ref field, value); } = 0.6f;

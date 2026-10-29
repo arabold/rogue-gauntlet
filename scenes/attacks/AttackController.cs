@@ -617,6 +617,7 @@ public partial class AttackController : Node, IParryInterruptible
 		{
 			effect.LookAt(origin + direction, Vector3.Up);
 		}
+		effect.ResetPhysicsInterpolation();
 	}
 
 	private Node3D FindWeaponInstance()

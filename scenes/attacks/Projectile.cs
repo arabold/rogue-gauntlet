@@ -37,7 +37,6 @@ public partial class Projectile : Node3D, IPooledNode
 	private Node _attacker;
 	private DamageSourceFlags _attackerFaction = DamageSourceFlags.Environment;
 	private bool _hasResolvedHit;
-	private bool _hitSignalConnected;
 	private int _returnVersion;
 	private uint _damageCollisionMask;
 	private float _defaultImpactRadius;
@@ -66,7 +65,7 @@ public partial class Projectile : Node3D, IPooledNode
 		_defaultImpactRadiusMinDamageScale = ImpactRadiusMinDamageScale;
 		_impactQuery.Shape = _impactShape;
 		_hitBoxComponent = GetNode<HitBoxComponent>("%HitBoxComponent");
-		ConnectHitSignal();
+		this.SubscribeUntilExit(_hitBoxComponent, h => h.HitDetected += OnHitDetected, h => h.HitDetected -= OnHitDetected);
 		ResetRuntimeState();
 	}
 
@@ -112,6 +111,7 @@ public partial class Projectile : Node3D, IPooledNode
 		{
 			LookAt(origin + Direction, GetLookAtUpVector(Direction));
 		}
+		ResetPhysicsInterpolation();
 
 		if (_hitBoxComponent != null)
 		{
@@ -416,6 +416,7 @@ public partial class Projectile : Node3D, IPooledNode
 		{
 			effect.LookAt(GlobalPosition + Direction, GetLookAtUpVector(Direction));
 		}
+		effect.ResetPhysicsInterpolation();
 	}
 
 	private static Vector3 GetLookAtUpVector(Vector3 direction)
@@ -450,6 +451,7 @@ public partial class Projectile : Node3D, IPooledNode
 
 		Node3D effect = ScenePool.Spawn<Node3D>(effectScene, GetTree().CurrentScene);
 		effect.GlobalTransform = new Transform3D(new Basis(right, forward, normal), GlobalPosition + normal * 0.03f);
+		effect.ResetPhysicsInterpolation();
 	}
 
 	private void SpawnExpireEffect()
@@ -475,7 +477,6 @@ public partial class Projectile : Node3D, IPooledNode
 		ImpactRadiusMinDamageScale = _defaultImpactRadiusMinDamageScale;
 		Impact = AttackImpact.Default;
 		SetPhysicsProcess(false);
-		ConnectHitSignal();
 		if (_hitBoxComponent != null)
 		{
 			SetHitBoxMonitoring(false);
@@ -503,17 +504,6 @@ public partial class Projectile : Node3D, IPooledNode
 		}
 
 		_hitBoxComponent.Monitoring = enabled;
-	}
-
-	private void ConnectHitSignal()
-	{
-		if (_hitBoxComponent == null || _hitSignalConnected)
-		{
-			return;
-		}
-
-		_hitBoxComponent.HitDetected += OnHitDetected;
-		_hitSignalConnected = true;
 	}
 
 	private void ReturnToPoolOrFree()

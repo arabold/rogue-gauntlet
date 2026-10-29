@@ -228,6 +228,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 
 		var hitEffect = ScenePool.Spawn<GpuParticles3D>(HitEffect, this);
 		hitEffect.Position = attackDirection.Normalized() * 0.5f;
+		hitEffect.ResetPhysicsInterpolation();
 		hitEffect.OneShot = true;
 	}
 

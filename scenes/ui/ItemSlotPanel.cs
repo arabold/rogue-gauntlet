@@ -68,14 +68,6 @@ public partial class ItemSlotPanel : PanelContainer
 		Update();
 	}
 
-	public override void _ExitTree()
-	{
-		_unsubscribeSlot();
-		_unsubscribeSlot = () => { };
-		ObserveItem(null);
-		base._ExitTree();
-	}
-
 	public void SetItem(InventoryItemSlot slot, bool isEquipped)
 	{
 		_unsubscribeSlot();

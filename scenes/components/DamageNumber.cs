@@ -8,7 +8,7 @@ public enum DamageNumberKind { Damage, Critical, Emphasized, Defended, Evaded }
 /// out and returns to the scene pool. Presentation only; it never affects damage.
 /// </summary>
 [GlobalClass]
-public partial class DamageNumber : Node3D
+public partial class DamageNumber : Node3D, IPooledNode
 {
 	[Export] public Label3D Label { get; set; }
 	[Export] public float Lifetime { get; set; } = 0.9f;
@@ -57,6 +57,12 @@ public partial class DamageNumber : Node3D
 		return text != null;
 	}
 
+	public override void _Ready() => SetProcess(false);
+
+	public void OnSpawnedFromPool() => _age = 0;
+
+	public void OnDespawnedToPool() => SetProcess(false);
+
 	/// <summary>Start the number at <paramref name="position"/>; it drifts by <paramref name="drift"/> over its lifetime.</summary>
 	public void Play(string text, DamageNumberKind kind, Vector3 position, Vector3 drift)
 	{
@@ -73,6 +79,7 @@ public partial class DamageNumber : Node3D
 		_drift = drift;
 		_age = 0;
 		Apply();
+		ResetPhysicsInterpolation();
 		SetProcess(true);
 	}
 

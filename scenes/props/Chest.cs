@@ -29,6 +29,7 @@ public partial class Chest : Node3D
 	private const float AnimationDuration = 0.5f;
 
 	private bool _isAnimating;
+	private Tween _activeTween;
 
 	public override void _Ready()
 	{
@@ -64,11 +65,12 @@ public partial class Chest : Node3D
 		// during the tween must not restore an empty opened chest.
 		LootTable?.DropLoot();
 
-		var tween = CreateTween();
-		tween.TweenProperty(Lid, "rotation_degrees:x", OpenRotationDegrees, AnimationDuration)
+		_activeTween?.Kill();
+		_activeTween = CreateTween();
+		_activeTween.TweenProperty(Lid, "rotation_degrees:x", OpenRotationDegrees, AnimationDuration)
 			.SetTrans(Tween.TransitionType.Sine)
 			.SetEase(Tween.EaseType.Out);
-		tween.Finished += () =>
+		_activeTween.Finished += () =>
 		{
 			_isAnimating = false;
 			Update();
@@ -108,6 +110,8 @@ public partial class Chest : Node3D
 
 	public void RestoreOpenState()
 	{
+		_activeTween?.Kill();
+		_isAnimating = false;
 		IsOpen = true;
 		if (Interactive != null) { Interactive.IsInteractive = false; }
 		Update();

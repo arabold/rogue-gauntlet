@@ -48,6 +48,7 @@ public static class PlayerSaveCodec
 		{
 			player.GlobalPosition = ToVector3(data.Position);
 			player.Rotation = ToVector3(data.Rotation);
+			player.ResetPhysicsInterpolation();
 		}
 	}
 

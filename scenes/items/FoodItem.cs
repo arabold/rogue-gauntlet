@@ -4,8 +4,8 @@ using Godot;
 [GlobalClass]
 public partial class FoodItem : ConsumableItem
 {
-	[Export] public float PoisonChance { get; set; } = 0.2f;
-	[Export] public PoisonBuff PoisonEffect { get; set; }
+	[Export] public float PoisonChance { get; set => SetValue(ref field, value); } = 0.2f;
+	[Export] public PoisonBuff PoisonEffect { get; set => SetValue(ref field, value); }
 
 	public bool IsPoisoned { get; private set; } = false;
 
