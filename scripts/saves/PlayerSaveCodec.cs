@@ -20,6 +20,7 @@ public static class PlayerSaveCodec
 			Stats = player.Stats.CreateSaveData(),
 			Inventory = InventorySaveCodec.Capture(player.Inventory),
 			Actions = CaptureActions(player),
+			Buffs = BuffSaveCodec.Capture(player),
 		};
 		if (includeTransform)
 		{
@@ -38,12 +39,14 @@ public static class PlayerSaveCodec
 		}
 		Inventory restored = InventorySaveCodec.Restore(data.Inventory);
 		data.Actions?.ValidateCombatTimers();
+		var buffs = BuffSaveCodec.Prepare(player, data.Buffs);
 
 		player.BuffController.ClearBuffs();
 		ApplyInventory(player, restored, data.Inventory);
 		ApplyActions(player, data.Actions);
 		player.Stats.ApplySaveData(data.Stats);
 		player.StatsController.SyncStats();
+		foreach (var buff in buffs) player.BuffController.RestoreBuff(buff.Buff, buff.Source, buff.Remaining, buff.TickProgress);
 		if (data.ApplyTransform)
 		{
 			player.GlobalPosition = ToVector3(data.Position);

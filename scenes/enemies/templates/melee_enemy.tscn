@@ -1,4 +1,8 @@
-[gd_scene load_steps=59 format=3]
+[gd_scene load_steps=68 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/components/burning_status.tscn" id="burning_status_scene"]
+
+[ext_resource type="PackedScene" path="res://scenes/components/slow_status.tscn" id="slow_status_scene"]
 
 [ext_resource type="Script" uid="uid://bh26x2esjipp1" path="res://scenes/enemies/EnemyBase.cs" id="b_1_j62no"]
 
@@ -46,6 +50,16 @@
 [ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_poise.tres" id="poise_definition"]
 [ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_vulnerability.tres" id="vulnerability"]
+
+[ext_resource type="Script" path="res://scenes/player/BuffController.cs" id="status_controller"]
+[ext_resource type="Script" path="res://scenes/components/FrozenStatusComponent.cs" id="frozen_driver"]
+[ext_resource type="Resource" path="res://scenes/buffs/conditions/frozen.tres" id="frozen_condition"]
+[ext_resource type="Resource" path="res://scenes/effects/world/frozen/frozen.tres" id="frozen_effect"]
+
+[ext_resource type="PackedScene" path="res://scenes/components/iron_skin_status.tscn" id="iron_status"]
+[ext_resource type="PackedScene" path="res://scenes/components/stone_skin_status.tscn" id="stone_status"]
+
+[ext_resource type="PackedScene" path="res://scenes/components/editor_status_preview.tscn" id="editor_status_preview"]
 
 [sub_resource type="AnimationNodeAnimation" id="m_AnimationNodeAnimation_rfhfv"]
 animation = &"1H_Melee_Attack_Chop"
@@ -201,7 +215,13 @@ radius = 0.75
 [sub_resource type="CapsuleShape3D" id="m_CapsuleShape3D_m4sjw"]
 radius = 0.75
 
-[node name="MeleeEnemy" type="CharacterBody3D" node_paths=PackedStringArray("WorldEffects", "Invisibility", "AttackController", "ActionGate", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+[node name="MeleeEnemy" type="CharacterBody3D" node_paths=PackedStringArray("FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "BuffController", "WorldEffects", "Invisibility", "AttackController", "ActionGate", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+BuffController = NodePath("BuffController")
+FrozenStatus = NodePath("FrozenStatusComponent")
+SlowStatus = NodePath("SlowStatusComponent")
+BurningStatus = NodePath("BurningStatusComponent")
+IronSkinStatus = NodePath("IronSkinStatus")
+StoneSkinStatus = NodePath("StoneSkinStatus")
 WorldEffects = NodePath("WorldEffects")
 Invisibility = NodePath("InvisibilityComponent")
 collision_layer = 8
@@ -409,8 +429,9 @@ script = ExtResource("m_action_gate_script")
 AnimationComponent = NodePath("../CombatAnimationComponent")
 
 
-[node name="InvisibilityComponent" parent="." node_paths=PackedStringArray("Host") instance=ExtResource("invisibility")]
+[node name="InvisibilityComponent" parent="." node_paths=PackedStringArray("Host", "Statuses") instance=ExtResource("invisibility")]
 Host = NodePath("../WorldEffects")
+Statuses = NodePath("../BuffController")
 
 [editable path="Pivot/Skeleton_Minion"]
 
@@ -425,3 +446,39 @@ Health = NodePath("../HealthComponent")
 script = ExtResource("poise_script")
 Definition = ExtResource("poise_definition")
 ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="BuffController" type="Node" parent="." node_paths=PackedStringArray("Health")]
+script = ExtResource("status_controller")
+Health = NodePath("../HealthComponent")
+
+[node name="FrozenStatusComponent" type="Node" parent="." node_paths=PackedStringArray("Statuses", "ActionGate", "Animation", "Effects", "Health")]
+script = ExtResource("frozen_driver")
+Statuses = NodePath("../BuffController")
+Condition = ExtResource("frozen_condition")
+ActionGate = NodePath("../ActorActionGateComponent")
+Animation = NodePath("../EnemyBehaviorComponent/AnimationTree")
+Effects = NodePath("../WorldEffects")
+Appearance = ExtResource("frozen_effect")
+Health = NodePath("../HealthComponent")
+
+[node name="IronSkinStatus" parent="." node_paths=PackedStringArray("Statuses", "Host") instance=ExtResource("iron_status")]
+Statuses = NodePath("../BuffController")
+Host = NodePath("../WorldEffects")
+
+[node name="StoneSkinStatus" parent="." node_paths=PackedStringArray("Statuses", "Host") instance=ExtResource("stone_status")]
+Statuses = NodePath("../BuffController")
+Host = NodePath("../WorldEffects")
+
+[node name="EditorStatusPreview" parent="." node_paths=PackedStringArray("Actor", "Target") instance=ExtResource("editor_status_preview")]
+Actor = NodePath("..")
+Target = NodePath("../Pivot")
+
+[node name="SlowStatusComponent" parent="." node_paths=PackedStringArray("Statuses", "Movement", "Health") instance=ExtResource("slow_status_scene")]
+Statuses = NodePath("../BuffController")
+Movement = NodePath("../MovementComponent")
+Health = NodePath("../HealthComponent")
+
+[node name="BurningStatusComponent" parent="." node_paths=PackedStringArray("Statuses", "Health", "Effects") instance=ExtResource("burning_status_scene")]
+Statuses = NodePath("../BuffController")
+Health = NodePath("../HealthComponent")
+Effects = NodePath("../WorldEffects")

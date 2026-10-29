@@ -103,12 +103,12 @@ public static class ItemSaveCodec
 		};
 	}
 
-	private static List<StatModifierSaveData> CaptureModifiers(IEnumerable<StatModifier> modifiers) =>
+	internal static List<StatModifierSaveData> CaptureModifiers(IEnumerable<StatModifier> modifiers) =>
 		(modifiers ?? []).Where(modifier => modifier != null)
 			.Select(modifier => new StatModifierSaveData { Stat = (int)modifier.Stat, Op = (int)modifier.Op, Value = modifier.Value })
 			.ToList();
 
-	private static StatModifier[] BuildModifiers(List<StatModifierSaveData> saved) => (saved ?? []).Select(modifier =>
+	internal static StatModifier[] BuildModifiers(List<StatModifierSaveData> saved) => (saved ?? []).Select(modifier =>
 		Enum.IsDefined(typeof(StatType), modifier.Stat) && Enum.IsDefined(typeof(ModifierOp), modifier.Op) && float.IsFinite(modifier.Value)
 			? new StatModifier { Stat = (StatType)modifier.Stat, Op = (ModifierOp)modifier.Op, Value = modifier.Value }
 			: throw new InvalidOperationException("Invalid saved modifier.")).ToArray();

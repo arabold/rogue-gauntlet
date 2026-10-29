@@ -38,7 +38,7 @@ An actor may assign a `PoiseComponent` to its hurtbox. Its shared `PoiseDefiniti
 
 Attacks author `PoiseDamage`, `Knockback` and `HitStopDuration`. Weapons without a custom definition use the player attack controller's default impact; the default secondary carries hyper-armor. Absorbed, blocked, dodged and parried contacts deal no poise damage.
 
-Hit-stop pauses only the attacker's execution clock and pose, once per swing, after a damaging or blocked contact. When the player is interrupted or staggered, or causes hit-stop, the main scene shakes the camera through a Phantom Camera noise emitter (`HitNoiseEmitter`), scaled per impulse. Poise is runtime-only: loading, floor entry and harness resets start full. Sources without authored poise (traps, scripted hits) deal poise equal to their damage. Status ticks bypass the hurtbox and deal none.
+Hit-stop pauses only the attacker's execution clock and pose, once per swing, after a damaging or blocked contact. When the player is interrupted or staggered, or causes hit-stop, the main scene shakes the camera through a Phantom Camera noise emitter (`HitNoiseEmitter`), scaled per impulse. Poise is runtime-only: loading, floor entry and harness resets start full. Sources without authored poise (traps, scripted hits) deal poise equal to their damage. Status ticks deal no poise damage or hit reaction; burning ticks pass through the hurtbox so elemental shields can absorb them.
 
 ## Threat tiers and telegraphs
 
@@ -62,7 +62,7 @@ Crossbowmen show a subdued dashed aiming guide during preparation. It becomes wi
 
 ## Contact resolution
 
-Confirmed contact resolves faction/death filtering, eligible active defense, debug immunity, the hit zone and sneak bonus, the staggered multiplier, armor, health and then the hit reaction. There is **no passive evasion or accuracy contest**. Dexterity currently contributes critical chance, not an invisible defense roll. Physical movement can avoid contact; timed dodge/parry can reject eligible contact; guard reduces damage before armor.
+Confirmed contact resolves faction/death filtering, eligible active defense, debug immunity, the hit zone and sneak bonus, the staggered multiplier, armor, any active magic shield, health and then the hit reaction. Magic shields reflect a fraction of absorbed damage after the original contact resolves; reflected contacts cannot reflect again. There is **no passive evasion or accuracy contest**. Dexterity currently contributes critical chance, not an invisible defense roll. Physical movement can avoid contact; timed dodge/parry can reject eligible contact; guard reduces damage before armor.
 
 Player and enemy facades forward complete `ICombatDamageable` contacts to their authored hurtboxes. Body or child-collider contact must retain attack identity, delivery kind and defense eligibility, just like a direct hurtbox contact. Non-damageable detection areas (interaction, pickup or stairs) are ignored by projectile contact and splash queries; their parent actor does not make them combat surfaces.
 

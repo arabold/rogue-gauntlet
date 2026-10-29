@@ -28,7 +28,7 @@ public partial class SurfaceAppearanceController : Node
 	public bool Acquire(object token, StringName effectId, SurfaceAppearanceProfile profile, float amount)
 	{
 		if (IsStopped || token == null || Target == null || profile?.Material?.Shader == null || !IsInsideTree()) return false;
-		if (_requests.Count == 0 && !CanCapture(Target)) return false;
+		if (_requests.Count == 0 && !SurfaceMaterialFactory.CanCapture(Target)) return false;
 		if (_requests.TryGetValue(token, out var request))
 		{ request.Id = effectId; request.Profile = profile; request.Amount = Mathf.Clamp(amount, 0, 1); }
 		else _requests.Add(token, new Request(effectId, profile, Mathf.Clamp(amount, 0, 1)));
@@ -56,25 +56,12 @@ public partial class SurfaceAppearanceController : Node
 			if (surface.Snapshot.RestoreMaterials()) surface.Snapshot.Mesh.CastShadow = surface.Snapshot.CastShadow;
 		_meshes.Clear(); EmitSignalStateChanged();
 	}
-	public bool CanApply => !IsStopped && Target != null && (_requests.Count > 0 || CanCapture(Target));
-	private bool CanCapture(Node node)
-	{
-		if (VisualHelper.IsHelper(node)) return true;
-		if (node is MeshInstance3D { Mesh: not null } mesh)
-			for (int i = 0; i < mesh.Mesh.GetSurfaceCount(); i++)
-				if (mesh.GetActiveMaterial(i) is not null and not BaseMaterial3D)
-				{ GD.PushWarning($"{Name}: unsupported source shader on {mesh.Name}; assign a compatible visual variant."); return false; }
-		foreach (Node child in node.GetChildren()) if (!CanCapture(child)) return false;
-		return true;
-	}
-	private static int Rank(SurfaceAppearanceKind kind) => kind switch { SurfaceAppearanceKind.Cloak => 2, SurfaceAppearanceKind.Transition => 1, _ => 0 };
+	public bool CanApply => !IsStopped && Target != null && (_requests.Count > 0 || SurfaceMaterialFactory.CanCapture(Target));
 	private void Refresh()
 	{
 		Request winner = null;
 		foreach (var request in _requests.Values)
-			if (winner == null || Rank(request.Profile.Kind) > Rank(winner.Profile.Kind)
-				|| (Rank(request.Profile.Kind) == Rank(winner.Profile.Kind) && (request.Profile.Priority > winner.Profile.Priority
-				|| (request.Profile.Priority == winner.Profile.Priority && string.CompareOrdinal(request.Id.ToString(), winner.Id.ToString()) < 0)))) winner = request;
+			if (SurfaceMaterialFactory.IsHigherPriority(request.Profile, request.Id, winner?.Profile, winner?.Id)) winner = request;
 		if (winner == null) { ClearAndRestore(); return; }
 		if (_winner != winner)
 		{
@@ -91,44 +78,17 @@ public partial class SurfaceAppearanceController : Node
 		if (VisualHelper.IsHelper(node)) return;
 		if (node is MeshInstance3D { Mesh: not null } mesh && !_meshes.ContainsKey(mesh))
 		{
-			if (!CanCapture(mesh)) return;
+			if (!SurfaceMaterialFactory.CanCapture(mesh)) return;
 			_meshes.Add(mesh, Build(new MeshMaterialSnapshot(mesh)));
 		}
 		foreach (Node child in node.GetChildren()) Capture(child);
 	}
 	private Surface Build(MeshMaterialSnapshot snapshot)
 	{
-		var overrides = new ShaderMaterial[snapshot.SurfaceCount];
-		var materials = new List<ShaderMaterial>();
-		for (int i = 0; i < overrides.Length; i++)
-		{
-			ShaderMaterial previous = null;
-			for (var template = _winner.Profile.Material; template != null; template = template.NextPass as ShaderMaterial)
-			{
-				var material = (ShaderMaterial)template.Duplicate(); material.NextPass = null;
-				if (previous == null) overrides[i] = material; else previous.NextPass = material;
-				previous = material;
-				if (snapshot.ActiveMaterial(i) is BaseMaterial3D source)
-				{
-					material.SetShaderParameter("base_color", source.AlbedoColor);
-					material.SetShaderParameter("source_texture", source.AlbedoTexture);
-					material.SetShaderParameter("source_roughness", source.Roughness);
-					material.SetShaderParameter("source_metallic", source.Metallic);
-					material.SetShaderParameter("source_specular", source.MetallicSpecular);
-					material.SetShaderParameter("source_uv_scale", source.Uv1Scale);
-					material.SetShaderParameter("source_uv_offset", source.Uv1Offset);
-					material.SetShaderParameter("source_normal", source.NormalTexture);
-					material.SetShaderParameter("source_normal_enabled", source.NormalEnabled);
-					material.SetShaderParameter("source_normal_scale", source.NormalScale);
-					material.SetShaderParameter("source_alpha_scissor", source.Transparency == BaseMaterial3D.TransparencyEnum.AlphaScissor ? source.AlphaScissorThreshold : 0f);
-					material.SetShaderParameter("source_cull", (int)source.CullMode);
-				}
-				material.SetShaderParameter("amount", _winner.Amount); materials.Add(material);
-			}
-		}
+		var (overrides, materials) = SurfaceMaterialFactory.Create(snapshot, _winner.Profile, _winner.Amount);
 		snapshot.ApplySurfaces(overrides, clearOverlay: true);
 		snapshot.Mesh.CastShadow = _winner.Profile.Kind == SurfaceAppearanceKind.Cloak ? GeometryInstance3D.ShadowCastingSetting.Off : snapshot.CastShadow;
-		return new Surface(snapshot, materials.ToArray());
+		return new Surface(snapshot, materials);
 	}
 	private void ApplyAmount()
 	{

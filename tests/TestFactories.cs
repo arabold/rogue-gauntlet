@@ -19,6 +19,34 @@ public static class TestFactories
 		return runner.Scene().GetNode<CombatHarness>("Instructions");
 	}
 
+	/// <summary>Select and queue a spell through the harness controls.</summary>
+	public static void CastHarnessSpell(CombatHarness harness, string name, int level)
+	{
+		var spells = harness.GetNode<OptionButton>("%Controls/Spell");
+		int index = -1;
+		for (int i = 0; i < spells.ItemCount; i++) if (spells.GetItemText(i) == name) { index = i; break; }
+		if (index < 0) throw new System.InvalidOperationException($"Harness spell {name} is unavailable.");
+		spells.Select(index); spells.EmitSignal(OptionButton.SignalName.ItemSelected, (long)index);
+		harness.GetNode<OptionButton>("%Controls/SpellLevel").Select(level - 1);
+		harness.GetNode<Button>("%Controls/CastSpell").EmitSignal(Button.SignalName.Pressed);
+	}
+
+	/// <summary>Create an inert real monster for area-contact tests.</summary>
+	public static EnemyBase SpawnCombatMonster(Node root, Vector3 position, string name)
+	{
+		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		actor.Name = name; actor.Position = position; actor.EnemyBehaviorComponent.AIEnabled = false;
+		root.AddChild(actor); actor.DeathComponent.LootTableComponent = null; actor.DeathComponent.Xp = 0;
+		return actor;
+	}
+
+	/// <summary>Give a contact fixture stable health and prevent movement during assertions.</summary>
+	public static void PrepareCombatMonster(EnemyBase actor)
+	{
+		actor.HealthComponent.SetHealth(50, 50); actor.HurtBoxComponent.Armor = 0;
+		actor.MovementComponent.SetPhysicsProcess(false);
+	}
+
 	/// <summary>
 	/// Adds a node to the running scene tree so its own <c>_Ready</c> runs, and registers it
 	/// with GdUnit4's auto-free so it leaves the tree after the test. Never call <c>_Ready()</c>

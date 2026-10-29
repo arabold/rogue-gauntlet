@@ -247,7 +247,7 @@ public partial class GameSession : Node
 		}
 		catch (Exception error)
 		{
-			GD.PushError($"Cannot leave floor with invalid item state: {error.Message}");
+			GD.PushError($"Cannot leave floor with invalid player or floor state: {error.Message}");
 			return false;
 		}
 		_pendingLoadedSave = _activeSave;
@@ -368,7 +368,7 @@ public partial class GameSession : Node
 		catch (Exception error)
 		{
 			saveGame.PlayTimeSeconds = previousPlayTime;
-			GD.PushError($"Cannot capture item state: {error.Message}");
+			GD.PushError($"Cannot capture player or floor state: {error.Message}");
 			return false;
 		}
 

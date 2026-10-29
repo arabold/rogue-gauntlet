@@ -1,9 +1,11 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=9 format=3]
 
-[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectInstance.cs" id="root"]
+[ext_resource type="Script" path="res://scenes/magic/air/ThunderstormVisual.cs" id="root"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Shader" path="res://scenes/magic/air/electric_burst.gdshader" id="shader"]
 [ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[ext_resource type="PackedScene" path="res://scenes/magic/air/lightning_arc.tscn" id="arc"]
+[ext_resource type="PackedScene" path="res://scenes/magic/air/lightning_cracks.tscn" id="cracks"]
 [sub_resource type="ShaderMaterial" id="material"]
 shader = ExtResource("shader")
 shader_parameter/noise_texture = ExtResource("noise")
@@ -13,6 +15,8 @@ size = Vector2(20, 20)
 [node name="Thunderstorm" type="Node3D" node_paths=PackedStringArray("Timeline")]
 script = ExtResource("root")
 Timeline = NodePath("Timeline")
+ArcScene = ExtResource("arc")
+CracksScene = ExtResource("cracks")
 [node name="ElectricWave" type="MeshInstance3D" parent="."]
 position = Vector3(0, 0.24, 0)
 material_override = SubResource("material")

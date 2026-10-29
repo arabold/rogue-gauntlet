@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="TargetedSpellDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scenes/magic/shared/TargetedSpellDefinition.cs" id="script"]
+[resource]
+script = ExtResource("script")
+SpellName = "Rockfall"
+Element = 2
+Delivery = 3
+TargetsByLevel = PackedInt32Array(3, 6, 9)
+DamageByLevel = PackedFloat32Array(3, 4, 5)

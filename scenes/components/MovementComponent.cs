@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 public partial class MovementComponent : Node
@@ -48,18 +49,30 @@ public partial class MovementComponent : Node
 
 	private Vector3 _pushDirection = Vector3.Zero;
 	private float _pushStrength = 0.0f;
+	private bool _forcePushWhileLocked;
 
 	private object _locomotionOverrideOwner;
 	private Vector3 _overrideDirection = Vector3.Zero;
 	private float _overrideSpeed = 0f;
 	private bool _hasOverrideVelocity = false;
 	private float _speedMultiplier = 1.0f;
+	private readonly Dictionary<object, float> _statusSpeedFactors = [];
+	private float _statusSpeedFactor = 1f;
 	private Vector3? _fixedFacing;
 
 	[Export] public ActorActionGateComponent ActionGate { get; set; }
 
 	public Vector3 LocomotionDirection => _hasOverrideVelocity ? _overrideDirection : TargetDirection;
-	public float LocomotionSpeed => _hasOverrideVelocity ? _overrideSpeed : Speed * _speedMultiplier;
+	public float LocomotionSpeed => (_hasOverrideVelocity ? _overrideSpeed : Speed * _speedMultiplier) * _statusSpeedFactor;
+	public float StatusSpeedFactor => _statusSpeedFactor;
+	/// <summary>Apply a source-owned status multiplier independently of attack locomotion overrides.</summary>
+	public void SetStatusSpeedFactor(object source, float factor)
+	{
+		if (source == null || !float.IsFinite(factor) || factor <= 0 || factor > 1) return;
+		if (factor == 1) _statusSpeedFactors.Remove(source); else _statusSpeedFactors[source] = factor;
+		_statusSpeedFactor = 1;
+		foreach (float value in _statusSpeedFactors.Values) _statusSpeedFactor = Mathf.Min(_statusSpeedFactor, value);
+	}
 	public void HaltLocomotion() { _hasOverrideVelocity = false; Stop(); }
 	public bool HasOverrideVelocity => _hasOverrideVelocity;
 	public float SpeedMultiplier => _speedMultiplier;
@@ -115,7 +128,15 @@ public partial class MovementComponent : Node
 	{
 		_pushDirection = direction.Normalized();
 		_pushStrength = strength;
+		_forcePushWhileLocked = false;
 		_hasOverrideVelocity = false;
+	}
+
+	/// <summary>Move under an external force even while a status blocks voluntary movement.</summary>
+	public void PushForced(Vector3 direction, float strength)
+	{
+		Push(direction, strength);
+		_forcePushWhileLocked = true;
 	}
 
 	public void SetInputDirection(Vector3 inputDirection)
@@ -155,6 +176,7 @@ public partial class MovementComponent : Node
 		Stop();
 		_pushDirection = Vector3.Zero;
 		_pushStrength = 0;
+		_forcePushWhileLocked = false;
 		_locomotionOverrideOwner = null;
 		_hasOverrideVelocity = false;
 		_speedMultiplier = 1;
@@ -172,7 +194,7 @@ public partial class MovementComponent : Node
 	public override void _PhysicsProcess(double delta)
 	{
 		UpdateVelocity(delta);
-		SmoothRotateToward(delta);
+		if (ActionGate?.IsStatusLocked != true) SmoothRotateToward(delta);
 		MoveAndSlideActor();
 	}
 
@@ -204,16 +226,22 @@ public partial class MovementComponent : Node
 		Vector3 velocity;
 
 		// Apply horizontal velocity
-		if (ActionGate?.Disabled == true)
+		if (ActionGate?.Disabled == true || (ActionGate?.IsStatusLocked == true && !_forcePushWhileLocked))
 		{
 			velocity = Vector3.Zero;
 			_pushStrength = 0;
+			_forcePushWhileLocked = false;
 		}
 		else if (_pushStrength > 0.1f)
 		{
 			// Pushed by an external force; a poise break's knockback plays out during its stagger.
 			velocity = _pushDirection * _pushStrength;
 			_pushStrength -= Speed * (float)delta; // Decrease push strength over time
+			if (_pushStrength <= 0.1f) _forcePushWhileLocked = false;
+		}
+		else if (ActionGate?.IsStatusLocked == true)
+		{
+			velocity = Vector3.Zero;
 		}
 		else if (ActionGate?.IsStaggered == true)
 		{
@@ -221,12 +249,12 @@ public partial class MovementComponent : Node
 		}
 		else if (_hasOverrideVelocity)
 		{
-			velocity = _overrideDirection * _overrideSpeed;
+			velocity = _overrideDirection * (_overrideSpeed * _statusSpeedFactor);
 		}
 		else if (TargetDirection != Vector3.Zero && ActionGate?.AllowsLocomotion != false)
 		{
 			// General movement
-			velocity = TargetDirection * (Speed * _speedMultiplier);
+			velocity = TargetDirection * (Speed * _speedMultiplier * _statusSpeedFactor);
 		}
 		else
 		{

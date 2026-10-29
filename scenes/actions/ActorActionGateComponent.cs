@@ -24,6 +24,19 @@ public partial class ActorActionGateComponent : Node
 	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
 	[Export] public DefenseAnimationProfile AnimationProfile { get; set; }
 	public bool Disabled { get; private set; }
+	private readonly System.Collections.Generic.HashSet<object> _statusLocks = [];
+	public bool IsStatusLocked => _statusLocks.Count > 0;
+
+	/// <summary>Stops actions for as long as at least one independent status owns a lock.</summary>
+	public void SetStatusLock(object owner, bool locked)
+	{
+		if (owner == null) return;
+		if (locked)
+		{
+			if (_statusLocks.Add(owner)) CancelCurrent(ActionInterruptReason.Invalidated);
+		}
+		else _statusLocks.Remove(owner);
+	}
 	public float StaggerRemaining => _staggerRemaining;
 
 	/// <summary>Transfer an accepted preparation lease to its combat executor.</summary>
@@ -59,7 +72,7 @@ public partial class ActorActionGateComponent : Node
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "action.hyper_armor", ("kind", CurrentKind.ToString()), ("armored", armored), ("lease", lease.LeaseId));
 	}
 
-	public bool AllowsLocomotion => !IsBusy || (CurrentKind == ActorActionKind.Guard && CurrentPhase == ActorActionPhase.Active);
+	public bool AllowsLocomotion => !IsStatusLocked && (!IsBusy || (CurrentKind == ActorActionKind.Guard && CurrentPhase == ActorActionPhase.Active));
 	public bool IsBusy => CurrentKind != ActorActionKind.None;
 	public bool IsStaggered => CurrentKind == ActorActionKind.ForcedReaction;
 	private float _staggerRemaining;
@@ -131,7 +144,7 @@ public partial class ActorActionGateComponent : Node
 	{
 		lease = ActorActionLease.None;
 
-		if (Disabled) return ActorActionRequestResult.Disabled;
+		if (Disabled || IsStatusLocked) return ActorActionRequestResult.Disabled;
 
 		if (kind == ActorActionKind.None)
 		{

@@ -7,7 +7,9 @@ public partial class ActiveBuff : Node
 
 	public Player Player { get; private set; }
 	public Buff Buff { get; private set; }
+	public object Source { get; private set; }
 	public double RemainingDuration { get; private set; }
+	public double TickProgress => _tickAccumulator;
 
 	/// <summary>A non-positive duration means the buff lasts until it is explicitly removed.</summary>
 	public bool IsPermanent => Buff.Duration <= 0;
@@ -16,6 +18,8 @@ public partial class ActiveBuff : Node
 	private double _tickAccumulator = 0;
 	private bool _removed;
 
+	public override void _Ready() => UpdateProcessing();
+
 	public void Initialize(Player player, Buff buff)
 	{
 		Player = player;
@@ -23,6 +27,21 @@ public partial class ActiveBuff : Node
 		RemainingDuration = buff.Duration;
 
 		Buff.OnApply(this);
+	}
+
+	/// <summary>Refreshes a condition activation without disturbing other sources.</summary>
+	public void RefreshStatus(float duration)
+	{
+		Buff.Duration = duration;
+		RemainingDuration = duration;
+		if (IsInsideTree()) UpdateProcessing();
+	}
+	public void SetSource(object source) => Source = source;
+	/// <summary>Restore a prevalidated clock without replaying periodic ticks.</summary>
+	public void RestoreClock(double remaining, double tickProgress)
+	{
+		RemainingDuration = remaining;
+		_tickAccumulator = tickProgress;
 	}
 
 	/// <summary>
@@ -37,8 +56,11 @@ public partial class ActiveBuff : Node
 		}
 
 		_removed = true;
+		if (IsInsideTree()) SetPhysicsProcess(false);
 		Buff.OnRemove(this);
 	}
+
+	private void UpdateProcessing() => SetPhysicsProcess(!_removed && (!IsPermanent || Buff is PeriodicBuff));
 
 	public override void _PhysicsProcess(double delta)
 	{

@@ -26,6 +26,9 @@ public static class MonsterSceneValidator
 		foreach (var name in new[] { "HealthComponent", "MovementComponent", "EnemyBehaviorComponent", "DeathComponent", "LootTableComponent", "HurtBoxComponent", "ActionGate" })
 			Check(Local(Object<Node>(actor, name)), $"{name}: assign a component within this actor.");
 		var health = Object<Node>(actor, "HealthComponent");
+		var statuses = Object<Node>(actor, "BuffController");
+		if (statuses != null)
+			Check(Local(statuses) && Object<Node>(statuses, "Health") == health, "BuffController: bind this actor's health.");
 		var effects = Object<Node>(actor, "WorldEffects");
 		if (effects != null)
 		{
@@ -33,11 +36,32 @@ public static class MonsterSceneValidator
 			Check(Local(effects) && Object<Node>(effects, "Health") == health, "WorldEffects: bind this actor's health.");
 			Check(Local(surfaces) && Object<Node>(surfaces, "Target") == actor.GetNodeOrNull<Node>("Pivot"), "WorldEffects.SurfaceController: bind this actor's visual Pivot.");
 			var cloak = Object<Node>(actor, "Invisibility");
-			Check(cloak == null || Object<Node>(cloak, "Host") == effects, "Invisibility.Host: bind this actor's effect host.");
+			Check(cloak == null || (Object<Node>(cloak, "Host") == effects && Object<Node>(cloak, "Statuses") == statuses
+				&& statuses != null && Object<Resource>(cloak, "Condition") != null), "Invisibility: bind this actor's effect host and status controller, and assign its condition.");
 		}
 		var movement = Object<Node>(actor, "MovementComponent");
 		var behavior = Object<Node>(actor, "EnemyBehaviorComponent");
 		var gate = Object<Node>(actor, "ActionGate");
+		var frozen = actor.GetNodeOrNull<Node>("FrozenStatusComponent");
+		if (frozen != null)
+		{
+			var frozenEffects = Object<Node>(frozen, "Effects");
+			var frozenAppearance = Object<Resource>(frozen, "Appearance");
+			Check(Object<Node>(actor, "FrozenStatus") == frozen && Object<Node>(frozen, "Statuses") == statuses && statuses != null && Object<Node>(frozen, "Health") == health
+				&& Object<Node>(frozen, "ActionGate") == gate
+				&& Object<Node>(frozen, "Animation") == actor.GetNodeOrNull<Node>("EnemyBehaviorComponent/AnimationTree")
+				&& Object<Resource>(frozen, "Condition") != null
+				&& ((frozenEffects == null && frozenAppearance == null) || (frozenEffects == effects && frozenEffects != null && frozenAppearance != null)),
+				"FrozenStatusComponent: bind this actor's status, health, gate, animation and condition; assign both visual dependencies or neither.");
+		}
+		foreach (string name in new[] { "IronSkinStatus", "StoneSkinStatus" })
+		{
+			var status = Object<Node>(actor, name);
+			if (status != null)
+				Check(Local(status) && Object<Node>(status, "Statuses") == statuses && statuses != null
+					&& Object<Node>(status, "Host") == effects && Object<Resource>(status, "Condition") != null
+					&& Object<Resource>(status, "Effect") != null, $"{name}: bind this actor's status controller and effect host, and assign its condition and appearance.");
+		}
 		var death = Object<Node>(actor, "DeathComponent");
 		var loot = Object<Node>(actor, "LootTableComponent");
 		var hurtbox = Object<Node>(actor, "HurtBoxComponent");

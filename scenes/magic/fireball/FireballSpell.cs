@@ -70,7 +70,12 @@ public partial class FireballSpell : Node3D
 		projectile.RestrictToTarget(target, impactScale);
 		Vector3 displacement = destination - origin;
 		projectile.Initialize(origin, displacement.Normalized(), Speed, displacement.Length(), damage, damage, 0, Caster);
-		// The collision shape remains unchanged as the visual grows.
+		ConfigureProjectileVisual(projectile, scale);
+	}
+
+	/// <summary>Scale only the visual layers, leaving the projectile collision shape unchanged.</summary>
+	public static void ConfigureProjectileVisual(Projectile projectile, float scale)
+	{
 		foreach (string name in new[] { "RibbonTrail", "HotRibbon" })
 			if (projectile.GetNodeOrNull<MagicRibbonTrail>(name) is { } trail) trail.Width *= Mathf.Lerp(.8f, 1.4f, Mathf.Clamp((scale - .58f) / 1.22f, 0f, 1f));
 		foreach (string name in new[] { "Core", "HeatShell", "FlameWake", "OuterFlames", "SmokeWake", "Embers", "Light" })

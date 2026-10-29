@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 41;
+	public const int CurrentVersion = 42;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -66,6 +66,24 @@ public sealed class PlayerSaveData
 	public PlayerStatsSaveData Stats { get; set; } = new();
 	public InventorySaveData Inventory { get; set; } = new();
 	public PlayerActionSaveData Actions { get; set; } = new();
+	public List<ActiveBuffSaveData> Buffs { get; set; } = [];
+}
+
+/// <summary>One live activation; independent entries preserve stacking, duration and periodic progress.</summary>
+public sealed class ActiveBuffSaveData
+{
+	public string Kind { get; set; } = "";
+	public string Name { get; set; } = "";
+	public string ConditionPath { get; set; } = "";
+	public string SourcePath { get; set; } = "";
+	public bool HasSource { get; set; }
+	public bool Permanent { get; set; }
+	public double Remaining { get; set; }
+	public double TickProgress { get; set; }
+	public float TicksPerSecond { get; set; }
+	public int PointsPerTick { get; set; }
+	public float TimeScale { get; set; }
+	public List<StatModifierSaveData> Modifiers { get; set; } = [];
 }
 
 public sealed class PlayerActionSaveData

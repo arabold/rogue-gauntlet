@@ -1,7 +1,7 @@
 using Godot;
 
 /// <summary>Configures an authored fire visual and delegates its motion to scene components.</summary>
-public partial class FireSpellVisual : VisualEffectInstance
+public partial class FireSpellVisual : VisualEffectInstance, IAreaSpellVisual, IGuardVisual
 {
 	[Export] public FireBurstMotion Burst { get; set; }
 	[Export] public FireSweepMotion Sweep { get; set; }
@@ -31,6 +31,28 @@ public partial class FireSpellVisual : VisualEffectInstance
 	{
 		Visibility = visibility; base.SetVisibility(visibility);
 	}
+	/// <summary>Configure a flame burst to the combat definition's radius before entering the tree.</summary>
+	public bool ConfigureArea(int level, float radius)
+	{
+		if (Burst == null || Timeline == null || Burst.Timeline != Timeline || Timeline.Sustained
+			|| !float.IsFinite(Timeline.Duration) || Timeline.Duration <= 0 || AreaRadii == null
+			|| !float.IsFinite(AreaRadiusAtUnitScale) || AreaRadiusAtUnitScale <= 0 || !float.IsFinite(radius) || radius <= 0
+			|| Burst.Ribbons is not { Length: > 0 } || System.Array.Exists(Burst.Ribbons, ribbon => ribbon?.MaterialOverride is not ShaderMaterial)
+			|| Timeline.Surfaces is not { Length: > 0 } || System.Array.Exists(Timeline.Surfaces, surface => surface?.MaterialOverride is not ShaderMaterial)
+			|| Timeline.Lights == null || System.Array.Exists(Timeline.Lights, light => light == null)
+			|| Timeline.Emitters == null || System.Array.Exists(Timeline.Emitters, emitter => emitter?.MaterialOverride is not ShaderMaterial)) return false;
+		ConfigureLevel(level);
+		PreviewRadius = radius;
+		Scale = Vector3.One * (radius / AreaRadiusAtUnitScale);
+		return true;
+	}
+	public void SetAreaVisibility(AreaVisibility visibility) => SetVisibility(visibility);
 	/// <summary>Shows feedback for a guard reflection when the scene supplies it.</summary>
 	public void Flash() => Guard?.Flash();
+	public bool ConfigureGuard(int level, ulong cosmeticSeed)
+	{
+		if (Guard == null || Timeline?.Sustained != true) return false;
+		ConfigureLevel(level); return true;
+	}
+	public void FlashGuard() => Flash();
 }

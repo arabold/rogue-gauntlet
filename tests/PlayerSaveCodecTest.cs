@@ -13,6 +13,61 @@ using static GdUnit4.Assertions;
 public class PlayerSaveCodecTest
 {
 	[TestCase]
+	public async Task BuffAndStatusSourcesSurviveSaveWithoutReplayingTicksOrCures()
+	{
+		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		await runner.SimulateFrames(5);
+		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
+		var frozen = player.FrozenStatus.Condition;
+		player.Frozen = true;
+		player.BuffController.ApplyStatus(frozen, player.Invisibility, 8);
+		var focus = new FrostNovaSpell { Name = "SavedFocus" }; player.AddChild(focus); focus.Owner = player;
+		player.BuffController.ApplyStatus(frozen, focus, 4);
+		player.BuffController.ApplyBuff(new StatModifierBuff { Name = "Strength", Duration = 12,
+			Modifiers = [new StatModifier { Stat = StatType.Strength, Value = 3 }] });
+		player.BuffController.ApplyBuff(new HealingBuff { Name = "Healing", Duration = 10, TicksPerSecond = 2, HealthPointsPerTick = 1 });
+		var periodic = player.BuffController.ActiveBuffs.Last();
+		periodic._PhysicsProcess(.3);
+		float strength = player.Stats.Strength;
+		var saved = JsonSerializer.Deserialize<PlayerSaveData>(JsonSerializer.Serialize(PlayerSaveCodec.Capture(player, false)));
+		var restored = GD.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>();
+		var restoredFocus = new FrostNovaSpell { Name = "SavedFocus" }; restored.AddChild(restoredFocus); restoredFocus.Owner = restored;
+		TestFactories.AddToSceneTree(restored);
+		PlayerSaveCodec.Apply(restored, saved);
+		AssertBool(restored.Frozen).IsTrue();
+		AssertFloat(restored.Stats.Strength).IsEqual(strength);
+		AssertFloat((float)restored.BuffController.ActiveBuffs.Last().TickProgress).IsEqualApprox(.3, .001);
+		restored.Frozen = false;
+		AssertBool(restored.Frozen).IsTrue();
+		restored.BuffController.RemoveStatuses(restored.Invisibility);
+		AssertBool(restored.Frozen).IsTrue();
+		restoredFocus.Cancel();
+		AssertBool(restored.Frozen).IsFalse();
+		AssertInt(restored.BuffController.ActiveBuffs.Count).IsEqual(2);
+	}
+
+	[TestCase]
+	public async Task UnsupportedStatusSourcesAndInvalidSnapshotsAreRejected()
+	{
+		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		await runner.SimulateFrames(5);
+		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
+		var saved = PlayerSaveCodec.Capture(player, false);
+		var source = new object();
+		player.BuffController.ApplyStatus(player.FrozenStatus.Condition, source, 10);
+		bool rejected = false;
+		try { PlayerSaveCodec.Capture(player, false); } catch (InvalidOperationException) { rejected = true; }
+		AssertBool(rejected).IsTrue();
+		AssertBool(player.Frozen).IsTrue();
+		player.BuffController.RemoveStatuses(source);
+		saved.Buffs.Add(new ActiveBuffSaveData { Kind = "condition", HasSource = true, SourcePath = "../Invalid", Remaining = 5 });
+		player.Stats.Gold = 91; rejected = false;
+		try { PlayerSaveCodec.Apply(player, saved); } catch (InvalidOperationException) { rejected = true; }
+		AssertBool(rejected).IsTrue();
+		AssertInt(player.Stats.Gold).IsEqual(91);
+	}
+
+	[TestCase]
 	public async Task CapturedPlayerRestoresExactlyAndARejectedRecordChangesNothing()
 	{
 		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);

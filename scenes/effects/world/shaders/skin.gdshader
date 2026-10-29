@@ -2,6 +2,7 @@ shader_type spatial;
 // Solid skins must write opaque depth; alpha blending exposes back faces on double-sided meshes.
 render_mode depth_draw_opaque, cull_disabled;
 #include "res://scenes/effects/world/shaders/source_surface.gdshaderinc"
+#include "res://scenes/effects/world/shaders/skin_transition.gdshaderinc"
 uniform float amount : hint_range(0, 1) = 1;
 uniform int skin_kind = 0;
 uniform bool faceted = false;
@@ -17,7 +18,6 @@ void fragment() {
  // Derivative normals shade existing triangles flat without rebuilding or modifying the mesh.
  vec3 face_normal=normalize(cross(dFdx(VERTEX),dFdy(VERTEX)));
  if(dot(face_normal,NORMAL)<0.0) face_normal=-face_normal;
- if(faceted) NORMAL=face_normal;
  vec3 p=local_position;
  float brushed=0.5+0.5*sin(p.y*420.0+sin(p.x*31.0)*2.0);
  vec3 iron=mix(vec3(0.30,0.35,0.42),vec3(0.68,0.73,0.78),brushed*mix(0.22,0.04,polish)+0.35);
@@ -35,11 +35,12 @@ void fragment() {
  vec3 stone=mix(vec3(0.31,0.34,0.36),vec3(0.48,0.46,0.40),first)*mix(0.82,1.08,grain);
  stone=mix(stone,vec3(0.065,0.077,0.085),crack*0.88);
  vec3 skin=skin_kind==0 ? iron : stone;
- float reveal=smoothstep(0.0,0.15,amount-p.y*0.025);
+ float reveal=skin_transition(p,amount);
+ if(faceted) NORMAL=normalize(mix(NORMAL,face_normal,reveal));
  ALBEDO=mix(original.rgb,skin+original.rgb*0.08,reveal);
  METALLIC=mix(source_metallic,skin_kind==0 ? mix(0.68,0.95,polish) : 0.04,reveal);
  ROUGHNESS=mix(source_roughness,skin_kind==0 ? mix(0.3,0.055,polish) : 0.94,reveal);
- SPECULAR=skin_kind==0 ? mix(0.65,0.9,polish) : 0.28;
+ SPECULAR=mix(source_specular,skin_kind==0 ? mix(0.65,0.9,polish) : 0.28,reveal);
  EMISSION=skin_kind==0 ? vec3(0.18,0.29,0.38)*etch*0.12*reveal : vec3(0.16,0.11,0.055)*crack*0.08*reveal;
- if(source_normal_enabled && !faceted) { NORMAL_MAP=source_normal_map(uv); NORMAL_MAP_DEPTH=source_normal_scale; }
+ if(source_normal_enabled) { NORMAL_MAP=source_normal_map(uv); NORMAL_MAP_DEPTH=source_normal_scale*(faceted ? 1.0-reveal : 1.0); }
 }

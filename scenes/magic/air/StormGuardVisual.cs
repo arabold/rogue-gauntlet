@@ -1,10 +1,16 @@
 using Godot;
 
 /// <summary>Configures the sustained shield and its cosmetic arc emitter for one cast.</summary>
-public partial class StormGuardVisual : VisualEffectInstance
+public partial class StormGuardVisual : VisualEffectInstance, IGuardVisual
 {
 	[Export] public GuardArcEmitter ArcEmitter { get; set; }
 	private int _level = 1;
+	public bool ConfigureGuard(int level, ulong cosmeticSeed)
+	{
+		if (Timeline?.Sustained != true || ArcEmitter?.Shell == null || ArcEmitter.ArcScene == null) return false;
+		Configure(level, cosmeticSeed); return true;
+	}
+	public void FlashGuard() { }
 	public void Configure(int level, ulong seed)
 	{
 		_level = Mathf.Clamp(level, 1, 3);

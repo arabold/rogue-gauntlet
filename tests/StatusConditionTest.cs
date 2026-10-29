@@ -136,4 +136,59 @@ public partial class StatusConditionTest
 		var apple = (FoodItem)ItemFactory.Create(GD.Load<Item>("res://scenes/items/food/food/food_apple_red.tres"));
 		AssertObject(apple.PoisonEffect.Condition).IsSame(poisoned);
 	}
+
+	[TestCase]
+	public void ReapplicationAfterExpiryCreatesALiveActivation()
+	{
+		(BuffController controller, _) = NewController();
+		var condition = new StatusCondition();
+		var source = new object();
+		AssertBool(controller.ApplyStatus(condition, source, 1)).IsTrue();
+		controller.ActiveBuffs[0]._PhysicsProcess(2);
+		AssertBool(controller.ApplyStatus(condition, source, 5)).IsTrue();
+		controller._PhysicsProcess(0);
+		AssertInt(controller.ActiveBuffs.Count).IsEqual(1);
+		AssertBool(controller.HasCondition(condition)).IsTrue();
+		controller.ActiveBuffs[0]._PhysicsProcess(6);
+		controller._PhysicsProcess(0);
+		AssertBool(controller.HasCondition(condition)).IsFalse();
+	}
+
+	[TestCase]
+	public void ASourceCanSwitchBetweenTimedAndPersistentStatus()
+	{
+		(BuffController controller, _) = NewController();
+		var condition = new StatusCondition(); var source = new object();
+		AssertBool(controller.ApplyStatus(condition, source, 1)).IsTrue();
+		AssertBool(controller.SetPersistentStatus(condition, source, true)).IsTrue();
+		AssertBool(controller.ActiveBuffs[0].IsPermanent).IsTrue();
+		controller.ActiveBuffs[0]._PhysicsProcess(2);
+		AssertBool(controller.HasCondition(condition)).IsTrue();
+		AssertBool(controller.ApplyStatus(condition, source, 1)).IsTrue();
+		AssertBool(controller.ActiveBuffs[0].IsPermanent).IsFalse();
+		controller.ActiveBuffs[0]._PhysicsProcess(2); controller._PhysicsProcess(0);
+		AssertBool(controller.HasCondition(condition)).IsFalse();
+	}
+
+	[TestCase]
+	public void IdleStatusProcessingTracksTimedAndPersistentActivations()
+	{
+		var controller = TestFactories.AddToSceneTree(new BuffController());
+		var condition = new StatusCondition(); var source = new object();
+		AssertBool(controller.IsPhysicsProcessing()).IsFalse();
+		controller.SetPersistentStatus(condition, source, true);
+		var active = controller.ActiveBuffs[0];
+		AssertBool(controller.IsPhysicsProcessing()).IsFalse();
+		AssertBool(active.IsPhysicsProcessing()).IsFalse();
+		controller.ApplyStatus(condition, source, 1);
+		AssertBool(controller.IsPhysicsProcessing()).IsTrue();
+		AssertBool(active.IsPhysicsProcessing()).IsTrue();
+		controller.SetPersistentStatus(condition, source, true);
+		AssertBool(controller.IsPhysicsProcessing()).IsFalse();
+		AssertBool(active.IsPhysicsProcessing()).IsFalse();
+		controller.ApplyStatus(condition, source, 1);
+		active._PhysicsProcess(2); controller._PhysicsProcess(0);
+		AssertBool(controller.HasCondition(condition)).IsFalse();
+		AssertBool(controller.IsPhysicsProcessing()).IsFalse();
+	}
 }

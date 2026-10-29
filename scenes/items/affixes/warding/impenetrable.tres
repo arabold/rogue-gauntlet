@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="Affix" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="Affix" format=3 uid="uid://djnabg8gocnwo"]
 
-[ext_resource type="Script" path="res://scenes/items/affixes/Affix.cs" id="1_affix"]
-[ext_resource type="Script" path="res://scenes/items/affixes/AffixModifierRange.cs" id="2_range"]
+[ext_resource type="Script" uid="uid://cb5nn7f4pvq3y" path="res://scenes/items/affixes/Affix.cs" id="1_affix"]
+[ext_resource type="Script" uid="uid://lbqt10kp4dca" path="res://scenes/items/affixes/AffixModifierRange.cs" id="2_range"]
 
 [sub_resource type="Resource" id="Range_0"]
 script = ExtResource("2_range")

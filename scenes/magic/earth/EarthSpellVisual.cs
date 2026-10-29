@@ -2,7 +2,7 @@ using Godot;
 using System.Collections.Generic;
 
 /// <summary>Self-contained visual studies for earth spells; no combat or equipment behavior.</summary>
-public partial class EarthSpellVisual : Node3D
+public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 {
 	public enum EarthKind { Rockfall, Tremor, Spikes, StoneSkin, Obsidian }
 	[Export] public EarthKind Kind { get; set; }
@@ -33,12 +33,28 @@ public partial class EarthSpellVisual : Node3D
 	private bool _started;
 	private bool _landed;
 	private int _level = 1;
+	private float _areaRadius;
 	public bool IsGuard => Kind is EarthKind.StoneSkin or EarthKind.Obsidian;
+	public bool ConfigureGuard(int level, ulong cosmeticSeed)
+	{
+		if (!IsGuard || Guard == null || Timeline?.Sustained != true) return false;
+		ConfigureLevel(level); return true;
+	}
+	public void FlashGuard() { }
 	public AreaVisibility Visibility { get; private set; }
-	public float PreviewRadius => (Kind == EarthKind.Tremor ? 3.5f : 3f) + (_level - 1) * 1.5f;
+	public float PreviewRadius => _areaRadius > 0 ? _areaRadius : (Kind == EarthKind.Tremor ? 3.5f : 3f) + (_level - 1) * 1.5f;
 
 	/// <summary>Sets the presentation tier before the scene enters the tree.</summary>
 	public void ConfigureLevel(int level) { _level = Mathf.Clamp(level, 1, 3); Guard?.ConfigureLevel(_level); }
+	/// <summary>Configure an earth area effect to the combat definition's radius before entering the tree.</summary>
+	public bool ConfigureArea(int level, float radius)
+	{
+		if (Kind is not (EarthKind.Tremor or EarthKind.Spikes) || Timeline == null || Timeline.Sustained || !float.IsFinite(Timeline.Duration) || Timeline.Duration <= 0
+			|| WaveShader == null || AreaStoneShader == null || AreaRingShader == null || AreaDustShader == null
+			|| !float.IsFinite(radius) || radius <= 0) return false;
+		ConfigureLevel(level); _areaRadius = radius; return true;
+	}
+	public void SetAreaVisibility(AreaVisibility visibility) => SetVisibility(visibility);
 	public override void _Ready()
 	{
 		if (IsGuard) { Guard?.Build(); SetProcess(false); return; }

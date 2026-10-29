@@ -19,6 +19,9 @@ public partial class Projectile : Node3D, IPooledNode
 	[Export] public PackedScene ImpactEffectScene { get; set; }
 	[Export] public PackedScene ExpireEffectScene { get; set; }
 	[Export] public bool SpawnImpactEffectOnExpire { get; set; } = true;
+	/// <summary>Optional per-cast owner for impacts that must end with their source.</summary>
+	public Node EffectRoot { get; set; }
+	public DamageElement Element { get; set; }
 	[Export(PropertyHint.Layers3DPhysics)] public uint WorldCollisionMask { get; set; } = BlockingCollisionMask;
 	[Export] public float ImpactRadius { get; set; } = 0.0f;
 	[Export(PropertyHint.Range, "0,1,0.05")] public float ImpactRadiusMinDamageScale { get; set; } = 0.2f;
@@ -70,6 +73,14 @@ public partial class Projectile : Node3D, IPooledNode
 	public Node Attacker => GetValidAttacker();
 	public DamageSourceFlags AttackerFaction => _attackerFaction;
 
+	/// <summary>Stop a source-owned projectile immediately without generating an impact.</summary>
+	public void Cancel()
+	{
+		_hasResolvedHit = true;
+		SetPhysicsProcess(false);
+		SetHitBoxMonitoring(false, deferred: true);
+	}
+
 	public override void _Ready()
 	{
 		ProcessPhysicsPriority = CombatPhysics.Damage;
@@ -91,6 +102,8 @@ public partial class Projectile : Node3D, IPooledNode
 	{
 		SetPhysicsProcess(false);
 		_attacker = null;
+		EffectRoot = null;
+		Element = DamageElement.None;
 		_parentExecution = default;
 		_attackerFaction = DamageSourceFlags.Environment;
 		SetHitBoxMonitoring(false, deferred: true);
@@ -190,6 +203,7 @@ public partial class Projectile : Node3D, IPooledNode
 				IncomingDirection = Direction,
 				DefenseTraits = _defenseTraits,
 				DeliveryKind = DamageDeliveryKind.Projectile,
+				Element = Element,
 				Impact = Impact
 			};
 
@@ -339,6 +353,7 @@ public partial class Projectile : Node3D, IPooledNode
 					IncomingDirection = pushDirection,
 					DefenseTraits = _areaDefenseTraits,
 					DeliveryKind = DamageDeliveryKind.AreaImpact,
+					Element = Element,
 					Impact = Impact with { PoiseDamage = Impact.PoiseDamage * damageScale }
 				};
 
@@ -465,7 +480,7 @@ public partial class Projectile : Node3D, IPooledNode
 
 	private Node3D SpawnImpactVisual(PackedScene scene)
 	{
-		Node parent = GetTree().CurrentScene ?? GetParent();
+		Node parent = GodotObject.IsInstanceValid(EffectRoot) && EffectRoot.IsInsideTree() ? EffectRoot : GetTree().CurrentScene ?? GetParent();
 		if (!_restrictedTarget) return ScenePool.Spawn<Node3D>(scene, parent);
 		// Scaled spell impacts must not leak their transform into the shared effect pool.
 		Node3D effect = scene.Instantiate<Node3D>();
@@ -494,6 +509,8 @@ public partial class Projectile : Node3D, IPooledNode
 		_restrictedTarget = false;
 		_assignedTarget = null;
 		_effectScale = 1f;
+		EffectRoot = null;
+		Element = DamageElement.None;
 		_returnVersion++;
 		ImpactRadius = _defaultImpactRadius;
 		ImpactRadiusMinDamageScale = _defaultImpactRadiusMinDamageScale;

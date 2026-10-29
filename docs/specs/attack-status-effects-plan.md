@@ -2,6 +2,8 @@
 
 Status: **proposed**. Covers statuses applied by attacks: monster attacks that poison the player (venomous bites, poisoned bolts) and player weapons that poison monsters. It builds on [combat actions and defense](../combat-system.md), [weapon attacks](../weapon-attack-system.md), [stats and itemization](../stats-and-itemization.md) and [monster design and authoring](../monster-authoring-design.md).
 
+**New foundation:** [actor status integration](actor-status-integration-plan.md) adds actor-local, source-owned timed conditions and a frozen status on players and monsters. The proposed buff generalization below must build on that controller and its existing scene wiring; periodic and stat buffs remain player-specific, and attack payloads are not yet implemented.
+
 **Foundation:** this plan builds on the implemented [status conditions](../stats-and-itemization.md#buffs-and-status-conditions) and [screen effects](../screen-effects.md) and uses their contracts unchanged:
 
 - `StatusCondition`, whose identity is the external `.tres` (`scenes/buffs/conditions/poisoned.tres`).

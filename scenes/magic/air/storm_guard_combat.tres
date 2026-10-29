@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="MagicGuardDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/shared/MagicGuardDefinition.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+SpellName = "Storm Guard"
+Element = 3
+CapacityByLevel = PackedFloat32Array(22, 32, 42)
+ReflectionByLevel = PackedFloat32Array(0.4, 0.55, 0.7)

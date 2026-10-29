@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="LingeringAreaDefinition" load_steps=3 format=3]
+[ext_resource type="Script" path="res://scenes/magic/shared/LingeringAreaDefinition.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/buffs/conditions/burning.tres" id="burn"]
+[resource]
+script = ExtResource("script")
+SpellName = "Solar Flares"
+BurnCondition = ExtResource("burn")

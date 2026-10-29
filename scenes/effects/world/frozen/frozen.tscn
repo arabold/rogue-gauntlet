@@ -7,7 +7,7 @@ point_count = 2
 [node name="Frozen" type="Node3D"]
 script = ExtResource("script")
 Duration = 2.1
-EnterTime = 0.2
-ExitTime = 0.4
+EnterTime = 0.6
+ExitTime = 0.8
 Envelope = SubResource("envelope")
 Surface = ExtResource("surface")

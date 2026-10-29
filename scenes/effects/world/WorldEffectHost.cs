@@ -14,6 +14,8 @@ public partial class WorldEffectHost : Node3D
 	[Export] public Node3D GroundAnchor { get; set; }
 	[Export] public SurfaceAppearanceController SurfaceController { get; set; }
 	[Export] public HealthComponent Health { get; set; }
+	/// <summary>Visual-only effects started at runtime; they do not apply conditions or preview in the editor.</summary>
+	[Export] public WorldEffectDefinition[] InitialEffects { get; set; } = [];
 	public bool IsStopped { get; private set; }
 	public bool IsSuppressed => IsStopped || SurfaceController?.HasCloak == true || _ownerSuppressed;
 	public int ActiveInstanceCount => _instances.Count;
@@ -36,6 +38,13 @@ public partial class WorldEffectHost : Node3D
 		if (Health?.IsDead == true) StopForDeath();
 		// Equipped presenters can enter before this host is ready, so publish the initial cloak gate too.
 		RefreshGate();
+		if (!IsStopped)
+			foreach (var effect in InitialEffects ?? [])
+			{
+				if (effect == null) { GD.PushWarning($"{Name}: initial effects contain an empty entry."); continue; }
+				if (effect.Lifetime == WorldEffectLifetime.Sustained) SetSustained(this, effect, true, 0);
+				else PlayBurst(effect, 0);
+			}
 	}
 	public WorldEffectResult PlayBurst(WorldEffectDefinition definition, uint cosmeticSeed) => PlayBurstCore(definition, cosmeticSeed);
 	/// <summary>Inject per-playback visual inputs before validation; shared definitions stay immutable.</summary>

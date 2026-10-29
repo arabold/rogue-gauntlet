@@ -78,7 +78,7 @@ color_ramp = SubResource("Ramp")
 [node name="IronSkin" type="Node3D" node_paths=PackedStringArray("Layers", "Emitters")]
 script = ExtResource("script")
 Duration = 1.0
-EnterTime = 0.22
+EnterTime = 0.6
 ExitTime = 0.85
 Envelope = SubResource("Envelope")
 Layers = [NodePath("Layer0")]

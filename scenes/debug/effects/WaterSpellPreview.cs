@@ -30,10 +30,7 @@ public partial class WaterSpellPreview : Node3D
 	public override void _Ready()
 	{
 		EffectPreviewStage.AddSubject(PlayerVisual.Instantiate<Node3D>(), Caster, _animations);
-		EffectPreviewControls.Row(Controls, "Arrangement", EffectPreviewControls.Choice(DebugStage.ArrangementNames, 0, DebugStage.SetArrangement));
-		EffectPreviewControls.Row(Controls, "Spell level", EffectPreviewControls.Choice(new[] { "1", "2", "3" }, 0, i => SetLevel(i + 1)));
-		EffectPreviewControls.Row(Controls, "Targets", EffectPreviewControls.Choice(new[] { "0", "1", "2", "3", "4", "5" }, 3, SetTargetCount));
-		EffectPreviewControls.Row(Controls, "Spell", EffectPreviewControls.Choice(Names, 0, SelectSpell));
+		EffectPreviewControls.SpellSelectors(Controls, DebugStage, Names, SetLevel, SetTargetCount, SelectSpell);
 		_cast = EffectPreviewControls.Button(Controls, "Cast Ice Lance", Cast);
 		EffectPreviewControls.Button(Controls, "Reset targets", ResetTargets);
 		_reflect = EffectPreviewControls.Button(Controls, "Preview reflection", Reflect); _reflect.Visible = false;

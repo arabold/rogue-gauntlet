@@ -23,6 +23,29 @@ public class WorldEffectLifecycleTest
 		return (root, host, mesh, original);
 	}
 	[TestCase]
+	public void EditorSurfacePreviewDoesNotChangeOrSerializeAuthoredMaterials()
+	{
+		var root = new Node3D();
+		var original = new StandardMaterial3D { AlbedoColor = Colors.Red };
+		var overlay = new StandardMaterial3D { AlbedoColor = Colors.Blue };
+		var mesh = new MeshInstance3D { Name = "Mesh", Mesh = new BoxMesh(), MaterialOverride = original, MaterialOverlay = overlay };
+		root.AddChild(mesh); mesh.Owner = root; TestFactories.AddToSceneTree(root);
+		var profile = AutoFree(Definition("invisibility").Scene.Instantiate<WorldEffectInstance>()).Surface;
+		var preview = new EditorSurfacePreview();
+		AssertBool(preview.Set(root, profile)).IsTrue();
+		AssertObject(mesh.MaterialOverride).IsSame(original);
+		AssertObject(mesh.MaterialOverlay).IsSame(overlay);
+		AssertBool(mesh.GetSurfaceOverrideMaterial(0) == null).IsTrue();
+		AssertBool(mesh.CastShadow == GeometryInstance3D.ShadowCastingSetting.On).IsTrue();
+		var packed = new PackedScene(); AssertBool(packed.Pack(root) == Error.Ok).IsTrue();
+		var saved = AutoFree(packed.Instantiate<Node3D>()); var savedMesh = saved.GetNode<MeshInstance3D>("Mesh");
+		AssertObject(savedMesh.MaterialOverride).IsSame(original);
+		AssertObject(savedMesh.MaterialOverlay).IsSame(overlay);
+		preview.Clear();
+		AssertObject(mesh.MaterialOverride).IsSame(original);
+		AssertObject(mesh.MaterialOverlay).IsSame(overlay);
+	}
+	[TestCase]
 	public void ActivationBurstsIncludeTheirParticleTailsWithinOneSecond()
 	{
 		foreach (string id in new[] { "healing", "strength", "arcane", "level_up" })
@@ -31,6 +54,17 @@ public class WorldEffectLifecycleTest
 			AssertFloat(instance.Duration + instance.ExitTime).IsLess(1);
 			foreach (var emitter in instance.Emitters) AssertBool(emitter.Lifetime <= instance.ExitTime).IsTrue();
 		}
+	}
+	[TestCase]
+	public void AuthoredInitialEffectsStartThroughTheSharedHost()
+	{
+		var root = new Node3D { Visible = false };
+		var host = GD.Load<PackedScene>("res://scenes/effects/world/actor_world_effects.tscn").Instantiate<WorldEffectHost>();
+		host.InitialEffects = [Definition("blessed"), Definition("healing")];
+		root.AddChild(host); TestFactories.AddToSceneTree(root);
+		AssertInt(host.ActiveInstanceCount).IsEqual(2);
+		AssertInt(host.LeaseCount).IsEqual(1);
+		host.Clear();
 	}
 	[TestCase]
 	public void SustainedSourcesAreIdempotentAndOnlyTheLastReleaseEndsTheVisual()
@@ -59,6 +93,28 @@ public class WorldEffectLifecycleTest
 		AssertObject(mesh.Mesh.SurfaceGetMaterial(0)).IsSame(original);
 		host.Clear(); AssertObject(mesh.GetActiveMaterial(0)).IsSame(original);
 		AssertBool(mesh.CastShadow == GeometryInstance3D.ShadowCastingSetting.On).IsTrue();
+	}
+	[TestCase]
+	public void SkinsUseTheFullEntryAndExitEnvelope()
+	{
+		foreach (string id in new[] { "frozen", "iron_skin", "stone_skin" })
+		{
+			var (_, host, mesh, original) = Fixture();
+			var definition = Definition(id); var source = new object();
+			AssertBool(host.SetSustained(source, definition, true, 42) == WorldEffectResult.Started).IsTrue();
+			var effect = host.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Single();
+			var material = (ShaderMaterial)mesh.GetActiveMaterial(0);
+			AssertFloat(material.GetShaderParameter("amount").AsSingle()).IsEqual(0);
+			effect._Process(effect.EnterTime / 2);
+			AssertFloat(material.GetShaderParameter("amount").AsSingle()).IsEqualApprox(.5, .01);
+			effect._Process(effect.EnterTime / 2);
+			AssertFloat(material.GetShaderParameter("amount").AsSingle()).IsEqualApprox(1, .01);
+			host.SetSustained(source, definition, false, 42);
+			effect._Process(effect.ExitTime / 2);
+			AssertFloat(material.GetShaderParameter("amount").AsSingle()).IsEqualApprox(.5, .01);
+			effect._Process(effect.ExitTime);
+			AssertObject(mesh.GetActiveMaterial(0)).IsSame(original);
+		}
 	}
 	[TestCase]
 	public void RestartsStayBoundedAndRejectedOperationsPreserveExistingEffects()
@@ -185,13 +241,14 @@ public class WorldEffectLifecycleTest
 		model.AddChild(new MeshInstance3D { Mesh = new BoxMesh() }); root.AddChild(model);
 		var surface = new SurfaceAppearanceController { Target = model };
 		var cloak = GD.Load<PackedScene>("res://scenes/components/invisibility_component.tscn").Instantiate<InvisibilityComponent>();
-		cloak.StartInvisible = true;
+		var statuses = new BuffController(); root.AddChild(statuses); cloak.Statuses = statuses;
 		var host = GD.Load<PackedScene>("res://scenes/effects/world/actor_world_effects.tscn").Instantiate<WorldEffectHost>();
 		host.SurfaceController = surface; cloak.Host = host;
 		var item = new EquipableItem { CursePenalty = [new StatModifier()], CurseStatusKnown = true };
 		var presenter = GD.Load<PackedScene>("res://scenes/effects/world/item_curse_presenter.tscn").Instantiate<ItemCurseWorldEffectPresenter>();
 		presenter.Initialize(item, model, host); model.AddChild(presenter);
 		root.AddChild(cloak); root.AddChild(surface); root.AddChild(host); TestFactories.AddToSceneTree(root);
+		cloak.SetInvisible(true, true);
 		AssertBool(cloak.IsInvisible).IsTrue(); AssertBool(presenter.Host.IsSuppressed).IsTrue();
 		AssertInt(presenter.Host.LeaseCount).IsEqual(1);
 		AssertBool(presenter.Host.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Single().Visible).IsFalse();

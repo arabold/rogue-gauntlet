@@ -5,6 +5,16 @@ using System.Collections.Generic;
 /// <summary>Small shared controls for the visual workbenches, including playback and camera instructions.</summary>
 public static class EffectPreviewControls
 {
+	/// <summary>Add the shared arrangement, level, target-count and spell selectors.</summary>
+	public static void SpellSelectors(Container parent, DebugStage stage, IEnumerable<string> spells,
+		Action<int> setLevel, Action<int> setTargetCount, Action<int> selectSpell)
+	{
+		Row(parent, "Arrangement", Choice(stage.ArrangementNames, 0, stage.SetArrangement));
+		Row(parent, "Spell level", Choice(new[] { "1", "2", "3" }, 0, i => setLevel(i + 1)));
+		Row(parent, "Targets", Choice(new[] { "0", "1", "2", "3", "4", "5" }, 3, setTargetCount));
+		Row(parent, "Spell", Choice(spells, 0, selectSpell));
+	}
+
 	public static OptionButton Choice(IEnumerable<string> values, int selected, Action<int> callback)
 	{
 		var choice = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };

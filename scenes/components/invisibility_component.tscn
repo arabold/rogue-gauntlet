@@ -1,6 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 [ext_resource type="Script" path="res://scenes/components/InvisibilityComponent.cs" id="script"]
 [ext_resource type="Resource" path="res://scenes/effects/world/invisibility/invisibility.tres" id="effect"]
+[ext_resource type="Resource" path="res://scenes/buffs/conditions/invisible.tres" id="condition"]
 [node name="InvisibilityComponent" type="Node"]
 script = ExtResource("script")
 Effect = ExtResource("effect")
+Condition = ExtResource("condition")

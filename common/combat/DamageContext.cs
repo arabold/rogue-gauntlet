@@ -53,6 +53,9 @@ public enum DamageDeliveryKind
 	Environmental
 }
 
+/// <summary>Optional elemental identity for protection and resistance; ordinary damage has none.</summary>
+public enum DamageElement { None, Fire, Earth, Air, Water }
+
 public readonly record struct AttackIdentity(ulong SourceInstanceId, ulong Sequence);
 
 public readonly record struct DamageContext
@@ -66,10 +69,18 @@ public readonly record struct DamageContext
 	public Vector3 IncomingDirection { get; init; }
 	public AttackDefenseTraits DefenseTraits { get; init; }
 	public DamageDeliveryKind DeliveryKind { get; init; }
+	public DamageElement Element { get; init; }
 	/// <summary>Poise removed from a defender with poise; see <see cref="PoiseComponent"/>.</summary>
 	public float PoiseDamage { get; init; }
 	/// <summary>Push strength applied only when the contact interrupts or staggers its defender.</summary>
 	public float Knockback { get; init; }
+	/// <summary>Outward force on an unblocked contact, even if armor absorbs the damage.</summary>
+	public float ForcedPush { get; init; }
+	/// <summary>Reflection cannot trigger another guard reflection.</summary>
+	public bool IsReflected { get; init; }
+	/// <summary>Periodic status damage can bypass armor and avoid interrupting actions.</summary>
+	public bool BypassArmor { get; init; }
+	public bool SuppressHitReaction { get; init; }
 
 	/// <summary>Both impact values at once, so contact builders copy an attack's impact in one assignment.</summary>
 	public AttackImpact Impact

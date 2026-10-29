@@ -17,7 +17,8 @@ public class InvisibilityTest
 		var surface = new SurfaceAppearanceController { Target = target }; target.AddChild(surface);
 
 		var host = new WorldEffectHost { InstancesRoot = target, OriginAnchor = target, SurfaceController = surface, Health = health };
-		component.Host = host; target.AddChild(host); target.AddChild(component); return component;
+		var statuses = new BuffController { Health = health }; target.AddChild(statuses);
+		component.Statuses = statuses; component.Host = host; target.AddChild(host); target.AddChild(component); return component;
 	}
 	[TestCase]
 	public void MaterialsArePrivateAndRestoreExactlyWithoutChangingVisibilityOrCollision()
@@ -69,7 +70,7 @@ public class InvisibilityTest
 		{
 			preview.SetSubject(subject); await runner.SimulateFrames(20, 20);
 			var actor = preview.Stage.GetChild<Node3D>(0); var cloak = actor.GetNode<InvisibilityComponent>("InvisibilityComponent");
-			AssertBool(cloak.IsInvisible).IsTrue(); AssertFloat(cloak.Amount).IsEqual(1);
+			AssertBool(cloak.IsInvisible).IsFalse(); AssertBool(cloak.Host.SurfaceController.HasCloak).IsTrue(); AssertFloat(cloak.Amount).IsEqual(1);
 			AssertInt(preview.InstanceCount).IsEqual(1);
 			preview.ClearEffects(); AssertBool(cloak.IsInvisible).IsFalse(); AssertInt(preview.InstanceCount).IsEqual(0);
 		}
@@ -102,11 +103,11 @@ public class InvisibilityTest
 		AssertFloat(cloak.Amount).IsEqual(1);
 		host.SetSustained(second, definition, true, 42);
 		host.SetSustained(first, definition, false, 42, immediate: true);
-		AssertBool(cloak.IsInvisible).IsTrue(); AssertInt(host.LeaseCount).IsEqual(1);
+		AssertBool(host.SurfaceController.HasCloak).IsTrue(); AssertInt(host.LeaseCount).IsEqual(1);
 		host.SetSustained(second, definition, false, 42);
-		AssertBool(cloak.IsInvisible).IsTrue(); AssertInt(host.LeaseCount).IsEqual(0);
+		AssertBool(host.SurfaceController.HasCloak).IsTrue(); AssertInt(host.LeaseCount).IsEqual(0);
 		host.SetSustained(second, definition, false, 42, immediate: true);
-		AssertBool(cloak.IsInvisible).IsFalse(); AssertInt(host.ActiveInstanceCount).IsEqual(0);
+		AssertBool(host.SurfaceController.HasCloak).IsFalse(); AssertInt(host.ActiveInstanceCount).IsEqual(0);
 	}
 	[TestCase]
 	public void PlayerAndAllMonsterAssembliesExplicitlyAssignTheSharedComponent()
@@ -120,7 +121,7 @@ public class InvisibilityTest
 			TestFactories.AddToSceneTree(actor);
 			var cloak = actor.GetNode<InvisibilityComponent>("InvisibilityComponent");
 			AssertObject(cloak.Target).IsSame(actor.GetNode<Node3D>("Pivot"));
-			AssertObject(cloak.Effect.Scene).IsNotNull(); AssertObject(cloak.Host).IsNotNull(); AssertBool(cloak.StartInvisible).IsFalse();
+			AssertObject(cloak.Effect.Scene).IsNotNull(); AssertObject(cloak.Host).IsNotNull(); AssertObject(cloak.Statuses).IsNotNull(); AssertBool(cloak.IsInvisible).IsFalse();
 		}
 	}
 }

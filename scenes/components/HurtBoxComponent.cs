@@ -37,6 +37,16 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	[Export] public bool Invulnerable { get; set; } = false;
 
 	private readonly System.Collections.Generic.List<IDefenseEvaluator> _defenseEvaluators = new();
+	private ICombatShield _shield;
+	/// <summary>Replace the active magic guard; each actor has at most one.</summary>
+	public void InstallShield(ICombatShield shield)
+	{
+		var previous = _shield; _shield = null; previous?.End(); _shield = shield;
+	}
+	public void RemoveShield(ICombatShield shield)
+	{
+		if (ReferenceEquals(_shield, shield)) _shield = null;
+	}
 
 	public void RegisterDefenseEvaluator(IDefenseEvaluator evaluator)
 	{
@@ -163,21 +173,37 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		// A staggered defender (poise break or parry) is the punish window: its hits land harder before armor.
 		if (Poise?.IsAvailable == true && Poise.ActionGate.IsStaggered)
 			incomingAmount *= Poise.Definition.StaggeredDamageMultiplier;
-		armorRoll = Roll(random, Armor);
+		armorRoll = contact.BypassArmor ? 0 : Roll(random, Armor);
 		float finalDamage = Mathf.Max(0, incomingAmount - armorRoll);
 		if (unaware) Awareness.NoticeAttacker(contact.OwnerNode);
+		// Capture the guard before absorption: the final hit can deplete it but still reflects.
+		var shield = _shield;
+		float absorbed = shield?.Absorb(finalDamage, contact.Element) ?? 0;
+		finalDamage = Mathf.Max(0, finalDamage - absorbed);
+		DamageResolution Complete(DamageOutcome outcome, float amount = 0)
+		{
+			var resolution = Resolved(outcome, amount);
+			if (absorbed > 0) shield?.Reflect(absorbed, in snapshot);
+			return resolution;
+		}
 
 		if (finalDamage <= 0)
 		{
-			return isDefended ? Resolved(defenseEval.Outcome, 0f) : Resolved(DamageOutcome.Absorbed, 0f);
+			if (!isDefended && float.IsFinite(contact.ForcedPush) && contact.ForcedPush > 0) MovementComponent?.PushForced(contact.IncomingDirection, contact.ForcedPush);
+			return isDefended ? Complete(defenseEval.Outcome, 0f) : Complete(DamageOutcome.Absorbed, 0f);
 		}
 
+		// Death can clear a status during TakeDamage; preserve the contact's reaction rules.
+		bool statusLocked = MovementComponent?.ActionGate?.IsStatusLocked == true;
 		EmitSignalDamageTaken(finalDamage, contact.IncomingDirection);
 		HealthComponent?.TakeDamage(finalDamage);
 
-		if (!defenseEval.SuppressHitStun) reaction = ReactToHit(contact, poiseDamage);
+		if (!defenseEval.SuppressHitStun && !statusLocked && !contact.SuppressHitReaction)
+			reaction = ReactToHit(contact, poiseDamage);
+		if (!isDefended && float.IsFinite(contact.ForcedPush) && contact.ForcedPush > 0 && HealthComponent?.IsDead != true)
+			MovementComponent?.PushForced(contact.IncomingDirection, contact.ForcedPush);
 
-		return isDefended ? Resolved(defenseEval.Outcome, finalDamage) : Resolved(DamageOutcome.Damaged, finalDamage);
+		return isDefended ? Complete(defenseEval.Outcome, finalDamage) : Complete(DamageOutcome.Damaged, finalDamage);
 	}
 
 	/// <summary>The actor's facing: its movement's look direction, or the hurtbox's own forward without one.</summary>

@@ -10,6 +10,8 @@ public partial class VisualEffectTimeline : Node
 	[Export] public float FadeIn { get; set; } = .08f;
 	[Export] public float FadeOutStart { get; set; } = .65f;
 	[Export] public bool Sustained { get; set; }
+	/// <summary>Composed effects may keep their root until independently fading children finish.</summary>
+	[Export] public bool FreeOnCompletion { get; set; } = true;
 	public float StartDelay { get; set; }
 	public float Elapsed { get; private set; }
 	public float Progress { get; private set; }
@@ -84,6 +86,10 @@ public partial class VisualEffectTimeline : Node
 		Opacity = Sustained ? Mathf.SmoothStep(0, Mathf.Max(FadeIn, .001f), Progress)
 			: EffectEnvelope.Evaluate(Progress, Mathf.Max(FadeIn, .001f), Mathf.Clamp(FadeOutStart, 0, .999f));
 		if (!Sustained || previous < 1) SetVisual(Progress, Opacity);
-		if (!Sustained && Progress >= 1) GetParent().QueueFree();
+		if (!Sustained && Progress >= 1)
+		{
+			if (FreeOnCompletion) GetParent().QueueFree();
+			else SetProcess(false);
+		}
 	}
 }

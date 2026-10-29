@@ -336,3 +336,7 @@ ActionGate = NodePath("../ActorActionGateComponent")
 
 [node name="AttackController" parent="." node_paths=PackedStringArray("ActionGate")]
 ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="FrozenStatusComponent" parent="." node_paths=PackedStringArray("ActionGate", "Animation")]
+ActionGate = NodePath("../ActorActionGateComponent")
+Animation = NodePath("../EnemyBehaviorComponent/AnimationTree")

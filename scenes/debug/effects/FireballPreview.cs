@@ -36,10 +36,7 @@ public partial class FireballPreview : Node3D
 		var player = PlayerVisual.Instantiate<Node3D>();
 		EffectPreviewStage.AddSubject(player, Spell.Caster, _animations);
 		EffectPreviewStage.PlayAnimations(_animations, 0, 1);
-		EffectPreviewControls.Row(Controls, "Arrangement", EffectPreviewControls.Choice(DebugStage.ArrangementNames, 0, DebugStage.SetArrangement));
-		EffectPreviewControls.Row(Controls, "Spell level", EffectPreviewControls.Choice(new[] { "1", "2", "3" }, 0, i => SetLevel(i + 1)));
-		EffectPreviewControls.Row(Controls, "Targets", EffectPreviewControls.Choice(new[] { "0", "1", "2", "3", "4", "5" }, 3, SetTargetCount));
-		EffectPreviewControls.Row(Controls, "Spell", EffectPreviewControls.Choice(SpellNames, 0, SelectSpell));
+		EffectPreviewControls.SpellSelectors(Controls, DebugStage, SpellNames, SetLevel, SetTargetCount, SelectSpell);
 		_castButton = EffectPreviewControls.Button(Controls, "Cast Fireball", Cast);
 		EffectPreviewControls.Button(Controls, "Reset targets", ResetTargets);
 		_wallButton = EffectPreviewControls.Button(Controls, "Test wall impact", () => { Spell.PreviewWall(_level, WallAim.GlobalPosition); _status.Text = $"Level {_level}: wall impact."; });

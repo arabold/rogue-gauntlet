@@ -47,6 +47,7 @@ public partial class ActorItemEffectPreview : Node3D
 		_facetChoice = new CheckBox { Text = "Faceted shading" }; _facetChoice.Toggled += enabled => { _faceted = enabled; ApplySurfaceStyle(); }; Controls.AddChild(_facetChoice);
 		_polishChoice = new CheckBox { Text = "Polished steel" }; _polishChoice.Toggled += enabled => { _polished = enabled; ApplySurfaceStyle(); }; Controls.AddChild(_polishChoice);
 		Button(Controls, "Replay", Replay);
+		Button(Controls, "Fade effect", FadeEffects);
 		Button(Controls, "Clear effect", ClearEffects);
 		_teleportButton = Button(Controls, "Preview full teleport", PreviewTeleport);
 		Playback(Controls, SetPlaybackSpeed);
@@ -116,6 +117,8 @@ public partial class ActorItemEffectPreview : Node3D
 	/// <summary>Replay rebuilds the single subject and its selected burst or sustained effect.</summary>
 	public void Replay() => Rebuild();
 	public void ClearEffects() => _host?.Clear();
+	/// <summary>Release active effects through their normal exit envelopes for visual inspection.</summary>
+	public void FadeEffects() => _host?.Clear(immediate: false);
 	/// <summary>Exercise both ends only when teleportation is selected.</summary>
 	public void PreviewTeleport()
 	{

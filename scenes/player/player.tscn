@@ -1,4 +1,8 @@
-[gd_scene load_steps=101 format=3 uid="uid://hshntmwu857e"]
+[gd_scene format=3 uid="uid://hshntmwu857e"]
+
+[ext_resource type="PackedScene" path="res://scenes/components/burning_status.tscn" id="burning_status_scene"]
+
+[ext_resource type="PackedScene" path="res://scenes/components/slow_status.tscn" id="slow_status_scene"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
@@ -18,50 +22,64 @@
 [ext_resource type="PackedScene" uid="uid://b1g1tfsv7yd6i" path="res://scenes/components/input_component.tscn" id="9_p85oa"]
 [ext_resource type="PackedScene" uid="uid://n0xkrntlfaa1" path="res://scenes/components/bone_attachment_manager.tscn" id="10_0gr6c"]
 [ext_resource type="PackedScene" uid="uid://ccltoxuycom37" path="res://scenes/items/lootable_item.tscn" id="11_wj3nu"]
-[ext_resource type="Script" path="res://scenes/player/BuffController.cs" id="12_t4bx0"]
-[ext_resource type="Script" path="res://scenes/player/PlayerInteractionController.cs" id="13_0dcb4"]
-[ext_resource type="Script" path="res://scenes/player/PlayerStatsController.cs" id="14_ilumj"]
-[ext_resource type="Script" path="res://scenes/player/PlayerInventoryController.cs" id="15_gknh4"]
-[ext_resource type="Script" path="res://scenes/player/PlayerInputController.cs" id="16_1atg5"]
-[ext_resource type="Script" path="res://scenes/player/PlayerAttackController.cs" id="17_sh3lf"]
+[ext_resource type="Script" uid="uid://cxsakr00s1y3t" path="res://scenes/player/BuffController.cs" id="12_t4bx0"]
+[ext_resource type="Script" uid="uid://cbvsiwxjby8f6" path="res://scenes/player/PlayerInteractionController.cs" id="13_0dcb4"]
+[ext_resource type="Script" uid="uid://dd42hp2in4eih" path="res://scenes/player/PlayerStatsController.cs" id="14_ilumj"]
+[ext_resource type="Script" uid="uid://dcj2fef6cpvd1" path="res://scenes/player/PlayerInventoryController.cs" id="15_gknh4"]
+[ext_resource type="Script" uid="uid://dg5rouukujtfm" path="res://scenes/player/PlayerInputController.cs" id="16_1atg5"]
+[ext_resource type="Script" uid="uid://c3ep64ls3jnhc" path="res://scenes/player/PlayerAttackController.cs" id="17_sh3lf"]
 [ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/attacks/projectile.tscn" id="19_projectile"]
-
-[ext_resource type="Script" path="res://scenes/attacks/CombatAnimationComponent.cs" id="attack_animation_script"]
-[ext_resource type="Resource" path="res://scenes/attacks/animation_profiles/kaykit_player.tres" id="attack_animation_profile"]
-
-[ext_resource type="Script" path="res://scenes/attacks/MeleeHitDetector.cs" id="melee_detector_script"]
-[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/unarmed.tres" id="melee_default"]
-[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/spin.tres" id="melee_spin"]
-[ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="action_gate_script"]
-[ext_resource type="Script" path="res://scenes/combat/DodgeComponent.cs" id="dodge_script"]
-[ext_resource type="Script" path="res://scenes/combat/GuardComponent.cs" id="guard_script"]
-[ext_resource type="Resource" path="res://scenes/combat/definitions/player_dodge.tres" id="dodge_def"]
-[ext_resource type="Resource" path="res://scenes/combat/definitions/shield_guard.tres" id="guard_def"]
-
+[ext_resource type="Script" uid="uid://djcqnvoboj80v" path="res://scenes/effects/world/WorldEffectDefinition.cs" id="50_5xbmr"]
+[ext_resource type="Script" uid="uid://bh83jdlbm1ga7" path="res://scenes/actions/ActorActionGateComponent.cs" id="action_gate_script"]
+[ext_resource type="Resource" uid="uid://dct1orgrtmguy" path="res://scenes/attacks/animation_profiles/kaykit_player.tres" id="attack_animation_profile"]
+[ext_resource type="Script" uid="uid://8apc7iyxodol" path="res://scenes/attacks/CombatAnimationComponent.cs" id="attack_animation_script"]
+[ext_resource type="Script" uid="uid://cx8awxd4t4mhu" path="res://scenes/combat/AttackSlotsComponent.cs" id="attack_slots_script"]
+[ext_resource type="Script" uid="uid://cq8mc8i450v8q" path="res://scenes/actions/ActorCapabilities.cs" id="capabilities_script"]
+[ext_resource type="Resource" uid="uid://b2ekvd6xmyqpf" path="res://scenes/buffs/conditions/confused.tres" id="confused_condition"]
+[ext_resource type="Script" uid="uid://b1ktfwjjuomyq" path="res://scenes/player/ConfusionComponent.cs" id="confusion_script"]
 [ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="defense_animation"]
-
-[ext_resource type="Script" path="res://scenes/actions/ActorCapabilities.cs" id="capabilities_script"]
-[ext_resource type="Resource" path="res://scenes/combat/definitions/weapon_guard.tres" id="innate_guard"]
-[ext_resource type="Script" path="res://scenes/player/TimeScaleComponent.cs" id="time_scale_script"]
-[ext_resource type="Script" path="res://scenes/player/ConfusionComponent.cs" id="confusion_script"]
-[ext_resource type="Resource" uid="uid://cstatusconfused" path="res://scenes/buffs/conditions/confused.tres" id="confused_condition"]
-
-[ext_resource type="PackedScene" path="res://scenes/components/invisibility_component.tscn" id="invisibility"]
-
+[ext_resource type="Resource" uid="uid://b0hniequ3jca" path="res://scenes/combat/definitions/player_dodge.tres" id="dodge_def"]
+[ext_resource type="Script" uid="uid://dvvv7pk1tehun" path="res://scenes/combat/DodgeComponent.cs" id="dodge_script"]
+[ext_resource type="PackedScene" path="res://scenes/components/editor_status_preview.tscn" id="editor_status_preview"]
 [ext_resource type="Script" uid="uid://bmrka2rigbvvg" path="res://scenes/components/FloorLightingComponent.cs" id="floor_lighting"]
-[ext_resource type="Script" uid="uid://dd4dxnyubvshs" path="res://scenes/player/PlayerQuickItemController.cs" id="quick_items_script"]
+[ext_resource type="Resource" path="res://scenes/buffs/conditions/frozen.tres" id="frozen_condition"]
+[ext_resource type="Script" uid="uid://ds3fw1lymp5kj" path="res://scenes/components/FrozenStatusComponent.cs" id="frozen_driver"]
+[ext_resource type="Resource" path="res://scenes/effects/world/frozen/frozen.tres" id="frozen_effect"]
+[ext_resource type="Resource" uid="uid://bceqight3yi5n" path="res://scenes/combat/definitions/shield_guard.tres" id="guard_def"]
+[ext_resource type="Script" uid="uid://bw2ttraept3oh" path="res://scenes/combat/GuardComponent.cs" id="guard_script"]
+[ext_resource type="Resource" uid="uid://c6impykd7marf" path="res://scenes/combat/definitions/weapon_guard.tres" id="innate_guard"]
 [ext_resource type="Script" uid="uid://dgiq0d302k3ul" path="res://scenes/interactions/ActorInteractionComponent.cs" id="interaction_script"]
-
-[ext_resource type="Script" path="res://scenes/effects/world/SurfaceAppearanceController.cs" id="vfx_surface"]
-[ext_resource type="PackedScene" path="res://scenes/effects/world/actor_world_effects.tscn" id="vfx_host"]
-[ext_resource type="Script" path="res://scenes/effects/world/ItemUseWorldEffectDriver.cs" id="vfx_use"]
-[ext_resource type="Resource" path="res://scenes/effects/world/healing/healing.tres" id="vfx_healing"]
-[ext_resource type="Resource" path="res://scenes/effects/world/strength/strength.tres" id="vfx_strength"]
-
-[ext_resource type="Resource" path="res://scenes/effects/world/runes/rune_ring.tres" id="vfx_scroll"]
-[ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
+[ext_resource type="PackedScene" path="res://scenes/components/invisibility_component.tscn" id="invisibility"]
+[ext_resource type="PackedScene" path="res://scenes/components/iron_skin_status.tscn" id="iron_status"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/unarmed.tres" id="melee_default"]
+[ext_resource type="Script" uid="uid://bm63kr1lxetb3" path="res://scenes/attacks/MeleeHitDetector.cs" id="melee_detector_script"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/spin.tres" id="melee_spin"]
 [ext_resource type="Resource" path="res://scenes/combat/definitions/player_poise.tres" id="poise_definition"]
-[ext_resource type="Script" path="res://scenes/combat/AttackSlotsComponent.cs" id="attack_slots_script"]
+[ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
+[ext_resource type="Script" uid="uid://dd4dxnyubvshs" path="res://scenes/player/PlayerQuickItemController.cs" id="quick_items_script"]
+[ext_resource type="PackedScene" path="res://scenes/components/stone_skin_status.tscn" id="stone_status"]
+[ext_resource type="Script" uid="uid://eemdq6e8rqg7" path="res://scenes/player/TimeScaleComponent.cs" id="time_scale_script"]
+[ext_resource type="Resource" path="res://scenes/effects/world/healing/healing.tres" id="vfx_healing"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/actor_world_effects.tscn" id="vfx_host"]
+[ext_resource type="Resource" path="res://scenes/effects/world/runes/rune_ring.tres" id="vfx_scroll"]
+[ext_resource type="Resource" path="res://scenes/effects/world/strength/strength.tres" id="vfx_strength"]
+[ext_resource type="Script" uid="uid://xi6k1bn5o4rh" path="res://scenes/effects/world/SurfaceAppearanceController.cs" id="vfx_surface"]
+[ext_resource type="Script" uid="uid://ciaiejkejh513" path="res://scenes/effects/world/ItemUseWorldEffectDriver.cs" id="vfx_use"]
+
+[sub_resource type="Resource" id="Resource_3j4b4"]
+script = ExtResource("3_uf5tr")
+Item = ExtResource("4_uf5tr")
+metadata/_custom_type_script = ExtResource("3_uf5tr")
+
+[sub_resource type="Resource" id="Resource_ioxgp"]
+script = ExtResource("3_uf5tr")
+Item = ExtResource("6_8ydkj")
+metadata/_custom_type_script = ExtResource("3_uf5tr")
+
+[sub_resource type="Resource" id="Resource_yj68g"]
+script = ExtResource("5_8ydkj")
+Items = Array[ExtResource("3_uf5tr")]([SubResource("Resource_3j4b4"), SubResource("Resource_ioxgp")])
+metadata/_custom_type_script = "uid://tqq4nke7m3g1"
 
 [sub_resource type="Resource" id="player_capabilities"]
 script = ExtResource("capabilities_script")
@@ -72,32 +90,14 @@ CanPickMechanicalLocks = true
 InnateDodge = ExtResource("dodge_def")
 InnateGuard = ExtResource("innate_guard")
 
-[sub_resource type="Resource" id="Resource_3j4b4"]
-script = ExtResource("3_uf5tr")
-Item = ExtResource("4_uf5tr")
-Quantity = 1
-metadata/_custom_type_script = ExtResource("3_uf5tr")
-
-[sub_resource type="Resource" id="Resource_ioxgp"]
-script = ExtResource("3_uf5tr")
-Item = ExtResource("6_8ydkj")
-Quantity = 1
-metadata/_custom_type_script = ExtResource("3_uf5tr")
-
-[sub_resource type="Resource" id="Resource_yj68g"]
-script = ExtResource("5_8ydkj")
-Capacity = 20
-Items = Array[ExtResource("3_uf5tr")]([SubResource("Resource_3j4b4"), SubResource("Resource_ioxgp")])
-metadata/_custom_type_script = ExtResource("5_8ydkj")
-
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_f3pwl"]
 frequency = 0.75
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_rio2h"]
 width = 64
 height = 64
-normalize = false
 noise = SubResource("FastNoiseLite_f3pwl")
+normalize = false
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_s7lv0"]
 radius = 1.0
@@ -155,6 +155,20 @@ xfade_time = 0.3
 advance_mode = 2
 advance_expression = "IsMoving"
 
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_melee"]
+advance_mode = 2
+advance_expression = "CurrentActionId == \"melee_attack\""
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_special"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "CurrentActionId == \"special_attack\""
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_ranged"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "CurrentActionId == \"ranged_attack\""
+
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_a2x46"]
 xfade_time = 0.3
 advance_mode = 2
@@ -176,11 +190,11 @@ advance_mode = 2
 advance_mode = 2
 advance_expression = "IsDead"
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_hit_dying"]
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_dying"]
 advance_mode = 2
 advance_expression = "IsDead"
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_dying"]
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_hit_dying"]
 advance_mode = 2
 advance_expression = "IsDead"
 
@@ -189,10 +203,6 @@ switch_mode = 2
 advance_mode = 2
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_lryud"]
-advance_mode = 2
-advance_expression = "CurrentActionId == \"melee_attack\""
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_melee"]
 advance_mode = 2
 advance_expression = "CurrentActionId == \"melee_attack\""
 
@@ -205,11 +215,6 @@ advance_mode = 2
 advance_mode = 2
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_7ustp"]
-xfade_time = 0.3
-advance_mode = 2
-advance_expression = "CurrentActionId == \"special_attack\""
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_special"]
 xfade_time = 0.3
 advance_mode = 2
 advance_expression = "CurrentActionId == \"special_attack\""
@@ -236,11 +241,6 @@ switch_mode = 2
 advance_mode = 2
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_3i8mw"]
-xfade_time = 0.3
-advance_mode = 2
-advance_expression = "CurrentActionId == \"ranged_attack\""
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_ranged"]
 xfade_time = 0.3
 advance_mode = 2
 advance_expression = "CurrentActionId == \"ranged_attack\""
@@ -295,15 +295,30 @@ radius = 2.0
 radius = 0.75
 height = 2.5
 
-[node name="Player" type="CharacterBody3D" groups=["player"] node_paths=PackedStringArray("AttackSlots", "WorldEffects", "ItemUseEffects", "Invisibility", "ActionGate", "QuickItemController", "InteractionComponent", "DodgeComponent", "GuardComponent", "HealthComponent", "HurtBoxComponent", "MovementComponent", "InputComponent", "ActionManager", "BuffController", "InteractionController", "StatsController", "InventoryController", "InputController", "AttackController", "InteractionArea", "Pivot", "CharacterModelNode", "AnimationTree", "AttachmentManager")]
-AttackSlots = NodePath("AttackSlotsComponent")
+[node name="Player" type="CharacterBody3D" unique_id=1814290365 node_paths=PackedStringArray("WorldEffects", "ItemUseEffects", "Invisibility", "FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "ActionGate", "QuickItemController", "InteractionComponent", "DodgeComponent", "GuardComponent", "AttackSlots", "HealthComponent", "HurtBoxComponent", "MovementComponent", "InputComponent", "ActionManager", "BuffController", "InteractionController", "StatsController", "InventoryController", "InputController", "AttackController", "InteractionArea", "Pivot", "CharacterModelNode", "AnimationTree", "AttachmentManager") groups=["player"]]
+collision_layer = 4
+collision_mask = 251
+platform_floor_layers = 4294901761
+platform_wall_layers = 2
+script = ExtResource("1_5y8vd")
 WorldEffects = NodePath("WorldEffects")
 ItemUseEffects = NodePath("ItemUseEffects")
+Invisibility = NodePath("InvisibilityComponent")
+FrozenStatus = NodePath("FrozenStatusComponent")
+SlowStatus = NodePath("SlowStatusComponent")
+BurningStatus = NodePath("BurningStatusComponent")
+IronSkinStatus = NodePath("IronSkinStatus")
+StoneSkinStatus = NodePath("StoneSkinStatus")
+Stats = ExtResource("2_sug4b")
+Inventory = SubResource("Resource_yj68g")
+LootableItemScene = ExtResource("11_wj3nu")
+Capabilities = SubResource("player_capabilities")
 ActionGate = NodePath("ActorActionGateComponent")
 QuickItemController = NodePath("PlayerQuickItemController")
 InteractionComponent = NodePath("ActorInteractionComponent")
 DodgeComponent = NodePath("DodgeComponent")
 GuardComponent = NodePath("GuardComponent")
+AttackSlots = NodePath("AttackSlotsComponent")
 HealthComponent = NodePath("HealthComponent")
 HurtBoxComponent = NodePath("HurtBoxComponent")
 MovementComponent = NodePath("MovementComponent")
@@ -320,170 +335,157 @@ Pivot = NodePath("Pivot")
 CharacterModelNode = NodePath("Pivot/Character")
 AnimationTree = NodePath("AnimationTree")
 AttachmentManager = NodePath("BoneAttachmentManager")
-Invisibility = NodePath("InvisibilityComponent")
-collision_layer = 4
-collision_mask = 251
-platform_floor_layers = 4294901761
-platform_wall_layers = 2
-script = ExtResource("1_5y8vd")
-Capabilities = SubResource("player_capabilities")
-Stats = ExtResource("2_sug4b")
-Inventory = SubResource("Resource_yj68g")
-LootableItemScene = ExtResource("11_wj3nu")
 
-[node name="Pivot" type="Node3D" parent="."]
+[node name="Pivot" type="Node3D" parent="." unique_id=769595671]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
 
-[node name="Character" parent="Pivot" instance=ExtResource("1_jv6xc")]
+[node name="Character" parent="Pivot" unique_id=1878534293 instance=ExtResource("1_jv6xc")]
 
-[node name="Skeleton3D" parent="Pivot/Character/Rig" index="0"]
-bones/1/position = Vector3(0, 0.39149, 0)
-bones/1/rotation = Quaternion(-1.11123e-10, 0.0431578, 2.57241e-09, 0.999068)
-bones/2/rotation = Quaternion(-6.93889e-18, 7.10543e-15, 4.93038e-32, 1)
-bones/3/rotation = Quaternion(8.27181e-25, 3.72529e-09, -2.75506e-40, 1)
-bones/4/position = Vector3(0.212007, 0.134132, 7.92996e-08)
-bones/4/rotation = Quaternion(-0.559597, -0.0610665, -0.644828, 0.517029)
+[node name="Skeleton3D" parent="Pivot/Character/Rig" parent_id_path=PackedInt32Array(1878534293, 704908175) index="0" unique_id=438197123]
+bones/1/position = Vector3(0, 0.37049696, 0)
+bones/1/rotation = Quaternion(-1.11122625e-10, 0.043157753, 2.5724098e-09, 0.9990683)
+bones/2/rotation = Quaternion(-6.938893e-18, 7.1054274e-15, 4.93038e-32, 1)
+bones/3/rotation = Quaternion(8.271806e-25, 3.7252903e-09, -2.75506e-40, 1)
+bones/4/position = Vector3(0.21200736, 0.13413203, 7.9299625e-08)
+bones/4/rotation = Quaternion(-0.5504727, -0.058769535, -0.64661294, 0.5248025)
 bones/4/scale = Vector3(0.999999, 0.999999, 1)
-bones/5/rotation = Quaternion(2.73718e-08, -4.57121e-08, -0.49329, 0.869865)
+bones/5/rotation = Quaternion(3.1999942e-08, -3.637097e-08, -0.49980235, 0.8661396)
 bones/6/rotation = Quaternion(-9.73784e-11, -2.98437e-10, 0.0266581, 0.999645)
 bones/6/scale = Vector3(1, 1, 1)
-bones/7/rotation = Quaternion(-0.320796, -0.32533, 0.144979, 0.877629)
-bones/8/position = Vector3(8.34843e-10, 0.0961252, -0.0575)
-bones/8/rotation = Quaternion(0.000121239, 0.000121217, -0.706662, 0.707552)
+bones/7/rotation = Quaternion(-0.31885815, -0.33621562, 0.14283666, 0.8745778)
+bones/8/position = Vector3(8.348433e-10, 0.096125185, -0.057500035)
+bones/8/rotation = Quaternion(0.0014610782, 0.0014610677, -0.7017222, 0.7124477)
 bones/8/scale = Vector3(1, 1, 1)
-bones/11/position = Vector3(-0.212007, 0.134132, 8.6814e-08)
-bones/11/rotation = Quaternion(-0.617998, 0.0809174, 0.618768, 0.478181)
+bones/11/position = Vector3(-0.21200737, 0.13413203, 8.6813984e-08)
+bones/11/rotation = Quaternion(-0.60957074, 0.079202175, 0.6210824, 0.48621717)
 bones/11/scale = Vector3(0.999999, 0.999999, 1)
-bones/12/rotation = Quaternion(3.66721e-08, 3.76715e-08, 0.516574, 0.856243)
+bones/12/rotation = Quaternion(2.652344e-08, 5.779377e-08, 0.52277404, 0.85247135)
 bones/13/rotation = Quaternion(-9.73784e-11, 2.98437e-10, -0.0266581, 0.999645)
 bones/13/scale = Vector3(1, 1, 1)
-bones/14/rotation = Quaternion(-0.319031, 0.300453, -0.226599, 0.869828)
-bones/15/position = Vector3(-1.5736e-08, 0.0961251, -0.0575)
-bones/15/rotation = Quaternion(0.000333951, 0.000393343, 0.706761, 0.707453)
+bones/14/rotation = Quaternion(-0.31787592, 0.3114771, -0.22483774, 0.8668246)
+bones/15/position = Vector3(-1.573599e-08, 0.096125126, -0.057499975)
+bones/15/rotation = Quaternion(0.0043770787, 0.0051555554, 0.70253944, 0.7116127)
 bones/15/scale = Vector3(1, 1, 1)
-bones/19/rotation = Quaternion(-5.80608e-11, -0.0313417, -1.88012e-09, 0.999509)
-bones/22/position = Vector3(0.170945, 0.113587, 1.59941e-08)
-bones/22/rotation = Quaternion(0.993688, 0.0836641, 0.0736375, 0.0127449)
+bones/19/rotation = Quaternion(-5.8060785e-11, -0.031341746, -1.880125e-09, 0.99950874)
+bones/22/position = Vector3(0.17094508, 0.1135872, 1.5994095e-08)
+bones/22/rotation = Quaternion(0.98985404, 0.08363145, 0.078543924, 0.08382009)
 bones/22/scale = Vector3(1, 1, 1)
-bones/23/rotation = Quaternion(0.200341, 6.34204e-08, -1.32856e-07, 0.979726)
-bones/24/rotation = Quaternion(-0.520028, -0.209361, 0.044368, 0.826904)
-bones/25/rotation = Quaternion(-9.74065e-09, 0.920355, -0.391084, 7.8309e-08)
+bones/23/rotation = Quaternion(0.38645175, 5.758205e-08, -2.6426326e-07, 0.92230964)
+bones/24/rotation = Quaternion(-0.6170047, -0.2013515, 0.07517113, 0.7570417)
+bones/25/rotation = Quaternion(-9.740654e-09, 0.9203548, -0.39108446, 7.830904e-08)
 bones/25/scale = Vector3(1, 1, 1)
-bones/26/position = Vector3(-0.170945, 0.113587, 1.55755e-08)
-bones/26/rotation = Quaternion(0.997242, -0.0295275, 0.0314951, 0.0603752)
+bones/26/position = Vector3(-0.17094508, 0.11358732, 1.557549e-08)
+bones/26/rotation = Quaternion(0.99176544, -0.03316921, 0.029884182, 0.120034195)
 bones/26/scale = Vector3(1, 1, 1)
-bones/27/rotation = Quaternion(0.277419, -6.38386e-08, 1.94154e-07, 0.960749)
-bones/28/rotation = Quaternion(-0.560852, 0.114492, -0.0089096, 0.819913)
-bones/29/rotation = Quaternion(3.03591e-08, 0.920355, -0.391084, -6.95338e-08)
+bones/27/rotation = Quaternion(0.4314589, -5.9358772e-08, 3.003139e-07, 0.9021327)
+bones/28/rotation = Quaternion(-0.6433354, 0.112618655, -0.022623822, 0.756918)
+bones/29/rotation = Quaternion(3.035913e-08, 0.9203548, -0.39108446, -6.953383e-08)
 bones/29/scale = Vector3(1, 1, 1)
-bones/30/rotation = Quaternion(0.707107, -2.29302e-07, -4.60552e-08, 0.707107)
-bones/31/position = Vector3(0.202182, 0.0259903, 0.205181)
-bones/31/rotation = Quaternion(-0.707107, -7.05285e-08, -7.05285e-08, 0.707107)
-bones/32/rotation = Quaternion(9.65792e-09, 1.77955e-09, 0.985719, -0.168398)
-bones/33/position = Vector3(-2.60494e-08, 0.213436, -5.1715e-09)
-bones/33/rotation = Quaternion(-1.01273e-07, 0.391084, 0.920355, -3.35091e-08)
-bones/34/position = Vector3(8.58988e-09, 0.16565, -2.40963e-09)
-bones/35/rotation = Quaternion(1, -2.33136e-09, 1.99777e-07, -1.34211e-15)
-bones/37/rotation = Quaternion(0.707107, -3.82385e-08, 1.45009e-07, 0.707107)
-bones/38/rotation = Quaternion(-0.707107, -7.05285e-08, -7.05285e-08, 0.707107)
-bones/39/rotation = Quaternion(-5.83589e-09, 6.43837e-10, 0.994809, 0.101756)
-bones/40/position = Vector3(-1.11482e-08, 0.213436, -2.50942e-15)
-bones/40/rotation = Quaternion(-1.05796e-07, 0.391084, 0.920355, -2.58643e-08)
-bones/41/position = Vector3(-6.31128e-09, 0.16565, 2.70695e-09)
+bones/30/rotation = Quaternion(0.7071068, -2.2930234e-07, -4.6055177e-08, 0.7071068)
+bones/31/position = Vector3(0.20218208, 0.025990263, 0.20518117)
+bones/31/rotation = Quaternion(-0.7071068, -7.052851e-08, -7.0528486e-08, 0.7071068)
+bones/32/rotation = Quaternion(9.6579225e-09, 1.7795515e-09, 0.98571914, -0.1683977)
+bones/33/position = Vector3(-2.6049376e-08, 0.21343614, -5.171498e-09)
+bones/33/rotation = Quaternion(-1.012734e-07, 0.39108434, 0.92035484, -3.3509146e-08)
+bones/34/position = Vector3(8.589881e-09, 0.16565004, -2.4096307e-09)
+bones/35/rotation = Quaternion(1, -2.3313629e-09, 1.9977652e-07, -1.3421114e-15)
+bones/37/rotation = Quaternion(0.7071068, -3.823849e-08, 1.4500867e-07, 0.7071068)
+bones/38/rotation = Quaternion(-0.7071068, -7.0528515e-08, -7.05285e-08, 0.7071068)
+bones/39/rotation = Quaternion(-5.8358944e-09, 6.4383693e-10, 0.9948094, 0.10175614)
+bones/40/position = Vector3(-1.114822e-08, 0.21343614, -2.5094192e-15)
+bones/40/rotation = Quaternion(-1.05795515e-07, 0.39108434, 0.92035484, -2.5864264e-08)
+bones/41/position = Vector3(-6.3112755e-09, 0.16565004, 2.7069498e-09)
 bones/41/rotation = Quaternion(-0.391084, -6.885e-08, -6.56287e-08, 0.920355)
-bones/42/rotation = Quaternion(1, 3.76526e-09, 1.94879e-07, 7.45058e-09)
-bones/44/rotation = Quaternion(-0.707107, -7.27951e-08, -7.27951e-08, 0.707107)
-bones/45/position = Vector3(0.520841, 0.787375, -0.0576373)
-bones/45/rotation = Quaternion(0.794627, -1.11759e-07, 0.607098, -5.96046e-08)
-bones/46/rotation = Quaternion(-0.707107, -7.27951e-08, -7.27951e-08, 0.707107)
-bones/47/position = Vector3(-0.510844, 0.787374, 0.0597369)
-bones/47/rotation = Quaternion(-0.758253, -1.52737e-07, 0.651961, -1.11759e-08)
+bones/42/rotation = Quaternion(1, 3.7652574e-09, 1.9487908e-07, 7.4505815e-09)
+bones/44/rotation = Quaternion(-0.7071068, -7.279511e-08, -7.279509e-08, 0.7071068)
+bones/45/position = Vector3(0.52084064, 0.7688576, -0.057637356)
+bones/45/rotation = Quaternion(0.7946267, -1.1175871e-07, 0.6070983, -5.9604645e-08)
+bones/46/rotation = Quaternion(-0.7071068, -7.279511e-08, -7.279509e-08, 0.7071068)
+bones/47/position = Vector3(-0.5108437, 0.76885754, 0.059736915)
+bones/47/rotation = Quaternion(-0.7582528, -1.527369e-07, 0.65196073, -1.1175871e-08)
 
-[node name="1H_Axe_Offhand" parent="Pivot/Character/Rig/Skeleton3D" index="0"]
-transform = Transform3D(1.51471e-06, 0.262864, 0.964832, 0.999999, -0.00125826, 0.000342197, 0.00130436, 0.964831, -0.262863, 0.516507, 0.635449, 0.0135126)
+[node name="1H_Axe_Offhand" parent="Pivot/Character/Rig/Skeleton3D" index="0" unique_id=1133895652]
+transform = Transform3D(3.6726746e-07, 0.26286536, 0.9648319, 0.99987566, -0.015165775, 0.0041323756, 0.015719224, 0.9647127, -0.26283252, 0.5160272, 0.6163977, 0.013720572)
 
-[node name="1H_Axe_Offhand" parent="Pivot/Character/Rig/Skeleton3D/1H_Axe_Offhand" index="0"]
+[node name="1H_Axe_Offhand" parent="Pivot/Character/Rig/Skeleton3D/1H_Axe_Offhand" index="0" unique_id=1011433457]
 layers = 4
 
-[node name="Barbarian_Round_Shield" parent="Pivot/Character/Rig/Skeleton3D" index="1"]
-transform = Transform3D(1.30323e-06, 0.262864, 0.964832, 0.999999, -0.00126079, 0.000343102, 0.00130703, 0.964831, -0.262863, 0.662626, 0.635523, -0.043188)
+[node name="Barbarian_Round_Shield" parent="Pivot/Character/Rig/Skeleton3D" index="1" unique_id=857226457]
+transform = Transform3D(1.5578254e-07, 0.26286516, 0.96483195, 0.9998756, -0.015168296, 0.004133278, 0.015721895, 0.9647127, -0.2628323, 0.66214633, 0.6172891, -0.042973273)
 
-[node name="Barbarian_Round_Shield" parent="Pivot/Character/Rig/Skeleton3D/Barbarian_Round_Shield" index="0"]
+[node name="Barbarian_Round_Shield" parent="Pivot/Character/Rig/Skeleton3D/Barbarian_Round_Shield" index="0" unique_id=1020249604]
 layers = 4
 
-[node name="1H_Axe" parent="Pivot/Character/Rig/Skeleton3D" index="2"]
-transform = Transform3D(-0.000231586, -0.150911, 0.988547, 0.999999, -0.000978899, 8.39543e-05, 0.000955616, 0.988546, 0.150911, -0.496089, 0.639766, 0.139421)
+[node name="1H_Axe" parent="Pivot/Character/Rig/Skeleton3D" index="2" unique_id=329749486]
+transform = Transform3D(-0.0030964662, -0.16319115, 0.98658895, 0.99991626, -0.012836303, 0.0010140273, 0.012499325, 0.9865102, 0.16321717, -0.49595633, 0.62082577, 0.13958088)
 
-[node name="1H_Axe" parent="Pivot/Character/Rig/Skeleton3D/1H_Axe" index="0"]
+[node name="1H_Axe" parent="Pivot/Character/Rig/Skeleton3D/1H_Axe" index="0" unique_id=1830181236]
 layers = 4
 
-[node name="2H_Axe" parent="Pivot/Character/Rig/Skeleton3D" index="3"]
-transform = Transform3D(-0.000231586, -0.150911, 0.988547, 0.999999, -0.000978899, 8.39543e-05, 0.000955616, 0.988546, 0.150911, -0.496089, 0.639766, 0.139421)
+[node name="2H_Axe" parent="Pivot/Character/Rig/Skeleton3D" index="3" unique_id=710149581]
+transform = Transform3D(-0.0030964662, -0.16319115, 0.98658895, 0.99991626, -0.012836303, 0.0010140273, 0.012499325, 0.9865102, 0.16321717, -0.49595633, 0.62082577, 0.13958088)
 
-[node name="2H_Axe" parent="Pivot/Character/Rig/Skeleton3D/2H_Axe" index="0"]
+[node name="2H_Axe" parent="Pivot/Character/Rig/Skeleton3D/2H_Axe" index="0" unique_id=1472032304]
 layers = 4
 
-[node name="Mug" parent="Pivot/Character/Rig/Skeleton3D" index="4"]
-transform = Transform3D(-0.000231586, -0.150911, 0.988547, 0.999999, -0.000978899, 8.39543e-05, 0.000955616, 0.988546, 0.150911, -0.488633, 0.339248, 0.0907484)
+[node name="Mug" parent="Pivot/Character/Rig/Skeleton3D" index="4" unique_id=535797873]
+transform = Transform3D(-0.0030964662, -0.16319115, 0.98658895, 0.99991626, -0.012836303, 0.0010140273, 0.012499325, 0.9865102, 0.16321717, -0.48703808, 0.32091308, 0.08753829)
 
-[node name="Mug" parent="Pivot/Character/Rig/Skeleton3D/Mug" index="0"]
+[node name="Mug" parent="Pivot/Character/Rig/Skeleton3D/Mug" index="0" unique_id=1900066099]
 layers = 4
 
-[node name="Barbarian_Hat" parent="Pivot/Character/Rig/Skeleton3D" index="5"]
-transform = Transform3D(0.99972, -1.40143e-09, 0.0236466, 1.39341e-09, 1, 3.55686e-10, -0.0236466, -3.22637e-10, 0.99972, -7.55726e-09, 1.2017, -1.39052e-07)
+[node name="Barbarian_Hat" parent="Pivot/Character/Rig/Skeleton3D" index="5" unique_id=469225627]
+transform = Transform3D(0.9997204, -1.4014349e-09, 0.023646597, 1.3934147e-09, 0.99999994, 3.5568634e-10, -0.023646597, -3.226374e-10, 0.9997204, -7.557256e-09, 1.1807072, -1.3905156e-07)
 
-[node name="Barbarian_Hat" parent="Pivot/Character/Rig/Skeleton3D/Barbarian_Hat" index="0"]
+[node name="Barbarian_Hat" parent="Pivot/Character/Rig/Skeleton3D/Barbarian_Hat" index="0" unique_id=1242308185]
 layers = 4
 
-[node name="Barbarian_Cape" parent="Pivot/Character/Rig/Skeleton3D" index="6"]
-transform = Transform3D(0.996275, -5.14962e-09, 0.0862353, 5.13043e-09, 1, 4.44077e-10, -0.0862353, 1.88007e-15, 0.996275, -1.91641e-06, 1.2017, 2.59003e-08)
+[node name="Barbarian_Cape" parent="Pivot/Character/Rig/Skeleton3D" index="6" unique_id=525669816]
+transform = Transform3D(0.9962748, -5.1496167e-09, 0.08623532, 5.1304343e-09, 0.99999994, 4.4407705e-10, -0.08623532, 1.8800716e-15, 0.9962748, -1.916411e-06, 1.1807072, 2.590028e-08)
 
-[node name="Barbarian_Cape" parent="Pivot/Character/Rig/Skeleton3D/Barbarian_Cape" index="0"]
+[node name="Barbarian_Cape" parent="Pivot/Character/Rig/Skeleton3D/Barbarian_Cape" index="0" unique_id=131389661]
 layers = 4
 
-[node name="Barbarian_ArmLeft" parent="Pivot/Character/Rig/Skeleton3D" index="7"]
+[node name="Barbarian_ArmLeft" parent="Pivot/Character/Rig/Skeleton3D" index="7" unique_id=1615365243]
 layers = 4
 
-[node name="Barbarian_ArmRight" parent="Pivot/Character/Rig/Skeleton3D" index="8"]
+[node name="Barbarian_ArmRight" parent="Pivot/Character/Rig/Skeleton3D" index="8" unique_id=176834078]
 layers = 4
 
-[node name="Barbarian_Body" parent="Pivot/Character/Rig/Skeleton3D" index="9"]
+[node name="Barbarian_Body" parent="Pivot/Character/Rig/Skeleton3D" index="9" unique_id=41245045]
 layers = 4
 
-[node name="Barbarian_Head" parent="Pivot/Character/Rig/Skeleton3D" index="10"]
+[node name="Barbarian_Head" parent="Pivot/Character/Rig/Skeleton3D" index="10" unique_id=970761224]
 layers = 4
 
-[node name="Barbarian_LegLeft" parent="Pivot/Character/Rig/Skeleton3D" index="11"]
+[node name="Barbarian_LegLeft" parent="Pivot/Character/Rig/Skeleton3D" index="11" unique_id=600870700]
 layers = 4
 
-[node name="Barbarian_LegRight" parent="Pivot/Character/Rig/Skeleton3D" index="12"]
+[node name="Barbarian_LegRight" parent="Pivot/Character/Rig/Skeleton3D" index="12" unique_id=1023101179]
 layers = 4
 
-[node name="NormalLighting" type="Node3D" parent="Pivot"]
+[node name="NormalLighting" type="Node3D" parent="Pivot" unique_id=1847077433]
 
-[node name="FlickerLight" parent="Pivot/NormalLighting" instance=ExtResource("3_3qxnv")]
+[node name="FlickerLight" parent="Pivot/NormalLighting" unique_id=974580749 instance=ExtResource("3_3qxnv")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 1)
 shadow_caster_mask = 4294966527
 omni_range = 25.0
 omni_attenuation = 0.25
 noiseTexture = SubResource("NoiseTexture2D_rio2h")
-Min = 0.25
-Max = 1.0
 
-[node name="ObjectHighlight" type="OmniLight3D" parent="Pivot/NormalLighting"]
+[node name="ObjectHighlight" type="OmniLight3D" parent="Pivot/NormalLighting" unique_id=1664945387]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)
 layers = 256
 light_specular = 0.0
 light_bake_mode = 0
 light_cull_mask = 4294966504
-light_energy = 1.0
 omni_range = 30.0
 omni_attenuation = 0.0
 
-[node name="DarkLighting" type="Node3D" parent="Pivot"]
+[node name="DarkLighting" type="Node3D" parent="Pivot" unique_id=583364089]
 visible = false
 
-[node name="FlickerLight" parent="Pivot/DarkLighting" instance=ExtResource("3_3qxnv")]
+[node name="FlickerLight" parent="Pivot/DarkLighting" unique_id=1439019186 instance=ExtResource("3_3qxnv")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 1)
 shadow_caster_mask = 4294966527
 omni_range = 6.0
@@ -492,56 +494,56 @@ noiseTexture = SubResource("NoiseTexture2D_rio2h")
 Min = 0.04
 Max = 0.12
 
-[node name="ObjectHighlight" type="OmniLight3D" parent="Pivot/DarkLighting"]
+[node name="ObjectHighlight" type="OmniLight3D" parent="Pivot/DarkLighting" unique_id=428531110]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 layers = 256
+light_energy = 0.08
 light_specular = 0.0
 light_bake_mode = 0
 light_cull_mask = 4294966504
-light_energy = 0.08
 omni_range = 6.0
 omni_attenuation = 1.8
 
-[node name="FloorLightingComponent" type="Node" parent="Pivot" node_paths=PackedStringArray("NormalLighting", "DarkLighting")]
+[node name="FloorLightingComponent" type="Node" parent="Pivot" unique_id=366953325 node_paths=PackedStringArray("NormalLighting", "DarkLighting")]
 script = ExtResource("floor_lighting")
 NormalLighting = NodePath("../NormalLighting")
 DarkLighting = NodePath("../DarkLighting")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1159089663]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("SphereShape3D_s7lv0")
 
-[node name="AnimationTree" type="AnimationTree" parent="."]
+[node name="AnimationTree" type="AnimationTree" parent="." unique_id=1724020476]
 root_node = NodePath("../Pivot/Character")
 tree_root = SubResource("AnimationNodeStateMachine_vvmyp")
 advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../Pivot/Character/AnimationPlayer")
 
-[node name="InteractionArea" type="Area3D" parent="."]
+[node name="InteractionArea" type="Area3D" parent="." unique_id=160036722]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 collision_layer = 4
 collision_mask = 16
 script = ExtResource("4_rbblq")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionArea"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionArea" unique_id=755722231]
 shape = SubResource("SphereShape3D_liqyg")
 
-[node name="StairsTrigger" parent="." instance=ExtResource("7_52dmq")]
+[node name="StairsTrigger" parent="." unique_id=1298742994 instance=ExtResource("7_52dmq")]
 
-[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent", "MovementComponent", "Poise") instance=ExtResource("8_lcxbs")]
-Poise = NodePath("../PoiseComponent")
+[node name="HurtBoxComponent" parent="." unique_id=742358720 node_paths=PackedStringArray("HealthComponent", "MovementComponent", "Poise") instance=ExtResource("8_lcxbs")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
 collision_layer = 4
 HealthComponent = NodePath("../HealthComponent")
 MovementComponent = NodePath("../MovementComponent")
+Poise = NodePath("../PoiseComponent")
 HitEffect = ExtResource("9_nunx8")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" unique_id=1508668277]
 shape = SubResource("CapsuleShape3D_fktr1")
 
-[node name="HealthComponent" parent="." instance=ExtResource("9_acupr")]
+[node name="HealthComponent" parent="." unique_id=1420050122 instance=ExtResource("9_acupr")]
 
-[node name="BoneAttachmentManager" parent="." node_paths=PackedStringArray("AttachmentNodes", "player") instance=ExtResource("10_0gr6c")]
+[node name="BoneAttachmentManager" parent="." unique_id=986814577 node_paths=PackedStringArray("AttachmentNodes", "player") instance=ExtResource("10_0gr6c")]
 AttachmentNodes = {
 0: NodePath("../Pivot/Character/Rig/Skeleton3D/1H_Axe"),
 1: NodePath("../Pivot/Character/Rig/Skeleton3D/2H_Axe"),
@@ -553,42 +555,43 @@ AttachmentNodes = {
 }
 player = NodePath("..")
 
-[node name="ActionManager" parent="." instance=ExtResource("8_ywc1u")]
+[node name="ActionManager" parent="." unique_id=1729590091 instance=ExtResource("8_ywc1u")]
 
-[node name="BuffController" type="Node" parent="." node_paths=PackedStringArray("Player")]
+[node name="BuffController" type="Node" parent="." unique_id=75489622 node_paths=PackedStringArray("Player", "Health")]
 script = ExtResource("12_t4bx0")
 Player = NodePath("..")
+Health = NodePath("../HealthComponent")
 
-[node name="TimeScaleComponent" type="Node" parent="." node_paths=PackedStringArray("Buffs")]
+[node name="TimeScaleComponent" type="Node" parent="." unique_id=834617596 node_paths=PackedStringArray("Buffs")]
 script = ExtResource("time_scale_script")
 Buffs = NodePath("../BuffController")
 
-[node name="ConfusionComponent" type="Node" parent="." node_paths=PackedStringArray("Input", "Buffs")]
+[node name="ConfusionComponent" type="Node" parent="." unique_id=700213855 node_paths=PackedStringArray("Input", "Buffs")]
 script = ExtResource("confusion_script")
 Input = NodePath("../InputComponent")
 Buffs = NodePath("../BuffController")
 Condition = ExtResource("confused_condition")
 
-[node name="PlayerInteractionController" type="Node" parent="." node_paths=PackedStringArray("Player", "InteractionArea")]
+[node name="PlayerInteractionController" type="Node" parent="." unique_id=1627367667 node_paths=PackedStringArray("Player", "InteractionArea")]
 script = ExtResource("13_0dcb4")
 Player = NodePath("..")
 InteractionArea = NodePath("../InteractionArea")
 
-[node name="PlayerStatsController" type="Node" parent="." node_paths=PackedStringArray("Player", "MovementComponent", "HurtBoxComponent", "HealthComponent")]
+[node name="PlayerStatsController" type="Node" parent="." unique_id=2034814739 node_paths=PackedStringArray("Player", "MovementComponent", "HurtBoxComponent", "HealthComponent")]
 script = ExtResource("14_ilumj")
 Player = NodePath("..")
 MovementComponent = NodePath("../MovementComponent")
 HurtBoxComponent = NodePath("../HurtBoxComponent")
 HealthComponent = NodePath("../HealthComponent")
 
-[node name="PlayerInventoryController" type="Node" parent="." node_paths=PackedStringArray("Player", "ActionManager", "StatsController")]
+[node name="PlayerInventoryController" type="Node" parent="." unique_id=1371302877 node_paths=PackedStringArray("Player", "ActionManager", "StatsController")]
 script = ExtResource("15_gknh4")
 Player = NodePath("..")
 ActionManager = NodePath("../ActionManager")
 StatsController = NodePath("../PlayerStatsController")
 LootableItemScene = ExtResource("11_wj3nu")
 
-[node name="PlayerInputController" type="Node" parent="." node_paths=PackedStringArray("Player", "InputComponent", "MovementComponent", "ActionManager", "InteractionController")]
+[node name="PlayerInputController" type="Node" parent="." unique_id=980165432 node_paths=PackedStringArray("Player", "InputComponent", "MovementComponent", "ActionManager", "InteractionController")]
 script = ExtResource("16_1atg5")
 Player = NodePath("..")
 InputComponent = NodePath("../InputComponent")
@@ -596,86 +599,124 @@ MovementComponent = NodePath("../MovementComponent")
 ActionManager = NodePath("../ActionManager")
 InteractionController = NodePath("../PlayerInteractionController")
 
-[node name="PlayerAttackController" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "MeleeDetector", "ActionGate")]
-ActionGate = NodePath("../ActorActionGateComponent")
+[node name="PlayerAttackController" type="Node" parent="." unique_id=648653454 node_paths=PackedStringArray("AnimationComponent", "ActionGate", "MeleeDetector")]
 script = ExtResource("17_sh3lf")
+SpecialMeleeContact = ExtResource("melee_spin")
 AnimationComponent = NodePath("../CombatAnimationComponent")
+ActionGate = NodePath("../ActorActionGateComponent")
 MeleeDetector = NodePath("../MeleeHitDetector")
 DefaultMeleeContact = ExtResource("melee_default")
-SpecialMeleeContact = ExtResource("melee_spin")
 DefaultProjectileScene = ExtResource("19_projectile")
 
-[node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor", "StairsTrigger", "ActionGate") instance=ExtResource("7_7mjdt")]
-ActionGate = NodePath("../ActorActionGateComponent")
+[node name="MovementComponent" parent="." unique_id=956342266 node_paths=PackedStringArray("Actor", "StairsTrigger", "ActionGate") instance=ExtResource("7_7mjdt")]
 Actor = NodePath("..")
 Speed = 14.0
 StairsTrigger = NodePath("../StairsTrigger")
+ActionGate = NodePath("../ActorActionGateComponent")
 
-[node name="InputComponent" parent="." instance=ExtResource("9_p85oa")]
+[node name="InputComponent" parent="." unique_id=1166563533 instance=ExtResource("9_p85oa")]
 
-
-[node name="InvisibilityComponent" parent="." node_paths=PackedStringArray("Host") instance=ExtResource("invisibility")]
+[node name="InvisibilityComponent" parent="." unique_id=1016458891 node_paths=PackedStringArray("Statuses", "Host") instance=ExtResource("invisibility")]
+Statuses = NodePath("../BuffController")
 Host = NodePath("../WorldEffects")
 
-[editable path="Pivot/Character"]
-
-[node name="CombatAnimationComponent" type="Node" parent="."]
+[node name="CombatAnimationComponent" type="Node" parent="." unique_id=1285126335]
 script = ExtResource("attack_animation_script")
 AnimationPlayerPath = NodePath("../Pivot/Character/AnimationPlayer")
 AnimationTreePath = NodePath("../AnimationTree")
 Profile = ExtResource("attack_animation_profile")
 
-[node name="MeleeHitDetector" type="Node" parent="."]
+[node name="MeleeHitDetector" type="Node" parent="." unique_id=413617082]
 script = ExtResource("melee_detector_script")
 
-[node name="ActorActionGateComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent")]
+[node name="ActorActionGateComponent" type="Node" parent="." unique_id=1966748432 node_paths=PackedStringArray("AnimationComponent")]
 script = ExtResource("action_gate_script")
+AnimationComponent = NodePath("../CombatAnimationComponent")
 AnimationProfile = ExtResource("defense_animation")
-AnimationComponent = NodePath("../CombatAnimationComponent")
 
-[node name="DodgeComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "Actor", "MovementComponent", "ActionGate")]
+[node name="DodgeComponent" type="Node" parent="." unique_id=410980302 node_paths=PackedStringArray("Actor", "MovementComponent", "ActionGate", "AnimationComponent")]
 script = ExtResource("dodge_script")
-AnimationComponent = NodePath("../CombatAnimationComponent")
 Actor = NodePath("..")
 MovementComponent = NodePath("../MovementComponent")
 ActionGate = NodePath("../ActorActionGateComponent")
 DodgeDef = ExtResource("dodge_def")
-
-[node name="GuardComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "Actor", "MovementComponent", "ActionGate")]
-script = ExtResource("guard_script")
 AnimationComponent = NodePath("../CombatAnimationComponent")
+
+[node name="GuardComponent" type="Node" parent="." unique_id=1811432549 node_paths=PackedStringArray("Actor", "MovementComponent", "ActionGate", "AnimationComponent")]
+script = ExtResource("guard_script")
 Actor = NodePath("..")
 MovementComponent = NodePath("../MovementComponent")
 ActionGate = NodePath("../ActorActionGateComponent")
 GuardDef = ExtResource("guard_def")
+AnimationComponent = NodePath("../CombatAnimationComponent")
 
-[node name="PlayerQuickItemController" type="Node" parent="." node_paths=PackedStringArray("Player", "ActionManager", "InventoryController")]
+[node name="PlayerQuickItemController" type="Node" parent="." unique_id=1561166385 node_paths=PackedStringArray("Player", "ActionManager", "InventoryController")]
 script = ExtResource("quick_items_script")
 Player = NodePath("..")
 ActionManager = NodePath("../ActionManager")
 InventoryController = NodePath("../PlayerInventoryController")
 
-[node name="ActorInteractionComponent" type="Node" parent="." node_paths=PackedStringArray("Actor", "ActionGate")]
+[node name="ActorInteractionComponent" type="Node" parent="." unique_id=33443278 node_paths=PackedStringArray("Actor", "ActionGate")]
 script = ExtResource("interaction_script")
 Actor = NodePath("..")
 ActionGate = NodePath("../ActorActionGateComponent")
-[node name="SurfaceAppearanceController" type="Node" parent="." node_paths=PackedStringArray("Target")]
+
+[node name="SurfaceAppearanceController" type="Node" parent="." unique_id=1451017666 node_paths=PackedStringArray("Target")]
 script = ExtResource("vfx_surface")
 Target = NodePath("../Pivot")
-[node name="WorldEffects" parent="." node_paths=PackedStringArray("SurfaceController", "Health") instance=ExtResource("vfx_host")]
+
+[node name="WorldEffects" parent="." unique_id=442307584 node_paths=PackedStringArray("SurfaceController", "Health") instance=ExtResource("vfx_host")]
 SurfaceController = NodePath("../SurfaceAppearanceController")
 Health = NodePath("../HealthComponent")
-[node name="ItemUseEffects" type="Node" parent="." node_paths=PackedStringArray("Host")]
+
+[node name="ItemUseEffects" type="Node" parent="." unique_id=377069831 node_paths=PackedStringArray("Host")]
 script = ExtResource("vfx_use")
 Host = NodePath("../WorldEffects")
 ScrollReading = ExtResource("vfx_scroll")
-Cues = { &"healing": ExtResource("vfx_healing"), &"strength": ExtResource("vfx_strength") }
+Cues = Dictionary[StringName, ExtResource("50_5xbmr")]({
+&"healing": ExtResource("vfx_healing"),
+&"strength": ExtResource("vfx_strength")
+})
 
-[node name="PoiseComponent" type="Node" parent="." node_paths=PackedStringArray("ActionGate")]
+[node name="PoiseComponent" type="Node" parent="." unique_id=877021111 node_paths=PackedStringArray("ActionGate")]
 script = ExtResource("poise_script")
 Definition = ExtResource("poise_definition")
 ActionGate = NodePath("../ActorActionGateComponent")
 
-[node name="AttackSlotsComponent" type="Node" parent="." node_paths=PackedStringArray("Target")]
+[node name="AttackSlotsComponent" type="Node" parent="." unique_id=1449430948 node_paths=PackedStringArray("Target")]
 script = ExtResource("attack_slots_script")
 Target = NodePath("..")
+
+[node name="FrozenStatusComponent" type="Node" parent="." unique_id=1883274696 node_paths=PackedStringArray("Statuses", "ActionGate", "Animation", "Effects", "Health")]
+script = ExtResource("frozen_driver")
+Statuses = NodePath("../BuffController")
+Condition = ExtResource("frozen_condition")
+ActionGate = NodePath("../ActorActionGateComponent")
+Animation = NodePath("../AnimationTree")
+Effects = NodePath("../WorldEffects")
+Appearance = ExtResource("frozen_effect")
+Health = NodePath("../HealthComponent")
+
+[node name="IronSkinStatus" parent="." unique_id=1652896172 node_paths=PackedStringArray("Statuses", "Host") instance=ExtResource("iron_status")]
+Statuses = NodePath("../BuffController")
+Host = NodePath("../WorldEffects")
+
+[node name="StoneSkinStatus" parent="." unique_id=1306080618 node_paths=PackedStringArray("Statuses", "Host") instance=ExtResource("stone_status")]
+Statuses = NodePath("../BuffController")
+Host = NodePath("../WorldEffects")
+
+[node name="EditorStatusPreview" parent="." unique_id=1367509418 node_paths=PackedStringArray("Actor", "Target") instance=ExtResource("editor_status_preview")]
+Actor = NodePath("..")
+Target = NodePath("../Pivot")
+
+[editable path="Pivot/Character"]
+
+[node name="SlowStatusComponent" parent="." node_paths=PackedStringArray("Statuses", "Movement", "Health") instance=ExtResource("slow_status_scene")]
+Statuses = NodePath("../BuffController")
+Movement = NodePath("../MovementComponent")
+Health = NodePath("../HealthComponent")
+
+[node name="BurningStatusComponent" parent="." node_paths=PackedStringArray("Statuses", "Health", "Effects") instance=ExtResource("burning_status_scene")]
+Statuses = NodePath("../BuffController")
+Health = NodePath("../HealthComponent")
+Effects = NodePath("../WorldEffects")

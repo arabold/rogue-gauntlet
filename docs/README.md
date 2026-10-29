@@ -51,6 +51,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Actor and item VFX](specs/actor-item-vfx-plan.md) | Remaining visual-quality/skin-choice acceptance, GPU timing and in-game readability review |
 | [Combat redesign](specs/combat-redesign-plan.md) | Remaining player kit (combos, input buffer, recovery cancels, dodge charges, guard walking, player contact timing) and a Warden guard-breaking attack; lists the current combat rules it overturns |
 | [Attack status effects](specs/attack-status-effects-plan.md) | Proposed on-hit status payloads, actor-agnostic buffs for monsters and a monster status tint; first slice lets venomous monster attacks poison the player |
+| [Actor status integration](specs/actor-status-integration-plan.md) | Shared condition ownership and frozen-state integration; later attack and spell delivery |
 | [Potion catalog](specs/potion-catalog-plan.md) | Deferred Raise Level, Hallucination and detection potions |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
 | [Item quality, affixes and curses](specs/item-quality-affixes-and-curses-plan.md) | Quality, affixes, per-item identification and curses landed; remaining richer source ladders, generated Rare names, Unique items and new affix families |

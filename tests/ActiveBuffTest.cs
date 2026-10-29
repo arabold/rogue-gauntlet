@@ -142,4 +142,13 @@ public partial class ActiveBuffTest
 		AssertInt(buff.RemoveCount).IsEqual(0);
 		AssertInt(buff.TickCount).IsGreater(0);
 	}
+
+	[TestCase]
+	public void PermanentPeriodicBuffStillProcesses()
+	{
+		var active = new ActiveBuff();
+		active.Initialize(null, new CountingPeriodicBuff { Duration = 0f, TicksPerSecond = 2f });
+		TestFactories.AddToSceneTree(active);
+		AssertBool(active.IsPhysicsProcessing()).IsTrue();
+	}
 }

@@ -1,9 +1,23 @@
-[gd_resource type="Resource" script_class="SurfaceAppearanceProfile" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="SurfaceAppearanceProfile" format=3 uid="uid://v4cagjvw3xua"]
 
-[ext_resource type="Script" path="res://scenes/effects/world/SurfaceAppearanceProfile.cs" id="profile"]
-[ext_resource type="Shader" path="res://scenes/magic/water/frozen_surface.gdshader" id="shader"]
+[ext_resource type="Script" uid="uid://clxc8wik51wv5" path="res://scenes/effects/world/SurfaceAppearanceProfile.cs" id="profile"]
+[ext_resource type="Shader" uid="uid://c5yn8mqyhyvqp" path="res://scenes/magic/water/frozen_surface.gdshader" id="shader"]
+
 [sub_resource type="ShaderMaterial" id="material"]
+render_priority = 0
 shader = ExtResource("shader")
+shader_parameter/base_color = Color(1, 1, 1, 1)
+shader_parameter/source_uv_scale = Vector3(1, 1, 1)
+shader_parameter/source_uv_offset = Vector3(0, 0, 0)
+shader_parameter/source_alpha_scissor = 0.0
+shader_parameter/source_cull = 0
+shader_parameter/source_roughness = 0.7
+shader_parameter/source_metallic = 0.0
+shader_parameter/source_specular = 0.5
+shader_parameter/source_normal_enabled = false
+shader_parameter/source_normal_scale = 1.0
+shader_parameter/amount = 0.0
+
 [resource]
 script = ExtResource("profile")
 Material = SubResource("material")
