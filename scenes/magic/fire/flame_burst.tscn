@@ -1,50 +1,39 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=24 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Script" path="res://scenes/magic/fire/FireBurstMotion.cs" id="motion"]
 [ext_resource type="Script" path="res://scenes/magic/fire/FireSpellVisual.cs" id="script"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/toon_wake.gdshader" id="ribbon"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_ribbon.gdshader" id="ribbon"]
 [ext_resource type="Script" path="res://scenes/magic/fire/RadialFlameRibbon.cs" id="radial"]
 [ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="Shader" path="res://scenes/magic/fireball/impact_flame.gdshader" id="wave_shader"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/toon_flame.gdshader" id="flame_shader"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/toon_spark.gdshader" id="spark_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_card.gdshader" id="flame_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_spark.gdshader" id="spark_shader"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_fire_ramp.tres" id="fire_ramp"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_flame_life.tres" id="flame_life"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_flame_alpha.tres" id="flame_alpha"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_spark_life.tres" id="spark_life"]
+[ext_resource type="Material" path="res://scenes/magic/fireball/toon_flame_card.tres" id="flame_card"]
+[ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material_res"]
 
 [sub_resource type="ShaderMaterial" id="ribbon_mat"]
 shader = ExtResource("ribbon")
 shader_parameter/noise_texture = ExtResource("noise")
-shader_parameter/ember_color = Color(0.9, 0.2, 0.04, 1)
-shader_parameter/flame_color = Color(1, 0.47, 0.07, 1)
-shader_parameter/core_color = Color(1, 0.8, 0.3, 1)
-shader_parameter/core_strength = 0.6
-shader_parameter/opacity = 1.0
 shader_parameter/closed_loop = true
 shader_parameter/animation_speed = 3.0
 shader_parameter/brightness = 1.6
-shader_parameter/edge_crispness = 1.0
-shader_parameter/heat_bands = 3.0
+shader_parameter/color_ramp = ExtResource("fire_ramp")
 
 [sub_resource type="ShaderMaterial" id="wave_mat"]
 render_priority = -1
 shader = ExtResource("wave_shader")
 shader_parameter/ground_wave = true
 shader_parameter/self_grow = false
-shader_parameter/wave_radius = 5.3
 shader_parameter/color_ramp = ExtResource("fire_ramp")
 shader_parameter/noise_texture = ExtResource("noise")
 
 [sub_resource type="PlaneMesh" id="wave_mesh"]
 size = Vector2(10.6, 10.6)
-
-[sub_resource type="ShaderMaterial" id="flame_mat"]
-shader = ExtResource("flame_shader")
-shader_parameter/noise_texture = ExtResource("noise")
-shader_parameter/inner_color = Color(1, 0.84, 0.3, 1)
-shader_parameter/brightness = 1.4
 
 [sub_resource type="ParticleProcessMaterial" id="ring_flames"]
 emission_shape = 6
@@ -66,10 +55,6 @@ alpha_curve = ExtResource("flame_alpha")
 
 [sub_resource type="QuadMesh" id="flame_quad"]
 size = Vector2(0.9, 0.9)
-
-[sub_resource type="ShaderMaterial" id="spark_mat"]
-render_priority = 2
-shader = ExtResource("spark_shader")
 
 [sub_resource type="ParticleProcessMaterial" id="sparks"]
 particle_flag_align_y = true
@@ -94,6 +79,11 @@ color_ramp = ExtResource("spark_life")
 [sub_resource type="QuadMesh" id="spark_quad"]
 size = Vector2(0.08, 0.32)
 
+[sub_resource type="Curve" id="light_curve"]
+max_value = 5.0
+_data = [Vector2(0, 1), 0.0, 0.0, 1, 1, Vector2(0.08, 3.0), 0.0, 0.0, 1, 1, Vector2(0.18, 1.0), 0.0, 0.0, 1, 1, Vector2(1, 1.0), 0.0, 0.0, 1, 1]
+point_count = 4
+
 [node name="FireSpellVisual" type="Node3D" node_paths=PackedStringArray("Timeline", "Burst")]
 script = ExtResource("script")
 Timeline = NodePath("Timeline")
@@ -106,7 +96,7 @@ cast_shadow = 0
 script = ExtResource("radial")
 
 [node name="RingFlames" type="GPUParticles3D" parent="FireRibbon"]
-material_override = SubResource("flame_mat")
+material_override = ExtResource("flame_card")
 cast_shadow = 0
 amount = 40
 lifetime = 0.35
@@ -116,6 +106,58 @@ visibility_aabb = AABB(-5, -2, -5, 10, 5, 10)
 process_material = SubResource("ring_flames")
 draw_pass_1 = SubResource("flame_quad")
 
+[node name="RingLights" type="Node3D" parent="FireRibbon"]
+
+[node name="Light0" type="OmniLight3D" parent="FireRibbon/RingLights"]
+position = Vector3(3.700, 0, 0.000)
+light_color = Color(1, 0.35, 0.05, 1)
+light_energy = 1.6
+omni_range = 3.0
+
+[node name="Light90" type="OmniLight3D" parent="FireRibbon/RingLights"]
+position = Vector3(0.000, 0, 3.700)
+light_color = Color(1, 0.35, 0.05, 1)
+light_energy = 1.6
+omni_range = 3.0
+
+[node name="Light180" type="OmniLight3D" parent="FireRibbon/RingLights"]
+position = Vector3(-3.700, 0, 0.000)
+light_color = Color(1, 0.35, 0.05, 1)
+light_energy = 1.6
+omni_range = 3.0
+
+[node name="Light270" type="OmniLight3D" parent="FireRibbon/RingLights"]
+position = Vector3(-0.000, 0, -3.700)
+light_color = Color(1, 0.35, 0.05, 1)
+light_energy = 1.6
+omni_range = 3.0
+
+[node name="HigherLevelLights" type="Node3D" parent="FireRibbon"]
+
+[node name="Light45" type="OmniLight3D" parent="FireRibbon/HigherLevelLights"]
+position = Vector3(2.616, 0, 2.616)
+light_color = Color(1, 0.35, 0.05, 1)
+light_energy = 1.6
+omni_range = 3.0
+
+[node name="Light135" type="OmniLight3D" parent="FireRibbon/HigherLevelLights"]
+position = Vector3(-2.616, 0, 2.616)
+light_color = Color(1, 0.35, 0.05, 1)
+light_energy = 1.6
+omni_range = 3.0
+
+[node name="Light225" type="OmniLight3D" parent="FireRibbon/HigherLevelLights"]
+position = Vector3(-2.616, 0, -2.616)
+light_color = Color(1, 0.35, 0.05, 1)
+light_energy = 1.6
+omni_range = 3.0
+
+[node name="Light315" type="OmniLight3D" parent="FireRibbon/HigherLevelLights"]
+position = Vector3(2.616, 0, -2.616)
+light_color = Color(1, 0.35, 0.05, 1)
+light_energy = 1.6
+omni_range = 3.0
+
 [node name="GroundWave" type="MeshInstance3D" parent="."]
 position = Vector3(0, 0.03, 0)
 material_override = SubResource("wave_mat")
@@ -124,7 +166,7 @@ mesh = SubResource("wave_mesh")
 
 [node name="Sparks" type="GPUParticles3D" parent="."]
 position = Vector3(0, 0.6, 0)
-material_override = SubResource("spark_mat")
+material_override = ExtResource("spark_material_res")
 cast_shadow = 0
 amount = 32
 lifetime = 0.5
@@ -136,22 +178,19 @@ visibility_aabb = AABB(-8, -2, -8, 16, 6, 16)
 process_material = SubResource("sparks")
 draw_pass_1 = SubResource("spark_quad")
 
-[node name="Light" type="OmniLight3D" parent="."]
-position = Vector3(0, 1, 0)
-light_color = Color(1, 0.3, 0.03, 1)
-light_energy = 1.3
-omni_range = 4.0
-
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
 script = ExtResource("timeline")
+LightFlicker = 1
 Surfaces = [NodePath("../FireRibbon"), NodePath("../GroundWave")]
-Lights = [NodePath("../Light")]
+Lights = [NodePath("../FireRibbon/RingLights/Light0"), NodePath("../FireRibbon/RingLights/Light90"), NodePath("../FireRibbon/RingLights/Light180"), NodePath("../FireRibbon/RingLights/Light270"), NodePath("../FireRibbon/HigherLevelLights/Light45"), NodePath("../FireRibbon/HigherLevelLights/Light135"), NodePath("../FireRibbon/HigherLevelLights/Light225"), NodePath("../FireRibbon/HigherLevelLights/Light315")]
+LightCurve = SubResource("light_curve")
 Emitters = [NodePath("../FireRibbon/RingFlames"), NodePath("../Sparks")]
 Duration = 0.55
 FadeIn = 0.08
 FadeOutStart = 0.55
 
-[node name="Motion" type="Node" parent="." node_paths=PackedStringArray("Timeline", "Ribbons")]
+[node name="Motion" type="Node" parent="." node_paths=PackedStringArray("Timeline", "Ribbons", "HigherLevelLights")]
 script = ExtResource("motion")
 Timeline = NodePath("../Timeline")
 Ribbons = [NodePath("../FireRibbon"), NodePath("../GroundWave")]
+HigherLevelLights = NodePath("../FireRibbon/HigherLevelLights")

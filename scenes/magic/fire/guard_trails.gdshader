@@ -1,6 +1,6 @@
 shader_type spatial;
 render_mode unshaded, blend_mix, cull_disabled, depth_draw_never, shadows_disabled;
-#include "res://scenes/magic/fireball/toon_fire.gdshaderinc"
+#include "res://scenes/magic/shared/toon/toon.gdshaderinc"
 
 // Helical ember wisps orbiting the guard, cut into crisp, tapering toon strands that run hot along
 // their centre. Higher levels add strands; a hit thickens them briefly.
@@ -19,7 +19,8 @@ void fragment() {
 	if (wisp_count >= 4) strands = max(strands, cos(helix + 4.8) * 0.98);
 	float taper = smoothstep(0.0, 0.12, UV.y) * (1.0 - smoothstep(0.8, 1.0, UV.y));
 	float width = strand_width * taper * effect_fade * (1.0 + hit_flash);
-	float core = (strands - (1.0 - width)) / max(width, 0.0001);
+	float core = toon_crest(strands, width);
+	if (core <= 0.0) discard;
 	vec3 color = toon_ramp(color_ramp, 0.25 + core * 0.6 + hit_flash * 0.25);
 	ALBEDO = color;
 	EMISSION = color * (brightness + hit_flash);

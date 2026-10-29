@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectInstance.cs" id="script"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
-[ext_resource type="Shader" path="res://scenes/magic/fire/toon_cracks.gdshader" id="shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_cracks.gdshader" id="shader"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_fire_ramp.tres" id="fire_ramp"]
 
 [sub_resource type="ShaderMaterial" id="mat"]

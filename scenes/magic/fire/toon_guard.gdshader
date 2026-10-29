@@ -1,7 +1,7 @@
 shader_type spatial;
 render_mode unshaded, blend_mix, cull_back, depth_draw_never, shadows_disabled;
 #include "res://scenes/magic/area_visibility.gdshaderinc"
-#include "res://scenes/magic/fireball/toon_fire.gdshaderinc"
+#include "res://scenes/magic/shared/toon/toon.gdshaderinc"
 
 // Sustained guard shell: crisp flame tongues lick up its silhouette while the centre stays clear, so
 // the caster remains readable. A hit briefly thickens and heats the rim.
@@ -26,6 +26,7 @@ void fragment() {
 		+ texture(noise_texture, vec2(angle * 6.0 + 0.3, d.y * 1.6 - TIME * 1.6)).g * 0.3;
 	float lift = d.y * 0.5 + 0.5;
 	float body = rim - (1.0 - rim_width) + (n - 0.5) * (0.5 + lift * 0.4) + hit_flash * 0.12 - (1.0 - effect_fade);
+	if (body <= 0.0) discard;
 	vec3 color = toon_ramp(color_ramp, rim * 0.5 + n * 0.5 + hit_flash * 0.2 - 0.05);
 	ALBEDO = color;
 	EMISSION = color * (brightness + hit_flash);

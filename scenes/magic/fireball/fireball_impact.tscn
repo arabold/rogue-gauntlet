@@ -1,16 +1,19 @@
-[gd_scene load_steps=31 format=3]
+[gd_scene load_steps=35 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/fireball/FireballImpact.cs" id="impact"]
 [ext_resource type="Shader" path="res://scenes/magic/fireball/impact_flame.gdshader" id="flame_shader"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/toon_flame.gdshader" id="particle_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_card.gdshader" id="particle_shader"]
 [ext_resource type="Shader" path="res://scenes/magic/fireball/impact_ring.gdshader" id="ring_shader"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/toon_spark.gdshader" id="spark_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_spark.gdshader" id="spark_shader"]
 [ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/scorch.svg" id="scorch"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/scorch_glow.svg" id="scorch_glow"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_fire_ramp.tres" id="fire_ramp"]
 [ext_resource type="Shader" path="res://scenes/magic/fireball/scorch.gdshader" id="scorch_shader"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_spark_life.tres" id="spark_life"]
+[ext_resource type="Material" path="res://scenes/magic/fireball/toon_flame_card.tres" id="flame_card"]
+[ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material_res"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_flash.gdshader" id="flash_shader"]
 
 [sub_resource type="ShaderMaterial" id="shell_material"]
 shader = ExtResource("flame_shader")
@@ -58,16 +61,6 @@ inner_radius = 1.72
 outer_radius = 1.92
 rings = 14
 ring_segments = 4
-
-[sub_resource type="ShaderMaterial" id="particle_material"]
-shader = ExtResource("particle_shader")
-shader_parameter/noise_texture = ExtResource("noise")
-shader_parameter/inner_color = Color(1, 0.86, 0.36, 1)
-shader_parameter/brightness = 1.4
-
-[sub_resource type="ShaderMaterial" id="spark_material"]
-render_priority = 2
-shader = ExtResource("spark_shader")
 
 [sub_resource type="Gradient" id="burst_life"]
 interpolation_mode = 1
@@ -120,14 +113,38 @@ size = Vector2(0.75, 0.75)
 [sub_resource type="QuadMesh" id="shard_quad"]
 size = Vector2(0.08, 0.3)
 
+[sub_resource type="ShaderMaterial" id="flash_material"]
+render_priority = 3
+shader = ExtResource("flash_shader")
+shader_parameter/color_ramp = ExtResource("fire_ramp")
+shader_parameter/brightness = 2.5
+shader_parameter/pop_scale = 2.2
+shader_parameter/pop_time = 0.06
+shader_parameter/lifetime = 0.22
+
+[sub_resource type="QuadMesh" id="flash_quad"]
+size = Vector2(3.2, 3.2)
+
+[sub_resource type="Curve" id="light_curve"]
+max_value = 5.0
+_data = [Vector2(0, 3.5), 0.0, 0.0, 1, 1, Vector2(0.07, 1.0), 0.0, 0.0, 1, 1, Vector2(0.65, 0.0), 0.0, 0.0, 1, 1, Vector2(1, 0.0), 0.0, 0.0, 1, 1]
+point_count = 4
+
 [node name="FireballImpact" type="Node3D" node_paths=PackedStringArray("FlameLayers", "GroundLayers", "Bursts", "ImpactLight", "Scorch")]
 script = ExtResource("impact")
-FlameLayers = [NodePath("FlameShell"), NodePath("GroundWave"), NodePath("FacetedRing"), NodePath("InnerRing")]
+FlameLayers = [NodePath("Flash"), NodePath("FlameShell"), NodePath("GroundWave"), NodePath("FacetedRing"), NodePath("InnerRing")]
 GroundLayers = [NodePath("GroundWave"), NodePath("FacetedRing"), NodePath("InnerRing"), NodePath("Scorch")]
 Bursts = [NodePath("FlameBurst"), NodePath("Shards")]
 ImpactLight = NodePath("ImpactLight")
+LightCurve = SubResource("light_curve")
 Scorch = NodePath("Scorch")
 Lifetime = 2.4
+
+[node name="Flash" type="MeshInstance3D" parent="."]
+layers = 256
+material_override = SubResource("flash_material")
+cast_shadow = 0
+mesh = SubResource("flash_quad")
 
 [node name="FlameShell" type="MeshInstance3D" parent="."]
 layers = 256
@@ -162,7 +179,7 @@ mesh = SubResource("scorch_mesh")
 
 [node name="FlameBurst" type="GPUParticles3D" parent="."]
 layers = 256
-material_override = SubResource("particle_material")
+material_override = ExtResource("flame_card")
 cast_shadow = 0
 amount = 24
 lifetime = 1.1
@@ -174,7 +191,7 @@ draw_pass_1 = SubResource("flame_quad")
 
 [node name="Shards" type="GPUParticles3D" parent="."]
 layers = 256
-material_override = SubResource("spark_material")
+material_override = ExtResource("spark_material_res")
 cast_shadow = 0
 amount = 18
 lifetime = 0.75

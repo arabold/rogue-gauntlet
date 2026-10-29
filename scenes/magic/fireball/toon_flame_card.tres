@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_card.gdshader" id="shader"]
+[ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+
+[resource]
+shader = ExtResource("shader")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/inner_color = Color(1, 0.84, 0.3, 1)
+shader_parameter/brightness = 1.4

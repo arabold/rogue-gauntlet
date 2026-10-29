@@ -5,10 +5,11 @@
 [ext_resource type="Script" path="res://scenes/magic/fire/FireSpellVisual.cs" id="script"]
 [ext_resource type="Shader" path="res://scenes/magic/fire/toon_guard.gdshader" id="flame"]
 [ext_resource type="Shader" path="res://scenes/magic/fire/guard_trails.gdshader" id="trail"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/toon_spark.gdshader" id="spark_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_spark.gdshader" id="spark_shader"]
 [ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_fire_ramp.tres" id="fire_ramp"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_spark_life.tres" id="spark_life"]
+[ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material_res"]
 
 [sub_resource type="ShaderMaterial" id="flame_mat"]
 shader = ExtResource("flame")
@@ -31,10 +32,6 @@ radius = 1.57
 height = 3.14
 radial_segments = 32
 rings = 12
-
-[sub_resource type="ShaderMaterial" id="spark_mat"]
-render_priority = 2
-shader = ExtResource("spark_shader")
 
 [sub_resource type="QuadMesh" id="spark_mesh"]
 size = Vector2(0.07, 0.22)
@@ -71,7 +68,7 @@ mesh = SubResource("trail_mesh")
 
 [node name="Embers" type="GPUParticles3D" parent="."]
 position = Vector3(0, 1.1, 0)
-material_override = SubResource("spark_mat")
+material_override = ExtResource("spark_material_res")
 cast_shadow = 0
 amount = 48
 lifetime = 0.9
@@ -89,6 +86,7 @@ omni_range = 4.0
 
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
 script = ExtResource("timeline")
+LightFlicker = 1
 Surfaces = [NodePath("../Flame"), NodePath("../Trails")]
 Lights = [NodePath("../Light")]
 Duration = 1.2

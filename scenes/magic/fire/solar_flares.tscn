@@ -14,8 +14,9 @@ Sweep = NodePath("Motion")
 [node name="Orbit2" parent="." instance=ExtResource("orbit")]
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
 script = ExtResource("timeline")
+LightFlicker = 1
 Surfaces = [NodePath("../Orbit0/Trail"), NodePath("../Orbit0/HotTrail"), NodePath("../Orbit0/Arm/Head/Core"), NodePath("../Orbit0/Arm/Head/Heart"), NodePath("../Orbit1/Trail"), NodePath("../Orbit1/HotTrail"), NodePath("../Orbit1/Arm/Head/Core"), NodePath("../Orbit1/Arm/Head/Heart"), NodePath("../Orbit2/Trail"), NodePath("../Orbit2/HotTrail"), NodePath("../Orbit2/Arm/Head/Core"), NodePath("../Orbit2/Arm/Head/Heart")]
-Lights = []
+Lights = [NodePath("../Orbit0/Arm/Head/Light"), NodePath("../Orbit1/Arm/Head/Light"), NodePath("../Orbit2/Arm/Head/Light")]
 Duration = 2.4
 Emitters = [NodePath("../Orbit0/Arm/Head/Flames"), NodePath("../Orbit1/Arm/Head/Flames"), NodePath("../Orbit2/Arm/Head/Flames")]
 FadeOutStart = 0.72

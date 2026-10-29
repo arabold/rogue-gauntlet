@@ -15,9 +15,13 @@ public partial class FireballImpact : TimedEffect
 	[Export] public MeshInstance3D[] FlameLayers { get; set; } = [];
 	/// <summary>Layers authored horizontally around the origin; snapped to the floor once per spawn.</summary>
 	[Export] public Node3D[] GroundLayers { get; set; } = [];
-	/// <summary>One-shot emitters, hidden once their last particle dies: a live emitter keeps costing GPU work for the whole lifetime.</summary>
+	/// <summary>One-shot emitters, hidden when they finish: a live emitter keeps costing GPU work for the whole lifetime.</summary>
 	[Export] public GpuParticles3D[] Bursts { get; set; } = [];
 	[Export] public OmniLight3D ImpactLight { get; set; }
+	/// <summary>Light brightness over flame progress. Values above 1 are the impact flash, which only applies
+	/// when <see cref="ImpactFlash"/> grants one; brightness also grows with the effect's scale (spell level).</summary>
+	[Export] public Curve LightCurve { get; set; }
+	[Export] public LightFlickerStyle LightFlicker { get; set; } = LightFlickerStyle.Flame;
 	/// <summary>Floor mark quad; hidden when no floor is in reach so it never hangs in the air.</summary>
 	[Export] public MeshInstance3D Scorch { get; set; }
 	/// <summary>Seconds the flame layers play; the rest of <see cref="TimedEffect.Lifetime"/> fades the scorch.</summary>
@@ -29,6 +33,10 @@ public partial class FireballImpact : TimedEffect
 	[Export(PropertyHint.Layers3DPhysics)] public uint GroundMask { get; set; } = 1;
 	private float _elapsed;
 	private bool _flamesDone;
+	private bool _scorchCooled;
+	private bool _lightArmed;
+	private bool _flash;
+	private float _lightScale = 1f;
 	private float _lightEnergy;
 	private float _scorchGlow;
 	private ShaderMaterial _scorchMaterial;
@@ -47,6 +55,7 @@ public partial class FireballImpact : TimedEffect
 		}
 		_groundTransforms = new Transform3D[GroundLayers.Length];
 		for (int i = 0; i < GroundLayers.Length; i++) _groundTransforms[i] = GroundLayers[i].Transform;
+		foreach (var burst in Bursts) burst.Finished += () => burst.Visible = false;
 		_groundQuery.CollisionMask = GroundMask;
 		_lightEnergy = ImpactLight?.LightEnergy ?? 0;
 		if (Scorch != null)
@@ -75,17 +84,29 @@ public partial class FireballImpact : TimedEffect
 			_flamesDone = progress >= 1f;
 			if (_flamesDone) foreach (var layer in FlameLayers) layer.Visible = false;
 		}
-		foreach (var burst in Bursts)
-			if (burst.Visible && _elapsed > burst.Lifetime * (2.0 - burst.Explosiveness)) burst.Visible = false;
-		if (ImpactLight != null)
+		if (!_lightArmed)
 		{
-			ImpactLight.LightEnergy = _lightEnergy * (1f - Mathf.SmoothStep(0.05f, 0.65f, progress));
+			// Spawners set the position and level scale after the effect enters the tree.
+			_lightArmed = true;
+			_flash = ImpactFlash.TryClaim();
+			_lightScale = Mathf.Clamp(Scale.X, .8f, 2f);
+		}
+		if (ImpactLight is { Visible: true })
+		{
+			float curve = LightCurve?.Sample(progress) ?? 1f - progress;
+			float flicker = SpellLightFlicker.Sample(LightFlicker, _elapsed, GetInstanceId() % 997);
+			ImpactLight.LightEnergy = _lightEnergy * _lightScale * (_flash ? curve : Mathf.Min(curve, 1f)) * flicker;
 			// A zero-energy light still costs per-object light culling, which dominates with many impacts.
 			ImpactLight.Visible = ImpactLight.LightEnergy > 0.001f;
 		}
 		if (_scorchMaterial != null)
 		{
-			_scorchMaterial.SetShaderParameter(GlowKey, _scorchGlow * (1f - Mathf.SmoothStep(0f, ScorchGlowDuration, _elapsed)));
+			if (!_scorchCooled)
+			{
+				float glow = _scorchGlow * (1f - Mathf.SmoothStep(0f, ScorchGlowDuration, _elapsed));
+				_scorchMaterial.SetShaderParameter(GlowKey, glow);
+				_scorchCooled = glow <= 0f;
+			}
 			float opacity = Mathf.SmoothStep(0f, ScorchAppearDuration, _elapsed) * (1f - Mathf.SmoothStep(FlameDuration, Lifetime, _elapsed));
 			_scorchMaterial.SetShaderParameter(OpacityKey, opacity);
 		}
@@ -103,6 +124,8 @@ public partial class FireballImpact : TimedEffect
 	{
 		_elapsed = 0f;
 		_flamesDone = false;
+		_scorchCooled = false;
+		_lightArmed = false;
 		foreach (var material in _materials) material.SetShaderParameter(ProgressKey, 0f);
 		foreach (var layer in FlameLayers) layer.Visible = true;
 		foreach (var burst in Bursts) burst.Visible = true;

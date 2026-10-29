@@ -4,10 +4,11 @@
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Script" path="res://scenes/magic/fire/FallingMeteorVisual.cs" id="motion"]
 [ext_resource type="Script" path="res://scenes/magic/fire/FireSpellVisual.cs" id="script"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/toon_flame.gdshader" id="flame"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_card.gdshader" id="flame"]
 [ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_flame_life.tres" id="flame_life"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_flame_alpha.tres" id="flame_alpha"]
+[ext_resource type="Material" path="res://scenes/magic/fireball/toon_flame_card.tres" id="flame_card"]
 
 [sub_resource type="StandardMaterial3D" id="stone"]
 albedo_color = Color(0.16, 0.06, 0.035, 1)
@@ -19,12 +20,6 @@ emission_energy_multiplier = 0.5
 [sub_resource type="PrismMesh" id="rock"]
 material = SubResource("stone")
 size = Vector3(0.8, 1.1, 0.7)
-
-[sub_resource type="ShaderMaterial" id="trail"]
-shader = ExtResource("flame")
-shader_parameter/noise_texture = ExtResource("noise")
-shader_parameter/inner_color = Color(1, 0.84, 0.3, 1)
-shader_parameter/brightness = 1.3
 
 [sub_resource type="QuadMesh" id="spark"]
 size = Vector2(0.6, 0.6)
@@ -56,7 +51,7 @@ rotation_degrees = Vector3(24, 15, 28)
 mesh = SubResource("rock")
 
 [node name="Trail" type="GPUParticles3D" parent="Meteor"]
-material_override = SubResource("trail")
+material_override = ExtResource("flame_card")
 cast_shadow = 0
 amount = 12
 lifetime = 0.6

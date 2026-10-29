@@ -5,9 +5,9 @@
 [ext_resource type="Script" path="res://scenes/magic/fire/FallingMeteorVisual.cs" id="motion"]
 [ext_resource type="Script" path="res://scenes/magic/fire/FireSpellVisual.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/magic/fireball/fireball_impact.tscn" id="impact"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/flame_crown.gdshader" id="crown_shader"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/toon_flame.gdshader" id="flame_shader"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/toon_spark.gdshader" id="spark_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_crown.gdshader" id="crown_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_card.gdshader" id="flame_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_spark.gdshader" id="spark_shader"]
 [ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="PackedScene" path="res://scenes/magic/fire/lava_cracks.tscn" id="cracks"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_fire_ramp.tres" id="fire_ramp"]
@@ -16,12 +16,14 @@
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_smoke_life.tres" id="smoke_life"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_smoke_alpha.tres" id="smoke_alpha"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_spark_life.tres" id="spark_life"]
+[ext_resource type="Material" path="res://scenes/magic/fireball/toon_flame_card.tres" id="flame_card"]
+[ext_resource type="Material" path="res://scenes/magic/fireball/toon_smoke_card.tres" id="smoke_card"]
+[ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material_res"]
 
 [sub_resource type="ShaderMaterial" id="crown_mat"]
 render_priority = 1
 shader = ExtResource("crown_shader")
 shader_parameter/color_ramp = ExtResource("fire_ramp")
-shader_parameter/radius = 0.85
 shader_parameter/stretch = 1.6
 
 [sub_resource type="SphereMesh" id="crown_mesh"]
@@ -29,12 +31,6 @@ radius = 0.85
 height = 1.7
 radial_segments = 12
 rings = 8
-
-[sub_resource type="ShaderMaterial" id="flame_mat"]
-shader = ExtResource("flame_shader")
-shader_parameter/noise_texture = ExtResource("noise")
-shader_parameter/inner_color = Color(1, 0.84, 0.3, 1)
-shader_parameter/brightness = 1.4
 
 [sub_resource type="ParticleProcessMaterial" id="wake_process"]
 emission_shape = 1
@@ -54,15 +50,6 @@ alpha_curve = ExtResource("flame_alpha")
 [sub_resource type="QuadMesh" id="flame_quad"]
 size = Vector2(0.9, 0.9)
 
-[sub_resource type="ShaderMaterial" id="smoke_mat"]
-render_priority = -2
-shader = ExtResource("flame_shader")
-shader_parameter/noise_texture = ExtResource("noise")
-shader_parameter/inner_strength = 0.0
-shader_parameter/brightness = 0.2
-shader_parameter/edge_softness = 0.1
-shader_parameter/scroll_speed = 0.6
-
 [sub_resource type="ParticleProcessMaterial" id="smoke_process"]
 emission_shape = 1
 emission_sphere_radius = 0.4
@@ -80,10 +67,6 @@ alpha_curve = ExtResource("smoke_alpha")
 
 [sub_resource type="QuadMesh" id="smoke_quad"]
 size = Vector2(1.0, 1.0)
-
-[sub_resource type="ShaderMaterial" id="spark_mat"]
-render_priority = 2
-shader = ExtResource("spark_shader")
 
 [sub_resource type="ParticleProcessMaterial" id="spark_process"]
 particle_flag_align_y = true
@@ -131,7 +114,7 @@ cast_shadow = 0
 mesh = SubResource("crown_mesh")
 
 [node name="Embers" type="GPUParticles3D" parent="Meteor"]
-material_override = SubResource("spark_mat")
+material_override = ExtResource("spark_material_res")
 cast_shadow = 0
 amount = 24
 lifetime = 0.8
@@ -140,7 +123,7 @@ process_material = SubResource("spark_process")
 draw_pass_1 = SubResource("spark_quad")
 
 [node name="FlameWake" type="GPUParticles3D" parent="Meteor"]
-material_override = SubResource("flame_mat")
+material_override = ExtResource("flame_card")
 cast_shadow = 0
 amount = 28
 lifetime = 0.75
@@ -150,7 +133,7 @@ process_material = SubResource("wake_process")
 draw_pass_1 = SubResource("flame_quad")
 
 [node name="SmokeWake" type="GPUParticles3D" parent="Meteor"]
-material_override = SubResource("smoke_mat")
+material_override = ExtResource("smoke_card")
 cast_shadow = 0
 amount = 8
 lifetime = 1.0
@@ -166,6 +149,7 @@ omni_range = 5.5
 
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
 script = ExtResource("timeline")
+LightFlicker = 1
 Surfaces = []
 Lights = [NodePath("../Meteor/Light")]
 Duration = 1.6

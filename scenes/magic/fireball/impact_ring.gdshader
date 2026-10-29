@@ -1,7 +1,7 @@
 shader_type spatial;
 render_mode unshaded, blend_mix, cull_disabled, depth_draw_never, shadows_disabled;
 #include "res://scenes/magic/area_visibility.gdshaderinc"
-#include "res://scenes/magic/fireball/toon_fire.gdshaderinc"
+#include "res://scenes/magic/shared/toon/toon.gdshaderinc"
 
 // Faceted, broken shock ring: solid segments expand, cool through the banded ramp and erode
 // shorter until they vanish.

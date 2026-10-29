@@ -13,7 +13,7 @@ uniform float glow_energy = 3.0;
 void fragment() {
 	if (area_is_blocked(VERTEX, INV_VIEW_MATRIX)) discard;
 	vec4 scorch = texture(scorch_texture, UV);
-	vec3 glow = texture(glow_texture, UV).rgb * glow_energy;
+	vec3 glow = glow_energy > 0.0 ? texture(glow_texture, UV).rgb * glow_energy : vec3(0.0);
 	float glow_mask = clamp(max(glow.r, max(glow.g, glow.b)), 0.0, 1.0);
 	ALBEDO = mix(scorch.rgb, glow, glow_mask);
 	EMISSION = glow;

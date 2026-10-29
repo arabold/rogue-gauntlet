@@ -5,6 +5,8 @@ public partial class FireBurstMotion : Node
 {
 	[Export] public VisualEffectTimeline Timeline { get; set; }
 	[Export] public MeshInstance3D[] Ribbons { get; set; } = [];
+	/// <summary>Extra ring lights that fill the larger ring from level 2; hidden as a group at level 1.</summary>
+	[Export] public Node3D HigherLevelLights { get; set; }
 	[Export] public float ExpansionEnd { get; set; } = .65f;
 	[Export] public float ExpansionPower { get; set; } = 2.2f;
 	[Export] public float StartingRadius { get; set; } = .1f;
@@ -16,6 +18,7 @@ public partial class FireBurstMotion : Node
 		{ GD.PushError("Fire burst requires a timeline and assigned ribbons."); SetProcess(false); return; }
 		foreach (var ribbon in Ribbons)
 			if (ribbon.MaterialOverride is ShaderMaterial material) material.SetShaderParameter("brightness", 1.2f + .35f * _level);
+		if (HigherLevelLights != null) HigherLevelLights.Visible = _level >= 2;
 	}
 	public override void _Process(double delta)
 	{

@@ -1,45 +1,36 @@
 [gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scenes/effects/MagicRibbonTrail.cs" id="ribbon"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/toon_wake.gdshader" id="toon_wake"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/flame_wake.gdshader" id="hot_wake"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/flame_crown.gdshader" id="crown"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/toon_core.gdshader" id="core"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/toon_flame.gdshader" id="particle"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_ribbon.gdshader" id="toon_wake"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_ribbon_glow.gdshader" id="hot_wake"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_crown.gdshader" id="crown"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_core.gdshader" id="core"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_card.gdshader" id="particle"]
 [ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_fire_ramp.tres" id="fire_ramp"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_flame_life.tres" id="flame_life"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_flame_alpha.tres" id="flame_alpha"]
+[ext_resource type="Material" path="res://scenes/magic/fireball/toon_flame_card.tres" id="flame_card"]
 
 [sub_resource type="ShaderMaterial" id="wake_mat"]
 render_priority = -1
 shader = ExtResource("toon_wake")
 shader_parameter/noise_texture = ExtResource("noise")
-shader_parameter/ember_color = Color(0.9, 0.2, 0.04, 1)
-shader_parameter/flame_color = Color(1, 0.47, 0.07, 1)
-shader_parameter/core_color = Color(1, 0.8, 0.3, 1)
 shader_parameter/brightness = 1.6
-shader_parameter/opacity = 1.0
-shader_parameter/edge_crispness = 1.0
-shader_parameter/heat_bands = 3.0
+shader_parameter/color_ramp = ExtResource("fire_ramp")
 
 [sub_resource type="ShaderMaterial" id="hot_wake_mat"]
 shader = ExtResource("hot_wake")
 shader_parameter/noise_texture = ExtResource("noise")
-shader_parameter/ember_color = Color(1, 0.3, 0.04, 1)
-shader_parameter/flame_color = Color(1, 0.6, 0.1, 1)
-shader_parameter/core_color = Color(1, 0.92, 0.55, 1)
-shader_parameter/core_strength = 0.9
 shader_parameter/brightness = 1.4
 shader_parameter/opacity = 0.85
-shader_parameter/edge_crispness = 1.0
-shader_parameter/heat_bands = 3.0
+shader_parameter/color_ramp = ExtResource("fire_ramp")
+shader_parameter/heat_bias = 0.2
 
 [sub_resource type="ShaderMaterial" id="crown_mat"]
 render_priority = 1
 shader = ExtResource("crown")
 shader_parameter/color_ramp = ExtResource("fire_ramp")
-shader_parameter/radius = 0.4
 shader_parameter/stretch = 1.8
 
 [sub_resource type="SphereMesh" id="crown_mesh"]
@@ -57,12 +48,6 @@ radius = 0.3
 height = 0.6
 radial_segments = 10
 rings = 6
-
-[sub_resource type="ShaderMaterial" id="flame_mat"]
-shader = ExtResource("particle")
-shader_parameter/noise_texture = ExtResource("noise")
-shader_parameter/inner_color = Color(1, 0.84, 0.3, 1)
-shader_parameter/brightness = 1.4
 
 [sub_resource type="QuadMesh" id="flame_mesh"]
 size = Vector2(0.5, 0.5)
@@ -102,13 +87,18 @@ cast_shadow = 0
 mesh = SubResource("core_mesh")
 
 [node name="Flames" type="GPUParticles3D" parent="Arm/Head"]
-material_override = SubResource("flame_mat")
+material_override = ExtResource("flame_card")
 cast_shadow = 0
 amount = 30
 lifetime = 0.7
 local_coords = false
 process_material = SubResource("process")
 draw_pass_1 = SubResource("flame_mesh")
+
+[node name="Light" type="OmniLight3D" parent="Arm/Head"]
+light_color = Color(1, 0.4, 0.08, 1)
+light_energy = 1.6
+omni_range = 3.5
 
 [node name="Trail" type="MeshInstance3D" parent="." node_paths=PackedStringArray("Target")]
 material_override = SubResource("wake_mat")
