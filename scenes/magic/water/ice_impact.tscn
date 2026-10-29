@@ -5,14 +5,15 @@
 [ext_resource type="Script" path="res://scenes/magic/shared/CrystalField.cs" id="crystals"]
 [ext_resource type="Shader" path="res://scenes/magic/water/frost_wave.gdshader" id="wave"]
 [ext_resource type="Shader" path="res://scenes/magic/water/ice_crystal.gdshader" id="ice"]
-[ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[ext_resource type="Texture2D" path="res://scenes/magic/water/toon_ice_ramp.tres" id="ice_ramp"]
 [sub_resource type="ShaderMaterial" id="wave_material"]
 shader = ExtResource("wave")
-shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/color_ramp = ExtResource("ice_ramp")
 [sub_resource type="PlaneMesh" id="plane"]
 size = Vector2(3, 3)
 [sub_resource type="ShaderMaterial" id="ice_material"]
 shader = ExtResource("ice")
+shader_parameter/color_ramp = ExtResource("ice_ramp")
 [node name="IceImpact" type="Node3D" node_paths=PackedStringArray("Timeline", "Crystals")]
 script = ExtResource("root")
 Timeline = NodePath("Timeline")
@@ -26,14 +27,18 @@ mesh = SubResource("plane")
 script = ExtResource("crystals")
 Timeline = NodePath("../Timeline")
 CrystalMaterial = SubResource("ice_material")
-BaseCount = 6
+BaseCount = 4
 AdditionalPerLevel = 0
+ClusterSize = 3
 Radius = 1.1
 InnerRadius = 0.15
 Height = 0.6
 HeightPerLevel = 0.0
 Width = 0.16
 Tilt = 0.45
+SpreadTime = 0.36
+GrowTime = 0.2
+ShrinkTime = 0.4
 [node name="Light" type="OmniLight3D" parent="."]
 position = Vector3(0, 0.8, 0)
 light_color = Color(0.45, 0.85, 1, 1)
