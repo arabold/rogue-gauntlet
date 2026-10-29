@@ -118,12 +118,15 @@ public class LootPlacementTest
 	{
 		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProcedural());
 		TestFactories.WireLootScenes(mapGenerator);
-		mapGenerator.MapWidth = 40;
-		mapGenerator.MapDepth = 40;
-		mapGenerator.MaxRooms = 20;
-		mapGenerator.MinChests = mapGenerator.MaxChests = 3;
-		mapGenerator.MinTraps = mapGenerator.MaxTraps = 3;
-		mapGenerator.MinLooseItems = mapGenerator.MaxLooseItems = 3;
+		// The smallest map that still fits every request on every seed: a map too small to hold all nine pieces
+		// silently drops some and checks fewer pairs, while larger maps mostly add corridor routing and navmesh time.
+		const int PerKind = 3;
+		mapGenerator.MapWidth = 30;
+		mapGenerator.MapDepth = 30;
+		mapGenerator.MaxRooms = 14;
+		mapGenerator.MinChests = mapGenerator.MaxChests = PerKind;
+		mapGenerator.MinTraps = mapGenerator.MaxTraps = PerKind;
+		mapGenerator.MinLooseItems = mapGenerator.MaxLooseItems = PerKind;
 
 		var failures = new List<string>();
 		for (ulong seed = 1; seed <= SeedCount; seed++)
@@ -135,6 +138,11 @@ public class LootPlacementTest
 			foreach (Node3D node in FindLootNodes(mapGenerator))
 			{
 				points.Add(node.GlobalPosition);
+			}
+
+			if (points.Count < 3 * PerKind)
+			{
+				failures.Add($"seed {seed}: placed only {points.Count} of {3 * PerKind} requested pieces, so fewer pairs were checked");
 			}
 
 			for (int i = 0; i < points.Count; i++)
@@ -154,7 +162,7 @@ public class LootPlacementTest
 		}
 
 		AssertArray(failures)
-			.OverrideFailureMessage($"Found {failures.Count} spacing violation(s) across {SeedCount} seeds:\n  "
+			.OverrideFailureMessage($"Found {failures.Count} spacing failure(s) across {SeedCount} seeds:\n  "
 				+ string.Join("\n  ", failures))
 			.IsEmpty();
 	}
