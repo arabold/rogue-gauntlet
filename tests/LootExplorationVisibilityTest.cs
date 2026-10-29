@@ -39,7 +39,7 @@ public class LootExplorationVisibilityTest
 	[TestCase(false), TestCase(true)]
 	public async Task GeneratedAndRuntimeLootStayHiddenUntilTheirOwnTileIsExplored(bool runtimeWorld)
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/world_effect_harness.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
 		await runner.SimulateFrames(2);
 		var (level, map) = TestFactories.UngeneratedLevel();
 		var pickup = Pickup(); pickup.Position = new Vector3(8, 0, 8);
@@ -69,7 +69,7 @@ public class LootExplorationVisibilityTest
 	[TestCase]
 	public async Task StandalonePreviewsRemainVisibleAndParticleActivationDoesNotRestartEveryFrame()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/world_effect_harness.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
 		await runner.SimulateFrames(2);
 		var pickup = TestFactories.AddToSceneTree(Pickup());
 		await runner.SimulateFrames(3); AssertPresentation(pickup, true);

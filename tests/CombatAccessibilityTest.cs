@@ -154,7 +154,7 @@ public partial class CombatAccessibilityTest
 		player.MovementComponent.SetPhysicsProcess(false); // Force contact instead of escaping geometrically.
 		float health = player.HealthComponent.CurrentHealth;
 		DamageOutcome? outcome = null;
-		player.HurtBoxComponent.DamageResolved += (result, _) => outcome = (DamageOutcome)result;
+		player.HurtBoxComponent.DamageResolved += (result, _, _) => outcome = (DamageOutcome)result;
 		AssertBool(harness.RequestHeroDodge(Vector3.Right)).IsTrue();
 		var arrow = GD.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
 		runner.Scene().AddChild(arrow);

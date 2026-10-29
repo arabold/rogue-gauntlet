@@ -346,7 +346,11 @@ public partial class CombatIntegrationTest
 			AssertBool(harness.Player.DodgeComponent.IsDodging).IsFalse();
 			AssertBool(harness.Player.ActionGate.IsStaggered).IsTrue();
 			AssertFloat(harness.Player.ActionGate.StaggerRemaining).IsEqualApprox(state.RecoveryLockoutRemaining, .001);
-			AssertFloat(harness.Player.DodgeComponent.CooldownRemaining).IsEqualApprox(state.DodgeCooldownRemaining, .001);
+			// The player's dodge spends one of two charges; the charge and its recharge survive the round trip.
+			AssertInt(state.DodgeChargesRemaining).IsEqual(1);
+			AssertInt(harness.Player.DodgeComponent.ChargesRemaining).IsEqual(1);
+			AssertFloat(harness.Player.DodgeComponent.RechargeRemaining).IsEqualApprox(state.DodgeRechargeRemaining, .001);
+			AssertFloat(harness.Player.DodgeComponent.IntervalRemaining).IsEqualApprox(state.DodgeIntervalRemaining, .001);
 		}
 	}
 

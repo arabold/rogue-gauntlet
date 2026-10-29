@@ -1,0 +1,18 @@
+[
+  { "Frame": 0, "Command": "spawn", "Value": 1 },
+  { "Frame": 0, "Command": "defense", "Value": 0 },
+  { "Frame": 2, "Command": "equip", "Value": 0 },
+  { "Frame": 6, "Command": "press_primary" },
+  { "Frame": 20, "Command": "press_primary" },
+  { "Frame": 37, "Command": "press_primary" },
+  { "Frame": 60, "Command": "press_dodge", "X": -1 },
+  { "Frame": 60, "Command": "move", "X": -1 },
+  { "Frame": 64, "Command": "move" },
+  { "Frame": 100, "Command": "position_player", "X": 0, "Z": 0 },
+  { "Frame": 110, "Command": "press_primary" },
+  { "Frame": 118, "Command": "press_dodge" },
+  { "Frame": 125, "Command": "press_dodge" },
+  { "Frame": 160, "Command": "equip", "Value": 1 },
+  { "Frame": 170, "Command": "press_primary" },
+  { "Frame": 182, "Command": "press_primary" }
+]

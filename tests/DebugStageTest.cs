@@ -16,7 +16,7 @@ public partial class DebugStageTest
 		string[] scenes = ["fireball_preview", "earth_spell_preview", "air_spell_preview", "water_spell_preview"];
 		foreach (string name in scenes)
 		{
-			using var runner = ISceneRunner.Load($"res://scenes/debug/effects/{name}.tscn", true);
+			using var runner = TestFactories.LoadScene($"res://scenes/debug/effects/{name}.tscn");
 			await runner.SimulateFrames(4);
 			var root = runner.Scene();
 			var stage = root.GetNode<DebugStage>("DebugStage");
@@ -44,7 +44,7 @@ public partial class DebugStageTest
 	[TestCase]
 	public async Task FrozenEffectIsSelectableForPlayerAndMonsters()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/actor_item_effect_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
 		await runner.SimulateFrames(4);
 		var preview = (ActorItemEffectPreview)runner.Scene();
 		int index = System.Array.FindIndex(preview.Effects, effect => effect.Id == "frozen");

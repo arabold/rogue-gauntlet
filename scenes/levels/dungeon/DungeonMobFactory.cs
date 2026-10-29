@@ -6,7 +6,7 @@ using Godot.Collections;
 public partial class DungeonMobFactory : MobFactory
 {
 	// Keep enemy scenes as paths so the level only loads enemy variants it actually spawns.
-	[Export] public Array<string> EnemyScenePaths { get; set; }
+	[Export] public Array<string> EnemyScenePaths { get; set; } = [];
 
 	public override PackedScene CreateEnemy(uint dungeonDepth, RandomNumberGenerator rng)
 	{

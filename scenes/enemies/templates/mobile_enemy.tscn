@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3]
+[gd_scene load_steps=32 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/components/burning_status.tscn" id="burning_status_scene"]
 
@@ -29,6 +29,8 @@
 [ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_poise.tres" id="poise_definition"]
 [ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_vulnerability.tres" id="vulnerability"]
+[ext_resource type="Script" path="res://scenes/components/DamageNumbersComponent.cs" id="damage_numbers"]
+[ext_resource type="PackedScene" path="res://scenes/components/damage_number.tscn" id="damage_number"]
 
 [ext_resource type="Script" path="res://scenes/player/BuffController.cs" id="status_controller"]
 [ext_resource type="Script" path="res://scenes/components/FrozenStatusComponent.cs" id="frozen_driver"]
@@ -166,3 +168,10 @@ Health = NodePath("../HealthComponent")
 Statuses = NodePath("../BuffController")
 Health = NodePath("../HealthComponent")
 Effects = NodePath("../WorldEffects")
+
+[node name="DamageNumbers" type="Node3D" parent="." node_paths=PackedStringArray("HurtBox", "Anchor", "Invisibility")]
+script = ExtResource("damage_numbers")
+HurtBox = NodePath("../HurtBoxComponent")
+NumberScene = ExtResource("damage_number")
+Anchor = NodePath("../FloatingHealthBar")
+Invisibility = NodePath("../InvisibilityComponent")

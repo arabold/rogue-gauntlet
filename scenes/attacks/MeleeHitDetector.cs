@@ -2,6 +2,7 @@ using Godot;
 using System.Collections.Generic;
 
 /// <summary>Actor-local immediate overlap queries and debug geometry; never applies damage.</summary>
+[GlobalClass]
 public partial class MeleeHitDetector : Node
 {
 	[Export(PropertyHint.Range, "8,1024,8")] public int QueryBatchSize { get; set; } = 128;

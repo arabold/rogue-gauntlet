@@ -71,8 +71,8 @@ public partial class CombatHarness : CanvasLayer
 				_commands = JsonSerializer.Deserialize<HarnessCommand[]>(File.ReadAllText(arg[16..])) ?? [];
 				if (_commands.Any(c => c.Frame < 0)) throw new InvalidDataException("Combat command frames must be nonnegative.");
 				_commands = _commands.OrderBy(c => c.Frame).ToArray();
-				Player.InputController.SetPhysicsProcess(false);
-				Player.InputComponent.SetPhysicsProcess(false);
+				// The input controller keeps running so scripted presses use the real buffer and recovery cancels.
+				Player.InputComponent.DeviceEnabled = false;
 			}
 		}
 		Player.AttackController.ConfigureRandom(GenerationRandom.DeriveSeed(Seed, "combat.attack", "player"));
@@ -128,7 +128,7 @@ public partial class CombatHarness : CanvasLayer
 		Recorder.Start(GetParent(), Seed, TracePath);
 
 		Player.AttackController.AttackFeedback += (result, amount) => Feedback("Hero", result, amount);
-		Player.HurtBoxComponent.DamageResolved += (result, amount) => Feedback("Hero", ((DamageOutcome)result).ToString(), amount);
+		Player.HurtBoxComponent.DamageResolved += (result, amount, _) => Feedback("Hero", ((DamageOutcome)result).ToString(), amount);
 		if (Player.DodgeComponent != null)
 		{
 			Player.DodgeComponent.DodgeStarted += dir => Feedback("Hero", "Dodge", 0);
@@ -138,7 +138,7 @@ public partial class CombatHarness : CanvasLayer
 			Player.GuardComponent.ParrySuccessful += () => Feedback("Hero", "Parry!", 0);
 			Player.GuardComponent.BlockSuccessful += chip => Feedback("Hero", $"Block (-{chip:0})", chip);
 		}
-		PracticeTarget.GetNode<HurtBoxComponent>("HurtBoxComponent").DamageResolved += (result, amount) => Feedback("Target", ((DamageOutcome)result).ToString(), amount);
+		PracticeTarget.GetNode<HurtBoxComponent>("HurtBoxComponent").DamageResolved += (result, amount, _) => Feedback("Target", ((DamageOutcome)result).ToString(), amount);
 		if (Weapons.Length > 0) EquipPreview(0);
 		ApplyDefense();
 	}
@@ -220,7 +220,7 @@ public partial class CombatHarness : CanvasLayer
 		CombatTrace.Write(this, "harness.spawned", ("scene", Monsters[selected].ResourcePath), ("seed", Seed));
 		var controller = _monster.GetNode<AttackController>("AttackController");
 		controller.AttackFeedback += (result, amount) => Feedback("Monster", result, amount);
-		_monster.HurtBoxComponent.DamageResolved += (result, amount) => Feedback("Monster Defend", ((DamageOutcome)result).ToString(), amount);
+		_monster.HurtBoxComponent.DamageResolved += (result, amount, _) => Feedback("Monster Defend", ((DamageOutcome)result).ToString(), amount);
 		if (_monster.DodgeComponent != null)
 		{
 			_monster.DodgeComponent.DodgeStarted += dir => Feedback("Monster", "Dodge", 0);
@@ -551,6 +551,10 @@ public partial class CombatHarness : CanvasLayer
 			case "guard": accepted = RequestHeroGuard(true); break;
 			case "release_guard": accepted = RequestHeroGuard(false); break;
 			case "dodge": accepted = RequestHeroDodge(direction); break;
+			// Buffered presses go through the input controller like a device press; acceptance means buffered.
+			case "press_primary": Player.InputController.PushIntent(PlayerIntent.Primary); accepted = true; break;
+			case "press_secondary": Player.InputController.PushIntent(PlayerIntent.Secondary); accepted = true; break;
+			case "press_dodge": Player.InputController.PushIntent(PlayerIntent.Dodge); accepted = true; break;
 			case "move": Player.InputComponent.InputDirection = direction.Normalized(); Player.MovementComponent.SetInputDirection(direction); accepted = true; break;
 			case "monster_attack":
 				accepted = GodotObject.IsInstanceValid(_monster) && !_monster.IsDead;

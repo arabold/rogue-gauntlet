@@ -56,10 +56,15 @@ public partial class ActionSlot : Node
 		if (wasPerforming) EmitSignalActionPerformed();
 	}
 
-	/// <summary>Resolve weapon animation/timing before accepting an action or publishing its cooldown.</summary>
-	public async void TryPerformAction(Player player)
+	/// <summary>
+	/// Resolve weapon animation/timing before accepting an action or publishing its cooldown, and report whether
+	/// it was accepted. <paramref name="chain"/> lets the next primary combo step replace this slot's own attack;
+	/// the action gate decides whether the attack's current phase allows that.
+	/// </summary>
+	public bool TryPerformAction(Player player, bool chain = false)
 	{
-		if (AssignedAction == null || IsDelayed || IsPerformingAction || IsOnCooldown || player.IsDead || player.IsHit) return;
+		bool replacing = chain && IsPerformingAction && !IsDelayed && !IsOnCooldown;
+		if (AssignedAction == null || IsDelayed || (IsPerformingAction && !replacing) || IsOnCooldown || player.IsDead || player.IsHit) return false;
 		var action = AssignedAction;
 		var weapon = action as Weapon;
 		var attackAction = action as ICombatAttackAction;
@@ -67,32 +72,39 @@ public partial class ActionSlot : Node
 
 		if (attackAction != null)
 		{
-			if (weapon != null && !IsEquipped(player, weapon)) return;
-			if (action is MartialTechniqueAction martial && !IsEquipped(player, martial.Weapon)) return;
-			if (!attackAction.TryPrepare(player, out attack)) return;
+			if (weapon != null && !IsEquipped(player, weapon)) return false;
+			if (action is MartialTechniqueAction martial && !IsEquipped(player, martial.Weapon)) return false;
+			if (!attackAction.TryPrepare(player, out attack)) return false;
 		}
 
-		_actor = player;
-		ulong generation = ++_generation;
 		double duration = attack?.Duration ?? action.PerformDuration;
 		double delay = action.Delay;
 		double cooldown = action.CooldownDuration;
 		if (!double.IsFinite(delay) || !double.IsFinite(duration) || !double.IsFinite(cooldown)
-			|| delay < 0 || duration < 0 || cooldown < 0) return;
+			|| delay < 0 || duration < 0 || cooldown < 0) return false;
 
-		// Acquire shared action gate lease
+		// Acquire shared action gate lease; a replaced attack is cancelled by the gate before this returns.
 		ActorActionKind kind = ActionKind;
 		ActorActionPhase initialPhase = (delay > 0 || attackAction != null) ? ActorActionPhase.WindUp : ActorActionPhase.Active;
-
-		if (player.ActionGate != null)
+		var lease = ActorActionLease.None;
+		if (player.ActionGate != null
+			&& player.ActionGate.TryAcquire(kind, initialPhase, reason => CancelExecution(reason), out lease) != ActorActionRequestResult.Success)
 		{
-			var gateResult = player.ActionGate.TryAcquire(kind, initialPhase, reason => CancelExecution(reason), out _activeLease);
-			if (gateResult != ActorActionRequestResult.Success)
-			{
-				return;
-			}
+			return false;
 		}
 
+		// A new generation also ends the replaced execution's wait without completing it.
+		_actor = player;
+		_activeLease = lease;
+		ulong generation = ++_generation;
+		Execute(player, action, attack, generation, delay, duration, cooldown);
+		return true;
+	}
+
+	private async void Execute(Player player, IPlayerAction action, PreparedAttack attack, ulong generation, double delay, double duration, double cooldown)
+	{
+		var weapon = action as Weapon;
+		var attackAction = action as ICombatAttackAction;
 		TotalDuration = delay + duration + cooldown;
 		RemainingTime = TotalDuration;
 		SignalBus.EmitCooldownUpdated(SlotIndex, (float)RemainingTime, (float)TotalDuration);

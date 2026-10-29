@@ -18,6 +18,7 @@
 - Test classes use `[TestSuite]` / `[TestCase]` and the `GdUnit4.Assertions` static helpers. Tests that touch Godot resources, nodes, or the scene runner must add `[RequireGodotRuntime]`; plain-C# tests omit it and run far faster (no engine boot).
 - Only the .NET 10 runtime is installed locally, so `.runsettings` sets `DOTNET_ROLL_FORWARD=LatestMajor` for the testhost (scoped to the test run, so normal Debug gameplay stays on its declared TFM). The first runtime-test run is slow because Godot imports the checkout's assets — warm it with a headless boot if the runner times out, or raise `GodotConnectTimeout` in `.runsettings`.
 - All runtime suites share one Godot instance, so autoloads (`SignalBus`, `GameSession`) outlive each test. Never call `_Ready()` by hand on a node outside the tree: `SubscribeUntilExit` unhooks `SignalBus` handlers only on tree exit, so freeing that node leaves a dead handler that throws on every later emit and skips every subscriber after it, breaking unrelated later suites. Use `TestFactories.AddToSceneTree(node)` instead.
+- Load test scenes with `TestFactories.LoadScene(path)`, never `ISceneRunner.Load` directly. Back-to-back reloads hit a Godot .NET race (godotengine/godot#83762): a cached resource whose C# wrapper was collected but not yet finalized is revived as null, and the finalizer then aborts the engine with `FATAL: Condition "gchandle.is_released()"`. `LoadScene` first settles pending finalizers through `ResourceCacheGuard`, as `Level.Generate()` does before each floor. Drop the guard once the engine fix ships.
 - Navmesh-dependent enemy pathfinding (`NavigationComponent.IsReachable` / `NavigationServer3D` path queries) is **not** reliably testable here: headless Godot cannot bake a navmesh, so path queries return empty. Test the AI decision layer instead (e.g. `EnemyStateMachine` transition semantics, which is a plain class), and rely on `MainSceneSmokeTest` plus the editor for the real navmesh path.
 - `dotnet build "Rogue Gauntlet.sln"` remains the fast compile check; add a `dotnet test` run when changing testable C# logic.
 
@@ -40,31 +41,38 @@
 - Player behavior is component-scene based: `Player.cs` exports its components (`MovementComponent`, `InputComponent`, `HealthComponent`, `HurtBoxComponent`, `ActionManager`, attack and inventory controllers) and `player.tscn` wires them; it injects only runtime state such as the per-run inventory copy.
 - Data authored in Godot resources matters: items, player stats, dungeon factories, mesh libraries, and rooms are `.tres`/`.tscn` assets under `scenes/`; C# changes often need matching exported properties/resources in scenes.
 
-## Architecture Guidelines
-- Reconstruct untouched dungeon content from the run seed and level-specific RNG streams; persist deviations from that deterministic baseline rather than full copies of every generated floor. Keep layout, encounters, source loot, gameplay-time randomness, and cosmetic randomness separate where draw-order coupling could change results. Stable source IDs and explicit RNG inputs must make regeneration independent of callbacks or player encounter order. Seeds reproduce initial scenarios, not arbitrary gameplay history; persist actual changes that must survive revisits/save-load.
-- Reproducibility is required for the same build/content, seed, and relevant inputs. Changes to code, content ordering, or random-number consumption between builds may change the entire scenario; preserving historical seed outputs is not required before release. Use separately derived seeds for level generation, monsters, and items rather than sharing one global sequence. Isolation prevents accidental RNG coupling, but cannot remove intentional dependencies such as monsters being placed in generated rooms. Bump the save version when changed generation invalidates saved deltas.
-- Confirmed combat contact has no passive accuracy/evasion roll. Avoidance comes from physical movement or authored timed dodge/guard/parry components; armor mitigates damage. Do not reintroduce hidden avoidance stats or random hit rejection.
-- Prefer Godot composition over inheritance: build actors from focused child nodes/components and authored scenes.
-- Keep scenes self-contained. If a child needs outside context, inject it from the parent via exported Node/Resource references, signals, or explicit initialization.
-- Prefer explicit Inspector wiring for designer-authored dependencies. Export Node/Resource references, save assignments in `.tscn`/`.tres`, and prewire reusable scene templates so users can assemble and customize supported behavior without writing code. Do not discover authored dependencies by node name or silently refill empty optional exports in `_Ready`/process hooks. An unassigned optional reference makes that capability unavailable to its consumer; validate missing required references and strategies that require an unassigned capability.
-- Keep changing runtime context separate from authored dependencies: AI target acquisition, dynamic world/group queries, and explicit initialization of procedurally spawned objects remain appropriate. Runtime initialization may apply an assigned definition or inject genuinely dynamic context, but must not reconstruct or repair an authored component assembly behind the Inspector.
-- Use `Resource`/`.tres` for designer-authored data, strategies, factories, item definitions, stats, buffs, loot tables, and other non-visual configuration.
-- Use scenes for game-specific runtime objects with node hierarchies, visuals, physics, UI, animation, or editor-authored composition.
-- Avoid adding autoload responsibilities by default. `SignalBus` is for broad notifications, not feature logic.
-- Prefer local signals/resource observation for parent-child or same-feature communication; use `SignalBus` only when sender and receiver are intentionally decoupled.
-- Avoid service-locator creep: do not reach into autoloads from reusable components when an exported dependency or parent initialization is practical.
-- Prefer local Godot group queries for simple scene lookups (`player`, `enemy`, `damageable`) over cached global registries. Add a focused query/registry service only when profiling, complex shared filtering, or lifecycle requirements justify it.
-- Avoid hardcoded scene/resource paths in gameplay logic; prefer exported `PackedScene`/`Resource` fields or factory resources.
-- Split a class/component when it owns multiple independent reasons to change, e.g. input plus inventory plus combat plus UI signaling.
-- Do not split just to add patterns. Keep small behavior in one script until variation/reuse/testing pressure is real.
-- Components should own one capability: health, movement, interaction, hit detection, loot dropping, action timing, AI perception, AI navigation, etc.
-- Actor root scripts should act as thin facades/mediators for their authored scene, not as the permanent home for every feature.
-- Shared authored resources should be treated as definitions. Duplicate/reset them before runtime mutation when state must be instance-specific.
-- Prefer C# interfaces for type-safe gameplay contracts (`IDamageable`, `IInteractive`, `IPlayerAction`) where Godot groups alone would imply hidden behavior.
-- Keep group usage documented and consistent; group membership is part of gameplay query behavior.
+## Architecture & Godot C# Guidelines
+Use the `godot-csharp` skill (`.agents/skills/godot-csharp/SKILL.md`) whenever writing or refactoring C# gameplay, component, UI, or Resource scripts.
 
-## Godot/C# Gotchas
-- Several editor-time classes use `[Tool]` and exported properties that regenerate data in setters; avoid side effects that break editor instantiation.
+- **Seeded Determinism & Persistence:** Reconstruct untouched dungeon content from the run seed and derived RNG streams (`GenerationRandom.DeriveSeed`); persist deviations rather than full floor snapshots. Keep layout, monsters, source loot, gameplay-time randomness, and cosmetic streams separate. Reproducibility is required for the same build/content and inputs; bump `SaveGame.CurrentVersion` when changed generation invalidates saved deltas.
+- **Physical Combat Contact:** Confirmed combat contact has no passive accuracy/evasion roll. Avoidance comes from movement or timed dodge/guard/parry components; armor mitigates damage.
+- **Composition, Strategy & Factory:**
+  - **Composition:** Build actors from single-capability child `Node` components (`[GlobalClass]`) wired via `[Export]` in `.tscn`. Actor roots (`Player`, `EnemyBase`) stay thin facades. Split classes only when they own multiple independent reasons to change.
+  - **Strategy:** Vary behavior via selectable `[GlobalClass] public abstract partial class ... : Resource` strategies (one `[GlobalClass]` per `.cs` file) exported on components or definitions. Keep shared `.tres` strategies stateless; pass actor context into methods or create a per-actor state object in `_Ready()`.
+  - **Factory & Prototypes:** Treat authored `.tres` assets as immutable definitions. Clone runtime state in `_EnterTree()` (`CreateRuntimeCopy()` / `Duplicate()`) before child `_Ready()` runs, and encapsulate spawning/loot rolling in Factory classes or `[GlobalClass]` factory resources instead of hardcoded `res://` paths.
+- **Editor-First `[Export]` Authoring:**
+  - **Expose `[Export]` properties (`{ get; set; }`), never C#-only `GetX()`/`SetX()` or `{ get; private set; }`:** Tunable attributes (`Speed`, `MaxTurnRate`, `Duration`, `Xp`), configurable actor states (`InitialAction`, `AIEnabled`), and Node/Resource dependencies must be `[Export]` properties so the Inspector, `.tscn`/`.tres`, Remote Scene Tree, and `AnimationPlayer` tracks can bind them directly.
+  - **Reactive `[Export]` setters:** Put side effects (clamping, child updates, state transitions) in the `[Export]` property's `set` accessor, guarding scene/child updates with `if (!IsNodeReady()) return;` because Godot assigns exports during deserialization before `_EnterTree()` and `_Ready()`.
+  - **Explicit Inspector wiring:** Do not discover authored dependencies via `GetNode("...")` or silently refill empty optional exports in `_Ready()`. An unassigned optional export disables that capability; validate required references explicitly. Default-initialize exported arrays (`= [];`).
+  - **`[Tool]` Inspector polish:** Guard runtime logic with `if (Engine.IsEditorHint()) return;`, use `[ExportToolButton]` for Inspector action buttons, `_GetConfigurationWarnings()` for missing-reference badges, and `_ValidateProperty` + `NotifyPropertyListChanged()` to hide mode-irrelevant fields.
+- **Three-Tier Notification Model:**
+  - **Local component events -> `[Signal]` delegates:** Declare `[Signal] public delegate void ...EventHandler(...)` with Variant-compatible parameters and emit via `EmitSignal...()`. Use a plain C# `event` only for non-Variant structs (`in DamageContext`).
+  - **Observed Resources -> `ObservableResource`:** Call `SetValue(ref _field, value)` inside `[Export]` setters so code and Inspector edits emit `EmitChanged()`.
+  - **Cross-system broadcasts -> `SignalBus`:** Reserve `SignalBus` static emit helpers for decoupled cross-system notifications, never feature logic or fallible request/response calls.
+  - **Subscription lifetime (`SubscribeUntilExit`):** Wrap subscriptions to long-lived emitters (`SignalBus.Instance`, runtime `Resource`s, `SceneTree`, ancestors) in `this.SubscribeUntilExit(...)` so tree exit unhooks them.
+- **Queries & Contracts:** Prefer C# interfaces (`IDamageable`, `IInteractive`, `IPlayerAction`) for type-safe contracts and local Godot group queries (`player`, `enemy`, `damageable`) over global registries or service-locator autoload lookups.
+
+## Godot/C# & Mobile Renderer Gotchas
+- **Mobile Renderer (`rendering_method="mobile"`) & Transparency:**
+  - Never use `GeometryInstance3D.Transparency` (Forward+-only; fails silently on Mobile).
+  - For standard fades (`FadeOutComponent`), duplicate each surface's `BaseMaterial3D` into an instance-local override (`TransparencyEnum.Alpha`) and tween `albedo_color:a` (plus `modulate:a` on `SpriteBase3D`/`Label3D`) so shared materials are never mutated.
+  - For multi-mesh actor shader fades (`teleport_depth.gdshader` + `teleport_surface.gdshader`), use a two-pass `ShaderMaterial` (`NextPass`): an invisible depth pre-pass (`blend_add, depth_draw_always`) followed by the color fade pass (`blend_mix, depth_draw_never`). Keep solid skin overrides on opaque depth (`depth_draw_opaque` / `AlphaScissor`) via `SurfaceAppearanceController`.
+- **Runtime Lifecycle, Physics & Pooling:**
+  - Set `ProcessPhysicsPriority` from `CombatPhysics` in `_Ready()` whenever `_PhysicsProcess` order matters; call `SetPhysicsProcess(false)` when idle.
+  - Check `GodotObject.IsInstanceValid(node)` (not just `!= null`) on dynamic runtime `Node` references held across frames, tweens, `ToSignal`, or `CallDeferred`.
+  - Use `ScenePool.Spawn<T>` / `ScenePool.Despawn` for short-lived combat/VFX scenes and reset per-spawn state in `IPooledNode.OnSpawnedFromPool()`.
+  - Call `ResetPhysicsInterpolation()` after snapping a `Node3D`'s `GlobalPosition`/`GlobalTransform` (`physics_interpolation=true`).
+  - Defer physics state changes (`SetDeferred` / `CallDeferred`) inside `BodyEntered`/`AreaEntered` callbacks, kill previous `_activeTween?.Kill()` before replacing a tween, and cache `StringName`s on hot paths.
 - Godot C# partial classes are in the global namespace in existing code despite the csproj root namespace; follow the current pattern unless doing a deliberate namespace migration.
 - Keep scene/resource paths lowercase as authored (`scenes/main/main.tscn`); there is at least one stale mixed-case reference in code (`Main.tscn`) that should not be copied.
 - Phantom Camera is GDScript-only here; `Main.cs` accesses it via `Node3D.Call("set_follow_target", player)` and property strings.

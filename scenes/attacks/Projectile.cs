@@ -10,12 +10,12 @@ public partial class Projectile : Node3D, IPooledNode
 	private const uint PropsLayer = 1 << 4;
 	private const uint BlockingCollisionMask = WorldLayer | WallsLayer | PropsLayer;
 
-	[Export] public float Speed = 10f;
-	[Export] public float Range = 30f;
-	[Export] public Vector3 Direction = Vector3.Forward;
-	[Export] public float MinDamage;
-	[Export] public float MaxDamage;
-	[Export] public float CritChance;
+	[Export] public float Speed { get; set; } = 10f;
+	[Export] public float Range { get; set; } = 30f;
+	[Export] public Vector3 Direction { get; set; } = Vector3.Forward;
+	[Export] public float MinDamage { get; set; }
+	[Export] public float MaxDamage { get; set; }
+	[Export] public float CritChance { get; set; }
 	[Export] public PackedScene ImpactEffectScene { get; set; }
 	[Export] public PackedScene ExpireEffectScene { get; set; }
 	[Export] public bool SpawnImpactEffectOnExpire { get; set; } = true;
@@ -52,7 +52,6 @@ public partial class Projectile : Node3D, IPooledNode
 		_effectScale = effectScale;
 		ImpactRadius = 0;
 	}
-	private bool _hitSignalConnected;
 	private int _returnVersion;
 	private uint _damageCollisionMask;
 	private float _defaultImpactRadius;
@@ -81,6 +80,12 @@ public partial class Projectile : Node3D, IPooledNode
 		SetHitBoxMonitoring(false, deferred: true);
 	}
 
+	public override void _EnterTree()
+	{
+		// Pooled projectiles leave and re-enter the tree; reconnect after SubscribeUntilExit unhooks.
+		if (GodotObject.IsInstanceValid(_hitBoxComponent)) SubscribeToHitBox();
+	}
+
 	public override void _Ready()
 	{
 		ProcessPhysicsPriority = CombatPhysics.Damage;
@@ -89,9 +94,12 @@ public partial class Projectile : Node3D, IPooledNode
 		_defaultImpactRadiusMinDamageScale = ImpactRadiusMinDamageScale;
 		_impactQuery.Shape = _impactShape;
 		_hitBoxComponent = GetNode<HitBoxComponent>("%HitBoxComponent");
-		ConnectHitSignal();
+		SubscribeToHitBox();
 		ResetRuntimeState();
 	}
+
+	private void SubscribeToHitBox() =>
+		this.SubscribeUntilExit(_hitBoxComponent, h => h.HitDetected += OnHitDetected, h => h.HitDetected -= OnHitDetected);
 
 	public void OnSpawnedFromPool()
 	{
@@ -137,6 +145,7 @@ public partial class Projectile : Node3D, IPooledNode
 		{
 			LookAt(origin + Direction, GetLookAtUpVector(Direction));
 		}
+		ResetPhysicsInterpolation();
 
 		if (_hitBoxComponent != null)
 		{
@@ -204,7 +213,8 @@ public partial class Projectile : Node3D, IPooledNode
 				DefenseTraits = _defenseTraits,
 				DeliveryKind = DamageDeliveryKind.Projectile,
 				Element = Element,
-				Impact = Impact
+				Impact = Impact,
+				Critical = critical
 			};
 
 			if (damageable is ICombatDamageable combatDamageable)
@@ -328,7 +338,8 @@ public partial class Projectile : Node3D, IPooledNode
 
 				float damageScale = GetImpactRadiusDamageScale(damageOwner);
 				float damage = (float)_random.RandfRange(MinDamage, MaxDamage) * damageScale;
-				if (_random.Randf() < CritChance)
+				bool critical = _random.Randf() < CritChance;
+				if (critical)
 				{
 					damage *= 2;
 					GameDebug.Combat("Critical impact radius hit!");
@@ -354,7 +365,8 @@ public partial class Projectile : Node3D, IPooledNode
 					DefenseTraits = _areaDefenseTraits,
 					DeliveryKind = DamageDeliveryKind.AreaImpact,
 					Element = Element,
-					Impact = Impact with { PoiseDamage = Impact.PoiseDamage * damageScale }
+					Impact = Impact with { PoiseDamage = Impact.PoiseDamage * damageScale },
+					Critical = critical
 				};
 
 				if (damageable is ICombatDamageable areaCombatDamageable)
@@ -442,6 +454,7 @@ public partial class Projectile : Node3D, IPooledNode
 		{
 			effect.LookAt(GlobalPosition + Direction, GetLookAtUpVector(Direction));
 		}
+		effect.ResetPhysicsInterpolation();
 	}
 
 	private static Vector3 GetLookAtUpVector(Vector3 direction)
@@ -476,6 +489,7 @@ public partial class Projectile : Node3D, IPooledNode
 
 		Node3D effect = SpawnImpactVisual(effectScene);
 		effect.GlobalTransform = new Transform3D(new Basis(right, forward, normal).Scaled(Vector3.One * _effectScale), GlobalPosition + normal * 0.03f);
+		effect.ResetPhysicsInterpolation();
 	}
 
 	private Node3D SpawnImpactVisual(PackedScene scene)
@@ -516,7 +530,6 @@ public partial class Projectile : Node3D, IPooledNode
 		ImpactRadiusMinDamageScale = _defaultImpactRadiusMinDamageScale;
 		Impact = AttackImpact.Default;
 		SetPhysicsProcess(false);
-		ConnectHitSignal();
 		if (_hitBoxComponent != null)
 		{
 			SetHitBoxMonitoring(false);
@@ -544,17 +557,6 @@ public partial class Projectile : Node3D, IPooledNode
 		}
 
 		_hitBoxComponent.Monitoring = enabled;
-	}
-
-	private void ConnectHitSignal()
-	{
-		if (_hitBoxComponent == null || _hitSignalConnected)
-		{
-			return;
-		}
-
-		_hitBoxComponent.HitDetected += OnHitDetected;
-		_hitSignalConnected = true;
 	}
 
 	private void ReturnToPoolOrFree()

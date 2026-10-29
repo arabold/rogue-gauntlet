@@ -13,7 +13,7 @@ public partial class AreaVisibilityTest
 	[TestCase]
 	public async Task BoundaryStopsAtWallAndRemainsOpenInOtherDirections()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/earth_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/earth_spell_preview.tscn");
 		await runner.SimulateFrames(5);
 		var preview = (EarthSpellPreview)runner.Scene();
 		var mask = AreaVisibility.Capture(preview.GetWorld3D(), preview.Caster.GlobalPosition, 14);
@@ -39,7 +39,7 @@ public partial class AreaVisibilityTest
 	[TestCase]
 	public async Task FlameBurstClipsEveryLayerAndParticle()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/fireball_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/fireball_preview.tscn");
 		await runner.SimulateFrames(5);
 		var preview = (FireballPreview)runner.Scene();
 		preview.SelectSpell(1); preview.Cast();

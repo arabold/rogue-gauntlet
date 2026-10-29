@@ -13,7 +13,7 @@ public partial class WaterSpellVisualTest
 	[TestCase]
 	public async Task FrostNovaFreezesVisibleActorsAndRestoresTheirAppearance()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/water_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/water_spell_preview.tscn");
 		await runner.SimulateFrames(5);
 		var preview = (WaterSpellPreview)runner.Scene();
 		var targets = preview.GetChildren().OfType<Node3D>().Where(n => n.IsInGroup("enemy")).ToArray();
@@ -43,7 +43,7 @@ public partial class WaterSpellVisualTest
 	[TestCase]
 	public async Task LanceAndGuardsUseSharedVisualsAndCleanUp()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/water_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/water_spell_preview.tscn");
 		await runner.SimulateFrames(5);
 		var preview = (WaterSpellPreview)runner.Scene();
 		preview.SetTargetCount(1); preview.SetLevel(1); preview.SelectSpell(0); preview.Cast();
@@ -70,7 +70,7 @@ public partial class WaterSpellVisualTest
 	[TestCase]
 	public async Task SnowstormScalesAndClipsWithoutFreezingTargets()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/water_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/water_spell_preview.tscn");
 		await runner.SimulateFrames(5);
 		var preview = (WaterSpellPreview)runner.Scene();
 		preview.SetLevel(3); preview.SelectSpell(3); preview.Cast();
@@ -91,7 +91,7 @@ public partial class WaterSpellVisualTest
 	[TestCase]
 	public async Task WaterSerpentUsesTieredRibbonsAndKeepsMoving()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/water_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/water_spell_preview.tscn");
 		await runner.SimulateFrames(5);
 		var preview = (WaterSpellPreview)runner.Scene();
 		preview.SelectSpell(4); preview.SetLevel(1); preview.Cast();

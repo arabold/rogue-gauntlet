@@ -87,8 +87,10 @@ public class AttackAnimationTest
 		using var definition = new AttackDefinition { AttackStyle = "spear.2h.thrust", HitWindowStart = 9, HitWindowEnd = 10 };
 		AssertBool(controller.TryPrepareAttack(definition, "sword.1h.slash", 2, out var attack)).IsTrue();
 		AssertString(attack.Playback.Style).IsEqual("spear.2h.thrust");
-		AssertFloat(attack.Definition.HitWindowStart).IsEqualApprox(.6f, .0001);
-		AssertFloat(attack.Definition.HitWindowEnd).IsEqualApprox(1.2f, .0001);
+		// The rig binding's normalized window scales to the requested 2-second duration.
+		AssertBool(controller.AnimationComponent.Profile.TryGetBinding("spear.2h.thrust", out var binding)).IsTrue();
+		AssertFloat(attack.Definition.HitWindowStart).IsEqualApprox(2 * binding.ContactStart, .0001);
+		AssertFloat(attack.Definition.HitWindowEnd).IsEqualApprox(2 * binding.ContactEnd, .0001);
 		AssertFloat(definition.HitWindowStart).IsEqual(9);
 		AssertFloat(definition.HitWindowEnd).IsEqual(10);
 		definition.AttackStyle = "axe.1h.chop";

@@ -9,7 +9,25 @@ public partial class DodgeDefinition : Resource
 	[Export] public float ImmunityStart { get; set; } = 0.0f;
 	[Export] public float ImmunityEnd { get; set; } = 0.20f;
 	[Export] public float RecoveryDuration { get; set; } = 0.08f;
+	/// <summary>Minimum seconds between two accepted dodges, even with charges left.</summary>
 	[Export] public float CooldownDuration { get; set; } = 0.60f;
+
+	/// <summary>
+	/// Dodges available back to back. Each spends a charge that refills after <see cref="ChargeRechargeDuration"/>,
+	/// one charge at a time. With no recharge duration, dodges spend nothing and only the interval applies.
+	/// </summary>
+	[Export(PropertyHint.Range, "1,5,1")] public int MaxCharges { get; set; } = 1;
+	[Export] public float ChargeRechargeDuration { get; set; }
+
+	/// <summary>
+	/// Evading a contact within this many seconds of the dodge starting refunds the charge it spent, once per
+	/// dodge. Zero disables the refund.
+	/// </summary>
+	[Export] public float PerfectWindow { get; set; }
+
+	public bool HasValidCharges => MaxCharges >= 1
+		&& float.IsFinite(ChargeRechargeDuration) && ChargeRechargeDuration >= 0
+		&& float.IsFinite(PerfectWindow) && PerfectWindow >= 0;
 
 	/// <summary>
 	/// Physics layers removed from the actor's collision mask while it travels, so it can dodge through

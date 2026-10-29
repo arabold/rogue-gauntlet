@@ -13,7 +13,7 @@ public partial class FireSpellVisualTest
 	[TestCase]
 	public async Task FireLevelsAddOrbitsAndWispsWithoutGrowingGuard()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/fireball_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/fireball_preview.tscn");
 		await runner.SimulateFrames(4);
 		var preview = (FireballPreview)runner.Scene();
 		for (int level = 1; level <= 3; level++)
@@ -36,7 +36,7 @@ public partial class FireSpellVisualTest
 	[TestCase]
 	public async Task AreaPreviewExcludesTargetsBehindWalls()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/fireball_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/fireball_preview.tscn");
 		await runner.SimulateFrames(4);
 		var preview = (FireballPreview)runner.Scene();
 		preview.SetTargetCount(1);
@@ -54,7 +54,7 @@ public partial class FireSpellVisualTest
 	[TestCase]
 	public async Task AreaBurstIsCenteredAndGrowsWithoutATargetCap()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/fireball_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/fireball_preview.tscn");
 		await runner.SimulateFrames(4);
 		var scene = runner.Scene();
 		var preview = (FireballPreview)scene;
@@ -87,7 +87,7 @@ public partial class FireSpellVisualTest
 	[TestCase]
 	public async Task SolarSweepIsCenteredAndMeteorShowerRepeatsTargets()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/fireball_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/fireball_preview.tscn");
 		await runner.SimulateFrames(4);
 		var scene = runner.Scene();
 		var preview = (FireballPreview)scene;
@@ -133,7 +133,7 @@ public partial class FireSpellVisualTest
 	[TestCase]
 	public async Task GuardPersistsUntilDepletedOrClearedAndReflectionsAreHarmless()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/fireball_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/fireball_preview.tscn");
 		await runner.SimulateFrames(4);
 		var scene = runner.Scene();
 		var preview = (FireballPreview)scene;

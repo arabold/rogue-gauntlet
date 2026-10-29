@@ -94,7 +94,7 @@ public class DiscoveryPersistenceTest
 	[TestCase]
 	public async Task OpeningOneOfTwoAdjacentDooredConnectorsUnsealsOnlyThatOne()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/world_effect_harness.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
 		await runner.SimulateFrames(2);
 		var (level, generator) = TestFactories.UngeneratedLevel();
 		TestFactories.AddToSceneTree(level);

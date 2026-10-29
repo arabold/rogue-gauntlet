@@ -6,12 +6,13 @@ using Godot.Collections;
 /// A spawn point that spawns objects on scene load or when called
 /// </summary>
 [Tool]
+[GlobalClass]
 public partial class SpawnPoint : Node3D
 {
 	/// <summary>
 	/// The type of object to spawn (e.g. an enemy scene)
 	/// </summary>
-	[Export] public Array<PackedScene> Scenes;
+	[Export] public Array<PackedScene> Scenes { get; set; } = [];
 	/// <summary>The level this point spawns into: runtime context, resolved from the tree on entry.</summary>
 	public Level Level { get; private set; }
 	[Export] public string PersistentId { get; set; } = string.Empty;
@@ -22,7 +23,7 @@ public partial class SpawnPoint : Node3D
 	[Export] public bool SpawnOnStart { get; set; } = true;
 
 	/// <summary>Local notification for encounter-specific wiring after actor initialization.</summary>
-	public event Action<Node3D> Spawned;
+	[Signal] public delegate void SpawnedEventHandler(Node3D node);
 
 	public override void _EnterTree() => Level = this.GetAncestorOrNull<Level>();
 
@@ -35,6 +36,7 @@ public partial class SpawnPoint : Node3D
 			{
 				AddChild(Scenes[0].Instantiate<Node3D>());
 			}
+			return;
 		}
 
 		this.SubscribeUntilExit(
@@ -84,8 +86,9 @@ public partial class SpawnPoint : Node3D
 		}
 
 		Level.AddWorldNode(node);
+		node.ResetPhysicsInterpolation();
 		if (ArrivalEffect != null && node is EnemyBase actor) actor.WorldEffects?.PlayBurst(ArrivalEffect, 271);
-		Spawned?.Invoke(node);
+		EmitSignalSpawned(node);
 
 		GD.Print($"Spawned {node.Name} at {node.GlobalPosition}");
 

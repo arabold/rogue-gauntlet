@@ -7,6 +7,7 @@ using System.Collections.Generic;
 /// Implements both IInteractionTarget and legacy IInteractive.
 /// </summary>
 [Tool]
+[GlobalClass]
 public partial class InteractiveComponent : Area3D, IInteractionTarget, IInteractive
 {
 	[Export]

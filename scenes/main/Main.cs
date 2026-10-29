@@ -13,6 +13,7 @@ public partial class Main : Node
 	// TODO: There's no PhantomCamera3D in C# API
 	private Node3D _pcam;
 	private Player _player;
+	private System.Action _unsubscribePlayer = () => { };
 
 	/// <summary>Full-screen status overlays bound to the player when it spawns. Optional: unassigned means no screen effects.</summary>
 	[Export] public ScreenEffectsLayer ScreenEffects { get; set; }
@@ -64,16 +65,23 @@ public partial class Main : Node
 	{
 		GD.Print($"{player.Name} spawned. Setting camera target...");
 		// Spawning can report the same player more than once; rebind so each signal connects only once.
-		if (GodotObject.IsInstanceValid(_player))
-		{
-			_player.HurtBoxComponent.HitReacted -= OnPlayerHitReacted;
-			_player.AttackController.HitStopStarted -= OnPlayerHitStop;
-		}
+		_unsubscribePlayer();
 		_player = player;
 		ScreenEffects?.Bind(player);
-		player.HurtBoxComponent.HitReacted += OnPlayerHitReacted;
-		player.AttackController.HitStopStarted += OnPlayerHitStop;
+		_unsubscribePlayer = this.SubscribeUntilExit(
+			player,
+			p =>
+			{
+				p.HurtBoxComponent.HitReacted += OnPlayerHitReacted;
+				p.AttackController.HitStopStarted += OnPlayerHitStop;
+			},
+			p =>
+			{
+				p.HurtBoxComponent.HitReacted -= OnPlayerHitReacted;
+				p.AttackController.HitStopStarted -= OnPlayerHitStop;
+			});
 		CenterCameraOnPlayer();
+		_pcam.ResetPhysicsInterpolation();
 	}
 
 	private void OnPlayerHitReacted(int reaction)
@@ -94,7 +102,7 @@ public partial class Main : Node
 
 	public override void _Process(double delta)
 	{
-		if (_player == null)
+		if (!GodotObject.IsInstanceValid(_player))
 		{
 			return;
 		}
@@ -126,7 +134,7 @@ public partial class Main : Node
 
 	private void UpdateCameraRotation(float yawDelta)
 	{
-		if (_player == null)
+		if (!GodotObject.IsInstanceValid(_player))
 		{
 			return;
 		}
@@ -155,7 +163,7 @@ public partial class Main : Node
 			}
 			else
 			{
-				var player = _player ?? GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
+				var player = GodotObject.IsInstanceValid(_player) ? _player : GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
 				if (player != null)
 				{
 					characterDialog.Open(player);

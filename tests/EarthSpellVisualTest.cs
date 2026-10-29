@@ -13,7 +13,7 @@ public partial class EarthSpellVisualTest
 	[TestCase]
 	public async Task GuardStylesUseDistinctMotionAndDust()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/earth_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/earth_spell_preview.tscn");
 		await runner.SimulateFrames(4);
 		var preview = (EarthSpellPreview)runner.Scene();
 		preview.SelectSpell(3); preview.Cast();
@@ -39,7 +39,7 @@ public partial class EarthSpellVisualTest
 	[TestCase]
 	public async Task RockfallRepeatsASingleTargetAndAddsCosmeticImpacts()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/earth_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/earth_spell_preview.tscn");
 		await runner.SimulateFrames(4);
 		var preview = (EarthSpellPreview)runner.Scene();
 		preview.SetTargetCount(1);
@@ -54,7 +54,7 @@ public partial class EarthSpellVisualTest
 	[TestCase]
 	public async Task RockfallUsesDistinctTargetsAndTremorReturnsCameraToRest()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/earth_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/earth_spell_preview.tscn");
 		await runner.SimulateFrames(4);
 		var preview = (EarthSpellPreview)runner.Scene();
 		preview.SetLevel(3); preview.Cast();
@@ -74,7 +74,7 @@ public partial class EarthSpellVisualTest
 	[TestCase]
 	public async Task DustStartsOnRockImpactAndSpikeEruption()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/earth_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/earth_spell_preview.tscn");
 		await runner.SimulateFrames(4);
 		var preview = (EarthSpellPreview)runner.Scene();
 		preview.SetLevel(1); preview.Cast();
@@ -107,7 +107,7 @@ public partial class EarthSpellVisualTest
 	[TestCase]
 	public async Task GuardsPersistAndDepleteInThePreview()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/earth_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/earth_spell_preview.tscn");
 		await runner.SimulateFrames(4);
 		var preview = (EarthSpellPreview)runner.Scene();
 		foreach (int index in new[] { 3, 4 })

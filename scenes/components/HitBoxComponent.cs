@@ -4,6 +4,7 @@ using System;
 /// <summary>
 /// Defines the area where an attack can register a hit.
 /// </summary>
+[GlobalClass]
 public partial class HitBoxComponent : Area3D
 {
 	// Signal emitted when a hit is detected

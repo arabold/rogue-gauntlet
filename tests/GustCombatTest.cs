@@ -96,7 +96,7 @@ public partial class GustCombatTest
 		var first = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "AFirst");
 		var second = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(0, 0, 2), "BSecond");
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(first); TestFactories.PrepareCombatMonster(second);
-		first.HurtBoxComponent.DamageResolved += (_, _) => harness.GetSpell<GustSpell>().Cancel();
+		first.HurtBoxComponent.DamageResolved += (_, _, _) => harness.GetSpell<GustSpell>().Cancel();
 		AssertBool(harness.GetSpell<GustSpell>().Cast(harness.Player, 1, new RandomNumberGenerator { Seed = 4 })).IsTrue();
 		AssertFloat(first.HealthComponent.CurrentHealth).IsEqual(47); AssertFloat(second.HealthComponent.CurrentHealth).IsEqual(50);
 		first.QueueFree(); second.QueueFree(); await runner.SimulateFrames(2);

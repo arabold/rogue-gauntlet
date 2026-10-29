@@ -9,10 +9,10 @@ public partial class DungeonRoomFactory : RoomFactory
 {
 	// Store paths instead of PackedScene references so loading a level does not preload
 	// every authored room and all of their mesh/prop dependencies into memory.
-	[Export] public Array<string> EntranceScenePaths { get; set; }
-	[Export] public Array<string> ExitScenePaths { get; set; }
-	[Export] public Array<string> StandardRoomScenePaths { get; set; }
-	[Export] public Array<string> SpecialRoomScenePaths { get; set; }
+	[Export] public Array<string> EntranceScenePaths { get; set; } = [];
+	[Export] public Array<string> ExitScenePaths { get; set; } = [];
+	[Export] public Array<string> StandardRoomScenePaths { get; set; } = [];
+	[Export] public Array<string> SpecialRoomScenePaths { get; set; } = [];
 
 	/// <summary>When disabled, exhausted optional landmarks return null until Reset instead of repeating.</summary>
 	[Export] public bool RepeatSpecialRooms { get; set; } = true;

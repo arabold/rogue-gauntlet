@@ -14,7 +14,7 @@ public partial class Item : ObservableResource
 	[Export] public int Value { get; protected set => SetValue(ref field, value); } = 0;
 	[Export] public bool ShowInInventory { get; protected set => SetValue(ref field, value); } = true;
 	[Export] public bool IsStackable { get; protected set => SetValue(ref field, value); } = false;
-	[Export(PropertyHint.Range, "1,999")] public int MaxStackSize { get; protected set; } = 1;
+	[Export(PropertyHint.Range, "1,999")] public int MaxStackSize { get; protected set => SetValue(ref field, Mathf.Max(1, value)); } = 1;
 	/// <summary>Runtime provenance and identity; definitions have neither.</summary>
 	public string SourceDefinitionPath { get; internal set; } = "";
 	public string InstanceId { get; internal set; } = "";

@@ -23,18 +23,21 @@ Identify the uncertainty most likely to invalidate later work. Resolve it from c
 
 ## Godot design contract
 
-- Prefer composition: focused child Nodes for active scene behavior, typed Resources for authored data and selectable strategies. Retain useful existing subclasses; avoid new inheritance permutations for independently varying capabilities.
+Align planned C# contracts with `.agents/skills/godot-csharp/SKILL.md`:
+
+- Prefer composition: focused child Nodes for active scene behavior, typed `[GlobalClass]` Resources for authored data and selectable strategies. Retain useful existing subclasses; avoid new inheritance permutations for independently varying capabilities.
 - Specify which types are `[GlobalClass]` Resources, which are Nodes, and which are ordinary C# helpers/DTOs. A factory pattern does not itself require a Node or Resource; its designer-controlled policy does.
-- For new authoring surfaces, name exported Resource/Node references, defaults, Inspector hints or validation that matter, and the scene responsible for assigning them. Do not hide tunable rules in a static service or hardcoded path.
-- For runtime state, name its owner and whether referenced Resources are shared immutable definitions or instance-specific copies. Specify creation, restoration, copying, disposal, and mutation boundaries where relevant. Do not assume scene instantiation or `ResourceLocalToScene` isolates independently created items.
+- For new authoring surfaces, expose `[Export]` properties (`{ get; set; }`) for tunable attributes, configurable actor states, and Node/Resource references—never C#-only `GetX()`/`SetX()` methods or `{ get; private set; }`. Name defaults, Inspector hints (`PropertyHint.Range`, `[ExportGroup]`) or validation that matter, and the scene responsible for assigning them. Do not hide tunable rules in a static service or hardcoded path.
+- For runtime state, name its owner and whether referenced Resources are shared immutable definitions or instance-specific copies (`CreateRuntimeCopy()` / `Duplicate()` in `_EnterTree()`). Specify creation, restoration, copying, disposal, and mutation boundaries where relevant. Do not assume scene instantiation or `ResourceLocalToScene` isolates independently created items.
 - For generated content, specify seed derivation, RNG ownership/draw order, and stable source identities. Regenerate the untouched baseline and persist differences; do not default to full-floor snapshots. Separate generation from gameplay/cosmetic streams and distinguish deterministic initial state from changes caused by play. Tests must compare generated outcomes, not just equal seeds.
 - Scope RNG repeatability to the same build/content and relevant inputs. Changes to draw order between builds may change scenarios; do not add historical-seed compatibility machinery. Separate level, monster, and item generators with derived seeds, and distinguish accidental shared-stream coupling from intentional dependencies on generated data.
 - Resource strategies may contain behavior; they must not retain per-actor mutable state when shared. Nodes own ticking, rendering, physics, and scene lifetime.
-- Prefer local signals and Resource observation within a feature. Use `SignalBus` for intentionally decoupled notifications, not fallible operation requests. Define success/failure before notifications.
+- Follow the three-tier notification model: `[Signal]` delegates (with Variant-compatible parameters) for local component events, `ObservableResource` (`SetValue` -> `EmitChanged()`) for observed data resources, and `SignalBus` static emit helpers only for intentionally decoupled cross-system broadcasts (not fallible operation requests). Specify `SubscribeUntilExit` where a Node observes a long-lived emitter. Define success/failure before notifications.
 - Avoid new autoload responsibilities or global gameplay registries. Inject local dependencies through parents and exported references.
-- Keep editor construction/setters safe: no random gameplay rolls, world queries, or scene side effects during ordinary Resource construction or inspection.
+- Keep editor construction and reactive `[Export]` setters safe: no random gameplay rolls, world queries, or unguarded child-node side effects before `IsNodeReady()` during deserialization or inspection.
 - Separate Inspector reachability from safe live editing. Specify exported state, change propagation, and commands needed to maintain invariants; do not promise arbitrary edits are safe merely because a property is visible.
-- Account for Godot Variant-compatible signatures at editor/GDScript boundaries. Ordinary C# result records can remain internal; a debug Node can expose simple command arguments and a readable result.
+- Account for Godot Variant-compatible signatures at editor, `AnimationTree`/`AnimationPlayer`, `[Signal]`, and GDScript boundaries. Ordinary C# result records can remain internal; a debug Node can expose simple command arguments and a readable result.
+- Respect the Mobile renderer (`rendering_method="mobile"`): never plan around Forward+-only features like `GeometryInstance3D.Transparency`. Use instance-local material duplication (`FadeOutComponent`) for simple fades and a two-pass depth pre-pass `ShaderMaterial` (`NextPass`) for multi-mesh actor fades.
 
 ## Choose useful notations
 

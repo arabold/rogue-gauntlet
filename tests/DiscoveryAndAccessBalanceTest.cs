@@ -44,7 +44,7 @@ public partial class DiscoveryAndAccessBalanceTest
 	[TestCase]
 	public async Task SurfaceRevealFinishesAndHarnessReplaysAllProductionEffects()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/world_effect_harness.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
 		await runner.SimulateFrames(2);
 		var harness = (WorldEffectHarness)runner.Scene();
 		AssertBool(harness.PreviewTrap.IsDiscovered).IsFalse();
@@ -103,7 +103,7 @@ public partial class DiscoveryAndAccessBalanceTest
 	[TestCase]
 	public async Task RevealGlowHasOnePeakAndKeepsTheSameMaterialAcrossRenderingChanges()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/world_effect_harness.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
 		await runner.SimulateFrames(2);
 		var harness = (WorldEffectHarness)runner.Scene();
 		harness.SelectEffect(1); harness.Replay();

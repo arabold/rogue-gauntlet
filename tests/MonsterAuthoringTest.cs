@@ -29,7 +29,7 @@ public partial class MonsterAuthoringTest
 	[TestCase]
 	public async Task DefinitionInitializesBeforeChildReadyAndDoesNotShareHealth()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/enemies/skeleton/skeleton_minion.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/enemies/skeleton/skeleton_minion.tscn");
 		await runner.SimulateFrames(2);
 		var first = (EnemyBase)runner.Scene();
 		var scene = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn");
@@ -182,7 +182,7 @@ public partial class MonsterAuthoringTest
 	[TestCase(true)]
 	public async Task UnassignedControllerCapabilitiesStayUnavailable(bool clearAfterReady)
 	{
-		using var runner = ISceneRunner.Load("res://scenes/enemies/skeleton/skeleton_minion.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/enemies/skeleton/skeleton_minion.tscn");
 		await runner.SimulateFrames(2);
 		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
 		actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();

@@ -13,7 +13,7 @@ public class ScrollConsumptionEffectsTest
 	[TestCase]
 	public async Task EveryScrollUsesItsAssignedRingWithoutMutatingTheSharedAppearance()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/actor_item_effect_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
 		await runner.SimulateFrames(2); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
 		var player = preview.Stage.GetChildren().OfType<Player>().Single();
 		var identity = new IdentificationService(); identity.Initialize(42); player.ItemUseEffects.Identification = identity;
@@ -32,7 +32,7 @@ public class ScrollConsumptionEffectsTest
 	[TestCase]
 	public async Task ActualConsumptionPlaysReadingAndResultCueOnceAndCancellationPlaysNeither()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/actor_item_effect_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
 		await runner.SimulateFrames(2); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
 		var player = preview.Stage.GetChildren().OfType<Player>().Single();
 		var identity = new IdentificationService(); identity.Initialize(42); player.ItemUseEffects.Identification = identity;
@@ -51,7 +51,7 @@ public class ScrollConsumptionEffectsTest
 	[TestCase]
 	public async Task DepartureStaysAtItsOriginAndArrivalFollowsTheActorUntilCleanup()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/actor_item_effect_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
 		await runner.SimulateFrames(2); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
 		var player = preview.Stage.GetChildren().OfType<Player>().Single(); var host = player.WorldEffects;
 		var departure = GD.Load<WorldEffectDefinition>("res://scenes/effects/world/teleport_departure/teleport_departure.tres");

@@ -1,5 +1,6 @@
 using Godot;
 
+[GlobalClass]
 public partial class FloatingHealthBar : Sprite3D
 {
 	public const int HealthBarRenderPriority = 15;

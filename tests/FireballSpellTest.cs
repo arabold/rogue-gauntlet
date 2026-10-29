@@ -11,9 +11,39 @@ using static GdUnit4.Assertions;
 public partial class FireballSpellTest
 {
 	[TestCase]
+	public async Task PooledProjectileReconnectsItsHitSignalAndPreservesCriticalDamage()
+	{
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/fireball_preview.tscn");
+		await runner.SimulateFrames(5);
+		var scene = runner.Scene();
+		var spell = scene.GetNode<FireballSpell>("FireballSpell");
+		var target = scene.GetChildren().OfType<Node3D>().First(node => node.IsInGroup("enemy"));
+		var hurtbox = target.GetNode<HurtBoxComponent>("HurtBoxComponent");
+		var health = target.GetNode<HealthComponent>("HealthComponent");
+		int contacts = 0, emphasis = 0;
+		hurtbox.DamageResolved += (_, _, flags) => { contacts++; emphasis = flags; };
+		Projectile previous = null;
+		for (int i = 0; i < 2; i++)
+		{
+			var projectile = ScenePool.Spawn<Projectile>(spell.ProjectileScene, scene);
+			if (previous != null) AssertObject(projectile).IsSame(previous);
+			projectile.Initialize(new Vector3(20, 5, 20), Vector3.Right, 1, 10, 5, 5, 1, spell.Caster);
+			projectile.RestrictToTarget(target);
+			projectile.Element = DamageElement.Fire;
+			projectile.SetPhysicsProcess(false);
+			projectile.GetNode<HitBoxComponent>("%HitBoxComponent").EmitSignal(HitBoxComponent.SignalName.HitDetected, hurtbox);
+			await runner.SimulateFrames(3);
+			previous = projectile;
+		}
+		AssertInt(contacts).IsEqual(2);
+		AssertBool(((DamageEmphasis)emphasis & DamageEmphasis.Critical) != 0).IsTrue();
+		AssertFloat(health.CurrentHealth).IsEqual(80);
+	}
+
+	[TestCase]
 	public async Task FireballHitsOnlyDistinctSelectedOwners()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/fireball_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/fireball_preview.tscn");
 		await runner.SimulateFrames(5);
 		var scene = runner.Scene();
 		var spell = scene.GetNode<FireballSpell>("FireballSpell");
@@ -34,7 +64,7 @@ public partial class FireballSpellTest
 	[TestCase]
 	public async Task FireballImpactAnimatesAndCleansUp()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/fireball_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/fireball_preview.tscn");
 		await runner.SimulateFrames(3);
 		var effect = GD.Load<PackedScene>("res://scenes/magic/fireball/fireball_impact.tscn").Instantiate<FireballImpact>();
 		runner.Scene().AddChild(effect);
@@ -49,7 +79,7 @@ public partial class FireballSpellTest
 	[TestCase]
 	public async Task WallImpactCentersItsRingOnTheWall()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/fireball_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/fireball_preview.tscn");
 		await runner.SimulateFrames(4);
 		var scene = runner.Scene();
 		var spell = scene.GetNode<FireballSpell>("FireballSpell");

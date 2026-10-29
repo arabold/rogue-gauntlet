@@ -49,7 +49,7 @@ public partial class AttackDefinition : Resource
 	/// </summary>
 	public AttackThreatTier ThreatTier => DefenseTraits.ThreatTier();
 
-	public AttackImpact Impact => new(PoiseDamage, Knockback);
+	public AttackImpact Impact => new(PoiseDamage, Knockback, ForcePushback);
 
 	/// <summary>Stable gameplay volume; null uses the weapon or actor default contact profile.</summary>
 	[Export] public MeleeAttackProfile MeleeContact { get; set; }
@@ -137,8 +137,14 @@ public partial class AttackDefinition : Resource
 	[ExportGroup("Impact")]
 	[Export] public float PoiseDamage { get; set; } = DefaultPoiseDamage;
 
-	/// <summary>Push strength when a contact interrupts or staggers its defender; flinches never push.</summary>
+	/// <summary>Push strength when a contact interrupts or staggers its defender; flinches push only with <see cref="ForcePushback"/>.</summary>
 	[Export] public float Knockback { get; set; } = DefaultKnockback;
+
+	/// <summary>
+	/// Knocks back a defender that would only flinch, interrupting its current action without a stagger.
+	/// Hyper-armored defenders and poise that resists forced pushback (bosses) still only flinch.
+	/// </summary>
+	[Export] public bool ForcePushback { get; set; }
 
 	/// <summary>
 	/// Normalized execution time at which ordinary hits stop interrupting this attack. Only a poise break

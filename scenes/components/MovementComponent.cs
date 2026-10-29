@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
+[GlobalClass]
 public partial class MovementComponent : Node
 {
 	/// <summary>
@@ -25,19 +26,19 @@ public partial class MovementComponent : Node
 	/// <summary>
 	/// The StairsTrigger node that will be used to detect stairs.
 	/// </summary>
-	[Export] public StairsTrigger StairsTrigger;
+	[Export] public StairsTrigger StairsTrigger { get; set; }
 	/// <summary>
 	/// The gravity strength.
 	/// </summary>
-	[Export] public float Gravity = 9.8f;
+	[Export] public float Gravity { get; set; } = 9.8f;
 	/// <summary>
 	/// Maximum fall speed
 	/// </summary>
-	[Export] public float MaxFallSpeed = 50.0f;
+	[Export] public float MaxFallSpeed { get; set; } = 50.0f;
 	/// <summary>
 	/// Stairs step height
 	/// </summary>
-	[Export] public float StairsStepHeight = 0.5f;
+	[Export] public float StairsStepHeight { get; set; } = 0.5f;
 
 	public bool IsMoving => TargetDirection != Vector3.Zero;
 	public bool IsPushed => _pushStrength > 0.1f;

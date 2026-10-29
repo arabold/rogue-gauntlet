@@ -67,7 +67,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 		HealthComponent.SetHealth(Definition.MaxHealth, Definition.MaxHealth);
 		MovementComponent.Speed = Definition.MoveSpeed;
 		DeathComponent.Xp = Definition.XpReward;
-		LootTableComponent.ConfigureProfile(Definition.Loot);
+		LootTableComponent.Profile = Definition.Loot;
 		EnemyBehaviorComponent.Profile = Definition.Behavior;
 	}
 

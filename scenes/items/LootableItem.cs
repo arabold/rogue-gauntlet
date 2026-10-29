@@ -11,31 +11,31 @@ public partial class LootableItem : Node3D
 	/// <summary>
 	/// The item to be picked up.
 	/// </summary>
-	[Export] public Item Item;
+	[Export] public Item Item { get; set; }
 	[Export] public PackedScene CursePresentation { get; set; }
 	/// <summary>
 	/// The quantity of items that can be picked up.
 	/// </summary>
-	[Export] public int Quantity = 1;
+	[Export] public int Quantity { get; set; } = 1;
 	/// <summary>
 	/// Animate the item.
 	/// </summary>
-	[Export] public bool Animate = true;
+	[Export] public bool Animate { get; set; } = true;
 
 	/// <summary>
 	/// Distance at which the item is magnetically pulled to the player (~one floor tile).
 	/// Larger than the pickup collider so it also grabs loot that spawns on top of the player
 	/// or rests on furniture/in chests, which the collider never reaches.
 	/// </summary>
-	[Export] public float MagnetRadius = 4.0f;
+	[Export] public float MagnetRadius { get; set; } = 4.0f;
 	/// <summary>
 	/// Distance at which the pulled item is actually collected.
 	/// </summary>
-	[Export] public float CollectRadius = 0.6f;
+	[Export] public float CollectRadius { get; set; } = 0.6f;
 	/// <summary>Fly speed at the edge of the magnet radius.</summary>
-	[Export] public float MagnetMinSpeed = 4.0f;
+	[Export] public float MagnetMinSpeed { get; set; } = 4.0f;
 	/// <summary>Fly speed right before collection (the pull accelerates inward).</summary>
-	[Export] public float MagnetMaxSpeed = 18.0f;
+	[Export] public float MagnetMaxSpeed { get; set; } = 18.0f;
 
 	/// <summary>
 	/// Waits for the player to exit first before triggering a pickup.
@@ -45,11 +45,11 @@ public partial class LootableItem : Node3D
 	///
 	/// This must be set before the LootableItem is added to the tree!
 	/// </summary>
-	public bool WaitForPlayerExited = false;
+	public bool WaitForPlayerExited { get; set; }
 
-	[Export] public Node3D Pivot;
-	[Export] private TriggerComponent Trigger { get; set; }
-	[Export] private AnimationPlayer AnimationPlayer { get; set; }
+	[Export] public Node3D Pivot { get; set; }
+	[Export] public TriggerComponent Trigger { get; set; }
+	[Export] public AnimationPlayer AnimationPlayer { get; set; }
 
 	private Player _player;
 	private ExplorationVisibility _exploration;
@@ -90,7 +90,7 @@ public partial class LootableItem : Node3D
 		if (!Engine.IsEditorHint())
 		{
 			Trigger.WaitForBodyExited = WaitForPlayerExited;
-			Trigger.Triggered += OnTriggered;
+			this.SubscribeUntilExit(Trigger, t => t.Triggered += OnTriggered, t => t.Triggered -= OnTriggered);
 		}
 
 		if (Item == null)

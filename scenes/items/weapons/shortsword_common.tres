@@ -1,14 +1,16 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=6 format=3 uid="uid://csyxpvgdbtld2"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=7 format=3 uid="uid://csyxpvgdbtld2"]
 
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/slash_1h.tres" id="melee_contact"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="PackedScene" path="res://scenes/items/weapons/shortsword_common.tscn" id="1_gl564"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_7qsia"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
+[ext_resource type="Resource" path="res://scenes/attacks/combos/sword_1h.tres" id="primary_combo"]
 
 [resource]
 script = ExtResource("2_7qsia")
 MeleeContact = ExtResource("melee_contact")
+PrimaryCombo = ExtResource("primary_combo")
 AttackStyle = &"sword.1h.slash"
 Grip = ExtResource("weapon_grip")
 Tier = 1

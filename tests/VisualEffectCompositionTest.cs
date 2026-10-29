@@ -13,7 +13,7 @@ public partial class VisualEffectCompositionTest
 	[TestCase]
 	public async Task DelayedIceCrystalsUseTheirEffectsClock()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/water_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/water_spell_preview.tscn");
 		await runner.SimulateFrames(4);
 		var preview = (WaterSpellPreview)runner.Scene();
 		var nova = preview.NovaScene.Instantiate<WaterSpellVisual>();
@@ -32,7 +32,7 @@ public partial class VisualEffectCompositionTest
 	[TestCase]
 	public async Task FallingMotionSignalsOneImpactForEarthAndFire()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/earth_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/earth_spell_preview.tscn");
 		await runner.SimulateFrames(4);
 		var preview = (EarthSpellPreview)runner.Scene();
 		var rock = preview.Effects[0].Instantiate<EarthSpellVisual>();

@@ -50,6 +50,7 @@ public partial class Door : Node3D
 	private MeshInstance3D _xray;
 	private bool _indicatorAllowed;
 	private bool _isAnimating;
+	private Tween _activeTween;
 	private StandardMaterial3D _keyMarkerMaterial;
 
 	public override void _Ready()
@@ -109,6 +110,8 @@ public partial class Door : Node3D
 	public void RestoreAccess(DoorAccessSaveData state)
 	{
 		state.Validate();
+		_activeTween?.Kill();
+		_isAnimating = false;
 		Lock?.Restore(state.IsLocked);
 		Secret?.Restore(state.IsDiscovered);
 		IsOpen = state.IsOpen;
@@ -194,11 +197,12 @@ public partial class Door : Node3D
 
 	private void Swing(float degrees)
 	{
-		var tween = CreateTween();
-		tween.TweenProperty(Leaf, "rotation_degrees:y", degrees, AnimationDuration)
+		_activeTween?.Kill();
+		_activeTween = CreateTween();
+		_activeTween.TweenProperty(Leaf, "rotation_degrees:y", degrees, AnimationDuration)
 			.SetTrans(Tween.TransitionType.Sine)
 			.SetEase(Tween.EaseType.Out);
-		tween.Finished += () =>
+		_activeTween.Finished += () =>
 		{
 			_isAnimating = false;
 			Update();

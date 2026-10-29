@@ -188,7 +188,7 @@ public partial class GameSession : Node
 	public void ConfigureLevel(Level level)
 	{
 		level.ConfigureGeneration(Run, ActiveDungeonDepth, FindLevelItemChanges(ActiveDungeonDepth), GetLevelExploration(ActiveDungeonDepth));
-		level.GenerationFailed += OnGenerationFailed;
+		level.SubscribeUntilExit(level, l => l.GenerationFailed += OnGenerationFailed, l => l.GenerationFailed -= OnGenerationFailed);
 	}
 
 	private void OnGenerationFailed(string reason) => CallDeferred(MethodName.ReturnToMenu);

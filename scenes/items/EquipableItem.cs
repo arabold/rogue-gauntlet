@@ -31,11 +31,11 @@ public partial class EquipableItem : BuffedItem
 	/// <summary>
 	/// Type of this item
 	/// </summary>
-	[Export] public GuardDefinition Guard { get; set; }
+	[Export] public GuardDefinition Guard { get; set => SetValue(ref field, value); }
 	[Export] public ValidSlots ValidSlots { get; set => SetValue(ref field, value); } = 0;
 
 	/// <summary>Words and affixes this kind of equipment can roll at creation (authored).</summary>
-	[Export] public EquipmentRollTable RollTable { get; set; }
+	[Export] public EquipmentRollTable RollTable { get; set => SetValue(ref field, value); }
 
 	/// <summary>
 	/// Quality rolled at creation (see <see cref="LootRoller"/>), always visible as color and quality word. Definitions and
@@ -86,7 +86,7 @@ public partial class EquipableItem : BuffedItem
 	/// Instance-level affixes rolled onto this item when it dropped. Empty on shared
 	/// definitions; populated on the duplicated instance produced by <see cref="LootRoller"/>.
 	/// </summary>
-	[Export] public Array<RolledAffix> Affixes { get; set => SetValue(ref field, value); } = new();
+	[Export] public Array<RolledAffix> Affixes { get; set => SetValue(ref field, value); } = [];
 
 	/// <summary>
 	/// The lowercase quality word that leads unidentified names: the Poor or Superior adjective, "magic" or "rare"; "" for

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="AttackAnimationProfile" format=3 uid="uid://dct1orgrtmguy"]
+[gd_resource type="Resource" script_class="AttackAnimationProfile" load_steps=43 format=3 uid="uid://dct1orgrtmguy"]
 
 [ext_resource type="Script" uid="uid://dbpmhvkb54j6i" path="res://scenes/attacks/AttackAnimationBinding.cs" id="binding"]
 [ext_resource type="Script" uid="uid://bvtqukotxhie4" path="res://scenes/attacks/AttackAnimationProfile.cs" id="profile"]
@@ -7,57 +7,57 @@
 script = ExtResource("binding")
 Style = &"sword.1h.slash"
 Clip = &"1H_Melee_Attack_Slice_Diagonal"
-ContactStart = 0.3
-ContactEnd = 0.65
+ContactStart = 0.35
+ContactEnd = 0.5
 
 [sub_resource type="Resource" id="binding_1"]
 script = ExtResource("binding")
 Style = &"sword.2h.slash"
 Clip = &"2H_Melee_Attack_Slice"
 ContactStart = 0.3
-ContactEnd = 0.65
+ContactEnd = 0.45
 
 [sub_resource type="Resource" id="binding_2"]
 script = ExtResource("binding")
 Style = &"axe.1h.chop"
 Clip = &"1H_Melee_Attack_Chop"
-ContactStart = 0.3
-ContactEnd = 0.65
+ContactStart = 0.5
+ContactEnd = 0.64
 
 [sub_resource type="Resource" id="binding_3"]
 script = ExtResource("binding")
 Style = &"axe.2h.chop"
 Clip = &"2H_Melee_Attack_Chop"
-ContactStart = 0.3
-ContactEnd = 0.65
+ContactStart = 0.4
+ContactEnd = 0.58
 
 [sub_resource type="Resource" id="binding_4"]
 script = ExtResource("binding")
 Style = &"spear.2h.thrust"
 Clip = &"2H_Melee_Attack_Stab"
-ContactStart = 0.3
-ContactEnd = 0.6
+ContactStart = 0.2
+ContactEnd = 0.34
 
 [sub_resource type="Resource" id="binding_5"]
 script = ExtResource("binding")
 Style = &"dagger.1h.thrust"
 Clip = &"1H_Melee_Attack_Stab"
-ContactStart = 0.3
-ContactEnd = 0.6
+ContactStart = 0.2
+ContactEnd = 0.34
 
 [sub_resource type="Resource" id="binding_6"]
 script = ExtResource("binding")
 Style = &"blunt.1h.chop"
 Clip = &"1H_Melee_Attack_Chop"
-ContactStart = 0.3
-ContactEnd = 0.65
+ContactStart = 0.5
+ContactEnd = 0.64
 
 [sub_resource type="Resource" id="binding_7"]
 script = ExtResource("binding")
 Style = &"blunt.2h.chop"
 Clip = &"2H_Melee_Attack_Chop"
-ContactStart = 0.3
-ContactEnd = 0.65
+ContactStart = 0.4
+ContactEnd = 0.58
 
 [sub_resource type="Resource" id="binding_8"]
 script = ExtResource("binding")
@@ -84,71 +84,71 @@ ContactEnd = 0.45
 script = ExtResource("binding")
 Style = &"sword.2h.spin"
 Clip = &"2H_Melee_Attack_Spin"
-ContactStart = 0.3
-ContactEnd = 0.8
+ContactStart = 0.27
+ContactEnd = 0.6
 
 [sub_resource type="Resource" id="binding_12"]
 script = ExtResource("binding")
 Style = &"unarmed.punch"
 Clip = &"Unarmed_Melee_Attack_Punch_A"
-ContactStart = 0.35
-ContactEnd = 0.6
+ContactStart = 0.25
+ContactEnd = 0.38
 
 [sub_resource type="Resource" id="binding_13"]
 script = ExtResource("binding")
 Style = &"sword.1h.special"
 Clip = &"1H_Melee_Attack_Slice_Horizontal"
-ContactStart = 0.25
-ContactEnd = 0.65
+ContactStart = 0.2
+ContactEnd = 0.34
 
 [sub_resource type="Resource" id="binding_14"]
 script = ExtResource("binding")
 Style = &"sword.2h.special"
 Clip = &"2H_Melee_Attack_Spin"
-ContactStart = 0.3
-ContactEnd = 0.8
+ContactStart = 0.27
+ContactEnd = 0.6
 
 [sub_resource type="Resource" id="binding_15"]
 script = ExtResource("binding")
 Style = &"axe.1h.special"
 Clip = &"1H_Melee_Attack_Slice_Horizontal"
-ContactStart = 0.25
-ContactEnd = 0.65
+ContactStart = 0.2
+ContactEnd = 0.34
 
 [sub_resource type="Resource" id="binding_16"]
 script = ExtResource("binding")
 Style = &"axe.2h.special"
 Clip = &"2H_Melee_Attack_Slice"
 ContactStart = 0.3
-ContactEnd = 0.7
+ContactEnd = 0.45
 
 [sub_resource type="Resource" id="binding_17"]
 script = ExtResource("binding")
 Style = &"spear.2h.special"
 Clip = &"2H_Melee_Attack_Slice"
 ContactStart = 0.3
-ContactEnd = 0.7
+ContactEnd = 0.45
 
 [sub_resource type="Resource" id="binding_18"]
 script = ExtResource("binding")
 Style = &"dagger.1h.special"
 Clip = &"1H_Melee_Attack_Slice_Horizontal"
-ContactStart = 0.25
-ContactEnd = 0.55
+ContactStart = 0.2
+ContactEnd = 0.34
 
 [sub_resource type="Resource" id="binding_19"]
 script = ExtResource("binding")
 Style = &"blunt.1h.special"
 Clip = &"1H_Melee_Attack_Slice_Horizontal"
-ContactStart = 0.25
-ContactEnd = 0.65
+ContactStart = 0.2
+ContactEnd = 0.34
 
 [sub_resource type="Resource" id="binding_20"]
 script = ExtResource("binding")
 Style = &"blunt.2h.special"
 Clip = &"2H_Melee_Attack_Spin"
-ContactStart = 0.3
-ContactEnd = 0.8
+ContactStart = 0.27
+ContactEnd = 0.6
 
 [sub_resource type="Resource" id="binding_21"]
 script = ExtResource("binding")
@@ -168,9 +168,121 @@ ContactEnd = 0.45
 script = ExtResource("binding")
 Style = &"unarmed.kick"
 Clip = &"Unarmed_Melee_Attack_Kick"
+ContactStart = 0.28
+ContactEnd = 0.42
+
+[sub_resource type="Resource" id="binding_24"]
+script = ExtResource("binding")
+Style = &"sword.1h.combo2"
+Clip = &"1H_Melee_Attack_Slice_Horizontal"
+ContactStart = 0.2
+ContactEnd = 0.34
+
+[sub_resource type="Resource" id="binding_25"]
+script = ExtResource("binding")
+Style = &"sword.1h.combo3"
+Clip = &"1H_Melee_Attack_Chop"
+ContactStart = 0.5
+ContactEnd = 0.64
+
+[sub_resource type="Resource" id="binding_26"]
+script = ExtResource("binding")
+Style = &"axe.1h.combo2"
+Clip = &"1H_Melee_Attack_Slice_Diagonal"
 ContactStart = 0.35
-ContactEnd = 0.65
+ContactEnd = 0.5
+
+[sub_resource type="Resource" id="binding_27"]
+script = ExtResource("binding")
+Style = &"axe.1h.combo3"
+Clip = &"1H_Melee_Attack_Chop"
+ContactStart = 0.5
+ContactEnd = 0.64
+
+[sub_resource type="Resource" id="binding_28"]
+script = ExtResource("binding")
+Style = &"blunt.1h.combo2"
+Clip = &"1H_Melee_Attack_Slice_Diagonal"
+ContactStart = 0.35
+ContactEnd = 0.5
+
+[sub_resource type="Resource" id="binding_29"]
+script = ExtResource("binding")
+Style = &"blunt.1h.combo3"
+Clip = &"1H_Melee_Attack_Chop"
+ContactStart = 0.5
+ContactEnd = 0.64
+
+[sub_resource type="Resource" id="binding_30"]
+script = ExtResource("binding")
+Style = &"dagger.1h.combo2"
+Clip = &"1H_Melee_Attack_Slice_Diagonal"
+ContactStart = 0.35
+ContactEnd = 0.5
+
+[sub_resource type="Resource" id="binding_31"]
+script = ExtResource("binding")
+Style = &"dagger.1h.combo3"
+Clip = &"1H_Melee_Attack_Stab"
+ContactStart = 0.2
+ContactEnd = 0.34
+
+[sub_resource type="Resource" id="binding_32"]
+script = ExtResource("binding")
+Style = &"sword.2h.combo2"
+Clip = &"2H_Melee_Attack_Stab"
+ContactStart = 0.2
+ContactEnd = 0.34
+
+[sub_resource type="Resource" id="binding_33"]
+script = ExtResource("binding")
+Style = &"sword.2h.combo3"
+Clip = &"2H_Melee_Attack_Chop"
+ContactStart = 0.4
+ContactEnd = 0.58
+
+[sub_resource type="Resource" id="binding_34"]
+script = ExtResource("binding")
+Style = &"axe.2h.combo2"
+Clip = &"2H_Melee_Attack_Slice"
+ContactStart = 0.3
+ContactEnd = 0.45
+
+[sub_resource type="Resource" id="binding_35"]
+script = ExtResource("binding")
+Style = &"axe.2h.combo3"
+Clip = &"2H_Melee_Attack_Chop"
+ContactStart = 0.4
+ContactEnd = 0.58
+
+[sub_resource type="Resource" id="binding_36"]
+script = ExtResource("binding")
+Style = &"blunt.2h.combo2"
+Clip = &"2H_Melee_Attack_Slice"
+ContactStart = 0.3
+ContactEnd = 0.45
+
+[sub_resource type="Resource" id="binding_37"]
+script = ExtResource("binding")
+Style = &"blunt.2h.combo3"
+Clip = &"2H_Melee_Attack_Chop"
+ContactStart = 0.4
+ContactEnd = 0.58
+
+[sub_resource type="Resource" id="binding_38"]
+script = ExtResource("binding")
+Style = &"spear.2h.combo2"
+Clip = &"2H_Melee_Attack_Slice"
+ContactStart = 0.3
+ContactEnd = 0.45
+
+[sub_resource type="Resource" id="binding_39"]
+script = ExtResource("binding")
+Style = &"spear.2h.combo3"
+Clip = &"2H_Melee_Attack_Stab"
+ContactStart = 0.2
+ContactEnd = 0.34
 
 [resource]
 script = ExtResource("profile")
-Bindings = [SubResource("binding_0"), SubResource("binding_1"), SubResource("binding_2"), SubResource("binding_3"), SubResource("binding_4"), SubResource("binding_5"), SubResource("binding_6"), SubResource("binding_7"), SubResource("binding_8"), SubResource("binding_9"), SubResource("binding_10"), SubResource("binding_11"), SubResource("binding_12"), SubResource("binding_13"), SubResource("binding_14"), SubResource("binding_15"), SubResource("binding_16"), SubResource("binding_17"), SubResource("binding_18"), SubResource("binding_19"), SubResource("binding_20"), SubResource("binding_21"), SubResource("binding_22"), SubResource("binding_23")]
+Bindings = [SubResource("binding_0"), SubResource("binding_1"), SubResource("binding_2"), SubResource("binding_3"), SubResource("binding_4"), SubResource("binding_5"), SubResource("binding_6"), SubResource("binding_7"), SubResource("binding_8"), SubResource("binding_9"), SubResource("binding_10"), SubResource("binding_11"), SubResource("binding_12"), SubResource("binding_13"), SubResource("binding_14"), SubResource("binding_15"), SubResource("binding_16"), SubResource("binding_17"), SubResource("binding_18"), SubResource("binding_19"), SubResource("binding_20"), SubResource("binding_21"), SubResource("binding_22"), SubResource("binding_23"), SubResource("binding_24"), SubResource("binding_25"), SubResource("binding_26"), SubResource("binding_27"), SubResource("binding_28"), SubResource("binding_29"), SubResource("binding_30"), SubResource("binding_31"), SubResource("binding_32"), SubResource("binding_33"), SubResource("binding_34"), SubResource("binding_35"), SubResource("binding_36"), SubResource("binding_37"), SubResource("binding_38"), SubResource("binding_39")]

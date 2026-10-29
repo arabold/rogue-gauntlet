@@ -4,7 +4,7 @@ using System.Linq;
 
 public partial class ActionContainer : PanelContainer
 {
-	[Export] public int Slot;
+	[Export] public int Slot { get; set; }
 	[Export]
 	public string ActionBinding
 	{
@@ -22,7 +22,7 @@ public partial class ActionContainer : PanelContainer
 		set
 		{
 			field = value;
-			if (IsNodeReady()) { _preview.SetScene(value); }
+			if (IsNodeReady()) { _preview.Scene = value; }
 		}
 	}
 
@@ -41,7 +41,7 @@ public partial class ActionContainer : PanelContainer
 		_keyBinding.IsDisabled = true;
 
 		_preview = GetNode<Preview>("%Preview");
-		_preview.SetScene(PreviewScene);
+		_preview.Scene = PreviewScene;
 		_viewportContainer = GetNodeOrNull<SubViewportContainer>("SubViewportContainer");
 		_quantityLabel = GetNodeOrNull<Label>("%QuantityLabel");
 
@@ -85,7 +85,7 @@ public partial class ActionContainer : PanelContainer
 		{
 			// The preview scene is already the run appearance model (see PlayerQuickItemController).
 			Item item = action?.AssignedAction as Item;
-			_preview.SetScene(action?.PreviewScene);
+			_preview.Scene = action?.PreviewScene;
 			bool isDepleted = action != null && action.AssignedAction != null && action.Quantity == 0;
 			if (_viewportContainer != null)
 			{

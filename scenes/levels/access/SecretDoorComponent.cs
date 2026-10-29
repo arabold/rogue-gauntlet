@@ -4,6 +4,7 @@ using System;
 /// <summary>Conceals a real wall tile until proximity discovery or an explicit mechanism reveals it.
 /// Owners observe <see cref="Changed"/> instead of being refreshed by each mutation site.</summary>
 [Tool]
+[GlobalClass]
 public partial class SecretDoorComponent : Node, IProximityDiscoverable
 {
 	[Signal] public delegate void ChangedEventHandler();

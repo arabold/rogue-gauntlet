@@ -13,7 +13,7 @@ public class WardenTest
 	[TestCase]
 	public async Task RoomPlacementRetriesAndRegenerationKeepExactlyOneWarden()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/levels/level.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		GameSession.Instance.ResetLevelDebugState(3);
@@ -41,7 +41,7 @@ public class WardenTest
 	[TestCase]
 	public async Task AuthoredMarkerControlsBossPositionFacingAndRegeneration()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/levels/level.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		GameSession.Instance.ResetLevelDebugState(3);
@@ -63,7 +63,7 @@ public class WardenTest
 	[TestCase]
 	public async Task TallActorRespectsFogAndRejectsMovementIntoNarrowSpace()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/levels/level.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		GameSession.Instance.ResetLevelDebugState(3);
@@ -235,7 +235,7 @@ public class WardenTest
 	[TestCase]
 	public async Task RoomMovementUsesBodyClearanceRatherThanSpawnStagingRadius()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/levels/level.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		GameSession.Instance.ResetLevelDebugState(3);

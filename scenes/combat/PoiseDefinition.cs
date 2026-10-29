@@ -28,6 +28,9 @@ public partial class PoiseDefinition : Resource
 	/// <summary>Show the meter under the floating health bar; intended for elites and bosses.</summary>
 	[Export] public bool ShowBar { get; set; }
 
+	/// <summary>Forced pushback only flinches this actor; a poise break still pushes it. Intended for bosses.</summary>
+	[Export] public bool ResistsForcedPushback { get; set; }
+
 	public bool IsValid =>
 		float.IsFinite(MaxPoise) && MaxPoise > 0
 		&& float.IsFinite(RegenDelay) && RegenDelay >= 0

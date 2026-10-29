@@ -51,6 +51,7 @@ public static class PlayerSaveCodec
 		{
 			player.GlobalPosition = ToVector3(data.Position);
 			player.Rotation = ToVector3(data.Rotation);
+			player.ResetPhysicsInterpolation();
 		}
 	}
 
@@ -77,7 +78,9 @@ public static class PlayerSaveCodec
 			}
 		}
 
-		data.DodgeCooldownRemaining = player.DodgeComponent?.CooldownRemaining ?? 0f;
+		data.DodgeChargesRemaining = player.DodgeComponent?.ChargesRemaining ?? 0;
+		data.DodgeRechargeRemaining = player.DodgeComponent?.RechargeRemaining ?? 0f;
+		data.DodgeIntervalRemaining = player.DodgeComponent?.IntervalRemaining ?? 0f;
 		data.ParryRearmRemaining = player.GuardComponent?.ParryRearmRemaining ?? 0f;
 		data.RecoveryLockoutRemaining = Mathf.Max(player.ActionGate?.StaggerRemaining ?? 0,
 			Mathf.Max(player.AttackController?.RecoveryRemaining ?? 0,
@@ -131,7 +134,7 @@ public static class PlayerSaveCodec
 		player.ActionGate?.CancelCurrent(ActionInterruptReason.Invalidated);
 		player.AttackController?.CancelAttack();
 		player.MovementComponent?.ResetTransientMotion();
-		player.DodgeComponent?.RestoreCooldown(data.DodgeCooldownRemaining);
+		player.DodgeComponent?.RestoreCharges(data.DodgeChargesRemaining, data.DodgeRechargeRemaining, data.DodgeIntervalRemaining);
 		player.GuardComponent?.RestoreCooldown(data.ParryRearmRemaining);
 		player.InputController?.RequireFreshDefenseInput();
 		if (data.RecoveryLockoutRemaining > 0) player.ActionGate?.TryStagger(data.RecoveryLockoutRemaining);

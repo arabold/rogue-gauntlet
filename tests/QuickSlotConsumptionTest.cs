@@ -17,7 +17,7 @@ public class QuickSlotConsumptionTest
 	[TestCase]
 	public async Task DrinkingTheLastPotionFromAQuickSlotLeavesItDepleted()
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(10);
 		Player player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().First();
 		var potion = ItemFactory.Create(GD.Load<Item>("res://scenes/items/potions/potion_healing_small.tres"));

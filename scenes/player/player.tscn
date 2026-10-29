@@ -633,6 +633,7 @@ script = ExtResource("melee_detector_script")
 script = ExtResource("action_gate_script")
 AnimationComponent = NodePath("../CombatAnimationComponent")
 AnimationProfile = ExtResource("defense_animation")
+RecoveryCancels = true
 
 [node name="DodgeComponent" type="Node" parent="." unique_id=410980302 node_paths=PackedStringArray("Actor", "MovementComponent", "ActionGate", "AnimationComponent")]
 script = ExtResource("dodge_script")

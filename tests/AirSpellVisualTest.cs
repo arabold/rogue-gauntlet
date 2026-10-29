@@ -13,7 +13,7 @@ public partial class AirSpellVisualTest
 	[TestCase]
 	public async Task ComposedEffectsFadeIndependentlyAndGuardCanBeCleared()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/air_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/air_spell_preview.tscn");
 		await runner.SimulateFrames(4);
 		var preview = (AirSpellPreview)runner.Scene();
 		preview.SelectSpell(2); preview.Cast(); preview.Cast();
@@ -37,7 +37,7 @@ public partial class AirSpellVisualTest
 	[TestCase]
 	public async Task StrategiesLinkDistinctVisibleDestinationsInDifferentWays()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/air_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/air_spell_preview.tscn");
 		await runner.SimulateFrames(5);
 		var preview = (AirSpellPreview)runner.Scene();
 		Vector3 origin = Vector3.Up;
@@ -54,7 +54,7 @@ public partial class AirSpellVisualTest
 	[TestCase]
 	public async Task BallLightningTravelsAndFadesWithoutUsingChainArcs()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/air_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/air_spell_preview.tscn");
 		await runner.SimulateFrames(4);
 		var preview = (AirSpellPreview)runner.Scene();
 		preview.SetTargetCount(1); preview.SetLevel(1); preview.SelectSpell(0); preview.Cast();
@@ -75,7 +75,7 @@ public partial class AirSpellVisualTest
 	[TestCase]
 	public async Task ThunderstormCracksMatchStrikesAndUseClippedBlueMaterials()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/air_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/air_spell_preview.tscn");
 		await runner.SimulateFrames(5);
 		var preview = (AirSpellPreview)runner.Scene();
 		preview.SetLevel(3); preview.SelectSpell(3); preview.Cast();
@@ -99,7 +99,7 @@ public partial class AirSpellVisualTest
 	[TestCase]
 	public async Task HigherLevelGuardEmitsMoreArcsAndOwnsTheirLifetime()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/air_spell_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/air_spell_preview.tscn");
 		await runner.SimulateFrames(5);
 		var preview = (AirSpellPreview)runner.Scene();
 		var low = preview.GuardScene.Instantiate<StormGuardVisual>();

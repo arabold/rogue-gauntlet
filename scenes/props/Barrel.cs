@@ -3,7 +3,7 @@ using System;
 
 public partial class Barrel : Node3D
 {
-	[Export] private HealthComponent HealthComponent { get; set; }
+	[Export] public HealthComponent HealthComponent { get; set; }
 
 	public override void _Ready()
 	{

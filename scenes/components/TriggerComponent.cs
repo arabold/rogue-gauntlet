@@ -3,6 +3,7 @@ using Godot;
 /// <summary>
 /// A component that triggers events when the player enters or exits its area.
 /// </summary>
+[GlobalClass]
 public partial class TriggerComponent : Area3D
 {
 	[Signal]
@@ -14,7 +15,7 @@ public partial class TriggerComponent : Area3D
 	/// the trigger zone. In that case we want to wait until the player leaves
 	/// before listening for new trigger events.
 	/// </summary>
-	[Export] public bool WaitForBodyExited = false;
+	[Export] public bool WaitForBodyExited { get; set; }
 
 	public override void _Ready()
 	{

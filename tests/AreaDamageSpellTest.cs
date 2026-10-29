@@ -122,7 +122,7 @@ public partial class AreaDamageSpellTest
 		var second = TestFactories.SpawnCombatMonster(root, new Vector3(0, 0, 5.5f), "BSecond");
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(first); TestFactories.PrepareCombatMonster(second);
 		var spell = harness.SpellComponents.OfType<AreaDamageSpell>().Single(s => s.DisplayName == spellName);
-		first.HurtBoxComponent.DamageResolved += (_, _) => spell.Cancel();
+		first.HurtBoxComponent.DamageResolved += (_, _, _) => spell.Cancel();
 		TestFactories.CastHarnessSpell(harness, spellName, 3); await runner.SimulateFrames(3);
 		AssertFloat(first.HealthComponent.CurrentHealth).IsEqual(45);
 		AssertFloat(second.HealthComponent.CurrentHealth).IsEqual(50);

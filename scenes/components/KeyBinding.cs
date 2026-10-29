@@ -2,6 +2,7 @@ using Godot;
 using Godot.Collections;
 
 [Tool]
+[GlobalClass]
 public partial class KeyBinding : TextureRect
 {
 	/// <summary>
@@ -29,8 +30,8 @@ public partial class KeyBinding : TextureRect
 		}
 	}
 
-	[Export] public Dictionary<string, Texture2D> KeyboardDict { get; private set; } = new();
-	[Export] public Dictionary<string, Texture2D> XboxDict { get; private set; } = new();
+	[Export] public Dictionary<string, Texture2D> KeyboardDict { get; set; } = [];
+	[Export] public Dictionary<string, Texture2D> XboxDict { get; set; } = [];
 
 	public override void _Ready()
 	{

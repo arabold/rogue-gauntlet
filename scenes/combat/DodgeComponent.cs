@@ -21,9 +21,19 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 	public bool IsImmune => IsDodging && EffectiveDefinition != null
 		&& _dodgeElapsed >= EffectiveDefinition.ImmunityStart && _dodgeElapsed < EffectiveDefinition.ImmunityEnd;
 	public float RecoveryRemaining => IsDodging ? Mathf.Max(0, EffectiveDefinition.TravelDuration + EffectiveDefinition.RecoveryDuration - _dodgeElapsed) : 0;
-	public float CooldownRemaining { get; private set; }
+
+	/// <summary>Seconds left of the minimum interval between dodges.</summary>
+	public float IntervalRemaining { get; private set; }
+	/// <summary>Charges available now; spent charges refill one at a time.</summary>
+	public int ChargesRemaining => Mathf.Max(0, (DodgeDef?.MaxCharges ?? 1) - _spentCharges);
+	/// <summary>Seconds until the next spent charge refills; zero while every charge is available.</summary>
+	public float RechargeRemaining { get; private set; }
+	/// <summary>Seconds until another dodge may start: the interval, or the next recharge when no charge is left.</summary>
+	public float CooldownRemaining => ChargesRemaining > 0 ? IntervalRemaining : Mathf.Max(IntervalRemaining, RechargeRemaining);
 
 	private float _dodgeElapsed;
+	private int _spentCharges;
+	private bool _perfectRefunded;
 	private Vector3 _dodgeDirection;
 	private Vector3 _dodgeFacing;
 	private float _dodgeSpeed;
@@ -85,7 +95,7 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 			|| !float.IsFinite(DodgeDef.ImmunityStart) || !float.IsFinite(DodgeDef.ImmunityEnd)
 			|| DodgeDef.ImmunityStart < 0 || DodgeDef.ImmunityEnd < DodgeDef.ImmunityStart || DodgeDef.ImmunityEnd > DodgeDef.TravelDuration
 			|| !float.IsFinite(DodgeDef.PassThroughExitTime) || DodgeDef.PassThroughExitTime < 0
-			|| !(DodgeDef.PassThroughExitSpeedScale >= 0 && DodgeDef.PassThroughExitSpeedScale <= 1))
+			|| !(DodgeDef.PassThroughExitSpeedScale >= 0 && DodgeDef.PassThroughExitSpeedScale <= 1) || !DodgeDef.HasValidCharges)
 			return DefenseRequestResult.InvalidDefinition;
 		Vector3 facing = MovementComponent?.LookAtDirection ?? (Actor != null ? -Actor.GlobalTransform.Basis.Z : Vector3.Forward);
 		if (AnimationComponent != null && !AnimationComponent.HasClip(ChooseDodgeClip(facing, DodgeDef.AnimationProfile))) return DefenseRequestResult.Unavailable;
@@ -111,14 +121,21 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		MovementComponent?.SetInputDirection(Vector3.Zero);
 		MovementComponent?.SetLocomotionOverride(this, _dodgeDirection, _dodgeSpeed);
 		MovementComponent?.SetFixedFacing(this, _dodgeFacing);
-		CooldownRemaining = EffectiveDefinition.CooldownDuration;
+		IntervalRemaining = EffectiveDefinition.CooldownDuration;
+		_perfectRefunded = false;
+		if (EffectiveDefinition.ChargeRechargeDuration > 0)
+		{
+			if (_spentCharges == 0) RechargeRemaining = EffectiveDefinition.ChargeRechargeDuration;
+			_spentCharges++;
+		}
 		BeginPassThrough();
 
 		SetPhysicsProcess(true);
 		PlayDodgeAnimation();
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.started", ("kind", "dodge"), ("travel", EffectiveDefinition.TravelDuration),
 			("recovery", EffectiveDefinition.RecoveryDuration), ("distance", EffectiveDefinition.Distance),
-			("immunity_start", EffectiveDefinition.ImmunityStart), ("immunity_end", EffectiveDefinition.ImmunityEnd), ("cooldown", CooldownRemaining));
+			("immunity_start", EffectiveDefinition.ImmunityStart), ("immunity_end", EffectiveDefinition.ImmunityEnd),
+			("interval", IntervalRemaining), ("charges", ChargesRemaining));
 		EmitSignalDodgeStarted(_dodgeDirection);
 		return DefenseRequestResult.Success;
 	}
@@ -133,10 +150,7 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		_dodgeLease = ActorActionLease.None;
 		StopDodgeAnimation();
 		EmitSignalDodgeEnded();
-		if (CooldownRemaining <= 0)
-		{
-			SetPhysicsProcess(false);
-		}
+		if (!IsTimerRunning) SetPhysicsProcess(false);
 	}
 
 	public bool TryEvaluate(in DamageContext contact, out DefenseEvaluation evaluation)
@@ -148,6 +162,7 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		{
 			if ((contact.DefenseTraits & AttackDefenseTraits.Dodgeable) != 0)
 			{
+				RefundPerfectDodge();
 				evaluation = new DefenseEvaluation(DamageOutcome.Dodged, 0f, ConsumesParry: false, SuppressHitStun: true);
 				return true;
 			}
@@ -161,10 +176,8 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 	{
 		float dt = (float)delta;
 
-		if (CooldownRemaining > 0)
-		{
-			CooldownRemaining = Mathf.Max(0, CooldownRemaining - dt);
-		}
+		IntervalRemaining = Mathf.Max(0, IntervalRemaining - dt);
+		UpdateRecharge(dt);
 
 		if (IsDodging)
 		{
@@ -206,10 +219,33 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 			}
 		}
 
-		if (!IsDodging && CooldownRemaining <= 0)
+		if (!IsDodging && !IsTimerRunning)
 		{
 			SetPhysicsProcess(false);
 		}
+	}
+
+	private bool IsTimerRunning => IntervalRemaining > 0 || _spentCharges > 0;
+
+	/// <summary>Refill spent charges one at a time; a removed recharge duration refills them at once.</summary>
+	private void UpdateRecharge(float dt)
+	{
+		float duration = DodgeDef?.ChargeRechargeDuration ?? 0;
+		_spentCharges = Mathf.Min(_spentCharges, DodgeDef?.MaxCharges ?? 0);
+		if (_spentCharges == 0 || !(duration > 0)) { _spentCharges = 0; RechargeRemaining = 0; return; }
+		RechargeRemaining -= dt;
+		if (RechargeRemaining > 0) return;
+		_spentCharges--;
+		RechargeRemaining = _spentCharges > 0 ? RechargeRemaining + duration : 0;
+	}
+
+	/// <summary>Return the charge this dodge spent when it evades a contact inside the perfect window.</summary>
+	private void RefundPerfectDodge()
+	{
+		if (_perfectRefunded || _dodgeElapsed > EffectiveDefinition.PerfectWindow || EffectiveDefinition.PerfectWindow <= 0) return;
+		_perfectRefunded = true;
+		if (_spentCharges > 0 && --_spentCharges == 0) RechargeRemaining = 0;
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.perfect_dodge", ("elapsed", _dodgeElapsed), ("charges", ChargesRemaining));
 	}
 
 	private void FinishDodge()
@@ -294,18 +330,14 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		return false;
 	}
 
-	public void ResetCooldown()
+	/// <summary>Restore saved charge and interval timers; values are clamped to the current definition.</summary>
+	public void RestoreCharges(int chargesRemaining, float rechargeRemaining, float intervalRemaining)
 	{
-		CooldownRemaining = 0f;
-	}
-
-	public void RestoreCooldown(float cooldown)
-	{
-		CooldownRemaining = Mathf.Max(0, cooldown);
-		if (CooldownRemaining > 0)
-		{
-			SetPhysicsProcess(true);
-		}
+		int max = DodgeDef?.MaxCharges ?? 1;
+		_spentCharges = DodgeDef?.ChargeRechargeDuration > 0 ? Mathf.Clamp(max - chargesRemaining, 0, max) : 0;
+		RechargeRemaining = _spentCharges > 0 ? Mathf.Clamp(rechargeRemaining, 0, DodgeDef.ChargeRechargeDuration) : 0;
+		IntervalRemaining = Mathf.Max(0, intervalRemaining);
+		if (IsTimerRunning) SetPhysicsProcess(true);
 	}
 
 	private void PlayDodgeAnimation() => AnimationComponent?.BeginPose(this, ChooseDodgeClip(_dodgeFacing, EffectiveDefinition.AnimationProfile), 0.08f);

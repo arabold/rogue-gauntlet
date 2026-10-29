@@ -5,6 +5,7 @@ using System.Collections.Generic;
 /// <summary>
 /// Handles timing-synchronized hit detection and projectile spawning for actors.
 /// </summary>
+[GlobalClass]
 public partial class AttackController : Node, IParryInterruptible
 {
 	/// <summary>One completion notification per accepted execution, after releasing its action/pose ownership.</summary>
@@ -411,7 +412,8 @@ public partial class AttackController : Node, IParryInterruptible
 			IncomingDirection = incomingDir,
 			DefenseTraits = traits,
 			DeliveryKind = DamageDeliveryKind.DirectMelee,
-			Impact = _currentAttack.Impact
+			Impact = _currentAttack.Impact,
+			Critical = critical
 		};
 
 		if (target is ICombatDamageable combatDamageable)
@@ -616,6 +618,7 @@ public partial class AttackController : Node, IParryInterruptible
 		{
 			effect.LookAt(origin + direction, Vector3.Up);
 		}
+		effect.ResetPhysicsInterpolation();
 	}
 
 	private Node3D FindWeaponInstance()

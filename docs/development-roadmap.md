@@ -28,7 +28,7 @@ Play two contrasting classes across three seeds, including save/resume and revis
 
 Check pressured/cornered crossbowmen still shoot, retreat never traps or indefinitely disables them, rat retreat follows completed bites, and the Warden stays within its clearance. Review skeleton animation transitions and reward pacing; the regular warrior now uses common loot and a provisional XP reward closer to the other skeletons. Cleared enemies, nest slots, boss defeat and claimed rewards must survive reconstruction.
 
-The proposed [combat redesign](specs/combat-redesign-plan.md) (poise, committed monster wind-ups, hit zones, attack slots and threat tiers) would change this combat review. Slices 1–4 (poise, committed wind-ups, rear and sneak hits, dodging through monsters, attack slots, threat tiers and strike-aligned monster timing) are implemented and need playtesting against these depths before the player-kit slice lands.
+The [combat redesign](specs/combat-redesign-plan.md) changes this combat review. All five slices are implemented: poise, committed wind-ups, rear and sneak hits, dodging through monsters, attack slots, threat tiers, strike-aligned contact timing, and the player kit (primary combos, input buffer, recovery cancels and dodge charges). They need playtesting against these depths; the Warden guard-breaking attack and guard walking remain.
 
 Authoring acceptance also requires duplicating an actor in Godot, adding/removing guard or dodge with explicit references, saving/reopening, and checking two independent instances. The [template guide](../scenes/enemies/templates/README.md) owns that workflow. Automated checks support these reviews; real navigation and fun require playtesting.
 

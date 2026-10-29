@@ -15,7 +15,7 @@ public class PlayerSaveCodecTest
 	[TestCase]
 	public async Task BuffAndStatusSourcesSurviveSaveWithoutReplayingTicksOrCures()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(5);
 		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
 		var frozen = player.FrozenStatus.Condition;
@@ -49,7 +49,7 @@ public class PlayerSaveCodecTest
 	[TestCase]
 	public async Task UnsupportedStatusSourcesAndInvalidSnapshotsAreRejected()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(5);
 		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
 		var saved = PlayerSaveCodec.Capture(player, false);
@@ -70,7 +70,7 @@ public class PlayerSaveCodecTest
 	[TestCase]
 	public async Task CapturedPlayerRestoresExactlyAndARejectedRecordChangesNothing()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(5);
 		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
 		player.Stats.Gold = 37;

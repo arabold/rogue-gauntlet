@@ -3,8 +3,25 @@ using Godot;
 [Tool]
 public partial class Preview : SubViewport
 {
-	[Signal] public delegate void TextureBakedEventHandler(Texture2D texture);
-	[Export] public PackedScene Scene { get; private set; }
+	[Export]
+	public PackedScene Scene
+	{
+		get;
+		set
+		{
+			// The preview depends only on the scene, so re-setting the shown one would just rebuild the same model.
+			if (field == value && GodotObject.IsInstanceValid(_object))
+			{
+				return;
+			}
+
+			field = value;
+			if (IsNodeReady())
+			{
+				Refresh();
+			}
+		}
+	}
 
 	private Node3D _pivot;
 	private Node3D _object;
@@ -18,17 +35,7 @@ public partial class Preview : SubViewport
 		Refresh();
 	}
 
-	public void SetScene(PackedScene scene)
-	{
-		// The preview depends only on the scene, so re-setting the shown one would just rebuild the same model.
-		if (scene == Scene && _object != null)
-		{
-			return;
-		}
-
-		Scene = scene;
-		Refresh();
-	}
+	public void SetScene(PackedScene scene) => Scene = scene;
 
 	private Aabb ComputeAABB(Node3D node)
 	{
