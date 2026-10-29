@@ -211,7 +211,7 @@ Crafting, complex survival simulation, broad tool combinations, elaborate mercha
 | Crowd encounter scale and pacing | Mix tactical fights with occasional overwhelming groups; counts and performance targets open | Encounter balancing |
 | Lighting and fuel pacing | Seeded dark floors from depth 4, proposed 20% chance; either-hand lights compete with shields/two-handed weapons; light radius, fuel pacing and enemy response open | Lighting integration |
 | Armor tradeoffs and visual coverage | Small set with readable differences | Armor integration |
-| Keys and lockpicks | Optional mechanical locks; matching keys or deterministic timed picking; consume one key/pick on success, stack to 20, guarantee reachable matching keys | Lock integration |
+| Keys and lockpicks | Implemented through [door access](door-access.md): optional mechanical locks; matching keys or deterministic timed picking; consume one key/pick on success, stack to 20, guarantee reachable matching keys. Lock counts, pick duration and rewards need tuning | Three-floor balance |
 | Merchant knowledge, prices, and frequency | Persistent finite stock scaled by depth | Shop integration |
 
 Update this document when intended behavior changes. Record implementation details in the linked feature documents and track delivery in the [roadmap](development-roadmap.md).

@@ -40,7 +40,7 @@ Acceptance must validate actual geometry and access solutions, including loops, 
 
 ## Actions, magic and useful objects
 
-Dedicated weapon inputs, four item quick slots, ordinary timed interactions and active defenses are implemented. [Action design](actor-actions-and-interactions.md) owns remaining gameplay decisions; its [plan](specs/actor-actions-and-interactions-plan.md) owns mechanical-lock integration, learned spells and mana. Statuses applied by attacks (venomous monster attacks, poisoned weapons) are proposed in the [attack status effects plan](specs/attack-status-effects-plan.md).
+Dedicated weapon inputs, four item quick slots, ordinary timed interactions and active defenses are implemented. [Action design](actor-actions-and-interactions.md) owns remaining gameplay decisions; its [plan](specs/actor-actions-and-interactions-plan.md) owns learned spells and mana. Statuses applied by attacks (venomous monster attacks, poisoned weapons) are proposed in the [attack status effects plan](specs/attack-status-effects-plan.md).
 
 [Actor statuses](specs/actor-status-integration-plan.md) provide source-owned timed conditions and a shared frozen response for players and monsters. Frost Nova, Gust, Flame Burst and Tremor use shared area contacts in the combat harness; learned casting, other attack payloads, slow, petrification and general monster buff behavior remain planned.
 

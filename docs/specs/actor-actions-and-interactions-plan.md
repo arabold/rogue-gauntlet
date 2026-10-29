@@ -1,14 +1,8 @@
 # Actions and interactions: remaining work
 
-Status: proposed extensions. Shared action ownership, dedicated weapon inputs, four item quick slots, ordinary timed interactions, dodge/guard/parry and monster tactics already exist. [Combat](../combat-system.md), [items](../stats-and-itemization.md) and [monster authoring](../monster-authoring-design.md) describe them. Do not recreate historical defense executors or timers.
+Status: proposed extensions. Shared action ownership, dedicated weapon inputs, four item quick slots, ordinary timed interactions, dodge/guard/parry, monster tactics and mechanical locks already exist. [Combat](../combat-system.md), [items](../stats-and-itemization.md), [monster authoring](../monster-authoring-design.md) and [door access](../door-access.md) describe them; further lock extensions follow the [remaining access plan](secret-doors-and-locks-plan.md). Do not recreate historical defense executors or timers.
 
 [Action design](../actor-actions-and-interactions.md) owns player-facing rules and initial content direction. This plan records only the remaining integration boundaries; the [roadmap](../development-roadmap.md) owns priority.
-
-## Mechanical locks
-
-The implemented [door access system](../door-access.md) supplies optional locks, consumable keys/picks, final actor-context validation and saved state. The existing actor interaction component remains the sole channel/progress owner, with one-second key/open and authored pick/open durations. Further lock extensions follow the [remaining access plan](secret-doors-and-locks-plan.md). Required encounter seals cannot be picked.
-
-Validate tools, target revision, range and reservation at completion. Cancellation commits nothing and retains no partial progress. Key/tool loss, wrong keys, interruption and repeated input cannot unlock or reward twice. Actor permissions remain explicit; a rat does not gain door or picking capability by proximity.
 
 ## Learned spells and mana
 
@@ -42,8 +36,7 @@ Extend current save capture with learned IDs and levels, point ledger, elemental
 ## Playable slices and acceptance
 
 1. **Fire vertical slice:** one staff family, free primary, independently learnable and upgradeable Fireball and Meteor Shower, mana, selection and surrounding-enemy target capture. Both barbarian and mage may learn/cast with a matching staff. Verify rejection without cost, exactly-once spending, interrupted costs, no reload/weapon-copy exploits and no target tracking after capture.
-2. **Optional locks:** coordinate the shared authority above with dungeon access. Verify one accepted commit, no partial progress and current-version round trips.
-3. **Actor world intentions:** reuse existing interaction channels for locally perceived permitted doors/mechanisms, without omniscient key planning or bypassing access gates.
-4. **Four-element content:** only after the fire slice is useful, complete the five-spell catalogs and distinct effects from the concept. The [spell plan](elemental-spells-plan.md) owns the revised roster, targeting, Gust push, Frost Nova freeze, visuals and staged delivery; area freeze requires its own status payload beyond the direct-hit-only [attack-status plan](attack-status-effects-plan.md).
+2. **Actor world intentions:** reuse existing interaction channels for locally perceived permitted doors/mechanisms, without omniscient key planning or bypassing access gates.
+3. **Four-element content:** only after the fire slice is useful, complete the five-spell catalogs and distinct effects from the concept. The [spell plan](elemental-spells-plan.md) owns the revised roster, targeting, Gust push, Frost Nova freeze, visuals and staged delivery; area freeze requires its own status payload beyond the direct-hit-only [attack-status plan](attack-status-effects-plan.md).
 
 Each implementation slice needs focused logic/runtime checks and an editor exercise through production entry points. Test combat while channeling, contrasting classes, save/resume and actual target placement. Exact mana costs, spell power, unlock cadence, controller bindings and durations remain playtest tuning. No expanded spell bar, weapon cycling, stamina/posture, persistent picking progress or additional monster roster is required.

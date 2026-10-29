@@ -1,6 +1,6 @@
 # Actor Actions and World Interactions
 
-Status: mixed current and intended gameplay. Dedicated weapon inputs, four item quick slots, ordinary timed interactions and active defenses are implemented; learned spells/mana and mechanical locks remain proposed. [Combat](combat-system.md) and [items](stats-and-itemization.md) own current rules; the [remaining plan](specs/actor-actions-and-interactions-plan.md) covers extensions. [Dungeon design](dungeon-exploration-design.md) owns which locks and passages exist.
+Status: mixed current and intended gameplay. Dedicated weapon inputs, four item quick slots, ordinary timed interactions, active defenses and mechanical locks ([door access](door-access.md)) are implemented; learned spells/mana remain proposed. [Combat](combat-system.md) and [items](stats-and-itemization.md) own current rules; the [remaining plan](specs/actor-actions-and-interactions-plan.md) covers extensions. [Dungeon design](dungeon-exploration-design.md) owns which locks and passages exist.
 
 ## Purpose and shared rules
 
