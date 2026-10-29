@@ -112,6 +112,8 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 		}
 		if (Kind != EarthKind.Spikes) rock.Scale = size;
 		parent.AddChild(rock); _rocks.Add(rock); _rockScales.Add(rock.Scale);
+		// Spikes start flat: the first frame is drawn before _Process scales them for the eruption.
+		if (Kind == EarthKind.Spikes) rock.Scale *= new Vector3(1, 0, 1);
 	}
 
 	private void AddWave(float radius)
@@ -150,7 +152,9 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 	private void AddRing(float radius)
 	{
 		var mesh = new TorusMesh { InnerRadius = radius * .95f, OuterRadius = radius, Rings = 20, RingSegments = 4 };
-		var ring = new MeshInstance3D { Mesh = mesh, MaterialOverride = _areaRingMaterial ?? (Material)_glow, Position = new Vector3(0, .08f, 0), CastShadow = GeometryInstance3D.ShadowCastingSetting.Off };
+		// Rings start in their first-frame state (contracted; hidden until a falling rock lands), because the first
+		// frame is drawn before _Process animates them.
+		var ring = new MeshInstance3D { Mesh = mesh, MaterialOverride = _areaRingMaterial ?? (Material)_glow, Position = new Vector3(0, .08f, 0), Scale = new Vector3(.35f, 1, .35f), Visible = Kind != EarthKind.Rockfall, CastShadow = GeometryInstance3D.ShadowCastingSetting.Off };
 		AddChild(ring); _rings.Add(ring);
 	}
 	private void AddDust(Vector3 position, float radius, int amount)
