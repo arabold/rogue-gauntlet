@@ -59,12 +59,10 @@ public class PortableLightTest
 		var normalLight = normal.GetNode<FlickerLight>("FlickerLight");
 		var darkLight = dark.GetNode<FlickerLight>("FlickerLight");
 		AssertFloat(normalLight.OmniRange).IsEqual(25f);
-		AssertFloat(normalLight.Min).IsEqual(0.25f);
-		AssertFloat(normalLight.Max).IsEqual(1f);
+		AssertFloat(normalLight.LightEnergy).IsBetween(0.25f, 1f);
 		AssertFloat(normal.GetNode<OmniLight3D>("ObjectHighlight").OmniRange).IsEqual(30f);
 		AssertFloat(darkLight.OmniRange).IsEqual(6f);
-		AssertFloat(darkLight.Min).IsEqual(0.04f);
-		AssertFloat(darkLight.Max).IsEqual(0.12f);
+		AssertFloat(darkLight.LightEnergy).IsBetween(0.0399f, 0.12f);
 		foreach (var hand in player.Inventory.EquippedItems.Keys.ToArray()) { player.Inventory.Unequip(hand); }
 		player.Inventory.Items.Clear();
 		foreach (string name in new[] { "tool_candelabrum", "tool_candle_tallow", "tool_lamp_oil", "tool_lantern_brass", "tool_torch_iron", "tool_torch_wooden" })

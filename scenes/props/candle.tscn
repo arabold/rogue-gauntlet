@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=4 uid="uid://b3gauosmertqj"]
+[gd_scene load_steps=10 format=4 uid="uid://b3gauosmertqj"]
 
 [ext_resource type="Script" uid="uid://b6qyw7gxyd48h" path="res://scenes/props/Candle.cs" id="1_mht1s"]
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="2_oclty"]
@@ -82,14 +82,6 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_y5g3b")
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_7q2e4"]
-frequency = 0.75
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_jthy0"]
-width = 64
-height = 64
-noise = SubResource("FastNoiseLite_7q2e4")
-
 [node name="Candle" type="Node3D"]
 script = ExtResource("1_mht1s")
 
@@ -105,4 +97,3 @@ skeleton = NodePath("")
 [node name="FlickerLight" parent="." instance=ExtResource("3_demc0")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0.00290871, 1.16119, 0.0150877)
 omni_range = 5.0
-noiseTexture = SubResource("NoiseTexture2D_jthy0")

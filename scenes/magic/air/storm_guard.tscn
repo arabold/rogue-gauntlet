@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/air/StormGuardVisual.cs" id="root"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Shader" path="res://scenes/magic/air/storm_shell.gdshader" id="shader"]
 [ext_resource type="Script" path="res://scenes/magic/air/GuardArcEmitter.cs" id="emitter"]
 [ext_resource type="PackedScene" path="res://scenes/magic/air/lightning_arc.tscn" id="arc"]
+[ext_resource type="Resource" uid="uid://v8gnnl1bnqv5" path="res://scenes/effects/light_flicker/electric.tres" id="light_flicker"]
 [sub_resource type="ShaderMaterial" id="material"]
 shader = ExtResource("shader")
 [sub_resource type="SphereMesh" id="sphere"]
@@ -32,7 +33,7 @@ Shell = NodePath("../Shell")
 ArcScene = ExtResource("arc")
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights")]
 script = ExtResource("timeline")
-LightFlicker = 2
+LightFlicker = ExtResource("light_flicker")
 Surfaces = [NodePath("../Shell")]
 Lights = [NodePath("../Light")]
 Duration = 0.8

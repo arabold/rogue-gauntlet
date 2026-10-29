@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/air/ThunderstormVisual.cs" id="root"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="PackedScene" path="res://scenes/magic/air/lightning_arc.tscn" id="arc"]
 [ext_resource type="PackedScene" path="res://scenes/magic/air/lightning_cracks.tscn" id="cracks"]
+[ext_resource type="Resource" uid="uid://v8gnnl1bnqv5" path="res://scenes/effects/light_flicker/electric.tres" id="light_flicker"]
 [sub_resource type="ShaderMaterial" id="material"]
 shader = ExtResource("shader")
 shader_parameter/noise_texture = ExtResource("noise")
@@ -29,7 +30,7 @@ light_energy = 1.1
 omni_range = 8.0
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights")]
 script = ExtResource("timeline")
-LightFlicker = 2
+LightFlicker = ExtResource("light_flicker")
 Surfaces = [NodePath("../ElectricWave")]
 Lights = [NodePath("../Light")]
 Duration = 1.15

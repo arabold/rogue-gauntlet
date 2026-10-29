@@ -1,24 +1,41 @@
 using Godot;
-using System;
 
+/// <summary>
+/// A light that flickers around its authored energy through a <see cref="LightFlicker"/>, starting at a random offset
+/// so torches, candles and projectiles spawned together never flicker in step. Lights whose energy an effect driver
+/// owns (fades, impact flashes) apply their flicker inside that driver instead.
+/// </summary>
 public partial class FlickerLight : OmniLight3D
 {
-	[Export] public NoiseTexture2D noiseTexture;
-	[Export] public float Min { get; set; } = 0.25f;
-	[Export] public float Max { get; set; } = 1.0f;
+	private LightFlicker _flicker;
+	private float _energy;
+	private float _time;
+	private float _offset;
 
-	private float _timePassed = 0.0f;
+	/// <summary>Unassigned leaves the light steady at its authored energy.</summary>
+	[Export]
+	public LightFlicker Flicker
+	{
+		get => _flicker;
+		set
+		{
+			_flicker = value;
+			if (!IsNodeReady()) return;
+			SetProcess(value != null);
+			if (value == null) LightEnergy = _energy;
+		}
+	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
+	public override void _Ready()
+	{
+		_energy = LightEnergy;
+		_offset = LightFlicker.RandomOffset(this);
+		SetProcess(Flicker != null);
+	}
+
 	public override void _Process(double delta)
 	{
-		if (noiseTexture == null || noiseTexture.Noise == null)
-		{
-			GD.PrintErr("Noise texture is not set!");
-			return;
-		}
-		_timePassed += (float)delta;
-		var sampledNoise = Math.Abs(noiseTexture.Noise.GetNoise1D(_timePassed));
-		LightEnergy = Min + sampledNoise * (Max - Min);
+		_time += (float)delta;
+		LightEnergy = _energy * Flicker.Sample(_time, _offset);
 	}
 }

@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectInstance.cs" id="root"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Texture2D" path="res://scenes/magic/air/toon_storm_ramp.tres" id="storm_ramp"]
 [ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_flash.gdshader" id="flash_shader"]
+[ext_resource type="Resource" uid="uid://v8gnnl1bnqv5" path="res://scenes/effects/light_flicker/electric.tres" id="light_flicker"]
 [sub_resource type="ShaderMaterial" id="material"]
 shader = ExtResource("flash_shader")
 shader_parameter/color_ramp = ExtResource("storm_ramp")
@@ -32,7 +33,7 @@ light_energy = 1.2
 omni_range = 4.0
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights")]
 script = ExtResource("timeline")
-LightFlicker = 2
+LightFlicker = ExtResource("light_flicker")
 Surfaces = [NodePath("../Flash")]
 Lights = [NodePath("../Light")]
 LightCurve = SubResource("light_curve")

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="LightFlicker" format=3 uid="uid://bypjdcf5nuu8i"]
+
+[ext_resource type="Script" uid="uid://cdw6evppde3jq" path="res://scenes/effects/LightFlicker.cs" id="1_tit1k"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_te5sl"]
+frequency = 1.0
+fractal_octaves = 2
+
+[resource]
+script = ExtResource("1_tit1k")
+Noise = SubResource("FastNoiseLite_te5sl")
+Speed = 2.5
+Min = 0.7
+Max = 1.3

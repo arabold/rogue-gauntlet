@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Script" path="res://scenes/magic/fire/FireBurstMotion.cs" id="motion"]
@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_spark_life.tres" id="spark_life"]
 [ext_resource type="Material" path="res://scenes/magic/fireball/toon_flame_card.tres" id="flame_card"]
 [ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material_res"]
+[ext_resource type="Resource" uid="uid://bypjdcf5nuu8i" path="res://scenes/effects/light_flicker/flame.tres" id="light_flicker"]
 
 [sub_resource type="ShaderMaterial" id="ribbon_mat"]
 shader = ExtResource("ribbon")
@@ -178,7 +179,7 @@ draw_pass_1 = SubResource("spark_quad")
 
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
 script = ExtResource("timeline")
-LightFlicker = 1
+LightFlicker = ExtResource("light_flicker")
 Surfaces = [NodePath("../FireRibbon"), NodePath("../GroundWave")]
 Lights = [NodePath("../FireRibbon/RingLights/Light0"), NodePath("../FireRibbon/RingLights/Light90"), NodePath("../FireRibbon/RingLights/Light180"), NodePath("../FireRibbon/RingLights/Light270"), NodePath("../FireRibbon/HigherLevelLights/Light45"), NodePath("../FireRibbon/HigherLevelLights/Light135"), NodePath("../FireRibbon/HigherLevelLights/Light225"), NodePath("../FireRibbon/HigherLevelLights/Light315")]
 LightCurve = SubResource("light_curve")
