@@ -14,8 +14,11 @@ public enum EnemyDefenseMode
 /// and triggers active defense via composed DodgeComponent and/or GuardComponent.
 /// Supports continuous combo blocking and riposte counter-attacks on guard release.
 /// </summary>
+[GlobalClass]
 public partial class EnemyDefenseController : Node
 {
+	private static readonly StringName ProjectileGroup = "projectile";
+
 	[Signal] public delegate void RiposteTriggeredEventHandler();
 
 	[Export] public EnemyBase Enemy { get; set; }
@@ -68,6 +71,8 @@ public partial class EnemyDefenseController : Node
 	private readonly RandomNumberGenerator _rng = new();
 
 	private readonly HashSet<AttackIdentity> _observedProjectiles = new();
+	private readonly HashSet<AttackIdentity> _activeProjectiles = new();
+	private readonly List<Projectile> _projectilesBuffer = new();
 	public void ConfigureRandom(ulong seed) => _rng.Seed = seed;
 	private Node3D _cachedTarget;
 	private AttackController _cachedTargetAttackCtrl;
@@ -358,14 +363,15 @@ public partial class EnemyDefenseController : Node
 		return false;
 	}
 
-	private IEnumerable<Projectile> FindProjectiles()
+	private void CollectProjectiles()
 	{
+		_projectilesBuffer.Clear();
 		if (IsInsideTree() && GetTree() != null)
 		{
-			var nodes = GetTree().GetNodesInGroup("projectile");
+			var nodes = GetTree().GetNodesInGroup(ProjectileGroup);
 			foreach (Node node in nodes)
 			{
-				if (node is Projectile p) yield return p;
+				if (node is Projectile p) _projectilesBuffer.Add(p);
 			}
 		}
 		else
@@ -375,7 +381,7 @@ public partial class EnemyDefenseController : Node
 			{
 				foreach (Node child in parent.GetChildren())
 				{
-					if (child is Projectile p) yield return p;
+					if (child is Projectile p) _projectilesBuffer.Add(p);
 				}
 			}
 		}
@@ -388,12 +394,17 @@ public partial class EnemyDefenseController : Node
 			return;
 		}
 
-		var active = new HashSet<AttackIdentity>();
-		foreach (var p in FindProjectiles()) active.Add(p.ExecutionId);
-		_observedProjectiles.IntersectWith(active);
-		Vector3 enemyPos = GetPosition(Enemy);
-		foreach (Projectile projectile in FindProjectiles())
+		CollectProjectiles();
+		_activeProjectiles.Clear();
+		for (int i = 0; i < _projectilesBuffer.Count; i++)
 		{
+			_activeProjectiles.Add(_projectilesBuffer[i].ExecutionId);
+		}
+		_observedProjectiles.IntersectWith(_activeProjectiles);
+		Vector3 enemyPos = GetPosition(Enemy);
+		for (int i = 0; i < _projectilesBuffer.Count; i++)
+		{
+			Projectile projectile = _projectilesBuffer[i];
 			if (!GodotObject.IsInstanceValid(projectile)) continue;
 			if (projectile.IsInsideTree() && !projectile.IsPhysicsProcessing()) continue;
 

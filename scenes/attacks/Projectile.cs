@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 public partial class Projectile : Node3D, IPooledNode
 {
+	private static readonly StringName PositionKey = "position";
+	private static readonly StringName NormalKey = "normal";
+	private static readonly StringName ColliderKey = "collider";
+
 	private const uint WorldLayer = 1 << 0;
 	private const uint WallsLayer = 1 << 1;
 	private const uint PlayerLayer = 1 << 2;
@@ -80,12 +84,6 @@ public partial class Projectile : Node3D, IPooledNode
 		SetHitBoxMonitoring(false, deferred: true);
 	}
 
-	public override void _EnterTree()
-	{
-		// Pooled projectiles leave and re-enter the tree; reconnect after SubscribeUntilExit unhooks.
-		if (GodotObject.IsInstanceValid(_hitBoxComponent)) SubscribeToHitBox();
-	}
-
 	public override void _Ready()
 	{
 		ProcessPhysicsPriority = CombatPhysics.Damage;
@@ -94,12 +92,10 @@ public partial class Projectile : Node3D, IPooledNode
 		_defaultImpactRadiusMinDamageScale = ImpactRadiusMinDamageScale;
 		_impactQuery.Shape = _impactShape;
 		_hitBoxComponent = GetNode<HitBoxComponent>("%HitBoxComponent");
-		SubscribeToHitBox();
+		// The hitbox is our own child, so the connection lives as long as we do.
+		_hitBoxComponent.HitDetected += OnHitDetected;
 		ResetRuntimeState();
 	}
-
-	private void SubscribeToHitBox() =>
-		this.SubscribeUntilExit(_hitBoxComponent, h => h.HitDetected += OnHitDetected, h => h.HitDetected -= OnHitDetected);
 
 	public void OnSpawnedFromPool()
 	{
@@ -259,8 +255,8 @@ public partial class Projectile : Node3D, IPooledNode
 			return false;
 		}
 
-		hitPosition = result["position"].AsVector3();
-		hitNormal = result["normal"].AsVector3();
+		hitPosition = result[PositionKey].AsVector3();
+		hitNormal = result[NormalKey].AsVector3();
 		return true;
 	}
 
@@ -325,7 +321,7 @@ public partial class Projectile : Node3D, IPooledNode
 		{
 			foreach (Godot.Collections.Dictionary result in space.IntersectShape(_impactQuery, 32))
 			{
-				Node collider = result["collider"].As<Node>();
+				Node collider = result[ColliderKey].As<Node>();
 				if (!TryGetDamageTarget(collider, out Node damageOwner, out IDamageable damageable))
 				{
 					continue;

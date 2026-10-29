@@ -188,6 +188,32 @@ public partial class CombatAccessibilityTest
 	}
 
 	[TestCase]
+	public async Task PooledArrowsStillHitAfterReuse()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		await Frames(runner.Scene(), 4);
+		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
+		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		await Frames(runner.Scene(), 3);
+		var player = harness.Player;
+		player.InputController.SetPhysicsProcess(false);
+		player.MovementComponent.SetPhysicsProcess(false);
+		float health = player.HealthComponent.CurrentHealth;
+		var scene = GD.Load<PackedScene>("res://scenes/attacks/projectile.tscn");
+		// Despawning leaves the tree; the reused arrow must still report hits without running _Ready again.
+		var first = ScenePool.Spawn<Projectile>(scene, runner.Scene());
+		ScenePool.Despawn(first);
+		await Frames(runner.Scene(), 1); // Projectiles return to the pool deferred, so reuse always comes on a later frame.
+		var arrow = ScenePool.Spawn<Projectile>(scene, runner.Scene());
+		AssertObject(arrow).IsSame(first);
+		arrow.Initialize(player.GlobalPosition + Vector3.Up + Vector3.Forward * 3,
+			Vector3.Back, 16, 10, 10, 10, 0, harness.Monster);
+		await Frames(runner.Scene(), 15);
+		AssertFloat(player.HealthComponent.CurrentHealth).IsLess(health);
+	}
+
+	[TestCase]
 	public async Task CrossbowTracksThenLocksAndFiresAlongTheWarningAfterPlayerMoves()
 	{
 		using var runner = TestFactories.LoadCombatHarness();

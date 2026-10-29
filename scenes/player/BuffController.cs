@@ -10,6 +10,7 @@ using System.Linq;
 /// followed by a poison potion) read as one continuous condition. Observers re-read what they need on
 /// <see cref="BuffsChanged"/>.
 /// </summary>
+[GlobalClass]
 public partial class BuffController : Node
 {
 	/// <summary>Fired once after buffs were applied, removed, expired or cleared.</summary>
