@@ -29,7 +29,7 @@ Optional argument: a branch, commit range, PR number or path to review instead o
 | --- | --- | --- |
 | Studio Python | `asset-studio/**/*.py` | `asset-studio/README.md`, `.agents/skills/assets/SKILL.md` |
 | Studio recipes | `asset-studio/{characters,costumes,objects}/**/*.json` | same as Studio Python |
-| Godot C# | `scenes/**/*.cs`, `scripts/**/*.cs`, `common/**/*.cs`, `tests/**/*.cs` | `AGENTS.md`, `ARCHITECTURE.md` |
+| Godot C# | `scenes/**/*.cs`, `scripts/**/*.cs`, `common/**/*.cs`, `tests/**/*.cs` | `AGENTS.md`, `ARCHITECTURE.md`, `.agents/skills/godot-csharp/SKILL.md` |
 | Godot data | `*.tscn`, `*.tres`, `project.godot` | `.agents/skills/godot-mcp/SKILL.md` |
 | GDScript tools | `asset-studio/godot/*.gd`, `.agents/skills/**/*.gd` | `.agents/skills/godot-mcp/SKILL.md` |
 
@@ -76,10 +76,10 @@ change, and name the helper to call instead.
   - Builders take colors from named palette slots, not raw RGB.
   - New prefabs register in `prefabs/registry.py`, not in a parallel list.
 - **Godot:**
-  - `SignalBus` emit helpers for decoupled events.
-  - The existing components (`HealthComponent`, `MovementComponent`, `HurtBoxComponent`, `ActionManager`, and so on).
+  - `SignalBus` emit helpers for decoupled events, `[Signal]` delegates for local component notifications, and `ObservableResource` (`SetValue`) for observed data resources.
+  - The existing components (`HealthComponent`, `MovementComponent`, `HurtBoxComponent`, `FadeOutComponent`, `SurfaceAppearanceController`, `ActionManager`, and so on).
   - The interfaces in `common/interfaces/` (`IDamageable`, `IInteractive`, `IPlayerAction`).
-  - The existing `Resource` definitions and factories under `scenes/`.
+  - The existing `Resource` definitions, `[GlobalClass]` strategies, and factories under `scenes/`.
   - The bundled validators and renderers instead of new one-off probe scripts:
     `.agents/skills/godot-mcp/scripts/inspect_resource.gd`, `render_level_topdown.gd` and `asset-studio/godot/*`.
 
@@ -100,6 +100,11 @@ code. Name the simpler form that does the same job.
   - Classes with several reasons to change. Split them into components.
   - Extra layers, factories or interfaces with a single implementation and no pressure to vary. Don't split just to
     add patterns.
+  - Programmatic-only `GetX()`/`SetX()` methods or `{ get; private set; }` on tunable attributes, configurable actor
+    states, or component/resource references that should be `[Export]` properties (`{ get; set; }`) bound in the
+    Godot Inspector (with `IsNodeReady()`-guarded reactive setters when side effects are needed).
+  - `GetNode<T>("...")` for authored sibling/child dependencies where an `[Export]` reference wired in the `.tscn`
+    belongs.
   - `GameManager`-style registries, autoload growth or service-locator lookups where an exported dependency or
     parent initialization works.
   - Hardcoded `res://` paths in gameplay logic instead of exported `PackedScene`/`Resource` fields.
@@ -120,9 +125,11 @@ and long-lived closures that keep large data alive. Name the cheaper alternative
   - Closures kept in long-lived structures that capture whole piece dicts or mesh arrays, such as host lambdas,
     where a small object holding only the needed fields would do.
 - **Godot:**
-  - Allocations in `_Process`/`_PhysicsProcess`: LINQ, new collections, string formatting.
-  - `GetNode`, group queries or `ResourceLoader.Load` on every frame instead of once in `_Ready`.
-  - Signal subscriptions or lambdas capturing `this` that are never disconnected.
+  - Allocations in `_Process`/`_PhysicsProcess`: LINQ, new collections, string formatting, or uncached `StringName` literals (`Input.IsActionPressed`, `SetShaderParameter`, `IsInGroup`, `AnimationTree`).
+  - `GetNode`, group queries or `ResourceLoader.Load` on every frame instead of once in `_Ready` or via `[Export]`.
+  - Short-lived combat/VFX scenes (`PackedScene.Instantiate` + `QueueFree`) that should use `ScenePool.Spawn<T>` / `ScenePool.Despawn` and `IPooledNode`, or idle components leaving `_PhysicsProcess`/`_Process` enabled when inactive.
+  - Signal subscriptions or lambdas capturing `this` on long-lived emitters (`SignalBus.Instance`, runtime `Resource`s,
+    `SceneTree`) that do not use `this.SubscribeUntilExit(...)`.
   - Navmesh rebakes or full regeneration for a local change.
   - Tests marked `[RequireGodotRuntime]` that don't need the engine; they boot Godot for nothing.
 
@@ -144,10 +151,13 @@ on shared code mean the fix isn't deep enough; name the more general change to t
   - Gameplay data (stats, damage, `.tres`) creeping into the art-only studio.
 - **Godot:**
   - Hand-placed scene fixes for something a generator or factory produces.
-  - Null checks or deferred calls that mask an initialization-order problem dependency injection or `_Ready`
+  - Null checks or deferred calls that mask an initialization-order problem dependency injection or `_EnterTree`/`_Ready`
     ordering should solve.
   - Broad `try`/`catch` blocks that swallow failures.
-  - Enemy- or item-specific branches in shared AI, components or `SignalBus`.
+  - Enemy- or item-specific branches (`switch`/`if` chains) in shared AI, components or `SignalBus` that belong in
+    a selectable `[GlobalClass] Resource` strategy.
+  - Forward+-only rendering APIs such as `GeometryInstance3D.Transparency`, or mutating shared material alpha in place
+    instead of duplicating materials (`FadeOutComponent`) or using a two-pass depth pre-pass shader on the Mobile renderer.
   - Feature logic in autoloads.
 
 ## Phase 2 — Apply the fixes
