@@ -1,8 +1,14 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-/// <summary>Resolves one contact per enemy as a blizzard or moving flame ribbons touch it.</summary>
+/// <summary>
+/// Resolves a lingering field's contacts: moving flame ribbons touch each enemy once; a hailstorm slows everyone
+/// inside it and drops evenly spread shards, each hitting whoever stands where it lands; an ice wall stays where
+/// it was cast and hits and shoves back out every enemy inside its ring, again while one keeps pushing in.
+/// Each mode runs its cheap checks before the line-of-sight test.
+/// </summary>
 public partial class LingeringAreaField : Node3D
 {
 	private LingeringAreaSpell _source;
@@ -11,64 +17,105 @@ public partial class LingeringAreaField : Node3D
 	private Node3D _visual;
 	private int _level;
 	private readonly HashSet<Node3D> _contacted = [];
-	private readonly HashSet<Node3D> _successful = [];
 	private readonly HashSet<BuffController> _slowed = [];
+	private readonly HashSet<BuffController> _present = [];
+	private readonly Queue<(Vector3 Point, double Due)> _shards = new();
+	private readonly Dictionary<Node3D, double> _repelled = [];
+	private Func<bool> _isActive;
+	private HailPattern _hail;
 	private Vector3[] _previousHeads;
 	private ulong _sequence;
+	private double _clock;
 	private bool _ended;
 
 	public void Configure(LingeringAreaSpell source, AreaCastLifecycle.Cast cast, LingeringAreaDefinition definition, int level, Node3D visual)
 	{
 		_source = source; _cast = cast; _definition = definition; _level = level; _visual = visual;
+		_isActive = () => !_ended;
+		if (definition.Kind == LingeringAreaKind.Hailstorm) _hail = new HailPattern(cast.Random, definition.ShardsPerSecondByLevel[level - 1]);
 	}
 	public override void _PhysicsProcess(double delta)
 	{
 		if (_ended || !IsInstanceValid(_source) || !_source.IsInsideTree() || !IsInstanceValid(_cast.Caster) || !_cast.Caster.IsInsideTree()
 			|| !IsInstanceValid(_visual) || _visual.IsQueuedForDeletion()) { End(); return; }
+		_clock += delta;
 		float radius = _definition.RadiusByLevel[_level - 1];
 		var targets = AreaSpellTargets.Capture(_source, _cast.Caster, _cast.Origin, radius, _cast.World) ?? [];
-		var present = new HashSet<BuffController>();
+		switch (_definition.Kind)
+		{
+			case LingeringAreaKind.Hailstorm: Hail(targets, (float)delta, radius); break;
+			case LingeringAreaKind.IceWall: Repel(targets); break;
+			default: Sweep(targets); break;
+		}
+	}
+	private void Sweep(Node3D[] targets)
+	{
 		Vector3[] heads = _visual is FireSpellVisual fire ? fire.Sweep.Heads.Take(_level).Select(head => head.GlobalPosition).ToArray() : [];
 		_previousHeads ??= heads;
+		var touched = targets.Where(target => !_contacted.Contains(target) && TouchesFlame(target.GlobalPosition, heads)).ToArray();
+		if (touched.Length > 0) Resolve(touched, _cast.Origin, (target, result) =>
+		{
+			_contacted.Add(target);
+			if (result.Outcome == DamageOutcome.Damaged && IsInstanceValid(target) && target.IsInsideTree()) _source.Ignite(_cast.Caster, target, _cast.Random, _level);
+		});
+		_previousHeads = heads;
+	}
+	private void Hail(Node3D[] targets, float delta, float radius)
+	{
+		if (_visual is WaterSpellVisual { Hailstorm: { IsFalling: true } storm })
+			for (int count = _hail.Advance(delta); count > 0; count--)
+			{
+				Vector3 point = _hail.Next(_cast.Origin, radius);
+				if (!WorldSight.IsClear(_cast.World, _cast.Origin + Vector3.Up, point + Vector3.Up)) continue;
+				storm.DropShard(point); _shards.Enqueue((point, _clock + storm.FlightTime));
+			}
+		while (_shards.Count > 0 && _shards.Peek().Due <= _clock)
+		{
+			Vector3 point = _shards.Dequeue().Point;
+			var struck = targets.Where(target => new Vector2(target.GlobalPosition.X - point.X, target.GlobalPosition.Z - point.Z).Length() <= _definition.ShardHitRadius).ToArray();
+			if (struck.Length > 0) Resolve(struck, point);
+			if (_ended) return;
+		}
+		_present.Clear();
 		foreach (var target in targets)
 		{
-			if (!AreaSpellTargets.IsVisible(target, _cast.World, _cast.Origin)) continue;
-			bool touches = _definition.Kind == LingeringAreaKind.Snowstorm || TouchesFlame(target.GlobalPosition, heads);
-			if (!touches) continue;
-			if (_contacted.Add(target))
+			if (target is not IStatusActor { BuffController: { } statuses } || target is not ISlowActor { SlowStatus: not null }
+				|| statuses.Health?.IsDead == true || !AreaSpellTargets.IsVisible(target, _cast.World, _cast.Origin)) continue;
+			if (!statuses.HasStatusFrom(this))
 			{
-				Vector3 direction = target.GlobalPosition - _cast.Origin; direction.Y = 0;
-				var contact = new DamageContext { ExecutionId = new AttackIdentity(_cast.Caster.GetInstanceId(), ++_sequence),
-					SourceNode = _source, OwnerNode = _cast.Caster, Faction = HurtBoxComponent.GetDamageSource(_cast.Caster),
-					Amount = _definition.DamageByLevel[_level - 1], Random = _cast.Random, IncomingDirection = direction.Normalized(),
-					DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, DeliveryKind = DamageDeliveryKind.AreaImpact,
-					Element = _definition.Kind == LingeringAreaKind.SolarFlares ? DamageElement.Fire : DamageElement.Water };
-				var result = ((ICombatDamageable)target).ResolveDamage(in contact);
+				_slowed.Add(statuses);
+				if (!statuses.SetPersistentStatus(_definition.SlowConditions[_level - 1], this, true)) _slowed.Remove(statuses);
 				if (_ended) return;
-				if (result.Outcome == DamageOutcome.Damaged)
-				{
-					_successful.Add(target);
-					if (_definition.Kind == LingeringAreaKind.SolarFlares && IsInstanceValid(target) && target.IsInsideTree()) _source.Ignite(_cast.Caster, target, _cast.Random, _level);
-				}
 			}
-			if (_definition.Kind == LingeringAreaKind.Snowstorm && _successful.Contains(target)
-				&& target is IStatusActor { BuffController: { } active } && target is ISlowActor { SlowStatus: not null }
-				&& active.Health?.IsDead != true)
-			{
-				if (!active.HasStatusFrom(this))
-				{
-					_slowed.Add(active);
-					if (!active.SetPersistentStatus(_definition.SlowConditions[_level - 1], this, true)) _slowed.Remove(active);
-					if (_ended) return;
-				}
-				if (_slowed.Contains(active)) present.Add(active);
-			}
+			if (_slowed.Contains(statuses)) _present.Add(statuses);
 		}
-		foreach (var statuses in _slowed.Where(value => !present.Contains(value)).ToArray())
+		if (_slowed.Count == _present.Count) return;
+		foreach (var statuses in _slowed.Where(value => !_present.Contains(value)).ToArray())
 		{
 			_slowed.Remove(statuses); if (IsInstanceValid(statuses)) statuses.RemoveStatuses(this);
 		}
-		_previousHeads = heads;
+	}
+	private void Repel(Node3D[] targets)
+	{
+		var due = targets.Where(target => !_repelled.TryGetValue(target, out double next) || _clock >= next).ToArray();
+		if (due.Length > 0) Resolve(due, _cast.Origin, (target, _) => _repelled[target] = _clock + _definition.RepelSeconds);
+	}
+	/// <summary>
+	/// Hits each visible target from <paramref name="origin"/> with one field contact. Hail lands many small hits,
+	/// so its shards bypass armor (whose per-hit roll would swallow them) and never interrupt or stagger; the ice
+	/// wall shoves whoever it hits back out of its ring.
+	/// </summary>
+	private void Resolve(Node3D[] targets, Vector3 origin, Action<Node3D, DamageResolution> afterContact = null)
+	{
+		bool hail = _definition.Kind == LingeringAreaKind.Hailstorm;
+		var contact = new DamageContext { ExecutionId = new AttackIdentity(_cast.Caster.GetInstanceId(), ++_sequence),
+			SourceNode = _source, OwnerNode = _cast.Caster, Faction = HurtBoxComponent.GetDamageSource(_cast.Caster),
+			Amount = _definition.DamageByLevel[_level - 1], Random = _cast.Random,
+			DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, DeliveryKind = DamageDeliveryKind.AreaImpact,
+			Element = _definition.Kind == LingeringAreaKind.SolarFlares ? DamageElement.Fire : DamageElement.Water,
+			BypassArmor = hail, SuppressHitReaction = hail,
+			ForcedPush = _definition.Kind == LingeringAreaKind.IceWall ? _definition.RepelPush : 0 };
+		AreaSpellTargets.Resolve(targets, _cast.World, origin, _cast.Facing, contact, _isActive, afterContact);
 	}
 	private bool TouchesFlame(Vector3 target, Vector3[] heads)
 	{

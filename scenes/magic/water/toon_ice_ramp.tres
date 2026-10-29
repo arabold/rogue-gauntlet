@@ -1,0 +1,10 @@
+[gd_resource type="GradientTexture1D" load_steps=2 format=3]
+
+[sub_resource type="Gradient" id="ice_bands"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0, 0.22, 0.45, 0.68, 0.86)
+colors = PackedColorArray(0.1, 0.22, 0.45, 1, 0.25, 0.52, 0.82, 1, 0.52, 0.8, 0.96, 1, 0.8, 0.95, 1, 1, 0.96, 1, 1, 1)
+
+[resource]
+gradient = SubResource("ice_bands")
+width = 64

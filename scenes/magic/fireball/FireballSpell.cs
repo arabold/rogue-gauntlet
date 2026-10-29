@@ -12,18 +12,21 @@ public partial class FireballSpell : Node3D
 	[Export] public float Speed { get; set; } = 13f;
 	[Export] public int[] TargetCounts { get; set; } = [1, 2, 3];
 	[Export] public float[] DamageByLevel { get; set; } = [8f, 11f, 14f];
-	[Export] public float[] VisualScaleByLevel { get; set; } = [.58f, 1.15f, 1.8f];
+	/// <summary>Per-level scale of the projectile's visual layers, shared with <see cref="TargetedSpell"/>.</summary>
+	public static readonly float[] LevelVisualScales = [.8f, 1.15f, 1.6f];
 	[Export] public float[] ImpactScaleByLevel { get; set; } = [1.1f, 1.45f, 1.9f];
 	private readonly RandomNumberGenerator _targetRandom = new();
 	private readonly RandomNumberGenerator _visualRandom = new();
+	private static readonly NodePath[] TrailPaths = ["RibbonTrail", "HotRibbon"];
+	private static readonly NodePath[] LayerPaths = ["Pivot/Core", "Pivot/FlameCrown", "Pivot/FlameWake", "Pivot/OuterFlames", "Pivot/SmokeWake", "Pivot/Embers", "Pivot/Light"];
 
 	/// <summary>Samples without replacement; cosmetic filler never advances the target RNG.</summary>
 	public int Cast(int level, IEnumerable<Node3D> candidates, ulong seed)
 	{
-		if (level < 1 || level > TargetCounts.Length || level > DamageByLevel.Length || level > VisualScaleByLevel.Length || level > ImpactScaleByLevel.Length
+		if (level < 1 || level > TargetCounts.Length || level > DamageByLevel.Length || level > LevelVisualScales.Length || level > ImpactScaleByLevel.Length
 			|| ProjectileScene == null || Caster == null || DeliveryRoot == null || !Caster.IsInsideTree() || !DeliveryRoot.IsInsideTree() || Radius < 3f || Speed <= 0) return 0;
 		int count = TargetCounts[level - 1];
-		if (count < 1 || DamageByLevel[level - 1] < 0 || VisualScaleByLevel[level - 1] <= 0 || ImpactScaleByLevel[level - 1] <= 0) return 0;
+		if (count < 1 || DamageByLevel[level - 1] < 0 || ImpactScaleByLevel[level - 1] <= 0) return 0;
 		_targetRandom.Seed = seed;
 		_visualRandom.Seed = seed ^ 0xB33F17UL;
 		var targets = candidates.Where(t => GodotObject.IsInstanceValid(t) && t.IsInsideTree()
@@ -40,14 +43,13 @@ public partial class FireballSpell : Node3D
 		}
 		Vector3 origin = Caster.GlobalPosition + Vector3.Up;
 		float damage = DamageByLevel[level - 1];
-		float scale = VisualScaleByLevel[level - 1];
 		float impactScale = ImpactScaleByLevel[level - 1];
-		foreach (var target in captured) Launch(origin, target.Position, target.Owner, damage, scale, impactScale);
+		foreach (var target in captured) Launch(origin, target.Position, target.Owner, damage, level, impactScale);
 		for (int i = captured.Count; i < count; i++)
 		{
 			float angle = _visualRandom.RandfRange(0, Mathf.Tau);
 			float distance = _visualRandom.RandfRange(3f, Radius);
-			Launch(origin, origin + new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * distance, null, 0, scale, impactScale);
+			Launch(origin, origin + new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * distance, null, 0, level, impactScale);
 		}
 		return captured.Count;
 	}
@@ -55,30 +57,32 @@ public partial class FireballSpell : Node3D
 	/// <summary>Preview a harmless flight into a wall through the same projectile impact path.</summary>
 	public bool PreviewWall(int level, Vector3 destination)
 	{
-		if (level < 1 || level > VisualScaleByLevel.Length || level > ImpactScaleByLevel.Length
+		if (level < 1 || level > LevelVisualScales.Length || level > ImpactScaleByLevel.Length
 			|| ProjectileScene == null || Caster == null || DeliveryRoot == null || !Caster.IsInsideTree() || !DeliveryRoot.IsInsideTree()) return false;
 		Vector3 origin = Caster.GlobalPosition + Vector3.Up;
 		if (origin.DistanceSquaredTo(destination) < 0.01f || Speed <= 0) return false;
-		Launch(origin, destination, null, 0, VisualScaleByLevel[level - 1], ImpactScaleByLevel[level - 1]);
+		Launch(origin, destination, null, 0, level, ImpactScaleByLevel[level - 1]);
 		return true;
 	}
 
-	private void Launch(Vector3 origin, Vector3 destination, Node target, float damage, float scale, float impactScale)
+	private void Launch(Vector3 origin, Vector3 destination, Node target, float damage, int level, float impactScale)
 	{
 		var projectile = ProjectileScene.Instantiate<Projectile>();
 		DeliveryRoot.AddChild(projectile);
 		projectile.RestrictToTarget(target, impactScale);
 		Vector3 displacement = destination - origin;
 		projectile.Initialize(origin, displacement.Normalized(), Speed, displacement.Length(), damage, damage, 0, Caster);
-		ConfigureProjectileVisual(projectile, scale);
+		ConfigureProjectileVisual(projectile, level);
 	}
 
-	/// <summary>Scale only the visual layers, leaving the projectile collision shape unchanged.</summary>
-	public static void ConfigureProjectileVisual(Projectile projectile, float scale)
+	/// <summary>Scale only the visual layers for a level, leaving the projectile collision shape unchanged.</summary>
+	public static void ConfigureProjectileVisual(Projectile projectile, int level)
 	{
-		foreach (string name in new[] { "RibbonTrail", "HotRibbon" })
-			if (projectile.GetNodeOrNull<MagicRibbonTrail>(name) is { } trail) trail.Width *= Mathf.Lerp(.8f, 1.4f, Mathf.Clamp((scale - .58f) / 1.22f, 0f, 1f));
-		foreach (string name in new[] { "Core", "HeatShell", "FlameWake", "OuterFlames", "SmokeWake", "Embers", "Light" })
-			if (projectile.GetNodeOrNull<Node3D>($"Pivot/{name}") is Node3D visual) visual.Scale = Vector3.One * scale;
+		float scale = LevelVisualScales[level - 1];
+		float trailWidth = Mathf.Lerp(.8f, 1.4f, (level - 1f) / (LevelVisualScales.Length - 1));
+		foreach (var path in TrailPaths)
+			if (projectile.GetNodeOrNull<MagicRibbonTrail>(path) is { } trail) trail.Width *= trailWidth;
+		foreach (var path in LayerPaths)
+			if (projectile.GetNodeOrNull<Node3D>(path) is { } visual) visual.Scale = Vector3.One * scale;
 	}
 }

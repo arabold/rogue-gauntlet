@@ -1,13 +1,15 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectInstance.cs" id="root"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Shader" path="res://scenes/magic/air/gust.gdshader" id="shader"]
 [ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="Shader" path="res://scenes/magic/air/gust_wall.gdshader" id="wall_shader"]
+[ext_resource type="Texture2D" path="res://scenes/magic/air/toon_wind_ramp.tres" id="wind_ramp"]
 [sub_resource type="ShaderMaterial" id="wall_material"]
 shader = ExtResource("wall_shader")
 shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/color_ramp = ExtResource("wind_ramp")
 [sub_resource type="CylinderMesh" id="wall_mesh"]
 top_radius = 8.9
 bottom_radius = 8.9
@@ -19,6 +21,7 @@ cap_bottom = false
 [sub_resource type="ShaderMaterial" id="material"]
 shader = ExtResource("shader")
 shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/color_ramp = ExtResource("wind_ramp")
 [sub_resource type="PlaneMesh" id="plane"]
 size = Vector2(20, 20)
 [node name="Gust" type="Node3D" node_paths=PackedStringArray("Timeline")]

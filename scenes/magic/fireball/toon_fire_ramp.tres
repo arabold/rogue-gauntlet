@@ -1,0 +1,10 @@
+[gd_resource type="GradientTexture1D" load_steps=2 format=3]
+
+[sub_resource type="Gradient" id="fire_bands"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0, 0.22, 0.45, 0.68, 0.86)
+colors = PackedColorArray(0.55, 0.07, 0.03, 1, 0.9, 0.2, 0.04, 1, 1, 0.47, 0.07, 1, 1, 0.76, 0.2, 1, 1, 0.9, 0.52, 1)
+
+[resource]
+gradient = SubResource("fire_bands")
+width = 64

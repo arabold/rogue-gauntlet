@@ -182,7 +182,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		if (unaware) Awareness.NoticeAttacker(contact.OwnerNode);
 		// Capture the guard before absorption: the final hit can deplete it but still reflects.
 		var shield = _shield;
-		float absorbed = shield?.Absorb(finalDamage, contact.Element) ?? 0;
+		float absorbed = shield?.Absorb(finalDamage) ?? 0;
 		finalDamage = Mathf.Max(0, finalDamage - absorbed);
 		DamageResolution Complete(DamageOutcome outcome, float amount = 0)
 		{

@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://scenes/magic/water/ice_crystal.gdshader" id="shader"]
+[ext_resource type="Texture2D" path="res://scenes/magic/water/toon_ice_ramp.tres" id="ramp"]
+
+[resource]
+shader = ExtResource("shader")
+shader_parameter/color_ramp = ExtResource("ramp")

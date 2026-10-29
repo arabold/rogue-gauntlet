@@ -1,8 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 [ext_resource type="Script" path="res://scenes/components/SlowStatusComponent.cs" id="script"]
 [ext_resource type="Resource" path="res://scenes/buffs/conditions/slowed_1.tres" id="slow1"]
 [ext_resource type="Resource" path="res://scenes/buffs/conditions/slowed_2.tres" id="slow2"]
 [ext_resource type="Resource" path="res://scenes/buffs/conditions/slowed_3.tres" id="slow3"]
+[ext_resource type="Resource" path="res://scenes/effects/world/chilled/chilled.tres" id="appearance"]
 [node name="SlowStatusComponent" type="Node"]
 script = ExtResource("script")
 Conditions = [ExtResource("slow1"), ExtResource("slow2"), ExtResource("slow3")]
+Appearance = ExtResource("appearance")

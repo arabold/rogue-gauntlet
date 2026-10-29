@@ -24,14 +24,12 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 		float radius = Definition.RadiusByLevel[level - 1];
 		if (!AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, radius, out var cast)) return false;
 		var node = VisualScene.Instantiate();
-		if (node is not WaterSpellVisual visual || !visual.Area || visual.Timeline == null)
+		if (node is not WaterSpellVisual visual || visual.Timeline == null || !visual.ConfigureArea(level, radius))
 		{
 			node?.Free();
 			return false;
 		}
 		var visibility = AreaVisibility.Capture(cast.World, cast.Origin, radius);
-		visual.ConfigureLevel(level);
-		visual.SetAreaRadius(radius);
 		VisualRoot.AddChild(visual);
 		visual.GlobalPosition = cast.Origin;
 		visual.SetVisibility(visibility);

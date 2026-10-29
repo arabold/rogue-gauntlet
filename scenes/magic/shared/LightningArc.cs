@@ -5,7 +5,8 @@ public partial class LightningArc : MeshInstance3D
 {
 	[Export] public VisualEffectTimeline Timeline { get; set; }
 	[Export] public MeshInstance3D Impact { get; set; }
-	[Export] public float Width { get; set; } = .38f;
+	private const float DefaultWidth = .5f;
+	[Export] public float Width { get; set; } = DefaultWidth;
 	[Export] public float Jaggedness { get; set; } = .28f;
 	private Vector3 _start, _target, _end;
 	private ulong _seed;
@@ -26,6 +27,8 @@ public partial class LightningArc : MeshInstance3D
 		GlobalPosition = _start;
 		_end = ToLocal(_target);
 		if (Impact != null) Impact.Position = _end;
+		// Wider (higher-level) bolts flash brighter.
+		Timeline?.SetLightMultiplier(Mathf.Clamp(Width / DefaultWidth, .5f, 2f));
 		Rebuild();
 	}
 	public override void _Process(double delta)

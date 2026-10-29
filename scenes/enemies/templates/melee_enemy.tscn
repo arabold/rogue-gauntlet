@@ -482,10 +482,11 @@ Host = NodePath("../WorldEffects")
 Actor = NodePath("..")
 Target = NodePath("../Pivot")
 
-[node name="SlowStatusComponent" parent="." node_paths=PackedStringArray("Statuses", "Movement", "Health") instance=ExtResource("slow_status_scene")]
+[node name="SlowStatusComponent" parent="." node_paths=PackedStringArray("Statuses", "Movement", "Health", "Effects") instance=ExtResource("slow_status_scene")]
 Statuses = NodePath("../BuffController")
 Movement = NodePath("../MovementComponent")
 Health = NodePath("../HealthComponent")
+Effects = NodePath("../WorldEffects")
 
 [node name="BurningStatusComponent" parent="." node_paths=PackedStringArray("Statuses", "Health", "Effects") instance=ExtResource("burning_status_scene")]
 Statuses = NodePath("../BuffController")

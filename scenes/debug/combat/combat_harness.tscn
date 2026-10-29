@@ -47,8 +47,8 @@
 [ext_resource type="PackedScene" path="res://scenes/magic/earth/obsidian_guard.tscn" id="spiked_armor_visual"]
 [ext_resource type="Resource" path="res://scenes/magic/water/frost_guard_combat.tres" id="frost_guard_definition"]
 [ext_resource type="PackedScene" path="res://scenes/magic/water/frost_guard.tscn" id="frost_guard_visual"]
-[ext_resource type="Resource" path="res://scenes/magic/water/water_serpent_combat.tres" id="water_serpent_definition"]
-[ext_resource type="PackedScene" path="res://scenes/magic/water/water_serpent.tscn" id="water_serpent_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/water/ice_wall_combat.tres" id="ice_wall_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/ice_wall.tscn" id="ice_wall_visual"]
 [ext_resource type="PackedScene" path="res://scenes/magic/shared/targeted_spell.tscn" id="targeted_spell"]
 [ext_resource type="Resource" path="res://scenes/magic/fire/fireball_combat.tres" id="fireball_definition"]
 [ext_resource type="PackedScene" path="res://scenes/magic/fireball/fireball_visual.tscn" id="fireball_visual"]
@@ -66,8 +66,8 @@
 [ext_resource type="PackedScene" path="res://scenes/magic/shared/lingering_area_spell.tscn" id="lingering_spell"]
 [ext_resource type="Resource" path="res://scenes/magic/fire/solar_flares_combat.tres" id="solar_definition"]
 [ext_resource type="PackedScene" path="res://scenes/magic/fire/solar_flares.tscn" id="solar_visual"]
-[ext_resource type="Resource" path="res://scenes/magic/water/snowstorm_combat.tres" id="snow_definition"]
-[ext_resource type="PackedScene" path="res://scenes/magic/water/snowstorm.tscn" id="snow_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/water/hailstorm_combat.tres" id="hail_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/hailstorm.tscn" id="hail_visual"]
 
 [sub_resource type="BoxShape3D" id="floor_shape"]
 size = Vector3(40, 1, 40)
@@ -169,9 +169,10 @@ VisualScene = ExtResource("spiked_armor_visual")
 Definition = ExtResource("frost_guard_definition")
 VisualScene = ExtResource("frost_guard_visual")
 
-[node name="WaterSerpentSpell" parent="." instance=ExtResource("guard_spell")]
-Definition = ExtResource("water_serpent_definition")
-VisualScene = ExtResource("water_serpent_visual")
+[node name="IceWallSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("lingering_spell")]
+Definition = ExtResource("ice_wall_definition")
+VisualScene = ExtResource("ice_wall_visual")
+VisualRoot = NodePath("..")
 
 [node name="FireballSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("targeted_spell")]
 Definition = ExtResource("fireball_definition")
@@ -210,9 +211,9 @@ Definition = ExtResource("solar_definition")
 VisualScene = ExtResource("solar_visual")
 VisualRoot = NodePath("..")
 
-[node name="SnowstormSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("lingering_spell")]
-Definition = ExtResource("snow_definition")
-VisualScene = ExtResource("snow_visual")
+[node name="HailstormSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("lingering_spell")]
+Definition = ExtResource("hail_definition")
+VisualScene = ExtResource("hail_visual")
 VisualRoot = NodePath("..")
 
 [node name="PracticeTarget" parent="." instance=ExtResource("practice_target")]
@@ -222,7 +223,7 @@ position = Vector3(0, 0, -2)
 script = ExtResource("harness")
 Player = NodePath("../Player")
 PracticeTarget = NodePath("../PracticeTarget")
-SpellComponents = [NodePath("../FrostNovaSpell"), NodePath("../GustSpell"), NodePath("../FlameBurstSpell"), NodePath("../TremorSpell"), NodePath("../RockSpikesSpell"), NodePath("../ThunderstormSpell"), NodePath("../EmberGuardSpell"), NodePath("../StormGuardSpell"), NodePath("../StoneBarrierSpell"), NodePath("../SpikedArmorSpell"), NodePath("../FrostGuardSpell"), NodePath("../WaterSerpentSpell"), NodePath("../FireballSpell"), NodePath("../MeteorShowerSpell"), NodePath("../RockfallSpell"), NodePath("../BallLightningSpell"), NodePath("../ChainLightningSpell"), NodePath("../IceLanceSpell"), NodePath("../SolarFlaresSpell"), NodePath("../SnowstormSpell")]
+SpellComponents = [NodePath("../FrostNovaSpell"), NodePath("../GustSpell"), NodePath("../FlameBurstSpell"), NodePath("../TremorSpell"), NodePath("../RockSpikesSpell"), NodePath("../ThunderstormSpell"), NodePath("../EmberGuardSpell"), NodePath("../StormGuardSpell"), NodePath("../StoneBarrierSpell"), NodePath("../SpikedArmorSpell"), NodePath("../FrostGuardSpell"), NodePath("../IceWallSpell"), NodePath("../FireballSpell"), NodePath("../MeteorShowerSpell"), NodePath("../RockfallSpell"), NodePath("../BallLightningSpell"), NodePath("../ChainLightningSpell"), NodePath("../IceLanceSpell"), NodePath("../SolarFlaresSpell"), NodePath("../HailstormSpell")]
 Monsters = [ExtResource("monster_minion"), ExtResource("monster_skeleton"), ExtResource("monster_warden"), ExtResource("monster_crossbow"), ExtResource("monster_rat")]
 Weapons = [ExtResource("weapon_0"), ExtResource("weapon_1"), ExtResource("weapon_2"), ExtResource("weapon_3"), ExtResource("weapon_4"), ExtResource("weapon_5"), ExtResource("weapon_6"), ExtResource("weapon_7"), ExtResource("weapon_8"), ExtResource("weapon_9"), ExtResource("weapon_10")]
 

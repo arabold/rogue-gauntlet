@@ -59,7 +59,7 @@ public partial class FallingMeteorVisual : Node
 		{
 			var impact = LandingImpact.Instantiate<Node3D>(); VisualRoot.GetParent().AddChild(impact);
 			impact.GlobalPosition = VisualRoot.GlobalPosition + Vector3.Up * .08f;
-			impact.Rotation = new Vector3(-Mathf.Pi / 2, 0, 0); impact.Scale = VisualRoot.Scale;
+			impact.Scale = VisualRoot.Scale;
 		}
 		if (GroundCracks != null)
 		{

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="WorldEffectDefinition" load_steps=3 format=3]
+[ext_resource type="Script" path="res://scenes/effects/world/WorldEffectDefinition.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/chilled/chilled.tscn" id="scene"]
+[resource]
+resource_name = "Chilled"
+script = ExtResource("script")
+Id = &"chilled"
+Scene = ExtResource("scene")
+Lifetime = 1

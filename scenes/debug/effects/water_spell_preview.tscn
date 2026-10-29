@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scenes/debug/effects/WaterSpellPreview.cs" id="preview"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="player"]
@@ -8,9 +8,12 @@
 [ext_resource type="PackedScene" path="res://scenes/debug/stage/debug_stage.tscn" id="debug_stage"]
 [ext_resource type="PackedScene" path="res://scenes/magic/water/ice_lance.tscn" id="lance"]
 [ext_resource type="PackedScene" path="res://scenes/magic/water/frost_nova.tscn" id="nova"]
+[ext_resource type="Resource" path="res://scenes/magic/water/frost_nova_definition.tres" id="nova_definition"]
 [ext_resource type="PackedScene" path="res://scenes/magic/water/frost_guard.tscn" id="guard0"]
-[ext_resource type="PackedScene" path="res://scenes/magic/water/water_serpent.tscn" id="guard1"]
-[ext_resource type="PackedScene" path="res://scenes/magic/water/snowstorm.tscn" id="snowstorm"]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/ice_wall.tscn" id="ice_wall"]
+[ext_resource type="Resource" path="res://scenes/magic/water/ice_wall_combat.tres" id="ice_wall_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/hailstorm.tscn" id="hailstorm"]
+[ext_resource type="Resource" path="res://scenes/magic/water/hailstorm_combat.tres" id="hailstorm_definition"]
 [ext_resource type="Script" path="res://scenes/magic/shared/DirectTargetStrategy.cs" id="strategy_script"]
 [ext_resource type="Resource" path="res://scenes/effects/world/frozen/frozen.tres" id="frozen"]
 [sub_resource type="Resource" id="target_strategy"]
@@ -33,8 +36,12 @@ Lighting = NodePath("WorldEnvironment")
 KeyLight = NodePath("DirectionalLight3D")
 LanceScene = ExtResource("lance")
 NovaScene = ExtResource("nova")
-SnowstormScene = ExtResource("snowstorm")
-GuardScenes = [ExtResource("guard0"), ExtResource("guard1")]
+NovaDefinition = ExtResource("nova_definition")
+HailstormScene = ExtResource("hailstorm")
+HailstormDefinition = ExtResource("hailstorm_definition")
+GuardScene = ExtResource("guard0")
+IceWallScene = ExtResource("ice_wall")
+IceWallDefinition = ExtResource("ice_wall_definition")
 TargetStrategy = SubResource("target_strategy")
 FrozenEffect = ExtResource("frozen")
 TargetVisual = ExtResource("target")

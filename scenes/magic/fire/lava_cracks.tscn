@@ -1,17 +1,24 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectInstance.cs" id="script"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
-[ext_resource type="Shader" path="res://scenes/magic/fire/lava_cracks.gdshader" id="shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_cracks.gdshader" id="shader"]
+[ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_fire_ramp.tres" id="fire_ramp"]
+
 [sub_resource type="ShaderMaterial" id="mat"]
+render_priority = -1
 shader = ExtResource("shader")
+shader_parameter/color_ramp = ExtResource("fire_ramp")
+
 [sub_resource type="PlaneMesh" id="mesh"]
 size = Vector2(4, 4)
+
 [node name="LavaCracks" type="Node3D" node_paths=PackedStringArray("Timeline")]
 script = ExtResource("script")
 Timeline = NodePath("Timeline")
+
 [node name="Surface" type="MeshInstance3D" parent="."]
-position = Vector3(0, 0.1, 0)
+position = Vector3(0, 0.05, 0)
 cast_shadow = 0
 material_override = SubResource("mat")
 mesh = SubResource("mesh")

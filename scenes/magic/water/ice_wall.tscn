@@ -1,0 +1,46 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/water/WaterSpellVisual.cs" id="root"]
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Script" path="res://scenes/magic/shared/CrystalField.cs" id="crystals"]
+[ext_resource type="Material" path="res://scenes/magic/water/toon_ice_crystal.tres" id="ice_crystal_material"]
+[sub_resource type="Curve" id="eruption_light"]
+max_value = 5.0
+_data = [Vector2(0, 2.5), 0.0, 0.0, 0, 0, Vector2(0.05, 1), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[node name="IceWall" type="Node3D" node_paths=PackedStringArray("Timeline", "Crystals")]
+script = ExtResource("root")
+Timeline = NodePath("Timeline")
+Crystals = NodePath("Crystals")
+Area = true
+RingAtRadius = true
+[node name="Crystals" type="Node3D" parent="." node_paths=PackedStringArray("Timeline")]
+script = ExtResource("crystals")
+Timeline = NodePath("../Timeline")
+CrystalMaterial = ExtResource("ice_crystal_material")
+BaseCount = 26
+AdditionalPerLevel = 5
+ClusterSize = 4
+Radius = 2.5
+InnerRadius = 2.5
+Height = 1.8
+HeightPerLevel = 0.15
+Width = 0.3
+CenterHeight = -0.1
+Tilt = 0.12
+SpreadTime = 0.25
+GrowTime = 0.25
+ShrinkTime = 0.6
+[node name="Light" type="OmniLight3D" parent="."]
+position = Vector3(0, 1.2, 0)
+light_color = Color(0.3, 0.75, 1, 1)
+light_energy = 0.9
+omni_range = 5.0
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Lights")]
+script = ExtResource("timeline")
+Lights = [NodePath("../Light")]
+Duration = 6.0
+FadeIn = 0.04
+FadeOutStart = 0.9
+LightCurve = SubResource("eruption_light")

@@ -34,7 +34,7 @@ public partial class GuardArcEmitter : Node3D
 		if (_visibility != null && !_visibility.Contains(start)) return;
 		var arc = ArcScene.Instantiate<LightningArc>();
 		arc.Configure(start, end, _random.Randi());
-		arc.Width = .13f; arc.Jaggedness = .12f;
+		arc.Width = .4f; arc.Jaggedness = .12f;
 		arc.Timeline.Duration = .4f; arc.Timeline.FadeOutStart = .32f;
 		arc.Impact.Visible = false;
 		AddChild(arc);

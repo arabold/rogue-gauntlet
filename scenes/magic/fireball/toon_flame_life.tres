@@ -1,0 +1,9 @@
+[gd_resource type="GradientTexture1D" load_steps=2 format=3]
+
+[sub_resource type="Gradient" id="flame_life"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0, 0.16, 0.42, 0.72)
+colors = PackedColorArray(1, 0.72, 0.16, 1, 1, 0.45, 0.06, 1, 0.86, 0.16, 0.03, 1, 0.4, 0.06, 0.03, 1)
+
+[resource]
+gradient = SubResource("flame_life")

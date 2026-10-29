@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://b8oa1aglmosdk" path="res://scenes/items/affixes/RolledAffix.cs" id="1_xw82a"]
 [ext_resource type="Script" uid="uid://bncpld6hbytsn" path="res://scenes/items/MagicStaff.cs" id="2_magic"]
 [ext_resource type="Script" uid="uid://dirab7d4baxkb" path="res://scenes/attacks/AttackDefinition.cs" id="3_attack_script"]
-[ext_resource type="PackedScene" path="res://scenes/attacks/fireball_projectile.tscn" id="4_projectile"]
+[ext_resource type="PackedScene" path="res://scenes/magic/fireball/fireball_visual.tscn" id="4_projectile"]
 [ext_resource type="PackedScene" path="res://scenes/effects/staff_muzzle_burst_fire.tscn" id="5_muzzle"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/wooden_weapon.tres" id="roll_table"]

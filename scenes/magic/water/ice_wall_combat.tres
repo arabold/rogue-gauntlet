@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="LingeringAreaDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scenes/magic/shared/LingeringAreaDefinition.cs" id="script"]
+[resource]
+script = ExtResource("script")
+SpellName = "Ice Wall"
+Kind = 2
+RadiusByLevel = PackedFloat32Array(2.5, 3, 3.5)
+DamageByLevel = PackedFloat32Array(3, 4, 5)
+RepelSeconds = 0.8
+RepelPush = 3.0

@@ -18,7 +18,7 @@ caller -> BuffController.ApplyStatus(condition, source, duration)
 expiry/source removal/death -> reverse the same ownership; do not restart canceled actions
 ```
 
-Focused runtime tests cover both actor types, source refresh and overlap, interruption, health/death, expiry and visual cleanup. Frost Nova applies frozen on damaging contacts in the combat harness; equipped casting and other attack payloads remain unwired. Snowstorm and Solar Flares add source-owned slow and burn conditions; their gameplay is exercised in the same harness. Existing generic periodic and stat buffs remain player-specific. Monster poison, petrification and general attack payloads remain future slices in [attack statuses](attack-status-effects-plan.md).
+Focused runtime tests cover both actor types, source refresh and overlap, interruption, health/death, expiry and visual cleanup. Frost Nova applies frozen on damaging contacts in the combat harness; equipped casting and other attack payloads remain unwired. Hailstorm and Solar Flares add source-owned slow and burn conditions; their gameplay is exercised in the same harness, and slowed actors show the shared Chilled appearance. Existing generic periodic and stat buffs remain player-specific. Monster poison, petrification and general attack payloads remain future slices in [attack statuses](attack-status-effects-plan.md).
 
 ## Actor Inspector states and invisibility (implemented)
 
