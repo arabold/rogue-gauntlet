@@ -19,7 +19,9 @@
     </EnvironmentVariables>
   </RunConfiguration>
   <GdUnit4>
-    <Parameters></Parameters>
+    <!-- Extra Godot CLI args. Headless keeps the engine window from opening and stealing focus;
+         remove it to watch a run or to debug rendering-dependent behavior. -->
+    <Parameters>--headless</Parameters>
     <DisplayName>FullyQualifiedName</DisplayName>
     <CaptureStdOut>true</CaptureStdOut>
     <!-- Booting a full Godot instance is slow on a cold import cache; keep these generous. -->

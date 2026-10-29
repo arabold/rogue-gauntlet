@@ -51,7 +51,7 @@ public partial class ActorStatusInspectorTest
 		var cloak = player.Invisibility;
 		var source = new object();
 		player.Invisible = true;
-		await runner.SimulateFrames(20);
+		await runner.SimulateFrames(20, 20);
 		AssertBool(player.BuffController.ApplyStatus(cloak.Condition, source, 5)).IsTrue();
 		player.Invisible = false;
 		AssertBool(player.Invisible).IsTrue();
@@ -60,7 +60,7 @@ public partial class ActorStatusInspectorTest
 		AssertBool(player.Invisible).IsFalse();
 		AssertBool(cloak.IsInvisible).IsFalse();
 		AssertBool(cloak.Host.SurfaceController.HasCloak).IsTrue();
-		await runner.SimulateFrames(30);
+		await runner.SimulateFrames(30, 20);
 		AssertBool(cloak.Host.SurfaceController.HasCloak).IsFalse();
 	}
 
