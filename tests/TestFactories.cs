@@ -9,8 +9,18 @@ using GdUnit4;
 /// </summary>
 public static class TestFactories
 {
+	/// <summary>
+	/// Load a scene for a runtime test; the caller owns (and may dispose) the runner. Suites share one engine and
+	/// reload the same scenes back to back, so this first settles collected resources (see <see cref="ResourceCacheGuard"/>).
+	/// </summary>
+	public static ISceneRunner LoadScene(string path)
+	{
+		ResourceCacheGuard.Settle();
+		return ISceneRunner.Load(path, true);
+	}
+
 	/// <summary>Load the combat harness scene; the caller owns (and may dispose) the runner.</summary>
-	public static ISceneRunner LoadCombatHarness() => ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+	public static ISceneRunner LoadCombatHarness() => LoadScene("res://scenes/debug/combat/combat_harness.tscn");
 
 	/// <summary>Let a loaded combat harness finish its first frames and return its controller.</summary>
 	public static async Task<CombatHarness> SettleCombatHarness(ISceneRunner runner, uint frames = 3)
@@ -81,7 +91,7 @@ public static class TestFactories
 	public static async Task<(ISceneRunner Runner, MapGenerator Generator)> LoadGenerator(
 		RoomLayoutStrategy layout, RoomFactory factory = null)
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/levels/generators/map_generator.tscn", true);
+		ISceneRunner runner = LoadScene("res://scenes/levels/generators/map_generator.tscn");
 		await runner.SimulateFrames(2); // let MapGenerator._Ready cache the child GridMaps
 
 		var mapGenerator = (MapGenerator)runner.Scene();
@@ -95,7 +105,7 @@ public static class TestFactories
 	/// </summary>
 	public static async Task<(ISceneRunner Runner, Level Level)> LoadLevel(RoomLayoutStrategy layout, RoomFactory factory = null)
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/levels/level.tscn", true);
+		ISceneRunner runner = LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		var map = level.MapGenerator;

@@ -14,7 +14,7 @@ public class WorldEffectXrayHarnessTest
 	public async Task ProductionPropIsBehindAnOpaqueWallAndWallTogglePreservesItsState(int index)
 	{
 		bool doorFlag = GameDebug.DoorXrayEnabled, lootFlag = GameDebug.LootXrayEnabled;
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/world_effect_harness.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
 		await runner.SimulateFrames(2);
 		var harness = (WorldEffectHarness)runner.Scene(); harness.SelectEffect(index);
 		await runner.SimulateFrames(3);

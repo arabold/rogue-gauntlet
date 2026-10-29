@@ -50,7 +50,7 @@ public class ScrollRuneStudyTest
 	[TestCase]
 	public async Task ReadingPreviewUsesTheProductionRendererAndMappedMesh()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/runes/scroll_rune_study.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/runes/scroll_rune_study.tscn");
 		await runner.SimulateFrames(2); var study = (ScrollRuneStudy)runner.Scene();
 		study.SetSeed(42); study.SetTime(.55f);
 		var expected = new IdentificationService(); expected.Initialize(42);
@@ -63,7 +63,7 @@ public class ScrollRuneStudyTest
 	[TestCase]
 	public async Task SessionAssignmentCanBeCopiedWithoutIdentifyingOrReshufflingItems()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/runes/scroll_rune_study.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/runes/scroll_rune_study.tscn");
 		await runner.SimulateFrames(2); var study = (ScrollRuneStudy)runner.Scene();
 		var run = GameSession.Instance.Run; var assignment = run.Identification.GetAssignmentDescriptors();
 		var known = run.Identification.GetIdentifiedTypeIds().ToArray();
@@ -76,7 +76,7 @@ public class ScrollRuneStudyTest
 	[TestCase]
 	public async Task RuneRingRotatesExpandsAndDissolvesWithoutSubstitutingOtherGlyphs()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/runes/scroll_rune_study.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/runes/scroll_rune_study.tscn");
 		await runner.SimulateFrames(2); var study = (ScrollRuneStudy)runner.Scene(); study.SetTime(.2f);
 		var ring = study.Stage.GetChild<Node3D>(0);
 		var glyphs = ring.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().Where(m => m.Mesh == study.MatchedGlyph).ToArray();

@@ -64,7 +64,7 @@ public class ChestXrayTest
 	[TestCase]
 	public async Task ChestSilhouetteDoesNotRevealUnexploredTreasure()
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(5);
 		var level = runner.Scene().GetNode<Level>("Level");
 		var map = level.MapGenerator;

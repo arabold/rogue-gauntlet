@@ -37,7 +37,7 @@ public class InventoryEquipSlotTest
 	[TestCase]
 	public async Task OpeningEquipmentPanelShowsTwoHandedWeaponInBothHands()
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/ui/equipment_panel.tscn", true);
+		ISceneRunner runner = TestFactories.LoadScene("res://scenes/ui/equipment_panel.tscn");
 		await runner.SimulateFrames(1);
 		var panel = (EquipmentPanel)runner.Scene();
 		var inventory = new Inventory();

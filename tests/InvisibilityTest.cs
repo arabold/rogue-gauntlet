@@ -46,7 +46,7 @@ public class InvisibilityTest
 	[TestCase]
 	public async Task AddedEquipmentGetsTheCurrentCloakAndDeathRestoresBeforeCorpseFade()
 	{
-		using var runner = ISceneRunner.Load(Harness, true); await runner.SimulateFrames(2);
+		using var runner = TestFactories.LoadScene(Harness); await runner.SimulateFrames(2);
 		var root = TestFactories.AddToSceneTree(new Node3D());
 		var body = new MeshInstance3D { Mesh = new BoxMesh() }; root.AddChild(body);
 		var health = new HealthComponent(); root.AddChild(health); health.Owner = root;
@@ -63,7 +63,7 @@ public class InvisibilityTest
 	[TestCase]
 	public async Task ActorPreviewUsesTheSharedInvisibilityDefinitionAndCleanup()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/actor_item_effect_preview.tscn", true); await runner.SimulateFrames(2);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn"); await runner.SimulateFrames(2);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.SelectEffect(10);
 		foreach (int subject in new[] { 0, 1, 2 })
 		{
@@ -82,7 +82,7 @@ public class InvisibilityTest
 	[TestCase]
 	public async Task ReversingTheSharedCloakKeepsItsCurrentAmountAndOneInstance()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/actor_item_effect_preview.tscn", true); await runner.SimulateFrames(2);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn"); await runner.SimulateFrames(2);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects(); var player = preview.Stage.GetChild<Player>(0);
 		player.Invisibility.SetInvisible(true); await runner.SimulateFrames(8, 20);
 		player.Invisibility.SetInvisible(false); await runner.SimulateFrames(3, 20);

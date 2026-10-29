@@ -50,7 +50,7 @@ public class PortableLightTest
 	[TestCase]
 	public async Task CarriedLightsOnlyExtendVisibilityOnDarkFloors()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(5);
 		var level = runner.Scene().GetNode<Level>("Level");
 		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
@@ -90,7 +90,7 @@ public class PortableLightTest
 	[TestCase]
 	public async Task InventoryMenuOffersBothHandsAndUnequippingRemovesLight()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(5);
 		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
 		var inventory = player.Inventory;
@@ -118,7 +118,7 @@ public class PortableLightTest
 	[TestCase]
 	public async Task LightModelsAndFlamesPointUpInIdleAndWalking()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(5);
 		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
 		player.MovementComponent.SetPhysicsProcess(false);
@@ -158,7 +158,7 @@ public class PortableLightTest
 	[TestCase]
 	public async Task EveryLightAttachesIlluminatesAndRestoresInEitherHand()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(5);
 		var level = runner.Scene().GetNode<Level>("Level");
 		level.SetDark(true);

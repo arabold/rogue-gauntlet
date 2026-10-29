@@ -15,7 +15,7 @@ public class RoomGenerationHarnessTest
 	[TestCase]
 	public async Task EveryRecipePreviewsAndUiControlsPreserveStructureWhenFurnishingsChange()
 	{
-		using var runner = ISceneRunner.Load(Scene, true);
+		using var runner = TestFactories.LoadScene(Scene);
 		await runner.SimulateFrames(2);
 		var harness = (RoomGenerationHarness)runner.Scene();
 		AssertString(harness.LastError).IsEmpty();
@@ -65,7 +65,7 @@ public class RoomGenerationHarnessTest
 	[TestCase]
 	public async Task FloorViewUsesProductionFactoryAndCanReturnToAnIndividualRoom()
 	{
-		using var runner = ISceneRunner.Load(Scene, true);
+		using var runner = TestFactories.LoadScene(Scene);
 		await runner.SimulateFrames(2);
 		var harness = (RoomGenerationHarness)runner.Scene();
 		harness.Mode = RoomPreviewMode.Floor;

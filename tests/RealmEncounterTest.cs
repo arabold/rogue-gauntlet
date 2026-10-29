@@ -39,7 +39,7 @@ public class RealmEncounterTest
 	[TestCase]
 	public async Task ThreeFloorsHaveFiniteNestsAndPersistentGatekeeperUnlock()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(2);
 		var level = runner.Scene().GetNode<Level>("Level");
 		AssertBool(level.CanDescend).IsTrue();
@@ -101,7 +101,7 @@ public class RealmEncounterTest
 	[TestCase]
 	public async Task GatekeeperFloorWithoutAGatekeeperSceneKeepsItsDescentSealed()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/levels/level.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		var realm = (RealmEncounterFactory)level.MapGenerator.MobFactory.Duplicate();
@@ -118,7 +118,7 @@ public class RealmEncounterTest
 	[TestCase]
 	public async Task CrossbowVariantResolvesShootingClipAndProjectile()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/enemies/skeleton/skeleton_crossbow.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/enemies/skeleton/skeleton_crossbow.tscn");
 		await runner.SimulateFrames(2);
 		var actor = runner.Scene();
 		var animation = actor.GetNode<CombatAnimationComponent>("CombatAnimationComponent");

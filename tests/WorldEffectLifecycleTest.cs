@@ -97,7 +97,7 @@ public class WorldEffectLifecycleTest
 	[TestCase]
 	public async Task BurstFinishesAndSuppressedAuraKeepsItsSourceWithoutReplayingTheEntry()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/actor_item_effect_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
 		await runner.SimulateFrames(2); var preview = (ActorItemEffectPreview)runner.Scene();
 		preview.ClearEffects(); preview.SetPlaybackSpeed(1);
 		var (_, host, _, _) = Fixture();
@@ -113,7 +113,7 @@ public class WorldEffectLifecycleTest
 	[TestCase]
 	public async Task HarnessAndCommittedConsumptionUseTheProductionHost()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/actor_item_effect_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
 		await runner.SimulateFrames(2); var preview = (ActorItemEffectPreview)runner.Scene();
 		preview.ClearEffects(); var player = preview.Stage.GetChildren().OfType<Player>().Single();
 		var potion = ItemFactory.CopyDefinition(GD.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres"));
@@ -139,7 +139,7 @@ public class WorldEffectLifecycleTest
 	[TestCase]
 	public async Task HelpersAddedDuringASkinAreExcludedAndReplayUnloadsThePreviousSubject()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/actor_item_effect_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
 		await runner.SimulateFrames(2);
 		var (_, host, mesh, _) = Fixture();
 		host.SetSustained(new object(), Definition("iron_skin"), true, 42);
@@ -160,7 +160,7 @@ public class WorldEffectLifecycleTest
 	[TestCase]
 	public async Task HealingTicksDoNotReplayTheActivationAndCanceledUseEmitsNothing()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/actor_item_effect_preview.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
 		await runner.SimulateFrames(2); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
 		var player = preview.Stage.GetChildren().OfType<Player>().Single();
 		player.BuffController.ProcessMode = Node.ProcessModeEnum.Always;

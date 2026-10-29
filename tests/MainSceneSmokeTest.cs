@@ -18,7 +18,7 @@ public class MainSceneSmokeTest
 	[TestCase]
 	public async Task MainSceneGeneratesLevelAndSpawnsPlayer()
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 
 		// Main._Ready generates the level and the spawn point adds the player during
 		// generation; give it a handful of frames to settle.
@@ -40,7 +40,7 @@ public class MainSceneSmokeTest
 	[TestCase]
 	public async Task CameraZoomClampsAndWorksWhileRotating()
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(30);
 		var main = (Main)runner.Scene();
 		main.SetProcess(false);

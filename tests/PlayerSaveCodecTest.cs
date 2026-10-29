@@ -15,7 +15,7 @@ public class PlayerSaveCodecTest
 	[TestCase]
 	public async Task CapturedPlayerRestoresExactlyAndARejectedRecordChangesNothing()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(5);
 		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
 		player.Stats.Gold = 37;

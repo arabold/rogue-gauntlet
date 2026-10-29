@@ -26,7 +26,7 @@ public class DarkLevelTest
 	[TestCase]
 	public async Task DebugDarkLevelToggleRestoresFixturesAndAmbientLight()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(5);
 		var scene = runner.Scene();
 		var level = scene.GetNode<Level>("Level");

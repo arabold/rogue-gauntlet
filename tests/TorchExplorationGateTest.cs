@@ -27,7 +27,7 @@ public class TorchExplorationGateTest
 	[TestCase]
 	public async Task TorchStaysDarkUntilItsOwnTileIsExplored()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/world_effect_harness.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
 		await runner.SimulateFrames(2);
 		var (level, map) = TestFactories.UngeneratedLevel();
 		var region = map.GetNode<Node3D>("NavigationRegion3D");
@@ -55,7 +55,7 @@ public class TorchExplorationGateTest
 	[TestCase]
 	public async Task StandaloneTorchPreviewIsLit()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/effects/world_effect_harness.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
 		await runner.SimulateFrames(2);
 		var torch = TestFactories.AddToSceneTree(Torch("res://scenes/props/torch_mounted.tscn", Vector3.Zero, 0));
 		await runner.SimulateFrames(2);
@@ -64,7 +64,7 @@ public class TorchExplorationGateTest
 	[TestCase(false), TestCase(true)]
 	public async Task EveryGeneratedTorchLightsOnceItsRoomIsExplored(bool debugRevealAll)
 	{
-		using var runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(5);
 		var level = runner.Scene().GetNode<Level>("Level");
 		var gates = level.MapGenerator.FindChildren("*", nameof(ExplorationGateComponent), true, false).OfType<ExplorationGateComponent>().ToArray();

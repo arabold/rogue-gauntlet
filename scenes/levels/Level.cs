@@ -183,6 +183,8 @@ public partial class Level : Node
 		ClearWorldNodes();
 		Floor = null;
 		Discovery?.Clear();
+		// The previous floor was just freed, and generation reloads many of its resources by path.
+		ResourceCacheGuard.Settle();
 		try { MapGenerator.GenerateMap(); }
 		catch (System.InvalidOperationException error)
 		{

@@ -15,7 +15,7 @@ public class ItemLifecycleIntegrationTest
 	[TestCase]
 	public async Task PickupUseDropAndFloorReconstructionConserveItems()
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(10);
 		var level = runner.Scene().GetNode<Level>("Level");
 		level.MapGenerator.MinChests = 1;
