@@ -358,7 +358,7 @@ public partial class TimedInteractionTest
 
 		// Label must render on top of scene geometry and x-ray overlays
 		AssertBool(floatingLabel.NoDepthTest).IsTrue();
-		AssertInt(floatingLabel.RenderPriority).IsGreater(8);
+		AssertInt(floatingLabel.RenderPriority).IsGreater(FloorDiscovery.AboveFogRenderPriority);
 
 		// Indicator stays hidden until explicitly focused by interaction ranking
 		AssertBool(floatingLabel.Visible).IsFalse();

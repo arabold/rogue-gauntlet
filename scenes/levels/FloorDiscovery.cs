@@ -19,6 +19,12 @@ public partial class FloorDiscovery : Node3D
 	/// <summary>Authored fog presentation; each floor gets a private runtime copy and texture. Unset disables the fog surface.</summary>
 	[Export] public ShaderMaterial DiscoveryMaterial { get; set; }
 
+	/// <summary>Transparent draw order of the fog surface.</summary>
+	public const int FogRenderPriority = 120;
+	/// <summary>Draw order for door and chest x-rays, which stay readable over fogged walls. Their own discovery gates
+	/// keep them off until their tile (or, for doors, an adjacent tile) is explored, so drawing above fog leaks nothing.</summary>
+	public const int AboveFogRenderPriority = FogRenderPriority + 1;
+
 	private const double PollSeconds = 0.1;
 	private static readonly StringName ElapsedParameter = "elapsed";
 	private static readonly StringName PlayerGroup = "player";
@@ -107,7 +113,7 @@ public partial class FloorDiscovery : Node3D
 		_image.Fill(new Color(0, 0, 0, 0));
 		_texture = ImageTexture.CreateFromImage(_image);
 		_material = (ShaderMaterial)DiscoveryMaterial.Duplicate();
-		_material.RenderPriority = 120;
+		_material.RenderPriority = FogRenderPriority;
 		_material.SetShaderParameter("exploration", _texture);
 		_material.SetShaderParameter("fade_seconds", FadeSeconds);
 		Vector3I firstTile = _floor.Map.TileToWorld(0, 0);
