@@ -25,6 +25,10 @@ public sealed class EnemyContext
 	private const float TargetReachabilityCheckInterval = 0.35f;
 	// Minimum distance the target must have moved before an off-schedule repath is worthwhile.
 	private const float TargetPositionRefreshDistance = 0.35f;
+	// How often a monster waiting for an attack slot recomputes its ring point, and how far that point must
+	// move before it re-paths there.
+	private const float RingRefreshInterval = 0.3f;
+	private const float RingRepathDistance = 0.5f;
 
 	public CharacterBody3D Actor { get; }
 	public MovementComponent Movement { get; }
@@ -38,6 +42,12 @@ public sealed class EnemyContext
 	public double Delta { get; private set; }
 	private float _retreatRefresh;
 	private bool _retreatDestinationValid;
+	private Cooldown _ringRefresh;
+	private Vector3 _ringPoint;
+	private bool _hasRingPoint;
+	private ulong _sightFrame = ulong.MaxValue;
+	private Node3D _sightTarget;
+	private bool _sightResult;
 	public float HorizontalTargetDistance
 	{
 		get
@@ -50,6 +60,18 @@ public sealed class EnemyContext
 	}
 
 	public Action RequestAttack { get; }
+
+	/// <summary>Degrees between the actor's facing and the horizontal direction to its target; 0 without a target.</summary>
+	public float AngleToTarget => Target == null ? 0 : Movement.LookAtDirection.HorizontalAngleTo(Target.GlobalPosition - Actor.GlobalPosition);
+
+	/// <summary>Attack slots of the current target; null when the target lets every attacker strike.</summary>
+	public AttackSlotsComponent TargetSlots => (Target as IAttackSlotHost)?.AttackSlots;
+
+	/// <summary>Slots this actor's attack policy must take turns through; null when it opts out or the target has none.</summary>
+	public AttackSlotsComponent PolicySlots => Profile.AttackStrategy?.UsesAttackSlot == true ? TargetSlots : null;
+
+	/// <summary>Whether this actor may start its attack now as far as the target's slots are concerned.</summary>
+	public bool CanTakeAttackSlot() => PolicySlots?.CanReserve(Actor, Profile.AttackStrategy.SlotKind) != false;
 
 	/// <summary>The player currently being chased, or null when the enemy has no target.</summary>
 	private Node3D _target;
@@ -95,9 +117,21 @@ public sealed class EnemyContext
 	/// True when the enemy currently has an unobstructed line of sight to its target. Reuses the
 	/// perception line-of-sight test so ranged enemies do not fire through walls.
 	/// </summary>
+	/// <summary>
+	/// Sight to the current target, raycast at most once per physics frame: reach, attack and positioning checks
+	/// in one tick share the answer (raycasts see physics state as of the last step anyway).
+	/// </summary>
 	public bool HasLineOfSightToTarget()
 	{
-		return Target != null && GodotObject.IsInstanceValid(Target) && Perception.CanSee(Target);
+		if (Target == null || !GodotObject.IsInstanceValid(Target)) return false;
+		ulong frame = Engine.GetPhysicsFrames();
+		if (frame != _sightFrame || !ReferenceEquals(Target, _sightTarget))
+		{
+			_sightFrame = frame;
+			_sightTarget = Target;
+			_sightResult = Perception.CanSee(Target);
+		}
+		return _sightResult;
 	}
 
 	/// <summary>
@@ -109,6 +143,7 @@ public sealed class EnemyContext
 		Delta = delta;
 		TacticalSelector?.Tick(delta);
 		_retreatRefresh -= (float)delta;
+		_ringRefresh.Tick(delta);
 		_scanCooldown.Tick(delta);
 		_pathRefreshCooldown.Tick(delta);
 		_reachabilityCooldown.Tick(delta);
@@ -244,7 +279,9 @@ public sealed class EnemyContext
 		if (decision.Intent.Goal == EnemyMovementGoal.Retreat && !FollowRetreat(decision.Intent.DesiredDistance))
 			decision = TacticalSelector.RetreatBlocked(Profile.AttackStrategy.CanAttack(this));
 		if (decision.Intent.Goal != EnemyMovementGoal.Retreat) EndRetreatMovement();
-		if (decision.Intent.Goal == EnemyMovementGoal.Approach)
+		// An approach that is already in reach (but not yet facing or eligible) holds and turns instead.
+		bool approaching = decision.Intent.Goal == EnemyMovementGoal.Approach && !Profile.AttackStrategy.IsInReach(this);
+		if (approaching)
 		{
 			// Retreat replaces the agent destination independently of the chase refresh cache.
 			if (_lastDecision?.Intent.Goal == EnemyMovementGoal.Retreat || decision.Reason == "retreat_blocked")
@@ -252,7 +289,12 @@ public sealed class EnemyContext
 			else UpdateTargetPositionThrottled();
 			FollowTargetPath();
 		}
-		else if (decision.Intent.Goal == EnemyMovementGoal.Hold) Navigation.Stop();
+		else if (decision.Intent.Goal is EnemyMovementGoal.Hold or EnemyMovementGoal.Approach) Navigation.Stop();
+		else if (decision.Intent.Goal == EnemyMovementGoal.Encircle) FollowEngagementRing(decision.Intent.DesiredDistance, decision.Intent.PreferRear);
+		// Any other goal replaces the agent destination, so a later ring must path to its point again.
+		if (decision.Intent.Goal != EnemyMovementGoal.Encircle) _hasRingPoint = false;
+		// Every goal but an approach faces the target, limited by the actor's movement turn rate; approaching faces its path.
+		if (!approaching && Target != null) Movement.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition);
 		if (_lastDecision != decision)
 		{
 			_lastDecision = decision;
@@ -276,6 +318,31 @@ public sealed class EnemyContext
 
 	public void EndRetreatMovement() { _retreatRefresh = 0; _retreatDestinationValid = false; }
 
+	/// <summary>
+	/// Wait for an attack slot at this actor's spread ring position, facing the target. The ring point
+	/// is refreshed on a throttle and snapped to the navmesh when one is near.
+	/// </summary>
+	public void FollowEngagementRing(float distance, bool preferRear)
+	{
+		var slots = TargetSlots;
+		if (Target == null || slots == null || Profile.AttackStrategy == null) { Navigation.Stop(); return; }
+		if (_ringRefresh.IsReady)
+		{
+			_ringRefresh.Start(RingRefreshInterval);
+			Vector3 ring = slots.GetRingPoint(Actor, Profile.AttackStrategy.SlotKind, distance, preferRear);
+			Vector3 snapped = Navigation.GetClosestNavPoint(ring);
+			Vector3 point = snapped.DistanceTo(ring) < distance ? snapped : ring;
+			if (!_hasRingPoint || point.DistanceTo(_ringPoint) > RingRepathDistance)
+			{
+				_ringPoint = point;
+				_hasRingPoint = true;
+				Navigation.SetDestination(point);
+			}
+		}
+		// The navigation agent stops once it reaches the point.
+		Navigation.FollowPath(Target);
+	}
+
 	/// <summary>Bound and throttle retreat destination checks. Failed movement permits an eligible attack.</summary>
 	public bool FollowRetreat(float desiredDistance)
 	{
@@ -288,7 +355,6 @@ public sealed class EnemyContext
 		}
 		if (!_retreatDestinationValid || Navigation.IsStuck) { Navigation.Stop(); return false; }
 		Navigation.FollowPath(Target);
-		Movement.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition);
 		return true;
 	}
 

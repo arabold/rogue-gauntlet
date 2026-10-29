@@ -8,6 +8,8 @@ using Godot;
 /// </summary>
 public partial class RoomManager : Node
 {
+	private static readonly StringName PlayerGroup = "player";
+
 	private GeneratedFloor _floor;
 	private Player _player;
 	private int _currentRoomId = -1;
@@ -26,7 +28,7 @@ public partial class RoomManager : Node
 			SignalBus.Instance,
 			bus => bus.PlayerSpawned += OnPlayerSpawned,
 			bus => bus.PlayerSpawned -= OnPlayerSpawned);
-		_player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
+		_player = GetTree().GetFirstNodeInGroup(PlayerGroup) as Player;
 	}
 
 	private void OnPlayerSpawned(Player player)
@@ -36,7 +38,7 @@ public partial class RoomManager : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (_player == null || _floor == null)
+		if (!GodotObject.IsInstanceValid(_player) || _floor == null)
 		{
 			return;
 		}

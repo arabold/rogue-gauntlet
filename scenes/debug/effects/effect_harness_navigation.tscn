@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3]
+[ext_resource type="Script" path="res://scenes/debug/effects/EffectHarnessNavigation.cs" id="script"]
+[sub_resource type="Theme" id="Theme"]
+default_font_size = 18
+[node name="Navigation" type="CanvasLayer" node_paths=PackedStringArray("Tabs")]
+layer = 20
+script = ExtResource("script")
+Tabs = NodePath("Tabs")
+Titles = PackedStringArray("World effects", "Actor / item effects", "Scroll reading", "Fire spells", "Earth spells", "Air spells", "Water spells")
+ScenePaths = PackedStringArray("res://scenes/debug/effects/world_effect_harness.tscn", "res://scenes/debug/effects/actor_item_effect_preview.tscn", "res://scenes/debug/effects/runes/scroll_rune_study.tscn", "res://scenes/debug/effects/fireball_preview.tscn", "res://scenes/debug/effects/earth_spell_preview.tscn", "res://scenes/debug/effects/air_spell_preview.tscn", "res://scenes/debug/effects/water_spell_preview.tscn")
+[node name="Tabs" type="TabBar" parent="."]
+anchor_right = 1.0
+offset_left = 16.0
+offset_top = 8.0
+offset_right = -16.0
+offset_bottom = 48.0
+theme = SubResource("Theme")
+tab_alignment = 1
+focus_mode = 0

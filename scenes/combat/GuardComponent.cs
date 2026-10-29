@@ -8,11 +8,26 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 	[Signal] public delegate void GuardEndedEventHandler();
 	[Signal] public delegate void ParrySuccessfulEventHandler();
 	[Signal] public delegate void BlockSuccessfulEventHandler(float chipDamage);
+	[Signal] public delegate void GuardBrokenEventHandler(float damage);
 
 	[Export] public CharacterBody3D Actor { get; set; }
 	[Export] public MovementComponent MovementComponent { get; set; }
 	[Export] public ActorActionGateComponent ActionGate { get; set; }
-	[Export] public GuardDefinition GuardDef { get; set; }
+	[Export]
+	public GuardDefinition GuardDef
+	{
+		get;
+		set
+		{
+			if (ReferenceEquals(field, value)) { return; }
+			if (IsNodeReady() || IsGuarding || IsGuardRecovering)
+			{
+				Cancel(ActionInterruptReason.EquipChanged);
+			}
+			field = value;
+			_activeDefinition = null;
+		}
+	}
 	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
 
 	private GuardDefinition _activeDefinition;
@@ -30,6 +45,16 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 	public Vector3 GetEffectiveGuardFacing()
 	{
 		return GuardFacing.LengthSquared() > 0.001f ? GuardFacing.Normalized() : Vector3.Forward;
+	}
+
+	/// <summary>
+	/// Whether a threat lying along <paramref name="towardThreat"/> falls inside this guard's frontal sector
+	/// around <paramref name="facing"/>. The one sector rule for both blocking and the AI's decision to guard.
+	/// </summary>
+	public bool Covers(Vector3 facing, Vector3 towardThreat)
+	{
+		bool degenerate = new Vector2(facing.X, facing.Z).LengthSquared() < 0.0001f || new Vector2(towardThreat.X, towardThreat.Z).LengthSquared() < 0.0001f;
+		return EffectiveDefinition != null && !degenerate && facing.HorizontalAngleTo(towardThreat) <= EffectiveDefinition.FacingSectorDegrees * 0.5f;
 	}
 
 	private float _guardElapsed;
@@ -69,7 +94,8 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 		if (IsGuardRecovering) return DefenseRequestResult.Busy;
 
 		Vector3 horiz = new(facing.X, 0, facing.Z);
-		if (horiz.LengthSquared() < 0.0001f)
+		// A turn-capped actor cannot snap around to guard; it raises the guard where it already faces.
+		if (MovementComponent is { MaxTurnRate: > 0 } || horiz.LengthSquared() < 0.0001f)
 		{
 			horiz = MovementComponent != null ? MovementComponent.LookAtDirection : (Actor != null ? -Actor.GlobalTransform.Basis.Z : Vector3.Forward);
 			horiz.Y = 0;
@@ -90,7 +116,9 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 			|| !float.IsFinite(GuardDef.RearmInterval) || GuardDef.RearmInterval < 0
 			|| !float.IsFinite(GuardDef.MinimumReleaseInterval) || GuardDef.MinimumReleaseInterval < 0
 			|| !float.IsFinite(GuardDef.FacingSectorDegrees) || GuardDef.FacingSectorDegrees <= 0 || GuardDef.FacingSectorDegrees > 360
-			|| !float.IsFinite(GuardDef.ParryStaggerDuration) || GuardDef.ParryStaggerDuration < 0) return DefenseRequestResult.InvalidDefinition;
+			|| !float.IsFinite(GuardDef.ParryStaggerDuration) || GuardDef.ParryStaggerDuration < 0
+			|| !float.IsFinite(GuardDef.GuardBreakStaggerDuration) || GuardDef.GuardBreakStaggerDuration < 0
+			|| !float.IsFinite(GuardDef.GuardBreakDamageMultiplier) || GuardDef.GuardBreakDamageMultiplier < 0 || GuardDef.GuardBreakDamageMultiplier > 1) return DefenseRequestResult.InvalidDefinition;
 		if (AnimationComponent != null && !AnimationComponent.HasClip(GuardDef.AnimationProfile?.GuardHoldClip ?? "")) return DefenseRequestResult.Unavailable;
 
 		var acquireResult = ActionGate.TryAcquire(
@@ -203,6 +231,20 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 		EmitSignalGuardEnded();
 	}
 
+	/// <summary>
+	/// An unparried Heavy contact breaks this guard. Staggering through the gate interrupts the guard, whose
+	/// interruption callback tears it down; without a stagger duration the guard simply ends at once.
+	/// </summary>
+	private DefenseEvaluation BreakGuard(float amount)
+	{
+		float damage = amount * EffectiveDefinition.GuardBreakDamageMultiplier;
+		float stagger = EffectiveDefinition.GuardBreakStaggerDuration;
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.guard_broken", ("damage", damage), ("stagger", stagger));
+		if (stagger <= 0 || ActionGate?.TryStagger(stagger) != true) EndGuard(immediate: true);
+		EmitSignalGuardBroken(damage);
+		return new DefenseEvaluation(DamageOutcome.GuardBroken, damage, ConsumesParry: false, SuppressHitStun: true);
+	}
+
 	public bool TryEvaluate(in DamageContext contact, out DefenseEvaluation evaluation)
 	{
 		if (IsGuarding && EffectiveDefinition != null && _guardElapsed >= EffectiveDefinition.RaiseDuration)
@@ -221,35 +263,34 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 					}
 				}
 
-				Vector3 horizOpposite = new(-incoming.X, 0, -incoming.Z);
-				Vector3 horizFacing = GetEffectiveGuardFacing();
-
-				if (horizOpposite.LengthSquared() > 0.0001f && horizFacing.LengthSquared() > 0.0001f)
+				if (Covers(GetEffectiveGuardFacing(), -incoming))
 				{
-					float angle = Mathf.RadToDeg(horizFacing.Normalized().AngleTo(horizOpposite.Normalized()));
-					if (angle <= EffectiveDefinition.FacingSectorDegrees * 0.5f)
+					bool parryWindowActive = _isParryEligible && _guardElapsed < EffectiveDefinition.ParryWindow;
+					if (parryWindowActive && (contact.DefenseTraits & AttackDefenseTraits.Parryable) != 0)
 					{
-						bool parryWindowActive = _isParryEligible && _guardElapsed < EffectiveDefinition.ParryWindow;
-						if (parryWindowActive && (contact.DefenseTraits & AttackDefenseTraits.Parryable) != 0)
-						{
-							_isParryEligible = false;
+						_isParryEligible = false;
 
-							// Only the captured executor can authorize interruption of its current attack.
-							if (GodotObject.IsInstanceValid(contact.SourceNode) && contact.SourceNode is IParryInterruptible source)
-								source.TryInterruptForParry(contact.ExecutionId, EffectiveDefinition.ParryStaggerDuration);
+						// Only the captured executor can authorize interruption of its current attack.
+						if (GodotObject.IsInstanceValid(contact.SourceNode) && contact.SourceNode is IParryInterruptible source)
+							source.TryInterruptForParry(contact.ExecutionId, EffectiveDefinition.ParryStaggerDuration);
 
-							PlayParryAnimation();
-							EmitSignalParrySuccessful();
-							evaluation = new DefenseEvaluation(DamageOutcome.Parried, 0f, ConsumesParry: true, SuppressHitStun: true);
-							return true;
-						}
-
-						PlayBlockHitAnimation();
-						float chipDamage = contact.Amount * EffectiveDefinition.DamageMultiplier;
-						EmitSignalBlockSuccessful(chipDamage);
-						evaluation = new DefenseEvaluation(DamageOutcome.Blocked, chipDamage, ConsumesParry: false, SuppressHitStun: true);
+						PlayParryAnimation();
+						EmitSignalParrySuccessful();
+						evaluation = new DefenseEvaluation(DamageOutcome.Parried, 0f, ConsumesParry: true, SuppressHitStun: true);
 						return true;
 					}
+
+					if ((contact.DefenseTraits & AttackDefenseTraits.BreaksGuard) != 0)
+					{
+						evaluation = BreakGuard(contact.Amount);
+						return true;
+					}
+
+					PlayBlockHitAnimation();
+					float chipDamage = contact.Amount * EffectiveDefinition.DamageMultiplier;
+					EmitSignalBlockSuccessful(chipDamage);
+					evaluation = new DefenseEvaluation(DamageOutcome.Blocked, chipDamage, ConsumesParry: false, SuppressHitStun: true);
+					return true;
 				}
 			}
 		}
@@ -323,13 +364,7 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 		}
 	}
 
-	public void ApplyGuardDefinition(GuardDefinition def)
-	{
-		if (ReferenceEquals(GuardDef, def)) return;
-		Cancel(ActionInterruptReason.EquipChanged);
-		GuardDef = def;
-		_activeDefinition = null;
-	}
+	public void ApplyGuardDefinition(GuardDefinition def) => GuardDef = def;
 
 	private double _poseElapsed;
 	private void PlayGuardAnimation()

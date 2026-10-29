@@ -1,0 +1,48 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/water/WaterSpellVisual.cs" id="root"]
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Script" path="res://scenes/magic/shared/CrystalField.cs" id="crystals"]
+[ext_resource type="Shader" path="res://scenes/magic/water/frost_wave.gdshader" id="wave"]
+[ext_resource type="Shader" path="res://scenes/magic/water/ice_crystal.gdshader" id="ice"]
+[ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[sub_resource type="ShaderMaterial" id="wave_material"]
+shader = ExtResource("wave")
+shader_parameter/noise_texture = ExtResource("noise")
+[sub_resource type="PlaneMesh" id="plane"]
+size = Vector2(3, 3)
+[sub_resource type="ShaderMaterial" id="ice_material"]
+shader = ExtResource("ice")
+[node name="IceImpact" type="Node3D" node_paths=PackedStringArray("Timeline", "Crystals")]
+script = ExtResource("root")
+Timeline = NodePath("Timeline")
+Crystals = NodePath("Crystals")
+[node name="Wave" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.1, 0)
+material_override = SubResource("wave_material")
+cast_shadow = 0
+mesh = SubResource("plane")
+[node name="Crystals" type="Node3D" parent="." node_paths=PackedStringArray("Timeline")]
+script = ExtResource("crystals")
+Timeline = NodePath("../Timeline")
+CrystalMaterial = SubResource("ice_material")
+BaseCount = 6
+AdditionalPerLevel = 0
+Radius = 1.1
+InnerRadius = 0.15
+Height = 0.6
+HeightPerLevel = 0.0
+Width = 0.16
+Tilt = 0.45
+[node name="Light" type="OmniLight3D" parent="."]
+position = Vector3(0, 0.8, 0)
+light_color = Color(0.45, 0.85, 1, 1)
+light_energy = 1.0
+omni_range = 3.0
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights")]
+script = ExtResource("timeline")
+Surfaces = [NodePath("../Wave")]
+Lights = [NodePath("../Light")]
+Duration = 1.3
+FadeIn = 0.06
+FadeOutStart = 0.65

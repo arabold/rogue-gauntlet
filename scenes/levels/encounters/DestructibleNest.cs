@@ -5,6 +5,7 @@ using System.Linq;
 /// <summary>A finite, damageable summon source. Bound minions collapse when the nest is destroyed.</summary>
 public partial class DestructibleNest : StaticBody3D, IDamageable
 {
+	private static readonly StringName PlayerGroup = "player";
 	[Export] public HealthComponent HealthComponent { get; set; }
 	[Export] public HurtBoxComponent HurtBoxComponent { get; set; }
 	[Export] public PackedScene MinionScene { get; set; }
@@ -58,7 +59,7 @@ public partial class DestructibleNest : StaticBody3D, IDamageable
 		if (_remaining > 0) return;
 		_remaining = SpawnInterval;
 		if (!_exploration.IsRevealed(GlobalPosition)) return;
-		var player = GetTree().GetFirstNodeInGroup("player") as Node3D;
+		var player = GetTree().GetFirstNodeInGroup(PlayerGroup) as Node3D;
 		if (player == null || player.GlobalPosition.DistanceSquaredTo(GlobalPosition) > ActivationRange * ActivationRange) return;
 		ReleaseMinion();
 	}

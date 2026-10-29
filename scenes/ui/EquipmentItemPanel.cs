@@ -16,8 +16,6 @@ public partial class EquipmentItemPanel : PanelContainer
 			}
 		}
 	}
-	public Preview Preview;
-
 	private TextureRect _placeholderTextureRect;
 	private ItemSlotPanel _itemSlotPanel;
 

@@ -22,7 +22,7 @@ public class ScreenEffectWiringTest
 	[TestCase]
 	public async Task GameplaySceneDrivesEffectsFromThePlayer()
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/main/main.tscn", true);
+		ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(10);
 		ScreenEffectsLayer layer = ((Main)runner.Scene()).ScreenEffects;
 		Player player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().First();

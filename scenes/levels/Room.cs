@@ -27,9 +27,9 @@ public partial class Room : Node3D
 	/// <summary>Authored/generated circulation axis; zero means the room has no primary aisle.</summary>
 	[Export] public Vector2I LayoutAxis { get; set; }
 
-	[Export] public GridMap FloorGridMap;
-	[Export] public GridMap WallGridMap;
-	[Export] public GridMap DecorationGridMap;
+	[Export] public GridMap FloorGridMap { get; set; }
+	[Export] public GridMap WallGridMap { get; set; }
+	[Export] public GridMap DecorationGridMap { get; set; }
 	private GridMap _debugGridMap;
 
 	// Authored wall mesh footprints, rebuilt by every BakeTileMap (so a Rotate's

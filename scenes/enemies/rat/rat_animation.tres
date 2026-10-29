@@ -6,8 +6,8 @@
 script = ExtResource("binding")
 Style = &"melee"
 Clip = &"Attack"
-ContactStart = 0.35
-ContactEnd = 0.65
+ContactStart = 0.48
+ContactEnd = 0.62
 
 [resource]
 script = ExtResource("script")

@@ -23,7 +23,25 @@ public partial class ActorActionGateComponent : Node
 
 	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
 	[Export] public DefenseAnimationProfile AnimationProfile { get; set; }
+	/// <summary>
+	/// Lets guard and the next primary attack replace attack recovery. The player enables it; monsters keep
+	/// recovery committed, so it stays the window in which they can be punished.
+	/// </summary>
+	[Export] public bool RecoveryCancels { get; set; }
 	public bool Disabled { get; private set; }
+	private readonly System.Collections.Generic.HashSet<object> _statusLocks = [];
+	public bool IsStatusLocked => _statusLocks.Count > 0;
+
+	/// <summary>Stops actions for as long as at least one independent status owns a lock.</summary>
+	public void SetStatusLock(object owner, bool locked)
+	{
+		if (owner == null) return;
+		if (locked)
+		{
+			if (_statusLocks.Add(owner)) CancelCurrent(ActionInterruptReason.Invalidated);
+		}
+		else _statusLocks.Remove(owner);
+	}
 	public float StaggerRemaining => _staggerRemaining;
 
 	/// <summary>Transfer an accepted preparation lease to its combat executor.</summary>
@@ -46,7 +64,20 @@ public partial class ActorActionGateComponent : Node
 		CancelCurrent(ActionInterruptReason.Death);
 	}
 
-	public bool AllowsLocomotion => !IsBusy || (CurrentKind == ActorActionKind.Guard && CurrentPhase == ActorActionPhase.Active);
+	/// <summary>
+	/// True while the current action reports an armored phase: ordinary hits flinch instead of interrupting
+	/// it. Cleared whenever ownership changes, so a stale executor cannot leave an actor armored.
+	/// </summary>
+	public bool IsHyperArmored { get; private set; }
+
+	public void ReportHyperArmor(ActorActionLease lease, bool armored)
+	{
+		if (!IsLeaseCurrent(lease) || IsHyperArmored == armored) return;
+		IsHyperArmored = armored;
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "action.hyper_armor", ("kind", CurrentKind.ToString()), ("armored", armored), ("lease", lease.LeaseId));
+	}
+
+	public bool AllowsLocomotion => !IsStatusLocked && (!IsBusy || (CurrentKind == ActorActionKind.Guard && CurrentPhase == ActorActionPhase.Active));
 	public bool IsBusy => CurrentKind != ActorActionKind.None;
 	public bool IsStaggered => CurrentKind == ActorActionKind.ForcedReaction;
 	private float _staggerRemaining;
@@ -118,14 +149,14 @@ public partial class ActorActionGateComponent : Node
 	{
 		lease = ActorActionLease.None;
 
-		if (Disabled) return ActorActionRequestResult.Disabled;
+		if (Disabled || IsStatusLocked) return ActorActionRequestResult.Disabled;
 
 		if (kind == ActorActionKind.None)
 		{
 			return ActorActionRequestResult.InvalidDefinition;
 		}
 
-		if (!CanTransition(CurrentKind, CurrentPhase, kind, phase))
+		if (!CanTransition(CurrentKind, CurrentPhase, kind, RecoveryCancels))
 		{
 			return ActorActionRequestResult.Busy;
 		}
@@ -161,6 +192,7 @@ public partial class ActorActionGateComponent : Node
 		CurrentLease = ActorActionLease.None;
 		CurrentKind = ActorActionKind.None;
 		CurrentPhase = ActorActionPhase.None;
+		IsHyperArmored = false;
 		_currentOnInterrupted = null;
 
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "action.released", ("kind", oldKind.ToString()));
@@ -176,6 +208,7 @@ public partial class ActorActionGateComponent : Node
 		CurrentLease = ActorActionLease.None;
 		CurrentKind = ActorActionKind.None;
 		CurrentPhase = ActorActionPhase.None;
+		IsHyperArmored = false;
 		_currentOnInterrupted = null;
 
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "action.interrupted", ("kind", oldKind.ToString()), ("reason", reason.ToString()));
@@ -191,11 +224,12 @@ public partial class ActorActionGateComponent : Node
 			&& lease.Kind == CurrentKind;
 	}
 
-	private static bool CanTransition(
+	/// <summary>The transition table; see <see cref="RecoveryCancels"/> for the recovery entries.</summary>
+	public static bool CanTransition(
 		ActorActionKind currentKind,
 		ActorActionPhase currentPhase,
 		ActorActionKind newKind,
-		ActorActionPhase newPhase)
+		bool recoveryCancels)
 	{
 		if (currentKind == ActorActionKind.None) return true;
 
@@ -206,15 +240,18 @@ public partial class ActorActionGateComponent : Node
 		// Item use: committed channel denies voluntary cancellation
 		if (currentKind == ActorActionKind.ItemUse) return false;
 
-		// Dodge can also cancel recovery; active contact remains committed and cannot be undone.
+		// Wind-up yields to dodge or guard and recovery to dodge; active contact stays committed. With recovery
+		// cancels, guard may also replace recovery, and the next primary step may replace primary recovery.
 		if (currentKind == ActorActionKind.PrimaryAttack || currentKind == ActorActionKind.SecondaryTechnique)
 		{
-			if (currentPhase == ActorActionPhase.Recovery && newKind == ActorActionKind.Dodge) return true;
-			if (currentPhase == ActorActionPhase.WindUp)
+			return currentPhase switch
 			{
-				return newKind == ActorActionKind.Dodge || newKind == ActorActionKind.Guard;
-			}
-			return false;
+				ActorActionPhase.WindUp => newKind is ActorActionKind.Dodge or ActorActionKind.Guard,
+				ActorActionPhase.Recovery => newKind == ActorActionKind.Dodge
+					|| (recoveryCancels && (newKind == ActorActionKind.Guard
+						|| (currentKind == ActorActionKind.PrimaryAttack && newKind == ActorActionKind.PrimaryAttack))),
+				_ => false
+			};
 		}
 
 		// Held guard: dodge may replace it

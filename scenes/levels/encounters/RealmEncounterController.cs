@@ -41,10 +41,15 @@ public partial class RealmEncounterController : Node
 			GD.PushError("Gatekeeper could not be placed; descent remains locked.");
 			return;
 		}
-		spawn.Spawned += node =>
+		this.SubscribeUntilExit(spawn, s => s.Spawned += OnGatekeeperSpawned, s => s.Spawned -= OnGatekeeperSpawned);
+	}
+
+	private void OnGatekeeperSpawned(Node3D node)
+	{
+		if (node is EnemyBase enemy)
 		{
-			if (node is EnemyBase enemy) enemy.HealthComponent.Died += Unlock;
-		};
+			this.SubscribeUntilExit(enemy.HealthComponent, h => h.Died += Unlock, h => h.Died -= Unlock);
+		}
 	}
 
 	private void Unlock()

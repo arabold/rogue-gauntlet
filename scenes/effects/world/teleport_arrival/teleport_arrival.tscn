@@ -1,0 +1,14 @@
+[gd_scene load_steps=5 format=3]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/teleport_base.tscn" id="base"]
+[ext_resource type="Shader" path="res://scenes/effects/world/shaders/teleport.gdshader" id="teleport"]
+[sub_resource type="Curve" id="SurfaceCurve"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+[sub_resource type="ShaderMaterial" id="Veil"]
+shader = ExtResource("teleport")
+shader_parameter/arriving = true
+shader_parameter/tint = Color(0.25, 0.5, 1, 0.85)
+[node name="teleport_arrival" instance=ExtResource("base")]
+SurfaceEnvelope = SubResource("SurfaceCurve")
+[node name="Veil" parent="." index="0"]
+material_override = SubResource("Veil")

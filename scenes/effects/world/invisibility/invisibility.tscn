@@ -1,0 +1,21 @@
+[gd_scene load_steps=7 format=3]
+[ext_resource type="Script" path="res://scenes/effects/world/WorldEffectInstance.cs" id="script"]
+[ext_resource type="Script" path="res://scenes/effects/world/SurfaceAppearanceProfile.cs" id="profile"]
+[ext_resource type="Shader" path="res://scenes/effects/shaders/invisibility.gdshader" id="shader"]
+[sub_resource type="ShaderMaterial" id="Material"]
+shader = ExtResource("shader")
+shader_parameter/body_opacity = 0.025
+shader_parameter/edge_opacity = 0.14
+[sub_resource type="Resource" id="Surface"]
+script = ExtResource("profile")
+Material = SubResource("Material")
+Kind = 1
+[sub_resource type="Curve" id="Envelope"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+[node name="Invisibility" type="Node3D"]
+script = ExtResource("script")
+EnterTime = 0.25
+ExitTime = 0.25
+Envelope = SubResource("Envelope")
+Surface = SubResource("Surface")

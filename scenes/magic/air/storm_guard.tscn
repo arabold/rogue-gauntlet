@@ -1,0 +1,41 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/air/StormGuardVisual.cs" id="root"]
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Shader" path="res://scenes/magic/air/storm_guard.gdshader" id="shader"]
+[ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[ext_resource type="Script" path="res://scenes/magic/air/GuardArcEmitter.cs" id="emitter"]
+[ext_resource type="PackedScene" path="res://scenes/magic/air/lightning_arc.tscn" id="arc"]
+[sub_resource type="ShaderMaterial" id="material"]
+shader = ExtResource("shader")
+shader_parameter/noise_texture = ExtResource("noise")
+[sub_resource type="SphereMesh" id="sphere"]
+radius = 1.6
+height = 3.2
+radial_segments = 24
+rings = 12
+[node name="StormGuard" type="Node3D" node_paths=PackedStringArray("Timeline", "ArcEmitter")]
+script = ExtResource("root")
+Timeline = NodePath("Timeline")
+ArcEmitter = NodePath("ArcEmitter")
+[node name="Shell" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.1, 0)
+material_override = SubResource("material")
+cast_shadow = 0
+mesh = SubResource("sphere")
+[node name="Light" type="OmniLight3D" parent="."]
+position = Vector3(0, 1, 0)
+light_color = Color(0.2, 0.45, 1, 1)
+light_energy = 0.7
+omni_range = 4.0
+[node name="ArcEmitter" type="Node3D" parent="." node_paths=PackedStringArray("Shell")]
+script = ExtResource("emitter")
+Shell = NodePath("../Shell")
+ArcScene = ExtResource("arc")
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights")]
+script = ExtResource("timeline")
+Surfaces = [NodePath("../Shell")]
+Lights = [NodePath("../Light")]
+Duration = 0.8
+FadeIn = 0.3
+Sustained = true

@@ -26,6 +26,8 @@ ProjectileDamageScale = 0.32
 ProjectileSpeed = 18.0
 Range = 12.0
 AimingAngle = 180.0
+Knockback = 4.0
+ForcePushback = true
 
 [resource]
 script = ExtResource("2_magic")

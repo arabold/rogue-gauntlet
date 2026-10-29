@@ -1,26 +1,26 @@
 # Actor invisibility
 
-Status: implemented visual effect. Invisibility renders a barely visible, highly transparent actor with faint cool edges and a slow, shallow shimmer. It is shared by the player and monsters, including skinned meshes and equipment. This delivers presentation; stealth, AI detection, consumables, duration rules and saved status conditions remain separate gameplay work.
+Invisibility is an actor condition and sustained visual in `scenes/effects/world/invisibility/`, shared by the player and monsters. It renders faint cool edges and a shallow shimmer while preserving animation and equipment. Stealth rules, item duration and saved status conditions remain separate gameplay work.
 
 ## Runtime and authoring
 
-`InvisibilityComponent` is prewired, inactive by default, in the player scene, monster base and enemy authoring templates. The exported actor `Invisibility` reference exposes the same API for both actor types:
+Player and monster roots expose an **Invisible** checkbox in the Inspector. It sets their initial condition; during gameplay the same property toggles that actor's persistent source and reads the aggregate condition. Other sources can use the actor's `BuffController` and the external `invisible.tres` condition; removing one source does not remove the others. The `InvisibilityComponent` observes that condition and is explicitly wired to the actor's `WorldEffectHost` and authored visual definition. It has no material-swapping logic, tween or separate visual clock:
 
 ```csharp
-actor.Invisibility.SetInvisible(true);  // Smoothly cloak body and equipment.
-actor.Invisibility.SetInvisible(false); // Restore normal presentation.
+actor.Invisible = true;
+actor.Invisible = false;
 ```
 
-Assign `Target` to the actor's visual `Pivot`, `EffectMaterial` to the supplied shader material, and optionally `Health` for death cleanup. Transitions default to 0.25 seconds; the optional second `immediate` argument bypasses interpolation. Toggling mid-transition reverses from the current amount. `StartInvisible` supports authored visual previews without adding an invisibility item or monster ability.
+This is the same persistent source managed by `actor.Invisibility.SetInvisible(...)`. Timed effects should apply the condition with their own source instead of toggling this actor-owned flag.
 
-The material template in `scenes/components/invisibility_component.tscn` exposes `body_opacity` (0.025), `edge_opacity` (0.14) and `veil_color`. The shader uses material alpha and ordinary depth tests on the project's Mobile renderer. It neither samples screen color nor draws through walls. Normal materials supply texture/color during the transition, and the shader preserves skinning and animation.
+The host uses the same source-counted sustained lifecycle and `WorldEffectInstance` as other actor effects. The invisibility scene authors its cloak surface profile and 0.25-second entry/exit. Initial invisible state appears immediately; normal runtime transitions fade. Gameplay state ends as soon as the last condition source is removed, even when its visual is still fading. Reversals resume an existing retiring effect from its current amount.
 
-Each affected mesh owns private shader materials. Original surface overrides, whole-mesh override, overlay and shadow settings restore exactly when the cloak ends. Shared authored materials remain untouched. Runtime-added equipment inherits the current cloak amount; hidden meshes stay hidden. Collision, damage, movement, fog and actor root visibility remain unchanged. The component stops on death before ordinary corpse fading takes ownership of the materials.
+`SurfaceAppearanceController` owns private material copies and exact baseline restoration. `IsInvisible` reflects gameplay conditions; `Amount` reflects the visual fade. The gameplay state notification drives health bars and monster x-rays; cloak presentation suppresses other attached effects while remaining visible itself. Playing the visual alone, for example in the workbench, does not apply a condition. Cloak remains above skins and teleport transitions in surface priority.
 
-Monster x-ray helpers are excluded from the cloak's mesh capture and suppressed while cloaked. Floating health bars also respect invisibility, including when damage updates health. These are explicitly wired visual dependencies; they do not affect target acquisition or combat permission.
+The material template exposes `body_opacity`, `edge_opacity` and `veil_color`. Collision, damage, movement, fog and actor root visibility are unaffected. Dynamic equipment inherits the active surface; helpers are excluded. Death clears the host and restores original materials before corpse fading.
 
 ## Preview and verification
 
-Run `scenes/debug/effects/world_effect_harness.tscn` with F6 and choose **5: Invisibility**. An animated production player and skeleton show equipped gear on a textured floor. **R / Space** toggles normal/invisible; **Q / E** orbits and the wheel zooms. Auto replay alternates every three seconds.
+Open the **Actor / item effects** tab, select **Invisibility**, then choose the player, skeleton or Warden. Replay restarts the effect and Clear removes it, just as for other effects. Mouse orbit and camera keys use the shared harness controls. Invisibility no longer has a separate world-effects mode.
 
-Runtime tests cover private materials, exact restoration, shadow suppression, dynamic equipment, death cleanup, real actor assemblies, transition reversal, health-bar/x-ray suppression and switching harness modes. Windowed comparison verifies see-through surfaces and animation from multiple camera angles.
+Runtime tests cover generic playback, private materials and restoration, dynamic equipment, fade reversals, death, initial hidden state, source ownership, suppression and actor scene wiring. See [world effects](world-effects.md) for the shared lifecycle and authoring rules.

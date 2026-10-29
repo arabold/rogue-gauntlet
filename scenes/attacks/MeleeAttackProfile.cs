@@ -34,30 +34,54 @@ public partial class MeleeAttackProfile : Resource
 	/// <summary>Build one convex query volume per accepted attack; forward is local -Z.</summary>
 	public Shape3D CreateShape()
 	{
-		if (!IsValid) throw new InvalidOperationException("Invalid melee contact profile.");
-		if (Volume == MeleeVolume.Radial) return new CylinderShape3D { Radius = Reach, Height = ContactHeight };
-		var points = new List<Vector3>();
-		void Add(float x, float z)
+		if (Volume == MeleeVolume.Radial)
 		{
-			points.Add(new Vector3(x, -ContactHeight / 2, z));
-			points.Add(new Vector3(x, ContactHeight / 2, z));
+			if (!IsValid) throw new InvalidOperationException("Invalid melee contact profile.");
+			return new CylinderShape3D { Radius = Reach, Height = ContactHeight };
+		}
+		var points = new List<Vector3>();
+		foreach (Vector2 point in FootprintOutline())
+		{
+			points.Add(new Vector3(point.X, -ContactHeight / 2, point.Y));
+			points.Add(new Vector3(point.X, ContactHeight / 2, point.Y));
+		}
+		return new ConvexPolygonShape3D { Points = points.ToArray() };
+	}
+
+	/// <summary>
+	/// Ordered convex ground outline of the contact volume in actor-local XZ (X right, Y = local Z, forward is
+	/// -Z). The query shape extrudes it and telegraphs draw it, so both always describe the same area.
+	/// </summary>
+	public Vector2[] FootprintOutline()
+	{
+		if (!IsValid) throw new InvalidOperationException("Invalid melee contact profile.");
+		var outline = new List<Vector2>();
+		if (Volume == MeleeVolume.Radial)
+		{
+			for (int i = 0; i < 24; i++)
+			{
+				float angle = Mathf.Tau * i / 24;
+				outline.Add(new Vector2(Mathf.Sin(angle) * Reach, -Mathf.Cos(angle) * Reach));
+			}
+			return outline.ToArray();
 		}
 		// Every forward footprint starts at full width through the actor's center.
 		// A sector apex or a tangent capsule cap leaves point-blank targets beside
 		// the body outside the query, even while they are inside the swing's width.
-		Add(-Width / 2, 0); Add(Width / 2, 0);
+		outline.Add(new Vector2(-Width / 2, 0));
 		if (Volume == MeleeVolume.Box)
 		{
-			Add(-Width / 2, -Reach); Add(Width / 2, -Reach);
+			outline.Add(new Vector2(-Width / 2, -Reach));
+			outline.Add(new Vector2(Width / 2, -Reach));
 		}
 		else if (Volume == MeleeVolume.Capsule)
 		{
+			// The near cap lies inside the full-width start, so only the far cap shapes the outline.
 			float radius = Width / 2;
 			for (int i = 0; i <= 12; i++)
 			{
 				float angle = Mathf.Pi * i / 12;
-				Add(Mathf.Cos(angle) * radius, -radius + Mathf.Sin(angle) * radius);
-				Add(-Mathf.Cos(angle) * radius, -Reach + radius - Mathf.Sin(angle) * radius);
+				outline.Add(new Vector2(-Mathf.Cos(angle) * radius, -Reach + radius - Mathf.Sin(angle) * radius));
 			}
 		}
 		else
@@ -65,9 +89,10 @@ public partial class MeleeAttackProfile : Resource
 			for (int i = 0; i <= 24; i++)
 			{
 				float angle = Mathf.DegToRad(-ArcDegrees / 2 + ArcDegrees * i / 24);
-				Add(Mathf.Sin(angle) * Reach, -Mathf.Cos(angle) * Reach);
+				outline.Add(new Vector2(Mathf.Sin(angle) * Reach, -Mathf.Cos(angle) * Reach));
 			}
 		}
-		return new ConvexPolygonShape3D { Points = points.ToArray() };
+		outline.Add(new Vector2(Width / 2, 0));
+		return outline.ToArray();
 	}
 }

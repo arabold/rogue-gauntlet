@@ -1,0 +1,36 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/air/ThunderstormVisual.cs" id="root"]
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Shader" path="res://scenes/magic/air/electric_burst.gdshader" id="shader"]
+[ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[ext_resource type="PackedScene" path="res://scenes/magic/air/lightning_arc.tscn" id="arc"]
+[ext_resource type="PackedScene" path="res://scenes/magic/air/lightning_cracks.tscn" id="cracks"]
+[sub_resource type="ShaderMaterial" id="material"]
+shader = ExtResource("shader")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/intensity = 1.4
+[sub_resource type="PlaneMesh" id="plane"]
+size = Vector2(20, 20)
+[node name="Thunderstorm" type="Node3D" node_paths=PackedStringArray("Timeline")]
+script = ExtResource("root")
+Timeline = NodePath("Timeline")
+ArcScene = ExtResource("arc")
+CracksScene = ExtResource("cracks")
+[node name="ElectricWave" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.24, 0)
+material_override = SubResource("material")
+cast_shadow = 0
+mesh = SubResource("plane")
+[node name="Light" type="OmniLight3D" parent="."]
+position = Vector3(0, 1, 0)
+light_color = Color(0.18, 0.4, 1, 1)
+light_energy = 1.1
+omni_range = 8.0
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights")]
+script = ExtResource("timeline")
+Surfaces = [NodePath("../ElectricWave")]
+Lights = [NodePath("../Light")]
+Duration = 1.15
+FadeIn = 0.05
+FadeOutStart = 0.55

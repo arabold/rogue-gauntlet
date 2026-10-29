@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3]
+[gd_scene load_steps=39 format=3]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
 [ext_resource type="PackedScene" path="res://assets/custom-monsters/forsaken_warden/forsaken_warden.glb" id="2_glb"]
@@ -16,6 +16,9 @@
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_defense_animation.tres" id="defense_animation"]
 
 [ext_resource type="Script" uid="uid://wi1l4pav2ehr" path="res://scenes/components/ConstantScreenSize3D.cs" id="constant_screen_size"]
+[ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
+[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_poise.tres" id="poise_definition"]
+[ext_resource type="PackedScene" path="res://scenes/combat/attack_telegraph.tscn" id="telegraph"]
 
 [sub_resource type="AnimationNodeAnimation" id="anim_idle"]
 animation = &"Idle_A"
@@ -125,7 +128,8 @@ anim_player = NodePath("../../Pivot/WardenModel/AnimationPlayer")
 
 [node name="DeathComponent" parent="." index="5"]
 
-[node name="HurtBoxComponent" parent="." index="6" node_paths=PackedStringArray("MovementComponent")]
+[node name="HurtBoxComponent" parent="." index="6" node_paths=PackedStringArray("MovementComponent", "Poise")]
+Poise = NodePath("../PoiseComponent")
 position = Vector3(0, 2.25, 0)
 MovementComponent = NodePath("")
 
@@ -151,8 +155,10 @@ Movement = NodePath("../MovementComponent")
 ActionGate = NodePath("../ActorActionGateComponent")
 process_physics_priority = 1
 RotationSpeed = 5.0
+MaxTurnRate = 90.0
 
-[node name="FloatingHealthBar" parent="."]
+[node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("Poise")]
+Poise = NodePath("../PoiseComponent")
 position = Vector3(0, 5.1, 0)
 
 [node name="BossTitle" type="Label3D" parent="."]
@@ -186,3 +192,21 @@ GuardComponent = NodePath("../GuardComponent")
 [node name="ConstantScreenSize3D" type="Node" parent="BossTitle" node_paths=PackedStringArray("Target")]
 script = ExtResource("constant_screen_size")
 Target = NodePath("..")
+
+[node name="WorldEffects" parent="."]
+scale = Vector3(2, 2, 2)
+
+[node name="PoiseComponent" type="Node" parent="." node_paths=PackedStringArray("ActionGate")]
+script = ExtResource("poise_script")
+Definition = ExtResource("poise_definition")
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="AttackTelegraph" parent="." instance=ExtResource("telegraph")]
+
+[node name="AttackController" parent="." node_paths=PackedStringArray("Telegraph", "ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")
+Telegraph = NodePath("../AttackTelegraph")
+
+[node name="FrozenStatusComponent" parent="." node_paths=PackedStringArray("ActionGate", "Animation")]
+ActionGate = NodePath("../ActorActionGateComponent")
+Animation = NodePath("../EnemyBehaviorComponent/AnimationTree")

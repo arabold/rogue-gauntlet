@@ -1,0 +1,8 @@
+[gd_scene load_steps=4 format=3]
+[ext_resource type="Script" path="res://scenes/components/StatusAppearanceComponent.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/buffs/conditions/stone_skin.tres" id="condition"]
+[ext_resource type="Resource" path="res://scenes/effects/world/stone_skin/stone_skin.tres" id="effect"]
+[node name="StoneSkinStatus" type="Node"]
+script = ExtResource("script")
+Condition = ExtResource("condition")
+Effect = ExtResource("effect")

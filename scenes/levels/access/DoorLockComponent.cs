@@ -4,6 +4,7 @@ using System.Linq;
 /// <summary>Instance-owned mechanical lock. Inventory and lock commit before observers are notified; owners observe
 /// <see cref="Changed"/> instead of being refreshed by each mutation site.</summary>
 [Tool]
+[GlobalClass]
 public partial class DoorLockComponent : Node
 {
 	[Signal] public delegate void ChangedEventHandler();

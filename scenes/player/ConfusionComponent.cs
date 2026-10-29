@@ -7,6 +7,7 @@ using Godot;
 /// <see cref="InputComponent"/> has read the controls and before the player controller turns them into
 /// intent, and only processes while the player is confused.
 /// </summary>
+[GlobalClass]
 public partial class ConfusionComponent : Node
 {
 	private readonly RandomNumberGenerator _random = new();

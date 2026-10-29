@@ -9,6 +9,7 @@ using Godot;
 [GlobalClass]
 public partial class SummonScrollEffect : ScrollEffect
 {
+	[Export] public WorldEffectDefinition Arrival { get; set; }
 	[Export] public int Count { get; set; } = 3;
 	[Export] public float Radius { get; set; } = 4f;
 
@@ -41,6 +42,7 @@ public partial class SummonScrollEffect : ScrollEffect
 
 			var enemy = enemyScene.Instantiate<Node3D>();
 			level.AddWorldNode(enemy, spawnPosition);
+			if (enemy is EnemyBase actor) actor.WorldEffects?.PlayBurst(Arrival, (uint)i + 271);
 		}
 	}
 }

@@ -9,5 +9,5 @@ using Godot.Collections;
 [GlobalClass]
 public partial class AppearancePool : Resource
 {
-	[Export] public Array<ItemAppearance> Appearances { get; set; } = new();
+	[Export] public Array<ItemAppearance> Appearances { get; set; } = [];
 }

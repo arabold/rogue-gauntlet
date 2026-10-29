@@ -79,7 +79,7 @@ public class GarrisonRoomPoolTest
 	[TestCase]
 	public async Task ThreeDepthsKeepConnectedGeometryEncountersAndReproducibleFurnishings()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/levels/level.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		var generator = level.MapGenerator;

@@ -9,6 +9,7 @@ using static GdUnit4.Assertions;
 public class SaveGameVersionTest
 {
 	[TestCase("{}")]
+	[TestCase("{\"Version\":41}")]
 	[TestCase("{\"Version\":19}")]
 	[TestCase("{\"Version\":18}")]
 	[TestCase("{\"Version\":17}")]

@@ -1,0 +1,27 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectInstance.cs" id="root"]
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Shader" path="res://scenes/magic/air/lightning_impact.gdshader" id="shader"]
+[sub_resource type="ShaderMaterial" id="material"]
+shader = ExtResource("shader")
+[sub_resource type="QuadMesh" id="mesh"]
+size = Vector2(2.5, 2.5)
+[node name="LightningBallImpact" type="Node3D" node_paths=PackedStringArray("Timeline")]
+script = ExtResource("root")
+Timeline = NodePath("Timeline")
+[node name="Flash" type="MeshInstance3D" parent="."]
+material_override = SubResource("material")
+cast_shadow = 0
+mesh = SubResource("mesh")
+[node name="Light" type="OmniLight3D" parent="."]
+light_color = Color(0.25, 0.55, 1, 1)
+light_energy = 1.2
+omni_range = 4.0
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights")]
+script = ExtResource("timeline")
+Surfaces = [NodePath("../Flash")]
+Lights = [NodePath("../Light")]
+Duration = 0.5
+FadeIn = 0.08
+FadeOutStart = 0.22

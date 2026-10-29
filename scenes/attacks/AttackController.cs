@@ -5,19 +5,23 @@ using System.Collections.Generic;
 /// <summary>
 /// Handles timing-synchronized hit detection and projectile spawning for actors.
 /// </summary>
+[GlobalClass]
 public partial class AttackController : Node, IParryInterruptible
 {
 	/// <summary>One completion notification per accepted execution, after releasing its action/pose ownership.</summary>
 	public event System.Action<AttackIdentity, bool> AttackFinished;
 	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
 	[Export] public ProjectileAimIndicator AimIndicator { get; set; }
+	/// <summary>Optional footprint cue for Heavy and Unblockable melee; presentation only.</summary>
+	[Export] public AttackTelegraph Telegraph { get; set; }
 	public bool IsAttacking => _isAttacking;
 	public double PerformDuration => _preparedAttack?.Duration ?? 0;
 	public StringName CurrentStyle => _preparedAttack?.Playback?.Style ?? "";
 	public AttackDefinition CurrentAttack => _currentAttack;
 	public bool IsRanged => _currentAttack?.IsRanged ?? false;
 	private PreparedAttack _preparedAttack;
-	private ActorActionGateComponent _actionGate;
+	/// <summary>The actor's action gate. Unassigned runs attacks without action ownership, phases or hyper-armor.</summary>
+	[Export] public ActorActionGateComponent ActionGate { get; set; }
 	private ActorActionLease _actionLease;
 	public float RecoveryRemaining => _isAttacking ? Mathf.Max(0, (float)_preparedAttack.Duration - _elapsedTime) : 0;
 	public ActorActionPhase Phase => !_isAttacking ? ActorActionPhase.None
@@ -29,6 +33,8 @@ public partial class AttackController : Node, IParryInterruptible
 	[Export] public MeleeAttackProfile DefaultMeleeContact { get; set; }
 	[Export] public bool EffectsEnabled { get; set; } = true;
 	[Signal] public delegate void AttackFeedbackEventHandler(string result, float damage);
+	/// <summary>Presentation hook (camera impulse, sound) when a contact pauses this execution.</summary>
+	[Signal] public delegate void HitStopStartedEventHandler(float duration);
 	public string LastResult { get; private set; } = "Ready";
 	public float LastDamage { get; private set; }
 	public int ContactCount { get; private set; }
@@ -55,6 +61,8 @@ public partial class AttackController : Node, IParryInterruptible
 
 	private bool _isAttacking;
 	private float _elapsedTime;
+	private float _hitStopRemaining;
+	private bool _hitStopUsed;
 	private AttackDefinition _currentAttack;
 	private float _currentMinDamage;
 	private float _currentMaxDamage;
@@ -82,7 +90,6 @@ public partial class AttackController : Node, IParryInterruptible
 	{
 		_actor = GetParent<Node3D>();
 		ProcessPhysicsPriority = CombatPhysics.Damage;
-		_actionGate = _actor.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
 		AddToGroup("attack_controller");
 		_random.Seed = 42;
 		SetPhysicsProcess(false);
@@ -124,6 +131,7 @@ public partial class AttackController : Node, IParryInterruptible
 			copy.HitWindowStart = (float)duration * playback.ContactStart;
 			copy.HitWindowEnd = (float)duration * playback.ContactEnd;
 		}
+		if (!copy.HasValidImpact(copy.HitWindowStart)) return false;
 		if (!float.IsFinite(copy.ProjectileAimLockDuration) || copy.ProjectileAimLockDuration < 0) return false;
 		if (copy.ProjectileAimLockDuration > 0 && (!copy.IsRanged
 			|| copy.ProjectilePattern is not (ProjectilePattern.Single or ProjectilePattern.Spread)
@@ -140,17 +148,16 @@ public partial class AttackController : Node, IParryInterruptible
 		Node3D aimTarget = def.ProjectileAimLockDuration > 0 ? FindProjectileAimTarget(def.Range, def.AimingAngle) : null;
 		if (def.ProjectileAimLockDuration > 0 && aimTarget == null) return false;
 
-		_actionGate ??= _actor.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
 		if (_actor is Player { IsDead: true } || _actor is EnemyBase { IsDead: true }) return false;
 		if (_isAttacking) return false;
-		if (_actionGate != null)
+		if (ActionGate != null)
 		{
 			if (lease.IsValid)
 			{
 				if (lease.Kind is not (ActorActionKind.PrimaryAttack or ActorActionKind.SecondaryTechnique)
-					|| !_actionGate.Adopt(lease, _ => CancelAttack())) return false;
+					|| !ActionGate.Adopt(lease, _ => CancelAttack())) return false;
 			}
-			else if (_actionGate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp,
+			else if (ActionGate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp,
 				_ => CancelAttack(), out lease) != ActorActionRequestResult.Success) return false;
 		}
 		_actionLease = lease;
@@ -163,6 +170,8 @@ public partial class AttackController : Node, IParryInterruptible
 		_targetMask = targetMask;
 
 		_elapsedTime = 0.0f;
+		_hitStopRemaining = 0;
+		_hitStopUsed = false;
 		_isAttacking = true;
 		HasCommittedFacing = false;
 		_contactEvaluated = _blockedContact = false;
@@ -182,11 +191,13 @@ public partial class AttackController : Node, IParryInterruptible
 
 		GameDebug.Combat($"{_actor.Name} starting attack: {def.AnimationId} (Ranged: {def.IsRanged})");
 
-		_actionGate?.ReportPhase(_actionLease, Phase);
+		ReportProgress();
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.started", ("execution", _executionSequence), ("execution_source", GetInstanceId()), ("style", CurrentStyle.ToString()),
 			("contact_start", def.HitWindowStart), ("contact_end", def.HitWindowEnd), ("duration", attack.Duration),
-			("traits", def.DefenseTraits.ToString()), ("min_damage", minDamage), ("max_damage", maxDamage));
+			("traits", def.DefenseTraits.ToString()), ("min_damage", minDamage), ("max_damage", maxDamage),
+			("poise_damage", def.PoiseDamage), ("facing_lock_lead", def.FacingLockLead), ("hyper_armor", $"{def.HyperArmorStart}-{def.HyperArmorEnd}"));
 		if (attack.Playback != null) AnimationComponent.Begin(attack.Playback);
+		UpdateTelegraph();
 		SetPhysicsProcess(true);
 		return true;
 	}
@@ -208,9 +219,9 @@ public partial class AttackController : Node, IParryInterruptible
 		{
 			staggerable.TryStagger(staggerDuration);
 		}
-		else if (_actor?.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent") is ActorActionGateComponent gate)
+		else
 		{
-			gate.TryStagger(staggerDuration);
+			ActionGate?.TryStagger(staggerDuration);
 		}
 		return true;
 	}
@@ -225,9 +236,11 @@ public partial class AttackController : Node, IParryInterruptible
 		else if (!_currentAttack.IsRanged && ContactCount == 0) ReportFeedback(_blockedContact ? "Obstructed" : "No contact");
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.ended", ("execution", _executionSequence), ("interrupted", interrupted), ("contacts", ContactCount), ("result", LastResult));
 		_isAttacking = false;
+		_hitStopRemaining = 0;
 		AimIndicator?.Clear();
+		Telegraph?.Clear();
 		_projectileAimTarget = null;
-		_actionGate?.Release(_actionLease);
+		ActionGate?.Release(_actionLease);
 		_actionLease = ActorActionLease.None;
 		_currentAttack = null;
 		_preparedAttack = null;
@@ -245,11 +258,22 @@ public partial class AttackController : Node, IParryInterruptible
 			CancelAttack();
 			return;
 		}
+		// Hit-stop freezes this execution's clock (timing, contact sampling and pose) without slowing anyone else.
+		if (_hitStopRemaining > 0)
+		{
+			_hitStopRemaining -= (float)delta;
+			return;
+		}
 		float previous = _elapsedTime;
 		_elapsedTime += (float)delta;
-		_actionGate?.ReportPhase(_actionLease, Phase);
+		ReportProgress();
 		if (_preparedAttack.Playback != null)
 			AnimationComponent.Sample(_preparedAttack.Playback, _elapsedTime / _preparedAttack.Duration);
+
+		// A positive lead commits melee facing before contact, so a defender can step out of the swing.
+		if (!_currentAttack.IsRanged && !HasCommittedFacing && _elapsedTime >= _currentAttack.HitWindowStart - _currentAttack.FacingLockLead)
+			CommitMeleeFacing();
+		UpdateTelegraph();
 
 		if (_currentAttack.IsRanged)
 		{
@@ -273,12 +297,7 @@ public partial class AttackController : Node, IParryInterruptible
 			&& (!_contactEvaluated || previous < _currentAttack.HitWindowEnd))
 		{
 			// Interval intersection, not just the current timestamp: even a whole skipped window queries once.
-			if (!HasCommittedFacing)
-			{
-				CommittedFacing = GetActorForward();
-				_contactBasis = Basis.LookingAt(CommittedFacing, Vector3.Up);
-				HasCommittedFacing = true;
-			}
+			if (!HasCommittedFacing) CommitMeleeFacing();
 			var profile = _currentAttack.MeleeContact;
 			var frame = new Transform3D(_contactBasis, _actor.GlobalPosition + Vector3.Up * profile.CenterHeight);
 			var execution = _preparedAttack;
@@ -332,6 +351,31 @@ public partial class AttackController : Node, IParryInterruptible
 		_swoosh = null;
 	}
 
+	/// <summary>Draw a Heavy/Unblockable melee footprint until its contact window closes; it follows tracking until facing commits.</summary>
+	private void UpdateTelegraph()
+	{
+		if (Telegraph == null || _currentAttack.IsRanged || _currentAttack.ThreatTier == AttackThreatTier.Normal) return;
+		if (_elapsedTime > _currentAttack.HitWindowEnd) { Telegraph.Clear(); return; }
+		Telegraph.ShowThreat(_currentAttack.ThreatTier, _currentAttack.MeleeContact, _actor.GlobalPosition,
+			HasCommittedFacing ? CommittedFacing : GetActorForward(), HasCommittedFacing);
+	}
+
+	private void CommitMeleeFacing()
+	{
+		CommittedFacing = GetActorForward();
+		_contactBasis = Basis.LookingAt(CommittedFacing, Vector3.Up);
+		HasCommittedFacing = true;
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.facing_committed", ("execution", _executionSequence),
+			("elapsed", _elapsedTime), ("facing", CombatTrace.Vector(CommittedFacing)));
+	}
+
+	/// <summary>Publish the phase and hyper-armor state of the current elapsed time to the action gate.</summary>
+	private void ReportProgress()
+	{
+		ActionGate?.ReportPhase(_actionLease, Phase);
+		ActionGate?.ReportHyperArmor(_actionLease, _currentAttack.IsHyperArmoredAt(_elapsedTime / (float)_preparedAttack.Duration));
+	}
+
 	private void ApplyMeleeContact(Node3D target)
 	{
 		Node owner = target is HurtBoxComponent ? target.GetParent() : target;
@@ -367,19 +411,32 @@ public partial class AttackController : Node, IParryInterruptible
 			Random = _random,
 			IncomingDirection = incomingDir,
 			DefenseTraits = traits,
-			DeliveryKind = DamageDeliveryKind.DirectMelee
+			DeliveryKind = DamageDeliveryKind.DirectMelee,
+			Impact = _currentAttack.Impact,
+			Critical = critical
 		};
 
 		if (target is ICombatDamageable combatDamageable)
 		{
 			var result = combatDamageable.ResolveDamage(in context);
 			ReportFeedback(result.Outcome.ToString(), result.Amount);
+			if (result.Outcome is DamageOutcome.Damaged or DamageOutcome.Blocked or DamageOutcome.GuardBroken)
+				StartHitStop(result.HitStopScale);
 		}
 		else if (target is IDamageable damageable)
 		{
 			damageable.TakeDamage(damage, incomingDir, _actor);
 			ReportFeedback("Contact", damage);
 		}
+	}
+
+	/// <summary>Pause this execution once per swing; later contacts in the same swing do not extend it.</summary>
+	private void StartHitStop(float scale)
+	{
+		if (_hitStopUsed || !_isAttacking || _currentAttack.HitStopDuration <= 0) return;
+		_hitStopUsed = true;
+		_hitStopRemaining = _currentAttack.HitStopDuration * scale;
+		EmitSignalHitStopStarted(_hitStopRemaining);
 	}
 
 	private void ReportFeedback(string result, float damage = 0)
@@ -458,6 +515,7 @@ public partial class AttackController : Node, IParryInterruptible
 
 	private void ApplyProjectileOverrides(Projectile projectile)
 	{
+		projectile.Impact = _currentAttack.Impact;
 		if (_currentAttack.ImpactRadiusOverride >= 0.0f)
 		{
 			projectile.ImpactRadius = _currentAttack.ImpactRadiusOverride;
@@ -560,6 +618,7 @@ public partial class AttackController : Node, IParryInterruptible
 		{
 			effect.LookAt(origin + direction, Vector3.Up);
 		}
+		effect.ResetPhysicsInterpolation();
 	}
 
 	private Node3D FindWeaponInstance()
@@ -746,14 +805,7 @@ public partial class AttackController : Node, IParryInterruptible
 		return GetAimAngle(target) <= MeleeAimAssistAngle;
 	}
 
-	private float GetAimAngle(Node3D target)
-	{
-		Vector3 directionToTarget = target.GlobalPosition - _actor.GlobalPosition;
-		directionToTarget.Y = 0;
-		if (directionToTarget.LengthSquared() == 0) return 0.0f;
-
-		return Mathf.RadToDeg(GetActorForward().AngleTo(directionToTarget.Normalized()));
-	}
+	private float GetAimAngle(Node3D target) => GetActorForward().HorizontalAngleTo(target.GlobalPosition - _actor.GlobalPosition);
 
 	private Vector3 GetActorForward()
 	{

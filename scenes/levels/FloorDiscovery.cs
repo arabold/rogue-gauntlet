@@ -9,6 +9,7 @@ using Godot;
 /// door state is never copied here. The shader's fade clock is pushed only while a reveal is fading in. Gameplay reads
 /// exploration through <see cref="ExplorationVisibility"/>.
 /// </summary>
+[GlobalClass]
 public partial class FloorDiscovery : Node3D
 {
 	/// <summary>Omnidirectional exploration reach in world units; independent of lighting and camera zoom.</summary>
@@ -20,6 +21,7 @@ public partial class FloorDiscovery : Node3D
 
 	private const double PollSeconds = 0.1;
 	private static readonly StringName ElapsedParameter = "elapsed";
+	private static readonly StringName PlayerGroup = "player";
 
 	private GeneratedFloor _floor;
 	private DungeonDiscovery _model;
@@ -90,7 +92,7 @@ public partial class FloorDiscovery : Node3D
 		_fadeUntil = 0;
 		_refresh = true;
 		_untilPoll = 0;
-		_player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
+		_player = GetTree().GetFirstNodeInGroup(PlayerGroup) as Player;
 		CreateSurface();
 	}
 

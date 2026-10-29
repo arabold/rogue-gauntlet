@@ -6,7 +6,7 @@ public partial class BreakableItem : Item
 {
 	[Signal] public delegate void BrokenEventHandler();
 
-	[Export] public float Durability { get => _durability; private set => SetValue(ref _durability, value); }
+	[Export] public float Durability { get => _durability; set => SetValue(ref _durability, value); }
 
 	private float _durability = 1.0f;
 
@@ -29,6 +29,6 @@ public partial class BreakableItem : Item
 
 	public virtual void OnBroken()
 	{
-		EmitSignal(nameof(BrokenEventHandler));
+		EmitSignalBroken();
 	}
 }

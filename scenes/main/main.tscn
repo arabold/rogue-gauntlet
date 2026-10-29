@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://ds1fgmaafnkkj"]
+[gd_scene load_steps=15 format=3 uid="uid://ds1fgmaafnkkj"]
 
 [ext_resource type="Script" uid="uid://cdal8n3nlw3ng" path="res://scenes/main/Main.cs" id="1_dl2xl"]
 [ext_resource type="PackedScene" uid="uid://beddkxj3k6x7i" path="res://scenes/ui/hud.tscn" id="3_stuk7"]
@@ -9,6 +9,8 @@
 [ext_resource type="Script" uid="uid://8umksf8e80fw" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="8_qd7vr"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="9_pause"]
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/screen_effects.tscn" id="10_effects"]
+[ext_resource type="Script" uid="uid://ccmiitq0sdh7j" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_noise_emitter_3d.gd" id="noise_emitter"]
+[ext_resource type="Script" uid="uid://cuffvge5ad4aa" path="res://addons/phantom_camera/scripts/resources/phantom_camera_noise_3d.gd" id="noise_resource"]
 
 [sub_resource type="Environment" id="Environment_cxo8v"]
 background_mode = 1
@@ -20,8 +22,16 @@ glow_enabled = true
 [sub_resource type="Resource" id="Resource_3h1r8"]
 script = ExtResource("8_qd7vr")
 
-[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects", "GameCamera")]
+[sub_resource type="Resource" id="hit_noise"]
+script = ExtResource("noise_resource")
+amplitude = 7.5
+frequency = 30.0
+rotational_noise = false
+positional_noise = true
+
+[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects", "GameCamera", "HitNoiseEmitter")]
 script = ExtResource("1_dl2xl")
+HitNoiseEmitter = NodePath("HitNoiseEmitter")
 ScreenEffects = NodePath("ScreenEffects")
 GameCamera = NodePath("Camera3D")
 
@@ -66,6 +76,14 @@ follow_distance = 15.0
 dead_zone_width = 0.3
 dead_zone_height = 0.3
 spring_length = 15.0
+noise_emitter_layer = 1
+
+[node name="HitNoiseEmitter" type="Node3D" parent="."]
+script = ExtResource("noise_emitter")
+noise = SubResource("hit_noise")
+duration = 0.0
+decay_time = 0.18
+noise_emitter_layer = 1
 
 [node name="CameraTargetPlaceholder" type="Node3D" parent="." unique_id=2113066232]
 

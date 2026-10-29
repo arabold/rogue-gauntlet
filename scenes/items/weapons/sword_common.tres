@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=7 format=3 uid="uid://btk1o3ydc6yaf"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=8 format=3 uid="uid://btk1o3ydc6yaf"]
 
 [ext_resource type="Resource" path="res://scenes/combat/definitions/weapon_guard.tres" id="guard_weapon"]
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/slash_1h.tres" id="melee_contact"]
@@ -6,11 +6,13 @@
 [ext_resource type="PackedScene" path="res://scenes/items/weapons/sword_common.tscn" id="1_x0rs4"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_e51uk"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
+[ext_resource type="Resource" path="res://scenes/attacks/combos/sword_1h.tres" id="primary_combo"]
 
 [resource]
 script = ExtResource("2_e51uk")
 Guard = ExtResource("guard_weapon")
 MeleeContact = ExtResource("melee_contact")
+PrimaryCombo = ExtResource("primary_combo")
 AttackStyle = &"sword.1h.slash"
 Grip = ExtResource("weapon_grip")
 Tier = 2

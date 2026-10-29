@@ -2,6 +2,8 @@
 
 Status: **proposed**. Covers statuses applied by attacks: monster attacks that poison the player (venomous bites, poisoned bolts) and player weapons that poison monsters. It builds on [combat actions and defense](../combat-system.md), [weapon attacks](../weapon-attack-system.md), [stats and itemization](../stats-and-itemization.md) and [monster design and authoring](../monster-authoring-design.md).
 
+**New foundation:** [actor status integration](actor-status-integration-plan.md) adds actor-local, source-owned timed conditions and a frozen status on players and monsters. The proposed buff generalization below must build on that controller and its existing scene wiring; periodic and stat buffs remain player-specific, and attack payloads are not yet implemented.
+
 **Foundation:** this plan builds on the implemented [status conditions](../stats-and-itemization.md#buffs-and-status-conditions) and [screen effects](../screen-effects.md) and uses their contracts unchanged:
 
 - `StatusCondition`, whose identity is the external `.tres` (`scenes/buffs/conditions/poisoned.tres`).
@@ -9,6 +11,8 @@ Status: **proposed**. Covers statuses applied by attacks: monster attacks that p
 - On `BuffController`: `HasCondition`, `ClearBuffs`, and one `BuffsChanged` notification per application, removal, expiry sweep or clear, after which observers re-read what they need.
 
 Any buff carrying `poisoned.tres` already turns on the player's poison overlay, so poisoning the player needs no presentation work.
+
+**World-VFX integration dependency:** [shared actor surface ownership](../world-effects.md#surface-ownership-and-visibility) now exists. Before slice 3, revise the tint-rendering contract below to submit tint intent through `SurfaceAppearanceController`; its direct `MaterialOverlay` writer and independent material capture are superseded. Preserve cloak/skin priority, helper exclusion and terminal death handoff. The current controller supports cloak/skin profiles; adding tint composition belongs to that slice, not this VFX delivery. Status application and buff generalization remain separate from this rendering adjustment.
 
 ## Target behavior
 

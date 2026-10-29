@@ -1,0 +1,125 @@
+[gd_scene load_steps=21 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/shared/TravelingEffectVisual.cs" id="ball"]
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Script" path="res://scenes/effects/MagicRibbonTrail.cs" id="ribbon"]
+[ext_resource type="Shader" path="res://scenes/magic/fireball/flame_core.gdshader" id="core_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/air/storm_guard.gdshader" id="shell_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/fireball/flame_wake.gdshader" id="trail_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/effect_spark.gdshader" id="spark_shader"]
+[ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[ext_resource type="PackedScene" path="res://scenes/magic/air/lightning_ball_impact.tscn" id="impact"]
+
+[sub_resource type="ShaderMaterial" id="core_material"]
+shader = ExtResource("core_shader")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/hot_color = Color(0.85, 0.98, 1, 1)
+shader_parameter/fire_color = Color(0.12, 0.35, 1, 1)
+shader_parameter/brightness = 1.8
+[sub_resource type="ShaderMaterial" id="shell_material"]
+shader = ExtResource("shell_shader")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/intensity = 1.5
+[sub_resource type="ShaderMaterial" id="trail_material"]
+shader = ExtResource("trail_shader")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/ember_color = Color(0.05, 0.12, 0.8, 1)
+shader_parameter/flame_color = Color(0.08, 0.52, 1, 1)
+shader_parameter/core_color = Color(0.8, 0.98, 1, 1)
+shader_parameter/brightness = 1.6
+shader_parameter/opacity = 0.8
+[sub_resource type="ShaderMaterial" id="hot_trail_material"]
+shader = ExtResource("trail_shader")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/ember_color = Color(0.08, 0.3, 0.95, 1)
+shader_parameter/flame_color = Color(0.3, 0.75, 1, 1)
+shader_parameter/core_color = Color(0.9, 1, 1, 1)
+shader_parameter/brightness = 2.0
+shader_parameter/core_strength = 0.9
+[sub_resource type="ShaderMaterial" id="spark_material"]
+shader = ExtResource("spark_shader")
+[sub_resource type="SphereMesh" id="core_mesh"]
+radius = 0.3
+height = 0.6
+radial_segments = 24
+rings = 12
+[sub_resource type="SphereMesh" id="shell_mesh"]
+radius = 0.57
+height = 1.14
+radial_segments = 24
+rings = 12
+[sub_resource type="Gradient" id="gradient"]
+offsets = PackedFloat32Array(0, 0.15, 0.7, 1)
+colors = PackedColorArray(0.5, 0.85, 1, 0, 0.85, 1, 1, 1, 0.1, 0.55, 1, 0.8, 0.05, 0.2, 1, 0)
+[sub_resource type="GradientTexture1D" id="ramp"]
+gradient = SubResource("gradient")
+[sub_resource type="ParticleProcessMaterial" id="particles"]
+emission_shape = 1
+emission_sphere_radius = 0.3
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 0.7
+initial_velocity_max = 2.4
+gravity = Vector3(0, 0, 0)
+scale_min = 0.5
+scale_max = 1.1
+color_ramp = SubResource("ramp")
+[sub_resource type="PrismMesh" id="spark_mesh"]
+size = Vector3(0.1, 0.2, 0.035)
+
+[node name="LightningBall" type="Node3D" node_paths=PackedStringArray("Timeline", "Core", "Shell", "Trails", "Sparks")]
+script = ExtResource("ball")
+Timeline = NodePath("Timeline")
+Core = NodePath("Core")
+Shell = NodePath("Shell")
+Trails = [NodePath("Trail"), NodePath("HotTrail")]
+Sparks = NodePath("Sparks")
+ImpactScene = ExtResource("impact")
+[node name="Core" type="MeshInstance3D" parent="."]
+material_override = SubResource("core_material")
+cast_shadow = 0
+mesh = SubResource("core_mesh")
+[node name="Shell" type="MeshInstance3D" parent="."]
+material_override = SubResource("shell_material")
+cast_shadow = 0
+mesh = SubResource("shell_mesh")
+[node name="Trail" type="MeshInstance3D" parent="." node_paths=PackedStringArray("Target")]
+material_override = SubResource("trail_material")
+cast_shadow = 0
+script = ExtResource("ribbon")
+Target = NodePath("..")
+MaxPoints = 60
+PointSpacing = 0.08
+Width = 1.6
+TailWidthScale = 0.14
+MeshUpdateInterval = 0.025
+[node name="HotTrail" type="MeshInstance3D" parent="." node_paths=PackedStringArray("Target")]
+material_override = SubResource("hot_trail_material")
+cast_shadow = 0
+script = ExtResource("ribbon")
+Target = NodePath("..")
+MaxPoints = 60
+PointSpacing = 0.08
+Width = 0.55
+TailWidthScale = 0.08
+MeshUpdateInterval = 0.025
+[node name="Sparks" type="GPUParticles3D" parent="."]
+material_override = SubResource("spark_material")
+cast_shadow = 0
+amount = 36
+lifetime = 0.5
+local_coords = false
+process_material = SubResource("particles")
+draw_pass_1 = SubResource("spark_mesh")
+[node name="Light" type="OmniLight3D" parent="."]
+light_color = Color(0.2, 0.5, 1, 1)
+light_energy = 1.3
+omni_range = 4.0
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
+script = ExtResource("timeline")
+Surfaces = [NodePath("../Core"), NodePath("../Shell"), NodePath("../Trail"), NodePath("../HotTrail")]
+Lights = [NodePath("../Light")]
+Emitters = [NodePath("../Sparks")]
+Duration = 1.0
+FadeIn = 0.05
+FadeOutStart = 0.45

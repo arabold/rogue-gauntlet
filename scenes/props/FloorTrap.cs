@@ -21,6 +21,7 @@ public partial class FloorTrap : Node3D, IProximityDiscoverable
 	private ulong _levelSeed = 42;
 	private bool _initialized;
 	private ExplorationVisibility _exploration;
+	private Tween _activeTween;
 	private ulong DiscoverySeed => GenerationRandom.DeriveSeed(_levelSeed, "trap-discovery", PersistentId);
 	public override void _Ready()
 	{
@@ -29,7 +30,7 @@ public partial class FloorTrap : Node3D, IProximityDiscoverable
 			GD.PushError($"{Name}: a floor trap requires assigned Trigger, Spikes and FloorSurface nodes.");
 			return;
 		}
-		Trigger.Triggered += OnTriggered;
+		this.SubscribeUntilExit(Trigger, t => t.Triggered += OnTriggered, t => t.Triggered -= OnTriggered);
 		Spikes.Position = new Vector3(0, -2, 0);
 		_exploration = new ExplorationVisibility(this);
 		if (!_initialized) PersistentId = "authored:" + GetPath();
@@ -82,9 +83,10 @@ public partial class FloorTrap : Node3D, IProximityDiscoverable
 		DiscoveryEffect?.Stop();
 		Reveal(false); // Stepping on it exposes the trap; its spike attack supplies the feedback.
 		damageable.TakeDamage(Damage, node.Basis.Z, this);
-		var tween = CreateTween();
-		tween.TweenProperty(Spikes, "position:y", 0f, 0.2f);
-		tween.TweenProperty(Spikes, "position:y", -2f, 1.5f).SetDelay(0.5f);
-		tween.Finished += () => IsTriggered = false;
+		_activeTween?.Kill();
+		_activeTween = CreateTween();
+		_activeTween.TweenProperty(Spikes, "position:y", 0f, 0.2f);
+		_activeTween.TweenProperty(Spikes, "position:y", -2f, 1.5f).SetDelay(0.5f);
+		_activeTween.Finished += () => IsTriggered = false;
 	}
 }

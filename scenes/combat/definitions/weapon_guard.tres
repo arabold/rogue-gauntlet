@@ -12,5 +12,5 @@ RearmInterval = 0.8
 MinimumReleaseInterval = 0.2
 FacingSectorDegrees = 90.0
 DamageMultiplier = 0.45
-ParryStaggerDuration = 0.3
+ParryStaggerDuration = 0.9
 AnimationProfile = ExtResource("animation")

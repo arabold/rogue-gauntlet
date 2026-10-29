@@ -9,6 +9,7 @@ using System.Text.Json;
 /// reward-source descriptors reach disk. Untouched items are reconstructed from source seeds.
 /// </summary>
 [Tool] // Referenced by the tool Level script; it has no editor-time behavior.
+[GlobalClass]
 public partial class LevelItemPersistence : Node
 {
 	/// <summary>Required: the pickup scene used to rebuild saved world items.</summary>

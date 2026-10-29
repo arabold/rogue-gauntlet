@@ -1,0 +1,13 @@
+[gd_scene load_steps=4 format=3]
+[ext_resource type="Script" path="res://scenes/effects/world/WorldEffectInstance.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/magic/water/frozen_profile.tres" id="surface"]
+[sub_resource type="Curve" id="envelope"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+[node name="Frozen" type="Node3D"]
+script = ExtResource("script")
+Duration = 2.1
+EnterTime = 0.6
+ExitTime = 0.8
+Envelope = SubResource("envelope")
+Surface = ExtResource("surface")

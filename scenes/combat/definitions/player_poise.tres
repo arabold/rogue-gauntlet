@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="PoiseDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://88npoo1clkpx" path="res://scenes/combat/PoiseDefinition.cs" id="1_poise"]
+
+[resource]
+script = ExtResource("1_poise")
+MaxPoise = 20.0
+RegenDelay = 2.0
+RegenPerSecond = 20.0
+BreakStaggerDuration = 0.8
+StaggeredDamageMultiplier = 1.25

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AreaDamageDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/shared/AreaDamageDefinition.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+SpellName = "Rock Spikes"
+Element = 2
+ContactDelay = 0.3

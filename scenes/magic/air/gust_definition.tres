@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="GustDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/air/GustDefinition.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+PushByLevel = PackedFloat32Array(2, 2.4, 2.8)

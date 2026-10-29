@@ -13,7 +13,7 @@ public class WardenTest
 	[TestCase]
 	public async Task RoomPlacementRetriesAndRegenerationKeepExactlyOneWarden()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/levels/level.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		GameSession.Instance.ResetLevelDebugState(3);
@@ -41,7 +41,7 @@ public class WardenTest
 	[TestCase]
 	public async Task AuthoredMarkerControlsBossPositionFacingAndRegeneration()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/levels/level.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		GameSession.Instance.ResetLevelDebugState(3);
@@ -63,7 +63,7 @@ public class WardenTest
 	[TestCase]
 	public async Task TallActorRespectsFogAndRejectsMovementIntoNarrowSpace()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/levels/level.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		GameSession.Instance.ResetLevelDebugState(3);
@@ -104,9 +104,8 @@ public class WardenTest
 	[TestCase]
 	public async Task ShieldedSwordAttackUsesLargeRigAndDamagesHeroOnce()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
 		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
@@ -115,6 +114,9 @@ public class WardenTest
 		boss.GlobalPosition = harness.Player.GlobalPosition + Vector3.Back * 3.1f + Vector3.Up * 8;
 		boss.MovementComponent.SetPhysicsProcess(false);
 		boss.LookAt(harness.Player.GlobalPosition);
+		// The Warden only starts a swing at a target within its start angle.
+		Vector3 toPlayer = harness.Player.GlobalPosition - boss.GlobalPosition;
+		boss.MovementComponent.SetLookAtDirection(new Vector3(toPlayer.X, 0, toPlayer.Z));
 		var animation = boss.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
 		AssertBool(animation.TryResolve("melee", out var playback)).IsTrue();
 		AssertString(playback.Clip.ToString()).IsEqual("Melee_1H_Slash");
@@ -138,9 +140,8 @@ public class WardenTest
 	[TestCase]
 	public async Task SwordSweepHitsTheHeroAtBothSidesOfItsCenterWithoutRefacing()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
 		harness.Player.HurtBoxComponent.Armor = 0;
@@ -153,15 +154,20 @@ public class WardenTest
 		boss.Rotation = Vector3.Zero;
 		var attack = boss.GetNode<AttackController>("AttackController");
 		attack.EffectsEnabled = false;
+		boss.MovementComponent.SetLookAtDirection(Vector3.Forward);
 		foreach (float side in new[] { -1f, 0, 1f })
 		{
-			harness.Player.GlobalPosition = boss.GlobalPosition + new Vector3(side * 1.7f, 0, -.1f);
+			// Start the swing at a hero in front (the Warden only starts within its start angle), then
+			// step beside its center; the sweep must still connect without the Warden refacing.
+			harness.Player.GlobalPosition = boss.GlobalPosition + new Vector3(0, 0, -.1f);
 			harness.Player.HealthComponent.SetHealth(100, 100);
 			await runner.SimulateFrames(2);
-			harness.Player.HurtBoxComponent.Armor = 0;
 			boss.EnemyBehaviorComponent.SetAction(EnemyAction.None);
 			AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
 			attack.SetPhysicsProcess(false);
+			harness.Player.GlobalPosition = boss.GlobalPosition + new Vector3(side * 1.7f, 0, -.1f);
+			await runner.SimulateFrames(2);
+			harness.Player.HurtBoxComponent.Armor = 0;
 			attack._PhysicsProcess(.7);
 			AssertInt(attack.ContactCount).OverrideFailureMessage($"Warden close contact, side {side}").IsEqual(1);
 			AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsLess(100);
@@ -171,15 +177,15 @@ public class WardenTest
 	[TestCase]
 	public async Task WardenCanTurnTowardAnExactlyOppositeTargetWhileStopped()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
 		harness.SpawnMonster();
 		var boss = runner.Scene().GetChildren().OfType<EnemyBase>().Single();
 		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
 		boss.MovementComponent.SetLookAtDirection(Vector3.Right);
-		for (int frame = 0; frame < 45; frame++)
+		// A half turn at the Warden's capped turn rate takes two seconds.
+		for (int frame = 0; frame < 140; frame++)
 		{
 			boss.MovementComponent.FaceDirection(Vector3.Left);
 			await runner.SimulateFrames(1);
@@ -191,9 +197,8 @@ public class WardenTest
 	[TestCase]
 	public async Task RunningIntoTheWardenCannotCreateAContactPocket()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.PracticeTarget.Position = new Vector3(15, 0, 15);
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.InputComponent.SetPhysicsProcess(false);
@@ -210,7 +215,12 @@ public class WardenTest
 			harness.Player.GlobalPosition = boss.GlobalPosition + side * 2.05f;
 			harness.Player.HealthComponent.SetHealth(100, 100);
 			await runner.SimulateFrames(2);
-			AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
+			// Start through the executor: the AI would not start a swing at a hero behind it, but body contact
+			// must still cover every side once a swing is under way.
+			var policy = boss.EnemyBehaviorComponent.Profile.AttackStrategy;
+			attack.CancelAttack();
+			AssertBool(attack.TryPrepareAttack(policy.Attack, policy.Style, policy.Duration, out var swing)).IsTrue();
+			AssertBool(attack.StartAttack(swing, policy.MinDamage, policy.MaxDamage, 0, 4)).IsTrue();
 			for (int frame = 0; frame < 75; frame++)
 			{
 				harness.Player.HurtBoxComponent.Armor = 0;
@@ -225,7 +235,7 @@ public class WardenTest
 	[TestCase]
 	public async Task RoomMovementUsesBodyClearanceRatherThanSpawnStagingRadius()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/levels/level.tscn", true);
+		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		GameSession.Instance.ResetLevelDebugState(3);
@@ -263,19 +273,21 @@ public class WardenTest
 	[TestCase]
 	public async Task AuthoredShieldParriesEarlyContactAndBlocksLateContact()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
 		harness.SpawnMonster();
 		var boss = harness.Monster;
 		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
 		boss.DefenseController.SetPhysicsProcess(false);
 		var guard = boss.GuardComponent;
-		AssertInt((int)guard.TryBeginGuard(Vector3.Forward)).IsEqual((int)DefenseRequestResult.Success);
+		// The Warden's turn is capped, so its guard rises where it already faces rather than where it is asked.
+		Vector3 facing = boss.MovementComponent.LookAtDirection;
+		AssertInt((int)guard.TryBeginGuard(-facing)).IsEqual((int)DefenseRequestResult.Success);
+		AssertBool(guard.GuardFacing.IsEqualApprox(new Vector3(facing.X, 0, facing.Z).Normalized())).IsTrue();
 		guard.SetPhysicsProcess(false);
 		guard._PhysicsProcess(.1);
-		var contact = new DamageContext { Amount = 10, IncomingDirection = Vector3.Back,
+		var contact = new DamageContext { Amount = 10, IncomingDirection = -facing,
 			Faction = DamageSourceFlags.Player, DefenseTraits = AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable };
 		AssertInt((int)boss.HurtBoxComponent.ResolveDamage(contact).Outcome).IsEqual((int)DamageOutcome.Parried);
 		guard._PhysicsProcess(.2);
@@ -286,9 +298,8 @@ public class WardenTest
 	[TestCase(2.8f)]
 	public async Task ObservedCloseAttackRaisesShieldAndParries(float distance)
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
 		harness.SpawnMonster();
 		var boss = harness.Monster;
@@ -318,6 +329,34 @@ public class WardenTest
 		AssertBool(shieldRaised).IsTrue();
 		AssertString(player.AttackController.LastResult).IsEqual("Parried");
 		AssertFloat(boss.HealthComponent.CurrentHealth).IsEqual(health);
+	}
+
+	/// <summary>The Warden turns slowly and only starts a swing at a target in front of it, so flanking avoids swings.</summary>
+	[TestCase]
+	public async Task WardenOnlyStartsSwingsAtATargetInFrontAndTurnsSlowly()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		harness.Player.InputController.SetPhysicsProcess(false);
+		harness.Player.MovementComponent.SetPhysicsProcess(false);
+		harness.Monsters = [GD.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
+		harness.SpawnMonster();
+		var boss = runner.Scene().GetChildren().OfType<EnemyBase>().Single();
+		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
+		boss.GlobalPosition = new Vector3(0, 0, -4);
+		boss.MovementComponent.SetLookAtDirection(Vector3.Forward);
+		// Beside the Warden, within reach: no swing until it has turned.
+		harness.Player.GlobalPosition = boss.GlobalPosition + new Vector3(2.5f, 0, 0);
+		await runner.SimulateFrames(2);
+		boss.EnemyBehaviorComponent.SetAction(EnemyAction.None);
+		AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsFalse();
+		// Its turn toward the hero is capped, so a quarter turn takes about a second.
+		boss.MovementComponent.SetPhysicsProcess(false);
+		boss.MovementComponent.FaceDirection(Vector3.Right);
+		boss.MovementComponent._PhysicsProcess(.25);
+		AssertFloat(Mathf.RadToDeg(boss.MovementComponent.LookAtDirection.AngleTo(Vector3.Forward))).IsEqualApprox(boss.MovementComponent.MaxTurnRate * .25f, .5);
+		boss.MovementComponent.SetLookAtDirection(Vector3.Right);
+		AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
 	}
 
 	private static EnemyBase Boss(Level level) => level.FindChildren("*", "", true, false)

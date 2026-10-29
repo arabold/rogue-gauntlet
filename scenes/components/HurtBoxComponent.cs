@@ -14,21 +14,40 @@ public enum DamageSourceFlags
 /// <summary>
 /// Defines the area that can be hit or receive damage.
 /// </summary>
+[GlobalClass]
 public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 {
-	// Signal emitted when damage is taken
-	[Signal] public delegate void DamageResolvedEventHandler(int outcome, float amount);
+	/// <summary>Every resolved contact: its <see cref="DamageOutcome"/>, final damage and <see cref="DamageEmphasis"/> flags.</summary>
+	[Signal] public delegate void DamageResolvedEventHandler(int outcome, float amount, int emphasis);
 	[Signal]
 	public delegate void DamageTakenEventHandler(float amount, Vector3 attackDirection);
+	/// <summary>Presentation hook after an unprotected damaging contact; carries a <see cref="HitReaction"/>.</summary>
+	[Signal] public delegate void HitReactedEventHandler(int reaction);
 
 	[Export] public HealthComponent HealthComponent { get; set; }
 	[Export] public MovementComponent MovementComponent { get; set; }
+	/// <summary>Optional hit-reaction meter. Unassigned keeps the poise-free rule: every damaging hit interrupts unless hyper-armored.</summary>
+	[Export] public PoiseComponent Poise { get; set; }
+	/// <summary>Optional directional and sneak-attack vulnerability. Unassigned means every contact counts as frontal.</summary>
+	[Export] public HitVulnerabilityProfile Vulnerability { get; set; }
+	/// <summary>Runtime awareness of the owning actor, registered by its root like a defense evaluator. Null means never unaware.</summary>
+	public ICombatAwareness Awareness { get; set; }
 	[Export] public PackedScene HitEffect { get; set; }
 
 	[Export] public float Armor { get; set; } = 0;
 	[Export] public bool Invulnerable { get; set; } = false;
 
 	private readonly System.Collections.Generic.List<IDefenseEvaluator> _defenseEvaluators = new();
+	private ICombatShield _shield;
+	/// <summary>Replace the active magic guard; each actor has at most one.</summary>
+	public void InstallShield(ICombatShield shield)
+	{
+		var previous = _shield; _shield = null; previous?.End(); _shield = shield;
+	}
+	public void RemoveShield(ICombatShield shield)
+	{
+		if (ReferenceEquals(_shield, shield)) _shield = null;
+	}
 
 	public void RegisterDefenseEvaluator(IDefenseEvaluator evaluator)
 	{
@@ -75,7 +94,10 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 			OwnerNode = attacker,
 			Faction = attackerFaction != DamageSourceFlags.None ? attackerFaction : GetDamageSource(attacker),
 			DefenseTraits = AttackDefenseTraits.None,
-			DeliveryKind = DamageDeliveryKind.DirectMelee
+			DeliveryKind = DamageDeliveryKind.DirectMelee,
+			// Unauthored sources (traps, scripted hits) carry poise in proportion to their damage.
+			PoiseDamage = amount,
+			Knockback = AttackDefinition.DefaultKnockback
 		};
 		return ResolveDamageInternal(context, random);
 	}
@@ -84,6 +106,10 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	{
 		var snapshot = contact;
 		float armorRoll = 0;
+		HitReaction? reaction = null;
+		var zone = HitZone.Front;
+		bool unaware = false;
+		float hitStopScale = 1;
 		DamageResolution Resolved(DamageOutcome outcome, float amount = 0)
 		{
 			if (CombatTrace.Enabled) CombatTrace.Write(this, "damage.resolved", ("source", CombatTrace.Identity(snapshot.SourceNode)),
@@ -91,9 +117,14 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 				("execution_source", snapshot.ExecutionId.SourceInstanceId), ("delivery", snapshot.DeliveryKind.ToString()),
 				("traits", snapshot.DefenseTraits.ToString()), ("incoming", CombatTrace.Vector(snapshot.IncomingDirection)),
 				("raw_damage", snapshot.Amount), ("armor", Armor),
-				("armor_roll", armorRoll),
+				("armor_roll", armorRoll), ("poise_damage", snapshot.PoiseDamage), ("reaction", reaction?.ToString() ?? "None"),
+				("poise", Poise?.Current), ("zone", zone.ToString()), ("unaware", unaware), ("critical", snapshot.Critical),
 				("outcome", outcome.ToString()), ("damage", amount), ("health", HealthComponent?.CurrentHealth));
-			return Report(outcome, amount);
+			var emphasis = outcome != DamageOutcome.Damaged ? DamageEmphasis.None
+				: (snapshot.Critical ? DamageEmphasis.Critical : 0) | (zone == HitZone.Rear ? DamageEmphasis.Rear : 0)
+					| (unaware ? DamageEmphasis.Sneak : 0);
+			EmitSignalDamageResolved((int)outcome, amount, (int)emphasis);
+			return new DamageResolution(outcome, amount, hitStopScale);
 		}
 		var attackerFaction = contact.Faction != DamageSourceFlags.None ? contact.Faction : GetDamageSource(contact.OwnerNode ?? contact.SourceNode);
 		if ((DamageFilter & attackerFaction) == 0) return Resolved(DamageOutcome.Filtered);
@@ -115,7 +146,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 					{
 						return Resolved(DamageOutcome.Parried, 0f);
 					}
-					if (defenseEval.Outcome == DamageOutcome.Blocked)
+					if (defenseEval.Outcome is DamageOutcome.Blocked or DamageOutcome.GuardBroken)
 					{
 						break;
 					}
@@ -126,36 +157,94 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		static float Roll(RandomNumberGenerator rng, float maximum) =>
 			rng?.RandfRange(0, Mathf.Max(0, maximum)) ?? (float)GD.RandRange(0f, Mathf.Max(0, maximum));
 
-		bool isBlocked = defenseEval.Outcome == DamageOutcome.Blocked;
-		if (Invulnerable) return isBlocked ? Resolved(DamageOutcome.Blocked, 0f) : Resolved(DamageOutcome.Invulnerable, 0f);
+		// Blocked and guard-broken contacts both carry the guard's reduced amount; the guard owns their reaction.
+		bool isDefended = defenseEval.Outcome is DamageOutcome.Blocked or DamageOutcome.GuardBroken;
+		if (Invulnerable) return isDefended ? Resolved(defenseEval.Outcome, 0f) : Resolved(DamageOutcome.Invulnerable, 0f);
 
-		float incomingAmount = isBlocked ? defenseEval.Amount : contact.Amount;
-		armorRoll = Roll(random, Armor);
+		float incomingAmount = isDefended ? defenseEval.Amount : contact.Amount;
+		float poiseDamage = contact.PoiseDamage;
+		// Read awareness before this contact can alert the defender.
+		unaware = !isDefended && Awareness?.IsUnaware == true;
+		if (!isDefended && Vulnerability != null && contact.DeliveryKind is DamageDeliveryKind.DirectMelee or DamageDeliveryKind.Projectile)
+		{
+			zone = HitZones.Classify(Facing, contact.IncomingDirection, Vulnerability.FrontHalfAngle, Vulnerability.RearHalfAngle);
+			// Rear and sneak bonuses do not stack; the larger applies.
+			incomingAmount *= Mathf.Max(zone == HitZone.Rear ? Vulnerability.RearDamageMultiplier : 1, unaware ? Vulnerability.UnawareDamageMultiplier : 1);
+			if (zone == HitZone.Rear) poiseDamage *= Vulnerability.RearPoiseMultiplier;
+			if (unaware && Vulnerability.UnawareBreaksPoise) poiseDamage = float.PositiveInfinity;
+			if (zone == HitZone.Rear || unaware) hitStopScale = Vulnerability.EmphasisHitStopScale;
+		}
+		// A staggered defender (poise break or parry) is the punish window: its hits land harder before armor.
+		if (Poise?.IsAvailable == true && Poise.ActionGate.IsStaggered)
+			incomingAmount *= Poise.Definition.StaggeredDamageMultiplier;
+		armorRoll = contact.BypassArmor ? 0 : Roll(random, Armor);
 		float finalDamage = Mathf.Max(0, incomingAmount - armorRoll);
+		if (unaware) Awareness.NoticeAttacker(contact.OwnerNode);
+		// Capture the guard before absorption: the final hit can deplete it but still reflects.
+		var shield = _shield;
+		float absorbed = shield?.Absorb(finalDamage, contact.Element) ?? 0;
+		finalDamage = Mathf.Max(0, finalDamage - absorbed);
+		DamageResolution Complete(DamageOutcome outcome, float amount = 0)
+		{
+			var resolution = Resolved(outcome, amount);
+			if (absorbed > 0) shield?.Reflect(absorbed, in snapshot);
+			return resolution;
+		}
 
 		if (finalDamage <= 0)
 		{
-			return isBlocked ? Resolved(DamageOutcome.Blocked, 0f) : Resolved(DamageOutcome.Absorbed, 0f);
+			if (!isDefended && float.IsFinite(contact.ForcedPush) && contact.ForcedPush > 0) MovementComponent?.PushForced(contact.IncomingDirection, contact.ForcedPush);
+			return isDefended ? Complete(defenseEval.Outcome, 0f) : Complete(DamageOutcome.Absorbed, 0f);
 		}
 
+		// Death can clear a status during TakeDamage; preserve the contact's reaction rules.
+		bool statusLocked = MovementComponent?.ActionGate?.IsStatusLocked == true;
 		EmitSignalDamageTaken(finalDamage, contact.IncomingDirection);
 		HealthComponent?.TakeDamage(finalDamage);
 
-		if (!defenseEval.SuppressHitStun)
-		{
-			MovementComponent?.ActionGate?.CancelCurrent(ActionInterruptReason.HitStun);
-			MovementComponent?.Push(contact.IncomingDirection, 3);
-			SpawnHitEffect(contact.IncomingDirection);
-		}
+		if (!defenseEval.SuppressHitStun && !statusLocked && !contact.SuppressHitReaction)
+			reaction = ReactToHit(contact, poiseDamage);
+		if (!isDefended && float.IsFinite(contact.ForcedPush) && contact.ForcedPush > 0 && HealthComponent?.IsDead != true)
+			MovementComponent?.PushForced(contact.IncomingDirection, contact.ForcedPush);
 
-		return isBlocked ? Resolved(DamageOutcome.Blocked, finalDamage) : Resolved(DamageOutcome.Damaged, finalDamage);
+		return isDefended ? Complete(defenseEval.Outcome, finalDamage) : Complete(DamageOutcome.Damaged, finalDamage);
 	}
 
-	private DamageResolution Report(DamageOutcome outcome, float amount = 0)
+	/// <summary>The actor's facing: its movement's look direction, or the hurtbox's own forward without one.</summary>
+	private Vector3 Facing => MovementComponent?.LookAtDirection ?? -GlobalTransform.Basis.Z;
+
+	/// <summary>
+	/// Poise decides whether an unprotected hit flinches or staggers. Without poise, a hit interrupts the
+	/// current action unless the gate reports hyper-armor. Interruptions and staggers push; a forced pushback
+	/// also pushes and interrupts a flinch, unless the defender is hyper-armored or resists it. A running
+	/// stagger is pushed but never cut short.
+	/// </summary>
+	private HitReaction ReactToHit(in DamageContext contact, float poiseDamage)
 	{
-		EmitSignalDamageResolved((int)outcome, amount);
-		return new DamageResolution(outcome, amount);
+		var gate = MovementComponent?.ActionGate;
+		HitReaction reaction;
+		if (Poise?.IsAvailable == true)
+			reaction = Poise.Apply(poiseDamage) ? HitReaction.Staggered : HitReaction.Flinch;
+		else if (gate?.IsHyperArmored == true)
+			reaction = HitReaction.Flinch;
+		else
+		{
+			gate?.CancelCurrent(ActionInterruptReason.HitStun);
+			reaction = HitReaction.Interrupted;
+		}
+		bool forced = reaction == HitReaction.Flinch && contact.ForcePushback && gate?.IsHyperArmored != true
+			&& Poise?.Definition?.ResistsForcedPushback != true;
+		if (forced && gate?.IsStaggered != true)
+		{
+			gate?.CancelCurrent(ActionInterruptReason.HitStun);
+			reaction = HitReaction.Interrupted;
+		}
+		if (reaction != HitReaction.Flinch || forced) MovementComponent?.Push(contact.IncomingDirection, contact.Knockback);
+		SpawnHitEffect(contact.IncomingDirection);
+		EmitSignalHitReacted((int)reaction);
+		return reaction;
 	}
+
 
 	private void SpawnHitEffect(Vector3 attackDirection)
 	{
@@ -166,6 +255,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 
 		var hitEffect = ScenePool.Spawn<GpuParticles3D>(HitEffect, this);
 		hitEffect.Position = attackDirection.Normalized() * 0.5f;
+		hitEffect.ResetPhysicsInterpolation();
 		hitEffect.OneShot = true;
 	}
 

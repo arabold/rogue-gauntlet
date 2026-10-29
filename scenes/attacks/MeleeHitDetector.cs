@@ -2,8 +2,12 @@ using Godot;
 using System.Collections.Generic;
 
 /// <summary>Actor-local immediate overlap queries and debug geometry; never applies damage.</summary>
+[GlobalClass]
 public partial class MeleeHitDetector : Node
 {
+	private static readonly StringName RidKey = "rid";
+	private static readonly StringName ColliderKey = "collider";
+
 	[Export(PropertyHint.Range, "8,1024,8")] public int QueryBatchSize { get; set; } = 128;
 	private Node3D _actor;
 	private MeleeAttackProfile _profile;
@@ -78,11 +82,8 @@ public partial class MeleeHitDetector : Node
 		if (_debugMesh != null) { _debugMesh.Visible = true; _debugMesh.GlobalTransform = frame; }
 		if (_bodyDebugMesh != null) { _bodyDebugMesh.Visible = true; _bodyDebugMesh.GlobalTransform = frame; }
 		var seen = new HashSet<ulong>();
-		foreach (var shape in new[] { _shape, _bodyShape })
-		{
-			if (shape == null) continue;
-			SampleShape(shape, frame, seen, contacts);
-		}
+		if (_shape != null) SampleShape(_shape, frame, seen, contacts);
+		if (_bodyShape != null) SampleShape(_bodyShape, frame, seen, contacts);
 		return contacts;
 	}
 
@@ -102,9 +103,9 @@ public partial class MeleeHitDetector : Node
 			bool progressed = false;
 			foreach (var hit in results)
 			{
-				Rid rid = hit["rid"].AsRid();
+				Rid rid = hit[RidKey].AsRid();
 				if (excludedRids.Add(rid)) { exclude.Add(rid); progressed = true; }
-				if (hit["collider"].AsGodotObject() is not Node3D collider) continue;
+				if (hit[ColliderKey].AsGodotObject() is not Node3D collider) continue;
 				Node3D target = collider is HurtBoxComponent ? collider : collider.GetNodeOrNull<HurtBoxComponent>("HurtBoxComponent") ?? collider;
 				Node owner = target is HurtBoxComponent ? target.GetParent() : target;
 				if (target is not IDamageable || owner == _actor || _actor.IsAncestorOf(owner)

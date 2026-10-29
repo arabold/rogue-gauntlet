@@ -1,0 +1,28 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/shared/LightningArc.cs" id="arc"]
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Shader" path="res://scenes/magic/air/lightning_arc.gdshader" id="shader"]
+[ext_resource type="Shader" path="res://scenes/magic/air/lightning_impact.gdshader" id="impact_shader"]
+[sub_resource type="ShaderMaterial" id="impact_material"]
+shader = ExtResource("impact_shader")
+[sub_resource type="QuadMesh" id="impact_mesh"]
+size = Vector2(1.2, 1.2)
+[sub_resource type="ShaderMaterial" id="material"]
+shader = ExtResource("shader")
+[node name="LightningArc" type="MeshInstance3D" node_paths=PackedStringArray("Timeline", "Impact")]
+material_override = SubResource("material")
+cast_shadow = 0
+script = ExtResource("arc")
+Timeline = NodePath("Timeline")
+Impact = NodePath("Impact")
+[node name="Impact" type="MeshInstance3D" parent="."]
+material_override = SubResource("impact_material")
+cast_shadow = 0
+mesh = SubResource("impact_mesh")
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces")]
+script = ExtResource("timeline")
+Surfaces = [NodePath(".."), NodePath("../Impact")]
+Duration = 0.55
+FadeIn = 0.07
+FadeOutStart = 0.3

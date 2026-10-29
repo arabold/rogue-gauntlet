@@ -6,6 +6,13 @@
 [sub_resource type="Resource" id="swing"]
 script = ExtResource("attack")
 MeleeContact = ExtResource("contact")
+PoiseDamage = 30.0
+Knockback = 5.0
+HyperArmorStart = 0.1
+HyperArmorEnd = 0.5
+HitStopDuration = 0.05
+FacingLockLead = 0.4
+WindUpTurnRate = 60.0
 
 [resource]
 script = ExtResource("policy")
@@ -13,4 +20,6 @@ Attack = SubResource("swing")
 EngagementDistance = 3.2
 MinDamage = 10.0
 MaxDamage = 18.0
-Duration = 1.5
+Duration = 1.6
+UsesAttackSlot = false
+MaxStartAngle = 45.0

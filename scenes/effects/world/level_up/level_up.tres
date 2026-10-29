@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WorldEffectDefinition" load_steps=3 format=3]
+[ext_resource type="Script" path="res://scenes/effects/world/WorldEffectDefinition.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/level_up/level_up.tscn" id="scene"]
+[resource]
+resource_name = "Level Up"
+script = ExtResource("script")
+Id = &"level_up"
+Scene = ExtResource("scene")
+Lifetime = 0
+Retrigger = 1
+MaxConcurrent = 2

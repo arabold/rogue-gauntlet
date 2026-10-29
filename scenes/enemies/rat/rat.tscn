@@ -136,3 +136,10 @@ ActionGate = NodePath("../ActorActionGateComponent")
 
 [node name="FloatingHealthBar" parent="."]
 position = Vector3(0, 1.1, 0)
+
+[node name="AttackController" parent="." node_paths=PackedStringArray("ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="FrozenStatusComponent" parent="." node_paths=PackedStringArray("ActionGate", "Animation")]
+ActionGate = NodePath("../ActorActionGateComponent")
+Animation = NodePath("../EnemyBehaviorComponent/AnimationTree")

@@ -12,12 +12,15 @@ public static class PlayerSaveCodec
 	/// <param name="includeTransform">False for level travel, where the next floor's arrival places the player.</param>
 	public static PlayerSaveData Capture(Player player, bool includeTransform)
 	{
+		// A committed teleport must not be lost if saving midway through its presentation.
+		player.WorldEffects?.CompleteSurfaceTransitions();
 		var data = new PlayerSaveData
 		{
 			ApplyTransform = includeTransform,
 			Stats = player.Stats.CreateSaveData(),
 			Inventory = InventorySaveCodec.Capture(player.Inventory),
 			Actions = CaptureActions(player),
+			Buffs = BuffSaveCodec.Capture(player),
 		};
 		if (includeTransform)
 		{
@@ -36,16 +39,19 @@ public static class PlayerSaveCodec
 		}
 		Inventory restored = InventorySaveCodec.Restore(data.Inventory);
 		data.Actions?.ValidateCombatTimers();
+		var buffs = BuffSaveCodec.Prepare(player, data.Buffs);
 
 		player.BuffController.ClearBuffs();
 		ApplyInventory(player, restored, data.Inventory);
 		ApplyActions(player, data.Actions);
 		player.Stats.ApplySaveData(data.Stats);
 		player.StatsController.SyncStats();
+		foreach (var buff in buffs) player.BuffController.RestoreBuff(buff.Buff, buff.Source, buff.Remaining, buff.TickProgress);
 		if (data.ApplyTransform)
 		{
 			player.GlobalPosition = ToVector3(data.Position);
 			player.Rotation = ToVector3(data.Rotation);
+			player.ResetPhysicsInterpolation();
 		}
 	}
 
@@ -72,7 +78,9 @@ public static class PlayerSaveCodec
 			}
 		}
 
-		data.DodgeCooldownRemaining = player.DodgeComponent?.CooldownRemaining ?? 0f;
+		data.DodgeChargesRemaining = player.DodgeComponent?.ChargesRemaining ?? 0;
+		data.DodgeRechargeRemaining = player.DodgeComponent?.RechargeRemaining ?? 0f;
+		data.DodgeIntervalRemaining = player.DodgeComponent?.IntervalRemaining ?? 0f;
 		data.ParryRearmRemaining = player.GuardComponent?.ParryRearmRemaining ?? 0f;
 		data.RecoveryLockoutRemaining = Mathf.Max(player.ActionGate?.StaggerRemaining ?? 0,
 			Mathf.Max(player.AttackController?.RecoveryRemaining ?? 0,
@@ -126,7 +134,7 @@ public static class PlayerSaveCodec
 		player.ActionGate?.CancelCurrent(ActionInterruptReason.Invalidated);
 		player.AttackController?.CancelAttack();
 		player.MovementComponent?.ResetTransientMotion();
-		player.DodgeComponent?.RestoreCooldown(data.DodgeCooldownRemaining);
+		player.DodgeComponent?.RestoreCharges(data.DodgeChargesRemaining, data.DodgeRechargeRemaining, data.DodgeIntervalRemaining);
 		player.GuardComponent?.RestoreCooldown(data.ParryRearmRemaining);
 		player.InputController?.RequireFreshDefenseInput();
 		if (data.RecoveryLockoutRemaining > 0) player.ActionGate?.TryStagger(data.RecoveryLockoutRemaining);

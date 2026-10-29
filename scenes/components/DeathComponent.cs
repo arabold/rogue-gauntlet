@@ -3,10 +3,11 @@ using Godot;
 /// <summary>
 /// Component that handles the death of a character (enemies).
 /// </summary>
+[GlobalClass]
 public partial class DeathComponent : Node
 {
-	[Export] public HealthComponent HealthComponent;
-	[Export] public LootTableComponent LootTableComponent;
+	[Export] public HealthComponent HealthComponent { get; set; }
+	[Export] public LootTableComponent LootTableComponent { get; set; }
 
 	[Export] public int Xp { get; set; } = 100;
 	[Export] public float Delay { get; set; } = 2.0f;

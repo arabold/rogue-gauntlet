@@ -1,6 +1,7 @@
 using Godot;
 
 [Tool]
+[GlobalClass]
 public partial class FloatingLabel : Sprite3D
 {
 	public const int LabelRenderPriority = 20;
@@ -42,6 +43,7 @@ public partial class FloatingLabel : Sprite3D
 	}
 
 	/// <summary>Unavailable requirements are red and do not advertise an actionable input.</summary>
+	[Export]
 	public bool IsAvailable
 	{
 		get;

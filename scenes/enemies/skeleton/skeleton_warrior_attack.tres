@@ -9,6 +9,10 @@ script = ExtResource("attack")
 MeleeContact = ExtResource("contact")
 HitWindowStart = 0.3
 HitWindowEnd = 0.7
+PoiseDamage = 15.0
+HitStopDuration = 0.04
+FacingLockLead = 0.15
+WindUpTurnRate = 300.0
 
 [resource]
 script = ExtResource("policy")

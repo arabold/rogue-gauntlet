@@ -3,8 +3,13 @@
 [ext_resource type="Script" uid="uid://tl6phiqa232t" path="res://scenes/items/scrolls/Scroll.cs" id="1_scroll"]
 [ext_resource type="Script" uid="uid://dg40jgktjrquo" path="res://scenes/items/scrolls/TeleportScrollEffect.cs" id="2_effect"]
 
+[ext_resource type="Resource" path="res://scenes/effects/world/teleport_arrival/teleport_arrival.tres" id="arrival"]
+[ext_resource type="Resource" path="res://scenes/effects/world/teleport_departure/teleport_departure.tres" id="departure"]
+
 [sub_resource type="Resource" id="Resource_teleport"]
 script = ExtResource("2_effect")
+Arrival = ExtResource("arrival")
+Departure = ExtResource("departure")
 
 [resource]
 script = ExtResource("1_scroll")

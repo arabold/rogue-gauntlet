@@ -14,7 +14,7 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 	/// Increasing this value may help to generate more complex maps at the
 	/// expense of performance.
 	/// </summary>
-	[Export] public int Retries = 3;
+	[Export] public int Retries { get; set; } = 3;
 
 	public override List<RoomPlacement> GenerateRooms(MapData map, RoomFactory factory, uint maxRooms, RandomNumberGenerator rng)
 	{

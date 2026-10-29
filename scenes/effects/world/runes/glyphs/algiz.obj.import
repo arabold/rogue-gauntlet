@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://cl62s0sfiof48"
+path="res://.godot/imported/algiz.obj-fffe4cf8a186b04a4c99767fde595ccc.mesh"
+
+[deps]
+
+files=["res://.godot/imported/algiz.obj-fffe4cf8a186b04a4c99767fde595ccc.mesh"]
+
+source_file="res://scenes/effects/world/runes/glyphs/algiz.obj"
+dest_files=["res://.godot/imported/algiz.obj-fffe4cf8a186b04a4c99767fde595ccc.mesh", "res://.godot/imported/algiz.obj-fffe4cf8a186b04a4c99767fde595ccc.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

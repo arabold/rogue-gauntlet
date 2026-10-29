@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://cm078mis4nj2k"]
+[gd_scene load_steps=69 format=3 uid="uid://cm078mis4nj2k"]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="player"]
 
@@ -25,6 +25,49 @@
 
 [ext_resource type="PackedScene" path="res://scenes/enemies/skeleton/skeleton_crossbow.tscn" id="monster_crossbow"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/rat/rat.tscn" id="monster_rat"]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/frost_nova_spell.tscn" id="frost_nova"]
+[ext_resource type="PackedScene" path="res://scenes/magic/air/gust_spell.tscn" id="gust_spell"]
+[ext_resource type="PackedScene" path="res://scenes/magic/shared/area_damage_spell.tscn" id="area_spell"]
+[ext_resource type="Resource" path="res://scenes/magic/fire/flame_burst_combat.tres" id="flame_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/fire/flame_burst.tscn" id="flame_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/earth/tremor_combat.tres" id="tremor_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/earth/tremor.tscn" id="tremor_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/earth/rock_spikes_combat.tres" id="spikes_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/earth/rock_spikes.tscn" id="spikes_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/air/thunderstorm_combat.tres" id="thunder_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/air/thunderstorm.tscn" id="thunder_visual"]
+[ext_resource type="PackedScene" path="res://scenes/magic/shared/magic_guard_spell.tscn" id="guard_spell"]
+[ext_resource type="Resource" path="res://scenes/magic/fire/ember_guard_combat.tres" id="ember_guard_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/fire/ember_guard.tscn" id="ember_guard_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/air/storm_guard_combat.tres" id="storm_guard_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/air/storm_guard.tscn" id="storm_guard_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/earth/stone_barrier_combat.tres" id="stone_barrier_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/earth/stone_skin.tscn" id="stone_barrier_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/earth/spiked_armor_combat.tres" id="spiked_armor_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/earth/obsidian_guard.tscn" id="spiked_armor_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/water/frost_guard_combat.tres" id="frost_guard_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/frost_guard.tscn" id="frost_guard_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/water/water_serpent_combat.tres" id="water_serpent_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/water_serpent.tscn" id="water_serpent_visual"]
+[ext_resource type="PackedScene" path="res://scenes/magic/shared/targeted_spell.tscn" id="targeted_spell"]
+[ext_resource type="Resource" path="res://scenes/magic/fire/fireball_combat.tres" id="fireball_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/fireball/fireball_visual.tscn" id="fireball_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/fire/meteor_shower_combat.tres" id="meteor_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/fire/meteor_shower.tscn" id="meteor_visual"]
+[ext_resource type="PackedScene" path="res://scenes/magic/fire/meteor_debris.tscn" id="meteor_debris"]
+[ext_resource type="Resource" path="res://scenes/magic/earth/rockfall_combat.tres" id="rockfall_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/earth/rockfall.tscn" id="rockfall_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/air/ball_lightning_combat.tres" id="ball_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/air/lightning_ball.tscn" id="ball_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/air/chain_lightning_combat.tres" id="chain_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/air/lightning_arc.tscn" id="chain_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/water/ice_lance_combat.tres" id="lance_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/ice_lance.tscn" id="lance_visual"]
+[ext_resource type="PackedScene" path="res://scenes/magic/shared/lingering_area_spell.tscn" id="lingering_spell"]
+[ext_resource type="Resource" path="res://scenes/magic/fire/solar_flares_combat.tres" id="solar_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/fire/solar_flares.tscn" id="solar_visual"]
+[ext_resource type="Resource" path="res://scenes/magic/water/snowstorm_combat.tres" id="snow_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/water/snowstorm.tscn" id="snow_visual"]
 
 [sub_resource type="BoxShape3D" id="floor_shape"]
 size = Vector3(40, 1, 40)
@@ -80,13 +123,106 @@ mesh = SubResource("floor_mesh")
 
 [node name="Player" parent="." instance=ExtResource("player")]
 
+[node name="FrostNovaSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("frost_nova")]
+VisualRoot = NodePath("..")
+
+[node name="GustSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("gust_spell")]
+VisualRoot = NodePath("..")
+
+[node name="FlameBurstSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("area_spell")]
+Definition = ExtResource("flame_definition")
+VisualScene = ExtResource("flame_visual")
+VisualRoot = NodePath("..")
+
+[node name="TremorSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("area_spell")]
+Definition = ExtResource("tremor_definition")
+VisualScene = ExtResource("tremor_visual")
+VisualRoot = NodePath("..")
+
+[node name="RockSpikesSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("area_spell")]
+Definition = ExtResource("spikes_definition")
+VisualScene = ExtResource("spikes_visual")
+VisualRoot = NodePath("..")
+
+[node name="ThunderstormSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("area_spell")]
+Definition = ExtResource("thunder_definition")
+VisualScene = ExtResource("thunder_visual")
+VisualRoot = NodePath("..")
+
+[node name="EmberGuardSpell" parent="." instance=ExtResource("guard_spell")]
+Definition = ExtResource("ember_guard_definition")
+VisualScene = ExtResource("ember_guard_visual")
+
+[node name="StormGuardSpell" parent="." instance=ExtResource("guard_spell")]
+Definition = ExtResource("storm_guard_definition")
+VisualScene = ExtResource("storm_guard_visual")
+
+[node name="StoneBarrierSpell" parent="." instance=ExtResource("guard_spell")]
+Definition = ExtResource("stone_barrier_definition")
+VisualScene = ExtResource("stone_barrier_visual")
+
+[node name="SpikedArmorSpell" parent="." instance=ExtResource("guard_spell")]
+Definition = ExtResource("spiked_armor_definition")
+VisualScene = ExtResource("spiked_armor_visual")
+
+[node name="FrostGuardSpell" parent="." instance=ExtResource("guard_spell")]
+Definition = ExtResource("frost_guard_definition")
+VisualScene = ExtResource("frost_guard_visual")
+
+[node name="WaterSerpentSpell" parent="." instance=ExtResource("guard_spell")]
+Definition = ExtResource("water_serpent_definition")
+VisualScene = ExtResource("water_serpent_visual")
+
+[node name="FireballSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("targeted_spell")]
+Definition = ExtResource("fireball_definition")
+VisualScene = ExtResource("fireball_visual")
+VisualRoot = NodePath("..")
+
+[node name="MeteorShowerSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("targeted_spell")]
+Definition = ExtResource("meteor_definition")
+VisualScene = ExtResource("meteor_visual")
+DebrisScene = ExtResource("meteor_debris")
+VisualRoot = NodePath("..")
+
+[node name="RockfallSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("targeted_spell")]
+Definition = ExtResource("rockfall_definition")
+VisualScene = ExtResource("rockfall_visual")
+DebrisScene = ExtResource("rockfall_visual")
+VisualRoot = NodePath("..")
+
+[node name="BallLightningSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("targeted_spell")]
+Definition = ExtResource("ball_definition")
+VisualScene = ExtResource("ball_visual")
+VisualRoot = NodePath("..")
+
+[node name="ChainLightningSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("targeted_spell")]
+Definition = ExtResource("chain_definition")
+VisualScene = ExtResource("chain_visual")
+VisualRoot = NodePath("..")
+
+[node name="IceLanceSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("targeted_spell")]
+Definition = ExtResource("lance_definition")
+VisualScene = ExtResource("lance_visual")
+VisualRoot = NodePath("..")
+
+[node name="SolarFlaresSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("lingering_spell")]
+Definition = ExtResource("solar_definition")
+VisualScene = ExtResource("solar_visual")
+VisualRoot = NodePath("..")
+
+[node name="SnowstormSpell" parent="." node_paths=PackedStringArray("VisualRoot") instance=ExtResource("lingering_spell")]
+Definition = ExtResource("snow_definition")
+VisualScene = ExtResource("snow_visual")
+VisualRoot = NodePath("..")
+
 [node name="PracticeTarget" parent="." instance=ExtResource("practice_target")]
 position = Vector3(0, 0, -2)
 
-[node name="Instructions" type="CanvasLayer" parent="." node_paths=PackedStringArray("Player", "PracticeTarget")]
+[node name="Instructions" type="CanvasLayer" parent="." node_paths=PackedStringArray("Player", "PracticeTarget", "SpellComponents")]
 script = ExtResource("harness")
 Player = NodePath("../Player")
 PracticeTarget = NodePath("../PracticeTarget")
+SpellComponents = [NodePath("../FrostNovaSpell"), NodePath("../GustSpell"), NodePath("../FlameBurstSpell"), NodePath("../TremorSpell"), NodePath("../RockSpikesSpell"), NodePath("../ThunderstormSpell"), NodePath("../EmberGuardSpell"), NodePath("../StormGuardSpell"), NodePath("../StoneBarrierSpell"), NodePath("../SpikedArmorSpell"), NodePath("../FrostGuardSpell"), NodePath("../WaterSerpentSpell"), NodePath("../FireballSpell"), NodePath("../MeteorShowerSpell"), NodePath("../RockfallSpell"), NodePath("../BallLightningSpell"), NodePath("../ChainLightningSpell"), NodePath("../IceLanceSpell"), NodePath("../SolarFlaresSpell"), NodePath("../SnowstormSpell")]
 Monsters = [ExtResource("monster_minion"), ExtResource("monster_skeleton"), ExtResource("monster_warden"), ExtResource("monster_crossbow"), ExtResource("monster_rat")]
 Weapons = [ExtResource("weapon_0"), ExtResource("weapon_1"), ExtResource("weapon_2"), ExtResource("weapon_3"), ExtResource("weapon_4"), ExtResource("weapon_5"), ExtResource("weapon_6"), ExtResource("weapon_7"), ExtResource("weapon_8"), ExtResource("weapon_9"), ExtResource("weapon_10")]
 
@@ -151,6 +287,17 @@ layout_mode = 2
 text = "Attack (J)"
 custom_minimum_size = Vector2(0, 30)
 
+[node name="Spell" type="OptionButton" parent="Instructions/Panel/Scroll/Controls"]
+layout_mode = 2
+
+[node name="SpellLevel" type="OptionButton" parent="Instructions/Panel/Scroll/Controls"]
+layout_mode = 2
+
+[node name="CastSpell" type="Button" parent="Instructions/Panel/Scroll/Controls"]
+layout_mode = 2
+text = "Cast spell"
+tooltip_text = "Exercise the selected spell without learning, mana, or a staff."
+
 [node name="HeroGuard" type="Button" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
 text = "Guard / parry (L)"
@@ -193,6 +340,11 @@ tooltip_text = "Monster default uses its authored defense chances and timing. Ov
 layout_mode = 2
 text = "Spawn / respawn"
 custom_minimum_size = Vector2(0, 30)
+
+[node name="SpawnCrowd" type="Button" parent="Instructions/Panel/Scroll/Controls"]
+layout_mode = 2
+text = "Spawn / clear crowd"
+tooltip_text = "Toggle three stationary monsters around the player to exercise area spells."
 
 [node name="SpawnDistanceLabel" type="Label" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2

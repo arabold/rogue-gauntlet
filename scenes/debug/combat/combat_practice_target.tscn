@@ -1,9 +1,11 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/components/hurt_box_component.tscn" id="hurtbox"]
 [ext_resource type="PackedScene" path="res://scenes/components/health_component.tscn" id="health"]
 
 [ext_resource type="Script" uid="uid://wi1l4pav2ehr" path="res://scenes/components/ConstantScreenSize3D.cs" id="constant_screen_size"]
+[ext_resource type="Script" path="res://scenes/components/DamageNumbersComponent.cs" id="damage_numbers"]
+[ext_resource type="PackedScene" path="res://scenes/components/damage_number.tscn" id="damage_number"]
 
 [sub_resource type="CapsuleShape3D" id="shape"]
 radius = 0.4
@@ -62,3 +64,9 @@ shape = SubResource("shape")
 [node name="ConstantScreenSize3D" type="Node" parent="Label" node_paths=PackedStringArray("Target")]
 script = ExtResource("constant_screen_size")
 Target = NodePath("..")
+
+[node name="DamageNumbers" type="Node3D" parent="." node_paths=PackedStringArray("HurtBox", "Anchor")]
+script = ExtResource("damage_numbers")
+HurtBox = NodePath("../HurtBoxComponent")
+NumberScene = ExtResource("damage_number")
+Anchor = NodePath("../Label")

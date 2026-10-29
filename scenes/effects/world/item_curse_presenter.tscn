@@ -1,0 +1,9 @@
+[gd_scene load_steps=4 format=3]
+[ext_resource type="Script" path="res://scenes/effects/world/ItemCurseWorldEffectPresenter.cs" id="presenter"]
+[ext_resource type="Resource" path="res://scenes/effects/world/cursed_item/cursed_item.tres" id="effect"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/actor_world_effects.tscn" id="host"]
+[node name="CurseAura" type="Node3D" node_paths=PackedStringArray("Host")]
+script = ExtResource("presenter")
+Host = NodePath("WorldEffects")
+Effect = ExtResource("effect")
+[node name="WorldEffects" parent="." instance=ExtResource("host")]

@@ -10,6 +10,7 @@ public partial class CombatHarness : CanvasLayer
 {
 	[Export] public Player Player { get; set; }
 	[Export] public Node3D PracticeTarget { get; set; }
+	[Export] public Node[] SpellComponents { get; set; } = [];
 	[Export] public PackedScene[] Monsters { get; set; } = System.Array.Empty<PackedScene>();
 	[Export] public Weapon[] Weapons { get; set; } = System.Array.Empty<Weapon>();
 	[Export] public ulong Seed { get; set; } = 42;
@@ -24,6 +25,7 @@ public partial class CombatHarness : CanvasLayer
 	private Label _status;
 	private Label _feedback;
 	private EnemyBase _monster;
+	private readonly List<EnemyBase> _crowd = [];
 	public EnemyBase Monster => _monster;
 	private float _motionTime;
 	private double _previousTimeScale;
@@ -34,6 +36,11 @@ public partial class CombatHarness : CanvasLayer
 	private float _automaticPause;
 	private float _automaticGuardRemaining;
 	private bool _dodgeRight;
+	private ICombatSpell[] _spells = [];
+	private RandomNumberGenerator[] _spellRandoms = [];
+	private readonly Queue<(int Spell, int Level)> _pendingCasts = new();
+	/// <summary>Find a configured spell in the harness's explicitly assigned list.</summary>
+	public T GetSpell<T>() where T : class, ICombatSpell => _spells.OfType<T>().FirstOrDefault();
 
 	public override void _Ready()
 	{
@@ -64,11 +71,28 @@ public partial class CombatHarness : CanvasLayer
 				_commands = JsonSerializer.Deserialize<HarnessCommand[]>(File.ReadAllText(arg[16..])) ?? [];
 				if (_commands.Any(c => c.Frame < 0)) throw new InvalidDataException("Combat command frames must be nonnegative.");
 				_commands = _commands.OrderBy(c => c.Frame).ToArray();
-				Player.InputController.SetPhysicsProcess(false);
-				Player.InputComponent.SetPhysicsProcess(false);
+				// The input controller keeps running so scripted presses use the real buffer and recovery cancels.
+				Player.InputComponent.DeviceEnabled = false;
 			}
 		}
 		Player.AttackController.ConfigureRandom(GenerationRandom.DeriveSeed(Seed, "combat.attack", "player"));
+		if (SpellComponents == null || SpellComponents.Any(node => node is not ICombatSpell))
+			throw new InvalidDataException("Assign only combat spell nodes to the harness spell list.");
+		_spells = SpellComponents.Cast<ICombatSpell>().ToArray();
+		if (_spells.Any(spell => string.IsNullOrWhiteSpace(spell.DisplayName) || spell.LevelCount < 1))
+			throw new InvalidDataException("Harness spells require a name and at least one level.");
+		_spellRandoms = SpellComponents.Select(node => new RandomNumberGenerator
+			{ Seed = GenerationRandom.DeriveSeed(Seed, "combat.harness.spell", node.Name.ToString()) }).ToArray();
+		var spellChoice = GetNode<OptionButton>("%Controls/Spell");
+		foreach (var spell in _spells) spellChoice.AddItem(spell.DisplayName);
+		spellChoice.ItemSelected += index => RefreshSpellLevels((int)index);
+		if (_spells.Length > 0) { spellChoice.Select(0); RefreshSpellLevels(0); }
+		GetNode<Button>("%Controls/CastSpell").Disabled = _spells.Length == 0;
+		GetNode<Button>("%Controls/CastSpell").Pressed += () =>
+		{
+			int selected = spellChoice.Selected, level = GetNode<OptionButton>("%Controls/SpellLevel").Selected + 1;
+			if (selected >= 0 && selected < _spells.Length && level > 0) _pendingCasts.Enqueue((selected, level));
+		};
 		_selection = GetNode<OptionButton>("%Controls/Weapons");
 		_status = GetNode<Label>("%Controls/Status");
 		foreach (var weapon in Weapons) _selection.AddItem(weapon.Name);
@@ -87,6 +111,7 @@ public partial class CombatHarness : CanvasLayer
 		foreach (var scene in Monsters) monsters.AddItem(System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(Path.GetFileNameWithoutExtension(scene.ResourcePath).Replace('_', ' ')));
 		if (Monsters.Length > 0) monsters.Selected = 0;
 		GetNode<Button>("%Controls/SpawnMonster").Pressed += () => ExecuteCommand("spawn", GetNode<OptionButton>("%Controls/Monsters").Selected, Vector3.Zero);
+		GetNode<Button>("%Controls/SpawnCrowd").Pressed += ToggleCrowd;
 		GetNode<Button>("%Controls/MonsterAttack").Pressed += () => ExecuteCommand("monster_attack", 0, Vector3.Zero);
 		var automation = GetNode<OptionButton>("%Controls/Automation");
 		foreach (string mode in new[] { "Manual / react to hero", "Repeat attack", "Repeat dodge", "Repeat guard" }) automation.AddItem(mode);
@@ -103,7 +128,7 @@ public partial class CombatHarness : CanvasLayer
 		Recorder.Start(GetParent(), Seed, TracePath);
 
 		Player.AttackController.AttackFeedback += (result, amount) => Feedback("Hero", result, amount);
-		Player.HurtBoxComponent.DamageResolved += (result, amount) => Feedback("Hero", ((DamageOutcome)result).ToString(), amount);
+		Player.HurtBoxComponent.DamageResolved += (result, amount, _) => Feedback("Hero", ((DamageOutcome)result).ToString(), amount);
 		if (Player.DodgeComponent != null)
 		{
 			Player.DodgeComponent.DodgeStarted += dir => Feedback("Hero", "Dodge", 0);
@@ -113,9 +138,18 @@ public partial class CombatHarness : CanvasLayer
 			Player.GuardComponent.ParrySuccessful += () => Feedback("Hero", "Parry!", 0);
 			Player.GuardComponent.BlockSuccessful += chip => Feedback("Hero", $"Block (-{chip:0})", chip);
 		}
-		PracticeTarget.GetNode<HurtBoxComponent>("HurtBoxComponent").DamageResolved += (result, amount) => Feedback("Target", ((DamageOutcome)result).ToString(), amount);
+		PracticeTarget.GetNode<HurtBoxComponent>("HurtBoxComponent").DamageResolved += (result, amount, _) => Feedback("Target", ((DamageOutcome)result).ToString(), amount);
 		if (Weapons.Length > 0) EquipPreview(0);
 		ApplyDefense();
+	}
+
+	private void RefreshSpellLevels(int index)
+	{
+		var levels = GetNode<OptionButton>("%Controls/SpellLevel");
+		int selected = Mathf.Max(0, levels.Selected); levels.Clear();
+		if (index < 0 || index >= _spells.Length) return;
+		for (int level = 1; level <= _spells[index].LevelCount; level++) levels.AddItem($"Level {level}");
+		levels.Select(Mathf.Min(selected, levels.ItemCount - 1));
 	}
 
 	/// <summary>Use the same application path for authored startup state and subsequent UI changes.</summary>
@@ -181,28 +215,12 @@ public partial class CombatHarness : CanvasLayer
 		}
 		int selected = GetNode<OptionButton>("%Controls/Monsters").Selected;
 		if (selected < 0 || selected >= Monsters.Length) selected = 0;
-		_monster = Monsters[selected].Instantiate<EnemyBase>();
 		PracticeTarget.Position = new Vector3(-3, 0, -2);
-		_monster.Position = Player.Position + Vector3.Forward * (float)GetNode<SpinBox>("%Controls/SpawnDistance").Value;
-		_monster.GetNode<EnemyBehaviorComponent>("EnemyBehaviorComponent").AIEnabled = false;
-		Player.GetParent().AddChild(_monster);
-		_monster.ConfigureCombatRandom(Seed, "harness.monster");
-		// Arena simulations exercise death without awarding dungeon loot or experience.
-		if (_monster.DeathComponent != null)
-		{
-			_monster.DeathComponent.LootTableComponent = null;
-			_monster.DeathComponent.Xp = 0;
-		}
-		if (_monster.DefenseController != null) _monster.DefenseController.Target = Player;
-		_monster.EnemyBehaviorComponent.SetTarget(Player);
-		_monster.EnemyBehaviorComponent.SetAction(EnemyAction.None);
-		_monster.EnemyBehaviorComponent.SetTarget(Player);
-		_monster.MovementComponent.SetLookAtDirection((Player.GlobalPosition - _monster.GlobalPosition).Normalized());
-		_monster.LookAt(Player.GlobalPosition);
+		_monster = CreateMonster(Monsters[selected], Player.Position + Vector3.Forward * (float)GetNode<SpinBox>("%Controls/SpawnDistance").Value, "harness.monster");
 		CombatTrace.Write(this, "harness.spawned", ("scene", Monsters[selected].ResourcePath), ("seed", Seed));
 		var controller = _monster.GetNode<AttackController>("AttackController");
 		controller.AttackFeedback += (result, amount) => Feedback("Monster", result, amount);
-		_monster.HurtBoxComponent.DamageResolved += (result, amount) => Feedback("Monster Defend", ((DamageOutcome)result).ToString(), amount);
+		_monster.HurtBoxComponent.DamageResolved += (result, amount, _) => Feedback("Monster Defend", ((DamageOutcome)result).ToString(), amount);
 		if (_monster.DodgeComponent != null)
 		{
 			_monster.DodgeComponent.DodgeStarted += dir => Feedback("Monster", "Dodge", 0);
@@ -225,6 +243,39 @@ public partial class CombatHarness : CanvasLayer
 		{
 			UpdateHurtboxDebugDraw(true);
 		}
+	}
+
+	private EnemyBase CreateMonster(PackedScene scene, Vector3 position, string seedKey)
+	{
+		var monster = scene.Instantiate<EnemyBase>();
+		monster.Position = position; monster.EnemyBehaviorComponent.AIEnabled = false;
+		Player.GetParent().AddChild(monster); monster.ConfigureCombatRandom(Seed, seedKey);
+		// Arena simulations exercise death without awarding dungeon loot or experience.
+		if (monster.DeathComponent != null) { monster.DeathComponent.LootTableComponent = null; monster.DeathComponent.Xp = 0; }
+		if (monster.DefenseController != null) monster.DefenseController.Target = Player;
+		monster.EnemyBehaviorComponent.SetTarget(Player);
+		monster.EnemyBehaviorComponent.SetAction(EnemyAction.None);
+		monster.EnemyBehaviorComponent.SetTarget(Player);
+		monster.MovementComponent.SetLookAtDirection((Player.GlobalPosition - monster.GlobalPosition).Normalized());
+		monster.LookAt(Player.GlobalPosition);
+		return monster;
+	}
+
+	/// <summary>Toggle a small, stationary crowd using the selected real monster scene.</summary>
+	public void ToggleCrowd()
+	{
+		_crowd.RemoveAll(monster => !GodotObject.IsInstanceValid(monster));
+		if (_crowd.Count > 0)
+		{
+			foreach (var monster in _crowd) { if (monster.IsInsideTree()) monster.GetParent().RemoveChild(monster); monster.QueueFree(); }
+			_crowd.Clear(); return;
+		}
+		if (Monsters.Length == 0) return;
+		int selected = GetNode<OptionButton>("%Controls/Monsters").Selected;
+		if (selected < 0 || selected >= Monsters.Length) selected = 0;
+		Vector3[] offsets = [Vector3.Right * 2.5f, Vector3.Left * 2.5f, Vector3.Back * 2.5f];
+		for (int i = 0; i < offsets.Length; i++)
+			_crowd.Add(CreateMonster(Monsters[selected], Player.Position + offsets[i], $"harness.crowd.{i}"));
 	}
 
 	public void MonsterAttack()
@@ -303,6 +354,7 @@ public partial class CombatHarness : CanvasLayer
 		Player.MovementComponent.Stop();
 		Player.HealthComponent.SetHealth(Player.Stats.MaxHealth, Player.Stats.MaxHealth);
 		Player.MovementComponent.Push(Vector3.Zero, 0);
+		Player.HurtBoxComponent.Poise?.Restore();
 		_heroGuardHeld = false;
 		Player.InputController.RequireFreshDefenseInput();
 		if (Player.GetNode<AnimationTree>("AnimationTree").Get("parameters/playback").AsGodotObject() is AnimationNodeStateMachinePlayback playback)
@@ -312,6 +364,13 @@ public partial class CombatHarness : CanvasLayer
 		{
 			_monster.HealthComponent.SetHealth(_monster.HealthComponent.MaxHealth, _monster.HealthComponent.MaxHealth);
 			_monster.MovementComponent.Push(Vector3.Zero, 0);
+			_monster.HurtBoxComponent.Poise?.Restore();
+		}
+		foreach (var monster in _crowd.Where(monster => GodotObject.IsInstanceValid(monster) && !monster.IsDead))
+		{
+			monster.HealthComponent.SetHealth(monster.HealthComponent.MaxHealth, monster.HealthComponent.MaxHealth);
+			monster.MovementComponent.Push(Vector3.Zero, 0);
+			monster.HurtBoxComponent.Poise?.Restore();
 		}
 	}
 
@@ -405,6 +464,11 @@ public partial class CombatHarness : CanvasLayer
 	public override void _PhysicsProcess(double delta)
 	{
 		Recorder.AdvanceClock(delta);
+		while (_pendingCasts.TryDequeue(out var cast))
+		{
+			if (!_spells[cast.Spell].Cast(Player, cast.Level, _spellRandoms[cast.Spell]))
+				GD.PushError($"{_spells[cast.Spell].DisplayName} preview could not cast.");
+		}
 		int frame = (int)(Engine.GetPhysicsFrames() - _startFrame);
 		while (_commandIndex < _commands.Length && _commands[_commandIndex].Frame <= frame)
 		{
@@ -425,6 +489,7 @@ public partial class CombatHarness : CanvasLayer
 
 	public override void _ExitTree()
 	{
+		foreach (var spell in _spells) spell.Cancel();
 		Recorder?.Stop();
 		Player.InputController.SetGuardIntent(false);
 		UpdateHurtboxDebugDraw(false);
@@ -444,6 +509,7 @@ public partial class CombatHarness : CanvasLayer
 	private static string DescribeAction(ActorActionGateComponent gate, bool dead)
 	{
 		if (dead) return "Dead";
+		if (gate?.IsStatusLocked == true) return "Immobilized";
 		if (gate?.IsBusy != true) return "Ready";
 		return (gate.CurrentKind, gate.CurrentPhase) switch
 		{
@@ -485,6 +551,10 @@ public partial class CombatHarness : CanvasLayer
 			case "guard": accepted = RequestHeroGuard(true); break;
 			case "release_guard": accepted = RequestHeroGuard(false); break;
 			case "dodge": accepted = RequestHeroDodge(direction); break;
+			// Buffered presses go through the input controller like a device press; acceptance means buffered.
+			case "press_primary": Player.InputController.PushIntent(PlayerIntent.Primary); accepted = true; break;
+			case "press_secondary": Player.InputController.PushIntent(PlayerIntent.Secondary); accepted = true; break;
+			case "press_dodge": Player.InputController.PushIntent(PlayerIntent.Dodge); accepted = true; break;
 			case "move": Player.InputComponent.InputDirection = direction.Normalized(); Player.MovementComponent.SetInputDirection(direction); accepted = true; break;
 			case "monster_attack":
 				accepted = GodotObject.IsInstanceValid(_monster) && !_monster.IsDead;

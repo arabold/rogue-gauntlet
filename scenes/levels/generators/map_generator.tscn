@@ -1,9 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://dhi51wv5tbpik"]
+[gd_scene load_steps=7 format=3 uid="uid://dhi51wv5tbpik"]
 
 [ext_resource type="Script" uid="uid://ndxolawfujyq" path="res://scenes/levels/generators/MapGenerator.cs" id="1_wxtnq"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="3_xm338"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="4_7abrk"]
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="5_dogu5"]
+
+[ext_resource type="Resource" path="res://scenes/effects/world/teleport_arrival/teleport_arrival.tres" id="spawn_arrival"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_4j0yq"]
 geometry_collision_mask = 4294901779
@@ -12,6 +14,7 @@ edge_max_length = 2.0
 
 [node name="MapGenerator" type="Node3D" node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap", "OcclusionGridMap", "NavigationRegion")]
 script = ExtResource("1_wxtnq")
+SpawnArrivalEffect = ExtResource("spawn_arrival")
 FloorGridMap = NodePath("FloorGridMap")
 WallGridMap = NodePath("WallGridMap")
 DecorationGridMap = NodePath("DecorationGridMap")

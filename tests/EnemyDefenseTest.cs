@@ -172,6 +172,7 @@ public partial class EnemyDefenseTest
 	public void ShieldEnemyParriesMeleeAttack()
 	{
 		var (enemy, controller, guard, hurtbox, health) = CreateShieldEnemy();
+		enemy.MovementComponent.SetLookAtDirection(Vector3.Back); // face the attacker at the origin
 		controller.Mode = EnemyDefenseMode.GuardParry;
 		controller.ReactionDelay = 0.04f;
 		controller.GuardHoldDuration = 0.85f;
@@ -316,6 +317,7 @@ public partial class EnemyDefenseTest
 	public void SustainedBlockingMaintainsGuardWhileUnderPressure()
 	{
 		var (enemy, controller, guard, hurtbox, health) = CreateShieldEnemy();
+		enemy.MovementComponent.SetLookAtDirection(Vector3.Back); // face the attacker at the origin
 		controller.Mode = EnemyDefenseMode.GuardParry;
 		controller.ReactionDelay = 0.04f;
 		controller.GuardHoldDuration = 0.85f;
@@ -494,7 +496,7 @@ public partial class EnemyDefenseTest
 	[TestCase]
 	public async System.Threading.Tasks.Task HarnessSkeletonParriesPlayerAttack()
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		ISceneRunner runner = TestFactories.LoadCombatHarness();
 		await runner.SimulateFrames(3);
 
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
@@ -528,7 +530,7 @@ public partial class EnemyDefenseTest
 	[TestCase]
 	public async System.Threading.Tasks.Task HarnessSkeletonDodgesPlayerAttack()
 	{
-		ISceneRunner runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		ISceneRunner runner = TestFactories.LoadCombatHarness();
 		await runner.SimulateFrames(3);
 
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
@@ -557,5 +559,113 @@ public partial class EnemyDefenseTest
 		GD.Print($"[TEST RESULT] Monster HP: {monster.HealthComponent.CurrentHealth}/{initialHp}, Player LastResult: {harness.Player.AttackController.LastResult}, LastDamage: {harness.Player.AttackController.LastDamage}");
 		AssertFloat(monster.HealthComponent.CurrentHealth).IsEqual(initialHp);
 		AssertString(harness.Player.AttackController.LastResult).IsEqual("Dodged");
+	}
+
+	/// <summary>Raise a forced guard against a started attack and advance it the given time.</summary>
+	private static (EnemyBase Enemy, GuardComponent Guard, HurtBoxComponent Hurtbox, HealthComponent Health, Node3D Root, AttackController Attack, CharacterBody3D Player)
+		GuardAgainst(bool breaksGuard, float guardTime)
+	{
+		var (enemy, controller, guard, hurtbox, health) = CreateShieldEnemy();
+		controller.Mode = EnemyDefenseMode.GuardParry;
+		controller.ReactionDelay = 0.04f;
+		var (player, attackCtrl) = CreateTestPlayer();
+		controller.Target = player;
+		enemy.Position = new Vector3(0, 0, -2);
+		enemy.MovementComponent.SetLookAtDirection(Vector3.Back); // face the attacker at the origin
+		var root = new Node3D();
+		root.AddChild(player);
+		root.AddChild(enemy);
+		var def = new AttackDefinition { HitWindowStart = 0.3f, HitWindowEnd = 0.6f, MeleeContact = attackCtrl.DefaultMeleeContact, DefenseTraits = Traits(breaksGuard) };
+		AssertBool(attackCtrl.StartAttack(def, 20, 20, 0, 8)).IsTrue();
+		controller._PhysicsProcess(0.02f);
+		controller._PhysicsProcess(0.05f);
+		AssertBool(guard.IsGuarding).IsTrue();
+		guard._PhysicsProcess(guardTime);
+		return (enemy, guard, hurtbox, health, root, attackCtrl, player);
+	}
+
+	private static AttackDefenseTraits Traits(bool breaksGuard) =>
+		AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable | (breaksGuard ? AttackDefenseTraits.BreaksGuard : AttackDefenseTraits.None);
+
+	private static DamageContext Swing(AttackController attack, Node player, bool breaksGuard) => new()
+	{
+		ExecutionId = attack.CurrentExecutionId,
+		Amount = 20f,
+		IncomingDirection = new Vector3(0, 0, -1),
+		SourceNode = attack,
+		OwnerNode = player,
+		Faction = DamageSourceFlags.Player,
+		DefenseTraits = Traits(breaksGuard)
+	};
+
+	[TestCase]
+	public void HeavyAttackBreaksAnUnparriedGuardAndStaggersTheDefender()
+	{
+		var (_, guard, hurtbox, health, root, attack, player) = GuardAgainst(breaksGuard: true, 0.3f);
+		var result = hurtbox.ResolveDamage(Swing(attack, player, breaksGuard: true));
+		AssertObject(result.Outcome).IsEqual(DamageOutcome.GuardBroken);
+		AssertFloat(health.CurrentHealth).IsEqual(100f - 20f * guard.GuardDef.GuardBreakDamageMultiplier);
+		AssertBool(guard.IsGuarding).IsFalse();
+		AssertBool(guard.ActionGate.IsStaggered).IsTrue();
+		root.QueueFree();
+	}
+
+	[TestCase]
+	public void ParryStillBeatsAHeavyAttackAndNormalAttacksStillOnlyBlock()
+	{
+		var (_, _, hurtbox, health, root, attack, player) = GuardAgainst(breaksGuard: true, 0.05f);
+		AssertObject(hurtbox.ResolveDamage(Swing(attack, player, breaksGuard: true)).Outcome).IsEqual(DamageOutcome.Parried);
+		AssertFloat(health.CurrentHealth).IsEqual(100f);
+		root.QueueFree();
+
+		var (_, guard, normalHurtbox, _, normalRoot, normalAttack, normalPlayer) = GuardAgainst(breaksGuard: false, 0.3f);
+		AssertObject(normalHurtbox.ResolveDamage(Swing(normalAttack, normalPlayer, breaksGuard: false)).Outcome).IsEqual(DamageOutcome.Blocked);
+		AssertBool(guard.IsGuarding).IsTrue();
+		normalRoot.QueueFree();
+	}
+
+	/// <summary>A guard rises along the current facing; an attacker behind the shield is not guarded against.</summary>
+	[TestCase]
+	public void GuardIsNotRaisedAgainstAnAttackerBehind()
+	{
+		var (enemy, controller, guard, _, _) = CreateShieldEnemy();
+		controller.Mode = EnemyDefenseMode.GuardParry;
+		controller.ReactionDelay = 0.04f;
+		var (player, attackCtrl) = CreateTestPlayer();
+		controller.Target = player;
+		enemy.Position = new Vector3(0, 0, -2); // faces -Z, away from the attacker at the origin
+		var root = new Node3D();
+		root.AddChild(player);
+		root.AddChild(enemy);
+		var def = new AttackDefinition { HitWindowStart = 0.3f, HitWindowEnd = 0.6f, MeleeContact = attackCtrl.DefaultMeleeContact };
+		AssertBool(attackCtrl.StartAttack(def, 20, 20, 0, 8)).IsTrue();
+		controller._PhysicsProcess(0.02f);
+		controller._PhysicsProcess(0.05f);
+		AssertBool(guard.IsGuarding).IsFalse();
+		AssertBool(enemy.MovementComponent.LookAtDirection.IsEqualApprox(Vector3.Forward)).IsTrue();
+		root.QueueFree();
+	}
+
+	/// <summary>The policy's guard interval dodges (or does nothing) against attacks that are unsafe to guard.</summary>
+	[TestCase]
+	public void AiDoesNotChooseGuardAgainstAttacksThatAreUnsafeToGuard()
+	{
+		AssertBool(Traits(false).IsSafeToGuard()).IsTrue();
+		AssertBool(Traits(true).IsSafeToGuard()).IsFalse();
+		AssertBool(AttackDefenseTraits.Dodgeable.IsSafeToGuard()).IsFalse();
+		using var strategy = new EnemyDefenseStrategy { DodgeChance = .2f, GuardChance = .5f };
+		AssertObject(strategy.Choose(true, true, .3f, guardSafe: true)).IsEqual(EnemyDefenseMode.GuardParry);
+		AssertObject(strategy.Choose(true, true, .3f, guardSafe: false)).IsEqual(EnemyDefenseMode.Dodge);
+		AssertObject(strategy.Choose(true, false, .3f, guardSafe: false)).IsEqual(EnemyDefenseMode.None);
+		AssertObject(strategy.Choose(true, true, .1f, guardSafe: false)).IsEqual(EnemyDefenseMode.Dodge);
+	}
+
+	[TestCase]
+	public void ThreatTierIsDerivedFromTheDefenseTraits()
+	{
+		AssertObject(Traits(false).ThreatTier()).IsEqual(AttackThreatTier.Normal);
+		AssertObject(Traits(true).ThreatTier()).IsEqual(AttackThreatTier.Heavy);
+		AssertObject(AttackDefenseTraits.Dodgeable.ThreatTier()).IsEqual(AttackThreatTier.Unblockable);
+		AssertObject((AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable).ThreatTier()).IsEqual(AttackThreatTier.Normal);
 	}
 }

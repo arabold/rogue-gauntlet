@@ -21,6 +21,7 @@ public partial class MapGenerator : Node3D
 	[Export] public CorridorConnectorStrategy CorridorConnector { get; set; }
 	[Export] public RoomFactory RoomFactory { get; set; }
 	[Export] public MobFactory MobFactory { get; set; }
+	[Export] public WorldEffectDefinition SpawnArrivalEffect { get; set; }
 	[Export] public RoomArrangementPool ArrangementPool { get; set; }
 	/// <summary>Disable all optional furnishing without changing shell/layout RNG, including coded recipes.</summary>
 	[Export] public bool EnableFurnishings { get; set; } = true;
@@ -31,11 +32,11 @@ public partial class MapGenerator : Node3D
 	public MapData Map;
 	/// <summary>The current attempt's floor: generation queries it while it fills, gameplay once it is frozen.</summary>
 	public GeneratedFloor Floor { get; private set; }
-	[Export] public GridMap FloorGridMap { get; private set; }
-	[Export] public GridMap WallGridMap { get; private set; }
-	[Export] public GridMap DecorationGridMap { get; private set; }
-	[Export] public GridMap OcclusionGridMap { get; private set; }
-	[Export] public NavigationRegion3D NavigationRegion { get; private set; }
+	[Export] public GridMap FloorGridMap { get; set; }
+	[Export] public GridMap WallGridMap { get; set; }
+	[Export] public GridMap DecorationGridMap { get; set; }
+	[Export] public GridMap OcclusionGridMap { get; set; }
+	[Export] public NavigationRegion3D NavigationRegion { get; set; }
 
 	// Shared unlit black cap mesh for permanent void coverage.
 	private PlaneMesh _occlusionCapMesh;
@@ -672,7 +673,7 @@ public partial class MapGenerator : Node3D
 
 	private SpawnPoint AddEnemySpawnPoint(PackedScene scene, string persistentId, Transform3D transform)
 	{
-		var spawnPoint = new SpawnPoint { SpawnOnStart = true, Scenes = [scene], PersistentId = persistentId };
+		var spawnPoint = new SpawnPoint { SpawnOnStart = true, Scenes = [scene], PersistentId = persistentId, ArrivalEffect = SpawnArrivalEffect };
 		AddChild(spawnPoint);
 		spawnPoint.GlobalTransform = transform;
 		EnemySpawnPoints.Add(spawnPoint);

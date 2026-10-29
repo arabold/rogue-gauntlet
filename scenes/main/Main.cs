@@ -1,4 +1,5 @@
 using Godot;
+using PhantomCamera.Noise;
 using System.Linq;
 
 public partial class Main : Node
@@ -12,6 +13,7 @@ public partial class Main : Node
 	// TODO: There's no PhantomCamera3D in C# API
 	private Node3D _pcam;
 	private Player _player;
+	private System.Action _unsubscribePlayer = () => { };
 
 	/// <summary>Full-screen status overlays bound to the player when it spawns. Optional: unassigned means no screen effects.</summary>
 	[Export] public ScreenEffectsLayer ScreenEffects { get; set; }
@@ -19,11 +21,29 @@ public partial class Main : Node
 	/// <summary>Orthographic gameplay camera whose visible area is adjusted by zoom input.</summary>
 	[Export] public Camera3D GameCamera { get; set; }
 
+	/// <summary>
+	/// Phantom Camera noise emitter (positional noise, decaying) used for hit impulses; its noise amplitude is
+	/// set per impulse. Unassigned means no camera shake.
+	/// </summary>
+	[ExportGroup("Hit impulses")]
+	[Export] public Node3D HitNoiseEmitter { get; set; }
+	/// <summary>Peak camera offset (world units) when the player is interrupted or staggered.</summary>
+	[Export] public float HitTakenImpulse { get; set; } = 0.25f;
+	/// <summary>Camera offset per second of hit-stop on the player's own contacts, so heavier swings shake more.</summary>
+	[Export] public float HitStopImpulsePerSecond { get; set; } = 2.5f;
+
+	// Measured with the authored hit noise: an amplitude of 30 per world unit peaks near that unit at the
+	// start of the shake, matching the impulse strengths above.
+	private const float NoiseAmplitudePerUnit = 30f;
+	private PhantomCameraNoiseEmitter3D _hitNoise;
+	private float _impulseStrength;
+
 	public override void _Ready()
 	{
 		GD.Print("Main scene is ready");
 		_pcam = GetNode<Node3D>("PhantomCamera3D");
 		_pcam.Set("follow_mode", FollowModeNone);
+		if (HitNoiseEmitter != null) _hitNoise = new PhantomCameraNoiseEmitter3D(HitNoiseEmitter);
 
 		this.SubscribeUntilExit(
 			SignalBus.Instance,
@@ -44,14 +64,45 @@ public partial class Main : Node
 	private void OnPlayerSpawned(Player player)
 	{
 		GD.Print($"{player.Name} spawned. Setting camera target...");
+		// Spawning can report the same player more than once; rebind so each signal connects only once.
+		_unsubscribePlayer();
 		_player = player;
 		ScreenEffects?.Bind(player);
+		_unsubscribePlayer = this.SubscribeUntilExit(
+			player,
+			p =>
+			{
+				p.HurtBoxComponent.HitReacted += OnPlayerHitReacted;
+				p.AttackController.HitStopStarted += OnPlayerHitStop;
+			},
+			p =>
+			{
+				p.HurtBoxComponent.HitReacted -= OnPlayerHitReacted;
+				p.AttackController.HitStopStarted -= OnPlayerHitStop;
+			});
 		CenterCameraOnPlayer();
+		_pcam.ResetPhysicsInterpolation();
+	}
+
+	private void OnPlayerHitReacted(int reaction)
+	{
+		if ((HitReaction)reaction != HitReaction.Flinch) AddCameraImpulse(HitTakenImpulse);
+	}
+
+	private void OnPlayerHitStop(float duration) => AddCameraImpulse(duration * HitStopImpulsePerSecond);
+
+	/// <summary>Start a decaying camera shake; a weaker impulse never cuts a stronger one short.</summary>
+	private void AddCameraImpulse(float strength)
+	{
+		if (_hitNoise == null || strength <= 0 || (_hitNoise.IsEmitting() && strength < _impulseStrength)) return;
+		_impulseStrength = strength;
+		_hitNoise.Noise.Amplitude = strength * NoiseAmplitudePerUnit;
+		_hitNoise.Emit();
 	}
 
 	public override void _Process(double delta)
 	{
-		if (_player == null)
+		if (!GodotObject.IsInstanceValid(_player))
 		{
 			return;
 		}
@@ -83,7 +134,7 @@ public partial class Main : Node
 
 	private void UpdateCameraRotation(float yawDelta)
 	{
-		if (_player == null)
+		if (!GodotObject.IsInstanceValid(_player))
 		{
 			return;
 		}
@@ -112,7 +163,7 @@ public partial class Main : Node
 			}
 			else
 			{
-				var player = _player ?? GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
+				var player = GodotObject.IsInstanceValid(_player) ? _player : GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
 				if (player != null)
 				{
 					characterDialog.Open(player);

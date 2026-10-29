@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://ch4hss8ixtooy"]
+[gd_scene load_steps=3 format=3 uid="uid://ch4hss8ixtooy"]
 
 [ext_resource type="Script" path="res://scenes/levels/SpawnPoint.cs" id="1_4r1cw"]
 
+[ext_resource type="Resource" path="res://scenes/effects/world/teleport_arrival/teleport_arrival.tres" id="arrival"]
+
 [node name="SpawnPoint" type="Node3D"]
 script = ExtResource("1_4r1cw")
+ArrivalEffect = ExtResource("arrival")

@@ -3,9 +3,28 @@ using Godot;
 /// <summary>
 /// The main player character.
 /// </summary>
-public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable
+public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable, IAttackSlotHost, IStatusActor, IShieldOwner, ISlowActor, IBurningActor
 {
+	HurtBoxComponent IShieldOwner.ShieldHurtBox => HurtBoxComponent;
+	[Export] public WorldEffectHost WorldEffects { get; set; }
+	[Export] public ItemUseWorldEffectDriver ItemUseEffects { get; set; }
 	[Export] public InvisibilityComponent Invisibility { get; set; }
+	[Export] public FrozenStatusComponent FrozenStatus { get; set; }
+	[Export] public SlowStatusComponent SlowStatus { get; set; }
+	[Export] public BurningStatusComponent BurningStatus { get; set; }
+	[Export] public StatusAppearanceComponent IronSkinStatus { get; set; }
+	[Export] public StatusAppearanceComponent StoneSkinStatus { get; set; }
+	/// <summary>Additional persistent initial conditions, authored as external Resources in the Inspector.</summary>
+	/// <summary>Initial persistent conditions; each requires a wired actor component to produce behavior or visuals.</summary>
+	[Export] public Godot.Collections.Array<StatusCondition> InitialConditions { get; set; } = [];
+	private bool _initialInvisible, _initialFrozen, _initialIronSkin, _initialStoneSkin, _initialSlowed, _initialBurning;
+	/// <summary>Inspector-authored initial state; at runtime the value reports all active sources.</summary>
+	[Export] public bool Invisible { get => IsNodeReady() ? Invisibility?.IsInvisible == true : _initialInvisible; set { _initialInvisible = value; if (IsNodeReady()) Invisibility?.SetInvisible(value); } }
+	[Export] public bool Frozen { get => IsNodeReady() ? FrozenStatus?.IsFrozen == true : _initialFrozen; set { _initialFrozen = value; if (IsNodeReady()) FrozenStatus?.SetFrozen(value); } }
+	[Export] public bool Slowed { get => IsNodeReady() ? SlowStatus?.IsSlowed == true : _initialSlowed; set { _initialSlowed = value; if (IsNodeReady()) SlowStatus?.SetSlowed(value); } }
+	[Export] public bool Burning { get => IsNodeReady() ? BurningStatus?.IsBurning == true : _initialBurning; set { _initialBurning = value; if (IsNodeReady()) BurningStatus?.SetBurning(value); } }
+	[Export] public bool IronSkin { get => IsNodeReady() ? IronSkinStatus?.IsActive == true : _initialIronSkin; set { _initialIronSkin = value; if (IsNodeReady()) IronSkinStatus?.SetActive(value); } }
+	[Export] public bool StoneSkin { get => IsNodeReady() ? StoneSkinStatus?.IsActive == true : _initialStoneSkin; set { _initialStoneSkin = value; if (IsNodeReady()) StoneSkinStatus?.SetActive(value); } }
 
 	[Export] public PlayerStats Stats { get; protected set; }
 	[Export] public Inventory Inventory { get; protected set; }
@@ -27,6 +46,8 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 	[Export] public DodgeComponent DodgeComponent { get; protected set; }
 	/// <summary>Optional: without it the player cannot guard.</summary>
 	[Export] public GuardComponent GuardComponent { get; protected set; }
+	/// <summary>Turn-taking for monsters attacking the player; unassigned lets every monster strike at once.</summary>
+	[Export] public AttackSlotsComponent AttackSlots { get; protected set; }
 	public bool TryStagger(float duration)
 	{
 		return ActionGate?.TryStagger(duration) ?? false;
@@ -85,6 +106,8 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 
 		// The controllers act on this runtime copy, never on the authored inventory, so it is injected rather than wired.
 		InventoryController.Inventory = Inventory;
+		if (ItemUseEffects != null)
+		{ ItemUseEffects.Inventory = Inventory; ItemUseEffects.Identification = _level?.Run?.Identification; }
 		QuickItemController.Inventory = Inventory;
 		_hasRuntimeState = true;
 	}
@@ -116,6 +139,13 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 	public override void _Ready()
 	{
 		base._Ready();
+		BuffController?.ApplyInitialConditions(InitialConditions, this);
+		if (_initialInvisible) Invisibility?.SetInvisible(true, true);
+		if (_initialFrozen) FrozenStatus?.SetFrozen(true);
+		if (_initialSlowed) SlowStatus?.SetSlowed(true);
+		if (_initialBurning) BurningStatus?.SetBurning(true);
+		if (_initialIronSkin) IronSkinStatus?.SetActive(true);
+		if (_initialStoneSkin) StoneSkinStatus?.SetActive(true);
 
 		_animationStateMachine = (AnimationNodeStateMachinePlayback)AnimationTree.Get("parameters/playback");
 		_animationStateMachine.Start("Idle");

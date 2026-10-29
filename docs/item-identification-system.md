@@ -59,6 +59,8 @@ has been discovered.
 - `IdentificationService`: per-run state owned by the run's `RunState`. Resolves
   appearances and tracks discovery.
 
+Scroll appearances also pair optional `GlyphId`, `GlyphMesh` and luminous `GlyphColor` for presentation. The authored glyph follows the selected appearance; it is not a fixed symbol for the semantic scroll type. The [rune study](world-effects.md#scroll-reading-preview) shows the approved production ring with that symbol. These visual fields do not change discovery, assignment ordering or saved descriptors.
+
 ### Appearance assignment
 
 `AppearancePool` ordering plus the run `Seed` produce a deterministic shuffle that

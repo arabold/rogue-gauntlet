@@ -1,0 +1,44 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Script" path="res://scenes/magic/fire/FireBurstMotion.cs" id="motion"]
+[ext_resource type="Script" path="res://scenes/magic/fire/FireSpellVisual.cs" id="script"]
+[ext_resource type="Shader" path="res://scenes/magic/fireball/flame_wake.gdshader" id="ribbon"]
+[ext_resource type="Script" path="res://scenes/magic/fire/RadialFlameRibbon.cs" id="radial"]
+[ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+
+[sub_resource type="ShaderMaterial" id="ribbon_mat"]
+shader = ExtResource("ribbon")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/closed_loop = true
+shader_parameter/animation_speed = 3.0
+shader_parameter/brightness = 1.6
+
+[node name="FireSpellVisual" type="Node3D" node_paths=PackedStringArray("Timeline", "Burst")]
+script = ExtResource("script")
+Timeline = NodePath("Timeline")
+Burst = NodePath("Motion")
+[node name="FireRibbon" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.65, 0)
+material_override = SubResource("ribbon_mat")
+cast_shadow = 0
+script = ExtResource("radial")
+
+[node name="Light" type="OmniLight3D" parent="."]
+position = Vector3(0, 1, 0)
+light_color = Color(1, 0.3, 0.03, 1)
+light_energy = 1.3
+omni_range = 4.0
+shadow_enabled = true
+
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
+script = ExtResource("timeline")
+Surfaces = [NodePath("../FireRibbon")]
+Lights = [NodePath("../Light")]
+Duration = 0.55
+FadeIn = 0.08
+FadeOutStart = 0.55
+[node name="Motion" type="Node" parent="." node_paths=PackedStringArray("Timeline", "Ribbons")]
+script = ExtResource("motion")
+Timeline = NodePath("../Timeline")
+Ribbons = [NodePath("../FireRibbon")]

@@ -15,6 +15,11 @@ public enum ProjectilePattern
 [GlobalClass]
 public partial class AttackDefinition : Resource
 {
+	/// <summary>Poise damage of an attack that does not author its own, matching the property default.</summary>
+	public const float DefaultPoiseDamage = 10f;
+	/// <summary>Push strength of an interrupting or staggering contact; the historical fixed hit push.</summary>
+	public const float DefaultKnockback = 3f;
+
 	/// <summary>Optional style override; an empty value uses the weapon's authored style.</summary>
 	[Export] public StringName AttackStyle { get; set; } = "";
 
@@ -37,6 +42,14 @@ public partial class AttackDefinition : Resource
 	[Export] public AttackDefenseTraits DefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable;
 
 	[Export] public AttackDefenseTraits AreaDefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable;
+
+	/// <summary>
+	/// Threat label derived from <see cref="DefenseTraits"/>. Monster Heavy (BreaksGuard) and Unblockable (neither
+	/// Guardable nor Parryable) melee shows its footprint through an <see cref="AttackTelegraph"/>.
+	/// </summary>
+	public AttackThreatTier ThreatTier => DefenseTraits.ThreatTier();
+
+	public AttackImpact Impact => new(PoiseDamage, Knockback, ForcePushback);
 
 	/// <summary>Stable gameplay volume; null uses the weapon or actor default contact profile.</summary>
 	[Export] public MeleeAttackProfile MeleeContact { get; set; }
@@ -119,5 +132,62 @@ public partial class AttackDefinition : Resource
 	/// Negative values keep the projectile scene's default falloff.
 	/// </summary>
 	[Export(PropertyHint.Range, "-1,1,0.05")] public float ImpactRadiusMinDamageScaleOverride { get; set; } = -1.0f;
+
+	/// <summary>Poise removed from a defender with a <see cref="PoiseComponent"/> by each unprotected contact.</summary>
+	[ExportGroup("Impact")]
+	[Export] public float PoiseDamage { get; set; } = DefaultPoiseDamage;
+
+	/// <summary>Push strength when a contact interrupts or staggers its defender; flinches push only with <see cref="ForcePushback"/>.</summary>
+	[Export] public float Knockback { get; set; } = DefaultKnockback;
+
+	/// <summary>
+	/// Knocks back a defender that would only flinch, interrupting its current action without a stagger.
+	/// Hyper-armored defenders and poise that resists forced pushback (bosses) still only flinch.
+	/// </summary>
+	[Export] public bool ForcePushback { get; set; }
+
+	/// <summary>
+	/// Normalized execution time at which ordinary hits stop interrupting this attack. Only a poise break
+	/// can interrupt an armored attacker. Equal start and end values mean no hyper-armor.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,1,0.01")] public float HyperArmorStart { get; set; }
+
+	/// <summary>Normalized execution time at which hyper-armor ends.</summary>
+	[Export(PropertyHint.Range, "0,1,0.01")] public float HyperArmorEnd { get; set; }
+
+	/// <summary>Seconds the attacker's execution clock pauses after its first damaging or blocked contact.</summary>
+	[Export(PropertyHint.Range, "0,0.25,0.005")] public float HitStopDuration { get; set; }
+
+	/// <summary>
+	/// Melee only: seconds before contact starts at which the attack commits its facing. Zero commits at
+	/// contact. A positive lead lets a target step out of a committed swing.
+	/// </summary>
+	[ExportGroup("Tracking")]
+	[Export(PropertyHint.Range, "0,2,0.01")] public float FacingLockLead { get; set; }
+
+	/// <summary>Maximum degrees per second an AI attacker turns toward its target before facing commits. Zero is unlimited.</summary>
+	[Export(PropertyHint.Range, "0,1440,1")] public float WindUpTurnRate { get; set; }
+
+	/// <summary>Whether the normalized execution progress lies inside the authored hyper-armor interval.</summary>
+	public bool IsHyperArmoredAt(float progress) => HyperArmorEnd > HyperArmorStart && progress >= HyperArmorStart && progress < HyperArmorEnd;
+
+	/// <summary>Poise damage, knockback, hit-stop and wind-up turn rate are nonnegative and finite.</summary>
+	public bool HasValidImpactValues =>
+		float.IsFinite(PoiseDamage) && PoiseDamage >= 0
+		&& float.IsFinite(Knockback) && Knockback >= 0
+		&& float.IsFinite(HitStopDuration) && HitStopDuration >= 0
+		&& float.IsFinite(WindUpTurnRate) && WindUpTurnRate >= 0;
+
+	public bool HasValidArmorWindow => HyperArmorStart >= 0 && HyperArmorStart <= HyperArmorEnd && HyperArmorEnd <= 1;
+
+	/// <summary>A positive lead is melee-only and no longer than the prepared contact start (seconds), when one is known.</summary>
+	public bool HasValidFacingLock(float? contactStart) => float.IsFinite(FacingLockLead) && FacingLockLead >= 0
+		&& (FacingLockLead == 0 || (!IsRanged && (contactStart == null || FacingLockLead <= contactStart)));
+
+	/// <summary>
+	/// Impact and tracking rules shared by attack preparation and <see cref="MonsterSceneValidator"/>, against
+	/// the prepared contact start in seconds.
+	/// </summary>
+	public bool HasValidImpact(float contactStart) => HasValidImpactValues && HasValidArmorWindow && HasValidFacingLock(contactStart);
 
 }

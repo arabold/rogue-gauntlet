@@ -7,7 +7,7 @@ public partial class RangedWeapon : Weapon
 {
     [Export] public float ProjectileSpeed { get; set => SetValue(ref field, value); } = 7.0f;
     [Export] public float Range { get; set => SetValue(ref field, value); } = 20.0f;
-    [Export] public float AimingAngle { get; set; } = 45.0f;
+    [Export] public float AimingAngle { get; set => SetValue(ref field, value); } = 45.0f;
 
     public RangedWeapon()
     {

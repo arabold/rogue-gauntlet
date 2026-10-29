@@ -80,15 +80,17 @@ public class AttackAnimationTest
 	[TestCase]
 	public async Task DefinitionOverrideAndTimingAreCapturedWithoutMutatingResources()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		var runner = TestFactories.LoadCombatHarness();
 		await runner.SimulateFrames(3);
 		var player = runner.Scene().GetNode<Player>("Player");
 		var controller = player.AttackController;
 		using var definition = new AttackDefinition { AttackStyle = "spear.2h.thrust", HitWindowStart = 9, HitWindowEnd = 10 };
 		AssertBool(controller.TryPrepareAttack(definition, "sword.1h.slash", 2, out var attack)).IsTrue();
 		AssertString(attack.Playback.Style).IsEqual("spear.2h.thrust");
-		AssertFloat(attack.Definition.HitWindowStart).IsEqualApprox(.6f, .0001);
-		AssertFloat(attack.Definition.HitWindowEnd).IsEqualApprox(1.2f, .0001);
+		// The rig binding's normalized window scales to the requested 2-second duration.
+		AssertBool(controller.AnimationComponent.Profile.TryGetBinding("spear.2h.thrust", out var binding)).IsTrue();
+		AssertFloat(attack.Definition.HitWindowStart).IsEqualApprox(2 * binding.ContactStart, .0001);
+		AssertFloat(attack.Definition.HitWindowEnd).IsEqualApprox(2 * binding.ContactEnd, .0001);
 		AssertFloat(definition.HitWindowStart).IsEqual(9);
 		AssertFloat(definition.HitWindowEnd).IsEqual(10);
 		definition.AttackStyle = "axe.1h.chop";
@@ -99,7 +101,7 @@ public class AttackAnimationTest
 	[TestCase]
 	public async Task PlaybackAndExecutorShareRecoveryAndCancellation()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		var runner = TestFactories.LoadCombatHarness();
 		await runner.SimulateFrames(3);
 		var player = runner.Scene().GetNode<Player>("Player");
 		var controller = player.AttackController;
@@ -127,7 +129,7 @@ public class AttackAnimationTest
 	[TestCase]
 	public async Task RangedReleaseOccursOnceAndCancellationPreventsADeferredShot()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		var runner = TestFactories.LoadCombatHarness();
 		await runner.SimulateFrames(3);
 		var player = runner.Scene().GetNode<Player>("Player");
 		var controller = player.AttackController;
@@ -155,9 +157,8 @@ public class AttackAnimationTest
 	[TestCase]
 	public async Task CrossbowAimsThroughCommitmentThenShootsAtReleaseAndCancelsCleanly()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
 		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
 		await runner.SimulateFrames(2);
@@ -192,9 +193,8 @@ public class AttackAnimationTest
 	[TestCase]
 	public async Task MissingWindUpClipRejectsPreparationBeforeAcquiringTheActionGate()
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
 		var shooter = harness.Monster;
 		var component = shooter.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
@@ -209,9 +209,8 @@ public class AttackAnimationTest
 	[TestCase("res://scenes/enemies/templates/projectile_enemy.tscn")]
 	public async Task SkeletonCrossbowUsesPlayerGripAndPointsAtTargetOnceAimLocks(string path)
 	{
-		using var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.Monsters = [GD.Load<PackedScene>(path)];
 		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
 		harness.ExecuteCommand("spawn", 0, Vector3.Zero);
@@ -239,7 +238,7 @@ public class AttackAnimationTest
 	[TestCase]
 	public async Task EquipmentSwitchCancelsTheAcceptedSwing()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		var runner = TestFactories.LoadCombatHarness();
 		await runner.SimulateFrames(3);
 		var player = runner.Scene().GetNode<Player>("Player");
 		var slot = player.Inventory.EquippedItems[EquipmentSlot.WeaponHand];
@@ -255,7 +254,7 @@ public class AttackAnimationTest
 	[TestCase]
 	public async Task MissingStyleDoesNotAcceptAnActionOrStartCooldown()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
+		var runner = TestFactories.LoadCombatHarness();
 		await runner.SimulateFrames(3);
 		var player = runner.Scene().GetNode<Player>("Player");
 		var weapon = (Weapon)player.Inventory.EquippedItems[EquipmentSlot.WeaponHand].Item;
@@ -270,9 +269,8 @@ public class AttackAnimationTest
 	[TestCase]
 	public async Task PlaygroundSelectionAndButtonUseTheRealActionSlotTimeline()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		AssertInt(harness.Weapons.Length).IsEqual(11);
 		AssertObject(harness.GetNode<Label>("%Controls/Status")).IsNotNull();
 		harness.EquipPreview(3);
@@ -290,9 +288,8 @@ public class AttackAnimationTest
 	[TestCase]
 	public async Task HitDuringCrossbowPreparationCannotFireAfterKnockbackEnds()
 	{
-		var runner = ISceneRunner.Load("res://scenes/debug/combat/combat_harness.tscn", true);
-		await runner.SimulateFrames(3);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.EquipPreview(6);
 		harness.Attack();
 		var slot = harness.Player.ActionManager.GetChildren().OfType<ActionSlot>().First(value => value.IsDelayed);

@@ -14,8 +14,11 @@ public enum EnemyDefenseMode
 /// and triggers active defense via composed DodgeComponent and/or GuardComponent.
 /// Supports continuous combo blocking and riposte counter-attacks on guard release.
 /// </summary>
+[GlobalClass]
 public partial class EnemyDefenseController : Node
 {
+	private static readonly StringName ProjectileGroup = "projectile";
+
 	[Signal] public delegate void RiposteTriggeredEventHandler();
 
 	[Export] public EnemyBase Enemy { get; set; }
@@ -68,6 +71,8 @@ public partial class EnemyDefenseController : Node
 	private readonly RandomNumberGenerator _rng = new();
 
 	private readonly HashSet<AttackIdentity> _observedProjectiles = new();
+	private readonly HashSet<AttackIdentity> _activeProjectiles = new();
+	private readonly List<Projectile> _projectilesBuffer = new();
 	public void ConfigureRandom(ulong seed) => _rng.Seed = seed;
 	private Node3D _cachedTarget;
 	private AttackController _cachedTargetAttackCtrl;
@@ -188,11 +193,8 @@ public partial class EnemyDefenseController : Node
 		float reach = Enemy.EnemyBehaviorComponent?.Profile?.AttackStrategy?.EffectiveRange ?? 0;
 		if (distance > reach) return RecordRiposte(false, "out_of_reach", target, distance, reach);
 
-		if (toTarget.LengthSquared() > 0.001f)
-		{
-			Enemy.MovementComponent?.SetLookAtDirection(toTarget.Normalized());
-			Enemy.MovementComponent?.FaceDirection(toTarget.Normalized());
-		}
+		// Turn toward the target at the actor's normal turn rate; an attack that cannot start yet is rejected.
+		if (toTarget.LengthSquared() > 0.001f) Enemy.MovementComponent?.FaceDirection(toTarget.Normalized());
 
 		Enemy.EnemyBehaviorComponent?.SetTarget(target);
 		bool accepted = Enemy.EnemyBehaviorComponent?.TryAttack() ?? false;
@@ -267,7 +269,7 @@ public partial class EnemyDefenseController : Node
 		}
 
 		float delay = Strategy?.ReactionDelay ?? ReactionDelay;
-		EnemyDefenseMode chosen = ResolveDefenseMode();
+		EnemyDefenseMode chosen = ResolveDefenseMode(attackCtrl.CurrentAttack?.DefenseTraits.IsSafeToGuard() ?? true);
 
 		_lastObservedMeleeExecution = execution;
 
@@ -295,13 +297,14 @@ public partial class EnemyDefenseController : Node
 		}
 	}
 
-	private EnemyDefenseMode ResolveDefenseMode()
+	/// <summary>Forced harness modes bypass the policy, so guard breaks stay reproducible in the harness.</summary>
+	private EnemyDefenseMode ResolveDefenseMode(bool guardSafe)
 	{
 		var roll = _rng.Randf();
 		var chosen = Mode != EnemyDefenseMode.ProfileDefault ? Mode
-			: Strategy?.Choose(HasGuardCapability, HasDodgeCapability, roll) ?? EnemyDefenseMode.None;
+			: Strategy?.Choose(HasGuardCapability, HasDodgeCapability, roll, guardSafe) ?? EnemyDefenseMode.None;
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.decision", ("mode", Mode.ToString()),
-			("decision", chosen.ToString()), ("roll", roll));
+			("decision", chosen.ToString()), ("roll", roll), ("guard_safe", guardSafe));
 		return chosen;
 	}
 
@@ -337,12 +340,18 @@ public partial class EnemyDefenseController : Node
 		}
 		else if (mode == EnemyDefenseMode.GuardParry && HasGuardCapability)
 		{
-			Vector3 toThreat = threatOrigin - enemyPos;
-			toThreat.Y = 0;
-			Vector3 faceDir = toThreat.LengthSquared() > 0.001f ? toThreat.Normalized() : -Enemy.GlobalTransform.Basis.Z;
+			// A guard is raised along the current facing; a threat outside its frontal sector cannot be
+			// guarded, so flanking a guarding monster works instead of snapping it around.
+			Vector3 facing = Enemy.MovementComponent?.LookAtDirection ?? -Enemy.GlobalTransform.Basis.Z;
+			if (!GuardComponent.Covers(facing, threatOrigin - enemyPos))
+			{
+				if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.out_of_sector", ("facing", CombatTrace.Vector(facing)),
+					("threat", CombatTrace.Vector(threatOrigin - enemyPos)));
+				return false;
+			}
 			if (!GuardComponent.IsGuarding && !GuardComponent.IsGuardRecovering)
 			{
-				if (GuardComponent.TryBeginGuard(faceDir) == DefenseRequestResult.Success)
+				if (GuardComponent.TryBeginGuard(facing) == DefenseRequestResult.Success)
 				{
 					_pressureRemaining = PressureWindow;
 					_totalGuardTime = 0f;
@@ -354,14 +363,15 @@ public partial class EnemyDefenseController : Node
 		return false;
 	}
 
-	private IEnumerable<Projectile> FindProjectiles()
+	private void CollectProjectiles()
 	{
+		_projectilesBuffer.Clear();
 		if (IsInsideTree() && GetTree() != null)
 		{
-			var nodes = GetTree().GetNodesInGroup("projectile");
+			var nodes = GetTree().GetNodesInGroup(ProjectileGroup);
 			foreach (Node node in nodes)
 			{
-				if (node is Projectile p) yield return p;
+				if (node is Projectile p) _projectilesBuffer.Add(p);
 			}
 		}
 		else
@@ -371,7 +381,7 @@ public partial class EnemyDefenseController : Node
 			{
 				foreach (Node child in parent.GetChildren())
 				{
-					if (child is Projectile p) yield return p;
+					if (child is Projectile p) _projectilesBuffer.Add(p);
 				}
 			}
 		}
@@ -384,12 +394,17 @@ public partial class EnemyDefenseController : Node
 			return;
 		}
 
-		var active = new HashSet<AttackIdentity>();
-		foreach (var p in FindProjectiles()) active.Add(p.ExecutionId);
-		_observedProjectiles.IntersectWith(active);
-		Vector3 enemyPos = GetPosition(Enemy);
-		foreach (Projectile projectile in FindProjectiles())
+		CollectProjectiles();
+		_activeProjectiles.Clear();
+		for (int i = 0; i < _projectilesBuffer.Count; i++)
 		{
+			_activeProjectiles.Add(_projectilesBuffer[i].ExecutionId);
+		}
+		_observedProjectiles.IntersectWith(_activeProjectiles);
+		Vector3 enemyPos = GetPosition(Enemy);
+		for (int i = 0; i < _projectilesBuffer.Count; i++)
+		{
+			Projectile projectile = _projectilesBuffer[i];
 			if (!GodotObject.IsInstanceValid(projectile)) continue;
 			if (projectile.IsInsideTree() && !projectile.IsPhysicsProcessing()) continue;
 
@@ -412,7 +427,7 @@ public partial class EnemyDefenseController : Node
 
 			if (dist <= ProjectileThreatDistance && CanObserve(projectile) && _observedProjectiles.Add(projectile.ExecutionId))
 			{
-				EnemyDefenseMode chosen = ResolveDefenseMode();
+				EnemyDefenseMode chosen = ResolveDefenseMode(guardSafe: true);
 				if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.observed", ("source", CombatTrace.Identity(projectile)), ("execution", projectile.ExecutionId.Sequence), ("decision", chosen.ToString()), ("distance", dist));
 
 				if (chosen == EnemyDefenseMode.Dodge && HasDodgeCapability)

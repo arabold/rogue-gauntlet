@@ -6,9 +6,11 @@ using System.Linq;
 /// <summary>
 /// Read-only checks shared by spawning and the editor. Read stored properties rather than casting
 /// gameplay scripts: Godot represents non-tool C# components as native placeholders in the editor.
+/// [Tool] definition Resources (attack, poise, vulnerability) are real instances, so their own rules are reused.
 /// </summary>
 public static class MonsterSceneValidator
 {
+
 	public static string[] Validate(Node actor)
 	{
 		var errors = new List<string>();
@@ -24,9 +26,42 @@ public static class MonsterSceneValidator
 		foreach (var name in new[] { "HealthComponent", "MovementComponent", "EnemyBehaviorComponent", "DeathComponent", "LootTableComponent", "HurtBoxComponent", "ActionGate" })
 			Check(Local(Object<Node>(actor, name)), $"{name}: assign a component within this actor.");
 		var health = Object<Node>(actor, "HealthComponent");
+		var statuses = Object<Node>(actor, "BuffController");
+		if (statuses != null)
+			Check(Local(statuses) && Object<Node>(statuses, "Health") == health, "BuffController: bind this actor's health.");
+		var effects = Object<Node>(actor, "WorldEffects");
+		if (effects != null)
+		{
+			var surfaces = Object<Node>(effects, "SurfaceController");
+			Check(Local(effects) && Object<Node>(effects, "Health") == health, "WorldEffects: bind this actor's health.");
+			Check(Local(surfaces) && Object<Node>(surfaces, "Target") == actor.GetNodeOrNull<Node>("Pivot"), "WorldEffects.SurfaceController: bind this actor's visual Pivot.");
+			var cloak = Object<Node>(actor, "Invisibility");
+			Check(cloak == null || (Object<Node>(cloak, "Host") == effects && Object<Node>(cloak, "Statuses") == statuses
+				&& statuses != null && Object<Resource>(cloak, "Condition") != null), "Invisibility: bind this actor's effect host and status controller, and assign its condition.");
+		}
 		var movement = Object<Node>(actor, "MovementComponent");
 		var behavior = Object<Node>(actor, "EnemyBehaviorComponent");
 		var gate = Object<Node>(actor, "ActionGate");
+		var frozen = actor.GetNodeOrNull<Node>("FrozenStatusComponent");
+		if (frozen != null)
+		{
+			var frozenEffects = Object<Node>(frozen, "Effects");
+			var frozenAppearance = Object<Resource>(frozen, "Appearance");
+			Check(Object<Node>(actor, "FrozenStatus") == frozen && Object<Node>(frozen, "Statuses") == statuses && statuses != null && Object<Node>(frozen, "Health") == health
+				&& Object<Node>(frozen, "ActionGate") == gate
+				&& Object<Node>(frozen, "Animation") == actor.GetNodeOrNull<Node>("EnemyBehaviorComponent/AnimationTree")
+				&& Object<Resource>(frozen, "Condition") != null
+				&& ((frozenEffects == null && frozenAppearance == null) || (frozenEffects == effects && frozenEffects != null && frozenAppearance != null)),
+				"FrozenStatusComponent: bind this actor's status, health, gate, animation and condition; assign both visual dependencies or neither.");
+		}
+		foreach (string name in new[] { "IronSkinStatus", "StoneSkinStatus" })
+		{
+			var status = Object<Node>(actor, name);
+			if (status != null)
+				Check(Local(status) && Object<Node>(status, "Statuses") == statuses && statuses != null
+					&& Object<Node>(status, "Host") == effects && Object<Resource>(status, "Condition") != null
+					&& Object<Resource>(status, "Effect") != null, $"{name}: bind this actor's status controller and effect host, and assign its condition and appearance.");
+		}
 		var death = Object<Node>(actor, "DeathComponent");
 		var loot = Object<Node>(actor, "LootTableComponent");
 		var hurtbox = Object<Node>(actor, "HurtBoxComponent");
@@ -39,6 +74,20 @@ public static class MonsterSceneValidator
 		}
 		if (death != null) Check(Object<Node>(death, "HealthComponent") == health && Object<Node>(death, "LootTableComponent") == loot, "DeathComponent: bind this actor's health and loot.");
 		if (hurtbox != null) Check(Object<Node>(hurtbox, "HealthComponent") == health && (Object<Node>(hurtbox, "MovementComponent") == null || Object<Node>(hurtbox, "MovementComponent") == movement), "HurtBoxComponent: bind this actor's health and movement.");
+		var poise = hurtbox != null ? Object<Node>(hurtbox, "Poise") : null;
+		if (poise != null)
+		{
+			Check(Local(poise) && Object<Node>(poise, "ActionGate") == gate, "HurtBoxComponent.Poise: assign this actor's poise component and bind its action gate.");
+			Check(Object<Resource>(poise, "Definition") is PoiseDefinition { IsValid: true },
+				"PoiseComponent.Definition: assign a PoiseDefinition with positive max poise and stagger and nonnegative regeneration.");
+		}
+		var vulnerability = hurtbox != null ? Object<Resource>(hurtbox, "Vulnerability") : null;
+		if (vulnerability != null)
+			Check(vulnerability is HitVulnerabilityProfile { IsValid: true },
+				"HurtBoxComponent.Vulnerability: require front + rear half-angles <= 180 and nonnegative multipliers.");
+		var healthBar = actor.GetNodeOrNull<Node>("FloatingHealthBar");
+		var barPoise = healthBar != null ? Object<Node>(healthBar, "Poise") : null;
+		Check(barPoise == null || barPoise == poise, "FloatingHealthBar.Poise: show this actor's hurtbox poise or leave it empty.");
 		if (behavior != null)
 		{
 			Check(Object<Node>(behavior, "Actor") == actor && Object<Node>(behavior, "HealthComponent") == health
@@ -62,6 +111,7 @@ public static class MonsterSceneValidator
 		var controller = Object<Node>(actor, "AttackController");
 		Check(Local(controller) && animation != null && Object<Node>(controller, "AnimationComponent") == animation,
 			"AttackController.AnimationComponent: bind this actor's CombatAnimationComponent.");
+		Check(controller == null || Object<Node>(controller, "ActionGate") == gate, "AttackController.ActionGate: assign this actor's action gate.");
 		var playerPath = animation?.Get("AnimationPlayerPath").AsNodePath();
 		var player = playerPath != null && !playerPath.IsEmpty ? animation.GetNodeOrNull<AnimationPlayer>(playerPath) : null;
 		var treePath = animation?.Get("AnimationTreePath").AsNodePath();
@@ -92,10 +142,25 @@ public static class MonsterSceneValidator
 				Check(attack?.Get("IsRanged").AsBool() == false && Object<Resource>(attack, "MeleeContact") != null,
 					"MeleeAttackStrategy: assign a melee definition with an explicit contact profile.");
 				Check(Object<Node>(controller, "MeleeDetector") != null, "AttackController.MeleeDetector: assign a hit detector.");
+				float startAngle = Number(policy, "MaxStartAngle");
+				Check(startAngle >= 0 && startAngle <= 180, "MeleeAttackStrategy.MaxStartAngle: must lie between 0 and 180 degrees.");
 			}
 			if (Object<Script>(policy, "script")?.ResourcePath.EndsWith("/ProjectileAttackStrategy.cs") == true)
 				Check(attack?.Get("IsRanged").AsBool() == true && Object<PackedScene>(attack, "ProjectileScene") != null,
 					"ProjectileAttackStrategy: assign a projectile definition and scene.");
+			if (attack is AttackDefinition authored)
+			{
+				// The attack's own rules, against the wind-up this policy and binding prepare.
+				float? windUp = matches.Length == 1 ? Number(policy, "Duration") * Number(matches[0], "ContactStart") : null;
+				Check(authored.HasValidImpactValues, "Attack: poise damage, knockback, hit-stop and wind-up turn rate must be nonnegative and finite.");
+				Check(authored.HasValidArmorWindow, "Attack.HyperArmorStart/End: require 0 <= start <= end <= 1.");
+				Check(authored.HasValidFacingLock(windUp), "Attack.FacingLockLead: must be nonnegative, melee only and no longer than the prepared wind-up.");
+				var tier = authored.ThreatTier;
+				if (tier != AttackThreatTier.Normal && !authored.IsRanged)
+					Check(Local(Object<Node>(controller, "Telegraph")), "AttackController.Telegraph: assign this actor's telegraph for Heavy/Unblockable melee.");
+				if (windUp < tier.MinimumWindUp() - .001f)
+					errors.Add($"Attack: {tier} attacks need at least {tier.MinimumWindUp()} s of wind-up before contact.");
+			}
 			float aimLock = attack != null ? Number(attack, "ProjectileAimLockDuration") : 0;
 			Check(Nonnegative(aimLock), "Attack.ProjectileAimLockDuration: must be nonnegative and finite.");
 			if (aimLock > 0)
@@ -117,6 +182,9 @@ public static class MonsterSceneValidator
 			Check(Nonnegative(minimum) && float.IsFinite(preferred) && Positive(maximum) && minimum < preferred && preferred < maximum
 				&& policy != null && maximum <= Number(policy, "EngagementDistance"), "MovementStrategy: require minimum < preferred < maximum <= attack engagement distance.");
 		}
+		if (movementScript.EndsWith("/EngagementRingStrategy.cs"))
+			Check(Positive(Number(movementPolicy, "RingDistance")) && policy != null && Number(movementPolicy, "RingDistance") > Number(policy, "EngagementDistance"),
+				"MovementStrategy: the engagement ring must lie outside the attack's engagement distance.");
 		if (movementScript.EndsWith("/AttackThenRetreatStrategy.cs"))
 			Check(Positive(Number(movementPolicy, "RetreatDistance")) && Positive(Number(movementPolicy, "MaximumRetreatDuration"))
 				&& Nonnegative(Number(movementPolicy, "ReengagementDelay")), "MovementStrategy: invalid retreat distance, duration or delay.");
