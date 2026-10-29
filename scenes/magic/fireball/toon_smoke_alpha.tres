@@ -1,0 +1,8 @@
+[gd_resource type="CurveTexture" load_steps=2 format=3]
+
+[sub_resource type="Curve" id="smoke_alpha"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.2, 0), 0.0, 0.0, 0, 0, Vector2(0.4, 0.75), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[resource]
+curve = SubResource("smoke_alpha")

@@ -6,6 +6,7 @@ render_mode unshaded, blend_mix, cull_disabled, depth_draw_never, shadows_disabl
 // Crisp diamond sparks stretched along their velocity. Particles enable align_y, so the instance
 // Y axis follows velocity; the card turns around that axis to face the camera.
 uniform float brightness = 1.8;
+uniform float effect_fade = 1.0;
 
 void vertex() {
 	vec3 axis = MODEL_MATRIX[1].xyz;
@@ -25,5 +26,5 @@ void fragment() {
 	vec3 color = toon_srgb_to_linear(COLOR.rgb);
 	ALBEDO = color;
 	EMISSION = color * brightness;
-	ALPHA = (1.0 - smoothstep(0.86, 1.0, p.x + p.y)) * COLOR.a;
+	ALPHA = (1.0 - smoothstep(0.86, 1.0, p.x + p.y)) * COLOR.a * effect_fade;
 }

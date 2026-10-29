@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3]
+[gd_scene load_steps=31 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/fireball/FireballImpact.cs" id="impact"]
 [ext_resource type="Shader" path="res://scenes/magic/fireball/impact_flame.gdshader" id="flame_shader"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/scorch_glow.svg" id="scorch_glow"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_fire_ramp.tres" id="fire_ramp"]
 [ext_resource type="Shader" path="res://scenes/magic/fireball/scorch.gdshader" id="scorch_shader"]
+[ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_spark_life.tres" id="spark_life"]
 
 [sub_resource type="ShaderMaterial" id="shell_material"]
 shader = ExtResource("flame_shader")
@@ -83,13 +84,6 @@ point_count = 4
 [sub_resource type="CurveTexture" id="burst_alpha_curve"]
 curve = SubResource("burst_alpha")
 
-[sub_resource type="Gradient" id="spark_life"]
-offsets = PackedFloat32Array(0, 0.45, 1)
-colors = PackedColorArray(1, 0.92, 0.5, 1, 1, 0.5, 0.08, 1, 0.8, 0.14, 0.03, 0)
-
-[sub_resource type="GradientTexture1D" id="spark_ramp"]
-gradient = SubResource("spark_life")
-
 [sub_resource type="ParticleProcessMaterial" id="burst_process"]
 emission_shape = 1
 emission_sphere_radius = 0.3
@@ -118,7 +112,7 @@ initial_velocity_max = 10.0
 gravity = Vector3(0, -14, 0)
 scale_min = 1.0
 scale_max = 1.8
-color_ramp = SubResource("spark_ramp")
+color_ramp = ExtResource("spark_life")
 
 [sub_resource type="QuadMesh" id="flame_quad"]
 size = Vector2(0.75, 0.75)

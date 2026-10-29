@@ -16,6 +16,7 @@ uniform float brightness = 1.6;
 uniform float edge_softness = 0.06;
 uniform float noise_scale = 0.75;
 uniform float scroll_speed = 1.4;
+uniform float effect_fade = 1.0;
 varying float seed;
 
 void vertex() {
@@ -33,7 +34,7 @@ void fragment() {
 	float radius = length((UV - 0.5) * 2.0);
 	float n = texture(noise_texture, UV * noise_scale + vec2(seed * 0.37, seed * 0.11 - TIME * scroll_speed)).r;
 	float shape = ((1.0 - radius) * 1.2 + (n - 0.5) * 0.9) * (1.0 - smoothstep(0.8, 1.0, radius));
-	float eroded = shape - (1.0 - COLOR.a);
+	float eroded = shape - (1.0 - COLOR.a * effect_fade);
 	float glow = smoothstep(0.3, 0.5, max(COLOR.r, COLOR.g));
 	float inner = smoothstep(inner_threshold, inner_threshold + edge_softness, eroded) * inner_strength * glow;
 	vec3 color = mix(toon_srgb_to_linear(COLOR.rgb), inner_color.rgb, inner);

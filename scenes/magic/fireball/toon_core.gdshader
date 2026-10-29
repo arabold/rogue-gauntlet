@@ -10,6 +10,8 @@ uniform float brightness = 2.3;
 uniform float noise_scale = 2.6;
 uniform float flow_speed = 2.2;
 uniform float pulse = 0.035;
+// Fades by dissolving facets away, so the core stays opaque.
+uniform float effect_fade = 1.0;
 varying vec3 object_position;
 
 void vertex() {
@@ -19,6 +21,7 @@ void vertex() {
 
 void fragment() {
 	if (area_is_blocked(VERTEX, INV_VIEW_MATRIX)) discard;
+	if (toon_noise3(object_position * 6.0) > effect_fade) discard;
 	vec3 facet = normalize(cross(dFdx(VERTEX), dFdy(VERTEX)));
 	float facing = abs(dot(facet, VIEW));
 	float n = toon_fbm3(object_position * noise_scale + vec3(0.0, -TIME * flow_speed, TIME * 0.7));

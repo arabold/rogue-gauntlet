@@ -14,6 +14,7 @@ uniform float taper = 0.6;
 uniform float flicker_speed = 7.0;
 uniform float erosion = 0.85;
 uniform float edge_softness = 0.05;
+uniform float effect_fade = 1.0;
 varying vec3 object_position;
 varying float tail;
 
@@ -30,7 +31,7 @@ void fragment() {
 	vec3 p = object_position / radius;
 	float n = toon_fbm3(p * 2.2 + vec3(0.0, 0.0, -TIME * 3.5));
 	float back = smoothstep(0.0, 0.35, p.z + (n - 0.5) * 0.5);
-	float body = n * back + 0.3 - tail * erosion;
+	float body = n * back + 0.3 - tail * erosion - (1.0 - effect_fade);
 	ALPHA = smoothstep(0.0, edge_softness, body - 0.25);
 	vec3 color = toon_ramp(color_ramp, 0.78 - tail * 0.7 + (n - 0.5) * 0.6);
 	ALBEDO = color;

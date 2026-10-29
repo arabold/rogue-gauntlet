@@ -1,0 +1,7 @@
+[gd_resource type="GradientTexture1D" load_steps=2 format=3]
+
+[sub_resource type="Gradient" id="smoke_life"]
+colors = PackedColorArray(0.26, 0.2, 0.17, 1, 0.2, 0.16, 0.14, 1)
+
+[resource]
+gradient = SubResource("smoke_life")

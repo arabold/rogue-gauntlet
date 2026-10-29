@@ -14,11 +14,13 @@ uniform float brightness = 1.8;
 uniform float edge_softness = 0.05;
 // Object-space radius at which the ground wave mesh ends.
 uniform float wave_radius = 2.5;
+// Off when a motion component already scales the mesh with the effect.
+uniform bool self_grow = true;
 varying vec3 object_position;
 
 void vertex() {
 	object_position = VERTEX;
-	VERTEX *= mix(0.22, 1.0, 1.0 - pow(1.0 - progress, 3.0));
+	if (self_grow) VERTEX *= mix(0.22, 1.0, 1.0 - pow(1.0 - progress, 3.0));
 }
 
 void fragment() {

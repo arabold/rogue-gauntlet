@@ -1,96 +1,164 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=30 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/FallingBodyMotion.cs" id="fall"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Script" path="res://scenes/magic/fire/FallingMeteorVisual.cs" id="motion"]
 [ext_resource type="Script" path="res://scenes/magic/fire/FireSpellVisual.cs" id="script"]
-[ext_resource type="Texture2D" path="res://scenes/effects/world/textures/ember.svg" id="ember"]
 [ext_resource type="PackedScene" path="res://scenes/magic/fireball/fireball_impact.tscn" id="impact"]
-[ext_resource type="Shader" path="res://scenes/magic/fireball/flame_shell.gdshader" id="shell"]
-
-[ext_resource type="Shader" path="res://scenes/magic/fireball/flame_particle.gdshader" id="particle_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/fireball/flame_crown.gdshader" id="crown_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/fireball/toon_flame.gdshader" id="flame_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/fireball/toon_spark.gdshader" id="spark_shader"]
 [ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="PackedScene" path="res://scenes/magic/fire/lava_cracks.tscn" id="cracks"]
-[sub_resource type="ShaderMaterial" id="fire_wake_mat"]
-shader = ExtResource("particle_shader")
+[ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_fire_ramp.tres" id="fire_ramp"]
+[ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_flame_life.tres" id="flame_life"]
+[ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_flame_alpha.tres" id="flame_alpha"]
+[ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_smoke_life.tres" id="smoke_life"]
+[ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_smoke_alpha.tres" id="smoke_alpha"]
+[ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_spark_life.tres" id="spark_life"]
+
+[sub_resource type="ShaderMaterial" id="crown_mat"]
+render_priority = 1
+shader = ExtResource("crown_shader")
+shader_parameter/color_ramp = ExtResource("fire_ramp")
+shader_parameter/radius = 0.85
+shader_parameter/stretch = 1.6
+
+[sub_resource type="SphereMesh" id="crown_mesh"]
+radius = 0.85
+height = 1.7
+radial_segments = 12
+rings = 8
+
+[sub_resource type="ShaderMaterial" id="flame_mat"]
+shader = ExtResource("flame_shader")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/inner_color = Color(1, 0.84, 0.3, 1)
 shader_parameter/brightness = 1.4
-[sub_resource type="QuadMesh" id="fire_wake_mesh"]
+
+[sub_resource type="ParticleProcessMaterial" id="wake_process"]
+emission_shape = 1
+emission_sphere_radius = 0.5
+direction = Vector3(0, 1, 0)
+spread = 30.0
+initial_velocity_min = 1.4
+initial_velocity_max = 3.8
+angle_min = -180.0
+angle_max = 180.0
+gravity = Vector3(0, 0.4, 0)
+scale_min = 0.6
+scale_max = 1.3
+color_ramp = ExtResource("flame_life")
+alpha_curve = ExtResource("flame_alpha")
+
+[sub_resource type="QuadMesh" id="flame_quad"]
 size = Vector2(0.9, 0.9)
-[sub_resource type="StandardMaterial3D" id="spark_material"]
-transparency = 1
-shading_mode = 0
-blend_mode = 1
-vertex_color_use_as_albedo = true
-albedo_texture = ExtResource("ember")
-billboard_mode = 3
-emission_enabled = true
-emission = Color(1, 0.35, 0.03, 1)
-emission_energy_multiplier = 1.5
-[sub_resource type="QuadMesh" id="spark_mesh"]
-material = SubResource("spark_material")
-size = Vector2(0.12, 0.3)
-[sub_resource type="Gradient" id="gradient"]
-offsets = PackedFloat32Array(0, 0.2, 0.7, 1)
-colors = PackedColorArray(1, 0.9, 0.35, 1, 1, 0.55, 0.08, 0.85, 1, 0.18, 0.01, 0.5, 0.4, 0.02, 0.005, 0)
-[sub_resource type="GradientTexture1D" id="ramp"]
-gradient = SubResource("gradient")
-[sub_resource type="ParticleProcessMaterial" id="sparks"]
+
+[sub_resource type="ShaderMaterial" id="smoke_mat"]
+render_priority = -2
+shader = ExtResource("flame_shader")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/inner_strength = 0.0
+shader_parameter/brightness = 0.2
+shader_parameter/edge_softness = 0.1
+shader_parameter/scroll_speed = 0.6
+
+[sub_resource type="ParticleProcessMaterial" id="smoke_process"]
+emission_shape = 1
+emission_sphere_radius = 0.4
+direction = Vector3(0, 1, 0)
+spread = 20.0
+initial_velocity_min = 0.8
+initial_velocity_max = 2.0
+angle_min = -180.0
+angle_max = 180.0
+gravity = Vector3(0, 0.9, 0)
+scale_min = 0.8
+scale_max = 1.5
+color_ramp = ExtResource("smoke_life")
+alpha_curve = ExtResource("smoke_alpha")
+
+[sub_resource type="QuadMesh" id="smoke_quad"]
+size = Vector2(1.0, 1.0)
+
+[sub_resource type="ShaderMaterial" id="spark_mat"]
+render_priority = 2
+shader = ExtResource("spark_shader")
+
+[sub_resource type="ParticleProcessMaterial" id="spark_process"]
+particle_flag_align_y = true
 emission_shape = 1
 emission_sphere_radius = 1.0
 direction = Vector3(0, 1, 0)
 spread = 40.0
 initial_velocity_min = 1.4
 initial_velocity_max = 3.8
-gravity = Vector3(0, 0.4, 0)
-scale_min = 0.6
-scale_max = 1.5
-color_ramp = SubResource("ramp")
+gravity = Vector3(0, -2, 0)
+scale_min = 0.8
+scale_max = 1.4
+color_ramp = ExtResource("spark_life")
+
+[sub_resource type="QuadMesh" id="spark_quad"]
+size = Vector2(0.08, 0.28)
+
 [sub_resource type="StandardMaterial3D" id="rock_mat"]
-albedo_color = Color(0.18, 0.065, 0.035, 1)
+albedo_color = Color(0.16, 0.06, 0.035, 1)
 roughness = 0.9
 emission_enabled = true
-emission = Color(1, 0.12, 0.01, 1)
-emission_energy_multiplier = 0.35
+emission = Color(1, 0.3, 0.05, 1)
+emission_energy_multiplier = 0.6
+
 [sub_resource type="PrismMesh" id="rock_mesh"]
 material = SubResource("rock_mat")
 size = Vector3(1.0, 1.4, 0.9)
-[sub_resource type="ShaderMaterial" id="shell_mat"]
-shader = ExtResource("shell")
-shader_parameter/noise_texture = ExtResource("noise")
-[sub_resource type="SphereMesh" id="meteor_shell"]
-radius = 0.85
-height = 1.7
-radial_segments = 12
-rings = 6
 
 [node name="FireSpellVisual" type="Node3D" node_paths=PackedStringArray("Timeline", "Meteor")]
 script = ExtResource("script")
 Timeline = NodePath("Timeline")
 Meteor = NodePath("Motion")
+
 [node name="Meteor" type="Node3D" parent="."]
 position = Vector3(-1.2, 8, 0)
+
 [node name="Rock" type="MeshInstance3D" parent="Meteor"]
 rotation_degrees = Vector3(24, 15, 28)
 mesh = SubResource("rock_mesh")
+
 [node name="FireShell" type="MeshInstance3D" parent="Meteor"]
-material_override = SubResource("shell_mat")
+rotation_degrees = Vector3(-90, 0, 0)
+material_override = SubResource("crown_mat")
 cast_shadow = 0
-mesh = SubResource("meteor_shell")
+mesh = SubResource("crown_mesh")
+
 [node name="Embers" type="GPUParticles3D" parent="Meteor"]
-amount = 35
+material_override = SubResource("spark_mat")
+cast_shadow = 0
+amount = 24
 lifetime = 0.8
 local_coords = false
-process_material = SubResource("sparks")
-draw_pass_1 = SubResource("spark_mesh")
+process_material = SubResource("spark_process")
+draw_pass_1 = SubResource("spark_quad")
+
 [node name="FlameWake" type="GPUParticles3D" parent="Meteor"]
-material_override = SubResource("fire_wake_mat")
+material_override = SubResource("flame_mat")
 cast_shadow = 0
-amount = 32
+amount = 28
 lifetime = 0.75
 randomness = 0.8
 local_coords = false
-process_material = SubResource("sparks")
-draw_pass_1 = SubResource("fire_wake_mesh")
+process_material = SubResource("wake_process")
+draw_pass_1 = SubResource("flame_quad")
+
+[node name="SmokeWake" type="GPUParticles3D" parent="Meteor"]
+material_override = SubResource("smoke_mat")
+cast_shadow = 0
+amount = 8
+lifetime = 1.0
+randomness = 1.0
+local_coords = false
+process_material = SubResource("smoke_process")
+draw_pass_1 = SubResource("smoke_quad")
+
 [node name="Light" type="OmniLight3D" parent="Meteor"]
 light_color = Color(1, 0.3, 0.03, 1)
 light_energy = 2.0
@@ -101,9 +169,10 @@ script = ExtResource("timeline")
 Surfaces = []
 Lights = [NodePath("../Meteor/Light")]
 Duration = 1.6
-Emitters = [NodePath("../Meteor/FlameWake")]
+Emitters = [NodePath("../Meteor/FlameWake"), NodePath("../Meteor/SmokeWake"), NodePath("../Meteor/Embers")]
 FadeIn = 0.08
 FadeOutStart = 0.6
+
 [node name="Motion" type="Node" parent="." node_paths=PackedStringArray("Timeline", "VisualRoot", "Meteor", "Rock", "Shell", "Emitters", "Fall")]
 script = ExtResource("motion")
 Timeline = NodePath("../Timeline")
@@ -112,9 +181,10 @@ Meteor = NodePath("../Meteor")
 Fall = NodePath("../Fall")
 Rock = NodePath("../Meteor/Rock")
 Shell = NodePath("../Meteor/FireShell")
-Emitters = [NodePath("../Meteor/Embers"), NodePath("../Meteor/FlameWake")]
+Emitters = [NodePath("../Meteor/Embers"), NodePath("../Meteor/FlameWake"), NodePath("../Meteor/SmokeWake")]
 LandingImpact = ExtResource("impact")
 GroundCracks = ExtResource("cracks")
+
 [node name="Fall" type="Node" parent="." node_paths=PackedStringArray("Timeline", "Body")]
 script = ExtResource("fall")
 Timeline = NodePath("../Timeline")
