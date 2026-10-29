@@ -3,6 +3,9 @@ using Godot;
 /// <summary>Owns instance-local shader fades and light timing for a composed visual scene.</summary>
 public partial class VisualEffectTimeline : Node
 {
+	private static readonly StringName ProgressKey = "progress";
+	private static readonly StringName EffectFadeKey = "effect_fade";
+
 	[Export] public MeshInstance3D[] Surfaces { get; set; } = [];
 	[Export] public OmniLight3D[] Lights { get; set; } = [];
 	[Export] public GpuParticles3D[] Emitters { get; set; } = [];
@@ -10,6 +13,11 @@ public partial class VisualEffectTimeline : Node
 	[Export] public float FadeIn { get; set; } = .08f;
 	[Export] public float FadeOutStart { get; set; } = .65f;
 	[Export] public bool Sustained { get; set; }
+	/// <summary>Optional light brightness multiplier over progress. Values above 1 are an impact flash and only
+	/// apply when <see cref="ImpactFlash"/> grants one, so dense effects never strobe.</summary>
+	[Export] public Curve LightCurve { get; set; }
+	/// <summary>Flicker on the timeline lights: a soft waver for fire, a hard random strobe for electricity.</summary>
+	[Export] public LightFlickerStyle LightFlicker { get; set; }
 	/// <summary>Composed effects may keep their root until independently fading children finish.</summary>
 	[Export] public bool FreeOnCompletion { get; set; } = true;
 	public float StartDelay { get; set; }
@@ -21,10 +29,13 @@ public partial class VisualEffectTimeline : Node
 	private ShaderMaterial[] _particleMaterials = [];
 	private float[] _lightEnergy = [];
 	private float _delay, _lightMultiplier = 1f;
+	private bool _flash;
+	private float _flickerSeed;
 
 	public override void _Ready()
 	{
 		ProcessPriority = -1;
+		_flickerSeed = GetInstanceId() % 997;
 		_materials = new ShaderMaterial[Surfaces.Length];
 		for (int i = 0; i < Surfaces.Length; i++)
 		{
@@ -57,10 +68,10 @@ public partial class VisualEffectTimeline : Node
 	{
 		foreach (var material in _materials)
 		{
-			material.SetShaderParameter("progress", progress);
-			material.SetShaderParameter("effect_fade", opacity);
+			material.SetShaderParameter(ProgressKey, progress);
+			material.SetShaderParameter(EffectFadeKey, opacity);
 		}
-		foreach (var material in _particleMaterials) material.SetShaderParameter("effect_fade", opacity);
+		foreach (var material in _particleMaterials) material.SetShaderParameter(EffectFadeKey, opacity);
 		ApplyLights(opacity);
 	}
 
@@ -72,13 +83,21 @@ public partial class VisualEffectTimeline : Node
 	}
 	private void ApplyLights(float opacity)
 	{
-		for (int i = 0; i < Lights.Length; i++) Lights[i].LightEnergy = _lightEnergy[i] * opacity * _lightMultiplier;
+		for (int i = 0; i < Lights.Length; i++)
+		{
+			float curve = LightCurve?.Sample(Progress) ?? 1f;
+			float flicker = SpellLightFlicker.Sample(LightFlicker, Elapsed, _flickerSeed + i);
+			Lights[i].LightEnergy = _lightEnergy[i] * opacity * _lightMultiplier * (_flash ? curve : Mathf.Min(curve, 1f)) * flicker;
+			// A zero-energy light still costs per-object light culling, so it stays hidden until it contributes.
+			Lights[i].Visible = Lights[i].LightEnergy > 0.001f;
+		}
 	}
 
 	public override void _Process(double delta)
 	{
 		_delay += (float)delta;
 		if (_delay < StartDelay) return;
+		if (!Started) _flash = LightCurve != null && ImpactFlash.TryClaim();
 		Started = true;
 		Elapsed += (float)delta;
 		float previous = Progress;
@@ -86,6 +105,7 @@ public partial class VisualEffectTimeline : Node
 		Opacity = Sustained ? Mathf.SmoothStep(0, Mathf.Max(FadeIn, .001f), Progress)
 			: EffectEnvelope.Evaluate(Progress, Mathf.Max(FadeIn, .001f), Mathf.Clamp(FadeOutStart, 0, .999f));
 		if (!Sustained || previous < 1) SetVisual(Progress, Opacity);
+		else if (LightFlicker != LightFlickerStyle.None) ApplyLights(Opacity);
 		if (!Sustained && Progress >= 1)
 		{
 			if (FreeOnCompletion) GetParent().QueueFree();

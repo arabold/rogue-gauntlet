@@ -1,21 +1,20 @@
-// Shared flame ribbon body for flame_wake (additive glow) and toon_wake (blended toon body).
+// Shared crisp ribbon body for toon_ribbon (blended) and toon_ribbon_glow (additive). UV.x runs from
+// the travelling head to the fading tail: a noise-broken mask is cut into hard-edged tongues, so
+// fading erodes the ribbon, and heat is banded through the element's colour ramp.
 #include "res://scenes/magic/area_visibility.gdshaderinc"
+#include "res://scenes/magic/shared/toon/toon.gdshaderinc"
 
-// UV.x runs from the travelling head to the fading tail.
 uniform sampler2D noise_texture : repeat_enable, filter_linear;
-uniform vec4 ember_color : source_color = vec4(1.0, 0.08, 0.008, 1.0);
-uniform vec4 flame_color : source_color = vec4(1.0, 0.32, 0.012, 1.0);
-uniform vec4 core_color : source_color = vec4(1.0, 0.82, 0.22, 1.0);
+uniform sampler2D color_ramp : source_color, filter_nearest, repeat_disable;
 uniform float brightness = 1.3;
-uniform float core_strength = 0.45;
-uniform float opacity = 0.8;
+// Shifts the ribbon up the ramp; hot inner ribbons use a positive bias.
+uniform float heat_bias = 0.0;
+uniform float opacity = 1.0;
 uniform float effect_fade = 1.0;
 uniform float animation_speed = 1.0;
 uniform bool closed_loop = false;
-// Toon styling, off by default: crispness thresholds the soft mask into hard-edged eroding
-// tongues and bands posterize the heat gradient into flat colour steps.
-uniform float edge_crispness : hint_range(0.0, 1.0) = 0.0;
-uniform float heat_bands = 0.0;
+// Mask level the crisp cut keeps; lower it for faint, narrow ribbons.
+uniform float crisp_threshold = 0.3;
 
 void vertex() {
 	float t = TIME * animation_speed;
@@ -36,17 +35,14 @@ void fragment() {
 	vec2 ring_flow = vec2(cos(along * 6.2831853), sin(along * 6.2831853)) * 2.4 + vec2(t * 0.25, -t * 0.4) + UV.y;
 	float n = texture(noise_texture, closed_loop ? ring_flow : flow).r;
 	float detail = texture(noise_texture, closed_loop ? ring_flow * 1.9 : flow * 1.9 + vec2(-t * 0.8, 0.37)).g;
-	float tongues = smoothstep(0.18, 0.72, n * 0.7 + detail * 0.3 + (1.0 - across) * 0.25);
+	float tongues = smoothstep(closed_loop ? 0.28 : 0.18, 0.72, n * 0.7 + detail * 0.3 + (closed_loop ? 0.0 : (1.0 - across) * 0.25));
 	float edge = 1.0 - smoothstep(0.28 + n * 0.12, 0.86, across);
+	float mask = fade * edge * tongues * effect_fade;
+	if (mask <= crisp_threshold) discard;
 	float heat = pow(1.0 - across, 2.4) * smoothstep(0.2, 0.75, n + 0.25);
-	if (heat_bands > 0.0) heat = floor(heat * heat_bands + 0.5) / heat_bands;
 	float filament = pow(max(0.0, sin(UV.y * 30.0 + n * 2.0 - along * 9.0 + t * 7.0)), 12.0);
-	vec3 color = mix(ember_color.rgb, flame_color.rgb, heat);
-	color = mix(color, core_color.rgb, clamp(heat * core_strength + filament * 0.18, 0.0, 0.75));
-	float mask = fade * edge * (closed_loop ? smoothstep(0.28, 0.72, n * 0.7 + detail * 0.3) : tongues) * effect_fade;
-	// Fading before the crisp cut makes a toon ribbon erode away rather than turn translucent.
-	mask = mix(mask, smoothstep(0.3, 0.36, mask), edge_crispness);
+	vec3 color = toon_ramp(color_ramp, 0.2 + heat * 0.6 + filament * 0.15 + heat_bias);
 	ALBEDO = color;
 	EMISSION = color * brightness;
-	ALPHA = clamp(mask * opacity, 0.0, 1.0);
+	ALPHA = smoothstep(crisp_threshold, crisp_threshold + 0.06, mask) * opacity;
 }

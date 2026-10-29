@@ -1,14 +1,16 @@
 shader_type spatial;
 render_mode unshaded, blend_mix, cull_disabled, depth_draw_never, shadows_disabled;
 #include "res://scenes/magic/area_visibility.gdshaderinc"
-#include "res://scenes/magic/fireball/toon_fire.gdshaderinc"
+#include "res://scenes/magic/shared/toon/toon.gdshaderinc"
 
 // Crisp diamond sparks stretched along their velocity. Particles enable align_y, so the instance
 // Y axis follows velocity; the card turns around that axis to face the camera.
 uniform float brightness = 1.8;
 uniform float effect_fade = 1.0;
+varying vec3 spark_color;
 
 void vertex() {
+	spark_color = toon_srgb_to_linear(COLOR.rgb);
 	vec3 axis = MODEL_MATRIX[1].xyz;
 	float length_y = length(axis);
 	axis = length_y > 0.0001 ? axis / length_y : vec3(0.0, 1.0, 0.0);
@@ -23,8 +25,7 @@ void vertex() {
 void fragment() {
 	if (area_is_blocked(VERTEX, INV_VIEW_MATRIX)) discard;
 	vec2 p = abs((UV - 0.5) * 2.0);
-	vec3 color = toon_srgb_to_linear(COLOR.rgb);
-	ALBEDO = color;
-	EMISSION = color * brightness;
+	ALBEDO = spark_color;
+	EMISSION = spark_color * brightness;
 	ALPHA = (1.0 - smoothstep(0.86, 1.0, p.x + p.y)) * COLOR.a * effect_fade;
 }
