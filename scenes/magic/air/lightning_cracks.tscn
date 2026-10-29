@@ -1,19 +1,21 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectInstance.cs" id="root"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
-[ext_resource type="Shader" path="res://scenes/magic/fire/lava_cracks.gdshader" id="shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_cracks.gdshader" id="shader"]
+[ext_resource type="Texture2D" path="res://scenes/magic/air/toon_storm_ramp.tres" id="storm_ramp"]
 [sub_resource type="ShaderMaterial" id="material"]
 shader = ExtResource("shader")
-shader_parameter/outer_color = Vector3(0.08, 0.28, 1)
-shader_parameter/hot_color = Vector3(0.8, 0.97, 1)
+render_priority = -1
+shader_parameter/color_ramp = ExtResource("storm_ramp")
+shader_parameter/scar_color = Color(0.06, 0.07, 0.16, 1)
 [sub_resource type="PlaneMesh" id="mesh"]
 size = Vector2(4, 4)
 [node name="LightningCracks" type="Node3D" node_paths=PackedStringArray("Timeline")]
 script = ExtResource("root")
 Timeline = NodePath("Timeline")
 [node name="Surface" type="MeshInstance3D" parent="."]
-position = Vector3(0, 0.1, 0)
+position = Vector3(0, 0.05, 0)
 material_override = SubResource("material")
 cast_shadow = 0
 mesh = SubResource("mesh")

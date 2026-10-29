@@ -1,0 +1,8 @@
+[gd_resource type="GradientTexture1D" load_steps=2 format=3]
+
+[sub_resource type="Gradient" id="spark_life"]
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(0.94, 0.99, 1, 1, 0.4, 0.75, 1, 1, 0.12, 0.3, 0.95, 0)
+
+[resource]
+gradient = SubResource("spark_life")

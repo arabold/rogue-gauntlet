@@ -9,7 +9,7 @@
 [sub_resource type="ShaderMaterial" id="material"]
 shader = ExtResource("shader")
 shader_parameter/noise_texture = ExtResource("noise")
-shader_parameter/intensity = 1.4
+shader_parameter/brightness = 1.76
 [sub_resource type="PlaneMesh" id="plane"]
 size = Vector2(20, 20)
 [node name="Thunderstorm" type="Node3D" node_paths=PackedStringArray("Timeline")]
@@ -29,6 +29,7 @@ light_energy = 1.1
 omni_range = 8.0
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights")]
 script = ExtResource("timeline")
+LightFlicker = 2
 Surfaces = [NodePath("../ElectricWave")]
 Lights = [NodePath("../Light")]
 Duration = 1.15

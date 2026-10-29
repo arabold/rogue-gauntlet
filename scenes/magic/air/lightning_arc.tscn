@@ -1,15 +1,27 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/LightningArc.cs" id="arc"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Shader" path="res://scenes/magic/air/lightning_arc.gdshader" id="shader"]
-[ext_resource type="Shader" path="res://scenes/magic/air/lightning_impact.gdshader" id="impact_shader"]
+[ext_resource type="Texture2D" path="res://scenes/magic/air/toon_storm_ramp.tres" id="storm_ramp"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_flash.gdshader" id="flash_shader"]
 [sub_resource type="ShaderMaterial" id="impact_material"]
-shader = ExtResource("impact_shader")
+shader = ExtResource("flash_shader")
+shader_parameter/color_ramp = ExtResource("storm_ramp")
+shader_parameter/brightness = 2.2
+shader_parameter/star_points = 4.0
+shader_parameter/pop_scale = 2.0
+shader_parameter/pop_time = 0.12
+shader_parameter/edge_softness = 0.6
 [sub_resource type="QuadMesh" id="impact_mesh"]
-size = Vector2(1.2, 1.2)
+size = Vector2(2.4, 2.4)
 [sub_resource type="ShaderMaterial" id="material"]
 shader = ExtResource("shader")
+[sub_resource type="Curve" id="light_curve"]
+max_value = 5.0
+_data = [Vector2(0, 1.0), 0.0, 0.0, 1, 1, Vector2(0.08, 4.0), 0.0, 0.0, 1, 1, Vector2(0.14, 1.2), 0.0, 0.0, 1, 1, Vector2(0.2, 2.5), 0.0, 0.0, 1, 1, Vector2(0.26, 1.0), 0.0, 0.0, 1, 1, Vector2(1, 1.0), 0.0, 0.0, 1, 1]
+point_count = 6
+
 [node name="LightningArc" type="MeshInstance3D" node_paths=PackedStringArray("Timeline", "Impact")]
 material_override = SubResource("material")
 cast_shadow = 0
@@ -20,9 +32,17 @@ Impact = NodePath("Impact")
 material_override = SubResource("impact_material")
 cast_shadow = 0
 mesh = SubResource("impact_mesh")
-[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces")]
+[node name="Flash" type="OmniLight3D" parent="Impact"]
+light_color = Color(0.3, 0.55, 1, 1)
+light_energy = 2.0
+omni_range = 4.5
+
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights")]
 script = ExtResource("timeline")
+LightFlicker = 2
 Surfaces = [NodePath(".."), NodePath("../Impact")]
+Lights = [NodePath("../Impact/Flash")]
+LightCurve = SubResource("light_curve")
 Duration = 0.55
 FadeIn = 0.07
 FadeOutStart = 0.3

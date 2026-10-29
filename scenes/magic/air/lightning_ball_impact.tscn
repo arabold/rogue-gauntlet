@@ -1,12 +1,24 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectInstance.cs" id="root"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
-[ext_resource type="Shader" path="res://scenes/magic/air/lightning_impact.gdshader" id="shader"]
+[ext_resource type="Texture2D" path="res://scenes/magic/air/toon_storm_ramp.tres" id="storm_ramp"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_flash.gdshader" id="flash_shader"]
 [sub_resource type="ShaderMaterial" id="material"]
-shader = ExtResource("shader")
+shader = ExtResource("flash_shader")
+shader_parameter/color_ramp = ExtResource("storm_ramp")
+shader_parameter/brightness = 2.2
+shader_parameter/star_points = 4.0
+shader_parameter/pop_scale = 2.0
+shader_parameter/pop_time = 0.1
+shader_parameter/edge_softness = 0.6
 [sub_resource type="QuadMesh" id="mesh"]
-size = Vector2(2.5, 2.5)
+size = Vector2(5.0, 5.0)
+[sub_resource type="Curve" id="light_curve"]
+max_value = 5.0
+_data = [Vector2(0, 1.0), 0.0, 0.0, 1, 1, Vector2(0.1, 3.5), 0.0, 0.0, 1, 1, Vector2(0.2, 1.2), 0.0, 0.0, 1, 1, Vector2(0.28, 2.2), 0.0, 0.0, 1, 1, Vector2(0.36, 1.0), 0.0, 0.0, 1, 1, Vector2(1, 1.0), 0.0, 0.0, 1, 1]
+point_count = 6
+
 [node name="LightningBallImpact" type="Node3D" node_paths=PackedStringArray("Timeline")]
 script = ExtResource("root")
 Timeline = NodePath("Timeline")
@@ -20,8 +32,10 @@ light_energy = 1.2
 omni_range = 4.0
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights")]
 script = ExtResource("timeline")
+LightFlicker = 2
 Surfaces = [NodePath("../Flash")]
 Lights = [NodePath("../Light")]
+LightCurve = SubResource("light_curve")
 Duration = 0.5
 FadeIn = 0.08
 FadeOutStart = 0.22
