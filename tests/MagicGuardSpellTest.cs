@@ -7,7 +7,7 @@ using static GdUnit4.Assertions;
 
 /// <summary>
 /// The damage pool and reflection rules every guard shares. Guard definitions differ only in element, capacity and
-/// reflection, so one guard stands for all of them and Water Serpent covers the elemental rule.
+/// reflection, so one guard stands for all of them.
 /// </summary>
 [TestSuite, RequireGodotRuntime]
 public partial class MagicGuardSpellTest
@@ -27,24 +27,6 @@ public partial class MagicGuardSpellTest
 		AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsEqual(health);
 		AssertBool(first.HealthComponent.CurrentHealth < 50).IsTrue();
 		AssertBool(second.HealthComponent.CurrentHealth < 50).IsTrue();
-	}
-
-	[TestCase]
-	public async Task WaterSerpentUsesCapacityMoreEfficientlyAgainstFire()
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		var attacker = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Attacker");
-		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(attacker);
-		harness.Player.HurtBoxComponent.Armor = 0;
-		AssertBool(TestFactories.CastSpell(harness, "Water Serpent", 1)).IsTrue();
-		float health = harness.Player.HealthComponent.CurrentHealth;
-		var fire = new DamageContext { OwnerNode = attacker, Faction = DamageSourceFlags.Enemy, Amount = 30,
-			Element = DamageElement.Fire, IncomingDirection = Vector3.Left };
-		harness.Player.ResolveDamage(in fire);
-		AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsEqual(health);
-		Hit(harness.Player, attacker, 6);
-		AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsEqual(health);
 	}
 
 	[TestCase]

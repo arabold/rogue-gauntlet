@@ -21,7 +21,7 @@ public partial class MagicGuardSpell : Node, ICombatSpell
 		{ node?.Free(); return false; }
 		caster.AddChild(visual);
 		var guard = new Guard(this, caster, hurtbox, visual, effect,
-			Definition.CapacityByLevel[level - 1], Definition.ReflectionByLevel[level - 1], Definition.FireAbsorptionEfficiency, Definition.Element);
+			Definition.CapacityByLevel[level - 1], Definition.ReflectionByLevel[level - 1], Definition.Element);
 		Cancel();
 		_guard = guard;
 		hurtbox.InstallShield(guard);
@@ -37,24 +37,22 @@ public partial class MagicGuardSpell : Node, ICombatSpell
 		private readonly HurtBoxComponent _hurtbox;
 		private readonly IGuardVisual _effect;
 		private readonly float _reflection;
-		private readonly float _fireEfficiency;
 		private readonly DamageElement _element;
 		private float _remaining;
 		private bool _ended, _reflectAfterDeath;
 		public Guard(MagicGuardSpell source, Node3D owner, HurtBoxComponent hurtbox, Node3D visual,
-			IGuardVisual effect, float capacity, float reflection, float fireEfficiency, DamageElement element)
+			IGuardVisual effect, float capacity, float reflection, DamageElement element)
 		{
 			_source = source; _owner = owner; _hurtbox = hurtbox; _visual = visual;
-			_effect = effect; _remaining = capacity; _reflection = reflection; _fireEfficiency = fireEfficiency; _element = element;
+			_effect = effect; _remaining = capacity; _reflection = reflection; _element = element;
 			_owner.TreeExiting += End;
 			if (_hurtbox.HealthComponent != null) _hurtbox.HealthComponent.Died += EndForDeath;
 		}
-		public float Absorb(float damage, DamageElement element)
+		public float Absorb(float damage)
 		{
 			if (_ended || damage <= 0) return 0;
-			float efficiency = element == DamageElement.Fire ? _fireEfficiency : 1;
-			float absorbed = Mathf.Min(_remaining * efficiency, damage);
-			_remaining -= absorbed / efficiency; _effect.FlashGuard();
+			float absorbed = Mathf.Min(_remaining, damage);
+			_remaining -= absorbed; _effect.FlashGuard();
 			return absorbed;
 		}
 		public void Reflect(float absorbed, in DamageContext contact)

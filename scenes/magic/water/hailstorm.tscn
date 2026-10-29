@@ -1,0 +1,137 @@
+[gd_scene load_steps=22 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/water/WaterSpellVisual.cs" id="root"]
+[ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
+[ext_resource type="Script" path="res://scenes/magic/water/HailstormVisual.cs" id="storm"]
+[ext_resource type="Shader" path="res://scenes/magic/water/hail_frost.gdshader" id="frost_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/water/ice_crystal.gdshader" id="shard_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/water/hail_mark.gdshader" id="mark_shader"]
+[ext_resource type="Texture2D" path="res://scenes/magic/water/toon_ice_ramp.tres" id="ice_ramp"]
+[ext_resource type="Texture2D" path="res://scenes/magic/water/toon_ice_spark_life.tres" id="spark_life"]
+[ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material"]
+[sub_resource type="ShaderMaterial" id="frost_material"]
+render_priority = -1
+shader = ExtResource("frost_shader")
+shader_parameter/color_ramp = ExtResource("ice_ramp")
+[sub_resource type="PlaneMesh" id="frost_mesh"]
+size = Vector2(8.75, 8.75)
+[sub_resource type="ParticleProcessMaterial" id="snow_process"]
+particle_flag_align_y = true
+emission_shape = 3
+emission_box_extents = Vector3(3.8, 1.4, 3.8)
+direction = Vector3(1, 0, 0)
+spread = 180.0
+initial_velocity_min = 1.0
+initial_velocity_max = 2.0
+gravity = Vector3(0, -2.5, 0)
+radial_accel_min = -2.0
+radial_accel_max = -1.0
+tangential_accel_min = 6.0
+tangential_accel_max = 9.0
+damping_min = 1.5
+damping_max = 2.5
+scale_min = 0.7
+scale_max = 1.2
+color_ramp = ExtResource("spark_life")
+[sub_resource type="QuadMesh" id="snow_mesh"]
+size = Vector2(0.06, 0.42)
+[sub_resource type="ShaderMaterial" id="shard_material"]
+shader = ExtResource("shard_shader")
+shader_parameter/color_ramp = ExtResource("ice_ramp")
+[sub_resource type="CylinderMesh" id="shard_mesh"]
+top_radius = 0.0
+bottom_radius = 0.12
+height = 0.7
+radial_segments = 5
+rings = 1
+cap_top = false
+[sub_resource type="ParticleProcessMaterial" id="shard_process"]
+particle_flag_align_y = true
+gravity = Vector3(0, 0, 0)
+[sub_resource type="ShaderMaterial" id="mark_material"]
+shader = ExtResource("mark_shader")
+shader_parameter/color_ramp = ExtResource("ice_ramp")
+[sub_resource type="PlaneMesh" id="mark_mesh"]
+size = Vector2(1, 1)
+[sub_resource type="ParticleProcessMaterial" id="mark_process"]
+gravity = Vector3(0, 0, 0)
+[sub_resource type="ParticleProcessMaterial" id="shatter_process"]
+particle_flag_align_y = true
+gravity = Vector3(0, -9, 0)
+scale_min = 0.6
+scale_max = 1.2
+color_ramp = ExtResource("spark_life")
+[sub_resource type="QuadMesh" id="shatter_mesh"]
+size = Vector2(0.07, 0.24)
+
+[node name="Hailstorm" type="Node3D" node_paths=PackedStringArray("Timeline", "Hailstorm")]
+script = ExtResource("root")
+Timeline = NodePath("Timeline")
+Hailstorm = NodePath("Motion")
+Area = true
+[node name="Frost" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.05, 0)
+material_override = SubResource("frost_material")
+cast_shadow = 0
+mesh = SubResource("frost_mesh")
+[node name="Snow" type="GPUParticles3D" parent="."]
+position = Vector3(0, 1.6, 0)
+material_override = ExtResource("spark_material")
+cast_shadow = 0
+amount = 160
+lifetime = 1.1
+randomness = 0.6
+local_coords = true
+visibility_aabb = AABB(-6, -3, -6, 12, 8, 12)
+process_material = SubResource("snow_process")
+draw_pass_1 = SubResource("snow_mesh")
+[node name="Shards" type="GPUParticles3D" parent="."]
+material_override = SubResource("shard_material")
+cast_shadow = 0
+emitting = false
+amount = 32
+lifetime = 0.35
+local_coords = false
+visibility_aabb = AABB(-9, -1, -9, 18, 10, 18)
+process_material = SubResource("shard_process")
+draw_pass_1 = SubResource("shard_mesh")
+[node name="Marks" type="GPUParticles3D" parent="."]
+material_override = SubResource("mark_material")
+cast_shadow = 0
+emitting = false
+amount = 48
+lifetime = 0.85
+local_coords = false
+visibility_aabb = AABB(-9, -1, -9, 18, 3, 18)
+process_material = SubResource("mark_process")
+draw_pass_1 = SubResource("mark_mesh")
+[node name="Shatter" type="GPUParticles3D" parent="."]
+material_override = ExtResource("spark_material")
+cast_shadow = 0
+emitting = false
+amount = 256
+lifetime = 0.5
+local_coords = false
+visibility_aabb = AABB(-9, -1, -9, 18, 5, 18)
+process_material = SubResource("shatter_process")
+draw_pass_1 = SubResource("shatter_mesh")
+[node name="Light" type="OmniLight3D" parent="."]
+position = Vector3(0, 1.4, 0)
+light_color = Color(0.38, 0.72, 1, 1)
+light_energy = 0.75
+omni_range = 7.0
+[node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
+script = ExtResource("timeline")
+Surfaces = [NodePath("../Frost")]
+Lights = [NodePath("../Light")]
+Emitters = [NodePath("../Snow"), NodePath("../Shards"), NodePath("../Marks"), NodePath("../Shatter")]
+Duration = 3.6
+FadeIn = 0.12
+FadeOutStart = 0.7
+[node name="Motion" type="Node" parent="." node_paths=PackedStringArray("Timeline", "Snow", "Shards", "Marks", "Shatter")]
+script = ExtResource("storm")
+Timeline = NodePath("../Timeline")
+Snow = NodePath("../Snow")
+Shards = NodePath("../Shards")
+Marks = NodePath("../Marks")
+Shatter = NodePath("../Shatter")

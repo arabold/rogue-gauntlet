@@ -13,7 +13,7 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 | Fire spells | [effects/fireball_preview.tscn](effects/fireball_preview.tscn) | Preview five fire spells at three levels with 0–5 targets, guard reflection and Fireball wall impact |
 | Earth spells | [effects/earth_spell_preview.tscn](effects/earth_spell_preview.tscn) | Preview five earth spells at three levels, wall dust, camera shake and guard reflections |
 | Air spells | [effects/air_spell_preview.tscn](effects/air_spell_preview.tscn) | Preview Ball Lightning, Chain Lightning, Gust, Thunderstorm and Storm Guard at three levels |
-| Water spells | [effects/water_spell_preview.tscn](effects/water_spell_preview.tscn) | Preview Ice Lance, Frost Nova, Snowstorm and two water guards at three levels |
+| Water spells | [effects/water_spell_preview.tscn](effects/water_spell_preview.tscn) | Preview Ice Lance, Frost Nova, Frost Guard, Hailstorm and Ice Wall at three levels |
 | Screen effects | [effects/screen_effect_harness.tscn](effects/screen_effect_harness.tscn) | Exercise overlays in gameplay; [guide](../../docs/screen-effects.md) |
 
 ## Room generation
@@ -43,10 +43,10 @@ The Earth spells tab previews Rockfall, Tremor, Rock Spikes, Stone Barrier and S
 
 The Air spells tab previews traveling lightning orbs, chained lightning, an expanding Gust, Thunderstorm with glowing strike cracks, and a sustained Storm Guard with cosmetic outward arcs and simulated reflection. Unused targeted slots can create cosmetic flights or arcs. The air effects do not apply damage, push enemies or implement guard mechanics.
 
-The Water spells tab previews Ice Lance, Frost Nova, Frost Guard, Snowstorm and Water Serpent. Frost Nova temporarily freezes the appearance and pose of visible preview targets, restoring both afterward; gameplay freeze, damage and guard behavior are not connected.
+The Water spells tab previews Ice Lance, Frost Nova, Frost Guard, Hailstorm and Ice Wall; Hailstorm rains cosmetic shards on its gameplay landing pattern. Frost Nova temporarily freezes the appearance and pose of visible preview targets, restoring both afterward; gameplay freeze, damage and guard behavior are not connected.
 
 Each spell tab uses the shared `debug_stage.tscn` and offers Default, One wall, Open and Small room arrangements, plus an independent target-count selector. The default preserves the original wall opening. Arrangements are authored as `DebugArrangement` resources on the stage; their wall indices select the explicitly wired fixtures, and boundary indices choose where Tremor emits wall dust.
 
-The spell scenes compose `VisualEffectTimeline` with focused motion components. Falling meteors and rocks share `FallingBodyMotion`; fire ribbons and guards use their own components, while ice crystals read the shared timeline. Solar Flares instances a reusable orbit scene, and Frost Guard uses a crystalline guard scene; Water Serpent uses a moving water ribbon. Tune component exports and scene materials in the Inspector.
+The spell scenes compose `VisualEffectTimeline` with focused motion components. Falling meteors and rocks share `FallingBodyMotion`; fire ribbons and guards use their own components, while ice crystals read the shared timeline. Solar Flares instances a reusable orbit scene, and Frost Guard uses a crystalline guard scene. Tune component exports and scene materials in the Inspector.
 
 Area visuals in the spell tabs capture a sampled line-of-sight boundary at cast time. The KayKit walls include an opening for inspecting clipping around corners and through doorways. Moving blockers and height differences require further work before gameplay integration; see [area boundaries](../../docs/specs/elemental-spells-plan.md#targeting-area-and-guard-rules).

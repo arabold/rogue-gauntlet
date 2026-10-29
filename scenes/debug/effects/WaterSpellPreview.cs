@@ -14,11 +14,14 @@ public partial class WaterSpellPreview : Node3D
 	[Export] public DirectionalLight3D KeyLight { get; set; }
 	[Export] public PackedScene LanceScene { get; set; }
 	[Export] public PackedScene NovaScene { get; set; }
-	[Export] public PackedScene SnowstormScene { get; set; }
-	[Export] public PackedScene[] GuardScenes { get; set; } = [];
+	[Export] public PackedScene HailstormScene { get; set; }
+	[Export] public LingeringAreaDefinition HailstormDefinition { get; set; }
+	[Export] public PackedScene GuardScene { get; set; }
+	[Export] public PackedScene IceWallScene { get; set; }
+	[Export] public LingeringAreaDefinition IceWallDefinition { get; set; }
 	[Export] public PreviewTargetStrategy TargetStrategy { get; set; }
 	[Export] public WorldEffectDefinition FrozenEffect { get; set; }
-	private static readonly string[] Names = ["Ice Lance", "Frost Nova", "Frost Guard", "Snowstorm", "Water Serpent"];
+	private static readonly string[] Names = ["Ice Lance", "Frost Nova", "Frost Guard", "Hailstorm", "Ice Wall"];
 	private readonly List<Node3D> _targets = [];
 	private readonly List<AnimationPlayer> _animations = [];
 	private int _level = 1, _count = 3, _selected, _guardHits;
@@ -52,20 +55,20 @@ public partial class WaterSpellPreview : Node3D
 	public void SelectSpell(int index)
 	{
 		if (index < 0 || index >= Names.Length) return;
-		_selected = index; _cast.Text = $"Cast {Names[index]}"; _reflect.Visible = _clear.Visible = index is 2 or 4;
+		_selected = index; _cast.Text = $"Cast {Names[index]}"; _reflect.Visible = _clear.Visible = index == 2;
 	}
 	public void Cast()
 	{
 		if (_selected == 0 && (LanceScene == null || TargetStrategy == null)) { _status.Text = "Missing lance or target strategy."; return; }
 		if (_selected == 1 && (NovaScene == null || FrozenEffect == null)) { _status.Text = "Missing frost nova or frozen effect."; return; }
-		if (_selected == 3 && SnowstormScene == null) { _status.Text = "Missing snowstorm scene."; return; }
-		int guardIndex = _selected == 2 ? 0 : 1;
-		if (_selected is 2 or 4 && (guardIndex >= GuardScenes.Length || GuardScenes[guardIndex] == null)) { _status.Text = "Missing guard scene."; return; }
+		if (_selected == 3 && (HailstormScene == null || HailstormDefinition == null)) { _status.Text = "Missing hailstorm scene or definition."; return; }
+		if (_selected == 2 && GuardScene == null) { _status.Text = "Missing guard scene."; return; }
+		if (_selected == 4 && (IceWallScene == null || IceWallDefinition == null)) { _status.Text = "Missing ice wall scene or definition."; return; }
 		Vector3 origin = Caster.GlobalPosition;
 		var visibility = AreaVisibility.Capture(GetWorld3D(), origin, 15);
-		if (_selected is 2 or 4)
+		if (_selected == 2)
 		{
-			ClearGuard(); _guard = SpawnEffect(GuardScenes[guardIndex], origin, visibility);
+			ClearGuard(); _guard = SpawnEffect(GuardScene, origin, visibility);
 			_guardHits = 3 + _level;
 			_status.Text = $"{Names[_selected]}: {_guardHits} preview hits remaining."; return;
 		}
@@ -83,10 +86,18 @@ public partial class WaterSpellPreview : Node3D
 		}
 		if (_selected == 3)
 		{
-			var storm = SpawnEffect(SnowstormScene, origin, visibility);
+			var storm = SpawnEffect(HailstormScene, origin, visibility);
+			storm.Hailstorm.PreviewDrops(origin, storm.PreviewRadius, HailstormDefinition.ShardsPerSecondByLevel[_level - 1], _seed++);
 			int affected = _targets.Count(target => target.GlobalPosition.DistanceTo(origin) <= storm.PreviewRadius
 				&& visibility.Contains(target.GlobalPosition) && WorldSight.IsClear(GetWorld3D(), origin + Vector3.Up, target.GlobalPosition + Vector3.Up));
-			_status.Text = $"Snowstorm level {_level}: radius {storm.PreviewRadius:0.0}, {affected} target(s) in area. Slow is not connected.";
+			_status.Text = $"Hailstorm level {_level}: radius {storm.PreviewRadius:0.0}, {affected} target(s) in area. Damage and slow are not connected.";
+			return;
+		}
+		if (_selected == 4)
+		{
+			var wall = SpawnEffect(IceWallScene, origin, visibility, IceWallDefinition.RadiusByLevel[_level - 1]);
+			int inside = _targets.Count(target => target.GlobalPosition.DistanceTo(origin) <= wall.PreviewRadius);
+			_status.Text = $"Ice Wall level {_level}: radius {wall.PreviewRadius:0.0}, {inside} target(s) inside. Damage and push are not connected.";
 			return;
 		}
 		var nova = SpawnEffect(NovaScene, origin, visibility);
@@ -105,9 +116,11 @@ public partial class WaterSpellPreview : Node3D
 		}
 		_status.Text = $"Frost Nova level {_level}: radius {nova.PreviewRadius:0.0}, {frozen} frozen appearance(s). Visual study only.";
 	}
-	private WaterSpellVisual SpawnEffect(PackedScene scene, Vector3 position, AreaVisibility visibility)
+	private WaterSpellVisual SpawnEffect(PackedScene scene, Vector3 position, AreaVisibility visibility, float radius = 0)
 	{
-		var effect = scene.Instantiate<WaterSpellVisual>(); effect.ConfigureLevel(_level); effect.Position = position; AddChild(effect);
+		var effect = scene.Instantiate<WaterSpellVisual>(); effect.ConfigureLevel(_level);
+		if (radius > 0) effect.SetAreaRadius(radius);
+		effect.Position = position; AddChild(effect);
 		effect.SetVisibility(visibility); return effect;
 	}
 	private void SpawnLance(Vector3 from, Vector3 to, AreaVisibility visibility)
@@ -123,6 +136,7 @@ public partial class WaterSpellPreview : Node3D
 		if (target == null) { _status.Text = "Add a visible target to preview reflection."; return; }
 		var visibility = AreaVisibility.Capture(GetWorld3D(), Caster.GlobalPosition, 15);
 		SpawnLance(Caster.GlobalPosition + Vector3.Up, target.GlobalPosition + Vector3.Up, visibility);
+		_guard.FlashGuard();
 		_guardHits--;
 		if (_guardHits <= 0) { ClearGuard(); _status.Text = "Guard depleted."; }
 		else _status.Text = $"Reflected hit. {_guardHits} preview hits remaining.";
