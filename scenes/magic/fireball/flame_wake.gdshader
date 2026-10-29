@@ -13,6 +13,10 @@ uniform float opacity = 0.8;
 uniform float effect_fade = 1.0;
 uniform float animation_speed = 1.0;
 uniform bool closed_loop = false;
+// Toon styling, off by default: crispness thresholds the soft mask into hard-edged eroding
+// tongues and bands posterize the heat gradient into flat colour steps.
+uniform float edge_crispness : hint_range(0.0, 1.0) = 0.0;
+uniform float heat_bands = 0.0;
 
 void vertex() {
 	float t = TIME * animation_speed;
@@ -36,10 +40,12 @@ void fragment() {
 	float tongues = smoothstep(0.18, 0.72, n * 0.7 + detail * 0.3 + (1.0 - across) * 0.25);
 	float edge = 1.0 - smoothstep(0.28 + n * 0.12, 0.86, across);
 	float heat = pow(1.0 - across, 2.4) * smoothstep(0.2, 0.75, n + 0.25);
+	if (heat_bands > 0.0) heat = floor(heat * heat_bands + 0.5) / heat_bands;
 	float filament = pow(max(0.0, sin(UV.y * 30.0 + n * 2.0 - along * 9.0 + t * 7.0)), 12.0);
 	vec3 color = mix(ember_color.rgb, flame_color.rgb, heat);
 	color = mix(color, core_color.rgb, clamp(heat * core_strength + filament * 0.18, 0.0, 0.75));
 	float mask = fade * edge * (closed_loop ? smoothstep(0.28, 0.72, n * 0.7 + detail * 0.3) : tongues);
+	mask = mix(mask, smoothstep(0.3, 0.36, mask), edge_crispness);
 	ALBEDO = color;
 	EMISSION = color * brightness;
 	ALPHA = clamp(mask * opacity * effect_fade, 0.0, 1.0);

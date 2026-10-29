@@ -1,21 +1,28 @@
 shader_type spatial;
-render_mode unshaded, blend_add, cull_disabled, depth_draw_never, shadows_disabled;
+render_mode unshaded, blend_mix, cull_disabled, depth_draw_never, shadows_disabled;
 #include "res://scenes/magic/area_visibility.gdshaderinc"
+#include "res://scenes/magic/fireball/toon_fire.gdshaderinc"
+
+// Faceted, broken shock ring: solid segments expand, cool through the banded ramp and erode
+// shorter until they vanish.
 uniform float progress : hint_range(0.0, 1.0) = 0.0;
-uniform float hit_flash = 0.0;
-uniform vec4 tint : source_color = vec4(1.0, 0.48, 0.06, 1.0);
+uniform sampler2D color_ramp : source_color, filter_nearest, repeat_disable;
+uniform float brightness = 1.8;
+uniform float segments = 7.0;
+uniform float phase = 0.7;
 varying vec3 local_position;
+
 void vertex() {
 	local_position = VERTEX;
-	float grow = mix(0.2, 1.0, 1.0 - pow(1.0 - progress, 3.0));
-	VERTEX *= grow;
+	VERTEX *= mix(0.2, 1.0, 1.0 - pow(1.0 - progress, 3.0));
 }
+
 void fragment() {
 	if (area_is_blocked(VERTEX, INV_VIEW_MATRIX)) discard;
 	float angle = atan(local_position.z, local_position.x);
-	float breaks = smoothstep(-0.55, -0.15, sin(angle * 7.0 + 0.7));
-	float fade = (1.0 - smoothstep(0.28, 0.75, progress)) * smoothstep(0.0, 0.06, progress + 0.02);
-	ALBEDO = tint.rgb;
-	EMISSION = tint.rgb * (1.7 + hit_flash);
-	ALPHA = tint.a * breaks * fade * 0.9;
+	float keep = sin(angle * segments + phase) + 0.75 - progress * 1.9;
+	vec3 color = toon_ramp(color_ramp, 0.9 - progress * 1.1);
+	ALBEDO = color;
+	EMISSION = color * brightness;
+	ALPHA = smoothstep(0.0, 0.06, keep);
 }

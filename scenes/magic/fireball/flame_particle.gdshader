@@ -27,7 +27,8 @@ void fragment() {
 	float n = noise2(UV * 3.0 + vec2(TIME * 0.3, -TIME * 1.5));
 	float fine = noise2(UV * 6.0 + vec2(-TIME * 0.7, TIME * 0.4));
 	float radius = length(p * vec2(1.0, 0.8));
-	float edge = 1.0 - smoothstep(0.45, 1.0, radius + (n - 0.5) * 0.5);
+	// The second term reaches zero before the card border, so noise never exposes the quad edge.
+	float edge = (1.0 - smoothstep(0.45, 1.0, radius + (n - 0.5) * 0.5)) * (1.0 - smoothstep(0.8, 1.0, length(p)));
 	float heat = smoothstep(0.2, 0.8, (1.0 - radius) * 0.75 + n * 0.3 + fine * 0.15);
 	vec3 color = mix(vec3(1.0, 0.045, 0.002), vec3(1.0, 0.48, 0.025), heat);
 	color = mix(color, COLOR.rgb, heat * 0.55);

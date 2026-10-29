@@ -12,7 +12,9 @@ public partial class FireballSpell : Node3D
 	[Export] public float Speed { get; set; } = 13f;
 	[Export] public int[] TargetCounts { get; set; } = [1, 2, 3];
 	[Export] public float[] DamageByLevel { get; set; } = [8f, 11f, 14f];
-	[Export] public float[] VisualScaleByLevel { get; set; } = [.58f, 1.15f, 1.8f];
+	/// <summary>Default per-level visual scale, shared with <see cref="TargetedSpell"/>.</summary>
+	public static readonly float[] LevelVisualScales = [.8f, 1.15f, 1.6f];
+	[Export] public float[] VisualScaleByLevel { get; set; } = [.. LevelVisualScales];
 	[Export] public float[] ImpactScaleByLevel { get; set; } = [1.1f, 1.45f, 1.9f];
 	private readonly RandomNumberGenerator _targetRandom = new();
 	private readonly RandomNumberGenerator _visualRandom = new();
@@ -77,8 +79,9 @@ public partial class FireballSpell : Node3D
 	public static void ConfigureProjectileVisual(Projectile projectile, float scale)
 	{
 		foreach (string name in new[] { "RibbonTrail", "HotRibbon" })
-			if (projectile.GetNodeOrNull<MagicRibbonTrail>(name) is { } trail) trail.Width *= Mathf.Lerp(.8f, 1.4f, Mathf.Clamp((scale - .58f) / 1.22f, 0f, 1f));
-		foreach (string name in new[] { "Core", "HeatShell", "FlameWake", "OuterFlames", "SmokeWake", "Embers", "Light" })
+			if (projectile.GetNodeOrNull<MagicRibbonTrail>(name) is { } trail)
+				trail.Width *= Mathf.Lerp(.8f, 1.4f, Mathf.Clamp(Mathf.InverseLerp(LevelVisualScales[0], LevelVisualScales[^1], scale), 0f, 1f));
+		foreach (string name in new[] { "Core", "FlameCrown", "FlameWake", "OuterFlames", "SmokeWake", "Embers", "Light" })
 			if (projectile.GetNodeOrNull<Node3D>($"Pivot/{name}") is Node3D visual) visual.Scale = Vector3.One * scale;
 	}
 }

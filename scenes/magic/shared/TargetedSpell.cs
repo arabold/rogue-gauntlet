@@ -100,7 +100,7 @@ public partial class TargetedSpell : Node, ICombatSpell
 				Vector3 displacement = end - start;
 				projectile.Initialize(start, displacement.Normalized(), 13, displacement.Length() + .5f, damage, damage, 0,
 					caster, randomSeed: target != null ? random.Randi() : GetInstanceId() ^ (ulong)(index + 1) * 7919UL);
-				FireballSpell.ConfigureProjectileVisual(projectile, new[] { .58f, 1.15f, 1.8f }[level - 1]);
+				FireballSpell.ConfigureProjectileVisual(projectile, FireballSpell.LevelVisualScales[level - 1]);
 				return 0;
 			case TravelingEffectVisual flight:
 				flight.Configure(start, end, level, visibility); flight.ImpactGroundHeight = start.Y - 1;
