@@ -34,6 +34,7 @@ public class RoomRotationTest
 {
 	private const int SeedCount = 60;
 	private const int TileSize = Room.TileSize;
+	private const string AuthoredRoomsDirectory = "res://scenes/levels/dungeon/rooms";
 
 	[TestCase]
 	public void RotatingProceduralRoomsFourTimesReturnsToOriginalGeometry()
@@ -89,27 +90,16 @@ public class RoomRotationTest
 	[TestCase]
 	public void EveryAuthoredRoomBakesConnectorsAtAllFourRotations()
 	{
-		string[] roomScenes =
+		// Enumerated, not hardcoded, so a newly added room scene joins this gate automatically.
+		var roomScenes = new List<string>();
+		foreach (string fileName in DirAccess.GetFilesAt(AuthoredRoomsDirectory))
 		{
-			"res://scenes/levels/dungeon/rooms/alchimist_chamber.tscn",
-			"res://scenes/levels/dungeon/rooms/barracks.tscn",
-			"res://scenes/levels/dungeon/rooms/cave_small.tscn",
-			"res://scenes/levels/dungeon/rooms/cave_small_with_pillars.tscn",
-			"res://scenes/levels/dungeon/rooms/cave_small_with_rubble.tscn",
-			"res://scenes/levels/dungeon/rooms/cave_tiny.tscn",
-			"res://scenes/levels/dungeon/rooms/cave_tiny2.tscn",
-			"res://scenes/levels/dungeon/rooms/cave_tiny3.tscn",
-			"res://scenes/levels/dungeon/rooms/hall.tscn",
-			"res://scenes/levels/dungeon/rooms/level_entrance.tscn",
-			"res://scenes/levels/dungeon/rooms/level_entrance2.tscn",
-			"res://scenes/levels/dungeon/rooms/level_exit.tscn",
-			"res://scenes/levels/dungeon/rooms/room_corner_with_bed.tscn",
-			"res://scenes/levels/dungeon/rooms/room_dining.tscn",
-			"res://scenes/levels/dungeon/rooms/sewer_crossing_4way.tscn",
-			"res://scenes/levels/dungeon/rooms/sewer_grate_1x1.tscn",
-			"res://scenes/levels/dungeon/rooms/sewer_room.tscn",
-			"res://scenes/levels/dungeon/rooms/storage_room_small.tscn",
-		};
+			if (fileName.EndsWith(".tscn"))
+			{
+				roomScenes.Add(AuthoredRoomsDirectory.PathJoin(fileName));
+			}
+		}
+		AssertArray(roomScenes).OverrideFailureMessage($"No room scenes found in {AuthoredRoomsDirectory}").IsNotEmpty();
 
 		var failures = new List<string>();
 		foreach (string scenePath in roomScenes)
@@ -308,13 +298,10 @@ public class RoomRotationTest
 			if (child is DoorwayMarker marker)
 			{
 				markers.Add(marker);
-				// Matches Room.LocalToTile: nearest tile CENTER, relative to
-				// Bounds.Position (which is the first tile's center cell).
-				int tileX = Mathf.FloorToInt((marker.Position.X - room.Bounds.Position.X + TileSize / 2f) / TileSize);
-				int tileZ = Mathf.FloorToInt((marker.Position.Z - room.Bounds.Position.Y + TileSize / 2f) / TileSize);
-				if (!room.Map.IsWithinBounds(tileX, tileZ) || !room.Map.IsConnector(tileX, tileZ))
+				Vector2I tile = room.LocalToTile(marker.Position);
+				if (!room.Map.IsWithinBounds(tile.X, tile.Y) || !room.Map.IsConnector(tile.X, tile.Y))
 				{
-					failures.Add($"doorway marker at tile ({tileX},{tileZ}) is not a connector");
+					failures.Add($"doorway marker at tile ({tile.X},{tile.Y}) is not a connector");
 				}
 			}
 		}
