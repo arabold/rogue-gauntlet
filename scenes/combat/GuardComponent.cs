@@ -13,7 +13,21 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 	[Export] public CharacterBody3D Actor { get; set; }
 	[Export] public MovementComponent MovementComponent { get; set; }
 	[Export] public ActorActionGateComponent ActionGate { get; set; }
-	[Export] public GuardDefinition GuardDef { get; set; }
+	[Export]
+	public GuardDefinition GuardDef
+	{
+		get;
+		set
+		{
+			if (ReferenceEquals(field, value)) { return; }
+			if (IsNodeReady() || IsGuarding || IsGuardRecovering)
+			{
+				Cancel(ActionInterruptReason.EquipChanged);
+			}
+			field = value;
+			_activeDefinition = null;
+		}
+	}
 	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
 
 	private GuardDefinition _activeDefinition;
@@ -350,13 +364,7 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 		}
 	}
 
-	public void ApplyGuardDefinition(GuardDefinition def)
-	{
-		if (ReferenceEquals(GuardDef, def)) return;
-		Cancel(ActionInterruptReason.EquipChanged);
-		GuardDef = def;
-		_activeDefinition = null;
-	}
+	public void ApplyGuardDefinition(GuardDefinition def) => GuardDef = def;
 
 	private double _poseElapsed;
 	private void PlayGuardAnimation()

@@ -4,6 +4,7 @@ using Godot;
 /// Actor-local coordinator for timed world interactions.
 /// Owns the stationary channel clock, target reservation, cancellation, and gate lease.
 /// </summary>
+[GlobalClass]
 public partial class ActorInteractionComponent : Node
 {
 	[Signal] public delegate void InteractionStartedEventHandler(string verb, float duration);

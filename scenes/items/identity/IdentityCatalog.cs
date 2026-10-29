@@ -9,5 +9,5 @@ using Godot.Collections;
 [GlobalClass]
 public partial class IdentityCatalog : Resource
 {
-	[Export] public Array<IdentityCategory> Categories { get; set; } = new();
+	[Export] public Array<IdentityCategory> Categories { get; set; } = [];
 }

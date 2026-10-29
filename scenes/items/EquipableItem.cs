@@ -86,7 +86,7 @@ public partial class EquipableItem : BuffedItem
 	/// Instance-level affixes rolled onto this item when it dropped. Empty on shared
 	/// definitions; populated on the duplicated instance produced by <see cref="LootRoller"/>.
 	/// </summary>
-	[Export] public Array<RolledAffix> Affixes { get; set => SetValue(ref field, value); } = new();
+	[Export] public Array<RolledAffix> Affixes { get; set => SetValue(ref field, value); } = [];
 
 	/// <summary>
 	/// The lowercase quality word that leads unidentified names: the Poor or Superior adjective, "magic" or "rare"; "" for

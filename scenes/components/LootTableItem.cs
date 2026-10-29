@@ -7,18 +7,18 @@ public partial class LootTableItem : Resource
 	/// <summary>
 	/// Weighted chance of this item being selected from the loot table.
 	/// </summary>
-	[Export] public float Weight = 1f;
+	[Export] public float Weight { get; set; } = 1f;
 	/// <summary>
 	/// Item to be dropped.
 	/// </summary>
-	[Export] public Item Item;
-	[Export] public int Quantity = 1;
+	[Export] public Item Item { get; set; }
+	[Export] public int Quantity { get; set; } = 1;
 	/// <summary>Lowest dungeon depth this entry can drop at. 0 means no lower bound.</summary>
-	[Export] public uint MinDepth = 0;
+	[Export] public uint MinDepth { get; set; }
 	/// <summary>Highest dungeon depth this entry can drop at. 0 means no upper bound.</summary>
-	[Export] public uint MaxDepth = 0;
+	[Export] public uint MaxDepth { get; set; }
 	/// <summary>Extra quantity granted per dungeon depth, added on top of <see cref="Quantity"/>.</summary>
-	[Export] public float QuantityPerDepth = 0f;
+	[Export] public float QuantityPerDepth { get; set; }
 
 	/// <summary>True if this entry is allowed to drop at the given dungeon depth.</summary>
 	public bool IsEligibleAt(uint depth)

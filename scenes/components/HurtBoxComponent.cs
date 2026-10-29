@@ -14,6 +14,7 @@ public enum DamageSourceFlags
 /// <summary>
 /// Defines the area that can be hit or receive damage.
 /// </summary>
+[GlobalClass]
 public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 {
 	/// <summary>Every resolved contact: its <see cref="DamageOutcome"/>, final damage and <see cref="DamageEmphasis"/> flags.</summary>

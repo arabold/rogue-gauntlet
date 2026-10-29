@@ -9,6 +9,7 @@ using Godot;
 /// door state is never copied here. The shader's fade clock is pushed only while a reveal is fading in. Gameplay reads
 /// exploration through <see cref="ExplorationVisibility"/>.
 /// </summary>
+[GlobalClass]
 public partial class FloorDiscovery : Node3D
 {
 	/// <summary>Omnidirectional exploration reach in world units; independent of lighting and camera zoom.</summary>

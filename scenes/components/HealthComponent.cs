@@ -1,12 +1,36 @@
 using Godot;
 
+[GlobalClass]
 public partial class HealthComponent : Node
 {
 	[Signal] public delegate void HealthChangedEventHandler(float currentHealth, float maxHealth);
 	[Signal] public delegate void DiedEventHandler();
 
-	[Export] public float MaxHealth { get; private set; } = 10;
-	[Export] public float CurrentHealth { get; private set; } = 10;
+	[Export]
+	public float MaxHealth
+	{
+		get;
+		set
+		{
+			if (Mathf.IsEqualApprox(field, value)) { return; }
+			field = value;
+			if (!IsNodeReady()) { return; }
+			EmitSignalHealthChanged(CurrentHealth, MaxHealth);
+		}
+	} = 10;
+
+	[Export]
+	public float CurrentHealth
+	{
+		get;
+		set
+		{
+			if (Mathf.IsEqualApprox(field, value)) { return; }
+			field = value;
+			if (!IsNodeReady()) { return; }
+			EmitSignalHealthChanged(CurrentHealth, MaxHealth);
+		}
+	} = 10;
 	public bool IsDead => CurrentHealth <= 0;
 
 	public HealthComponent()
@@ -16,12 +40,16 @@ public partial class HealthComponent : Node
 
 	public void SetHealth(float health, float maxHealth)
 	{
-		if (health != CurrentHealth || maxHealth != MaxHealth)
+		float clamped = Mathf.Clamp(health, 0, maxHealth);
+		if (clamped != CurrentHealth || maxHealth != MaxHealth)
 		{
 			MaxHealth = maxHealth;
-			CurrentHealth = Mathf.Clamp(health, 0, MaxHealth);
+			CurrentHealth = clamped;
 			GD.Print($"Updated {GetOwner()?.Name ?? Name} health to {CurrentHealth}/{MaxHealth}.");
-			EmitSignalHealthChanged(CurrentHealth, MaxHealth);
+			if (!IsNodeReady())
+			{
+				EmitSignalHealthChanged(CurrentHealth, MaxHealth);
+			}
 		}
 	}
 
@@ -31,7 +59,10 @@ public partial class HealthComponent : Node
 		{
 			GD.Print($"{GetOwner()?.Name ?? Name} took {amount} damage.");
 			CurrentHealth -= amount;
-			EmitSignalHealthChanged(CurrentHealth, MaxHealth);
+			if (!IsNodeReady())
+			{
+				EmitSignalHealthChanged(CurrentHealth, MaxHealth);
+			}
 
 			if (CurrentHealth <= 0)
 			{
@@ -48,10 +79,12 @@ public partial class HealthComponent : Node
 	{
 		if (amount > 0)
 		{
-			GD.Print($"{GetOwner().Name} healed for {amount}.");
-			CurrentHealth += amount;
-			CurrentHealth = Mathf.Clamp(CurrentHealth, 0, MaxHealth);
-			EmitSignalHealthChanged(CurrentHealth, MaxHealth);
+			GD.Print($"{GetOwner()?.Name ?? Name} healed for {amount}.");
+			CurrentHealth = Mathf.Clamp(CurrentHealth + amount, 0, MaxHealth);
+			if (!IsNodeReady())
+			{
+				EmitSignalHealthChanged(CurrentHealth, MaxHealth);
+			}
 		}
 	}
 

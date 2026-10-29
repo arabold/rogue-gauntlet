@@ -1,6 +1,7 @@
 using Godot;
 
 /// <summary>Single token-owned pose player for attacks, defenses and forced reactions. Definitions and clips stay immutable.</summary>
+[GlobalClass]
 public partial class CombatAnimationComponent : Node
 {
 	[Export] public NodePath AnimationPlayerPath { get; set; }

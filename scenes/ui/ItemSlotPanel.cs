@@ -15,9 +15,14 @@ public partial class ItemSlotPanel : PanelContainer
 	[Signal] public delegate void ItemSelectedEventHandler(ItemSlotPanel itemSlotPanel);
 
 	/// <summary>Opacity of the <see cref="ItemQualityPalette"/> tint behind Magic and Rare equipment.</summary>
-	[Export(PropertyHint.Range, "0,1,0.01")] public float QualityTintAlpha = 0.25f;
-	[Export] public Color DefaultColor = new(0.8f, 0.8f, 0.8f, 0.1f);
+	[Export(PropertyHint.Range, "0,1,0.01")] public float QualityTintAlpha { get; set; } = 0.25f;
+	[Export] public Color DefaultColor { get; set; } = new(0.8f, 0.8f, 0.8f, 0.1f);
 
+	private ItemSlotButton _button;
+	private ColorRect _colorRect;
+	private Preview _preview;
+	private Label _quantityLabel;
+	private Panel _equippedBorder;
 	private Action _unsubscribeSlot = () => { };
 	private Action _unsubscribeItem = () => { };
 	/// <summary>The item whose own <c>Changed</c> relabels this slot, e.g. when its attributes or curse are revealed.</summary>
@@ -55,8 +60,8 @@ public partial class ItemSlotPanel : PanelContainer
 	{
 		// Tool only for the authored layout; slot content, its script-typed nodes and bus events are runtime concerns.
 		if (Engine.IsEditorHint()) return;
-		var button = GetNode<Button>("%Button");
-		button.ButtonUp += () => EmitSignalItemSelected(this);
+		CacheNodes();
+		_button.ButtonUp += () => EmitSignalItemSelected(this);
 
 		// Relabel live when a hidden type is discovered elsewhere this run, so every stack of
 		// the identified type reveals its true name at once.
@@ -66,6 +71,15 @@ public partial class ItemSlotPanel : PanelContainer
 			signalBus => signalBus.ItemIdentified -= OnItemIdentified);
 
 		Update();
+	}
+
+	private void CacheNodes()
+	{
+		_button ??= GetNode<ItemSlotButton>("%Button");
+		_colorRect ??= GetNode<ColorRect>("%ColorRect");
+		_preview ??= GetNode<Preview>("%Preview");
+		_quantityLabel ??= GetNode<Label>("%QuantityLabel");
+		_equippedBorder ??= GetNode<Panel>("%EquippedBorder");
 	}
 
 	public void SetItem(InventoryItemSlot slot, bool isEquipped)
@@ -97,8 +111,8 @@ public partial class ItemSlotPanel : PanelContainer
 	/// </summary>
 	public void SetTargetingState(SlotTargetingState state)
 	{
-		var button = GetNode<ItemSlotButton>("%Button");
-		button.Disabled = _baseDisabled || state == SlotTargetingState.Ineligible;
+		CacheNodes();
+		_button.Disabled = _baseDisabled || state == SlotTargetingState.Ineligible;
 		Modulate = state == SlotTargetingState.Ineligible ? new Color(1f, 1f, 1f, 0.35f) : Colors.White;
 	}
 
@@ -114,34 +128,30 @@ public partial class ItemSlotPanel : PanelContainer
 	private void Update()
 	{
 		ObserveItem(Slot?.Item);
-		var button = GetNode<ItemSlotButton>("%Button");
-		var colorRect = GetNode<ColorRect>("%ColorRect");
-		var preview = GetNode<Preview>("%Preview");
-		var quantityLabel = GetNode<Label>("%QuantityLabel");
-		var equippedBorder = GetNode<Panel>("%EquippedBorder");
+		CacheNodes();
 
 		if (Slot != null && Slot.Item != null)
 		{
-			preview.SetScene(ItemIdentity.ResolveScene(Slot.Item));
+			_preview.Scene = ItemIdentity.ResolveScene(Slot.Item);
 			// Plain text is the fallback; the rich hover tooltip is built by ItemSlotButton.
-			button.Item = Slot.Item;
-			button.TooltipText = ItemIdentity.ResolveDisplayName(Slot.Item);
-			quantityLabel.Text = Slot.Item.CanStack ? Slot.Quantity.ToString() : "";
-			equippedBorder.Visible = IsEquipped;
+			_button.Item = Slot.Item;
+			_button.TooltipText = ItemIdentity.ResolveDisplayName(Slot.Item);
+			_quantityLabel.Text = Slot.Item.CanStack ? Slot.Quantity.ToString() : "";
+			_equippedBorder.Visible = IsEquipped;
 
 			// The quality is never secret, so unidentified items tint too; only Magic and Rare stand out.
-			colorRect.Color = Slot.Item is EquipableItem { Quality: >= ItemQuality.Magic } equipment
+			_colorRect.Color = Slot.Item is EquipableItem { Quality: >= ItemQuality.Magic } equipment
 				? ItemQualityPalette.Color(equipment.Quality) with { A = QualityTintAlpha }
 				: DefaultColor;
 		}
 		else
 		{
-			preview.SetScene(null);
-			button.Item = null;
-			button.TooltipText = "";
-			quantityLabel.Text = "";
-			equippedBorder.Visible = false;
-			colorRect.Color = DefaultColor;
+			_preview.Scene = null;
+			_button.Item = null;
+			_button.TooltipText = "";
+			_quantityLabel.Text = "";
+			_equippedBorder.Visible = false;
+			_colorRect.Color = DefaultColor;
 		}
 	}
 }

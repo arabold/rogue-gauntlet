@@ -6,7 +6,7 @@ public partial class InventoryPanel : ScrollContainer
 {
 	private const float ItemSlotWidth = 128;
 
-	[Export] public PackedScene InventoryItemScene;
+	[Export] public PackedScene InventoryItemScene { get; set; }
 
 	/// <summary>
 	/// Banner shown while choosing a target for a scroll effect. Lives outside this

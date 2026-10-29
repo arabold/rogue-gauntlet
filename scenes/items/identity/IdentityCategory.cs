@@ -21,5 +21,5 @@ public partial class IdentityCategory : Resource
 	/// cannot export a typed array of an interface; callers filter with
 	/// <c>OfType&lt;IIdentifiable&gt;()</c>.
 	/// </summary>
-	[Export] public Array<Item> Types { get; set; } = new();
+	[Export] public Array<Item> Types { get; set; } = [];
 }

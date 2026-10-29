@@ -1,5 +1,6 @@
 using Godot;
 
+[GlobalClass]
 public partial class InputComponent : Node
 {
 	[Signal] public delegate void DirectionChangedEventHandler(Vector3 direction);
@@ -11,7 +12,7 @@ public partial class InputComponent : Node
 	/// Reads keyboard, mouse and gamepad state. Scripted harness runs turn it off so device state cannot
 	/// perturb them; queries then report nothing pressed and <see cref="InputDirection"/> is left to the script.
 	/// </summary>
-	public bool DeviceEnabled { get; set; } = true;
+	[Export] public bool DeviceEnabled { get; set; } = true;
 
 	public bool IsMoving()
 	{

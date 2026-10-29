@@ -16,6 +16,7 @@ using Godot;
 /// the rest), and alpha blending is supported on every renderer — unlike the per-instance
 /// <c>GeometryInstance3D.transparency</c> property, which only works on Forward+.
 /// </summary>
+[GlobalClass]
 public partial class FadeOutComponent : Node
 {
 	[Signal]

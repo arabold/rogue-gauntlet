@@ -10,12 +10,12 @@ public partial class Projectile : Node3D, IPooledNode
 	private const uint PropsLayer = 1 << 4;
 	private const uint BlockingCollisionMask = WorldLayer | WallsLayer | PropsLayer;
 
-	[Export] public float Speed = 10f;
-	[Export] public float Range = 30f;
-	[Export] public Vector3 Direction = Vector3.Forward;
-	[Export] public float MinDamage;
-	[Export] public float MaxDamage;
-	[Export] public float CritChance;
+	[Export] public float Speed { get; set; } = 10f;
+	[Export] public float Range { get; set; } = 30f;
+	[Export] public Vector3 Direction { get; set; } = Vector3.Forward;
+	[Export] public float MinDamage { get; set; }
+	[Export] public float MaxDamage { get; set; }
+	[Export] public float CritChance { get; set; }
 	[Export] public PackedScene ImpactEffectScene { get; set; }
 	[Export] public PackedScene ExpireEffectScene { get; set; }
 	[Export] public bool SpawnImpactEffectOnExpire { get; set; } = true;

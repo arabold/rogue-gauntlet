@@ -5,7 +5,7 @@ using System.Linq;
 [GlobalClass]
 public partial class AttackAnimationProfile : Resource
 {
-	[Export] public AttackAnimationBinding[] Bindings { get; set; } = System.Array.Empty<AttackAnimationBinding>();
+	[Export] public AttackAnimationBinding[] Bindings { get; set; } = [];
 
 	/// <summary>Duplicate keys invalidate the profile rather than silently selecting an arbitrary clip.</summary>
 	public bool TryGetBinding(StringName style, out AttackAnimationBinding binding)

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 /// <summary>
 /// Handles timing-synchronized hit detection and projectile spawning for actors.
 /// </summary>
+[GlobalClass]
 public partial class AttackController : Node, IParryInterruptible
 {
 	/// <summary>One completion notification per accepted execution, after releasing its action/pose ownership.</summary>

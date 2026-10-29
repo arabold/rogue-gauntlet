@@ -6,12 +6,13 @@ using Godot.Collections;
 /// A spawn point that spawns objects on scene load or when called
 /// </summary>
 [Tool]
+[GlobalClass]
 public partial class SpawnPoint : Node3D
 {
 	/// <summary>
 	/// The type of object to spawn (e.g. an enemy scene)
 	/// </summary>
-	[Export] public Array<PackedScene> Scenes;
+	[Export] public Array<PackedScene> Scenes { get; set; } = [];
 	/// <summary>The level this point spawns into: runtime context, resolved from the tree on entry.</summary>
 	public Level Level { get; private set; }
 	[Export] public string PersistentId { get; set; } = string.Empty;

@@ -14,21 +14,27 @@ public partial class Level : Node
 	/// <summary>The floor could not be generated or its saved deltas could not be restored; the session decides what follows.</summary>
 	[Signal] public delegate void GenerationFailedEventHandler(string reason);
 	/// <summary>Current floor illumination override; debug changes last for this level instance only.</summary>
-	public bool IsDark { get; private set; }
+	[Export]
+	public bool IsDark
+	{
+		get;
+		set
+		{
+			if (field == value) { return; }
+			field = value;
+			if (!IsNodeReady()) { return; }
+			if (_lightingEnvironment != null)
+			{
+				_lightingEnvironment.AmbientLightEnergy = value ? 0f : _normalAmbientEnergy;
+			}
+			EmitSignal(SignalName.DarknessChanged, value);
+		}
+	}
 	private float _normalAmbientEnergy;
 	private Environment _lightingEnvironment;
 
 	/// <summary>Changes floor illumination and notifies local player/fixture lighting without changing exploration.</summary>
-	public void SetDark(bool isDark)
-	{
-		if (IsDark == isDark) { return; }
-		IsDark = isDark;
-		if (_lightingEnvironment != null)
-		{
-			_lightingEnvironment.AmbientLightEnergy = isDark ? 0f : _normalAmbientEnergy;
-		}
-		EmitSignal(SignalName.DarknessChanged, isDark);
-	}
+	public void SetDark(bool isDark) => IsDark = isDark;
 
 	/// <summary>Required to generate a playable floor: it records and replays this floor's item deltas.</summary>
 	[Export] public LevelItemPersistence ItemPersistence { get; set; }
@@ -184,6 +190,8 @@ public partial class Level : Node
 		ClearWorldNodes();
 		Floor = null;
 		Discovery?.Clear();
+		// The previous floor was just freed, and generation reloads many of its resources by path.
+		ResourceCacheGuard.Settle();
 		try { MapGenerator.GenerateMap(); }
 		catch (System.InvalidOperationException error)
 		{

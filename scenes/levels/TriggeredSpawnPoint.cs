@@ -6,24 +6,29 @@ using Godot.Collections;
 /// </summary>
 public partial class TriggeredSpawnPoint : Area3D
 {
+	[Export]
 	public Array<PackedScene> Scenes
 	{
 		get;
 		set
 		{
 			field = value;
-			if (IsNodeReady())
+			if (IsNodeReady() && SpawnPoint != null)
 			{
 				SpawnPoint.Scenes = value;
 			}
 		}
-	}
+	} = [];
 
-	public SpawnPoint SpawnPoint;
+	[Export] public SpawnPoint SpawnPoint { get; set; }
 
 	public override void _Ready()
 	{
-		SpawnPoint = GetNode<SpawnPoint>("SpawnPoint");
+		SpawnPoint ??= GetNode<SpawnPoint>("SpawnPoint");
+		if (Scenes?.Count > 0)
+		{
+			SpawnPoint.Scenes = Scenes;
+		}
 		SpawnPoint.SpawnOnStart = false;
 
 		AreaEntered += OnAreaEntered;

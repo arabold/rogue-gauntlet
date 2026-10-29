@@ -13,6 +13,7 @@ public enum AttachmentType
 	Chest
 }
 
+[GlobalClass]
 public partial class BoneAttachmentManager : Node
 {
 	private const string EquippedMetaKey = "equipped_attachment";

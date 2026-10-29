@@ -1,9 +1,10 @@
 using Godot;
 
+[GlobalClass]
 public partial class LootTableComponent : Node
 {
 	/// <summary>What this source drops and how often. Monsters receive theirs from their definition.</summary>
-	[Export] public LootDropProfile Profile { get; private set; }
+	[Export] public LootDropProfile Profile { get; set; }
 	/// <summary>The level holding this source: runtime context, resolved from the tree on entry rather than authored.</summary>
 	public Level Level { get; private set; }
 	/// <summary>Stable generated source key. Empty for genuinely dynamic reward sources.</summary>
@@ -19,7 +20,7 @@ public partial class LootTableComponent : Node
 	{
 		return !string.IsNullOrEmpty(ResolvedSourceId) ? Level.CreateSourceLootRng(ResolvedSourceId) : Level.Run.CreateLootRng(Level.Seed);
 	}
-	[Export] public PackedScene LootableItemScene { get; private set; }
+	[Export] public PackedScene LootableItemScene { get; set; }
 
 	/// <summary>Apply a monster definition before readiness without claiming or rerolling its loot.</summary>
 	public void ConfigureProfile(LootDropProfile profile) => Profile = profile;

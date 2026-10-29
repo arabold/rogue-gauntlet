@@ -32,11 +32,11 @@ public partial class MapGenerator : Node3D
 	public MapData Map;
 	/// <summary>The current attempt's floor: generation queries it while it fills, gameplay once it is frozen.</summary>
 	public GeneratedFloor Floor { get; private set; }
-	[Export] public GridMap FloorGridMap { get; private set; }
-	[Export] public GridMap WallGridMap { get; private set; }
-	[Export] public GridMap DecorationGridMap { get; private set; }
-	[Export] public GridMap OcclusionGridMap { get; private set; }
-	[Export] public NavigationRegion3D NavigationRegion { get; private set; }
+	[Export] public GridMap FloorGridMap { get; set; }
+	[Export] public GridMap WallGridMap { get; set; }
+	[Export] public GridMap DecorationGridMap { get; set; }
+	[Export] public GridMap OcclusionGridMap { get; set; }
+	[Export] public NavigationRegion3D NavigationRegion { get; set; }
 
 	// Shared unlit black cap mesh for permanent void coverage.
 	private PlaneMesh _occlusionCapMesh;
