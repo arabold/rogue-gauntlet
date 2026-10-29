@@ -68,6 +68,21 @@ public partial class MagicGuardSpellTest
 	}
 
 	[TestCase]
+	public async Task LethalOverflowStillReflectsTheAbsorbedDamage()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 5);
+		var attacker = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Attacker");
+		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(attacker);
+		harness.Player.HurtBoxComponent.Armor = 0;
+		harness.Player.HealthComponent.SetHealth(4, 100);
+		TestFactories.CastHarnessSpell(harness, "Ember Guard", 1); await runner.SimulateFrames(3);
+		Hit(harness.Player, attacker, 125);
+		AssertBool(harness.Player.HealthComponent.IsDead).IsTrue();
+		AssertFloat(attacker.HealthComponent.CurrentHealth).IsEqual(40);
+	}
+
+	[TestCase]
 	public async Task NewGuardReplacesOldAndCancelRemovesOnlyItsOwnGuard()
 	{
 		using var runner = TestFactories.LoadCombatHarness();

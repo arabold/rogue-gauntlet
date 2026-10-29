@@ -40,14 +40,14 @@ public partial class MagicGuardSpell : Node, ICombatSpell
 		private readonly float _fireEfficiency;
 		private readonly DamageElement _element;
 		private float _remaining;
-		private bool _ended;
+		private bool _ended, _reflectAfterDeath;
 		public Guard(MagicGuardSpell source, Node3D owner, HurtBoxComponent hurtbox, Node3D visual,
 			IGuardVisual effect, float capacity, float reflection, float fireEfficiency, DamageElement element)
 		{
 			_source = source; _owner = owner; _hurtbox = hurtbox; _visual = visual;
 			_effect = effect; _remaining = capacity; _reflection = reflection; _fireEfficiency = fireEfficiency; _element = element;
 			_owner.TreeExiting += End;
-			if (_hurtbox.HealthComponent != null) _hurtbox.HealthComponent.Died += End;
+			if (_hurtbox.HealthComponent != null) _hurtbox.HealthComponent.Died += EndForDeath;
 		}
 		public float Absorb(float damage, DamageElement element)
 		{
@@ -59,7 +59,8 @@ public partial class MagicGuardSpell : Node, ICombatSpell
 		}
 		public void Reflect(float absorbed, in DamageContext contact)
 		{
-			if (_ended) return;
+			if (_ended && !_reflectAfterDeath) return;
+			_reflectAfterDeath = false;
 			if (_remaining <= 0) End();
 			if (contact.IsReflected || _reflection <= 0 || !IsInstanceValid(_owner) || !_owner.IsInsideTree()
 				|| contact.OwnerNode is not Node3D attacker || !IsInstanceValid(attacker) || !attacker.IsInsideTree()
@@ -78,6 +79,12 @@ public partial class MagicGuardSpell : Node, ICombatSpell
 				DeliveryKind = DamageDeliveryKind.AreaImpact, Element = _element, IsReflected = true };
 			damageable.ResolveDamage(in reflected);
 		}
+		private void EndForDeath()
+		{
+			// The in-flight contact finishes after death; its absorbed portion still reflects.
+			_reflectAfterDeath = true;
+			End();
+		}
 		public void End()
 		{
 			if (_ended) return;
@@ -86,7 +93,7 @@ public partial class MagicGuardSpell : Node, ICombatSpell
 			if (IsInstanceValid(_hurtbox))
 			{
 				_hurtbox.RemoveShield(this);
-				if (IsInstanceValid(_hurtbox.HealthComponent)) _hurtbox.HealthComponent.Died -= End;
+				if (IsInstanceValid(_hurtbox.HealthComponent)) _hurtbox.HealthComponent.Died -= EndForDeath;
 			}
 			if (IsInstanceValid(_visual)) { _visual.Visible = false; _visual.QueueFree(); }
 			if (IsInstanceValid(_source) && ReferenceEquals(_source._guard, this)) _source._guard = null;

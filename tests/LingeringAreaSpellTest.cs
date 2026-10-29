@@ -47,6 +47,36 @@ public partial class LingeringAreaSpellTest
 	}
 
 	[TestCase]
+	public async Task BurnAppliesTicksDueAtAndBeforeExpiry()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 5);
+		var target = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Target");
+		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(target);
+		var burn = new BurningContact(); runner.Scene().AddChild(burn); burn.SetPhysicsProcess(false);
+		var condition = GD.Load<StatusCondition>("res://scenes/buffs/conditions/burning.tres");
+		AssertBool(burn.Begin(harness.Player, target, target.BuffController, condition, new RandomNumberGenerator(), 1, .5f, 1)).IsTrue();
+		burn._PhysicsProcess(1.25);
+		AssertFloat(target.HealthComponent.CurrentHealth).IsEqual(48);
+		AssertBool(target.Burning).IsFalse();
+	}
+
+	[TestCase]
+	public async Task BurnTicksAtExpiryBeforeItsStatusIsRemoved()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 5);
+		var target = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Target");
+		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(target);
+		var burn = new BurningContact(); runner.Scene().AddChild(burn);
+		var condition = GD.Load<StatusCondition>("res://scenes/buffs/conditions/burning.tres");
+		AssertBool(burn.Begin(harness.Player, target, target.BuffController, condition, new RandomNumberGenerator(), .1f, .1f, 1)).IsTrue();
+		await runner.SimulateFrames(20);
+		AssertFloat(target.HealthComponent.CurrentHealth).IsEqual(49);
+		AssertBool(target.Burning).IsFalse();
+	}
+
+	[TestCase]
 	public async Task SolarFlaresIgniteAndCancelTheirBurn()
 	{
 		using var runner = TestFactories.LoadCombatHarness();

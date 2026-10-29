@@ -12,6 +12,8 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 	[Export] public Node3D VisualRoot { get; set; }
 	private readonly HashSet<BuffController> _affected = [];
 	private readonly AreaCastLifecycle _cast = new();
+	public override void _Ready() { ProcessPhysicsPriority = CombatPhysics.Damage; SetPhysicsProcess(false); }
+	public override void _PhysicsProcess(double delta) { if (!_cast.Advance(delta)) SetPhysicsProcess(false); }
 	/// <summary>Reconnect a restored target so canceling this focus still removes its status.</summary>
 	public void StatusRestored(BuffController target) => _affected.Add(target);
 
@@ -37,7 +39,7 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 		_affected.RemoveWhere(statuses => !IsInstanceValid(statuses) || !statuses.HasStatusFrom(this));
 		float freezeSeconds = Definition.FreezeSecondsByLevel[level - 1];
 		StatusCondition frozen = Definition.Frozen;
-		_cast.Resolve(cast, Definition.DamageByLevel[level - 1], Definition.DefenseTraits, afterContact: (target, result) =>
+		_cast.Schedule(cast, Definition.ContactDelay, Definition.DamageByLevel[level - 1], Definition.DefenseTraits, afterContact: (target, result) =>
 		{
 			if (result.Outcome != DamageOutcome.Damaged || !IsInstanceValid(target) || !target.IsInsideTree()
 				|| target is not IStatusActor { BuffController: { } statuses } || statuses.Health == null || statuses.Health.IsDead) return;
@@ -50,6 +52,7 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 	/// <summary>End all remaining presentation and conditions owned by this focus.</summary>
 	public void Cancel()
 	{
+		SetPhysicsProcess(false);
 		var visuals = _cast.Cancel();
 		var affected = _affected.ToArray();
 		_affected.Clear();

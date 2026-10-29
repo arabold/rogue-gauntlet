@@ -7,8 +7,12 @@ using System.Linq;
 public sealed class AreaCastLifecycle
 {
 	public readonly record struct Cast(Node Owner, Node3D Caster, Vector3 Origin, Vector3 Facing,
-		World3D World, Node3D[] Targets, RandomNumberGenerator Random);
+		World3D World, float Radius, Node3D[] Targets, RandomNumberGenerator Random);
 	private readonly List<Node3D> _visuals = [];
+	private readonly List<PendingContact> _pending = [];
+	private sealed record PendingContact(Cast Cast, float Damage, AttackDefenseTraits Traits, float Push,
+		Action<Node3D, DamageResolution> AfterContact, DamageElement Element, double Due);
+	private double _clock;
 	private ulong _sequence, _generation;
 
 	/// <summary>Capture eligible targets without mutating the world.</summary>
@@ -23,7 +27,7 @@ public sealed class AreaCastLifecycle
 		World3D world = caster.GetWorld3D();
 		var targets = AreaSpellTargets.Capture(owner, caster, origin, radius, world);
 		if (targets == null) return false;
-		cast = new Cast(owner, caster, origin, facing, world, targets, random);
+		cast = new Cast(owner, caster, origin, facing, world, radius, targets, random);
 		return true;
 	}
 
@@ -34,16 +38,43 @@ public sealed class AreaCastLifecycle
 		_visuals.Add(visual);
 	}
 
-	/// <summary>Resolve captured contacts with one cast identity and cancellation generation.</summary>
+	/// <summary>Schedule an area contact on the physics clock, or resolve it immediately.</summary>
+	public void Schedule(Cast cast, float delay, float damage, AttackDefenseTraits traits, float push = 0,
+		Action<Node3D, DamageResolution> afterContact = null, DamageElement element = DamageElement.None)
+	{
+		if (delay <= 0) { Resolve(cast, damage, traits, push, afterContact, element); return; }
+		_pending.Add(new PendingContact(cast, damage, traits, push, afterContact, element, _clock + delay));
+		_pending.Sort((a, b) => a.Due.CompareTo(b.Due));
+		cast.Owner.SetPhysicsProcess(true);
+	}
+
+	/// <summary>Run due contacts; the owning node can stop processing when none remain.</summary>
+	public bool Advance(double delta)
+	{
+		_clock += delta;
+		while (_pending.Count > 0 && _pending[0].Due <= _clock)
+		{
+			var contact = _pending[0]; _pending.RemoveAt(0);
+			Resolve(contact.Cast, contact.Damage, contact.Traits, contact.Push, contact.AfterContact, contact.Element);
+		}
+		return _pending.Count > 0;
+	}
+
+	/// <summary>Resolve occupants at contact time within the captured area and cancellation generation.</summary>
 	public void Resolve(Cast cast, float damage, AttackDefenseTraits traits, float forcedPush = 0,
 		Action<Node3D, DamageResolution> afterContact = null, DamageElement element = DamageElement.None)
 	{
+		if (!GodotObject.IsInstanceValid(cast.Owner) || !cast.Owner.IsInsideTree()
+			|| !GodotObject.IsInstanceValid(cast.Caster) || !cast.Caster.IsInsideTree()
+			|| cast.Caster.GetWorld3D() != cast.World) return;
+		var targets = AreaSpellTargets.Capture(cast.Owner, cast.Caster, cast.Origin, cast.Radius, cast.World);
+		if (targets == null) return;
 		var identity = new AttackIdentity(cast.Caster.GetInstanceId(), ++_sequence);
 		ulong generation = _generation;
 		var contact = new DamageContext { ExecutionId = identity, SourceNode = cast.Owner, OwnerNode = cast.Caster,
 			Faction = HurtBoxComponent.GetDamageSource(cast.Caster), Amount = damage, Random = cast.Random,
 			DefenseTraits = traits, DeliveryKind = DamageDeliveryKind.AreaImpact, ForcedPush = forcedPush, Element = element };
-		AreaSpellTargets.Resolve(cast.Targets, cast.World, cast.Origin, cast.Facing, contact,
+		AreaSpellTargets.Resolve(targets, cast.World, cast.Origin, cast.Facing, contact,
 			() => _generation == generation && cast.Owner.IsInsideTree(), afterContact);
 	}
 
@@ -51,6 +82,7 @@ public sealed class AreaCastLifecycle
 	public Node3D[] Cancel()
 	{
 		_generation++;
+		_pending.Clear();
 		var visuals = _visuals.ToArray(); _visuals.Clear();
 		return visuals;
 	}

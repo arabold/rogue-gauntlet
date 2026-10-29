@@ -9,6 +9,8 @@ public static class CombatPhysics
 	public const int Steering = -30;
 	public const int Clearance = -25;
 	public const int Movement = -20;
+	/// <summary>Periodic damage resolves due ticks before condition expiry at the damage priority.</summary>
+	public const int StatusDamage = -1;
 	public const int Damage = 0;
 	public const int Commit = 10;
 	public const int Trace = 20;

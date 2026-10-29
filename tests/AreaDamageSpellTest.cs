@@ -44,6 +44,51 @@ public partial class AreaDamageSpellTest
 	}
 
 	[TestCase]
+	public async Task DelayedAreaHitsOccupantsAtImpactUsingTheOriginalCenter()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 5);
+		var origin = harness.Player.GlobalPosition;
+		var leaving = TestFactories.SpawnCombatMonster(runner.Scene(), origin + Vector3.Right * 2, "Leaving");
+		var entering = TestFactories.SpawnCombatMonster(runner.Scene(), origin + Vector3.Left * 7, "Entering");
+		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(leaving); TestFactories.PrepareCombatMonster(entering);
+		TestFactories.CastHarnessSpell(harness, "Rock Spikes", 1);
+		await runner.SimulateFrames(3);
+		leaving.GlobalPosition = origin + Vector3.Right * 7;
+		entering.GlobalPosition = origin + Vector3.Left * 2;
+		harness.Player.GlobalPosition = origin + Vector3.Back * 10;
+		await runner.SimulateFrames(40);
+		AssertFloat(leaving.HealthComponent.CurrentHealth).IsEqual(50);
+		AssertFloat(entering.HealthComponent.CurrentHealth).IsEqual(47);
+	}
+
+	[TestCase("Gust")]
+	[TestCase("Frost Nova")]
+	public async Task OtherAreaSpellsCanUseTheSameContactTiming(string name)
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 5);
+		var origin = harness.Player.GlobalPosition;
+		var target = TestFactories.SpawnCombatMonster(runner.Scene(), origin + Vector3.Right * 7, "Target");
+		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(target);
+		if (name == "Gust")
+		{
+			var spell = harness.SpellComponents.OfType<GustSpell>().Single();
+			spell.Definition = (GustDefinition)spell.Definition.Duplicate(); spell.Definition.ContactDelay = .3f;
+		}
+		else
+		{
+			var spell = harness.SpellComponents.OfType<FrostNovaSpell>().Single();
+			spell.Definition = (FrostNovaDefinition)spell.Definition.Duplicate(); spell.Definition.ContactDelay = .3f;
+		}
+		TestFactories.CastHarnessSpell(harness, name, 1); await runner.SimulateFrames(3);
+		target.GlobalPosition = origin + Vector3.Right * 2;
+		await runner.SimulateFrames(40);
+		AssertFloat(target.HealthComponent.CurrentHealth).IsEqual(47);
+		if (name == "Frost Nova") AssertBool(target.Frozen).IsTrue();
+	}
+
+	[TestCase]
 	public async Task CancelingAnEruptionBeforeContactPreventsDamage()
 	{
 		using var runner = TestFactories.LoadCombatHarness();

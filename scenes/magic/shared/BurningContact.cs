@@ -10,6 +10,7 @@ public partial class BurningContact : Node
 	private StatusCondition _condition;
 	private float _damage, _interval, _remaining, _untilTick;
 	private bool _ended;
+	public override void _Ready() => ProcessPhysicsPriority = CombatPhysics.StatusDamage;
 	public bool Begin(Node3D caster, Node3D target, BuffController statuses, StatusCondition condition,
 		RandomNumberGenerator random, float duration, float interval, float damage)
 	{
@@ -28,8 +29,8 @@ public partial class BurningContact : Node
 		if (_ended || !IsInstanceValid(_caster) || !_caster.IsInsideTree() || !IsInstanceValid(_target) || !_target.IsInsideTree()
 			|| !IsInstanceValid(_statuses) || !_statuses.IsInsideTree() || _statuses.Health?.IsDead != false
 			|| !_statuses.HasStatusFrom(this)) { End(); return; }
-		float step = (float)delta; _remaining -= step; _untilTick -= step;
-		while (_untilTick <= 0 && _remaining > 0 && !_ended && IsInstanceValid(_statuses) && IsInstanceValid(_statuses.Health) && !_statuses.Health.IsDead)
+		float step = Mathf.Min((float)delta, _remaining); _remaining -= step; _untilTick -= step;
+		while (_untilTick <= .000001f && !_ended && IsInstanceValid(_statuses) && IsInstanceValid(_statuses.Health) && !_statuses.Health.IsDead)
 		{
 			Vector3 direction = _target.GlobalPosition - _caster.GlobalPosition; direction.Y = 0;
 			var contact = new DamageContext { SourceNode = this, OwnerNode = _caster, Faction = HurtBoxComponent.GetDamageSource(_caster),

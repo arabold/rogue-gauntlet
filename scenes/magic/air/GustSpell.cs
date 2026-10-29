@@ -10,6 +10,8 @@ public partial class GustSpell : Node, ICombatSpell
 	[Export] public PackedScene VisualScene { get; set; }
 	[Export] public Node3D VisualRoot { get; set; }
 	private readonly AreaCastLifecycle _cast = new();
+	public override void _Ready() { ProcessPhysicsPriority = CombatPhysics.Damage; SetPhysicsProcess(false); }
+	public override void _PhysicsProcess(double delta) { if (!_cast.Advance(delta)) SetPhysicsProcess(false); }
 
 	/// <summary>Damage and push each visible hostile actor once; an empty area still plays the wind.</summary>
 	public bool Cast(Node3D caster, int level, RandomNumberGenerator random)
@@ -28,7 +30,7 @@ public partial class GustSpell : Node, ICombatSpell
 		visual.Scale = new Vector3(radius / 9f, 1, radius / 9f);
 		visual.SetVisibility(visibility);
 		_cast.Track(visual);
-		_cast.Resolve(cast, damage, defenseTraits, push, element: DamageElement.Air);
+		_cast.Schedule(cast, Definition.ContactDelay, damage, defenseTraits, push, element: DamageElement.Air);
 		return true;
 	}
 
@@ -45,6 +47,7 @@ public partial class GustSpell : Node, ICombatSpell
 	/// <summary>Stop this focus's remaining visual and invalidate any later contacts.</summary>
 	public void Cancel()
 	{
+		SetPhysicsProcess(false);
 		AreaCastLifecycle.ClearVisuals(_cast.Cancel());
 	}
 	public override void _ExitTree() => Cancel();
