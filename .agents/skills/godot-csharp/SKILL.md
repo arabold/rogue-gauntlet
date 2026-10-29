@@ -69,8 +69,7 @@ Write C# so every actor, component, strategy, and resource works first-class in 
 | **Cross-system broadcast** | `SignalBus` static emit helpers | Use `SignalBus.Emit...` only when sender and receiver are intentionally decoupled (e.g., gameplay to HUD, floor transitions). Never use `SignalBus` for fallible request/response calls. |
 
 - **Subscription lifetime (`SubscribeUntilExit`):**
-  - Whenever a `Node` subscribes to an emitter that can outlive it (`SignalBus.Instance`, a runtime `Resource`, `SceneTree`, or an ancestor node), wrap it in `this.SubscribeUntilExit(emitter, e => e.Signal += OnEvent, e => e.Signal -= OnEvent)` so `TreeExiting` unhooks it automatically.
-  - Never use `SubscribeUntilExit` inside `_Ready()` on an `IPooledNode` for its own child nodes (`ScenePool.Despawn` removes the pooled node from the tree, unhooking the handler, and `ScenePool.Spawn` re-adds it without running `_Ready()` again).
+  - Whenever a `Node` subscribes to an emitter that can outlive it (`SignalBus.Instance`, a runtime `Resource`, `SceneTree`, or an ancestor node), wrap it in `this.SubscribeUntilExit(emitter, e => e.Signal += OnEvent, e => e.Signal -= OnEvent)` so it holds only while the node is in the tree: `TreeExiting` unhooks it and re-entering the tree (pool reuse, `Reparent`) restores it. Connect to the node's own children with a plain `+=` in `_Ready()`; they share its lifetime.
   - In GdUnit4 tests, attach nodes with `TestFactories.AddToSceneTree(node)` rather than calling `_Ready()` on an unparented node, so `TreeExiting` fires on cleanup.
 
 ## 4. Runtime, Physics & Pooling
@@ -83,7 +82,7 @@ Write C# so every actor, component, strategy, and resource works first-class in 
 - **Pooling (`ScenePool` & `IPooledNode`):**
   - Spawn frequent short-lived combat/VFX scenes (projectiles, sparks, `DamageNumber`) via `ScenePool.Spawn<T>(scene, parent)` and return them with `ScenePool.Despawn(this)`.
   - Because `_Ready()` runs only on first instantiation, implement `IPooledNode` (`OnSpawnedFromPool()` / `OnDespawnedToPool()`) to reset timers, velocities, collision state, and particles on reuse.
-  - Every despawn removes the node from the tree, so `TreeExiting` fires, and reuse does not run `_Ready()` again. Inside a pooled scene, connect to the scene's own children with a plain `+=` in `_Ready()`, never `SubscribeUntilExit`: the first despawn would unhook the handler for good. That is how pooled arrows stopped registering hits.
+  - Despawning moves the node out of the tree and reuse moves it back in, so `SubscribeUntilExit` subscriptions made in `_Ready()` survive reuse; plain `TreeExiting`/`_ExitTree` cleanup does not get a matching re-entry.
 - **Physics interpolation & callback safety:**
   - `project.godot` enables `common/physics_interpolation=true`. Call `node3D.ResetPhysicsInterpolation()` immediately after snapping `GlobalPosition` / `GlobalTransform` discontinuously (spawn, teleport, pool reuse) to avoid a 1-frame visual streak.
   - Inside `BodyEntered` / `AreaEntered` callbacks, defer physics mutations (`SetDeferred(CollisionShape3D.PropertyName.Disabled, true)` or `Callable.From(...).CallDeferred()`) to avoid `Function blocked during in/out signal`. Run `GetWorld3D().DirectSpaceState` queries inside `_PhysicsProcess`, not `_Process`.

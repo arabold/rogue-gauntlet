@@ -69,8 +69,7 @@ public partial class Projectile : Node3D, IPooledNode
 		_defaultImpactRadiusMinDamageScale = ImpactRadiusMinDamageScale;
 		_impactQuery.Shape = _impactShape;
 		_hitBoxComponent = GetNode<HitBoxComponent>("%HitBoxComponent");
-		// The hitbox is our own child, so the connection lives as long as we do. Never scope it to the tree: the pool
-		// removes despawned projectiles from the tree and reuse does not run _Ready again.
+		// The hitbox is our own child, so the connection lives as long as we do.
 		_hitBoxComponent.HitDetected += OnHitDetected;
 		ResetRuntimeState();
 	}

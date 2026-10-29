@@ -59,7 +59,7 @@ Use the `godot-csharp` skill (`.agents/skills/godot-csharp/SKILL.md`) whenever w
   - **Local component events -> `[Signal]` delegates:** Declare `[Signal] public delegate void ...EventHandler(...)` with Variant-compatible parameters and emit via `EmitSignal...()`. Use a plain C# `event` only for non-Variant structs (`in DamageContext`).
   - **Observed Resources -> `ObservableResource`:** Call `SetValue(ref _field, value)` inside `[Export]` setters so code and Inspector edits emit `EmitChanged()`.
   - **Cross-system broadcasts -> `SignalBus`:** Reserve `SignalBus` static emit helpers for decoupled cross-system notifications, never feature logic or fallible request/response calls.
-  - **Subscription lifetime (`SubscribeUntilExit`):** Wrap subscriptions to long-lived emitters (`SignalBus.Instance`, runtime `Resource`s, `SceneTree`, ancestors) in `this.SubscribeUntilExit(...)` so tree exit unhooks them. Do not use `SubscribeUntilExit` inside `_Ready()` on an `IPooledNode` for its own children (`ScenePool.Despawn` exits the tree and reuse does not re-run `_Ready()`).
+  - **Subscription lifetime (`SubscribeUntilExit`):** Wrap subscriptions to long-lived emitters (`SignalBus.Instance`, runtime `Resource`s, `SceneTree`, ancestors) in `this.SubscribeUntilExit(...)`. The subscription holds only while the node is in the tree: leaving unhooks it and re-entering (pool reuse, `Reparent`) restores it. Connect to a node's own children with a plain `+=` in `_Ready()`.
 - **Queries & Contracts:** Prefer C# interfaces (`IDamageable`, `IInteractive`, `IPlayerAction`) for type-safe contracts and local Godot group queries (`player`, `enemy`, `damageable`) over global registries or service-locator autoload lookups.
 
 ## Godot/C# & Mobile Renderer Gotchas
