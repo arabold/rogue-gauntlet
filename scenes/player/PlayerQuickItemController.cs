@@ -43,6 +43,7 @@ public partial class PlayerQuickItemController : Node
 		}
 
 		RefreshCounts();
+		SetProcess(_varietyCooldowns.Count > 0);
 	}
 
 	public QuickItemBinding GetBinding(int slotIndex)
@@ -234,6 +235,7 @@ public partial class PlayerQuickItemController : Node
 		if (string.IsNullOrEmpty(definitionPath) || duration <= 0) return;
 		_varietyCooldowns[definitionPath] = duration;
 		_varietyTotalCooldowns[definitionPath] = duration;
+		SetProcess(true);
 	}
 
 	public IReadOnlyDictionary<string, float> GetVarietyCooldowns() => _varietyCooldowns;
@@ -251,6 +253,7 @@ public partial class PlayerQuickItemController : Node
 				_varietyTotalCooldowns[kvp.Key] = kvp.Value;
 			}
 		}
+		SetProcess(_varietyCooldowns.Count > 0);
 	}
 
 	public void RefreshCounts()
@@ -297,7 +300,11 @@ public partial class PlayerQuickItemController : Node
 
 	public override void _Process(double delta)
 	{
-		if (_varietyCooldowns.Count == 0) return;
+		if (_varietyCooldowns.Count == 0)
+		{
+			SetProcess(false);
+			return;
+		}
 
 		_expiredVarietyKeys.Clear();
 		_activeKeys.Clear();
@@ -340,6 +347,11 @@ public partial class PlayerQuickItemController : Node
 					SignalBus.EmitCooldownUpdated(i, 0, 0);
 				}
 			}
+		}
+
+		if (_varietyCooldowns.Count == 0)
+		{
+			SetProcess(false);
 		}
 	}
 }

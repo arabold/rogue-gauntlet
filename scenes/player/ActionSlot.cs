@@ -25,6 +25,12 @@ public partial class ActionSlot : Node
 	private Player _actor;
 	private ActorActionLease _activeLease = ActorActionLease.None;
 
+	public override void _Ready()
+	{
+		SetProcess(false);
+		SetPhysicsProcess(false);
+	}
+
 	public void SetQuantity(int quantity)
 	{
 		Quantity = quantity;
@@ -38,6 +44,8 @@ public partial class ActionSlot : Node
 		ReleaseGateLease();
 		IsDelayed = IsPerformingAction = IsOnCooldown = false;
 		RemainingTime = 0;
+		SetProcess(false);
+		SetPhysicsProcess(false);
 		SlotIndex = slotIndex;
 		AssignedAction = action;
 		PreviewScene = previewScene;
@@ -107,6 +115,8 @@ public partial class ActionSlot : Node
 		var attackAction = action as ICombatAttackAction;
 		TotalDuration = delay + duration + cooldown;
 		RemainingTime = TotalDuration;
+		SetProcess(true);
+		SetPhysicsProcess(true);
 		SignalBus.EmitCooldownUpdated(SlotIndex, (float)RemainingTime, (float)TotalDuration);
 
 		if (delay > 0)
@@ -191,6 +201,8 @@ public partial class ActionSlot : Node
 		RemainingTime = 0;
 		_actor = null;
 		_activeLease = ActorActionLease.None;
+		SetProcess(false);
+		SetPhysicsProcess(false);
 		SignalBus.EmitCooldownUpdated(SlotIndex, 0, 0);
 	}
 

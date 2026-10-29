@@ -23,6 +23,11 @@ public partial class AttackSlotsComponent : Node
 	private readonly List<ulong> _freed = [];
 	private AttackSlotLedger Ledger => _ledger ??= new(Mathf.Max(0, MeleeSlots), Mathf.Max(0, RangedSlots), Mathf.Max(0, ReacquireDelay));
 
+	public override void _Ready()
+	{
+		SetPhysicsProcess(_attackers.Count > 0);
+	}
+
 	public bool CanReserve(Node3D attacker, AttackSlotKind kind) => Track(attacker, out ulong id) && Ledger.CanReserve(id, kind);
 
 	public bool TryReserve(Node3D attacker, AttackSlotKind kind)
@@ -67,13 +72,17 @@ public partial class AttackSlotsComponent : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (_ledger == null) return;
+		if (_ledger == null || _attackers.Count == 0)
+		{
+			SetPhysicsProcess(false);
+			return;
+		}
 		_ledger.Tick(delta);
-		if (_attackers.Count == 0) return;
 		_freed.Clear();
 		foreach (var (id, attacker) in _attackers)
 			if (!GodotObject.IsInstanceValid(attacker)) _freed.Add(id);
 		foreach (ulong id in _freed) Forget(id);
+		if (_attackers.Count == 0) SetPhysicsProcess(false);
 	}
 
 	private void Forget(ulong id)
@@ -88,6 +97,7 @@ public partial class AttackSlotsComponent : Node
 		if (attacker == null || !GodotObject.IsInstanceValid(attacker)) return false;
 		id = attacker.GetInstanceId();
 		_attackers[id] = attacker;
+		SetPhysicsProcess(true);
 		return true;
 	}
 }

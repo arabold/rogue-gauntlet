@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 public partial class Projectile : Node3D, IPooledNode
 {
+	private static readonly StringName PositionKey = "position";
+	private static readonly StringName NormalKey = "normal";
+	private static readonly StringName ColliderKey = "collider";
+
 	private const uint WorldLayer = 1 << 0;
 	private const uint WallsLayer = 1 << 1;
 	private const uint PlayerLayer = 1 << 2;
@@ -223,8 +227,8 @@ public partial class Projectile : Node3D, IPooledNode
 			return false;
 		}
 
-		hitPosition = result["position"].AsVector3();
-		hitNormal = result["normal"].AsVector3();
+		hitPosition = result[PositionKey].AsVector3();
+		hitNormal = result[NormalKey].AsVector3();
 		return true;
 	}
 
@@ -289,7 +293,7 @@ public partial class Projectile : Node3D, IPooledNode
 		{
 			foreach (Godot.Collections.Dictionary result in space.IntersectShape(_impactQuery, 32))
 			{
-				Node collider = result["collider"].As<Node>();
+				Node collider = result[ColliderKey].As<Node>();
 				if (!TryGetDamageTarget(collider, out Node damageOwner, out IDamageable damageable))
 				{
 					continue;

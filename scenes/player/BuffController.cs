@@ -9,6 +9,7 @@ using System.Linq;
 /// followed by a poison potion) read as one continuous condition. Observers re-read what they need on
 /// <see cref="BuffsChanged"/>.
 /// </summary>
+[GlobalClass]
 public partial class BuffController : Node
 {
 	/// <summary>Fired once after buffs were applied, removed, expired or cleared.</summary>
@@ -21,6 +22,7 @@ public partial class BuffController : Node
 	public override void _Ready()
 	{
 		Player ??= GetOwner<Player>();
+		SetPhysicsProcess(ActiveBuffs.Count > 0);
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -47,6 +49,7 @@ public partial class BuffController : Node
 		ActiveBuffs.Add(activeBuff);
 
 		AddChild(activeBuff);
+		SetPhysicsProcess(true);
 		EmitSignalBuffsChanged();
 	}
 
@@ -90,6 +93,11 @@ public partial class BuffController : Node
 			RemoveChild(activeBuff);
 			activeBuff.QueueFree();
 			removed = true;
+		}
+
+		if (ActiveBuffs.Count == 0)
+		{
+			SetPhysicsProcess(false);
 		}
 
 		return removed;

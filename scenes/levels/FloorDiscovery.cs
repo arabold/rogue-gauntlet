@@ -21,6 +21,7 @@ public partial class FloorDiscovery : Node3D
 
 	private const double PollSeconds = 0.1;
 	private static readonly StringName ElapsedParameter = "elapsed";
+	private static readonly StringName PlayerGroup = "player";
 
 	private GeneratedFloor _floor;
 	private DungeonDiscovery _model;
@@ -91,7 +92,7 @@ public partial class FloorDiscovery : Node3D
 		_fadeUntil = 0;
 		_refresh = true;
 		_untilPoll = 0;
-		_player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
+		_player = GetTree().GetFirstNodeInGroup(PlayerGroup) as Player;
 		CreateSurface();
 	}
 

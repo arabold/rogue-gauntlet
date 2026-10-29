@@ -8,6 +8,7 @@ using System;
 /// </summary>
 public partial class LootableItem : Node3D
 {
+	private static readonly StringName PlayerGroup = "player";
 	/// <summary>
 	/// The item to be picked up.
 	/// </summary>
@@ -155,7 +156,7 @@ public partial class LootableItem : Node3D
 
 		if (_player == null || !GodotObject.IsInstanceValid(_player))
 		{
-			_player = GetTree().GetFirstNodeInGroup("player") as Player;
+			_player = GetTree().GetFirstNodeInGroup(PlayerGroup) as Player;
 			if (_player == null)
 			{
 				return;
