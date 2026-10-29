@@ -51,13 +51,15 @@ Godot typically handles C# compilation automatically when you run the project fr
 
 The project follows a few core principles:
 
-- **Component-Based Design:** Functionality is built using Godot Nodes and attached C# scripts (components).
-- **Event-Driven Communication:** Systems communicate primarily through a central `SignalBus`.
+- **Composition, Strategy & Factory:** Actors and props are built by composing `[GlobalClass]` child `Node` components, varying behavior via `[GlobalClass] Resource` strategies, and cloning runtime state from immutable `.tres`/`.tscn` definitions.
+- **Editor-First `[Export]` Authoring:** Tunable attributes, actor states, and `Node`/`Resource` dependencies are exposed as `[Export]` `{ get; set; }` properties with reactive setters so they can be configured directly in the Godot Inspector and Remote Scene Tree.
+- **Three-Tier Notification Model:** `[Signal]` delegates for local component events, `ObservableResource` (`Changed`) for observed runtime resources, and `SignalBus` (with `SubscribeUntilExit`) for decoupled cross-system broadcasts.
 
 Key directories include:
 
-- `/scenes`: Contains Godot scene files (`.tscn`).
-- `/scripts`: Holds core C# logic, singletons, and base classes.
+- `/scenes`: Contains Godot scene files (`.tscn`), `.tres` resources, and feature-grouped C# component scripts.
+- `/scripts` & `/common`: Hold core C# infrastructure (`SignalBus`, `GameSession`, `ScenePool`, `ObservableResource`), interfaces, and save codecs.
+- `/tests`: Contains GdUnit4 C# test suites (`dotnet test "Rogue Gauntlet.csproj" --settings .runsettings`).
 - `/assets`: Stores art, sound, models, etc.
 - `/asset-studio`: Authoring tools and recipes for characters, monsters, and standalone 3D items. See the [Asset Studio guide](asset-studio/README.md) for AI references, Blender authoring, previews, and export. Gameplay definitions are authored separately.
 
@@ -67,14 +69,14 @@ For a detailed explanation of the architecture, core systems, design patterns, a
 
 A typical workflow for adding a new feature might involve:
 
-1.  Creating or modifying scenes in `/scenes`.
-2.  Writing or updating C# component scripts in `/scripts` or alongside scenes.
-3.  Connecting components and systems using the `SignalBus` where appropriate.
-4.  Testing the changes within the Godot editor.
+1.  Creating or modifying scenes and `.tres` resources in `/scenes`.
+2.  Writing or updating `[GlobalClass]` C# component or strategy scripts with `[Export]` properties.
+3.  Connecting local components via `[Signal]` delegates, runtime resources via `ObservableResource`, and cross-system listeners via `SignalBus`.
+4.  Verifying compilation (`dotnet build "Rogue Gauntlet.sln"`) and running GdUnit4 tests or editor smoke checks.
 
 ### Coding Conventions
 
-Please adhere to the coding style defined in the `.editorconfig` file. C# code generally follows standard .NET conventions. Refer to `AGENTS.md` and the contribution guidelines in **[ARCHITECTURE.md](./ARCHITECTURE.md)** for any project-specific rules.
+Please adhere to the coding style defined in the `.editorconfig` file. Refer to [`AGENTS.md`](./AGENTS.md), the [`godot-csharp` skill](./.agents/skills/godot-csharp/SKILL.md), and the contribution guidelines in **[ARCHITECTURE.md](./ARCHITECTURE.md)** for project-specific Godot 4.7 C# rules.
 
 ## Architecture
 
