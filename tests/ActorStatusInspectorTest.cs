@@ -26,6 +26,10 @@ public partial class ActorStatusInspectorTest
 				AssertBool(actor.Get(property).AsBool()).IsTrue();
 			var controller = actor.GetNode<BuffController>("BuffController");
 			var cloak = actor.GetNode<InvisibilityComponent>("InvisibilityComponent");
+			AssertObject(cloak.Target).IsSame(actor.GetNode<Node3D>("Pivot"));
+			AssertObject(cloak.Effect.Scene).IsNotNull();
+			AssertObject(cloak.Host).IsNotNull();
+			AssertObject(cloak.Statuses).IsSame(controller);
 			AssertBool(cloak.IsInvisible).IsTrue();
 			AssertInt(controller.ActiveBuffs.Count).IsEqual(4);
 			AssertBool(actor.GetNode<FrozenStatusComponent>("FrozenStatusComponent").ActionGate.IsStatusLocked).IsTrue();

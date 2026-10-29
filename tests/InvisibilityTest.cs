@@ -109,19 +109,5 @@ public class InvisibilityTest
 		host.SetSustained(second, definition, false, 42, immediate: true);
 		AssertBool(host.SurfaceController.HasCloak).IsFalse(); AssertInt(host.ActiveInstanceCount).IsEqual(0);
 	}
-	[TestCase]
-	public void PlayerAndAllMonsterAssembliesExplicitlyAssignTheSharedComponent()
-	{
-		foreach (string path in new[] { "player/player", "enemies/skeleton/skeleton_minion", "enemies/skeleton/skeleton_warrior",
-			"enemies/skeleton/skeleton_crossbow", "enemies/rat/rat", "enemies/forsaken_warden/forsaken_warden",
-			"enemies/templates/melee_enemy", "enemies/templates/projectile_enemy" })
-		{
-			var actor = GD.Load<PackedScene>($"res://scenes/{path}.tscn").Instantiate<Node3D>();
-			actor.ProcessMode = Node.ProcessModeEnum.Disabled;
-			TestFactories.AddToSceneTree(actor);
-			var cloak = actor.GetNode<InvisibilityComponent>("InvisibilityComponent");
-			AssertObject(cloak.Target).IsSame(actor.GetNode<Node3D>("Pivot"));
-			AssertObject(cloak.Effect.Scene).IsNotNull(); AssertObject(cloak.Host).IsNotNull(); AssertObject(cloak.Statuses).IsNotNull(); AssertBool(cloak.IsInvisible).IsFalse();
-		}
-	}
+	// Every actor assembly's cloak wiring is checked with its other statuses in ActorStatusInspectorTest.
 }

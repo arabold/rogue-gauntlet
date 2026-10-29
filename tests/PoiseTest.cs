@@ -242,6 +242,51 @@ public class PoiseTest
 		AssertBool(player.MovementComponent.IsPushed).IsTrue();
 	}
 
+	private sealed class FixedDefense(DamageOutcome outcome) : IDefenseEvaluator
+	{
+		public bool TryEvaluate(in DamageContext contact, out DefenseEvaluation evaluation)
+		{
+			evaluation = new DefenseEvaluation(outcome, 1, false, true);
+			return true;
+		}
+	}
+
+	[TestCase]
+	public async Task ForcedDisplacementMovesOnlyContactsThatLand()
+	{
+		var harness = await LoadHarness();
+		var player = harness.Player;
+		var hurtbox = player.HurtBoxComponent;
+		// Defenses only answer contacts that declare them, as every spell contact does.
+		var push = Contact(1, 0, knockback: 0) with { ForcedPush = 2, DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable };
+		bool Pushes(DamageContext contact)
+		{
+			player.MovementComponent.ResetTransientMotion();
+			hurtbox.Armor = 0;
+			hurtbox.ResolveDamage(contact);
+			return player.MovementComponent.IsPushed;
+		}
+
+		AssertBool(Pushes(push)).IsTrue();
+		AssertBool(Pushes(push with { Amount = 0 })).OverrideFailureMessage("A fully absorbed contact still lands").IsTrue();
+		foreach (var outcome in new[] { DamageOutcome.Blocked, DamageOutcome.GuardBroken, DamageOutcome.Dodged, DamageOutcome.Parried })
+		{
+			var defense = new FixedDefense(outcome);
+			hurtbox.RegisterDefenseEvaluator(defense);
+			AssertBool(Pushes(push)).OverrideFailureMessage($"{outcome} contact pushed").IsFalse();
+			hurtbox.UnregisterDefenseEvaluator(defense);
+		}
+		hurtbox.Invulnerable = true;
+		AssertBool(Pushes(push)).OverrideFailureMessage("Invulnerable contact pushed").IsFalse();
+		hurtbox.Invulnerable = false;
+		var filter = hurtbox.DamageFilter;
+		hurtbox.DamageFilter = DamageSourceFlags.Player;
+		AssertBool(Pushes(push)).OverrideFailureMessage("Filtered contact pushed").IsFalse();
+		hurtbox.DamageFilter = filter;
+		player.HealthComponent.SetHealth(1, 100);
+		AssertBool(Pushes(push with { Amount = 5 })).OverrideFailureMessage("Lethal contact pushed").IsFalse();
+	}
+
 	[TestCase]
 	public async Task HeavyMeleeSpecialAndAirStaffForcePushback()
 	{

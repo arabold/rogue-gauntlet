@@ -1,5 +1,6 @@
 namespace RogueGauntlet.Tests;
 
+using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using GdUnit4;
@@ -29,17 +30,13 @@ public static class TestFactories
 		return runner.Scene().GetNode<CombatHarness>("Instructions");
 	}
 
-	/// <summary>Select and queue a spell through the harness controls.</summary>
-	public static void CastHarnessSpell(CombatHarness harness, string name, int level)
-	{
-		var spells = harness.GetNode<OptionButton>("%Controls/Spell");
-		int index = -1;
-		for (int i = 0; i < spells.ItemCount; i++) if (spells.GetItemText(i) == name) { index = i; break; }
-		if (index < 0) throw new System.InvalidOperationException($"Harness spell {name} is unavailable.");
-		spells.Select(index); spells.EmitSignal(OptionButton.SignalName.ItemSelected, (long)index);
-		harness.GetNode<OptionButton>("%Controls/SpellLevel").Select(level - 1);
-		harness.GetNode<Button>("%Controls/CastSpell").EmitSignal(Button.SignalName.Pressed);
-	}
+	/// <summary>One of the harness's spell components, found by its authored name.</summary>
+	public static T GetSpell<T>(CombatHarness harness, string name) where T : class, ICombatSpell =>
+		harness.SpellComponents.OfType<T>().Single(spell => spell.DisplayName == name);
+
+	/// <summary>Casts a harness spell as the player, the same call the harness's cast button queues.</summary>
+	public static bool CastSpell(CombatHarness harness, string name, int level, ulong seed = 1) =>
+		GetSpell<ICombatSpell>(harness, name).Cast(harness.Player, level, new RandomNumberGenerator { Seed = seed });
 
 	/// <summary>Create an inert real monster for area-contact tests.</summary>
 	public static EnemyBase SpawnCombatMonster(Node root, Vector3 position, string name)

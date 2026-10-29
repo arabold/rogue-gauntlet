@@ -138,6 +138,26 @@ public partial class StatusConditionTest
 	}
 
 	[TestCase]
+	public void AStatusLastsUntilItsLastSourceReleasesIt()
+	{
+		(BuffController controller, _) = NewController();
+		var condition = new StatusCondition();
+		object first = new(), second = new();
+		AssertBool(controller.ApplyStatus(condition, first, 5)).IsTrue();
+		AssertBool(controller.ApplyStatus(condition, first, 8)).IsTrue();
+		AssertInt(controller.ActiveBuffs.Count).IsEqual(1);
+		AssertFloat(controller.ActiveBuffs[0].RemainingDuration).IsEqual(8);
+		AssertBool(controller.ApplyStatus(condition, second, 3)).IsTrue();
+		AssertInt(controller.ActiveBuffs.Count).IsEqual(2);
+
+		controller.RemoveStatuses(first);
+		AssertBool(controller.HasStatusFrom(first)).IsFalse();
+		AssertBool(controller.HasCondition(condition)).IsTrue();
+		controller.RemoveStatuses(second);
+		AssertBool(controller.HasCondition(condition)).IsFalse();
+	}
+
+	[TestCase]
 	public void ReapplicationAfterExpiryCreatesALiveActivation()
 	{
 		(BuffController controller, _) = NewController();
