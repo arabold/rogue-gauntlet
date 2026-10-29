@@ -21,7 +21,7 @@ void fragment() {
 	vec2 flow = vec2(cos(angle), sin(angle)) * 2.2 + vec2(r * 1.3 + TIME * 0.5, -r * 0.9 + TIME * 0.2);
 	float n = texture(noise_texture, flow).r * 0.65 + texture(noise_texture, flow * 1.7 + vec2(-TIME * 0.3, 0.4)).g * 0.35;
 	float wave = 1.0 - abs(r - front + (n - 0.5) * 0.06) / 0.04;
-	float swoosh = (sin(angle * 9.0 + r * 14.0 - TIME * 4.0 + n * 3.0) - 0.84) / 0.16
+	float swoosh = toon_crest(sin(angle * 9.0 + r * 14.0 - TIME * 4.0 + n * 3.0), 0.16)
 		* step(r, front - 0.03) * smoothstep(0.35, 0.6, n);
 	float fade = (1.0 - smoothstep(0.55, 1.0, progress)) * effect_fade;
 	float body = max(wave, swoosh * 0.9) - (1.0 - fade);

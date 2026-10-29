@@ -54,9 +54,8 @@ mat4 toon_billboard(mat4 model, mat4 inverse_view, float spin) {
 }
 
 // Gap between the nearest and second-nearest points of a jittered cell grid: ~0 along cell borders, so a
-// threshold draws a web of straight lines. A non-zero time drifts the points (water caustics); zero keeps
-// them still (ice cracks).
-float toon_cell_border(vec2 p, float time) {
+// threshold draws a web of straight lines, such as the plates of cracked ice.
+float toon_cell_border(vec2 p) {
 	vec2 cell = floor(p);
 	vec2 f = fract(p);
 	float d1 = 8.0;
@@ -64,9 +63,8 @@ float toon_cell_border(vec2 p, float time) {
 	for (int y = -1; y <= 1; y++) {
 		for (int x = -1; x <= 1; x++) {
 			vec2 o = vec2(float(x), float(y));
-			float h = toon_hash3(vec3(cell + o, 3.7));
-			float k = toon_hash3(vec3(cell + o, 9.1));
-			vec2 d = o + 0.5 + 0.4 * vec2(sin(time * (0.8 + h) + h * 6.28), cos(time * (0.7 + k) + k * 6.28)) - f;
+			vec2 jitter = vec2(toon_hash3(vec3(cell + o, 3.7)), toon_hash3(vec3(cell + o, 9.1))) - 0.5;
+			vec2 d = o + 0.5 + jitter * 0.8 - f;
 			float dist = dot(d, d);
 			if (dist < d1) { d2 = d1; d1 = dist; }
 			else if (dist < d2) { d2 = dist; }

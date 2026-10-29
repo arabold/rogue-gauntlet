@@ -1,10 +1,8 @@
-[gd_scene load_steps=35 format=3]
+[gd_scene load_steps=33 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/fireball/FireballImpact.cs" id="impact"]
 [ext_resource type="Shader" path="res://scenes/magic/fireball/impact_flame.gdshader" id="flame_shader"]
-[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_card.gdshader" id="particle_shader"]
 [ext_resource type="Shader" path="res://scenes/magic/fireball/impact_ring.gdshader" id="ring_shader"]
-[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_spark.gdshader" id="spark_shader"]
 [ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/scorch.svg" id="scorch"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/scorch_glow.svg" id="scorch_glow"]

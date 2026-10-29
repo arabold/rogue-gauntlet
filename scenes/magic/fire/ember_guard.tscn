@@ -1,11 +1,10 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Script" path="res://scenes/magic/fire/FireGuardMotion.cs" id="motion"]
 [ext_resource type="Script" path="res://scenes/magic/fire/FireSpellVisual.cs" id="script"]
 [ext_resource type="Shader" path="res://scenes/magic/fire/toon_guard.gdshader" id="flame"]
 [ext_resource type="Shader" path="res://scenes/magic/fire/guard_trails.gdshader" id="trail"]
-[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_spark.gdshader" id="spark_shader"]
 [ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_fire_ramp.tres" id="fire_ramp"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_spark_life.tres" id="spark_life"]

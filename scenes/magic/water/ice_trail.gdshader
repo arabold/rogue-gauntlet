@@ -8,7 +8,6 @@ render_mode unshaded, blend_mix, cull_disabled, depth_draw_never, shadows_disabl
 uniform sampler2D noise_texture : repeat_enable, filter_linear;
 uniform sampler2D color_ramp : source_color, filter_nearest, repeat_disable;
 uniform float effect_fade = 1.0;
-uniform float progress = 0.0;
 uniform float brightness = 1.2;
 
 void fragment() {

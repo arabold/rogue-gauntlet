@@ -35,7 +35,7 @@ public partial class VisualEffectTimeline : Node
 	public override void _Ready()
 	{
 		ProcessPriority = -1;
-		_flickerSeed = GetInstanceId() % 997;
+		_flickerSeed = SpellLightFlicker.Seed(this);
 		_materials = new ShaderMaterial[Surfaces.Length];
 		for (int i = 0; i < Surfaces.Length; i++)
 		{
@@ -83,14 +83,9 @@ public partial class VisualEffectTimeline : Node
 	}
 	private void ApplyLights(float opacity)
 	{
+		float curve = LightCurve?.Sample(Progress) ?? 1f;
 		for (int i = 0; i < Lights.Length; i++)
-		{
-			float curve = LightCurve?.Sample(Progress) ?? 1f;
-			float flicker = SpellLightFlicker.Sample(LightFlicker, Elapsed, _flickerSeed + i);
-			Lights[i].LightEnergy = _lightEnergy[i] * opacity * _lightMultiplier * (_flash ? curve : Mathf.Min(curve, 1f)) * flicker;
-			// A zero-energy light still costs per-object light culling, so it stays hidden until it contributes.
-			Lights[i].Visible = Lights[i].LightEnergy > 0.001f;
-		}
+			SpellLightFlicker.Apply(Lights[i], _lightEnergy[i] * opacity * _lightMultiplier, curve, _flash, LightFlicker, Elapsed, _flickerSeed + i);
 	}
 
 	public override void _Process(double delta)

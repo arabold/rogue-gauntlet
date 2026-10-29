@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scenes/debug/effects/WaterSpellPreview.cs" id="preview"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="player"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://scenes/debug/stage/debug_stage.tscn" id="debug_stage"]
 [ext_resource type="PackedScene" path="res://scenes/magic/water/ice_lance.tscn" id="lance"]
 [ext_resource type="PackedScene" path="res://scenes/magic/water/frost_nova.tscn" id="nova"]
+[ext_resource type="Resource" path="res://scenes/magic/water/frost_nova_definition.tres" id="nova_definition"]
 [ext_resource type="PackedScene" path="res://scenes/magic/water/frost_guard.tscn" id="guard0"]
 [ext_resource type="PackedScene" path="res://scenes/magic/water/ice_wall.tscn" id="ice_wall"]
 [ext_resource type="Resource" path="res://scenes/magic/water/ice_wall_combat.tres" id="ice_wall_definition"]
@@ -35,6 +36,7 @@ Lighting = NodePath("WorldEnvironment")
 KeyLight = NodePath("DirectionalLight3D")
 LanceScene = ExtResource("lance")
 NovaScene = ExtResource("nova")
+NovaDefinition = ExtResource("nova_definition")
 HailstormScene = ExtResource("hailstorm")
 HailstormDefinition = ExtResource("hailstorm_definition")
 GuardScene = ExtResource("guard0")

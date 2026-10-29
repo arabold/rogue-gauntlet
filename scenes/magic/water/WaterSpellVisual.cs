@@ -1,11 +1,12 @@
 using Godot;
 
 /// <summary>Configures a composed ice or water effect without owning gameplay state.</summary>
-public partial class WaterSpellVisual : VisualEffectInstance, IGuardVisual
+public partial class WaterSpellVisual : VisualEffectInstance, IGuardVisual, IAreaSpellVisual
 {
 	[Export] public CrystalField Crystals { get; set; }
 	[Export] public HailstormVisual Hailstorm { get; set; }
 	[Export] public bool Area { get; set; }
+	[Export] public float AreaRadiusAtUnitScale { get; set; } = 4.375f;
 	/// <summary>
 	/// Moves the crystal ring out to the gameplay radius at its authored crystal size instead of scaling the whole
 	/// visual, so a wall stays the same height however large its ring is.
@@ -22,20 +23,19 @@ public partial class WaterSpellVisual : VisualEffectInstance, IGuardVisual
 	{
 		int tier = Mathf.Clamp(level, 1, 3);
 		Crystals?.ConfigureLevel(tier);
-		if (Area)
-		{
-			SetAreaRadius(3.5f + (tier - 1) * 1.5f);
-		}
 		Hailstorm?.ConfigureLevel(tier);
 	}
-	/// <summary>Aligns the area visual to its gameplay radius; call it before the visual enters the tree.</summary>
-	public void SetAreaRadius(float radius)
+	/// <summary>Configures the level and sizes an area visual to its gameplay radius, before it enters the tree.</summary>
+	public bool ConfigureArea(int level, float radius)
 	{
-		if (!Area || !float.IsFinite(radius) || radius <= 0) return;
+		if (!Area || !float.IsFinite(radius) || radius <= 0 || !float.IsFinite(AreaRadiusAtUnitScale) || AreaRadiusAtUnitScale <= 0) return false;
+		ConfigureLevel(level);
 		PreviewRadius = radius;
 		if (RingAtRadius && Crystals != null) Crystals.Radius = Crystals.InnerRadius = radius;
-		else Scale = Vector3.One * (radius / 4.375f);
+		else Scale = Vector3.One * (radius / AreaRadiusAtUnitScale);
+		return true;
 	}
+	public void SetAreaVisibility(AreaVisibility visibility) => SetVisibility(visibility);
 	public override void SetVisibility(AreaVisibility visibility)
 	{
 		base.SetVisibility(visibility);

@@ -21,7 +21,7 @@ void fragment() {
 	vec2 flow = vec2(UV.x * 4.0 - TIME * 0.7, UV.y * 1.3 + TIME * 0.4);
 	float n = texture(noise_texture, flow).r * 0.65 + texture(noise_texture, flow * 1.8 + vec2(TIME * 0.2, 0.3)).g * 0.35;
 	float height = smoothstep(0.0, 0.18, UV.y) * (1.0 - smoothstep(0.55, 1.0, UV.y));
-	float streak = (sin(UV.y * 22.0 + n * 6.0 - UV.x * 9.0) - 0.8) / 0.2 * smoothstep(0.4, 0.62, n);
+	float streak = toon_crest(sin(UV.y * 22.0 + n * 6.0 - UV.x * 9.0), 0.2) * smoothstep(0.4, 0.62, n);
 	float body = streak * height - (1.0 - effect_fade);
 	if (body <= 0.0) discard;
 	vec3 color = toon_ramp(color_ramp, 0.4 + body * 0.6);

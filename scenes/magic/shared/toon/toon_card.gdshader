@@ -27,9 +27,9 @@ void vertex() {
 }
 
 void fragment() {
-	if (area_is_blocked(VERTEX, INV_VIEW_MATRIX)) discard;
 	float radius = length((UV - 0.5) * 2.0);
 	if (radius >= 1.0) discard;
+	if (area_is_blocked(VERTEX, INV_VIEW_MATRIX)) discard;
 	float n = texture(noise_texture, UV * noise_scale + vec2(seed * 0.37, seed * 0.11 - TIME * scroll_speed)).r;
 	float shape = ((1.0 - radius) * 1.2 + (n - 0.5) * 0.9) * (1.0 - smoothstep(0.8, 1.0, radius));
 	float eroded = shape - (1.0 - COLOR.a * effect_fade);

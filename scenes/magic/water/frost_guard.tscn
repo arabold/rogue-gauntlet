@@ -1,47 +1,28 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/water/WaterSpellVisual.cs" id="root"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Script" path="res://scenes/magic/shared/CrystalField.cs" id="crystals"]
-[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_shell.gdshader" id="water"]
-[ext_resource type="Shader" path="res://scenes/magic/water/ice_crystal.gdshader" id="ice"]
-[ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
-[ext_resource type="Texture2D" path="res://scenes/magic/water/toon_ice_ramp.tres" id="ice_ramp"]
-[sub_resource type="ShaderMaterial" id="water_material"]
-shader = ExtResource("water")
-shader_parameter/noise_texture = ExtResource("noise")
-shader_parameter/color_ramp = ExtResource("ice_ramp")
-shader_parameter/flow_scale = Vector2(2.8, 2)
-shader_parameter/flow_speed = Vector2(0.15, -0.22)
-shader_parameter/band_frequency = 13.0
-shader_parameter/band_speed = 1.4
-shader_parameter/band_warp = 1.5
-shader_parameter/swirl_frequency = 12.566
-shader_parameter/swirl_speed = 0.9
-shader_parameter/swirl_amount = 1.1
-shader_parameter/band_width = 0.1
-shader_parameter/brightness = 1.2
+[ext_resource type="Material" path="res://scenes/magic/water/toon_ice_crystal.tres" id="ice_crystal_material"]
+[ext_resource type="Material" path="res://scenes/magic/water/toon_ice_shell.tres" id="ice_shell_material"]
 [sub_resource type="SphereMesh" id="sphere"]
 radius = 1.6
 height = 3.2
 radial_segments = 24
 rings = 12
-[sub_resource type="ShaderMaterial" id="ice_material"]
-shader = ExtResource("ice")
-shader_parameter/color_ramp = ExtResource("ice_ramp")
 [node name="FrostGuard" type="Node3D" node_paths=PackedStringArray("Timeline", "Crystals")]
 script = ExtResource("root")
 Timeline = NodePath("Timeline")
 Crystals = NodePath("Crystals")
 [node name="WaterShell" type="MeshInstance3D" parent="."]
 position = Vector3(0, 1.1, 0)
-material_override = SubResource("water_material")
+material_override = ExtResource("ice_shell_material")
 cast_shadow = 0
 mesh = SubResource("sphere")
 [node name="Crystals" type="Node3D" parent="." node_paths=PackedStringArray("Timeline")]
 script = ExtResource("crystals")
 Timeline = NodePath("../Timeline")
-CrystalMaterial = SubResource("ice_material")
+CrystalMaterial = ExtResource("ice_crystal_material")
 Layout = 1
 BaseCount = 30
 AdditionalPerLevel = 12

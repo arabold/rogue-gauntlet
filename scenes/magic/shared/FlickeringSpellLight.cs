@@ -11,7 +11,7 @@ public partial class FlickeringSpellLight : OmniLight3D
 	public override void _Ready()
 	{
 		_energy = LightEnergy;
-		_seed = GetInstanceId() % 997;
+		_seed = SpellLightFlicker.Seed(this);
 	}
 
 	public override void _Process(double delta)

@@ -12,6 +12,7 @@ public enum CrystalLayout { Ring, Sphere }
 /// </summary>
 public partial class CrystalField : Node3D
 {
+	private static readonly StringName EffectFadeKey = "effect_fade";
 	[Export] public ShaderMaterial CrystalMaterial { get; set; }
 	[Export] public VisualEffectTimeline Timeline { get; set; }
 	[Export] public CrystalLayout Layout { get; set; }
@@ -37,7 +38,8 @@ public partial class CrystalField : Node3D
 	private readonly List<float> _delays = [];
 	private ShaderMaterial _material;
 	private MultiMesh _crystals;
-	private float _seed;
+	private float _settledAt;
+	private bool _holding;
 	private int _level = 1;
 
 	public void ConfigureLevel(int level) => _level = Mathf.Clamp(level, 1, 3);
@@ -45,7 +47,7 @@ public partial class CrystalField : Node3D
 	{
 		if (CrystalMaterial?.Shader == null || Timeline == null) { GD.PushError("Crystal field requires an assigned crystal material and timeline."); SetProcess(false); return; }
 		_material = (ShaderMaterial)CrystalMaterial.Duplicate();
-		_seed = GetInstanceId() % 997;
+		var random = new RandomNumberGenerator { Seed = GetInstanceId() };
 		int groups = BaseCount + AdditionalPerLevel * (_level - 1);
 		int cluster = Layout == CrystalLayout.Ring ? Mathf.Max(ClusterSize, 1) : 1;
 		_crystals = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, Mesh = FacetedSpikeMesh.Create(new Vector3(Width, 1, Width), 1.7f, _material), InstanceCount = groups * cluster };
@@ -57,12 +59,13 @@ public partial class CrystalField : Node3D
 			Transform3D origin = Layout == CrystalLayout.Sphere ? SphereCrystal(group, groups) : RingCrystal(group, groups, order);
 			for (int member = 0; member < cluster; member++)
 			{
-				Transform3D rest = origin * ClusterMember(group, member, cluster, height);
+				Transform3D rest = origin * ClusterMember(member, cluster, height, random);
 				_rest.Add(rest); _delays.Add(order * SpreadTime + member * .04f);
+				_settledAt = Mathf.Max(_settledAt, _delays[^1] + GrowTime);
 				_crystals.SetInstanceTransform(_rest.Count - 1, new Transform3D(Basis.FromScale(Vector3.Zero), rest.Origin));
 			}
 		}
-		_material.SetShaderParameter("effect_fade", 0f);
+		_material.SetShaderParameter(EffectFadeKey, 0f);
 	}
 	private Transform3D RingCrystal(int i, int count, float order)
 	{
@@ -83,24 +86,27 @@ public partial class CrystalField : Node3D
 	/// A crystal's place within its cluster, scaled to its height: the first stands tall at the centre (its height
 	/// varying by cluster), the rest are shorter and lean out from its foot like a natural ice crystal cluster.
 	/// </summary>
-	private Transform3D ClusterMember(int group, int member, int size, float height)
+	private Transform3D ClusterMember(int member, int size, float height, RandomNumberGenerator random)
 	{
-		if (member == 0) return new Transform3D(Basis.FromScale(new Vector3(1, height * Mathf.Lerp(.6f, 1.15f, Hash(group, 1)), 1)), Vector3.Zero);
-		float around = Mathf.Tau * (member - 1) / (size - 1) + Hash(group, member + 7) * 1.4f;
+		if (member == 0) return new Transform3D(Basis.FromScale(new Vector3(1, height * random.RandfRange(.6f, 1.15f), 1)), Vector3.Zero);
+		float around = Mathf.Tau * (member - 1) / (size - 1) + random.RandfRange(0, 1.4f);
 		Vector3 side = new(Mathf.Cos(around), 0, Mathf.Sin(around));
-		var lean = new Basis(Vector3.Up.Cross(side).Normalized(), Mathf.Lerp(.3f, .75f, Hash(group, member + 13)));
-		var scale = Basis.FromScale(new Vector3(.75f, height * Mathf.Lerp(.3f, .65f, Hash(group, member + 19)), .75f));
+		var lean = new Basis(Vector3.Up.Cross(side).Normalized(), random.RandfRange(.3f, .75f));
+		var scale = Basis.FromScale(new Vector3(.75f, height * random.RandfRange(.3f, .65f), .75f));
 		return new Transform3D(lean * new Basis(Vector3.Up, around * 2.3f) * scale, side * Width * 1.1f);
 	}
-	private float Hash(int group, int salt) => Mathf.PosMod(Mathf.Sin(group * 12.9898f + salt * 78.233f + _seed) * 43758.547f, 1f);
 	public void SetVisibility(AreaVisibility visibility) { if (_material != null) visibility.Apply(_material); }
 	public override void _Process(double delta)
 	{
 		if (!Timeline.Started) return;
 		float elapsed = Timeline.Elapsed;
 		bool sustained = Timeline.Sustained;
-		_material.SetShaderParameter("effect_fade", Timeline.Opacity);
+		_material.SetShaderParameter(EffectFadeKey, Timeline.Opacity);
 		if (sustained) RotateY((float)delta * RotationSpeed);
+		// Between full growth and the final shrink a timed field holds still, so its transforms need no rewrite.
+		bool holding = !sustained && elapsed >= _settledAt && elapsed < Timeline.Duration - ShrinkTime;
+		if (holding && _holding) return;
+		_holding = holding;
 		float shrink = sustained ? 1f : 1f - Mathf.SmoothStep(Timeline.Duration - ShrinkTime, Timeline.Duration, elapsed);
 		for (int i = 0; i < _rest.Count; i++)
 		{

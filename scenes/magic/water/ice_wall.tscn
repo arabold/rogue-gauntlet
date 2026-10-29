@@ -1,13 +1,9 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/water/WaterSpellVisual.cs" id="root"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Script" path="res://scenes/magic/shared/CrystalField.cs" id="crystals"]
-[ext_resource type="Shader" path="res://scenes/magic/water/ice_crystal.gdshader" id="ice"]
-[ext_resource type="Texture2D" path="res://scenes/magic/water/toon_ice_ramp.tres" id="ice_ramp"]
-[sub_resource type="ShaderMaterial" id="ice_material"]
-shader = ExtResource("ice")
-shader_parameter/color_ramp = ExtResource("ice_ramp")
+[ext_resource type="Material" path="res://scenes/magic/water/toon_ice_crystal.tres" id="ice_crystal_material"]
 [sub_resource type="Curve" id="eruption_light"]
 max_value = 5.0
 _data = [Vector2(0, 2.5), 0.0, 0.0, 0, 0, Vector2(0.05, 1), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
@@ -22,7 +18,7 @@ RingAtRadius = true
 [node name="Crystals" type="Node3D" parent="." node_paths=PackedStringArray("Timeline")]
 script = ExtResource("crystals")
 Timeline = NodePath("../Timeline")
-CrystalMaterial = SubResource("ice_material")
+CrystalMaterial = ExtResource("ice_crystal_material")
 BaseCount = 26
 AdditionalPerLevel = 5
 ClusterSize = 4

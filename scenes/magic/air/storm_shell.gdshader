@@ -2,12 +2,11 @@ shader_type spatial;
 render_mode unshaded, blend_add, cull_back, depth_draw_never, shadows_disabled;
 #include "res://scenes/magic/area_visibility.gdshaderinc"
 #include "res://scenes/magic/shared/toon/toon.gdshaderinc"
+#include "res://scenes/magic/air/lightning.gdshaderinc"
 
 // Living storm shell for guards and lightning orbs: a soft electric rim, a flickering web of thin
 // veins and a few thick crawling arcs, each a hot white core blending into blue glow. Arcs and veins
 // re-strike several times a second; intensity adds arcs. The centre stays mostly clear.
-uniform vec4 core_color : source_color = vec4(0.95, 0.99, 1.0, 1.0);
-uniform vec4 glow_color : source_color = vec4(0.25, 0.6, 1.0, 1.0);
 uniform float effect_fade = 1.0;
 uniform float intensity = 1.0;
 uniform float brightness = 2.0;
@@ -41,8 +40,8 @@ void fragment() {
 	glow = max(glow, max(vein * 0.8, rim * 0.6)) * effect_fade;
 	core *= effect_fade;
 	if (max(core, glow) <= 0.003) discard;
-	vec3 color = mix(glow_color.rgb * glow, core_color.rgb, core) * (0.75 + 0.5 * toon_hash1(strike * 3.1));
+	vec3 color = lightning_color(core, glow) * (0.75 + 0.5 * toon_hash1(strike * 3.1));
 	ALBEDO = color;
 	EMISSION = color * brightness;
-	ALPHA = clamp(max(core, glow), 0.0, 1.0);
+	ALPHA = lightning_alpha(core, glow);
 }

@@ -18,7 +18,8 @@ void fragment() {
 	// Static value noise, so the frost forms irregular patches that never crawl.
 	float n = toon_fbm3(vec3(p * 3.2, 0.0));
 	float frost = (n - 0.68) / 0.06 * 0.6;
-	float edge = (1.0 - abs(r - 0.96 + (n - 0.5) * 0.06) / 0.022) * step(0.45, toon_noise3(vec3(p * 9.0, 1.0)));
+	float edge = 1.0 - abs(r - 0.96 + (n - 0.5) * 0.06) / 0.022;
+	if (edge > 0.0) edge *= step(0.45, toon_noise3(vec3(p * 9.0, 1.0)));
 	float body = max(frost, edge) - (1.0 - effect_fade);
 	if (body <= 0.0) discard;
 	vec3 color = toon_ramp(color_ramp, 0.72 + body * 0.25);

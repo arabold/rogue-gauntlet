@@ -1,11 +1,9 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/FallingBodyMotion.cs" id="fall"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Script" path="res://scenes/magic/fire/FallingMeteorVisual.cs" id="motion"]
 [ext_resource type="Script" path="res://scenes/magic/fire/FireSpellVisual.cs" id="script"]
-[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_card.gdshader" id="flame"]
-[ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_flame_life.tres" id="flame_life"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_flame_alpha.tres" id="flame_alpha"]
 [ext_resource type="Material" path="res://scenes/magic/fireball/toon_flame_card.tres" id="flame_card"]

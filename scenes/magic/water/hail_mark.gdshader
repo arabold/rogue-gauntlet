@@ -18,7 +18,6 @@ void vertex() {
 }
 
 void fragment() {
-	if (area_is_blocked(VERTEX, INV_VIEW_MATRIX)) discard;
 	vec2 p = (UV - 0.5) * 2.0;
 	float r = length(p);
 	float heat;
@@ -36,6 +35,7 @@ void fragment() {
 		heat = 0.9;
 		alpha = 0.9;
 	}
+	if (area_is_blocked(VERTEX, INV_VIEW_MATRIX)) discard;
 	vec3 color = toon_ramp(color_ramp, heat);
 	ALBEDO = color;
 	EMISSION = color * 0.5;

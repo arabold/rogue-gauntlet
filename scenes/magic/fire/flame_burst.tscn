@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Script" path="res://scenes/magic/fire/FireBurstMotion.cs" id="motion"]
@@ -7,8 +7,6 @@
 [ext_resource type="Script" path="res://scenes/magic/fire/RadialFlameRibbon.cs" id="radial"]
 [ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="Shader" path="res://scenes/magic/fireball/impact_flame.gdshader" id="wave_shader"]
-[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_card.gdshader" id="flame_shader"]
-[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_spark.gdshader" id="spark_shader"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_fire_ramp.tres" id="fire_ramp"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_flame_life.tres" id="flame_life"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_flame_alpha.tres" id="flame_alpha"]

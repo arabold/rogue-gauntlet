@@ -1,10 +1,8 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/TravelingEffectVisual.cs" id="ball"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Script" path="res://scenes/effects/MagicRibbonTrail.cs" id="ribbon"]
-[ext_resource type="Shader" path="res://scenes/magic/water/ice_crystal.gdshader" id="core_shader"]
-[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_shell.gdshader" id="shell_shader"]
 [ext_resource type="Shader" path="res://scenes/magic/water/ice_trail.gdshader" id="trail_shader"]
 [ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="PackedScene" path="res://scenes/magic/water/ice_impact.tscn" id="impact"]
@@ -13,24 +11,9 @@
 [ext_resource type="Texture2D" path="res://scenes/magic/water/toon_ice_ramp.tres" id="ice_ramp"]
 [ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material_res"]
 [ext_resource type="Texture2D" path="res://scenes/magic/water/toon_ice_spark_life.tres" id="spark_life"]
+[ext_resource type="Material" path="res://scenes/magic/water/toon_ice_crystal.tres" id="ice_crystal_material"]
+[ext_resource type="Material" path="res://scenes/magic/water/toon_ice_shell.tres" id="ice_shell_material"]
 
-[sub_resource type="ShaderMaterial" id="core_material"]
-shader = ExtResource("core_shader")
-shader_parameter/color_ramp = ExtResource("ice_ramp")
-[sub_resource type="ShaderMaterial" id="shell_material"]
-shader = ExtResource("shell_shader")
-shader_parameter/noise_texture = ExtResource("noise")
-shader_parameter/color_ramp = ExtResource("ice_ramp")
-shader_parameter/flow_scale = Vector2(2.8, 2)
-shader_parameter/flow_speed = Vector2(0.15, -0.22)
-shader_parameter/band_frequency = 13.0
-shader_parameter/band_speed = 1.4
-shader_parameter/band_warp = 1.5
-shader_parameter/swirl_frequency = 12.566
-shader_parameter/swirl_speed = 0.9
-shader_parameter/swirl_amount = 1.1
-shader_parameter/band_width = 0.1
-shader_parameter/brightness = 1.2
 [sub_resource type="ShaderMaterial" id="trail_material"]
 shader = ExtResource("trail_shader")
 shader_parameter/noise_texture = ExtResource("noise")
@@ -75,12 +58,12 @@ Speed = 14.0
 [node name="Shape" type="Node3D" parent="."]
 [node name="Core" type="MeshInstance3D" parent="Shape"]
 rotation_degrees = Vector3(-90, 0, 0)
-material_override = SubResource("core_material")
+material_override = ExtResource("ice_crystal_material")
 cast_shadow = 0
 script = ExtResource("crystal_script")
 Size = Vector3(0.22, 1.6, 0.22)
 [node name="Shell" type="MeshInstance3D" parent="."]
-material_override = SubResource("shell_material")
+material_override = ExtResource("ice_shell_material")
 cast_shadow = 0
 mesh = SubResource("shell_mesh")
 [node name="Trail" type="MeshInstance3D" parent="." node_paths=PackedStringArray("Target")]

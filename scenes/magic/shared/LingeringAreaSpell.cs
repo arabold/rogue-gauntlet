@@ -22,13 +22,13 @@ public partial class LingeringAreaSpell : Node, ICombatSpell
 		{
 			LingeringAreaKind.SolarFlares => node is FireSpellVisual { Sweep: not null, Timeline: not null },
 			LingeringAreaKind.Hailstorm => node is WaterSpellVisual { Area: true, Hailstorm: not null, Timeline: not null },
-			LingeringAreaKind.IceWall => node is WaterSpellVisual { Area: true, RingAtRadius: true, Crystals: not null, Timeline: not null },
+			LingeringAreaKind.IceWall => node is WaterSpellVisual { Area: true, Crystals: not null, Timeline: not null },
 			_ => false
 		};
 		if (!valid) { node?.Free(); return false; }
 		var visual = (Node3D)node;
 		if (visual is FireSpellVisual fire) fire.ConfigureLevel(level);
-		if (visual is WaterSpellVisual water) { water.ConfigureLevel(level); water.SetAreaRadius(Definition.RadiusByLevel[level - 1]); }
+		if (visual is WaterSpellVisual water && !water.ConfigureArea(level, Definition.RadiusByLevel[level - 1])) { node.Free(); return false; }
 		var field = new LingeringAreaField();
 		field.Configure(this, cast, Definition, level, visual);
 		VisualRoot.AddChild(field); field.GlobalPosition = cast.Origin; field.AddChild(visual);

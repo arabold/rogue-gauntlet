@@ -38,6 +38,7 @@ public partial class FireballImpact : TimedEffect
 	private bool _flash;
 	private float _lightScale = 1f;
 	private float _lightEnergy;
+	private float _seed;
 	private float _scorchGlow;
 	private ShaderMaterial _scorchMaterial;
 	private ShaderMaterial[] _materials = [];
@@ -58,6 +59,7 @@ public partial class FireballImpact : TimedEffect
 		foreach (var burst in Bursts) burst.Finished += () => burst.Visible = false;
 		_groundQuery.CollisionMask = GroundMask;
 		_lightEnergy = ImpactLight?.LightEnergy ?? 0;
+		_seed = SpellLightFlicker.Seed(this);
 		if (Scorch != null)
 		{
 			_scorchMaterial = (ShaderMaterial)Scorch.MaterialOverride.Duplicate();
@@ -88,16 +90,13 @@ public partial class FireballImpact : TimedEffect
 		{
 			// Spawners set the position and level scale after the effect enters the tree.
 			_lightArmed = true;
-			_flash = ImpactFlash.TryClaim();
+			_flash = LightCurve != null && ImpactFlash.TryClaim();
 			_lightScale = Mathf.Clamp(Scale.X, .8f, 2f);
 		}
 		if (ImpactLight is { Visible: true })
 		{
-			float curve = LightCurve?.Sample(progress) ?? 1f - progress;
-			float flicker = SpellLightFlicker.Sample(LightFlicker, _elapsed, GetInstanceId() % 997);
-			ImpactLight.LightEnergy = _lightEnergy * _lightScale * (_flash ? curve : Mathf.Min(curve, 1f)) * flicker;
-			// A zero-energy light still costs per-object light culling, which dominates with many impacts.
-			ImpactLight.Visible = ImpactLight.LightEnergy > 0.001f;
+			SpellLightFlicker.Apply(ImpactLight, _lightEnergy * _lightScale, LightCurve?.Sample(progress) ?? 1f - progress,
+				_flash, LightFlicker, _elapsed, _seed);
 		}
 		if (_scorchMaterial != null)
 		{
@@ -107,8 +106,7 @@ public partial class FireballImpact : TimedEffect
 				_scorchMaterial.SetShaderParameter(GlowKey, glow);
 				_scorchCooled = glow <= 0f;
 			}
-			float opacity = Mathf.SmoothStep(0f, ScorchAppearDuration, _elapsed) * (1f - Mathf.SmoothStep(FlameDuration, Lifetime, _elapsed));
-			_scorchMaterial.SetShaderParameter(OpacityKey, opacity);
+			_scorchMaterial.SetShaderParameter(OpacityKey, EffectEnvelope.Evaluate(_elapsed / Lifetime, ScorchAppearDuration / Lifetime, FlameDuration / Lifetime));
 		}
 		base._Process(delta);
 	}

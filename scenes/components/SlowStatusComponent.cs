@@ -39,7 +39,7 @@ public partial class SlowStatusComponent : Node
 		Movement.SetStatusSpeedFactor(this, factor);
 		bool shown = factor < 1;
 		if (Effects == null || Appearance == null || _shown == shown) return;
-		_shown = shown; Effects.SetSustained(this, Appearance, shown, 0);
+		if (Effects.SetSustained(this, Appearance, shown, 0) != WorldEffectResult.Rejected) _shown = shown;
 	}
 	public override void _ExitTree()
 	{
