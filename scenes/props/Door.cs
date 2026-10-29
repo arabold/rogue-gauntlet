@@ -122,14 +122,15 @@ public partial class Door : Node3D
 	/// Builds an x-ray silhouette of the door. Its shader only draws where the door
 	/// is occluded by scene geometry (a wall or the black fog cap) and fades with
 	/// distance, so a hidden door reads from any camera angle without showing when
-	/// it is already in plain view.
+	/// it is already in plain view. It draws above the fog, so walls still under fog
+	/// do not hide it; <see cref="SetIndicatorVisible"/> keeps undiscovered doors dark.
 	/// </summary>
 	private void CreateIndicator()
 	{
 		var material = new ShaderMaterial
 		{
 			Shader = GD.Load<Shader>("res://scenes/props/door_xray.gdshader"),
-			RenderPriority = 8,
+			RenderPriority = FloorDiscovery.AboveFogRenderPriority,
 		};
 
 		_xray = new MeshInstance3D
