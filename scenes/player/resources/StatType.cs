@@ -19,4 +19,5 @@ public enum StatType
 	MaxDamage,
 	CritChance,
 	Armor,
+	MaxMana,
 }

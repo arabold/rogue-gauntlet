@@ -20,6 +20,7 @@ public partial class CharacterPanel : Control
 	private Label _vitalityValue;
 	private Label _intelligenceValue;
 	private Label _healthValue;
+	private Label _manaValue;
 	private Button _prevButton;
 	private Button _nextButton;
 	private Button _backButton;
@@ -39,6 +40,7 @@ public partial class CharacterPanel : Control
 		_vitalityValue = GetNode<Label>("%VitalityValue");
 		_intelligenceValue = GetNode<Label>("%IntelligenceValue");
 		_healthValue = GetNode<Label>("%HealthValue");
+		_manaValue = GetNode<Label>("%ManaValue");
 		_prevButton = GetNode<Button>("%PrevButton");
 		_nextButton = GetNode<Button>("%NextButton");
 		_backButton = GetNode<Button>("%BackButton");
@@ -120,10 +122,11 @@ public partial class CharacterPanel : Control
 		_vitalityValue.Text = characterClass.BaseVitality.ToString("0");
 		_intelligenceValue.Text = characterClass.BaseIntelligence.ToString("0");
 
-		// Run the class through the real stat derivation so the displayed HP always
-		// matches what the player will actually spawn with.
+		// Run the class through the real stat derivation so the displayed HP and MP always
+		// match what the player will actually spawn with.
 		var stats = new PlayerStats();
 		characterClass.ApplyToStats(stats);
 		_healthValue.Text = stats.MaxHealth.ToString("0");
+		_manaValue.Text = stats.MaxMana.ToString("0");
 	}
 }

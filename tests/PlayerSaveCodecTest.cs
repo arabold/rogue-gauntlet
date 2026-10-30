@@ -76,17 +76,23 @@ public class PlayerSaveCodecTest
 		player.Stats.Gold = 37;
 		player.Stats.Xp = 5;
 		player.Stats.BaseStrength = 13;
+		player.ManaComponent.CurrentMana = 12.5f;
 		var saved = PlayerSaveCodec.Capture(player, includeTransform: true);
 		var data = JsonSerializer.Deserialize<PlayerSaveData>(JsonSerializer.Serialize(saved));
 		Vector3 position = player.GlobalPosition;
 
 		player.Stats.Gold = 0;
 		player.Stats.BaseStrength = 1;
+		// A deeper pool now than in the save: restoring the smaller maximum must not clamp away the saved mana.
+		player.Stats.BaseIntelligence = 40;
+		player.ManaComponent.CurrentMana = 200;
 		player.GlobalPosition += new Vector3(4, 0, 0);
 		PlayerSaveCodec.Apply(player, data);
 		AssertInt(player.Stats.Gold).IsEqual(37);
 		AssertInt(player.Stats.Xp).IsEqual(5);
 		AssertFloat(player.Stats.BaseStrength).IsEqual(13);
+		AssertFloat(player.ManaComponent.CurrentMana).IsEqual(12.5f);
+		AssertFloat(player.ManaComponent.MaxMana).IsEqual(player.Stats.MaxMana);
 		AssertVector(player.GlobalPosition).IsEqual(position);
 		AssertString(JsonSerializer.Serialize(PlayerSaveCodec.Capture(player, includeTransform: true)))
 			.IsEqual(JsonSerializer.Serialize(saved));
@@ -106,7 +112,8 @@ public class PlayerSaveCodecTest
 	[TestCase]
 	public void RuntimeCopyKeepsEverySavedValue()
 	{
-		var stats = new PlayerStats { Health = 12, Xp = 3, XpLevel = 2, Gold = 9, BaseDexterity = 14, BaseArmor = 2, GoldModifier = 1.5f };
+		var stats = new PlayerStats { Health = 12, Mana = 7, Xp = 3, XpLevel = 2, Gold = 9, BaseDexterity = 14, BaseArmor = 2,
+			BaseMaxMana = 30, ManaRegenRate = 0.1f, GoldModifier = 1.5f };
 		var copy = stats.CreateRuntimeCopy();
 		AssertBool(copy != stats).IsTrue();
 		AssertString(JsonSerializer.Serialize(copy.CreateSaveData())).IsEqual(JsonSerializer.Serialize(stats.CreateSaveData()));

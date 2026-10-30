@@ -27,12 +27,12 @@ Everything is designer-authored resources under `scenes/player/classes/`:
 
 ## The shipped roster
 
-| Class | STR | DEX | VIT | INT | HP | Profile twist | Starting gear |
-|---|---|---|---|---|---|---|---|
-| Barbarian | 14 | 8 | 13 | 5 | 115 | +50% damage per STR | Battle Axe (T1, 2–6, 2H) |
-| Knight | 12 | 8 | 14 | 6 | 120 | — | Sword + shield |
-| Rogue | 8 | 15 | 9 | 8 | 95 | 2× crit/DEX | Crossbow + dagger + two lockpicks |
-| Mage | 6 | 10 | 8 | 16 | 90 | damage scales with INT | Wand (T1, ranged) + healing potion (pre-identified) |
+| Class | STR | DEX | VIT | INT | HP | MP | Profile twist | Starting gear |
+|---|---|---|---|---|---|---|---|---|
+| Barbarian | 14 | 8 | 13 | 5 | 115 | 45 | +50% damage per STR | Battle Axe (T1, 2–6, 2H) |
+| Knight | 12 | 8 | 14 | 6 | 120 | 50 | — | Sword + shield |
+| Rogue | 8 | 15 | 9 | 8 | 95 | 60 | 2× crit/DEX | Crossbow + dagger + two lockpicks |
+| Mage | 6 | 10 | 8 | 16 | 90 | 100 | damage scales with INT | Wand (T1, ranged) + healing potion (pre-identified) |
 
 All starting equipment is first-tier (T1), Normal quality at its authored values; better gear comes from the dungeon.
 
@@ -41,9 +41,9 @@ Only the Mage starts with a healing potion, pre-identified via
 `CharacterClass`). The other three classes start without one and must identify healing
 potions the normal way — a deliberate balance choice, not a limitation of the system;
 any class's `.tres` can add `StartingItems`/`PreIdentifiedTypeIds` entries the same way.
-There is no mana yet: casting stays
-cooldown-based, and caster/non-caster differences come purely from stat profiles. The
-[magic rework plan](specs/magic-rework-plan.md) proposes an Intelligence-sized mana pool.
+Every profile grants 5 [mana](stats-and-itemization.md#mana) per Intelligence, so the pool
+(MP) follows INT; nothing spends it until the [magic rework plan](specs/magic-rework-plan.md)
+puts spells on wands, so caster/non-caster differences still come from stat profiles.
 
 ## Runtime flow
 
@@ -109,4 +109,4 @@ animation plays once and freezes.
 
 ## Proposed magic and mana
 
-The [magic rework plan](specs/magic-rework-plan.md) gives every class a mana pool sized by Intelligence (from 45 for the Barbarian to 100 for the Mage) and moves spells onto wands and staves. Classes do not lock elements or spells: any class can equip any wand or staff and cast its spell; the Mage simply casts more often and would start with a Wand of Fireball. None of this is implemented yet.
+Every class already has its Intelligence-sized mana pool. The [magic rework plan](specs/magic-rework-plan.md) moves spells onto wands and staves that spend it. Classes do not lock elements or spells: any class can equip any wand or staff and cast its spell; the Mage simply casts more often and would start with a Wand of Fireball.

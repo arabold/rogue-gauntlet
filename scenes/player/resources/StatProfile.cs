@@ -16,6 +16,8 @@ public partial class StatProfile : Resource
 	[Export] public float DamagePerStrength { get; set; } = 0.1f;
 	/// <summary>Min and max damage gained per point of Intelligence (for casters; 0 by default).</summary>
 	[Export] public float DamagePerIntelligence { get; set; } = 0f;
+	/// <summary>Max mana gained per point of Intelligence.</summary>
+	[Export] public float ManaPerIntelligence { get; set; } = 5f;
 	/// <summary>Critical-hit chance (0-1) gained per point of Dexterity.</summary>
 	[Export] public float CritChancePerDexterity { get; set; } = 0.005f;
 }

@@ -100,6 +100,9 @@ public partial class PlayerStats : ObservableResource
 
 	// Player's stats
 	public float Health { get; set => SetValue(ref field, value); } = 100;
+	// Current mana. Like Health, the start value is clamped to the derived maximum once the player spawns,
+	// and a new run's class refills it.
+	public float Mana { get; set => SetValue(ref field, value); } = 100;
 	public int Xp { get; set => SetValue(ref field, value); } = 0;
 	public int XpLevel { get; set => SetValue(ref field, value); } = 1;
 	public int Gold { get; set => SetValue(ref field, value); } = 0;
@@ -118,6 +121,10 @@ public partial class PlayerStats : ObservableResource
 	// intentionally low because Vitality supplies the rest (10 Vitality * 5 = +50 -> 100).
 	[Export] public float BaseSpeed { get; set => SetValue(ref field, value); } = 10;
 	[Export] public float BaseMaxHealth { get; set => SetValue(ref field, value); } = 50;
+	// Intelligence supplies most of the pool (Mage 16 * 5 = +80 -> 100).
+	[Export] public float BaseMaxMana { get; set => SetValue(ref field, value); } = 20;
+	// Fraction of MaxMana regenerated per second, so a deeper pool also refills faster.
+	[Export(PropertyHint.Range, "0,1,0.005")] public float ManaRegenRate { get; set => SetValue(ref field, value); } = 0.04f;
 
 	// Attack and defense base stats (without any derivation or modifiers applied)
 	[Export] public float BaseMinDamage { get; set => SetValue(ref field, value); } = 0;
@@ -138,6 +145,8 @@ public partial class PlayerStats : ObservableResource
 	// Resolved secondary stats: base + attribute derivation + active modifiers.
 	public float Speed => ResolveStat(StatType.Speed, BaseSpeed);
 	public float MaxHealth => ResolveStat(StatType.MaxHealth, BaseMaxHealth + Vitality * Coefficient(p => p.HealthPerVitality));
+	public float MaxMana => ResolveStat(StatType.MaxMana, BaseMaxMana + Intelligence * Coefficient(p => p.ManaPerIntelligence));
+	public float ManaRegenPerSecond => MaxMana * ManaRegenRate;
 
 	// Attack stats of the character alone, as for an unarmed attack; ResolveAttack adds one weapon's own stats.
 	public float MinDamage => ResolveAttack(null).MinDamage;
@@ -174,6 +183,7 @@ public partial class PlayerStats : ObservableResource
 	public PlayerStatsSaveData CreateSaveData() => new()
 	{
 		Health = Health,
+		Mana = Mana,
 		Xp = Xp,
 		XpLevel = XpLevel,
 		Gold = Gold,
@@ -183,6 +193,8 @@ public partial class PlayerStats : ObservableResource
 		BaseIntelligence = BaseIntelligence,
 		BaseSpeed = BaseSpeed,
 		BaseMaxHealth = BaseMaxHealth,
+		BaseMaxMana = BaseMaxMana,
+		ManaRegenRate = ManaRegenRate,
 		BaseMinDamage = BaseMinDamage,
 		BaseMaxDamage = BaseMaxDamage,
 		BaseCritChance = BaseCritChance,
@@ -195,6 +207,7 @@ public partial class PlayerStats : ObservableResource
 	public void ApplySaveData(PlayerStatsSaveData data)
 	{
 		Health = data.Health;
+		Mana = data.Mana;
 		Xp = data.Xp;
 		XpLevel = data.XpLevel;
 		Gold = data.Gold;
@@ -204,6 +217,8 @@ public partial class PlayerStats : ObservableResource
 		BaseIntelligence = data.BaseIntelligence;
 		BaseSpeed = data.BaseSpeed;
 		BaseMaxHealth = data.BaseMaxHealth;
+		BaseMaxMana = data.BaseMaxMana;
+		ManaRegenRate = data.ManaRegenRate;
 		BaseMinDamage = data.BaseMinDamage;
 		BaseMaxDamage = data.BaseMaxDamage;
 		BaseCritChance = data.BaseCritChance;

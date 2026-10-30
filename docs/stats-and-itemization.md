@@ -8,9 +8,13 @@ Player stats are copied per actor. Strength, Dexterity, Vitality and Intelligenc
 
 A weapon's damage-range and critical-chance modifiers apply only to attacks made with that weapon: its own scaled damage and crit, rolled sharpness/ferocity/keenness affixes and a dread curse alike. `PlayerStats.ResolveAttack(weapon)` folds them into the same sums as the character's modifiers, while `MinDamage`/`MaxDamage`/`CritChance` give the unarmed values. Two worn weapons therefore never add their damage together. A weapon's other modifiers, such as attribute affixes, and damage modifiers on other gear or buffs apply to every attack. The character dialog shows the main-hand weapon's attack.
 
-Supported secondary stats include maximum health, speed, damage range, critical chance and armor. Their base values and the base attributes are authored on the player's stat sheet ([`player_stats.tres`](../scenes/player/resources/player_stats.tres)); a class then overwrites the four attributes. Dexterity does not grant passive accuracy or evasion. Resolved values drive health, movement, damage and the HUD; maximum-health derivation must not be fed back into base stats. See [active defense](combat-system.md#contact-resolution) for hit handling.
+Supported secondary stats include maximum health, maximum mana, speed, damage range, critical chance and armor. Their base values and the base attributes are authored on the player's stat sheet ([`player_stats.tres`](../scenes/player/resources/player_stats.tres)); a class then overwrites the four attributes. Dexterity does not grant passive accuracy or evasion. Resolved values drive health, movement, damage and the HUD; maximum-health derivation must not be fed back into base stats. See [active defense](combat-system.md#contact-resolution) for hit handling.
 
 Timed stat buffs expire once; permanent buffs remain until explicitly removed. Periodic healing/poison use their own authored effects. Class starting profiles and gear are described in [character classes](character-classes.md).
+
+## Mana
+
+Maximum mana is `BaseMaxMana + Intelligence × ManaPerIntelligence` plus `MaxMana` modifiers (20 and 5 by default, so Intelligence gear deepens the pool). `ManaRegenRate` regenerates that fraction of the maximum per second (4%), so a deeper pool also refills faster. The actor's `ManaComponent` holds current mana and regenerates it in gameplay time, processing only while below the maximum. `PlayerStatsController` pushes the maximum and regeneration into it and copies current mana back into `PlayerStats.Mana`, which is saved beside health and shown by the HUD's mana bar. Lowering the maximum clamps current mana; raising it never refills. A new run starts full. Nothing spends mana yet; the [magic rework plan](specs/magic-rework-plan.md) adds spell costs.
 
 ## Buffs and status conditions
 

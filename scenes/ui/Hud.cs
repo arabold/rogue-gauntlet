@@ -4,6 +4,7 @@ using System.Linq;
 public partial class Hud : Control
 {
 	private ProgressBar _healthBar;
+	private ProgressBar _manaBar;
 	private Label _xpLabel;
 	private Label _goldLabel;
 	private Control _interactionContainer;
@@ -14,6 +15,7 @@ public partial class Hud : Control
 	{
 		// Get references to the child nodes
 		_healthBar = GetNode<ProgressBar>("%HealthBar");
+		_manaBar = GetNode<ProgressBar>("%ManaBar");
 		_xpLabel = GetNode<Label>("%XpLabel");
 		_goldLabel = GetNode<Label>("%GoldLabel");
 		_interactionContainer = GetNodeOrNull<Control>("%InteractionContainer");
@@ -93,5 +95,7 @@ public partial class Hud : Control
 		_goldLabel.Text = $"Gold: {stats.Gold}";
 		_healthBar.MaxValue = stats.MaxHealth;
 		_healthBar.Value = stats.Health;
+		_manaBar.MaxValue = stats.MaxMana;
+		_manaBar.Value = stats.Mana;
 	}
 }

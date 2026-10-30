@@ -55,6 +55,7 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 	public string CurrentActionId => ActionManager?.CurrentAnimationId;
 
 	[Export] public HealthComponent HealthComponent { get; protected set; }
+	[Export] public ManaComponent ManaComponent { get; protected set; }
 	[Export] public HurtBoxComponent HurtBoxComponent { get; protected set; }
 	[Export] public MovementComponent MovementComponent { get; protected set; }
 	[Export] public InputComponent InputComponent { get; protected set; }

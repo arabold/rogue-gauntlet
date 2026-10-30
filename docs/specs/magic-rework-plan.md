@@ -1,6 +1,6 @@
 # Magic rework: spell wands, staves and mana
 
-**Proposed.** Magic moves from the character onto the weapon. Every wand and staff fires the free [magic missile](magic-missile-plan.md) as its primary attack and casts one bound elemental spell as its secondary attack, paid from a new mana pool. Nothing is learned and there are no skill points: finding a better wand is how magic progresses. This plan replaces the learning, point, selection and staff-requirement rules of the [elemental spell plan](elemental-spells-plan.md) and the [actions plan](actor-actions-and-interactions-plan.md); the spell roster, targeting, area, guard and focus-lifetime rules and the visual direction in the spell plan still apply. Current weapons are described in [weapon attacks](../weapon-attack-system.md), items in [stats and itemization](../stats-and-itemization.md) and classes in [character classes](../character-classes.md).
+**In progress.** Slice 1 is implemented: the player has a [mana pool](../stats-and-itemization.md#mana), though nothing spends it yet. Magic moves from the character onto the weapon. Every wand and staff fires the free [magic missile](magic-missile-plan.md) as its primary attack and casts one bound elemental spell as its secondary attack, paid from a new mana pool. Nothing is learned and there are no skill points: finding a better wand is how magic progresses. This plan replaces the learning, point, selection and staff-requirement rules of the [elemental spell plan](elemental-spells-plan.md) and the [actions plan](actor-actions-and-interactions-plan.md); the spell roster, targeting, area, guard and focus-lifetime rules and the visual direction in the spell plan still apply. Current weapons are described in [weapon attacks](../weapon-attack-system.md), items in [stats and itemization](../stats-and-itemization.md) and classes in [character classes](../character-classes.md).
 
 ## Gameplay rules
 
@@ -92,16 +92,9 @@ The staff's two-handed compensation lives in its missile definitions: four darts
 
 ## Mana
 
-`MaxMana = BaseMaxMana + Intelligence × ManaPerIntelligence`; regeneration is a fraction of `MaxMana` per second, so a deep pool also refills faster. Starting values: base 20, 5 per Intelligence for every profile, 4% per second.
+The pool, its Intelligence derivation, regeneration and persistence are implemented; [stats and itemization](../stats-and-itemization.md#mana) describes them and [character classes](../character-classes.md#the-shipped-roster) lists each class's pool (45 for the Barbarian to 100 for the Mage).
 
-| Class | INT | Max mana | Regeneration |
-| --- | --- | --- | --- |
-| Barbarian | 5 | 45 | 1.8/s |
-| Knight | 6 | 50 | 2.0/s |
-| Rogue | 8 | 60 | 2.4/s |
-| Mage | 16 | 100 | 4.0/s |
-
-Costs are authored per spell and level, flat across levels to start, so a deeper wand is also more mana-efficient. Every level-1 cost must fit the smallest class pool, so any class can cast any spell it finds from a full pool: start between 10 (Fireball, Ice Lance, Lightning Orb) and 40 (Meteor, Thunderstorm, Hailstorm). Intelligence gear raises mana through the existing attribute pipeline; `MaxMana` becomes a stat type so later affixes can target it. Spells may author a short cooldown keyed by spell, so swapping between two wands of the same spell cannot skip it. Current mana survives save/load and floor travel; equipment changes clamp it to the new maximum and never refill it.
+Costs are authored per spell and level, flat across levels to start, so a deeper wand is also more mana-efficient. Every level-1 cost must fit the smallest class pool, so any class can cast any spell it finds from a full pool: start between 10 (Fireball, Ice Lance, Lightning Orb) and 40 (Meteor, Thunderstorm, Hailstorm). Spells may author a short cooldown keyed by spell, so swapping between two wands of the same spell cannot skip it.
 
 ## Proposed contracts
 
@@ -163,14 +156,7 @@ bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random);
 // Shared level cap for the five spell definition types, replacing their hardcoded 3
 static class SpellLevels { const int Max = 5; }
 
-// [GlobalClass] actor-agnostic Node in scenes/components/, modelled on HealthComponent: no PlayerStats dependency
-partial class ManaComponent : Node {
-    [Export] float MaxMana { get; set; }           // setter clamps CurrentMana down, never refills
-    [Export] float CurrentMana { get; set; }       // setter clamps to [0, MaxMana]; editable in the Remote Inspector
-    [Export] float RegenPerSecond { get; set; }    // physics processing only while below MaxMana
-    [Signal] delegate void ManaChangedEventHandler(float current, float max);
-    bool CanSpend(float cost); bool TrySpend(float cost); void Restore(float amount);
-}
+// Existing ManaComponent (scenes/components/): CanSpend(cost), TrySpend(cost) and the ManaChanged signal
 // [GlobalClass] actor-agnostic Node in scenes/components/: owns the spell node of the current focus
 partial class SpellCaster : Node {
     [Export] Node3D Caster { get; set; }           // required; configuration warning when missing
@@ -182,13 +168,12 @@ partial class SpellCaster : Node {
 partial class SpellCastAction : RefCounted, ICombatAttackAction { MagicStaff Focus; }
 ```
 
-`PlayerStats` gains `BaseMaxMana` and `ManaRegenRate` exports, a resolved `MaxMana` and a saved current `Mana` beside `Health`; `StatProfile` gains `ManaPerIntelligence`; `StatType` gains `MaxMana`. `Player` exports its `ManaComponent` and `SpellCaster` like its other components, and `player.tscn` wires them. `PreparedAttack` gains an optional spell release (the bound `ICombatSpell` plus its `SpellPower`) that `AttackController` invokes once at the release time instead of melee contact or projectiles; because `AttackController` is shared, a monster can later cast through the same path. The 20 spell components switch to `SpellPower` together. Their five definition types (`TargetedSpellDefinition`, `AreaDamageDefinition`, which Gust now uses, `FrostNovaDefinition`, `LingeringAreaDefinition`, `MagicGuardDefinition`) rename `DamageByLevel`, `BurnDamageByLevel` and `CapacityByLevel` to `DamageScaleByLevel`, `BurnScaleByLevel` and `CapacityScaleByLevel`, and use `SpellLevels.Max`. `AreaCastLifecycle`, `LingeringAreaField` and `TargetedSpell` carry the scaled `AttackStats` to contact time instead of a float.
+`Player` exports its `SpellCaster` like its other components, and `player.tscn` wires it. `PreparedAttack` gains an optional spell release (the bound `ICombatSpell` plus its `SpellPower`) that `AttackController` invokes once at the release time instead of melee contact or projectiles; because `AttackController` is shared, a monster can later cast through the same path. The 20 spell components switch to `SpellPower` together. Their five definition types (`TargetedSpellDefinition`, `AreaDamageDefinition`, which Gust now uses, `FrostNovaDefinition`, `LingeringAreaDefinition`, `MagicGuardDefinition`) rename `DamageByLevel`, `BurnDamageByLevel` and `CapacityByLevel` to `DamageScaleByLevel`, `BurnScaleByLevel` and `CapacityScaleByLevel`, and use `SpellLevels.Max`. `AreaCastLifecycle`, `LingeringAreaField` and `TargetedSpell` carry the scaled `AttackStats` to contact time instead of a float.
 
 **Failure contract.** `SpellCastAction.TryPrepare` rejects without mutation when the focus is not the equipped weapon-hand instance, the caster has no bound spell node, the level has no authored entry, mana is short or the spell's cooldown is running. `StartPrepared` starts the attack first and spends mana only after it succeeds; mana can only have risen since preparation and nothing else spends it, so the spend cannot fail. `ManaChanged` fires after the spend. `SpellCaster.Bind` failing leaves the weapon equipped with its missile primary and an unavailable secondary, and logs the invalid definition. Item restore rejects a saved spell path that is missing, not a `SpellDefinition`, or lacks the tier's level, like any other invalid item.
 
 ### Composition and editor authoring
 
-- **Mana mirrors health.** `PlayerStatsController` already pushes stats into `HealthComponent` and copies current health back into `PlayerStats`, which the HUD reads from the existing stats broadcast. It gets an exported `ManaComponent` and does the same, with one difference: mana regenerates every tick, so `SyncStats` pushes only `MaxMana` and `RegenPerSecond`, and current mana flows one way, from the component into `Stats.Mana`. `_Ready` pushes the saved current value once. `ManaChanged` fires on spend, restore and maximum changes, and during regeneration only when the whole-number value changes, so the stats broadcast runs a few times a second rather than every tick. A monster could take the component with values from its definition.
 - **Spell scenes are self-contained.** The harness spell nodes point their `VisualRoot` at the harness root today, which a scene instantiated under the player cannot do. Gust and Frost Nova already have their own scenes (`gust_spell.tscn`, `frost_nova_spell.tscn`); each of the other 18 gets a `<spell>_spell.tscn` that inherits its generic component scene (`targeted_spell.tscn`, `area_damage_spell.tscn`, `lingering_area_spell.tscn` or `magic_guard_spell.tscn`) and assigns its definition. All 20 wire `VisualRoot` to their own `Visuals` child with `top_level = true`. That child ignores the caster's transform, so visuals stay where they were cast while the player moves, and they are freed with the spell node when the focus is released. The same scene works under the player, in the combat harness and under a future monster.
 - **The harness uses the production scenes.** `CombatHarness` replaces its 20 hand-placed spell nodes with `[Export] SpellDefinition[] Spells = []`, instancing each `SpellScene` once for its direct level-by-level casts. A spell selector also sets the equipped harness wand's runtime `BoundSpell` and re-equips it, so K casts through `SpellCastAction` as in gameplay. A new spell then needs a definition and a scene, and no harness edit beyond the array.
 - **No type checks in shared code.** `LootRoller` calls the new `RollIntrinsic` hook last; `PlayerAttackController` reads `PrimaryAttackDefinition`; `PlayerInventoryController` assigns `weapon.CreateSecondaryAction()` where it now creates `MartialTechniqueAction`; `MagicStaff.OnEquipped` binds the spell through the existing virtual; the item name uses the existing `NameTail` override. The pre-notification release hook calls `SpellCaster.Release(item)` for any released item, which does nothing unless that item is the bound focus. No shared code tests for `MagicStaff`.
@@ -218,9 +203,9 @@ Cast: K → PlayerInputController → ActionManager.TryPerformSecondary → Acti
 Unequip: Inventory.Release → pre-notification release hook (spell plan) → SpellCaster.Release(item), a no-op for other items
   → spell Cancel(): contacts, timers, fields, guard and visuals end → ItemUnequipped → secondary unassigned
 
-Save/load: item entry stores BoundSpell's path; PlayerStats stores current Mana beside Health
+Save/load: item entry stores BoundSpell's path (current mana is already saved with the stats)
   → restore stats, inventory and equipment → SpellCaster.Bind
-  → PlayerStatsController._Ready: MaxMana and regen pushed, then the saved current value once (clamped); an active guard follows the spell plan's restore rule
+  → an active guard follows the spell plan's restore rule
 ```
 
 ## Affected paths
@@ -249,16 +234,15 @@ Save/load: item entry stores BoundSpell's path; PlayerStats stores current Mana 
 ~ scenes/enemies/EnemyBehaviorComponent.cs        StartAttack with AttackStats
 ~ scenes/magic/fireball/FireballSpell.cs           workbench preview: Projectile.Initialize with AttackStats
 ~ scenes/player/PlayerAttackController.cs          PrimaryAttackDefinition, SpellPower capture
-+ scenes/components/ManaComponent.cs, SpellCaster.cs   actor-agnostic components
++ scenes/components/SpellCaster.cs                 actor-agnostic component
 + scenes/player/actions/SpellCastAction.cs
-~ scenes/player/Player.cs, PlayerStatsController.cs, PlayerInventoryController.cs, Inventory.cs, player.tscn
-~ scenes/player/resources/PlayerStats.cs, StatProfile.cs, StatType.cs, player_stats.tres
+~ scenes/player/Player.cs, PlayerInventoryController.cs, Inventory.cs, player.tscn
 ~ scenes/player/classes/class_mage.tres            starting Wand of Fireball (fixed spell)
-~ scenes/ui/hud.tscn, Hud.cs, ItemSlotPanel.cs, ActionContainer.cs   mana bar from the stats broadcast, spell tooltip, secondary cost/availability
+~ scenes/ui/ItemSlotPanel.cs, ActionContainer.cs  spell tooltip, secondary cost/availability
 ~ scenes/ui/DebugMenu.cs                           spawn a wand or staff with a chosen spell
 ~ scenes/debug/combat/CombatHarness.cs, combat_harness.tscn   SpellDefinition array instead of hand-placed nodes; spell selector rebinds the harness wand
-~ scripts/saves/SaveGame.cs, ItemSaveCodec.cs, PlayerSaveCodec.cs   spell path, current mana; bump CurrentVersion
-+ tests/ManaComponentTest.cs, SpellWandTest.cs; ~ ItemCatalogTest.cs, LootRollerEnchantTest.cs, PlayerSaveCodecTest.cs
+~ scripts/saves/SaveGame.cs, ItemSaveCodec.cs     spell path; bump CurrentVersion
++ tests/SpellWandTest.cs; ~ ItemCatalogTest.cs, LootRollerEnchantTest.cs, PlayerSaveCodecTest.cs
 ~ docs: weapon-attack-system.md, stats-and-itemization.md, character-classes.md, item-catalog.md when delivered
 ```
 
@@ -266,7 +250,7 @@ Save/load: item entry stores BoundSpell's path; PlayerStats stores current Mana 
 
 Vertical after one small horizontal foundation: mana is a prerequisite every cast needs, and fire proves the whole wand path before the other 18 spells are converted.
 
-1. **Mana pool.** `PlayerStats`/`StatProfile`/`StatType` mana, `ManaComponent` with regeneration wired through `PlayerStatsController`, HUD bar, save round trip, version bump. *Exercise:* start each class and compare pools; lower `CurrentMana` in the Remote Inspector and watch it regenerate on the HUD; save and reload. *Check:* plain C# tests for the derivation and clamping, a runtime test for regeneration with a fixed delta, `PlayerSaveCodecTest`. Nothing spends mana yet.
+1. **Mana pool.** Done. *Exercise still owed:* start each class and compare pools; lower `ManaComponent.CurrentMana` in the Remote Inspector and watch it regenerate on the HUD; save and reload.
 2. **Fire wands.** First give `AttackStats` the roll and use it in `AttackController` and `Projectile` without changing behavior; existing combat tests and the scripted harness smoke run must report the same damage for the same seed. Then `SpellDefinition`, `SpellPool`, `MissileSet`, `SpellPower`, the `ICombatSpell` signature change across all 20 components (scales converted, still three levels), `SpellCaster`, `SpellCastAction`, the attack-controller spell release, the spell roll and name tail, item save, self-contained scenes for the five fire spells and the harness `Spells` array. Wand tiers 1–5 with a fire-only pool (Fireball, Meteor, Fire Nova, Fire Serpent, Ember Ward) and levels 4–5 for those five; the Mage starts with a Wand of Fireball. *Exercise:* in the combat harness and a Mage run, cast every fire wand tier; run dry and see K rejected without missiles; swap wands mid-cast and confirm the effects end and the mana stays spent; play a Barbarian with a found wand. *Check:* tests for spell contacts scaling with the captured hit and rolling critical hits, guard capacity from the average hit, rejection without cost, exactly-once spending, cooldown by spell, interruption, focus release, the roll draw order (non-magic items roll unchanged for the same seed), name composition and save/load of the bound spell.
 3. **All spells and staves.** The remaining 15 spells reach five levels and join `spell_pool_all.tres`; staff tiers 1–5 with the heavier volley replace the per-element and melee staves; loot pools and the Warden's table update. *Exercise:* the debug menu spawns any spell at any tier; compare a wand and staff of one tier against a shield-and-wand loadout. *Check:* a catalog test that every pool spell has a cost and component values for every level up to the highest tier that can roll it, every magic weapon resolves a missile for each element, and no staff is one-handed.
 4. **Readability and tuning.** Tooltip lines (spell, level, mana cost, damage per hit), the secondary slot's cost and out-of-mana state, an out-of-mana cue, levels 4–5 visuals reviewed at the gameplay camera, cost and scale tuning across classes. Visual quality and balance need manual acceptance; passing tests establish neither.
