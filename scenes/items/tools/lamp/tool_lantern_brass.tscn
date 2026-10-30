@@ -1,7 +1,12 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="PackedScene" path="res://assets/custom-items/tools/lamp/tool_lantern_brass.glb" id="1_glb"]
+[ext_resource type="Script" uid="uid://xb6crtotupkw" path="res://scenes/items/ItemIconPose.cs" id="icon_pose"]
 
 [node name="ToolLanternBrass" type="Node3D"]
 
 [node name="tool_lantern_brass" parent="." instance=ExtResource("1_glb")]
+
+[node name="IconPose" type="Marker3D" parent="."]
+transform = Transform3D(0.0, 0.951056, 0.309017, -0.906308, 0.130596, -0.401934, -0.422618, -0.280064, 0.86195, 0.618034, -0.803868, 1.7239)
+script = ExtResource("icon_pose")

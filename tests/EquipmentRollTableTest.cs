@@ -95,7 +95,7 @@ public class EquipmentRollTableTest
 	{
 		foreach (string name in new[] { "ring", "amulet", "metal_weapon", "wooden_weapon", "shield" })
 		{
-			var table = GD.Load<EquipmentRollTable>($"res://scenes/items/quality/tables/{name}.tres");
+			var table = TestFactories.Load<EquipmentRollTable>($"res://scenes/items/quality/tables/{name}.tres");
 			AssertArray(table.Validate()).OverrideFailureMessage($"{name} is invalid").IsEmpty();
 			AssertInt(table.PoorAdjectives.Length).IsGreater(0);
 			AssertInt(table.SuperiorAdjectives.Length).IsGreater(0);

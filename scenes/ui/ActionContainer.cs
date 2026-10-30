@@ -91,6 +91,8 @@ public partial class ActionContainer : PanelContainer
 	{
 		if (slotIndex != Slot) return;
 		_actionSlot = action;
+		// Attack actions (a weapon, or its martial technique) preview the weapon, which lies diagonally like in the inventory.
+		_preview.Diagonal = action?.AssignedAction is ICombatAttackAction;
 		// The preview scene is already the run appearance model (see PlayerQuickItemController).
 		_preview.Scene = action?.PreviewScene;
 		Refresh();

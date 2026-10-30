@@ -13,7 +13,7 @@ public class RealmEncounterTest
 	[TestCase]
 	public void BudgetsAreDeterministicScopedAndImmutable()
 	{
-		var factory = GD.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
+		var factory = TestFactories.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
 		for (uint depth = 1; depth <= 3; depth++)
 		{
 			for (ulong seed = 1; seed <= 8; seed++)

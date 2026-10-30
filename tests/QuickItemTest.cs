@@ -33,7 +33,7 @@ public partial class QuickItemTest
 		AssertObject(actionManager.PrimaryAttackSlot.AssignedAction).IsEqual(axe);
 		AssertObject(((MartialTechniqueAction)actionManager.SecondaryTechniqueSlot.AssignedAction).Weapon).IsEqual(axe);
 
-		var potion = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
+		var potion = TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
 		for (int i = 0; i < 4; i++)
 		{
 			actionManager.AssignAction(i, potion, null);
@@ -61,7 +61,7 @@ public partial class QuickItemTest
 		var inventory = new Inventory { Capacity = 10 };
 		var quick = new PlayerQuickItemController { Inventory = inventory };
 
-		var potion1 = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
+		var potion1 = TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
 		inventory.TryAdd(potion1, 1);
 		var carried1 = inventory.Items.First(e => e.Item.DefinitionPath == potion1.DefinitionPath).Item;
 		quick.OnItemAcquired(carried1, 1);
@@ -71,7 +71,7 @@ public partial class QuickItemTest
 		AssertInt(quick.GetSlotCount(0)).IsEqual(1);
 		AssertInt((int)quick.GetBinding(1).Kind).IsEqual((int)QuickItemBindingKind.Unassigned);
 
-		var potion2 = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_strength_small.tres");
+		var potion2 = TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_strength_small.tres");
 		inventory.TryAdd(potion2, 1);
 		var carried2 = inventory.Items.First(e => e.Item.DefinitionPath == potion2.DefinitionPath).Item;
 		quick.OnItemAcquired(carried2, 1);
@@ -87,7 +87,7 @@ public partial class QuickItemTest
 		var inventory = new Inventory { Capacity = 10 };
 		var quick = new PlayerQuickItemController { Inventory = inventory };
 
-		var potion = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
+		var potion = TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
 		inventory.TryAdd(potion, 1);
 		var carried = inventory.Items.First(e => e.Item.DefinitionPath == potion.DefinitionPath).Item;
 		quick.OnItemAcquired(carried, 1);
@@ -118,7 +118,7 @@ public partial class QuickItemTest
 
 		for (int i = 0; i < 4; i++)
 		{
-			var p = GD.Load<ConsumableItem>(paths[i]);
+			var p = TestFactories.Load<ConsumableItem>(paths[i]);
 			inventory.TryAdd(p, 1);
 			var carried = inventory.Items.First(e => e.Item.DefinitionPath == p.ResourcePath).Item;
 			quick.OnItemAcquired(carried, 1);
@@ -131,7 +131,7 @@ public partial class QuickItemTest
 		}
 
 		// 5th item
-		var extra = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_dexterity_small.tres");
+		var extra = TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_dexterity_small.tres");
 		inventory.TryAdd(extra, 1);
 		var carriedExtra = inventory.Items.First(e => e.Item.DefinitionPath == extra.ResourcePath).Item;
 		quick.OnItemAcquired(carriedExtra, 1);
@@ -146,7 +146,7 @@ public partial class QuickItemTest
 		var inventory = new Inventory { Capacity = 10 };
 		var quick = new PlayerQuickItemController { Inventory = inventory };
 
-		var potion = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
+		var potion = TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
 		inventory.TryAdd(potion, 1);
 		var carried = inventory.Items.First(e => e.Item.DefinitionPath == potion.DefinitionPath).Item;
 		quick.OnItemAcquired(carried, 1);
@@ -158,7 +158,7 @@ public partial class QuickItemTest
 		AssertBool(quick.GetBinding(0).IsAssigned).IsTrue();
 
 		// Pickup a new item; it must NOT overwrite slot 0, but instead go to slot 1
-		var manaPotion = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_strength_small.tres");
+		var manaPotion = TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_strength_small.tres");
 		inventory.TryAdd(manaPotion, 1);
 		var carriedMana = inventory.Items.First(e => e.Item.DefinitionPath == manaPotion.DefinitionPath).Item;
 		quick.OnItemAcquired(carriedMana, 1);
@@ -181,7 +181,7 @@ public partial class QuickItemTest
 		var inventory = new Inventory { Capacity = 10 };
 		var quick = new PlayerQuickItemController { Inventory = inventory };
 
-		var appleDef = GD.Load<Item>("res://scenes/items/food/food/food_apple_red.tres");
+		var appleDef = TestFactories.Load<Item>("res://scenes/items/food/food/food_apple_red.tres");
 		var apple1 = ItemFactory.Create(appleDef, instanceId: "instance_apple_1");
 		inventory.TryAdd(apple1, 1);
 		quick.OnItemAcquired(apple1, 1);
@@ -219,13 +219,13 @@ public partial class QuickItemTest
 	[TestCase]
 	public void StackableItemsDisplayCountIncludingZeroAndOne()
 	{
-		var potion = GD.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
-		var food = GD.Load<Item>("res://scenes/items/food/food/food_apple_red.tres");
+		var potion = TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
+		var food = TestFactories.Load<Item>("res://scenes/items/food/food/food_apple_red.tres");
 
 		AssertBool(potion.CanStack).IsTrue();
 		AssertBool(food.CanStack).IsFalse();
 
-		var scene = GD.Load<PackedScene>("res://scenes/ui/action_container.tscn");
+		var scene = TestFactories.Load<PackedScene>("res://scenes/ui/action_container.tscn");
 		var container = scene.Instantiate<ActionContainer>();
 		container.Slot = 0;
 		TestFactories.AddToSceneTree(container);
@@ -253,7 +253,7 @@ public partial class QuickItemTest
 		AssertString(label.Text).IsEqual("");
 
 		// Check inventory item slot panel displays 1 for stackables and empty for non-stackables
-		var itemSlotPanelScene = GD.Load<PackedScene>("res://scenes/ui/item_slot_panel.tscn");
+		var itemSlotPanelScene = TestFactories.Load<PackedScene>("res://scenes/ui/item_slot_panel.tscn");
 		var panel = TestFactories.AddToSceneTree(itemSlotPanelScene.Instantiate<ItemSlotPanel>());
 		var panelQtyLabel = panel.GetNode<Label>("%QuantityLabel");
 

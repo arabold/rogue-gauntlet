@@ -1,9 +1,9 @@
 {
   "key": "potions/potion_small_cobalt",
-  "inputs": "93554417486d1c8713392904583003787fb06f5e22348299d9507831fb941a63",
+  "inputs": "9613a583c5b2dd65a782b3327fabb95fab9187ae2254c8d77e22fb9d33968762",
   "files": {
-    "potion_small_cobalt.glb": "265c13ec6bea5298ad7e60780439f61ec8410ce5c0db23ba9152d33b8a1b5aea",
-    "lineup.png": "da26e1548446106d586692ae62562420849f573e473eb047c1279277dab5bbfa"
+    "potion_small_cobalt.glb": "e7513a555444b7bb2993a84d4995947178e5737f0d6c6333650cb2d72d12fac8",
+    "lineup.png": "29290ea05d24238a0f058904e6471af5188e1e9020de538bd6203069c7a2fe36"
   },
   "metadata": {
     "report": {
@@ -109,9 +109,9 @@
           125
         ],
         "liquid": [
-          37,
-          126,
-          188
+          30,
+          90,
+          215
         ]
       },
       "materials": {

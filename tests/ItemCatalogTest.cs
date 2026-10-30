@@ -24,7 +24,7 @@ public class ItemCatalogTest
 	private IEnumerable<Item> Definitions()
 	{
 		_catalogRoots ??= Paths("res://scenes/items", ".tres")
-			.Select(path => ResourceLoader.Load<Resource>(path)).ToArray();
+			.Select(path => TestFactories.Load<Resource>(path)).ToArray();
 		return _catalogRoots.OfType<Item>();
 	}
 
@@ -34,7 +34,7 @@ public class ItemCatalogTest
 	[TestCase]
 	public void EveryDefinitionInitializesAndRestoresWithoutChangingAuthoredState()
 	{
-		var policy = GD.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
+		var policy = TestFactories.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
 		AssertObject(policy).IsNotNull();
 		AssertInt(Definitions().Count()).IsGreater(175);
 		using var rng = GenerationRandom.Create(42, "catalog-validation");
@@ -72,7 +72,7 @@ public class ItemCatalogTest
 	[TestCase]
 	public void EveryCustomExportIsADisguiseOrADefinitionModelButNeverBoth()
 	{
-		var catalog = GD.Load<IdentityCatalog>("res://scenes/items/identity/identity_catalog.tres");
+		var catalog = TestFactories.Load<IdentityCatalog>("res://scenes/items/identity/identity_catalog.tres");
 		// A model that is a disguise must belong to exactly one appearance and never also be a definition's own model,
 		// or two items would share a look; every other custom export must be some definition's model.
 		string[] appearanceModels = catalog.Categories
@@ -91,7 +91,7 @@ public class ItemCatalogTest
 				.OverrideFailureMessage($"{wrapperPath}: {appearanceUses} appearances, definition model {definitionUse}").IsTrue();
 			AssertInt(appearanceUses).IsLessEqual(1);
 
-			Node modelNode = GD.Load<PackedScene>(wrapperPath).Instantiate();
+			Node modelNode = TestFactories.Load<PackedScene>(wrapperPath).Instantiate();
 			AssertInt(modelNode.FindChildren("*", "MeshInstance3D", true, false).Count).IsGreater(0);
 			modelNode.Free();
 		}
@@ -105,7 +105,7 @@ public class ItemCatalogTest
 		foreach (string path in Paths("res://scenes/items/loot", ".tres"))
 		{
 			// Pools are checked through the tables that weight them.
-			if (ResourceLoader.Load<Resource>(path) is not LootTable table) { continue; }
+			if (TestFactories.Load<Resource>(path) is not LootTable table) { continue; }
 			AssertArray(table.Validate()).OverrideFailureMessage($"Invalid table: {path}").IsEmpty();
 			AssertInt(table.Items.Length).IsEqual(0);
 			AssertInt(table.Groups.Length).IsEqual(7);
@@ -130,7 +130,7 @@ public class ItemCatalogTest
 	public void HiddenFamiliesHaveUniqueAppearancesAndCorrectTemplates()
 	{
 		_ = Definitions().ToArray();
-		var catalog = GD.Load<IdentityCatalog>("res://scenes/items/identity/identity_catalog.tres");
+		var catalog = TestFactories.Load<IdentityCatalog>("res://scenes/items/identity/identity_catalog.tres");
 		AssertObject(catalog).IsNotNull();
 		var service = new IdentificationService();
 		service.Initialize(42);
@@ -170,7 +170,7 @@ public class ItemCatalogTest
 	[TestCase]
 	public void EquipmentNamesLeaveConditionToQualityAndNameOneBaseTier()
 	{
-		var words = Paths("res://scenes/items/quality/tables", ".tres").Select(path => GD.Load<EquipmentRollTable>(path))
+		var words = Paths("res://scenes/items/quality/tables", ".tres").Select(path => TestFactories.Load<EquipmentRollTable>(path))
 			.SelectMany(table => table.PoorAdjectives.Concat(table.SuperiorAdjectives)).Append("old").Append("common").Append("worn")
 			.ToHashSet(StringComparer.OrdinalIgnoreCase);
 		EquipableItem[] equipment = Definitions().OfType<EquipableItem>().Where(item => item is not IdentifiableEquipableItem).ToArray();
@@ -206,7 +206,7 @@ public class ItemCatalogTest
 	public void EveryAuthoredPoisonCarriesThePoisonedCondition()
 	{
 		// A poison source authored without the condition would poison the player without the overlay.
-		var poisoned = GD.Load<StatusCondition>("res://scenes/buffs/conditions/poisoned.tres");
+		var poisoned = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/poisoned.tres");
 		Item[] items = Definitions().ToArray();
 		Buff[] poisons = items.OfType<BuffedItem>().Select(item => item.Buff)
 			.Concat(items.OfType<FoodItem>().Select(item => (Buff)item.PoisonEffect))
@@ -273,13 +273,13 @@ public class ItemCatalogTest
 	[TestCase]
 	public void TheSpellPoolHoldsFiveSpellsOfEachElementAndStavesFireAHeavierVolley()
 	{
-		var pool = GD.Load<SpellPool>("res://scenes/magic/spells/spell_pool_all.tres");
+		var pool = TestFactories.Load<SpellPool>("res://scenes/magic/spells/spell_pool_all.tres");
 		AssertInt(pool.Spells.Distinct().Count()).IsEqual(20);
 		foreach (MagicElement element in Enum.GetValues<MagicElement>())
 			AssertInt(pool.Spells.Count(spell => spell.Element == element)).OverrideFailureMessage(element.ToString()).IsEqual(5);
 
-		var wand = GD.Load<MissileSet>("res://scenes/magic/missile/wand_missiles.tres");
-		var staff = GD.Load<MissileSet>("res://scenes/magic/missile/staff_missiles.tres");
+		var wand = TestFactories.Load<MissileSet>("res://scenes/magic/missile/wand_missiles.tres");
+		var staff = TestFactories.Load<MissileSet>("res://scenes/magic/missile/staff_missiles.tres");
 		foreach (MagicElement element in Enum.GetValues<MagicElement>())
 		{
 			float wandVolley = wand.For(element).ProjectileCount * wand.For(element).ProjectileDamageScale;

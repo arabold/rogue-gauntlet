@@ -4,7 +4,9 @@ Implemented reproducibility and persistence rules. Seeds reproduce initial scena
 
 ## Run and level seeds
 
-A new run chooses one seed; saves retain it and the current depth. Each depth derives its own level seed, which its `Level` exposes to everything on the floor. Run-wide state (the run seed, gameplay loot counter, cleared entities and identification) lives in one `RunState` that the session hands to each level. Regeneration rebuilds the initial scenario rather than advancing a global RNG. Code, content ordering and draw-order changes between builds may change scenarios; historical seed outputs are not preserved before release.
+A new run chooses one random 32-bit seed (short enough to read and retype); saves retain it and the current depth. Each depth derives its own level seed, which its `Level` exposes to everything on the floor. Run-wide state (the run seed, gameplay loot counter, cleared entities and identification) lives in one `RunState` that the session hands to each level. Regeneration rebuilds the initial scenario rather than advancing a global RNG. Code, content ordering and draw-order changes between builds may change scenarios; historical seed outputs are not preserved before release.
+
+**Replaying a run.** In debug builds the in-game debug menu shows the run seed, copies it to the clipboard, and **Replay run...** starts over from depth 1 with that seed or any pasted one. An active game restarts in its slot and class, replacing that save; a scene run without a game reloads an unsaved run. The replay reproduces floors, encounters, source rewards and disguises; gameplay-time rolls follow only if the player repeats the same actions (see below). `GameSession.StartNewGame` takes the same optional seed.
 
 ## Generation streams and source rewards
 

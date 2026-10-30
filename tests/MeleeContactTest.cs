@@ -36,7 +36,7 @@ public class MeleeContactTest
 		controller.CancelAttack();
 		controller.EffectsEnabled = effects;
 		var definition = new AttackDefinition { AttackStyle = "sword.1h.slash",
-			MeleeContact = GD.Load<MeleeAttackProfile>($"res://scenes/attacks/melee_profiles/{profile}.tres") };
+			MeleeContact = TestFactories.Load<MeleeAttackProfile>($"res://scenes/attacks/melee_profiles/{profile}.tres") };
 		configure?.Invoke(definition);
 		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
 		AssertBool(controller.StartAttack(attack, new AttackStats(10, 10, 0), mask)).IsTrue();
@@ -88,7 +88,7 @@ public class MeleeContactTest
 		harness.PracticeTarget.GetNode<CollisionShape3D>("HurtBoxComponent/CollisionShape3D").Shape = shape;
 		foreach (string profileName in new[] { "slash_1h", "chop_1h", "thrust", "spin" })
 		{
-			var profile = GD.Load<MeleeAttackProfile>($"res://scenes/attacks/melee_profiles/{profileName}.tres");
+			var profile = TestFactories.Load<MeleeAttackProfile>($"res://scenes/attacks/melee_profiles/{profileName}.tres");
 			foreach (float side in new[] { -1f, 0, 1f })
 			{
 				harness.PracticeTarget.Position = new Vector3(side * profile.Width * .4f, 0, -.03f);
@@ -243,7 +243,7 @@ public class MeleeContactTest
 	public async Task SmallQueryBatchesDoNotTruncateCrowdedAttacks()
 	{
 		var (runner, harness) = await Load();
-		var scene = GD.Load<PackedScene>("res://scenes/debug/combat/combat_practice_target.tscn");
+		var scene = TestFactories.Load<PackedScene>("res://scenes/debug/combat/combat_practice_target.tscn");
 		var targets = Enumerable.Range(0, 12).Select(_ => scene.Instantiate<Node3D>()).ToArray();
 		foreach (var target in targets) { target.Position = new Vector3(0, 0, -2); runner.Scene().AddChild(target); }
 		await runner.SimulateFrames(3);
@@ -278,7 +278,7 @@ public class MeleeContactTest
 		Health(harness).SetHealth(1000, 1000);
 		Start(harness, effects: true)._PhysicsProcess(2);
 		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
-		AssertObject(GD.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/thrust.tres").SwooshScene).IsNull();
+		AssertObject(TestFactories.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/thrust.tres").SwooshScene).IsNull();
 	}
 
 	[TestCase]
@@ -343,7 +343,7 @@ public class MeleeContactTest
 		string folder = ProjectSettings.GlobalizePath("res://scenes/attacks/melee_profiles");
 		foreach (string file in Directory.EnumerateFiles(folder, "*.tres"))
 		{
-			var profile = GD.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/" + Path.GetFileName(file));
+			var profile = TestFactories.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/" + Path.GetFileName(file));
 			AssertBool(profile.IsValid).IsTrue();
 			using var shape = profile.CreateShape();
 			AssertObject(shape).IsNotNull();
@@ -433,7 +433,7 @@ public class MeleeContactTest
 	public void SwingWeaponScenesExposeEditableBladeMarkers()
 	{
 		var roots = Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/items/weapons"), "*.tres", SearchOption.AllDirectories)
-			.Select(file => GD.Load<Resource>("res://" + Path.GetRelativePath(ProjectSettings.GlobalizePath("res://"), file))).ToArray();
+			.Select(file => TestFactories.Load<Resource>("res://" + Path.GetRelativePath(ProjectSettings.GlobalizePath("res://"), file))).ToArray();
 		foreach (var weapon in roots.OfType<Weapon>().Where(w => w.AttackStyle.ToString().EndsWith(".slash") || w.AttackStyle.ToString().EndsWith(".chop")))
 		{
 			var visual = weapon.Scene.Instantiate<Node3D>();
@@ -528,7 +528,7 @@ public class MeleeContactTest
 			DamageMax = 10,
 			ValidSlots = ValidSlots.WeaponHand,
 			SecondaryDamageMultiplier = 2.0f,
-			MeleeContact = GD.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/slash_1h.tres")
+			MeleeContact = TestFactories.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/slash_1h.tres")
 		};
 		AssertBool(harness.Player.Inventory.TryAdd(def).Success).IsTrue();
 		var slot = harness.Player.Inventory.Items.Last();
@@ -629,7 +629,7 @@ public class MeleeContactTest
 		bool Prepare(Action<AttackDefinition> configure)
 		{
 			var definition = new AttackDefinition { AttackStyle = "sword.1h.slash",
-				MeleeContact = GD.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/slash_1h.tres") };
+				MeleeContact = TestFactories.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/slash_1h.tres") };
 			configure(definition);
 			return controller.TryPrepareAttack(definition, "", 1, out _);
 		}

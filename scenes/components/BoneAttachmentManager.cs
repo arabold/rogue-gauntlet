@@ -34,6 +34,12 @@ public partial class BoneAttachmentManager : Node
 	[Export] public PackedScene CursePresentation { get; set; }
 	[Export] public bool ResetAttachmentsOnReady { get; set; } = true;
 
+	/// <summary>
+	/// Shared off-hand socket for shields. Only some class models ship a shield prop bone, so
+	/// mounting on the common hand bone shows shields on every class.
+	/// </summary>
+	[Export] public WeaponGrip ShieldGrip { get; set; }
+
 	public override void _Ready()
 	{
 		if (ResetAttachmentsOnReady)
@@ -73,7 +79,7 @@ public partial class BoneAttachmentManager : Node
 
 	private readonly System.Collections.Generic.Dictionary<AttachmentType, BoneAttachment3D> _weaponMounts = new();
 
-	/// <summary>Use the shared hand socket rather than a character's weapon-specific prop bone.</summary>
+	/// <summary>Use the shared hand socket rather than a character's weapon- or shield-specific prop bone.</summary>
 	private BoneAttachment3D GetWeaponMount(AttachmentType type, WeaponGrip grip)
 	{
 		Skeleton3D skeleton = CharacterModel.FindSkeleton(player);
@@ -184,7 +190,12 @@ public partial class BoneAttachmentManager : Node
 			return;
 		}
 
-		WeaponGrip grip = item is PortableLightItem light ? light.GripFor(slot) : (item as Weapon)?.Grip;
+		WeaponGrip grip = item switch
+		{
+			PortableLightItem light => light.GripFor(slot),
+			Weapon weapon => weapon.Grip,
+			_ => attachmentType == AttachmentType.Shield ? ShieldGrip : null,
+		};
 		var boneAttachment = grip != null
 			? GetWeaponMount(attachmentType, grip) : GetOrCreateBoneAttachment(attachmentType);
 		if (boneAttachment != null)

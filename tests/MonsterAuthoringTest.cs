@@ -21,7 +21,7 @@ public partial class MonsterAuthoringTest
 	[TestCase("forsaken_warden/forsaken_warden")]
 	public void AuthoredExampleHasCompleteDefinition(string path)
 	{
-		var actor = GD.Load<PackedScene>($"res://scenes/enemies/{path}.tscn").Instantiate<EnemyBase>();
+		var actor = TestFactories.Load<PackedScene>($"res://scenes/enemies/{path}.tscn").Instantiate<EnemyBase>();
 		try { AssertString(string.Join("; ", MonsterSceneValidator.Validate(actor))).IsEmpty(); }
 		finally { actor.Free(); }
 	}
@@ -32,7 +32,7 @@ public partial class MonsterAuthoringTest
 		using var runner = TestFactories.LoadScene("res://scenes/enemies/skeleton/skeleton_minion.tscn");
 		await runner.SimulateFrames(2);
 		var first = (EnemyBase)runner.Scene();
-		var scene = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn");
+		var scene = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn");
 		var second = scene.Instantiate<EnemyBase>();
 		var custom = (MonsterDefinition)first.Definition.Duplicate();
 		custom.MaxHealth = 37;
@@ -63,7 +63,7 @@ public partial class MonsterAuthoringTest
 	[TestCase]
 	public void RemovingGuardRequiresChangingPolicyButDoesNotRepairScene()
 	{
-		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
+		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
 		try
 		{
 			var guard = actor.GuardComponent;
@@ -84,7 +84,7 @@ public partial class MonsterAuthoringTest
 	[TestCase]
 	public void PoiseMustBelongToTheActorAndBindItsGate()
 	{
-		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
 		var stranger = new PoiseComponent { Definition = new PoiseDefinition() };
 		try
 		{
@@ -101,7 +101,7 @@ public partial class MonsterAuthoringTest
 	[TestCase]
 	public void HeavyMeleeNeedsATelegraphAndATierLengthWindUp()
 	{
-		var minion = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		var minion = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
 		try
 		{
 			// The minion's 0.52 s chop wind-up covers Normal and Heavy but is too short for Unblockable (dodge only).
@@ -122,7 +122,7 @@ public partial class MonsterAuthoringTest
 	[TestCase]
 	public void OverlappingVulnerabilityArcsAreReported()
 	{
-		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
 		try
 		{
 			actor.HurtBoxComponent.Vulnerability = new HitVulnerabilityProfile { FrontHalfAngle = 120, RearHalfAngle = 90 };
@@ -134,7 +134,7 @@ public partial class MonsterAuthoringTest
 	[TestCase]
 	public void InvalidNumbersAndMissingGateProduceActionableErrors()
 	{
-		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
 		try
 		{
 			actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
@@ -150,7 +150,7 @@ public partial class MonsterAuthoringTest
 	[TestCase]
 	public void MissingControllerAssignmentIsReportedEvenWhenGuardNodeExists()
 	{
-		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
+		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
 		try
 		{
 			actor.DefenseController.GuardComponent = null;
@@ -164,7 +164,7 @@ public partial class MonsterAuthoringTest
 	[TestCase]
 	public void ExplicitDefenseReferencesDoNotRequireConventionalNames()
 	{
-		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
+		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
 		try
 		{
 			actor.GuardComponent.Name = "ShieldGuard";
@@ -184,7 +184,7 @@ public partial class MonsterAuthoringTest
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/enemies/skeleton/skeleton_minion.tscn");
 		await runner.SimulateFrames(2);
-		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
+		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
 		actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
 		actor.Definition.Behavior = (EnemyBehaviorProfile)actor.Definition.Behavior.Duplicate();
 		actor.Definition.Behavior.DefenseStrategy = null;

@@ -13,7 +13,7 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public class AttackAnimationTest
 {
-	private readonly AttackAnimationProfile _profile = GD.Load<AttackAnimationProfile>("res://scenes/attacks/animation_profiles/kaykit_player.tres");
+	private readonly AttackAnimationProfile _profile = TestFactories.Load<AttackAnimationProfile>("res://scenes/attacks/animation_profiles/kaykit_player.tres");
 
 	[TestCase]
 	public void EveryPlayerRigHasEveryAuthoredStyleClip()
@@ -21,7 +21,7 @@ public class AttackAnimationTest
 		AssertInt(_profile.Bindings.Length).IsGreater(10);
 		foreach (string id in new[] { "barbarian", "knight", "rogue", "mage" })
 		{
-			var character = GD.Load<CharacterClass>($"res://scenes/player/classes/class_{id}.tres");
+			var character = TestFactories.Load<CharacterClass>($"res://scenes/player/classes/class_{id}.tres");
 			var model = character.CharacterScene.Instantiate<Node3D>();
 			var animations = model.GetNode<AnimationPlayer>("AnimationPlayer");
 			foreach (var binding in _profile.Bindings)
@@ -33,7 +33,7 @@ public class AttackAnimationTest
 			}
 			if (id == "barbarian" || id == "rogue")
 			{
-				var grip = GD.Load<WeaponGrip>(id == "rogue" ? "res://scenes/items/grips/kaykit_crossbow.tres" : "res://scenes/items/grips/kaykit_melee.tres");
+				var grip = TestFactories.Load<WeaponGrip>(id == "rogue" ? "res://scenes/items/grips/kaykit_crossbow.tres" : "res://scenes/items/grips/kaykit_melee.tres");
 				var skeleton = CharacterModel.FindSkeleton(model);
 				var native = skeleton.GetBoneRest(skeleton.FindBone(id == "rogue" ? "2H_Crossbow" : "1H_Axe"));
 				AssertBool(grip.Transform.IsEqualApprox(native)).IsTrue();
@@ -49,7 +49,7 @@ public class AttackAnimationTest
 		int count = 0;
 		foreach (var path in paths)
 		{
-			var actor = GD.Load<PackedScene>("res://" + Path.GetRelativePath(ProjectSettings.GlobalizePath("res://"), path)).Instantiate<Node>();
+			var actor = TestFactories.Load<PackedScene>("res://" + Path.GetRelativePath(ProjectSettings.GlobalizePath("res://"), path)).Instantiate<Node>();
 			try
 			{
 				if (actor is not EnemyBase enemy || enemy.Definition == null) continue;
@@ -211,14 +211,14 @@ public class AttackAnimationTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.Monsters = [GD.Load<PackedScene>(path)];
+		harness.Monsters = [TestFactories.Load<PackedScene>(path)];
 		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
 		harness.ExecuteCommand("spawn", 0, Vector3.Zero);
 		await runner.SimulateFrames(2);
 		var shooter = harness.Monster;
 		var mount = shooter.GetNode<BoneAttachment3D>("Pivot/Skeleton_Minion/Rig/Skeleton3D/BoneAttachment3D");
 		var crossbow = mount.GetNode<Node3D>("Skeleton_Crossbow");
-		var grip = GD.Load<WeaponGrip>("res://scenes/items/grips/kaykit_crossbow.tres");
+		var grip = TestFactories.Load<WeaponGrip>("res://scenes/items/grips/kaykit_crossbow.tres");
 		AssertString(mount.BoneName).IsEqual(grip.Bone);
 		AssertBool(crossbow.Transform.IsEqualApprox(grip.Transform)).IsTrue();
 		AssertBool(shooter.EnemyBehaviorComponent.TryAttack()).IsTrue();
@@ -306,7 +306,7 @@ public class AttackAnimationTest
 	public void EveryWeaponExplicitlyRequestsASupportedStyle()
 	{
 		var roots = Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/items/weapons"), "*.tres", SearchOption.AllDirectories)
-			.Select(path => GD.Load<Resource>("res://" + Path.GetRelativePath(ProjectSettings.GlobalizePath("res://"), path))).ToArray();
+			.Select(path => TestFactories.Load<Resource>("res://" + Path.GetRelativePath(ProjectSettings.GlobalizePath("res://"), path))).ToArray();
 		var weapons = roots.OfType<Weapon>().ToArray();
 		AssertInt(weapons.Length).IsGreater(50);
 		foreach (var weapon in weapons)

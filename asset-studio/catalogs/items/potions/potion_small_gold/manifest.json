@@ -1,9 +1,9 @@
 {
   "key": "potions/potion_small_gold",
-  "inputs": "44000698667fcfe3d53eecf7516cab8a0d01b6d72d2734ecc71edcc9a1e4a53b",
+  "inputs": "8e1e5506e3c10e80c819687931180ad68cf6a5c447f29c98c0b8e2769f41dc0c",
   "files": {
-    "potion_small_gold.glb": "601657859c2db954693243a9687923166e197f769faf8fcffc0737f7511e703f",
-    "lineup.png": "db356be6934cc715e8a87c6fd08380f9b0aa3ebb48911eb522db0fbf3dee010c"
+    "potion_small_gold.glb": "5fa187bcb912fd67b167c6ec4ac4deb8ca73423a313597e80229dda18d2e7655",
+    "lineup.png": "d38f0e2f5e7ddb12d62b91a3104998c751565de30dd637511e74fe681e47e399"
   },
   "metadata": {
     "report": {
@@ -109,9 +109,9 @@
           125
         ],
         "liquid": [
-          249,
-          170,
-          78
+          245,
+          205,
+          35
         ]
       },
       "materials": {

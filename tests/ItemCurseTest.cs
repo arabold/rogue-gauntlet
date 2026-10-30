@@ -22,9 +22,9 @@ public class ItemCurseTest
 	private const string TwoHandedAxe = "res://scenes/items/weapons/battleaxe_common.tres";
 	private const string Shield = "res://scenes/items/armor/shield_common.tres";
 
-	private static ItemCreationPolicy Policy => GD.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
+	private static ItemCreationPolicy Policy => TestFactories.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
 
-	private static EquipableItem Create(string path) => (EquipableItem)ItemFactory.Create(GD.Load<Item>(path));
+	private static EquipableItem Create(string path) => (EquipableItem)ItemFactory.Create(TestFactories.Load<Item>(path));
 
 	private static EquipableItem Cursed(string path)
 	{
@@ -46,7 +46,7 @@ public class ItemCurseTest
 		int cursed = 0;
 		for (int i = 0; i < 400; i++)
 		{
-			var ring = (EquipableItem)ItemFactory.Create(GD.Load<Item>(Ring), Policy, 12, rng);
+			var ring = (EquipableItem)ItemFactory.Create(TestFactories.Load<Item>(Ring), Policy, 12, rng);
 			AssertBool(ring.CurseStatusKnown).IsFalse();
 			if (ring.IsCursed)
 			{
@@ -58,7 +58,7 @@ public class ItemCurseTest
 
 		for (int i = 0; i < 20; i++)
 		{
-			AssertBool(((EquipableItem)ItemFactory.Create(GD.Load<Item>(Frailty), Policy, 3, rng)).IsCursed).IsTrue();
+			AssertBool(((EquipableItem)ItemFactory.Create(TestFactories.Load<Item>(Frailty), Policy, 3, rng)).IsCursed).IsTrue();
 		}
 
 		EquipableItem fixedRing = Create(Frailty);
@@ -166,7 +166,7 @@ public class ItemCurseTest
 	public void EnchantLiftsACurse()
 	{
 		EquipableItem sword = Cursed(Sword);
-		var ladder = GD.Load<QualityLadder>("res://scenes/items/quality/quality_ladder.tres");
+		var ladder = TestFactories.Load<QualityLadder>("res://scenes/items/quality/quality_ladder.tres");
 
 		AssertBool(LootRoller.Enchant(sword, 10, new RandomNumberGenerator { Seed = 2 }, ladder)).IsTrue();
 

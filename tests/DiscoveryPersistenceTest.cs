@@ -65,7 +65,7 @@ public class DiscoveryPersistenceTest
 		level.Discovery.RevealFrom(Point(new Vector2I(3, 5)));
 		AssertBool(level.Discovery.IsRevealedAt(Point(new Vector2I(4, 5)))).IsTrue();
 
-		map.AccessProfile = (LevelAccessProfile)GD.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
+		map.AccessProfile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
 		map.AccessProfile.MaximumLockedRooms = 0;
 		map.AccessProfile.SecretRoomChance = 1;
 		map.MapWidth = map.MapDepth = 30; map.MaxRooms = 6;
@@ -105,7 +105,7 @@ public class DiscoveryPersistenceTest
 		map.SetConnector(5, 5, [Vector2I.Left]);
 		map.SetTile(6, 5, MapTile.Room);
 		var floor = new GeneratedFloor(map, generator, generator.FloorGridMap, generator.DecorationGridMap);
-		var doorScene = GD.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").DoorScene;
+		var doorScene = TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").DoorScene;
 		var near = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
 		var far = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
 		floor.AddDoor(near, new Vector2I(3, 5));

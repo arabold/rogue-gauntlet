@@ -97,7 +97,8 @@ public partial class GameSession : Node
 		base._ExitTree();
 	}
 
-	public void StartNewGame(int slotId, string characterClassId = null)
+	/// <summary>Starts a run in <paramref name="slotId"/>; <paramref name="seed"/> replays a known run instead of a fresh one.</summary>
+	public void StartNewGame(int slotId, string characterClassId = null, ulong? seed = null)
 	{
 		if (_isSceneTransitioning)
 		{
@@ -106,7 +107,8 @@ public partial class GameSession : Node
 
 		SaveService.GetSlotPath(slotId);
 		ActiveSlotId = slotId;
-		_run = new RunState((ulong)DateTime.UtcNow.Ticks);
+		_run = new RunState(seed ?? RunState.CreateSeed());
+		GD.Print($"Starting run with seed {Run.RunSeed}.");
 		ActiveDungeonDepth = 1;
 		PendingTravelDirection = LevelTravelDirection.Down;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
@@ -136,6 +138,29 @@ public partial class GameSession : Node
 		_isSceneTransitioning = true;
 		ShowBlackScreen();
 		GetTree().ChangeSceneToFile(GameplayScenePath);
+	}
+
+	/// <summary>
+	/// Debug: starts over from depth 1 with <paramref name="seed"/>, reproducing its floors, encounters, source rewards and
+	/// disguises. An active game restarts in its slot and class, replacing that save; otherwise the scene reloads an
+	/// unsaved run.
+	/// </summary>
+	public void ReplayRun(ulong seed)
+	{
+		if (IsGameActive)
+		{
+			StartNewGame(ActiveSlotId, ActiveCharacterClassId, seed);
+			return;
+		}
+		if (_isSceneTransitioning)
+		{
+			return;
+		}
+
+		ClearSession();
+		_run = new RunState(seed);
+		GD.Print($"Replaying unsaved run with seed {seed}.");
+		GetTree().CallDeferred(SceneTree.MethodName.ReloadCurrentScene);
 	}
 
 	public void LoadGame(int slotId)

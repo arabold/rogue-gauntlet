@@ -10,7 +10,7 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class ScrollRuneStudyTest
 {
-	private static IdentityCategory ScrollCategory() => GD.Load<IdentityCatalog>("res://scenes/items/identity/identity_catalog.tres").Categories.Single(c => c.Category == "scroll");
+	private static IdentityCategory ScrollCategory() => TestFactories.Load<IdentityCatalog>("res://scenes/items/identity/identity_catalog.tres").Categories.Single(c => c.Category == "scroll");
 	[TestCase]
 	public void EveryPaperAppearanceHasItsOwnAuthoredRenderableGlyph()
 	{

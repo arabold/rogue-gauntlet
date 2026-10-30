@@ -12,8 +12,8 @@ public class LootExplorationVisibilityTest
 {
 	private static LootableItem Pickup()
 	{
-		var pickup = GD.Load<PackedScene>("res://scenes/items/lootable_item.tscn").Instantiate<LootableItem>();
-		pickup.Item = ItemFactory.Create(GD.Load<Item>("res://scenes/items/keys/key/key_gold_treasury.tres"));
+		var pickup = TestFactories.Load<PackedScene>("res://scenes/items/lootable_item.tscn").Instantiate<LootableItem>();
+		pickup.Item = ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/keys/key/key_gold_treasury.tres"));
 		pickup.Animate = false;
 		return pickup;
 	}

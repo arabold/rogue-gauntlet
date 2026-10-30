@@ -24,7 +24,7 @@ public partial class SpellVisualContractTest
 		int checkedTimelines = 0;
 		foreach (string path in SceneFiles("res://scenes/magic"))
 		{
-			var scene = GD.Load<PackedScene>(path);
+			var scene = TestFactories.Load<PackedScene>(path);
 			var probe = scene.Instantiate();
 			bool animated = Timelines(probe).Length > 0;
 			probe.Free();

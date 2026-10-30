@@ -76,7 +76,7 @@ public class LightFlickerTest
 	{
 		using var runner = TestFactories.LoadScene(Harness);
 		await runner.SimulateFrames(2);
-		var impact = GD.Load<PackedScene>("res://scenes/magic/fireball/fireball_impact.tscn").Instantiate<FireballImpact>();
+		var impact = TestFactories.Load<PackedScene>("res://scenes/magic/fireball/fireball_impact.tscn").Instantiate<FireballImpact>();
 		// Swings the multiplier through zero several times within the flame.
 		impact.LightFlicker = new LightFlicker { Noise = new FastNoiseLite { Frequency = 12f }, Min = -1f, Max = 1f };
 		TestFactories.AddToSceneTree(impact);

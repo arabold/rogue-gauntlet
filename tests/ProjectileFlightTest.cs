@@ -15,7 +15,7 @@ public class ProjectileFlightTest
 	private static readonly ProjectileFlight MissileFlight = new(360, .05f, .5f, .15f);
 	/// <summary>Flights start far above any arena or level another suite leaves in the shared engine, so world rays never stop them.</summary>
 	private static readonly Vector3 Sky = new(0, 500, 0);
-	private readonly PackedScene _scene = GD.Load<PackedScene>("res://scenes/attacks/projectile.tscn");
+	private readonly PackedScene _scene = TestFactories.Load<PackedScene>("res://scenes/attacks/projectile.tscn");
 
 	/// <summary>A projectile stepped by hand from <see cref="Sky"/> toward <paramref name="direction"/>, homing on a target placed relative to it.</summary>
 	private (Projectile Projectile, Node3D Target) Launch(Vector3 direction, Vector3 targetPosition, ProjectileFlight flight, float speed = 16)
@@ -55,7 +55,7 @@ public class ProjectileFlightTest
 	{
 		foreach (string element in new[] { "fire", "water", "earth", "air" })
 		{
-			var attack = GD.Load<AttackDefinition>($"res://scenes/magic/missile/magic_missile_{element}_attack.tres");
+			var attack = TestFactories.Load<AttackDefinition>($"res://scenes/magic/missile/magic_missile_{element}_attack.tres");
 			var edge = Vector3.Forward.Rotated(Vector3.Up, Mathf.DegToRad(attack.SpreadAngle * .5f));
 			var (projectile, target) = Launch(edge, new Vector3(0, 0, -distance), attack.Flight, attack.ProjectileSpeed);
 			AssertFloat(ClosestApproach(projectile, target)).OverrideFailureMessage(element).IsLess(.8f);

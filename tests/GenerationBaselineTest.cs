@@ -36,7 +36,7 @@ public class GenerationBaselineTest
 	[TestCase]
 	public void SourceRewardRollsAreIndependentOfActivationOrder()
 	{
-		var table = GD.Load<LootTable>("res://scenes/items/loot/loot_chest_common.tres");
+		var table = TestFactories.Load<LootTable>("res://scenes/items/loot/loot_chest_common.tres");
 		string a = RollReward(table, "chest:a");
 		string b = RollReward(table, "monster:b");
 		GD.Seed(9876);
@@ -80,7 +80,7 @@ public class GenerationBaselineTest
 		for (int i = 0; i < 5; i++)
 		{
 			LootTableItem entry = table.PickEntry(4, rng);
-			result.Append(ItemFingerprint(ItemFactory.Create(entry.Item, GD.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres"), 4, rng, $"{source}:{i}"))).Append('|');
+			result.Append(ItemFingerprint(ItemFactory.Create(entry.Item, TestFactories.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres"), 4, rng, $"{source}:{i}"))).Append('|');
 		}
 		return result.ToString();
 	}

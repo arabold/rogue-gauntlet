@@ -1,9 +1,9 @@
 {
   "key": "potions/potion_large_silver",
-  "inputs": "da06e1e188b82d2f30f62ca740ef27267b6eb96eda1250d3d9ec946e81185460",
+  "inputs": "3ee31a4929ce63ff42111288b1564a33c1ceda3c0f3fdebb366973d7c1b578e4",
   "files": {
-    "potion_large_silver.glb": "476694e2672a5a64126819d5a33bddbfc2e3e3ea94a600bb5ef375ff8a211c0b",
-    "lineup.png": "32a57fef3c829a10654ad8de3392c5d7ee1683562b14875e09fe9b32c8a1e2ce"
+    "potion_large_silver.glb": "c4fce9dd6c81bf5a11393494cb15ab3c6cea7fdfc32ec0448dd3bb81ed26d8d3",
+    "lineup.png": "54796c539c97401f55fd5749a12f77cd1a960b07f263e15c604f480355bcd7af"
   },
   "metadata": {
     "report": {
@@ -114,9 +114,9 @@
           125
         ],
         "liquid": [
-          212,
-          219,
-          222
+          206,
+          213,
+          220
         ]
       },
       "materials": {

@@ -127,13 +127,13 @@ public partial class StatusConditionTest
 	{
 		// ItemFactory deep-duplicates definitions, so each item gets its own copy of an embedded buff. The
 		// condition is an external resource and must stay the shared instance that drivers compare against.
-		var poisoned = GD.Load<StatusCondition>("res://scenes/buffs/conditions/poisoned.tres");
-		var definition = GD.Load<BuffedItem>("res://scenes/items/potions/potion_poison_small.tres");
+		var poisoned = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/poisoned.tres");
+		var definition = TestFactories.Load<BuffedItem>("res://scenes/items/potions/potion_poison_small.tres");
 		var potion = (BuffedItem)ItemFactory.Create(definition);
 		AssertObject(potion.Buff).IsNotSame(definition.Buff);
 		AssertObject(potion.Buff.Condition).IsSame(poisoned);
 
-		var apple = (FoodItem)ItemFactory.Create(GD.Load<Item>("res://scenes/items/food/food/food_apple_red.tres"));
+		var apple = (FoodItem)ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/food/food/food_apple_red.tres"));
 		AssertObject(apple.PoisonEffect.Condition).IsSame(poisoned);
 	}
 

@@ -14,6 +14,12 @@ public sealed class RunState
 	/// <summary>The run seed of a scene played directly, without a started or loaded game.</summary>
 	public const ulong DefaultSeed = 42;
 
+	/// <summary>
+	/// A fresh run seed. Every floor, encounter, source reward and disguise derives from it, so replaying it reproduces
+	/// the run. Kept to 32 bits so it stays short enough to read off the debug menu and type back in.
+	/// </summary>
+	public static ulong CreateSeed() => (ulong)Random.Shared.NextInt64(1, (long)uint.MaxValue + 1);
+
 	private readonly HashSet<string> _cleared;
 	private IdentificationService _identification;
 

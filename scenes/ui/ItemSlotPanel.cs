@@ -35,6 +35,7 @@ public partial class ItemSlotPanel : PanelContainer
 	/// silently re-enabled by leaving targeting mode.
 	/// </summary>
 	private bool _baseDisabled;
+	private bool _isPointedAt;
 
 	public bool IsEquipped
 	{
@@ -62,6 +63,11 @@ public partial class ItemSlotPanel : PanelContainer
 		if (Engine.IsEditorHint()) return;
 		CacheNodes();
 		_button.ButtonUp += () => EmitSignalItemSelected(this);
+		// The pointed-at or focused item comes alive; every other slot stays a still, render-once icon.
+		_button.MouseEntered += () => SetPointedAt(true);
+		_button.MouseExited += () => SetPointedAt(false);
+		_button.FocusEntered += UpdatePreviewAnimation;
+		_button.FocusExited += UpdatePreviewAnimation;
 
 		// Relabel live when a hidden type is discovered elsewhere this run, so every stack of
 		// the identified type reveals its true name at once.
@@ -98,6 +104,15 @@ public partial class ItemSlotPanel : PanelContainer
 		Update();
 	}
 
+	// Tracked from the signals: the button only clears IsHovered() after MouseExited has fired.
+	private void SetPointedAt(bool pointedAt)
+	{
+		_isPointedAt = pointedAt;
+		UpdatePreviewAnimation();
+	}
+
+	private void UpdatePreviewAnimation() => _preview.Animated = _isPointedAt || _button.HasFocus();
+
 	private void OnItemIdentified(string typeId)
 	{
 		// Cheap to refresh unconditionally; only the matching type's name changes (its model stays the same).
@@ -132,7 +147,7 @@ public partial class ItemSlotPanel : PanelContainer
 
 		if (Slot != null && Slot.Item != null)
 		{
-			_preview.Scene = ItemIdentity.ResolveScene(Slot.Item);
+			_preview.ShowItem(Slot.Item);
 			// Plain text is the fallback; the rich hover tooltip is built by ItemSlotButton.
 			_button.Item = Slot.Item;
 			_button.TooltipText = ItemIdentity.ResolveDisplayName(Slot.Item);
@@ -146,7 +161,7 @@ public partial class ItemSlotPanel : PanelContainer
 		}
 		else
 		{
-			_preview.Scene = null;
+			_preview.ShowItem(null);
 			_button.Item = null;
 			_button.TooltipText = "";
 			_quantityLabel.Text = "";

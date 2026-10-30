@@ -34,7 +34,7 @@ public partial class ProjectileGroundReachTest
 		await runner.SimulateFrames(5);
 		TestFactories.PrepareCombatMonster(rat);
 
-		var bolt = GD.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
+		var bolt = TestFactories.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
 		root.AddChild(bolt);
 		bolt.GroundReach = groundReach;
 		bolt.Initialize(new Vector3(2, 1.2f, 0), Vector3.Right, 16, 10, new AttackStats(5, 5, 0), harness.Player, AttackDefenseTraits.None);

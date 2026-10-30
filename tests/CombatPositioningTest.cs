@@ -23,7 +23,7 @@ public class CombatPositioningTest
 	/// <summary>A minion added outside the harness spawn, so it has no target and is still unaware.</summary>
 	private static async Task<EnemyBase> AddMinion(ISceneRunner runner, Vector3 position)
 	{
-		var minion = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		var minion = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
 		minion.Position = position;
 		runner.Scene().AddChild(minion);
 		await runner.SimulateFrames(2);

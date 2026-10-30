@@ -36,7 +36,7 @@ public partial class CombatIntegrationTest
 	public async Task AuthoredCheckboxStatesApplyOnStartupAndToSpawnedMonsters(bool enabled)
 	{
 		double originalTimeScale = Engine.TimeScale;
-		var scene = GD.Load<PackedScene>("res://scenes/debug/combat/combat_harness.tscn").Instantiate();
+		var scene = TestFactories.Load<PackedScene>("res://scenes/debug/combat/combat_harness.tscn").Instantiate();
 		var harness = scene.GetNode<CombatHarness>("Instructions");
 		foreach (string name in new[] { "Volumes", "Hurtboxes", "Effects", "Moving", "SlowMotion", "TraceConsole", "TraceFrames" })
 			harness.GetNode<CheckButton>($"%Controls/{name}").SetPressedNoSignal(enabled);
@@ -302,7 +302,7 @@ public partial class CombatIntegrationTest
 		using (runner)
 		{
 			AssertBool(harness.RequestHeroGuard(true)).IsTrue();
-			var replacement = ItemFactory.Create(GD.Load<Armor>("res://scenes/items/armor/shield_common.tres"));
+			var replacement = ItemFactory.Create(TestFactories.Load<Armor>("res://scenes/items/armor/shield_common.tres"));
 			AssertBool(harness.Player.Inventory.TryAdd(replacement).Success).IsTrue();
 			var slot = harness.Player.Inventory.Items.First(entry => ReferenceEquals(entry.Item, replacement));
 			harness.Player.Inventory.Equip(slot, EquipmentSlot.ShieldHand);
@@ -433,7 +433,7 @@ public partial class CombatIntegrationTest
 			AssertInt((int)enemy.GuardComponent.TryBeginGuard(Vector3.Back)).IsEqual((int)DefenseRequestResult.Success);
 			await PhysicsFrames(runner, 4);
 			float before = enemy.HealthComponent.CurrentHealth;
-			var projectile = GD.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
+			var projectile = TestFactories.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
 			runner.Scene().AddChild(projectile);
 			projectile.Initialize(Vector3.Up, Vector3.Forward, 10, 10, new AttackStats(5, 5, 0),
 				harness.Player, AttackDefenseTraits.None);

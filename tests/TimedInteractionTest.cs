@@ -285,7 +285,7 @@ public partial class TimedInteractionTest
 	[TestCase]
 	public void DoorAndChestComponentsCommitAuthorityThroughInteraction()
 	{
-		var doorScene = GD.Load<PackedScene>("res://scenes/props/door.tscn");
+		var doorScene = TestFactories.Load<PackedScene>("res://scenes/props/door.tscn");
 		var door = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
 
 		var (actor, gate, interaction) = CreateTestActor(new ActorCapabilities { CanOpenDoors = true });
@@ -314,7 +314,7 @@ public partial class TimedInteractionTest
 	[TestCase]
 	public void DoorCanBeInteractedFromBothSides()
 	{
-		var doorScene = GD.Load<PackedScene>("res://scenes/props/door.tscn");
+		var doorScene = TestFactories.Load<PackedScene>("res://scenes/props/door.tscn");
 		var door = doorScene.Instantiate<Door>();
 		door.Position = Vector3.Zero;
 		TestFactories.AddToSceneTree(door);
@@ -345,7 +345,7 @@ public partial class TimedInteractionTest
 	[TestCase]
 	public void DoorIndicatorBindsCorrectKeyAndPromptsOnlyWhenFocused()
 	{
-		var doorScene = GD.Load<PackedScene>("res://scenes/props/door.tscn");
+		var doorScene = TestFactories.Load<PackedScene>("res://scenes/props/door.tscn");
 		var door = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
 
 		var comp = door.GetNode<InteractiveComponent>("InteractiveComponent");

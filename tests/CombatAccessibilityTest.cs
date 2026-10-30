@@ -156,7 +156,7 @@ public partial class CombatAccessibilityTest
 		DamageOutcome? outcome = null;
 		player.HurtBoxComponent.DamageResolved += (result, _, _) => outcome = (DamageOutcome)result;
 		AssertBool(harness.RequestHeroDodge(Vector3.Right)).IsTrue();
-		var arrow = GD.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
+		var arrow = TestFactories.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
 		runner.Scene().AddChild(arrow);
 		arrow.Initialize(player.GlobalPosition + Vector3.Up + Vector3.Forward * 3,
 			Vector3.Back, 16, 10, new AttackStats(10, 10, 0), harness.Monster);
@@ -177,7 +177,7 @@ public partial class CombatAccessibilityTest
 		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
 		var player = harness.Player;
 		float health = player.HealthComponent.CurrentHealth;
-		var arrow = GD.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
+		var arrow = TestFactories.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
 		runner.Scene().AddChild(arrow);
 		// This path crosses the interaction sphere but stays clear of the body and hurtbox.
 		arrow.Initialize(player.GlobalPosition + Vector3.Up + Vector3.Right * 1.5f + Vector3.Forward * 3,
@@ -200,7 +200,7 @@ public partial class CombatAccessibilityTest
 		player.InputController.SetPhysicsProcess(false);
 		player.MovementComponent.SetPhysicsProcess(false);
 		float health = player.HealthComponent.CurrentHealth;
-		var scene = GD.Load<PackedScene>("res://scenes/attacks/projectile.tscn");
+		var scene = TestFactories.Load<PackedScene>("res://scenes/attacks/projectile.tscn");
 		// Despawning leaves the tree; the reused arrow must still report hits without running _Ready again.
 		var first = ScenePool.Spawn<Projectile>(scene, runner.Scene());
 		ScenePool.Despawn(first);

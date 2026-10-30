@@ -1468,7 +1468,7 @@
     {
       "key": "potions/potion_large_cobalt",
       "source_current": true,
-      "inputs": "0a74c56869911b69d8d00f70cc94dc09e012c2535c5bcfd0d3aa38e7ba0a64fd",
+      "inputs": "07057b5aa989caeb12e1afb9b859ae37726e01655318568243fc04899f69f28c",
       "triangles": 336,
       "materials": 4,
       "source": "source.glb",
@@ -1508,7 +1508,7 @@
     {
       "key": "potions/potion_large_coral",
       "source_current": true,
-      "inputs": "c814e73067459e3bf364c88cba5efe74691861ed6355b9286a8a02a7bf41eb6c",
+      "inputs": "01c23f9b86caa2f5207b5775b91f62c4dc892ff8ed6925448b6b27ee2841d2f7",
       "triangles": 336,
       "materials": 4,
       "source": "source.glb",
@@ -1547,7 +1547,7 @@
     {
       "key": "potions/potion_large_crimson",
       "source_current": true,
-      "inputs": "f7b15f471282df1e36b7afe731e552306c25a7a1440e70b22d2293b89a1ee28d",
+      "inputs": "bd0291b2f8ff4560573d70df14dcb186def581a82aed0faadbcf262be6a70a21",
       "triangles": 336,
       "materials": 4,
       "source": "source.glb",
@@ -1587,7 +1587,7 @@
     {
       "key": "potions/potion_large_emerald",
       "source_current": true,
-      "inputs": "7eae7f87d787ba1ee756e85be49587f6a46b1151112e157f4303f0ca22c054e6",
+      "inputs": "75be5989dc3e6491ba0047da17570858aff9aefa17fa5fb0359fe0419c261e47",
       "triangles": 336,
       "materials": 4,
       "source": "source.glb",
@@ -1627,7 +1627,7 @@
     {
       "key": "potions/potion_large_gold",
       "source_current": true,
-      "inputs": "4a6fdb133800c0cd76c5c02a6ad13440b6779b32094f626bfcfefbdd0fb0e51b",
+      "inputs": "c9210137500998830c7894dc88a42a810c6c36ef3ba16029f1e1fa85a3d00176",
       "triangles": 336,
       "materials": 4,
       "source": "source.glb",
@@ -1666,7 +1666,7 @@
     {
       "key": "potions/potion_large_lime",
       "source_current": true,
-      "inputs": "733fb17167b30d7de3797d2a49d0623a30a9702a68d82607575377d473c1f126",
+      "inputs": "b291690d59d2a8a933cc63294a4328452602807f6b1a7e9e0594b924de97fd14",
       "triangles": 336,
       "materials": 4,
       "source": "source.glb",
@@ -1705,7 +1705,7 @@
     {
       "key": "potions/potion_large_magenta",
       "source_current": true,
-      "inputs": "5323507e7ac617793217e6ff4a4d231f8120ec93dbb47a7e0811b3ffd946d368",
+      "inputs": "65d1662e47326058e19baf8e58c80280b10f000141193d4e6961f20a06066816",
       "triangles": 336,
       "materials": 4,
       "source": "source.glb",
@@ -1745,7 +1745,7 @@
     {
       "key": "potions/potion_large_obsidian",
       "source_current": true,
-      "inputs": "05fb37f0388ee8fcfc07303ea8f3cae76d5f8fe0316fe477e6d81870725e6279",
+      "inputs": "862ade7c7f4ee5962e7efb3f0cc4ec4b7b818aafdfc00aa681411f27637d466a",
       "triangles": 336,
       "materials": 4,
       "source": "source.glb",
@@ -1784,7 +1784,7 @@
     {
       "key": "potions/potion_large_orange",
       "source_current": true,
-      "inputs": "4c30dda8903bb4580721347eaf39bc409ff29e3c875ffa69c56a3e0d7cfeeeda",
+      "inputs": "4cb3f947bae8534a65b1b0e9a17e7aceb01973fe6d7eb89812dde200b3772e86",
       "triangles": 336,
       "materials": 4,
       "source": "source.glb",
@@ -1824,7 +1824,7 @@
     {
       "key": "potions/potion_large_purple",
       "source_current": true,
-      "inputs": "9114bc11348510636ca5232b875705d3ab56d66f8e46bf48b98213284e14e779",
+      "inputs": "608182f910a9e6177fc1ad49692fe447247086ae2c27fb6feb22bd8f513c8f07",
       "triangles": 336,
       "materials": 4,
       "source": "source.glb",
@@ -1864,7 +1864,7 @@
     {
       "key": "potions/potion_large_silver",
       "source_current": true,
-      "inputs": "da06e1e188b82d2f30f62ca740ef27267b6eb96eda1250d3d9ec946e81185460",
+      "inputs": "3ee31a4929ce63ff42111288b1564a33c1ceda3c0f3fdebb366973d7c1b578e4",
       "triangles": 336,
       "materials": 4,
       "source": "source.glb",
@@ -1902,7 +1902,7 @@
     {
       "key": "potions/potion_large_teal",
       "source_current": true,
-      "inputs": "f7191ecc140d6250d16c9547b345394392aa65145ddcd6c48e4a2562f93bb0ec",
+      "inputs": "b85f6d9c69cf8b7ea1090d295f62a2225cb563fb9e4af77488755e8be1878b10",
       "triangles": 336,
       "materials": 4,
       "source": "source.glb",
@@ -1942,7 +1942,7 @@
     {
       "key": "potions/potion_medium_cobalt",
       "source_current": true,
-      "inputs": "25392f490a881ec78ce1a6e2d513e7302c5639f93bb41161201fd1d5f0c83bdb",
+      "inputs": "fbbb3ca5491f008f053f19a6bd6937d02ba8fb1551a82e56e21d9e98b9fba5e9",
       "triangles": 288,
       "materials": 4,
       "source": "source.glb",
@@ -1980,7 +1980,7 @@
     {
       "key": "potions/potion_medium_coral",
       "source_current": true,
-      "inputs": "411b809978330359e815d6173b3b94975abc48daba719f009b3d8eabd7ac17a8",
+      "inputs": "36c7668d30a60e961062fefc82158b1e4aebff92d2329a7f4ec3925b884b16c8",
       "triangles": 288,
       "materials": 4,
       "source": "source.glb",
@@ -2018,7 +2018,7 @@
     {
       "key": "potions/potion_medium_crimson",
       "source_current": true,
-      "inputs": "d40fc51b6d52cc6a5cd2eada0ff027986a5eb7f01167ffada464ed47edb867d8",
+      "inputs": "e9c0a15168b7d422bee2aaecebd55be0d531726131ff257a60fade368c86c47b",
       "triangles": 288,
       "materials": 4,
       "source": "source.glb",
@@ -2056,7 +2056,7 @@
     {
       "key": "potions/potion_medium_emerald",
       "source_current": true,
-      "inputs": "5dcc2f1faecb9eb3d8742c72a710a58533e28b843e94ecef9cac23cb0a3a9112",
+      "inputs": "c0784e565b9c40709dc29e26e936221d634d15bf9aeca756d48815462d79aa96",
       "triangles": 288,
       "materials": 4,
       "source": "source.glb",
@@ -2094,7 +2094,7 @@
     {
       "key": "potions/potion_medium_gold",
       "source_current": true,
-      "inputs": "51dc50ee490a4138cfbf97c2c4da785d8baaa886236af880939f2cd8932ded88",
+      "inputs": "e81ae0fd3a211810384411afce8e37e47f5c2b1594c261822552aad1363c74b2",
       "triangles": 288,
       "materials": 4,
       "source": "source.glb",
@@ -2132,7 +2132,7 @@
     {
       "key": "potions/potion_medium_lime",
       "source_current": true,
-      "inputs": "9dec59604126968ecf1dbf310ad37452a8f6dd685528eda5cb6b31f13ef3d708",
+      "inputs": "c9cbd4999d382adbacb0e0ff98ed6bab73e9b8390dfcd31b1c914487cd95e15a",
       "triangles": 288,
       "materials": 4,
       "source": "source.glb",
@@ -2170,7 +2170,7 @@
     {
       "key": "potions/potion_medium_magenta",
       "source_current": true,
-      "inputs": "c23dcf2ec80c05358c36ec81577668c8059e5828aa079779eb68fb69389e6c71",
+      "inputs": "a016c8e3c65900114b70d106bbc59c64ee536dec62dfc7713695a20844a7d573",
       "triangles": 288,
       "materials": 4,
       "source": "source.glb",
@@ -2208,7 +2208,7 @@
     {
       "key": "potions/potion_medium_obsidian",
       "source_current": true,
-      "inputs": "10be0b912c21541e15cf349d22140f78dff35e61f2bb68c3d1caad9c37dca6dd",
+      "inputs": "45106b32b153eb7b4064d7195a0ce87c8d81941f6f40b4d151b7b13e499a521f",
       "triangles": 288,
       "materials": 4,
       "source": "source.glb",
@@ -2245,7 +2245,7 @@
     {
       "key": "potions/potion_medium_orange",
       "source_current": true,
-      "inputs": "adc1dc90212ca6db6789118fcaa5eab0c077c37d01bcdcad96e6127eafc84875",
+      "inputs": "2393cdc6f4323d4dd79600079a293ac18be1453e4d11c7d93277ca5395e6f09b",
       "triangles": 288,
       "materials": 4,
       "source": "source.glb",
@@ -2283,7 +2283,7 @@
     {
       "key": "potions/potion_medium_purple",
       "source_current": true,
-      "inputs": "98a899cecc0175df635afedace3b1739ea87898931977e279579961b27f23979",
+      "inputs": "fe9436b19ff70d5b3d68617e25f954efab79bd3edb28c5e2be4b103765aeee4d",
       "triangles": 288,
       "materials": 4,
       "source": "source.glb",
@@ -2321,7 +2321,7 @@
     {
       "key": "potions/potion_medium_silver",
       "source_current": true,
-      "inputs": "cadf448e9d8667c5ddac0e83db5aeef6ded7cb0408fb4e286b7dc2fe3ecb663f",
+      "inputs": "38e144b828338068d3c2546b3782e63cefb4bc9d4b334a637a897c2d44becaed",
       "triangles": 288,
       "materials": 4,
       "source": "source.glb",
@@ -2356,7 +2356,7 @@
     {
       "key": "potions/potion_medium_teal",
       "source_current": true,
-      "inputs": "90fe47df84c29ac29472a3bb5d54c62af49c55b8592ad258bfe3a45b9c496a1a",
+      "inputs": "ea6168fdc62223699e7fdb400c0563725b2663c8cb402bf731ac2b49b88cf3cf",
       "triangles": 288,
       "materials": 4,
       "source": "source.glb",
@@ -2394,7 +2394,7 @@
     {
       "key": "potions/potion_small_cobalt",
       "source_current": true,
-      "inputs": "93554417486d1c8713392904583003787fb06f5e22348299d9507831fb941a63",
+      "inputs": "9613a583c5b2dd65a782b3327fabb95fab9187ae2254c8d77e22fb9d33968762",
       "triangles": 224,
       "materials": 4,
       "source": "source.glb",
@@ -2431,7 +2431,7 @@
     {
       "key": "potions/potion_small_coral",
       "source_current": true,
-      "inputs": "3ecf36cd13fbd26bd637f2754020547df485513a3314d826f96f03a0e5930439",
+      "inputs": "58064ab1569880a4a05719306f3b933701b1bc12cf8a16d67dc074b7219f306a",
       "triangles": 224,
       "materials": 4,
       "source": "source.glb",
@@ -2468,7 +2468,7 @@
     {
       "key": "potions/potion_small_crimson",
       "source_current": true,
-      "inputs": "41f6408587ff265211dce5ff6b6ce9357cd2dc8f12be0440fbc4a447af3b5e41",
+      "inputs": "5acde580d50b5da3daed35d04421fda6e3d99631e0c3d0f6bc515769fe09103c",
       "triangles": 224,
       "materials": 4,
       "source": "source.glb",
@@ -2505,7 +2505,7 @@
     {
       "key": "potions/potion_small_emerald",
       "source_current": true,
-      "inputs": "7a74708886af4f08ad04df7f2a5516e5bdedc35c9bbc4419cd1c0130e1833a7c",
+      "inputs": "1c0253f563fe9a0094811f2de6925339f30eba2297a12d90eddf6b74ade30875",
       "triangles": 224,
       "materials": 4,
       "source": "source.glb",
@@ -2542,7 +2542,7 @@
     {
       "key": "potions/potion_small_gold",
       "source_current": true,
-      "inputs": "44000698667fcfe3d53eecf7516cab8a0d01b6d72d2734ecc71edcc9a1e4a53b",
+      "inputs": "8e1e5506e3c10e80c819687931180ad68cf6a5c447f29c98c0b8e2769f41dc0c",
       "triangles": 224,
       "materials": 4,
       "source": "source.glb",
@@ -2579,7 +2579,7 @@
     {
       "key": "potions/potion_small_lime",
       "source_current": true,
-      "inputs": "2f16ca26f101e8f75662d58ee7c080b7bf81146c6ed33859492b9a9832954ab0",
+      "inputs": "6c0d7a8f8b70fa907ba0537bd4739354f152c0837be3dc6742a4a18529ca746c",
       "triangles": 224,
       "materials": 4,
       "source": "source.glb",
@@ -2616,7 +2616,7 @@
     {
       "key": "potions/potion_small_magenta",
       "source_current": true,
-      "inputs": "ae6816c24084e62682aee2386ac0a3d8a95b1d1631e87418094d0e7f8a385b02",
+      "inputs": "75d23d8789a4c4f2a1ea529c1d8acc1056a1e81f6724bebd52c9760c62f5754f",
       "triangles": 224,
       "materials": 4,
       "source": "source.glb",
@@ -2653,7 +2653,7 @@
     {
       "key": "potions/potion_small_obsidian",
       "source_current": true,
-      "inputs": "87899eacfba2513ca60e8f3a867a6eb4458d1f9f96c41733ea81941c1b2d6ad6",
+      "inputs": "c69044804f8aab299622ac92227e783e913eb97c9df92f4b327109f40957b95f",
       "triangles": 224,
       "materials": 4,
       "source": "source.glb",
@@ -2689,7 +2689,7 @@
     {
       "key": "potions/potion_small_orange",
       "source_current": true,
-      "inputs": "90ecaba75dd896842f4bcf5b4bc7fb875d1ebb1e0932edb329aa827dfa484095",
+      "inputs": "b066e02183315e75479dbdb88c9548b0145786fa24c7e1d5b278f6c4ef401112",
       "triangles": 224,
       "materials": 4,
       "source": "source.glb",
@@ -2726,7 +2726,7 @@
     {
       "key": "potions/potion_small_purple",
       "source_current": true,
-      "inputs": "ad704ee31dac0e0dc388e78da71c797402fb823d5d8fce611c359e9201795b5f",
+      "inputs": "0b30ef3eb0bcb5023b3d9c0124dd04bd5cd96f3f4c77171cdaaeeb30100cbfb9",
       "triangles": 224,
       "materials": 4,
       "source": "source.glb",
@@ -2763,7 +2763,7 @@
     {
       "key": "potions/potion_small_silver",
       "source_current": true,
-      "inputs": "e405204893247d5e23c1da724cc29c6995672e65cc192fbcd19ee66c8df78f96",
+      "inputs": "c6f2d86bb1d877613c3afb61356b87da0eb62f80e066eb1f58cd939c629f6106",
       "triangles": 224,
       "materials": 4,
       "source": "source.glb",
@@ -2798,7 +2798,7 @@
     {
       "key": "potions/potion_small_teal",
       "source_current": true,
-      "inputs": "c73bb416e452987ac2a9384b5564a3801a098efbc8b9c65b7ad71d76045e4571",
+      "inputs": "6507612a62ec77f8d88fa979134fbb8587bb7da097156899a3c0028ec7c1ed0b",
       "triangles": 224,
       "materials": 4,
       "source": "source.glb",

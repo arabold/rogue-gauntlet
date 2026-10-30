@@ -91,8 +91,8 @@ public partial class SpellWandTest
 	[TestCase]
 	public void DropsRollTheirSpellFromThePoolAndShowItInTheName()
 	{
-		var definition = GD.Load<MagicStaff>(WandPath);
-		var policy = GD.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
+		var definition = TestFactories.Load<MagicStaff>(WandPath);
+		var policy = TestFactories.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
 		var rolled = new HashSet<SpellDefinition>();
 		for (ulong seed = 1; seed <= 30; seed++)
 		{
@@ -122,7 +122,7 @@ public partial class SpellWandTest
 			.Contains("Fireball (Level 1)", "10 mana per cast", SpellLevels.Damage(player.Stats.ResolveAttack(wand)) + " per hit");
 
 		// A staff in the backpack quotes the damage it deals once it replaces the wand.
-		var staff = (MagicStaff)ItemFactory.Create(GD.Load<Item>(RuneStaffPath));
+		var staff = (MagicStaff)ItemFactory.Create(TestFactories.Load<Item>(RuneStaffPath));
 		AssertBool(player.Inventory.TryAdd(staff).Success).IsTrue();
 		var quoted = TooltipLines(staff, player);
 		AssertArray(quoted).Contains("Chain Lightning (Level 4)", "15 mana per cast");
@@ -132,7 +132,7 @@ public partial class SpellWandTest
 		AssertArray(quoted).Contains(SpellLevels.Damage(player.Stats.ResolveAttack(staff).Scaled(1.3f)) + " per hit");
 
 		// No damage without a viewer, or for a weapon whose stats are unidentified.
-		var hidden = (MagicStaff)ItemFactory.Create(GD.Load<Item>(RuneStaffPath));
+		var hidden = (MagicStaff)ItemFactory.Create(TestFactories.Load<Item>(RuneStaffPath));
 		hidden.AttributesKnown = false;
 		AssertBool(TooltipLines(wand, null).Any(line => line.EndsWith(" per hit"))).IsFalse();
 		AssertBool(TooltipLines(hidden, player).Any(line => line.EndsWith(" per hit"))).IsFalse();
@@ -187,8 +187,8 @@ public partial class SpellWandTest
 	[TestCase]
 	public void SavedWandsRestoreTheirSpellAndRejectAnInvalidOne()
 	{
-		var wand = (MagicStaff)ItemFactory.Create(GD.Load<Item>(WandPath));
-		wand.BoundSpell = GD.Load<SpellDefinition>(MeteorPath);
+		var wand = (MagicStaff)ItemFactory.Create(TestFactories.Load<Item>(WandPath));
+		wand.BoundSpell = TestFactories.Load<SpellDefinition>(MeteorPath);
 		var data = ItemSaveCodec.Capture(wand, 1);
 
 		var restored = (MagicStaff)ItemSaveCodec.Restore(data);
@@ -210,8 +210,8 @@ public partial class SpellWandTest
 		player.GlobalPosition = Vector3.Zero;
 		// No regeneration, so mana assertions read only what casting spent.
 		player.Stats.ManaRegenRate = 0;
-		var wand = (MagicStaff)ItemFactory.Create(GD.Load<Item>(WandPath));
-		wand.BoundSpell = GD.Load<SpellDefinition>(spellPath);
+		var wand = (MagicStaff)ItemFactory.Create(TestFactories.Load<Item>(WandPath));
+		wand.BoundSpell = TestFactories.Load<SpellDefinition>(spellPath);
 		AssertBool(player.Inventory.TryAdd(wand).Success).IsTrue();
 		player.Inventory.Equip(player.Inventory.Items.First(entry => ReferenceEquals(entry.Item, wand)), EquipmentSlot.WeaponHand);
 		AssertBool(player.SpellCaster.IsBoundTo(wand)).IsTrue();

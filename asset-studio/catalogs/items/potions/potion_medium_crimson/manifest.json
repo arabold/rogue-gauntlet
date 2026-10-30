@@ -1,9 +1,9 @@
 {
   "key": "potions/potion_medium_crimson",
-  "inputs": "d40fc51b6d52cc6a5cd2eada0ff027986a5eb7f01167ffada464ed47edb867d8",
+  "inputs": "e9c0a15168b7d422bee2aaecebd55be0d531726131ff257a60fade368c86c47b",
   "files": {
-    "potion_medium_crimson.glb": "bf2cf1fbde1170c6f386c940370faa274dd05cc3afd48d6c166a60099d434ee0",
-    "lineup.png": "9e6748fe0049ca678d6c97b79a0b23167c121444eb07d18a8e064af53b5261eb"
+    "potion_medium_crimson.glb": "e1a902a98678b2be8c0fc7c663a90ee8bba204ea1bd478b2ac3301d9e51d56ec",
+    "lineup.png": "2f7c344a98742ef3a30f422bbd1b8ba23aefcec04f540b9c23a1cdfafe0edb33"
   },
   "metadata": {
     "report": {
@@ -114,9 +114,9 @@
           69
         ],
         "liquid": [
-          210,
-          34,
-          39
+          195,
+          22,
+          38
         ]
       },
       "materials": {

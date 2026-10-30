@@ -99,7 +99,7 @@ public partial class LingeringAreaSpellTest
 		var target = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Target");
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(target);
 		var burn = new BurningContact(); runner.Scene().AddChild(burn); burn.SetPhysicsProcess(false);
-		var condition = GD.Load<StatusCondition>("res://scenes/buffs/conditions/burning.tres");
+		var condition = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/burning.tres");
 		// One-second burn ticking every half second: ticks fall at 0.5s and exactly at expiry.
 		AssertBool(burn.Begin(harness.Player, target, target.BuffController, condition, new RandomNumberGenerator(), 1, .5f, 1)).IsTrue();
 		burn._PhysicsProcess(1.25);

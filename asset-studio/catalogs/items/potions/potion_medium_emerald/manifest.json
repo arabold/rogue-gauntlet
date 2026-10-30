@@ -1,9 +1,9 @@
 {
   "key": "potions/potion_medium_emerald",
-  "inputs": "5dcc2f1faecb9eb3d8742c72a710a58533e28b843e94ecef9cac23cb0a3a9112",
+  "inputs": "c0784e565b9c40709dc29e26e936221d634d15bf9aeca756d48815462d79aa96",
   "files": {
-    "potion_medium_emerald.glb": "0491f367a6059f8de4ffb1680fb0331c6403f2f09b3b2ea50cd2358331041362",
-    "lineup.png": "ed75e91b4811539334787a71abbae3347256a7e46ffee49d5029fa8cfb382c42"
+    "potion_medium_emerald.glb": "522035bd4c5fc2f7229328c1e35771f6606ab409856ff49d612f4d48c50bed72",
+    "lineup.png": "67b264d447558ac2e11a85ac5b8dbf9fe379c37b3351310f415420cc41ffbb17"
   },
   "metadata": {
     "report": {
@@ -114,9 +114,9 @@
           69
         ],
         "liquid": [
-          82,
-          170,
-          72
+          28,
+          135,
+          68
         ]
       },
       "materials": {

@@ -15,9 +15,11 @@ public class ResourceCacheGuardTest
 {
 	private const string Path = "user://resource_cache_guard_test.tres";
 
-	// Not inlined, so the wrapper is unreachable once this returns.
+	// Not inlined, so the wrapper is unreachable once this returns. A raw load on purpose: it creates the hazard under test.
 	[MethodImpl(MethodImplOptions.NoInlining)]
+#pragma warning disable RS0030
 	private static void LoadAndDrop() => AssertObject(GD.Load<DodgeDefinition>(Path)).IsNotNull();
+#pragma warning restore RS0030
 
 	[TestCase]
 	public void SettlingEvictsResourcesOwnedOnlyByCollectedWrappers()

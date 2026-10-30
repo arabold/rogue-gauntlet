@@ -182,7 +182,7 @@ public class MonsterRosterTest
 		await runner.SimulateFrames(3);
 		var player = runner.Scene().GetNode<CombatHarness>("Instructions").Player;
 		player.MovementComponent.SetPhysicsProcess(false);
-		var shooter = GD.Load<PackedScene>("res://scenes/enemies/templates/projectile_enemy.tscn").Instantiate<EnemyBase>();
+		var shooter = TestFactories.Load<PackedScene>("res://scenes/enemies/templates/projectile_enemy.tscn").Instantiate<EnemyBase>();
 		shooter.Definition = (MonsterDefinition)shooter.Definition.Duplicate();
 		shooter.Definition.Behavior = (EnemyBehaviorProfile)shooter.Definition.Behavior.Duplicate();
 		shooter.Definition.Behavior.DefenseStrategy = new EnemyDefenseStrategy { GuardChance = 1, RiposteChance = 1 };
@@ -191,7 +191,7 @@ public class MonsterRosterTest
 		{
 			Name = "GuardComponent", Actor = shooter, MovementComponent = shooter.MovementComponent,
 			ActionGate = shooter.ActionGate, AnimationComponent = animation,
-			GuardDef = GD.Load<GuardDefinition>("res://scenes/combat/definitions/shield_guard.tres")
+			GuardDef = TestFactories.Load<GuardDefinition>("res://scenes/combat/definitions/shield_guard.tres")
 		};
 		shooter.AddChild(guard);
 		shooter.GuardComponent = guard;
@@ -250,7 +250,7 @@ public class MonsterRosterTest
 		AssertBool(entry.EligibleAt(4)).IsFalse();
 		entry.MaximumDepth = 0;
 		AssertBool(entry.EligibleAt(20)).IsTrue();
-		var factory = GD.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
+		var factory = TestFactories.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
 		var rat = factory.Entries.Single(e => e.ScenePath.EndsWith("/rat.tscn"));
 		AssertBool(rat.EligibleAt(1)).IsFalse();
 		AssertBool(rat.EligibleAt(2)).IsTrue();
@@ -259,7 +259,7 @@ public class MonsterRosterTest
 	[TestCase]
 	public void InvalidPoolBoundsAndUnaffordableContentFailBeforeRandomSelection()
 	{
-		var source = GD.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
+		var source = TestFactories.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
 		using var factory = (RealmEncounterFactory)source.Duplicate();
 		factory.Entries = new[] { new MobSpawnEntry { ScenePath = source.Entries[0].ScenePath, MinimumDepth = 3, MaximumDepth = 2 } };
 		AssertBool(factory.ValidatePool(1).Any(error => error.Contains("depth bounds"))).IsTrue();
@@ -271,7 +271,7 @@ public class MonsterRosterTest
 	[TestCase]
 	public void StrategiesValidateTheirTuningAndNoRetiredGameExportIsRequired()
 	{
-		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_crossbow.tscn").Instantiate<EnemyBase>();
+		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_crossbow.tscn").Instantiate<EnemyBase>();
 		try
 		{
 			actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
