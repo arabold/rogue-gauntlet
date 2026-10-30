@@ -645,6 +645,30 @@ class ItemWorkflowTest(unittest.TestCase):
                     self.assertIn("liquid", data["colors"])
                     self.assertEqual(data["materials"]["liquid"]["metallic"], 0)
 
+    def test_potion_liquids_stay_distinguishable_and_match_across_sizes(self):
+        """A liquid tint is the run's only visual cue for a potion type, so two tints that
+        read alike (the former golden/orange) make an unknown potion pass for a known one."""
+        def lab(rgb):
+            linear = [((c / 255 + .055) / 1.055) ** 2.4 if c / 255 > .04045 else c / 255 / 12.92 for c in rgb]
+            xyz = np.array([[.4124, .3576, .1805], [.2126, .7152, .0722], [.0193, .1192, .9505]]) @ linear
+            f = [t ** (1 / 3) if t > .008856 else 7.787 * t + 16 / 116 for t in xyz / [.95047, 1, 1.08883]]
+            return np.array([116 * f[1] - 16, 500 * (f[0] - f[1]), 200 * (f[1] - f[2])])
+        liquids = {}
+        for folder in sorted((workflow.STUDIO / "objects/potions").glob("potion_*")):
+            _, size, tint = folder.name.split("_")
+            liquids.setdefault(tint, {})[size] = json.loads((folder / "item.json").read_text())["colors"]["liquid"]
+        self.assertEqual(len(liquids), 12)
+        for tint, sizes in liquids.items():
+            with self.subTest(tint=tint):
+                self.assertEqual(set(sizes), {"small", "medium", "large"})
+                self.assertEqual(len({tuple(rgb) for rgb in sizes.values()}), 1)
+        tints = sorted(liquids)
+        for i, a in enumerate(tints):
+            for b in tints[i + 1:]:
+                with self.subTest(pair=(a, b)):
+                    # CIE76 distance; the replaced palette had pairs at 8.5 and 12.5.
+                    self.assertGreaterEqual(np.linalg.norm(lab(liquids[a]["small"]) - lab(liquids[b]["small"])), 30)
+
     def test_surface_conversion_rejects_unknown_color_encoding(self):
         from items.source_surface import palette_piece
         p, f, _ = model.geometry(self.source)

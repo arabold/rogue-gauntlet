@@ -1,9 +1,9 @@
 {
   "key": "potions/potion_medium_obsidian",
-  "inputs": "10be0b912c21541e15cf349d22140f78dff35e61f2bb68c3d1caad9c37dca6dd",
+  "inputs": "45106b32b153eb7b4064d7195a0ce87c8d81941f6f40b4d151b7b13e499a521f",
   "files": {
-    "potion_medium_obsidian.glb": "4631dc91f244d1ba443794945e732de27479095f82d2f983a0bc5bcfdc5576c3",
-    "lineup.png": "1be3a2fb6d339d4cadd6bad933df8ac42c9ee85b0503616bee53889dc799b401"
+    "potion_medium_obsidian.glb": "9823fae7a912e5ede64de751172a750d1a988a5d38e94d79b92eaf9d7f81e9a9",
+    "lineup.png": "9865996cdc1bdaccd63fa7237b3a1984f7ed91d87e572543725bbab8991dcc39"
   },
   "metadata": {
     "report": {
@@ -109,9 +109,9 @@
           69
         ],
         "liquid": [
-          74,
-          81,
-          85
+          44,
+          46,
+          54
         ]
       },
       "materials": {
