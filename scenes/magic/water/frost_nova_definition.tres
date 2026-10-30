@@ -6,6 +6,9 @@
 [resource]
 script = ExtResource("script")
 SpellName = "Frost Nova"
-PushByLevel = PackedFloat32Array(2, 2, 2)
+PushByLevel = PackedFloat32Array(2, 2, 2, 2, 2)
 Element = 4
 Frozen = ExtResource("frozen")
+RadiusByLevel = PackedFloat32Array(3.5, 5, 6.5, 7.5, 8.5)
+DamageScaleByLevel = PackedFloat32Array(0.375, 0.5, 0.625, 0.6875, 0.75)
+FreezeSecondsByLevel = PackedFloat32Array(1.5, 2, 2.5, 2.75, 3)

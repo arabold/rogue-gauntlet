@@ -9,8 +9,9 @@ public partial class MagicGuardSpell : Node, ICombatSpell
 	public int LevelCount => Definition?.LevelCount ?? 0;
 	private Guard _guard;
 
-	public bool Cast(Node3D caster, int level, RandomNumberGenerator random)
+	public bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random)
 	{
+		int level = power.Level;
 		if (Definition?.IsValidLevel(level) != true || VisualScene == null || random == null
 			|| !IsInsideTree() || !IsInstanceValid(caster) || !caster.IsInsideTree()
 			|| caster is not IShieldOwner { ShieldHurtBox: { } hurtbox }
@@ -21,7 +22,7 @@ public partial class MagicGuardSpell : Node, ICombatSpell
 		{ node?.Free(); return false; }
 		caster.AddChild(visual);
 		var guard = new Guard(this, caster, hurtbox, visual, effect,
-			Definition.CapacityByLevel[level - 1], Definition.ReflectionByLevel[level - 1], Definition.Element);
+			Definition.CapacityScaleByLevel[level - 1] * power.Hit.Average, Definition.ReflectionByLevel[level - 1], Definition.Element);
 		Cancel();
 		_guard = guard;
 		hurtbox.InstallShield(guard);

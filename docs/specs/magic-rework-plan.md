@@ -1,6 +1,6 @@
 # Magic rework: spell wands, staves and mana
 
-**In progress.** Slice 1 is implemented: the player has a [mana pool](../stats-and-itemization.md#mana), though nothing spends it yet. Magic moves from the character onto the weapon. Every wand and staff fires the free [magic missile](magic-missile-plan.md) as its primary attack and casts one bound elemental spell as its secondary attack, paid from a new mana pool. Nothing is learned and there are no skill points: finding a better wand is how magic progresses. This plan replaces the learning, point, selection and staff-requirement rules of the [elemental spell plan](elemental-spells-plan.md) and the [actions plan](actor-actions-and-interactions-plan.md); the spell roster, targeting, area, guard and focus-lifetime rules and the visual direction in the spell plan still apply. Current weapons are described in [weapon attacks](../weapon-attack-system.md), items in [stats and itemization](../stats-and-itemization.md) and classes in [character classes](../character-classes.md).
+**In progress.** Slices 1–3 are implemented: the player has a [mana pool](../stats-and-itemization.md#mana), and every wand and staff is a [spell weapon](../weapon-attack-system.md) that rolls one of the 20 spells at five levels. Readability, tuning and the leftovers below remain. Magic moves from the character onto the weapon. Every wand and staff fires the free [magic missile](magic-missile-plan.md) as its primary attack and casts one bound elemental spell as its secondary attack, paid from a new mana pool. Nothing is learned and there are no skill points: finding a better wand is how magic progresses. This plan replaces the learning, point, selection and staff-requirement rules of the [elemental spell plan](elemental-spells-plan.md) and the [actions plan](actor-actions-and-interactions-plan.md); the spell roster, targeting, area, guard and focus-lifetime rules and the visual direction in the spell plan still apply. Current weapons are described in [weapon attacks](../weapon-attack-system.md), items in [stats and itemization](../stats-and-itemization.md) and classes in [character classes](../character-classes.md).
 
 ## Gameplay rules
 
@@ -19,9 +19,9 @@
 
 ## Spells and names
 
-The 20 spells keep their roles. Ten names are clunky or misdescribe the effect and change; display names only, so authored files and harness entries keep their paths. Item names put the spell where a Magic or Rare item puts its first suffix: "Wand of Fireball", "Cracked Staff of Meteors", "Vicious Ruby Scepter of Chain Lightning", unidentified "Magic Wand of Frost Nova". Suffix affixes still roll and add stats; they no longer name the item, as further affixes already don't.
+The 20 spells keep their roles. Ten names were clunky or misdescribed the effect and changed, as display names only, so the component files keep their old paths; `scenes/magic/spells/` holds one `SpellDefinition` per spell under its new name. Item names put the spell where a Magic or Rare item puts its first suffix: "Wand of Fireball", "Cracked Staff of Meteors", "Vicious Ruby Scepter of Chain Lightning", unidentified "Magic Wand of Frost Nova". Suffix affixes still roll and add stats; they no longer name the item, as further affixes already don't.
 
-| Element | Spell (role) | Proposed name | Item name |
+| Element | Old spell (role) | Name | Item name |
 | --- | --- | --- | --- |
 | Fire | Fireball (targeted) | Fireball | Wand of Fireball |
 | | Meteor Shower (targeted strikes) | **Meteor** | Wand of Meteors |
@@ -48,44 +48,16 @@ The 20 spells keep their roles. Ten names are clunky or misdescribe the effect a
 
 ## Damage, levels and tiers
 
-### How spells reach enemies today
+Implemented for wands: [weapon attacks](../weapon-attack-system.md) describes the shared `AttackStats` roll, the spell power captured from the casting wand's own hit and definitions authored as scales of that hit. Every spell was converted from its absolute values by dividing by 8, about a Mage's average hit with the tier-1 wand, so depth 1 keeps the old feel.
 
-Every spell contact already goes through the shared `ICombatDamageable.ResolveDamage`, so defenses, armor, poise, elements and magic shields need no change. What differs from attacks is the amount. Each spell reads a fixed number per level from its definition and puts it into the `DamageContext` as is: no damage range, no critical roll, no link to the caster's stats. Five builders create those contacts:
-
-| Builder | Spells | Amount today |
-| --- | --- | --- |
-| `AreaSpellTargets.Resolve`, called from `AreaCastLifecycle` and `LingeringAreaField` | Flame Burst, Tremor, Rock Spikes, Thunderstorm, Gust, Frost Nova; Solar Flares touches, Hailstorm shards, Ice Wall repels | one amount shared by every target of a contact |
-| `TargetedSpell` pending hits | Meteor Shower, Rockfall, Ball Lightning, Chain Lightning, Ice Lance | fixed per hit |
-| `Projectile`, for Fireball's delivery | Fireball | `Initialize(damage, damage, critChance: 0)`; the projectile rolls it like a bolt |
-| `BurningContact` | Solar Flares burn ticks | fixed per tick, armor bypassed |
-| `MagicGuardSpell` | the five guards | capacity fixed; reflection is already a fraction of what was absorbed |
-
-Weapon attacks instead roll a range and a critical hit: `AttackController.ApplyMeleeContact` and `Projectile` (once for the direct hit, again per splash owner) each draw the amount, then a critical check that doubles it. That is one rule written three times.
-
-### Damage model
-
-The data for that rule already exists: `PlayerStats.ResolveAttack(weapon)` returns `AttackStats(MinDamage, MaxDamage, CritChance)`, one weapon's hand-local damage and crit folded into the character's. Move `AttackStats` to `common/combat/`, give it the roll, and let attacks and spells share it rather than adding a fourth copy for spells. `AttackController` keeps the attack's `AttackStats` instead of its three loose fields, `Projectile` takes one in `Initialize`, and a monster's attack strategy hands its min, max and crit over as one. The roll draws the range and then the critical check, as today, so attack damage stays identical for the same seed.
-
-A spell cast captures the caster's weapon hit when it is accepted: `ResolveAttack(focus)` for the casting wand, the same `AttackStats` its missiles use, so only that wand's damage, affixes and crit count, never another worn weapon's. Spell definitions replace their absolute numbers with **scales** of that hit, and each builder applies its scale through the shared roll:
-
-- **Area contacts** roll once per target inside `AreaSpellTargets.Resolve`, as a projectile's splash already rolls per owner. This one change covers all four area spells, Gust, Frost Nova and the three lingering fields.
-- **Targeted hits** roll once per hit when the pending hit lands.
-- **Fireball** passes its scaled roll to `Projectile.Initialize`, so the projectile rolls it as it does today.
-- **Burn ticks** use the scaled average with no critical hit, since they are small periodic damage that already bypasses armor.
-- **Guards** set capacity to a scale of the average hit at cast time. Reflection stays a fraction of the absorbed amount.
-
-The spell's scale is the only multiplier. `SpellCastAction` starts its attack with the plain `ResolveAttack(focus)`, not `Weapon.SecondaryDamageMultiplier` (1.5, or 2.0 on ranged weapons), which stays with martial techniques. The combat harness casts its direct spells with the hero's current hit, so equipping a stronger weapon there strengthens them too.
-
-Convert today's absolute values by dividing by 8, about the average hit of a Mage with the tier-1 wand (4.5–10.5), so depth 1 keeps today's feel: Fireball 8 becomes 1.0, a Meteor strike 3 becomes 0.375, a hail shard 1 becomes 0.125, Ember Guard capacity 20 becomes 2.5.
-
-Tier already multiplies damage about fourfold from T1 to T5 through the weapon's base damage. Levels therefore grow **reach**, not damage: more targets and strikes, larger radius, longer fields, higher guard capacity scale, with at most about 10% damage scale per level. That keeps power from compounding twice.
+Tier already multiplies damage about fourfold from T1 to T5 through the weapon's base damage, so levels 4 and 5 grow **reach** (targets, strikes, radius, ward capacity) and add at most about 10% damage scale per level. Every spell keeps its converted level 1–3 growth until tuning.
 
 | Tier | Wand (model) | Staff (model) | Damage band | Depths |
 | --- | --- | --- | --- | --- |
 | T1 | Wand (`wand.tscn`) | Staff (`staff_common.tscn`) | 1–5 | 1–6 |
-| T2 | Wand (`wand.tscn`, until a model exists) | Ash Staff (`staff_uncommon.tscn`) | 2–8 | 4–12 |
+| T2 | Ashwood Wand (`wand.tscn`, until a model exists) | Ash Staff (`staff_uncommon.tscn`) | 2–8 | 4–12 |
 | T3 | Ruby Scepter (`wand_ruby.tscn`) | Emerald Staff (`staff_emerald.tscn`) | 4–11 | 10–18 |
-| T4 | Ruby Scepter (`wand_ruby.tscn`, until a model exists) | Rune Staff (`staff_rare.tscn`) | 7–16 | 16–21 |
+| T4 | Runed Scepter Wand (`wand_ruby.tscn`, until a model exists) | Rune Staff (`staff_rare.tscn`) | 7–16 | 16–21 |
 | T5 | Celestial Wand (`wand_celestial.tscn`) | Archmage Staff (`staff_archmage.tscn`) | 12–22 | 19–24 |
 
 The staff's two-handed compensation lives in its missile definitions: four darts at 0.25× (1.0× per volley) against the wand's three at 0.22× (0.66×). Its spells match a wand of the same tier.
@@ -94,172 +66,30 @@ The staff's two-handed compensation lives in its missile definitions: four darts
 
 The pool, its Intelligence derivation, regeneration and persistence are implemented; [stats and itemization](../stats-and-itemization.md#mana) describes them and [character classes](../character-classes.md#the-shipped-roster) lists each class's pool (45 for the Barbarian to 100 for the Mage).
 
-Costs are authored per spell and level, flat across levels to start, so a deeper wand is also more mana-efficient. Every level-1 cost must fit the smallest class pool, so any class can cast any spell it finds from a full pool: start between 10 (Fireball, Ice Lance, Lightning Orb) and 40 (Meteor, Thunderstorm, Hailstorm). Spells may author a short cooldown keyed by spell, so swapping between two wands of the same spell cannot skip it.
+Costs are authored per spell and level, flat across levels, so a deeper wand is also more mana-efficient, and every level-1 cost fits the smallest pool so any class can cast any spell it finds: from 10 (Fireball, Lightning Orb, Ice Lance) to 40 (Meteor, Thunderstorm, Hailstorm).
 
-## Proposed contracts
+`SpellDefinition.Cooldown` is the secondary slot's cooldown, which a reassigned slot resets; no spell authors one yet. If a spell needs one, key it by spell so swapping between two wands of that spell cannot skip it.
 
-Abbreviated declarations; proposed names unless they say existing. They follow the [Godot C# guidelines](../../.agents/skills/godot-csharp/SKILL.md): one `[GlobalClass]` per file, tunables as `[Export] { get; set; }` properties with reactive setters, exported arrays default to `[]`, and dependencies wired as typed exports in scenes rather than looked up.
+## Remaining changes
 
-```csharp
-// [GlobalClass] Resource, one .tres per spell under scenes/magic/<element>/; always an external file,
-// so ItemFactory's deep duplicate keeps it shared (like StatusCondition) and saves can store its path
-partial class SpellDefinition : Resource {
-    [Export] string DisplayName; [Export] string ItemTitle;         // "Meteor", "of Meteors"
-    [Export] MagicElement Element;
-    [Export] PackedScene SpellScene;                                // self-contained ICombatSpell scene, see below
-    [Export] float[] ManaCostByLevel = [];                          // one entry per level
-    [Export(PropertyHint.Range, "0,10,0.05")] float Cooldown;       // 0 = mana-limited only
-    [Export] AttackDefinition Cast;                                 // shared cast-timing .tres, no projectile
-    string CooldownKey => "spell:" + ResourcePath;
-    bool IsValidLevel(int level);                                   // cost entry plus the scene definition's level
-}
-// [GlobalClass] Resource: the spells a weapon definition may roll, uniform weights to start
-partial class SpellPool : Resource { [Export] SpellDefinition[] Spells = []; SpellDefinition Pick(RandomNumberGenerator rng); }
-// [GlobalClass] Resource: one missile definition per element; one shared set for all wand tiers, one for staves
-partial class MissileSet : Resource { [Export] AttackDefinition Fire, Water, Earth, Air; AttackDefinition For(MagicElement e); }
-
-// Existing [Tool] MagicStaff, extended; its setters keep using SetValue so Inspector and roll edits emit Changed
-partial class MagicStaff : RangedWeapon {
-    [Export] SpellDefinition BoundSpell;     // authored default; the rolled instance value; saved by path
-    [Export] SpellPool SpellPool;            // null: fixed spell (starting kit, Warden drops)
-    [Export] MissileSet Missiles;
-    MagicElement Element => BoundSpell.Element;      // replaces the exported Element
-    int SpellLevel => Tier;
-    override AttackDefinition PrimaryAttackDefinition => Missiles.For(Element);
-    protected override string NameTail => BoundSpell?.ItemTitle;
-    protected override void RollIntrinsic(RandomNumberGenerator rng);   // BoundSpell = SpellPool.Pick(rng)
-    override ICombatAttackAction CreateSecondaryAction() => new SpellCastAction(this);
-    override void OnEquipped(Player player);                           // base stats, then player.SpellCaster.Bind(BoundSpell, this)
-    override void _ValidateProperty(Dictionary property);              // hide CustomAttackDefinition and Secondary* fields
-}
-// Existing Weapon: virtual seams the attack and inventory controllers read instead of fixed choices
-virtual AttackDefinition PrimaryAttackDefinition => CustomAttackDefinition;
-virtual ICombatAttackAction CreateSecondaryAction() => new MartialTechniqueAction(this);
-// Existing EquipableItem: last step of a random roll; empty by default, so LootRoller needs no type checks
-protected virtual void RollIntrinsic(RandomNumberGenerator rng) { }
-
-// Existing AttackStats, moved from PlayerStats.cs to common/combat/ and given the range-and-critical rule that
-// AttackController and Projectile (direct and splash) each copy today
-readonly record struct AttackStats(float MinDamage, float MaxDamage, float CritChance) {
-    const float CriticalMultiplier = 2;
-    float Average { get; }
-    AttackStats Scaled(float scale);                                // scales the range, keeps the critical chance
-    (float Amount, bool Critical) Roll(RandomNumberGenerator rng);  // range, then critical: today's draw order
-}
-// Existing AttackController: StartAttack(PreparedAttack, AttackStats hit, targetMask, lease) replaces min/max/crit
-// Existing Projectile: Initialize(..., AttackStats hit, ...) replaces min/max/crit
-
-// Captured at acceptance; later stat or equipment changes never alter a released spell
-readonly record struct SpellPower(int Level, AttackStats Hit);
-// Existing ICombatSpell: level becomes part of the captured power
-bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random);
-// Shared level cap for the five spell definition types, replacing their hardcoded 3
-static class SpellLevels { const int Max = 5; }
-
-// Existing ManaComponent (scenes/components/): CanSpend(cost), TrySpend(cost) and the ManaChanged signal
-// [GlobalClass] actor-agnostic Node in scenes/components/: owns the spell node of the current focus
-partial class SpellCaster : Node {
-    [Export] Node3D Caster { get; set; }           // required; configuration warning when missing
-    ICombatSpell Current { get; }
-    bool Bind(SpellDefinition spell, GodotObject focus);   // instantiate spell.SpellScene as a child; reject an invalid scene
-    void Release(GodotObject focus);                       // only if focus matches: Cancel() then free, ending every effect
-}
-// Replaces MartialTechniqueAction on magic weapons; RefCounted like it
-partial class SpellCastAction : RefCounted, ICombatAttackAction { MagicStaff Focus; }
-```
-
-`Player` exports its `SpellCaster` like its other components, and `player.tscn` wires it. `PreparedAttack` gains an optional spell release (the bound `ICombatSpell` plus its `SpellPower`) that `AttackController` invokes once at the release time instead of melee contact or projectiles; because `AttackController` is shared, a monster can later cast through the same path. The 20 spell components switch to `SpellPower` together. Their five definition types (`TargetedSpellDefinition`, `AreaDamageDefinition`, which Gust now uses, `FrostNovaDefinition`, `LingeringAreaDefinition`, `MagicGuardDefinition`) rename `DamageByLevel`, `BurnDamageByLevel` and `CapacityByLevel` to `DamageScaleByLevel`, `BurnScaleByLevel` and `CapacityScaleByLevel`, and use `SpellLevels.Max`. `AreaCastLifecycle`, `LingeringAreaField` and `TargetedSpell` carry the scaled `AttackStats` to contact time instead of a float.
-
-**Failure contract.** `SpellCastAction.TryPrepare` rejects without mutation when the focus is not the equipped weapon-hand instance, the caster has no bound spell node, the level has no authored entry, mana is short or the spell's cooldown is running. `StartPrepared` starts the attack first and spends mana only after it succeeds; mana can only have risen since preparation and nothing else spends it, so the spend cannot fail. `ManaChanged` fires after the spend. `SpellCaster.Bind` failing leaves the weapon equipped with its missile primary and an unavailable secondary, and logs the invalid definition. Item restore rejects a saved spell path that is missing, not a `SpellDefinition`, or lacks the tier's level, like any other invalid item.
-
-### Composition and editor authoring
-
-- **Spell scenes are self-contained.** The harness spell nodes point their `VisualRoot` at the harness root today, which a scene instantiated under the player cannot do. Gust and Frost Nova already have their own scenes (`gust_spell.tscn`, `frost_nova_spell.tscn`); each of the other 18 gets a `<spell>_spell.tscn` that inherits its generic component scene (`targeted_spell.tscn`, `area_damage_spell.tscn`, `lingering_area_spell.tscn` or `magic_guard_spell.tscn`) and assigns its definition. All 20 wire `VisualRoot` to their own `Visuals` child with `top_level = true`. That child ignores the caster's transform, so visuals stay where they were cast while the player moves, and they are freed with the spell node when the focus is released. The same scene works under the player, in the combat harness and under a future monster.
-- **The harness uses the production scenes.** `CombatHarness` replaces its 20 hand-placed spell nodes with `[Export] SpellDefinition[] Spells = []`, instancing each `SpellScene` once for its direct level-by-level casts. A spell selector also sets the equipped harness wand's runtime `BoundSpell` and re-equips it, so K casts through `SpellCastAction` as in gameplay. A new spell then needs a definition and a scene, and no harness edit beyond the array.
-- **No type checks in shared code.** `LootRoller` calls the new `RollIntrinsic` hook last; `PlayerAttackController` reads `PrimaryAttackDefinition`; `PlayerInventoryController` assigns `weapon.CreateSecondaryAction()` where it now creates `MartialTechniqueAction`; `MagicStaff.OnEquipped` binds the spell through the existing virtual; the item name uses the existing `NameTail` override. The pre-notification release hook calls `SpellCaster.Release(item)` for any released item, which does nothing unless that item is the bound focus. No shared code tests for `MagicStaff`.
-- **Inspector.** `MagicStaff` hides the inherited `CustomAttackDefinition` and `Secondary*` fields that no longer apply. Spell weapons show their `BoundSpell`, `SpellPool` and `Missiles` pickers. Cast timings are a few shared `AttackDefinition` files rather than one per spell. Resources cannot show configuration warnings, so the item catalog test validates every definition, pool and missile set.
-- **Editor acceptance.** Create a `SpellDefinition` from an existing spell scene, assign it as a wand's `BoundSpell`, run the combat harness, equip the wand and cast. In the Remote Inspector, edit `ManaComponent.CurrentMana` and watch the HUD and K's availability follow. Confirm two dropped wands of one definition carry independent `BoundSpell` values.
-
-## Call stacks
-
-```text
-Loot creation: ItemFactory → LootRoller.ApplyRoll
-  → quality, adjective, scale, affix count, affixes, curse, penalty (unchanged order)
-  → item.RollIntrinsic(rng): MagicStaff with a SpellPool sets BoundSpell = SpellPool.Pick(rng)   [new last draw; other items draw nothing]
-Fixed creation (starting kit, plain debug spawn): BoundSpell stays the authored default
-
-Equip: Inventory.Equip → ItemEquipped → PlayerInventoryController.OnItemEquipped
-  → item.OnEquipped: stats; MagicStaff also SpellCaster.Bind(BoundSpell, this), instantiating the self-contained spell scene
-  → ActionManager.AssignPrimary(weapon) + AssignSecondary(weapon.CreateSecondaryAction())
-
-Cast: K → PlayerInputController → ActionManager.TryPerformSecondary → ActionSlot.TryPerformAction
-  → SpellCastAction.TryPrepare: equipped focus, bound node, level, CanSpend, cooldown → PreparedAttack with spell release
-  → ActorActionGate lease (SecondaryTechnique) → StartPrepared → AttackController.StartAttack
-  → ManaComponent.TrySpend → ManaChanged → PlayerStatsController copies to Stats.Mana → existing stats broadcast → HUD
-  → release time: ICombatSpell.Cast(caster, SpellPower(level, captured hit), rng) → existing targeting/area/guard rules
-  → each builder: hit.Scaled(definition scale).Roll(rng) → DamageContext { Amount, Critical } → ResolveDamage
-  → interruption before release: no cast, mana stays spent
-
-Unequip: Inventory.Release → pre-notification release hook (spell plan) → SpellCaster.Release(item), a no-op for other items
-  → spell Cancel(): contacts, timers, fields, guard and visuals end → ItemUnequipped → secondary unassigned
-
-Save/load: item entry stores BoundSpell's path (current mana is already saved with the stats)
-  → restore stats, inventory and equipment → SpellCaster.Bind
-  → an active guard follows the spell plan's restore rule
-```
-
-## Affected paths
-
-```text
-~ common/combat/AttackStats.cs                    moved from PlayerStats.cs; the one range-and-critical rule
-+ scenes/magic/SpellDefinition.cs, SpellPool.cs, MissileSet.cs, SpellPower.cs (with SpellLevels)
-+ scenes/magic/<element>/<spell>_spell.tscn       18 self-contained spell scenes: generic component, definition, top-level Visuals
-~ scenes/magic/air/gust_spell.tscn, water/frost_nova_spell.tscn   top-level Visuals child as VisualRoot
-+ scenes/magic/<element>/<spell>.tres             20 SpellDefinitions
-+ scenes/magic/spell_pool_all.tres                 every spell, uniform
-+ scenes/magic/missile/wand_missiles.tres, staff_missiles.tres, magic_missile_<el>_staff_attack.tres (×4)
-~ scenes/magic/shared/*Definition.cs, *Spell.cs   damage scales, five levels, SpellPower
-~ scenes/magic/shared/AreaSpellTargets.cs, AreaCastLifecycle.cs, LingeringAreaField.cs, TargetedSpell.cs, BurningContact.cs
-                                                  roll per contact through AttackStats
-~ scenes/magic/water/FrostNovaDefinition.cs       scales, five levels
-~ scenes/magic/**/*_combat.tres                   converted scales; levels 4–5
-~ common/interfaces/ICombatSpell.cs               Cast takes SpellPower
-~ scenes/items/MagicStaff.cs, Weapon.cs, EquipableItem.cs   bound spell, missiles, element, name tail, primary seam, RollIntrinsic, Inspector
-~ scenes/items/affixes/LootRoller.cs              calls RollIntrinsic last
-~ scenes/items/weapons/wand.tres, wand/*.tres     wand tiers 1, 3, 5; + tiers 2 and 4
-~ scenes/items/weapons/staff_common|uncommon|rare.tres, staff/*.tres   staff tiers 1, 2, 4 (were melee) and 3, 5
-- scenes/items/weapons/staff_fire|water|earth|air.tres   per-element staves; staff_skeleton.tres leaves player loot
-~ scenes/items/loot/pools/weapons.tres, scenes/enemies/forsaken_warden/forsaken_warden_loot.tres
-~ scenes/attacks/AttackController.cs, PreparedAttack.cs, Projectile.cs   AttackStats, spell release
-~ scenes/enemies/EnemyBehaviorComponent.cs        StartAttack with AttackStats
-~ scenes/magic/fireball/FireballSpell.cs           workbench preview: Projectile.Initialize with AttackStats
-~ scenes/player/PlayerAttackController.cs          PrimaryAttackDefinition, SpellPower capture
-+ scenes/components/SpellCaster.cs                 actor-agnostic component
-+ scenes/player/actions/SpellCastAction.cs
-~ scenes/player/Player.cs, PlayerInventoryController.cs, Inventory.cs, player.tscn
-~ scenes/player/classes/class_mage.tres            starting Wand of Fireball (fixed spell)
-~ scenes/ui/ItemSlotPanel.cs, ActionContainer.cs  spell tooltip, secondary cost/availability
-~ scenes/ui/DebugMenu.cs                           spawn a wand or staff with a chosen spell
-~ scenes/debug/combat/CombatHarness.cs, combat_harness.tscn   SpellDefinition array instead of hand-placed nodes; spell selector rebinds the harness wand
-~ scripts/saves/SaveGame.cs, ItemSaveCodec.cs     spell path; bump CurrentVersion
-+ tests/SpellWandTest.cs; ~ ItemCatalogTest.cs, LootRollerEnchantTest.cs, PlayerSaveCodecTest.cs
-~ docs: weapon-attack-system.md, stats-and-itemization.md, character-classes.md, item-catalog.md when delivered
-```
+- **Wards across saves.** An active ward follows the [spell plan](elemental-spells-plan.md)'s restore rule; today it ends with the player node on load and on the stairs.
+- **Readable casting.** Tooltip lines (spell, level, mana cost, damage per hit), the secondary slot's cost and out-of-mana state, and an out-of-mana cue; a rejected cast is silent today.
+- **Generated catalog images.** `docs/item-catalog/` still shows the removed per-element staves until `render_item_catalog.gd` runs again.
 
 ## Delivery slices
 
-Vertical after one small horizontal foundation: mana is a prerequisite every cast needs, and fire proves the whole wand path before the other 18 spells are converted.
+1. **Mana pool.** Done.
+2. **Fire wands.** Done.
+3. **All spells and staves.** Done: 20 spells at five levels in `scenes/magic/spells/`, wand and staff tiers 1–5 rolling from `spell_pool_all.tres`, staves firing four darts per volley, the per-element staves removed (the Skeleton Staff became a second tier-2 spell staff), the harness and debug menu spawning with a chosen spell.
+4. **Readability and tuning.** The readable-casting items above, levels 4–5 visuals reviewed at the gameplay camera, cost and scale tuning across classes. Visual quality and balance need manual acceptance; passing tests establish neither.
 
-1. **Mana pool.** Done. *Exercise still owed:* start each class and compare pools; lower `ManaComponent.CurrentMana` in the Remote Inspector and watch it regenerate on the HUD; save and reload.
-2. **Fire wands.** First give `AttackStats` the roll and use it in `AttackController` and `Projectile` without changing behavior; existing combat tests and the scripted harness smoke run must report the same damage for the same seed. Then `SpellDefinition`, `SpellPool`, `MissileSet`, `SpellPower`, the `ICombatSpell` signature change across all 20 components (scales converted, still three levels), `SpellCaster`, `SpellCastAction`, the attack-controller spell release, the spell roll and name tail, item save, self-contained scenes for the five fire spells and the harness `Spells` array. Wand tiers 1–5 with a fire-only pool (Fireball, Meteor, Fire Nova, Fire Serpent, Ember Ward) and levels 4–5 for those five; the Mage starts with a Wand of Fireball. *Exercise:* in the combat harness and a Mage run, cast every fire wand tier; run dry and see K rejected without missiles; swap wands mid-cast and confirm the effects end and the mana stays spent; play a Barbarian with a found wand. *Check:* tests for spell contacts scaling with the captured hit and rolling critical hits, guard capacity from the average hit, rejection without cost, exactly-once spending, cooldown by spell, interruption, focus release, the roll draw order (non-magic items roll unchanged for the same seed), name composition and save/load of the bound spell.
-3. **All spells and staves.** The remaining 15 spells reach five levels and join `spell_pool_all.tres`; staff tiers 1–5 with the heavier volley replace the per-element and melee staves; loot pools and the Warden's table update. *Exercise:* the debug menu spawns any spell at any tier; compare a wand and staff of one tier against a shield-and-wand loadout. *Check:* a catalog test that every pool spell has a cost and component values for every level up to the highest tier that can roll it, every magic weapon resolves a missile for each element, and no staff is one-handed.
-4. **Readability and tuning.** Tooltip lines (spell, level, mana cost, damage per hit), the secondary slot's cost and out-of-mana state, an out-of-mana cue, levels 4–5 visuals reviewed at the gameplay camera, cost and scale tuning across classes. Visual quality and balance need manual acceptance; passing tests establish neither.
+*Exercise still owed for slices 1–3:* start each class and compare pools; lower `ManaComponent.CurrentMana` in the Remote Inspector and watch it regenerate; save and reload; in a Mage run cast every tier, run dry and see K rejected without missiles, swap weapons mid-cast; play a Barbarian with a found staff; compare a wand and a staff of one tier against a shield-and-wand loadout.
 
 Each slice runs `dotnet build "Rogue Gauntlet.sln"`, focused GdUnit4 suites with `GODOT_BIN` and `.runsettings`, the Godot import step for new scripts and resources, and a headless `main.tscn` smoke run. Old development saves are rejected after the version bump, without migration.
 
 ## Open decisions
 
-- **Levels 4–5 visuals:** scale each spell's level-3 composition, or author new layers. Decide per spell in slice 2 (fire) before converting the rest.
+- **Levels 4–5 visuals:** every spell reuses its level-3 composition at levels 4 and 5; area spells still grow with their radius. Decide per spell whether new layers are worth authoring.
 - **Quality and level:** whether Rare quality adds a spell level; the plan keeps level purely tied to tier.
 - **Pool weighting:** uniform across all 20, or weighted by realm theme once realms have elements.
 - **Mana sources:** regeneration only for now; a mana potion and mana affixes are follow-ups.

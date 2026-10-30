@@ -22,19 +22,22 @@ public static class AreaSpellTargets
 		GodotObject.IsInstanceValid(target) && target.IsInsideTree() && target.GetWorld3D() == world
 		&& WorldSight.IsClear(world, origin + Vector3.Up, target.GlobalPosition + Vector3.Up);
 
-	/// <summary>Resolve each visible captured target once, stopping immediately when the caller invalidates the cast.</summary>
+	/// <summary>
+	/// Resolve each visible captured target once, rolling <paramref name="hit"/> per target as a projectile's splash
+	/// does, and stopping immediately when the caller invalidates the cast. <paramref name="facing"/> is the cast's flat
+	/// facing, the push direction for a target right at the origin.
+	/// </summary>
 	public static void Resolve(Node3D[] targets, World3D world, Vector3 origin, Vector3 facing,
-		DamageContext contact, Func<bool> isActive, Action<Node3D, DamageResolution> afterContact = null)
+		DamageContext contact, AttackStats hit, Func<bool> isActive, Action<Node3D, DamageResolution> afterContact = null)
 	{
-		facing.Y = 0;
-		if (facing.LengthSquared() < .0001f) facing = Vector3.Forward;
 		foreach (var target in targets)
 		{
 			if (!isActive()) break;
 			if (!IsVisible(target, world, origin)) continue;
 			Vector3 direction = target.GlobalPosition - origin; direction.Y = 0;
 			if (direction.LengthSquared() < .0001f) direction = facing;
-			var directed = contact with { IncomingDirection = direction.Normalized() };
+			var (amount, critical) = hit.Roll(contact.Random);
+			var directed = contact with { IncomingDirection = direction.Normalized(), Amount = amount, Critical = critical };
 			var result = ((ICombatDamageable)target).ResolveDamage(in directed);
 			if (!isActive()) break;
 			afterContact?.Invoke(target, result);

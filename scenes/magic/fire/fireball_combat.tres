@@ -4,3 +4,5 @@
 script = ExtResource("script")
 SpellName = "Fireball"
 Element = 1
+TargetsByLevel = PackedInt32Array(1, 2, 3, 4, 5)
+DamageScaleByLevel = PackedFloat32Array(1, 1.375, 1.75, 1.875, 2)

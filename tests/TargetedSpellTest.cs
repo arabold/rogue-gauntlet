@@ -16,10 +16,10 @@ using static GdUnit4.Assertions;
 public partial class TargetedSpellTest
 {
 	[TestCase("Fireball")]
-	[TestCase("Ball Lightning")]
+	[TestCase("Lightning Orb")]
 	[TestCase("Chain Lightning")]
 	[TestCase("Rockfall")]
-	[TestCase("Meteor Shower")]
+	[TestCase("Meteor")]
 	public async Task OneAvailableEnemyReceivesOnlyTheAuthoredStrikes(string name)
 	{
 		using var runner = TestFactories.LoadCombatHarness();
@@ -27,15 +27,15 @@ public partial class TargetedSpellTest
 		var target = await SpawnTarget(runner, new Vector3(2, 0, 0));
 		var spell = TestFactories.GetSpell<TargetedSpell>(harness, name);
 		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue(); await runner.SimulateFrames(160);
-		// Showers drop every strike on the one target; every other delivery hits each target once.
-		int strikes = IsShower(spell) ? spell.Definition.TargetsByLevel[0] : 1;
-		AssertFloat(target.HealthComponent.CurrentHealth).IsEqualApprox(50 - strikes * spell.Definition.DamageByLevel[0], .01);
+		// Every strike of the cast lands on the one target.
+		int strikes = spell.Definition.TargetsByLevel[0];
+		AssertFloat(target.HealthComponent.CurrentHealth).IsEqualApprox(50 - strikes * TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0]), .01);
 	}
 
 	[TestCase("Fireball")]
-	[TestCase("Ball Lightning")]
+	[TestCase("Lightning Orb")]
 	[TestCase("Rockfall")]
-	[TestCase("Meteor Shower")]
+	[TestCase("Meteor")]
 	public async Task MovingAwayOrCancelingPreventsDelayedHits(string name)
 	{
 		using var runner = TestFactories.LoadCombatHarness();
@@ -52,20 +52,23 @@ public partial class TargetedSpellTest
 	}
 
 	[TestCase("Fireball")]
-	[TestCase("Ball Lightning")]
+	[TestCase("Lightning Orb")]
 	[TestCase("Chain Lightning")]
-	public async Task HigherLevelFillerDoesNotHitTheSameEnemyAgain(string name)
+	public async Task ShotsBeyondTheAvailableTargetsCycleBackToThem(string name)
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var target = await SpawnTarget(runner, new Vector3(2, 0, 0));
 		var spell = TestFactories.GetSpell<TargetedSpell>(harness, name);
+		// Counted rather than summed: an earlier shot can stagger the target and raise a later one's damage.
+		int hits = 0;
+		target.HurtBoxComponent.DamageResolved += (_, _, _) => hits++;
 		AssertBool(TestFactories.CastSpell(harness, name, 3)).IsTrue(); await runner.SimulateFrames(160);
-		AssertFloat(target.HealthComponent.CurrentHealth).IsEqualApprox(50 - spell.Definition.DamageByLevel[2], .01);
+		AssertInt(hits).IsEqual(spell.Definition.TargetsByLevel[2]);
 	}
 
 	[TestCase("Rockfall")]
-	[TestCase("Meteor Shower")]
+	[TestCase("Meteor")]
 	public async Task FallingStrikesDamageWhenTheirVisualLands(string name)
 	{
 		using var runner = TestFactories.LoadCombatHarness();
@@ -98,12 +101,40 @@ public partial class TargetedSpellTest
 		}
 	}
 
+	[TestCase]
+	public async Task SpellsTargetThePracticeTarget()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 5);
+		var health = harness.PracticeTarget.GetNode<HealthComponent>("HealthComponent");
+		float before = health.CurrentHealth;
+
+		AssertBool(TestFactories.CastSpell(harness, "Fireball", 1)).IsTrue();
+		await TestFactories.AwaitPhysicsUntil(runner, () => health.CurrentHealth < before);
+	}
+
+	[TestCase]
+	public async Task ShotsWithoutATargetFlyStraightAhead()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 5);
+		harness.Player.InputController.SetPhysicsProcess(false);
+		harness.Player.MovementComponent.SetPhysicsProcess(false);
+		TestFactories.MovePracticeTargetAway(harness);
+		Vector3 ahead = (-harness.Player.GlobalBasis.Z with { Y = 0 }).Normalized();
+
+		AssertBool(TestFactories.CastSpell(harness, "Fireball", 3)).IsTrue();
+		var shots = runner.Scene().FindChildren("*", "", true, false).OfType<Projectile>().Where(shot => shot.IsPhysicsProcessing()).ToArray();
+		AssertInt(shots.Length).IsEqual(3);
+		foreach (var shot in shots) AssertFloat(shot.Direction.Dot(ahead)).IsGreater(.99f);
+	}
+
 	private static (ulong Frame, ulong Tick) Now() => (Engine.GetProcessFrames(), Engine.GetPhysicsFrames());
 
-	private static bool IsShower(TargetedSpell spell) => spell.Definition.Delivery is TargetDeliveryKind.Rockfall or TargetDeliveryKind.Meteor;
-
+	/// <summary>Spawns the case's one target; the arena's practice target moves out of range so it takes no strikes.</summary>
 	private static async Task<EnemyBase> SpawnTarget(ISceneRunner runner, Vector3 position)
 	{
+		TestFactories.MovePracticeTargetAway(runner.Scene().GetNode<CombatHarness>("Instructions"));
 		var target = TestFactories.SpawnCombatMonster(runner.Scene(), position, "Target");
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(target);
 		// Rear and sneak bonuses would scale projectile damage; these cases check strike counts only.

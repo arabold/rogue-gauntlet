@@ -2,8 +2,8 @@
 [ext_resource type="Script" path="res://scenes/magic/shared/TargetedSpellDefinition.cs" id="script"]
 [resource]
 script = ExtResource("script")
-SpellName = "Meteor Shower"
+SpellName = "Meteor"
 Element = 1
 Delivery = 4
-TargetsByLevel = PackedInt32Array(3, 6, 9)
-DamageByLevel = PackedFloat32Array(3, 4, 5)
+TargetsByLevel = PackedInt32Array(3, 6, 9, 11, 13)
+DamageScaleByLevel = PackedFloat32Array(0.375, 0.5, 0.625, 0.6875, 0.75)

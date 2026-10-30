@@ -18,6 +18,8 @@ public partial class LingeringAreaField : Node3D
 	private LingeringAreaDefinition _definition;
 	private Node3D _visual;
 	private int _level;
+	private AttackStats _hit;
+	private float _burnDamage;
 	private readonly HashSet<Node3D> _contacted = [];
 	private readonly HashSet<BuffController> _slowed = [];
 	private readonly HashSet<BuffController> _present = [];
@@ -30,9 +32,13 @@ public partial class LingeringAreaField : Node3D
 	private double _clock;
 	private bool _ended;
 
-	public void Configure(LingeringAreaSpell source, AreaCastLifecycle.Cast cast, LingeringAreaDefinition definition, int level, VisualEffectInstance visual)
+	public void Configure(LingeringAreaSpell source, AreaCastLifecycle.Cast cast, LingeringAreaDefinition definition, in SpellPower power, VisualEffectInstance visual)
 	{
+		int level = power.Level;
 		_source = source; _cast = cast; _definition = definition; _level = level; _visual = visual; _front = visual.Front;
+		_hit = power.Hit.Scaled(definition.DamageScaleByLevel[level - 1]);
+		// Burns tick small amounts often, so they take the average hit and never roll a critical.
+		_burnDamage = definition.Kind == LingeringAreaKind.SolarFlares ? power.Hit.Average * definition.BurnScaleByLevel[level - 1] : 0;
 		_isActive = () => !_ended;
 		if (definition.Kind == LingeringAreaKind.Hailstorm) _hail = new HailPattern(cast.Random, definition.ShardsPerSecondByLevel[level - 1]);
 	}
@@ -59,7 +65,7 @@ public partial class LingeringAreaField : Node3D
 		if (touched.Length > 0) Resolve(touched, _cast.Origin, (target, result) =>
 		{
 			_contacted.Add(target);
-			if (result.Outcome == DamageOutcome.Damaged && IsInstanceValid(target) && target.IsInsideTree()) _source.Ignite(_cast.Caster, target, _cast.Random, _level);
+			if (result.Outcome == DamageOutcome.Damaged && IsInstanceValid(target) && target.IsInsideTree()) _source.Ignite(_cast.Caster, target, _cast.Random, _burnDamage);
 		});
 		_previousHeads = heads;
 	}
@@ -113,12 +119,12 @@ public partial class LingeringAreaField : Node3D
 		bool hail = _definition.Kind == LingeringAreaKind.Hailstorm;
 		var contact = new DamageContext { ExecutionId = new AttackIdentity(_cast.Caster.GetInstanceId(), ++_sequence),
 			SourceNode = _source, OwnerNode = _cast.Caster, Faction = HurtBoxComponent.GetDamageSource(_cast.Caster),
-			Amount = _definition.DamageByLevel[_level - 1], Random = _cast.Random,
+			Random = _cast.Random,
 			DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, DeliveryKind = DamageDeliveryKind.AreaImpact,
 			Element = _definition.Kind == LingeringAreaKind.SolarFlares ? DamageElement.Fire : DamageElement.Water,
 			BypassArmor = hail, SuppressHitReaction = hail,
 			ForcedPush = _definition.Kind == LingeringAreaKind.IceWall ? _definition.RepelPush : 0 };
-		AreaSpellTargets.Resolve(targets, _cast.World, origin, _cast.Facing, contact, _isActive, afterContact);
+		AreaSpellTargets.Resolve(targets, _cast.World, origin, _cast.Facing, contact, _hit, _isActive, afterContact);
 	}
 	private bool TouchesFlame(Vector3 target, Vector3[] heads)
 	{

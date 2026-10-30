@@ -39,7 +39,7 @@ public class MeleeContactTest
 			MeleeContact = GD.Load<MeleeAttackProfile>($"res://scenes/attacks/melee_profiles/{profile}.tres") };
 		configure?.Invoke(definition);
 		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
-		AssertBool(controller.StartAttack(attack, 10, 10, 0, mask)).IsTrue();
+		AssertBool(controller.StartAttack(attack, new AttackStats(10, 10, 0), mask)).IsTrue();
 		controller.SetPhysicsProcess(false);
 		return controller;
 	}
@@ -362,7 +362,7 @@ public class MeleeContactTest
 			controller.EffectsEnabled = true;
 			var definition = new AttackDefinition { AttackStyle = weapon.AttackStyle };
 			AssertBool(controller.TryPrepareAttack(definition, weapon.AttackStyle, 1, out var attack, weapon.MeleeContact)).IsTrue();
-			AssertBool(controller.StartAttack(attack, 10, 10, 0, 8)).IsTrue();
+			AssertBool(controller.StartAttack(attack, new AttackStats(10, 10, 0), 8)).IsTrue();
 			controller.SetPhysicsProcess(false);
 			// Two steps inside the weapon's contact window, which follows its strike.
 			float start = attack.Definition.HitWindowStart, step = (attack.Definition.HitWindowEnd - start) * .35f;

@@ -25,7 +25,7 @@ public class ProjectileFlightTest
 		root.AddChild(target);
 		var projectile = _scene.Instantiate<Projectile>();
 		root.AddChild(projectile);
-		projectile.Initialize(Sky, direction, speed, 30, 1, 1, 0);
+		projectile.Initialize(Sky, direction, speed, 30, new AttackStats(1, 1, 0));
 		projectile.SetPhysicsProcess(false);
 		projectile.ConfigureFlight(flight, target);
 		return (projectile, target);
@@ -141,18 +141,31 @@ public class ProjectileFlightTest
 		var target = new Node3D { Position = new Vector3(4, 0, -4) };
 		root.AddChild(target);
 		var first = ScenePool.Spawn<Projectile>(_scene, root);
-		first.Initialize(Sky, Vector3.Forward, 16, 30, 1, 1, 0);
+		first.Initialize(Sky, Vector3.Forward, 16, 30, new AttackStats(1, 1, 0));
 		first.ConfigureFlight(MissileFlight, target);
 		AssertBool(first.IsHoming).IsTrue();
 		ScenePool.Despawn(first);
 		var second = ScenePool.Spawn<Projectile>(_scene, root);
 		AssertBool(second.IsHoming).IsFalse();
-		second.Initialize(Sky, Vector3.Forward, 16, 30, 1, 1, 0);
+		second.Initialize(Sky, Vector3.Forward, 16, 30, new AttackStats(1, 1, 0));
 		second.SetPhysicsProcess(false);
 		for (int tick = 0; tick < 10; tick++) second._PhysicsProcess(Tick);
 		AssertBool(second.Direction.IsEqualApprox(Vector3.Forward)).IsTrue();
 		AssertFloat(-second.GlobalPosition.Z).IsEqualApprox(16 * 10 * Tick, .001f);
 		ScenePool.Despawn(second);
+	}
+
+	[TestCase]
+	public async Task AProjectileLaunchedWithoutADirectionIsRetiredInsteadOfHovering()
+	{
+		var root = TestFactories.AddToSceneTree(new Node3D { Position = Sky });
+		var projectile = _scene.Instantiate<Projectile>();
+		root.AddChild(projectile);
+		projectile.Initialize(Sky, Vector3.Zero, 16, 30, new AttackStats(1, 1, 0));
+		// Retirement is a deferred call, which a frame that already began may not have run yet.
+		var tree = (SceneTree)Engine.GetMainLoop();
+		for (int frame = 0; frame < 2; frame++) await tree.ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+		AssertBool(!GodotObject.IsInstanceValid(projectile) || projectile.IsQueuedForDeletion()).IsTrue();
 	}
 
 	private static AttackDefinition Volley(float stagger = .05f) => new()
@@ -177,7 +190,7 @@ public class ProjectileFlightTest
 		using var definition = Volley();
 		// crossbow.shoot releases at 0.45 of the one-second duration, then every 0.05 s.
 		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
-		AssertBool(controller.StartAttack(attack, 1, 1, 0, 0)).IsTrue();
+		AssertBool(controller.StartAttack(attack, new AttackStats(1, 1, 0), 0)).IsTrue();
 		controller.SetPhysicsProcess(false);
 		controller._PhysicsProcess(.45);
 		AssertInt(Released(parent, before).Length).IsEqual(1);
@@ -204,7 +217,7 @@ public class ProjectileFlightTest
 		var before = parent.GetChildren().OfType<Projectile>().ToArray();
 		using var definition = Volley();
 		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
-		AssertBool(controller.StartAttack(attack, 1, 1, 0, 0)).IsTrue();
+		AssertBool(controller.StartAttack(attack, new AttackStats(1, 1, 0), 0)).IsTrue();
 		controller.SetPhysicsProcess(false);
 		controller._PhysicsProcess(.6);
 		var released = Released(parent, before);
@@ -228,7 +241,7 @@ public class ProjectileFlightTest
 		var before = parent.GetChildren().OfType<Projectile>().ToArray();
 		using var definition = Volley(stagger: 0);
 		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
-		AssertBool(controller.StartAttack(attack, 1, 1, 0, 0)).IsTrue();
+		AssertBool(controller.StartAttack(attack, new AttackStats(1, 1, 0), 0)).IsTrue();
 		controller.SetPhysicsProcess(false);
 		controller._PhysicsProcess(.5);
 		var released = Released(parent, before);

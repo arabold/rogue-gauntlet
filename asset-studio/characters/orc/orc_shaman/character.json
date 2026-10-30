@@ -173,6 +173,6 @@
   ],
   "concept": "turn this mannequin into an old orc shaman: olive-grey wrinkled skin, a long jaw with small curved tusks, glowing pale eyes, white war-paint stripes, a tall headdress of feathers around a horned animal skull, a fur-trimmed hide shawl over the shoulders, a necklace of bones and teeth, a belt with pouches and dangling charms, a ragged hide robe to the knees, bead bracelets on wrapped arms, bare feet; for the whole roster: a chunky stylized dungeon-crawler monster with heroic stylized proportions (big head, short limbs), a bold readable silhouette, exaggerated oversized accessories, a limited palette of four to six flat colors, empty hands (no weapons)",
   "weapons": {
-    "handslot.r": "res://scenes/items/weapons/staff_earth.tres"
+    "handslot.r": "res://scenes/items/weapons/staff_skeleton.tres"
   }
 }

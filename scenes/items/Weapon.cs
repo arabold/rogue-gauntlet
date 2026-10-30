@@ -40,6 +40,8 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	[Export] public AttackCombo PrimaryCombo { get; set => SetValue(ref field, value); }
 
 	[Export] public AttackDefinition CustomAttackDefinition { get; protected set => SetValue(ref field, value); }
+	/// <summary>The primary attack; null uses the attack controller's default for the weapon.</summary>
+	public virtual AttackDefinition PrimaryAttackDefinition => CustomAttackDefinition;
 
 	[Export] public string AnimationId { get; set => SetValue(ref field, value); } = "melee_attack";
 	[Export] public float Delay { get; set => SetValue(ref field, value); } = 0f;
@@ -60,6 +62,9 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	{
 		AnimationId = "melee_attack";
 	}
+
+	/// <summary>The secondary action this weapon assigns while held: its martial technique unless a subclass casts.</summary>
+	public virtual ICombatAttackAction CreateSecondaryAction() => new MartialTechniqueAction(this);
 
 	public virtual StringName GetEffectiveSecondaryStyle()
 	{

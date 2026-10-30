@@ -137,14 +137,14 @@ public class RealmEncounterTest
 		shooter.GetParent().AddChild(target);
 		target.GlobalPosition = shooter.GlobalPosition + forward * 6;
 		AssertBool(controller.TryPrepareAttack(behavior.AttackStrategy.Attack, "ranged", 1, out var attack)).IsTrue();
-		AssertBool(controller.StartAttack(attack, 3, 6, 0, 4)).IsTrue();
+		AssertBool(controller.StartAttack(attack, new AttackStats(3, 6, 0), 4)).IsTrue();
 		Node projectileParent = actor.GetTree().CurrentScene ?? actor.GetParent();
 		var before = projectileParent.GetChildren().OfType<Projectile>().ToHashSet();
 		controller._PhysicsProcess(.5); // cross the aim lock and the authored release time without relying on frame timing
 		AssertBool(controller.HasCommittedFacing).IsTrue();
 		var arrow = projectileParent.GetChildren().OfType<Projectile>().Single(p => !before.Contains(p));
 		AssertFloat(arrow.Speed).IsEqual(16);
-		AssertFloat(arrow.MinDamage).IsEqual(3);
+		AssertFloat(arrow.Hit.MinDamage).IsEqual(3);
 		AssertInt((int)arrow.GetNode<HitBoxComponent>("%HitBoxComponent").CollisionMask).IsEqual(4);
 		AssertFloat((arrow.Direction with { Y = 0 }).Normalized().Dot(forward)).IsGreater(0.95f);
 		ScenePool.Despawn(arrow);

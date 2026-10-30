@@ -86,14 +86,7 @@ public partial class PlayerAttackController : AttackController
 
 	private void PerformWeaponAttack(bool isSpecial)
 	{
-		var inventory = Player.Inventory;
-
-		Weapon weapon = null;
-		if (inventory.EquippedItems.TryGetValue(EquipmentSlot.WeaponHand, out var equippedItem))
-		{
-			weapon = equippedItem?.Item as Weapon;
-		}
-
+		Weapon weapon = Player.Inventory.EquippedWeapon;
 		if (TryPrepareWeaponAttack(weapon, out var attack, isSpecial))
 		{
 			StartPreparedWeaponAttack(attack, weapon, isSpecial);
@@ -108,7 +101,7 @@ public partial class PlayerAttackController : AttackController
 	{
 		int comboStep = isSpecial ? -1 : NextComboStep(weapon);
 		var step = comboStep >= 0 ? weapon.PrimaryCombo.Steps[comboStep] : null;
-		var definition = (!isSpecial ? weapon?.CustomAttackDefinition : weapon?.SecondaryCustomAttackDefinition)
+		var definition = (!isSpecial ? weapon?.PrimaryAttackDefinition : weapon?.SecondaryCustomAttackDefinition)
 			?? CreateDefaultDefinition(weapon, isSpecial);
 		var style = isSpecial ? (weapon?.GetEffectiveSecondaryStyle() ?? "unarmed.kick") : (weapon?.AttackStyle ?? "unarmed.punch");
 		if (!string.IsNullOrEmpty(step?.AttackStyle))
@@ -137,9 +130,8 @@ public partial class PlayerAttackController : AttackController
 		if (Player.IsDead || Player.IsHit || IsAttacking) return false;
 		_activeWeapon = weapon;
 		_aimAssistTarget = FindMeleeAimAssistTarget();
-		var stats = Player.Stats.ResolveAttack(weapon);
 		float multiplier = (isSpecial ? (weapon?.SecondaryDamageMultiplier ?? 1.5f) : 1.0f) * (attack?.DamageScale ?? 1);
-		if (!StartAttack(attack, stats.MinDamage * multiplier, stats.MaxDamage * multiplier, stats.CritChance, 24, lease)) return false;
+		if (!StartAttack(attack, Player.Stats.ResolveAttack(weapon).Scaled(multiplier), 24, lease)) return false;
 		ResetCombo();
 		if (attack.ComboStep >= 0)
 		{
@@ -151,11 +143,23 @@ public partial class PlayerAttackController : AttackController
 		return true;
 	}
 
+	/// <summary>
+	/// Start an accepted spell cast. Its focus must stay in the weapon hand until the spell releases, so swapping weapons
+	/// during the wind-up cancels the cast.
+	/// </summary>
+	public bool StartPreparedSpellCast(PreparedAttack attack, Weapon focus, ActorActionLease lease = default)
+	{
+		if (Player.IsDead || Player.IsHit || IsAttacking || attack?.Spell == null) return false;
+		_activeWeapon = focus;
+		_aimAssistTarget = null;
+		if (!StartAttack(attack, attack.Spell.Power.Hit, 24, lease)) return false;
+		ResetCombo();
+		return true;
+	}
+
 	public override void _PhysicsProcess(double delta)
 	{
-		if (IsAttacking && _activeWeapon != null
-			&& (!Player.Inventory.EquippedItems.TryGetValue(EquipmentSlot.WeaponHand, out var slot)
-				|| !ReferenceEquals(slot?.Item, _activeWeapon)))
+		if (IsAttacking && _activeWeapon != null && !ReferenceEquals(Player.Inventory.EquippedWeapon, _activeWeapon))
 		{
 			CancelAttack();
 		}

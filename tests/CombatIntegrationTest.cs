@@ -435,7 +435,7 @@ public partial class CombatIntegrationTest
 			float before = enemy.HealthComponent.CurrentHealth;
 			var projectile = GD.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
 			runner.Scene().AddChild(projectile);
-			projectile.Initialize(Vector3.Up, Vector3.Forward, 10, 10, 5, 5, 0,
+			projectile.Initialize(Vector3.Up, Vector3.Forward, 10, 10, new AttackStats(5, 5, 0),
 				harness.Player, AttackDefenseTraits.None);
 			await PhysicsFrames(runner, 18);
 			AssertFloat(enemy.HealthComponent.CurrentHealth).IsEqualApprox(before - 5, .001);

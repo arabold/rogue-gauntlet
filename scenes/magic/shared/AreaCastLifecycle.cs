@@ -11,7 +11,7 @@ public sealed class AreaCastLifecycle
 	private readonly List<Node3D> _visuals = [];
 	private readonly List<PendingContact> _pending = [];
 	/// <summary>One cast's contact, sweeping outward with its front; every actor it reaches counts once.</summary>
-	private sealed record PendingContact(Cast Cast, AreaFront Front, AttackIdentity Identity, float Damage, AttackDefenseTraits Traits,
+	private sealed record PendingContact(Cast Cast, AreaFront Front, AttackIdentity Identity, AttackStats Hit, AttackDefenseTraits Traits,
 		float Push, Action<Node3D, DamageResolution> AfterContact, DamageElement Element, double Start)
 	{
 		public HashSet<Node3D> Reached { get; } = [];
@@ -27,7 +27,10 @@ public sealed class AreaCastLifecycle
 		if (!owner.IsInsideTree() || !GodotObject.IsInstanceValid(caster) || !caster.IsInsideTree()
 			|| !GodotObject.IsInstanceValid(visualRoot) || !visualRoot.IsInsideTree()
 			|| visualRoot.GetWorld3D() != caster.GetWorld3D() || random == null) return false;
+		// Every consumer aims along the ground, so the facing is captured flat and normalized.
 		Vector3 origin = caster.GlobalPosition, facing = -caster.GlobalBasis.Z;
+		facing.Y = 0;
+		facing = facing.LengthSquared() > .0001f ? facing.Normalized() : Vector3.Forward;
 		World3D world = caster.GetWorld3D();
 		var targets = AreaSpellTargets.Capture(owner, caster, origin, radius, world);
 		if (targets == null) return false;
@@ -47,11 +50,11 @@ public sealed class AreaCastLifecycle
 	/// <paramref name="front"/>, hitting each occupant once as the front reaches it; whatever reaches the front
 	/// right away, such as everyone for an instant front without delay, is hit before this returns.
 	/// </summary>
-	public void Schedule(Cast cast, float delay, AreaFront front, float damage, AttackDefenseTraits traits, float push = 0,
+	public void Schedule(Cast cast, float delay, AreaFront front, AttackStats hit, AttackDefenseTraits traits, float push = 0,
 		Action<Node3D, DamageResolution> afterContact = null, DamageElement element = DamageElement.None)
 	{
 		var contact = new PendingContact(cast, front with { Delay = front.Delay + delay },
-			new AttackIdentity(cast.Caster.GetInstanceId(), ++_sequence), damage, traits, push, afterContact, element, _clock);
+			new AttackIdentity(cast.Caster.GetInstanceId(), ++_sequence), hit, traits, push, afterContact, element, _clock);
 		ulong generation = _generation;
 		if (Sweep(contact) || _generation != generation) return;
 		_pending.Add(contact);
@@ -99,9 +102,9 @@ public sealed class AreaCastLifecycle
 		var cast = pending.Cast;
 		ulong generation = _generation;
 		var contact = new DamageContext { ExecutionId = pending.Identity, SourceNode = cast.Owner, OwnerNode = cast.Caster,
-			Faction = HurtBoxComponent.GetDamageSource(cast.Caster), Amount = pending.Damage, Random = cast.Random,
+			Faction = HurtBoxComponent.GetDamageSource(cast.Caster), Random = cast.Random,
 			DefenseTraits = pending.Traits, DeliveryKind = DamageDeliveryKind.AreaImpact, ForcedPush = pending.Push, Element = pending.Element };
-		AreaSpellTargets.Resolve(targets, cast.World, cast.Origin, cast.Facing, contact,
+		AreaSpellTargets.Resolve(targets, cast.World, cast.Origin, cast.Facing, contact, pending.Hit,
 			() => _generation == generation && cast.Owner.IsInsideTree(), pending.AfterContact);
 	}
 

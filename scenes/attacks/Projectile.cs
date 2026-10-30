@@ -17,9 +17,8 @@ public partial class Projectile : Node3D, IPooledNode
 	[Export] public float Speed { get; set; } = 10f;
 	[Export] public float Range { get; set; } = 30f;
 	[Export] public Vector3 Direction { get; set; } = Vector3.Forward;
-	[Export] public float MinDamage { get; set; }
-	[Export] public float MaxDamage { get; set; }
-	[Export] public float CritChance { get; set; }
+	/// <summary>The hit this flight carries, set by <see cref="Initialize"/>: rolled once on direct contact and per splash owner.</summary>
+	public AttackStats Hit { get; private set; }
 	[Export] public PackedScene ImpactEffectScene { get; set; }
 	[Export] public PackedScene ExpireEffectScene { get; set; }
 	[Export] public bool SpawnImpactEffectOnExpire { get; set; } = true;
@@ -134,7 +133,7 @@ public partial class Projectile : Node3D, IPooledNode
 		SetHitBoxMonitoring(false, deferred: true);
 	}
 
-	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float minDamage, float maxDamage, float critChance, Node attacker = null, AttackDefenseTraits defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, AttackDefenseTraits areaDefenseTraits = AttackDefenseTraits.Dodgeable, ulong randomSeed = 42, AttackIdentity parentExecution = default)
+	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, AttackStats hit, Node attacker = null, AttackDefenseTraits defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, AttackDefenseTraits areaDefenseTraits = AttackDefenseTraits.Dodgeable, ulong randomSeed = 42, AttackIdentity parentExecution = default)
 	{
 		_parentExecution = parentExecution;
 		_areaDefenseTraits = areaDefenseTraits;
@@ -144,9 +143,7 @@ public partial class Projectile : Node3D, IPooledNode
 		Direction = direction.Normalized();
 		Speed = speed;
 		Range = range;
-		MinDamage = minDamage;
-		MaxDamage = maxDamage;
-		CritChance = critChance;
+		Hit = hit;
 		_attacker = attacker;
 		_attackerFaction = HurtBoxComponent.GetDamageSource(attacker);
 		_distanceTravelled = 0.0f;
@@ -156,6 +153,13 @@ public partial class Projectile : Node3D, IPooledNode
 			("parent_execution", _parentExecution.Sequence), ("parent_source", _parentExecution.SourceInstanceId), ("owner", CombatTrace.Identity(attacker)),
 			("origin", CombatTrace.Vector(origin)), ("direction", CombatTrace.Vector(Direction)), ("speed", speed), ("range", range),
 			("traits", defenseTraits.ToString()), ("area_traits", areaDefenseTraits.ToString()), ("seed", randomSeed));
+		// Range counts distance flown, so a launch without a direction would hover forever; it is retired instead.
+		if (Direction == Vector3.Zero)
+		{
+			GD.PushWarning($"{Name} was launched without a direction and is retired.");
+			CallDeferred(MethodName.ReturnToPoolOrFree);
+			return;
+		}
 		SetPhysicsProcess(true);
 
 		GlobalTransform = new Transform3D(Basis.Identity, origin);
@@ -272,16 +276,10 @@ public partial class Projectile : Node3D, IPooledNode
 		if (TryGetDamageTarget(body, out Node damageOwner, out IDamageable damageable))
 		{
 			if (_restrictedTarget && (!GodotObject.IsInstanceValid(_assignedTarget) || damageOwner != _assignedTarget)) return;
-			var damage = (float)_random.RandfRange(MinDamage, MaxDamage);
-			float baseDamage = damage;
-			bool critical = _random.Randf() < CritChance;
-			if (critical)
-			{
-				damage *= 2;
-				GameDebug.Combat("Critical hit!");
-			}
+			var (damage, critical) = Hit.Roll(_random);
+			if (critical) GameDebug.Combat("Critical hit!");
 
-			if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.contact", ("execution", _executionId.Sequence), ("target", CombatTrace.Identity(damageOwner)), ("base_damage", baseDamage), ("critical", critical), ("raw_damage", damage));
+			if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.contact", ("execution", _executionId.Sequence), ("target", CombatTrace.Identity(damageOwner)), ("critical", critical), ("raw_damage", damage));
 			var context = new DamageContext
 			{
 				ExecutionId = _executionId,
@@ -442,13 +440,9 @@ public partial class Projectile : Node3D, IPooledNode
 				}
 
 				float damageScale = GetImpactRadiusDamageScale(damageOwner);
-				float damage = (float)_random.RandfRange(MinDamage, MaxDamage) * damageScale;
-				bool critical = _random.Randf() < CritChance;
-				if (critical)
-				{
-					damage *= 2;
-					GameDebug.Combat("Critical impact radius hit!");
-				}
+				var (amount, critical) = Hit.Roll(_random);
+				float damage = amount * damageScale;
+				if (critical) GameDebug.Combat("Critical impact radius hit!");
 
 				Vector3 pushDirection = damageOwner is Node3D node3D
 					? (node3D.GlobalPosition - GlobalPosition).Normalized()

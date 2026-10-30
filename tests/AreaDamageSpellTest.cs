@@ -26,12 +26,12 @@ public partial class AreaDamageSpellTest
 		await runner.SimulateFrames(5);
 		foreach (var actor in new[] { hit, blocked, distant }) TestFactories.PrepareCombatMonster(actor);
 		float playerHealth = harness.Player.HealthComponent.CurrentHealth;
-		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Flame Burst");
+		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Fire Nova");
 
 		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue();
 		await AwaitContact(runner, spell);
 
-		AssertFloat(hit.HealthComponent.CurrentHealth).IsEqual(50 - spell.Definition.DamageByLevel[0]);
+		AssertFloat(hit.HealthComponent.CurrentHealth).IsEqual(50 - TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0]));
 		AssertFloat(blocked.HealthComponent.CurrentHealth).IsEqual(50);
 		AssertFloat(distant.HealthComponent.CurrentHealth).IsEqual(50);
 		AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsEqual(playerHealth);
@@ -47,7 +47,7 @@ public partial class AreaDamageSpellTest
 		await runner.SimulateFrames(5);
 		TestFactories.PrepareCombatMonster(near); TestFactories.PrepareCombatMonster(far);
 		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Tremor");
-		float hit = spell.Definition.DamageByLevel[0];
+		float hit = TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0]);
 		AssertFloat(spell.Definition.PushAt(1)).IsGreater(0);
 
 		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue();
@@ -72,7 +72,7 @@ public partial class AreaDamageSpellTest
 		var entering = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(-7, 0, 0), "Entering");
 		await runner.SimulateFrames(5);
 		TestFactories.PrepareCombatMonster(leaving); TestFactories.PrepareCombatMonster(entering);
-		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Rock Spikes");
+		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Stone Spears");
 		AssertFloat(spell.Definition.ContactDelay).IsGreater(0);
 
 		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue();
@@ -81,7 +81,7 @@ public partial class AreaDamageSpellTest
 		harness.Player.GlobalPosition = new Vector3(0, 0, 10); // The area stays where it was cast.
 		await AwaitContact(runner, spell);
 		AssertFloat(leaving.HealthComponent.CurrentHealth).IsEqual(50);
-		AssertFloat(entering.HealthComponent.CurrentHealth).IsEqual(50 - spell.Definition.DamageByLevel[0]);
+		AssertFloat(entering.HealthComponent.CurrentHealth).IsEqual(50 - TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0]));
 
 		float health = entering.HealthComponent.CurrentHealth;
 		harness.Player.GlobalPosition = Vector3.Zero;
@@ -101,13 +101,13 @@ public partial class AreaDamageSpellTest
 		var second = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(0, 0, 2), "BSecond");
 		await runner.SimulateFrames(5);
 		TestFactories.PrepareCombatMonster(first); TestFactories.PrepareCombatMonster(second);
-		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Flame Burst");
+		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Fire Nova");
 		first.HurtBoxComponent.DamageResolved += (_, _, _) => spell.Cancel();
 
 		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue();
 		await AwaitContact(runner, spell);
 
-		AssertFloat(first.HealthComponent.CurrentHealth).IsEqual(50 - spell.Definition.DamageByLevel[0]);
+		AssertFloat(first.HealthComponent.CurrentHealth).IsEqual(50 - TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0]));
 		AssertFloat(second.HealthComponent.CurrentHealth).IsEqual(50);
 	}
 

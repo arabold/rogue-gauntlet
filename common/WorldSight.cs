@@ -15,4 +15,13 @@ public static class WorldSight
 		var hit = world.DirectSpaceState.IntersectRay(PhysicsRayQueryParameters3D.Create(from, to, Blockers));
 		return hit.Count == 0 || acceptHit?.Invoke(hit["collider"].AsGodotObject(), hit["position"].AsVector3()) == true;
 	}
+
+	/// <summary>How far sight runs from <paramref name="from"/> along <paramref name="direction"/> before a blocker,
+	/// up to <paramref name="maxDistance"/>.</summary>
+	public static float ClearDistance(World3D world, Vector3 from, Vector3 direction, float maxDistance)
+	{
+		Vector3 to = from + direction.Normalized() * maxDistance;
+		var hit = world.DirectSpaceState.IntersectRay(PhysicsRayQueryParameters3D.Create(from, to, Blockers));
+		return hit.Count == 0 ? maxDistance : from.DistanceTo(hit["position"].AsVector3());
+	}
 }

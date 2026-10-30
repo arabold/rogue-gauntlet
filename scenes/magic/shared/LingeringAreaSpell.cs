@@ -13,8 +13,9 @@ public partial class LingeringAreaSpell : Node, ICombatSpell
 	private readonly Dictionary<BuffController, BurningContact> _burns = [];
 	private ulong _generation;
 
-	public bool Cast(Node3D caster, int level, RandomNumberGenerator random)
+	public bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random)
 	{
+		int level = power.Level;
 		if (Definition?.IsValidLevel(level) != true || VisualScene == null
 			|| !AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, Definition.RadiusByLevel[level - 1], out var cast)) return false;
 		Node node = VisualScene.Instantiate();
@@ -30,7 +31,7 @@ public partial class LingeringAreaSpell : Node, ICombatSpell
 		if (visual is FireSpellVisual fire) fire.ConfigureLevel(level);
 		if (visual is WaterSpellVisual water && !water.ConfigureArea(level, Definition.RadiusByLevel[level - 1])) { node.Free(); return false; }
 		var field = new LingeringAreaField();
-		field.Configure(this, cast, Definition, level, visual);
+		field.Configure(this, cast, Definition, power, visual);
 		VisualRoot.AddChild(field); field.GlobalPosition = cast.Origin; field.AddChild(visual);
 		AreaVisibility visibility = AreaVisibility.Capture(cast.World, cast.Origin, Definition.RadiusByLevel[level - 1]);
 		if (visual is VisualEffectInstance effect) effect.SetVisibility(visibility);
@@ -45,19 +46,19 @@ public partial class LingeringAreaSpell : Node, ICombatSpell
 		var burns = new List<BurningContact>(_burns.Values); _burns.Clear();
 		foreach (var burn in burns) if (IsInstanceValid(burn)) burn.End();
 	}
-	/// <summary>Refresh this focus's burn on a surviving target without stacking its own casts.</summary>
-	public void Ignite(Node3D caster, Node3D target, RandomNumberGenerator random, int level)
+	/// <summary>Refresh this focus's burn on a surviving target without stacking its own casts; <paramref name="damage"/> is per tick.</summary>
+	public void Ignite(Node3D caster, Node3D target, RandomNumberGenerator random, float damage)
 	{
 		if (target is not ICombatDamageable || target is not IStatusActor { BuffController: { } statuses } || target is not IBurningActor { BurningStatus: not null }
 			|| statuses.Health?.IsDead != false) return;
 		ulong generation = _generation;
 		if (_burns.TryGetValue(statuses, out var existing) && IsInstanceValid(existing) && !existing.IsQueuedForDeletion()
-			&& existing.Refresh(caster, random, Definition.BurnDuration, Definition.BurnTickSeconds, Definition.BurnDamageByLevel[level - 1])) return;
+			&& existing.Refresh(caster, random, Definition.BurnDuration, Definition.BurnTickSeconds, damage)) return;
 		if (_generation != generation) return;
 		var burn = new BurningContact(); AddChild(burn);
 		_burns[statuses] = burn;
 		burn.Ended += ended => { if (_burns.TryGetValue(statuses, out var current) && ReferenceEquals(current, ended)) _burns.Remove(statuses); };
-		if (!burn.Begin(caster, target, statuses, Definition.BurnCondition, random, Definition.BurnDuration, Definition.BurnTickSeconds, Definition.BurnDamageByLevel[level - 1])) burn.End();
+		if (!burn.Begin(caster, target, statuses, Definition.BurnCondition, random, Definition.BurnDuration, Definition.BurnTickSeconds, damage)) burn.End();
 	}
 	public override void _ExitTree() => Cancel();
 }

@@ -3,7 +3,9 @@
 [ext_resource type="Script" uid="uid://b8oa1aglmosdk" path="res://scenes/items/affixes/RolledAffix.cs" id="1_eb8ir"]
 [ext_resource type="PackedScene" path="res://scenes/items/weapons/wand/wand_ruby.tscn" id="1_staff"]
 [ext_resource type="Script" uid="uid://bncpld6hbytsn" path="res://scenes/items/MagicStaff.cs" id="2_magic"]
-[ext_resource type="Resource" path="res://scenes/magic/missile/magic_missile_fire_attack.tres" id="3_missile"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/fireball.tres" id="bound_spell"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/spell_pool_all.tres" id="spell_pool"]
+[ext_resource type="Resource" path="res://scenes/magic/missile/wand_missiles.tres" id="missiles"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
 
@@ -18,7 +20,6 @@ DamageMax = 11.0
 CritChance = 0.05
 AttackStyle = &"staff.cast"
 Grip = ExtResource("weapon_grip")
-CustomAttackDefinition = ExtResource("3_missile")
 AnimationId = "ranged_attack"
 PerformDuration = 0.5
 CooldownDuration = 0.1
@@ -28,4 +29,7 @@ RollTable = ExtResource("roll_table")
 Name = "Ruby Scepter Wand"
 Scene = ExtResource("1_staff")
 Value = 120
+BoundSpell = ExtResource("bound_spell")
+SpellPool = ExtResource("spell_pool")
+Missiles = ExtResource("missiles")
 metadata/_custom_type_script = ExtResource("2_magic")

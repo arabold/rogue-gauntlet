@@ -36,8 +36,8 @@ public partial class FrostNovaCombatTest
 		var frost = harness.GetSpell<FrostNovaSpell>();
 		immune.HurtBoxComponent.Invulnerable = true;
 		guarded.HurtBoxComponent.RegisterDefenseEvaluator(new ChipBlock());
-		lethal.HealthComponent.SetHealth(frost.Definition.DamageByLevel[0], 50);
-		AssertBool(frost.Cast(harness.Player, 1, new RandomNumberGenerator { Seed = 2 })).IsTrue();
+		lethal.HealthComponent.SetHealth(TestFactories.SpellAmount(frost.Definition.DamageScaleByLevel[0]), 50);
+		AssertBool(frost.Cast(harness.Player, TestFactories.SpellPower(1), new RandomNumberGenerator { Seed = 2 })).IsTrue();
 		await TestFactories.AwaitPhysicsUntil(runner, () => lethal.HealthComponent.IsDead);
 		AssertFloat(immune.HealthComponent.CurrentHealth).IsEqual(50);
 		AssertBool(immune.BuffController.HasCondition(frost.Definition.Frozen)).IsFalse();
@@ -60,10 +60,10 @@ public partial class FrostNovaCombatTest
 		var frost = harness.GetSpell<FrostNovaSpell>();
 		var other = new object();
 		monster.BuffController.ApplyStatus(frost.Definition.Frozen, other, 8);
-		float afterFirst = 50 - frost.Definition.DamageByLevel[0], afterSecond = afterFirst - frost.Definition.DamageByLevel[1];
-		AssertBool(frost.Cast(harness.Player, 1, random)).IsTrue();
+		float afterFirst = 50 - TestFactories.SpellAmount(frost.Definition.DamageScaleByLevel[0]), afterSecond = afterFirst - TestFactories.SpellAmount(frost.Definition.DamageScaleByLevel[1]);
+		AssertBool(frost.Cast(harness.Player, TestFactories.SpellPower(1), random)).IsTrue();
 		await TestFactories.AwaitPhysicsUntil(runner, () => monster.HealthComponent.CurrentHealth <= afterFirst);
-		AssertBool(frost.Cast(harness.Player, 2, random)).IsTrue();
+		AssertBool(frost.Cast(harness.Player, TestFactories.SpellPower(2), random)).IsTrue();
 		await TestFactories.AwaitPhysicsUntil(runner, () => monster.HealthComponent.CurrentHealth <= afterSecond);
 		AssertFloat(monster.HealthComponent.CurrentHealth).IsEqual(afterSecond);
 		AssertInt(monster.BuffController.ActiveBuffs.Count).IsEqual(2);
@@ -91,9 +91,9 @@ public partial class FrostNovaCombatTest
 		{
 			if (first.BuffController.HasCondition(frost.Definition.Frozen)) frost.Cancel();
 		};
-		AssertBool(frost.Cast(harness.Player, 1, new RandomNumberGenerator { Seed = 4 })).IsTrue();
+		AssertBool(frost.Cast(harness.Player, TestFactories.SpellPower(1), new RandomNumberGenerator { Seed = 4 })).IsTrue();
 		await TestFactories.AwaitAreaContact(runner, frost.VisualScene, frost.Definition.RadiusByLevel[0], frost.Definition.ContactDelay);
-		AssertFloat(first.HealthComponent.CurrentHealth).IsEqual(50 - frost.Definition.DamageByLevel[0]);
+		AssertFloat(first.HealthComponent.CurrentHealth).IsEqual(50 - TestFactories.SpellAmount(frost.Definition.DamageScaleByLevel[0]));
 		AssertFloat(second.HealthComponent.CurrentHealth).IsEqual(50);
 		AssertBool(first.BuffController.HasCondition(frost.Definition.Frozen)).IsFalse();
 	}
@@ -110,9 +110,9 @@ public partial class FrostNovaCombatTest
 		TestFactories.PrepareCombatMonster(monster);
 		float before = harness.Player.HealthComponent.CurrentHealth;
 		var frost = harness.GetSpell<FrostNovaSpell>();
-		AssertBool(frost.Cast(monster, 1, new RandomNumberGenerator { Seed = 5 })).IsTrue();
+		AssertBool(frost.Cast(monster, TestFactories.SpellPower(1), new RandomNumberGenerator { Seed = 5 })).IsTrue();
 		await TestFactories.AwaitPhysicsUntil(runner, () => harness.Player.HealthComponent.CurrentHealth < before);
-		AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsEqual(before - frost.Definition.DamageByLevel[0]);
+		AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsEqual(before - TestFactories.SpellAmount(frost.Definition.DamageScaleByLevel[0]));
 		AssertBool(harness.Player.BuffController.HasCondition(frost.Definition.Frozen)).IsTrue();
 		AssertFloat(monster.HealthComponent.CurrentHealth).IsEqual(50);
 	}

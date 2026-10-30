@@ -5,5 +5,7 @@
 [resource]
 script = ExtResource("script")
 SpellName = "Gust"
-PushByLevel = PackedFloat32Array(2, 2.4, 2.8)
+PushByLevel = PackedFloat32Array(2, 2.4, 2.8, 3.1, 3.4)
 Element = 3
+RadiusByLevel = PackedFloat32Array(3.5, 5, 6.5, 7.5, 8.5)
+DamageScaleByLevel = PackedFloat32Array(0.375, 0.5, 0.625, 0.6875, 0.75)

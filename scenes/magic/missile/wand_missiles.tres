@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MissileSet" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/MissileSet.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/magic/missile/magic_missile_fire_attack.tres" id="fire"]
+[ext_resource type="Resource" path="res://scenes/magic/missile/magic_missile_water_attack.tres" id="water"]
+[ext_resource type="Resource" path="res://scenes/magic/missile/magic_missile_earth_attack.tres" id="earth"]
+[ext_resource type="Resource" path="res://scenes/magic/missile/magic_missile_air_attack.tres" id="air"]
+
+[resource]
+script = ExtResource("script")
+Fire = ExtResource("fire")
+Water = ExtResource("water")
+Earth = ExtResource("earth")
+Air = ExtResource("air")
+metadata/_custom_type_script = ExtResource("script")

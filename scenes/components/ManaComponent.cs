@@ -91,7 +91,7 @@ public partial class ManaComponent : Node
 			EmitSignalManaChanged(_currentMana, _maxMana);
 		}
 
-		UpdateRegeneration();
+		if (_currentMana >= _maxMana) SetPhysicsProcess(false);
 	}
 
 	private void UpdateRegeneration()

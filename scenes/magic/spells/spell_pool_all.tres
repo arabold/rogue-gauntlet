@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="SpellPool" load_steps=22 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/SpellPool.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/fireball.tres" id="fireball"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/meteor.tres" id="meteor"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/fire_nova.tres" id="fire_nova"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/fire_serpent.tres" id="fire_serpent"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/ember_ward.tres" id="ember_ward"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/rockfall.tres" id="rockfall"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/tremor.tres" id="tremor"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/stone_spears.tres" id="stone_spears"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/stone_ward.tres" id="stone_ward"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/thorn_ward.tres" id="thorn_ward"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/lightning_orb.tres" id="lightning_orb"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/chain_lightning.tres" id="chain_lightning"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/gust.tres" id="gust"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/thunderstorm.tres" id="thunderstorm"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/storm_ward.tres" id="storm_ward"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/ice_lance.tres" id="ice_lance"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/frost_nova.tres" id="frost_nova"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/hailstorm.tres" id="hailstorm"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/ice_wall.tres" id="ice_wall"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/frost_ward.tres" id="frost_ward"]
+
+[resource]
+script = ExtResource("script")
+Spells = [ExtResource("fireball"), ExtResource("meteor"), ExtResource("fire_nova"), ExtResource("fire_serpent"), ExtResource("ember_ward"), ExtResource("rockfall"), ExtResource("tremor"), ExtResource("stone_spears"), ExtResource("stone_ward"), ExtResource("thorn_ward"), ExtResource("lightning_orb"), ExtResource("chain_lightning"), ExtResource("gust"), ExtResource("thunderstorm"), ExtResource("storm_ward"), ExtResource("ice_lance"), ExtResource("frost_nova"), ExtResource("hailstorm"), ExtResource("ice_wall"), ExtResource("frost_ward")]
+metadata/_custom_type_script = ExtResource("script")

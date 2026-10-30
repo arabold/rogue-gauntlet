@@ -1,0 +1,9 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/magic/shared/magic_guard_spell.tscn" id="base"]
+[ext_resource type="Resource" path="res://scenes/magic/earth/spiked_armor_combat.tres" id="definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/earth/obsidian_guard.tscn" id="visual"]
+
+[node name="SpikedArmorSpell" instance=ExtResource("base")]
+Definition = ExtResource("definition")
+VisualScene = ExtResource("visual")

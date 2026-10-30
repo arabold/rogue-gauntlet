@@ -46,7 +46,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Secret doors and locks](specs/secret-doors-and-locks-plan.md) | Remaining tuning, hidden mechanisms, consumable key chains and secret shortcuts |
 | [Dungeon progression](specs/level-progression-prototype-plan.md) | Realm pools/recipes and the visible Warden stair seal |
 | [Actions and interactions](specs/actor-actions-and-interactions-plan.md) | Further actor intentions/content; magic moved to the magic rework plan |
-| [Magic rework](specs/magic-rework-plan.md) | In progress (mana pool done): spell wands and staves, free missile primary, one rolled spell whose level follows the tier, mana pool, renamed spells; drops spell learning and skill points |
+| [Magic rework](specs/magic-rework-plan.md) | In progress (slices 1–3 done; readability and tuning remain): spell wands and staves, free missile primary, one rolled spell whose level follows the tier, mana pool, renamed spells; drops spell learning and skill points |
 | [Elemental spells and effects](specs/elemental-spells-plan.md) | Proposed 20-spell roster, targeting, guard rules, visual direction and acceptance |
 | [Magic missile](specs/magic-missile-plan.md) | Free wand primary as a homing seeker volley for all elements; flight contract and playable missile landed, finished look and acceptance remain |
 | [Potion and scroll feedback](specs/consumable-feedback-plan.md) | Proposed unique activation signature for all 20 potion/scroll types, with world and screen channels and catalog coverage checks |

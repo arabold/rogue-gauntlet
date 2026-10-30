@@ -5,3 +5,5 @@ script = ExtResource("script")
 SpellName = "Chain Lightning"
 Element = 3
 Delivery = 2
+TargetsByLevel = PackedInt32Array(1, 2, 3, 4, 5)
+DamageScaleByLevel = PackedFloat32Array(1, 1.375, 1.75, 1.875, 2)

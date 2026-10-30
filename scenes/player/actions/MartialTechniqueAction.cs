@@ -15,9 +15,10 @@ public partial class MartialTechniqueAction : RefCounted, ICombatAttackAction
 	public float CooldownDuration => Weapon?.SecondaryCooldownDuration ?? 1.0f;
 	public string CooldownKey => Weapon != null ? Weapon.GetEffectiveSecondaryStyle().ToString() : "special.martial";
 
+	/// <summary>Prepares the technique only while its weapon is the one in the weapon hand.</summary>
 	public bool TryPrepare(Player player, out PreparedAttack attack)
 	{
-		if (Weapon == null)
+		if (Weapon == null || !ReferenceEquals(player.Inventory?.EquippedWeapon, Weapon))
 		{
 			attack = null;
 			return false;

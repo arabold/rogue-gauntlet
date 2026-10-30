@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 44;
+	public const int CurrentVersion = 45;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -162,6 +162,8 @@ public sealed class ItemEntrySaveData
 	public bool CurseStatusKnown { get; set; } = true;
 	public float MagnitudeScale { get; set; }
 	public List<RolledAffixSaveData> Affixes { get; set; } = [];
+	/// <summary>A wand's or staff's bound spell definition; empty for other items.</summary>
+	public string SpellPath { get; set; } = string.Empty;
 }
 
 public sealed class RolledAffixSaveData

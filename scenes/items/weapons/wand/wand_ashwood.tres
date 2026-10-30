@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="MagicStaff" format=3]
+
+[ext_resource type="PackedScene" uid="uid://dwyvjmrj4xfmo" path="res://scenes/items/weapons/wand.tscn" id="1_staff"]
+[ext_resource type="Script" uid="uid://b8oa1aglmosdk" path="res://scenes/items/affixes/RolledAffix.cs" id="1_xw82a"]
+[ext_resource type="Script" uid="uid://bncpld6hbytsn" path="res://scenes/items/MagicStaff.cs" id="2_magic"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/fireball.tres" id="bound_spell"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/spell_pool_all.tres" id="spell_pool"]
+[ext_resource type="Resource" path="res://scenes/magic/missile/wand_missiles.tres" id="missiles"]
+[ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/wooden_weapon.tres" id="roll_table"]
+
+[resource]
+script = ExtResource("2_magic")
+ProjectileSpeed = 16.0
+Range = 16.0
+AimingAngle = 55.0
+DamageMin = 2.0
+DamageMax = 8.0
+AttackStyle = &"staff.cast"
+Grip = ExtResource("weapon_grip")
+AnimationId = "ranged_attack"
+PerformDuration = 0.5
+CooldownDuration = 0.1
+Tier = 2
+ValidSlots = 256
+RollTable = ExtResource("roll_table")
+Name = "Ashwood Wand"
+Scene = ExtResource("1_staff")
+Value = 80
+BoundSpell = ExtResource("bound_spell")
+SpellPool = ExtResource("spell_pool")
+Missiles = ExtResource("missiles")
+metadata/_custom_type_script = ExtResource("2_magic")

@@ -36,7 +36,7 @@ public class ItemCatalogTest
 	{
 		var policy = GD.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
 		AssertObject(policy).IsNotNull();
-		AssertInt(Definitions().Count()).IsGreater(180);
+		AssertInt(Definitions().Count()).IsGreater(175);
 		using var rng = GenerationRandom.Create(42, "catalog-validation");
 		foreach (Item definition in Definitions())
 		{
@@ -225,25 +225,66 @@ public class ItemCatalogTest
 			{ AssertBool(item is Scroll).IsTrue(); }
 			if (item is MagicStaff staff)
 			{
-				AssertObject(staff.CustomAttackDefinition?.ProjectileScene).IsNotNull();
-				AssertBool(staff.CustomAttackDefinition.ProjectileScene != staff.Scene).IsTrue();
+				AssertObject(staff.PrimaryAttackDefinition?.ProjectileScene).IsNotNull();
+				AssertBool(staff.PrimaryAttackDefinition.ProjectileScene != staff.Scene).IsTrue();
 			}
 			if (item.ResourcePath.Contains("crossbow", StringComparison.Ordinal) || item.ResourcePath.Contains("wand", StringComparison.Ordinal)) { AssertBool(item is RangedWeapon).IsTrue(); }
 		}
 	}
 
 	[TestCase]
-	public void EveryWandFiresAHomingMissileVolleyOfItsElement()
+	public void EveryWandAndStaffCastsEachPoolSpellAtItsTierAndFiresThatSpellsMissile()
 	{
-		var wands = Definitions().OfType<MagicStaff>().Where(staff => staff.ResourcePath.Contains("wand", StringComparison.Ordinal)).ToArray();
-		AssertInt(wands.Length).IsGreaterEqual(3);
-		foreach (var wand in wands)
+		var weapons = Definitions().OfType<MagicStaff>().ToArray();
+		foreach (bool staves in new[] { false, true })
 		{
-			var attack = wand.CustomAttackDefinition;
-			AssertString(attack.ResourcePath).OverrideFailureMessage(wand.ResourcePath).StartsWith("res://scenes/magic/missile/");
-			AssertBool(attack.HomingTurnRate > 0 && attack.ProjectileCount > 1 && attack.HasValidFlight()).IsTrue();
-			AssertObject(attack.Element).OverrideFailureMessage(wand.ResourcePath).IsEqual(Enum.Parse<DamageElement>(wand.Element.ToString()));
-			AssertBool(wand.IsTwoHanded).IsFalse();
+			var kind = weapons.Where(weapon => weapon.IsTwoHanded == staves).ToArray();
+			AssertArray(kind.Select(weapon => weapon.Tier).Distinct().Order().ToArray()).OverrideFailureMessage(staves ? "staves" : "wands").ContainsExactly(1, 2, 3, 4, 5);
+		}
+		foreach (var weapon in weapons)
+		{
+			AssertBool(weapon.SpellPool != null && weapon.Missiles != null).OverrideFailureMessage(weapon.ResourcePath).IsTrue();
+			foreach (var spell in weapon.SpellPool.Spells.Append(weapon.BoundSpell))
+				AssertBool(weapon.CanBind(spell)).OverrideFailureMessage($"{weapon.ResourcePath}: {spell?.ResourcePath}").IsTrue();
+		}
+
+		// Each spell scene casts every level a weapon can ask of it and shows the definition's name.
+		var spells = weapons.SelectMany(weapon => weapon.SpellPool.Spells.Append(weapon.BoundSpell)).Distinct();
+		foreach (var spell in spells)
+		{
+			var instance = spell.Instantiate();
+			AssertBool(instance != null && !string.IsNullOrEmpty(spell.ItemTitle)).OverrideFailureMessage(spell.ResourcePath).IsTrue();
+			AssertInt(instance.LevelCount).OverrideFailureMessage(spell.ResourcePath).IsEqual(SpellLevels.Max);
+			AssertString(instance.DisplayName).IsEqual(spell.DisplayName);
+			((Node)instance).Free();
+		}
+
+		// Every missile set fires a homing volley of each element.
+		foreach (var missiles in weapons.Select(weapon => weapon.Missiles).Distinct())
+			foreach (MagicElement element in Enum.GetValues<MagicElement>())
+			{
+				var attack = missiles.For(element);
+				AssertString(attack.ResourcePath).OverrideFailureMessage(missiles.ResourcePath).StartsWith("res://scenes/magic/missile/");
+				AssertBool(attack.HomingTurnRate > 0 && attack.ProjectileCount > 1 && attack.HasValidFlight()).IsTrue();
+				AssertObject(attack.Element).OverrideFailureMessage($"{missiles.ResourcePath}: {element}").IsEqual(Enum.Parse<DamageElement>(element.ToString()));
+			}
+	}
+
+	[TestCase]
+	public void TheSpellPoolHoldsFiveSpellsOfEachElementAndStavesFireAHeavierVolley()
+	{
+		var pool = GD.Load<SpellPool>("res://scenes/magic/spells/spell_pool_all.tres");
+		AssertInt(pool.Spells.Distinct().Count()).IsEqual(20);
+		foreach (MagicElement element in Enum.GetValues<MagicElement>())
+			AssertInt(pool.Spells.Count(spell => spell.Element == element)).OverrideFailureMessage(element.ToString()).IsEqual(5);
+
+		var wand = GD.Load<MissileSet>("res://scenes/magic/missile/wand_missiles.tres");
+		var staff = GD.Load<MissileSet>("res://scenes/magic/missile/staff_missiles.tres");
+		foreach (MagicElement element in Enum.GetValues<MagicElement>())
+		{
+			float wandVolley = wand.For(element).ProjectileCount * wand.For(element).ProjectileDamageScale;
+			float staffVolley = staff.For(element).ProjectileCount * staff.For(element).ProjectileDamageScale;
+			AssertFloat(staffVolley / wandVolley).OverrideFailureMessage(element.ToString()).IsBetween(1.4f, 1.6f);
 		}
 	}
 }

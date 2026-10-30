@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackDefinition" load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://dirab7d4baxkb" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+[ext_resource type="PackedScene" path="res://scenes/magic/missile/magic_missile_air.tscn" id="projectile"]
+[ext_resource type="PackedScene" path="res://scenes/effects/staff_muzzle_burst_air.tscn" id="muzzle"]
+
+[resource]
+script = ExtResource("attack")
+AnimationId = "ranged_attack"
+HitWindowStart = 0.2
+DefenseTraits = 3
+IsRanged = true
+ProjectileScene = ExtResource("projectile")
+MuzzleEffectScene = ExtResource("muzzle")
+ProjectilePattern = 1
+ProjectileCount = 4
+SpreadAngle = 70.0
+ProjectileDamageScale = 0.25
+ProjectileSpeed = 16.0
+Range = 16.0
+AimingAngle = 55.0
+Element = 3
+ProjectileStagger = 0.05
+HomingTurnRate = 480.0
+HomingDelay = 0.1
+LaunchSpeedScale = 0.2
+LaunchRampDuration = 0.4
+PoiseDamage = 2.5
+Knockback = 1.0
+metadata/_custom_type_script = ExtResource("attack")

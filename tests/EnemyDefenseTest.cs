@@ -192,7 +192,7 @@ public partial class EnemyDefenseTest
 			HitWindowEnd = 0.6f,
 			MeleeContact = attackCtrl.DefaultMeleeContact
 		};
-		AssertBool(attackCtrl.StartAttack(def, 10, 10, 0, 8)).IsTrue();
+		AssertBool(attackCtrl.StartAttack(def, new AttackStats(10, 10, 0), 8)).IsTrue();
 
 		// Detect and react
 		controller._PhysicsProcess(0.02f);
@@ -243,7 +243,7 @@ public partial class EnemyDefenseTest
 			HitWindowEnd = 0.6f,
 			MeleeContact = attackCtrl.DefaultMeleeContact
 		};
-		AssertBool(attackCtrl.StartAttack(def, 10, 10, 0, 8)).IsTrue();
+		AssertBool(attackCtrl.StartAttack(def, new AttackStats(10, 10, 0), 8)).IsTrue();
 
 		controller._PhysicsProcess(0.02f);
 		controller._PhysicsProcess(0.05f);
@@ -337,7 +337,7 @@ public partial class EnemyDefenseTest
 			HitWindowEnd = 0.6f,
 			MeleeContact = attackCtrl.DefaultMeleeContact
 		};
-		attackCtrl.StartAttack(def, 10, 10, 0, 8);
+		attackCtrl.StartAttack(def, new AttackStats(10, 10, 0), 8);
 
 		controller._PhysicsProcess(0.02f);
 		controller._PhysicsProcess(0.05f);
@@ -576,7 +576,7 @@ public partial class EnemyDefenseTest
 		root.AddChild(player);
 		root.AddChild(enemy);
 		var def = new AttackDefinition { HitWindowStart = 0.3f, HitWindowEnd = 0.6f, MeleeContact = attackCtrl.DefaultMeleeContact, DefenseTraits = Traits(breaksGuard) };
-		AssertBool(attackCtrl.StartAttack(def, 20, 20, 0, 8)).IsTrue();
+		AssertBool(attackCtrl.StartAttack(def, new AttackStats(20, 20, 0), 8)).IsTrue();
 		controller._PhysicsProcess(0.02f);
 		controller._PhysicsProcess(0.05f);
 		AssertBool(guard.IsGuarding).IsTrue();
@@ -638,7 +638,7 @@ public partial class EnemyDefenseTest
 		root.AddChild(player);
 		root.AddChild(enemy);
 		var def = new AttackDefinition { HitWindowStart = 0.3f, HitWindowEnd = 0.6f, MeleeContact = attackCtrl.DefaultMeleeContact };
-		AssertBool(attackCtrl.StartAttack(def, 20, 20, 0, 8)).IsTrue();
+		AssertBool(attackCtrl.StartAttack(def, new AttackStats(20, 20, 0), 8)).IsTrue();
 		controller._PhysicsProcess(0.02f);
 		controller._PhysicsProcess(0.05f);
 		AssertBool(guard.IsGuarding).IsFalse();

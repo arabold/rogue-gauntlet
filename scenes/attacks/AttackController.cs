@@ -64,9 +64,7 @@ public partial class AttackController : Node, IParryInterruptible
 	private float _hitStopRemaining;
 	private bool _hitStopUsed;
 	private AttackDefinition _currentAttack;
-	private float _currentMinDamage;
-	private float _currentMaxDamage;
-	private float _currentCritChance;
+	private AttackStats _currentHit;
 	private uint _targetMask;
 
 	private ulong _executionSequence = 0;
@@ -102,10 +100,10 @@ public partial class AttackController : Node, IParryInterruptible
 	/// <summary>
 	/// Begins playing an attack with its stats and targeting parameters.
 	/// </summary>
-	public bool StartAttack(AttackDefinition def, float minDamage, float maxDamage, float critChance, uint targetMask)
+	public bool StartAttack(AttackDefinition def, AttackStats hit, uint targetMask)
 	{
 		return TryPrepareAttack(def, "", 0, out var attack)
-			&& StartAttack(attack, minDamage, maxDamage, critChance, targetMask);
+			&& StartAttack(attack, hit, targetMask);
 	}
 
 	/// <summary>Validate and capture the complete attack before animations, timers or hits start.</summary>
@@ -145,7 +143,7 @@ public partial class AttackController : Node, IParryInterruptible
 	}
 
 	/// <summary>Commit an already validated execution snapshot to this actor.</summary>
-	public bool StartAttack(PreparedAttack attack, float minDamage, float maxDamage, float critChance, uint targetMask, ActorActionLease lease = default)
+	public bool StartAttack(PreparedAttack attack, AttackStats hit, uint targetMask, ActorActionLease lease = default)
 	{
 		if (attack == null || _actor == null) return false;
 		var def = attack.Definition;
@@ -168,9 +166,7 @@ public partial class AttackController : Node, IParryInterruptible
 		_executionSequence++;
 		_preparedAttack = attack;
 		_currentAttack = def;
-		_currentMinDamage = minDamage;
-		_currentMaxDamage = maxDamage;
-		_currentCritChance = critChance;
+		_currentHit = hit;
 		_targetMask = targetMask;
 
 		_elapsedTime = 0.0f;
@@ -198,7 +194,7 @@ public partial class AttackController : Node, IParryInterruptible
 		ReportProgress();
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.started", ("execution", _executionSequence), ("execution_source", GetInstanceId()), ("style", CurrentStyle.ToString()),
 			("contact_start", def.HitWindowStart), ("contact_end", def.HitWindowEnd), ("duration", attack.Duration),
-			("traits", def.DefenseTraits.ToString()), ("min_damage", minDamage), ("max_damage", maxDamage),
+			("traits", def.DefenseTraits.ToString()), ("min_damage", hit.MinDamage), ("max_damage", hit.MaxDamage),
 			("poise_damage", def.PoiseDamage), ("facing_lock_lead", def.FacingLockLead), ("hyper_armor", $"{def.HyperArmorStart}-{def.HyperArmorEnd}"));
 		if (attack.Playback != null) AnimationComponent.Begin(attack.Playback);
 		UpdateTelegraph();
@@ -280,7 +276,15 @@ public partial class AttackController : Node, IParryInterruptible
 			CommitMeleeFacing();
 		UpdateTelegraph();
 
-		if (_currentAttack.IsRanged)
+		if (_preparedAttack.Spell != null)
+		{
+			if (!_releaseStarted && _elapsedTime >= _currentAttack.HitWindowStart)
+			{
+				_releaseStarted = true;
+				ReleaseSpell(_preparedAttack.Spell);
+			}
+		}
+		else if (_currentAttack.IsRanged)
 		{
 			if (_currentAttack.ProjectileAimLockDuration > 0 && !_releaseStarted)
 			{
@@ -391,12 +395,9 @@ public partial class AttackController : Node, IParryInterruptible
 		if (!_hitTargets.Add(owner)) return;
 		if (target is HurtBoxComponent { HealthComponent: { IsDead: true } }) return;
 		ContactCount++;
-		float damage = _random.RandfRange(_currentMinDamage, _currentMaxDamage);
-		float baseDamage = damage;
-		bool critical = _random.Randf() < _currentCritChance;
-		if (critical) damage *= 2;
+		var (damage, critical) = _currentHit.Roll(_random);
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.contact", ("execution", _executionSequence), ("execution_source", GetInstanceId()),
-			("target", CombatTrace.Identity(target)), ("base_damage", baseDamage), ("critical", critical), ("raw_damage", damage));
+			("target", CombatTrace.Identity(target)), ("critical", critical), ("raw_damage", damage));
 
 		Vector3 incomingDir = CommittedFacing;
 		if (target != null && _actor != null)
@@ -503,6 +504,21 @@ public partial class AttackController : Node, IParryInterruptible
 	}
 
 	/// <summary>
+	/// Casts the attack's spell once at its contact time; a spell freed with its focus no longer casts. Like a projectile,
+	/// the cast rolls from its own seeded stream, so its lingering contacts never shift this controller's later draws.
+	/// </summary>
+	private void ReleaseSpell(SpellRelease release)
+	{
+		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, GetActorForward());
+		var random = new RandomNumberGenerator { Seed = _random.Randi() };
+		bool cast = release.Spell is GodotObject spell && GodotObject.IsInstanceValid(spell)
+			&& release.Spell.Cast(_actor, release.Power, random);
+		ReportFeedback(cast ? "Cast" : "Fizzled");
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.spell_released", ("execution", _executionSequence),
+			("spell", release.Spell?.DisplayName ?? ""), ("level", release.Power.Level), ("cast", cast));
+	}
+
+	/// <summary>
 	/// Spawn every captured projectile whose staggered release time has passed, so a tick that skips several
 	/// release times still fires each of them. Cancelling the attack discards the rest.
 	/// </summary>
@@ -526,9 +542,7 @@ public partial class AttackController : Node, IParryInterruptible
 			direction,
 			_currentAttack.ProjectileSpeed,
 			_currentAttack.Range,
-			_currentMinDamage * _currentAttack.ProjectileDamageScale,
-			_currentMaxDamage * _currentAttack.ProjectileDamageScale,
-			_currentCritChance,
+			_currentHit.Scaled(_currentAttack.ProjectileDamageScale),
 			_actor, _currentAttack.DefenseTraits, _currentAttack.AreaDefenseTraits, _random.Randi(), CurrentExecutionId);
 		projectile.ConfigureFlight(_currentAttack.Flight, _releaseTarget);
 
@@ -552,9 +566,7 @@ public partial class AttackController : Node, IParryInterruptible
 				direction,
 				_currentAttack.ProjectileSpeed,
 				_currentAttack.SpawnHeight + 1.0f,
-				_currentMinDamage * _currentAttack.ProjectileDamageScale,
-				_currentMaxDamage * _currentAttack.ProjectileDamageScale,
-				_currentCritChance,
+				_currentHit.Scaled(_currentAttack.ProjectileDamageScale),
 				_actor, _currentAttack.DefenseTraits, _currentAttack.AreaDefenseTraits, _random.Randi(), CurrentExecutionId);
 
 			GameDebug.Combat($"{_actor.Name} spawned area drop at {targetPosition}");

@@ -47,6 +47,8 @@ public static class PlayerSaveCodec
 		player.Stats.ApplySaveData(data.Stats);
 		player.StatsController.SyncStats();
 		foreach (var buff in buffs) player.BuffController.RestoreBuff(buff.Buff, buff.Source, buff.Remaining, buff.TickProgress);
+		// After equipment and buffs, so the saved mana meets its final maximum.
+		player.StatsController.RestoreMana(data.Stats.Mana);
 		if (data.ApplyTransform)
 		{
 			player.GlobalPosition = ToVector3(data.Position);

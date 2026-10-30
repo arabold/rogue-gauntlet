@@ -1,6 +1,6 @@
 # Weapon and attack system
 
-Players and monsters share an attack executor for melee, projectiles and current staff effects. [Combat actions and defense](combat-system.md) owns action conflicts and damage outcomes; [monster authoring](monster-authoring-design.md) owns AI requests. Authored Resources and scenes remain the source of tuning values.
+Players and monsters share an attack executor for melee contact, projectiles and spell casts. [Combat actions and defense](combat-system.md) owns action conflicts and damage outcomes; [monster authoring](monster-authoring-design.md) owns AI requests. Authored Resources and scenes remain the source of tuning values.
 
 ## Authoring attacks
 
@@ -10,7 +10,9 @@ Reuse generic projectile patterns—single, spread, radial and area drop—and t
 
 Optional flight settings shape single and spread shots. A stagger releases a spread one projectile at a time on the attack clock, from the current muzzle; cancelling the attack discards projectiles not yet released, and the last one must leave within the prepared duration. Homing turns each projectile horizontally toward the target captured by the release-time aim query, at a limited rate after a short delay. A projectile gives the target up for good once it dies or is freed, or falls more than 90° off its nose, so a miss flies on instead of circling. A launch ramp starts any projectile at a fraction of its speed. All three are off by default.
 
-Every wand's free primary is the magic missile: a staggered fan of three homing darts tinted by the wand's element, from one shared definition per element in `scenes/magic/missile/`. Each dart deals a fraction of the wand's damage. The [magic missile plan](specs/magic-missile-plan.md) records the values, look and remaining work. Current staffs use authored fireball, frost-spread, radial air/whirlwind and falling-rock behaviors. These are existing attacks; the proposed [magic rework](specs/magic-rework-plan.md) replaces them with missiles and puts a mana-costing spell on every wand's and staff's secondary attack.
+Every hit rolls through `AttackStats`: an amount from the damage range, then a critical check that doubles it. Melee contacts, projectiles (once directly, again per splash owner) and spells share that one rule, so a seeded run draws in the same order wherever a hit lands.
+
+Wands and staves are spell weapons. Each carries one bound spell (`MagicStaff.BoundSpell`, a `SpellDefinition`), which also sets its element. Its free primary is the magic missile of that element, a staggered fan of homing darts picked from a shared `MissileSet`: a wand fires three at 0.22× its hit, a two-handed staff four at 0.25×, a full hit per volley to make up for the lost off hand; the [magic missile plan](specs/magic-missile-plan.md) records the values, look and remaining work. Its secondary casts the bound spell at the wand's tier as the level, for mana: `SpellCastAction` rejects an unequipped focus, a missing level or short mana without spending anything, captures the wand's own `ResolveAttack` hit as the spell's power, starts the cast and then spends the mana. The cast is an ordinary attack whose prepared snapshot carries the spell, and `AttackController` casts it once at the contact time instead of melee contact or projectiles; interruption before then keeps the mana spent. Spells author damage as scales of that hit, so weapon damage, quality, affixes and crit raise them as they raise the missiles, and the martial secondary's damage multiplier does not apply. The actor's `SpellCaster` holds the wand's self-contained spell scene while the wand is equipped; unequipping releases it, which ends its effects.
 
 ## Attack styles, rig profiles, and timing
 

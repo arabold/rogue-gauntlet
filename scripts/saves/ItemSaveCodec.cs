@@ -26,6 +26,7 @@ public static class ItemSaveCodec
 			data.CurseStatusKnown = equipment.CurseStatusKnown;
 			data.Affixes = CaptureAffixes(equipment.Affixes);
 		}
+		if (item is MagicStaff staff) data.SpellPath = staff.BoundSpell?.ResourcePath ?? "";
 		return data;
 	}
 
@@ -48,6 +49,7 @@ public static class ItemSaveCodec
 			equipment.CurseStatusKnown = data.CurseStatusKnown;
 			equipment.Affixes = BuildAffixes(data.Affixes);
 		}
+		if (item is MagicStaff staff) staff.BoundSpell = RestoreSpell(data.SpellPath, staff);
 		if (item is FoodItem food)
 		{
 			if (data.Food == null) { throw new InvalidOperationException("Missing saved food state."); }
@@ -56,6 +58,13 @@ public static class ItemSaveCodec
 		int cap = item.CanStack ? item.MaxStackSize : 1;
 		if (data.Quantity > cap) { throw new InvalidOperationException("Invalid saved stack quantity."); }
 		return item;
+	}
+
+	/// <summary>The saved spell, which must exist and support the weapon's tier.</summary>
+	private static SpellDefinition RestoreSpell(string path, MagicStaff staff)
+	{
+		var spell = !string.IsNullOrEmpty(path) && ResourceLoader.Exists(path) ? ResourceLoader.Load(path) as SpellDefinition : null;
+		return staff.CanBind(spell) ? spell : throw new InvalidOperationException($"Invalid saved spell: {path}");
 	}
 
 	internal static List<RolledAffixSaveData> CaptureAffixes(Godot.Collections.Array<RolledAffix> affixes)

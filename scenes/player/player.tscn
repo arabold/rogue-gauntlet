@@ -27,6 +27,7 @@
 [ext_resource type="Script" uid="uid://cbvsiwxjby8f6" path="res://scenes/player/PlayerInteractionController.cs" id="13_0dcb4"]
 [ext_resource type="Script" uid="uid://dd42hp2in4eih" path="res://scenes/player/PlayerStatsController.cs" id="14_ilumj"]
 [ext_resource type="Script" uid="uid://d2nktmasmdw41" path="res://scenes/components/ManaComponent.cs" id="mana_component_script"]
+[ext_resource type="Script" uid="uid://coi0ldc4hkyug" path="res://scenes/components/SpellCaster.cs" id="spell_caster_script"]
 [ext_resource type="Script" uid="uid://dcj2fef6cpvd1" path="res://scenes/player/PlayerInventoryController.cs" id="15_gknh4"]
 [ext_resource type="Script" uid="uid://dg5rouukujtfm" path="res://scenes/player/PlayerInputController.cs" id="16_1atg5"]
 [ext_resource type="Script" uid="uid://c3ep64ls3jnhc" path="res://scenes/player/PlayerAttackController.cs" id="17_sh3lf"]
@@ -298,7 +299,7 @@ radius = 2.0
 radius = 0.75
 height = 2.5
 
-[node name="Player" type="CharacterBody3D" unique_id=1814290365 node_paths=PackedStringArray("WorldEffects", "ItemUseEffects", "Invisibility", "FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "ActionGate", "QuickItemController", "InteractionComponent", "DodgeComponent", "GuardComponent", "AttackSlots", "HealthComponent", "ManaComponent", "HurtBoxComponent", "MovementComponent", "InputComponent", "ActionManager", "BuffController", "InteractionController", "StatsController", "InventoryController", "InputController", "AttackController", "InteractionArea", "Pivot", "CharacterModelNode", "AnimationTree", "AttachmentManager") groups=["player"]]
+[node name="Player" type="CharacterBody3D" unique_id=1814290365 node_paths=PackedStringArray("WorldEffects", "ItemUseEffects", "Invisibility", "FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "ActionGate", "QuickItemController", "InteractionComponent", "DodgeComponent", "GuardComponent", "AttackSlots", "HealthComponent", "ManaComponent", "SpellCaster", "HurtBoxComponent", "MovementComponent", "InputComponent", "ActionManager", "BuffController", "InteractionController", "StatsController", "InventoryController", "InputController", "AttackController", "InteractionArea", "Pivot", "CharacterModelNode", "AnimationTree", "AttachmentManager") groups=["player"]]
 collision_layer = 4
 collision_mask = 251
 platform_floor_layers = 4294901761
@@ -324,6 +325,7 @@ GuardComponent = NodePath("GuardComponent")
 AttackSlots = NodePath("AttackSlotsComponent")
 HealthComponent = NodePath("HealthComponent")
 ManaComponent = NodePath("ManaComponent")
+SpellCaster = NodePath("SpellCaster")
 HurtBoxComponent = NodePath("HurtBoxComponent")
 MovementComponent = NodePath("MovementComponent")
 InputComponent = NodePath("InputComponent")
@@ -547,6 +549,9 @@ shape = SubResource("CapsuleShape3D_fktr1")
 
 [node name="ManaComponent" type="Node" parent="." unique_id=1983457216]
 script = ExtResource("mana_component_script")
+
+[node name="SpellCaster" type="Node" parent="." unique_id=1402981735]
+script = ExtResource("spell_caster_script")
 
 [node name="BoneAttachmentManager" parent="." unique_id=986814577 node_paths=PackedStringArray("AttachmentNodes", "player") instance=ExtResource("10_0gr6c")]
 AttachmentNodes = {

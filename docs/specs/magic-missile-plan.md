@@ -95,7 +95,7 @@ Projectile._PhysicsProcess
 
 - One shared `AttackDefinition` per element holds the values above, its element and projectile scene. The prepared attack duplicates it, so wands can share it.
 - One base projectile scene owns the hitbox, missile body, trail, garnish emitter and impact scene, in a neutral arcane palette. Four inherited scenes swap only the ramp, garnish particles and impact variant; `ScenePool` pools each separately. The impact reuses the `FireballImpact` driver for its flash, ring and spark burst, without scorch, ground layers or light.
-- The three existing wands (Wand and Ruby Scepter Wand are fire; Celestial Golden Wand is air) reference their element's shared definition instead of an inline one, and take the new cast timing. Their stats, tiers and loot eligibility stay unchanged. Water and earth wands are content for the separate wand work; the missile supports them already.
+- Wands pick their element's shared definition through the [magic rework](magic-rework-plan.md)'s `MissileSet`, by their bound spell's element, and take the new cast timing.
 - Staffs keep their current primaries until the wand/staff progression decides their role.
 
 ```text

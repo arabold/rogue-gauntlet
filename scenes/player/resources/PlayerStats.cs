@@ -269,6 +269,3 @@ public partial class PlayerStats : ObservableResource
 		EmitChanged();
 	}
 }
-
-/// <summary>The resolved damage range and crit chance of one attack; see <see cref="PlayerStats.ResolveAttack"/>.</summary>
-public readonly record struct AttackStats(float MinDamage, float MaxDamage, float CritChance);

@@ -18,8 +18,9 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 	public void StatusRestored(BuffController target) => _affected.Add(target);
 
 	/// <summary>Release one area contact per visible hostile actor as the wave reaches it; visual failure never causes damage.</summary>
-	public bool Cast(Node3D caster, int level, RandomNumberGenerator random)
+	public bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random)
 	{
+		int level = power.Level;
 		if (Definition?.IsValidLevel(level) != true || VisualScene == null) return false;
 		float radius = Definition.RadiusByLevel[level - 1];
 		if (!AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, radius, out var cast)) return false;
@@ -37,7 +38,7 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 		_affected.RemoveWhere(statuses => !IsInstanceValid(statuses) || !statuses.HasStatusFrom(this));
 		float freezeSeconds = Definition.FreezeSecondsByLevel[level - 1];
 		StatusCondition frozen = Definition.Frozen;
-		_cast.Schedule(cast, Definition.ContactDelay, visual.Front, Definition.DamageByLevel[level - 1], Definition.DefenseTraits, Definition.PushAt(level), (target, result) =>
+		_cast.Schedule(cast, Definition.ContactDelay, visual.Front, power.Hit.Scaled(Definition.DamageScaleByLevel[level - 1]), Definition.DefenseTraits, Definition.PushAt(level), (target, result) =>
 		{
 			if (result.Outcome != DamageOutcome.Damaged || !IsInstanceValid(target) || !target.IsInsideTree()
 				|| target is not IStatusActor { BuffController: { } statuses } || statuses.Health == null || statuses.Health.IsDead) return;

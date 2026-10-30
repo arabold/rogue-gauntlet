@@ -159,7 +159,7 @@ public partial class CombatAccessibilityTest
 		var arrow = GD.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
 		runner.Scene().AddChild(arrow);
 		arrow.Initialize(player.GlobalPosition + Vector3.Up + Vector3.Forward * 3,
-			Vector3.Back, 16, 10, 10, 10, 0, harness.Monster);
+			Vector3.Back, 16, 10, new AttackStats(10, 10, 0), harness.Monster);
 		await Frames(runner.Scene(), 15);
 		AssertBool(outcome.HasValue).IsTrue();
 		AssertObject(outcome.Value).IsEqual(DamageOutcome.Dodged);
@@ -181,7 +181,7 @@ public partial class CombatAccessibilityTest
 		runner.Scene().AddChild(arrow);
 		// This path crosses the interaction sphere but stays clear of the body and hurtbox.
 		arrow.Initialize(player.GlobalPosition + Vector3.Up + Vector3.Right * 1.5f + Vector3.Forward * 3,
-			Vector3.Back, 16, 10, 10, 10, 0, harness.Monster);
+			Vector3.Back, 16, 10, new AttackStats(10, 10, 0), harness.Monster);
 		await Frames(runner.Scene(), 24);
 		AssertFloat(player.HealthComponent.CurrentHealth).IsEqual(health);
 		ScenePool.Despawn(arrow);
@@ -208,7 +208,7 @@ public partial class CombatAccessibilityTest
 		var arrow = ScenePool.Spawn<Projectile>(scene, runner.Scene());
 		AssertObject(arrow).IsSame(first);
 		arrow.Initialize(player.GlobalPosition + Vector3.Up + Vector3.Forward * 3,
-			Vector3.Back, 16, 10, 10, 10, 0, harness.Monster);
+			Vector3.Back, 16, 10, new AttackStats(10, 10, 0), harness.Monster);
 		await Frames(runner.Scene(), 15);
 		AssertFloat(player.HealthComponent.CurrentHealth).IsLess(health);
 	}

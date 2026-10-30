@@ -244,7 +244,7 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		var slots = _context.PolicySlots;
 		if (slots != null && !slots.TryReserve(Actor, policy.SlotKind)) return false;
 		if (!_attackController.TryPrepareAttack(policy.Attack, policy.Style, policy.Duration, out var attack)
-			|| !_attackController.StartAttack(attack, policy.MinDamage, policy.MaxDamage, policy.CritChance, 4))
+			|| !_attackController.StartAttack(attack, new AttackStats(policy.MinDamage, policy.MaxDamage, policy.CritChance), 4))
 		{
 			slots?.Release(Actor, yield: false);
 			return false;

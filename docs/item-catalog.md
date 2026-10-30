@@ -122,21 +122,19 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Shortsword](../scenes/items/weapons/shortsword_common.tres) | `tier 1` | 1–6 |
 | [Archmage Astral Staff](../scenes/items/weapons/staff/staff_archmage.tres) | `tier 5` | 19+ |
 | [Emerald Crescent Staff](../scenes/items/weapons/staff/staff_emerald.tres) | `tier 3` | 10–18 |
-| [Air Staff](../scenes/items/weapons/staff_air.tres) | `tier 2` | 4–12 |
 | [Staff](../scenes/items/weapons/staff_common.tres) | `tier 1` | 1–6 |
-| [Earth Staff](../scenes/items/weapons/staff_earth.tres) | `tier 2` | 4–12 |
-| [Fire Staff](../scenes/items/weapons/staff_fire.tres) | `tier 2` | 4–12 |
 | [Rune Staff](../scenes/items/weapons/staff_rare.tres) | `tier 4` | 16–21 |
 | [Skeleton Staff](../scenes/items/weapons/staff_skeleton.tres) | `tier 2` | 4–12 |
 | [Ash Staff](../scenes/items/weapons/staff_uncommon.tres) | `tier 2` | 4–12 |
-| [Frost Staff](../scenes/items/weapons/staff_water.tres) | `tier 2` | 4–12 |
 | [Knightly Broadblade](../scenes/items/weapons/sword/sword_knight.tres) | `tier 3` | 10–18 |
 | [Gilded Sunblade](../scenes/items/weapons/sword/sword_sunblade.tres) | `tier 5` | 19+ |
 | [Longsword](../scenes/items/weapons/sword_common.tres) | `tier 2` | 4–12 |
 | [Royal Sword](../scenes/items/weapons/sword_rare.tres) | `tier 4` | 16–21 |
 | [Wand](../scenes/items/weapons/wand.tres) | `tier 1` | 1–6 |
+| [Ashwood Wand](../scenes/items/weapons/wand/wand_ashwood.tres) | `tier 2` | 4–12 |
 | [Celestial Golden Wand](../scenes/items/weapons/wand/wand_celestial.tres) | `tier 5` | 19+ |
 | [Ruby Scepter Wand](../scenes/items/weapons/wand/wand_ruby.tres) | `tier 3` | 10–18 |
+| [Runed Scepter Wand](../scenes/items/weapons/wand/wand_runed.tres) | `tier 4` | 16–21 |
 | [Warhammer](../scenes/items/weapons/warhammer.tres) | `tier 4` | 16–21 |
 | [Heavy Sledge](../scenes/items/weapons/warhammer/warhammer_iron.tres) | `tier 2` | 4–12 |
 | [Spiked Maul](../scenes/items/weapons/warhammer/warhammer_spiked.tres) | `tier 3` | 10–18 |

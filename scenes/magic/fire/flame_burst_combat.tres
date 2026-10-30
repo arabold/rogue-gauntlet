@@ -4,6 +4,8 @@
 
 [resource]
 script = ExtResource("script")
-SpellName = "Flame Burst"
+SpellName = "Fire Nova"
 Element = 1
-PushByLevel = PackedFloat32Array(2, 2, 2)
+PushByLevel = PackedFloat32Array(2, 2, 2, 2, 2)
+RadiusByLevel = PackedFloat32Array(3.5, 5, 6.5, 7.5, 8.5)
+DamageScaleByLevel = PackedFloat32Array(0.375, 0.5, 0.625, 0.6875, 0.75)

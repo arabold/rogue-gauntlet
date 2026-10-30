@@ -10,7 +10,8 @@ public partial class CombatHarness : CanvasLayer
 {
 	[Export] public Player Player { get; set; }
 	[Export] public Node3D PracticeTarget { get; set; }
-	[Export] public Node[] SpellComponents { get; set; } = [];
+	/// <summary>Spells offered for direct casts; each definition's scene is instanced once, as a wand would bind it.</summary>
+	[Export] public SpellPool SpellPool { get; set; }
 	[Export] public PackedScene[] Monsters { get; set; } = System.Array.Empty<PackedScene>();
 	[Export] public Weapon[] Weapons { get; set; } = System.Array.Empty<Weapon>();
 	[Export] public ulong Seed { get; set; } = 42;
@@ -39,8 +40,19 @@ public partial class CombatHarness : CanvasLayer
 	private ICombatSpell[] _spells = [];
 	private RandomNumberGenerator[] _spellRandoms = [];
 	private readonly Queue<(int Spell, int Level)> _pendingCasts = new();
+	/// <summary>The spell nodes instanced from <see cref="SpellPool"/>, in the pool's order.</summary>
+	public IReadOnlyList<ICombatSpell> SpellComponents => _spells;
 	/// <summary>Find a configured spell in the harness's explicitly assigned list.</summary>
 	public T GetSpell<T>() where T : class, ICombatSpell => _spells.OfType<T>().FirstOrDefault();
+	private SpellDefinition[] Spells => SpellPool?.Spells ?? [];
+	private SpellDefinition SelectedSpell
+	{
+		get
+		{
+			int selected = GetNode<OptionButton>("%Controls/Spell").Selected;
+			return selected >= 0 && selected < Spells.Length ? Spells[selected] : null;
+		}
+	}
 
 	public override void _Ready()
 	{
@@ -76,16 +88,14 @@ public partial class CombatHarness : CanvasLayer
 			}
 		}
 		Player.AttackController.ConfigureRandom(GenerationRandom.DeriveSeed(Seed, "combat.attack", "player"));
-		if (SpellComponents == null || SpellComponents.Any(node => node is not ICombatSpell))
-			throw new InvalidDataException("Assign only combat spell nodes to the harness spell list.");
-		_spells = SpellComponents.Cast<ICombatSpell>().ToArray();
+		_spells = Spells.Select(InstantiateSpell).ToArray();
 		if (_spells.Any(spell => string.IsNullOrWhiteSpace(spell.DisplayName) || spell.LevelCount < 1))
 			throw new InvalidDataException("Harness spells require a name and at least one level.");
-		_spellRandoms = SpellComponents.Select(node => new RandomNumberGenerator
-			{ Seed = GenerationRandom.DeriveSeed(Seed, "combat.harness.spell", node.Name.ToString()) }).ToArray();
+		_spellRandoms = Spells.Select(spell => new RandomNumberGenerator
+			{ Seed = GenerationRandom.DeriveSeed(Seed, "combat.harness.spell", spell.ResourcePath) }).ToArray();
 		var spellChoice = GetNode<OptionButton>("%Controls/Spell");
 		foreach (var spell in _spells) spellChoice.AddItem(spell.DisplayName);
-		spellChoice.ItemSelected += index => RefreshSpellLevels((int)index);
+		spellChoice.ItemSelected += index => ExecuteCommand("spell", (int)index, Vector3.Zero);
 		if (_spells.Length > 0) { spellChoice.Select(0); RefreshSpellLevels(0); }
 		GetNode<Button>("%Controls/CastSpell").Disabled = _spells.Length == 0;
 		GetNode<Button>("%Controls/CastSpell").Pressed += () =>
@@ -143,6 +153,33 @@ public partial class CombatHarness : CanvasLayer
 		ApplyDefense();
 	}
 
+	/// <summary>
+	/// Instances a definition's self-contained spell scene, the same scene a wand binds, beside the hero in the arena. The
+	/// arena root is still adding its children, so the spell joins it once this frame's setup ends.
+	/// </summary>
+	private ICombatSpell InstantiateSpell(SpellDefinition definition)
+	{
+		var spell = definition?.Instantiate()
+			?? throw new InvalidDataException($"Harness spell {definition?.ResourcePath} has no combat spell scene.");
+		GetParent().CallDeferred(Node.MethodName.AddChild, (Node)spell);
+		return spell;
+	}
+
+	/// <summary>
+	/// Selects a spell for direct casts and binds it to the equipped wand or staff, so K exercises mana and the weapon's
+	/// hit as in gameplay. The weapon reads its spell live, so only the caster's spell node is rebound.
+	/// </summary>
+	private void SelectSpell(int index)
+	{
+		GetNode<OptionButton>("%Controls/Spell").Select(index);
+		RefreshSpellLevels(index);
+		if (_previewItem?.Item is not MagicStaff staff || !staff.CanBind(Spells[index]) || ReferenceEquals(staff.BoundSpell, Spells[index])) return;
+		staff.BoundSpell = Spells[index];
+		if (!Player.Inventory.IsEquipped(_previewItem)) return;
+		Player.AttackController.CancelAttack();
+		Player.SpellCaster.Bind(staff.BoundSpell, staff);
+	}
+
 	private void RefreshSpellLevels(int index)
 	{
 		var levels = GetNode<OptionButton>("%Controls/SpellLevel");
@@ -173,6 +210,7 @@ public partial class CombatHarness : CanvasLayer
 		Player.AttackController.CancelAttack();
 		if (_previewItem != null) Player.Inventory.RemoveItem(_previewItem, 1);
 		var item = ItemFactory.Create(Weapons[index]);
+		if (item is MagicStaff staff && staff.CanBind(SelectedSpell)) staff.BoundSpell = SelectedSpell;
 		if (!Player.Inventory.TryAdd(item).Success) return;
 		_previewItem = Player.Inventory.Items.First(entry => ReferenceEquals(entry.Item, item));
 		Player.Inventory.Equip(_previewItem);
@@ -466,7 +504,9 @@ public partial class CombatHarness : CanvasLayer
 		Recorder.AdvanceClock(delta);
 		while (_pendingCasts.TryDequeue(out var cast))
 		{
-			if (!_spells[cast.Spell].Cast(Player, cast.Level, _spellRandoms[cast.Spell]))
+			// Direct casts use the hero's current weapon hit, as a cast from that weapon would.
+			var power = new SpellPower(cast.Level, Player.Stats.ResolveAttack(Player.Inventory.EquippedWeapon));
+			if (!_spells[cast.Spell].Cast(Player, power, _spellRandoms[cast.Spell]))
 				GD.PushError($"{_spells[cast.Spell].DisplayName} preview could not cast.");
 		}
 		int frame = (int)(Engine.GetPhysicsFrames() - _startFrame);
@@ -532,6 +572,7 @@ public partial class CombatHarness : CanvasLayer
 		switch (command)
 		{
 			case "equip": accepted = value >= 0 && value < Weapons.Length; if (accepted) EquipPreview(value); break;
+			case "spell": accepted = value >= 0 && value < Spells.Length; if (accepted) SelectSpell(value); break;
 			case "spawn":
 				accepted = value >= 0 && value < Monsters.Length;
 				if (accepted) { GetNode<OptionButton>("%Controls/Monsters").Selected = value; SpawnMonster(); }

@@ -13,10 +13,6 @@ public partial class PlayerStatsController : Node
 	[Export] public HealthComponent HealthComponent { get; set; }
 	[Export] public ManaComponent ManaComponent { get; set; }
 
-	// The current mana the component last reported. Live mana flows from the component, which regenerates between
-	// reports, so a sync pushes Stats.Mana back only when something else wrote it: spawn, a load or a class refill.
-	private float _reportedMana = float.NaN;
-
 	public override void _Ready()
 	{
 		Player ??= GetOwner<Player>();
@@ -26,6 +22,8 @@ public partial class PlayerStatsController : Node
 		HurtBoxComponent ??= Player.HurtBoxComponent;
 		HealthComponent ??= Player.HealthComponent;
 		ManaComponent ??= Player.ManaComponent;
+		// Read before the first sync, whose maximum may clamp the component's default and report it.
+		float mana = Stats.Mana;
 
 		this.SubscribeUntilExit(
 			HealthComponent,
@@ -45,6 +43,7 @@ public partial class PlayerStatsController : Node
 			signalBus => signalBus.XpRewarded -= OnXpRewarded);
 
 		SyncStats();
+		RestoreMana(mana);
 	}
 
 	public void SyncStats()
@@ -52,7 +51,9 @@ public partial class PlayerStatsController : Node
 		MovementComponent.Speed = Stats.Speed;
 		HurtBoxComponent.Armor = Stats.Armor;
 		HealthComponent.SetHealth(Stats.Health, Stats.MaxHealth);
-		SyncMana();
+		// The component owns current mana; stats only set its limits (see RestoreMana).
+		ManaComponent.MaxMana = Stats.MaxMana;
+		ManaComponent.RegenPerSecond = Stats.ManaRegenPerSecond;
 
 		SignalBus.EmitPlayerStatsChanged(Stats);
 	}
@@ -66,26 +67,19 @@ public partial class PlayerStatsController : Node
 		Stats.Health = health;
 	}
 
-	private void SyncMana()
+	/// <summary>
+	/// Hands <paramref name="mana"/> to the component, which owns current mana from then on and reports every change into
+	/// <see cref="PlayerStats.Mana"/> for saving and the HUD. Runs at spawn and after a load, once the maximum is final.
+	/// </summary>
+	public void RestoreMana(float mana)
 	{
-		ManaComponent.RegenPerSecond = Stats.ManaRegenPerSecond;
-		if (Stats.Mana == _reportedMana)
-		{
-			ManaComponent.MaxMana = Stats.MaxMana;
-			return;
-		}
-
-		ManaComponent.SetMana(Stats.Mana, Stats.MaxMana);
-		// Copy the clamped value back even when the component did not change and so did not report it.
-		OnManaChanged(ManaComponent.CurrentMana, ManaComponent.MaxMana);
+		ManaComponent.SetMana(mana, Stats.MaxMana);
+		// Copied even when nothing changed, since the component only reports changes.
+		Stats.Mana = ManaComponent.CurrentMana;
 	}
 
-	private void OnManaChanged(float mana, float maxMana)
-	{
-		// Like health, only the current value flows back; the maximum is derived from stats.
-		_reportedMana = mana;
-		Stats.Mana = mana;
-	}
+	// Like health, only the current value flows back; the maximum is derived from stats.
+	private void OnManaChanged(float mana, float maxMana) => Stats.Mana = mana;
 
 	private void OnXpRewarded(int xp)
 	{

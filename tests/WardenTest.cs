@@ -214,7 +214,7 @@ public class WardenTest
 			var policy = boss.EnemyBehaviorComponent.Profile.AttackStrategy;
 			attack.CancelAttack();
 			AssertBool(attack.TryPrepareAttack(policy.Attack, policy.Style, policy.Duration, out var swing)).IsTrue();
-			AssertBool(attack.StartAttack(swing, policy.MinDamage, policy.MaxDamage, 0, 4)).IsTrue();
+			AssertBool(attack.StartAttack(swing, new AttackStats(policy.MinDamage, policy.MaxDamage, 0), 4)).IsTrue();
 			for (int frame = 0; frame < 75; frame++)
 			{
 				harness.Player.HurtBoxComponent.Armor = 0;

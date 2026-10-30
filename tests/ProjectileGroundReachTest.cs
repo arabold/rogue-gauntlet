@@ -37,7 +37,7 @@ public partial class ProjectileGroundReachTest
 		var bolt = GD.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
 		root.AddChild(bolt);
 		bolt.GroundReach = groundReach;
-		bolt.Initialize(new Vector3(2, 1.2f, 0), Vector3.Right, 16, 10, 5, 5, 0, harness.Player, AttackDefenseTraits.None);
+		bolt.Initialize(new Vector3(2, 1.2f, 0), Vector3.Right, 16, 10, new AttackStats(5, 5, 0), harness.Player, AttackDefenseTraits.None);
 		var tree = root.GetTree();
 		for (int i = 0; i < 40; i++) await root.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
 

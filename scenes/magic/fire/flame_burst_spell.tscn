@@ -1,0 +1,13 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/magic/shared/area_damage_spell.tscn" id="base"]
+[ext_resource type="Resource" path="res://scenes/magic/fire/flame_burst_combat.tres" id="definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/fire/flame_burst.tscn" id="visual"]
+
+[node name="FlameBurstSpell" node_paths=PackedStringArray("VisualRoot") instance=ExtResource("base")]
+Definition = ExtResource("definition")
+VisualScene = ExtResource("visual")
+VisualRoot = NodePath("Visuals")
+
+[node name="Visuals" type="Node3D" parent="."]
+top_level = true
