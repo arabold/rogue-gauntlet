@@ -218,8 +218,8 @@ MeshUpdateInterval = 0.025
 
 [node name="Light" type="OmniLight3D" parent="Pivot"]
 light_color = Color(1, 0.42, 0.1, 1)
-light_energy = 2.2
 light_specular = 0.15
 omni_range = 4.6
 script = ExtResource("flicker_light")
+Energy = 2.2
 Flicker = ExtResource("light_flicker")

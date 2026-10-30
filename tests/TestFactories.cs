@@ -20,6 +20,13 @@ public static class TestFactories
 		return ISceneRunner.Load(path, true);
 	}
 
+	/// <summary>Load a resource after settling collected resources, for loads that follow suites freeing the scenes that last owned it.</summary>
+	public static T Load<T>(string path) where T : class
+	{
+		ResourceCacheGuard.Settle();
+		return GD.Load<T>(path);
+	}
+
 	/// <summary>Load the combat harness scene; the caller owns (and may dispose) the runner.</summary>
 	public static ISceneRunner LoadCombatHarness() => LoadScene("res://scenes/debug/combat/combat_harness.tscn");
 

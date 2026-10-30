@@ -488,10 +488,10 @@ visible = false
 
 [node name="FlickerLight" parent="Pivot/DarkLighting" unique_id=1439019186 instance=ExtResource("3_3qxnv")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 1)
-light_energy = 0.12
 shadow_caster_mask = 4294966527
 omni_range = 6.0
 omni_attenuation = 1.8
+Energy = 0.12
 Flicker = SubResource("LightFlicker_dim")
 
 [node name="ObjectHighlight" type="OmniLight3D" parent="Pivot/DarkLighting" unique_id=428531110]

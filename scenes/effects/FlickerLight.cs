@@ -1,18 +1,26 @@
 using Godot;
 
-/// <summary>
-/// A light that flickers around its authored energy through a <see cref="LightFlicker"/>, starting at a random offset
-/// so torches, candles and projectiles spawned together never flicker in step. Lights whose energy an effect driver
-/// owns (fades, impact flashes) apply their flicker inside that driver instead.
-/// </summary>
+/// <summary>A standalone light that flickers around <see cref="Energy"/> through a <see cref="LightFlicker"/>.</summary>
+[Tool, GlobalClass]
 public partial class FlickerLight : OmniLight3D
 {
 	private LightFlicker _flicker;
-	private float _energy;
+	private float _energy = 1f;
 	private float _time;
-	private float _offset;
 
-	/// <summary>Unassigned leaves the light steady at its authored energy.</summary>
+	/// <summary>Brightness the flicker multiplies. It replaces the light's own energy, which flickering drives.</summary>
+	[Export(PropertyHint.Range, "0,16,0.01,or_greater")]
+	public float Energy
+	{
+		get => _energy;
+		set
+		{
+			_energy = Mathf.Max(0f, value);
+			LightEnergy = _energy;
+		}
+	}
+
+	/// <summary>Unassigned leaves the light steady at <see cref="Energy"/>.</summary>
 	[Export]
 	public LightFlicker Flicker
 	{
@@ -21,21 +29,35 @@ public partial class FlickerLight : OmniLight3D
 		{
 			_flicker = value;
 			if (!IsNodeReady()) return;
-			SetProcess(value != null);
-			if (value == null) LightEnergy = _energy;
+			LightEnergy = _energy;
+			UpdateProcessing();
 		}
+	}
+
+	public override void _ValidateProperty(Godot.Collections.Dictionary property)
+	{
+		// Energy is the one authored brightness; the light's own energy is runtime output.
+		if (property["name"].AsStringName() == PropertyName.LightEnergy) property["usage"] = (int)PropertyUsageFlags.None;
 	}
 
 	public override void _Ready()
 	{
-		_energy = LightEnergy;
-		_offset = LightFlicker.RandomOffset(this);
-		SetProcess(Flicker != null);
+		_time = LightFlicker.RandomOffset(this);
+		UpdateProcessing();
+	}
+
+	public override void _Notification(int what)
+	{
+		if (what == NotificationVisibilityChanged && IsNodeReady()) UpdateProcessing();
 	}
 
 	public override void _Process(double delta)
 	{
 		_time += (float)delta;
-		LightEnergy = _energy * Flicker.Sample(_time, _offset);
+		LightEnergy = _energy * _flicker.Sample(_time);
 	}
+
+	/// <summary>Flickers only at runtime and while visible, so extinguished, fogged or inactive lights cost nothing
+	/// and the editor previews the authored energy.</summary>
+	private void UpdateProcessing() => SetProcess(_flicker != null && !Engine.IsEditorHint() && IsVisibleInTree());
 }

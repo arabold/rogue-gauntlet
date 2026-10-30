@@ -85,7 +85,7 @@ public partial class VisualEffectTimeline : Node
 	{
 		float curve = LightCurve?.Sample(Progress) ?? 1f;
 		for (int i = 0; i < Lights.Length; i++)
-			SpellLightFlicker.Apply(Lights[i], _lightEnergy[i] * opacity * _lightMultiplier, curve, _flash, LightFlicker, Elapsed, _flickerOffset + i);
+			EffectLight.Apply(Lights[i], _lightEnergy[i] * opacity * _lightMultiplier, curve, _flash, LightFlicker, _flickerOffset + Elapsed + i);
 	}
 
 	public override void _Process(double delta)

@@ -72,6 +72,10 @@ To add a room type, subclass `RoomGenerator`, supply its `CreateInteriorPool()` 
 
 Shared recipe/asset Resources remain definitions; runtime pools duplicate storage definitions before changing repeat limits. Per-room policies travel with placed room regions, use the existing arrangement RNG stream keyed by generation attempt and room ID, and also supply the clearance used for later chest placement. `EnableFurnishings` toggles all interiors without changing shell/layout randomness. Standalone editor generation protects every opening. Gameplay must connect every explicit doorway, including both hall ends; an unrouteable required doorway fails generation before wall placement rather than being sealed. Generic inferred open edges remain optional. Saved generated scenes become authored rooms and are not furnished again. Generation changes invalidate earlier development saves; `SaveGame.CurrentVersion` identifies the supported format.
 
+### Light flicker
+
+Every flickering light shares one Inspector-tunable `LightFlicker` resource that turns noise into a brightness multiplier. Presets live in `scenes/effects/light_flicker/`: `torch` for wall torches, candles and the player's light, `flame` for fire spells and `electric` for lightning strobes. Each light starts its flicker at its own random offset, so the torches spawned with a floor never flicker in step. Standalone lights are `FlickerLight` nodes, which flicker around their `Energy` only while visible; lights whose energy a spell effect already drives apply the flicker through `EffectLight`.
+
 ## Doors and enemy navigation
 
 Closed doors block physics, sight and navigation. Open doors enable their navigation connection; enemies commit to crossing rather than repeatedly steering between sides. Reachability and actual movement use the same door-aware navigation state. [Monster authoring](monster-authoring-design.md#awareness-and-pursuit) owns detection and pursuit rules.
