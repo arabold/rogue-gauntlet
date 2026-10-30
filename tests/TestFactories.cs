@@ -65,9 +65,10 @@ public static class TestFactories
 		GetSpell<ICombatSpell>(harness, name).Cast(harness.Player, level, new RandomNumberGenerator { Seed = seed });
 
 	/// <summary>Create an inert real monster for area-contact tests.</summary>
-	public static EnemyBase SpawnCombatMonster(Node root, Vector3 position, string name)
+	public static EnemyBase SpawnCombatMonster(Node root, Vector3 position, string name,
+		string scene = "res://scenes/enemies/skeleton/skeleton_minion.tscn")
 	{
-		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		var actor = GD.Load<PackedScene>(scene).Instantiate<EnemyBase>();
 		actor.Name = name; actor.Position = position; actor.EnemyBehaviorComponent.AIEnabled = false;
 		root.AddChild(actor); actor.DeathComponent.LootTableComponent = null; actor.DeathComponent.Xp = 0;
 		return actor;
