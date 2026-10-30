@@ -106,10 +106,12 @@ rotation_degrees = Vector3(-90, 0, 0)
   sibling in the same item ladder.
 - The wrapper's OWN root stays at identity — put the correction on the **child** instance, not
   the wrapper's root `[node]` line. A non-identity root transform breaks any code that frames
-  the model by wrapping it in a fresh pivot and centering on its computed AABB (both
-  `Preview.cs`'s in-game item preview and `render_item_catalog.gd` do this) — the two known
+  the model by wrapping it in a fresh pivot and centering on its computed AABB (the inventory
+  icon, `Preview.cs`, tolerates it, but don't rely on that elsewhere) — the two known
   warhammer files have exactly this bug (root-level `transform = Transform3D(2, 0, 0, ...)`)
   and are still on the list to fix.
+- To fix how the inventory icon shows a model, add an `ItemIconPose` node to its scene rather
+  than rotating the model; see `ItemIconPose.cs`.
 
 ## Always validate after authoring
 

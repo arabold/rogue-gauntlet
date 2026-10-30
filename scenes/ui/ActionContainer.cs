@@ -85,6 +85,8 @@ public partial class ActionContainer : PanelContainer
 		{
 			// The preview scene is already the run appearance model (see PlayerQuickItemController).
 			Item item = action?.AssignedAction as Item;
+			// Attack actions (a weapon, or its martial technique) preview the weapon, which lies diagonally like in the inventory.
+			_preview.Diagonal = action?.AssignedAction is ICombatAttackAction;
 			_preview.Scene = action?.PreviewScene;
 			bool isDepleted = action != null && action.AssignedAction != null && action.Quantity == 0;
 			if (_viewportContainer != null)

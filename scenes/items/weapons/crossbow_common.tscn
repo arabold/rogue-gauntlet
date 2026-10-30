@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=4 uid="uid://crtbmkjnx4oxe"]
+[gd_scene load_steps=6 format=4 uid="uid://crtbmkjnx4oxe"]
 
 [ext_resource type="Texture2D" uid="uid://xygyo08kbh1f" path="res://assets/kaykit-adventurers/rogue_texture.png" id="2_1v80u"]
+[ext_resource type="Script" uid="uid://xb6crtotupkw" path="res://scenes/items/ItemIconPose.cs" id="icon_pose"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_12af7"]
 resource_name = "rogue_texture"
@@ -48,3 +49,7 @@ shadow_mesh = SubResource("ArrayMesh_p7s3t")
 transform = Transform3D(1, 0, 0, 0, 1, -4.37114e-08, 0, 4.37114e-08, 1, 0, 0, 0)
 mesh = SubResource("ArrayMesh_2lxo2")
 skeleton = NodePath("")
+
+[node name="IconPose" type="Marker3D" parent="."]
+transform = Transform3D(-0.640856, 0.640856, -0.422618, -0.298836, 0.298836, 0.906308, 0.707107, 0.707107, 0.0, -0.845237, 1.812616, 0.0)
+script = ExtResource("icon_pose")

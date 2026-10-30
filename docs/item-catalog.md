@@ -346,6 +346,17 @@ It freezes one player pose after settling and captures four views of every equip
 comparisons share the same attachment frame. Floating catalog thumbnails cannot verify this
 contract.
 
+## Inventory icon
+
+Inventory slots and the hotbar show each item's world model through `Preview`, which renders it
+once and only redraws while the slot is hovered or focused and the model sways. The automatic
+pose relies on the item-local axes above: models stand +Y up and face +Z, and weapons hold their
+grip at the origin. Long weapons lie on the slot diagonal, head top-right; flat items (scrolls,
+shields, books) show their broad face; everything else keeps its authored up with a slight turn.
+When a model still reads badly, add an `ItemIconPose` marker to its scene, placed like a camera
+(View > Align Transform with View), instead of rotating the model and breaking its equipped
+orientation. The crossbows carry one, and so do the held lights, which stand +X up for their grip.
+
 ## Verification
 
 `ItemCatalogTest` validates all definitions through the actual factory/codec, every custom model

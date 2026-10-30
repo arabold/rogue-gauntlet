@@ -1,8 +1,13 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="PackedScene" uid="uid://cyo03xha02l4u" path="res://assets/kaykit-dungeon-legacy/crossbow_rare.gltf.glb" id="1_glb"]
+[ext_resource type="Script" uid="uid://xb6crtotupkw" path="res://scenes/items/ItemIconPose.cs" id="icon_pose"]
 
 [node name="CrossbowRare" type="Node3D"]
 
 [node name="crossbow_rare" parent="." instance=ExtResource("1_glb")]
 rotation_degrees = Vector3(-90, 0, 0)
+
+[node name="IconPose" type="Marker3D" parent="."]
+transform = Transform3D(0.640856, -0.640856, 0.422618, 0.707107, 0.707107, 0.0, -0.298836, 0.298836, 0.906308, 0.845237, 0.0, 1.812616)
+script = ExtResource("icon_pose")
