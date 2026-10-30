@@ -137,7 +137,7 @@ public partial class PlayerAttackController : AttackController
 		if (Player.IsDead || Player.IsHit || IsAttacking) return false;
 		_activeWeapon = weapon;
 		_aimAssistTarget = FindMeleeAimAssistTarget();
-		var stats = Player.Stats;
+		var stats = Player.Stats.ResolveAttack(weapon);
 		float multiplier = (isSpecial ? (weapon?.SecondaryDamageMultiplier ?? 1.5f) : 1.0f) * (attack?.DamageScale ?? 1);
 		if (!StartAttack(attack, stats.MinDamage * multiplier, stats.MaxDamage * multiplier, stats.CritChance, 24, lease)) return false;
 		ResetCombo();
