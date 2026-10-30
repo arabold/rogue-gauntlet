@@ -6,3 +6,4 @@
 script = ExtResource("script")
 SpellName = "Tremor"
 Element = 2
+PushByLevel = PackedFloat32Array(2, 2, 2)

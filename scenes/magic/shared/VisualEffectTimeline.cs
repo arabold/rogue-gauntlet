@@ -5,6 +5,7 @@ public partial class VisualEffectTimeline : Node
 {
 	private static readonly StringName ProgressKey = "progress";
 	private static readonly StringName EffectFadeKey = "effect_fade";
+	private static readonly StringName WaveFrontKey = "wave_front";
 
 	[Export] public MeshInstance3D[] Surfaces { get; set; } = [];
 	[Export] public OmniLight3D[] Lights { get; set; } = [];
@@ -13,6 +14,8 @@ public partial class VisualEffectTimeline : Node
 	[Export] public float FadeIn { get; set; } = .08f;
 	[Export] public float FadeOutStart { get; set; } = .65f;
 	[Export] public bool Sustained { get; set; }
+	/// <summary>The outward front its wave surfaces draw; unassigned for effects that do not travel.</summary>
+	[Export] public WaveFront WaveFront { get; set; }
 	/// <summary>Optional light brightness multiplier over progress. Values above 1 are an impact flash and only
 	/// apply when <see cref="ImpactFlash"/> grants one, so dense effects never strobe.</summary>
 	[Export] public Curve LightCurve { get; set; }
@@ -25,6 +28,8 @@ public partial class VisualEffectTimeline : Node
 	public float Progress { get; private set; }
 	public float Opacity { get; private set; }
 	public bool Started { get; private set; }
+	/// <summary>The front its surfaces draw, which area contacts follow.</summary>
+	public AreaFront Front => WaveFront.Of(WaveFront, this);
 	private ShaderMaterial[] _materials = [];
 	private ShaderMaterial[] _particleMaterials = [];
 	private float[] _lightEnergy = [];
@@ -70,6 +75,7 @@ public partial class VisualEffectTimeline : Node
 		{
 			material.SetShaderParameter(ProgressKey, progress);
 			material.SetShaderParameter(EffectFadeKey, opacity);
+			if (WaveFront != null) material.SetShaderParameter(WaveFrontKey, WaveFront.At(progress));
 		}
 		foreach (var material in _particleMaterials) material.SetShaderParameter(EffectFadeKey, opacity);
 		ApplyLights(opacity);

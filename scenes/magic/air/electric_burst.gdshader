@@ -8,13 +8,17 @@ render_mode unshaded, blend_add, cull_disabled, depth_draw_never, shadows_disabl
 // white core blending into a soft glow. Pixels beyond the front are discarded before any other work.
 uniform sampler2D noise_texture : repeat_enable, filter_linear;
 uniform float progress : hint_range(0.0, 1.0) = 0.0;
+// Fraction of the gameplay radius the wave has reached, fed by its timeline's WaveFront so hits follow the drawn front.
+uniform float wave_front = 0.0;
+// Plane distance (0 centre, 1 border) at which the gameplay radius lies.
+uniform float wave_edge = 0.9;
 uniform float brightness = 1.6;
 uniform float effect_fade = 1.0;
 
 void fragment() {
 	vec2 p = (UV - 0.5) * 2.0;
 	float radius = length(p);
-	float front = mix(0.12, 0.89, 1.0 - pow(1.0 - progress, 2.0));
+	float front = wave_front * wave_edge;
 	if (radius > front + 0.15) discard;
 	if (area_is_blocked(VERTEX, INV_VIEW_MATRIX)) discard;
 	float angle = atan(p.y, p.x);

@@ -1,17 +1,19 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>Deterministic hostile actor capture shared by release-time area spells.</summary>
 public static class AreaSpellTargets
 {
-	public static Node3D[] Capture(Node owner, Node3D caster, Vector3 origin, float radius, World3D world)
+	/// <summary>Hostile actors within <paramref name="radius"/> of <paramref name="origin"/>, in node-path order, skipping <paramref name="exclude"/>.</summary>
+	public static Node3D[] Capture(Node owner, Node3D caster, Vector3 origin, float radius, World3D world, HashSet<Node3D> exclude = null)
 	{
 		string group = caster.IsInGroup("player") ? "enemy"
 			: caster.IsInGroup("enemy") || caster.IsInGroup("boss") ? "player" : null;
 		if (group == null) return null;
 		return owner.GetTree().GetNodesInGroup(group).OfType<Node3D>()
-			.Where(target => target != caster && target is ICombatDamageable && target.IsInsideTree()
+			.Where(target => target != caster && exclude?.Contains(target) != true && target is ICombatDamageable && target.IsInsideTree()
 				&& target.GetWorld3D() == world && target.GlobalPosition.DistanceTo(origin) <= radius)
 			.Distinct().OrderBy(target => target.GetPath().ToString(), StringComparer.Ordinal).ToArray();
 	}

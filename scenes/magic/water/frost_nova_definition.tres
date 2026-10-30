@@ -5,4 +5,7 @@
 
 [resource]
 script = ExtResource("script")
+SpellName = "Frost Nova"
+PushByLevel = PackedFloat32Array(2, 2, 2)
+Element = 4
 Frozen = ExtResource("frozen")

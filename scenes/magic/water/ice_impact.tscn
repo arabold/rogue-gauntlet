@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/water/WaterSpellVisual.cs" id="root"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
@@ -6,9 +6,17 @@
 [ext_resource type="Shader" path="res://scenes/magic/water/frost_wave.gdshader" id="wave"]
 [ext_resource type="Texture2D" path="res://scenes/magic/water/toon_ice_ramp.tres" id="ice_ramp"]
 [ext_resource type="Material" path="res://scenes/magic/water/toon_ice_crystal.tres" id="ice_crystal_material"]
+[ext_resource type="Script" path="res://scenes/magic/shared/WaveFront.cs" id="wave_front_script"]
+
+[sub_resource type="Resource" id="wave_front"]
+script = ExtResource("wave_front_script")
+Start = 0.08
+End = 0.92
+Power = 2.5
 [sub_resource type="ShaderMaterial" id="wave_material"]
 shader = ExtResource("wave")
 shader_parameter/color_ramp = ExtResource("ice_ramp")
+shader_parameter/wave_edge = 1.0
 [sub_resource type="PlaneMesh" id="plane"]
 size = Vector2(3, 3)
 [node name="IceImpact" type="Node3D" node_paths=PackedStringArray("Timeline", "Crystals")]
@@ -43,6 +51,7 @@ light_energy = 1.0
 omni_range = 3.0
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights")]
 script = ExtResource("timeline")
+WaveFront = SubResource("wave_front")
 Surfaces = [NodePath("../Wave")]
 Lights = [NodePath("../Light")]
 Duration = 1.3

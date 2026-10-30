@@ -1,10 +1,17 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/FallingBodyMotion.cs" id="fall"]
 [ext_resource type="Script" path="res://scenes/magic/earth/EarthSpellVisual.cs" id="script"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Shader" path="res://scenes/magic/earth/seismic_wave.gdshader" id="wave"]
 [ext_resource type="Shader" path="res://scenes/magic/earth/shattered_ground.gdshader" id="cracks"]
+[ext_resource type="Script" path="res://scenes/magic/shared/WaveFront.cs" id="wave_front_script"]
+
+[sub_resource type="Resource" id="wave_front"]
+script = ExtResource("wave_front_script")
+Start = 0.08
+End = 0.86
+Power = 2.0
 
 [node name="EarthSpellVisual" type="Node3D" node_paths=PackedStringArray("Timeline", "Fall")]
 script = ExtResource("script")
@@ -16,6 +23,7 @@ CrackShader = ExtResource("cracks")
 
 [node name="Timeline" type="Node" parent="."]
 script = ExtResource("timeline")
+WaveFront = SubResource("wave_front")
 Duration = 2.7
 [node name="Fall" type="Node" parent="." node_paths=PackedStringArray("Timeline")]
 script = ExtResource("fall")

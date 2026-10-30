@@ -47,6 +47,7 @@ public partial class FireSpellVisual : VisualEffectInstance, IAreaSpellVisual, I
 		return true;
 	}
 	public void SetAreaVisibility(AreaVisibility visibility) => SetVisibility(visibility);
+	public override AreaFront Front => Burst?.Timeline != null ? Burst.Front : base.Front;
 	/// <summary>Shows feedback for a guard reflection when the scene supplies it.</summary>
 	public void Flash() => Guard?.Flash();
 	public bool ConfigureGuard(int level, ulong cosmeticSeed)

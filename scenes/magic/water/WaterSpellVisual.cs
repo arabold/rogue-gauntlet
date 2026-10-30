@@ -36,6 +36,8 @@ public partial class WaterSpellVisual : VisualEffectInstance, IGuardVisual, IAre
 		return true;
 	}
 	public void SetAreaVisibility(AreaVisibility visibility) => SetVisibility(visibility);
+	/// <summary>A ring raised at the radius takes hold of the whole area once its crystals stand.</summary>
+	public override AreaFront Front => RingAtRadius && Crystals != null ? AreaFront.Instant with { Delay = Crystals.RiseSeconds } : base.Front;
 	public override void SetVisibility(AreaVisibility visibility)
 	{
 		base.SetVisibility(visibility);

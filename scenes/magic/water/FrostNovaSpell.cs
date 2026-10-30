@@ -5,8 +5,8 @@ using System.Linq;
 /// <summary>One focus-owned Frost Nova source; casting and equipment are supplied by its caller.</summary>
 public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 {
-	public string DisplayName => "Frost Nova";
-	public int LevelCount => 3;
+	public string DisplayName => Definition?.SpellName ?? "";
+	public int LevelCount => Definition?.LevelCount ?? 0;
 	[Export] public FrostNovaDefinition Definition { get; set; }
 	[Export] public PackedScene VisualScene { get; set; }
 	[Export] public Node3D VisualRoot { get; set; }
@@ -17,7 +17,7 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 	/// <summary>Reconnect a restored target so canceling this focus still removes its status.</summary>
 	public void StatusRestored(BuffController target) => _affected.Add(target);
 
-	/// <summary>Release one area contact per visible hostile actor; visual failure never causes damage.</summary>
+	/// <summary>Release one area contact per visible hostile actor as the wave reaches it; visual failure never causes damage.</summary>
 	public bool Cast(Node3D caster, int level, RandomNumberGenerator random)
 	{
 		if (Definition?.IsValidLevel(level) != true || VisualScene == null) return false;
@@ -37,13 +37,13 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 		_affected.RemoveWhere(statuses => !IsInstanceValid(statuses) || !statuses.HasStatusFrom(this));
 		float freezeSeconds = Definition.FreezeSecondsByLevel[level - 1];
 		StatusCondition frozen = Definition.Frozen;
-		_cast.Schedule(cast, Definition.ContactDelay, Definition.DamageByLevel[level - 1], Definition.DefenseTraits, afterContact: (target, result) =>
+		_cast.Schedule(cast, Definition.ContactDelay, visual.Front, Definition.DamageByLevel[level - 1], Definition.DefenseTraits, Definition.PushAt(level), (target, result) =>
 		{
 			if (result.Outcome != DamageOutcome.Damaged || !IsInstanceValid(target) || !target.IsInsideTree()
 				|| target is not IStatusActor { BuffController: { } statuses } || statuses.Health == null || statuses.Health.IsDead) return;
 			_affected.Add(statuses);
 			if (!statuses.ApplyStatus(frozen, this, freezeSeconds)) _affected.Remove(statuses);
-		}, element: DamageElement.Water);
+		}, Definition.Element);
 		return true;
 	}
 
