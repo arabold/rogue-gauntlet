@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
 [ext_resource type="Resource" uid="uid://nmu6am3fevbi" path="res://scenes/player/resources/player_stats.tres" id="2_sug4b"]
 [ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flicker_light.tscn" id="3_3qxnv"]
+[ext_resource type="Script" uid="uid://cdw6evppde3jq" path="res://scenes/effects/LightFlicker.cs" id="light_flicker_script"]
 [ext_resource type="Script" uid="uid://s73gxicbccb2" path="res://scenes/player/InventoryItemSlot.cs" id="3_uf5tr"]
 [ext_resource type="Script" uid="uid://7aetn0f4oogq" path="res://scenes/player/InteractionArea.cs" id="4_rbblq"]
 [ext_resource type="Resource" uid="uid://bc4es25jpb62o" path="res://scenes/items/weapons/axe_common.tres" id="4_uf5tr"]
@@ -93,11 +94,12 @@ InnateGuard = ExtResource("innate_guard")
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_f3pwl"]
 frequency = 0.75
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_rio2h"]
-width = 64
-height = 64
-noise = SubResource("FastNoiseLite_f3pwl")
-normalize = false
+[sub_resource type="Resource" id="LightFlicker_dim"]
+script = ExtResource("light_flicker_script")
+Noise = SubResource("FastNoiseLite_f3pwl")
+Min = 0.333333
+Max = 1.0
+Fold = true
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_s7lv0"]
 radius = 1.0
@@ -471,7 +473,6 @@ transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 
 shadow_caster_mask = 4294966527
 omni_range = 25.0
 omni_attenuation = 0.25
-noiseTexture = SubResource("NoiseTexture2D_rio2h")
 
 [node name="ObjectHighlight" type="OmniLight3D" parent="Pivot/NormalLighting" unique_id=1664945387]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)
@@ -490,9 +491,8 @@ transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 
 shadow_caster_mask = 4294966527
 omni_range = 6.0
 omni_attenuation = 1.8
-noiseTexture = SubResource("NoiseTexture2D_rio2h")
-Min = 0.04
-Max = 0.12
+Energy = 0.12
+Flicker = SubResource("LightFlicker_dim")
 
 [node name="ObjectHighlight" type="OmniLight3D" parent="Pivot/DarkLighting" unique_id=428531110]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)

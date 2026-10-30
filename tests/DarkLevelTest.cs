@@ -10,18 +10,6 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class DarkLevelTest
 {
-	private static Node3D Torch(string path, Vector3 position, float yaw)
-	{
-		var torch = GD.Load<PackedScene>(path).Instantiate<Node3D>();
-		torch.Position = position;
-		torch.RotateY(yaw);
-		return torch;
-	}
-	private static void AssertEffects(Node torch, bool visible)
-	{
-		AssertBool(torch.FindChild("Fire", true, false) is Node3D { } fire && fire.IsVisibleInTree()).IsEqual(visible);
-		AssertBool(torch.FindChild("FlickerLight", true, false) is OmniLight3D { } light && light.IsVisibleInTree()).IsEqual(visible);
-	}
 	/// <summary>The actual debug menu changes floor illumination without relighting unlit fixtures or changing exploration.</summary>
 	[TestCase]
 	public async Task DebugDarkLevelToggleRestoresFixturesAndAmbientLight()
@@ -57,16 +45,16 @@ public class DarkLevelTest
 		AssertBool(darkLighting.Visible).IsTrue();
 
 		// Fixtures added while dark must start extinguished too, including their flames.
-		var lit = Torch("res://scenes/props/torch_mounted.tscn", Vector3.Zero, 0);
-		var unlit = Torch("res://scenes/levels/arrangements/wall/wall_torch_unlit.tscn", Vector3.Zero, 0);
+		var lit = TestFactories.Torch();
+		var unlit = TestFactories.Torch(TestFactories.UnlitTorch);
 		lit.Transform = ((Node3D)fixtures[0].GetParent()).GlobalTransform;
 		unlit.Transform = ((Node3D)fixtures[0].GetParent()).GlobalTransform;
 		level.AddWorldNode(lit);
 		level.AddWorldNode(unlit);
 		level.Discovery.RevealAll();
 		await runner.SimulateFrames(2);
-		AssertEffects(lit, false);
-		AssertEffects(unlit, false);
+		TestFactories.AssertTorchEffects(lit, false);
+		TestFactories.AssertTorchEffects(unlit, false);
 		AssertBool(fixtures.All(f => !f.Light.Visible && !f.Flame.Visible)).IsTrue();
 
 		popup.EmitSignal(PopupMenu.SignalName.IdPressed, popup.GetItemId(index));
@@ -75,8 +63,8 @@ public class DarkLevelTest
 		AssertFloat(environment.AmbientLightEnergy).IsEqual(ambient);
 		AssertArray(fixtures.Select(f => f.Light.Visible).ToArray()).IsEqual(lights);
 		AssertArray(fixtures.Select(f => f.Flame.Visible).ToArray()).IsEqual(flames);
-		AssertEffects(lit, true);
-		AssertEffects(unlit, false);
+		TestFactories.AssertTorchEffects(lit, true);
+		TestFactories.AssertTorchEffects(unlit, false);
 		AssertBool(normalLighting.Visible).IsTrue();
 		AssertBool(darkLighting.Visible).IsFalse();
 	}

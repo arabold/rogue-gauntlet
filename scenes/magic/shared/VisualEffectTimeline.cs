@@ -16,8 +16,8 @@ public partial class VisualEffectTimeline : Node
 	/// <summary>Optional light brightness multiplier over progress. Values above 1 are an impact flash and only
 	/// apply when <see cref="ImpactFlash"/> grants one, so dense effects never strobe.</summary>
 	[Export] public Curve LightCurve { get; set; }
-	/// <summary>Flicker on the timeline lights: a soft waver for fire, a hard random strobe for electricity.</summary>
-	[Export] public LightFlickerStyle LightFlicker { get; set; }
+	/// <summary>Optional flicker on the timeline lights, such as a soft flame waver or a hard electric strobe.</summary>
+	[Export] public LightFlicker LightFlicker { get; set; }
 	/// <summary>Composed effects may keep their root until independently fading children finish.</summary>
 	[Export] public bool FreeOnCompletion { get; set; } = true;
 	public float StartDelay { get; set; }
@@ -30,12 +30,12 @@ public partial class VisualEffectTimeline : Node
 	private float[] _lightEnergy = [];
 	private float _delay, _lightMultiplier = 1f;
 	private bool _flash;
-	private float _flickerSeed;
+	private float _flickerOffset;
 
 	public override void _Ready()
 	{
 		ProcessPriority = -1;
-		_flickerSeed = SpellLightFlicker.Seed(this);
+		_flickerOffset = LightFlicker.RandomOffset(this);
 		_materials = new ShaderMaterial[Surfaces.Length];
 		for (int i = 0; i < Surfaces.Length; i++)
 		{
@@ -85,7 +85,7 @@ public partial class VisualEffectTimeline : Node
 	{
 		float curve = LightCurve?.Sample(Progress) ?? 1f;
 		for (int i = 0; i < Lights.Length; i++)
-			SpellLightFlicker.Apply(Lights[i], _lightEnergy[i] * opacity * _lightMultiplier, curve, _flash, LightFlicker, Elapsed, _flickerSeed + i);
+			EffectLight.Apply(Lights[i], _lightEnergy[i] * opacity * _lightMultiplier, curve, _flash, LightFlicker, _flickerOffset + Elapsed + i);
 	}
 
 	public override void _Process(double delta)
@@ -100,7 +100,7 @@ public partial class VisualEffectTimeline : Node
 		Opacity = Sustained ? Mathf.SmoothStep(0, Mathf.Max(FadeIn, .001f), Progress)
 			: EffectEnvelope.Evaluate(Progress, Mathf.Max(FadeIn, .001f), Mathf.Clamp(FadeOutStart, 0, .999f));
 		if (!Sustained || previous < 1) SetVisual(Progress, Opacity);
-		else if (LightFlicker != LightFlickerStyle.None) ApplyLights(Opacity);
+		else if (LightFlicker != null) ApplyLights(Opacity);
 		if (!Sustained && Progress >= 1)
 		{
 			if (FreeOnCompletion) GetParent().QueueFree();

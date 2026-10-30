@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=4 uid="uid://cyhr68psc2ku"]
+[gd_scene load_steps=9 format=4 uid="uid://cyhr68psc2ku"]
 
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="1_ydphq"]
 [ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flicker_light.tscn" id="2_excks"]
@@ -46,14 +46,6 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_1c4ul")
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_7q2e4"]
-frequency = 0.75
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_p5w04"]
-width = 64
-height = 64
-noise = SubResource("FastNoiseLite_7q2e4")
-
 [node name="TorchMounted" type="Node3D"]
 
 [node name="torch_mounted" type="MeshInstance3D" parent="."]
@@ -62,7 +54,6 @@ skeleton = NodePath("")
 
 [node name="FlickerLight" parent="." instance=ExtResource("2_excks")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0.825363, 0.39241)
-noiseTexture = SubResource("NoiseTexture2D_p5w04")
 
 [node name="Fire" parent="." instance=ExtResource("3_gja5y")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.37741, 0.323494)
