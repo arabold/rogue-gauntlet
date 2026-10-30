@@ -15,6 +15,7 @@ public partial class ConstantScreenSize3D : Node
 	public float ReferenceCameraSize { get; set; } = 20f;
 
 	private Vector3 _authoredScale;
+	private float _factor = float.NaN;
 
 	public override void _Ready()
 	{
@@ -34,7 +35,10 @@ public partial class ConstantScreenSize3D : Node
 	{
 		Camera3D camera = GetViewport().GetCamera3D();
 		if (camera == null || !IsInstanceValid(Target)) return;
-		Target.Scale = _authoredScale * (camera.Projection == Camera3D.ProjectionType.Orthogonal
-			? camera.Size / ReferenceCameraSize : 1f);
+		float factor = camera.Projection == Camera3D.ProjectionType.Orthogonal ? camera.Size / ReferenceCameraSize : 1f;
+		// Zoom changes only on input; an unchanged scale would still propagate a transform change every frame.
+		if (factor == _factor) return;
+		_factor = factor;
+		Target.Scale = _authoredScale * factor;
 	}
 }

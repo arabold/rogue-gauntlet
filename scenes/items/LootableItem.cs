@@ -82,6 +82,8 @@ public partial class LootableItem : Node3D
 	[Export] public Node3D Pivot { get; set; }
 	[Export] public TriggerComponent Trigger { get; set; }
 	[Export] public AnimationPlayer AnimationPlayer { get; set; }
+	/// <summary>Optional: shows the item's name in its loot color while the player is near, placed on top of the item's model.</summary>
+	[Export] public Nameplate Nameplate { get; set; }
 
 	private Player _player;
 	private ExplorationVisibility _exploration;
@@ -90,7 +92,7 @@ public partial class LootableItem : Node3D
 	private bool _armed;
 	private bool _collected;
 	private bool _throwing;
-	/// <summary>A thrown drop's beam lights up only on touchdown, so it marks the landing rather than giving it away.</summary>
+	/// <summary>A thrown drop's beam and name appear only on touchdown, so they mark the landing rather than giving it away.</summary>
 	private bool _airborne;
 	private Vector3 _throwSource;
 	private float _throwDelay;
@@ -176,6 +178,8 @@ public partial class LootableItem : Node3D
 		{
 			Pivot.Position = new Vector3(0, 0, 0);
 		}
+		ConfigureNameplate(itemScene, Pivot.Position.Y);
+		RefreshMarkers();
 		if (_throwing)
 		{
 			PlayThrow(spins);
@@ -184,6 +188,30 @@ public partial class LootableItem : Node3D
 		{
 			AnimationPlayer.Play("spin");
 		}
+	}
+
+	/// <summary>Names the pickup in its loot color on top of its resting model, and renames it when its type is identified.</summary>
+	private void ConfigureNameplate(Node model, float restHeight)
+	{
+		if (Nameplate == null) return;
+		Nameplate.Position = Vector3.Up * (restHeight + (VisualHelper.MeshBounds(model, Pivot)?.End.Y ?? 0f));
+		Nameplate.NameLabel.Modulate = LootVisuals.ResolveColor(Item);
+		RefreshName();
+		if (Item is IIdentifiable)
+		{
+			this.SubscribeUntilExit(SignalBus.Instance, bus => bus.ItemIdentified += OnItemIdentified, bus => bus.ItemIdentified -= OnItemIdentified);
+		}
+	}
+
+	private void OnItemIdentified(string typeId)
+	{
+		if (((IIdentifiable)Item).TypeId == typeId) RefreshName();
+	}
+
+	private void RefreshName()
+	{
+		string name = ItemIdentity.ResolveDisplayName(Item);
+		Nameplate.NameLabel.Text = Quantity > 1 ? $"{name} ({Quantity})" : name;
 	}
 
 	/// <summary>
@@ -213,7 +241,7 @@ public partial class LootableItem : Node3D
 		tween.TweenCallback(Callable.From(() =>
 		{
 			_airborne = false;
-			_beam?.SetActive(_discovered == true);
+			RefreshMarkers();
 		}));
 		tween.TweenProperty(Pivot, "position:y", rest.Y + LandingBounceHeight, LandingBounceDuration / 2)
 			.SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
@@ -301,8 +329,15 @@ public partial class LootableItem : Node3D
 		if (_discovered == visible) return visible;
 		_discovered = visible;
 		Visible = visible; // Gates the entire subtree, including the model, helpers, labels and the beam's light.
-		_beam?.SetActive(visible && !_airborne);
+		RefreshMarkers();
 		return visible;
+	}
+
+	/// <summary>The beam and name mark a discovered pickup, and wait until a thrown drop has landed.</summary>
+	private void RefreshMarkers()
+	{
+		_beam?.SetActive(_discovered == true && !_airborne);
+		if (Nameplate != null) Nameplate.Enabled = !_airborne;
 	}
 
 	private void AddLootBeam()

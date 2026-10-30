@@ -20,8 +20,7 @@ public partial class ItemCurseWorldEffectPresenter : Node3D
 		VisualHelper.Mark(this);
 		if (Host == null || Effect == null || _item == null || _model == null)
 		{ GD.PushError($"{Name}: curse presenter requires a runtime item, model, host and effect."); return; }
-		Aabb? bounds = null; Measure(_model, ref bounds);
-		if (bounds is Aabb box)
+		if (VisualHelper.MeshBounds(_model, _model) is Aabb box)
 		{
 			Position = box.GetCenter();
 
@@ -29,16 +28,6 @@ public partial class ItemCurseWorldEffectPresenter : Node3D
 		this.SubscribeUntilExit(_item, i => i.Changed += Sync, i => i.Changed -= Sync);
 		if (_actor != null) this.SubscribeUntilExit(_actor, a => a.GateChanged += Sync, a => a.GateChanged -= Sync);
 		Sync();
-	}
-	private void Measure(Node node, ref Aabb? bounds)
-	{
-		if (node == this || VisualHelper.IsHelper(node)) return;
-		if (node is MeshInstance3D { Mesh: not null } mesh)
-		{
-			var box = (_model.GlobalTransform.AffineInverse() * mesh.GlobalTransform) * mesh.GetAabb();
-			bounds = bounds.HasValue ? bounds.Value.Merge(box) : box;
-		}
-		foreach (Node child in node.GetChildren()) Measure(child, ref bounds);
 	}
 	private void Sync()
 	{

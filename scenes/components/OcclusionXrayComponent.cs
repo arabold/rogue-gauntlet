@@ -68,7 +68,6 @@ public partial class OcclusionXrayComponent : Node
 	};
 
 	private readonly List<MeshInstance3D> _silhouettes = new();
-	private readonly List<Label3D> _labels = new();
 	private Node3D _targetRoot;
 	private ExplorationVisibility _exploration;
 	private HealthComponent _health;
@@ -107,11 +106,6 @@ public partial class OcclusionXrayComponent : Node
 		_health = GetParent()?.GetNodeOrNull<HealthComponent>("HealthComponent");
 
 		BuildSilhouettes(_targetRoot);
-		CollectLabels(GetParent());
-		if (_targetRoot != null && _targetRoot != GetParent() && !GetParent().IsAncestorOf(_targetRoot))
-		{
-			CollectLabels(_targetRoot);
-		}
 
 		if (_health != null)
 		{
@@ -148,7 +142,7 @@ public partial class OcclusionXrayComponent : Node
 		// Actors move, so re-check "is in a discovered room" on a low-frequency poll.
 		// Loot is static and would be covered by RoomEntered alone, but polling keeps
 		// one code path and the cost is a single dictionary lookup.
-		if (_silhouettes.Count == 0 && _labels.Count == 0)
+		if (_silhouettes.Count == 0)
 		{
 			return;
 		}
@@ -224,32 +218,10 @@ public partial class OcclusionXrayComponent : Node
 		_ => GameDebug.MonsterXrayEnabled,
 	};
 
-	private void CollectLabels(Node node)
-	{
-		if (node == null)
-		{
-			return;
-		}
-
-		if (node is Label3D label && !_labels.Contains(label))
-		{
-			_labels.Add(label);
-		}
-
-		foreach (Node child in node.GetChildren())
-		{
-			if (child is EnemyBase && child != node)
-			{
-				continue;
-			}
-			CollectLabels(child);
-		}
-	}
-
-	/// <summary>Recomputes and applies silhouette and label visibility from the toggle + reveal + alive state.</summary>
+	/// <summary>Recomputes and applies silhouette visibility from the toggle + reveal + alive state.</summary>
 	private void Evaluate()
 	{
-		if ((_silhouettes.Count == 0 && _labels.Count == 0) || _targetRoot == null)
+		if (_silhouettes.Count == 0 || _targetRoot == null)
 		{
 			return;
 		}
@@ -261,11 +233,6 @@ public partial class OcclusionXrayComponent : Node
 		foreach (MeshInstance3D silhouette in _silhouettes)
 		{
 			silhouette.Visible = visible;
-		}
-
-		foreach (Label3D label in _labels)
-		{
-			label.Visible = visible;
 		}
 	}
 

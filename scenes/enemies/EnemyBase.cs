@@ -32,7 +32,6 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	[Export] public MovementComponent MovementComponent;
 	[Export] public HealthComponent HealthComponent;
 	[Export] public HurtBoxComponent HurtBoxComponent;
-	public FloatingHealthBar HealthBar;
 	[Export] public DeathComponent DeathComponent;
 	[Export] public LootTableComponent LootTableComponent;
 	[Export] public ActorActionGateComponent ActionGate { get; set; }
@@ -42,6 +41,8 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	[Export] public AttackController AttackController { get; set; }
 
 	[Export] public LargeActorFitComponent LargeActorFit { get; set; }
+	/// <summary>Optional: shows <see cref="MonsterDefinition.DisplayName"/> above the monster while the player is near.</summary>
+	[Export] public Nameplate Nameplate { get; set; }
 	[Export] public MonsterDefinition Definition { get; set; }
 	public bool DefinitionValid { get; private set; } = true;
 	private Level _level;
@@ -69,6 +70,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 		DeathComponent.Xp = Definition.XpReward;
 		LootTableComponent.Profile = Definition.Loot;
 		EnemyBehaviorComponent.Profile = Definition.Behavior;
+		if (Nameplate != null) Nameplate.NameLabel.Text = Definition.DisplayName;
 	}
 
 	public bool IsDead => EnemyBehaviorComponent?.IsDead ?? HealthComponent?.IsDead ?? false;
@@ -90,7 +92,6 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 		if (_initialStoneSkin) StoneSkinStatus?.SetActive(true);
 		Pivot = GetNode<Node3D>("Pivot");
 		CollisionShape = GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
-		HealthBar = GetNodeOrNull<FloatingHealthBar>("FloatingHealthBar");
 
 		HealthComponent.Died += () => ActionGate.Disable();
 

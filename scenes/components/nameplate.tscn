@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/components/Nameplate.cs" id="1_plate"]
+[ext_resource type="Script" uid="uid://wi1l4pav2ehr" path="res://scenes/components/ConstantScreenSize3D.cs" id="2_screen"]
+
+[node name="Nameplate" type="Node3D" node_paths=PackedStringArray("NameLabel")]
+script = ExtResource("1_plate")
+NameLabel = NodePath("NameLabel")
+
+[node name="ConstantScreenSize3D" type="Node" parent="." node_paths=PackedStringArray("Target")]
+script = ExtResource("2_screen")
+Target = NodePath("..")
+
+[node name="NameLabel" type="Label3D" parent="."]
+position = Vector3(0, 0.45, 0)
+billboard = 1
+no_depth_test = true
+render_priority = 20
+outline_render_priority = 19
+modulate = Color(1, 0.38, 0.32, 1)
+text = "Name"
+font_size = 40
+outline_size = 12
+pixel_size = 0.008
+vertical_alignment = 2
+autowrap_mode = 3
+width = 600.0

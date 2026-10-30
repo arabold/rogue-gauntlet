@@ -8,7 +8,7 @@
 
 [ext_resource type="PackedScene" path="res://scenes/components/floating_health_bar.tscn" id="bar"]
 
-[ext_resource type="Script" uid="uid://wi1l4pav2ehr" path="res://scenes/components/ConstantScreenSize3D.cs" id="constant_screen_size"]
+[ext_resource type="PackedScene" path="res://scenes/components/nameplate.tscn" id="nameplate"]
 [ext_resource type="Script" path="res://scenes/components/DamageNumbersComponent.cs" id="damage_numbers"]
 [ext_resource type="PackedScene" path="res://scenes/components/damage_number.tscn" id="damage_number"]
 
@@ -62,26 +62,21 @@ material_override = SubResource("bone")
 position = Vector3(0, 0.65, 0)
 rotation_degrees = Vector3(65, 20, 0)
 
-[node name="Title" type="Label3D" parent="."]
-visible = false
-position = Vector3(0, 2.4, 0)
-billboard = 1
-no_depth_test = true
-render_priority = 20
-text = "Bone Nest"
-font_size = 40
-pixel_size = 0.008
-
-[node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("bar")]
+[node name="Nameplate" parent="." node_paths=PackedStringArray("Health") instance=ExtResource("nameplate")]
 position = Vector3(0, 1.9, 0)
-HealthComponent = NodePath("../HealthComponent")
+Health = NodePath("../HealthComponent")
 
-[node name="ConstantScreenSize3D" type="Node" parent="Title" node_paths=PackedStringArray("Target")]
-script = ExtResource("constant_screen_size")
-Target = NodePath("..")
+[node name="NameLabel" parent="Nameplate" index="1"]
+text = "Bone Nest"
+
+[node name="FloatingHealthBar" parent="Nameplate" node_paths=PackedStringArray("HealthComponent", "ShowWithName") instance=ExtResource("bar")]
+HealthComponent = NodePath("../../HealthComponent")
+ShowWithName = NodePath("..")
 
 [node name="DamageNumbers" type="Node3D" parent="." node_paths=PackedStringArray("HurtBox", "Anchor")]
 script = ExtResource("damage_numbers")
 HurtBox = NodePath("../HurtBoxComponent")
 NumberScene = ExtResource("damage_number")
-Anchor = NodePath("../FloatingHealthBar")
+Anchor = NodePath("../Nameplate/FloatingHealthBar")
+
+[editable path="Nameplate"]
