@@ -5,6 +5,7 @@ using System;
 /// <summary>
 /// Represents an item that can be picked up by the player. Shows a quality/type-colored loot
 /// beam and, when within magnet range, floats to the player and is collected automatically.
+/// Fresh chest and monster drops first rise out of their source and hover, so the player sees what dropped.
 /// </summary>
 public partial class LootableItem : Node3D
 {
@@ -38,6 +39,22 @@ public partial class LootableItem : Node3D
 	/// <summary>Fly speed right before collection (the pull accelerates inward).</summary>
 	[Export] public float MagnetMaxSpeed { get; set; } = 18.0f;
 
+	/// <summary>Pivot height a revealed drop hovers at: clear above an open chest lid.</summary>
+	[Export] public float RevealHeight { get; set; } = 1.6f;
+	/// <summary>Seconds a revealed drop takes to grow out of its source up to <see cref="RevealHeight"/>.</summary>
+	[Export] public float RevealRiseDuration { get; set; } = 0.35f;
+	/// <summary>Seconds a revealed drop hovers, spinning, before the magnet may take it.</summary>
+	[Export] public float RevealHoverDuration { get; set; } = 0.5f;
+	/// <summary>Sideways gap between revealed drops of one source, so each one stays readable.</summary>
+	[Export] public float RevealSpacing { get; set; } = 0.6f;
+	/// <summary>Delay between revealed drops of one source, so they pop out one after another.</summary>
+	[Export] public float RevealStagger { get; set; } = 0.12f;
+
+	/// <summary>Where a revealed drop emerges: inside a chest, or at a corpse's waist.</summary>
+	private const float RevealStartHeight = 0.4f;
+	/// <summary>Seconds the pivot takes to ease from its hover back into its resting pose once released.</summary>
+	private const float RevealSettleDuration = 0.2f;
+
 	/// <summary>
 	/// Waits for the player to exit first before triggering a pickup.
 	/// This is useful when a player just dropped an item and is still within
@@ -47,6 +64,20 @@ public partial class LootableItem : Node3D
 	/// This must be set before the LootableItem is added to the tree!
 	/// </summary>
 	public bool WaitForPlayerExited { get; set; }
+
+	/// <summary>
+	/// Makes a fresh drop emerge from its source instead of appearing in place: it grows out of the drop point, hovers
+	/// spinning long enough to show what dropped, and only then joins the magnet. Sibling drops line up along
+	/// <paramref name="spreadAxis"/> (a horizontal world direction) and emerge one after another.
+	///
+	/// This must be called before the LootableItem is added to the tree!
+	/// </summary>
+	public void RevealFromSource(int index, int count, Vector3 spreadAxis)
+	{
+		_revealing = true;
+		_revealOffset = spreadAxis * (index - (count - 1) * 0.5f) * RevealSpacing;
+		_revealDelay = index * RevealStagger;
+	}
 
 	[Export] public Node3D Pivot { get; set; }
 	[Export] public TriggerComponent Trigger { get; set; }
@@ -58,6 +89,9 @@ public partial class LootableItem : Node3D
 	private bool? _discovered;
 	private bool _armed;
 	private bool _collected;
+	private bool _revealing;
+	private Vector3 _revealOffset;
+	private float _revealDelay;
 	public bool IsCollected => _collected;
 
 	public void CommitCollected()
@@ -135,13 +169,49 @@ public partial class LootableItem : Node3D
 		if (!_exploration.HasLevelContext) RefreshDiscoveryVisibility();
 
 		// FIXME: Hardcoded check for gold is not ideal
-		if (Item is Gold || !Animate)
+		bool spins = Animate && Item is not Gold;
+		if (!spins)
 		{
 			Pivot.Position = new Vector3(0, 0, 0);
 		}
-		else if (Animate)
+		if (_revealing)
+		{
+			PlayReveal(spins);
+		}
+		else if (spins)
 		{
 			AnimationPlayer.Play("spin");
+		}
+	}
+
+	/// <summary>
+	/// Animates only the pivot, so the pickup itself, and the position a save records, stays on the drop point. The
+	/// reveal spin ends on the idle spin animation's first pose, so the hand-over to it is seamless.
+	/// </summary>
+	private void PlayReveal(bool spins)
+	{
+		Vector3 rest = Pivot.Position;
+		float restYaw = spins ? 0f : Pivot.Rotation.Y;
+		Vector3 offset = GlobalBasis.Inverse() * _revealOffset;
+		var hover = new Vector3(offset.X, RevealHeight, offset.Z);
+		float release = _revealDelay + RevealRiseDuration + RevealHoverDuration;
+
+		Pivot.Position = Vector3.Up * RevealStartHeight;
+		Pivot.Scale = Vector3.One * 0.01f; // Not zero: a singular basis breaks global transforms.
+		Pivot.Rotation = new Vector3(0, restYaw - Mathf.Tau, 0);
+
+		Tween tween = CreateTween().SetParallel();
+		tween.TweenProperty(Pivot, "position", hover, RevealRiseDuration).SetDelay(_revealDelay)
+			.SetTrans(Tween.TransitionType.Back).SetEase(Tween.EaseType.Out);
+		tween.TweenProperty(Pivot, "scale", Vector3.One, RevealRiseDuration).SetDelay(_revealDelay)
+			.SetTrans(Tween.TransitionType.Back).SetEase(Tween.EaseType.Out);
+		tween.TweenProperty(Pivot, "rotation:y", restYaw, release - _revealDelay + RevealSettleDuration).SetDelay(_revealDelay);
+		tween.TweenCallback(Callable.From(() => _revealing = false)).SetDelay(release);
+		tween.TweenProperty(Pivot, "position", rest, RevealSettleDuration).From(hover).SetDelay(release)
+			.SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+		if (spins)
+		{
+			tween.Chain().TweenCallback(Callable.From(() => AnimationPlayer.Play("spin")));
 		}
 	}
 
@@ -153,6 +223,8 @@ public partial class LootableItem : Node3D
 		}
 
 		if (!RefreshDiscoveryVisibility()) return;
+		// A revealing drop holds still above its source until it has been shown.
+		if (_revealing) return;
 
 		if (_player == null || !GodotObject.IsInstanceValid(_player))
 		{
@@ -271,7 +343,7 @@ public partial class LootableItem : Node3D
 	/// </summary>
 	private void TryCollect(Player player)
 	{
-		if (_collected || player == null || !RefreshDiscoveryVisibility())
+		if (_collected || _revealing || player == null || !RefreshDiscoveryVisibility())
 		{
 			return;
 		}

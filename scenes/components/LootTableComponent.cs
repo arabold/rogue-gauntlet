@@ -62,7 +62,10 @@ public partial class LootTableComponent : Node
 		try
 		{
 			_isDropped = true;
-			Vector3 position = GetOwner<Node3D>().GlobalPosition;
+			Node3D source = GetOwner<Node3D>();
+			Vector3 position = source.GlobalPosition;
+			// Sibling drops line up along the source's side axis: along a chest's front, never into the wall behind it.
+			Vector3 spreadAxis = (source.GlobalBasis.X with { Y = 0 }).Normalized();
 			if (!string.IsNullOrEmpty(sourceId))
 			{
 				Level.ItemPersistence.RegisterReward(new RewardSourceSaveData
@@ -72,11 +75,12 @@ public partial class LootTableComponent : Node
 					Position = LevelItemPersistence.SavePosition(position),
 				}, entries);
 			}
-			foreach (var entry in entries)
+			for (int i = 0; i < entries.Count; i++)
 			{
 				var pickup = LootableItemScene.Instantiate<LootableItem>();
-				pickup.Item = entry.Item;
-				pickup.Quantity = entry.Quantity;
+				pickup.Item = entries[i].Item;
+				pickup.Quantity = entries[i].Quantity;
+				pickup.RevealFromSource(i, entries.Count, spreadAxis);
 				Level.AddWorldNode(pickup, position);
 			}
 		}
