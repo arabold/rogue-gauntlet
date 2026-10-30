@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 /// <summary>
@@ -19,6 +20,8 @@ public partial class DebugMenu : HBoxContainer
 	private const int ToggleMonsterXrayId = 10;
 	private const int ToggleLootXrayId = 11;
 	private const int ToggleDarkLevelId = 12;
+	private const int CopyRunSeedId = 13;
+	private const int ReplayRunId = 14;
 
 	/// <summary>
 	/// Category label to res:// folder the "Spawn item" submenu is built from. Every
@@ -62,6 +65,8 @@ public partial class DebugMenu : HBoxContainer
 	/// <summary>Whether spawned equipment is cursed, with its curse status still unknown.</summary>
 	private bool _spawnCursed;
 	private const int SpawnCursedId = 100;
+	private ConfirmationDialog _replayDialog;
+	private LineEdit _replaySeedInput;
 	private bool _debugMeshesEnabled;
 	private bool _navigationEnabled;
 	private double _fpsUpdateSeconds;
@@ -117,6 +122,11 @@ public partial class DebugMenu : HBoxContainer
 		_debugMenu.AboutToPopup += RefreshDarkLevel;
 		_debugMenu.AddItem("Reveal map", RevealMapId);
 		_debugMenu.AddItem("Restart level", RestartLevelId);
+		_debugMenu.AddSeparator();
+		_debugMenu.AddItem("Copy run seed", CopyRunSeedId);
+		_debugMenu.AddItem("Replay run...", ReplayRunId);
+		_debugMenu.AboutToPopup += RefreshRunSeed;
+		BuildReplayDialog();
 		_debugMenu.AddSeparator();
 		_debugMenu.AddItem("Kill player", KillPlayerId);
 		_debugMenu.AddItem("Kill all enemies", KillEnemiesId);
@@ -328,6 +338,16 @@ public partial class DebugMenu : HBoxContainer
 			case RestartLevelId:
 				RestartLevel();
 				break;
+			case CopyRunSeedId:
+				DisplayServer.ClipboardSet(FormatSeed(RunSeed));
+				GD.Print($"Copied run seed {FormatSeed(RunSeed)}.");
+				break;
+			case ReplayRunId:
+				_replaySeedInput.Text = FormatSeed(RunSeed);
+				_replayDialog.PopupCentered();
+				_replaySeedInput.GrabFocus();
+				_replaySeedInput.SelectAll();
+				break;
 			case KillPlayerId:
 				KillPlayer();
 				break;
@@ -445,6 +465,35 @@ public partial class DebugMenu : HBoxContainer
 		_debugMenu.SetItemDisabled(_debugMenu.GetItemIndex(ToggleDarkLevelId), level == null);
 		SetChecked(ToggleDarkLevelId, level?.IsDark == true);
 	}
+
+	/// <summary>The run this floor belongs to; gameplay reads it from the level, not the session.</summary>
+	private ulong RunSeed => ActiveLevel?.Run?.RunSeed ?? GameSession.Instance?.Run.RunSeed ?? RunState.DefaultSeed;
+
+	private static string FormatSeed(ulong seed) => seed.ToString(CultureInfo.InvariantCulture);
+
+	private void RefreshRunSeed() =>
+		_debugMenu.SetItemText(_debugMenu.GetItemIndex(CopyRunSeedId), $"Copy run seed ({FormatSeed(RunSeed)})");
+
+	/// <summary>Seed entry for replaying a run; prefilled with the current seed, which can be replaced by any other.</summary>
+	private void BuildReplayDialog()
+	{
+		_replaySeedInput = new LineEdit { PlaceholderText = "Run seed" };
+		var content = new VBoxContainer();
+		content.AddChild(new Label { Text = "Start over from depth 1 with this seed.\nAn active game replaces the save in its slot." });
+		content.AddChild(_replaySeedInput);
+		_replayDialog = new ConfirmationDialog { Title = "Replay run", OkButtonText = "Replay" };
+		_replayDialog.AddChild(content);
+		_replayDialog.RegisterTextEnter(_replaySeedInput);
+		_replaySeedInput.TextChanged += text => _replayDialog.GetOkButton().Disabled = !TryParseSeed(text, out _);
+		_replayDialog.Confirmed += () =>
+		{
+			if (TryParseSeed(_replaySeedInput.Text, out ulong seed)) GameSession.Instance?.ReplayRun(seed);
+		};
+		AddChild(_replayDialog);
+	}
+
+	private static bool TryParseSeed(string text, out ulong seed) =>
+		ulong.TryParse(text.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out seed);
 
 	private void RevealMap()
 	{
