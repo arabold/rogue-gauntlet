@@ -119,7 +119,7 @@ public class GarrisonRoomPoolTest
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
-		var library = GD.Load<LibraryRoomGenerator>("res://scenes/levels/garrison/rooms/library/garrison_library_generator.tres");
+		var library = TestFactories.Load<LibraryRoomGenerator>("res://scenes/levels/garrison/rooms/library/garrison_library_generator.tres");
 		var placed = new HashSet<int>();
 		for (ulong runSeed = 1; runSeed <= 40 && !placed.SetEquals(library.LengthTiles); runSeed++)
 		{
