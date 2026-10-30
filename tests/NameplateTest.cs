@@ -23,7 +23,7 @@ public class NameplateTest
 		"res://scenes/enemies/templates/projectile_enemy.tscn",
 	];
 
-	private static Nameplate NewPlate() => GD.Load<PackedScene>("res://scenes/components/nameplate.tscn").Instantiate<Nameplate>();
+	private static Nameplate NewPlate() => TestFactories.Load<PackedScene>("res://scenes/components/nameplate.tscn").Instantiate<Nameplate>();
 
 	/// <summary>A plate on a fresh actor, with its health bound and an optional health bar on it.</summary>
 	private static (Nameplate Plate, HealthComponent Health) AddActor(FloatingHealthBar bar = null)
@@ -118,7 +118,7 @@ public class NameplateTest
 	{
 		foreach (string path in MonsterScenes)
 		{
-			var monster = AutoFree(GD.Load<PackedScene>(path).Instantiate<EnemyBase>());
+			var monster = AutoFree(TestFactories.Load<PackedScene>(path).Instantiate<EnemyBase>());
 			Nameplate plate = monster.Nameplate;
 			AssertObject(plate).OverrideFailureMessage($"{path}: assign Nameplate").IsNotNull();
 			AssertObject(plate.Health).OverrideFailureMessage($"{path}: bind the plate's Health").IsSame(monster.HealthComponent);
@@ -137,7 +137,7 @@ public class NameplateTest
 		using var runner = LoadHarness();
 		await runner.SimulateFrames(2);
 		var player = TestFactories.AddStandInPlayer();
-		var bar = GD.Load<PackedScene>("res://scenes/components/floating_health_bar.tscn").Instantiate<FloatingHealthBar>();
+		var bar = TestFactories.Load<PackedScene>("res://scenes/components/floating_health_bar.tscn").Instantiate<FloatingHealthBar>();
 		var (plate, health) = AddActor(bar);
 
 		player.GlobalPosition = new Vector3(plate.ShowDistance + 3, 0, 0);

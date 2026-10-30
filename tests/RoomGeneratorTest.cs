@@ -17,7 +17,7 @@ public class RoomGeneratorTest
 	[TestCase("cellar")]
 	public void SizeSeedAndRotationSweepKeepsThemedInteriorsConnected(string kind)
 	{
-		var generator = ResourceLoader.Load<RoomGenerator>($"{Root}rooms/{kind}/garrison_{kind}_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var generator = TestFactories.Load<RoomGenerator>($"{Root}rooms/{kind}/garrison_{kind}_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		AssertArray(generator.Validate()).IsEmpty();
 		int total = 0;
 		foreach (int size in new[] { 5, 7 })
@@ -102,7 +102,7 @@ public class RoomGeneratorTest
 	[TestCase(5, 7, 1f)]
 	public void HallKeepsBothAisleEndsRegardlessOfSeedOrSideOpenings(int width, int length, float sideChance)
 	{
-		var hall = ResourceLoader.Load<HallRoomGenerator>(Root + "rooms/hall/garrison_hall_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var hall = TestFactories.Load<HallRoomGenerator>(Root + "rooms/hall/garrison_hall_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		hall.WidthTiles = width;
 		hall.LengthTiles = [length];
 		hall.SideOpeningChance = sideChance;
@@ -125,7 +125,7 @@ public class RoomGeneratorTest
 	[TestCase]
 	public void HallRejectsDimensionsThatCannotSupportItsSymmetryBeforeReplacingGeometry()
 	{
-		var hall = ResourceLoader.Load<HallRoomGenerator>(Root + "rooms/hall/garrison_hall_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var hall = TestFactories.Load<HallRoomGenerator>(Root + "rooms/hall/garrison_hall_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		using var rng = new RandomNumberGenerator { Seed = 23 };
 		var room = hall.BuildRoom(rng);
 		try
@@ -141,7 +141,7 @@ public class RoomGeneratorTest
 	[TestCase]
 	public void EditorRerollsValidateBeforeReplacementAndSaveEditableAuthoredRooms()
 	{
-		var generator = ResourceLoader.Load<CellarRoomGenerator>(Root + "rooms/cellar/garrison_cellar_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var generator = TestFactories.Load<CellarRoomGenerator>(Root + "rooms/cellar/garrison_cellar_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		using var rng = new RandomNumberGenerator { Seed = 23 };
 		var room = new Room();
 		const string path = "user://coded_room_generator_test.tscn";
@@ -159,7 +159,7 @@ public class RoomGeneratorTest
 			AssertString(Signature()).IsEqual(first);
 			generator.MaximumClusters = 10;
 			AssertBool(generator.SaveRoomScene(path, 23)).IsTrue();
-			var saved = ResourceLoader.Load<PackedScene>(path, cacheMode: ResourceLoader.CacheMode.IgnoreDeep).Instantiate<Room>();
+			var saved = TestFactories.Load<PackedScene>(path, cacheMode: ResourceLoader.CacheMode.IgnoreDeep).Instantiate<Room>();
 			AssertBool(saved.SceneFilePath.Length > 0).IsTrue();
 			AssertObject(saved.Generator).IsNotNull();
 			AssertString(string.Join("|", saved.GetChildren().OfType<RoomArrangement>().Select(a => a.Transform))).IsEqual(first);
@@ -175,7 +175,7 @@ public class RoomGeneratorTest
 	[TestCase]
 	public async Task ProductionFactoryUsesPerRoomPoliciesAndToggleLeavesLayoutUnchanged()
 	{
-		var factory = GD.Load<MixedRoomFactory>(Root + "factories/garrison_mixed_room_factory.tres");
+		var factory = TestFactories.Load<MixedRoomFactory>(Root + "factories/garrison_mixed_room_factory.tres");
 		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), factory);
 		using (runner)
 		{

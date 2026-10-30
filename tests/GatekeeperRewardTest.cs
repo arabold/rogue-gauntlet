@@ -20,7 +20,7 @@ public class GatekeeperRewardTest
 	[TestCase]
 	public void TheWardenDropsAMagicTierTwoWeaponThatIsNeverCursed()
 	{
-		var definition = GD.Load<MonsterDefinition>("res://scenes/enemies/forsaken_warden/forsaken_warden_definition.tres");
+		var definition = TestFactories.Load<MonsterDefinition>("res://scenes/enemies/forsaken_warden/forsaken_warden_definition.tres");
 		ItemCreationPolicy policy = definition.Loot?.CreationPolicy;
 		AssertObject(policy).IsNotNull();
 
@@ -38,8 +38,8 @@ public class GatekeeperRewardTest
 	[TestCase]
 	public void GatekeeperRareSharesFollowTheOrdinaryLadderIntroduction()
 	{
-		var gatekeeper = GD.Load<QualityLadder>("res://scenes/items/quality/quality_ladder_gatekeeper.tres");
-		var ordinary = GD.Load<QualityLadder>("res://scenes/items/quality/quality_ladder.tres");
+		var gatekeeper = TestFactories.Load<QualityLadder>("res://scenes/items/quality/quality_ladder_gatekeeper.tres");
+		var ordinary = TestFactories.Load<QualityLadder>("res://scenes/items/quality/quality_ladder.tres");
 		uint rareDepth = ordinary.Level(ItemQuality.Rare).MinDepth;
 		float RareShare(uint depth) => gatekeeper.Level(ItemQuality.Rare).WeightAt(depth)
 			/ gatekeeper.Levels.Sum(level => level.WeightAt(depth));

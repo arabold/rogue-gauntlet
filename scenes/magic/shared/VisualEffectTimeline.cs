@@ -98,9 +98,12 @@ public partial class VisualEffectTimeline : Node
 	{
 		_delay += (float)delta;
 		if (_delay < StartDelay) return;
+		// The starting frame only counts the part after the delay, so delayed effects stay on the schedule their
+		// gameplay timing (such as a falling strike's damage) is derived from instead of starting a frame early.
+		float step = Started ? (float)delta : _delay - StartDelay;
 		if (!Started) _flash = LightCurve != null && ImpactFlash.TryClaim();
 		Started = true;
-		Elapsed += (float)delta;
+		Elapsed += step;
 		float previous = Progress;
 		Progress = Mathf.Clamp(Elapsed / Mathf.Max(Duration, .001f), 0, 1);
 		Opacity = Sustained ? Mathf.SmoothStep(0, Mathf.Max(FadeIn, .001f), Progress)

@@ -18,7 +18,7 @@ public partial class ActorStatusInspectorTest
 			"enemies/skeleton/skeleton_crossbow", "enemies/rat/rat", "enemies/forsaken_warden/forsaken_warden",
 			"enemies/templates/melee_enemy", "enemies/templates/projectile_enemy" })
 		{
-			var actor = GD.Load<PackedScene>($"res://scenes/{path}.tscn").Instantiate<Node3D>();
+			var actor = TestFactories.Load<PackedScene>($"res://scenes/{path}.tscn").Instantiate<Node3D>();
 			actor.Set("Invisible", true); actor.Set("Frozen", true); actor.Set("IronSkin", true); actor.Set("StoneSkin", true);
 			TestFactories.AddToSceneTree(actor);
 			await runner.SimulateFrames(2);
@@ -87,8 +87,8 @@ public partial class ActorStatusInspectorTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		await TestFactories.SettleCombatHarness(runner, 3);
-		var player = GD.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>();
-		var frozen = GD.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
+		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>();
+		var frozen = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
 		player.InitialConditions.Add(frozen);
 		TestFactories.AddToSceneTree(player);
 		await runner.SimulateFrames(2);
@@ -97,7 +97,7 @@ public partial class ActorStatusInspectorTest
 		AssertBool(player.Frozen).IsTrue();
 		player.BuffController.RemoveStatuses(player);
 		AssertBool(player.Frozen).IsFalse();
-		var enemy = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		var enemy = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
 		enemy.InitialConditions.Add(frozen);
 		TestFactories.AddToSceneTree(enemy);
 		await runner.SimulateFrames(2);

@@ -16,10 +16,10 @@ public class ConstantScreenSize3DTest
 		var viewport = new SubViewport { Size = new Vector2I(960, 540), OwnWorld3D = true };
 		var camera = new Camera3D { Projection = Camera3D.ProjectionType.Orthogonal, Size = 20f, Position = new Vector3(0, 0, 15), Current = true };
 		viewport.AddChild(camera);
-		var prompt = GD.Load<PackedScene>("res://scenes/components/floating_label.tscn").Instantiate<FloatingLabel>();
+		var prompt = TestFactories.Load<PackedScene>("res://scenes/components/floating_label.tscn").Instantiate<FloatingLabel>();
 		// A health bar scales through the nameplate it sits on.
-		var plate = GD.Load<PackedScene>("res://scenes/components/nameplate.tscn").Instantiate<Nameplate>();
-		var health = GD.Load<PackedScene>("res://scenes/components/floating_health_bar.tscn").Instantiate<FloatingHealthBar>();
+		var plate = TestFactories.Load<PackedScene>("res://scenes/components/nameplate.tscn").Instantiate<Nameplate>();
+		var health = TestFactories.Load<PackedScene>("res://scenes/components/floating_health_bar.tscn").Instantiate<FloatingHealthBar>();
 		plate.AddChild(health);
 		var title = new Label3D { Text = "Enemy", Position = Vector3.Up * 2, Scale = new Vector3(0.8f, 0.8f, 0.8f), PixelSize = 0.008f };
 		title.AddChild(new ConstantScreenSize3D { Target = title });
@@ -57,7 +57,7 @@ public class ConstantScreenSize3DTest
 			("res://scenes/debug/combat/combat_practice_target.tscn", "Label"),
 		})
 		{
-			Node scene = AutoFree(GD.Load<PackedScene>(path).Instantiate());
+			Node scene = AutoFree(TestFactories.Load<PackedScene>(path).Instantiate());
 			Node3D label = scene.GetNode<Node3D>(labelPath);
 			AssertObject(label.GetNode<ConstantScreenSize3D>("ConstantScreenSize3D").Target).IsSame(label);
 		}
@@ -69,8 +69,8 @@ public class ConstantScreenSize3DTest
 		var viewport = new SubViewport { Size = new Vector2I(960, 540), OwnWorld3D = true };
 		var camera = new Camera3D { Projection = Camera3D.ProjectionType.Orthogonal, Size = 20f, Position = new Vector3(0, 0, 15), Current = true };
 		viewport.AddChild(camera);
-		var plate = GD.Load<PackedScene>("res://scenes/components/nameplate.tscn").Instantiate<Nameplate>();
-		var bar = GD.Load<PackedScene>("res://scenes/components/floating_health_bar.tscn").Instantiate<FloatingHealthBar>();
+		var plate = TestFactories.Load<PackedScene>("res://scenes/components/nameplate.tscn").Instantiate<Nameplate>();
+		var bar = TestFactories.Load<PackedScene>("res://scenes/components/floating_health_bar.tscn").Instantiate<FloatingHealthBar>();
 		plate.AddChild(bar);
 		viewport.AddChild(plate);
 		TestFactories.AddToSceneTree(viewport);

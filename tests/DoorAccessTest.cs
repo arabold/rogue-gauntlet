@@ -13,9 +13,9 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public class DoorAccessTest
 {
-	private static KeyItem Gold => GD.Load<KeyItem>("res://scenes/items/keys/key/key_gold_treasury.tres");
-	private static KeyItem Silver => GD.Load<KeyItem>("res://scenes/items/keys/key/key_silver_crypt.tres");
-	private static LockpickItem Pick => GD.Load<LockpickItem>("res://scenes/items/tools/tool/tool_lockpick_set.tres");
+	private static KeyItem Gold => TestFactories.Load<KeyItem>("res://scenes/items/keys/key/key_gold_treasury.tres");
+	private static KeyItem Silver => TestFactories.Load<KeyItem>("res://scenes/items/keys/key/key_silver_crypt.tres");
+	private static LockpickItem Pick => TestFactories.Load<LockpickItem>("res://scenes/items/tools/tool/tool_lockpick_set.tres");
 	private static ActorCapabilities Capabilities => new() { CanOpenDoors = true, CanPickMechanicalLocks = true };
 	private static ActorInteractionContext Context(Inventory inventory) => new(null, Capabilities, inventory);
 	/// <summary>The production policy shape: a guaranteed key, optionally also pickable.</summary>
@@ -88,7 +88,7 @@ public class DoorAccessTest
 	[TestCase]
 	public async Task TimedProductionDoorCancelsWithoutCostThenCommitsOnce()
 	{
-		var door = GD.Load<PackedScene>("res://scenes/props/door.tscn").Instantiate<Door>();
+		var door = TestFactories.Load<PackedScene>("res://scenes/props/door.tscn").Instantiate<Door>();
 		TestFactories.AddToSceneTree(door);
 		door.Lock.Initialize(LockDefinition(true, 0.1f));
 		var actor = TestFactories.AddToSceneTree(new CharacterBody3D { Position = new Vector3(0, 0, -1) });
@@ -109,7 +109,7 @@ public class DoorAccessTest
 	[TestCase]
 	public void RemovedToolAndForgedReservationCannotSpendOrUnlock()
 	{
-		var door = GD.Load<PackedScene>("res://scenes/props/door.tscn").Instantiate<Door>(); TestFactories.AddToSceneTree(door);
+		var door = TestFactories.Load<PackedScene>("res://scenes/props/door.tscn").Instantiate<Door>(); TestFactories.AddToSceneTree(door);
 		door.Lock.Initialize(LockDefinition());
 		var actor = TestFactories.AddToSceneTree(new Node3D());
 		var inventory = new Inventory(); inventory.AddItem(Gold, 1);
@@ -128,7 +128,7 @@ public class DoorAccessTest
 		var ids = new System.Collections.Generic.HashSet<string>();
 		foreach (var name in new[] { "gold_treasury", "silver_crypt", "bronze_ornate", "bone_skull", "iron_prison", "arcane_crystal" })
 		{
-			var key = GD.Load<KeyItem>($"res://scenes/items/keys/key/key_{name}.tres");
+			var key = TestFactories.Load<KeyItem>($"res://scenes/items/keys/key/key_{name}.tres");
 			AssertBool(ids.Add(key.DefinitionPath)).IsTrue(); AssertBool(key.CanStack).IsTrue();
 			var model = key.Scene.Instantiate<Node3D>(); AssertBool(model.GetChildCount() > 0).IsTrue(); model.Free();
 		}
@@ -136,7 +136,7 @@ public class DoorAccessTest
 	[TestCase]
 	public void DoorPromptShowsOnlyAvailableActionOrMissingKeyRequirement()
 	{
-		var door = GD.Load<PackedScene>("res://scenes/props/door.tscn").Instantiate<Door>(); TestFactories.AddToSceneTree(door);
+		var door = TestFactories.Load<PackedScene>("res://scenes/props/door.tscn").Instantiate<Door>(); TestFactories.AddToSceneTree(door);
 		door.Lock.Initialize(LockDefinition());
 		var target = door.GetNode<InteractiveComponent>("InteractiveComponent");
 		var prompt = target.GetNode<FloatingLabel>("FloatingLabel");
@@ -161,7 +161,7 @@ public class DoorAccessTest
 	[TestCase]
 	public void MarkerMatchesRequiredKeyAndHidesAfterUnlock()
 	{
-		var door = GD.Load<PackedScene>("res://scenes/props/door.tscn").Instantiate<Door>(); TestFactories.AddToSceneTree(door);
+		var door = TestFactories.Load<PackedScene>("res://scenes/props/door.tscn").Instantiate<Door>(); TestFactories.AddToSceneTree(door);
 		door.Lock.Initialize(LockDefinition());
 		door.SetIndicatorVisible(true);
 		AssertBool(door.KeyMarker.Visible).IsTrue();
@@ -187,7 +187,7 @@ public class DoorAccessTest
 		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.AllProcedural());
 		var generator = level.MapGenerator;
 		TestFactories.WireLootScenes(generator);
-		generator.AccessProfile = (LevelAccessProfile)GD.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
+		generator.AccessProfile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
 		// Solvability coverage deliberately requests dense content; player-facing scarcity is tested separately.
 		generator.AccessProfile.LockedRoomChance = generator.AccessProfile.SecretRoomChance = 1;
 		generator.AccessProfile.MaximumLockedRooms = 2;

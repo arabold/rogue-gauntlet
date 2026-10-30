@@ -17,7 +17,7 @@ using static GdUnit4.Assertions;
 public class ScreenEffectWiringTest
 {
 	private static Buff PotionBuff(string kind) =>
-		GD.Load<BuffedItem>($"res://scenes/items/potions/potion_{kind}_small.tres").Buff;
+		TestFactories.Load<BuffedItem>($"res://scenes/items/potions/potion_{kind}_small.tres").Buff;
 
 	[TestCase]
 	public async Task GameplaySceneDrivesEffectsFromThePlayer()

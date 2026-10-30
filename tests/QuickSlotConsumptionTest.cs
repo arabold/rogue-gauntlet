@@ -20,7 +20,7 @@ public class QuickSlotConsumptionTest
 		ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(10);
 		Player player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().First();
-		var potion = ItemFactory.Create(GD.Load<Item>("res://scenes/items/potions/potion_healing_small.tres"));
+		var potion = ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/potions/potion_healing_small.tres"));
 		AssertBool(player.InventoryController.PickupItem(potion)).IsTrue();
 		PlayerQuickItemController quick = player.QuickItemController;
 		int slot = Enumerable.Range(0, PlayerQuickItemController.SlotCount)

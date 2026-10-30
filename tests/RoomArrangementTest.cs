@@ -14,7 +14,7 @@ public class RoomArrangementTest
 {
 	private static RoomArrangementPool Pool(bool walls = false)
 	{
-		var authored = GD.Load<RoomArrangementPool>("res://scenes/levels/garrison/arrangements/garrison_arrangements.tres");
+		var authored = TestFactories.Load<RoomArrangementPool>("res://scenes/levels/garrison/arrangements/garrison_arrangements.tres");
 		if (walls) return authored;
 		var floor = (RoomArrangementPool)authored.Duplicate();
 		floor.Entries = authored.Entries.Where(entry => entry.Placement == ArrangementPlacement.Floor).ToArray();
@@ -66,7 +66,7 @@ public class RoomArrangementTest
 		];
 		foreach (var path in paths)
 		{
-			var definition = GD.Load<RoomArrangementDefinition>(path);
+			var definition = TestFactories.Load<RoomArrangementDefinition>(path);
 			AssertObject(definition).IsNotNull();
 			var errors = definition.Validate();
 			AssertArray(errors).OverrideFailureMessage(path + ": " + string.Join("; ", errors)).IsEmpty();
@@ -74,7 +74,7 @@ public class RoomArrangementTest
 			AssertObject(instance.Content).IsNotNull();
 			AssertBool(instance.GetContentBounds().Count > 0).IsTrue();
 		}
-		var wallDef = GD.Load<RoomArrangementDefinition>("res://scenes/levels/arrangements/wall/wall_sword_shield.tres");
+		var wallDef = TestFactories.Load<RoomArrangementDefinition>("res://scenes/levels/arrangements/wall/wall_sword_shield.tres");
 		using var wallInst = wallDef.Instantiate();
 		for (int turn = 0; turn < 4; turn++)
 		{
@@ -221,7 +221,7 @@ public class RoomArrangementTest
 		{
 			AssertObject(packed.Pack(instance)).IsEqual(Error.Ok);
 			AssertObject(ResourceSaver.Save(packed, path)).IsEqual(Error.Ok);
-			using var restored = ResourceLoader.Load<PackedScene>(path, cacheMode: ResourceLoader.CacheMode.Ignore).Instantiate<RoomArrangement>();
+			using var restored = TestFactories.Load<PackedScene>(path, cacheMode: ResourceLoader.CacheMode.Ignore).Instantiate<RoomArrangement>();
 			AssertBool(restored.Content != null).IsTrue();
 			AssertBool(restored.Content.Position.IsEqualApprox(instance.Content.Position)).IsTrue();
 		}
@@ -265,7 +265,7 @@ public class RoomArrangementTest
 	[TestCase]
 	public void StandaloneEditorBuilderRerollsAndSavesEditableArrangementsDeterministically()
 	{
-		using var builder = (ProceduralRoomBuilder)GD.Load<ProceduralRoomBuilder>("res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres").Duplicate();
+		using var builder = (ProceduralRoomBuilder)TestFactories.Load<ProceduralRoomBuilder>("res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres").Duplicate();
 		builder.ArrangementPool = Pool();
 		builder.MinTiles = builder.MaxTiles = 7;
 		builder.ShapeArchetype = RoomShapeArchetype.Rectangle;
@@ -285,7 +285,7 @@ public class RoomArrangementTest
 		try
 		{
 			AssertBool(builder.SaveRoomScene(path, 2)).IsTrue();
-			using var restored = ResourceLoader.Load<PackedScene>(path, cacheMode: ResourceLoader.CacheMode.Ignore).Instantiate<Room>();
+			using var restored = TestFactories.Load<PackedScene>(path, cacheMode: ResourceLoader.CacheMode.Ignore).Instantiate<Room>();
 			AssertString(StandaloneSignature(restored)).IsEqual(signature);
 			AssertObject(restored.Purpose).IsEqual(RoomPurpose.Chamber);
 			foreach (var arrangement in restored.GetChildren().OfType<RoomArrangement>())
@@ -374,7 +374,7 @@ public class RoomArrangementTest
 	[TestCase]
 	public void StandaloneBuilderResolvesAndRetainsSewerPurposeForFurnishing()
 	{
-		using var builder = (ProceduralRoomBuilder)GD.Load<ProceduralRoomBuilder>("res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres").Duplicate();
+		using var builder = (ProceduralRoomBuilder)TestFactories.Load<ProceduralRoomBuilder>("res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres").Duplicate();
 		builder.ArrangementPool = Pool();
 		builder.Purpose = RoomPurpose.SewerCistern;
 		builder.ShapeArchetype = RoomShapeArchetype.Rectangle;
@@ -495,7 +495,7 @@ public class RoomArrangementTest
 	[TestCase]
 	public void DecoratedStandaloneRoomSavesAndReopensFullSceneMounts()
 	{
-		using var builder = (ProceduralRoomBuilder)GD.Load<ProceduralRoomBuilder>("res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres").Duplicate();
+		using var builder = (ProceduralRoomBuilder)TestFactories.Load<ProceduralRoomBuilder>("res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres").Duplicate();
 		builder.ArrangementPool = Pool(true);
 		builder.Purpose = RoomPurpose.Chamber;
 		builder.ShapeArchetype = RoomShapeArchetype.Rectangle;
@@ -506,7 +506,7 @@ public class RoomArrangementTest
 		try
 		{
 			AssertBool(builder.SaveRoomScene(path, 2)).IsTrue();
-			using var restored = ResourceLoader.Load<PackedScene>(path, cacheMode: ResourceLoader.CacheMode.Ignore).Instantiate<Room>();
+			using var restored = TestFactories.Load<PackedScene>(path, cacheMode: ResourceLoader.CacheMode.Ignore).Instantiate<Room>();
 			var entries = restored.GetChildren().OfType<RoomArrangement>().ToArray();
 			AssertInt(entries.Length).IsEqual(4);
 			var torch = entries.Single(entry => entry.GetMeta("arrangement_id").AsString() == "garrison.wall_torch");

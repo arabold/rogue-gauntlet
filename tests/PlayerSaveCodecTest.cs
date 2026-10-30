@@ -30,7 +30,7 @@ public class PlayerSaveCodecTest
 		periodic._PhysicsProcess(.3);
 		float strength = player.Stats.Strength;
 		var saved = JsonSerializer.Deserialize<PlayerSaveData>(JsonSerializer.Serialize(PlayerSaveCodec.Capture(player, false)));
-		var restored = GD.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>();
+		var restored = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>();
 		var restoredFocus = new FrostNovaSpell { Name = "SavedFocus" }; restored.AddChild(restoredFocus); restoredFocus.Owner = restored;
 		TestFactories.AddToSceneTree(restored);
 		PlayerSaveCodec.Apply(restored, saved);

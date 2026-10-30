@@ -19,12 +19,12 @@ public class ItemQualityTest
 	private const string LadderPath = "res://scenes/items/quality/quality_ladder.tres";
 
 	/// <summary>Base-tier depth windows (MaxDepth 0 is open-ended); see docs/stats-and-itemization.md.</summary>
-	private static TierDepthBands TierBands => GD.Load<TierDepthBands>("res://scenes/items/quality/tier_depth_bands.tres");
+	private static TierDepthBands TierBands => TestFactories.Load<TierDepthBands>("res://scenes/items/quality/tier_depth_bands.tres");
 
-	private static QualityLadder Ladder => GD.Load<QualityLadder>(LadderPath);
-	private static ItemCreationPolicy Policy => GD.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
+	private static QualityLadder Ladder => TestFactories.Load<QualityLadder>(LadderPath);
+	private static ItemCreationPolicy Policy => TestFactories.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
 
-	private static T Copy<T>(string path) where T : Item => (T)ItemFactory.CopyDefinition(GD.Load<Item>(path));
+	private static T Copy<T>(string path) where T : Item => (T)ItemFactory.CopyDefinition(TestFactories.Load<Item>(path));
 
 	[TestCase]
 	public void AuthoredLadderDefinesEveryQualityOnce()
@@ -65,7 +65,7 @@ public class ItemQualityTest
 		ItemCreationPolicy policy = Policy;
 		string[] paths = ["res://scenes/items/weapons/broadsword_common.tres", "res://scenes/items/armor/shield_common.tres",
 			"res://scenes/items/jewelry/ring/ring_strength.tres"];
-		Item[] definitions = paths.Select(path => GD.Load<Item>(path)).ToArray();
+		Item[] definitions = paths.Select(path => TestFactories.Load<Item>(path)).ToArray();
 		using var rng = GenerationRandom.Create(42, "quality-creation");
 		for (int i = 0; i < 600; i++)
 		{
@@ -201,7 +201,7 @@ public class ItemQualityTest
 	{
 		foreach (string path in Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/items/loot"), "*.tres"))
 		{
-			var table = GD.Load<LootTable>(ProjectSettings.LocalizePath(path));
+			var table = TestFactories.Load<LootTable>(ProjectSettings.LocalizePath(path));
 			foreach (LootTableItem entry in table.Entries)
 			{
 				if (entry.Item is IdentifiableEquipableItem)

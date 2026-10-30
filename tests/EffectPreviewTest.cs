@@ -82,7 +82,7 @@ public class EffectPreviewTest
 		var head = preview.Stage.GetChild(0).FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().First(m => m.Name.ToString().Contains("Head"));
 		var material = (ShaderMaterial)head.GetActiveMaterial(0);
 		AssertBool(material.GetShaderParameter("faceted").AsBool()).IsTrue(); AssertFloat(material.GetShaderParameter("polish").AsSingle()).IsEqual(1);
-		var definition = GD.Load<WorldEffectDefinition>("res://scenes/effects/world/iron_skin/iron_skin.tres");
+		var definition = TestFactories.Load<WorldEffectDefinition>("res://scenes/effects/world/iron_skin/iron_skin.tres");
 		var template = AutoFree(definition.Scene.Instantiate<WorldEffectInstance>());
 		AssertBool(template.Surface.Material.GetShaderParameter("faceted").AsBool()).IsFalse();
 	}
@@ -155,7 +155,7 @@ public class EffectPreviewTest
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.SelectEffect(2);
 		var actor = preview.Stage.GetChild<Player>(0);
 		var effect = actor.WorldEffects.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Single(e => !e.IsQueuedForDeletion());
-		var ring = AutoFree(GD.Load<PackedScene>("res://scenes/effects/world/runes/rune_ring.tscn").Instantiate<WorldEffectInstance>());
+		var ring = AutoFree(TestFactories.Load<PackedScene>("res://scenes/effects/world/runes/rune_ring.tscn").Instantiate<WorldEffectInstance>());
 		AssertBool((effect.AccentLight.GlobalPosition - effect.GlobalPosition).IsEqualApprox(ring.AccentLight.Position)).IsTrue();
 		actor.RotateY(1.3f); actor.Position += Vector3.Right * 3;
 		effect.Seek(.15f);
@@ -166,12 +166,12 @@ public class EffectPreviewTest
 	{
 		foreach (string name in new[] { "iron_skin", "stone_skin" })
 		{
-			var skin = AutoFree(GD.Load<PackedScene>($"res://scenes/effects/world/{name}/{name}.tscn").Instantiate<WorldEffectInstance>());
+			var skin = AutoFree(TestFactories.Load<PackedScene>($"res://scenes/effects/world/{name}/{name}.tscn").Instantiate<WorldEffectInstance>());
 			AssertObject(skin.AccentLight).IsNull();
 		}
 		foreach (string name in new[] { "healing", "strength", "arcane", "level_up", "blessed", "cursed_item", "teleport_departure", "teleport_arrival" })
 		{
-			var scene = GD.Load<PackedScene>($"res://scenes/effects/world/{name}/{name}.tscn");
+			var scene = TestFactories.Load<PackedScene>($"res://scenes/effects/world/{name}/{name}.tscn");
 			var effect = AutoFree(scene.Instantiate<WorldEffectInstance>());
 			AssertObject(effect.AccentLight).IsNotNull(); AssertBool(effect.AccentLight.ShadowEnabled).IsFalse();
 			AssertFloat(effect.AccentLight.LightEnergy).IsGreater(0);
