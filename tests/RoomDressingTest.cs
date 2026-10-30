@@ -14,7 +14,7 @@ public class RoomDressingTest
 	[TestCase]
 	public void HallUsesOnlyItsAssignedColumnPalette()
 	{
-		var recipe = ResourceLoader.Load<HallRoomGenerator>(Root + "hall/garrison_hall_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var recipe = TestFactories.Load<HallRoomGenerator>(Root + "hall/garrison_hall_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		recipe.ColumnItems = ["pillar"];
 		using var rng = new RandomNumberGenerator { Seed = 23 };
 		var room = new Room();
@@ -32,7 +32,7 @@ public class RoomDressingTest
 	[TestCase("library")]
 	public void DoorFixturesHaveRealSupportAndHonorLitAndUnlitVariants(string kind)
 	{
-		var recipe = ResourceLoader.Load<RoomGenerator>($"{Root}{kind}/garrison_{kind}_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var recipe = TestFactories.Load<RoomGenerator>($"{Root}{kind}/garrison_{kind}_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		var lighting = recipe.Dressing.Lighting;
 		lighting.DoorChance = lighting.DoorPairChance = 1;
 		lighting.BedChance = 0;
@@ -66,7 +66,7 @@ public class RoomDressingTest
 	[TestCase("library")]
 	public void OptionalDressingPreservesRequiredFurnitureAndLayout(string kind)
 	{
-		var recipe = ResourceLoader.Load<RoomGenerator>($"{Root}{kind}/garrison_{kind}_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var recipe = TestFactories.Load<RoomGenerator>($"{Root}{kind}/garrison_{kind}_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		using var rng = new RandomNumberGenerator { Seed = 23 };
 		var room = new Room();
 		try
@@ -91,7 +91,7 @@ public class RoomDressingTest
 	[TestCase(3)]
 	public void BookshelfBacksStayOnOnePlaneDespiteWallProjections(int turn)
 	{
-		var definition = GD.Load<RoomArrangementDefinition>("res://scenes/levels/arrangements/furniture/library_bookcase.tres");
+		var definition = TestFactories.Load<RoomArrangementDefinition>("res://scenes/levels/arrangements/furniture/library_bookcase.tres");
 		var instance = definition.Instantiate();
 		try
 		{
@@ -126,7 +126,7 @@ public class RoomDressingTest
 	[TestCase]
 	public void StoragePaletteIncludesMixedCratesAndBarrelsWithValidBounds()
 	{
-		var cellar = ResourceLoader.Load<CellarRoomGenerator>(Root + "cellar/garrison_cellar_generator.tres");
+		var cellar = TestFactories.Load<CellarRoomGenerator>(Root + "cellar/garrison_cellar_generator.tres");
 		AssertInt(cellar.StorageArrangements.Length).IsGreater(3);
 		foreach (var definition in cellar.StorageArrangements) AssertArray(definition.Validate()).IsEmpty();
 	}

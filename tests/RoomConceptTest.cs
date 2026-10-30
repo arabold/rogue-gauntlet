@@ -20,7 +20,7 @@ public class RoomConceptTest
 	[TestCase("library", 7)]
 	public void RequiredCompositionScalesAndRotatesWithoutLosingItsEntrances(string kind, int size)
 	{
-		var recipe = ResourceLoader.Load<RoomGenerator>($"{Root}rooms/{kind}/garrison_{kind}_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var recipe = TestFactories.Load<RoomGenerator>($"{Root}rooms/{kind}/garrison_{kind}_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		if (recipe is DiningRoomGenerator dining) dining.TableRows = [size];
 		if (recipe is BarracksRoomGenerator barracks) barracks.BedPairs = [size];
 		if (recipe is LibraryRoomGenerator library) library.Sizes = [size];
@@ -87,7 +87,7 @@ public class RoomConceptTest
 	[TestCase]
 	public void PackingAndGenericRerollsPreserveAuthoredFurnitureAndRemoveObsoleteSlots()
 	{
-		var recipe = ResourceLoader.Load<BarracksRoomGenerator>(Root + "rooms/barracks/garrison_barracks_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var recipe = TestFactories.Load<BarracksRoomGenerator>(Root + "rooms/barracks/garrison_barracks_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		recipe.BedPairs = [3];
 		using var rng = new RandomNumberGenerator { Seed = 23 };
 		var room = new Room();

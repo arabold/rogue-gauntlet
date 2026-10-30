@@ -15,7 +15,7 @@ public class GatekeeperRewardTest
 	[TestCase]
 	public void TheWardenDropsAMagicOrRareTierTwoWeaponThatIsNeverCursed()
 	{
-		var definition = GD.Load<MonsterDefinition>("res://scenes/enemies/forsaken_warden/forsaken_warden_definition.tres");
+		var definition = TestFactories.Load<MonsterDefinition>("res://scenes/enemies/forsaken_warden/forsaken_warden_definition.tres");
 		ItemCreationPolicy policy = definition.Loot?.CreationPolicy;
 		AssertObject(policy).IsNotNull();
 

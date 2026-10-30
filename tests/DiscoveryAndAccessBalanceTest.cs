@@ -25,7 +25,7 @@ public partial class DiscoveryAndAccessBalanceTest
 	[TestCase]
 	public void DiscoveredTrapRemainsDangerousAndRestoreDoesNotPlayTheCue()
 	{
-		var scene = GD.Load<PackedScene>("res://scenes/props/floor_trap.tscn");
+		var scene = TestFactories.Load<PackedScene>("res://scenes/props/floor_trap.tscn");
 		var trap = TestFactories.AddToSceneTree(scene.Instantiate<FloorTrap>());
 		AssertBool(trap.IsDiscovered).IsFalse(); AssertBool(trap.Visible).IsFalse();
 		AssertBool(trap.DiscoveryEffect.Visible).IsFalse();
@@ -129,7 +129,7 @@ public partial class DiscoveryAndAccessBalanceTest
 	[TestCase]
 	public void RogueAloneStartsWithTwoPicks()
 	{
-		var catalog = GD.Load<CharacterCatalog>("res://scenes/player/classes/character_catalog.tres");
+		var catalog = TestFactories.Load<CharacterCatalog>("res://scenes/player/classes/character_catalog.tres");
 		foreach (var character in catalog.Classes)
 		{
 			var inventory = character.CreateStartingInventory(20);
@@ -139,7 +139,7 @@ public partial class DiscoveryAndAccessBalanceTest
 	[TestCase]
 	public void RarityPolicyAllowsEmptyFloorsAndSecretsAreMoreFrequent()
 	{
-		var profile = (LevelAccessProfile)GD.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
+		var profile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
 		profile.Validate();
 		AssertInt(profile.MaximumLockedDoors).IsEqual(1);
 		int locked = 0, secret = 0;
@@ -162,7 +162,7 @@ public partial class DiscoveryAndAccessBalanceTest
 	{
 		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProcedural());
 		TestFactories.WireLootScenes(map);
-		map.AccessProfile = (LevelAccessProfile)GD.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
+		map.AccessProfile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
 		map.AccessProfile.LockedRoomChance = 1; map.AccessProfile.MaximumLockedRooms = 3;
 		map.MapWidth = map.MapDepth = 30;
 		for (ulong seed = 1; seed <= 4; seed++)

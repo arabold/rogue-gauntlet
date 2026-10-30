@@ -19,10 +19,10 @@ public class ItemLifecycleTest
 	[TestCase]
 	public void FixedCreationDoesNotRollAndFoodPiecesKeepIndependentState()
 	{
-		var definition = GD.Load<FoodItem>(Apple);
+		var definition = TestFactories.Load<FoodItem>(Apple);
 		definition.PoisonChance = 1;
 		using var rng = GenerationRandom.Create(42, "test");
-		var policy = GD.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
+		var policy = TestFactories.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
 		var poisoned = (FoodItem)ItemFactory.Create(definition, policy, 1, rng);
 		var wholesome = (FoodItem)ItemFactory.Create(definition);
 		AssertBool(poisoned.IsPoisoned).IsTrue();
@@ -41,7 +41,7 @@ public class ItemLifecycleTest
 	[TestCase]
 	public void FullBackpackAcceptsMergeButRejectsOverflowWithoutChangingOwnership()
 	{
-		var definition = GD.Load<Item>(Potion);
+		var definition = TestFactories.Load<Item>(Potion);
 		var inventory = new Inventory { Capacity = 1 };
 		AssertBool(inventory.TryAdd(ItemFactory.Create(definition), 18).Success).IsTrue();
 		AssertBool(inventory.TryAdd(ItemFactory.Create(definition), 2).Success).IsTrue();
@@ -61,14 +61,14 @@ public class ItemLifecycleTest
 	public void DifferentVarietiesCannotMergeAndNonstackingBatchesExpand()
 	{
 		var inventory = new Inventory { Capacity = 3 };
-		inventory.TryAdd(ItemFactory.Create(GD.Load<Item>(Potion)), 1);
-		inventory.TryAdd(ItemFactory.Create(GD.Load<Item>("res://scenes/items/potions/potion_poison_small.tres")), 1);
+		inventory.TryAdd(ItemFactory.Create(TestFactories.Load<Item>(Potion)), 1);
+		inventory.TryAdd(ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/potions/potion_poison_small.tres")), 1);
 		AssertBool(inventory.TryMerge(inventory.Items[0], inventory.Items[1]).Success).IsFalse();
 		AssertInt(inventory.Items.Count).IsEqual(2);
-		var batch = ItemFactory.CreateBatch(GD.Load<Item>(Apple), 3);
+		var batch = ItemFactory.CreateBatch(TestFactories.Load<Item>(Apple), 3);
 		AssertInt(batch.Count).IsEqual(3);
 		AssertBool(batch.All(entry => entry.Quantity == 1)).IsTrue();
-		var stacks = ItemFactory.CreateBatch(GD.Load<Item>(Potion), 41);
+		var stacks = ItemFactory.CreateBatch(TestFactories.Load<Item>(Potion), 41);
 		AssertInt(stacks.Count).IsEqual(3);
 		AssertInt(stacks.Sum(entry => entry.Quantity)).IsEqual(41);
 	}
@@ -76,7 +76,7 @@ public class ItemLifecycleTest
 	[TestCase]
 	public void EquipmentCopiesAndInventoryCodecPreserveRollsWithoutSharingModifiers()
 	{
-		var definition = GD.Load<EquipableItem>(Ring);
+		var definition = TestFactories.Load<EquipableItem>(Ring);
 		var item = (EquipableItem)ItemFactory.Create(definition);
 		item.Quality = ItemQuality.Superior;
 		item.MagnitudeScale = 1.37f;
@@ -107,7 +107,7 @@ public class ItemLifecycleTest
 	[TestCase]
 	public void CodecRejectsDuplicateIdentityInvalidQuantityAndMissingFoodState()
 	{
-		var item = ItemFactory.Create(GD.Load<Item>(Potion));
+		var item = ItemFactory.Create(TestFactories.Load<Item>(Potion));
 		var record = ItemSaveCodec.Capture(item, 1);
 		var data = new InventorySaveData { Items = [record, record] };
 		bool rejected = false;
@@ -117,7 +117,7 @@ public class ItemLifecycleTest
 		rejected = false;
 		try { ItemSaveCodec.Restore(record); } catch (InvalidOperationException) { rejected = true; }
 		AssertBool(rejected).IsTrue();
-		var food = ItemSaveCodec.Capture(ItemFactory.Create(GD.Load<Item>(Apple)), 1);
+		var food = ItemSaveCodec.Capture(ItemFactory.Create(TestFactories.Load<Item>(Apple)), 1);
 		food.Food = null;
 		rejected = false;
 		try { ItemSaveCodec.Restore(food); } catch (InvalidOperationException) { rejected = true; }

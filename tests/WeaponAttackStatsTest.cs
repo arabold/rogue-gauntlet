@@ -18,7 +18,7 @@ public class WeaponAttackStatsTest
 	private const string Sword = "res://scenes/items/weapons/sword_common.tres";
 	private const string Dagger = "res://scenes/items/weapons/dagger_common.tres";
 
-	private static Weapon Create(string path) => (Weapon)ItemFactory.Create(GD.Load<Item>(path));
+	private static Weapon Create(string path) => (Weapon)ItemFactory.Create(TestFactories.Load<Item>(path));
 
 	[TestCase]
 	public void WornWeaponDamageCountsOnlyForItsOwnAttacks()
@@ -108,7 +108,7 @@ public class WeaponAttackStatsTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		await TestFactories.SettleCombatHarness(runner, 3);
-		var player = TestFactories.AddToSceneTree(GD.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>());
+		var player = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>());
 		await runner.SimulateFrames(2);
 		InventoryItemSlot worn = player.Inventory.EquippedItems[EquipmentSlot.WeaponHand];
 		if (worn != null)

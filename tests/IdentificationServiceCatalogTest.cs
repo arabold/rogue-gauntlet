@@ -22,7 +22,7 @@ public class IdentificationServiceCatalogTest
 	/// <summary>Loads the authored catalog, failing the test cleanly if it is missing.</summary>
 	private static IdentityCatalog LoadCatalog()
 	{
-		IdentityCatalog catalog = ResourceLoader.Load<IdentityCatalog>(CatalogPath);
+		IdentityCatalog catalog = TestFactories.Load<IdentityCatalog>(CatalogPath);
 		AssertObject(catalog)
 			.OverrideFailureMessage($"Could not load the identity catalog at '{CatalogPath}'.")
 			.IsNotNull();

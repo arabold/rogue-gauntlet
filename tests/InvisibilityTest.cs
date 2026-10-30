@@ -13,7 +13,7 @@ public class InvisibilityTest
 	private const string Harness = "res://scenes/debug/effects/world_effect_harness.tscn";
 	private static InvisibilityComponent Cloak(Node3D target, HealthComponent health = null)
 	{
-		var component = GD.Load<PackedScene>("res://scenes/components/invisibility_component.tscn").Instantiate<InvisibilityComponent>();
+		var component = TestFactories.Load<PackedScene>("res://scenes/components/invisibility_component.tscn").Instantiate<InvisibilityComponent>();
 		var surface = new SurfaceAppearanceController { Target = target }; target.AddChild(surface);
 
 		var host = new WorldEffectHost { InstancesRoot = target, OriginAnchor = target, SurfaceController = surface, Health = health };

@@ -14,7 +14,7 @@ public class PortableLightTest
 {
 	private static InventoryItemSlot Add(Inventory inventory, string path)
 	{
-		var item = ItemFactory.Create(GD.Load<Item>(path));
+		var item = ItemFactory.Create(TestFactories.Load<Item>(path));
 		AssertBool(inventory.TryAdd(item).Success).IsTrue();
 		return inventory.Items.Single(entry => entry.Item == item);
 	}
@@ -95,7 +95,7 @@ public class PortableLightTest
 		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
 		var inventory = player.Inventory;
 		var entry = Add(inventory, "res://scenes/items/tools/lamp/tool_lamp_oil.tres");
-		var menu = GD.Load<PackedScene>("res://scenes/ui/inventory_item_context_menu.tscn").Instantiate<InventoryItemContextMenu>();
+		var menu = TestFactories.Load<PackedScene>("res://scenes/ui/inventory_item_context_menu.tscn").Instantiate<InventoryItemContextMenu>();
 		runner.Scene().AddChild(menu);
 		menu.Initialize(inventory, entry, player);
 		AssertBool(menu.GetNode<Button>("%EquipButton").Visible).IsTrue();

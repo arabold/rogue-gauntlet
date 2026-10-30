@@ -16,7 +16,7 @@ public partial class ActorFrozenStatusTest
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		harness.SpawnMonster();
 		await runner.SimulateFrames(5);
-		var condition = GD.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
+		var condition = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
 		foreach (Node actor in new Node[] { harness.Player, harness.Monster })
 		{
 			var statuses = actor.GetNode<BuffController>("BuffController");
@@ -64,7 +64,7 @@ public partial class ActorFrozenStatusTest
 		var frozen = monster.GetNode<FrozenStatusComponent>("FrozenStatusComponent");
 		var playback = (AnimationNodeStateMachinePlayback)frozen.Animation.Get("parameters/playback");
 		await TestFactories.AwaitPhysicsUntil(runner, () => playback.GetCurrentNode() == "Idle");
-		var condition = GD.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
+		var condition = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
 		var source = new object();
 		AssertBool(monster.BuffController.ApplyStatus(condition, source, 5)).IsTrue();
 		await runner.SimulateFrames(5, 20);
@@ -82,7 +82,7 @@ public partial class ActorFrozenStatusTest
 		await runner.SimulateFrames(5);
 		var monster = harness.Monster;
 		var frozen = monster.GetNode<FrozenStatusComponent>("FrozenStatusComponent");
-		var condition = GD.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
+		var condition = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
 		AssertBool(monster.BuffController.ApplyStatus(condition, new object(), 10)).IsTrue();
 		monster.HurtBoxComponent.Armor = 0;
 		float poise = monster.HurtBoxComponent.Poise.Current;
@@ -111,7 +111,7 @@ public partial class ActorFrozenStatusTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var player = harness.Player;
-		var condition = GD.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
+		var condition = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
 		var source = new object();
 		AssertBool(player.BuffController.ApplyStatus(condition, source, 1)).IsTrue();
 		player.BuffController.ActiveBuffs[0]._PhysicsProcess(2);

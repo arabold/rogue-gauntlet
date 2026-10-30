@@ -18,9 +18,9 @@ public class LootRollerEnchantTest
 	private const string AxeCommonPath = "res://scenes/items/weapons/axe_common.tres";
 	private const string RingPath = "res://scenes/items/jewelry/ring/ring_strength.tres";
 
-	private static QualityLadder Ladder => GD.Load<QualityLadder>("res://scenes/items/quality/quality_ladder.tres");
+	private static QualityLadder Ladder => TestFactories.Load<QualityLadder>("res://scenes/items/quality/quality_ladder.tres");
 
-	private static EquipableItem Copy(string path) => (EquipableItem)ItemFactory.CopyDefinition(ResourceLoader.Load<EquipableItem>(path));
+	private static EquipableItem Copy(string path) => (EquipableItem)ItemFactory.CopyDefinition(TestFactories.Load<EquipableItem>(path));
 
 	[TestCase]
 	public void EnchantAddsOneAffixAndMakesTheItemMagic()
@@ -57,7 +57,7 @@ public class LootRollerEnchantTest
 	{
 		EquipableItem instance = Copy(AxeCommonPath);
 		var rng = new RandomNumberGenerator { Seed = 21 };
-		LootRoller.ApplyRoll(instance, 10, rng, GD.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres"),
+		LootRoller.ApplyRoll(instance, 10, rng, TestFactories.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres"),
 			ItemQuality.Magic, cursed: false);
 		AssertBool(instance.AttributesKnown).IsFalse();
 
@@ -87,7 +87,7 @@ public class LootRollerEnchantTest
 	[TestCase]
 	public void EnchantDoesNotMutateTheSharedDefinition()
 	{
-		var definition = ResourceLoader.Load<EquipableItem>(AxeCommonPath);
+		var definition = TestFactories.Load<EquipableItem>(AxeCommonPath);
 		var instance = (EquipableItem)ItemFactory.CopyDefinition(definition);
 		var rng = new RandomNumberGenerator { Seed = 123 };
 

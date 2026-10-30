@@ -39,7 +39,7 @@ public class RoomRotationTest
 	[TestCase]
 	public void RotatingProceduralRoomsFourTimesReturnsToOriginalGeometry()
 	{
-		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+		var builder = TestFactories.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		builder.DoorwayChance = 1f;
@@ -65,7 +65,7 @@ public class RoomRotationTest
 	[TestCase]
 	public void RotatingAnAuthoredRoomFourTimesReturnsToOriginalGeometry()
 	{
-		var scene = GD.Load<PackedScene>("res://scenes/levels/dungeon/rooms/sewer_crossing_4way.tscn");
+		var scene = TestFactories.Load<PackedScene>("res://scenes/levels/dungeon/rooms/sewer_crossing_4way.tscn");
 		Room room = scene.Instantiate<Room>();
 		room.BakeTileMap();
 
@@ -104,7 +104,7 @@ public class RoomRotationTest
 		var failures = new List<string>();
 		foreach (string scenePath in roomScenes)
 		{
-			var scene = GD.Load<PackedScene>(scenePath);
+			var scene = TestFactories.Load<PackedScene>(scenePath);
 			Room room = scene.Instantiate<Room>();
 			string roomName = scenePath.GetFile().GetBaseName();
 
@@ -160,7 +160,7 @@ public class RoomRotationTest
 	[TestCase]
 	public void RotatingATiltedChildComposesViaBasisNotEulerAddition()
 	{
-		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+		var builder = TestFactories.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		using var rng = new RandomNumberGenerator { Seed = 1 };
@@ -202,7 +202,7 @@ public class RoomRotationTest
 	[TestCase]
 	public void RotatingANonUprightGridMapOrientationComposesCorrectly()
 	{
-		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+		var builder = TestFactories.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		using var rng = new RandomNumberGenerator { Seed = 1 };

@@ -16,7 +16,7 @@ public class GarrisonRoomPoolTest
 	[TestCase]
 	public void RandomPurposesRespectPresetAndReproduceRoomGeometry()
 	{
-		var factory = GD.Load<MixedRoomFactory>(Preset);
+		var factory = TestFactories.Load<MixedRoomFactory>(Preset);
 		var seen = new HashSet<RoomPurpose>();
 		for (ulong seed = 1; seed <= 40; seed++)
 		{
@@ -43,7 +43,7 @@ public class GarrisonRoomPoolTest
 	[TestCase(-1)]
 	public void InvalidRandomSelectionDoesNotEraseRoomAndFixedPurposeOverridesIt(int mask)
 	{
-		var factory = ResourceLoader.Load<MixedRoomFactory>(Preset, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var factory = TestFactories.Load<MixedRoomFactory>(Preset, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		var builder = factory.RoomBuilder;
 		using var rng = new RandomNumberGenerator { Seed = 42 };
 		var room = builder.BuildRoom(rng);
@@ -60,7 +60,7 @@ public class GarrisonRoomPoolTest
 	[TestCase]
 	public void ExhaustedLandmarksBecomeProceduralSlotsAndResetPerFloor()
 	{
-		var factory = ResourceLoader.Load<MixedRoomFactory>(Preset, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var factory = TestFactories.Load<MixedRoomFactory>(Preset, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		using var rng = new RandomNumberGenerator { Seed = 42 };
 		var first = factory.CreateSpecialRoom(rng);
 		var second = factory.CreateSpecialRoom(rng);

@@ -156,7 +156,7 @@ public partial class EnemyDefenseTest
 		var detector = new MeleeHitDetector { Name = "MeleeHitDetector" };
 		player.AddChild(detector);
 
-		var profile = GD.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/slash_1h.tres");
+		var profile = TestFactories.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/slash_1h.tres");
 		var attackCtrl = new AttackController
 		{
 			Name = "PlayerAttackController",

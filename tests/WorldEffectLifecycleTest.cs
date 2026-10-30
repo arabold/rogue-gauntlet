@@ -10,7 +10,7 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class WorldEffectLifecycleTest
 {
-	private static WorldEffectDefinition Definition(string id) => GD.Load<WorldEffectDefinition>($"res://scenes/effects/world/{id}/{id}.tres");
+	private static WorldEffectDefinition Definition(string id) => TestFactories.Load<WorldEffectDefinition>($"res://scenes/effects/world/{id}/{id}.tres");
 	private static (Node3D Root, WorldEffectHost Host, MeshInstance3D Mesh, StandardMaterial3D Original) Fixture()
 	{
 		// This material fixture shares the runtime viewport with preview scenes. Keep it out of visual captures.
@@ -18,7 +18,7 @@ public class WorldEffectLifecycleTest
 		var original = new StandardMaterial3D { AlbedoColor = Colors.Red };
 		var mesh = new MeshInstance3D { Mesh = new BoxMesh { Material = original } }; root.AddChild(mesh);
 		var surface = new SurfaceAppearanceController { Target = mesh }; root.AddChild(surface);
-		var host = GD.Load<PackedScene>("res://scenes/effects/world/actor_world_effects.tscn").Instantiate<WorldEffectHost>();
+		var host = TestFactories.Load<PackedScene>("res://scenes/effects/world/actor_world_effects.tscn").Instantiate<WorldEffectHost>();
 		host.SurfaceController = surface; root.AddChild(host); TestFactories.AddToSceneTree(root);
 		return (root, host, mesh, original);
 	}
@@ -59,7 +59,7 @@ public class WorldEffectLifecycleTest
 	public void AuthoredInitialEffectsStartThroughTheSharedHost()
 	{
 		var root = new Node3D { Visible = false };
-		var host = GD.Load<PackedScene>("res://scenes/effects/world/actor_world_effects.tscn").Instantiate<WorldEffectHost>();
+		var host = TestFactories.Load<PackedScene>("res://scenes/effects/world/actor_world_effects.tscn").Instantiate<WorldEffectHost>();
 		host.InitialEffects = [Definition("blessed"), Definition("healing")];
 		root.AddChild(host); TestFactories.AddToSceneTree(root);
 		AssertInt(host.ActiveInstanceCount).IsEqual(2);
@@ -172,7 +172,7 @@ public class WorldEffectLifecycleTest
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
 		await runner.SimulateFrames(2); var preview = (ActorItemEffectPreview)runner.Scene();
 		preview.ClearEffects(); var player = preview.Stage.GetChildren().OfType<Player>().Single();
-		var potion = ItemFactory.CopyDefinition(GD.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres"));
+		var potion = ItemFactory.CopyDefinition(TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres"));
 		potion.Set("PerformDuration", 0f); player.Inventory.TryAdd(potion, 1);
 		var slot = player.Inventory.Items.First(s => s.Item == potion);
 		player.HealthComponent.TakeDamage(2);
@@ -187,7 +187,7 @@ public class WorldEffectLifecycleTest
 	{
 		var model = new Node3D(); model.AddChild(new MeshInstance3D { Mesh = new BoxMesh() });
 		var item = new EquipableItem { CursePenalty = [new StatModifier()], CurseStatusKnown = false };
-		var aura = GD.Load<PackedScene>("res://scenes/effects/world/item_curse_presenter.tscn").Instantiate<ItemCurseWorldEffectPresenter>();
+		var aura = TestFactories.Load<PackedScene>("res://scenes/effects/world/item_curse_presenter.tscn").Instantiate<ItemCurseWorldEffectPresenter>();
 		aura.Initialize(item, model); model.AddChild(aura); TestFactories.AddToSceneTree(model);
 		AssertInt(aura.Host.LeaseCount).IsEqual(0); item.RevealCurseStatus();
 		AssertInt(aura.Host.LeaseCount).IsEqual(1); item.LiftCurse(); AssertInt(aura.Host.LeaseCount).IsEqual(0);
@@ -220,7 +220,7 @@ public class WorldEffectLifecycleTest
 		await runner.SimulateFrames(2); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
 		var player = preview.Stage.GetChildren().OfType<Player>().Single();
 		player.BuffController.ProcessMode = Node.ProcessModeEnum.Always;
-		var potion = ItemFactory.CopyDefinition(GD.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres"));
+		var potion = ItemFactory.CopyDefinition(TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres"));
 		potion.Set("PerformDuration", 0f); player.Inventory.TryAdd(potion, 2);
 		var slot = player.Inventory.Items.First(s => s.Item == potion);
 		player.HealthComponent.TakeDamage(30); player.InventoryController.TryUse(slot);
@@ -240,12 +240,12 @@ public class WorldEffectLifecycleTest
 		var root = new Node3D(); var model = new Node3D();
 		model.AddChild(new MeshInstance3D { Mesh = new BoxMesh() }); root.AddChild(model);
 		var surface = new SurfaceAppearanceController { Target = model };
-		var cloak = GD.Load<PackedScene>("res://scenes/components/invisibility_component.tscn").Instantiate<InvisibilityComponent>();
+		var cloak = TestFactories.Load<PackedScene>("res://scenes/components/invisibility_component.tscn").Instantiate<InvisibilityComponent>();
 		var statuses = new BuffController(); root.AddChild(statuses); cloak.Statuses = statuses;
-		var host = GD.Load<PackedScene>("res://scenes/effects/world/actor_world_effects.tscn").Instantiate<WorldEffectHost>();
+		var host = TestFactories.Load<PackedScene>("res://scenes/effects/world/actor_world_effects.tscn").Instantiate<WorldEffectHost>();
 		host.SurfaceController = surface; cloak.Host = host;
 		var item = new EquipableItem { CursePenalty = [new StatModifier()], CurseStatusKnown = true };
-		var presenter = GD.Load<PackedScene>("res://scenes/effects/world/item_curse_presenter.tscn").Instantiate<ItemCurseWorldEffectPresenter>();
+		var presenter = TestFactories.Load<PackedScene>("res://scenes/effects/world/item_curse_presenter.tscn").Instantiate<ItemCurseWorldEffectPresenter>();
 		presenter.Initialize(item, model, host); model.AddChild(presenter);
 		root.AddChild(cloak); root.AddChild(surface); root.AddChild(host); TestFactories.AddToSceneTree(root);
 		cloak.SetInvisible(true, true);

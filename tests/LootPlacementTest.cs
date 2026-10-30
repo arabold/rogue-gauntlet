@@ -234,7 +234,7 @@ public class LootPlacementTest
 	public void PickEntryOnlyReturnsConfiguredItemsAndHandlesEmptyTables()
 	{
 		// Exercise the real grouped resource every placed chest already uses.
-		var table = GD.Load<LootTable>("res://scenes/items/loot/loot_chest_common.tres");
+		var table = TestFactories.Load<LootTable>("res://scenes/items/loot/loot_chest_common.tres");
 		var rng = new RandomNumberGenerator { Seed = 1 };
 
 		for (int i = 0; i < 50; i++)

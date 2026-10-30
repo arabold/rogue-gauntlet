@@ -24,7 +24,7 @@ public class ProceduralRoomBuilderTest
 	[TestCase]
 	public void BuiltRoomsSatisfyRoomContract()
 	{
-		var builder = GD.Load<ProceduralRoomBuilder>("res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres");
+		var builder = TestFactories.Load<ProceduralRoomBuilder>("res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres");
 		var failures = new List<string>();
 
 		for (ulong seed = 1; seed <= SeedCount; seed++)
@@ -56,7 +56,7 @@ public class ProceduralRoomBuilderTest
 	{
 		// Ignore the resource cache: mutating exported properties on a cached instance
 		// would leak into other tests that load the same resource by path.
-		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+		var builder = TestFactories.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		builder.DoorwayChance = 1f;
@@ -86,7 +86,7 @@ public class ProceduralRoomBuilderTest
 	[TestCase]
 	public void PlacedColumnsSitAtValidInteriorCorners()
 	{
-		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+		var builder = TestFactories.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		builder.ColumnChance = 1f;
@@ -121,7 +121,7 @@ public class ProceduralRoomBuilderTest
 	[TestCase]
 	public void PopulateRoomGeneratesAllShapeArchetypes()
 	{
-		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+		var builder = TestFactories.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		var room = new Room();
@@ -159,7 +159,7 @@ public class ProceduralRoomBuilderTest
 	[TestCase]
 	public void AllMaterialsAndPurposesTileWithoutOverlapOrGaps()
 	{
-		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+		var builder = TestFactories.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		var room = new Room();
@@ -262,7 +262,7 @@ public class ProceduralRoomBuilderTest
 	[TestCase]
 	public void ChasmsAreDisabledByDefaultAndConfigurable()
 	{
-		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+		var builder = TestFactories.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		AssertBool(builder.EnableChasms).IsFalse();
@@ -309,7 +309,7 @@ public class ProceduralRoomBuilderTest
 	[TestCase]
 	public void GenerateWallsRespectsOpeningsAndDoorsRange()
 	{
-		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+		var builder = TestFactories.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		builder.GenerateWalls = true;
@@ -364,7 +364,7 @@ public class ProceduralRoomBuilderTest
 	[TestCase]
 	public void SaveRoomScenePacksAndReloadsValidRoom()
 	{
-		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+		var builder = TestFactories.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		builder.ShapeArchetype = RoomShapeArchetype.Cross;
@@ -374,7 +374,7 @@ public class ProceduralRoomBuilderTest
 		AssertBool(saved).IsTrue();
 		AssertBool(FileAccess.FileExists(TestScenePath)).IsTrue();
 
-		PackedScene loadedScene = ResourceLoader.Load<PackedScene>(TestScenePath, cacheMode: ResourceLoader.CacheMode.Ignore);
+		PackedScene loadedScene = TestFactories.Load<PackedScene>(TestScenePath, cacheMode: ResourceLoader.CacheMode.Ignore);
 		AssertObject(loadedScene).IsNotNull();
 
 		Room reloadedRoom = loadedScene.Instantiate<Room>();
@@ -405,7 +405,7 @@ public class ProceduralRoomBuilderTest
 	[TestCase]
 	public void OverwriteGuardPreventsAccidentalOverwrite()
 	{
-		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+		var builder = TestFactories.Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		builder.ShapeArchetype = RoomShapeArchetype.Rectangle;

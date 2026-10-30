@@ -20,7 +20,7 @@ public class ChestXrayTest
 		try
 		{
 			GameDebug.LootXrayEnabled = true;
-			var chest = TestFactories.AddToSceneTree(GD.Load<PackedScene>("res://scenes/props/chest.tscn").Instantiate<Chest>());
+			var chest = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/props/chest.tscn").Instantiate<Chest>());
 			await Settle(chest);
 			AssertObject(chest.Xray).IsNotNull();
 			AssertInt((int)chest.Xray.Category).IsEqual((int)XrayCategory.Loot);
@@ -50,7 +50,7 @@ public class ChestXrayTest
 			SignalBus.EmitXraySettingsChanged();
 			AssertBool(silhouettes.All(m => !m.Visible)).IsTrue();
 
-			var restored = TestFactories.AddToSceneTree(GD.Load<PackedScene>("res://scenes/props/chest.tscn").Instantiate<Chest>());
+			var restored = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/props/chest.tscn").Instantiate<Chest>());
 			restored.RestoreOpenState();
 			await Settle(restored);
 			AssertBool(Silhouettes(restored).All(m => !m.Visible)).IsTrue();
@@ -69,7 +69,7 @@ public class ChestXrayTest
 		await runner.SimulateFrames(5);
 		var level = runner.Scene().GetNode<Level>("Level");
 		var map = level.MapGenerator;
-		var chest = GD.Load<PackedScene>("res://scenes/props/chest.tscn").Instantiate<Chest>();
+		var chest = TestFactories.Load<PackedScene>("res://scenes/props/chest.tscn").Instantiate<Chest>();
 		// Pick a real floor cell that is still under fog.
 		Vector3 point = map.FloorGridMap.GetUsedCells()
 			.Select(cell => map.FloorGridMap.ToGlobal(map.FloorGridMap.MapToLocal(cell)))

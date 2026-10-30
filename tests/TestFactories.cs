@@ -21,11 +21,16 @@ public static class TestFactories
 		return ISceneRunner.Load(path, true);
 	}
 
-	/// <summary>Load a resource after settling collected resources, for loads that follow suites freeing the scenes that last owned it.</summary>
-	public static T Load<T>(string path) where T : class
+	/// <summary>
+	/// Load a resource after settling collected resources (see <see cref="ResourceCacheGuard"/>). Runtime tests load every
+	/// resource through here, never <c>GD.Load</c> or <c>ResourceLoader.Load</c> directly: test cases reload by path what an
+	/// earlier case just dropped, and a load that lands between the GC collecting that wrapper and its finalizer reads null,
+	/// after which the finalizer aborts the engine and the run hangs.
+	/// </summary>
+	public static T Load<T>(string path, ResourceLoader.CacheMode cacheMode = ResourceLoader.CacheMode.Reuse) where T : class
 	{
 		ResourceCacheGuard.Settle();
-		return GD.Load<T>(path);
+		return ResourceLoader.Load<T>(path, cacheMode: cacheMode);
 	}
 
 	public const string LitTorch = "res://scenes/props/torch_mounted.tscn";
@@ -109,7 +114,7 @@ public static class TestFactories
 	public static EnemyBase SpawnCombatMonster(Node root, Vector3 position, string name,
 		string scene = "res://scenes/enemies/skeleton/skeleton_minion.tscn")
 	{
-		var actor = GD.Load<PackedScene>(scene).Instantiate<EnemyBase>();
+		var actor = Load<PackedScene>(scene).Instantiate<EnemyBase>();
 		actor.Name = name; actor.Position = position; actor.EnemyBehaviorComponent.AIEnabled = false;
 		root.AddChild(actor); actor.DeathComponent.LootTableComponent = null; actor.DeathComponent.Xp = 0;
 		return actor;
@@ -146,8 +151,8 @@ public static class TestFactories
 	{
 		return new MixedRoomFactory
 		{
-			AuthoredFactory = GD.Load<RoomFactory>("res://scenes/levels/dungeon/dungeon_room_factory.tres"),
-			RoomBuilder = GD.Load<ProceduralRoomBuilder>("res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres"),
+			AuthoredFactory = Load<RoomFactory>("res://scenes/levels/dungeon/dungeon_room_factory.tres"),
+			RoomBuilder = Load<ProceduralRoomBuilder>("res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres"),
 			ProceduralShare = 1f,
 		};
 	}
@@ -162,7 +167,7 @@ public static class TestFactories
 		// Ignore the resource cache: this mutates exported properties on the loaded
 		// instance, and GD.Load would otherwise hand back the same cached object every
 		// other test loads by path, leaking these overrides across tests.
-		var builder = ResourceLoader.Load<ProceduralRoomBuilder>(
+		var builder = Load<ProceduralRoomBuilder>(
 			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
 			cacheMode: ResourceLoader.CacheMode.Ignore);
 		builder.DoorwayChance = 1f;
@@ -171,7 +176,7 @@ public static class TestFactories
 		builder.MaxDoorways = 4;
 		return new MixedRoomFactory
 		{
-			AuthoredFactory = GD.Load<RoomFactory>("res://scenes/levels/dungeon/dungeon_room_factory.tres"),
+			AuthoredFactory = Load<RoomFactory>("res://scenes/levels/dungeon/dungeon_room_factory.tres"),
 			RoomBuilder = builder,
 			ProceduralShare = 1f,
 		};
@@ -215,9 +220,9 @@ public static class TestFactories
 	{
 		mapGenerator.RoomLayout = layout;
 		mapGenerator.CorridorConnector = new AStarCorridorConnector();
-		mapGenerator.RoomFactory = factory ?? GD.Load<RoomFactory>("res://scenes/levels/dungeon/dungeon_room_factory.tres");
-		mapGenerator.MobFactory = GD.Load<MobFactory>("res://scenes/levels/dungeon/dungeon_mob_factory.tres");
-		mapGenerator.TileFactory = GD.Load<TileFactory>("res://scenes/levels/dungeon/dungeon_tile_factory.tres");
+		mapGenerator.RoomFactory = factory ?? Load<RoomFactory>("res://scenes/levels/dungeon/dungeon_room_factory.tres");
+		mapGenerator.MobFactory = Load<MobFactory>("res://scenes/levels/dungeon/dungeon_mob_factory.tres");
+		mapGenerator.TileFactory = Load<TileFactory>("res://scenes/levels/dungeon/dungeon_tile_factory.tres");
 	}
 
 	/// <summary>
@@ -228,10 +233,10 @@ public static class TestFactories
 	/// </summary>
 	public static void WireLootScenes(MapGenerator mapGenerator)
 	{
-		mapGenerator.ChestScene = GD.Load<PackedScene>("res://scenes/props/chest.tscn");
-		mapGenerator.TrapScene = GD.Load<PackedScene>("res://scenes/props/floor_trap.tscn");
-		mapGenerator.LooseItemScene = GD.Load<PackedScene>("res://scenes/items/lootable_item.tscn");
-		mapGenerator.LooseItems = GD.Load<LootDropProfile>("res://scenes/items/loot/drops/loose_items.tres");
+		mapGenerator.ChestScene = Load<PackedScene>("res://scenes/props/chest.tscn");
+		mapGenerator.TrapScene = Load<PackedScene>("res://scenes/props/floor_trap.tscn");
+		mapGenerator.LooseItemScene = Load<PackedScene>("res://scenes/items/lootable_item.tscn");
+		mapGenerator.LooseItems = Load<LootDropProfile>("res://scenes/items/loot/drops/loose_items.tres");
 	}
 
 	/// <summary>
@@ -240,8 +245,8 @@ public static class TestFactories
 	/// </summary>
 	public static (Level Level, MapGenerator Map) UngeneratedLevel()
 	{
-		var map = GD.Load<PackedScene>("res://scenes/levels/generators/map_generator.tscn").Instantiate<MapGenerator>();
-		var discovery = GD.Load<PackedScene>("res://scenes/levels/floor_discovery.tscn").Instantiate<FloorDiscovery>();
+		var map = Load<PackedScene>("res://scenes/levels/generators/map_generator.tscn").Instantiate<MapGenerator>();
+		var discovery = Load<PackedScene>("res://scenes/levels/floor_discovery.tscn").Instantiate<FloorDiscovery>();
 		var level = new Level { AutoGenerateOnReady = false, MapGenerator = map, Discovery = discovery };
 		level.AddChild(map);
 		level.AddChild(discovery);

@@ -299,7 +299,7 @@ public class PoiseTest
 		AssertBool(primary.Definition.ForcePushback).IsFalse();
 		AssertBool(controller.TryPrepareWeaponAttack(harness.Weapons[6], out var bolt, isSpecial: true)).IsTrue();
 		AssertBool(bolt.Definition.ForcePushback).IsFalse();
-		var airStaff = GD.Load<Weapon>("res://scenes/items/weapons/staff_air.tres");
+		var airStaff = TestFactories.Load<Weapon>("res://scenes/items/weapons/staff_air.tres");
 		AssertBool(airStaff.CustomAttackDefinition.Impact.ForcePushback).IsTrue();
 	}
 
