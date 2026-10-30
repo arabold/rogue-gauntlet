@@ -11,6 +11,8 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 	[Export] public FallingBodyMotion Fall { get; set; }
 	public float StartDelay { get => Timeline.StartDelay; set => Timeline.StartDelay = value; }
 	public bool Cosmetic { get; set; }
+	/// <summary>Seeds the procedural shape of Rockfall's boulder and impact fragments; spawners vary it so a shower's rocks differ.</summary>
+	[Export] public ulong ShapeSeed { get; set; }
 	[Export] public Shader WaveShader { get; set; }
 	/// <summary>Tremor's seismic wave carries its damage; spikes strike as they erupt, so they reach the whole area at once.</summary>
 	public AreaFront Front => Kind == EarthKind.Tremor ? Timeline.Front : AreaFront.Instant;
@@ -19,7 +21,6 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 	[Export] public Shader AreaRingShader { get; set; }
 	[Export] public Shader AreaDustShader { get; set; }
 	private readonly List<Node3D> _rocks = [];
-	private readonly List<Vector3> _rockScales = [];
 	private readonly List<MeshInstance3D> _rings = [];
 	private Node3D _falling;
 	private Node3D _fragments;
@@ -30,7 +31,6 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 	private ShaderMaterial _areaStoneMaterial, _areaRingMaterial, _areaDustMaterial;
 	private StandardMaterial3D _fragmentMaterial;
 	private QuadMesh _dustMesh;
-	private SphereMesh _stoneMesh;
 	private MeshInstance3D _wave;
 	private bool _started;
 	private bool _landed;
@@ -67,14 +67,13 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 		if (area && AreaRingShader != null) _areaRingMaterial = new ShaderMaterial { Shader = AreaRingShader };
 		if (area && AreaDustShader != null) _areaDustMaterial = new ShaderMaterial { Shader = AreaDustShader };
 		Material stoneMaterial = _areaStoneMaterial ?? (Material)stone;
-		_stoneMesh = new SphereMesh { Radius = .5f, Height = 1, RadialSegments = 7, Rings = 4, Material = stoneMaterial };
 		_dustMesh = new QuadMesh { Size = Vector2.One, Material = _areaDustMaterial ?? (Material)EarthDust.Material(.4f) };
 		_glow = new StandardMaterial3D { ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded, Transparency = BaseMaterial3D.TransparencyEnum.Alpha, AlbedoColor = new Color(.95f, .55f, .2f, .8f), EmissionEnabled = true, Emission = new Color(1, .4f, .08f), EmissionEnergyMultiplier = 1.2f };
 		if (Kind == EarthKind.Rockfall)
 		{
 			_falling = new Node3D(); AddChild(_falling);
 			Fall.ConfigureBody(_falling); Fall.Impact += OnRockImpact;
-			AddRock(_falling, stone, new Vector3(0, 0, 0), new Vector3(1.1f, 1.35f, 1f), 0);
+			_falling.AddChild(new MeshInstance3D { Mesh = FacetedRockMesh.Create(new Vector3(.62f, .7f, .56f), ShapeSeed, stone, 2) });
 			AddRing(1.2f); AddWave(2.8f); AddDust(Vector3.Zero, 1.2f, 48); AddCracks(); AddFragments();
 		}
 		else if (Kind is EarthKind.Tremor or EarthKind.Spikes)
@@ -86,7 +85,7 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 				float angle = Mathf.Tau * i / count, radius = PreviewRadius * (.4f + .45f * ((i * 7 % 11) / 10f));
 				float height = 1.4f + (i % 4) * .35f;
 				var position = new Vector3(Mathf.Cos(angle) * radius, -.2f, Mathf.Sin(angle) * radius);
-				AddRock(this, stoneMaterial, position, new Vector3(.5f, height, .5f), angle);
+				AddSpike(stoneMaterial, position, new Vector3(.5f, height, .5f), angle);
 				if (i % 5 == 0) AddDust(position, .7f, 24);
 			}
 			if (Kind == EarthKind.Spikes) AddCracks();
@@ -103,19 +102,11 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 			if (material != null) visibility.Apply(material);
 	}
 
-	private void AddRock(Node parent, Material material, Vector3 position, Vector3 size, float angle)
+	private void AddSpike(Material material, Vector3 position, Vector3 size, float angle)
 	{
-		Mesh mesh;
-		if (Kind == EarthKind.Spikes) mesh = FacetedSpikeMesh.Create(size, angle, material);
-		else mesh = _stoneMesh;
-		var rock = new MeshInstance3D { Mesh = mesh, Position = position, Rotation = new Vector3(.12f, angle, .16f) };
-		if (Kind == EarthKind.Spikes)
-		{
-			Vector3 outward = new Vector3(position.X, 0, position.Z).Normalized();
-			rock.Basis = new Basis(Vector3.Up.Cross(outward), .3f);
-		}
-		if (Kind != EarthKind.Spikes) rock.Scale = size;
-		parent.AddChild(rock); _rocks.Add(rock); _rockScales.Add(rock.Scale);
+		Vector3 outward = new Vector3(position.X, 0, position.Z).Normalized();
+		var rock = new MeshInstance3D { Mesh = FacetedSpikeMesh.Create(size, angle, material), Position = position, Basis = new Basis(Vector3.Up.Cross(outward), .3f) };
+		AddChild(rock); _rocks.Add(rock);
 	}
 
 	private void AddWave(float radius)
@@ -146,10 +137,10 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 		_fragments = new Node3D { Name = "ImpactFragments", Visible = false };
 		AddChild(_fragments);
 		_fragmentMaterial = new StandardMaterial3D { AlbedoColor = new Color(.33f, .26f, .19f), Roughness = .9f, Transparency = BaseMaterial3D.TransparencyEnum.Alpha };
-		var fragmentMesh = (SphereMesh)_stoneMesh.Duplicate();
-		fragmentMesh.Material = _fragmentMaterial;
+		var shapes = new Mesh[3];
+		for (int i = 0; i < shapes.Length; i++) shapes[i] = FacetedRockMesh.Create(new Vector3(.55f, .45f, .5f), ShapeSeed + (ulong)i + 1, _fragmentMaterial);
 		for (int i = 0; i < 7; i++)
-			_fragments.AddChild(new MeshInstance3D { Mesh = fragmentMesh, Scale = Vector3.One * (.22f + .07f * (i % 3)) });
+			_fragments.AddChild(new MeshInstance3D { Mesh = shapes[i % shapes.Length], Scale = Vector3.One * (.22f + .07f * (i % 3)) });
 	}
 	private void AddRing(float radius)
 	{
@@ -197,7 +188,7 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 			float erupt = Kind == EarthKind.Spikes ? Mathf.Clamp((time - .3f) / .25f, 0, 1) : Mathf.Clamp(time / .2f, 0, 1);
 			if (Kind == EarthKind.Spikes && time >= .3f && !_landed) { _landed = true; StartDust(); }
 			float shrink = 1 - Mathf.SmoothStep(.65f, 1, progress);
-			for (int i = 0; i < _rocks.Count; i++) _rocks[i].Scale = _rockScales[i] * new Vector3(1, erupt * shrink, 1);
+			foreach (var rock in _rocks) rock.Scale = new Vector3(1, erupt * shrink, 1);
 		}
 		foreach (var ring in _rings) { float scale = Mathf.Lerp(.35f, 1, Mathf.Clamp(progress * 2, 0, 1)); ring.Scale = new Vector3(scale, 1, scale); }
 		float waveProgress = Kind == EarthKind.Rockfall ? Mathf.Clamp((time - Fall.FlightTime) / 1.3f, 0, 1) : progress;
