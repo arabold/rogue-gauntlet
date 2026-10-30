@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/fire/FireSpellVisual.cs" id="script"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
 [ext_resource type="Script" path="res://scenes/magic/fire/FireSweepMotion.cs" id="motion"]
 [ext_resource type="PackedScene" path="res://scenes/magic/fire/flame_orbit.tscn" id="orbit"]
+[ext_resource type="Resource" uid="uid://bypjdcf5nuu8i" path="res://scenes/effects/light_flicker/flame.tres" id="light_flicker"]
 
 [node name="FireSpellVisual" type="Node3D" node_paths=PackedStringArray("Timeline", "Sweep")]
 script = ExtResource("script")
@@ -14,7 +15,7 @@ Sweep = NodePath("Motion")
 [node name="Orbit2" parent="." instance=ExtResource("orbit")]
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
 script = ExtResource("timeline")
-LightFlicker = 1
+LightFlicker = ExtResource("light_flicker")
 Surfaces = [NodePath("../Orbit0/Trail"), NodePath("../Orbit0/HotTrail"), NodePath("../Orbit0/Arm/Head/Core"), NodePath("../Orbit0/Arm/Head/Heart"), NodePath("../Orbit1/Trail"), NodePath("../Orbit1/HotTrail"), NodePath("../Orbit1/Arm/Head/Core"), NodePath("../Orbit1/Arm/Head/Heart"), NodePath("../Orbit2/Trail"), NodePath("../Orbit2/HotTrail"), NodePath("../Orbit2/Arm/Head/Core"), NodePath("../Orbit2/Arm/Head/Heart")]
 Lights = [NodePath("../Orbit0/Arm/Head/Light"), NodePath("../Orbit1/Arm/Head/Light"), NodePath("../Orbit2/Arm/Head/Light")]
 Duration = 2.4

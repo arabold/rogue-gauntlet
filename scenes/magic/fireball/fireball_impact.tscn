@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3]
+[gd_scene load_steps=34 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/fireball/FireballImpact.cs" id="impact"]
 [ext_resource type="Shader" path="res://scenes/magic/fireball/impact_flame.gdshader" id="flame_shader"]
@@ -12,6 +12,7 @@
 [ext_resource type="Material" path="res://scenes/magic/fireball/toon_flame_card.tres" id="flame_card"]
 [ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material_res"]
 [ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_flash.gdshader" id="flash_shader"]
+[ext_resource type="Resource" uid="uid://bypjdcf5nuu8i" path="res://scenes/effects/light_flicker/flame.tres" id="light_flicker"]
 
 [sub_resource type="ShaderMaterial" id="shell_material"]
 shader = ExtResource("flame_shader")
@@ -135,6 +136,7 @@ GroundLayers = [NodePath("GroundWave"), NodePath("FacetedRing"), NodePath("Inner
 Bursts = [NodePath("FlameBurst"), NodePath("Shards")]
 ImpactLight = NodePath("ImpactLight")
 LightCurve = SubResource("light_curve")
+LightFlicker = ExtResource("light_flicker")
 Scorch = NodePath("Scorch")
 Lifetime = 2.4
 

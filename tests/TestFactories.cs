@@ -1,5 +1,6 @@
 namespace RogueGauntlet.Tests;
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -20,6 +21,32 @@ public static class TestFactories
 		return ISceneRunner.Load(path, true);
 	}
 
+	/// <summary>Load a resource after settling collected resources, for loads that follow suites freeing the scenes that last owned it.</summary>
+	public static T Load<T>(string path) where T : class
+	{
+		ResourceCacheGuard.Settle();
+		return GD.Load<T>(path);
+	}
+
+	public const string LitTorch = "res://scenes/props/torch_mounted.tscn";
+	public const string UnlitTorch = "res://scenes/levels/arrangements/wall/wall_torch_unlit.tscn";
+
+	/// <summary>Instance a wall torch fixture, placed and turned for the test's layout; the caller adds it to a tree.</summary>
+	public static Node3D Torch(string path = LitTorch, Vector3 position = default, float yaw = 0)
+	{
+		var torch = Load<PackedScene>(path).Instantiate<Node3D>();
+		torch.Position = position;
+		torch.RotateY(yaw);
+		return torch;
+	}
+
+	/// <summary>Assert a torch fixture's flame and light are both shown, or both hidden, in the tree.</summary>
+	public static void AssertTorchEffects(Node torch, bool visible)
+	{
+		Assertions.AssertBool(torch.FindChild("Fire", true, false) is Node3D { } fire && fire.IsVisibleInTree()).IsEqual(visible);
+		Assertions.AssertBool(torch.FindChild("FlickerLight", true, false) is OmniLight3D { } light && light.IsVisibleInTree()).IsEqual(visible);
+	}
+
 	/// <summary>Load the combat harness scene; the caller owns (and may dispose) the runner.</summary>
 	public static ISceneRunner LoadCombatHarness() => LoadScene("res://scenes/debug/combat/combat_harness.tscn");
 
@@ -38,10 +65,51 @@ public static class TestFactories
 	public static bool CastSpell(CombatHarness harness, string name, int level, ulong seed = 1) =>
 		GetSpell<ICombatSpell>(harness, name).Cast(harness.Player, level, new RandomNumberGenerator { Seed = seed });
 
-	/// <summary>Create an inert real monster for area-contact tests.</summary>
-	public static EnemyBase SpawnCombatMonster(Node root, Vector3 position, string name)
+	/// <summary>
+	/// Waits until a level-one area cast has swept its whole area: its delay plus the time its visual's front takes
+	/// to cross the radius.
+	/// </summary>
+	public static Task AwaitAreaContact(ISceneRunner runner, PackedScene visualScene, float radius, float contactDelay = 0)
 	{
-		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		var visual = visualScene.Instantiate();
+		var front = visual switch
+		{
+			IAreaSpellVisual area when area.ConfigureArea(1, radius) => area.Front,
+			VisualEffectInstance effect => effect.Front,
+			_ => AreaFront.Instant
+		};
+		visual.Free();
+		return AwaitPhysicsSeconds(runner, contactDelay + front.Delay + front.Seconds);
+	}
+
+	/// <summary>
+	/// Waits on physics ticks for <paramref name="seconds"/> of gameplay time. Contacts and statuses run on the
+	/// physics clock, and rendered frames can outpace it, so counting frames would under-wait.
+	/// </summary>
+	public static async Task AwaitPhysicsSeconds(ISceneRunner runner, float seconds)
+	{
+		var tree = runner.Scene().GetTree();
+		ulong end = Engine.GetPhysicsFrames() + (ulong)Mathf.CeilToInt(seconds * Engine.PhysicsTicksPerSecond) + 2;
+		while (Engine.GetPhysicsFrames() < end) await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
+	}
+
+	/// <summary>Waits on physics ticks until <paramref name="condition"/> holds, or fails after <paramref name="timeout"/> seconds.</summary>
+	public static async Task AwaitPhysicsUntil(ISceneRunner runner, Func<bool> condition, float timeout = 5)
+	{
+		var tree = runner.Scene().GetTree();
+		ulong end = Engine.GetPhysicsFrames() + (ulong)Mathf.CeilToInt(timeout * Engine.PhysicsTicksPerSecond);
+		while (!condition())
+		{
+			if (Engine.GetPhysicsFrames() >= end) throw new TimeoutException($"Condition not met within {timeout} s of physics time.");
+			await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
+		}
+	}
+
+	/// <summary>Create an inert real monster for area-contact tests.</summary>
+	public static EnemyBase SpawnCombatMonster(Node root, Vector3 position, string name,
+		string scene = "res://scenes/enemies/skeleton/skeleton_minion.tscn")
+	{
+		var actor = GD.Load<PackedScene>(scene).Instantiate<EnemyBase>();
 		actor.Name = name; actor.Position = position; actor.EnemyBehaviorComponent.AIEnabled = false;
 		root.AddChild(actor); actor.DeathComponent.LootTableComponent = null; actor.DeathComponent.Xp = 0;
 		return actor;

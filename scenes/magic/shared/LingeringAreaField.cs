@@ -6,13 +6,15 @@ using System.Linq;
 /// <summary>
 /// Resolves a lingering field's contacts: moving flame ribbons touch each enemy once; a hailstorm slows everyone
 /// inside it and drops evenly spread shards, each hitting whoever stands where it lands; an ice wall stays where
-/// it was cast and hits and shoves back out every enemy inside its ring, again while one keeps pushing in.
+/// it was cast and, once its crystals stand, hits and shoves back out every enemy inside its ring, again while one
+/// keeps pushing in. A field only reaches as far as its visual's front has travelled.
 /// Each mode runs its cheap checks before the line-of-sight test.
 /// </summary>
 public partial class LingeringAreaField : Node3D
 {
 	private LingeringAreaSpell _source;
 	private AreaCastLifecycle.Cast _cast;
+	private AreaFront _front;
 	private LingeringAreaDefinition _definition;
 	private Node3D _visual;
 	private int _level;
@@ -28,9 +30,9 @@ public partial class LingeringAreaField : Node3D
 	private double _clock;
 	private bool _ended;
 
-	public void Configure(LingeringAreaSpell source, AreaCastLifecycle.Cast cast, LingeringAreaDefinition definition, int level, Node3D visual)
+	public void Configure(LingeringAreaSpell source, AreaCastLifecycle.Cast cast, LingeringAreaDefinition definition, int level, VisualEffectInstance visual)
 	{
-		_source = source; _cast = cast; _definition = definition; _level = level; _visual = visual;
+		_source = source; _cast = cast; _definition = definition; _level = level; _visual = visual; _front = visual.Front;
 		_isActive = () => !_ended;
 		if (definition.Kind == LingeringAreaKind.Hailstorm) _hail = new HailPattern(cast.Random, definition.ShardsPerSecondByLevel[level - 1]);
 	}
@@ -39,8 +41,9 @@ public partial class LingeringAreaField : Node3D
 		if (_ended || !IsInstanceValid(_source) || !_source.IsInsideTree() || !IsInstanceValid(_cast.Caster) || !_cast.Caster.IsInsideTree()
 			|| !IsInstanceValid(_visual) || _visual.IsQueuedForDeletion()) { End(); return; }
 		_clock += delta;
-		float radius = _definition.RadiusByLevel[_level - 1];
-		var targets = AreaSpellTargets.Capture(_source, _cast.Caster, _cast.Origin, radius, _cast.World) ?? [];
+		float radius = _definition.RadiusByLevel[_level - 1], reach = _front.Reach((float)_clock);
+		if (reach <= 0) return;
+		var targets = AreaSpellTargets.Capture(_source, _cast.Caster, _cast.Origin, radius * reach, _cast.World) ?? [];
 		switch (_definition.Kind)
 		{
 			case LingeringAreaKind.Hailstorm: Hail(targets, (float)delta, radius); break;

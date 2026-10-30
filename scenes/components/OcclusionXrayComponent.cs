@@ -19,7 +19,7 @@ public enum XrayCategory
 /// it is (see the two <c>occlusion_xray*.gdshader</c> files).
 ///
 /// Silhouettes are shown only when the category's global toggle is on (<see cref="GameDebug"/>)
-/// AND the actor is in a discovered room (<see cref="ExplorationVisibility"/>), matching how
+/// AND the actor stands on a discovered tile (<see cref="ExplorationVisibility"/>), matching how
 /// the door indicator is gated to revealed areas.
 /// </summary>
 [GlobalClass]
@@ -72,6 +72,7 @@ public partial class OcclusionXrayComponent : Node
 	private ExplorationVisibility _exploration;
 	private HealthComponent _health;
 	private double _pollAccumulator;
+	private bool _revealed;
 
 	public override void _Ready()
 	{
@@ -128,20 +129,15 @@ public partial class OcclusionXrayComponent : Node
 			bus => bus.XraySettingsChanged += OnXraySettingsChanged,
 			bus => bus.XraySettingsChanged -= OnXraySettingsChanged);
 
-		if (Category == XrayCategory.Loot)
-		{
-			SetProcess(false);
-		}
-
 		if (Invisibility != null) this.SubscribeUntilExit(Invisibility, c => c.Changed += Evaluate, c => c.Changed -= Evaluate);
 		Evaluate();
 	}
 
 	public override void _Process(double delta)
 	{
-		// Actors move, so re-check "is in a discovered room" on a low-frequency poll.
-		// Loot is static and would be covered by RoomEntered alone, but polling keeps
-		// one code path and the cost is a single dictionary lookup.
+		// Re-check "is on a discovered tile" on a low-frequency poll: actors move, and line-of-sight
+		// discovery raises no event. Loot is static and explored tiles never re-fog, so it stops once
+		// revealed; its remaining inputs (toggle, opening) are event-driven.
 		if (_silhouettes.Count == 0)
 		{
 			return;
@@ -152,6 +148,7 @@ public partial class OcclusionXrayComponent : Node
 		{
 			_pollAccumulator = 0;
 			Evaluate();
+			if (_revealed && Category == XrayCategory.Loot) SetProcess(false);
 		}
 	}
 
@@ -226,9 +223,9 @@ public partial class OcclusionXrayComponent : Node
 			return;
 		}
 
-		bool revealed = _exploration.IsRevealed(_targetRoot.GlobalPosition);
+		_revealed = _exploration.IsRevealed(_targetRoot.GlobalPosition);
 		bool alive = _health == null || !_health.IsDead;
-		bool visible = IsEnabled && GlobalFlagEnabled() && revealed && alive && Invisibility?.IsInvisible != true;
+		bool visible = IsEnabled && GlobalFlagEnabled() && _revealed && alive && Invisibility?.IsInvisible != true;
 
 		foreach (MeshInstance3D silhouette in _silhouettes)
 		{

@@ -6,8 +6,9 @@ using Godot;
 /// <summary>
 /// A floor's persistent exploration and its fog surface. It polls the player at 10 Hz and reveals the samples the
 /// player can see. Sight crosses a doored connector only while every door on it is open, read live from the doors, so
-/// door state is never copied here. The shader's fade clock is pushed only while a reveal is fading in. Gameplay reads
-/// exploration through <see cref="ExplorationVisibility"/>.
+/// door state is never copied here. Exploration reaches shaders as the <c>fog_*</c> global uniforms
+/// (<c>fog_of_war.gdshaderinc</c>), so the fog and the silhouettes drawn above it read one source. The fade clock is
+/// pushed only while a reveal is fading in. Gameplay reads exploration through <see cref="ExplorationVisibility"/>.
 /// </summary>
 [GlobalClass]
 public partial class FloorDiscovery : Node3D
@@ -16,11 +17,24 @@ public partial class FloorDiscovery : Node3D
 	[Export(PropertyHint.Range, "4,64,0.5")] public float SightRadius { get; set; } = 24f;
 	/// <summary>How long a newly explored sample takes to fade in. Drives the shader and when this node goes idle.</summary>
 	[Export(PropertyHint.Range, "0.01,2,0.01")] public float FadeSeconds { get; set; } = 0.35f;
-	/// <summary>Authored fog presentation; each floor gets a private runtime copy and texture. Unset disables the fog surface.</summary>
+	/// <summary>How far, in world units, the fog feathers inward from explored edges. Presentation only.</summary>
+	[Export(PropertyHint.Range, "0,3,0.05")] public float FeatherWidth { get; set; } = 1f;
+	/// <summary>Authored fog surface; each floor gets a private runtime copy. Unset disables the fog surface.</summary>
 	[Export] public ShaderMaterial DiscoveryMaterial { get; set; }
 
+	/// <summary>Transparent draw order of the fog surface.</summary>
+	public const int FogRenderPriority = 120;
+	/// <summary>Draw order for door and chest x-rays, which stay readable over fogged walls. Their own discovery gates
+	/// keep them off until their tile (or, for doors, an adjacent tile) is explored, so drawing above fog leaks nothing.</summary>
+	public const int AboveFogRenderPriority = FogRenderPriority + 1;
+
 	private const double PollSeconds = 0.1;
-	private static readonly StringName ElapsedParameter = "elapsed";
+	private static readonly StringName ExplorationGlobal = "fog_exploration";
+	private static readonly StringName MapOriginGlobal = "fog_map_origin";
+	private static readonly StringName MapExtentGlobal = "fog_map_extent";
+	private static readonly StringName ElapsedGlobal = "fog_elapsed";
+	private static readonly StringName FadeSecondsGlobal = "fog_fade_seconds";
+	private static readonly StringName FeatherWidthGlobal = "fog_feather_width";
 	private static readonly StringName PlayerGroup = "player";
 
 	private GeneratedFloor _floor;
@@ -30,7 +44,6 @@ public partial class FloorDiscovery : Node3D
 	private readonly HashSet<Door> _indicatorsShown = new();
 	private Image _image;
 	private ImageTexture _texture;
-	private ShaderMaterial _material;
 	private MeshInstance3D _surface;
 	private bool _textureDirty;
 	private ulong _clockStart;
@@ -55,16 +68,19 @@ public partial class FloorDiscovery : Node3D
 			bus => bus.DoorClosed += OnDoorChanged, bus => bus.DoorClosed -= OnDoorChanged);
 	}
 
+	/// <summary>Leaves no stale fog for silhouettes in scenes without a floor.</summary>
+	public override void _ExitTree() => RenderingServer.GlobalShaderParameterSet(MapExtentGlobal, Vector2.Zero);
+
 	/// <summary>Drops the previous floor, so nothing reads its exploration while the next one generates.</summary>
 	public void Clear()
 	{
+		RenderingServer.GlobalShaderParameterSet(MapExtentGlobal, Vector2.Zero);
 		if (IsInstanceValid(_surface))
 		{
 			RemoveChild(_surface);
 			_surface.QueueFree();
 		}
 		_surface = null;
-		_material = null;
 		_texture = null;
 		_image = null;
 		_model = null;
@@ -106,17 +122,18 @@ public partial class FloorDiscovery : Node3D
 		_image = Image.CreateEmpty(_model.Width, _model.Height, false, Image.Format.Rgf);
 		_image.Fill(new Color(0, 0, 0, 0));
 		_texture = ImageTexture.CreateFromImage(_image);
-		_material = (ShaderMaterial)DiscoveryMaterial.Duplicate();
-		_material.RenderPriority = 120;
-		_material.SetShaderParameter("exploration", _texture);
-		_material.SetShaderParameter("fade_seconds", FadeSeconds);
+		var material = (ShaderMaterial)DiscoveryMaterial.Duplicate();
+		material.RenderPriority = FogRenderPriority;
 		Vector3I firstTile = _floor.Map.TileToWorld(0, 0);
-		_material.SetShaderParameter("map_origin", new Vector2(firstTile.X, firstTile.Z) - Vector2.One * (Room.TileSize * 0.5f));
-		_material.SetShaderParameter("map_extent", new Vector2(_floor.Map.Width * Room.TileSize, _floor.Map.Height * Room.TileSize));
+		RenderingServer.GlobalShaderParameterSet(ExplorationGlobal, _texture);
+		RenderingServer.GlobalShaderParameterSet(FadeSecondsGlobal, FadeSeconds);
+		RenderingServer.GlobalShaderParameterSet(FeatherWidthGlobal, FeatherWidth);
+		RenderingServer.GlobalShaderParameterSet(MapOriginGlobal, new Vector2(firstTile.X, firstTile.Z) - Vector2.One * (Room.TileSize * 0.5f));
+		RenderingServer.GlobalShaderParameterSet(MapExtentGlobal, new Vector2(_floor.Map.Width * Room.TileSize, _floor.Map.Height * Room.TileSize));
 		_surface = new MeshInstance3D
 		{
 			Name = "DiscoverySurface", Mesh = new QuadMesh { Size = Vector2.One * 2 },
-			MaterialOverride = _material, ExtraCullMargin = 16384,
+			MaterialOverride = material, ExtraCullMargin = 16384,
 			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off, IgnoreOcclusionCulling = true,
 		};
 		AddChild(_surface);
@@ -156,7 +173,7 @@ public partial class FloorDiscovery : Node3D
 			_textureDirty = false;
 		}
 		float clock = Clock;
-		_material.SetShaderParameter(ElapsedParameter, clock);
+		RenderingServer.GlobalShaderParameterSet(ElapsedGlobal, clock);
 		if (clock > _fadeUntil) SetProcess(false);
 	}
 

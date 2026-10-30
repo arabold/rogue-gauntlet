@@ -37,7 +37,7 @@ public partial class ActorFrozenStatusTest
 			AssertBool(statuses.ApplyStatus(condition, first, 5)).IsTrue();
 			AssertBool(interrupted).IsTrue();
 			AssertBool(gate.IsStatusLocked).IsTrue();
-			AssertBool(frozen.Animation.Active).IsFalse();
+			AssertInt((int)frozen.Animation.ProcessMode).IsEqual((int)Node.ProcessModeEnum.Disabled);
 			AssertInt(frozen.Effects.LeaseCount).IsEqual(1);
 			AssertInt((int)gate.TryAcquire(ActorActionKind.Dodge, ActorActionPhase.Active, null, out _)).IsEqual((int)ActorActionRequestResult.Disabled);
 			statuses.ApplyStatus(condition, first, 8);
@@ -49,9 +49,28 @@ public partial class ActorFrozenStatusTest
 			AssertBool(gate.IsStatusLocked).IsTrue();
 			statuses.RemoveStatuses(second);
 			AssertBool(gate.IsStatusLocked).IsFalse();
-			AssertBool(frozen.Animation.Active).IsTrue();
+			AssertInt((int)frozen.Animation.ProcessMode).IsNotEqual((int)Node.ProcessModeEnum.Disabled);
 			AssertInt(frozen.Effects.LeaseCount).IsEqual(0);
 		}
+	}
+
+	[TestCase]
+	public async Task ThawingResumesThePoseInsteadOfReplayingTheSpawn()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 5);
+		harness.SpawnMonster();
+		var monster = harness.Monster;
+		var frozen = monster.GetNode<FrozenStatusComponent>("FrozenStatusComponent");
+		var playback = (AnimationNodeStateMachinePlayback)frozen.Animation.Get("parameters/playback");
+		await TestFactories.AwaitPhysicsUntil(runner, () => playback.GetCurrentNode() == "Idle");
+		var condition = GD.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
+		var source = new object();
+		AssertBool(monster.BuffController.ApplyStatus(condition, source, 5)).IsTrue();
+		await runner.SimulateFrames(5, 20);
+		monster.BuffController.RemoveStatuses(source);
+		await runner.SimulateFrames(5, 20);
+		AssertString(playback.GetCurrentNode()).IsEqual("Idle");
 	}
 
 	[TestCase]

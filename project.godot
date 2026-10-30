@@ -285,3 +285,30 @@ common/physics_interpolation=true
 
 renderer/rendering_method="mobile"
 textures/vram_compression/import_etc2_astc=true
+
+[shader_globals]
+
+fog_exploration={
+"type": "sampler2D",
+"value": ""
+}
+fog_map_origin={
+"type": "vec2",
+"value": Vector2(0, 0)
+}
+fog_map_extent={
+"type": "vec2",
+"value": Vector2(0, 0)
+}
+fog_elapsed={
+"type": "float",
+"value": 1.0
+}
+fog_fade_seconds={
+"type": "float",
+"value": 0.35
+}
+fog_feather_width={
+"type": "float",
+"value": 1.0
+}

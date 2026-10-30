@@ -6,7 +6,8 @@ public partial class PlayerStats : ObservableResource
 {
 	// Active stat modifiers contributed by buffs and equipped items, keyed by the object
 	// that registered them so each source can be reversed cleanly without float drift.
-	private readonly List<(object Source, StatModifier Modifier)> _modifiers = new();
+	// Hand-local entries are a weapon's attack stats, which count only for attacks made with that weapon.
+	private readonly List<(object Source, StatModifier Modifier, bool HandLocal)> _modifiers = new();
 
 	/// <summary>Registers a single modifier under <paramref name="source"/>.</summary>
 	public void AddModifier(object source, StatModifier modifier)
@@ -16,12 +17,21 @@ public partial class PlayerStats : ObservableResource
 			return;
 		}
 
-		_modifiers.Add((source, modifier));
+		_modifiers.Add((source, modifier, false));
 		EmitChanged();
 	}
 
 	/// <summary>Registers all non-null modifiers under <paramref name="source"/>.</summary>
-	public void AddModifiers(object source, IEnumerable<StatModifier> modifiers)
+	public void AddModifiers(object source, IEnumerable<StatModifier> modifiers) => Register(source, modifiers, false);
+
+	/// <summary>
+	/// Registers a worn weapon's modifiers. Its attack stats (damage range and crit chance) stay out of the character's
+	/// stats and count only for attacks made with it (<see cref="ResolveAttack"/>), so two weapons never add their
+	/// damage together. Its other modifiers, such as attributes, apply character-wide.
+	/// </summary>
+	public void AddWeaponModifiers(Weapon weapon, IEnumerable<StatModifier> modifiers) => Register(weapon, modifiers, true);
+
+	private void Register(object source, IEnumerable<StatModifier> modifiers, bool isWeapon)
 	{
 		if (modifiers == null)
 		{
@@ -33,7 +43,7 @@ public partial class PlayerStats : ObservableResource
 		{
 			if (modifier != null)
 			{
-				_modifiers.Add((source, modifier));
+				_modifiers.Add((source, modifier, isWeapon && IsAttackStat(modifier.Stat)));
 				added = true;
 			}
 		}
@@ -43,6 +53,8 @@ public partial class PlayerStats : ObservableResource
 			EmitChanged();
 		}
 	}
+
+	private static bool IsAttackStat(StatType stat) => stat is StatType.MinDamage or StatType.MaxDamage or StatType.CritChance;
 
 	/// <summary>Removes every modifier registered under <paramref name="source"/>.</summary>
 	public void RemoveModifiersFrom(object source)
@@ -56,15 +68,16 @@ public partial class PlayerStats : ObservableResource
 
 	/// <summary>
 	/// Folds the active modifiers for one stat into a base value, additive before
-	/// multiplicative: (base + Σflat) * (1 + Σpercent).
+	/// multiplicative: (base + Σflat) * (1 + Σpercent). Hand-local modifiers count only
+	/// when they belong to <paramref name="weapon"/>.
 	/// </summary>
-	private float ResolveStat(StatType stat, float baseValue)
+	private float ResolveStat(StatType stat, float baseValue, Weapon weapon = null)
 	{
 		float flat = 0f;
 		float percent = 0f;
-		foreach ((object _, StatModifier modifier) in _modifiers)
+		foreach ((object source, StatModifier modifier, bool handLocal) in _modifiers)
 		{
-			if (modifier.Stat != stat)
+			if (modifier.Stat != stat || (handLocal && !ReferenceEquals(source, weapon)))
 			{
 				continue;
 			}
@@ -126,10 +139,19 @@ public partial class PlayerStats : ObservableResource
 	public float Speed => ResolveStat(StatType.Speed, BaseSpeed);
 	public float MaxHealth => ResolveStat(StatType.MaxHealth, BaseMaxHealth + Vitality * Coefficient(p => p.HealthPerVitality));
 
-	// Attack Stats
-	public float MinDamage => ResolveStat(StatType.MinDamage, BaseMinDamage + DamageFromAttributes);
-	public float MaxDamage => ResolveStat(StatType.MaxDamage, BaseMaxDamage + DamageFromAttributes);
-	public float CritChance => ResolveStat(StatType.CritChance, BaseCritChance + Dexterity * Coefficient(p => p.CritChancePerDexterity));
+	// Attack stats of the character alone, as for an unarmed attack; ResolveAttack adds one weapon's own stats.
+	public float MinDamage => ResolveAttack(null).MinDamage;
+	public float MaxDamage => ResolveAttack(null).MaxDamage;
+	public float CritChance => ResolveAttack(null).CritChance;
+
+	/// <summary>
+	/// Damage range and crit chance for an attack made with <paramref name="weapon"/>, or unarmed when null: the
+	/// character's stats with only that weapon's attack stats folded into the same sums.
+	/// </summary>
+	public AttackStats ResolveAttack(Weapon weapon) => new(
+		ResolveStat(StatType.MinDamage, BaseMinDamage + DamageFromAttributes, weapon),
+		ResolveStat(StatType.MaxDamage, BaseMaxDamage + DamageFromAttributes, weapon),
+		ResolveStat(StatType.CritChance, BaseCritChance + Dexterity * Coefficient(p => p.CritChancePerDexterity), weapon));
 
 	// Defense Stats
 	public float Armor => ResolveStat(StatType.Armor, BaseArmor);
@@ -232,3 +254,6 @@ public partial class PlayerStats : ObservableResource
 		EmitChanged();
 	}
 }
+
+/// <summary>The resolved damage range and crit chance of one attack; see <see cref="PlayerStats.ResolveAttack"/>.</summary>
+public readonly record struct AttackStats(float MinDamage, float MaxDamage, float CritChance);

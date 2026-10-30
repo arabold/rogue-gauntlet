@@ -4,7 +4,11 @@ using Godot;
 [GlobalClass]
 public partial class FloatingLabel : Sprite3D
 {
+	/// <summary>Draw order for world labels (loot names, encounter titles), which stay under the fog.</summary>
 	public const int LabelRenderPriority = 20;
+	/// <summary>Draw order for this interaction prompt: above the fog and the door/chest x-rays. Prompts only show for
+	/// an interactive in range and line of sight, so drawing over fog reveals nothing.</summary>
+	public const int PromptRenderPriority = FloorDiscovery.AboveFogRenderPriority + 1;
 
 	/// <summary>
 	/// The text to display.
@@ -66,7 +70,7 @@ public partial class FloatingLabel : Sprite3D
 		// The editor keeps the scene's own viewport texture. Runtime changes made there would be saved as overrides into
 		// every scene that instances this label, with a viewport path that only resolves inside this scene.
 		if (Engine.IsEditorHint()) return;
-		RenderPriority = LabelRenderPriority;
+		RenderPriority = PromptRenderPriority;
 		NoDepthTest = true;
 		var subViewport = GetNode<SubViewport>("SubViewport");
 		Texture = subViewport.GetTexture();

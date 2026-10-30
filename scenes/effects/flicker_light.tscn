@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://bkpudkppdj568"]
+[gd_scene load_steps=3 format=3 uid="uid://bkpudkppdj568"]
 
 [ext_resource type="Script" uid="uid://b057bpmpc54l5" path="res://scenes/effects/FlickerLight.cs" id="1_6oxul"]
+[ext_resource type="Resource" uid="uid://bithpkdcvodbw" path="res://scenes/effects/light_flicker/torch.tres" id="2_torch"]
 
 [node name="FlickerLight" type="OmniLight3D"]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
@@ -14,3 +15,4 @@ shadow_opacity = 0.75
 distance_fade_enabled = true
 omni_range = 15.0
 script = ExtResource("1_6oxul")
+Flicker = ExtResource("2_torch")

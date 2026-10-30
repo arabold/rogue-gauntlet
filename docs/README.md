@@ -29,7 +29,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Gameplay item catalog](item-catalog.md) | All active definitions, effect families, source budgets, access keys/picks and deferred tools |
 | [Randomness and seeds](randomness-and-seeds.md) | Existing run/level seeds, generation RNG, loot RNG, identification, and saved world changes; isolation and current persistence limits |
 | [Door access](door-access.md) | Implemented locks, consumable keys/picks, colored door markers, secret pockets, discovery and saved access state |
-| [Level design](level-design.md) | Procedural layouts, reusable arrangements, room authoring, fog of war and encounters |
+| [Level design](level-design.md) | Procedural layouts, reusable arrangements, room authoring, fog of war, encounters and light flicker |
 | [Stats and itemization](stats-and-itemization.md) | Attributes, modifiers, equipment tiers, loot rolls, and enchantment |
 | [Item identification](item-identification-system.md) | Per-run disguises, discovery, jewelry, and scroll targeting |
 | [Weapon attacks](weapon-attack-system.md) | Existing weapon and attack behavior |
@@ -50,6 +50,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Potion and scroll feedback](specs/consumable-feedback-plan.md) | Proposed unique activation signature for all 20 potion/scroll types, with world and screen channels and catalog coverage checks |
 | [Actor and item VFX](specs/actor-item-vfx-plan.md) | Remaining visual-quality/skin-choice acceptance, GPU timing and in-game readability review |
 | [Combat redesign](specs/combat-redesign-plan.md) | Remaining combat work: a Warden guard-breaking attack and guard walking, plus open tuning risks |
+| [Off-hand weapons](specs/off-hand-weapons-plan.md) | Two alternatives for off-hand weapons: a passive off-hand damage bonus, or animated dual-wield with an off-hand action replacing the guard input (blocked on a left-hand attack clip) |
 | [Attack status effects](specs/attack-status-effects-plan.md) | Proposed on-hit status payloads, actor-agnostic buffs for monsters and a monster status tint; first slice lets venomous monster attacks poison the player |
 | [Actor status integration](specs/actor-status-integration-plan.md) | Shared condition ownership and frozen-state integration; later attack and spell delivery |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |

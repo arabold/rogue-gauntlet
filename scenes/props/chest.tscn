@@ -11,7 +11,7 @@
 [ext_resource type="Shader" path="res://scenes/props/door_xray.gdshader" id="door_xray_shader"]
 
 [sub_resource type="ShaderMaterial" id="ChestXrayMaterial"]
-render_priority = 8
+render_priority = 121
 shader = ExtResource("door_xray_shader")
 shader_parameter/xray_color = Color(1, 0.72, 0.3, 0.85)
 

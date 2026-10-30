@@ -10,20 +10,8 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class TorchExplorationGateTest
 {
-	private static Node3D Torch(string path, Vector3 position, float yaw)
-	{
-		var torch = GD.Load<PackedScene>(path).Instantiate<Node3D>();
-		torch.Position = position;
-		torch.RotateY(yaw);
-		return torch;
-	}
 	private static ExplorationGateComponent Gate(Node torch) => torch.FindChildren("*", nameof(ExplorationGateComponent), true, false)
 		.OfType<ExplorationGateComponent>().Single();
-	private static void AssertEffects(Node torch, bool visible)
-	{
-		AssertBool(torch.FindChild("Fire", true, false) is Node3D { } fire && fire.IsVisibleInTree()).IsEqual(visible);
-		AssertBool(torch.FindChild("FlickerLight", true, false) is OmniLight3D { } light && light.IsVisibleInTree()).IsEqual(visible);
-	}
 	[TestCase]
 	public async Task TorchStaysDarkUntilItsOwnTileIsExplored()
 	{
@@ -31,35 +19,35 @@ public class TorchExplorationGateTest
 		await runner.SimulateFrames(2);
 		var (level, map) = TestFactories.UngeneratedLevel();
 		var region = map.GetNode<Node3D>("NavigationRegion3D");
-		var lit = Torch("res://scenes/props/torch_mounted.tscn", new Vector3(8, 2.2f, 8), Mathf.Pi / 2);
-		var unlit = Torch("res://scenes/levels/arrangements/wall/wall_torch_unlit.tscn", new Vector3(-8, 2.2f, -8), 0);
+		var lit = TestFactories.Torch(TestFactories.LitTorch, new Vector3(8, 2.2f, 8), Mathf.Pi / 2);
+		var unlit = TestFactories.Torch(TestFactories.UnlitTorch, new Vector3(-8, 2.2f, -8), 0);
 		region.AddChild(lit);
 		region.AddChild(unlit);
 		TestFactories.AddToSceneTree(level);
-		AssertEffects(lit, false); // An initializing level fails closed.
+		TestFactories.AssertTorchEffects(lit, false); // An initializing level fails closed.
 		var floor = TestFactories.StartEmptyFloor(level, map);
 		await runner.SimulateFrames(3);
-		AssertEffects(lit, false);
+		TestFactories.AssertTorchEffects(lit, false);
 		// Uncovering a neighboring cell must not expose the flame rising above this cell's cap.
 		TestFactories.RevealTileAt(level.Discovery, floor.Map, Gate(lit).GlobalPosition + Vector3.Right * 4);
-		await runner.SimulateFrames(2); AssertEffects(lit, false);
+		await runner.SimulateFrames(2); TestFactories.AssertTorchEffects(lit, false);
 		TestFactories.RevealTileAt(level.Discovery, floor.Map, Gate(lit).GlobalPosition);
 		TestFactories.RevealTileAt(level.Discovery, floor.Map, Gate(unlit).GlobalPosition);
 		await runner.SimulateFrames(2);
-		AssertEffects(lit, true);
+		TestFactories.AssertTorchEffects(lit, true);
 		AssertBool(lit.IsVisibleInTree()).IsTrue();
 		// The gate restores the torch, not the unlit variant's authored-off flame and light.
 		AssertBool(unlit.IsVisibleInTree()).IsTrue();
-		AssertEffects(unlit, false);
+		TestFactories.AssertTorchEffects(unlit, false);
 	}
 	[TestCase]
 	public async Task StandaloneTorchPreviewIsLit()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
 		await runner.SimulateFrames(2);
-		var torch = TestFactories.AddToSceneTree(Torch("res://scenes/props/torch_mounted.tscn", Vector3.Zero, 0));
+		var torch = TestFactories.AddToSceneTree(TestFactories.Torch());
 		await runner.SimulateFrames(2);
-		AssertEffects(torch, true);
+		TestFactories.AssertTorchEffects(torch, true);
 	}
 	[TestCase(false), TestCase(true)]
 	public async Task EveryGeneratedTorchLightsOnceItsRoomIsExplored(bool debugRevealAll)

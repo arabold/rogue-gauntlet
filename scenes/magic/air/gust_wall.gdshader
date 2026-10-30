@@ -6,13 +6,14 @@ render_mode unshaded, blend_mix, cull_disabled, depth_draw_never, shadows_disabl
 // Rising wind wall cut into thin, crisp swoosh streaks so characters behind it stay visible.
 uniform sampler2D noise_texture : repeat_enable, filter_linear;
 uniform sampler2D color_ramp : source_color, filter_nearest, repeat_disable;
-uniform float progress = 0.0;
+// Fraction of the gameplay radius the wave has reached, fed by its timeline's WaveFront so hits follow the drawn front.
+uniform float wave_front = 0.0;
 uniform float effect_fade = 1.0;
 uniform float brightness = 1.1;
 
 void vertex() {
-	float expansion = 1.0 - pow(1.0 - min(progress * 1.7, 1.0), 2.0);
-	VERTEX.xz *= mix(0.1, 1.0, expansion);
+	// The wall mesh stands at the gameplay radius, so it rides the ground wave's front.
+	VERTEX.xz *= wave_front;
 	VERTEX.y += 0.18 * sin(UV.x * TAU * 5.0 - TIME * 3.0) * sin(UV.y * PI);
 }
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3]
+[gd_scene load_steps=28 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/FallingBodyMotion.cs" id="fall"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
@@ -16,6 +16,7 @@
 [ext_resource type="Material" path="res://scenes/magic/fireball/toon_flame_card.tres" id="flame_card"]
 [ext_resource type="Material" path="res://scenes/magic/fireball/toon_smoke_card.tres" id="smoke_card"]
 [ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material_res"]
+[ext_resource type="Resource" uid="uid://bypjdcf5nuu8i" path="res://scenes/effects/light_flicker/flame.tres" id="light_flicker"]
 
 [sub_resource type="ShaderMaterial" id="crown_mat"]
 render_priority = 1
@@ -146,7 +147,7 @@ omni_range = 5.5
 
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
 script = ExtResource("timeline")
-LightFlicker = 1
+LightFlicker = ExtResource("light_flicker")
 Surfaces = []
 Lights = [NodePath("../Meteor/Light")]
 Duration = 1.6

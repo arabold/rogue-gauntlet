@@ -12,6 +12,8 @@ public partial class FireBurstMotion : Node
 	[Export] public float StartingRadius { get; set; } = .1f;
 	private int _level = 1;
 	public void ConfigureLevel(int level) => _level = Mathf.Clamp(level, 1, 3);
+	/// <summary>The ribbons' expansion, which reaches the gameplay radius at full scale; area contacts follow it.</summary>
+	public AreaFront Front => new(0, ExpansionEnd * Timeline.Duration, StartingRadius, 1, ExpansionPower);
 	public override void _Ready()
 	{
 		if (Timeline == null || Ribbons.Length == 0 || System.Array.Exists(Ribbons, ribbon => ribbon == null))
@@ -23,8 +25,7 @@ public partial class FireBurstMotion : Node
 	public override void _Process(double delta)
 	{
 		if (!Timeline.Started) return;
-		float expansion = 1f - Mathf.Pow(1f - Mathf.Clamp(Timeline.Progress / Mathf.Max(ExpansionEnd, .001f), 0, 1), ExpansionPower);
-		float radius = Mathf.Lerp(StartingRadius, 1f, expansion);
+		float radius = Front.Travel(Timeline.Elapsed);
 		foreach (var ribbon in Ribbons) ribbon.Scale = new Vector3(radius, Mathf.Lerp(.45f, 1f, radius), radius);
 	}
 }

@@ -6,3 +6,4 @@
 script = ExtResource("script")
 SpellName = "Flame Burst"
 Element = 1
+PushByLevel = PackedFloat32Array(2, 2, 2)

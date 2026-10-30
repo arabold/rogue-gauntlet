@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3]
+[gd_scene load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://scenes/attacks/Projectile.cs" id="1_projectile"]
 [ext_resource type="PackedScene" uid="uid://blsurcr8183cv" path="res://scenes/components/hit_box_component.tscn" id="2_hitbox"]
@@ -17,7 +17,8 @@
 [ext_resource type="Material" path="res://scenes/magic/fireball/toon_flame_card.tres" id="flame_card"]
 [ext_resource type="Material" path="res://scenes/magic/fireball/toon_smoke_card.tres" id="smoke_card"]
 [ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material_res"]
-[ext_resource type="Script" path="res://scenes/magic/shared/FlickeringSpellLight.cs" id="flicker_light"]
+[ext_resource type="Script" uid="uid://b057bpmpc54l5" path="res://scenes/effects/FlickerLight.cs" id="flicker_light"]
+[ext_resource type="Resource" uid="uid://bypjdcf5nuu8i" path="res://scenes/effects/light_flicker/flame.tres" id="light_flicker"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
 radius = 0.42
@@ -216,8 +217,9 @@ TailWidthScale = 0.08
 MeshUpdateInterval = 0.025
 
 [node name="Light" type="OmniLight3D" parent="Pivot"]
-script = ExtResource("flicker_light")
 light_color = Color(1, 0.42, 0.1, 1)
-light_energy = 2.2
 light_specular = 0.15
 omni_range = 4.6
+script = ExtResource("flicker_light")
+Energy = 2.2
+Flicker = ExtResource("light_flicker")

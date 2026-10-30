@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/shared/TravelingEffectVisual.cs" id="ball"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" path="res://scenes/magic/air/toon_storm_ramp.tres" id="storm_ramp"]
 [ext_resource type="Texture2D" path="res://scenes/magic/air/toon_storm_spark_life.tres" id="spark_life"]
 [ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material_res"]
+[ext_resource type="Resource" uid="uid://v8gnnl1bnqv5" path="res://scenes/effects/light_flicker/electric.tres" id="light_flicker"]
 
 [sub_resource type="ShaderMaterial" id="core_material"]
 shader = ExtResource("core_shader")
@@ -100,7 +101,7 @@ omni_range = 4.0
 
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
 script = ExtResource("timeline")
-LightFlicker = 2
+LightFlicker = ExtResource("light_flicker")
 Surfaces = [NodePath("../Core"), NodePath("../Shell"), NodePath("../Trail")]
 Lights = [NodePath("../Light")]
 Emitters = [NodePath("../Sparks")]

@@ -13,7 +13,7 @@ viewport_path = NodePath("SubViewport")
 layers = 256
 billboard = 1
 no_depth_test = true
-render_priority = 20
+render_priority = 122
 texture = SubResource("ViewportTexture_ki1k4")
 script = ExtResource("1_lm8es")
 

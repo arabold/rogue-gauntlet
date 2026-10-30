@@ -8,13 +8,17 @@ render_mode unshaded, blend_mix, cull_disabled, depth_draw_never, shadows_disabl
 uniform sampler2D noise_texture : repeat_enable, filter_linear;
 uniform sampler2D color_ramp : source_color, filter_nearest, repeat_disable;
 uniform float progress = 0.0;
+// Fraction of the gameplay radius the wave has reached, fed by its timeline's WaveFront so hits follow the drawn front.
+uniform float wave_front = 0.0;
+// Plane distance (0 centre, 1 border) at which the gameplay radius lies.
+uniform float wave_edge = 0.9;
 uniform float effect_fade = 1.0;
 uniform float brightness = 1.2;
 
 void fragment() {
 	vec2 p = (UV - 0.5) * 2.0;
 	float r = length(p);
-	float front = mix(0.08, 0.9, 1.0 - pow(1.0 - progress, 2.0));
+	float front = wave_front * wave_edge;
 	if (r > front + 0.08 || r < front - 0.4) discard;
 	if (area_is_blocked(VERTEX, INV_VIEW_MATRIX)) discard;
 	float angle = atan(p.y, p.x);

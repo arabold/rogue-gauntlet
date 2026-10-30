@@ -18,9 +18,7 @@ public class DiscoveryPersistenceTest
 	{
 		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.AllProceduralWithDoors());
 		level.Generate();
-		var material = (ShaderMaterial)level.Discovery.GetNode<MeshInstance3D>("DiscoverySurface").MaterialOverride;
-		var texture = material.GetShaderParameter("exploration").As<ImageTexture>();
-		AssertFloat(texture.GetImage().GetPixel(0, 0).R).IsEqual(0);
+		AssertInt(level.CaptureExploration().ExploredSamples.Count).IsEqual(0);
 		Vector3 position = level.Floor.Arrival.GlobalPosition;
 		level.Discovery.RevealFrom(position);
 		var saved = JsonSerializer.Deserialize<RevealedLevelSaveData>(JsonSerializer.Serialize(level.CaptureExploration()));

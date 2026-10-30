@@ -115,15 +115,18 @@ public partial class EquipableItem : BuffedItem
 	{
 		RevealAttributes();
 		ApplyBuff(player);
-		player.Stats.AddModifiers(this, StatModifiers);
+		RegisterStats(player.Stats);
 	}
 
 	/// <summary>Re-registers a worn item's stats after an in-place change such as enchanting or lifting a curse.</summary>
 	public void RefreshStats(Player player)
 	{
 		player.Stats.RemoveModifiersFrom(this);
-		player.Stats.AddModifiers(this, StatModifiers);
+		RegisterStats(player.Stats);
 	}
+
+	/// <summary>Registers everything this item grants while worn under the item instance.</summary>
+	protected virtual void RegisterStats(PlayerStats stats) => stats.AddModifiers(this, StatModifiers);
 
 	/// <summary>Reveals this item's attributes (affixes and rolled value); emits <c>Changed</c> only if they were hidden.</summary>
 	public void RevealAttributes() => AttributesKnown = true;

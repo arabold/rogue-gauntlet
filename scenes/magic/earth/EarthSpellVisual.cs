@@ -12,6 +12,8 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 	public float StartDelay { get => Timeline.StartDelay; set => Timeline.StartDelay = value; }
 	public bool Cosmetic { get; set; }
 	[Export] public Shader WaveShader { get; set; }
+	/// <summary>Tremor's seismic wave carries its damage; spikes strike as they erupt, so they reach the whole area at once.</summary>
+	public AreaFront Front => Kind == EarthKind.Tremor ? Timeline.Front : AreaFront.Instant;
 	[Export] public Shader CrackShader { get; set; }
 	[Export] public Shader AreaStoneShader { get; set; }
 	[Export] public Shader AreaRingShader { get; set; }
@@ -50,7 +52,7 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 	public bool ConfigureArea(int level, float radius)
 	{
 		if (Kind is not (EarthKind.Tremor or EarthKind.Spikes) || Timeline == null || Timeline.Sustained || !float.IsFinite(Timeline.Duration) || Timeline.Duration <= 0
-			|| WaveShader == null || AreaStoneShader == null || AreaRingShader == null || AreaDustShader == null
+			|| WaveShader == null || Timeline.WaveFront == null || AreaStoneShader == null || AreaRingShader == null || AreaDustShader == null
 			|| !float.IsFinite(radius) || radius <= 0) return false;
 		ConfigureLevel(level); _areaRadius = radius; return true;
 	}
@@ -198,7 +200,9 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 			for (int i = 0; i < _rocks.Count; i++) _rocks[i].Scale = _rockScales[i] * new Vector3(1, erupt * shrink, 1);
 		}
 		foreach (var ring in _rings) { float scale = Mathf.Lerp(.35f, 1, Mathf.Clamp(progress * 2, 0, 1)); ring.Scale = new Vector3(scale, 1, scale); }
-		_waveMaterial?.SetShaderParameter("progress", Kind == EarthKind.Rockfall ? Mathf.Clamp((time - Fall.FlightTime) / 1.3f, 0, 1) : progress);
+		float waveProgress = Kind == EarthKind.Rockfall ? Mathf.Clamp((time - Fall.FlightTime) / 1.3f, 0, 1) : progress;
+		_waveMaterial?.SetShaderParameter("progress", waveProgress);
+		_waveMaterial?.SetShaderParameter("wave_front", Timeline.WaveFront?.At(waveProgress) ?? 0);
 		float crackStart = Kind == EarthKind.Rockfall ? Fall.FlightTime : .1f;
 		_crackMaterial?.SetShaderParameter("progress", Mathf.Clamp((time - crackStart) / (Timeline.Duration - crackStart), 0, 1));
 		_glow.AlbedoColor = new Color(.95f, .55f, .2f, .8f * (1 - Mathf.SmoothStep(.55f, 1, progress)));
