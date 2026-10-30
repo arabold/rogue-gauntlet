@@ -124,7 +124,9 @@ black potion" renames it "Small Potion of Poison" but leaves the bottle as it lo
 
 - **Model = per-run disguise.** Every category draws its appearances from Asset Studio
   models:
-  - potions: 12 colors, each in three sizes;
+  - potions: 12 colors, each in three sizes. A color is the only cue for its type, so no two
+    may read alike; `test_potion_liquids_stay_distinguishable_and_match_across_sizes` in
+    Asset Studio enforces a minimum distance between liquid tints;
   - scrolls: 12 color-and-rune models, paired with the NetHack-style labels;
   - rings and amulets: 12 material-and-gem models each.
 

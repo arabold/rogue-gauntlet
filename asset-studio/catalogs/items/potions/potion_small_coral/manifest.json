@@ -1,9 +1,9 @@
 {
   "key": "potions/potion_small_coral",
-  "inputs": "3ecf36cd13fbd26bd637f2754020547df485513a3314d826f96f03a0e5930439",
+  "inputs": "58064ab1569880a4a05719306f3b933701b1bc12cf8a16d67dc074b7219f306a",
   "files": {
-    "potion_small_coral.glb": "05075848da5c09a5472d75915feac623abfb28bad2fcfd7c73861ad46b4c0165",
-    "lineup.png": "8b1065cb568c28a33a399f4d0c1b6a3f7cc47bbdd6e86ac8ca0e708f3b8f9a2d"
+    "potion_small_coral.glb": "8ab03d431ca24ecc13890af52c4e8cb29b04e66439433a237ec2467a6c331e96",
+    "lineup.png": "fb5cf96985297cdd0a86041ccf965694accc075f6383573cb52b33a199f82328"
   },
   "metadata": {
     "report": {
@@ -109,9 +109,9 @@
           125
         ],
         "liquid": [
-          246,
-          147,
-          114
+          252,
+          150,
+          162
         ]
       },
       "materials": {

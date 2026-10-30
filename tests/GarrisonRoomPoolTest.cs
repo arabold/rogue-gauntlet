@@ -109,6 +109,30 @@ public class GarrisonRoomPoolTest
 		}
 	}
 
+	/// <summary>
+	/// Every configured library length must survive packing onto gameplay floors. A size the map can never place is
+	/// silently rebuilt as another room, which left one fixed library layout on every floor.
+	/// </summary>
+	[TestCase]
+	public async Task EveryLibraryLengthLandsOnGameplayFloors()
+	{
+		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
+		await runner.SimulateFrames(2);
+		var level = (Level)runner.Scene();
+		var library = GD.Load<LibraryRoomGenerator>("res://scenes/levels/garrison/rooms/library/garrison_library_generator.tres");
+		var placed = new HashSet<int>();
+		for (ulong runSeed = 1; runSeed <= 40 && !placed.SetEquals(library.LengthTiles); runSeed++)
+		{
+			level.ConfigureGeneration(new RunState(runSeed), 1, null, null);
+			level.Generate();
+			placed.UnionWith(level.MapGenerator.NavigationRegion.GetChildren().OfType<Room>()
+				.Where(room => room.Generator is LibraryRoomGenerator)
+				.Select(room => Mathf.Max(room.Map.Width, room.Map.Height)));
+			await runner.SimulateFrames(1);
+		}
+		AssertArray(placed.Order().ToArray()).IsEqual(library.LengthTiles.Order().ToArray());
+	}
+
 	private static bool IsGarrisonPurpose(RoomPurpose purpose) => purpose is RoomPurpose.Chamber
 		or RoomPurpose.GreatHall or RoomPurpose.Colonnade or RoomPurpose.RuinedCollapse;
 

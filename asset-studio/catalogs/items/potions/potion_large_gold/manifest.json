@@ -1,9 +1,9 @@
 {
   "key": "potions/potion_large_gold",
-  "inputs": "4a6fdb133800c0cd76c5c02a6ad13440b6779b32094f626bfcfefbdd0fb0e51b",
+  "inputs": "c9210137500998830c7894dc88a42a810c6c36ef3ba16029f1e1fa85a3d00176",
   "files": {
-    "potion_large_gold.glb": "f45533b28e5072df2c25174d946deed62d3d0d071850f7a8a311827919d369a5",
-    "lineup.png": "6394a7931b5b01e7356d9718eeab0e9a4fe635c5c8a001a7b5b5f613a22918ef"
+    "potion_large_gold.glb": "4289f90c03728a9e3367e8facfbd6ba94e387abfe20ba83969b48a58ced1ce9d",
+    "lineup.png": "d856a120be63bb1314323a30a482d0b9b51bd937706226ff1cb9f4670e223cd2"
   },
   "metadata": {
     "report": {
@@ -119,9 +119,9 @@
           125
         ],
         "liquid": [
-          249,
-          170,
-          78
+          245,
+          205,
+          35
         ]
       },
       "materials": {

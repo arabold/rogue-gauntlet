@@ -12,20 +12,26 @@ public class RoomConceptTest
 {
 	private const string Root = "res://scenes/levels/garrison/";
 
-	[TestCase("dining", 1)]
-	[TestCase("dining", 3)]
-	[TestCase("barracks", 2)]
-	[TestCase("barracks", 4)]
-	[TestCase("library", 5)]
-	[TestCase("library", 7)]
-	public void RequiredCompositionScalesAndRotatesWithoutLosingItsEntrances(string kind, int size)
+	[TestCase("dining", 1, 3)]
+	[TestCase("dining", 3, 3)]
+	[TestCase("barracks", 2, 3)]
+	[TestCase("barracks", 4, 3)]
+	[TestCase("library", 5, 5)]
+	[TestCase("library", 7, 5)]
+	[TestCase("library", 7, 7)]
+	public void RequiredCompositionScalesAndRotatesWithoutLosingItsEntrances(string kind, int size, int width)
 	{
 		var recipe = TestFactories.Load<RoomGenerator>($"{Root}rooms/{kind}/garrison_{kind}_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		if (recipe is DiningRoomGenerator dining) dining.TableRows = [size];
-		if (recipe is BarracksRoomGenerator barracks) barracks.BedPairs = [size];
-		if (recipe is LibraryRoomGenerator library) library.Sizes = [size];
+		if (recipe is BarracksRoomGenerator barracks) { barracks.BedPairs = [size]; barracks.WidthTiles = width; }
+		if (recipe is LibraryRoomGenerator library) { library.LengthTiles = [size]; library.WidthTiles = width; }
 		AssertArray(recipe.Validate()).IsEmpty();
-		int expected = kind == "dining" ? size : kind == "barracks" ? size * 2 : size == 5 ? 16 : 38;
+		int expected = kind switch
+		{
+			"dining" => size,
+			"barracks" => size * 2,
+			_ => (width, size) switch { (5, 5) => 16, (5, 7) => 24, _ => 38 },
+		};
 		for (ulong seed = 1; seed <= 2; seed++)
 		{
 			using var rng = new RandomNumberGenerator { Seed = seed };
