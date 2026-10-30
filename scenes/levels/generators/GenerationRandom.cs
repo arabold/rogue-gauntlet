@@ -17,6 +17,8 @@ public static class GenerationRandom
 	public const string Loot = "loot";
 	/// <summary>Rolls made during play without a stable source (enchanting, summons), keyed by a saved counter.</summary>
 	public const string GameplayLoot = "gameplay-loot";
+	/// <summary>Presentation-only rolls, such as where a drop lands, kept apart so they never shift gameplay streams.</summary>
+	public const string Cosmetic = "cosmetic";
 
 	/// <summary>Hashes length-delimited inputs using FNV-1a, independently of process hash seeds.</summary>
 	public static ulong DeriveSeed(ulong levelSeed, string domain, string sourceId = "")

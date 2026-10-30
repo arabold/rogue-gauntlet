@@ -15,4 +15,26 @@ public static class VisualHelper
 			if (IsHelper(current)) return true;
 		return false;
 	}
+
+	/// <summary>
+	/// Bounds of the meshes under <paramref name="root"/> in <paramref name="space"/>'s local space, skipping helper
+	/// subtrees. Meshes only: particle visibility bounds are generous. Null when there are no meshes.
+	/// </summary>
+	public static Aabb? MeshBounds(Node root, Node3D space)
+	{
+		Aabb? bounds = null;
+		MergeMeshBounds(root, space.GlobalTransform.AffineInverse(), ref bounds);
+		return bounds;
+	}
+
+	private static void MergeMeshBounds(Node node, Transform3D toSpace, ref Aabb? bounds)
+	{
+		if (IsHelper(node)) return;
+		if (node is MeshInstance3D { Mesh: not null } mesh)
+		{
+			Aabb box = toSpace * mesh.GlobalTransform * mesh.GetAabb();
+			bounds = bounds?.Merge(box) ?? box;
+		}
+		foreach (Node child in node.GetChildren()) MergeMeshBounds(child, toSpace, ref bounds);
+	}
 }

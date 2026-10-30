@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://cvvu87irfmqm1"]
+[gd_scene load_steps=30 format=3 uid="uid://cvvu87irfmqm1"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/burning_status.tscn" id="burning_status_scene"]
 
@@ -37,8 +37,10 @@
 [ext_resource type="PackedScene" path="res://scenes/components/stone_skin_status.tscn" id="stone_status"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/editor_status_preview.tscn" id="editor_status_preview"]
+[ext_resource type="PackedScene" path="res://scenes/components/nameplate.tscn" id="nameplate"]
 
-[node name="Enemy" type="CharacterBody3D" node_paths=PackedStringArray("FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "BuffController", "WorldEffects", "Invisibility", "AttackController", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+[node name="Enemy" type="CharacterBody3D" node_paths=PackedStringArray("Nameplate", "FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "BuffController", "WorldEffects", "Invisibility", "AttackController", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+Nameplate = NodePath("Nameplate")
 BuffController = NodePath("BuffController")
 FrozenStatus = NodePath("FrozenStatusComponent")
 SlowStatus = NodePath("SlowStatusComponent")
@@ -93,10 +95,15 @@ HealthComponent = NodePath("../HealthComponent")
 MovementComponent = NodePath("../MovementComponent")
 HitEffect = ExtResource("9_d4q6w")
 
-[node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("HealthComponent", "Invisibility") instance=ExtResource("10_oansv")]
+[node name="Nameplate" parent="." node_paths=PackedStringArray("Health", "Invisibility") instance=ExtResource("nameplate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
-HealthComponent = NodePath("../HealthComponent")
+Health = NodePath("../HealthComponent")
 Invisibility = NodePath("../InvisibilityComponent")
+
+[node name="FloatingHealthBar" parent="Nameplate" node_paths=PackedStringArray("HealthComponent", "Invisibility", "ShowWithName") instance=ExtResource("10_oansv")]
+HealthComponent = NodePath("../../HealthComponent")
+Invisibility = NodePath("../../InvisibilityComponent")
+ShowWithName = NodePath("..")
 
 [node name="CombatAnimationComponent" type="Node" parent="."]
 script = ExtResource("attack_animation_script")
@@ -156,5 +163,5 @@ Effects = NodePath("../WorldEffects")
 script = ExtResource("damage_numbers")
 HurtBox = NodePath("../HurtBoxComponent")
 NumberScene = ExtResource("damage_number")
-Anchor = NodePath("../FloatingHealthBar")
+Anchor = NodePath("../Nameplate/FloatingHealthBar")
 Invisibility = NodePath("../InvisibilityComponent")

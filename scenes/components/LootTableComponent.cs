@@ -21,6 +21,15 @@ public partial class LootTableComponent : Node
 		return !string.IsNullOrEmpty(ResolvedSourceId) ? Level.CreateSourceLootRng(ResolvedSourceId) : Level.Run.CreateLootRng(Level.Seed);
 	}
 	[Export] public PackedScene LootableItemScene { get; set; }
+	/// <summary>How far drops are thrown from the source.</summary>
+	[Export] public float DropDistance { get; set; } = 1.5f;
+	/// <summary>
+	/// Width of the fan drops are thrown in, centered on the source's front (+Z, the side a chest opens to). 360 scatters
+	/// them all around, as from a corpse.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,360")] public float DropSpreadDegrees { get; set; } = 360f;
+	/// <summary>Seconds between drops leaving the source, so several come out one after another.</summary>
+	[Export] public float DropStagger { get; set; } = 0.1f;
 
 	/// <summary>Apply a monster definition before readiness without claiming or rerolling its loot.</summary>
 	public void ConfigureProfile(LootDropProfile profile) => Profile = profile;
@@ -57,12 +66,16 @@ public partial class LootTableComponent : Node
 		using var rng = CreateDropRng();
 		uint depth = Level.Depth;
 		string sourceId = ResolvedSourceId;
-		var entries = GenerateOutcome(Profile, depth, rng, string.IsNullOrEmpty(sourceId) ? System.Guid.NewGuid().ToString("N") : sourceId);
+		string dropId = string.IsNullOrEmpty(sourceId) ? System.Guid.NewGuid().ToString("N") : sourceId;
+		var entries = GenerateOutcome(Profile, depth, rng, dropId);
 		Level.ItemPersistence.IsCommitting = true;
 		try
 		{
 			_isDropped = true;
-			Vector3 position = GetOwner<Node3D>().GlobalPosition;
+			Node3D source = GetOwner<Node3D>();
+			Vector3 position = source.GlobalPosition;
+			using var scatter = GenerationRandom.Create(Level.Seed, GenerationRandom.Cosmetic, dropId);
+			float circleStart = scatter.Randf() * Mathf.Tau;
 			if (!string.IsNullOrEmpty(sourceId))
 			{
 				Level.ItemPersistence.RegisterReward(new RewardSourceSaveData
@@ -72,14 +85,26 @@ public partial class LootTableComponent : Node
 					Position = LevelItemPersistence.SavePosition(position),
 				}, entries);
 			}
-			foreach (var entry in entries)
+			for (int i = 0; i < entries.Count; i++)
 			{
 				var pickup = LootableItemScene.Instantiate<LootableItem>();
-				pickup.Item = entry.Item;
-				pickup.Quantity = entry.Quantity;
-				Level.AddWorldNode(pickup, position);
+				pickup.Item = entries[i].Item;
+				pickup.Quantity = entries[i].Quantity;
+				pickup.ThrowFrom(position, i * DropStagger);
+				Vector3 direction = DropDirection(source.GlobalBasis, i, entries.Count, circleStart);
+				Level.AddWorldNode(pickup, Level.Floor?.FindDropLanding(position, direction, DropDistance) ?? position);
 			}
 		}
 		finally { Level.ItemPersistence.IsCommitting = false; }
+	}
+
+	/// <summary>Spreads drops evenly over the fan. A full circle starts at a rolled angle, so loot does not always fly the same way.</summary>
+	private Vector3 DropDirection(Basis basis, int index, int count, float circleStart)
+	{
+		Vector3 front = (basis.Z with { Y = 0 }).Normalized();
+		float spread = Mathf.DegToRad(DropSpreadDegrees);
+		if (spread >= Mathf.Tau) return front.Rotated(Vector3.Up, circleStart + Mathf.Tau * index / count);
+		if (count == 1) return front;
+		return front.Rotated(Vector3.Up, spread * (index / (count - 1f) - 0.5f));
 	}
 }

@@ -76,20 +76,14 @@ public class WardenTest
 		boss.EnemyBehaviorComponent.AIEnabled = false;
 		var fit = boss.GetNode<LargeActorFitComponent>("LargeActorFitComponent");
 		await runner.SimulateFrames(2);
-		var title = boss.GetNode<Label3D>("BossTitle");
+		// The boss title is its nameplate's name: fog hides it with the boss.
+		AssertString(boss.Nameplate.NameLabel.Text).IsEqual("The Forsaken Warden");
 		AssertBool(boss.Visible).IsFalse();
-		AssertBool(title.Visible).IsFalse();
+		AssertBool(boss.Nameplate.NameLabel.IsVisibleInTree()).IsFalse();
 		level.Discovery.RevealRoom(fit.HomeRoomId);
 		SignalBus.EmitRoomEntered(fit.HomeRoomId);
 		await runner.SimulateFrames(1);
 		AssertBool(boss.Visible).IsTrue();
-		AssertBool(title.Visible).IsTrue();
-		GameDebug.MonsterXrayEnabled = false;
-		SignalBus.EmitXraySettingsChanged();
-		AssertBool(title.Visible).IsFalse();
-		GameDebug.MonsterXrayEnabled = true;
-		SignalBus.EmitXraySettingsChanged();
-		AssertBool(title.Visible).IsTrue();
 		var shape = (CapsuleShape3D)boss.CollisionShape.Shape;
 		AssertFloat(shape.Height).IsEqual(4.5f);
 		AssertFloat(shape.Radius).IsEqual(1);
