@@ -355,11 +355,13 @@ public partial class DebugMenu : HBoxContainer
 		LootableItem lootableItem = player.LootableItemScene.Instantiate<LootableItem>();
 		lootableItem.Item = CreateSpawnItem(_spawnableItems[(int)id]);
 		lootableItem.Quantity = 1;
-		lootableItem.WaitForPlayerExited = true;
 
+		// Thrown out of a free spot ahead of the player like a monster drop, then collected by the magnet.
 		Vector3 origin = player.GlobalPosition - player.GlobalTransform.Basis.Z.Normalized() * 2.0f;
-		Vector3 spawnPosition = level.Floor?.FindFreePositionNear(origin) ?? origin;
-		level.AddWorldNode(lootableItem, spawnPosition);
+		Vector3 source = level.Floor?.FindFreePositionNear(origin) ?? origin;
+		lootableItem.ThrowFrom(source);
+		Vector3 direction = Vector3.Back.Rotated(Vector3.Up, GD.Randf() * Mathf.Tau);
+		level.AddWorldNode(lootableItem, level.Floor?.FindDropLanding(source, direction) ?? source);
 	}
 
 	private void SetDebugMeshesEnabled(bool enabled)
