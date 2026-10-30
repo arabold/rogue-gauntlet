@@ -366,6 +366,8 @@ public sealed class GeneratedFloor
 
 	/// <summary>Headings a thrown drop tries, in degrees from its preferred one: the closest turns first.</summary>
 	private static readonly float[] DropTurns = [0f, 45f, -45f, 90f, -90f, 135f, -135f, 180f];
+	/// <summary>Shares of the full throw distance a drop tries along each heading, the full throw first.</summary>
+	private static readonly float[] DropReaches = [1f, 0.7f, 0.4f];
 	/// <summary>Height of the sight line from a drop's source to its landing spot: clear above a chest's body.</summary>
 	private const float DropSightHeight = 1.0f;
 
@@ -375,7 +377,7 @@ public sealed class GeneratedFloor
 	/// turned progressively further away. Returns the source itself when nothing nearby qualifies, so a drop falls in
 	/// place rather than through a wall or behind one, where the magnet could not reach it.
 	/// </summary>
-	public Vector3 FindDropLanding(Vector3 source, Vector3 direction, float distance = 1.5f)
+	public Vector3 FindDropLanding(Vector3 source, Vector3 direction, float distance)
 	{
 		World3D world = _world.GetWorld3D();
 		Vector3 preferred = (direction with { Y = 0 }).Normalized();
@@ -388,9 +390,9 @@ public sealed class GeneratedFloor
 		foreach (float turn in DropTurns)
 		{
 			Vector3 heading = preferred.Rotated(Vector3.Up, Mathf.DegToRad(turn));
-			foreach (float reach in (float[])[distance, distance * 0.7f, distance * 0.4f])
+			foreach (float reach in DropReaches)
 			{
-				Vector3 candidate = source + heading * reach;
+				Vector3 candidate = source + heading * (distance * reach);
 				if (IsSpawnPositionFree(candidate) && WorldSight.IsClear(world, source + sight, candidate + sight))
 				{
 					return candidate;

@@ -66,15 +66,16 @@ public partial class LootTableComponent : Node
 		using var rng = CreateDropRng();
 		uint depth = Level.Depth;
 		string sourceId = ResolvedSourceId;
-		var entries = GenerateOutcome(Profile, depth, rng, string.IsNullOrEmpty(sourceId) ? System.Guid.NewGuid().ToString("N") : sourceId);
+		string dropId = string.IsNullOrEmpty(sourceId) ? System.Guid.NewGuid().ToString("N") : sourceId;
+		var entries = GenerateOutcome(Profile, depth, rng, dropId);
 		Level.ItemPersistence.IsCommitting = true;
 		try
 		{
 			_isDropped = true;
 			Node3D source = GetOwner<Node3D>();
 			Vector3 position = source.GlobalPosition;
-			// Drawn after the outcome, so it cannot change what drops; seeded, so the same drop lands the same way.
-			float circleStart = rng.Randf() * Mathf.Tau;
+			using var scatter = GenerationRandom.Create(Level.Seed, GenerationRandom.Cosmetic, dropId);
+			float circleStart = scatter.Randf() * Mathf.Tau;
 			if (!string.IsNullOrEmpty(sourceId))
 			{
 				Level.ItemPersistence.RegisterReward(new RewardSourceSaveData
@@ -100,9 +101,10 @@ public partial class LootTableComponent : Node
 	/// <summary>Spreads drops evenly over the fan. A full circle starts at a rolled angle, so loot does not always fly the same way.</summary>
 	private Vector3 DropDirection(Basis basis, int index, int count, float circleStart)
 	{
+		Vector3 front = (basis.Z with { Y = 0 }).Normalized();
 		float spread = Mathf.DegToRad(DropSpreadDegrees);
-		float angle = spread >= Mathf.Tau ? circleStart + Mathf.Tau * index / count
-			: count > 1 ? spread * (index / (count - 1f) - 0.5f) : 0f;
-		return (basis.Z with { Y = 0 }).Normalized().Rotated(Vector3.Up, angle);
+		if (spread >= Mathf.Tau) return front.Rotated(Vector3.Up, circleStart + Mathf.Tau * index / count);
+		if (count == 1) return front;
+		return front.Rotated(Vector3.Up, spread * (index / (count - 1f) - 0.5f));
 	}
 }

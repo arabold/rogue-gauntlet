@@ -69,6 +69,23 @@ public static class TestFactories
 		return node;
 	}
 
+	/// <summary>A pickup of <paramref name="itemPath"/>'s item, ready to add to a scene.</summary>
+	public static LootableItem Pickup(string itemPath, int quantity = 1)
+	{
+		var pickup = GD.Load<PackedScene>("res://scenes/items/lootable_item.tscn").Instantiate<LootableItem>();
+		pickup.Item = ItemFactory.Create(GD.Load<Item>(itemPath));
+		pickup.Quantity = quantity;
+		return pickup;
+	}
+
+	/// <summary>A bare node in the player group, standing in for the player in proximity checks.</summary>
+	public static Node3D AddStandInPlayer()
+	{
+		var player = new Node3D();
+		player.AddToGroup("player");
+		return AddToSceneTree(player);
+	}
+
 	/// <summary>
 	/// A factory whose standard rooms are all procedurally built (entrance/exit stay
 	/// authored — they carry required gameplay content), for stress-testing the

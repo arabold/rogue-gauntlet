@@ -12,6 +12,8 @@ public partial class DebugMenu : HBoxContainer
 	private const int RestartLevelId = 3;
 	private const int KillPlayerId = 4;
 	private const int KillEnemiesId = 5;
+	/// <summary>How far a debug-spawned item is thrown: the default monster drop distance.</summary>
+	private const float DebugDropDistance = 1.5f;
 	private const int ToggleNavigationId = 6;
 	private const int ToggleCombatLogsId = 7;
 	private const int ToggleAiLogsId = 8;
@@ -361,7 +363,7 @@ public partial class DebugMenu : HBoxContainer
 		Vector3 source = level.Floor?.FindFreePositionNear(origin) ?? origin;
 		lootableItem.ThrowFrom(source);
 		Vector3 direction = Vector3.Back.Rotated(Vector3.Up, GD.Randf() * Mathf.Tau);
-		level.AddWorldNode(lootableItem, level.Floor?.FindDropLanding(source, direction) ?? source);
+		level.AddWorldNode(lootableItem, level.Floor?.FindDropLanding(source, direction, DebugDropDistance) ?? source);
 	}
 
 	private void SetDebugMeshesEnabled(bool enabled)

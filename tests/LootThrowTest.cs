@@ -17,8 +17,7 @@ public class LootThrowTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
 		Player player = harness.Player;
-		var pickup = GD.Load<PackedScene>("res://scenes/items/lootable_item.tscn").Instantiate<LootableItem>();
-		pickup.Item = ItemFactory.Create(GD.Load<Item>("res://scenes/items/potions/potion_healing_small.tres"));
+		var pickup = TestFactories.Pickup("res://scenes/items/potions/potion_healing_small.tres");
 		pickup.ThrowFrom(player.GlobalPosition + Vector3.Right * 1.5f);
 		runner.Scene().AddChild(pickup);
 		pickup.GlobalPosition = player.GlobalPosition;
@@ -60,7 +59,7 @@ public class LootThrowTest
 				// The back throw aims at the wall the chest stands against: it must turn, never pass the wall.
 				foreach (Vector3 direction in new[] { front, -front })
 				{
-					Vector3 landing = map.Floor.FindDropLanding(source, direction);
+					Vector3 landing = map.Floor.FindDropLanding(source, direction, chest.LootTable.DropDistance);
 					Vector2I tile = map.Floor.Map.WorldToTile(landing);
 					bool onFloor = map.Floor.Map.IsRoom(tile.X, tile.Y) || map.Floor.Map.IsCorridor(tile.X, tile.Y);
 					bool inSight = WorldSight.IsClear(map.GetWorld3D(), source + Vector3.Up, landing + Vector3.Up);
