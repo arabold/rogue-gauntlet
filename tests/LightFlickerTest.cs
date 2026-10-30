@@ -14,8 +14,7 @@ public class LightFlickerTest
 	private const string Harness = "res://scenes/debug/effects/world_effect_harness.tscn";
 	private const string Presets = "res://scenes/effects/light_flicker/";
 
-	private static FlickerLight SpawnTorch(PackedScene torch) =>
-		TestFactories.AddToSceneTree(torch.Instantiate<Node3D>()).GetNode<FlickerLight>("FlickerLight");
+	private static FlickerLight TorchLight() => TestFactories.AddToSceneTree(TestFactories.Torch()).GetNode<FlickerLight>("FlickerLight");
 	private static float[] Samples(LightFlicker flicker, float step, int count) =>
 		Enumerable.Range(0, count).Select(i => flicker.Sample(i * step)).ToArray();
 
@@ -24,8 +23,7 @@ public class LightFlickerTest
 	{
 		using var runner = TestFactories.LoadScene(Harness);
 		await runner.SimulateFrames(2);
-		var torch = GD.Load<PackedScene>("res://scenes/props/torch_mounted.tscn");
-		var lights = new[] { SpawnTorch(torch), SpawnTorch(torch) };
+		var lights = new[] { TorchLight(), TorchLight() };
 		await runner.SimulateFrames(10, 20);
 		AssertString(lights[0].Flicker.ResourcePath).IsEqual(Presets + "torch.tres");
 		AssertFloat(lights[0].LightEnergy).IsNotEqual(lights[1].LightEnergy);
@@ -34,7 +32,7 @@ public class LightFlickerTest
 	[TestCase]
 	public void OnlyVisibleLightsFlicker()
 	{
-		var light = SpawnTorch(TestFactories.Load<PackedScene>("res://scenes/props/torch_mounted.tscn"));
+		var light = TorchLight();
 		var torch = light.GetParent<Node3D>();
 		AssertBool(light.IsProcessing()).IsTrue();
 		torch.Visible = false;

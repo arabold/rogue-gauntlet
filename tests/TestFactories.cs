@@ -27,6 +27,25 @@ public static class TestFactories
 		return GD.Load<T>(path);
 	}
 
+	public const string LitTorch = "res://scenes/props/torch_mounted.tscn";
+	public const string UnlitTorch = "res://scenes/levels/arrangements/wall/wall_torch_unlit.tscn";
+
+	/// <summary>Instance a wall torch fixture, placed and turned for the test's layout; the caller adds it to a tree.</summary>
+	public static Node3D Torch(string path = LitTorch, Vector3 position = default, float yaw = 0)
+	{
+		var torch = Load<PackedScene>(path).Instantiate<Node3D>();
+		torch.Position = position;
+		torch.RotateY(yaw);
+		return torch;
+	}
+
+	/// <summary>Assert a torch fixture's flame and light are both shown, or both hidden, in the tree.</summary>
+	public static void AssertTorchEffects(Node torch, bool visible)
+	{
+		Assertions.AssertBool(torch.FindChild("Fire", true, false) is Node3D { } fire && fire.IsVisibleInTree()).IsEqual(visible);
+		Assertions.AssertBool(torch.FindChild("FlickerLight", true, false) is OmniLight3D { } light && light.IsVisibleInTree()).IsEqual(visible);
+	}
+
 	/// <summary>Load the combat harness scene; the caller owns (and may dispose) the runner.</summary>
 	public static ISceneRunner LoadCombatHarness() => LoadScene("res://scenes/debug/combat/combat_harness.tscn");
 
