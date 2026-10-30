@@ -1,8 +1,9 @@
 shader_type spatial;
 // Draw on top of everything (depth test off), but only keep fragments that are
 // hidden: occluded by scene geometry (a wall or the black fog cap), or in plain
-// view yet still under the fog. The silhouette therefore appears only while the
-// door cannot be seen, and stays invisible when it is in plain explored view.
+// view on a surface that is still unexplored. The silhouette therefore appears
+// only while the door cannot be seen, and stays invisible when it is in plain
+// explored view, even under the fog's soft fringe at the explored edge.
 // Alpha fades with distance so far doors stay quiet.
 render_mode unshaded, cull_disabled, depth_draw_never, depth_test_disabled;
 
@@ -21,11 +22,14 @@ void fragment() {
 	float scene_depth = texture(depth_texture, SCREEN_UV).x;
 
 	// Godot uses a reversed-Z depth buffer, so nearer geometry has a LARGER value.
-	// Occluded when something already drawn is in front of this fragment; otherwise
-	// this is the visible surface, hidden exactly as much as the fog covers it.
+	// Occluded when something already drawn is in front of this fragment. Otherwise
+	// the door is the frontmost surface here, hidden while that surface is unexplored.
+	// Test the surface the depth buffer holds rather than this fragment: with culling
+	// off, the leaf's far face of a closed door lies past its threshold in unexplored
+	// space, and the bias absorbs the leaf's thickness.
 	float hidden = scene_depth > FRAGCOORD.z + occlusion_bias
 		? 1.0
-		: fog_alpha((INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xz);
+		: fog_unexplored(fog_surface_position(SCREEN_UV, scene_depth, INV_PROJECTION_MATRIX, INV_VIEW_MATRIX).xz);
 
 	float fade = 1.0 - smoothstep(fade_near, fade_far, length(VERTEX));
 	if (hidden * fade <= 0.0) {
