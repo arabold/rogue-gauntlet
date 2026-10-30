@@ -38,18 +38,21 @@ public partial class CrystalField : Node3D
 	private readonly List<float> _delays = [];
 	private ShaderMaterial _material;
 	private MultiMesh _crystals;
-	private float _settledAt;
 	private bool _holding;
 	private int _level = 1;
 
 	public void ConfigureLevel(int level) => _level = Mathf.Clamp(level, 1, 3);
+	/// <summary>Seconds by which every crystal has fully grown: the latest spread start plus its cluster stagger.</summary>
+	public float RiseSeconds => SpreadTime + MemberStagger * (Cluster - 1) + GrowTime;
+	private int Cluster => Layout == CrystalLayout.Ring ? Mathf.Max(ClusterSize, 1) : 1;
+	private const float MemberStagger = .04f;
 	public override void _Ready()
 	{
 		if (CrystalMaterial?.Shader == null || Timeline == null) { GD.PushError("Crystal field requires an assigned crystal material and timeline."); SetProcess(false); return; }
 		_material = (ShaderMaterial)CrystalMaterial.Duplicate();
 		var random = new RandomNumberGenerator { Seed = GetInstanceId() };
 		int groups = BaseCount + AdditionalPerLevel * (_level - 1);
-		int cluster = Layout == CrystalLayout.Ring ? Mathf.Max(ClusterSize, 1) : 1;
+		int cluster = Cluster;
 		_crystals = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, Mesh = FacetedSpikeMesh.Create(new Vector3(Width, 1, Width), 1.7f, _material), InstanceCount = groups * cluster };
 		AddChild(new MultiMeshInstance3D { Multimesh = _crystals, CastShadow = GeometryInstance3D.ShadowCastingSetting.Off });
 		float height = Height + HeightPerLevel * (_level - 1);
@@ -60,8 +63,7 @@ public partial class CrystalField : Node3D
 			for (int member = 0; member < cluster; member++)
 			{
 				Transform3D rest = origin * ClusterMember(member, cluster, height, random);
-				_rest.Add(rest); _delays.Add(order * SpreadTime + member * .04f);
-				_settledAt = Mathf.Max(_settledAt, _delays[^1] + GrowTime);
+				_rest.Add(rest); _delays.Add(order * SpreadTime + member * MemberStagger);
 				_crystals.SetInstanceTransform(_rest.Count - 1, new Transform3D(Basis.FromScale(Vector3.Zero), rest.Origin));
 			}
 		}
@@ -104,7 +106,7 @@ public partial class CrystalField : Node3D
 		_material.SetShaderParameter(EffectFadeKey, Timeline.Opacity);
 		if (sustained) RotateY((float)delta * RotationSpeed);
 		// Between full growth and the final shrink a timed field holds still, so its transforms need no rewrite.
-		bool holding = !sustained && elapsed >= _settledAt && elapsed < Timeline.Duration - ShrinkTime;
+		bool holding = !sustained && elapsed >= RiseSeconds && elapsed < Timeline.Duration - ShrinkTime;
 		if (holding && _holding) return;
 		_holding = holding;
 		float shrink = sustained ? 1f : 1f - Mathf.SmoothStep(Timeline.Duration - ShrinkTime, Timeline.Duration, elapsed);

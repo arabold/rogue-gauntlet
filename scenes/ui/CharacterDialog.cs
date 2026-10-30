@@ -24,7 +24,7 @@ public partial class CharacterDialog : PanelContainer
 	{
 		InventoryPanel.Initialize(player.Inventory, player);
 		EquipmentPanel.Initialize(player.Inventory);
-		QuickStatsPanel.Initialize(player.Stats);
+		QuickStatsPanel.Initialize(player.Stats, player.Inventory);
 
 		Show();
 	}
@@ -33,7 +33,7 @@ public partial class CharacterDialog : PanelContainer
 	{
 		InventoryPanel.Initialize(null);
 		EquipmentPanel.Initialize(null);
-		QuickStatsPanel.Initialize(null);
+		QuickStatsPanel.Initialize(null, null);
 
 		Hide();
 	}

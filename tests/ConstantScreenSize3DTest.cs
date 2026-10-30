@@ -17,11 +17,14 @@ public class ConstantScreenSize3DTest
 		var camera = new Camera3D { Projection = Camera3D.ProjectionType.Orthogonal, Size = 20f, Position = new Vector3(0, 0, 15), Current = true };
 		viewport.AddChild(camera);
 		var prompt = GD.Load<PackedScene>("res://scenes/components/floating_label.tscn").Instantiate<FloatingLabel>();
+		// A health bar scales through the nameplate it sits on.
+		var plate = GD.Load<PackedScene>("res://scenes/components/nameplate.tscn").Instantiate<Nameplate>();
 		var health = GD.Load<PackedScene>("res://scenes/components/floating_health_bar.tscn").Instantiate<FloatingHealthBar>();
+		plate.AddChild(health);
 		var title = new Label3D { Text = "Enemy", Position = Vector3.Up * 2, Scale = new Vector3(0.8f, 0.8f, 0.8f), PixelSize = 0.008f };
 		title.AddChild(new ConstantScreenSize3D { Target = title });
 		viewport.AddChild(prompt);
-		viewport.AddChild(health);
+		viewport.AddChild(plate);
 		viewport.AddChild(title);
 		TestFactories.AddToSceneTree(viewport);
 		await Frame(viewport);
@@ -49,8 +52,7 @@ public class ConstantScreenSize3DTest
 	{
 		foreach (var (path, labelPath) in new[]
 		{
-			("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn", "BossTitle"),
-			("res://scenes/levels/encounters/bone_nest.tscn", "Title"),
+			("res://scenes/components/nameplate.tscn", "."),
 			("res://scenes/props/door.tscn", "InteractiveComponent/FloatingLabel"),
 			("res://scenes/debug/combat/combat_practice_target.tscn", "Label"),
 		})
@@ -58,6 +60,32 @@ public class ConstantScreenSize3DTest
 			Node scene = AutoFree(GD.Load<PackedScene>(path).Instantiate());
 			Node3D label = scene.GetNode<Node3D>(labelPath);
 			AssertObject(label.GetNode<ConstantScreenSize3D>("ConstantScreenSize3D").Target).IsSame(label);
+		}
+	}
+
+	[TestCase]
+	public async Task NameplateKeepsTheGapBetweenNameAndBarAcrossZoomLevels()
+	{
+		var viewport = new SubViewport { Size = new Vector2I(960, 540), OwnWorld3D = true };
+		var camera = new Camera3D { Projection = Camera3D.ProjectionType.Orthogonal, Size = 20f, Position = new Vector3(0, 0, 15), Current = true };
+		viewport.AddChild(camera);
+		var plate = GD.Load<PackedScene>("res://scenes/components/nameplate.tscn").Instantiate<Nameplate>();
+		var bar = GD.Load<PackedScene>("res://scenes/components/floating_health_bar.tscn").Instantiate<FloatingHealthBar>();
+		plate.AddChild(bar);
+		viewport.AddChild(plate);
+		TestFactories.AddToSceneTree(viewport);
+		await Frame(viewport);
+		await Frame(viewport);
+
+		float Gap() => camera.UnprojectPosition(plate.NameLabel.GlobalPosition).DistanceTo(camera.UnprojectPosition(bar.GlobalPosition));
+		float gap = Gap();
+		AssertFloat(gap).IsGreater(1f);
+		foreach (float zoom in new[] { 10f, 32f, 20f })
+		{
+			camera.Size = zoom;
+			await Frame(viewport);
+			await Frame(viewport);
+			AssertFloat(Gap()).IsEqualApprox(gap, 0.01f);
 		}
 	}
 

@@ -4,6 +4,7 @@ using System;
 public partial class QuickStatsPanel : PanelContainer
 {
 	private PlayerStats _stats;
+	private Inventory _inventory;
 	private Action _unsubscribeStats = () => { };
 
 	public Label DamageValue;
@@ -17,12 +18,18 @@ public partial class QuickStatsPanel : PanelContainer
 		CritChanceValue = GetNode<Label>("%CritChanceValue");
 	}
 
-	public void Initialize(PlayerStats stats)
+	/// <summary>
+	/// Shows <paramref name="stats"/>, with damage and crit chance for the main-hand weapon in
+	/// <paramref name="inventory"/>. Equipping or removing a weapon registers or removes its modifiers, so the stats'
+	/// <c>Changed</c> also covers weapon swaps.
+	/// </summary>
+	public void Initialize(PlayerStats stats, Inventory inventory)
 	{
 		_unsubscribeStats();
 		_unsubscribeStats = () => { };
 
 		_stats = stats;
+		_inventory = inventory;
 		_unsubscribeStats = this.SubscribeUntilExit(
 			_stats,
 			stats => stats.Changed += Update,
@@ -41,8 +48,9 @@ public partial class QuickStatsPanel : PanelContainer
 			return;
 		}
 
-		DamageValue.Text = $"{_stats.MinDamage:F0} - {_stats.MaxDamage:F0}";
+		var attack = _stats.ResolveAttack(_inventory?.EquippedItems[EquipmentSlot.WeaponHand]?.Item as Weapon);
+		DamageValue.Text = $"{attack.MinDamage:F0} - {attack.MaxDamage:F0}";
 		ArmorValue.Text = $"{_stats.Armor:F0}";
-		CritChanceValue.Text = $"{_stats.CritChance * 100:F0}%";
+		CritChanceValue.Text = $"{attack.CritChance * 100:F0}%";
 	}
 }

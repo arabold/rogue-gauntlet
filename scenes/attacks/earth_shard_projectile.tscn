@@ -61,6 +61,7 @@ Range = 9.0
 ImpactEffectScene = ExtResource("3_impact")
 WorldCollisionMask = 1
 ImpactRadius = 1.45
+GroundReach = 0.0
 
 [node name="Pivot" type="Node3D" parent="."]
 

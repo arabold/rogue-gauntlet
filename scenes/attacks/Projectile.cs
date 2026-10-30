@@ -29,6 +29,14 @@ public partial class Projectile : Node3D, IPooledNode
 	[Export(PropertyHint.Layers3DPhysics)] public uint WorldCollisionMask { get; set; } = BlockingCollisionMask;
 	[Export] public float ImpactRadius { get; set; } = 0.0f;
 	[Export(PropertyHint.Range, "0,1,0.05")] public float ImpactRadiusMinDamageScale { get; set; } = 0.2f;
+	/// <summary>
+	/// Depth of the damage lane hanging below the flight line. Only world geometry crossing the flight line blocks a
+	/// shot, so it clears low furniture, yet it still hits any actor it passes over, however short. Zero limits contact
+	/// to the hitbox, which suits drops whose flight line is vertical.
+	/// </summary>
+	[Export] public float GroundReach { get; set; } = 1.5f;
+	/// <summary>Half-width of the damage lane across the flight direction.</summary>
+	[Export] public float GroundReachRadius { get; set; } = 0.25f;
 
 	private HitBoxComponent _hitBoxComponent;
 	private float _distanceTravelled;
@@ -78,6 +86,12 @@ public partial class Projectile : Node3D, IPooledNode
 		CollideWithAreas = true,
 	};
 	private readonly HashSet<Node> _damagedImpactOwners = [];
+	private readonly BoxShape3D _laneShape = new();
+	private readonly PhysicsShapeQueryParameters3D _laneQuery = new()
+	{
+		CollideWithBodies = true,
+		CollideWithAreas = true,
+	};
 
 	public Node Attacker => GetValidAttacker();
 	public DamageSourceFlags AttackerFaction => _attackerFaction;
@@ -178,16 +192,21 @@ public partial class Projectile : Node3D, IPooledNode
 		Vector3 start = GlobalPosition;
 		Vector3 movement = Direction * Speed * LaunchSpeedFactor() * (float)delta;
 		Vector3 end = start + movement;
+		bool hitWorld = TryHitWorld(start, end, out Vector3 hitPosition, out Vector3 hitNormal);
+		Vector3 reached = hitWorld ? hitPosition : end;
+		GlobalPosition = reached;
 
-		if (TryHitWorld(start, end, out Vector3 hitPosition, out Vector3 hitNormal))
+		// Actors under this step's flight line are reached before the wall that ends it.
+		SweepGroundReach(start, reached);
+		if (_hasResolvedHit) return;
+
+		if (hitWorld)
 		{
-			GlobalPosition = hitPosition;
 			if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.world_impact", ("execution", _executionId.Sequence), ("position", CombatTrace.Vector(hitPosition)), ("radius", ImpactRadius));
 			StickThenFree(hitNormal);
 			return;
 		}
 
-		GlobalPosition = end;
 		_distanceTravelled += movement.Length();
 
 		if (_distanceTravelled >= Range)
@@ -324,6 +343,30 @@ public partial class Projectile : Node3D, IPooledNode
 		hitPosition = result[PositionKey].AsVector3();
 		hitNormal = result[NormalKey].AsVector3();
 		return true;
+	}
+
+	/// <summary>
+	/// Resolve contact with actors anywhere in the upright lane below one flight step. The query is world-aligned and
+	/// swept, so it holds whatever way the projectile visual is turned and cannot step over a short actor.
+	/// </summary>
+	private void SweepGroundReach(Vector3 start, Vector3 end)
+	{
+		if (GroundReach <= 0 || _damageCollisionMask == 0) return;
+		PhysicsDirectSpaceState3D space = GetWorld3D()?.DirectSpaceState;
+		if (space == null) return;
+
+		Vector3 travel = end - start;
+		travel.Y = 0;
+		_laneShape.Size = new Vector3(GroundReachRadius * 2, GroundReach, travel.Length() + GroundReachRadius * 2);
+		_laneQuery.Shape = _laneShape;
+		_laneQuery.Transform = new Transform3D(new Basis(Vector3.Up, Mathf.Atan2(travel.X, travel.Z)),
+			(start + end) * 0.5f + Vector3.Down * (GroundReach * 0.5f));
+		_laneQuery.CollisionMask = _damageCollisionMask;
+		foreach (Godot.Collections.Dictionary result in space.IntersectShape(_laneQuery, 8))
+		{
+			OnHitDetected(result[ColliderKey].As<Node>());
+			if (_hasResolvedHit) return;
+		}
 	}
 
 	private uint GetDamageCollisionMask()

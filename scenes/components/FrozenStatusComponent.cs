@@ -1,6 +1,10 @@
 using Godot;
 
-/// <summary>Connects a frozen condition to actor control, pose and the shared visual host.</summary>
+/// <summary>
+/// Connects a frozen condition to actor control, pose and the shared visual host. The pose holds by disabling the
+/// animation tree's processing, not its <c>Active</c> flag: reactivating a tree restarts its state machine from
+/// <c>Start</c>, which would replay a monster's spawn clip on thaw.
+/// </summary>
 public partial class FrozenStatusComponent : Node
 {
 	[Export] public BuffController Statuses { get; set; }
@@ -11,7 +15,7 @@ public partial class FrozenStatusComponent : Node
 	[Export] public WorldEffectDefinition Appearance { get; set; }
 	[Export] public HealthComponent Health { get; set; }
 	private bool _frozen;
-	private bool _animationWasActive;
+	private ProcessModeEnum _animationProcessMode;
 	public bool IsFrozen => Health?.IsDead != true && Statuses?.HasCondition(Condition) == true;
 	/// <summary>Toggle this component's persistent source without removing spell-owned freezes.</summary>
 	public void SetFrozen(bool frozen) => Statuses?.SetPersistentStatus(Condition, this, frozen);
@@ -37,14 +41,14 @@ public partial class FrozenStatusComponent : Node
 		if (frozen)
 		{
 			ActionGate.SetStatusLock(this, true);
-			_animationWasActive = Animation.Active;
-			Animation.Active = false;
+			_animationProcessMode = Animation.ProcessMode;
+			Animation.ProcessMode = ProcessModeEnum.Disabled;
 			if (Effects != null && Appearance != null) Effects.SetSustained(this, Appearance, true, 0);
 		}
 		else
 		{
 			ActionGate.SetStatusLock(this, false);
-			Animation.Active = _animationWasActive;
+			Animation.ProcessMode = _animationProcessMode;
 			if (Effects != null && Appearance != null) Effects.SetSustained(this, Appearance, false, 0);
 		}
 	}
@@ -54,7 +58,7 @@ public partial class FrozenStatusComponent : Node
 		if (IsInstanceValid(Statuses) && Statuses.IsInsideTree()) Statuses.SetPersistentStatus(Condition, this, false);
 		if (!_frozen) return;
 		ActionGate.SetStatusLock(this, false);
-		Animation.Active = _animationWasActive;
+		Animation.ProcessMode = _animationProcessMode;
 		if (Appearance != null && IsInstanceValid(Effects) && Effects.IsInsideTree()) Effects.SetSustained(this, Appearance, false, 0, immediate: true);
 		_frozen = false;
 	}

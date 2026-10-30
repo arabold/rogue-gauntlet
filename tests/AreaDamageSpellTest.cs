@@ -7,7 +7,7 @@ using static GdUnit4.Assertions;
 
 /// <summary>
 /// The contact rules every area spell shares through <see cref="AreaCastLifecycle"/>: which actors a cast hits,
-/// where a delayed contact lands, and how cancellation stops it. Gust, Frost Nova and the lingering fields use the
+/// when its visual's front reaches them, where a delayed contact lands, and how cancellation stops it. Gust, Frost Nova and the lingering fields use the
 /// same lifecycle, so their suites cover only what they add on top.
 /// </summary>
 [TestSuite, RequireGodotRuntime]
@@ -29,12 +29,38 @@ public partial class AreaDamageSpellTest
 		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Flame Burst");
 
 		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue();
-		await AwaitContact(runner, spell.Definition.ContactDelay);
+		await AwaitContact(runner, spell);
 
 		AssertFloat(hit.HealthComponent.CurrentHealth).IsEqual(50 - spell.Definition.DamageByLevel[0]);
 		AssertFloat(blocked.HealthComponent.CurrentHealth).IsEqual(50);
 		AssertFloat(distant.HealthComponent.CurrentHealth).IsEqual(50);
 		AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsEqual(playerHealth);
+	}
+
+	[TestCase]
+	public async Task AnExpandingRingHitsEachActorAsItArrivesAndPushesItOutward()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await SettleAtOrigin(runner);
+		var near = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(1, 0, 0), "Near");
+		var far = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(-3, 0, 0), "Far");
+		await runner.SimulateFrames(5);
+		TestFactories.PrepareCombatMonster(near); TestFactories.PrepareCombatMonster(far);
+		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Tremor");
+		float hit = spell.Definition.DamageByLevel[0];
+		AssertFloat(spell.Definition.PushAt(1)).IsGreater(0);
+
+		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue();
+		AssertFloat(near.HealthComponent.CurrentHealth).IsEqual(50);
+		// The seismic wave reaches a third of its radius well before its edge.
+		await TestFactories.AwaitPhysicsUntil(runner, () => near.HealthComponent.CurrentHealth < 50);
+		AssertFloat(far.HealthComponent.CurrentHealth).IsEqual(50);
+		near.MovementComponent.SetPhysicsProcess(true);
+		await AwaitContact(runner, spell);
+		AssertFloat(near.HealthComponent.CurrentHealth).IsEqual(50 - hit);
+		AssertFloat(far.HealthComponent.CurrentHealth).IsEqual(50 - hit);
+		// Pushed away from where the ring was cast.
+		AssertFloat(near.GlobalPosition.X).IsGreater(1.2);
 	}
 
 	[TestCase]
@@ -53,7 +79,7 @@ public partial class AreaDamageSpellTest
 		leaving.GlobalPosition = new Vector3(7, 0, 0);
 		entering.GlobalPosition = new Vector3(-2, 0, 0);
 		harness.Player.GlobalPosition = new Vector3(0, 0, 10); // The area stays where it was cast.
-		await AwaitContact(runner, spell.Definition.ContactDelay);
+		await AwaitContact(runner, spell);
 		AssertFloat(leaving.HealthComponent.CurrentHealth).IsEqual(50);
 		AssertFloat(entering.HealthComponent.CurrentHealth).IsEqual(50 - spell.Definition.DamageByLevel[0]);
 
@@ -61,7 +87,7 @@ public partial class AreaDamageSpellTest
 		harness.Player.GlobalPosition = Vector3.Zero;
 		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue();
 		spell.Cancel();
-		await AwaitContact(runner, spell.Definition.ContactDelay);
+		await AwaitContact(runner, spell);
 		AssertFloat(entering.HealthComponent.CurrentHealth).IsEqual(health);
 	}
 
@@ -79,7 +105,7 @@ public partial class AreaDamageSpellTest
 		first.HurtBoxComponent.DamageResolved += (_, _, _) => spell.Cancel();
 
 		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue();
-		await AwaitContact(runner, spell.Definition.ContactDelay);
+		await AwaitContact(runner, spell);
 
 		AssertFloat(first.HealthComponent.CurrentHealth).IsEqual(50 - spell.Definition.DamageByLevel[0]);
 		AssertFloat(second.HealthComponent.CurrentHealth).IsEqual(50);
@@ -101,14 +127,7 @@ public partial class AreaDamageSpellTest
 		root.AddChild(wall);
 	}
 
-	/// <summary>
-	/// Waits on physics ticks until a contact scheduled <paramref name="delay"/> seconds out has resolved. Contacts run
-	/// on the physics clock, and rendered frames can outpace it, so counting frames would under-wait.
-	/// </summary>
-	private static async Task AwaitContact(ISceneRunner runner, float delay)
-	{
-		var tree = runner.Scene().GetTree();
-		ulong end = Engine.GetPhysicsFrames() + (ulong)Mathf.CeilToInt(delay * Engine.PhysicsTicksPerSecond) + 2;
-		while (Engine.GetPhysicsFrames() < end) await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
-	}
+	/// <summary>Waits until a level-one cast of <paramref name="spell"/> has swept its whole area.</summary>
+	private static Task AwaitContact(ISceneRunner runner, AreaDamageSpell spell) =>
+		TestFactories.AwaitAreaContact(runner, spell.VisualScene, spell.Definition.RadiusByLevel[0], spell.Definition.ContactDelay);
 }

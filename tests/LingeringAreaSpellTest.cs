@@ -76,6 +76,9 @@ public partial class LingeringAreaSpellTest
 		float hit = spell.Definition.DamageByLevel[0];
 		Vector3 cast = harness.Player.GlobalPosition;
 		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue(); await runner.SimulateFrames(5);
+		// The ring takes hold once its crystals have risen, not at release.
+		AssertFloat(inside.HealthComponent.CurrentHealth).IsEqual(50);
+		await TestFactories.AwaitAreaContact(runner, spell.VisualScene, spell.Definition.RadiusByLevel[0]);
 		AssertFloat(inside.HealthComponent.CurrentHealth).IsEqual(50 - hit);
 		AssertFloat(outside.HealthComponent.CurrentHealth).IsEqual(50);
 		// The wall stays where it was cast when the caster walks away, and catches an enemy that steps in.

@@ -18,17 +18,25 @@ public partial class FloatingHealthBar : Sprite3D
 	/// <summary>Whether to hide the health bar when health is full.</summary>
 	[Export] public bool HideWhenFull { get; set; } = true;
 
+	/// <summary>Optional: also shows the bar at full health while this plate's name shows, so a nearby monster reads at a glance.</summary>
+	[Export] public Nameplate ShowWithName { get; set; }
+
+	/// <summary>Seconds a full fade in or out takes, matching the name it shows with.</summary>
+	[Export(PropertyHint.Range, "0,2,0.01")] public float FadeDuration { get; set; } = 0.15f;
+
+	private SubViewport _viewport;
 	private ProgressBar _progressBar;
 	private ProgressBar _poiseBar;
 	private bool ShowsPoise => Poise?.Definition?.ShowBar == true;
+	private AlphaFade _fade;
 
 	public override void _EnterTree()
 	{
 		base._EnterTree();
 		RenderPriority = HealthBarRenderPriority;
 		NoDepthTest = true;
-		var subViewport = GetNode<SubViewport>("SubViewport");
-		Texture = subViewport.GetTexture();
+		_viewport = GetNode<SubViewport>("SubViewport");
+		Texture = _viewport.GetTexture();
 	}
 
 	public override void _ExitTree()
@@ -42,7 +50,10 @@ public partial class FloatingHealthBar : Sprite3D
 		_progressBar = GetNode<ProgressBar>("%ProgressBar");
 		_poiseBar = GetNode<ProgressBar>("%PoiseBar");
 		_poiseBar.Visible = ShowsPoise;
+		// Without health to track, the bar keeps its authored visibility.
+		if (HealthComponent != null) _fade = new AlphaFade(this, alpha => Modulate = Modulate with { A = alpha });
 		if (Invisibility != null) this.SubscribeUntilExit(Invisibility, c => c.Changed += RefreshVisibility, c => c.Changed -= RefreshVisibility);
+		if (ShowWithName != null) this.SubscribeUntilExit(ShowWithName, l => l.ShownChanged += OnNameShownChanged, l => l.ShownChanged -= OnNameShownChanged);
 		if (ShowsPoise)
 		{
 			OnPoiseChanged(Poise.Current, Poise.Maximum);
@@ -59,18 +70,21 @@ public partial class FloatingHealthBar : Sprite3D
 		}
 	}
 
-	/// <summary>Show the bar while the actor is hurt or off balance, unless it is invisible.</summary>
+	/// <summary>Show the bar while the actor is hurt, off balance or named, unless it is invisible.</summary>
 	private void RefreshVisibility()
 	{
-		if (HealthComponent == null) return;
+		if (_fade == null) return;
 		bool damaged = HealthComponent.CurrentHealth < HealthComponent.MaxHealth || (ShowsPoise && Poise.Current < Poise.Maximum);
-		Visible = (!HideWhenFull || damaged) && Invisibility?.IsInvisible != true;
+		_fade.Set((!HideWhenFull || damaged || ShowWithName?.IsShown == true) && Invisibility?.IsInvisible != true, FadeDuration);
 	}
+
+	private void OnNameShownChanged(bool shown) => RefreshVisibility();
 
 	private void OnHealthChanged(float health, float maxHealth)
 	{
 		_progressBar.MaxValue = maxHealth;
 		_progressBar.Value = health;
+		Redraw();
 		RefreshVisibility();
 	}
 
@@ -78,6 +92,10 @@ public partial class FloatingHealthBar : Sprite3D
 	{
 		_poiseBar.MaxValue = maximum;
 		_poiseBar.Value = current;
+		Redraw();
 		RefreshVisibility();
 	}
+
+	/// <summary>The viewport renders once per change rather than every frame the bar is on screen, as fading only touches the sprite.</summary>
+	private void Redraw() => _viewport.RenderTargetUpdateMode = SubViewport.UpdateMode.Once;
 }

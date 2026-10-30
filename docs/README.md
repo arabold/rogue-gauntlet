@@ -52,6 +52,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Potion and scroll feedback](specs/consumable-feedback-plan.md) | Proposed unique activation signature for all 20 potion/scroll types, with world and screen channels and catalog coverage checks |
 | [Actor and item VFX](specs/actor-item-vfx-plan.md) | Remaining visual-quality/skin-choice acceptance, GPU timing and in-game readability review |
 | [Combat redesign](specs/combat-redesign-plan.md) | Remaining combat work: a Warden guard-breaking attack and guard walking, plus open tuning risks |
+| [Off-hand weapons](specs/off-hand-weapons-plan.md) | Two alternatives for off-hand weapons: a passive off-hand damage bonus, or animated dual-wield with an off-hand action replacing the guard input (blocked on a left-hand attack clip) |
 | [Attack status effects](specs/attack-status-effects-plan.md) | Proposed on-hit status payloads, actor-agnostic buffs for monsters and a monster status tint; first slice lets venomous monster attacks poison the player |
 | [Actor status integration](specs/actor-status-integration-plan.md) | Shared condition ownership and frozen-state integration; later attack and spell delivery |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |

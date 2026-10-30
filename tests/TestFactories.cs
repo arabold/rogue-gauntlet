@@ -1,5 +1,6 @@
 namespace RogueGauntlet.Tests;
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -64,10 +65,51 @@ public static class TestFactories
 	public static bool CastSpell(CombatHarness harness, string name, int level, ulong seed = 1) =>
 		GetSpell<ICombatSpell>(harness, name).Cast(harness.Player, level, new RandomNumberGenerator { Seed = seed });
 
-	/// <summary>Create an inert real monster for area-contact tests.</summary>
-	public static EnemyBase SpawnCombatMonster(Node root, Vector3 position, string name)
+	/// <summary>
+	/// Waits until a level-one area cast has swept its whole area: its delay plus the time its visual's front takes
+	/// to cross the radius.
+	/// </summary>
+	public static Task AwaitAreaContact(ISceneRunner runner, PackedScene visualScene, float radius, float contactDelay = 0)
 	{
-		var actor = GD.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		var visual = visualScene.Instantiate();
+		var front = visual switch
+		{
+			IAreaSpellVisual area when area.ConfigureArea(1, radius) => area.Front,
+			VisualEffectInstance effect => effect.Front,
+			_ => AreaFront.Instant
+		};
+		visual.Free();
+		return AwaitPhysicsSeconds(runner, contactDelay + front.Delay + front.Seconds);
+	}
+
+	/// <summary>
+	/// Waits on physics ticks for <paramref name="seconds"/> of gameplay time. Contacts and statuses run on the
+	/// physics clock, and rendered frames can outpace it, so counting frames would under-wait.
+	/// </summary>
+	public static async Task AwaitPhysicsSeconds(ISceneRunner runner, float seconds)
+	{
+		var tree = runner.Scene().GetTree();
+		ulong end = Engine.GetPhysicsFrames() + (ulong)Mathf.CeilToInt(seconds * Engine.PhysicsTicksPerSecond) + 2;
+		while (Engine.GetPhysicsFrames() < end) await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
+	}
+
+	/// <summary>Waits on physics ticks until <paramref name="condition"/> holds, or fails after <paramref name="timeout"/> seconds.</summary>
+	public static async Task AwaitPhysicsUntil(ISceneRunner runner, Func<bool> condition, float timeout = 5)
+	{
+		var tree = runner.Scene().GetTree();
+		ulong end = Engine.GetPhysicsFrames() + (ulong)Mathf.CeilToInt(timeout * Engine.PhysicsTicksPerSecond);
+		while (!condition())
+		{
+			if (Engine.GetPhysicsFrames() >= end) throw new TimeoutException($"Condition not met within {timeout} s of physics time.");
+			await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
+		}
+	}
+
+	/// <summary>Create an inert real monster for area-contact tests.</summary>
+	public static EnemyBase SpawnCombatMonster(Node root, Vector3 position, string name,
+		string scene = "res://scenes/enemies/skeleton/skeleton_minion.tscn")
+	{
+		var actor = GD.Load<PackedScene>(scene).Instantiate<EnemyBase>();
 		actor.Name = name; actor.Position = position; actor.EnemyBehaviorComponent.AIEnabled = false;
 		root.AddChild(actor); actor.DeathComponent.LootTableComponent = null; actor.DeathComponent.Xp = 0;
 		return actor;
@@ -93,6 +135,23 @@ public static class TestFactories
 	{
 		((SceneTree)Engine.GetMainLoop()).Root.AddChild(Assertions.AutoFree(node));
 		return node;
+	}
+
+	/// <summary>A pickup of <paramref name="itemPath"/>'s item, ready to add to a scene.</summary>
+	public static LootableItem Pickup(string itemPath, int quantity = 1)
+	{
+		var pickup = GD.Load<PackedScene>("res://scenes/items/lootable_item.tscn").Instantiate<LootableItem>();
+		pickup.Item = ItemFactory.Create(GD.Load<Item>(itemPath));
+		pickup.Quantity = quantity;
+		return pickup;
+	}
+
+	/// <summary>A bare node in the player group, standing in for the player in proximity checks.</summary>
+	public static Node3D AddStandInPlayer()
+	{
+		var player = new Node3D();
+		player.AddToGroup("player");
+		return AddToSceneTree(player);
 	}
 
 	/// <summary>
