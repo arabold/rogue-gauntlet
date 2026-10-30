@@ -120,9 +120,9 @@ public partial class Door : Node3D
 
 	/// <summary>
 	/// Builds an x-ray silhouette of the door. Its shader only draws where the door
-	/// is occluded by scene geometry (a wall or the black fog cap) and fades with
-	/// distance, so a hidden door reads from any camera angle without showing when
-	/// it is already in plain view. It draws above the fog, so walls still under fog
+	/// is occluded by scene geometry (a wall or the black fog cap) or its visible
+	/// surface is still unexplored, and fades with distance, so a hidden door reads
+	/// from any camera angle without showing when it is already in plain view. It draws above the fog, so walls still under fog
 	/// do not hide it; <see cref="SetIndicatorVisible"/> keeps undiscovered doors dark.
 	/// </summary>
 	private void CreateIndicator()
