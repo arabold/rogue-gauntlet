@@ -261,7 +261,6 @@ public class ProjectileFlightTest
 		[
 			// 0.45 + 2 x 0.3 leaves after the one-second attack ends.
 			Volley(stagger: .3f),
-			new AttackDefinition { AttackStyle = "crossbow.shoot", IsRanged = true, ProjectilePattern = ProjectilePattern.Radial, HomingTurnRate = 90 },
 			new AttackDefinition { AttackStyle = "axe.1h.chop", HomingTurnRate = 90 },
 			new AttackDefinition { AttackStyle = "crossbow.shoot", IsRanged = true, LaunchSpeedScale = 0 },
 			new AttackDefinition { AttackStyle = "crossbow.shoot", IsRanged = true, HomingDelay = float.NaN },
@@ -273,7 +272,7 @@ public class ProjectileFlightTest
 			definition.Dispose();
 		}
 		AssertBool(controller.IsAttacking).IsFalse();
-		using var straight = new AttackDefinition { AttackStyle = "crossbow.shoot", IsRanged = true, ProjectilePattern = ProjectilePattern.Radial, LaunchSpeedScale = .5f, LaunchRampDuration = .1f };
+		using var straight = new AttackDefinition { AttackStyle = "crossbow.shoot", IsRanged = true, LaunchSpeedScale = .5f, LaunchRampDuration = .1f };
 		AssertBool(controller.TryPrepareAttack(straight, "", 1, out _)).IsTrue();
 	}
 }

@@ -244,7 +244,7 @@ EnemyBehaviorComponent.TryAttack
 Projectile (direct hits only):
 
 ```
-AttackController.SpawnProjectile / SpawnAreaDrop
+AttackController.SpawnProjectile
 └─ Projectile.Initialize(…, _random.Randi(), CurrentExecutionId, + prepared.OnHitStatuses)
 Projectile.OnHitDetected
 ├─ damage and crit on the projectile RNG                                   (existing)

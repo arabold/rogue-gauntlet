@@ -104,7 +104,7 @@ public class DiscoveryPersistenceTest
 		map.SetTile(4, 5, MapTile.Corridor);
 		map.SetConnector(5, 5, [Vector2I.Left]);
 		map.SetTile(6, 5, MapTile.Room);
-		var floor = new GeneratedFloor(map, generator, generator.FloorGridMap, generator.DecorationGridMap);
+		var floor = new GeneratedFloor(map, generator, generator.DecorationGridMap);
 		var doorScene = TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").DoorScene;
 		var near = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
 		var far = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());

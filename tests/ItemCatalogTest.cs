@@ -236,11 +236,11 @@ public class ItemCatalogTest
 	public void EveryWandAndStaffCastsEachPoolSpellAtItsTierAndFiresThatSpellsMissile()
 	{
 		var weapons = Definitions().OfType<MagicStaff>().ToArray();
-		foreach (bool staves in new[] { false, true })
-		{
-			var kind = weapons.Where(weapon => weapon.IsTwoHanded == staves).ToArray();
-			AssertArray(kind.Select(weapon => weapon.Tier).Distinct().Order().ToArray()).OverrideFailureMessage(staves ? "staves" : "wands").ContainsExactly(1, 2, 3, 4, 5);
-		}
+		AssertArray(weapons.Where(weapon => weapon.IsTwoHanded).Select(weapon => weapon.Tier).Distinct().Order().ToArray())
+			.ContainsExactly(1, 2, 3, 4, 5);
+		// A tier without its own model stays empty rather than renaming another tier's model.
+		AssertArray(weapons.GroupBy(weapon => weapon.Scene).Where(group => group.Count() > 1)
+			.Select(group => string.Join(", ", group.Select(weapon => weapon.ResourcePath))).ToArray()).IsEmpty();
 		foreach (var weapon in weapons)
 		{
 			AssertBool(weapon.SpellPool != null && weapon.Missiles != null).OverrideFailureMessage(weapon.ResourcePath).IsTrue();

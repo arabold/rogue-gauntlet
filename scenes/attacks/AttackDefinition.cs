@@ -4,8 +4,6 @@ public enum ProjectilePattern
 {
 	Single,
 	Spread,
-	Radial,
-	AreaDrop,
 }
 
 /// <summary>
@@ -104,7 +102,7 @@ public partial class AttackDefinition : Resource
 	/// </summary>
 	[Export] public float ProjectileSpeed { get; set; } = 15.0f;
 
-	/// <summary>Seconds before release to freeze an aimed single/spread shot. Zero keeps ordinary release-time aiming.</summary>
+	/// <summary>Seconds before release to freeze an aimed shot. Zero keeps ordinary release-time aiming.</summary>
 	[Export(PropertyHint.Range, "0,2,0.01")] public float ProjectileAimLockDuration { get; set; }
 
 	/// <summary>
@@ -118,36 +116,15 @@ public partial class AttackDefinition : Resource
 	[Export] public float AimingAngle { get; set; } = 60.0f;
 
 	/// <summary>
-	/// Radius around the actor used by placement-based attack patterns to pick target positions.
-	/// </summary>
-	[Export] public float TargetAreaRadius { get; set; } = 5.0f;
-
-	/// <summary>
-	/// Height above the chosen target position where placement-based projectiles start from.
-	/// </summary>
-	[Export] public float SpawnHeight { get; set; } = 8.0f;
-
-	/// <summary>
-	/// Optional override for projectile world-impact AoE. Negative values keep the projectile scene's default radius.
-	/// </summary>
-	[Export] public float ImpactRadiusOverride { get; set; } = -1.0f;
-
-	/// <summary>
-	/// Optional override for minimum damage scale at the edge of projectile impact radius.
-	/// Negative values keep the projectile scene's default falloff.
-	/// </summary>
-	[Export(PropertyHint.Range, "-1,1,0.05")] public float ImpactRadiusMinDamageScaleOverride { get; set; } = -1.0f;
-
-	/// <summary>
 	/// Seconds between successive projectiles of one release, so a spread leaves as a volley. Zero releases them
-	/// together. Aimed single/spread shots only; the last projectile must leave within the prepared duration.
+	/// together. Ranged attacks only; the last projectile must leave within the prepared duration.
 	/// </summary>
 	[ExportGroup("Flight")]
 	[Export(PropertyHint.Range, "0,0.25,0.01")] public float ProjectileStagger { get; set; }
 
 	/// <summary>
 	/// Degrees per second each projectile turns toward the target captured at release. Zero flies straight.
-	/// Aimed single/spread shots only.
+	/// Ranged attacks only.
 	/// </summary>
 	[Export(PropertyHint.Range, "0,1440,1")] public float HomingTurnRate { get; set; }
 
@@ -219,7 +196,7 @@ public partial class AttackDefinition : Resource
 
 	/// <summary>
 	/// Flight values are finite and nonnegative, the launch speed is a fraction of full speed, staggered or homing
-	/// flight belongs to an aimed single/spread shot, and, when the prepared release time and duration are known,
+	/// flight belongs to a ranged attack, and, when the prepared release time and duration are known,
 	/// the last staggered projectile leaves before the attack ends. Shared with <see cref="MonsterSceneValidator"/>.
 	/// </summary>
 	public bool HasValidFlight(float? contactStart = null, double? duration = null)
@@ -230,7 +207,7 @@ public partial class AttackDefinition : Resource
 			|| !float.IsFinite(LaunchSpeedScale) || LaunchSpeedScale <= 0 || LaunchSpeedScale > 1
 			|| !float.IsFinite(LaunchRampDuration) || LaunchRampDuration < 0) return false;
 		if (ProjectileStagger == 0 && HomingTurnRate == 0) return true;
-		if (!IsRanged || ProjectilePattern is not (ProjectilePattern.Single or ProjectilePattern.Spread)) return false;
+		if (!IsRanged) return false;
 		return contactStart == null || duration == null
 			|| contactStart + Mathf.Max(0, ProjectileCount - 1) * ProjectileStagger <= duration;
 	}

@@ -31,7 +31,7 @@ public partial class Projectile : Node3D, IPooledNode
 	/// <summary>
 	/// Depth of the damage lane hanging below the flight line. Only world geometry crossing the flight line blocks a
 	/// shot, so it clears low furniture, yet it still hits any actor it passes over, however short. Zero limits contact
-	/// to the hitbox, which suits drops whose flight line is vertical.
+	/// to the hitbox.
 	/// </summary>
 	[Export] public float GroundReach { get; set; } = 1.5f;
 	/// <summary>Half-width of the damage lane across the flight direction.</summary>

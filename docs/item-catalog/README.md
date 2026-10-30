@@ -23,7 +23,6 @@ Visual + data reference for every item definition in the game — the itemizatio
 | | Weapon | Hands | Damage | Str Req | Notes |
 |---|---|---|---|---|---|
 | ![Ash Staff](./staff_uncommon.png) | **Ash Staff** | 2H | 2–8 | 8 | Spell staff (Frost Nova) |
-| ![Ashwood Wand](./wand.png) | **Ashwood Wand** | 1H | 2–8 | 0 | Spell wand (Fireball); shares the Wand model |
 | ![Hammer](./hammer_common.png) | **Hammer** | 1H | 3–8 | 12 | — |
 | ![Longsword](./sword_common.png) | **Longsword** | 1H | 3–8 | 10 | — |
 | ![Old Saber](./saber_skeleton.png) | **Old Saber** | 1H | 2–7 | 12 | — |
@@ -58,7 +57,6 @@ Visual + data reference for every item definition in the game — the itemizatio
 | ![Royal Hammer](./hammer_rare.png) | **Royal Hammer** | 1H | 8–15 | 16 | — |
 | ![Royal Sword](./sword_rare.png) | **Royal Sword** | 1H | 8–16 | 15 | — |
 | ![Rune Staff](./staff_rare.png) | **Rune Staff** | 2H | 7–16 | 10 | Spell staff (Chain Lightning), +3% crit |
-| ![Runed Scepter Wand](./wand_ruby.png) | **Runed Scepter Wand** | 1H | 7–16 | 17 | Spell wand (Fireball), +4% crit; shares the Ruby Scepter model |
 | ![Warhammer](./warhammer.png) | **Warhammer** | 2H | 10–18 | 18 | — |
 
 ### Tier 5

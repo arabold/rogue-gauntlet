@@ -83,10 +83,7 @@ public partial class AttackController : Node, IParryInterruptible
 	private HashSet<Node> _hitTargets = new HashSet<Node>();
 
 	private Node3D _actor;
-	private Level _level;
 	private readonly RandomNumberGenerator _random = new();
-
-	public override void _EnterTree() => _level = this.GetAncestorOrNull<Level>();
 
 	public override void _Ready()
 	{
@@ -135,9 +132,7 @@ public partial class AttackController : Node, IParryInterruptible
 		}
 		if (!copy.HasValidImpact(copy.HitWindowStart) || !copy.HasValidFlight(copy.HitWindowStart, duration)) return false;
 		if (!float.IsFinite(copy.ProjectileAimLockDuration) || copy.ProjectileAimLockDuration < 0) return false;
-		if (copy.ProjectileAimLockDuration > 0 && (!copy.IsRanged
-			|| copy.ProjectilePattern is not (ProjectilePattern.Single or ProjectilePattern.Spread)
-			|| copy.ProjectileAimLockDuration > copy.HitWindowStart)) return false;
+		if (copy.ProjectileAimLockDuration > 0 && (!copy.IsRanged || copy.ProjectileAimLockDuration > copy.HitWindowStart)) return false;
 		attack = new PreparedAttack(copy, playback, duration);
 		return true;
 	}
@@ -469,7 +464,7 @@ public partial class AttackController : Node, IParryInterruptible
 
 	/// <summary>
 	/// Capture the release once per execution: the aim target (also the homing target), the fan of directions and
-	/// the cast/muzzle effects. An area drop releases completely here.
+	/// the cast/muzzle effects.
 	/// </summary>
 	private void BeginRelease()
 	{
@@ -481,12 +476,6 @@ public partial class AttackController : Node, IParryInterruptible
 		}
 
 		Vector3 origin = IsProjectileAimLocked ? _projectileAimOrigin : GetProjectileOrigin();
-		if (_currentAttack.ProjectilePattern == ProjectilePattern.AreaDrop)
-		{
-			SpawnAreaDrop(origin, scene);
-			return;
-		}
-
 		Vector3 aimedDirection;
 		if (IsProjectileAimLocked)
 		{
@@ -549,80 +538,10 @@ public partial class AttackController : Node, IParryInterruptible
 		GameDebug.Combat($"{_actor.Name} spawned projectile flying {direction}");
 	}
 
-	private void SpawnAreaDrop(Vector3 origin, PackedScene scene)
-	{
-		Vector3 actorForward = GetActorForward();
-		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, actorForward);
-		SpawnEffect(_currentAttack.MuzzleEffectScene, origin, actorForward);
-
-		foreach (Vector3 targetPosition in GetAreaDropLandingPositions())
-		{
-			Vector3 dropOrigin = targetPosition + Vector3.Up * _currentAttack.SpawnHeight;
-			Vector3 direction = Vector3.Down;
-			Projectile projectile = ScenePool.Spawn<Projectile>(scene, (GetTree().CurrentScene ?? _actor.GetParent()));
-			ApplyProjectileOverrides(projectile);
-			projectile.Initialize(
-				dropOrigin,
-				direction,
-				_currentAttack.ProjectileSpeed,
-				_currentAttack.SpawnHeight + 1.0f,
-				_currentHit.Scaled(_currentAttack.ProjectileDamageScale),
-				_actor, _currentAttack.DefenseTraits, _currentAttack.AreaDefenseTraits, _random.Randi(), CurrentExecutionId);
-
-			GameDebug.Combat($"{_actor.Name} spawned area drop at {targetPosition}");
-		}
-	}
-
 	private void ApplyProjectileOverrides(Projectile projectile)
 	{
 		projectile.Impact = _currentAttack.Impact;
 		projectile.Element = _currentAttack.Element;
-		if (_currentAttack.ImpactRadiusOverride >= 0.0f)
-		{
-			projectile.ImpactRadius = _currentAttack.ImpactRadiusOverride;
-		}
-
-		if (_currentAttack.ImpactRadiusMinDamageScaleOverride >= 0.0f)
-		{
-			projectile.ImpactRadiusMinDamageScale = _currentAttack.ImpactRadiusMinDamageScaleOverride;
-		}
-	}
-
-	private IEnumerable<Vector3> GetAreaDropLandingPositions()
-	{
-		int count = Mathf.Max(1, _currentAttack.ProjectileCount);
-		for (int i = 0; i < count; i++)
-		{
-			if (TryGetAreaDropLandingPosition(i, count, _random, _level?.Floor, out Vector3 landingPosition))
-			{
-				yield return landingPosition;
-			}
-		}
-	}
-
-	/// <summary>Outside a generated level (previews, harnesses) drops land where they were aimed.</summary>
-	private bool TryGetAreaDropLandingPosition(int index, int count, RandomNumberGenerator random, GeneratedFloor floor, out Vector3 landingPosition)
-	{
-		for (int attempt = 0; attempt < 8; attempt++)
-		{
-			float angle = index / (float)count * Mathf.Tau + random.RandfRange(-0.45f, 0.45f) + attempt * 0.29f;
-			float radius = random.RandfRange(_currentAttack.TargetAreaRadius * 0.25f, _currentAttack.TargetAreaRadius);
-			Vector3 rawTarget = _actor.GlobalPosition + new Vector3(Mathf.Cos(angle) * radius, 0.0f, Mathf.Sin(angle) * radius);
-			if (floor == null)
-			{
-				landingPosition = rawTarget;
-				return true;
-			}
-
-			if (floor.TryFindEffectLandingPositionNear(rawTarget, 1.5f, out Vector3 candidate))
-			{
-				landingPosition = candidate;
-				return true;
-			}
-		}
-
-		landingPosition = default;
-		return false;
 	}
 
 	private Vector3 GetProjectileOrigin()
@@ -639,16 +558,6 @@ public partial class AttackController : Node, IParryInterruptible
 	private IEnumerable<Vector3> GetProjectileDirections(Vector3 aimedDirection)
 	{
 		int count = Mathf.Max(1, _currentAttack.ProjectileCount);
-
-		if (_currentAttack.ProjectilePattern == ProjectilePattern.Radial)
-		{
-			float step = 360.0f / count;
-			for (int i = 0; i < count; i++)
-			{
-				yield return RotateHorizontal(GetActorForward(), step * i);
-			}
-			yield break;
-		}
 
 		if (_currentAttack.ProjectilePattern == ProjectilePattern.Spread && count > 1)
 		{

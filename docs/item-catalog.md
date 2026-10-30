@@ -131,10 +131,8 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Longsword](../scenes/items/weapons/sword_common.tres) | `tier 2` | 4–12 |
 | [Royal Sword](../scenes/items/weapons/sword_rare.tres) | `tier 4` | 16–21 |
 | [Wand](../scenes/items/weapons/wand.tres) | `tier 1` | 1–6 |
-| [Ashwood Wand](../scenes/items/weapons/wand/wand_ashwood.tres) | `tier 2` | 4–12 |
 | [Celestial Golden Wand](../scenes/items/weapons/wand/wand_celestial.tres) | `tier 5` | 19+ |
 | [Ruby Scepter Wand](../scenes/items/weapons/wand/wand_ruby.tres) | `tier 3` | 10–18 |
-| [Runed Scepter Wand](../scenes/items/weapons/wand/wand_runed.tres) | `tier 4` | 16–21 |
 | [Warhammer](../scenes/items/weapons/warhammer.tres) | `tier 4` | 16–21 |
 | [Heavy Sledge](../scenes/items/weapons/warhammer/warhammer_iron.tres) | `tier 2` | 4–12 |
 | [Spiked Maul](../scenes/items/weapons/warhammer/warhammer_spiked.tres) | `tier 3` | 10–18 |

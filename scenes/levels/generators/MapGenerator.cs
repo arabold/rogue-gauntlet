@@ -812,7 +812,7 @@ public partial class MapGenerator : Node3D
 		// Initialize the map with empty tiles and a walled border
 		Map = new MapData((int)MapWidth, (int)MapDepth);
 		Map.ResetToBorderedEmpty();
-		Floor = new GeneratedFloor(Map, this, FloorGridMap, DecorationGridMap);
+		Floor = new GeneratedFloor(Map, this, DecorationGridMap);
 
 		FloorGridMap?.Clear();
 		WallGridMap?.Clear();
