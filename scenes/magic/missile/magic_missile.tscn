@@ -25,9 +25,8 @@ colors = PackedColorArray(0.96, 0.9, 1, 1, 0.66, 0.42, 1, 1, 0.42, 0.16, 0.82, 0
 [sub_resource type="GradientTexture1D" id="arcane_spark_ramp"]
 gradient = SubResource("arcane_spark_life")
 
-[sub_resource type="CapsuleShape3D" id="hit_shape"]
+[sub_resource type="SphereShape3D" id="hit_shape"]
 radius = 0.3
-height = 1.8
 
 [sub_resource type="ShaderMaterial" id="core_material"]
 shader = ExtResource("core_shader")

@@ -27,7 +27,7 @@ The four shared definitions under `scenes/magic/missile/` author these; they are
 | Range | 16 m | Crossbows reach 20–22 m |
 | Aiming cone | 55° | Current wand value; crossbows use 40–45° |
 | Homing | 480°/s after 0.1 s | Outer darts open about 0.9 m at 8 m and pass within 0.75 m of the target from 1.5 to 16 m |
-| Hit volume | 0.3 m radius, 1.8 m tall capsule | Homing is horizontal, so the tall volume still reaches rats below the 1.2 m muzzle |
+| Hit volume | 0.3 m radius sphere | Every projectile's shared ground-reach lane reaches rats below the 1.2 m flight line |
 | Poise damage / knockback | 2.5 / 1 | A volley removes 7.5; a crossbow primary removes 10 |
 | Defense traits | Dodgeable, Guardable | Same as today's wands and the skeleton crossbow |
 
