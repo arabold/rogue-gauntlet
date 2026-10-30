@@ -1,0 +1,45 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/magic/missile/magic_missile_impact.tscn" id="base"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_flash.gdshader" id="flash_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/fireball/impact_ring.gdshader" id="ring_shader"]
+[ext_resource type="Texture2D" path="res://scenes/magic/air/toon_storm_ramp.tres" id="ramp"]
+[ext_resource type="Texture2D" path="res://scenes/magic/air/toon_storm_spark_life.tres" id="spark_life"]
+
+[sub_resource type="ShaderMaterial" id="flash_material"]
+render_priority = 3
+shader = ExtResource("flash_shader")
+shader_parameter/color_ramp = ExtResource("ramp")
+shader_parameter/brightness = 2.2
+shader_parameter/pop_scale = 1.8
+shader_parameter/pop_time = 0.12
+shader_parameter/lifetime = 0.75
+
+[sub_resource type="ShaderMaterial" id="ring_material"]
+shader = ExtResource("ring_shader")
+shader_parameter/color_ramp = ExtResource("ramp")
+shader_parameter/brightness = 1.6
+shader_parameter/segments = 5.0
+
+[sub_resource type="ParticleProcessMaterial" id="spark_process"]
+particle_flag_align_y = true
+emission_shape = 1
+emission_sphere_radius = 0.05
+spread = 180.0
+initial_velocity_min = 3.0
+initial_velocity_max = 6.0
+gravity = Vector3(0, -6, 0)
+scale_min = 0.8
+scale_max = 1.2
+color_ramp = ExtResource("spark_life")
+
+[node name="MagicMissileImpactAir" instance=ExtResource("base")]
+
+[node name="Flash" parent="." index="0"]
+material_override = SubResource("flash_material")
+
+[node name="Ring" parent="." index="1"]
+material_override = SubResource("ring_material")
+
+[node name="Sparks" parent="." index="2"]
+process_material = SubResource("spark_process")

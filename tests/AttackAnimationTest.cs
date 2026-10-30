@@ -271,7 +271,7 @@ public class AttackAnimationTest
 	{
 		var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		AssertInt(harness.Weapons.Length).IsEqual(11);
+		AssertInt(harness.Weapons.Length).IsEqual(13);
 		AssertObject(harness.GetNode<Label>("%Controls/Status")).IsNotNull();
 		harness.EquipPreview(3);
 		harness.Attack();

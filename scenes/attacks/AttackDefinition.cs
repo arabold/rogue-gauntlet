@@ -51,6 +51,11 @@ public partial class AttackDefinition : Resource
 
 	public AttackImpact Impact => new(PoiseDamage, Knockback, ForcePushback);
 
+	public ProjectileFlight Flight => new(HomingTurnRate, HomingDelay, LaunchSpeedScale, LaunchRampDuration);
+
+	/// <summary>Elemental identity carried by this attack's projectile contacts; None keeps ordinary damage.</summary>
+	[Export] public DamageElement Element { get; set; }
+
 	/// <summary>Stable gameplay volume; null uses the weapon or actor default contact profile.</summary>
 	[Export] public MeleeAttackProfile MeleeContact { get; set; }
 
@@ -133,6 +138,28 @@ public partial class AttackDefinition : Resource
 	/// </summary>
 	[Export(PropertyHint.Range, "-1,1,0.05")] public float ImpactRadiusMinDamageScaleOverride { get; set; } = -1.0f;
 
+	/// <summary>
+	/// Seconds between successive projectiles of one release, so a spread leaves as a volley. Zero releases them
+	/// together. Aimed single/spread shots only; the last projectile must leave within the prepared duration.
+	/// </summary>
+	[ExportGroup("Flight")]
+	[Export(PropertyHint.Range, "0,0.25,0.01")] public float ProjectileStagger { get; set; }
+
+	/// <summary>
+	/// Degrees per second each projectile turns toward the target captured at release. Zero flies straight.
+	/// Aimed single/spread shots only.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,1440,1")] public float HomingTurnRate { get; set; }
+
+	/// <summary>Seconds of straight flight before homing starts, so a spread visibly opens first.</summary>
+	[Export(PropertyHint.Range, "0,0.5,0.01")] public float HomingDelay { get; set; }
+
+	/// <summary>Fraction of <see cref="ProjectileSpeed"/> at release; one launches at full speed.</summary>
+	[Export(PropertyHint.Range, "0.1,1,0.05")] public float LaunchSpeedScale { get; set; } = 1;
+
+	/// <summary>Seconds to ramp from the launch speed to full speed; zero flies at full speed from release.</summary>
+	[Export(PropertyHint.Range, "0,0.5,0.01")] public float LaunchRampDuration { get; set; }
+
 	/// <summary>Poise removed from a defender with a <see cref="PoiseComponent"/> by each unprotected contact.</summary>
 	[ExportGroup("Impact")]
 	[Export] public float PoiseDamage { get; set; } = DefaultPoiseDamage;
@@ -190,4 +217,21 @@ public partial class AttackDefinition : Resource
 	/// </summary>
 	public bool HasValidImpact(float contactStart) => HasValidImpactValues && HasValidArmorWindow && HasValidFacingLock(contactStart);
 
+	/// <summary>
+	/// Flight values are finite and nonnegative, the launch speed is a fraction of full speed, staggered or homing
+	/// flight belongs to an aimed single/spread shot, and, when the prepared release time and duration are known,
+	/// the last staggered projectile leaves before the attack ends. Shared with <see cref="MonsterSceneValidator"/>.
+	/// </summary>
+	public bool HasValidFlight(float? contactStart = null, double? duration = null)
+	{
+		if (!float.IsFinite(ProjectileStagger) || ProjectileStagger < 0
+			|| !float.IsFinite(HomingTurnRate) || HomingTurnRate < 0
+			|| !float.IsFinite(HomingDelay) || HomingDelay < 0
+			|| !float.IsFinite(LaunchSpeedScale) || LaunchSpeedScale <= 0 || LaunchSpeedScale > 1
+			|| !float.IsFinite(LaunchRampDuration) || LaunchRampDuration < 0) return false;
+		if (ProjectileStagger == 0 && HomingTurnRate == 0) return true;
+		if (!IsRanged || ProjectilePattern is not (ProjectilePattern.Single or ProjectilePattern.Spread)) return false;
+		return contactStart == null || duration == null
+			|| contactStart + Mathf.Max(0, ProjectileCount - 1) * ProjectileStagger <= duration;
+	}
 }

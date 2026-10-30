@@ -3,47 +3,26 @@
 [ext_resource type="Script" uid="uid://b8oa1aglmosdk" path="res://scenes/items/affixes/RolledAffix.cs" id="1_4wm61"]
 [ext_resource type="PackedScene" path="res://scenes/items/weapons/wand/wand_celestial.tscn" id="1_staff"]
 [ext_resource type="Script" uid="uid://bncpld6hbytsn" path="res://scenes/items/MagicStaff.cs" id="2_magic"]
-[ext_resource type="Script" uid="uid://dirab7d4baxkb" path="res://scenes/attacks/AttackDefinition.cs" id="3_attack_script"]
-[ext_resource type="PackedScene" path="res://scenes/attacks/air_blade_projectile.tscn" id="4_projectile"]
-[ext_resource type="PackedScene" path="res://scenes/effects/air_whirlwind.tscn" id="5_whirlwind"]
-[ext_resource type="PackedScene" path="res://scenes/effects/staff_muzzle_burst_air.tscn" id="6_muzzle"]
+[ext_resource type="Resource" path="res://scenes/magic/missile/magic_missile_air_attack.tres" id="3_missile"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
-
-[sub_resource type="Resource" id="Resource_air_attack"]
-script = ExtResource("3_attack_script")
-AnimationId = "ranged_attack"
-HitWindowStart = 0.12
-DefenseTraits = 3
-IsRanged = true
-ProjectileScene = ExtResource("4_projectile")
-MuzzleEffectScene = ExtResource("6_muzzle")
-CastEffectScene = ExtResource("5_whirlwind")
-ProjectilePattern = 2
-ProjectileCount = 10
-SpreadAngle = 360.0
-ProjectileDamageScale = 0.32
-ProjectileSpeed = 18.0
-Range = 12.0
-AimingAngle = 180.0
 
 [resource]
 script = ExtResource("2_magic")
 Element = 3
-ProjectileSpeed = 18.0
-Range = 12.0
-AimingAngle = 180.0
+ProjectileSpeed = 16.0
+Range = 16.0
+AimingAngle = 55.0
 RequiredStrength = 21
 DamageMin = 12.0
 DamageMax = 22.0
 CritChance = 0.03
 AttackStyle = &"staff.cast"
 Grip = ExtResource("weapon_grip")
-CustomAttackDefinition = SubResource("Resource_air_attack")
+CustomAttackDefinition = ExtResource("3_missile")
 AnimationId = "ranged_attack"
-Delay = 0.05
-PerformDuration = 0.45
-CooldownDuration = 0.35
+PerformDuration = 0.5
+CooldownDuration = 0.1
 ValidSlots = 256
 Tier = 5
 RollTable = ExtResource("roll_table")

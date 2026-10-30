@@ -41,8 +41,9 @@ Only the Mage starts with a healing potion, pre-identified via
 `CharacterClass`). The other three classes start without one and must identify healing
 potions the normal way — a deliberate balance choice, not a limitation of the system;
 any class's `.tres` can add `StartingItems`/`PreIdentifiedTypeIds` entries the same way.
-There is no mana: casting stays
-cooldown-based, and caster/non-caster differences come purely from stat profiles.
+There is no mana yet: casting stays
+cooldown-based, and caster/non-caster differences come purely from stat profiles. The
+[magic rework plan](specs/magic-rework-plan.md) proposes an Intelligence-sized mana pool.
 
 ## Runtime flow
 
@@ -106,6 +107,6 @@ animation plays once and freezes.
    hand.
 
 
-## Proposed action and magic progression
+## Proposed magic and mana
 
-[Actor actions and world interactions](actor-actions-and-interactions.md) extends the starting-kit model with weapon primary/secondary actions and learned elemental magic. Classes provide different initial stats, equipment and spell grants; they do not hard-lock access to an element. Any class may learn an elemental spell and cast it with the matching equipped staff, sufficient mana and an available secondary action. One selected spell per element is character state, separate from the four item-only quick slots. The [implementation plan](specs/actor-actions-and-interactions-plan.md) owns proposed knowledge, point/mana/cooldown persistence and keyboard/gamepad targeting; none of this section claims those systems are implemented.
+The [magic rework plan](specs/magic-rework-plan.md) gives every class a mana pool sized by Intelligence (from 45 for the Barbarian to 100 for the Mage) and moves spells onto wands and staves. Classes do not lock elements or spells: any class can equip any wand or staff and cast its spell; the Mage simply casts more often and would start with a Wand of Fireball. None of this is implemented yet.

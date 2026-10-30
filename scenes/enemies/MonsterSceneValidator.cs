@@ -155,6 +155,8 @@ public static class MonsterSceneValidator
 				Check(authored.HasValidImpactValues, "Attack: poise damage, knockback, hit-stop and wind-up turn rate must be nonnegative and finite.");
 				Check(authored.HasValidArmorWindow, "Attack.HyperArmorStart/End: require 0 <= start <= end <= 1.");
 				Check(authored.HasValidFacingLock(windUp), "Attack.FacingLockLead: must be nonnegative, melee only and no longer than the prepared wind-up.");
+				Check(authored.HasValidFlight(windUp, windUp != null ? Number(policy, "Duration") : null),
+					"Attack flight: stagger, homing and launch ramp must be finite and nonnegative with a launch scale in (0, 1]; stagger and homing belong to aimed single/spread shots whose last projectile leaves within the attack.");
 				var tier = authored.ThreatTier;
 				if (tier != AttackThreatTier.Normal && !authored.IsRanged)
 					Check(Local(Object<Node>(controller, "Telegraph")), "AttackController.Telegraph: assign this actor's telegraph for Heavy/Unblockable melee.");

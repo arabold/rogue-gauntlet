@@ -1,4 +1,4 @@
-[gd_scene load_steps=69 format=3 uid="uid://cm078mis4nj2k"]
+[gd_scene load_steps=71 format=3 uid="uid://cm078mis4nj2k"]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="player"]
 
@@ -14,6 +14,8 @@
 [ext_resource type="Resource" path="res://scenes/items/weapons/staff_fire.tres" id="weapon_8"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/staff_water.tres" id="weapon_9"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/hammer_common.tres" id="weapon_10"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/wand.tres" id="weapon_11"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/wand/wand_celestial.tres" id="weapon_12"]
 
 [ext_resource type="PackedScene" path="res://scenes/debug/combat/combat_practice_target.tscn" id="practice_target"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/skeleton/skeleton_minion.tscn" id="monster_minion"]
@@ -225,7 +227,7 @@ Player = NodePath("../Player")
 PracticeTarget = NodePath("../PracticeTarget")
 SpellComponents = [NodePath("../FrostNovaSpell"), NodePath("../GustSpell"), NodePath("../FlameBurstSpell"), NodePath("../TremorSpell"), NodePath("../RockSpikesSpell"), NodePath("../ThunderstormSpell"), NodePath("../EmberGuardSpell"), NodePath("../StormGuardSpell"), NodePath("../StoneBarrierSpell"), NodePath("../SpikedArmorSpell"), NodePath("../FrostGuardSpell"), NodePath("../IceWallSpell"), NodePath("../FireballSpell"), NodePath("../MeteorShowerSpell"), NodePath("../RockfallSpell"), NodePath("../BallLightningSpell"), NodePath("../ChainLightningSpell"), NodePath("../IceLanceSpell"), NodePath("../SolarFlaresSpell"), NodePath("../HailstormSpell")]
 Monsters = [ExtResource("monster_minion"), ExtResource("monster_skeleton"), ExtResource("monster_warden"), ExtResource("monster_crossbow"), ExtResource("monster_rat")]
-Weapons = [ExtResource("weapon_0"), ExtResource("weapon_1"), ExtResource("weapon_2"), ExtResource("weapon_3"), ExtResource("weapon_4"), ExtResource("weapon_5"), ExtResource("weapon_6"), ExtResource("weapon_7"), ExtResource("weapon_8"), ExtResource("weapon_9"), ExtResource("weapon_10")]
+Weapons = [ExtResource("weapon_0"), ExtResource("weapon_1"), ExtResource("weapon_2"), ExtResource("weapon_3"), ExtResource("weapon_4"), ExtResource("weapon_5"), ExtResource("weapon_6"), ExtResource("weapon_7"), ExtResource("weapon_8"), ExtResource("weapon_9"), ExtResource("weapon_10"), ExtResource("weapon_11"), ExtResource("weapon_12")]
 
 [node name="Panel" type="PanelContainer" parent="Instructions"]
 anchors_preset = 9

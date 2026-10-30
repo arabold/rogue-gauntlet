@@ -1,10 +1,10 @@
 # Elemental spells and effects
 
-**In progress:** three-level visual prototypes for all four elemental spell sets exist in the workbench. All 20 have initial gameplay components in the combat harness. Learning, mana, equipped-focus lifetime, guard persistence and final visual acceptance remain proposed. Player and monster frozen status is described in [actor status integration](actor-status-integration-plan.md). This plan extends [actions and magic](../actor-actions-and-interactions.md#weapon-techniques-learned-magic-and-classes) and its [integration plan](actor-actions-and-interactions-plan.md#learned-spells-and-mana). Current staff attacks are described in [weapon attacks](../weapon-attack-system.md); project constraints are in [AGENTS.md](../../AGENTS.md), [README](../../README.md), [architecture](../../ARCHITECTURE.md), [GDD](../game-design.md) and [roadmap](../development-roadmap.md).
+**In progress:** three-level visual prototypes for all four elemental spell sets exist in the workbench. All 20 have initial gameplay components in the combat harness. Casting from wands and staves, mana, levels 4–5, equipped-focus lifetime, guard persistence and final visual acceptance remain proposed; the [magic rework plan](magic-rework-plan.md) owns wand casting, mana, spell levels and proposed spell renames. Player and monster frozen status is described in [actor status integration](actor-status-integration-plan.md). This plan extends [actions and magic](../actor-actions-and-interactions.md#weapon-techniques-spell-weapons-and-classes) and its [integration plan](actor-actions-and-interactions-plan.md#spell-weapons-and-mana). Current staff attacks are described in [weapon attacks](../weapon-attack-system.md); project constraints are in [AGENTS.md](../../AGENTS.md), [README](../../README.md), [architecture](../../ARCHITECTURE.md), [GDD](../game-design.md) and [roadmap](../development-roadmap.md).
 
 ## Roster
 
-Each element has five peer spells, available to learn in any order. Their first levels should offer comparable overall value, with different tactical roles and costs; free staff primary attacks remain separate. Spend run-level points either to learn a spell at level 1 or upgrade a learned spell to its next level. Starter grants are separate. Spell level is independent of equipment tier. Start with three levels per spell; additional levels, costs and numerical values remain playtest decisions.
+Each element has five peer spells. Their first levels should offer comparable overall value, with different tactical roles and costs; free missile primaries remain separate. Spells are never learned: each wand or staff carries one, and its tier sets the spell level, from one to five ([magic rework](magic-rework-plan.md)). Three levels exist today; costs and numerical values remain playtest decisions. The names below are the current authored names.
 
 | Element | Targeted | Self-centered area | Guard | Character |
 | --- | --- | --- | --- | --- |
@@ -13,7 +13,7 @@ Each element has five peer spells, available to learn in any order. Their first 
 | Air / lightning | 2 | 2 | 1 | Balanced, emphasizing fast attacks and lightning |
 | Water / ice | 1 | 2 | 2 | Defensive counterpart to fire |
 
-Proposed names and roles; each is a separately learnable spell, not a level or prerequisite of another. Protection is an option alongside offense, not a class restriction.
+Roles; each is a separate spell, not a level or prerequisite of another. Protection is an option alongside offense, not a class restriction.
 
 | Element | Targeted spells | Area spells | Guards |
 | --- | --- | --- | --- |
@@ -24,7 +24,7 @@ Proposed names and roles; each is a separately learnable spell, not a level or p
 
 Earth and water guards share the same mechanics but make different capacity, reflection and cost tradeoffs. Earth has more protective choices than air; exact numbers remain tuning. Gust, Frost Nova, Hailstorm, Ice Wall and Solar Flares explicitly author the effects below; other visuals do not add statuses or movement effects by themselves. The visual workbenches simulate guard interactions; the combat harness exercises actual guard capacity and reflection.
 
-**Level growth.** Targeted spells independently increase damage and/or maximum distinct targets. Area spells increase damage and/or radius. Guards have their own hit points and independently increase capacity and/or reflected damage; they have no timer or target limit. Exact growth curves, point costs and mana tradeoffs are playtest decisions. Every spell has a distinct, polished base level and can become visually spectacular at higher levels.
+**Level growth.** Targeted spells independently increase damage and/or maximum distinct targets. Area spells increase damage and/or radius. Guards have their own hit points and independently increase capacity and/or reflected damage; they have no timer or target limit. Because the weapon's tier already scales damage, later levels grow reach more than damage ([magic rework](magic-rework-plan.md#damage-levels-and-tiers)). Exact growth curves and mana costs are playtest decisions. Every spell has a distinct, polished base level and can become visually spectacular at higher levels.
 
 ## Targeting, area and guard rules
 
@@ -136,15 +136,8 @@ Verify earth's extracted geometry retains its existing mesh, water scenes import
 Abbreviated declarations; proposed names, not existing APIs. Authored Resources are shared immutable definitions; runtime contexts and guard capacity belong to the actor/cast. Exported references are assigned in scenes; constructors and Inspector setters do not perform world queries or random rolls.
 
 ```csharp
+// SpellDefinition, SpellPower and wand casting: see magic-rework-plan.md
 // [GlobalClass] Resource, one script per authored Resource type
-partial class SpellDefinition : Resource {
-    string Id; MagicElement Element; SpellLevelDefinition[] Levels;
-    PackedScene DeliveryScene; PackedScene CastEffectScene;
-}
-partial class SpellLevelDefinition : Resource {
-    float DamageScale; int MaxTargets; float Radius; // target count only for targeted delivery
-    AttackDefinition Attack; GuardDefinition Guard;
-}
 partial class GuardDefinition : Resource {
     float Capacity; float ReflectionFraction;
     PackedScene SustainedEffectScene; PackedScene ReflectionEffectScene;
@@ -153,7 +146,7 @@ partial class GuardDefinition : Resource {
 record SpellTarget(Node Owner, Vector3 CapturedPosition);
 class SpellCastContext { /* captured focus instance, power, selected owners and resolved owners */ }
 partial class SpellEffectOwner : Node { void EndForFocus(Item focus); }
-// Saved only for an active guard, alongside character spell state.
+// Saved only for an active guard, alongside the player's mana.
 class GuardSaveData { string SpellId; int Level; string StaffInstanceId; float RemainingCapacity; float MaxCapacity; float ReflectionFraction; }
 // Actor-local Node; HurtBoxComponent and effect host are explicitly assigned
 partial class SpellGuardComponent : Node {
@@ -163,12 +156,12 @@ partial class SpellGuardComponent : Node {
 }
 ```
 
-Each level references an attack or a `GuardDefinition` and self delivery; guard levels have no target cap. Learning stores level 1 and upgrading advances exactly one level after validating points and the authored maximum. Reject unknown, unlearned, maximum-level or unaffordable upgrades without mutation; spend points and update level atomically, then notify locally. Capture the learned level and resolved values on accepted casts; later upgrades affect subsequent casts only. Validate unique IDs, element, ordered nonempty levels, finite nonnegative damage, positive attack radius, targeted-only target cap or guard capacity, nonnegative reflection fraction, and required scenes before accepting; a failed request mutates nothing and emits no success notification. `SpellGuardComponent` retains per-activation values, never mutates the shared definition, and emits local presentation notifications only after state changes. Frost Nova already applies its area freeze through the combat-harness spell component and actor-local status adapter; retain that behavior when integrating equipped casting. Coordinate with the [attack-status plan](attack-status-effects-plan.md), whose proposed first slice excludes area statuses and currently targets player-only buffs. Do not route area freeze through its direct-hit-only payload. Frozen surface presentation must use [shared surface ownership](../world-effects.md#surface-ownership-and-visibility), preserving cloak, other skins, equipment and death cleanup. Reflected damage must enter `ICombatDamageable.ResolveDamage` with a new reflection marker; the existing `DamageResolved` signal lacks attacker/context and cannot implement this safely by itself. Inspect impact on every `DamageContext` producer and noncombat `IDamageable` before choosing the exact marker representation. A caster-local `SpellEffectOwner` tracks pending and released effects by exact focus instance. It invalidates them synchronously on a successful equipment removal, including canceling timers, hiding visuals and disabling contact before deferred node cleanup. No global registry.
+Each level references an attack or a `GuardDefinition` and self delivery; guard levels have no target cap. Capture the weapon's spell level and resolved values on accepted casts. Validate unique IDs, element, ordered nonempty levels, finite nonnegative damage, positive attack radius, targeted-only target cap or guard capacity, nonnegative reflection fraction, and required scenes before accepting; a failed request mutates nothing and emits no success notification. `SpellGuardComponent` retains per-activation values, never mutates the shared definition, and emits local presentation notifications only after state changes. Frost Nova already applies its area freeze through the combat-harness spell component and actor-local status adapter; retain that behavior when integrating equipped casting. Coordinate with the [attack-status plan](attack-status-effects-plan.md), whose proposed first slice excludes area statuses and currently targets player-only buffs. Do not route area freeze through its direct-hit-only payload. Frozen surface presentation must use [shared surface ownership](../world-effects.md#surface-ownership-and-visibility), preserving cloak, other skins, equipment and death cleanup. Reflected damage must enter `ICombatDamageable.ResolveDamage` with a new reflection marker; the existing `DamageResolved` signal lacks attacker/context and cannot implement this safely by itself. Inspect impact on every `DamageContext` producer and noncombat `IDamageable` before choosing the exact marker representation. A caster-local `SpellEffectOwner` tracks pending and released effects by exact focus instance. It invalidates them synchronously on a successful equipment removal, including canceling timers, hiding visuals and disabling contact before deferred node cleanup. No global registry.
 
 `Inventory.Release` currently clears the slot and emits `ItemUnequipped`; `PlayerInventoryController.OnItemUnequipped` then emits `SignalBus.ItemUnequipped`. Do not rely on subscriber ordering. Add an actor-injected, ordinary C# pre-notification release callback on the runtime `Inventory`, invoked after successful preflight and slot removal but before `ItemUnequipped` and `Changed`. The controller registers/unregisters it with its inventory lifecycle and calls `SpellEffectOwner.EndForFocus` for the released weapon-hand item. This covers swaps, drops, destruction and forced releases through `Release`; it must not run on failed cursed removal or an in-place equipment change. Inventory restore suppresses creating new effects while old focus effects are ended, then restores the validated guard after the exact equipped instance is in place. Test every removal path and notification ordering.
 
 ```text
-Secondary intent → action resolver validates learned spell, focus, mana, cooldown and authored dependencies
+Secondary intent → action resolver validates the equipped weapon's bound spell, mana, cooldown and authored dependencies
   → targeted delivery captures owners/positions; area and guard prepare self-centered delivery
   → action accepted: spend mana and start cooldown once; interruption prevents release
   → release: attack nodes share cast context OR guard component activates definition
@@ -193,24 +186,24 @@ Save/load → restore equipped staff then active guard snapshot and capacity; di
 ~ scenes/enemies/ and scenes/buffs/     actor-local freeze, action interruption and expiry
 ~ scenes/effects/world/                ice surface presentation using shared appearance ownership
 ~ scenes/player/Inventory.cs           pre-notification release hook for the actor-owned focus
-~ scenes/player/ and player.tscn        spell selection, mana, focus ownership and explicitly wired guard component
+~ scenes/player/ and player.tscn        focus ownership and explicitly wired guard component
 ~ scenes/debug/effects/                 spell workbench and shared tab navigation
-~ scripts/saves/                        spell IDs/levels, points, mana, cooldowns and active guard snapshot/source; version bump
+~ scripts/saves/                        active guard snapshot/source; version bump
 + tests/                                targeting, contact, guard, persistence and harness coverage
 ~ docs/weapon-attack-system.md          implemented behavior when delivered
 ```
 
-The action plan owns exact learning/UI and save integration. Preserve free primary attacks and existing equipment throughout. Reject incompatible saves per [save policy](../randomness-and-seeds.md#save-compatibility-and-acceptance), without migration or overwrite.
+The [magic rework plan](magic-rework-plan.md) owns wand casting, mana and their save integration. Preserve free primary attacks and existing equipment throughout. Reject incompatible saves per [save policy](../randomness-and-seeds.md#save-compatibility-and-acceptance), without migration or overwrite.
 
 ## Delivery and checks
 
 Hybrid rollout: prove the highest-risk contact and visual boundaries, then deliver playable elemental slices.
 
 1. **Workbench and contact proof:** production targeting and delivery in a shared-navigation spell harness with 0–5 independently placed real targets, moving targets, obstacles, reset, seed/replay, slow motion, lighting and gameplay camera. Test unique selection, targeted caps, uncapped area contacts, Gust displacement and collision, Frost Nova freeze/restore, overlapping impacts, harmless fillers and focus removal before and after release. No progression UI yet.
-2. **Playable fire:** action-plan mana, learning/selection and save state; Fireball and Meteor Shower, at independently learnable base levels, with distinct damage/target growth curves. Test independent learning, point spending, invalid/max-level upgrades, both growth curves, captured cast levels, interruption, staff swaps, forced removal and level/ledger save-load for both classes. Existing primaries remain usable; remaining fire spells are unavailable.
-3. **Guard and remaining fire:** prove shield ordering and reflection against the real damage pipeline, including full/partial absorption, many and repeated attackers, blocked/parried hits, missing attackers, death, recursion, replacement, depletion, focus removal and save/load. Deliver Ember Guard and remaining fire spells; compare polished base and spectacular highest-level sustained and reflected visuals. Other elements retain their current attacks.
-4. **Earth, water and air:** deliver their complete spell sets and reusable drops/arcs/guards. Verify level-specific target caps, damage growth and guard variants; compare every spell at its base and highest levels in the harness and gameplay, including screen-filling readability; tune balance and performance.
+2. **Playable spells:** the [magic rework plan](magic-rework-plan.md#delivery-slices) delivers casting from wands and staves, mana and levels 4–5, fire first.
+3. **Guard proof:** prove shield ordering and reflection against the real damage pipeline, including full/partial absorption, many and repeated attackers, blocked/parried hits, missing attackers, death, recursion, replacement, depletion, focus removal and save/load. Compare polished base and spectacular highest-level sustained and reflected visuals.
+4. **Visual acceptance per element:** verify level-specific target caps, damage growth and guard variants; compare every spell at its base and highest levels in the harness and gameplay, including screen-filling readability; tune balance and performance.
 
 Each slice runs `dotnet build "Rogue Gauntlet.sln"`, focused GdUnit4 tests with `GODOT_BIN` and `.runsettings`, and the [Godot MCP workflow](../../.agents/skills/godot-mcp/SKILL.md) for scene import, resource validation and gameplay smoke checks. In the editor, create and assign a definition, inspect runtime isolation and exercise the production cast path. Visual quality and target-hardware performance require manual acceptance; passing tests do not establish either.
 
-Open for playtesting: numeric balance, Gust push strength, freeze duration and boss resistance, whether further levels are needed, point costs, no-target feedback, full-absorption poise/reaction, and final effect budgets. Verify the engine's collision behavior and reflected-contact defense semantics before locking the delivery implementation.
+Open for playtesting: numeric balance, Gust push strength, freeze duration and boss resistance, no-target feedback, full-absorption poise/reaction, and final effect budgets. Verify the engine's collision behavior and reflected-contact defense semantics before locking the delivery implementation.

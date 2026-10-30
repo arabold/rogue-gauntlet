@@ -47,6 +47,12 @@ public partial class Projectile : Node3D, IPooledNode
 	private bool _restrictedTarget;
 	private Node _assignedTarget;
 	private float _effectScale = 1f;
+	private ProjectileFlight _flight = ProjectileFlight.Straight;
+	private Node3D _homingTarget;
+	private float _flightTime;
+
+	/// <summary>Whether this flight still steers toward its captured target.</summary>
+	public bool IsHoming => _homingTarget != null;
 
 	/// <summary>Restricts this flight to one damage owner; null produces a cosmetic-only projectile.</summary>
 	public void RestrictToTarget(Node target, float effectScale = 1f)
@@ -106,6 +112,7 @@ public partial class Projectile : Node3D, IPooledNode
 	{
 		SetPhysicsProcess(false);
 		_attacker = null;
+		_homingTarget = null;
 		EffectRoot = null;
 		Element = DamageElement.None;
 		_parentExecution = default;
@@ -130,6 +137,7 @@ public partial class Projectile : Node3D, IPooledNode
 		_attackerFaction = HurtBoxComponent.GetDamageSource(attacker);
 		_distanceTravelled = 0.0f;
 		_hasResolvedHit = false;
+		ResetFlight();
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.spawned", ("execution", _executionId.Sequence), ("execution_source", _executionId.SourceInstanceId),
 			("parent_execution", _parentExecution.Sequence), ("parent_source", _parentExecution.SourceInstanceId), ("owner", CombatTrace.Identity(attacker)),
 			("origin", CombatTrace.Vector(origin)), ("direction", CombatTrace.Vector(Direction)), ("speed", speed), ("range", range),
@@ -151,12 +159,24 @@ public partial class Projectile : Node3D, IPooledNode
 		}
 	}
 
+	/// <summary>
+	/// Shape the flight started by <see cref="Initialize"/>: its launch ramp, and horizontal homing on
+	/// <paramref name="homingTarget"/>. A null target or zero turn rate flies straight. The attack validated the values.
+	/// </summary>
+	public void ConfigureFlight(in ProjectileFlight flight, Node3D homingTarget)
+	{
+		_flight = flight;
+		_homingTarget = flight.Homes ? homingTarget : null;
+	}
+
 	public override void _PhysicsProcess(double delta)
 	{
 		if (_hasResolvedHit) return;
 
+		_flightTime += (float)delta;
+		if (_homingTarget != null) Steer((float)delta);
 		Vector3 start = GlobalPosition;
-		Vector3 movement = Direction * Speed * (float)delta;
+		Vector3 movement = Direction * Speed * LaunchSpeedFactor() * (float)delta;
 		Vector3 end = start + movement;
 
 		if (TryHitWorld(start, end, out Vector3 hitPosition, out Vector3 hitNormal))
@@ -177,6 +197,52 @@ public partial class Projectile : Node3D, IPooledNode
 			SpawnExpireEffect();
 			CallDeferred(MethodName.ReturnToPoolOrFree);
 		}
+	}
+
+	/// <summary>
+	/// After the homing delay, turn horizontally toward the target's current position by at most the turn rate.
+	/// A freed or dead target, or one more than 90 degrees off the nose (overshot or dodged past), ends homing for
+	/// good, so a missed projectile flies on instead of circling.
+	/// </summary>
+	private void Steer(float delta)
+	{
+		if (_flightTime < _flight.HomingDelay) return;
+		if (!AttackController.IsLivingTarget(_homingTarget))
+		{
+			LoseHoming("target_lost");
+			return;
+		}
+		Vector3 toTarget = _homingTarget.GlobalPosition - GlobalPosition;
+		toTarget.Y = 0;
+		var heading = new Vector3(Direction.X, 0, Direction.Z);
+		if (toTarget.LengthSquared() < 0.0001f || heading.LengthSquared() < 0.0001f) return;
+		float angle = heading.SignedAngleTo(toTarget, Vector3.Up);
+		if (Mathf.Abs(angle) > Mathf.Pi * 0.5f)
+		{
+			LoseHoming("overshot");
+			return;
+		}
+		float maxTurn = Mathf.DegToRad(_flight.TurnRate) * delta;
+		Direction = Direction.Rotated(Vector3.Up, Mathf.Clamp(angle, -maxTurn, maxTurn)).Normalized();
+		LookAt(GlobalPosition + Direction, GetLookAtUpVector(Direction));
+	}
+
+	private void LoseHoming(string reason)
+	{
+		_homingTarget = null;
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.homing_lost", ("execution", _executionId.Sequence), ("reason", reason));
+	}
+
+	/// <summary>Fraction of full speed during the launch ramp.</summary>
+	private float LaunchSpeedFactor() => _flight.RampDuration > 0
+		? Mathf.Lerp(_flight.LaunchSpeedScale, 1, Mathf.Min(1, _flightTime / _flight.RampDuration))
+		: 1;
+
+	private void ResetFlight()
+	{
+		_flight = ProjectileFlight.Straight;
+		_homingTarget = null;
+		_flightTime = 0;
 	}
 
 	private void OnHitDetected(Node body)
@@ -516,6 +582,7 @@ public partial class Projectile : Node3D, IPooledNode
 	{
 		_distanceTravelled = 0.0f;
 		_hasResolvedHit = false;
+		ResetFlight();
 		_restrictedTarget = false;
 		_assignedTarget = null;
 		_effectScale = 1f;

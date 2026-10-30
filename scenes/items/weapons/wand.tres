@@ -3,39 +3,23 @@
 [ext_resource type="PackedScene" uid="uid://dwyvjmrj4xfmo" path="res://scenes/items/weapons/wand.tscn" id="1_staff"]
 [ext_resource type="Script" uid="uid://b8oa1aglmosdk" path="res://scenes/items/affixes/RolledAffix.cs" id="1_xw82a"]
 [ext_resource type="Script" uid="uid://bncpld6hbytsn" path="res://scenes/items/MagicStaff.cs" id="2_magic"]
-[ext_resource type="Script" uid="uid://dirab7d4baxkb" path="res://scenes/attacks/AttackDefinition.cs" id="3_attack_script"]
-[ext_resource type="PackedScene" path="res://scenes/magic/fireball/fireball_visual.tscn" id="4_projectile"]
-[ext_resource type="PackedScene" path="res://scenes/effects/staff_muzzle_burst_fire.tscn" id="5_muzzle"]
+[ext_resource type="Resource" path="res://scenes/magic/missile/magic_missile_fire_attack.tres" id="3_missile"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/wooden_weapon.tres" id="roll_table"]
 
-[sub_resource type="Resource" id="Resource_fire_attack"]
-script = ExtResource("3_attack_script")
-AnimationId = "ranged_attack"
-HitWindowStart = 0.2
-DefenseTraits = 3
-IsRanged = true
-ProjectileScene = ExtResource("4_projectile")
-MuzzleEffectScene = ExtResource("5_muzzle")
-ProjectileDamageScale = 1.25
-ProjectileSpeed = 13.0
-Range = 18.0
-AimingAngle = 55.0
-
 [resource]
 script = ExtResource("2_magic")
-ProjectileSpeed = 13.0
-Range = 18.0
+ProjectileSpeed = 16.0
+Range = 16.0
 AimingAngle = 55.0
 DamageMin = 1.0
 DamageMax = 5.0
 AttackStyle = &"staff.cast"
 Grip = ExtResource("weapon_grip")
-CustomAttackDefinition = SubResource("Resource_fire_attack")
+CustomAttackDefinition = ExtResource("3_missile")
 AnimationId = "ranged_attack"
-Delay = 0.15
-PerformDuration = 0.55
-CooldownDuration = 0.15
+PerformDuration = 0.5
+CooldownDuration = 0.1
 ValidSlots = 256
 RollTable = ExtResource("roll_table")
 Name = "Wand"

@@ -231,4 +231,19 @@ public class ItemCatalogTest
 			if (item.ResourcePath.Contains("crossbow", StringComparison.Ordinal) || item.ResourcePath.Contains("wand", StringComparison.Ordinal)) { AssertBool(item is RangedWeapon).IsTrue(); }
 		}
 	}
+
+	[TestCase]
+	public void EveryWandFiresAHomingMissileVolleyOfItsElement()
+	{
+		var wands = Definitions().OfType<MagicStaff>().Where(staff => staff.ResourcePath.Contains("wand", StringComparison.Ordinal)).ToArray();
+		AssertInt(wands.Length).IsGreaterEqual(3);
+		foreach (var wand in wands)
+		{
+			var attack = wand.CustomAttackDefinition;
+			AssertString(attack.ResourcePath).OverrideFailureMessage(wand.ResourcePath).StartsWith("res://scenes/magic/missile/");
+			AssertBool(attack.HomingTurnRate > 0 && attack.ProjectileCount > 1 && attack.HasValidFlight()).IsTrue();
+			AssertObject(attack.Element).OverrideFailureMessage(wand.ResourcePath).IsEqual(Enum.Parse<DamageElement>(wand.Element.ToString()));
+			AssertBool(wand.IsTwoHanded).IsFalse();
+		}
+	}
 }
