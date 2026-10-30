@@ -13,6 +13,8 @@ public partial class ManaComponent : Node
 	/// changes or the pool fills, so listeners refresh a few times a second rather than every tick.
 	/// </summary>
 	[Signal] public delegate void ManaChangedEventHandler(float currentMana, float maxMana);
+	/// <summary>A cost the pool could not cover was asked for; presentation cues (the HUD) react, nothing else changes.</summary>
+	[Signal] public delegate void ManaShortfallEventHandler(float cost);
 
 	private float _maxMana = 100;
 	private float _currentMana = 100;
@@ -69,6 +71,14 @@ public partial class ManaComponent : Node
 	}
 
 	public bool CanSpend(float amount) => amount >= 0 && amount <= _currentMana;
+
+	/// <summary>Whether the pool covers <paramref name="cost"/>, announcing a shortfall when it does not; spends nothing.</summary>
+	public bool CheckCost(float cost)
+	{
+		if (CanSpend(cost)) return true;
+		EmitSignalManaShortfall(cost);
+		return false;
+	}
 
 	/// <summary>Spends <paramref name="amount"/> when the pool covers it; otherwise spends nothing.</summary>
 	public bool TrySpend(float amount)

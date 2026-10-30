@@ -7,7 +7,7 @@
 script = ExtResource("script")
 SpellName = "Hailstorm"
 Kind = 1
-DamageScaleByLevel = PackedFloat32Array(0.125, 0.15625, 0.1875, 0.203125, 0.21875)
+DamageScaleByLevel = PackedFloat32Array(0.125, 0.1375, 0.15, 0.1625, 0.175)
 SlowConditions = [ExtResource("slow1"), ExtResource("slow2"), ExtResource("slow3"), ExtResource("slow3"), ExtResource("slow3")]
 RadiusByLevel = PackedFloat32Array(3.5, 5, 6.5, 7.5, 8.5)
 ShardsPerSecondByLevel = PackedFloat32Array(14, 26, 40, 53, 68)

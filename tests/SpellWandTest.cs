@@ -3,6 +3,7 @@ namespace RogueGauntlet.Tests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Godot;
 using GdUnit4;
@@ -11,7 +12,7 @@ using static GdUnit4.Assertions;
 /// <summary>
 /// Spell wands through the real player: the secondary action casts the wand's bound spell at its tier for mana, once per
 /// press; an unaffordable cast is rejected without spending or firing missiles; interrupting the wind-up keeps the mana
-/// spent; and removing the wand ends its spell. Also the spell roll, item names and saves.
+/// spent; and removing the wand ends its spell. Also the spell roll, item names, tooltips and saves.
 /// </summary>
 [TestSuite, RequireGodotRuntime]
 public partial class SpellWandTest
@@ -19,6 +20,9 @@ public partial class SpellWandTest
 	private const string WandPath = "res://scenes/items/weapons/wand.tres";
 	private const string FireNovaPath = "res://scenes/magic/spells/fire_nova.tres";
 	private const string MeteorPath = "res://scenes/magic/spells/meteor.tres";
+	private const string EmberWardPath = "res://scenes/magic/spells/ember_ward.tres";
+	private const string FireballPath = "res://scenes/magic/spells/fireball.tres";
+	private const string RuneStaffPath = "res://scenes/items/weapons/staff_rare.tres";
 
 	[TestCase]
 	public async Task SecondaryCastsTheBoundSpellOnceForItsManaCostAndNothingWhenUnaffordable()
@@ -28,12 +32,15 @@ public partial class SpellWandTest
 		var target = await SpawnTarget(runner, new Vector3(2, 0, 0));
 		var mana = harness.Player.ManaComponent;
 		float cost = wand.BoundSpell.ManaCost(wand.SpellLevel);
+		float shortfall = 0;
+		mana.ManaShortfall += refused => shortfall = refused;
 
-		// Short of the cost: rejected without spending, and no missiles instead.
+		// Short of the cost: rejected without spending, and no missiles instead; the HUD's cue hears why.
 		mana.CurrentMana = cost - 1;
 		AssertBool(harness.Player.ActionManager.TryPerformSecondary()).IsFalse();
 		AssertBool(harness.Player.AttackController.IsAttacking).IsFalse();
 		AssertFloat(mana.CurrentMana).IsEqual(cost - 1);
+		AssertFloat(shortfall).IsEqual(cost);
 
 		mana.CurrentMana = 50;
 		AssertBool(harness.Player.ActionManager.TryPerformSecondary()).IsTrue();
@@ -106,6 +113,60 @@ public partial class SpellWandTest
 	}
 
 	[TestCase]
+	public async Task TooltipsQuoteTheSpellDamageTheWeaponDealsOnceWielded()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var (harness, wand) = await EquipWand(runner, FireballPath);
+		var player = harness.Player;
+		AssertArray(TooltipLines(wand, player))
+			.Contains("Fireball (Level 1)", "10 mana per cast", SpellLevels.Damage(player.Stats.ResolveAttack(wand)) + " per hit");
+
+		// A staff in the backpack quotes the damage it deals once it replaces the wand.
+		var staff = (MagicStaff)ItemFactory.Create(GD.Load<Item>(RuneStaffPath));
+		AssertBool(player.Inventory.TryAdd(staff).Success).IsTrue();
+		var quoted = TooltipLines(staff, player);
+		AssertArray(quoted).Contains("Chain Lightning (Level 4)", "15 mana per cast");
+		player.Inventory.Equip(player.Inventory.Items.First(entry => ReferenceEquals(entry.Item, staff)), EquipmentSlot.WeaponHand);
+		AssertBool(player.SpellCaster.IsBoundTo(staff)).IsTrue();
+		AssertArray(TooltipLines(staff, player)).IsEqual(quoted);
+		AssertArray(quoted).Contains(SpellLevels.Damage(player.Stats.ResolveAttack(staff).Scaled(1.3f)) + " per hit");
+
+		// No damage without a viewer, or for a weapon whose stats are unidentified.
+		var hidden = (MagicStaff)ItemFactory.Create(GD.Load<Item>(RuneStaffPath));
+		hidden.AttributesKnown = false;
+		AssertBool(TooltipLines(wand, null).Any(line => line.EndsWith(" per hit"))).IsFalse();
+		AssertBool(TooltipLines(hidden, player).Any(line => line.EndsWith(" per hit"))).IsFalse();
+	}
+
+	[TestCase]
+	public async Task AnActiveWardKeepsItsRemainingCapacityThroughASave()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var (harness, _) = await EquipWand(runner, EmberWardPath);
+		var player = harness.Player;
+		var attacker = await SpawnTarget(runner, new Vector3(2, 0, 0));
+		var ward = (MagicGuardSpell)player.SpellCaster.Current;
+		AssertBool(ward.Cast(player, TestFactories.SpellPower(1), new RandomNumberGenerator { Seed = 1 })).IsTrue();
+		float full = ward.RemainingCapacity;
+		var contact = new DamageContext { OwnerNode = attacker, SourceNode = attacker, Faction = DamageSourceFlags.Enemy,
+			Amount = 4, IncomingDirection = Vector3.Left, DeliveryKind = DamageDeliveryKind.DirectMelee };
+		player.ResolveDamage(in contact);
+		float remaining = ward.RemainingCapacity;
+		AssertFloat(remaining).IsGreater(0).IsLess(full);
+
+		var saved = JsonSerializer.Deserialize<PlayerSaveData>(JsonSerializer.Serialize(PlayerSaveCodec.Capture(player, false)));
+		PlayerSaveCodec.Apply(player, saved);
+		AssertFloat(((MagicGuardSpell)player.SpellCaster.Current).RemainingCapacity).IsEqual(remaining);
+
+		// A ward with no spell weapon to rise on is rejected before the player changes.
+		saved.Inventory.EquippedItems.RemoveAll(entry => entry.Slot == nameof(EquipmentSlot.WeaponHand));
+		bool rejected = false;
+		try { PlayerSaveCodec.Apply(player, saved); } catch (InvalidOperationException) { rejected = true; }
+		AssertBool(rejected).IsTrue();
+		AssertFloat(((MagicGuardSpell)player.SpellCaster.Current).RemainingCapacity).IsEqual(remaining);
+	}
+
+	[TestCase]
 	public async Task TheHarnessSpellSelectorRebindsTheEquippedStaff()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
@@ -155,6 +216,15 @@ public partial class SpellWandTest
 		player.Inventory.Equip(player.Inventory.Items.First(entry => ReferenceEquals(entry.Item, wand)), EquipmentSlot.WeaponHand);
 		AssertBool(player.SpellCaster.IsBoundTo(wand)).IsTrue();
 		return (harness, wand);
+	}
+
+	private static List<string> TooltipLines(Item item, Player viewer)
+	{
+		var view = new ItemDetailsView();
+		view.SetItem(item, viewer);
+		var lines = view.GetChildren().OfType<Label>().Select(label => label.Text).ToList();
+		view.Free();
+		return lines;
 	}
 
 	private static async Task<EnemyBase> SpawnTarget(ISceneRunner runner, Vector3 position)

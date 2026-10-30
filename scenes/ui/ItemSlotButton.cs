@@ -19,7 +19,7 @@ public partial class ItemSlotButton : Button
 		}
 
 		var view = new ItemDetailsView();
-		view.SetItem(Item);
+		view.SetItem(Item, GetTree().GetFirstNodeInGroup("player") as Player);
 		return view;
 	}
 }

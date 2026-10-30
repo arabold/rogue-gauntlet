@@ -6,5 +6,5 @@ script = ExtResource("script")
 SpellName = "Fire Serpent"
 BurnCondition = ExtResource("burn")
 RadiusByLevel = PackedFloat32Array(3.5, 5, 6.5, 6.5, 6.5)
-DamageScaleByLevel = PackedFloat32Array(0.375, 0.5, 0.625, 0.6875, 0.75)
-BurnScaleByLevel = PackedFloat32Array(0.125, 0.1875, 0.25, 0.275, 0.3)
+DamageScaleByLevel = PackedFloat32Array(0.375, 0.4125, 0.45, 0.4875, 0.525)
+BurnScaleByLevel = PackedFloat32Array(0.125, 0.1375, 0.15, 0.1625, 0.175)

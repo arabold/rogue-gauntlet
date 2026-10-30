@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 
 /// <summary>Scene-composed damage-only area cast, with a separately authored visual.</summary>
 public partial class AreaDamageSpell : Node, ICombatSpell
@@ -8,6 +9,7 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 	[Export] public Node3D VisualRoot { get; set; }
 	public string DisplayName => Definition?.SpellName ?? "";
 	public int LevelCount => Definition?.LevelCount ?? 0;
+	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	private readonly AreaCastLifecycle _cast = new();
 
 	public override void _Ready() { ProcessPhysicsPriority = CombatPhysics.Damage; SetPhysicsProcess(false); }

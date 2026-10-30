@@ -11,6 +11,7 @@ public partial class TargetedSpell : Node, ICombatSpell
 	[Export] public Node3D VisualRoot { get; set; }
 	public string DisplayName => Definition?.SpellName ?? "";
 	public int LevelCount => Definition?.LevelCount ?? 0;
+	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	private readonly AreaCastLifecycle _cast = new();
 	private readonly List<PendingHit> _pending = [];
 	private double _clock;

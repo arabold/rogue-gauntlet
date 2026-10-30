@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://2yodi0jq6bos"
-path="res://.godot/imported/staff_fire.png-1a9a90818a272b88b1be6e1849ec13a5.ctex"
+uid="uid://bf87nyqql62fc"
+path="res://.godot/imported/staff_emerald.png-98e497a7bad7206ec5bea2768d7b564d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://docs/item-catalog/staff_fire.png"
-dest_files=["res://.godot/imported/staff_fire.png-1a9a90818a272b88b1be6e1849ec13a5.ctex"]
+source_file="res://docs/item-catalog/staff_emerald.png"
+dest_files=["res://.godot/imported/staff_emerald.png-98e497a7bad7206ec5bea2768d7b564d.ctex"]
 
 [params]
 

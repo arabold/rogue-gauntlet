@@ -1,6 +1,6 @@
 # Magic rework: spell wands, staves and mana
 
-**In progress.** Slices 1–3 are implemented: the player has a [mana pool](../stats-and-itemization.md#mana), and every wand and staff is a [spell weapon](../weapon-attack-system.md) that rolls one of the 20 spells at five levels. Readability, tuning and the leftovers below remain. Magic moves from the character onto the weapon. Every wand and staff fires the free [magic missile](magic-missile-plan.md) as its primary attack and casts one bound elemental spell as its secondary attack, paid from a new mana pool. Nothing is learned and there are no skill points: finding a better wand is how magic progresses. This plan replaces the learning, point, selection and staff-requirement rules of the [elemental spell plan](elemental-spells-plan.md) and the [actions plan](actor-actions-and-interactions-plan.md); the spell roster, targeting, area, guard and focus-lifetime rules and the visual direction in the spell plan still apply. Current weapons are described in [weapon attacks](../weapon-attack-system.md), items in [stats and itemization](../stats-and-itemization.md) and classes in [character classes](../character-classes.md).
+**Implemented, awaiting playtest acceptance.** The player has a [mana pool](../stats-and-itemization.md#mana), and every wand and staff is a [spell weapon](../weapon-attack-system.md) that rolls one of the 20 spells at five levels, shows it in its tooltip and HUD slot, and keeps an active ward across saves. Balance, the level 4–5 visuals and the open decisions below remain. Magic moves from the character onto the weapon. Every wand and staff fires the free [magic missile](magic-missile-plan.md) as its primary attack and casts one bound elemental spell as its secondary attack, paid from a new mana pool. Nothing is learned and there are no skill points: finding a better wand is how magic progresses. This plan replaces the learning, point, selection and staff-requirement rules of the [elemental spell plan](elemental-spells-plan.md) and the [actions plan](actor-actions-and-interactions-plan.md); the spell roster, targeting, area, guard and focus-lifetime rules and the visual direction in the spell plan still apply. Current weapons are described in [weapon attacks](../weapon-attack-system.md), items in [stats and itemization](../stats-and-itemization.md) and classes in [character classes](../character-classes.md).
 
 ## Gameplay rules
 
@@ -50,7 +50,7 @@ The 20 spells keep their roles. Ten names were clunky or misdescribed the effect
 
 Implemented for wands: [weapon attacks](../weapon-attack-system.md) describes the shared `AttackStats` roll, the spell power captured from the casting wand's own hit and definitions authored as scales of that hit. Every spell was converted from its absolute values by dividing by 8, about a Mage's average hit with the tier-1 wand, so depth 1 keeps the old feel.
 
-Tier already multiplies damage about fourfold from T1 to T5 through the weapon's base damage, so levels 4 and 5 grow **reach** (targets, strikes, radius, ward capacity) and add at most about 10% damage scale per level. Every spell keeps its converted level 1–3 growth until tuning.
+Tier already multiplies damage about fourfold from T1 to T5 through the weapon's base damage, so levels grow **reach** (targets, strikes, radius, freeze time, ward reflection) and every hit-scaled value (damage, burn, ward capacity) adds 10% of its level-1 scale per level: Fireball deals 1.0× to 1.4× its hit from level 1 to 5.
 
 | Tier | Wand (model) | Staff (model) | Damage band | Depths |
 | --- | --- | --- | --- | --- |
@@ -72,24 +72,23 @@ Costs are authored per spell and level, flat across levels, so a deeper wand is 
 
 ## Remaining changes
 
-- **Wards across saves.** An active ward follows the [spell plan](elemental-spells-plan.md)'s restore rule; today it ends with the player node on load and on the stairs.
-- **Readable casting.** Tooltip lines (spell, level, mana cost, damage per hit), the secondary slot's cost and out-of-mana state, and an out-of-mana cue; a rejected cast is silent today.
-- **Generated catalog images.** `docs/item-catalog/` still shows the removed per-element staves until `render_item_catalog.gd` runs again.
+- **Acceptance.** Balance (costs against each class's pool, the 10% growth rule) and the level 4–5 visuals need playtesting; passing tests establish neither.
 
 ## Delivery slices
 
 1. **Mana pool.** Done.
 2. **Fire wands.** Done.
 3. **All spells and staves.** Done: 20 spells at five levels in `scenes/magic/spells/`, wand and staff tiers 1–5 rolling from `spell_pool_all.tres`, staves firing four darts per volley, the per-element staves removed (the Skeleton Staff became a second tier-2 spell staff), the harness and debug menu spawning with a chosen spell.
-4. **Readability and tuning.** The readable-casting items above, levels 4–5 visuals reviewed at the gameplay camera, cost and scale tuning across classes. Visual quality and balance need manual acceptance; passing tests establish neither.
+4. **Readability and tuning.** Done: tooltips list the spell, level, mana cost and per-level effect; the HUD's secondary slot shows the cost and greys out while the pool is short; a refused cast flashes the mana bar; hit-scaled values follow the growth rule above; an active ward survives saves and the stairs; the item catalog shows the current wands and staves.
 
-*Exercise still owed for slices 1–3:* start each class and compare pools; lower `ManaComponent.CurrentMana` in the Remote Inspector and watch it regenerate; save and reload; in a Mage run cast every tier, run dry and see K rejected without missiles, swap weapons mid-cast; play a Barbarian with a found staff; compare a wand and a staff of one tier against a shield-and-wand loadout.
+*Exercise still owed:* start each class and compare pools; lower `ManaComponent.CurrentMana` in the Remote Inspector and watch it regenerate and the K slot grey out and return; save and reload, including with a ward up and after taking the stairs; in a Mage run cast every tier, run dry and see K rejected with the mana bar flash and no missiles, swap weapons mid-cast; play a Barbarian with a found staff; compare a wand and a staff of one tier against a shield-and-wand loadout; review levels 4–5 of each spell at the gameplay camera.
 
 Each slice runs `dotnet build "Rogue Gauntlet.sln"`, focused GdUnit4 suites with `GODOT_BIN` and `.runsettings`, the Godot import step for new scripts and resources, and a headless `main.tscn` smoke run. Old development saves are rejected after the version bump, without migration.
 
 ## Open decisions
 
 - **Levels 4–5 visuals:** every spell reuses its level-3 composition at levels 4 and 5; area spells still grow with their radius. Decide per spell whether new layers are worth authoring.
+- **Mana costs:** flat per spell from 10 to 40; a deeper pool casts more often, which may favor the Mage more than intended.
 - **Quality and level:** whether Rare quality adds a spell level; the plan keeps level purely tied to tier.
 - **Pool weighting:** uniform across all 20, or weighted by realm theme once realms have elements.
 - **Mana sources:** regeneration only for now; a mana potion and mana affixes are follow-ups.

@@ -162,6 +162,19 @@ public partial class PlayerStats : ObservableResource
 		ResolveStat(StatType.MaxDamage, BaseMaxDamage + DamageFromAttributes, weapon),
 		ResolveStat(StatType.CritChance, BaseCritChance + Dexterity * Coefficient(p => p.CritChancePerDexterity), weapon));
 
+	/// <summary>
+	/// The hit <paramref name="weapon"/> would deal wielded in place of the current weapon while granting
+	/// <paramref name="modifiers"/>, for comparing weapons in tooltips. A scratch copy of the sheet, without the current
+	/// weapon's modifiers, resolves it, so this sheet and its listeners never change.
+	/// </summary>
+	public AttackStats PreviewAttack(Weapon weapon, IEnumerable<StatModifier> modifiers)
+	{
+		var preview = CreateRuntimeCopy();
+		preview._modifiers.AddRange(_modifiers.FindAll(entry => entry.Source is not Weapon));
+		preview.AddWeaponModifiers(weapon, modifiers);
+		return preview.ResolveAttack(weapon);
+	}
+
 	// Defense Stats
 	public float Armor => ResolveStat(StatType.Armor, BaseArmor);
 

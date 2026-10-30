@@ -11,8 +11,10 @@ public partial class ItemDetailsView : VBoxContainer
 	private const int MinWidth = 220;
 	private static readonly Color CursedColor = new("e05252");
 	private static readonly Color UncursedColor = new(0.7f, 0.7f, 0.7f);
+	private static readonly Color SpellColor = new("8fb8ff");
 
-	public void SetItem(Item item)
+	/// <param name="viewer">The player the item is shown to, whose stats turn a spell weapon's spell into damage numbers.</param>
+	public void SetItem(Item item, Player viewer = null)
 	{
 		// A floor on width so the hover tooltip doesn't collapse to a sliver and wrap text one
 		// character per line; long names still wrap within this width.
@@ -39,6 +41,12 @@ public partial class ItemDetailsView : VBoxContainer
 
 		// The quality is never secret; an unidentified type or item (an unworn ring, a Magic sword) hides only its stats.
 		AddLine(equipable.Quality.ToString(), qualityColor);
+		// The spell is part of the base identity, so it reads the same before identification.
+		if (equipable is MagicStaff { BoundSpell: { } spell } staff)
+		{
+			foreach (string line in spell.Describe(staff.SpellLevel, SpellHit(staff, viewer))) AddLine(line, SpellColor);
+		}
+
 		if (ItemIdentity.AreStatsKnown(item))
 		{
 			AddModifierLines(equipable.AttributeModifiers, Colors.White);
@@ -54,6 +62,19 @@ public partial class ItemDetailsView : VBoxContainer
 			AddLine(equipable.IsCursed ? "Cursed" : "Uncursed", equipable.IsCursed ? CursedColor : UncursedColor);
 			AddModifierLines(equipable.CurseModifiers, CursedColor);
 		}
+	}
+
+	/// <summary>
+	/// The hit a spell weapon's damage lines quote: the wielded weapon's actual hit, or for another the hit it would deal
+	/// in its place from what the player knows of it. Null, leaving damage out, without a viewer or while its stats are
+	/// unidentified, so the numbers never reveal hidden affixes or curses.
+	/// </summary>
+	private static AttackStats? SpellHit(MagicStaff staff, Player viewer)
+	{
+		if (viewer?.Stats == null) return null;
+		if (ReferenceEquals(viewer.Inventory?.EquippedWeapon, staff)) return viewer.Stats.ResolveAttack(staff);
+		if (!ItemIdentity.AreStatsKnown(staff)) return null;
+		return viewer.Stats.PreviewAttack(staff, staff.CurseStatusKnown ? staff.StatModifiers : staff.AttributeModifiers);
 	}
 
 	private void AddModifierLines(System.Collections.Generic.IEnumerable<StatModifier> modifiers, Color color)

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://v1wg2u7h8bxo"
-path="res://.godot/imported/staff_earth.png-999e2ab616453c3a3bffa601634be646.ctex"
+uid="uid://c05noubpl5it3"
+path="res://.godot/imported/wand_celestial.png-9b8ac1ed0287aa17e320010c306132fe.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://docs/item-catalog/staff_earth.png"
-dest_files=["res://.godot/imported/staff_earth.png-999e2ab616453c3a3bffa601634be646.ctex"]
+source_file="res://docs/item-catalog/wand_celestial.png"
+dest_files=["res://.godot/imported/wand_celestial.png-9b8ac1ed0287aa17e320010c306132fe.ctex"]
 
 [params]
 

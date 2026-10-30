@@ -6,4 +6,4 @@ SpellName = "Rockfall"
 Element = 2
 Delivery = 3
 TargetsByLevel = PackedInt32Array(3, 6, 9, 11, 13)
-DamageScaleByLevel = PackedFloat32Array(0.375, 0.5, 0.625, 0.6875, 0.75)
+DamageScaleByLevel = PackedFloat32Array(0.375, 0.4125, 0.45, 0.4875, 0.525)

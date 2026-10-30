@@ -9,6 +9,7 @@ public partial class LingeringAreaSpell : Node, ICombatSpell
 	[Export] public Node3D VisualRoot { get; set; }
 	public string DisplayName => Definition?.SpellName ?? "";
 	public int LevelCount => Definition?.LevelCount ?? 0;
+	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	private readonly List<LingeringAreaField> _fields = [];
 	private readonly Dictionary<BuffController, BurningContact> _burns = [];
 	private ulong _generation;

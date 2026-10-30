@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 
 /// <summary>
 /// One castable spell as a spell weapon carries it: the self-contained spell scene, the cast animation and the mana it
@@ -32,6 +33,24 @@ public partial class SpellDefinition : Resource
 		&& float.IsFinite(ManaCostByLevel[level - 1]) && ManaCostByLevel[level - 1] >= 0 && float.IsFinite(Cooldown) && Cooldown >= 0;
 
 	public float ManaCost(int level) => ManaCostByLevel[level - 1];
+
+	/// <summary>
+	/// Tooltip lines for a weapon casting the spell at <paramref name="level"/>: name and level, mana cost, then what
+	/// the spell scene says a cast with <paramref name="hit"/> does, which a null hit (unknown stats) leaves out. The
+	/// scene is instantiated briefly, outside the tree, to read its definition.
+	/// </summary>
+	public List<string> Describe(int level, AttackStats? hit)
+	{
+		List<string> lines = [$"{DisplayName} (Level {level})"];
+		if (!IsValidLevel(level)) return lines;
+		lines.Add($"{ManaCost(level):0} mana per cast");
+		if (hit is { } known && Instantiate() is { } spell)
+		{
+			lines.AddRange(spell.DescribeLevel(new SpellPower(level, known)));
+			((Node)spell).Free();
+		}
+		return lines;
+	}
 
 	/// <summary>A new instance of the spell scene, or null (with nothing left behind) when its root is not a spell.</summary>
 	public ICombatSpell Instantiate()

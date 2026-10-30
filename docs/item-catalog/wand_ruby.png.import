@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b0c6stw6u0pea"
-path="res://.godot/imported/staff_water.png-a72bc2e5d76c39171b278472cbc3cde7.ctex"
+uid="uid://byyed8t6likep"
+path="res://.godot/imported/wand_ruby.png-6ffcc28c0820470a9bcacca42999e9a5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://docs/item-catalog/staff_water.png"
-dest_files=["res://.godot/imported/staff_water.png-a72bc2e5d76c39171b278472cbc3cde7.ctex"]
+source_file="res://docs/item-catalog/wand_ruby.png"
+dest_files=["res://.godot/imported/wand_ruby.png-6ffcc28c0820470a9bcacca42999e9a5.ctex"]
 
 [params]
 

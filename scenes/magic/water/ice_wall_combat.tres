@@ -5,6 +5,6 @@ script = ExtResource("script")
 SpellName = "Ice Wall"
 Kind = 2
 RadiusByLevel = PackedFloat32Array(2.5, 3, 3.5, 4, 4.5)
-DamageScaleByLevel = PackedFloat32Array(0.375, 0.5, 0.625, 0.6875, 0.75)
+DamageScaleByLevel = PackedFloat32Array(0.375, 0.4125, 0.45, 0.4875, 0.525)
 RepelSeconds = 0.8
 RepelPush = 3.0

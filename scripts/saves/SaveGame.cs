@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 45;
+	public const int CurrentVersion = 46;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -67,6 +67,11 @@ public sealed class PlayerSaveData
 	public InventorySaveData Inventory { get; set; } = new();
 	public PlayerActionSaveData Actions { get; set; } = new();
 	public List<ActiveBuffSaveData> Buffs { get; set; } = [];
+	/// <summary>
+	/// Remaining capacity of the equipped spell weapon's active ward, or 0 without one. The weapon restores the spell
+	/// and its level, so the capacity is the only state the ward adds.
+	/// </summary>
+	public float WardCapacity { get; set; }
 }
 
 /// <summary>One live activation; independent entries preserve stacking, duration and periodic progress.</summary>

@@ -7,6 +7,7 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 {
 	public string DisplayName => Definition?.SpellName ?? "";
 	public int LevelCount => Definition?.LevelCount ?? 0;
+	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	[Export] public FrostNovaDefinition Definition { get; set; }
 	[Export] public PackedScene VisualScene { get; set; }
 	[Export] public Node3D VisualRoot { get; set; }

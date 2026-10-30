@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 
 public enum TargetDeliveryKind { Fireball, Traveling, Chain, Rockfall, Meteor }
 
@@ -11,7 +12,7 @@ public partial class TargetedSpellDefinition : Resource
 	[Export] public DamageElement Element { get; set; }
 	[Export] public int[] TargetsByLevel { get; set; } = [1, 2, 3];
 	/// <summary>Damage per hit as a multiple of the caster's weapon hit (see <see cref="SpellPower"/>).</summary>
-	[Export] public float[] DamageScaleByLevel { get; set; } = [1, 1.375f, 1.75f];
+	[Export] public float[] DamageScaleByLevel { get; set; } = [1, 1.1f, 1.2f];
 	[Export] public float Radius { get; set; } = 9;
 	[Export] public float HitRadius { get; set; } = .8f;
 	public int LevelCount => System.Math.Min(SpellLevels.Max, System.Math.Min(TargetsByLevel?.Length ?? 0, DamageScaleByLevel?.Length ?? 0));
@@ -23,4 +24,8 @@ public partial class TargetedSpellDefinition : Resource
 			&& float.IsFinite(DamageScaleByLevel[i]) && DamageScaleByLevel[i] > 0
 			&& float.IsFinite(Radius) && Radius > 0 && float.IsFinite(HitRadius) && HitRadius > 0;
 	}
+
+	/// <summary>Damage per hit.</summary>
+	public IEnumerable<string> DescribeLevel(in SpellPower power) => !IsValidLevel(power.Level) ? []
+		: [SpellLevels.Damage(power.Hit.Scaled(DamageScaleByLevel[power.Level - 1])) + " per hit"];
 }

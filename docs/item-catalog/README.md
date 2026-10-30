@@ -2,7 +2,7 @@
 
 Visual + data reference for every item definition in the game — the itemization counterpart to the [monster catalog](../monster-catalog/README.md). Renders are generated from each item's actual world model (the same one shown in the inventory preview and dropped in the world) by `asset-studio/godot/render_item_catalog.gd` — see the `assets` skill. Each row maps to its `.tres` definition under `scenes/items/`.
 
-> `Tier` is the base item's ladder rung (1–5), independent of the quality (Poor to Rare) an instance rolls when it drops — see `docs/stats-and-itemization.md`. Rows are grouped by tier for weapons/shields since that's the nominal dungeon-depth progression.
+> Wands and staves are spell weapons: each drop rolls its spell from the pool, so the Notes column names only the authored default (see `docs/specs/magic-rework-plan.md`). `Tier` is the base item's ladder rung (1–5), independent of the quality (Poor to Rare) an instance rolls when it drops — see `docs/stats-and-itemization.md`. Rows are grouped by tier for weapons/shields since that's the nominal dungeon-depth progression.
 
 ## Weapons
 
@@ -15,22 +15,19 @@ Visual + data reference for every item definition in the game — the itemizatio
 | ![Dagger](./dagger_common.png) | **Dagger** | 1H | 1–4 | 10 | Acc ×1.2 |
 | ![Old Axe](./axe_old.png) | **Old Axe** | 1H | 1–5 | 10 | — |
 | ![Shortsword](./shortsword_common.png) | **Shortsword** | 1H | 1–5 | 10 | — |
-| ![Staff](./staff_common.png) | **Staff** | 1H | 2–7 | 12 | — |
-| ![Wand](./wand.png) | **Wand** | 1H | 1–5 | 0 | — |
+| ![Staff](./staff_common.png) | **Staff** | 2H | 1–5 | 12 | Spell staff (Fireball) |
+| ![Wand](./wand.png) | **Wand** | 1H | 1–5 | 0 | Spell wand (Fireball) |
 
 ### Tier 2
 
 | | Weapon | Hands | Damage | Str Req | Notes |
 |---|---|---|---|---|---|
-| ![Air Staff](./staff_air.png) | **Air Staff** | 1H | 1–3 | 5 | Air, +3% crit, Acc ×1.15 |
-| ![Ash Staff](./staff_uncommon.png) | **Ash Staff** | 1H | 4–9 | 8 | — |
-| ![Earth Staff](./staff_earth.png) | **Earth Staff** | 1H | 3–6 | 8 | Earth, +8% crit, Acc ×0.9 |
-| ![Fire Staff](./staff_fire.png) | **Fire Staff** | 1H | 3–6 | 6 | Fire, +5% crit |
-| ![Frost Staff](./staff_water.png) | **Frost Staff** | 1H | 2–4 | 6 | Water, +2% crit, Acc ×1.05 |
+| ![Ash Staff](./staff_uncommon.png) | **Ash Staff** | 2H | 2–8 | 8 | Spell staff (Frost Nova) |
+| ![Ashwood Wand](./wand.png) | **Ashwood Wand** | 1H | 2–8 | 0 | Spell wand (Fireball); shares the Wand model |
 | ![Hammer](./hammer_common.png) | **Hammer** | 1H | 3–8 | 12 | — |
 | ![Longsword](./sword_common.png) | **Longsword** | 1H | 3–8 | 10 | — |
 | ![Old Saber](./saber_skeleton.png) | **Old Saber** | 1H | 2–7 | 12 | — |
-| ![Skeleton Staff](./staff_skeleton.png) | **Skeleton Staff** | 1H | 2–7 | 12 | — |
+| ![Skeleton Staff](./staff_skeleton.png) | **Skeleton Staff** | 2H | 2–8 | 12 | Spell staff (Stone Spears) |
 | ![Spiked Crossbow](./crossbow_spiked.png) | **Spiked Crossbow** | 2H | 4–8 | 10 | Range 20 |
 | ![Stiletto](./dagger_uncommon.png) | **Stiletto** | 1H | 2–7 | 0 | +8% crit, Acc ×1.2 |
 | ![War Axe](./axe_uncommon.png) | **War Axe** | 1H | 3–9 | 12 | — |
@@ -45,8 +42,10 @@ Visual + data reference for every item definition in the game — the itemizatio
 | ![Broadsword](./broadsword_common.png) | **Broadsword** | 2H | 6–13 | 15 | — |
 | ![Broadsword](./broadsword_rare.png) | **Broadsword** | 2H | 6–13 | 15 | — |
 | ![Double Axe](./axedouble_common.png) | **Double Axe** | 2H | 7–14 | 16 | — |
+| ![Emerald Crescent Staff](./staff_emerald.png) | **Emerald Crescent Staff** | 2H | 4–11 | 14 | Spell staff (Rockfall), +8% crit |
 | ![Heavy Crossbow](./crossbow_uncommon.png) | **Heavy Crossbow** | 2H | 6–11 | 13 | Range 20 |
 | ![Large Crossbow](./crossbow_2handed.png) | **Large Crossbow** | 2H | 7–12 | 12 | Range 20 |
+| ![Ruby Scepter Wand](./wand_ruby.png) | **Ruby Scepter Wand** | 1H | 4–11 | 14 | Spell wand (Fireball), +5% crit |
 
 ### Tier 4
 
@@ -58,13 +57,16 @@ Visual + data reference for every item definition in the game — the itemizatio
 | ![Royal Axe](./axe_rare.png) | **Royal Axe** | 1H | 9–17 | 17 | — |
 | ![Royal Hammer](./hammer_rare.png) | **Royal Hammer** | 1H | 8–15 | 16 | — |
 | ![Royal Sword](./sword_rare.png) | **Royal Sword** | 1H | 8–16 | 15 | — |
-| ![Rune Staff](./staff_rare.png) | **Rune Staff** | 1H | 9–16 | 10 | +3% crit |
+| ![Rune Staff](./staff_rare.png) | **Rune Staff** | 2H | 7–16 | 10 | Spell staff (Chain Lightning), +3% crit |
+| ![Runed Scepter Wand](./wand_ruby.png) | **Runed Scepter Wand** | 1H | 7–16 | 17 | Spell wand (Fireball), +4% crit; shares the Ruby Scepter model |
 | ![Warhammer](./warhammer.png) | **Warhammer** | 2H | 10–18 | 18 | — |
 
 ### Tier 5
 
 | | Weapon | Hands | Damage | Str Req | Notes |
 |---|---|---|---|---|---|
+| ![Archmage Astral Staff](./staff_archmage.png) | **Archmage Astral Staff** | 2H | 12–22 | 21 | Spell staff (Thunderstorm), +3% crit |
+| ![Celestial Golden Wand](./wand_celestial.png) | **Celestial Golden Wand** | 1H | 12–22 | 21 | Spell wand (Fireball), +3% crit |
 | ![Gilded Warhammer](./warhammer_gold.png) | **Gilded Warhammer** | 2H | 15–27 | 22 | — |
 | ![Royal Double Axe](./axedouble_rare.png) | **Royal Double Axe** | 2H | 16–30 | 23 | — |
 

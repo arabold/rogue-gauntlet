@@ -81,7 +81,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 		_inventory = inventory;
 		_slot = slot;
 
-		_details.SetItem(slot.Item);
+		_details.SetItem(slot.Item, player);
 		// Shrink the popup to fit its contents once the new layout is computed, so its height
 		// (and width) track the item rather than a fixed authored size.
 		CallDeferred(Window.MethodName.ResetSize);

@@ -6,5 +6,5 @@
 script = ExtResource("script")
 SpellName = "Stone Ward"
 Element = 2
-CapacityScaleByLevel = PackedFloat32Array(3.75, 5.625, 7.5, 8.25, 9)
+CapacityScaleByLevel = PackedFloat32Array(3.75, 4.125, 4.5, 4.875, 5.25)
 ReflectionByLevel = PackedFloat32Array(0.25, 0.35, 0.45, 0.5, 0.55)

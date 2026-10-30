@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 
 /// <summary>Shared immutable contact values for an independently authored area spell.</summary>
 [GlobalClass]
@@ -7,7 +8,7 @@ public partial class AreaDamageDefinition : Resource
 	[Export] public string SpellName { get; set; } = "Area spell";
 	[Export] public float[] RadiusByLevel { get; set; } = [3.5f, 5f, 6.5f];
 	/// <summary>Damage per contact as a multiple of the caster's weapon hit (see <see cref="SpellPower"/>).</summary>
-	[Export] public float[] DamageScaleByLevel { get; set; } = [.375f, .5f, .625f];
+	[Export] public float[] DamageScaleByLevel { get; set; } = [.375f, .4125f, .45f];
 	/// <summary>Initial outward push speed per level, shoving actors away from the cast point; empty does not push.</summary>
 	[Export] public float[] PushByLevel { get; set; } = [];
 	/// <summary>Seconds between the visual's release and its contact, for delayed eruptions.</summary>
@@ -25,4 +26,8 @@ public partial class AreaDamageDefinition : Resource
 			&& (PushByLevel is not { Length: > 0 } || i < PushByLevel.Length && float.IsFinite(PushByLevel[i]) && PushByLevel[i] >= 0)
 			&& float.IsFinite(ContactDelay) && ContactDelay >= 0;
 	}
+
+	/// <summary>Damage per contact.</summary>
+	public virtual IEnumerable<string> DescribeLevel(in SpellPower power) => !IsValidLevel(power.Level) ? []
+		: [SpellLevels.Damage(power.Hit.Scaled(DamageScaleByLevel[power.Level - 1])) + " per hit"];
 }

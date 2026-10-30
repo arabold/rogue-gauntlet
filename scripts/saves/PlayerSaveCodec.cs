@@ -21,6 +21,7 @@ public static class PlayerSaveCodec
 			Inventory = InventorySaveCodec.Capture(player.Inventory),
 			Actions = CaptureActions(player),
 			Buffs = BuffSaveCodec.Capture(player),
+			WardCapacity = (player.SpellCaster?.Current as MagicGuardSpell)?.RemainingCapacity ?? 0,
 		};
 		if (includeTransform)
 		{
@@ -38,6 +39,7 @@ public static class PlayerSaveCodec
 			throw new InvalidOperationException("Incomplete saved player; a new run is required.");
 		}
 		Inventory restored = InventorySaveCodec.Restore(data.Inventory);
+		ValidateWard(data, restored);
 		data.Actions?.ValidateCombatTimers();
 		var buffs = BuffSaveCodec.Prepare(player, data.Buffs);
 
@@ -49,11 +51,32 @@ public static class PlayerSaveCodec
 		foreach (var buff in buffs) player.BuffController.RestoreBuff(buff.Buff, buff.Source, buff.Remaining, buff.TickProgress);
 		// After equipment and buffs, so the saved mana meets its final maximum.
 		player.StatsController.RestoreMana(data.Stats.Mana);
+		// After equipping, so the ward rises on the spell node its weapon just bound.
+		if (data.WardCapacity > 0
+			&& !(player.SpellCaster?.Current is MagicGuardSpell ward && player.Inventory.EquippedWeapon is MagicStaff staff
+				&& ward.Restore(player, staff.SpellLevel, data.WardCapacity)))
+		{
+			GD.PushError("The saved ward could not be raised again; the player continues without it.");
+		}
 		if (data.ApplyTransform)
 		{
 			player.GlobalPosition = ToVector3(data.Position);
 			player.Rotation = ToVector3(data.Rotation);
 			player.ResetPhysicsInterpolation();
+		}
+	}
+
+	/// <summary>A saved ward needs a finite capacity and an equipped spell weapon to rise on again.</summary>
+	private static void ValidateWard(PlayerSaveData data, Inventory restored)
+	{
+		if (data.WardCapacity == 0) return;
+		string weaponId = data.Inventory.EquippedItems
+			.FirstOrDefault(e => e.Slot == nameof(EquipmentSlot.WeaponHand))?.ItemInstanceId;
+		if (!float.IsFinite(data.WardCapacity) || data.WardCapacity < 0
+			|| restored.Items.FirstOrDefault(i => i.Item.InstanceId == weaponId)?.Item is not MagicStaff staff
+			|| !staff.CanBind(staff.BoundSpell))
+		{
+			throw new InvalidOperationException("Saved ward without an equipped spell weapon; a new run is required.");
 		}
 	}
 

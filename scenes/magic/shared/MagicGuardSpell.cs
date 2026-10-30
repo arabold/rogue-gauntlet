@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 
 /// <summary>A focus-owned magic guard; the hurtbox owns at most one active shield.</summary>
 public partial class MagicGuardSpell : Node, ICombatSpell
@@ -7,13 +8,23 @@ public partial class MagicGuardSpell : Node, ICombatSpell
 	[Export] public PackedScene VisualScene { get; set; }
 	public string DisplayName => Definition?.SpellName ?? "";
 	public int LevelCount => Definition?.LevelCount ?? 0;
+	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	private Guard _guard;
 
-	public bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random)
+	/// <summary>The active guard's remaining capacity, or 0 without one; saves carry it across loads and stairs.</summary>
+	public float RemainingCapacity => _guard?.Remaining ?? 0;
+
+	public bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random) =>
+		random != null && Definition?.IsValidLevel(power.Level) == true
+		&& Install(caster, power.Level, Definition.CapacityScaleByLevel[power.Level - 1] * power.Hit.Average);
+
+	/// <summary>Raises a saved guard again with its remaining capacity, as the cast at <paramref name="level"/> raised it.</summary>
+	public bool Restore(Node3D caster, int level, float capacity) =>
+		float.IsFinite(capacity) && capacity > 0 && Definition?.IsValidLevel(level) == true && Install(caster, level, capacity);
+
+	private bool Install(Node3D caster, int level, float capacity)
 	{
-		int level = power.Level;
-		if (Definition?.IsValidLevel(level) != true || VisualScene == null || random == null
-			|| !IsInsideTree() || !IsInstanceValid(caster) || !caster.IsInsideTree()
+		if (VisualScene == null || !IsInsideTree() || !IsInstanceValid(caster) || !caster.IsInsideTree()
 			|| caster is not IShieldOwner { ShieldHurtBox: { } hurtbox }
 			|| !hurtbox.IsInsideTree() || hurtbox.HealthComponent?.IsDead == true) return false;
 		Node node = VisualScene.Instantiate();
@@ -22,7 +33,7 @@ public partial class MagicGuardSpell : Node, ICombatSpell
 		{ node?.Free(); return false; }
 		caster.AddChild(visual);
 		var guard = new Guard(this, caster, hurtbox, visual, effect,
-			Definition.CapacityScaleByLevel[level - 1] * power.Hit.Average, Definition.ReflectionByLevel[level - 1], Definition.Element);
+			capacity, Definition.ReflectionByLevel[level - 1], Definition.Element);
 		Cancel();
 		_guard = guard;
 		hurtbox.InstallShield(guard);
@@ -41,6 +52,7 @@ public partial class MagicGuardSpell : Node, ICombatSpell
 		private readonly DamageElement _element;
 		private float _remaining;
 		private bool _ended, _reflectAfterDeath;
+		public float Remaining => _ended ? 0 : _remaining;
 		public Guard(MagicGuardSpell source, Node3D owner, HurtBoxComponent hurtbox, Node3D visual,
 			IGuardVisual effect, float capacity, float reflection, DamageElement element)
 		{

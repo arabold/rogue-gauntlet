@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d1biq0aeap5n8"
-path="res://.godot/imported/staff_air.png-6937eba323cc88b7ec9aae1b357d68db.ctex"
+uid="uid://bo4insravvg80"
+path="res://.godot/imported/staff_archmage.png-73d9e4a174b37b3b3c31cce094fbe7a3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://docs/item-catalog/staff_air.png"
-dest_files=["res://.godot/imported/staff_air.png-6937eba323cc88b7ec9aae1b357d68db.ctex"]
+source_file="res://docs/item-catalog/staff_archmage.png"
+dest_files=["res://.godot/imported/staff_archmage.png-73d9e4a174b37b3b3c31cce094fbe7a3.ctex"]
 
 [params]
 
