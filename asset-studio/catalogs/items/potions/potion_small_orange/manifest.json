@@ -1,9 +1,9 @@
 {
   "key": "potions/potion_small_orange",
-  "inputs": "90ecaba75dd896842f4bcf5b4bc7fb875d1ebb1e0932edb329aa827dfa484095",
+  "inputs": "b066e02183315e75479dbdb88c9548b0145786fa24c7e1d5b278f6c4ef401112",
   "files": {
-    "potion_small_orange.glb": "2f5e37a021378dc42f996f12cb20e767a1a9a23a824a1cb21cdcd78d950e3ee5",
-    "lineup.png": "b6481cf864e8fc5485abf6aefb13b95ab33d687deea5cba05a423dc3498dcfc2"
+    "potion_small_orange.glb": "05a33c0c74aef9c71cfd53c4868626d1f87e10dbb68f713d88160d239e35b4e9",
+    "lineup.png": "e9e06476716c482b01c3a0eae6f5913037a92a7288fc12469d514ee4b1954ed4"
   },
   "metadata": {
     "report": {
@@ -109,9 +109,9 @@
           125
         ],
         "liquid": [
-          249,
-          158,
-          57
+          240,
+          118,
+          22
         ]
       },
       "materials": {

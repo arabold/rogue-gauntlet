@@ -1,9 +1,9 @@
 {
   "key": "potions/potion_large_magenta",
-  "inputs": "5323507e7ac617793217e6ff4a4d231f8120ec93dbb47a7e0811b3ffd946d368",
+  "inputs": "65d1662e47326058e19baf8e58c80280b10f000141193d4e6961f20a06066816",
   "files": {
-    "potion_large_magenta.glb": "999014533c1b91c410622d82ebd025e0a202aa235034d4d2d38f690420ff5731",
-    "lineup.png": "1f99d9c136c4410043a7413f70988d61b1a3d378bd59eacf1568fc519e4d6e88"
+    "potion_large_magenta.glb": "3fd3a8eb029bf3ff08df913a2f749191f81d8918c2d0c7f134459d166fb066bf",
+    "lineup.png": "8946ff113f651151cfd47cdb0f31402646ee34a2a066d2e8eb06ecc6e31600d9"
   },
   "metadata": {
     "report": {
@@ -124,9 +124,9 @@
           125
         ],
         "liquid": [
-          164,
-          26,
-          90
+          220,
+          45,
+          170
         ]
       },
       "materials": {
