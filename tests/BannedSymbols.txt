@@ -1,0 +1,5 @@
+M:Godot.GD.Load(System.String);Use TestFactories.Load, which settles the resource cache first (godotengine/godot#83762, see ResourceCacheGuard)
+M:Godot.GD.Load``1(System.String);Use TestFactories.Load, which settles the resource cache first (godotengine/godot#83762, see ResourceCacheGuard)
+M:Godot.ResourceLoader.Load(System.String,System.String,Godot.ResourceLoader.CacheMode);Use TestFactories.Load, which settles the resource cache first (godotengine/godot#83762, see ResourceCacheGuard)
+M:Godot.ResourceLoader.Load``1(System.String,System.String,Godot.ResourceLoader.CacheMode);Use TestFactories.Load, which settles the resource cache first (godotengine/godot#83762, see ResourceCacheGuard)
+M:GdUnit4.ISceneRunner.Load(System.String,System.Boolean,System.Boolean);Use TestFactories.LoadScene, which settles the resource cache first (godotengine/godot#83762, see ResourceCacheGuard)

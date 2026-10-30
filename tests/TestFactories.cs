@@ -15,6 +15,7 @@ public static class TestFactories
 	/// Load a scene for a runtime test; the caller owns (and may dispose) the runner. Suites share one engine and
 	/// reload the same scenes back to back, so this first settles collected resources (see <see cref="ResourceCacheGuard"/>).
 	/// </summary>
+#pragma warning disable RS0030 // These wrappers are the only raw loads tests/BannedSymbols.txt allows.
 	public static ISceneRunner LoadScene(string path)
 	{
 		ResourceCacheGuard.Settle();
@@ -23,15 +24,16 @@ public static class TestFactories
 
 	/// <summary>
 	/// Load a resource after settling collected resources (see <see cref="ResourceCacheGuard"/>). Runtime tests load every
-	/// resource through here, never <c>GD.Load</c> or <c>ResourceLoader.Load</c> directly: test cases reload by path what an
-	/// earlier case just dropped, and a load that lands between the GC collecting that wrapper and its finalizer reads null,
-	/// after which the finalizer aborts the engine and the run hangs.
+	/// resource through here, never <c>GD.Load</c> or <c>ResourceLoader.Load</c> directly (tests/BannedSymbols.txt
+	/// enforces it): test cases reload by path what an earlier case just dropped, and a load that lands between the GC
+	/// collecting that wrapper and its finalizer reads null, after which the finalizer aborts the engine and the run hangs.
 	/// </summary>
 	public static T Load<T>(string path, ResourceLoader.CacheMode cacheMode = ResourceLoader.CacheMode.Reuse) where T : class
 	{
 		ResourceCacheGuard.Settle();
 		return ResourceLoader.Load<T>(path, cacheMode: cacheMode);
 	}
+#pragma warning restore RS0030
 
 	public const string LitTorch = "res://scenes/props/torch_mounted.tscn";
 	public const string UnlitTorch = "res://scenes/levels/arrangements/wall/wall_torch_unlit.tscn";

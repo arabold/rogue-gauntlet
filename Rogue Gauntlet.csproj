@@ -23,6 +23,9 @@
     <PackageReference Include="gdUnit4.api" Version="5.0.0" />
     <PackageReference Include="gdUnit4.test.adapter" Version="3.0.0" />
     <PackageReference Include="gdUnit4.analyzers" Version="1.0.0" />
+    <!-- Bans raw resource and scene loads in tests (TestFactories wraps them); .editorconfig scopes the error to tests/. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" PrivateAssets="all" />
+    <AdditionalFiles Include="tests/BannedSymbols.txt" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' != 'Debug'">
     <Compile Remove="tests/**/*.cs" />
