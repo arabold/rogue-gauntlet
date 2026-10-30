@@ -32,7 +32,9 @@ metadata/_custom_type_script = ExtResource("2_level")
 [sub_resource type="Resource" id="Level_rare"]
 script = ExtResource("2_level")
 Quality = 4
-StartWeight = 30.0
+MinDepth = 5
+StartWeight = 8.0
+WeightPerDepth = 2.0
 MinAffixes = 3
 MaxAffixes = 4
 metadata/_custom_type_script = ExtResource("2_level")
