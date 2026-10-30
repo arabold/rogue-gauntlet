@@ -10,8 +10,8 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	/// </summary>
 	[Export] public int RequiredStrength { get; protected set => SetValue(ref field, value); } = 0;
 	/// <summary>
-	/// Authored minimum damage bonus at quality scale 1. Stacks up with other items' damage bonus; the wielder gets
-	/// <see cref="ScaledDamageMin"/>.
+	/// Authored minimum damage bonus at quality scale 1. It adds to the wielder's damage only for attacks made with this
+	/// weapon, never to another weapon's; the wielder gets <see cref="ScaledDamageMin"/>.
 	/// </summary>
 	[Export] public float DamageMin { get; set => SetValue(ref field, value); } = 0f;
 	/// <summary>
@@ -23,7 +23,7 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	/// <summary>Maximum damage after quality scaling, never below <see cref="ScaledDamageMin"/>.</summary>
 	public float ScaledDamageMax => Mathf.Max(ScaledDamageMin, ScaleWhole(DamageMax));
 	/// <summary>
-	/// Critical hit chance for this weapon (stacks up with other items' crit chance). Quality does not scale it.
+	/// Critical hit chance added to the wielder's for attacks made with this weapon. Quality does not scale it.
 	/// </summary>
 	[Export] public float CritChance { get; protected set => SetValue(ref field, value); } = 0f;
 	/// <summary>
@@ -106,6 +106,9 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 		yield return new StatModifier { Stat = StatType.MaxDamage, Op = ModifierOp.Flat, Value = ScaledDamageMax };
 		yield return new StatModifier { Stat = StatType.CritChance, Op = ModifierOp.Flat, Value = CritChance };
 	}
+
+	/// <summary>Damage and crit modifiers, including rolled affixes and curse penalties, apply only to this weapon's attacks.</summary>
+	protected override void RegisterStats(PlayerStats stats) => stats.AddWeaponModifiers(this, StatModifiers);
 
 	public virtual void PerformAction(Player player)
 	{
