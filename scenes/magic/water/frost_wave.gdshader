@@ -7,7 +7,10 @@ render_mode unshaded, blend_mix, cull_disabled, depth_draw_never, shadows_disabl
 // straight white cracks and caught by a few short double glints, the cartoon read for ice. Fading melts the
 // sheet into holes. Pixels beyond the rim's widest wobble are discarded before any noise is sampled.
 uniform sampler2D color_ramp : source_color, filter_nearest, repeat_disable;
-uniform float progress = 0.0;
+// Fraction of the gameplay radius the wave has reached, fed by its timeline's WaveFront so hits follow the drawn front.
+uniform float wave_front = 0.0;
+// Plane distance (0 centre, 1 border) at which the gameplay radius lies.
+uniform float wave_edge = 0.875;
 uniform float effect_fade = 1.0;
 uniform float brightness = 0.3;
 uniform float crack_scale = 4.0;
@@ -15,7 +18,7 @@ uniform float crack_scale = 4.0;
 void fragment() {
 	vec2 p = (UV - 0.5) * 2.0;
 	float r = length(p);
-	float front = mix(0.08, 0.92, 1.0 - pow(1.0 - progress, 2.5));
+	float front = wave_front * wave_edge;
 	if (r > front + 0.05) discard;
 	float n = toon_fbm3(vec3(p * 3.0, 0.0));
 	float edge = front + (n - 0.5) * 0.1;

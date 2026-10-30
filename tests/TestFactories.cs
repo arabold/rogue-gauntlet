@@ -1,5 +1,6 @@
 namespace RogueGauntlet.Tests;
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -63,6 +64,46 @@ public static class TestFactories
 	/// <summary>Casts a harness spell as the player, the same call the harness's cast button queues.</summary>
 	public static bool CastSpell(CombatHarness harness, string name, int level, ulong seed = 1) =>
 		GetSpell<ICombatSpell>(harness, name).Cast(harness.Player, level, new RandomNumberGenerator { Seed = seed });
+
+	/// <summary>
+	/// Waits until a level-one area cast has swept its whole area: its delay plus the time its visual's front takes
+	/// to cross the radius.
+	/// </summary>
+	public static Task AwaitAreaContact(ISceneRunner runner, PackedScene visualScene, float radius, float contactDelay = 0)
+	{
+		var visual = visualScene.Instantiate();
+		var front = visual switch
+		{
+			IAreaSpellVisual area when area.ConfigureArea(1, radius) => area.Front,
+			VisualEffectInstance effect => effect.Front,
+			_ => AreaFront.Instant
+		};
+		visual.Free();
+		return AwaitPhysicsSeconds(runner, contactDelay + front.Delay + front.Seconds);
+	}
+
+	/// <summary>
+	/// Waits on physics ticks for <paramref name="seconds"/> of gameplay time. Contacts and statuses run on the
+	/// physics clock, and rendered frames can outpace it, so counting frames would under-wait.
+	/// </summary>
+	public static async Task AwaitPhysicsSeconds(ISceneRunner runner, float seconds)
+	{
+		var tree = runner.Scene().GetTree();
+		ulong end = Engine.GetPhysicsFrames() + (ulong)Mathf.CeilToInt(seconds * Engine.PhysicsTicksPerSecond) + 2;
+		while (Engine.GetPhysicsFrames() < end) await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
+	}
+
+	/// <summary>Waits on physics ticks until <paramref name="condition"/> holds, or fails after <paramref name="timeout"/> seconds.</summary>
+	public static async Task AwaitPhysicsUntil(ISceneRunner runner, Func<bool> condition, float timeout = 5)
+	{
+		var tree = runner.Scene().GetTree();
+		ulong end = Engine.GetPhysicsFrames() + (ulong)Mathf.CeilToInt(timeout * Engine.PhysicsTicksPerSecond);
+		while (!condition())
+		{
+			if (Engine.GetPhysicsFrames() >= end) throw new TimeoutException($"Condition not met within {timeout} s of physics time.");
+			await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
+		}
+	}
 
 	/// <summary>Create an inert real monster for area-contact tests.</summary>
 	public static EnemyBase SpawnCombatMonster(Node root, Vector3 position, string name)

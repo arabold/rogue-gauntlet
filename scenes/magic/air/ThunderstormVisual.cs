@@ -1,7 +1,10 @@
 using Godot;
 using System.Linq;
 
-/// <summary>Composes the storm's clipped field with the workbench lightning and ground cracks.</summary>
+/// <summary>
+/// Composes the storm's clipped field with lightning and ground cracks. Each bolt strikes as the expanding storm front
+/// reaches its point, the moment the spell's contact lands there.
+/// </summary>
 public partial class ThunderstormVisual : ScaledAreaVisual, IAreaTargetVisual
 {
 	[Export] public PackedScene ArcScene { get; set; }
@@ -25,15 +28,16 @@ public partial class ThunderstormVisual : ScaledAreaVisual, IAreaTargetVisual
 			float angle = random.RandfRange(0, Mathf.Tau), distance = random.RandfRange(.5f, _radius);
 			Vector3 point = i < _targets.Length ? _targets[i] : GlobalPosition + new Vector3(Mathf.Cos(angle) * distance, 0, Mathf.Sin(angle) * distance);
 			if (!visibility.Contains(point)) continue;
+			float strike = Front.Arrival(new Vector2(point.X - GlobalPosition.X, point.Z - GlobalPosition.Z).Length() / _radius);
 			if (ArcScene.Instantiate() is LightningArc arc)
 			{
 				arc.TopLevel = true; arc.Configure(point + Vector3.Up * 5, point + Vector3.Up * .15f, random.Randi());
-				arc.Width *= .75f + .2f * _level; arc.Timeline.StartDelay = i * .1f;
+				arc.Width *= .75f + .2f * _level; arc.Timeline.StartDelay = strike;
 				AddChild(arc); arc.Timeline.SetVisibility(visibility);
 			}
 			if (CracksScene.Instantiate() is VisualEffectInstance cracks)
 			{
-				cracks.TopLevel = true; cracks.Timeline.StartDelay = i * .1f;
+				cracks.TopLevel = true; cracks.Timeline.StartDelay = strike;
 				AddChild(cracks); cracks.GlobalPosition = point; cracks.SetVisibility(visibility);
 			}
 		}

@@ -10,8 +10,12 @@ public sealed class AreaCastLifecycle
 		World3D World, float Radius, Node3D[] Targets, RandomNumberGenerator Random);
 	private readonly List<Node3D> _visuals = [];
 	private readonly List<PendingContact> _pending = [];
-	private sealed record PendingContact(Cast Cast, float Damage, AttackDefenseTraits Traits, float Push,
-		Action<Node3D, DamageResolution> AfterContact, DamageElement Element, double Due);
+	/// <summary>One cast's contact, sweeping outward with its front; every actor it reaches counts once.</summary>
+	private sealed record PendingContact(Cast Cast, AreaFront Front, AttackIdentity Identity, float Damage, AttackDefenseTraits Traits,
+		float Push, Action<Node3D, DamageResolution> AfterContact, DamageElement Element, double Start)
+	{
+		public HashSet<Node3D> Reached { get; } = [];
+	}
 	private double _clock;
 	private ulong _sequence, _generation;
 
@@ -38,44 +42,67 @@ public sealed class AreaCastLifecycle
 		_visuals.Add(visual);
 	}
 
-	/// <summary>Schedule an area contact on the physics clock, or resolve it immediately.</summary>
-	public void Schedule(Cast cast, float delay, float damage, AttackDefenseTraits traits, float push = 0,
+	/// <summary>
+	/// Schedule an area contact on the physics clock. After <paramref name="delay"/> it follows the visual's
+	/// <paramref name="front"/>, hitting each occupant once as the front reaches it; whatever reaches the front
+	/// right away, such as everyone for an instant front without delay, is hit before this returns.
+	/// </summary>
+	public void Schedule(Cast cast, float delay, AreaFront front, float damage, AttackDefenseTraits traits, float push = 0,
 		Action<Node3D, DamageResolution> afterContact = null, DamageElement element = DamageElement.None)
 	{
-		if (delay <= 0) { Resolve(cast, damage, traits, push, afterContact, element); return; }
-		_pending.Add(new PendingContact(cast, damage, traits, push, afterContact, element, _clock + delay));
-		_pending.Sort((a, b) => a.Due.CompareTo(b.Due));
+		var contact = new PendingContact(cast, front with { Delay = front.Delay + delay },
+			new AttackIdentity(cast.Caster.GetInstanceId(), ++_sequence), damage, traits, push, afterContact, element, _clock);
+		ulong generation = _generation;
+		if (Sweep(contact) || _generation != generation) return;
+		_pending.Add(contact);
 		cast.Owner.SetPhysicsProcess(true);
 	}
 
-	/// <summary>Run due contacts; the owning node can stop processing when none remain.</summary>
+	/// <summary>Advance pending fronts; the owning node can stop processing when none remain.</summary>
 	public bool Advance(double delta)
 	{
 		_clock += delta;
-		while (_pending.Count > 0 && _pending[0].Due <= _clock)
-		{
-			var contact = _pending[0]; _pending.RemoveAt(0);
-			Resolve(contact.Cast, contact.Damage, contact.Traits, contact.Push, contact.AfterContact, contact.Element);
-		}
+		ulong generation = _generation;
+		// Backwards, so contacts a callback schedules or a finished front's removal never shift the ones still due.
+		for (int i = _pending.Count - 1; i >= 0 && _generation == generation; i--)
+			if (Sweep(_pending[i]) && _generation == generation) _pending.RemoveAt(i);
 		return _pending.Count > 0;
 	}
 
-	/// <summary>Resolve occupants at contact time within the captured area and cancellation generation.</summary>
-	public void Resolve(Cast cast, float damage, AttackDefenseTraits traits, float forcedPush = 0,
-		Action<Node3D, DamageResolution> afterContact = null, DamageElement element = DamageElement.None)
+	/// <summary>
+	/// Hit the occupants the front has newly reached and report whether it has covered the whole area. An actor
+	/// the front passes behind cover is spared rather than caught later when it steps out.
+	/// </summary>
+	private bool Sweep(PendingContact contact)
 	{
+		float reach = contact.Front.Reach((float)(_clock - contact.Start));
+		if (reach > 0) Resolve(contact, contact.Cast.Radius * reach);
+		return reach >= 1;
+	}
+
+	/// <summary>Resolve newly reached occupants within the captured area and cancellation generation.</summary>
+	private void Resolve(PendingContact pending, float radius)
+	{
+		var cast = pending.Cast;
 		if (!GodotObject.IsInstanceValid(cast.Owner) || !cast.Owner.IsInsideTree()
 			|| !GodotObject.IsInstanceValid(cast.Caster) || !cast.Caster.IsInsideTree()
 			|| cast.Caster.GetWorld3D() != cast.World) return;
-		var targets = AreaSpellTargets.Capture(cast.Owner, cast.Caster, cast.Origin, cast.Radius, cast.World);
-		if (targets == null) return;
-		var identity = new AttackIdentity(cast.Caster.GetInstanceId(), ++_sequence);
+		var targets = AreaSpellTargets.Capture(cast.Owner, cast.Caster, cast.Origin, radius, cast.World, pending.Reached);
+		if (targets is not { Length: > 0 }) return;
+		pending.Reached.UnionWith(targets);
+		Hit(pending, targets);
+	}
+
+	/// <summary>Deliver one contact to each target; kept apart so ticks without new arrivals allocate no callback.</summary>
+	private void Hit(PendingContact pending, Node3D[] targets)
+	{
+		var cast = pending.Cast;
 		ulong generation = _generation;
-		var contact = new DamageContext { ExecutionId = identity, SourceNode = cast.Owner, OwnerNode = cast.Caster,
-			Faction = HurtBoxComponent.GetDamageSource(cast.Caster), Amount = damage, Random = cast.Random,
-			DefenseTraits = traits, DeliveryKind = DamageDeliveryKind.AreaImpact, ForcedPush = forcedPush, Element = element };
+		var contact = new DamageContext { ExecutionId = pending.Identity, SourceNode = cast.Owner, OwnerNode = cast.Caster,
+			Faction = HurtBoxComponent.GetDamageSource(cast.Caster), Amount = pending.Damage, Random = cast.Random,
+			DefenseTraits = pending.Traits, DeliveryKind = DamageDeliveryKind.AreaImpact, ForcedPush = pending.Push, Element = pending.Element };
 		AreaSpellTargets.Resolve(targets, cast.World, cast.Origin, cast.Facing, contact,
-			() => _generation == generation && cast.Owner.IsInsideTree(), afterContact);
+			() => _generation == generation && cast.Owner.IsInsideTree(), pending.AfterContact);
 	}
 
 	/// <summary>Invalidate contacts and detach the current visual set before callbacks can reenter.</summary>

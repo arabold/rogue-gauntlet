@@ -16,7 +16,7 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 		if (!_cast.Advance(delta)) SetPhysicsProcess(false);
 	}
 
-	/// <summary>Resolve one contact per visible hostile actor; empty areas still show the visual.</summary>
+	/// <summary>Resolve one contact per visible hostile actor as the visual reaches it; empty areas still show the visual.</summary>
 	public bool Cast(Node3D caster, int level, RandomNumberGenerator random)
 	{
 		if (Definition?.IsValidLevel(level) != true || VisualScene == null) return false;
@@ -32,7 +32,7 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 				target => AreaSpellTargets.IsVisible(target, cast.World, cast.Origin)), target => target.GlobalPosition));
 		VisualRoot.AddChild(visual); visual.GlobalPosition = cast.Origin; area.SetAreaVisibility(visibility);
 		_cast.Track(visual);
-		_cast.Schedule(cast, Definition.ContactDelay, damage, defense, element: Definition.Element);
+		_cast.Schedule(cast, Definition.ContactDelay, area.Front, damage, defense, Definition.PushAt(level), element: Definition.Element);
 		return true;
 	}
 

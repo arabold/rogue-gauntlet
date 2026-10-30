@@ -1,7 +1,9 @@
-[gd_resource type="Resource" script_class="GustDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="AreaDamageDefinition" load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scenes/magic/air/GustDefinition.cs" id="script"]
+[ext_resource type="Script" path="res://scenes/magic/shared/AreaDamageDefinition.cs" id="script"]
 
 [resource]
 script = ExtResource("script")
+SpellName = "Gust"
 PushByLevel = PackedFloat32Array(2, 2.4, 2.8)
+Element = 3

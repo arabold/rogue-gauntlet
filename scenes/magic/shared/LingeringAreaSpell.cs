@@ -26,7 +26,7 @@ public partial class LingeringAreaSpell : Node, ICombatSpell
 			_ => false
 		};
 		if (!valid) { node?.Free(); return false; }
-		var visual = (Node3D)node;
+		var visual = (VisualEffectInstance)node;
 		if (visual is FireSpellVisual fire) fire.ConfigureLevel(level);
 		if (visual is WaterSpellVisual water && !water.ConfigureArea(level, Definition.RadiusByLevel[level - 1])) { node.Free(); return false; }
 		var field = new LingeringAreaField();
