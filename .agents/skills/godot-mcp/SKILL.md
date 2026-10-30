@@ -138,6 +138,25 @@ placement, wall generation, or rotation needs a visual sanity check instead of (
 numeric probes/tests — e.g. confirming a doorway's connector tile is flush with its wall gap, or
 that a rotated room's markers still point the right way.
 
+## Visual verification: animated GIFs
+
+For motion (tweens, VFX, pickups, animations), record a GIF instead of single screenshots.
+`scripts/record_gif.sh` runs a scene **windowed** with Godot's Movie Maker (`--write-movie`), which
+forces a fixed frame rate, so tweens play at their true timing however slow the render, then
+stitches the frames with `scripts/frames_to_gif.py` (needs Pillow):
+
+```bash
+.agents/skills/godot-mcp/scripts/record_gif.sh res://tmp_preview.tscn <out.gif> [seconds=2] [fps=30] [resolution=960x640] \
+  -- [--skip N] [--width 640] [--crop x,y,w,h]
+```
+
+Stage the moment in a temporary `res://tmp_*` scene whose script builds the camera, light and
+props in `_ready()` and triggers the action from `_process()` after a short delay (no
+self-screenshot or `quit()` needed: `record_gif.sh` stops after the given seconds). Write the GIF
+to the scratchpad or a temp dir, never into the project (the script refuses an in-project path), and
+send it to the user. To inspect it yourself, `Read` only shows the first frame:
+tile a few frames into a PNG contact sheet with Pillow first. Delete the `tmp_*` scene afterwards.
+
 ## MCP tools
 
 When the MCP server is correctly configured, prefer it for editor/runtime interaction:
@@ -155,6 +174,8 @@ changes). If MCP reports `ENOENT` on `Godot.app`, use `scripts/godot.sh` via Bas
   level with a connector/doorway overlay. See "Visual verification" above.
 - `scripts/sample_attack_clip.gd` — prints a bone's height, reach and speed through an attack
   clip (headless) to place an attack profile's `ContactStart`/`ContactEnd` on the visible strike.
+- `scripts/record_gif.sh` + `scripts/frames_to_gif.py` — record a scene to an animated GIF.
+  See "Visual verification: animated GIFs" above.
 
 ## Authoring `.tres` / `.tscn` by text
 

@@ -68,7 +68,6 @@ public partial class OcclusionXrayComponent : Node
 	};
 
 	private readonly List<MeshInstance3D> _silhouettes = new();
-	private readonly List<Label3D> _labels = new();
 	private Node3D _targetRoot;
 	private ExplorationVisibility _exploration;
 	private HealthComponent _health;
@@ -108,11 +107,6 @@ public partial class OcclusionXrayComponent : Node
 		_health = GetParent()?.GetNodeOrNull<HealthComponent>("HealthComponent");
 
 		BuildSilhouettes(_targetRoot);
-		CollectLabels(GetParent());
-		if (_targetRoot != null && _targetRoot != GetParent() && !GetParent().IsAncestorOf(_targetRoot))
-		{
-			CollectLabels(_targetRoot);
-		}
 
 		if (_health != null)
 		{
@@ -144,7 +138,7 @@ public partial class OcclusionXrayComponent : Node
 		// Re-check "is on a discovered tile" on a low-frequency poll: actors move, and line-of-sight
 		// discovery raises no event. Loot is static and explored tiles never re-fog, so it stops once
 		// revealed; its remaining inputs (toggle, opening) are event-driven.
-		if (_silhouettes.Count == 0 && _labels.Count == 0)
+		if (_silhouettes.Count == 0)
 		{
 			return;
 		}
@@ -221,32 +215,10 @@ public partial class OcclusionXrayComponent : Node
 		_ => GameDebug.MonsterXrayEnabled,
 	};
 
-	private void CollectLabels(Node node)
-	{
-		if (node == null)
-		{
-			return;
-		}
-
-		if (node is Label3D label && !_labels.Contains(label))
-		{
-			_labels.Add(label);
-		}
-
-		foreach (Node child in node.GetChildren())
-		{
-			if (child is EnemyBase && child != node)
-			{
-				continue;
-			}
-			CollectLabels(child);
-		}
-	}
-
-	/// <summary>Recomputes and applies silhouette and label visibility from the toggle + reveal + alive state.</summary>
+	/// <summary>Recomputes and applies silhouette visibility from the toggle + reveal + alive state.</summary>
 	private void Evaluate()
 	{
-		if ((_silhouettes.Count == 0 && _labels.Count == 0) || _targetRoot == null)
+		if (_silhouettes.Count == 0 || _targetRoot == null)
 		{
 			return;
 		}
@@ -258,11 +230,6 @@ public partial class OcclusionXrayComponent : Node
 		foreach (MeshInstance3D silhouette in _silhouettes)
 		{
 			silhouette.Visible = visible;
-		}
-
-		foreach (Label3D label in _labels)
-		{
-			label.Visible = visible;
 		}
 	}
 

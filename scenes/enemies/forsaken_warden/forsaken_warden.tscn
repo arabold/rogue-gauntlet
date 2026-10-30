@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3]
+[gd_scene load_steps=38 format=3]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
 [ext_resource type="PackedScene" path="res://assets/custom-monsters/forsaken_warden/forsaken_warden.glb" id="2_glb"]
@@ -15,7 +15,6 @@
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_guard.tres" id="guard"]
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_defense_animation.tres" id="defense_animation"]
 
-[ext_resource type="Script" uid="uid://wi1l4pav2ehr" path="res://scenes/components/ConstantScreenSize3D.cs" id="constant_screen_size"]
 [ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_poise.tres" id="poise_definition"]
 [ext_resource type="PackedScene" path="res://scenes/combat/attack_telegraph.tscn" id="telegraph"]
@@ -157,20 +156,12 @@ process_physics_priority = 1
 RotationSpeed = 5.0
 MaxTurnRate = 90.0
 
-[node name="FloatingHealthBar" parent="." node_paths=PackedStringArray("Poise")]
-Poise = NodePath("../PoiseComponent")
-position = Vector3(0, 5.1, 0)
+[node name="Nameplate" parent="."]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 5.1, 0)
 
-[node name="BossTitle" type="Label3D" parent="."]
-visible = false
-position = Vector3(0, 5.65, 0)
-billboard = 1
-no_depth_test = true
-render_priority = 20
-text = "The Forsaken Warden"
-font_size = 48
-pixel_size = 0.008
-modulate = Color(1, 0.7, 0.2, 1)
+[node name="FloatingHealthBar" parent="Nameplate" node_paths=PackedStringArray("Poise")]
+Poise = NodePath("../../PoiseComponent")
+
 [node name="ActorActionGateComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent")]
 script = ExtResource("gate_script")
 AnimationComponent = NodePath("../CombatAnimationComponent")
@@ -188,10 +179,6 @@ GuardDef = ExtResource("guard")
 script = ExtResource("defense_script")
 Enemy = NodePath("..")
 GuardComponent = NodePath("../GuardComponent")
-
-[node name="ConstantScreenSize3D" type="Node" parent="BossTitle" node_paths=PackedStringArray("Target")]
-script = ExtResource("constant_screen_size")
-Target = NodePath("..")
 
 [node name="WorldEffects" parent="."]
 scale = Vector3(2, 2, 2)

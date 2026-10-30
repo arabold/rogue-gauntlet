@@ -5,6 +5,7 @@ using System;
 /// <summary>
 /// Represents an item that can be picked up by the player. Shows a quality/type-colored loot
 /// beam and, when within magnet range, floats to the player and is collected automatically.
+/// Fresh chest and monster drops are first thrown out of their source and rest a moment, so the player sees what dropped.
 /// </summary>
 public partial class LootableItem : Node3D
 {
@@ -38,6 +39,21 @@ public partial class LootableItem : Node3D
 	/// <summary>Fly speed right before collection (the pull accelerates inward).</summary>
 	[Export] public float MagnetMaxSpeed { get; set; } = 18.0f;
 
+	/// <summary>Seconds a thrown drop flies from its source to where it lands.</summary>
+	[Export] public float ThrowDuration { get; set; } = 0.45f;
+	/// <summary>How far a throw arcs above the straight line from its source to where it lands.</summary>
+	[Export] public float ThrowArcHeight { get; set; } = 1.2f;
+	/// <summary>Seconds a thrown drop rests where it landed, so the player sees it, before the magnet may take it.</summary>
+	[Export] public float LandedRestDuration { get; set; } = 0.4f;
+
+	/// <summary>Where a thrown drop leaves its source: inside a chest, or at a corpse's waist.</summary>
+	private const float ThrowLaunchHeight = 0.5f;
+	/// <summary>Share of the flight over which a thrown drop grows from nothing, so it emerges from its source.</summary>
+	private const float ThrowEmergeFraction = 0.3f;
+	/// <summary>Height and duration of the hop a thrown drop makes on landing.</summary>
+	private const float LandingBounceHeight = 0.2f;
+	private const float LandingBounceDuration = 0.2f;
+
 	/// <summary>
 	/// Waits for the player to exit first before triggering a pickup.
 	/// This is useful when a player just dropped an item and is still within
@@ -48,9 +64,26 @@ public partial class LootableItem : Node3D
 	/// </summary>
 	public bool WaitForPlayerExited { get; set; }
 
+	/// <summary>
+	/// Makes a fresh drop fly out of <paramref name="source"/> (a world position) after <paramref name="delay"/> seconds
+	/// instead of appearing in place: it arcs to the pickup's own position, tumbling, lands with a hop and rests long
+	/// enough to show what dropped. Only then does it join the magnet.
+	///
+	/// This must be called before the LootableItem is added to the tree!
+	/// </summary>
+	public void ThrowFrom(Vector3 source, float delay = 0f)
+	{
+		_throwing = true;
+		_airborne = true;
+		_throwSource = source;
+		_throwDelay = delay;
+	}
+
 	[Export] public Node3D Pivot { get; set; }
 	[Export] public TriggerComponent Trigger { get; set; }
 	[Export] public AnimationPlayer AnimationPlayer { get; set; }
+	/// <summary>Optional: shows the item's name in its loot color while the player is near, placed on top of the item's model.</summary>
+	[Export] public Nameplate Nameplate { get; set; }
 
 	private Player _player;
 	private ExplorationVisibility _exploration;
@@ -58,6 +91,11 @@ public partial class LootableItem : Node3D
 	private bool? _discovered;
 	private bool _armed;
 	private bool _collected;
+	private bool _throwing;
+	/// <summary>A thrown drop's beam and name appear only on touchdown, so they mark the landing rather than giving it away.</summary>
+	private bool _airborne;
+	private Vector3 _throwSource;
+	private float _throwDelay;
 	public bool IsCollected => _collected;
 
 	public void CommitCollected()
@@ -135,14 +173,86 @@ public partial class LootableItem : Node3D
 		if (!_exploration.HasLevelContext) RefreshDiscoveryVisibility();
 
 		// FIXME: Hardcoded check for gold is not ideal
-		if (Item is Gold || !Animate)
+		bool spins = Animate && Item is not Gold;
+		if (!spins)
 		{
 			Pivot.Position = new Vector3(0, 0, 0);
 		}
-		else if (Animate)
+		ConfigureNameplate(itemScene, Pivot.Position.Y);
+		RefreshMarkers();
+		if (_throwing)
+		{
+			PlayThrow(spins);
+		}
+		else if (spins)
 		{
 			AnimationPlayer.Play("spin");
 		}
+	}
+
+	/// <summary>Names the pickup in its loot color on top of its resting model, and renames it when its type is identified.</summary>
+	private void ConfigureNameplate(Node model, float restHeight)
+	{
+		if (Nameplate == null) return;
+		Nameplate.Position = Vector3.Up * (restHeight + (VisualHelper.MeshBounds(model, Pivot)?.End.Y ?? 0f));
+		Nameplate.NameLabel.Modulate = LootVisuals.ResolveColor(Item);
+		RefreshName();
+		if (Item is IIdentifiable)
+		{
+			this.SubscribeUntilExit(SignalBus.Instance, bus => bus.ItemIdentified += OnItemIdentified, bus => bus.ItemIdentified -= OnItemIdentified);
+		}
+	}
+
+	private void OnItemIdentified(string typeId)
+	{
+		if (((IIdentifiable)Item).TypeId == typeId) RefreshName();
+	}
+
+	private void RefreshName()
+	{
+		string name = ItemIdentity.ResolveDisplayName(Item);
+		Nameplate.NameLabel.Text = Quantity > 1 ? $"{name} ({Quantity})" : name;
+	}
+
+	/// <summary>
+	/// Flies only the pivot, from the source back to its resting pose: the pickup itself already sits where it lands,
+	/// so collection and the position a save records never pass through a wall. The flight ends on the idle spin
+	/// animation's first pose, so the hand-over to it is seamless.
+	/// </summary>
+	private void PlayThrow(bool spins)
+	{
+		Vector3 rest = Pivot.Position;
+		float restYaw = spins ? 0f : Pivot.Rotation.Y;
+		Vector3 launch = rest;
+		Pivot.Scale = Vector3.One * 0.01f; // Hidden until it emerges. Not zero: a singular basis breaks global transforms.
+
+		void Fly(float t)
+		{
+			Pivot.Position = launch.Lerp(rest, t) + Vector3.Up * (4f * ThrowArcHeight * t * (1f - t));
+			Pivot.Rotation = new Vector3(Mathf.Tau * (t - 1f), restYaw, 0); // One end-over-end tumble.
+			Pivot.Scale = Vector3.One * Mathf.Lerp(0.01f, 1f, Mathf.Min(t / ThrowEmergeFraction, 1f));
+		}
+
+		Tween tween = CreateTween();
+		tween.TweenInterval(_throwDelay);
+		// Spawners place the pickup right after adding it, so its final position is only known from the first step.
+		tween.TweenCallback(Callable.From(() => launch = ToLocal(_throwSource) + Vector3.Up * ThrowLaunchHeight));
+		tween.TweenMethod(Callable.From<float>(Fly), 0f, 1f, ThrowDuration);
+		tween.TweenCallback(Callable.From(() =>
+		{
+			_airborne = false;
+			RefreshMarkers();
+		}));
+		tween.TweenProperty(Pivot, "position:y", rest.Y + LandingBounceHeight, LandingBounceDuration / 2)
+			.SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
+		tween.TweenProperty(Pivot, "position:y", rest.Y, LandingBounceDuration / 2)
+			.SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.In);
+		if (spins)
+		{
+			tween.TweenCallback(Callable.From(() => AnimationPlayer.Play("spin")));
+		}
+		tween.TweenInterval(Mathf.Max(0f, LandedRestDuration - LandingBounceDuration));
+		tween.TweenCallback(Callable.From(() => _throwing = false));
 	}
 
 	public override void _Process(double delta)
@@ -153,6 +263,8 @@ public partial class LootableItem : Node3D
 		}
 
 		if (!RefreshDiscoveryVisibility()) return;
+		// A thrown drop is left alone until it has landed and been shown.
+		if (_throwing) return;
 
 		if (_player == null || !GodotObject.IsInstanceValid(_player))
 		{
@@ -217,8 +329,15 @@ public partial class LootableItem : Node3D
 		if (_discovered == visible) return visible;
 		_discovered = visible;
 		Visible = visible; // Gates the entire subtree, including the model, helpers, labels and the beam's light.
-		_beam?.SetActive(visible);
+		RefreshMarkers();
 		return visible;
+	}
+
+	/// <summary>The beam and name mark a discovered pickup, and wait until a thrown drop has landed.</summary>
+	private void RefreshMarkers()
+	{
+		_beam?.SetActive(_discovered == true && !_airborne);
+		if (Nameplate != null) Nameplate.Enabled = !_airborne;
 	}
 
 	private void AddLootBeam()
@@ -271,7 +390,7 @@ public partial class LootableItem : Node3D
 	/// </summary>
 	private void TryCollect(Player player)
 	{
-		if (_collected || player == null || !RefreshDiscoveryVisibility())
+		if (_collected || _throwing || player == null || !RefreshDiscoveryVisibility())
 		{
 			return;
 		}

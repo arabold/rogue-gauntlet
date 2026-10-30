@@ -85,7 +85,7 @@ public static class MonsterSceneValidator
 		if (vulnerability != null)
 			Check(vulnerability is HitVulnerabilityProfile { IsValid: true },
 				"HurtBoxComponent.Vulnerability: require front + rear half-angles <= 180 and nonnegative multipliers.");
-		var healthBar = actor.GetNodeOrNull<Node>("FloatingHealthBar");
+		var healthBar = actor.GetNodeOrNull<Node>("Nameplate/FloatingHealthBar");
 		var barPoise = healthBar != null ? Object<Node>(healthBar, "Poise") : null;
 		Check(barPoise == null || barPoise == poise, "FloatingHealthBar.Poise: show this actor's hurtbox poise or leave it empty.");
 		if (behavior != null)
