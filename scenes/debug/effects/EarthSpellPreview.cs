@@ -83,16 +83,16 @@ public partial class EarthSpellPreview : Node3D
 		if (_selected == 0)
 		{
 			var placements = ShowerPreview.Build(GetWorld3D(), Caster.GlobalPosition, _targets, _level * 3, _level + 1, _seed++);
-			for (int i = 0; i < placements.Count; i++) Spawn(placements[i].Position, i * .11f, placements[i].Cosmetic);
+			for (int i = 0; i < placements.Count; i++) Spawn(placements[i].Position, i * .11f, placements[i].Cosmetic, _seed * 7919UL + (ulong)i);
 			_status.Text = $"Rockfall level {_level}: {placements.Count(p => !p.Cosmetic)} strikes, {placements.Count(p => p.Cosmetic)} cosmetic rocks."; return;
 		}
 		var effect = Spawn(Caster.GlobalPosition);
 		if (_selected == 1) { foreach (var wall in DebugStage.BoundaryWalls()) { var dust = _wallDust[wall]; dust.Restart(); dust.Emitting = true; } _shakeTime = .55f; }
 		_status.Text = $"{_names[_selected]} level {_level}: radius {effect.PreviewRadius:0.0}.";
 	}
-	private EarthSpellVisual Spawn(Vector3 position, float delay = 0, bool cosmetic = false)
+	private EarthSpellVisual Spawn(Vector3 position, float delay = 0, bool cosmetic = false, ulong shapeSeed = 0)
 	{
-		var effect = Effects[_selected].Instantiate<EarthSpellVisual>(); effect.ConfigureLevel(_level); effect.StartDelay = delay; effect.Cosmetic = cosmetic;
+		var effect = Effects[_selected].Instantiate<EarthSpellVisual>(); effect.ConfigureLevel(_level); effect.StartDelay = delay; effect.Cosmetic = cosmetic; effect.ShapeSeed = shapeSeed;
 		if (cosmetic) effect.Scale = Vector3.One * .55f;
 		AddChild(effect); effect.GlobalPosition = position;
 		if (effect.Kind is EarthSpellVisual.EarthKind.Tremor or EarthSpellVisual.EarthKind.Spikes)

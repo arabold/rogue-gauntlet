@@ -110,6 +110,7 @@ public partial class TargetedSpell : Node, ICombatSpell
 				arc.Configure(start, end, GetInstanceId() ^ (ulong)index * 7919UL); group.AddChild(arc); return 0;
 			case EarthSpellVisual rock:
 				rock.ConfigureLevel(level); rock.StartDelay = index * .11f; rock.Cosmetic = debris;
+				rock.ShapeSeed = GetInstanceId() ^ (_sequence << 8) ^ (ulong)(index + 1) * 7919UL;
 				if (debris) rock.Scale *= .55f;
 				group.AddChild(rock); rock.GlobalPosition = end - Vector3.Up;
 				return rock.StartDelay + rock.Fall.FlightTime;
