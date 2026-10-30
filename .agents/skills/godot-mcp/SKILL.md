@@ -152,8 +152,9 @@ stitches the frames with `scripts/frames_to_gif.py` (needs Pillow):
 
 Stage the moment in a temporary `res://tmp_*` scene whose script builds the camera, light and
 props in `_ready()` and triggers the action from `_process()` after a short delay (no
-self-screenshot or `quit()` needed: `record_gif.sh` stops after the given seconds). Put the GIF in
-the scratchpad and send it to the user. To inspect it yourself, `Read` only shows the first frame:
+self-screenshot or `quit()` needed: `record_gif.sh` stops after the given seconds). Write the GIF
+to the scratchpad or a temp dir, never into the project (the script refuses an in-project path), and
+send it to the user. To inspect it yourself, `Read` only shows the first frame:
 tile a few frames into a PNG contact sheet with Pillow first. Delete the `tmp_*` scene afterwards.
 
 ## MCP tools

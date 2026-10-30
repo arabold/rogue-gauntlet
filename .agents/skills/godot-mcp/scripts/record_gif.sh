@@ -16,6 +16,12 @@ resolution=${5:-960x640}
 shift $(( $# < 5 ? $# : 5 ))
 [[ ${1:-} == "--" ]] && shift
 
+# Generated previews never belong in git: write them to a temp dir or scratchpad outside the project.
+out_dir=$(cd "$(dirname "$out")" && pwd -P)
+case "$out_dir/" in
+	"$(pwd -P)"/*) echo "record_gif.sh: write the GIF outside the project, not $out" >&2; exit 1 ;;
+esac
+
 here=$(cd "$(dirname "$0")" && pwd)
 frames_dir=$(mktemp -d "${TMPDIR:-/tmp}/godot_gif.XXXXXX")
 trap 'rm -rf "$frames_dir"' EXIT
