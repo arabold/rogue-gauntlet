@@ -10,11 +10,14 @@ Studio exports supply art independently of Godot gameplay definitions. Available
 
 ## Room variety and furnishing
 
-[Arrangements](level-design.md#reusable-room-arrangements) support editable scene compositions, quarter-turn rotation, purpose eligibility, connected free space and editor generation. Floor furniture and elevated wall mounts share the same placement policy. Existing torch and banner fixtures demonstrate live light/particles without reserving floor space; solid collision still preserves access.
+[Room assembly](level-design.md#room-assembly) builds every Garrison room from a room type: shape, doorways, wall and floor styles, columns and ordered furnishing steps over shared props and groups, with [reachability](level-design.md#reachability) keeping content out of inaccessible space. Fourteen room types cover halls, storage, mess halls, barracks, libraries, alchemists, passages, fenced walkways, partitioned stores, prisons, chapels, kitchens, guardrooms and ruins, dressed with set tables, altars, trunks, sacks and pottery, banner colours per room, and windowed, scaffolded, pillared, arched and ruined walls over bordered, patched and drained floors.
 
-Future corridor dressing can reuse the same scenes with weighted scatter, opposing-pair or alternating-side patterns and spacing/jitter settings. Accept opposing pairs together against compatible wall spans; symmetry is optional. Fixed compositions such as torches framing a banner remain authored scenes. Corridor placement is not part of the current slice.
-
-The Garrison preset now restricts generated architecture and uses barracks/storage as non-repeating landmarks. Gameplay and the playground share the preset; per-depth roles and route guarantees remain future work. Next, review density and repetition using the [authoring guide/playground](../scenes/levels/arrangements/README.md); map-size expansion is a separate comparison. Interactions and loot-bearing arrangements remain deferred.
+Remaining:
+- **More variety:** further room types, props, groups and wall/floor styles; this is authoring work on the existing strategies (see the [authoring guide](../scenes/levels/generators/assembly/README.md)).
+- **Corridor dressing:** weighted scatter or opposing pairs along corridor walls, reusing props and wall-decor placement.
+- **Opaque partitions and internal locks:** a room-local sight boundary projected through rotation and placement; internal mechanical locks need guaranteed reachable sources and saved state. Bars and fences stay non-occluding.
+- **Sewer and cistern content:** drainage grates, crossings and pits as floor styles or shape features.
+- **Per-depth room roles** and required routes.
 
 ## First-three-floor acceptance
 
@@ -54,7 +57,7 @@ The next consumable-feedback goal is [catalog-wide activation coverage](specs/co
 
 ## Later delivery
 
-- **Architecture cleanup:** floor services, the run state and player persistence are separated. Remaining: item use through one context (consumable and scroll-effect signatures, `ActionManager` slot creation), splitting `ProceduralRoomBuilder` from its room-styling randomness, and a scene autoload for the session-flow scene paths shared with `SceneDebugBootstrap`.
+- **Architecture cleanup:** floor services, the run state and player persistence are separated. Remaining: item use through one context (consumable and scroll-effect signatures, `ActionManager` slot creation), and a scene autoload for the session-flow scene paths shared with `SceneDebugBootstrap`.
 - **Message feed:** the [logging proposal](specs/logging-plan.md) remains separate from existing combat traces.
 - **Shop:** finite depth-appropriate stock, atomic trade, persistent balances and no identification leaks or trivial resale loops.
 - **Complete run:** connect class selection, descent, recovery/preparation and a valid win/loss outcome. The intended 24-depth/eight-realm journey ends at the World-Anchor; permanent progression remains undecided.

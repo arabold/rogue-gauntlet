@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="PropGroup" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroup.cs" id="1_PropGroup"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/table_medium_plain.tres" id="2_table_medium"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="3_PropGroupMem"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/tableware/candle.tres" id="4_candle"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/tableware/bottle.tres" id="5_bottle"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/tableware/plate.tres" id="6_plate"]
+
+[sub_resource type="Resource" id="PropGroupMember_1"]
+script = ExtResource("3_PropGroupMem")
+Options = [ExtResource("4_candle")]
+Offset = Vector3(0.4, 1.0, -0.4)
+Chance = 0.8
+QuarterTurns = 0
+metadata/_custom_type_script = ExtResource("3_PropGroupMem")
+
+[sub_resource type="Resource" id="PropGroupMember_2"]
+script = ExtResource("3_PropGroupMem")
+Options = [ExtResource("5_bottle"), ExtResource("6_plate")]
+Offset = Vector3(-0.4, 1.0, 0.4)
+Chance = 0.6
+QuarterTurns = 0
+metadata/_custom_type_script = ExtResource("3_PropGroupMem")
+
+[resource]
+script = ExtResource("1_PropGroup")
+Id = "garrison.set_medium_table"
+Weight = 1.0
+Anchor = [ExtResource("2_table_medium")]
+Members = [SubResource("PropGroupMember_1"), SubResource("PropGroupMember_2")]
+MirrorChance = 0.5
+metadata/_custom_type_script = ExtResource("1_PropGroup")

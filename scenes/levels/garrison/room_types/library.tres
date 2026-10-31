@@ -1,0 +1,81 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=25 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/shelved_walls.tres" id="3_shelved_wall"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/stone_walls.tres" id="4_stone_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/arched_walls.tres" id="5_arched_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/windowed_walls.tres" id="6_windowed_wal"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/dark_wood_floor.tres" id="7_dark_wood_fl"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone_bordered_wood.tres" id="8_stone_border"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone_floor.tres" id="9_stone_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/decorated_floor.tres" id="10_decorated_fl"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/RowsStep.cs" id="11_RowsStep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/book_stack.tres" id="12_book_stack"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="13_AlongWallsSt"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/bookcase.tres" id="14_bookcase"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/bookcase_broken.tres" id="15_bookcase_bro"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="16_WallDecorSte"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="17_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="18_torch_unlit"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/wall_shelf.tres" id="19_wall_shelf"]
+
+[sub_resource type="Resource" id="RectangleShape_1"]
+script = ExtResource("2_RectangleSha")
+Weight = 1.0
+MinimumSize = Vector2i(5, 4)
+MaximumSize = Vector2i(5, 6)
+OddWidth = true
+metadata/_custom_type_script = ExtResource("2_RectangleSha")
+
+[sub_resource type="Resource" id="RowsStep_2"]
+script = ExtResource("11_RowsStep")
+Id = "stacks"
+Content = [ExtResource("12_book_stack")]
+MinimumCount = 2
+MaximumCount = 10
+CenterAisle = 2.6
+Columns = 1
+RowGap = 2.4
+Margin = 0.6
+metadata/_custom_type_script = ExtResource("11_RowsStep")
+
+[sub_resource type="Resource" id="AlongWallsStep_3"]
+script = ExtResource("13_AlongWallsSt")
+Id = "wall_shelves"
+Content = [ExtResource("14_bookcase"), ExtResource("15_bookcase_bro")]
+MinimumCount = 0
+MaximumCount = 4
+Sides = 2
+Spacing = 0.0
+EndClearance = 0.6
+metadata/_custom_type_script = ExtResource("13_AlongWallsSt")
+
+[sub_resource type="Resource" id="WallDecorStep_4"]
+script = ExtResource("16_WallDecorSte")
+Id = "door_torches"
+Content = [ExtResource("17_torch"), ExtResource("18_torch_unlit")]
+MaximumCount = 2
+BesideDoorways = true
+metadata/_custom_type_script = ExtResource("16_WallDecorSte")
+
+[sub_resource type="Resource" id="WallDecorStep_5"]
+script = ExtResource("16_WallDecorSte")
+Id = "sconces"
+Content = [ExtResource("19_wall_shelf")]
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("16_WallDecorSte")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "garrison.library"
+Shapes = [SubResource("RectangleShape_1")]
+MinimumFloorTiles = 16
+MinDoorways = 2
+MaxDoorways = 2
+DoorwayPlacement = 1
+Circulation = 1
+Walls = [ExtResource("3_shelved_wall"), ExtResource("4_stone_walls"), ExtResource("5_arched_walls"), ExtResource("6_windowed_wal")]
+Floors = [ExtResource("7_dark_wood_fl"), ExtResource("8_stone_border"), ExtResource("9_stone_floor"), ExtResource("10_decorated_fl")]
+Steps = [SubResource("RowsStep_2"), SubResource("AlongWallsStep_3"), SubResource("WallDecorStep_4"), SubResource("WallDecorStep_5")]
+metadata/_custom_type_script = ExtResource("1_RoomType")

@@ -26,7 +26,8 @@ public sealed class GeneratedFloor
 	// Interior floor tile -> room id, for "which room is this in" queries.
 	private readonly Dictionary<Vector2I, int> _tileToRoom = new();
 	private readonly List<(Door Door, Vector2I Connector)> _doors = new();
-	private readonly HashSet<Vector2I> _reservations = new();
+	private WalkabilityGrid _walkability;
+	private bool[] _reachable;
 	private readonly Dictionary<string, (Door Door, DoorAccessSaveData Baseline)> _doorBaselines = new();
 	private List<FloorTrap> _traps;
 	private HashSet<Vector2I> _decoratedTiles;
@@ -106,11 +107,45 @@ public sealed class GeneratedFloor
 		_doorBaselines.Add(door.ConnectionId, (door, door.CaptureAccess()));
 	}
 
-	/// <summary>Tiles a furnishing arrangement occupies; spawns and loot keep off them.</summary>
-	internal void Reserve(IEnumerable<Vector2I> tiles)
+	/// <summary>Actor-center walkability of the finished geometry, built once rooms, corridors and secret pockets exist.
+	/// Null in previews and layouts without an arrival; queries then fall back to tile occupancy alone.</summary>
+	internal WalkabilityGrid Walkability => _walkability;
+	/// <summary>Per-cell reachability for <see cref="Walkability"/>; null alongside it.</summary>
+	internal bool[] Reachable => _reachable;
+
+	/// <summary>Records which cells can be reached from the arrival with every door open. Spawns, loot, traps, teleports
+	/// and drops only use reachable cells, so nothing lands in an inaccessible pocket behind furniture.</summary>
+	internal void SetWalkability(WalkabilityGrid grid, bool[] reachable)
 	{
 		RequireLive();
-		_reservations.UnionWith(tiles);
+		_walkability = grid;
+		_reachable = reachable;
+	}
+
+	/// <summary>True when an actor centered here can walk to the arrival (doors open). Without walkability, every point is.</summary>
+	public bool IsReachable(Vector3 point)
+	{
+		if (_walkability == null) return true;
+		var cell = _walkability.CellAt(new Vector2(point.X, point.Z));
+		return _walkability.Contains(cell) && _reachable[cell.Y * _walkability.Size.X + cell.X];
+	}
+
+	/// <summary>Reachable and clear of solid geometry within <paramref name="radius"/>, for actors larger than the grid's.</summary>
+	private bool IsReachableArea(Vector3 point, float radius)
+	{
+		if (_walkability == null) return true;
+		float extra = radius - _walkability.ActorRadius;
+		if (extra <= 0) return IsReachable(point);
+		int reach = Mathf.CeilToInt(extra / _walkability.CellSize);
+		var center = _walkability.CellAt(new Vector2(point.X, point.Z));
+		for (int x = -reach; x <= reach; x++)
+		for (int z = -reach; z <= reach; z++)
+		{
+			var cell = center + new Vector2I(x, z);
+			if (_walkability.CellCenter(cell).DistanceTo(new Vector2(point.X, point.Z)) > extra) continue;
+			if (!_walkability.Contains(cell) || !_reachable[cell.Y * _walkability.Size.X + cell.X]) return false;
+		}
+		return true;
 	}
 
 	private void RequireLive()
@@ -144,7 +179,7 @@ public sealed class GeneratedFloor
 	/// </summary>
 	internal bool IsProceduralRoomTile(int x, int z) => !_tileToRoom.TryGetValue(new Vector2I(x, z), out int roomId) || _rooms[roomId].IsProcedural;
 
-	/// <summary>Furnishing reservations, decoration and nearby props make a tile unusable for spawns and loot.</summary>
+	/// <summary>An unreachable tile center, decoration and nearby props make a tile unusable for spawns and loot.</summary>
 	internal bool IsOccupied(int x, int z)
 	{
 		RefreshPropTiles();
@@ -155,7 +190,7 @@ public sealed class GeneratedFloor
 	private bool IsOccupiedNow(int x, int z)
 	{
 		var tile = new Vector2I(x, z);
-		return _reservations.Contains(tile) || HasDecorationInTile(x, z) || _propTiles.Contains(tile);
+		return !IsReachable(Map.TileToWorld(x, z)) || HasDecorationInTile(x, z) || _propTiles.Contains(tile);
 	}
 
 	/// <summary>
@@ -236,7 +271,7 @@ public sealed class GeneratedFloor
 				if (RoomIdAt(new Vector2I(x, z)) != roomId || IsOccupiedNow(x, z)) return false;
 			}
 		}
-		return true;
+		return IsReachableArea(point, radius);
 	}
 
 	/// <summary>Prefer a roomy room interior near <paramref name="reference"/>, keeping an oversized actor out of corridors.</summary>
@@ -398,7 +433,7 @@ public sealed class GeneratedFloor
 
 	private bool IsSpawnPositionFree(Vector3 worldPosition)
 	{
-		return IsWalkableMapPosition(worldPosition) && !IsColumnObstructed(worldPosition);
+		return IsWalkableMapPosition(worldPosition) && IsReachable(worldPosition) && !IsColumnObstructed(worldPosition);
 	}
 
 	private bool IsWalkableMapPosition(Vector3 worldPosition)

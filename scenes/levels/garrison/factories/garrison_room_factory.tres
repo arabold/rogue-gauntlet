@@ -6,6 +6,3 @@
 script = ExtResource("1_uxyt0")
 EntranceScenePaths = Array[String](["res://scenes/levels/dungeon/rooms/level_entrance.tscn", "res://scenes/levels/dungeon/rooms/level_entrance2.tscn"])
 ExitScenePaths = Array[String](["res://scenes/levels/dungeon/rooms/level_exit.tscn"])
-StandardRoomScenePaths = Array[String](["res://scenes/levels/dungeon/rooms/hall.tscn"])
-SpecialRoomScenePaths = Array[String](["res://scenes/levels/dungeon/rooms/barracks.tscn", "res://scenes/levels/dungeon/rooms/storage_room_small.tscn"])
-RepeatSpecialRooms = false

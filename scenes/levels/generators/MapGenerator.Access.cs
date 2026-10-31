@@ -12,8 +12,6 @@ public partial class MapGenerator
 	private readonly HashSet<int> _secretRoomIds = [];
 	private readonly List<(Door Door, Vector2I Host, Vector2I Connector, Aabb Threshold)> _generatedSecrets = [];
 	internal IReadOnlyList<(Door Door, Vector2I Host, Vector2I Connector, Aabb Threshold)> GeneratedSecrets => _generatedSecrets;
-	/// <summary>Reserve the future threshold so furnishing cannot attach to its concealed wall or block the approach.</summary>
-	private IEnumerable<Aabb> SecretThresholdBounds() => _generatedSecrets.Select(s => s.Threshold);
 	private void ResetAccess()
 	{
 		_accessPickupPoints.Clear(); _secretRoomIds.Clear(); _generatedSecrets.Clear();
@@ -25,9 +23,9 @@ public partial class MapGenerator
 		using var rng = GenerationRandom.Create(Seed, "access-secrets", GenerationAttempt.ToString());
 		int secretBudget = AccessProfile.RollSecretRoomBudget(rng);
 		if (secretBudget == 0) return;
-		var requiredTiles = Floor.Rooms.SelectMany(r => r.FurnishingSlots).SelectMany(s => s.Occupied).ToArray();
-		var existingContent = RoomArrangement.GetStaticPropBounds(NavigationRegion, GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform)
-			.Concat(RoomDressingProfile.GetBounds(Floor.Rooms.SelectMany(r => r.FurnishingSlots))).ToArray();
+		// Assembled rooms already hold their furniture; a concealed entrance must keep clear of it.
+		var existingContent = CollisionOutlines.FromStaticBodies(NavigationRegion, GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform)
+			.Select(outline => outline.Bounds).ToArray();
 		var candidates = new List<(Vector2I Host, Vector2I Direction)>();
 		var pocketTiles = new HashSet<Vector2I>();
 		for (int x = 1; x < Map.Width - 1; x++)
@@ -38,8 +36,6 @@ public partial class MapGenerator
 		{
 			int index = rng.RandiRange(0, candidates.Count - 1);
 			var (host, direction) = candidates[index]; candidates.RemoveAt(index);
-			// Preserve required furnishing anchors and their wall/clearance dependencies, not just mesh overlap.
-			if (requiredTiles.Any(t => Math.Abs(t.X - host.X) <= 1 && Math.Abs(t.Y - host.Y) <= 1)) continue;
 			var tangent = new Vector2I(-direction.Y, direction.X);
 			var tiles = new HashSet<Vector2I>();
 			for (int depth = 2; depth <= 4; depth++) for (int side = -1; side <= 1; side++)
@@ -53,7 +49,7 @@ public partial class MapGenerator
 			var wallCell = Map.TileToWorld(host) + new Vector3I(direction.X * 2, 0, direction.Y * 2);
 			var spanSize = direction.X == 0 ? new Vector3(4, 4, 2) : new Vector3(2, 4, 4);
 			var threshold = new Aabb((Vector3)wallCell - new Vector3(spanSize.X * 0.5f, 0, spanSize.Z * 0.5f), spanSize);
-			if (existingContent.Any(box => ConnectedArrangementStrategy.Overlaps(box, threshold, 1))) continue;
+			if (existingContent.Any(box => RoomBlueprint.XZ(box).Grow(1).Intersects(RoomBlueprint.XZ(threshold)))) continue;
 			int wallItem = WallGridMap.GetCellItem(wallCell);
 			var wallMesh = wallItem < 0 ? null : WallGridMap.MeshLibrary.GetItemMesh(wallItem);
 			// Only full straight spans qualify; corner and partial pieces remain ordinary geometry.
@@ -146,7 +142,7 @@ public partial class MapGenerator
 		foreach (var door in LiveNodes<Door>())
 		{
 			var pair = Floor.Doors.FirstOrDefault(d => d.Door == door);
-			door.ConnectionId = pair.Door != null ? $"connector:{pair.Connector.X}:{pair.Connector.Y}:{ordinal++}"
+			if (door.Interior == null) door.ConnectionId = pair.Door != null ? $"connector:{pair.Connector.X}:{pair.Connector.Y}:{ordinal++}"
 				: "authored:" + NavigationRegion.GetPathTo(door);
 			Floor.RecordDoorBaseline(door);
 		}

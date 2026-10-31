@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FloorMaterial" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/FloorMaterial.cs" id="1_FloorMateria"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_FloorMeshLib"]
+
+[resource]
+script = ExtResource("1_FloorMateria")
+Id = "garrison.light_wood"
+Library = ExtResource("2_FloorMeshLib")
+Large = Dictionary[String, float]({"floor_wood_large": 1.0})
+Small = Dictionary[String, float]({"floor_wood_small": 1.0})
+AlignedPlanks = true
+metadata/_custom_type_script = ExtResource("1_FloorMateria")

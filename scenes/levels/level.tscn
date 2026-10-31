@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=17 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" uid="uid://dufyxbs8mado1" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
@@ -14,7 +14,6 @@
 
 [ext_resource type="Script" path="res://scenes/levels/LevelItemPersistence.cs" id="13_persistence"]
 
-[ext_resource type="Resource" path="res://scenes/levels/garrison/arrangements/garrison_arrangements.tres" id="14_arrangements"]
 
 [ext_resource type="Resource" path="res://scenes/levels/access/garrison_access.tres" id="access_profile"]
 [ext_resource type="PackedScene" path="res://scenes/levels/floor_discovery.tscn" id="floor_discovery"]
@@ -36,7 +35,6 @@ ItemPersistence = NodePath("ItemPersistence")
 Discovery = NodePath("FloorDiscovery")
 
 [node name="MapGenerator" parent="." instance=ExtResource("2_dtjl1")]
-ArrangementPool = ExtResource("14_arrangements")
 AccessProfile = ExtResource("access_profile")
 Seed = 23
 RoomLayout = SubResource("Resource_mbbpy")

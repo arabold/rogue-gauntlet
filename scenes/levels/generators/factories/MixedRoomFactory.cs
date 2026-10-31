@@ -1,9 +1,10 @@
 using System;
+using System.Linq;
 using Godot;
 
 /// <summary>
-/// Blends authored room templates with procedurally built rooms. Standard rooms are
-/// procedural with <see cref="ProceduralShare"/> probability. Entrances and exits
+/// Blends authored room templates with assembled room types. Standard rooms are
+/// assembled with <see cref="ProceduralShare"/> probability. Entrances and exits
 /// stay authored for required gameplay content; optional authored landmarks become
 /// standard room slots when their non-repeating pool is exhausted.
 /// </summary>
@@ -12,12 +13,10 @@ using Godot;
 public partial class MixedRoomFactory : RoomFactory
 {
 	[Export] public RoomFactory AuthoredFactory { get; set; }
-	[Export] public ProceduralRoomBuilder RoomBuilder { get; set; }
+	/// <summary>Weighted room types, each assembled with its content.</summary>
+	[Export] public RoomType[] RoomTypes { get; set; } = [];
 
-	/// <summary>Weighted coded recipes for procedural slots. Empty uses the generic RoomBuilder.</summary>
-	[Export] public RoomGenerator[] RoomGenerators { get; set; } = [];
-
-	/// <summary>Fraction of standard rooms that are procedurally built.</summary>
+	/// <summary>Fraction of standard rooms that are assembled rather than authored.</summary>
 	[Export(PropertyHint.Range, "0,1")] public float ProceduralShare { get; set; } = 0.4f;
 
 	// Required entrance/exit scenes and authored fallback depend on this assignment.
@@ -45,37 +44,15 @@ public partial class MixedRoomFactory : RoomFactory
 
 	public override Room CreateStandardRoom(RandomNumberGenerator rng)
 	{
-		if ((RoomGenerators.Length > 0 || RoomBuilder != null) && rng.Randf() < ProceduralShare)
+		if (ProceduralShare >= 1 && RoomTypes.Length == 0)
+			throw new InvalidOperationException("Generated room factory: assign room types.");
+		if (RoomTypes.Length > 0 && rng.Randf() < ProceduralShare)
 		{
-			// Fall back to an authored room on misconfiguration (e.g. a renamed mesh
-			// item) instead of returning null and silently starving the layout of rooms.
-			Room room;
-			if (RoomGenerators.Length > 0)
-			{
-				foreach (var generator in RoomGenerators)
-				{
-					if (generator == null) throw new InvalidOperationException("Room factory: assign every generator entry.");
-					var errors = generator.Validate();
-					if (errors.Length > 0) throw new InvalidOperationException(string.Join("\n", errors));
-				}
-				double totalWeight = 0;
-				foreach (var generator in RoomGenerators) totalWeight += generator.Weight;
-				double roll = rng.Randf() * totalWeight;
-				var selected = RoomGenerators[^1];
-				foreach (var generator in RoomGenerators)
-				{
-					roll -= generator.Weight;
-					if (roll < 0) { selected = generator; break; }
-				}
-				room = selected.BuildRoom(rng);
-			}
-			else room = RoomBuilder.BuildRoom(rng);
-			if (room != null)
-			{
-				return room;
-			}
+			// A selected room type must succeed; substituting a frozen room hides broken authoring.
+			if (RoomTypes.Any(type => type == null)) throw new InvalidOperationException("Room factory: assign every room type entry.");
+			var type = Weighted.Pick(RoomTypes, entry => entry.Weight, rng);
+			return RoomAssembler.Assemble(type, ((ulong)rng.Randi() << 32) | rng.Randi());
 		}
-
 		WarnIfAuthoredFactoryMissing();
 		return AuthoredFactory?.CreateStandardRoom(rng);
 	}

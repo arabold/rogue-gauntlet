@@ -46,24 +46,17 @@ public partial class MapGenerator
 		PlaceLooseItems(placedLootPoints);
 	}
 
-	/// <summary>Later solid loot must not undo the furnishing pass's connected-free-space invariant.</summary>
+	/// <summary>A chest must sit on reachable space, keep door swings clear and create no inaccessible pocket.
+	/// On success its collision joins the floor's walkability.</summary>
 	private bool ChestPreservesRoomPassage(Node3D chest, Vector3 point, float rotation)
 	{
-		var tile = Map.WorldToTile(point);
-		var room = Floor.Rooms.FirstOrDefault(region => region.IsProcedural && region.Tiles.Contains(tile));
-		if (room == null) return false;
-		var pool = room.InteriorPool ?? ArrangementPool;
-		if (pool == null) return true;
-		var obstacles = RoomArrangement.GetGridBounds(DecorationGridMap, DecorationGridMap.Transform)
-			.Concat(RoomArrangement.GetGridBounds(WallGridMap, WallGridMap.Transform))
-			.Concat(RoomArrangement.GetStaticPropBounds(NavigationRegion, GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform)).ToArray();
-		var doors = room.ConnectorTiles.Where(connector => Map.GetConnectorDirections(connector.X, connector.Y)
-			.Any(direction => { var next = connector + direction; return Map.IsWithinBounds(next.X, next.Y) && Map.IsCorridor(next.X, next.Y); }));
-		var passage = new RoomPassageValidator(Map, room.Tiles.Where(t => Map.IsWalkable(t.X, t.Y)).ToHashSet(), doors,
-			t => Map.TileToWorld(t), obstacles, pool.PassageRadius);
+		if (!Floor.IsReachable(point)) return false;
 		var proposed = GlobalTransform.AffineInverse() * new Transform3D(new Basis(Vector3.Up, Mathf.DegToRad(rotation)),
 			point + Vector3.Up * GetFloorSurfaceHeight(point));
-		return passage.IsConnected(RoomArrangement.GetStaticPropBounds(chest, proposed));
+		var solids = CollisionOutlines.FromStaticBodies(chest, proposed).ToList();
+		var doorClearances = InteriorDoorComponent.CollectClearances(NavigationRegion,
+			GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform);
+		return !solids.Any(solid => doorClearances.Any(clearance => clearance.Intersects(solid.Bounds))) && TryBlockReachably(solids);
 	}
 
 	private void PlaceChests(List<Vector3> placedLootPoints)

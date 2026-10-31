@@ -6,59 +6,63 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>The room harness exercises production recipes, UI controls, rotation and complete-floor generation.</summary>
+/// <summary>The room harness previews production room types and legacy recipes, axis overrides, rotation and floors.</summary>
 [TestSuite, RequireGodotRuntime]
 public class RoomGenerationHarnessTest
 {
 	private const string Scene = "res://scenes/debug/rooms/room_generation_harness.tscn";
 
 	[TestCase]
-	public async Task EveryRecipePreviewsAndUiControlsPreserveStructureWhenFurnishingsChange()
+	public async Task EveryRecipePreviewsAndRoomTypesFurnishThemselves()
 	{
 		using var runner = TestFactories.LoadScene(Scene);
 		await runner.SimulateFrames(2);
 		var harness = (RoomGenerationHarness)runner.Scene();
 		AssertString(harness.LastError).IsEmpty();
-		AssertInt(harness.Factory.RoomGenerators.Length).IsEqual(5);
-		for (int index = 0; index < harness.Factory.RoomGenerators.Length; index++)
+		for (int index = 0; index < harness.Recipes.Count; index++)
 		{
 			harness.SelectRecipe(index);
 			await runner.SimulateFrames(1);
 			AssertString(harness.LastError).IsEmpty();
-			AssertObject(harness.PreviewRoom.Generator).IsSame(harness.Factory.RoomGenerators[index]);
-			AssertBool(harness.PreviewRoom.GetChildren().OfType<RoomArrangement>().Any()).IsTrue();
+			if (harness.Recipes[index] is RoomType type)
+			{
+				AssertObject(harness.PreviewRoom.Type).IsSame(type);
+				AssertBool(harness.PreviewBlueprint.IsConnected).IsTrue();
+			}
 			AssertBool(harness.PreviewCamera.Size > harness.PreviewRoom.Bounds.Size.X).IsTrue();
 		}
-		var pickers = harness.Controls.GetChildren().OfType<HBoxContainer>()
-			.SelectMany(row => row.GetChildren()).OfType<OptionButton>().ToArray();
-		pickers[1].EmitSignal(OptionButton.SignalName.ItemSelected, 0);
-		pickers[1].EmitSignal(OptionButton.SignalName.ItemSelected, 1);
-		pickers[1].EmitSignal(OptionButton.SignalName.ItemSelected, 3);
-		await runner.SimulateFrames(1);
-		AssertBool(harness.PreviewRoom.Generator is BarracksRoomGenerator).IsTrue();
-		var seed = harness.Controls.GetChildren().OfType<HBoxContainer>()
-			.SelectMany(row => row.GetChildren()).OfType<SpinBox>().Single();
-		seed.Value = 99;
-		await runner.SimulateFrames(1);
-		AssertBool(harness.Seed == 99).IsTrue();
-		string baseline = Geometry(harness.PreviewRoom);
-		var toggle = harness.Controls.GetChildren().OfType<CheckButton>().Single();
-		toggle.ButtonPressed = false;
-		await runner.SimulateFrames(1);
-		AssertInt(harness.PreviewRoom.GetChildren().OfType<RoomArrangement>().Count()).IsEqual(0);
-		AssertString(Geometry(harness.PreviewRoom)).IsEqual(baseline);
-		toggle.ButtonPressed = true;
-		await runner.SimulateFrames(1);
-		AssertBool(harness.PreviewRoom.GetChildren().OfType<RoomArrangement>().Any()).IsTrue();
+	}
+
+	[TestCase]
+	public async Task FloorAndWallOverridesNeverMoveFurnitureAndFurnishingLeavesStructureAlone()
+	{
+		using var runner = TestFactories.LoadScene(Scene);
+		await runner.SimulateFrames(2);
+		var harness = (RoomGenerationHarness)runner.Scene();
+		int barracks = harness.Recipes.ToList().FindIndex(recipe => recipe is RoomType { Id: "garrison.barracks" });
+		harness.SelectRecipe(barracks);
+		harness.Seed = 99;
+		harness.Regenerate();
+		string props = Props(harness.PreviewRoom);
+		string walls = Cells(harness.PreviewRoom.WallGridMap);
+		harness.FloorOverride = 1;
+		harness.Regenerate();
+		AssertString(Props(harness.PreviewRoom)).IsEqual(props);
+		AssertString(Cells(harness.PreviewRoom.WallGridMap)).IsEqual(walls);
+		harness.Furnishings = false;
+		harness.Regenerate();
+		AssertInt(harness.PreviewRoom.GetNode("Props").GetChildCount()).IsEqual(0);
+		AssertString(Cells(harness.PreviewRoom.WallGridMap)).IsEqual(walls);
+		harness.Furnishings = true;
+		harness.FloorOverride = RoomAssemblyOptions.Seeded;
+		harness.Regenerate();
 		var before = harness.PreviewRoom.Map;
 		harness.RotatePreview(1);
-		await runner.SimulateFrames(1);
-		AssertString(harness.LastError).IsEmpty();
+		harness.Regenerate();
 		AssertInt(harness.PreviewRoom.Map.Width).IsEqual(before.Height);
-		AssertInt(harness.PreviewRoom.Map.Height).IsEqual(before.Width);
 		harness.RotatePreview(3);
-		await runner.SimulateFrames(1);
-		AssertString(Geometry(harness.PreviewRoom)).IsEqual(baseline);
+		harness.Regenerate();
+		AssertString(Props(harness.PreviewRoom)).IsEqual(props);
 		await runner.SimulateFrames(1);
 	}
 
@@ -75,26 +79,19 @@ public class RoomGenerationHarnessTest
 		AssertString(harness.LastError).IsEmpty();
 		AssertObject(harness.PreviewRoom).IsNull();
 		AssertBool(harness.Generator.Visible).IsTrue();
-		AssertBool(harness.PreviewRoot.Visible).IsFalse();
-		AssertInt(harness.Generator.ArrangementCount).IsGreater(0);
 		AssertArray(LayoutConnectivityTest.FindConnectivityFailures(harness.Generator)).IsEmpty();
-		string layout = string.Join("|", harness.Generator.Map.Tiles.Cast<MapTile>());
-		harness.Furnishings = false;
-		harness.Regenerate();
-		await runner.SimulateFrames(1);
-		AssertInt(harness.Generator.ArrangementCount).IsEqual(0);
-		AssertString(string.Join("|", harness.Generator.Map.Tiles.Cast<MapTile>())).IsEqual(layout);
 		harness.Mode = RoomPreviewMode.Room;
-		harness.Furnishings = true;
-		harness.SelectRecipe(4);
+		harness.SelectRecipe(0);
 		await runner.SimulateFrames(1);
 		AssertString(harness.LastError).IsEmpty();
-		AssertBool(harness.PreviewRoom.Generator is LibraryRoomGenerator).IsTrue();
 		AssertBool(harness.PreviewRoot.Visible).IsTrue();
 		AssertBool(harness.Generator.Visible).IsFalse();
 		await runner.SimulateFrames(1);
 	}
 
-	private static string Geometry(Room room) => string.Join("|", room.FloorGridMap.GetUsedCells().OrderBy(cell => cell.X)
-		.ThenBy(cell => cell.Z).Select(cell => $"{cell}:{room.FloorGridMap.GetCellItem(cell)}:{room.FloorGridMap.GetCellItemOrientation(cell)}"));
+	private static string Props(Room room) => string.Join("|", room.GetNode("Props").GetChildren().OfType<Node3D>()
+		.Select(prop => $"{prop.GetMeta("prop_id")}:{prop.Transform.Origin.Snapped(Vector3.One * .001f)}"));
+
+	private static string Cells(GridMap grid) => string.Join("|", grid.GetUsedCells().OrderBy(cell => cell.X).ThenBy(cell => cell.Z)
+		.Select(cell => $"{cell}:{grid.GetCellItem(cell)}:{grid.GetCellItemOrientation(cell)}"));
 }

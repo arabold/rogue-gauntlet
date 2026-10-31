@@ -45,7 +45,7 @@ func _initialize():
 
 	_map_generator.RoomLayout = load("res://scenes/levels/generators/layouts/PackedRoomLayout.cs").new()
 	_map_generator.CorridorConnector = load("res://scenes/levels/generators/connectors/AStarCorridorConnector.cs").new()
-	_map_generator.RoomFactory = load("res://scenes/levels/dungeon/dungeon_mixed_room_factory.tres")
+	_map_generator.RoomFactory = load("res://scenes/levels/garrison/factories/garrison_mixed_room_factory.tres")
 	_map_generator.MobFactory = load("res://scenes/levels/dungeon/dungeon_mob_factory.tres")
 	_map_generator.TileFactory = load("res://scenes/levels/dungeon/dungeon_tile_factory.tres")
 	_map_generator.Seed = _seed_value
