@@ -17,12 +17,16 @@ Create `props/<category>/<name>.tres` with script `Prop`:
 | Field | Use |
 | --- | --- |
 | `Library` + `Items` | Mesh-library item names (a dropdown once the library is set); several items are cosmetic variants |
-| `Scenes` | Instead of items, for props that need nodes: lights, particles, interaction (torches, gates). Several scenes are variants |
+| `Scenes` | Instead of items, for props that need nodes: lights, particles, interaction (torches, gates). Several scenes are variants; a bare `.glb` works too and blocks with a box over its mesh |
 | `QuarterTurns` | Turn the model so its front faces +Z |
 | `Mount` | `Floor` or `Wall`; wall props use `MountHeight` and `WallInset` (recess from wall trim to the flat face) |
 | `BackToWall` | Floor props that stand against a wall (beds, shelves, barrels) |
 | `Blocking` | Off for things actors walk over or that rest on other props |
+| `Covering` | Flat floor coverings (rugs, runners): non-blocking, they only keep clear of walls and other coverings, so furniture may stand on them |
+| `TurnJitter`, `ShiftJitter` | Seeded random turn (degrees either way) and shift (units) so loose props never line up perfectly; placement measures the turned prop. Leave at 0 for anchors that carry members (tables), fitted pieces and wall props |
 | `Interactive` | Keeps the space in front clear |
+
+Studio-made furnishings (altars, statues, candles, racks, rugs, wall decor) are exported to `assets/custom-props/<theme>/` by the [Asset Studio](../../../../asset-studio/README.md#room-furnishings). Lit variants are game scenes in `scenes/props/furnishings/` (`*_lit.tscn`): the model, its separate flames model or a fire effect as `Flame`, a `FlickerLight`, and the exploration-gate and environmental-light components that put both out on dark floors. List lit and unlit scenes as variants of one prop.
 
 ## Add a group
 

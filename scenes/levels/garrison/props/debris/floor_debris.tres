@@ -10,5 +10,7 @@ Id = "garrison.floor_debris"
 Scenes = [ExtResource("2_floorDecorat"), ExtResource("3_floorDecorat")]
 Blocking = false
 Gap = 0.1
+TurnJitter = 45.0
+ShiftJitter = 0.15
 Weight = 1.0
 metadata/_custom_type_script = ExtResource("1_Prop")

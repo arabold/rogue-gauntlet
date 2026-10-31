@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=29 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=35 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -20,6 +20,10 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="18_torch"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="19_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/wall_shelf.tres" id="20_wall_shelf"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/cauldron.tres" id="21_cauldron"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/bucket.tres" id="22_bucket"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/globe.tres" id="23_globe"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/herb_rack.tres" id="24_herb_rack"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -67,7 +71,7 @@ metadata/_custom_type_script = ExtResource("12_CenterStep")
 [sub_resource type="Resource" id="ScatterStep_6"]
 script = ExtResource("14_ScatterStep")
 Id = "supplies"
-Content = [ExtResource("15_small_box"), ExtResource("16_barrel_stack")]
+Content = [ExtResource("15_small_box"), ExtResource("16_barrel_stack"), ExtResource("22_bucket"), ExtResource("23_globe")]
 MaximumCount = 2
 metadata/_custom_type_script = ExtResource("14_ScatterStep")
 
@@ -86,6 +90,21 @@ Content = [ExtResource("20_wall_shelf")]
 MaximumCount = 2
 metadata/_custom_type_script = ExtResource("17_WallDecorSte")
 
+[sub_resource type="Resource" id="ScatterStep_9"]
+script = ExtResource("14_ScatterStep")
+Id = "brewing"
+Content = [ExtResource("21_cauldron")]
+MaximumCount = 1
+WallChance = 0.2
+metadata/_custom_type_script = ExtResource("14_ScatterStep")
+
+[sub_resource type="Resource" id="WallDecorStep_10"]
+script = ExtResource("17_WallDecorSte")
+Id = "herbs"
+Content = [ExtResource("24_herb_rack")]
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("17_WallDecorSte")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "garrison.alchemist"
@@ -96,5 +115,5 @@ MinDoorways = 1
 MaxDoorways = 2
 Walls = [ExtResource("3_stone_walls"), ExtResource("4_shelved_wall")]
 Floors = [ExtResource("5_stone_floor"), ExtResource("6_dark_wood_fl"), ExtResource("7_cobble_floor")]
-Steps = [SubResource("AlongWallsStep_2"), SubResource("AlongWallsStep_3"), SubResource("AlongWallsStep_4"), SubResource("CenterStep_5"), SubResource("ScatterStep_6"), SubResource("WallDecorStep_7"), SubResource("WallDecorStep_8")]
+Steps = [SubResource("AlongWallsStep_2"), SubResource("AlongWallsStep_3"), SubResource("AlongWallsStep_4"), SubResource("CenterStep_5"), SubResource("ScatterStep_9"), SubResource("ScatterStep_6"), SubResource("WallDecorStep_7"), SubResource("WallDecorStep_8"), SubResource("WallDecorStep_10")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

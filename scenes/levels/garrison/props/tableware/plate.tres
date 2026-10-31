@@ -13,5 +13,7 @@ Id = "garrison.plate"
 Scenes = [ExtResource("2_plate"), ExtResource("3_plate_food_A"), ExtResource("4_plate_food_B"), ExtResource("5_plate_small"), ExtResource("6_plate_stack")]
 Blocking = false
 Gap = 0.02
+TurnJitter = 20.0
+ShiftJitter = 0.03
 Weight = 1.0
 metadata/_custom_type_script = ExtResource("1_Prop")

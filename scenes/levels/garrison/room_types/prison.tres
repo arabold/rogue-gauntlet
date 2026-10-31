@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=29 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=33 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -22,6 +22,9 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/barrel_stack.tres" id="20_barrel_stack"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/pot.tres" id="21_pot"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/sack.tres" id="22_sack"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/shackles.tres" id="23_shackles"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/bucket.tres" id="24_bucket"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/bone_pile.tres" id="25_bone_pile"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -71,9 +74,16 @@ metadata/_custom_type_script = ExtResource("14_WallDecorSte")
 [sub_resource type="Resource" id="ScatterStep_6"]
 script = ExtResource("18_ScatterStep")
 Id = "supplies"
-Content = [ExtResource("19_small_box"), ExtResource("20_barrel_stack"), ExtResource("21_pot"), ExtResource("22_sack")]
+Content = [ExtResource("19_small_box"), ExtResource("20_barrel_stack"), ExtResource("21_pot"), ExtResource("22_sack"), ExtResource("24_bucket"), ExtResource("25_bone_pile")]
 MaximumCount = 2
 metadata/_custom_type_script = ExtResource("18_ScatterStep")
+
+[sub_resource type="Resource" id="WallDecorStep_7"]
+script = ExtResource("14_WallDecorSte")
+Id = "shackles"
+Content = [ExtResource("23_shackles")]
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("14_WallDecorSte")
 
 [resource]
 script = ExtResource("1_RoomType")
@@ -87,5 +97,5 @@ DoorwayPlacement = 1
 Circulation = 0
 Walls = [ExtResource("3_stone_walls"), ExtResource("4_ruined_walls")]
 Floors = [ExtResource("5_stone_floor"), ExtResource("6_worn_stone"), ExtResource("7_dirt_with_st")]
-Steps = [SubResource("CellsStep_2"), SubResource("AlongWallsStep_3"), SubResource("WallDecorStep_4"), SubResource("WallDecorStep_5"), SubResource("ScatterStep_6")]
+Steps = [SubResource("CellsStep_2"), SubResource("AlongWallsStep_3"), SubResource("WallDecorStep_7"), SubResource("WallDecorStep_4"), SubResource("WallDecorStep_5"), SubResource("ScatterStep_6")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

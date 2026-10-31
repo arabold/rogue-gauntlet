@@ -45,6 +45,14 @@ public partial class Prop : Placeable
 	/// <summary>Bars, fences, corners and posts: structural pieces may overlap each other where they join (a corner over
 	/// the ends of two runs), never furniture.</summary>
 	[Export] public bool Structural { get; set; }
+	/// <summary>Flat floor coverings (rugs, runners, straw) lie under furniture: they keep clear of walls and of other
+	/// coverings only, so a later table or a pew row may stand on them.</summary>
+	[Export] public bool Covering { get; set; }
+	/// <summary>Largest random turn, in degrees either way, so loose things (barrels, stools, vases, food) never line up
+	/// perfectly. Placement measures the turned prop, so jitter never causes overlaps.</summary>
+	[Export(PropertyHint.Range, "0,45,0.5")] public float TurnJitter { get; set; }
+	/// <summary>Largest random shift sideways and forward, in units, so props sit a little off the packing grid.</summary>
+	[Export(PropertyHint.Range, "0,0.5,0.01")] public float ShiftJitter { get; set; }
 
 	public int VariantCount => Scenes.Length > 0 ? Scenes.Length : Items.Length;
 	public Basis Turn => new(Vector3.Up, QuarterTurns * Mathf.Pi / 2);
@@ -60,7 +68,17 @@ public partial class Prop : Placeable
 
 	public override void Compose(RoomBlueprint room, RandomNumberGenerator rng, PlacementPlan plan, Transform3D at, bool optional)
 	{
-		plan.Add(this, room.PickVariant(this, rng), at, optional);
+		int variant = room.PickVariant(this, rng);
+		plan.Add(this, variant, at * Jitter(rng), optional);
+	}
+
+	/// <summary>A seeded nudge about the prop's own origin. Props without jitter draw nothing, keeping other streams stable.</summary>
+	private Transform3D Jitter(RandomNumberGenerator rng)
+	{
+		if (TurnJitter <= 0 && ShiftJitter <= 0) return Transform3D.Identity;
+		float turn = Mathf.DegToRad(rng.RandfRange(-TurnJitter, TurnJitter));
+		var shift = new Vector3(rng.RandfRange(-ShiftJitter, ShiftJitter), 0, rng.RandfRange(-ShiftJitter, ShiftJitter));
+		return new Transform3D(new Basis(Vector3.Up, turn), shift);
 	}
 
 	public override string[] Validate()
@@ -74,6 +92,8 @@ public partial class Prop : Placeable
 			else errors.AddRange(Items.Where(item => Library.FindItemByName(item) < 0).Select(item => $"item '{item}' is not in {Library.ResourcePath}"));
 		}
 		if (Mount == PropMount.Wall && BackToWall) errors.Add("wall props are always mounted on a wall; clear BackToWall");
+		if (Covering && (Mount == PropMount.Wall || Blocking)) errors.Add("coverings lie flat on the floor; use a floor mount and clear Blocking");
+		if (Mount == PropMount.Wall && (TurnJitter > 0 || ShiftJitter > 0)) errors.Add("wall props hang flat on the wall; clear the jitter");
 		return errors.Select(error => $"Prop {Id}: {error}.").ToArray();
 	}
 

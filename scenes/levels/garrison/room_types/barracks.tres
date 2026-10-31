@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=45 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=52 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -35,6 +35,11 @@
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="33_ScatterStep"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/stool.tres" id="34_stool"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/small_box.tres" id="35_small_box"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/bunk_bed.tres" id="36_bunk_bed"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/weapon_rack.tres" id="37_weapon_rack"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/decor/armor_stand.tres" id="38_armor_stand"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/training_dummy.tres" id="39_training_dum"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/heraldic_shield.tres" id="40_heraldic_shi"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -62,7 +67,7 @@ metadata/_custom_type_script = ExtResource("12_AisleColumns")
 [sub_resource type="Resource" id="AlongWallsStep_4"]
 script = ExtResource("15_AlongWallsSt")
 Id = "beds"
-Content = [ExtResource("16_bed_cluster"), ExtResource("17_bedroll")]
+Content = [ExtResource("16_bed_cluster"), ExtResource("17_bedroll"), ExtResource("36_bunk_bed")]
 MinimumCount = 2
 MaximumCount = 6
 Sides = 1
@@ -98,7 +103,7 @@ metadata/_custom_type_script = ExtResource("22_WallDecorSte")
 [sub_resource type="Resource" id="WallDecorStep_8"]
 script = ExtResource("22_WallDecorSte")
 Id = "trophies"
-Content = [ExtResource("31_trophy"), ExtResource("32_sword_shield")]
+Content = [ExtResource("31_trophy"), ExtResource("32_sword_shield"), ExtResource("40_heraldic_shi")]
 MaximumCount = 1
 Spacing = 4.0
 metadata/_custom_type_script = ExtResource("22_WallDecorSte")
@@ -108,6 +113,25 @@ script = ExtResource("33_ScatterStep")
 Id = "clutter"
 Content = [ExtResource("34_stool"), ExtResource("35_small_box")]
 MaximumCount = 2
+metadata/_custom_type_script = ExtResource("33_ScatterStep")
+
+[sub_resource type="Resource" id="AlongWallsStep_10"]
+script = ExtResource("15_AlongWallsSt")
+Id = "arms"
+Content = [ExtResource("37_weapon_rack"), ExtResource("38_armor_stand")]
+MinimumCount = 0
+MaximumCount = 2
+Sides = 2
+Chance = 0.8
+metadata/_custom_type_script = ExtResource("15_AlongWallsSt")
+
+[sub_resource type="Resource" id="ScatterStep_11"]
+script = ExtResource("33_ScatterStep")
+Id = "training"
+Content = [ExtResource("39_training_dum")]
+MaximumCount = 1
+Chance = 0.5
+WallChance = 0.2
 metadata/_custom_type_script = ExtResource("33_ScatterStep")
 
 [resource]
@@ -121,5 +145,5 @@ Walls = [ExtResource("4_stone_walls"), ExtResource("5_pillared_wal"), ExtResourc
 Floors = [ExtResource("7_light_wood_f"), ExtResource("8_dark_wood_fl"), ExtResource("9_stone_floor"), ExtResource("10_stone_border"), ExtResource("11_planked_ston")]
 Columns = [SubResource("AisleColumns_3")]
 ColumnChance = 0.3
-Steps = [SubResource("AlongWallsStep_4"), SubResource("CornersStep_5"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7"), SubResource("WallDecorStep_8"), SubResource("ScatterStep_9")]
+Steps = [SubResource("AlongWallsStep_4"), SubResource("AlongWallsStep_10"), SubResource("CornersStep_5"), SubResource("ScatterStep_11"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7"), SubResource("WallDecorStep_8"), SubResource("ScatterStep_9")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

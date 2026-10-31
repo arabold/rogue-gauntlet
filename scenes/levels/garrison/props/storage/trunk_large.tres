@@ -11,5 +11,7 @@ Id = "garrison.trunk_large"
 Scenes = [ExtResource("2_trunk_large_"), ExtResource("3_trunk_large_"), ExtResource("4_trunk_large_")]
 BackToWall = true
 Gap = 0.1
+TurnJitter = 5.0
+ShiftJitter = 0.05
 Weight = 1.0
 metadata/_custom_type_script = ExtResource("1_Prop")
