@@ -48,7 +48,7 @@ Garrison rooms are assembled with their content by a `RoomType` ([room types](..
 | Doorways | `MinDoorways`/`MaxDoorways`, `DoorwayPlacement` (any, long-axis ends, long sides, a single end that leaves the far wall for a focal point), optional door scene and chance |
 | Circulation | Doorway approaches or a door-to-door spine kept free of furniture |
 | Walls | `WallStyle`: weighted straight pieces, corner/half pieces, a rhythm piece every N modules (pillared), accents (built-in shelves); asymmetric pieces face the room |
-| Floor | `UniformFloor`, `BorderedFloor`, `PatchedFloor` over `FloorMaterial`s (weighted slabs, quarter pieces and wear accents) |
+| Floor | `UniformFloor`, `BorderedFloor`, `SplitFloor` over `FloorMaterial`s (weighted slabs, quarter pieces and wear accents); a split runs one straight or diagonal boundary across the room, never scattered patches; `FloorInlay`s set drains and gutters into the tiling |
 | Columns | `AisleColumns`, `PerimeterColumns`, `CenterColumns`, `CornerColumns`, behind `ColumnChance`; symmetric groups place all-or-nothing |
 | Furnishing | `AlongWallsStep`, `CornersStep`, `RowsStep`, `CenterStep`, `ScatterStep`, `WallDecorStep`, `CellsStep` (barred cells with gates), `FencedAreaStep` (bays, walkways, dividers) and `ChoiceStep` (one weighted variant); a step with `MinimumCount` is required, `Chance` makes it occasional and `Uniform` keeps one content choice per room (one banner colour) |
 

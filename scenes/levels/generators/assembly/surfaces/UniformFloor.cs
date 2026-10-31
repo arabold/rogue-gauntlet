@@ -9,7 +9,7 @@ public partial class UniformFloor : FloorStyle
 
 	public override IEnumerable<FloorMaterial> Materials => [Material];
 
-	protected override void Assign(RoomBlueprint room, FloorMaterial[,] quads, RandomNumberGenerator rng)
+	protected override void Assign(RoomBlueprint room, FloorMaterial[,] quads, FloorSplit[,] splits, RandomNumberGenerator rng)
 	{
 		for (int x = 0; x < quads.GetLength(0); x++)
 		for (int z = 0; z < quads.GetLength(1); z++)

@@ -32,9 +32,13 @@ Offsets must clear the anchor's **collision**, not just its mesh, plus both gaps
 
 ## Add a floor or wall style
 
-- `styles/floors/<material>.tres` (`FloorMaterial`): weighted `Large` (whole-tile) and `Small` (quarter-tile) floor items, optional `Wear` accents with `WearChance`, and `AlignedPlanks` for wood.
-- Floor styles combine materials: `UniformFloor`, `BorderedFloor` (border width in quarter tiles) and `PatchedFloor` (clumped patches, `Coverage`, `PatchSize`).
-- `styles/walls/<name>.tres` (`WallStyle`): weighted `Straight` pieces (decorations hang only on these), `Corner`/`Half`, an optional `Pillar` every `PillarEvery` modules, and `Accents` with `AccentChance`.
+Floor pieces tile edge to edge on a quarter-tile grid and never overlap, so every item's size is checked against its mesh.
+
+- `styles/floors/<material>.tres` (`FloorMaterial`): weighted `Large` (4×4, whole-tile) and `Small` (2×2, quarter-tile) floor items, optional 2×2 `Wear` accents with `WearChance`, and `AlignedPlanks` for wood.
+- Floor styles combine materials: `UniformFloor`, `BorderedFloor` (border width in quarter tiles) and `SplitFloor` (`Other` covers a rolled share of the room beyond one boundary). Materials never mix in scattered patches: lone squares and triangles read as broken tiles.
+- A split's boundary runs along the room's axes on a tile edge, a straight seam that suits any pair (stone and wood). Where the kit has a diagonal piece for the pair (stone and dirt: `floor_dirt_small_corner`), give the split a `FloorTransition` (`styles/floors/transitions/`) and `DiagonalChance` lays 45° boundaries from it.
+- `FloorInlay` (`styles/floors/inlays/`) sets features such as grates into the floor: items of one footprint up to a tile (the 4×2 channel, the 4×4 grate), an optional `Host` material, counts, and `MinimumRun`/`MaximumRun` pieces end to end for gutters. Inlays sit whole on the quarter-tile grid, off the wall ring and doorway tiles, clear of floor props, transitions and each other. Never list them as a material's `Small` items.
+- `styles/walls/<name>.tres` (`WallStyle`): weighted `Straight` pieces (decorations hang only on these), `Corner`/`Half`, an optional `Pillar` every `PillarEvery` modules, and `Accents` with `AccentChance`. Perimeter walls back onto void, so never use see-through pieces (open scaffolds, gated or open windows).
 
 ## Add a room type
 
@@ -50,7 +54,7 @@ Steps run in order and take the space they need first: place identity-defining c
 | `CenterStep` | One centerpiece |
 | `ScatterStep` | Loose clutter against walls or in the open |
 | `WallDecorStep` | Wall mounts beside doorways or spread along plain walls |
-| `CellsStep` | Barred cells with operable gates and content against each back wall |
+| `CellsStep` | Barred cells with operable gates, corner and junction pieces where bars meet, and content against each back wall; rows start flush in a room corner when they fit |
 | `FencedAreaStep` | A wall or corner bay (with content), a fenced walkway, or a divider |
 
 A new kind of placement is a new `FurnishingStep` subclass that composes plans from `Content` and places them through `RoomBlueprint.TryPlace` (or `AgainstWall` for wall runs); the blueprint enforces floor support, overlap, circulation, connectivity and the pocket budget.

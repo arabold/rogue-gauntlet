@@ -42,6 +42,9 @@ public partial class Prop : Placeable
 	[Export] public bool Blocking { get => _blocking; set { _blocking = value; _geometry = null; } }
 	/// <summary>Keeps the space in front of the prop clear so it can be used.</summary>
 	[Export] public bool Interactive { get; set; }
+	/// <summary>Bars, fences, corners and posts: structural pieces may overlap each other where they join (a corner over
+	/// the ends of two runs), never furniture.</summary>
+	[Export] public bool Structural { get; set; }
 
 	public int VariantCount => Scenes.Length > 0 ? Scenes.Length : Items.Length;
 	public Basis Turn => new(Vector3.Up, QuarterTurns * Mathf.Pi / 2);

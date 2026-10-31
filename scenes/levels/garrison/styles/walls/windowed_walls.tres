@@ -9,6 +9,6 @@ Id = "garrison.windowed_walls"
 Weight = 1.0
 Library = ExtResource("2_WallsMeshLib")
 Straight = Dictionary[String, float]({"wall": 1.0})
-Accents = Dictionary[String, float]({"wall_window_closed": 2.0, "wall_archedwindow_gated": 1.0})
+Accents = Dictionary[String, float]({"wall_window_closed": 1.0})
 AccentChance = 0.3
 metadata/_custom_type_script = ExtResource("1_WallStyle")

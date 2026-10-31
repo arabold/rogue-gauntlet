@@ -27,6 +27,9 @@ public class RoomAssemblyTest
 				Placeable placeable => placeable.Validate(),
 				FloorMaterial material => material.Validate(),
 				FloorStyle style => style.Validate(),
+				FloorTransition transition => transition.Validate(),
+				// Inlays are measured against a floor library, so the styles that use them validate them.
+				FloorInlay => [],
 				WallStyle style => style.Validate(),
 				RoomType type => type.Validate(),
 				var other => [$"{path}: unexpected resource {other?.GetType().Name}"],
@@ -90,6 +93,29 @@ public class RoomAssemblyTest
 		}
 	}
 
+	/// <summary>Overlapping or missing floor pieces look broken, whatever sizes, transitions and inlays a style mixes.</summary>
+	[TestCase]
+	public void EveryFloorStyleCoversEachQuarterTileExactlyOnce()
+	{
+		foreach (string name in new[] { "storage", "kitchen", "ruins", "hall", "chapel", "library", "barracks", "dining" })
+		{
+			var type = Load(name);
+			for (int floor = 0; floor < type.Floors.Length; floor++)
+			for (ulong seed = 1; seed <= 3; seed++)
+			{
+				var blueprint = RoomAssembler.Build(type, seed * 104729, new RoomAssemblyOptions { Floor = floor });
+				try
+				{
+					AssertString(FloorCoverage(blueprint)).OverrideFailureMessage($"{name} floor {type.Floors[floor].Id} seed {seed}").IsEmpty();
+				}
+				finally
+				{
+					blueprint.Room.Free();
+				}
+			}
+		}
+	}
+
 	[TestCase]
 	public void AnUnfittableRequiredStepFailsWithItsReasonInsteadOfAnotherRoom()
 	{
@@ -128,6 +154,32 @@ public class RoomAssemblyTest
 				blueprint.Room.Free();
 			}
 		}
+	}
+
+	/// <summary>The first quarter tile covered by no floor piece or by several, or pieces off the floor; empty when exact.</summary>
+	private static string FloorCoverage(RoomBlueprint blueprint)
+	{
+		var footprint = blueprint.Footprint;
+		var counts = new int[footprint.Width * 2, footprint.Length * 2];
+		var grid = blueprint.Room.FloorGridMap;
+		foreach (Vector3I cell in grid.GetUsedCells())
+		{
+			var size = FloorMaterial.Footprint(grid.MeshLibrary, grid.GetCellItem(cell));
+			if (grid.GetCellItemOrientation(cell) is 16 or 22) size = new Vector2(size.Y, size.X);
+			// Quarter tile q spans cells 2q - 2 to 2q.
+			int x0 = Mathf.RoundToInt((cell.X - size.X / 2 + 2) / 2), z0 = Mathf.RoundToInt((cell.Z - size.Y / 2 + 2) / 2);
+			for (int x = x0; x < x0 + Mathf.RoundToInt(size.X / 2); x++)
+			for (int z = z0; z < z0 + Mathf.RoundToInt(size.Y / 2); z++)
+			{
+				if (x < 0 || z < 0 || x >= counts.GetLength(0) || z >= counts.GetLength(1) || !footprint.IsFloor(x / 2, z / 2))
+					return $"{grid.MeshLibrary.GetItemName(grid.GetCellItem(cell))} at {cell} reaches off the floor";
+				counts[x, z]++;
+			}
+		}
+		for (int x = 0; x < counts.GetLength(0); x++)
+		for (int z = 0; z < counts.GetLength(1); z++)
+			if (footprint.IsFloor(x / 2, z / 2) && counts[x, z] != 1) return $"quarter tile ({x}, {z}) covered {counts[x, z]} times";
+		return "";
 	}
 
 	private static float PocketShare(RoomBlueprint blueprint)
