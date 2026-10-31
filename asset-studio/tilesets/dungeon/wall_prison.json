@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "kind": "wall",
+  "style": "dressed",
+  "export": {
+    "folder": "res://assets/custom-tiles/dungeon"
+  },
+  "name": "Prison wall",
+  "concept": "The KayKit dungeon wall with pairs of iron manacles on chains bolted to the face.",
+  "reference": "dungeon_walls.reference.png",
+  "design": {
+    "patches": 0,
+    "grass": 0,
+    "vines": 0,
+    "cap_moss": 0,
+    "chains": 1.1
+  },
+  "colors": {
+    "iron": [
+      86,
+      88,
+      94
+    ],
+    "moss": [
+      74,
+      112,
+      52
+    ],
+    "moss_dark": [
+      50,
+      82,
+      40
+    ],
+    "moss_light": [
+      98,
+      136,
+      62
+    ]
+  },
+  "materials": {
+    "iron": {
+      "metallic": 0.4,
+      "roughness": 0.55,
+      "crease": 40
+    }
+  },
+  "pieces": {
+    "wall": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "wall_half": [
+      "A",
+      "B"
+    ],
+    "wall_corner": [
+      "A"
+    ]
+  },
+  "budget": {
+    "triangles": 10000
+  }
+}

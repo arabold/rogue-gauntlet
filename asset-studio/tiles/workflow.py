@@ -22,7 +22,8 @@ from core.paths import work_root
 from core.publication import digest
 from items import solid
 from items.workflow import check, godot, run_godot, save, within
-from tiles import caves, floors, kaykit, overgrowth, overlays, walls
+from prefabs import decor
+from tiles import caves, dressing, floors, kaykit, overlays, walls
 from tiles.geometry import SEAM, boundary_profile, rng
 
 STUDIO = Path(__file__).resolve().parents[1]
@@ -30,17 +31,17 @@ REPO = STUDIO.parent
 TILESETS = STUDIO / "tilesets"
 EXPORT_ROOT = REPO / "assets/custom-tiles"
 CONTEXT_FLOOR = REPO / "assets/kaykit-dungeon-remastered/floor_tile_large.gltf"
-KINDS = {"floor": floors.STYLES, "wall": {**walls.STYLES, **overgrowth.STYLES, **caves.STYLES}, "overlay": overlays.STYLES}
+KINDS = {"floor": floors.STYLES, "wall": {**walls.STYLES, **dressing.STYLES, **caves.STYLES}, "overlay": overlays.STYLES}
 # Rock walls bulge inside their footprint and may crest below it; only their ends fill it exactly.
 INSET = {"cave": .25}
 # Styles that decorate an original KayKit tile: its open panels and seams are the reference.
-DERIVED = {"overgrown"}
+DERIVED = {"dressed"}
 # Growth may rise above a wall's cap and stand slightly proud of its faces, never past its ends.
 GROWTH_ALLOWANCE = np.array([.15, .25, .15])
 PIECES = {"floor": list(floors.SIZES), "wall": list(dict.fromkeys([*walls.PIECES, *caves.PIECES])),
           "overlay": list(overlays.BORDERS)}
 # Pieces each wall style can build; the rest of a kind's pieces are rejected at recipe load.
-STYLE_PIECES = {"masonry": list(walls.PIECES), "overgrown": list(walls.PIECES), "cave": list(caves.PIECES)}
+STYLE_PIECES = {"masonry": list(walls.PIECES), "dressed": list(walls.PIECES), "cave": list(caves.PIECES)}
 # Fixed shading ramps: tops of floors and walls land mid-ramp whatever a tile's own extent.
 HEIGHT_RANGE = {"floor": (-0.03, 0.27), "wall": (-3.0, 7.0), "overlay": (0.0, 0.3)}
 # Footprints (min, max) every piece must fill exactly, matching the KayKit dungeon tiles.
@@ -117,17 +118,25 @@ class Family:
     def colors(self, data):
         """Recipe colors, over the original swatches for tiles derived from KayKit pieces."""
         if data["style"] in DERIVED:
-            return {**overgrowth.source_colors(data.get("design", {}), data["pieces"]), **data["colors"]}
+            return {**decor.palette()[0], **dressing.source_colors(data.get("design", {}), data["pieces"]), **data["colors"]}
         return data["colors"]
 
     def looks(self, data, colors):
         """Per-slot ramps and finish: tiles keep a gentle ramp so neighbors meet in one tone."""
         light, shadow = data.get("ramp", {}).get("light", 1.08), data.get("ramp", {}).get("shadow", .62)
+        decor_materials = decor.palette()[1] if data["style"] in DERIVED else {}
         looks = {}
         for slot, rgb in colors.items():
             base = np.asarray(rgb, float)
-            spec = {"metallic": 0.0, "roughness": .9, "crease": 30.0, **data.get("materials", {}).get(slot, {})}
-            if "ramp" in spec:
+            # KayKit's dungeon material: no metal, roughness 0.45, so tiles share its soft sheen.
+            spec = {"metallic": 0.0, "roughness": .45, "crease": 30.0, **decor_materials.get(slot, {}),
+                    **data.get("materials", {}).get(slot, {})}
+            if slot in kaykit.gradients() and "ramp" not in spec:
+                # KayKit's own swatch gradient, copied exactly rather than approximated.
+                spec["gradient"] = kaykit.gradients()[slot]
+            if "gradient" in spec:
+                pass
+            elif "ramp" in spec:
                 # An explicit [light, shadow] pair matches a KayKit swatch's own gradient.
                 spec["ramp"] = (tuple(spec["ramp"][0]), tuple(spec["ramp"][1]), tuple(base))
             else:
@@ -180,8 +189,12 @@ class Family:
                 source = kaykit.load(data.get("design", {}).get("source", {}).get(piece, piece))[0]
                 allowed = solid.inspect(source.verts, source.faces)
                 row["source_open_edges"] = allowed["boundary_edges"]
+            # A dressed wall may lose some of KayKit's open brick accents to a carving, never gain defects.
+            for key, count in getattr(built, "authored", {}).items():
+                allowed[key] = allowed.get(key, 0) + count
+                row.setdefault("decor_authored", {})[key] = count
             for key in ("boundary_edges", "nonmanifold_edges", "inconsistent_edges", "duplicate_faces"):
-                if topology[key] != allowed.get(key, 0):
+                if topology[key] > allowed.get(key, 0):
                     errors.append(f"{stem}: {topology[key]} {key}" + (f" (source has {allowed[key]})" if allowed else ""))
             if topology["signed_volume"] <= 0:
                 errors.append(f"{stem}: surface must enclose a positive volume")
@@ -209,8 +222,9 @@ class Family:
 
     def inputs(self):
         paths = [self.path, *(STUDIO / "tiles" / name for name in ("geometry.py", "floors.py", "walls.py", "overlays.py",
-                                                                      "overgrowth.py", "kaykit.py", "caves.py")),
+                                                                      "dressing.py", "kaykit.py", "caves.py")),
                  *sorted(kaykit.SOURCE.glob("wall*.gltf")), *sorted(kaykit.SOURCE.glob("wall*.bin")),
+                 STUDIO / "prefabs/decor.py", *sorted(decor.MESHES.glob("*.npz")),
                  kaykit.SOURCE / "dungeon_texture.png",
                  STUDIO / "core/export.py", STUDIO / "core/mesh.py",
                  STUDIO / "core/kit.py", STUDIO / "items/solid.py"]
@@ -522,6 +536,81 @@ def wall_jobs(by_piece, r, out):
     return [room, single]
 
 
+KAYKIT = REPO / "assets/kaykit-dungeon-remastered"
+# Sample rooms mixing studio tiles ("family/stem") with KayKit pieces ("kaykit:name"):
+# (source, x, y, z, Y rotation). A hall of dressed walls, our floors and a rug beside KayKit's
+# floors, doorway, walls and props; then a timbered cave beside KayKit's rubble and rocky floors.
+SHOWCASE = [
+    *[(f"dungeon/floor_flagstones_large_{'ABCD'[(i + j) % 4]}", 4 * i, 0, 4 * j, 0) for i in range(2) for j in range(3)],
+    *[("kaykit:floor_tile_large", 4 * i, 0, 4 * j, 0) for i in range(2, 4) for j in range(3)],
+    ("dungeon/carpet_red_runner_end_A", 0, 0, 4, 0), ("dungeon/carpet_red_runner_A", 4, 0, 4, 0),
+    ("dungeon/carpet_red_runner_end_A", 8, 0, 4, 180),
+    ("kaykit:wall_corner", -2, 0, -2, 90), ("dungeon/wall_crypt_A", 2, 0, -2, 0), ("kaykit:wall_doorway", 6, 0, -2, 0),
+    ("dungeon/wall_prison_A", 10, 0, -2, 0), ("kaykit:wall_half", 12, 0, -2, 0),
+    ("dungeon/wall_alcove_A", -2, 0, 2, 90), ("kaykit:wall", -2, 0, 6, 90), ("dungeon/wall_mossy_half_A", -2, 0, 10, 90),
+    ("kaykit:torch_mounted", -1.75, 2.3, 6, 90),
+    ("kaykit:banner_patternA_red", -2, 0, 6, 90), ("kaykit:torch_mounted", 4.3, 2.3, -1.75, 0),
+    ("kaykit:table_long_decorated_A", 6, 0, 6.5, 90), ("kaykit:chair", 5, 0, 5.3, 0), ("kaykit:chair", 7, 0, 7.7, 180),
+    ("kaykit:barrel_large", 12.6, 0, -0.6, 0), ("kaykit:crates_stacked", 10.8, 0, -0.5, 20),
+    ("kaykit:rubble_half", 0.2, 0, 9.0, 90), ("kaykit:column", 12, 0, 8, 0),
+    *[(f"dungeon/floor_cave_large_{'ABCDEF'[(i * 3 + j) % 6]}", 22 + 4 * i, 0, 4 * j, 0) for i in range(3) for j in range(3)
+      if (i, j) not in ((2, 1), (1, 2))],
+    ("kaykit:floor_tile_large_rocks", 30, 0, 4, 0), ("kaykit:floor_dirt_large_rocky", 26, 0, 8, 0),
+    ("dungeon/wall_cave_corner_A", 20, 0, -2, 90), ("dungeon/wall_cave_A", 24, 0, -2, 0),
+    ("dungeon/wall_cave_doorway_A", 28, 0, -2, 0), ("dungeon/wall_cave_gate_leaf_A", 28 - .82, 0, -2, 70),
+    ("dungeon/wall_cave_half_A", 30, 0, -2, 0), ("dungeon/wall_cave_B", 20, 0, 2, 90),
+    ("dungeon/wall_cave_half_endcap_A", 20, 0, 6, 90), ("dungeon/wall_cave_pillar_A", 27, 0, 5, 0),
+    ("kaykit:rubble_large", 30, 0, 9.3, 0), ("kaykit:rubble_half", 22.5, 0, 6.5, 40),
+    ("kaykit:barrel_small_stack", 22, 0, 0, 0), ("kaykit:box_stacked", 25.5, 0, -0.4, 10),
+]
+TORCHES = [[-1.4, 2.8, 6], [4.3, 2.8, -1.4], [6, 2.2, 1.5]]
+
+
+def showcase():
+    """Render sample rooms mixing current studio tiles with KayKit pieces, to judge how they combine."""
+    out = work_root(STUDIO) / "tiles/showcase"
+    out.mkdir(parents=True, exist_ok=True)
+    tiles, missing = [], set()
+    for source, x, y, z, rotation in SHOWCASE:
+        if source.startswith("kaykit:"):
+            path = KAYKIT / f"{source[7:]}.gltf"
+        else:
+            # A tile's family is the longest family name its file stem starts with.
+            tileset, stem = source.split("/")
+            key = max((k for k in families() if k.startswith(tileset + "/") and stem.startswith(k.split("/")[1] + "_")),
+                      key=len, default=None)
+            path = Family(key).staged / f"{stem}.glb" if key else Path(source)
+        if not path.exists():
+            missing.add(source)
+            continue
+        tiles.append({"glb": str(path), "position": [x, y, z], "rotation": rotation})
+    if missing:
+        raise ValueError(f"Build these tiles' families first: {sorted(missing)}")
+    game = [6.8, 11.5, 6.8]
+    jobs = [{"tiles": tiles, "resolution": [1280, 960], "shots": [
+                {"out": str(out / "hall.png"), "target": [5, 1, 3.5], "direction": game, "size": 17},
+                {"out": str(out / "cave.png"), "target": [26, 1, 3.5], "direction": game, "size": 16},
+                {"out": str(out / "back_wall.png"), "target": [6, 2, -2], "direction": [.15, .35, 1], "size": 9}]},
+            {"tiles": tiles, "resolution": [1280, 960], "ambient": .12, "sun": 0.0,
+             "lights": [{"position": p, "range": 7.5, "energy": 3.0} for p in TORCHES],
+             "shots": [{"out": str(out / "hall_torchlit.png"), "target": [5, 1, 3.5], "direction": game, "size": 17}]}]
+    save(out / "jobs.json", jobs)
+    result = run_godot(["--script", str(STUDIO / "godot/render_tiles.gd"), "--", str(out / "jobs.json")], headless=False)
+    shots = [shot["out"] for job in jobs for shot in job["shots"]]
+    if result.count("TILE_SHOT ") != len(shots):
+        raise ValueError(f"Godot did not render every showcase shot:\n{result}")
+    sheet = Image.new("RGB", (1280, 960), (20, 23, 30))
+    titles = ["Hall: studio and KayKit pieces", "Cave: studio walls and floor with KayKit rubble", "Hall back wall",
+              "Hall by torchlight"]
+    for i, (path, title) in enumerate(zip(shots, titles)):
+        with Image.open(path) as image:
+            panel = image.convert("RGB").resize((640, 480), Image.Resampling.LANCZOS)
+        sheet.paste(panel, ((i % 2) * 640, (i // 2) * 480))
+        ImageDraw.Draw(sheet).text(((i % 2) * 640 + 10, (i // 2) * 480 + 8), title, fill="white")
+    sheet.save(out / "showcase.png")
+    print(out / "showcase.png")
+
+
 def families():
     return [f"{p.parent.name}/{p.stem}" for p in sorted(TILESETS.glob("*/*.json"))]
 
@@ -556,6 +645,7 @@ def main(argv=None):
     sub.add_parser("schema", help="Print the tile family recipe JSON schema")
     sub.add_parser("list", help="List tile family recipes")
     sub.add_parser("catalog", help="Recompose the tile catalog index from published lineups")
+    sub.add_parser("showcase", help="Render sample rooms mixing current builds with KayKit pieces")
     for name in ("build", "lineup", "publish", "export"):
         cmd = sub.add_parser(name)
         cmd.add_argument("key", nargs="?")
@@ -575,6 +665,8 @@ def main(argv=None):
                 print(f"{key:36} {data['kind']:6} {data['style']:12} {pieces:40} {'built' if family.staged.exists() else '-'}")
         elif args.command == "catalog":
             write_catalog()
+        elif args.command == "showcase":
+            showcase()
         else:
             if bool(args.key) == args.all:
                 raise ValueError("Provide one family key or --all")

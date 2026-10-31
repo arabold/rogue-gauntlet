@@ -1562,6 +1562,22 @@ class Atlas:
             c_base = pal[idx]
             s_name = slot_names[idx] if slot_names and idx < len(slot_names) else str(idx)
             spec = (looks or {}).get(s_name, {})
+            if spec.get("gradient") is not None:
+                # An exact source gradient (top to bottom), e.g. a KayKit texture swatch: row k holds the
+                # color gradient_uv() reads for t = (k - 2) / (col_h - 4).
+                g = np.asarray(spec["gradient"], float)
+                at = np.clip((np.arange(col_h) - 2) / (col_h - 4), 0, 1) * (len(g) - 1)
+                ramp = np.stack([np.interp(at, np.arange(len(g)), g[:, i]) for i in range(3)], axis=1)
+                ramp_2d = np.repeat(ramp[:, None, :], col_w, axis=1)
+                padded_ramp = np.pad(ramp_2d, ((pad, pad), (pad, pad), (0, 0)), mode="edge")
+                x0, y0 = pad + idx * (col_w + pad), pad
+                x1, y1 = x0 + col_w, y0 + col_h
+                img_arr[y0 - pad:y1 + pad, x0 - pad:x1 + pad, :3] = np.round(padded_ramp).astype(np.uint8)
+                self.u_coords[idx] = (x0 + x1) * 0.5 / self.size_w
+                self.v_top[idx] = (y0 + 2) / self.size_h
+                self.v_mid[idx] = (y0 + y1) * 0.5 / self.size_h
+                self.v_bot[idx] = (y1 - 2) / self.size_h
+                continue
             if spec.get("ramp") is not None:
                 c_light = np.asarray(spec["ramp"][0], float)
                 c_shadow = np.asarray(spec["ramp"][1], float)

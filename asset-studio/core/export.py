@@ -272,6 +272,9 @@ def export_static(path, name, piece, colors, materials=None, crease=50.0, height
         normals = corner_normals(piece.verts, piece.faces, crease=crease, slots=piece.slots,
                                  slot_crease={s: _crease_of(looks.get(s), crease) for s in used})
     t = gradient_coordinates(tri, normals, height_range)
+    if piece.uv_t is not None:
+        # Authored positions on a slot's ramp (such as a source texture's own gradient) win.
+        t = np.where(np.isfinite(piece.uv_t), piece.uv_t, t)
     for i, slot in enumerate(piece.slots):
         if looks.get(str(slot), {}).get("emissive") or str(slot) in {"paint", "gem", "stitch", "rivet"}:
             t[i] = .5

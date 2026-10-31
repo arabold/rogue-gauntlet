@@ -19,7 +19,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from core import kit
 from items import solid
-from tiles import floors, kaykit, overgrowth, overlays, walls, workflow
+from tiles import dressing, floors, kaykit, overlays, walls, workflow
 from tiles.geometry import clip, rect
 
 
@@ -46,11 +46,14 @@ class TileGeometryTest(unittest.TestCase):
                 pieces = build(key, recipe)
                 for stem, (piece, mesh) in pieces.items():
                     report = solid.inspect(mesh.verts, mesh.faces)
-                    # Derived walls keep KayKit's open panels exactly; everything else is closed.
+                    # Dressed walls keep KayKit's open panels (a carving may remove some open accent
+                    # bricks, never add defects); everything else is closed.
                     source = kaykit.load(piece)[0] if recipe["style"] in workflow.DERIVED else None
                     allowed = solid.inspect(source.verts, source.faces) if source is not None else {}
+                    for defect, count in getattr(mesh, "authored", {}).items():
+                        allowed[defect] = allowed.get(defect, 0) + count  # KayKit decor keeps its own topology.
                     for defect in ("boundary_edges", "nonmanifold_edges", "inconsistent_edges", "duplicate_faces"):
-                        self.assertEqual(report[defect], allowed.get(defect, 0), f"{stem} {defect}")
+                        self.assertLessEqual(report[defect], allowed.get(defect, 0), f"{stem} {defect}")
                     self.assertLessEqual(len(mesh.faces), recipe["budget"]["triangles"], stem)
                 self.assertEqual(workflow.seam_report(recipe, pieces)["errors"], [])
 
@@ -89,18 +92,76 @@ class TileGeometryTest(unittest.TestCase):
         pieces["wall"] = ("wall", type(wall)(skewed, wall.faces, wall.slots))
         self.assertTrue(workflow.wall_seams(pieces)["errors"], "A one-sided end must fail the mirrored-end check")
 
-    def test_overgrowth_keeps_the_kaykit_wall_and_its_ends_untouched(self):
+    def test_dressing_keeps_the_kaykit_wall_and_its_ends_untouched(self):
         design = {"patches": 2, "grass": 3, "vines": 2, "cap_moss": 2, "slime": 2, "pools": 2}
-        pieces = {p: (p, overgrowth.overgrown(design, p, "A", "test/moss")) for p in walls.PIECES}
+        pieces = {p: (p, dressing.dressed(design, p, "A", "test/moss")) for p in walls.PIECES}
         self.assertEqual(workflow.source_seams(pieces, {})["errors"], [])
         wall, source = pieces["wall"][1], kaykit.load("wall")[0]
         np.testing.assert_array_equal(wall.verts[: len(source.verts)], source.verts)
         self.assertGreater(len(wall.faces), len(source.faces) + 200, "Growth must actually be added")
         grown = wall.verts[len(source.verts):]
-        self.assertLess(np.abs(grown[:, 0]).max(), 2.0 - overgrowth.END_MARGIN + .25)
+        self.assertLess(np.abs(grown[:, 0]).max(), 2.0 - dressing.END_MARGIN + .25)
         moved = kit.Piece(wall.verts + [0, 0, 0], wall.faces, wall.slots)
         moved.verts[np.isclose(moved.verts[:, 0], 2.0) & (moved.verts[:, 1] > 1)] += [0, 0, .05]
         self.assertTrue(workflow.source_seams({"wall": ("wall", moved)}, {})["errors"])
+
+    def test_carved_niche_is_a_sealed_recess_in_kaykits_panel(self):
+        source = kaykit.load("wall")[0]
+        slots = {"wall": "recess", "back": "recess_dark", "soot": "soot"}
+        carved = dressing.carve(source, [{"side": 1, "outline": dressing.arch(0.0, 1.2, .85, 1.15), "depth": .22}], slots)
+        before, after = solid.inspect(source.verts, source.faces), solid.inspect(carved.verts, carved.faces)
+        for defect in ("nonmanifold_edges", "inconsistent_edges", "duplicate_faces"):
+            self.assertEqual(after[defect], 0, defect)
+        self.assertLessEqual(after["boundary_edges"], before["boundary_edges"], "The panel must stay joined to its neighbors")
+        recess = carved.verts[carved.faces[carved.slots == "recess_dark"]].reshape(-1, 3)
+        self.assertAlmostEqual(recess[:, 2].max(), .25 - .22, places=5)
+        self.assertEqual(workflow.source_seams({"wall": ("wall", carved)}, {})["errors"], [])
+
+    def test_decor_prefabs_keep_kaykit_colors_and_stand_on_the_floor(self):
+        from prefabs import decor
+        colors, _ = decor.palette()
+        for name in decor.DECOR:
+            with self.subTest(name):
+                piece = decor.load(name)
+                self.assertAlmostEqual(piece.verts[:, 1].min(), 0.0, places=5)
+                self.assertTrue(set(map(str, piece.slots)) <= set(colors), "every face keeps a source color")
+        book = decor.load("book_teal")
+        self.assertGreater(len(set(map(str, book.slots))), 1, "covers and pages stay separate colors")
+
+    def test_palette_reproduces_kaykit_swatch_gradients_exactly(self):
+        from core import mesh
+        from PIL import Image
+        gradient = kaykit.gradients()["kaykit_04"]
+        atlas = mesh.Atlas([gradient[16]], looks={"kaykit_04": {"gradient": gradient}}, slot_names=["kaykit_04"])
+        texture = np.asarray(Image.open(kaykit.SOURCE / "dungeon_texture.png").convert("RGB"), float)
+        image = np.asarray(atlas.image.convert("RGB"), float)
+        for t in (.1, .3, .5, .7, .9):
+            u, v = atlas.gradient_uv(np.array(0), np.array(t))
+            ours = image[int(v * image.shape[0]), int(u * image.shape[1])]
+            theirs = texture[int(t * texture.shape[0] / 4), int(4.4 * texture.shape[1] / 8)]  # Swatch row 0, column 4.
+            self.assertLessEqual(np.abs(ours - theirs).max(), 6, f"plank swatch at t={t}")
+
+    def test_alcove_contents_fit_their_shelves_and_a_crypt_holds_one_skull(self):
+        shape = dressing.ALCOVE
+        levels = [shape["sill"] + shape["board"] + k * shape["spacing"] for k in range(3)]
+        undersides = [levels[1] - shape["board"], levels[2] - shape["board"], shape["top"]]
+        for key in ("dungeon/wall_crypt", "dungeon/wall_alcove"):
+            family = workflow.Family(key)
+            recipe = family.recipe()
+            for piece, variant, stem in family.tiles(recipe):
+                with self.subTest(stem):
+                    from tiles.geometry import rng
+                    r = rng(key, variant, piece, "overgrowth")
+                    _, extras = dressing.carved(recipe["design"], piece, variant, r, kaykit.load(piece)[0], {"wall": "w", "back": "b"})
+                    placed = [p for p in extras if hasattr(p, "decor") and p.decor != "keyring_hanging"]
+                    contents = recipe["design"]["alcove"]["contents"]
+                    shelved = contents[(ord(variant) - ord("A")) % len(contents)] in dressing.SHELVED
+                    for part in placed:
+                        base, top = part.verts[:, 1].min(), part.verts[:, 1].max()
+                        ceiling = min(u for u in undersides if u > base + .05) if shelved else shape["top"]
+                        self.assertLessEqual(top, ceiling + 1e-6, f"{part.decor} pokes into the board or arch above it")
+                    if key.endswith("crypt"):
+                        self.assertEqual(sum(p.decor == "skull" for p in placed), 1)
 
     def test_rug_ends_stay_off_the_cell_edge_and_runs_align_by_border(self):
         pieces = {p: (p, overlays.carpet({}, p, "A", "test/rug")) for p in overlays.BORDERS}

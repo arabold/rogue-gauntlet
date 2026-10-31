@@ -1,7 +1,7 @@
 {
   "version": 1,
   "name": "Cave floor",
-  "concept": "Warm gray-brown cave ground strewn with stones in KayKit's rubble color.",
+  "concept": "Warm gray-brown cave ground strewn with stones in KayKit's rubble color. Stone uses KayKit's floor swatch so it sits beside KayKit floors.",
   "kind": "floor",
   "style": "ground",
   "design": {
@@ -24,19 +24,19 @@
   },
   "colors": {
     "ground": [
-      94,
-      82,
-      75
+      139,
+      132,
+      123
     ],
     "ground_light": [
-      102,
-      89,
-      81
+      146,
+      139,
+      130
     ],
     "ground_dark": [
-      84,
-      73,
-      67
+      130,
+      123,
+      115
     ],
     "pebble": [
       107,
@@ -99,6 +99,48 @@
           70,
           60,
           55
+        ]
+      ]
+    },
+    "ground": {
+      "ramp": [
+        [
+          155,
+          149,
+          144
+        ],
+        [
+          100,
+          88,
+          85
+        ]
+      ]
+    },
+    "ground_light": {
+      "ramp": [
+        [
+          163,
+          157,
+          152
+        ],
+        [
+          106,
+          93,
+          89
+        ]
+      ]
+    },
+    "ground_dark": {
+      "ramp": [
+        [
+          144,
+          139,
+          135
+        ],
+        [
+          94,
+          83,
+          79
         ]
       ]
     }

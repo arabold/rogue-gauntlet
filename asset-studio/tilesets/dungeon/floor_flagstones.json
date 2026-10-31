@@ -1,13 +1,102 @@
 {
   "version": 1,
   "name": "Flagstone floor",
-  "concept": "Irregular dressed gray slabs, a few chipped corners.",
+  "concept": "Irregular dressed gray slabs, a few chipped corners. Stone uses KayKit's floor swatch so it sits beside KayKit floors.",
   "kind": "floor",
   "style": "flagstones",
-  "design": {"layout": "random", "smallest": 0.75, "largest": 1.25, "chips": 0.2, "chip_size": 0.1},
-  "colors": {"stone": [128, 126, 124], "stone_light": [138, 136, 132], "stone_dark": [116, 114, 113],
-             "grout": [60, 58, 58]},
-  "pieces": {"large": ["A", "B", "C", "D"], "small": ["A", "B", "C", "D"]},
-  "budget": {"triangles": 1500},
-  "export": {"folder": "res://assets/custom-tiles/dungeon"}
+  "design": {
+    "layout": "random",
+    "smallest": 0.75,
+    "largest": 1.25,
+    "chips": 0.2,
+    "chip_size": 0.1,
+    "bevel": 0.04,
+    "gap": 0.008
+  },
+  "colors": {
+    "stone": [
+      151,
+      143,
+      134
+    ],
+    "stone_light": [
+      159,
+      150,
+      141
+    ],
+    "stone_dark": [
+      142,
+      134,
+      126
+    ],
+    "grout": [
+      121,
+      114,
+      107
+    ]
+  },
+  "pieces": {
+    "large": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "small": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "budget": {
+    "triangles": 1500
+  },
+  "export": {
+    "folder": "res://assets/custom-tiles/dungeon"
+  },
+  "materials": {
+    "stone": {
+      "ramp": [
+        [
+          168,
+          162,
+          157
+        ],
+        [
+          109,
+          96,
+          92
+        ]
+      ]
+    },
+    "stone_light": {
+      "ramp": [
+        [
+          176,
+          170,
+          165
+        ],
+        [
+          114,
+          101,
+          97
+        ]
+      ]
+    },
+    "stone_dark": {
+      "ramp": [
+        [
+          158,
+          152,
+          148
+        ],
+        [
+          102,
+          90,
+          86
+        ]
+      ]
+    }
+  }
 }
