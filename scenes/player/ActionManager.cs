@@ -11,7 +11,11 @@ public partial class ActionManager : Node
 	[Export] public ActionSlot SecondaryTechniqueSlot { get; set; }
 
 	public int ActionSlotCount => _quickItemSlots.Count;
-	public string CurrentAnimationId => _currentAction is Weapon ? null : _currentAction?.AnimationId;
+	/// <summary>
+	/// The running item use's id for the AnimationTree. Combat actions (weapon attacks, unarmed strikes, techniques
+	/// and spell casts) have none: they pose through <see cref="CombatAnimationComponent"/> on their contact clock.
+	/// </summary>
+	public string CurrentAnimationId => (_currentAction as ConsumableItem)?.AnimationId;
 	public bool IsBusy
 	{
 		get

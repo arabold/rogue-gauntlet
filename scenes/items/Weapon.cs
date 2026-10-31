@@ -43,7 +43,6 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	/// <summary>The primary attack; null uses the attack controller's default for the weapon.</summary>
 	public virtual AttackDefinition PrimaryAttackDefinition => CustomAttackDefinition;
 
-	[Export] public string AnimationId { get; set => SetValue(ref field, value); } = "melee_attack";
 	[Export] public float Delay { get; set => SetValue(ref field, value); } = 0f;
 	[Export] public float PerformDuration { get; set => SetValue(ref field, value); } = 0.5f;
 	[Export] public float CooldownDuration { get; set => SetValue(ref field, value); } = 0f;
@@ -52,16 +51,10 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	[Export] public StringName SecondaryAttackStyle { get; set => SetValue(ref field, value); } = "";
 	[Export] public MeleeAttackProfile SecondaryMeleeContact { get; set => SetValue(ref field, value); }
 	[Export] public AttackDefinition SecondaryCustomAttackDefinition { get; set => SetValue(ref field, value); }
-	[Export] public string SecondaryAnimationId { get; set => SetValue(ref field, value); } = "special_attack";
 	[Export] public float SecondaryDelay { get; set => SetValue(ref field, value); } = 0.1f;
 	[Export] public float SecondaryPerformDuration { get; set => SetValue(ref field, value); } = 0.6f;
 	[Export] public float SecondaryCooldownDuration { get; set => SetValue(ref field, value); } = 1.0f;
 	[Export] public float SecondaryDamageMultiplier { get; set => SetValue(ref field, value); } = 1.5f;
-
-	public Weapon()
-	{
-		AnimationId = "melee_attack";
-	}
 
 	/// <summary>The secondary action this weapon assigns while held: its martial technique unless a subclass casts.</summary>
 	public virtual ICombatAttackAction CreateSecondaryAction() => new MartialTechniqueAction(this);

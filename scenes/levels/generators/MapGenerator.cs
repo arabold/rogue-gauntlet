@@ -712,8 +712,8 @@ public partial class MapGenerator : Node3D
 		// Step 3a: Decide special encounters before anything else claims the floor.
 		if (!ResolveEncounters()) return false;
 
-		// Step 3b: Scatter chests/traps/loose items. Must run before BakeNavigationMesh so
-		// chests are included as navmesh obstacles, and before GenerateEnemySpawnPoints so
+		// Step 3b: Place access, scheduled fountains, then chests/traps/loose items. Must run before BakeNavigationMesh so
+		// fountains and chests are included as navmesh obstacles, and before GenerateEnemySpawnPoints so
 		// enemy-spawn clearance (which already checks the "prop" group) naturally avoids them.
 		PlaceAccess();
 		PlaceLoot();

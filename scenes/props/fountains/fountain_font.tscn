@@ -1,0 +1,42 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/props/fountains/Fountain.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/fountain_sparkles.tscn" id="sparkles"]
+[ext_resource type="PackedScene" path="res://scenes/components/interactive_component.tscn" id="interactive"]
+[ext_resource type="Script" path="res://scenes/components/ExplorationGateComponent.cs" id="gate"]
+
+[sub_resource type="BoxShape3D" id="Shape0"]
+size = Vector3(1.56, 0.26, 1.56)
+
+[sub_resource type="CylinderShape3D" id="Shape1"]
+height = 0.84
+radius = 0.7
+
+[node name="FountainFont" type="Node3D" node_paths=PackedStringArray("Interactive", "Pools") groups=["prop"]]
+script = ExtResource("script")
+Interactive = NodePath("InteractiveComponent")
+Pools = [NodePath("Pools/Sparkles")]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape0" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.13, 0)
+shape = SubResource("Shape0")
+
+[node name="CollisionShape1" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.68, 0)
+shape = SubResource("Shape1")
+
+[node name="Pools" type="Node3D" parent="."]
+
+[node name="Sparkles" parent="Pools" instance=ExtResource("sparkles")]
+transform = Transform3D(0.48, 0, 0, 0, 1, 0, 0, 0, 0.48, 0, 1.02, 0)
+
+[node name="InteractiveComponent" parent="." instance=ExtResource("interactive")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.37, 0)
+
+[node name="ExplorationGateComponent" type="Node3D" parent="." node_paths=PackedStringArray("Target")]
+script = ExtResource("gate")
+Target = NodePath("../Pools")

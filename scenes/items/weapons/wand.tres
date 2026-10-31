@@ -18,7 +18,6 @@ DamageMin = 1.0
 DamageMax = 5.0
 AttackStyle = &"staff.cast"
 Grip = ExtResource("weapon_grip")
-AnimationId = "ranged_attack"
 PerformDuration = 0.5
 CooldownDuration = 0.1
 ValidSlots = 256

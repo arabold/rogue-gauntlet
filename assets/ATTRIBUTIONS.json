@@ -190,6 +190,22 @@
 			"notes": "Low-poly flat-shaded 3D items UV-mapped to KayKit's dungeon_texture.png and aligned to KayKit reference AABBs."
 		},
 		{
+			"id": "custom-props",
+			"name": "Rogue Gauntlet - Custom World Props",
+			"dir": "assets/custom-props",
+			"author": "Rogue Gauntlet contributors",
+			"source": "Self-authored via asset-studio/studio.py item build from asset-studio/objects/<category>/<name>/",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"3d"
+			],
+			"compatibility_group": "kaykit",
+			"acquired": "2026-10-31",
+			"notes": "Procedural dungeon props from the Asset Studio item pipeline with the shared character palette shading. fountains/ holds health and mana fountains (font, chalice, spring, tiered) with emissive liquid pools. Concept drawings: Google gemini-3-pro-image over the studio's knight style reference. Art only; prop scenes, collision and effects live under scenes/."
+		},
+		{
 			"id": "custom-monsters",
 			"name": "Rogue Gauntlet - Custom Monsters",
 			"dir": "assets/custom-monsters",

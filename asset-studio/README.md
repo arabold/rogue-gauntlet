@@ -4,7 +4,7 @@
 
 Authoring recipes, original models and selected concepts live inside `asset-studio/`, hidden from Godot by `.gdignore`. **All generated candidates, caches, render frames, comparisons and job manifests live in OS temporary storage outside the repository.** `core.paths.work_root()` reports the checkout-specific location. Temporary storage may be deleted at any time; rebuild candidates when needed.
 
-Final outputs live in `catalogs/` and change only through explicit publication. Rendering never publishes. `export` separately writes finished game art to `assets/custom-heroes/`, `assets/custom-monsters/` or `assets/custom-items/`. Existing game shield paths remain `assets/custom-items/armor/shield/` for compatibility.
+Final outputs live in `catalogs/` and change only through explicit publication. Rendering never publishes. `export` separately writes finished game art to `assets/custom-heroes/`, `assets/custom-monsters/`, `assets/custom-items/` or, for world props, `assets/custom-props/`. Existing game shield paths remain `assets/custom-items/armor/shield/` for compatibility.
 
 The studio owns **3D art only**. Damage, stats, equipment rules, item identities, effects, `.tres` definitions, and gameplay `.tscn` composition belong to a separate Godot resource-authoring step. Godot import/mesh validation here verifies the exported art. The agreed [monster authoring workflow](../docs/monster-authoring-design.md) and [first-realm acceptance](../docs/development-roadmap.md#first-three-floor-acceptance) compose gameplay separately in the Godot editor; monster balance, tactics and realm eligibility do not belong in Studio JSON.
 
@@ -375,7 +375,17 @@ For studio-generated vertex-color materials, export sets an art-only post-import
 }
 ```
 
-`dimensions` is a bounding envelope in Godot units, fit uniformly to preserve proportions; `scale` applies afterward. Pivots are `authored` (default), `ground`, `center`, or `grip`. For `grip`, add a `grip: [x,y,z]` point in source scene coordinates, before recipe rotation and scaling. Optional `offset` translates the result after pivot alignment. Source files use recipe-local paths or explicit `res://` repository references; export paths stay within `assets/custom-items/`.
+`dimensions` is a bounding envelope in Godot units, fit uniformly to preserve proportions; `scale` applies afterward. Pivots are `authored` (default), `ground`, `center`, or `grip`. For `grip`, add a `grip: [x,y,z]` point in source scene coordinates, before recipe rotation and scaling. Optional `offset` translates the result after pivot alignment. Source files use recipe-local paths or explicit `res://` repository references; export paths stay within `assets/custom-items/`, or `assets/custom-props/` for world props.
+
+### World props: fountains
+
+`objects/fountains/` holds eight `fountain` builder recipes (`items/fountains.py`): `font`, `chalice`, `spring` and `tiered` designs, each in a `health` and a `mana` variant. The variants differ only in their emissive `liquid` color. Each basin is one closed solid, hollowed down to a stone floor. The pools and streams form a second closed solid, which `export_static` writes as its own `Liquid` node next to the `Item` node. The game hides that node to show an empty fountain. Variants share the concept and exact prompt saved as `<design>-reference.png` beside them. The origin is the floor center. Exports go to `assets/custom-props/fountains/`. Sparkles, shimmer and prop scenes are game-side; see [fountain effects](../docs/world-effects.md#fountain-effects). `POOLS` lists each liquid level and inscribed radius for placing those effects. Keep it in step with the geometry.
+
+```bash
+./.venv/bin/python asset-studio/studio.py item build fountains/fountain_tiered_mana
+./.venv/bin/python asset-studio/studio.py item lineup fountains/fountain_tiered_mana
+./.venv/bin/python asset-studio/studio.py item export fountains/fountain_tiered_mana
+```
 
 The six portable-light recipes under `objects/tools/` (`tool_candelabrum`, `tool_candle_tallow`, `tool_lamp_oil`, `tool_lantern_brass`, `tool_torch_iron`, `tool_torch_wooden`) preserve their original grip origins and use `placement.rotation_degrees: [0, 0, -90]` to point their tops upward in the standard idle and `Walking_B` poses. Keep their local `source.glb` inputs unrotated: build applies this correction once, and their Godot model wrappers need no additional rotation. The right hand uses the game's existing melee grip; the left-hand adapter uses the mirrored socket's orientation so both hands keep the light upright. The held scenes place their light/flame at the rotated source locations and use the same model rotation for the flame's rising direction. Review regenerated art with `item lineup <key> --mount right_hand` / `left_hand`, then verify the real equipped scene. Gameplay-held light/flame scenes, equipment slots and fuel rules remain game-side authoring; Studio must not regenerate or overwrite those Resources.
 

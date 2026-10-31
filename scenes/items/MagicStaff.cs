@@ -27,11 +27,6 @@ public partial class MagicStaff : RangedWeapon
 	/// <summary>The bound spell's level: the base item's tier, so deeper weapons carry stronger spells.</summary>
 	public int SpellLevel => Tier;
 
-	public MagicStaff()
-	{
-		AnimationId = "ranged_attack";
-	}
-
 	/// <summary>Whether this weapon can cast <paramref name="spell"/>: the spell must support the weapon's tier.</summary>
 	public bool CanBind(SpellDefinition spell) => spell?.IsValidLevel(SpellLevel) == true;
 

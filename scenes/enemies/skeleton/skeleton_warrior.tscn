@@ -1,4 +1,4 @@
-[gd_scene load_steps=50 format=3 uid="uid://coev873edfqw6"]
+[gd_scene load_steps=46 format=3 uid="uid://coev873edfqw6"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_p3la7"]
 [ext_resource type="PackedScene" uid="uid://c7qnx3sxaoosn" path="res://assets/kaykit-skeletons/Skeleton_Warrior.glb" id="2_srno3"]
@@ -18,9 +18,6 @@
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_warrior_definition.tres" id="monster_definition"]
 [ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_warrior_poise.tres" id="poise_definition"]
-
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rfhfv"]
-animation = &"1H_Melee_Attack_Chop"
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_idauc"]
 animation = &"Death_A_Pose"
@@ -65,23 +62,15 @@ advance_expression = "IsSleeping"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_jneow"]
 advance_mode = 2
-advance_expression = "!isSleeping"
+advance_expression = "!IsSleeping"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_3ftaq"]
 switch_mode = 2
 advance_mode = 2
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_x0i68"]
-advance_mode = 2
-advance_expression = "false"
-
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_551pq"]
 advance_mode = 2
 advance_expression = "IsDead"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_hquwu"]
-switch_mode = 2
-advance_mode = 2
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_gyync"]
 switch_mode = 2
@@ -92,22 +81,18 @@ xfade_time = 0.3
 advance_mode = 2
 advance_expression = "IsDead"
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_qasbv"]
-xfade_time = 0.3
-advance_mode = 2
-advance_expression = "false"
-
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_o4lkd"]
 xfade_time = 0.3
 advance_mode = 2
-advance_expression = "IsHit"
+advance_expression = "IsKnockedBack"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_bnfo4"]
 advance_mode = 2
-advance_expression = "isSleeping"
+advance_expression = "IsSleeping"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_kf5fr"]
 advance_mode = 2
+advance_expression = "!IsSleeping"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_gclll"]
 switch_mode = 2
@@ -130,11 +115,12 @@ advance_expression = "!IsFalling"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_lwwi4"]
 advance_mode = 2
-advance_expression = "IsHit"
+advance_expression = "IsKnockedBack"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_m1eid"]
 switch_mode = 2
 advance_mode = 2
+advance_expression = "!IsKnockedBack"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_5cn5g"]
 xfade_time = 0.3
@@ -142,8 +128,6 @@ advance_mode = 2
 advance_expression = "IsDead"
 
 [sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_mq8v6"]
-states/Attack/node = SubResource("AnimationNodeAnimation_rfhfv")
-states/Attack/position = Vector2(115.083, 244.847)
 states/Dead/node = SubResource("AnimationNodeAnimation_idauc")
 states/Dead/position = Vector2(836.725, 96.4097)
 states/Dying/node = SubResource("AnimationNodeAnimation_baa1x")
@@ -164,7 +148,7 @@ states/StandUp/position = Vector2(475.608, -71.4518)
 states/Start/position = Vector2(44, -71.5416)
 states/Walking/node = SubResource("AnimationNodeAnimation_34u5q")
 states/Walking/position = Vector2(216.242, 417.688)
-transitions = ["Idle", "Walking", SubResource("AnimationNodeStateMachineTransition_t6uxn"), "Walking", "Idle", SubResource("AnimationNodeStateMachineTransition_d2noq"), "Idle", "Lie", SubResource("AnimationNodeStateMachineTransition_ahwo5"), "Lie", "StandUp", SubResource("AnimationNodeStateMachineTransition_jneow"), "StandUp", "Idle", SubResource("AnimationNodeStateMachineTransition_3ftaq"), "Idle", "Attack", SubResource("AnimationNodeStateMachineTransition_x0i68"), "Idle", "Dying", SubResource("AnimationNodeStateMachineTransition_551pq"), "Attack", "Idle", SubResource("AnimationNodeStateMachineTransition_hquwu"), "Dying", "Dead", SubResource("AnimationNodeStateMachineTransition_gyync"), "Walking", "Dying", SubResource("AnimationNodeStateMachineTransition_7hibw"), "Walking", "Attack", SubResource("AnimationNodeStateMachineTransition_qasbv"), "Walking", "Hit", SubResource("AnimationNodeStateMachineTransition_o4lkd"), "Start", "Lie", SubResource("AnimationNodeStateMachineTransition_bnfo4"), "Start", "Spawn", SubResource("AnimationNodeStateMachineTransition_kf5fr"), "Spawn", "Idle", SubResource("AnimationNodeStateMachineTransition_gclll"), "Walking", "Falling", SubResource("AnimationNodeStateMachineTransition_jplsx"), "Idle", "Falling", SubResource("AnimationNodeStateMachineTransition_viqtb"), "Falling", "Idle", SubResource("AnimationNodeStateMachineTransition_aab00"), "Idle", "Hit", SubResource("AnimationNodeStateMachineTransition_lwwi4"), "Hit", "Idle", SubResource("AnimationNodeStateMachineTransition_m1eid"), "Hit", "Dying", SubResource("AnimationNodeStateMachineTransition_5cn5g")]
+transitions = ["Idle", "Walking", SubResource("AnimationNodeStateMachineTransition_t6uxn"), "Walking", "Idle", SubResource("AnimationNodeStateMachineTransition_d2noq"), "Idle", "Lie", SubResource("AnimationNodeStateMachineTransition_ahwo5"), "Lie", "StandUp", SubResource("AnimationNodeStateMachineTransition_jneow"), "StandUp", "Idle", SubResource("AnimationNodeStateMachineTransition_3ftaq"), "Idle", "Dying", SubResource("AnimationNodeStateMachineTransition_551pq"), "Dying", "Dead", SubResource("AnimationNodeStateMachineTransition_gyync"), "Walking", "Dying", SubResource("AnimationNodeStateMachineTransition_7hibw"), "Walking", "Hit", SubResource("AnimationNodeStateMachineTransition_o4lkd"), "Start", "Lie", SubResource("AnimationNodeStateMachineTransition_bnfo4"), "Start", "Spawn", SubResource("AnimationNodeStateMachineTransition_kf5fr"), "Spawn", "Idle", SubResource("AnimationNodeStateMachineTransition_gclll"), "Walking", "Falling", SubResource("AnimationNodeStateMachineTransition_jplsx"), "Idle", "Falling", SubResource("AnimationNodeStateMachineTransition_viqtb"), "Falling", "Idle", SubResource("AnimationNodeStateMachineTransition_aab00"), "Idle", "Hit", SubResource("AnimationNodeStateMachineTransition_lwwi4"), "Hit", "Idle", SubResource("AnimationNodeStateMachineTransition_m1eid"), "Hit", "Dying", SubResource("AnimationNodeStateMachineTransition_5cn5g")]
 graph_offset = Vector2(-45.75, -25.415)
 
 

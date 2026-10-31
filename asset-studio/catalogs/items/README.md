@@ -1,12 +1,13 @@
 # Item catalogs
 
-Current catalog: **153 items**, using the shared character shading pipeline.
+Current catalog: **161 items**, using the shared character shading pipeline.
 
 [Complete visual overview](overview.png) · [Current validation and export status](status.json)
 
 | Category | Items | Catalog |
 | --- | ---: | --- |
 | Food | 12 | [View food](food.png) |
+| Fountains | 8 | [View fountains](fountains.png) |
 | Jewelry | 24 | [View jewelry](jewelry.png) |
 | Keys | 6 | [View keys](keys.png) |
 | Potions | 36 | [View potions](potions.png) |
@@ -17,7 +18,7 @@ Current catalog: **153 items**, using the shared character shading pipeline.
 
 Each published item has a final GLB, fingerprint manifest and `lineup.png` in its category/name folder: front, three-quarter, side and gameplay-scale views.
 
-Godot-verified current exports: **0/153**. Authored-surface exceptions still flagged for geometry review: **17**. These exceptions are preserved original surfaces, not clean closed-mesh certifications.
+Godot-verified current exports: **8/161**. Authored-surface exceptions still flagged for geometry review: **17**. These exceptions are preserved original surfaces, not clean closed-mesh certifications.
 
 Regenerate these catalogs from published outputs with `./.venv/bin/python asset-studio/studio.py item catalog`. Use `item lineup` to render candidates in OS temporary storage, inspect them, then `item publish` to finalize. Rendering never updates this catalog. Changed sources set `source_current: false` until reviewed again.
 
@@ -37,6 +38,17 @@ Regenerate these catalogs from published outputs with `./.venv/bin/python asset-
 - [food_meat_sausage](food/food_meat_sausage/lineup.png)
 - [food_meat_steak](food/food_meat_steak/lineup.png)
 - [food_pear_golden](food/food_pear_golden/lineup.png)
+
+### Fountains
+
+- [fountain_chalice_health](fountains/fountain_chalice_health/lineup.png)
+- [fountain_chalice_mana](fountains/fountain_chalice_mana/lineup.png)
+- [fountain_font_health](fountains/fountain_font_health/lineup.png)
+- [fountain_font_mana](fountains/fountain_font_mana/lineup.png)
+- [fountain_spring_health](fountains/fountain_spring_health/lineup.png)
+- [fountain_spring_mana](fountains/fountain_spring_mana/lineup.png)
+- [fountain_tiered_health](fountains/fountain_tiered_health/lineup.png)
+- [fountain_tiered_mana](fountains/fountain_tiered_mana/lineup.png)
 
 ### Jewelry
 

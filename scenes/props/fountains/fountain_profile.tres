@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="FountainProfile" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/FountainProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/levels/generators/FountainKind.cs" id="kind"]
+[ext_resource type="PackedScene" path="res://scenes/props/fountains/fountain_font_health.tscn" id="font_health"]
+[ext_resource type="PackedScene" path="res://scenes/props/fountains/fountain_chalice_health.tscn" id="chalice_health"]
+[ext_resource type="PackedScene" path="res://scenes/props/fountains/fountain_spring_health.tscn" id="spring_health"]
+[ext_resource type="PackedScene" path="res://scenes/props/fountains/fountain_tiered_health.tscn" id="tiered_health"]
+[ext_resource type="PackedScene" path="res://scenes/props/fountains/fountain_font_mana.tscn" id="font_mana"]
+[ext_resource type="PackedScene" path="res://scenes/props/fountains/fountain_chalice_mana.tscn" id="chalice_mana"]
+[ext_resource type="PackedScene" path="res://scenes/props/fountains/fountain_spring_mana.tscn" id="spring_mana"]
+[ext_resource type="PackedScene" path="res://scenes/props/fountains/fountain_tiered_mana.tscn" id="tiered_mana"]
+
+[sub_resource type="Resource" id="health"]
+script = ExtResource("kind")
+Id = "health"
+Variants = [ExtResource("font_health"), ExtResource("chalice_health"), ExtResource("spring_health"), ExtResource("tiered_health")]
+MinPerRun = 2
+MaxPerRun = 3
+
+[sub_resource type="Resource" id="mana"]
+script = ExtResource("kind")
+Id = "mana"
+Variants = [ExtResource("font_mana"), ExtResource("chalice_mana"), ExtResource("spring_mana"), ExtResource("tiered_mana")]
+MinPerRun = 2
+MaxPerRun = 3
+
+[resource]
+resource_name = "Fountains"
+script = ExtResource("profile")
+Kinds = [SubResource("health"), SubResource("mana")]
+FirstDepth = 2
+LastDepth = 24

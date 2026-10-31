@@ -42,6 +42,8 @@ public partial class MovementComponent : Node
 
 	public bool IsMoving => TargetDirection != Vector3.Zero;
 	public bool IsPushed => _pushStrength > 0.1f;
+	/// <summary>Pushed by a knockback that no stagger overlapped; a stagger's pose already shows its own knockback.</summary>
+	public bool IsKnockedBack => IsPushed && !_pushCoveredByStagger;
 	public bool IsFalling => Velocity.Y < 0;
 
 	public Vector3 Velocity { get; private set; } = Vector3.Zero;
@@ -51,6 +53,7 @@ public partial class MovementComponent : Node
 	private Vector3 _pushDirection = Vector3.Zero;
 	private float _pushStrength = 0.0f;
 	private bool _forcePushWhileLocked;
+	private bool _pushCoveredByStagger;
 
 	private object _locomotionOverrideOwner;
 	private Vector3 _overrideDirection = Vector3.Zero;
@@ -129,6 +132,7 @@ public partial class MovementComponent : Node
 	{
 		_pushDirection = direction.Normalized();
 		_pushStrength = strength;
+		_pushCoveredByStagger = ActionGate?.IsStaggered == true;
 		_forcePushWhileLocked = false;
 		_hasOverrideVelocity = false;
 	}
@@ -237,6 +241,7 @@ public partial class MovementComponent : Node
 		{
 			// Pushed by an external force; a poise break's knockback plays out during its stagger.
 			velocity = _pushDirection * _pushStrength;
+			if (ActionGate?.IsStaggered == true) _pushCoveredByStagger = true;
 			_pushStrength -= Speed * (float)delta; // Decrease push strength over time
 			if (_pushStrength <= 0.1f) _forcePushWhileLocked = false;
 		}
