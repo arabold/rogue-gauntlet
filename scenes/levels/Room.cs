@@ -21,63 +21,18 @@ public partial class Room : Node3D
 
 	/// <summary>The room type that assembled this room, content included.</summary>
 	[Export] public RoomType Type { get; set; }
-	/// <summary>Authored/generated circulation axis; zero means the room has no primary aisle.</summary>
-	[Export] public Vector2I LayoutAxis { get; set; }
 
 	[Export] public GridMap FloorGridMap { get; set; }
 	[Export] public GridMap WallGridMap { get; set; }
-	[Export] public GridMap DecorationGridMap { get; set; }
-	/// <summary>Generated interior boundaries and operable doors, kept separate from exterior connection walls.</summary>
-	[Export] public Node3D InteriorStructure { get; set; }
-	private GridMap _debugGridMap;
 
-	// Authored wall mesh footprints, rebuilt by every BakeTileMap (so a Rotate's
+	// Wall mesh footprints, rebuilt by every BakeTileMap (so a Rotate's
 	// re-bake sees the rotated geometry). Backs HasWall's edge-coverage checks.
 	private List<Aabb> _wallFootprints = new();
-
-	[Export]
-	public bool ShowDebugOverlay
-	{
-		get;
-		set
-		{
-			if (value != field)
-			{
-				field = value;
-				if (value)
-				{
-					// Property is set in the editor, so we need to check 
-					// if the room is initialized already
-					if (Engine.IsEditorHint() && IsNodeReady() && GetTree()?.EditedSceneRoot == this)
-					{
-						BakeTileMap();
-						CreateDebugOverlay();
-					}
-				}
-				else if (_debugGridMap != null)
-				{
-					RemoveDebugOverlay();
-				}
-			}
-		}
-	}
 
 	/// <summary>
 	/// The size of each tile in the grid map (must be 4x4)
 	/// </summary>
 	public const int TileSize = 4;
-
-	public override void _Ready()
-	{
-		base._Ready();
-
-		// Show the debug overlay if needed
-		if (Engine.IsEditorHint() && GetTree().EditedSceneRoot == this && ShowDebugOverlay)
-		{
-			BakeTileMap();
-			CreateDebugOverlay();
-		}
-	}
 
 	/// <summary>
 	/// Create a map of the room based on the floor and wall grid maps.
@@ -182,23 +137,10 @@ public partial class Room : Node3D
 
 		// Once we have the final room layout, we can check for 
 		// walls and corridors that need to be connected
-		var doorwayMarkers = GetEnabledDoorwayMarkers().ToList();
-		if (doorwayMarkers.Count > 0)
-		{
-			BakeDoorwayMarkers(map, doorwayMarkers);
-		}
-		else
-		{
-			BakeInferredConnectors(map);
-		}
+		BakeDoorwayMarkers(map, GetEnabledDoorwayMarkers().ToList());
 
 		Map = map;
 		GD.Print($"Room map generated: {Map.Width}x{Map.Height}");
-
-		if (Engine.IsEditorHint() && IsInsideTree() && GetTree()?.EditedSceneRoot == this && ShowDebugOverlay)
-		{
-			CreateDebugOverlay();
-		}
 	}
 
 	/// <summary>
@@ -225,11 +167,8 @@ public partial class Room : Node3D
 			return;
 		}
 
-		var axis = RotatePosition(new Vector3(LayoutAxis.X, 0, LayoutAxis.Y), steps);
-		LayoutAxis = new((int)axis.X, (int)axis.Z);
 		RotateGridMapCells(FloorGridMap, steps);
 		RotateGridMapCells(WallGridMap, steps);
-		RotateGridMapCells(DecorationGridMap, steps);
 
 		// Direct children only, not recursive: a node's LOCAL transform is relative to
 		// its own parent, not the room, so rotating a direct child's own transform
@@ -238,7 +177,7 @@ public partial class Room : Node3D
 		// node does not also need its own local transform touched.
 		foreach (Node child in GetChildren())
 		{
-			if (child is Node3D node3D && node3D != FloorGridMap && node3D != WallGridMap && node3D != DecorationGridMap)
+			if (child is Node3D node3D && node3D != FloorGridMap && node3D != WallGridMap)
 			{
 				RotateChildTransform(node3D, steps);
 			}
@@ -377,26 +316,6 @@ public partial class Room : Node3D
 		}
 	}
 
-	private void BakeInferredConnectors(MapData map)
-	{
-		for (var x = 0; x < map.Width; x++)
-		{
-			for (var z = 0; z < map.Height; z++)
-			{
-				if (map.IsRoom(x, z))
-				{
-					// A room tile becomes a connector tile if it has at least one
-					// open side facing out of the room.
-					var connectorDirections = GetConnectorDirections(map, x, z);
-					if (connectorDirections.Count > 0)
-					{
-						map.SetConnector(x, z, connectorDirections);
-					}
-				}
-			}
-		}
-	}
-
 	private IEnumerable<DoorwayMarker> GetEnabledDoorwayMarkers()
 	{
 		return FindChildren("*", "", true, false)
@@ -474,49 +393,6 @@ public partial class Room : Node3D
 	/// <summary>
 	/// Check if the given tile is a corridor by checking if it is adjacent to an empty tile
 	/// </summary>
-	private List<Vector2I> GetConnectorDirections(MapData map, int x, int z)
-	{
-		var connectorDirections = new List<Vector2I>();
-
-		// The 4 adjacent tiles
-		var adjacentOffsets = new (int x, int z)[]
-		{
-			(1, 0), (-1, 0), (0, 1), (0, -1)
-		};
-
-		foreach (var (dx, dz) in adjacentOffsets)
-		{
-			int adjX = x + dx;
-			int adjZ = z + dz;
-
-			if (!map.IsWithinBounds(adjX, adjZ) || map.IsEmpty(adjX, adjZ))
-			{
-				// We found an empty tile adjacent to the room. Check if there is a wall
-				// separating the two tiles
-				bool hasWall = HasWall(x, z, dx, dz);
-
-				if (!hasWall)
-				{
-					// We found one open side of the tile, so it can be connected
-					// to corridors outside of the room.
-					connectorDirections.Add(new Vector2I(dx, dz));
-				}
-			}
-		}
-
-		return connectorDirections;
-	}
-
-	/// <summary>
-	/// Whether authored wall geometry blocks passage through the given edge of tile
-	/// (x,z). Judged from real mesh footprints, not from which cells hold anchors: the
-	/// edge is blocked unless its largest uncovered stretch is wide enough to walk
-	/// through (half a tile). Footprint math is rotation-invariant -- a rotated wall's
-	/// footprint rotates exactly with it -- where the previous cell sampling of a
-	/// half-open edge row flipped corner anchors in and out of range per orientation,
-	/// making the same room validate differently at different rotations. It also means
-	/// a doorway's frame posts no longer read as "wall": only actual coverage counts.
-	/// </summary>
 	private bool HasWall(int x, int z, int dx, int dz)
 	{
 		var center = TileCenterCell(x, z);
@@ -531,84 +407,6 @@ public partial class Room : Node3D
 		return passableGap < TileSize / 2f - WallFootprints.Eps;
 	}
 
-	private void CreateDebugOverlay()
-	{
-		if (Map == null)
-		{
-			GD.PrintErr("No map data available to generate overlay!");
-			return;
-		}
-
-		RemoveDebugOverlay();
-
-		// We always create a new grid map to adapt to changes in the room layout
-		_debugGridMap = new GridMap();
-		_debugGridMap.Name = "DebugGridMap";
-		_debugGridMap.MeshLibrary = GD.Load<MeshLibrary>("res://scenes/levels/BaseMapMeshLibrary.tres");
-		_debugGridMap.CellSize = new Vector3(TileSize, TileSize, TileSize);
-		_debugGridMap.CellCenterX = false;
-		_debugGridMap.CellCenterY = false;
-		_debugGridMap.CellCenterZ = false;
-		_debugGridMap.Translate(new Vector3(Bounds.Position.X, 0.1f, Bounds.Position.Y));
-		_debugGridMap.Visible = ShowDebugOverlay;
-		AddChild(_debugGridMap);
-
-		// TODO: Make this more efficient by only updating the overlay when needed
-		// Add a refresh timer to update the overlay when the room layout changes
-		// var timer = new Timer();
-		// _debugGridMap.AddChild(timer);
-		// timer.OneShot = true;
-		// timer.WaitTime = 0.5f;
-		// timer.Timeout += () =>
-		// {
-		// 	if (_showDebugOverlay)
-		// 	{
-		// 		RecreateMap();
-		// 		CreateDebugOverlay();
-		// 	}
-		// };
-		// timer.Start();
-
-		GD.Print("Generating overlay...");
-		for (int x = 0; x < Map.Width; x++)
-		{
-			for (int z = 0; z < Map.Height; z++)
-			{
-				var position = new Vector3I(x, 0, z);
-				if (Map.IsRoom(x, z))
-				{
-					_debugGridMap.SetCellItem(position, 0, 0);
-				}
-				else if (Map.IsConnector(x, z))
-				{
-					_debugGridMap.SetCellItem(position, 1, 0);
-				}
-				else
-				{
-					_debugGridMap.SetCellItem(position, 2, 0);
-				}
-			}
-		}
-	}
-
-	private void RemoveDebugOverlay()
-	{
-		foreach (var child in GetChildren())
-		{
-			if (child is GridMap gridMap && gridMap.Name == "DebugGridMap")
-			{
-				RemoveChild(gridMap);
-				gridMap.QueueFree();
-			}
-		}
-
-		_debugGridMap = null;
-	}
-
-	/// <summary>
-	/// Finds all holes in the TileMap.
-	/// </summary>
-	/// <returns>A list of lists, where each inner list contains cells forming a hole.</returns>
 	public List<List<Vector2I>> FindChasms(MapData map)
 	{
 		var holes = new List<List<Vector2I>>();

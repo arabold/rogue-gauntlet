@@ -66,8 +66,6 @@ metadata/_custom_type_script = ExtResource("2_RectangleSha")
 script = ExtResource("14_StairsStep")
 Id = "stairs"
 Content = [ExtResource("15_stairs_up")]
-MinimumCount = 1
-MaximumCount = 1
 metadata/_custom_type_script = ExtResource("14_StairsStep")
 
 [sub_resource type="Resource" id="ScatterStep_6"]

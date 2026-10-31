@@ -17,8 +17,6 @@ public class RoomRegion
 	/// <summary>Connector tiles where corridors leave the room.</summary>
 	public List<Vector2I> ConnectorTiles { get; } = new();
 
-	public Vector2I LayoutAxis { get; set; }
-
 
 	public RoomRegion(int id)
 	{

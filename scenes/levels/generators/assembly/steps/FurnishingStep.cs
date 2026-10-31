@@ -55,6 +55,10 @@ public abstract partial class FurnishingStep : Resource
 		return TryPlace(room, choice, plan, at);
 	}
 
+	/// <summary>The middle of every wall module (one per tile) along every wall run, as distance from the run's start.</summary>
+	protected static IEnumerable<(WallRun Run, float Center)> ModuleCenters(RoomBlueprint room) =>
+		room.WallRuns.SelectMany(run => Enumerable.Range(0, run.Length).Select(index => (run, (index + .5f) * Room.TileSize)));
+
 	protected static void Shuffle<T>(IList<T> items, RandomNumberGenerator rng)
 	{
 		for (int index = items.Count - 1; index > 0; index--)

@@ -54,7 +54,7 @@ public class FountainTest
 	[TestCase]
 	public async Task AScheduledFloorPlacesEachKindAsASolidPropInARoom()
 	{
-		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout());
 		TestFactories.WireLootScenes(map);
 		map.DungeonDepth = 5;
 		map.Fountains = ForcedProfile(5);

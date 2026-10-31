@@ -17,6 +17,9 @@ public partial class AssembledRoomFactory : RoomFactory
 	/// <summary>Weighted room types for every other slot.</summary>
 	[Export] public RoomType[] RoomTypes { get; set; } = [];
 
+	/// <summary>Every type the factory assembles: ordinary rooms, then entrances and exits.</summary>
+	public RoomType[] AllTypes => [.. RoomTypes, .. EntranceTypes, .. ExitTypes];
+
 	public override Room CreateEntrance(RandomNumberGenerator rng) => Assemble(EntranceTypes, "entrance", rng);
 	public override Room CreateExit(RandomNumberGenerator rng) => Assemble(ExitTypes, "exit", rng);
 	public override Room CreateStandardRoom(RandomNumberGenerator rng) => Assemble(RoomTypes, "room", rng);

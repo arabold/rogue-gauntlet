@@ -1,7 +1,7 @@
 using Godot;
 
 /// <summary>
-/// Base class for editor-visible semantic markers authored inside room scenes.
+/// Base class for editor-visible semantic markers inside rooms: doorways and boss anchors.
 /// </summary>
 [Tool]
 [GlobalClass]

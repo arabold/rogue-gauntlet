@@ -91,7 +91,6 @@ public static class RoomAssembler
 			}
 			floor.Paint(blueprint, floorRng);
 			blueprint.EmitProps();
-			room.LayoutAxis = Vector2I.Down;
 			room.BakeTileMap();
 			failure = "";
 			return blueprint;
@@ -108,8 +107,6 @@ public static class RoomAssembler
 		var room = new Room { Name = type.Id.Split('.').Last().ToPascalCase(), Type = type };
 		room.FloorGridMap = AddGridMap(room, "FloorGridMap", floorLibrary);
 		room.WallGridMap = AddGridMap(room, "WallGridMap", wallLibrary);
-		// Floor merging expects all three maps; assembled rooms keep their content as props instead.
-		room.DecorationGridMap = AddGridMap(room, "DecorationGridMap", null);
 		return room;
 	}
 

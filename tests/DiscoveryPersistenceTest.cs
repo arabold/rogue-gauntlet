@@ -52,7 +52,7 @@ public class DiscoveryPersistenceTest
 	[TestCase]
 	public async Task AdjacentCorridorRequiresAnOpeningAndSecretsStaySealedUntilOpened()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout());
 		var map = level.MapGenerator;
 		level.Generate();
 		map.Map.ResetToBorderedEmpty();
@@ -104,7 +104,7 @@ public class DiscoveryPersistenceTest
 		map.SetTile(4, 5, MapTile.Corridor);
 		map.SetConnector(5, 5, [Vector2I.Left]);
 		map.SetTile(6, 5, MapTile.Room);
-		var floor = new GeneratedFloor(map, generator, generator.DecorationGridMap);
+		var floor = new GeneratedFloor(map, generator);
 		var doorScene = TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").DoorScene;
 		var near = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
 		var far = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());

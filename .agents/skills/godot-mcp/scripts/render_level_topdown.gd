@@ -16,7 +16,7 @@ extends SceneTree
 #
 # Overlay legend (drawn as flat, unshaded geometry lifted above the floor):
 #   yellow disc = explicit doorway connector (guaranteed-connected)
-#   cyan disc   = inferred/optional connector
+#   cyan disc   = other connector (a secret pocket's threshold)
 #   green line  = that direction leads to an open passage
 #   red line    = that direction is SEALED by a generated wall (a bug if unexpected --
 #                 e.g. this is exactly what MapGenerator.FinalizeMarkers guards against)

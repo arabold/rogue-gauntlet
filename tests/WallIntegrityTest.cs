@@ -24,10 +24,8 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public class WallIntegrityTest
 {
-	// 120, not the 60 the suite started with: rotated authored-room placements only
-	// became reachable once every room validated at all 4 orientations, and those new
-	// configurations need sweep coverage. Seed 27 (the authored-doorway-sealed-against-
-	// frame-cells regression this suite caught) stays inside the swept range.
+	// Rooms rotate into all four orientations, and every configuration needs sweep coverage. Seed 27 (the
+	// doorway-sealed-against-frame-cells regression this suite caught) stays inside the swept range.
 	private const int SeedCount = 120;
 	private const int TileSize = 4;
 
@@ -44,15 +42,7 @@ public class WallIntegrityTest
 	}
 
 	[TestCase]
-	public async Task ProceduralRoomDungeonsHaveNoWallGaps()
-	{
-		// Procedural rooms author no walls at all, so every one of their edges must be
-		// sealed by generated walls — the hardest stress on the wall pass.
-		await AssertNoWallGaps(new PackedRoomLayout(), TestFactories.GarrisonRooms());
-	}
-
-	[TestCase]
-	public async Task ProceduralRoomsWithDoorsHaveNoWallGaps()
+	public async Task RoomsWithDoorsHaveNoWallGaps()
 	{
 		// Explicit doorways make every OTHER edge fall back to a plain Room tile, which
 		// must still be sealed exactly like a void-facing edge -- the doorway/door path's

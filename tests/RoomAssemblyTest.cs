@@ -206,18 +206,16 @@ public class RoomAssemblyTest
 				AssertInt((int)spawn.SpawnAfterTravelDirection).IsEqual((int)arrival);
 				AssertInt((int)nodes.OfType<LevelTransitionTrigger>().Single().Direction).IsEqual((int)travel);
 				// The stairs scene sits directly under the room's Props node, which has no offset of its own.
-				var landing = spawn.GetParent<Node3D>().Transform * spawn.Landing.Position;
-				AssertBool(blueprint.IsReachable(RoomBlueprint.XZ(landing))).OverrideFailureMessage($"{label}: landing cut off").IsTrue();
-				var area = blueprint.Landings.Single();
-				AssertBool(area.HasPoint(RoomBlueprint.XZ(landing))).OverrideFailureMessage($"{label}: spawn landing outside the kept area").IsTrue();
-				string covering = string.Join(", ", blueprint.Pieces.Where(piece => piece.Prop.Mount == PropMount.Floor
-					&& RoomBlueprint.XZ(piece.Envelope).Intersects(area)).Select(piece => piece.Prop.Id));
-				AssertString(covering).OverrideFailureMessage($"{label}: landing covered").IsEmpty();
-				int chasms = 0;
-				for (int x = 0; x < blueprint.Room.Map.Width; x++)
-				for (int z = 0; z < blueprint.Room.Map.Height; z++)
-					if (blueprint.Room.Map.IsChasm(x, z)) chasms++;
-				AssertInt(chasms).OverrideFailureMessage($"{label}: pit tiles").IsEqual(pitTiles);
+				var landing = RoomBlueprint.XZ(spawn.GetParent<Node3D>().Transform * spawn.Landing.Position);
+				var front = blueprint.Fronts.Single();
+				AssertBool(front.HasPoint(landing)).OverrideFailureMessage($"{label}: spawn landing outside the kept front").IsTrue();
+				AssertBool(blueprint.Grid.AreConnected([.. blueprint.Doorways.Select(doorway => RoomBlueprint.XZ(doorway.Approach)), landing]))
+					.OverrideFailureMessage($"{label}: landing cut off").IsTrue();
+				// The stairs themselves end where their front begins; touching is not covering.
+				string covering = string.Join(", ", blueprint.FloorPiecesOver(front.Grow(-.01f)).Select(piece => piece.Prop.Id));
+				AssertString(covering).OverrideFailureMessage($"{label}: landing covered by {covering}").IsEmpty();
+				AssertInt(RoomRotationTest.CountTileTypes(blueprint.Room.Map).GetValueOrDefault(MapTile.Chasm))
+					.OverrideFailureMessage($"{label}: pit tiles").IsEqual(pitTiles);
 			}
 			finally
 			{

@@ -20,12 +20,8 @@ public partial class MapGenerator
 		Floor.SetWalkability(grid, grid.Reachable([ArrivalPoint()], Room.TileSize));
 	}
 
-	private Vector2 ArrivalPoint()
-	{
-		// The arrival spawns on the stairs, which block walking; the landing in front is where play starts.
-		var at = (Floor.Arrival.Landing ?? Floor.Arrival).GlobalPosition;
-		return new(at.X, at.Z);
-	}
+	// The arrival spawns on the stairs, which block walking; the landing in front is where play starts.
+	private Vector2 ArrivalPoint() => RoomBlueprint.XZ(Floor.Arrival.LandingPosition);
 
 	private WalkabilityGrid CreateWalkabilityGrid()
 	{
@@ -45,7 +41,6 @@ public partial class MapGenerator
 		// Real collision, not tile classes: doorway frames stay passable and wall depth varies per piece.
 		var toLocal = GlobalTransform.AffineInverse();
 		foreach (var outline in CollisionOutlines.FromGridMap(WallGridMap, Transform3D.Identity)) grid.AddObstacle(outline);
-		foreach (var outline in CollisionOutlines.FromGridMap(DecorationGridMap, Transform3D.Identity)) grid.AddObstacle(outline);
 		foreach (var outline in CollisionOutlines.FromStaticBodies(NavigationRegion, toLocal * NavigationRegion.GlobalTransform)) grid.AddObstacle(outline);
 		return grid;
 	}

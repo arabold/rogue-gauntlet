@@ -11,10 +11,9 @@ public abstract partial class RoomLayoutStrategy : Resource
 	/// Populates the map with room data (e.g., which tiles are rooms)
 	/// </summary>
 	public abstract List<RoomPlacement> GenerateRooms(MapData map, RoomFactory factory, uint maxRooms, RandomNumberGenerator rng);
-	public virtual void Reset() { }
 
 	/// <summary>
-	/// Bakes a factory-created room's tile map. Returns null (freeing the instance)
+	/// Checks a factory-created (already baked) room. Returns null (freeing the instance)
 	/// when the room is missing or has no usable connector and could therefore never
 	/// be reached by a corridor.
 	/// </summary>
@@ -25,8 +24,6 @@ public abstract partial class RoomLayoutStrategy : Resource
 			return null;
 		}
 
-		GD.Print($"Preparing room {room.Name}...");
-		room.BakeTileMap();
 		if (!IsConnectable(room))
 		{
 			room.QueueFree();

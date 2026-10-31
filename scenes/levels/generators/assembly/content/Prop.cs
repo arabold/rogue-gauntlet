@@ -40,8 +40,14 @@ public partial class Prop : Placeable
 	[Export(PropertyHint.Range, "0,1,0.01")] public float Gap { get; set; } = .2f;
 	/// <summary>False for props actors walk over or that rest on other props: rugs, bottles on tables.</summary>
 	[Export] public bool Blocking { get => _blocking; set { _blocking = value; _geometry = null; } }
-	/// <summary>Keeps the space in front of the prop clear so it can be used.</summary>
+	/// <summary>Keeps the space in front of the prop (+Z) usable: on the floor, never covered by another floor prop, and
+	/// reachable from every doorway for the rest of the assembly.</summary>
 	[Export] public bool Interactive { get; set; }
+	/// <summary>Interactive props: depth of the kept front, as wide as the prop.</summary>
+	[Export(PropertyHint.Range, "0.5,6,0.1")] public float FrontDepth { get; set; } = 1.4f;
+	/// <summary>Stands in a pit cut into the floor (down-stairs): the tiles whose centers it covers lose their floor and
+	/// become an enclosed chasm, so they need floor on every side.</summary>
+	[Export] public bool Sunken { get; set; }
 	/// <summary>Bars, fences, corners and posts: structural pieces may overlap each other where they join (a corner over
 	/// the ends of two runs), never furniture.</summary>
 	[Export] public bool Structural { get; set; }
@@ -74,6 +80,7 @@ public partial class Prop : Placeable
 			else errors.AddRange(Items.Where(item => Library.FindItemByName(item) < 0).Select(item => $"item '{item}' is not in {Library.ResourcePath}"));
 		}
 		if (Mount == PropMount.Wall && BackToWall) errors.Add("wall props are always mounted on a wall; clear BackToWall");
+		if (Sunken && (Mount == PropMount.Wall || BackToWall)) errors.Add("sunken props stand in the floor; clear BackToWall and mount them on the floor");
 		return errors.Select(error => $"Prop {Id}: {error}.").ToArray();
 	}
 

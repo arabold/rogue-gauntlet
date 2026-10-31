@@ -15,10 +15,7 @@ using static GdUnit4.Assertions;
 /// find); nothing lands adjacent to a connector (doorway traffic); every placed prop is
 /// spaced apart and parented under <see cref="MapGenerator.NavigationRegion"/> (not
 /// <c>Level</c>) so it becomes a navmesh obstacle the same way rooms already are; the
-/// feature is fully opt-in — zero configured counts places nothing; and loot only ever
-/// goes into procedurally built rooms — an authored room's interior is hand-designed
-/// (including any chests it wants, placed by its author) and must never receive
-/// generated content.
+/// feature is fully opt-in — zero configured counts places nothing.
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
@@ -29,9 +26,7 @@ public class LootPlacementTest
 	[TestCase]
 	public async Task PlacedChestsFaceAwayFromARealWall()
 	{
-		// All-procedural standard rooms: loot placement only considers procedural rooms,
-		// so the default all-authored factory would yield zero placements to check.
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
 		TestFactories.WireLootScenes(mapGenerator);
 		mapGenerator.MinChests = mapGenerator.MaxChests = 2;
 
@@ -58,7 +53,7 @@ public class LootPlacementTest
 	[TestCase]
 	public async Task LooseItemsRollAsRewardSourcesAndSurviveASaveRoundTrip()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout());
 		var map = level.MapGenerator;
 		TestFactories.WireLootScenes(map);
 		map.MinLooseItems = map.MaxLooseItems = 3;
@@ -87,7 +82,7 @@ public class LootPlacementTest
 	[TestCase]
 	public async Task PlacedLootIsParentedUnderNavigationRegionForNavmeshBaking()
 	{
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
 		TestFactories.WireLootScenes(mapGenerator);
 		mapGenerator.MinChests = mapGenerator.MaxChests = 1;
 		mapGenerator.MinTraps = mapGenerator.MaxTraps = 1;
@@ -116,7 +111,7 @@ public class LootPlacementTest
 	[TestCase]
 	public async Task PlacedLootRespectsMinimumSpacing()
 	{
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
 		TestFactories.WireLootScenes(mapGenerator);
 		// The smallest map that still fits every request on every seed: a map too small to hold all nine pieces
 		// silently drops some and checks fewer pairs, while larger maps mostly add corridor routing and navmesh time.

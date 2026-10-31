@@ -61,7 +61,7 @@ public partial class WallDecorStep : FurnishingStep
 	/// <summary>The middle of every wall module, shuffled.</summary>
 	private static List<(WallRun Run, float Center)> WallCandidates(RoomBlueprint room, RandomNumberGenerator rng)
 	{
-		var result = room.WallRuns.SelectMany(run => Enumerable.Range(0, run.Length).Select(index => (run, (index + .5f) * Room.TileSize))).ToList();
+		var result = ModuleCenters(room).ToList();
 		Shuffle(result, rng);
 		return result;
 	}

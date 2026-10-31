@@ -30,7 +30,6 @@ public partial class MapGenerator : Node3D
 	public GeneratedFloor Floor { get; private set; }
 	[Export] public GridMap FloorGridMap { get; set; }
 	[Export] public GridMap WallGridMap { get; set; }
-	[Export] public GridMap DecorationGridMap { get; set; }
 	[Export] public GridMap OcclusionGridMap { get; set; }
 	[Export] public NavigationRegion3D NavigationRegion { get; set; }
 
@@ -62,9 +61,9 @@ public partial class MapGenerator : Node3D
 	public override void _Ready()
 	{
 		GD.Print("Initializing map generator...");
-		if (FloorGridMap == null || WallGridMap == null || DecorationGridMap == null || OcclusionGridMap == null || NavigationRegion == null)
+		if (FloorGridMap == null || WallGridMap == null || OcclusionGridMap == null || NavigationRegion == null)
 		{
-			GD.PushError($"{Name}: assign the floor, wall, decoration and occlusion GridMaps and the navigation region.");
+			GD.PushError($"{Name}: assign the floor, wall and occlusion GridMaps and the navigation region.");
 			return;
 		}
 		OcclusionGridMap.MeshLibrary = BuildOcclusionMeshLibrary();
@@ -100,20 +99,16 @@ public partial class MapGenerator : Node3D
 		// Generate the tile map from the room scene
 		var roomFloorGridMap = room.FloorGridMap;
 		var roomWallGridMap = room.WallGridMap;
-		var roomDecorationGridMap = room.DecorationGridMap;
 
 		var roomOffset = new Vector3I(room.Bounds.Position.X, 0, room.Bounds.Position.Y);
 		var gridMapOffset = Map.TileToWorld(placement.X, placement.Z) - roomOffset;
 		MergeGridMaps(roomFloorGridMap, FloorGridMap, gridMapOffset);
 		MergeGridMaps(roomWallGridMap, WallGridMap, gridMapOffset);
-		MergeGridMaps(roomDecorationGridMap, DecorationGridMap, gridMapOffset);
 
 		roomFloorGridMap.QueueFree();
 		roomWallGridMap.QueueFree();
-		roomDecorationGridMap.QueueFree();
 		room.FloorGridMap = null;
 		room.WallGridMap = null;
-		room.DecorationGridMap = null;
 	}
 
 	private void MergeGridMaps(GridMap sourceGridMap, GridMap targetGridMap, Vector3I offset)
@@ -185,7 +180,7 @@ public partial class MapGenerator : Node3D
 
 			var roomOffset = new Vector3I(room.Bounds.Position.X, 0, room.Bounds.Position.Y);
 			room.Translate(Map.TileToWorld(placement.Position) - roomOffset);
-			// Placed and merged: each authored trap can now find the floor cell it conceals.
+			// Placed and merged: each trap in the room's content can now find the floor cell it conceals.
 			foreach (var (trap, id) in traps)
 				trap.Initialize(id, Seed, FloorGridMap, FloorGridMap.LocalToMap(FloorGridMap.ToLocal(trap.GlobalPosition)));
 
@@ -205,7 +200,7 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		var region = new RoomRegion(Floor.Rooms.Count) { LayoutAxis = placement.Room.LayoutAxis };
+		var region = new RoomRegion(Floor.Rooms.Count);
 		for (int lx = 0; lx < roomMap.Width; lx++)
 		{
 			for (int lz = 0; lz < roomMap.Height; lz++)
@@ -243,12 +238,12 @@ public partial class MapGenerator : Node3D
 	}
 
 	/// <summary>
-	/// Marks the connectors guarded by hand-placed Door props so fog reveal stops
+	/// Marks the connectors guarded by room Door props so fog reveal stops
 	/// at them, and separately tracks every DoorwayMarker so one whose doorway never
 	/// gets a corridor routed to it (see FinalizeDoors) can be hidden rather than left
 	/// pointing at a solid wall. Doors sit in the wall opening rather than exactly on a
 	/// connector tile, so they're matched to the nearest connector of the room. Markers
-	/// are authored exactly on their own tile's center (see the coordinate-convention
+	/// sit exactly on their own tile's center (see the coordinate-convention
 	/// docs in Room.cs), so they're matched to that exact tile directly -- proximity
 	/// matching would let a marker whose OWN doorway failed validation (its tile never
 	/// became a connector at all) borrow a nearby, unrelated doorway's connected status
@@ -320,7 +315,7 @@ public partial class MapGenerator : Node3D
 	}
 
 	/// <summary>
-	/// Resolves hand-placed doors against the routed corridors. A door whose doorway
+	/// Resolves room doors against the routed corridors. A door whose doorway
 	/// was connected becomes a real gating door (its closed leaf seals the fog); a door
 	/// at a doorway the connector step walled shut is removed so it does not linger as
 	/// an interactable door embedded in a solid wall.
@@ -523,7 +518,7 @@ public partial class MapGenerator : Node3D
 			.FirstOrDefault(point => point.SpawnAfterTravelDirection == GameSession.LevelTravelDirection.Down);
 		Floor.Descent = nodes.OfType<LevelTransitionTrigger>()
 			.FirstOrDefault(trigger => trigger.Direction == GameSession.LevelTravelDirection.Down);
-		Floor.StairLandings = nodes.OfType<PlayerSpawnPoint>().Select(point => (point.Landing ?? point).GlobalPosition).ToList();
+		Floor.StairLandings = nodes.OfType<PlayerSpawnPoint>().Select(point => point.LandingPosition).ToList();
 		Floor.SpawnAnchors = nodes.Where(node => node is IProgressionAnchor || node.IsInGroup("stairs"))
 			.Select(node => node.GlobalPosition).Concat(Floor.StairLandings).ToList();
 		if (Floor.Arrival == null)
@@ -534,7 +529,7 @@ public partial class MapGenerator : Node3D
 
 	/// <summary>
 	/// Decides the floor's special encounters once, before access and loot placement, so locks protect the gatekeeper's
-	/// room and loot keeps clear of it. An authored marker anchored anywhere in the level wins; otherwise the roomiest
+	/// room and loot keeps clear of it. A GatekeeperSpawnMarker anywhere in the level wins; otherwise the roomiest
 	/// fit nearest the descent. False when a gatekeeper needs a fit and no room has one, so the attempt is retried.
 	/// </summary>
 	private bool ResolveEncounters()
@@ -670,7 +665,7 @@ public partial class MapGenerator : Node3D
 		GD.Print("Generating map...");
 		if (RoomLayout == null || CorridorConnector == null
 			|| RoomFactory == null || MobFactory == null || TileFactory == null
-			|| FloorGridMap == null || WallGridMap == null || DecorationGridMap == null)
+			|| FloorGridMap == null || WallGridMap == null)
 		{
 			// This is especially important to check in the editor
 			return true;
@@ -736,19 +731,16 @@ public partial class MapGenerator : Node3D
 		// If we try, the thread seems to block indefinitely when making updates to the GridMaps
 		Node floorGridMapCopy = FloorGridMap.Duplicate();
 		Node wallGripMapCopy = WallGridMap.Duplicate();
-		Node decorationGridMapCopy = DecorationGridMap.Duplicate();
 		try
 		{
 			NavigationRegion.AddChild(floorGridMapCopy);
 			NavigationRegion.AddChild(wallGripMapCopy);
-			NavigationRegion.AddChild(decorationGridMapCopy);
 			NavigationRegion.BakeNavigationMesh(false);
 		}
 		finally
 		{
 			floorGridMapCopy.QueueFree();
 			wallGripMapCopy.QueueFree();
-			decorationGridMapCopy.QueueFree();
 		}
 	}
 
@@ -763,11 +755,10 @@ public partial class MapGenerator : Node3D
 		// Initialize the map with empty tiles and a walled border
 		Map = new MapData((int)MapWidth, (int)MapDepth);
 		Map.ResetToBorderedEmpty();
-		Floor = new GeneratedFloor(Map, this, DecorationGridMap);
+		Floor = new GeneratedFloor(Map, this);
 
 		FloorGridMap?.Clear();
 		WallGridMap?.Clear();
-		DecorationGridMap?.Clear();
 		OcclusionGridMap?.Clear();
 
 		if (EnemySpawnPoints != null)
@@ -790,17 +781,11 @@ public partial class MapGenerator : Node3D
 			}
 			NavigationRegion.NavigationMesh.Clear();
 		}
-
-		RoomLayout?.Reset();
-		CorridorConnector?.Reset();
-		MobFactory?.Reset();
-		RoomFactory?.Reset();
-		TileFactory?.Reset();
 	}
 
 	/// <summary>
 	/// Debug/tooling query: every connector tile's world position, whether it's an
-	/// explicit doorway (guaranteed-connected) or an inferred edge (optional), and each
+	/// explicit room doorway (guaranteed-connected) or another connector (a secret pocket's threshold), and each
 	/// open direction annotated with whether it actually leads to an open passage or is
 	/// sealed by a generated wall. All-Godot-native return types so this is callable
 	/// from a GDScript preview/verification script even though MapData itself (a plain

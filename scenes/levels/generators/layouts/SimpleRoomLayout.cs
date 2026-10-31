@@ -20,8 +20,7 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 	{
 		List<RoomPlacement> rooms = new();
 
-		// Factories load content lazily. If a scene path is broken, skip generation
-		// gracefully so content mistakes show as editor/runtime errors instead of crashes.
+		// A room without a usable connector skips generation gracefully, so content mistakes show as errors instead of crashes.
 		var entranceRoom = PrepareConnectableRoom(factory.CreateEntrance(rng));
 		if (entranceRoom == null)
 		{
@@ -76,7 +75,6 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 				}
 				else
 				{
-					// Unload the room scene
 					room.QueueFree();
 				}
 			} while (retries-- > 0);

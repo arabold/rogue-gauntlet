@@ -27,7 +27,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 	/// </summary>
 	[Export(PropertyHint.Range, "1,4")] public int RoomGap { get; set; } = 1;
 
-	/// <summary>How many different room scenes to try for a slot before skipping it.</summary>
+	/// <summary>How many different rooms to try for a slot before skipping it.</summary>
 	[Export] public int Retries { get; set; } = 3;
 
 	/// <summary>
@@ -175,13 +175,8 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 
 		for (int steps = 0; steps < 4; steps++)
 		{
-			// A rotated orientation is re-baked from scratch (Room.Rotate), and content
-			// whose walls/props extend past its own floor bounds can occasionally fail
-			// doorway-marker validation at some angles even though the unrotated room
-			// validated fine -- skip any orientation that came out unreachable rather
-			// than ever placing an unconnectable room. Logged so a room that's
-			// unusable at most rotations (a content authoring issue, not a placement
-			// one) is discoverable instead of just being picked less often.
+			// A rotated orientation is re-baked from scratch (Room.Rotate); skip any orientation that came out
+			// unreachable rather than ever placing an unconnectable room. Logged, since that is a bug signal.
 			if (!IsConnectable(room))
 			{
 				GD.PrintErr($"PackedRoomLayout: {room.Name} has no connector at {steps * 90} degrees of rotation, skipping this orientation.");

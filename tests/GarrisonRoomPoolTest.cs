@@ -11,12 +11,10 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class GarrisonRoomPoolTest
 {
-	private const string Preset = TestFactories.GarrisonFactory;
-
 	[TestCase]
 	public void StandardSlotsDrawEveryRoomTypeAndReproduceTheirContent()
 	{
-		var factory = TestFactories.Load<AssembledRoomFactory>(Preset);
+		var factory = TestFactories.GarrisonRooms();
 		var seen = new HashSet<RoomType>();
 		for (ulong seed = 1; seed <= 60; seed++)
 		{
@@ -35,30 +33,20 @@ public class GarrisonRoomPoolTest
 	}
 
 	[TestCase]
-	public void EverySlotIsAssembledAndResetReproducesTheirGeometry()
+	public void EntranceExitAndSpecialSlotsAssembleTheirOwnTypes()
 	{
-		var factory = TestFactories.Load<AssembledRoomFactory>(Preset, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var factory = TestFactories.GarrisonRooms();
 		using var rng = new RandomNumberGenerator { Seed = 42 };
-		string first = "";
-		for (int index = 0; index < 8; index++)
+		foreach (var (room, types) in new[]
 		{
-			var room = (index % 4) switch
-			{
-				0 => factory.CreateSpecialRoom(rng),
-				1 => factory.CreateStandardRoom(rng),
-				2 => factory.CreateEntrance(rng),
-				_ => factory.CreateExit(rng),
-			};
-			AssertString(room.SceneFilePath).IsEmpty();
-			AssertObject(room.Type).IsNotNull();
-			if (index == 0) first = Signature(room);
+			(factory.CreateEntrance(rng), factory.EntranceTypes),
+			(factory.CreateExit(rng), factory.ExitTypes),
+			(factory.CreateSpecialRoom(rng), factory.RoomTypes),
+		})
+		{
+			AssertBool(types.Contains(room.Type)).OverrideFailureMessage($"{room.Type?.Id} from the wrong pool").IsTrue();
 			room.Free();
 		}
-		factory.Reset();
-		rng.Seed = 42;
-		var reset = factory.CreateSpecialRoom(rng);
-		AssertString(Signature(reset)).IsEqual(first);
-		reset.Free();
 	}
 
 	[TestCase]
@@ -68,7 +56,7 @@ public class GarrisonRoomPoolTest
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		var generator = level.MapGenerator;
-		AssertString(generator.RoomFactory.ResourcePath).IsEqual(Preset);
+		AssertString(generator.RoomFactory.ResourcePath).IsEqual(TestFactories.GarrisonFactory);
 		var encounters = (RealmEncounterFactory)generator.MobFactory;
 		string failure = "";
 		level.GenerationFailed += error => failure = error;

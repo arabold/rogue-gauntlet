@@ -35,7 +35,7 @@ public sealed class RoomBlueprint
 	private readonly List<PlacedPiece> _pieces = [];
 	private readonly List<Rect2> _reserved = [];
 	private readonly List<Vector2I> _pits = [];
-	private readonly List<Rect2> _landings = [];
+	private readonly List<Rect2> _fronts = [];
 	private readonly Dictionary<object, int> _uses = [];
 	private readonly Dictionary<object, object> _memo = [];
 	private WallRun[] _wallRuns;
@@ -69,8 +69,8 @@ public sealed class RoomBlueprint
 	public Rect2 Interior { get; }
 	public IReadOnlyList<PlacedPiece> Pieces => _pieces;
 	public IReadOnlyList<Rect2> Reserved => _reserved;
-	/// <summary>Stair landings: kept free of floor props and reachable from every doorway.</summary>
-	public IReadOnlyList<Rect2> Landings => _landings;
+	/// <summary>Fronts of interactive props (stair landings): kept free of other floor props and reachable from every doorway.</summary>
+	public IReadOnlyList<Rect2> Fronts => _fronts;
 	/// <summary>Why the most recent placement was refused, for failure messages and authoring diagnostics.</summary>
 	public string LastRejection { get; private set; } = "";
 
@@ -89,12 +89,10 @@ public sealed class RoomBlueprint
 	/// <summary>Registers floor, void and the placed wall geometry with the walkability grid. Call once, after walls.</summary>
 	public void FinishStructure()
 	{
-		float half = Room.TileSize / 2f;
 		for (int x = -1; x <= Footprint.Width; x++)
 		for (int z = -1; z <= Footprint.Length; z++)
 		{
-			var center = RoomFootprint.TileCenter(new(x, z));
-			var area = new Rect2(center.X - half, center.Z - half, Room.TileSize, Room.TileSize);
+			var area = RoomFootprint.TileArea(new(x, z));
 			if (Footprint.IsFloor(x, z)) Grid.AddFloor(area);
 			else Grid.AddObstacle(area);
 		}
@@ -188,23 +186,18 @@ public sealed class RoomBlueprint
 	public bool IsConnected => Grid.AreConnected(Doorways.Select(doorway => XZ(doorway.Approach)).ToArray());
 
 	/// <summary>
-	/// Doorways stay connected, stair landings stay reachable from them, and inaccessible pockets stay within the room
-	/// type's <see cref="RoomType.MaxPocketShare"/>.
+	/// Doorways stay connected, interactive props' fronts stay reachable from them, and inaccessible pockets stay within
+	/// the room type's <see cref="RoomType.MaxPocketShare"/>.
 	/// </summary>
 	public bool IsAcceptable
 	{
 		get
 		{
-			var approaches = Doorways.Select(doorway => XZ(doorway.Approach)).ToArray();
-			var reached = Grid.Reachable(approaches.Take(1));
-			foreach (var approach in approaches)
+			var required = Doorways.Select(doorway => XZ(doorway.Approach)).Concat(_fronts.Select(front => front.GetCenter())).ToArray();
+			var reached = Grid.Reachable(required.Take(1));
+			foreach (var point in required)
 			{
-				var cell = Grid.CellAt(approach);
-				if (!Grid.Contains(cell) || !reached[cell.Y * Grid.Size.X + cell.X]) return false;
-			}
-			foreach (var landing in _landings)
-			{
-				var cell = Grid.CellAt(landing.GetCenter());
+				var cell = Grid.CellAt(point);
 				if (!Grid.Contains(cell) || !reached[cell.Y * Grid.Size.X + cell.X]) return false;
 			}
 			if (Type == null || Type.MaxPocketShare >= 1) return true;
@@ -219,12 +212,9 @@ public sealed class RoomBlueprint
 		}
 	}
 
-	/// <summary>Whether actors entering through the doorways reach <paramref name="point"/>.</summary>
-	public bool IsReachable(Vector2 point)
-	{
-		var cell = Grid.CellAt(point);
-		return Grid.Contains(cell) && Grid.Reachable(Doorways.Select(doorway => XZ(doorway.Approach)))[cell.Y * Grid.Size.X + cell.X];
-	}
+	/// <summary>Floor props whose footprint overlaps <paramref name="area"/>.</summary>
+	public IEnumerable<PlacedPiece> FloorPiecesOver(Rect2 area) =>
+		_pieces.Where(piece => piece.Prop.Mount == PropMount.Floor && XZ(piece.Envelope).Intersects(area));
 
 	/// <summary>Keeps floor props out of an area (doorway approaches, circulation, interaction space); actors may use it.</summary>
 	public void Reserve(Rect2 area) => _reserved.Add(area);
@@ -232,11 +222,8 @@ public sealed class RoomBlueprint
 	/// <summary>
 	/// Places a plan at <paramref name="at"/>. Required pieces go in together or not at all and must keep the room
 	/// <see cref="IsAcceptable"/>; optional pieces are then tried one by one. Leaves the blueprint unchanged on false.
-	/// The required pieces may sink into a <paramref name="pit"/> cut from the floor tiles under them, and may claim a
-	/// <paramref name="landing"/>: an area in front of stairs that no floor prop may ever cover and that every doorway
-	/// must keep reaching, for the rest of the assembly.
 	/// </summary>
-	public bool TryPlace(PlacementPlan plan, Transform3D at, IReadOnlyCollection<Vector2I> pit = null, Rect2? landing = null)
+	public bool TryPlace(PlacementPlan plan, Transform3D at)
 	{
 		if (plan.IsEmpty) return false;
 		var start = Save();
@@ -246,29 +233,11 @@ public sealed class RoomBlueprint
 			Restore(start);
 			return false;
 		}
-		float half = Room.TileSize / 2f;
-		foreach (var tile in pit ?? [])
-		{
-			_pits.Add(tile);
-			var center = RoomFootprint.TileCenter(tile);
-			Grid.AddObstacle(new Rect2(center.X - half, center.Z - half, Room.TileSize, Room.TileSize));
-		}
 		if (!IsAcceptable)
 		{
 			LastRejection = $"{plan.Pieces[0].Prop.Id}: would cut off a doorway or exceed the pocket budget";
 			Restore(start);
 			return false;
-		}
-		if (landing is { } area)
-		{
-			string blocker = _pieces.FirstOrDefault(piece => piece.Prop.Mount == PropMount.Floor && XZ(piece.Envelope).Intersects(area)).Prop?.Id;
-			if (blocker != null || !HasFloorSupport(area.Grow(-.05f)) || !IsReachable(area.GetCenter()))
-			{
-				LastRejection = $"{plan.Pieces[0].Prop.Id}: its landing is {(blocker != null ? $"covered by {blocker}" : "off the floor or cut off from the doorways")}";
-				Restore(start);
-				return false;
-			}
-			_landings.Add(area);
 		}
 		foreach (var piece in plan.Pieces.Where(piece => piece.Optional))
 		{
@@ -343,7 +312,7 @@ public sealed class RoomBlueprint
 			if (!HasFloorSupport(area.Grow(-.05f))) return Reject(piece, "extends past the floor");
 			if (_wallBoxes.Any(wall => XZ(wall).Grow(-Tolerance).Intersects(area))) return Reject(piece, "overlaps a wall");
 			if (piece.Prop.Blocking && _reserved.Any(reserved => reserved.Intersects(area))) return Reject(piece, "blocks reserved circulation");
-			if (_landings.Any(landing => landing.Intersects(area))) return Reject(piece, "covers a stair landing");
+			if (_fronts.Any(front => front.Intersects(area))) return Reject(piece, "covers an interactive prop's front");
 		}
 		else if (!Interior.Grow(1).Encloses(area))
 		{
@@ -356,18 +325,29 @@ public sealed class RoomBlueprint
 			bool vertical = envelope.Position.Y < other.Envelope.End.Y - .01f && envelope.End.Y > other.Envelope.Position.Y + .01f;
 			if (vertical && XZ(other.Envelope).Grow(gap - Tolerance).Intersects(area)) return Reject(piece, $"overlaps {other.Prop.Id}");
 		}
+		var pit = piece.Prop.Sunken ? PitUnder(area) : [];
+		if (pit.Any(tile => !IsFloor(tile) || MapData.CardinalOffsets.Any(offset => !pit.Contains(tile + offset) && !IsFloor(tile + offset))))
+			return Reject(piece, "needs floor on every side of its pit");
+		// The front stays usable for the rest of the assembly: on the floor, never covered, and reachable.
+		var front = XZ(transform * new Aabb(new Vector3(geometry.Envelope.Position.X, 0, geometry.Envelope.End.Z),
+			new Vector3(geometry.Envelope.Size.X, 1, piece.Prop.FrontDepth)));
+		if (piece.Prop.Interactive && (!HasFloorSupport(front.Grow(-.05f)) || FloorPiecesOver(front).Any()))
+			return Reject(piece, "has no free floor in front");
 		_pieces.Add(new(piece.Prop, piece.Variant, transform, envelope));
 		foreach (var solid in geometry.Solids) Grid.AddObstacle(transform * solid);
-		if (checkConnectivity && geometry.Solids.Count > 0 && !IsAcceptable) return Reject(piece, "would cut off a doorway or exceed the pocket budget");
-		if (piece.Prop.Interactive)
+		foreach (var tile in pit)
 		{
-			// Keep the front clear so the prop stays usable after later placements.
-			var front = transform * new Aabb(new Vector3(geometry.Envelope.Position.X, 0, geometry.Envelope.End.Z),
-				new Vector3(geometry.Envelope.Size.X, 1, 1.4f));
-			Reserve(XZ(front));
+			_pits.Add(tile);
+			Grid.AddObstacle(RoomFootprint.TileArea(tile));
 		}
+		if (piece.Prop.Interactive) _fronts.Add(front);
+		if (checkConnectivity && (geometry.Solids.Count > 0 || piece.Prop.Interactive) && !IsAcceptable)
+			return Reject(piece, "would cut off a doorway or exceed the pocket budget");
 		return true;
 	}
+
+	/// <summary>Footprint tiles whose centers a sunken prop covers: they become its pit.</summary>
+	private Vector2I[] PitUnder(Rect2 area) => Footprint.Tiles.Where(tile => area.HasPoint(XZ(RoomFootprint.TileCenter(tile)))).ToArray();
 
 	private bool Reject(PlannedPiece piece, string reason)
 	{
@@ -388,9 +368,9 @@ public sealed class RoomBlueprint
 		return true;
 	}
 
-	private readonly record struct Checkpoint(byte[] Grid, int Pieces, int Reserved, int Pits, int Landings);
+	private readonly record struct Checkpoint(byte[] Grid, int Pieces, int Reserved, int Pits, int Fronts);
 
-	private Checkpoint Save() => new(Grid.Save(), _pieces.Count, _reserved.Count, _pits.Count, _landings.Count);
+	private Checkpoint Save() => new(Grid.Save(), _pieces.Count, _reserved.Count, _pits.Count, _fronts.Count);
 
 	private void Restore(Checkpoint checkpoint)
 	{
@@ -398,7 +378,7 @@ public sealed class RoomBlueprint
 		_pieces.RemoveRange(checkpoint.Pieces, _pieces.Count - checkpoint.Pieces);
 		_reserved.RemoveRange(checkpoint.Reserved, _reserved.Count - checkpoint.Reserved);
 		_pits.RemoveRange(checkpoint.Pits, _pits.Count - checkpoint.Pits);
-		_landings.RemoveRange(checkpoint.Landings, _landings.Count - checkpoint.Landings);
+		_fronts.RemoveRange(checkpoint.Fronts, _fronts.Count - checkpoint.Fronts);
 	}
 
 	/// <summary>

@@ -38,6 +38,8 @@ public sealed class RoomFootprint
 
 	/// <summary>Local position of a tile's center.</summary>
 	public static Vector3 TileCenter(Vector2I tile) => new(tile.X * Room.TileSize, 0, tile.Y * Room.TileSize);
+	/// <summary>A tile's square in local XZ, edge to edge.</summary>
+	public static Rect2 TileArea(Vector2I tile) => new(tile.X * Room.TileSize - Room.TileSize / 2f, tile.Y * Room.TileSize - Room.TileSize / 2f, Room.TileSize, Room.TileSize);
 
 	/// <summary>Local position of the corner shared by tiles (x-1..x, z-1..z).</summary>
 	public static Vector3 CornerPoint(Vector2I corner) => TileCenter(corner) - new Vector3(Room.TileSize / 2f, 0, Room.TileSize / 2f);

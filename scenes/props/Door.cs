@@ -29,7 +29,6 @@ public partial class Door : Node3D
 	/// NavigationComponent.IsCrossingDoorway) to avoid oscillating there.
 	/// </summary>
 	[Export] public NavigationLink3D NavigationLink { get; set; }
-	[Export] public bool LockEligible { get; set; } = false;
 	public string ConnectionId { get; set; } = "";
 	public bool IsDiscovered => Secret?.IsDiscovered ?? true;
 

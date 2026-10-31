@@ -6,7 +6,7 @@ using Godot;
 /// Shared wall-geometry math: real, rotated mesh footprints as the single source of
 /// truth for "is this tile edge covered by wall?". Used by the generator's wall pass
 /// (to seal every required edge and verify it) and by <see cref="Room"/>'s doorway/
-/// connector validation (to ask whether an authored edge is passable).
+/// connector validation (to ask whether a doorway edge is passable).
 /// </summary>
 public static class WallFootprints
 {

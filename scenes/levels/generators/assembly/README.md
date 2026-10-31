@@ -22,7 +22,8 @@ Create `props/<category>/<name>.tres` with script `Prop`:
 | `Mount` | `Floor` or `Wall`; wall props use `MountHeight` and `WallInset` (recess from wall trim to the flat face) |
 | `BackToWall` | Floor props that stand against a wall (beds, shelves, barrels) |
 | `Blocking` | Off for things actors walk over or that rest on other props |
-| `Interactive` | Keeps the space in front clear |
+| `Interactive` | Keeps the space in front (`FrontDepth` deep, as wide as the prop) on the floor, free of other floor props and reachable from every doorway |
+| `Sunken` | Stands in a pit cut into the floor tiles under it (down-stairs); needs floor on every side |
 
 ## Add a group
 
@@ -56,7 +57,7 @@ Steps run in order and take the space they need first: place identity-defining c
 | `WallDecorStep` | Wall mounts beside doorways or spread along plain walls |
 | `CellsStep` | Barred cells with operable gates, corner and junction pieces where bars meet, and content against each back wall; rows start flush in a room corner when they fit |
 | `FencedAreaStep` | A wall or corner bay (with content), a fenced walkway, or a divider |
-| `StairsStep` | The level's stairs: up-stairs against a wall, or `Sunken` down-stairs in a two-tile stairwell cut into open floor (floor on every side); the landing at the walk-on end must stay reachable from every doorway |
+| `StairsStep` | The level's stairs: up-stairs against a wall, or a `Sunken` stairs prop over two adjacent floor tiles; the stairs props are `Interactive`, so their landing stays free and reachable |
 
 A new kind of placement is a new `FurnishingStep` subclass that composes plans from `Content` and places them through `RoomBlueprint.TryPlace` (or `AgainstWall` for wall runs); the blueprint enforces floor support, overlap, circulation, connectivity and the pocket budget.
 

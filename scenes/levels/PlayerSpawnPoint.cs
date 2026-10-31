@@ -12,6 +12,7 @@ public partial class PlayerSpawnPoint : Node3D, IProgressionAnchor
 	[Export] public double AutoWalkSeconds { get; set; } = 0.75;
 	/// <summary>Where an arrival steps off the stairs onto the floor; floor reachability floods from here. Unset, from the spawn point.</summary>
 	[Export] public Node3D Landing { get; set; }
+	public Vector3 LandingPosition => (Landing ?? this).GlobalPosition;
 
 	public SpawnPoint SpawnPoint;
 

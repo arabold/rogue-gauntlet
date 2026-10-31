@@ -18,7 +18,6 @@ public enum RoomMarkerDirection
 [GlobalClass]
 public partial class DoorwayMarker : RoomMarker
 {
-	private const string VisualArrowLegacyName = "__MarkerArrow";
 	private const string VisualArrowNamePrefix = "__MarkerArrow";
 	private static readonly RoomMarkerDirection[] DirectionValues =
 	[
@@ -101,12 +100,10 @@ public partial class DoorwayMarker : RoomMarker
 
 		if (!Engine.IsEditorHint())
 		{
-			RemoveEditorVisual(VisualArrowLegacyName);
 			RemoveArrowVisuals();
 			return;
 		}
 
-		RemoveEditorVisual(VisualArrowLegacyName);
 		RemoveArrowVisuals();
 
 		var arrowColor = new Color(1f, 0.95f, 0.05f, 1f);

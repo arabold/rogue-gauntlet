@@ -27,20 +27,21 @@ public class RoomRotationTest
 	private const int TileSize = Room.TileSize;
 
 	[TestCase]
-	public void RotatingProceduralRoomsFourTimesReturnsToOriginalGeometry()
+	public void RotatingRoomsFourTimesReturnsToOriginalGeometry()
 	{
+		var types = Types(withDoors: true);
 		var failures = new List<string>();
 		for (ulong seed = 1; seed <= SeedCount; seed++)
 		{
-			Room room = Assemble(seed, withDoors: true);
+			Room room = Assemble(types, seed);
 			var props = SnapshotProps(room);
-			CheckRotationSweep(room, $"seed {seed}", strictContentChecks: true, failures);
+			CheckRotationSweep(room, $"seed {seed}", failures);
 			if (SnapshotProps(room) != props) failures.Add($"seed {seed}: props did not return to their original transforms");
 			room.Free();
 		}
 
 		AssertArray(failures)
-			.OverrideFailureMessage($"Found {failures.Count} rotation violation(s) across {SeedCount} procedural seeds:\n  "
+			.OverrideFailureMessage($"Found {failures.Count} rotation violation(s) across {SeedCount} seeds:\n  "
 				+ string.Join("\n  ", failures))
 			.IsEmpty();
 	}
@@ -55,7 +56,7 @@ public class RoomRotationTest
 	[TestCase]
 	public void RotatingATiltedChildComposesViaBasisNotEulerAddition()
 	{
-		Room room = Assemble(1);
+		Room room = Assemble(Types(withDoors: false), 1);
 
 		var tiltedProp = new Node3D
 		{
@@ -76,13 +77,11 @@ public class RoomRotationTest
 			.IsTrue();
 	}
 
-	/// <summary>A room assembled from the Garrison types (entrances and exits included), cycling through them by seed.</summary>
-	private static Room Assemble(ulong seed, bool withDoors = false)
-	{
-		var factory = withDoors ? TestFactories.GarrisonRoomsWithDoors() : TestFactories.GarrisonRooms();
-		RoomType[] types = [.. factory.RoomTypes, .. factory.EntranceTypes, .. factory.ExitTypes];
-		return RoomAssembler.Assemble(types[(int)(seed % (ulong)types.Length)], seed);
-	}
+	/// <summary>Every Garrison type, entrances and exits included; loaded once per test, not per seed.</summary>
+	private static RoomType[] Types(bool withDoors) => (withDoors ? TestFactories.GarrisonRoomsWithDoors() : TestFactories.GarrisonRooms()).AllTypes;
+
+	/// <summary>A room assembled from <paramref name="types"/>, cycling through them by seed.</summary>
+	private static Room Assemble(RoomType[] types, ulong seed) => RoomAssembler.Assemble(types[(int)(seed % (ulong)types.Length)], seed);
 
 	private static string SnapshotProps(Room room) => string.Join("|", room.GetNode("Props").GetChildren().OfType<Node3D>()
 		.Select(prop => $"{prop.Name}:{prop.Transform.Origin.Snapped(Vector3.One * .001f)}:{prop.Transform.Basis.X.Snapped(Vector3.One * .001f)}:{prop.Transform.Basis.Z.Snapped(Vector3.One * .001f)}"));
@@ -95,7 +94,7 @@ public class RoomRotationTest
 	/// <summary>
 	/// A GridMap cell can legitimately sit at any of Godot's 24 orthogonal
 	/// orientations, not just the 4 upright Y-rotations this project's own wall/floor
-	/// content happens to use (e.g. a hand-placed decoration tipped over for variety).
+	/// content happens to use (e.g. a piece tipped over for variety).
 	/// Rotation must compose correctly for those too, via the engine's own basis math,
 	/// not a lookup table limited to the 4 orientations this project's content
 	/// currently exercises.
@@ -103,21 +102,21 @@ public class RoomRotationTest
 	[TestCase]
 	public void RotatingANonUprightGridMapOrientationComposesCorrectly()
 	{
-		Room room = Assemble(1);
+		Room room = Assemble(Types(withDoors: false), 1);
 
 		// Far outside the room's own generated content, so this doesn't collide with
 		// anything BakeTileMap scans.
 		var cell = new Vector3I(1000, 0, 1000);
 		const int nonUprightOrientation = 1; // not one of {0,16,10,22}
-		room.DecorationGridMap.SetCellItem(cell, 0, nonUprightOrientation);
+		room.WallGridMap.SetCellItem(cell, 0, nonUprightOrientation);
 		Basis expectedBasis = new Basis(Vector3.Up, Mathf.DegToRad(90f))
-			* room.DecorationGridMap.GetBasisWithOrthogonalIndex(nonUprightOrientation);
+			* room.WallGridMap.GetBasisWithOrthogonalIndex(nonUprightOrientation);
 
 		room.Rotate(1);
 
 		Vector3I rotatedCell = new(cell.Z, cell.Y, -cell.X);
-		int rotatedOrientation = room.DecorationGridMap.GetCellItemOrientation(rotatedCell);
-		Basis actualBasis = room.DecorationGridMap.GetBasisWithOrthogonalIndex(rotatedOrientation);
+		int rotatedOrientation = room.WallGridMap.GetCellItemOrientation(rotatedCell);
+		Basis actualBasis = room.WallGridMap.GetBasisWithOrthogonalIndex(rotatedOrientation);
 
 		room.QueueFree();
 
@@ -132,11 +131,10 @@ public class RoomRotationTest
 	/// from its original orientation, checking invariants at every step and a full
 	/// original-geometry match once back at 360 (== 0).
 	/// </summary>
-	private static void CheckRotationSweep(Room room, string label, bool strictContentChecks, List<string> failures)
+	private static void CheckRotationSweep(Room room, string label, List<string> failures)
 	{
 		var originalFloor = SnapshotCells(room.FloorGridMap);
 		var originalWall = SnapshotCells(room.WallGridMap);
-		var originalDecoration = SnapshotCells(room.DecorationGridMap);
 		int originalWidth = room.Map.Width;
 		int originalHeight = room.Map.Height;
 		var originalTileCounts = CountTileTypes(room.Map);
@@ -152,11 +150,6 @@ public class RoomRotationTest
 			if (room.Map.Width != expectedWidth || room.Map.Height != expectedHeight)
 			{
 				failures.Add($"{context}: map is {room.Map.Width}x{room.Map.Height}, expected {expectedWidth}x{expectedHeight}");
-			}
-
-			if (!strictContentChecks)
-			{
-				continue;
 			}
 
 			var tileCounts = CountTileTypes(room.Map);
@@ -180,7 +173,6 @@ public class RoomRotationTest
 		// one guarantee that holds unconditionally, for any room's content.
 		AssertGridMapMatches(originalFloor, SnapshotCells(room.FloorGridMap), $"{label}: FloorGridMap", failures);
 		AssertGridMapMatches(originalWall, SnapshotCells(room.WallGridMap), $"{label}: WallGridMap", failures);
-		AssertGridMapMatches(originalDecoration, SnapshotCells(room.DecorationGridMap), $"{label}: DecorationGridMap", failures);
 	}
 
 	/// <summary>Doorway markers stay on connectors and doors stay on their marker's edge after rotation.</summary>
@@ -248,7 +240,7 @@ public class RoomRotationTest
 		return failures;
 	}
 
-	private static Dictionary<MapTile, int> CountTileTypes(MapData map)
+	internal static Dictionary<MapTile, int> CountTileTypes(MapData map)
 	{
 		var counts = new Dictionary<MapTile, int>();
 		for (int x = 0; x < map.Width; x++)

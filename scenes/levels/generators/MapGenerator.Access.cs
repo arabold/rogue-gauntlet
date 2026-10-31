@@ -102,7 +102,7 @@ public partial class MapGenerator
 				if (region.Tiles.Any(protectedTiles.Contains)) continue;
 				var trial = blocked.Concat(entrances).ToHashSet();
 				var reached = AccessSolutionValidator.Reachable(Map, entry, trial);
-				if (region.Tiles.Any(t => reached.Contains(t))) continue; // an unprotected inferred opening/bypass
+				if (region.Tiles.Any(t => reached.Contains(t))) continue; // an unprotected opening/bypass
 				// Every other ordinary room must retain its route. Prior selected optional rooms stay blocked.
 				if (Floor.Rooms.Any(r => r != region && !_secretRoomIds.Contains(r.Id) && !targets.Any(t => t.Region == r)
 					&& r.Tiles.Any(t => Map.IsRoom(t.X, t.Y)) && !r.Tiles.Any(reached.Contains))) continue;
@@ -141,7 +141,7 @@ public partial class MapGenerator
 		{
 			var pair = Floor.Doors.FirstOrDefault(d => d.Door == door);
 			if (door.Interior == null) door.ConnectionId = pair.Door != null ? $"connector:{pair.Connector.X}:{pair.Connector.Y}:{ordinal++}"
-				: "authored:" + NavigationRegion.GetPathTo(door);
+				: "door:" + NavigationRegion.GetPathTo(door);
 			Floor.RecordDoorBaseline(door);
 		}
 	}

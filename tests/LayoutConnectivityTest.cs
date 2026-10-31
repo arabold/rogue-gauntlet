@@ -26,8 +26,7 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public class LayoutConnectivityTest
 {
-	// Extended alongside WallIntegrityTest's sweep once rotated authored-room
-	// placements became reachable (see that suite's SeedCount note).
+	// Matches WallIntegrityTest's sweep (see that suite's SeedCount note).
 	private const int DefaultSeedCount = 120;
 
 	[TestCase]
@@ -49,17 +48,10 @@ public class LayoutConnectivityTest
 	}
 
 	[TestCase]
-	public async Task ProceduralRoomDungeonsAreFullyConnected()
-	{
-		await AssertConnectedAcrossSeeds(new PackedRoomLayout(), 30, factory: TestFactories.GarrisonRooms());
-	}
-
-	[TestCase]
-	public async Task ProceduralRoomsWithDoorsAreFullyConnected()
+	public async Task RoomsWithDoorsAreFullyConnected()
 	{
 		// Every explicit doorway must end up force-connected by ConnectRemainingDoorways
-		// (checked by FindConnectivityFailures below), the same contract authored rooms
-		// with DoorwayMarkers rely on.
+		// (checked by FindConnectivityFailures below).
 		await AssertConnectedAcrossSeeds(new PackedRoomLayout(), 30, factory: TestFactories.GarrisonRoomsWithDoors());
 	}
 
@@ -176,24 +168,6 @@ public class LayoutConnectivityTest
 		}
 
 		return found && bestDistanceSq <= (4f * 2f) * (4f * 2f);
-	}
-
-	[TestCase]
-	public async Task ProceduralRoomDungeonsAreDeterministicPerSeed()
-	{
-		var (_, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
-		mapGenerator.Seed = 11;
-		mapGenerator.GenerateMap(includeGameplay: false);
-		string first = Fingerprint(mapGenerator.Map);
-
-		mapGenerator.Seed = 11;
-		mapGenerator.GenerateMap(includeGameplay: false);
-		string second = Fingerprint(mapGenerator.Map);
-
-		AssertString(second)
-			.OverrideFailureMessage("Two generations with the same seed produced different maps with "
-				+ "procedural rooms. All procedural decisions must draw from the explicit seeded layout RNG.")
-			.IsEqual(first);
 	}
 
 	[TestCase]

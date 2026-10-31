@@ -1,9 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://dhi51wv5tbpik"]
+[gd_scene load_steps=6 format=3 uid="uid://dhi51wv5tbpik"]
 
 [ext_resource type="Script" uid="uid://ndxolawfujyq" path="res://scenes/levels/generators/MapGenerator.cs" id="1_wxtnq"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="3_xm338"]
 [ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="4_7abrk"]
-[ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="5_dogu5"]
 
 [ext_resource type="Resource" path="res://scenes/effects/world/teleport_arrival/teleport_arrival.tres" id="spawn_arrival"]
 
@@ -12,12 +11,11 @@ geometry_collision_mask = 4294901779
 agent_radius = 1.0
 edge_max_length = 2.0
 
-[node name="MapGenerator" type="Node3D" node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap", "OcclusionGridMap", "NavigationRegion")]
+[node name="MapGenerator" type="Node3D" node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "OcclusionGridMap", "NavigationRegion")]
 script = ExtResource("1_wxtnq")
 SpawnArrivalEffect = ExtResource("spawn_arrival")
 FloorGridMap = NodePath("FloorGridMap")
 WallGridMap = NodePath("WallGridMap")
-DecorationGridMap = NodePath("DecorationGridMap")
 OcclusionGridMap = NodePath("OcclusionGridMap")
 NavigationRegion = NodePath("NavigationRegion3D")
 
@@ -42,15 +40,6 @@ cell_center_z = false
 collision_layer = 2
 collision_mask = 0
 metadata/_editor_floor_ = Vector3(0, 0, 0)
-
-[node name="DecorationGridMap" type="GridMap" parent="."]
-mesh_library = ExtResource("5_dogu5")
-cell_size = Vector3(1, 1, 1)
-cell_center_x = false
-cell_center_y = false
-cell_center_z = false
-collision_layer = 16
-collision_mask = 0
 
 [node name="OcclusionGridMap" type="GridMap" parent="."]
 cell_size = Vector3(1, 1, 1)

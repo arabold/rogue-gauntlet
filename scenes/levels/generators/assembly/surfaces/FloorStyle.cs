@@ -152,7 +152,7 @@ public abstract partial class FloorStyle : Resource
 					if (!IsFloorQuad(room, x + dx, z + dz) || covered[x + dx, z + dz]) return false;
 			}
 			var rect = new Rect2(2 * area.Position.X - 2, 2 * area.Position.Y - 2, 2 * area.Size.X, 2 * area.Size.Y).Grow(-.05f);
-			return !room.Pieces.Any(piece => piece.Prop.Mount == PropMount.Floor && RoomBlueprint.XZ(piece.Envelope).Intersects(rect));
+			return !room.FloorPiecesOver(rect).Any();
 		}
 	}
 }

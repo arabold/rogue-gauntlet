@@ -21,7 +21,6 @@ public sealed class GeneratedFloor
 	private const uint SpawnObstructionMask = WorldSight.Blockers;
 
 	private readonly Node3D _world;
-	private readonly GridMap _decoration;
 	private readonly List<RoomRegion> _rooms = new();
 	// Interior floor tile -> room id, for "which room is this in" queries.
 	private readonly Dictionary<Vector2I, int> _tileToRoom = new();
@@ -30,19 +29,16 @@ public sealed class GeneratedFloor
 	private bool[] _reachable;
 	private readonly Dictionary<string, (Door Door, DoorAccessSaveData Baseline)> _doorBaselines = new();
 	private List<FloorTrap> _traps;
-	private HashSet<Vector2I> _decoratedTiles;
 	private readonly HashSet<Vector2I> _propTiles = new();
 	private ulong _propTilesFrame = ulong.MaxValue;
 	private int _propTilesCount = -1;
 	private PhysicsShapeQueryParameters3D _columnQuery;
 
 	/// <param name="world">The generator: the physics space, scene tree and the subtree holding progression anchors.</param>
-	/// <param name="decoration">Read live until <see cref="Freeze"/>.</param>
-	public GeneratedFloor(MapData map, Node3D world, GridMap decoration)
+	public GeneratedFloor(MapData map, Node3D world)
 	{
 		Map = map;
 		_world = world;
-		_decoration = decoration;
 	}
 
 	public MapData Map { get; }
@@ -61,10 +57,10 @@ public sealed class GeneratedFloor
 	public Transform3D? GatekeeperSite { get; internal set; }
 	/// <summary>The spawn point that brings the gatekeeper in; null on floors without one.</summary>
 	public SpawnPoint GatekeeperSpawn { get; internal set; }
-	public bool IsFrozen => _decoratedTiles != null;
+	public bool IsFrozen => _traps != null;
 	/// <summary>Every door's generated access state, keyed by its stable connection id: what exploration saves diff against.</summary>
 	public IReadOnlyDictionary<string, (Door Door, DoorAccessSaveData Baseline)> DoorBaselines => _doorBaselines;
-	/// <summary>Authored and generated floor traps, collected when the floor freezes.</summary>
+	/// <summary>The floor's traps, collected when the floor freezes.</summary>
 	public IReadOnlyList<FloorTrap> Traps => _traps ?? [];
 
 	/// <summary>Progression anchors and stairs that keep spawns at a distance; collected with the arrival once rooms are placed.</summary>
@@ -155,27 +151,17 @@ public sealed class GeneratedFloor
 		if (IsFrozen) throw new InvalidOperationException("A frozen floor cannot change.");
 	}
 
-	/// <summary>Ends generation: snapshots decoration occupancy and traps. Nothing writes to the floor after this.</summary>
+	/// <summary>Ends generation: snapshots the traps. Nothing writes to the floor after this.</summary>
 	public void Freeze()
 	{
 		RequireLive();
-		var decorated = new HashSet<Vector2I>();
-		int half = Room.TileSize / 2;
-		foreach (Vector3I cell in _decoration.GetUsedCells())
-		{
-			// A tile owns the cells within half a tile of its center on the floor layer, as HasDecorationInTile scans them.
-			if (cell.Y != 0) continue;
-			decorated.Add(new Vector2I(Mathf.FloorToInt((cell.X + half) / (float)Room.TileSize) + Map.Width / 2,
-				Mathf.FloorToInt((cell.Z + half) / (float)Room.TileSize) + Map.Height / 2));
-		}
 		_traps = _world.FindChildren("*", "", true, false).OfType<FloorTrap>().Where(trap => !trap.IsQueuedForDeletion()).ToList();
-		_decoratedTiles = decorated;
 	}
 
 	/// <summary>The room owning an interior floor tile, or -1 for corridors, thresholds, void and out-of-bounds tiles.</summary>
 	public int RoomIdAt(Vector2I tile) => _tileToRoom.TryGetValue(tile, out var id) ? id : -1;
 
-	/// <summary>An unreachable tile center, decoration and nearby props make a tile unusable for spawns and loot.</summary>
+	/// <summary>An unreachable tile center and nearby props make a tile unusable for spawns and loot.</summary>
 	internal bool IsOccupied(int x, int z)
 	{
 		RefreshPropTiles();
@@ -186,7 +172,7 @@ public sealed class GeneratedFloor
 	private bool IsOccupiedNow(int x, int z)
 	{
 		var tile = new Vector2I(x, z);
-		return !IsReachable(Map.TileToWorld(x, z)) || HasDecorationInTile(x, z) || _propTiles.Contains(tile);
+		return !IsReachable(Map.TileToWorld(x, z)) || _propTiles.Contains(tile);
 	}
 
 	/// <summary>
@@ -458,29 +444,6 @@ public sealed class GeneratedFloor
 		};
 		_columnQuery.Transform = new Transform3D(Basis.Identity, worldPosition + Vector3.Up * 1.0f);
 		return space.IntersectShape(_columnQuery, 1).Count > 0;
-	}
-
-	private bool HasDecorationInTile(int x, int z)
-	{
-		if (_decoratedTiles != null)
-		{
-			return _decoratedTiles.Contains(new Vector2I(x, z));
-		}
-
-		var center = Map.TileToWorld(x, z);
-		int half = Room.TileSize / 2;
-		for (int dx = -half; dx < half; dx++)
-		{
-			for (int dz = -half; dz < half; dz++)
-			{
-				if (_decoration.GetCellItem(new Vector3I(center.X + dx, center.Y, center.Z + dz)) >= 0)
-				{
-					return true;
-				}
-			}
-		}
-
-		return false;
 	}
 
 	/// <summary>
