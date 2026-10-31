@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("script")
-SpellName = "Stone Barrier"
+SpellName = "Stone Ward"
 Element = 2
-CapacityByLevel = PackedFloat32Array(30, 45, 60)
-ReflectionByLevel = PackedFloat32Array(0.25, 0.35, 0.45)
+CapacityScaleByLevel = PackedFloat32Array(3.75, 4.125, 4.5, 4.875, 5.25)
+ReflectionByLevel = PackedFloat32Array(0.25, 0.35, 0.45, 0.5, 0.55)

@@ -10,7 +10,7 @@ The [Game Design Document](docs/game-design.md) describes the intended experienc
 
 [Dungeon Layout, Access, and Discovery](docs/dungeon-exploration-design.md) defines intended room selection, route obligations, locks, boss seals, and generated secrets; its separate [implementation plan](docs/specs/level-progression-prototype-plan.md) describes remaining work. The [documentation index](docs/README.md) separates concepts, current implemented systems, proposed implementation plans, and content references. Start with [Randomness and Seeds](docs/randomness-and-seeds.md) for the existing seeded-generation and persistence design.
 
-[Actor actions and world interactions](docs/actor-actions-and-interactions.md) defines proposed player/monster actions, keyboard/gamepad primary/secondary actions, elemental spell progression/mana, four item quick slots, timed world interaction and active defense; its [implementation plan](docs/specs/actor-actions-and-interactions-plan.md) specifies integration and independently playable slices.
+[Actor actions and world interactions](docs/actor-actions-and-interactions.md) defines proposed player/monster actions, keyboard/gamepad primary/secondary actions, spell wands/staves and mana, four item quick slots, timed world interaction and active defense; its [implementation plan](docs/specs/actor-actions-and-interactions-plan.md) specifies integration and independently playable slices.
 
 [Monster design and authoring](docs/monster-authoring-design.md) defines the agreed first-three-floor roster, editable Godot assemblies and basic tactical strategies; the [roadmap](docs/development-roadmap.md#first-three-floor-acceptance) covers authoring acceptance and first-realm tuning. Later realm order remains provisional.
 

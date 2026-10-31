@@ -1,0 +1,56 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/magic/missile/magic_missile.tscn" id="base"]
+[ext_resource type="PackedScene" path="res://scenes/magic/missile/magic_missile_impact_earth.tscn" id="impact"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_core.gdshader" id="core_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_ribbon_glow.gdshader" id="ribbon_shader"]
+[ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[ext_resource type="Texture2D" path="res://scenes/magic/earth/toon_earth_ramp.tres" id="ramp"]
+
+[sub_resource type="Gradient" id="grit_life"]
+offsets = PackedFloat32Array(0, 0.4, 1)
+colors = PackedColorArray(0.96, 0.76, 0.36, 1, 0.55, 0.32, 0.14, 1, 0.2, 0.13, 0.09, 0)
+
+[sub_resource type="GradientTexture1D" id="spark_life"]
+gradient = SubResource("grit_life")
+
+[sub_resource type="ShaderMaterial" id="core_material"]
+shader = ExtResource("core_shader")
+shader_parameter/color_ramp = ExtResource("ramp")
+shader_parameter/brightness = 1.2
+shader_parameter/noise_scale = 4.0
+shader_parameter/pulse = 0.0
+shader_parameter/heat_bias = 0.0
+
+[sub_resource type="ShaderMaterial" id="ribbon_material"]
+render_priority = -1
+shader = ExtResource("ribbon_shader")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/color_ramp = ExtResource("ramp")
+shader_parameter/brightness = 0.9
+shader_parameter/opacity = 0.7
+
+[sub_resource type="ParticleProcessMaterial" id="garnish_process"]
+particle_flag_align_y = true
+direction = Vector3(0, 0, 1)
+spread = 45.0
+initial_velocity_min = 0.5
+initial_velocity_max = 1.5
+gravity = Vector3(0, -6, 0)
+scale_min = 0.7
+scale_max = 1.2
+color_ramp = SubResource("spark_life")
+
+[node name="MagicMissileEarth" instance=ExtResource("base")]
+ImpactEffectScene = ExtResource("impact")
+
+[node name="Core" parent="Pivot" index="1"]
+material_override = SubResource("core_material")
+
+[node name="Garnish" parent="Pivot" index="2"]
+amount = 8
+lifetime = 0.35
+process_material = SubResource("garnish_process")
+
+[node name="Trail" parent="." index="1"]
+material_override = SubResource("ribbon_material")

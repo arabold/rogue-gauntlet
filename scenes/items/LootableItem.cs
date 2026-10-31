@@ -14,7 +14,8 @@ public partial class LootableItem : Node3D
 	/// The item to be picked up.
 	/// </summary>
 	[Export] public Item Item { get; set; }
-	[Export] public PackedScene CursePresentation { get; set; }
+	/// <summary>Decorates the dropped model with its aura: a known curse or a spell weapon's element.</summary>
+	[Export] public PackedScene AuraPresentation { get; set; }
 	/// <summary>
 	/// The quantity of items that can be picked up.
 	/// </summary>
@@ -157,9 +158,9 @@ public partial class LootableItem : Node3D
 		UpdateItemNodeProperties(itemScene);
 
 		Pivot.AddChild(itemScene);
-		if (CursePresentation != null && Item is EquipableItem equipment && itemScene is Node3D model)
+		if (AuraPresentation != null && Item is EquipableItem equipment && itemScene is Node3D model)
 		{
-			var aura = CursePresentation.Instantiate<ItemCurseWorldEffectPresenter>();
+			var aura = AuraPresentation.Instantiate<ItemAuraPresenter>();
 			aura.Initialize(equipment, model); model.AddChild(aura);
 		}
 		Pivot.RotateY((float)(GD.Randf() * 2 * Math.PI));

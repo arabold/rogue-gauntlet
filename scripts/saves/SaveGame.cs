@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 44;
+	public const int CurrentVersion = 48;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -67,6 +67,11 @@ public sealed class PlayerSaveData
 	public InventorySaveData Inventory { get; set; } = new();
 	public PlayerActionSaveData Actions { get; set; } = new();
 	public List<ActiveBuffSaveData> Buffs { get; set; } = [];
+	/// <summary>
+	/// Remaining capacity of the equipped spell weapon's active ward, or 0 without one. The weapon restores the spell
+	/// and its level, so the capacity is the only state the ward adds.
+	/// </summary>
+	public float WardCapacity { get; set; }
 }
 
 /// <summary>One live activation; independent entries preserve stacking, duration and periodic progress.</summary>
@@ -117,6 +122,7 @@ public sealed class QuickItemBindingSaveData
 public sealed class PlayerStatsSaveData
 {
 	public float Health { get; set; }
+	public float Mana { get; set; }
 	public int Xp { get; set; }
 	public int XpLevel { get; set; }
 	public int Gold { get; set; }
@@ -129,6 +135,8 @@ public sealed class PlayerStatsSaveData
 
 	public float BaseSpeed { get; set; }
 	public float BaseMaxHealth { get; set; }
+	public float BaseMaxMana { get; set; }
+	public float ManaRegenRate { get; set; }
 	public float BaseMinDamage { get; set; }
 	public float BaseMaxDamage { get; set; }
 	public float BaseCritChance { get; set; }
@@ -159,6 +167,8 @@ public sealed class ItemEntrySaveData
 	public bool CurseStatusKnown { get; set; } = true;
 	public float MagnitudeScale { get; set; }
 	public List<RolledAffixSaveData> Affixes { get; set; } = [];
+	/// <summary>A wand's or staff's bound spell definition; empty for other items.</summary>
+	public string SpellPath { get; set; } = string.Empty;
 }
 
 public sealed class RolledAffixSaveData

@@ -118,6 +118,12 @@ public partial class EquipableItem : BuffedItem
 		RegisterStats(player.Stats);
 	}
 
+	/// <summary>
+	/// The last step of a random roll (see <see cref="LootRoller.ApplyRoll"/>), for item-specific identity such as a spell
+	/// weapon's spell. Draws nothing by default, so other items roll the same for the same seed.
+	/// </summary>
+	protected internal virtual void RollIntrinsic(RandomNumberGenerator rng) { }
+
 	/// <summary>Re-registers a worn item's stats after an in-place change such as enchanting or lifting a curse.</summary>
 	public void RefreshStats(Player player)
 	{
@@ -163,14 +169,23 @@ public partial class EquipableItem : BuffedItem
 	/// </summary>
 	public string ComposeName(string baseName) => TextExtensions.JoinWords(LeadWord, baseName, NameTail);
 
-	/// <summary>The name while attributes are hidden: the quality word and base name, e.g. "Magic Broadsword".</summary>
-	public string ComposeUnidentifiedName(string baseName) => TextExtensions.JoinWords(QualityWord.UpperFirst(), baseName);
+	/// <summary>The name while attributes are hidden: the quality word, base name and identity tail, e.g. "Magic Broadsword".</summary>
+	public string ComposeUnidentifiedName(string baseName) => TextExtensions.JoinWords(QualityWord.UpperFirst(), baseName, IdentityTail);
 
 	/// <summary>The word before the base name: the first prefix for Magic and Rare, else the Poor or Superior adjective.</summary>
 	protected string LeadWord => Quality >= ItemQuality.Magic ? FirstAffixName(AffixKind.Prefix) : QualityAdjective.UpperFirst();
 
-	/// <summary>The words after the base name: the first suffix for Magic and Rare.</summary>
-	protected virtual string NameTail => Quality >= ItemQuality.Magic ? FirstAffixName(AffixKind.Suffix) : null;
+	/// <summary>
+	/// The words after the base name: the identity tail when the item has one, otherwise the first suffix for Magic and
+	/// Rare.
+	/// </summary>
+	protected virtual string NameTail => IdentityTail ?? (Quality >= ItemQuality.Magic ? FirstAffixName(AffixKind.Suffix) : null);
+
+	/// <summary>
+	/// Words after the base name that belong to the item's base identity, such as a spell weapon's spell. They show in
+	/// every name, identified or not, and take the place of the first suffix's name.
+	/// </summary>
+	protected virtual string IdentityTail => null;
 
 	/// <summary>The name fragment of the first rolled affix of <paramref name="kind"/>, or null.</summary>
 	protected string FirstAffixName(AffixKind kind) =>

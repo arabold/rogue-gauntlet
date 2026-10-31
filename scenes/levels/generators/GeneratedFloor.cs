@@ -19,12 +19,8 @@ public sealed class GeneratedFloor
 	// Physics layers a runtime spawn must stay clear of: world (1) | walls (2) | props (5).
 	// Keeps items out of stairs, transition blockers, walls, and props via a single overlap test.
 	private const uint SpawnObstructionMask = WorldSight.Blockers;
-	private const uint EffectLandingSurfaceMask = 1u;
-	private const float EffectLandingRayHeight = 10.0f;
-	private const float EffectLandingRayDepth = 14.0f;
 
 	private readonly Node3D _world;
-	private readonly GridMap _floorSurface;
 	private readonly GridMap _decoration;
 	private readonly List<RoomRegion> _rooms = new();
 	// Interior floor tile -> room id, for "which room is this in" queries.
@@ -38,16 +34,13 @@ public sealed class GeneratedFloor
 	private ulong _propTilesFrame = ulong.MaxValue;
 	private int _propTilesCount = -1;
 	private PhysicsShapeQueryParameters3D _columnQuery;
-	private PhysicsRayQueryParameters3D _landingQuery;
 
 	/// <param name="world">The generator: the physics space, scene tree and the subtree holding progression anchors.</param>
-	/// <param name="floorSurface">The merged floor, the only collider an effect lands on besides stairs.</param>
 	/// <param name="decoration">Read live until <see cref="Freeze"/>.</param>
-	public GeneratedFloor(MapData map, Node3D world, GridMap floorSurface, GridMap decoration)
+	public GeneratedFloor(MapData map, Node3D world, GridMap decoration)
 	{
 		Map = map;
 		_world = world;
-		_floorSurface = floorSurface;
 		_decoration = decoration;
 	}
 
@@ -408,94 +401,10 @@ public sealed class GeneratedFloor
 		return IsWalkableMapPosition(worldPosition) && !IsColumnObstructed(worldPosition);
 	}
 
-	/// <summary>
-	/// Finds a nearby floor/corridor point for effects that can land near props or decorations.
-	/// Unlike item spawns, this deliberately does not require a clear item-sized collision column.
-	/// </summary>
-	public bool TryFindEffectLandingPositionNear(Vector3 origin, float maxRadius, out Vector3 landingPosition)
-	{
-		if (IsWalkableMapPosition(origin))
-		{
-			landingPosition = origin;
-			return true;
-		}
-
-		if (TryProjectEffectLandingPosition(origin, out landingPosition))
-		{
-			return true;
-		}
-
-		const int samplesPerRing = 16;
-		const float ringStep = 0.5f;
-		for (float radius = ringStep; radius <= maxRadius; radius += ringStep)
-		{
-			for (int i = 0; i < samplesPerRing; i++)
-			{
-				float angle = Mathf.Tau * i / samplesPerRing;
-				var candidate = new Vector3(
-					origin.X + Mathf.Cos(angle) * radius,
-					origin.Y,
-					origin.Z + Mathf.Sin(angle) * radius);
-
-				if (IsWalkableMapPosition(candidate))
-				{
-					landingPosition = candidate;
-					return true;
-				}
-
-				if (TryProjectEffectLandingPosition(candidate, out landingPosition))
-				{
-					return true;
-				}
-			}
-		}
-
-		landingPosition = default;
-		return false;
-	}
-
-	private bool TryProjectEffectLandingPosition(Vector3 worldPosition, out Vector3 landingPosition)
-	{
-		landingPosition = default;
-		PhysicsDirectSpaceState3D space = _world.GetWorld3D()?.DirectSpaceState;
-		if (space == null)
-		{
-			return false;
-		}
-
-		_landingQuery ??= new PhysicsRayQueryParameters3D { CollisionMask = EffectLandingSurfaceMask, HitFromInside = false };
-		_landingQuery.From = worldPosition + Vector3.Up * EffectLandingRayHeight;
-		_landingQuery.To = worldPosition + Vector3.Down * EffectLandingRayDepth;
-		var result = space.IntersectRay(_landingQuery);
-		if (result.Count == 0 || result["normal"].AsVector3().Dot(Vector3.Up) < 0.35f)
-		{
-			return false;
-		}
-
-		Vector3 projectedPosition = result["position"].AsVector3();
-		Node collider = result["collider"].As<Node>();
-		bool isSurface = collider == _floorSurface
-			? IsWalkableMapPosition(projectedPosition)
-			: collider?.IsInGroup("stairs") == true && IsWithinMap(projectedPosition);
-		if (!isSurface)
-		{
-			return false;
-		}
-
-		landingPosition = projectedPosition;
-		return true;
-	}
-
 	private bool IsWalkableMapPosition(Vector3 worldPosition)
 	{
 		var tile = Map.WorldToTile(worldPosition);
 		return Map.IsWithinBounds(tile.X, tile.Y) && (Map.IsRoom(tile.X, tile.Y) || Map.IsCorridor(tile.X, tile.Y));
-	}
-
-	private bool IsWithinMap(Vector3 worldPosition)
-	{
-		var tile = Map.WorldToTile(worldPosition);
-		return Map.IsWithinBounds(tile.X, tile.Y);
 	}
 
 	/// <summary>

@@ -56,7 +56,7 @@ public partial class CharacterClass : Resource
 
 	/// <summary>
 	/// Writes the class's profile and attribute block into a runtime stats copy and refills
-	/// health, since MaxHealth is derived from the new Vitality.
+	/// health and mana, since their maximums derive from the new Vitality and Intelligence.
 	/// </summary>
 	public void ApplyToStats(PlayerStats stats)
 	{
@@ -70,6 +70,7 @@ public partial class CharacterClass : Resource
 		stats.BaseVitality = BaseVitality;
 		stats.BaseIntelligence = BaseIntelligence;
 		stats.Health = stats.MaxHealth;
+		stats.Mana = stats.MaxMana;
 	}
 
 	/// <summary>

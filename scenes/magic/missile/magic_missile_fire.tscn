@@ -1,0 +1,50 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/magic/missile/magic_missile.tscn" id="base"]
+[ext_resource type="PackedScene" path="res://scenes/magic/missile/magic_missile_impact_fire.tscn" id="impact"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_core.gdshader" id="core_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_ribbon_glow.gdshader" id="ribbon_shader"]
+[ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_fire_ramp.tres" id="ramp"]
+[ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_spark_life.tres" id="spark_life"]
+
+[sub_resource type="ShaderMaterial" id="core_material"]
+shader = ExtResource("core_shader")
+shader_parameter/color_ramp = ExtResource("ramp")
+shader_parameter/brightness = 2.0
+shader_parameter/noise_scale = 4.0
+shader_parameter/pulse = 0.0
+shader_parameter/heat_bias = 0.15
+
+[sub_resource type="ShaderMaterial" id="ribbon_material"]
+render_priority = -1
+shader = ExtResource("ribbon_shader")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/color_ramp = ExtResource("ramp")
+shader_parameter/brightness = 1.2
+shader_parameter/opacity = 0.85
+
+[sub_resource type="ParticleProcessMaterial" id="garnish_process"]
+particle_flag_align_y = true
+direction = Vector3(0, 0, 1)
+spread = 40.0
+initial_velocity_min = 0.3
+initial_velocity_max = 1.0
+gravity = Vector3(0, 1.5, 0)
+scale_min = 0.7
+scale_max = 1.2
+color_ramp = ExtResource("spark_life")
+
+[node name="MagicMissileFire" instance=ExtResource("base")]
+ImpactEffectScene = ExtResource("impact")
+
+[node name="Core" parent="Pivot" index="1"]
+material_override = SubResource("core_material")
+
+[node name="Garnish" parent="Pivot" index="2"]
+amount = 8
+lifetime = 0.35
+process_material = SubResource("garnish_process")
+
+[node name="Trail" parent="." index="1"]
+material_override = SubResource("ribbon_material")

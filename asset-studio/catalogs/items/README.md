@@ -1,6 +1,6 @@
 # Item catalogs
 
-Current catalog: **145 items**, using the shared character shading pipeline.
+Current catalog: **153 items**, using the shared character shading pipeline.
 
 [Complete visual overview](overview.png) · [Current validation and export status](status.json)
 
@@ -13,11 +13,11 @@ Current catalog: **145 items**, using the shared character shading pipeline.
 | Scrolls | 12 | [View scrolls](scrolls.png) |
 | Shields | 13 | [View shields](shields.png) |
 | Tools | 12 | [View tools](tools.png) |
-| Weapons | 30 | [View weapons](weapons.png) |
+| Weapons | 38 | [View weapons](weapons.png) |
 
 Each published item has a final GLB, fingerprint manifest and `lineup.png` in its category/name folder: front, three-quarter, side and gameplay-scale views.
 
-Godot-verified current exports: **145/145**. Authored-surface exceptions still flagged for geometry review: **17**. These exceptions are preserved original surfaces, not clean closed-mesh certifications.
+Godot-verified current exports: **0/153**. Authored-surface exceptions still flagged for geometry review: **17**. These exceptions are preserved original surfaces, not clean closed-mesh certifications.
 
 Regenerate these catalogs from published outputs with `./.venv/bin/python asset-studio/studio.py item catalog`. Use `item lineup` to render candidates in OS temporary storage, inspect them, then `item publish` to finalize. Rendering never updates this catalog. Changed sources set `source_current: false` until reviewed again.
 
@@ -184,10 +184,18 @@ Regenerate these catalogs from published outputs with `./.venv/bin/python asset-
 - [scythe_iron](weapons/scythe_iron/lineup.png)
 - [spear_steel](weapons/spear_steel/lineup.png)
 - [staff_archmage](weapons/staff_archmage/lineup.png)
+- [staff_bone](weapons/staff_bone/lineup.png)
+- [staff_crooked](weapons/staff_crooked/lineup.png)
 - [staff_emerald](weapons/staff_emerald/lineup.png)
+- [staff_horned](weapons/staff_horned/lineup.png)
+- [staff_iron](weapons/staff_iron/lineup.png)
 - [sword_knight](weapons/sword_knight/lineup.png)
 - [sword_sunblade](weapons/sword_sunblade/lineup.png)
+- [wand_bone](weapons/wand_bone/lineup.png)
+- [wand_carved](weapons/wand_carved/lineup.png)
 - [wand_celestial](weapons/wand_celestial/lineup.png)
+- [wand_crooked](weapons/wand_crooked/lineup.png)
+- [wand_iron](weapons/wand_iron/lineup.png)
 - [wand_ruby](weapons/wand_ruby/lineup.png)
 - [warhammer_iron](weapons/warhammer_iron/lineup.png)
 - [warhammer_spiked](weapons/warhammer_spiked/lineup.png)

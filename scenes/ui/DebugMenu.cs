@@ -51,6 +51,9 @@ public partial class DebugMenu : HBoxContainer
 	/// </summary>
 	[Export] public ItemCreationPolicy SpawnPolicy { get; set; }
 
+	/// <summary>Spells for the "Spawn spell" picker; without it the picker is unavailable.</summary>
+	[Export] public SpellPool SpawnSpells { get; set; }
+
 	/// <summary>Gameplay floor controlled by this menu, explicitly wired by the containing scene.</summary>
 	[Export] public Level ActiveLevel { get; set; }
 	private NavigationDebugOverlay _navigationOverlay;
@@ -62,6 +65,9 @@ public partial class DebugMenu : HBoxContainer
 	private PopupMenu _debugMenu;
 	private PopupMenu _spawnItemMenu;
 	private PopupMenu _spawnQualityMenu;
+	private PopupMenu _spawnSpellMenu;
+	/// <summary>Spell bound to spawned wands and staves; null keeps the authored or rolled spell.</summary>
+	private SpellDefinition _spawnSpell;
 	/// <summary>Quality stamped onto spawned equipment; null spawns it as authored.</summary>
 	private ItemQuality? _spawnQuality;
 	/// <summary>Whether spawned equipment is cursed, with its curse status still unknown.</summary>
@@ -86,6 +92,7 @@ public partial class DebugMenu : HBoxContainer
 		_debugMenu = _menuButton.GetPopup();
 		_spawnItemMenu = new PopupMenu { Name = "SpawnItemMenu" };
 		_spawnQualityMenu = new PopupMenu { Name = "SpawnQualityMenu" };
+		_spawnSpellMenu = new PopupMenu { Name = "SpawnSpellMenu" };
 
 		BuildMenu();
 		SetDebugMeshesEnabled(false);
@@ -148,6 +155,12 @@ public partial class DebugMenu : HBoxContainer
 		else if (SpawnPolicy != null)
 		{
 			GD.PushError("DebugMenu: SpawnPolicy needs a quality ladder.");
+		}
+		if (SpawnSpells != null)
+		{
+			BuildSpawnSpellMenu();
+			_debugMenu.AddChild(_spawnSpellMenu);
+			_debugMenu.AddSubmenuNodeItem("Spawn spell", _spawnSpellMenu);
 		}
 
 		SetChecked(ToggleCombatLogsId, GameDebug.CombatLogsEnabled);
@@ -222,31 +235,67 @@ public partial class DebugMenu : HBoxContainer
 		}
 
 		_spawnQuality = id == 0 ? null : (ItemQuality)(id - 1);
-		for (int i = 0; i < _spawnQualityMenu.ItemCount; i++)
+		CheckRadio(_spawnQualityMenu, id);
+	}
+
+	/// <summary>Checks the radio item <paramref name="id"/> of <paramref name="menu"/> and unchecks its other radio items.</summary>
+	private static void CheckRadio(PopupMenu menu, long id)
+	{
+		for (int i = 0; i < menu.ItemCount; i++)
 		{
-			if (_spawnQualityMenu.IsItemRadioCheckable(i))
+			if (menu.IsItemRadioCheckable(i))
 			{
-				_spawnQualityMenu.SetItemChecked(i, _spawnQualityMenu.GetItemId(i) == id);
+				menu.SetItemChecked(i, menu.GetItemId(i) == id);
 			}
 		}
 	}
 
+	/// <summary>Radio list of spells; id 0 keeps each wand's or staff's own spell, spell ids are their pool index plus one.</summary>
+	private void BuildSpawnSpellMenu()
+	{
+		_spawnSpellMenu.Clear();
+		_spawnSpellMenu.AddRadioCheckItem("Authored", 0);
+		for (int i = 0; i < SpawnSpells.Spells.Length; i++)
+		{
+			_spawnSpellMenu.AddRadioCheckItem(SpawnSpells.Spells[i]?.DisplayName ?? "", i + 1);
+		}
+
+		_spawnSpellMenu.SetItemChecked(0, true);
+		_spawnSpellMenu.IdPressed += OnSpawnSpellPressed;
+	}
+
+	private void OnSpawnSpellPressed(long id)
+	{
+		_spawnSpell = id == 0 ? null : SpawnSpells.Spells[id - 1];
+		CheckRadio(_spawnSpellMenu, id);
+	}
+
 	/// <summary>
-	/// The picked definition itself, or for equipment with a picked quality or the cursed toggle a copy rolled like a drop
-	/// at the current depth with that quality (Normal when only cursed) and curse forced.
+	/// The picked definition itself, or a copy: equipment with a picked quality or the cursed toggle is rolled like a drop
+	/// at the current depth with that quality (Normal when only cursed) and curse forced, and a wand or staff takes the
+	/// picked spell when it supports the weapon's tier.
 	/// </summary>
 	private Item CreateSpawnItem(Item definition)
 	{
-		if (_spawnQuality == null && !_spawnCursed || definition is not EquipableItem { RollTable: not null })
+		bool roll = (_spawnQuality != null || _spawnCursed) && definition is EquipableItem { RollTable: not null };
+		bool bindSpell = _spawnSpell != null && definition is MagicStaff;
+		if (!roll && !bindSpell)
 		{
 			return definition;
 		}
 
 		var item = (EquipableItem)ItemFactory.Create(definition);
-		var rng = new RandomNumberGenerator();
-		rng.Randomize();
-		LootRoller.ApplyRoll(item, ActiveLevel?.Depth ?? 1, rng, SpawnPolicy,
-			_spawnQuality ?? ItemQuality.Normal, _spawnCursed);
+		if (roll)
+		{
+			var rng = new RandomNumberGenerator();
+			rng.Randomize();
+			LootRoller.ApplyRoll(item, ActiveLevel?.Depth ?? 1, rng, SpawnPolicy,
+				_spawnQuality ?? ItemQuality.Normal, _spawnCursed);
+		}
+		if (item is MagicStaff staff && staff.CanBind(_spawnSpell))
+		{
+			staff.BoundSpell = _spawnSpell;
+		}
 		return item;
 	}
 

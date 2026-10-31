@@ -1,5 +1,6 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene format=3]
 
+[ext_resource type="Script" uid="uid://cggr3rbo84qxg" path="res://scenes/debug/combat/CombatPracticeTarget.cs" id="practice_target"]
 [ext_resource type="PackedScene" path="res://scenes/components/hurt_box_component.tscn" id="hurtbox"]
 [ext_resource type="PackedScene" path="res://scenes/components/health_component.tscn" id="health"]
 
@@ -23,9 +24,11 @@ top_radius = 0.55
 bottom_radius = 0.55
 height = 0.1
 
-[node name="PracticeTarget" type="StaticBody3D" groups=["enemy"]]
+[node name="PracticeTarget" type="StaticBody3D" groups=["enemy"] node_paths=PackedStringArray("HurtBox")]
 collision_layer = 8
 collision_mask = 0
+script = ExtResource("practice_target")
+HurtBox = NodePath("HurtBoxComponent")
 
 [node name="Mesh" type="MeshInstance3D" parent="."]
 position = Vector3(0, 1, 0)

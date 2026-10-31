@@ -68,10 +68,9 @@ public partial class PlayerInventoryController : Node
 		GuardDefinition effectiveGuard = null;
 		if (Inventory?.EquippedItems != null)
 		{
-			Inventory.EquippedItems.TryGetValue(EquipmentSlot.WeaponHand, out var weaponSlot);
 			Inventory.EquippedItems.TryGetValue(EquipmentSlot.ShieldHand, out var shieldSlot);
 
-			Weapon weapon = weaponSlot?.Item as Weapon;
+			Weapon weapon = Inventory.EquippedWeapon;
 			EquipableItem shield = shieldSlot?.Item as EquipableItem;
 
 			bool isTwoHanded = weapon != null && weapon.IsTwoHanded;
@@ -326,7 +325,7 @@ public partial class PlayerInventoryController : Node
 		if (item is Weapon weapon && slot == EquipmentSlot.WeaponHand)
 		{
 			ActionManager.AssignPrimary(weapon, weapon.Scene);
-			ActionManager.AssignSecondary(new MartialTechniqueAction(weapon), weapon.Scene);
+			ActionManager.AssignSecondary(weapon.CreateSecondaryAction(), weapon.Scene);
 		}
 		RefreshEffectiveGuard();
 	}

@@ -4,8 +4,6 @@ public enum ProjectilePattern
 {
 	Single,
 	Spread,
-	Radial,
-	AreaDrop,
 }
 
 /// <summary>
@@ -50,6 +48,11 @@ public partial class AttackDefinition : Resource
 	public AttackThreatTier ThreatTier => DefenseTraits.ThreatTier();
 
 	public AttackImpact Impact => new(PoiseDamage, Knockback, ForcePushback);
+
+	public ProjectileFlight Flight => new(HomingTurnRate, HomingDelay, LaunchSpeedScale, LaunchRampDuration);
+
+	/// <summary>Elemental identity carried by this attack's projectile contacts; None keeps ordinary damage.</summary>
+	[Export] public DamageElement Element { get; set; }
 
 	/// <summary>Stable gameplay volume; null uses the weapon or actor default contact profile.</summary>
 	[Export] public MeleeAttackProfile MeleeContact { get; set; }
@@ -99,7 +102,7 @@ public partial class AttackDefinition : Resource
 	/// </summary>
 	[Export] public float ProjectileSpeed { get; set; } = 15.0f;
 
-	/// <summary>Seconds before release to freeze an aimed single/spread shot. Zero keeps ordinary release-time aiming.</summary>
+	/// <summary>Seconds before release to freeze an aimed shot. Zero keeps ordinary release-time aiming.</summary>
 	[Export(PropertyHint.Range, "0,2,0.01")] public float ProjectileAimLockDuration { get; set; }
 
 	/// <summary>
@@ -113,25 +116,26 @@ public partial class AttackDefinition : Resource
 	[Export] public float AimingAngle { get; set; } = 60.0f;
 
 	/// <summary>
-	/// Radius around the actor used by placement-based attack patterns to pick target positions.
+	/// Seconds between successive projectiles of one release, so a spread leaves as a volley. Zero releases them
+	/// together. Ranged attacks only; the last projectile must leave within the prepared duration.
 	/// </summary>
-	[Export] public float TargetAreaRadius { get; set; } = 5.0f;
+	[ExportGroup("Flight")]
+	[Export(PropertyHint.Range, "0,0.25,0.01")] public float ProjectileStagger { get; set; }
 
 	/// <summary>
-	/// Height above the chosen target position where placement-based projectiles start from.
+	/// Degrees per second each projectile turns toward the target captured at release. Zero flies straight.
+	/// Ranged attacks only.
 	/// </summary>
-	[Export] public float SpawnHeight { get; set; } = 8.0f;
+	[Export(PropertyHint.Range, "0,1440,1")] public float HomingTurnRate { get; set; }
 
-	/// <summary>
-	/// Optional override for projectile world-impact AoE. Negative values keep the projectile scene's default radius.
-	/// </summary>
-	[Export] public float ImpactRadiusOverride { get; set; } = -1.0f;
+	/// <summary>Seconds of straight flight before homing starts, so a spread visibly opens first.</summary>
+	[Export(PropertyHint.Range, "0,0.5,0.01")] public float HomingDelay { get; set; }
 
-	/// <summary>
-	/// Optional override for minimum damage scale at the edge of projectile impact radius.
-	/// Negative values keep the projectile scene's default falloff.
-	/// </summary>
-	[Export(PropertyHint.Range, "-1,1,0.05")] public float ImpactRadiusMinDamageScaleOverride { get; set; } = -1.0f;
+	/// <summary>Fraction of <see cref="ProjectileSpeed"/> at release; one launches at full speed.</summary>
+	[Export(PropertyHint.Range, "0.1,1,0.05")] public float LaunchSpeedScale { get; set; } = 1;
+
+	/// <summary>Seconds to ramp from the launch speed to full speed; zero flies at full speed from release.</summary>
+	[Export(PropertyHint.Range, "0,0.5,0.01")] public float LaunchRampDuration { get; set; }
 
 	/// <summary>Poise removed from a defender with a <see cref="PoiseComponent"/> by each unprotected contact.</summary>
 	[ExportGroup("Impact")]
@@ -190,4 +194,21 @@ public partial class AttackDefinition : Resource
 	/// </summary>
 	public bool HasValidImpact(float contactStart) => HasValidImpactValues && HasValidArmorWindow && HasValidFacingLock(contactStart);
 
+	/// <summary>
+	/// Flight values are finite and nonnegative, the launch speed is a fraction of full speed, staggered or homing
+	/// flight belongs to a ranged attack, and, when the prepared release time and duration are known,
+	/// the last staggered projectile leaves before the attack ends. Shared with <see cref="MonsterSceneValidator"/>.
+	/// </summary>
+	public bool HasValidFlight(float? contactStart = null, double? duration = null)
+	{
+		if (!float.IsFinite(ProjectileStagger) || ProjectileStagger < 0
+			|| !float.IsFinite(HomingTurnRate) || HomingTurnRate < 0
+			|| !float.IsFinite(HomingDelay) || HomingDelay < 0
+			|| !float.IsFinite(LaunchSpeedScale) || LaunchSpeedScale <= 0 || LaunchSpeedScale > 1
+			|| !float.IsFinite(LaunchRampDuration) || LaunchRampDuration < 0) return false;
+		if (ProjectileStagger == 0 && HomingTurnRate == 0) return true;
+		if (!IsRanged) return false;
+		return contactStart == null || duration == null
+			|| contactStart + Mathf.Max(0, ProjectileCount - 1) * ProjectileStagger <= duration;
+	}
 }

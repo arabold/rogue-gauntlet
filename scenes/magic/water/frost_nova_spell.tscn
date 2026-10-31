@@ -4,7 +4,11 @@
 [ext_resource type="Resource" path="res://scenes/magic/water/frost_nova_definition.tres" id="definition"]
 [ext_resource type="PackedScene" path="res://scenes/magic/water/frost_nova.tscn" id="visual"]
 
-[node name="FrostNovaSpell" type="Node"]
+[node name="FrostNovaSpell" type="Node" node_paths=PackedStringArray("VisualRoot")]
 script = ExtResource("script")
 Definition = ExtResource("definition")
 VisualScene = ExtResource("visual")
+VisualRoot = NodePath("Visuals")
+
+[node name="Visuals" type="Node3D" parent="."]
+top_level = true

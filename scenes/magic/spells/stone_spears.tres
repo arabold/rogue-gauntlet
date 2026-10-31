@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SpellDefinition" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/SpellDefinition.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/magic/earth/rock_spikes_spell.tscn" id="scene"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/spell_cast.tres" id="cast"]
+
+[resource]
+script = ExtResource("script")
+DisplayName = "Stone Spears"
+ItemTitle = "of Stone Spears"
+Element = 2
+SpellScene = ExtResource("scene")
+ManaCostByLevel = PackedFloat32Array(25, 25, 25, 25, 25)
+Cast = ExtResource("cast")
+metadata/_custom_type_script = ExtResource("script")

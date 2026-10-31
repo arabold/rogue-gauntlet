@@ -5,5 +5,5 @@ script = ExtResource("script")
 SpellName = "Rockfall"
 Element = 2
 Delivery = 3
-TargetsByLevel = PackedInt32Array(3, 6, 9)
-DamageByLevel = PackedFloat32Array(3, 4, 5)
+TargetsByLevel = PackedInt32Array(3, 6, 9, 11, 13)
+DamageScaleByLevel = PackedFloat32Array(0.375, 0.4125, 0.45, 0.4875, 0.525)

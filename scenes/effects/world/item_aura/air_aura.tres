@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WorldEffectDefinition" load_steps=3 format=3]
+[ext_resource type="Script" path="res://scenes/effects/world/WorldEffectDefinition.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/item_aura/air_aura.tscn" id="scene"]
+[resource]
+resource_name = "Air Aura"
+script = ExtResource("script")
+Id = &"air_aura"
+Scene = ExtResource("scene")
+Lifetime = 1
+Retrigger = 0
+MaxConcurrent = 2

@@ -1,0 +1,98 @@
+{
+  "key": "weapons/wand_crooked",
+  "inputs": "5ba85f9aba03c9d1179b06f72e7197c29074f2d268f00acc8f3617cfbf29a049",
+  "files": {
+    "wand_crooked.glb": "101139cf6176ffc3356ed280e48a88f98f5a91e198754e0ac58bbbd070235564",
+    "lineup.png": "1f09fc68df3a2d751dbd7575a10bca53607645ef04b1a1547f552d34ca27d0d3"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1110,
+      "bounds": [
+        [
+          -0.07933932542800903,
+          -0.30000001192092896,
+          -0.057999998331069946
+        ],
+        [
+          0.06866469234228134,
+          0.8636490702629089,
+          0.061426836997270584
+        ]
+      ],
+      "dimensions": [
+        0.14800401777029037,
+        1.163649082183838,
+        0.11942683532834053
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.004937019130051404
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Wand Crooked",
+      "backend": "procedural",
+      "builder": "arsenal",
+      "design": {
+        "kind": "crooked_wand"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "bark": [
+          92,
+          62,
+          40
+        ],
+        "leather": [
+          79,
+          47,
+          32
+        ]
+      },
+      "materials": {
+        "bark": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/wand/wand_crooked.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Gnarled branch wand with knots, a root knob and a split twig. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

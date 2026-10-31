@@ -81,7 +81,6 @@ public partial class ActionSlot : Node
 		if (attackAction != null)
 		{
 			if (weapon != null && !IsEquipped(player, weapon)) return false;
-			if (action is MartialTechniqueAction martial && !IsEquipped(player, martial.Weapon)) return false;
 			if (!attackAction.TryPrepare(player, out attack)) return false;
 		}
 
@@ -190,8 +189,7 @@ public partial class ActionSlot : Node
 		_activeLease = ActorActionLease.None;
 	}
 
-	private static bool IsEquipped(Player player, Weapon weapon) =>
-		player?.Inventory != null && player.Inventory.EquippedItems.TryGetValue(EquipmentSlot.WeaponHand, out var slot) && ReferenceEquals(slot?.Item, weapon);
+	private static bool IsEquipped(Player player, Weapon weapon) => ReferenceEquals(player?.Inventory?.EquippedWeapon, weapon);
 
 	private bool IsCurrent(ulong generation) => GodotObject.IsInstanceValid(this) && IsInsideTree() && generation == _generation;
 

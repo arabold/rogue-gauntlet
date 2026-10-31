@@ -101,6 +101,27 @@ public partial class CharacterCatalogTest
 	}
 
 	[TestCase]
+	public void IntelligenceSizesEachClassManaPool()
+	{
+		CharacterCatalog catalog = CharacterCatalog.LoadDefault();
+
+		// BaseMaxMana 20 + Intelligence * ManaPerIntelligence 5, refilled on apply; 4% of the pool regenerates per second.
+		foreach ((string id, float pool) in new[] { ("barbarian", 45f), ("knight", 50f), ("rogue", 60f), ("mage", 100f) })
+		{
+			var stats = new PlayerStats();
+			catalog.FindById(id).ApplyToStats(stats);
+			AssertFloat(stats.MaxMana).IsEqual(pool);
+			AssertFloat(stats.Mana).IsEqual(pool);
+			AssertFloat(stats.ManaRegenPerSecond).IsEqualApprox(pool * 0.04f, 0.0001f);
+		}
+
+		var mage = new PlayerStats();
+		catalog.FindById("mage").ApplyToStats(mage);
+		mage.AddModifier(this, new StatModifier { Stat = StatType.MaxMana, Value = 10 });
+		AssertFloat(mage.MaxMana).IsEqual(110f);
+	}
+
+	[TestCase]
 	public void StartingInventoryIsACopyOfTheDefinition()
 	{
 		CharacterCatalog catalog = CharacterCatalog.LoadDefault();

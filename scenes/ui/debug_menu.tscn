@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/DebugMenu.cs" id="1_debug_menu"]
 [ext_resource type="Resource" path="res://scenes/items/dungeon_item_policy.tres" id="2_quality_rules"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/spell_pool_all.tres" id="3_spells"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.03, 0.035, 0.045, 0.72)
@@ -57,6 +58,7 @@ custom_minimum_size = Vector2(0, 32)
 theme_override_constants/separation = 8
 script = ExtResource("1_debug_menu")
 SpawnPolicy = ExtResource("2_quality_rules")
+SpawnSpells = ExtResource("3_spells")
 
 [node name="DebugMenuButton" type="MenuButton" parent="."]
 unique_name_in_owner = true

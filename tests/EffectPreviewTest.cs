@@ -38,10 +38,10 @@ public class EffectPreviewTest
 		using var runner = TestFactories.LoadScene(Scene); await runner.SimulateFrames(2);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.SelectEffect(7); preview.SetSubject(3);
 		var subject = preview.Stage.GetChild(0);
-		AssertInt(subject.FindChildren("*", "", true, false).OfType<ItemCurseWorldEffectPresenter>().Count()).IsEqual(0);
+		AssertInt(subject.FindChildren("*", "", true, false).OfType<ItemAuraPresenter>().Count()).IsEqual(0);
 		var host = subject.GetChildren().OfType<WorldEffectHost>().Single();
 		var effect = host.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Single();
-		AssertBool(effect is ItemCurseEffect).IsTrue(); AssertBool(effect.Layers.Any(m => m.Mesh is SphereMesh or CylinderMesh)).IsFalse();
+		AssertBool(effect is ItemAuraEffect).IsTrue(); AssertBool(effect.Layers.Any(m => m.Mesh is SphereMesh or CylinderMesh)).IsFalse();
 		var originals = preview.Stage.GetChild(0).FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().Where(m => !VisualHelper.IsInHelperSubtree(m)).ToArray();
 		foreach (var layer in effect.Layers) AssertBool(originals.Any(m => m.Mesh == layer.Mesh && m.GlobalTransform.IsEqualApprox(layer.GlobalTransform))).IsTrue();
 		AssertBool(((ParticleProcessMaterial)effect.Emitters[0].ProcessMaterial).EmissionShape == ParticleProcessMaterial.EmissionShapeEnum.Points).IsTrue();

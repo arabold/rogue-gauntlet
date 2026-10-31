@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("script")
-SpellName = "Frost Guard"
+SpellName = "Frost Ward"
 Element = 4
-CapacityByLevel = PackedFloat32Array(28, 40, 52)
-ReflectionByLevel = PackedFloat32Array(0.3, 0.4, 0.5)
+CapacityScaleByLevel = PackedFloat32Array(3.5, 3.85, 4.2, 4.55, 4.9)
+ReflectionByLevel = PackedFloat32Array(0.3, 0.4, 0.5, 0.55, 0.6)

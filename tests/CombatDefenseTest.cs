@@ -390,7 +390,7 @@ public partial class CombatDefenseTest
 		attacker.AddChild(detector);
 		attackCtrl.MeleeDetector = detector;
 		attackCtrl.DefaultMeleeContact = TestFactories.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/slash_1h.tres");
-		AssertBool(attackCtrl.StartAttack(new AttackDefinition(), 1, 1, 0, 8)).IsTrue();
+		AssertBool(attackCtrl.StartAttack(new AttackDefinition(), new AttackStats(1, 1, 0), 8)).IsTrue();
 		guard.TryBeginGuard(new Vector3(0, 0, 1));
 		// Advance within parry window (0.05s < 0.21s)
 		guard._PhysicsProcess(0.05f);

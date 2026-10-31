@@ -1,0 +1,17 @@
+[
+  { "Frame": 0, "Command": "equip", "Value": 11 },
+  { "Frame": 0, "Command": "spawn_distance", "Value": 6 },
+  { "Frame": 1, "Command": "spawn", "Value": 0 },
+  { "Frame": 5, "Command": "attack" },
+  { "Frame": 45, "Command": "attack" },
+  { "Frame": 85, "Command": "attack" },
+  { "Frame": 130, "Command": "equip", "Value": 12 },
+  { "Frame": 131, "Command": "spawn_distance", "Value": 9 },
+  { "Frame": 132, "Command": "spawn", "Value": 1 },
+  { "Frame": 140, "Command": "attack" },
+  { "Frame": 180, "Command": "attack" },
+  { "Frame": 220, "Command": "spawn_distance", "Value": 4 },
+  { "Frame": 221, "Command": "spawn", "Value": 4 },
+  { "Frame": 228, "Command": "attack" },
+  { "Frame": 268, "Command": "attack" }
+]

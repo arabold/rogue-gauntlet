@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LootPool" load_steps=142 format=3]
+[gd_resource type="Resource" script_class="LootPool" format=3]
 
 [ext_resource type="Script" path="res://scenes/components/LootPool.cs" id="pool"]
 [ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
@@ -53,19 +53,23 @@
 [ext_resource type="Resource" uid="uid://csyxpvgdbtld2" path="res://scenes/items/weapons/shortsword_common.tres" id="item_shortsword_common"]
 [ext_resource type="Resource" uid="uid://cixwwigtbecux" path="res://scenes/items/weapons/staff/staff_archmage.tres" id="item_staff_archmage"]
 [ext_resource type="Resource" uid="uid://bfcyiw1qk72wv" path="res://scenes/items/weapons/staff/staff_emerald.tres" id="item_staff_emerald"]
-[ext_resource type="Resource" uid="uid://2be2wxsqqolf" path="res://scenes/items/weapons/staff_air.tres" id="item_staff_air"]
 [ext_resource type="Resource" uid="uid://dak88bwl5ipcv" path="res://scenes/items/weapons/staff_common.tres" id="item_staff_common"]
-[ext_resource type="Resource" uid="uid://dxqqo8n12qbk1" path="res://scenes/items/weapons/staff_earth.tres" id="item_staff_earth"]
-[ext_resource type="Resource" uid="uid://ctw8qbbgvskop" path="res://scenes/items/weapons/staff_fire.tres" id="item_staff_fire"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/staff_rare.tres" id="item_staff_rare"]
 [ext_resource type="Resource" uid="uid://b111md1aceaul" path="res://scenes/items/weapons/staff_skeleton.tres" id="item_staff_skeleton"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/staff_uncommon.tres" id="item_staff_uncommon"]
-[ext_resource type="Resource" uid="uid://ditu71556t2q1" path="res://scenes/items/weapons/staff_water.tres" id="item_staff_water"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/sword/sword_knight.tres" id="item_sword_knight"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/sword/sword_sunblade.tres" id="item_sword_sunblade"]
 [ext_resource type="Resource" uid="uid://btk1o3ydc6yaf" path="res://scenes/items/weapons/sword_common.tres" id="item_sword_common"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/sword_rare.tres" id="item_sword_rare"]
 [ext_resource type="Resource" uid="uid://du7ngitx6r7hg" path="res://scenes/items/weapons/wand/wand_celestial.tres" id="item_wand_celestial"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/wand/wand_crooked.tres" id="item_wand_crooked"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/wand/wand_iron.tres" id="item_wand_iron"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/wand/wand_bone.tres" id="item_wand_bone"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/wand/wand_carved.tres" id="item_wand_carved"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff/staff_crooked.tres" id="item_staff_crooked"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff/staff_iron.tres" id="item_staff_iron"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff/staff_bone.tres" id="item_staff_bone"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff/staff_horned.tres" id="item_staff_horned"]
 [ext_resource type="Resource" uid="uid://dkeu2hxa5hlp1" path="res://scenes/items/weapons/wand/wand_ruby.tres" id="item_wand_ruby"]
 [ext_resource type="Resource" uid="uid://b0npueya07rvp" path="res://scenes/items/weapons/wand.tres" id="item_wand"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/warhammer/warhammer_iron.tres" id="item_warhammer_iron"]
@@ -415,32 +419,11 @@ MinDepth = 10
 MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_staff_air"]
-script = ExtResource("entry")
-Item = ExtResource("item_staff_air")
-MinDepth = 4
-MaxDepth = 12
-metadata/_custom_type_script = ExtResource("entry")
-
 [sub_resource type="Resource" id="Entry_staff_common"]
 script = ExtResource("entry")
 Item = ExtResource("item_staff_common")
 MinDepth = 1
 MaxDepth = 6
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_staff_earth"]
-script = ExtResource("entry")
-Item = ExtResource("item_staff_earth")
-MinDepth = 4
-MaxDepth = 12
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_staff_fire"]
-script = ExtResource("entry")
-Item = ExtResource("item_staff_fire")
-MinDepth = 4
-MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_staff_rare"]
@@ -460,13 +443,6 @@ metadata/_custom_type_script = ExtResource("entry")
 [sub_resource type="Resource" id="Entry_staff_uncommon"]
 script = ExtResource("entry")
 Item = ExtResource("item_staff_uncommon")
-MinDepth = 4
-MaxDepth = 12
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_staff_water"]
-script = ExtResource("entry")
-Item = ExtResource("item_staff_water")
 MinDepth = 4
 MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
@@ -511,6 +487,62 @@ MinDepth = 10
 MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
+[sub_resource type="Resource" id="Entry_wand_crooked"]
+script = ExtResource("entry")
+Item = ExtResource("item_wand_crooked")
+MinDepth = 1
+MaxDepth = 6
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_wand_iron"]
+script = ExtResource("entry")
+Item = ExtResource("item_wand_iron")
+MinDepth = 4
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_wand_bone"]
+script = ExtResource("entry")
+Item = ExtResource("item_wand_bone")
+MinDepth = 10
+MaxDepth = 18
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_wand_carved"]
+script = ExtResource("entry")
+Item = ExtResource("item_wand_carved")
+MinDepth = 16
+MaxDepth = 21
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_staff_crooked"]
+script = ExtResource("entry")
+Item = ExtResource("item_staff_crooked")
+MinDepth = 1
+MaxDepth = 6
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_staff_iron"]
+script = ExtResource("entry")
+Item = ExtResource("item_staff_iron")
+MinDepth = 4
+MaxDepth = 12
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_staff_bone"]
+script = ExtResource("entry")
+Item = ExtResource("item_staff_bone")
+MinDepth = 10
+MaxDepth = 18
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_staff_horned"]
+script = ExtResource("entry")
+Item = ExtResource("item_staff_horned")
+MinDepth = 16
+MaxDepth = 21
+metadata/_custom_type_script = ExtResource("entry")
+
 [sub_resource type="Resource" id="Entry_wand"]
 script = ExtResource("entry")
 Item = ExtResource("item_wand")
@@ -547,6 +579,6 @@ metadata/_custom_type_script = ExtResource("entry")
 
 [resource]
 script = ExtResource("pool")
-Items = [SubResource("Entry_broadsword_steel"), SubResource("Entry_club_steel"), SubResource("Entry_club_wood_old"), SubResource("Entry_dagger_short"), SubResource("Entry_greatsword_steel"), SubResource("Entry_halberd_steel"), SubResource("Entry_morning_star_iron"), SubResource("Entry_rapier_steel"), SubResource("Entry_saber_steel"), SubResource("Entry_scythe_iron"), SubResource("Entry_spear_steel"), SubResource("Entry_axe_bearded"), SubResource("Entry_axe_executioner"), SubResource("Entry_axe_common"), SubResource("Entry_axe_old"), SubResource("Entry_axe_rare"), SubResource("Entry_axe_uncommon"), SubResource("Entry_axedouble_common"), SubResource("Entry_axedouble_rare"), SubResource("Entry_axedouble_uncommon"), SubResource("Entry_battleaxe_gilded"), SubResource("Entry_battleaxe_iron"), SubResource("Entry_battleaxe_common"), SubResource("Entry_battleaxe_skeleton"), SubResource("Entry_battleaxe_starter"), SubResource("Entry_broadsword_gilded"), SubResource("Entry_broadsword_iron"), SubResource("Entry_broadsword_common"), SubResource("Entry_broadsword_rare"), SubResource("Entry_crossbow_gilded"), SubResource("Entry_crossbow_2handed"), SubResource("Entry_crossbow_common"), SubResource("Entry_crossbow_rare"), SubResource("Entry_crossbow_spiked"), SubResource("Entry_crossbow_uncommon"), SubResource("Entry_dagger_kukri"), SubResource("Entry_dagger_nightblade"), SubResource("Entry_dagger_common"), SubResource("Entry_dagger_rare"), SubResource("Entry_dagger_uncommon"), SubResource("Entry_hammer_gilded"), SubResource("Entry_hammer_mallet"), SubResource("Entry_hammer_common"), SubResource("Entry_hammer_rare"), SubResource("Entry_hammer_uncommon"), SubResource("Entry_longsword_common"), SubResource("Entry_saber_skeleton"), SubResource("Entry_shortsword_common"), SubResource("Entry_staff_archmage"), SubResource("Entry_staff_emerald"), SubResource("Entry_staff_air"), SubResource("Entry_staff_common"), SubResource("Entry_staff_earth"), SubResource("Entry_staff_fire"), SubResource("Entry_staff_rare"), SubResource("Entry_staff_skeleton"), SubResource("Entry_staff_uncommon"), SubResource("Entry_staff_water"), SubResource("Entry_sword_knight"), SubResource("Entry_sword_sunblade"), SubResource("Entry_sword_common"), SubResource("Entry_sword_rare"), SubResource("Entry_wand_celestial"), SubResource("Entry_wand_ruby"), SubResource("Entry_wand"), SubResource("Entry_warhammer_iron"), SubResource("Entry_warhammer_spiked"), SubResource("Entry_warhammer"), SubResource("Entry_warhammer_gold")]
+Items = [SubResource("Entry_broadsword_steel"), SubResource("Entry_club_steel"), SubResource("Entry_club_wood_old"), SubResource("Entry_dagger_short"), SubResource("Entry_greatsword_steel"), SubResource("Entry_halberd_steel"), SubResource("Entry_morning_star_iron"), SubResource("Entry_rapier_steel"), SubResource("Entry_saber_steel"), SubResource("Entry_scythe_iron"), SubResource("Entry_spear_steel"), SubResource("Entry_axe_bearded"), SubResource("Entry_axe_executioner"), SubResource("Entry_axe_common"), SubResource("Entry_axe_old"), SubResource("Entry_axe_rare"), SubResource("Entry_axe_uncommon"), SubResource("Entry_axedouble_common"), SubResource("Entry_axedouble_rare"), SubResource("Entry_axedouble_uncommon"), SubResource("Entry_battleaxe_gilded"), SubResource("Entry_battleaxe_iron"), SubResource("Entry_battleaxe_common"), SubResource("Entry_battleaxe_skeleton"), SubResource("Entry_battleaxe_starter"), SubResource("Entry_broadsword_gilded"), SubResource("Entry_broadsword_iron"), SubResource("Entry_broadsword_common"), SubResource("Entry_broadsword_rare"), SubResource("Entry_crossbow_gilded"), SubResource("Entry_crossbow_2handed"), SubResource("Entry_crossbow_common"), SubResource("Entry_crossbow_rare"), SubResource("Entry_crossbow_spiked"), SubResource("Entry_crossbow_uncommon"), SubResource("Entry_dagger_kukri"), SubResource("Entry_dagger_nightblade"), SubResource("Entry_dagger_common"), SubResource("Entry_dagger_rare"), SubResource("Entry_dagger_uncommon"), SubResource("Entry_hammer_gilded"), SubResource("Entry_hammer_mallet"), SubResource("Entry_hammer_common"), SubResource("Entry_hammer_rare"), SubResource("Entry_hammer_uncommon"), SubResource("Entry_longsword_common"), SubResource("Entry_saber_skeleton"), SubResource("Entry_shortsword_common"), SubResource("Entry_staff_archmage"), SubResource("Entry_staff_emerald"), SubResource("Entry_staff_common"), SubResource("Entry_staff_rare"), SubResource("Entry_staff_skeleton"), SubResource("Entry_staff_uncommon"), SubResource("Entry_sword_knight"), SubResource("Entry_sword_sunblade"), SubResource("Entry_sword_common"), SubResource("Entry_sword_rare"), SubResource("Entry_wand_celestial"), SubResource("Entry_wand_ruby"), SubResource("Entry_wand"), SubResource("Entry_wand_crooked"), SubResource("Entry_wand_iron"), SubResource("Entry_wand_bone"), SubResource("Entry_wand_carved"), SubResource("Entry_staff_crooked"), SubResource("Entry_staff_iron"), SubResource("Entry_staff_bone"), SubResource("Entry_staff_horned"), SubResource("Entry_warhammer_iron"), SubResource("Entry_warhammer_spiked"), SubResource("Entry_warhammer"), SubResource("Entry_warhammer_gold")]
 TierBands = ExtResource("bands")
 metadata/_custom_type_script = ExtResource("pool")

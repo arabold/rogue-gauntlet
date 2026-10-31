@@ -11,12 +11,13 @@ public partial class TargetedSpell : Node, ICombatSpell
 	[Export] public Node3D VisualRoot { get; set; }
 	public string DisplayName => Definition?.SpellName ?? "";
 	public int LevelCount => Definition?.LevelCount ?? 0;
+	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	private readonly AreaCastLifecycle _cast = new();
 	private readonly List<PendingHit> _pending = [];
 	private double _clock;
 	private ulong _sequence;
 	private sealed record PendingHit(Node3D Caster, Node3D Target, Vector3 Origin, Vector3 Position,
-		World3D World, float Radius, float Damage, RandomNumberGenerator Random, AttackIdentity Identity, double Due);
+		World3D World, float Radius, AttackStats Damage, RandomNumberGenerator Random, AttackIdentity Identity, double Due);
 
 	public override void _Ready() => SetPhysicsProcess(false);
 	public override void _PhysicsProcess(double delta)
@@ -28,8 +29,9 @@ public partial class TargetedSpell : Node, ICombatSpell
 			if (!IsInstanceValid(hit.Caster) || !hit.Caster.IsInsideTree() || !AreaSpellTargets.IsVisible(hit.Target, hit.World, hit.Origin)
 				|| hit.Target.GlobalPosition.DistanceTo(hit.Position) > hit.Radius) continue;
 			Vector3 direction = hit.Position - hit.Origin; direction.Y = 0;
+			var (amount, critical) = hit.Damage.Roll(hit.Random);
 			var contact = new DamageContext { ExecutionId = hit.Identity, SourceNode = this, OwnerNode = hit.Caster,
-				Faction = HurtBoxComponent.GetDamageSource(hit.Caster), Amount = hit.Damage, Random = hit.Random,
+				Faction = HurtBoxComponent.GetDamageSource(hit.Caster), Amount = amount, Critical = critical, Random = hit.Random,
 				IncomingDirection = direction.Normalized(), DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable,
 				DeliveryKind = Definition.Delivery is TargetDeliveryKind.Rockfall or TargetDeliveryKind.Meteor ? DamageDeliveryKind.AreaImpact : DamageDeliveryKind.Projectile,
 				Element = Definition.Element };
@@ -38,8 +40,9 @@ public partial class TargetedSpell : Node, ICombatSpell
 		if (_pending.Count == 0) SetPhysicsProcess(false);
 	}
 
-	public bool Cast(Node3D caster, int level, RandomNumberGenerator random)
+	public bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random)
 	{
+		int level = power.Level;
 		if (Definition?.IsValidLevel(level) != true || VisualScene == null
 			|| !AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, Definition.Radius, out var cast)) return false;
 		Node template = VisualScene.Instantiate();
@@ -55,6 +58,7 @@ public partial class TargetedSpell : Node, ICombatSpell
 		template?.Free();
 		if (!valid) return false;
 		int count = Definition.TargetsByLevel[level - 1];
+		AttackStats hit = power.Hit.Scaled(Definition.DamageScaleByLevel[level - 1]);
 		bool shower = Definition.Delivery is TargetDeliveryKind.Rockfall or TargetDeliveryKind.Meteor;
 		var candidates = cast.Targets.Where(target => target is not IShieldOwner { ShieldHurtBox.HealthComponent.IsDead: true }
 			&& AreaSpellTargets.IsVisible(target, cast.World, cast.Origin)).ToList();
@@ -66,30 +70,36 @@ public partial class TargetedSpell : Node, ICombatSpell
 		var cosmetic = new RandomNumberGenerator { Seed = GetInstanceId() ^ ++_sequence * 7919UL };
 		AreaVisibility visibility = AreaVisibility.Capture(cast.World, cast.Origin, Definition.Radius);
 		Vector3 previous = cast.Origin + Vector3.Up;
+		Node3D previousTarget = null;
+		// Shots beyond the available targets cycle back to them, so one enemy can take every shot; without any target,
+		// every shot flies straight ahead.
+		Vector3 ahead = candidates.Count == 0 ? ForwardPosition(cast) : default;
 		for (int i = 0; i < count; i++)
 		{
-			Node3D target = candidates.Count > 0 && (shower || i < candidates.Count) ? candidates[i % candidates.Count] : null;
-			Vector3 position = target?.GlobalPosition ?? CosmeticPosition(cast, cosmetic);
-			Vector3 start = Definition.Delivery == TargetDeliveryKind.Chain ? previous : cast.Origin + Vector3.Up;
+			Node3D target = candidates.Count > 0 ? candidates[i % candidates.Count] : null;
+			Vector3 position = target?.GlobalPosition ?? ahead;
+			// A chain jumps on from its last target, or leaves the caster again when it would jump to that same one.
+			bool jump = Definition.Delivery == TargetDeliveryKind.Chain && i > 0 && !ReferenceEquals(target, previousTarget);
+			Vector3 start = jump ? previous : cast.Origin + Vector3.Up;
 			Vector3 end = position + Vector3.Up;
-			if (Definition.Delivery == TargetDeliveryKind.Chain && !WorldSight.IsClear(cast.World, start, end)) continue;
-			double delay = Spawn(group, VisualScene, level, start, end, i, visibility, target, caster, Definition.DamageByLevel[level - 1], random);
-			if (Definition.Delivery == TargetDeliveryKind.Chain) previous = end;
+			if (jump && !WorldSight.IsClear(cast.World, start, end)) continue;
+			double delay = Spawn(group, VisualScene, level, start, end, i, visibility, target, caster, hit, random);
+			previous = end; previousTarget = target;
 			if (target != null && Definition.Delivery != TargetDeliveryKind.Fireball)
 				_pending.Add(new PendingHit(caster, target, cast.Origin, position, cast.World, Definition.HitRadius,
-					Definition.DamageByLevel[level - 1], random, new AttackIdentity(caster.GetInstanceId(), ++_sequence), _clock + delay));
+					hit, random, new AttackIdentity(caster.GetInstanceId(), ++_sequence), _clock + delay));
 		}
 		if (shower && DebrisScene != null)
 			for (int i = 0; i < level * 2 + 2; i++)
 				Spawn(group, DebrisScene, level, cast.Origin + Vector3.Up, CosmeticPosition(cast, cosmetic) + Vector3.Up,
-					count + i, visibility, null, caster, 0, random, true);
+					count + i, visibility, null, caster, default, random, true);
 		_pending.Sort((a, b) => a.Due.CompareTo(b.Due));
 		if (_pending.Count > 0) SetPhysicsProcess(true);
 		return true;
 	}
 
 	private double Spawn(SpellEffectGroup group, PackedScene scene, int level, Vector3 start, Vector3 end, int index,
-		AreaVisibility visibility, Node3D target, Node3D caster, float damage, RandomNumberGenerator random, bool debris = false)
+		AreaVisibility visibility, Node3D target, Node3D caster, AttackStats hit, RandomNumberGenerator random, bool debris = false)
 	{
 		Node node = scene.Instantiate();
 		switch (node)
@@ -98,7 +108,7 @@ public partial class TargetedSpell : Node, ICombatSpell
 				group.AddChild(projectile); projectile.EffectRoot = group; projectile.Element = Definition.Element;
 				projectile.RestrictToTarget(target, 1.1f + .35f * (level - 1));
 				Vector3 displacement = end - start;
-				projectile.Initialize(start, displacement.Normalized(), 13, displacement.Length() + .5f, damage, damage, 0,
+				projectile.Initialize(start, displacement.Normalized(), 13, displacement.Length() + .5f, hit,
 					caster, randomSeed: target != null ? random.Randi() : GetInstanceId() ^ (ulong)(index + 1) * 7919UL);
 				FireballSpell.ConfigureProjectileVisual(projectile, level);
 				return 0;
@@ -125,6 +135,17 @@ public partial class TargetedSpell : Node, ICombatSpell
 		}
 	}
 
+	/// <summary>
+	/// The farthest clear point straight ahead within the spell's radius, stopping short of a wall but never at the caster:
+	/// a shot aimed at its own origin has no direction and would hang in place.
+	/// </summary>
+	private Vector3 ForwardPosition(AreaCastLifecycle.Cast cast)
+	{
+		float reach = WorldSight.ClearDistance(cast.World, cast.Origin + Vector3.Up, cast.Facing, Definition.Radius);
+		return cast.Origin + cast.Facing * Mathf.Max(reach - .5f, 1);
+	}
+
+	/// <summary>A random clear spot for shower debris, else straight ahead.</summary>
 	private Vector3 CosmeticPosition(AreaCastLifecycle.Cast cast, RandomNumberGenerator random)
 	{
 		for (int attempt = 0; attempt < 16; attempt++)
@@ -133,7 +154,7 @@ public partial class TargetedSpell : Node, ICombatSpell
 			Vector3 point = cast.Origin + new Vector3(Mathf.Cos(angle) * distance, 0, Mathf.Sin(angle) * distance);
 			if (WorldSight.IsClear(cast.World, cast.Origin + Vector3.Up, point + Vector3.Up)) return point;
 		}
-		return cast.Origin;
+		return ForwardPosition(cast);
 	}
 	public void Cancel()
 	{

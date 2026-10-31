@@ -144,7 +144,7 @@ text = ">"
 
 [node name="StatsGrid" type="GridContainer" parent="Panel/MarginContainer/Content"]
 layout_mode = 2
-columns = 5
+columns = 6
 
 [node name="StrengthLabel" type="Label" parent="Panel/MarginContainer/Content/StatsGrid"]
 layout_mode = 2
@@ -184,6 +184,14 @@ size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 22
 theme_override_colors/font_color = Color(0.78, 0.83, 0.9, 1)
 text = "HP"
+horizontal_alignment = 1
+
+[node name="ManaLabel" type="Label" parent="Panel/MarginContainer/Content/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.78, 0.83, 0.9, 1)
+text = "MP"
 horizontal_alignment = 1
 
 [node name="StrengthValue" type="Label" parent="Panel/MarginContainer/Content/StatsGrid"]
@@ -229,6 +237,15 @@ size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 30
 theme_override_colors/font_color = Color(1, 0.86, 0.61, 1)
 text = "100"
+horizontal_alignment = 1
+
+[node name="ManaValue" type="Label" parent="Panel/MarginContainer/Content/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1, 0.86, 0.61, 1)
+text = "70"
 horizontal_alignment = 1
 
 [node name="Buttons" type="HBoxContainer" parent="Panel/MarginContainer/Content"]

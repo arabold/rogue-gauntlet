@@ -108,7 +108,7 @@ public class AttackAnimationTest
 		var animation = player.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
 		using var definition = new AttackDefinition { AttackStyle = "axe.1h.chop" };
 		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
-		AssertBool(controller.StartAttack(attack, 1, 1, 0, 0)).IsTrue();
+		AssertBool(controller.StartAttack(attack, new AttackStats(1, 1, 0), 0)).IsTrue();
 		controller.SetPhysicsProcess(false);
 		var skeleton = CharacterModel.FindSkeleton(player);
 		int hand = skeleton.FindBone("hand.r");
@@ -137,7 +137,7 @@ public class AttackAnimationTest
 		var before = parent.GetChildren().OfType<Projectile>().ToArray();
 		using var definition = new AttackDefinition { AttackStyle = "crossbow.shoot", IsRanged = true };
 		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
-		controller.StartAttack(attack, 1, 1, 0, 0);
+		controller.StartAttack(attack, new AttackStats(1, 1, 0), 0);
 		controller.SetPhysicsProcess(false);
 		controller._PhysicsProcess(.5);
 		var released = parent.GetChildren().OfType<Projectile>().Except(before).ToArray();
@@ -146,7 +146,7 @@ public class AttackAnimationTest
 		AssertInt(parent.GetChildren().OfType<Projectile>().Except(before).Count()).IsEqual(1);
 		controller.CancelAttack();
 		foreach (var projectile in released) ScenePool.Despawn(projectile);
-		controller.StartAttack(attack, 1, 1, 0, 0);
+		controller.StartAttack(attack, new AttackStats(1, 1, 0), 0);
 		controller.SetPhysicsProcess(false);
 		controller._PhysicsProcess(.2);
 		controller.CancelAttack();
@@ -271,7 +271,7 @@ public class AttackAnimationTest
 	{
 		var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		AssertInt(harness.Weapons.Length).IsEqual(11);
+		AssertInt(harness.Weapons.Length).IsEqual(13);
 		AssertObject(harness.GetNode<Label>("%Controls/Status")).IsNotNull();
 		harness.EquipPreview(3);
 		harness.Attack();

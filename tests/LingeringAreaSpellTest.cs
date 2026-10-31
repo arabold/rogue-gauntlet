@@ -11,7 +11,7 @@ public partial class LingeringAreaSpellTest
 {
 	// Hailstorm slows on entry, before any shard lands; Solar Flares burns only after its damaging touch.
 	[TestCase("Hailstorm", 0)]
-	[TestCase("Solar Flares", 1)]
+	[TestCase("Fire Serpent", 1)]
 	public async Task CancelDuringStatusNotificationLeavesNoOwnedStatus(string name, int contactsBeforeStatus)
 	{
 		using var runner = TestFactories.LoadCombatHarness();
@@ -22,7 +22,7 @@ public partial class LingeringAreaSpellTest
 		target.BuffController.BuffsChanged += () => { if (target.Slowed || target.Burning) spell.Cancel(); };
 		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue(); await runner.SimulateFrames(70);
 		AssertBool(target.Slowed).IsFalse(); AssertBool(target.Burning).IsFalse();
-		AssertFloat(target.HealthComponent.CurrentHealth).IsEqual(50 - contactsBeforeStatus * spell.Definition.DamageByLevel[0]);
+		AssertFloat(target.HealthComponent.CurrentHealth).IsEqual(50 - contactsBeforeStatus * TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0]));
 	}
 
 	[TestCase]
@@ -54,7 +54,7 @@ public partial class LingeringAreaSpellTest
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(target);
 		target.HurtBoxComponent.Armor = 100;
 		var spell = TestFactories.GetSpell<LingeringAreaSpell>(harness, "Hailstorm");
-		float shard = spell.Definition.DamageByLevel[0];
+		float shard = TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0]);
 		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue();
 		// The storm drops shards for ~2.5 s; evenly spread ones reach a target this close several times.
 		await runner.SimulateFrames(200, 20);
@@ -73,7 +73,7 @@ public partial class LingeringAreaSpellTest
 		var outside = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(5, 0, 0), "Outside");
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(inside); TestFactories.PrepareCombatMonster(outside);
 		var spell = TestFactories.GetSpell<LingeringAreaSpell>(harness, "Ice Wall");
-		float hit = spell.Definition.DamageByLevel[0];
+		float hit = TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0]);
 		Vector3 cast = harness.Player.GlobalPosition;
 		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue(); await runner.SimulateFrames(5);
 		// The ring takes hold once its crystals have risen, not at release.
@@ -114,9 +114,9 @@ public partial class LingeringAreaSpellTest
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var target = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2.6f, 0, 0), "Target");
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(target);
-		var spell = TestFactories.GetSpell<LingeringAreaSpell>(harness, "Solar Flares");
+		var spell = TestFactories.GetSpell<LingeringAreaSpell>(harness, "Fire Serpent");
 		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue(); await runner.SimulateFrames(95);
-		AssertBool(target.HealthComponent.CurrentHealth < 50 - spell.Definition.DamageByLevel[0]).IsTrue();
+		AssertBool(target.HealthComponent.CurrentHealth < 50 - TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0])).IsTrue();
 		AssertBool(target.Burning).IsTrue();
 		spell.Cancel();
 		float health = target.HealthComponent.CurrentHealth;

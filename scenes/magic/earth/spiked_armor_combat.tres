@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("script")
-SpellName = "Spiked Armor"
+SpellName = "Thorn Ward"
 Element = 2
-CapacityByLevel = PackedFloat32Array(24, 34, 44)
-ReflectionByLevel = PackedFloat32Array(0.45, 0.6, 0.75)
+CapacityScaleByLevel = PackedFloat32Array(3, 3.3, 3.6, 3.9, 4.2)
+ReflectionByLevel = PackedFloat32Array(0.45, 0.6, 0.75, 0.8, 0.85)

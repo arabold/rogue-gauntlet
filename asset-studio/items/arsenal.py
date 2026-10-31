@@ -8,16 +8,22 @@ import numpy as np
 import manifold3d as mf
 from core import kit
 from items.solid import Assembly, lathe, tube, polygon, loop, box
+from prefabs import library
 
+WANDS = ('crooked_wand', 'iron_wand', 'bone_wand', 'carved_wand')
+STAVES = ('crooked_staff', 'iron_staff', 'bone_staff', 'horned_staff')
 KINDS = ('wooden_club', 'steel_club', 'morning_star', 'short_dagger', 'saber',
-         'rapier', 'executioner', 'greatsword', 'broadsword', 'scythe', 'halberd', 'spear')
+         'rapier', 'executioner', 'greatsword', 'broadsword', 'scythe', 'halberd', 'spear') + WANDS + STAVES
 COLORS = {'steel': [134, 153, 166], 'edge': [181, 194, 203], 'iron': [65, 76, 83],
           'wood': [119, 78, 46], 'endgrain': [148, 104, 62], 'leather': [79, 47, 32],
-          'brass': [165, 119, 48]}
+          'brass': [165, 119, 48], 'bark': [92, 62, 40], 'ebony': [96, 58, 42],
+          'silver': [196, 204, 214], 'bone': [228, 216, 186], 'horn': [170, 140, 104],
+          'moonstone': [214, 222, 236]}
 MATERIALS = {name: {'metallic': .55, 'roughness': .36, 'crease': 48}
-             for name in ('steel', 'edge', 'iron', 'brass')}
+             for name in ('steel', 'edge', 'iron', 'brass', 'silver')}
 MATERIALS.update({name: {'metallic': 0, 'roughness': .9, 'crease': 55}
-                  for name in ('wood', 'endgrain', 'leather')})
+                  for name in ('wood', 'endgrain', 'leather', 'bark', 'ebony', 'bone', 'horn')})
+MATERIALS['moonstone'] = {'metallic': 0, 'roughness': .3, 'crease': 40}
 
 
 def loft(rings, slot):
@@ -223,6 +229,182 @@ def polearm(kind):
     return a.build()
 
 
+def ellipsoid(center, radii, segments=10):
+    """A solid ellipsoid for knots, knuckles and finials; it must overlap the part it grows from."""
+    return mf.Manifold.sphere(1, segments).scale(radii).translate(center)
+
+
+def branch(points, radii, sides=8, seed=0):
+    """A gnarled limb swept along a crooked path: the radius tapers per point and wobbles
+    slightly around the ring, so the bark reads as grown wood rather than a turned dowel."""
+    points = np.asarray(points, float)
+    rng = np.random.default_rng(seed)
+    t = 2*np.pi*np.arange(sides)/sides
+    profile = np.column_stack([np.cos(t), np.sin(t)]) * (1 + .09*rng.standard_normal(sides))[:, None]
+    return kit.sweep(points, profile, 'bark', scale=np.asarray(radii, float))
+
+
+def spiral(center, start, turns, r0, r1, rise, steps=28):
+    """Points of a clockwise spiral in XY that shrinks from `r0` to `r1` and drifts along Z, for horns and crooks."""
+    u = np.linspace(0, 1, steps)
+    phi = start - turns*2*np.pi*u
+    r = r0 + (r1-r0)*u
+    return np.column_stack([center[0] + r*np.cos(phi), center[1] + r*np.sin(phi), center[2] + rise*u])
+
+
+def wraps(a, lo, hi, radius, bands=4, slot='leather'):
+    """Raised binding bands around a straight section: real geometry, not painted stripes."""
+    for y in np.linspace(lo, hi, bands):
+        a.add(lathe([(radius*.9, y-.016), (radius*1.08, y-.008), (radius*1.08, y+.008), (radius*.9, y+.016)], 8), slot)
+
+
+def twisted_bar(lo, hi, half, turns, steps=24):
+    """A square forged bar twisted along Y, lofted from rotated square sections."""
+    rings = []
+    for i in range(steps):
+        u = i/(steps-1)
+        a = turns*2*np.pi*u
+        square = np.array([[1, 0], [0, 1], [-1, 0], [0, -1]], float)*half*1.35
+        c, s = np.cos(a), np.sin(a)
+        rot = square @ np.array([[c, -s], [s, c]])
+        rings.append(np.column_stack([rot[:, 0], np.full(4, lo+(hi-lo)*u), rot[:, 1]]))
+    return loft(rings, 'iron')
+
+
+def long_bone(a, lo, hi, radius, knuckle, axis=(1, 0, 0)):
+    """A bone with a waisted shaft and two-lobed knuckles at both ends."""
+    a.add(lathe([(radius*1.1, lo+knuckle*.6), (radius, lo+knuckle*1.4), (radius*.86, (lo+hi)/2),
+                 (radius, hi-knuckle*1.4), (radius*1.1, hi-knuckle*.6)], 10), 'bone')
+    ax = np.asarray(axis, float)
+    for y in (lo+knuckle*.7, hi-knuckle*.7):
+        for side in (-1, 1):
+            a.add(ellipsoid(ax*side*knuckle*.55 + (0, y, 0), (knuckle*.75, knuckle*.7, knuckle*.75), 7), 'bone')
+
+
+def vertebra(a, y, radius):
+    """A vertebra: a thick disc with a rim and two side processes, threaded on the shaft."""
+    a.add(lathe([(radius*.55, y-.035), (radius, y-.022), (radius*1.05, y), (radius, y+.022), (radius*.55, y+.035)], 8), 'bone')
+    for side in (-1, 1):
+        a.add(tube((0, y, 0), (side*radius*1.75, y+.02, -.01), radius*.22, 8), 'bone')
+        a.add(ellipsoid((side*radius*1.75, y+.02, -.01), (radius*.3, radius*.26, radius*.26), 6), 'bone')
+
+
+def wand(kind):
+    """One-handed spell focus about one unit long; the origin is the grip, the tip points up +Y."""
+    a = Assembly()
+    if kind == 'crooked_wand':
+        path = [(0, -.25, 0), (.01, -.08, 0), (-.012, .10, .006), (.035, .27, -.012), (-.025, .43, .02),
+                (.045, .58, -.012), (-.004, .72, .02), (.05, .86, 0)]
+        a.add(branch(path, [.05, .049, .046, .041, .035, .029, .022, .010], seed=3))
+        # Gnarls at the bends, a root knob at the butt and a split twig near the tip.
+        for p, r in [((.03, .27, -.012), .034), ((-.02, .43, .02), .03), ((.04, .58, -.012), .026)]:
+            a.add(ellipsoid(p, (r, r*1.25, r)), 'bark')
+        a.add(ellipsoid((0, -.25, 0), (.062, .05, .058)), 'bark')
+        a.add(branch([(.0, .68, .015), (-.04, .76, .03), (-.075, .82, .04)], [.016, .011, .005], 6, seed=5))
+        wraps(a, -.17, .05, .049, 4, 'leather')
+    elif kind == 'iron_wand':
+        a.add(lathe([(.05, -.24), (.054, -.20), (.054, .08), (.05, .12)], 10), 'leather')
+        wraps(a, -.19, .06, .054, 5, 'leather')
+        a.add(ellipsoid((0, -.28, 0), (.07, .06, .07), 10), 'steel')
+        collar(a, .13, .074, .06, 'steel')
+        a.add(twisted_bar(.10, .64, .032, 1.75))
+        collar(a, .66, .068, .06, 'steel')
+        # Three forged claws close over a pale stone.
+        a.add(mf.Manifold.sphere(.062, 14).translate((0, .78, 0)), 'moonstone')
+        for theta in np.arange(3)*2*np.pi/3:
+            d = np.array([np.cos(theta), 0, np.sin(theta)])
+            claw = [(0, .66, 0), tuple(d*.06 + (0, .71, 0)), tuple(d*.075 + (0, .79, 0)), tuple(d*.03 + (0, .86, 0))]
+            a.add(kit.sweep(claw, kit.ring_profile(1, 1, 6), 'iron', scale=[.02, .018, .015, .006]))
+    elif kind == 'bone_wand':
+        long_bone(a, -.27, .62, .044, .06)
+        wraps(a, -.16, .06, .048, 4, 'leather')
+        # A small skull sits on the upper knuckle, facing forward.
+        a.add(library.load('skull_cranium', 'bone', scale=.19, offset=(0, .66, .01)))
+    elif kind == 'carved_wand':
+        # A turned handle: knob pommel, swelling carved grip and beads, then a long taper to a rounded tip.
+        profile = [(.020, -.33), (.050, -.32), (.066, -.29), (.058, -.26), (.044, -.245), (.054, -.22)]
+        for y, r in [(-.17, .060), (-.10, .066), (-.03, .062), (.03, .056)]:
+            profile.extend([(r, float(y-.022)), (r*.86, float(y)), (r, float(y+.022))])
+        profile.extend([(.050, .07), (.040, .10), (.058, .125), (.040, .15), (.036, .30), (.028, .55),
+                        (.020, .80), (.022, .86), (.014, .90), (.004, .915)])
+        a.add(lathe(profile, 12), 'ebony')
+        for y, r in [(-.245, .052), (.125, .062)]:
+            collar(a, y, r, .03, 'silver')
+    else:
+        raise ValueError(f'Unknown wand design {kind}')
+    return a.build()
+
+
+def staff(kind):
+    """Two-handed spell focus about two units long; the origin is the upper grip, the head points up +Y."""
+    a = Assembly()
+    if kind == 'crooked_staff':
+        path = [(0, -.86, 0), (.012, -.55, .01), (-.015, -.25, -.008), (.01, .05, .012), (-.02, .38, -.01),
+                (.025, .70, .015), (-.01, .98, .0), (.03, 1.14, .01)]
+        a.add(branch(path, [.058, .06, .058, .057, .055, .053, .051, .05], seed=7))
+        # The top curls back over itself into a crook, thinning to a twig.
+        crook = spiral((.17, 1.22, .01), np.pi, .78, .14, .075, .0, 18)
+        crook = np.vstack([[(.03, 1.14, .01)], crook[1:]])
+        a.add(branch(crook, np.linspace(.05, .018, len(crook)), seed=8))
+        for p, r in [((.012, -.55, .01), .044), ((-.02, .38, -.01), .046), ((.025, .70, .015), .044),
+                     ((.03, 1.14, .01), .05)]:
+            a.add(ellipsoid(p, (r, r*1.3, r)), 'bark')
+        wraps(a, -.12, .12, .05, 4, 'leather')
+    elif kind == 'iron_staff':
+        a.add(lathe([(.04, -.80), (.043, -.70), (.043, 1.02), (.04, 1.06)], 8), 'iron')
+        a.add(lathe([(.001, -.95), (.05, -.80), (.055, -.76)], 6), 'steel')
+        for y in (-.66, .58):
+            collar(a, y, .06, .07, 'steel')
+        wraps(a, -.12, .12, .046, 5, 'leather')
+        # An open cage of four forged prongs around a pale stone.
+        collar(a, 1.06, .085, .08, 'steel')
+        a.add(tube((0, 1.06, 0), (0, 1.21, 0), .024, 8), 'iron')
+        a.add(mf.Manifold.sphere(.115, 16).translate((0, 1.29, 0)), 'moonstone')
+        for theta in np.arange(4)*np.pi/2 + np.pi/4:
+            d = np.array([np.cos(theta), 0, np.sin(theta)])
+            prong = [(0, 1.08, 0), tuple(d*.14 + (0, 1.14, 0)), tuple(d*.19 + (0, 1.29, 0)),
+                     tuple(d*.13 + (0, 1.45, 0)), (0, 1.51, 0)]
+            a.add(kit.sweep(prong, kit.ring_profile(.022, .022, 6), 'iron'), 'iron')
+        a.add(lathe([(.035, 1.48), (.042, 1.52), (.0015, 1.65)], 6), 'steel')
+    elif kind == 'bone_staff':
+        # Long bones joined knuckle to knuckle, lashed at every joint.
+        joints = [-.86, -.30, .26, .82]
+        for lo, hi in zip(joints, joints[1:]):
+            long_bone(a, lo-.03, hi+.03, .044, .066, axis=(1, 0, 0) if lo < 0 else (0, 0, 1))
+        for y in joints[1:-1]:
+            wraps(a, y-.03, y+.03, .062, 2, 'leather')
+        # A short spine of vertebrae, then three rib bones curling in to cradle the top.
+        for i, y in enumerate([.90, 1.0, 1.10]):
+            vertebra(a, y, .066 - .006*i)
+        a.add(tube((0, .80, 0), (0, 1.24, 0), .03, 8), 'bone')
+        a.add(mf.Manifold.sphere(.1, 10).translate((0, 1.31, 0)), 'moonstone')
+        for theta in np.arange(3)*2*np.pi/3 + np.pi/2:
+            d = np.array([np.cos(theta), 0, np.sin(theta)])
+            rib = [(0, 1.12, 0), tuple(d*.12 + (0, 1.17, 0)), tuple(d*.19 + (0, 1.31, 0)),
+                   tuple(d*.14 + (0, 1.46, 0)), tuple(d*.05 + (0, 1.51, 0))]
+            a.add(kit.sweep(rib, kit.ring_profile(1, 1, 6), 'bone', scale=[.034, .031, .027, .02, .008]))
+            a.add(ellipsoid(tuple(d*.12 + (0, 1.17, 0)), (.04, .04, .04), 8), 'bone')
+    elif kind == 'horned_staff':
+        a.add(lathe([(.038, -.86), (.044, -.80), (.044, 1.04), (.05, 1.08)], 10), 'wood')
+        a.add(lathe([(.001, -.93), (.046, -.86), (.05, -.82)], 8), 'brass')
+        for y in (-.70, .62):
+            collar(a, y, .058, .06, 'brass')
+        wraps(a, -.12, .12, .046, 4, 'leather')
+        # A carved head block sprouts two ridged ram horns that curl outward and down.
+        a.add(lathe([(.05, 1.06), (.095, 1.12), (.105, 1.24), (.08, 1.31), (.045, 1.35)], 10), 'wood')
+        collar(a, 1.10, .10, .05, 'brass')
+        horn = spiral((.21, 1.26, 0), np.pi, 1.0, .17, .07, .1, 34)
+        horn[0] = (.05, 1.26, 0)
+        u = np.linspace(0, 1, len(horn))
+        radius = (.082 - .07*u) * (1 + .07*np.sin(u*46))
+        for mirror in (1, -1):
+            a.add(kit.sweep(horn * (mirror, 1, 1), kit.ring_profile(1, .85, 9), 'horn', scale=radius))
+        a.add(lathe([(.04, 1.33), (.05, 1.38), (.0015, 1.52)], 6), 'brass')
+    else:
+        raise ValueError(f'Unknown staff design {kind}')
+    return a.build()
+
+
 def arsenal(design):
     """Build one explicit weapon design; unknown kinds fail instead of falling back."""
     kind=design.get('kind')
@@ -230,4 +412,6 @@ def arsenal(design):
         raise ValueError(f'Unknown arsenal design {kind}')
     if kind in KINDS[:3]:return club(kind)
     if kind in ('scythe','halberd','spear'):return polearm(kind)
+    if kind in WANDS:return wand(kind)
+    if kind in STAVES:return staff(kind)
     return sword(kind)

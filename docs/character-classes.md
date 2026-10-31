@@ -27,12 +27,12 @@ Everything is designer-authored resources under `scenes/player/classes/`:
 
 ## The shipped roster
 
-| Class | STR | DEX | VIT | INT | HP | Profile twist | Starting gear |
-|---|---|---|---|---|---|---|---|
-| Barbarian | 14 | 8 | 13 | 5 | 115 | +50% damage per STR | Battle Axe (T1, 2–6, 2H) |
-| Knight | 12 | 8 | 14 | 6 | 120 | — | Sword + shield |
-| Rogue | 8 | 15 | 9 | 8 | 95 | 2× crit/DEX | Crossbow + dagger + two lockpicks |
-| Mage | 6 | 10 | 8 | 16 | 90 | damage scales with INT | Wand (T1, ranged) + healing potion (pre-identified) |
+| Class | STR | DEX | VIT | INT | HP | MP | Profile twist | Starting gear |
+|---|---|---|---|---|---|---|---|---|
+| Barbarian | 14 | 8 | 13 | 5 | 115 | 45 | +50% damage per STR | Battle Axe (T1, 2–6, 2H) |
+| Knight | 12 | 8 | 14 | 6 | 120 | 50 | — | Sword + shield |
+| Rogue | 8 | 15 | 9 | 8 | 95 | 60 | 2× crit/DEX | Crossbow + dagger + two lockpicks |
+| Mage | 6 | 10 | 8 | 16 | 90 | 100 | damage scales with INT | Wand of Fireball (T1) + healing potion (pre-identified) |
 
 All starting equipment is first-tier (T1), Normal quality at its authored values; better gear comes from the dungeon.
 
@@ -41,8 +41,9 @@ Only the Mage starts with a healing potion, pre-identified via
 `CharacterClass`). The other three classes start without one and must identify healing
 potions the normal way — a deliberate balance choice, not a limitation of the system;
 any class's `.tres` can add `StartingItems`/`PreIdentifiedTypeIds` entries the same way.
-There is no mana: casting stays
-cooldown-based, and caster/non-caster differences come purely from stat profiles.
+Every profile grants 5 [mana](stats-and-itemization.md#mana) per Intelligence, so the pool
+(MP) follows INT. Wands and staves spend it on their spell; any class can equip and cast any of them, so the
+Mage simply casts more often.
 
 ## Runtime flow
 
@@ -106,6 +107,6 @@ animation plays once and freezes.
    hand.
 
 
-## Proposed action and magic progression
+## Magic and mana
 
-[Actor actions and world interactions](actor-actions-and-interactions.md) extends the starting-kit model with weapon primary/secondary actions and learned elemental magic. Classes provide different initial stats, equipment and spell grants; they do not hard-lock access to an element. Any class may learn an elemental spell and cast it with the matching equipped staff, sufficient mana and an available secondary action. One selected spell per element is character state, separate from the four item-only quick slots. The [implementation plan](specs/actor-actions-and-interactions-plan.md) owns proposed knowledge, point/mana/cooldown persistence and keyboard/gamepad targeting; none of this section claims those systems are implemented.
+Every class has its Intelligence-sized mana pool, and every wand and staff casts its bound spell from it; the Mage starts with a Wand of Fireball. Classes do not lock elements or spells.

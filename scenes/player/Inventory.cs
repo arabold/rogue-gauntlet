@@ -49,6 +49,9 @@ public partial class Inventory : Resource
 		{ EquipmentSlot.Arrows, null },
 	};
 
+	/// <summary>The weapon in the weapon hand, or null.</summary>
+	public Weapon EquippedWeapon => EquippedItems.TryGetValue(EquipmentSlot.WeaponHand, out var slot) ? slot?.Item as Weapon : null;
+
 	/// <summary>
 	/// The maximum number of items that can be stored in the inventory.
 	/// </summary>

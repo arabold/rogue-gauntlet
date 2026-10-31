@@ -187,10 +187,31 @@ public class WorldEffectLifecycleTest
 	{
 		var model = new Node3D(); model.AddChild(new MeshInstance3D { Mesh = new BoxMesh() });
 		var item = new EquipableItem { CursePenalty = [new StatModifier()], CurseStatusKnown = false };
-		var aura = TestFactories.Load<PackedScene>("res://scenes/effects/world/item_curse_presenter.tscn").Instantiate<ItemCurseWorldEffectPresenter>();
+		var aura = TestFactories.Load<PackedScene>("res://scenes/effects/world/item_aura_presenter.tscn").Instantiate<ItemAuraPresenter>();
 		aura.Initialize(item, model); model.AddChild(aura); TestFactories.AddToSceneTree(model);
 		AssertInt(aura.Host.LeaseCount).IsEqual(0); item.RevealCurseStatus();
 		AssertInt(aura.Host.LeaseCount).IsEqual(1); item.LiftCurse(); AssertInt(aura.Host.LeaseCount).IsEqual(0);
+	}
+	[TestCase]
+	public void SpellWeaponsShowTheirElementAuraUntilAKnownCurseTakesOver()
+	{
+		var model = new Node3D(); model.AddChild(new MeshInstance3D { Mesh = new BoxMesh() });
+		var wand = (MagicStaff)ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/weapons/wand.tres"));
+		var aura = TestFactories.Load<PackedScene>("res://scenes/effects/world/item_aura_presenter.tscn").Instantiate<ItemAuraPresenter>();
+		aura.Initialize(wand, model); model.AddChild(aura); TestFactories.AddToSceneTree(model);
+		string Showing() => aura.Host.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Single(i => !i.IsEnding).Definition.Id;
+
+		AssertString(Showing()).IsEqual("fire_aura");
+		wand.BoundSpell = TestFactories.Load<SpellDefinition>("res://scenes/magic/spells/frost_nova.tres");
+		AssertString(Showing()).IsEqual("water_aura");
+		// An unknown curse keeps the element; revealing it hands the aura to the curse.
+		wand.CurseStatusKnown = false; wand.CursePenalty = [new StatModifier()];
+		AssertString(Showing()).IsEqual("water_aura");
+		wand.RevealCurseStatus();
+		AssertString(Showing()).IsEqual("cursed_item");
+		wand.LiftCurse();
+		AssertString(Showing()).IsEqual("water_aura");
+		AssertInt(aura.Host.LeaseCount).IsEqual(1);
 	}
 	[TestCase]
 	public async Task HelpersAddedDuringASkinAreExcludedAndReplayUnloadsThePreviousSubject()
@@ -245,7 +266,7 @@ public class WorldEffectLifecycleTest
 		var host = TestFactories.Load<PackedScene>("res://scenes/effects/world/actor_world_effects.tscn").Instantiate<WorldEffectHost>();
 		host.SurfaceController = surface; cloak.Host = host;
 		var item = new EquipableItem { CursePenalty = [new StatModifier()], CurseStatusKnown = true };
-		var presenter = TestFactories.Load<PackedScene>("res://scenes/effects/world/item_curse_presenter.tscn").Instantiate<ItemCurseWorldEffectPresenter>();
+		var presenter = TestFactories.Load<PackedScene>("res://scenes/effects/world/item_aura_presenter.tscn").Instantiate<ItemAuraPresenter>();
 		presenter.Initialize(item, model, host); model.AddChild(presenter);
 		root.AddChild(cloak); root.AddChild(surface); root.AddChild(host); TestFactories.AddToSceneTree(root);
 		cloak.SetInvisible(true, true);

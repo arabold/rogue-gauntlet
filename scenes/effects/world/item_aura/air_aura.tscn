@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/effects/world/item_aura/item_aura.tscn" id="base"]
+
+[node name="AirAura" instance=ExtResource("base")]
+Tint = Color(0.4, 0.95, 0.88, 1)
+Highlight = Color(0.92, 1, 1, 1)

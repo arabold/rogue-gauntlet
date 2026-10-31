@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "name": "Wand Bone",
+  "backend": "procedural",
+  "builder": "arsenal",
+  "design": {
+    "kind": "bone_wand"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 3500,
+    "materials": 5,
+    "texture_size": 1024
+  },
+  "colors": {
+    "bone": [
+      228,
+      216,
+      186
+    ],
+    "leather": [
+      79,
+      47,
+      32
+    ]
+  },
+  "materials": {
+    "bone": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 55
+    },
+    "leather": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 55
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-items/weapons/wand/wand_bone.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Long bone with lashed grip and big knuckles, topped by a small skull prefab. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+  }
+}

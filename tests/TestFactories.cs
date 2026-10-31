@@ -68,9 +68,21 @@ public static class TestFactories
 	public static T GetSpell<T>(CombatHarness harness, string name) where T : class, ICombatSpell =>
 		harness.SpellComponents.OfType<T>().Single(spell => spell.DisplayName == name);
 
+	/// <summary>The hit test casts use: a steady 8 that never rolls a critical, so amounts are exact.</summary>
+	public static readonly AttackStats SpellHit = new(8, 8, 0);
+
+	/// <summary>A cast at <paramref name="level"/> with <see cref="SpellHit"/>.</summary>
+	public static SpellPower SpellPower(int level) => new(level, SpellHit);
+
+	/// <summary>Moves the arena's practice target out of spell range, so a test's own monsters are the only spell targets.</summary>
+	public static void MovePracticeTargetAway(CombatHarness harness) => harness.PracticeTarget.Position = new Vector3(0, 0, -60);
+
+	/// <summary>The amount a definition scale yields with <see cref="SpellHit"/>.</summary>
+	public static float SpellAmount(float scale) => scale * SpellHit.MaxDamage;
+
 	/// <summary>Casts a harness spell as the player, the same call the harness's cast button queues.</summary>
 	public static bool CastSpell(CombatHarness harness, string name, int level, ulong seed = 1) =>
-		GetSpell<ICombatSpell>(harness, name).Cast(harness.Player, level, new RandomNumberGenerator { Seed = seed });
+		GetSpell<ICombatSpell>(harness, name).Cast(harness.Player, SpellPower(level), new RandomNumberGenerator { Seed = seed });
 
 	/// <summary>
 	/// Waits until a level-one area cast has swept its whole area: its delay plus the time its visual's front takes
@@ -275,7 +287,7 @@ public static class TestFactories
 	/// <summary>Starts the level's discovery on an empty floor of the given size, as if generation had just finished.</summary>
 	public static GeneratedFloor StartEmptyFloor(Level level, MapGenerator map, int size = 20)
 	{
-		var floor = new GeneratedFloor(new MapData(size, size), map, map.FloorGridMap, map.DecorationGridMap);
+		var floor = new GeneratedFloor(new MapData(size, size), map, map.DecorationGridMap);
 		level.Discovery.Initialize(floor);
 		return floor;
 	}

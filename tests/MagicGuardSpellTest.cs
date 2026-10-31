@@ -21,7 +21,7 @@ public partial class MagicGuardSpellTest
 		var second = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(-2, 0, 0), "Second");
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(first); TestFactories.PrepareCombatMonster(second);
 		harness.Player.HurtBoxComponent.Armor = 0;
-		AssertBool(TestFactories.CastSpell(harness, "Stone Barrier", 1)).IsTrue();
+		AssertBool(TestFactories.CastSpell(harness, "Stone Ward", 1)).IsTrue();
 		float health = harness.Player.HealthComponent.CurrentHealth;
 		Hit(harness.Player, first, 4); Hit(harness.Player, second, 4);
 		AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsEqual(health);
@@ -37,9 +37,9 @@ public partial class MagicGuardSpellTest
 		var attacker = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Attacker");
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(attacker);
 		harness.Player.HurtBoxComponent.Armor = 0;
-		var guard = TestFactories.GetSpell<MagicGuardSpell>(harness, "Ember Guard").Definition;
-		float capacity = guard.CapacityByLevel[0];
-		AssertBool(TestFactories.CastSpell(harness, "Ember Guard", 1)).IsTrue();
+		var guard = TestFactories.GetSpell<MagicGuardSpell>(harness, "Ember Ward").Definition;
+		float capacity = TestFactories.SpellAmount(guard.CapacityScaleByLevel[0]);
+		AssertBool(TestFactories.CastSpell(harness, "Ember Ward", 1)).IsTrue();
 		float health = harness.Player.HealthComponent.CurrentHealth;
 		Hit(harness.Player, attacker, capacity + 5);
 		AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsEqual(health - 5);
@@ -57,11 +57,11 @@ public partial class MagicGuardSpellTest
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(attacker);
 		harness.Player.HurtBoxComponent.Armor = 0;
 		harness.Player.HealthComponent.SetHealth(4, 100);
-		var guard = TestFactories.GetSpell<MagicGuardSpell>(harness, "Ember Guard").Definition;
-		AssertBool(TestFactories.CastSpell(harness, "Ember Guard", 1)).IsTrue();
-		Hit(harness.Player, attacker, guard.CapacityByLevel[0] + 100);
+		var guard = TestFactories.GetSpell<MagicGuardSpell>(harness, "Ember Ward").Definition;
+		AssertBool(TestFactories.CastSpell(harness, "Ember Ward", 1)).IsTrue();
+		Hit(harness.Player, attacker, TestFactories.SpellAmount(guard.CapacityScaleByLevel[0]) + 100);
 		AssertBool(harness.Player.HealthComponent.IsDead).IsTrue();
-		AssertFloat(attacker.HealthComponent.CurrentHealth).IsEqual(50 - guard.CapacityByLevel[0] * guard.ReflectionByLevel[0]);
+		AssertFloat(attacker.HealthComponent.CurrentHealth).IsEqual(50 - TestFactories.SpellAmount(guard.CapacityScaleByLevel[0]) * guard.ReflectionByLevel[0]);
 	}
 
 	[TestCase]
@@ -72,13 +72,13 @@ public partial class MagicGuardSpellTest
 		var attacker = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Attacker");
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(attacker);
 		harness.Player.HurtBoxComponent.Armor = 0;
-		AssertBool(TestFactories.CastSpell(harness, "Ember Guard", 1)).IsTrue();
-		AssertBool(TestFactories.CastSpell(harness, "Stone Barrier", 1)).IsTrue();
-		TestFactories.GetSpell<MagicGuardSpell>(harness, "Ember Guard").Cancel();
+		AssertBool(TestFactories.CastSpell(harness, "Ember Ward", 1)).IsTrue();
+		AssertBool(TestFactories.CastSpell(harness, "Stone Ward", 1)).IsTrue();
+		TestFactories.GetSpell<MagicGuardSpell>(harness, "Ember Ward").Cancel();
 		float health = harness.Player.HealthComponent.CurrentHealth;
 		Hit(harness.Player, attacker, 4);
 		AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsEqual(health);
-		TestFactories.GetSpell<MagicGuardSpell>(harness, "Stone Barrier").Cancel();
+		TestFactories.GetSpell<MagicGuardSpell>(harness, "Stone Ward").Cancel();
 		Hit(harness.Player, attacker, 4);
 		AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsEqual(health - 4);
 	}

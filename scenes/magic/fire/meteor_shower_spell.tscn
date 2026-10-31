@@ -1,0 +1,15 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/magic/shared/targeted_spell.tscn" id="base"]
+[ext_resource type="Resource" path="res://scenes/magic/fire/meteor_shower_combat.tres" id="definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/fire/meteor_shower.tscn" id="visual"]
+[ext_resource type="PackedScene" path="res://scenes/magic/fire/meteor_debris.tscn" id="debris"]
+
+[node name="MeteorShowerSpell" node_paths=PackedStringArray("VisualRoot") instance=ExtResource("base")]
+Definition = ExtResource("definition")
+VisualScene = ExtResource("visual")
+DebrisScene = ExtResource("debris")
+VisualRoot = NodePath("Visuals")
+
+[node name="Visuals" type="Node3D" parent="."]
+top_level = true

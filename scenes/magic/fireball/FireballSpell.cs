@@ -71,15 +71,17 @@ public partial class FireballSpell : Node3D
 		DeliveryRoot.AddChild(projectile);
 		projectile.RestrictToTarget(target, impactScale);
 		Vector3 displacement = destination - origin;
-		projectile.Initialize(origin, displacement.Normalized(), Speed, displacement.Length(), damage, damage, 0, Caster);
+		projectile.Initialize(origin, displacement.Normalized(), Speed, displacement.Length(), new AttackStats(damage, damage, 0), Caster);
 		ConfigureProjectileVisual(projectile, level);
 	}
 
 	/// <summary>Scale only the visual layers for a level, leaving the projectile collision shape unchanged.</summary>
 	public static void ConfigureProjectileVisual(Projectile projectile, int level)
 	{
-		float scale = LevelVisualScales[level - 1];
-		float trailWidth = Mathf.Lerp(.8f, 1.4f, (level - 1f) / (LevelVisualScales.Length - 1));
+		// Levels past the authored scales keep the largest look.
+		int tier = Mathf.Clamp(level, 1, LevelVisualScales.Length);
+		float scale = LevelVisualScales[tier - 1];
+		float trailWidth = Mathf.Lerp(.8f, 1.4f, (tier - 1f) / (LevelVisualScales.Length - 1));
 		foreach (var path in TrailPaths)
 			if (projectile.GetNodeOrNull<MagicRibbonTrail>(path) is { } trail) trail.Width *= trailWidth;
 		foreach (var path in LayerPaths)

@@ -1,0 +1,108 @@
+[gd_scene load_steps=19 format=3]
+
+[ext_resource type="Script" path="res://scenes/attacks/Projectile.cs" id="projectile"]
+[ext_resource type="PackedScene" uid="uid://blsurcr8183cv" path="res://scenes/components/hit_box_component.tscn" id="hitbox"]
+[ext_resource type="PackedScene" path="res://scenes/magic/missile/magic_missile_impact.tscn" id="impact"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_core.gdshader" id="core_shader"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_ribbon_glow.gdshader" id="ribbon_shader"]
+[ext_resource type="Script" path="res://scenes/effects/MagicRibbonTrail.cs" id="ribbon"]
+[ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
+[ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material"]
+
+[sub_resource type="Gradient" id="arcane_bands"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0, 0.22, 0.45, 0.68, 0.86)
+colors = PackedColorArray(0.18, 0.06, 0.38, 1, 0.42, 0.16, 0.82, 1, 0.66, 0.42, 1, 1, 0.86, 0.74, 1, 1, 0.98, 0.95, 1, 1)
+
+[sub_resource type="GradientTexture1D" id="arcane_ramp"]
+gradient = SubResource("arcane_bands")
+width = 64
+
+[sub_resource type="Gradient" id="arcane_spark_life"]
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(0.96, 0.9, 1, 1, 0.66, 0.42, 1, 1, 0.42, 0.16, 0.82, 0)
+
+[sub_resource type="GradientTexture1D" id="arcane_spark_ramp"]
+gradient = SubResource("arcane_spark_life")
+
+[sub_resource type="SphereShape3D" id="hit_shape"]
+radius = 0.3
+
+[sub_resource type="ShaderMaterial" id="core_material"]
+shader = ExtResource("core_shader")
+shader_parameter/color_ramp = SubResource("arcane_ramp")
+shader_parameter/brightness = 2.0
+shader_parameter/noise_scale = 4.0
+shader_parameter/pulse = 0.0
+shader_parameter/heat_bias = 0.15
+
+[sub_resource type="SphereMesh" id="crystal_mesh"]
+radius = 0.085
+height = 0.42
+radial_segments = 6
+rings = 2
+
+[sub_resource type="ShaderMaterial" id="ribbon_material"]
+render_priority = -1
+shader = ExtResource("ribbon_shader")
+shader_parameter/noise_texture = ExtResource("noise")
+shader_parameter/color_ramp = SubResource("arcane_ramp")
+shader_parameter/brightness = 1.2
+shader_parameter/opacity = 0.85
+
+[sub_resource type="ParticleProcessMaterial" id="garnish_process"]
+particle_flag_align_y = true
+direction = Vector3(0, 0, 1)
+spread = 30.0
+initial_velocity_min = 0.5
+initial_velocity_max = 1.5
+gravity = Vector3(0, 0, 0)
+scale_min = 0.7
+scale_max = 1.2
+color_ramp = SubResource("arcane_spark_ramp")
+
+[sub_resource type="QuadMesh" id="garnish_quad"]
+size = Vector2(0.05, 0.16)
+
+[node name="MagicMissile" type="Node3D"]
+script = ExtResource("projectile")
+Speed = 16.0
+Range = 16.0
+ImpactEffectScene = ExtResource("impact")
+
+[node name="Pivot" type="Node3D" parent="."]
+
+[node name="HitBoxComponent" parent="Pivot" instance=ExtResource("hitbox")]
+unique_name_in_owner = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pivot/HitBoxComponent"]
+shape = SubResource("hit_shape")
+
+[node name="Core" type="MeshInstance3D" parent="Pivot"]
+layers = 64
+rotation_degrees = Vector3(-90, 0, 0)
+material_override = SubResource("core_material")
+cast_shadow = 0
+mesh = SubResource("crystal_mesh")
+
+[node name="Garnish" type="GPUParticles3D" parent="Pivot"]
+layers = 64
+material_override = ExtResource("spark_material")
+cast_shadow = 0
+amount = 8
+lifetime = 0.3
+randomness = 0.8
+local_coords = false
+process_material = SubResource("garnish_process")
+draw_pass_1 = SubResource("garnish_quad")
+
+[node name="Trail" type="MeshInstance3D" parent="."]
+layers = 64
+material_override = SubResource("ribbon_material")
+script = ExtResource("ribbon")
+Target = NodePath("..")
+MaxPoints = 14
+PointSpacing = 0.07
+Width = 0.28
+TailWidthScale = 0.1
+MeshUpdateInterval = 0.025

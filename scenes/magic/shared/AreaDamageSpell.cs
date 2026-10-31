@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 
 /// <summary>Scene-composed damage-only area cast, with a separately authored visual.</summary>
 public partial class AreaDamageSpell : Node, ICombatSpell
@@ -8,6 +9,7 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 	[Export] public Node3D VisualRoot { get; set; }
 	public string DisplayName => Definition?.SpellName ?? "";
 	public int LevelCount => Definition?.LevelCount ?? 0;
+	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	private readonly AreaCastLifecycle _cast = new();
 
 	public override void _Ready() { ProcessPhysicsPriority = CombatPhysics.Damage; SetPhysicsProcess(false); }
@@ -17,10 +19,12 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 	}
 
 	/// <summary>Resolve one contact per visible hostile actor as the visual reaches it; empty areas still show the visual.</summary>
-	public bool Cast(Node3D caster, int level, RandomNumberGenerator random)
+	public bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random)
 	{
+		int level = power.Level;
 		if (Definition?.IsValidLevel(level) != true || VisualScene == null) return false;
-		float radius = Definition.RadiusByLevel[level - 1], damage = Definition.DamageByLevel[level - 1];
+		float radius = Definition.RadiusByLevel[level - 1];
+		AttackStats hit = power.Hit.Scaled(Definition.DamageScaleByLevel[level - 1]);
 		AttackDefenseTraits defense = Definition.DefenseTraits;
 		if (!AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, radius, out var cast)) return false;
 		var node = VisualScene.Instantiate();
@@ -32,7 +36,7 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 				target => AreaSpellTargets.IsVisible(target, cast.World, cast.Origin)), target => target.GlobalPosition));
 		VisualRoot.AddChild(visual); visual.GlobalPosition = cast.Origin; area.SetAreaVisibility(visibility);
 		_cast.Track(visual);
-		_cast.Schedule(cast, Definition.ContactDelay, area.Front, damage, defense, Definition.PushAt(level), element: Definition.Element);
+		_cast.Schedule(cast, Definition.ContactDelay, area.Front, hit, defense, Definition.PushAt(level), element: Definition.Element);
 		return true;
 	}
 

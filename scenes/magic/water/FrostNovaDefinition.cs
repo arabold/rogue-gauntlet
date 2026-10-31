@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 
 /// <summary>Authored Frost Nova contact values plus the freeze it applies; casts never mutate the shared definition.</summary>
 [GlobalClass]
@@ -13,4 +14,7 @@ public partial class FrostNovaDefinition : AreaDamageDefinition
 		return base.IsValidLevel(level) && Frozen != null && FreezeSecondsByLevel != null && i < FreezeSecondsByLevel.Length
 			&& float.IsFinite(FreezeSecondsByLevel[i]) && FreezeSecondsByLevel[i] > 0;
 	}
+
+	public override IEnumerable<string> DescribeLevel(in SpellPower power) => !IsValidLevel(power.Level) ? []
+		: [.. base.DescribeLevel(power), $"Freezes for {FreezeSecondsByLevel[power.Level - 1]:0.#} s"];
 }

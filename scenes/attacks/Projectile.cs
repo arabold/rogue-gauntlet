@@ -17,9 +17,8 @@ public partial class Projectile : Node3D, IPooledNode
 	[Export] public float Speed { get; set; } = 10f;
 	[Export] public float Range { get; set; } = 30f;
 	[Export] public Vector3 Direction { get; set; } = Vector3.Forward;
-	[Export] public float MinDamage { get; set; }
-	[Export] public float MaxDamage { get; set; }
-	[Export] public float CritChance { get; set; }
+	/// <summary>The hit this flight carries, set by <see cref="Initialize"/>: rolled once on direct contact and per splash owner.</summary>
+	public AttackStats Hit { get; private set; }
 	[Export] public PackedScene ImpactEffectScene { get; set; }
 	[Export] public PackedScene ExpireEffectScene { get; set; }
 	[Export] public bool SpawnImpactEffectOnExpire { get; set; } = true;
@@ -32,7 +31,7 @@ public partial class Projectile : Node3D, IPooledNode
 	/// <summary>
 	/// Depth of the damage lane hanging below the flight line. Only world geometry crossing the flight line blocks a
 	/// shot, so it clears low furniture, yet it still hits any actor it passes over, however short. Zero limits contact
-	/// to the hitbox, which suits drops whose flight line is vertical.
+	/// to the hitbox.
 	/// </summary>
 	[Export] public float GroundReach { get; set; } = 1.5f;
 	/// <summary>Half-width of the damage lane across the flight direction.</summary>
@@ -55,6 +54,12 @@ public partial class Projectile : Node3D, IPooledNode
 	private bool _restrictedTarget;
 	private Node _assignedTarget;
 	private float _effectScale = 1f;
+	private ProjectileFlight _flight = ProjectileFlight.Straight;
+	private Node3D _homingTarget;
+	private float _flightTime;
+
+	/// <summary>Whether this flight still steers toward its captured target.</summary>
+	public bool IsHoming => _homingTarget != null;
 
 	/// <summary>Restricts this flight to one damage owner; null produces a cosmetic-only projectile.</summary>
 	public void RestrictToTarget(Node target, float effectScale = 1f)
@@ -120,6 +125,7 @@ public partial class Projectile : Node3D, IPooledNode
 	{
 		SetPhysicsProcess(false);
 		_attacker = null;
+		_homingTarget = null;
 		EffectRoot = null;
 		Element = DamageElement.None;
 		_parentExecution = default;
@@ -127,7 +133,7 @@ public partial class Projectile : Node3D, IPooledNode
 		SetHitBoxMonitoring(false, deferred: true);
 	}
 
-	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, float minDamage, float maxDamage, float critChance, Node attacker = null, AttackDefenseTraits defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, AttackDefenseTraits areaDefenseTraits = AttackDefenseTraits.Dodgeable, ulong randomSeed = 42, AttackIdentity parentExecution = default)
+	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, AttackStats hit, Node attacker = null, AttackDefenseTraits defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, AttackDefenseTraits areaDefenseTraits = AttackDefenseTraits.Dodgeable, ulong randomSeed = 42, AttackIdentity parentExecution = default)
 	{
 		_parentExecution = parentExecution;
 		_areaDefenseTraits = areaDefenseTraits;
@@ -137,17 +143,23 @@ public partial class Projectile : Node3D, IPooledNode
 		Direction = direction.Normalized();
 		Speed = speed;
 		Range = range;
-		MinDamage = minDamage;
-		MaxDamage = maxDamage;
-		CritChance = critChance;
+		Hit = hit;
 		_attacker = attacker;
 		_attackerFaction = HurtBoxComponent.GetDamageSource(attacker);
 		_distanceTravelled = 0.0f;
 		_hasResolvedHit = false;
+		ResetFlight();
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.spawned", ("execution", _executionId.Sequence), ("execution_source", _executionId.SourceInstanceId),
 			("parent_execution", _parentExecution.Sequence), ("parent_source", _parentExecution.SourceInstanceId), ("owner", CombatTrace.Identity(attacker)),
 			("origin", CombatTrace.Vector(origin)), ("direction", CombatTrace.Vector(Direction)), ("speed", speed), ("range", range),
 			("traits", defenseTraits.ToString()), ("area_traits", areaDefenseTraits.ToString()), ("seed", randomSeed));
+		// Range counts distance flown, so a launch without a direction would hover forever; it is retired instead.
+		if (Direction == Vector3.Zero)
+		{
+			GD.PushWarning($"{Name} was launched without a direction and is retired.");
+			CallDeferred(MethodName.ReturnToPoolOrFree);
+			return;
+		}
 		SetPhysicsProcess(true);
 
 		GlobalTransform = new Transform3D(Basis.Identity, origin);
@@ -165,12 +177,24 @@ public partial class Projectile : Node3D, IPooledNode
 		}
 	}
 
+	/// <summary>
+	/// Shape the flight started by <see cref="Initialize"/>: its launch ramp, and horizontal homing on
+	/// <paramref name="homingTarget"/>. A null target or zero turn rate flies straight. The attack validated the values.
+	/// </summary>
+	public void ConfigureFlight(in ProjectileFlight flight, Node3D homingTarget)
+	{
+		_flight = flight;
+		_homingTarget = flight.Homes ? homingTarget : null;
+	}
+
 	public override void _PhysicsProcess(double delta)
 	{
 		if (_hasResolvedHit) return;
 
+		_flightTime += (float)delta;
+		if (_homingTarget != null) Steer((float)delta);
 		Vector3 start = GlobalPosition;
-		Vector3 movement = Direction * Speed * (float)delta;
+		Vector3 movement = Direction * Speed * LaunchSpeedFactor() * (float)delta;
 		Vector3 end = start + movement;
 		bool hitWorld = TryHitWorld(start, end, out Vector3 hitPosition, out Vector3 hitNormal);
 		Vector3 reached = hitWorld ? hitPosition : end;
@@ -198,6 +222,52 @@ public partial class Projectile : Node3D, IPooledNode
 		}
 	}
 
+	/// <summary>
+	/// After the homing delay, turn horizontally toward the target's current position by at most the turn rate.
+	/// A freed or dead target, or one more than 90 degrees off the nose (overshot or dodged past), ends homing for
+	/// good, so a missed projectile flies on instead of circling.
+	/// </summary>
+	private void Steer(float delta)
+	{
+		if (_flightTime < _flight.HomingDelay) return;
+		if (!AttackController.IsLivingTarget(_homingTarget))
+		{
+			LoseHoming("target_lost");
+			return;
+		}
+		Vector3 toTarget = _homingTarget.GlobalPosition - GlobalPosition;
+		toTarget.Y = 0;
+		var heading = new Vector3(Direction.X, 0, Direction.Z);
+		if (toTarget.LengthSquared() < 0.0001f || heading.LengthSquared() < 0.0001f) return;
+		float angle = heading.SignedAngleTo(toTarget, Vector3.Up);
+		if (Mathf.Abs(angle) > Mathf.Pi * 0.5f)
+		{
+			LoseHoming("overshot");
+			return;
+		}
+		float maxTurn = Mathf.DegToRad(_flight.TurnRate) * delta;
+		Direction = Direction.Rotated(Vector3.Up, Mathf.Clamp(angle, -maxTurn, maxTurn)).Normalized();
+		LookAt(GlobalPosition + Direction, GetLookAtUpVector(Direction));
+	}
+
+	private void LoseHoming(string reason)
+	{
+		_homingTarget = null;
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.homing_lost", ("execution", _executionId.Sequence), ("reason", reason));
+	}
+
+	/// <summary>Fraction of full speed during the launch ramp.</summary>
+	private float LaunchSpeedFactor() => _flight.RampDuration > 0
+		? Mathf.Lerp(_flight.LaunchSpeedScale, 1, Mathf.Min(1, _flightTime / _flight.RampDuration))
+		: 1;
+
+	private void ResetFlight()
+	{
+		_flight = ProjectileFlight.Straight;
+		_homingTarget = null;
+		_flightTime = 0;
+	}
+
 	private void OnHitDetected(Node body)
 	{
 		if (_hasResolvedHit) return;
@@ -206,16 +276,10 @@ public partial class Projectile : Node3D, IPooledNode
 		if (TryGetDamageTarget(body, out Node damageOwner, out IDamageable damageable))
 		{
 			if (_restrictedTarget && (!GodotObject.IsInstanceValid(_assignedTarget) || damageOwner != _assignedTarget)) return;
-			var damage = (float)_random.RandfRange(MinDamage, MaxDamage);
-			float baseDamage = damage;
-			bool critical = _random.Randf() < CritChance;
-			if (critical)
-			{
-				damage *= 2;
-				GameDebug.Combat("Critical hit!");
-			}
+			var (damage, critical) = Hit.Roll(_random);
+			if (critical) GameDebug.Combat("Critical hit!");
 
-			if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.contact", ("execution", _executionId.Sequence), ("target", CombatTrace.Identity(damageOwner)), ("base_damage", baseDamage), ("critical", critical), ("raw_damage", damage));
+			if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.contact", ("execution", _executionId.Sequence), ("target", CombatTrace.Identity(damageOwner)), ("critical", critical), ("raw_damage", damage));
 			var context = new DamageContext
 			{
 				ExecutionId = _executionId,
@@ -376,13 +440,9 @@ public partial class Projectile : Node3D, IPooledNode
 				}
 
 				float damageScale = GetImpactRadiusDamageScale(damageOwner);
-				float damage = (float)_random.RandfRange(MinDamage, MaxDamage) * damageScale;
-				bool critical = _random.Randf() < CritChance;
-				if (critical)
-				{
-					damage *= 2;
-					GameDebug.Combat("Critical impact radius hit!");
-				}
+				var (amount, critical) = Hit.Roll(_random);
+				float damage = amount * damageScale;
+				if (critical) GameDebug.Combat("Critical impact radius hit!");
 
 				Vector3 pushDirection = damageOwner is Node3D node3D
 					? (node3D.GlobalPosition - GlobalPosition).Normalized()
@@ -559,6 +619,7 @@ public partial class Projectile : Node3D, IPooledNode
 	{
 		_distanceTravelled = 0.0f;
 		_hasResolvedHit = false;
+		ResetFlight();
 		_restrictedTarget = false;
 		_assignedTarget = null;
 		_effectScale = 1f;

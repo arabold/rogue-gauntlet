@@ -1,0 +1,10 @@
+[gd_resource type="GradientTexture1D" load_steps=2 format=3]
+
+[sub_resource type="Gradient" id="earth_bands"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0, 0.22, 0.45, 0.68, 0.86)
+colors = PackedColorArray(0.16, 0.1, 0.08, 1, 0.42, 0.24, 0.1, 1, 0.78, 0.5, 0.18, 1, 0.96, 0.76, 0.36, 1, 1, 0.93, 0.7, 1)
+
+[resource]
+gradient = SubResource("earth_bands")
+width = 64

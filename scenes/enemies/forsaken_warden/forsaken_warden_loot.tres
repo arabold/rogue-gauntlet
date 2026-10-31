@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LootTable" load_steps=41 format=3]
+[gd_resource type="Resource" script_class="LootTable" format=3]
 
 [ext_resource type="Script" path="res://scenes/components/LootTable.cs" id="table"]
 [ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
@@ -13,12 +13,8 @@
 [ext_resource type="Resource" path="res://scenes/items/weapons/dagger_uncommon.tres" id="weapon_8"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/hammer_common.tres" id="weapon_9"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/saber_skeleton.tres" id="weapon_10"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/staff_air.tres" id="weapon_11"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/staff_earth.tres" id="weapon_12"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/staff_fire.tres" id="weapon_13"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/staff_skeleton.tres" id="weapon_14"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff_skeleton.tres" id="weapon_11"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/staff_uncommon.tres" id="weapon_15"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/staff_water.tres" id="weapon_16"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/sword_common.tres" id="weapon_17"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/warhammer/warhammer_iron.tres" id="weapon_18"]
 
@@ -82,29 +78,9 @@ script = ExtResource("entry")
 Item = ExtResource("weapon_11")
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_12"]
-script = ExtResource("entry")
-Item = ExtResource("weapon_12")
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_13"]
-script = ExtResource("entry")
-Item = ExtResource("weapon_13")
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_14"]
-script = ExtResource("entry")
-Item = ExtResource("weapon_14")
-metadata/_custom_type_script = ExtResource("entry")
-
 [sub_resource type="Resource" id="Entry_15"]
 script = ExtResource("entry")
 Item = ExtResource("weapon_15")
-metadata/_custom_type_script = ExtResource("entry")
-
-[sub_resource type="Resource" id="Entry_16"]
-script = ExtResource("entry")
-Item = ExtResource("weapon_16")
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_17"]
@@ -119,5 +95,5 @@ metadata/_custom_type_script = ExtResource("entry")
 
 [resource]
 script = ExtResource("table")
-Items = [SubResource("Entry_0"), SubResource("Entry_1"), SubResource("Entry_2"), SubResource("Entry_3"), SubResource("Entry_4"), SubResource("Entry_5"), SubResource("Entry_6"), SubResource("Entry_7"), SubResource("Entry_8"), SubResource("Entry_9"), SubResource("Entry_10"), SubResource("Entry_11"), SubResource("Entry_12"), SubResource("Entry_13"), SubResource("Entry_14"), SubResource("Entry_15"), SubResource("Entry_16"), SubResource("Entry_17"), SubResource("Entry_18")]
+Items = [SubResource("Entry_0"), SubResource("Entry_1"), SubResource("Entry_2"), SubResource("Entry_3"), SubResource("Entry_4"), SubResource("Entry_5"), SubResource("Entry_6"), SubResource("Entry_7"), SubResource("Entry_8"), SubResource("Entry_9"), SubResource("Entry_10"), SubResource("Entry_11"), SubResource("Entry_15"), SubResource("Entry_17"), SubResource("Entry_18")]
 metadata/_custom_type_script = ExtResource("table")

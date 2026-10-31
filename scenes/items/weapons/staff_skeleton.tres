@@ -1,34 +1,35 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=7 format=3 uid="uid://b111md1aceaul"]
+[gd_resource type="Resource" script_class="MagicStaff" format=3 uid="uid://b111md1aceaul"]
 
-[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_2h.tres" id="melee_contact"]
+[ext_resource type="Script" uid="uid://bncpld6hbytsn" path="res://scenes/items/MagicStaff.cs" id="script"]
+[ext_resource type="PackedScene" uid="uid://bho5s2rxlogin" path="res://scenes/items/weapons/staff_skeleton.tscn" id="model"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
-[ext_resource type="PackedScene" uid="uid://bho5s2rxlogin" path="res://scenes/items/weapons/staff_skeleton.tscn" id="1_k6v53"]
-[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_pfyxc"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/wooden_weapon.tres" id="roll_table"]
-[ext_resource type="Resource" path="res://scenes/attacks/combos/blunt_2h.tres" id="primary_combo"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/stone_spears.tres" id="bound_spell"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/spell_pool_all.tres" id="spell_pool"]
+[ext_resource type="Resource" path="res://scenes/magic/missile/staff_missiles.tres" id="missiles"]
 
 [resource]
-script = ExtResource("2_pfyxc")
-MeleeContact = ExtResource("melee_contact")
-PrimaryCombo = ExtResource("primary_combo")
-AttackStyle = &"blunt.2h.chop"
-Grip = ExtResource("weapon_grip")
-Tier = 2
+script = ExtResource("script")
+ProjectileSpeed = 16.0
+Range = 16.0
+AimingAngle = 55.0
 RequiredStrength = 12
 DamageMin = 2.0
-DamageMax = 7.0
+DamageMax = 8.0
 CritChance = 0.0
 IsTwoHanded = true
-AnimationId = "melee_attack"
-Delay = 0.0
+AttackStyle = &"staff.cast"
+Grip = ExtResource("weapon_grip")
+AnimationId = "ranged_attack"
 PerformDuration = 0.5
-CooldownDuration = 0.0
+CooldownDuration = 0.1
 ValidSlots = 256
+Tier = 2
 RollTable = ExtResource("roll_table")
 Name = "Skeleton Staff"
-Scene = ExtResource("1_k6v53")
+Scene = ExtResource("model")
 Value = 80
-ShowInInventory = true
-IsStackable = false
-IsQuestItem = false
-metadata/_custom_type_script = ExtResource("2_pfyxc")
+BoundSpell = ExtResource("bound_spell")
+SpellPool = ExtResource("spell_pool")
+Missiles = ExtResource("missiles")
+metadata/_custom_type_script = ExtResource("script")

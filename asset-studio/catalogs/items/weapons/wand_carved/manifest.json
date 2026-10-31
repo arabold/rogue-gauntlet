@@ -1,0 +1,98 @@
+{
+  "key": "weapons/wand_carved",
+  "inputs": "b579d16fc08d46376f8c8195ceaa0c9cfb5c3a95bd4d70187a484d8392a76b72",
+  "files": {
+    "wand_carved.glb": "43434854cd8038b7db196dba5a93152104f3473c31d605e3f6fc659f81638d39",
+    "lineup.png": "1e98168dc3c71eb37184193355cb0173397bdd27b367c43b340313170ff4e218"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 840,
+      "bounds": [
+        [
+          -0.06599999964237213,
+          -0.32999998331069946,
+          -0.06599999964237213
+        ],
+        [
+          0.06599999964237213,
+          0.9150000214576721,
+          0.06599999964237213
+        ]
+      ],
+      "dimensions": [
+        0.13199999928474426,
+        1.2450000047683716,
+        0.13199999928474426
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.0065531290765488736
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Wand Carved",
+      "backend": "procedural",
+      "builder": "arsenal",
+      "design": {
+        "kind": "carved_wand"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "ebony": [
+          96,
+          58,
+          42
+        ],
+        "silver": [
+          196,
+          204,
+          214
+        ]
+      },
+      "materials": {
+        "ebony": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        },
+        "silver": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/wand/wand_carved.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Lathe-turned dark wood with a beaded handle, silver bands and a long fine taper. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

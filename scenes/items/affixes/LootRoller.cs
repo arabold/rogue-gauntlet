@@ -11,7 +11,8 @@ using System.Linq;
 public static class LootRoller
 {
 	/// <summary>
-	/// Rolls a created instance from one RNG in a fixed order: quality, adjective, scale, affix count, affixes, curse, penalty.
+	/// Rolls a created instance from one RNG in a fixed order: quality, adjective, scale, affix count, affixes, curse, penalty,
+	/// then the item's own intrinsic roll (a spell weapon's spell).
 	/// A forced <paramref name="quality"/> or <paramref name="cursed"/> skips that draw, which the debug spawner uses.
 	/// Harmful types are always cursed, Magic and Rare attributes start hidden, and every rolled item starts with an
 	/// unknown curse status.
@@ -33,6 +34,7 @@ public static class LootRoller
 		bool isCursed = cursed ?? (instance.AlwaysCursed || rng.Randf() < policy.CurseChance);
 		instance.CursePenalty = isCursed ? RollPenalty(depth, rng, policy.CursePenalties) : [];
 		instance.CurseStatusKnown = false;
+		instance.RollIntrinsic(rng);
 	}
 
 	/// <summary>The modifiers of one curse penalty eligible at <paramref name="depth"/>; a curse always has one.</summary>

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AttackDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://dirab7d4baxkb" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+
+[resource]
+script = ExtResource("attack")
+AnimationId = "ranged_attack"
+HitWindowStart = 0.2
+DefenseTraits = 3
+IsRanged = true
+Range = 16.0
+PoiseDamage = 0.0
+Knockback = 0.0
+metadata/_custom_type_script = ExtResource("attack")

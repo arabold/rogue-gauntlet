@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://beddkxj3k6x7i"]
+[gd_scene load_steps=8 format=3 uid="uid://beddkxj3k6x7i"]
 
 [ext_resource type="Script" uid="uid://bqo7ff6mav3rv" path="res://scenes/ui/Hud.cs" id="1_fp313"]
 [ext_resource type="PackedScene" uid="uid://c6oltejkpt4a0" path="res://scenes/ui/action_container.tscn" id="2_kicr4"]
@@ -15,6 +15,9 @@ bg_color = Color(0.0748453, 0.0748453, 0.0748452, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e0nu8"]
 bg_color = Color(0.6, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mana"]
+bg_color = Color(0.12, 0.32, 0.85, 1)
 
 [node name="HUD" type="PanelContainer"]
 anchors_preset = 15
@@ -55,6 +58,17 @@ size_flags_horizontal = 3
 size_flags_vertical = 4
 theme_override_styles/background = SubResource("StyleBoxFlat_vfmfx")
 theme_override_styles/fill = SubResource("StyleBoxFlat_e0nu8")
+value = 75.0
+show_percentage = false
+
+[node name="ManaBar" type="ProgressBar" parent="HBoxContainer/PanelContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(450, 24)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_vfmfx")
+theme_override_styles/fill = SubResource("StyleBoxFlat_mana")
 value = 75.0
 show_percentage = false
 

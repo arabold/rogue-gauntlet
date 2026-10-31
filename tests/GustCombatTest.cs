@@ -21,7 +21,7 @@ public partial class GustCombatTest
 		await runner.SimulateFrames(5);
 		target.HealthComponent.SetHealth(50, 50); target.HurtBoxComponent.Armor = 0;
 		float start = target.GlobalPosition.X;
-		AssertBool(Gust(harness).Cast(harness.Player, 1, new RandomNumberGenerator { Seed = 11 })).IsTrue();
+		AssertBool(Gust(harness).Cast(harness.Player, TestFactories.SpellPower(1), new RandomNumberGenerator { Seed = 11 })).IsTrue();
 		await TestFactories.AwaitPhysicsUntil(runner, () => target.HealthComponent.CurrentHealth < 50);
 		await runner.SimulateFrames(80);
 		float firstDistance = target.GlobalPosition.X - start;
@@ -30,7 +30,7 @@ public partial class GustCombatTest
 		target.MovementComponent.ResetTransientMotion(); target.GlobalPosition = new Vector3(2, 0, 0);
 		await runner.SimulateFrames(3); start = target.GlobalPosition.X;
 		float health = target.HealthComponent.CurrentHealth;
-		AssertBool(Gust(harness).Cast(harness.Player, 3, new RandomNumberGenerator { Seed = 12 })).IsTrue();
+		AssertBool(Gust(harness).Cast(harness.Player, TestFactories.SpellPower(3), new RandomNumberGenerator { Seed = 12 })).IsTrue();
 		await TestFactories.AwaitPhysicsUntil(runner, () => target.HealthComponent.CurrentHealth < health);
 		await runner.SimulateFrames(80);
 		float thirdDistance = target.GlobalPosition.X - start;
@@ -47,7 +47,7 @@ public partial class GustCombatTest
 		var wall = new StaticBody3D { Position = new Vector3(2.7f, 1, 0), CollisionLayer = 1 };
 		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(.2f, 2, 4) } }); root.AddChild(wall);
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(target);
-		AssertBool(Gust(harness).Cast(harness.Player, 3, new RandomNumberGenerator { Seed = 7 })).IsTrue();
+		AssertBool(Gust(harness).Cast(harness.Player, TestFactories.SpellPower(3), new RandomNumberGenerator { Seed = 7 })).IsTrue();
 		await TestFactories.AwaitPhysicsUntil(runner, () => target.HealthComponent.CurrentHealth < 50);
 		target.MovementComponent.SetPhysicsProcess(true); await runner.SimulateFrames(40);
 		AssertFloat(target.GlobalPosition.X).IsGreater(1.6);
@@ -63,7 +63,7 @@ public partial class GustCombatTest
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(target);
 		target.GlobalPosition = harness.Player.GlobalPosition;
 		Vector3 facing = -harness.Player.GlobalBasis.Z; facing.Y = 0; facing = facing.Normalized();
-		AssertBool(Gust(harness).Cast(harness.Player, 1, new RandomNumberGenerator { Seed = 6 })).IsTrue();
+		AssertBool(Gust(harness).Cast(harness.Player, TestFactories.SpellPower(1), new RandomNumberGenerator { Seed = 6 })).IsTrue();
 		target.MovementComponent._PhysicsProcess(1.0 / 60);
 		AssertFloat(target.MovementComponent.Velocity.Dot(facing)).IsGreater(.9);
 	}
@@ -76,7 +76,7 @@ public partial class GustCombatTest
 		var monster = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Frozen");
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(monster);
 		monster.Frozen = true; var before = monster.GlobalPosition;
-		AssertBool(Gust(harness).Cast(harness.Player, 1, new RandomNumberGenerator { Seed = 3 })).IsTrue();
+		AssertBool(Gust(harness).Cast(harness.Player, TestFactories.SpellPower(1), new RandomNumberGenerator { Seed = 3 })).IsTrue();
 		await TestFactories.AwaitPhysicsUntil(runner, () => monster.HealthComponent.CurrentHealth < 50);
 		monster.MovementComponent.SetPhysicsProcess(true); await runner.SimulateFrames(10);
 		AssertBool(monster.Frozen).IsTrue(); AssertBool(monster.ActionGate.IsStatusLocked).IsTrue();

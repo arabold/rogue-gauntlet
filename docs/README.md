@@ -14,7 +14,7 @@ These documents define world building, game mechanics, and feature designs that 
 
 | Document | Concept coverage |
 | --- | --- |
-| [Actor actions and world interactions](actor-actions-and-interactions.md) | Proposed coherent player/monster actions: keyboard/gamepad primary/secondary, elemental staff/learned-spell/mana rules, four item quick slots, timed interactions and defenses |
+| [Actor actions and world interactions](actor-actions-and-interactions.md) | Proposed coherent player/monster actions: keyboard/gamepad primary/secondary, spell wand/staff and mana rules, four item quick slots, timed interactions and defenses |
 | [Dungeon layout, access, and discovery](dungeon-exploration-design.md) | Realm room pools, floor recipes, required locations/routes/objectives, composed doors and locks, visible boss seals, and random generated secrets |
 | [Realms and monster design](realms-and-monster-design.md) | Sinking World, provisional realm order, floor cadence and first-realm encounter direction |
 
@@ -36,7 +36,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Combat actions and defense](combat-system.md) | Shared action ownership, dodge (including passing through monsters), guard/parry/guard break, poise and hit reactions, threat tiers, rear and sneak hits, attack slots, RNG and persistence |
 | [Combat harness and traces](combat-harness.md) | Interactive/scripted combat, JSONL event schema, capture flags and analyzer |
 | [Screen effects](screen-effects.md) | Blindness/poison/near-death post-process overlays, their gameplay wiring through health and status conditions (including confusion and slowness), and the debug harness |
-| [Actor and item world effects](world-effects.md) | Reusable burst/sustained VFX, shared cloak/skin ownership, authored looks, committed potion use, known-cursed item auras and the workbench |
+| [Actor and item world effects](world-effects.md) | Reusable burst/sustained VFX, shared cloak/skin ownership, authored looks, committed potion use, known-cursed and spell-element item auras and the workbench |
 | [Actor invisibility](invisibility.md) | Shared player/monster cloak shader, equipment coverage, reversible materials and effect-harness preview |
 
 ## Remaining implementation plans
@@ -45,8 +45,10 @@ These documents explain code that exists today. Any proposed extension or future
 | --- | --- |
 | [Secret doors and locks](specs/secret-doors-and-locks-plan.md) | Remaining tuning, hidden mechanisms, consumable key chains and secret shortcuts |
 | [Dungeon progression](specs/level-progression-prototype-plan.md) | Realm pools/recipes and the visible Warden stair seal |
-| [Actions and interactions](specs/actor-actions-and-interactions-plan.md) | Learned spells/mana and further actor intentions/content |
-| [Elemental spells and effects](specs/elemental-spells-plan.md) | Proposed 20-spell roster, targeting, visual direction and delivery slices |
+| [Actions and interactions](specs/actor-actions-and-interactions-plan.md) | Further actor intentions/content; magic moved to the magic rework plan |
+| [Magic rework](specs/magic-rework-plan.md) | In progress (slices 1–3 done; readability and tuning remain): spell wands and staves, free missile primary, one rolled spell whose level follows the tier, mana pool, renamed spells; drops spell learning and skill points |
+| [Elemental spells and effects](specs/elemental-spells-plan.md) | Proposed 20-spell roster, targeting, guard rules, visual direction and acceptance |
+| [Magic missile](specs/magic-missile-plan.md) | Free wand primary as a homing seeker volley for all elements; flight contract and playable missile landed, finished look and acceptance remain |
 | [Potion and scroll feedback](specs/consumable-feedback-plan.md) | Proposed unique activation signature for all 20 potion/scroll types, with world and screen channels and catalog coverage checks |
 | [Actor and item VFX](specs/actor-item-vfx-plan.md) | Remaining visual-quality/skin-choice acceptance, GPU timing and in-game readability review |
 | [Combat redesign](specs/combat-redesign-plan.md) | Remaining combat work: a Warden guard-breaking attack and guard walking, plus open tuning risks |

@@ -64,15 +64,17 @@ public partial class AttackController : Node, IParryInterruptible
 	private float _hitStopRemaining;
 	private bool _hitStopUsed;
 	private AttackDefinition _currentAttack;
-	private float _currentMinDamage;
-	private float _currentMaxDamage;
-	private float _currentCritChance;
+	private AttackStats _currentHit;
 	private uint _targetMask;
 
 	private ulong _executionSequence = 0;
 	public AttackIdentity CurrentExecutionId => new((ulong)GetInstanceId(), _executionSequence);
 
-	private bool _projectileSpawned;
+	// The first release captures the target and fan; staggered projectiles then leave one by one.
+	private bool _releaseStarted;
+	private int _projectilesReleased;
+	private readonly List<Vector3> _releaseDirections = [];
+	private Node3D _releaseTarget;
 	private Node3D _projectileAimTarget;
 	private Vector3 _projectileAimOrigin;
 	private Vector3 _projectileAimDirection;
@@ -81,10 +83,7 @@ public partial class AttackController : Node, IParryInterruptible
 	private HashSet<Node> _hitTargets = new HashSet<Node>();
 
 	private Node3D _actor;
-	private Level _level;
 	private readonly RandomNumberGenerator _random = new();
-
-	public override void _EnterTree() => _level = this.GetAncestorOrNull<Level>();
 
 	public override void _Ready()
 	{
@@ -98,10 +97,10 @@ public partial class AttackController : Node, IParryInterruptible
 	/// <summary>
 	/// Begins playing an attack with its stats and targeting parameters.
 	/// </summary>
-	public bool StartAttack(AttackDefinition def, float minDamage, float maxDamage, float critChance, uint targetMask)
+	public bool StartAttack(AttackDefinition def, AttackStats hit, uint targetMask)
 	{
 		return TryPrepareAttack(def, "", 0, out var attack)
-			&& StartAttack(attack, minDamage, maxDamage, critChance, targetMask);
+			&& StartAttack(attack, hit, targetMask);
 	}
 
 	/// <summary>Validate and capture the complete attack before animations, timers or hits start.</summary>
@@ -131,17 +130,15 @@ public partial class AttackController : Node, IParryInterruptible
 			copy.HitWindowStart = (float)duration * playback.ContactStart;
 			copy.HitWindowEnd = (float)duration * playback.ContactEnd;
 		}
-		if (!copy.HasValidImpact(copy.HitWindowStart)) return false;
+		if (!copy.HasValidImpact(copy.HitWindowStart) || !copy.HasValidFlight(copy.HitWindowStart, duration)) return false;
 		if (!float.IsFinite(copy.ProjectileAimLockDuration) || copy.ProjectileAimLockDuration < 0) return false;
-		if (copy.ProjectileAimLockDuration > 0 && (!copy.IsRanged
-			|| copy.ProjectilePattern is not (ProjectilePattern.Single or ProjectilePattern.Spread)
-			|| copy.ProjectileAimLockDuration > copy.HitWindowStart)) return false;
+		if (copy.ProjectileAimLockDuration > 0 && (!copy.IsRanged || copy.ProjectileAimLockDuration > copy.HitWindowStart)) return false;
 		attack = new PreparedAttack(copy, playback, duration);
 		return true;
 	}
 
 	/// <summary>Commit an already validated execution snapshot to this actor.</summary>
-	public bool StartAttack(PreparedAttack attack, float minDamage, float maxDamage, float critChance, uint targetMask, ActorActionLease lease = default)
+	public bool StartAttack(PreparedAttack attack, AttackStats hit, uint targetMask, ActorActionLease lease = default)
 	{
 		if (attack == null || _actor == null) return false;
 		var def = attack.Definition;
@@ -164,9 +161,7 @@ public partial class AttackController : Node, IParryInterruptible
 		_executionSequence++;
 		_preparedAttack = attack;
 		_currentAttack = def;
-		_currentMinDamage = minDamage;
-		_currentMaxDamage = maxDamage;
-		_currentCritChance = critChance;
+		_currentHit = hit;
 		_targetMask = targetMask;
 
 		_elapsedTime = 0.0f;
@@ -179,7 +174,7 @@ public partial class AttackController : Node, IParryInterruptible
 		LastDamage = 0;
 		LastResult = "Preparing";
 		if (!def.IsRanged) MeleeDetector.Begin(_actor, def.MeleeContact, targetMask, DebugDrawEnabled || GlobalDebugDrawEnabled);
-		_projectileSpawned = false;
+		ResetRelease();
 		_projectileAimTarget = null;
 		AimIndicator?.Clear();
 		if (def.ProjectileAimLockDuration > 0)
@@ -194,7 +189,7 @@ public partial class AttackController : Node, IParryInterruptible
 		ReportProgress();
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.started", ("execution", _executionSequence), ("execution_source", GetInstanceId()), ("style", CurrentStyle.ToString()),
 			("contact_start", def.HitWindowStart), ("contact_end", def.HitWindowEnd), ("duration", attack.Duration),
-			("traits", def.DefenseTraits.ToString()), ("min_damage", minDamage), ("max_damage", maxDamage),
+			("traits", def.DefenseTraits.ToString()), ("min_damage", hit.MinDamage), ("max_damage", hit.MaxDamage),
 			("poise_damage", def.PoiseDamage), ("facing_lock_lead", def.FacingLockLead), ("hyper_armor", $"{def.HyperArmorStart}-{def.HyperArmorEnd}"));
 		if (attack.Playback != null) AnimationComponent.Begin(attack.Playback);
 		UpdateTelegraph();
@@ -240,6 +235,7 @@ public partial class AttackController : Node, IParryInterruptible
 		AimIndicator?.Clear();
 		Telegraph?.Clear();
 		_projectileAimTarget = null;
+		ResetRelease();
 		ActionGate?.Release(_actionLease);
 		_actionLease = ActorActionLease.None;
 		_currentAttack = null;
@@ -275,9 +271,17 @@ public partial class AttackController : Node, IParryInterruptible
 			CommitMeleeFacing();
 		UpdateTelegraph();
 
-		if (_currentAttack.IsRanged)
+		if (_preparedAttack.Spell != null)
 		{
-			if (_currentAttack.ProjectileAimLockDuration > 0 && !_projectileSpawned)
+			if (!_releaseStarted && _elapsedTime >= _currentAttack.HitWindowStart)
+			{
+				_releaseStarted = true;
+				ReleaseSpell(_preparedAttack.Spell);
+			}
+		}
+		else if (_currentAttack.IsRanged)
+		{
+			if (_currentAttack.ProjectileAimLockDuration > 0 && !_releaseStarted)
 			{
 				if (!GodotObject.IsInstanceValid(_projectileAimTarget) || !IsValidAimTarget(_projectileAimTarget))
 				{
@@ -286,11 +290,15 @@ public partial class AttackController : Node, IParryInterruptible
 				}
 				UpdateProjectileAim();
 			}
-			if (_elapsedTime >= _currentAttack.HitWindowStart && !_projectileSpawned)
+			if (_elapsedTime >= _currentAttack.HitWindowStart)
 			{
-				SpawnProjectile();
-				_projectileSpawned = true;
-				AimIndicator?.Clear();
+				if (!_releaseStarted)
+				{
+					_releaseStarted = true;
+					BeginRelease();
+					AimIndicator?.Clear();
+				}
+				ReleaseDueProjectiles();
 			}
 		}
 		else if (_elapsedTime >= _currentAttack.HitWindowStart && previous <= _currentAttack.HitWindowEnd
@@ -382,12 +390,9 @@ public partial class AttackController : Node, IParryInterruptible
 		if (!_hitTargets.Add(owner)) return;
 		if (target is HurtBoxComponent { HealthComponent: { IsDead: true } }) return;
 		ContactCount++;
-		float damage = _random.RandfRange(_currentMinDamage, _currentMaxDamage);
-		float baseDamage = damage;
-		bool critical = _random.Randf() < _currentCritChance;
-		if (critical) damage *= 2;
+		var (damage, critical) = _currentHit.Roll(_random);
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.contact", ("execution", _executionSequence), ("execution_source", GetInstanceId()),
-			("target", CombatTrace.Identity(target)), ("base_damage", baseDamage), ("critical", critical), ("raw_damage", damage));
+			("target", CombatTrace.Identity(target)), ("critical", critical), ("raw_damage", damage));
 
 		Vector3 incomingDir = CommittedFacing;
 		if (target != null && _actor != null)
@@ -447,11 +452,23 @@ public partial class AttackController : Node, IParryInterruptible
 
 	public override void _ExitTree() => CancelAttack();
 
-	private void SpawnProjectile()
-	{
-		if (_currentAttack == null) return;
+	private PackedScene CurrentProjectileScene => _currentAttack.ProjectileScene ?? DefaultProjectileScene;
 
-		PackedScene scene = _currentAttack.ProjectileScene ?? DefaultProjectileScene;
+	private void ResetRelease()
+	{
+		_releaseStarted = false;
+		_projectilesReleased = 0;
+		_releaseDirections.Clear();
+		_releaseTarget = null;
+	}
+
+	/// <summary>
+	/// Capture the release once per execution: the aim target (also the homing target), the fan of directions and
+	/// the cast/muzzle effects.
+	/// </summary>
+	private void BeginRelease()
+	{
+		PackedScene scene = CurrentProjectileScene;
 		if (scene == null)
 		{
 			GD.PushError($"{Name} cannot spawn projectile without a projectile scene.");
@@ -459,109 +476,72 @@ public partial class AttackController : Node, IParryInterruptible
 		}
 
 		Vector3 origin = IsProjectileAimLocked ? _projectileAimOrigin : GetProjectileOrigin();
-		if (_currentAttack.ProjectilePattern == ProjectilePattern.AreaDrop)
+		Vector3 aimedDirection;
+		if (IsProjectileAimLocked)
 		{
-			SpawnAreaDrop(origin, scene);
-			return;
+			aimedDirection = _projectileAimDirection;
+			_releaseTarget = _projectileAimTarget;
 		}
-
-		Vector3 aimedDirection = IsProjectileAimLocked ? _projectileAimDirection : Aim(origin, _currentAttack.Range, _currentAttack.AimingAngle);
+		else
+		{
+			_releaseTarget = FindReleaseTarget(_currentAttack.Range, _currentAttack.AimingAngle, out float fallbackHeight);
+			aimedDirection = _releaseTarget != null ? GetDirectionToTarget(origin, _releaseTarget, fallbackHeight) : GetActorForward();
+		}
 		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, GetActorForward());
 		SpawnEffect(_currentAttack.MuzzleEffectScene, origin, aimedDirection);
+		_releaseDirections.AddRange(GetProjectileDirections(aimedDirection));
+	}
 
-		foreach (Vector3 direction in GetProjectileDirections(aimedDirection))
+	/// <summary>
+	/// Casts the attack's spell once at its contact time; a spell freed with its focus no longer casts. Like a projectile,
+	/// the cast rolls from its own seeded stream, so its lingering contacts never shift this controller's later draws.
+	/// </summary>
+	private void ReleaseSpell(SpellRelease release)
+	{
+		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, GetActorForward());
+		var random = new RandomNumberGenerator { Seed = _random.Randi() };
+		bool cast = release.Spell is GodotObject spell && GodotObject.IsInstanceValid(spell)
+			&& release.Spell.Cast(_actor, release.Power, random);
+		ReportFeedback(cast ? "Cast" : "Fizzled");
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.spell_released", ("execution", _executionSequence),
+			("spell", release.Spell?.DisplayName ?? ""), ("level", release.Power.Level), ("cast", cast));
+	}
+
+	/// <summary>
+	/// Spawn every captured projectile whose staggered release time has passed, so a tick that skips several
+	/// release times still fires each of them. Cancelling the attack discards the rest.
+	/// </summary>
+	private void ReleaseDueProjectiles()
+	{
+		while (_projectilesReleased < _releaseDirections.Count
+			&& _elapsedTime >= _currentAttack.HitWindowStart + _projectilesReleased * _currentAttack.ProjectileStagger)
 		{
-			Projectile projectile = ScenePool.Spawn<Projectile>(scene, (GetTree().CurrentScene ?? _actor.GetParent()));
-			ApplyProjectileOverrides(projectile);
-			projectile.Initialize(
-				origin,
-				direction,
-				_currentAttack.ProjectileSpeed,
-				_currentAttack.Range,
-				_currentMinDamage * _currentAttack.ProjectileDamageScale,
-				_currentMaxDamage * _currentAttack.ProjectileDamageScale,
-				_currentCritChance,
-				_actor, _currentAttack.DefenseTraits, _currentAttack.AreaDefenseTraits, _random.Randi(), CurrentExecutionId);
-
-			GameDebug.Combat($"{_actor.Name} spawned projectile flying {direction}");
+			SpawnProjectile(_releaseDirections[_projectilesReleased++]);
 		}
 	}
 
-	private void SpawnAreaDrop(Vector3 origin, PackedScene scene)
+	/// <summary>A staggered projectile leaves from the current muzzle; an aim-locked shot keeps its committed origin.</summary>
+	private void SpawnProjectile(Vector3 direction)
 	{
-		Vector3 actorForward = GetActorForward();
-		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, actorForward);
-		SpawnEffect(_currentAttack.MuzzleEffectScene, origin, actorForward);
+		Vector3 origin = IsProjectileAimLocked ? _projectileAimOrigin : GetProjectileOrigin();
+		Projectile projectile = ScenePool.Spawn<Projectile>(CurrentProjectileScene, (GetTree().CurrentScene ?? _actor.GetParent()));
+		ApplyProjectileOverrides(projectile);
+		projectile.Initialize(
+			origin,
+			direction,
+			_currentAttack.ProjectileSpeed,
+			_currentAttack.Range,
+			_currentHit.Scaled(_currentAttack.ProjectileDamageScale),
+			_actor, _currentAttack.DefenseTraits, _currentAttack.AreaDefenseTraits, _random.Randi(), CurrentExecutionId);
+		projectile.ConfigureFlight(_currentAttack.Flight, _releaseTarget);
 
-		foreach (Vector3 targetPosition in GetAreaDropLandingPositions())
-		{
-			Vector3 dropOrigin = targetPosition + Vector3.Up * _currentAttack.SpawnHeight;
-			Vector3 direction = Vector3.Down;
-			Projectile projectile = ScenePool.Spawn<Projectile>(scene, (GetTree().CurrentScene ?? _actor.GetParent()));
-			ApplyProjectileOverrides(projectile);
-			projectile.Initialize(
-				dropOrigin,
-				direction,
-				_currentAttack.ProjectileSpeed,
-				_currentAttack.SpawnHeight + 1.0f,
-				_currentMinDamage * _currentAttack.ProjectileDamageScale,
-				_currentMaxDamage * _currentAttack.ProjectileDamageScale,
-				_currentCritChance,
-				_actor, _currentAttack.DefenseTraits, _currentAttack.AreaDefenseTraits, _random.Randi(), CurrentExecutionId);
-
-			GameDebug.Combat($"{_actor.Name} spawned area drop at {targetPosition}");
-		}
+		GameDebug.Combat($"{_actor.Name} spawned projectile flying {direction}");
 	}
 
 	private void ApplyProjectileOverrides(Projectile projectile)
 	{
 		projectile.Impact = _currentAttack.Impact;
-		if (_currentAttack.ImpactRadiusOverride >= 0.0f)
-		{
-			projectile.ImpactRadius = _currentAttack.ImpactRadiusOverride;
-		}
-
-		if (_currentAttack.ImpactRadiusMinDamageScaleOverride >= 0.0f)
-		{
-			projectile.ImpactRadiusMinDamageScale = _currentAttack.ImpactRadiusMinDamageScaleOverride;
-		}
-	}
-
-	private IEnumerable<Vector3> GetAreaDropLandingPositions()
-	{
-		int count = Mathf.Max(1, _currentAttack.ProjectileCount);
-		for (int i = 0; i < count; i++)
-		{
-			if (TryGetAreaDropLandingPosition(i, count, _random, _level?.Floor, out Vector3 landingPosition))
-			{
-				yield return landingPosition;
-			}
-		}
-	}
-
-	/// <summary>Outside a generated level (previews, harnesses) drops land where they were aimed.</summary>
-	private bool TryGetAreaDropLandingPosition(int index, int count, RandomNumberGenerator random, GeneratedFloor floor, out Vector3 landingPosition)
-	{
-		for (int attempt = 0; attempt < 8; attempt++)
-		{
-			float angle = index / (float)count * Mathf.Tau + random.RandfRange(-0.45f, 0.45f) + attempt * 0.29f;
-			float radius = random.RandfRange(_currentAttack.TargetAreaRadius * 0.25f, _currentAttack.TargetAreaRadius);
-			Vector3 rawTarget = _actor.GlobalPosition + new Vector3(Mathf.Cos(angle) * radius, 0.0f, Mathf.Sin(angle) * radius);
-			if (floor == null)
-			{
-				landingPosition = rawTarget;
-				return true;
-			}
-
-			if (floor.TryFindEffectLandingPositionNear(rawTarget, 1.5f, out Vector3 candidate))
-			{
-				landingPosition = candidate;
-				return true;
-			}
-		}
-
-		landingPosition = default;
-		return false;
+		projectile.Element = _currentAttack.Element;
 	}
 
 	private Vector3 GetProjectileOrigin()
@@ -578,16 +558,6 @@ public partial class AttackController : Node, IParryInterruptible
 	private IEnumerable<Vector3> GetProjectileDirections(Vector3 aimedDirection)
 	{
 		int count = Mathf.Max(1, _currentAttack.ProjectileCount);
-
-		if (_currentAttack.ProjectilePattern == ProjectilePattern.Radial)
-		{
-			float step = 360.0f / count;
-			for (int i = 0; i < count; i++)
-			{
-				yield return RotateHorizontal(GetActorForward(), step * i);
-			}
-			yield break;
-		}
 
 		if (_currentAttack.ProjectilePattern == ProjectilePattern.Spread && count > 1)
 		{
@@ -667,37 +637,31 @@ public partial class AttackController : Node, IParryInterruptible
 		return null;
 	}
 
-	private Vector3 Aim(Vector3 origin, float range, float aimingAngle)
+	/// <summary>
+	/// The release-time aim target: the opponent nearest the actor's facing inside the aiming cone, range and line
+	/// of sight, else, for the player, the nearest such damageable object. Null aims along the actor's facing.
+	/// </summary>
+	private Node3D FindReleaseTarget(float range, float aimingAngle, out float fallbackHeight)
 	{
 		bool isPlayer = _actor.IsInGroup("player");
 		string targetGroup = isPlayer ? "enemy" : "player";
+		fallbackHeight = 1.0f;
 
-		var targets = GetTree().GetNodesInGroup(targetGroup).OfType<Node3D>()
-			.Where(target => IsValidAimTarget(target) && TestLineOfSight(target, range, aimingAngle))
+		var target = GetTree().GetNodesInGroup(targetGroup).OfType<Node3D>()
+			.Where(candidate => IsValidAimTarget(candidate) && TestLineOfSight(candidate, range, aimingAngle))
 			.OrderBy(GetAimAngle)
-			.ThenBy(target => _actor.GlobalPosition.DistanceTo(target.GlobalPosition));
+			.ThenBy(candidate => _actor.GlobalPosition.DistanceTo(candidate.GlobalPosition))
+			.FirstOrDefault();
+		if (target != null || !isPlayer) return target;
 
-		foreach (var target in targets)
-		{
-			return GetDirectionToTarget(origin, target, 1.0f);
-		}
-
-		if (isPlayer)
-		{
-			var damageables = GetTree().GetNodesInGroup("damageable").OfType<Node3D>()
-				.Where(node => node is IDamageable
-					&& !IsOwnedByActor(node)
-					&& TestLineOfSight(node, range, aimingAngle))
-				.OrderBy(GetAimAngle)
-				.ThenBy(node => _actor.GlobalPosition.DistanceTo(node.GlobalPosition));
-
-			foreach (var node in damageables)
-			{
-				return GetDirectionToTarget(origin, node, 0.5f);
-			}
-		}
-
-		return GetActorForward();
+		fallbackHeight = 0.5f;
+		return GetTree().GetNodesInGroup("damageable").OfType<Node3D>()
+			.Where(node => node is IDamageable
+				&& !IsOwnedByActor(node)
+				&& TestLineOfSight(node, range, aimingAngle))
+			.OrderBy(GetAimAngle)
+			.ThenBy(node => _actor.GlobalPosition.DistanceTo(node.GlobalPosition))
+			.FirstOrDefault();
 	}
 
 	/// <summary>Keep the AI's chosen target when available; never switch targets after accepting an aimed shot.</summary>
@@ -762,9 +726,15 @@ public partial class AttackController : Node, IParryInterruptible
 		return node == _actor || _actor.IsAncestorOf(node) || node.IsAncestorOf(_actor);
 	}
 
-	private bool IsValidAimTarget(Node node)
+	private bool IsValidAimTarget(Node node) => !IsOwnedByActor(node) && IsLivingTarget(node);
+
+	/// <summary>
+	/// A target that still exists and, when it is an actor or an actor's part, is not dead. Shared with homing
+	/// projectiles, which give up a target that fails it.
+	/// </summary>
+	public static bool IsLivingTarget(Node node)
 	{
-		if (IsOwnedByActor(node)) return false;
+		if (!GodotObject.IsInstanceValid(node)) return false;
 		if (node is EnemyBase enemy) return !enemy.IsDead;
 		if (node is Player player) return !player.IsDead;
 		if (node.GetParent() is EnemyBase parentEnemy) return !parentEnemy.IsDead;

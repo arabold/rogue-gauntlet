@@ -3,17 +3,25 @@ using System.Linq;
 
 public partial class Hud : Control
 {
+	/// <summary>The mana bar's tint when a spell is refused for lack of mana; it fades back over <see cref="ManaShortfallFlashSeconds"/>.</summary>
+	[Export] public Color ManaShortfallColor { get; set; } = new(1f, 0.35f, 0.35f);
+	[Export(PropertyHint.Range, "0.05,2,0.05")] public float ManaShortfallFlashSeconds { get; set; } = 0.45f;
+
 	private ProgressBar _healthBar;
+	private ProgressBar _manaBar;
 	private Label _xpLabel;
 	private Label _goldLabel;
 	private Control _interactionContainer;
 	private ProgressBar _interactionProgressBar;
 	private System.Action _unsubscribeInteraction = () => { };
+	private System.Action _unsubscribeMana = () => { };
+	private Tween _manaFlash;
 
 	public override void _Ready()
 	{
 		// Get references to the child nodes
 		_healthBar = GetNode<ProgressBar>("%HealthBar");
+		_manaBar = GetNode<ProgressBar>("%ManaBar");
 		_xpLabel = GetNode<Label>("%XpLabel");
 		_goldLabel = GetNode<Label>("%GoldLabel");
 		_interactionContainer = GetNodeOrNull<Control>("%InteractionContainer");
@@ -57,6 +65,23 @@ public partial class Hud : Control
 				c.InteractionCompleted -= OnInteractionEnded;
 				c.InteractionCancelled -= OnInteractionCancelled;
 			});
+		_unsubscribeMana();
+		_unsubscribeMana = this.SubscribeUntilExit(
+			player?.ManaComponent,
+			m => m.ManaShortfall += OnManaShortfall,
+			m => m.ManaShortfall -= OnManaShortfall);
+	}
+
+	/// <summary>
+	/// Flashes the mana bar when a cast is refused. A buffered press retries for a few frames, so a flash already
+	/// playing is not restarted: one press reads as one flash.
+	/// </summary>
+	private void OnManaShortfall(float cost)
+	{
+		if (_manaFlash?.IsRunning() == true) return;
+		_manaBar.Modulate = ManaShortfallColor;
+		_manaFlash = CreateTween();
+		_manaFlash.TweenProperty(_manaBar, "modulate", Colors.White, ManaShortfallFlashSeconds);
 	}
 
 	private void OnInteractionStarted(string verb, float duration)
@@ -93,5 +118,7 @@ public partial class Hud : Control
 		_goldLabel.Text = $"Gold: {stats.Gold}";
 		_healthBar.MaxValue = stats.MaxHealth;
 		_healthBar.Value = stats.Health;
+		_manaBar.MaxValue = stats.MaxMana;
+		_manaBar.Value = stats.Mana;
 	}
 }

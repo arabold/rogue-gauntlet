@@ -1,0 +1,24 @@
+[gd_scene load_steps=12 format=3]
+[ext_resource type="Script" path="res://scenes/effects/world/ItemAuraPresenter.cs" id="presenter"]
+[ext_resource type="Script" path="res://scenes/effects/world/CursedItemAuraRule.cs" id="curse_rule"]
+[ext_resource type="Script" path="res://scenes/effects/world/SpellElementAuraRule.cs" id="element_rule"]
+[ext_resource type="Resource" path="res://scenes/effects/world/cursed_item/cursed_item.tres" id="curse"]
+[ext_resource type="Resource" path="res://scenes/effects/world/item_aura/fire_aura.tres" id="fire"]
+[ext_resource type="Resource" path="res://scenes/effects/world/item_aura/water_aura.tres" id="water"]
+[ext_resource type="Resource" path="res://scenes/effects/world/item_aura/earth_aura.tres" id="earth"]
+[ext_resource type="Resource" path="res://scenes/effects/world/item_aura/air_aura.tres" id="air"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/actor_world_effects.tscn" id="host"]
+[sub_resource type="Resource" id="CurseRule"]
+script = ExtResource("curse_rule")
+Effect = ExtResource("curse")
+[sub_resource type="Resource" id="ElementRule"]
+script = ExtResource("element_rule")
+Fire = ExtResource("fire")
+Water = ExtResource("water")
+Earth = ExtResource("earth")
+Air = ExtResource("air")
+[node name="ItemAura" type="Node3D" node_paths=PackedStringArray("Host")]
+script = ExtResource("presenter")
+Host = NodePath("WorldEffects")
+Rules = [SubResource("CurseRule"), SubResource("ElementRule")]
+[node name="WorldEffects" parent="." instance=ExtResource("host")]

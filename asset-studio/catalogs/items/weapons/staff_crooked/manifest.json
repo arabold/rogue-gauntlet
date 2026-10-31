@@ -1,0 +1,98 @@
+{
+  "key": "weapons/staff_crooked",
+  "inputs": "e3c5c8f537339e0ddc39a1bbbc63bb785e1245f24e35784a32c67afed8066892",
+  "files": {
+    "staff_crooked.glb": "8eae34ff9c4f2183810785c070781555ed11f5ce1634a0f21908c98d5a9d2bd4",
+    "lineup.png": "4ef0cd52030000851f706cbfe8a09db369aa74d87af9c882139ab65e5979f445"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 926,
+      "bounds": [
+        [
+          -0.07623490691184998,
+          -0.8629346489906311,
+          -0.0611332543194294
+        ],
+        [
+          0.2954946756362915,
+          1.375478982925415,
+          0.07695651054382324
+        ]
+      ],
+      "dimensions": [
+        0.3717295825481415,
+        2.238413631916046,
+        0.13808976486325264
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.019558247763879853
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Staff Crooked",
+      "backend": "procedural",
+      "builder": "arsenal",
+      "design": {
+        "kind": "crooked_staff"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "bark": [
+          92,
+          62,
+          40
+        ],
+        "leather": [
+          79,
+          47,
+          32
+        ]
+      },
+      "materials": {
+        "bark": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/staff/staff_crooked.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Gnarled branch staff curling into a crook at the top. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}
