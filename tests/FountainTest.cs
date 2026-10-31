@@ -33,14 +33,11 @@ public class FountainTest
 				total += depths.Count;
 				if (depths.Count is < 2 or > 3) failures.Add($"run {runSeed}: {depths.Count} {kind.Id} fountains");
 				if (depths.Any(d => d < profile.FirstDepth || d > profile.LastDepth)) failures.Add($"run {runSeed}: {kind.Id} outside the run");
-				// One per equal band of the run keeps a kind spread out instead of clustered on a few floors.
+				// One per equal band of depths 2-24 keeps a kind spread out instead of clustered on a few floors.
 				var sorted = depths.OrderBy(d => d).ToList();
-				uint span = profile.LastDepth - profile.FirstDepth + 1;
-				for (int band = 0; band < sorted.Count; band++)
-				{
-					uint low = profile.FirstDepth + (uint)(span * band / sorted.Count), high = profile.FirstDepth + (uint)(span * (band + 1) / sorted.Count) - 1;
-					if (sorted[band] < low || sorted[band] > high) failures.Add($"run {runSeed}: {kind.Id} clustered at {string.Join(",", sorted)}");
-				}
+				(uint Low, uint High)[] bands = sorted.Count == 2 ? [(2, 12), (13, 24)] : [(2, 8), (9, 16), (17, 24)];
+				if (sorted.Zip(bands).Any(pair => pair.First < pair.Second.Low || pair.First > pair.Second.High))
+					failures.Add($"run {runSeed}: {kind.Id} clustered at {string.Join(",", sorted)}");
 				foreach (uint depth in depths)
 				{
 					if (!profile.KindsAt(runSeed, depth).Contains(kind)) failures.Add($"run {runSeed}: depth {depth} lost its {kind.Id} fountain");
@@ -97,12 +94,7 @@ public class FountainTest
 	public async Task DrinkingRefillsThePoolOnceAndTheDrainedFountainSurvivesRegeneration()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
-		var (level, _) = TestFactories.UngeneratedLevel();
-		TestFactories.AddToSceneTree(level);
-		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>();
-		// Away from the harness's own fixtures, which would hurt it.
-		player.Position = new Vector3(200, 0, 200);
-		TestFactories.AddToSceneTree(player);
+		var (level, player) = AddLevelAndPlayer(new Vector3(200, 0, 200));
 		await runner.SimulateFrames(2);
 
 		var health = Spawn(level, "health");
@@ -142,11 +134,7 @@ public class FountainTest
 	public async Task TheDrinkerPlaysTheDrinkGestureWhileChanneling()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
-		var (level, _) = TestFactories.UngeneratedLevel();
-		TestFactories.AddToSceneTree(level);
-		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>();
-		player.Position = new Vector3(200, 0, 201.6f);
-		TestFactories.AddToSceneTree(player);
+		var (level, player) = AddLevelAndPlayer(new Vector3(200, 0, 201.6f));
 		var fountain = Spawn(level, "health");
 		fountain.Position = new Vector3(200, 0, 200);
 		await runner.SimulateFrames(2);
@@ -158,6 +146,18 @@ public class FountainTest
 		player.InteractionComponent._PhysicsProcess(fountain.DrinkDuration + 0.1);
 		AssertBool(fountain.IsDrained).IsTrue();
 		AssertString(player.CurrentActionId).IsNull();
+	}
+
+	/// <summary>A level whose run records drained fountains, and the real player away from the harness's own fixtures,
+	/// which would hurt it.</summary>
+	private static (Level Level, Player Player) AddLevelAndPlayer(Vector3 position)
+	{
+		var (level, _) = TestFactories.UngeneratedLevel();
+		TestFactories.AddToSceneTree(level);
+		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>();
+		player.Position = position;
+		TestFactories.AddToSceneTree(player);
+		return (level, player);
 	}
 
 	/// <summary>One fountain of each kind on <paramref name="depth"/> alone.</summary>

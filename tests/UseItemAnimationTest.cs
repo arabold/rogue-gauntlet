@@ -17,14 +17,8 @@ public class UseItemAnimationTest
 	[TestCase]
 	public async Task GestureStartsMidWalkAndYieldsToWalkingOnceTheActionEnds()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
-		// Far from the harness's fixtures, on a floor of its own.
-		var ground = new StaticBody3D { Position = new Vector3(200, -0.5f, 200) };
-		ground.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(40, 1, 40) } });
-		TestFactories.AddToSceneTree(ground);
-		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>();
-		player.Position = new Vector3(200, 0, 200);
-		TestFactories.AddToSceneTree(player);
+		using var runner = TestFactories.LoadCombatHarness();
+		var player = (await TestFactories.SettleCombatHarness(runner, 5)).Player;
 		player.InputComponent.DeviceEnabled = false;
 		var playback = (AnimationNodeStateMachinePlayback)player.GetNode<AnimationTree>("AnimationTree").Get("parameters/playback");
 		await runner.SimulateFrames(5, 20);

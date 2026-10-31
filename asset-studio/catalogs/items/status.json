@@ -441,7 +441,7 @@
     {
       "key": "fountains/fountain_chalice_health",
       "source_current": true,
-      "inputs": "2e8fa6d9d78c343915de79900f61213607335affb3f2dda765f72fe61471afad",
+      "inputs": "6821a5dfbfae2f180a1730c2139ed68310f55e0b7cab794db6a3760e1ac2e7d3",
       "triangles": 1280,
       "materials": 3,
       "source": null,
@@ -465,7 +465,7 @@
     {
       "key": "fountains/fountain_chalice_mana",
       "source_current": true,
-      "inputs": "bbc66fb25e558ed9ab1ea01a23d9abb6ce2906bf618fd47638004e957b2ad8ee",
+      "inputs": "5ef4441ca02ab05e12f58a149991696fa9434af51f0b0b94435889c0c7866beb",
       "triangles": 1280,
       "materials": 3,
       "source": null,
@@ -489,7 +489,7 @@
     {
       "key": "fountains/fountain_font_health",
       "source_current": true,
-      "inputs": "22b904bc7fea210e6f15af327bb27e139493ae2d6a5048173b68cb4ffa2a0ed8",
+      "inputs": "552898e7b479fa3dd6c89b59a43fa977f05c6e24d4dd3f0d5556e75f81f45b09",
       "triangles": 1648,
       "materials": 2,
       "source": null,
@@ -513,7 +513,7 @@
     {
       "key": "fountains/fountain_font_mana",
       "source_current": true,
-      "inputs": "cf78428468e9e59fd8a2db1509397f476e68bf8c8d74d9eb7756b47144377797",
+      "inputs": "1ee5020e13fedbce49734cd73123147724eddee40ccb7f89ef26e805030e9004",
       "triangles": 1648,
       "materials": 2,
       "source": null,
@@ -537,7 +537,7 @@
     {
       "key": "fountains/fountain_spring_health",
       "source_current": true,
-      "inputs": "81e8b87cb39d53dab24f520bf1f554870878424362c0c03dcd6eeaf18e043acc",
+      "inputs": "7007f1c695a2586f98d89ef38c81ed71764c17161f787b31272985ee82f9f76d",
       "triangles": 2032,
       "materials": 3,
       "source": null,
@@ -561,7 +561,7 @@
     {
       "key": "fountains/fountain_spring_mana",
       "source_current": true,
-      "inputs": "23cba41f16984d41bda1f6e291fbce7917a0fa2a924a23a39044a7eeaac488e7",
+      "inputs": "23a1c8f51a3aecbcf27c0f703fd85d6d741152c8f3d1a57d3b7755653373f2d1",
       "triangles": 2032,
       "materials": 3,
       "source": null,
@@ -585,7 +585,7 @@
     {
       "key": "fountains/fountain_tiered_health",
       "source_current": true,
-      "inputs": "455ca1760b1350957c0c9fa0e39466a6c41bbb62e3d0ff258ab630375de84a21",
+      "inputs": "0e3d37a821425b146af5c1c6e7a1d2de0035ebb67d4ef40362ab78092486453f",
       "triangles": 1164,
       "materials": 2,
       "source": null,
@@ -609,7 +609,7 @@
     {
       "key": "fountains/fountain_tiered_mana",
       "source_current": true,
-      "inputs": "4c35aeab3e301958214ec7ba763ff8b5c7e2775f191f91a89b897f7ae3279b99",
+      "inputs": "f47677f7169460735f0dbe8444b908eef52529719240442b6de159951a287e2f",
       "triangles": 1164,
       "materials": 2,
       "source": null,

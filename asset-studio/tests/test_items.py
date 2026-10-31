@@ -400,18 +400,12 @@ class ItemWorkflowTest(unittest.TestCase):
                     self.assertGreater(t["signed_volume"], 0)
                 self.assertNotIn("liquid", set(basin.slots))
                 self.assertAlmostEqual(basin.verts[:, 1].min(), 0, places=5)
-                p = parts["Liquid"]
-                liquid = p.verts[p.faces]
                 for level, radius in POOLS[kind]:
-                    # Game-side sparkles fill this circle, so its rim must sit on the pool surface, not on stone.
-                    surface = liquid[np.all(np.abs(liquid[:, :, 1] - level) < 1e-4, axis=1)][:, :, [0, 2]]
+                    # Game-side sparkles fill this circle, so straight below its rim lies the pool surface, not stone.
                     angles = np.linspace(0, 2 * np.pi, 48, endpoint=False)
-                    for point in np.column_stack([np.cos(angles), np.sin(angles)]) * radius:
-                        a, b, c = surface[:, 0], surface[:, 1], surface[:, 2]
-                        cross = lambda u, v: u[:, 0] * v[:, 1] - u[:, 1] * v[:, 0]  # noqa: E731
-                        d1, d2, d3 = cross(b - a, point - a), cross(c - b, point - b), cross(a - c, point - c)
-                        inside = ((d1 >= -1e-9) & (d2 >= -1e-9) & (d3 >= -1e-9)) | ((d1 <= 1e-9) & (d2 <= 1e-9) & (d3 <= 1e-9))
-                        self.assertTrue(inside.any(), f"{kind} pool at {level} misses {point}")
+                    above = np.column_stack([np.cos(angles) * radius, np.full(48, level + .01), np.sin(angles) * radius])
+                    drop = kit.ray_distance(above, np.tile([0., -1., 0.], (48, 1)), parts["Liquid"].verts, parts["Liquid"].faces)
+                    np.testing.assert_allclose(drop, .01, atol=1e-4, err_msg=f"{kind} pool at {level}")
         with self.assertRaisesRegex(ValueError, "Unknown fountain"):
             fountain({"kind": "unsupported"})
 

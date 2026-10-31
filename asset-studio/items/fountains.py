@@ -15,9 +15,8 @@ pools listed in `POOLS`, so the art stays a static, gameplay-free mesh.
 import numpy as np
 import manifold3d as mf
 from core import kit
-from items.solid import Assembly, lathe
+from items.solid import Assembly, lathe, tube
 
-KINDS = ('font', 'chalice', 'spring', 'tiered')
 # Liquid level and the largest circle inside each pool, for placing game-side effects.
 POOLS = {'font': [(1.02, .48)], 'chalice': [(1.12, .45)], 'spring': [(.44, .60)],
          'tiered': [(.66, .80), (1.52, .30)]}
@@ -37,14 +36,14 @@ def turned(a, profile, sides, slot, offset=0.):
     a.add(lathe(profile, sides).rotate((0, offset, 0)), slot)
 
 
-def ring(a, radius, depth, lo, hi, count, offset=0., bevel=.045, slot='stone'):
+def ring(a, radius, depth, lo, hi, count, offset=0.):
     """One course of tapered blocks around a circle; slight overlap leaves chamfered joints."""
     width = 2*np.pi*radius/count + .006
     for k in range(count):
         yaw = k*360/count + offset
         theta = np.radians(yaw)
-        a.add(stone((width, hi - lo, depth), bevel, radius).rotate((0, yaw, 0))
-              .translate((np.sin(theta)*radius, (lo + hi)/2, np.cos(theta)*radius)), slot)
+        a.add(stone((width, hi - lo, depth), .045, radius).rotate((0, yaw, 0))
+              .translate((np.sin(theta)*radius, (lo + hi)/2, np.cos(theta)*radius)), 'stone')
 
 
 def band(profile, inner, sides):
@@ -109,8 +108,8 @@ def spring(a, water):
     a.add(pillar.rotate((0, yaw, 0)).translate(out*.92 + (0, .58, 0)), 'stone')
     a.add(stone((.50, .10, .44), .035).rotate((0, yaw, 0)).translate(out*.92 + (0, 1.19, 0)), 'stone')
     mouth = out*.62 + (0, .80, 0)
-    a.add(kit.sweep([out*.84 + (0, .82, 0), mouth], kit.ring_profile(.05, .05, 8), 'brass'), 'brass')
-    a.add(kit.sweep([out*.665 + (0, .808, 0), mouth - out*.015], kit.ring_profile(.066, .066, 8), 'brass'), 'brass')
+    a.add(tube(out*.84 + (0, .82, 0), mouth, .05, 8), 'brass')
+    a.add(tube(out*.665 + (0, .808, 0), mouth - out*.015, .066, 8), 'brass')
     stream(water, [mouth - out*.01 + (0, -.015, 0), out*.53 + (0, .72, 0), out*.48 + (0, .58, 0), out*.46 + (0, .40, 0)], .05, .026)
 
 
@@ -133,11 +132,15 @@ def tiered(a, water):
                    (.565, .62, 0)], .055, .022)
 
 
+DESIGNS = {'font': font, 'chalice': chalice, 'spring': spring, 'tiered': tiered}
+KINDS = tuple(DESIGNS)
+
+
 def fountain(design):
     """Build one explicit fountain design as its basin and a separate `Liquid` part; unknown kinds fail."""
     kind = design.get('kind')
-    if kind not in KINDS:
+    if kind not in DESIGNS:
         raise ValueError(f'Unknown fountain design {kind}')
     basin, water = Assembly(), Assembly()
-    {'font': font, 'chalice': chalice, 'spring': spring, 'tiered': tiered}[kind](basin, water)
+    DESIGNS[kind](basin, water)
     return basin.build(), {'Liquid': water.build()}

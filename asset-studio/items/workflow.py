@@ -29,6 +29,8 @@ REPO = STUDIO.parent
 OBJECTS = STUDIO / "objects"
 PALETTE = STUDIO / "rigs/item_palette.png"
 BACKENDS = ["source", "prefab", "procedural", "image3d"]
+# Game art trees an export may write; world props such as fountains share the pipeline but are not inventory items.
+EXPORT_ROOTS = ("assets/custom-items", "assets/custom-props")
 PLACEMENT = {
     "type": "object", "additionalProperties": False,
     "properties": {
@@ -173,8 +175,7 @@ class Item:
         value = data["export"]["glb"]
         if not value.startswith("res://") or not value.endswith(".glb"):
             raise ValueError("export.glb must be a res:// GLB path")
-        # World props such as fountains share the item pipeline but are not inventory items.
-        root = "assets/custom-props" if value.startswith("res://assets/custom-props/") else "assets/custom-items"
+        root = next((root for root in EXPORT_ROOTS if value.startswith(f"res://{root}/")), EXPORT_ROOTS[0])
         return within(REPO / value[6:], REPO / root)
 
     def new(self, backend="source", archetype=None, source=None, builder=None):
@@ -425,7 +426,9 @@ class Item:
             paths.extend(library.find_prefab_path(part["mesh"]) for part in data["parts"])
         if data["backend"] in ("procedural", "prefab"):
             paths.append(PALETTE)
-            paths.extend(STUDIO / "items" / name for name in ["designs.py", "builders.py", "solid.py", "bread.py", "arsenal.py", "shieldcraft.py", "fountains.py"])
+            paths.extend(STUDIO / "items" / name for name in ["designs.py", "builders.py", "solid.py", "bread.py", "arsenal.py", "shieldcraft.py"])
+            if data.get("builder") == "fountain":
+                paths.extend(STUDIO / name for name in ["items/fountains.py", "core/kit.py"])
             if data.get("builder") == "shieldcraft":
                 paths.extend(STUDIO / name for name in ["prefabs/details/construction.py", "prefabs/details/wear.py", "items/heroic_shields.py", "prefabs/details/heraldry.py", "core/kit.py"])
             paths.append(STUDIO / "core/export.py")

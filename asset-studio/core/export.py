@@ -264,6 +264,7 @@ def export_static(path, name, piece, colors, materials=None, crease=50.0, parts=
     palette, looks = resolve_palette(used, colors, {**DEFAULT_MATERIALS, **(materials or {})})
     atlas = mm.Atlas([palette[s] for s in used], pad=4, col_w=16, col_h=128, looks=looks, slot_names=used)
     indices = {s: i for i, s in enumerate(used)}
+    slot_crease = {s: _crease_of(looks.get(s), crease) for s in used}
     # Surface groups follow physical shading, independent of the palette's color count, and are shared by every node.
     specs = []
     w.g["meshes"], w.g["nodes"] = [], []
@@ -275,8 +276,7 @@ def export_static(path, name, piece, colors, materials=None, crease=50.0, parts=
                 raise ValueError("Authored static corner normals must be finite, nonzero and match the triangles")
             normals = normals / np.linalg.norm(normals, axis=2, keepdims=True)
         else:
-            normals = corner_normals(part.verts, part.faces, crease=crease, slots=part.slots,
-                                     slot_crease={s: _crease_of(looks.get(s), crease) for s in used})
+            normals = corner_normals(part.verts, part.faces, crease=crease, slots=part.slots, slot_crease=slot_crease)
         t = gradient_coordinates(tri, normals)
         for i, slot in enumerate(part.slots):
             if looks.get(str(slot), {}).get("emissive") or str(slot) in {"paint", "gem", "stitch", "rivet"}:

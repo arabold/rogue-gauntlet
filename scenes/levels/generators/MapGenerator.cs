@@ -764,7 +764,6 @@ public partial class MapGenerator : Node3D
 		// fountains and chests are included as navmesh obstacles, and before GenerateEnemySpawnPoints so
 		// enemy-spawn clearance (which already checks the "prop" group) naturally avoids them.
 		PlaceAccess();
-		PlaceFountains();
 		PlaceLoot();
 
 		// Step 4: Bake navigation mesh
@@ -807,7 +806,6 @@ public partial class MapGenerator : Node3D
 		_random = new LevelGenerationContext(Seed, GenerationAttempt);
 
 		ResetAccess();
-		_fountainPoints.Clear();
 		ArrangementCount = 0;
 		_markerIndicators.Clear();
 

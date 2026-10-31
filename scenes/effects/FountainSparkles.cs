@@ -15,9 +15,7 @@ public partial class FountainSparkles : Node3D
 
 	private Color _tint = Colors.White;
 	private bool _flowing = true;
-	// How much of the magic is showing: 1 while flowing, 0 once spent, in between while fading.
-	private float _strength = 1;
-	private float _glowEnergy;
+	private float _glowEnergy = 0.6f;
 	private Tween _fade;
 
 	/// <summary>Particles rising off the pool; their draw material reads the instance tint.</summary>
@@ -32,7 +30,7 @@ public partial class FountainSparkles : Node3D
 	/// <summary>Optional one-shot spray of sparkles that <see cref="Drain"/> releases from the pool.</summary>
 	[Export] public GpuParticles3D Burst { get; set; }
 
-	/// <summary>Liquid color shared by the sparkles, shimmer and glow.</summary>
+	/// <summary>Liquid color shared by the sparkles, burst, shimmer and glow.</summary>
 	[Export]
 	public Color Tint
 	{
@@ -40,8 +38,20 @@ public partial class FountainSparkles : Node3D
 		set
 		{
 			_tint = value;
-			if (!IsNodeReady()) return;
-			ApplyStrength(_strength);
+			if (IsNodeReady()) ApplyTint();
+		}
+	}
+
+	/// <summary>Glow brightness while the pool flows. Zero keeps the light off, such as for a second pool whose
+	/// neighbor already lights the same stone.</summary>
+	[Export(PropertyHint.Range, "0,4,0.05")]
+	public float GlowEnergy
+	{
+		get => _glowEnergy;
+		set
+		{
+			_glowEnergy = Mathf.Max(value, 0);
+			if (IsNodeReady()) SetFlowing(_flowing);
 		}
 	}
 
@@ -54,11 +64,7 @@ public partial class FountainSparkles : Node3D
 		set
 		{
 			_flowing = value;
-			if (!IsNodeReady()) return;
-			_fade?.Kill();
-			if (Sparkles != null) Sparkles.Emitting = value;
-			if (Shimmer != null) Shimmer.Visible = value;
-			ApplyStrength(value ? 1 : 0);
+			if (IsNodeReady()) SetFlowing(value);
 		}
 	}
 
@@ -67,8 +73,8 @@ public partial class FountainSparkles : Node3D
 
 	public override void _Ready()
 	{
-		_glowEnergy = Glow?.LightEnergy ?? 0;
-		Flowing = _flowing;
+		ApplyTint();
+		SetFlowing(_flowing);
 	}
 
 	/// <summary>
@@ -79,29 +85,38 @@ public partial class FountainSparkles : Node3D
 	{
 		if (!_flowing) return;
 		_flowing = false;
-		if (Sparkles != null) Sparkles.Emitting = false;
-		if (Shimmer != null) Shimmer.Visible = false;
+		bool lit = Glow is { Visible: true };
+		SetFlowing(false);
 		if (Burst != null)
 		{
 			Burst.Restart();
 			Burst.Emitting = true;
 		}
-		_fade?.Kill();
+		if (!lit) return;
+
+		Glow.Visible = true;
 		_fade = CreateTween();
-		_fade.TweenMethod(Callable.From<float>(ApplyStrength), _strength, 0f, FadeDuration);
+		_fade.TweenProperty(Glow, (string)Light3D.PropertyName.LightEnergy, 0f, FadeDuration);
+		_fade.TweenCallback(Callable.From(() => Glow.Visible = false));
 	}
 
-	private void ApplyStrength(float strength)
+	private void SetFlowing(bool flowing)
 	{
-		_strength = strength;
-		Sparkles?.SetInstanceShaderParameter(TintParameter, _tint);
-		Burst?.SetInstanceShaderParameter(TintParameter, _tint);
-		Shimmer?.SetInstanceShaderParameter(TintParameter, _tint with { A = _tint.A * strength });
+		_fade?.Kill();
+		if (Sparkles != null) Sparkles.Emitting = flowing;
+		if (Shimmer != null) Shimmer.Visible = flowing;
 		if (Glow != null)
 		{
-			Glow.LightColor = _tint;
-			Glow.LightEnergy = _glowEnergy * strength;
-			Glow.Visible = strength > 0;
+			Glow.LightEnergy = _glowEnergy;
+			Glow.Visible = flowing && _glowEnergy > 0;
 		}
+	}
+
+	private void ApplyTint()
+	{
+		Sparkles?.SetInstanceShaderParameter(TintParameter, _tint);
+		Burst?.SetInstanceShaderParameter(TintParameter, _tint);
+		Shimmer?.SetInstanceShaderParameter(TintParameter, _tint);
+		if (Glow != null) Glow.LightColor = _tint;
 	}
 }
