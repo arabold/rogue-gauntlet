@@ -11,30 +11,14 @@ public class RoomRegion
 {
 	public int Id { get; }
 
-	/// <summary>Resolved room purpose, independent of the dungeon realm.</summary>
-	public RoomPurpose Purpose { get; set; } = RoomPurpose.Chamber;
-
 	/// <summary>All tiles that reveal with the room: floor, connectors and chasm pits.</summary>
 	public List<Vector2I> Tiles { get; } = new();
 
 	/// <summary>Connector tiles where corridors leave the room.</summary>
 	public List<Vector2I> ConnectorTiles { get; } = new();
 
-	/// <summary>
-	/// True when the room was built by <see cref="ProceduralRoomBuilder"/> rather than
-	/// loaded from an authored scene. Generation-time loot (chests/traps/loose items)
-	/// only considers procedural rooms -- an authored room brings its own hand-placed
-	/// content and layout, which the generic candidate scan knows nothing about.
-	/// </summary>
-	public bool IsProcedural { get; set; }
-
-	/// <summary>Per-room furnishing policy supplied by a coded recipe; absent for generic/authored rooms.</summary>
-	public RoomArrangementPool InteriorPool { get; set; }
-	public RoomDressingProfile Dressing { get; set; }
 	public Vector2I LayoutAxis { get; set; }
 
-	/// <summary>Required furnishing anchors resolved after room rotation, in master-map coordinates.</summary>
-	public List<RoomArrangementPlacement> FurnishingSlots { get; } = [];
 
 	public RoomRegion(int id)
 	{

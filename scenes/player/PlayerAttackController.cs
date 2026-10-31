@@ -224,7 +224,6 @@ public partial class PlayerAttackController : AttackController
 		};
 		if (weapon != null)
 		{
-			def.AnimationId = isSpecial ? weapon.SecondaryAnimationId : weapon.AnimationId;
 			def.AttackStyle = isSpecial ? weapon.GetEffectiveSecondaryStyle() : weapon.AttackStyle;
 			float duration = isSpecial ? weapon.SecondaryPerformDuration : weapon.PerformDuration;
 			def.HitWindowStart = (isSpecial ? 0.25f : 0.3f) * duration;
@@ -243,7 +242,6 @@ public partial class PlayerAttackController : AttackController
 		}
 		else
 		{
-			def.AnimationId = isSpecial ? "special_attack" : "melee_attack";
 			def.AttackStyle = isSpecial ? "unarmed.kick" : "unarmed.punch";
 			def.HitWindowStart = 0.2f;
 			def.HitWindowEnd = 0.6f;

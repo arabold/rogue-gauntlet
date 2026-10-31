@@ -9,7 +9,6 @@ public partial class MartialTechniqueAction : RefCounted, ICombatAttackAction
 		Weapon = weapon;
 	}
 
-	public string AnimationId => Weapon?.SecondaryAnimationId ?? "special_attack";
 	public float Delay => Weapon?.SecondaryDelay ?? 0.1f;
 	public float PerformDuration => Weapon?.SecondaryPerformDuration ?? 0.6f;
 	public float CooldownDuration => Weapon?.SecondaryCooldownDuration ?? 1.0f;

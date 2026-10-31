@@ -4,7 +4,7 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 
 | Harness | Entry point | Purpose |
 | --- | --- | --- |
-| Room generation | [rooms/room_generation_harness.tscn](rooms/room_generation_harness.tscn) | Inspect coded recipes alone or in the production Garrison floor |
+| Room generation | [rooms/room_generation_harness.tscn](rooms/room_generation_harness.tscn) | Inspect room types alone or in the production Garrison floor |
 | Combat | [combat/combat_harness.tscn](combat/combat_harness.tscn) | Interactive combat, monster tactics and scripted traces; [guide](../../docs/combat-harness.md) |
 | Item lifecycle | [items/item_lifecycle_harness.tscn](items/item_lifecycle_harness.tscn) | Item creation, inventory, equipment and consumables |
 | World effects | [effects/world_effect_harness.tscn](effects/world_effect_harness.tscn) | Replay and tune production trap/secret discovery, loot glow, blood hit and prop x-rays |
@@ -18,12 +18,12 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 
 ## Room generation
 
-The scene explicitly assigns the production Garrison factory, map generator, preview root, camera and UI. Its recipe list comes from the factory's Inspector-authored `RoomGenerators`; it does not maintain a second catalog or generation algorithm.
+The scene explicitly assigns the production Garrison factory, map generator, preview root, camera and UI. Its recipe list is the factory's `RoomTypes`, then its entrance and exit types; it keeps no catalog of its own.
 
-- **Single room:** select a recipe and seed, rotate in quarter-turns and toggle furnishings. The harness builds the production shell with walls, rotates it, then runs the production furnishing pass. The camera centers and frames the result automatically.
-- **Generated floor:** uses the production packing, corridor, wall and furnishing pipeline with the same factory. This checks that required room entrances and furnishings survive placement among other rooms. Recipe selection and room rotation are disabled in this view.
-- **Controls:** R advances the seed, A toggles furnishings, F switches views, 1–5 selects a recipe, Q/E rotates a room. The panel also accepts a manual seed and can rebuild without advancing it.
-- Generation errors appear in the status panel and Godot output. Optional furnishings can be omitted; required slots must all fit. These static previews do not exercise player movement or navmesh baking—use gameplay for those checks.
+- **Single room:** select a recipe and seed, rotate in quarter-turns and toggle furnishings. Room types expose every axis as an override — Shape, Walls, Floor and Columns (type chance, off, or a specific pattern) — and run the production `RoomAssembler` with them. The **Walkability overlay** colours standable floor: green is reachable from the doorways, blue is reserved circulation or a stair landing, red is an inaccessible pocket. Overrides never change production Resources.
+- **Generated floor:** uses the production packing, corridor, wall and furnishing pipeline with the same factory. Recipe selection and room rotation are disabled in this view.
+- **Controls:** R advances the seed, A toggles furnishings, W toggles the walkability overlay, F switches views, 1–9 and 0 select the first ten room types, Q/E rotates a room. The panel also accepts a manual seed and can rebuild without advancing it.
+- Generation errors appear in the status panel and Godot output. These static previews do not exercise player movement or navmesh baking—use gameplay for those checks.
 
 [Level folder guide](../levels/README.md) identifies where to change generator code, room presets and furnishing assets. Regenerate after editing a preset; the shared Resource remains the authored definition.
 

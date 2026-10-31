@@ -1,9 +1,8 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" uid="uid://dmt5scqvd325o" path="res://scenes/debug/rooms/RoomGenerationHarness.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/levels/level.tscn" id="level"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/factories/garrison_mixed_room_factory.tres" id="factory"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/arrangements/garrison_arrangements.tres" id="arrangements"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/factories/garrison_room_factory.tres" id="factory"]
 
 [sub_resource type="Environment" id="Environment"]
 background_mode = 1
@@ -33,7 +32,6 @@ MapDepth = 26
 MaxRooms = 6
 Seed = 2
 RoomFactory = ExtResource("factory")
-ArrangementPool = ExtResource("arrangements")
 
 [node name="PreviewRoot" type="Node3D" parent="."]
 

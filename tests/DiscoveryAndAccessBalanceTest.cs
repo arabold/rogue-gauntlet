@@ -160,7 +160,7 @@ public partial class DiscoveryAndAccessBalanceTest
 	[TestCase]
 	public async Task DoorCapAppliesAcrossMultiEntranceRoomsAndFloorsSpawnNoPicks()
 	{
-		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProcedural());
+		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
 		TestFactories.WireLootScenes(map);
 		map.AccessProfile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
 		map.AccessProfile.LockedRoomChance = 1; map.AccessProfile.MaximumLockedRooms = 3;
@@ -169,7 +169,7 @@ public partial class DiscoveryAndAccessBalanceTest
 		{
 			map.Seed = seed; map.GenerateMap();
 			var doors = map.NavigationRegion.FindChildren("*", "", true, false).OfType<Door>().Where(d => !d.IsQueuedForDeletion());
-			AssertInt(doors.Count(d => d.Lock.IsLocked)).IsLessEqual(map.AccessProfile.MaximumLockedDoors);
+			AssertInt(doors.Count(d => d.Lock?.IsLocked == true)).IsLessEqual(map.AccessProfile.MaximumLockedDoors);
 			AssertBool(map.NavigationRegion.GetChildren().OfType<LootableItem>().All(i => i.Item is not LockpickItem)).IsTrue();
 			await runner.SimulateFrames(1);
 		}

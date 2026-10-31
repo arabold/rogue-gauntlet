@@ -29,6 +29,8 @@ REPO = STUDIO.parent
 OBJECTS = STUDIO / "objects"
 PALETTE = STUDIO / "rigs/item_palette.png"
 BACKENDS = ["source", "prefab", "procedural", "image3d"]
+# Game art trees an export may write; world props such as fountains share the pipeline but are not inventory items.
+EXPORT_ROOTS = ("assets/custom-items", "assets/custom-props")
 PLACEMENT = {
     "type": "object", "additionalProperties": False,
     "properties": {
@@ -49,7 +51,7 @@ SCHEMA = {
         "design": {"type": "object"},
         "colors": {"type": "object"},
         "materials": {"type": "object"},
-        "color_mode": {"enum": ["character", "vertex", "palette"]},
+        "color_mode": {"enum": ["character", "vertex", "palette", "world"]},
         "surface": {"type": "object", "additionalProperties": False, "required": ["palette"],
                     "properties": {"palette": {"enum": ["studio_grid"]}, "slots": {"type": "object"},
                                    "repair": {"enum": ["boundaries"]},
@@ -158,8 +160,8 @@ class Item:
             raise ValueError(f"{self.key}: {backend} requires {required[backend]}")
         if backend == "procedural" and not data.get("builder") and not data.get("archetype"):
             raise ValueError("Procedural recipes require a builder or archetype")
-        if data.get("builder") in FAMILIES and data.get("color_mode", "character") != "character":
-            raise ValueError("Solid-family recipes use the shared character surface model")
+        if data.get("builder") in FAMILIES and data.get("color_mode", "character") not in ("character", "world"):
+            raise ValueError("Solid-family recipes use the shared character surface model or the world's dungeon texture")
         placement = data.get("placement", {})
         if placement.get("dimensions") and any(v <= 0 for v in placement["dimensions"]):
             raise ValueError("dimensions must be positive")
@@ -173,7 +175,8 @@ class Item:
         value = data["export"]["glb"]
         if not value.startswith("res://") or not value.endswith(".glb"):
             raise ValueError("export.glb must be a res:// GLB path")
-        return within(REPO / value[6:], REPO / "assets/custom-items")
+        root = next((root for root in EXPORT_ROOTS if value.startswith(f"res://{root}/")), EXPORT_ROOTS[0])
+        return within(REPO / value[6:], REPO / root)
 
     def new(self, backend="source", archetype=None, source=None, builder=None):
         """Create a recipe without replacing existing work or writing to the game tree."""
@@ -282,9 +285,17 @@ class Item:
             palette = data.get("palette")
             if backend == "procedural" and data.get("builder") in FAMILIES:
                 from core.export import export_static
-                built_piece = FAMILIES[data["builder"]](data.get("design", {}))
-                export_static(str(raw), self.id, built_piece, {**COLORS, **data.get("colors", {})},
-                              materials={**MATERIALS, **data.get("materials", {})}, crease=data.get("crease", 50))
+                # A builder may return its body with named parts the game toggles separately, such as a fountain's liquid.
+                built = FAMILIES[data["builder"]](data.get("design", {}))
+                built_piece, parts = built if isinstance(built, tuple) else (built, None)
+                if data.get("color_mode") == "world":
+                    # World props share the dungeon pack's texture and material instead of the character surface.
+                    from items import world_surface
+                    world_surface.export(str(raw), self.id, built_piece, crease=data.get("crease", 50),
+                                         slot_crease={slot: spec["crease"] for slot, spec in data.get("materials", {}).items() if "crease" in spec})
+                else:
+                    export_static(str(raw), self.id, built_piece, {**COLORS, **data.get("colors", {})},
+                                  materials={**MATERIALS, **data.get("materials", {})}, crease=data.get("crease", 50), parts=parts)
                 source = raw
                 model.place(source, self.built, data.get("placement", {}))
                 return self.finish_build(data)
@@ -421,7 +432,9 @@ class Item:
             paths.extend(library.find_prefab_path(part["mesh"]) for part in data["parts"])
         if data["backend"] in ("procedural", "prefab"):
             paths.append(PALETTE)
-            paths.extend(STUDIO / "items" / name for name in ["designs.py", "builders.py", "solid.py", "bread.py", "arsenal.py", "shieldcraft.py"])
+            paths.extend(STUDIO / "items" / name for name in ["designs.py", "builders.py", "solid.py", "bread.py", "arsenal.py", "shieldcraft.py", "furnishings.py", "furnishing_kit.py", "world_surface.py"])
+            if data.get("builder") == "fountain":
+                paths.extend(STUDIO / name for name in ["items/fountains.py", "core/kit.py"])
             if data.get("builder") == "shieldcraft":
                 paths.extend(STUDIO / name for name in ["prefabs/details/construction.py", "prefabs/details/wear.py", "items/heroic_shields.py", "prefabs/details/heraldry.py", "core/kit.py"])
             paths.append(STUDIO / "core/export.py")

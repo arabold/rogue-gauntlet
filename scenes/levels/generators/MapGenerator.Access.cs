@@ -12,34 +12,30 @@ public partial class MapGenerator
 	private readonly HashSet<int> _secretRoomIds = [];
 	private readonly List<(Door Door, Vector2I Host, Vector2I Connector, Aabb Threshold)> _generatedSecrets = [];
 	internal IReadOnlyList<(Door Door, Vector2I Host, Vector2I Connector, Aabb Threshold)> GeneratedSecrets => _generatedSecrets;
-	/// <summary>Reserve the future threshold so furnishing cannot attach to its concealed wall or block the approach.</summary>
-	private IEnumerable<Aabb> SecretThresholdBounds() => _generatedSecrets.Select(s => s.Threshold);
 	private void ResetAccess()
 	{
 		_accessPickupPoints.Clear(); _secretRoomIds.Clear(); _generatedSecrets.Clear();
 	}
-	/// <summary>Adds optional pocket rooms at variable corridor/procedural-wall segments, never authored-room sockets.</summary>
+	/// <summary>Adds optional pocket rooms behind straight corridor and room wall segments.</summary>
 	private void CreateSecretBranches()
 	{
 		if (AccessProfile == null || AccessProfile.MaximumSecretRooms == 0) return;
 		using var rng = GenerationRandom.Create(Seed, "access-secrets", GenerationAttempt.ToString());
 		int secretBudget = AccessProfile.RollSecretRoomBudget(rng);
 		if (secretBudget == 0) return;
-		var requiredTiles = Floor.Rooms.SelectMany(r => r.FurnishingSlots).SelectMany(s => s.Occupied).ToArray();
-		var existingContent = RoomArrangement.GetStaticPropBounds(NavigationRegion, GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform)
-			.Concat(RoomDressingProfile.GetBounds(Floor.Rooms.SelectMany(r => r.FurnishingSlots))).ToArray();
+		// Assembled rooms already hold their furniture; a concealed entrance must keep clear of it.
+		var existingContent = CollisionOutlines.FromStaticBodies(NavigationRegion, GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform)
+			.Select(outline => outline.Bounds).ToArray();
 		var candidates = new List<(Vector2I Host, Vector2I Direction)>();
 		var pocketTiles = new HashSet<Vector2I>();
 		for (int x = 1; x < Map.Width - 1; x++)
 		for (int z = 1; z < Map.Height - 1; z++)
-			if (Map.IsCorridor(x, z) || Map.IsRoom(x, z) && Floor.IsProceduralRoomTile(x, z)) foreach (var d in MapData.CardinalOffsets) candidates.Add((new(x, z), d));
+			if (Map.IsCorridor(x, z) || Map.IsRoom(x, z)) foreach (var d in MapData.CardinalOffsets) candidates.Add((new(x, z), d));
 		int count = 0;
 		while (candidates.Count > 0 && count < secretBudget)
 		{
 			int index = rng.RandiRange(0, candidates.Count - 1);
 			var (host, direction) = candidates[index]; candidates.RemoveAt(index);
-			// Preserve required furnishing anchors and their wall/clearance dependencies, not just mesh overlap.
-			if (requiredTiles.Any(t => Math.Abs(t.X - host.X) <= 1 && Math.Abs(t.Y - host.Y) <= 1)) continue;
 			var tangent = new Vector2I(-direction.Y, direction.X);
 			var tiles = new HashSet<Vector2I>();
 			for (int depth = 2; depth <= 4; depth++) for (int side = -1; side <= 1; side++)
@@ -53,12 +49,12 @@ public partial class MapGenerator
 			var wallCell = Map.TileToWorld(host) + new Vector3I(direction.X * 2, 0, direction.Y * 2);
 			var spanSize = direction.X == 0 ? new Vector3(4, 4, 2) : new Vector3(2, 4, 4);
 			var threshold = new Aabb((Vector3)wallCell - new Vector3(spanSize.X * 0.5f, 0, spanSize.Z * 0.5f), spanSize);
-			if (existingContent.Any(box => ConnectedArrangementStrategy.Overlaps(box, threshold, 1))) continue;
+			if (existingContent.Any(box => RoomBlueprint.XZ(box).Grow(1).Intersects(RoomBlueprint.XZ(threshold)))) continue;
 			int wallItem = WallGridMap.GetCellItem(wallCell);
 			var wallMesh = wallItem < 0 ? null : WallGridMap.MeshLibrary.GetItemMesh(wallItem);
 			// Only full straight spans qualify; corner and partial pieces remain ordinary geometry.
 			if (wallMesh == null || Math.Max(wallMesh.GetAabb().Size.X, wallMesh.GetAabb().Size.Z) < 3.8f) continue;
-			var region = new RoomRegion(Floor.Rooms.Count) { IsProcedural = true };
+			var region = new RoomRegion(Floor.Rooms.Count);
 			// Floor variation is cosmetic: a per-pocket decoration stream keeps tile-palette changes from moving pockets.
 			using var floorRng = GenerationRandom.Create(Seed, GenerationRandom.Decoration, $"secret-floor:{GenerationAttempt}:{connector.X}:{connector.Y}");
 			foreach (var tile in tiles.OrderBy(t => t.X).ThenBy(t => t.Y))
@@ -92,8 +88,7 @@ public partial class MapGenerator
 			var targets = new List<(RoomRegion Region, List<Vector2I> Entrances, DoorLockDefinition Definition)>();
 			// The gatekeeper's room was resolved before access; locking it would hide a required encounter.
 			int requiredEncounterRoom = Floor.GatekeeperSite is Transform3D site ? Floor.RoomIdAt(Map.WorldToTile(site.Origin)) : -1;
-			var candidates = Floor.Rooms.Where(r => r.Id != requiredEncounterRoom && !_secretRoomIds.Contains(r.Id) && !r.Tiles.Contains(entry)
-				&& (r.IsProcedural || Floor.Doors.Any(d => r.ConnectorTiles.Contains(d.Connector) && d.Door.LockEligible))).ToList();
+			var candidates = Floor.Rooms.Where(r => r.Id != requiredEncounterRoom && !_secretRoomIds.Contains(r.Id) && !r.Tiles.Contains(entry)).ToList();
 			// Protect progression anchors, stairs and existing explicit-lock rooms from arbitrary assignment.
 			var protectedTiles = lockBudget == 0 ? [] : NavigationRegion.FindChildren("*", "", true, false).OfType<Node3D>()
 				.Where(n => n is IProgressionAnchor or Door { Lock.Definition: not null } || n.IsInGroup("stairs"))
@@ -104,7 +99,6 @@ public partial class MapGenerator
 				var entrances = region.ConnectorTiles.Where(IsConnectorConnected).Distinct().ToList();
 				if (entrances.Count == 0 || targets.Sum(t => t.Entrances.Count) + entrances.Count > AccessProfile.MaximumLockedDoors || entrances.Count > 3 || entrances.Any(c => Map.GetConnectorDirections(c.X, c.Y)
 					.Count(d => Map.IsWithinBounds(c.X + d.X, c.Y + d.Y) && Map.IsCorridor(c.X + d.X, c.Y + d.Y)) != 1)) continue;
-				if (!region.IsProcedural && entrances.Any(c => !Floor.Doors.Any(d => d.Connector == c && d.Door.LockEligible))) continue;
 				if (region.Tiles.Any(protectedTiles.Contains)) continue;
 				var trial = blocked.Concat(entrances).ToHashSet();
 				var reached = AccessSolutionValidator.Reachable(Map, entry, trial);
@@ -146,7 +140,7 @@ public partial class MapGenerator
 		foreach (var door in LiveNodes<Door>())
 		{
 			var pair = Floor.Doors.FirstOrDefault(d => d.Door == door);
-			door.ConnectionId = pair.Door != null ? $"connector:{pair.Connector.X}:{pair.Connector.Y}:{ordinal++}"
+			if (door.Interior == null) door.ConnectionId = pair.Door != null ? $"connector:{pair.Connector.X}:{pair.Connector.Y}:{ordinal++}"
 				: "authored:" + NavigationRegion.GetPathTo(door);
 			Floor.RecordDoorBaseline(door);
 		}

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/library/cauldron.glb" id="2_cauldron"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "garrison.cauldron"
+Scenes = [ExtResource("2_cauldron")]
+Gap = 0.3
+TurnJitter = 20.0
+ShiftJitter = 0.05
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

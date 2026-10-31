@@ -1,0 +1,31 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-props/wall/sconce.glb" id="1_model"]
+[ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flicker_light.tscn" id="2_light"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/wall/sconce_flames.glb" id="3_flames"]
+[ext_resource type="Resource" uid="uid://bypjdcf5nuu8i" path="res://scenes/effects/light_flicker/flame.tres" id="4_flicker"]
+[ext_resource type="Script" uid="uid://cqxw2ow56hai2" path="res://scenes/components/ExplorationGateComponent.cs" id="5_gate"]
+[ext_resource type="Script" uid="uid://c7jefenbk3vi0" path="res://scenes/components/EnvironmentalLightComponent.cs" id="6_lighting"]
+
+[node name="SconceLit" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="Flame" parent="." instance=ExtResource("3_flames")]
+
+[node name="FlickerLight" parent="." instance=ExtResource("2_light")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2.7, 0.55)
+light_energy = 0.8
+shadow_enabled = false
+omni_range = 6.0
+Flicker = ExtResource("4_flicker")
+
+[node name="ExplorationGateComponent" type="Node3D" parent="." node_paths=PackedStringArray("Target")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+script = ExtResource("5_gate")
+Target = NodePath("..")
+
+[node name="EnvironmentalLightComponent" type="Node" parent="." node_paths=PackedStringArray("Light", "Flame")]
+script = ExtResource("6_lighting")
+Light = NodePath("../FlickerLight")
+Flame = NodePath("../Flame")

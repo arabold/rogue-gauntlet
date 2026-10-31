@@ -190,6 +190,22 @@
 			"notes": "Low-poly flat-shaded 3D items UV-mapped to KayKit's dungeon_texture.png and aligned to KayKit reference AABBs."
 		},
 		{
+			"id": "custom-props",
+			"name": "Rogue Gauntlet - Custom World Props",
+			"dir": "assets/custom-props",
+			"author": "Rogue Gauntlet contributors; bed_bedding lifted from KayKit Dungeon Remastered (CC0, Kay Lousberg)",
+			"source": "Self-authored via asset-studio/studio.py item build/export from asset-studio/objects/<category>/<name>/ (furnishings: items/furnishings.py; borrowed pack parts: items/borrowed_parts.py)",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"3d"
+			],
+			"compatibility_group": "kaykit",
+			"acquired": "2026-10-31",
+			"notes": "Procedural dungeon props from the Asset Studio item pipeline. fountains/ holds health and mana fountains (font, chalice, spring, tiered) with emissive liquid pools and the shared character palette shading; concept drawings: Google gemini-3-pro-image over the studio's knight style reference. The other folders hold room furnishings for generated Garrison rooms (altars, statues, candles, vases, racks, hearth, wall decor), one folder per room theme, sized to the KayKit dungeon remastered props and textured with KayKit's own dungeon_texture swatches and material. Art only; prop scenes, collision and effects live under scenes/."
+		},
+		{
 			"id": "custom-monsters",
 			"name": "Rogue Gauntlet - Custom Monsters",
 			"dir": "assets/custom-monsters",

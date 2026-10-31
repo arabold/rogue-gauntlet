@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UniformFloor" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/UniformFloor.cs" id="1_UniformFloor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone.tres" id="2_stone"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/inlays/gutter.tres" id="3_gutter"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/inlays/drain.tres" id="4_drain"]
+
+[resource]
+script = ExtResource("1_UniformFloor")
+Id = "garrison.drained_stone"
+Weight = 1.0
+Material = ExtResource("2_stone")
+Inlays = [ExtResource("3_gutter"), ExtResource("4_drain")]
+metadata/_custom_type_script = ExtResource("1_UniformFloor")

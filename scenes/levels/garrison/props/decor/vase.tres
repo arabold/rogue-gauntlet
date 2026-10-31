@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/hall/vase_tall.glb" id="2_vase_tall"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/hall/urn_wide.glb" id="3_urn_wide"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "garrison.vase"
+Scenes = [ExtResource("2_vase_tall"), ExtResource("3_urn_wide")]
+Gap = 0.2
+TurnJitter = 20.0
+ShiftJitter = 0.08
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

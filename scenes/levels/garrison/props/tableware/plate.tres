@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/plate.gltf" id="2_plate"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/plate_food_A.gltf" id="3_plate_food_A"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/plate_food_B.gltf" id="4_plate_food_B"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/plate_small.gltf" id="5_plate_small"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/plate_stack.gltf" id="6_plate_stack"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "garrison.plate"
+Scenes = [ExtResource("2_plate"), ExtResource("3_plate_food_A"), ExtResource("4_plate_food_B"), ExtResource("5_plate_small"), ExtResource("6_plate_stack")]
+Blocking = false
+Gap = 0.02
+TurnJitter = 20.0
+ShiftJitter = 0.03
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

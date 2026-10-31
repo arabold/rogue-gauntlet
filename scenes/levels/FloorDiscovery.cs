@@ -41,6 +41,7 @@ public partial class FloorDiscovery : Node3D
 	private DungeonDiscovery _model;
 	private Func<Vector2I, Vector2I, bool> _canSeeAcross;
 	private readonly Dictionary<Vector2I, List<Door>> _doorsByConnector = new();
+	private readonly Dictionary<Vector2I, List<Door>> _indicatorDoors = new();
 	private readonly HashSet<Door> _indicatorsShown = new();
 	private Image _image;
 	private ImageTexture _texture;
@@ -87,6 +88,7 @@ public partial class FloorDiscovery : Node3D
 		_floor = null;
 		_player = null;
 		_doorsByConnector.Clear();
+		_indicatorDoors.Clear();
 		_indicatorsShown.Clear();
 		_textureDirty = false;
 		SetProcess(false);
@@ -103,6 +105,14 @@ public partial class FloorDiscovery : Node3D
 		{
 			if (!_doorsByConnector.TryGetValue(connector, out var doors)) _doorsByConnector[connector] = doors = new();
 			doors.Add(door);
+			if (!_indicatorDoors.TryGetValue(connector, out var indicators)) _indicatorDoors[connector] = indicators = new();
+			indicators.Add(door);
+		}
+		foreach (var pair in floor.DoorBaselines.Values.Where(pair => pair.Door.Interior != null))
+		{
+			var tile = floor.Map.WorldToTile(pair.Door.GlobalPosition);
+			if (!_indicatorDoors.TryGetValue(tile, out var indicators)) _indicatorDoors[tile] = indicators = new();
+			indicators.Add(pair.Door);
 		}
 		_clockStart = Time.GetTicksUsec();
 		_fadeUntil = 0;
@@ -276,7 +286,7 @@ public partial class FloorDiscovery : Node3D
 		foreach (var tile in tiles)
 		foreach (var offset in MapData.CardinalOffsets)
 		{
-			if (!_doorsByConnector.TryGetValue(tile + offset, out var doors)) continue;
+			if (!_indicatorDoors.TryGetValue(tile + offset, out var doors)) continue;
 			foreach (var door in doors)
 				if (_indicatorsShown.Add(door) && IsInstanceValid(door)) door.SetIndicatorVisible(true);
 		}

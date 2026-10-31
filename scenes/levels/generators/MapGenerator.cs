@@ -22,10 +22,6 @@ public partial class MapGenerator : Node3D
 	[Export] public RoomFactory RoomFactory { get; set; }
 	[Export] public MobFactory MobFactory { get; set; }
 	[Export] public WorldEffectDefinition SpawnArrivalEffect { get; set; }
-	[Export] public RoomArrangementPool ArrangementPool { get; set; }
-	/// <summary>Disable all optional furnishing without changing shell/layout RNG, including coded recipes.</summary>
-	[Export] public bool EnableFurnishings { get; set; } = true;
-	public int ArrangementCount { get; private set; }
 
 	[Export] public TileFactory TileFactory { get; set; }
 
@@ -209,12 +205,7 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		// A procedurally built room (ProceduralRoomBuilder.BuildRoom) is a fresh `new
-		// Room` with no backing scene file; an authored room is instantiated from a
-		// PackedScene, which sets SceneFilePath on the instantiated root.
-		var region = new RoomRegion(Floor.Rooms.Count) { IsProcedural = string.IsNullOrEmpty(placement.Room.SceneFilePath), Purpose = placement.Room.Purpose,
-			InteriorPool = string.IsNullOrEmpty(placement.Room.SceneFilePath) ? placement.Room.Generator?.CreateInteriorPool() : null,
-			Dressing = string.IsNullOrEmpty(placement.Room.SceneFilePath) ? placement.Room.Generator?.Dressing : null, LayoutAxis = placement.Room.LayoutAxis };
+		var region = new RoomRegion(Floor.Rooms.Count) { LayoutAxis = placement.Room.LayoutAxis };
 		for (int lx = 0; lx < roomMap.Width; lx++)
 		{
 			for (int lz = 0; lz < roomMap.Height; lz++)
@@ -247,8 +238,6 @@ public partial class MapGenerator : Node3D
 			}
 		}
 
-		foreach (var slot in placement.Room.GetChildren().OfType<RoomFurnishingSlot>())
-			region.FurnishingSlots.Add(slot.Resolve(region.Id, Map.WorldToTile(slot.GlobalPosition), GlobalTransform.AffineInverse() * slot.GlobalTransform));
 		RegisterDoors(placement.Room, region);
 		Floor.AddRoom(region);
 	}
@@ -267,15 +256,19 @@ public partial class MapGenerator : Node3D
 	/// </summary>
 	private void RegisterDoors(Room room, RoomRegion region)
 	{
-		if (region.ConnectorTiles.Count == 0)
-		{
-			return;
-		}
-
+		var interiorIds = new HashSet<string>();
 		foreach (Node node in room.FindChildren("*", "", true, false))
 		{
 			if (node is Door door)
 			{
+				if (door.Interior != null)
+				{
+					if (string.IsNullOrWhiteSpace(door.Interior.Id) || !interiorIds.Add(door.Interior.Id)
+						|| door.Lock?.Definition != null || door.Secret?.IsSecret == true)
+						throw new InvalidOperationException("Interior doors require unique local IDs and unlocked, non-secret access.");
+					door.ConnectionId = $"room:{region.Id}:interior:{door.Interior.Id}";
+					continue;
+				}
 				// Candidates only: which doorways are real passages isn't known until
 				// corridors have been routed (see FinalizeDoors).
 				if (TryFindNearestConnector(region, door.GlobalPosition, out var connector))
@@ -386,50 +379,6 @@ public partial class MapGenerator : Node3D
 		}
 
 		return false;
-	}
-
-	/// <summary>Optional furnishings are planned after routing, before loot and navigation bake; runtime state stays local.</summary>
-	private void PlaceArrangements()
-	{
-		if (!EnableFurnishings) return;
-		var obstacles = RoomArrangement.GetGridBounds(DecorationGridMap, DecorationGridMap.Transform)
-			.Concat(RoomArrangement.GetStaticPropBounds(NavigationRegion, GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform))
-			.Concat(SecretThresholdBounds()).ToList();
-		var walls = RoomArrangement.GetGridBounds(WallGridMap, WallGridMap.Transform);
-		foreach (var room in Floor.Rooms.Where(room => room.IsProcedural))
-		{
-			var pool = room.InteriorPool ?? ArrangementPool;
-			if (pool == null) continue;
-			var errors = pool.Validate();
-			if (errors.Length > 0) throw new InvalidOperationException(string.Join("\n", errors));
-			if (NavigationRegion.NavigationMesh != null && pool.PassageRadius < NavigationRegion.NavigationMesh.AgentRadius)
-				throw new InvalidOperationException("Arrangement PassageRadius must cover the navigation mesh AgentRadius.");
-			var region = new RoomRegion(room.Id) { IsProcedural = true, Purpose = room.Purpose, LayoutAxis = room.LayoutAxis };
-			region.FurnishingSlots.AddRange(room.FurnishingSlots);
-			region.Tiles.AddRange(room.Tiles);
-			// A secret pocket's connector opens onto its host, which may be a room tile rather than a corridor.
-			region.ConnectorTiles.AddRange(room.ConnectorTiles.Where(tile => IsSecretConnector(tile) || IsConnectorConnected(tile)));
-			var placements = pool.PlacementStrategy.Plan(Map, [region], pool, Seed,
-				GenerationAttempt, tile => Map.TileToWorld(tile), obstacles, walls);
-			if (room.Dressing != null) placements.AddRange(room.Dressing.Plan(Map, region, Seed, GenerationAttempt,
-				tile => Map.TileToWorld(tile), obstacles.Concat(RoomDressingProfile.GetBounds(placements)).ToArray(), walls,
-				obstacles.Concat(RoomDressingProfile.GetBounds(placements, true)).ToArray(), pool.PassageRadius));
-			foreach (var placement in placements)
-			{
-				var instance = placement.Definition.Instantiate();
-				instance.Name = $"Arrangement_{placement.RoomId}_{ArrangementCount}";
-				instance.SetMeta("arrangement_id", placement.Definition.Id);
-				instance.SetMeta("room_id", placement.RoomId);
-				instance.SetMeta("anchor", placement.Anchor);
-				instance.SetMeta("quarter_turns", placement.QuarterTurns);
-				instance.SetMeta("is_room_detail", placement.IsDetail);
-				NavigationRegion.AddChild(instance);
-				instance.GlobalTransform = GlobalTransform * placement.Transform;
-				obstacles.AddRange(instance.GetLocalBounds().Select(box => placement.Transform * box));
-				Floor.Reserve(placement.Occupied);
-				ArrangementCount++;
-			}
-		}
 	}
 
 	private void ConnectRooms()
@@ -574,8 +523,9 @@ public partial class MapGenerator : Node3D
 			.FirstOrDefault(point => point.SpawnAfterTravelDirection == GameSession.LevelTravelDirection.Down);
 		Floor.Descent = nodes.OfType<LevelTransitionTrigger>()
 			.FirstOrDefault(trigger => trigger.Direction == GameSession.LevelTravelDirection.Down);
+		Floor.StairLandings = nodes.OfType<PlayerSpawnPoint>().Select(point => (point.Landing ?? point).GlobalPosition).ToList();
 		Floor.SpawnAnchors = nodes.Where(node => node is IProgressionAnchor || node.IsInGroup("stairs"))
-			.Select(node => node.GlobalPosition).ToList();
+			.Select(node => node.GlobalPosition).Concat(Floor.StairLandings).ToList();
 		if (Floor.Arrival == null)
 		{
 			GD.PrintErr("PlayerSpawnPoint not found in the scene.");
@@ -628,7 +578,7 @@ public partial class MapGenerator : Node3D
 
 		// Candidate selection uses map tiles and collision clearance, not navmesh paths.
 		// Keep the initial encounter baseline reproducible even in headless validation.
-		var candidates = Floor.OpenTileCandidates(proceduralRoomsOnly: false);
+		var candidates = Floor.OpenTileCandidates();
 		if (candidates.Count == 0)
 		{
 			GD.PrintErr("Cannot generate enemy spawn points: no valid map tiles found.");
@@ -740,7 +690,6 @@ public partial class MapGenerator : Node3D
 		FinalizeMarkers();
 		AccessProfile?.Validate();
 		CreateSecretBranches();
-		PlaceArrangements();
 
 		// Step 2c: Cap permanent void. Exploration is the level's FloorDiscovery, started once the floor is handed off.
 		PlaceOcclusion();
@@ -757,11 +706,14 @@ public partial class MapGenerator : Node3D
 		// dependency on anything the bake computes).
 		FindProgressionAnchors();
 
+		// Step 3.1: Reachability over the finished geometry; everything placed from here on lands on reachable cells.
+		BuildWalkability();
+
 		// Step 3a: Decide special encounters before anything else claims the floor.
 		if (!ResolveEncounters()) return false;
 
-		// Step 3b: Scatter chests/traps/loose items. Must run before BakeNavigationMesh so
-		// chests are included as navmesh obstacles, and before GenerateEnemySpawnPoints so
+		// Step 3b: Place access, scheduled fountains, then chests/traps/loose items. Must run before BakeNavigationMesh so
+		// fountains and chests are included as navmesh obstacles, and before GenerateEnemySpawnPoints so
 		// enemy-spawn clearance (which already checks the "prop" group) naturally avoids them.
 		PlaceAccess();
 		PlaceLoot();
@@ -806,7 +758,6 @@ public partial class MapGenerator : Node3D
 		_random = new LevelGenerationContext(Seed, GenerationAttempt);
 
 		ResetAccess();
-		ArrangementCount = 0;
 		_markerIndicators.Clear();
 
 		// Initialize the map with empty tiles and a walled border

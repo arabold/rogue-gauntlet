@@ -1,6 +1,6 @@
 {
-  "items": 153,
-  "godot_verified_exports": 0,
+  "items": 161,
+  "godot_verified_exports": 8,
   "authored_surface_exceptions": [
     "food/drink_beer_stein",
     "keys/key_bronze_ornate",
@@ -437,6 +437,198 @@
       "export": "res://assets/custom-items/food/food/food_pear_golden.glb",
       "export_verified": false,
       "lineup": "food/food_pear_golden/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_chalice_health",
+      "source_current": true,
+      "inputs": "6821a5dfbfae2f180a1730c2139ed68310f55e0b7cab794db6a3760e1ac2e7d3",
+      "triangles": 1280,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.38362217660467596
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-props/fountains/fountain_chalice_health.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_chalice_health/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_chalice_mana",
+      "source_current": true,
+      "inputs": "5ef4441ca02ab05e12f58a149991696fa9434af51f0b0b94435889c0c7866beb",
+      "triangles": 1280,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.38362217660467596
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-props/fountains/fountain_chalice_mana.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_chalice_mana/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_font_health",
+      "source_current": true,
+      "inputs": "552898e7b479fa3dd6c89b59a43fa977f05c6e24d4dd3f0d5556e75f81f45b09",
+      "triangles": 1648,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.9438234270786757
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-props/fountains/fountain_font_health.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_font_health/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_font_mana",
+      "source_current": true,
+      "inputs": "1ee5020e13fedbce49734cd73123147724eddee40ccb7f89ef26e805030e9004",
+      "triangles": 1648,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.9438234270786757
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-props/fountains/fountain_font_mana.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_font_mana/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_spring_health",
+      "source_current": true,
+      "inputs": "7007f1c695a2586f98d89ef38c81ed71764c17161f787b31272985ee82f9f76d",
+      "triangles": 2032,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 2.008535400976514
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-props/fountains/fountain_spring_health.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_spring_health/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_spring_mana",
+      "source_current": true,
+      "inputs": "23a1c8f51a3aecbcf27c0f703fd85d6d741152c8f3d1a57d3b7755653373f2d1",
+      "triangles": 2032,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 2.008535400976514
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-props/fountains/fountain_spring_mana.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_spring_mana/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_tiered_health",
+      "source_current": true,
+      "inputs": "0e3d37a821425b146af5c1c6e7a1d2de0035ebb67d4ef40362ab78092486453f",
+      "triangles": 1164,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 1.343496522042839
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-props/fountains/fountain_tiered_health.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_tiered_health/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_tiered_mana",
+      "source_current": true,
+      "inputs": "f47677f7169460735f0dbe8444b908eef52529719240442b6de159951a287e2f",
+      "triangles": 1164,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_assembly",
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 1.343496522042839
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "export": "res://assets/custom-props/fountains/fountain_tiered_mana.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_tiered_mana/lineup.png"
     },
     {
       "key": "jewelry/amulet_gold_emerald",
@@ -4728,7 +4920,7 @@
     },
     {
       "key": "weapons/staff_bone",
-      "source_current": true,
+      "source_current": false,
       "inputs": "d92c38dd0382735fee419e3e13375ea45efdd5ebe960a7e7f97e56fee8b048fb",
       "triangles": 3244,
       "materials": 2,
@@ -4750,7 +4942,7 @@
     },
     {
       "key": "weapons/staff_crooked",
-      "source_current": true,
+      "source_current": false,
       "inputs": "e3c5c8f537339e0ddc39a1bbbc63bb785e1245f24e35784a32c67afed8066892",
       "triangles": 926,
       "materials": 1,
@@ -4808,7 +5000,7 @@
     },
     {
       "key": "weapons/staff_horned",
-      "source_current": true,
+      "source_current": false,
       "inputs": "1a1d754dfa47aeeec4d4f4762f1f0b6c096229d88111a57c369a0b964a2945fa",
       "triangles": 2390,
       "materials": 2,
@@ -4830,7 +5022,7 @@
     },
     {
       "key": "weapons/staff_iron",
-      "source_current": true,
+      "source_current": false,
       "inputs": "4356cd31c7cfd5f0888c8bb9caa99a80fde9acf1d62c6a3164ee0a9d380f056c",
       "triangles": 1320,
       "materials": 3,
@@ -4921,7 +5113,7 @@
     },
     {
       "key": "weapons/wand_bone",
-      "source_current": true,
+      "source_current": false,
       "inputs": "b6d7a54a335419f67f24e5a525a1806316f16e11ee990f1e18eef34443ff4b97",
       "triangles": 1382,
       "materials": 1,
@@ -4943,7 +5135,7 @@
     },
     {
       "key": "weapons/wand_carved",
-      "source_current": true,
+      "source_current": false,
       "inputs": "b579d16fc08d46376f8c8195ceaa0c9cfb5c3a95bd4d70187a484d8392a76b72",
       "triangles": 840,
       "materials": 2,
@@ -5000,7 +5192,7 @@
     },
     {
       "key": "weapons/wand_crooked",
-      "source_current": true,
+      "source_current": false,
       "inputs": "5ba85f9aba03c9d1179b06f72e7197c29074f2d268f00acc8f3617cfbf29a049",
       "triangles": 1110,
       "materials": 1,
@@ -5022,7 +5214,7 @@
     },
     {
       "key": "weapons/wand_iron",
-      "source_current": true,
+      "source_current": false,
       "inputs": "5717161069868a7c4778a648e3da2eadad9e94d3446f7b5a88926ec0d08e3ffe",
       "triangles": 1582,
       "materials": 3,

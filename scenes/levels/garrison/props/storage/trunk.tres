@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/trunk_small_A.gltf" id="2_trunk_small_"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/trunk_small_B.gltf" id="3_trunk_small_"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/trunk_small_C.gltf" id="4_trunk_small_"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/trunk_medium_A.gltf" id="5_trunk_medium"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/trunk_medium_B.gltf" id="6_trunk_medium"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/trunk_medium_C.gltf" id="7_trunk_medium"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "garrison.trunk"
+Scenes = [ExtResource("2_trunk_small_"), ExtResource("3_trunk_small_"), ExtResource("4_trunk_small_"), ExtResource("5_trunk_medium"), ExtResource("6_trunk_medium"), ExtResource("7_trunk_medium")]
+BackToWall = true
+Gap = 0.1
+TurnJitter = 6.0
+ShiftJitter = 0.05
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="FloorMaterial" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/FloorMaterial.cs" id="1_FloorMateria"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_FloorMeshLib"]
+
+[resource]
+script = ExtResource("1_FloorMateria")
+Id = "garrison.dirt"
+Library = ExtResource("2_FloorMeshLib")
+Large = Dictionary[String, float]({"floor_dirt_large": 3.0, "floor_dirt_large_rocky": 1.0})
+Small = Dictionary[String, float]({"floor_dirt_small_A": 1.0, "floor_dirt_small_B": 1.0, "floor_dirt_small_C": 1.0, "floor_dirt_small_D": 1.0})
+Wear = Dictionary[String, float]({"floor_dirt_small_weeds": 1.0})
+WearChance = 0.08
+metadata/_custom_type_script = ExtResource("1_FloorMateria")

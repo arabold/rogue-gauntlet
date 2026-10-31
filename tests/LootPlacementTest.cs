@@ -31,7 +31,7 @@ public class LootPlacementTest
 	{
 		// All-procedural standard rooms: loot placement only considers procedural rooms,
 		// so the default all-authored factory would yield zero placements to check.
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProcedural());
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
 		TestFactories.WireLootScenes(mapGenerator);
 		mapGenerator.MinChests = mapGenerator.MaxChests = 2;
 
@@ -58,7 +58,7 @@ public class LootPlacementTest
 	[TestCase]
 	public async Task LooseItemsRollAsRewardSourcesAndSurviveASaveRoundTrip()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.AllProcedural());
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.GarrisonRooms());
 		var map = level.MapGenerator;
 		TestFactories.WireLootScenes(map);
 		map.MinLooseItems = map.MaxLooseItems = 3;
@@ -87,7 +87,7 @@ public class LootPlacementTest
 	[TestCase]
 	public async Task PlacedLootIsParentedUnderNavigationRegionForNavmeshBaking()
 	{
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProcedural());
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
 		TestFactories.WireLootScenes(mapGenerator);
 		mapGenerator.MinChests = mapGenerator.MaxChests = 1;
 		mapGenerator.MinTraps = mapGenerator.MaxTraps = 1;
@@ -116,7 +116,7 @@ public class LootPlacementTest
 	[TestCase]
 	public async Task PlacedLootRespectsMinimumSpacing()
 	{
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProcedural());
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
 		TestFactories.WireLootScenes(mapGenerator);
 		// The smallest map that still fits every request on every seed: a map too small to hold all nine pieces
 		// silently drops some and checks fewer pairs, while larger maps mostly add corridor routing and navmesh time.
@@ -163,47 +163,6 @@ public class LootPlacementTest
 
 		AssertArray(failures)
 			.OverrideFailureMessage($"Found {failures.Count} spacing failure(s) across {SeedCount} seeds:\n  "
-				+ string.Join("\n  ", failures))
-			.IsEmpty();
-	}
-
-	[TestCase]
-	public async Task AuthoredRoomsNeverReceiveGeneratedLoot()
-	{
-		// The default room factory is all-authored scenes. With loot fully wired and
-		// non-zero counts requested, an all-authored map must still place ZERO chests
-		// and loose items -- authored interiors are hand-designed (including any chests
-		// their author placed) and generated content must never intrude. Traps are the
-		// one exception allowed OUTSIDE rooms: corridors belong to no room, authored or
-		// otherwise, so any trap that does get placed must sit on a corridor tile.
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
-		TestFactories.WireLootScenes(mapGenerator);
-		mapGenerator.MinChests = mapGenerator.MaxChests = 2;
-		mapGenerator.MinTraps = mapGenerator.MaxTraps = 2;
-		mapGenerator.MinLooseItems = mapGenerator.MaxLooseItems = 2;
-
-		var failures = new List<string>();
-		for (ulong seed = 1; seed <= 10; seed++)
-		{
-			mapGenerator.Seed = seed;
-			mapGenerator.GenerateMap(includeGameplay: true);
-
-			foreach (Node3D node in FindLootNodes(mapGenerator))
-			{
-				Vector2I tile = mapGenerator.Map.WorldToTile(node.GlobalPosition);
-				if (node is FloorTrap && mapGenerator.Map.IsCorridor(tile.X, tile.Y))
-				{
-					continue;
-				}
-
-				failures.Add($"seed {seed}: generated {node.GetType().Name} at tile {tile} inside an all-authored map");
-			}
-
-			await runner.SimulateFrames(1);
-		}
-
-		AssertArray(failures)
-			.OverrideFailureMessage($"Found {failures.Count} loot placement(s) that intruded on authored rooms:\n  "
 				+ string.Join("\n  ", failures))
 			.IsEmpty();
 	}

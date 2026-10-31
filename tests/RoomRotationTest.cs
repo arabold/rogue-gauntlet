@@ -1,16 +1,15 @@
 namespace RogueGauntlet.Tests;
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
-/// Correctness contracts for Room.Rotate, swept across seeds using procedurally built
-/// rooms (irregular footprints, doorways, doors -- the hardest shapes to get right) and
-/// checked against authored rooms (real hand-placed props, a harder test of "rotate
-/// arbitrary child nodes" than procedural rooms alone provide):
+/// Correctness contracts for Room.Rotate, swept across seeds using every assembled room type
+/// (irregular footprints, doorways, doors, props and stairwell pits -- the hardest shapes to get right):
 /// <list type="bullet">
 /// <item>Rotating four quarter turns (360 degrees) returns the exact original GridMap
 /// cells -- rotation must be a lossless, invertible permutation of the tile lattice,
@@ -18,134 +17,30 @@ using static GdUnit4.Assertions;
 /// <item>A single quarter turn swaps Map.Width/Height.</item>
 /// <item>Every tile-type population (Room/Connector/Chasm counts) is preserved, and
 /// every DoorwayMarker/Door stays correctly matched, at EVERY intermediate rotation.</item>
-/// <item>Every authored room in the library bakes a usable connector at all 4
-/// orientations. Historically most failed at 1-3 of them; that was never real geometry
-/// -- it was two coordinate knife edges (marker floor-binning putting tile centers on a
-/// bin boundary, and HasWall's half-open cell sampling flipping corner anchors in and
-/// out of range per orientation), both since replaced by nearest-center binning
-/// (Room.LocalToTile) and footprint-based edge coverage (WallFootprints).
-/// PackedRoomLayout still re-checks connectability per orientation as defense in
-/// depth, but skipped orientations are now a bug signal, not expected behavior.</item>
 /// </list>
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
 public class RoomRotationTest
 {
-	private const int SeedCount = 60;
+	private const int SeedCount = 64;
 	private const int TileSize = Room.TileSize;
-	private const string AuthoredRoomsDirectory = "res://scenes/levels/dungeon/rooms";
 
 	[TestCase]
 	public void RotatingProceduralRoomsFourTimesReturnsToOriginalGeometry()
 	{
-		var builder = TestFactories.Load<ProceduralRoomBuilder>(
-			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
-			cacheMode: ResourceLoader.CacheMode.Ignore);
-		builder.DoorwayChance = 1f;
-		builder.MinDoors = 4;
-		builder.MaxDoors = 4;
-		builder.MaxDoorways = 4;
-
 		var failures = new List<string>();
 		for (ulong seed = 1; seed <= SeedCount; seed++)
 		{
-			using var rng = new RandomNumberGenerator { Seed = seed };
-			Room room = builder.BuildRoom(rng);
+			Room room = Assemble(seed, withDoors: true);
+			var props = SnapshotProps(room);
 			CheckRotationSweep(room, $"seed {seed}", strictContentChecks: true, failures);
-			room.QueueFree();
+			if (SnapshotProps(room) != props) failures.Add($"seed {seed}: props did not return to their original transforms");
+			room.Free();
 		}
 
 		AssertArray(failures)
 			.OverrideFailureMessage($"Found {failures.Count} rotation violation(s) across {SeedCount} procedural seeds:\n  "
-				+ string.Join("\n  ", failures))
-			.IsEmpty();
-	}
-
-	[TestCase]
-	public void RotatingAnAuthoredRoomFourTimesReturnsToOriginalGeometry()
-	{
-		var scene = TestFactories.Load<PackedScene>("res://scenes/levels/dungeon/rooms/sewer_crossing_4way.tscn");
-		Room room = scene.Instantiate<Room>();
-		room.BakeTileMap();
-
-		var failures = new List<string>();
-		CheckRotationSweep(room, "sewer_crossing_4way", strictContentChecks: true, failures);
-		room.QueueFree();
-
-		AssertArray(failures)
-			.OverrideFailureMessage("Found rotation violation(s) on the authored 4-way crossing room:\n  "
-				+ string.Join("\n  ", failures))
-			.IsEmpty();
-	}
-
-	/// <summary>
-	/// Every authored room must bake a usable connector at every one of the 4
-	/// orientations. Historically most authored rooms failed doorway validation at 1-3
-	/// rotations; that was the tile-coordinate knife edge (floor-binning put markers'
-	/// tile centers exactly on a bin boundary), not real geometry -- with markers
-	/// authored on tile centers and Room.LocalToTile binning by nearest center, all four
-	/// orientations of every room in the library must now be placeable.
-	/// </summary>
-	[TestCase]
-	public void EveryAuthoredRoomBakesConnectorsAtAllFourRotations()
-	{
-		// Enumerated, not hardcoded, so a newly added room scene joins this gate automatically.
-		var roomScenes = new List<string>();
-		foreach (string fileName in DirAccess.GetFilesAt(AuthoredRoomsDirectory))
-		{
-			if (fileName.EndsWith(".tscn"))
-			{
-				roomScenes.Add(AuthoredRoomsDirectory.PathJoin(fileName));
-			}
-		}
-		AssertArray(roomScenes).OverrideFailureMessage($"No room scenes found in {AuthoredRoomsDirectory}").IsNotEmpty();
-
-		var failures = new List<string>();
-		foreach (string scenePath in roomScenes)
-		{
-			var scene = TestFactories.Load<PackedScene>(scenePath);
-			Room room = scene.Instantiate<Room>();
-			string roomName = scenePath.GetFile().GetBaseName();
-
-			for (int rotation = 0; rotation < 4; rotation++)
-			{
-				if (rotation > 0)
-				{
-					room.Rotate(1);
-				}
-				else
-				{
-					room.BakeTileMap();
-				}
-
-				if (room.Map == null)
-				{
-					failures.Add($"{roomName} at {rotation * 90} degrees baked no map");
-					continue;
-				}
-
-				bool hasConnector = false;
-				for (int x = 0; x < room.Map.Width && !hasConnector; x++)
-				{
-					for (int z = 0; z < room.Map.Height && !hasConnector; z++)
-					{
-						hasConnector = room.Map.IsConnector(x, z)
-							&& room.Map.GetConnectorDirections(x, z).Count > 0;
-					}
-				}
-
-				if (!hasConnector)
-				{
-					failures.Add($"{roomName} at {rotation * 90} degrees has no usable connector");
-				}
-			}
-
-			room.QueueFree();
-		}
-
-		AssertArray(failures)
-			.OverrideFailureMessage($"Found {failures.Count} authored room(s)/rotation(s) without usable connectors:\n  "
 				+ string.Join("\n  ", failures))
 			.IsEmpty();
 	}
@@ -160,12 +55,7 @@ public class RoomRotationTest
 	[TestCase]
 	public void RotatingATiltedChildComposesViaBasisNotEulerAddition()
 	{
-		var builder = TestFactories.Load<ProceduralRoomBuilder>(
-			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
-			cacheMode: ResourceLoader.CacheMode.Ignore);
-		using var rng = new RandomNumberGenerator { Seed = 1 };
-		Room room = builder.BuildRoom(rng);
-		room.BakeTileMap();
+		Room room = Assemble(1);
 
 		var tiltedProp = new Node3D
 		{
@@ -186,6 +76,17 @@ public class RoomRotationTest
 			.IsTrue();
 	}
 
+	/// <summary>A room assembled from the Garrison types (entrances and exits included), cycling through them by seed.</summary>
+	private static Room Assemble(ulong seed, bool withDoors = false)
+	{
+		var factory = withDoors ? TestFactories.GarrisonRoomsWithDoors() : TestFactories.GarrisonRooms();
+		RoomType[] types = [.. factory.RoomTypes, .. factory.EntranceTypes, .. factory.ExitTypes];
+		return RoomAssembler.Assemble(types[(int)(seed % (ulong)types.Length)], seed);
+	}
+
+	private static string SnapshotProps(Room room) => string.Join("|", room.GetNode("Props").GetChildren().OfType<Node3D>()
+		.Select(prop => $"{prop.Name}:{prop.Transform.Origin.Snapped(Vector3.One * .001f)}:{prop.Transform.Basis.X.Snapped(Vector3.One * .001f)}:{prop.Transform.Basis.Z.Snapped(Vector3.One * .001f)}"));
+
 	private static bool BasisApproxEquals(Basis a, Basis b)
 	{
 		return a.X.IsEqualApprox(b.X) && a.Y.IsEqualApprox(b.Y) && a.Z.IsEqualApprox(b.Z);
@@ -202,12 +103,7 @@ public class RoomRotationTest
 	[TestCase]
 	public void RotatingANonUprightGridMapOrientationComposesCorrectly()
 	{
-		var builder = TestFactories.Load<ProceduralRoomBuilder>(
-			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
-			cacheMode: ResourceLoader.CacheMode.Ignore);
-		using var rng = new RandomNumberGenerator { Seed = 1 };
-		Room room = builder.BuildRoom(rng);
-		room.BakeTileMap();
+		Room room = Assemble(1);
 
 		// Far outside the room's own generated content, so this doesn't collide with
 		// anything BakeTileMap scans.
@@ -287,7 +183,7 @@ public class RoomRotationTest
 		AssertGridMapMatches(originalDecoration, SnapshotCells(room.DecorationGridMap), $"{label}: DecorationGridMap", failures);
 	}
 
-	/// <summary>Mirrors ProceduralRoomBuilderTest's doorway/door checks, reused here after rotation.</summary>
+	/// <summary>Doorway markers stay on connectors and doors stay on their marker's edge after rotation.</summary>
 	private static List<string> FindDoorwayViolations(Room room)
 	{
 		var failures = new List<string>();

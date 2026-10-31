@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "name": "Candle Cluster Flames",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "candle_cluster",
+    "flames": true
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 300,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 45,
+  "materials": {
+    "flame": {
+      "crease": 60
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/chapel/candle_cluster_flames.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Room furnishing at KayKit dungeon scale: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+  }
+}

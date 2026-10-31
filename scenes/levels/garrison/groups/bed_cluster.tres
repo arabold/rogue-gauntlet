@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="PropGroup" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroup.cs" id="1_PropGroup"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/bed.tres" id="2_bed"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="3_PropGroupMem"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/table_small.tres" id="4_table_small"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/trunk.tres" id="5_trunk"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/small_box.tres" id="6_small_box"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/crate.tres" id="7_crate"]
+
+[sub_resource type="Resource" id="PropGroupMember_1"]
+script = ExtResource("3_PropGroupMem")
+Options = [ExtResource("4_table_small")]
+Offset = Vector3(1.45, 0.0, -0.85)
+Chance = 0.75
+QuarterTurns = 0
+metadata/_custom_type_script = ExtResource("3_PropGroupMem")
+
+[sub_resource type="Resource" id="PropGroupMember_2"]
+script = ExtResource("3_PropGroupMem")
+Options = [ExtResource("5_trunk"), ExtResource("6_small_box"), ExtResource("7_crate")]
+Offset = Vector3(1.5, 0.0, 0.95)
+Chance = 0.6
+QuarterTurns = 0
+metadata/_custom_type_script = ExtResource("3_PropGroupMem")
+
+[resource]
+script = ExtResource("1_PropGroup")
+Id = "garrison.bed_cluster"
+Weight = 4.0
+Anchor = [ExtResource("2_bed")]
+Members = [SubResource("PropGroupMember_1"), SubResource("PropGroupMember_2")]
+MirrorChance = 0.5
+metadata/_custom_type_script = ExtResource("1_PropGroup")

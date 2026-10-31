@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/bottle_A_brown.gltf" id="2_bottle_A_bro"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/bottle_A_labeled_brown.gltf" id="3_bottle_A_lab"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/bottle_A_labeled_green.gltf" id="4_bottle_A_lab"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/bottle_B_brown.gltf" id="5_bottle_B_bro"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/bottle_C_brown.gltf" id="6_bottle_C_bro"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "garrison.bottle"
+Scenes = [ExtResource("2_bottle_A_bro"), ExtResource("3_bottle_A_lab"), ExtResource("4_bottle_A_lab"), ExtResource("5_bottle_B_bro"), ExtResource("6_bottle_C_bro")]
+Blocking = false
+Gap = 0.02
+TurnJitter = 30.0
+ShiftJitter = 0.04
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

@@ -184,7 +184,7 @@ public partial class AttackController : Node, IParryInterruptible
 		}
 		_hitTargets.Clear();
 
-		GameDebug.Combat($"{_actor.Name} starting attack: {def.AnimationId} (Ranged: {def.IsRanged})");
+		GameDebug.Combat($"{_actor.Name} starting attack: {CurrentStyle} (Ranged: {def.IsRanged})");
 
 		ReportProgress();
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.started", ("execution", _executionSequence), ("execution_source", GetInstanceId()), ("style", CurrentStyle.ToString()),

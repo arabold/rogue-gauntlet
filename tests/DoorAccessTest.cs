@@ -184,7 +184,7 @@ public class DoorAccessTest
 	[TestCase]
 	public async Task GeneratedPairsAreReachableAndSecretsRestoreAsClosedDoors()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.AllProcedural());
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.GarrisonRooms());
 		var generator = level.MapGenerator;
 		TestFactories.WireLootScenes(generator);
 		generator.AccessProfile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
@@ -198,7 +198,7 @@ public class DoorAccessTest
 		{
 			generator.Seed = seed; level.Generate();
 			var doors = generator.NavigationRegion.FindChildren("*", "", true, false).OfType<Door>().Where(d => !d.IsQueuedForDeletion()).ToArray();
-			var locked = doors.Where(d => d.Lock.IsLocked).ToArray(); lockedCount += locked.Length;
+			var locked = doors.Where(d => d.Lock?.IsLocked == true).ToArray(); lockedCount += locked.Length;
 			var blocked = generator.GeneratedSecrets.Select(s => s.Connector).ToHashSet();
 			foreach (var door in locked)
 			{
@@ -236,10 +236,10 @@ public class DoorAccessTest
 			foreach (var trap in generator.NavigationRegion.GetChildren().OfType<FloorTrap>()) trap.Reveal(false);
 			level.Discovery.RevealRoom(0);
 			var snapshot = JsonSerializer.Deserialize<RevealedLevelSaveData>(JsonSerializer.Serialize(level.CaptureExploration()));
-			string signature = string.Join("|", doors.Select(d => d.ConnectionId + ":" + d.Lock.Definition?.RequiredKey?.DefinitionPath));
+			string signature = string.Join("|", doors.Select(d => d.ConnectionId + ":" + d.Lock?.Definition?.RequiredKey?.DefinitionPath));
 			level.Generate();
 			var regenerated = generator.NavigationRegion.FindChildren("*", "", true, false).OfType<Door>().Where(d => !d.IsQueuedForDeletion());
-			AssertString(string.Join("|", regenerated.Select(d => d.ConnectionId + ":" + d.Lock.Definition?.RequiredKey?.DefinitionPath))).IsEqual(signature);
+			AssertString(string.Join("|", regenerated.Select(d => d.ConnectionId + ":" + d.Lock?.Definition?.RequiredKey?.DefinitionPath))).IsEqual(signature);
 			level.RestoreExploration(snapshot);
 			var recaptured = level.CaptureExploration();
 			AssertInt(recaptured.ExploredSamples.Count).IsEqual(snapshot.ExploredSamples.Count);

@@ -15,7 +15,6 @@ public partial class SpellCastAction : RefCounted, ICombatAttackAction
 	}
 
 	private SpellDefinition Spell => _focus.BoundSpell;
-	public string AnimationId => _focus.SecondaryAnimationId;
 	public float Delay => 0;
 	public float PerformDuration => _focus.SecondaryPerformDuration;
 	public float CooldownDuration => Spell?.Cooldown ?? 0;

@@ -29,14 +29,14 @@ These documents explain code that exists today. Any proposed extension or future
 | [Gameplay item catalog](item-catalog.md) | All active definitions, effect families, source budgets, access keys/picks and deferred tools |
 | [Randomness and seeds](randomness-and-seeds.md) | Existing run/level seeds, generation RNG, loot RNG, identification, and saved world changes; isolation and current persistence limits |
 | [Door access](door-access.md) | Implemented locks, consumable keys/picks, colored door markers, secret pockets, discovery and saved access state |
-| [Level design](level-design.md) | Procedural layouts, reusable arrangements, room authoring, fog of war, encounters and light flicker |
+| [Level design](level-design.md) | Procedural layouts, room assembly, reachability, room authoring, fog of war, encounters and light flicker |
 | [Stats and itemization](stats-and-itemization.md) | Attributes, modifiers, equipment tiers, loot rolls, and enchantment |
 | [Item identification](item-identification-system.md) | Per-run disguises, discovery, jewelry, and scroll targeting |
 | [Weapon attacks](weapon-attack-system.md) | Existing weapon and attack behavior |
 | [Combat actions and defense](combat-system.md) | Shared action ownership, dodge (including passing through monsters), guard/parry/guard break, poise and hit reactions, threat tiers, rear and sneak hits, attack slots, RNG and persistence |
 | [Combat harness and traces](combat-harness.md) | Interactive/scripted combat, JSONL event schema, capture flags and analyzer |
 | [Screen effects](screen-effects.md) | Blindness/poison/near-death post-process overlays, their gameplay wiring through health and status conditions (including confusion and slowness), and the debug harness |
-| [Actor and item world effects](world-effects.md) | Reusable burst/sustained VFX, shared cloak/skin ownership, authored looks, committed potion use, known-cursed and spell-element item auras and the workbench |
+| [Actor and item world effects](world-effects.md) | Reusable burst/sustained VFX, shared cloak/skin ownership, authored looks, committed potion use, known-cursed and spell-element item auras, fountain pool sparkles and the workbench |
 | [Actor invisibility](invisibility.md) | Shared player/monster cloak shader, equipment coverage, reversible materials and effect-harness preview |
 
 ## Remaining implementation plans
@@ -62,9 +62,9 @@ Completed plans are consolidated into current-system documents. The [roadmap](de
 
 ## Content and authoring references
 
-- [Level generation folders](../scenes/levels/README.md): generator code, room presets and arrangement assets.
+- [Level generation folders](../scenes/levels/README.md): generator code, room types and their content.
 - [Debug harnesses](../scenes/debug/README.md): room, combat, item and effects entry points.
-- [Arrangement authoring](../scenes/levels/arrangements/README.md): editable furnishings, Inspector settings, room-generator commands and room/floor harness.
+- [Room assembly authoring](../scenes/levels/generators/assembly/README.md): props, groups, styles, steps and room types; harness and editor plugin.
 
 - [Gameplay item catalog](item-catalog.md) and [monster catalog](monster-catalog/README.md): references for authored gameplay content. Use the Asset Studio catalogs below for published models and previews.
 - [Asset Studio](../asset-studio/README.md), its [architecture and export boundary](../asset-studio/ARCHITECTURE.md), [item visual catalog](../asset-studio/catalogs/items/README.md), and [character visual catalog](../asset-studio/catalogs/characters/README.md): visual authoring and published models. A published model does not imply completed gameplay behavior.

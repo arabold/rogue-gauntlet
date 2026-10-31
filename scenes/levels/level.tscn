@@ -4,17 +4,17 @@
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
 [ext_resource type="Script" uid="uid://ygesa632ip8" path="res://scenes/levels/generators/layouts/PackedRoomLayout.cs" id="3_xog87"]
 [ext_resource type="Script" uid="uid://he7ib5c3gsey" path="res://scenes/levels/generators/connectors/AStarCorridorConnector.cs" id="4_mssmn"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/factories/garrison_mixed_room_factory.tres" id="5_mbbpy"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/factories/garrison_room_factory.tres" id="5_mbbpy"]
 [ext_resource type="Resource" path="res://scenes/levels/encounters/sunken_garrison.tres" id="6_ouxo3"]
 [ext_resource type="Resource" uid="uid://djtuce71qkm72" path="res://scenes/levels/dungeon/dungeon_tile_factory.tres" id="7_icy5c"]
 [ext_resource type="PackedScene" uid="uid://cgi3a5fi0sxu6" path="res://scenes/props/chest.tscn" id="8_chest"]
 [ext_resource type="PackedScene" uid="uid://cap6wqfjubqjx" path="res://scenes/props/floor_trap.tscn" id="9_trap"]
 [ext_resource type="PackedScene" uid="uid://ccltoxuycom37" path="res://scenes/items/lootable_item.tscn" id="10_lootitem"]
 [ext_resource type="Resource" path="res://scenes/items/loot/drops/loose_items.tres" id="11_loose_items"]
+[ext_resource type="Resource" path="res://scenes/props/fountains/fountain_profile.tres" id="12_fountains"]
 
 [ext_resource type="Script" path="res://scenes/levels/LevelItemPersistence.cs" id="13_persistence"]
 
-[ext_resource type="Resource" path="res://scenes/levels/garrison/arrangements/garrison_arrangements.tres" id="14_arrangements"]
 
 [ext_resource type="Resource" path="res://scenes/levels/access/garrison_access.tres" id="access_profile"]
 [ext_resource type="PackedScene" path="res://scenes/levels/floor_discovery.tscn" id="floor_discovery"]
@@ -36,7 +36,6 @@ ItemPersistence = NodePath("ItemPersistence")
 Discovery = NodePath("FloorDiscovery")
 
 [node name="MapGenerator" parent="." instance=ExtResource("2_dtjl1")]
-ArrangementPool = ExtResource("14_arrangements")
 AccessProfile = ExtResource("access_profile")
 Seed = 23
 RoomLayout = SubResource("Resource_mbbpy")
@@ -48,6 +47,7 @@ ChestScene = ExtResource("8_chest")
 TrapScene = ExtResource("9_trap")
 LooseItemScene = ExtResource("10_lootitem")
 LooseItems = ExtResource("11_loose_items")
+Fountains = ExtResource("12_fountains")
 
 [node name="ItemPersistence" type="Node" parent="."]
 script = ExtResource("13_persistence")

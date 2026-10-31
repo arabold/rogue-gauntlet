@@ -70,10 +70,12 @@ public class ChestXrayTest
 		var level = runner.Scene().GetNode<Level>("Level");
 		var map = level.MapGenerator;
 		var chest = TestFactories.Load<PackedScene>("res://scenes/props/chest.tscn").Instantiate<Chest>();
-		// Pick a real floor cell that is still under fog.
+		// Pick a real floor cell under fog and beyond the arrival's sight, so ordinary line of sight cannot reveal it first.
+		Vector3 arrival = map.Floor.Arrival.GlobalPosition;
 		Vector3 point = map.FloorGridMap.GetUsedCells()
 			.Select(cell => map.FloorGridMap.ToGlobal(map.FloorGridMap.MapToLocal(cell)))
-			.First(p => !level.Discovery.IsRevealedAt(p));
+			.Where(p => !level.Discovery.IsRevealedAt(p))
+			.OrderByDescending(p => p.DistanceTo(arrival)).First();
 		chest.Position = point;
 		bool original = GameDebug.LootXrayEnabled;
 		try

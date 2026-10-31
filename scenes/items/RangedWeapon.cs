@@ -11,8 +11,6 @@ public partial class RangedWeapon : Weapon
 
     public RangedWeapon()
     {
-        AnimationId = "ranged_attack";
-        SecondaryAnimationId = "ranged_attack";
         SecondaryDamageMultiplier = 2.0f;
         SecondaryCooldownDuration = 1.2f;
     }

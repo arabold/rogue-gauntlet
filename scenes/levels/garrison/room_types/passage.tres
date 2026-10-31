@@ -1,0 +1,56 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=19 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/stone_walls.tres" id="3_stone_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/ruined_walls.tres" id="4_ruined_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone_floor.tres" id="5_stone_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/cobble_floor.tres" id="6_cobble_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/worn_stone.tres" id="7_worn_stone"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="8_WallDecorSte"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="9_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="10_torch_unlit"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="11_ScatterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/barrel_stack.tres" id="12_barrel_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/small_box.tres" id="13_small_box"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/crate.tres" id="14_crate"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/sconce.tres" id="15_sconce"]
+
+[sub_resource type="Resource" id="RectangleShape_1"]
+script = ExtResource("2_RectangleSha")
+Weight = 1.0
+MinimumSize = Vector2i(1, 3)
+MaximumSize = Vector2i(2, 5)
+OddWidth = false
+metadata/_custom_type_script = ExtResource("2_RectangleSha")
+
+[sub_resource type="Resource" id="WallDecorStep_2"]
+script = ExtResource("8_WallDecorSte")
+Id = "torches"
+Content = [ExtResource("9_torch"), ExtResource("10_torch_unlit"), ExtResource("15_sconce")]
+MaximumCount = 2
+Spacing = 6.0
+metadata/_custom_type_script = ExtResource("8_WallDecorSte")
+
+[sub_resource type="Resource" id="ScatterStep_3"]
+script = ExtResource("11_ScatterStep")
+Id = "clutter"
+Content = [ExtResource("12_barrel_stack"), ExtResource("13_small_box"), ExtResource("14_crate")]
+MaximumCount = 2
+WallChance = 1.0
+metadata/_custom_type_script = ExtResource("11_ScatterStep")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "garrison.passage"
+Weight = 0.8
+Shapes = [SubResource("RectangleShape_1")]
+MinimumFloorTiles = 3
+MinDoorways = 2
+MaxDoorways = 2
+DoorwayPlacement = 1
+Circulation = 1
+Walls = [ExtResource("3_stone_walls"), ExtResource("4_ruined_walls")]
+Floors = [ExtResource("5_stone_floor"), ExtResource("6_cobble_floor"), ExtResource("7_worn_stone")]
+Steps = [SubResource("WallDecorStep_2"), SubResource("ScatterStep_3")]
+metadata/_custom_type_script = ExtResource("1_RoomType")

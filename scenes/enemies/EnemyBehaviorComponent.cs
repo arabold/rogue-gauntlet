@@ -66,16 +66,14 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	public EnemyBehaviorState CurrentBehavior => _machine?.CurrentId ?? EnemyBehaviorState.Idle;
 	public EnemyAction CurrentAction { get; private set; } = EnemyAction.Spawning;
 
-	// We can use these properties to automatically transition between animation states
+	// The actor's AnimationTree advances on these; attacks, defenses and staggers pose through CombatAnimationComponent.
 	public bool IsSleeping => CurrentBehavior == EnemyBehaviorState.Sleeping;
 	public bool IsMoving => CurrentAction == EnemyAction.None && MovementComponent.IsMoving;
 	public bool IsFalling => MovementComponent.IsFalling;
 	public bool IsDead => CurrentAction == EnemyAction.Dying || CurrentBehavior == EnemyBehaviorState.Dead;
 	public bool IsAttacking => CurrentAction == EnemyAction.MeeleAttack || CurrentAction == EnemyAction.RangedAttack;
-	public bool IsMeleeAttack => CurrentAction == EnemyAction.MeeleAttack;
-	public bool IsRangedAttack => CurrentAction == EnemyAction.RangedAttack;
-	public bool IsHit => MovementComponent.IsPushed || (Actor as EnemyBase)?.ActionGate?.IsStaggered == true;
-	public bool IsSpawning => CurrentAction == EnemyAction.Spawning;
+	/// <summary>Drives the tree's Hit state: a knockback outside a stagger, since a stagger poses its own reaction.</summary>
+	public bool IsKnockedBack => MovementComponent.IsKnockedBack;
 
 	/// <summary>
 	/// The target node that the enemy is chasing
