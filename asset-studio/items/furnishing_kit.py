@@ -1,4 +1,4 @@
-"""KayKit-style construction vocabulary for room furnishings.
+"""Chunky construction vocabulary for room furnishings, matching the dungeon art pack.
 
 Everything is chunky. Boards are thick with broad chamfers, laid side by side so the
 chamfers read as grooves; posts are square; stone is stacked from beveled blocks; rivets,
@@ -23,7 +23,7 @@ def solid(piece):
 
 
 def chamfer(size):
-    """KayKit's broad bevel: about a quarter of the thinnest side, never sharp, never mushy."""
+    """The pack's broad bevel: about a quarter of the thinnest side, never sharp, never mushy."""
     return float(min(.05, .26 * min(size)))
 
 
@@ -55,14 +55,27 @@ def bend(path, radii, sides=7):
 
 
 def framed(shape, frame):
-    return shape if frame is None else shape.rotate(tuple(frame[0])).translate(tuple(frame[1]))
+    """Apply a frame (turn, origin), or a list of frames in order, to a placed part."""
+    if frame is None:
+        return shape
+    for turn, origin in (frame if isinstance(frame, list) else [frame]):
+        shape = shape.rotate(tuple(turn)).translate(tuple(origin))
+    return shape
 
 
-def board(a, rng, size, center, slot='wood', frame=None, chips=1, wobble=.7, chip_slot='wood_light'):
-    """One board, beam or stone: chamfered, a little uneven, and now and then chipped at an end corner."""
+CRACKS = {'wood': 'wood_dark', 'wood_dark': 'wood_dark', 'bark': 'wood_dark', 'stone': 'stone_dark', 'stone_dark': 'stone_dark',
+          'marble': 'marble_dark'}
+
+
+def board(a, rng, size, center, slot='wood', frame=None, chips=1, wobble=.7, chip_slot='wood_light', wear=True):
+    """One board, beam or stone: chamfered and a little uneven, aged with chipped corners, small notches bitten out of
+    its long edges and now and then a crack grooved along its face. Wear shows fresh material (`chip_slot`) in the
+    notches and a dark line in the cracks."""
     size = np.asarray(size, float) * (1 + rng.uniform(-.02, .02, 3))
     shape = a.label(block(size), slot)
     along = int(np.argmax(size))
+    thin = int(np.argmin(size))
+    face = 1 if along != 1 else (2 if thin != 2 else 0)
     for _ in range(chips):
         if rng.random() > .6:
             continue
@@ -72,6 +85,30 @@ def board(a, rng, size, center, slot='wood', frame=None, chips=1, wobble=.7, chi
         c = float(min(np.sort(size)[0] * rng.uniform(.55, .85), .16))
         chip = block((c, c, c), (0, 0, 0), c * .12).rotate(tuple(rng.uniform(20, 70, 3))).translate(tuple(corner))
         shape = shape - a.label(chip, chip_slot)
+    if wear:
+        across = [axis for axis in range(3) if axis not in (along, face)][0]
+        for _ in range(int(rng.integers(1, 4)) if size[along] > .5 else int(rng.integers(0, 2))):
+            # A small notch bitten out of a long edge on the visible face.
+            point = np.zeros(3)
+            point[along] = rng.uniform(-.42, .42) * size[along]
+            point[face] = size[face] / 2
+            point[across] = rng.choice((-1, 1)) * size[across] / 2
+            n = float(min(np.sort(size)[0] * rng.uniform(.3, .5), .07))
+            notch = block((n, n, n * rng.uniform(1.2, 2.4)), (0, 0, 0), n * .1)
+            notch = notch.rotate((45, 0, 0) if along == 2 else (0, 0, 45) if along == 1 else (0, 45, 0))
+            notch = notch.rotate(tuple(rng.uniform(-15, 15, 3))).translate(tuple(point))
+            shape = shape - a.label(notch, chip_slot)
+        if size[along] > .6 and rng.random() < .55:
+            # A crack along the grain, short of both ends.
+            length = rng.uniform(.25, .55) * size[along]
+            groove = np.full(3, .018)
+            groove[along] = length
+            groove[face] = .05
+            point = np.zeros(3)
+            point[along] = rng.uniform(-.5, .5) * (size[along] - length)
+            point[face] = size[face] / 2
+            point[across] = rng.uniform(-.3, .3) * size[across]
+            shape = shape - a.label(block(tuple(groove), tuple(point), .004), CRACKS.get(slot, chip_slot))
     shape = shape.rotate(tuple(rng.uniform(-wobble, wobble, 3))).translate(tuple(center))
     a.join(framed(shape, frame))
 
@@ -246,3 +283,36 @@ def chain(a, x, top, links, z=.14, size=1.0):
             link = link.rotate((0, 90, 0))
         a.add(link.translate((x, top - step * i, z)), 'iron')
     return top - step * (links - 1)
+
+
+def torus(radius, thickness, y=0.0, sides=20, ring_sides=8):
+    """A rounded rim around the Y axis: cauldron and bowl lips, hoops."""
+    t = np.linspace(0, 2 * np.pi, ring_sides, endpoint=False)
+    section = mf.CrossSection([np.column_stack([radius + np.cos(t) * thickness, y + np.sin(t) * thickness])])
+    return mf.Manifold.revolve(section, sides).rotate((-90, 0, 0))
+
+
+def log(a, rng, length, radius, frame=None, stub=False):
+    """A chunky log standing on local Y from 0 to `length`: pale ringed end grain inside a rim of chunky,
+    uneven bark strips, some chipped, their ends staggered past the cut faces."""
+    core = a.label(painted(post(radius * .86, 0, length, sides=12), 'bark', lambda c, n: [(np.abs(n[:, 1]) > .8, 'endgrain')]), None)
+    for r in (radius * .3, radius * .58):
+        for y in (0, length):
+            core = core - a.label(ring(r, r + .025, y - .015, y + .015, 12), 'wood_light')
+    a.join(framed(core, frame))
+    count = max(7, int(round(2 * np.pi * radius / .2)))
+    for k in range(count):
+        angle = 360 * k / count + rng.uniform(-6, 6)
+        thick = rng.uniform(.07, .12) * min(1, radius / .4 + .3)
+        width = 2 * np.pi * radius / count * 1.18
+        extra = rng.uniform(0, .07)
+        strip = (width, length + extra, thick)
+        center = (0, length / 2 + rng.uniform(-.035, .035) * (extra > .03), radius * .86 + thick / 2 - .03)
+        board(a, rng, strip, center, 'bark', [((0, angle, 0), (0, 0, 0))] + ([] if frame is None else (frame if isinstance(frame, list) else [frame])),
+              chips=1, wobble=.8, chip_slot='wood_light')
+    if stub:
+        twig = [((0, 0, -70), (0, length * .55, 0)), ((0, rng.uniform(0, 360), 0), (0, 0, 0))]
+        twig_core = framed(post(.07, radius * .8, radius * 1.35, sides=7, top=.05), twig)
+        a.join(framed(a.label(twig_core, 'bark'), frame))
+        leaf = framed(ball((0, radius * 1.32, .07), (.06, .025, .12), 6), twig)
+        a.join(framed(a.label(leaf, 'leaf'), frame))

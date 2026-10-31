@@ -22,11 +22,10 @@ Create `props/<category>/<name>.tres` with script `Prop`:
 | `Mount` | `Floor` or `Wall`; wall props use `MountHeight` and `WallInset` (recess from wall trim to the flat face) |
 | `BackToWall` | Floor props that stand against a wall (beds, shelves, barrels) |
 | `Blocking` | Off for things actors walk over or that rest on other props |
-| `Covering` | Flat floor coverings (rugs, runners): non-blocking, they only keep clear of walls and other coverings, so furniture may stand on them |
 | `TurnJitter`, `ShiftJitter` | Seeded random turn (degrees either way) and shift (units) so loose props never line up perfectly; placement measures the turned prop. Leave at 0 for anchors that carry members (tables), fitted pieces and wall props |
 | `Interactive` | Keeps the space in front clear |
 
-Studio-made furnishings (altars, statues, candles, racks, rugs, wall decor) are exported to `assets/custom-props/<theme>/` by the [Asset Studio](../../../../asset-studio/README.md#room-furnishings). Lit variants are game scenes in `scenes/props/furnishings/` (`*_lit.tscn`): the model, its separate flames model or a fire effect as `Flame`, a `FlickerLight`, and the exploration-gate and environmental-light components that put both out on dark floors. List lit and unlit scenes as variants of one prop.
+Studio-made furnishings (altars, statues, candles, racks, wall decor) are exported to `assets/custom-props/<theme>/` by the [Asset Studio](../../../../asset-studio/README.md#room-furnishings). Lit variants are game scenes in `scenes/props/furnishings/` (`*_lit.tscn`): the model, its separate flames model or a fire effect as `Flame`, a `FlickerLight`, and the exploration-gate and environmental-light components that put both out on dark floors. List lit and unlit scenes as variants of one prop. Composed scenes in the same folder combine a Studio model with existing art (the bunk bed carries KayKit's own bedding; the chopping block holds KayKit's woodcutter's axe).
 
 ## Add a group
 

@@ -6,7 +6,7 @@
   "design": {
     "kind": "shackles"
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
@@ -14,40 +14,18 @@
   },
   "budget": {
     "triangles": 1600,
-    "materials": 3,
+    "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "iron": [
-      98,
-      106,
-      112
-    ],
-    "iron_dark": [
-      66,
-      72,
-      78
-    ],
-    "steel": [
-      154,
-      166,
-      172
-    ]
-  },
+  "crease": 45,
   "materials": {
     "iron": {
-      "metallic": 0.35,
-      "roughness": 0.6,
       "crease": 40
     },
     "iron_dark": {
-      "metallic": 0.35,
-      "roughness": 0.6,
       "crease": 40
     },
     "steel": {
-      "metallic": 0.5,
-      "roughness": 0.38,
       "crease": 40
     }
   },

@@ -45,9 +45,6 @@ public partial class Prop : Placeable
 	/// <summary>Bars, fences, corners and posts: structural pieces may overlap each other where they join (a corner over
 	/// the ends of two runs), never furniture.</summary>
 	[Export] public bool Structural { get; set; }
-	/// <summary>Flat floor coverings (rugs, runners, straw) lie under furniture: they keep clear of walls and of other
-	/// coverings only, so a later table or a pew row may stand on them.</summary>
-	[Export] public bool Covering { get; set; }
 	/// <summary>Largest random turn, in degrees either way, so loose things (barrels, stools, vases, food) never line up
 	/// perfectly. Placement measures the turned prop, so jitter never causes overlaps.</summary>
 	[Export(PropertyHint.Range, "0,45,0.5")] public float TurnJitter { get; set; }
@@ -92,7 +89,6 @@ public partial class Prop : Placeable
 			else errors.AddRange(Items.Where(item => Library.FindItemByName(item) < 0).Select(item => $"item '{item}' is not in {Library.ResourcePath}"));
 		}
 		if (Mount == PropMount.Wall && BackToWall) errors.Add("wall props are always mounted on a wall; clear BackToWall");
-		if (Covering && (Mount == PropMount.Wall || Blocking)) errors.Add("coverings lie flat on the floor; use a floor mount and clear Blocking");
 		if (Mount == PropMount.Wall && (TurnJitter > 0 || ShiftJitter > 0)) errors.Add("wall props hang flat on the wall; clear the jitter");
 		return errors.Select(error => $"Prop {Id}: {error}.").ToArray();
 	}

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=35 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -24,6 +24,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/bucket.tres" id="22_bucket"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/globe.tres" id="23_globe"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/herb_rack.tres" id="24_herb_rack"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/groups/brewing_table.tres" id="25_brewing_tabl"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -64,7 +65,7 @@ metadata/_custom_type_script = ExtResource("8_AlongWallsSt")
 [sub_resource type="Resource" id="CenterStep_5"]
 script = ExtResource("12_CenterStep")
 Id = "reading"
-Content = [ExtResource("13_reading_tabl")]
+Content = [ExtResource("13_reading_tabl"), ExtResource("25_brewing_tabl")]
 MaximumCount = 1
 metadata/_custom_type_script = ExtResource("12_CenterStep")
 

@@ -6,71 +6,19 @@
   "design": {
     "kind": "war_map"
   },
-  "color_mode": "character",
-  "topology": "closed_assembly",
+  "color_mode": "world",
+  "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
     "scale": 1
   },
   "budget": {
-    "triangles": 700,
-    "materials": 3,
+    "triangles": 7900,
+    "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "cloth_blue": [
-      76,
-      132,
-      196
-    ],
-    "cloth_red": [
-      196,
-      46,
-      50
-    ],
-    "ink": [
-      96,
-      64,
-      50
-    ],
-    "iron": [
-      98,
-      106,
-      112
-    ],
-    "parchment": [
-      234,
-      214,
-      168
-    ]
-  },
-  "materials": {
-    "cloth_blue": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
-    "cloth_red": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
-    "ink": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
-    "iron": {
-      "metallic": 0.35,
-      "roughness": 0.6,
-      "crease": 40
-    },
-    "parchment": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    }
-  },
+  "crease": 45,
+  "materials": {},
   "export": {
     "glb": "res://assets/custom-props/barracks/war_map.glb"
   },

@@ -6,7 +6,7 @@
   "design": {
     "kind": "urn_wide"
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
@@ -17,30 +17,8 @@
     "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "glaze": [
-      70,
-      128,
-      166
-    ],
-    "glaze_light": [
-      222,
-      204,
-      160
-    ]
-  },
-  "materials": {
-    "glaze": {
-      "metallic": 0.05,
-      "roughness": 0.35,
-      "crease": 50
-    },
-    "glaze_light": {
-      "metallic": 0.05,
-      "roughness": 0.35,
-      "crease": 50
-    }
-  },
+  "crease": 45,
+  "materials": {},
   "export": {
     "glb": "res://assets/custom-props/hall/urn_wide.glb"
   },

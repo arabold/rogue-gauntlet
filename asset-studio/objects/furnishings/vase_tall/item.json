@@ -6,7 +6,7 @@
   "design": {
     "kind": "vase_tall"
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
@@ -14,43 +14,11 @@
   },
   "budget": {
     "triangles": 800,
-    "materials": 3,
+    "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "clay": [
-      194,
-      110,
-      72
-    ],
-    "clay_dark": [
-      96,
-      56,
-      44
-    ],
-    "glaze": [
-      70,
-      128,
-      166
-    ]
-  },
-  "materials": {
-    "clay": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
-    "clay_dark": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
-    "glaze": {
-      "metallic": 0.05,
-      "roughness": 0.35,
-      "crease": 50
-    }
-  },
+  "crease": 45,
+  "materials": {},
   "export": {
     "glb": "res://assets/custom-props/hall/vase_tall.glb"
   },

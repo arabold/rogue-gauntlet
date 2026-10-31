@@ -7,7 +7,7 @@
     "kind": "candle_cluster",
     "flames": true
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_assembly",
   "placement": {
     "pivot": "authored",
@@ -18,16 +18,9 @@
     "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "flame": [
-      255,
-      204,
-      96
-    ]
-  },
+  "crease": 45,
   "materials": {
     "flame": {
-      "emissive": true,
       "crease": 60
     }
   },

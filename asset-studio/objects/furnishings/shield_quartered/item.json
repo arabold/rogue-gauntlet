@@ -9,7 +9,7 @@
     "first": "cloth_red",
     "second": "trim"
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
@@ -17,51 +17,19 @@
   },
   "budget": {
     "triangles": 600,
-    "materials": 4,
+    "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "cloth_red": [
-      196,
-      46,
-      50
-    ],
-    "iron_dark": [
-      66,
-      72,
-      78
-    ],
-    "steel": [
-      154,
-      166,
-      172
-    ],
-    "trim": [
-      240,
-      186,
-      76
-    ]
-  },
+  "crease": 45,
   "materials": {
-    "cloth_red": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
     "iron_dark": {
-      "metallic": 0.35,
-      "roughness": 0.6,
       "crease": 40
     },
     "steel": {
-      "metallic": 0.5,
-      "roughness": 0.38,
       "crease": 40
     },
     "trim": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
+      "crease": 40
     }
   },
   "export": {

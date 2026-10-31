@@ -7,58 +7,29 @@
     "kind": "statue",
     "pose": "praying"
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
     "scale": 1
   },
   "budget": {
-    "triangles": 1800,
+    "triangles": 2100,
     "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "marble": [
-      178,
-      183,
-      186
-    ],
-    "marble_dark": [
-      128,
-      133,
-      137
-    ],
-    "stone": [
-      128,
-      136,
-      141
-    ],
-    "stone_dark": [
-      88,
-      94,
-      99
-    ]
-  },
+  "crease": 45,
   "materials": {
     "marble": {
-      "metallic": 0,
-      "roughness": 0.95,
       "crease": 35
     },
     "marble_dark": {
-      "metallic": 0,
-      "roughness": 0.95,
       "crease": 35
     },
     "stone": {
-      "metallic": 0,
-      "roughness": 0.95,
       "crease": 35
     },
     "stone_dark": {
-      "metallic": 0,
-      "roughness": 0.95,
       "crease": 35
     }
   },

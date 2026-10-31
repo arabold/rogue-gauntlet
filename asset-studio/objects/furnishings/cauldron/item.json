@@ -6,58 +6,27 @@
   "design": {
     "kind": "cauldron"
   },
-  "color_mode": "character",
-  "topology": "closed_surface",
+  "color_mode": "world",
+  "topology": "closed_assembly",
   "placement": {
     "pivot": "authored",
     "scale": 1
   },
   "budget": {
-    "triangles": 1600,
-    "materials": 4,
+    "triangles": 2100,
+    "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "iron": [
-      98,
-      106,
-      112
-    ],
-    "iron_dark": [
-      66,
-      72,
-      78
-    ],
-    "liquid": [
-      130,
-      218,
-      98
-    ],
-    "steel": [
-      154,
-      166,
-      172
-    ]
-  },
+  "crease": 45,
   "materials": {
-    "iron": {
-      "metallic": 0.35,
-      "roughness": 0.6,
-      "crease": 40
-    },
-    "iron_dark": {
-      "metallic": 0.35,
-      "roughness": 0.6,
-      "crease": 40
-    },
     "liquid": {
-      "emissive": true,
       "crease": 60
     },
-    "steel": {
-      "metallic": 0.5,
-      "roughness": 0.38,
-      "crease": 40
+    "pot": {
+      "crease": 75
+    },
+    "pot_inner": {
+      "crease": 75
     }
   },
   "export": {

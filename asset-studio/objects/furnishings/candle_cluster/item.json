@@ -6,7 +6,7 @@
   "design": {
     "kind": "candle_cluster"
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
@@ -17,30 +17,8 @@
     "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "wax": [
-      238,
-      230,
-      216
-    ],
-    "wick": [
-      52,
-      44,
-      40
-    ]
-  },
-  "materials": {
-    "wax": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
-    "wick": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    }
-  },
+  "crease": 45,
+  "materials": {},
   "export": {
     "glb": "res://assets/custom-props/chapel/candle_cluster.glb"
   },

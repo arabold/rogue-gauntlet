@@ -6,7 +6,7 @@
   "design": {
     "kind": "vase_broken"
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_assembly",
   "placement": {
     "pivot": "authored",
@@ -14,43 +14,11 @@
   },
   "budget": {
     "triangles": 800,
-    "materials": 3,
+    "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "clay": [
-      194,
-      110,
-      72
-    ],
-    "glaze": [
-      70,
-      128,
-      166
-    ],
-    "glaze_light": [
-      222,
-      204,
-      160
-    ]
-  },
-  "materials": {
-    "clay": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
-    "glaze": {
-      "metallic": 0.05,
-      "roughness": 0.35,
-      "crease": 50
-    },
-    "glaze_light": {
-      "metallic": 0.05,
-      "roughness": 0.35,
-      "crease": 50
-    }
-  },
+  "crease": 45,
+  "materials": {},
   "export": {
     "glb": "res://assets/custom-props/ruins/vase_broken.glb"
   },

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
-[ext_resource type="PackedScene" path="res://assets/custom-props/kitchen/chopping_block.glb" id="2_chopping_blo"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/chopping_block.tscn" id="2_chopping_blo"]
 
 [resource]
 script = ExtResource("1_Prop")

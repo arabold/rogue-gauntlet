@@ -308,7 +308,6 @@ public sealed class RoomBlueprint
 		foreach (var other in _pieces)
 		{
 			if (piece.Prop.Structural && other.Prop.Structural) continue;
-			if (piece.Prop.Covering != other.Prop.Covering) continue;
 			float gap = Mathf.Max(piece.Prop.Gap, other.Prop.Gap);
 			bool vertical = envelope.Position.Y < other.Envelope.End.Y - .01f && envelope.End.Y > other.Envelope.Position.Y + .01f;
 			if (vertical && XZ(other.Envelope).Grow(gap - Tolerance).Intersects(area)) return Reject(piece, $"overlaps {other.Prop.Id}");

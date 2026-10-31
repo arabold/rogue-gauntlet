@@ -6,7 +6,7 @@
   "design": {
     "kind": "bread"
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
@@ -17,30 +17,8 @@
     "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "crumb": [
-      244,
-      220,
-      164
-    ],
-    "crust": [
-      198,
-      116,
-      58
-    ]
-  },
-  "materials": {
-    "crumb": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
-    "crust": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    }
-  },
+  "crease": 45,
+  "materials": {},
   "export": {
     "glb": "res://assets/custom-props/kitchen/bread.glb"
   },

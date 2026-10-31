@@ -6,7 +6,7 @@
   "design": {
     "kind": "straw_pile"
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
@@ -17,30 +17,8 @@
     "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "straw": [
-      222,
-      184,
-      98
-    ],
-    "straw_dark": [
-      180,
-      140,
-      74
-    ]
-  },
-  "materials": {
-    "straw": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
-    "straw_dark": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    }
-  },
+  "crease": 45,
+  "materials": {},
   "export": {
     "glb": "res://assets/custom-props/ruins/straw_pile.glb"
   },

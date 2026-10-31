@@ -6,69 +6,30 @@
   "design": {
     "kind": "altar"
   },
-  "color_mode": "character",
-  "topology": "closed_surface",
+  "color_mode": "world",
+  "topology": "closed_assembly",
   "placement": {
     "pivot": "authored",
     "scale": 1
   },
   "budget": {
-    "triangles": 2100,
-    "materials": 4,
+    "triangles": 3600,
+    "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "cloth_red": [
-      196,
-      46,
-      50
-    ],
-    "gold": [
-      244,
-      172,
-      64
-    ],
-    "stone": [
-      128,
-      136,
-      141
-    ],
-    "stone_dark": [
-      88,
-      94,
-      99
-    ],
-    "trim": [
-      240,
-      186,
-      76
-    ]
-  },
+  "crease": 45,
   "materials": {
-    "cloth_red": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
     "gold": {
-      "metallic": 0.5,
-      "roughness": 0.38,
       "crease": 40
     },
     "stone": {
-      "metallic": 0,
-      "roughness": 0.95,
       "crease": 35
     },
     "stone_dark": {
-      "metallic": 0,
-      "roughness": 0.95,
       "crease": 35
     },
     "trim": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
+      "crease": 40
     }
   },
   "export": {

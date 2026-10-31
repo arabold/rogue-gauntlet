@@ -10,7 +10,7 @@
     "emblem": "silver",
     "motif": "cross"
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
@@ -18,60 +18,21 @@
   },
   "budget": {
     "triangles": 1100,
-    "materials": 4,
+    "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "cloth_blue": [
-      76,
-      132,
-      196
-    ],
-    "gold": [
-      244,
-      172,
-      64
-    ],
-    "iron_dark": [
-      66,
-      72,
-      78
-    ],
-    "silver": [
-      208,
-      214,
-      218
-    ],
-    "wood_dark": [
-      126,
-      66,
-      48
-    ]
-  },
+  "crease": 45,
   "materials": {
-    "cloth_blue": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
     "gold": {
-      "metallic": 0.5,
-      "roughness": 0.38,
       "crease": 40
     },
     "iron_dark": {
-      "metallic": 0.35,
-      "roughness": 0.6,
       "crease": 40
     },
     "silver": {
-      "metallic": 0.5,
-      "roughness": 0.38,
       "crease": 40
     },
     "wood_dark": {
-      "metallic": 0,
-      "roughness": 0.9,
       "crease": 35
     }
   },

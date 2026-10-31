@@ -6,58 +6,29 @@
   "design": {
     "kind": "chopping_block"
   },
-  "color_mode": "character",
-  "topology": "closed_surface",
+  "color_mode": "world",
+  "topology": "closed_assembly",
   "placement": {
     "pivot": "authored",
     "scale": 1
   },
   "budget": {
-    "triangles": 1000,
-    "materials": 3,
+    "triangles": 2900,
+    "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "bark": [
-      106,
-      66,
-      46
-    ],
-    "endgrain": [
-      210,
-      154,
-      106
-    ],
-    "steel": [
-      154,
-      166,
-      172
-    ],
-    "wood_dark": [
-      126,
-      66,
-      48
-    ]
-  },
+  "crease": 45,
   "materials": {
     "bark": {
-      "metallic": 0,
-      "roughness": 0.9,
       "crease": 35
     },
     "endgrain": {
-      "metallic": 0,
-      "roughness": 0.9,
       "crease": 35
     },
-    "steel": {
-      "metallic": 0.5,
-      "roughness": 0.38,
-      "crease": 40
-    },
     "wood_dark": {
-      "metallic": 0,
-      "roughness": 0.9,
+      "crease": 35
+    },
+    "wood_light": {
       "crease": 35
     }
   },

@@ -6,7 +6,7 @@
   "design": {
     "kind": "candelabra"
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
@@ -14,61 +14,19 @@
   },
   "budget": {
     "triangles": 2300,
-    "materials": 4,
+    "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "gold": [
-      244,
-      172,
-      64
-    ],
-    "iron": [
-      98,
-      106,
-      112
-    ],
-    "iron_dark": [
-      66,
-      72,
-      78
-    ],
-    "wax": [
-      238,
-      230,
-      216
-    ],
-    "wick": [
-      52,
-      44,
-      40
-    ]
-  },
+  "crease": 45,
   "materials": {
     "gold": {
-      "metallic": 0.5,
-      "roughness": 0.38,
       "crease": 40
     },
     "iron": {
-      "metallic": 0.35,
-      "roughness": 0.6,
       "crease": 40
     },
     "iron_dark": {
-      "metallic": 0.35,
-      "roughness": 0.6,
       "crease": 40
-    },
-    "wax": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
-    "wick": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
     }
   },
   "export": {

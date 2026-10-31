@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-props/barracks/bunk_bed.glb" id="1_frame"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/barracks/bed_bedding.glb" id="2_bedding"]
+
+[node name="BunkBed" type="Node3D"]
+
+[node name="Frame" parent="." instance=ExtResource("1_frame")]
+
+[node name="LowerBedding" parent="." instance=ExtResource("2_bedding")]
+position = Vector3(0, 0.55, 0)
+
+[node name="UpperBedding" parent="." instance=ExtResource("2_bedding")]
+position = Vector3(0, 1.55, 0)

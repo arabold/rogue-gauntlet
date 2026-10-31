@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=47 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=44 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -26,8 +26,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="24_torch"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="25_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/groups/altar_shrine.tres" id="26_altar_shrine"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/props/rugs/runner.tres" id="27_runner"]
-[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="28_CenterStep"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/decor/candle_pile.tres" id="29_candle_pile"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/decor/brazier.tres" id="30_brazier"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/decor/statue.tres" id="31_statue"]
@@ -99,15 +97,6 @@ MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("16_WallDecorSte")
 
-[sub_resource type="Resource" id="CenterStep_8"]
-script = ExtResource("28_CenterStep")
-Id = "aisle_runner"
-Content = [ExtResource("27_runner")]
-MaximumCount = 1
-Chance = 0.8
-AllowCrosswise = false
-metadata/_custom_type_script = ExtResource("28_CenterStep")
-
 [sub_resource type="Resource" id="CornersStep_9"]
 script = ExtResource("32_CornersStep")
 Id = "shrines"
@@ -139,5 +128,5 @@ Walls = [ExtResource("3_arched_walls"), ExtResource("4_windowed_wal"), ExtResour
 Floors = [ExtResource("6_stone_floor"), ExtResource("7_decorated_fl"), ExtResource("8_decorated_bo")]
 Columns = [SubResource("PerimeterColumns_2")]
 ColumnChance = 0.4
-Steps = [SubResource("AlongWallsStep_3"), SubResource("RowsStep_4"), SubResource("CenterStep_8"), SubResource("CornersStep_9"), SubResource("AlongWallsStep_10"), SubResource("WallDecorStep_5"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7")]
+Steps = [SubResource("AlongWallsStep_3"), SubResource("RowsStep_4"), SubResource("CornersStep_9"), SubResource("AlongWallsStep_10"), SubResource("WallDecorStep_5"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

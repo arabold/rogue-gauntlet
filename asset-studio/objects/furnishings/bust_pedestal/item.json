@@ -6,58 +6,32 @@
   "design": {
     "kind": "bust"
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
     "scale": 1
   },
   "budget": {
-    "triangles": 1400,
-    "materials": 3,
+    "triangles": 1800,
+    "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "gold": [
-      244,
-      172,
-      64
-    ],
-    "marble": [
-      178,
-      183,
-      186
-    ],
-    "stone": [
-      128,
-      136,
-      141
-    ],
-    "stone_dark": [
-      88,
-      94,
-      99
-    ]
-  },
+  "crease": 45,
   "materials": {
     "gold": {
-      "metallic": 0.5,
-      "roughness": 0.38,
       "crease": 40
     },
     "marble": {
-      "metallic": 0,
-      "roughness": 0.95,
       "crease": 35
     },
     "stone": {
-      "metallic": 0,
-      "roughness": 0.95,
       "crease": 35
     },
     "stone_dark": {
-      "metallic": 0,
-      "roughness": 0.95,
+      "crease": 35
+    },
+    "wood_light": {
       "crease": 35
     }
   },

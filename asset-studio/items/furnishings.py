@@ -1,15 +1,16 @@
-"""Room furnishings: altars, statues, vessels, racks, rugs and wall decor for generated rooms.
+"""Room furnishings: altars, statues, vessels, racks and wall decor for generated rooms.
 
-Built from the KayKit-style vocabulary in `furnishing_kit`: chunky chamfered boards with
+Built from the chunky vocabulary in `furnishing_kit`: chunky chamfered boards with
 grooves and chipped corners, stacked stone blocks, square posts, oversized rivets, candles
-and heads. Units are Godot metres at the KayKit dungeon scale (4-unit tiles, 1-unit table
+and heads. Units are Godot metres at the dungeon pack's scale (4-unit tiles, 1-unit table
 tops). Floor props stand on y = 0 centered on the origin with their front toward +Z, so
 back-to-wall props keep a flat back on their -Z side. Wall props hang with a flat back on
 z = 0 at their final height above the floor (their room Prop mounts at height 0).
 
 Candle-bearing designs with `flames` build only their flame tips, a separate emissive model
 the game's lit scene shows (and hides on dark floors) together with its light. Fire bowls
-and hearths hold dead coals; their lit scenes add the fire.
+and hearths hold dead coals; their lit scenes add the fire. Recipes export with
+`color_mode: "world"`, so every prop wears the dungeon pack's own texture and material.
 """
 
 import zlib
@@ -20,38 +21,16 @@ from core import kit
 from items.solid import Assembly, lathe, loop
 from items.furnishing_kit import (block, cushion, post, rod, ball, bend, framed, board, planks, square_post, stones,
                                   rivet, candle, lit, outline, rect, star, disc, facade, floor_plan, jag, painted, bands,
-                                  turned, moved, grounded, ring, chain)
+                                  turned, moved, grounded, ring, chain, torus, log)
 
-COLORS = {
-    'stone': (128, 136, 141), 'stone_dark': (88, 94, 99), 'marble': (178, 183, 186), 'marble_dark': (128, 133, 137),
-    'rock': (112, 98, 90), 'rock_dark': (84, 72, 66),
-    'wood': (159, 94, 71), 'wood_dark': (126, 66, 48), 'wood_light': (204, 138, 98), 'endgrain': (210, 154, 106),
-    'bark': (106, 66, 46),
-    'iron': (98, 106, 112), 'iron_dark': (66, 72, 78), 'steel': (154, 166, 172), 'gold': (244, 172, 64),
-    'silver': (208, 214, 218),
-    'wax': (238, 230, 216), 'wick': (52, 44, 40), 'flame': (255, 204, 96), 'coal': (60, 52, 50),
-    'cloth_red': (196, 46, 50), 'cloth_blue': (76, 132, 196), 'cloth_green': (66, 132, 84), 'cloth_purple': (120, 72, 150),
-    'cloth_yellow': (244, 180, 66), 'trim': (240, 186, 76), 'sheet': (238, 232, 222), 'linen': (218, 192, 150),
-    'leather': (118, 70, 46), 'parchment': (234, 214, 168), 'ink': (96, 64, 50), 'straw': (222, 184, 98),
-    'straw_dark': (180, 140, 74), 'rope': (184, 150, 102), 'bone': (232, 222, 194), 'socket': (70, 58, 52),
-    'clay': (194, 110, 72), 'clay_dark': (96, 56, 44), 'glaze': (70, 128, 166), 'glaze_light': (222, 204, 160),
-    'liquid': (130, 218, 98), 'ocean': (76, 134, 182), 'land': (214, 186, 116),
-    'crust': (198, 116, 58), 'crumb': (244, 220, 164), 'cheese': (250, 208, 92), 'rind': (222, 156, 56),
-    'meat': (202, 98, 82), 'herb': (102, 150, 74), 'lavender': (156, 114, 190),
-}
-_MATTE = {'metallic': 0, 'roughness': .9, 'crease': 45}
-MATERIALS = {
-    **{slot: {'metallic': .5, 'roughness': .38, 'crease': 40} for slot in ('steel', 'gold', 'silver')},
-    **{slot: {'metallic': .35, 'roughness': .6, 'crease': 40} for slot in ('iron', 'iron_dark')},
-    **{slot: {'metallic': 0, 'roughness': .95, 'crease': 35} for slot in ('stone', 'stone_dark', 'marble', 'marble_dark',
-                                                                          'rock', 'rock_dark')},
-    **{slot: {'metallic': 0, 'roughness': .9, 'crease': 35} for slot in ('wood', 'wood_dark', 'wood_light', 'endgrain', 'bark')},
-    **{slot: _MATTE for slot in ('wax', 'wick', 'coal', 'cloth_red', 'cloth_blue', 'cloth_green', 'cloth_purple',
-                                 'cloth_yellow', 'trim', 'sheet', 'linen', 'leather', 'parchment', 'ink', 'straw',
-                                 'straw_dark', 'rope', 'bone', 'socket', 'clay', 'clay_dark', 'land', 'crust', 'crumb',
-                                 'cheese', 'rind', 'meat', 'herb', 'lavender')},
-    **{slot: {'metallic': .05, 'roughness': .35, 'crease': 50} for slot in ('glaze', 'glaze_light', 'ocean')},
-    **{slot: {'emissive': True, 'crease': 60} for slot in ('flame', 'liquid')},
+# Colors come from the dungeon texture (`world_surface.SWATCHES`); slots only choose how hard their edges shade:
+# boards, stone and metal keep crisp facets, cast pots, bowls and soft goods shade smooth.
+CREASE = {
+    **{slot: 35 for slot in ('wood', 'wood_dark', 'wood_light', 'endgrain', 'bark', 'stone', 'stone_dark', 'marble',
+                             'marble_dark', 'rock', 'rock_dark')},
+    **{slot: 40 for slot in ('iron', 'iron_dark', 'steel', 'gold', 'silver', 'trim')},
+    **{slot: 75 for slot in ('pot', 'pot_inner', 'stone_light')},
+    **{slot: 60 for slot in ('flame', 'liquid')},
 }
 
 
@@ -156,7 +135,7 @@ def plinth(a, rng):
 
 
 def figure(a, pose):
-    """A KayKit-proportioned robed figure on a plinth: big head, short body. `praying` (hooded) or `sword` (helmed)."""
+    """A chibi-proportioned robed figure on a plinth: big head, short body. `praying` (hooded) or `sword` (helmed)."""
     base, head = .84, 2.3
     a.add(lathe([(.6, base), (.58, base + .1), (.5, base + .5), (.43, base + .85), (.46, base + 1.0), (.36, base + 1.1),
                  (.16, base + 1.16)], 12).scale((1, 1, .86)), 'marble')
@@ -209,21 +188,24 @@ def statue_broken():
 
 
 def brazier():
-    """An iron fire bowl of dead coals; the lit scene adds the fire and its light."""
+    """A smooth cast fire bowl with a rolled rim on three square legs, full of dead coals; the lit scene adds the fire."""
     a, rng = Assembly(), random('brazier')
-    a.add(lathe([(.22, .72), (.52, .78), (.7, .92), (.76, 1.06), (.66, 1.08), (.58, .98), (.4, .9), (.01, .89)], 12), 'iron')
-    a.add(ring(.7, .8, .98, 1.1, 12), 'iron_dark')
+    a.add(lathe([(.2, .7), (.46, .76), (.64, .88), (.72, 1.0), (.7, 1.06), (.01, 1.06)], 20), 'pot')
+    a.add(torus(.72, .075, 1.06, 24, 10), 'pot')
+    a.cut(lathe([(.66, 1.3), (.63, 1.02), (.5, .92), (.3, .88), (.01, .87)], 20), 'pot_inner')
+    a.add(ring(.62, .7, .82, .91, 20), 'iron_dark')
     for d in around(8, 0):
-        a.add(ball(tuple(d * .8 + (0, 1.04, 0)), (.045, .045, .045), 6), 'steel')
+        a.add(ball(tuple(d * .695 + (0, .865, 0)), (.045, .045, .045), 6), 'steel')
     for d in around(3):
-        a.add(bend([tuple(d * .4 + (0, .82, 0)), tuple(d * .52 + (0, .5, 0)), tuple(d * .58 + (0, .2, 0)),
-                    tuple(d * .62 + (0, .06, 0))], [.09, .085, .08, .08], 4), 'iron')
-        a.add(block((.24, .08, .24), tuple(d * .64 + (0, .04, 0))), 'iron_dark')
-    a.add(ring(.46, .58, .26, .34, 12), 'iron')
-    for i in range(10):
-        t, r = rng.uniform(0, 2 * np.pi), rng.uniform(0, .42)
-        size = rng.uniform(.15, .22)
-        a.add(ball((np.cos(t) * r, .93 + .1 * (1 - r / .42), np.sin(t) * r), (size, size * .7, size), 7), 'coal')
+        a.add(bend([tuple(d * .4 + (0, .76, 0)), tuple(d * .5 + (0, .5, 0)), tuple(d * .56 + (0, .22, 0)),
+                    tuple(d * .62 + (0, .08, 0))], [.1, .095, .09, .085], 4), 'iron')
+        a.add(ball(tuple(d * .64 + (0, .07, 0)), (.14, .08, .14), 8), 'iron_dark')
+    a.add(torus(.53, .05, .3, 20, 8), 'iron')
+    for i in range(8):
+        t, r = rng.uniform(0, 2 * np.pi), rng.uniform(0, .38)
+        size = rng.uniform(.2, .28)
+        a.add(cushion((size, size * .55, size * .85), (np.cos(t) * r, .88 + .05 * (1 - r / .38), np.sin(t) * r), .6)
+              .rotate((0, rng.uniform(0, 180), 0)), 'coal')
     return a.build()
 
 
@@ -310,34 +292,6 @@ def armor_stand():
     return a.build()
 
 
-def rug(width, length, field, border, accent, pattern):
-    """A thick woven rug: border, field and motifs partition one layer; chunky tassels on the short ends."""
-    a = Assembly()
-    thickness = .05
-    whole, inner = rect(width, length), rect(width - .36, length - .36)
-    motifs = mf.CrossSection()
-    if pattern == 'medallion':
-        motifs = star(4, min(width, length) * .28, min(width, length) * .16)
-        for z in (-length * .32, length * .32):
-            motifs = motifs + star(4, .24, .13, (0, z))
-    elif pattern == 'runner':
-        for z in np.arange(-length / 2 + .9, length / 2 - .5, 1.2):
-            motifs = motifs + star(4, .36, .19, (0, z))
-    elif pattern == 'rings':
-        r = min(width, length)
-        motifs = disc(r * .3) - disc(r * .2) + disc(r * .1)
-    weave = lambda section, slot: a.add(floor_plan(section.offset(.003, mf.JoinType.Miter), thickness), slot)
-    weave(whole - inner, border)
-    weave(inner - rect(width - .5, length - .5), accent)
-    weave(rect(width - .5, length - .5) - motifs, field)
-    if not motifs.is_empty():
-        weave(motifs, accent)
-    for z in (-length / 2, length / 2):
-        for x in np.arange(-width / 2 + .12, width / 2 - .05, .17):
-            a.add(block((.08, .035, .22), (x, .018, z + np.sign(z) * .07), .012), 'sheet')
-    return a.build()
-
-
 # ---------------------------------------------------------------------------- library and alchemist
 
 def globe():
@@ -360,23 +314,35 @@ def globe():
 
 
 def cauldron():
-    a = Assembly()
-    a.add(lathe([(.36, .26), (.58, .36), (.7, .6), (.68, .86), (.58, 1.0)], 14), 'iron')
-    a.add(ring(.52, .72, .96, 1.1, 14), 'iron_dark')
-    a.add(ring(.6, .73, .56, .66, 14), 'iron_dark')
-    for d in around(8, 0):
-        a.add(ball(tuple(d * .73 + (0, .61, 0)), (.045, .045, .045), 6), 'steel')
-    a.cut(post(.54, .84, 1.4, sides=14), 'iron_dark')
-    a.add(post(.56, .8, .86, sides=14), 'liquid')
-    rng = random('cauldron')
-    for _ in range(5):
-        t, r = rng.uniform(0, 2 * np.pi), rng.uniform(.08, .4)
-        size = rng.uniform(.07, .11)
-        a.add(ball((np.cos(t) * r, .86, np.sin(t) * r), (size, size * .8, size), 7), 'liquid')
-    for d in around(3):
-        a.add(lathe([(.12, 0), (.1, .2), (.15, .38)], 8).translate(tuple(d * .42)), 'iron')
+    """A smooth round-bellied pot with a rolled rim, side handles on lugs and stubby copper legs, brimming with brew."""
+    a, rng = Assembly(), random('cauldron')
+    a.add(lathe([(.3, .22), (.46, .26), (.6, .36), (.68, .52), (.69, .68), (.64, .84), (.56, .94), (.52, .98), (.01, .98)], 20), 'pot')
+    a.add(torus(.54, .085, .98, 24, 10), 'pot')
+    a.cut(lathe([(.48, 1.4), (.47, .96), (.4, .8), (.01, .74)], 20), 'pot_inner')
+    a.add(post(.5, .78, .86, sides=20), 'liquid')
+    for _ in range(4):
+        t, r = rng.uniform(0, 2 * np.pi), rng.uniform(.06, .32)
+        size = rng.uniform(.06, .1)
+        a.add(ball((np.cos(t) * r, .86, np.sin(t) * r), (size, size * .7, size), 8), 'liquid')
     for s in (-1, 1):
-        a.add(loop((0, 0, 0), (.15, .13), .065, 10).rotate((0, 90, 0)).translate((s * .74, .92, 0)), 'iron')
+        a.add(block((.12, .14, .16), (s * .68, .82, 0), .03), 'pot')
+        a.add(loop((0, 0, 0), (.16, .13), .055, 12).rotate((0, 90, 0)).translate((s * .76, .74, 0)), 'pot')
+    for d in around(3):
+        a.add(bend([tuple(d * .26 + (0, .3, 0)), tuple(d * .38 + (0, .12, 0)), tuple(d * .44 + (0, .02, 0))],
+                   [.1, .09, .08], 8), 'copper')
+    return a.build()
+
+
+def mortar():
+    """A stone mortar with a pour notch and its club pestle leaning inside, for alchemist tables."""
+    a = Assembly()
+    a.add(lathe([(.26, 0), (.31, .04), (.39, .18), (.4, .3), (.37, .34), (.01, .34)], 18), 'stone_light')
+    a.add(torus(.37, .045, .34, 20, 8), 'stone_light')
+    a.cut(lathe([(.31, .6), (.3, .32), (.2, .16), (.01, .14)], 18), 'stone_dark')
+    a.cut(block((.14, .14, .2), (0, .38, .38), .03), 'stone_dark')
+    pestle = lathe([(.06, 0), (.11, .06), (.1, .16), (.075, .36), (.06, .5), (.07, .56), (.01, .58)], 10)
+    a.add(pestle.rotate((0, 0, -38)).translate((-.06, .16, -.04)), 'stone_light')
+    a.add(ball((-.06, .2, -.04), (.11, .1, .11), 10), 'stone_light')
     return a.build()
 
 
@@ -405,10 +371,11 @@ def scroll_rack():
                     continue
                 cy = y + r - .01 + level * .15
                 front = .3 + rng.uniform(-.05, .03)
-                a.add(rod((x + sx, cy, -.26), (x + sx, cy, front), r, 9), 'parchment' if rng.random() < .7 else 'linen')
-                a.add(rod((x + sx, cy, front - .01), (x + sx, cy, front + .04), .055, 7), 'wood_dark')
-                if rng.random() < .35:
-                    a.add(rod((x + sx, cy, .06), (x + sx, cy, .12), r * 1.12, 8), 'cloth_red')
+                paper = 'parchment' if rng.random() < .7 else 'linen'
+                roll = a.label(rod((x + sx, cy, -.26), (x + sx, cy, front), r, 9), paper)
+                a.join(roll - a.label(rod((x + sx, cy, front - .05), (x + sx, cy, front + .05), r * .42, 7), 'parchment_dark'))
+                if rng.random() < .45:
+                    a.add(rod((x + sx, cy, .02), (x + sx, cy, .1), r * 1.14, 9), 'cloth_blue' if rng.random() < .6 else 'cloth_red')
     return a.build()
 
 
@@ -427,11 +394,9 @@ def herb_rack():
 
 # ---------------------------------------------------------------------------- kitchen
 
-def log(a, start, end, radius):
-    """A split log with pale end grain."""
-    start, end = np.asarray(start, float), np.asarray(end, float)
-    axis = (end - start) / np.linalg.norm(end - start)
-    a.add(painted(rod(tuple(start), tuple(end), radius, 8), 'bark', lambda c, n: [(np.abs(n @ axis) > .8, 'endgrain')]))
+def hearth_log(a, rng, center, length, radius, yaw, tilt=0.0):
+    """A chunky log lying along its yaw, for fireplaces."""
+    log(a, rng, length, radius, [((0, 0, 0), (0, -length / 2, 0)), ((0, 0, 90 + tilt), (0, 0, 0)), ((0, yaw, 0), tuple(center))])
 
 
 def hearth():
@@ -448,9 +413,9 @@ def hearth():
     a.add(block((1.8, 1.9, .25), (0, 1.15, -.68)), 'stone_dark')
     for s in (-1, 1):
         a.add(block((.1, .34, .56), (s * .55, .38, -.22), .03), 'iron_dark')
-    log(a, (-.7, .44, -.1), (.66, .5, -.34), .17)
-    log(a, (-.62, .48, -.42), (.7, .44, -.06), .16)
-    log(a, (-.3, .74, -.28), (.4, .72, -.2), .15)
+    hearth_log(a, rng, (0, .44, -.2), 1.4, .18, 12)
+    hearth_log(a, rng, (.02, .46, -.38), 1.36, .17, -14)
+    hearth_log(a, rng, (0, .74, -.28), .9, .16, 4)
     for _ in range(9):
         a.add(ball((rng.uniform(-.75, .75), .27, rng.uniform(-.55, .15)), (.16, .08, .16), 7), 'coal')
     end = chain(a, 0, 2.02, 4, -.34)
@@ -460,17 +425,12 @@ def hearth():
 
 
 def chopping_block():
+    """A chunky log stump with ringed end grain in a rim of chunky bark and an old axe cut in its top.
+    The game scene sinks a real axe into it."""
     a, rng = Assembly(), random('chopping_block')
-    stump = lathe([(.56, 0), (.5, .08), (.46, .3), (.47, .72), (.5, .8)], 10)
-    a.add(painted(stump, 'bark', lambda c, n: [(n[:, 1] > .7, 'endgrain')]))
-    for k, d in enumerate(around(4, .4)):
-        a.add(ball(tuple(d * .5 + (0, .13, 0)), (.22, .13, .22), 8), 'bark')
-    for r in (.2, .36):
-        a.cut(ring(r, r + .03, .785, .9, 12), 'wood_dark')
-    a.add(block((.08, .38, .64), (0, 0, 0), .02).rotate((0, 0, 10)).translate((.08, .94, 0)), 'steel')
-    a.add(rod((.1, 1.06, .3), (.15, 1.1, .7), .06), 'wood_dark')
-    for z in (.42, .58):
-        a.add(ball((.1, 1.08, z), (.075, .03, .03), 6), 'steel')
+    log(a, rng, .82, .5, stub=True)
+    for x, turn in ((-.18, 32), (.16, -20)):
+        a.cut(block((.06, .1, .46), (0, 0, 0), .01).rotate((0, turn, 0)).translate((x, .84, .06)), 'wood_light')
     return a.build()
 
 
@@ -501,7 +461,7 @@ def cheese_wheel():
 
 
 def ham():
-    """A KayKit-style roast leg: a fat glazed drumstick with a two-knobbed bone."""
+    """A chunky roast leg: a fat glazed drumstick with a two-knobbed bone."""
     a = Assembly()
     a.add(lathe([(.1, 0), (.22, .1), (.34, .32), (.34, .5), (.22, .66), (.05, .7)], 12).rotate((0, 0, -90)).scale((1, .86, .9))
           .translate((-.24, .3, 0)), 'crust')
@@ -567,40 +527,84 @@ def training_dummy():
 
 
 def bunk_bed():
-    """Two stacked bunks along Z: capped posts, plank rails and headboards at -Z against the wall, a side ladder."""
+    """Two stacked chunky bunk frames along Z: capped posts, slatted plank platforms (tops at .55 and 1.55),
+    headboards at -Z against the wall, a ladder on the side. The game scene lays the dungeon pack's own bedding on both decks."""
     a, rng = Assembly(), random('bunk_bed')
-    for x in (-.74, .74):
-        for z in (-1.46, 1.46):
-            square_post(a, rng, .22, 0, 2.56, x, z, cap=.08)
-    for level, y in enumerate((.5, 1.7)):
-        for x in (-.74, .74):
-            board(a, rng, (.14, .24, 2.8), (x, y, 0), 'wood_dark', chips=2)
-        for z in (-1.46, 1.46):
-            board(a, rng, (1.3, .24, .12), (0, y, z), 'wood_dark', chips=1)
-        board(a, rng, (1.3, .2, .1), (0, y + .34, -1.46), chips=1)
-        a.add(cushion((1.46, .26, 2.84), (0, y + .2, 0), .3), 'sheet')
-        a.add(cushion((1.5, .16, 1.9), (0, y + .32, .46), .3), 'cloth_yellow' if level else 'cloth_blue')
-        a.add(cushion((.86, .22, .46), (0, y + .42, -1.08), .55), 'sheet')
-    for z in (.72, 1.22):
-        board(a, rng, (.1, 2.3, .1), (.86, 1.15, z), chips=1)
-    for y in (.45, .85, 1.25, 1.65, 2.05):
-        board(a, rng, (.08, .08, .56), (.88, y, .97), chips=0)
+    for x in (-.76, .76):
+        for z in (-1.48, 1.48):
+            square_post(a, rng, .26, 0, 2.3, x, z, cap=.1)
+    for y in (.42, 1.42):
+        for x in (-.76, .76):
+            board(a, rng, (.16, .26, 2.9), (x, y, 0), 'wood_dark', chips=2)
+        for z in (-1.48, 1.48):
+            board(a, rng, (1.36, .26, .14), (0, y, z), 'wood_dark', chips=1)
+        planks(a, rng, 1.36, 2.8, .1, ((0, 0, 0), (0, y + .08, 0)), count=7)
+        board(a, rng, (1.36, .3, .12), (0, y + .36, -1.48), chips=2)
+    for z in (.78, 1.3):
+        board(a, rng, (.12, 2.1, .12), (.87, 1.05, z), chips=1)
+    for y in (.55, .95, 1.35, 1.75):
+        board(a, rng, (.1, .1, .62), (.88, y, 1.04), chips=0)
     return a.build()
 
 
+def curl_profile(half, radius, turns=1.2, thickness=.035, sag=.012, samples=40):
+    """Side view of a sheet lying on the floor whose ends roll up and back over themselves: one closed outline,
+    the paper's centre line offset by half its thickness either way, each curl tightening as it winds inward
+    and tucking its free end inside the roll."""
+    path = [(x, thickness / 2 + sag * (1 - (x / half) ** 2)) for x in np.linspace(-half, half, 9)]
+    for side in (1, -1):
+        curl = []
+        for t in np.linspace(0, turns * 2 * np.pi, samples)[1:]:
+            r = radius * (1 - .3 * t / (2 * np.pi))
+            # Rolls start at the sheet's end and wind up and back over the sheet toward its middle.
+            curl.append((side * (half + r * np.sin(t)), thickness / 2 + radius - r * np.cos(t)))
+        path = path + curl if side > 0 else curl[::-1] + path
+    path = np.array(path)
+    tangent = np.gradient(path, axis=0)
+    normal = np.column_stack([-tangent[:, 1], tangent[:, 0]]) / np.linalg.norm(tangent, axis=1, keepdims=True)
+    return outline(np.vstack([path + normal * thickness / 2, (path - normal * thickness / 2)[::-1]]))
+
+
 def war_map():
+    """A map spread: one parchment sheet curling into loose, slightly conical rolls at both ends, an inked
+    coast and island, a red route to an X, and a blue wax seal."""
+    half, width, radius, thickness = .5, .92, .14, .035
+    sheet = mf.Manifold.extrude(curl_profile(half, radius, thickness=thickness), width, 12).translate((0, 0, -width / 2))
+
+    def taper(points):
+        # Each roll narrows toward one side, the two in opposite directions, like paper rolled by hand. A whole roll
+        # scales about its own axis, blending to nothing at the floor so it still meets the flat sheet smoothly.
+        p = np.array(points)
+        side = np.where(p[:, 0] > 0, 1.0, -1.0)
+        roll = (np.abs(p[:, 0]) > half) | (p[:, 1] > thickness + .02)
+        factor = 1 - .22 * np.where(side > 0, p[:, 2] / width + .5, .5 - p[:, 2] / width)
+        weight = np.clip(p[:, 1] / (.7 * radius), 0, 1) * roll
+        cx, cy = side * half, thickness / 2 + radius
+        p[:, 0] += ((cx + (p[:, 0] - cx) * factor) - p[:, 0]) * weight
+        p[:, 1] += ((cy + (p[:, 1] - cy) * factor) - p[:, 1]) * weight
+        # Old paper never lies flat: a soft wave across the sheet.
+        p[:, 1] += .008 * np.sin(p[:, 2] * 7 + p[:, 0] * 3) * (p[:, 1] < .06)
+        return p
     a = Assembly()
-    a.add(block((1.4, .04, .96), (0, .02, 0), .012), 'parchment')
-    for s in (-1, 1):
-        a.add(rod((s * .7, .07, -.48), (s * .7, .07, .48), .075), 'parchment')
-    coast = outline([(-.5, -.38), (-.2, -.3), (-.05, -.12), (.18, -.2), (.38, .02), (.3, .3), (.05, .36), (-.12, .2), (-.38, .26), (-.52, .1)])
-    a.cut(floor_plan(coast - coast.offset(-.035), .03, .025), 'ink')
-    for x, z in [(-.36, .02), (-.22, .08), (-.08, .12), (.06, .06), (.18, -.02)]:
-        a.cut(floor_plan(rect(.08, .035, (x, z)), .03, .025), 'ink')
-    a.cut(floor_plan(star(4, .12, .04, (.44, -.32)), .03, .025), 'ink')
-    for x, z, slot in [(-.36, .02, 'cloth_red'), (.2, -.04, 'cloth_blue'), (.02, .22, 'cloth_blue')]:
-        a.add(lathe([(.06, .03), (.05, .08), (.02, .22)], 6).translate((x, 0, z)), 'iron')
-        a.add(ball((x, .24, z), (.06, .06, .06), 7), slot)
+    a.add(sheet.warp_batch(taper), 'parchment')
+    coast = outline([(-.36, -.3), (-.16, -.24), (-.05, -.09), (.12, -.16), (.28, -.02), (.22, .22), (.03, .28), (-.09, .15), (-.28, .2), (-.38, .05)])
+    for shape in (coast, disc(.07, (.34, .28), 9)):
+        a.cut(floor_plan(shape - shape.offset(-.032, mf.JoinType.Round), .04, .022), 'ink')
+    for x, z in [(-.27, .0), (-.18, .04), (-.09, .07), (0, .05), (.09, .01)]:
+        a.cut(floor_plan(disc(.024, (x, z), 6), .04, .022), 'cloth_red')
+    a.cut(floor_plan(rect(.15, .035, (0, 0)) + rect(.035, .15, (0, 0)), .04, .022).rotate((0, 45, 0)).translate((.19, 0, -.05)), 'cloth_red')
+    a.cut(floor_plan(star(4, .09, .025, (-.3, -.33)), .04, .022), 'ink')
+    # Age: two fold creases and small tears along the flat sheet's free edges, clear of the rolls.
+    a.cut(block((.014, .03, width + .1), (-.02, .05, 0), .004), 'parchment_dark')
+    a.cut(block((2 * half - .2, .03, .014), (0, .05, .04), .004), 'parchment_dark')
+    rng = random('war_map')
+    for z in (-width / 2, width / 2):
+        for x in rng.uniform(-half * .7, half * .7, 3):
+            n = rng.uniform(.035, .06)
+            a.cut(block((n, .2, n), (0, 0, 0), .005).rotate((0, 45, 0)).translate((x, .05, z)), 'parchment_dark')
+    a.add(cushion((.15, .06, .14), (.32, .05, -.27), .6), 'cloth_blue')
+    for turn in (-25, 20):
+        a.add(block((.045, .015, .15), (0, 0, 0), .005).rotate((0, turn, 0)).translate((.33 + turn / 400, .045, -.17)), 'cloth_blue')
     return a.build()
 
 
@@ -765,8 +769,8 @@ KINDS = {
     'altar': altar, 'candelabra': candelabra, 'candle_cluster': candle_cluster, 'candle_pile': candle_pile,
     'lectern': lectern, 'statue': statue, 'statue_broken': statue_broken, 'brazier': brazier,
     'vase_tall': vase_tall, 'urn_wide': urn_wide, 'vase_broken': vase_broken, 'bust': bust, 'armor_stand': armor_stand,
-    'rug': rug, 'globe': globe, 'cauldron': cauldron, 'scroll_rack': scroll_rack, 'herb_rack': herb_rack,
-    'hearth': hearth, 'chopping_block': chopping_block, 'pot_rack': pot_rack, 'cheese_wheel': cheese_wheel,
+    'globe': globe, 'cauldron': cauldron, 'scroll_rack': scroll_rack, 'herb_rack': herb_rack,
+    'hearth': hearth, 'chopping_block': chopping_block, 'mortar': mortar, 'pot_rack': pot_rack, 'cheese_wheel': cheese_wheel,
     'ham': ham, 'bread': bread, 'weapon_rack': weapon_rack, 'training_dummy': training_dummy, 'bunk_bed': bunk_bed,
     'war_map': war_map, 'shackles': shackles, 'straw_pile': straw_pile, 'bucket': bucket, 'bone_pile': bone_pile,
     'fallen_beam': fallen_beam, 'tapestry': tapestry, 'heraldic_shield': heraldic_shield, 'sconce': sconce,

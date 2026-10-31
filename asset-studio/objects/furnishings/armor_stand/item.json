@@ -6,7 +6,7 @@
   "design": {
     "kind": "armor_stand"
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
@@ -14,90 +14,27 @@
   },
   "budget": {
     "triangles": 2300,
-    "materials": 4,
+    "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "cloth_red": [
-      196,
-      46,
-      50
-    ],
-    "gold": [
-      244,
-      172,
-      64
-    ],
-    "iron_dark": [
-      66,
-      72,
-      78
-    ],
-    "leather": [
-      118,
-      70,
-      46
-    ],
-    "steel": [
-      154,
-      166,
-      172
-    ],
-    "wood": [
-      159,
-      94,
-      71
-    ],
-    "wood_dark": [
-      126,
-      66,
-      48
-    ],
-    "wood_light": [
-      204,
-      138,
-      98
-    ]
-  },
+  "crease": 45,
   "materials": {
-    "cloth_red": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
     "gold": {
-      "metallic": 0.5,
-      "roughness": 0.38,
       "crease": 40
     },
     "iron_dark": {
-      "metallic": 0.35,
-      "roughness": 0.6,
       "crease": 40
     },
-    "leather": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 45
-    },
     "steel": {
-      "metallic": 0.5,
-      "roughness": 0.38,
       "crease": 40
     },
     "wood": {
-      "metallic": 0,
-      "roughness": 0.9,
       "crease": 35
     },
     "wood_dark": {
-      "metallic": 0,
-      "roughness": 0.9,
       "crease": 35
     },
     "wood_light": {
-      "metallic": 0,
-      "roughness": 0.9,
       "crease": 35
     }
   },

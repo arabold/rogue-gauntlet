@@ -6,7 +6,7 @@
   "design": {
     "kind": "bucket"
   },
-  "color_mode": "character",
+  "color_mode": "world",
   "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
@@ -14,40 +14,18 @@
   },
   "budget": {
     "triangles": 1600,
-    "materials": 3,
+    "materials": 2,
     "texture_size": 1024
   },
-  "colors": {
-    "iron": [
-      98,
-      106,
-      112
-    ],
-    "wood": [
-      159,
-      94,
-      71
-    ],
-    "wood_dark": [
-      126,
-      66,
-      48
-    ]
-  },
+  "crease": 45,
   "materials": {
     "iron": {
-      "metallic": 0.35,
-      "roughness": 0.6,
       "crease": 40
     },
     "wood": {
-      "metallic": 0,
-      "roughness": 0.9,
       "crease": 35
     },
     "wood_dark": {
-      "metallic": 0,
-      "roughness": 0.9,
       "crease": 35
     }
   },
