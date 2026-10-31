@@ -190,6 +190,22 @@
 			"notes": "Low-poly flat-shaded 3D items UV-mapped to KayKit's dungeon_texture.png and aligned to KayKit reference AABBs."
 		},
 		{
+			"id": "custom-props",
+			"name": "Rogue Gauntlet - Custom Room Furnishings",
+			"dir": "assets/custom-props",
+			"author": "Rogue Gauntlet contributors (scripted Asset Studio models)",
+			"source": "Self-authored via asset-studio/studio.py item build/export from asset-studio/objects/furnishings/<name>/ (builder: items/furnishings.py)",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"3d"
+			],
+			"compatibility_group": "kaykit",
+			"acquired": "2026-10-31",
+			"notes": "Procedural room furnishings (altars, statues, candles, vases, racks, rugs, wall decor) for generated Garrison rooms, sized to the KayKit dungeon remastered props (4-unit tiles, 1-unit tables) and colored from KayKit's dungeon palette through the Studio's shared surface model. One folder per room theme."
+		},
+		{
 			"id": "custom-monsters",
 			"name": "Rogue Gauntlet - Custom Monsters",
 			"dir": "assets/custom-monsters",

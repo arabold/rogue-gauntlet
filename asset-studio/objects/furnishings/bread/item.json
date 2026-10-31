@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "name": "Bread",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "bread"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 500,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "colors": {
+    "crumb": [
+      244,
+      220,
+      164
+    ],
+    "crust": [
+      198,
+      116,
+      58
+    ]
+  },
+  "materials": {
+    "crumb": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 45
+    },
+    "crust": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 45
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/kitchen/bread.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Room furnishing at KayKit dungeon scale: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "name": "Sconce Flames",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "sconce",
+    "flames": true
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 100,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "colors": {
+    "flame": [
+      255,
+      204,
+      96
+    ]
+  },
+  "materials": {
+    "flame": {
+      "emissive": true,
+      "crease": 60
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/wall/sconce_flames.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Room furnishing at KayKit dungeon scale: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+  }
+}

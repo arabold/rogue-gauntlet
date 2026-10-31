@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "name": "Cauldron",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "cauldron"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 1600,
+    "materials": 4,
+    "texture_size": 1024
+  },
+  "colors": {
+    "iron": [
+      98,
+      106,
+      112
+    ],
+    "iron_dark": [
+      66,
+      72,
+      78
+    ],
+    "liquid": [
+      130,
+      218,
+      98
+    ],
+    "steel": [
+      154,
+      166,
+      172
+    ]
+  },
+  "materials": {
+    "iron": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 40
+    },
+    "iron_dark": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 40
+    },
+    "liquid": {
+      "emissive": true,
+      "crease": 60
+    },
+    "steel": {
+      "metallic": 0.5,
+      "roughness": 0.38,
+      "crease": 40
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/library/cauldron.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Room furnishing at KayKit dungeon scale: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+  }
+}

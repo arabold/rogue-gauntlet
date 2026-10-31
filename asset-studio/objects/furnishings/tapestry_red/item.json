@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "name": "Tapestry Red",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "tapestry",
+    "field": "cloth_red",
+    "border": "trim",
+    "emblem": "trim",
+    "motif": "sun"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 1700,
+    "materials": 4,
+    "texture_size": 1024
+  },
+  "colors": {
+    "cloth_red": [
+      196,
+      46,
+      50
+    ],
+    "gold": [
+      244,
+      172,
+      64
+    ],
+    "iron_dark": [
+      66,
+      72,
+      78
+    ],
+    "trim": [
+      240,
+      186,
+      76
+    ],
+    "wood_dark": [
+      126,
+      66,
+      48
+    ]
+  },
+  "materials": {
+    "cloth_red": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 45
+    },
+    "gold": {
+      "metallic": 0.5,
+      "roughness": 0.38,
+      "crease": 40
+    },
+    "iron_dark": {
+      "metallic": 0.35,
+      "roughness": 0.6,
+      "crease": 40
+    },
+    "trim": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 45
+    },
+    "wood_dark": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/wall/tapestry_red.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Room furnishing at KayKit dungeon scale: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+  }
+}

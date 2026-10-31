@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "name": "Globe",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "globe"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 1200,
+    "materials": 4,
+    "texture_size": 1024
+  },
+  "colors": {
+    "gold": [
+      244,
+      172,
+      64
+    ],
+    "land": [
+      214,
+      186,
+      116
+    ],
+    "ocean": [
+      76,
+      134,
+      182
+    ],
+    "wood": [
+      159,
+      94,
+      71
+    ],
+    "wood_dark": [
+      126,
+      66,
+      48
+    ],
+    "wood_light": [
+      204,
+      138,
+      98
+    ]
+  },
+  "materials": {
+    "gold": {
+      "metallic": 0.5,
+      "roughness": 0.38,
+      "crease": 40
+    },
+    "land": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 45
+    },
+    "ocean": {
+      "metallic": 0.05,
+      "roughness": 0.35,
+      "crease": 50
+    },
+    "wood": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 35
+    },
+    "wood_dark": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 35
+    },
+    "wood_light": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/library/globe.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Room furnishing at KayKit dungeon scale: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+  }
+}

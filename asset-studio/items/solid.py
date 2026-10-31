@@ -53,7 +53,26 @@ class Assembly:
     """Union colored solids; material slots survive intersections as vertex properties."""
 
     def __init__(self):
-        self.parts, self.slots = [], []
+        self.parts, self.slots, self.cuts = [], [], []
+
+    def cut(self, shape, slot):
+        """Subtract a solid from everything added so far: recesses, openings and grooves whose faces take `slot`.
+
+        Parts added afterwards are untouched, so a medallion or a log can sit inside the cavity.
+        """
+        self.add(shape, slot)
+        self.cuts.append((len(self.parts) - 1, self.parts.pop()))
+        return self
+
+    def label(self, shape, slot):
+        """`shape` carrying `slot`, for booleans of its own before it joins: a chipped board, a notched beam."""
+        self.add(shape, slot)
+        return self.parts.pop()
+
+    def join(self, labeled):
+        """Add a solid built from `label`ed parts, keeping its own material regions."""
+        self.parts.append(labeled)
+        return self
 
     def add(self, shape, slot=None):
         if isinstance(shape, kit.Piece):
@@ -95,16 +114,30 @@ class Assembly:
         self.parts.append(shape.set_properties(1, lambda position, old, label=index: [label]))
         return self
 
-    def build(self):
+    def build_solid(self):
+        """The labeled union with every cut applied, to `join` into another assembly that shares these slots."""
         # Simplifying a coplanar region can erase its painted slot boundary.
-        result = mf.Manifold.batch_boolean(self.parts, mf.OpType.Add)
+        if not self.parts:
+            raise ValueError("Assembly has no solids")
+        result, start = None, 0
+        for end, cutter in [*self.cuts, (len(self.parts), None)]:
+            if end > start:
+                result = mf.Manifold.batch_boolean(([result] if result is not None else []) + self.parts[start:end], mf.OpType.Add)
+            if cutter is not None and result is not None:
+                result = result - cutter
+            start = end
         if result.status() != mf.Error.NoError:
             raise ValueError(f"Solid union failed: {result.status()}")
+        return result
+
+    def build(self, loose=False):
+        """One closed piece; `loose` accepts deliberately separate bodies (a scattered heap)."""
+        result = self.build_solid()
         components = result.decompose()
         # Manifold returns an enclosed cavity as a separate, negatively wound
         # surface. It is not an additional disconnected physical part.
         bodies = sum(component.volume() > 0 for component in components)
-        if bodies != 1:
+        if bodies != 1 and not (loose and bodies > 1):
             raise ValueError(f"Assembly has {bodies} disconnected solids; model actual connecting geometry")
         mesh = result.to_mesh()
         p, f = np.asarray(mesh.vert_properties[:, :3]), np.asarray(mesh.tri_verts)

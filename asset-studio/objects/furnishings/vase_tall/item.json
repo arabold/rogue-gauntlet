@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "name": "Vase Tall",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "vase_tall"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 800,
+    "materials": 3,
+    "texture_size": 1024
+  },
+  "colors": {
+    "clay": [
+      194,
+      110,
+      72
+    ],
+    "clay_dark": [
+      96,
+      56,
+      44
+    ],
+    "glaze": [
+      70,
+      128,
+      166
+    ]
+  },
+  "materials": {
+    "clay": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 45
+    },
+    "clay_dark": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 45
+    },
+    "glaze": {
+      "metallic": 0.05,
+      "roughness": 0.35,
+      "crease": 50
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/hall/vase_tall.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Room furnishing at KayKit dungeon scale: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+  }
+}

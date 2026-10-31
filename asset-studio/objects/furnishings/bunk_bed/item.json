@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "name": "Bunk Bed",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "bunk_bed"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 3900,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "colors": {
+    "cloth_blue": [
+      76,
+      132,
+      196
+    ],
+    "cloth_yellow": [
+      244,
+      180,
+      66
+    ],
+    "sheet": [
+      238,
+      232,
+      222
+    ],
+    "wood": [
+      159,
+      94,
+      71
+    ],
+    "wood_dark": [
+      126,
+      66,
+      48
+    ],
+    "wood_light": [
+      204,
+      138,
+      98
+    ]
+  },
+  "materials": {
+    "cloth_blue": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 45
+    },
+    "cloth_yellow": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 45
+    },
+    "sheet": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 45
+    },
+    "wood": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 35
+    },
+    "wood_dark": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 35
+    },
+    "wood_light": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/barracks/bunk_bed.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Room furnishing at KayKit dungeon scale: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+  }
+}

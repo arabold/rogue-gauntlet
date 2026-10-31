@@ -27,6 +27,8 @@ from items import solid
 STUDIO = Path(__file__).resolve().parents[1]
 REPO = STUDIO.parent
 OBJECTS = STUDIO / "objects"
+# Held items and world props (room furnishings) are separate game art trees.
+EXPORT_TREES = ["assets/custom-items", "assets/custom-props"]
 PALETTE = STUDIO / "rigs/item_palette.png"
 BACKENDS = ["source", "prefab", "procedural", "image3d"]
 PLACEMENT = {
@@ -173,7 +175,8 @@ class Item:
         value = data["export"]["glb"]
         if not value.startswith("res://") or not value.endswith(".glb"):
             raise ValueError("export.glb must be a res:// GLB path")
-        return within(REPO / value[6:], REPO / "assets/custom-items")
+        target, roots = REPO / value[6:], [REPO / tree for tree in EXPORT_TREES]
+        return within(target, next((root for root in roots if target.resolve().is_relative_to(root.resolve())), roots[0]))
 
     def new(self, backend="source", archetype=None, source=None, builder=None):
         """Create a recipe without replacing existing work or writing to the game tree."""
@@ -421,7 +424,7 @@ class Item:
             paths.extend(library.find_prefab_path(part["mesh"]) for part in data["parts"])
         if data["backend"] in ("procedural", "prefab"):
             paths.append(PALETTE)
-            paths.extend(STUDIO / "items" / name for name in ["designs.py", "builders.py", "solid.py", "bread.py", "arsenal.py", "shieldcraft.py"])
+            paths.extend(STUDIO / "items" / name for name in ["designs.py", "builders.py", "solid.py", "bread.py", "arsenal.py", "shieldcraft.py", "furnishings.py", "furnishing_kit.py"])
             if data.get("builder") == "shieldcraft":
                 paths.extend(STUDIO / name for name in ["prefabs/details/construction.py", "prefabs/details/wear.py", "items/heroic_shields.py", "prefabs/details/heraldry.py", "core/kit.py"])
             paths.append(STUDIO / "core/export.py")
