@@ -1,6 +1,6 @@
 # Doors, keys and secret rooms
 
-Status: implemented foundations, October 24, 2026. [Dungeon design](dungeon-exploration-design.md) owns intended exploration rules; this document describes current behavior and authoring. The [remaining plan](specs/secret-doors-and-locks-plan.md) records follow-up scope rather than the delivered implementation.
+Status: implemented foundations, October 31, 2026. [Dungeon design](dungeon-exploration-design.md) owns intended exploration rules; this document describes current behavior and authoring. The [remaining plan](specs/secret-doors-and-locks-plan.md) records follow-up scope rather than the delivered implementation.
 
 ## Runtime responsibilities
 
@@ -37,6 +37,14 @@ Each concealed opening checks every 0.5 seconds of active gameplay while the pla
 Discovery permanently reveals a closed door, without opening/unlocking it or revealing the destination. No interaction prompt, key marker, door x-ray, navigation bridge or exploration sight crosses an undiscovered opening. Loot and x-rays share `ExplorationVisibility`, which resolves both generated content and drops under the level runtime root. Undiscovered pickups hide their entire subtree (model, glow, sparkles, light, labels and x-ray helpers), stop particle emission and block collection. Nameplates (names and health bars) draw over the fog caps that conceal ordinary actors by depth, so they check discovery themselves and stay hidden until their own tile is explored. Initializing level content stays hidden until exploration is available; standalone previews remain visible. Magnet pickup cannot pull items through intervening walls. Revealed closed doors continue to block traversal. Opening enables the existing navigation link and ordinary line-of-sight discovery.
 
 `SecretDoorComponent.Reveal()` is idempotent and callable by a future mechanism. Removing or disabling a door's `ProximityDiscovery` node leaves a button-only secret. Hidden-button content and mechanism authority to unlock/open are not implemented yet.
+
+## Interior cell gates
+
+`InteriorDoorComponent` is an explicitly wired optional capability on `Door`. It owns a stable room-local ID, gate opening width and furniture clearance for the hinge sweep and approaches. The normal `Door` interaction, cancellation, animation, collision and navigation link handle each gate. The reusable barred gate scene uses the existing dungeon kit's iron door mesh; each room instance owns its sized collider.
+
+The prison room type's `CellsStep` emits shared barred dividers, front pieces, corner and junction pieces and one gate per cell along one or two opposing long walls. A row starts flush in a room corner when it fits (the side wall closes its first cell), keeps its far end free for the entrance, and keeps each gate's swing clear of furniture. Its cells are unlocked and non-secret. Every usable floor area must connect with the gates open. The navigation bake includes the closed gate collider; opening enables the normal doorway link. Bars do not seal exploration into cells.
+
+Interior gates receive identities scoped by placed room and local cell ID. They do not register as exterior connectors or participate in optional room-lock assignment. Their normal door baselines and open-state deltas survive floor regeneration/save restore. Discovery can show their indicators independently of the exterior connector sight rules. Internal mechanical locks and opaque partition visibility remain future work.
 
 ## Persistence and randomness
 

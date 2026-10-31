@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="UniformFloor" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/UniformFloor.cs" id="1_UniformFloor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone.tres" id="2_stone"]
+
+[resource]
+script = ExtResource("1_UniformFloor")
+Id = "garrison.stone_floor"
+Weight = 1.0
+Material = ExtResource("2_stone")
+metadata/_custom_type_script = ExtResource("1_UniformFloor")

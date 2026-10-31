@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BorderedFloor" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/BorderedFloor.cs" id="1_BorderedFloo"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone.tres" id="2_stone"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/light_wood.tres" id="3_light_wood"]
+
+[resource]
+script = ExtResource("1_BorderedFloo")
+Id = "garrison.stone_bordered_light_wood"
+Weight = 1.0
+Border = ExtResource("2_stone")
+Center = ExtResource("3_light_wood")
+Width = 1
+metadata/_custom_type_script = ExtResource("1_BorderedFloo")

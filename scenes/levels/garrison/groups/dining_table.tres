@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SeatedTable" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/SeatedTable.cs" id="1_SeatedTable"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/groups/set_long_table.tres" id="2_set_long_tab"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/table_long_laden.tres" id="3_table_long_l"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/chair.tres" id="4_chair"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/bench.tres" id="5_bench"]
+
+[resource]
+script = ExtResource("1_SeatedTable")
+Id = "garrison.dining_table"
+Tables = [ExtResource("2_set_long_tab"), ExtResource("3_table_long_l")]
+Seats = [ExtResource("4_chair"), ExtResource("5_bench")]
+SeatSpacing = 1.25
+SeatChance = 0.85
+EndSeatChance = 0.3
+metadata/_custom_type_script = ExtResource("1_SeatedTable")

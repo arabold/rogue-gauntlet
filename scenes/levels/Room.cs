@@ -19,17 +19,17 @@ public partial class Room : Node3D
 	/// </summary>
 	public Rect2I Bounds { get; private set; }
 
-	/// <summary>Concrete architectural purpose retained for furnishing eligibility and authored-scene editing.</summary>
-	[Export] public RoomPurpose Purpose { get; set; } = RoomPurpose.Chamber;
-
-	/// <summary>Assigned coded recipe; saved authored rooms retain this for editor rerolls only.</summary>
-	[Export] public RoomGenerator Generator { get; set; }
+	/// <summary>The room type that assembled this room, content included; null for authored rooms. Saved generated rooms
+	/// keep it so the editor can reroll them.</summary>
+	[Export] public RoomType Type { get; set; }
 	/// <summary>Authored/generated circulation axis; zero means the room has no primary aisle.</summary>
 	[Export] public Vector2I LayoutAxis { get; set; }
 
 	[Export] public GridMap FloorGridMap { get; set; }
 	[Export] public GridMap WallGridMap { get; set; }
 	[Export] public GridMap DecorationGridMap { get; set; }
+	/// <summary>Generated interior boundaries and operable doors, kept separate from exterior connection walls.</summary>
+	[Export] public Node3D InteriorStructure { get; set; }
 	private GridMap _debugGridMap;
 
 	// Authored wall mesh footprints, rebuilt by every BakeTileMap (so a Rotate's
@@ -374,7 +374,7 @@ public partial class Room : Node3D
 				continue;
 			}
 
-			map.SetConnector(tile.X, tile.Y, directions, isDoorway: true);
+			map.SetConnector(tile.X, tile.Y, map.GetConnectorDirections(tile.X, tile.Y).Concat(directions).Distinct().ToList(), isDoorway: true);
 		}
 	}
 

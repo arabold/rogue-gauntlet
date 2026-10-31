@@ -1,10 +1,10 @@
 # Dungeon Layout, Access, and Discovery
 
-Status: intended gameplay design, updated October 24, 2026. [Door access](door-access.md) describes the implemented first version; its [remaining plan](specs/secret-doors-and-locks-plan.md) covers later extensions and tuning. This document defines the agreed exploration concept; it does not describe completed implementation. The [implementation plan](specs/level-progression-prototype-plan.md) defines proposed code changes and delivery slices. [Level design](level-design.md) describes the generator and encounter prototype that exist today. [Realms and monster design](realms-and-monster-design.md) owns world themes, realm cadence, and encounter concepts.
+Status: intended gameplay design, updated October 30, 2026. [Door access](door-access.md) describes the implemented first version; its [remaining plan](specs/secret-doors-and-locks-plan.md) covers later extensions and tuning. This document defines the agreed exploration concept; it does not describe completed implementation. The [implementation plan](specs/level-progression-prototype-plan.md) defines proposed code changes and delivery slices. [Level design](level-design.md) describes the generator and encounter prototype that exist today. [Realms and monster design](realms-and-monster-design.md) owns world themes, realm cadence, and encounter concepts.
 
 ## Design goals
 
-A floor should belong to a recognizable realm, provide a deliberate progression experience, and vary between runs. Generated ordinary rooms gain variety from small authored furnishing arrangements; complete authored rooms supply memorable landmarks and deliberate gameplay spaces. Corridors, branches and secrets vary the geography. The [current arrangement system](level-design.md#reusable-room-arrangements) reuses compositions while preserving access to every remaining free area. Players should learn the realm without learning a fixed checklist of secret-door locations.
+A floor should belong to a recognizable realm, provide a deliberate progression experience, and vary between runs. Ordinary rooms and themed landmarks use generated modular compositions built from small authored arrangements. Room identity describes function: a barracks can vary its footprint, sleeping layout, optional columns, materials and dressing. Reusable sections allow a library to occupy a whole room or attach to an office. [Room types](level-design.md#room-assembly) generate every ordinary Garrison room; entrance/exit anchors remain authored. Corridors, branches and secrets vary the geography. Generated rooms keep every doorway reachable, and [floor reachability](level-design.md#reachability) keeps spawns and loot out of inaccessible space. Players should learn the realm without learning a fixed checklist of secret-door locations.
 
 Layout, access, and discovery are independent:
 
@@ -18,7 +18,7 @@ A concealed passage may also be locked. Discovering it does not unlock or open i
 
 ## Realm room pools and floor recipes
 
-Each realm defines eligible authored rooms and procedural room styles. Room entries carry a purpose, floor/depth eligibility, selection weight, and repeat limit. A shared generic hall may belong to several pools; sewers do not enter the Garrison merely because they are in the repository. Selection permissions and weights do not guarantee placement.
+Each realm defines eligible generated room recipes and progression anchors. Room entries carry a purpose, floor/depth eligibility, selection weight, and repeat limit. Recipes compose compatible footprint and content layouts with independently optional columns and dressing. A shared generic hall may belong to several pools; sewers do not enter the Garrison merely because they are in the repository. Selection permissions and weights do not guarantee placement.
 
 A floor recipe defines required locations, optional branches, encounter roles, access features, and secret opportunities. Required locations reserve space before optional filler. Recipes distinguish three independent obligations:
 

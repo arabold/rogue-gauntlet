@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-legacy/bookcaseWideFilled.gltf.glb" id="model"]
+
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-legacy/bookcaseWide.gltf.glb" id="empty"]
+
+[sub_resource type="BoxShape3D" id="Shape"]
+size = Vector3(4.0, 2.0, 0.55)
+
+[node name="LibraryBookcase" type="Node3D" groups=["prop"]]
+
+[node name="Geometry" type="Node3D" parent="."]
+
+[node name="ModelLeft" parent="Geometry" instance=ExtResource("empty")]
+position = Vector3(-1, 0, 0)
+
+[node name="ModelRight" parent="Geometry" instance=ExtResource("empty")]
+position = Vector3(1, 0, 0)
+
+[node name="Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 16
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape3D" parent="Geometry/Body"]
+position = Vector3(0, 1, 0)
+shape = SubResource("Shape")

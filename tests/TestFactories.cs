@@ -36,7 +36,7 @@ public static class TestFactories
 #pragma warning restore RS0030
 
 	public const string LitTorch = "res://scenes/props/torch_mounted.tscn";
-	public const string UnlitTorch = "res://scenes/levels/arrangements/wall/wall_torch_unlit.tscn";
+	public const string UnlitTorch = "res://scenes/props/furnishings/wall_torch_unlit.tscn";
 
 	/// <summary>Instance a wall torch fixture, placed and turned for the test's layout; the caller adds it to a tree.</summary>
 	public static Node3D Torch(string path = LitTorch, Vector3 position = default, float yaw = 0)
@@ -174,41 +174,33 @@ public static class TestFactories
 	}
 
 	/// <summary>
-	/// A factory whose standard rooms are all procedurally built (entrance/exit stay
-	/// authored — they carry required gameplay content), for stress-testing the
-	/// procedural path in generation sweeps.
+	/// A factory whose standard rooms are all assembled from the Garrison room types (entrance/exit stay authored --
+	/// they carry required gameplay content), for stress-testing generated rooms in generation sweeps.
 	/// </summary>
-	public static MixedRoomFactory AllProcedural()
+	public static MixedRoomFactory AllProcedural() => new()
 	{
-		return new MixedRoomFactory
-		{
-			AuthoredFactory = Load<RoomFactory>("res://scenes/levels/dungeon/dungeon_room_factory.tres"),
-			RoomBuilder = Load<ProceduralRoomBuilder>("res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres"),
-			ProceduralShare = 1f,
-		};
-	}
+		AuthoredFactory = Load<RoomFactory>("res://scenes/levels/dungeon/dungeon_room_factory.tres"),
+		RoomTypes = Load<MixedRoomFactory>("res://scenes/levels/garrison/factories/garrison_mixed_room_factory.tres").RoomTypes,
+		ProceduralShare = 1f,
+	};
 
 	/// <summary>
-	/// Like <see cref="AllProcedural"/>, but every procedural room gets explicit,
-	/// mixed archway/doored doorways instead of the default 50/50 chance of staying
-	/// fully open -- the hardest stress on doorway/door placement.
+	/// Like <see cref="AllProcedural"/>, but most generated doorways get a physical door -- the hardest stress on
+	/// doorway/door placement. Room types are copied, so the shared definitions keep their own door settings.
 	/// </summary>
 	public static MixedRoomFactory AllProceduralWithDoors()
 	{
-		// Ignore the resource cache: this mutates exported properties on the loaded
-		// instance, and GD.Load would otherwise hand back the same cached object every
-		// other test loads by path, leaking these overrides across tests.
-		var builder = Load<ProceduralRoomBuilder>(
-			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
-			cacheMode: ResourceLoader.CacheMode.Ignore);
-		builder.DoorwayChance = 1f;
-		builder.MinDoors = 1;
-		builder.MaxDoors = 2;
-		builder.MaxDoorways = 4;
+		var door = Load<PackedScene>("res://scenes/props/door.tscn");
 		return new MixedRoomFactory
 		{
 			AuthoredFactory = Load<RoomFactory>("res://scenes/levels/dungeon/dungeon_room_factory.tres"),
-			RoomBuilder = builder,
+			RoomTypes = AllProcedural().RoomTypes.Select(type =>
+			{
+				var copy = (RoomType)type.Duplicate();
+				copy.DoorScene = door;
+				copy.DoorChance = .75f;
+				return copy;
+			}).ToArray(),
 			ProceduralShare = 1f,
 		};
 	}
@@ -239,7 +231,6 @@ public static class TestFactories
 		var level = (Level)runner.Scene();
 		var map = level.MapGenerator;
 		Configure(map, layout, factory);
-		map.ArrangementPool = null;
 		map.AccessProfile = null;
 		map.ChestScene = map.TrapScene = map.LooseItemScene = null;
 		map.LooseItems = null;

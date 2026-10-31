@@ -1,20 +1,25 @@
-[gd_resource type="Resource" script_class="MixedRoomFactory" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="MixedRoomFactory" load_steps=17 format=3]
 
 [ext_resource type="Script" uid="uid://pjbxgt1ovbpn" path="res://scenes/levels/generators/factories/MixedRoomFactory.cs" id="1_mixd"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/factories/garrison_room_factory.tres" id="2_auth"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/rooms/shared/garrison_procedural_room_builder.tres" id="3_bldr"]
-
-[ext_resource type="Resource" path="res://scenes/levels/garrison/rooms/hall/garrison_hall_generator.tres" id="hall"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/rooms/cellar/garrison_cellar_generator.tres" id="cellar"]
-
-[ext_resource type="Resource" path="res://scenes/levels/garrison/rooms/dining/garrison_dining_generator.tres" id="dining"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/rooms/barracks/garrison_barracks_generator.tres" id="barracks"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/rooms/library/garrison_library_generator.tres" id="library"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/hall.tres" id="hall"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/storage.tres" id="storage"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/dining.tres" id="dining"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/barracks.tres" id="barracks"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/library.tres" id="library"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/alchemist.tres" id="alchemist"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/passage.tres" id="passage"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/fenced_walkway.tres" id="walkway"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/partitioned_store.tres" id="store"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/prison.tres" id="prison"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/chapel.tres" id="chapel"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/kitchen.tres" id="kitchen"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/guardroom.tres" id="guardroom"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/ruins.tres" id="ruins"]
 
 [resource]
 script = ExtResource("1_mixd")
 AuthoredFactory = ExtResource("2_auth")
-RoomBuilder = ExtResource("3_bldr")
-RoomGenerators = [ExtResource("hall"), ExtResource("cellar"), ExtResource("dining"), ExtResource("barracks"), ExtResource("library")]
+RoomTypes = [ExtResource("hall"), ExtResource("storage"), ExtResource("dining"), ExtResource("barracks"), ExtResource("library"), ExtResource("alchemist"), ExtResource("passage"), ExtResource("walkway"), ExtResource("store"), ExtResource("prison"), ExtResource("chapel"), ExtResource("kitchen"), ExtResource("guardroom"), ExtResource("ruins")]
 ProceduralShare = 1.0
 metadata/_custom_type_script = ExtResource("1_mixd")
