@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AssemblyRoomLayout" load_steps=3 format=3]
+[ext_resource type="Script" path="res://scenes/levels/generators/rooms/layouts/AssemblyRoomLayout.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/contents/workspace.tres" id="assembly"]
+[resource]
+script = ExtResource("script")
+Assembly = ExtResource("assembly")
+MinimumCount = 0
+MaximumCountPerRoom = 1
+metadata/_custom_type_script = ExtResource("script")

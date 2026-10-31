@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PerimeterRoomLayout" load_steps=7 format=3]
+[ext_resource type="Script" path="res://scenes/levels/generators/rooms/layouts/PerimeterRoomLayout.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/barrel_edge.tres" id="barrels"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/crate_cache.tres" id="crates"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/mixed_provisions.tres" id="supplies"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/stacked_boxes.tres" id="boxes"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/keg_cache.tres" id="kegs"]
+[resource]
+script = ExtResource("script")
+Arrangements = [ExtResource("barrels"), ExtResource("crates"), ExtResource("supplies"), ExtResource("boxes"), ExtResource("kegs")]
+MinimumCount = 2
+Count = 4
+metadata/_custom_type_script = ExtResource("script")

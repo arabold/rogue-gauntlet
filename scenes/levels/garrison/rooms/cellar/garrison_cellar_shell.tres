@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ProceduralRoomBuilder" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="ProceduralRoomBuilder" load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/rooms/ProceduralRoomBuilder.cs" id="builder"]
 [ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="floor"]
@@ -6,8 +6,13 @@
 [ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="decoration"]
 [ext_resource type="PackedScene" path="res://scenes/props/door.tscn" id="door"]
 
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/surfaces/earth.tres" id="surface0"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/surfaces/stone.tres" id="surface1"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/surfaces/dark_wood.tres" id="surface2"]
+
 [resource]
 script = ExtResource("builder")
+SurfaceStyles = [ExtResource("surface0"), ExtResource("surface1"), ExtResource("surface2")]
 FloorLibrary = ExtResource("floor")
 WallLibrary = ExtResource("wall")
 DecorationLibrary = ExtResource("decoration")

@@ -213,7 +213,7 @@ public partial class MapGenerator : Node3D
 		// Room` with no backing scene file; an authored room is instantiated from a
 		// PackedScene, which sets SceneFilePath on the instantiated root.
 		var region = new RoomRegion(Floor.Rooms.Count) { IsProcedural = string.IsNullOrEmpty(placement.Room.SceneFilePath), Purpose = placement.Room.Purpose,
-			InteriorPool = string.IsNullOrEmpty(placement.Room.SceneFilePath) ? placement.Room.Generator?.CreateInteriorPool() : null,
+			InteriorPool = string.IsNullOrEmpty(placement.Room.SceneFilePath) ? placement.Room.Generator?.CreateInteriorPool(placement.Room) : null,
 			Dressing = string.IsNullOrEmpty(placement.Room.SceneFilePath) ? placement.Room.Generator?.Dressing : null, LayoutAxis = placement.Room.LayoutAxis };
 		for (int lx = 0; lx < roomMap.Width; lx++)
 		{
@@ -267,15 +267,19 @@ public partial class MapGenerator : Node3D
 	/// </summary>
 	private void RegisterDoors(Room room, RoomRegion region)
 	{
-		if (region.ConnectorTiles.Count == 0)
-		{
-			return;
-		}
-
+		var interiorIds = new HashSet<string>();
 		foreach (Node node in room.FindChildren("*", "", true, false))
 		{
 			if (node is Door door)
 			{
+				if (door.Interior != null)
+				{
+					if (string.IsNullOrWhiteSpace(door.Interior.Id) || !interiorIds.Add(door.Interior.Id)
+						|| door.Lock?.Definition != null || door.Secret?.IsSecret == true)
+						throw new InvalidOperationException("Interior doors require unique local IDs and unlocked, non-secret access.");
+					door.ConnectionId = $"room:{region.Id}:interior:{door.Interior.Id}";
+					continue;
+				}
 				// Candidates only: which doorways are real passages isn't known until
 				// corridors have been routed (see FinalizeDoors).
 				if (TryFindNearestConnector(region, door.GlobalPosition, out var connector))
@@ -396,6 +400,8 @@ public partial class MapGenerator : Node3D
 			.Concat(RoomArrangement.GetStaticPropBounds(NavigationRegion, GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform))
 			.Concat(SecretThresholdBounds()).ToList();
 		var walls = RoomArrangement.GetGridBounds(WallGridMap, WallGridMap.Transform);
+		var doorClearances = InteriorDoorComponent.CollectClearances(NavigationRegion,
+			GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform);
 		foreach (var room in Floor.Rooms.Where(room => room.IsProcedural))
 		{
 			var pool = room.InteriorPool ?? ArrangementPool;
@@ -409,10 +415,11 @@ public partial class MapGenerator : Node3D
 			region.Tiles.AddRange(room.Tiles);
 			// A secret pocket's connector opens onto its host, which may be a room tile rather than a corridor.
 			region.ConnectorTiles.AddRange(room.ConnectorTiles.Where(tile => IsSecretConnector(tile) || IsConnectorConnected(tile)));
+			var occupied = obstacles.Concat(doorClearances).ToArray();
 			var placements = pool.PlacementStrategy.Plan(Map, [region], pool, Seed,
-				GenerationAttempt, tile => Map.TileToWorld(tile), obstacles, walls);
+				GenerationAttempt, tile => Map.TileToWorld(tile), occupied, walls, obstacles);
 			if (room.Dressing != null) placements.AddRange(room.Dressing.Plan(Map, region, Seed, GenerationAttempt,
-				tile => Map.TileToWorld(tile), obstacles.Concat(RoomDressingProfile.GetBounds(placements)).ToArray(), walls,
+				tile => Map.TileToWorld(tile), occupied.Concat(RoomDressingProfile.GetBounds(placements)).ToArray(), walls,
 				obstacles.Concat(RoomDressingProfile.GetBounds(placements, true)).ToArray(), pool.PassageRadius));
 			foreach (var placement in placements)
 			{

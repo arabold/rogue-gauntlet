@@ -146,7 +146,7 @@ public partial class MapGenerator
 		foreach (var door in LiveNodes<Door>())
 		{
 			var pair = Floor.Doors.FirstOrDefault(d => d.Door == door);
-			door.ConnectionId = pair.Door != null ? $"connector:{pair.Connector.X}:{pair.Connector.Y}:{ordinal++}"
+			if (door.Interior == null) door.ConnectionId = pair.Door != null ? $"connector:{pair.Connector.X}:{pair.Connector.Y}:{ordinal++}"
 				: "authored:" + NavigationRegion.GetPathTo(door);
 			Floor.RecordDoorBaseline(door);
 		}

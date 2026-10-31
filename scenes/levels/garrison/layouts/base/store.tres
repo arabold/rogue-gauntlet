@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="RoomBaseLayout" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scenes/levels/generators/rooms/RoomBaseLayout.cs" id="script"]
+[resource]
+script = ExtResource("script")
+Shape = 1
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(3, 4)
+OpposingEntrances = true
+metadata/_custom_type_script = ExtResource("script")

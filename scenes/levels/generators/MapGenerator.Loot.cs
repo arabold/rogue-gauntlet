@@ -63,7 +63,10 @@ public partial class MapGenerator
 			t => Map.TileToWorld(t), obstacles, pool.PassageRadius);
 		var proposed = GlobalTransform.AffineInverse() * new Transform3D(new Basis(Vector3.Up, Mathf.DegToRad(rotation)),
 			point + Vector3.Up * GetFloorSurfaceHeight(point));
-		return passage.IsConnected(RoomArrangement.GetStaticPropBounds(chest, proposed));
+		var bounds = RoomArrangement.GetStaticPropBounds(chest, proposed);
+		var doorClearances = InteriorDoorComponent.CollectClearances(NavigationRegion,
+			GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform);
+		return !bounds.Any(box => doorClearances.Any(clearance => clearance.Intersects(box))) && passage.IsConnected(bounds);
 	}
 
 	private void PlaceChests(List<Vector3> placedLootPoints)

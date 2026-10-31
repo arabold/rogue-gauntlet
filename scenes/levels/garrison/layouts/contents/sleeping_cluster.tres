@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="BedClusterDefinition" load_steps=8 format=3]
+[ext_resource type="Script" path="res://scenes/levels/generators/rooms/BedClusterDefinition.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/furniture/single_bed.tres" id="bed"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/furniture/bedside_table.tres" id="sideboard"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/small_box.tres" id="box"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/wall/wall_torch.tres" id="torch"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/wall/wall_banner.tres" id="banner"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/wall/wall_sword_shield.tres" id="shield"]
+[resource]
+script = ExtResource("script")
+Bed = ExtResource("bed")
+Box = ExtResource("box")
+BoxOffset = Vector3(1.65, 0, 0.85)
+Sideboard = ExtResource("sideboard")
+SideboardOffset = Vector3(1.65, 0, -0.8)
+WallDecorations = [ExtResource("torch"), ExtResource("banner"), ExtResource("shield")]
+metadata/_custom_type_script = ExtResource("script")

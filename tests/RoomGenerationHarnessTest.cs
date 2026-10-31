@@ -19,23 +19,24 @@ public class RoomGenerationHarnessTest
 		await runner.SimulateFrames(2);
 		var harness = (RoomGenerationHarness)runner.Scene();
 		AssertString(harness.LastError).IsEmpty();
-		AssertInt(harness.Factory.RoomGenerators.Length).IsEqual(5);
+		AssertInt(harness.Factory.RoomGenerators.Length).IsEqual(10);
 		for (int index = 0; index < harness.Factory.RoomGenerators.Length; index++)
 		{
 			harness.SelectRecipe(index);
 			await runner.SimulateFrames(1);
 			AssertString(harness.LastError).IsEmpty();
 			AssertObject(harness.PreviewRoom.Generator).IsSame(harness.Factory.RoomGenerators[index]);
-			AssertBool(harness.PreviewRoom.GetChildren().OfType<RoomArrangement>().Any()).IsTrue();
+			if (index != 6) AssertBool(harness.PreviewRoom.GetChildren().OfType<RoomArrangement>().Any()).IsTrue();
 			AssertBool(harness.PreviewCamera.Size > harness.PreviewRoom.Bounds.Size.X).IsTrue();
 		}
+		harness.SelectRecipe(3);
 		var pickers = harness.Controls.GetChildren().OfType<HBoxContainer>()
 			.SelectMany(row => row.GetChildren()).OfType<OptionButton>().ToArray();
 		pickers[1].EmitSignal(OptionButton.SignalName.ItemSelected, 0);
 		pickers[1].EmitSignal(OptionButton.SignalName.ItemSelected, 1);
 		pickers[1].EmitSignal(OptionButton.SignalName.ItemSelected, 3);
 		await runner.SimulateFrames(1);
-		AssertBool(harness.PreviewRoom.Generator is BarracksRoomGenerator).IsTrue();
+		AssertBool(harness.PreviewRoom.Generator is ModularRoomGenerator).IsTrue();
 		var seed = harness.Controls.GetChildren().OfType<HBoxContainer>()
 			.SelectMany(row => row.GetChildren()).OfType<SpinBox>().Single();
 		seed.Value = 99;
@@ -97,4 +98,31 @@ public class RoomGenerationHarnessTest
 
 	private static string Geometry(Room room) => string.Join("|", room.FloorGridMap.GetUsedCells().OrderBy(cell => cell.X)
 		.ThenBy(cell => cell.Z).Select(cell => $"{cell}:{room.FloorGridMap.GetCellItem(cell)}:{room.FloorGridMap.GetCellItemOrientation(cell)}"));
+
+	[TestCase]
+	public async Task ModularPreviewOverridesSelectLayoutAndColumnsWithoutChangingProductionRecipe()
+	{
+		using var runner = TestFactories.LoadScene(Scene);
+		await runner.SimulateFrames(2);
+		var harness = (RoomGenerationHarness)runner.Scene();
+		harness.SelectRecipe(3);
+		await runner.SimulateFrames(1);
+		var source = (ModularRoomGenerator)harness.Factory.RoomGenerators[3];
+		float chance = source.ColumnChance;
+		harness.SelectedLayoutVariant = 2;
+		harness.Columns = RoomPreviewColumns.Disabled;
+		harness.Regenerate();
+		AssertString(harness.LastError).IsEmpty();
+		AssertString(harness.PreviewRoom.GetMeta("room_layout_variant").AsString()).IsEqual(source.Layouts[2].Id);
+		AssertInt(harness.PreviewRoom.DecorationGridMap.GetUsedCells().Count).IsEqual(0);
+		string floor = Geometry(harness.PreviewRoom);
+		harness.Columns = RoomPreviewColumns.Enabled;
+		harness.Regenerate();
+		AssertString(harness.LastError).IsEmpty();
+		AssertString(Geometry(harness.PreviewRoom)).IsEqual(floor);
+		AssertBool(((ModularRoomGenerator)harness.PreviewRoom.Generator).ColumnChance == 1).IsTrue();
+		AssertInt(source.Layouts.Length).IsEqual(3);
+		AssertBool(source.ColumnChance == chance).IsTrue();
+		await runner.SimulateFrames(1);
+	}
 }

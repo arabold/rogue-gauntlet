@@ -4,7 +4,7 @@ Status: proposed work. [Dungeon design](../dungeon-exploration-design.md) owns r
 
 ## Definitions and ownership
 
-Add realm/recipe Resources under `scenes/levels/progression/`. Realm definitions select depth ranges, room pools, recipes and the existing encounter factory. A pool entry selects exactly one authored scene or procedural builder, with stable identity, purpose/depth eligibility, weight and repeat cap. Recipes distinguish required existence, traversal and completion; none implies the others.
+Add realm/recipe Resources under `scenes/levels/progression/`. Realm definitions select depth ranges, room pools, recipes and the existing encounter factory. An ordinary/themed pool entry selects a generated composition from the [implemented room system](../level-design.md#coded-room-generators), with stable identity, purpose/depth eligibility, weight and repeat cap. Entrance/exit anchors can retain their existing authored scenes. Recipes distinguish required existence, traversal and completion; none implies the others.
 
 Plans and realized placements are ordinary per-generation C# data. Shared Resources remain immutable. Explicitly assign realm/recipe dependencies on Level; retain the current generator path for unconfigured development floors. Reuse room packing, rotation and doorway helpers instead of duplicating them. Editor changes apply on regeneration, not a live floor.
 
@@ -14,7 +14,7 @@ Reserve required locations first, then optional filler/branches. Route approved 
 
 Selection permissions/weights do not guarantee placement. Optional content may be omitted; required rooms, objectives and their access solutions may not. Attempts have deterministic identities and a bounded retry limit. Discard temporary geometry/spawns on failure. Exhaustion returns safely without publishing a loaded level or overwriting a save.
 
-The existing Garrison preset already curates architectural purposes and optional non-repeating landmarks. Extend that selection with per-depth roles and existing scenes as role placeholders. Required route recipes follow without expanding realm order, map size or the monster roster.
+The Garrison preset curates generated recipes, including modular barracks/storage that replace their predefined scenes. Extend these recipes with per-depth roles; room function or rarity must not depend on retaining a frozen room scene. Required route recipes follow without expanding realm order, map size or the monster roster.
 
 ## Extend existing access for encounter seals
 
@@ -33,7 +33,7 @@ The access generator reserves required large-encounter space and excludes gated 
 
 ## Remaining delivery and acceptance
 
-1. **Realm pools and recipes:** per-depth Garrison selection, required locations, must-traverse checkpoint and intentional loops. Required roles use existing scenes as placeholders. Sweep realized geometry, route obligations and bounded failures; optional access cannot invalidate required content.
+1. **Realm pools and recipes:** per-depth Garrison selection, required locations, must-traverse checkpoint and intentional loops. Required ordinary/themed roles use generated compositions. Sweep realized geometry, route obligations and bounded failures; optional access cannot invalidate required content.
 2. **Visible stair seal:** compose the encounter condition with current access state and Warden completion. Check death, revisit, reload, physical blocking and both travel callers. Ordinary locks/secrets are already delivered and need not wait for this work.
 
 Use actual editor navigation alongside seeded topology/state tests. Consolidate completed slices into current-system docs; keep this plan focused on remaining work.

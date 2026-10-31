@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3]
+[ext_resource type="Script" path="res://scenes/levels/arrangements/RoomArrangement.cs" id="root"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="library"]
+[sub_resource type="BoxShape3D" id="shape"]
+size = Vector3(1.5, 0.5, 3)
+[node name="FloorBedding" type="Node3D" node_paths=PackedStringArray("Content") groups=["prop", "room_arrangement"]]
+script = ExtResource("root")
+Content = NodePath("Geometry")
+PlacementBounds = AABB(-0.81, -0.02, -1.55, 1.62, 0.62, 3.1)
+[node name="Geometry" type="GridMap" parent="."]
+mesh_library = ExtResource("library")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+collision_layer = 16
+collision_mask = 0
+data = {"cells": PackedInt32Array(0, 0, 13)}
+
+[node name="Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 16
+collision_mask = 0
+[node name="Collision" type="CollisionShape3D" parent="Geometry/Body"]
+position = Vector3(0, 0.25, 0)
+shape = SubResource("shape")

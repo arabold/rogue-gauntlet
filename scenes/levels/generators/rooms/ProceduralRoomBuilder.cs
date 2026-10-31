@@ -29,6 +29,8 @@ public enum RoomMaterial
 	StoneAndWood = 4,
 	Earthen = 5,
 	RuinedMix = 6,
+	LightWood = 7,
+	DarkWood = 8,
 }
 
 /// <summary>
@@ -89,18 +91,21 @@ public partial class ProceduralRoomBuilder : Resource
 	[Export] public string[] ColumnItems { get; set; } = ["pillar", "column"];
 
 	/// <summary>
-	/// Room extent per axis, in logical tiles. Floored at 3: a 2-tile-wide room has no
-	/// tile away from an edge, so every floor tile bakes as a Connector rather than a
-	/// Room tile (Room.BakeInferredConnectors), leaving the room with no true interior.
+	/// Room extent per axis, in logical tiles. Narrow footprints use rectangular floors and explicit entrances.
 	/// </summary>
-	[Export(PropertyHint.Range, "3,12")] public int MinTiles { get; set; } = 3;
-	[Export(PropertyHint.Range, "3,12")] public int MaxTiles { get; set; } = 6;
+	[Export(PropertyHint.Range, "1,12")] public int MinTiles { get; set; } = 3;
+	[Export(PropertyHint.Range, "1,12")] public int MaxTiles { get; set; } = 6;
 
 	/// <summary>The footprint shape archetype to generate.</summary>
 	[Export] public RoomShapeArchetype ShapeArchetype { get; set; } = RoomShapeArchetype.Random;
 
 	/// <summary>Primary floor material palette.</summary>
 	[Export] public RoomMaterial Material { get; set; } = RoomMaterial.Random;
+	/// <summary>Weighted coherent room-wide styles. Empty uses the generic material and masonry walls.</summary>
+	[Export] public RoomSurfaceStyle[] SurfaceStyles { get; set; } = [];
+
+	public string[] ValidateSurfaces() => SurfaceStyles == null || SurfaceStyles.Any(style => style == null)
+		? ["Surface styles: assign valid entries or leave the palette empty."] : SurfaceStyles.SelectMany(style => style.Validate(WallLibrary)).ToArray();
 
 	/// <summary>Architectural room purpose coordinating floor zoning, grates, and columns.</summary>
 	[Export] public RoomPurpose Purpose { get; set; } = RoomPurpose.Random;
@@ -191,9 +196,9 @@ public partial class ProceduralRoomBuilder : Resource
 	/// Null opening directions retain the generic doorway policy; explicit directions bypass it.</summary>
 	public bool PopulateRoomAtSize(Room room, RandomNumberGenerator rng, int widthTiles, int depthTiles, Vector2I[] openingDirections = null)
 	{
-		if (widthTiles < 3 || widthTiles > 12 || depthTiles < 3 || depthTiles > 12)
+		if (widthTiles < 1 || widthTiles > 12 || depthTiles < 1 || depthTiles > 12)
 		{
-			GD.PrintErr("ProceduralRoomBuilder: explicit dimensions must be between 3 and 12 tiles.");
+			GD.PrintErr("ProceduralRoomBuilder: explicit dimensions must be between 1 and 12 tiles.");
 			return false;
 		}
 		if (openingDirections != null && (ShapeArchetype != RoomShapeArchetype.Rectangle
@@ -206,7 +211,19 @@ public partial class ProceduralRoomBuilder : Resource
 		return PopulateRoomCore(room, rng, new Vector2I(widthTiles, depthTiles), openingDirections);
 	}
 
-	private bool PopulateRoomCore(Room room, RandomNumberGenerator rng, Vector2I? dimensions = null, Vector2I[] openingDirections = null)
+	/// <summary>Realize a recipe-owned footprint through the same floor, entrance and wall construction path.
+	/// Explicit entrances allow narrow wings without the generic inferred-connector interior-tile requirement.</summary>
+	internal bool PopulateRoomFromFootprint(Room room, RandomNumberGenerator rng, Footprint footprint)
+	{
+		if (footprint.Width < 1 || footprint.Width > 12 || footprint.Height < 1 || footprint.Height > 12)
+			throw new System.ArgumentException("Planned footprint dimensions must be between 1 and 12 tiles.");
+		if (!GenerateWalls && DoorwayChance < 1)
+			throw new System.InvalidOperationException("A planned narrow footprint requires explicit entrances.");
+		return PopulateRoomCore(room, rng, plannedFootprint: footprint);
+	}
+
+	private bool PopulateRoomCore(Room room, RandomNumberGenerator rng, Vector2I? dimensions = null,
+		Vector2I[] openingDirections = null, Footprint? plannedFootprint = null)
 	{
 		if (room == null || FloorLibrary == null || WallLibrary == null || DecorationLibrary == null)
 		{
@@ -226,7 +243,7 @@ public partial class ProceduralRoomBuilder : Resource
 			return false;
 		}
 
-		var arrangementErrors = ArrangementPool?.Validate() ?? [];
+		var arrangementErrors = (ArrangementPool?.Validate() ?? []).Concat(ValidateSurfaces()).ToArray();
 		if (arrangementErrors.Length > 0)
 		{
 			GD.PrintErr(string.Join("\n", arrangementErrors));
@@ -246,21 +263,33 @@ public partial class ProceduralRoomBuilder : Resource
 		var toRemove = new List<Node>();
 		foreach (Node child in room.GetChildren())
 		{
-			if (child is DoorwayMarker || child is Door || child is RoomArrangement || child is RoomFurnishingSlot)
+			if (child == room.InteriorStructure || child is DoorwayMarker || child is Door || child is RoomArrangement || child is RoomFurnishingSlot)
 			{
 				toRemove.Add(child);
 			}
 		}
 		foreach (Node node in toRemove)
 		{
+			bool wasInTree = node.IsInsideTree();
 			room.RemoveChild(node);
-			node.QueueFree();
+			if (wasInTree) node.QueueFree();
+			else node.Free();
 		}
 
-		var footprint = GenerateFootprint(rng, dimensions);
+		room.InteriorStructure = null;
+		var footprint = plannedFootprint ?? GenerateFootprint(rng, dimensions);
 		RoomPurpose purpose = ResolvePurpose(rng);
 		room.Purpose = purpose;
-		RoomMaterial material = ResolveMaterial(purpose, rng);
+		using var surfaceRng = GenerationRandom.Create(rng.State, GenerationRandom.Decoration, "room-surfaces");
+		RoomSurfaceStyle surface = null;
+		if (SurfaceStyles.Length > 0)
+		{
+			double roll = surfaceRng.Randf() * SurfaceStyles.Sum(style => style.Weight);
+			surface = SurfaceStyles[^1];
+			foreach (var choice in SurfaceStyles) { roll -= choice.Weight; if (roll < 0) { surface = choice; break; } }
+		}
+		RoomMaterial material = surface?.Floor ?? ResolveMaterial(purpose, surfaceRng);
+		room.SetMeta("room_surface", surface?.Id ?? material.ToString());
 
 		var openings = PlaceDoorways(room, footprint, rng, openingDirections);
 		bool[,] quadCovered = PlaceStyledFloors(room.FloorGridMap, footprint, openings, material, purpose, rng);
@@ -268,7 +297,7 @@ public partial class ProceduralRoomBuilder : Resource
 
 		if (GenerateWalls)
 		{
-			PlaceRoomWalls(room.WallGridMap, footprint, openings, purpose, rng);
+			PlaceRoomWalls(room.WallGridMap, footprint, openings, purpose, rng, surface);
 		}
 
 		room.BakeTileMap();
@@ -301,9 +330,10 @@ public partial class ProceduralRoomBuilder : Resource
 		var obstacles = RoomArrangement.GetGridBounds(room.DecorationGridMap, room.DecorationGridMap.Transform)
 			.Concat(RoomArrangement.GetStaticPropBounds(room, Transform3D.Identity)).ToArray();
 		var walls = RoomArrangement.GetGridBounds(room.WallGridMap, room.WallGridMap.Transform);
-		var plan = pool.PlacementStrategy.Plan(room.Map, [region], pool, seed, 0, Center, obstacles, walls);
+		var occupied = obstacles.Concat(InteriorDoorComponent.CollectClearances(room, Transform3D.Identity)).ToArray();
+		var plan = pool.PlacementStrategy.Plan(room.Map, [region], pool, seed, 0, Center, occupied, walls, obstacles);
 		if (dressing != null) plan.AddRange(dressing.Plan(room.Map, region, seed, 0, Center,
-			obstacles.Concat(RoomDressingProfile.GetBounds(plan)).ToArray(), walls,
+			occupied.Concat(RoomDressingProfile.GetBounds(plan)).ToArray(), walls,
 			obstacles.Concat(RoomDressingProfile.GetBounds(plan, true)).ToArray(), pool.PassageRadius));
 		foreach (var placement in plan)
 		{
@@ -393,7 +423,8 @@ public partial class ProceduralRoomBuilder : Resource
 			return sewerMaterials[rng.RandiRange(0, sewerMaterials.Length - 1)];
 		}
 
-		return (RoomMaterial)rng.RandiRange(1, 6);
+		RoomMaterial[] ordinary = [RoomMaterial.StoneSlab, RoomMaterial.CobbleGrid, RoomMaterial.LightWood, RoomMaterial.DarkWood];
+		return ordinary[rng.RandiRange(0, ordinary.Length - 1)];
 	}
 
 	/// <summary>
@@ -436,11 +467,13 @@ public partial class ProceduralRoomBuilder : Resource
 
 	private Footprint GenerateFootprint(RandomNumberGenerator rng, Vector2I? dimensions = null)
 	{
-		int min = Mathf.Max(3, MinTiles);
+		int min = Mathf.Max(1, MinTiles);
 		int max = Mathf.Max(min, MaxTiles);
 		int width = dimensions?.X ?? rng.RandiRange(min, max);
 		int height = dimensions?.Y ?? rng.RandiRange(min, max);
 
+		// Narrow spaces have explicit connections; their floor need not contain a 3×3 interior block.
+		if (width < 3 || height < 3) return MakeFullRectangle(width, height);
 		for (int attempt = 0; attempt < 8; attempt++)
 		{
 			var candidate = GenerateConnectedFootprint(width, height, rng);
@@ -1135,6 +1168,8 @@ public partial class ProceduralRoomBuilder : Resource
 		int z)
 	{
 		bool isBoundary = footprint.IsBoundaryFloor(x, z);
+		if (material == RoomMaterial.LightWood) return (TileMaterial.WoodLight, false);
+		if (material == RoomMaterial.DarkWood) return (TileMaterial.WoodDark, false);
 
 		if (purpose == RoomPurpose.GreatHall)
 		{
@@ -1628,7 +1663,7 @@ public partial class ProceduralRoomBuilder : Resource
 		}
 		else
 		{
-			if (!GenerateWalls && rng.Randf() >= DoorwayChance) return chosenOpenings;
+			if (!GenerateWalls && footprint.Width >= 3 && footprint.Height >= 3 && rng.Randf() >= DoorwayChance) return chosenOpenings;
 			var candidates = CollectDoorwayCandidates(footprint, rng);
 			if (candidates.Count == 0) return chosenOpenings;
 			int minOpenings = Mathf.Max(1, MinDoorways);
@@ -1788,7 +1823,7 @@ public partial class ProceduralRoomBuilder : Resource
 		Footprint footprint,
 		HashSet<(Vector2I Tile, Vector2I Direction)> openings,
 		RoomPurpose purpose,
-		RandomNumberGenerator rng)
+		RandomNumberGenerator rng, RoomSurfaceStyle surface)
 	{
 		int baseWall = WallLibrary.FindItemByName("wall");
 		if (baseWall < 0)
@@ -1796,12 +1831,12 @@ public partial class ProceduralRoomBuilder : Resource
 			baseWall = 0;
 		}
 		int crackedWall = WallLibrary.FindItemByName("wall_cracked");
-		int halfWall = WallLibrary.FindItemByName("wall_half");
+		int halfWall = WallLibrary.FindItemByName(surface?.HalfWall ?? "wall_half");
 		if (halfWall < 0)
 		{
 			halfWall = baseWall;
 		}
-		int cornerWall = WallLibrary.FindItemByName("wall_corner");
+		int cornerWall = WallLibrary.FindItemByName(surface?.CornerWall ?? "wall_corner");
 		if (cornerWall < 0)
 		{
 			cornerWall = baseWall;
@@ -1837,7 +1872,7 @@ public partial class ProceduralRoomBuilder : Resource
 				}
 				return !openings.Contains((tile, new Vector2I(dx, dz)));
 			},
-			() => (crackedWall >= 0 && rng.Randf() < effectiveWear) ? crackedWall : baseWall,
+			() => surface != null ? PickItem(WallLibrary, surface.StraightWalls, rng) : (crackedWall >= 0 && rng.Randf() < effectiveWear) ? crackedWall : baseWall,
 			() => halfWall,
 			() => cornerWall);
 	}

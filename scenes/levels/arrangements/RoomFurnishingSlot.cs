@@ -5,6 +5,7 @@ using Godot;
 [Tool, GlobalClass]
 public partial class RoomFurnishingSlot : Node3D
 {
+	[Export] public string Id { get; set; } = "";
 	[Export] public RoomArrangementDefinition Definition { get; set; }
 
 	/// <summary>Resolve the rotated slot in the same coordinate system as the placement map.</summary>
@@ -12,6 +13,6 @@ public partial class RoomFurnishingSlot : Node3D
 	{
 		int turn = ((Mathf.RoundToInt(Mathf.Atan2(transform.Basis.Z.X, transform.Basis.Z.Z) / (Mathf.Pi / 2)) % 4) + 4) % 4;
 		return new(Definition, roomId, anchor, turn,
-			Definition.OccupiedTiles.Select(tile => anchor + ConnectedArrangementStrategy.Rotate(tile, turn)).ToArray(), transform);
+			Definition.OccupiedTiles.Select(tile => anchor + ConnectedArrangementStrategy.Rotate(tile, turn)).ToArray(), transform, SlotId: Id);
 	}
 }

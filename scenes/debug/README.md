@@ -20,9 +20,9 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 
 The scene explicitly assigns the production Garrison factory, map generator, preview root, camera and UI. Its recipe list comes from the factory's Inspector-authored `RoomGenerators`; it does not maintain a second catalog or generation algorithm.
 
-- **Single room:** select a recipe and seed, rotate in quarter-turns and toggle furnishings. The harness builds the production shell with walls, rotates it, then runs the production furnishing pass. The camera centers and frames the result automatically.
+- **Single room:** select a recipe and seed, rotate in quarter-turns and toggle furnishings. Modular recipes also offer an exact Layout selector and Columns off/on controls; prisons offer one-wall/opposing-wall row selection. These preview overrides do not change production Resources. The harness builds the production shell with walls, rotates it, then runs the production furnishing pass. The camera centers and frames the result automatically.
 - **Generated floor:** uses the production packing, corridor, wall and furnishing pipeline with the same factory. This checks that required room entrances and furnishings survive placement among other rooms. Recipe selection and room rotation are disabled in this view.
-- **Controls:** R advances the seed, A toggles furnishings, F switches views, 1–5 selects a recipe, Q/E rotates a room. The panel also accepts a manual seed and can rebuild without advancing it.
+- **Controls:** R advances the seed, A toggles furnishings, F switches views, 1–9 selects the first nine recipes, 0 selects the prison, Q/E rotates a room. The panel also accepts a manual seed and can rebuild without advancing it.
 - Generation errors appear in the status panel and Godot output. Optional furnishings can be omitted; required slots must all fit. These static previews do not exercise player movement or navmesh baking—use gameplay for those checks.
 
 [Level folder guide](../levels/README.md) identifies where to change generator code, room presets and furnishing assets. Regenerate after editing a preset; the shared Resource remains the authored definition.

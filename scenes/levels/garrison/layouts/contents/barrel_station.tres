@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="RoomAssemblyDefinition" load_steps=10 format=3]
+[ext_resource type="Script" path="res://scenes/levels/generators/rooms/RoomAssemblyDefinition.cs" id="script"]
+[ext_resource type="Script" path="res://scenes/levels/generators/rooms/RoomAssemblyPart.cs" id="part"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/barrel_station_core.tres" id="primary"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/furniture/bedside_table.tres" id="table"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/small_box.tres" id="supplies"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/wall/wall_torch_high.tres" id="torch"]
+[sub_resource type="Resource" id="table"]
+script = ExtResource("part")
+Id = "table"
+Arrangement = ExtResource("table")
+Offset = Vector3(2.1, 0, 0)
+Chance = 0.9
+metadata/_custom_type_script = ExtResource("part")
+[sub_resource type="Resource" id="supplies"]
+script = ExtResource("part")
+Id = "supplies"
+Arrangement = ExtResource("supplies")
+Offset = Vector3(-1.6, 0, 0.55)
+Chance = 0.5
+metadata/_custom_type_script = ExtResource("part")
+[sub_resource type="Resource" id="torch"]
+script = ExtResource("part")
+Id = "torch"
+Arrangement = ExtResource("torch")
+Offset = Vector3(0, 0, 0)
+Chance = 0.5
+metadata/_custom_type_script = ExtResource("part")
+[resource]
+script = ExtResource("script")
+Primary = ExtResource("primary")
+Parts = [SubResource("table"), SubResource("supplies"), SubResource("torch")]
+metadata/_custom_type_script = ExtResource("script")

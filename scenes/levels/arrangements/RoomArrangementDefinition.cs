@@ -11,6 +11,9 @@ public partial class RoomArrangementDefinition : Resource
 {
 	[Export] public string Id { get; set; } = "";
 	[Export] public PackedScene Scene { get; set; }
+	/// <summary>Optional leaf alternatives, each with its own geometry and stable identity. Prefer unused choices before repeating.</summary>
+	[Export] public RoomArrangementDefinition[] Variations { get; set; } = [];
+	public IEnumerable<RoomArrangementDefinition> Variants => new[] { this }.Concat(Variations ?? []).Where(variation => variation != null);
 	[Export] public float Weight { get; set; } = 1;
 	[Export] public int MaximumPerRoom { get; set; } = 1;
 	[Export] public Godot.Collections.Array<Vector2I> OccupiedTiles { get; set; } = [Vector2I.Zero];
@@ -34,6 +37,14 @@ public partial class RoomArrangementDefinition : Resource
 
 	/// <summary>Factory for a separately owned scene instance; optional placement failures never mutate the definition.</summary>
 	public RoomArrangement Instantiate() => Scene.Instantiate<RoomArrangement>();
+
+	/// <summary>Measure one authored visual/placement envelope without retaining an instantiated scene.</summary>
+	public Aabb GetPlacementBounds()
+	{
+		var instance = Instantiate();
+		try { return instance.PlacementBounds; }
+		finally { instance.Free(); }
+	}
 
 	/// <summary>Unresolved or unknown room purposes never silently receive themed furnishings.</summary>
 	public bool AllowsPurpose(RoomPurpose purpose) => purpose >= RoomPurpose.Chamber && purpose <= RoomPurpose.RuinedCollapse
@@ -82,6 +93,15 @@ public partial class RoomArrangementDefinition : Resource
 			}
 			finally { root.Free(); }
 
+		}
+		if (Variations == null || Variations.Any(variation => variation == null || variation.Variations == null || variation.Variations.Length > 0)
+			|| Variants.Select(variation => variation.Id).Distinct().Count() != Variants.Count())
+			errors.Add("Variations must be distinct, nonrecursive leaf definitions.");
+		else foreach (var variation in Variations)
+		{
+			if (variation.Placement != Placement || variation.RequiresWall != RequiresWall || variation.AlignToWall != AlignToWall)
+				errors.Add("Variations must retain their placement kind and wall requirements.");
+			errors.AddRange(variation.Validate());
 		}
 		return errors.Select(error => $"{Id}: {error}").ToArray();
 	}

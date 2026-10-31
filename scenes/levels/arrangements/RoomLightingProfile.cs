@@ -59,7 +59,7 @@ public partial class RoomLightingProfile : Resource
 			var definition = rng.Randf() < LitChance ? LitTorch : UnlitTorch;
 			var tangent = ConnectedArrangementStrategy.Rotate(outward, 1);
 			var origin = tileCenter(anchor) + new Vector3(tangent.X, 0, tangent.Y) * tangentOffset;
-			targets.FurnishingSlots.Add(new(definition, room.Id, anchor, turn, [], new(new Basis(Vector3.Up, turn * Mathf.Pi / 2), origin)));
+			targets.FurnishingSlots.Add(new(definition, room.Id, anchor, turn, [], new(new Basis(Vector3.Up, turn * Mathf.Pi / 2), origin), SlotId: $"light:{anchor}:{turn}"));
 		}
 		foreach (var door in room.ConnectorTiles.OrderBy(tile => tile.X).ThenBy(tile => tile.Y))
 		foreach (var outward in map.GetConnectorDirections(door.X, door.Y))

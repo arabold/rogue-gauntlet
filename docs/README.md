@@ -43,6 +43,7 @@ These documents explain code that exists today. Any proposed extension or future
 
 | Document | Remaining scope |
 | --- | --- |
+| [Reusable room sections](specs/reusable-room-sections-plan.md) | Opaque partitions, internal mechanical locks and sewage content on the implemented composition functions |
 | [Secret doors and locks](specs/secret-doors-and-locks-plan.md) | Remaining tuning, hidden mechanisms, consumable key chains and secret shortcuts |
 | [Dungeon progression](specs/level-progression-prototype-plan.md) | Realm pools/recipes and the visible Warden stair seal |
 | [Actions and interactions](specs/actor-actions-and-interactions-plan.md) | Further actor intentions/content; magic moved to the magic rework plan |

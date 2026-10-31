@@ -45,10 +45,11 @@ public partial class MixedRoomFactory : RoomFactory
 
 	public override Room CreateStandardRoom(RandomNumberGenerator rng)
 	{
+		if (ProceduralShare >= 1 && RoomGenerators.Length == 0 && RoomBuilder == null)
+			throw new InvalidOperationException("Generated room factory: assign a generator or room builder.");
 		if ((RoomGenerators.Length > 0 || RoomBuilder != null) && rng.Randf() < ProceduralShare)
 		{
-			// Fall back to an authored room on misconfiguration (e.g. a renamed mesh
-			// item) instead of returning null and silently starving the layout of rooms.
+			// A selected generated recipe must succeed; substituting a frozen room hides broken authoring.
 			Room room;
 			if (RoomGenerators.Length > 0)
 			{
@@ -70,10 +71,7 @@ public partial class MixedRoomFactory : RoomFactory
 				room = selected.BuildRoom(rng);
 			}
 			else room = RoomBuilder.BuildRoom(rng);
-			if (room != null)
-			{
-				return room;
-			}
+			return room ?? throw new InvalidOperationException("Selected generated room could not be built; authored substitution is disabled.");
 		}
 
 		WarnIfAuthoredFactoryMissing();

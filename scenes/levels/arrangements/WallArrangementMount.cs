@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>Align an authored envelope to an actual room-facing solid wall span, including its vertical support.</summary>
 public static class WallArrangementMount
@@ -11,23 +12,31 @@ public static class WallArrangementMount
 		var rotated = new Transform3D(rotation, Vector3.Zero) * localBounds;
 		var proposed = transform * localBounds;
 		bool alongX = outward.X != 0;
-		float closest = float.PositiveInfinity;
-		bool supported = false;
+		var spans = new List<(float Distance, float Start, float End)>();
 		foreach (var wall in walls)
 		{
-			// A single solid span must back the entire visible envelope, not an open doorway or a lintel.
-			bool covers = wall.Position.Y <= proposed.Position.Y + .001f && wall.End.Y >= proposed.End.Y - .001f
-				&& (alongX ? wall.Position.Z <= proposed.Position.Z + .001f && wall.End.Z >= proposed.End.Z - .001f
-					: wall.Position.X <= proposed.Position.X + .001f && wall.End.X >= proposed.End.X - .001f);
-			if (!covers || (alongX ? wall.Size.X : wall.Size.Z) <= wallInset) continue;
+			if (wall.Position.Y > proposed.Position.Y + .001f || wall.End.Y < proposed.End.Y - .001f
+				|| (alongX ? wall.Size.X : wall.Size.Z) <= wallInset) continue;
 			float face = alongX ? (outward.X > 0 ? wall.Position.X : wall.End.X)
 				: (outward.Y > 0 ? wall.Position.Z : wall.End.Z);
 			float distance = alongX ? (face - tileCenter.X) * outward.X : (face - tileCenter.Z) * outward.Y;
 			if (distance < .1f || distance > Room.TileSize / 2f + .5f) continue;
-			closest = Mathf.Min(closest, distance);
-			supported = true;
+			spans.Add((distance, alongX ? wall.Position.Z : wall.Position.X, alongX ? wall.End.Z : wall.End.X));
 		}
-		if (!supported) return false;
+		float closest = float.PositiveInfinity;
+		foreach (float distance in spans.Select(span => span.Distance).Distinct().Order())
+		{
+			float covered = alongX ? proposed.Position.Z : proposed.Position.X;
+			float end = alongX ? proposed.End.Z : proposed.End.X;
+			foreach (var span in spans.Where(span => Mathf.Abs(span.Distance - distance) < .001f).OrderBy(span => span.Start))
+			{
+				if (span.End < covered - .001f) continue;
+				if (span.Start > covered + .001f) break;
+				covered = Mathf.Max(covered, span.End);
+			}
+			if (covered >= end - .001f) { closest = distance; break; }
+		}
+		if (!float.IsFinite(closest)) return false;
 		if (wallPlaneDistance > 0) closest = wallPlaneDistance;
 		float back = alongX ? (outward.X > 0 ? rotated.End.X : -rotated.Position.X)
 			: (outward.Y > 0 ? rotated.End.Z : -rotated.Position.Z);

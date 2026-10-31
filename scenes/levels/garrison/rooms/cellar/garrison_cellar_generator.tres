@@ -1,22 +1,44 @@
-[gd_resource type="Resource" script_class="CellarRoomGenerator" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="ModularRoomGenerator" load_steps=15 format=3]
 
-[ext_resource type="Script" uid="uid://b03ajuijt3d8n" path="res://scenes/levels/generators/rooms/CellarRoomGenerator.cs" id="generator"]
+[ext_resource type="Script" path="res://scenes/levels/generators/rooms/ModularRoomGenerator.cs" id="generator"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/rooms/cellar/garrison_cellar_shell.tres" id="shell"]
-[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/barrel_edge.tres" id="barrels"]
-
-[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/crate_cache.tres" id="crate_cache"]
-[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/mixed_provisions.tres" id="mixed_provisions"]
-[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/stacked_boxes.tres" id="stacked_boxes"]
-[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/keg_cache.tres" id="keg_cache"]
-
 [ext_resource type="Resource" path="res://scenes/levels/garrison/rooms/cellar/garrison_cellar_dressing.tres" id="dressing"]
+[ext_resource type="Script" path="res://scenes/levels/generators/rooms/RoomLayoutVariant.cs" id="variant"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/columns/aisle_columns.tres" id="columns"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/base/chamber.tres" id="base0"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/contents/storage_bays.tres" id="contents0"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/base/l_chamber.tres" id="base1"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/contents/storage_bays.tres" id="contents1"]
+
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/base/store.tres" id="base2"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/contents/supply_stations.tres" id="contents2"]
+
+[sub_resource type="Resource" id="Layout0"]
+script = ExtResource("variant")
+Id = "cellar.bays"
+BaseLayout = ExtResource("base0")
+Contents = ExtResource("contents0")
+metadata/_custom_type_script = ExtResource("variant")
+
+[sub_resource type="Resource" id="Layout1"]
+script = ExtResource("variant")
+Id = "cellar.l_bays"
+BaseLayout = ExtResource("base1")
+Contents = ExtResource("contents1")
+metadata/_custom_type_script = ExtResource("variant")
+
+[sub_resource type="Resource" id="Layout2"]
+script = ExtResource("variant")
+Id = "cellar.supply_stations"
+BaseLayout = ExtResource("base2")
+Contents = ExtResource("contents2")
+metadata/_custom_type_script = ExtResource("variant")
 
 [resource]
 script = ExtResource("generator")
+MinimumFloorTiles = 6
 ShellBuilder = ExtResource("shell")
 Dressing = ExtResource("dressing")
-StorageArrangements = [ExtResource("barrels"), ExtResource("crate_cache"), ExtResource("mixed_provisions"), ExtResource("stacked_boxes"), ExtResource("keg_cache")]
-MaximumClusters = 10
-MaximumOccupiedFraction = 0.4
-PassageRadius = 1.0
+Columns = ExtResource("columns")
+Layouts = [SubResource("Layout0"), SubResource("Layout1"), SubResource("Layout2")]
 metadata/_custom_type_script = ExtResource("generator")

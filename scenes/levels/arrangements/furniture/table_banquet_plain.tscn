@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" uid="uid://b0j8axjt5kodx" path="res://scenes/levels/arrangements/RoomArrangement.cs" id="root"]
+[ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="library"]
+
+[node name="TableBanquet" type="Node3D" node_paths=PackedStringArray("Content") groups=["prop", "room_arrangement"]]
+script = ExtResource("root")
+Content = NodePath("Geometry")
+PlacementBounds = AABB(-0.06, -0.05, -1.40, 4.12, 2.02, 2.80)
+
+[node name="Geometry" type="GridMap" parent="."]
+position = Vector3(2, 0, 0)
+mesh_library = ExtResource("library")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+collision_layer = 16
+collision_mask = 0
+data = {
+"cells": PackedInt32Array(0, 0, 1048615, 65535, 65535, 1048595, 1, 65535, 1048595, 65535, 1, 1441811, 1, 1, 1441811)
+}

@@ -8,6 +8,7 @@ using Godot;
 public partial class Door : Node3D
 {
 	[Export] public DoorLockComponent Lock { get; set; }
+	[Export] public InteriorDoorComponent Interior { get; set; }
 	[Export] public SecretDoorComponent Secret { get; set; }
 	[Export] public InteractiveComponent Interactive { get; set; }
 	[Export] public MeshInstance3D KeyMarker { get; set; }

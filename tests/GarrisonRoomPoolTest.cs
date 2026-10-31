@@ -58,22 +58,27 @@ public class GarrisonRoomPoolTest
 	}
 
 	[TestCase]
-	public void ExhaustedLandmarksBecomeProceduralSlotsAndResetPerFloor()
+	public void OrdinaryAndSpecialSlotsAreGeneratedAndResetReproducesTheirGeometry()
 	{
 		var factory = TestFactories.Load<MixedRoomFactory>(Preset, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var authored = (DungeonRoomFactory)factory.AuthoredFactory;
+		AssertInt(authored.StandardRoomScenePaths.Count).IsEqual(0);
+		AssertInt(authored.SpecialRoomScenePaths.Count).IsEqual(0);
 		using var rng = new RandomNumberGenerator { Seed = 42 };
-		var first = factory.CreateSpecialRoom(rng);
-		var second = factory.CreateSpecialRoom(rng);
-		AssertBool(first.SceneFilePath != second.SceneFilePath).IsTrue();
-		AssertBool(first.SceneFilePath.EndsWith("barracks.tscn") || second.SceneFilePath.EndsWith("barracks.tscn")).IsTrue();
-		var filler = factory.CreateSpecialRoom(rng);
-		AssertString(filler.SceneFilePath).IsEmpty();
-		AssertBool(IsGarrisonPurpose(filler.Purpose)).IsTrue();
+		string first = "";
+		for (int index = 0; index < 8; index++)
+		{
+			var room = index % 2 == 0 ? factory.CreateSpecialRoom(rng) : factory.CreateStandardRoom(rng);
+			AssertString(room.SceneFilePath).IsEmpty();
+			AssertObject(room.Generator).IsNotNull();
+			if (index == 0) first = string.Join("|", room.FloorGridMap.GetUsedCells());
+			room.Free();
+		}
 		factory.Reset();
 		rng.Seed = 42;
 		var reset = factory.CreateSpecialRoom(rng);
-		AssertString(reset.SceneFilePath).IsEqual(first.SceneFilePath);
-		foreach (var room in new[] { first, second, filler, reset }) room.Free();
+		AssertString(string.Join("|", reset.FloorGridMap.GetUsedCells())).IsEqual(first);
+		reset.Free();
 	}
 
 	[TestCase]
@@ -85,11 +90,15 @@ public class GarrisonRoomPoolTest
 		var generator = level.MapGenerator;
 		AssertString(generator.RoomFactory.ResourcePath).IsEqual(Preset);
 		var encounters = (RealmEncounterFactory)generator.MobFactory;
+		string failure = "";
+		level.GenerationFailed += error => failure = error;
 		foreach (ulong runSeed in new ulong[] { 1, 23, 12345 })
 		for (uint depth = 1; depth <= 3; depth++)
 		{
 			level.ConfigureGeneration(new RunState(runSeed), depth, null, null);
+			failure = "";
 			level.Generate();
+			AssertString(failure).OverrideFailureMessage($"seed={runSeed} depth={depth}: {failure}").IsEmpty();
 			AssertArray(LayoutConnectivityTest.FindConnectivityFailures(generator)).IsEmpty();
 			AssertBool(generator.Floor.Rooms.Where(room => room.IsProcedural).All(room => IsGarrisonPurpose(room.Purpose))).IsTrue();
 			AssertInt(generator.Floor.Rooms.Count(room => room.IsProcedural)).IsGreater(0);
@@ -121,7 +130,8 @@ public class GarrisonRoomPoolTest
 		var level = (Level)runner.Scene();
 		var library = TestFactories.Load<LibraryRoomGenerator>("res://scenes/levels/garrison/rooms/library/garrison_library_generator.tres");
 		var placed = new HashSet<int>();
-		for (ulong runSeed = 1; runSeed <= 40 && !placed.SetEquals(library.LengthTiles); runSeed++)
+		var lengths = library.StackRows.Select(rows => library.SizeForRows(rows).Y).ToArray();
+		for (ulong runSeed = 1; runSeed <= 40 && !placed.SetEquals(lengths); runSeed++)
 		{
 			level.ConfigureGeneration(new RunState(runSeed), 1, null, null);
 			level.Generate();
@@ -130,7 +140,7 @@ public class GarrisonRoomPoolTest
 				.Select(room => Mathf.Max(room.Map.Width, room.Map.Height)));
 			await runner.SimulateFrames(1);
 		}
-		AssertArray(placed.Order().ToArray()).IsEqual(library.LengthTiles.Order().ToArray());
+		AssertArray(placed.Order().ToArray()).IsEqual(lengths.Order().ToArray());
 	}
 
 	private static bool IsGarrisonPurpose(RoomPurpose purpose) => purpose is RoomPurpose.Chamber

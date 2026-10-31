@@ -30,6 +30,8 @@ public partial class Room : Node3D
 	[Export] public GridMap FloorGridMap { get; set; }
 	[Export] public GridMap WallGridMap { get; set; }
 	[Export] public GridMap DecorationGridMap { get; set; }
+	/// <summary>Generated interior boundaries and operable doors, kept separate from exterior connection walls.</summary>
+	[Export] public Node3D InteriorStructure { get; set; }
 	private GridMap _debugGridMap;
 
 	// Authored wall mesh footprints, rebuilt by every BakeTileMap (so a Rotate's
@@ -374,7 +376,7 @@ public partial class Room : Node3D
 				continue;
 			}
 
-			map.SetConnector(tile.X, tile.Y, directions, isDoorway: true);
+			map.SetConnector(tile.X, tile.Y, map.GetConnectorDirections(tile.X, tile.Y).Concat(directions).Distinct().ToList(), isDoorway: true);
 		}
 	}
 

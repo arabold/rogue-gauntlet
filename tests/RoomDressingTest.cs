@@ -33,6 +33,8 @@ public class RoomDressingTest
 	public void DoorFixturesHaveRealSupportAndHonorLitAndUnlitVariants(string kind)
 	{
 		var recipe = TestFactories.Load<RoomGenerator>($"{Root}{kind}/garrison_{kind}_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		if (recipe is ModularRoomGenerator modular)
+			foreach (var layout in modular.Layouts) ((WallBedsRoomLayout)layout.Contents).Cluster.DecorationChance = 0;
 		var lighting = recipe.Dressing.Lighting;
 		lighting.DoorChance = lighting.DoorPairChance = 1;
 		lighting.BedChance = 0;
@@ -47,7 +49,7 @@ public class RoomDressingTest
 				rng.Seed = 23;
 				AssertBool(recipe.PopulateRoom(room, rng)).IsTrue();
 				var torches = room.GetChildren().OfType<RoomArrangement>().Where(a => a.GetMeta("arrangement_id").AsString().Contains("wall_torch")).ToArray();
-				AssertInt(torches.Length).IsEqual(4);
+				AssertInt(torches.Length).IsEqual(room.Map.Width == 2 ? 2 : 4);
 				foreach (var torch in torches)
 				{
 					AssertString(torch.GetMeta("arrangement_id").AsString()).IsEqual(lit == 1 ? lighting.LitTorch.Id : lighting.UnlitTorch.Id);
@@ -126,8 +128,9 @@ public class RoomDressingTest
 	[TestCase]
 	public void StoragePaletteIncludesMixedCratesAndBarrelsWithValidBounds()
 	{
-		var cellar = TestFactories.Load<CellarRoomGenerator>(Root + "cellar/garrison_cellar_generator.tres");
-		AssertInt(cellar.StorageArrangements.Length).IsGreater(3);
-		foreach (var definition in cellar.StorageArrangements) AssertArray(definition.Validate()).IsEmpty();
+		var cellar = TestFactories.Load<ModularRoomGenerator>(Root + "cellar/garrison_cellar_generator.tres");
+		var definitions = cellar.Layouts.SelectMany(layout => layout.Contents.Definitions).DistinctBy(definition => definition.Id).ToArray();
+		AssertInt(definitions.Length).IsGreater(3);
+		foreach (var definition in definitions) AssertArray(definition.Validate()).IsEmpty();
 	}
 }

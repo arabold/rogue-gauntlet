@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RoomArrangementDefinition" load_steps=3 format=3]
+[ext_resource type="Script" path="res://scenes/levels/arrangements/RoomArrangementDefinition.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/levels/arrangements/boundaries/half_wall.tscn" id="scene"]
+[resource]
+script = ExtResource("script")
+Id = "garrison.half_wall"
+Scene = ExtResource("scene")
+AllowedPurposes = 1
+RequiresWall = false
+AlignToWall = false
+HorizontalClearance = 0.0
+metadata/_custom_type_script = ExtResource("script")

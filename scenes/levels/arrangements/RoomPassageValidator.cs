@@ -49,14 +49,14 @@ public sealed class RoomPassageValidator
 			.Where(rect => rect.Size.X > 0 && rect.Size.Y > 0).ToArray();
 		if (_openings.Any(point => !_domain.HasPoint(point) || barriers.Any(rect => ContainsClosed(rect, point)))) return false;
 		float[] xs = barriers.SelectMany(rect => new[] { rect.Position.X, rect.End.X })
-			.Append(_domain.Position.X).Append(_domain.End.X).Distinct().Order().ToArray();
+			.Append(_domain.Position.X).Append(_domain.End.X).Select(StableEdge).Distinct().Order().ToArray();
 		float[] zs = barriers.SelectMany(rect => new[] { rect.Position.Y, rect.End.Y })
-			.Append(_domain.Position.Y).Append(_domain.End.Y).Distinct().Order().ToArray();
+			.Append(_domain.Position.Y).Append(_domain.End.Y).Select(StableEdge).Distinct().Order().ToArray();
 		int width = xs.Length - 1, depth = zs.Length - 1;
 		var blocked = new bool[width * depth];
 		foreach (var rect in barriers)
-			for (int x = Array.BinarySearch(xs, rect.Position.X); x < Array.BinarySearch(xs, rect.End.X); x++)
-				for (int z = Array.BinarySearch(zs, rect.Position.Y); z < Array.BinarySearch(zs, rect.End.Y); z++)
+			for (int x = Array.BinarySearch(xs, StableEdge(rect.Position.X)); x < Array.BinarySearch(xs, StableEdge(rect.End.X)); x++)
+				for (int z = Array.BinarySearch(zs, StableEdge(rect.Position.Y)); z < Array.BinarySearch(zs, StableEdge(rect.End.Y)); z++)
 					blocked[z * width + x] = true;
 		int start = Array.FindIndex(blocked, value => !value);
 		if (start < 0) return false;
@@ -82,6 +82,10 @@ public sealed class RoomPassageValidator
 			queue.Enqueue(index);
 		}
 	}
+
+	// Rotated meshes can differ by micrometers at a shared edge. Do not create disconnected free slivers
+	// from that noise; millimeter partition coordinates are well below the authored passage clearance.
+	private static float StableEdge(float value) => Mathf.Round(value * 1000) / 1000;
 
 	private IEnumerable<Rect2> Project(IEnumerable<Aabb> boxes) => boxes
 		.Where(box => box.End.Y > .1f && box.Position.Y < 2.5f)

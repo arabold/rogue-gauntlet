@@ -22,7 +22,7 @@ public partial class RoomArrangementPool : Resource
 		if (PlacementStrategy == null) errors.Add("Arrangement pool: assign a placement strategy.");
 		if (MaximumPerRoom < 0 || MaximumPerRoom > 64 || MaximumWallPerRoom < 0 || MaximumWallPerRoom > 64 || !float.IsFinite(MaximumOccupiedFraction)
 			|| MaximumOccupiedFraction <= 0 || MaximumOccupiedFraction > 1) errors.Add("Arrangement pool: invalid density limits.");
-		if (Entries == null || Entries.Length == 0 || Entries.Any(entry => entry == null)) errors.Add("Arrangement pool: assign nonempty entries.");
+		if (Entries == null || (Entries.Length == 0 && (MaximumPerRoom != 0 || MaximumWallPerRoom != 0 || PlacementStrategy is not SlotArrangementStrategy)) || Entries.Any(entry => entry == null)) errors.Add("Arrangement pool: assign nonempty entries.");
 		else
 		{
 			foreach (var entry in Entries) errors.AddRange(entry.Validate());

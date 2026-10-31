@@ -24,8 +24,10 @@ public partial class DiningRoomGenerator : RoomGenerator
 	protected override bool PopulateStructure(Room room, RandomNumberGenerator rng, bool standalone)
 	{
 		int rows = TableRows[rng.RandiRange(0, TableRows.Length - 1)];
-		if (!PopulateSlotShell(room, rng, standalone, new(3, rows * 2 + 1))) return false;
-		for (int row = 0; row < rows; row++) AddSlot(room, TableArrangement, new(1, row * 2 + 1));
+		if (!PopulateSlotShell(room, rng, true, new(3, rows * 2 + 1))) return false;
+		var context = new RoomFurnishingContext(room, rng.Seed, 1);
+		if (RoomFurnishingPatterns.PlaceTableRows(context, TableArrangement, context.Center(new(1, 1)), rows, Room.TileSize * 2, 0, "tables") != rows) return false;
+		AddPlannedSlots(room, context.Placements, "dining");
 		return true;
 	}
 }

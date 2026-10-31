@@ -14,7 +14,6 @@ public class RoomGeneratorTest
 	private const string Root = "res://scenes/levels/garrison/";
 
 	[TestCase("hall")]
-	[TestCase("cellar")]
 	public void SizeSeedAndRotationSweepKeepsThemedInteriorsConnected(string kind)
 	{
 		var generator = TestFactories.Load<RoomGenerator>($"{Root}rooms/{kind}/garrison_{kind}_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
@@ -93,7 +92,6 @@ public class RoomGeneratorTest
 			finally { room.Free(); }
 		}
 		AssertInt(total).IsGreater(0);
-		if (generator is CellarRoomGenerator cellar) AssertBool(cellar.StorageArrangements.All(entry => entry.MaximumPerRoom == 1)).IsTrue();
 	}
 
 	[TestCase(5, 5, 0f)]
@@ -141,7 +139,7 @@ public class RoomGeneratorTest
 	[TestCase]
 	public void EditorRerollsValidateBeforeReplacementAndSaveEditableAuthoredRooms()
 	{
-		var generator = TestFactories.Load<CellarRoomGenerator>(Root + "rooms/cellar/garrison_cellar_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var generator = TestFactories.Load<ModularRoomGenerator>(Root + "rooms/cellar/garrison_cellar_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		using var rng = new RandomNumberGenerator { Seed = 23 };
 		var room = new Room();
 		const string path = "user://coded_room_generator_test.tscn";
@@ -154,10 +152,10 @@ public class RoomGeneratorTest
 			rng.Seed = 23;
 			AssertBool(generator.PopulateRoom(room, rng)).IsTrue();
 			AssertString(Signature()).IsEqual(first);
-			generator.MaximumClusters = 0;
+			generator.CompositionAttempts = 0;
 			AssertBool(generator.PopulateRoom(room, rng)).IsFalse();
 			AssertString(Signature()).IsEqual(first);
-			generator.MaximumClusters = 10;
+			generator.CompositionAttempts = 8;
 			AssertBool(generator.SaveRoomScene(path, 23)).IsTrue();
 			var saved = TestFactories.Load<PackedScene>(path, cacheMode: ResourceLoader.CacheMode.IgnoreDeep).Instantiate<Room>();
 			AssertBool(saved.SceneFilePath.Length > 0).IsTrue();

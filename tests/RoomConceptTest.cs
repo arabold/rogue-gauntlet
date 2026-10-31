@@ -14,8 +14,6 @@ public class RoomConceptTest
 
 	[TestCase("dining", 1, 3)]
 	[TestCase("dining", 3, 3)]
-	[TestCase("barracks", 2, 3)]
-	[TestCase("barracks", 4, 3)]
 	[TestCase("library", 5, 5)]
 	[TestCase("library", 7, 5)]
 	[TestCase("library", 7, 7)]
@@ -23,14 +21,12 @@ public class RoomConceptTest
 	{
 		var recipe = TestFactories.Load<RoomGenerator>($"{Root}rooms/{kind}/garrison_{kind}_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		if (recipe is DiningRoomGenerator dining) dining.TableRows = [size];
-		if (recipe is BarracksRoomGenerator barracks) { barracks.BedPairs = [size]; barracks.WidthTiles = width; }
-		if (recipe is LibraryRoomGenerator library) { library.LengthTiles = [size]; library.WidthTiles = width; }
+		if (recipe is LibraryRoomGenerator library) { library.StackRows = [size - 2]; library.ColumnsPerBank = (width - 3) / 2; }
 		AssertArray(recipe.Validate()).IsEmpty();
 		int expected = kind switch
 		{
 			"dining" => size,
-			"barracks" => size * 2,
-			_ => (width, size) switch { (5, 5) => 16, (5, 7) => 24, _ => 38 },
+			_ => (width, size) switch { (5, 5) => 24, (5, 7) => 32, _ => 46 },
 		};
 		for (ulong seed = 1; seed <= 2; seed++)
 		{
@@ -93,8 +89,8 @@ public class RoomConceptTest
 	[TestCase]
 	public void PackingAndGenericRerollsPreserveAuthoredFurnitureAndRemoveObsoleteSlots()
 	{
-		var recipe = TestFactories.Load<BarracksRoomGenerator>(Root + "rooms/barracks/garrison_barracks_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
-		recipe.BedPairs = [3];
+		var recipe = TestFactories.Load<DiningRoomGenerator>(Root + "rooms/dining/garrison_dining_generator.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		recipe.TableRows = [3];
 		using var rng = new RandomNumberGenerator { Seed = 23 };
 		var room = new Room();
 		try
@@ -104,13 +100,13 @@ public class RoomConceptTest
 			using var packed = new PackedScene();
 			AssertBool(packed.Pack(room) == Error.Ok).IsTrue();
 			var restored = packed.Instantiate<Room>();
-			AssertInt(restored.GetChildren().OfType<RoomFurnishingSlot>().Count()).IsEqual(6);
-			AssertInt(restored.GetChildren().OfType<RoomArrangement>().Count(a => !a.GetMeta("is_room_detail", false).AsBool())).IsEqual(6);
+			AssertInt(restored.GetChildren().OfType<RoomFurnishingSlot>().Count()).IsEqual(3);
+			AssertInt(restored.GetChildren().OfType<RoomArrangement>().Count(a => !a.GetMeta("is_room_detail", false).AsBool())).IsEqual(3);
 			restored.Free();
 			AssertBool(recipe.ShellBuilder.PopulateRoom(room, rng)).IsTrue();
 			AssertInt(room.GetChildren().OfType<RoomFurnishingSlot>().Count()).IsEqual(0);
 			AssertObject(room.Generator).IsNull();
-			AssertInt(recipe.BedArrangement.MaximumPerRoom).IsEqual(1);
+			AssertInt(recipe.TableArrangement.MaximumPerRoom).IsEqual(1);
 		}
 		finally { room.Free(); }
 	}

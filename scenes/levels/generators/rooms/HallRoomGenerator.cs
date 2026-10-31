@@ -21,7 +21,7 @@ public partial class HallRoomGenerator : RoomGenerator
 	{
 		int length = LengthTiles[rng.RandiRange(0, LengthTiles.Length - 1)];
 		using var builder = (ProceduralRoomBuilder)ShellBuilder.Duplicate();
-		builder.GenerateWalls = standalone;
+		builder.GenerateWalls = true;
 		// Match the floor planner's primary axis, including its X-axis tie break for square halls.
 		bool aisleAlongX = WidthTiles == length;
 		var end = aisleAlongX ? Vector2I.Right : Vector2I.Down;

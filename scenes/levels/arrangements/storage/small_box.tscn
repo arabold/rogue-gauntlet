@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+[ext_resource type="Script" path="res://scenes/levels/arrangements/RoomArrangement.cs" id="root"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="library"]
+[node name="SmallBox" type="Node3D" node_paths=PackedStringArray("Content") groups=["prop", "room_arrangement"]]
+script = ExtResource("root")
+Content = NodePath("Geometry")
+PlacementBounds = AABB(-0.52, -0.02, -0.52, 1.04, 1.04, 1.04)
+[node name="Geometry" type="GridMap" parent="."]
+mesh_library = ExtResource("library")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+collision_layer = 16
+collision_mask = 0
+data = {"cells": PackedInt32Array(0, 0, 16)}

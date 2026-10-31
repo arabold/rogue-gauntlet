@@ -1,12 +1,15 @@
-[gd_resource type="Resource" script_class="RoomArrangementDefinition" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="RoomArrangementDefinition" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/arrangements/RoomArrangementDefinition.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/levels/arrangements/furniture/dining_banquet.tscn" id="scene"]
+
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/furniture/dining_banquet_plain.tres" id="variation0"]
 
 [resource]
 script = ExtResource("script")
 Id = "garrison.dining_banquet"
 Scene = ExtResource("scene")
+Variations = [ExtResource("variation0")]
 AllowedPurposes = 1
 MaximumPerRoom = 1
 WallPositionWeight = 1.0

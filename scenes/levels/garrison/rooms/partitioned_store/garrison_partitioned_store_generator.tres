@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="ModularRoomGenerator" load_steps=11 format=3]
+[ext_resource type="Script" path="res://scenes/levels/generators/rooms/ModularRoomGenerator.cs" id="script"]
+[ext_resource type="Script" path="res://scenes/levels/generators/rooms/RoomLayoutVariant.cs" id="variant"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/rooms/cellar/garrison_cellar_shell.tres" id="shell"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/base/fenced_store.tres" id="base"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/contents/fenced_corner_store.tres" id="contents0"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/contents/fenced_wall_store.tres" id="contents1"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/contents/divided_store.tres" id="contents2"]
+[sub_resource type="Resource" id="Layout0"]
+script = ExtResource("variant")
+Id = "store.corner_bay"
+BaseLayout = ExtResource("base")
+Contents = ExtResource("contents0")
+metadata/_custom_type_script = ExtResource("variant")
+[sub_resource type="Resource" id="Layout1"]
+script = ExtResource("variant")
+Id = "store.wall_bay"
+BaseLayout = ExtResource("base")
+Contents = ExtResource("contents1")
+metadata/_custom_type_script = ExtResource("variant")
+[sub_resource type="Resource" id="Layout2"]
+script = ExtResource("variant")
+Id = "store.divider"
+BaseLayout = ExtResource("base")
+Contents = ExtResource("contents2")
+metadata/_custom_type_script = ExtResource("variant")
+[resource]
+script = ExtResource("script")
+ShellBuilder = ExtResource("shell")
+Weight = 0.6
+Layouts = [SubResource("Layout0"), SubResource("Layout1"), SubResource("Layout2")]
+metadata/_custom_type_script = ExtResource("script")

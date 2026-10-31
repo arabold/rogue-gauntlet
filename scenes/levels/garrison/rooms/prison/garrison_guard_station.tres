@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="RoomAssemblyDefinition" load_steps=9 format=3]
+[ext_resource type="Script" path="res://scenes/levels/generators/rooms/RoomAssemblyDefinition.cs" id="script"]
+[ext_resource type="Script" path="res://scenes/levels/generators/rooms/RoomAssemblyPart.cs" id="part"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/furniture/worktable_wall.tres" id="table"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/furniture/bedside_chair.tres" id="chair"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/storage/small_box.tres" id="box"]
+[sub_resource type="Resource" id="Seat"]
+script = ExtResource("part")
+Id = "chair"
+Arrangement = ExtResource("chair")
+Offset = Vector3(0, 0, 1.8)
+Chance = 0.85
+metadata/_custom_type_script = ExtResource("part")
+[sub_resource type="Resource" id="Seat2"]
+script = ExtResource("part")
+Id = "second_chair"
+Arrangement = ExtResource("chair")
+Offset = Vector3(1.8, 0, 0.5)
+QuarterTurns = 1
+Chance = 0.45
+metadata/_custom_type_script = ExtResource("part")
+[sub_resource type="Resource" id="Supplies"]
+script = ExtResource("part")
+Id = "box"
+Arrangement = ExtResource("box")
+Offset = Vector3(-1.7, 0, 0)
+Chance = 0.35
+metadata/_custom_type_script = ExtResource("part")
+[resource]
+script = ExtResource("script")
+Primary = ExtResource("table")
+Parts = [SubResource("Seat"), SubResource("Seat2"), SubResource("Supplies")]
+metadata/_custom_type_script = ExtResource("script")

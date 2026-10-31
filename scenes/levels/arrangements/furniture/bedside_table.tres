@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RoomArrangementDefinition" load_steps=6 format=3]
+[ext_resource type="Script" path="res://scenes/levels/arrangements/RoomArrangementDefinition.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/levels/arrangements/furniture/bedside_table.tscn" id="scene"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/furniture/bedside_candles.tres" id="variation0"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/furniture/bedside_stool.tres" id="variation1"]
+[ext_resource type="Resource" path="res://scenes/levels/arrangements/furniture/bedside_chair.tres" id="variation2"]
+
+[resource]
+script = ExtResource("script")
+Id = "garrison.bedside_table"
+Scene = ExtResource("scene")
+Variations = [ExtResource("variation0"), ExtResource("variation1"), ExtResource("variation2")]
+AllowedPurposes = 1
+RequiresWall = false
+AlignToWall = false
+HorizontalClearance = 0.05
+OccupiedTiles = [Vector2i(0, 0)]
+metadata/_custom_type_script = ExtResource("script")
