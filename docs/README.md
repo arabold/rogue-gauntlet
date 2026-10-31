@@ -36,7 +36,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Combat actions and defense](combat-system.md) | Shared action ownership, dodge (including passing through monsters), guard/parry/guard break, poise and hit reactions, threat tiers, rear and sneak hits, attack slots, RNG and persistence |
 | [Combat harness and traces](combat-harness.md) | Interactive/scripted combat, JSONL event schema, capture flags and analyzer |
 | [Screen effects](screen-effects.md) | Blindness/poison/near-death post-process overlays, their gameplay wiring through health and status conditions (including confusion and slowness), and the debug harness |
-| [Actor and item world effects](world-effects.md) | Reusable burst/sustained VFX, shared cloak/skin ownership, authored looks, committed potion use, known-cursed and spell-element item auras and the workbench |
+| [Actor and item world effects](world-effects.md) | Reusable burst/sustained VFX, shared cloak/skin ownership, authored looks, committed potion use, known-cursed and spell-element item auras, fountain pool sparkles and the workbench |
 | [Actor invisibility](invisibility.md) | Shared player/monster cloak shader, equipment coverage, reversible materials and effect-harness preview |
 
 ## Remaining implementation plans

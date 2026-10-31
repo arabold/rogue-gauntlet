@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="RestoreManaBlessing" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/props/fountains/RestoreManaBlessing.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/effects/world/mana/mana.tres" id="effect"]
+
+[resource]
+resource_name = "Mana Blessing"
+script = ExtResource("script")
+DrinkEffect = ExtResource("effect")

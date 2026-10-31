@@ -387,6 +387,53 @@ class ItemWorkflowTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unknown arsenal"):
             arsenal({"kind": "unsupported"})
 
+    def test_fountains_are_closed_and_effect_circles_lie_on_their_liquid(self):
+        from items.fountains import fountain, KINDS, POOLS
+        for kind in KINDS:
+            with self.subTest(fountain=kind):
+                basin, parts = fountain({"kind": kind})
+                # The basin and its liquid are each one closed solid; the liquid stays a separate part the game hides.
+                for p in (basin, parts["Liquid"]):
+                    t = solid.inspect(p.verts, p.faces)
+                    self.assertEqual(t["components"], 1)
+                    self.assertEqual(t["boundary_edges"] + t["nonmanifold_edges"] + t["duplicate_faces"] + t["inconsistent_edges"], 0)
+                    self.assertGreater(t["signed_volume"], 0)
+                self.assertNotIn("liquid", set(basin.slots))
+                self.assertAlmostEqual(basin.verts[:, 1].min(), 0, places=5)
+                for level, radius in POOLS[kind]:
+                    # Game-side sparkles fill this circle, so straight below its rim lies the pool surface, not stone.
+                    angles = np.linspace(0, 2 * np.pi, 48, endpoint=False)
+                    above = np.column_stack([np.cos(angles) * radius, np.full(48, level + .01), np.sin(angles) * radius])
+                    drop = kit.ray_distance(above, np.tile([0., -1., 0.], (48, 1)), parts["Liquid"].verts, parts["Liquid"].faces)
+                    np.testing.assert_allclose(drop, .01, atol=1e-4, err_msg=f"{kind} pool at {level}")
+        with self.assertRaisesRegex(ValueError, "Unknown fountain"):
+            fountain({"kind": "unsupported"})
+
+    def test_fountain_liquid_exports_as_its_own_node(self):
+        from items.fountains import fountain
+        from items.arsenal import COLORS as STONE_COLORS
+        basin, parts = fountain({"kind": "tiered"})
+        target = self.repo / "fountain.glb"
+        character_export.export_static(str(target), "fountain", basin, {**STONE_COLORS, "stone": [140, 134, 124],
+                                       "stone_dark": [108, 103, 96], "liquid": [200, 24, 44]},
+                                       materials={"liquid": {"emissive": True}}, parts=parts)
+        g, _ = model.read(target)
+        self.assertEqual([node["name"] for node in g["nodes"]], ["Item", "Liquid"])
+        self.assertEqual(g["scenes"][0]["nodes"], [0, 1])
+        liquid_materials = {p["material"] for p in g["meshes"][g["nodes"][1]["mesh"]]["primitives"]}
+        self.assertTrue(all(g["materials"][i].get("emissiveFactor") for i in liquid_materials))
+        _, faces, _ = model.geometry(target)
+        self.assertEqual(len(faces), len(basin.faces) + len(parts["Liquid"].faces))
+
+    def test_world_props_export_only_into_the_props_tree(self):
+        item = self.item()
+        data = item.recipe()
+        data["export"]["glb"] = "res://assets/custom-props/fountains/test.glb"
+        self.assertEqual(item.destination(data), self.repo / "assets/custom-props/fountains/test.glb")
+        data["export"]["glb"] = "res://assets/custom-props/../custom-monsters/test.glb"
+        with self.assertRaisesRegex(ValueError, "inside"):
+            item.destination(data)
+
     def test_curated_shields_export_with_real_curvature_and_closed_fittings(self):
         from items.shieldcraft import shieldcraft, KINDS, COLORS as SHIELD_COLORS, MATERIALS as SHIELD_MATERIALS
         for kind in KINDS:

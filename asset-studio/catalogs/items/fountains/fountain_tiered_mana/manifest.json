@@ -1,0 +1,110 @@
+{
+  "key": "fountains/fountain_tiered_mana",
+  "inputs": "f47677f7169460735f0dbe8444b908eef52529719240442b6de159951a287e2f",
+  "files": {
+    "fountain_tiered_mana.glb": "60d4948703ad3f36944d061fed9a0ba4da60a48721b20a59972a4ff38be44093",
+    "lineup.png": "b60c66caacce7ab080406d06c6886ee5aeed96f019bc90217c072d6f691c950c"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1164,
+      "bounds": [
+        [
+          -0.9852443337440491,
+          0.0,
+          -0.9852443337440491
+        ],
+        [
+          0.9852443337440491,
+          1.5800000429153442,
+          0.9852443337440491
+        ]
+      ],
+      "dimensions": [
+        1.9704886674880981,
+        1.5800000429153442,
+        1.9704886674880981
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 1.343496522042839
+      },
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Fountain Tiered Mana",
+      "backend": "procedural",
+      "builder": "fountain",
+      "design": {
+        "kind": "tiered"
+      },
+      "color_mode": "character",
+      "topology": "closed_assembly",
+      "reference": "res://asset-studio/objects/fountains/tiered-reference.png",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2500,
+        "materials": 4,
+        "texture_size": 1024
+      },
+      "colors": {
+        "stone": [
+          140,
+          134,
+          124
+        ],
+        "liquid": [
+          30,
+          74,
+          210
+        ],
+        "stone_dark": [
+          108,
+          103,
+          96
+        ]
+      },
+      "materials": {
+        "stone": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 40
+        },
+        "liquid": {
+          "emissive": true,
+          "crease": 80
+        },
+        "stone_dark": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/fountains/fountain_tiered_mana.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Two-tier fountain: broad lower basin, central column and an upper bowl overflowing through a rim notch. Hollow basin with a separate emissive mana liquid node; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+      }
+    }
+  }
+}

@@ -18,7 +18,6 @@ DamageMin = 7.0
 DamageMax = 12.0
 CritChance = 0.0
 IsTwoHanded = true
-AnimationId = "ranged_attack"
 Delay = 0.3
 PerformDuration = 0.5
 CooldownDuration = 0.0

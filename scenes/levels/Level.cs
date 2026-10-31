@@ -99,6 +99,7 @@ public partial class Level : Node
 	public void ConfigureGeneration(RunState run, uint depth, LevelItemDeltaSaveData savedItems, RevealedLevelSaveData savedExploration)
 	{
 		Run = run;
+		MapGenerator.RunSeed = run.RunSeed;
 		MapGenerator.Seed = RunState.GetLevelSeed(run.RunSeed, depth);
 		MapGenerator.DungeonDepth = depth;
 		_savedItems = savedItems;

@@ -6,7 +6,6 @@
 
 [resource]
 script = ExtResource("attack")
-AnimationId = "ranged_attack"
 HitWindowStart = 0.2
 DefenseTraits = 3
 IsRanged = true

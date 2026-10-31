@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/props/fountains/fountain_tiered.tscn" id="base"]
+[ext_resource type="Resource" path="res://scenes/props/fountains/mana_blessing.tres" id="blessing"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/fountains/fountain_tiered_mana.glb" id="model"]
+
+[node name="FountainTieredMana" node_paths=PackedStringArray("Liquid") instance=ExtResource("base")]
+Blessing = ExtResource("blessing")
+Liquid = NodePath("Model/Liquid")
+
+[node name="Model" parent="." instance=ExtResource("model")]
+
+[node name="SparklesLower" parent="Pools"]
+Tint = Color(0.25, 0.52, 1, 1)
+
+[node name="SparklesUpper" parent="Pools"]
+Tint = Color(0.25, 0.52, 1, 1)

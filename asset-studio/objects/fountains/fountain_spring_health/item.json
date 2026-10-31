@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "name": "Fountain Spring Health",
+  "backend": "procedural",
+  "builder": "fountain",
+  "design": {
+    "kind": "spring"
+  },
+  "color_mode": "character",
+  "topology": "closed_assembly",
+  "reference": "res://asset-studio/objects/fountains/spring-reference.png",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2500,
+    "materials": 4,
+    "texture_size": 1024
+  },
+  "colors": {
+    "stone": [
+      128,
+      125,
+      120
+    ],
+    "liquid": [
+      176,
+      16,
+      34
+    ],
+    "stone_dark": [
+      96,
+      93,
+      90
+    ],
+    "brass": [
+      165,
+      119,
+      48
+    ]
+  },
+  "materials": {
+    "stone": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 40
+    },
+    "liquid": {
+      "emissive": true,
+      "crease": 80
+    },
+    "stone_dark": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 40
+    },
+    "brass": {
+      "metallic": 0.55,
+      "roughness": 0.36,
+      "crease": 48
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/fountains/fountain_spring_health.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Knee-high pool ringed by two courses of fitted blocks, fed by a brass spout in an arched pillar niche. Hollow basin with a separate emissive health liquid node; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+  }
+}
