@@ -15,14 +15,13 @@ public class RoomAssemblyTest
 	private static readonly string[] Realms = ["garrison", "sewer", "jungle"];
 
 	/// <summary>A room type by realm-relative name: "garrison/hall", "sewer/cistern_hall".</summary>
-	private static RoomType Load(string name) => TestFactories.Load<RoomType>(
-		name.Contains('/') ? $"{Levels}{name.Replace("/", "/room_types/")}.tres" : $"{Levels}garrison/room_types/{name}.tres");
+	private static RoomType Load(string name) => TestFactories.Load<RoomType>($"{Levels}{name.Replace("/", "/room_types/")}.tres");
 
 	[TestCase]
 	public void EveryRealmDefinitionValidates()
 	{
 		var errors = new List<string>();
-		var paths = ResourcesUnder($"{Levels}dungeon/styles")
+		var paths = ResourcesUnder($"{Levels}dungeon/styles").Append($"{Levels}dungeon/dungeon_tile_factory.tres")
 			.Concat(Realms.SelectMany(realm => ResourcesUnder($"{Levels}{realm}")));
 		foreach (string path in paths)
 		{
@@ -46,24 +45,24 @@ public class RoomAssemblyTest
 		AssertArray(errors.ToArray()).IsEmpty();
 	}
 
-	[TestCase("hall")]
-	[TestCase("storage")]
-	[TestCase("dining")]
-	[TestCase("barracks")]
-	[TestCase("library")]
-	[TestCase("alchemist")]
-	[TestCase("passage")]
-	[TestCase("fenced_walkway")]
-	[TestCase("partitioned_store")]
-	[TestCase("prison")]
-	[TestCase("chapel")]
-	[TestCase("kitchen")]
-	[TestCase("guardroom")]
-	[TestCase("ruins")]
-	[TestCase("crypt")]
-	[TestCase("root_cellar")]
-	[TestCase("entrance")]
-	[TestCase("exit")]
+	[TestCase("garrison/hall")]
+	[TestCase("garrison/storage")]
+	[TestCase("garrison/dining")]
+	[TestCase("garrison/barracks")]
+	[TestCase("garrison/library")]
+	[TestCase("garrison/alchemist")]
+	[TestCase("garrison/passage")]
+	[TestCase("garrison/fenced_walkway")]
+	[TestCase("garrison/partitioned_store")]
+	[TestCase("garrison/prison")]
+	[TestCase("garrison/chapel")]
+	[TestCase("garrison/kitchen")]
+	[TestCase("garrison/guardroom")]
+	[TestCase("garrison/ruins")]
+	[TestCase("garrison/crypt")]
+	[TestCase("garrison/root_cellar")]
+	[TestCase("garrison/entrance")]
+	[TestCase("garrison/exit")]
 	[TestCase("sewer/cistern_hall")]
 	[TestCase("sewer/drain_tunnel")]
 	[TestCase("sewer/junction")]
@@ -108,7 +107,7 @@ public class RoomAssemblyTest
 	[TestCase]
 	public void FloorStylesNeverMoveFurniture()
 	{
-		var type = Load("barracks");
+		var type = Load("garrison/barracks");
 		var first = RoomAssembler.Build(type, 99, new RoomAssemblyOptions { Floor = 0 });
 		var second = RoomAssembler.Build(type, 99, new RoomAssemblyOptions { Floor = 1 });
 		try
@@ -127,7 +126,8 @@ public class RoomAssemblyTest
 	[TestCase]
 	public void EveryFloorStyleCoversEachQuarterTileExactlyOnce()
 	{
-		foreach (string name in new[] { "storage", "kitchen", "ruins", "hall", "chapel", "library", "barracks", "dining", "exit", "crypt", "root_cellar",
+		foreach (string name in new[] { "garrison/storage", "garrison/kitchen", "garrison/ruins", "garrison/hall", "garrison/chapel",
+			"garrison/library", "garrison/barracks", "garrison/dining", "garrison/exit", "garrison/crypt", "garrison/root_cellar",
 			"sewer/cistern_hall", "sewer/drain_tunnel", "sewer/rat_warren", "sewer/exit", "jungle/temple_hall", "jungle/cavern", "jungle/exit" })
 		{
 			var type = Load(name);
@@ -151,7 +151,7 @@ public class RoomAssemblyTest
 	[TestCase]
 	public void RugsLieWholeOnTheFloor()
 	{
-		foreach (var (name, layout) in new[] { ("hall", RugLayout.Runner), ("dining", RugLayout.Field) })
+		foreach (var (name, layout) in new[] { ("garrison/hall", RugLayout.Runner), ("garrison/dining", RugLayout.Field) })
 		{
 			var type = Load(name);
 			int floor = Array.FindIndex(type.Floors, style => style.Rug?.Layout == layout);
@@ -181,7 +181,7 @@ public class RoomAssemblyTest
 	[TestCase]
 	public void AnUnfittableRequiredStepFailsWithItsReasonInsteadOfAnotherRoom()
 	{
-		var type = (RoomType)Load("barracks").Duplicate();
+		var type = (RoomType)Load("garrison/barracks").Duplicate();
 		var beds = (FurnishingStep)type.Steps[0].Duplicate();
 		beds.MinimumCount = beds.MaximumCount = 40;
 		type.Steps = [beds, .. type.Steps.Skip(1)];
@@ -194,7 +194,7 @@ public class RoomAssemblyTest
 	[TestCase]
 	public void PrisonCellsHaveUniqueOperableGatesAndReachableInteriors()
 	{
-		var type = Load("prison");
+		var type = Load("garrison/prison");
 		for (ulong seed = 1; seed <= 6; seed++)
 		{
 			var blueprint = RoomAssembler.Build(type, seed * 31);
@@ -249,8 +249,8 @@ public class RoomAssemblyTest
 	/// onto a landing every doorway reaches and no other prop covers, and the exit's stairwell maps as an enclosed
 	/// two-tile pit.
 	/// </summary>
-	[TestCase("entrance", GameSession.LevelTravelDirection.Down, GameSession.LevelTravelDirection.Up, 0)]
-	[TestCase("exit", GameSession.LevelTravelDirection.Up, GameSession.LevelTravelDirection.Down, 2)]
+	[TestCase("garrison/entrance", GameSession.LevelTravelDirection.Down, GameSession.LevelTravelDirection.Up, 0)]
+	[TestCase("garrison/exit", GameSession.LevelTravelDirection.Up, GameSession.LevelTravelDirection.Down, 2)]
 	[TestCase("sewer/entrance", GameSession.LevelTravelDirection.Down, GameSession.LevelTravelDirection.Up, 0)]
 	[TestCase("sewer/exit", GameSession.LevelTravelDirection.Up, GameSession.LevelTravelDirection.Down, 2)]
 	[TestCase("jungle/entrance", GameSession.LevelTravelDirection.Down, GameSession.LevelTravelDirection.Up, 0)]

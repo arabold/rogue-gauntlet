@@ -5,7 +5,6 @@
 
 [resource]
 script = ExtResource("2_uniformfloor")
-Id = "jungle.flagstones_ruined_floor"
-Weight = 1.5
+Id = "dungeon.flagstones_ruined_floor"
 Material = ExtResource("3_flagstones_ruine")
 metadata/_custom_type_script = ExtResource("2_uniformfloor")

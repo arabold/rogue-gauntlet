@@ -5,7 +5,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/slimy_walls.tres" id="4_slimy_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/stone_walls.tres" id="5_stone_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/sewer/styles/floors/channel_flagstones.tres" id="6_channel_flagston"]
-[ext_resource type="Resource" path="res://scenes/levels/sewer/styles/floors/bricks_floor.tres" id="7_bricks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/bricks_floor.tres" id="7_bricks_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/barrel.tres" id="8_barrel"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/bucket.tres" id="9_bucket"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/bone_pile.tres" id="10_bone_pile"]
@@ -18,7 +18,6 @@
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
-Weight = 1.0
 MinimumSize = Vector2i(3, 4)
 MaximumSize = Vector2i(3, 7)
 OddWidth = true
@@ -43,7 +42,6 @@ metadata/_custom_type_script = ExtResource("16_walldecorstep")
 [resource]
 script = ExtResource("2_roomtype")
 Id = "sewer.drain_tunnel"
-Weight = 1.0
 Shapes = [SubResource("RectangleShape_1")]
 MinimumFloorTiles = 12
 MinDoorways = 2

@@ -28,7 +28,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/tapestry_blue.tres" id="26_tapestry_blu"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/tapestry_green.tres" id="27_tapestry_gre"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/sconce.tres" id="28_sconce"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/planks_floor.tres" id="x_planks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/planks_floor.tres" id="x_planks_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/planks_rug.tres" id="x_planks_rug"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_bordered_planks.tres" id="x_flagstones_bordered_planks"]
 

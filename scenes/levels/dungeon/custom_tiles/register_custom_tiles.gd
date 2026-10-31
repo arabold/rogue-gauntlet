@@ -40,7 +40,6 @@ func _register() -> bool:
 		DECORATION: load(DECORATION) as MeshLibrary}
 	DirAccess.make_dir_recursive_absolute(OUTPUT + "/meshes")
 	DirAccess.make_dir_recursive_absolute(OUTPUT + "/shapes")
-	var navigation := {4.0: _floor_navigation("large", 2.0), 2.0: _floor_navigation("small", 1.0)}
 	var count := 0
 	for file in DirAccess.get_files_at(SOURCE):
 		if file.get_extension() != "glb":
@@ -81,10 +80,10 @@ func _register() -> bool:
 				return false
 			library.set_item_shapes(id, [load(shape_path), Transform3D.IDENTITY])
 		if target == FLOORS:
-			library.set_item_navigation_mesh(id, navigation[snappedf(mesh.get_aabb().size.x, 1.0)])
+			library.set_item_navigation_mesh(id, _floor_navigation(snappedi(mesh.get_aabb().size.x, 1)))
 			library.set_item_navigation_layers(id, 1)
 	for path in libraries:
-		if not _save_keeping_uids(libraries[path], path):
+		if not _save_keeping_uid(libraries[path], path):
 			return false
 	print("Saved %d custom tiles." % count)
 	return true
@@ -117,55 +116,23 @@ func _extract_mesh(path: String) -> Mesh:
 	return mesh
 
 
-## A flat walkable square on the floor top, saved once per floor size so the libraries reference it.
-func _floor_navigation(size: String, half: float) -> NavigationMesh:
+## A flat walkable square on the floor top, saved once per floor width so the libraries reference one resource.
+func _floor_navigation(width: int) -> NavigationMesh:
+	var path := "%s/shapes/floor_%d_navigation.res" % [OUTPUT, width]
+	if ResourceLoader.exists(path):
+		return load(path)
+	var half := width / 2.0
 	var navigation := NavigationMesh.new()
 	navigation.vertices = PackedVector3Array([Vector3(-half, FLOOR_TOP, -half), Vector3(half, FLOOR_TOP, -half),
 		Vector3(half, FLOOR_TOP, half), Vector3(-half, FLOOR_TOP, half)])
 	navigation.add_polygon(PackedInt32Array([0, 1, 2, 3]))
-	var path := "%s/shapes/floor_%s_navigation.res" % [OUTPUT, size]
 	ResourceSaver.save(navigation, path)
 	return load(path)
 
 
-## Headless saves drop the file's and its references' UIDs; put them back so uid:// references keep resolving.
-func _save_keeping_uids(library: MeshLibrary, path: String) -> bool:
-	var before := FileAccess.get_file_as_string(path)
+## Headless saves drop the file's UID; restore it so uid:// references to the library keep resolving.
+func _save_keeping_uid(library: MeshLibrary, path: String) -> bool:
+	var uid := ResourceLoader.get_resource_uid(path)
 	if ResourceSaver.save(library, path) != OK:
 		return false
-	var uid_pattern := RegEx.create_from_string('uid="[^"]+"')
-	var path_pattern := RegEx.create_from_string('path="([^"]+)"')
-	# Keyed by referenced path; the file's own UID by "".
-	var uids := {}
-	for line in before.split("\n"):
-		if not (line.begins_with("[gd_resource ") or line.begins_with("[ext_resource ")):
-			continue
-		var uid := uid_pattern.search(line)
-		var referenced := path_pattern.search(line)
-		if uid != null:
-			uids[referenced.get_string(1) if referenced != null else ""] = uid.get_string()
-	var after := FileAccess.get_file_as_string(path)
-	# Preview images get fresh ids on every save; give the unchanged previews back their old ones.
-	var image_pattern := RegEx.create_from_string('\\[sub_resource type="Image" id="([^"]+)"\\]')
-	var old_images := image_pattern.search_all(before)
-	var new_images := image_pattern.search_all(after)
-	var count := mini(old_images.size(), new_images.size())
-	# Through placeholders: a fresh id may equal another preview's old one.
-	for index in count:
-		after = after.replace('"%s"' % new_images[index].get_string(1), '"preview_image_%d"' % index)
-	for index in count:
-		after = after.replace('"preview_image_%d"' % index, '"%s"' % old_images[index].get_string(1))
-	var lines := after.split("\n")
-	for index in lines.size():
-		var line := lines[index]
-		if " uid=" in line:
-			continue
-		if line.begins_with("[gd_resource ") and uids.has(""):
-			lines[index] = line.trim_suffix("]") + " " + uids[""] + "]"
-		elif line.begins_with("[ext_resource "):
-			var referenced := path_pattern.search(line)
-			if referenced != null and uids.has(referenced.get_string(1)):
-				lines[index] = line.insert(referenced.get_start(), uids[referenced.get_string(1)] + " ")
-	var file := FileAccess.open(path, FileAccess.WRITE)
-	file.store_string("\n".join(lines))
-	return true
+	return uid == ResourceUID.INVALID_ID or ResourceSaver.set_uid(path, uid) == OK

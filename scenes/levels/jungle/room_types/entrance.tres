@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=30 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=28 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -14,13 +14,11 @@
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="21_WallDecorSte"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="28_torch"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="29_torch_unlit"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_ruined_floor.tres" id="x_flagstones_ruined_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_ruined_floor.tres" id="x_flagstones_ruined_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/mossy_walls.tres" id="x_mossy_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/cave_walls.tres" id="x_cave_walls"]
-[ext_resource type="Resource" path="res://scenes/levels/jungle/styles/floors/flagstones_ruined_floor.tres" id="x_flagstones_ruined_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/jungle/styles/floors/earth_floor.tres" id="x_earth_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/jungle/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/earth_floor.tres" id="x_earth_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")

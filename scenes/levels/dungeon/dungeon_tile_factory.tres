@@ -1,12 +1,11 @@
 [gd_resource type="Resource" script_class="DungeonTileFactory" load_steps=4 format=3 uid="uid://djtuce71qkm72"]
 
-[ext_resource type="Script" uid="uid://j1ny8jowafpm" path="res://scenes/levels/dungeon/DungeonTileFactory.cs" id="1_5r2i7"]
-[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_floors"]
-[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_walls"]
+[ext_resource type="Script" path="res://scenes/levels/dungeon/DungeonTileFactory.cs" id="2_dungeontilefacto"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/dirt.tres" id="3_dirt"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/corridor_walls.tres" id="4_corridor_walls"]
 
 [resource]
-script = ExtResource("1_5r2i7")
-FloorLibrary = ExtResource("2_floors")
-Floors = Dictionary[String, float]({"floor_dirt_large": 1.0, "floor_dirt_large_rocky": 1.0})
-WallLibrary = ExtResource("3_walls")
-Walls = Dictionary[String, float]({"wall": 4.0, "wall_cracked": 1.0, "wall_pillar": 1.0})
+script = ExtResource("2_dungeontilefacto")
+Floor = ExtResource("3_dirt")
+Walls = ExtResource("4_corridor_walls")
+metadata/_custom_type_script = ExtResource("2_dungeontilefacto")

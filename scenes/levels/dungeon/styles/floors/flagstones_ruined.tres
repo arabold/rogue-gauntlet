@@ -9,5 +9,5 @@ Id = "dungeon.flagstones_ruined"
 Library = ExtResource("3_floormeshlibrary")
 Large = Dictionary[String, float]({"floor_flagstones_ruined_large_A": 1.0, "floor_flagstones_ruined_large_B": 1.0, "floor_flagstones_ruined_large_C": 1.0, "floor_flagstones_ruined_large_D": 1.0})
 Small = Dictionary[String, float]({"floor_flagstones_ruined_small_A": 1.0, "floor_flagstones_ruined_small_B": 1.0, "floor_flagstones_ruined_small_C": 1.0, "floor_flagstones_ruined_small_D": 1.0})
-AlignedPlanks = true
+RoomWideOrientation = true
 metadata/_custom_type_script = ExtResource("2_floormaterial")

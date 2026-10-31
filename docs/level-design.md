@@ -6,7 +6,7 @@ See the [folder guide](../scenes/levels/README.md) for code and preset locations
 
 ## Current generation
 
-Every room is assembled; there are no hand-authored rooms. A `Realm` ([level.tscn](../scenes/levels/level.tscn) lists them) names a band of depths, the room factory its floors assemble rooms from and the corridor tiles between them. The generator uses the realm covering its depth, and its own `RoomFactory` and `TileFactory` beyond the last realm (and in previews and tests). All realms share the dungeon mesh libraries; each draws a different subset of the KayKit and [Asset Studio tiles](../asset-studio/tilesets/README.md) in them.
+Every room is assembled; there are no hand-authored rooms. A `Realm` ([level.tscn](../scenes/levels/level.tscn) lists them) names a band of depths, the room factory its floors assemble rooms from and the corridor tiles between them. The generator uses the realm covering its depth; the deepest realm carries on below the last band. Corridor tiles are a realm's floor material and wall style, so corridors match its rooms. All realms share the dungeon mesh libraries; each draws a different subset of the KayKit and [Asset Studio tiles](../asset-studio/tilesets/README.md) in them.
 
 | Depths | Realm | Rooms | Corridors |
 | --- | --- | --- | --- |
@@ -14,7 +14,7 @@ Every room is assembled; there are no hand-authored rooms. A `Realm` ([level.tsc
 | 4–6 | [Sewer](../scenes/levels/sewer/factories/sewer_room_factory.tres) | cistern hall, drain tunnel, junction, rat warren, sluice works, smugglers' cache, lock-up, collapsed culvert | studio bricks, slimy walls |
 | 7–9 | [Jungle](../scenes/levels/jungle/factories/jungle_room_factory.tres) | temple hall, root passage, cavern, timbered mine, ruined shrine, collapsed grove | studio earth, mossy walls |
 
-Each realm also has entrance and exit types that carry the stairs. Depths beyond 9 fall back to the Garrison rooms. Encounters do not follow realms: the [encounter prototype](#first-realm-encounter-prototype) covers depths 1–3 and later depths use its development fallback. Per-depth room roles and required routes remain proposed.
+Each realm also has entrance and exit types that carry the stairs. Encounters do not follow realms: the [encounter prototype](#first-realm-encounter-prototype) covers depths 1–3 and later depths use its development fallback. Per-depth room roles and required routes remain proposed.
 
 Generation packs and rotates rooms around an entrance, prefers a geometrically distant exit, connects rooms and explicit doorways, resolves walls/doors, reserves optional secret pockets, builds floor reachability, decides special encounters, assigns validated lock/key pairs, then places other loot and bakes navigation. Ordinary encounters use the completed geometry. Ordinary connectivity and a distant exit do not guarantee a mandatory route or encounter order.
 
@@ -56,7 +56,7 @@ Garrison rooms are assembled with their content by a `RoomType` ([room types](..
 | Doorways | `MinDoorways`/`MaxDoorways`, `DoorwayPlacement` (any, long-axis ends, long sides, a single end that leaves the far wall for a focal point), optional door scene and chance |
 | Circulation | Doorway approaches or a door-to-door spine kept free of furniture |
 | Walls | `WallStyle`: weighted straight pieces, corner/half pieces, a rhythm piece every N modules (pillared), accents (built-in shelves); asymmetric pieces face the room |
-| Floor | `UniformFloor`, `BorderedFloor`, `SplitFloor` over `FloorMaterial`s (weighted slabs, quarter pieces and wear accents); a split runs one straight or diagonal boundary across the room, never scattered patches; `FloorInlay`s set drains and gutters into the tiling; an optional `FloorRug` lays a runner down the middle or a bordered rug over the open floor |
+| Floor | `UniformFloor`, `BorderedFloor`, `SplitFloor` over `FloorMaterial`s (weighted slabs, quarter pieces and wear accents); a split runs one straight or diagonal boundary across the room, never scattered patches; `FloorInlay`s set drains and gutters into the tiling; an optional `FloorRug` lays a runner down the middle or a bordered rug over the open floor, without collision, so spawns and loot still use its tiles |
 | Columns | `AisleColumns`, `PerimeterColumns`, `CenterColumns`, `CornerColumns`, behind `ColumnChance`; symmetric groups place all-or-nothing |
 | Furnishing | `AlongWallsStep`, `CornersStep`, `RowsStep`, `CenterStep`, `ScatterStep`, `WallDecorStep`, `CellsStep` (barred cells with gates), `FencedAreaStep` (bays, walkways, dividers) and `ChoiceStep` (one weighted variant); a step with `MinimumCount` is required, `Chance` makes it occasional and `Uniform` keeps one content choice per room (one banner colour) |
 
@@ -69,8 +69,6 @@ Steps place `Placeable`s. A `Prop` is one object: mesh-library items (cosmetic v
 Every flickering light shares one Inspector-tunable `LightFlicker` resource that turns noise into a brightness multiplier. Presets live in `scenes/effects/light_flicker/`: `torch` for wall torches, candles and the player's light, `flame` for fire spells and `electric` for lightning strobes. Each light starts its flicker at its own random offset, so the torches spawned with a floor never flicker in step. Standalone lights are `FlickerLight` nodes, which flicker around their `Energy` only while visible; lights whose energy a spell effect already drives apply the flicker through `EffectLight`.
 
 ## Doors and enemy navigation
-
-Rugs lie in the decoration GridMap without collision. Only decoration with collision occupies a tile, so spawns, loot and the gatekeeper still use rug tiles.
 
 Closed exterior doors block physics, exploration sight and navigation. Barred interior cell gates block traversal while allowing exploration into the cell. Open doors enable their navigation connection; enemies commit to crossing rather than repeatedly steering between sides. Reachability and actual movement use the same door-aware navigation state. [Monster authoring](monster-authoring-design.md#awareness-and-pursuit) owns detection and pursuit rules.
 

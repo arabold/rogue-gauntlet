@@ -18,7 +18,6 @@
 
 [sub_resource type="Resource" id="CrossShape_1"]
 script = ExtResource("3_crossshape")
-Weight = 1.0
 MinimumSize = Vector2i(5, 5)
 MaximumSize = Vector2i(5, 5)
 ArmWidth = 3
@@ -26,7 +25,6 @@ metadata/_custom_type_script = ExtResource("3_crossshape")
 
 [sub_resource type="Resource" id="TShape_2"]
 script = ExtResource("4_tshape")
-Weight = 1.0
 MinimumSize = Vector2i(5, 4)
 MaximumSize = Vector2i(5, 5)
 StemWidth = 3

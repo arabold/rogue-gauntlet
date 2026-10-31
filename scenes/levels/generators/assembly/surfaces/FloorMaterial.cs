@@ -22,7 +22,7 @@ public partial class FloorMaterial : Resource
 	/// Pieces, wear included, keep one orientation across the whole room instead of turning per tile: plank runs, and
 	/// Asset Studio floors, whose patterns join only between unturned neighbours.
 	/// </summary>
-	[Export] public bool AlignedPlanks { get; set; }
+	[Export] public bool RoomWideOrientation { get; set; }
 
 	public string[] Validate()
 	{

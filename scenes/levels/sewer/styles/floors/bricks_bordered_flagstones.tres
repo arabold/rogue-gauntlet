@@ -7,7 +7,6 @@
 [resource]
 script = ExtResource("2_borderedfloor")
 Id = "sewer.bricks_bordered_flagstones"
-Weight = 1.0
 Border = ExtResource("3_bricks")
 Center = ExtResource("4_flagstones")
 Width = 1

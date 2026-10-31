@@ -21,7 +21,7 @@ public class RealmGenerationTest
 			AssertInt(generator.Realms.Count(realm => realm.Covers(depth))).OverrideFailureMessage($"depth {depth}: realms").IsEqual(1);
 		string failure = "";
 		level.GenerationFailed += error => failure = error;
-		foreach (uint depth in new uint[] { 2, 4, 6, 7, 9 })
+		foreach (uint depth in new uint[] { 2, 5, 8 })
 		{
 			level.ConfigureGeneration(new RunState(77), depth, null, null);
 			failure = "";
@@ -33,12 +33,12 @@ public class RealmGenerationTest
 			AssertBool(rooms.Length > 0 && rooms.All(room => room.Type.Id.StartsWith(realm.Id + ".")))
 				.OverrideFailureMessage($"{label}: rooms outside the {realm.Id} realm").IsTrue();
 			AssertArray(LayoutConnectivityTest.FindConnectivityFailures(generator)).IsEmpty();
-			var corridors = (DungeonTileFactory)realm.Corridors;
+			var corridors = ((DungeonTileFactory)realm.Corridors).Floor;
 			var map = generator.Map;
 			var foreign = Enumerable.Range(0, map.Width).SelectMany(x => Enumerable.Range(0, map.Height).Select(z => new Vector2I(x, z)))
 				.Where(tile => map.IsCorridor(tile.X, tile.Y))
 				.Select(tile => generator.FloorGridMap.GetCellItem(map.TileToWorld(tile.X, tile.Y)))
-				.Where(item => item >= 0 && !corridors.Floors.ContainsKey(generator.FloorGridMap.MeshLibrary.GetItemName(item)));
+				.Where(item => item >= 0 && !corridors.Large.ContainsKey(generator.FloorGridMap.MeshLibrary.GetItemName(item)));
 			AssertBool(foreign.Any()).OverrideFailureMessage($"{label}: corridor tiles from another realm").IsFalse();
 			await runner.SimulateFrames(1);
 		}

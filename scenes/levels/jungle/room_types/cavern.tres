@@ -6,7 +6,7 @@
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/UShape.cs" id="5_ushape"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/CrossShape.cs" id="6_crossshape"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/cave_walls.tres" id="7_cave_walls"]
-[ext_resource type="Resource" path="res://scenes/levels/jungle/styles/floors/cave_floor.tres" id="8_cave_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/cave_floor.tres" id="8_cave_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/jungle/props/cave_pillar.tres" id="9_cave_pillar"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/CenterColumns.cs" id="10_centercolumns"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/CornerColumns.cs" id="11_cornercolumns"]
@@ -22,7 +22,6 @@
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
-Weight = 1.0
 MinimumSize = Vector2i(4, 4)
 MaximumSize = Vector2i(5, 6)
 OddWidth = false
@@ -30,7 +29,6 @@ metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
 [sub_resource type="Resource" id="LShape_2"]
 script = ExtResource("4_lshape")
-Weight = 1.0
 MinimumSize = Vector2i(4, 4)
 MaximumSize = Vector2i(5, 5)
 ArmWidth = 2
@@ -92,7 +90,6 @@ metadata/_custom_type_script = ExtResource("20_walldecorstep")
 [resource]
 script = ExtResource("2_roomtype")
 Id = "jungle.cavern"
-Weight = 1.0
 Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2"), SubResource("UShape_3"), SubResource("CrossShape_4")]
 MinimumFloorTiles = 12
 MinDoorways = 1

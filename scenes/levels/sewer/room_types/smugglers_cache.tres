@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=37 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -23,10 +23,9 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="26_torch"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="27_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/cellar_alcove_walls.tres" id="x_cellar_alcove_walls"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/bricks_floor.tres" id="x_bricks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/bricks_floor.tres" id="x_bricks_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/slimy_walls.tres" id="x_slimy_walls"]
-[ext_resource type="Resource" path="res://scenes/levels/sewer/styles/floors/bricks_floor.tres" id="x_bricks_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/sewer/styles/floors/rotten_planks_floor.tres" id="x_rotten_planks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/planks_rotten_floor.tres" id="x_planks_rotten_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -114,6 +113,6 @@ MinimumFloorTiles = 16
 MinDoorways = 1
 MaxDoorways = 2
 Walls = [ExtResource("x_cellar_alcove_walls"), ExtResource("x_slimy_walls")]
-Floors = [ExtResource("x_bricks_floor"), ExtResource("x_rotten_planks_floor")]
+Floors = [ExtResource("x_bricks_floor"), ExtResource("x_planks_rotten_floor")]
 Steps = [SubResource("ChoiceStep_2"), SubResource("CornersStep_6"), SubResource("AlongWallsStep_7"), SubResource("ScatterStep_8"), SubResource("WallDecorStep_9")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

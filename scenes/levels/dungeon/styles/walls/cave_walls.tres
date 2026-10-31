@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("2_wallstyle")
 Id = "dungeon.cave_walls"
-Weight = 1.0
 Library = ExtResource("3_wallsmeshlibrary")
 Straight = Dictionary[String, float]({"wall_cave_A": 1.0, "wall_cave_B": 1.0, "wall_cave_C": 1.0, "wall_cave_D": 1.0})
 Corner = "wall_cave_corner_A"

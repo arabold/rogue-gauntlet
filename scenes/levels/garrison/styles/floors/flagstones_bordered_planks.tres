@@ -7,7 +7,6 @@
 [resource]
 script = ExtResource("2_borderedfloor")
 Id = "garrison.flagstones_bordered_planks"
-Weight = 1.0
 Border = ExtResource("3_flagstones")
 Center = ExtResource("4_planks")
 Width = 1

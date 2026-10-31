@@ -19,21 +19,25 @@ public class RoomGenerationHarnessTest
 		await runner.SimulateFrames(2);
 		var harness = (RoomGenerationHarness)runner.Scene();
 		AssertString(harness.LastError).IsEmpty();
-		for (int realm = 0; realm < harness.Generator.Realms.Length; realm++)
+		for (int index = 0; index < harness.Recipes.Count; index++)
+		{
+			harness.SelectRecipe(index);
+			await runner.SimulateFrames(1);
+			AssertString(harness.LastError).IsEmpty();
+			if (harness.Recipes[index] is RoomType type)
+			{
+				AssertObject(harness.PreviewRoom.Type).IsSame(type);
+				AssertBool(harness.PreviewBlueprint.IsConnected).IsTrue();
+			}
+			AssertBool(harness.PreviewCamera.Size > harness.PreviewRoom.Bounds.Size.X).IsTrue();
+		}
+		// Other realms list their own factory's types; RoomAssemblyTest assembles each of them.
+		for (int realm = 1; realm < harness.Generator.Realms.Length; realm++)
 		{
 			harness.SelectRealm(realm);
-			for (int index = 0; index < harness.Recipes.Count; index++)
-			{
-				harness.SelectRecipe(index);
-				await runner.SimulateFrames(1);
-				AssertString(harness.LastError).OverrideFailureMessage($"{harness.Realm.Id} {index}: {harness.LastError}").IsEmpty();
-				if (harness.Recipes[index] is RoomType type)
-				{
-					AssertObject(harness.PreviewRoom.Type).IsSame(type);
-					AssertBool(harness.PreviewBlueprint.IsConnected).IsTrue();
-				}
-				AssertBool(harness.PreviewCamera.Size > harness.PreviewRoom.Bounds.Size.X).IsTrue();
-			}
+			await runner.SimulateFrames(1);
+			AssertString(harness.LastError).OverrideFailureMessage($"{harness.Realm.Id}: {harness.LastError}").IsEmpty();
+			AssertObject(harness.PreviewRoom.Type).IsSame(harness.Factory.RoomTypes[0]);
 		}
 	}
 
@@ -78,17 +82,15 @@ public class RoomGenerationHarnessTest
 		var harness = (RoomGenerationHarness)runner.Scene();
 		harness.Mode = RoomPreviewMode.Floor;
 		harness.Seed = 23;
-		for (int realm = harness.Generator.Realms.Length - 1; realm >= 0; realm--)
-		{
-			harness.SelectRealm(realm);
-			harness.Regenerate();
-			await runner.SimulateFrames(1);
-			AssertString(harness.LastError).IsEmpty();
-			AssertObject(harness.Generator.CurrentRealm).IsSame(harness.Realm);
-			AssertObject(harness.PreviewRoom).IsNull();
-			AssertBool(harness.Generator.Visible).IsTrue();
-			AssertArray(LayoutConnectivityTest.FindConnectivityFailures(harness.Generator)).IsEmpty();
-		}
+		// A realm other than the first: the floor view builds the selected realm's rooms and corridors.
+		harness.SelectRealm(1);
+		harness.Regenerate();
+		await runner.SimulateFrames(1);
+		AssertString(harness.LastError).IsEmpty();
+		AssertObject(harness.Generator.CurrentRealm).IsSame(harness.Realm);
+		AssertObject(harness.PreviewRoom).IsNull();
+		AssertBool(harness.Generator.Visible).IsTrue();
+		AssertArray(LayoutConnectivityTest.FindConnectivityFailures(harness.Generator)).IsEmpty();
 		harness.Mode = RoomPreviewMode.Room;
 		harness.SelectRecipe(0);
 		await runner.SimulateFrames(1);

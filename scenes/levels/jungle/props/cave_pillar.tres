@@ -9,5 +9,4 @@ script = ExtResource("2_prop")
 Id = "jungle.cave_pillar"
 Scenes = [ExtResource("3_wall_cave_pillar"), ExtResource("4_wall_cave_pillar")]
 Gap = 0.3
-Weight = 1.0
 metadata/_custom_type_script = ExtResource("2_prop")

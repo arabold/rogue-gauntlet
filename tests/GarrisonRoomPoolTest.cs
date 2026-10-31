@@ -69,7 +69,7 @@ public class GarrisonRoomPoolTest
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		var generator = level.MapGenerator;
-		AssertString(generator.RoomFactory.ResourcePath).IsEqual(Preset);
+		AssertString(generator.Realms.Single(realm => realm.Covers(1)).Rooms.ResourcePath).IsEqual(Preset);
 		var encounters = (RealmEncounterFactory)generator.MobFactory;
 		string failure = "";
 		level.GenerationFailed += error => failure = error;

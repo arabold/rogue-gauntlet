@@ -37,8 +37,8 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/tapestry_blue.tres" id="36_tapestry_blu"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/tapestry_green.tres" id="37_tapestry_gre"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/key_alcove_walls.tres" id="x_key_alcove_walls"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/planks_dark_floor.tres" id="x_planks_dark_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/planks_dark_floor.tres" id="x_planks_dark_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")

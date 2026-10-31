@@ -4,9 +4,9 @@
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/mossy_walls.tres" id="4_mossy_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/overgrown_walls.tres" id="5_overgrown_walls"]
-[ext_resource type="Resource" path="res://scenes/levels/jungle/styles/floors/flagstones_ruined_floor.tres" id="6_flagstones_ruine"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_ruined_floor.tres" id="6_flagstones_ruine"]
 [ext_resource type="Resource" path="res://scenes/levels/jungle/styles/floors/flagstones_bordered_checker.tres" id="7_flagstones_borde"]
-[ext_resource type="Resource" path="res://scenes/levels/jungle/styles/floors/flagstones_floor.tres" id="8_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_floor.tres" id="8_flagstones_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar.tres" id="9_pillar"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar_broken.tres" id="10_pillar_broken"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/AisleColumns.cs" id="11_aislecolumns"]
@@ -29,7 +29,6 @@
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
-Weight = 1.0
 MinimumSize = Vector2i(5, 5)
 MaximumSize = Vector2i(5, 7)
 OddWidth = true
@@ -78,7 +77,6 @@ metadata/_custom_type_script = ExtResource("27_walldecorstep")
 [resource]
 script = ExtResource("2_roomtype")
 Id = "jungle.temple_hall"
-Weight = 1.0
 Shapes = [SubResource("RectangleShape_1")]
 MinimumFloorTiles = 25
 MinDoorways = 2

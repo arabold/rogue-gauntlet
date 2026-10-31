@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
 [ext_resource type="PackedScene" path="res://scenes/props/cave_door.tscn" id="4_cave_door"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/cave_walls.tres" id="5_cave_walls"]
-[ext_resource type="Resource" path="res://scenes/levels/jungle/styles/floors/earth_floor.tres" id="6_earth_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/earth_floor.tres" id="6_earth_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/groups/supply_corner.tres" id="7_supply_corner"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/crate_stack.tres" id="8_crate_stack"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/barrel_stack.tres" id="9_barrel_stack"]
@@ -25,7 +25,6 @@
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
-Weight = 1.0
 MinimumSize = Vector2i(3, 4)
 MaximumSize = Vector2i(4, 6)
 OddWidth = false
