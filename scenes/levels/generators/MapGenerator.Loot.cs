@@ -36,27 +36,54 @@ public partial class MapGenerator
 	/// -- are added as children of <see cref="NavigationRegion"/> in time to be baked in as
 	/// navmesh obstacles, the same way rooms already are). Every content type shares one
 	/// running list of placed points so chests/traps/items all keep clear of each other, not
-	/// just their own kind.
+	/// just their own kind. Access pickups, placed earlier, seed that list, and the run's scheduled fountains claim
+	/// their spots first.
 	/// </summary>
 	private void PlaceLoot()
 	{
 		var placedLootPoints = new List<Vector3>(_accessPickupPoints);
+		PlaceFountains(placedLootPoints);
 		PlaceChests(placedLootPoints);
 		PlaceTraps(placedLootPoints);
 		PlaceLooseItems(placedLootPoints);
 	}
 
-	/// <summary>A chest must sit on reachable space, keep door swings clear and create no inaccessible pocket.
-	/// On success its collision joins the floor's walkability.</summary>
-	private bool ChestPreservesRoomPassage(Node3D chest, Vector3 point, float rotation)
+	/// <summary>A solid prop (chest, fountain) must sit on reachable space, keep door swings clear and create no
+	/// inaccessible pocket. On success its collision joins the floor's walkability.</summary>
+	private bool PreservesRoomPassage(Node3D prop, Vector3 point, float rotation)
 	{
 		if (!Floor.IsReachable(point)) return false;
 		var proposed = GlobalTransform.AffineInverse() * new Transform3D(new Basis(Vector3.Up, Mathf.DegToRad(rotation)),
 			point + Vector3.Up * GetFloorSurfaceHeight(point));
-		var solids = CollisionOutlines.FromStaticBodies(chest, proposed).ToList();
+		var solids = CollisionOutlines.FromStaticBodies(prop, proposed).ToList();
 		var doorClearances = InteriorDoorComponent.CollectClearances(NavigationRegion,
 			GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform);
 		return !solids.Any(solid => doorClearances.Any(clearance => clearance.Intersects(solid.Bounds))) && TryBlockReachably(solids);
+	}
+
+	/// <summary>
+	/// Places a solid prop (chest, fountain) at a candidate point when it keeps its room's free space connected. A solid
+	/// prop is parented under <see cref="NavigationRegion"/>, like rooms and the GridMap copies
+	/// <see cref="BakeNavigationMesh"/> adds, so it becomes a navmesh obstacle. Do NOT route it through SpawnPoint: that
+	/// parents under Level instead (missing the navmesh bake) and unconditionally applies an extra 180-degree yaw, which
+	/// would silently point the prop the wrong way.
+	/// </summary>
+	private bool TryPlaceSolidProp(PackedScene scene, Vector3 point, float rotation, string persistentId)
+	{
+		var prop = scene.Instantiate<Node3D>();
+		if (!PreservesRoomPassage(prop, point, rotation))
+		{
+			prop.Free();
+			return false;
+		}
+
+		prop.SetMeta("persistent_id", persistentId);
+		NavigationRegion.AddChild(prop);
+		// Raised onto the floor's visual surface: a static prop doesn't settle via physics the way characters do, so at
+		// y=0 its base sits buried inside the floor mesh.
+		prop.GlobalPosition = point + Vector3.Up * GetFloorSurfaceHeight(point);
+		prop.RotationDegrees = new Vector3(0, rotation, 0);
+		return true;
 	}
 
 	private void PlaceChests(List<Vector3> placedLootPoints)
@@ -86,24 +113,10 @@ public partial class MapGenerator
 				continue;
 			}
 
-			var chest = ChestScene.Instantiate<Node3D>();
-			if (!ChestPreservesRoomPassage(chest, candidate.Point, candidate.RotationDegrees))
+			if (!TryPlaceSolidProp(ChestScene, candidate.Point, candidate.RotationDegrees, $"depth:{DungeonDepth}:chest:{placed}"))
 			{
-				chest.Free();
 				continue;
 			}
-			chest.SetMeta("persistent_id", $"depth:{DungeonDepth}:chest:{placed}");
-			// A chest is a solid StaticBody3D: parent it under NavigationRegion (like rooms
-			// and the GridMap copies BakeNavigationMesh adds) so it becomes a navmesh
-			// obstacle. Do NOT route this through SpawnPoint: it parents under Level instead
-			// (missing the navmesh bake) and unconditionally applies an extra 180-degree
-			// yaw on spawn, which would silently point the chest the wrong way.
-			NavigationRegion.AddChild(chest);
-			// Raised onto the floor's visual surface: a static prop doesn't settle via
-			// physics the way characters do, so at y=0 its base sits buried inside the
-			// floor mesh.
-			chest.GlobalPosition = candidate.Point + Vector3.Up * GetFloorSurfaceHeight(candidate.Point);
-			chest.RotationDegrees = new Vector3(0, candidate.RotationDegrees, 0);
 
 			placedLootPoints.Add(candidate.Point);
 			placed++;
@@ -219,17 +232,12 @@ public partial class MapGenerator
 	}
 
 	/// <summary>
-	/// Every interior room tile with a wall on at least one cardinal side, paired with the
-	/// Y-rotation that faces a chest away from that wall into the room -- excludes tiles
-	/// adjacent to a connector for extra margin from doorway traffic. A tile with exactly one
-	/// wall-adjacent side (a flat wall run) is preferred over a corner (two sides) for the
-	/// cleanest single-direction facing; corners are only used as a fallback when no flat
-	/// spot exists anywhere on the map.
+	/// Every unoccupied procedural room tile a solid prop may stand on, away from connector tiles for margin from doorway
+	/// traffic, with the cardinal directions in which a wall backs it.
 	/// </summary>
-	private List<(Vector3 Point, float RotationDegrees)> GetChestCandidates()
+	private List<(Vector3 Point, List<Vector2I> Walls)> GetSolidPropTiles()
 	{
-		var flatCandidates = new List<(Vector3, float)>();
-		var cornerCandidates = new List<(Vector3, float)>();
+		var tiles = new List<(Vector3, List<Vector2I>)>();
 		for (int x = 0; x < Map.Width; x++)
 		{
 			for (int z = 0; z < Map.Height; z++)
@@ -240,14 +248,14 @@ public partial class MapGenerator
 					continue;
 				}
 
-				var wallDirections = new List<Vector2I>();
+				var walls = new List<Vector2I>();
 				foreach (var offset in MapData.CardinalOffsets)
 				{
 					int nx = x + offset.X, nz = z + offset.Y;
 					// Wall placement has already sealed every void-facing and unsanctioned
 					// interior edge by this point in GenerateMap, so a non-walkable
 					// neighbor -- including the map border -- is solid wall geometry to back
-					// a chest against. Chasm is the one exception: it's deliberately left
+					// a prop against. Chasm is the one exception: it's deliberately left
 					// unwalled (pits are open), so a chasm-adjacent tile has nothing behind
 					// it and must not count as a wall direction.
 					if (Map.IsWithinBounds(nx, nz) && Map.IsChasm(nx, nz))
@@ -257,25 +265,42 @@ public partial class MapGenerator
 
 					if (!Map.IsWithinBounds(nx, nz) || !Map.IsWalkable(nx, nz))
 					{
-						wallDirections.Add(offset);
+						walls.Add(offset);
 					}
 				}
 
-				if (wallDirections.Count == 0)
-				{
-					continue;
-				}
-
-				var point = Map.TileToWorld(x, z);
-				// GetYRotationDegrees assumes its prop is authored facing North (0deg) --
-				// true for doors/markers, but chest.tscn's lid/opening faces the opposite
-				// way at rotation 0. Rotating toward the wall direction itself (not away
-				// from it) compensates for that -- equivalent to "away + 180" but without
-				// a sum that can exceed 360 (RotationDegrees.Y doesn't normalize on a
-				// direct assignment, so a raw 450 would stay 450, not wrap to 90).
-				float rotation = DoorwayMarker.GetYRotationDegrees(DoorwayMarker.GetDirectionFlag(wallDirections[0]));
-				(wallDirections.Count == 1 ? flatCandidates : cornerCandidates).Add((point, rotation));
+				tiles.Add((Map.TileToWorld(x, z), walls));
 			}
+		}
+
+		return tiles;
+	}
+
+	/// <summary>
+	/// Every wall-backed solid prop tile, paired with the Y-rotation that faces a chest away
+	/// from that wall into the room. A tile with exactly one wall-adjacent side (a flat wall
+	/// run) is preferred over a corner (two sides) for the cleanest single-direction facing;
+	/// corners are only used as a fallback when no flat spot exists anywhere on the map.
+	/// </summary>
+	private List<(Vector3 Point, float RotationDegrees)> GetChestCandidates()
+	{
+		var flatCandidates = new List<(Vector3, float)>();
+		var cornerCandidates = new List<(Vector3, float)>();
+		foreach (var (point, walls) in GetSolidPropTiles())
+		{
+			if (walls.Count == 0)
+			{
+				continue;
+			}
+
+			// GetYRotationDegrees assumes its prop is authored facing North (0deg) --
+			// true for doors/markers, but chest.tscn's lid/opening faces the opposite
+			// way at rotation 0. Rotating toward the wall direction itself (not away
+			// from it) compensates for that -- equivalent to "away + 180" but without
+			// a sum that can exceed 360 (RotationDegrees.Y doesn't normalize on a
+			// direct assignment, so a raw 450 would stay 450, not wrap to 90).
+			float rotation = DoorwayMarker.GetYRotationDegrees(DoorwayMarker.GetDirectionFlag(walls[0]));
+			(walls.Count == 1 ? flatCandidates : cornerCandidates).Add((point, rotation));
 		}
 
 		return flatCandidates.Count > 0 ? flatCandidates : cornerCandidates;

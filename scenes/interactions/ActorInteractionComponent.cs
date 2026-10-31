@@ -22,6 +22,8 @@ public partial class ActorInteractionComponent : Node
 	public float Elapsed { get; private set; }
 	public float Duration { get; private set; }
 	public float Progress => Duration > 0 ? Mathf.Clamp(Elapsed / Duration, 0f, 1f) : 1f;
+	/// <summary>The channeled offer's animation action id, or null when idle or the offer has none.</summary>
+	public string CurrentAnimationId => IsActive ? CurrentOffer.AnimationId : null;
 	public ulong Generation { get; private set; }
 
 	private ActorInteractionContext _context;

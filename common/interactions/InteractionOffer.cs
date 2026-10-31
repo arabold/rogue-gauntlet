@@ -1,3 +1,4 @@
+/// <param name="AnimationId">Optional action id the actor's animation tree plays while channeling, such as "drink_potion".</param>
 public readonly record struct InteractionOffer(
 	IInteractionTarget Target,
 	string OperationId,
@@ -6,7 +7,8 @@ public readonly record struct InteractionOffer(
 	float Range,
 	InteractionPermission RequiredPermission,
 	ulong TargetRevision,
-	bool IsBlocked = false
+	bool IsBlocked = false,
+	string AnimationId = null
 )
 {
 	public static readonly InteractionOffer None = default;

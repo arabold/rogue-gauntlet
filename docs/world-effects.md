@@ -9,7 +9,8 @@ Actor/item VFX use reusable scenes under `scenes/effects/world/`. Player and mon
 | `iron_skin/iron_skin.tres` | Metallic body/gear transformation with a brief entry ring and forging sparks | Inspector condition and preview/API; protection mechanics remain separate |
 | `stone_skin/stone_skin.tres` | Rough fractured mineral body/gear transformation and dust accent | Inspector condition and preview/API; protection mechanics remain separate |
 | `frozen/frozen.tres` | Sustained icy body/gear appearance with reversible entry and exit | Actor workbench, Frost Nova preview and combat-harness contact through the actor frozen-status component |
-| `healing/healing.tres` | Crimson gathering ribbons, ground pulse and rising motes | Committed healing potion use |
+| `healing/healing.tres` | Crimson gathering ribbons, ground pulse and rising motes | Committed healing potion use; drinking from a health fountain |
+| `mana/mana.tres` | The healing burst in cobalt blue | Drinking from a mana fountain |
 | `strength/strength.tres` | Amber rising streaks and pressure ring | Committed strength potion use |
 | `arcane/arcane.tres` | Violet counter-rotating strands and rune fragments | Preview/API; magical potion semantics remain separate |
 | `level_up/level_up.tres` | Gold-white rising column, ribbons, sigil and celebration sparks | Preview/API; leveling has no gameplay caller yet |
@@ -62,6 +63,12 @@ Player and monster roots expose **Invisible**, **Frozen**, **Iron Skin** and **S
 Player saves and floor travel preserve active supported buffs, their remaining time and periodic progress, and conditions owned by the player or its child components. Equipment restores its own permanent buffs. A status owned by a source outside the player cannot yet be rebound across a reload: capture rejects it rather than silently losing ownership. Timed equipment buffs and unknown buff types likewise require explicit persistence support before they can be saved.
 
 The player and monster `FrozenStatusComponent` observes the actor's condition controller and reconciles the frozen appearance through the sustained API. The condition also locks actions and horizontal movement and pauses the animation tree, while health and status clocks continue. It pauses by disabling the tree's processing; toggling `Active` would restart the state machine and replay a monster's spawn clip on thaw. The controller supports independent timed sources, refreshing the same source and removing only its own conditions. Frost Nova applies it through combat contacts in the harness; casting from wands and other attack payloads remain unconnected. Existing periodic and stat buffs remain player-oriented.
+
+## Fountain effects
+
+Health and mana fountains (`scenes/props/fountains/`) pair Asset Studio art from `assets/custom-props/fountains/` with a `fountain_sparkles.tscn` instance on each pool. Each design has one base scene, `fountain_<design>.tscn`, holding collision, pools, interaction and the exploration gate. Its `_health` and `_mana` variants add the model and blessing and set each pool's `Tint`. `FountainSparkles` sends the tint to the sparkles, the burst, the additive surface shimmer and a shadow-free glow light. `GlowEnergy` sets the light; the tiered fountain's upper pool leaves it at zero because the lower pool already lights the same stone. It uses per-instance shader parameters, so the editor shows the authored color without copying materials. Place the node at the center of the liquid surface and scale its X/Z axes to the pool's inscribed radius. The sparkle shader sizes stars from the vertical axis only. Each pool's level and radius come from `POOLS` in `asset-studio/items/fountains.py`.
+
+Each pool effect sits under the prop's `Pools` node, hidden by an `ExplorationGateComponent` until its tile is discovered. Drinking calls `Drain` as the liquid disappears. The shimmer goes with the surface, and a one-shot `Burst` of sparkles sprays off the pool to cover the change. No new sparkles rise, and the glow fades over `FadeDuration`. A fountain restored as drained clears `Flowing` instead and shows the empty basin at once. [Level design](level-design.md#fountains) describes placement and drinking.
 
 ## Workbench
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=18 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" uid="uid://dufyxbs8mado1" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://cap6wqfjubqjx" path="res://scenes/props/floor_trap.tscn" id="9_trap"]
 [ext_resource type="PackedScene" uid="uid://ccltoxuycom37" path="res://scenes/items/lootable_item.tscn" id="10_lootitem"]
 [ext_resource type="Resource" path="res://scenes/items/loot/drops/loose_items.tres" id="11_loose_items"]
+[ext_resource type="Resource" path="res://scenes/props/fountains/fountain_profile.tres" id="12_fountains"]
 
 [ext_resource type="Script" path="res://scenes/levels/LevelItemPersistence.cs" id="13_persistence"]
 
@@ -46,6 +47,7 @@ ChestScene = ExtResource("8_chest")
 TrapScene = ExtResource("9_trap")
 LooseItemScene = ExtResource("10_lootitem")
 LooseItems = ExtResource("11_loose_items")
+Fountains = ExtResource("12_fountains")
 
 [node name="ItemPersistence" type="Node" parent="."]
 script = ExtResource("13_persistence")

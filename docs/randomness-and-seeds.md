@@ -15,6 +15,7 @@ A new run chooses one random 32-bit seed (short enough to read and retype); save
 | Layout | Room selection, procedural construction and placement |
 | Encounters | Initial monsters, facing and encounter selection |
 | Item placement | Chests, traps and loose finds |
+| Fountains | The run's fountain schedule (from the run seed) and each floor's fountain design and position |
 | Decoration | Corridor/wall mesh variants |
 | Arrangements | Independent per-room furnishing choices |
 | Access | Independently derived lock/key placement, secret-pocket layout and local discovery streams |
@@ -35,7 +36,7 @@ Secret and trap detection use local gameplay streams separate from generation an
 
 Untouched floor content regenerates from its seed. Saves retain deviations rather than full floor snapshots:
 
-- Cleared enemies, destroyed nests, killed finite summon slots and gatekeeper defeat.
+- Cleared enemies, destroyed nests, killed finite summon slots, gatekeeper defeat and drained fountains.
 - Exact explored tiles, discovered trap identities and discovered/locked/current-open door deviations per depth; closing an explored door does not reopen it on restore.
 - Removed or changed baseline items, added/player-dropped items and activated reward sources.
 - Carried item identities, quantities, rolls, food state and equipment references.

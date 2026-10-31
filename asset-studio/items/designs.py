@@ -315,7 +315,9 @@ def tool(design):
 
 from items.arsenal import arsenal
 from items.shieldcraft import shieldcraft
+from items.fountains import fountain
 
 
 FAMILIES = {"shieldcraft": shieldcraft, "arsenal": arsenal, "potion": potion, "weapon": weapon, "shield": shield, "scroll": scroll,
-            "jewelry": jewelry, "key": key, "food": food, "lamp": lamp, "tool": tool}
+            "jewelry": jewelry, "key": key, "food": food, "lamp": lamp, "tool": tool,
+            "fountain": fountain}
