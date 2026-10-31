@@ -12,10 +12,10 @@ public partial class ActionManager : Node
 
 	public int ActionSlotCount => _quickItemSlots.Count;
 	/// <summary>
-	/// The running action's id for the AnimationTree, or null for combat actions: weapon attacks, unarmed strikes,
-	/// techniques and spell casts pose through <see cref="CombatAnimationComponent"/> on their contact clock.
+	/// The running item use's id for the AnimationTree. Combat actions (weapon attacks, unarmed strikes, techniques
+	/// and spell casts) have none: they pose through <see cref="CombatAnimationComponent"/> on their contact clock.
 	/// </summary>
-	public string CurrentAnimationId => _currentAction is ICombatAttackAction ? null : _currentAction?.AnimationId;
+	public string CurrentAnimationId => (_currentAction as ConsumableItem)?.AnimationId;
 	public bool IsBusy
 	{
 		get

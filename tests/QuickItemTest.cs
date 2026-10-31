@@ -356,7 +356,6 @@ public partial class QuickItemTest
 
 	private class TestAttackAction : ICombatAttackAction
 	{
-		public string AnimationId => "test_anim";
 		public float Delay => 0f;
 		public float PerformDuration => 0.2f;
 		public float CooldownDuration => 0.5f;

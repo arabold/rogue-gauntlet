@@ -22,11 +22,6 @@ public partial class AttackDefinition : Resource
 	[Export] public StringName AttackStyle { get; set; } = "";
 
 	/// <summary>
-	/// The animation state/ID inside the AnimationTree to transition to.
-	/// </summary>
-	[Export] public string AnimationId { get; set; } = "melee_attack";
-
-	/// <summary>
 	/// Time in seconds from the start of the attack animation when the hit window opens or projectile spawns.
 	/// </summary>
 	[Export] public float HitWindowStart { get; set; } = 0.15f;

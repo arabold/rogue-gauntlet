@@ -496,7 +496,6 @@ public class MeleeContactTest
 		using var weapon = new Weapon
 		{
 			AttackStyle = "axe.1h.chop",
-			SecondaryAnimationId = "custom_anim",
 			SecondaryDelay = 0.2f,
 			SecondaryPerformDuration = 0.7f,
 			SecondaryCooldownDuration = 1.4f,
@@ -504,7 +503,6 @@ public class MeleeContactTest
 		};
 
 		var action = new MartialTechniqueAction(weapon);
-		AssertString(action.AnimationId).IsEqual("custom_anim");
 		AssertFloat(action.Delay).IsEqual(0.2f);
 		AssertFloat(action.PerformDuration).IsEqual(0.7f);
 		AssertFloat(action.CooldownDuration).IsEqual(1.4f);

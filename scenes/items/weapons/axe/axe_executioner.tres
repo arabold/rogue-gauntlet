@@ -19,7 +19,6 @@ DamageMin = 15.0
 DamageMax = 27.0
 CritChance = 0.0
 IsTwoHanded = false
-AnimationId = "melee_attack"
 Delay = 0.0
 PerformDuration = 0.42
 CooldownDuration = 0.0
