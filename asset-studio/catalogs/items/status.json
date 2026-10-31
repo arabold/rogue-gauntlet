@@ -1,6 +1,6 @@
 {
-  "items": 153,
-  "godot_verified_exports": 0,
+  "items": 161,
+  "godot_verified_exports": 8,
   "authored_surface_exceptions": [
     "food/drink_beer_stein",
     "keys/key_bronze_ornate",
@@ -437,6 +437,182 @@
       "export": "res://assets/custom-items/food/food/food_pear_golden.glb",
       "export_verified": false,
       "lineup": "food/food_pear_golden/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_chalice_health",
+      "source_current": true,
+      "inputs": "2ebdb997a3b1502e688f3c03f366e69733dd99ef4416f58a66c4fc2d08ada947",
+      "triangles": 1056,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.37686960013643894
+      },
+      "warnings": [],
+      "export": "res://assets/custom-props/fountains/fountain_chalice_health.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_chalice_health/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_chalice_mana",
+      "source_current": true,
+      "inputs": "a1eb3eac113df8e517e15d34bfbd1aeb0090b641d9b505302f533459253b5174",
+      "triangles": 1056,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.37686960013643894
+      },
+      "warnings": [],
+      "export": "res://assets/custom-props/fountains/fountain_chalice_mana.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_chalice_mana/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_font_health",
+      "source_current": true,
+      "inputs": "db092927515be419b04ff81b194b049ccbdff0740968d14982c398cbaf614aca",
+      "triangles": 1536,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.9370658436053398
+      },
+      "warnings": [],
+      "export": "res://assets/custom-props/fountains/fountain_font_health.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_font_health/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_font_mana",
+      "source_current": true,
+      "inputs": "b197a153b54421704eaf89b0c7347527c519a85a2040dec893fbb30ac2eb0891",
+      "triangles": 1536,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.9370658436053398
+      },
+      "warnings": [],
+      "export": "res://assets/custom-props/fountains/fountain_font_mana.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_font_mana/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_spring_health",
+      "source_current": true,
+      "inputs": "57b5ffde26fd377f36f7e491fbe11f1aab736c963dabc5410016bc56e8364b47",
+      "triangles": 1720,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 2.021358800001937
+      },
+      "warnings": [],
+      "export": "res://assets/custom-props/fountains/fountain_spring_health.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_spring_health/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_spring_mana",
+      "source_current": true,
+      "inputs": "c2247a55c1911f58ee33ece81500f3c982ab2c0d2f68572f0a4f50239f47bab7",
+      "triangles": 1720,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 2.021358800001937
+      },
+      "warnings": [],
+      "export": "res://assets/custom-props/fountains/fountain_spring_mana.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_spring_mana/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_tiered_health",
+      "source_current": true,
+      "inputs": "9db02da72f0e6c1a9d14f146ca01f562f7fdab21e083380a9c6d7a94f5f02374",
+      "triangles": 866,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 1.305802434189145
+      },
+      "warnings": [],
+      "export": "res://assets/custom-props/fountains/fountain_tiered_health.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_tiered_health/lineup.png"
+    },
+    {
+      "key": "fountains/fountain_tiered_mana",
+      "source_current": true,
+      "inputs": "5a35e0964df216a4ee0e66aba65c1054d99b8df1f4402fdf54c98716047f11d9",
+      "triangles": 866,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 1.305802434189145
+      },
+      "warnings": [],
+      "export": "res://assets/custom-props/fountains/fountain_tiered_mana.glb",
+      "export_verified": true,
+      "lineup": "fountains/fountain_tiered_mana/lineup.png"
     },
     {
       "key": "jewelry/amulet_gold_emerald",
@@ -4728,7 +4904,7 @@
     },
     {
       "key": "weapons/staff_bone",
-      "source_current": true,
+      "source_current": false,
       "inputs": "d92c38dd0382735fee419e3e13375ea45efdd5ebe960a7e7f97e56fee8b048fb",
       "triangles": 3244,
       "materials": 2,
@@ -4750,7 +4926,7 @@
     },
     {
       "key": "weapons/staff_crooked",
-      "source_current": true,
+      "source_current": false,
       "inputs": "e3c5c8f537339e0ddc39a1bbbc63bb785e1245f24e35784a32c67afed8066892",
       "triangles": 926,
       "materials": 1,
@@ -4808,7 +4984,7 @@
     },
     {
       "key": "weapons/staff_horned",
-      "source_current": true,
+      "source_current": false,
       "inputs": "1a1d754dfa47aeeec4d4f4762f1f0b6c096229d88111a57c369a0b964a2945fa",
       "triangles": 2390,
       "materials": 2,
@@ -4830,7 +5006,7 @@
     },
     {
       "key": "weapons/staff_iron",
-      "source_current": true,
+      "source_current": false,
       "inputs": "4356cd31c7cfd5f0888c8bb9caa99a80fde9acf1d62c6a3164ee0a9d380f056c",
       "triangles": 1320,
       "materials": 3,
@@ -4921,7 +5097,7 @@
     },
     {
       "key": "weapons/wand_bone",
-      "source_current": true,
+      "source_current": false,
       "inputs": "b6d7a54a335419f67f24e5a525a1806316f16e11ee990f1e18eef34443ff4b97",
       "triangles": 1382,
       "materials": 1,
@@ -4943,7 +5119,7 @@
     },
     {
       "key": "weapons/wand_carved",
-      "source_current": true,
+      "source_current": false,
       "inputs": "b579d16fc08d46376f8c8195ceaa0c9cfb5c3a95bd4d70187a484d8392a76b72",
       "triangles": 840,
       "materials": 2,
@@ -5000,7 +5176,7 @@
     },
     {
       "key": "weapons/wand_crooked",
-      "source_current": true,
+      "source_current": false,
       "inputs": "5ba85f9aba03c9d1179b06f72e7197c29074f2d268f00acc8f3617cfbf29a049",
       "triangles": 1110,
       "materials": 1,
@@ -5022,7 +5198,7 @@
     },
     {
       "key": "weapons/wand_iron",
-      "source_current": true,
+      "source_current": false,
       "inputs": "5717161069868a7c4778a648e3da2eadad9e94d3446f7b5a88926ec0d08e3ffe",
       "triangles": 1582,
       "materials": 3,

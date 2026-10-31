@@ -1,0 +1,108 @@
+{
+  "key": "fountains/fountain_font_mana",
+  "inputs": "b197a153b54421704eaf89b0c7347527c519a85a2040dec893fbb30ac2eb0891",
+  "files": {
+    "fountain_font_mana.glb": "b68901badd03b998ee694a7d83a976bdd8c50c797214dbc2f06b9104c6a082a4",
+    "lineup.png": "1fa4ae0d9b1d4b05bb96f3984b1e8e3fdeb52c7297ea48e0c20c4cb427182698"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1536,
+      "bounds": [
+        [
+          -0.7820000052452087,
+          -2.98023217215615e-10,
+          -0.7820000052452087
+        ],
+        [
+          0.7820000052452087,
+          1.090000033378601,
+          0.7820000052452087
+        ]
+      ],
+      "dimensions": [
+        1.5640000104904175,
+        1.0900000336766242,
+        1.5640000104904175
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.9370658436053398
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Fountain Font Mana",
+      "backend": "procedural",
+      "builder": "fountain",
+      "design": {
+        "kind": "font"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "reference": "res://asset-studio/objects/fountains/font-reference.png",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2500,
+        "materials": 4,
+        "texture_size": 1024
+      },
+      "colors": {
+        "stone": [
+          124,
+          122,
+          119
+        ],
+        "liquid": [
+          30,
+          74,
+          210
+        ],
+        "stone_dark": [
+          98,
+          96,
+          94
+        ]
+      },
+      "materials": {
+        "stone": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 40
+        },
+        "liquid": {
+          "emissive": true,
+          "crease": 80
+        },
+        "stone_dark": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/fountains/fountain_font_mana.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Octagonal baptismal font: flaring bowl with a rolled rim on an octagonal pedestal and a two-course flagstone plinth. Emissive mana liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+      }
+    }
+  }
+}

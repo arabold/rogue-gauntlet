@@ -63,6 +63,12 @@ Player saves and floor travel preserve active supported buffs, their remaining t
 
 The player and monster `FrozenStatusComponent` observes the actor's condition controller and reconciles the frozen appearance through the sustained API. The condition also locks actions and horizontal movement and pauses the animation tree, while health and status clocks continue. It pauses by disabling the tree's processing; toggling `Active` would restart the state machine and replay a monster's spawn clip on thaw. The controller supports independent timed sources, refreshing the same source and removing only its own conditions. Frost Nova applies it through combat contacts in the harness; casting from wands and other attack payloads remain unconnected. Existing periodic and stat buffs remain player-oriented.
 
+## Fountain effects
+
+Health and mana fountains (`scenes/props/fountains/`) pair Asset Studio art from `assets/custom-props/fountains/` with `fountain_sparkles_health.tscn` or `fountain_sparkles_mana.tscn` on each pool. These inherit `fountain_sparkles.tscn` and set only its `Tint`. `FountainSparkles` sends the tint to the sparkles, the additive surface shimmer and a shadow-free glow light. It uses per-instance shader parameters, so the editor shows the authored color without copying materials. Place the node at the center of the liquid surface and scale its X/Z axes to the pool's inscribed radius. The sparkle shader sizes stars from the vertical axis only. Each pool's level and radius come from `POOLS` in `asset-studio/items/fountains.py`.
+
+These props are ambient decoration. They provide collision and the `prop` group used for spawn clearance, but no interaction, healing or mana restoration yet. A future fountain interaction can reuse the `healing` burst for its recipient after a successful use.
+
 ## Workbench
 
 Open any preview with F6. Shared tabs switch between **World effects**, **Actor / item effects**, and **Scroll reading**. The scene paths and titles are authored once in `effect_harness_navigation.tscn`; the shared mouse camera is `EffectPreviewCamera`. Each preview owns its content and uses the production effect code. Shared helpers prepare actors and build consistent controls; the world harness contains only world effects, with scene switching handled solely by the tabs.

@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "name": "Fountain Font Mana",
+  "backend": "procedural",
+  "builder": "fountain",
+  "design": {
+    "kind": "font"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "reference": "res://asset-studio/objects/fountains/font-reference.png",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2500,
+    "materials": 4,
+    "texture_size": 1024
+  },
+  "colors": {
+    "stone": [
+      124,
+      122,
+      119
+    ],
+    "liquid": [
+      30,
+      74,
+      210
+    ],
+    "stone_dark": [
+      98,
+      96,
+      94
+    ]
+  },
+  "materials": {
+    "stone": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 40
+    },
+    "liquid": {
+      "emissive": true,
+      "crease": 80
+    },
+    "stone_dark": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 40
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/fountains/fountain_font_mana.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Octagonal baptismal font: flaring bowl with a rolled rim on an octagonal pedestal and a two-course flagstone plinth. Emissive mana liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+  }
+}

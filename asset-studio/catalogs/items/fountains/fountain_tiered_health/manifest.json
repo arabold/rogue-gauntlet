@@ -1,0 +1,108 @@
+{
+  "key": "fountains/fountain_tiered_health",
+  "inputs": "9db02da72f0e6c1a9d14f146ca01f562f7fdab21e083380a9c6d7a94f5f02374",
+  "files": {
+    "fountain_tiered_health.glb": "ac8f4e5d19324dc150660f0934e19a005d64be763e304fc64306f41ffb20349b",
+    "lineup.png": "51d2d7260b912dd5e5d5e8315542e60be975ebd1072606ce970816d9d7f41b95"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 866,
+      "bounds": [
+        [
+          -0.9852443337440491,
+          0.0,
+          -0.9852443337440491
+        ],
+        [
+          0.9852443337440491,
+          1.5800000429153442,
+          0.9852443337440491
+        ]
+      ],
+      "dimensions": [
+        1.9704886674880981,
+        1.5800000429153442,
+        1.9704886674880981
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 1.305802434189145
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Fountain Tiered Health",
+      "backend": "procedural",
+      "builder": "fountain",
+      "design": {
+        "kind": "tiered"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "reference": "res://asset-studio/objects/fountains/tiered-reference.png",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2500,
+        "materials": 4,
+        "texture_size": 1024
+      },
+      "colors": {
+        "stone": [
+          140,
+          134,
+          124
+        ],
+        "liquid": [
+          176,
+          16,
+          34
+        ],
+        "stone_dark": [
+          108,
+          103,
+          96
+        ]
+      },
+      "materials": {
+        "stone": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 40
+        },
+        "liquid": {
+          "emissive": true,
+          "crease": 80
+        },
+        "stone_dark": {
+          "metallic": 0,
+          "roughness": 0.92,
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/fountains/fountain_tiered_health.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Two-tier fountain: broad lower basin, central column and an upper bowl overflowing through a rim notch. Emissive health liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-props/fountains/fountain_chalice_health.glb" id="model"]
+[ext_resource type="PackedScene" path="res://scenes/effects/fountain_sparkles_health.tscn" id="sparkles"]
+
+[sub_resource type="CylinderShape3D" id="Shape0"]
+height = 1.17
+radius = 0.55
+
+[node name="FountainChaliceHealth" type="Node3D" groups=["prop"]]
+
+[node name="Model" parent="." instance=ExtResource("model")]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape0" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.585, 0)
+shape = SubResource("Shape0")
+
+[node name="Sparkles" parent="." instance=ExtResource("sparkles")]
+transform = Transform3D(0.45, 0, 0, 0, 1, 0, 0, 0, 0.45, 0, 1.12, 0)

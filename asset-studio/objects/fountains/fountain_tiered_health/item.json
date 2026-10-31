@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "name": "Fountain Tiered Health",
+  "backend": "procedural",
+  "builder": "fountain",
+  "design": {
+    "kind": "tiered"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "reference": "res://asset-studio/objects/fountains/tiered-reference.png",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2500,
+    "materials": 4,
+    "texture_size": 1024
+  },
+  "colors": {
+    "stone": [
+      140,
+      134,
+      124
+    ],
+    "liquid": [
+      176,
+      16,
+      34
+    ],
+    "stone_dark": [
+      108,
+      103,
+      96
+    ]
+  },
+  "materials": {
+    "stone": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 40
+    },
+    "liquid": {
+      "emissive": true,
+      "crease": 80
+    },
+    "stone_dark": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 40
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/fountains/fountain_tiered_health.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Two-tier fountain: broad lower basin, central column and an upper bowl overflowing through a rim notch. Emissive health liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+  }
+}

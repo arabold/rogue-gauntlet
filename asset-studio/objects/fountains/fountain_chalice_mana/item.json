@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "name": "Fountain Chalice Mana",
+  "backend": "procedural",
+  "builder": "fountain",
+  "design": {
+    "kind": "chalice"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "reference": "res://asset-studio/objects/fountains/chalice-reference.png",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2500,
+    "materials": 4,
+    "texture_size": 1024
+  },
+  "colors": {
+    "stone": [
+      206,
+      198,
+      182
+    ],
+    "liquid": [
+      30,
+      74,
+      210
+    ],
+    "gold": [
+      198,
+      150,
+      52
+    ]
+  },
+  "materials": {
+    "stone": {
+      "metallic": 0,
+      "roughness": 0.92,
+      "crease": 40
+    },
+    "liquid": {
+      "emissive": true,
+      "crease": 80
+    },
+    "gold": {
+      "metallic": 0.55,
+      "roughness": 0.36,
+      "crease": 48
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/fountains/fountain_chalice_mana.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Pale marble chalice font on a fluted column with gilded collars and a gilded band below the rim. Emissive mana liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+  }
+}

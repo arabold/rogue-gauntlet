@@ -1,0 +1,145 @@
+"""Dungeon fountains: stone fonts and basins holding a pool of glowing liquid.
+
+All dimensions use metres; the origin is the floor center and +Y is up. Each design
+unions its stonework, trim and liquid into one closed solid. A pool is the flat top
+of the solid inside its basin, recolored `liquid` after the union, so the surface is
+the basin's own faces rather than a disc laid on top. Streams are real liquid solids
+joining a spout or overflow lip to the pool below.
+
+The liquid slot is emissive in the recipes; health and mana variants differ only in
+its color. Rising sparkles and surface shimmer are game-side effects placed on the
+pools listed in `POOLS`, so the art stays a static, gameplay-free mesh.
+"""
+
+import numpy as np
+import manifold3d as mf
+from core import kit
+from items.solid import Assembly, lathe
+
+KINDS = ('font', 'chalice', 'spring', 'tiered')
+# Liquid level and the largest circle inside each pool, for placing game-side effects.
+POOLS = {'font': [(1.02, .48)], 'chalice': [(1.12, .45)], 'spring': [(.44, .60)],
+         'tiered': [(.66, .80), (1.52, .30)]}
+
+
+def stone(size, bevel=.03, radius=None):
+    """A chamfered block centered on the origin. With `radius`, its sides taper toward the
+    ring center so blocks laid around a circle meet along radial joints; +Z faces outward."""
+    p = kit.bevel_box(size, bevel, 'stone').verts
+    if radius:
+        p[:, 0] *= (radius + p[:, 2]) / radius
+    return mf.Manifold.hull_points(p.astype(np.float32))
+
+
+def turned(a, profile, sides, slot, offset=0.):
+    """A lathe turned `offset` degrees about Y, so flat polygon faces can face the camera."""
+    a.add(lathe(profile, sides).rotate((0, offset, 0)), slot)
+
+
+def ring(a, radius, depth, lo, hi, count, offset=0., bevel=.045, slot='stone'):
+    """One course of tapered blocks around a circle; slight overlap leaves chamfered joints."""
+    width = 2*np.pi*radius/count + .006
+    for k in range(count):
+        yaw = k*360/count + offset
+        theta = np.radians(yaw)
+        a.add(stone((width, hi - lo, depth), bevel, radius).rotate((0, yaw, 0))
+              .translate((np.sin(theta)*radius, (lo + hi)/2, np.cos(theta)*radius)), slot)
+
+
+def band(profile, inner, sides):
+    """A lathe ring rather than a disc: `lathe` closes on the axis, so bore out its middle."""
+    lo, hi = profile[0][1] - .01, profile[-1][1] + .01
+    return lathe(profile, sides) - lathe([(inner, lo), (inner, hi)], sides)
+
+
+def stream(a, path, width, depth):
+    """A flattened falling ribbon of liquid that narrows from its lip into the pool below."""
+    u = np.linspace(0, 1, len(path))
+    a.add(kit.sweep(np.asarray(path, float), kit.ring_profile(width, depth, 8), 'liquid', scale=1 - .3*u), 'liquid')
+
+
+def pools(piece, levels):
+    """Recolor the upward faces at each pool level inside its basin as the liquid surface."""
+    tri = piece.verts[piece.faces]
+    center = tri.mean(1)
+    normal = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
+    up = normal[:, 1] / np.maximum(np.linalg.norm(normal, axis=1), 1e-12) > .999
+    radius = np.hypot(center[:, 0], center[:, 2])
+    for level, inner in levels:
+        piece.slots[up & (np.abs(center[:, 1] - level) < 1e-4) & (radius < inner + .1)] = 'liquid'
+    return piece
+
+
+def font(a):
+    """Octagonal baptismal font on a two-course flagstone plinth."""
+    pitch = .39
+    for i in range(4):
+        for j in range(4):
+            a.add(stone((pitch + .004, .14, pitch + .004)).translate(((i - 1.5)*pitch, .07, (j - 1.5)*pitch)), 'stone_dark')
+    for i in range(2):
+        for j in range(2):
+            a.add(stone((.564, .13, .564)).translate(((i - .5)*.56, .195, (j - .5)*.56)), 'stone_dark')
+    # Foot, shaft and capital, then the flaring bowl with a rolled rim and a short inner wall.
+    turned(a, [(.37, .25), (.37, .32), (.29, .37), (.25, .38), (.24, .55), (.31, .58), (.31, .63)], 8, 'stone', 22.5)
+    turned(a, [(.27, .60), (.36, .66), (.50, .76), (.60, .87), (.64, .95), (.70, .97), (.71, 1.05),
+               (.66, 1.09), (.56, 1.09), (.53, 1.06), (.52, 1.02)], 8, 'stone', 22.5)
+
+
+def chalice(a):
+    """Marble chalice on a fluted column, with gilded collars and a gilded band below the rim."""
+    a.add(lathe([(.50, 0), (.50, .07), (.45, .09), (.41, .10), (.41, .16), (.36, .18)], 16), 'stone')
+    column = lathe([(.15, .17), (.15, .80)], 16)
+    for theta in np.arange(8)*np.pi/4 + np.pi/8:
+        flute = mf.Manifold.cylinder(.50, .03, .03, 8).rotate((-90, 0, 0))
+        column = column - flute.translate((np.cos(theta)*.16, .24, np.sin(theta)*.16))
+    a.add(column, 'stone')
+    for y in (.20, .76):
+        a.add(lathe([(.17, y - .045), (.20, y - .02), (.20, y + .02), (.17, y + .045)], 16), 'gold')
+    a.add(lathe([(.15, .78), (.22, .84), (.40, .93), (.53, 1.03), (.58, 1.10), (.60, 1.15),
+                 (.55, 1.17), (.49, 1.17), (.47, 1.15), (.465, 1.12)], 16), 'stone')
+    a.add(band([(.585, 1.05), (.615, 1.07), (.62, 1.12), (.60, 1.14)], .55, 16), 'gold')
+
+
+def spring(a):
+    """Low ring of fitted blocks around a pool, fed by a spout set into an arched niche."""
+    # The pool floor fills the ring's inner joints, so no void is sealed behind the blocks.
+    a.add(lathe([(.84, 0), (.84, .44)], 16), 'stone_dark')
+    ring(a, .86, .48, 0, .29, 10)
+    ring(a, .86, .44, .27, .56, 10, 18)
+    # The pillar stands in the ring diagonally behind the pool from the gameplay camera.
+    yaw = 225
+    theta = np.radians(yaw)
+    out = np.array([np.sin(theta), 0, np.cos(theta)])
+    arch = np.array([[-.11, -.16], [.11, -.16], [.11, .06], [.07, .13], [0, .155], [-.07, .13], [-.11, .06]])
+    niche = mf.Manifold.extrude(mf.CrossSection([arch]), .15).translate((0, .24, -.25))
+    pillar = stone((.40, 1.16, .34), .04) - niche
+    a.add(pillar.rotate((0, yaw, 0)).translate(out*.92 + (0, .58, 0)), 'stone')
+    a.add(stone((.50, .10, .44), .035).rotate((0, yaw, 0)).translate(out*.92 + (0, 1.19, 0)), 'stone')
+    mouth = out*.62 + (0, .80, 0)
+    a.add(kit.sweep([out*.84 + (0, .82, 0), mouth], kit.ring_profile(.05, .05, 8), 'brass'), 'brass')
+    a.add(kit.sweep([out*.665 + (0, .808, 0), mouth - out*.015], kit.ring_profile(.066, .066, 8), 'brass'), 'brass')
+    stream(a, [mouth - out*.01 + (0, -.015, 0), out*.53 + (0, .72, 0), out*.48 + (0, .58, 0), out*.46 + (0, .40, 0)], .05, .026)
+
+
+def tiered(a):
+    """Broad lower basin with a central column and an overflowing upper bowl."""
+    turned(a, [(.50, 0), (.50, .14), (.40, .18), (.36, .22), (.36, .30)], 8, 'stone_dark', 22.5)
+    turned(a, [(.42, .28), (.76, .32), (.90, .38), (.96, .48), (.98, .62), (1.02, .64), (1.02, .72),
+               (.88, .72), (.86, .70), (.85, .66)], 12, 'stone', 15)
+    turned(a, [(.20, .60), (.20, .70), (.16, .74), (.15, 1.22), (.19, 1.26), (.19, 1.30)], 8, 'stone', 22.5)
+    turned(a, [(.18, .96), (.21, .99), (.21, 1.03), (.18, 1.06)], 8, 'stone', 22.5)
+    bowl = lathe([(.17, 1.28), (.30, 1.36), (.40, 1.46), (.44, 1.54), (.42, 1.58), (.36, 1.58),
+                  (.34, 1.56), (.335, 1.52)], 12).rotate((0, 15, 0))
+    # An overflow notch in the rim feeds the stream.
+    a.add(bowl - mf.Manifold.cube((.16, .08, .10), center=True).translate((.41, 1.58, 0)), 'stone')
+    stream(a, [(.40, 1.535, 0), (.47, 1.50, 0), (.52, 1.36, 0), (.55, 1.05, 0), (.56, .80, 0), (.565, .62, 0)], .055, .022)
+
+
+def fountain(design):
+    """Build one explicit fountain design; unknown kinds fail instead of falling back."""
+    kind = design.get('kind')
+    if kind not in KINDS:
+        raise ValueError(f'Unknown fountain design {kind}')
+    a = Assembly()
+    {'font': font, 'chalice': chalice, 'spring': spring, 'tiered': tiered}[kind](a)
+    return pools(a.build(), POOLS[kind])

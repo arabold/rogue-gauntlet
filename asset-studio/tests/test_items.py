@@ -387,6 +387,38 @@ class ItemWorkflowTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unknown arsenal"):
             arsenal({"kind": "unsupported"})
 
+    def test_fountains_are_closed_and_effect_circles_lie_on_their_liquid(self):
+        from items.fountains import fountain, KINDS, POOLS
+        for kind in KINDS:
+            with self.subTest(fountain=kind):
+                p = fountain({"kind": kind})
+                t = solid.inspect(p.verts, p.faces)
+                self.assertEqual(t["components"], 1)
+                self.assertEqual(t["boundary_edges"] + t["nonmanifold_edges"] + t["duplicate_faces"] + t["inconsistent_edges"], 0)
+                self.assertAlmostEqual(p.verts[:, 1].min(), 0, places=5)
+                liquid = p.verts[p.faces[p.slots == "liquid"]]
+                for level, radius in POOLS[kind]:
+                    # Game-side sparkles fill this circle, so its rim must sit on the pool surface, not on stone.
+                    surface = liquid[np.all(np.abs(liquid[:, :, 1] - level) < 1e-4, axis=1)][:, :, [0, 2]]
+                    angles = np.linspace(0, 2 * np.pi, 48, endpoint=False)
+                    for point in np.column_stack([np.cos(angles), np.sin(angles)]) * radius:
+                        a, b, c = surface[:, 0], surface[:, 1], surface[:, 2]
+                        cross = lambda u, v: u[:, 0] * v[:, 1] - u[:, 1] * v[:, 0]  # noqa: E731
+                        d1, d2, d3 = cross(b - a, point - a), cross(c - b, point - b), cross(a - c, point - c)
+                        inside = ((d1 >= -1e-9) & (d2 >= -1e-9) & (d3 >= -1e-9)) | ((d1 <= 1e-9) & (d2 <= 1e-9) & (d3 <= 1e-9))
+                        self.assertTrue(inside.any(), f"{kind} pool at {level} misses {point}")
+        with self.assertRaisesRegex(ValueError, "Unknown fountain"):
+            fountain({"kind": "unsupported"})
+
+    def test_world_props_export_only_into_the_props_tree(self):
+        item = self.item()
+        data = item.recipe()
+        data["export"]["glb"] = "res://assets/custom-props/fountains/test.glb"
+        self.assertEqual(item.destination(data), self.repo / "assets/custom-props/fountains/test.glb")
+        data["export"]["glb"] = "res://assets/custom-props/../custom-monsters/test.glb"
+        with self.assertRaisesRegex(ValueError, "inside"):
+            item.destination(data)
+
     def test_curated_shields_export_with_real_curvature_and_closed_fittings(self):
         from items.shieldcraft import shieldcraft, KINDS, COLORS as SHIELD_COLORS, MATERIALS as SHIELD_MATERIALS
         for kind in KINDS:

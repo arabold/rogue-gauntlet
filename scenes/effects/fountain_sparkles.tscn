@@ -1,0 +1,95 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/FountainSparkles.cs" id="script"]
+[ext_resource type="Shader" path="res://scenes/effects/shaders/fountain_sparkle.gdshader" id="sparkle_shader"]
+[ext_resource type="Shader" path="res://scenes/effects/shaders/liquid_shimmer.gdshader" id="shimmer_shader"]
+[ext_resource type="Texture2D" path="res://scenes/effects/world/textures/spark.svg" id="spark"]
+
+[sub_resource type="ShaderMaterial" id="ShimmerMaterial"]
+render_priority = 1
+shader = ExtResource("shimmer_shader")
+
+[sub_resource type="PlaneMesh" id="ShimmerMesh"]
+material = SubResource("ShimmerMaterial")
+size = Vector2(2, 2)
+subdivide_width = 0
+subdivide_depth = 0
+
+[sub_resource type="Curve" id="SizeCurve"]
+_data = [Vector2(0, 0), 0.0, 6.0, 0, 0, Vector2(0.22, 1), 0.0, 0.0, 0, 0, Vector2(0.75, 0.75), 0.0, 0.0, 0, 0, Vector2(1, 0), -3.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="SizeTexture"]
+width = 64
+curve = SubResource("SizeCurve")
+
+[sub_resource type="Gradient" id="FadeGradient"]
+offsets = PackedFloat32Array(0, 0.15, 0.65, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0.75, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="FadeTexture"]
+gradient = SubResource("FadeGradient")
+width = 64
+
+[sub_resource type="ParticleProcessMaterial" id="Rise"]
+emission_shape = 6
+emission_ring_axis = Vector3(0, 1, 0)
+emission_ring_height = 0.0
+emission_ring_radius = 0.9
+emission_ring_inner_radius = 0.0
+angle_min = -180.0
+angle_max = 180.0
+direction = Vector3(0, 1, 0)
+spread = 12.0
+initial_velocity_min = 0.25
+initial_velocity_max = 0.65
+angular_velocity_min = -120.0
+angular_velocity_max = 120.0
+gravity = Vector3(0, 0.22, 0)
+scale_min = 0.6
+scale_max = 1.5
+scale_curve = SubResource("SizeTexture")
+color_ramp = SubResource("FadeTexture")
+turbulence_enabled = true
+turbulence_noise_strength = 0.5
+turbulence_noise_scale = 2.2
+turbulence_influence_min = 0.03
+turbulence_influence_max = 0.08
+
+[sub_resource type="ShaderMaterial" id="SparkleMaterial"]
+render_priority = 2
+shader = ExtResource("sparkle_shader")
+shader_parameter/sparkle = ExtResource("spark")
+
+[sub_resource type="QuadMesh" id="SparkleMesh"]
+material = SubResource("SparkleMaterial")
+size = Vector2(0.26, 0.26)
+
+[node name="FountainSparkles" type="Node3D" node_paths=PackedStringArray("Sparkles", "Shimmer", "Glow")]
+script = ExtResource("script")
+Sparkles = NodePath("Sparkles")
+Shimmer = NodePath("Shimmer")
+Glow = NodePath("Glow")
+
+[node name="Shimmer" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.006, 0)
+cast_shadow = 0
+mesh = SubResource("ShimmerMesh")
+
+[node name="Sparkles" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+amount = 40
+lifetime = 1.9
+preprocess = 1.9
+randomness = 0.45
+visibility_aabb = AABB(-1.2, -0.1, -1.2, 2.4, 1.8, 2.4)
+local_coords = true
+process_material = SubResource("Rise")
+draw_pass_1 = SubResource("SparkleMesh")
+
+[node name="Glow" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+light_energy = 0.6
+light_specular = 0.15
+omni_range = 2.4
+omni_attenuation = 1.4
