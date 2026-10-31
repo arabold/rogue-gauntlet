@@ -206,6 +206,22 @@
 			"notes": "Procedural dungeon props from the Asset Studio item pipeline. fountains/ holds health and mana fountains (font, chalice, spring, tiered) with emissive liquid pools and the shared character palette shading; concept drawings: Google gemini-3-pro-image over the studio's knight style reference. The other folders hold room furnishings for generated Garrison rooms (altars, statues, candles, vases, racks, hearth, wall decor), one folder per room theme, sized to the KayKit dungeon remastered props and textured with KayKit's own dungeon_texture swatches and material. Art only; prop scenes, collision and effects live under scenes/."
 		},
 		{
+			"id": "custom-tiles",
+			"name": "Rogue Gauntlet - Custom Dungeon Tiles",
+			"dir": "assets/custom-tiles",
+			"author": "Rogue Gauntlet contributors; dressed walls and alcove decor derived from KayKit Dungeon Remastered (CC0, Kay Lousberg)",
+			"source": "Self-authored via asset-studio/studio.py tile build/export from asset-studio/tilesets/<set>/<family>.json",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"3d"
+			],
+			"compatibility_group": "kaykit",
+			"acquired": "2026-10-31",
+			"notes": "Modular floor, wall and rug tile families on the KayKit Dungeon Remastered footprints (4x4 and 2x2 floors, 4x4x1 walls with half and corner pieces, a cave wall set, 4x4 rug pieces), one folder per tile set (dungeon/). Floors, masonry, cave walls and rugs are procedural and our own; wall_mossy, wall_overgrown, wall_slimy, wall_prison, wall_alcove and wall_crypt are KayKit's own dungeon walls dressed by script, and their alcove contents are KayKit decor props (books, bottles, candles, coins, keys, skull). Colors are KayKit dungeon_texture swatches baked into a per-tile palette texture; wall_cave and the dressed walls follow AI concept sheets kept beside their recipes (asset-studio/tilesets/dungeon/*.reference.png). Art only; mesh libraries, collision and room styles live under scenes/levels/."
+		},
+		{
 			"id": "custom-monsters",
 			"name": "Rogue Gauntlet - Custom Monsters",
 			"dir": "assets/custom-monsters",
