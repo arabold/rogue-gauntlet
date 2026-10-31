@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://scenes/levels/arrangements/wall/wall_banner.tscn" id="2_wall_banner"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "garrison.banner"
+Scenes = [ExtResource("2_wall_banner")]
+Mount = 1
+MountHeight = 0.2
+Blocking = false
+Gap = 0.3
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

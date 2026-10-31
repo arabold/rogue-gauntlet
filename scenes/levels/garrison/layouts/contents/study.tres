@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="CompositeRoomLayout" load_steps=5 format=3]
-[ext_resource type="Script" path="res://scenes/levels/generators/rooms/layouts/CompositeRoomLayout.cs" id="script"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/contents/sleeping_quarter.tres" id="sleep"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/contents/study_shelves.tres" id="books"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/contents/workspace_layout.tres" id="workspace"]
-[resource]
-script = ExtResource("script")
-Steps = [ExtResource("sleep"), ExtResource("workspace"), ExtResource("books")]
-metadata/_custom_type_script = ExtResource("script")

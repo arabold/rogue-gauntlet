@@ -1,0 +1,264 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Godot;
+
+/// <summary>Preview overrides for one assembly; production uses the defaults (everything seeded).</summary>
+public sealed class RoomAssemblyOptions
+{
+	public const int Seeded = -1;
+	public const int Off = -2;
+	/// <summary>Index into the type's palette, or <see cref="Seeded"/>.</summary>
+	public int Shape { get; init; } = Seeded;
+	public int Walls { get; init; } = Seeded;
+	public int Floor { get; init; } = Seeded;
+	/// <summary>Index into the type's column patterns (always placed), <see cref="Seeded"/> (type's chance) or <see cref="Off"/>.</summary>
+	public int Columns { get; init; } = Seeded;
+	public bool Furnish { get; init; } = true;
+}
+
+/// <summary>
+/// Runs a <see cref="RoomType"/>'s axes in a fixed order and returns a finished room with its content:
+/// shape → doorways → walls → circulation → columns → furnishing steps → floor → props. Each axis draws from its own
+/// stream, so changing one axis (a floor style, columns on/off) never rerolls the others. Required steps that do not
+/// fit retry with a new shape; a type that never fits throws instead of delivering a different room.
+/// </summary>
+public static class RoomAssembler
+{
+	/// <summary>Actor clearance for doorway connectivity; matches the navigation bake's agent radius.</summary>
+	public const float ActorRadius = 1f;
+	private const float CirculationWidth = 2.4f;
+	private const float ApproachDepth = 3f;
+	private static readonly Vector2I[] Directions = [Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left];
+
+	public static Room Assemble(RoomType type, ulong seed) => Build(type, seed).Room;
+
+	/// <summary>Assembles a room and returns its blueprint (the room plus its walkability, for previews and tests).</summary>
+	public static RoomBlueprint Build(RoomType type, ulong seed, RoomAssemblyOptions options = null)
+	{
+		options ??= new RoomAssemblyOptions();
+		var errors = type.Validate();
+		if (errors.Length > 0) throw new InvalidOperationException(string.Join("\n", errors));
+		string failure = "";
+		for (int attempt = 0; attempt < type.Attempts; attempt++)
+		{
+			var blueprint = TryBuild(type, seed, attempt, options, out failure);
+			if (blueprint != null) return blueprint;
+		}
+		throw new InvalidOperationException($"Room type {type.Id}: no layout fits after {type.Attempts} attempts; last: {failure}.");
+	}
+
+	private static RoomBlueprint TryBuild(RoomType type, ulong seed, int attempt, RoomAssemblyOptions options, out string failure)
+	{
+		using var shapeRng = GenerationRandom.Create(seed, GenerationRandom.Layout, $"{type.Id}:shape:{attempt}");
+		var shape = options.Shape >= 0 ? type.Shapes[options.Shape] : Weighted.Pick(type.Shapes, entry => entry.Weight, shapeRng);
+		var footprint = shape.Build(shapeRng);
+		var doorways = ChooseDoorways(type, footprint, shapeRng);
+		if (footprint.Count < type.MinimumFloorTiles || doorways.Count == 0)
+		{
+			failure = "footprint too small";
+			return null;
+		}
+		using var wallRng = GenerationRandom.Create(seed, GenerationRandom.Decoration, $"{type.Id}:walls");
+		using var floorRng = GenerationRandom.Create(seed, GenerationRandom.Decoration, $"{type.Id}:floor");
+		using var doorRng = GenerationRandom.Create(seed, GenerationRandom.Layout, $"{type.Id}:doors");
+		using var columnRng = GenerationRandom.Create(seed, GenerationRandom.Layout, $"{type.Id}:columns");
+		var walls = options.Walls >= 0 ? type.Walls[options.Walls] : Weighted.Pick(type.Walls, entry => entry.Weight, wallRng);
+		var floor = options.Floor >= 0 ? type.Floors[options.Floor] : Weighted.Pick(type.Floors, entry => entry.Weight, floorRng);
+		var room = CreateRoom(type, floor.Library, walls.Library);
+		try
+		{
+			var blueprint = new RoomBlueprint(room, type, footprint, doorways, seed, ActorRadius) { Shape = shape, Walls = walls, Floor = floor };
+			walls.Build(blueprint, wallRng);
+			blueprint.FinishStructure();
+			AddDoorways(blueprint, doorRng);
+			ReserveCirculation(blueprint);
+			PlaceColumns(blueprint, options, columnRng);
+			if (options.Furnish)
+			{
+				for (int index = 0; index < type.Steps.Length; index++)
+				{
+					var step = type.Steps[index];
+					using var stepRng = blueprint.Random($"step:{index}:{step.Id}");
+					if (step.Furnish(blueprint, stepRng) >= step.MinimumCount) continue;
+					failure = $"step {step.Id} placed fewer than {step.MinimumCount}";
+					room.Free();
+					return null;
+				}
+			}
+			floor.Paint(blueprint, floorRng);
+			blueprint.EmitProps();
+			room.LayoutAxis = Vector2I.Down;
+			room.BakeTileMap();
+			failure = "";
+			return blueprint;
+		}
+		catch
+		{
+			room.Free();
+			throw;
+		}
+	}
+
+	private static Room CreateRoom(RoomType type, MeshLibrary floorLibrary, MeshLibrary wallLibrary)
+	{
+		var room = new Room { Name = type.Id.Split('.').Last().ToPascalCase(), Type = type };
+		room.FloorGridMap = AddGridMap(room, "FloorGridMap", floorLibrary);
+		room.WallGridMap = AddGridMap(room, "WallGridMap", wallLibrary);
+		// Floor merging expects all three maps; assembled rooms keep their content as props instead.
+		room.DecorationGridMap = AddGridMap(room, "DecorationGridMap", null);
+		return room;
+	}
+
+	private static GridMap AddGridMap(Room room, string name, MeshLibrary library)
+	{
+		var grid = new GridMap { Name = name, MeshLibrary = library, CellSize = Vector3.One, CellCenterX = false, CellCenterY = false, CellCenterZ = false };
+		room.AddChild(grid);
+		return grid;
+	}
+
+	/// <summary>Entrances only on the bounding rectangle's outer edges, where corridors can reach them.</summary>
+	private static List<RoomDoorway> ChooseDoorways(RoomType type, RoomFootprint footprint, RandomNumberGenerator rng)
+	{
+		var candidates = new List<RoomDoorway>();
+		foreach (var tile in footprint.Tiles)
+		foreach (var direction in Directions)
+		{
+			var outside = tile + direction;
+			if (outside.X < 0 || outside.Y < 0 || outside.X >= footprint.Width || outside.Y >= footprint.Length) candidates.Add(new(tile, direction));
+		}
+		int count = rng.RandiRange(type.MinDoorways, type.MaxDoorways);
+		var chosen = new List<RoomDoorway>();
+		switch (type.DoorwayPlacement)
+		{
+			case DoorwayPlacement.LongAxisEnds:
+				foreach (var direction in new[] { Vector2I.Up, Vector2I.Down })
+				{
+					var end = candidates.Where(candidate => candidate.Direction == direction)
+						.OrderBy(candidate => Mathf.Abs(candidate.Tile.X - (footprint.Width - 1) / 2f)).ThenBy(candidate => candidate.Tile.X);
+					if (end.Any()) chosen.Add(end.First());
+				}
+				Spread(candidates.Where(candidate => candidate.Direction.X != 0).ToList(), chosen, rng.RandiRange(0, Mathf.Max(0, type.MaxDoorways - 2)), footprint, rng);
+				break;
+			case DoorwayPlacement.LongSides:
+				Spread(candidates.Where(candidate => candidate.Direction.X != 0).ToList(), chosen, count, footprint, rng);
+				break;
+			default:
+				Spread(candidates, chosen, count, footprint, rng);
+				break;
+		}
+		return chosen;
+	}
+
+	/// <summary>Spreads doorways over different walls first, preferring wall middles, never on neighbouring tiles.</summary>
+	private static void Spread(List<RoomDoorway> candidates, List<RoomDoorway> chosen, int count, RoomFootprint footprint, RandomNumberGenerator rng)
+	{
+		int target = chosen.Count + count;
+		var byDirection = candidates.GroupBy(candidate => candidate.Direction).Select(group => group.OrderBy(candidate => group.Key.X != 0
+			? Mathf.Abs(candidate.Tile.Y - (footprint.Length - 1) / 2f) : Mathf.Abs(candidate.Tile.X - (footprint.Width - 1) / 2f)).ToList()).ToList();
+		for (int index = byDirection.Count - 1; index > 0; index--)
+		{
+			int other = rng.RandiRange(0, index);
+			(byDirection[index], byDirection[other]) = (byDirection[other], byDirection[index]);
+		}
+		foreach (var wall in byDirection)
+		{
+			if (chosen.Count >= target) return;
+			var pick = wall.FirstOrDefault(candidate => IsApart(candidate, chosen));
+			if (pick != default) chosen.Add(pick);
+		}
+		var rest = candidates.Where(candidate => !chosen.Contains(candidate)).ToList();
+		while (chosen.Count < target && rest.Count > 0)
+		{
+			int index = rng.RandiRange(0, rest.Count - 1);
+			var candidate = rest[index];
+			rest.RemoveAt(index);
+			if (IsApart(candidate, chosen)) chosen.Add(candidate);
+		}
+	}
+
+	private static bool IsApart(RoomDoorway candidate, List<RoomDoorway> chosen) =>
+		chosen.All(other => Mathf.Abs(other.Tile.X - candidate.Tile.X) + Mathf.Abs(other.Tile.Y - candidate.Tile.Y) > 1);
+
+	/// <summary>Doorway markers make every other edge solid when the room is placed; doors gate some openings.</summary>
+	private static void AddDoorways(RoomBlueprint blueprint, RandomNumberGenerator rng)
+	{
+		for (int index = 0; index < blueprint.Doorways.Count; index++)
+		{
+			var doorway = blueprint.Doorways[index];
+			blueprint.Room.AddChild(new DoorwayMarker
+			{
+				Name = $"DoorwayMarker{index + 1}",
+				Position = doorway.Approach,
+				Directions = DoorwayMarker.GetDirectionFlag(doorway.Direction),
+			});
+			if (blueprint.Type.DoorScene == null || rng.Randf() >= blueprint.Type.DoorChance) continue;
+			var door = blueprint.Type.DoorScene.Instantiate<Node3D>();
+			door.Name = $"Door{index + 1}";
+			door.Position = doorway.Approach + new Vector3(doorway.Direction.X, 0, doorway.Direction.Y) * (Room.TileSize / 2f);
+			door.RotationDegrees = new Vector3(0, DoorwayMarker.GetYRotationDegrees(DoorwayMarker.GetDirectionFlag(doorway.Direction)), 0);
+			blueprint.Room.AddChild(door);
+		}
+	}
+
+	/// <summary>Keeps doorway approaches (and optionally door-to-door paths) free of furniture.</summary>
+	private static void ReserveCirculation(RoomBlueprint blueprint)
+	{
+		if (blueprint.Type.Circulation == CirculationMode.None) return;
+		foreach (var doorway in blueprint.Doorways)
+		{
+			var outward = new Vector3(doorway.Direction.X, 0, doorway.Direction.Y);
+			var edge = doorway.Approach + outward * (Room.TileSize / 2f);
+			blueprint.Reserve(Strip(edge, edge - outward * ApproachDepth));
+		}
+		if (blueprint.Type.Circulation != CirculationMode.DoorToDoorSpine) return;
+		for (int index = 1; index < blueprint.Doorways.Count; index++)
+		{
+			var path = TilePath(blueprint.Footprint, blueprint.Doorways[index - 1].Tile, blueprint.Doorways[index].Tile);
+			for (int step = 1; step < path.Count; step++)
+				blueprint.Reserve(Strip(RoomFootprint.TileCenter(path[step - 1]), RoomFootprint.TileCenter(path[step])));
+		}
+	}
+
+	/// <summary>An axis-aligned strip of circulation width between two points on a shared row or column.</summary>
+	private static Rect2 Strip(Vector3 from, Vector3 to)
+	{
+		var a = RoomBlueprint.XZ(from);
+		var b = RoomBlueprint.XZ(to);
+		return new Rect2(a, Vector2.Zero).Expand(b).Grow(CirculationWidth / 2);
+	}
+
+	private static List<Vector2I> TilePath(RoomFootprint footprint, Vector2I from, Vector2I to)
+	{
+		var previous = new Dictionary<Vector2I, Vector2I> { [from] = from };
+		var queue = new Queue<Vector2I>([from]);
+		while (queue.TryDequeue(out var tile) && tile != to)
+			foreach (var direction in Directions)
+			{
+				var next = tile + direction;
+				if (!footprint.IsFloor(next) || !previous.TryAdd(next, tile)) continue;
+				queue.Enqueue(next);
+			}
+		var path = new List<Vector2I>();
+		if (!previous.ContainsKey(to)) return path;
+		for (var tile = to; tile != from; tile = previous[tile]) path.Add(tile);
+		path.Add(from);
+		path.Reverse();
+		return path;
+	}
+
+	private static void PlaceColumns(RoomBlueprint blueprint, RoomAssemblyOptions options, RandomNumberGenerator rng)
+	{
+		var type = blueprint.Type;
+		bool enabled = rng.Randf() < type.ColumnChance;
+		var pattern = Weighted.Pick(type.Columns, entry => entry.Weight, rng);
+		if (options.Columns == RoomAssemblyOptions.Off) return;
+		if (options.Columns >= 0)
+		{
+			pattern = type.Columns[options.Columns];
+			enabled = true;
+		}
+		if (!enabled || pattern == null) return;
+		if (pattern.Place(blueprint, rng) > 0) blueprint.Columns = pattern;
+	}
+}

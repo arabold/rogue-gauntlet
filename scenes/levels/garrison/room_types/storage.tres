@@ -1,0 +1,104 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=35 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/LShape.cs" id="3_LShape"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/stone_walls.tres" id="4_stone_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/ruined_walls.tres" id="5_ruined_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone_floor.tres" id="6_stone_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/dirt_floor.tres" id="7_dirt_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/worn_stone.tres" id="8_worn_stone"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/dirt_with_stone.tres" id="9_dirt_with_st"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/CenterColumns.cs" id="10_CenterColumn"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar.tres" id="11_pillar"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar_ornate.tres" id="12_pillar_ornat"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/CornerColumns.cs" id="13_CornerColumn"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="14_CornersStep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/groups/supply_corner.tres" id="15_supply_corne"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/crate_stack.tres" id="16_crate_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/barrel_stack.tres" id="17_barrel_stack"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="18_AlongWallsSt"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/groups/barrel_station.tres" id="19_barrel_stati"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/groups/keg_station.tres" id="20_keg_station"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="21_ScatterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/crate.tres" id="22_crate"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/small_box.tres" id="23_small_box"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="24_WallDecorSte"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="25_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="26_torch_unlit"]
+
+[sub_resource type="Resource" id="RectangleShape_1"]
+script = ExtResource("2_RectangleSha")
+Weight = 2.0
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 5)
+OddWidth = false
+metadata/_custom_type_script = ExtResource("2_RectangleSha")
+
+[sub_resource type="Resource" id="LShape_2"]
+script = ExtResource("3_LShape")
+Weight = 1.0
+MinimumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(4, 5)
+ArmWidth = 2
+metadata/_custom_type_script = ExtResource("3_LShape")
+
+[sub_resource type="Resource" id="CenterColumns_3"]
+script = ExtResource("10_CenterColumn")
+Id = "center"
+Column = [ExtResource("11_pillar"), ExtResource("12_pillar_ornat")]
+metadata/_custom_type_script = ExtResource("10_CenterColumn")
+
+[sub_resource type="Resource" id="CornerColumns_4"]
+script = ExtResource("13_CornerColumn")
+Id = "corners"
+Column = [ExtResource("11_pillar"), ExtResource("12_pillar_ornat")]
+metadata/_custom_type_script = ExtResource("13_CornerColumn")
+
+[sub_resource type="Resource" id="CornersStep_5"]
+script = ExtResource("14_CornersStep")
+Id = "corner_supplies"
+Content = [ExtResource("15_supply_corne"), ExtResource("16_crate_stack"), ExtResource("17_barrel_stack")]
+MinimumCount = 1
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("14_CornersStep")
+
+[sub_resource type="Resource" id="AlongWallsStep_6"]
+script = ExtResource("18_AlongWallsSt")
+Id = "supply_stations"
+Content = [ExtResource("19_barrel_stati"), ExtResource("20_keg_station")]
+MinimumCount = 1
+MaximumCount = 3
+Sides = 3
+Spacing = 0.4
+metadata/_custom_type_script = ExtResource("18_AlongWallsSt")
+
+[sub_resource type="Resource" id="ScatterStep_7"]
+script = ExtResource("21_ScatterStep")
+Id = "loose_supplies"
+Content = [ExtResource("22_crate"), ExtResource("23_small_box"), ExtResource("17_barrel_stack")]
+MaximumCount = 3
+WallChance = 0.8
+metadata/_custom_type_script = ExtResource("21_ScatterStep")
+
+[sub_resource type="Resource" id="WallDecorStep_8"]
+script = ExtResource("24_WallDecorSte")
+Id = "door_torches"
+Content = [ExtResource("25_torch"), ExtResource("26_torch_unlit")]
+MaximumCount = 2
+BesideDoorways = true
+metadata/_custom_type_script = ExtResource("24_WallDecorSte")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "garrison.storage"
+Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2")]
+MinimumFloorTiles = 8
+MinDoorways = 1
+MaxDoorways = 2
+Walls = [ExtResource("4_stone_walls"), ExtResource("5_ruined_walls")]
+Floors = [ExtResource("6_stone_floor"), ExtResource("7_dirt_floor"), ExtResource("8_worn_stone"), ExtResource("9_dirt_with_st")]
+Columns = [SubResource("CenterColumns_3"), SubResource("CornerColumns_4")]
+ColumnChance = 0.25
+Steps = [SubResource("CornersStep_5"), SubResource("AlongWallsStep_6"), SubResource("ScatterStep_7"), SubResource("WallDecorStep_8")]
+metadata/_custom_type_script = ExtResource("1_RoomType")

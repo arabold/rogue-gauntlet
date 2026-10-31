@@ -28,6 +28,9 @@ public class RoomRegion
 	/// </summary>
 	public bool IsProcedural { get; set; }
 
+	/// <summary>Assembled with its content by a <see cref="RoomType"/>; the generic furnishing pass skips it.</summary>
+	public bool IsFurnished { get; set; }
+
 	/// <summary>Per-room furnishing policy supplied by a coded recipe; absent for generic/authored rooms.</summary>
 	public RoomArrangementPool InteriorPool { get; set; }
 	public RoomDressingProfile Dressing { get; set; }

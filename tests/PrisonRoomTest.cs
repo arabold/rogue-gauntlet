@@ -36,7 +36,7 @@ public class PrisonRoomTest
 				AssertBool(walls.Any(wall => wall.GetMeta("structural_item").AsString() == "wall_archedwindow_gated")).IsTrue();
 				AssertInt(walls.Count(wall => wall.Name.ToString().Contains("divider"))).IsEqual(sides * (count + 1) * 2);
 				AssertInt(room.GetChildren().OfType<RoomFurnishingSlot>().Count(slot => slot.Id.EndsWith(":bed"))).IsEqual(sides * count);
-				for (int turn = 0; turn < 4; turn++) { ModularRoomTest.AssertRequiredSlotsFit(room, recipe); room.Rotate(1); }
+				for (int turn = 0; turn < 4; turn++) { AssertRequiredSlotsFit(room, recipe); room.Rotate(1); }
 				ProceduralRoomBuilder.SetOwnersForPacking(room, room);
 				using var scene = new PackedScene();
 				AssertBool(scene.Pack(room) == Error.Ok).IsTrue();
@@ -46,7 +46,7 @@ public class PrisonRoomTest
 					restored.BakeTileMap();
 					AssertInt(Gates(restored).Length).IsEqual(sides * count);
 					AssertBool(Gates(restored).All(gate => gate.Interior.Door == gate && gate.Leaf != null)).IsTrue();
-					ModularRoomTest.AssertRequiredSlotsFit(restored, recipe);
+					AssertRequiredSlotsFit(restored, recipe);
 				}
 				finally { restored.Free(); }
 			}
@@ -73,7 +73,7 @@ public class PrisonRoomTest
 				table |= ids.Any(id => id == "prison:guard:primary");
 				chair |= ids.Any(id => id == "prison:guard:chair" || id == "prison:guard:second_chair");
 				barrels |= ids.Any(id => id == "prison:supplies:primary");
-				ModularRoomTest.AssertRequiredSlotsFit(room, recipe);
+				AssertRequiredSlotsFit(room, recipe);
 			}
 			finally { room.Free(); }
 		}
@@ -162,5 +162,23 @@ public class PrisonRoomTest
 		}
 		AssertBool(source.Rows == PrisonCellRows.Random).IsTrue();
 		await runner.SimulateFrames(1);
+	}
+
+	/// <summary>Legacy slot recipes: every required slot still fits and keeps the room connected.</summary>
+	internal static void AssertRequiredSlotsFit(Room room, RoomGenerator recipe)
+	{
+		var region = RoomContentLayout.Describe(room);
+		foreach (var slot in room.GetChildren().OfType<RoomFurnishingSlot>())
+			region.FurnishingSlots.Add(slot.Resolve(region.Id, room.LocalToTile(slot.Position), slot.Transform));
+		var pool = recipe.CreateInteriorPool(room);
+		var physical = RoomArrangement.GetGridBounds(room.DecorationGridMap, room.DecorationGridMap.Transform)
+			.Concat(room.InteriorStructure == null ? [] : RoomArrangement.GetStaticPropBounds(room.InteriorStructure, room.InteriorStructure.Transform)).ToArray();
+		var occupied = physical.Concat(InteriorDoorComponent.CollectClearances(room, Transform3D.Identity)).ToArray();
+		var walls = RoomArrangement.GetGridBounds(room.WallGridMap, room.WallGridMap.Transform);
+		var plan = pool.PlacementStrategy.Plan(room.Map, [region], pool, 23, 0, tile => room.TileCenterCell(tile.X, tile.Y), occupied, walls, physical);
+		AssertInt(plan.Count).IsEqual(region.FurnishingSlots.Count);
+		AssertBool(new RoomPassageValidator(room.Map, region.Tiles.ToHashSet(), region.ConnectorTiles,
+			tile => room.TileCenterCell(tile.X, tile.Y), physical.Concat(walls).ToArray(), pool.PassageRadius)
+			.IsConnected(RoomDressingProfile.GetBounds(plan, true))).IsTrue();
 	}
 }

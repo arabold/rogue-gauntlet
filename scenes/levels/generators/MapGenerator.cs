@@ -213,6 +213,7 @@ public partial class MapGenerator : Node3D
 		// Room` with no backing scene file; an authored room is instantiated from a
 		// PackedScene, which sets SceneFilePath on the instantiated root.
 		var region = new RoomRegion(Floor.Rooms.Count) { IsProcedural = string.IsNullOrEmpty(placement.Room.SceneFilePath), Purpose = placement.Room.Purpose,
+			IsFurnished = placement.Room.Type != null,
 			InteriorPool = string.IsNullOrEmpty(placement.Room.SceneFilePath) ? placement.Room.Generator?.CreateInteriorPool(placement.Room) : null,
 			Dressing = string.IsNullOrEmpty(placement.Room.SceneFilePath) ? placement.Room.Generator?.Dressing : null, LayoutAxis = placement.Room.LayoutAxis };
 		for (int lx = 0; lx < roomMap.Width; lx++)
@@ -402,7 +403,7 @@ public partial class MapGenerator : Node3D
 		var walls = RoomArrangement.GetGridBounds(WallGridMap, WallGridMap.Transform);
 		var doorClearances = InteriorDoorComponent.CollectClearances(NavigationRegion,
 			GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform);
-		foreach (var room in Floor.Rooms.Where(room => room.IsProcedural))
+		foreach (var room in Floor.Rooms.Where(room => room.IsProcedural && !room.IsFurnished))
 		{
 			var pool = room.InteriorPool ?? ArrangementPool;
 			if (pool == null) continue;
@@ -433,7 +434,6 @@ public partial class MapGenerator : Node3D
 				NavigationRegion.AddChild(instance);
 				instance.GlobalTransform = GlobalTransform * placement.Transform;
 				obstacles.AddRange(instance.GetLocalBounds().Select(box => placement.Transform * box));
-				Floor.Reserve(placement.Occupied);
 				ArrangementCount++;
 			}
 		}
@@ -763,6 +763,9 @@ public partial class MapGenerator : Node3D
 		// placement below needs them for clearance, and they're just a scene lookup with no
 		// dependency on anything the bake computes).
 		FindProgressionAnchors();
+
+		// Step 3.1: Reachability over the finished geometry; everything placed from here on lands on reachable cells.
+		BuildWalkability();
 
 		// Step 3a: Decide special encounters before anything else claims the floor.
 		if (!ResolveEncounters()) return false;

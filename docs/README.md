@@ -43,6 +43,7 @@ These documents explain code that exists today. Any proposed extension or future
 
 | Document | Remaining scope |
 | --- | --- |
+| [Room assembly rebuild](specs/room-assembly-rebuild-plan.md) | Proposed: room types composed of shape, floor, wall, column and furnishing strategies; data/coded prop groups; floor-level reachability so nothing spawns in inaccessible areas |
 | [Reusable room sections](specs/reusable-room-sections-plan.md) | Opaque partitions, internal mechanical locks and sewage content on the implemented composition functions |
 | [Secret doors and locks](specs/secret-doors-and-locks-plan.md) | Remaining tuning, hidden mechanisms, consumable key chains and secret shortcuts |
 | [Dungeon progression](specs/level-progression-prototype-plan.md) | Realm pools/recipes and the visible Warden stair seal |

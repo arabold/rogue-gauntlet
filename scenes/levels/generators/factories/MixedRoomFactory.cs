@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Godot;
 
 /// <summary>
@@ -14,7 +15,9 @@ public partial class MixedRoomFactory : RoomFactory
 	[Export] public RoomFactory AuthoredFactory { get; set; }
 	[Export] public ProceduralRoomBuilder RoomBuilder { get; set; }
 
-	/// <summary>Weighted coded recipes for procedural slots. Empty uses the generic RoomBuilder.</summary>
+	/// <summary>Weighted room types assembled with their content; shares procedural slots with the legacy generators.</summary>
+	[Export] public RoomType[] RoomTypes { get; set; } = [];
+	/// <summary>Weighted legacy coded recipes for procedural slots. With no room types either, the generic RoomBuilder is used.</summary>
 	[Export] public RoomGenerator[] RoomGenerators { get; set; } = [];
 
 	/// <summary>Fraction of standard rooms that are procedurally built.</summary>
@@ -45,35 +48,30 @@ public partial class MixedRoomFactory : RoomFactory
 
 	public override Room CreateStandardRoom(RandomNumberGenerator rng)
 	{
-		if (ProceduralShare >= 1 && RoomGenerators.Length == 0 && RoomBuilder == null)
-			throw new InvalidOperationException("Generated room factory: assign a generator or room builder.");
-		if ((RoomGenerators.Length > 0 || RoomBuilder != null) && rng.Randf() < ProceduralShare)
+		bool generated = RoomTypes.Length > 0 || RoomGenerators.Length > 0;
+		if (ProceduralShare >= 1 && !generated && RoomBuilder == null)
+			throw new InvalidOperationException("Generated room factory: assign a room type, generator or room builder.");
+		if ((generated || RoomBuilder != null) && rng.Randf() < ProceduralShare)
 		{
 			// A selected generated recipe must succeed; substituting a frozen room hides broken authoring.
-			Room room;
-			if (RoomGenerators.Length > 0)
+			if (!generated) return RoomBuilder.BuildRoom(rng) ?? throw new InvalidOperationException("The generic room builder could not build a room.");
+			if (RoomTypes.Any(type => type == null) || RoomGenerators.Any(generator => generator == null))
+				throw new InvalidOperationException("Room factory: assign every room type and generator entry.");
+			var options = RoomTypes.Select(type => ((Resource)type, type.Weight)).Concat(RoomGenerators.Select(generator => ((Resource)generator, generator.Weight))).ToArray();
+			double roll = rng.Randf() * options.Sum(option => option.Item2);
+			var selected = options[^1].Item1;
+			foreach (var (option, weight) in options)
 			{
-				foreach (var generator in RoomGenerators)
-				{
-					if (generator == null) throw new InvalidOperationException("Room factory: assign every generator entry.");
-					var errors = generator.Validate();
-					if (errors.Length > 0) throw new InvalidOperationException(string.Join("\n", errors));
-				}
-				double totalWeight = 0;
-				foreach (var generator in RoomGenerators) totalWeight += generator.Weight;
-				double roll = rng.Randf() * totalWeight;
-				var selected = RoomGenerators[^1];
-				foreach (var generator in RoomGenerators)
-				{
-					roll -= generator.Weight;
-					if (roll < 0) { selected = generator; break; }
-				}
-				room = selected.BuildRoom(rng);
+				roll -= weight;
+				if (roll < 0) { selected = option; break; }
 			}
-			else room = RoomBuilder.BuildRoom(rng);
-			return room ?? throw new InvalidOperationException("Selected generated room could not be built; authored substitution is disabled.");
+			if (selected is RoomType roomType)
+				return RoomAssembler.Assemble(roomType, ((ulong)rng.Randi() << 32) | rng.Randi());
+			var generator = (RoomGenerator)selected;
+			var errors = generator.Validate();
+			if (errors.Length > 0) throw new InvalidOperationException(string.Join("\n", errors));
+			return generator.BuildRoom(rng) ?? throw new InvalidOperationException("Selected generated room could not be built; authored substitution is disabled.");
 		}
-
 		WarnIfAuthoredFactoryMissing();
 		return AuthoredFactory?.CreateStandardRoom(rng);
 	}

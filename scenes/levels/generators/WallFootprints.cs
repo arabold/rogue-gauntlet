@@ -35,7 +35,8 @@ public static class WallFootprints
 	/// Places straight walls, gap-filling half-walls, and corner pieces onto <paramref name="wallGridMap"/>
 	/// for every tile in <paramref name="sourceTiles"/> whose cardinal edge satisfies <paramref name="needsWallToward"/>.
 	/// Shared between runtime level generation (<see cref="MapGenerator"/>) and standalone room generation
-	/// (<see cref="ProceduralRoomBuilder"/>).
+	/// (<see cref="ProceduralRoomBuilder"/>). Requests keep their axis orientation (horizontal 0, vertical 16) for gap
+	/// filling; <paramref name="pickStraight"/> may place a straight piece at either facing of that axis.
 	/// </summary>
 	public static void PlaceWalls(
 		GridMap wallGridMap,
@@ -44,7 +45,8 @@ public static class WallFootprints
 		Func<Vector2I, int, int, bool> needsWallToward,
 		Func<int> getWallItem,
 		Func<int> getHalfWallItem,
-		Func<int> getCornerWallItem)
+		Func<int> getCornerWallItem,
+		Func<WallStraightRequest, (int Item, int Orientation)> pickStraight = null)
 	{
 		if (wallGridMap == null)
 		{
@@ -102,14 +104,15 @@ public static class WallFootprints
 		{
 			if (wallGridMap.GetCellItem(wall.Position) < 0)
 			{
-				int wallItem = getWallItem();
+				// A positional picker may vary pieces along a run and turn asymmetric ones to face the room.
+				var (wallItem, orientation) = pickStraight?.Invoke(wall) ?? (getWallItem(), wall.Orientation);
 				if (wallItem >= 0)
 				{
-					wallGridMap.SetCellItem(wall.Position, wallItem, wall.Orientation);
+					wallGridMap.SetCellItem(wall.Position, wallItem, orientation);
 					Mesh mesh = library?.GetItemMesh(wallItem);
 					if (mesh != null)
 					{
-						wallBoxes.Add(FootprintWorld(mesh.GetAabb(), wall.Orientation, wall.Position));
+						wallBoxes.Add(FootprintWorld(mesh.GetAabb(), orientation, wall.Position));
 					}
 				}
 			}

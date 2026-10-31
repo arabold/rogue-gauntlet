@@ -1,0 +1,76 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=24 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/pillared_walls.tres" id="3_pillared_wal"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/arched_walls.tres" id="4_arched_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/stone_walls.tres" id="5_stone_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone_floor.tres" id="6_stone_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/cobble_floor.tres" id="7_cobble_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/worn_stone.tres" id="8_worn_stone"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/AisleColumns.cs" id="9_AisleColumns"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar.tres" id="10_pillar"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar_ornate.tres" id="11_pillar_ornat"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="12_WallDecorSte"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="13_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="14_torch_unlit"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner.tres" id="15_banner"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/sword_shield.tres" id="16_sword_shield"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="17_AlongWallsSt"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/groups/barrel_station.tres" id="18_barrel_stati"]
+
+[sub_resource type="Resource" id="RectangleShape_1"]
+script = ExtResource("2_RectangleSha")
+Weight = 1.0
+MinimumSize = Vector2i(5, 5)
+MaximumSize = Vector2i(5, 7)
+OddWidth = true
+metadata/_custom_type_script = ExtResource("2_RectangleSha")
+
+[sub_resource type="Resource" id="AisleColumns_2"]
+script = ExtResource("9_AisleColumns")
+Id = "aisle"
+Column = [ExtResource("10_pillar"), ExtResource("11_pillar_ornat")]
+Spacing = 2
+metadata/_custom_type_script = ExtResource("9_AisleColumns")
+
+[sub_resource type="Resource" id="WallDecorStep_3"]
+script = ExtResource("12_WallDecorSte")
+Id = "torches"
+Content = [ExtResource("13_torch"), ExtResource("14_torch_unlit")]
+MaximumCount = 6
+Spacing = 6.0
+metadata/_custom_type_script = ExtResource("12_WallDecorSte")
+
+[sub_resource type="Resource" id="WallDecorStep_4"]
+script = ExtResource("12_WallDecorSte")
+Id = "banners"
+Content = [ExtResource("15_banner"), ExtResource("16_sword_shield")]
+MaximumCount = 4
+Spacing = 4.0
+metadata/_custom_type_script = ExtResource("12_WallDecorSte")
+
+[sub_resource type="Resource" id="AlongWallsStep_5"]
+script = ExtResource("17_AlongWallsSt")
+Id = "provisions"
+Content = [ExtResource("18_barrel_stati")]
+MinimumCount = 0
+MaximumCount = 2
+Sides = 1
+metadata/_custom_type_script = ExtResource("17_AlongWallsSt")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "garrison.hall"
+Shapes = [SubResource("RectangleShape_1")]
+MinimumFloorTiles = 25
+MinDoorways = 2
+MaxDoorways = 4
+DoorwayPlacement = 1
+Circulation = 1
+Walls = [ExtResource("3_pillared_wal"), ExtResource("4_arched_walls"), ExtResource("5_stone_walls")]
+Floors = [ExtResource("6_stone_floor"), ExtResource("7_cobble_floor"), ExtResource("8_worn_stone")]
+Columns = [SubResource("AisleColumns_2")]
+ColumnChance = 1.0
+Steps = [SubResource("WallDecorStep_3"), SubResource("WallDecorStep_4"), SubResource("AlongWallsStep_5")]
+metadata/_custom_type_script = ExtResource("1_RoomType")
