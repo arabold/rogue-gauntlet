@@ -3,17 +3,17 @@
 [ext_resource type="Script" path="res://scenes/components/LootPool.cs" id="pool"]
 [ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tier_depth_bands.tres" id="bands"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/broadsword_steel.tres" id="item_broadsword_steel"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/club_steel.tres" id="item_club_steel"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/club_wood_old.tres" id="item_club_wood_old"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/dagger_short.tres" id="item_dagger_short"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/greatsword_steel.tres" id="item_greatsword_steel"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/halberd_steel.tres" id="item_halberd_steel"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/morning_star_iron.tres" id="item_morning_star_iron"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/rapier_steel.tres" id="item_rapier_steel"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/saber_steel.tres" id="item_saber_steel"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/scythe_iron.tres" id="item_scythe_iron"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/spear_steel.tres" id="item_spear_steel"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/greatsword/broadsword_steel.tres" id="item_broadsword_steel"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/club/club_steel.tres" id="item_club_steel"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/club/club_wood_old.tres" id="item_club_wood_old"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/dagger/dagger_short.tres" id="item_dagger_short"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/greatsword/greatsword_steel.tres" id="item_greatsword_steel"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/polearm/halberd_steel.tres" id="item_halberd_steel"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/mace/morning_star_iron.tres" id="item_morning_star_iron"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/sword/rapier_steel.tres" id="item_rapier_steel"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/sword/saber_steel.tres" id="item_saber_steel"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/polearm/scythe_iron.tres" id="item_scythe_iron"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/polearm/spear_steel.tres" id="item_spear_steel"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/axe/axe_bearded.tres" id="item_axe_bearded"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/axe/axe_executioner.tres" id="item_axe_executioner"]
 [ext_resource type="Resource" uid="uid://bc4es25jpb62o" path="res://scenes/items/weapons/axe_common.tres" id="item_axe_common"]
@@ -28,11 +28,11 @@
 [ext_resource type="Resource" uid="uid://c3cgdlchx0g5u" path="res://scenes/items/weapons/battleaxe_common.tres" id="item_battleaxe_common"]
 [ext_resource type="Resource" uid="uid://cldnonwxiehlh" path="res://scenes/items/weapons/battleaxe_skeleton.tres" id="item_battleaxe_skeleton"]
 [ext_resource type="Resource" uid="uid://s7cb00hy20sn" path="res://scenes/items/weapons/battleaxe_starter.tres" id="item_battleaxe_starter"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/broadsword/broadsword_gilded.tres" id="item_broadsword_gilded"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/broadsword/broadsword_iron.tres" id="item_broadsword_iron"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/broadsword/greatsword_wooden.tres" id="item_greatsword_wooden"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/broadsword/longblade_crescent.tres" id="item_longblade_crescent"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/broadsword/greatblade_curved.tres" id="item_greatblade_curved"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/greatsword/greatsword_winged.tres" id="item_greatsword_winged"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/greatsword/claymore_iron.tres" id="item_claymore_iron"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/greatsword/greatsword_wooden.tres" id="item_greatsword_wooden"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/greatsword/longblade_crescent.tres" id="item_longblade_crescent"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/greatsword/greatblade_curved.tres" id="item_greatblade_curved"]
 [ext_resource type="Resource" uid="uid://cl7ybfrf3tkam" path="res://scenes/items/weapons/broadsword_common.tres" id="item_broadsword_common"]
 [ext_resource type="Resource" uid="uid://cnfavj2kn13nw" path="res://scenes/items/weapons/broadsword_rare.tres" id="item_broadsword_rare"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/crossbow/crossbow_gilded.tres" id="item_crossbow_gilded"]
@@ -41,12 +41,12 @@
 [ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_rare.tres" id="item_crossbow_rare"]
 [ext_resource type="Resource" uid="uid://qmeb2ougex4n" path="res://scenes/items/weapons/crossbow_spiked.tres" id="item_crossbow_spiked"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_uncommon.tres" id="item_crossbow_uncommon"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/dagger/dagger_kukri.tres" id="item_dagger_kukri"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/dagger/dagger_nightblade.tres" id="item_dagger_nightblade"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/dagger/dagger_dirk.tres" id="item_dagger_dirk"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/dagger/dagger_fang.tres" id="item_dagger_fang"]
 [ext_resource type="Resource" uid="uid://cfjd6iimvn0lp" path="res://scenes/items/weapons/dagger_common.tres" id="item_dagger_common"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/dagger_rare.tres" id="item_dagger_rare"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/dagger_uncommon.tres" id="item_dagger_uncommon"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/hammer/hammer_gilded.tres" id="item_hammer_gilded"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/mace/mace_gilded.tres" id="item_mace_gilded"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/hammer/hammer_mallet.tres" id="item_hammer_mallet"]
 [ext_resource type="Resource" uid="uid://l6l5vxvpavp5" path="res://scenes/items/weapons/hammer_common.tres" id="item_hammer_common"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/hammer_rare.tres" id="item_hammer_rare"]
@@ -75,7 +75,7 @@
 [ext_resource type="Resource" path="res://scenes/items/weapons/staff/staff_horned.tres" id="item_staff_horned"]
 [ext_resource type="Resource" uid="uid://dkeu2hxa5hlp1" path="res://scenes/items/weapons/wand/wand_ruby.tres" id="item_wand_ruby"]
 [ext_resource type="Resource" uid="uid://b0npueya07rvp" path="res://scenes/items/weapons/wand.tres" id="item_wand"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/warhammer/warhammer_iron.tres" id="item_warhammer_iron"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/warhammer/warhammer_sledge.tres" id="item_warhammer_sledge"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/warhammer/warhammer_spiked.tres" id="item_warhammer_spiked"]
 [ext_resource type="Resource" uid="uid://c2aj2q6oitlgh" path="res://scenes/items/weapons/warhammer.tres" id="item_warhammer"]
 [ext_resource type="Resource" uid="uid://ddlbimgglj7ai" path="res://scenes/items/weapons/warhammer_gold.tres" id="item_warhammer_gold"]
@@ -252,9 +252,9 @@ MinDepth = 1
 MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_broadsword_gilded"]
+[sub_resource type="Resource" id="Entry_greatsword_winged"]
 script = ExtResource("entry")
-Item = ExtResource("item_broadsword_gilded")
+Item = ExtResource("item_greatsword_winged")
 MinDepth = 19
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -279,9 +279,9 @@ MinDepth = 16
 MaxDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_broadsword_iron"]
+[sub_resource type="Resource" id="Entry_claymore_iron"]
 script = ExtResource("entry")
-Item = ExtResource("item_broadsword_iron")
+Item = ExtResource("item_claymore_iron")
 MinDepth = 4
 MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
@@ -341,16 +341,16 @@ MinDepth = 10
 MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_dagger_kukri"]
+[sub_resource type="Resource" id="Entry_dagger_dirk"]
 script = ExtResource("entry")
-Item = ExtResource("item_dagger_kukri")
+Item = ExtResource("item_dagger_dirk")
 MinDepth = 10
 MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_dagger_nightblade"]
+[sub_resource type="Resource" id="Entry_dagger_fang"]
 script = ExtResource("entry")
-Item = ExtResource("item_dagger_nightblade")
+Item = ExtResource("item_dagger_fang")
 MinDepth = 19
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -375,9 +375,9 @@ MinDepth = 4
 MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_hammer_gilded"]
+[sub_resource type="Resource" id="Entry_mace_gilded"]
 script = ExtResource("entry")
-Item = ExtResource("item_hammer_gilded")
+Item = ExtResource("item_mace_gilded")
 MinDepth = 19
 metadata/_custom_type_script = ExtResource("entry")
 
@@ -574,9 +574,9 @@ MinDepth = 1
 MaxDepth = 6
 metadata/_custom_type_script = ExtResource("entry")
 
-[sub_resource type="Resource" id="Entry_warhammer_iron"]
+[sub_resource type="Resource" id="Entry_warhammer_sledge"]
 script = ExtResource("entry")
-Item = ExtResource("item_warhammer_iron")
+Item = ExtResource("item_warhammer_sledge")
 MinDepth = 4
 MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
@@ -603,6 +603,6 @@ metadata/_custom_type_script = ExtResource("entry")
 
 [resource]
 script = ExtResource("pool")
-Items = [SubResource("Entry_broadsword_steel"), SubResource("Entry_club_steel"), SubResource("Entry_club_wood_old"), SubResource("Entry_dagger_short"), SubResource("Entry_greatsword_steel"), SubResource("Entry_halberd_steel"), SubResource("Entry_morning_star_iron"), SubResource("Entry_rapier_steel"), SubResource("Entry_saber_steel"), SubResource("Entry_scythe_iron"), SubResource("Entry_spear_steel"), SubResource("Entry_axe_bearded"), SubResource("Entry_axe_executioner"), SubResource("Entry_axe_common"), SubResource("Entry_axe_old"), SubResource("Entry_axe_rare"), SubResource("Entry_axe_uncommon"), SubResource("Entry_axedouble_common"), SubResource("Entry_axedouble_rare"), SubResource("Entry_axedouble_uncommon"), SubResource("Entry_battleaxe_gilded"), SubResource("Entry_battleaxe_iron"), SubResource("Entry_battleaxe_common"), SubResource("Entry_battleaxe_skeleton"), SubResource("Entry_battleaxe_starter"), SubResource("Entry_broadsword_gilded"), SubResource("Entry_broadsword_iron"), SubResource("Entry_greatsword_wooden"), SubResource("Entry_longblade_crescent"), SubResource("Entry_greatblade_curved"), SubResource("Entry_broadsword_common"), SubResource("Entry_broadsword_rare"), SubResource("Entry_crossbow_gilded"), SubResource("Entry_crossbow_2handed"), SubResource("Entry_crossbow_common"), SubResource("Entry_crossbow_rare"), SubResource("Entry_crossbow_spiked"), SubResource("Entry_crossbow_uncommon"), SubResource("Entry_dagger_kukri"), SubResource("Entry_dagger_nightblade"), SubResource("Entry_dagger_common"), SubResource("Entry_dagger_rare"), SubResource("Entry_dagger_uncommon"), SubResource("Entry_hammer_gilded"), SubResource("Entry_hammer_mallet"), SubResource("Entry_hammer_common"), SubResource("Entry_hammer_rare"), SubResource("Entry_hammer_uncommon"), SubResource("Entry_longsword_common"), SubResource("Entry_saber_skeleton"), SubResource("Entry_shortsword_common"), SubResource("Entry_staff_archmage"), SubResource("Entry_staff_emerald"), SubResource("Entry_staff_common"), SubResource("Entry_staff_rare"), SubResource("Entry_staff_skeleton"), SubResource("Entry_staff_uncommon"), SubResource("Entry_sword_knight"), SubResource("Entry_sword_sunblade"), SubResource("Entry_sword_common"), SubResource("Entry_sword_rare"), SubResource("Entry_wand_celestial"), SubResource("Entry_wand_ruby"), SubResource("Entry_wand"), SubResource("Entry_wand_crooked"), SubResource("Entry_wand_iron"), SubResource("Entry_wand_bone"), SubResource("Entry_wand_carved"), SubResource("Entry_staff_crooked"), SubResource("Entry_staff_iron"), SubResource("Entry_staff_bone"), SubResource("Entry_staff_horned"), SubResource("Entry_warhammer_iron"), SubResource("Entry_warhammer_spiked"), SubResource("Entry_warhammer"), SubResource("Entry_warhammer_gold")]
+Items = [SubResource("Entry_broadsword_steel"), SubResource("Entry_club_steel"), SubResource("Entry_club_wood_old"), SubResource("Entry_dagger_short"), SubResource("Entry_greatsword_steel"), SubResource("Entry_halberd_steel"), SubResource("Entry_morning_star_iron"), SubResource("Entry_rapier_steel"), SubResource("Entry_saber_steel"), SubResource("Entry_scythe_iron"), SubResource("Entry_spear_steel"), SubResource("Entry_axe_bearded"), SubResource("Entry_axe_executioner"), SubResource("Entry_axe_common"), SubResource("Entry_axe_old"), SubResource("Entry_axe_rare"), SubResource("Entry_axe_uncommon"), SubResource("Entry_axedouble_common"), SubResource("Entry_axedouble_rare"), SubResource("Entry_axedouble_uncommon"), SubResource("Entry_battleaxe_gilded"), SubResource("Entry_battleaxe_iron"), SubResource("Entry_battleaxe_common"), SubResource("Entry_battleaxe_skeleton"), SubResource("Entry_battleaxe_starter"), SubResource("Entry_greatsword_winged"), SubResource("Entry_claymore_iron"), SubResource("Entry_greatsword_wooden"), SubResource("Entry_longblade_crescent"), SubResource("Entry_greatblade_curved"), SubResource("Entry_broadsword_common"), SubResource("Entry_broadsword_rare"), SubResource("Entry_crossbow_gilded"), SubResource("Entry_crossbow_2handed"), SubResource("Entry_crossbow_common"), SubResource("Entry_crossbow_rare"), SubResource("Entry_crossbow_spiked"), SubResource("Entry_crossbow_uncommon"), SubResource("Entry_dagger_dirk"), SubResource("Entry_dagger_fang"), SubResource("Entry_dagger_common"), SubResource("Entry_dagger_rare"), SubResource("Entry_dagger_uncommon"), SubResource("Entry_mace_gilded"), SubResource("Entry_hammer_mallet"), SubResource("Entry_hammer_common"), SubResource("Entry_hammer_rare"), SubResource("Entry_hammer_uncommon"), SubResource("Entry_longsword_common"), SubResource("Entry_saber_skeleton"), SubResource("Entry_shortsword_common"), SubResource("Entry_staff_archmage"), SubResource("Entry_staff_emerald"), SubResource("Entry_staff_common"), SubResource("Entry_staff_rare"), SubResource("Entry_staff_skeleton"), SubResource("Entry_staff_uncommon"), SubResource("Entry_sword_knight"), SubResource("Entry_sword_sunblade"), SubResource("Entry_sword_common"), SubResource("Entry_sword_rare"), SubResource("Entry_wand_celestial"), SubResource("Entry_wand_ruby"), SubResource("Entry_wand"), SubResource("Entry_wand_crooked"), SubResource("Entry_wand_iron"), SubResource("Entry_wand_bone"), SubResource("Entry_wand_carved"), SubResource("Entry_staff_crooked"), SubResource("Entry_staff_iron"), SubResource("Entry_staff_bone"), SubResource("Entry_staff_horned"), SubResource("Entry_warhammer_sledge"), SubResource("Entry_warhammer_spiked"), SubResource("Entry_warhammer"), SubResource("Entry_warhammer_gold")]
 TierBands = ExtResource("bands")
 metadata/_custom_type_script = ExtResource("pool")

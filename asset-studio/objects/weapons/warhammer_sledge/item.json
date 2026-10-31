@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "name": "Warhammer Sledge",
+  "backend": "procedural",
+  "builder": "blunt",
+  "design": {
+    "kind": "sledge"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 5,
+    "texture_size": 1024
+  },
+  "export": {
+    "glb": "res://assets/custom-items/weapons/warhammer/warhammer_sledge.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "KayKit-style weapon per objects/weapons/README.md, built from items/forge.py. Grip-centered origin. No gameplay data."
+  }
+}

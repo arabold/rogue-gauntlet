@@ -1,29 +1,29 @@
 {
   "key": "weapons/staff_horned",
-  "inputs": "1a1d754dfa47aeeec4d4f4762f1f0b6c096229d88111a57c369a0b964a2945fa",
+  "inputs": "c29bab807f5f95f9911a132fe2f3e1ea25d4b544da1b2e86cda1195662073f07",
   "files": {
-    "staff_horned.glb": "94e63065c6b545ca77aad387dca837cb637770f3b6d5b7259e4eb18e90755f5d",
-    "lineup.png": "46dd64f9eeae4fbd667183839c677cbaaf1f3ccb67ba129b5661570cede51bf4"
+    "staff_horned.glb": "e9ab6f40cf2aef68d7921e984ebf9b1e71657afb848e7b6ad323ade0a22eee84",
+    "lineup.png": "2fb5fdd02a2156670e64fdb0e08683d1fece264979c85053de304cea28a3bdaa"
   },
   "metadata": {
     "report": {
-      "triangles": 2390,
+      "triangles": 1616,
       "bounds": [
         [
-          -0.38094136118888855,
-          -0.9300000071525574,
-          -0.10000000149011612
+          -0.4396497309207916,
+          -0.9399999976158142,
+          -0.1379999965429306
         ],
         [
-          0.3779212236404419,
-          1.5199999809265137,
-          0.11064911633729935
+          0.4396497309207916,
+          1.4418576955795288,
+          0.1379999965429306
         ]
       ],
       "dimensions": [
-        0.7588625848293304,
-        2.449999988079071,
-        0.21064911782741547
+        0.8792994618415833,
+        2.381857693195343,
+        0.2759999930858612
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.028980395436807166
+        "signed_volume": 0.05205494541307288
       },
       "warnings": [],
       "errors": []
@@ -47,7 +47,7 @@
       "version": 1,
       "name": "Staff Horned",
       "backend": "procedural",
-      "builder": "arsenal",
+      "builder": "staff",
       "design": {
         "kind": "horned_staff"
       },
@@ -58,60 +58,16 @@
         "scale": 1
       },
       "budget": {
-        "triangles": 3500,
+        "triangles": 2400,
         "materials": 5,
         "texture_size": 1024
-      },
-      "colors": {
-        "brass": [
-          165,
-          119,
-          48
-        ],
-        "horn": [
-          170,
-          140,
-          104
-        ],
-        "leather": [
-          79,
-          47,
-          32
-        ],
-        "wood": [
-          119,
-          78,
-          46
-        ]
-      },
-      "materials": {
-        "brass": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
-        "horn": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        },
-        "wood": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        }
       },
       "export": {
         "glb": "res://assets/custom-items/weapons/staff/staff_horned.glb"
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Wooden staff with a carved head and two ridged ram horns curling outward. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+        "quality_notes": "KayKit-style weapon per objects/weapons/README.md, built from items/forge.py. Grip-centered origin. No gameplay data."
       }
     }
   }

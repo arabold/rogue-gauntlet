@@ -1,29 +1,29 @@
 {
   "key": "weapons/greatsword_wooden",
-  "inputs": "7d43409cfa4eb1b12f32843a1cd407e6bc98baddfa8d8a56b63d2799a245cff3",
+  "inputs": "26a11d197e9ca2537d4f528ca5354b7e99d511608894d526ddbeb6caca9e4c64",
   "files": {
-    "greatsword_wooden.glb": "469e88119231ac450b27ecfe1b2de312c312342b9dee432607f39503d4e62946",
-    "lineup.png": "2f6a6b60eab026c9443288c364be5ca5be3b7cddfd204536ceea52ae22935b19"
+    "greatsword_wooden.glb": "915c99f5ec7ea6ca26c3563dd994360c8b47c32bb175c52a1cf6768c1a5b9db2",
+    "lineup.png": "220930eeb102cfeda66b09daa771bc5fe0108b49db91ee19ad8c75e67fbdcf80"
   },
   "metadata": {
     "report": {
-      "triangles": 548,
+      "triangles": 556,
       "bounds": [
         [
           -0.27000001072883606,
           -0.49314916133880615,
-          -0.07000000029802322
+          -0.07653762400150299
         ],
         [
           0.27000001072883606,
           1.659999966621399,
-          0.07000000029802322
+          0.07653762400150299
         ]
       ],
       "dimensions": [
         0.5400000214576721,
         2.153149127960205,
-        0.14000000059604645
+        0.15307524800300598
       ],
       "materials": 1,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.03413664661775483
+        "signed_volume": 0.03650769764908398
       },
       "warnings": [],
       "errors": []
@@ -63,11 +63,6 @@
         "texture_size": 1024
       },
       "colors": {
-        "birch": [
-          214,
-          174,
-          120
-        ],
         "leather": [
           150,
           92,
@@ -77,37 +72,10 @@
           150,
           96,
           60
-        ],
-        "wrap": [
-          222,
-          206,
-          176
         ]
       },
-      "materials": {
-        "birch": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "wood": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "wrap": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        }
-      },
       "export": {
-        "glb": "res://assets/custom-items/weapons/broadsword/greatsword_wooden.glb"
+        "glb": "res://assets/custom-items/weapons/greatsword/greatsword_wooden.glb"
       },
       "provenance": {
         "kind": "studio_original",

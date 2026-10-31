@@ -110,16 +110,6 @@
           108
         ]
       ]
-    },
-    "wood": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 50
-    },
-    "leather": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 50
     }
   },
   "export": {

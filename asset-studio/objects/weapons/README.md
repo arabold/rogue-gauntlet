@@ -15,11 +15,11 @@ All dimensions are metres. The origin is the hand grip and +Y runs along the wea
 | `sword_2handed` | 2.37 | 0.11 | 0.84 guard | 0.10–0.13 |
 | `dagger` | 1.21 | 0.10 | 0.26 | 0.08–0.09 |
 
-KayKit grips are about 8–10% of a weapon's length. Our pre-guide axes, polearms and staffs were about half of that.
+KayKit grips are about 8–10% of a weapon's length.
 
 ## Shaft
 
-- Keep it thick: 0.10–0.12 for one-handed weapons and 0.13–0.16 for two-handed ones. Taper it slightly toward the head and flare or cap the butt. A gentle bend reads as hand-made.
+- Keep it thick: 0.10–0.12 for one-handed weapons and 0.13–0.16 for two-handed ones. Sword and dagger grips are just as chunky, 0.11–0.13, which plays up KayKit's comically big weapons. Pommels and guards stay at least as deep as the grip they hold. Taper it slightly toward the head and flare or cap the butt. A gentle bend reads as hand-made.
 - Use eight sides. The flat facets catch the palette gradient like KayKit's hafts do.
 - Use one to three chunky bands, 0.06–0.10 tall and 0.015–0.02 proud, or two or three diagonal straps. Never a full-length spiral wrap or fine ring grooves.
 - End in a wooden knob, a chunky octagonal cap or, for rare tiers, a metal cap with a gem. Spikes are not part of the language.
@@ -31,6 +31,8 @@ KayKit grips are about 8–10% of a weapon's length. Our pre-guide axes, polearm
 - The socket is a chunky chamfered block, and the haft's end shows above it.
 - Ornament is a raised plate on the cheek, gems, or one chunky carved motif. No inset panels, outline frames, trim strips or decorative spikes.
 - Sword and dagger blades are thick slabs too, at least 0.05 at mid-length. A flat center with bevels on both edges meets in a ridge at an angular point. Narrow thrusting blades are bevelled across their whole width into a center ridge. Curved blades carry their edge on the convex side, with a square spine.
+- Blunt heads are big: chamfered blocks, barrels or flanged cores about half a weapon's width, on the same thick hafts. Studs and spikes are chunky pyramids that belong to the head's function: maul faces, a morning star, a shod cudgel.
+- Staff and wand heads hold big faceted crystals or stones seated in their collar, inside chunky claws or crescents. Bone, horn and gnarled wood stay as thick as the shaft.
 - Guards and pommels are chunky blocks and faceted discs, not plates. Use straight bars with cut ends, wings or horns swept toward the blade, drooping crescents, or ring pommels. Long two-handed grips carry several cream cloth wraps.
 - Detail thinner than about 0.02 disappears at the game camera. Avoid wire guards, thin rings and fine grooves.
 
@@ -48,6 +50,6 @@ KayKit grips are about 8–10% of a weapon's length. Our pre-guide axes, polearm
 
 ## Construction
 
-`items/forge.py` holds the shared vocabulary: octagonal hafts and grips, bands, bevelled `Blade` slabs with chip wear, chamfered plates, discs, rings and gems. `items/axes.py` (builder `axe`) and `items/blades.py` (builder `blade`, swords and daggers) compose weapons from it. Recipes choose a `kind`, and each kind authors its wear to suit its tier. Metal and glass slots pass an explicit `ramp` (light, shadow, base) in their recipe materials, because the default metal ramp washes up-facing bevels to white.
+`items/forge.py` holds the shared vocabulary: octagonal hafts and grips, bands and collars, bevelled `Blade` slabs with chip wear, chamfered plates, discs, rings, studs, tubes, crystals, gems and gnarled branches. One builder per family composes weapons from it: `axe` (`items/axes.py`), `blade` (swords and daggers, `items/blades.py`), `blunt` (hammers, maces, mauls and clubs, `items/blunt.py`), `polearm` (`items/polearms.py`), `staff` (staffs and wands, `items/staves.py`) and `ranged` (crossbows, `items/ranged.py`). Recipes choose a `kind`, and each kind authors its wear to suit its tier. Every weapon recipe starts from the forge's shared palette (`COLORS`, `MATERIALS`) and lists only the slots it changes. Shaded metals carry explicit (light, shadow, base) ramps there, because the atlas's default metal ramp washes up-facing bevels to white.
 
-Axes, swords and daggers follow this guide. Blunt weapons, polearms, staffs, wands and the crossbow predate it and still need rebuilding.
+Every catalog weapon follows this guide. File names, recipe keys and game folders name the weapon a design actually is, such as `mace_gilded` in `mace/`, `claymore_iron` in `greatsword/` and `dagger_dirk`. When a redesign changes what a weapon is, rename its recipe, export, scene and item resource together, rewire loot tables and docs, and bump `SaveGame.CurrentVersion`, because saves store item paths.

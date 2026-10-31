@@ -1,0 +1,86 @@
+{
+  "key": "weapons/dagger_fang",
+  "inputs": "911f7a84535ccf5369b2ba277bfaa11791102a506f53fcd375ce3ee8dd8e8131",
+  "files": {
+    "dagger_fang.glb": "491eec55b97a456e48e6e070825bfa816397d92d3875e9b62e74965c8950c555",
+    "lineup.png": "676865b0096c189e79775547a0e3c6377a1c0efe3dc9dbf9b11887e5665991bc"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 492,
+      "bounds": [
+        [
+          -0.20000000298023224,
+          -0.2920626103878021,
+          -0.06920000165700912
+        ],
+        [
+          0.20000000298023224,
+          1.0,
+          0.06920000165700912
+        ]
+      ],
+      "dimensions": [
+        0.4000000059604645,
+        1.2920626103878021,
+        0.13840000331401825
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.014075892503970554
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Dagger Fang",
+      "backend": "procedural",
+      "builder": "blade",
+      "design": {
+        "kind": "fang"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "gem": [
+          170,
+          80,
+          220
+        ],
+        "leather": [
+          62,
+          48,
+          58
+        ]
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/dagger/dagger_fang.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

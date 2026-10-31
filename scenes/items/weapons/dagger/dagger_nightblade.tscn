@@ -1,7 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="PackedScene" path="res://assets/custom-items/weapons/dagger/dagger_nightblade.glb" id="1_glb"]
-
-[node name="DaggerNightblade" type="Node3D"]
-
-[node name="dagger_nightblade" parent="." instance=ExtResource("1_glb")]

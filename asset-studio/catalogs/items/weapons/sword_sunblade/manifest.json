@@ -1,13 +1,13 @@
 {
   "key": "weapons/sword_sunblade",
-  "inputs": "83c2866b5715193d3cb4237cb88c60dc214d8d7018c38ac3c659840446c93182",
+  "inputs": "bc283de5c180a8987276f988bb8587d59da49f843cbe7938b404efb319af521b",
   "files": {
-    "sword_sunblade.glb": "66f8b9aad57dbb84b7994e197a6faefdb35b84466adea672fc2a1ed0cd112807",
-    "lineup.png": "245ffa7b19bbe7ac62c5bad1540afc64eddb62a538d31556e553ce9d2224a0bc"
+    "sword_sunblade.glb": "5ddb67a8919ff965750749eb503c8099211e069399db7315806b7ae16be2b7ea",
+    "lineup.png": "2a92fcdb9f68b51dd2e3170c62d018753baf946903b271c85f3cad9c985e3e16"
   },
   "metadata": {
     "report": {
-      "triangles": 680,
+      "triangles": 668,
       "bounds": [
         [
           -0.30000001192092896,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.0314175910943434
+        "signed_volume": 0.033002045468699
       },
       "warnings": [],
       "errors": []
@@ -61,111 +61,6 @@
         "triangles": 2400,
         "materials": 5,
         "texture_size": 1024
-      },
-      "colors": {
-        "cloth": [
-          236,
-          228,
-          212
-        ],
-        "edge": [
-          166,
-          180,
-          192
-        ],
-        "gem": [
-          222,
-          42,
-          78
-        ],
-        "gold": [
-          228,
-          176,
-          68
-        ],
-        "steel": [
-          150,
-          164,
-          176
-        ]
-      },
-      "materials": {
-        "cloth": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "edge": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              188,
-              200,
-              210
-            ],
-            [
-              112,
-              122,
-              132
-            ],
-            [
-              166,
-              180,
-              192
-            ]
-          ]
-        },
-        "gem": {
-          "metallic": 0,
-          "roughness": 0.3,
-          "crease": 40
-        },
-        "gold": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              246,
-              214,
-              110
-            ],
-            [
-              176,
-              112,
-              36
-            ],
-            [
-              228,
-              176,
-              68
-            ]
-          ]
-        },
-        "steel": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              176,
-              188,
-              198
-            ],
-            [
-              92,
-              102,
-              112
-            ],
-            [
-              150,
-              164,
-              176
-            ]
-          ]
-        }
       },
       "export": {
         "glb": "res://assets/custom-items/weapons/sword/sword_sunblade.glb"

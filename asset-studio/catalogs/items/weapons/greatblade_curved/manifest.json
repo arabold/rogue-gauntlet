@@ -1,29 +1,29 @@
 {
   "key": "weapons/greatblade_curved",
-  "inputs": "08cc130e07711b681b8d2ee4484108d6cb4d58146572077b8cea77feb9718841",
+  "inputs": "f0d8dc3017e284ba4bc59a82565615cfebc32a0d8ea6b7d51c5446c6d25df8cd",
   "files": {
-    "greatblade_curved.glb": "f85c5e714d4498aed0f4d1272f3ff40d6827c37364dacc19c35596368cd68489",
-    "lineup.png": "24d0e3e6bfd471a240ef9ed7a8d16630b72f715e6774722ccf181d990475c0c7"
+    "greatblade_curved.glb": "3abcc54965bddfd4e9260a78bade52df3ad5ac32f157c83e9ec89b31f46d340e",
+    "lineup.png": "1bcd799dd965c14985eaa7dc8d6a3e7704f42f43a10533cd351e6693a22b7ec0"
   },
   "metadata": {
     "report": {
       "triangles": 664,
       "bounds": [
         [
-          -0.1234000027179718,
+          -0.13459999859333038,
           -0.4449999928474426,
-          -0.1234000027179718
+          -0.13459999859333038
         ],
         [
           0.25,
           2.0799999237060547,
-          0.1234000027179718
+          0.13459999859333038
         ]
       ],
       "dimensions": [
-        0.3734000027179718,
+        0.3845999985933304,
         2.5249999165534973,
-        0.2468000054359436
+        0.26919999718666077
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.022107826480808234
+        "signed_volume": 0.025722257020465062
       },
       "warnings": [],
       "errors": []
@@ -67,108 +67,10 @@
           58,
           78,
           120
-        ],
-        "edge": [
-          166,
-          180,
-          192
-        ],
-        "iron": [
-          118,
-          128,
-          138
-        ],
-        "steel": [
-          150,
-          164,
-          176
-        ],
-        "wrap": [
-          222,
-          206,
-          176
         ]
       },
-      "materials": {
-        "cloth": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "edge": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              188,
-              200,
-              210
-            ],
-            [
-              112,
-              122,
-              132
-            ],
-            [
-              166,
-              180,
-              192
-            ]
-          ]
-        },
-        "iron": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              146,
-              156,
-              166
-            ],
-            [
-              70,
-              78,
-              86
-            ],
-            [
-              118,
-              128,
-              138
-            ]
-          ]
-        },
-        "steel": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              176,
-              188,
-              198
-            ],
-            [
-              92,
-              102,
-              112
-            ],
-            [
-              150,
-              164,
-              176
-            ]
-          ]
-        },
-        "wrap": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        }
-      },
       "export": {
-        "glb": "res://assets/custom-items/weapons/broadsword/greatblade_curved.glb"
+        "glb": "res://assets/custom-items/weapons/greatsword/greatblade_curved.glb"
       },
       "provenance": {
         "kind": "studio_original",

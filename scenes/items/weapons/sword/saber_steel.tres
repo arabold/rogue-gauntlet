@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=7 format=3]
+
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/slash_1h.tres" id="melee_contact"]
+[ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
+[ext_resource type="Script" path="res://scenes/items/Weapon.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/sword/saber_steel.tscn" id="scene"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
+[ext_resource type="Resource" path="res://scenes/attacks/combos/sword_1h.tres" id="primary_combo"]
+
+
+[resource]
+script = ExtResource("script")
+MeleeContact = ExtResource("melee_contact")
+PrimaryCombo = ExtResource("primary_combo")
+AttackStyle = &"sword.1h.slash"
+Grip = ExtResource("weapon_grip")
+Scene = ExtResource("scene")
+RollTable = ExtResource("roll_table")
+Name = "Steel Saber"
+Tier = 2
+ValidSlots = 256
+Value = 80
+IsStackable = false
+RequiredStrength = 10
+DamageMin = 3.0
+DamageMax = 5.0
+CritChance = 0.05
+IsTwoHanded = false
+PerformDuration = 0.45
+metadata/_custom_type_script = ExtResource("script")

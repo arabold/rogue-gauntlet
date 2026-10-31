@@ -367,50 +367,51 @@ class ItemWorkflowTest(unittest.TestCase):
                     self.assertEqual(t["boundary_edges"] + t["nonmanifold_edges"] + t["duplicate_faces"] + t["inconsistent_edges"], 0)
                     self.assertGreater(t["signed_volume"], 0)
 
-    def test_arsenal_exports_are_closed_connected_and_within_weapon_budget(self):
-        from items.arsenal import arsenal, KINDS, COLORS as WEAPON_COLORS, MATERIALS as WEAPON_MATERIALS
+    def assertClosedSolid(self, vertices, faces):
+        t = solid.inspect(vertices, faces)
+        self.assertEqual(t["components"], 1)
+        self.assertEqual(t["boundary_edges"] + t["nonmanifold_edges"] + t["duplicate_faces"] + t["inconsistent_edges"], 0)
+        self.assertGreater(t["signed_volume"], 0)
+
+    def test_weapon_families_export_closed_and_within_budget(self):
+        from items import forge
+        from items.designs import WEAPONS
         heights = {}
-        for kind in KINDS:
-            with self.subTest(weapon=kind):
-                p = arsenal({"kind": kind})
-                target = self.repo / (kind + ".glb")
-                character_export.export_static(str(target), kind, p, WEAPON_COLORS, materials=WEAPON_MATERIALS)
-                vertices, faces, _ = model.geometry(target)
-                self.assertLessEqual(len(faces), 3500)
-                triangles = vertices[faces]
-                areas = np.linalg.norm(np.cross(triangles[:, 1] - triangles[:, 0], triangles[:, 2] - triangles[:, 0]), axis=1)
-                self.assertTrue(np.all(areas > 1e-12))
-                t = solid.inspect(vertices, faces)
-                self.assertEqual(t["components"], 1)
-                self.assertEqual(t["boundary_edges"] + t["nonmanifold_edges"] + t["duplicate_faces"] + t["inconsistent_edges"], 0)
-                self.assertGreater(t["signed_volume"], 0)
-                self.assertLess(vertices[:, 1].min(), 0)
-                self.assertGreater(vertices[:, 1].max(), 0)
-                heights[kind] = np.ptp(vertices[:, 1])
+        for family, module in WEAPONS.items():
+            for kind in module.KINDS:
+                with self.subTest(weapon=kind):
+                    p = FAMILIES[family]({"kind": kind})
+                    target = self.repo / (kind + ".glb")
+                    character_export.export_static(str(target), kind, p, forge.COLORS, materials=forge.MATERIALS)
+                    vertices, faces, _ = model.geometry(target)
+                    self.assertLessEqual(len(faces), 2400)
+                    triangles = vertices[faces]
+                    areas = np.linalg.norm(np.cross(triangles[:, 1] - triangles[:, 0], triangles[:, 2] - triangles[:, 0]), axis=1)
+                    self.assertTrue(np.all(areas > 1e-12))
+                    self.assertClosedSolid(vertices, faces)
+                    self.assertLess(vertices[:, 1].min(), 0)
+                    self.assertGreater(vertices[:, 1].max(), 0)
+                    heights[kind] = np.ptp(vertices[:, 1])
+                    # The style guide's chunky KayKit grips: at least 0.10 thick where the hand holds the weapon.
+                    self.assertGreaterEqual(np.ptp(section(p, 0.)[:, 2]), .10)
+            with self.assertRaisesRegex(ValueError, f"Unknown {family}"):
+                FAMILIES[family]({"kind": "unsupported"})
         # A one-handed wand stays well short of any two-handed staff.
-        from items.arsenal import WANDS, STAVES
-        self.assertLess(max(heights[k] for k in WANDS) * 1.5, min(heights[k] for k in STAVES))
-        with self.assertRaisesRegex(ValueError, "Unknown arsenal"):
-            arsenal({"kind": "unsupported"})
+        staffs = WEAPONS["staff"].KINDS
+        self.assertLess(max(heights[k] for k in staffs if k.endswith("wand")) * 1.5,
+                        min(heights[k] for k in staffs if k.endswith("staff")))
 
     def test_axes_follow_the_kaykit_weapon_style_guide(self):
         from items.axes import axe, KINDS
         for kind in KINDS:
             with self.subTest(axe=kind):
                 p = axe({"kind": kind})
-                t = solid.inspect(p.verts, p.faces)
-                self.assertEqual(t["components"], 1)
-                self.assertEqual(t["boundary_edges"] + t["nonmanifold_edges"] + t["duplicate_faces"] + t["inconsistent_edges"], 0)
-                self.assertLessEqual(len(p.faces), 2400)
                 # A chunky haft: KayKit hafts are roughly a tenth of an axe's length thick.
                 # Cut the surface at y = 0.4, between the grip bands and the head.
                 self.assertGreaterEqual(np.ptp(section(p, .4)[:, 2]), .13 if kind.endswith("double") else .10)
                 # Cutting edges are broad bevels, and the bit reaches -X for one-handed mounting.
-                slots = set(map(str, p.slots))
-                self.assertIn("edge", slots)
+                self.assertIn("edge", set(map(str, p.slots)))
                 self.assertLess(p.verts[:, 0].min(), -.55)
-        with self.assertRaisesRegex(ValueError, "Unknown axe"):
-            axe({"kind": "unsupported"})
 
     def test_swords_and_daggers_follow_the_kaykit_weapon_style_guide(self):
         from items.blades import blade, KINDS
@@ -418,10 +419,6 @@ class ItemWorkflowTest(unittest.TestCase):
         for kind in KINDS:
             with self.subTest(blade=kind):
                 p = blade({"kind": kind})
-                t = solid.inspect(p.verts, p.faces)
-                self.assertEqual(t["components"], 1)
-                self.assertEqual(t["boundary_edges"] + t["nonmanifold_edges"] + t["duplicate_faces"] + t["inconsistent_edges"], 0)
-                self.assertLessEqual(len(p.faces), 2400)
                 heights[kind] = top = p.verts[:, 1].max()
                 # KayKit blades are thick slabs, and their guards are chunky blocks rather than plates.
                 self.assertGreaterEqual(np.ptp(section(p, top * .6)[:, 2]), .05)
@@ -431,8 +428,6 @@ class ItemWorkflowTest(unittest.TestCase):
         self.assertLess(heights["dirk"], heights["knight"])
         for two_handed in ("claymore", "winged", "greatsword", "practice", "crescent", "curved_great"):
             self.assertGreater(heights[two_handed], heights["knight"] * 1.1)
-        with self.assertRaisesRegex(ValueError, "Unknown blade"):
-            blade({"kind": "unsupported"})
 
     def test_fountains_are_closed_and_effect_circles_lie_on_their_liquid(self):
         from items.fountains import fountain, KINDS, POOLS
@@ -458,10 +453,9 @@ class ItemWorkflowTest(unittest.TestCase):
 
     def test_fountain_liquid_exports_as_its_own_node(self):
         from items.fountains import fountain
-        from items.arsenal import COLORS as STONE_COLORS
         basin, parts = fountain({"kind": "tiered"})
         target = self.repo / "fountain.glb"
-        character_export.export_static(str(target), "fountain", basin, {**STONE_COLORS, "stone": [140, 134, 124],
+        character_export.export_static(str(target), "fountain", basin, {"stone": [140, 134, 124],
                                        "stone_dark": [108, 103, 96], "liquid": [200, 24, 44]},
                                        materials={"liquid": {"emissive": True}}, parts=parts)
         g, _ = model.read(target)

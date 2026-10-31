@@ -1,6 +1,6 @@
 {
   "key": "weapons/axe_bearded",
-  "inputs": "aba25e530f6a5f73def64190e72290df0a2e5863cf9e737c7f0b6a5f69e16976",
+  "inputs": "885aa021a013cfe027a7444114fda061fd86e02d50a06c59b6860e226b157add",
   "files": {
     "axe_bearded.glb": "8d8c3045174396f4d1176f961d2d00fcf58d7f89c1f4d41cc0bb2dff7558c893",
     "lineup.png": "48979506cc23283945a9270ea18c4eb1ac09d7a222fcf0d61abf8f4dd1b55614"
@@ -63,82 +63,11 @@
         "texture_size": 1024
       },
       "colors": {
-        "steel": [
-          150,
-          164,
-          176
-        ],
-        "edge": [
-          166,
-          180,
-          192
-        ],
-        "wood": [
-          176,
-          98,
-          66
-        ],
         "cloth": [
           84,
           128,
           168
         ]
-      },
-      "materials": {
-        "steel": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              176,
-              188,
-              198
-            ],
-            [
-              92,
-              102,
-              112
-            ],
-            [
-              150,
-              164,
-              176
-            ]
-          ]
-        },
-        "edge": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              188,
-              200,
-              210
-            ],
-            [
-              112,
-              122,
-              132
-            ],
-            [
-              166,
-              180,
-              192
-            ]
-          ]
-        },
-        "wood": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "cloth": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        }
       },
       "export": {
         "glb": "res://assets/custom-items/weapons/axe/axe_bearded.glb"

@@ -4,7 +4,7 @@ Built from the shared weapon construction in `items.forge`. One-handed bits poin
 """
 
 import numpy as np
-from items.forge import Haft, Blade, plate, gem, butt_cap
+from items.forge import Haft, Blade, plate, gem, butt_cap, dispatch
 from items.solid import Assembly, box
 
 # One-handed haft stations (x, y, radius): a flared butt bending back from the blade side, then straight under the head.
@@ -17,7 +17,7 @@ def bearded():
     a = Assembly()
     haft = Haft(a, ONE_HANDED)
     for y, height in [(-.17, .08), (.08, .085), (.60, .07)]:
-        haft.band(a, y, height, 'cloth')
+        haft.band(y, height, 'cloth')
     a.add(box((.15, .30, .15), (0, .80, 0), .025), 'steel')
     edge = [(-.47, 1.02), (-.555, .95), (-.60, .82), (-.605, .66), (-.57, .50), (-.50, .36)]
     bit = Blade(a, [(0, .92), (-.18, .90), (-.33, .94), *edge, (-.42, .37), (-.33, .45), (-.22, .56), (-.10, .64), (0, .67)],
@@ -32,8 +32,8 @@ def executioner():
     """Tier-five hatchet: broad squared bit, gold socket and cheek, a gem, one small nick."""
     a = Assembly()
     haft = Haft(a, ONE_HANDED)
-    haft.band(a, -.01, .30, 'leather', proud=.014)
-    haft.band(a, .60, .05, 'gold')
+    haft.band(-.01, .30, 'leather', proud=.014)
+    haft.band(.60, .05, 'gold')
     butt_cap(a, haft)
     a.add(box((.19, .34, .17), (0, .80, 0), .03), 'gold')
     edge = [(-.46, 1.05), (-.56, .99), (-.60, .86), (-.60, .70), (-.56, .57), (-.46, .51)]
@@ -59,20 +59,19 @@ def double(bits, socket, socket_slot):
     return a, haft, made
 
 
-CLEAVER = ([(0, 1.34), (-.36, 1.36), (-.64, 1.44), (-.70, 1.32), (-.72, 1.12), (-.70, .94), (-.64, .84),
-            (-.36, .92), (0, .96)],
-           [(-.64, 1.44), (-.70, 1.32), (-.72, 1.12), (-.70, .94), (-.64, .84)])
-CRESCENT = ([(0, 1.32), (-.20, 1.30), (-.40, 1.42), (-.58, 1.60), (-.69, 1.48), (-.75, 1.28), (-.75, 1.02),
-             (-.69, .82), (-.58, .70), (-.40, .88), (-.20, 1.00), (0, .98)],
-            [(-.58, 1.60), (-.69, 1.48), (-.75, 1.28), (-.75, 1.02), (-.69, .82), (-.58, .70)])
+# -X bits as (outline, cutting edge); the edge is a run of the outline.
+CLEAVER_EDGE = [(-.64, 1.44), (-.70, 1.32), (-.72, 1.12), (-.70, .94), (-.64, .84)]
+CLEAVER = ([(0, 1.34), (-.36, 1.36), *CLEAVER_EDGE, (-.36, .92), (0, .96)], CLEAVER_EDGE)
+CRESCENT_EDGE = [(-.58, 1.60), (-.69, 1.48), (-.75, 1.28), (-.75, 1.02), (-.69, .82), (-.58, .70)]
+CRESCENT = ([(0, 1.32), (-.20, 1.30), (-.40, 1.42), *CRESCENT_EDGE, (-.40, .88), (-.20, 1.00), (0, .98)], CRESCENT_EDGE)
 
 
 def cleaver_double():
     """Tier-two iron greataxe: squared cleaver bits, leather straps, heavy and uneven wear."""
     a, haft, (left, right) = double(CLEAVER, ((.24, .48, .22), (0, 1.15, 0), .035), 'iron')
     for y in (-.15, -.03, .09):
-        haft.band(a, y, .09, 'leather', proud=.028, tilt=18)
-    haft.band(a, .86, .08, 'leather')
+        haft.band(y, .09, 'leather', proud=.028, tilt=18)
+    haft.band(.86, .08, 'leather')
     left.chip(.30, .06, .075, .3)
     left.chip(.72, .045, .055, -.3)
     right.chip(0, .07, .12)
@@ -85,9 +84,9 @@ def cleaver_double():
 def runic_double():
     """Tier-five gilded battleaxe: flared crescent bits, rune-carved gold cheeks, gems, one nick."""
     a, haft, (left, right) = double(CRESCENT, ((.28, .52, .24), (0, 1.15, 0), .04), 'gold')
-    haft.band(a, 0, .40, 'cloth', proud=.016)
+    haft.band(0, .40, 'cloth', proud=.016)
     for y in (.85, .24):
-        haft.band(a, y, .06, 'gold')
+        haft.band(y, .06, 'gold')
     butt_cap(a, haft)
     right.chip(.60, .025, .04, -.2)
     left.finish()
@@ -101,11 +100,4 @@ def runic_double():
 
 
 KINDS = {'bearded': bearded, 'executioner': executioner, 'cleaver_double': cleaver_double, 'runic_double': runic_double}
-
-
-def axe(design):
-    """Build one explicit axe design; unknown kinds fail instead of falling back."""
-    kind = design.get('kind')
-    if kind not in KINDS:
-        raise ValueError(f'Unknown axe design {kind}')
-    return KINDS[kind]()
+axe = dispatch(KINDS, 'axe')

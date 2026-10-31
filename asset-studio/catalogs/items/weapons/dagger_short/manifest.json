@@ -1,29 +1,29 @@
 {
   "key": "weapons/dagger_short",
-  "inputs": "a3206e046c21ea14800ab7edd2414d02dd9ccad6e1881dc15c729706ef4d90dc",
+  "inputs": "fb86188c32491d2f65373a79ab09eafea6f2e1e02c357be028876f9c99734fb4",
   "files": {
-    "dagger_short.glb": "2a5faec7fa6f28de4f41a37ca345142827d7d81d765137e6546ee2375235c097",
-    "lineup.png": "490684fc1340ba77294618b6d910e543b1c52091aeae3d3e325247437176f5c8"
+    "dagger_short.glb": "3b8381b47d21a17e121bd684dda08a3b18cf82d10fdaff630613f0be7571f0c9",
+    "lineup.png": "7a340db3766ae320de13339744c18adcde265c24c848688d84e3579cabac8df9"
   },
   "metadata": {
     "report": {
-      "triangles": 358,
+      "triangles": 334,
       "bounds": [
         [
           -0.14000000059604645,
-          -0.26543277502059937,
-          -0.05317647010087967
+          -0.2746715545654297,
+          -0.0649411752820015
         ],
         [
           0.14000000059604645,
           0.6899999976158142,
-          0.05317647010087967
+          0.0649411752820015
         ]
       ],
       "dimensions": [
         0.2800000011920929,
-        0.9554327726364136,
-        0.10635294020175934
+        0.9646715521812439,
+        0.129882350564003
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.0061178409436339065
+        "signed_volume": 0.007984613627304429
       },
       "warnings": [],
       "errors": []
@@ -62,113 +62,8 @@
         "materials": 5,
         "texture_size": 1024
       },
-      "colors": {
-        "edge": [
-          166,
-          180,
-          192
-        ],
-        "iron": [
-          118,
-          128,
-          138
-        ],
-        "steel": [
-          150,
-          164,
-          176
-        ],
-        "wood": [
-          176,
-          98,
-          66
-        ],
-        "wrap": [
-          222,
-          206,
-          176
-        ]
-      },
-      "materials": {
-        "edge": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              188,
-              200,
-              210
-            ],
-            [
-              112,
-              122,
-              132
-            ],
-            [
-              166,
-              180,
-              192
-            ]
-          ]
-        },
-        "iron": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              146,
-              156,
-              166
-            ],
-            [
-              70,
-              78,
-              86
-            ],
-            [
-              118,
-              128,
-              138
-            ]
-          ]
-        },
-        "steel": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              176,
-              188,
-              198
-            ],
-            [
-              92,
-              102,
-              112
-            ],
-            [
-              150,
-              164,
-              176
-            ]
-          ]
-        },
-        "wood": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "wrap": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        }
-      },
       "export": {
-        "glb": "res://assets/custom-items/weapons/arsenal/dagger_short.glb"
+        "glb": "res://assets/custom-items/weapons/dagger/dagger_short.glb"
       },
       "provenance": {
         "kind": "studio_original",

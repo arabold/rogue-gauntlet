@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/weapons/polearm/scythe_iron.glb" id="1_model"]
+
+[node name="ScytheIron" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="TrailBase" type="Marker3D" parent="."]
+position = Vector3(0.01000, 1.58000, 0)
+
+[node name="TrailTip" type="Marker3D" parent="."]
+position = Vector3(0.20000, 2.30000, 0)

@@ -1,6 +1,6 @@
 {
   "key": "weapons/battleaxe_iron",
-  "inputs": "aff17d4bd04d8646c4069d390b691d1d38e375bb65b2572b107069a1f87459e3",
+  "inputs": "3e62359e17c913e858fe7a8182bdaee7a1597196b67effdeeb93c9f0a3195229",
   "files": {
     "battleaxe_iron.glb": "992052f9cf0b75f5e704260983f860167678661d4c2a0c0babe14165044971b2",
     "lineup.png": "c0e4964e771c16700f3ccebc2a77c21506f0ff2637e9a31067ebc594218be26e"
@@ -155,16 +155,6 @@
               108
             ]
           ]
-        },
-        "wood": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
         }
       },
       "export": {

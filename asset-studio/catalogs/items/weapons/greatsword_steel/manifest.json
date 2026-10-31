@@ -1,29 +1,29 @@
 {
   "key": "weapons/greatsword_steel",
-  "inputs": "24a00c091696c24bd0ae33ee5e89976b7b23be80fa85122f53e9762d0ab4bbd6",
+  "inputs": "b67f6e1b479c5f02012d2b72f264337bfdca3b6258cad9f268428e805ea33193",
   "files": {
-    "greatsword_steel.glb": "27e13832cfccd8e9b238306749aa008a31fd788286e028fcbe07d24725dba9f2",
-    "lineup.png": "be6355709d4ad70c1051f73eef203b871252a5b6935f06b5e9b5961974bd33cb"
+    "greatsword_steel.glb": "ea3e3ec9923ad30924765fdbdd5726bca6729b3af2fb4e1fc7cc3f0d5256badd",
+    "lineup.png": "630e8351ac118d4a2999f54621ac8c1743656c8ffb8128c08e0ff3ca6055d811"
   },
   "metadata": {
     "report": {
-      "triangles": 724,
+      "triangles": 740,
       "bounds": [
         [
           -0.4446715712547302,
           -0.5423879623413086,
-          -0.0666390061378479
+          -0.07855570316314697
         ],
         [
           0.4446715712547302,
           2.0,
-          0.0666390061378479
+          0.07855570316314697
         ]
       ],
       "dimensions": [
         0.8893431425094604,
         2.5423879623413086,
-        0.1332780122756958
+        0.15711140632629395
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.04822930967372583
+        "signed_volume": 0.053114822313343725
       },
       "warnings": [],
       "errors": []
@@ -63,112 +63,14 @@
         "texture_size": 1024
       },
       "colors": {
-        "edge": [
-          166,
-          180,
-          192
-        ],
-        "iron": [
-          118,
-          128,
-          138
-        ],
         "leather": [
           150,
           92,
           62
-        ],
-        "steel": [
-          150,
-          164,
-          176
-        ],
-        "wrap": [
-          222,
-          206,
-          176
         ]
       },
-      "materials": {
-        "edge": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              188,
-              200,
-              210
-            ],
-            [
-              112,
-              122,
-              132
-            ],
-            [
-              166,
-              180,
-              192
-            ]
-          ]
-        },
-        "iron": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              146,
-              156,
-              166
-            ],
-            [
-              70,
-              78,
-              86
-            ],
-            [
-              118,
-              128,
-              138
-            ]
-          ]
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "steel": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              176,
-              188,
-              198
-            ],
-            [
-              92,
-              102,
-              112
-            ],
-            [
-              150,
-              164,
-              176
-            ]
-          ]
-        },
-        "wrap": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        }
-      },
       "export": {
-        "glb": "res://assets/custom-items/weapons/arsenal/greatsword_steel.glb"
+        "glb": "res://assets/custom-items/weapons/greatsword/greatsword_steel.glb"
       },
       "provenance": {
         "kind": "studio_original",

@@ -1,29 +1,29 @@
 {
   "key": "weapons/saber_steel",
-  "inputs": "c2b311f0cd346b5a4677dd14a31d661d6671531cce029348f4b0f4bee151f5c0",
+  "inputs": "425348cdbcbfdfb15af8e7c83291b806224f84ce54db40a78e4d09fa0c5a02c1",
   "files": {
-    "saber_steel.glb": "eab89d1a65e73fbe588dc3c292ae9ee4cc1b0fdd08f3befb6072b4095afbce5f",
-    "lineup.png": "c2b523f7d30c176a75f6ba2237ad2ce1302bcd29aec19091edec5f3303fcaf89"
+    "saber_steel.glb": "c4f27aa5f8cdccfd8db0acb1e9e3309fd568887bd4b10a34a1986121c02c4179",
+    "lineup.png": "f664464eb5e111f3011e74905e404b32cafd15ba299632299bbdf2d4bdb4d9e0"
   },
   "metadata": {
     "report": {
-      "triangles": 568,
+      "triangles": 556,
       "bounds": [
         [
           -0.21553216874599457,
-          -0.31005215644836426,
-          -0.055469587445259094
+          -0.3165193200111389,
+          -0.066336989402771
         ],
         [
           0.28999999165534973,
           1.4800000190734863,
-          0.055469587445259094
+          0.066336989402771
         ]
       ],
       "dimensions": [
         0.5055321604013443,
-        1.7900521755218506,
-        0.11093917489051819
+        1.7965193390846252,
+        0.132673978805542
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.013675361134279312
+        "signed_volume": 0.015920806224145396
       },
       "warnings": [],
       "errors": []
@@ -63,112 +63,14 @@
         "texture_size": 1024
       },
       "colors": {
-        "brass": [
-          200,
-          146,
-          70
-        ],
-        "edge": [
-          166,
-          180,
-          192
-        ],
         "leather": [
           150,
           92,
           62
-        ],
-        "steel": [
-          150,
-          164,
-          176
-        ],
-        "wrap": [
-          222,
-          206,
-          176
         ]
       },
-      "materials": {
-        "brass": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              226,
-              180,
-              104
-            ],
-            [
-              132,
-              88,
-              40
-            ],
-            [
-              200,
-              146,
-              70
-            ]
-          ]
-        },
-        "edge": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              188,
-              200,
-              210
-            ],
-            [
-              112,
-              122,
-              132
-            ],
-            [
-              166,
-              180,
-              192
-            ]
-          ]
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "steel": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              176,
-              188,
-              198
-            ],
-            [
-              92,
-              102,
-              112
-            ],
-            [
-              150,
-              164,
-              176
-            ]
-          ]
-        },
-        "wrap": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        }
-      },
       "export": {
-        "glb": "res://assets/custom-items/weapons/arsenal/saber_steel.glb"
+        "glb": "res://assets/custom-items/weapons/sword/saber_steel.glb"
       },
       "provenance": {
         "kind": "studio_original",

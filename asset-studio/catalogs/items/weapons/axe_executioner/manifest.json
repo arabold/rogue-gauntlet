@@ -1,6 +1,6 @@
 {
   "key": "weapons/axe_executioner",
-  "inputs": "997d1b0d65b6d8924e062fb7205c3b15720bb84dee281a1f1489cfb775bbdede",
+  "inputs": "be29a0b8dac957aa4a363a265a5a8c11c619b69aaff7bc4f8e476ba3786f3b89",
   "files": {
     "axe_executioner.glb": "f47f6a1259030776a6f5af04954e41e23a495c0a70b596544c2acb86df0495b4",
     "lineup.png": "b944fbad99deb56388738affc5079b0e3a0d70ed6dec16ccd01551d7a5ddcef9"
@@ -63,114 +63,13 @@
         "texture_size": 1024
       },
       "colors": {
-        "steel": [
-          150,
-          164,
-          176
-        ],
-        "edge": [
-          166,
-          180,
-          192
-        ],
-        "wood": [
-          176,
-          98,
-          66
-        ],
         "leather": [
           128,
           46,
           46
-        ],
-        "gold": [
-          228,
-          176,
-          68
-        ],
-        "gem": [
-          222,
-          42,
-          78
         ]
       },
       "materials": {
-        "steel": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              176,
-              188,
-              198
-            ],
-            [
-              92,
-              102,
-              112
-            ],
-            [
-              150,
-              164,
-              176
-            ]
-          ]
-        },
-        "edge": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              188,
-              200,
-              210
-            ],
-            [
-              112,
-              122,
-              132
-            ],
-            [
-              166,
-              180,
-              192
-            ]
-          ]
-        },
-        "wood": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "gold": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              246,
-              214,
-              110
-            ],
-            [
-              176,
-              112,
-              36
-            ],
-            [
-              228,
-              176,
-              68
-            ]
-          ]
-        },
         "gem": {
           "metallic": 0,
           "roughness": 0.35,

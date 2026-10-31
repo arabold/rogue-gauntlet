@@ -18,82 +18,11 @@
     "texture_size": 1024
   },
   "colors": {
-    "steel": [
-      150,
-      164,
-      176
-    ],
-    "edge": [
-      166,
-      180,
-      192
-    ],
-    "wood": [
-      176,
-      98,
-      66
-    ],
     "cloth": [
       84,
       128,
       168
     ]
-  },
-  "materials": {
-    "steel": {
-      "metallic": 0.1,
-      "roughness": 0.55,
-      "crease": 45,
-      "ramp": [
-        [
-          176,
-          188,
-          198
-        ],
-        [
-          92,
-          102,
-          112
-        ],
-        [
-          150,
-          164,
-          176
-        ]
-      ]
-    },
-    "edge": {
-      "metallic": 0.1,
-      "roughness": 0.55,
-      "crease": 45,
-      "ramp": [
-        [
-          188,
-          200,
-          210
-        ],
-        [
-          112,
-          122,
-          132
-        ],
-        [
-          166,
-          180,
-          192
-        ]
-      ]
-    },
-    "wood": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 50
-    },
-    "cloth": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 50
-    }
   },
   "export": {
     "glb": "res://assets/custom-items/weapons/axe/axe_bearded.glb"

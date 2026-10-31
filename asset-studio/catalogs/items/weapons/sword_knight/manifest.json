@@ -1,29 +1,29 @@
 {
   "key": "weapons/sword_knight",
-  "inputs": "d3270016bbbd02d3581911c7ceee7e0db0256cde845ad275a53ac1cbcf457659",
+  "inputs": "d0b10beb66a9ea42bf1bc66c704e94956a4f9c1dee2eac1e3e2bbacd55087f15",
   "files": {
-    "sword_knight.glb": "1914eb6cf0d3ce358ea54a66a6b1600a4780c9adf0ab6ca85df5e3fb906e13d1",
-    "lineup.png": "67fdfe055c4b94c852dc1d47434a89ed5181675afe8e8dcf54001e2c160aa253"
+    "sword_knight.glb": "9ab2c4c566ade82132e1e32b5f8316b2e49283ff047ac0151e4397c47b197b23",
+    "lineup.png": "cea78cd53a76f992f93b1fd6f2fb791709f7640fe0c37680c063cee9b8e86cbf"
   },
   "metadata": {
     "report": {
-      "triangles": 490,
+      "triangles": 486,
       "bounds": [
         [
           -0.30000001192092896,
           -0.36314916610717773,
-          -0.06499999761581421
+          -0.07142682373523712
         ],
         [
           0.30000001192092896,
           1.4600000381469727,
-          0.06499999761581421
+          0.07142682373523712
         ]
       ],
       "dimensions": [
         0.6000000238418579,
         1.8231492042541504,
-        0.12999999523162842
+        0.14285364747047424
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.028962308997544522
+        "signed_volume": 0.030684690936243732
       },
       "warnings": [],
       "errors": []
@@ -63,109 +63,11 @@
         "texture_size": 1024
       },
       "colors": {
-        "edge": [
-          166,
-          180,
-          192
-        ],
-        "iron": [
-          118,
-          128,
-          138
-        ],
         "leather": [
           150,
           92,
           62
-        ],
-        "steel": [
-          150,
-          164,
-          176
-        ],
-        "wrap": [
-          222,
-          206,
-          176
         ]
-      },
-      "materials": {
-        "edge": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              188,
-              200,
-              210
-            ],
-            [
-              112,
-              122,
-              132
-            ],
-            [
-              166,
-              180,
-              192
-            ]
-          ]
-        },
-        "iron": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              146,
-              156,
-              166
-            ],
-            [
-              70,
-              78,
-              86
-            ],
-            [
-              118,
-              128,
-              138
-            ]
-          ]
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "steel": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              176,
-              188,
-              198
-            ],
-            [
-              92,
-              102,
-              112
-            ],
-            [
-              150,
-              164,
-              176
-            ]
-          ]
-        },
-        "wrap": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        }
       },
       "export": {
         "glb": "res://assets/custom-items/weapons/sword/sword_knight.glb"

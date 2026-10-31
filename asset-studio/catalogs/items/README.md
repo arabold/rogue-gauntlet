@@ -18,7 +18,7 @@ Current catalog: **164 items**, using the shared character shading pipeline.
 
 Each published item has a final GLB, fingerprint manifest and `lineup.png` in its category/name folder: front, three-quarter, side and gameplay-scale views.
 
-Godot-verified current exports: **17/164**. Authored-surface exceptions still flagged for geometry review: **7**. These exceptions are preserved original surfaces, not clean closed-mesh certifications.
+Godot-verified current exports: **41/164**. Authored-surface exceptions still flagged for geometry review: **2**. These exceptions are preserved original surfaces, not clean closed-mesh certifications.
 
 Regenerate these catalogs from published outputs with `./.venv/bin/python asset-studio/studio.py item catalog`. Use `item lineup` to render candidates in OS temporary storage, inspect them, then `item publish` to finalize. Rendering never updates this catalog. Changed sources set `source_current: false` until reviewed again.
 
@@ -177,22 +177,22 @@ Regenerate these catalogs from published outputs with `./.venv/bin/python asset-
 - [axe_executioner](weapons/axe_executioner/lineup.png)
 - [battleaxe_gilded](weapons/battleaxe_gilded/lineup.png)
 - [battleaxe_iron](weapons/battleaxe_iron/lineup.png)
-- [broadsword_gilded](weapons/broadsword_gilded/lineup.png)
-- [broadsword_iron](weapons/broadsword_iron/lineup.png)
 - [broadsword_steel](weapons/broadsword_steel/lineup.png)
+- [claymore_iron](weapons/claymore_iron/lineup.png)
 - [club_steel](weapons/club_steel/lineup.png)
 - [club_wood_old](weapons/club_wood_old/lineup.png)
 - [crossbow_gilded](weapons/crossbow_gilded/lineup.png)
-- [dagger_kukri](weapons/dagger_kukri/lineup.png)
-- [dagger_nightblade](weapons/dagger_nightblade/lineup.png)
+- [dagger_dirk](weapons/dagger_dirk/lineup.png)
+- [dagger_fang](weapons/dagger_fang/lineup.png)
 - [dagger_short](weapons/dagger_short/lineup.png)
 - [greatblade_curved](weapons/greatblade_curved/lineup.png)
 - [greatsword_steel](weapons/greatsword_steel/lineup.png)
+- [greatsword_winged](weapons/greatsword_winged/lineup.png)
 - [greatsword_wooden](weapons/greatsword_wooden/lineup.png)
 - [halberd_steel](weapons/halberd_steel/lineup.png)
-- [hammer_gilded](weapons/hammer_gilded/lineup.png)
 - [hammer_mallet](weapons/hammer_mallet/lineup.png)
 - [longblade_crescent](weapons/longblade_crescent/lineup.png)
+- [mace_gilded](weapons/mace_gilded/lineup.png)
 - [morning_star_iron](weapons/morning_star_iron/lineup.png)
 - [rapier_steel](weapons/rapier_steel/lineup.png)
 - [saber_steel](weapons/saber_steel/lineup.png)
@@ -212,5 +212,5 @@ Regenerate these catalogs from published outputs with `./.venv/bin/python asset-
 - [wand_crooked](weapons/wand_crooked/lineup.png)
 - [wand_iron](weapons/wand_iron/lineup.png)
 - [wand_ruby](weapons/wand_ruby/lineup.png)
-- [warhammer_iron](weapons/warhammer_iron/lineup.png)
+- [warhammer_sledge](weapons/warhammer_sledge/lineup.png)
 - [warhammer_spiked](weapons/warhammer_spiked/lineup.png)

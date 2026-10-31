@@ -1,29 +1,29 @@
 {
   "key": "weapons/rapier_steel",
-  "inputs": "71216c0eb64a9511ac05757dc0f050bde5d895ad62fabadad791d261b6561bca",
+  "inputs": "61bc07211319fc1403533ddf76d2610273d6b984d4d701bf7acea7781d0bb677",
   "files": {
-    "rapier_steel.glb": "f1208e2d10823d7fabe41e5100dc1d66cf4e173bac0c46c6a7d81eb5a0ebae98",
-    "lineup.png": "123a1dc90cb5140bf6b427f0205049bf615be66f301717772662b6180206693a"
+    "rapier_steel.glb": "741922808ad4bfc67cf9127010e5f6c77241c30ba50e6a8cacc276c44b484f6b",
+    "lineup.png": "837bc737b3d4fbdcca402ccea548721196e0c120329fffa999abc138f68cba74"
   },
   "metadata": {
     "report": {
-      "triangles": 650,
+      "triangles": 568,
       "bounds": [
         [
           -0.20000000298023224,
-          -0.32467156648635864,
-          -0.05355789512395859
+          -0.3292909562587738,
+          -0.06642105430364609
         ],
         [
           0.23582863807678223,
           1.5,
-          0.05355789512395859
+          0.06642105430364609
         ]
       ],
       "dimensions": [
         0.43582864105701447,
-        1.8246715664863586,
-        0.10711579024791718
+        1.8292909562587738,
+        0.13284210860729218
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.009636030379552655
+        "signed_volume": 0.012248751644946857
       },
       "warnings": [],
       "errors": []
@@ -63,112 +63,14 @@
         "texture_size": 1024
       },
       "colors": {
-        "brass": [
-          200,
-          146,
-          70
-        ],
-        "edge": [
-          166,
-          180,
-          192
-        ],
         "leather": [
           150,
           92,
           62
-        ],
-        "steel": [
-          150,
-          164,
-          176
-        ],
-        "wrap": [
-          222,
-          206,
-          176
         ]
       },
-      "materials": {
-        "brass": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              226,
-              180,
-              104
-            ],
-            [
-              132,
-              88,
-              40
-            ],
-            [
-              200,
-              146,
-              70
-            ]
-          ]
-        },
-        "edge": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              188,
-              200,
-              210
-            ],
-            [
-              112,
-              122,
-              132
-            ],
-            [
-              166,
-              180,
-              192
-            ]
-          ]
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "steel": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              176,
-              188,
-              198
-            ],
-            [
-              92,
-              102,
-              112
-            ],
-            [
-              150,
-              164,
-              176
-            ]
-          ]
-        },
-        "wrap": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        }
-      },
       "export": {
-        "glb": "res://assets/custom-items/weapons/arsenal/rapier_steel.glb"
+        "glb": "res://assets/custom-items/weapons/sword/rapier_steel.glb"
       },
       "provenance": {
         "kind": "studio_original",

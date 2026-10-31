@@ -1,29 +1,29 @@
 {
   "key": "weapons/longblade_crescent",
-  "inputs": "3737bca5f8f30a0c14732a2e6a20b48f9c5263b0634cd561cb1f72ebaa87ca5a",
+  "inputs": "6b8dca6db104be0f072fc27095043ede00a9877d93300ffa767ca6ace43280c6",
   "files": {
-    "longblade_crescent.glb": "0558d4b9fe0001049c9465a04f6640bd0f36db260830a04684958e0541752264",
-    "lineup.png": "bae1b6e0ae4b42c5834b2a113c41faabe8b8ded1d2373c48ca8add28fa593d95"
+    "longblade_crescent.glb": "e13018ebb1cb5ca019442be8273f1e96a4223ef74074ddc5f9cd14c58ae514c6",
+    "lineup.png": "a51b5c163855a9c82e1ce267583c5c5edb3e07b761c1a8c01dc8919432469e28"
   },
   "metadata": {
     "report": {
-      "triangles": 856,
+      "triangles": 822,
       "bounds": [
         [
           -0.3475579023361206,
-          -0.5485297441482544,
-          -0.0637187510728836
+          -0.5577685832977295,
+          -0.07565125077962875
         ],
         [
           0.3475579023361206,
           2.0399999618530273,
-          0.0637187510728836
+          0.07565125077962875
         ]
       ],
       "dimensions": [
         0.6951158046722412,
-        2.5885297060012817,
-        0.1274375021457672
+        2.597768545150757,
+        0.1513025015592575
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.023534013398243157
+        "signed_volume": 0.027544963874398993
       },
       "warnings": [],
       "errors": []
@@ -63,112 +63,14 @@
         "texture_size": 1024
       },
       "colors": {
-        "edge": [
-          166,
-          180,
-          192
-        ],
-        "iron": [
-          118,
-          128,
-          138
-        ],
         "leather": [
           150,
           92,
           62
-        ],
-        "steel": [
-          150,
-          164,
-          176
-        ],
-        "wrap": [
-          222,
-          206,
-          176
         ]
       },
-      "materials": {
-        "edge": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              188,
-              200,
-              210
-            ],
-            [
-              112,
-              122,
-              132
-            ],
-            [
-              166,
-              180,
-              192
-            ]
-          ]
-        },
-        "iron": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              146,
-              156,
-              166
-            ],
-            [
-              70,
-              78,
-              86
-            ],
-            [
-              118,
-              128,
-              138
-            ]
-          ]
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "steel": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              176,
-              188,
-              198
-            ],
-            [
-              92,
-              102,
-              112
-            ],
-            [
-              150,
-              164,
-              176
-            ]
-          ]
-        },
-        "wrap": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        }
-      },
       "export": {
-        "glb": "res://assets/custom-items/weapons/broadsword/longblade_crescent.glb"
+        "glb": "res://assets/custom-items/weapons/greatsword/longblade_crescent.glb"
       },
       "provenance": {
         "kind": "studio_original",

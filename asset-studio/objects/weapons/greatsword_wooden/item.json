@@ -18,11 +18,6 @@
     "texture_size": 1024
   },
   "colors": {
-    "birch": [
-      214,
-      174,
-      120
-    ],
     "leather": [
       150,
       92,
@@ -32,37 +27,10 @@
       150,
       96,
       60
-    ],
-    "wrap": [
-      222,
-      206,
-      176
     ]
   },
-  "materials": {
-    "birch": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 50
-    },
-    "leather": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 50
-    },
-    "wood": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 50
-    },
-    "wrap": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 50
-    }
-  },
   "export": {
-    "glb": "res://assets/custom-items/weapons/broadsword/greatsword_wooden.glb"
+    "glb": "res://assets/custom-items/weapons/greatsword/greatsword_wooden.glb"
   },
   "provenance": {
     "kind": "studio_original",

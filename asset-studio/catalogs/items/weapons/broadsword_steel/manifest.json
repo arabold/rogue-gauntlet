@@ -1,29 +1,29 @@
 {
   "key": "weapons/broadsword_steel",
-  "inputs": "c4966c04046c85e48a723deda0c5d02e7c6dcc043b6d4739de37316c7d5ac72e",
+  "inputs": "b9feb7dc6e3519e26480d5135915ff4f625612f61b2378533ee2eb861a1cc897",
   "files": {
-    "broadsword_steel.glb": "e381943214503d66117d4c96dc0709af0f3fea1a4ebdd2dcb249fa8d5fabd79b",
-    "lineup.png": "ec22a8580707021d5d7b0cb13e5d1f3dc461d8168be569399e5d3899abf842b8"
+    "broadsword_steel.glb": "1ba078dd475cb352453f3d3ff4f6dfe20fb3c36dc413ffa7234ab8df16b01776",
+    "lineup.png": "b56cfbe457cba9d03176ad0798542548a013d2cdb8240978a1d1ecad506e4a7a"
   },
   "metadata": {
     "report": {
-      "triangles": 532,
+      "triangles": 536,
       "bounds": [
         [
           -0.33000001311302185,
           -0.39314916729927063,
-          -0.06599999964237213
+          -0.07634736597537994
         ],
         [
           0.33000001311302185,
           1.4199999570846558,
-          0.06599999964237213
+          0.07634736597537994
         ]
       ],
       "dimensions": [
         0.6600000262260437,
         1.8131491243839264,
-        0.13199999928474426
+        0.1526947319507599
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.03155362007062082
+        "signed_volume": 0.03369399698601976
       },
       "warnings": [],
       "errors": []
@@ -63,112 +63,14 @@
         "texture_size": 1024
       },
       "colors": {
-        "edge": [
-          166,
-          180,
-          192
-        ],
-        "iron": [
-          118,
-          128,
-          138
-        ],
         "leather": [
           150,
           92,
           62
-        ],
-        "steel": [
-          150,
-          164,
-          176
-        ],
-        "wrap": [
-          222,
-          206,
-          176
         ]
       },
-      "materials": {
-        "edge": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              188,
-              200,
-              210
-            ],
-            [
-              112,
-              122,
-              132
-            ],
-            [
-              166,
-              180,
-              192
-            ]
-          ]
-        },
-        "iron": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              146,
-              156,
-              166
-            ],
-            [
-              70,
-              78,
-              86
-            ],
-            [
-              118,
-              128,
-              138
-            ]
-          ]
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        },
-        "steel": {
-          "metallic": 0.1,
-          "roughness": 0.55,
-          "crease": 45,
-          "ramp": [
-            [
-              176,
-              188,
-              198
-            ],
-            [
-              92,
-              102,
-              112
-            ],
-            [
-              150,
-              164,
-              176
-            ]
-          ]
-        },
-        "wrap": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 50
-        }
-      },
       "export": {
-        "glb": "res://assets/custom-items/weapons/arsenal/broadsword_steel.glb"
+        "glb": "res://assets/custom-items/weapons/greatsword/broadsword_steel.glb"
       },
       "provenance": {
         "kind": "studio_original",

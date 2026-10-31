@@ -18,112 +18,14 @@
     "texture_size": 1024
   },
   "colors": {
-    "brass": [
-      200,
-      146,
-      70
-    ],
-    "edge": [
-      166,
-      180,
-      192
-    ],
     "leather": [
       150,
       92,
       62
-    ],
-    "steel": [
-      150,
-      164,
-      176
-    ],
-    "wrap": [
-      222,
-      206,
-      176
     ]
   },
-  "materials": {
-    "brass": {
-      "metallic": 0.1,
-      "roughness": 0.55,
-      "crease": 45,
-      "ramp": [
-        [
-          226,
-          180,
-          104
-        ],
-        [
-          132,
-          88,
-          40
-        ],
-        [
-          200,
-          146,
-          70
-        ]
-      ]
-    },
-    "edge": {
-      "metallic": 0.1,
-      "roughness": 0.55,
-      "crease": 45,
-      "ramp": [
-        [
-          188,
-          200,
-          210
-        ],
-        [
-          112,
-          122,
-          132
-        ],
-        [
-          166,
-          180,
-          192
-        ]
-      ]
-    },
-    "leather": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 50
-    },
-    "steel": {
-      "metallic": 0.1,
-      "roughness": 0.55,
-      "crease": 45,
-      "ramp": [
-        [
-          176,
-          188,
-          198
-        ],
-        [
-          92,
-          102,
-          112
-        ],
-        [
-          150,
-          164,
-          176
-        ]
-      ]
-    },
-    "wrap": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 50
-    }
-  },
   "export": {
-    "glb": "res://assets/custom-items/weapons/arsenal/rapier_steel.glb"
+    "glb": "res://assets/custom-items/weapons/sword/rapier_steel.glb"
   },
   "provenance": {
     "kind": "studio_original",

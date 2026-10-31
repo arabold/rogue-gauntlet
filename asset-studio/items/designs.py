@@ -313,13 +313,13 @@ def tool(design):
     return assembly.build()
 
 
-from items.arsenal import arsenal
-from items.axes import axe
-from items.blades import blade
+from items import axes, blades, blunt, polearms, staves, ranged
 from items.shieldcraft import shieldcraft
 from items.fountains import fountain
 
-
-FAMILIES = {"shieldcraft": shieldcraft, "arsenal": arsenal, "axe": axe, "blade": blade, "potion": potion, "weapon": weapon, "shield": shield, "scroll": scroll,
+# KayKit-style weapon families: each module's builder shares the `items.forge` palette and construction.
+WEAPONS = {"axe": axes, "blade": blades, "blunt": blunt, "polearm": polearms, "staff": staves, "ranged": ranged}
+FAMILIES = {"shieldcraft": shieldcraft, **{name: getattr(module, name) for name, module in WEAPONS.items()},
+            "potion": potion, "weapon": weapon, "shield": shield, "scroll": scroll,
             "jewelry": jewelry, "key": key, "food": food, "lamp": lamp, "tool": tool,
             "fountain": fountain}
