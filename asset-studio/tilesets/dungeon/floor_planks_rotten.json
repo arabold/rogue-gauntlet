@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "name": "Rotten plank floor",
+  "concept": "Weathered gray boards with missing planks for ruined garrisons.",
+  "kind": "floor",
+  "style": "planks",
+  "design": {"plank_width": 0.4, "min_length": 0.7, "max_length": 2.0, "margin": 0.4, "missing": 0.12,
+             "height_jitter": 0.012, "tilt": 0.012},
+  "colors": {"plank": [118, 100, 84], "plank_light": [130, 112, 94], "plank_dark": [100, 86, 72],
+             "plank_warm": [124, 98, 76], "grout": [34, 28, 24]},
+  "pieces": {"large": ["A", "B", "C", "D"], "small": ["A", "B", "C", "D"]},
+  "budget": {"triangles": 1200},
+  "export": {"folder": "res://assets/custom-tiles/dungeon"}
+}

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "name": "Flagstone floor",
+  "concept": "Irregular dressed gray slabs, a few chipped corners.",
+  "kind": "floor",
+  "style": "flagstones",
+  "design": {"layout": "random", "smallest": 0.75, "largest": 1.25, "chips": 0.2, "chip_size": 0.1},
+  "colors": {"stone": [128, 126, 124], "stone_light": [138, 136, 132], "stone_dark": [116, 114, 113],
+             "grout": [60, 58, 58]},
+  "pieces": {"large": ["A", "B", "C", "D"], "small": ["A", "B", "C", "D"]},
+  "budget": {"triangles": 1500},
+  "export": {"folder": "res://assets/custom-tiles/dungeon"}
+}

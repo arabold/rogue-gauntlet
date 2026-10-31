@@ -219,10 +219,13 @@ def resolve_palette(used, colors, looks=None):
     return slot_colors, resolved_looks
 
 
-def gradient_coordinates(triangles, normals):
-    """Shared character/item ramp coordinates from vertex height and surface slope."""
+def gradient_coordinates(triangles, normals, height_range=None):
+    """Shared character/item ramp coordinates from vertex height and surface slope.
+
+    Modular tiles pass a fixed `height_range` so neighbors shade alike whatever their own extent.
+    """
     tri = np.asarray(triangles)
-    y_min, y_max = tri[:, :, 1].min(), tri[:, :, 1].max()
+    y_min, y_max = height_range or (tri[:, :, 1].min(), tri[:, :, 1].max())
     y_span = max(y_max - y_min, 1e-4)
     h_weight = float(np.clip(y_span / 0.08, 0.25, 0.85))
     t_h = 1.0 - (tri[:, :, 1] - y_min) / y_span
@@ -252,7 +255,7 @@ def surface_material(base, name, spec):
     return mat
 
 
-def export_static(path, name, piece, colors, materials=None, crease=50.0):
+def export_static(path, name, piece, colors, materials=None, crease=50.0, height_range=None):
     """Export an item through the character surface model, without a skeleton or template geometry."""
     w = _Writer()
     used = sorted(set(str(s) for s in piece.slots))
@@ -268,7 +271,7 @@ def export_static(path, name, piece, colors, materials=None, crease=50.0):
     else:
         normals = corner_normals(piece.verts, piece.faces, crease=crease, slots=piece.slots,
                                  slot_crease={s: _crease_of(looks.get(s), crease) for s in used})
-    t = gradient_coordinates(tri, normals)
+    t = gradient_coordinates(tri, normals, height_range)
     for i, slot in enumerate(piece.slots):
         if looks.get(str(slot), {}).get("emissive") or str(slot) in {"paint", "gem", "stitch", "rivet"}:
             t[i] = .5

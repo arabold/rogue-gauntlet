@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "name": "Mossy dungeon wall",
+  "concept": "The KayKit dungeon wall, damp and overgrown: moss cushions, moss spilling off the cap, vines and grass at the foot.",
+  "kind": "wall",
+  "style": "overgrown",
+  "design": {"patches": 1.2, "grass": 2.0, "vines": 1.2, "cap_moss": 1.3},
+  "colors": {"moss": [74, 112, 52], "moss_dark": [50, 82, 40], "moss_light": [98, 136, 62],
+             "grass": [96, 136, 56], "grass_dark": [66, 104, 44]},
+  "materials": {"moss": {"roughness": 1.0, "crease": 55}, "moss_dark": {"roughness": 1.0, "crease": 55},
+                "moss_light": {"roughness": 1.0, "crease": 55}, "grass": {"roughness": 0.9, "crease": 40},
+                "grass_dark": {"roughness": 0.9, "crease": 40}},
+  "pieces": {"wall": ["A", "B", "C", "D"], "wall_half": ["A", "B"], "wall_corner": ["A", "B"]},
+  "budget": {"triangles": 8000},
+  "export": {"folder": "res://assets/custom-tiles/dungeon"}
+}

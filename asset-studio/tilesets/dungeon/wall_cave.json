@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "name": "Cave wall",
+  "concept": "Big faceted boulders heaped between squared timber posts with grain splits; every open end is a post. Doorway and gate frame KayKit's 2 x 2.8 door opening in timber; gate_leaf is the gate's swinging leaf, hinged like KayKit's door leaf; the half endcap slumps into rubble; the pillar is a bound heap of boulders. Rock uses KayKit's rubble swatch.",
+  "reference": "wall_cave.reference.png",
+  "kind": "wall",
+  "style": "cave",
+  "design": {},
+  "colors": {
+    "rock": [
+      107,
+      92,
+      83
+    ],
+    "rock_light": [
+      116,
+      100,
+      90
+    ],
+    "rock_dark": [
+      92,
+      79,
+      72
+    ],
+    "footing": [
+      129,
+      140,
+      145
+    ],
+    "wood": [
+      138,
+      84,
+      56
+    ],
+    "wood_cut": [
+      84,
+      50,
+      34
+    ],
+    "iron": [
+      86,
+      88,
+      94
+    ]
+  },
+  "materials": {
+    "rock": {
+      "crease": 18,
+      "ramp": [
+        [
+          131,
+          114,
+          101
+        ],
+        [
+          83,
+          71,
+          65
+        ]
+      ]
+    },
+    "rock_light": {
+      "crease": 18,
+      "ramp": [
+        [
+          140,
+          122,
+          108
+        ],
+        [
+          90,
+          77,
+          70
+        ]
+      ]
+    },
+    "rock_dark": {
+      "crease": 18,
+      "ramp": [
+        [
+          112,
+          97,
+          88
+        ],
+        [
+          70,
+          60,
+          55
+        ]
+      ]
+    },
+    "wood": {
+      "crease": 30
+    },
+    "wood_cut": {
+      "crease": 30
+    },
+    "iron": {
+      "metallic": 0.4,
+      "roughness": 0.55,
+      "crease": 30
+    }
+  },
+  "pieces": {
+    "wall": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "wall_half": [
+      "A",
+      "B"
+    ],
+    "wall_corner": [
+      "A",
+      "B"
+    ],
+    "wall_Tsplit": [
+      "A"
+    ],
+    "wall_crossing": [
+      "A"
+    ],
+    "wall_doorway": [
+      "A",
+      "B"
+    ],
+    "wall_gated": [
+      "A"
+    ],
+    "wall_half_endcap": [
+      "A",
+      "B"
+    ],
+    "pillar": [
+      "A",
+      "B"
+    ],
+    "gate_leaf": [
+      "A"
+    ]
+  },
+  "budget": {
+    "triangles": 7500
+  },
+  "export": {
+    "folder": "res://assets/custom-tiles/dungeon"
+  }
+}

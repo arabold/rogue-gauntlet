@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "name": "Cave floor",
+  "concept": "Warm gray-brown cave ground strewn with stones in KayKit's rubble color.",
+  "kind": "floor",
+  "style": "ground",
+  "design": {
+    "amplitude": 0.05,
+    "bumps": 10,
+    "stones": 8,
+    "stone_size": [
+      0.06,
+      0.18
+    ],
+    "clods": 4,
+    "clod_size": [
+      0.1,
+      0.22
+    ],
+    "stone_tones": [
+      "pebble",
+      "pebble_dark"
+    ]
+  },
+  "colors": {
+    "ground": [
+      94,
+      82,
+      75
+    ],
+    "ground_light": [
+      102,
+      89,
+      81
+    ],
+    "ground_dark": [
+      84,
+      73,
+      67
+    ],
+    "pebble": [
+      107,
+      92,
+      83
+    ],
+    "pebble_dark": [
+      92,
+      79,
+      72
+    ]
+  },
+  "pieces": {
+    "large": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F"
+    ],
+    "small": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F"
+    ]
+  },
+  "budget": {
+    "triangles": 1800
+  },
+  "export": {
+    "folder": "res://assets/custom-tiles/dungeon"
+  },
+  "materials": {
+    "pebble": {
+      "ramp": [
+        [
+          131,
+          114,
+          101
+        ],
+        [
+          83,
+          71,
+          65
+        ]
+      ]
+    },
+    "pebble_dark": {
+      "ramp": [
+        [
+          112,
+          97,
+          88
+        ],
+        [
+          70,
+          60,
+          55
+        ]
+      ]
+    }
+  }
+}

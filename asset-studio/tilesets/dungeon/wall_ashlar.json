@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "name": "Royal ashlar wall",
+  "concept": "Well-masoned coursed stone for royal and noble settings, with a jointed cap and a plinth.",
+  "kind": "wall",
+  "style": "masonry",
+  "design": {"courses": 7, "min_length": 0.6, "max_length": 1.4},
+  "colors": {"stone": [118, 124, 134], "stone_light": [128, 134, 144], "stone_dark": [106, 112, 122],
+             "mortar": [64, 66, 74], "plinth": [92, 96, 106], "cap": [100, 106, 116], "cap_light": [110, 116, 126],
+             "cap_dark": [90, 96, 106]},
+  "pieces": {"wall": ["A", "B", "C", "D"], "wall_half": ["A", "B"], "wall_corner": ["A", "B"]},
+  "budget": {"triangles": 3000},
+  "export": {"folder": "res://assets/custom-tiles/dungeon"}
+}

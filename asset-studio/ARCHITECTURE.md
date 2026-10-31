@@ -18,6 +18,9 @@ standard executable locations; Studio commands no longer depend on an agent skil
   `lineup.png`, `lineup.gif`, `asset.json` and a fingerprint `manifest.json`.
 - `assets/custom-*`: configured game art destinations. Export may copy finished art here;
   it does not create gameplay Resources or actor scenes.
+- `tilesets/<set>/<family>.json`: modular floor, wall and rug families built by `tiles/`. A family
+  publishes one reviewed lineup to `catalogs/tiles/` and exports GLBs to `assets/custom-tiles/`;
+  GridMap mesh libraries, collision and generator rules stay game-side.
 
 `lineup` stages and renders a candidate without publishing. Explicit `export` for a bound
 source or golem builds, validates and renders the candidate, writes art/import metadata to

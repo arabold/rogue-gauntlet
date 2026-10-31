@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "name": "Packed dirt floor",
+  "concept": "Uneven brown earth scattered with pebbles and stones.",
+  "kind": "floor",
+  "style": "ground",
+  "design": {"amplitude": 0.04, "bumps": 9, "stones": 7, "stone_size": [0.05, 0.13], "clods": 6},
+  "colors": {"ground": [112, 82, 58], "ground_light": [122, 90, 64], "ground_dark": [98, 72, 52],
+             "pebble": [118, 110, 100], "pebble_dark": [92, 84, 76]},
+  "pieces": {"large": ["A", "B", "C", "D", "E", "F"], "small": ["A", "B", "C", "D", "E", "F"]},
+  "budget": {"triangles": 1600},
+  "export": {"folder": "res://assets/custom-tiles/dungeon"}
+}
