@@ -6,6 +6,7 @@ geometric prefabs embedded directly inside their respective domain folders:
 - `prefabs/outfits/meshes/`: helmets, hats
 - `prefabs/items/meshes/`: weapons, shields, props
 - `prefabs/details/meshes/`: gems, horns
+- `prefabs/decor/meshes/`: colored KayKit decor (books, bottles, candles, coins, keys, skull); see `prefabs/decor.py`
 """
 
 import argparse
@@ -29,6 +30,7 @@ DOMAINS = {
     "outfits": PREFABS_DIR / "outfits" / "meshes",
     "items": PREFABS_DIR / "items" / "meshes",
     "details": PREFABS_DIR / "details" / "meshes",
+    "decor": PREFABS_DIR / "decor" / "meshes",
 }
 
 CATEGORY_TO_DOMAIN = {
@@ -40,6 +42,7 @@ CATEGORY_TO_DOMAIN = {
     "props": "items",
     "gems": "details",
     "horns": "details",
+    "decor": "decor",
 }
 
 PREF_COLORS = {
@@ -129,6 +132,11 @@ def catalog():
             name = meta["name"]
             cat = meta.get("category", domain)
 
+            if "colors" in meta:
+                # Decor prefabs keep their own color regions.
+                piece = kit.Piece(data["verts"].astype(float), data["faces"].astype(np.int64), data["slots"].astype(object))
+                yield f"{name} ({cat})", piece, None, {k: tuple(v) for k, v in meta["colors"].items()}
+                continue
             if name in ITEM_COLORS:
                 slot, col = ITEM_COLORS[name]
             elif cat in PREF_COLORS:

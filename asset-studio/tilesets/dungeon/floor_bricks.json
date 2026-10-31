@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "name": "Brick floor",
+  "concept": "Worn red-brown bricks in running bond for sewers and cellars.",
+  "kind": "floor",
+  "style": "flagstones",
+  "design": {"layout": "running", "course": 0.5, "length": 1.0, "chips": 0.15, "chip_size": 0.07,
+             "height_jitter": 0.008, "tilt": 0.01},
+  "colors": {"stone": [132, 76, 58], "stone_light": [144, 86, 64], "stone_dark": [116, 66, 52],
+             "grout": [58, 50, 44]},
+  "pieces": {"large": ["A", "B", "C", "D"], "small": ["A", "B", "C", "D"]},
+  "budget": {"triangles": 1600},
+  "export": {"folder": "res://assets/custom-tiles/dungeon"}
+}

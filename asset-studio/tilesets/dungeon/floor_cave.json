@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "name": "Cave floor",
+  "concept": "Warm gray-brown cave ground strewn with stones in KayKit's rubble color. Stone uses KayKit's floor swatch so it sits beside KayKit floors.",
+  "kind": "floor",
+  "style": "ground",
+  "design": {
+    "amplitude": 0.05,
+    "bumps": 10,
+    "stones": 8,
+    "stone_size": [
+      0.06,
+      0.18
+    ],
+    "clods": 4,
+    "clod_size": [
+      0.1,
+      0.22
+    ],
+    "stone_tones": [
+      "pebble",
+      "pebble_dark"
+    ]
+  },
+  "colors": {
+    "ground": [
+      139,
+      132,
+      123
+    ],
+    "ground_light": [
+      146,
+      139,
+      130
+    ],
+    "ground_dark": [
+      130,
+      123,
+      115
+    ],
+    "pebble": [
+      107,
+      92,
+      83
+    ],
+    "pebble_dark": [
+      92,
+      79,
+      72
+    ]
+  },
+  "pieces": {
+    "large": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F"
+    ],
+    "small": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F"
+    ]
+  },
+  "budget": {
+    "triangles": 1800
+  },
+  "export": {
+    "folder": "res://assets/custom-tiles/dungeon"
+  },
+  "materials": {
+    "pebble": {
+      "ramp": [
+        [
+          131,
+          114,
+          101
+        ],
+        [
+          83,
+          71,
+          65
+        ]
+      ]
+    },
+    "pebble_dark": {
+      "ramp": [
+        [
+          112,
+          97,
+          88
+        ],
+        [
+          70,
+          60,
+          55
+        ]
+      ]
+    },
+    "ground": {
+      "ramp": [
+        [
+          155,
+          149,
+          144
+        ],
+        [
+          100,
+          88,
+          85
+        ]
+      ]
+    },
+    "ground_light": {
+      "ramp": [
+        [
+          163,
+          157,
+          152
+        ],
+        [
+          106,
+          93,
+          89
+        ]
+      ]
+    },
+    "ground_dark": {
+      "ramp": [
+        [
+          144,
+          139,
+          135
+        ],
+        [
+          94,
+          83,
+          79
+        ]
+      ]
+    }
+  }
+}

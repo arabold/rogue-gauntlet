@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "name": "Checkered stone floor",
+  "concept": "Polished pale and dark square tiles for temples and audience halls.",
+  "kind": "floor",
+  "style": "flagstones",
+  "design": {"layout": "grid", "cell": 1.0, "checker": true, "tones": ["stone", "stone_light", "stone_dark", "stone_darker"], "chips": 0.06, "chip_size": 0.08,
+             "height_jitter": 0.004, "tilt": 0.004},
+  "colors": {"stone": [170, 164, 152], "stone_light": [178, 172, 160], "stone_dark": [74, 72, 78],
+             "stone_darker": [66, 64, 70], "grout": [44, 42, 44]},
+  "materials": {"stone": {"roughness": 0.6}, "stone_light": {"roughness": 0.6},
+                "stone_dark": {"roughness": 0.6}, "stone_darker": {"roughness": 0.6}},
+  "pieces": {"large": ["A", "B"], "small": ["A", "B"]},
+  "budget": {"triangles": 1000},
+  "export": {"folder": "res://assets/custom-tiles/dungeon"}
+}

@@ -170,6 +170,8 @@ asset-studio/
 │   ├── align.py              # Low-poly item builders, palette UV mapper, grip/AABB alignment
 │   └── hf_image3d.py         # Image-to-3D mesh reconstruction helper
 ├── objects/                  # Item source folders (<category>/<name>/item.json, reference.png, source.blend, source.glb)
+├── tiles/                    # Modular floor, wall and rug tile builders and their workflow
+├── tilesets/                 # Tile family recipes (<set>/<family>.json); see tilesets/README.md
 ├── characters/               # Per-character folders (<family>/<name>/character.json, reference.png)
 ├── catalogs/                 # Current finished-item and reusable-prefab catalogs
 │   ├── items/                # Overview, categories, index and current validation/export status
@@ -426,6 +428,20 @@ The old `items/build_item.py --id ... --tier ...` interface has been retired. Th
 ```
 
 Tests cover source round trips, transforms across mesh instances/primitives, pivot/scale placement, budgets, stale builds, adoption, export protection, actual solid unions, floating geometry rejection, welded render seams, open/duplicate/inward surfaces, fresh family topology, shared character shading, and the art-only boundary. They use isolated temporary output trees and make no provider calls.
+
+---
+
+## Modular Floor and Wall Tiles
+
+Floor, wall and rug tiles in the KayKit dungeon style, on the KayKit footprints (4x4 and 2x2 floors, 4x4x1 walls with half and corner pieces), extend the existing dungeon set. A recipe under `tilesets/<set>/` builds one family: every piece and variant of a material, so they can be validated and reviewed together. Floor patterns repeat every two units, so large and small tiles and all variants mix in one room without the visible grid of KayKit's repeating wood joints; walls join through shared end cross-sections. `tile build` checks this on every tile edge, and `tile lineup` renders the family on the game grid in Godot. See the [tileset guide](tilesets/README.md) for footprints, the seam contract, the current families and recipe parameters.
+
+```bash
+./.venv/bin/python asset-studio/studio.py tile list
+./.venv/bin/python asset-studio/studio.py tile build dungeon/floor_planks
+./.venv/bin/python asset-studio/studio.py tile lineup dungeon/floor_planks
+```
+
+The studio owns the tile art only. Mesh libraries, collision, navigation and which realm or room uses which family are game-side wiring.
 
 ---
 

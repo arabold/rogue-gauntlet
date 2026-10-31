@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "kind": "wall",
+  "style": "dressed",
+  "reference": "dungeon_walls.reference.png",
+  "export": {
+    "folder": "res://assets/custom-tiles/dungeon"
+  },
+  "name": "Alcove wall",
+  "concept": "The KayKit dungeon wall with one deep alcove in KayKit's proportions, furnished with KayKit's own props: books and bottles, keys and coins, candles, bare shelves, or empty.",
+  "design": {
+    "patches": 0,
+    "grass": 0,
+    "vines": 0,
+    "cap_moss": 0,
+    "alcove": {
+      "contents": [
+        "books",
+        "keys",
+        "candles",
+        "shelves",
+        "empty"
+      ]
+    }
+  },
+  "colors": {},
+  "pieces": {
+    "wall": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E"
+    ],
+    "wall_half": [
+      "A",
+      "B"
+    ]
+  },
+  "budget": {
+    "triangles": 8000
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "name": "Slimy sewer wall",
+  "concept": "The KayKit dungeon wall in the sewers: a drain pipe run through the wall leaking a trickle into a puddle, glossy slime running from under the cap, dark algae.",
+  "reference": "dungeon_walls.reference.png",
+  "kind": "wall",
+  "style": "dressed",
+  "design": {
+    "patches": 0.4,
+    "grass": 0,
+    "vines": 0,
+    "cap_moss": 0.3,
+    "slime": 1.6,
+    "pools": 1.2,
+    "moss_tones": [
+      "algae",
+      "algae_dark",
+      "algae"
+    ],
+    "thickness": [
+      0.015,
+      0.03
+    ],
+    "pipes": 0.7
+  },
+  "colors": {
+    "algae": [
+      62,
+      92,
+      54
+    ],
+    "algae_dark": [
+      46,
+      72,
+      44
+    ],
+    "slime": [
+      118,
+      158,
+      58
+    ],
+    "slime_dark": [
+      74,
+      104,
+      44
+    ],
+    "pipe": [
+      92,
+      84,
+      78
+    ],
+    "recess_side": [
+      114,
+      123,
+      128
+    ],
+    "recess": [
+      101,
+      109,
+      113
+    ]
+  },
+  "materials": {
+    "algae": {
+      "roughness": 0.8,
+      "crease": 55
+    },
+    "algae_dark": {
+      "roughness": 0.8,
+      "crease": 55
+    },
+    "slime": {
+      "roughness": 0.25,
+      "metallic": 0.1,
+      "crease": 70
+    },
+    "slime_dark": {
+      "roughness": 0.3,
+      "metallic": 0.1,
+      "crease": 70
+    }
+  },
+  "pieces": {
+    "wall": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "wall_half": [
+      "A",
+      "B"
+    ],
+    "wall_corner": [
+      "A",
+      "B"
+    ]
+  },
+  "budget": {
+    "triangles": 8000
+  },
+  "export": {
+    "folder": "res://assets/custom-tiles/dungeon"
+  }
+}

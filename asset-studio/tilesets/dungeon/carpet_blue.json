@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "name": "Royal blue rug",
+  "concept": "Deep blue field with pale diamonds, a russet band framed in gold stripes; rugs and runners of any size.",
+  "kind": "overlay",
+  "style": "carpet",
+  "design": {},
+  "colors": {"carpet": [44, 62, 120], "carpet_motif": [200, 186, 150], "carpet_dot": [34, 48, 96],
+             "band": [120, 52, 40], "band_motif": [210, 196, 160], "stripe": [214, 200, 164],
+             "carpet_edge": [34, 46, 90], "fringe": [214, 200, 164]},
+  "materials": {"carpet": {"roughness": 1.0}, "carpet_motif": {"roughness": 1.0}, "carpet_dot": {"roughness": 1.0},
+                "band": {"roughness": 1.0}, "band_motif": {"roughness": 1.0}, "stripe": {"roughness": 1.0},
+                "carpet_edge": {"roughness": 1.0}, "fringe": {"roughness": 1.0}},
+  "pieces": {"center": ["A"], "edge": ["A"], "corner": ["A"], "runner": ["A"], "runner_end": ["A"]},
+  "budget": {"triangles": 2600},
+  "export": {"folder": "res://assets/custom-tiles/dungeon"}
+}
