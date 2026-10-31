@@ -16,6 +16,8 @@ Visual + data reference for every item definition in the game — the itemizatio
 | ![Old Axe](./axe_old.png) | **Old Axe** | 1H | 1–5 | 10 | — |
 | ![Shortsword](./shortsword_common.png) | **Shortsword** | 1H | 1–5 | 10 | — |
 | ![Staff](./staff_common.png) | **Staff** | 2H | 1–5 | 12 | Spell staff (Fireball) |
+| ![Crooked Staff](./staff_crooked.png) | **Crooked Staff** | 2H | 1–5 | 12 | Spell staff (Thorn Ward) |
+| ![Crooked Wand](./wand_crooked.png) | **Crooked Wand** | 1H | 1–5 | 0 | Spell wand (Gust) |
 | ![Wand](./wand.png) | **Wand** | 1H | 1–5 | 0 | Spell wand (Fireball) |
 
 ### Tier 2
@@ -23,6 +25,8 @@ Visual + data reference for every item definition in the game — the itemizatio
 | | Weapon | Hands | Damage | Str Req | Notes |
 |---|---|---|---|---|---|
 | ![Ash Staff](./staff_uncommon.png) | **Ash Staff** | 2H | 2–8 | 8 | Spell staff (Frost Nova) |
+| ![Iron Staff](./staff_iron.png) | **Iron Staff** | 2H | 2–8 | 12 | Spell staff (Hailstorm), +2% crit |
+| ![Iron Wand](./wand_iron.png) | **Iron Wand** | 1H | 2–8 | 0 | Spell wand (Tremor), +3% crit |
 | ![Hammer](./hammer_common.png) | **Hammer** | 1H | 3–8 | 12 | — |
 | ![Longsword](./sword_common.png) | **Longsword** | 1H | 3–8 | 10 | — |
 | ![Old Saber](./saber_skeleton.png) | **Old Saber** | 1H | 2–7 | 12 | — |
@@ -42,6 +46,8 @@ Visual + data reference for every item definition in the game — the itemizatio
 | ![Broadsword](./broadsword_rare.png) | **Broadsword** | 2H | 6–13 | 15 | — |
 | ![Double Axe](./axedouble_common.png) | **Double Axe** | 2H | 7–14 | 16 | — |
 | ![Emerald Crescent Staff](./staff_emerald.png) | **Emerald Crescent Staff** | 2H | 4–11 | 14 | Spell staff (Rockfall), +8% crit |
+| ![Bone Staff](./staff_bone.png) | **Bone Staff** | 2H | 4–11 | 14 | Spell staff (Meteor), +5% crit |
+| ![Bone Wand](./wand_bone.png) | **Bone Wand** | 1H | 4–11 | 14 | Spell wand (Ice Lance), +5% crit |
 | ![Heavy Crossbow](./crossbow_uncommon.png) | **Heavy Crossbow** | 2H | 6–11 | 13 | Range 20 |
 | ![Large Crossbow](./crossbow_2handed.png) | **Large Crossbow** | 2H | 7–12 | 12 | Range 20 |
 | ![Ruby Scepter Wand](./wand_ruby.png) | **Ruby Scepter Wand** | 1H | 4–11 | 14 | Spell wand (Fireball), +5% crit |
@@ -57,6 +63,8 @@ Visual + data reference for every item definition in the game — the itemizatio
 | ![Royal Hammer](./hammer_rare.png) | **Royal Hammer** | 1H | 8–15 | 16 | — |
 | ![Royal Sword](./sword_rare.png) | **Royal Sword** | 1H | 8–16 | 15 | — |
 | ![Rune Staff](./staff_rare.png) | **Rune Staff** | 2H | 7–16 | 10 | Spell staff (Chain Lightning), +3% crit |
+| ![Horned Staff](./staff_horned.png) | **Horned Staff** | 2H | 7–16 | 10 | Spell staff (Fire Serpent), +3% crit |
+| ![Scholar's Wand](./wand_carved.png) | **Scholar's Wand** | 1H | 7–16 | 17 | Spell wand (Lightning Orb), +4% crit |
 | ![Warhammer](./warhammer.png) | **Warhammer** | 2H | 10–18 | 18 | — |
 
 ### Tier 5

@@ -1,0 +1,98 @@
+{
+  "key": "weapons/wand_bone",
+  "inputs": "b6d7a54a335419f67f24e5a525a1806316f16e11ee990f1e18eef34443ff4b97",
+  "files": {
+    "wand_bone.glb": "39a0fb68dd7c4caf9a1e6698951d84b015a3257437fe94b23bf777a36a3b68a6",
+    "lineup.png": "ac4bdc34885e5c259534b6d29a1969053db3fea87cc391754291c9a4a8b8d99a"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1382,
+      "bounds": [
+        [
+          -0.07999123632907867,
+          -0.27000001072883606,
+          -0.07666218280792236
+        ],
+        [
+          0.07999123632907867,
+          0.7540133595466614,
+          0.09666217863559723
+        ]
+      ],
+      "dimensions": [
+        0.15998247265815735,
+        1.0240133702754974,
+        0.1733243614435196
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.0076418409836374645
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Wand Bone",
+      "backend": "procedural",
+      "builder": "arsenal",
+      "design": {
+        "kind": "bone_wand"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "bone": [
+          228,
+          216,
+          186
+        ],
+        "leather": [
+          79,
+          47,
+          32
+        ]
+      },
+      "materials": {
+        "bone": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/wand/wand_bone.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Long bone with lashed grip and big knuckles, topped by a small skull prefab. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

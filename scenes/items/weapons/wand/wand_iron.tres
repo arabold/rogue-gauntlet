@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="MagicStaff" format=3]
+
+[ext_resource type="Script" uid="uid://bncpld6hbytsn" path="res://scenes/items/MagicStaff.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/wand/wand_iron.tscn" id="model"]
+[ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/tremor.tres" id="bound_spell"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/spell_pool_all.tres" id="spell_pool"]
+[ext_resource type="Resource" path="res://scenes/magic/missile/wand_missiles.tres" id="missiles"]
+
+[resource]
+script = ExtResource("script")
+ProjectileSpeed = 16.0
+Range = 16.0
+AimingAngle = 55.0
+DamageMin = 2.0
+DamageMax = 8.0
+CritChance = 0.03
+AttackStyle = &"staff.cast"
+Grip = ExtResource("weapon_grip")
+AnimationId = "ranged_attack"
+PerformDuration = 0.5
+CooldownDuration = 0.1
+ValidSlots = 256
+Tier = 2
+RollTable = ExtResource("roll_table")
+Name = "Iron Wand"
+Scene = ExtResource("model")
+Value = 80
+BoundSpell = ExtResource("bound_spell")
+SpellPool = ExtResource("spell_pool")
+Missiles = ExtResource("missiles")
+metadata/_custom_type_script = ExtResource("script")

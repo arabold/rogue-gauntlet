@@ -1,6 +1,6 @@
 {
-  "items": 145,
-  "godot_verified_exports": 145,
+  "items": 153,
+  "godot_verified_exports": 0,
   "authored_surface_exceptions": [
     "food/drink_beer_stein",
     "keys/key_bronze_ornate",
@@ -56,7 +56,7 @@
         "Authored surface exception: 6 nonmanifold_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/food/drink/drink_beer_stein.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "food/drink_beer_stein/lineup.png"
     },
     {
@@ -95,7 +95,7 @@
         "5 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/food/drink/drink_water_canteen.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "food/drink_water_canteen/lineup.png"
     },
     {
@@ -131,7 +131,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/food/drink/drink_wine_bottle.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "food/drink_wine_bottle/lineup.png"
     },
     {
@@ -167,7 +167,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/food/food/food_apple_red.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "food/food_apple_red/lineup.png"
     },
     {
@@ -202,7 +202,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/food/food/food_bread_loaf.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "food/food_bread_loaf/lineup.png"
     },
     {
@@ -226,7 +226,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/food/food/food_bread_roll.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "food/food_bread_roll/lineup.png"
     },
     {
@@ -258,7 +258,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/food/food/food_cheese_wheel.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "food/food_cheese_wheel/lineup.png"
     },
     {
@@ -294,7 +294,7 @@
         "23 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/food/food/food_grapes_bunch.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "food/food_grapes_bunch/lineup.png"
     },
     {
@@ -330,7 +330,7 @@
         "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/food/food/food_meat_drumstick.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "food/food_meat_drumstick/lineup.png"
     },
     {
@@ -366,7 +366,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/food/food/food_meat_sausage.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "food/food_meat_sausage/lineup.png"
     },
     {
@@ -400,7 +400,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/food/food/food_meat_steak.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "food/food_meat_steak/lineup.png"
     },
     {
@@ -435,7 +435,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/food/food/food_pear_golden.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "food/food_pear_golden/lineup.png"
     },
     {
@@ -470,7 +470,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/amulet/amulet_gold_emerald.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/amulet_gold_emerald/lineup.png"
     },
     {
@@ -505,7 +505,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/amulet/amulet_gold_ruby.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/amulet_gold_ruby/lineup.png"
     },
     {
@@ -537,7 +537,7 @@
         "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/amulet/amulet_gold_sun_crest.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/amulet_gold_sun_crest/lineup.png"
     },
     {
@@ -571,7 +571,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/amulet/amulet_gold_topaz.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/amulet_gold_topaz/lineup.png"
     },
     {
@@ -606,7 +606,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/amulet/amulet_silver_amethyst.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/amulet_silver_amethyst/lineup.png"
     },
     {
@@ -640,7 +640,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/amulet/amulet_silver_onyx.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/amulet_silver_onyx/lineup.png"
     },
     {
@@ -672,7 +672,7 @@
         "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/amulet/amulet_silver_runic_crest.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/amulet_silver_runic_crest/lineup.png"
     },
     {
@@ -707,7 +707,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/amulet/amulet_silver_sapphire.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/amulet_silver_sapphire/lineup.png"
     },
     {
@@ -742,7 +742,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/amulet/amulet_wood_coral.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/amulet_wood_coral/lineup.png"
     },
     {
@@ -774,7 +774,7 @@
         "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/amulet/amulet_wood_druid_talisman.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/amulet_wood_druid_talisman/lineup.png"
     },
     {
@@ -809,7 +809,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/amulet/amulet_wood_jade.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/amulet_wood_jade/lineup.png"
     },
     {
@@ -844,7 +844,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/amulet/amulet_wood_peridot.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/amulet_wood_peridot/lineup.png"
     },
     {
@@ -879,7 +879,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/ring/ring_gold_amethyst.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/ring_gold_amethyst/lineup.png"
     },
     {
@@ -914,7 +914,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/ring/ring_gold_emerald.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/ring_gold_emerald/lineup.png"
     },
     {
@@ -949,7 +949,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/ring/ring_gold_ruby.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/ring_gold_ruby/lineup.png"
     },
     {
@@ -981,7 +981,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/ring/ring_gold_signet.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/ring_gold_signet/lineup.png"
     },
     {
@@ -1013,7 +1013,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/ring/ring_silver_band.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/ring_silver_band/lineup.png"
     },
     {
@@ -1047,7 +1047,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/ring/ring_silver_diamond.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/ring_silver_diamond/lineup.png"
     },
     {
@@ -1081,7 +1081,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/ring/ring_silver_onyx.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/ring_silver_onyx/lineup.png"
     },
     {
@@ -1116,7 +1116,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/ring/ring_silver_sapphire.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/ring_silver_sapphire/lineup.png"
     },
     {
@@ -1151,7 +1151,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/ring/ring_wood_amber.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/ring_wood_amber/lineup.png"
     },
     {
@@ -1183,7 +1183,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/ring/ring_wood_carved.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/ring_wood_carved/lineup.png"
     },
     {
@@ -1218,7 +1218,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/ring/ring_wood_garnet.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/ring_wood_garnet/lineup.png"
     },
     {
@@ -1253,7 +1253,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/jewelry/ring/ring_wood_jade.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "jewelry/ring_wood_jade/lineup.png"
     },
     {
@@ -1289,7 +1289,7 @@
         "17 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/keys/key/key_arcane_crystal.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "keys/key_arcane_crystal/lineup.png"
     },
     {
@@ -1324,7 +1324,7 @@
         "29 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/keys/key/key_bone_skull.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "keys/key_bone_skull/lineup.png"
     },
     {
@@ -1358,7 +1358,7 @@
         "Authored surface exception: 1 nonmanifold_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/keys/key/key_bronze_ornate.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "keys/key_bronze_ornate/lineup.png"
     },
     {
@@ -1393,7 +1393,7 @@
         "17 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/keys/key/key_gold_treasury.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "keys/key_gold_treasury/lineup.png"
     },
     {
@@ -1427,7 +1427,7 @@
         "11 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/keys/key/key_iron_prison.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "keys/key_iron_prison/lineup.png"
     },
     {
@@ -1462,12 +1462,12 @@
         "14 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/keys/key/key_silver_crypt.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "keys/key_silver_crypt/lineup.png"
     },
     {
       "key": "potions/potion_large_cobalt",
-      "source_current": true,
+      "source_current": false,
       "inputs": "07057b5aa989caeb12e1afb9b859ae37726e01655318568243fc04899f69f28c",
       "triangles": 336,
       "materials": 4,
@@ -1502,12 +1502,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_large/potion_large_cobalt.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_large_cobalt/lineup.png"
     },
     {
       "key": "potions/potion_large_coral",
-      "source_current": true,
+      "source_current": false,
       "inputs": "01c23f9b86caa2f5207b5775b91f62c4dc892ff8ed6925448b6b27ee2841d2f7",
       "triangles": 336,
       "materials": 4,
@@ -1541,12 +1541,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_large/potion_large_coral.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_large_coral/lineup.png"
     },
     {
       "key": "potions/potion_large_crimson",
-      "source_current": true,
+      "source_current": false,
       "inputs": "bd0291b2f8ff4560573d70df14dcb186def581a82aed0faadbcf262be6a70a21",
       "triangles": 336,
       "materials": 4,
@@ -1581,12 +1581,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_large/potion_large_crimson.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_large_crimson/lineup.png"
     },
     {
       "key": "potions/potion_large_emerald",
-      "source_current": true,
+      "source_current": false,
       "inputs": "75be5989dc3e6491ba0047da17570858aff9aefa17fa5fb0359fe0419c261e47",
       "triangles": 336,
       "materials": 4,
@@ -1621,12 +1621,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_large/potion_large_emerald.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_large_emerald/lineup.png"
     },
     {
       "key": "potions/potion_large_gold",
-      "source_current": true,
+      "source_current": false,
       "inputs": "c9210137500998830c7894dc88a42a810c6c36ef3ba16029f1e1fa85a3d00176",
       "triangles": 336,
       "materials": 4,
@@ -1660,12 +1660,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_large/potion_large_gold.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_large_gold/lineup.png"
     },
     {
       "key": "potions/potion_large_lime",
-      "source_current": true,
+      "source_current": false,
       "inputs": "b291690d59d2a8a933cc63294a4328452602807f6b1a7e9e0594b924de97fd14",
       "triangles": 336,
       "materials": 4,
@@ -1699,12 +1699,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_large/potion_large_lime.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_large_lime/lineup.png"
     },
     {
       "key": "potions/potion_large_magenta",
-      "source_current": true,
+      "source_current": false,
       "inputs": "65d1662e47326058e19baf8e58c80280b10f000141193d4e6961f20a06066816",
       "triangles": 336,
       "materials": 4,
@@ -1739,12 +1739,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_large/potion_large_magenta.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_large_magenta/lineup.png"
     },
     {
       "key": "potions/potion_large_obsidian",
-      "source_current": true,
+      "source_current": false,
       "inputs": "862ade7c7f4ee5962e7efb3f0cc4ec4b7b818aafdfc00aa681411f27637d466a",
       "triangles": 336,
       "materials": 4,
@@ -1778,12 +1778,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_large/potion_large_obsidian.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_large_obsidian/lineup.png"
     },
     {
       "key": "potions/potion_large_orange",
-      "source_current": true,
+      "source_current": false,
       "inputs": "4cb3f947bae8534a65b1b0e9a17e7aceb01973fe6d7eb89812dde200b3772e86",
       "triangles": 336,
       "materials": 4,
@@ -1818,12 +1818,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_large/potion_large_orange.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_large_orange/lineup.png"
     },
     {
       "key": "potions/potion_large_purple",
-      "source_current": true,
+      "source_current": false,
       "inputs": "608182f910a9e6177fc1ad49692fe447247086ae2c27fb6feb22bd8f513c8f07",
       "triangles": 336,
       "materials": 4,
@@ -1858,12 +1858,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_large/potion_large_purple.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_large_purple/lineup.png"
     },
     {
       "key": "potions/potion_large_silver",
-      "source_current": true,
+      "source_current": false,
       "inputs": "3ee31a4929ce63ff42111288b1564a33c1ceda3c0f3fdebb366973d7c1b578e4",
       "triangles": 336,
       "materials": 4,
@@ -1896,12 +1896,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_large/potion_large_silver.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_large_silver/lineup.png"
     },
     {
       "key": "potions/potion_large_teal",
-      "source_current": true,
+      "source_current": false,
       "inputs": "b85f6d9c69cf8b7ea1090d295f62a2225cb563fb9e4af77488755e8be1878b10",
       "triangles": 336,
       "materials": 4,
@@ -1936,12 +1936,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_large/potion_large_teal.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_large_teal/lineup.png"
     },
     {
       "key": "potions/potion_medium_cobalt",
-      "source_current": true,
+      "source_current": false,
       "inputs": "fbbb3ca5491f008f053f19a6bd6937d02ba8fb1551a82e56e21d9e98b9fba5e9",
       "triangles": 288,
       "materials": 4,
@@ -1974,12 +1974,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_medium/potion_medium_cobalt.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_medium_cobalt/lineup.png"
     },
     {
       "key": "potions/potion_medium_coral",
-      "source_current": true,
+      "source_current": false,
       "inputs": "36c7668d30a60e961062fefc82158b1e4aebff92d2329a7f4ec3925b884b16c8",
       "triangles": 288,
       "materials": 4,
@@ -2012,12 +2012,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_medium/potion_medium_coral.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_medium_coral/lineup.png"
     },
     {
       "key": "potions/potion_medium_crimson",
-      "source_current": true,
+      "source_current": false,
       "inputs": "e9c0a15168b7d422bee2aaecebd55be0d531726131ff257a60fade368c86c47b",
       "triangles": 288,
       "materials": 4,
@@ -2050,12 +2050,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_medium/potion_medium_crimson.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_medium_crimson/lineup.png"
     },
     {
       "key": "potions/potion_medium_emerald",
-      "source_current": true,
+      "source_current": false,
       "inputs": "c0784e565b9c40709dc29e26e936221d634d15bf9aeca756d48815462d79aa96",
       "triangles": 288,
       "materials": 4,
@@ -2088,12 +2088,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_medium/potion_medium_emerald.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_medium_emerald/lineup.png"
     },
     {
       "key": "potions/potion_medium_gold",
-      "source_current": true,
+      "source_current": false,
       "inputs": "e81ae0fd3a211810384411afce8e37e47f5c2b1594c261822552aad1363c74b2",
       "triangles": 288,
       "materials": 4,
@@ -2126,12 +2126,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_medium/potion_medium_gold.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_medium_gold/lineup.png"
     },
     {
       "key": "potions/potion_medium_lime",
-      "source_current": true,
+      "source_current": false,
       "inputs": "c9cbd4999d382adbacb0e0ff98ed6bab73e9b8390dfcd31b1c914487cd95e15a",
       "triangles": 288,
       "materials": 4,
@@ -2164,12 +2164,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_medium/potion_medium_lime.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_medium_lime/lineup.png"
     },
     {
       "key": "potions/potion_medium_magenta",
-      "source_current": true,
+      "source_current": false,
       "inputs": "a016c8e3c65900114b70d106bbc59c64ee536dec62dfc7713695a20844a7d573",
       "triangles": 288,
       "materials": 4,
@@ -2202,12 +2202,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_medium/potion_medium_magenta.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_medium_magenta/lineup.png"
     },
     {
       "key": "potions/potion_medium_obsidian",
-      "source_current": true,
+      "source_current": false,
       "inputs": "45106b32b153eb7b4064d7195a0ce87c8d81941f6f40b4d151b7b13e499a521f",
       "triangles": 288,
       "materials": 4,
@@ -2239,12 +2239,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_medium/potion_medium_obsidian.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_medium_obsidian/lineup.png"
     },
     {
       "key": "potions/potion_medium_orange",
-      "source_current": true,
+      "source_current": false,
       "inputs": "2393cdc6f4323d4dd79600079a293ac18be1453e4d11c7d93277ca5395e6f09b",
       "triangles": 288,
       "materials": 4,
@@ -2277,12 +2277,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_medium/potion_medium_orange.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_medium_orange/lineup.png"
     },
     {
       "key": "potions/potion_medium_purple",
-      "source_current": true,
+      "source_current": false,
       "inputs": "fe9436b19ff70d5b3d68617e25f954efab79bd3edb28c5e2be4b103765aeee4d",
       "triangles": 288,
       "materials": 4,
@@ -2315,12 +2315,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_medium/potion_medium_purple.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_medium_purple/lineup.png"
     },
     {
       "key": "potions/potion_medium_silver",
-      "source_current": true,
+      "source_current": false,
       "inputs": "38e144b828338068d3c2546b3782e63cefb4bc9d4b334a637a897c2d44becaed",
       "triangles": 288,
       "materials": 4,
@@ -2350,12 +2350,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_medium/potion_medium_silver.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_medium_silver/lineup.png"
     },
     {
       "key": "potions/potion_medium_teal",
-      "source_current": true,
+      "source_current": false,
       "inputs": "ea6168fdc62223699e7fdb400c0563725b2663c8cb402bf731ac2b49b88cf3cf",
       "triangles": 288,
       "materials": 4,
@@ -2388,12 +2388,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_medium/potion_medium_teal.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_medium_teal/lineup.png"
     },
     {
       "key": "potions/potion_small_cobalt",
-      "source_current": true,
+      "source_current": false,
       "inputs": "9613a583c5b2dd65a782b3327fabb95fab9187ae2254c8d77e22fb9d33968762",
       "triangles": 224,
       "materials": 4,
@@ -2425,12 +2425,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_small/potion_small_cobalt.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_small_cobalt/lineup.png"
     },
     {
       "key": "potions/potion_small_coral",
-      "source_current": true,
+      "source_current": false,
       "inputs": "58064ab1569880a4a05719306f3b933701b1bc12cf8a16d67dc074b7219f306a",
       "triangles": 224,
       "materials": 4,
@@ -2462,12 +2462,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_small/potion_small_coral.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_small_coral/lineup.png"
     },
     {
       "key": "potions/potion_small_crimson",
-      "source_current": true,
+      "source_current": false,
       "inputs": "5acde580d50b5da3daed35d04421fda6e3d99631e0c3d0f6bc515769fe09103c",
       "triangles": 224,
       "materials": 4,
@@ -2499,12 +2499,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_small/potion_small_crimson.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_small_crimson/lineup.png"
     },
     {
       "key": "potions/potion_small_emerald",
-      "source_current": true,
+      "source_current": false,
       "inputs": "1c0253f563fe9a0094811f2de6925339f30eba2297a12d90eddf6b74ade30875",
       "triangles": 224,
       "materials": 4,
@@ -2536,12 +2536,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_small/potion_small_emerald.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_small_emerald/lineup.png"
     },
     {
       "key": "potions/potion_small_gold",
-      "source_current": true,
+      "source_current": false,
       "inputs": "8e1e5506e3c10e80c819687931180ad68cf6a5c447f29c98c0b8e2769f41dc0c",
       "triangles": 224,
       "materials": 4,
@@ -2573,12 +2573,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_small/potion_small_gold.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_small_gold/lineup.png"
     },
     {
       "key": "potions/potion_small_lime",
-      "source_current": true,
+      "source_current": false,
       "inputs": "6c0d7a8f8b70fa907ba0537bd4739354f152c0837be3dc6742a4a18529ca746c",
       "triangles": 224,
       "materials": 4,
@@ -2610,12 +2610,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_small/potion_small_lime.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_small_lime/lineup.png"
     },
     {
       "key": "potions/potion_small_magenta",
-      "source_current": true,
+      "source_current": false,
       "inputs": "75d23d8789a4c4f2a1ea529c1d8acc1056a1e81f6724bebd52c9760c62f5754f",
       "triangles": 224,
       "materials": 4,
@@ -2647,12 +2647,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_small/potion_small_magenta.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_small_magenta/lineup.png"
     },
     {
       "key": "potions/potion_small_obsidian",
-      "source_current": true,
+      "source_current": false,
       "inputs": "c69044804f8aab299622ac92227e783e913eb97c9df92f4b327109f40957b95f",
       "triangles": 224,
       "materials": 4,
@@ -2683,12 +2683,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_small/potion_small_obsidian.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_small_obsidian/lineup.png"
     },
     {
       "key": "potions/potion_small_orange",
-      "source_current": true,
+      "source_current": false,
       "inputs": "b066e02183315e75479dbdb88c9548b0145786fa24c7e1d5b278f6c4ef401112",
       "triangles": 224,
       "materials": 4,
@@ -2720,12 +2720,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_small/potion_small_orange.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_small_orange/lineup.png"
     },
     {
       "key": "potions/potion_small_purple",
-      "source_current": true,
+      "source_current": false,
       "inputs": "0b30ef3eb0bcb5023b3d9c0124dd04bd5cd96f3f4c77171cdaaeeb30100cbfb9",
       "triangles": 224,
       "materials": 4,
@@ -2757,12 +2757,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_small/potion_small_purple.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_small_purple/lineup.png"
     },
     {
       "key": "potions/potion_small_silver",
-      "source_current": true,
+      "source_current": false,
       "inputs": "c6f2d86bb1d877613c3afb61356b87da0eb62f80e066eb1f58cd939c629f6106",
       "triangles": 224,
       "materials": 4,
@@ -2792,12 +2792,12 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_small/potion_small_silver.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_small_silver/lineup.png"
     },
     {
       "key": "potions/potion_small_teal",
-      "source_current": true,
+      "source_current": false,
       "inputs": "6507612a62ec77f8d88fa979134fbb8587bb7da097156899a3c0028ec7c1ed0b",
       "triangles": 224,
       "materials": 4,
@@ -2829,7 +2829,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/potions/potion_small/potion_small_teal.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "potions/potion_small_teal/lineup.png"
     },
     {
@@ -2868,7 +2868,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/scrolls/scroll/scroll_cobalt_raidho.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "scrolls/scroll_cobalt_raidho/lineup.png"
     },
     {
@@ -2907,7 +2907,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/scrolls/scroll/scroll_coral_sowilo.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "scrolls/scroll_coral_sowilo/lineup.png"
     },
     {
@@ -2947,7 +2947,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/scrolls/scroll/scroll_crimson_othala.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "scrolls/scroll_crimson_othala/lineup.png"
     },
     {
@@ -2987,7 +2987,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/scrolls/scroll/scroll_emerald_fehu.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "scrolls/scroll_emerald_fehu/lineup.png"
     },
     {
@@ -3027,7 +3027,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/scrolls/scroll/scroll_gold_algiz.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "scrolls/scroll_gold_algiz/lineup.png"
     },
     {
@@ -3067,7 +3067,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/scrolls/scroll/scroll_lime_hagalaz.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "scrolls/scroll_lime_hagalaz/lineup.png"
     },
     {
@@ -3107,7 +3107,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/scrolls/scroll/scroll_magenta_berkano.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "scrolls/scroll_magenta_berkano/lineup.png"
     },
     {
@@ -3145,7 +3145,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/scrolls/scroll/scroll_obsidian_tiwaz.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "scrolls/scroll_obsidian_tiwaz/lineup.png"
     },
     {
@@ -3185,7 +3185,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/scrolls/scroll/scroll_orange_thurisaz.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "scrolls/scroll_orange_thurisaz/lineup.png"
     },
     {
@@ -3224,7 +3224,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/scrolls/scroll/scroll_purple_dagaz.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "scrolls/scroll_purple_dagaz/lineup.png"
     },
     {
@@ -3264,7 +3264,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/scrolls/scroll/scroll_silver_ingwaz.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "scrolls/scroll_silver_ingwaz/lineup.png"
     },
     {
@@ -3304,7 +3304,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/scrolls/scroll/scroll_teal_eihwaz.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "scrolls/scroll_teal_eihwaz/lineup.png"
     },
     {
@@ -3326,7 +3326,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/armor/shield/shield_aegis_gold.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "shields/shield_aegis_gold/lineup.png"
     },
     {
@@ -3348,7 +3348,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/armor/shield/shield_buckler_spiked.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "shields/shield_buckler_spiked/lineup.png"
     },
     {
@@ -3370,7 +3370,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/armor/shield/shield_dragon_scale.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "shields/shield_dragon_scale/lineup.png"
     },
     {
@@ -3392,7 +3392,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/armor/shield/shield_heater_iron.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "shields/shield_heater_iron/lineup.png"
     },
     {
@@ -3414,7 +3414,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/armor/shield/shield_heroic_quarters.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "shields/shield_heroic_quarters/lineup.png"
     },
     {
@@ -3436,7 +3436,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/armor/shield/shield_heroic_sun.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "shields/shield_heroic_sun/lineup.png"
     },
     {
@@ -3458,7 +3458,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/armor/shield/shield_iron_tower.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "shields/shield_iron_tower/lineup.png"
     },
     {
@@ -3480,7 +3480,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/armor/shield/shield_kite_crusader.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "shields/shield_kite_crusader/lineup.png"
     },
     {
@@ -3502,7 +3502,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/armor/shield/shield_round_wood.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "shields/shield_round_wood/lineup.png"
     },
     {
@@ -3524,7 +3524,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/armor/shield/shield_royal_crown.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "shields/shield_royal_crown/lineup.png"
     },
     {
@@ -3546,7 +3546,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/armor/shield/shield_royal_lily.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "shields/shield_royal_lily/lineup.png"
     },
     {
@@ -3568,7 +3568,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/armor/shield/shield_scutum_wood.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "shields/shield_scutum_wood/lineup.png"
     },
     {
@@ -3590,7 +3590,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/armor/shield/shield_wood_simple.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "shields/shield_wood_simple/lineup.png"
     },
     {
@@ -3630,7 +3630,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/tools/tool/tool_bell_silver.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "tools/tool_bell_silver/lineup.png"
     },
     {
@@ -3669,7 +3669,7 @@
         "6 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/tools/lamp/tool_candelabrum.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "tools/tool_candelabrum/lineup.png"
     },
     {
@@ -3706,7 +3706,7 @@
         "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/tools/lamp/tool_candle_tallow.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "tools/tool_candle_tallow/lineup.png"
     },
     {
@@ -3743,7 +3743,7 @@
         "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/tools/tool/tool_grappling_hook.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "tools/tool_grappling_hook/lineup.png"
     },
     {
@@ -3784,7 +3784,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/tools/tool/tool_horn_bugle.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "tools/tool_horn_bugle/lineup.png"
     },
     {
@@ -3826,7 +3826,7 @@
         "3 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/tools/lamp/tool_lamp_oil.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "tools/tool_lamp_oil/lineup.png"
     },
     {
@@ -3867,7 +3867,7 @@
         "6 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/tools/lamp/tool_lantern_brass.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "tools/tool_lantern_brass/lineup.png"
     },
     {
@@ -3907,7 +3907,7 @@
         "5 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/tools/tool/tool_lockpick_set.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "tools/tool_lockpick_set/lineup.png"
     },
     {
@@ -3946,7 +3946,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/tools/tool/tool_mirror_hand.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "tools/tool_mirror_hand/lineup.png"
     },
     {
@@ -3985,7 +3985,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/tools/tool/tool_pickaxe_dwarven.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "tools/tool_pickaxe_dwarven/lineup.png"
     },
     {
@@ -4021,7 +4021,7 @@
         "13 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/tools/lamp/tool_torch_iron.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "tools/tool_torch_iron/lineup.png"
     },
     {
@@ -4057,7 +4057,7 @@
         "5 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/tools/lamp/tool_torch_wooden.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "tools/tool_torch_wooden/lineup.png"
     },
     {
@@ -4093,7 +4093,7 @@
         "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/axe/axe_bearded.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/axe_bearded/lineup.png"
     },
     {
@@ -4129,7 +4129,7 @@
         "Authored surface exception: 45 boundary_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/axe/axe_executioner.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/axe_executioner/lineup.png"
     },
     {
@@ -4165,7 +4165,7 @@
         "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/battleaxe/battleaxe_gilded.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/battleaxe_gilded/lineup.png"
     },
     {
@@ -4201,7 +4201,7 @@
         "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/battleaxe/battleaxe_iron.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/battleaxe_iron/lineup.png"
     },
     {
@@ -4236,7 +4236,7 @@
         "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/broadsword/broadsword_gilded.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/broadsword_gilded/lineup.png"
     },
     {
@@ -4271,7 +4271,7 @@
         "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/broadsword/broadsword_iron.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/broadsword_iron/lineup.png"
     },
     {
@@ -4293,7 +4293,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/broadsword_steel.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/broadsword_steel/lineup.png"
     },
     {
@@ -4315,7 +4315,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/club_steel.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/club_steel/lineup.png"
     },
     {
@@ -4337,7 +4337,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/club_wood_old.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/club_wood_old/lineup.png"
     },
     {
@@ -4373,7 +4373,7 @@
         "16 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/weapons/crossbow/crossbow_gilded.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/crossbow_gilded/lineup.png"
     },
     {
@@ -4408,7 +4408,7 @@
         "Authored surface exception: 48 boundary_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/dagger/dagger_kukri.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/dagger_kukri/lineup.png"
     },
     {
@@ -4443,7 +4443,7 @@
         "Authored surface exception: 48 boundary_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/dagger/dagger_nightblade.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/dagger_nightblade/lineup.png"
     },
     {
@@ -4465,7 +4465,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/dagger_short.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/dagger_short/lineup.png"
     },
     {
@@ -4487,7 +4487,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/greatsword_steel.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/greatsword_steel/lineup.png"
     },
     {
@@ -4509,7 +4509,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/halberd_steel.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/halberd_steel/lineup.png"
     },
     {
@@ -4544,7 +4544,7 @@
         "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/hammer/hammer_gilded.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/hammer_gilded/lineup.png"
     },
     {
@@ -4578,7 +4578,7 @@
         "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/hammer/hammer_mallet.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/hammer_mallet/lineup.png"
     },
     {
@@ -4600,7 +4600,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/morning_star_iron.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/morning_star_iron/lineup.png"
     },
     {
@@ -4622,7 +4622,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/rapier_steel.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/rapier_steel/lineup.png"
     },
     {
@@ -4644,7 +4644,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/saber_steel.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/saber_steel/lineup.png"
     },
     {
@@ -4666,7 +4666,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/scythe_iron.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/scythe_iron/lineup.png"
     },
     {
@@ -4688,7 +4688,7 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/spear_steel.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/spear_steel/lineup.png"
     },
     {
@@ -4723,8 +4723,52 @@
         "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/weapons/staff/staff_archmage.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/staff_archmage/lineup.png"
+    },
+    {
+      "key": "weapons/staff_bone",
+      "source_current": true,
+      "inputs": "d92c38dd0382735fee419e3e13375ea45efdd5ebe960a7e7f97e56fee8b048fb",
+      "triangles": 3244,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.019648706458357704
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/staff/staff_bone.glb",
+      "export_verified": false,
+      "lineup": "weapons/staff_bone/lineup.png"
+    },
+    {
+      "key": "weapons/staff_crooked",
+      "source_current": true,
+      "inputs": "e3c5c8f537339e0ddc39a1bbbc63bb785e1245f24e35784a32c67afed8066892",
+      "triangles": 926,
+      "materials": 1,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.019558247763879853
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/staff/staff_crooked.glb",
+      "export_verified": false,
+      "lineup": "weapons/staff_crooked/lineup.png"
     },
     {
       "key": "weapons/staff_emerald",
@@ -4759,8 +4803,52 @@
         "Authored surface exception: 6 nonmanifold_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/staff/staff_emerald.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/staff_emerald/lineup.png"
+    },
+    {
+      "key": "weapons/staff_horned",
+      "source_current": true,
+      "inputs": "1a1d754dfa47aeeec4d4f4762f1f0b6c096229d88111a57c369a0b964a2945fa",
+      "triangles": 2390,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.028980395436807166
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/staff/staff_horned.glb",
+      "export_verified": false,
+      "lineup": "weapons/staff_horned/lineup.png"
+    },
+    {
+      "key": "weapons/staff_iron",
+      "source_current": true,
+      "inputs": "4356cd31c7cfd5f0888c8bb9caa99a80fde9acf1d62c6a3164ee0a9d380f056c",
+      "triangles": 1320,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.021301988704553455
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/staff/staff_iron.glb",
+      "export_verified": false,
+      "lineup": "weapons/staff_iron/lineup.png"
     },
     {
       "key": "weapons/sword_knight",
@@ -4794,7 +4882,7 @@
         "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/sword/sword_knight.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/sword_knight/lineup.png"
     },
     {
@@ -4828,8 +4916,52 @@
         "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/sword/sword_sunblade.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/sword_sunblade/lineup.png"
+    },
+    {
+      "key": "weapons/wand_bone",
+      "source_current": true,
+      "inputs": "b6d7a54a335419f67f24e5a525a1806316f16e11ee990f1e18eef34443ff4b97",
+      "triangles": 1382,
+      "materials": 1,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.0076418409836374645
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/wand/wand_bone.glb",
+      "export_verified": false,
+      "lineup": "weapons/wand_bone/lineup.png"
+    },
+    {
+      "key": "weapons/wand_carved",
+      "source_current": true,
+      "inputs": "b579d16fc08d46376f8c8195ceaa0c9cfb5c3a95bd4d70187a484d8392a76b72",
+      "triangles": 840,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.0065531290765488736
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/wand/wand_carved.glb",
+      "export_verified": false,
+      "lineup": "weapons/wand_carved/lineup.png"
     },
     {
       "key": "weapons/wand_celestial",
@@ -4863,8 +4995,52 @@
         "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/weapons/wand/wand_celestial.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/wand_celestial/lineup.png"
+    },
+    {
+      "key": "weapons/wand_crooked",
+      "source_current": true,
+      "inputs": "5ba85f9aba03c9d1179b06f72e7197c29074f2d268f00acc8f3617cfbf29a049",
+      "triangles": 1110,
+      "materials": 1,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.004937019130051404
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/wand/wand_crooked.glb",
+      "export_verified": false,
+      "lineup": "weapons/wand_crooked/lineup.png"
+    },
+    {
+      "key": "weapons/wand_iron",
+      "source_current": true,
+      "inputs": "5717161069868a7c4778a648e3da2eadad9e94d3446f7b5a88926ec0d08e3ffe",
+      "triangles": 1582,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.008875810714293901
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/wand/wand_iron.glb",
+      "export_verified": false,
+      "lineup": "weapons/wand_iron/lineup.png"
     },
     {
       "key": "weapons/wand_ruby",
@@ -4897,7 +5073,7 @@
         "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-items/weapons/wand/wand_ruby.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/wand_ruby/lineup.png"
     },
     {
@@ -4932,7 +5108,7 @@
         "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/warhammer/warhammer_iron.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/warhammer_iron/lineup.png"
     },
     {
@@ -4968,7 +5144,7 @@
         "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
       ],
       "export": "res://assets/custom-items/weapons/warhammer/warhammer_spiked.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "weapons/warhammer_spiked/lineup.png"
     }
   ]

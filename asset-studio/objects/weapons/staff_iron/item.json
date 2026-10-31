@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "name": "Staff Iron",
+  "backend": "procedural",
+  "builder": "arsenal",
+  "design": {
+    "kind": "iron_staff"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 3500,
+    "materials": 5,
+    "texture_size": 1024
+  },
+  "colors": {
+    "iron": [
+      65,
+      76,
+      83
+    ],
+    "leather": [
+      79,
+      47,
+      32
+    ],
+    "moonstone": [
+      214,
+      222,
+      236
+    ],
+    "steel": [
+      134,
+      153,
+      166
+    ]
+  },
+  "materials": {
+    "iron": {
+      "metallic": 0.55,
+      "roughness": 0.36,
+      "crease": 48
+    },
+    "leather": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 55
+    },
+    "moonstone": {
+      "metallic": 0,
+      "roughness": 0.3,
+      "crease": 40
+    },
+    "steel": {
+      "metallic": 0.55,
+      "roughness": 0.36,
+      "crease": 48
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-items/weapons/staff/staff_iron.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Forged iron pole with a four-prong cage around a pale stone. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+  }
+}

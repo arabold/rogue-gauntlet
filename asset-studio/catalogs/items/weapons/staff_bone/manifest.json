@@ -1,0 +1,108 @@
+{
+  "key": "weapons/staff_bone",
+  "inputs": "d92c38dd0382735fee419e3e13375ea45efdd5ebe960a7e7f97e56fee8b048fb",
+  "files": {
+    "staff_bone.glb": "46337e4c9ddd1c53717e2c43fcb2ea0a3535ae1b4f7263475dbeedd4578044b7",
+    "lineup.png": "4c8b3e096631fd701a076b0f81af135cdc3262b98228bfbc7f39497e8bf472d7"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 3244,
+      "bounds": [
+        [
+          -0.1914968341588974,
+          -0.8899999856948853,
+          -0.11838268488645554
+        ],
+        [
+          0.1914968341588974,
+          1.5160562992095947,
+          0.21332727372646332
+        ]
+      ],
+      "dimensions": [
+        0.3829936683177948,
+        2.40605628490448,
+        0.33170995861291885
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.019648706458357704
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Staff Bone",
+      "backend": "procedural",
+      "builder": "arsenal",
+      "design": {
+        "kind": "bone_staff"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "bone": [
+          228,
+          216,
+          186
+        ],
+        "leather": [
+          79,
+          47,
+          32
+        ],
+        "moonstone": [
+          214,
+          222,
+          236
+        ]
+      },
+      "materials": {
+        "bone": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        },
+        "moonstone": {
+          "metallic": 0,
+          "roughness": 0.3,
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/staff/staff_bone.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Long bones lashed knuckle to knuckle, a short spine and three ribs cradling a pale stone. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

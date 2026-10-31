@@ -381,6 +381,9 @@ class ItemWorkflowTest(unittest.TestCase):
                 heights[kind] = np.ptp(vertices[:, 1])
         self.assertLess(heights["short_dagger"], heights["broadsword"])
         self.assertGreater(heights["greatsword"], heights["broadsword"] * 1.3)
+        # A one-handed wand stays well short of any two-handed staff.
+        from items.arsenal import WANDS, STAVES
+        self.assertLess(max(heights[k] for k in WANDS) * 1.5, min(heights[k] for k in STAVES))
         with self.assertRaisesRegex(ValueError, "Unknown arsenal"):
             arsenal({"kind": "unsupported"})
 

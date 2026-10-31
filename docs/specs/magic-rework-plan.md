@@ -15,7 +15,7 @@
 
 **Dropped.** Spell learning, the point ledger, upgrading spells, one selected spell per element, the loadout-safety selection UI, class starter spell grants and the "know the spell and wield a matching staff" requirement. The per-element staves' authored primaries (fireball, frost spread, radial air burst, falling rock) and the plain melee staves give way to the missile. The XP counter is untouched: nothing in this plan spends it.
 
-**Out of scope.** A second wand in the off hand: the [off-hand plan](off-hand-weapons-plan.md) owns off-hand weapons, and under its dual-wield design a staff's spell could later move to the off-hand input through its staff seam; this plan keeps it on secondary. Also out of scope: mana potions and mana affixes, element tints on shared item models, monster spellcasting through wands, and new item models for tiers that lack one.
+**Out of scope.** A second wand in the off hand: the [off-hand plan](off-hand-weapons-plan.md) owns off-hand weapons, and under its dual-wield design a staff's spell could later move to the off-hand input through its staff seam; this plan keeps it on secondary. Also out of scope: mana potions and mana affixes, monster spellcasting through wands, and new item models for tiers that lack one.
 
 ## Spells and names
 
@@ -52,13 +52,13 @@ Implemented for wands: [weapon attacks](../weapon-attack-system.md) describes th
 
 Tier already multiplies damage about fourfold from T1 to T5 through the weapon's base damage, so levels grow **reach** (targets, strikes, radius, freeze time, ward reflection) and every hit-scaled value (damage, burn, ward capacity) adds 10% of its level-1 scale per level: Fireball deals 1.0× to 1.4× its hit from level 1 to 5.
 
-| Tier | Wand (model) | Staff (model) | Damage band | Depths |
+| Tier | Wands | Staves | Damage band | Depths |
 | --- | --- | --- | --- | --- |
-| T1 | Wand (`wand.tscn`) | Staff (`staff_common.tscn`) | 1–5 | 1–6 |
-| T2 | Ashwood Wand (`wand.tscn`, until a model exists) | Ash Staff (`staff_uncommon.tscn`) | 2–8 | 4–12 |
-| T3 | Ruby Scepter (`wand_ruby.tscn`) | Emerald Staff (`staff_emerald.tscn`) | 4–11 | 10–18 |
-| T4 | Runed Scepter Wand (`wand_ruby.tscn`, until a model exists) | Rune Staff (`staff_rare.tscn`) | 7–16 | 16–21 |
-| T5 | Celestial Wand (`wand_celestial.tscn`) | Archmage Staff (`staff_archmage.tscn`) | 12–22 | 19–24 |
+| T1 | Wand, Crooked Wand | Staff, Crooked Staff | 1–5 | 1–6 |
+| T2 | Iron Wand | Ash Staff, Skeleton Staff, Iron Staff | 2–8 | 4–12 |
+| T3 | Ruby Scepter Wand, Bone Wand | Emerald Crescent Staff, Bone Staff | 4–11 | 10–18 |
+| T4 | Scholar's Wand | Rune Staff, Horned Staff | 7–16 | 16–21 |
+| T5 | Celestial Golden Wand | Archmage Astral Staff | 12–22 | 19–24 |
 
 The staff's two-handed compensation lives in its missile definitions: four darts at 0.25× (1.0× per volley) against the wand's three at 0.22× (0.66×). Its spells match a wand of the same tier.
 
@@ -78,7 +78,7 @@ Costs are authored per spell and level, flat across levels, so a deeper wand is 
 
 1. **Mana pool.** Done.
 2. **Fire wands.** Done.
-3. **All spells and staves.** Done: 20 spells at five levels in `scenes/magic/spells/`, wand and staff tiers 1–5 rolling from `spell_pool_all.tres`, staves firing four darts per volley, the per-element staves removed (the Skeleton Staff became a second tier-2 spell staff), the harness and debug menu spawning with a chosen spell.
+3. **All spells and staves.** Done: 20 spells at five levels in `scenes/magic/spells/`, staves at tiers 1–5 and wands at tiers 1, 3 and 5 (each with its own model) rolling from `spell_pool_all.tres`, staves firing four darts per volley, the per-element staves removed (the Skeleton Staff became a second tier-2 spell staff), the harness and debug menu spawning with a chosen spell.
 4. **Readability and tuning.** Done: tooltips list the spell, level, mana cost and per-level effect; the HUD's secondary slot shows the cost and greys out while the pool is short; a refused cast flashes the mana bar; hit-scaled values follow the growth rule above; an active ward survives saves and the stairs; the item catalog shows the current wands and staves.
 
 *Exercise still owed:* start each class and compare pools; lower `ManaComponent.CurrentMana` in the Remote Inspector and watch it regenerate and the K slot grey out and return; save and reload, including with a ward up and after taking the stairs; in a Mage run cast every tier, run dry and see K rejected with the mana bar flash and no missiles, swap weapons mid-cast; play a Barbarian with a found staff; compare a wand and a staff of one tier against a shield-and-wand loadout; review levels 4–5 of each spell at the gameplay camera.
@@ -92,5 +92,5 @@ Each slice runs `dotnet build "Rogue Gauntlet.sln"`, focused GdUnit4 suites with
 - **Quality and level:** whether Rare quality adds a spell level; the plan keeps level purely tied to tier.
 - **Pool weighting:** uniform across all 20, or weighted by realm theme once realms have elements.
 - **Mana sources:** regeneration only for now; a mana potion and mana affixes are follow-ups.
-- **Item models:** T2 and T4 wands reuse neighbouring models; element tints on shared models are presentation work.
+- **Item models:** every wand and staff has its own model; a tier never renames another tier's model. The crooked, iron, bone, scholar's and horned designs come from the Studio's `arsenal` builder; more can join any tier the same way. Each shows its spell's element as a colored aura (see [world effects](../world-effects.md)).
 - **Monster casters:** no current monster casts; giving monsters `SpellCastAction` comes with a caster monster.

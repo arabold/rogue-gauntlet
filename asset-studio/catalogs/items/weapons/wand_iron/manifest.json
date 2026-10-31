@@ -1,0 +1,118 @@
+{
+  "key": "weapons/wand_iron",
+  "inputs": "5717161069868a7c4778a648e3da2eadad9e94d3446f7b5a88926ec0d08e3ffe",
+  "files": {
+    "wand_iron.glb": "c10bcc1bda1d16d50b4f3dffb1c74dc7bc85fb2d816f7aa8210c4ae2dd2cee56",
+    "lineup.png": "9d8d0b91bc17d53c9f5283de7a3c9bd735d461bcf0180ae065474b077ff795d3"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1582,
+      "bounds": [
+        [
+          -0.07400000095367432,
+          -0.3400000035762787,
+          -0.07973343878984451
+        ],
+        [
+          0.08773811906576157,
+          0.8628098368644714,
+          0.07973343878984451
+        ]
+      ],
+      "dimensions": [
+        0.16173812001943588,
+        1.2028098404407501,
+        0.15946687757968903
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.008875810714293901
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Wand Iron",
+      "backend": "procedural",
+      "builder": "arsenal",
+      "design": {
+        "kind": "iron_wand"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "iron": [
+          65,
+          76,
+          83
+        ],
+        "leather": [
+          79,
+          47,
+          32
+        ],
+        "moonstone": [
+          214,
+          222,
+          236
+        ],
+        "steel": [
+          134,
+          153,
+          166
+        ]
+      },
+      "materials": {
+        "iron": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 55
+        },
+        "moonstone": {
+          "metallic": 0,
+          "roughness": 0.3,
+          "crease": 40
+        },
+        "steel": {
+          "metallic": 0.55,
+          "roughness": 0.36,
+          "crease": 48
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/wand/wand_iron.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Forged twisted iron bar with a wrapped grip and three claws closing over a pale stone. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}
