@@ -42,7 +42,7 @@ public partial class SplitFloor : FloorStyle
 		var floor = new List<int>();
 		for (int x = 0; x < quads.GetLength(0); x++)
 		for (int z = 0; z < quads.GetLength(1); z++)
-			if (IsFloorQuad(room.Footprint, x, z)) floor.Add(Along(x, z));
+			if (IsFloorQuad(room, x, z)) floor.Add(Along(x, z));
 		if (floor.Count == 0) return;
 		floor.Sort();
 		// Quarter tiles at or past the boundary take the other material, which leaves about `share` of the floor to it.

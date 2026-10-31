@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="DungeonTileFactory" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/dungeon/DungeonTileFactory.cs" id="2_dungeontilefacto"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/earth.tres" id="3_earth"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/mossy_walls.tres" id="4_mossy_walls"]
+
+[resource]
+script = ExtResource("2_dungeontilefacto")
+Floor = ExtResource("3_earth")
+Walls = ExtResource("4_mossy_walls")
+metadata/_custom_type_script = ExtResource("2_dungeontilefacto")

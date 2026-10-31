@@ -6,14 +6,15 @@ using Godot;
 public enum RoomPreviewMode { Room, Floor }
 
 /// <summary>
-/// Inspect room types alone or in the production floor pipeline. Every axis — shape, walls, floor, columns,
-/// furnishing — can be overridden, and a walkability overlay shows reachable floor (green), reserved circulation
-/// (blue) and inaccessible pockets (red).
+/// Inspect each realm's room types alone or in the production floor pipeline. Every axis — shape, walls, floor,
+/// columns, furnishing — can be overridden, and a walkability overlay shows reachable floor (green), reserved
+/// circulation (blue) and inaccessible pockets (red).
 /// </summary>
 public partial class RoomGenerationHarness : Node3D
 {
-	[Export] public MixedRoomFactory Factory { get; set; }
+	/// <summary>The production generator; its realms list the room factories to preview.</summary>
 	[Export] public MapGenerator Generator { get; set; }
+	[Export] public int SelectedRealm { get; set; }
 	[Export] public Node3D PreviewRoot { get; set; }
 	[Export] public Camera3D PreviewCamera { get; set; }
 	[Export] public Container Controls { get; set; }
@@ -33,10 +34,13 @@ public partial class RoomGenerationHarness : Node3D
 	public Room PreviewRoom { get; private set; }
 	public RoomBlueprint PreviewBlueprint { get; private set; }
 	public string LastError { get; private set; } = "";
-	public IReadOnlyList<RoomType> Recipes => Factory.RoomTypes;
+	public Realm Realm => Generator.Realms[SelectedRealm];
+	public AssembledRoomFactory Factory => (AssembledRoomFactory)Realm.Rooms;
+	/// <summary>Every room type the realm's factory assembles: ordinary rooms, then entrances and exits.</summary>
+	public IReadOnlyList<RoomType> Recipes => [.. Factory.RoomTypes, .. Factory.EntranceTypes, .. Factory.ExitTypes];
 
 	private int _quarterTurns;
-	private OptionButton _modePicker, _recipePicker, _shapePicker, _wallsPicker, _floorPicker, _columnPicker;
+	private OptionButton _modePicker, _realmPicker, _recipePicker, _shapePicker, _wallsPicker, _floorPicker, _columnPicker;
 	private HBoxContainer _shapeRow, _wallsRow, _floorRow, _columnRow;
 	private SpinBox _seedInput;
 	private CheckButton _furnishingsToggle, _walkabilityToggle;
@@ -46,14 +50,15 @@ public partial class RoomGenerationHarness : Node3D
 
 	public override void _Ready()
 	{
-		if (Factory == null || Generator == null || PreviewRoot == null || PreviewCamera == null || Controls == null || Status == null
-			|| Generator.RoomFactory != Factory || Recipes.Count == 0)
+		if (Generator == null || PreviewRoot == null || PreviewCamera == null || Controls == null || Status == null
+			|| Generator.Realms.Length == 0 || Generator.Realms.Any(realm => realm?.Rooms is not AssembledRoomFactory))
 		{
-			LastError = "Assign the factory, its map generator, preview root, camera, controls and status label in the harness scene.";
+			LastError = "Assign the map generator (with realms of assembled rooms), preview root, camera, controls and status label in the harness scene.";
 			GD.PushError(LastError);
 			return;
 		}
 		BuildControls();
+		ApplyRealm(Mathf.Clamp(SelectedRealm, 0, Generator.Realms.Length - 1));
 		Regenerate();
 	}
 
@@ -62,8 +67,9 @@ public partial class RoomGenerationHarness : Node3D
 		_modePicker = Picker("View", out _, index => Mode = (RoomPreviewMode)index);
 		_modePicker.AddItem("Single room");
 		_modePicker.AddItem("Generated floor");
+		_realmPicker = Picker("Realm", out _, SelectRealm);
+		foreach (var realm in Generator.Realms) _realmPicker.AddItem($"{realm.Id.Capitalize()} ({realm.FirstDepth}–{realm.LastDepth})");
 		_recipePicker = Picker("Recipe", out _, SelectRecipe);
-		foreach (var recipe in Recipes) _recipePicker.AddItem(RecipeName(recipe));
 		_shapePicker = Picker("Shape", out _shapeRow, index => ShapeOverride = index - 1);
 		_wallsPicker = Picker("Walls", out _wallsRow, index => WallsOverride = index - 1);
 		_floorPicker = Picker("Floor", out _floorRow, index => FloorOverride = index - 1);
@@ -124,10 +130,28 @@ public partial class RoomGenerationHarness : Node3D
 		return button;
 	}
 
-	private static string RecipeName(RoomType type) => type == null ? "Missing room type" : type.Id.Replace("garrison.", "").Replace('_', ' ').Capitalize();
+	private static string RecipeName(RoomType type) => type == null ? "Missing room type" : Local(type.Id).Replace('_', ' ').Capitalize();
+
+	/// <summary>An ID without its realm prefix (garrison.hall → hall).</summary>
+	private static string Local(string id) => id.Split('.').Last();
 
 	private static string ShapeName(RoomShape shape) =>
 		$"{shape.GetType().Name.Replace("Shape", "")} {shape.MinimumSize.X}–{shape.MaximumSize.X} × {shape.MinimumSize.Y}–{shape.MaximumSize.Y}";
+
+	/// <summary>Previews another realm: its room types, and its first depth for the floor view's rooms and corridors.</summary>
+	public void SelectRealm(int index)
+	{
+		ApplyRealm(index);
+		SelectRecipe(0);
+	}
+
+	private void ApplyRealm(int index)
+	{
+		SelectedRealm = index;
+		Generator.DungeonDepth = Realm.FirstDepth;
+		_recipePicker.Clear();
+		foreach (var recipe in Recipes) _recipePicker.AddItem(RecipeName(recipe));
+	}
 
 	/// <summary>Changing recipes resets the viewing rotation and overrides while preserving the seed.</summary>
 	public void SelectRecipe(int index)
@@ -172,7 +196,7 @@ public partial class RoomGenerationHarness : Node3D
 				Generator.Seed = Seed;
 				Generator.GenerateMap(false);
 				FramePreview(Mathf.Max(Generator.MapWidth, Generator.MapDepth) * Room.TileSize + 12);
-				Status.Text = $"Floor · Seed {Seed} · {Generator.Floor.Rooms.Count} rooms · {Generator.Floor.Rooms.Count(room => room.IsProcedural)} assembled";
+				Status.Text = $"{Realm.Id.Capitalize()} floor · depth {Generator.DungeonDepth} · Seed {Seed} · {Generator.Floor.Rooms.Count} rooms";
 			}
 		}
 		catch (InvalidOperationException error)
@@ -191,11 +215,12 @@ public partial class RoomGenerationHarness : Node3D
 		var type = Recipes.ElementAtOrDefault(SelectedRecipe);
 		bool room = Mode == RoomPreviewMode.Room;
 		_modePicker.Select((int)Mode);
+		_realmPicker.Select(SelectedRealm);
 		_recipePicker.Select(SelectedRecipe);
 		_recipePicker.Disabled = !room;
 		Fill(_shapeRow, _shapePicker, type?.Shapes.Select(ShapeName), ShapeOverride + 1, "Seeded");
-		Fill(_wallsRow, _wallsPicker, type?.Walls.Select(style => style.Id.Replace("garrison.", "")), WallsOverride + 1, "Seeded");
-		Fill(_floorRow, _floorPicker, type?.Floors.Select(style => style.Id.Replace("garrison.", "")), FloorOverride + 1, "Seeded");
+		Fill(_wallsRow, _wallsPicker, type?.Walls.Select(style => Local(style.Id)), WallsOverride + 1, "Seeded");
+		Fill(_floorRow, _floorPicker, type?.Floors.Select(style => Local(style.Id)), FloorOverride + 1, "Seeded");
 		Fill(_columnRow, _columnPicker, type == null || type.Columns.Length == 0 ? null : type.Columns.Select(pattern => pattern.Id),
 			ColumnsOverride == RoomAssemblyOptions.Seeded ? 0 : ColumnsOverride == RoomAssemblyOptions.Off ? 1 : ColumnsOverride + 2,
 			$"Type chance ({type?.ColumnChance:P0})", "Off");
@@ -246,7 +271,7 @@ public partial class RoomGenerationHarness : Node3D
 		var (reachable, pockets) = AddWalkabilityOverlay(blueprint);
 		Status.Text = $"{type.Id} · Seed {Seed} · {_quarterTurns * 90}°\n"
 			+ $"{blueprint.Footprint.Width} × {blueprint.Footprint.Length} tiles · {ShapeName(blueprint.Shape)}\n"
-			+ $"walls {blueprint.Walls.Id.Replace("garrison.", "")} · floor {blueprint.Floor.Id.Replace("garrison.", "")} · columns {blueprint.Columns?.Id ?? "none"}\n"
+			+ $"walls {Local(blueprint.Walls.Id)} · floor {Local(blueprint.Floor.Id)} · columns {blueprint.Columns?.Id ?? "none"}\n"
 			+ $"{blueprint.Pieces.Count} props · {blueprint.Doorways.Count} doorways · pockets {(reachable + pockets == 0 ? 0 : 100f * pockets / (reachable + pockets)):F1}% of standable floor";
 		return blueprint.Room;
 	}
@@ -266,7 +291,7 @@ public partial class RoomGenerationHarness : Node3D
 			if (reached[index]) reachable++;
 			else pockets++;
 			var color = !reached[index] ? new Color(1, .15f, .1f, .8f)
-				: blueprint.Reserved.Any(area => area.HasPoint(center)) ? new Color(.3f, .55f, 1, .45f) : new Color(.2f, .95f, .35f, .3f);
+				: blueprint.Reserved.Concat(blueprint.Landings).Any(area => area.HasPoint(center)) ? new Color(.3f, .55f, 1, .45f) : new Color(.2f, .95f, .35f, .3f);
 			cells.Add((center, color));
 		}
 		if (!ShowWalkability || cells.Count == 0) return (reachable, pockets);

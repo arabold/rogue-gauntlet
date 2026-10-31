@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FloorMaterial" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/FloorMaterial.cs" id="2_floormaterial"]
+[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="3_floormeshlibrary"]
+
+[resource]
+script = ExtResource("2_floormaterial")
+Id = "dungeon.flagstones"
+Library = ExtResource("3_floormeshlibrary")
+Large = Dictionary[String, float]({"floor_flagstones_large_A": 1.0, "floor_flagstones_large_B": 1.0, "floor_flagstones_large_C": 1.0, "floor_flagstones_large_D": 1.0})
+Small = Dictionary[String, float]({"floor_flagstones_small_A": 1.0, "floor_flagstones_small_B": 1.0, "floor_flagstones_small_C": 1.0, "floor_flagstones_small_D": 1.0})
+RoomWideOrientation = true
+metadata/_custom_type_script = ExtResource("2_floormaterial")

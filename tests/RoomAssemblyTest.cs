@@ -7,20 +7,23 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Assembled Garrison rooms keep their doorways connected, their props apart and their choices reproducible.</summary>
+/// <summary>Every realm's assembled rooms keep their doorways connected, their props apart and their choices reproducible.</summary>
 [TestSuite, RequireGodotRuntime]
 public class RoomAssemblyTest
 {
-	private const string Garrison = "res://scenes/levels/garrison/";
+	private const string Levels = "res://scenes/levels/";
+	private static readonly string[] Realms = ["garrison", "sewer", "jungle"];
 
-	private static RoomType Load(string name) => TestFactories.Load<RoomType>($"{Garrison}room_types/{name}.tres");
+	/// <summary>A room type by realm-relative name: "garrison/hall", "sewer/cistern_hall".</summary>
+	private static RoomType Load(string name) => TestFactories.Load<RoomType>($"{Levels}{name.Replace("/", "/room_types/")}.tres");
 
 	[TestCase]
-	public void EveryGarrisonDefinitionValidates()
+	public void EveryRealmDefinitionValidates()
 	{
 		var errors = new List<string>();
-		foreach (string path in ResourcesUnder($"{Garrison}props").Concat(ResourcesUnder($"{Garrison}groups"))
-			.Concat(ResourcesUnder($"{Garrison}styles")).Concat(ResourcesUnder($"{Garrison}room_types")))
+		var paths = ResourcesUnder($"{Levels}dungeon/styles").Append($"{Levels}dungeon/dungeon_tile_factory.tres")
+			.Concat(Realms.SelectMany(realm => ResourcesUnder($"{Levels}{realm}")));
+		foreach (string path in paths)
 		{
 			errors.AddRange(TestFactories.Load<Resource>(path) switch
 			{
@@ -32,26 +35,52 @@ public class RoomAssemblyTest
 				FloorInlay => [],
 				WallStyle style => style.Validate(),
 				RoomType type => type.Validate(),
+				Realm realm => realm.Validate(),
+				DungeonTileFactory corridors => corridors.Validate(),
+				// Factories only list room types, which validate on their own.
+				AssembledRoomFactory => [],
 				var other => [$"{path}: unexpected resource {other?.GetType().Name}"],
 			});
 		}
 		AssertArray(errors.ToArray()).IsEmpty();
 	}
 
-	[TestCase("hall")]
-	[TestCase("storage")]
-	[TestCase("dining")]
-	[TestCase("barracks")]
-	[TestCase("library")]
-	[TestCase("alchemist")]
-	[TestCase("passage")]
-	[TestCase("fenced_walkway")]
-	[TestCase("partitioned_store")]
-	[TestCase("prison")]
-	[TestCase("chapel")]
-	[TestCase("kitchen")]
-	[TestCase("guardroom")]
-	[TestCase("ruins")]
+	[TestCase("garrison/hall")]
+	[TestCase("garrison/storage")]
+	[TestCase("garrison/dining")]
+	[TestCase("garrison/barracks")]
+	[TestCase("garrison/library")]
+	[TestCase("garrison/alchemist")]
+	[TestCase("garrison/passage")]
+	[TestCase("garrison/fenced_walkway")]
+	[TestCase("garrison/partitioned_store")]
+	[TestCase("garrison/prison")]
+	[TestCase("garrison/chapel")]
+	[TestCase("garrison/kitchen")]
+	[TestCase("garrison/guardroom")]
+	[TestCase("garrison/ruins")]
+	[TestCase("garrison/crypt")]
+	[TestCase("garrison/root_cellar")]
+	[TestCase("garrison/entrance")]
+	[TestCase("garrison/exit")]
+	[TestCase("sewer/cistern_hall")]
+	[TestCase("sewer/drain_tunnel")]
+	[TestCase("sewer/junction")]
+	[TestCase("sewer/rat_warren")]
+	[TestCase("sewer/sluice_works")]
+	[TestCase("sewer/smugglers_cache")]
+	[TestCase("sewer/lockup")]
+	[TestCase("sewer/collapsed_culvert")]
+	[TestCase("sewer/entrance")]
+	[TestCase("sewer/exit")]
+	[TestCase("jungle/temple_hall")]
+	[TestCase("jungle/root_passage")]
+	[TestCase("jungle/cavern")]
+	[TestCase("jungle/timbered_mine")]
+	[TestCase("jungle/ruined_shrine")]
+	[TestCase("jungle/collapsed_grove")]
+	[TestCase("jungle/entrance")]
+	[TestCase("jungle/exit")]
 	public void RoomsKeepDoorwaysConnectedPocketsBoundedAndPropsApart(string name)
 	{
 		var type = Load(name);
@@ -78,7 +107,7 @@ public class RoomAssemblyTest
 	[TestCase]
 	public void FloorStylesNeverMoveFurniture()
 	{
-		var type = Load("barracks");
+		var type = Load("garrison/barracks");
 		var first = RoomAssembler.Build(type, 99, new RoomAssemblyOptions { Floor = 0 });
 		var second = RoomAssembler.Build(type, 99, new RoomAssemblyOptions { Floor = 1 });
 		try
@@ -97,7 +126,9 @@ public class RoomAssemblyTest
 	[TestCase]
 	public void EveryFloorStyleCoversEachQuarterTileExactlyOnce()
 	{
-		foreach (string name in new[] { "storage", "kitchen", "ruins", "hall", "chapel", "library", "barracks", "dining" })
+		foreach (string name in new[] { "garrison/storage", "garrison/kitchen", "garrison/ruins", "garrison/hall", "garrison/chapel",
+			"garrison/library", "garrison/barracks", "garrison/dining", "garrison/exit", "garrison/crypt", "garrison/root_cellar",
+			"sewer/cistern_hall", "sewer/drain_tunnel", "sewer/rat_warren", "sewer/exit", "jungle/temple_hall", "jungle/cavern", "jungle/exit" })
 		{
 			var type = Load(name);
 			for (int floor = 0; floor < type.Floors.Length; floor++)
@@ -116,10 +147,41 @@ public class RoomAssemblyTest
 		}
 	}
 
+	/// <summary>Rugs lie whole on floor tiles: runners with a fringed end at each end, field rugs with four corners.</summary>
+	[TestCase]
+	public void RugsLieWholeOnTheFloor()
+	{
+		foreach (var (name, layout) in new[] { ("garrison/hall", RugLayout.Runner), ("garrison/dining", RugLayout.Field) })
+		{
+			var type = Load(name);
+			int floor = Array.FindIndex(type.Floors, style => style.Rug?.Layout == layout);
+			for (ulong seed = 1; seed <= 4; seed++)
+			{
+				var blueprint = RoomAssembler.Build(type, seed * 389, new RoomAssemblyOptions { Floor = floor });
+				try
+				{
+					string label = $"{name} seed {seed}";
+					var grid = blueprint.Room.DecorationGridMap;
+					var cells = grid.GetUsedCells().Cast<Vector3I>().ToArray();
+					var items = cells.Select(cell => grid.MeshLibrary.GetItemName(grid.GetCellItem(cell))).ToArray();
+					AssertBool(items.Length > 0 && items.All(item => item.StartsWith("carpet_"))).OverrideFailureMessage($"{label}: no rug").IsTrue();
+					AssertBool(cells.All(cell => blueprint.IsFloor(new(cell.X / Room.TileSize, cell.Z / Room.TileSize))))
+						.OverrideFailureMessage($"{label}: rug off the floor").IsTrue();
+					if (layout == RugLayout.Runner) AssertInt(items.Count(item => item.EndsWith("_runner_end_A"))).IsEqual(2);
+					else AssertInt(items.Count(item => item.EndsWith("_corner_A"))).IsEqual(4);
+				}
+				finally
+				{
+					blueprint.Room.Free();
+				}
+			}
+		}
+	}
+
 	[TestCase]
 	public void AnUnfittableRequiredStepFailsWithItsReasonInsteadOfAnotherRoom()
 	{
-		var type = (RoomType)Load("barracks").Duplicate();
+		var type = (RoomType)Load("garrison/barracks").Duplicate();
 		var beds = (FurnishingStep)type.Steps[0].Duplicate();
 		beds.MinimumCount = beds.MaximumCount = 40;
 		type.Steps = [beds, .. type.Steps.Skip(1)];
@@ -132,7 +194,7 @@ public class RoomAssemblyTest
 	[TestCase]
 	public void PrisonCellsHaveUniqueOperableGatesAndReachableInteriors()
 	{
-		var type = Load("prison");
+		var type = Load("garrison/prison");
 		for (ulong seed = 1; seed <= 6; seed++)
 		{
 			var blueprint = RoomAssembler.Build(type, seed * 31);
@@ -171,15 +233,61 @@ public class RoomAssemblyTest
 			for (int x = x0; x < x0 + Mathf.RoundToInt(size.X / 2); x++)
 			for (int z = z0; z < z0 + Mathf.RoundToInt(size.Y / 2); z++)
 			{
-				if (x < 0 || z < 0 || x >= counts.GetLength(0) || z >= counts.GetLength(1) || !footprint.IsFloor(x / 2, z / 2))
+				if (x < 0 || z < 0 || x >= counts.GetLength(0) || z >= counts.GetLength(1) || !blueprint.IsFloor(new(x / 2, z / 2)))
 					return $"{grid.MeshLibrary.GetItemName(grid.GetCellItem(cell))} at {cell} reaches off the floor";
 				counts[x, z]++;
 			}
 		}
 		for (int x = 0; x < counts.GetLength(0); x++)
 		for (int z = 0; z < counts.GetLength(1); z++)
-			if (footprint.IsFloor(x / 2, z / 2) && counts[x, z] != 1) return $"quarter tile ({x}, {z}) covered {counts[x, z]} times";
+			if (blueprint.IsFloor(new(x / 2, z / 2)) && counts[x, z] != 1) return $"quarter tile ({x}, {z}) covered {counts[x, z]} times";
 		return "";
+	}
+
+	/// <summary>
+	/// Entrances and exits carry the level's stairs: one arrival spawn and one transition each way. Arrivals step off
+	/// onto a landing every doorway reaches and no other prop covers, and the exit's stairwell maps as an enclosed
+	/// two-tile pit.
+	/// </summary>
+	[TestCase("garrison/entrance", GameSession.LevelTravelDirection.Down, GameSession.LevelTravelDirection.Up, 0)]
+	[TestCase("garrison/exit", GameSession.LevelTravelDirection.Up, GameSession.LevelTravelDirection.Down, 2)]
+	[TestCase("sewer/entrance", GameSession.LevelTravelDirection.Down, GameSession.LevelTravelDirection.Up, 0)]
+	[TestCase("sewer/exit", GameSession.LevelTravelDirection.Up, GameSession.LevelTravelDirection.Down, 2)]
+	[TestCase("jungle/entrance", GameSession.LevelTravelDirection.Down, GameSession.LevelTravelDirection.Up, 0)]
+	[TestCase("jungle/exit", GameSession.LevelTravelDirection.Up, GameSession.LevelTravelDirection.Down, 2)]
+	public void StairRoomsLandArrivalsOnReachableFloor(string name, GameSession.LevelTravelDirection arrival,
+		GameSession.LevelTravelDirection travel, int pitTiles)
+	{
+		var type = Load(name);
+		for (ulong seed = 1; seed <= 8; seed++)
+		{
+			var blueprint = RoomAssembler.Build(type, seed * 6151);
+			try
+			{
+				string label = $"{name} seed {seed}";
+				var nodes = blueprint.Room.FindChildren("*", "", true, false);
+				var spawn = nodes.OfType<PlayerSpawnPoint>().Single();
+				AssertInt((int)spawn.SpawnAfterTravelDirection).IsEqual((int)arrival);
+				AssertInt((int)nodes.OfType<LevelTransitionTrigger>().Single().Direction).IsEqual((int)travel);
+				// The stairs scene sits directly under the room's Props node, which has no offset of its own.
+				var landing = spawn.GetParent<Node3D>().Transform * spawn.Landing.Position;
+				AssertBool(blueprint.IsReachable(RoomBlueprint.XZ(landing))).OverrideFailureMessage($"{label}: landing cut off").IsTrue();
+				var area = blueprint.Landings.Single();
+				AssertBool(area.HasPoint(RoomBlueprint.XZ(landing))).OverrideFailureMessage($"{label}: spawn landing outside the kept area").IsTrue();
+				string covering = string.Join(", ", blueprint.Pieces.Where(piece => piece.Prop.Mount == PropMount.Floor
+					&& RoomBlueprint.XZ(piece.Envelope).Intersects(area)).Select(piece => piece.Prop.Id));
+				AssertString(covering).OverrideFailureMessage($"{label}: landing covered").IsEmpty();
+				int chasms = 0;
+				for (int x = 0; x < blueprint.Room.Map.Width; x++)
+				for (int z = 0; z < blueprint.Room.Map.Height; z++)
+					if (blueprint.Room.Map.IsChasm(x, z)) chasms++;
+				AssertInt(chasms).OverrideFailureMessage($"{label}: pit tiles").IsEqual(pitTiles);
+			}
+			finally
+			{
+				blueprint.Room.Free();
+			}
+		}
 	}
 
 	private static float PocketShare(RoomBlueprint blueprint)

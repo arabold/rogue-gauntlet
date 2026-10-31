@@ -170,6 +170,8 @@ asset-studio/
 │   ├── align.py              # Low-poly item builders, palette UV mapper, grip/AABB alignment
 │   └── hf_image3d.py         # Image-to-3D mesh reconstruction helper
 ├── objects/                  # Item source folders (<category>/<name>/item.json, reference.png, source.blend, source.glb)
+├── tiles/                    # Modular floor, wall and rug tile builders and their workflow
+├── tilesets/                 # Tile family recipes (<set>/<family>.json); see tilesets/README.md
 ├── characters/               # Per-character folders (<family>/<name>/character.json, reference.png)
 ├── catalogs/                 # Current finished-item and reusable-prefab catalogs
 │   ├── items/                # Overview, categories, index and current validation/export status
@@ -280,6 +282,16 @@ The `steak` builder demonstrates this: one closed exterior surface, with fat, me
 ### Weapons
 
 Every catalog weapon is a procedural recipe under `objects/weapons/` built by one of the KayKit-style weapon families (`axe`, `blade`, `blunt`, `polearm`, `staff`, `ranged`) with an explicit `"design": {"kind": ...}`. The [weapon style guide](objects/weapons/README.md) holds the rules, reference proportions, shared palette and construction. Exported art contains no equipment rules or gameplay resources. Review the current [weapons catalog](catalogs/items/weapons.png) and individual lineups from the [catalog index](catalogs/items/README.md).
+
+### Room furnishings
+
+The `furnishing` builder ([`items/furnishings.py`](items/furnishings.py)) makes world props for generated rooms: altars, candelabras and candle heaps, lecterns, statues, braziers, vases, busts, armor stands, globes, cauldrons, mortars, scroll and weapon racks, hearths, bunk beds, kitchen food, prison and ruin debris, tapestries, heraldic shields and sconces. Recipes live under `objects/furnishings/<name>/` with an explicit `"design": {"kind": "statue", "pose": "sword"}` and export to `assets/custom-props/<theme>/`, a game art tree separate from held items.
+
+Everything is built from the KayKit-style vocabulary in [`items/furnishing_kit.py`](items/furnishing_kit.py) rather than smooth primitives: thick boards with broad chamfers laid side by side so the chamfers read as grooves, aged with chipped corners, small notches bitten from their edges and cracks along the grain; square posts with caps; stone stacked in staggered courses; logs of pale ringed end grain inside a rim of chunky bark strips; smooth rolled rims on cast pots and bowls; and oversized rivets, candles and heads. Each design seeds its own generator, so builds are reproducible. Sizes match the remastered KayKit dungeon props (4-unit tiles, 1-unit tables): floor props stand on y = 0 facing +Z, back-to-wall props keep a flat back on -Z, and wall props hang with their back on z = 0 at their final height. Candle-bearing designs also build a separate `flames` model so the game can put flames and light out together on dark floors; braziers and hearths hold dead coals and get their fire in the game scene.
+
+Furnishing recipes use `"color_mode": "world"`: [`items/world_surface.py`](items/world_surface.py) maps every material slot to a swatch of KayKit's own `dungeon_texture.png` (byte-identical to `rigs/item_palette.png`) and shades it by height the way KayKit's props do, under KayKit's single material (metallic 0, roughness 0.45; flames and brews get an emissive copy). Colors therefore come from the world's palette, never from per-prop RGB values; check new props side by side with related KayKit assets. Details KayKit already models are reused rather than imitated: [`items/borrowed_parts.py`](items/borrowed_parts.py) lifts triangles out of KayKit models with their UVs and material (`python -m items.borrowed_parts` regenerates the bunk bedding from `bed_frame.gltf`), and game scenes combine props with existing art, such as KayKit's woodcutter's axe in the chopping block. Room composition (`Prop`/`PropGroup` resources, lit and composed scenes, room types) stays game-side; see the [room assembly guide](../scenes/levels/generators/assembly/README.md).
+
+`Assembly.cut` subtracts from everything added before it, so details added afterwards can sit inside a recess; `Assembly.label`/`join` let a part take its own booleans (a chipped board) before it joins.
 
 ### Curated shields
 
@@ -414,6 +426,20 @@ The old `items/build_item.py --id ... --tier ...` interface has been retired. Th
 ```
 
 Tests cover source round trips, transforms across mesh instances/primitives, pivot/scale placement, budgets, stale builds, adoption, export protection, actual solid unions, floating geometry rejection, welded render seams, open/duplicate/inward surfaces, fresh family topology, shared character shading, and the art-only boundary. They use isolated temporary output trees and make no provider calls.
+
+---
+
+## Modular Floor and Wall Tiles
+
+Floor, wall and rug tiles in the KayKit dungeon style, on the KayKit footprints (4x4 and 2x2 floors, 4x4x1 walls with half and corner pieces), extend the existing dungeon set. A recipe under `tilesets/<set>/` builds one family: every piece and variant of a material, so they can be validated and reviewed together. Floor patterns repeat every two units, so large and small tiles and all variants mix in one room without the visible grid of KayKit's repeating wood joints; walls join through shared end cross-sections. `tile build` checks this on every tile edge, and `tile lineup` renders the family on the game grid in Godot. See the [tileset guide](tilesets/README.md) for footprints, the seam contract, the current families and recipe parameters.
+
+```bash
+./.venv/bin/python asset-studio/studio.py tile list
+./.venv/bin/python asset-studio/studio.py tile build dungeon/floor_planks
+./.venv/bin/python asset-studio/studio.py tile lineup dungeon/floor_planks
+```
+
+The studio owns the tile art only. Mesh libraries, collision, navigation and which realm or room uses which family are game-side wiring.
 
 ---
 

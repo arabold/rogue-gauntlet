@@ -219,10 +219,13 @@ def resolve_palette(used, colors, looks=None):
     return slot_colors, resolved_looks
 
 
-def gradient_coordinates(triangles, normals):
-    """Shared character/item ramp coordinates from vertex height and surface slope."""
+def gradient_coordinates(triangles, normals, height_range=None):
+    """Shared character/item ramp coordinates from vertex height and surface slope.
+
+    Modular tiles pass a fixed `height_range` so neighbors shade alike whatever their own extent.
+    """
     tri = np.asarray(triangles)
-    y_min, y_max = tri[:, :, 1].min(), tri[:, :, 1].max()
+    y_min, y_max = height_range or (tri[:, :, 1].min(), tri[:, :, 1].max())
     y_span = max(y_max - y_min, 1e-4)
     h_weight = float(np.clip(y_span / 0.08, 0.25, 0.85))
     t_h = 1.0 - (tri[:, :, 1] - y_min) / y_span
@@ -252,11 +255,13 @@ def surface_material(base, name, spec):
     return mat
 
 
-def export_static(path, name, piece, colors, materials=None, crease=50.0, parts=None):
+def export_static(path, name, piece, colors, materials=None, crease=50.0, parts=None, height_range=None):
     """Export an item through the character surface model, without a skeleton or template geometry.
 
     `parts` adds further named nodes, `{node name: piece}`, sharing this file's palette and materials. They stay
     separate scene nodes so the game can show or hide them on their own, such as a fountain's liquid.
+    Modular tiles pass a fixed `height_range` so neighbors shade alike; a piece's authored `uv_t`
+    (positions on a slot's ramp, such as a source texture's own gradient) wins over computed shading.
     """
     w = _Writer()
     nodes = [("Item", name, piece)] + [(node, node, part) for node, part in (parts or {}).items()]
@@ -277,7 +282,9 @@ def export_static(path, name, piece, colors, materials=None, crease=50.0, parts=
             normals = normals / np.linalg.norm(normals, axis=2, keepdims=True)
         else:
             normals = corner_normals(part.verts, part.faces, crease=crease, slots=part.slots, slot_crease=slot_crease)
-        t = gradient_coordinates(tri, normals)
+        t = gradient_coordinates(tri, normals, height_range)
+        if part.uv_t is not None:
+            t = np.where(np.isfinite(part.uv_t), part.uv_t, t)
         for i, slot in enumerate(part.slots):
             if looks.get(str(slot), {}).get("emissive") or str(slot) in {"paint", "gem", "stitch", "rivet"}:
                 t[i] = .5

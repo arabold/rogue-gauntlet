@@ -6,7 +6,7 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>The room harness previews production room types and legacy recipes, axis overrides, rotation and floors.</summary>
+/// <summary>The room harness previews every realm's room types, axis overrides, rotation and floors.</summary>
 [TestSuite, RequireGodotRuntime]
 public class RoomGenerationHarnessTest
 {
@@ -30,6 +30,14 @@ public class RoomGenerationHarnessTest
 				AssertBool(harness.PreviewBlueprint.IsConnected).IsTrue();
 			}
 			AssertBool(harness.PreviewCamera.Size > harness.PreviewRoom.Bounds.Size.X).IsTrue();
+		}
+		// Other realms list their own factory's types; RoomAssemblyTest assembles each of them.
+		for (int realm = 1; realm < harness.Generator.Realms.Length; realm++)
+		{
+			harness.SelectRealm(realm);
+			await runner.SimulateFrames(1);
+			AssertString(harness.LastError).OverrideFailureMessage($"{harness.Realm.Id}: {harness.LastError}").IsEmpty();
+			AssertObject(harness.PreviewRoom.Type).IsSame(harness.Factory.RoomTypes[0]);
 		}
 	}
 
@@ -74,9 +82,12 @@ public class RoomGenerationHarnessTest
 		var harness = (RoomGenerationHarness)runner.Scene();
 		harness.Mode = RoomPreviewMode.Floor;
 		harness.Seed = 23;
+		// A realm other than the first: the floor view builds the selected realm's rooms and corridors.
+		harness.SelectRealm(1);
 		harness.Regenerate();
 		await runner.SimulateFrames(1);
 		AssertString(harness.LastError).IsEmpty();
+		AssertObject(harness.Generator.CurrentRealm).IsSame(harness.Realm);
 		AssertObject(harness.PreviewRoom).IsNull();
 		AssertBool(harness.Generator.Visible).IsTrue();
 		AssertArray(LayoutConnectivityTest.FindConnectivityFailures(harness.Generator)).IsEmpty();

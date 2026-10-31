@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WallStyle" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/WallStyle.cs" id="2_wallstyle"]
+[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_wallsmeshlibrary"]
+
+[resource]
+script = ExtResource("2_wallstyle")
+Id = "dungeon.overgrown_walls"
+Library = ExtResource("3_wallsmeshlibrary")
+Straight = Dictionary[String, float]({"wall": 1.0})
+Corner = "wall_overgrown_corner_A"
+Half = "wall_overgrown_half_A"
+Accents = Dictionary[String, float]({"wall_overgrown_A": 1.0, "wall_overgrown_B": 1.0, "wall_overgrown_C": 1.0, "wall_overgrown_D": 1.0, "wall_mossy_A": 0.5, "wall_mossy_B": 0.5, "wall_mossy_C": 0.5, "wall_mossy_D": 0.5})
+AccentChance = 0.85
+metadata/_custom_type_script = ExtResource("2_wallstyle")

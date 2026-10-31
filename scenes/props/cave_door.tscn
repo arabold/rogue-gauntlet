@@ -1,0 +1,13 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" uid="uid://dbns86sg2gnll" path="res://scenes/props/door.tscn" id="1_door"]
+[ext_resource type="ArrayMesh" path="res://scenes/levels/dungeon/custom_tiles/meshes/wall_cave_doorway_A.res" id="2_doorway"]
+[ext_resource type="ArrayMesh" path="res://scenes/levels/dungeon/custom_tiles/meshes/wall_cave_gate_leaf_A.res" id="3_leaf"]
+
+[node name="CaveDoor" instance=ExtResource("1_door")]
+
+[node name="wall_doorway" parent="." index="0"]
+mesh = ExtResource("2_doorway")
+
+[node name="wall_doorway_door" parent="wall_doorway" index="0"]
+mesh = ExtResource("3_leaf")

@@ -130,8 +130,13 @@ produces blank images:
 
 ```bash
 .agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" --script \
-  .agents/skills/godot-mcp/scripts/render_level_topdown.gd -- <outfile.png> [seed] [image_size]
+  .agents/skills/godot-mcp/scripts/render_level_topdown.gd -- <outfile.png> [seed] [image_size] [depth]
 ```
+
+The optional `depth` (default 1) picks the realm from `level.tscn`'s realm list, so `5` renders a
+Sewer floor and `8` a Jungle one. Single rooms of any realm render through the room generation
+harness (`scenes/debug/rooms/room_generation_harness.tscn`): instance it in a windowed `--script`,
+call `SelectRealm`, `SelectRecipe` and `Regenerate`, hide its `UI` node and save the viewport.
 
 Then `Read` the resulting PNG to inspect it. Use this whenever a change to room layout, doorway
 placement, wall generation, or rotation needs a visual sanity check instead of (or in addition to)

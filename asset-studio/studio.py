@@ -17,6 +17,7 @@ export writes finished GLBs into the game's assets tree:
 Commands:
     .venv/bin/python asset-studio/studio.py creature --help   (independent creature rigs and motion)
     .venv/bin/python asset-studio/studio.py item --help   (3D-only item recipes and authoring)
+    .venv/bin/python asset-studio/studio.py tile --help   (modular floor and wall tile families)
     .venv/bin/python asset-studio/studio.py list
     .venv/bin/python asset-studio/studio.py schema [section]
     .venv/bin/python asset-studio/studio.py new heroes/elf --base heroes/barbarian_base
@@ -386,6 +387,11 @@ def main():
     if len(sys.argv) > 1 and sys.argv[1] == "item":
         from items.workflow import main as item_main
         item_main(sys.argv[2:])
+        return
+    # Modular floor and wall tile families share the item surface model but build whole families.
+    if len(sys.argv) > 1 and sys.argv[1] == "tile":
+        from tiles.workflow import main as tile_main
+        tile_main(sys.argv[2:])
         return
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter,
                                  epilog="For item recipes: studio.py item --help; for creature rigs: studio.py creature --help")

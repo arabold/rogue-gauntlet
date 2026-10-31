@@ -11,5 +11,7 @@ Items = ["bed_floor"]
 BackToWall = true
 Gap = 0.05
 Blocking = false
+TurnJitter = 6.0
+ShiftJitter = 0.06
 Weight = 0.5
 metadata/_custom_type_script = ExtResource("1_Prop")

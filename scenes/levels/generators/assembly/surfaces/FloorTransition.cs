@@ -10,7 +10,8 @@ using Godot;
 [Tool, GlobalClass]
 public partial class FloorTransition : Resource
 {
-	private static readonly Dictionary<Vector2I, int> CornerTurns = new() { [new(-1, 1)] = 0, [new(1, 1)] = 16, [new(1, -1)] = 10, [new(-1, -1)] = 22 };
+	private static readonly Dictionary<Vector2I, int> CornerTurns = new()
+		{ [new(-1, 1)] = GridTurns.Turn0, [new(1, 1)] = GridTurns.Turn90, [new(1, -1)] = GridTurns.Turn180, [new(-1, -1)] = GridTurns.Turn270 };
 
 	[Export] public FloorMaterial From { get; set; }
 	[Export] public FloorMaterial To { get; set; }

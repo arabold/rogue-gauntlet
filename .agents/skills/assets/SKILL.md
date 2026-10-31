@@ -1,6 +1,6 @@
 ---
 name: assets
-description: Use when creating, customizing, previewing, or exporting 3D characters, monsters, items, or accessories using the project's `asset-studio/` pipeline (and `blender-mcp` when needed), or when fetching external CC0 3D asset packs.
+description: Use when creating, customizing, previewing, or exporting 3D characters, monsters, items, accessories, or room props and furnishings using the project's `asset-studio/` pipeline (and `blender-mcp` when needed), or when fetching external CC0 3D asset packs.
 ---
 
 # Asset Studio & 3D Asset Pipeline
@@ -164,6 +164,23 @@ For originals using the Studio's verified 8×4 palette, use `backend: source`, k
 The recipe controls dimensions, rotation, offsets, and authored/ground/center/grip pivots. Generated geometry obeys triangle budgets and optional material/texture-size budgets. Color settings do not repair bad topology by themselves. Fix intersecting shells, twisted surfaces, poor silhouettes, and unnecessary interior faces in the source/builder.
 
 `item preserve --all --revision <original-revision>` adopts original geometry for the approved character-shading workflow. Use `recreate` only for an explicitly requested family/blockout experiment; it is not the production migration path. `build --all` and `validate --all` check the catalog; `lineup --all` renders all items in one GPU session, saves temporary per-item review lineups without modifying final catalogs. Inspect them, then run `item publish <key>` to replace the final GLB/lineup and manifest in `catalogs/items/<category>/<name>/`. `item catalog` regenerates those sheets from published entries without rerendering. Only `item export` publishes GLBs to `assets/custom-items/`; Godot handles the import settings. When explicitly using vertex colors, studio-generated materials opt into the art-only `godot/import_item.gd` post-import correction for this Godot version; lineups apply the same correction. Preserve custom artist import scripts and compose them explicitly if needed. `--no-import` explicitly defers engine verification. Recipes, sources, and staged builds must match before publishing. Preserve an adopted model locally as `source.glb` and update its recipe before modifying it; adoption alone never improves or validates its visual quality.
+
+### World props: match the dungeon pack, never approximate it
+
+Room furnishings, set dressing and any prop that stands in the world must read as part of the existing KayKit dungeon. Two passes that matched scale but invented their own palette, smooth primitives and realistic proportions were rejected. Work in this order:
+
+1. **Reuse before modeling.** Search the pack and our own art first (`find assets -iname '*axe*'`; `assets/kaykit-*`, `assets/custom-*`). Compose existing models in a game scene (`scenes/props/furnishings/*.tscn`: the chopping block holds the pack's woodcutter's axe), or lift the exact part with [`items/borrowed_parts.py`](../../../asset-studio/items/borrowed_parts.py), which keeps its UVs, material and texture: add an entry to `PARTS` and run `python -m items.borrowed_parts` from `asset-studio/`, as the bunk bed does with the pack's own pillow and blanket. Never re-model a detail the pack already has.
+2. **Wear the world's texture.** Studio props use `color_mode: "world"` ([`items/world_surface.py`](../../../asset-studio/items/world_surface.py)): each slot maps to a swatch of the pack's `dungeon_texture.png`, shaded by height the way the pack does, under its single material (metallic 0, roughness 0.45). Add or tune a slot in `SWATCHES` (cell, u, shade offset) against a pack asset of the same material instead of choosing RGB values; stone walls, for example, sit in the darker half of the stone swatch.
+3. **Build with the chunky vocabulary** in [`items/furnishing_kit.py`](../../../asset-studio/items/furnishing_kit.py): separate thick boards with broad chamfers that read as grooves, square capped posts, staggered stone courses, logs of ringed end grain inside a rim of bark strips, rolled rims on cast metal, oversized rivets and candles, chibi heads (about a third of a figure). Stubby and thick beats realistic.
+4. **Show age.** `board()` chips corners, bites small notches out of long edges and grooves cracks along the grain; keep `wear` on. Paper gets torn notches along free edges and fold creases; a curled sheet is one profile rolled into a spiral (`curl_profile`), never separate tubes. Missing edges show fresh material (`wood_light`) in the cut.
+5. **Compare side by side, then show the user.** Render each new prop in one row with the pack assets it will stand beside (tables, barrels, beds, pillars, candles) using [`scripts/compare_models.gd`](scripts/compare_models.gd) (windowed; it also loads staged Studio builds by absolute path), read the PNG, fix the palette, proportion or detail gaps it shows, and send the user a contact sheet before wiring content into rooms. Lineups alone hide these gaps.
+
+```bash
+.agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" --script .agents/skills/assets/scripts/compare_models.gd -- \
+  /tmp/compare.png 30 res://assets/kaykit-dungeon-remastered/bed_frame.gltf res://scenes/props/furnishings/bunk_bed.tscn
+```
+
+Game-side wiring (`Prop`/`PropGroup` resources, lit and composed scenes, room types) follows the [room assembly guide](../../../scenes/levels/generators/assembly/README.md).
 
 ### Using `blender-mcp` with Asset Studio
 When a part or prop needs custom sculpting, boolean bevels, or lookdev in Blender:

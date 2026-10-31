@@ -52,9 +52,9 @@ public class FountainTest
 	}
 
 	[TestCase]
-	public async Task AScheduledFloorPlacesEachKindAsASolidPropInAProceduralRoom()
+	public async Task AScheduledFloorPlacesEachKindAsASolidPropInARoom()
 	{
-		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.AllProcedural());
+		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
 		TestFactories.WireLootScenes(map);
 		map.DungeonDepth = 5;
 		map.Fountains = ForcedProfile(5);
@@ -67,13 +67,13 @@ public class FountainTest
 			map.GenerateMap(includeGameplay: true);
 			var fountains = map.NavigationRegion.GetChildren().OfType<Fountain>().ToList();
 			var ids = fountains.Select(f => f.GetMeta("persistent_id", "").AsString()).OrderBy(id => id).ToArray();
-			// A cramped layout can leave no procedural room tile for any solid prop (chests included); it then places none.
+			// A cramped layout can leave no room tile for any solid prop (chests included); it then places none.
 			if (ids.SequenceEqual(["depth:5:fountain:health", "depth:5:fountain:mana"])) complete++;
 			else if (ids.Length > 0) failures.Add($"seed {seed}: placed only {string.Join(",", ids)}");
 			foreach (var fountain in fountains)
 			{
 				var tile = map.Map.WorldToTile(fountain.GlobalPosition);
-				if (!map.Map.IsRoom(tile.X, tile.Y) || !map.Floor.IsProceduralRoomTile(tile.X, tile.Y)) failures.Add($"seed {seed}: {fountain.Name} outside a procedural room");
+				if (!map.Map.IsRoom(tile.X, tile.Y)) failures.Add($"seed {seed}: {fountain.Name} outside a room");
 				if (fountains.Concat<Node3D>(map.NavigationRegion.GetChildren().OfType<Chest>()).Any(other => other != fountain
 					&& other.GlobalPosition.HorizontalDistanceTo(fountain.GlobalPosition) < MapGenerator.LootSpawnSpacing))
 					failures.Add($"seed {seed}: {fountain.Name} crowds another prop");

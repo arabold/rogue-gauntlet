@@ -10,5 +10,7 @@ Library = ExtResource("2_DecorationMe")
 Items = ["keg", "keg_decorated"]
 BackToWall = true
 Gap = 0.15
+TurnJitter = 5.0
+ShiftJitter = 0.04
 Weight = 1.0
 metadata/_custom_type_script = ExtResource("1_Prop")

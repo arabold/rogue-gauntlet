@@ -37,6 +37,7 @@ public static class TestFactories
 
 	public const string LitTorch = "res://scenes/props/torch_mounted.tscn";
 	public const string UnlitTorch = "res://scenes/props/furnishings/wall_torch_unlit.tscn";
+	public const string GarrisonFactory = "res://scenes/levels/garrison/factories/garrison_room_factory.tres";
 
 	/// <summary>Instance a wall torch fixture, placed and turned for the test's layout; the caller adds it to a tree.</summary>
 	public static Node3D Torch(string path = LitTorch, Vector3 position = default, float yaw = 0)
@@ -173,41 +174,35 @@ public static class TestFactories
 		return AddToSceneTree(player);
 	}
 
-	/// <summary>
-	/// A factory whose standard rooms are all assembled from the Garrison room types (entrance/exit stay authored --
-	/// they carry required gameplay content), for stress-testing generated rooms in generation sweeps.
-	/// </summary>
-	public static MixedRoomFactory AllProcedural() => new()
-	{
-		AuthoredFactory = Load<RoomFactory>("res://scenes/levels/dungeon/dungeon_room_factory.tres"),
-		RoomTypes = Load<MixedRoomFactory>("res://scenes/levels/garrison/factories/garrison_mixed_room_factory.tres").RoomTypes,
-		ProceduralShare = 1f,
-	};
+	/// <summary>The production Garrison factory: every room, entrance and exit assembled from its room types.</summary>
+	public static AssembledRoomFactory GarrisonRooms() => Load<AssembledRoomFactory>(GarrisonFactory);
 
 	/// <summary>
-	/// Like <see cref="AllProcedural"/>, but most generated doorways get a physical door -- the hardest stress on
+	/// Like <see cref="GarrisonRooms"/>, but most generated doorways get a physical door -- the hardest stress on
 	/// doorway/door placement. Room types are copied, so the shared definitions keep their own door settings.
 	/// </summary>
-	public static MixedRoomFactory AllProceduralWithDoors()
+	public static AssembledRoomFactory GarrisonRoomsWithDoors()
 	{
 		var door = Load<PackedScene>("res://scenes/props/door.tscn");
-		return new MixedRoomFactory
+		var garrison = GarrisonRooms();
+		RoomType[] WithDoors(RoomType[] types) => types.Select(type =>
 		{
-			AuthoredFactory = Load<RoomFactory>("res://scenes/levels/dungeon/dungeon_room_factory.tres"),
-			RoomTypes = AllProcedural().RoomTypes.Select(type =>
-			{
-				var copy = (RoomType)type.Duplicate();
-				copy.DoorScene = door;
-				copy.DoorChance = .75f;
-				return copy;
-			}).ToArray(),
-			ProceduralShare = 1f,
+			var copy = (RoomType)type.Duplicate();
+			copy.DoorScene = door;
+			copy.DoorChance = .75f;
+			return copy;
+		}).ToArray();
+		return new AssembledRoomFactory
+		{
+			EntranceTypes = WithDoors(garrison.EntranceTypes),
+			ExitTypes = WithDoors(garrison.ExitTypes),
+			RoomTypes = WithDoors(garrison.RoomTypes),
 		};
 	}
 
 	/// <summary>
 	/// Loads the map generator scene wired with the given layout/factory (defaulting to
-	/// the authored dungeon factory), ready to call GenerateMap on.
+	/// the Garrison factory), ready to call GenerateMap on.
 	/// </summary>
 	public static async Task<(ISceneRunner Runner, MapGenerator Generator)> LoadGenerator(
 		RoomLayoutStrategy layout, RoomFactory factory = null)
@@ -242,9 +237,16 @@ public static class TestFactories
 	{
 		mapGenerator.RoomLayout = layout;
 		mapGenerator.CorridorConnector = new AStarCorridorConnector();
-		mapGenerator.RoomFactory = factory ?? Load<RoomFactory>("res://scenes/levels/dungeon/dungeon_room_factory.tres");
+		// Tests pin their rooms: one realm covers every depth.
+		mapGenerator.Realms =
+		[
+			new Realm
+			{
+				Id = "test", FirstDepth = 1, LastDepth = 100, Rooms = factory ?? GarrisonRooms(),
+				Corridors = Load<TileFactory>("res://scenes/levels/dungeon/dungeon_tile_factory.tres"),
+			},
+		];
 		mapGenerator.MobFactory = Load<MobFactory>("res://scenes/levels/dungeon/dungeon_mob_factory.tres");
-		mapGenerator.TileFactory = Load<TileFactory>("res://scenes/levels/dungeon/dungeon_tile_factory.tres");
 	}
 
 	/// <summary>

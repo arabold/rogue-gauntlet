@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/brazier_lit.tscn" id="2_brazier_lit"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/chapel/brazier.glb" id="3_brazier"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "garrison.brazier"
+Scenes = [ExtResource("2_brazier_lit"), ExtResource("3_brazier")]
+Gap = 0.3
+TurnJitter = 20.0
+ShiftJitter = 0.06
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

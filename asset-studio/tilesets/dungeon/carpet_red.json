@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "name": "Crimson rug",
+  "concept": "Woven crimson field with gold diamonds, a dark band framed in gold stripes; rugs and runners of any size.",
+  "kind": "overlay",
+  "style": "carpet",
+  "design": {},
+  "colors": {"carpet": [128, 36, 40], "carpet_motif": [190, 140, 64], "carpet_dot": [96, 28, 34],
+             "band": [52, 34, 44], "band_motif": [176, 128, 60], "stripe": [196, 150, 70],
+             "carpet_edge": [86, 30, 34], "fringe": [196, 170, 120]},
+  "materials": {"carpet": {"roughness": 1.0}, "carpet_motif": {"roughness": 1.0}, "carpet_dot": {"roughness": 1.0},
+                "band": {"roughness": 1.0}, "band_motif": {"roughness": 1.0}, "stripe": {"roughness": 1.0},
+                "carpet_edge": {"roughness": 1.0}, "fringe": {"roughness": 1.0}},
+  "pieces": {"center": ["A"], "edge": ["A"], "corner": ["A"], "runner": ["A"], "runner_end": ["A"]},
+  "budget": {"triangles": 2600},
+  "export": {"folder": "res://assets/custom-tiles/dungeon"}
+}

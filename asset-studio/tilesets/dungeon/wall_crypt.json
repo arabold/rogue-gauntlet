@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "kind": "wall",
+  "style": "dressed",
+  "reference": "dungeon_walls.reference.png",
+  "export": {
+    "folder": "res://assets/custom-tiles/dungeon"
+  },
+  "name": "Crypt wall",
+  "concept": "The KayKit dungeon wall with a deep shelved alcove holding a single KayKit skull among candles, coins and an old book.",
+  "design": {
+    "patches": 0,
+    "grass": 0,
+    "vines": 0,
+    "cap_moss": 0,
+    "alcove": {
+      "contents": [
+        "skulls"
+      ]
+    }
+  },
+  "colors": {},
+  "pieces": {
+    "wall": [
+      "A",
+      "B"
+    ],
+    "wall_half": [
+      "A"
+    ]
+  },
+  "budget": {
+    "triangles": 6000
+  }
+}

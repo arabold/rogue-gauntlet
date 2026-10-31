@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Realm" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/Realm.cs" id="2_realm"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/factories/jungle_room_factory.tres" id="3_jungle_room_fact"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/jungle_corridors.tres" id="4_jungle_corridors"]
+
+[resource]
+script = ExtResource("2_realm")
+Id = "jungle"
+FirstDepth = 7
+LastDepth = 9
+Rooms = ExtResource("3_jungle_room_fact")
+Corridors = ExtResource("4_jungle_corridors")
+metadata/_custom_type_script = ExtResource("2_realm")

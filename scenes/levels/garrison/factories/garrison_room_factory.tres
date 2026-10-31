@@ -1,8 +1,28 @@
-[gd_resource type="Resource" script_class="DungeonRoomFactory" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="AssembledRoomFactory" load_steps=20 format=3]
 
-[ext_resource type="Script" uid="uid://dkri5g6bwyqmd" path="res://scenes/levels/dungeon/DungeonRoomFactory.cs" id="1_uxyt0"]
+[ext_resource type="Script" path="res://scenes/levels/generators/factories/AssembledRoomFactory.cs" id="1_AssembledRoo"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/entrance.tres" id="2_entrance"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/exit.tres" id="3_exit"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/hall.tres" id="4_hall"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/storage.tres" id="5_storage"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/dining.tres" id="6_dining"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/barracks.tres" id="7_barracks"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/library.tres" id="8_library"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/alchemist.tres" id="9_alchemist"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/passage.tres" id="10_passage"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/fenced_walkway.tres" id="11_fenced_walkw"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/partitioned_store.tres" id="12_partitioned_"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/prison.tres" id="13_prison"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/chapel.tres" id="14_chapel"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/kitchen.tres" id="15_kitchen"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/guardroom.tres" id="16_guardroom"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/ruins.tres" id="17_ruins"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/crypt.tres" id="x_crypt"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/room_types/root_cellar.tres" id="x_root_cellar"]
 
 [resource]
-script = ExtResource("1_uxyt0")
-EntranceScenePaths = Array[String](["res://scenes/levels/dungeon/rooms/level_entrance.tscn", "res://scenes/levels/dungeon/rooms/level_entrance2.tscn"])
-ExitScenePaths = Array[String](["res://scenes/levels/dungeon/rooms/level_exit.tscn"])
+script = ExtResource("1_AssembledRoo")
+EntranceTypes = [ExtResource("2_entrance")]
+ExitTypes = [ExtResource("3_exit")]
+RoomTypes = [ExtResource("4_hall"), ExtResource("5_storage"), ExtResource("6_dining"), ExtResource("7_barracks"), ExtResource("8_library"), ExtResource("9_alchemist"), ExtResource("10_passage"), ExtResource("11_fenced_walkw"), ExtResource("12_partitioned_"), ExtResource("13_prison"), ExtResource("14_chapel"), ExtResource("15_kitchen"), ExtResource("16_guardroom"), ExtResource("17_ruins"), ExtResource("x_crypt"), ExtResource("x_root_cellar")]
+metadata/_custom_type_script = ExtResource("1_AssembledRoo")

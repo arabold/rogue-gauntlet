@@ -53,7 +53,7 @@ SCHEMA = {
         "design": {"type": "object"},
         "colors": {"type": "object"},
         "materials": {"type": "object"},
-        "color_mode": {"enum": ["character", "vertex", "palette"]},
+        "color_mode": {"enum": ["character", "vertex", "palette", "world"]},
         "surface": {"type": "object", "additionalProperties": False, "required": ["palette"],
                     "properties": {"palette": {"enum": ["studio_grid"]}, "slots": {"type": "object"},
                                    "repair": {"enum": ["boundaries"]},
@@ -162,8 +162,8 @@ class Item:
             raise ValueError(f"{self.key}: {backend} requires {required[backend]}")
         if backend == "procedural" and not data.get("builder") and not data.get("archetype"):
             raise ValueError("Procedural recipes require a builder or archetype")
-        if data.get("builder") in FAMILIES and data.get("color_mode", "character") != "character":
-            raise ValueError("Solid-family recipes use the shared character surface model")
+        if data.get("builder") in FAMILIES and data.get("color_mode", "character") not in ("character", "world"):
+            raise ValueError("Solid-family recipes use the shared character surface model or the world's dungeon texture")
         placement = data.get("placement", {})
         if placement.get("dimensions") and any(v <= 0 for v in placement["dimensions"]):
             raise ValueError("dimensions must be positive")
@@ -290,12 +290,18 @@ class Item:
                 # A builder may return its body with named parts the game toggles separately, such as a fountain's liquid.
                 built = FAMILIES[data["builder"]](data.get("design", {}))
                 built_piece, parts = built if isinstance(built, tuple) else (built, None)
-                # Weapon recipes start from the shared weapon palette and list only the slots they change.
-                weapon = data["builder"] in WEAPONS
-                colors = {**COLORS, **(forge.COLORS if weapon else {}), **data.get("colors", {})}
-                materials = {**MATERIALS, **(forge.MATERIALS if weapon else {}), **data.get("materials", {})}
-                export_static(str(raw), self.id, built_piece, colors, materials=materials, crease=data.get("crease", 50),
-                              parts=parts)
+                if data.get("color_mode") == "world":
+                    # World props share the dungeon pack's texture and material instead of the character surface.
+                    from items import world_surface
+                    world_surface.export(str(raw), self.id, built_piece, crease=data.get("crease", 50),
+                                         slot_crease={slot: spec["crease"] for slot, spec in data.get("materials", {}).items() if "crease" in spec})
+                else:
+                    # Weapon recipes start from the shared weapon palette and list only the slots they change.
+                    weapon = data["builder"] in WEAPONS
+                    colors = {**COLORS, **(forge.COLORS if weapon else {}), **data.get("colors", {})}
+                    materials = {**MATERIALS, **(forge.MATERIALS if weapon else {}), **data.get("materials", {})}
+                    export_static(str(raw), self.id, built_piece, colors, materials=materials, crease=data.get("crease", 50),
+                                  parts=parts)
                 source = raw
                 model.place(source, self.built, data.get("placement", {}))
                 return self.finish_build(data)
@@ -439,6 +445,8 @@ class Item:
                 paths.extend(module_sources(FAMILIES[builder].__module__))
             else:
                 paths.extend(sorted(set(module_sources("items.designs")) | set(module_sources("items.builders"))))
+            if data.get("color_mode") == "world":
+                paths.append(STUDIO / "items/world_surface.py")
             paths.append(STUDIO / "core/export.py")
             paths.append(STUDIO / "core/mesh.py")
         return {str(path.relative_to(REPO)): digest(path) for path in paths}

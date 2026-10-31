@@ -69,6 +69,8 @@ public sealed class GeneratedFloor
 
 	/// <summary>Progression anchors and stairs that keep spawns at a distance; collected with the arrival once rooms are placed.</summary>
 	public IReadOnlyList<Vector3> SpawnAnchors { get; internal set; } = [];
+	/// <summary>Where arrivals step off each staircase; generated loot and props never land on them.</summary>
+	public IReadOnlyList<Vector3> StairLandings { get; internal set; } = [];
 
 	internal void AddRoom(RoomRegion room)
 	{
@@ -162,7 +164,7 @@ public sealed class GeneratedFloor
 		foreach (Vector3I cell in _decoration.GetUsedCells())
 		{
 			// A tile owns the cells within half a tile of its center on the floor layer, as HasDecorationInTile scans them.
-			if (cell.Y != 0) continue;
+			if (cell.Y != 0 || !IsSolidDecoration(cell)) continue;
 			decorated.Add(new Vector2I(Mathf.FloorToInt((cell.X + half) / (float)Room.TileSize) + Map.Width / 2,
 				Mathf.FloorToInt((cell.Z + half) / (float)Room.TileSize) + Map.Height / 2));
 		}
@@ -172,12 +174,6 @@ public sealed class GeneratedFloor
 
 	/// <summary>The room owning an interior floor tile, or -1 for corridors, thresholds, void and out-of-bounds tiles.</summary>
 	public int RoomIdAt(Vector2I tile) => _tileToRoom.TryGetValue(tile, out var id) ? id : -1;
-
-	/// <summary>
-	/// True when tile (x,z) belongs to a procedurally built room, or to no tracked room region at all (e.g. a
-	/// corridor tile). False only for a tile that belongs to an authored room -- see RoomRegion.IsProcedural.
-	/// </summary>
-	internal bool IsProceduralRoomTile(int x, int z) => !_tileToRoom.TryGetValue(new Vector2I(x, z), out int roomId) || _rooms[roomId].IsProcedural;
 
 	/// <summary>An unreachable tile center, decoration and nearby props make a tile unusable for spawns and loot.</summary>
 	internal bool IsOccupied(int x, int z)
@@ -202,11 +198,9 @@ public sealed class GeneratedFloor
 
 	/// <summary>
 	/// Every open (room or corridor), unoccupied tile's world position -- shared by enemy spawning and trap placement,
-	/// both of which are happy to land on a chokepoint. Corridor tiles are never part of any room, so
-	/// <paramref name="proceduralRoomsOnly"/> only ever excludes a room tile -- pass true for generation-time loot (an
-	/// authored room brings its own hand-placed content), false for enemy spawning, which uses every room.
+	/// both of which are happy to land on a chokepoint.
 	/// </summary>
-	internal List<Vector3> OpenTileCandidates(bool proceduralRoomsOnly)
+	internal List<Vector3> OpenTileCandidates()
 	{
 		var candidates = new List<Vector3>();
 		RefreshPropTiles();
@@ -214,8 +208,7 @@ public sealed class GeneratedFloor
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				bool isOpenRoomTile = Map.IsRoom(x, z) && (!proceduralRoomsOnly || IsProceduralRoomTile(x, z));
-				if ((isOpenRoomTile || Map.IsCorridor(x, z)) && !IsOccupiedNow(x, z))
+				if ((Map.IsRoom(x, z) || Map.IsCorridor(x, z)) && !IsOccupiedNow(x, z))
 				{
 					candidates.Add(Map.TileToWorld(x, z));
 				}
@@ -281,7 +274,7 @@ public sealed class GeneratedFloor
 		float best = float.NegativeInfinity;
 		var occupied = new List<Vector3>();
 		var accessible = FreelyAccessibleTiles();
-		foreach (var tilePoint in OpenTileCandidates(proceduralRoomsOnly: false))
+		foreach (var tilePoint in OpenTileCandidates())
 		{
 			// Half-tile offsets also find clear 2x2 spaces between cell centers.
 			for (int dx = 0; dx <= 1; dx++)
@@ -327,7 +320,7 @@ public sealed class GeneratedFloor
 	public bool TryPickRandomFreePosition(out Vector3 position)
 	{
 		var accessible = FreelyAccessibleTiles();
-		List<Vector3> candidates = OpenTileCandidates(proceduralRoomsOnly: false)
+		List<Vector3> candidates = OpenTileCandidates()
 			.Where(p => accessible == null || accessible.Contains(Map.WorldToTile(p))).ToList();
 		if (candidates.Count == 0)
 		{
@@ -467,6 +460,13 @@ public sealed class GeneratedFloor
 		return space.IntersectShape(_columnQuery, 1).Count > 0;
 	}
 
+	/// <summary>Decoration with collision occupies its tile; walk-over decoration such as rugs does not.</summary>
+	private bool IsSolidDecoration(Vector3I cell)
+	{
+		int item = _decoration.GetCellItem(cell);
+		return item >= 0 && _decoration.MeshLibrary.GetItemShapes(item).Count > 0;
+	}
+
 	private bool HasDecorationInTile(int x, int z)
 	{
 		if (_decoratedTiles != null)
@@ -480,7 +480,7 @@ public sealed class GeneratedFloor
 		{
 			for (int dz = -half; dz < half; dz++)
 			{
-				if (_decoration.GetCellItem(new Vector3I(center.X + dx, center.Y, center.Z + dz)) >= 0)
+				if (IsSolidDecoration(new Vector3I(center.X + dx, center.Y, center.Z + dz)))
 				{
 					return true;
 				}

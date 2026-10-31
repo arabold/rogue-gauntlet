@@ -9,5 +9,7 @@ Id = "garrison.rubble"
 Library = ExtResource("2_DecorationMe")
 Items = ["rubble_half"]
 Gap = 0.2
+TurnJitter = 15.0
+ShiftJitter = 0.1
 Weight = 1.0
 metadata/_custom_type_script = ExtResource("1_Prop")

@@ -19,11 +19,19 @@ public partial class MapGenerator : Node3D
 
 	[Export] public RoomLayoutStrategy RoomLayout { get; set; }
 	[Export] public CorridorConnectorStrategy CorridorConnector { get; set; }
-	[Export] public RoomFactory RoomFactory { get; set; }
 	[Export] public MobFactory MobFactory { get; set; }
 	[Export] public WorldEffectDefinition SpawnArrivalEffect { get; set; }
 
-	[Export] public TileFactory TileFactory { get; set; }
+	/// <summary>
+	/// Realms by depth band: the one covering <see cref="DungeonDepth"/> supplies the floor's rooms and corridor tiles,
+	/// and the deepest realm carries on below the last band.
+	/// </summary>
+	[Export] public Realm[] Realms { get; set; } = [];
+
+	/// <summary>The realm the current attempt builds from, resolved when the generator resets.</summary>
+	public Realm CurrentRealm { get; private set; }
+	private RoomFactory Rooms => CurrentRealm?.Rooms;
+	private TileFactory Corridors => CurrentRealm?.Corridors;
 
 	public MapData Map;
 	/// <summary>The current attempt's floor: generation queries it while it fills, gameplay once it is frozen.</summary>
@@ -149,7 +157,7 @@ public partial class MapGenerator : Node3D
 		GD.Print("Generating rooms...");
 
 		var roomPlacements = RoomLayout.GenerateRooms(
-			Map, RoomFactory, MaxRooms, _random.Layout);
+			Map, Rooms, MaxRooms, _random.Layout);
 		PlaceRooms(roomPlacements);
 	}
 
@@ -205,9 +213,7 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		// An assembled room (RoomAssembler) is a fresh `new Room` with no backing scene file; an authored room is instantiated from a
-		// PackedScene, which sets SceneFilePath on the instantiated root.
-		var region = new RoomRegion(Floor.Rooms.Count) { IsProcedural = string.IsNullOrEmpty(placement.Room.SceneFilePath), LayoutAxis = placement.Room.LayoutAxis };
+		var region = new RoomRegion(Floor.Rooms.Count) { LayoutAxis = placement.Room.LayoutAxis };
 		for (int lx = 0; lx < roomMap.Width; lx++)
 		{
 			for (int lz = 0; lz < roomMap.Height; lz++)
@@ -410,7 +416,7 @@ public partial class MapGenerator : Node3D
 				var position = Map.TileToWorld(x, z);
 				if ((Map.IsCorridor(x, z) || Map.IsConnector(x, z)) && FloorGridMap.GetCellItem(position) < 0)
 				{
-					int tileIndex = TileFactory.GetCorridorTileIndex(_random.Decoration);
+					int tileIndex = Corridors.GetCorridorTileIndex(_random.Decoration);
 					FloorGridMap.SetCellItem(position, tileIndex, 0);
 				}
 			}
@@ -444,9 +450,9 @@ public partial class MapGenerator : Node3D
 			Room.TileSize,
 			sourceTiles,
 			(tile, dx, dz) => NeedsWallToward(tile.X, tile.Y, dx, dz),
-			() => TileFactory.GetWallTileIndex(_random.Decoration),
-			() => TileFactory.GetWallHalfTileIndex(_random.Decoration),
-			() => TileFactory.GetWallCornerTileIndex(_random.Decoration));
+			() => Corridors.GetWallTileIndex(_random.Decoration),
+			() => Corridors.GetWallHalfTileIndex(_random.Decoration),
+			() => Corridors.GetWallCornerTileIndex(_random.Decoration));
 	}
 
 	private bool NeedsGeneratedWallAgainst(int x, int z)
@@ -525,8 +531,9 @@ public partial class MapGenerator : Node3D
 			.FirstOrDefault(point => point.SpawnAfterTravelDirection == GameSession.LevelTravelDirection.Down);
 		Floor.Descent = nodes.OfType<LevelTransitionTrigger>()
 			.FirstOrDefault(trigger => trigger.Direction == GameSession.LevelTravelDirection.Down);
+		Floor.StairLandings = nodes.OfType<PlayerSpawnPoint>().Select(point => (point.Landing ?? point).GlobalPosition).ToList();
 		Floor.SpawnAnchors = nodes.Where(node => node is IProgressionAnchor || node.IsInGroup("stairs"))
-			.Select(node => node.GlobalPosition).ToList();
+			.Select(node => node.GlobalPosition).Concat(Floor.StairLandings).ToList();
 		if (Floor.Arrival == null)
 		{
 			GD.PrintErr("PlayerSpawnPoint not found in the scene.");
@@ -579,7 +586,7 @@ public partial class MapGenerator : Node3D
 
 		// Candidate selection uses map tiles and collision clearance, not navmesh paths.
 		// Keep the initial encounter baseline reproducible even in headless validation.
-		var candidates = Floor.OpenTileCandidates(proceduralRoomsOnly: false);
+		var candidates = Floor.OpenTileCandidates();
 		if (candidates.Count == 0)
 		{
 			GD.PrintErr("Cannot generate enemy spawn points: no valid map tiles found.");
@@ -670,7 +677,7 @@ public partial class MapGenerator : Node3D
 
 		GD.Print("Generating map...");
 		if (RoomLayout == null || CorridorConnector == null
-			|| RoomFactory == null || MobFactory == null || TileFactory == null
+			|| Rooms == null || MobFactory == null || Corridors == null
 			|| FloorGridMap == null || WallGridMap == null || DecorationGridMap == null)
 		{
 			// This is especially important to check in the editor
@@ -757,6 +764,7 @@ public partial class MapGenerator : Node3D
 	{
 		GD.Print("Resetting map generator...");
 		_random = new LevelGenerationContext(Seed, GenerationAttempt);
+		CurrentRealm = Realms.FirstOrDefault(realm => realm?.Covers(DungeonDepth) == true) ?? Realms.Where(realm => realm != null).MaxBy(realm => realm.LastDepth);
 
 		ResetAccess();
 		_markerIndicators.Clear();
@@ -795,8 +803,8 @@ public partial class MapGenerator : Node3D
 		RoomLayout?.Reset();
 		CorridorConnector?.Reset();
 		MobFactory?.Reset();
-		RoomFactory?.Reset();
-		TileFactory?.Reset();
+		Rooms?.Reset();
+		Corridors?.Reset();
 	}
 
 	/// <summary>

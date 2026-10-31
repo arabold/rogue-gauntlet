@@ -13,5 +13,7 @@ Id = "garrison.bottle"
 Scenes = [ExtResource("2_bottle_A_bro"), ExtResource("3_bottle_A_lab"), ExtResource("4_bottle_A_lab"), ExtResource("5_bottle_B_bro"), ExtResource("6_bottle_C_bro")]
 Blocking = false
 Gap = 0.02
+TurnJitter = 30.0
+ShiftJitter = 0.04
 Weight = 1.0
 metadata/_custom_type_script = ExtResource("1_Prop")

@@ -44,42 +44,6 @@ public partial class RoomType : Resource
 	/// <summary>Shape rerolls allowed when a required step cannot fit.</summary>
 	[Export(PropertyHint.Range, "1,16")] public int Attempts { get; set; } = 8;
 
-	/// <summary>Editor command: assembles a room and saves it as an editable authored scene. Gameplay treats saved rooms as
-	/// authored (no generated loot); <see cref="Room.Type"/> stays assigned so the scene can be rerolled.</summary>
-	public bool SaveRoomScene(string filePath, long seed)
-	{
-		if (string.IsNullOrWhiteSpace(filePath)) return false;
-		var room = RoomAssembler.Assemble(this, (ulong)seed);
-		try
-		{
-			room.Name = System.IO.Path.GetFileNameWithoutExtension(filePath);
-			RoomAssembler.SetOwners(room, room);
-			string directory = filePath.GetBaseDir();
-			if (!DirAccess.DirExistsAbsolute(directory) && DirAccess.MakeDirRecursiveAbsolute(directory) != Error.Ok) return false;
-			using var scene = new PackedScene();
-			return scene.Pack(room) == Error.Ok && ResourceSaver.Save(scene, filePath) == Error.Ok;
-		}
-		finally
-		{
-			room.Free();
-		}
-	}
-
-	/// <summary>Editor command: replaces a room's generated geometry and props with a fresh assembly. On failure the room is
-	/// left untouched and the error is printed.</summary>
-	public bool Reassemble(Room room, long seed)
-	{
-		Room fresh;
-		try { fresh = RoomAssembler.Assemble(this, (ulong)seed); }
-		catch (System.InvalidOperationException error)
-		{
-			GD.PrintErr(error.Message);
-			return false;
-		}
-		RoomAssembler.ReplaceContent(room, fresh);
-		return true;
-	}
-
 	public string[] Validate()
 	{
 		var errors = new List<string>();
