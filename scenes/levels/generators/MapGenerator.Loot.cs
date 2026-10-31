@@ -36,18 +36,18 @@ public partial class MapGenerator
 	/// -- are added as children of <see cref="NavigationRegion"/> in time to be baked in as
 	/// navmesh obstacles, the same way rooms already are). Every content type shares one
 	/// running list of placed points so chests/traps/items all keep clear of each other, not
-	/// just their own kind.
+	/// just their own kind. Access pickups and fountains, placed earlier, seed that list.
 	/// </summary>
 	private void PlaceLoot()
 	{
-		var placedLootPoints = new List<Vector3>(_accessPickupPoints);
+		var placedLootPoints = new List<Vector3>([.. _accessPickupPoints, .. _fountainPoints]);
 		PlaceChests(placedLootPoints);
 		PlaceTraps(placedLootPoints);
 		PlaceLooseItems(placedLootPoints);
 	}
 
-	/// <summary>Later solid loot must not undo the furnishing pass's connected-free-space invariant.</summary>
-	private bool ChestPreservesRoomPassage(Node3D chest, Vector3 point, float rotation)
+	/// <summary>Later solid props (chests, fountains) must not undo the furnishing pass's connected-free-space invariant.</summary>
+	private bool PreservesRoomPassage(Node3D prop, Vector3 point, float rotation)
 	{
 		var tile = Map.WorldToTile(point);
 		var room = Floor.Rooms.FirstOrDefault(region => region.IsProcedural && region.Tiles.Contains(tile));
@@ -63,7 +63,7 @@ public partial class MapGenerator
 			t => Map.TileToWorld(t), obstacles, pool.PassageRadius);
 		var proposed = GlobalTransform.AffineInverse() * new Transform3D(new Basis(Vector3.Up, Mathf.DegToRad(rotation)),
 			point + Vector3.Up * GetFloorSurfaceHeight(point));
-		return passage.IsConnected(RoomArrangement.GetStaticPropBounds(chest, proposed));
+		return passage.IsConnected(RoomArrangement.GetStaticPropBounds(prop, proposed));
 	}
 
 	private void PlaceChests(List<Vector3> placedLootPoints)
@@ -94,7 +94,7 @@ public partial class MapGenerator
 			}
 
 			var chest = ChestScene.Instantiate<Node3D>();
-			if (!ChestPreservesRoomPassage(chest, candidate.Point, candidate.RotationDegrees))
+			if (!PreservesRoomPassage(chest, candidate.Point, candidate.RotationDegrees))
 			{
 				chest.Free();
 				continue;

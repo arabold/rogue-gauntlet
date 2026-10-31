@@ -1,7 +1,11 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=9 format=3]
 
+[ext_resource type="Script" path="res://scenes/props/fountains/Fountain.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/props/fountains/health_blessing.tres" id="blessing"]
 [ext_resource type="PackedScene" path="res://assets/custom-props/fountains/fountain_font_health.glb" id="model"]
 [ext_resource type="PackedScene" path="res://scenes/effects/fountain_sparkles_health.tscn" id="sparkles"]
+[ext_resource type="PackedScene" path="res://scenes/components/interactive_component.tscn" id="interactive"]
+[ext_resource type="Script" path="res://scenes/components/ExplorationGateComponent.cs" id="gate"]
 
 [sub_resource type="BoxShape3D" id="Shape0"]
 size = Vector3(1.56, 0.26, 1.56)
@@ -10,7 +14,12 @@ size = Vector3(1.56, 0.26, 1.56)
 height = 0.84
 radius = 0.7
 
-[node name="FountainFontHealth" type="Node3D" groups=["prop"]]
+[node name="FountainFontHealth" type="Node3D" node_paths=PackedStringArray("Interactive", "Model", "Pools") groups=["prop"]]
+script = ExtResource("script")
+Interactive = NodePath("InteractiveComponent")
+Blessing = ExtResource("blessing")
+Model = NodePath("Model")
+Pools = [NodePath("Pools/Sparkles")]
 
 [node name="Model" parent="." instance=ExtResource("model")]
 
@@ -26,5 +35,14 @@ shape = SubResource("Shape0")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.68, 0)
 shape = SubResource("Shape1")
 
-[node name="Sparkles" parent="." instance=ExtResource("sparkles")]
+[node name="Pools" type="Node3D" parent="."]
+
+[node name="Sparkles" parent="Pools" instance=ExtResource("sparkles")]
 transform = Transform3D(0.48, 0, 0, 0, 1, 0, 0, 0, 0.48, 0, 1.02, 0)
+
+[node name="InteractiveComponent" parent="." instance=ExtResource("interactive")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.37, 0)
+
+[node name="ExplorationGateComponent" type="Node3D" parent="." node_paths=PackedStringArray("Target")]
+script = ExtResource("gate")
+Target = NodePath("../Pools")

@@ -1,7 +1,11 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=9 format=3]
 
+[ext_resource type="Script" path="res://scenes/props/fountains/Fountain.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/props/fountains/mana_blessing.tres" id="blessing"]
 [ext_resource type="PackedScene" path="res://assets/custom-props/fountains/fountain_spring_mana.glb" id="model"]
 [ext_resource type="PackedScene" path="res://scenes/effects/fountain_sparkles_mana.tscn" id="sparkles"]
+[ext_resource type="PackedScene" path="res://scenes/components/interactive_component.tscn" id="interactive"]
+[ext_resource type="Script" path="res://scenes/components/ExplorationGateComponent.cs" id="gate"]
 
 [sub_resource type="CylinderShape3D" id="Shape0"]
 height = 0.56
@@ -10,7 +14,12 @@ radius = 1.1
 [sub_resource type="BoxShape3D" id="Shape1"]
 size = Vector3(0.5, 1.24, 0.44)
 
-[node name="FountainSpringMana" type="Node3D" groups=["prop"]]
+[node name="FountainSpringMana" type="Node3D" node_paths=PackedStringArray("Interactive", "Model", "Pools") groups=["prop"]]
+script = ExtResource("script")
+Interactive = NodePath("InteractiveComponent")
+Blessing = ExtResource("blessing")
+Model = NodePath("Model")
+Pools = [NodePath("Pools/Sparkles")]
 
 [node name="Model" parent="." instance=ExtResource("model")]
 
@@ -26,5 +35,14 @@ shape = SubResource("Shape0")
 transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -0.6505, 0.62, -0.6505)
 shape = SubResource("Shape1")
 
-[node name="Sparkles" parent="." instance=ExtResource("sparkles")]
+[node name="Pools" type="Node3D" parent="."]
+
+[node name="Sparkles" parent="Pools" instance=ExtResource("sparkles")]
 transform = Transform3D(0.6, 0, 0, 0, 1, 0, 0, 0, 0.6, 0, 0.44, 0)
+
+[node name="InteractiveComponent" parent="." instance=ExtResource("interactive")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.79, 0)
+
+[node name="ExplorationGateComponent" type="Node3D" parent="." node_paths=PackedStringArray("Target")]
+script = ExtResource("gate")
+Target = NodePath("../Pools")

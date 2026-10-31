@@ -1,7 +1,11 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=9 format=3]
 
+[ext_resource type="Script" path="res://scenes/props/fountains/Fountain.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/props/fountains/health_blessing.tres" id="blessing"]
 [ext_resource type="PackedScene" path="res://assets/custom-props/fountains/fountain_tiered_health.glb" id="model"]
 [ext_resource type="PackedScene" path="res://scenes/effects/fountain_sparkles_health.tscn" id="sparkles"]
+[ext_resource type="PackedScene" path="res://scenes/components/interactive_component.tscn" id="interactive"]
+[ext_resource type="Script" path="res://scenes/components/ExplorationGateComponent.cs" id="gate"]
 
 [sub_resource type="CylinderShape3D" id="Shape0"]
 height = 0.72
@@ -11,7 +15,12 @@ radius = 1.0
 height = 0.9
 radius = 0.44
 
-[node name="FountainTieredHealth" type="Node3D" groups=["prop"]]
+[node name="FountainTieredHealth" type="Node3D" node_paths=PackedStringArray("Interactive", "Model", "Pools") groups=["prop"]]
+script = ExtResource("script")
+Interactive = NodePath("InteractiveComponent")
+Blessing = ExtResource("blessing")
+Model = NodePath("Model")
+Pools = [NodePath("Pools/SparklesLower"), NodePath("Pools/SparklesUpper")]
 
 [node name="Model" parent="." instance=ExtResource("model")]
 
@@ -27,8 +36,17 @@ shape = SubResource("Shape0")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.13, 0)
 shape = SubResource("Shape1")
 
-[node name="SparklesLower" parent="." instance=ExtResource("sparkles")]
+[node name="Pools" type="Node3D" parent="."]
+
+[node name="SparklesLower" parent="Pools" instance=ExtResource("sparkles")]
 transform = Transform3D(0.8, 0, 0, 0, 1, 0, 0, 0, 0.8, 0, 0.66, 0)
 
-[node name="SparklesUpper" parent="." instance=ExtResource("sparkles")]
+[node name="SparklesUpper" parent="Pools" instance=ExtResource("sparkles")]
 transform = Transform3D(0.3, 0, 0, 0, 1, 0, 0, 0, 0.3, 0, 1.52, 0)
+
+[node name="InteractiveComponent" parent="." instance=ExtResource("interactive")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.87, 0)
+
+[node name="ExplorationGateComponent" type="Node3D" parent="." node_paths=PackedStringArray("Target")]
+script = ExtResource("gate")
+Target = NodePath("../Pools")

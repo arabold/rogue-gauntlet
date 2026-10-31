@@ -9,7 +9,8 @@ Actor/item VFX use reusable scenes under `scenes/effects/world/`. Player and mon
 | `iron_skin/iron_skin.tres` | Metallic body/gear transformation with a brief entry ring and forging sparks | Inspector condition and preview/API; protection mechanics remain separate |
 | `stone_skin/stone_skin.tres` | Rough fractured mineral body/gear transformation and dust accent | Inspector condition and preview/API; protection mechanics remain separate |
 | `frozen/frozen.tres` | Sustained icy body/gear appearance with reversible entry and exit | Actor workbench, Frost Nova preview and combat-harness contact through the actor frozen-status component |
-| `healing/healing.tres` | Crimson gathering ribbons, ground pulse and rising motes | Committed healing potion use |
+| `healing/healing.tres` | Crimson gathering ribbons, ground pulse and rising motes | Committed healing potion use; drinking from a health fountain |
+| `mana/mana.tres` | The healing burst in cobalt blue | Drinking from a mana fountain |
 | `strength/strength.tres` | Amber rising streaks and pressure ring | Committed strength potion use |
 | `arcane/arcane.tres` | Violet counter-rotating strands and rune fragments | Preview/API; magical potion semantics remain separate |
 | `level_up/level_up.tres` | Gold-white rising column, ribbons, sigil and celebration sparks | Preview/API; leveling has no gameplay caller yet |
@@ -67,7 +68,7 @@ The player and monster `FrozenStatusComponent` observes the actor's condition co
 
 Health and mana fountains (`scenes/props/fountains/`) pair Asset Studio art from `assets/custom-props/fountains/` with `fountain_sparkles_health.tscn` or `fountain_sparkles_mana.tscn` on each pool. These inherit `fountain_sparkles.tscn` and set only its `Tint`. `FountainSparkles` sends the tint to the sparkles, the additive surface shimmer and a shadow-free glow light. It uses per-instance shader parameters, so the editor shows the authored color without copying materials. Place the node at the center of the liquid surface and scale its X/Z axes to the pool's inscribed radius. The sparkle shader sizes stars from the vertical axis only. Each pool's level and radius come from `POOLS` in `asset-studio/items/fountains.py`.
 
-These props are ambient decoration. They provide collision and the `prop` group used for spawn clearance, but no interaction, healing or mana restoration yet. A future fountain interaction can reuse the `healing` burst for its recipient after a successful use.
+Each pool effect sits under the prop's `Pools` node, hidden by an `ExplorationGateComponent` until its tile is discovered. Drinking calls `FadeOut`: no new sparkles rise, and the shimmer and glow dim over `FadeDuration`. A fountain restored as drained clears `Flowing` instead and shows the spent pool at once. [Level design](level-design.md#fountains) describes placement and drinking.
 
 ## Workbench
 

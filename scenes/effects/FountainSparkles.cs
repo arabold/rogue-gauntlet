@@ -14,6 +14,11 @@ public partial class FountainSparkles : Node3D
 	private static readonly StringName TintParameter = "tint";
 
 	private Color _tint = Colors.White;
+	private bool _flowing = true;
+	// How much of the magic is showing: 1 while flowing, 0 once spent, in between while fading.
+	private float _strength = 1;
+	private float _glowEnergy;
+	private Tween _fade;
 
 	/// <summary>Particles rising off the pool; their draw material reads the instance tint.</summary>
 	[Export] public GpuParticles3D Sparkles { get; set; }
@@ -33,17 +38,56 @@ public partial class FountainSparkles : Node3D
 		{
 			_tint = value;
 			if (!IsNodeReady()) return;
-			ApplyTint();
+			ApplyStrength(_strength);
 		}
 	}
 
-	public override void _Ready() => ApplyTint();
-
-	private void ApplyTint()
+	/// <summary>Whether the pool still holds its magic. Cleared, it shows at once without sparkles, shimmer or glow;
+	/// <see cref="FadeOut"/> stops it gradually instead.</summary>
+	[Export]
+	public bool Flowing
 	{
+		get => _flowing;
+		set
+		{
+			_flowing = value;
+			if (!IsNodeReady()) return;
+			_fade?.Kill();
+			if (Sparkles != null) Sparkles.Emitting = value;
+			ApplyStrength(value ? 1 : 0);
+		}
+	}
+
+	/// <summary>Seconds <see cref="FadeOut"/> takes to dim the shimmer and glow; airborne sparkles finish their flight.</summary>
+	[Export(PropertyHint.Range, "0,5,0.05")] public float FadeDuration { get; set; } = 1.2f;
+
+	public override void _Ready()
+	{
+		_glowEnergy = Glow?.LightEnergy ?? 0;
+		Flowing = _flowing;
+	}
+
+	/// <summary>Spends the pool's magic: no new sparkles rise while the shimmer and glow fade out.</summary>
+	public void FadeOut()
+	{
+		if (!_flowing) return;
+		_flowing = false;
+		if (Sparkles != null) Sparkles.Emitting = false;
+		_fade?.Kill();
+		_fade = CreateTween();
+		_fade.TweenMethod(Callable.From<float>(ApplyStrength), _strength, 0f, FadeDuration);
+	}
+
+	private void ApplyStrength(float strength)
+	{
+		_strength = strength;
 		Sparkles?.SetInstanceShaderParameter(TintParameter, _tint);
-		Shimmer?.SetInstanceShaderParameter(TintParameter, _tint);
+		Shimmer?.SetInstanceShaderParameter(TintParameter, _tint with { A = _tint.A * strength });
 		if (Glow != null)
+		{
 			Glow.LightColor = _tint;
+			Glow.LightEnergy = _glowEnergy * strength;
+			Glow.Visible = strength > 0;
+		}
 	}
 }

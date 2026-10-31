@@ -28,6 +28,12 @@ A room may provide a `GatekeeperSpawnMarker` to control boss position and facing
 
 Cleared enemies, destroyed nests, killed summon slots and Warden defeat persist across revisits. Living actors reset to their generated initial state; partial health, position and summon timers are not saved. See [monster authoring](monster-authoring-design.md) for tactics and the [roadmap](development-roadmap.md#first-three-floor-acceptance) for playtest acceptance.
 
+## Fountains
+
+The generator's `Fountains` profile ([fountain_profile.tres](../scenes/props/fountains/fountain_profile.tres)) schedules health and mana fountains across the whole run. Each `FountainKind` draws two or three fountains from the run seed alone, so every floor agrees without shared state. Depths 2 to 24 split into equal bands, one fountain per band, and kinds avoid sharing a floor. A floor's fountain uses that kind's stream to pick one of its four designs and a free-standing procedural room tile. Tiles walkable on every side are preferred, connector-adjacent tiles are skipped, and the placement keeps loot spacing and arrival clearance. Like chests, fountains are solid navmesh obstacles that must keep the room's free space connected. Authored rooms never receive one. A cramped floor that cannot fit a fountain logs it and the run has one fewer.
+
+`Fountain` grants its `FountainBlessing` strategy (`RestoreHealthBlessing`, `RestoreManaBlessing`) once, through the ordinary timed interaction. A drinker whose pool is full sees a blocked prompt. Drinking dims the liquid and fades the [pool effects](world-effects.md#fountain-effects), and plays the healing or mana burst on the drinker. The fountain's `depth:N:fountain:<kind>` id becomes one of the run's cleared entities, so a revisited or loaded floor rebuilds it drained.
+
 ## Room template creation
 
 Author a self-contained `Room` scene with explicitly assigned floor, wall and decoration GridMaps. Use the shared mesh libraries and include relevant prop collision. Complete authored rooms bring their own content; generic gameplay furnishing/loot does not decorate their interior automatically.
