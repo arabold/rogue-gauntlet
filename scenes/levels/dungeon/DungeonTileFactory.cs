@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 /// <summary>
@@ -11,6 +12,13 @@ public partial class DungeonTileFactory : TileFactory
 {
 	[Export] public FloorMaterial Floor { get; set; }
 	[Export] public WallStyle Walls { get; set; }
+
+	/// <summary>Rejects broken corridor authoring before generation starts, through the level's normal failure path.</summary>
+	public override void Reset()
+	{
+		var errors = Validate();
+		if (errors.Length > 0) throw new InvalidOperationException(string.Join("\n", errors));
+	}
 
 	public override int GetCorridorTileIndex(RandomNumberGenerator rng) => Floor.Library.FindItemByName(Weighted.Pick(Floor.Large, rng));
 	public override int GetWallTileIndex(RandomNumberGenerator rng) => Walls.Library.FindItemByName(Walls.DrawEdge(rng).Item);

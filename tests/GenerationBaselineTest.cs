@@ -1,5 +1,6 @@
 namespace RogueGauntlet.Tests;
 
+using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,29 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public class GenerationBaselineTest
 {
+	/// <summary>Missing corridor palettes must reach Level.GenerationFailed instead of aborting startup with a null reference.</summary>
+	[TestCase(true)]
+	[TestCase(false)]
+	public async Task MissingCorridorPaletteIsRejectedBeforeRoomsArePlaced(bool missingFloor)
+	{
+		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
+		using (runner)
+		{
+			var realm = generator.Realms[0];
+			var authored = (DungeonTileFactory)realm.Corridors;
+			realm.Corridors = new DungeonTileFactory
+			{
+				Floor = missingFloor ? null : authored.Floor,
+				Walls = missingFloor ? authored.Walls : null,
+			};
+			string message = "";
+			try { generator.GenerateMap(); }
+			catch (InvalidOperationException error) { message = error.Message; }
+			AssertString(message).Contains("assign the corridor floor material and wall style");
+			AssertInt(generator.NavigationRegion.GetChildCount()).IsEqual(0);
+		}
+	}
+
 	[TestCase]
 	public void DrawingOneDomainDoesNotAdvanceOtherDomainsOrGlobalRandom()
 	{
