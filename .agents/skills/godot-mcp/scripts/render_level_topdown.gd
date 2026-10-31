@@ -10,9 +10,11 @@ extends SceneTree
 # images and hangs. A real window briefly opens (uses the machine's GPU).
 #
 #   .agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" \
-#     --script .agents/skills/godot-mcp/scripts/render_level_topdown.gd -- <outfile.png> [seed] [size]
+#     --script .agents/skills/godot-mcp/scripts/render_level_topdown.gd -- <outfile.png> [seed] [size] [depth]
 #
-# e.g. -- /tmp/level_preview.png 23 1600
+# e.g. -- /tmp/level_preview.png 23 1600 5
+#
+# The depth (default 1) picks the realm, from level.tscn's realm list, whose rooms and corridors the floor uses.
 #
 # Overlay legend (drawn as flat, unshaded geometry lifted above the floor):
 #   yellow disc = explicit doorway connector (guaranteed-connected)
@@ -30,6 +32,7 @@ var _viewport: SubViewport
 var _map_generator
 var _seed_value = 0
 var _image_size = 0
+var _depth = 1
 var _outfile = ""
 var _state = "waiting_for_ready"
 var _wait_frames = 0
@@ -39,6 +42,7 @@ func _initialize():
 	_outfile = args[0] if args.size() > 0 else "/tmp/level_preview.png"
 	_seed_value = int(args[1]) if args.size() > 1 else 23
 	_image_size = int(args[2]) if args.size() > 2 else 1600
+	_depth = int(args[3]) if args.size() > 3 else 1
 
 	var map_generator_scene = load("res://scenes/levels/generators/map_generator.tscn")
 	_map_generator = map_generator_scene.instantiate()
@@ -49,6 +53,10 @@ func _initialize():
 	_map_generator.MobFactory = load("res://scenes/levels/dungeon/dungeon_mob_factory.tres")
 	_map_generator.TileFactory = load("res://scenes/levels/dungeon/dungeon_tile_factory.tres")
 	_map_generator.Seed = _seed_value
+	_map_generator.DungeonDepth = _depth
+	var level = load("res://scenes/levels/level.tscn").instantiate()
+	_map_generator.Realms = level.get_node("MapGenerator").Realms
+	level.free()
 
 	_viewport = SubViewport.new()
 	_viewport.transparent_bg = false
@@ -103,7 +111,7 @@ func _generate_and_frame():
 
 	_add_connector_overlay(_map_generator)
 
-	print("Rendering %dx%d preview of seed %d to %s" % [_viewport.size.x, _viewport.size.y, _seed_value, _outfile])
+	print("Rendering %dx%d preview of seed %d, depth %d to %s" % [_viewport.size.x, _viewport.size.y, _seed_value, _depth, _outfile])
 
 func _add_connector_overlay(map_generator):
 	var surface_tool = SurfaceTool.new()

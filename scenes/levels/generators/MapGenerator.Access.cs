@@ -61,7 +61,7 @@ public partial class MapGenerator
 			{
 				Map.SetTile(tile.X, tile.Y, MapTile.Room); region.Tiles.Add(tile);
 				Floor.AssignTile(tile, region.Id);
-				FloorGridMap.SetCellItem(Map.TileToWorld(tile), TileFactory.GetCorridorTileIndex(floorRng));
+				FloorGridMap.SetCellItem(Map.TileToWorld(tile), Corridors.GetCorridorTileIndex(floorRng));
 			}
 			Map.SetConnector(connector.X, connector.Y, [-direction]);
 			Floor.UnassignTile(connector); region.ConnectorTiles.Add(connector);

@@ -19,11 +19,20 @@ public partial class MapGenerator : Node3D
 
 	[Export] public RoomLayoutStrategy RoomLayout { get; set; }
 	[Export] public CorridorConnectorStrategy CorridorConnector { get; set; }
+	/// <summary>Rooms for depths no <see cref="Realms"/> entry covers (previews, tests and depths beyond the realms).</summary>
 	[Export] public RoomFactory RoomFactory { get; set; }
 	[Export] public MobFactory MobFactory { get; set; }
 	[Export] public WorldEffectDefinition SpawnArrivalEffect { get; set; }
 
+	/// <summary>Corridor tiles for depths no <see cref="Realms"/> entry covers.</summary>
 	[Export] public TileFactory TileFactory { get; set; }
+	/// <summary>Realms by depth band: the one covering <see cref="DungeonDepth"/> supplies the floor's rooms and corridor tiles.</summary>
+	[Export] public Realm[] Realms { get; set; } = [];
+
+	/// <summary>The realm covering <see cref="DungeonDepth"/>, or null when the fallback factories apply.</summary>
+	public Realm CurrentRealm => Realms.FirstOrDefault(realm => realm?.Covers(DungeonDepth) == true);
+	private RoomFactory Rooms => CurrentRealm?.Rooms ?? RoomFactory;
+	private TileFactory Corridors => CurrentRealm?.Corridors ?? TileFactory;
 
 	public MapData Map;
 	/// <summary>The current attempt's floor: generation queries it while it fills, gameplay once it is frozen.</summary>
@@ -149,7 +158,7 @@ public partial class MapGenerator : Node3D
 		GD.Print("Generating rooms...");
 
 		var roomPlacements = RoomLayout.GenerateRooms(
-			Map, RoomFactory, MaxRooms, _random.Layout);
+			Map, Rooms, MaxRooms, _random.Layout);
 		PlaceRooms(roomPlacements);
 	}
 
@@ -408,7 +417,7 @@ public partial class MapGenerator : Node3D
 				var position = Map.TileToWorld(x, z);
 				if ((Map.IsCorridor(x, z) || Map.IsConnector(x, z)) && FloorGridMap.GetCellItem(position) < 0)
 				{
-					int tileIndex = TileFactory.GetCorridorTileIndex(_random.Decoration);
+					int tileIndex = Corridors.GetCorridorTileIndex(_random.Decoration);
 					FloorGridMap.SetCellItem(position, tileIndex, 0);
 				}
 			}
@@ -442,9 +451,9 @@ public partial class MapGenerator : Node3D
 			Room.TileSize,
 			sourceTiles,
 			(tile, dx, dz) => NeedsWallToward(tile.X, tile.Y, dx, dz),
-			() => TileFactory.GetWallTileIndex(_random.Decoration),
-			() => TileFactory.GetWallHalfTileIndex(_random.Decoration),
-			() => TileFactory.GetWallCornerTileIndex(_random.Decoration));
+			() => Corridors.GetWallTileIndex(_random.Decoration),
+			() => Corridors.GetWallHalfTileIndex(_random.Decoration),
+			() => Corridors.GetWallCornerTileIndex(_random.Decoration));
 	}
 
 	private bool NeedsGeneratedWallAgainst(int x, int z)
@@ -669,7 +678,7 @@ public partial class MapGenerator : Node3D
 
 		GD.Print("Generating map...");
 		if (RoomLayout == null || CorridorConnector == null
-			|| RoomFactory == null || MobFactory == null || TileFactory == null
+			|| Rooms == null || MobFactory == null || Corridors == null
 			|| FloorGridMap == null || WallGridMap == null || DecorationGridMap == null)
 		{
 			// This is especially important to check in the editor
@@ -794,8 +803,8 @@ public partial class MapGenerator : Node3D
 		RoomLayout?.Reset();
 		CorridorConnector?.Reset();
 		MobFactory?.Reset();
-		RoomFactory?.Reset();
-		TileFactory?.Reset();
+		Rooms?.Reset();
+		Corridors?.Reset();
 	}
 
 	/// <summary>

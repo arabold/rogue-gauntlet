@@ -17,6 +17,8 @@ public abstract partial class FloorStyle : Resource
 	[Export(PropertyHint.Range, "0.01,10,0.01")] public float Weight { get; set; } = 1;
 	/// <summary>Features set into the floor (drains, gutters), placed in order after the materials.</summary>
 	[Export] public FloorInlay[] Inlays { get; set; } = [];
+	/// <summary>Optional rug laid over the finished floor, clear of inlays.</summary>
+	[Export] public FloorRug Rug { get; set; }
 
 	/// <summary>Every material this style may use; all must share one floor library.</summary>
 	public abstract IEnumerable<FloorMaterial> Materials { get; }
@@ -38,6 +40,7 @@ public abstract partial class FloorStyle : Resource
 		if (materials.Select(material => material.Library?.ResourcePath ?? "").Distinct().Count() > 1) errors.Add($"Floor style {Id}: materials must share one floor library.");
 		if (Inlays.Any(inlay => inlay == null)) errors.Add($"Floor style {Id}: remove empty inlay slots.");
 		errors.AddRange(Inlays.Where(inlay => inlay != null).SelectMany(inlay => inlay.Validate(Library)));
+		if (Rug != null) errors.AddRange(Rug.Validate().Select(error => $"Floor style {Id}: {error}"));
 		return errors.ToArray();
 	}
 
@@ -82,12 +85,13 @@ public abstract partial class FloorStyle : Resource
 				var quad = quads[x, z];
 				var split = splits[x, z];
 				var (item, orientation) = split.Transition != null ? (Weighted.Pick(split.Transition.Items, rng), split.Orientation)
-					: wear[qx, qz] != null ? (wear[qx, qz], UprightOrientations[rng.RandiRange(0, 3)])
+					: wear[qx, qz] != null ? (wear[qx, qz], Orientation(quad))
 					: (Weighted.Pick(quad.Small, rng), Orientation(quad));
 				var cell = center + new Vector3I(qx == 0 ? -1 : 1, 0, qz == 0 ? -1 : 1);
 				grid.SetCellItem(cell, grid.MeshLibrary.FindItemByName(item), orientation);
 			}
 		}
+		Rug?.Lay(room, covered, rng);
 
 		int Orientation(FloorMaterial material) => material.AlignedPlanks ? planks[material] : UprightOrientations[rng.RandiRange(0, 3)];
 	}
