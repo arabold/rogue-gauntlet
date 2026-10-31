@@ -34,6 +34,8 @@ public sealed class RoomBlueprint
 	private readonly List<Aabb> _wallBoxes = [];
 	private readonly List<PlacedPiece> _pieces = [];
 	private readonly List<Rect2> _reserved = [];
+	private readonly List<Vector2I> _pits = [];
+	private readonly List<Rect2> _landings = [];
 	private readonly Dictionary<object, int> _uses = [];
 	private readonly Dictionary<object, object> _memo = [];
 	private WallRun[] _wallRuns;
@@ -67,10 +69,15 @@ public sealed class RoomBlueprint
 	public Rect2 Interior { get; }
 	public IReadOnlyList<PlacedPiece> Pieces => _pieces;
 	public IReadOnlyList<Rect2> Reserved => _reserved;
+	/// <summary>Stair landings: kept free of floor props and reachable from every doorway.</summary>
+	public IReadOnlyList<Rect2> Landings => _landings;
 	/// <summary>Why the most recent placement was refused, for failure messages and authoring diagnostics.</summary>
 	public string LastRejection { get; private set; } = "";
 
 	public bool IsDoorway(Vector2I tile, Vector2I outward) => _doorwayEdges.Contains((tile, outward));
+
+	/// <summary>A footprint tile that still has floor: not cut into a pit such as a stairwell.</summary>
+	public bool IsFloor(Vector2I tile) => Footprint.IsFloor(tile) && !_pits.Contains(tile);
 
 	/// <summary>Records the wall piece on an edge: how far its face reaches into the room, and whether decor may hang on it.</summary>
 	public void SetWall(Vector2I tile, Vector2I outward, float depth, bool decoratable) => _walls[(tile, outward)] = (depth, decoratable);
@@ -180,7 +187,10 @@ public sealed class RoomBlueprint
 	/// <summary>Every doorway can reach every other one.</summary>
 	public bool IsConnected => Grid.AreConnected(Doorways.Select(doorway => XZ(doorway.Approach)).ToArray());
 
-	/// <summary>Doorways stay connected and inaccessible pockets stay within the room type's <see cref="RoomType.MaxPocketShare"/>.</summary>
+	/// <summary>
+	/// Doorways stay connected, stair landings stay reachable from them, and inaccessible pockets stay within the room
+	/// type's <see cref="RoomType.MaxPocketShare"/>.
+	/// </summary>
 	public bool IsAcceptable
 	{
 		get
@@ -190,6 +200,11 @@ public sealed class RoomBlueprint
 			foreach (var approach in approaches)
 			{
 				var cell = Grid.CellAt(approach);
+				if (!Grid.Contains(cell) || !reached[cell.Y * Grid.Size.X + cell.X]) return false;
+			}
+			foreach (var landing in _landings)
+			{
+				var cell = Grid.CellAt(landing.GetCenter());
 				if (!Grid.Contains(cell) || !reached[cell.Y * Grid.Size.X + cell.X]) return false;
 			}
 			if (Type == null || Type.MaxPocketShare >= 1) return true;
@@ -204,14 +219,24 @@ public sealed class RoomBlueprint
 		}
 	}
 
+	/// <summary>Whether actors entering through the doorways reach <paramref name="point"/>.</summary>
+	public bool IsReachable(Vector2 point)
+	{
+		var cell = Grid.CellAt(point);
+		return Grid.Contains(cell) && Grid.Reachable(Doorways.Select(doorway => XZ(doorway.Approach)))[cell.Y * Grid.Size.X + cell.X];
+	}
+
 	/// <summary>Keeps floor props out of an area (doorway approaches, circulation, interaction space); actors may use it.</summary>
 	public void Reserve(Rect2 area) => _reserved.Add(area);
 
 	/// <summary>
 	/// Places a plan at <paramref name="at"/>. Required pieces go in together or not at all and must keep the room
 	/// <see cref="IsAcceptable"/>; optional pieces are then tried one by one. Leaves the blueprint unchanged on false.
+	/// The required pieces may sink into a <paramref name="pit"/> cut from the floor tiles under them, and may claim a
+	/// <paramref name="landing"/>: an area in front of stairs that no floor prop may ever cover and that every doorway
+	/// must keep reaching, for the rest of the assembly.
 	/// </summary>
-	public bool TryPlace(PlacementPlan plan, Transform3D at)
+	public bool TryPlace(PlacementPlan plan, Transform3D at, IReadOnlyCollection<Vector2I> pit = null, Rect2? landing = null)
 	{
 		if (plan.IsEmpty) return false;
 		var start = Save();
@@ -221,11 +246,29 @@ public sealed class RoomBlueprint
 			Restore(start);
 			return false;
 		}
+		float half = Room.TileSize / 2f;
+		foreach (var tile in pit ?? [])
+		{
+			_pits.Add(tile);
+			var center = RoomFootprint.TileCenter(tile);
+			Grid.AddObstacle(new Rect2(center.X - half, center.Z - half, Room.TileSize, Room.TileSize));
+		}
 		if (!IsAcceptable)
 		{
 			LastRejection = $"{plan.Pieces[0].Prop.Id}: would cut off a doorway or exceed the pocket budget";
 			Restore(start);
 			return false;
+		}
+		if (landing is { } area)
+		{
+			string blocker = _pieces.FirstOrDefault(piece => piece.Prop.Mount == PropMount.Floor && XZ(piece.Envelope).Intersects(area)).Prop?.Id;
+			if (blocker != null || !HasFloorSupport(area.Grow(-.05f)) || !IsReachable(area.GetCenter()))
+			{
+				LastRejection = $"{plan.Pieces[0].Prop.Id}: its landing is {(blocker != null ? $"covered by {blocker}" : "off the floor or cut off from the doorways")}";
+				Restore(start);
+				return false;
+			}
+			_landings.Add(area);
 		}
 		foreach (var piece in plan.Pieces.Where(piece => piece.Optional))
 		{
@@ -300,6 +343,7 @@ public sealed class RoomBlueprint
 			if (!HasFloorSupport(area.Grow(-.05f))) return Reject(piece, "extends past the floor");
 			if (_wallBoxes.Any(wall => XZ(wall).Grow(-Tolerance).Intersects(area))) return Reject(piece, "overlaps a wall");
 			if (piece.Prop.Blocking && _reserved.Any(reserved => reserved.Intersects(area))) return Reject(piece, "blocks reserved circulation");
+			if (_landings.Any(landing => landing.Intersects(area))) return Reject(piece, "covers a stair landing");
 		}
 		else if (!Interior.Grow(1).Encloses(area))
 		{
@@ -340,19 +384,21 @@ public sealed class RoomBlueprint
 		int bottom = Mathf.FloorToInt((area.End.Y + half) / Room.TileSize);
 		for (int x = left; x <= right; x++)
 		for (int z = top; z <= bottom; z++)
-			if (!Footprint.IsFloor(x, z)) return false;
+			if (!IsFloor(new(x, z))) return false;
 		return true;
 	}
 
-	private readonly record struct Checkpoint(byte[] Grid, int Pieces, int Reserved);
+	private readonly record struct Checkpoint(byte[] Grid, int Pieces, int Reserved, int Pits, int Landings);
 
-	private Checkpoint Save() => new(Grid.Save(), _pieces.Count, _reserved.Count);
+	private Checkpoint Save() => new(Grid.Save(), _pieces.Count, _reserved.Count, _pits.Count, _landings.Count);
 
 	private void Restore(Checkpoint checkpoint)
 	{
 		Grid.Restore(checkpoint.Grid);
 		_pieces.RemoveRange(checkpoint.Pieces, _pieces.Count - checkpoint.Pieces);
 		_reserved.RemoveRange(checkpoint.Reserved, _reserved.Count - checkpoint.Reserved);
+		_pits.RemoveRange(checkpoint.Pits, _pits.Count - checkpoint.Pits);
+		_landings.RemoveRange(checkpoint.Landings, _landings.Count - checkpoint.Landings);
 	}
 
 	/// <summary>

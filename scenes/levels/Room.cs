@@ -19,8 +19,7 @@ public partial class Room : Node3D
 	/// </summary>
 	public Rect2I Bounds { get; private set; }
 
-	/// <summary>The room type that assembled this room, content included; null for authored rooms. Saved generated rooms
-	/// keep it so the editor can reroll them.</summary>
+	/// <summary>The room type that assembled this room, content included.</summary>
 	[Export] public RoomType Type { get; set; }
 	/// <summary>Authored/generated circulation axis; zero means the room has no primary aisle.</summary>
 	[Export] public Vector2I LayoutAxis { get; set; }

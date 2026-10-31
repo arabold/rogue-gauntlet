@@ -103,40 +103,6 @@ public static class RoomAssembler
 		}
 	}
 
-	/// <summary>Moves a freshly assembled room's content into an existing (edited) room, replacing the old content.</summary>
-	public static void ReplaceContent(Room room, Room fresh)
-	{
-		foreach (var child in room.GetChildren().Where(child => child == room.FloorGridMap || child == room.WallGridMap
-			|| child == room.DecorationGridMap || child.Name == "Props" || child is DoorwayMarker or Door).ToArray())
-		{
-			room.RemoveChild(child);
-			child.Free();
-		}
-		foreach (var child in fresh.GetChildren().ToArray())
-		{
-			fresh.RemoveChild(child);
-			room.AddChild(child);
-		}
-		room.FloorGridMap = fresh.FloorGridMap;
-		room.WallGridMap = fresh.WallGridMap;
-		room.DecorationGridMap = fresh.DecorationGridMap;
-		room.Type = fresh.Type;
-		room.LayoutAxis = fresh.LayoutAxis;
-		fresh.Free();
-		SetOwners(room, room.Owner ?? room);
-		room.BakeTileMap();
-	}
-
-	/// <summary>Owns every generated node by <paramref name="owner"/> so the editor saves it; instanced scenes keep their insides.</summary>
-	public static void SetOwners(Node node, Node owner)
-	{
-		foreach (Node child in node.GetChildren())
-		{
-			child.Owner = owner;
-			if (string.IsNullOrEmpty(child.SceneFilePath)) SetOwners(child, owner);
-		}
-	}
-
 	private static Room CreateRoom(RoomType type, MeshLibrary floorLibrary, MeshLibrary wallLibrary)
 	{
 		var room = new Room { Name = type.Id.Split('.').Last().ToPascalCase(), Type = type };

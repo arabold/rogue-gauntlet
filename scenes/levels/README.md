@@ -14,6 +14,7 @@
 | `garrison/room_types/` | One `RoomType` per Garrison room kind |
 | `garrison/props/<category>/`, `garrison/groups/` | Props (one object, cosmetic variants) and groups (anchor plus members, seated tables) |
 | `garrison/styles/floors/`, `garrison/styles/walls/` | Floor materials and styles; wall styles |
+| `stairs/` | The level's up- and down-stairs scenes (staircase, arrival spawn, level transition) placed by `StairsStep` |
 | `../props/furnishings/` | Prop scenes that need nodes (torches, banners, bookcases) and the furnishing mesh library |
 
 Start with [implemented level design](../../docs/level-design.md), [room assembly authoring](generators/assembly/README.md), or the [room generation harness](../debug/rooms/room_generation_harness.tscn). [Harness index](../debug/README.md) lists the debug entry points.

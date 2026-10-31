@@ -11,12 +11,12 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class GarrisonRoomPoolTest
 {
-	private const string Preset = "res://scenes/levels/garrison/factories/garrison_mixed_room_factory.tres";
+	private const string Preset = TestFactories.GarrisonFactory;
 
 	[TestCase]
 	public void StandardSlotsDrawEveryRoomTypeAndReproduceTheirContent()
 	{
-		var factory = TestFactories.Load<MixedRoomFactory>(Preset);
+		var factory = TestFactories.Load<AssembledRoomFactory>(Preset);
 		var seen = new HashSet<RoomType>();
 		for (ulong seed = 1; seed <= 60; seed++)
 		{
@@ -35,17 +35,20 @@ public class GarrisonRoomPoolTest
 	}
 
 	[TestCase]
-	public void OrdinaryAndSpecialSlotsAreGeneratedAndResetReproducesTheirGeometry()
+	public void EverySlotIsAssembledAndResetReproducesTheirGeometry()
 	{
-		var factory = TestFactories.Load<MixedRoomFactory>(Preset, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
-		var authored = (DungeonRoomFactory)factory.AuthoredFactory;
-		AssertInt(authored.StandardRoomScenePaths.Count).IsEqual(0);
-		AssertInt(authored.SpecialRoomScenePaths.Count).IsEqual(0);
+		var factory = TestFactories.Load<AssembledRoomFactory>(Preset, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
 		using var rng = new RandomNumberGenerator { Seed = 42 };
 		string first = "";
 		for (int index = 0; index < 8; index++)
 		{
-			var room = index % 2 == 0 ? factory.CreateSpecialRoom(rng) : factory.CreateStandardRoom(rng);
+			var room = (index % 4) switch
+			{
+				0 => factory.CreateSpecialRoom(rng),
+				1 => factory.CreateStandardRoom(rng),
+				2 => factory.CreateEntrance(rng),
+				_ => factory.CreateExit(rng),
+			};
 			AssertString(room.SceneFilePath).IsEmpty();
 			AssertObject(room.Type).IsNotNull();
 			if (index == 0) first = Signature(room);
@@ -77,7 +80,6 @@ public class GarrisonRoomPoolTest
 			level.Generate();
 			AssertString(failure).OverrideFailureMessage($"seed={runSeed} depth={depth}: {failure}").IsEmpty();
 			AssertArray(LayoutConnectivityTest.FindConnectivityFailures(generator)).IsEmpty();
-			AssertInt(generator.Floor.Rooms.Count(room => room.IsProcedural)).IsGreater(0);
 			var ordinary = generator.EnemySpawnPoints.Where(spawn => encounters.Entries.Any(entry => entry.ScenePath == spawn.Scenes[0].ResourcePath)).ToArray();
 			int spent = ordinary.Sum(spawn => encounters.Entries.Single(entry => entry.ScenePath == spawn.Scenes[0].ResourcePath).Threat);
 			using var encounterRng = GenerationRandom.Create(generator.Seed, GenerationRandom.Monsters);

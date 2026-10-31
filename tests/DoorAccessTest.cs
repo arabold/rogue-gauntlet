@@ -184,7 +184,7 @@ public class DoorAccessTest
 	[TestCase]
 	public async Task GeneratedPairsAreReachableAndSecretsRestoreAsClosedDoors()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.AllProcedural());
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.GarrisonRooms());
 		var generator = level.MapGenerator;
 		TestFactories.WireLootScenes(generator);
 		generator.AccessProfile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);

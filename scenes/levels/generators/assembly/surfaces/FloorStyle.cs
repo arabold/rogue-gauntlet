@@ -41,8 +41,8 @@ public abstract partial class FloorStyle : Resource
 		return errors.ToArray();
 	}
 
-	/// <summary>Whether quarter tile (<paramref name="x"/>, <paramref name="z"/>) lies on a floor tile.</summary>
-	protected static bool IsFloorQuad(RoomFootprint footprint, int x, int z) => x >= 0 && z >= 0 && footprint.IsFloor(x / 2, z / 2);
+	/// <summary>Whether quarter tile (<paramref name="x"/>, <paramref name="z"/>) lies on a floor tile (not a pit).</summary>
+	protected static bool IsFloorQuad(RoomBlueprint room, int x, int z) => x >= 0 && z >= 0 && room.IsFloor(new(x / 2, z / 2));
 
 	public void Paint(RoomBlueprint room, RandomNumberGenerator rng)
 	{
@@ -54,7 +54,7 @@ public abstract partial class FloorStyle : Resource
 		foreach (var inlay in Inlays) PlaceInlay(room, inlay, quads, splits, covered, rng);
 		var planks = Materials.Distinct().ToDictionary(material => material, _ => rng.Randf() < .5f ? 0 : 16);
 		var grid = room.Room.FloorGridMap;
-		foreach (var tile in footprint.Tiles)
+		foreach (var tile in footprint.Tiles.Where(room.IsFloor))
 		{
 			var material = quads[tile.X * 2, tile.Y * 2];
 			var wear = new string[2, 2];
@@ -142,14 +142,14 @@ public abstract partial class FloorStyle : Resource
 			for (int x = area.Position.X; x < area.End.X; x++)
 			for (int z = area.Position.Y; z < area.End.Y; z++)
 			{
-				if (!IsFloorQuad(room.Footprint, x, z) || covered[x, z] || splits[x, z].Transition != null) return false;
+				if (!IsFloorQuad(room, x, z) || covered[x, z] || splits[x, z].Transition != null) return false;
 				if (inlay.Host != null && !FloorMaterial.Same(quads[x, z], inlay.Host)) return false;
 				var tile = new Vector2I(x / 2, z / 2);
 				if (room.Doorways.Any(doorway => doorway.Tile == tile)) return false;
 				// Quarter tiles touching void lie under the wall's trim; inlays side by side read as one botched piece.
 				for (int dx = -1; dx <= 1; dx++)
 				for (int dz = -1; dz <= 1; dz++)
-					if (!IsFloorQuad(room.Footprint, x + dx, z + dz) || covered[x + dx, z + dz]) return false;
+					if (!IsFloorQuad(room, x + dx, z + dz) || covered[x + dx, z + dz]) return false;
 			}
 			var rect = new Rect2(2 * area.Position.X - 2, 2 * area.Position.Y - 2, 2 * area.Size.X, 2 * area.Size.Y).Grow(-.05f);
 			return !room.Pieces.Any(piece => piece.Prop.Mount == PropMount.Floor && RoomBlueprint.XZ(piece.Envelope).Intersects(rect));

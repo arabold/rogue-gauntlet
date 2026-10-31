@@ -205,9 +205,7 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		// An assembled room (RoomAssembler) is a fresh `new Room` with no backing scene file; an authored room is instantiated from a
-		// PackedScene, which sets SceneFilePath on the instantiated root.
-		var region = new RoomRegion(Floor.Rooms.Count) { IsProcedural = string.IsNullOrEmpty(placement.Room.SceneFilePath), LayoutAxis = placement.Room.LayoutAxis };
+		var region = new RoomRegion(Floor.Rooms.Count) { LayoutAxis = placement.Room.LayoutAxis };
 		for (int lx = 0; lx < roomMap.Width; lx++)
 		{
 			for (int lz = 0; lz < roomMap.Height; lz++)
@@ -525,8 +523,9 @@ public partial class MapGenerator : Node3D
 			.FirstOrDefault(point => point.SpawnAfterTravelDirection == GameSession.LevelTravelDirection.Down);
 		Floor.Descent = nodes.OfType<LevelTransitionTrigger>()
 			.FirstOrDefault(trigger => trigger.Direction == GameSession.LevelTravelDirection.Down);
+		Floor.StairLandings = nodes.OfType<PlayerSpawnPoint>().Select(point => (point.Landing ?? point).GlobalPosition).ToList();
 		Floor.SpawnAnchors = nodes.Where(node => node is IProgressionAnchor || node.IsInGroup("stairs"))
-			.Select(node => node.GlobalPosition).ToList();
+			.Select(node => node.GlobalPosition).Concat(Floor.StairLandings).ToList();
 		if (Floor.Arrival == null)
 		{
 			GD.PrintErr("PlayerSpawnPoint not found in the scene.");
@@ -579,7 +578,7 @@ public partial class MapGenerator : Node3D
 
 		// Candidate selection uses map tiles and collision clearance, not navmesh paths.
 		// Keep the initial encounter baseline reproducible even in headless validation.
-		var candidates = Floor.OpenTileCandidates(proceduralRoomsOnly: false);
+		var candidates = Floor.OpenTileCandidates();
 		if (candidates.Count == 0)
 		{
 			GD.PrintErr("Cannot generate enemy spawn points: no valid map tiles found.");

@@ -13,7 +13,7 @@ public partial class MapGenerator
 	[Export] public ulong RunSeed { get; set; } = RunState.DefaultSeed;
 
 	/// <summary>
-	/// Places each fountain scheduled for this depth as a free-standing centerpiece of a procedural room, preferring
+	/// Places each fountain scheduled for this depth as a free-standing centerpiece of a room, preferring
 	/// tiles with no wall beside them. Fountains are solid props like chests and claim their spots before any loot.
 	/// Each kind has its own stream, so a fountain floor leaves the shared item stream's draws unchanged.
 	/// </summary>
@@ -30,7 +30,7 @@ public partial class MapGenerator
 			if (remaining.Count == 0) remaining = tiles.Select(tile => tile.Point).ToList();
 			if (remaining.Count == 0)
 			{
-				ReportNoLootCandidates($"the {kind.Id} fountain", "no free procedural room tiles found");
+				GD.PrintErr($"Cannot place the {kind.Id} fountain: no free room tiles found.");
 				continue;
 			}
 
@@ -46,7 +46,7 @@ public partial class MapGenerator
 			}
 
 			// A cramped floor is a normal outcome; the run simply holds one fewer fountain.
-			if (!placed) GD.Print($"Skipping the {kind.Id} fountain: no procedural room tile fits it.");
+			if (!placed) GD.Print($"Skipping the {kind.Id} fountain: no room tile fits it.");
 		}
 	}
 }
