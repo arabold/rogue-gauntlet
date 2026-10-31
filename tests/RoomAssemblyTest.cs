@@ -269,6 +269,22 @@ public class RoomAssemblyTest
 				var spawn = nodes.OfType<PlayerSpawnPoint>().Single();
 				AssertInt((int)spawn.SpawnAfterTravelDirection).IsEqual((int)arrival);
 				AssertInt((int)nodes.OfType<LevelTransitionTrigger>().Single().Direction).IsEqual((int)travel);
+				if (pitTiles == 0)
+				{
+					var stairs = spawn.GetParent<Node3D>();
+					var mesh = stairs.GetNode<MeshInstance3D>("stairs_long");
+					var visual = mesh.Transform * mesh.GetAabb();
+					var back = stairs.Transform * new Vector3(0, 0, visual.Position.Z);
+					bool touchesWall = blueprint.WallRuns.Any(run =>
+					{
+						float along = RoomBlueprint.AlongRun(run, back);
+						if (run.Inward.Dot(stairs.Basis.Z) < .99f || along < 0 || along >= run.LengthUnits) return false;
+						int index = Mathf.FloorToInt(along / Room.TileSize);
+						float gap = (back - run.LineStart).Dot(run.Inward) - blueprint.WallDepth(run.TileAt(index), run.Outward);
+						return Mathf.Abs(gap) < .02f;
+					});
+					AssertBool(touchesWall).OverrideFailureMessage($"{label}: up-stairs separated from their backing wall").IsTrue();
+				}
 				// The stairs scene sits directly under the room's Props node, which has no offset of its own.
 				var landing = spawn.GetParent<Node3D>().Transform * spawn.Landing.Position;
 				AssertBool(blueprint.IsReachable(RoomBlueprint.XZ(landing))).OverrideFailureMessage($"{label}: landing cut off").IsTrue();
@@ -288,6 +304,32 @@ public class RoomAssemblyTest
 				blueprint.Room.Free();
 			}
 		}
+	}
+
+	/// <summary>The pit is enclosed down its full shaft, with a clear opening only at the walk-on end.</summary>
+	[TestCase]
+	public void DownStairwellWallsSealThreeSidesAndLeaveTheLandingOpen()
+	{
+		var stairs = TestFactories.Load<PackedScene>("res://scenes/levels/stairs/stairs_down.tscn").Instantiate<Node3D>();
+		try
+		{
+			var walls = CollisionOutlines.FromGridMap(stairs.GetNode<GridMap>("Enclosure"), Transform3D.Identity).ToArray();
+			bool Covered(Vector3 point) => walls.Any(wall => point.Y >= wall.Bottom && point.Y <= wall.Top
+				&& Geometry2D.IsPointInPolygon(RoomBlueprint.XZ(point), wall.Polygon));
+			for (float y = -3.5f; y <= 1.5f; y++)
+			{
+				for (float z = -3.75f; z <= 3.75f; z += .5f)
+				{
+					AssertBool(Covered(new(-2, y, z))).OverrideFailureMessage($"Left stairwell wall gap at y={y}, z={z}").IsTrue();
+					AssertBool(Covered(new(2, y, z))).OverrideFailureMessage($"Right stairwell wall gap at y={y}, z={z}").IsTrue();
+				}
+				for (float x = -1.75f; x <= 1.75f; x += .5f)
+					AssertBool(Covered(new(x, y, -4))).OverrideFailureMessage($"Back stairwell wall gap at x={x}, y={y}").IsTrue();
+			}
+			for (float x = -1; x <= 1; x += .5f)
+				AssertBool(Covered(new(x, 1, 4))).OverrideFailureMessage($"Stairwell entrance blocked at x={x}").IsFalse();
+		}
+		finally { stairs.Free(); }
 	}
 
 	private static float PocketShare(RoomBlueprint blueprint)
