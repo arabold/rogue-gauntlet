@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/hearth_lit.tscn" id="2_hearth_lit"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "garrison.hearth"
+Scenes = [ExtResource("2_hearth_lit")]
+BackToWall = true
+Gap = 0.3
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

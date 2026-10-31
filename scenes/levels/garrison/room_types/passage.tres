@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=18 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -14,6 +14,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/barrel_stack.tres" id="12_barrel_stack"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/small_box.tres" id="13_small_box"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/crate.tres" id="14_crate"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/sconce.tres" id="15_sconce"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -26,7 +27,7 @@ metadata/_custom_type_script = ExtResource("2_RectangleSha")
 [sub_resource type="Resource" id="WallDecorStep_2"]
 script = ExtResource("8_WallDecorSte")
 Id = "torches"
-Content = [ExtResource("9_torch"), ExtResource("10_torch_unlit")]
+Content = [ExtResource("9_torch"), ExtResource("10_torch_unlit"), ExtResource("15_sconce")]
 MaximumCount = 2
 Spacing = 6.0
 metadata/_custom_type_script = ExtResource("8_WallDecorSte")

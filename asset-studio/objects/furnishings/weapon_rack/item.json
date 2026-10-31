@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "name": "Weapon Rack",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "weapon_rack"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2900,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 45,
+  "materials": {
+    "iron": {
+      "crease": 40
+    },
+    "steel": {
+      "crease": 40
+    },
+    "wood": {
+      "crease": 35
+    },
+    "wood_dark": {
+      "crease": 35
+    },
+    "wood_light": {
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/barracks/weapon_rack.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Room furnishing at KayKit dungeon scale: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+  }
+}

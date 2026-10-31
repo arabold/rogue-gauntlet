@@ -10,5 +10,7 @@ Library = ExtResource("2_DecorationMe")
 Items = ["barrel_small_stack"]
 BackToWall = true
 Gap = 0.1
+TurnJitter = 8.0
+ShiftJitter = 0.06
 Weight = 1.0
 metadata/_custom_type_script = ExtResource("1_Prop")

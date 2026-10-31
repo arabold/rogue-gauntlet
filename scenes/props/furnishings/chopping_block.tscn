@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-props/kitchen/chopping_block.glb" id="1_stump"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-legacy/axe_uncommon.gltf.glb" id="2_axe"]
+
+[node name="ChoppingBlock" type="Node3D"]
+
+[node name="Stump" parent="." instance=ExtResource("1_stump")]
+
+[node name="Axe" parent="." instance=ExtResource("2_axe")]
+position = Vector3(0.36, 1.55, 0)
+rotation_degrees = Vector3(0, 20, 125)
+scale = Vector3(1.4, 1.4, 1.4)

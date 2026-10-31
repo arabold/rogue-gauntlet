@@ -11,5 +11,7 @@ script = ExtResource("1_Prop")
 Id = "garrison.pot"
 Scenes = [ExtResource("2_potA.gltf"), ExtResource("3_potA_decorat"), ExtResource("4_potB.gltf"), ExtResource("5_potC.gltf")]
 Gap = 0.05
+TurnJitter = 30.0
+ShiftJitter = 0.08
 Weight = 1.0
 metadata/_custom_type_script = ExtResource("1_Prop")

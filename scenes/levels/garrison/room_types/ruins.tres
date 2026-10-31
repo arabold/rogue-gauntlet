@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=38 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=42 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/LShape.cs" id="2_LShape"]
@@ -26,6 +26,10 @@
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="24_WallDecorSte"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="25_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="26_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/statue_broken.tres" id="27_statue_broke"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/vase_broken.tres" id="28_vase_broken"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/fallen_beam.tres" id="29_fallen_beam"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/bone_pile.tres" id="30_bone_pile"]
 
 [sub_resource type="Resource" id="LShape_1"]
 script = ExtResource("2_LShape")
@@ -89,7 +93,7 @@ metadata/_custom_type_script = ExtResource("17_ScatterStep")
 [sub_resource type="Resource" id="ScatterStep_9"]
 script = ExtResource("17_ScatterStep")
 Id = "wreckage"
-Content = [ExtResource("19_broken_table"), ExtResource("20_bookcase_bro"), ExtResource("21_crate"), ExtResource("22_barrel_stack")]
+Content = [ExtResource("19_broken_table"), ExtResource("20_bookcase_bro"), ExtResource("21_crate"), ExtResource("22_barrel_stack"), ExtResource("27_statue_broke"), ExtResource("28_vase_broken"), ExtResource("29_fallen_beam")]
 MaximumCount = 3
 WallChance = 0.7
 metadata/_custom_type_script = ExtResource("17_ScatterStep")
@@ -97,7 +101,7 @@ metadata/_custom_type_script = ExtResource("17_ScatterStep")
 [sub_resource type="Resource" id="ScatterStep_10"]
 script = ExtResource("17_ScatterStep")
 Id = "debris"
-Content = [ExtResource("23_floor_debris")]
+Content = [ExtResource("23_floor_debris"), ExtResource("30_bone_pile")]
 MaximumCount = 4
 WallChance = 0.0
 metadata/_custom_type_script = ExtResource("17_ScatterStep")

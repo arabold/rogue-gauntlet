@@ -9,5 +9,7 @@ script = ExtResource("1_Prop")
 Id = "garrison.sack"
 Scenes = [ExtResource("2_lootSackA.gl"), ExtResource("3_lootSackB.gl")]
 Gap = 0.05
+TurnJitter = 30.0
+ShiftJitter = 0.1
 Weight = 1.0
 metadata/_custom_type_script = ExtResource("1_Prop")

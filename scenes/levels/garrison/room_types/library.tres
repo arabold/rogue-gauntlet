@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=25 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=31 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -19,6 +19,11 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="17_torch"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="18_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/wall_shelf.tres" id="19_wall_shelf"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/scroll_rack.tres" id="20_scroll_rack"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/globe.tres" id="21_globe"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/lectern.tres" id="22_lectern"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="23_ScatterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/sconce.tres" id="24_sconce"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -43,7 +48,7 @@ metadata/_custom_type_script = ExtResource("11_RowsStep")
 [sub_resource type="Resource" id="AlongWallsStep_3"]
 script = ExtResource("13_AlongWallsSt")
 Id = "wall_shelves"
-Content = [ExtResource("14_bookcase"), ExtResource("15_bookcase_bro")]
+Content = [ExtResource("14_bookcase"), ExtResource("15_bookcase_bro"), ExtResource("20_scroll_rack")]
 MinimumCount = 0
 MaximumCount = 4
 Sides = 2
@@ -62,9 +67,17 @@ metadata/_custom_type_script = ExtResource("16_WallDecorSte")
 [sub_resource type="Resource" id="WallDecorStep_5"]
 script = ExtResource("16_WallDecorSte")
 Id = "sconces"
-Content = [ExtResource("19_wall_shelf")]
+Content = [ExtResource("19_wall_shelf"), ExtResource("24_sconce")]
 MaximumCount = 2
 metadata/_custom_type_script = ExtResource("16_WallDecorSte")
+
+[sub_resource type="Resource" id="ScatterStep_6"]
+script = ExtResource("23_ScatterStep")
+Id = "study"
+Content = [ExtResource("21_globe"), ExtResource("22_lectern")]
+MaximumCount = 2
+WallChance = 0.4
+metadata/_custom_type_script = ExtResource("23_ScatterStep")
 
 [resource]
 script = ExtResource("1_RoomType")
@@ -77,5 +90,5 @@ DoorwayPlacement = 1
 Circulation = 1
 Walls = [ExtResource("3_shelved_wall"), ExtResource("4_stone_walls"), ExtResource("5_arched_walls"), ExtResource("6_windowed_wal")]
 Floors = [ExtResource("7_dark_wood_fl"), ExtResource("8_stone_border"), ExtResource("9_stone_floor"), ExtResource("10_decorated_fl")]
-Steps = [SubResource("RowsStep_2"), SubResource("AlongWallsStep_3"), SubResource("WallDecorStep_4"), SubResource("WallDecorStep_5")]
+Steps = [SubResource("RowsStep_2"), SubResource("AlongWallsStep_3"), SubResource("ScatterStep_6"), SubResource("WallDecorStep_4"), SubResource("WallDecorStep_5")]
 metadata/_custom_type_script = ExtResource("1_RoomType")
