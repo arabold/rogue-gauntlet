@@ -33,6 +33,8 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 	// The following states are used for animation
 	public bool IsDead => HealthComponent != null && HealthComponent.CurrentHealth <= 0;
 	public bool IsHit => MovementComponent?.IsPushed == true || ActionGate?.IsStaggered == true;
+	/// <summary>Drives the tree's Hit state: a knockback outside a stagger, since a stagger poses its own reaction.</summary>
+	public bool IsKnockedBack => MovementComponent?.IsKnockedBack == true;
 	public bool IsMoving => MovementComponent != null && MovementComponent.IsMoving;
 	public bool IsFalling => MovementComponent != null && MovementComponent.IsFalling;
 	public bool IsPerformingAction => (ActionGate != null && ActionGate.IsBusy) || (ActionManager != null && ActionManager.IsBusy) || (AttackController != null && AttackController.IsAttacking);

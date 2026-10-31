@@ -149,15 +149,16 @@ advance_expression = "!IsMoving"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_1rbd1"]
 advance_mode = 2
-advance_expression = "IsHit"
+advance_expression = "IsKnockedBack"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_hit"]
 advance_mode = 2
-advance_expression = "IsHit"
+advance_expression = "IsKnockedBack"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_h4auy"]
 switch_mode = 2
 advance_mode = 2
+advance_expression = "!IsKnockedBack"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_dqlug"]
 advance_mode = 2
