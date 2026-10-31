@@ -1,0 +1,74 @@
+{
+  "key": "weapons/warhammer_sledge",
+  "inputs": "f663920c1af555c21a6976121226f51763fd93bb9ae0a4bbb16b7da46049eecc",
+  "files": {
+    "warhammer_sledge.glb": "16fa8d2346a89625f10ab3c4c0afebd9c0fde7eca0603782dcbc7ad5f75a6761",
+    "lineup.png": "5a21b8ae149c1c3f27d411ee72cc370b5a297b518b9905d666f3c55e2c96576a"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 902,
+      "bounds": [
+        [
+          -0.4050000011920929,
+          -0.460263192653656,
+          -0.23999999463558197
+        ],
+        [
+          0.4050000011920929,
+          1.4700000286102295,
+          0.23999999463558197
+        ]
+      ],
+      "dimensions": [
+        0.8100000023841858,
+        1.9302632212638855,
+        0.47999998927116394
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.17662610690000968
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Warhammer Sledge",
+      "backend": "procedural",
+      "builder": "blunt",
+      "design": {
+        "kind": "sledge"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/warhammer/warhammer_sledge.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style weapon per objects/weapons/README.md, built from items/forge.py. Grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

@@ -7,7 +7,7 @@
 [node name="hammer_mallet" parent="." instance=ExtResource("1_glb")]
 
 [node name="TrailBase" type="Marker3D" parent="."]
-position = Vector3(-0.38400, 0.74800, 0)
+position = Vector3(-0.33000, 0.76000, 0)
 
 [node name="TrailTip" type="Marker3D" parent="."]
-position = Vector3(-0.38400, 1.07800, 0)
+position = Vector3(-0.33000, 1.00000, 0)

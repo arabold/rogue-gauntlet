@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/weapons/greatsword/broadsword_steel.glb" id="1_model"]
+
+[node name="BroadswordSteel" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="TrailBase" type="Marker3D" parent="."]
+position = Vector3(0.00000, 0.47000, 0)
+
+[node name="TrailTip" type="Marker3D" parent="."]
+position = Vector3(0.00000, 1.36000, 0)

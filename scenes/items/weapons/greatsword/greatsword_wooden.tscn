@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/weapons/greatsword/greatsword_wooden.glb" id="1_glb"]
+
+[node name="GreatswordWooden" type="Node3D"]
+
+[node name="greatsword_wooden" parent="." instance=ExtResource("1_glb")]
+
+[node name="TrailBase" type="Marker3D" parent="."]
+position = Vector3(0.00000, 0.55000, 0)
+
+[node name="TrailTip" type="Marker3D" parent="."]
+position = Vector3(0.00000, 1.60000, 0)

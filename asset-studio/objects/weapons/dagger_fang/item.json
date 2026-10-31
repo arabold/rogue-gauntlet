@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "name": "Dagger Fang",
+  "backend": "procedural",
+  "builder": "blade",
+  "design": {
+    "kind": "fang"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 5,
+    "texture_size": 1024
+  },
+  "colors": {
+    "gem": [
+      170,
+      80,
+      220
+    ],
+    "leather": [
+      62,
+      48,
+      58
+    ]
+  },
+  "export": {
+    "glb": "res://assets/custom-items/weapons/dagger/dagger_fang.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
+  }
+}

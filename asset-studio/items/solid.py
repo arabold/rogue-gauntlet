@@ -102,6 +102,15 @@ class Assembly:
                     raise ValueError(f"Invalid colored solid: {shape.status()}")
                 self.parts.append(shape)
                 return self
+        self.parts.append(self.label(shape, slot))
+        return self
+
+    def label(self, shape, slot):
+        """One slot-labelled solid from a closed piece or a manifold, not yet joined to the assembly.
+
+        Carve it first, then append it to `parts`: faces a boolean cut creates keep the cutter's own label.
+        """
+        if isinstance(shape, kit.Piece):
             p, f = welded(shape.verts, shape.faces)
             shape = mf.Manifold(mf.Mesh(np.asarray(p, np.float32), np.asarray(f, np.uint32)))
         if shape.status() != mf.Error.NoError or shape.is_empty():
@@ -111,8 +120,7 @@ class Assembly:
         if slot not in self.slots:
             self.slots.append(slot)
         index = self.slots.index(slot)
-        self.parts.append(shape.set_properties(1, lambda position, old, label=index: [label]))
-        return self
+        return shape.set_properties(1, lambda position, old, label=index: [label])
 
     def build_solid(self):
         """The labeled union with every cut applied, to `join` into another assembly that shares these slots."""
@@ -150,6 +158,12 @@ class Assembly:
         return kit.Piece(p, f, np.array(self.slots, dtype=object)[labels])
 
 
+def winding(points):
+    """The sign of a polygon's signed area: positive when its XY outline runs counter-clockwise."""
+    p = np.asarray(points, float)
+    return np.sign(np.sum(p[:, 0] * np.roll(p[:, 1], -1) - p[:, 1] * np.roll(p[:, 0], -1)))
+
+
 def box(size, center=(0, 0, 0), bevel=.015):
     """Chamfered solid box in project coordinates."""
     return kit.bevel_box(size, bevel, "base", center=center)
@@ -164,7 +178,7 @@ def lathe(profile, sides=12):
     """Closed radius/Y profile revolved around Y, with geometric rather than overlapping bands."""
     polygon = np.array([(0, profile[0][1]), *profile, (0, profile[-1][1])], float)
     # CrossSection uses positive winding; radius/Y silhouettes often arrive clockwise.
-    if np.sum(polygon[:, 0] * np.roll(polygon[:, 1], -1) - polygon[:, 1] * np.roll(polygon[:, 0], -1)) < 0:
+    if winding(polygon) < 0:
         polygon = polygon[::-1]
     return mf.Manifold.revolve(mf.CrossSection([polygon]), sides).rotate((-90, 0, 0))
 
@@ -172,18 +186,27 @@ def lathe(profile, sides=12):
 def polygon(points, thickness):
     """Solid extruded silhouette in XY, centered across Z."""
     points = np.asarray(points, float)
-    if np.sum(points[:, 0] * np.roll(points[:, 1], -1) - points[:, 1] * np.roll(points[:, 0], -1)) < 0:
+    if winding(points) < 0:
         points = points[::-1]
     return mf.Manifold.extrude(mf.CrossSection([points]), thickness).translate((0, 0, -thickness / 2))
 
 
-def loop(center, radii, thickness, sides=16):
-    """A real hollow loop in XY, closed around Z; usable for handles, keys, and rings."""
-    angles = np.arange(sides) * 2 * np.pi / sides
+def loop(center, radii, thickness, sides=16, depth=None, phase=0.):
+    """A real hollow loop in XY, closed around Z; usable for handles, keys, and rings.
+
+    `depth` (default `thickness`) is its extent along Z; `phase` turns its corners by a share of one side.
+    """
+    depth = thickness if depth is None else depth
+    angles = (np.arange(sides) + phase) * 2 * np.pi / sides
     outer = np.column_stack([np.cos(angles) * radii[0], np.sin(angles) * radii[1]])
     inner = np.column_stack([np.cos(angles) * (radii[0] - thickness), np.sin(angles) * (radii[1] - thickness)])
     section = mf.CrossSection([outer, inner[::-1]])
-    return mf.Manifold.extrude(section, thickness).translate((center[0], center[1], center[2] - thickness / 2))
+    return mf.Manifold.extrude(section, depth).translate((center[0], center[1], center[2] - depth / 2))
+
+
+def ellipsoid(center, radii, segments=12):
+    """A solid ellipsoid for knots, knuckles, stones and finials; it must overlap the part it grows from."""
+    return mf.Manifold.sphere(1, segments).scale(radii).translate(center)
 
 
 def fuse_closed(piece):

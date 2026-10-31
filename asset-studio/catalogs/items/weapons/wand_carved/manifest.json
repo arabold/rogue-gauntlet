@@ -1,29 +1,29 @@
 {
   "key": "weapons/wand_carved",
-  "inputs": "b579d16fc08d46376f8c8195ceaa0c9cfb5c3a95bd4d70187a484d8392a76b72",
+  "inputs": "acb6c7b6e50acb2313add4b0499c6833889b859f7447e40ccb6f22d96b2652f6",
   "files": {
-    "wand_carved.glb": "43434854cd8038b7db196dba5a93152104f3473c31d605e3f6fc659f81638d39",
-    "lineup.png": "1e98168dc3c71eb37184193355cb0173397bdd27b367c43b340313170ff4e218"
+    "wand_carved.glb": "dde76140d31df2458325be3b2ffab12c89b0991bf45b85b3ebe92e67cf007a7c",
+    "lineup.png": "69b145e8363dfccc7ea1630d7a5e961026aa05a8e5ec5c39fb2f45638daae4ab"
   },
   "metadata": {
     "report": {
-      "triangles": 840,
+      "triangles": 560,
       "bounds": [
         [
-          -0.06599999964237213,
-          -0.32999998331069946,
-          -0.06599999964237213
+          -0.07999999821186066,
+          -0.27000001072883606,
+          -0.07999999821186066
         ],
         [
-          0.06599999964237213,
-          0.9150000214576721,
-          0.06599999964237213
+          0.07999999821186066,
+          0.8600000143051147,
+          0.07999999821186066
         ]
       ],
       "dimensions": [
-        0.13199999928474426,
-        1.2450000047683716,
-        0.13199999928474426
+        0.1599999964237213,
+        1.1300000250339508,
+        0.1599999964237213
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.0065531290765488736
+        "signed_volume": 0.009122839357915536
       },
       "warnings": [],
       "errors": []
@@ -47,7 +47,7 @@
       "version": 1,
       "name": "Wand Carved",
       "backend": "procedural",
-      "builder": "arsenal",
+      "builder": "staff",
       "design": {
         "kind": "carved_wand"
       },
@@ -58,40 +58,16 @@
         "scale": 1
       },
       "budget": {
-        "triangles": 3500,
+        "triangles": 2400,
         "materials": 5,
         "texture_size": 1024
-      },
-      "colors": {
-        "ebony": [
-          96,
-          58,
-          42
-        ],
-        "silver": [
-          196,
-          204,
-          214
-        ]
-      },
-      "materials": {
-        "ebony": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        },
-        "silver": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        }
       },
       "export": {
         "glb": "res://assets/custom-items/weapons/wand/wand_carved.glb"
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Lathe-turned dark wood with a beaded handle, silver bands and a long fine taper. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+        "quality_notes": "KayKit-style weapon per objects/weapons/README.md, built from items/forge.py. Grip-centered origin. No gameplay data."
       }
     }
   }

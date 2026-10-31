@@ -2,7 +2,7 @@
   "version": 1,
   "name": "Halberd Steel",
   "backend": "procedural",
-  "builder": "arsenal",
+  "builder": "polearm",
   "design": {
     "kind": "halberd"
   },
@@ -13,89 +13,22 @@
     "scale": 1
   },
   "budget": {
-    "triangles": 3500,
+    "triangles": 2400,
     "materials": 5,
     "texture_size": 1024
   },
   "colors": {
-    "steel": [
-      134,
-      153,
-      166
-    ],
-    "edge": [
-      181,
-      194,
-      203
-    ],
-    "iron": [
-      65,
-      76,
-      83
-    ],
-    "wood": [
-      119,
-      78,
-      46
-    ],
-    "endgrain": [
-      148,
-      104,
-      62
-    ],
-    "leather": [
-      79,
-      47,
-      32
-    ],
-    "brass": [
-      165,
-      119,
-      48
+    "cloth": [
+      70,
+      110,
+      170
     ]
   },
-  "materials": {
-    "steel": {
-      "metallic": 0.55,
-      "roughness": 0.36,
-      "crease": 48
-    },
-    "edge": {
-      "metallic": 0.55,
-      "roughness": 0.36,
-      "crease": 48
-    },
-    "iron": {
-      "metallic": 0.55,
-      "roughness": 0.36,
-      "crease": 48
-    },
-    "brass": {
-      "metallic": 0.55,
-      "roughness": 0.36,
-      "crease": 48
-    },
-    "wood": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 55
-    },
-    "endgrain": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 55
-    },
-    "leather": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 55
-    }
-  },
   "export": {
-    "glb": "res://assets/custom-items/weapons/arsenal/halberd_steel.glb"
+    "glb": "res://assets/custom-items/weapons/polearm/halberd_steel.glb"
   },
   "provenance": {
     "kind": "studio_original",
-    "quality_notes": "Dedicated continuous blade/profile geometry, solid-unioned structural fittings, material color regions, grip-centered origin. No gameplay data."
+    "quality_notes": "KayKit-style weapon per objects/weapons/README.md, built from items/forge.py. Grip-centered origin. No gameplay data."
   }
 }

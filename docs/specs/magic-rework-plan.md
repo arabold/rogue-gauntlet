@@ -92,5 +92,5 @@ Each slice runs `dotnet build "Rogue Gauntlet.sln"`, focused GdUnit4 suites with
 - **Quality and level:** whether Rare quality adds a spell level; the plan keeps level purely tied to tier.
 - **Pool weighting:** uniform across all 20, or weighted by realm theme once realms have elements.
 - **Mana sources:** regeneration only for now; a mana potion and mana affixes are follow-ups.
-- **Item models:** every wand and staff has its own model; a tier never renames another tier's model. The crooked, iron, bone, scholar's and horned designs come from the Studio's `arsenal` builder; more can join any tier the same way. Each shows its spell's element as a colored aura (see [world effects](../world-effects.md)).
+- **Item models:** every wand and staff has its own model; a tier never renames another tier's model. The crooked, iron, bone, scholar's and horned designs come from the Studio's `staff` builder; more can join any tier the same way. Each shows its spell's element as a colored aura (see [world effects](../world-effects.md)).
 - **Monster casters:** no current monster casts; giving monsters `SpellCastAction` comes with a caster monster.

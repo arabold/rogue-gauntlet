@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/weapons/mace/morning_star_iron.glb" id="1_model"]
+
+[node name="MorningStarIron" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="TrailBase" type="Marker3D" parent="."]
+position = Vector3(-0.30000, 0.80000, 0)
+
+[node name="TrailTip" type="Marker3D" parent="."]
+position = Vector3(-0.30000, 1.08000, 0)

@@ -2,13 +2,13 @@
 
 [ext_resource type="Script" path="res://scenes/components/LootTable.cs" id="table"]
 [ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/club_steel.tres" id="weapon_0"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/rapier_steel.tres" id="weapon_1"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/saber_steel.tres" id="weapon_2"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/arsenal/spear_steel.tres" id="weapon_3"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/club/club_steel.tres" id="weapon_0"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/sword/rapier_steel.tres" id="weapon_1"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/sword/saber_steel.tres" id="weapon_2"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/polearm/spear_steel.tres" id="weapon_3"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/axe_uncommon.tres" id="weapon_4"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/battleaxe/battleaxe_iron.tres" id="weapon_5"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/broadsword/broadsword_iron.tres" id="weapon_6"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/greatsword/claymore_iron.tres" id="weapon_6"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_spiked.tres" id="weapon_7"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/dagger_uncommon.tres" id="weapon_8"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/hammer_common.tres" id="weapon_9"]
@@ -16,7 +16,7 @@
 [ext_resource type="Resource" path="res://scenes/items/weapons/staff_skeleton.tres" id="weapon_11"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/staff_uncommon.tres" id="weapon_15"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/sword_common.tres" id="weapon_17"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/warhammer/warhammer_iron.tres" id="weapon_18"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/warhammer/warhammer_sledge.tres" id="weapon_18"]
 
 [sub_resource type="Resource" id="Entry_0"]
 script = ExtResource("entry")

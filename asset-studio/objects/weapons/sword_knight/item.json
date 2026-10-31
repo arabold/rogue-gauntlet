@@ -1,99 +1,34 @@
 {
   "version": 1,
   "name": "Sword Knight",
-  "backend": "source",
+  "backend": "procedural",
+  "builder": "blade",
+  "design": {
+    "kind": "knight"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
     "scale": 1
   },
   "budget": {
     "triangles": 2400,
-    "materials": 8,
-    "texture_size": 2048
+    "materials": 5,
+    "texture_size": 1024
+  },
+  "colors": {
+    "leather": [
+      150,
+      92,
+      62
+    ]
   },
   "export": {
     "glb": "res://assets/custom-items/weapons/sword/sword_knight.glb"
   },
   "provenance": {
-    "kind": "original_geometry_character_surface",
-    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
-    "original_path": "assets/custom-items/weapons/sword/sword_knight.glb",
-    "source_sha256": "73d6638992d85a5db782c155ccaa6a035501894a2bc4f46c08b62c51b252ff7b",
-    "original_triangles": 524,
-    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
-  },
-  "colors": {
-    "iron_dark_iron": [
-      74,
-      81,
-      85
-    ],
-    "metal_silver": [
-      212,
-      219,
-      222
-    ],
-    "metal_steel": [
-      129,
-      140,
-      145
-    ],
-    "leather_wood": [
-      155,
-      90,
-      69
-    ],
-    "leather_copper": [
-      177,
-      111,
-      82
-    ]
-  },
-  "materials": {
-    "iron_dark_iron": {
-      "metallic": 0.35,
-      "roughness": 0.6,
-      "crease": 48.0,
-      "double_sided": true
-    },
-    "metal_silver": {
-      "metallic": 0.5,
-      "roughness": 0.3,
-      "crease": 45.0,
-      "double_sided": true
-    },
-    "metal_steel": {
-      "metallic": 0.5,
-      "roughness": 0.3,
-      "crease": 45.0,
-      "double_sided": true
-    },
-    "leather_wood": {
-      "metallic": 0.0,
-      "roughness": 0.85,
-      "crease": 50.0,
-      "double_sided": true
-    },
-    "leather_copper": {
-      "metallic": 0.0,
-      "roughness": 0.85,
-      "crease": 50.0,
-      "double_sided": true
-    }
-  },
-  "color_mode": "character",
-  "source": "source.glb",
-  "topology": "authored_assembly",
-  "surface": {
-    "palette": "studio_grid",
-    "slots": {
-      "dark_iron": "iron_dark_iron",
-      "silver": "metal_silver",
-      "steel": "metal_steel",
-      "wood": "leather_wood",
-      "copper": "leather_copper"
-    },
-    "repair": "boundaries"
-  },
-  "crease": 50
+    "kind": "studio_original",
+    "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
+  }
 }

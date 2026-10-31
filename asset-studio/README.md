@@ -10,7 +10,7 @@ The studio owns **3D art only**. Damage, stats, equipment rules, item identities
 
 ## Current catalogs and folder policy
 
-Start at **[catalogs/items/README.md](catalogs/items/README.md)** for every recreated item, category sheets, individual Godot lineups and current validation/export status. [catalogs/items/overview.png](catalogs/items/overview.png) shows the complete catalog. Reusable prefab catalogs live separately in [catalogs/prefabs/](catalogs/prefabs/README.md).
+Start at **[catalogs/items/README.md](catalogs/items/README.md)** for every recreated item, category sheets, individual Godot lineups and current validation/export status. [catalogs/items/overview.png](catalogs/items/overview.png) shows the complete catalog. Reusable prefab catalogs live separately in [catalogs/prefabs/](catalogs/prefabs/README.md). Weapons follow the KayKit-matched [weapon style guide](objects/weapons/README.md).
 
 | Location | Keep |
 | --- | --- |
@@ -279,11 +279,9 @@ The `steak` builder demonstrates this: one closed exterior surface, with fat, me
 ./.venv/bin/python asset-studio/studio.py item new food/steak_variant --backend procedural --builder steak
 ```
 
-### Additional weapon designs
+### Weapons
 
-The `arsenal` procedural builder contains dedicated designs for `wooden_club`, `steel_club`, `morning_star`, `short_dagger`, `saber`, `rapier`, `executioner`, `greatsword`, `broadsword`, `scythe`, `halberd`, `spear` and eight wands and staves. These use continuous profiled grips, beveled diamond-section blades, curved guards, ferrules and solid-unioned structural details. A morning star is the rigid spiked-mace design. The rapier has a swept knuckle guard and pierced ring; the scythe has a crescent blade and two side grips. Spell foci follow the same rules: `crooked_wand`, `iron_wand`, `bone_wand` and `carved_wand` are about one unit long, `crooked_staff`, `iron_staff`, `bone_staff` and `horned_staff` about two, all element-neutral so the game's element aura colors them. Color regions represent wood, bark, ebony, leather, bone, horn, steel, iron, silver, honed edges, brass and a pale moonstone.
-
-Recipes live under `objects/weapons/`, using `"builder": "arsenal"` and an explicit `"design": {"kind": "saber"}`. Each model is authored around a grip-centered origin, carries a 3,500-triangle budget and uses the shared character surface model. The long sword has a two-hand grip; mannequin previews use a static right-hand mount for scale, without posing the second hand. Exported art contains no equipment rules or gameplay resources. Review the current [weapons catalog](catalogs/items/weapons.png) and individual lineups from the [catalog index](catalogs/items/README.md).
+Every catalog weapon is a procedural recipe under `objects/weapons/` built by one of the KayKit-style weapon families (`axe`, `blade`, `blunt`, `polearm`, `staff`, `ranged`) with an explicit `"design": {"kind": ...}`. The [weapon style guide](objects/weapons/README.md) holds the rules, reference proportions, shared palette and construction. Exported art contains no equipment rules or gameplay resources. Review the current [weapons catalog](catalogs/items/weapons.png) and individual lineups from the [catalog index](catalogs/items/README.md).
 
 ### Room furnishings
 

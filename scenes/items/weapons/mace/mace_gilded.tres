@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=7 format=3]
+
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_1h.tres" id="melee_contact"]
+[ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/mace/mace_gilded.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_script"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
+[ext_resource type="Resource" path="res://scenes/attacks/combos/blunt_1h.tres" id="primary_combo"]
+
+[resource]
+script = ExtResource("2_script")
+MeleeContact = ExtResource("melee_contact")
+PrimaryCombo = ExtResource("primary_combo")
+AttackStyle = &"blunt.1h.chop"
+Grip = ExtResource("weapon_grip")
+Tier = 5
+RequiredStrength = 21
+DamageMin = 14.0
+DamageMax = 26.0
+CritChance = 0.0
+IsTwoHanded = false
+Delay = 0.0
+PerformDuration = 0.42
+CooldownDuration = 0.0
+ValidSlots = 256
+RollTable = ExtResource("roll_table")
+Name = "Gilded Paladin Mace"
+Scene = ExtResource("1_scene")
+Value = 200
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_script")

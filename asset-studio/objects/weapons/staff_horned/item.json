@@ -2,7 +2,7 @@
   "version": 1,
   "name": "Staff Horned",
   "backend": "procedural",
-  "builder": "arsenal",
+  "builder": "staff",
   "design": {
     "kind": "horned_staff"
   },
@@ -13,59 +13,15 @@
     "scale": 1
   },
   "budget": {
-    "triangles": 3500,
+    "triangles": 2400,
     "materials": 5,
     "texture_size": 1024
-  },
-  "colors": {
-    "brass": [
-      165,
-      119,
-      48
-    ],
-    "horn": [
-      170,
-      140,
-      104
-    ],
-    "leather": [
-      79,
-      47,
-      32
-    ],
-    "wood": [
-      119,
-      78,
-      46
-    ]
-  },
-  "materials": {
-    "brass": {
-      "metallic": 0.55,
-      "roughness": 0.36,
-      "crease": 48
-    },
-    "horn": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 55
-    },
-    "leather": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 55
-    },
-    "wood": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 55
-    }
   },
   "export": {
     "glb": "res://assets/custom-items/weapons/staff/staff_horned.glb"
   },
   "provenance": {
     "kind": "studio_original",
-    "quality_notes": "Wooden staff with a carved head and two ridged ram horns curling outward. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+    "quality_notes": "KayKit-style weapon per objects/weapons/README.md, built from items/forge.py. Grip-centered origin. No gameplay data."
   }
 }

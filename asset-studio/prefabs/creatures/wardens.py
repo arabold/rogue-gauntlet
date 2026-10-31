@@ -7,7 +7,7 @@ from core.rig import Rig,_quat_matrix
 from prefabs.anatomy import bodies
 from prefabs.anatomy.bodies import Limb
 from prefabs.outfits import costumes,pauldrons,armor,crowns
-from items import solid,arsenal,shieldcraft
+from items import solid,forge,executioner,shieldcraft
 
 COLORS={'armor':[94,103,119],'armor_dark':[36,41,51],'trim':[178,142,77],
         'rivet':[189,156,93],'gem':[139,41,43],'cloth':[109,43,44],
@@ -61,7 +61,7 @@ def helmet():
     """Closed beveled helm shell with actual visor/vent apertures and backed glowing eyes."""
     def shell(rx,rz,lo,hi):
         angles=np.arange(12)*2*np.pi/12
-        return arsenal.loft([np.column_stack([rx*np.cos(angles),np.full(12,y),rz*np.sin(angles)])
+        return forge.loft([np.column_stack([rx*np.cos(angles),np.full(12,y),rz*np.sin(angles)])
                              for y in (lo,hi)],'armor')
     a=solid.Assembly().add(shell(.68,.58,2.94,4.03))
     a.add(shell(.60,.50,2.91,3.95),'armor_dark');a.parts=[a.parts[0]-a.parts[1]]
@@ -124,7 +124,7 @@ def neck():
     angles=np.arange(12)*2*np.pi/12
     rings=[np.column_stack([rx*np.cos(angles),np.full(12,y),rz*np.sin(angles)])
            for y,rx,rz in [(2.48,.32,.29),(2.70,.29,.27),(2.92,.25,.24),(3.18,.245,.235)]]
-    piece=arsenal.loft(rings,'mail')
+    piece=forge.loft(rings,'mail')
     head=np.clip((piece.verts[:,1]-2.65)/.42,0,1)
     piece.skin_weights={'chest':1-head,'head':head}
     return bound(piece,'head')
@@ -175,7 +175,7 @@ def build(rig=None,recipe=None):
         foot=bodies.foot('boot',2.1,'armor','sole')
         foot=foot.moved(kit.Frame(rig.joint('foot.'+side),(-1,0,0),(0,-1,0),(0,0,1)))
         parts['Boot.'+side]=bound(foot,'foot.'+side)
-    parts['ExecutionerSword']=attach(arsenal.arsenal({'kind':'executioner'}),rig,'sword','ExecutionerSword')
+    parts['ExecutionerSword']=attach(executioner.executioner_sword(),rig,'sword','ExecutionerSword')
     fit=recipe.get('shield_fit',{'yaw':-12.,'standoff':.27,'fold_degrees':12.})
     shield=shieldcraft.shieldcraft({'kind':'heroic_sun','details':False,'fold_degrees':fit['fold_degrees']})
     gem=kit.gem(.16,'gem',cut='oval',depth=.055)
