@@ -1,0 +1,179 @@
+{
+  "key": "weapons/longblade_crescent",
+  "inputs": "3737bca5f8f30a0c14732a2e6a20b48f9c5263b0634cd561cb1f72ebaa87ca5a",
+  "files": {
+    "longblade_crescent.glb": "0558d4b9fe0001049c9465a04f6640bd0f36db260830a04684958e0541752264",
+    "lineup.png": "bae1b6e0ae4b42c5834b2a113c41faabe8b8ded1d2373c48ca8add28fa593d95"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 856,
+      "bounds": [
+        [
+          -0.3475579023361206,
+          -0.5485297441482544,
+          -0.0637187510728836
+        ],
+        [
+          0.3475579023361206,
+          2.0399999618530273,
+          0.0637187510728836
+        ]
+      ],
+      "dimensions": [
+        0.6951158046722412,
+        2.5885297060012817,
+        0.1274375021457672
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.023534013398243157
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Longblade Crescent",
+      "backend": "procedural",
+      "builder": "blade",
+      "design": {
+        "kind": "crescent"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "edge": [
+          166,
+          180,
+          192
+        ],
+        "iron": [
+          118,
+          128,
+          138
+        ],
+        "leather": [
+          150,
+          92,
+          62
+        ],
+        "steel": [
+          150,
+          164,
+          176
+        ],
+        "wrap": [
+          222,
+          206,
+          176
+        ]
+      },
+      "materials": {
+        "edge": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              188,
+              200,
+              210
+            ],
+            [
+              112,
+              122,
+              132
+            ],
+            [
+              166,
+              180,
+              192
+            ]
+          ]
+        },
+        "iron": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              146,
+              156,
+              166
+            ],
+            [
+              70,
+              78,
+              86
+            ],
+            [
+              118,
+              128,
+              138
+            ]
+          ]
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
+        },
+        "steel": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              176,
+              188,
+              198
+            ],
+            [
+              92,
+              102,
+              112
+            ],
+            [
+              150,
+              164,
+              176
+            ]
+          ]
+        },
+        "wrap": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/broadsword/longblade_crescent.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

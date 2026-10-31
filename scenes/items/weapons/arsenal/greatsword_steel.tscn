@@ -10,4 +10,4 @@
 position = Vector3(0.00000, 0.68000, 0)
 
 [node name="TrailTip" type="Marker3D" parent="."]
-position = Vector3(0.00000, 1.96000, 0)
+position = Vector3(0.00000, 1.94000, 0)

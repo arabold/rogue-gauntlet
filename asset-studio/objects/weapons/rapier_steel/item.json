@@ -2,7 +2,7 @@
   "version": 1,
   "name": "Rapier Steel",
   "backend": "procedural",
-  "builder": "arsenal",
+  "builder": "blade",
   "design": {
     "kind": "rapier"
   },
@@ -13,82 +13,113 @@
     "scale": 1
   },
   "budget": {
-    "triangles": 3500,
+    "triangles": 2400,
     "materials": 5,
     "texture_size": 1024
   },
   "colors": {
-    "steel": [
-      134,
-      153,
-      166
+    "brass": [
+      200,
+      146,
+      70
     ],
     "edge": [
-      181,
-      194,
-      203
-    ],
-    "iron": [
-      65,
-      76,
-      83
-    ],
-    "wood": [
-      119,
-      78,
-      46
-    ],
-    "endgrain": [
-      148,
-      104,
-      62
+      166,
+      180,
+      192
     ],
     "leather": [
-      79,
-      47,
-      32
+      150,
+      92,
+      62
     ],
-    "brass": [
-      165,
-      119,
-      48
+    "steel": [
+      150,
+      164,
+      176
+    ],
+    "wrap": [
+      222,
+      206,
+      176
     ]
   },
   "materials": {
-    "steel": {
-      "metallic": 0.55,
-      "roughness": 0.36,
-      "crease": 48
+    "brass": {
+      "metallic": 0.1,
+      "roughness": 0.55,
+      "crease": 45,
+      "ramp": [
+        [
+          226,
+          180,
+          104
+        ],
+        [
+          132,
+          88,
+          40
+        ],
+        [
+          200,
+          146,
+          70
+        ]
+      ]
     },
     "edge": {
-      "metallic": 0.55,
-      "roughness": 0.36,
-      "crease": 48
-    },
-    "iron": {
-      "metallic": 0.55,
-      "roughness": 0.36,
-      "crease": 48
-    },
-    "brass": {
-      "metallic": 0.55,
-      "roughness": 0.36,
-      "crease": 48
-    },
-    "wood": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 55
-    },
-    "endgrain": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 55
+      "metallic": 0.1,
+      "roughness": 0.55,
+      "crease": 45,
+      "ramp": [
+        [
+          188,
+          200,
+          210
+        ],
+        [
+          112,
+          122,
+          132
+        ],
+        [
+          166,
+          180,
+          192
+        ]
+      ]
     },
     "leather": {
       "metallic": 0,
       "roughness": 0.9,
-      "crease": 55
+      "crease": 50
+    },
+    "steel": {
+      "metallic": 0.1,
+      "roughness": 0.55,
+      "crease": 45,
+      "ramp": [
+        [
+          176,
+          188,
+          198
+        ],
+        [
+          92,
+          102,
+          112
+        ],
+        [
+          150,
+          164,
+          176
+        ]
+      ]
+    },
+    "wrap": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 50
     }
   },
   "export": {
@@ -96,6 +127,6 @@
   },
   "provenance": {
     "kind": "studio_original",
-    "quality_notes": "Dedicated continuous blade/profile geometry, solid-unioned structural fittings, material color regions, grip-centered origin. No gameplay data."
+    "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
   }
 }

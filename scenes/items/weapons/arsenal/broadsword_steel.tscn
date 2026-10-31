@@ -7,7 +7,7 @@
 [node name="Model" parent="." instance=ExtResource("1_model")]
 
 [node name="TrailBase" type="Marker3D" parent="."]
-position = Vector3(0.00000, 0.47260, 0)
+position = Vector3(0.00000, 0.47000, 0)
 
 [node name="TrailTip" type="Marker3D" parent="."]
-position = Vector3(0.00000, 1.36220, 0)
+position = Vector3(0.00000, 1.36000, 0)

@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d4l3prksqdklb"
-path="res://.godot/imported/broadsword_gilded_dungeon_texture.png-49258d0fe61d445b33cd4cd37df5b6ad.ctex"
+uid="uid://cenjxo6ohf5eo"
+path="res://.godot/imported/greatblade_curved_surface_palette.png-869ea81d5b995adeef7664e35b38df19.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "33c924802a36c4f3415e10bb6940e832"
+"md5": "8a789ce6540e80c1efdceba3f22606a0"
 }
 
 [deps]
 
-source_file="res://assets/custom-items/weapons/broadsword/broadsword_gilded_dungeon_texture.png"
-dest_files=["res://.godot/imported/broadsword_gilded_dungeon_texture.png-49258d0fe61d445b33cd4cd37df5b6ad.ctex"]
+source_file="res://assets/custom-items/weapons/broadsword/greatblade_curved_surface_palette.png"
+dest_files=["res://.godot/imported/greatblade_curved_surface_palette.png-869ea81d5b995adeef7664e35b38df19.ctex"]
 
 [params]
 

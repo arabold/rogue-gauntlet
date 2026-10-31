@@ -7,13 +7,13 @@ Color regions describe materials, not baked lighting or decorative mesh shells.
 import numpy as np
 import manifold3d as mf
 from core import kit
-from items.solid import Assembly, lathe, tube, polygon, loop, box
+from items.solid import Assembly, lathe, tube, polygon, box
 from prefabs import library
 
 WANDS = ('crooked_wand', 'iron_wand', 'bone_wand', 'carved_wand')
 STAVES = ('crooked_staff', 'iron_staff', 'bone_staff', 'horned_staff')
-KINDS = ('wooden_club', 'steel_club', 'morning_star', 'short_dagger', 'saber',
-         'rapier', 'executioner', 'greatsword', 'broadsword', 'scythe', 'halberd', 'spear') + WANDS + STAVES
+# Swords and daggers moved to items.blades; the executioner blade stays for the Forsaken Warden boss.
+KINDS = ('wooden_club', 'steel_club', 'morning_star', 'executioner', 'scythe', 'halberd', 'spear') + WANDS + STAVES
 COLORS = {'steel': [134, 153, 166], 'edge': [181, 194, 203], 'iron': [65, 76, 83],
           'wood': [119, 78, 46], 'endgrain': [148, 104, 62], 'leather': [79, 47, 32],
           'brass': [165, 119, 48], 'bark': [92, 62, 40], 'ebony': [96, 58, 42],
@@ -159,39 +159,8 @@ def club(kind):
 
 def sword(kind):
     a=Assembly()
-    if kind=='executioner':
-        grip(a,-.36,.22,.075);pommel(a,-.43,.11,'brass');guard(a,.47,.28,.025,'brass')
-        stations=[(0,.25,.21,.065),(0,.44,.30,.070),(0,2.38,.30,.060),(0,2.50,.23,.045)]
-    elif kind=='greatsword':
-        grip(a,-.34,.19,.051);pommel(a,-.395,.086)
-        guard(a,.34,.25,.07)
-        stations=[(0,.22,.075,.035),(0,.40,.083,.037),(0,.52,.115,.036),
-                  (0,1.55,.093,.028),(0,1.88,.048,.018),(0,2.00,.0018,.002)]
-    elif kind=='broadsword':
-        grip(a);pommel(a)
-        guard(a,.25,.23,-.035)
-        stations=[(0,.20,.105,.035),(0,.34,.135,.038),(0,1.01,.125,.030),
-                  (0,1.25,.075,.023),(0,1.39,.002,.002)]
-    elif kind=='short_dagger':
-        grip(a,-.15,.11,.040);pommel(a,-.197,.056)
-        guard(a,.145,.15,.025)
-        stations=[(0,.13,.063,.025),(0,.24,.075,.028),(0,.52,.049,.019),(0,.69,.0018,.0018)]
-    elif kind=='rapier':
-        grip(a,-.18,.13,.041);pommel(a,-.225,.067,'brass')
-        guard(a,.21,.20,.015,'brass')
-        # Pierced swept basket, anchored at both guard and pommel.
-        a.add(kit.sweep([(0,-.20,0),(.17,-.12,.015),(.21,.04,.015),(.17,.18,0),(.07,.22,0)],
-                       kit.ring_profile(.022,.022,8),'brass'),'brass')
-        a.add(loop((0,0,0),(.15,.10),.022,20).rotate((65,0,0)).translate((0,.21,0)), 'brass')
-        stations=[(0,.18,.055,.025),(0,.31,.042,.021),(0,1.18,.025,.014),(0,1.51,.0015,.0015)]
-    else:
-        grip(a,-.18,.14,.043);pommel(a,-.22,.062,'brass')
-        guard(a,.18,.20,-.025,'brass')
-        a.add(kit.sweep([(.15,.19,0),(.20,.07,0),(.18,-.13,0),(.06,-.22,0),(0,-.22,0)],
-                       kit.ring_profile(.024,.026,8),'brass'),'brass')
-        stations=[(0,.18,.065,.030),(0,.34,.071,.030),(.025,.68,.074,.027),
-                  (.095,1.00,.072,.025),(.19,1.24,.055,.021),(.26,1.40,.002,.002)]
-    a.add(blade(stations))
+    grip(a,-.36,.22,.075);pommel(a,-.43,.11,'brass');guard(a,.47,.28,.025,'brass')
+    a.add(blade([(0,.25,.21,.065),(0,.44,.30,.070),(0,2.38,.30,.060),(0,2.50,.23,.045)]))
     return a.build()
 
 

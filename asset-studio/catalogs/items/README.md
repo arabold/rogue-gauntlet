@@ -1,6 +1,6 @@
 # Item catalogs
 
-Current catalog: **161 items**, using the shared character shading pipeline.
+Current catalog: **164 items**, using the shared character shading pipeline.
 
 [Complete visual overview](overview.png) · [Current validation and export status](status.json)
 
@@ -14,11 +14,11 @@ Current catalog: **161 items**, using the shared character shading pipeline.
 | Scrolls | 12 | [View scrolls](scrolls.png) |
 | Shields | 13 | [View shields](shields.png) |
 | Tools | 12 | [View tools](tools.png) |
-| Weapons | 38 | [View weapons](weapons.png) |
+| Weapons | 41 | [View weapons](weapons.png) |
 
 Each published item has a final GLB, fingerprint manifest and `lineup.png` in its category/name folder: front, three-quarter, side and gameplay-scale views.
 
-Godot-verified current exports: **3/161**. Authored-surface exceptions still flagged for geometry review: **13**. These exceptions are preserved original surfaces, not clean closed-mesh certifications.
+Godot-verified current exports: **17/164**. Authored-surface exceptions still flagged for geometry review: **7**. These exceptions are preserved original surfaces, not clean closed-mesh certifications.
 
 Regenerate these catalogs from published outputs with `./.venv/bin/python asset-studio/studio.py item catalog`. Use `item lineup` to render candidates in OS temporary storage, inspect them, then `item publish` to finalize. Rendering never updates this catalog. Changed sources set `source_current: false` until reviewed again.
 
@@ -186,10 +186,13 @@ Regenerate these catalogs from published outputs with `./.venv/bin/python asset-
 - [dagger_kukri](weapons/dagger_kukri/lineup.png)
 - [dagger_nightblade](weapons/dagger_nightblade/lineup.png)
 - [dagger_short](weapons/dagger_short/lineup.png)
+- [greatblade_curved](weapons/greatblade_curved/lineup.png)
 - [greatsword_steel](weapons/greatsword_steel/lineup.png)
+- [greatsword_wooden](weapons/greatsword_wooden/lineup.png)
 - [halberd_steel](weapons/halberd_steel/lineup.png)
 - [hammer_gilded](weapons/hammer_gilded/lineup.png)
 - [hammer_mallet](weapons/hammer_mallet/lineup.png)
+- [longblade_crescent](weapons/longblade_crescent/lineup.png)
 - [morning_star_iron](weapons/morning_star_iron/lineup.png)
 - [rapier_steel](weapons/rapier_steel/lineup.png)
 - [saber_steel](weapons/saber_steel/lineup.png)

@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cqjwh4n1aieaq"
-path="res://.godot/imported/dagger_kukri_dungeon_texture.png-af58462926b78bbde603026aed3370f4.ctex"
+uid="uid://bghwtwm0s61oq"
+path="res://.godot/imported/longblade_crescent_surface_palette.png-b5de9c18ad0347c113b1cd427316c1eb.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "33c924802a36c4f3415e10bb6940e832"
+"md5": "9f3cc5881011bd27bfa304212dbb664b"
 }
 
 [deps]
 
-source_file="res://assets/custom-items/weapons/dagger/dagger_kukri_dungeon_texture.png"
-dest_files=["res://.godot/imported/dagger_kukri_dungeon_texture.png-af58462926b78bbde603026aed3370f4.ctex"]
+source_file="res://assets/custom-items/weapons/broadsword/longblade_crescent_surface_palette.png"
+dest_files=["res://.godot/imported/longblade_crescent_surface_palette.png-b5de9c18ad0347c113b1cd427316c1eb.ctex"]
 
 [params]
 

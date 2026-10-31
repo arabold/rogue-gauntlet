@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cau7so14xkg6e"
-path="res://.godot/imported/sword_sunblade_dungeon_texture.png-3e2874dab08f6fd73c8c00d6605e2505.ctex"
+uid="uid://bybah532u16k8"
+path="res://.godot/imported/greatsword_wooden_surface_palette.png-3325e691a89b89560a48d93faf32e36d.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "33c924802a36c4f3415e10bb6940e832"
+"md5": "f760d89724cb8c4f1779037af6bbe58d"
 }
 
 [deps]
 
-source_file="res://assets/custom-items/weapons/sword/sword_sunblade_dungeon_texture.png"
-dest_files=["res://.godot/imported/sword_sunblade_dungeon_texture.png-3e2874dab08f6fd73c8c00d6605e2505.ctex"]
+source_file="res://assets/custom-items/weapons/broadsword/greatsword_wooden_surface_palette.png"
+dest_files=["res://.godot/imported/greatsword_wooden_surface_palette.png-3325e691a89b89560a48d93faf32e36d.ctex"]
 
 [params]
 

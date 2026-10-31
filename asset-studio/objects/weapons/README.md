@@ -1,6 +1,6 @@
 # Weapon style guide
 
-Weapons match the modern KayKit packs the characters come from: Adventurers (`assets/kaykit-adventurers/axe_1handed.fbx`, `axe_2handed.fbx`, `sword_*.fbx`, `dagger.fbx`, `staff.fbx`, `wand.fbx`, `crossbow_*.fbx`) and Skeletons (`assets/kaykit-skeletons/Skeleton_Axe.gltf`, `Skeleton_Blade`, `Skeleton_Staff`, `Skeleton_Crossbow`). The older `kaykit-dungeon-legacy` set only illustrates tier conventions. Compare new work against these references in Godot at the same scale before review.
+Weapons match the modern KayKit packs the characters come from: Adventurers (`assets/kaykit-adventurers/axe_1handed.fbx`, `axe_2handed.fbx`, `sword_*.fbx`, `dagger.fbx`, `staff.fbx`, `wand.fbx`, `crossbow_*.fbx`) and Skeletons (`assets/kaykit-skeletons/Skeleton_Axe.gltf`, `Skeleton_Blade`, `Skeleton_Staff`, `Skeleton_Crossbow`). The older `kaykit-dungeon-legacy` set only illustrates tier conventions. KayKit's paid *Fantasy Weapons Bits* pack is a style reference only: never import, trace or redistribute its models. Compare new work against these references in Godot at the same scale before review.
 
 All dimensions are metres. The origin is the hand grip and +Y runs along the weapon. One-handed axe blades point to -X.
 
@@ -11,6 +11,9 @@ All dimensions are metres. The origin is the hand grip and +Y runs along the wea
 | `axe_1handed` | 1.24 | 0.10–0.14 | 0.69 | 0.09, 0.18 at the socket |
 | `axe_2handed` | 1.72 | 0.16 | 1.24 | 0.15, 0.26 at the socket |
 | `Skeleton_Axe` | 1.25 | 0.15 with straps | 0.99 | 0.13 |
+| `sword_1handed` | 1.78 | 0.11–0.13 | 0.50 guard | 0.07–0.10 |
+| `sword_2handed` | 2.37 | 0.11 | 0.84 guard | 0.10–0.13 |
+| `dagger` | 1.21 | 0.10 | 0.26 | 0.08–0.09 |
 
 KayKit grips are about 8–10% of a weapon's length. Our pre-guide axes, polearms and staffs were about half of that.
 
@@ -27,6 +30,8 @@ KayKit grips are about 8–10% of a weapon's length. Our pre-guide axes, polearm
 - A cutting edge is a broad flat bevel, 0.08–0.12 wide, down to a thin edge, one step lighter (`edge`). Other edges stay square at full thickness.
 - The socket is a chunky chamfered block, and the haft's end shows above it.
 - Ornament is a raised plate on the cheek, gems, or one chunky carved motif. No inset panels, outline frames, trim strips or decorative spikes.
+- Sword and dagger blades are thick slabs too, at least 0.05 at mid-length. A flat center with bevels on both edges meets in a ridge at an angular point. Narrow thrusting blades are bevelled across their whole width into a center ridge. Curved blades carry their edge on the convex side, with a square spine.
+- Guards and pommels are chunky blocks and faceted discs, not plates. Use straight bars with cut ends, wings or horns swept toward the blade, drooping crescents, or ring pommels. Long two-handed grips carry several cream cloth wraps.
 - Detail thinner than about 0.02 disappears at the game camera. Avoid wire guards, thin rings and fine grooves.
 
 ## Aging
@@ -43,4 +48,6 @@ KayKit grips are about 8–10% of a weapon's length. Our pre-guide axes, polearm
 
 ## Construction
 
-`items/axes.py` builds the axes from this vocabulary: the bent octagonal haft, chunky bands, wedge-shaped bevelled bits and chip wear. Recipes choose a `kind`; each kind authors wear to suit its tier. Metal slots pass an explicit `ramp` (light, shadow, base) in their recipe materials, because the default metal ramp washes up-facing bevels to white. The other weapons predate this guide and still need rebuilding against it.
+`items/forge.py` holds the shared vocabulary: octagonal hafts and grips, bands, bevelled `Blade` slabs with chip wear, chamfered plates, discs, rings and gems. `items/axes.py` (builder `axe`) and `items/blades.py` (builder `blade`, swords and daggers) compose weapons from it. Recipes choose a `kind`, and each kind authors its wear to suit its tier. Metal and glass slots pass an explicit `ramp` (light, shadow, base) in their recipe materials, because the default metal ramp washes up-facing bevels to white.
+
+Axes, swords and daggers follow this guide. Blunt weapons, polearms, staffs, wands and the crossbow predate it and still need rebuilding.

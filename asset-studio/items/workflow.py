@@ -426,7 +426,7 @@ class Item:
             paths.extend(library.find_prefab_path(part["mesh"]) for part in data["parts"])
         if data["backend"] in ("procedural", "prefab"):
             paths.append(PALETTE)
-            paths.extend(STUDIO / "items" / name for name in ["designs.py", "builders.py", "solid.py", "bread.py", "arsenal.py", "axes.py", "shieldcraft.py"])
+            paths.extend(STUDIO / "items" / name for name in ["designs.py", "builders.py", "solid.py", "bread.py", "arsenal.py", "forge.py", "axes.py", "blades.py", "shieldcraft.py"])
             if data.get("builder") == "fountain":
                 paths.extend(STUDIO / name for name in ["items/fountains.py", "core/kit.py"])
             if data.get("builder") == "shieldcraft":

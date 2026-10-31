@@ -1,18 +1,12 @@
 {
-  "items": 161,
-  "godot_verified_exports": 3,
+  "items": 164,
+  "godot_verified_exports": 17,
   "authored_surface_exceptions": [
     "food/drink_beer_stein",
     "keys/key_bronze_ornate",
-    "weapons/broadsword_gilded",
-    "weapons/broadsword_iron",
-    "weapons/dagger_kukri",
-    "weapons/dagger_nightblade",
     "weapons/hammer_gilded",
     "weapons/hammer_mallet",
     "weapons/staff_emerald",
-    "weapons/sword_knight",
-    "weapons/sword_sunblade",
     "weapons/warhammer_iron",
     "weapons/warhammer_spiked"
   ],
@@ -4251,7 +4245,7 @@
     {
       "key": "weapons/axe_bearded",
       "source_current": true,
-      "inputs": "935fc5e44c29a260b958d929d93523399a8c1bb3dfa5381269d2b25d94c9b157",
+      "inputs": "aba25e530f6a5f73def64190e72290df0a2e5863cf9e737c7f0b6a5f69e16976",
       "triangles": 700,
       "materials": 2,
       "source": null,
@@ -4273,7 +4267,7 @@
     {
       "key": "weapons/axe_executioner",
       "source_current": true,
-      "inputs": "7d658e498bfaa7e25851ac751a25757abbccda62d812344685aa5445eca9baeb",
+      "inputs": "997d1b0d65b6d8924e062fb7205c3b15720bb84dee281a1f1489cfb775bbdede",
       "triangles": 748,
       "materials": 3,
       "source": null,
@@ -4295,7 +4289,7 @@
     {
       "key": "weapons/battleaxe_gilded",
       "source_current": true,
-      "inputs": "873a616d3bb82e3ecb540d086b259686780e1a5f0caabde57b56db625ee2cc74",
+      "inputs": "d2ebe7a4b4775bbc93ce9f2565c533452d602d332e2a680cae9346b3b41361fb",
       "triangles": 1280,
       "materials": 4,
       "source": null,
@@ -4311,13 +4305,13 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/battleaxe/battleaxe_gilded.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/battleaxe_gilded/lineup.png"
     },
     {
       "key": "weapons/battleaxe_iron",
       "source_current": true,
-      "inputs": "e11b758a915e69f2866b9e96a7db0acea2f8e8077da079c7780fb837d2aae267",
+      "inputs": "aff17d4bd04d8646c4069d390b691d1d38e375bb65b2572b107069a1f87459e3",
       "triangles": 930,
       "materials": 2,
       "source": null,
@@ -4338,79 +4332,31 @@
     },
     {
       "key": "weapons/broadsword_gilded",
-      "source_current": false,
-      "inputs": "1db8b163bc57ce357c07bf4a5a14639fac566e6a6723a8f523905d37039f7065",
-      "triangles": 536,
+      "source_current": true,
+      "inputs": "b5451e0b89bd2c54958be20f0f6b002b971d1065363e520df6241f08d67a8a7a",
+      "triangles": 672,
       "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "crimson": "surface_crimson",
-          "gold": "gold_gold",
-          "wood": "leather_wood",
-          "silver": "metal_silver",
-          "steel": "metal_steel"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 9,
-        "boundary_edges": 42,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.06553934063007535
+        "signed_volume": 0.059156675696867174
       },
-      "warnings": [
-        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/broadsword/broadsword_gilded.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/broadsword_gilded/lineup.png"
     },
     {
       "key": "weapons/broadsword_iron",
-      "source_current": false,
-      "inputs": "7818886e9111919f89a19c74c80d4a59c813bdc6bfce96db18fa3db4d80ec493",
-      "triangles": 536,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "dark_iron": "iron_dark_iron",
-          "silver": "metal_silver",
-          "steel": "metal_steel",
-          "wood": "leather_wood",
-          "copper": "leather_copper"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
-      "topology": {
-        "components": 9,
-        "boundary_edges": 42,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.06520248304201304
-      },
-      "warnings": [
-        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
-      "export": "res://assets/custom-items/weapons/broadsword/broadsword_iron.glb",
-      "export_verified": false,
-      "lineup": "weapons/broadsword_iron/lineup.png"
-    },
-    {
-      "key": "weapons/broadsword_steel",
-      "source_current": false,
-      "inputs": "92738f65ca2a373da7c8392c48117cfc7e5f6a2f255b04e143ec64854c504809",
-      "triangles": 1420,
+      "source_current": true,
+      "inputs": "a457043f8cc749f32a51b4fa1135d81a334c460e0d91c9e32fc9fe9498afbe13",
+      "triangles": 642,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4421,11 +4367,33 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.01829176106066739
+        "signed_volume": 0.05416904246238569
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/broadsword/broadsword_iron.glb",
+      "export_verified": true,
+      "lineup": "weapons/broadsword_iron/lineup.png"
+    },
+    {
+      "key": "weapons/broadsword_steel",
+      "source_current": true,
+      "inputs": "c4966c04046c85e48a723deda0c5d02e7c6dcc043b6d4739de37316c7d5ac72e",
+      "triangles": 532,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03155362007062082
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/broadsword_steel.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/broadsword_steel/lineup.png"
     },
     {
@@ -4510,79 +4478,53 @@
     },
     {
       "key": "weapons/dagger_kukri",
-      "source_current": false,
-      "inputs": "9dcc562ddc340393d363677d29f0161f5d7bdb8c2bf323467aa647aa71fdd66b",
-      "triangles": 534,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "dark_iron": "iron_dark_iron",
-          "silver": "metal_silver",
-          "steel": "metal_steel",
-          "wood": "leather_wood",
-          "copper": "leather_copper"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source_current": true,
+      "inputs": "8c18f4943a63cf772e2df96d8842314619ba68252ec1e927e7008bbf35f7878c",
+      "triangles": 360,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 10,
-        "boundary_edges": 48,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.011530452718079379
+        "signed_volume": 0.012495029240051641
       },
-      "warnings": [
-        "10 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 48 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/dagger/dagger_kukri.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/dagger_kukri/lineup.png"
     },
     {
       "key": "weapons/dagger_nightblade",
-      "source_current": false,
-      "inputs": "651e49855db898b782577d5188f8be9d7fe6bf2607a6e5d8df6d1cf23e0a3ffe",
-      "triangles": 534,
-      "materials": 4,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "crimson": "surface_crimson",
-          "gold": "gold_gold",
-          "bark": "leather_bark",
-          "blue_steel": "metal_blue_steel",
-          "dark_iron": "iron_dark_iron"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source_current": true,
+      "inputs": "e39eda6a56fe1dee55a47daea53d197caedf9b0cb98a1fa184514549babb0f89",
+      "triangles": 540,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 10,
-        "boundary_edges": 48,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.010825615656402103
+        "signed_volume": 0.012409617233731731
       },
-      "warnings": [
-        "10 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 48 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/dagger/dagger_nightblade.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/dagger_nightblade/lineup.png"
     },
     {
       "key": "weapons/dagger_short",
-      "source_current": false,
-      "inputs": "047a62ac92b2d20b0e172a1012eb7bf71e9bfd333f8b069137260fe7d7ee64d4",
-      "triangles": 1348,
+      "source_current": true,
+      "inputs": "a3206e046c21ea14800ab7edd2414d02dd9ccad6e1881dc15c729706ef4d90dc",
+      "triangles": 358,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4593,18 +4535,18 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.0054212289472577065
+        "signed_volume": 0.0061178409436339065
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/dagger_short.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/dagger_short/lineup.png"
     },
     {
-      "key": "weapons/greatsword_steel",
-      "source_current": false,
-      "inputs": "3f5b869606500c194b17f8d0e21ea39ccf6af477faa8aa5d2d279227be1d7a29",
-      "triangles": 1376,
+      "key": "weapons/greatblade_curved",
+      "source_current": true,
+      "inputs": "08cc130e07711b681b8d2ee4484108d6cb4d58146572077b8cea77feb9718841",
+      "triangles": 664,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4615,12 +4557,56 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.023690561845629145
+        "signed_volume": 0.022107826480808234
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/broadsword/greatblade_curved.glb",
+      "export_verified": false,
+      "lineup": "weapons/greatblade_curved/lineup.png"
+    },
+    {
+      "key": "weapons/greatsword_steel",
+      "source_current": true,
+      "inputs": "24a00c091696c24bd0ae33ee5e89976b7b23be80fa85122f53e9762d0ab4bbd6",
+      "triangles": 724,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.04822930967372583
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/greatsword_steel.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/greatsword_steel/lineup.png"
+    },
+    {
+      "key": "weapons/greatsword_wooden",
+      "source_current": true,
+      "inputs": "7d43409cfa4eb1b12f32843a1cd407e6bc98baddfa8d8a56b63d2799a245cff3",
+      "triangles": 548,
+      "materials": 1,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03413664661775483
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/broadsword/greatsword_wooden.glb",
+      "export_verified": true,
+      "lineup": "weapons/greatsword_wooden/lineup.png"
     },
     {
       "key": "weapons/halberd_steel",
@@ -4714,6 +4700,28 @@
       "lineup": "weapons/hammer_mallet/lineup.png"
     },
     {
+      "key": "weapons/longblade_crescent",
+      "source_current": true,
+      "inputs": "3737bca5f8f30a0c14732a2e6a20b48f9c5263b0634cd561cb1f72ebaa87ca5a",
+      "triangles": 856,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.023534013398243157
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/broadsword/longblade_crescent.glb",
+      "export_verified": true,
+      "lineup": "weapons/longblade_crescent/lineup.png"
+    },
+    {
       "key": "weapons/morning_star_iron",
       "source_current": false,
       "inputs": "3a1294e824cbeb467e8b6ee6b2db38894e37580e4be52703087678fece5808d8",
@@ -4737,9 +4745,9 @@
     },
     {
       "key": "weapons/rapier_steel",
-      "source_current": false,
-      "inputs": "6f0ec84831da5b6add9498d4bfe9277719e251de0216a0f6d02408af01b76530",
-      "triangles": 1750,
+      "source_current": true,
+      "inputs": "71216c0eb64a9511ac05757dc0f050bde5d895ad62fabadad791d261b6561bca",
+      "triangles": 650,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4750,18 +4758,18 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.007771656510575871
+        "signed_volume": 0.009636030379552655
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/rapier_steel.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/rapier_steel/lineup.png"
     },
     {
       "key": "weapons/saber_steel",
-      "source_current": false,
-      "inputs": "683b4f1ec849545c1cb3faf92903d96bd3173aa8f896e3d224b4afd433da35c1",
-      "triangles": 1542,
+      "source_current": true,
+      "inputs": "c2b311f0cd346b5a4677dd14a31d661d6671531cce029348f4b0f4bee151f5c0",
+      "triangles": 568,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4772,11 +4780,11 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.011241736454912728
+        "signed_volume": 0.013675361134279312
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/arsenal/saber_steel.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/saber_steel/lineup.png"
     },
     {
@@ -4984,71 +4992,46 @@
     },
     {
       "key": "weapons/sword_knight",
-      "source_current": false,
-      "inputs": "b38db852a384bb14261c3e037888693d42db159321bc1ab82cbf460054a1465f",
-      "triangles": 536,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "dark_iron": "iron_dark_iron",
-          "silver": "metal_silver",
-          "steel": "metal_steel",
-          "wood": "leather_wood",
-          "copper": "leather_copper"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source_current": true,
+      "inputs": "d3270016bbbd02d3581911c7ceee7e0db0256cde845ad275a53ac1cbcf457659",
+      "triangles": 490,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 9,
-        "boundary_edges": 42,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.02631478754037205
+        "signed_volume": 0.028962308997544522
       },
-      "warnings": [
-        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/sword/sword_knight.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/sword_knight/lineup.png"
     },
     {
       "key": "weapons/sword_sunblade",
-      "source_current": false,
-      "inputs": "5130f0ebf770ccaf736bf1fa9feea4e7a83c0867ce10148fadedae5ce32642ba",
-      "triangles": 536,
+      "source_current": true,
+      "inputs": "83c2866b5715193d3cb4237cb88c60dc214d8d7018c38ac3c659840446c93182",
+      "triangles": 680,
       "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "crimson": "surface_crimson",
-          "gold": "gold_gold",
-          "wood": "leather_wood",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 9,
-        "boundary_edges": 42,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.02631478769972163
+        "signed_volume": 0.0314175910943434
       },
-      "warnings": [
-        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/sword/sword_sunblade.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/sword_sunblade/lineup.png"
     },
     {

@@ -1,16 +1,53 @@
 {
   "key": "weapons/broadsword_steel",
-  "inputs": "92738f65ca2a373da7c8392c48117cfc7e5f6a2f255b04e143ec64854c504809",
+  "inputs": "c4966c04046c85e48a723deda0c5d02e7c6dcc043b6d4739de37316c7d5ac72e",
   "files": {
-    "broadsword_steel.glb": "7efd71de499a86b15c8433572de51a416d0d816ceaa1ca9d3745caaa12db58cd",
-    "lineup.png": "279794e526261aadd9efb3d57d66c69c98f2496c691c3b499f1c1d9d49da5733"
+    "broadsword_steel.glb": "e381943214503d66117d4c96dc0709af0f3fea1a4ebdd2dcb249fa8d5fabd79b",
+    "lineup.png": "ec22a8580707021d5d7b0cb13e5d1f3dc461d8168be569399e5d3899abf842b8"
   },
   "metadata": {
+    "report": {
+      "triangles": 532,
+      "bounds": [
+        [
+          -0.33000001311302185,
+          -0.39314916729927063,
+          -0.06599999964237213
+        ],
+        [
+          0.33000001311302185,
+          1.4199999570846558,
+          0.06599999964237213
+        ]
+      ],
+      "dimensions": [
+        0.6600000262260437,
+        1.8131491243839264,
+        0.13199999928474426
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03155362007062082
+      },
+      "warnings": [],
+      "errors": []
+    },
     "recipe": {
       "version": 1,
       "name": "Broadsword Steel",
       "backend": "procedural",
-      "builder": "arsenal",
+      "builder": "blade",
       "design": {
         "kind": "broadsword"
       },
@@ -26,77 +63,108 @@
         "texture_size": 1024
       },
       "colors": {
-        "steel": [
-          134,
-          153,
-          166
-        ],
         "edge": [
-          181,
-          194,
-          203
+          166,
+          180,
+          192
         ],
         "iron": [
-          65,
-          76,
-          83
-        ],
-        "wood": [
-          119,
-          78,
-          46
-        ],
-        "endgrain": [
-          148,
-          104,
-          62
+          118,
+          128,
+          138
         ],
         "leather": [
-          79,
-          47,
-          32
+          150,
+          92,
+          62
         ],
-        "brass": [
-          165,
-          119,
-          48
+        "steel": [
+          150,
+          164,
+          176
+        ],
+        "wrap": [
+          222,
+          206,
+          176
         ]
       },
       "materials": {
-        "steel": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
         "edge": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              188,
+              200,
+              210
+            ],
+            [
+              112,
+              122,
+              132
+            ],
+            [
+              166,
+              180,
+              192
+            ]
+          ]
         },
         "iron": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
-        "brass": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
-        "wood": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        },
-        "endgrain": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              146,
+              156,
+              166
+            ],
+            [
+              70,
+              78,
+              86
+            ],
+            [
+              118,
+              128,
+              138
+            ]
+          ]
         },
         "leather": {
           "metallic": 0,
           "roughness": 0.9,
-          "crease": 55
+          "crease": 50
+        },
+        "steel": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              176,
+              188,
+              198
+            ],
+            [
+              92,
+              102,
+              112
+            ],
+            [
+              150,
+              164,
+              176
+            ]
+          ]
+        },
+        "wrap": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
         }
       },
       "export": {
@@ -104,46 +172,8 @@
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Dedicated continuous blade/profile geometry, solid-unioned structural fittings, material color regions, grip-centered origin. No gameplay data."
+        "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
       }
-    },
-    "report": {
-      "triangles": 1420,
-      "bounds": [
-        [
-          -0.290800005197525,
-          -0.27015000581741333,
-          -0.0729999989271164
-        ],
-        [
-          0.290800005197525,
-          1.3899999856948853,
-          0.0729999989271164
-        ]
-      ],
-      "dimensions": [
-        0.58160001039505,
-        1.6601499915122986,
-        0.1459999978542328
-      ],
-      "materials": 2,
-      "textures": [
-        [
-          128,
-          256
-        ]
-      ],
-      "topology": {
-        "components": 1,
-        "boundary_edges": 0,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.01829176106066739
-      },
-      "warnings": [],
-      "errors": []
     }
-  },
-  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+  }
 }

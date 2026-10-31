@@ -1,0 +1,179 @@
+{
+  "key": "weapons/greatblade_curved",
+  "inputs": "08cc130e07711b681b8d2ee4484108d6cb4d58146572077b8cea77feb9718841",
+  "files": {
+    "greatblade_curved.glb": "f85c5e714d4498aed0f4d1272f3ff40d6827c37364dacc19c35596368cd68489",
+    "lineup.png": "24d0e3e6bfd471a240ef9ed7a8d16630b72f715e6774722ccf181d990475c0c7"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 664,
+      "bounds": [
+        [
+          -0.1234000027179718,
+          -0.4449999928474426,
+          -0.1234000027179718
+        ],
+        [
+          0.25,
+          2.0799999237060547,
+          0.1234000027179718
+        ]
+      ],
+      "dimensions": [
+        0.3734000027179718,
+        2.5249999165534973,
+        0.2468000054359436
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.022107826480808234
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Greatblade Curved",
+      "backend": "procedural",
+      "builder": "blade",
+      "design": {
+        "kind": "curved_great"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "cloth": [
+          58,
+          78,
+          120
+        ],
+        "edge": [
+          166,
+          180,
+          192
+        ],
+        "iron": [
+          118,
+          128,
+          138
+        ],
+        "steel": [
+          150,
+          164,
+          176
+        ],
+        "wrap": [
+          222,
+          206,
+          176
+        ]
+      },
+      "materials": {
+        "cloth": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
+        },
+        "edge": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              188,
+              200,
+              210
+            ],
+            [
+              112,
+              122,
+              132
+            ],
+            [
+              166,
+              180,
+              192
+            ]
+          ]
+        },
+        "iron": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              146,
+              156,
+              166
+            ],
+            [
+              70,
+              78,
+              86
+            ],
+            [
+              118,
+              128,
+              138
+            ]
+          ]
+        },
+        "steel": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              176,
+              188,
+              198
+            ],
+            [
+              92,
+              102,
+              112
+            ],
+            [
+              150,
+              164,
+              176
+            ]
+          ]
+        },
+        "wrap": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/broadsword/greatblade_curved.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

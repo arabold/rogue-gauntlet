@@ -1,16 +1,53 @@
 {
   "key": "weapons/greatsword_steel",
-  "inputs": "3f5b869606500c194b17f8d0e21ea39ccf6af477faa8aa5d2d279227be1d7a29",
+  "inputs": "24a00c091696c24bd0ae33ee5e89976b7b23be80fa85122f53e9762d0ab4bbd6",
   "files": {
-    "greatsword_steel.glb": "d452948ece3b6a374cde5b3e11ee8eb686335486ab81fb0768648dac1fef0ecf",
-    "lineup.png": "cfeeedeff733f5f83edd3bc7acb6c6bbd6c78146737cb14c4d5d999f74dbd4b5"
+    "greatsword_steel.glb": "27e13832cfccd8e9b238306749aa008a31fd788286e028fcbe07d24725dba9f2",
+    "lineup.png": "be6355709d4ad70c1051f73eef203b871252a5b6935f06b5e9b5961974bd33cb"
   },
   "metadata": {
+    "report": {
+      "triangles": 724,
+      "bounds": [
+        [
+          -0.4446715712547302,
+          -0.5423879623413086,
+          -0.0666390061378479
+        ],
+        [
+          0.4446715712547302,
+          2.0,
+          0.0666390061378479
+        ]
+      ],
+      "dimensions": [
+        0.8893431425094604,
+        2.5423879623413086,
+        0.1332780122756958
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.04822930967372583
+      },
+      "warnings": [],
+      "errors": []
+    },
     "recipe": {
       "version": 1,
       "name": "Greatsword Steel",
       "backend": "procedural",
-      "builder": "arsenal",
+      "builder": "blade",
       "design": {
         "kind": "greatsword"
       },
@@ -26,77 +63,108 @@
         "texture_size": 1024
       },
       "colors": {
-        "steel": [
-          134,
-          153,
-          166
-        ],
         "edge": [
-          181,
-          194,
-          203
+          166,
+          180,
+          192
         ],
         "iron": [
-          65,
-          76,
-          83
-        ],
-        "wood": [
-          119,
-          78,
-          46
-        ],
-        "endgrain": [
-          148,
-          104,
-          62
+          118,
+          128,
+          138
         ],
         "leather": [
-          79,
-          47,
-          32
+          150,
+          92,
+          62
         ],
-        "brass": [
-          165,
-          119,
-          48
+        "steel": [
+          150,
+          164,
+          176
+        ],
+        "wrap": [
+          222,
+          206,
+          176
         ]
       },
       "materials": {
-        "steel": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
         "edge": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              188,
+              200,
+              210
+            ],
+            [
+              112,
+              122,
+              132
+            ],
+            [
+              166,
+              180,
+              192
+            ]
+          ]
         },
         "iron": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
-        "brass": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
-        "wood": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        },
-        "endgrain": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              146,
+              156,
+              166
+            ],
+            [
+              70,
+              78,
+              86
+            ],
+            [
+              118,
+              128,
+              138
+            ]
+          ]
         },
         "leather": {
           "metallic": 0,
           "roughness": 0.9,
-          "crease": 55
+          "crease": 50
+        },
+        "steel": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              176,
+              188,
+              198
+            ],
+            [
+              92,
+              102,
+              112
+            ],
+            [
+              150,
+              164,
+              176
+            ]
+          ]
+        },
+        "wrap": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
         }
       },
       "export": {
@@ -104,46 +172,8 @@
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Dedicated continuous blade/profile geometry, solid-unioned structural fittings, material color regions, grip-centered origin. No gameplay data."
+        "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
       }
-    },
-    "report": {
-      "triangles": 1376,
-      "bounds": [
-        [
-          -0.3808000087738037,
-          -0.4422999918460846,
-          -0.0860000029206276
-        ],
-        [
-          0.3808000087738037,
-          2.0,
-          0.0860000029206276
-        ]
-      ],
-      "dimensions": [
-        0.7616000175476074,
-        2.4422999918460846,
-        0.1720000058412552
-      ],
-      "materials": 2,
-      "textures": [
-        [
-          128,
-          256
-        ]
-      ],
-      "topology": {
-        "components": 1,
-        "boundary_edges": 0,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.023690561845629145
-      },
-      "warnings": [],
-      "errors": []
     }
-  },
-  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+  }
 }

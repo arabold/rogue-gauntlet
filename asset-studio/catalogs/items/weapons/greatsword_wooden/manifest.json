@@ -1,0 +1,118 @@
+{
+  "key": "weapons/greatsword_wooden",
+  "inputs": "7d43409cfa4eb1b12f32843a1cd407e6bc98baddfa8d8a56b63d2799a245cff3",
+  "files": {
+    "greatsword_wooden.glb": "469e88119231ac450b27ecfe1b2de312c312342b9dee432607f39503d4e62946",
+    "lineup.png": "2f6a6b60eab026c9443288c364be5ca5be3b7cddfd204536ceea52ae22935b19"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 548,
+      "bounds": [
+        [
+          -0.27000001072883606,
+          -0.49314916133880615,
+          -0.07000000029802322
+        ],
+        [
+          0.27000001072883606,
+          1.659999966621399,
+          0.07000000029802322
+        ]
+      ],
+      "dimensions": [
+        0.5400000214576721,
+        2.153149127960205,
+        0.14000000059604645
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03413664661775483
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Greatsword Wooden",
+      "backend": "procedural",
+      "builder": "blade",
+      "design": {
+        "kind": "practice"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "birch": [
+          214,
+          174,
+          120
+        ],
+        "leather": [
+          150,
+          92,
+          62
+        ],
+        "wood": [
+          150,
+          96,
+          60
+        ],
+        "wrap": [
+          222,
+          206,
+          176
+        ]
+      },
+      "materials": {
+        "birch": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
+        },
+        "wood": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
+        },
+        "wrap": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/broadsword/greatsword_wooden.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

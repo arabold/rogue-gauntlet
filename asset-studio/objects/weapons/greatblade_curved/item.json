@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "name": "Greatblade Curved",
+  "backend": "procedural",
+  "builder": "blade",
+  "design": {
+    "kind": "curved_great"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 3500,
+    "materials": 5,
+    "texture_size": 1024
+  },
+  "colors": {
+    "cloth": [
+      58,
+      78,
+      120
+    ],
+    "edge": [
+      166,
+      180,
+      192
+    ],
+    "iron": [
+      118,
+      128,
+      138
+    ],
+    "steel": [
+      150,
+      164,
+      176
+    ],
+    "wrap": [
+      222,
+      206,
+      176
+    ]
+  },
+  "materials": {
+    "cloth": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 50
+    },
+    "edge": {
+      "metallic": 0.1,
+      "roughness": 0.55,
+      "crease": 45,
+      "ramp": [
+        [
+          188,
+          200,
+          210
+        ],
+        [
+          112,
+          122,
+          132
+        ],
+        [
+          166,
+          180,
+          192
+        ]
+      ]
+    },
+    "iron": {
+      "metallic": 0.1,
+      "roughness": 0.55,
+      "crease": 45,
+      "ramp": [
+        [
+          146,
+          156,
+          166
+        ],
+        [
+          70,
+          78,
+          86
+        ],
+        [
+          118,
+          128,
+          138
+        ]
+      ]
+    },
+    "steel": {
+      "metallic": 0.1,
+      "roughness": 0.55,
+      "crease": 45,
+      "ramp": [
+        [
+          176,
+          188,
+          198
+        ],
+        [
+          92,
+          102,
+          112
+        ],
+        [
+          150,
+          164,
+          176
+        ]
+      ]
+    },
+    "wrap": {
+      "metallic": 0,
+      "roughness": 0.9,
+      "crease": 50
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-items/weapons/broadsword/greatblade_curved.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
+  }
+}

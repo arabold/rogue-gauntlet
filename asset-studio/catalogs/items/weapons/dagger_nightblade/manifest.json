@@ -1,130 +1,31 @@
 {
   "key": "weapons/dagger_nightblade",
-  "inputs": "651e49855db898b782577d5188f8be9d7fe6bf2607a6e5d8df6d1cf23e0a3ffe",
+  "inputs": "e39eda6a56fe1dee55a47daea53d197caedf9b0cb98a1fa184514549babb0f89",
   "files": {
-    "dagger_nightblade.glb": "730959912c256385751aa56f45f32cfaee7f0b7946e331f77959d901527e4e95",
-    "lineup.png": "cc49cc4635f808458fce5488031858587c441f50ed0ec57441747d05fb374a03"
+    "dagger_nightblade.glb": "6792a65f06087a862e21290a25067ac5289b0119f4a366e85f6ed075a1b01092",
+    "lineup.png": "8cacaf789b20f48ad319bac67d90885d4e0ffd5cf79c91230aef6d4e70c182d9"
   },
   "metadata": {
-    "recipe": {
-      "version": 1,
-      "name": "Dagger Nightblade",
-      "backend": "source",
-      "placement": {
-        "pivot": "authored",
-        "scale": 1
-      },
-      "budget": {
-        "triangles": 2400,
-        "materials": 8,
-        "texture_size": 2048
-      },
-      "export": {
-        "glb": "res://assets/custom-items/weapons/dagger/dagger_nightblade.glb"
-      },
-      "provenance": {
-        "kind": "original_geometry_character_surface",
-        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
-        "original_path": "assets/custom-items/weapons/dagger/dagger_nightblade.glb",
-        "source_sha256": "dd2a1a5ef342707f6e1d397b9f78750cad75c2f4eb24930589ff896d7bfc0a57",
-        "original_triangles": 524,
-        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
-      },
-      "colors": {
-        "surface_crimson": [
-          210,
-          34,
-          39
-        ],
-        "gold_gold": [
-          234,
-          194,
-          83
-        ],
-        "leather_bark": [
-          107,
-          92,
-          83
-        ],
-        "metal_blue_steel": [
-          122,
-          141,
-          157
-        ],
-        "iron_dark_iron": [
-          74,
-          81,
-          85
-        ]
-      },
-      "materials": {
-        "surface_crimson": {
-          "metallic": 0,
-          "roughness": 0.95,
-          "crease": 55,
-          "double_sided": true
-        },
-        "gold_gold": {
-          "metallic": 0.5,
-          "roughness": 0.3,
-          "crease": 45.0,
-          "double_sided": true
-        },
-        "leather_bark": {
-          "metallic": 0.0,
-          "roughness": 0.85,
-          "crease": 50.0,
-          "double_sided": true
-        },
-        "metal_blue_steel": {
-          "metallic": 0.5,
-          "roughness": 0.3,
-          "crease": 45.0,
-          "double_sided": true
-        },
-        "iron_dark_iron": {
-          "metallic": 0.35,
-          "roughness": 0.6,
-          "crease": 48.0,
-          "double_sided": true
-        }
-      },
-      "color_mode": "character",
-      "source": "source.glb",
-      "topology": "authored_assembly",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "crimson": "surface_crimson",
-          "gold": "gold_gold",
-          "bark": "leather_bark",
-          "blue_steel": "metal_blue_steel",
-          "dark_iron": "iron_dark_iron"
-        },
-        "repair": "boundaries"
-      },
-      "crease": 50
-    },
     "report": {
-      "triangles": 534,
+      "triangles": 540,
       "bounds": [
         [
-          -0.23999999463558197,
-          -0.23999999463558197,
-          -0.07000000029802322
+          -0.20000000298023224,
+          -0.2828238010406494,
+          -0.062199998646974564
         ],
         [
-          0.23999999463558197,
-          0.9800000190734863,
-          0.07000000029802322
+          0.20000000298023224,
+          1.0,
+          0.062199998646974564
         ]
       ],
       "dimensions": [
-        0.47999998927116394,
-        1.2200000137090683,
-        0.14000000059604645
+        0.4000000059604645,
+        1.2828238010406494,
+        0.12439999729394913
       ],
-      "materials": 4,
+      "materials": 3,
       "textures": [
         [
           128,
@@ -132,19 +33,147 @@
         ]
       ],
       "topology": {
-        "components": 10,
-        "boundary_edges": 48,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.010825615656402103
+        "signed_volume": 0.012409617233731731
       },
-      "warnings": [
-        "10 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 48 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Dagger Nightblade",
+      "backend": "procedural",
+      "builder": "blade",
+      "design": {
+        "kind": "fang"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "gem": [
+          170,
+          80,
+          220
+        ],
+        "gold": [
+          228,
+          176,
+          68
+        ],
+        "leather": [
+          62,
+          48,
+          58
+        ],
+        "obsidian": [
+          58,
+          46,
+          70
+        ],
+        "obsidian_edge": [
+          128,
+          104,
+          160
+        ]
+      },
+      "materials": {
+        "gem": {
+          "metallic": 0,
+          "roughness": 0.3,
+          "crease": 40
+        },
+        "gold": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              246,
+              214,
+              110
+            ],
+            [
+              176,
+              112,
+              36
+            ],
+            [
+              228,
+              176,
+              68
+            ]
+          ]
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
+        },
+        "obsidian": {
+          "metallic": 0,
+          "roughness": 0.3,
+          "crease": 40,
+          "ramp": [
+            [
+              96,
+              80,
+              116
+            ],
+            [
+              26,
+              20,
+              34
+            ],
+            [
+              58,
+              46,
+              70
+            ]
+          ]
+        },
+        "obsidian_edge": {
+          "metallic": 0,
+          "roughness": 0.3,
+          "crease": 40,
+          "ramp": [
+            [
+              160,
+              136,
+              196
+            ],
+            [
+              70,
+              54,
+              96
+            ],
+            [
+              128,
+              104,
+              160
+            ]
+          ]
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/dagger/dagger_nightblade.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
+      }
     }
-  },
-  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+  }
 }
