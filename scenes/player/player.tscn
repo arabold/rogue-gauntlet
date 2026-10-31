@@ -106,9 +106,6 @@ Fold = true
 [sub_resource type="SphereShape3D" id="SphereShape3D_s7lv0"]
 radius = 1.0
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_l7wgd"]
-animation = &"Spellcast_Raise"
-
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_5um42"]
 animation = &"Death_A_Pose"
 
@@ -124,30 +121,6 @@ animation = &"Hit_A"
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_51jgb"]
 animation = &"Idle"
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_inlfj"]
-animation = &"1H_Melee_Attack_Slice_Diagonal"
-use_custom_timeline = true
-timeline_length = 0.5
-stretch_time_scale = true
-start_offset = 0.0
-loop_mode = 0
-
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_eo32m"]
-animation = &"1H_Ranged_Shoot"
-use_custom_timeline = true
-timeline_length = 0.5
-stretch_time_scale = true
-start_offset = 0.0
-loop_mode = 0
-
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_nct2u"]
-animation = &"2H_Melee_Attack_Spin"
-use_custom_timeline = true
-timeline_length = 1.0
-stretch_time_scale = false
-start_offset = 0.7
-loop_mode = 0
-
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_8nu1q"]
 animation = &"Use_Item"
 
@@ -158,20 +131,6 @@ animation = &"Walking_B"
 xfade_time = 0.3
 advance_mode = 2
 advance_expression = "IsMoving"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_melee"]
-advance_mode = 2
-advance_expression = "CurrentActionId == \"melee_attack\""
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_special"]
-xfade_time = 0.3
-advance_mode = 2
-advance_expression = "CurrentActionId == \"special_attack\""
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_ranged"]
-xfade_time = 0.3
-advance_mode = 2
-advance_expression = "CurrentActionId == \"ranged_attack\""
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_walk_use"]
 xfade_time = 0.15
@@ -216,51 +175,14 @@ advance_expression = "IsDead"
 switch_mode = 2
 advance_mode = 2
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_lryud"]
-advance_mode = 2
-advance_expression = "CurrentActionId == \"melee_attack\""
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_lasb5"]
-break_loop_at_end = true
-switch_mode = 2
-advance_mode = 2
-
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_1r4ca"]
 advance_mode = 2
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_7ustp"]
-xfade_time = 0.3
-advance_mode = 2
-advance_expression = "CurrentActionId == \"special_attack\""
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_83vkb"]
 advance_mode = 2
 advance_expression = "CurrentActionId == \"drink_potion\""
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_fya0a"]
-switch_mode = 2
-advance_mode = 2
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_54ps3"]
-xfade_time = 0.3
-switch_mode = 2
-advance_mode = 2
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_ccoj4"]
-advance_mode = 2
-advance_expression = "CurrentActionId == \"cast_spell\""
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_75dqn"]
-switch_mode = 2
-advance_mode = 2
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_3i8mw"]
-xfade_time = 0.3
-advance_mode = 2
-advance_expression = "CurrentActionId == \"ranged_attack\""
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_5fcea"]
-xfade_time = 0.3
 switch_mode = 2
 advance_mode = 2
 
@@ -275,8 +197,6 @@ advance_mode = 2
 advance_expression = "!IsFalling"
 
 [sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_vvmyp"]
-"states/Cast Spell/node" = SubResource("AnimationNodeAnimation_l7wgd")
-"states/Cast Spell/position" = Vector2(855, -295.38)
 states/Dead/node = SubResource("AnimationNodeAnimation_5um42")
 states/Dead/position = Vector2(1274.31, 111.363)
 states/Dying/node = SubResource("AnimationNodeAnimation_23ptn")
@@ -288,18 +208,12 @@ states/Hit/node = SubResource("AnimationNodeAnimation_tkdgu")
 states/Hit/position = Vector2(499.339, 280.115)
 states/Idle/node = SubResource("AnimationNodeAnimation_51jgb")
 states/Idle/position = Vector2(709.323, 110.165)
-"states/Melee Attack/node" = SubResource("AnimationNodeAnimation_inlfj")
-"states/Melee Attack/position" = Vector2(314.1, -44.06)
-"states/Ranged Attack/node" = SubResource("AnimationNodeAnimation_eo32m")
-"states/Ranged Attack/position" = Vector2(337.582, -212.443)
-"states/Spin Attack/node" = SubResource("AnimationNodeAnimation_nct2u")
-"states/Spin Attack/position" = Vector2(541.928, -310.651)
 states/Start/position = Vector2(321.828, 104.605)
 "states/Use Item/node" = SubResource("AnimationNodeAnimation_8nu1q")
 "states/Use Item/position" = Vector2(895.157, 323.531)
 states/Walking/node = SubResource("AnimationNodeAnimation_5dfu0")
 states/Walking/position = Vector2(709.334, 414.077)
-transitions = ["Idle", "Walking", SubResource("AnimationNodeStateMachineTransition_5p13e"), "Walking", "Melee Attack", SubResource("AnimationNodeStateMachineTransition_walk_melee"), "Walking", "Spin Attack", SubResource("AnimationNodeStateMachineTransition_walk_special"), "Walking", "Ranged Attack", SubResource("AnimationNodeStateMachineTransition_walk_ranged"), "Walking", "Idle", SubResource("AnimationNodeStateMachineTransition_a2x46"), "Idle", "Hit", SubResource("AnimationNodeStateMachineTransition_1rbd1"), "Walking", "Hit", SubResource("AnimationNodeStateMachineTransition_walk_hit"), "Hit", "Idle", SubResource("AnimationNodeStateMachineTransition_h4auy"), "Idle", "Dying", SubResource("AnimationNodeStateMachineTransition_dqlug"), "Walking", "Dying", SubResource("AnimationNodeStateMachineTransition_walk_dying"), "Hit", "Dying", SubResource("AnimationNodeStateMachineTransition_hit_dying"), "Dying", "Dead", SubResource("AnimationNodeStateMachineTransition_33ov3"), "Idle", "Melee Attack", SubResource("AnimationNodeStateMachineTransition_lryud"), "Melee Attack", "Idle", SubResource("AnimationNodeStateMachineTransition_lasb5"), "Start", "Idle", SubResource("AnimationNodeStateMachineTransition_1r4ca"), "Idle", "Spin Attack", SubResource("AnimationNodeStateMachineTransition_7ustp"), "Idle", "Use Item", SubResource("AnimationNodeStateMachineTransition_83vkb"), "Use Item", "Idle", SubResource("AnimationNodeStateMachineTransition_fya0a"), "Walking", "Use Item", SubResource("AnimationNodeStateMachineTransition_walk_use"), "Use Item", "Walking", SubResource("AnimationNodeStateMachineTransition_use_walk"), "Spin Attack", "Idle", SubResource("AnimationNodeStateMachineTransition_54ps3"), "Idle", "Cast Spell", SubResource("AnimationNodeStateMachineTransition_ccoj4"), "Cast Spell", "Idle", SubResource("AnimationNodeStateMachineTransition_75dqn"), "Idle", "Ranged Attack", SubResource("AnimationNodeStateMachineTransition_3i8mw"), "Ranged Attack", "Idle", SubResource("AnimationNodeStateMachineTransition_5fcea"), "Idle", "Falling", SubResource("AnimationNodeStateMachineTransition_lhye1"), "Falling", "Idle", SubResource("AnimationNodeStateMachineTransition_35rvo")]
+transitions = ["Idle", "Walking", SubResource("AnimationNodeStateMachineTransition_5p13e"), "Walking", "Idle", SubResource("AnimationNodeStateMachineTransition_a2x46"), "Idle", "Hit", SubResource("AnimationNodeStateMachineTransition_1rbd1"), "Walking", "Hit", SubResource("AnimationNodeStateMachineTransition_walk_hit"), "Hit", "Idle", SubResource("AnimationNodeStateMachineTransition_h4auy"), "Idle", "Dying", SubResource("AnimationNodeStateMachineTransition_dqlug"), "Walking", "Dying", SubResource("AnimationNodeStateMachineTransition_walk_dying"), "Hit", "Dying", SubResource("AnimationNodeStateMachineTransition_hit_dying"), "Dying", "Dead", SubResource("AnimationNodeStateMachineTransition_33ov3"), "Start", "Idle", SubResource("AnimationNodeStateMachineTransition_1r4ca"), "Idle", "Use Item", SubResource("AnimationNodeStateMachineTransition_83vkb"), "Use Item", "Idle", SubResource("AnimationNodeStateMachineTransition_fya0a"), "Walking", "Use Item", SubResource("AnimationNodeStateMachineTransition_walk_use"), "Use Item", "Walking", SubResource("AnimationNodeStateMachineTransition_use_walk"), "Idle", "Falling", SubResource("AnimationNodeStateMachineTransition_lhye1"), "Falling", "Idle", SubResource("AnimationNodeStateMachineTransition_35rvo")]
 graph_offset = Vector2(216.424, -286.722)
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_liqyg"]

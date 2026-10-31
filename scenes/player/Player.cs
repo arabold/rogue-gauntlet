@@ -52,7 +52,7 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 	{
 		return ActionGate?.TryStagger(duration) ?? false;
 	}
-	/// <summary>The action the animation tree plays: a quick-slot action, otherwise a channeled interaction's.</summary>
+	/// <summary>The non-combat action the animation tree plays: a quick-slot item, otherwise a channeled interaction's.</summary>
 	public string CurrentActionId => ActionManager?.CurrentAnimationId ?? InteractionComponent?.CurrentAnimationId;
 
 	[Export] public HealthComponent HealthComponent { get; protected set; }
