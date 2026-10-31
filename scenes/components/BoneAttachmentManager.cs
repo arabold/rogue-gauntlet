@@ -31,7 +31,8 @@ public partial class BoneAttachmentManager : Node
 	/// </summary>
 	[Export] public Player player { get; set; }
 
-	[Export] public PackedScene CursePresentation { get; set; }
+	/// <summary>Decorates each held item with its aura: a known curse or a spell weapon's element.</summary>
+	[Export] public PackedScene AuraPresentation { get; set; }
 	[Export] public bool ResetAttachmentsOnReady { get; set; } = true;
 
 	/// <summary>
@@ -227,9 +228,9 @@ public partial class BoneAttachmentManager : Node
 			{
 				boneAttachment.AddChild(itemAttachment);
 			}
-			if (CursePresentation != null && itemAttachment is Node3D model)
+			if (AuraPresentation != null && itemAttachment is Node3D model)
 			{
-				var aura = CursePresentation.Instantiate<ItemCurseWorldEffectPresenter>();
+				var aura = AuraPresentation.Instantiate<ItemAuraPresenter>();
 				aura.Initialize(item, model, player?.WorldEffects); model.AddChild(aura);
 			}
 		}

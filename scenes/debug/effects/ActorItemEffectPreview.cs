@@ -93,7 +93,7 @@ public partial class ActorItemEffectPreview : Node3D
 		var effect = Effects[SelectedEffect];
 		var result = effect.Lifetime == WorldEffectLifetime.Burst
 			? _host.PlayBurst(effect, PreviewSeed)
-			: _host.SetSustained(this, effect, true, PreviewSeed, instance => instance is not ItemCurseEffect curse || curse.Configure(_subject));
+			: _host.SetSustained(this, effect, true, PreviewSeed, instance => instance is not ItemAuraEffect aura || aura.Configure(_subject));
 		LastResult = result == WorldEffectResult.Rejected ? "This effect needs a compatible subject." : "";
 		_facetChoice.Visible = Effects[SelectedEffect].Id == "iron_skin" || Effects[SelectedEffect].Id == "stone_skin";
 		_polishChoice.Visible = Effects[SelectedEffect].Id == "iron_skin";

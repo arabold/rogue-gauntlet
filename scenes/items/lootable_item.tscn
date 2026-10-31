@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bjnjjpaq5mwlp" path="res://scenes/items/LootableItem.cs" id="1_an4ny"]
 [ext_resource type="PackedScene" uid="uid://d2l47r6atc27d" path="res://scenes/components/trigger_component.tscn" id="2_an4ny"]
 
-[ext_resource type="PackedScene" path="res://scenes/effects/world/item_curse_presenter.tscn" id="curse_vfx"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/item_aura_presenter.tscn" id="aura_vfx"]
 [ext_resource type="PackedScene" path="res://scenes/components/nameplate.tscn" id="nameplate"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_gwbx5"]
@@ -72,7 +72,7 @@ _data = {
 
 [node name="LootableItem" type="Node3D" groups=["prop"] node_paths=PackedStringArray("Pivot", "Trigger", "AnimationPlayer", "Nameplate")]
 script = ExtResource("1_an4ny")
-CursePresentation = ExtResource("curse_vfx")
+AuraPresentation = ExtResource("aura_vfx")
 Pivot = NodePath("Pivot")
 Trigger = NodePath("TriggerComponent")
 AnimationPlayer = NodePath("AnimationPlayer")

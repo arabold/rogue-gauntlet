@@ -5,6 +5,7 @@ uniform float phase = 0;
 uniform float envelope = 0;
 uniform float outset = 0.01;
 uniform vec4 tint : source_color = vec4(0.7,0.035,0.25,1);
+uniform vec4 highlight : source_color = vec4(1.0,0.28,0.48,1);
 uniform vec3 bounds_min = vec3(0);
 uniform vec3 bounds_size = vec3(1);
 uniform vec3 long_axis = vec3(0,1,0);
@@ -20,7 +21,7 @@ void fragment() {
  float height=dot((point-bounds_min)/max(bounds_size,vec3(0.001)),long_axis);
  float tip_fade=smoothstep(0.0,0.10,height)*(1.0-smoothstep(0.88,1.0,height));
  float rim=pow(1.0-abs(dot(normalize(NORMAL),normalize(VIEW))),1.4);
- ALBEDO=mix(tint.rgb,vec3(1.0,0.28,0.48),strand*0.45);
+ ALBEDO=mix(tint.rgb,highlight.rgb,strand*0.45);
  EMISSION=ALBEDO*1.3;
  ALPHA=(strand*(0.28+rim*0.14)+flecks*0.08)*tip_fade*envelope;
 }

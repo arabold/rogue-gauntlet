@@ -15,6 +15,7 @@ Actor/item VFX use reusable scenes under `scenes/effects/world/`. Player and mon
 | `level_up/level_up.tres` | Gold-white rising column, ribbons, sigil and celebration sparks | Preview/API; leveling has no gameplay caller yet |
 | `blessed/blessed.tres` | Sustained enclosing gold shell, traveling strands and motes | Preview/API; blessing mechanics remain separate |
 | `cursed_item/cursed_item.tres` | Model-local dark veil, crimson wisps and embers | A runtime equipped/dropped item's curse is known |
+| `item_aura/{fire,water,earth,air}_aura.tres` | The same item aura in orange-gold, deep blue, emerald or pale teal | A wand or staff, by its bound spell's element |
 
 Iron and stone remain selectable alternatives. The library is an authored visual pass for in-engine review; a numerical test result does not establish final AAA art acceptance. Remaining review is tracked in the [acceptance plan](specs/actor-item-vfx-plan.md).
 
@@ -74,7 +75,7 @@ For skins, **Faceted shading** uses derivative face normals to shade existing tr
 
 Emissive actor/item effects have matching, short-range, shadow-free accent lights, driven by its visual envelope and cloak/death gate. Sustained emissive auras keep a subdued light; activation lights fade with the burst. Iron/stone skin, Frozen and invisibility have no accent lights. Actor bursts, auras and scroll rings share `accent_light.tscn`; their light offsets stay aligned to the world as actors turn, so lighting remains consistent with scroll reading. These lights illuminate nearby surfaces too. Verify GPU cost on the target hardware before increasing light or particle counts; Metal GPU timestamps on this machine remain unavailable.
 
-Known-cursed items use wisps on private helper copies of the actual item mesh, with a small normal offset and smoothly faded tips. Motes emit from sampled mesh vertices, scaled to the item. There is no sphere or cylinder proxy. Source meshes and materials remain intact. The workbench configures the curse effect directly on its model without manufacturing gameplay item state; inventory/curse-state operations are tested in their own suites.
+Item auras (`ItemAuraEffect`) use wisps on private helper copies of the actual item mesh, with a small normal offset and smoothly faded tips. Motes emit from sampled mesh vertices, scaled to the item. There is no sphere or cylinder proxy. Source meshes and materials remain intact. Every aura is an inherited scene of `item_aura/item_aura.tscn` that sets only its `Tint` and `Highlight`; the motes' color ramp authors heat as gray and opacity as alpha, so one ramp serves every palette. An `ItemAuraPresenter` on each dropped or held item model asks its `ItemAuraRule`s in order and shows one aura: a known curse first, otherwise a spell weapon's element, so any wand or staff model carries any element. The workbench configures auras directly on its model without manufacturing gameplay item state; inventory/curse-state operations are tested in their own suites.
 
 ## Scroll reading preview
 
