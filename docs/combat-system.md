@@ -26,7 +26,7 @@ A parry staggers the attacker for the guard's `ParryStaggerDuration` (0.9 s for 
 
 An unparried contact with the `BreaksGuard` defense trait breaks a raised guard: it returns `GuardBroken`, lands `GuardBreakDamageMultiplier` of its damage before armor, and staggers the defender for `GuardBreakStaggerDuration`. The parry window still beats a Heavy attack.
 
-Presentation is explicitly assigned in the actor scene. Attacks, defenses and stagger share one pose owner and gameplay clock. Missing required clips make the capability unavailable rather than silently selecting unrelated animations.
+Presentation is explicitly assigned in the actor scene. Attacks, defenses and stagger share one pose owner and gameplay clock. Actor animation trees play locomotion, knockback and the actor's own states: item use for the player, spawn and sleep for skeletons. They have no attack states. One push plays one hit reaction, held at its last frame while the push continues. A knockback that overlaps a stagger shows only the stagger's pose, so an actor that can be staggered assigns a stagger clip to its action gate. Missing required clips make the capability unavailable rather than silently selecting unrelated animations.
 
 Monsters, nests and the harness practice target show floating damage numbers through a `DamageNumbersComponent` wired to their hurtbox and anchored above their health bar. Each resolved contact shows its rounded damage: larger and gold for a critical hit, orange for a rear or sneak hit, grey for blocked chip damage, and a short word for a dodge, parry or block. Numbers pop in, rise, fade and return to the scene pool; an invisible monster shows none.
 

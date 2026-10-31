@@ -26,6 +26,5 @@ DamageMin = 2.0
 DamageMax = 5.0
 CritChance = 0.1
 IsTwoHanded = false
-AnimationId = "melee_attack"
 PerformDuration = 0.4
 metadata/_custom_type_script = ExtResource("script")

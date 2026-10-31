@@ -5,7 +5,6 @@
 [ext_resource type="PackedScene" path="res://scenes/attacks/projectile.tscn" id="projectile"]
 [sub_resource type="Resource" id="shot"]
 script = ExtResource("attack")
-AnimationId = "ranged_attack"
 IsRanged = true
 DefenseTraits = 3
 ProjectileScene = ExtResource("projectile")
