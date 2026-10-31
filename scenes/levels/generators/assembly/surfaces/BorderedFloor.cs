@@ -16,16 +16,17 @@ public partial class BorderedFloor : FloorStyle
 	{
 		for (int x = 0; x < quads.GetLength(0); x++)
 		for (int z = 0; z < quads.GetLength(1); z++)
-			quads[x, z] = NearWall(room.Footprint, x, z) ? Border : Center;
+			quads[x, z] = NearWall(room, x, z) ? Border : Center;
 	}
 
-	private bool NearWall(RoomFootprint footprint, int qx, int qz)
+	/// <summary>Near a wall or a pit's edge.</summary>
+	private bool NearWall(RoomBlueprint room, int qx, int qz)
 	{
 		for (int dx = -Width; dx <= Width; dx++)
 		for (int dz = -Width; dz <= Width; dz++)
 		{
 			int x = qx + dx, z = qz + dz;
-			if (x < 0 || z < 0 || !footprint.IsFloor(x / 2, z / 2)) return true;
+			if (x < 0 || z < 0 || !room.IsFloor(new(x / 2, z / 2))) return true;
 		}
 		return false;
 	}

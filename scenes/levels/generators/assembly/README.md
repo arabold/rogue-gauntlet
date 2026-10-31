@@ -42,7 +42,7 @@ Floor pieces tile edge to edge on a quarter-tile grid and never overlap, so ever
 
 ## Add a room type
 
-`room_types/<name>.tres` (`RoomType`): weighted `Shapes` (sizes in tiles: width across, length along the room's axis), doorway count and placement, optional door scene, `Circulation` (doorway approaches, or a door-to-door spine), `MaxPocketShare`, weighted `Walls` and `Floors`, optional `Columns` behind `ColumnChance`, then ordered `Steps`. Add it to the [Garrison factory](../../garrison/factories/garrison_mixed_room_factory.tres) `RoomTypes` with a `Weight`.
+`room_types/<name>.tres` (`RoomType`): weighted `Shapes` (sizes in tiles: width across, length along the room's axis), doorway count and placement, optional door scene, `Circulation` (doorway approaches, or a door-to-door spine), `MaxPocketShare`, weighted `Walls` and `Floors`, optional `Columns` behind `ColumnChance`, then ordered `Steps`. Add it to the [Garrison factory](../../garrison/factories/garrison_room_factory.tres) `RoomTypes` with a `Weight`; entrance and exit types go in `EntranceTypes` and `ExitTypes` and must place the stairs.
 
 Steps run in order and take the space they need first: place identity-defining content (beds, cells, tables) before decoration and clutter. A `MinimumCount` makes a step required; `Chance` makes it occasional; `Uniform` keeps one content choice for the whole room (one banner colour, one table kind); `ChoiceStep` runs one of several weighted variants.
 
@@ -56,13 +56,12 @@ Steps run in order and take the space they need first: place identity-defining c
 | `WallDecorStep` | Wall mounts beside doorways or spread along plain walls |
 | `CellsStep` | Barred cells with operable gates, corner and junction pieces where bars meet, and content against each back wall; rows start flush in a room corner when they fit |
 | `FencedAreaStep` | A wall or corner bay (with content), a fenced walkway, or a divider |
+| `StairsStep` | The level's stairs: up-stairs against a wall, or `Sunken` down-stairs in a two-tile stairwell cut into open floor (floor on every side); the landing at the walk-on end must stay reachable from every doorway |
 
 A new kind of placement is a new `FurnishingStep` subclass that composes plans from `Content` and places them through `RoomBlueprint.TryPlace` (or `AgainstWall` for wall runs); the blueprint enforces floor support, overlap, circulation, connectivity and the pocket budget.
 
 ## Preview and debug
 
-Run the [room generation harness](../../../debug/rooms/room_generation_harness.tscn) (**F6**). Pick the room type and seed, override any axis (shape, walls, floor, columns), toggle furnishings and the walkability overlay (green reachable, blue reserved, red pocket), and rotate. When a type cannot fit, the error names the step and the last refused placement, such as `garrison.bed: blocks reserved circulation`.
+Run the [room generation harness](../../../debug/rooms/room_generation_harness.tscn) (**F6**). Pick the room type (entrances and exits are listed after the ordinary types) and seed, override any axis (shape, walls, floor, columns), toggle furnishings and the walkability overlay (green reachable, blue reserved circulation and stair landings, red pocket), and rotate. When a type cannot fit, the error names the step and the last refused placement, such as `garrison.bed: blocks reserved circulation`.
 
-In the editor, **Project → Tools → Generate Room Scene…** saves an assembled room as an editable scene. An open room scene whose `Type` is set gets a **Re-Roll** toolbar button that reassembles it in place.
-
-Validate content with `RoomAssemblyTest` (every definition validates; every type keeps doorways connected, pockets bounded and props apart across seeds).
+Validate content with `RoomAssemblyTest` (every definition validates; every type keeps doorways connected, pockets bounded and props apart across seeds; stair rooms land arrivals on reachable floor).

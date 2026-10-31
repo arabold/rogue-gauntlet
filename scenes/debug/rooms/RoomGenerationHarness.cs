@@ -12,7 +12,7 @@ public enum RoomPreviewMode { Room, Floor }
 /// </summary>
 public partial class RoomGenerationHarness : Node3D
 {
-	[Export] public MixedRoomFactory Factory { get; set; }
+	[Export] public AssembledRoomFactory Factory { get; set; }
 	[Export] public MapGenerator Generator { get; set; }
 	[Export] public Node3D PreviewRoot { get; set; }
 	[Export] public Camera3D PreviewCamera { get; set; }
@@ -33,7 +33,8 @@ public partial class RoomGenerationHarness : Node3D
 	public Room PreviewRoom { get; private set; }
 	public RoomBlueprint PreviewBlueprint { get; private set; }
 	public string LastError { get; private set; } = "";
-	public IReadOnlyList<RoomType> Recipes => Factory.RoomTypes;
+	/// <summary>Every room type the factory assembles: ordinary rooms, then entrances and exits.</summary>
+	public IReadOnlyList<RoomType> Recipes => [.. Factory.RoomTypes, .. Factory.EntranceTypes, .. Factory.ExitTypes];
 
 	private int _quarterTurns;
 	private OptionButton _modePicker, _recipePicker, _shapePicker, _wallsPicker, _floorPicker, _columnPicker;
@@ -172,7 +173,7 @@ public partial class RoomGenerationHarness : Node3D
 				Generator.Seed = Seed;
 				Generator.GenerateMap(false);
 				FramePreview(Mathf.Max(Generator.MapWidth, Generator.MapDepth) * Room.TileSize + 12);
-				Status.Text = $"Floor · Seed {Seed} · {Generator.Floor.Rooms.Count} rooms · {Generator.Floor.Rooms.Count(room => room.IsProcedural)} assembled";
+				Status.Text = $"Floor · Seed {Seed} · {Generator.Floor.Rooms.Count} rooms";
 			}
 		}
 		catch (InvalidOperationException error)
@@ -266,7 +267,7 @@ public partial class RoomGenerationHarness : Node3D
 			if (reached[index]) reachable++;
 			else pockets++;
 			var color = !reached[index] ? new Color(1, .15f, .1f, .8f)
-				: blueprint.Reserved.Any(area => area.HasPoint(center)) ? new Color(.3f, .55f, 1, .45f) : new Color(.2f, .95f, .35f, .3f);
+				: blueprint.Reserved.Concat(blueprint.Landings).Any(area => area.HasPoint(center)) ? new Color(.3f, .55f, 1, .45f) : new Color(.2f, .95f, .35f, .3f);
 			cells.Add((center, color));
 		}
 		if (!ShowWalkability || cells.Count == 0) return (reachable, pockets);

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dmt5scqvd325o" path="res://scenes/debug/rooms/RoomGenerationHarness.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/levels/level.tscn" id="level"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/factories/garrison_mixed_room_factory.tres" id="factory"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/factories/garrison_room_factory.tres" id="factory"]
 
 [sub_resource type="Environment" id="Environment"]
 background_mode = 1

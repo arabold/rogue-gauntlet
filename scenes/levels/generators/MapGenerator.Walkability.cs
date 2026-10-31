@@ -20,7 +20,12 @@ public partial class MapGenerator
 		Floor.SetWalkability(grid, grid.Reachable([ArrivalPoint()], Room.TileSize));
 	}
 
-	private Vector2 ArrivalPoint() => new(Floor.Arrival.GlobalPosition.X, Floor.Arrival.GlobalPosition.Z);
+	private Vector2 ArrivalPoint()
+	{
+		// The arrival spawns on the stairs, which block walking; the landing in front is where play starts.
+		var at = (Floor.Arrival.Landing ?? Floor.Arrival).GlobalPosition;
+		return new(at.X, at.Z);
+	}
 
 	private WalkabilityGrid CreateWalkabilityGrid()
 	{

@@ -52,6 +52,8 @@ public class RoomAssemblyTest
 	[TestCase("kitchen")]
 	[TestCase("guardroom")]
 	[TestCase("ruins")]
+	[TestCase("entrance")]
+	[TestCase("exit")]
 	public void RoomsKeepDoorwaysConnectedPocketsBoundedAndPropsApart(string name)
 	{
 		var type = Load(name);
@@ -97,7 +99,7 @@ public class RoomAssemblyTest
 	[TestCase]
 	public void EveryFloorStyleCoversEachQuarterTileExactlyOnce()
 	{
-		foreach (string name in new[] { "storage", "kitchen", "ruins", "hall", "chapel", "library", "barracks", "dining" })
+		foreach (string name in new[] { "storage", "kitchen", "ruins", "hall", "chapel", "library", "barracks", "dining", "exit" })
 		{
 			var type = Load(name);
 			for (int floor = 0; floor < type.Floors.Length; floor++)
@@ -171,15 +173,57 @@ public class RoomAssemblyTest
 			for (int x = x0; x < x0 + Mathf.RoundToInt(size.X / 2); x++)
 			for (int z = z0; z < z0 + Mathf.RoundToInt(size.Y / 2); z++)
 			{
-				if (x < 0 || z < 0 || x >= counts.GetLength(0) || z >= counts.GetLength(1) || !footprint.IsFloor(x / 2, z / 2))
+				if (x < 0 || z < 0 || x >= counts.GetLength(0) || z >= counts.GetLength(1) || !blueprint.IsFloor(new(x / 2, z / 2)))
 					return $"{grid.MeshLibrary.GetItemName(grid.GetCellItem(cell))} at {cell} reaches off the floor";
 				counts[x, z]++;
 			}
 		}
 		for (int x = 0; x < counts.GetLength(0); x++)
 		for (int z = 0; z < counts.GetLength(1); z++)
-			if (footprint.IsFloor(x / 2, z / 2) && counts[x, z] != 1) return $"quarter tile ({x}, {z}) covered {counts[x, z]} times";
+			if (blueprint.IsFloor(new(x / 2, z / 2)) && counts[x, z] != 1) return $"quarter tile ({x}, {z}) covered {counts[x, z]} times";
 		return "";
+	}
+
+	/// <summary>
+	/// Entrances and exits carry the level's stairs: one arrival spawn and one transition each way. Arrivals step off
+	/// onto a landing every doorway reaches and no other prop covers, and the exit's stairwell maps as an enclosed
+	/// two-tile pit.
+	/// </summary>
+	[TestCase("entrance", GameSession.LevelTravelDirection.Down, GameSession.LevelTravelDirection.Up, 0)]
+	[TestCase("exit", GameSession.LevelTravelDirection.Up, GameSession.LevelTravelDirection.Down, 2)]
+	public void StairRoomsLandArrivalsOnReachableFloor(string name, GameSession.LevelTravelDirection arrival,
+		GameSession.LevelTravelDirection travel, int pitTiles)
+	{
+		var type = Load(name);
+		for (ulong seed = 1; seed <= 8; seed++)
+		{
+			var blueprint = RoomAssembler.Build(type, seed * 6151);
+			try
+			{
+				string label = $"{name} seed {seed}";
+				var nodes = blueprint.Room.FindChildren("*", "", true, false);
+				var spawn = nodes.OfType<PlayerSpawnPoint>().Single();
+				AssertInt((int)spawn.SpawnAfterTravelDirection).IsEqual((int)arrival);
+				AssertInt((int)nodes.OfType<LevelTransitionTrigger>().Single().Direction).IsEqual((int)travel);
+				// The stairs scene sits directly under the room's Props node, which has no offset of its own.
+				var landing = spawn.GetParent<Node3D>().Transform * spawn.Landing.Position;
+				AssertBool(blueprint.IsReachable(RoomBlueprint.XZ(landing))).OverrideFailureMessage($"{label}: landing cut off").IsTrue();
+				var area = blueprint.Landings.Single();
+				AssertBool(area.HasPoint(RoomBlueprint.XZ(landing))).OverrideFailureMessage($"{label}: spawn landing outside the kept area").IsTrue();
+				string covering = string.Join(", ", blueprint.Pieces.Where(piece => piece.Prop.Mount == PropMount.Floor
+					&& RoomBlueprint.XZ(piece.Envelope).Intersects(area)).Select(piece => piece.Prop.Id));
+				AssertString(covering).OverrideFailureMessage($"{label}: landing covered").IsEmpty();
+				int chasms = 0;
+				for (int x = 0; x < blueprint.Room.Map.Width; x++)
+				for (int z = 0; z < blueprint.Room.Map.Height; z++)
+					if (blueprint.Room.Map.IsChasm(x, z)) chasms++;
+				AssertInt(chasms).OverrideFailureMessage($"{label}: pit tiles").IsEqual(pitTiles);
+			}
+			finally
+			{
+				blueprint.Room.Free();
+			}
+		}
 	}
 
 	private static float PocketShare(RoomBlueprint blueprint)

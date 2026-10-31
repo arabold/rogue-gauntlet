@@ -18,9 +18,9 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 
 ## Room generation
 
-The scene explicitly assigns the production Garrison factory, map generator, preview root, camera and UI. Its recipe list is the factory's `RoomTypes`; it keeps no catalog of its own.
+The scene explicitly assigns the production Garrison factory, map generator, preview root, camera and UI. Its recipe list is the factory's `RoomTypes`, then its entrance and exit types; it keeps no catalog of its own.
 
-- **Single room:** select a recipe and seed, rotate in quarter-turns and toggle furnishings. Room types expose every axis as an override — Shape, Walls, Floor and Columns (type chance, off, or a specific pattern) — and run the production `RoomAssembler` with them. The **Walkability overlay** colours standable floor: green is reachable from the doorways, blue is reserved circulation, red is an inaccessible pocket. Overrides never change production Resources.
+- **Single room:** select a recipe and seed, rotate in quarter-turns and toggle furnishings. Room types expose every axis as an override — Shape, Walls, Floor and Columns (type chance, off, or a specific pattern) — and run the production `RoomAssembler` with them. The **Walkability overlay** colours standable floor: green is reachable from the doorways, blue is reserved circulation or a stair landing, red is an inaccessible pocket. Overrides never change production Resources.
 - **Generated floor:** uses the production packing, corridor, wall and furnishing pipeline with the same factory. Recipe selection and room rotation are disabled in this view.
 - **Controls:** R advances the seed, A toggles furnishings, W toggles the walkability overlay, F switches views, 1–9 and 0 select the first ten room types, Q/E rotates a room. The panel also accepts a manual seed and can rebuild without advancing it.
 - Generation errors appear in the status panel and Godot output. These static previews do not exercise player movement or navmesh baking—use gameplay for those checks.

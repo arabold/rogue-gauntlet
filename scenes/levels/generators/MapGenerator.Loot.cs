@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-/// <summary>Generation-time loot: chests, traps and loose items scattered over procedural rooms, and the pickup helper access keys share.</summary>
+/// <summary>Generation-time loot: chests, traps and loose items scattered over the rooms, and the pickup helper access keys share.</summary>
 public partial class MapGenerator
 {
 	/// <summary>Chest prop placed against a room wall, facing into the room. Unset skips chest placement.</summary>
@@ -27,6 +27,8 @@ public partial class MapGenerator
 	// tight level shouldn't run out of valid spots just to keep loot far from the player.
 	// Internal (not private) so LootPlacementTest can assert against the real thresholds.
 	internal const float LootSpawnPlayerClearance = 10f;
+	/// <summary>Keeps loot off the landing in front of every staircase, whose path must stay open.</summary>
+	private const float StairLandingClearance = 4f;
 	internal const float LootSpawnSpacing = 6f;
 
 	/// <summary>
@@ -69,7 +71,7 @@ public partial class MapGenerator
 		var candidates = GetChestCandidates();
 		if (candidates.Count == 0)
 		{
-			ReportNoLootCandidates("chests", "no valid wall-adjacent procedural room tiles found");
+			GD.PrintErr("Cannot place chests: no valid wall-adjacent room tiles found.");
 			return;
 		}
 
@@ -122,10 +124,10 @@ public partial class MapGenerator
 			return;
 		}
 
-		var candidates = Floor.OpenTileCandidates(proceduralRoomsOnly: true);
+		var candidates = Floor.OpenTileCandidates();
 		if (candidates.Count == 0)
 		{
-			ReportNoLootCandidates("traps", "no valid open procedural room or corridor tiles found");
+			GD.PrintErr("Cannot place traps: no valid open room or corridor tiles found.");
 			return;
 		}
 
@@ -177,7 +179,7 @@ public partial class MapGenerator
 		var candidates = GetLooseItemCandidates();
 		if (candidates.Count == 0)
 		{
-			ReportNoLootCandidates("loose items", "no valid procedural room tiles found");
+			GD.PrintErr("Cannot place loose items: no valid room tiles found.");
 			return;
 		}
 
@@ -234,8 +236,7 @@ public partial class MapGenerator
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				if (!Map.IsRoom(x, z) || !Floor.IsProceduralRoomTile(x, z)
-					|| Floor.IsOccupied(x, z) || IsAdjacentToConnector(x, z))
+				if (!Map.IsRoom(x, z) || Floor.IsOccupied(x, z) || IsAdjacentToConnector(x, z))
 				{
 					continue;
 				}
@@ -288,7 +289,7 @@ public partial class MapGenerator
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				if (Map.IsRoom(x, z) && Floor.IsProceduralRoomTile(x, z) && !Floor.IsOccupied(x, z))
+				if (Map.IsRoom(x, z) && !Floor.IsOccupied(x, z))
 				{
 					candidates.Add(Map.TileToWorld(x, z));
 				}
@@ -296,25 +297,6 @@ public partial class MapGenerator
 		}
 
 		return candidates;
-	}
-
-	/// <summary>
-	/// Generation-time loot only goes into procedural rooms (authored rooms carry their
-	/// own hand-placed content), so a map whose standard rooms all came from authored
-	/// scenes legitimately places nothing -- report that quietly. Zero candidates on a
-	/// map that DOES contain procedural rooms means something real broke, so that stays
-	/// a loud error.
-	/// </summary>
-	private void ReportNoLootCandidates(string lootKind, string reason)
-	{
-		if (Floor.Rooms.Any(region => region.IsProcedural))
-		{
-			GD.PrintErr($"Cannot place {lootKind}: {reason}.");
-		}
-		else
-		{
-			GD.Print($"Skipping {lootKind}: no procedural rooms in this map (authored rooms keep their hand-placed content).");
-		}
 	}
 
 	/// <summary>
@@ -381,6 +363,11 @@ public partial class MapGenerator
 	private bool IsBlockedLootPoint(Vector3 point, List<Vector3> placedLootPoints, float spacing)
 	{
 		if (Floor.Arrival != null && point.HorizontalDistanceTo(Floor.Arrival.GlobalPosition) < LootSpawnPlayerClearance)
+		{
+			return true;
+		}
+
+		if (Floor.StairLandings.Any(landing => point.HorizontalDistanceTo(landing) < StairLandingClearance))
 		{
 			return true;
 		}

@@ -6,7 +6,7 @@ See the [folder guide](../scenes/levels/README.md) for code and preset locations
 
 ## Current generation
 
-Gameplay uses the [Garrison factory preset](../scenes/levels/garrison/factories/garrison_mixed_room_factory.tres): ordinary and special slots select assembled hall, storage, mess hall, barracks, library, alchemist, passage, fenced-walkway, partitioned-storage, prison, chapel, kitchen, guardroom and ruins [room types](#room-assembly). Entrances and exits remain authored; authored cave and sewer scenes stay available to the development room factory.
+Gameplay uses the [Garrison factory preset](../scenes/levels/garrison/factories/garrison_room_factory.tres): every room is assembled. Ordinary and special slots select hall, storage, mess hall, barracks, library, alchemist, passage, fenced-walkway, partitioned-storage, prison, chapel, kitchen, guardroom and ruins [room types](#room-assembly); the entrance and exit types carry the stairs. There are no hand-authored rooms.
 
 This is a curated first-realm preset, currently shared by all depths, rather than a realm/depth resolver. Per-depth room roles and required routes remain proposed.
 
@@ -28,15 +28,11 @@ A room may provide a `GatekeeperSpawnMarker` to control boss position and facing
 
 Cleared enemies, destroyed nests, killed summon slots and Warden defeat persist across revisits. Living actors reset to their generated initial state; partial health, position and summon timers are not saved. See [monster authoring](monster-authoring-design.md) for tactics and the [roadmap](development-roadmap.md#first-three-floor-acceptance) for playtest acceptance.
 
-## Room template creation
+## Room geometry and stairs
 
-Author a self-contained `Room` scene with explicitly assigned floor, wall and decoration GridMaps. Use the shared mesh libraries and include relevant prop collision. Complete authored rooms bring their own content; generated loot does not decorate their interior. A room type can also generate an editable starting point: the room generator plugin saves an assembled room as a scene and rerolls it in place (see the [authoring guide](../scenes/levels/generators/assembly/README.md)).
+Every room is a `Room` with floor, wall and decoration GridMaps built by its room type. GridMap cells are one world unit with centering disabled. Logical map tiles are **4×4 units centered on their anchor**, even when floor meshes are smaller or larger; the room's bounds and rotation derive from geometry, not a manually edited map copy. Each doorway gets a `DoorwayMarker` facing outward, and every other edge is sealed; a real `Door` makes an opening gated, an opening without one is an archway. Unconnected doors are removed when walls are resolved. The generator rotates complete rooms in quarter-turns, including GridMaps, props and markers.
 
-GridMap cells are one world unit with centering disabled. Logical map tiles are **4×4 units centered on their anchor**, even when floor meshes are smaller or larger. Keep tiles aligned to those centers; the room's bounds and rotation derive from geometry, not a manually edited map copy.
-
-Add `DoorwayMarker` nodes for intentional connection points, facing outward. With explicit markers, other edges are sealed; without them, open edges are optional connectors, suitable for caves. A real `Door` makes an opening gated; an opening without one is an archway. Unconnected doors are removed when walls are resolved. Do not infer an opening from a decorative door mesh alone.
-
-The generator rotates complete rooms in quarter-turns, including GridMaps, props and markers. Verify the scene after rotation, especially doorway facing, collider alignment and boss anchors. Keep spaces large enough for the actors and encounters intended to use them.
+The level's stairs are scenes ([up](../scenes/levels/stairs/stairs_up.tscn), [down](../scenes/levels/stairs/stairs_down.tscn)) placed by the entrance and exit room types' `StairsStep`: the staircase with its collision, the arrival `PlayerSpawnPoint` and the `LevelTransitionTrigger`. Up-stairs stand against a wall. Down-stairs sink into a two-tile stairwell cut into open floor with floor on every side, railed except at the walk-on end; the room maps it as an enclosed chasm. Either way the landing at the walk-on end (the up-stairs' foot, the down-stairs' top, flush with the floor) is claimed for the rest of the assembly: no floor prop may cover it and every doorway must keep reaching it. Generated loot, keys and traps keep clear of every landing, and floor reachability floods from the arrival's `Landing`.
 
 ## Room assembly
 
