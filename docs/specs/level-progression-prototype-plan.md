@@ -4,7 +4,7 @@ Status: proposed work. [Dungeon design](../dungeon-exploration-design.md) owns r
 
 ## Definitions and ownership
 
-Add realm/recipe Resources under `scenes/levels/progression/`. Realm definitions select depth ranges, room pools, recipes and the existing encounter factory. An ordinary/themed pool entry selects a generated composition from the [implemented room system](../level-design.md#coded-room-generators), with stable identity, purpose/depth eligibility, weight and repeat cap. Entrance/exit anchors can retain their existing authored scenes. Recipes distinguish required existence, traversal and completion; none implies the others.
+Add realm/recipe Resources under `scenes/levels/progression/`. Realm definitions select depth ranges, room pools, recipes and the existing encounter factory. An ordinary/themed pool entry selects a generated composition from the [implemented room system](../level-design.md#room-assembly), with stable identity, purpose/depth eligibility, weight and repeat cap. Entrance/exit anchors can retain their existing authored scenes. Recipes distinguish required existence, traversal and completion; none implies the others.
 
 Plans and realized placements are ordinary per-generation C# data. Shared Resources remain immutable. Explicitly assign realm/recipe dependencies on Level; retain the current generator path for unconfigured development floors. Reuse room packing, rotation and doorway helpers instead of duplicating them. Editor changes apply on regeneration, not a live floor.
 

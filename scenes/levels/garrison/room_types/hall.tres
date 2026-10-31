@@ -1,23 +1,31 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=24 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=33 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/pillared_walls.tres" id="3_pillared_wal"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/arched_walls.tres" id="4_arched_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/stone_walls.tres" id="5_stone_walls"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone_floor.tres" id="6_stone_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/cobble_floor.tres" id="7_cobble_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/worn_stone.tres" id="8_worn_stone"]
-[ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/AisleColumns.cs" id="9_AisleColumns"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar.tres" id="10_pillar"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar_ornate.tres" id="11_pillar_ornat"]
-[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="12_WallDecorSte"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="13_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="14_torch_unlit"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner.tres" id="15_banner"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/sword_shield.tres" id="16_sword_shield"]
-[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="17_AlongWallsSt"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/groups/barrel_station.tres" id="18_barrel_stati"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/windowed_walls.tres" id="6_windowed_wal"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone_floor.tres" id="7_stone_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/cobble_floor.tres" id="8_cobble_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/worn_stone.tres" id="9_worn_stone"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/decorated_bordered.tres" id="10_decorated_bo"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/AisleColumns.cs" id="11_AisleColumns"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar.tres" id="12_pillar"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar_ornate.tres" id="13_pillar_ornat"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="14_WallDecorSte"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="15_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="16_torch_unlit"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_red.tres" id="17_banner_red"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_blue.tres" id="18_banner_blue"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_green.tres" id="19_banner_green"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_yellow.tres" id="20_banner_yello"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_white.tres" id="21_banner_white"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_brown.tres" id="22_banner_brown"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/trophy.tres" id="23_trophy"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/sword_shield.tres" id="24_sword_shield"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="25_AlongWallsSt"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/groups/barrel_station.tres" id="26_barrel_stati"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -28,36 +36,45 @@ OddWidth = true
 metadata/_custom_type_script = ExtResource("2_RectangleSha")
 
 [sub_resource type="Resource" id="AisleColumns_2"]
-script = ExtResource("9_AisleColumns")
+script = ExtResource("11_AisleColumns")
 Id = "aisle"
-Column = [ExtResource("10_pillar"), ExtResource("11_pillar_ornat")]
+Column = [ExtResource("12_pillar"), ExtResource("13_pillar_ornat")]
 Spacing = 2
-metadata/_custom_type_script = ExtResource("9_AisleColumns")
+metadata/_custom_type_script = ExtResource("11_AisleColumns")
 
 [sub_resource type="Resource" id="WallDecorStep_3"]
-script = ExtResource("12_WallDecorSte")
+script = ExtResource("14_WallDecorSte")
 Id = "torches"
-Content = [ExtResource("13_torch"), ExtResource("14_torch_unlit")]
+Content = [ExtResource("15_torch"), ExtResource("16_torch_unlit")]
 MaximumCount = 6
 Spacing = 6.0
-metadata/_custom_type_script = ExtResource("12_WallDecorSte")
+metadata/_custom_type_script = ExtResource("14_WallDecorSte")
 
 [sub_resource type="Resource" id="WallDecorStep_4"]
-script = ExtResource("12_WallDecorSte")
+script = ExtResource("14_WallDecorSte")
 Id = "banners"
-Content = [ExtResource("15_banner"), ExtResource("16_sword_shield")]
+Content = [ExtResource("17_banner_red"), ExtResource("18_banner_blue"), ExtResource("19_banner_green"), ExtResource("20_banner_yello"), ExtResource("21_banner_white"), ExtResource("22_banner_brown")]
 MaximumCount = 4
+Uniform = true
 Spacing = 4.0
-metadata/_custom_type_script = ExtResource("12_WallDecorSte")
+metadata/_custom_type_script = ExtResource("14_WallDecorSte")
 
-[sub_resource type="Resource" id="AlongWallsStep_5"]
-script = ExtResource("17_AlongWallsSt")
+[sub_resource type="Resource" id="WallDecorStep_5"]
+script = ExtResource("14_WallDecorSte")
+Id = "trophies"
+Content = [ExtResource("23_trophy"), ExtResource("24_sword_shield")]
+MaximumCount = 2
+Spacing = 6.0
+metadata/_custom_type_script = ExtResource("14_WallDecorSte")
+
+[sub_resource type="Resource" id="AlongWallsStep_6"]
+script = ExtResource("25_AlongWallsSt")
 Id = "provisions"
-Content = [ExtResource("18_barrel_stati")]
+Content = [ExtResource("26_barrel_stati")]
 MinimumCount = 0
 MaximumCount = 2
 Sides = 1
-metadata/_custom_type_script = ExtResource("17_AlongWallsSt")
+metadata/_custom_type_script = ExtResource("25_AlongWallsSt")
 
 [resource]
 script = ExtResource("1_RoomType")
@@ -68,9 +85,9 @@ MinDoorways = 2
 MaxDoorways = 4
 DoorwayPlacement = 1
 Circulation = 1
-Walls = [ExtResource("3_pillared_wal"), ExtResource("4_arched_walls"), ExtResource("5_stone_walls")]
-Floors = [ExtResource("6_stone_floor"), ExtResource("7_cobble_floor"), ExtResource("8_worn_stone")]
+Walls = [ExtResource("3_pillared_wal"), ExtResource("4_arched_walls"), ExtResource("5_stone_walls"), ExtResource("6_windowed_wal")]
+Floors = [ExtResource("7_stone_floor"), ExtResource("8_cobble_floor"), ExtResource("9_worn_stone"), ExtResource("10_decorated_bo")]
 Columns = [SubResource("AisleColumns_2")]
 ColumnChance = 1.0
-Steps = [SubResource("WallDecorStep_3"), SubResource("WallDecorStep_4"), SubResource("AlongWallsStep_5")]
+Steps = [SubResource("WallDecorStep_3"), SubResource("WallDecorStep_4"), SubResource("WallDecorStep_5"), SubResource("AlongWallsStep_6")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="ArrayMesh" path="res://scenes/props/furnishings/libraries/meshes/sword_shield.res" id="sword_shield"]
+
+[node name="WallSwordShield" type="Node3D"]
+
+[node name="Content" type="Node3D" parent="."]
+
+[node name="Display" type="MeshInstance3D" parent="Content"]
+scale = Vector3(0.65, 0.65, 0.65)
+mesh = ExtResource("sword_shield")

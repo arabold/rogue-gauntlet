@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
-[ext_resource type="PackedScene" path="res://scenes/levels/arrangements/wall/wall_sword_shield.tscn" id="2_wall_sword_s"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/wall_sword_shield.tscn" id="2_wall_sword_s"]
 
 [resource]
 script = ExtResource("1_Prop")

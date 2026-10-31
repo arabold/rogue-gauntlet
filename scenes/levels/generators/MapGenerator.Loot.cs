@@ -53,11 +53,10 @@ public partial class MapGenerator
 		if (!Floor.IsReachable(point)) return false;
 		var proposed = GlobalTransform.AffineInverse() * new Transform3D(new Basis(Vector3.Up, Mathf.DegToRad(rotation)),
 			point + Vector3.Up * GetFloorSurfaceHeight(point));
-		var bounds = RoomArrangement.GetStaticPropBounds(chest, proposed);
+		var solids = CollisionOutlines.FromStaticBodies(chest, proposed).ToList();
 		var doorClearances = InteriorDoorComponent.CollectClearances(NavigationRegion,
 			GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform);
-		return !bounds.Any(box => doorClearances.Any(clearance => clearance.Intersects(box)))
-			&& TryBlockReachably(CollisionOutlines.FromStaticBodies(chest, proposed).ToList());
+		return !solids.Any(solid => doorClearances.Any(clearance => clearance.Intersects(solid.Bounds))) && TryBlockReachably(solids);
 	}
 
 	private void PlaceChests(List<Vector3> placedLootPoints)

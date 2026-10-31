@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 /// <summary>
@@ -44,8 +45,10 @@ public partial class RowsStep : FurnishingStep
 			columnCenters.AddRange(Centers(area.GetCenter().X, Limit(Fit(area.Size.X, slot.Size.X, ColumnGap)), slot.Size.X, ColumnGap));
 		}
 		int count = 0;
-		foreach (float z in Centers(area.GetCenter().Y, rows, slot.Size.Z, RowGap))
-		foreach (float x in columnCenters)
+		// Fill from the middle out, so a count limit trims both ends evenly instead of leaving one end bare.
+		var middle = area.GetCenter();
+		foreach (float z in Centers(middle.Y, rows, slot.Size.Z, RowGap).OrderBy(z => Mathf.Abs(z - middle.Y)))
+		foreach (float x in columnCenters.OrderBy(x => Mathf.Abs(x - middle.X)))
 		{
 			if (count >= MaximumCount || plan.IsEmpty) return count;
 			var bounds = turn * plan.Bounds();

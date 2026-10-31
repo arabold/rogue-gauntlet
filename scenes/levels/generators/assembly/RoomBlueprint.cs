@@ -35,6 +35,7 @@ public sealed class RoomBlueprint
 	private readonly List<PlacedPiece> _pieces = [];
 	private readonly List<Rect2> _reserved = [];
 	private readonly Dictionary<object, int> _uses = [];
+	private readonly Dictionary<object, object> _memo = [];
 	private WallRun[] _wallRuns;
 
 	public RoomBlueprint(Room room, RoomType type, RoomFootprint footprint, IReadOnlyList<RoomDoorway> doorways, ulong seed, float actorRadius)
@@ -66,6 +67,8 @@ public sealed class RoomBlueprint
 	public Rect2 Interior { get; }
 	public IReadOnlyList<PlacedPiece> Pieces => _pieces;
 	public IReadOnlyList<Rect2> Reserved => _reserved;
+	/// <summary>Why the most recent placement was refused, for failure messages and authoring diagnostics.</summary>
+	public string LastRejection { get; private set; } = "";
 
 	public bool IsDoorway(Vector2I tile, Vector2I outward) => _doorwayEdges.Contains((tile, outward));
 
@@ -126,21 +129,26 @@ public sealed class RoomBlueprint
 
 	public RandomNumberGenerator Random(string key) => GenerationRandom.Create(Seed, GenerationRandom.Arrangements, $"{Type?.Id}:{key}");
 
-	/// <summary>Weighted choice that favours options used less in this room, so repeats come last. Always draws once.</summary>
+	/// <summary>
+	/// Weighted choice balanced over the room: each option scores (uses + a random fraction) / weight and the lowest wins.
+	/// Over many picks the counts follow the weights (a weight-0.3 option comes about once per three of a weight-1
+	/// option), while early picks stay random and equal options alternate instead of repeating. Draws once per option.
+	/// </summary>
 	public T Pick<T>(IReadOnlyList<T> options, RandomNumberGenerator rng) where T : Placeable
 	{
-		double roll = rng.Randf();
-		if (options == null || options.Count == 0) return null;
-		var weights = options.Select(option => option == null ? 0 : option.Weight / (1.0 + _uses.GetValueOrDefault(option))).ToArray();
-		double total = weights.Sum();
-		if (total <= 0) return null;
-		roll *= total;
-		for (int index = 0; index < options.Count; index++)
+		if (options == null) return null;
+		T best = null;
+		double bestScore = double.MaxValue;
+		foreach (var option in options)
 		{
-			roll -= weights[index];
-			if (roll < 0) return options[index];
+			double fraction = rng.Randf();
+			if (option == null || option.Weight <= 0) continue;
+			double score = (_uses.GetValueOrDefault(option) + fraction) / option.Weight;
+			if (score >= bestScore) continue;
+			bestScore = score;
+			best = option;
 		}
-		return options.Last(option => option != null);
+		return best;
 	}
 
 	/// <summary>Prefers variants not yet placed in this room; ties break by the seeded draw.</summary>
@@ -159,6 +167,15 @@ public sealed class RoomBlueprint
 	}
 
 	public void RecordUse(Placeable placeable) => _uses[placeable] = _uses.GetValueOrDefault(placeable) + 1;
+
+	/// <summary>A value computed once per room for <paramref name="key"/>, such as a step's single content choice.</summary>
+	public T Remember<T>(object key, System.Func<T> create)
+	{
+		if (_memo.TryGetValue(key, out var value)) return (T)value;
+		var created = create();
+		_memo[key] = created;
+		return created;
+	}
 
 	/// <summary>Every doorway can reach every other one.</summary>
 	public bool IsConnected => Grid.AreConnected(Doorways.Select(doorway => XZ(doorway.Approach)).ToArray());
@@ -206,6 +223,7 @@ public sealed class RoomBlueprint
 		}
 		if (!IsAcceptable)
 		{
+			LastRejection = $"{plan.Pieces[0].Prop.Id}: would cut off a doorway or exceed the pocket budget";
 			Restore(start);
 			return false;
 		}
@@ -242,6 +260,16 @@ public sealed class RoomBlueprint
 		return new Transform3D(run.Facing, origin);
 	}
 
+	/// <summary>
+	/// Frame on a run's wall face: origin at the run's middle, +Z into the room, X along the wall. Local X spans
+	/// -LengthUnits/2..+LengthUnits/2, so layouts built in this frame work on every wall regardless of direction.
+	/// </summary>
+	public Transform3D RunFrame(WallRun run) =>
+		new(run.Facing, run.LineStart + run.Tangent * (run.LengthUnits / 2) + run.Inward * RunDepth(run));
+
+	/// <summary>Distance along a run (from its start) of a room-local point.</summary>
+	public static float AlongRun(WallRun run, Vector3 point) => (point - run.LineStart).Dot(run.Tangent);
+
 	/// <summary>Extent of the plan along the run, including optional pieces.</summary>
 	public float WidthAlong(PlacementPlan plan, WallRun run)
 	{
@@ -269,23 +297,23 @@ public sealed class RoomBlueprint
 		var area = XZ(envelope);
 		if (piece.Prop.Mount == PropMount.Floor)
 		{
-			if (!HasFloorSupport(area.Grow(-.05f))) return false;
-			if (_wallBoxes.Any(wall => XZ(wall).Grow(-Tolerance).Intersects(area))) return false;
-			if (piece.Prop.Blocking && _reserved.Any(reserved => reserved.Intersects(area))) return false;
+			if (!HasFloorSupport(area.Grow(-.05f))) return Reject(piece, "extends past the floor");
+			if (_wallBoxes.Any(wall => XZ(wall).Grow(-Tolerance).Intersects(area))) return Reject(piece, "overlaps a wall");
+			if (piece.Prop.Blocking && _reserved.Any(reserved => reserved.Intersects(area))) return Reject(piece, "blocks reserved circulation");
 		}
 		else if (!Interior.Grow(1).Encloses(area))
 		{
-			return false;
+			return Reject(piece, "hangs outside the room");
 		}
 		foreach (var other in _pieces)
 		{
 			float gap = Mathf.Max(piece.Prop.Gap, other.Prop.Gap);
 			bool vertical = envelope.Position.Y < other.Envelope.End.Y - .01f && envelope.End.Y > other.Envelope.Position.Y + .01f;
-			if (vertical && XZ(other.Envelope).Grow(gap - Tolerance).Intersects(area)) return false;
+			if (vertical && XZ(other.Envelope).Grow(gap - Tolerance).Intersects(area)) return Reject(piece, $"overlaps {other.Prop.Id}");
 		}
 		_pieces.Add(new(piece.Prop, piece.Variant, transform, envelope));
 		foreach (var solid in geometry.Solids) Grid.AddObstacle(transform * solid);
-		if (checkConnectivity && geometry.Solids.Count > 0 && !IsAcceptable) return false;
+		if (checkConnectivity && geometry.Solids.Count > 0 && !IsAcceptable) return Reject(piece, "would cut off a doorway or exceed the pocket budget");
 		if (piece.Prop.Interactive)
 		{
 			// Keep the front clear so the prop stays usable after later placements.
@@ -294,6 +322,12 @@ public sealed class RoomBlueprint
 			Reserve(XZ(front));
 		}
 		return true;
+	}
+
+	private bool Reject(PlannedPiece piece, string reason)
+	{
+		LastRejection = $"{piece.Prop.Id}: {reason}";
+		return false;
 	}
 
 	private bool HasFloorSupport(Rect2 area)
@@ -320,7 +354,10 @@ public sealed class RoomBlueprint
 		_reserved.RemoveRange(checkpoint.Reserved, _reserved.Count - checkpoint.Reserved);
 	}
 
-	/// <summary>Instantiates every accepted prop under a Props node of the room; mesh-library props get static collision.</summary>
+	/// <summary>
+	/// Instantiates every accepted prop under a Props node of the room; mesh-library props get static collision.
+	/// Interior doors (cell gates) get stable room-local identities from their prop and order.
+	/// </summary>
 	public void EmitProps()
 	{
 		var root = new Node3D { Name = "Props" };
@@ -331,6 +368,7 @@ public sealed class RoomBlueprint
 			var node = CreateNode(piece);
 			node.Name = $"{piece.Prop.Id.Split('.').Last()}_{index}";
 			node.SetMeta("prop_id", piece.Prop.Id);
+			if (node is Door { Interior: not null } door) door.Interior.Id = $"{piece.Prop.Id}:{index}";
 			root.AddChild(node);
 		}
 	}
@@ -343,17 +381,43 @@ public sealed class RoomBlueprint
 		{
 			var instance = prop.Scenes[piece.Variant].Instantiate<Node3D>();
 			instance.Transform = piece.Transform * turn;
-			return instance;
+			if (!prop.Blocking || instance.FindChildren("*", nameof(CollisionShape3D), true, false).Count > 0) return instance;
+			// A bare model (an imported glTF) blocks with box colliders over its measured solids, like mesh-library props.
+			var wrapper = new Node3D { Transform = piece.Transform };
+			instance.Transform = turn;
+			wrapper.AddChild(instance);
+			var sceneBody = new StaticBody3D { Name = "Body", CollisionLayer = 16, CollisionMask = 0 };
+			foreach (var solid in prop.Geometry(piece.Variant).Solids)
+				sceneBody.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = solid.Size }, Position = solid.GetCenter() });
+			wrapper.AddChild(sceneBody);
+			return wrapper;
 		}
 		int item = prop.Library.FindItemByName(prop.Items[piece.Variant]);
-		var node = new Node3D { Transform = piece.Transform };
-		node.AddChild(new MeshInstance3D { Name = "Mesh", Mesh = prop.Library.GetItemMesh(item), Transform = turn * prop.Library.GetItemMeshTransform(item) });
+		// Structural pieces may be stretched along a run; physics needs unscaled shapes, so the scale moves onto the
+		// mesh and into box colliders sized from the measured solids.
+		var scale = piece.Transform.Basis.Scale;
+		bool scaled = !scale.IsEqualApprox(Vector3.One);
+		var stretch = new Transform3D(Basis.FromScale(scale), Vector3.Zero);
+		var node = new Node3D { Transform = scaled ? new Transform3D(piece.Transform.Basis.Orthonormalized(), piece.Transform.Origin) : piece.Transform };
+		node.AddChild(new MeshInstance3D
+		{
+			Name = "Mesh", Mesh = prop.Library.GetItemMesh(item),
+			Transform = (scaled ? stretch : Transform3D.Identity) * turn * prop.Library.GetItemMeshTransform(item),
+		});
 		var geometry = prop.Geometry(piece.Variant);
 		if (!prop.Blocking && geometry.Shapes.Count == 0) return node;
 		// Props share the arrangement collision layer: they block actors and navigation but not exploration sight.
 		var body = new StaticBody3D { Name = "Body", CollisionLayer = 16, CollisionMask = 0 };
 		node.AddChild(body);
-		if (geometry.Shapes.Count > 0)
+		if (scaled)
+		{
+			foreach (var solid in geometry.Solids)
+			{
+				var box = stretch * solid;
+				body.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = box.Size }, Position = box.GetCenter() });
+			}
+		}
+		else if (geometry.Shapes.Count > 0)
 		{
 			foreach (var (shape, transform) in geometry.Shapes) body.AddChild(new CollisionShape3D { Shape = shape, Transform = transform });
 		}

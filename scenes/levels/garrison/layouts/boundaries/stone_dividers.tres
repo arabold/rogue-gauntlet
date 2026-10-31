@@ -1,7 +1,0 @@
-[gd_resource type="Resource" script_class="RoomBoundaryPalette" load_steps=3 format=3]
-[ext_resource type="Script" path="res://scenes/levels/generators/rooms/RoomBoundaryPalette.cs" id="script"]
-[ext_resource type="Resource" path="res://scenes/levels/arrangements/boundaries/half_wall.tres" id="segment"]
-[resource]
-script = ExtResource("script")
-Segment = ExtResource("segment")
-metadata/_custom_type_script = ExtResource("script")

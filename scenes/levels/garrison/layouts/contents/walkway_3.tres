@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="RoomBoundaryLayout" load_steps=3 format=3]
-[ext_resource type="Script" path="res://scenes/levels/generators/rooms/layouts/RoomBoundaryLayout.cs" id="script"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/layouts/boundaries/fencing.tres" id="palette"]
-[resource]
-script = ExtResource("script")
-Palette = ExtResource("palette")
-Mode = 1
-WalkwaySides = 3
-metadata/_custom_type_script = ExtResource("script")

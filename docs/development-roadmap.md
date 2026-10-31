@@ -10,13 +10,14 @@ Studio exports supply art independently of Godot gameplay definitions. Available
 
 ## Room variety and furnishing
 
-[Arrangements](level-design.md#reusable-room-arrangements) support editable scene compositions, quarter-turn rotation, purpose eligibility, connected free space and editor generation. Floor furniture and elevated wall mounts share the same placement policy. Existing torch and banner fixtures demonstrate live light/particles without reserving floor space; solid collision still preserves access.
+[Room assembly](level-design.md#room-assembly) builds every Garrison room from a room type: shape, doorways, wall and floor styles, columns and ordered furnishing steps over shared props and groups, with [reachability](level-design.md#reachability) keeping content out of inaccessible space. Fourteen room types cover halls, storage, mess halls, barracks, libraries, alchemists, passages, fenced walkways, partitioned stores, prisons, chapels, kitchens, guardrooms and ruins, dressed with set tables, altars, trunks, sacks and pottery, banner colours per room, and windowed, scaffolded, pillared, arched and ruined walls over bordered, patched and drained floors.
 
-Future corridor dressing can reuse the same scenes with weighted scatter, opposing-pair or alternating-side patterns and spacing/jitter settings. Accept opposing pairs together against compatible wall spans; symmetry is optional. Fixed compositions such as torches framing a banner remain authored scenes. Corridor placement is not part of the current slice.
-
-The Garrison preset uses generated ordinary/special rooms and authored entrance/exit anchors. Modular barracks/storage replace their predefined scenes: shared footprint/content policies offer compact rectangular and deep L-shaped variants with independently optional full-height column groups. Separate bed/box/bedside/decor arrangements are recombined by measured wall functions; table and shelf rows share helpers. Count-driven libraries (joined columns, reachable row aisles and corner shelving), an alchemist’s sleeping library/workspace, barrel/keg stations and 1×N/2×N passages exercise reuse. Room-wide surface palettes coordinate floors/walls, reserving patterned wood for rarer formal choices. Static wall/corner bays, sided fenced walkways and half-wall dividers preserve connected player-width free space. Gameplay and the playground share these recipes; per-depth roles and route guarantees remain future work. Review density, repetition and movement using the [authoring guide/playground](../scenes/levels/arrangements/README.md); map-size expansion remains separate. Barred prisons reuse chamber rows with a gate per cell, varied bedding and optional guard/supply assemblies; gate interaction and saved open state use the existing door system. Other interactive and loot-bearing arrangements remain deferred.
-
-The [remaining room sections plan](specs/reusable-room-sections-plan.md) covers opaque partitions, internal mechanical locks and sewage content. These need additional visibility/access integration beyond unlocked barred cells.
+Remaining:
+- **More variety:** further room types, props, groups and wall/floor styles; this is authoring work on the existing strategies (see the [authoring guide](../scenes/levels/generators/assembly/README.md)).
+- **Corridor dressing:** weighted scatter or opposing pairs along corridor walls, reusing props and wall-decor placement.
+- **Opaque partitions and internal locks:** a room-local sight boundary projected through rotation and placement; internal mechanical locks need guaranteed reachable sources and saved state. Bars and fences stay non-occluding.
+- **Sewer and cistern content:** drainage grates, crossings and pits as floor styles or shape features.
+- **Per-depth room roles** and required routes.
 
 ## First-three-floor acceptance
 
@@ -56,7 +57,7 @@ The next consumable-feedback goal is [catalog-wide activation coverage](specs/co
 
 ## Later delivery
 
-- **Architecture cleanup:** floor services, the run state and player persistence are separated. Remaining: item use through one context (consumable and scroll-effect signatures, `ActionManager` slot creation), splitting `ProceduralRoomBuilder` from its room-styling randomness, and a scene autoload for the session-flow scene paths shared with `SceneDebugBootstrap`.
+- **Architecture cleanup:** floor services, the run state and player persistence are separated. Remaining: item use through one context (consumable and scroll-effect signatures, `ActionManager` slot creation), and a scene autoload for the session-flow scene paths shared with `SceneDebugBootstrap`.
 - **Message feed:** the [logging proposal](specs/logging-plan.md) remains separate from existing combat traces.
 - **Shop:** finite depth-appropriate stock, atomic trade, persistent balances and no identification leaks or trivial resale loops.
 - **Complete run:** connect class selection, descent, recovery/preparation and a valid win/loss outcome. The intended 24-depth/eight-realm journey ends at the World-Anchor; permanent progression remains undecided.

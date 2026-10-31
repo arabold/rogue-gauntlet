@@ -17,6 +17,8 @@ public partial class AlongWallsStep : FurnishingStep
 	[Export(PropertyHint.Range, "0,4,0.05")] public float Spacing { get; set; } = .3f;
 	/// <summary>Distance kept from the run's ends (the corner wall line, or a doorway's edge).</summary>
 	[Export(PropertyHint.Range, "0,4,0.05")] public float EndClearance { get; set; } = .6f;
+	/// <summary>One piece centered on each run instead of packing from an end: altars, focal furniture.</summary>
+	[Export] public bool Centered { get; set; }
 
 	public override int Furnish(RoomBlueprint room, RandomNumberGenerator rng)
 	{
@@ -27,6 +29,14 @@ public partial class AlongWallsStep : FurnishingStep
 		var plan = Next(room, rng, out var choice);
 		foreach (var run in runs)
 		{
+			if (Centered)
+			{
+				if (count >= MaximumCount || plan.IsEmpty) break;
+				if (!TryPlaceAgainstWall(room, choice, plan, run, (run.LengthUnits - room.WidthAlong(plan, run)) / 2)) continue;
+				count++;
+				plan = Next(room, rng, out choice);
+				continue;
+			}
 			bool fromEnd = rng.Randf() < .5f;
 			float offset = EndClearance;
 			while (count < MaximumCount && !plan.IsEmpty)

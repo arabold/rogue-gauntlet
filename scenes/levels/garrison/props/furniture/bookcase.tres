@@ -1,10 +1,10 @@
 [gd_resource type="Resource" script_class="Prop" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
-[ext_resource type="PackedScene" path="res://scenes/levels/arrangements/furniture/library_bookcase.tscn" id="2_library_book"]
-[ext_resource type="PackedScene" path="res://scenes/levels/arrangements/furniture/library_bookcase_bare.tscn" id="3_library_book"]
-[ext_resource type="PackedScene" path="res://scenes/levels/arrangements/furniture/library_bookcase_mixed_a.tscn" id="4_library_book"]
-[ext_resource type="PackedScene" path="res://scenes/levels/arrangements/furniture/library_bookcase_mixed_b.tscn" id="5_library_book"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/library_bookcase.tscn" id="2_library_book"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/library_bookcase_bare.tscn" id="3_library_book"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/library_bookcase_mixed_a.tscn" id="4_library_book"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/library_bookcase_mixed_b.tscn" id="5_library_book"]
 
 [resource]
 script = ExtResource("1_Prop")

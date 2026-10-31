@@ -19,12 +19,8 @@ public partial class Room : Node3D
 	/// </summary>
 	public Rect2I Bounds { get; private set; }
 
-	/// <summary>Concrete architectural purpose retained for furnishing eligibility and authored-scene editing.</summary>
-	[Export] public RoomPurpose Purpose { get; set; } = RoomPurpose.Chamber;
-
-	/// <summary>Assigned coded recipe; saved authored rooms retain this for editor rerolls only.</summary>
-	[Export] public RoomGenerator Generator { get; set; }
-	/// <summary>The room type that assembled this room, content included; null for authored and legacy rooms.</summary>
+	/// <summary>The room type that assembled this room, content included; null for authored rooms. Saved generated rooms
+	/// keep it so the editor can reroll them.</summary>
 	[Export] public RoomType Type { get; set; }
 	/// <summary>Authored/generated circulation axis; zero means the room has no primary aisle.</summary>
 	[Export] public Vector2I LayoutAxis { get; set; }

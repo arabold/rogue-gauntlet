@@ -35,7 +35,7 @@ public static class WallFootprints
 	/// Places straight walls, gap-filling half-walls, and corner pieces onto <paramref name="wallGridMap"/>
 	/// for every tile in <paramref name="sourceTiles"/> whose cardinal edge satisfies <paramref name="needsWallToward"/>.
 	/// Shared between runtime level generation (<see cref="MapGenerator"/>) and standalone room generation
-	/// (<see cref="ProceduralRoomBuilder"/>). Requests keep their axis orientation (horizontal 0, vertical 16) for gap
+	/// (<see cref="WallStyle"/>). Requests keep their axis orientation (horizontal 0, vertical 16) for gap
 	/// filling; <paramref name="pickStraight"/> may place a straight piece at either facing of that axis.
 	/// </summary>
 	public static void PlaceWalls(

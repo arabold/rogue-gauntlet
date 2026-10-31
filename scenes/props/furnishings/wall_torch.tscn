@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/props/torch_mounted.tscn" id="torch"]
+
+[node name="WallTorch" type="Node3D"]
+
+[node name="Content" parent="." instance=ExtResource("torch")]

@@ -4,7 +4,8 @@ using Godot;
 
 /// <summary>
 /// A table with seats spaced along its measured long sides (and optionally its ends), each facing the table. Coded
-/// because seat count follows the chosen table's size; every seat is optional and dropped when it does not fit.
+/// because seat count follows the chosen table and seat sizes; one kind of seat per table, each optional and dropped
+/// when it does not fit.
 /// </summary>
 [Tool, GlobalClass]
 public partial class SeatedTable : Placeable
@@ -32,7 +33,11 @@ public partial class SeatedTable : Placeable
 		var center = bounds.GetCenter();
 		var along = longZ ? Vector3.Back : Vector3.Right;
 		var across = longZ ? Vector3.Right : Vector3.Back;
-		int perSide = Mathf.Max(1, Mathf.FloorToInt(length / SeatSpacing));
+		// One seat kind per table: chairs or benches, never mixed. Wide seats (benches) space by their own width.
+		var seat = room.Pick(Seats, rng);
+		if (seat == null) return;
+		float spacing = Mathf.Max(SeatSpacing, seat.Geometry(0).Envelope.Size.X + .1f);
+		int perSide = Mathf.Max(1, Mathf.FloorToInt(length / spacing));
 		foreach (float side in new[] { -1f, 1f })
 			for (int index = 0; index < perSide; index++)
 			{
@@ -45,9 +50,7 @@ public partial class SeatedTable : Placeable
 
 		void AddSeat(Vector3 edgeCenter, Vector3 outward, float distance, float chance)
 		{
-			bool include = rng.Randf() < chance;
-			var seat = room.Pick(Seats, rng);
-			if (!include || seat == null) return;
+			if (rng.Randf() >= chance) return;
 			int variant = room.PickVariant(seat, rng);
 			var envelope = seat.Geometry(variant).Envelope;
 			// The seat's front (+Z) faces the table and stops SeatGap short of the table edge.

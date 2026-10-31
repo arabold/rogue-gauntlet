@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=25 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=30 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -14,11 +14,16 @@
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="12_AlongWallsSt"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/groups/keg_station.tres" id="13_keg_station"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/groups/barrel_station.tres" id="14_barrel_stati"]
-[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="15_WallDecorSte"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="16_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="17_torch_unlit"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner.tres" id="18_banner"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/sword_shield.tres" id="19_sword_shield"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/groups/kitchen_counter.tres" id="15_kitchen_coun"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="16_WallDecorSte"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="17_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="18_torch_unlit"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_red.tres" id="19_banner_red"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_blue.tres" id="20_banner_blue"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_green.tres" id="21_banner_green"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_yellow.tres" id="22_banner_yello"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_white.tres" id="23_banner_white"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_brown.tres" id="24_banner_brown"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -42,27 +47,28 @@ metadata/_custom_type_script = ExtResource("10_RowsStep")
 [sub_resource type="Resource" id="AlongWallsStep_3"]
 script = ExtResource("12_AlongWallsSt")
 Id = "provisions"
-Content = [ExtResource("13_keg_station"), ExtResource("14_barrel_stati")]
+Content = [ExtResource("13_keg_station"), ExtResource("14_barrel_stati"), ExtResource("15_kitchen_coun")]
 MinimumCount = 0
 MaximumCount = 2
 Sides = 2
 metadata/_custom_type_script = ExtResource("12_AlongWallsSt")
 
 [sub_resource type="Resource" id="WallDecorStep_4"]
-script = ExtResource("15_WallDecorSte")
+script = ExtResource("16_WallDecorSte")
 Id = "door_torches"
-Content = [ExtResource("16_torch"), ExtResource("17_torch_unlit")]
+Content = [ExtResource("17_torch"), ExtResource("18_torch_unlit")]
 MaximumCount = 2
 BesideDoorways = true
-metadata/_custom_type_script = ExtResource("15_WallDecorSte")
+metadata/_custom_type_script = ExtResource("16_WallDecorSte")
 
 [sub_resource type="Resource" id="WallDecorStep_5"]
-script = ExtResource("15_WallDecorSte")
+script = ExtResource("16_WallDecorSte")
 Id = "banners"
-Content = [ExtResource("18_banner"), ExtResource("19_sword_shield")]
+Content = [ExtResource("19_banner_red"), ExtResource("20_banner_blue"), ExtResource("21_banner_green"), ExtResource("22_banner_yello"), ExtResource("23_banner_white"), ExtResource("24_banner_brown")]
 MaximumCount = 3
+Uniform = true
 Spacing = 4.0
-metadata/_custom_type_script = ExtResource("15_WallDecorSte")
+metadata/_custom_type_script = ExtResource("16_WallDecorSte")
 
 [resource]
 script = ExtResource("1_RoomType")

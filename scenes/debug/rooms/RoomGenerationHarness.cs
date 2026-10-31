@@ -4,12 +4,11 @@ using System.Linq;
 using Godot;
 
 public enum RoomPreviewMode { Room, Floor }
-public enum RoomPreviewColumns { RecipeDefault, Disabled, Enabled }
 
 /// <summary>
-/// Inspect room types (and the remaining legacy recipes) alone or in the production floor pipeline. Room types expose
-/// every axis — shape, walls, floor, columns, furnishing — as an override, and a walkability overlay shows reachable
-/// floor (green), reserved circulation (blue) and inaccessible pockets (red).
+/// Inspect room types alone or in the production floor pipeline. Every axis — shape, walls, floor, columns,
+/// furnishing — can be overridden, and a walkability overlay shows reachable floor (green), reserved circulation
+/// (blue) and inaccessible pockets (red).
 /// </summary>
 public partial class RoomGenerationHarness : Node3D
 {
@@ -30,19 +29,15 @@ public partial class RoomGenerationHarness : Node3D
 	[Export] public int FloorOverride { get; set; } = RoomAssemblyOptions.Seeded;
 	/// <summary>Column pattern index, <see cref="RoomAssemblyOptions.Seeded"/> (type's chance) or <see cref="RoomAssemblyOptions.Off"/>.</summary>
 	[Export] public int ColumnsOverride { get; set; } = RoomAssemblyOptions.Seeded;
-	/// <summary>Legacy recipe overrides.</summary>
-	[Export] public int SelectedLayoutVariant { get; set; } = -1;
-	[Export] public RoomPreviewColumns Columns { get; set; }
 
 	public Room PreviewRoom { get; private set; }
 	public RoomBlueprint PreviewBlueprint { get; private set; }
 	public string LastError { get; private set; } = "";
-	/// <summary>Room types first, then the legacy coded recipes still awaiting their port.</summary>
-	public IReadOnlyList<Resource> Recipes => [.. Factory.RoomTypes, .. Factory.RoomGenerators];
+	public IReadOnlyList<RoomType> Recipes => Factory.RoomTypes;
 
 	private int _quarterTurns;
-	private OptionButton _modePicker, _recipePicker, _shapePicker, _wallsPicker, _floorPicker, _typeColumnPicker, _variantPicker, _columnPicker;
-	private HBoxContainer _shapeRow, _wallsRow, _floorRow, _typeColumnRow, _variantRow, _columnRow;
+	private OptionButton _modePicker, _recipePicker, _shapePicker, _wallsPicker, _floorPicker, _columnPicker;
+	private HBoxContainer _shapeRow, _wallsRow, _floorRow, _columnRow;
 	private SpinBox _seedInput;
 	private CheckButton _furnishingsToggle, _walkabilityToggle;
 	private Button _rotateButton;
@@ -72,11 +67,8 @@ public partial class RoomGenerationHarness : Node3D
 		_shapePicker = Picker("Shape", out _shapeRow, index => ShapeOverride = index - 1);
 		_wallsPicker = Picker("Walls", out _wallsRow, index => WallsOverride = index - 1);
 		_floorPicker = Picker("Floor", out _floorRow, index => FloorOverride = index - 1);
-		_typeColumnPicker = Picker("Columns", out _typeColumnRow,
+		_columnPicker = Picker("Columns", out _columnRow,
 			index => ColumnsOverride = index == 0 ? RoomAssemblyOptions.Seeded : index == 1 ? RoomAssemblyOptions.Off : index - 2);
-		_variantPicker = Picker("Layout", out _variantRow, index => SelectedLayoutVariant = index - 1);
-		_columnPicker = Picker("Columns", out _columnRow, index => Columns = (RoomPreviewColumns)index);
-		foreach (var title in new[] { "Recipe chance", "Off", "On (where safe)" }) _columnPicker.AddItem(title);
 
 		_seedInput = new SpinBox { MinValue = 0, MaxValue = uint.MaxValue, Step = 1, CustomMinimumSize = new(180, 0) };
 		_seedInput.ValueChanged += value => { if (!_syncing) { Seed = (uint)value; RequestRegeneration(); } };
@@ -132,12 +124,7 @@ public partial class RoomGenerationHarness : Node3D
 		return button;
 	}
 
-	private static string RecipeName(Resource recipe) => recipe switch
-	{
-		RoomType type => type.Id.Replace("garrison.", "").Replace('_', ' ').Capitalize(),
-		null => "Missing recipe",
-		_ => recipe.ResourcePath.GetFile().GetBaseName().Replace("garrison_", "").Replace("_generator", "").Capitalize() + " (legacy)",
-	};
+	private static string RecipeName(RoomType type) => type == null ? "Missing room type" : type.Id.Replace("garrison.", "").Replace('_', ' ').Capitalize();
 
 	private static string ShapeName(RoomShape shape) =>
 		$"{shape.GetType().Name.Replace("Shape", "")} {shape.MinimumSize.X}–{shape.MaximumSize.X} × {shape.MinimumSize.Y}–{shape.MaximumSize.Y}";
@@ -146,7 +133,6 @@ public partial class RoomGenerationHarness : Node3D
 	public void SelectRecipe(int index)
 	{
 		SelectedRecipe = index;
-		SelectedLayoutVariant = -1;
 		ShapeOverride = WallsOverride = FloorOverride = ColumnsOverride = RoomAssemblyOptions.Seeded;
 		_quarterTurns = 0;
 		RequestRegeneration();
@@ -176,7 +162,7 @@ public partial class RoomGenerationHarness : Node3D
 		try
 		{
 			if (SelectedRecipe < 0 || SelectedRecipe >= Recipes.Count || Recipes[SelectedRecipe] == null)
-				throw new InvalidOperationException("Select an assigned room recipe.");
+				throw new InvalidOperationException("Select an assigned room type.");
 			Generator.Visible = Mode == RoomPreviewMode.Floor;
 			PreviewRoot.Visible = Mode == RoomPreviewMode.Room;
 			if (Mode == RoomPreviewMode.Room) GenerateRoom();
@@ -184,10 +170,9 @@ public partial class RoomGenerationHarness : Node3D
 			{
 				ClearRoom();
 				Generator.Seed = Seed;
-				Generator.EnableFurnishings = Furnishings;
 				Generator.GenerateMap(false);
 				FramePreview(Mathf.Max(Generator.MapWidth, Generator.MapDepth) * Room.TileSize + 12);
-				Status.Text = $"Floor · Seed {Seed} · {Generator.Floor.Rooms.Count} rooms · {Generator.Floor.Rooms.Count(room => room.IsFurnished)} assembled";
+				Status.Text = $"Floor · Seed {Seed} · {Generator.Floor.Rooms.Count} rooms · {Generator.Floor.Rooms.Count(room => room.IsProcedural)} assembled";
 			}
 		}
 		catch (InvalidOperationException error)
@@ -203,30 +188,23 @@ public partial class RoomGenerationHarness : Node3D
 	{
 		if (_modePicker == null) return;
 		_syncing = true;
-		var recipe = Recipes.ElementAtOrDefault(SelectedRecipe);
+		var type = Recipes.ElementAtOrDefault(SelectedRecipe);
 		bool room = Mode == RoomPreviewMode.Room;
 		_modePicker.Select((int)Mode);
 		_recipePicker.Select(SelectedRecipe);
 		_recipePicker.Disabled = !room;
-		var type = recipe as RoomType;
 		Fill(_shapeRow, _shapePicker, type?.Shapes.Select(ShapeName), ShapeOverride + 1, "Seeded");
 		Fill(_wallsRow, _wallsPicker, type?.Walls.Select(style => style.Id.Replace("garrison.", "")), WallsOverride + 1, "Seeded");
 		Fill(_floorRow, _floorPicker, type?.Floors.Select(style => style.Id.Replace("garrison.", "")), FloorOverride + 1, "Seeded");
-		Fill(_typeColumnRow, _typeColumnPicker, type == null || type.Columns.Length == 0 ? null : type.Columns.Select(pattern => pattern.Id),
+		Fill(_columnRow, _columnPicker, type == null || type.Columns.Length == 0 ? null : type.Columns.Select(pattern => pattern.Id),
 			ColumnsOverride == RoomAssemblyOptions.Seeded ? 0 : ColumnsOverride == RoomAssemblyOptions.Off ? 1 : ColumnsOverride + 2,
 			$"Type chance ({type?.ColumnChance:P0})", "Off");
-		var modular = recipe as ModularRoomGenerator;
-		var prison = recipe as PrisonRoomGenerator;
-		IEnumerable<string> variants = modular != null ? modular.Layouts.Select(layout => layout.Id.Split('.').Last().Replace('_', ' ').Capitalize())
-			: prison != null ? ["One wall", "Opposing walls"] : null;
-		Fill(_variantRow, _variantPicker, variants, SelectedLayoutVariant + 1, "Seeded selection");
-		_columnRow.Visible = room && modular != null;
-		_columnPicker.Select((int)Columns);
-		foreach (var row in new[] { _shapeRow, _wallsRow, _floorRow, _typeColumnRow, _variantRow }) row.Visible &= room;
+		foreach (var row in new[] { _shapeRow, _wallsRow, _floorRow, _columnRow }) row.Visible &= room;
 		_seedInput.SetValueNoSignal(Seed);
 		_furnishingsToggle.SetPressedNoSignal(Furnishings);
+		_furnishingsToggle.Visible = room;
 		_walkabilityToggle.SetPressedNoSignal(ShowWalkability);
-		_walkabilityToggle.Visible = room && type != null;
+		_walkabilityToggle.Visible = room;
 		_rotateButton.Disabled = !room;
 		_syncing = false;
 	}
@@ -242,8 +220,7 @@ public partial class RoomGenerationHarness : Node3D
 
 	private void GenerateRoom()
 	{
-		var recipe = Recipes[SelectedRecipe];
-		var candidate = recipe is RoomType type ? AssembleRoomType(type) : BuildLegacyRoom((RoomGenerator)recipe);
+		var candidate = AssembleRoomType(Recipes[SelectedRecipe]);
 		try
 		{
 			candidate.Rotate(_quarterTurns);
@@ -310,38 +287,6 @@ public partial class RoomGenerationHarness : Node3D
 		};
 		blueprint.Room.AddChild(new MultiMeshInstance3D { Name = "WalkabilityOverlay", Multimesh = multimesh, MaterialOverride = material });
 		return (reachable, pockets);
-	}
-
-	/// <summary>Legacy coded recipes: preview overrides belong to this room; never mutate the shared production recipe.</summary>
-	private Room BuildLegacyRoom(RoomGenerator recipe)
-	{
-		PreviewBlueprint = null;
-		if (recipe is ModularRoomGenerator modular && (SelectedLayoutVariant >= 0 || Columns != RoomPreviewColumns.RecipeDefault))
-		{
-			if (SelectedLayoutVariant >= modular.Layouts.Length) throw new InvalidOperationException("Select a valid layout variant.");
-			var copy = (ModularRoomGenerator)modular.Duplicate();
-			if (SelectedLayoutVariant >= 0) copy.Layouts = [modular.Layouts[SelectedLayoutVariant]];
-			if (Columns != RoomPreviewColumns.RecipeDefault) copy.ColumnChance = Columns == RoomPreviewColumns.Enabled ? 1 : 0;
-			recipe = copy;
-		}
-		if (recipe is PrisonRoomGenerator prison && SelectedLayoutVariant >= 0)
-		{
-			if (SelectedLayoutVariant > 1) throw new InvalidOperationException("Select a valid prison row mode.");
-			var copy = (PrisonRoomGenerator)prison.Duplicate();
-			copy.Rows = (PrisonCellRows)(SelectedLayoutVariant + 1);
-			recipe = copy;
-		}
-		using var rng = new RandomNumberGenerator { Seed = Seed };
-		var candidate = new Room { Name = "PreviewRoom" };
-		if (!recipe.PopulateRoom(candidate, rng, standalone: true, furnish: false))
-		{
-			candidate.Free();
-			throw new InvalidOperationException(string.Join("\n", recipe.Validate()));
-		}
-		if (Furnishings) recipe.ShellBuilder.FurnishStandaloneRoom(candidate, Seed, recipe.CreateInteriorPool(candidate), recipe.Dressing);
-		Status.Text = $"{recipe.GetType().Name} (legacy) · Seed {Seed} · {_quarterTurns * 90}°\n"
-			+ $"{candidate.Map.Width} × {candidate.Map.Height} tiles · {candidate.GetChildren().OfType<RoomArrangement>().Count()} arrangements";
-		return candidate;
 	}
 
 	private void ClearRoom()

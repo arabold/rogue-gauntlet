@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using Godot;
 
 /// <summary>
-/// Where an actor's center can stand, on a sub-tile grid in world XZ. Obstacles are grown by the actor radius and
-/// rasterized by cell center, so a standable cell is one where an actor centered there touches nothing solid.
+/// Where an actor's center can stand, on a sub-tile grid in world XZ. Obstacles are grown by the actor radius less
+/// half a cell and rasterized by cell center, so a standable cell is one holding some point where an actor touches
+/// nothing solid. Without that allowance a 2.4-unit gate would pass or fail for a 2-unit actor depending on where the
+/// grid happens to fall.
 /// Shared by room assembly (every doorway must stay reachable) and the generated floor (spawns and loot only use
 /// reachable cells). Plain C#: one instance belongs to one assembly attempt or one floor.
 /// </summary>
@@ -18,6 +20,7 @@ public sealed class WalkabilityGrid
 	private const float Epsilon = .001f;
 
 	private readonly Vector2 _origin;
+	private readonly float _erosion;
 	private readonly bool[] _floor;
 	private byte[] _blocked;
 
@@ -26,6 +29,7 @@ public sealed class WalkabilityGrid
 		if (cellSize <= 0 || actorRadius < 0) throw new ArgumentOutOfRangeException(nameof(cellSize));
 		CellSize = cellSize;
 		ActorRadius = actorRadius;
+		_erosion = Mathf.Max(0, actorRadius - cellSize / 2);
 		_origin = bounds.Position;
 		Size = new(Mathf.Max(1, Mathf.CeilToInt(bounds.Size.X / cellSize)), Mathf.Max(1, Mathf.CeilToInt(bounds.Size.Y / cellSize)));
 		_floor = new bool[Size.X * Size.Y];
@@ -59,16 +63,16 @@ public sealed class WalkabilityGrid
 		AddObstacle(solid.Polygon);
 	}
 
-	/// <summary>Blocks cells whose centers lie within the actor radius of a convex outline (its Minkowski sum with the actor).</summary>
+	/// <summary>Blocks cells whose centers lie within the erosion radius of a convex outline (its Minkowski sum with the actor).</summary>
 	public void AddObstacle(Vector2[] polygon)
 	{
 		if (polygon.Length == 0) return;
 		var bounds = new Rect2(polygon[0], Vector2.Zero);
 		foreach (var point in polygon) bounds = bounds.Expand(point);
-		foreach (int index in CellsWithCenterIn(bounds.Grow(ActorRadius)))
+		foreach (int index in CellsWithCenterIn(bounds.Grow(_erosion)))
 		{
 			var center = CellCenter(new Vector2I(index % Size.X, index / Size.X));
-			if (DistanceTo(polygon, center) < ActorRadius - Epsilon) _blocked[index] = 1;
+			if (DistanceTo(polygon, center) < _erosion - Epsilon) _blocked[index] = 1;
 		}
 	}
 

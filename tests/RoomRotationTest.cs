@@ -1,14 +1,15 @@
 namespace RogueGauntlet.Tests;
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
-/// Correctness contracts for Room.Rotate, swept across seeds using procedurally built
-/// rooms (irregular footprints, doorways, doors -- the hardest shapes to get right) and
+/// Correctness contracts for Room.Rotate, swept across seeds using assembled room types
+/// (irregular footprints, doorways, doors and props -- the hardest shapes to get right) and
 /// checked against authored rooms (real hand-placed props, a harder test of "rotate
 /// arbitrary child nodes" than procedural rooms alone provide):
 /// <list type="bullet">
@@ -39,21 +40,14 @@ public class RoomRotationTest
 	[TestCase]
 	public void RotatingProceduralRoomsFourTimesReturnsToOriginalGeometry()
 	{
-		var builder = TestFactories.Load<ProceduralRoomBuilder>(
-			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
-			cacheMode: ResourceLoader.CacheMode.Ignore);
-		builder.DoorwayChance = 1f;
-		builder.MinDoors = 4;
-		builder.MaxDoors = 4;
-		builder.MaxDoorways = 4;
-
 		var failures = new List<string>();
 		for (ulong seed = 1; seed <= SeedCount; seed++)
 		{
-			using var rng = new RandomNumberGenerator { Seed = seed };
-			Room room = builder.BuildRoom(rng);
+			Room room = Assemble(seed, withDoors: true);
+			var props = SnapshotProps(room);
 			CheckRotationSweep(room, $"seed {seed}", strictContentChecks: true, failures);
-			room.QueueFree();
+			if (SnapshotProps(room) != props) failures.Add($"seed {seed}: props did not return to their original transforms");
+			room.Free();
 		}
 
 		AssertArray(failures)
@@ -160,12 +154,7 @@ public class RoomRotationTest
 	[TestCase]
 	public void RotatingATiltedChildComposesViaBasisNotEulerAddition()
 	{
-		var builder = TestFactories.Load<ProceduralRoomBuilder>(
-			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
-			cacheMode: ResourceLoader.CacheMode.Ignore);
-		using var rng = new RandomNumberGenerator { Seed = 1 };
-		Room room = builder.BuildRoom(rng);
-		room.BakeTileMap();
+		Room room = Assemble(1);
 
 		var tiltedProp = new Node3D
 		{
@@ -186,6 +175,16 @@ public class RoomRotationTest
 			.IsTrue();
 	}
 
+	/// <summary>A room assembled from the Garrison types, cycling through them by seed.</summary>
+	private static Room Assemble(ulong seed, bool withDoors = false)
+	{
+		var types = (withDoors ? TestFactories.AllProceduralWithDoors() : TestFactories.AllProcedural()).RoomTypes;
+		return RoomAssembler.Assemble(types[(int)(seed % (ulong)types.Length)], seed);
+	}
+
+	private static string SnapshotProps(Room room) => string.Join("|", room.GetNode("Props").GetChildren().OfType<Node3D>()
+		.Select(prop => $"{prop.Name}:{prop.Transform.Origin.Snapped(Vector3.One * .001f)}:{prop.Transform.Basis.X.Snapped(Vector3.One * .001f)}:{prop.Transform.Basis.Z.Snapped(Vector3.One * .001f)}"));
+
 	private static bool BasisApproxEquals(Basis a, Basis b)
 	{
 		return a.X.IsEqualApprox(b.X) && a.Y.IsEqualApprox(b.Y) && a.Z.IsEqualApprox(b.Z);
@@ -202,12 +201,7 @@ public class RoomRotationTest
 	[TestCase]
 	public void RotatingANonUprightGridMapOrientationComposesCorrectly()
 	{
-		var builder = TestFactories.Load<ProceduralRoomBuilder>(
-			"res://scenes/levels/dungeon/dungeon_procedural_room_builder.tres",
-			cacheMode: ResourceLoader.CacheMode.Ignore);
-		using var rng = new RandomNumberGenerator { Seed = 1 };
-		Room room = builder.BuildRoom(rng);
-		room.BakeTileMap();
+		Room room = Assemble(1);
 
 		// Far outside the room's own generated content, so this doesn't collide with
 		// anything BakeTileMap scans.
@@ -287,7 +281,7 @@ public class RoomRotationTest
 		AssertGridMapMatches(originalDecoration, SnapshotCells(room.DecorationGridMap), $"{label}: DecorationGridMap", failures);
 	}
 
-	/// <summary>Mirrors ProceduralRoomBuilderTest's doorway/door checks, reused here after rotation.</summary>
+	/// <summary>Doorway markers stay on connectors and doors stay on their marker's edge after rotation.</summary>
 	private static List<string> FindDoorwayViolations(Room room)
 	{
 		var failures = new List<string>();

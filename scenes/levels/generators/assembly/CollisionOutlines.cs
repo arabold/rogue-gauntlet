@@ -3,7 +3,18 @@ using System.Linq;
 using Godot;
 
 /// <summary>Solid collision projected onto the floor: a convex XZ outline and the height range it occupies.</summary>
-public readonly record struct SolidOutline(Vector2[] Polygon, float Bottom, float Top);
+public readonly record struct SolidOutline(Vector2[] Polygon, float Bottom, float Top)
+{
+	public Aabb Bounds
+	{
+		get
+		{
+			var area = new Rect2(Polygon[0], Vector2.Zero);
+			foreach (var point in Polygon) area = area.Expand(point);
+			return new Aabb(new Vector3(area.Position.X, Bottom, area.Position.Y), new Vector3(area.Size.X, Top - Bottom, area.Size.Y));
+		}
+	}
+}
 
 /// <summary>
 /// Floor outlines of actual collision shapes. Convex shapes keep their true outline: a corner wall's L-shaped hull

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="PatchedFloor" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/PatchedFloor.cs" id="1_PatchedFloor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone.tres" id="2_stone"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/grates.tres" id="3_grates"]
+
+[resource]
+script = ExtResource("1_PatchedFloor")
+Id = "garrison.drained_stone"
+Weight = 1.0
+Base = ExtResource("2_stone")
+Patch = ExtResource("3_grates")
+Coverage = 0.12
+PatchSize = 2.0
+metadata/_custom_type_script = ExtResource("1_PatchedFloor")

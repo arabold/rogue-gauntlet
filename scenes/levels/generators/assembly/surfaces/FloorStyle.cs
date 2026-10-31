@@ -28,7 +28,8 @@ public abstract partial class FloorStyle : Resource
 		var materials = Materials.ToArray();
 		if (materials.Length == 0 || materials.Any(material => material == null)) return [$"Floor style {Id}: assign its materials."];
 		var errors = materials.SelectMany(material => material.Validate()).ToList();
-		if (materials.Select(material => material.Library).Distinct().Count() > 1) errors.Add($"Floor style {Id}: materials must share one floor library.");
+		// Compare by path: separately loaded copies of one library are still the same library.
+		if (materials.Select(material => material.Library?.ResourcePath ?? "").Distinct().Count() > 1) errors.Add($"Floor style {Id}: materials must share one floor library.");
 		return errors.ToArray();
 	}
 

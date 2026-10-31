@@ -7,54 +7,31 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Curated architecture, optional landmark exhaustion and the actual three-floor generation path.</summary>
+/// <summary>Curated room types, optional landmark exhaustion and the actual three-floor generation path.</summary>
 [TestSuite, RequireGodotRuntime]
 public class GarrisonRoomPoolTest
 {
 	private const string Preset = "res://scenes/levels/garrison/factories/garrison_mixed_room_factory.tres";
 
 	[TestCase]
-	public void RandomPurposesRespectPresetAndReproduceRoomGeometry()
+	public void StandardSlotsDrawEveryRoomTypeAndReproduceTheirContent()
 	{
 		var factory = TestFactories.Load<MixedRoomFactory>(Preset);
-		var seen = new HashSet<RoomPurpose>();
-		for (ulong seed = 1; seed <= 40; seed++)
+		var seen = new HashSet<RoomType>();
+		for (ulong seed = 1; seed <= 60; seed++)
 		{
 			using var a = new RandomNumberGenerator { Seed = seed };
 			using var b = new RandomNumberGenerator { Seed = seed };
 			var first = factory.CreateStandardRoom(a);
 			var second = factory.CreateStandardRoom(b);
-			AssertObject(first).IsNotNull();
-			AssertBool(IsGarrisonPurpose(first.Purpose)).IsTrue();
-			AssertBool(first.Purpose == second.Purpose).IsTrue();
-			AssertString(string.Join("|", first.FloorGridMap.GetUsedCells().Select(cell =>
-				$"{cell}:{first.FloorGridMap.GetCellItem(cell)}:{first.FloorGridMap.GetCellItemOrientation(cell)}")))
-				.IsEqual(string.Join("|", second.FloorGridMap.GetUsedCells().Select(cell =>
-					$"{cell}:{second.FloorGridMap.GetCellItem(cell)}:{second.FloorGridMap.GetCellItemOrientation(cell)}")));
-			seen.Add(first.Purpose);
+			AssertObject(first.Type).IsNotNull();
+			AssertObject(first.Type).IsSame(second.Type);
+			AssertString(Signature(first)).IsEqual(Signature(second));
+			seen.Add(first.Type);
 			first.Free();
 			second.Free();
 		}
-		AssertInt(seen.Count).IsEqual(2);
-	}
-
-	[TestCase(0)]
-	[TestCase(128)]
-	[TestCase(-1)]
-	public void InvalidRandomSelectionDoesNotEraseRoomAndFixedPurposeOverridesIt(int mask)
-	{
-		var factory = TestFactories.Load<MixedRoomFactory>(Preset, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
-		var builder = factory.RoomBuilder;
-		using var rng = new RandomNumberGenerator { Seed = 42 };
-		var room = builder.BuildRoom(rng);
-		var cells = room.FloorGridMap.GetUsedCells();
-		builder.RandomPurposeMask = mask;
-		AssertBool(builder.PopulateRoom(room, rng)).IsFalse();
-		AssertString(string.Join("|", room.FloorGridMap.GetUsedCells())).IsEqual(string.Join("|", cells));
-		builder.Purpose = RoomPurpose.SewerCistern;
-		AssertBool(builder.PopulateRoom(room, rng)).IsTrue();
-		AssertBool(room.Purpose == RoomPurpose.SewerCistern).IsTrue();
-		room.Free();
+		AssertInt(seen.Count).IsEqual(factory.RoomTypes.Length);
 	}
 
 	[TestCase]
@@ -70,19 +47,19 @@ public class GarrisonRoomPoolTest
 		{
 			var room = index % 2 == 0 ? factory.CreateSpecialRoom(rng) : factory.CreateStandardRoom(rng);
 			AssertString(room.SceneFilePath).IsEmpty();
-			AssertObject(room.Generator).IsNotNull();
-			if (index == 0) first = string.Join("|", room.FloorGridMap.GetUsedCells());
+			AssertObject(room.Type).IsNotNull();
+			if (index == 0) first = Signature(room);
 			room.Free();
 		}
 		factory.Reset();
 		rng.Seed = 42;
 		var reset = factory.CreateSpecialRoom(rng);
-		AssertString(string.Join("|", reset.FloorGridMap.GetUsedCells())).IsEqual(first);
+		AssertString(Signature(reset)).IsEqual(first);
 		reset.Free();
 	}
 
 	[TestCase]
-	public async Task ThreeDepthsKeepConnectedGeometryEncountersAndReproducibleFurnishings()
+	public async Task ThreeDepthsKeepConnectedGeometryEncountersAndReachableSpawns()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
@@ -100,7 +77,6 @@ public class GarrisonRoomPoolTest
 			level.Generate();
 			AssertString(failure).OverrideFailureMessage($"seed={runSeed} depth={depth}: {failure}").IsEmpty();
 			AssertArray(LayoutConnectivityTest.FindConnectivityFailures(generator)).IsEmpty();
-			AssertBool(generator.Floor.Rooms.Where(room => room.IsProcedural).All(room => IsGarrisonPurpose(room.Purpose))).IsTrue();
 			AssertInt(generator.Floor.Rooms.Count(room => room.IsProcedural)).IsGreater(0);
 			var ordinary = generator.EnemySpawnPoints.Where(spawn => encounters.Entries.Any(entry => entry.ScenePath == spawn.Scenes[0].ResourcePath)).ToArray();
 			int spent = ordinary.Sum(spawn => encounters.Entries.Single(entry => entry.ScenePath == spawn.Scenes[0].ResourcePath).Threat);
@@ -110,7 +86,8 @@ public class GarrisonRoomPoolTest
 			AssertInt(generator.EnemySpawnPoints.Count(spawn => spawn.Scenes[0] == encounters.NestScene)).IsEqual(depth == 2 ? 2 : 0);
 			AssertBool(level.CanDescend).IsEqual(depth != 3);
 			if (depth == 3) AssertInt(generator.EnemySpawnPoints.Count(spawn => spawn.PersistentId == level.Encounters.GatekeeperId)).IsEqual(1);
-			GD.Print($"GARRISON seed={runSeed} depth={depth} rooms={generator.Floor.Rooms.Count} generated={generator.Floor.Rooms.Count(room => room.IsProcedural)} enemies={ordinary.Length} threat={spent} arrangements={generator.ArrangementCount}");
+			AssertBool(generator.EnemySpawnPoints.All(spawn => generator.Floor.IsReachable(spawn.GlobalPosition))).IsTrue();
+			AssertString(UnreachableLoot(generator)).OverrideFailureMessage($"seed={runSeed} depth={depth}").IsEmpty();
 			string first = Fingerprint(generator);
 			level.Generate();
 			AssertString(Fingerprint(generator)).IsEqual(first);
@@ -118,11 +95,27 @@ public class GarrisonRoomPoolTest
 		}
 	}
 
-	private static bool IsGarrisonPurpose(RoomPurpose purpose) => purpose is RoomPurpose.Chamber
-		or RoomPurpose.GreatHall or RoomPurpose.Colonnade or RoomPurpose.RuinedCollapse;
+	/// <summary>Pickups and traps lie on reachable floor; a chest blocks its own cells, so it needs reachable floor beside it.</summary>
+	private static string UnreachableLoot(MapGenerator generator)
+	{
+		var floor = generator.Floor;
+		bool Beside(Vector3 point) => Enumerable.Range(0, 8).Any(step =>
+			floor.IsReachable(point + new Vector3(Mathf.Cos(step * Mathf.Tau / 8), 0, Mathf.Sin(step * Mathf.Tau / 8)) * 1.75f));
+		foreach (var node in generator.NavigationRegion.FindChildren("*", "", true, false).OfType<Node3D>())
+		{
+			bool chest = node.HasMeta("persistent_id") && node.GetMeta("persistent_id").AsString().Contains(":chest:");
+			if (chest && !Beside(node.GlobalPosition)) return $"chest at {node.GlobalPosition}";
+			if (node is LootableItem or FloorTrap && !floor.IsReachable(node.GlobalPosition)) return $"{node.Name} at {node.GlobalPosition}";
+		}
+		return "";
+	}
+
+	private static string Signature(Room room) => string.Join("|", room.FloorGridMap.GetUsedCells().Select(cell =>
+			$"{cell}:{room.FloorGridMap.GetCellItem(cell)}:{room.FloorGridMap.GetCellItemOrientation(cell)}"))
+		+ string.Join("|", room.GetNode("Props").GetChildren().OfType<Node3D>().Select(prop => $"{prop.GetMeta("prop_id")}:{prop.Transform}"));
 
 	private static string Fingerprint(MapGenerator generator) => string.Join("|", generator.Map.Tiles.Cast<MapTile>())
 		+ string.Join("|", generator.EnemySpawnPoints.Select(spawn => $"{spawn.PersistentId}:{spawn.Scenes[0].ResourcePath}:{spawn.GlobalTransform}"))
-		+ string.Join("|", generator.NavigationRegion.GetChildren().OfType<RoomArrangement>().Select(arrangement =>
-			$"{arrangement.GetMeta("arrangement_id")}:{arrangement.Transform}"));
+		+ string.Join("|", generator.NavigationRegion.GetChildren().OfType<Room>().Where(room => room.Type != null)
+			.SelectMany(room => room.GetNode("Props").GetChildren().OfType<Node3D>()).Select(prop => $"{prop.GetMeta("prop_id")}:{prop.GlobalTransform}"));
 }

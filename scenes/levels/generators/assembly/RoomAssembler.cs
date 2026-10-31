@@ -79,9 +79,12 @@ public static class RoomAssembler
 				for (int index = 0; index < type.Steps.Length; index++)
 				{
 					var step = type.Steps[index];
+					using var chanceRng = blueprint.Random($"step:{index}:{step.Id}:chance");
+					if (chanceRng.Randf() >= step.Chance) continue;
 					using var stepRng = blueprint.Random($"step:{index}:{step.Id}");
 					if (step.Furnish(blueprint, stepRng) >= step.MinimumCount) continue;
-					failure = $"step {step.Id} placed fewer than {step.MinimumCount}";
+					failure = $"step {step.Id} placed fewer than {step.MinimumCount}"
+						+ (blueprint.LastRejection == "" ? "" : $" (last rejection: {blueprint.LastRejection})");
 					room.Free();
 					return null;
 				}
@@ -97,6 +100,40 @@ public static class RoomAssembler
 		{
 			room.Free();
 			throw;
+		}
+	}
+
+	/// <summary>Moves a freshly assembled room's content into an existing (edited) room, replacing the old content.</summary>
+	public static void ReplaceContent(Room room, Room fresh)
+	{
+		foreach (var child in room.GetChildren().Where(child => child == room.FloorGridMap || child == room.WallGridMap
+			|| child == room.DecorationGridMap || child.Name == "Props" || child is DoorwayMarker or Door).ToArray())
+		{
+			room.RemoveChild(child);
+			child.Free();
+		}
+		foreach (var child in fresh.GetChildren().ToArray())
+		{
+			fresh.RemoveChild(child);
+			room.AddChild(child);
+		}
+		room.FloorGridMap = fresh.FloorGridMap;
+		room.WallGridMap = fresh.WallGridMap;
+		room.DecorationGridMap = fresh.DecorationGridMap;
+		room.Type = fresh.Type;
+		room.LayoutAxis = fresh.LayoutAxis;
+		fresh.Free();
+		SetOwners(room, room.Owner ?? room);
+		room.BakeTileMap();
+	}
+
+	/// <summary>Owns every generated node by <paramref name="owner"/> so the editor saves it; instanced scenes keep their insides.</summary>
+	public static void SetOwners(Node node, Node owner)
+	{
+		foreach (Node child in node.GetChildren())
+		{
+			child.Owner = owner;
+			if (string.IsNullOrEmpty(child.SceneFilePath)) SetOwners(child, owner);
 		}
 	}
 
@@ -132,13 +169,16 @@ public static class RoomAssembler
 		switch (type.DoorwayPlacement)
 		{
 			case DoorwayPlacement.LongAxisEnds:
-				foreach (var direction in new[] { Vector2I.Up, Vector2I.Down })
+			case DoorwayPlacement.SingleEnd:
+				// A single end leaves the far wall for a focal point (an altar, a desk).
+				var ends = type.DoorwayPlacement == DoorwayPlacement.SingleEnd ? new[] { rng.Randf() < .5f ? Vector2I.Up : Vector2I.Down } : new[] { Vector2I.Up, Vector2I.Down };
+				foreach (var direction in ends)
 				{
 					var end = candidates.Where(candidate => candidate.Direction == direction)
 						.OrderBy(candidate => Mathf.Abs(candidate.Tile.X - (footprint.Width - 1) / 2f)).ThenBy(candidate => candidate.Tile.X);
 					if (end.Any()) chosen.Add(end.First());
 				}
-				Spread(candidates.Where(candidate => candidate.Direction.X != 0).ToList(), chosen, rng.RandiRange(0, Mathf.Max(0, type.MaxDoorways - 2)), footprint, rng);
+				Spread(candidates.Where(candidate => candidate.Direction.X != 0).ToList(), chosen, rng.RandiRange(0, Mathf.Max(0, type.MaxDoorways - ends.Length)), footprint, rng);
 				break;
 			case DoorwayPlacement.LongSides:
 				Spread(candidates.Where(candidate => candidate.Direction.X != 0).ToList(), chosen, count, footprint, rng);
@@ -209,7 +249,7 @@ public static class RoomAssembler
 		{
 			var outward = new Vector3(doorway.Direction.X, 0, doorway.Direction.Y);
 			var edge = doorway.Approach + outward * (Room.TileSize / 2f);
-			blueprint.Reserve(Strip(edge, edge - outward * ApproachDepth));
+			blueprint.Reserve(Strip(edge, edge - outward * ApproachDepth, growEnds: false));
 		}
 		if (blueprint.Type.Circulation != CirculationMode.DoorToDoorSpine) return;
 		for (int index = 1; index < blueprint.Doorways.Count; index++)
@@ -220,12 +260,16 @@ public static class RoomAssembler
 		}
 	}
 
-	/// <summary>An axis-aligned strip of circulation width between two points on a shared row or column.</summary>
-	private static Rect2 Strip(Vector3 from, Vector3 to)
+	/// <summary>An axis-aligned strip of circulation width between two points on a shared row or column. Spine segments
+	/// also extend past their ends so turns stay covered; doorway approaches stop at their depth.</summary>
+	private static Rect2 Strip(Vector3 from, Vector3 to, bool growEnds = true)
 	{
 		var a = RoomBlueprint.XZ(from);
 		var b = RoomBlueprint.XZ(to);
-		return new Rect2(a, Vector2.Zero).Expand(b).Grow(CirculationWidth / 2);
+		var strip = new Rect2(a, Vector2.Zero).Expand(b);
+		if (growEnds) return strip.Grow(CirculationWidth / 2);
+		bool alongX = Mathf.Abs(b.X - a.X) > Mathf.Abs(b.Y - a.Y);
+		return alongX ? strip.GrowIndividual(0, CirculationWidth / 2, 0, CirculationWidth / 2) : strip.GrowIndividual(CirculationWidth / 2, 0, CirculationWidth / 2, 0);
 	}
 
 	private static List<Vector2I> TilePath(RoomFootprint footprint, Vector2I from, Vector2I to)

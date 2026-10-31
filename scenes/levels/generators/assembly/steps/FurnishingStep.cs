@@ -14,6 +14,12 @@ public abstract partial class FurnishingStep : Resource
 	[Export] public Placeable[] Content { get; set; } = [];
 	[Export(PropertyHint.Range, "0,32")] public int MinimumCount { get; set; }
 	[Export(PropertyHint.Range, "0,64")] public int MaximumCount { get; set; } = 4;
+	/// <summary>Chance this step runs at all; a skipped step is never required.</summary>
+	[Export(PropertyHint.Range, "0,1,0.05")] public float Chance { get; set; } = 1;
+	/// <summary>One content choice for the whole room (a single banner colour, one kind of table); variants still vary.</summary>
+	[Export] public bool Uniform { get; set; }
+	/// <summary>Relative chance when this step is one option of a <see cref="ChoiceStep"/>.</summary>
+	[Export(PropertyHint.Range, "0.01,10,0.01")] public float Weight { get; set; } = 1;
 
 	/// <summary>Places content and returns how many were placed; never throws on misfit.</summary>
 	public abstract int Furnish(RoomBlueprint room, RandomNumberGenerator rng);
@@ -30,7 +36,7 @@ public abstract partial class FurnishingStep : Resource
 
 	protected PlacementPlan Next(RoomBlueprint room, RandomNumberGenerator rng, out Placeable choice)
 	{
-		choice = room.Pick(Content, rng);
+		choice = Uniform ? room.Remember(this, () => room.Pick(Content, rng)) : room.Pick(Content, rng);
 		return choice?.Compose(room, rng) ?? new PlacementPlan();
 	}
 

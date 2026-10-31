@@ -184,8 +184,8 @@ public partial class DoorwayMarker : RoomMarker
 	/// <summary>
 	/// The Y-axis rotation, in degrees, that faces a prop toward North (0°) around to
 	/// the given direction. Shared with anything else that needs to orient content to a
-	/// single cardinal direction, e.g. a procedurally placed door
-	/// (ProceduralRoomBuilder), so the mapping has one definition.
+	/// single cardinal direction, e.g. a door placed by room assembly (RoomAssembler),
+	/// so the mapping has one definition.
 	/// </summary>
 	public static float GetYRotationDegrees(RoomMarkerDirection direction) => direction switch
 	{

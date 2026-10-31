@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
-[ext_resource type="MeshLibrary" path="res://scenes/levels/arrangements/libraries/dining_mesh_library.tres" id="2_dining_mesh_"]
+[ext_resource type="MeshLibrary" path="res://scenes/props/furnishings/libraries/dining_mesh_library.tres" id="2_dining_mesh_"]
 
 [resource]
 script = ExtResource("1_Prop")
