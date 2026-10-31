@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=42 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=44 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -8,8 +8,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/scaffold_walls.tres" id="6_scaffold_wal"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone_floor.tres" id="7_stone_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/dirt_floor.tres" id="8_dirt_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/worn_stone.tres" id="9_worn_stone"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/dirt_with_stone.tres" id="10_dirt_with_st"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/drained_stone.tres" id="11_drained_ston"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/CenterColumns.cs" id="12_CenterColumn"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar.tres" id="13_pillar"]
@@ -32,6 +30,10 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="30_torch"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="31_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/bucket.tres" id="32_bucket"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/cellar_alcove_walls.tres" id="x_cellar_alcove_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/bricks_floor.tres" id="x_bricks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/earth_floor.tres" id="x_earth_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/planks_rotten_floor.tres" id="x_planks_rotten_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -111,8 +113,8 @@ Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2")]
 MinimumFloorTiles = 8
 MinDoorways = 1
 MaxDoorways = 2
-Walls = [ExtResource("4_stone_walls"), ExtResource("5_ruined_walls"), ExtResource("6_scaffold_wal")]
-Floors = [ExtResource("7_stone_floor"), ExtResource("8_dirt_floor"), ExtResource("9_worn_stone"), ExtResource("10_dirt_with_st"), ExtResource("11_drained_ston")]
+Walls = [ExtResource("4_stone_walls"), ExtResource("5_ruined_walls"), ExtResource("6_scaffold_wal"), ExtResource("x_cellar_alcove_walls")]
+Floors = [ExtResource("7_stone_floor"), ExtResource("8_dirt_floor"), ExtResource("11_drained_ston"), ExtResource("x_bricks_floor"), ExtResource("x_earth_floor"), ExtResource("x_planks_rotten_floor")]
 Columns = [SubResource("CenterColumns_3"), SubResource("CornerColumns_4")]
 ColumnChance = 0.25
 Steps = [SubResource("CornersStep_5"), SubResource("AlongWallsStep_6"), SubResource("ScatterStep_7"), SubResource("CornersStep_8"), SubResource("WallDecorStep_9")]

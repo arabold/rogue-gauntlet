@@ -1,0 +1,82 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=24 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/LShape.cs" id="4_lshape"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/ruined_walls.tres" id="5_ruined_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/slimy_walls.tres" id="6_slimy_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/sewer/styles/floors/silt_floor.tres" id="7_silt_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/sewer/styles/floors/flagstones_ruined_floor.tres" id="8_flagstones_ruine"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/straw_pile.tres" id="9_straw_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/bone_pile.tres" id="10_bone_pile"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="11_cornersstep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/floor_debris.tres" id="12_floor_debris"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/vase_broken.tres" id="13_vase_broken"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/sack.tres" id="14_sack"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="15_scatterstep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/rubble.tres" id="16_rubble"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="17_torch_unlit"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="18_walldecorstep"]
+
+[sub_resource type="Resource" id="RectangleShape_1"]
+script = ExtResource("3_rectangleshape")
+Weight = 1.0
+MinimumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(5, 6)
+OddWidth = false
+metadata/_custom_type_script = ExtResource("3_rectangleshape")
+
+[sub_resource type="Resource" id="LShape_2"]
+script = ExtResource("4_lshape")
+Weight = 1.0
+MinimumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(5, 5)
+ArmWidth = 2
+metadata/_custom_type_script = ExtResource("4_lshape")
+
+[sub_resource type="Resource" id="CornersStep_3"]
+script = ExtResource("11_cornersstep")
+Id = "nests"
+Content = [ExtResource("9_straw_pile"), ExtResource("10_bone_pile")]
+MinimumCount = 1
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("11_cornersstep")
+
+[sub_resource type="Resource" id="ScatterStep_4"]
+script = ExtResource("15_scatterstep")
+Id = "gnawed"
+Content = [ExtResource("10_bone_pile"), ExtResource("9_straw_pile"), ExtResource("12_floor_debris"), ExtResource("13_vase_broken"), ExtResource("14_sack")]
+MaximumCount = 5
+WallChance = 0.5
+metadata/_custom_type_script = ExtResource("15_scatterstep")
+
+[sub_resource type="Resource" id="ScatterStep_5"]
+script = ExtResource("15_scatterstep")
+Id = "rubble"
+Content = [ExtResource("16_rubble")]
+MaximumCount = 2
+WallChance = 0.8
+Chance = 0.6
+metadata/_custom_type_script = ExtResource("15_scatterstep")
+
+[sub_resource type="Resource" id="WallDecorStep_6"]
+script = ExtResource("18_walldecorstep")
+Id = "torches"
+Content = [ExtResource("17_torch_unlit")]
+MaximumCount = 1
+Chance = 0.5
+metadata/_custom_type_script = ExtResource("18_walldecorstep")
+
+[resource]
+script = ExtResource("2_roomtype")
+Id = "sewer.rat_warren"
+Weight = 0.8
+Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2")]
+MinimumFloorTiles = 14
+MinDoorways = 1
+MaxDoorways = 3
+Circulation = 0
+Walls = [ExtResource("5_ruined_walls"), ExtResource("6_slimy_walls")]
+Floors = [ExtResource("7_silt_floor"), ExtResource("8_flagstones_ruine")]
+Steps = [SubResource("CornersStep_3"), SubResource("ScatterStep_4"), SubResource("ScatterStep_5"), SubResource("WallDecorStep_6")]
+metadata/_custom_type_script = ExtResource("2_roomtype")

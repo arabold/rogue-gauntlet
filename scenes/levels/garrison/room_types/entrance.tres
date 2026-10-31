@@ -10,9 +10,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/ruined_walls.tres" id="8_ruined_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone_floor.tres" id="9_stone_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/cobble_floor.tres" id="10_cobble_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/worn_stone.tres" id="11_worn_stone"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/dirt_floor.tres" id="12_dirt_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/dirt_with_stone.tres" id="13_dirt_with_st"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/StairsStep.cs" id="14_StairsStep"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/stairs_up.tres" id="15_stairs_up"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="16_ScatterStep"]
@@ -29,6 +27,8 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_brown.tres" id="27_banner_brown"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="28_torch"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="29_torch_unlit"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_ruined_floor.tres" id="x_flagstones_ruined_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -112,6 +112,6 @@ MinimumFloorTiles = 9
 MinDoorways = 1
 MaxDoorways = 2
 Walls = [ExtResource("5_stone_walls"), ExtResource("6_arched_walls"), ExtResource("7_pillared_wal"), ExtResource("8_ruined_walls")]
-Floors = [ExtResource("9_stone_floor"), ExtResource("10_cobble_floor"), ExtResource("11_worn_stone"), ExtResource("12_dirt_floor"), ExtResource("13_dirt_with_st")]
+Floors = [ExtResource("9_stone_floor"), ExtResource("10_cobble_floor"), ExtResource("12_dirt_floor"), ExtResource("x_flagstones_floor"), ExtResource("x_flagstones_ruined_floor")]
 Steps = [SubResource("StairsStep_5"), SubResource("ScatterStep_6"), SubResource("WallDecorStep_7"), SubResource("WallDecorStep_8"), SubResource("WallDecorStep_9")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

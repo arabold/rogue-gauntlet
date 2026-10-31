@@ -237,6 +237,8 @@ public static class TestFactories
 	{
 		mapGenerator.RoomLayout = layout;
 		mapGenerator.CorridorConnector = new AStarCorridorConnector();
+		// Tests pin their rooms: no realm may swap in other room types by depth.
+		mapGenerator.Realms = [];
 		mapGenerator.RoomFactory = factory ?? GarrisonRooms();
 		mapGenerator.MobFactory = Load<MobFactory>("res://scenes/levels/dungeon/dungeon_mob_factory.tres");
 		mapGenerator.TileFactory = Load<TileFactory>("res://scenes/levels/dungeon/dungeon_tile_factory.tres");

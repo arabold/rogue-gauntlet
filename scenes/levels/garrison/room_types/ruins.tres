@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=42 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=45 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/LShape.cs" id="2_LShape"]
@@ -30,6 +30,9 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/vase_broken.tres" id="28_vase_broken"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/fallen_beam.tres" id="29_fallen_beam"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/bone_pile.tres" id="30_bone_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_ruined_floor.tres" id="x_flagstones_ruined_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/planks_rotten_floor.tres" id="x_planks_rotten_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/earth_floor.tres" id="x_earth_floor"]
 
 [sub_resource type="Resource" id="LShape_1"]
 script = ExtResource("2_LShape")
@@ -124,7 +127,7 @@ MinDoorways = 1
 MaxDoorways = 3
 MaxPocketShare = 0.15
 Walls = [ExtResource("7_ruined_walls"), ExtResource("8_scaffold_wal")]
-Floors = [ExtResource("9_worn_stone"), ExtResource("10_dirt_with_st"), ExtResource("11_drained_ston"), ExtResource("12_dirt_floor")]
+Floors = [ExtResource("9_worn_stone"), ExtResource("10_dirt_with_st"), ExtResource("11_drained_ston"), ExtResource("12_dirt_floor"), ExtResource("x_flagstones_ruined_floor"), ExtResource("x_planks_rotten_floor"), ExtResource("x_earth_floor")]
 Columns = [SubResource("CenterColumns_6"), SubResource("CornerColumns_7")]
 ColumnChance = 0.5
 Steps = [SubResource("ScatterStep_8"), SubResource("ScatterStep_9"), SubResource("ScatterStep_10"), SubResource("WallDecorStep_11")]

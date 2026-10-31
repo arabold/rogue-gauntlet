@@ -4,7 +4,7 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 
 | Harness | Entry point | Purpose |
 | --- | --- | --- |
-| Room generation | [rooms/room_generation_harness.tscn](rooms/room_generation_harness.tscn) | Inspect room types alone or in the production Garrison floor |
+| Room generation | [rooms/room_generation_harness.tscn](rooms/room_generation_harness.tscn) | Inspect each realm's room types alone or in a production floor |
 | Combat | [combat/combat_harness.tscn](combat/combat_harness.tscn) | Interactive combat, monster tactics and scripted traces; [guide](../../docs/combat-harness.md) |
 | Item lifecycle | [items/item_lifecycle_harness.tscn](items/item_lifecycle_harness.tscn) | Item creation, inventory, equipment and consumables |
 | World effects | [effects/world_effect_harness.tscn](effects/world_effect_harness.tscn) | Replay and tune production trap/secret discovery, loot glow, blood hit and prop x-rays |
@@ -18,7 +18,7 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 
 ## Room generation
 
-The scene explicitly assigns the production Garrison factory, map generator, preview root, camera and UI. Its recipe list is the factory's `RoomTypes`, then its entrance and exit types; it keeps no catalog of its own.
+The scene instances the production level and lists its generator's realms; it keeps no catalog of its own. The **Realm** picker selects a realm, whose factory's `RoomTypes`, then entrance and exit types, form the recipe list; the floor view generates that realm's first depth, with its rooms and corridors.
 
 - **Single room:** select a recipe and seed, rotate in quarter-turns and toggle furnishings. Room types expose every axis as an override — Shape, Walls, Floor and Columns (type chance, off, or a specific pattern) — and run the production `RoomAssembler` with them. The **Walkability overlay** colours standable floor: green is reachable from the doorways, blue is reserved circulation or a stair landing, red is an inaccessible pocket. Overrides never change production Resources.
 - **Generated floor:** uses the production packing, corridor, wall and furnishing pipeline with the same factory. Recipe selection and room rotation are disabled in this view.

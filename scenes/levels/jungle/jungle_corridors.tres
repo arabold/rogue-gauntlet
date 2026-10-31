@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DungeonTileFactory" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/dungeon/DungeonTileFactory.cs" id="2_dungeontilefacto"]
+[ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="3_floormeshlibrary"]
+[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="4_wallsmeshlibrary"]
+
+[resource]
+script = ExtResource("2_dungeontilefacto")
+FloorLibrary = ExtResource("3_floormeshlibrary")
+Floors = Dictionary[String, float]({"floor_earth_large_A": 1.0, "floor_earth_large_B": 1.0, "floor_earth_large_C": 1.0, "floor_earth_large_D": 1.0, "floor_earth_large_E": 1.0, "floor_earth_large_F": 1.0})
+WallLibrary = ExtResource("4_wallsmeshlibrary")
+Walls = Dictionary[String, float]({"wall": 2.0, "wall_cracked": 1.0, "wall_mossy_A": 1.0, "wall_mossy_B": 1.0, "wall_mossy_C": 1.0, "wall_mossy_D": 1.0})
+WallHalf = "wall_mossy_half_A"
+WallCorner = "wall_mossy_corner_A"
+metadata/_custom_type_script = ExtResource("2_dungeontilefacto")

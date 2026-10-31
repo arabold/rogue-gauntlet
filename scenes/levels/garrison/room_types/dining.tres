@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=35 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=38 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -28,6 +28,9 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/tapestry_blue.tres" id="26_tapestry_blu"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/tapestry_green.tres" id="27_tapestry_gre"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/sconce.tres" id="28_sconce"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/planks_floor.tres" id="x_planks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/planks_rug.tres" id="x_planks_rug"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_bordered_planks.tres" id="x_flagstones_bordered_planks"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -91,6 +94,6 @@ MinDoorways = 2
 MaxDoorways = 3
 DoorwayPlacement = 1
 Walls = [ExtResource("3_stone_walls"), ExtResource("4_arched_walls"), ExtResource("5_pillared_wal")]
-Floors = [ExtResource("6_stone_floor"), ExtResource("7_light_wood_f"), ExtResource("8_stone_border"), ExtResource("9_stone_border")]
+Floors = [ExtResource("6_stone_floor"), ExtResource("7_light_wood_f"), ExtResource("8_stone_border"), ExtResource("9_stone_border"), ExtResource("x_planks_floor"), ExtResource("x_planks_rug"), ExtResource("x_flagstones_bordered_planks")]
 Steps = [SubResource("RowsStep_2"), SubResource("AlongWallsStep_3"), SubResource("WallDecorStep_4"), SubResource("WallDecorStep_5"), SubResource("WallDecorStep_6")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

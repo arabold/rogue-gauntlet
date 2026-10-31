@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=47 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=50 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -8,7 +8,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/windowed_walls.tres" id="6_windowed_wal"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone_floor.tres" id="7_stone_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/cobble_floor.tres" id="8_cobble_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/worn_stone.tres" id="9_worn_stone"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/decorated_bordered.tres" id="10_decorated_bo"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/AisleColumns.cs" id="11_AisleColumns"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar.tres" id="12_pillar"]
@@ -38,6 +37,10 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/tapestry_blue.tres" id="39_tapestry_blu"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/tapestry_green.tres" id="40_tapestry_gre"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/heraldic_shield.tres" id="41_heraldic_shi"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/ashlar_walls.tres" id="x_ashlar_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/checker_runner.tres" id="x_checker_runner"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/parquet_floor.tres" id="x_parquet_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -114,8 +117,8 @@ MinDoorways = 2
 MaxDoorways = 4
 DoorwayPlacement = 1
 Circulation = 1
-Walls = [ExtResource("3_pillared_wal"), ExtResource("4_arched_walls"), ExtResource("5_stone_walls"), ExtResource("6_windowed_wal")]
-Floors = [ExtResource("7_stone_floor"), ExtResource("8_cobble_floor"), ExtResource("9_worn_stone"), ExtResource("10_decorated_bo")]
+Walls = [ExtResource("3_pillared_wal"), ExtResource("4_arched_walls"), ExtResource("5_stone_walls"), ExtResource("6_windowed_wal"), ExtResource("x_ashlar_walls")]
+Floors = [ExtResource("7_stone_floor"), ExtResource("8_cobble_floor"), ExtResource("10_decorated_bo"), ExtResource("x_checker_runner"), ExtResource("x_parquet_floor"), ExtResource("x_flagstones_floor")]
 Columns = [SubResource("AisleColumns_2")]
 ColumnChance = 1.0
 Steps = [SubResource("AlongWallsStep_8"), SubResource("CornersStep_9"), SubResource("WallDecorStep_3"), SubResource("WallDecorStep_4"), SubResource("WallDecorStep_5"), SubResource("AlongWallsStep_6")]

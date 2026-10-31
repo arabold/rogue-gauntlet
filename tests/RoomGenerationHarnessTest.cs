@@ -6,7 +6,7 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>The room harness previews production room types and legacy recipes, axis overrides, rotation and floors.</summary>
+/// <summary>The room harness previews every realm's room types, axis overrides, rotation and floors.</summary>
 [TestSuite, RequireGodotRuntime]
 public class RoomGenerationHarnessTest
 {
@@ -19,17 +19,21 @@ public class RoomGenerationHarnessTest
 		await runner.SimulateFrames(2);
 		var harness = (RoomGenerationHarness)runner.Scene();
 		AssertString(harness.LastError).IsEmpty();
-		for (int index = 0; index < harness.Recipes.Count; index++)
+		for (int realm = 0; realm < harness.Generator.Realms.Length; realm++)
 		{
-			harness.SelectRecipe(index);
-			await runner.SimulateFrames(1);
-			AssertString(harness.LastError).IsEmpty();
-			if (harness.Recipes[index] is RoomType type)
+			harness.SelectRealm(realm);
+			for (int index = 0; index < harness.Recipes.Count; index++)
 			{
-				AssertObject(harness.PreviewRoom.Type).IsSame(type);
-				AssertBool(harness.PreviewBlueprint.IsConnected).IsTrue();
+				harness.SelectRecipe(index);
+				await runner.SimulateFrames(1);
+				AssertString(harness.LastError).OverrideFailureMessage($"{harness.Realm.Id} {index}: {harness.LastError}").IsEmpty();
+				if (harness.Recipes[index] is RoomType type)
+				{
+					AssertObject(harness.PreviewRoom.Type).IsSame(type);
+					AssertBool(harness.PreviewBlueprint.IsConnected).IsTrue();
+				}
+				AssertBool(harness.PreviewCamera.Size > harness.PreviewRoom.Bounds.Size.X).IsTrue();
 			}
-			AssertBool(harness.PreviewCamera.Size > harness.PreviewRoom.Bounds.Size.X).IsTrue();
 		}
 	}
 
@@ -74,12 +78,17 @@ public class RoomGenerationHarnessTest
 		var harness = (RoomGenerationHarness)runner.Scene();
 		harness.Mode = RoomPreviewMode.Floor;
 		harness.Seed = 23;
-		harness.Regenerate();
-		await runner.SimulateFrames(1);
-		AssertString(harness.LastError).IsEmpty();
-		AssertObject(harness.PreviewRoom).IsNull();
-		AssertBool(harness.Generator.Visible).IsTrue();
-		AssertArray(LayoutConnectivityTest.FindConnectivityFailures(harness.Generator)).IsEmpty();
+		for (int realm = harness.Generator.Realms.Length - 1; realm >= 0; realm--)
+		{
+			harness.SelectRealm(realm);
+			harness.Regenerate();
+			await runner.SimulateFrames(1);
+			AssertString(harness.LastError).IsEmpty();
+			AssertObject(harness.Generator.CurrentRealm).IsSame(harness.Realm);
+			AssertObject(harness.PreviewRoom).IsNull();
+			AssertBool(harness.Generator.Visible).IsTrue();
+			AssertArray(LayoutConnectivityTest.FindConnectivityFailures(harness.Generator)).IsEmpty();
+		}
 		harness.Mode = RoomPreviewMode.Room;
 		harness.SelectRecipe(0);
 		await runner.SimulateFrames(1);

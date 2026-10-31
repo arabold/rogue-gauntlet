@@ -1,12 +1,10 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=33 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=34 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/stone_walls.tres" id="3_stone_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/ruined_walls.tres" id="4_ruined_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone_floor.tres" id="5_stone_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/worn_stone.tres" id="6_worn_stone"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/dirt_with_stone.tres" id="7_dirt_with_st"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CellsStep.cs" id="8_CellsStep"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/groups/cell_bedding.tres" id="9_cell_bedding"]
 [ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="10_WallsMeshLib"]
@@ -25,6 +23,9 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/shackles.tres" id="23_shackles"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/bucket.tres" id="24_bucket"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/bone_pile.tres" id="25_bone_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/prison_walls.tres" id="x_prison_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/earth_floor.tres" id="x_earth_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -95,7 +96,7 @@ MinDoorways = 2
 MaxDoorways = 2
 DoorwayPlacement = 1
 Circulation = 0
-Walls = [ExtResource("3_stone_walls"), ExtResource("4_ruined_walls")]
-Floors = [ExtResource("5_stone_floor"), ExtResource("6_worn_stone"), ExtResource("7_dirt_with_st")]
+Walls = [ExtResource("3_stone_walls"), ExtResource("4_ruined_walls"), ExtResource("x_prison_walls")]
+Floors = [ExtResource("5_stone_floor"), ExtResource("x_flagstones_floor"), ExtResource("x_earth_floor")]
 Steps = [SubResource("CellsStep_2"), SubResource("AlongWallsStep_3"), SubResource("WallDecorStep_7"), SubResource("WallDecorStep_4"), SubResource("WallDecorStep_5"), SubResource("ScatterStep_6")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

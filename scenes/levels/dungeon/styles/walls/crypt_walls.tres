@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WallStyle" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/WallStyle.cs" id="2_wallstyle"]
+[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_wallsmeshlibrary"]
+
+[resource]
+script = ExtResource("2_wallstyle")
+Id = "dungeon.crypt_walls"
+Weight = 1.0
+Library = ExtResource("3_wallsmeshlibrary")
+Straight = Dictionary[String, float]({"wall": 1.0})
+Corner = "wall_corner"
+Half = "wall_half"
+Accents = Dictionary[String, float]({"wall_crypt_A": 1.0, "wall_crypt_B": 1.0, "wall_alcove_C": 1.0, "wall_alcove_E": 0.5})
+AccentChance = 0.55
+metadata/_custom_type_script = ExtResource("2_wallstyle")

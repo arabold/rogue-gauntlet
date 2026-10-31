@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AssembledRoomFactory" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/factories/AssembledRoomFactory.cs" id="2_assembledroomfac"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/room_types/entrance.tres" id="3_entrance"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/room_types/exit.tres" id="4_exit"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/room_types/temple_hall.tres" id="5_temple_hall"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/room_types/root_passage.tres" id="6_root_passage"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/room_types/cavern.tres" id="7_cavern"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/room_types/timbered_mine.tres" id="8_timbered_mine"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/room_types/ruined_shrine.tres" id="9_ruined_shrine"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/room_types/collapsed_grove.tres" id="10_collapsed_grove"]
+
+[resource]
+script = ExtResource("2_assembledroomfac")
+EntranceTypes = [ExtResource("3_entrance")]
+ExitTypes = [ExtResource("4_exit")]
+RoomTypes = [ExtResource("5_temple_hall"), ExtResource("6_root_passage"), ExtResource("7_cavern"), ExtResource("8_timbered_mine"), ExtResource("9_ruined_shrine"), ExtResource("10_collapsed_grove")]
+metadata/_custom_type_script = ExtResource("2_assembledroomfac")

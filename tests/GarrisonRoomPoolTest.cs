@@ -18,7 +18,8 @@ public class GarrisonRoomPoolTest
 	{
 		var factory = TestFactories.Load<AssembledRoomFactory>(Preset);
 		var seen = new HashSet<RoomType>();
-		for (ulong seed = 1; seed <= 60; seed++)
+		// Enough draws for the rarest type (weight 0.5 of 16) to appear.
+		for (ulong seed = 1; seed <= 150; seed++)
 		{
 			using var a = new RandomNumberGenerator { Seed = seed };
 			using var b = new RandomNumberGenerator { Seed = seed };

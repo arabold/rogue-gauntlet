@@ -1,0 +1,100 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=32 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CellsStep.cs" id="8_CellsStep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/groups/cell_bedding.tres" id="9_cell_bedding"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="10_WallsMeshLib"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/cell_gate.tres" id="11_cell_gate"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="12_AlongWallsSt"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/groups/guard_table.tres" id="13_guard_table"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="14_WallDecorSte"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="15_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="16_torch_unlit"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/keyring.tres" id="17_keyring"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="18_ScatterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/small_box.tres" id="19_small_box"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/barrel_stack.tres" id="20_barrel_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/pot.tres" id="21_pot"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/sack.tres" id="22_sack"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/shackles.tres" id="23_shackles"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/bucket.tres" id="24_bucket"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/bone_pile.tres" id="25_bone_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/prison_walls.tres" id="x_prison_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/sewer/styles/floors/bricks_floor.tres" id="x_bricks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/sewer/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
+
+[sub_resource type="Resource" id="RectangleShape_1"]
+script = ExtResource("2_RectangleSha")
+Weight = 1.0
+MinimumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(5, 6)
+OddWidth = false
+metadata/_custom_type_script = ExtResource("2_RectangleSha")
+
+[sub_resource type="Resource" id="CellsStep_2"]
+script = ExtResource("8_CellsStep")
+Id = "cells"
+Content = [ExtResource("9_cell_bedding")]
+MinimumCount = 1
+MaximumCount = 6
+WallLibrary = ExtResource("10_WallsMeshLib")
+Gate = ExtResource("11_cell_gate")
+OpposingChance = 0.5
+metadata/_custom_type_script = ExtResource("8_CellsStep")
+
+[sub_resource type="Resource" id="AlongWallsStep_3"]
+script = ExtResource("12_AlongWallsSt")
+Id = "guard_post"
+Content = [ExtResource("13_guard_table")]
+MinimumCount = 0
+MaximumCount = 1
+Sides = 2
+Chance = 0.8
+metadata/_custom_type_script = ExtResource("12_AlongWallsSt")
+
+[sub_resource type="Resource" id="WallDecorStep_4"]
+script = ExtResource("14_WallDecorSte")
+Id = "door_torches"
+Content = [ExtResource("15_torch"), ExtResource("16_torch_unlit")]
+MaximumCount = 2
+BesideDoorways = true
+metadata/_custom_type_script = ExtResource("14_WallDecorSte")
+
+[sub_resource type="Resource" id="WallDecorStep_5"]
+script = ExtResource("14_WallDecorSte")
+Id = "keys"
+Content = [ExtResource("17_keyring")]
+MaximumCount = 1
+Chance = 0.6
+metadata/_custom_type_script = ExtResource("14_WallDecorSte")
+
+[sub_resource type="Resource" id="ScatterStep_6"]
+script = ExtResource("18_ScatterStep")
+Id = "supplies"
+Content = [ExtResource("19_small_box"), ExtResource("20_barrel_stack"), ExtResource("21_pot"), ExtResource("22_sack"), ExtResource("24_bucket"), ExtResource("25_bone_pile")]
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("18_ScatterStep")
+
+[sub_resource type="Resource" id="WallDecorStep_7"]
+script = ExtResource("14_WallDecorSte")
+Id = "shackles"
+Content = [ExtResource("23_shackles")]
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("14_WallDecorSte")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "sewer.lockup"
+Weight = 0.6
+Shapes = [SubResource("RectangleShape_1")]
+MinimumFloorTiles = 16
+MinDoorways = 2
+MaxDoorways = 2
+DoorwayPlacement = 1
+Circulation = 0
+Walls = [ExtResource("x_prison_walls")]
+Floors = [ExtResource("x_bricks_floor"), ExtResource("x_flagstones_floor")]
+Steps = [SubResource("CellsStep_2"), SubResource("AlongWallsStep_3"), SubResource("WallDecorStep_7"), SubResource("WallDecorStep_4"), SubResource("WallDecorStep_5"), SubResource("ScatterStep_6")]
+metadata/_custom_type_script = ExtResource("1_RoomType")

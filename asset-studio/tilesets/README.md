@@ -2,7 +2,7 @@
 
 Floor, wall and rug tiles built procedurally in the KayKit dungeon style, on the KayKit footprints, so they extend the existing dungeon set. Each recipe here is one **family**: one material with every piece and variant it needs. The family builds, validates and is reviewed as a whole because its tiles must join one another.
 
-The studio owns the art only. Mesh libraries, collision, navigation, realm palettes and generator rules (which family a room uses, where grates go) belong to game-side wiring and are not generated here.
+The studio owns the art only. Mesh libraries, collision, navigation, realm palettes and generator rules (which family a room uses, where grates go) belong to game-side wiring and are not generated here: after `tile export`, `scenes/levels/dungeon/custom_tiles/register_custom_tiles.gd` adds the tiles to the dungeon mesh libraries, and the [room assembly guide](../../scenes/levels/generators/assembly/README.md) covers styles and realms.
 
 ## Footprints
 
