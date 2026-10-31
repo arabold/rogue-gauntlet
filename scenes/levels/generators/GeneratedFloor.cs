@@ -164,7 +164,7 @@ public sealed class GeneratedFloor
 		foreach (Vector3I cell in _decoration.GetUsedCells())
 		{
 			// A tile owns the cells within half a tile of its center on the floor layer, as HasDecorationInTile scans them.
-			if (cell.Y != 0) continue;
+			if (cell.Y != 0 || !IsSolidDecoration(cell)) continue;
 			decorated.Add(new Vector2I(Mathf.FloorToInt((cell.X + half) / (float)Room.TileSize) + Map.Width / 2,
 				Mathf.FloorToInt((cell.Z + half) / (float)Room.TileSize) + Map.Height / 2));
 		}
@@ -460,6 +460,13 @@ public sealed class GeneratedFloor
 		return space.IntersectShape(_columnQuery, 1).Count > 0;
 	}
 
+	/// <summary>Decoration with collision occupies its tile; walk-over decoration such as rugs does not.</summary>
+	private bool IsSolidDecoration(Vector3I cell)
+	{
+		int item = _decoration.GetCellItem(cell);
+		return item >= 0 && _decoration.MeshLibrary.GetItemShapes(item).Count > 0;
+	}
+
 	private bool HasDecorationInTile(int x, int z)
 	{
 		if (_decoratedTiles != null)
@@ -473,7 +480,7 @@ public sealed class GeneratedFloor
 		{
 			for (int dz = -half; dz < half; dz++)
 			{
-				if (_decoration.GetCellItem(new Vector3I(center.X + dx, center.Y, center.Z + dz)) >= 0)
+				if (IsSolidDecoration(new Vector3I(center.X + dx, center.Y, center.Z + dz)))
 				{
 					return true;
 				}

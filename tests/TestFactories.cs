@@ -237,9 +237,16 @@ public static class TestFactories
 	{
 		mapGenerator.RoomLayout = layout;
 		mapGenerator.CorridorConnector = new AStarCorridorConnector();
-		mapGenerator.RoomFactory = factory ?? GarrisonRooms();
+		// Tests pin their rooms: one realm covers every depth.
+		mapGenerator.Realms =
+		[
+			new Realm
+			{
+				Id = "test", FirstDepth = 1, LastDepth = 100, Rooms = factory ?? GarrisonRooms(),
+				Corridors = Load<TileFactory>("res://scenes/levels/dungeon/dungeon_tile_factory.tres"),
+			},
+		];
 		mapGenerator.MobFactory = Load<MobFactory>("res://scenes/levels/dungeon/dungeon_mob_factory.tres");
-		mapGenerator.TileFactory = Load<TileFactory>("res://scenes/levels/dungeon/dungeon_tile_factory.tres");
 	}
 
 	/// <summary>

@@ -1,0 +1,130 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=41 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/LShape.cs" id="2_LShape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/TShape.cs" id="3_TShape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/UShape.cs" id="4_UShape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/CrossShape.cs" id="5_CrossShape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="6_RectangleSha"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/ruined_walls.tres" id="7_ruined_walls"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/CenterColumns.cs" id="13_CenterColumn"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar_broken.tres" id="14_pillar_broke"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar.tres" id="15_pillar"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/CornerColumns.cs" id="16_CornerColumn"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="17_ScatterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/rubble.tres" id="18_rubble"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/broken_table.tres" id="19_broken_table"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/bookcase_broken.tres" id="20_bookcase_bro"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/crate.tres" id="21_crate"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/barrel_stack.tres" id="22_barrel_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/floor_debris.tres" id="23_floor_debris"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="24_WallDecorSte"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="25_torch_unlit"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="26_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/statue_broken.tres" id="27_statue_broke"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/vase_broken.tres" id="28_vase_broken"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/fallen_beam.tres" id="29_fallen_beam"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/bone_pile.tres" id="30_bone_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_ruined_floor.tres" id="x_flagstones_ruined_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/earth_floor.tres" id="x_earth_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/overgrown_walls.tres" id="x_overgrown_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/styles/floors/overgrown_flagstones.tres" id="x_overgrown_flagstones"]
+
+[sub_resource type="Resource" id="LShape_1"]
+script = ExtResource("2_LShape")
+Weight = 1.0
+MinimumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(5, 5)
+ArmWidth = 2
+metadata/_custom_type_script = ExtResource("2_LShape")
+
+[sub_resource type="Resource" id="TShape_2"]
+script = ExtResource("3_TShape")
+MinimumSize = Vector2i(5, 4)
+MaximumSize = Vector2i(5, 5)
+StemWidth = 2
+BarDepth = 2
+metadata/_custom_type_script = ExtResource("3_TShape")
+
+[sub_resource type="Resource" id="UShape_3"]
+script = ExtResource("4_UShape")
+MinimumSize = Vector2i(4, 5)
+MaximumSize = Vector2i(5, 6)
+WingWidth = 2
+BackDepth = 2
+metadata/_custom_type_script = ExtResource("4_UShape")
+
+[sub_resource type="Resource" id="CrossShape_4"]
+script = ExtResource("5_CrossShape")
+MinimumSize = Vector2i(5, 5)
+MaximumSize = Vector2i(5, 6)
+ArmWidth = 2
+metadata/_custom_type_script = ExtResource("5_CrossShape")
+
+[sub_resource type="Resource" id="RectangleShape_5"]
+script = ExtResource("6_RectangleSha")
+Weight = 1.0
+MinimumSize = Vector2i(3, 4)
+MaximumSize = Vector2i(4, 5)
+OddWidth = false
+metadata/_custom_type_script = ExtResource("6_RectangleSha")
+
+[sub_resource type="Resource" id="CenterColumns_6"]
+script = ExtResource("13_CenterColumn")
+Id = "center"
+Column = [ExtResource("14_pillar_broke"), ExtResource("15_pillar")]
+metadata/_custom_type_script = ExtResource("13_CenterColumn")
+
+[sub_resource type="Resource" id="CornerColumns_7"]
+script = ExtResource("16_CornerColumn")
+Id = "corners"
+Column = [ExtResource("14_pillar_broke"), ExtResource("15_pillar")]
+metadata/_custom_type_script = ExtResource("16_CornerColumn")
+
+[sub_resource type="Resource" id="ScatterStep_8"]
+script = ExtResource("17_ScatterStep")
+Id = "rubble"
+Content = [ExtResource("18_rubble")]
+MaximumCount = 2
+WallChance = 0.6
+metadata/_custom_type_script = ExtResource("17_ScatterStep")
+
+[sub_resource type="Resource" id="ScatterStep_9"]
+script = ExtResource("17_ScatterStep")
+Id = "wreckage"
+Content = [ExtResource("19_broken_table"), ExtResource("20_bookcase_bro"), ExtResource("21_crate"), ExtResource("22_barrel_stack"), ExtResource("27_statue_broke"), ExtResource("28_vase_broken"), ExtResource("29_fallen_beam")]
+MaximumCount = 3
+WallChance = 0.7
+metadata/_custom_type_script = ExtResource("17_ScatterStep")
+
+[sub_resource type="Resource" id="ScatterStep_10"]
+script = ExtResource("17_ScatterStep")
+Id = "debris"
+Content = [ExtResource("23_floor_debris"), ExtResource("30_bone_pile")]
+MaximumCount = 4
+WallChance = 0.0
+metadata/_custom_type_script = ExtResource("17_ScatterStep")
+
+[sub_resource type="Resource" id="WallDecorStep_11"]
+script = ExtResource("24_WallDecorSte")
+Id = "torches"
+Content = [ExtResource("25_torch_unlit"), ExtResource("25_torch_unlit"), ExtResource("26_torch")]
+MaximumCount = 2
+BesideDoorways = true
+metadata/_custom_type_script = ExtResource("24_WallDecorSte")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "jungle.collapsed_grove"
+Weight = 0.8
+Shapes = [SubResource("LShape_1"), SubResource("TShape_2"), SubResource("UShape_3"), SubResource("CrossShape_4"), SubResource("RectangleShape_5")]
+MinimumFloorTiles = 10
+MinDoorways = 1
+MaxDoorways = 3
+MaxPocketShare = 0.15
+Walls = [ExtResource("x_overgrown_walls"), ExtResource("7_ruined_walls")]
+Floors = [ExtResource("x_overgrown_flagstones"), ExtResource("x_earth_floor"), ExtResource("x_flagstones_ruined_floor")]
+Columns = [SubResource("CenterColumns_6"), SubResource("CornerColumns_7")]
+ColumnChance = 0.5
+Steps = [SubResource("ScatterStep_8"), SubResource("ScatterStep_9"), SubResource("ScatterStep_10"), SubResource("WallDecorStep_11")]
+metadata/_custom_type_script = ExtResource("1_RoomType")

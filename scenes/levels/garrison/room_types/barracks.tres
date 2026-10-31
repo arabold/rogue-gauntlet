@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=52 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=54 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -40,6 +40,8 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/decor/armor_stand.tres" id="38_armor_stand"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/training_dummy.tres" id="39_training_dum"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/heraldic_shield.tres" id="40_heraldic_shi"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/planks_floor.tres" id="x_planks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/planks_dark_floor.tres" id="x_planks_dark_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -142,7 +144,7 @@ MinimumFloorTiles = 8
 MinDoorways = 1
 MaxDoorways = 2
 Walls = [ExtResource("4_stone_walls"), ExtResource("5_pillared_wal"), ExtResource("6_arched_walls")]
-Floors = [ExtResource("7_light_wood_f"), ExtResource("8_dark_wood_fl"), ExtResource("9_stone_floor"), ExtResource("10_stone_border"), ExtResource("11_planked_ston")]
+Floors = [ExtResource("7_light_wood_f"), ExtResource("8_dark_wood_fl"), ExtResource("9_stone_floor"), ExtResource("10_stone_border"), ExtResource("11_planked_ston"), ExtResource("x_planks_floor"), ExtResource("x_planks_dark_floor")]
 Columns = [SubResource("AisleColumns_3")]
 ColumnChance = 0.3
 Steps = [SubResource("AlongWallsStep_4"), SubResource("AlongWallsStep_10"), SubResource("CornersStep_5"), SubResource("ScatterStep_11"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7"), SubResource("WallDecorStep_8"), SubResource("ScatterStep_9")]

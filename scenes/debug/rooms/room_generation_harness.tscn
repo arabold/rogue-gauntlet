@@ -1,8 +1,7 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" uid="uid://dmt5scqvd325o" path="res://scenes/debug/rooms/RoomGenerationHarness.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/levels/level.tscn" id="level"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/factories/garrison_room_factory.tres" id="factory"]
 
 [sub_resource type="Environment" id="Environment"]
 background_mode = 1
@@ -16,7 +15,6 @@ default_font_size = 16
 
 [node name="RoomGenerationHarness" type="Node3D" node_paths=PackedStringArray("Generator", "PreviewRoot", "PreviewCamera", "Controls", "Status")]
 script = ExtResource("script")
-Factory = ExtResource("factory")
 Generator = NodePath("Level/MapGenerator")
 PreviewRoot = NodePath("PreviewRoot")
 PreviewCamera = NodePath("Camera3D")
@@ -31,7 +29,6 @@ MapWidth = 26
 MapDepth = 26
 MaxRooms = 6
 Seed = 2
-RoomFactory = ExtResource("factory")
 
 [node name="PreviewRoot" type="Node3D" parent="."]
 

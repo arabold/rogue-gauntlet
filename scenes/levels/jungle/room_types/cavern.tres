@@ -1,0 +1,103 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=29 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/LShape.cs" id="4_lshape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/UShape.cs" id="5_ushape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/CrossShape.cs" id="6_crossshape"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/cave_walls.tres" id="7_cave_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/cave_floor.tres" id="8_cave_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/props/cave_pillar.tres" id="9_cave_pillar"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/CenterColumns.cs" id="10_centercolumns"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/CornerColumns.cs" id="11_cornercolumns"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/rubble.tres" id="12_rubble"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="13_scatterstep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/bone_pile.tres" id="14_bone_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/floor_debris.tres" id="15_floor_debris"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/bucket.tres" id="16_bucket"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/straw_pile.tres" id="17_straw_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="18_torch_unlit"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="19_torch"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="20_walldecorstep"]
+
+[sub_resource type="Resource" id="RectangleShape_1"]
+script = ExtResource("3_rectangleshape")
+MinimumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(5, 6)
+OddWidth = false
+metadata/_custom_type_script = ExtResource("3_rectangleshape")
+
+[sub_resource type="Resource" id="LShape_2"]
+script = ExtResource("4_lshape")
+MinimumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(5, 5)
+ArmWidth = 2
+metadata/_custom_type_script = ExtResource("4_lshape")
+
+[sub_resource type="Resource" id="UShape_3"]
+script = ExtResource("5_ushape")
+Weight = 0.7
+MinimumSize = Vector2i(4, 5)
+MaximumSize = Vector2i(5, 6)
+WingWidth = 2
+BackDepth = 2
+metadata/_custom_type_script = ExtResource("5_ushape")
+
+[sub_resource type="Resource" id="CrossShape_4"]
+script = ExtResource("6_crossshape")
+Weight = 0.7
+MinimumSize = Vector2i(5, 5)
+MaximumSize = Vector2i(5, 6)
+ArmWidth = 2
+metadata/_custom_type_script = ExtResource("6_crossshape")
+
+[sub_resource type="Resource" id="CenterColumns_5"]
+script = ExtResource("10_centercolumns")
+Id = "center"
+Column = [ExtResource("9_cave_pillar")]
+metadata/_custom_type_script = ExtResource("10_centercolumns")
+
+[sub_resource type="Resource" id="CornerColumns_6"]
+script = ExtResource("11_cornercolumns")
+Id = "corners"
+Column = [ExtResource("9_cave_pillar")]
+metadata/_custom_type_script = ExtResource("11_cornercolumns")
+
+[sub_resource type="Resource" id="ScatterStep_7"]
+script = ExtResource("13_scatterstep")
+Id = "rockfall"
+Content = [ExtResource("12_rubble")]
+MaximumCount = 3
+WallChance = 0.8
+metadata/_custom_type_script = ExtResource("13_scatterstep")
+
+[sub_resource type="Resource" id="ScatterStep_8"]
+script = ExtResource("13_scatterstep")
+Id = "remains"
+Content = [ExtResource("14_bone_pile"), ExtResource("15_floor_debris"), ExtResource("16_bucket"), ExtResource("17_straw_pile")]
+MaximumCount = 3
+WallChance = 0.5
+metadata/_custom_type_script = ExtResource("13_scatterstep")
+
+[sub_resource type="Resource" id="WallDecorStep_9"]
+script = ExtResource("20_walldecorstep")
+Id = "torches"
+Content = [ExtResource("18_torch_unlit"), ExtResource("19_torch")]
+MaximumCount = 2
+Spacing = 6.0
+metadata/_custom_type_script = ExtResource("20_walldecorstep")
+
+[resource]
+script = ExtResource("2_roomtype")
+Id = "jungle.cavern"
+Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2"), SubResource("UShape_3"), SubResource("CrossShape_4")]
+MinimumFloorTiles = 12
+MinDoorways = 1
+MaxDoorways = 3
+Circulation = 0
+Walls = [ExtResource("7_cave_walls")]
+Floors = [ExtResource("8_cave_floor")]
+Columns = [SubResource("CenterColumns_5"), SubResource("CornerColumns_6")]
+ColumnChance = 0.5
+Steps = [SubResource("ScatterStep_7"), SubResource("ScatterStep_8"), SubResource("WallDecorStep_9")]
+metadata/_custom_type_script = ExtResource("2_roomtype")

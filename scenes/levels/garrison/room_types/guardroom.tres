@@ -1,11 +1,10 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=47 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=49 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/stone_walls.tres" id="3_stone_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/pillared_walls.tres" id="4_pillared_wal"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone_floor.tres" id="5_stone_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/worn_stone.tres" id="6_worn_stone"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/dark_wood_floor.tres" id="7_dark_wood_fl"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/planked_stone.tres" id="8_planked_ston"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="9_CenterStep"]
@@ -37,6 +36,9 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/tapestry_red.tres" id="35_tapestry_red"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/tapestry_blue.tres" id="36_tapestry_blu"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/tapestry_green.tres" id="37_tapestry_gre"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/key_alcove_walls.tres" id="x_key_alcove_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/planks_dark_floor.tres" id="x_planks_dark_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -122,7 +124,7 @@ Shapes = [SubResource("RectangleShape_1")]
 MinimumFloorTiles = 9
 MinDoorways = 1
 MaxDoorways = 3
-Walls = [ExtResource("3_stone_walls"), ExtResource("4_pillared_wal")]
-Floors = [ExtResource("5_stone_floor"), ExtResource("6_worn_stone"), ExtResource("7_dark_wood_fl"), ExtResource("8_planked_ston")]
+Walls = [ExtResource("3_stone_walls"), ExtResource("4_pillared_wal"), ExtResource("x_key_alcove_walls")]
+Floors = [ExtResource("5_stone_floor"), ExtResource("7_dark_wood_fl"), ExtResource("8_planked_ston"), ExtResource("x_planks_dark_floor"), ExtResource("x_flagstones_floor")]
 Steps = [SubResource("CenterStep_2"), SubResource("AlongWallsStep_9"), SubResource("AlongWallsStep_3"), SubResource("CornersStep_4"), SubResource("WallDecorStep_5"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7"), SubResource("WallDecorStep_8")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

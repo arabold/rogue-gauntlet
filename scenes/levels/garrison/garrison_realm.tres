@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Realm" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/Realm.cs" id="1_Realm"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/factories/garrison_room_factory.tres" id="2_rooms"]
+[ext_resource type="Resource" uid="uid://djtuce71qkm72" path="res://scenes/levels/dungeon/dungeon_tile_factory.tres" id="3_corridors"]
+
+[resource]
+script = ExtResource("1_Realm")
+Id = "garrison"
+FirstDepth = 1
+LastDepth = 3
+Rooms = ExtResource("2_rooms")
+Corridors = ExtResource("3_corridors")
+metadata/_custom_type_script = ExtResource("1_Realm")

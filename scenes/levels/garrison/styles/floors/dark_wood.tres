@@ -9,5 +9,5 @@ Id = "garrison.dark_wood"
 Library = ExtResource("2_FloorMeshLib")
 Large = Dictionary[String, float]({"floor_wood_large_dark": 1.0})
 Small = Dictionary[String, float]({"floor_wood_small_dark": 1.0})
-AlignedPlanks = true
+RoomWideOrientation = true
 metadata/_custom_type_script = ExtResource("1_FloorMateria")

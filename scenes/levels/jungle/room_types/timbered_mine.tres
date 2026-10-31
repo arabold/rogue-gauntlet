@@ -1,0 +1,80 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=28 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
+[ext_resource type="PackedScene" path="res://scenes/props/cave_door.tscn" id="4_cave_door"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/cave_walls.tres" id="5_cave_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/earth_floor.tres" id="6_earth_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/groups/supply_corner.tres" id="7_supply_corner"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/crate_stack.tres" id="8_crate_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/barrel_stack.tres" id="9_barrel_stack"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="10_cornersstep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/workbench.tres" id="11_workbench"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/groups/barrel_station.tres" id="12_barrel_station"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/big_crate_stack.tres" id="13_big_crate_stack"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="14_alongwallsstep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/bucket.tres" id="15_bucket"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/sack.tres" id="16_sack"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/crate.tres" id="17_crate"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/fallen_beam.tres" id="18_fallen_beam"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/rubble.tres" id="19_rubble"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="20_scatterstep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="21_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="22_torch_unlit"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="23_walldecorstep"]
+
+[sub_resource type="Resource" id="RectangleShape_1"]
+script = ExtResource("3_rectangleshape")
+MinimumSize = Vector2i(3, 4)
+MaximumSize = Vector2i(4, 6)
+OddWidth = false
+metadata/_custom_type_script = ExtResource("3_rectangleshape")
+
+[sub_resource type="Resource" id="CornersStep_2"]
+script = ExtResource("10_cornersstep")
+Id = "stores"
+Content = [ExtResource("7_supply_corner"), ExtResource("8_crate_stack"), ExtResource("9_barrel_stack")]
+MinimumCount = 1
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("10_cornersstep")
+
+[sub_resource type="Resource" id="AlongWallsStep_3"]
+script = ExtResource("14_alongwallsstep")
+Id = "workings"
+Content = [ExtResource("11_workbench"), ExtResource("12_barrel_station"), ExtResource("13_big_crate_stack")]
+MinimumCount = 0
+MaximumCount = 2
+Spacing = 0.6
+metadata/_custom_type_script = ExtResource("14_alongwallsstep")
+
+[sub_resource type="Resource" id="ScatterStep_4"]
+script = ExtResource("20_scatterstep")
+Id = "tools"
+Content = [ExtResource("15_bucket"), ExtResource("16_sack"), ExtResource("17_crate"), ExtResource("18_fallen_beam"), ExtResource("19_rubble")]
+MaximumCount = 4
+WallChance = 0.7
+metadata/_custom_type_script = ExtResource("20_scatterstep")
+
+[sub_resource type="Resource" id="WallDecorStep_5"]
+script = ExtResource("23_walldecorstep")
+Id = "torches"
+Content = [ExtResource("21_torch"), ExtResource("21_torch"), ExtResource("22_torch_unlit")]
+MaximumCount = 3
+Spacing = 5.0
+metadata/_custom_type_script = ExtResource("23_walldecorstep")
+
+[resource]
+script = ExtResource("2_roomtype")
+Id = "jungle.timbered_mine"
+Weight = 0.8
+Shapes = [SubResource("RectangleShape_1")]
+MinimumFloorTiles = 12
+MinDoorways = 1
+MaxDoorways = 2
+DoorScene = ExtResource("4_cave_door")
+DoorChance = 0.6
+Circulation = 0
+Walls = [ExtResource("5_cave_walls")]
+Floors = [ExtResource("6_earth_floor")]
+Steps = [SubResource("CornersStep_2"), SubResource("AlongWallsStep_3"), SubResource("ScatterStep_4"), SubResource("WallDecorStep_5")]
+metadata/_custom_type_script = ExtResource("2_roomtype")

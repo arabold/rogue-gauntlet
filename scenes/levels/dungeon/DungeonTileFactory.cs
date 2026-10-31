@@ -1,31 +1,26 @@
 using Godot;
-using Godot.Collections;
 
+/// <summary>
+/// Corridor floors and the walls the generator builds around corridors, sealed doorways and secret pockets, drawn from
+/// a floor material's whole-tile slabs and a wall style, so each realm's corridors match its rooms. Corridor floors are
+/// laid unturned, so seam-matched studio floors join; corridor walls never carry pillars.
+/// </summary>
 [Tool]
 [GlobalClass]
 public partial class DungeonTileFactory : TileFactory
 {
-	private readonly Array<int> _corridorTileIndices = new() { 0, 1 };
-	private readonly Array<int> _wallTileIndices = new() { 0, 10, 22 };
-	private const int WallHalfTileIndex = 18;
-	private const int WallCornerTileIndex = 6;
+	[Export] public FloorMaterial Floor { get; set; }
+	[Export] public WallStyle Walls { get; set; }
 
-	public override int GetCorridorTileIndex(RandomNumberGenerator rng)
+	public override int GetCorridorTileIndex(RandomNumberGenerator rng) => Floor.Library.FindItemByName(Weighted.Pick(Floor.Large, rng));
+	public override int GetWallTileIndex(RandomNumberGenerator rng) => Walls.Library.FindItemByName(Walls.DrawEdge(rng).Item);
+	public override int GetWallHalfTileIndex(RandomNumberGenerator rng) => Walls.Library.FindItemByName(Walls.Half);
+	public override int GetWallCornerTileIndex(RandomNumberGenerator rng) => Walls.Library.FindItemByName(Walls.Corner);
+
+	public string[] Validate()
 	{
-		return _corridorTileIndices[rng.RandiRange(0, _corridorTileIndices.Count - 1)];
+		if (Floor == null || Walls == null) return [$"{ResourcePath}: assign the corridor floor material and wall style."];
+		string[] slabs = Floor.Large.Count == 0 ? [$"{ResourcePath}: the corridor floor needs whole-tile slabs."] : [];
+		return [.. slabs, .. Floor.Validate(), .. Walls.Validate()];
 	}
-
-	public override int GetWallTileIndex(RandomNumberGenerator rng)
-	{
-		if (rng.Randf() < 0.5f)
-		{
-			// We want the default wall tile to be the most common
-			return _wallTileIndices[0];
-		}
-		return _wallTileIndices[rng.RandiRange(0, _wallTileIndices.Count - 1)];
-	}
-
-	public override int GetWallHalfTileIndex(RandomNumberGenerator rng) => WallHalfTileIndex;
-
-	public override int GetWallCornerTileIndex(RandomNumberGenerator rng) => WallCornerTileIndex;
 }

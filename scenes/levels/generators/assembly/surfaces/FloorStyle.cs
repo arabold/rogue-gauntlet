@@ -11,12 +11,12 @@ using Godot;
 [Tool, GlobalClass]
 public abstract partial class FloorStyle : Resource
 {
-	private static readonly int[] UprightOrientations = [0, 16, 10, 22];
-
 	[Export] public string Id { get; set; } = "";
 	[Export(PropertyHint.Range, "0.01,10,0.01")] public float Weight { get; set; } = 1;
 	/// <summary>Features set into the floor (drains, gutters), placed in order after the materials.</summary>
 	[Export] public FloorInlay[] Inlays { get; set; } = [];
+	/// <summary>Optional rug laid over the finished floor, clear of inlays.</summary>
+	[Export] public FloorRug Rug { get; set; }
 
 	/// <summary>Every material this style may use; all must share one floor library.</summary>
 	public abstract IEnumerable<FloorMaterial> Materials { get; }
@@ -38,6 +38,7 @@ public abstract partial class FloorStyle : Resource
 		if (materials.Select(material => material.Library?.ResourcePath ?? "").Distinct().Count() > 1) errors.Add($"Floor style {Id}: materials must share one floor library.");
 		if (Inlays.Any(inlay => inlay == null)) errors.Add($"Floor style {Id}: remove empty inlay slots.");
 		errors.AddRange(Inlays.Where(inlay => inlay != null).SelectMany(inlay => inlay.Validate(Library)));
+		if (Rug != null) errors.AddRange(Rug.Validate().Select(error => $"Floor style {Id}: {error}"));
 		return errors.ToArray();
 	}
 
@@ -52,7 +53,7 @@ public abstract partial class FloorStyle : Resource
 		Assign(room, quads, splits, rng);
 		var covered = new bool[quads.GetLength(0), quads.GetLength(1)];
 		foreach (var inlay in Inlays) PlaceInlay(room, inlay, quads, splits, covered, rng);
-		var planks = Materials.Distinct().ToDictionary(material => material, _ => rng.Randf() < .5f ? 0 : 16);
+		var roomTurns = Materials.Distinct().ToDictionary(material => material, _ => rng.Randf() < .5f ? GridTurns.Turn0 : GridTurns.Turn90);
 		var grid = room.Room.FloorGridMap;
 		foreach (var tile in footprint.Tiles.Where(room.IsFloor))
 		{
@@ -82,14 +83,14 @@ public abstract partial class FloorStyle : Resource
 				var quad = quads[x, z];
 				var split = splits[x, z];
 				var (item, orientation) = split.Transition != null ? (Weighted.Pick(split.Transition.Items, rng), split.Orientation)
-					: wear[qx, qz] != null ? (wear[qx, qz], UprightOrientations[rng.RandiRange(0, 3)])
-					: (Weighted.Pick(quad.Small, rng), Orientation(quad));
+					: (wear[qx, qz] ?? Weighted.Pick(quad.Small, rng), Orientation(quad));
 				var cell = center + new Vector3I(qx == 0 ? -1 : 1, 0, qz == 0 ? -1 : 1);
 				grid.SetCellItem(cell, grid.MeshLibrary.FindItemByName(item), orientation);
 			}
 		}
+		Rug?.Lay(room, covered, rng);
 
-		int Orientation(FloorMaterial material) => material.AlignedPlanks ? planks[material] : UprightOrientations[rng.RandiRange(0, 3)];
+		int Orientation(FloorMaterial material) => material.RoomWideOrientation ? roomTurns[material] : GridTurns.Upright[rng.RandiRange(0, 3)];
 	}
 
 	/// <summary>
@@ -129,7 +130,7 @@ public abstract partial class FloorStyle : Resource
 			{
 				// Quarter tile q spans cells 2q - 2 to 2q, so a piece starting at quarter tile a is centered on 2a - 2 + size.
 				var at = origin + layout.Step * k;
-				int orientation = layout.Turned ? (rng.Randf() < .5f ? 16 : 22) : (rng.Randf() < .5f ? 0 : 10);
+				int orientation = layout.Turned ? (rng.Randf() < .5f ? GridTurns.Turn90 : GridTurns.Turn270) : (rng.Randf() < .5f ? GridTurns.Turn0 : GridTurns.Turn180);
 				grid.SetCellItem(new Vector3I(2 * at.X - 2 + layout.Piece.X, 0, 2 * at.Y - 2 + layout.Piece.Y), grid.MeshLibrary.FindItemByName(item), orientation);
 				for (int x = at.X; x < at.X + layout.Piece.X; x++)
 				for (int z = at.Y; z < at.Y + layout.Piece.Y; z++)

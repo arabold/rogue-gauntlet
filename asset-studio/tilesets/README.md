@@ -2,7 +2,7 @@
 
 Floor, wall and rug tiles built procedurally in the KayKit dungeon style, on the KayKit footprints, so they extend the existing dungeon set. Each recipe here is one **family**: one material with every piece and variant it needs. The family builds, validates and is reviewed as a whole because its tiles must join one another.
 
-The studio owns the art only. Mesh libraries, collision, navigation, realm palettes and generator rules (which family a room uses, where grates go) belong to game-side wiring and are not generated here.
+The studio owns the art only. Mesh libraries, collision, navigation, realm palettes and generator rules (which family a room uses, where grates go) belong to game-side wiring and are not generated here: after `tile export`, `scenes/levels/dungeon/custom_tiles/register_custom_tiles.gd` adds the tiles to the dungeon mesh libraries, and the [room assembly guide](../../scenes/levels/generators/assembly/README.md) covers styles and realms.
 
 ## Footprints
 
@@ -45,7 +45,7 @@ Walls stitch the same way along their length. Masonry stones crossing an end are
 | `floor_flagstones_ruined` | floor / flagstones | Ruins: chips, cracks, missing slabs with rubble |
 | `floor_checker` | floor / flagstones (`grid`, `checker`) | Temples, audience halls |
 | `floor_bricks` | floor / flagstones (`running`) | Sewers, cellars |
-| `floor_dirt` | floor / ground | Packed earth, pebbles and clods |
+| `floor_earth` | floor / ground | Packed earth, pebbles and clods (named apart from KayKit's `floor_dirt_*` tiles, which share the mesh libraries) |
 | `floor_cave` | floor / ground | Cave ground in KayKit's floor swatch (as its rocky floors), stones in its rubble color |
 | `wall_ashlar` | wall / masonry | The one well-masoned wall, for royal and noble settings |
 | `wall_mossy` | wall / dressed | Jungle: KayKit dungeon wall with moss over the cap, hanging roots and leafy vines, ferns and grass |
@@ -57,7 +57,7 @@ Walls stitch the same way along their length. Masonry stones crossing an end are
 | `wall_cave` | wall / cave | Big stacked boulders and cracked rubble between split timber posts on stone footings, open rock top; rock matches `rubble_large`. Also builds a T-split, crossing, timber-framed doorway and gate, a wall end slumping into rubble, and a free-standing boulder pillar with a bolted collar |
 | `carpet_red`, `carpet_blue` | overlay / carpet | Rugs of any size and runners of any length |
 
-Floor and wall families build four variants of each main piece by default; dirt and cave floors build six because loose stones make repeats easier to spot. Add letters to `pieces` for more. Dressed walls derive from `assets/kaykit-dungeon-remastered` (CC0), so their exports carry that provenance. A breach is KayKit's own `wall_broken`. Their dressings follow `dungeon_walls.reference.png`, an AI concept sheet.
+Floor and wall families build four variants of each main piece by default; earth and cave floors build six because loose stones make repeats easier to spot. Add letters to `pieces` for more. Dressed walls derive from `assets/kaykit-dungeon-remastered` (CC0), so their exports carry that provenance. A breach is KayKit's own `wall_broken`. Their dressings follow `dungeon_walls.reference.png`, an AI concept sheet.
 
 ## Opening gates
 

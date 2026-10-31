@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/overgrown_walls.tres" id="4_overgrown_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/mossy_walls.tres" id="5_mossy_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/earth_floor.tres" id="6_earth_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_ruined_floor.tres" id="7_flagstones_ruine"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/rubble.tres" id="8_rubble"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/floor_debris.tres" id="9_floor_debris"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/bone_pile.tres" id="10_bone_pile"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="11_scatterstep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="12_torch_unlit"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="13_torch"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="14_walldecorstep"]
+
+[sub_resource type="Resource" id="RectangleShape_1"]
+script = ExtResource("3_rectangleshape")
+MinimumSize = Vector2i(1, 3)
+MaximumSize = Vector2i(2, 5)
+OddWidth = false
+metadata/_custom_type_script = ExtResource("3_rectangleshape")
+
+[sub_resource type="Resource" id="ScatterStep_2"]
+script = ExtResource("11_scatterstep")
+Id = "debris"
+Content = [ExtResource("8_rubble"), ExtResource("9_floor_debris"), ExtResource("10_bone_pile")]
+MaximumCount = 2
+WallChance = 1.0
+metadata/_custom_type_script = ExtResource("11_scatterstep")
+
+[sub_resource type="Resource" id="WallDecorStep_3"]
+script = ExtResource("14_walldecorstep")
+Id = "torches"
+Content = [ExtResource("12_torch_unlit"), ExtResource("13_torch")]
+MaximumCount = 1
+Spacing = 6.0
+metadata/_custom_type_script = ExtResource("14_walldecorstep")
+
+[resource]
+script = ExtResource("2_roomtype")
+Id = "jungle.root_passage"
+Weight = 0.8
+Shapes = [SubResource("RectangleShape_1")]
+MinimumFloorTiles = 3
+MinDoorways = 2
+MaxDoorways = 2
+DoorwayPlacement = 1
+Circulation = 1
+Walls = [ExtResource("4_overgrown_walls"), ExtResource("5_mossy_walls")]
+Floors = [ExtResource("6_earth_floor"), ExtResource("7_flagstones_ruine")]
+Steps = [SubResource("ScatterStep_2"), SubResource("WallDecorStep_3")]
+metadata/_custom_type_script = ExtResource("2_roomtype")

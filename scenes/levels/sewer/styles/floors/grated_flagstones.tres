@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UniformFloor" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/UniformFloor.cs" id="2_uniformfloor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones.tres" id="3_flagstones"]
+[ext_resource type="Resource" path="res://scenes/levels/sewer/styles/floors/inlays/center_drain.tres" id="4_center_drain"]
+[ext_resource type="Resource" path="res://scenes/levels/sewer/styles/floors/inlays/drain.tres" id="5_drain"]
+
+[resource]
+script = ExtResource("2_uniformfloor")
+Id = "sewer.grated_flagstones"
+Weight = 2.0
+Material = ExtResource("3_flagstones")
+Inlays = [ExtResource("4_center_drain"), ExtResource("5_drain")]
+metadata/_custom_type_script = ExtResource("2_uniformfloor")
