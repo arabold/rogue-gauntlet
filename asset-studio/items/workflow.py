@@ -284,9 +284,11 @@ class Item:
             palette = data.get("palette")
             if backend == "procedural" and data.get("builder") in FAMILIES:
                 from core.export import export_static
-                built_piece = FAMILIES[data["builder"]](data.get("design", {}))
+                # A builder may return its body with named parts the game toggles separately, such as a fountain's liquid.
+                built = FAMILIES[data["builder"]](data.get("design", {}))
+                built_piece, parts = built if isinstance(built, tuple) else (built, None)
                 export_static(str(raw), self.id, built_piece, {**COLORS, **data.get("colors", {})},
-                              materials={**MATERIALS, **data.get("materials", {})}, crease=data.get("crease", 50))
+                              materials={**MATERIALS, **data.get("materials", {})}, crease=data.get("crease", 50), parts=parts)
                 source = raw
                 model.place(source, self.built, data.get("placement", {}))
                 return self.finish_build(data)

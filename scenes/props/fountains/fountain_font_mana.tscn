@@ -14,11 +14,11 @@ size = Vector3(1.56, 0.26, 1.56)
 height = 0.84
 radius = 0.7
 
-[node name="FountainFontMana" type="Node3D" node_paths=PackedStringArray("Interactive", "Model", "Pools") groups=["prop"]]
+[node name="FountainFontMana" type="Node3D" node_paths=PackedStringArray("Interactive", "Liquid", "Pools") groups=["prop"]]
 script = ExtResource("script")
 Interactive = NodePath("InteractiveComponent")
 Blessing = ExtResource("blessing")
-Model = NodePath("Model")
+Liquid = NodePath("Model/Liquid")
 Pools = [NodePath("Pools/Sparkles")]
 
 [node name="Model" parent="." instance=ExtResource("model")]

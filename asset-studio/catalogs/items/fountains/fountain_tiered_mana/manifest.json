@@ -1,13 +1,13 @@
 {
   "key": "fountains/fountain_tiered_mana",
-  "inputs": "5a35e0964df216a4ee0e66aba65c1054d99b8df1f4402fdf54c98716047f11d9",
+  "inputs": "4c35aeab3e301958214ec7ba763ff8b5c7e2775f191f91a89b897f7ae3279b99",
   "files": {
-    "fountain_tiered_mana.glb": "e76bdac25e94e9746d42e3bc1307576f55c19622e61a295a4e8e7756acd8657e",
-    "lineup.png": "e01932c6d9633729a0cafa3a610dbf8e5f6bdcc68d8d5a1001c427f7b4ef1010"
+    "fountain_tiered_mana.glb": "60d4948703ad3f36944d061fed9a0ba4da60a48721b20a59972a4ff38be44093",
+    "lineup.png": "b60c66caacce7ab080406d06c6886ee5aeed96f019bc90217c072d6f691c950c"
   },
   "metadata": {
     "report": {
-      "triangles": 866,
+      "triangles": 1164,
       "bounds": [
         [
           -0.9852443337440491,
@@ -33,14 +33,16 @@
         ]
       ],
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 1.305802434189145
+        "signed_volume": 1.343496522042839
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "errors": []
     },
     "recipe": {
@@ -52,7 +54,7 @@
         "kind": "tiered"
       },
       "color_mode": "character",
-      "topology": "closed_surface",
+      "topology": "closed_assembly",
       "reference": "res://asset-studio/objects/fountains/tiered-reference.png",
       "placement": {
         "pivot": "authored",
@@ -101,7 +103,7 @@
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Two-tier fountain: broad lower basin, central column and an upper bowl overflowing through a rim notch. Emissive mana liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+        "quality_notes": "Two-tier fountain: broad lower basin, central column and an upper bowl overflowing through a rim notch. Hollow basin with a separate emissive mana liquid node; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
       }
     }
   }

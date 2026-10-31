@@ -15,11 +15,11 @@ radius = 1.0
 height = 0.9
 radius = 0.44
 
-[node name="FountainTieredHealth" type="Node3D" node_paths=PackedStringArray("Interactive", "Model", "Pools") groups=["prop"]]
+[node name="FountainTieredHealth" type="Node3D" node_paths=PackedStringArray("Interactive", "Liquid", "Pools") groups=["prop"]]
 script = ExtResource("script")
 Interactive = NodePath("InteractiveComponent")
 Blessing = ExtResource("blessing")
-Model = NodePath("Model")
+Liquid = NodePath("Model/Liquid")
 Pools = [NodePath("Pools/SparklesLower"), NodePath("Pools/SparklesUpper")]
 
 [node name="Model" parent="." instance=ExtResource("model")]

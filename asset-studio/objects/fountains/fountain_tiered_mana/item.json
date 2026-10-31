@@ -7,7 +7,7 @@
     "kind": "tiered"
   },
   "color_mode": "character",
-  "topology": "closed_surface",
+  "topology": "closed_assembly",
   "reference": "res://asset-studio/objects/fountains/tiered-reference.png",
   "placement": {
     "pivot": "authored",
@@ -56,6 +56,6 @@
   },
   "provenance": {
     "kind": "studio_original",
-    "quality_notes": "Two-tier fountain: broad lower basin, central column and an upper bowl overflowing through a rim notch. Emissive mana liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+    "quality_notes": "Two-tier fountain: broad lower basin, central column and an upper bowl overflowing through a rim notch. Hollow basin with a separate emissive mana liquid node; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
   }
 }

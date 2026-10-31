@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scenes/effects/FountainSparkles.cs" id="script"]
 [ext_resource type="Shader" path="res://scenes/effects/shaders/fountain_sparkle.gdshader" id="sparkle_shader"]
@@ -65,11 +65,38 @@ shader_parameter/sparkle = ExtResource("spark")
 material = SubResource("SparkleMaterial")
 size = Vector2(0.26, 0.26)
 
-[node name="FountainSparkles" type="Node3D" node_paths=PackedStringArray("Sparkles", "Shimmer", "Glow")]
+[sub_resource type="ParticleProcessMaterial" id="Spray"]
+emission_shape = 6
+emission_ring_axis = Vector3(0, 1, 0)
+emission_ring_height = 0.0
+emission_ring_radius = 0.8
+emission_ring_inner_radius = 0.0
+angle_min = -180.0
+angle_max = 180.0
+direction = Vector3(0, 1, 0)
+spread = 30.0
+initial_velocity_min = 1.4
+initial_velocity_max = 2.8
+angular_velocity_min = -240.0
+angular_velocity_max = 240.0
+gravity = Vector3(0, -2.4, 0)
+damping_min = 0.6
+damping_max = 1.2
+scale_min = 0.8
+scale_max = 1.7
+scale_curve = SubResource("SizeTexture")
+color_ramp = SubResource("FadeTexture")
+
+[sub_resource type="QuadMesh" id="SprayMesh"]
+material = SubResource("SparkleMaterial")
+size = Vector2(0.32, 0.32)
+
+[node name="FountainSparkles" type="Node3D" node_paths=PackedStringArray("Sparkles", "Shimmer", "Glow", "Burst")]
 script = ExtResource("script")
 Sparkles = NodePath("Sparkles")
 Shimmer = NodePath("Shimmer")
 Glow = NodePath("Glow")
+Burst = NodePath("Burst")
 
 [node name="Shimmer" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.006, 0)
@@ -93,3 +120,16 @@ light_energy = 0.6
 light_specular = 0.15
 omni_range = 2.4
 omni_attenuation = 1.4
+
+[node name="Burst" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+emitting = false
+amount = 36
+lifetime = 1.1
+one_shot = true
+explosiveness = 0.92
+randomness = 0.3
+visibility_aabb = AABB(-1.6, -0.6, -1.6, 3.2, 3.2, 3.2)
+local_coords = true
+process_material = SubResource("Spray")
+draw_pass_1 = SubResource("SprayMesh")

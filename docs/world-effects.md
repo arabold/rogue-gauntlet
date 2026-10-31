@@ -68,7 +68,7 @@ The player and monster `FrozenStatusComponent` observes the actor's condition co
 
 Health and mana fountains (`scenes/props/fountains/`) pair Asset Studio art from `assets/custom-props/fountains/` with `fountain_sparkles_health.tscn` or `fountain_sparkles_mana.tscn` on each pool. These inherit `fountain_sparkles.tscn` and set only its `Tint`. `FountainSparkles` sends the tint to the sparkles, the additive surface shimmer and a shadow-free glow light. It uses per-instance shader parameters, so the editor shows the authored color without copying materials. Place the node at the center of the liquid surface and scale its X/Z axes to the pool's inscribed radius. The sparkle shader sizes stars from the vertical axis only. Each pool's level and radius come from `POOLS` in `asset-studio/items/fountains.py`.
 
-Each pool effect sits under the prop's `Pools` node, hidden by an `ExplorationGateComponent` until its tile is discovered. Drinking calls `FadeOut`: no new sparkles rise, and the shimmer and glow dim over `FadeDuration`. A fountain restored as drained clears `Flowing` instead and shows the spent pool at once. [Level design](level-design.md#fountains) describes placement and drinking.
+Each pool effect sits under the prop's `Pools` node, hidden by an `ExplorationGateComponent` until its tile is discovered. Drinking calls `Drain` as the liquid disappears. The shimmer goes with the surface, and a one-shot `Burst` of sparkles sprays off the pool to cover the change. No new sparkles rise, and the glow fades over `FadeDuration`. A fountain restored as drained clears `Flowing` instead and shows the empty basin at once. [Level design](level-design.md#fountains) describes placement and drinking.
 
 ## Workbench
 

@@ -1,13 +1,13 @@
 {
   "key": "fountains/fountain_chalice_health",
-  "inputs": "2ebdb997a3b1502e688f3c03f366e69733dd99ef4416f58a66c4fc2d08ada947",
+  "inputs": "2e8fa6d9d78c343915de79900f61213607335affb3f2dda765f72fe61471afad",
   "files": {
-    "fountain_chalice_health.glb": "20c555c27dde2cfde43b07c2c25566007fc0e7b8854a203c30d68c927c0cf39f",
-    "lineup.png": "f4b3fcb2abed256f8c58e337d21d7b19ed65e9815af2a51dd69b175ac4de3df3"
+    "fountain_chalice_health.glb": "5c80c261d340d410662c1aa88bfeb6fb859b1091410072bcb22aa3468afaab86",
+    "lineup.png": "90b9336e95c4a9fb9d6f73793412fd34188cf18c82444327f17a7567d75d80dd"
   },
   "metadata": {
     "report": {
-      "triangles": 1056,
+      "triangles": 1280,
       "bounds": [
         [
           -0.6200000047683716,
@@ -33,14 +33,16 @@
         ]
       ],
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.37686960013643894
+        "signed_volume": 0.38362217660467596
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "errors": []
     },
     "recipe": {
@@ -52,7 +54,7 @@
         "kind": "chalice"
       },
       "color_mode": "character",
-      "topology": "closed_surface",
+      "topology": "closed_assembly",
       "reference": "res://asset-studio/objects/fountains/chalice-reference.png",
       "placement": {
         "pivot": "authored",
@@ -101,7 +103,7 @@
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Pale marble chalice font on a fluted column with gilded collars and a gilded band below the rim. Emissive health liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+        "quality_notes": "Pale marble chalice font on a fluted column with gilded collars and a gilded band below the rim. Hollow basin with a separate emissive health liquid node; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
       }
     }
   }

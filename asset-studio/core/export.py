@@ -252,45 +252,55 @@ def surface_material(base, name, spec):
     return mat
 
 
-def export_static(path, name, piece, colors, materials=None, crease=50.0):
-    """Export an item through the character surface model, without a skeleton or template geometry."""
+def export_static(path, name, piece, colors, materials=None, crease=50.0, parts=None):
+    """Export an item through the character surface model, without a skeleton or template geometry.
+
+    `parts` adds further named nodes, `{node name: piece}`, sharing this file's palette and materials. They stay
+    separate scene nodes so the game can show or hide them on their own, such as a fountain's liquid.
+    """
     w = _Writer()
-    used = sorted(set(str(s) for s in piece.slots))
+    nodes = [("Item", name, piece)] + [(node, node, part) for node, part in (parts or {}).items()]
+    used = sorted({str(s) for _, _, p in nodes for s in p.slots})
     palette, looks = resolve_palette(used, colors, {**DEFAULT_MATERIALS, **(materials or {})})
     atlas = mm.Atlas([palette[s] for s in used], pad=4, col_w=16, col_h=128, looks=looks, slot_names=used)
     indices = {s: i for i, s in enumerate(used)}
-    tri = piece.verts[piece.faces]
-    if piece.normals is not None:
-        normals = np.asarray(piece.normals, float)
-        if normals.shape != tri.shape or not np.isfinite(normals).all() or np.any(np.linalg.norm(normals, axis=2) < 1e-8):
-            raise ValueError("Authored static corner normals must be finite, nonzero and match the triangles")
-        normals = normals / np.linalg.norm(normals, axis=2, keepdims=True)
-    else:
-        normals = corner_normals(piece.verts, piece.faces, crease=crease, slots=piece.slots,
-                                 slot_crease={s: _crease_of(looks.get(s), crease) for s in used})
-    t = gradient_coordinates(tri, normals)
-    for i, slot in enumerate(piece.slots):
-        if looks.get(str(slot), {}).get("emissive") or str(slot) in {"paint", "gem", "stitch", "rivet"}:
-            t[i] = .5
-    labels = np.repeat(np.array([indices[str(s)] for s in piece.slots])[:, None], 3, axis=1)
-    uv = atlas.gradient_uv(labels, t)
-    attrs = {"POSITION": w.add(tri.reshape(-1, 3), "VEC3", 5126, 34962, bounds=True),
-             "NORMAL": w.add(normals.reshape(-1, 3), "VEC3", 5126, 34962),
-             "TEXCOORD_0": w.add(uv, "VEC2", 5126, 34962)}
-    # Surface groups follow physical shading, independent of the palette's color count.
-    specs, groups = [], []
-    for slot in piece.slots:
-        spec = looks.get(str(slot), {})
-        shading = {key: spec[key] for key in ("metallic", "roughness", "emissive", "alpha", "double_sided") if key in spec}
-        if shading not in specs:
-            specs.append(shading)
-        groups.append(specs.index(shading))
-    f = np.arange(len(tri) * 3).reshape(-1, 3)
-    primitives = []
-    for i in range(len(specs)):
-        index = w.add(f[np.array(groups) == i].ravel(), "SCALAR", 5125, 34963)
-        primitives.append({"attributes": attrs, "indices": index, "material": i})
-    w.g["meshes"] = [{"name": name, "primitives": primitives}]
+    # Surface groups follow physical shading, independent of the palette's color count, and are shared by every node.
+    specs = []
+    w.g["meshes"], w.g["nodes"] = [], []
+    for node, mesh_name, part in nodes:
+        tri = part.verts[part.faces]
+        if part.normals is not None:
+            normals = np.asarray(part.normals, float)
+            if normals.shape != tri.shape or not np.isfinite(normals).all() or np.any(np.linalg.norm(normals, axis=2) < 1e-8):
+                raise ValueError("Authored static corner normals must be finite, nonzero and match the triangles")
+            normals = normals / np.linalg.norm(normals, axis=2, keepdims=True)
+        else:
+            normals = corner_normals(part.verts, part.faces, crease=crease, slots=part.slots,
+                                     slot_crease={s: _crease_of(looks.get(s), crease) for s in used})
+        t = gradient_coordinates(tri, normals)
+        for i, slot in enumerate(part.slots):
+            if looks.get(str(slot), {}).get("emissive") or str(slot) in {"paint", "gem", "stitch", "rivet"}:
+                t[i] = .5
+        labels = np.repeat(np.array([indices[str(s)] for s in part.slots])[:, None], 3, axis=1)
+        uv = atlas.gradient_uv(labels, t)
+        attrs = {"POSITION": w.add(tri.reshape(-1, 3), "VEC3", 5126, 34962, bounds=True),
+                 "NORMAL": w.add(normals.reshape(-1, 3), "VEC3", 5126, 34962),
+                 "TEXCOORD_0": w.add(uv, "VEC2", 5126, 34962)}
+        groups = []
+        for slot in part.slots:
+            spec = looks.get(str(slot), {})
+            shading = {key: spec[key] for key in ("metallic", "roughness", "emissive", "alpha", "double_sided") if key in spec}
+            if shading not in specs:
+                specs.append(shading)
+            groups.append(specs.index(shading))
+        f = np.arange(len(tri) * 3).reshape(-1, 3)
+        primitives = []
+        for i in sorted(set(groups)):
+            index = w.add(f[np.array(groups) == i].ravel(), "SCALAR", 5125, 34963)
+            primitives.append({"attributes": attrs, "indices": index, "material": i})
+        w.g["meshes"].append({"name": mesh_name, "primitives": primitives})
+        w.g["nodes"].append({"name": node, "mesh": len(w.g["meshes"]) - 1})
+    w.g["scenes"] = [{"nodes": list(range(len(w.g["nodes"])))}]
     png = io.BytesIO()
     atlas.image.save(png, "PNG")
     w.g["images"] = [{"name": "surface_palette", "mimeType": "image/png", "bufferView": w._view(png.getvalue())}]

@@ -391,12 +391,17 @@ class ItemWorkflowTest(unittest.TestCase):
         from items.fountains import fountain, KINDS, POOLS
         for kind in KINDS:
             with self.subTest(fountain=kind):
-                p = fountain({"kind": kind})
-                t = solid.inspect(p.verts, p.faces)
-                self.assertEqual(t["components"], 1)
-                self.assertEqual(t["boundary_edges"] + t["nonmanifold_edges"] + t["duplicate_faces"] + t["inconsistent_edges"], 0)
-                self.assertAlmostEqual(p.verts[:, 1].min(), 0, places=5)
-                liquid = p.verts[p.faces[p.slots == "liquid"]]
+                basin, parts = fountain({"kind": kind})
+                # The basin and its liquid are each one closed solid; the liquid stays a separate part the game hides.
+                for p in (basin, parts["Liquid"]):
+                    t = solid.inspect(p.verts, p.faces)
+                    self.assertEqual(t["components"], 1)
+                    self.assertEqual(t["boundary_edges"] + t["nonmanifold_edges"] + t["duplicate_faces"] + t["inconsistent_edges"], 0)
+                    self.assertGreater(t["signed_volume"], 0)
+                self.assertNotIn("liquid", set(basin.slots))
+                self.assertAlmostEqual(basin.verts[:, 1].min(), 0, places=5)
+                p = parts["Liquid"]
+                liquid = p.verts[p.faces]
                 for level, radius in POOLS[kind]:
                     # Game-side sparkles fill this circle, so its rim must sit on the pool surface, not on stone.
                     surface = liquid[np.all(np.abs(liquid[:, :, 1] - level) < 1e-4, axis=1)][:, :, [0, 2]]
@@ -409,6 +414,22 @@ class ItemWorkflowTest(unittest.TestCase):
                         self.assertTrue(inside.any(), f"{kind} pool at {level} misses {point}")
         with self.assertRaisesRegex(ValueError, "Unknown fountain"):
             fountain({"kind": "unsupported"})
+
+    def test_fountain_liquid_exports_as_its_own_node(self):
+        from items.fountains import fountain
+        from items.arsenal import COLORS as STONE_COLORS
+        basin, parts = fountain({"kind": "tiered"})
+        target = self.repo / "fountain.glb"
+        character_export.export_static(str(target), "fountain", basin, {**STONE_COLORS, "stone": [140, 134, 124],
+                                       "stone_dark": [108, 103, 96], "liquid": [200, 24, 44]},
+                                       materials={"liquid": {"emissive": True}}, parts=parts)
+        g, _ = model.read(target)
+        self.assertEqual([node["name"] for node in g["nodes"]], ["Item", "Liquid"])
+        self.assertEqual(g["scenes"][0]["nodes"], [0, 1])
+        liquid_materials = {p["material"] for p in g["meshes"][g["nodes"][1]["mesh"]]["primitives"]}
+        self.assertTrue(all(g["materials"][i].get("emissiveFactor") for i in liquid_materials))
+        _, faces, _ = model.geometry(target)
+        self.assertEqual(len(faces), len(basin.faces) + len(parts["Liquid"].faces))
 
     def test_world_props_export_only_into_the_props_tree(self):
         item = self.item()

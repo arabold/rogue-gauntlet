@@ -1,13 +1,13 @@
 {
   "key": "fountains/fountain_spring_mana",
-  "inputs": "c2247a55c1911f58ee33ece81500f3c982ab2c0d2f68572f0a4f50239f47bab7",
+  "inputs": "23cba41f16984d41bda1f6e291fbce7917a0fa2a924a23a39044a7eeaac488e7",
   "files": {
-    "fountain_spring_mana.glb": "46b6432821debcaa44eb6e1b45336cab89347f557492fc84a932a2f84ab6e6b9",
-    "lineup.png": "134d1a82c5d1646dceea8f4aad015f12a153ba999830c3482600463188c74794"
+    "fountain_spring_mana.glb": "892bc97f1f49504231a162e420f9fbe29b7d7deffa0dd434bfdcddc24a6df5da",
+    "lineup.png": "c98893ec12964221a664bc11724666b759fd904351e3718c1371b736663dbb8b"
   },
   "metadata": {
     "report": {
-      "triangles": 1720,
+      "triangles": 2032,
       "bounds": [
         [
           -1.1363500356674194,
@@ -33,14 +33,16 @@
         ]
       ],
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 2.021358800001937
+        "signed_volume": 2.008535400976514
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "errors": []
     },
     "recipe": {
@@ -52,7 +54,7 @@
         "kind": "spring"
       },
       "color_mode": "character",
-      "topology": "closed_surface",
+      "topology": "closed_assembly",
       "reference": "res://asset-studio/objects/fountains/spring-reference.png",
       "placement": {
         "pivot": "authored",
@@ -111,7 +113,7 @@
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Knee-high pool ringed by two courses of fitted blocks, fed by a brass spout in an arched pillar niche. Emissive mana liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+        "quality_notes": "Knee-high pool ringed by two courses of fitted blocks, fed by a brass spout in an arched pillar niche. Hollow basin with a separate emissive mana liquid node; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
       }
     }
   }

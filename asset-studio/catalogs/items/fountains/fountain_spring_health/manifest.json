@@ -1,13 +1,13 @@
 {
   "key": "fountains/fountain_spring_health",
-  "inputs": "57b5ffde26fd377f36f7e491fbe11f1aab736c963dabc5410016bc56e8364b47",
+  "inputs": "81e8b87cb39d53dab24f520bf1f554870878424362c0c03dcd6eeaf18e043acc",
   "files": {
-    "fountain_spring_health.glb": "5444dd7bf820b28e31ee146b1dab38c0bae61d7f5b65cc9c50b7913b93880dff",
-    "lineup.png": "c19127520336152e4497f06293f0289ee5e37dcc9ea30647ef50eadf3508ce98"
+    "fountain_spring_health.glb": "28adf52b7551d7819c96eac4dc269c48e3ff02fd8cd2bf6aaf3bb2de2e6bce93",
+    "lineup.png": "fb92f93d172453cb70635c3d2f924ed397ac3b8e36308befab3ae796d26cd3a1"
   },
   "metadata": {
     "report": {
-      "triangles": 1720,
+      "triangles": 2032,
       "bounds": [
         [
           -1.1363500356674194,
@@ -33,14 +33,16 @@
         ]
       ],
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 2.021358800001937
+        "signed_volume": 2.008535400976514
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "errors": []
     },
     "recipe": {
@@ -52,7 +54,7 @@
         "kind": "spring"
       },
       "color_mode": "character",
-      "topology": "closed_surface",
+      "topology": "closed_assembly",
       "reference": "res://asset-studio/objects/fountains/spring-reference.png",
       "placement": {
         "pivot": "authored",
@@ -111,7 +113,7 @@
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Knee-high pool ringed by two courses of fitted blocks, fed by a brass spout in an arched pillar niche. Emissive health liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+        "quality_notes": "Knee-high pool ringed by two courses of fitted blocks, fed by a brass spout in an arched pillar niche. Hollow basin with a separate emissive health liquid node; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
       }
     }
   }

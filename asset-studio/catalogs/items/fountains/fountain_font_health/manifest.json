@@ -1,13 +1,13 @@
 {
   "key": "fountains/fountain_font_health",
-  "inputs": "db092927515be419b04ff81b194b049ccbdff0740968d14982c398cbaf614aca",
+  "inputs": "22b904bc7fea210e6f15af327bb27e139493ae2d6a5048173b68cb4ffa2a0ed8",
   "files": {
-    "fountain_font_health.glb": "26bf1761d878ae7904fe2be045aa712ed9a69ca9202b56675ab62c594d918c20",
-    "lineup.png": "99e3cbcf80f337adc6eaff5bc6ea0c5608e6d0f975acacab65c8384377dcf1a0"
+    "fountain_font_health.glb": "3302d41c44ec7fb3bdf6aedcb421e399197a61d7cab9a9088662eb767af05910",
+    "lineup.png": "81e2874cdc8465b6492d1d3377b98208bdd6db80b7542fcb00acd752eb0ae79a"
   },
   "metadata": {
     "report": {
-      "triangles": 1536,
+      "triangles": 1648,
       "bounds": [
         [
           -0.7820000052452087,
@@ -33,14 +33,16 @@
         ]
       ],
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.9370658436053398
+        "signed_volume": 0.9438234270786757
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "errors": []
     },
     "recipe": {
@@ -52,7 +54,7 @@
         "kind": "font"
       },
       "color_mode": "character",
-      "topology": "closed_surface",
+      "topology": "closed_assembly",
       "reference": "res://asset-studio/objects/fountains/font-reference.png",
       "placement": {
         "pivot": "authored",
@@ -101,7 +103,7 @@
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Octagonal baptismal font: flaring bowl with a rolled rim on an octagonal pedestal and a two-course flagstone plinth. Emissive health liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+        "quality_notes": "Octagonal baptismal font: flaring bowl with a rolled rim on an octagonal pedestal and a two-course flagstone plinth. Hollow basin with a separate emissive health liquid node; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
       }
     }
   }

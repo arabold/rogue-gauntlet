@@ -7,7 +7,7 @@
     "kind": "font"
   },
   "color_mode": "character",
-  "topology": "closed_surface",
+  "topology": "closed_assembly",
   "reference": "res://asset-studio/objects/fountains/font-reference.png",
   "placement": {
     "pivot": "authored",
@@ -56,6 +56,6 @@
   },
   "provenance": {
     "kind": "studio_original",
-    "quality_notes": "Octagonal baptismal font: flaring bowl with a rolled rim on an octagonal pedestal and a two-course flagstone plinth. Emissive health liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+    "quality_notes": "Octagonal baptismal font: flaring bowl with a rolled rim on an octagonal pedestal and a two-course flagstone plinth. Hollow basin with a separate emissive health liquid node; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
   }
 }

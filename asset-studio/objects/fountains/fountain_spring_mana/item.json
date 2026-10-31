@@ -7,7 +7,7 @@
     "kind": "spring"
   },
   "color_mode": "character",
-  "topology": "closed_surface",
+  "topology": "closed_assembly",
   "reference": "res://asset-studio/objects/fountains/spring-reference.png",
   "placement": {
     "pivot": "authored",
@@ -66,6 +66,6 @@
   },
   "provenance": {
     "kind": "studio_original",
-    "quality_notes": "Knee-high pool ringed by two courses of fitted blocks, fed by a brass spout in an arched pillar niche. Emissive mana liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+    "quality_notes": "Knee-high pool ringed by two courses of fitted blocks, fed by a brass spout in an arched pillar niche. Hollow basin with a separate emissive mana liquid node; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
   }
 }

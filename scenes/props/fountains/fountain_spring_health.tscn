@@ -14,11 +14,11 @@ radius = 1.1
 [sub_resource type="BoxShape3D" id="Shape1"]
 size = Vector3(0.5, 1.24, 0.44)
 
-[node name="FountainSpringHealth" type="Node3D" node_paths=PackedStringArray("Interactive", "Model", "Pools") groups=["prop"]]
+[node name="FountainSpringHealth" type="Node3D" node_paths=PackedStringArray("Interactive", "Liquid", "Pools") groups=["prop"]]
 script = ExtResource("script")
 Interactive = NodePath("InteractiveComponent")
 Blessing = ExtResource("blessing")
-Model = NodePath("Model")
+Liquid = NodePath("Model/Liquid")
 Pools = [NodePath("Pools/Sparkles")]
 
 [node name="Model" parent="." instance=ExtResource("model")]

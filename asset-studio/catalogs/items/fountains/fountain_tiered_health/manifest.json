@@ -1,13 +1,13 @@
 {
   "key": "fountains/fountain_tiered_health",
-  "inputs": "9db02da72f0e6c1a9d14f146ca01f562f7fdab21e083380a9c6d7a94f5f02374",
+  "inputs": "455ca1760b1350957c0c9fa0e39466a6c41bbb62e3d0ff258ab630375de84a21",
   "files": {
-    "fountain_tiered_health.glb": "ac8f4e5d19324dc150660f0934e19a005d64be763e304fc64306f41ffb20349b",
-    "lineup.png": "51d2d7260b912dd5e5d5e8315542e60be975ebd1072606ce970816d9d7f41b95"
+    "fountain_tiered_health.glb": "ea1070792b34aef3a97febcf4c77902d1e4434560586cdc4bbe5e699152c478a",
+    "lineup.png": "75e2c1fe5402dd038bcfbaeefe8901b9d31ced9a87cb13555fcc62559c6a8956"
   },
   "metadata": {
     "report": {
-      "triangles": 866,
+      "triangles": 1164,
       "bounds": [
         [
           -0.9852443337440491,
@@ -33,14 +33,16 @@
         ]
       ],
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 1.305802434189145
+        "signed_volume": 1.343496522042839
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "errors": []
     },
     "recipe": {
@@ -52,7 +54,7 @@
         "kind": "tiered"
       },
       "color_mode": "character",
-      "topology": "closed_surface",
+      "topology": "closed_assembly",
       "reference": "res://asset-studio/objects/fountains/tiered-reference.png",
       "placement": {
         "pivot": "authored",
@@ -101,7 +103,7 @@
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Two-tier fountain: broad lower basin, central column and an upper bowl overflowing through a rim notch. Emissive health liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+        "quality_notes": "Two-tier fountain: broad lower basin, central column and an upper bowl overflowing through a rim notch. Hollow basin with a separate emissive health liquid node; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
       }
     }
   }

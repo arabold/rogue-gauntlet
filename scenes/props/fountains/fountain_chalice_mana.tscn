@@ -11,11 +11,11 @@
 height = 1.17
 radius = 0.55
 
-[node name="FountainChaliceMana" type="Node3D" node_paths=PackedStringArray("Interactive", "Model", "Pools") groups=["prop"]]
+[node name="FountainChaliceMana" type="Node3D" node_paths=PackedStringArray("Interactive", "Liquid", "Pools") groups=["prop"]]
 script = ExtResource("script")
 Interactive = NodePath("InteractiveComponent")
 Blessing = ExtResource("blessing")
-Model = NodePath("Model")
+Liquid = NodePath("Model/Liquid")
 Pools = [NodePath("Pools/Sparkles")]
 
 [node name="Model" parent="." instance=ExtResource("model")]

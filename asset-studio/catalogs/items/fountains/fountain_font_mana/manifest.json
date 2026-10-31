@@ -1,13 +1,13 @@
 {
   "key": "fountains/fountain_font_mana",
-  "inputs": "b197a153b54421704eaf89b0c7347527c519a85a2040dec893fbb30ac2eb0891",
+  "inputs": "cf78428468e9e59fd8a2db1509397f476e68bf8c8d74d9eb7756b47144377797",
   "files": {
-    "fountain_font_mana.glb": "b68901badd03b998ee694a7d83a976bdd8c50c797214dbc2f06b9104c6a082a4",
-    "lineup.png": "1fa4ae0d9b1d4b05bb96f3984b1e8e3fdeb52c7297ea48e0c20c4cb427182698"
+    "fountain_font_mana.glb": "e4f084eec8261d0f010f0b49fd09dddd0802c6437fd3503ca669866759b77716",
+    "lineup.png": "b1499dd63b440f61dcc782fa914e496cd10bb0757cc55acaf583d739b80bdad1"
   },
   "metadata": {
     "report": {
-      "triangles": 1536,
+      "triangles": 1648,
       "bounds": [
         [
           -0.7820000052452087,
@@ -33,14 +33,16 @@
         ]
       ],
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.9370658436053398
+        "signed_volume": 0.9438234270786757
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "errors": []
     },
     "recipe": {
@@ -52,7 +54,7 @@
         "kind": "font"
       },
       "color_mode": "character",
-      "topology": "closed_surface",
+      "topology": "closed_assembly",
       "reference": "res://asset-studio/objects/fountains/font-reference.png",
       "placement": {
         "pivot": "authored",
@@ -101,7 +103,7 @@
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Octagonal baptismal font: flaring bowl with a rolled rim on an octagonal pedestal and a two-course flagstone plinth. Emissive mana liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+        "quality_notes": "Octagonal baptismal font: flaring bowl with a rolled rim on an octagonal pedestal and a two-course flagstone plinth. Hollow basin with a separate emissive mana liquid node; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
       }
     }
   }

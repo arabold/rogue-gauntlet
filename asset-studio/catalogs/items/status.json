@@ -441,21 +441,23 @@
     {
       "key": "fountains/fountain_chalice_health",
       "source_current": true,
-      "inputs": "2ebdb997a3b1502e688f3c03f366e69733dd99ef4416f58a66c4fc2d08ada947",
-      "triangles": 1056,
+      "inputs": "2e8fa6d9d78c343915de79900f61213607335affb3f2dda765f72fe61471afad",
+      "triangles": 1280,
       "materials": 3,
       "source": null,
       "surface": null,
-      "topology_policy": "closed_surface",
+      "topology_policy": "closed_assembly",
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.37686960013643894
+        "signed_volume": 0.38362217660467596
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "export": "res://assets/custom-props/fountains/fountain_chalice_health.glb",
       "export_verified": true,
       "lineup": "fountains/fountain_chalice_health/lineup.png"
@@ -463,21 +465,23 @@
     {
       "key": "fountains/fountain_chalice_mana",
       "source_current": true,
-      "inputs": "a1eb3eac113df8e517e15d34bfbd1aeb0090b641d9b505302f533459253b5174",
-      "triangles": 1056,
+      "inputs": "bbc66fb25e558ed9ab1ea01a23d9abb6ce2906bf618fd47638004e957b2ad8ee",
+      "triangles": 1280,
       "materials": 3,
       "source": null,
       "surface": null,
-      "topology_policy": "closed_surface",
+      "topology_policy": "closed_assembly",
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.37686960013643894
+        "signed_volume": 0.38362217660467596
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "export": "res://assets/custom-props/fountains/fountain_chalice_mana.glb",
       "export_verified": true,
       "lineup": "fountains/fountain_chalice_mana/lineup.png"
@@ -485,21 +489,23 @@
     {
       "key": "fountains/fountain_font_health",
       "source_current": true,
-      "inputs": "db092927515be419b04ff81b194b049ccbdff0740968d14982c398cbaf614aca",
-      "triangles": 1536,
+      "inputs": "22b904bc7fea210e6f15af327bb27e139493ae2d6a5048173b68cb4ffa2a0ed8",
+      "triangles": 1648,
       "materials": 2,
       "source": null,
       "surface": null,
-      "topology_policy": "closed_surface",
+      "topology_policy": "closed_assembly",
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.9370658436053398
+        "signed_volume": 0.9438234270786757
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "export": "res://assets/custom-props/fountains/fountain_font_health.glb",
       "export_verified": true,
       "lineup": "fountains/fountain_font_health/lineup.png"
@@ -507,21 +513,23 @@
     {
       "key": "fountains/fountain_font_mana",
       "source_current": true,
-      "inputs": "b197a153b54421704eaf89b0c7347527c519a85a2040dec893fbb30ac2eb0891",
-      "triangles": 1536,
+      "inputs": "cf78428468e9e59fd8a2db1509397f476e68bf8c8d74d9eb7756b47144377797",
+      "triangles": 1648,
       "materials": 2,
       "source": null,
       "surface": null,
-      "topology_policy": "closed_surface",
+      "topology_policy": "closed_assembly",
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.9370658436053398
+        "signed_volume": 0.9438234270786757
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "export": "res://assets/custom-props/fountains/fountain_font_mana.glb",
       "export_verified": true,
       "lineup": "fountains/fountain_font_mana/lineup.png"
@@ -529,21 +537,23 @@
     {
       "key": "fountains/fountain_spring_health",
       "source_current": true,
-      "inputs": "57b5ffde26fd377f36f7e491fbe11f1aab736c963dabc5410016bc56e8364b47",
-      "triangles": 1720,
+      "inputs": "81e8b87cb39d53dab24f520bf1f554870878424362c0c03dcd6eeaf18e043acc",
+      "triangles": 2032,
       "materials": 3,
       "source": null,
       "surface": null,
-      "topology_policy": "closed_surface",
+      "topology_policy": "closed_assembly",
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 2.021358800001937
+        "signed_volume": 2.008535400976514
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "export": "res://assets/custom-props/fountains/fountain_spring_health.glb",
       "export_verified": true,
       "lineup": "fountains/fountain_spring_health/lineup.png"
@@ -551,21 +561,23 @@
     {
       "key": "fountains/fountain_spring_mana",
       "source_current": true,
-      "inputs": "c2247a55c1911f58ee33ece81500f3c982ab2c0d2f68572f0a4f50239f47bab7",
-      "triangles": 1720,
+      "inputs": "23cba41f16984d41bda1f6e291fbce7917a0fa2a924a23a39044a7eeaac488e7",
+      "triangles": 2032,
       "materials": 3,
       "source": null,
       "surface": null,
-      "topology_policy": "closed_surface",
+      "topology_policy": "closed_assembly",
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 2.021358800001937
+        "signed_volume": 2.008535400976514
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "export": "res://assets/custom-props/fountains/fountain_spring_mana.glb",
       "export_verified": true,
       "lineup": "fountains/fountain_spring_mana/lineup.png"
@@ -573,21 +585,23 @@
     {
       "key": "fountains/fountain_tiered_health",
       "source_current": true,
-      "inputs": "9db02da72f0e6c1a9d14f146ca01f562f7fdab21e083380a9c6d7a94f5f02374",
-      "triangles": 866,
+      "inputs": "455ca1760b1350957c0c9fa0e39466a6c41bbb62e3d0ff258ab630375de84a21",
+      "triangles": 1164,
       "materials": 2,
       "source": null,
       "surface": null,
-      "topology_policy": "closed_surface",
+      "topology_policy": "closed_assembly",
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 1.305802434189145
+        "signed_volume": 1.343496522042839
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "export": "res://assets/custom-props/fountains/fountain_tiered_health.glb",
       "export_verified": true,
       "lineup": "fountains/fountain_tiered_health/lineup.png"
@@ -595,21 +609,23 @@
     {
       "key": "fountains/fountain_tiered_mana",
       "source_current": true,
-      "inputs": "5a35e0964df216a4ee0e66aba65c1054d99b8df1f4402fdf54c98716047f11d9",
-      "triangles": 866,
+      "inputs": "4c35aeab3e301958214ec7ba763ff8b5c7e2775f191f91a89b897f7ae3279b99",
+      "triangles": 1164,
       "materials": 2,
       "source": null,
       "surface": null,
-      "topology_policy": "closed_surface",
+      "topology_policy": "closed_assembly",
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 1.305802434189145
+        "signed_volume": 1.343496522042839
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "export": "res://assets/custom-props/fountains/fountain_tiered_mana.glb",
       "export_verified": true,
       "lineup": "fountains/fountain_tiered_mana/lineup.png"

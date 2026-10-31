@@ -1,10 +1,11 @@
 """Dungeon fountains: stone fonts and basins holding a pool of glowing liquid.
 
 All dimensions use metres; the origin is the floor center and +Y is up. Each design
-unions its stonework, trim and liquid into one closed solid. A pool is the flat top
-of the solid inside its basin, recolored `liquid` after the union, so the surface is
-the basin's own faces rather than a disc laid on top. Streams are real liquid solids
-joining a spout or overflow lip to the pool below.
+unions its stonework and trim into one closed basin solid, hollowed down to a stone
+floor, so a drained fountain is genuinely empty. The liquid is a separate closed
+solid that fills those hollows to the pool level, together with any stream from a
+spout or overflow lip: a real body of water resting in the basin, exported as its own
+`Liquid` node the game hides once the fountain is drunk dry.
 
 The liquid slot is emissive in the recipes; health and mana variants differ only in
 its color. Rising sparkles and surface shimmer are game-side effects placed on the
@@ -58,19 +59,7 @@ def stream(a, path, width, depth):
     a.add(kit.sweep(np.asarray(path, float), kit.ring_profile(width, depth, 8), 'liquid', scale=1 - .3*u), 'liquid')
 
 
-def pools(piece, levels):
-    """Recolor the upward faces at each pool level inside its basin as the liquid surface."""
-    tri = piece.verts[piece.faces]
-    center = tri.mean(1)
-    normal = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
-    up = normal[:, 1] / np.maximum(np.linalg.norm(normal, axis=1), 1e-12) > .999
-    radius = np.hypot(center[:, 0], center[:, 2])
-    for level, inner in levels:
-        piece.slots[up & (np.abs(center[:, 1] - level) < 1e-4) & (radius < inner + .1)] = 'liquid'
-    return piece
-
-
-def font(a):
+def font(a, water):
     """Octagonal baptismal font on a two-course flagstone plinth."""
     pitch = .39
     for i in range(4):
@@ -82,10 +71,12 @@ def font(a):
     # Foot, shaft and capital, then the flaring bowl with a rolled rim and a short inner wall.
     turned(a, [(.37, .25), (.37, .32), (.29, .37), (.25, .38), (.24, .55), (.31, .58), (.31, .63)], 8, 'stone', 22.5)
     turned(a, [(.27, .60), (.36, .66), (.50, .76), (.60, .87), (.64, .95), (.70, .97), (.71, 1.05),
-               (.66, 1.09), (.56, 1.09), (.53, 1.06), (.52, 1.02)], 8, 'stone', 22.5)
+               (.66, 1.09), (.56, 1.09), (.53, 1.06), (.52, 1.02), (.46, .93), (.36, .87), (.20, .85)], 8, 'stone', 22.5)
+    # The pool follows the hollow a little inside its walls, from just below the floor to the surface.
+    turned(water, [(.21, .845), (.37, .865), (.47, .93), (.53, 1.02)], 8, 'liquid', 22.5)
 
 
-def chalice(a):
+def chalice(a, water):
     """Marble chalice on a fluted column, with gilded collars and a gilded band below the rim."""
     a.add(lathe([(.50, 0), (.50, .07), (.45, .09), (.41, .10), (.41, .16), (.36, .18)], 16), 'stone')
     column = lathe([(.15, .17), (.15, .80)], 16)
@@ -96,14 +87,16 @@ def chalice(a):
     for y in (.20, .76):
         a.add(lathe([(.17, y - .045), (.20, y - .02), (.20, y + .02), (.17, y + .045)], 16), 'gold')
     a.add(lathe([(.15, .78), (.22, .84), (.40, .93), (.53, 1.03), (.58, 1.10), (.60, 1.15),
-                 (.55, 1.17), (.49, 1.17), (.47, 1.15), (.465, 1.12)], 16), 'stone')
+                 (.55, 1.17), (.49, 1.17), (.47, 1.15), (.465, 1.12), (.44, 1.05), (.36, .99), (.22, .95)], 16), 'stone')
+    water.add(lathe([(.23, .945), (.37, .985), (.45, 1.05), (.475, 1.12)], 16), 'liquid')
     a.add(band([(.585, 1.05), (.615, 1.07), (.62, 1.12), (.60, 1.14)], .55, 16), 'gold')
 
 
-def spring(a):
+def spring(a, water):
     """Low ring of fitted blocks around a pool, fed by a spout set into an arched niche."""
-    # The pool floor fills the ring's inner joints, so no void is sealed behind the blocks.
-    a.add(lathe([(.84, 0), (.84, .44)], 16), 'stone_dark')
+    # The pool floor fills the ring's lower inner joints, so no void is sealed behind the blocks.
+    a.add(lathe([(.84, 0), (.84, .22)], 16), 'stone_dark')
+    water.add(lathe([(.645, .215), (.645, .44)], 16), 'liquid')
     ring(a, .86, .48, 0, .29, 10)
     ring(a, .86, .44, .27, .56, 10, 18)
     # The pillar stands in the ring diagonally behind the pool from the gameplay camera.
@@ -118,28 +111,33 @@ def spring(a):
     mouth = out*.62 + (0, .80, 0)
     a.add(kit.sweep([out*.84 + (0, .82, 0), mouth], kit.ring_profile(.05, .05, 8), 'brass'), 'brass')
     a.add(kit.sweep([out*.665 + (0, .808, 0), mouth - out*.015], kit.ring_profile(.066, .066, 8), 'brass'), 'brass')
-    stream(a, [mouth - out*.01 + (0, -.015, 0), out*.53 + (0, .72, 0), out*.48 + (0, .58, 0), out*.46 + (0, .40, 0)], .05, .026)
+    stream(water, [mouth - out*.01 + (0, -.015, 0), out*.53 + (0, .72, 0), out*.48 + (0, .58, 0), out*.46 + (0, .40, 0)], .05, .026)
 
 
-def tiered(a):
+def tiered(a, water):
     """Broad lower basin with a central column and an overflowing upper bowl."""
     turned(a, [(.50, 0), (.50, .14), (.40, .18), (.36, .22), (.36, .30)], 8, 'stone_dark', 22.5)
     turned(a, [(.42, .28), (.76, .32), (.90, .38), (.96, .48), (.98, .62), (1.02, .64), (1.02, .72),
-               (.88, .72), (.86, .70), (.85, .66)], 12, 'stone', 15)
-    turned(a, [(.20, .60), (.20, .70), (.16, .74), (.15, 1.22), (.19, 1.26), (.19, 1.30)], 8, 'stone', 22.5)
+               (.88, .72), (.86, .70), (.85, .66), (.80, .57), (.66, .51), (.40, .49)], 12, 'stone', 15)
+    turned(water, [(.41, .485), (.67, .505), (.81, .57), (.86, .66)], 12, 'liquid', 15)
+    # The column stands on the basin floor and rises through the pool.
+    turned(a, [(.20, .47), (.20, .70), (.16, .74), (.15, 1.22), (.19, 1.26), (.19, 1.30)], 8, 'stone', 22.5)
     turned(a, [(.18, .96), (.21, .99), (.21, 1.03), (.18, 1.06)], 8, 'stone', 22.5)
     bowl = lathe([(.17, 1.28), (.30, 1.36), (.40, 1.46), (.44, 1.54), (.42, 1.58), (.36, 1.58),
-                  (.34, 1.56), (.335, 1.52)], 12).rotate((0, 15, 0))
+                  (.34, 1.56), (.335, 1.52), (.30, 1.46), (.20, 1.42)], 12).rotate((0, 15, 0))
     # An overflow notch in the rim feeds the stream.
-    a.add(bowl - mf.Manifold.cube((.16, .08, .10), center=True).translate((.41, 1.58, 0)), 'stone')
-    stream(a, [(.40, 1.535, 0), (.47, 1.50, 0), (.52, 1.36, 0), (.55, 1.05, 0), (.56, .80, 0), (.565, .62, 0)], .055, .022)
+    a.add(bowl - mf.Manifold.cube((.16, .08, .10), center=True).translate((.41, 1.585, 0)), 'stone')
+    turned(water, [(.21, 1.415), (.31, 1.465), (.345, 1.52)], 12, 'liquid', 15)
+    # The overflow leaves the upper pool through the notch and plunges into the lower one.
+    stream(water, [(.28, 1.48, 0), (.40, 1.535, 0), (.47, 1.50, 0), (.52, 1.36, 0), (.55, 1.05, 0), (.56, .80, 0),
+                   (.565, .62, 0)], .055, .022)
 
 
 def fountain(design):
-    """Build one explicit fountain design; unknown kinds fail instead of falling back."""
+    """Build one explicit fountain design as its basin and a separate `Liquid` part; unknown kinds fail."""
     kind = design.get('kind')
     if kind not in KINDS:
         raise ValueError(f'Unknown fountain design {kind}')
-    a = Assembly()
-    {'font': font, 'chalice': chalice, 'spring': spring, 'tiered': tiered}[kind](a)
-    return pools(a.build(), POOLS[kind])
+    basin, water = Assembly(), Assembly()
+    {'font': font, 'chalice': chalice, 'spring': spring, 'tiered': tiered}[kind](basin, water)
+    return basin.build(), {'Liquid': water.build()}

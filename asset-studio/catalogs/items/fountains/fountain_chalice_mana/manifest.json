@@ -1,13 +1,13 @@
 {
   "key": "fountains/fountain_chalice_mana",
-  "inputs": "a1eb3eac113df8e517e15d34bfbd1aeb0090b641d9b505302f533459253b5174",
+  "inputs": "bbc66fb25e558ed9ab1ea01a23d9abb6ce2906bf618fd47638004e957b2ad8ee",
   "files": {
-    "fountain_chalice_mana.glb": "ee7d2cf43f57fd6720033c577aeb9c558293e42bff70b600d8f51602a4eafa38",
-    "lineup.png": "2350982a2ab452c944dd7ecc4f2b2ad2e4744fe525eec1e8fcf57551ee298020"
+    "fountain_chalice_mana.glb": "21575443f30919f165646390e2676294e9d7f8370279bf39a5f8d70bf61bc6b8",
+    "lineup.png": "32843d2f90bd2e4e16f36b5ba869a51d319d42e9cdebbbf23108a24fe522265c"
   },
   "metadata": {
     "report": {
-      "triangles": 1056,
+      "triangles": 1280,
       "bounds": [
         [
           -0.6200000047683716,
@@ -33,14 +33,16 @@
         ]
       ],
       "topology": {
-        "components": 1,
+        "components": 2,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.37686960013643894
+        "signed_volume": 0.38362217660467596
       },
-      "warnings": [],
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
       "errors": []
     },
     "recipe": {
@@ -52,7 +54,7 @@
         "kind": "chalice"
       },
       "color_mode": "character",
-      "topology": "closed_surface",
+      "topology": "closed_assembly",
       "reference": "res://asset-studio/objects/fountains/chalice-reference.png",
       "placement": {
         "pivot": "authored",
@@ -101,7 +103,7 @@
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Pale marble chalice font on a fluted column with gilded collars and a gilded band below the rim. Emissive mana liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+        "quality_notes": "Pale marble chalice font on a fluted column with gilded collars and a gilded band below the rim. Hollow basin with a separate emissive mana liquid node; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
       }
     }
   }

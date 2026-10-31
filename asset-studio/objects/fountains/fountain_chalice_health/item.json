@@ -7,7 +7,7 @@
     "kind": "chalice"
   },
   "color_mode": "character",
-  "topology": "closed_surface",
+  "topology": "closed_assembly",
   "reference": "res://asset-studio/objects/fountains/chalice-reference.png",
   "placement": {
     "pivot": "authored",
@@ -56,6 +56,6 @@
   },
   "provenance": {
     "kind": "studio_original",
-    "quality_notes": "Pale marble chalice font on a fluted column with gilded collars and a gilded band below the rim. Emissive health liquid pool; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
+    "quality_notes": "Pale marble chalice font on a fluted column with gilded collars and a gilded band below the rim. Hollow basin with a separate emissive health liquid node; sparkles and shimmer are game-side effects. Floor-centered origin. No gameplay data."
   }
 }

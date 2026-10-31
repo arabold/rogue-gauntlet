@@ -131,11 +131,11 @@ public class FountainTest
 		AssertBool(rebuilt.IsDrained).IsTrue();
 		AssertBool(rebuilt.Interactive.IsInteractive).IsFalse();
 		AssertBool(rebuilt.Pools.All(pool => !pool.Flowing)).IsTrue();
-		var liquid = rebuilt.Model.FindChildren("*", nameof(MeshInstance3D), true, false).OfType<MeshInstance3D>()
-			.SelectMany(mesh => Enumerable.Range(0, mesh.GetSurfaceOverrideMaterialCount()).Select(mesh.GetSurfaceOverrideMaterial))
-			.OfType<BaseMaterial3D>().ToList();
-		AssertInt(liquid.Count).IsEqual(1);
-		AssertFloat(liquid[0].EmissionEnergyMultiplier).IsEqual(0);
+		// The basin stands empty: its liquid node is hidden, both after drinking and when rebuilt drained.
+		AssertBool(health.Liquid.Visible).IsFalse();
+		AssertBool(rebuilt.Liquid.Visible).IsFalse();
+		AssertBool(mana.Liquid.Visible).IsFalse();
+		AssertBool(Spawn(level, "health", "depth:4:fountain:fresh").Liquid.Visible).IsTrue();
 	}
 
 	[TestCase]
@@ -170,10 +170,10 @@ public class FountainTest
 		return profile;
 	}
 
-	private static Fountain Spawn(Level level, string kind)
+	private static Fountain Spawn(Level level, string kind, string id = null)
 	{
 		var fountain = TestFactories.Load<PackedScene>($"res://scenes/props/fountains/fountain_font_{kind}.tscn").Instantiate<Fountain>();
-		fountain.SetMeta("persistent_id", $"depth:4:fountain:{kind}");
+		fountain.SetMeta("persistent_id", id ?? $"depth:4:fountain:{kind}");
 		level.AddChild(fountain);
 		return fountain;
 	}
