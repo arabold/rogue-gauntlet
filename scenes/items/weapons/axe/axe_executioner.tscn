@@ -7,7 +7,7 @@
 [node name="axe_executioner" parent="." instance=ExtResource("1_glb")]
 
 [node name="TrailBase" type="Marker3D" parent="."]
-position = Vector3(-0.47200, 0.70720, 0)
+position = Vector3(-0.50000, 0.60000, 0)
 
 [node name="TrailTip" type="Marker3D" parent="."]
-position = Vector3(-0.47200, 1.01920, 0)
+position = Vector3(-0.50000, 1.00000, 0)

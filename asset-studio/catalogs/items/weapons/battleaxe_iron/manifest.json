@@ -1,142 +1,31 @@
 {
   "key": "weapons/battleaxe_iron",
-  "inputs": "2f3903ffdb70a9f03b44db7b0760392e5434cc83d5f4cce1e9a7338214d4beab",
+  "inputs": "e11b758a915e69f2866b9e96a7db0acea2f8e8077da079c7780fb837d2aae267",
   "files": {
-    "battleaxe_iron.glb": "ba515d272d477f02717c0ad106e1b8ac6b7be2188caea5080647aad57dadf6c3",
-    "lineup.png": "baf92839c1ae0275c7ff3d7ef9a109d49a6da64b21b7d2d95c32550dd42b33ec"
+    "battleaxe_iron.glb": "992052f9cf0b75f5e704260983f860167678661d4c2a0c0babe14165044971b2",
+    "lineup.png": "c0e4964e771c16700f3ccebc2a77c21506f0ff2637e9a31067ebc594218be26e"
   },
   "metadata": {
-    "recipe": {
-      "version": 1,
-      "name": "Battleaxe Iron",
-      "backend": "source",
-      "placement": {
-        "pivot": "authored",
-        "scale": 1
-      },
-      "budget": {
-        "triangles": 4096,
-        "materials": 8,
-        "texture_size": 2048
-      },
-      "export": {
-        "glb": "res://assets/custom-items/weapons/battleaxe/battleaxe_iron.glb"
-      },
-      "provenance": {
-        "kind": "original_geometry_character_surface",
-        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
-        "original_path": "assets/custom-items/weapons/battleaxe/battleaxe_iron.glb",
-        "source_sha256": "dc9634c46ea67d41254d1d5d1f0c3106e6c258bca80f71c8e32a03cd255bfcae",
-        "original_triangles": 2804,
-        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
-      },
-      "colors": {
-        "gold_brass": [
-          208,
-          151,
-          69
-        ],
-        "metal_steel": [
-          129,
-          140,
-          145
-        ],
-        "leather_wood": [
-          155,
-          90,
-          69
-        ],
-        "leather_copper": [
-          177,
-          111,
-          82
-        ],
-        "iron_dark_iron": [
-          74,
-          81,
-          85
-        ],
-        "metal_silver": [
-          212,
-          219,
-          222
-        ]
-      },
-      "materials": {
-        "gold_brass": {
-          "metallic": 0.5,
-          "roughness": 0.3,
-          "crease": 45.0,
-          "double_sided": true
-        },
-        "metal_steel": {
-          "metallic": 0.5,
-          "roughness": 0.3,
-          "crease": 45.0,
-          "double_sided": true
-        },
-        "leather_wood": {
-          "metallic": 0.0,
-          "roughness": 0.85,
-          "crease": 50.0,
-          "double_sided": true
-        },
-        "leather_copper": {
-          "metallic": 0.0,
-          "roughness": 0.85,
-          "crease": 50.0,
-          "double_sided": true
-        },
-        "iron_dark_iron": {
-          "metallic": 0.35,
-          "roughness": 0.6,
-          "crease": 48.0,
-          "double_sided": true
-        },
-        "metal_silver": {
-          "metallic": 0.5,
-          "roughness": 0.3,
-          "crease": 45.0,
-          "double_sided": true
-        }
-      },
-      "color_mode": "character",
-      "source": "source.glb",
-      "topology": "authored_assembly",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "brass": "gold_brass",
-          "steel": "metal_steel",
-          "wood": "leather_wood",
-          "copper": "leather_copper",
-          "dark_iron": "iron_dark_iron",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "crease": 50
-    },
     "report": {
-      "triangles": 2818,
+      "triangles": 930,
       "bounds": [
         [
-          -0.8600000143051147,
-          -0.4399999976158142,
-          -0.18000000715255737
+          -0.7200000286102295,
+          -0.460263192653656,
+          -0.11574999988079071
         ],
         [
-          0.8600000143051147,
-          1.559999942779541,
-          0.18000000715255737
+          0.7200000286102295,
+          1.4700000286102295,
+          0.11574999988079071
         ]
       ],
       "dimensions": [
-        1.7200000286102295,
-        1.9999999403953552,
-        0.36000001430511475
+        1.440000057220459,
+        1.9302632212638855,
+        0.23149999976158142
       ],
-      "materials": 3,
+      "materials": 2,
       "textures": [
         [
           128,
@@ -144,19 +33,147 @@
         ]
       ],
       "topology": {
-        "components": 14,
-        "boundary_edges": 42,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.19081131055688347
+        "signed_volume": 0.10766481262096494
       },
-      "warnings": [
-        "14 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Battleaxe Iron",
+      "backend": "procedural",
+      "builder": "axe",
+      "design": {
+        "kind": "cleaver_double"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 4096,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "steel": [
+          126,
+          136,
+          144
+        ],
+        "edge": [
+          142,
+          152,
+          160
+        ],
+        "iron": [
+          92,
+          100,
+          108
+        ],
+        "wood": [
+          112,
+          84,
+          70
+        ],
+        "leather": [
+          178,
+          96,
+          64
+        ]
+      },
+      "materials": {
+        "steel": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              150,
+              160,
+              168
+            ],
+            [
+              76,
+              84,
+              90
+            ],
+            [
+              126,
+              136,
+              144
+            ]
+          ]
+        },
+        "edge": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              164,
+              174,
+              182
+            ],
+            [
+              90,
+              98,
+              104
+            ],
+            [
+              142,
+              152,
+              160
+            ]
+          ]
+        },
+        "iron": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              116,
+              124,
+              132
+            ],
+            [
+              56,
+              62,
+              68
+            ],
+            [
+              92,
+              100,
+              108
+            ]
+          ]
+        },
+        "wood": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
+        },
+        "leather": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/battleaxe/battleaxe_iron.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style axe per objects/weapons/README.md: bent octagonal haft, chunky bands, bevelled slab bits, silhouette chips. Grip-centered origin. No gameplay data."
+      }
     }
-  },
-  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+  }
 }

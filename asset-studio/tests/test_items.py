@@ -387,6 +387,29 @@ class ItemWorkflowTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unknown arsenal"):
             arsenal({"kind": "unsupported"})
 
+    def test_axes_follow_the_kaykit_weapon_style_guide(self):
+        from items.axes import axe, KINDS
+        for kind in KINDS:
+            with self.subTest(axe=kind):
+                p = axe({"kind": kind})
+                t = solid.inspect(p.verts, p.faces)
+                self.assertEqual(t["components"], 1)
+                self.assertEqual(t["boundary_edges"] + t["nonmanifold_edges"] + t["duplicate_faces"] + t["inconsistent_edges"], 0)
+                self.assertLessEqual(len(p.faces), 2400)
+                # A chunky haft: KayKit hafts are roughly a tenth of an axe's length thick.
+                # Cut the surface at y = 0.4, between the grip bands and the head.
+                a, b = p.verts[p.faces], p.verts[np.roll(p.faces, -1, axis=1)]
+                crossing = (a[..., 1] - .4) * (b[..., 1] - .4) < 0
+                s = (.4 - a[..., 1][crossing]) / (b[..., 1] - a[..., 1])[crossing]
+                section = a[crossing] + s[:, None] * (b[crossing] - a[crossing])
+                self.assertGreaterEqual(np.ptp(section[:, 2]), .13 if kind.endswith("double") else .10)
+                # Cutting edges are broad bevels, and the bit reaches -X for one-handed mounting.
+                slots = set(map(str, p.slots))
+                self.assertIn("edge", slots)
+                self.assertLess(p.verts[:, 0].min(), -.55)
+        with self.assertRaisesRegex(ValueError, "Unknown axe"):
+            axe({"kind": "unsupported"})
+
     def test_fountains_are_closed_and_effect_circles_lie_on_their_liquid(self):
         from items.fountains import fountain, KINDS, POOLS
         for kind in KINDS:

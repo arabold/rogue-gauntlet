@@ -10,7 +10,7 @@ The studio owns **3D art only**. Damage, stats, equipment rules, item identities
 
 ## Current catalogs and folder policy
 
-Start at **[catalogs/items/README.md](catalogs/items/README.md)** for every recreated item, category sheets, individual Godot lineups and current validation/export status. [catalogs/items/overview.png](catalogs/items/overview.png) shows the complete catalog. Reusable prefab catalogs live separately in [catalogs/prefabs/](catalogs/prefabs/README.md).
+Start at **[catalogs/items/README.md](catalogs/items/README.md)** for every recreated item, category sheets, individual Godot lineups and current validation/export status. [catalogs/items/overview.png](catalogs/items/overview.png) shows the complete catalog. Reusable prefab catalogs live separately in [catalogs/prefabs/](catalogs/prefabs/README.md). Weapons follow the KayKit-matched [weapon style guide](objects/weapons/README.md).
 
 | Location | Keep |
 | --- | --- |

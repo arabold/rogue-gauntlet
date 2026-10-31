@@ -1,162 +1,189 @@
 {
   "key": "weapons/battleaxe_gilded",
-  "inputs": "636003e78e497506c864d8e9cfaa3539ca4ad9be7c6e4393ceb0aba0668495ef",
+  "inputs": "873a616d3bb82e3ecb540d086b259686780e1a5f0caabde57b56db625ee2cc74",
   "files": {
-    "battleaxe_gilded.glb": "3d632ff1d0a7d51fe9feb51a3be918e772393cc99153a8c7a6e447dd7d84aa99",
-    "lineup.png": "1519dd6efbd660a81d6b488f9c17d367ab3852b9ce32e7c8ede9cc4a266d5b45"
+    "battleaxe_gilded.glb": "ade07d14ed0e1a2c1799de3cd20f9862fdbea59364119ed2d520dc6c291f5bb4",
+    "lineup.png": "5c86942b10950611a4af2927bd4bc92ff81a44a4d61867eee99fd44284c761ef"
   },
   "metadata": {
+    "report": {
+      "triangles": 1280,
+      "bounds": [
+        [
+          -0.75,
+          -0.48100000619888306,
+          -0.1379999965429306
+        ],
+        [
+          0.75,
+          1.600000023841858,
+          0.1379999965429306
+        ]
+      ],
+      "dimensions": [
+        1.5,
+        2.081000030040741,
+        0.2759999930858612
+      ],
+      "materials": 4,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.1279840121762826
+      },
+      "warnings": [],
+      "errors": []
+    },
     "recipe": {
       "version": 1,
       "name": "Battleaxe Gilded",
-      "backend": "source",
+      "backend": "procedural",
+      "builder": "axe",
+      "design": {
+        "kind": "runic_double"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
       "placement": {
         "pivot": "authored",
         "scale": 1
       },
       "budget": {
         "triangles": 4096,
-        "materials": 8,
-        "texture_size": 2048
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "steel": [
+          150,
+          164,
+          176
+        ],
+        "edge": [
+          166,
+          180,
+          192
+        ],
+        "wood": [
+          176,
+          98,
+          66
+        ],
+        "cloth": [
+          236,
+          228,
+          212
+        ],
+        "gold": [
+          228,
+          176,
+          68
+        ],
+        "gem": [
+          222,
+          42,
+          78
+        ]
+      },
+      "materials": {
+        "steel": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              176,
+              188,
+              198
+            ],
+            [
+              92,
+              102,
+              112
+            ],
+            [
+              150,
+              164,
+              176
+            ]
+          ]
+        },
+        "edge": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              188,
+              200,
+              210
+            ],
+            [
+              112,
+              122,
+              132
+            ],
+            [
+              166,
+              180,
+              192
+            ]
+          ]
+        },
+        "wood": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
+        },
+        "cloth": {
+          "metallic": 0,
+          "roughness": 0.9,
+          "crease": 50
+        },
+        "gold": {
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              246,
+              214,
+              110
+            ],
+            [
+              176,
+              112,
+              36
+            ],
+            [
+              228,
+              176,
+              68
+            ]
+          ]
+        },
+        "gem": {
+          "metallic": 0,
+          "roughness": 0.35,
+          "crease": 40
+        }
       },
       "export": {
         "glb": "res://assets/custom-items/weapons/battleaxe/battleaxe_gilded.glb"
       },
       "provenance": {
-        "kind": "original_geometry_character_surface",
-        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
-        "original_path": "assets/custom-items/weapons/battleaxe/battleaxe_gilded.glb",
-        "source_sha256": "8a648e011c7271ccba324e8b59316ff99f3f3140babbbcc6566b60a8724ea3ad",
-        "original_triangles": 2804,
-        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
-      },
-      "colors": {
-        "gold_gold": [
-          234,
-          194,
-          83
-        ],
-        "leather_wood": [
-          155,
-          90,
-          69
-        ],
-        "leather_copper": [
-          177,
-          111,
-          82
-        ],
-        "iron_dark_iron": [
-          74,
-          81,
-          85
-        ],
-        "metal_steel": [
-          129,
-          140,
-          145
-        ],
-        "metal_silver": [
-          212,
-          219,
-          222
-        ]
-      },
-      "materials": {
-        "gold_gold": {
-          "metallic": 0.5,
-          "roughness": 0.3,
-          "crease": 45.0,
-          "double_sided": true
-        },
-        "leather_wood": {
-          "metallic": 0.0,
-          "roughness": 0.85,
-          "crease": 50.0,
-          "double_sided": true
-        },
-        "leather_copper": {
-          "metallic": 0.0,
-          "roughness": 0.85,
-          "crease": 50.0,
-          "double_sided": true
-        },
-        "iron_dark_iron": {
-          "metallic": 0.35,
-          "roughness": 0.6,
-          "crease": 48.0,
-          "double_sided": true
-        },
-        "metal_steel": {
-          "metallic": 0.5,
-          "roughness": 0.3,
-          "crease": 45.0,
-          "double_sided": true
-        },
-        "metal_silver": {
-          "metallic": 0.5,
-          "roughness": 0.3,
-          "crease": 45.0,
-          "double_sided": true
-        }
-      },
-      "color_mode": "character",
-      "source": "source.glb",
-      "topology": "authored_assembly",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "gold": "gold_gold",
-          "wood": "leather_wood",
-          "copper": "leather_copper",
-          "dark_iron": "iron_dark_iron",
-          "steel": "metal_steel",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "crease": 50
-    },
-    "report": {
-      "triangles": 2818,
-      "bounds": [
-        [
-          -0.8600000143051147,
-          -0.4399999976158142,
-          -0.18000000715255737
-        ],
-        [
-          0.8600000143051147,
-          1.559999942779541,
-          0.18000000715255737
-        ]
-      ],
-      "dimensions": [
-        1.7200000286102295,
-        1.9999999403953552,
-        0.36000001430511475
-      ],
-      "materials": 3,
-      "textures": [
-        [
-          128,
-          256
-        ]
-      ],
-      "topology": {
-        "components": 14,
-        "boundary_edges": 42,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.1922473725808914
-      },
-      "warnings": [
-        "14 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
-      "errors": []
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style axe per objects/weapons/README.md: bent octagonal haft, chunky bands, bevelled slab bits, silhouette chips. Grip-centered origin. No gameplay data."
+      }
     }
-  },
-  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+  }
 }

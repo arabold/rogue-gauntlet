@@ -1,13 +1,9 @@
 {
   "items": 161,
-  "godot_verified_exports": 8,
+  "godot_verified_exports": 3,
   "authored_surface_exceptions": [
     "food/drink_beer_stein",
     "keys/key_bronze_ornate",
-    "weapons/axe_bearded",
-    "weapons/axe_executioner",
-    "weapons/battleaxe_gilded",
-    "weapons/battleaxe_iron",
     "weapons/broadsword_gilded",
     "weapons/broadsword_iron",
     "weapons/dagger_kukri",
@@ -440,7 +436,7 @@
     },
     {
       "key": "fountains/fountain_chalice_health",
-      "source_current": true,
+      "source_current": false,
       "inputs": "6821a5dfbfae2f180a1730c2139ed68310f55e0b7cab794db6a3760e1ac2e7d3",
       "triangles": 1280,
       "materials": 3,
@@ -459,12 +455,12 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_chalice_health.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_chalice_health/lineup.png"
     },
     {
       "key": "fountains/fountain_chalice_mana",
-      "source_current": true,
+      "source_current": false,
       "inputs": "5ef4441ca02ab05e12f58a149991696fa9434af51f0b0b94435889c0c7866beb",
       "triangles": 1280,
       "materials": 3,
@@ -483,12 +479,12 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_chalice_mana.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_chalice_mana/lineup.png"
     },
     {
       "key": "fountains/fountain_font_health",
-      "source_current": true,
+      "source_current": false,
       "inputs": "552898e7b479fa3dd6c89b59a43fa977f05c6e24d4dd3f0d5556e75f81f45b09",
       "triangles": 1648,
       "materials": 2,
@@ -507,12 +503,12 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_font_health.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_font_health/lineup.png"
     },
     {
       "key": "fountains/fountain_font_mana",
-      "source_current": true,
+      "source_current": false,
       "inputs": "1ee5020e13fedbce49734cd73123147724eddee40ccb7f89ef26e805030e9004",
       "triangles": 1648,
       "materials": 2,
@@ -531,12 +527,12 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_font_mana.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_font_mana/lineup.png"
     },
     {
       "key": "fountains/fountain_spring_health",
-      "source_current": true,
+      "source_current": false,
       "inputs": "7007f1c695a2586f98d89ef38c81ed71764c17161f787b31272985ee82f9f76d",
       "triangles": 2032,
       "materials": 3,
@@ -555,12 +551,12 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_spring_health.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_spring_health/lineup.png"
     },
     {
       "key": "fountains/fountain_spring_mana",
-      "source_current": true,
+      "source_current": false,
       "inputs": "23a1c8f51a3aecbcf27c0f703fd85d6d741152c8f3d1a57d3b7755653373f2d1",
       "triangles": 2032,
       "materials": 3,
@@ -579,12 +575,12 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_spring_mana.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_spring_mana/lineup.png"
     },
     {
       "key": "fountains/fountain_tiered_health",
-      "source_current": true,
+      "source_current": false,
       "inputs": "0e3d37a821425b146af5c1c6e7a1d2de0035ebb67d4ef40362ab78092486453f",
       "triangles": 1164,
       "materials": 2,
@@ -603,12 +599,12 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_tiered_health.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_tiered_health/lineup.png"
     },
     {
       "key": "fountains/fountain_tiered_mana",
-      "source_current": true,
+      "source_current": false,
       "inputs": "f47677f7169460735f0dbe8444b908eef52529719240442b6de159951a287e2f",
       "triangles": 1164,
       "materials": 2,
@@ -627,7 +623,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_tiered_mana.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_tiered_mana/lineup.png"
     },
     {
@@ -4254,146 +4250,90 @@
     },
     {
       "key": "weapons/axe_bearded",
-      "source_current": false,
-      "inputs": "3dfc3ebd4d1e8d216bac325e0d9501ab8897920dc386e2a7cb35a6b1122794fe",
-      "triangles": 1740,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "brass": "gold_brass",
-          "steel": "metal_steel",
-          "wood": "leather_wood",
-          "copper": "leather_copper",
-          "dark_iron": "iron_dark_iron",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source_current": true,
+      "inputs": "935fc5e44c29a260b958d929d93523399a8c1bb3dfa5381269d2b25d94c9b157",
+      "triangles": 700,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 12,
-        "boundary_edges": 42,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.02950973006992531
+        "signed_volume": 0.0349691494461342
       },
-      "warnings": [
-        "12 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/axe/axe_bearded.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/axe_bearded/lineup.png"
     },
     {
       "key": "weapons/axe_executioner",
-      "source_current": false,
-      "inputs": "c5a4209274632bebc01ae6d54fda2e64d0f08c29134b78583bc6188f0edaa2a0",
-      "triangles": 1739,
+      "source_current": true,
+      "inputs": "7d658e498bfaa7e25851ac751a25757abbccda62d812344685aa5445eca9baeb",
+      "triangles": 748,
       "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "gold": "gold_gold",
-          "wood": "leather_wood",
-          "copper": "leather_copper",
-          "dark_iron": "iron_dark_iron",
-          "steel": "metal_steel",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 12,
-        "boundary_edges": 45,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.028669269400963263
+        "signed_volume": 0.03624115934768825
       },
-      "warnings": [
-        "12 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 45 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/axe/axe_executioner.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/axe_executioner/lineup.png"
     },
     {
       "key": "weapons/battleaxe_gilded",
-      "source_current": false,
-      "inputs": "636003e78e497506c864d8e9cfaa3539ca4ad9be7c6e4393ceb0aba0668495ef",
-      "triangles": 2818,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "gold": "gold_gold",
-          "wood": "leather_wood",
-          "copper": "leather_copper",
-          "dark_iron": "iron_dark_iron",
-          "steel": "metal_steel",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source_current": true,
+      "inputs": "873a616d3bb82e3ecb540d086b259686780e1a5f0caabde57b56db625ee2cc74",
+      "triangles": 1280,
+      "materials": 4,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 14,
-        "boundary_edges": 42,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.1922473725808914
+        "signed_volume": 0.1279840121762826
       },
-      "warnings": [
-        "14 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/battleaxe/battleaxe_gilded.glb",
       "export_verified": false,
       "lineup": "weapons/battleaxe_gilded/lineup.png"
     },
     {
       "key": "weapons/battleaxe_iron",
-      "source_current": false,
-      "inputs": "2f3903ffdb70a9f03b44db7b0760392e5434cc83d5f4cce1e9a7338214d4beab",
-      "triangles": 2818,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "brass": "gold_brass",
-          "steel": "metal_steel",
-          "wood": "leather_wood",
-          "copper": "leather_copper",
-          "dark_iron": "iron_dark_iron",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source_current": true,
+      "inputs": "e11b758a915e69f2866b9e96a7db0acea2f8e8077da079c7780fb837d2aae267",
+      "triangles": 930,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 14,
-        "boundary_edges": 42,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.19081131055688347
+        "signed_volume": 0.10766481262096494
       },
-      "warnings": [
-        "14 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/battleaxe/battleaxe_iron.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/battleaxe_iron/lineup.png"
     },
     {
