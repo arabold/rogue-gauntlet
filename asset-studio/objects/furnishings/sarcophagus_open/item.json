@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "name": "Sarcophagus Open",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "sarcophagus_open"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 6000,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 45,
+  "materials": {
+    "stone": {
+      "crease": 35
+    },
+    "stone_dark": {
+      "crease": 35
+    },
+    "marble": {
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/crypt/sarcophagus_open.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Room furnishing at KayKit dungeon scale: floor props stand on y=0 facing +Z; back-to-wall props keep their back on -Z. Solid-unioned parts with material color regions. No gameplay data."
+  }
+}

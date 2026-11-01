@@ -39,6 +39,8 @@ SWATCHES = {
     'liquid': ((1, 6), .45, .3), 'ocean': ((2, 6), .45, 0), 'land': ((1, 1), .45, 0),
     'crust': ((0, 2), .45, .05), 'crumb': ((1, 1), .45, -.2), 'cheese': ((2, 5), .45, -.1), 'rind': ((2, 7), .45, 0),
     'meat': ((1, 7), .45, .1), 'herb': ((2, 1), .45, 0), 'lavender': ((1, 3), .45, -.2), 'leaf': ((1, 6), .45, 0),
+    # Sewer fixtures: the slimy wall's drain pipe is the rubble swatch's darker half, its slime the bright end of the green.
+    'pipe': ((0, 7), .45, .15), 'slime': ((2, 1), .45, -.36),
 }
 EMISSIVE = {'flame', 'liquid'}
 

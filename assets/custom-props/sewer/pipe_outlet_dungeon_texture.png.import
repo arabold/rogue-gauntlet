@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dxkjtsmdh4e6d"
-path="res://.godot/imported/statue_praying_dungeon_texture.png-e30a02fa63b280375c334b265b6b20d2.ctex"
+uid="uid://d2y575o47mjgx"
+path="res://.godot/imported/pipe_outlet_dungeon_texture.png-cae631423c1001afec2e419cdf7f46d6.ctex"
 metadata={
 "vram_texture": false
 }
@@ -13,8 +13,8 @@ generator_parameters={
 
 [deps]
 
-source_file="res://assets/custom-props/chapel/statue_praying_dungeon_texture.png"
-dest_files=["res://.godot/imported/statue_praying_dungeon_texture.png-e30a02fa63b280375c334b265b6b20d2.ctex"]
+source_file="res://assets/custom-props/sewer/pipe_outlet_dungeon_texture.png"
+dest_files=["res://.godot/imported/pipe_outlet_dungeon_texture.png-cae631423c1001afec2e419cdf7f46d6.ctex"]
 
 [params]
 

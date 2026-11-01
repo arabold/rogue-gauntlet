@@ -432,7 +432,9 @@ class Item:
             paths.extend(library.find_prefab_path(part["mesh"]) for part in data["parts"])
         if data["backend"] in ("procedural", "prefab"):
             paths.append(PALETTE)
-            paths.extend(STUDIO / "items" / name for name in ["designs.py", "builders.py", "solid.py", "bread.py", "arsenal.py", "shieldcraft.py", "furnishings.py", "furnishing_kit.py", "world_surface.py"])
+            paths.extend(STUDIO / "items" / name for name in ["designs.py", "builders.py", "solid.py", "bread.py", "arsenal.py", "shieldcraft.py", "furnishings.py", "furnishing_kit.py", "foliage.py", "world_surface.py"])
+            # Posed figures the furnishing builder carves into stone (`items/pose_kaykit.py`).
+            paths.extend(sorted((STUDIO / "items/meshes").glob("*.npz")))
             if data.get("builder") == "fountain":
                 paths.extend(STUDIO / name for name in ["items/fountains.py", "core/kit.py"])
             if data.get("builder") == "shieldcraft":

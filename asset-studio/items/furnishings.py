@@ -14,11 +14,13 @@ and hearths hold dead coals; their lit scenes add the fire. Recipes export with
 """
 
 import zlib
+from pathlib import Path
 
 import numpy as np
 import manifold3d as mf
 from core import kit
-from items.solid import Assembly, lathe, loop
+from items import foliage
+from items.solid import Assembly, lathe, loop, welded
 from items.furnishing_kit import (block, cushion, post, rod, ball, bend, framed, board, planks, square_post, stones,
                                   rivet, candle, lit, outline, rect, star, disc, facade, floor_plan, jag, painted, bands,
                                   turned, moved, grounded, ring, chain, torus, log)
@@ -134,57 +136,45 @@ def plinth(a, rng):
         board(a, rng, (.74, .18, 1.46), (x, .78, 0), 'stone', chips=2, chip_slot='stone_dark')
 
 
-def figure(a, pose):
-    """A chibi-proportioned robed figure on a plinth: big head, short body. `praying` (hooded) or `sword` (helmed)."""
-    base, head = .84, 2.3
-    a.add(lathe([(.6, base), (.58, base + .1), (.5, base + .5), (.43, base + .85), (.46, base + 1.0), (.36, base + 1.1),
-                 (.16, base + 1.16)], 12).scale((1, 1, .86)), 'marble')
-    a.add(ring(.5, .66, base, base + .1, 12).scale((1, 1, .88)), 'marble')
-    a.add(ring(.4, .51, base + .52, base + .62, 12).scale((1, 1, .88)), 'marble_dark')
-    if pose == 'praying':
-        a.add(lathe([(.46, base + 1.02), (.48, base + 1.4), (.4, base + 1.72), (.22, base + 1.9), (.05, base + 1.96)], 12), 'marble')
-        a.cut(ball((0, head, .32), (.29, .32, .27), 12), 'marble_dark')
-        a.add(ball((0, head - .02, .04), (.32, .34, .32), 12), 'marble')
-        for s in (-1, 1):
-            a.add(bend([(s * .42, base + 1.0, 0), (s * .5, base + .78, .12), (s * .3, base + .62, .42), (s * .1, base + .7, .52)],
-                       [.17, .18, .2, .18]), 'marble')
-        a.add(block((.32, .34, .18), (0, 0, 0), .05).rotate((-15, 0, 0)).translate((0, base + .8, .54)), 'marble')
-    else:
-        a.add(ball((0, head, .02), (.3, .32, .3), 12), 'marble')
-        a.add(lathe([(.36, head - .1), (.38, head + .08), (.32, head + .26), (.16, head + .38), (.02, head + .41)], 12), 'marble')
-        a.cut(block((.42, .07, .3), (0, head + .02, .33), .02), 'marble_dark')
-        a.add(block((.07, .3, .5), (0, head + .36, 0), .03), 'marble')
-        for s in (-1, 1):
-            a.add(ball((s * .44, base + 1.02, 0), (.27, .21, .27), 12), 'marble')
-            a.add(bend([(s * .44, base + .98, 0), (s * .5, base + .72, .14), (s * .3, base + .6, .44), (s * .14, base + .68, .58)],
-                       [.15, .14, .14, .13]), 'marble')
-        a.add(block((.24, .68, .08), (0, base + .33, .66), .03), 'marble')
-        a.add(block((.7, .12, .16), (0, base + .72, .66), .04), 'marble')
-        a.add(post(.07, base + .72, base + .92, 0, .66, 8), 'marble')
-        a.add(ball((0, base + .96, .66), (.12, .12, .12), 10), 'marble')
-        for s in (-1, 1):
-            a.add(ball((s * .12, base + .82, .64), (.15, .13, .15), 10), 'marble')
+# Statues are the pack's own adventurers carved in the plinth's stone: posed in Blender (`items/pose_kaykit.py`).
+STATUES = {
+    'knight': ('knight_idle', ('Knight_Body', 'Knight_Head', 'Knight_Helmet', 'Knight_Cape', 'Knight_ArmLeft', 'Knight_ArmRight',
+                               'Knight_LegLeft', 'Knight_LegRight')),
+    'mage': ('mage_idle', ('Mage_Body', 'Mage_Head', 'Mage_Hat', 'Mage_Cape', 'Mage_ArmLeft', 'Mage_ArmRight', 'Mage_LegLeft',
+                           'Mage_LegRight')),
+}
+PLINTH_TOP = .87
 
 
-def statue(pose):
+def standing(character, scale=1.0):
+    """A pack character in stone, standing on the plinth top, facing +Z."""
+    name, parts = STATUES[character]
+    body = figure(name, parts).scale((scale,) * 3)
+    lo, hi = np.asarray(body.bounding_box()[:3]), np.asarray(body.bounding_box()[3:])
+    return body.translate((-(lo[0] + hi[0]) / 2, PLINTH_TOP - .02 - lo[1], -(lo[2] + hi[2]) / 2))
+
+
+def statue(character):
     a = Assembly()
     plinth(a, random('plinth'))
-    figure(a, pose)
-    return a.build()
+    a.add(standing(character), 'stone')
+    # The figure's eyes sit on its face as small bodies of their own, as the pack models them.
+    return a.build(loose=True)
 
 
 def statue_broken():
-    """The praying statue snapped at the knees: its stump stands, the rest lies beside the plinth."""
+    """The knight statue snapped at the knees: its stump stands on the plinth, the rest lies beside it."""
+    break_at = PLINTH_TOP + .65
     stump = Assembly()
     plinth(stump, random('plinth'))
-    figure(stump, 'praying')
-    stump.cut(jag(1.38, 1.6, 1.6, above=True).rotate((0, 30, 0)), 'marble_dark')
+    stump.add(standing('knight'), 'stone')
+    stump.cut(jag(break_at, 1.6, 1.6, above=True).rotate((0, 30, 0)), 'stone_dark')
     upper = Assembly()
-    figure(upper, 'praying')
-    upper.cut(jag(1.38, 1.6, 1.6, above=False).rotate((0, 30, 0)), 'marble_dark')
-    fallen = turned(turned(upper.build(), -86, 'z'), -12, 'y')
+    upper.add(standing('knight'), 'stone')
+    upper.cut(jag(break_at, 1.6, 1.6, above=False).rotate((0, 30, 0)), 'stone_dark')
+    fallen = turned(turned(upper.build(loose=True), -86, 'z'), -12, 'y')
     fallen = moved(fallen, (.86 - fallen.verts[:, 0].min(), -fallen.verts[:, 1].min(), .1 - fallen.verts[:, 2].mean()))
-    return kit.Piece.merge(stump.build(), fallen)
+    return kit.Piece.merge(stump.build(loose=True), fallen)
 
 
 def brazier():
@@ -660,16 +650,16 @@ def bone(a, start, end, radius=.07):
             a.add(ball(tuple(p + s * side), (radius * 1.35,) * 3, 6), 'bone')
 
 
-def skull(a, x, z, turn, y=0.0):
-    """A chunky skull with real eye sockets, added to `a` as one solid."""
+def skull(a, x, z, turn, y=0.0, slot='bone', socket='socket', tilt=0.0, size=1.0):
+    """A chunky skull with real eye sockets, added to `a` as one solid; `slot` carves it in stone instead."""
     head = Assembly()
     head.slots = a.slots
-    head.add(ball((0, .24, 0), (.24, .21, .26), 10), 'bone')
-    head.add(block((.28, .12, .16), (0, .1, .14), .04), 'bone')
+    head.add(ball((0, .24, 0), (.24, .21, .26), 10), slot)
+    head.add(block((.28, .12, .16), (0, .1, .14), .04), slot)
     for s in (-1, 1):
-        head.cut(ball((s * .09, .24, .22), (.065, .07, .07), 7), 'socket')
-    head.cut(block((.06, .06, .08), (0, .16, .25), .015), 'socket')
-    a.join(head.build_solid().rotate((0, turn, 0)).translate((x, y, z)))
+        head.cut(ball((s * .09, .24, .22), (.065, .07, .07), 7), socket)
+    head.cut(block((.06, .06, .08), (0, .16, .25), .015), socket)
+    a.join(head.build_solid().scale((size,) * 3).rotate((tilt, turn, 0)).translate((x, y, z)))
 
 
 def bone_pile():
@@ -701,6 +691,276 @@ def fallen_beam():
     for x, y, z, size in [(1.35, .2, .02, (.7, .4, .6)), (1.82, .16, -.3, (.5, .32, .44)), (1.0, .14, .42, (.46, .28, .4))]:
         board(rubble, rng, size, (x, y, z), 'stone', chips=2, wobble=12, chip_slot='stone_dark')
     return kit.Piece.merge(beam, grounded(rubble.build(loose=True)))
+
+
+# ---------------------------------------------------------------------------- crypt
+
+# The chest runs along X with its front to +Z, a little bigger than the pack's bed (1.5 x 3) so the stone
+# reads heavier than a bed beside it. The lid seats on its top band.
+CHEST = {'length': 2.9, 'width': 1.5, 'top': .9}
+
+
+def sarcophagus_chest(a, rng, hollow=False):
+    """A stone chest on a broad plinth: three sunk panels on each long face, one on each end, a carved skull in the
+    middle front panel and a band under the lid. With `hollow` it is cut out down to a floor at y = .32."""
+    length, width, top = CHEST['length'], CHEST['width'], CHEST['top']
+    board(a, rng, (length + .36, .2, width + .36), (0, .1, 0), 'stone_dark', chips=3, wobble=0, chip_slot='stone_dark')
+    # The chest sinks into the plinth so the two stay one solid when it is hollowed out.
+    board(a, rng, (length, top - .26, width), (0, (top + .06) / 2, 0), 'stone', chips=2, wobble=0, chip_slot='stone_dark')
+    board(a, rng, (length + .14, .14, width + .14), (0, top - .07, 0), 'stone', chips=2, wobble=0, chip_slot='stone_dark')
+    panel = (top - .12 + .2) / 2
+    for z in (-1, 1):
+        for x in (-length / 3, 0, length / 3):
+            a.cut(block((length / 3 - .24, top - .54, .14), (x, panel, z * width / 2), .03), 'stone_dark')
+    for x in (-1, 1):
+        a.cut(block((.14, top - .54, width - .3), (x * length / 2, panel, 0), .03), 'stone_dark')
+    skull(a, 0, width / 2 - .17, 0, panel - .14, 'marble', 'stone_dark', size=.58)
+    if hollow:
+        a.cut(block((length - .36, 2, width - .36), (0, 1.32, 0), .04), 'stone_dark')
+
+
+def sarcophagus_lid(a, rng, y):
+    """The heavy two-step lid seated at height y; its top is at y + .34."""
+    length, width = CHEST['length'], CHEST['width']
+    board(a, rng, (length + .3, .2, width + .3), (0, y + .1, 0), 'stone', chips=3, wobble=0, chip_slot='stone_dark')
+    board(a, rng, (length + .02, .16, width - .08), (0, y + .26, 0), 'stone', chips=2, wobble=0, chip_slot='stone_dark')
+
+
+FIGURES = Path(__file__).resolve().parent / 'meshes'
+KNIGHT = ('Knight_Body', 'Knight_Head', 'Knight_Helmet', 'Knight_ArmLeft', 'Knight_ArmRight', 'Knight_LegLeft', 'Knight_LegRight')
+
+
+def figure(name, parts):
+    """A posed KayKit character (`items/pose_kaykit.py`) as one solid: its closed parts unioned. Small features such as
+    the eyes sit on the face as bodies of their own; slivers with no volume are dropped."""
+    data = np.load(FIGURES / f'{name}.npz')
+    solids = []
+    for part in parts:
+        p, f = welded(data[part + '__v'], data[part + '__f'])
+        solids.append(mf.Manifold(mf.Mesh(np.asarray(p, np.float32), np.asarray(f, np.uint32))))
+    union = mf.Manifold.batch_boolean(solids, mf.OpType.Add)
+    return mf.Manifold.compose([body for body in union.decompose() if abs(body.volume()) > 1e-5])
+
+
+def effigy(a, y):
+    """The pack's knight carved in the lid's own stone, lying in state on a lid top at y with its head toward -X:
+    laid on its back with only its back sunk into the lid, so its whole front stands clear."""
+    knight = figure('knight_idle', KNIGHT).rotate((-90, 0, 0)).rotate((0, 90, 0)).scale((.9, .9, .9)).simplify(.004)
+    lo, hi = np.asarray(knight.bounding_box()[:3]), np.asarray(knight.bounding_box()[3:])
+    cut = lo[1] + .2 * (hi[1] - lo[1])
+    knight = knight.trim_by_plane((0, 1, 0), cut)
+    a.add(knight.translate((-(lo[0] + hi[0]) / 2, y - .02 - cut, -(lo[2] + hi[2]) / 2)), 'stone')
+
+
+def sarcophagus():
+    """A stone sarcophagus with a knight's effigy on its lid, for crypts and shrines."""
+    a, rng = Assembly(), random('sarcophagus')
+    sarcophagus_chest(a, rng)
+    sarcophagus_lid(a, rng, CHEST['top'] - .01)
+    effigy(a, CHEST['top'] + .33)
+    # The knight's eyes sit on its face as small bodies of their own, as the pack models them.
+    return a.build(loose=True)
+
+
+def sarcophagus_open():
+    """The same chest robbed: its lid shoved aside on the chest and cracked, the broken corner on the floor,
+    a skull and bones in the open end."""
+    a, rng = Assembly(), random('sarcophagus_open')
+    sarcophagus_chest(a, rng, hollow=True)
+    skull(a, -.95, .05, 15, .3 + .25, tilt=-90)
+    for start, end in [((-.7, .39, -.3), (-.1, .41, -.12)), ((-.55, .39, .32), (.05, .4, .2)), ((-1.1, .39, -.45), (-.6, .4, -.5))]:
+        bone(a, start, end, .06)
+    chest = a.build()
+    cover, rng = Assembly(), random('sarcophagus_lid')
+    sarcophagus_lid(cover, rng, 0)
+    corner = np.array([CHEST['length'] / 2 + .15, 0, CHEST['width'] / 2 + .15])
+    out = np.array([1, 0, 1]) / np.sqrt(2)
+    crack = jag(0, 4, 1, amplitude=.06, teeth=7).rotate((90, 0, 0)).rotate((0, 45, 0)).translate(tuple(corner - out * .62 + (0, .17, 0)))
+    cover.cut(crack, 'stone_dark')
+    lid = moved(turned(cover.build(), 20, 'y'), (1.05, CHEST['top'] + .005, .3))
+    # The broken-off corner is the lid's own corner beyond the crack, fallen flat beside the chest.
+    chunk, rng = Assembly(), random('sarcophagus_lid')
+    sarcophagus_lid(chunk, rng, 0)
+    chunk.cut(jag(0, 8, 1, above=False, amplitude=.06, teeth=7).rotate((90, 0, 0)).rotate((0, 45, 0))
+              .translate(tuple(corner - out * .62 + (0, .17, 0))), 'stone_dark')
+    broken = chunk.build()
+    broken = moved(broken, -broken.verts.mean(0))
+    broken = moved(grounded(turned(turned(broken, 160, 'y'), 8, 'z')), (2.3, 0, 1.25))
+    return kit.Piece.merge(chest, lid, broken)
+
+
+# ---------------------------------------------------------------------------- sewer
+# Pipes match the drain pipe run through the slimy sewer wall: a 0.4 radius body, flanges 0.48, bolted.
+
+PIPE = .4
+
+
+def flange(a, center, axis, radius=PIPE + .08, depth=.12, bolts=6):
+    """A bolted collar around a pipe on an axis-aligned `axis`, oversized bolt heads on its outer face."""
+    center, axis = np.asarray(center, float), np.asarray(axis, float)
+    a.add(rod(tuple(center - axis * depth / 2), tuple(center + axis * depth / 2), radius, 14), 'pipe')
+    t1 = np.cross(axis, (0, 1, 0) if abs(axis[1]) < .9 else (1, 0, 0))
+    t2 = np.cross(axis, t1)
+    for k in range(bolts):
+        angle = 2 * np.pi * (k + .5) / bolts
+        point = center + axis * depth / 2 + (np.cos(angle) * t1 + np.sin(angle) * t2) * (radius - .09)
+        a.add(rivet(tuple(point), .05, tuple(axis)), 'iron')
+
+
+def elbow(a, start, corner, end, radius=PIPE, steps=7):
+    """A pipe turning from `start` through a rounded bend at `corner` to `end` (both legs straight)."""
+    start, corner, end = (np.asarray(p, float) for p in (start, corner, end))
+    bend_radius = radius * 1.4
+    d0 = (corner - start) / np.linalg.norm(corner - start)
+    d1 = (end - corner) / np.linalg.norm(end - corner)
+    p0, p1 = corner - d0 * bend_radius, corner + d1 * bend_radius
+    t = np.linspace(0, 1, steps)[:, None]
+    arc = (1 - t) ** 2 * p0 + 2 * (1 - t) * t * corner + t ** 2 * p1
+    path = np.vstack([start, arc, end])
+    a.add(bend(path, [radius] * len(path), 12), 'pipe')
+
+
+def wheel(a, center, radius=.42, spokes=5, flat=False):
+    """A cast hand wheel facing +Z (or lying `flat`, facing up): rolled rim, spokes, a fat hub nut."""
+    center = np.asarray(center, float)
+    turn = (0, 0, 0) if flat else (90, 0, 0)
+    a.add(torus(radius, .065, 0, 18, 8).rotate(turn).translate(tuple(center)), 'iron')
+    for k in range(spokes):
+        angle = 2 * np.pi * k / spokes + np.pi / 2
+        spoke = (np.cos(angle) * radius, 0, np.sin(angle) * radius) if flat else (np.cos(angle) * radius, np.sin(angle) * radius, 0)
+        a.add(rod(tuple(center), tuple(center + spoke), .045, 6), 'iron')
+    a.add(lathe([(.13, -.08), (.14, .04), (.08, .1)], 6).rotate(turn).translate(tuple(center)), 'iron_dark')
+
+
+def valve():
+    """A valve on a pipe rising out of the floor and bending back into the wall, its hand wheel to the front."""
+    a, rng = Assembly(), random('valve')
+    z = .1
+    flange(a, (0, .04, z), (0, 1, 0), PIPE + .14, .08, 8)
+    a.add(rod((0, 0, z), (0, 1.05, z), PIPE, 12), 'pipe')
+    elbow(a, (0, 1.0, z), (0, 1.62, z), (0, 1.62, -.55))
+    flange(a, (0, 1.62, -.5), (0, 0, 1), PIPE + .14, .1, 8)
+    a.add(lathe([(.44, .5), (.52, .58), (.54, .8), (.44, .9)], 12).translate((0, 0, z)), 'pipe')
+    for y in (.5, .92):
+        flange(a, (0, y, z), (0, 1, 0))
+    a.add(block((.3, .28, .3), (0, .72, z + .5), .05), 'pipe')
+    a.add(rod((0, .72, z + .5), (0, .72, z + .78), .07, 8), 'iron')
+    wheel(a, (0, .72, z + .78))
+    return a.build()
+
+
+def pipe_outlet():
+    """A big outfall pipe out of the wall on a stone saddle, barred across its mouth, sewage spilling to a puddle."""
+    a, rng = Assembly(), random('pipe_outlet')
+    y, mouth = .66, .55
+    stones(a, rng, -.6, .6, 0, .32, .9, -.05, 1, 'stone', span=(.55, .65))
+    a.add(rod((0, y, -.55), (0, y, mouth), .52, 14), 'pipe')
+    flange(a, (0, y, -.47), (0, 0, 1), .66, .14, 8)
+    flange(a, (0, y, mouth - .06), (0, 0, 1), .62, .14, 8)
+    a.cut(rod((0, y, -.3), (0, y, mouth + .1), .4, 14), 'socket')
+    # Sludge lies in the bottom of the bore, held back by a riveted weir plate across the mouth.
+    a.add(block((.6, .14, .8), (0, y - .34, .1), .02) ^ rod((0, y, -.3), (0, y, mouth - .14), .41, 14), 'slime')
+    a.add(rod((0, y, mouth - .16), (0, y, mouth - .08), .43, 14) ^ block((1, .26, .3), (0, y - .33, mouth - .12), 0), 'iron')
+    for x in (-.22, 0, .22):
+        a.add(rivet((x, y - .3, mouth - .08), .04), 'steel')
+    for x in (-.2, 0, .2):
+        a.add(rod((x, y - .5, mouth - .2), (x, y + .5, mouth - .2), .045, 6), 'iron')
+    return a.build()
+
+
+def pipe_run():
+    """Pipes along a wall: one rises out of the floor, runs level on wall brackets past a joint and turns into the wall."""
+    a, rng = Assembly(), random('pipe_run')
+    y, z, r = .9, -.05, .3
+    flange(a, (-1.3, .04, z), (0, 1, 0), r + .14, .08, 6)
+    elbow(a, (-1.3, 0, z), (-1.3, y, z), (.9, y, z), r)
+    elbow(a, (.6, y, z), (1.3, y, z), (1.3, y, -.48), r)
+    flange(a, (1.3, y, -.43), (0, 0, 1), r + .14, .1, 6)
+    flange(a, (-.1, y, z), (1, 0, 0), r + .08, .12, 6)
+    for x in (-.75, .55):
+        a.add(block((.16, .16, .3), (x, y, -.4), .03), 'iron_dark')
+        a.add(torus(r + .03, .045, 0, 14, 6).rotate((0, 0, 90)).translate((x, y, z)), 'iron')
+        a.add(rivet((x, y + .1, -.25), .045, (0, 0, 1)), 'steel')
+    a.add(torus(r + .03, .045, 0, 14, 6).translate((-1.3, .45, z)), 'iron')
+    return a.build()
+
+
+def sluice_gate():
+    """A culvert sluice against the wall: stone jambs and lintel, a plank gate raised a little in iron runners
+    over the dark culvert, its lifting stem rising through the lintel to a hand wheel lying on a housing on top."""
+    a, rng = Assembly(), random('sluice_gate')
+    for s in (-1, 1):
+        stones(a, rng, s * 1.12 - .28, s * 1.12 + .28, 0, 2.4, .72, -.04, 4, 'stone', span=(.56, .56))
+    board(a, rng, (2.9, .36, .82), (0, 2.56, -.04), 'stone', chips=3, wobble=0, chip_slot='stone_dark')
+    a.add(block((1.72, 2.4, .12), (0, 1.2, -.36), .02), 'socket')
+    for s in (-1, 1):
+        a.add(block((.12, 2.4, .22), (s * .86, 1.2, -.12), .03), 'iron_dark')
+    edges = np.linspace(-.84, .84, 5)
+    for x0, x1 in zip(edges[:-1], edges[1:]):
+        board(a, rng, (x1 - x0 + .006, 1.72, .14), ((x0 + x1) / 2, 1.3, -.12), 'wood_dark', chips=1, wobble=.4)
+    for y in (.72, 1.9):
+        a.add(block((1.76, .16, .06), (0, y, -.03), .02), 'iron')
+        for x in (-.6, -.2, .2, .6):
+            a.add(rivet((x, y, 0), .045), 'steel')
+    a.add(rod((0, 2.1, -.12), (0, 2.5, -.12), .08, 8), 'iron')
+    a.add(block((.62, .3, .62), (0, 2.86, -.04), .05), 'iron_dark')
+    for x in (-.22, .22):
+        a.add(rivet((x, 2.86, .27), .045), 'steel')
+    a.add(rod((0, 2.9, -.04), (0, 3.3, -.04), .07, 8), 'iron')
+    wheel(a, (0, 3.24, -.04), .46, 6, flat=True)
+    return a.build()
+
+
+def goo_barrel():
+    """An open barrel brimming with sewer goo: bulging staves, steel hoops, bubbles swelling on the surface and
+    one fat drip running over the rim."""
+    a, rng = Assembly(), random('goo_barrel')
+    profile = [(.42, 0), (.47, .1), (.52, .35), (.54, .55), (.52, .78), (.47, 1.0), (.45, 1.06)]
+    a.add(lathe(profile, 16), 'wood')
+    for k in range(12):
+        angle = 360 * k / 12 + 15
+        a.cut(block((.03, 1.3, .12), (0, .53, 0), .005).translate((0, 0, .54)).rotate((0, angle, 0)), 'wood_dark')
+    a.cut(post(.39, .84, 1.4, sides=16), 'wood_dark')
+    for y0 in (.12, .86):
+        radius = np.interp(y0 + .04, [y for _, y in profile], [r for r, _ in profile])
+        a.add(ring(radius - .03, radius + .035, y0, y0 + .09, 16), 'steel')
+    a.add(post(.4, .82, .94, sides=16), 'slime')
+    for x, z, r in [(.12, -.1, .09), (-.16, .08, .07), (.02, .2, .05)]:
+        a.add(ball((x, .93, z), (r, r * .8, r), 8), 'slime')
+    rim = np.array([0, 1.02, .44])
+    drip = [rim + (0, .04, -.06), rim + (0, .02, .05), (0, .86, .51), (0, .66, .55), (0, .5, .56)]
+    a.add(bend(np.array(drip, float), [.07, .08, .075, .065, .06], 7), 'slime')
+    a.add(ball((0, .46, .56), (.09, .11, .08), 8), 'slime')
+    return a.build()
+
+
+def goo_puddle(width=1.6, depth=1.1, lobes=4, height=.16, seed='goo_puddle'):
+    """A slick of thick sewer goo heaped on the floor: overlapping soft lobes melted into one, domed up to `height`
+    (goo stands proud where water would run flat), flat underneath, a few bubbles swelling on top."""
+    rng = random(seed)
+    blobs = [(0.0, 0.0, width * .3, depth * .34, height)]
+    for _ in range(lobes):
+        blobs.append((rng.uniform(-.3, .3) * width, rng.uniform(-.24, .24) * depth, rng.uniform(.16, .26) * width,
+                      rng.uniform(.18, .28) * depth, height * rng.uniform(.55, .9)))
+
+    def field(x, y, z):
+        # A smooth union of flattened ellipsoids: positive inside, as the level set expects.
+        total = 0.0
+        for cx, cz, rx, rz, h in blobs:
+            total += np.exp(-6 * (((x - cx) / rx) ** 2 + (y / h) ** 2 + ((z - cz) / rz) ** 2))
+        # Zero where a lone lobe's ellipsoid surface would be; neighbours swell into one another.
+        return float(np.log(max(total, 1e-12)) / 6 + 1)
+    reach = width * .62, height * 1.3, depth * .62
+    goo = mf.Manifold.level_set(field, [-reach[0], -.05, -reach[2], reach[0], reach[1], reach[2]], .05)
+    goo = goo.trim_by_plane((0, 1, 0), 0.0).simplify(.004)
+    a = Assembly()
+    a.add(goo, 'slime')
+    for _ in range(3):
+        x, z = rng.uniform(-.2, .2) * width, rng.uniform(-.15, .15) * depth
+        top = max(y for y in np.linspace(0, reach[1], 40) if field(x, y, z) > 0)
+        r = rng.uniform(.05, .09)
+        a.add(ball((x, top - r * .2, z), (r, r * .8, r), 8), 'slime')
+    return a.build()
 
 
 # ---------------------------------------------------------------------------- wall decor
@@ -774,6 +1034,8 @@ KINDS = {
     'ham': ham, 'bread': bread, 'weapon_rack': weapon_rack, 'training_dummy': training_dummy, 'bunk_bed': bunk_bed,
     'war_map': war_map, 'shackles': shackles, 'straw_pile': straw_pile, 'bucket': bucket, 'bone_pile': bone_pile,
     'fallen_beam': fallen_beam, 'tapestry': tapestry, 'heraldic_shield': heraldic_shield, 'sconce': sconce,
+    'sarcophagus': sarcophagus, 'sarcophagus_open': sarcophagus_open, 'valve': valve, 'pipe_outlet': pipe_outlet,
+    'pipe_run': pipe_run, 'sluice_gate': sluice_gate, 'goo_barrel': goo_barrel, 'goo_puddle': goo_puddle, **foliage.KINDS,
 }
 
 

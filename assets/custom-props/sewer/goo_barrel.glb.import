@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://leuwkrfun2eg"
-path="res://.godot/imported/statue_praying.glb-d3b792b863ead33a1743f9a20f8e3dba.scn"
+uid="uid://dxaps5onq8ebu"
+path="res://.godot/imported/goo_barrel.glb-85d3e1e941aed059b4f657d56c9ca122.scn"
 
 [deps]
 
-source_file="res://assets/custom-props/chapel/statue_praying.glb"
-dest_files=["res://.godot/imported/statue_praying.glb-d3b792b863ead33a1743f9a20f8e3dba.scn"]
+source_file="res://assets/custom-props/sewer/goo_barrel.glb"
+dest_files=["res://.godot/imported/goo_barrel.glb-85d3e1e941aed059b4f657d56c9ca122.scn"]
 
 [params]
 
