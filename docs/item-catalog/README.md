@@ -11,60 +11,86 @@ Visual + data reference for every item definition in the game — the itemizatio
 | | Weapon | Hands | Damage | Str Req | Notes |
 |---|---|---|---|---|---|
 | ![Axe](./axe_common.png) | **Axe** | 1H | 1–5 | 10 | — |
-| ![Crossbow](./crossbow_common.png) | **Crossbow** | 2H | 2–4 | 10 | Range 20 |
-| ![Dagger](./dagger_common.png) | **Dagger** | 1H | 1–4 | 10 | Acc ×1.2 |
-| ![Old Axe](./axe_old.png) | **Old Axe** | 1H | 1–5 | 10 | — |
-| ![Shortsword](./shortsword_common.png) | **Shortsword** | 1H | 1–5 | 10 | — |
-| ![Staff](./staff_common.png) | **Staff** | 2H | 1–5 | 12 | Spell staff (Fireball) |
+| ![Battle Axe](./battleaxe_starter.png) | **Battle Axe** | 2H | 2–6 | 8 | — |
 | ![Crooked Staff](./staff_crooked.png) | **Crooked Staff** | 2H | 1–5 | 12 | Spell staff (Thorn Ward) |
 | ![Crooked Wand](./wand_crooked.png) | **Crooked Wand** | 1H | 1–5 | 0 | Spell wand (Gust) |
+| ![Crossbow](./crossbow_common.png) | **Crossbow** | 2H | 2–4 | 10 | Range 20 |
+| ![Dagger](./dagger_common.png) | **Dagger** | 1H | 1–4 | 10 | — |
+| ![Short Steel Dagger](./dagger_short.png) | **Short Steel Dagger** | 1H | 1–2 | 8 | +5% crit |
+| ![Shortsword](./shortsword_common.png) | **Shortsword** | 1H | 1–5 | 10 | — |
+| ![Staff](./staff_common.png) | **Staff** | 2H | 1–5 | 12 | Spell staff (Fireball) |
+| ![Sword](./longsword_common.png) | **Sword** | 1H | 1–5 | 10 | — |
 | ![Wand](./wand.png) | **Wand** | 1H | 1–5 | 0 | Spell wand (Fireball) |
+| ![Woodcutter's Axe](./axe_old.png) | **Woodcutter's Axe** | 1H | 1–5 | 10 | — |
+| ![Wooden Club](./club_wood_old.png) | **Wooden Club** | 1H | 1–3 | 8 | — |
+| ![Wooden Cudgel Mallet](./hammer_mallet.png) | **Wooden Cudgel Mallet** | 1H | 1–5 | 10 | — |
+| ![Wooden Practice Greatsword](./greatsword_wooden.png) | **Wooden Practice Greatsword** | 2H | 2–7 | 8 | — |
 
 ### Tier 2
 
 | | Weapon | Hands | Damage | Str Req | Notes |
 |---|---|---|---|---|---|
 | ![Ash Staff](./staff_uncommon.png) | **Ash Staff** | 2H | 2–8 | 8 | Spell staff (Frost Nova) |
+| ![Hammer](./hammer_common.png) | **Hammer** | 1H | 3–8 | 12 | — |
+| ![Heavy Sledge](./warhammer_sledge.png) | **Heavy Sledge** | 2H | 4–12 | 12 | — |
+| ![Iron Claymore](./claymore_iron.png) | **Iron Claymore** | 2H | 4–12 | 12 | — |
+| ![Iron Cleaver Greataxe](./battleaxe_iron.png) | **Iron Cleaver Greataxe** | 2H | 3–13 | 12 | — |
 | ![Iron Staff](./staff_iron.png) | **Iron Staff** | 2H | 2–8 | 12 | Spell staff (Hailstorm), +2% crit |
 | ![Iron Wand](./wand_iron.png) | **Iron Wand** | 1H | 2–8 | 0 | Spell wand (Tremor), +3% crit |
-| ![Hammer](./hammer_common.png) | **Hammer** | 1H | 3–8 | 12 | — |
 | ![Longsword](./sword_common.png) | **Longsword** | 1H | 3–8 | 10 | — |
-| ![Old Saber](./saber_skeleton.png) | **Old Saber** | 1H | 2–7 | 12 | — |
+| ![Saber](./saber_skeleton.png) | **Saber** | 1H | 2–7 | 12 | — |
 | ![Skeleton Staff](./staff_skeleton.png) | **Skeleton Staff** | 2H | 2–8 | 12 | Spell staff (Stone Spears) |
 | ![Spiked Crossbow](./crossbow_spiked.png) | **Spiked Crossbow** | 2H | 4–8 | 10 | Range 20 |
-| ![Stiletto](./dagger_uncommon.png) | **Stiletto** | 1H | 2–7 | 0 | +8% crit, Acc ×1.2 |
+| ![Steel Cudgel](./club_steel.png) | **Steel Cudgel** | 1H | 3–6 | 10 | — |
+| ![Steel Rapier](./rapier_steel.png) | **Steel Rapier** | 1H | 2–5 | 10 | +10% crit |
+| ![Steel Saber](./saber_steel.png) | **Steel Saber** | 1H | 3–5 | 10 | +5% crit |
+| ![Steel Spear](./spear_steel.png) | **Steel Spear** | 2H | 4–8 | 12 | +2% crit |
+| ![Stiletto](./dagger_uncommon.png) | **Stiletto** | 1H | 2–7 | 0 | +8% crit |
 | ![War Axe](./axe_uncommon.png) | **War Axe** | 1H | 3–9 | 12 | — |
 
 ### Tier 3
 
 | | Weapon | Hands | Damage | Str Req | Notes |
 |---|---|---|---|---|---|
-| ![Battle Axe](./battleaxe_skeleton.png) | **Battle Axe** | 2H | 6–12 | 14 | — |
-| ![Battle Axe](./battleaxe_common.png) | **Battle Axe** | 2H | 6–12 | 14 | — |
 | ![Battle Hammer](./hammer_uncommon.png) | **Battle Hammer** | 1H | 5–11 | 14 | — |
-| ![Broadsword](./broadsword_common.png) | **Broadsword** | 2H | 6–13 | 15 | — |
-| ![Broadsword](./broadsword_rare.png) | **Broadsword** | 2H | 6–13 | 15 | — |
-| ![Double Axe](./axedouble_common.png) | **Double Axe** | 2H | 7–14 | 16 | — |
-| ![Emerald Crescent Staff](./staff_emerald.png) | **Emerald Crescent Staff** | 2H | 4–11 | 14 | Spell staff (Rockfall), +8% crit |
+| ![Bearded Viking Axe](./axe_bearded.png) | **Bearded Viking Axe** | 1H | 5–13 | 14 | — |
 | ![Bone Staff](./staff_bone.png) | **Bone Staff** | 2H | 4–11 | 14 | Spell staff (Meteor), +5% crit |
 | ![Bone Wand](./wand_bone.png) | **Bone Wand** | 1H | 4–11 | 14 | Spell wand (Ice Lance), +5% crit |
+| ![Broadsword](./broadsword_common.png) | **Broadsword** | 2H | 6–13 | 15 | — |
+| ![Crescent Longblade](./longblade_crescent.png) | **Crescent Longblade** | 2H | 6–13 | 14 | +5% crit |
+| ![Double Axe](./axedouble_common.png) | **Double Axe** | 2H | 7–14 | 16 | — |
+| ![Emerald Crescent Staff](./staff_emerald.png) | **Emerald Crescent Staff** | 2H | 4–11 | 14 | Spell staff (Rockfall), +8% crit |
 | ![Heavy Crossbow](./crossbow_uncommon.png) | **Heavy Crossbow** | 2H | 6–11 | 13 | Range 20 |
+| ![Heavy Hunting Dirk](./dagger_dirk.png) | **Heavy Hunting Dirk** | 1H | 4–12 | 14 | — |
+| ![Iron Morning Star](./morning_star_iron.png) | **Iron Morning Star** | 1H | 5–9 | 12 | +3% crit |
+| ![Iron War Scythe](./scythe_iron.png) | **Iron War Scythe** | 2H | 6–14 | 14 | +8% crit |
+| ![Knightly Broadblade](./sword_knight.png) | **Knightly Broadblade** | 1H | 5–13 | 14 | — |
 | ![Large Crossbow](./crossbow_2handed.png) | **Large Crossbow** | 2H | 7–12 | 12 | Range 20 |
 | ![Ruby Scepter Wand](./wand_ruby.png) | **Ruby Scepter Wand** | 1H | 4–11 | 14 | Spell wand (Fireball), +5% crit |
+| ![Skeleton Battle Axe](./battleaxe_skeleton.png) | **Skeleton Battle Axe** | 2H | 6–12 | 14 | — |
+| ![Spiked Maul](./warhammer_spiked.png) | **Spiked Maul** | 2H | 7–16 | 14 | — |
+| ![Steel Battle Axe](./battleaxe_common.png) | **Steel Battle Axe** | 2H | 6–12 | 14 | — |
+| ![Steel Broadsword](./broadsword_steel.png) | **Steel Broadsword** | 2H | 7–12 | 14 | +3% crit |
+| ![Steel Halberd](./halberd_steel.png) | **Steel Halberd** | 2H | 7–13 | 14 | +2% crit |
 
 ### Tier 4
 
 | | Weapon | Hands | Damage | Str Req | Notes |
 |---|---|---|---|---|---|
 | ![Arbalest](./crossbow_rare.png) | **Arbalest** | 2H | 10–17 | 15 | Range 22 |
-| ![Assassin's Dagger](./dagger_rare.png) | **Assassin's Dagger** | 1H | 6–12 | 0 | +15% crit, Acc ×1.25 |
+| ![Assassin's Dagger](./dagger_rare.png) | **Assassin's Dagger** | 1H | 6–12 | 0 | +15% crit |
+| ![Curved Greatblade](./greatblade_curved.png) | **Curved Greatblade** | 2H | 11–19 | 17 | +5% crit |
+| ![Frost Blade](./sword_frost.png) | **Frost Blade** | 1H | 8–16 | 15 | Ice look, physical damage |
 | ![Great Axe](./axedouble_uncommon.png) | **Great Axe** | 2H | 12–22 | 19 | — |
+| ![Horned Staff](./staff_horned.png) | **Horned Staff** | 2H | 7–16 | 10 | Spell staff (Fire Serpent), +3% crit |
 | ![Royal Axe](./axe_rare.png) | **Royal Axe** | 1H | 9–17 | 17 | — |
+| ![Royal Broadsword](./broadsword_rare.png) | **Royal Broadsword** | 2H | 12–20 | 18 | — |
 | ![Royal Hammer](./hammer_rare.png) | **Royal Hammer** | 1H | 8–15 | 16 | — |
 | ![Royal Sword](./sword_rare.png) | **Royal Sword** | 1H | 8–16 | 15 | — |
 | ![Rune Staff](./staff_rare.png) | **Rune Staff** | 2H | 7–16 | 10 | Spell staff (Chain Lightning), +3% crit |
-| ![Horned Staff](./staff_horned.png) | **Horned Staff** | 2H | 7–16 | 10 | Spell staff (Fire Serpent), +3% crit |
 | ![Scholar's Wand](./wand_carved.png) | **Scholar's Wand** | 1H | 7–16 | 17 | Spell wand (Lightning Orb), +4% crit |
+| ![Steel Greatsword](./greatsword_steel.png) | **Steel Greatsword** | 2H | 11–17 | 16 | +5% crit |
+| ![Stone Maul](./warhammer_stone.png) | **Stone Maul** | 2H | 10–18 | 18 | Earth look, physical damage |
 | ![Warhammer](./warhammer.png) | **Warhammer** | 2H | 10–18 | 18 | — |
 
 ### Tier 5
@@ -73,8 +99,17 @@ Visual + data reference for every item definition in the game — the itemizatio
 |---|---|---|---|---|---|
 | ![Archmage Astral Staff](./staff_archmage.png) | **Archmage Astral Staff** | 2H | 12–22 | 21 | Spell staff (Thunderstorm), +3% crit |
 | ![Celestial Golden Wand](./wand_celestial.png) | **Celestial Golden Wand** | 1H | 12–22 | 21 | Spell wand (Fireball), +3% crit |
+| ![Executioner's Gilded Hatchet](./axe_executioner.png) | **Executioner's Gilded Hatchet** | 1H | 15–27 | 21 | — |
+| ![Flame Sword](./sword_flame.png) | **Flame Sword** | 1H | 15–27 | 21 | Fire look, physical damage |
+| ![Gilded Paladin Mace](./mace_gilded.png) | **Gilded Paladin Mace** | 1H | 14–26 | 21 | — |
+| ![Gilded Runic Battleaxe](./battleaxe_gilded.png) | **Gilded Runic Battleaxe** | 2H | 16–30 | 21 | — |
+| ![Gilded Siege Arbalest](./crossbow_gilded.png) | **Gilded Siege Arbalest** | 2H | 15–27 | 21 | Range 22 |
+| ![Gilded Sunblade](./sword_sunblade.png) | **Gilded Sunblade** | 1H | 15–27 | 21 | — |
 | ![Gilded Warhammer](./warhammer_gold.png) | **Gilded Warhammer** | 2H | 15–27 | 22 | — |
+| ![Obsidian Fang Dagger](./dagger_fang.png) | **Obsidian Fang Dagger** | 1H | 12–24 | 21 | — |
 | ![Royal Double Axe](./axedouble_rare.png) | **Royal Double Axe** | 2H | 16–30 | 23 | — |
+| ![Storm Trident](./trident_storm.png) | **Storm Trident** | 2H | 15–27 | 21 | Lightning look, physical damage, +3% crit |
+| ![Winged Greatsword](./greatsword_winged.png) | **Winged Greatsword** | 2H | 17–33 | 21 | — |
 
 ## Shields
 
