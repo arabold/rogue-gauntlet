@@ -142,7 +142,7 @@ cell_center_z = false
 collision_layer = 16
 collision_mask = 0
 data = {
-"cells": PackedInt32Array(65534, 65534, 1048576, 2, 65534, 1441792, 65534, 2, 1048576, 2, 2, 1441792, 0, 65532, 0)
+"cells": PackedInt32Array(65534, 65534, 1048576, 2, 65534, 1441792, 65534, 2, 1048576, 2, 2, 1441792)
 }
 
 [node name="Railing" type="GridMap" parent="." unique_id=1244440530]

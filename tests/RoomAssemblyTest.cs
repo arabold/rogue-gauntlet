@@ -367,9 +367,9 @@ public class RoomAssemblyTest
 		}
 	}
 
-	/// <summary>The pit has a flush stone lining below the floor and its original railing above, open only at the walk-on end.</summary>
+	/// <summary>Side walls end flush with the floor under the original railing; both the top entrance and lower exit stay open.</summary>
 	[TestCase]
-	public void DownStairwellWallsSealThreeSidesAndLeaveTheLandingOpen()
+	public void DownStairwellLinesSidesBelowFloorAndLeavesBothEndsOpen()
 	{
 		var stairs = TestFactories.Load<PackedScene>("res://scenes/levels/stairs/stairs_down.tscn").Instantiate<Node3D>();
 		try
@@ -393,8 +393,11 @@ public class RoomAssemblyTest
 					AssertBool(Covered(new(-2, y, z))).OverrideFailureMessage($"Left stairwell wall gap at y={y}, z={z}").IsTrue();
 					AssertBool(Covered(new(2, y, z))).OverrideFailureMessage($"Right stairwell wall gap at y={y}, z={z}").IsTrue();
 				}
-				for (float x = -1.75f; x <= 1.75f; x += .5f)
-					AssertBool(Covered(new(x, y, -4))).OverrideFailureMessage($"Back stairwell wall gap at x={x}, y={y}").IsTrue();
+				// Check the passage between the side walls, leaving their half-unit jambs in place.
+				for (float x = -1; x <= 1; x += .5f)
+					AssertBool(Covered(new(x, y, -4)))
+						.OverrideFailureMessage($"Lower stairwell exit must be open below the floor and fenced above it: x={x}, y={y}")
+						.IsEqual(y >= 0);
 			}
 			for (float x = -1; x <= 1; x += .5f)
 				AssertBool(Covered(new(x, 1, 4))).OverrideFailureMessage($"Stairwell entrance blocked at x={x}").IsFalse();
