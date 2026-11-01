@@ -20,6 +20,8 @@ public abstract partial class FurnishingStep : Resource
 	[Export] public bool Uniform { get; set; }
 	/// <summary>Relative chance when this step is one option of a <see cref="ChoiceStep"/>.</summary>
 	[Export(PropertyHint.Range, "0.01,10,0.01")] public float Weight { get; set; } = 1;
+	/// <summary>Realms (by ID) this appears in; none means every realm.</summary>
+	[Export] public string[] Realms { get; set; } = [];
 
 	/// <summary>Places content and returns how many were placed; never throws on misfit.</summary>
 	public abstract int Furnish(RoomBlueprint room, RandomNumberGenerator rng);

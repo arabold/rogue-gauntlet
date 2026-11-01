@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=20 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" uid="uid://dufyxbs8mado1" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
@@ -15,9 +15,10 @@
 
 
 [ext_resource type="Resource" path="res://scenes/levels/access/garrison_access.tres" id="access_profile"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/garrison_realm.tres" id="realm_garrison"]
-[ext_resource type="Resource" path="res://scenes/levels/sewer/sewer_realm.tres" id="realm_sewer"]
-[ext_resource type="Resource" path="res://scenes/levels/jungle/jungle_realm.tres" id="realm_jungle"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_pool.tres" id="room_pool"]
+[ext_resource type="Resource" path="res://scenes/levels/realms/garrison.tres" id="realm_garrison"]
+[ext_resource type="Resource" path="res://scenes/levels/realms/sewer.tres" id="realm_sewer"]
+[ext_resource type="Resource" path="res://scenes/levels/realms/jungle.tres" id="realm_jungle"]
 [ext_resource type="PackedScene" path="res://scenes/levels/floor_discovery.tscn" id="floor_discovery"]
 
 [sub_resource type="Resource" id="Resource_mbbpy"]
@@ -42,6 +43,7 @@ Seed = 23
 RoomLayout = SubResource("Resource_mbbpy")
 CorridorConnector = SubResource("Resource_ouxo3")
 MobFactory = ExtResource("6_ouxo3")
+Rooms = ExtResource("room_pool")
 Realms = [ExtResource("realm_garrison"), ExtResource("realm_sewer"), ExtResource("realm_jungle")]
 ChestScene = ExtResource("8_chest")
 TrapScene = ExtResource("9_trap")

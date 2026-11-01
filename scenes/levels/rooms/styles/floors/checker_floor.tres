@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="UniformFloor" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/UniformFloor.cs" id="2_uniformfloor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/checker.tres" id="3_checker"]
+
+[resource]
+script = ExtResource("2_uniformfloor")
+Id = "checker_floor"
+Realms = PackedStringArray("garrison", "jungle")
+Material = ExtResource("3_checker")
+metadata/_custom_type_script = ExtResource("2_uniformfloor")

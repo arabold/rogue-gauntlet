@@ -15,6 +15,8 @@ public sealed class RoomAssemblyOptions
 	/// <summary>Index into the type's column patterns (always placed), <see cref="Seeded"/> (type's chance) or <see cref="Off"/>.</summary>
 	public int Columns { get; init; } = Seeded;
 	public bool Furnish { get; init; } = true;
+	/// <summary>The realm whose wall styles, floor styles and steps apply; null takes them all. Style indices count within it.</summary>
+	public string Realm { get; init; }
 }
 
 /// <summary>
@@ -31,7 +33,7 @@ public static class RoomAssembler
 	private const float ApproachDepth = 3f;
 	private static readonly Vector2I[] Directions = [Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left];
 
-	public static Room Assemble(RoomType type, ulong seed) => Build(type, seed).Room;
+	public static Room Assemble(RoomType type, ulong seed, string realm = null) => Build(type, seed, new RoomAssemblyOptions { Realm = realm }).Room;
 
 	/// <summary>Assembles a room and returns its blueprint (the room plus its walkability, for previews and tests).</summary>
 	public static RoomBlueprint Build(RoomType type, ulong seed, RoomAssemblyOptions options = null)
@@ -63,8 +65,10 @@ public static class RoomAssembler
 		using var floorRng = GenerationRandom.Create(seed, GenerationRandom.Decoration, $"{type.Id}:floor");
 		using var doorRng = GenerationRandom.Create(seed, GenerationRandom.Layout, $"{type.Id}:doors");
 		using var columnRng = GenerationRandom.Create(seed, GenerationRandom.Layout, $"{type.Id}:columns");
-		var walls = options.Walls >= 0 ? type.Walls[options.Walls] : Weighted.Pick(type.Walls, entry => entry.Weight, wallRng);
-		var floor = options.Floor >= 0 ? type.Floors[options.Floor] : Weighted.Pick(type.Floors, entry => entry.Weight, floorRng);
+		var wallStyles = type.WallsIn(options.Realm);
+		var floorStyles = type.FloorsIn(options.Realm);
+		var walls = options.Walls >= 0 ? wallStyles[options.Walls] : Weighted.Pick(wallStyles, entry => entry.Weight, wallRng);
+		var floor = options.Floor >= 0 ? floorStyles[options.Floor] : Weighted.Pick(floorStyles, entry => entry.Weight, floorRng);
 		var room = CreateRoom(type, floor.Library, walls.Library);
 		try
 		{
@@ -76,9 +80,10 @@ public static class RoomAssembler
 			PlaceColumns(blueprint, options, columnRng);
 			if (options.Furnish)
 			{
-				for (int index = 0; index < type.Steps.Length; index++)
+				var steps = type.StepsIn(options.Realm);
+				for (int index = 0; index < steps.Length; index++)
 				{
-					var step = type.Steps[index];
+					var step = steps[index];
 					using var chanceRng = blueprint.Random($"step:{index}:{step.Id}:chance");
 					if (chanceRng.Randf() >= step.Chance) continue;
 					using var stepRng = blueprint.Random($"step:{index}:{step.Id}");

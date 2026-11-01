@@ -1,0 +1,104 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=34 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/crypt_walls.tres" id="4_crypt_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/mossy_walls.tres" id="5_mossy_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_ruined_floor.tres" id="6_flagstones_ruine"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/checker_floor.tres" id="7_checker_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_floor.tres" id="8_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/pillar.tres" id="9_pillar"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/pillar_broken.tres" id="10_pillar_broken"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/CornerColumns.cs" id="11_cornercolumns"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/altar_shrine.tres" id="12_altar_shrine"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/altar.tres" id="13_altar"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="14_alongwallsstep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_pile.tres" id="15_candle_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candelabra.tres" id="16_candelabra"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/brazier.tres" id="17_brazier"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="18_cornersstep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/statue.tres" id="19_statue"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/statue_broken.tres" id="20_statue_broken"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble.tres" id="21_rubble"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/vase_broken.tres" id="22_vase_broken"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="23_floor_debris"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="24_scatterstep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="25_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="26_torch_unlit"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="27_walldecorstep"]
+
+[sub_resource type="Resource" id="RectangleShape_1"]
+script = ExtResource("3_rectangleshape")
+MinimumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(5, 6)
+OddWidth = false
+metadata/_custom_type_script = ExtResource("3_rectangleshape")
+
+[sub_resource type="Resource" id="CornerColumns_2"]
+script = ExtResource("11_cornercolumns")
+Id = "corners"
+Column = [ExtResource("9_pillar"), ExtResource("10_pillar_broken")]
+metadata/_custom_type_script = ExtResource("11_cornercolumns")
+
+[sub_resource type="Resource" id="AlongWallsStep_3"]
+script = ExtResource("14_alongwallsstep")
+Id = "altar"
+Content = [ExtResource("12_altar_shrine"), ExtResource("13_altar")]
+MinimumCount = 1
+MaximumCount = 1
+Sides = 2
+AvoidDoorwayWalls = true
+Centered = true
+metadata/_custom_type_script = ExtResource("14_alongwallsstep")
+
+[sub_resource type="Resource" id="CornersStep_4"]
+script = ExtResource("18_cornersstep")
+Id = "candles"
+Content = [ExtResource("15_candle_pile"), ExtResource("16_candelabra"), ExtResource("17_brazier")]
+MinimumCount = 1
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("18_cornersstep")
+
+[sub_resource type="Resource" id="AlongWallsStep_5"]
+script = ExtResource("14_alongwallsstep")
+Id = "statues"
+Content = [ExtResource("19_statue"), ExtResource("20_statue_broken")]
+MinimumCount = 0
+MaximumCount = 2
+Chance = 0.7
+Spacing = 2.0
+metadata/_custom_type_script = ExtResource("14_alongwallsstep")
+
+[sub_resource type="Resource" id="ScatterStep_6"]
+script = ExtResource("24_scatterstep")
+Id = "debris"
+Content = [ExtResource("21_rubble"), ExtResource("22_vase_broken"), ExtResource("23_floor_debris")]
+MaximumCount = 2
+WallChance = 0.7
+metadata/_custom_type_script = ExtResource("24_scatterstep")
+
+[sub_resource type="Resource" id="WallDecorStep_7"]
+script = ExtResource("27_walldecorstep")
+Id = "door_torches"
+Content = [ExtResource("25_torch"), ExtResource("26_torch_unlit")]
+MaximumCount = 2
+BesideDoorways = true
+metadata/_custom_type_script = ExtResource("27_walldecorstep")
+
+[resource]
+script = ExtResource("2_roomtype")
+Id = "ruined_shrine"
+Realms = PackedStringArray("jungle")
+Weight = 0.7
+Shapes = [SubResource("RectangleShape_1")]
+MinimumFloorTiles = 16
+MinDoorways = 1
+MaxDoorways = 2
+DoorwayPlacement = 3
+Circulation = 0
+Walls = [ExtResource("4_crypt_walls"), ExtResource("5_mossy_walls")]
+Floors = [ExtResource("6_flagstones_ruine"), ExtResource("7_checker_floor"), ExtResource("8_flagstones_floor")]
+Columns = [SubResource("CornerColumns_2")]
+ColumnChance = 0.5
+Steps = [SubResource("AlongWallsStep_3"), SubResource("CornersStep_4"), SubResource("AlongWallsStep_5"), SubResource("ScatterStep_6"), SubResource("WallDecorStep_7")]
+metadata/_custom_type_script = ExtResource("2_roomtype")

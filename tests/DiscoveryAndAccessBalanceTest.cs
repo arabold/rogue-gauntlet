@@ -160,7 +160,7 @@ public partial class DiscoveryAndAccessBalanceTest
 	[TestCase]
 	public async Task DoorCapAppliesAcrossMultiEntranceRoomsAndFloorsSpawnNoPicks()
 	{
-		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
 		TestFactories.WireLootScenes(map);
 		map.AccessProfile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
 		map.AccessProfile.LockedRoomChance = 1; map.AccessProfile.MaximumLockedRooms = 3;

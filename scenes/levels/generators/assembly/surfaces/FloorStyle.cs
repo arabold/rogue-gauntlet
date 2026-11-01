@@ -13,6 +13,8 @@ public abstract partial class FloorStyle : Resource
 {
 	[Export] public string Id { get; set; } = "";
 	[Export(PropertyHint.Range, "0.01,10,0.01")] public float Weight { get; set; } = 1;
+	/// <summary>Realms (by ID) this appears in; none means every realm.</summary>
+	[Export] public string[] Realms { get; set; } = [];
 	/// <summary>Features set into the floor (drains, gutters), placed in order after the materials.</summary>
 	[Export] public FloorInlay[] Inlays { get; set; } = [];
 	/// <summary>Optional rug laid over the finished floor, clear of inlays.</summary>
