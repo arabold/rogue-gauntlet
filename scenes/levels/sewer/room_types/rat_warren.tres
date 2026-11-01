@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=24 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -17,6 +17,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/rubble.tres" id="16_rubble"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="17_torch_unlit"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="18_walldecorstep"]
+[ext_resource type="Resource" path="res://scenes/levels/sewer/props/goo_puddle.tres" id="p_goo_puddle"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
@@ -45,7 +46,7 @@ metadata/_custom_type_script = ExtResource("11_cornersstep")
 [sub_resource type="Resource" id="ScatterStep_4"]
 script = ExtResource("15_scatterstep")
 Id = "gnawed"
-Content = [ExtResource("10_bone_pile"), ExtResource("9_straw_pile"), ExtResource("12_floor_debris"), ExtResource("13_vase_broken"), ExtResource("14_sack")]
+Content = [ExtResource("10_bone_pile"), ExtResource("9_straw_pile"), ExtResource("12_floor_debris"), ExtResource("13_vase_broken"), ExtResource("14_sack"), ExtResource("p_goo_puddle")]
 MaximumCount = 5
 WallChance = 0.5
 metadata/_custom_type_script = ExtResource("15_scatterstep")

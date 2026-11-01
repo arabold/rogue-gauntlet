@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_floorinlay")
 Id = "sewer.gutter"
-Items = Dictionary[String, float]({"floor_tile_grate": 3.0, "floor_tile_grate_open": 1.0})
+Items = Dictionary[String, float]({"floor_tile_grate": 3.0, "floor_tile_grate_open": 1.0, "floor_water_channel_A": 2.0, "floor_water_channel_B": 1.0})
 Host = ExtResource("3_flagstones")
 MinimumCount = 1
 MaximumCount = 2

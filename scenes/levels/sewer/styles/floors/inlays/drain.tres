@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_floorinlay")
 Id = "sewer.drain"
-Items = Dictionary[String, float]({"floor_tile_big_grate": 3.0, "floor_tile_big_grate_open": 1.0})
+Items = Dictionary[String, float]({"floor_tile_big_grate": 3.0, "floor_tile_big_grate_open": 1.0, "floor_water_pool_A": 1.0, "floor_water_pool_B": 1.0})
 Host = ExtResource("3_flagstones")
 Chance = 0.8
 MinimumCount = 1

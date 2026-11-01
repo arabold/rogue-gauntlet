@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/jungle/mushrooms_red.glb" id="2_mushrooms_re"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/jungle/mushrooms_tan.glb" id="3_mushrooms_ta"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/jungle/toadstool.glb" id="4_toadstool"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/jungle/mushrooms_brown.glb" id="5_mushrooms_br"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/jungle/mushrooms_violet.glb" id="6_mushrooms_vi"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "jungle.mushrooms"
+Scenes = [ExtResource("2_mushrooms_re"), ExtResource("3_mushrooms_ta"), ExtResource("4_toadstool"), ExtResource("5_mushrooms_br"), ExtResource("6_mushrooms_vi")]
+Blocking = false
+Gap = 0.1
+TurnJitter = 45.0
+ShiftJitter = 0.1
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

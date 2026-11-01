@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=20 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/CrossShape.cs" id="3_crossshape"]
@@ -15,6 +15,10 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="14_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="15_torch"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="16_walldecorstep"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="p_AlongWallsStep"]
+[ext_resource type="Resource" path="res://scenes/levels/sewer/props/valve.tres" id="p_valve"]
+[ext_resource type="Resource" path="res://scenes/levels/sewer/props/pipe_run.tres" id="p_pipe_run"]
+[ext_resource type="Resource" path="res://scenes/levels/sewer/props/goo_puddle.tres" id="p_goo_puddle"]
 
 [sub_resource type="Resource" id="CrossShape_1"]
 script = ExtResource("3_crossshape")
@@ -36,7 +40,7 @@ metadata/_custom_type_script = ExtResource("4_tshape")
 [sub_resource type="Resource" id="ScatterStep_3"]
 script = ExtResource("13_scatterstep")
 Id = "debris"
-Content = [ExtResource("9_rubble"), ExtResource("10_floor_debris"), ExtResource("11_bone_pile"), ExtResource("12_barrel")]
+Content = [ExtResource("9_rubble"), ExtResource("10_floor_debris"), ExtResource("11_bone_pile"), ExtResource("12_barrel"), ExtResource("p_goo_puddle")]
 MaximumCount = 3
 WallChance = 0.9
 metadata/_custom_type_script = ExtResource("13_scatterstep")
@@ -49,6 +53,14 @@ MaximumCount = 2
 Spacing = 6.0
 metadata/_custom_type_script = ExtResource("16_walldecorstep")
 
+[sub_resource type="Resource" id="AlongWallsStep_pipework"]
+script = ExtResource("p_AlongWallsStep")
+Id = "pipework"
+Content = [ExtResource("p_valve"), ExtResource("p_pipe_run")]
+MaximumCount = 2
+Spacing = 0.8
+metadata/_custom_type_script = ExtResource("p_AlongWallsStep")
+
 [resource]
 script = ExtResource("2_roomtype")
 Id = "sewer.junction"
@@ -60,5 +72,5 @@ MaxDoorways = 4
 Circulation = 0
 Walls = [ExtResource("5_slimy_walls"), ExtResource("6_arched_walls")]
 Floors = [ExtResource("7_grated_flagstone"), ExtResource("8_drained_flagston")]
-Steps = [SubResource("ScatterStep_3"), SubResource("WallDecorStep_4")]
+Steps = [SubResource("AlongWallsStep_pipework"), SubResource("ScatterStep_3"), SubResource("WallDecorStep_4")]
 metadata/_custom_type_script = ExtResource("2_roomtype")

@@ -16,7 +16,7 @@ Remaining:
 - **More variety:** further room types, props, groups and wall/floor styles; this is authoring work on the existing strategies (see the [authoring guide](../scenes/levels/generators/assembly/README.md)).
 - **Corridor dressing:** weighted scatter or opposing pairs along corridor walls, reusing props and wall-decor placement.
 - **Opaque partitions and internal locks:** a room-local sight boundary projected through rotation and placement; internal mechanical locks need guaranteed reachable sources and saved state. Bars and fences stay non-occluding.
-- **Sewer and cistern content:** drainage grates, crossings and pits as floor styles or shape features.
+- **Sewer and cistern content:** crossings (bridges or stepping stones over pools) and shallow water as gameplay.
 - **Per-depth room roles** and required routes.
 
 ## First-three-floor acceptance

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=33 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=44 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -26,6 +26,15 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="25_torch"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="26_torch_unlit"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="27_walldecorstep"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/PoolStep.cs" id="p_PoolStep"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/water/pool_center.tres" id="p_pool_center"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/water/pool_edge.tres" id="p_pool_edge"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/water/pool_corner.tres" id="p_pool_corner"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/water/pool_runner.tres" id="p_pool_runner"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/water/pool_runner_end.tres" id="p_pool_runner_en"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/props/fern.tres" id="p_fern"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/props/broadleaf.tres" id="p_broadleaf"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/props/mushrooms.tres" id="p_mushrooms"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
@@ -75,6 +84,29 @@ MaximumCount = 4
 Spacing = 6.0
 metadata/_custom_type_script = ExtResource("27_walldecorstep")
 
+[sub_resource type="Resource" id="PoolStep_reflecting"]
+script = ExtResource("p_PoolStep")
+Id = "reflecting_pool"
+MinimumCount = 0
+MaximumCount = 1
+Chance = 0.5
+Center = ExtResource("p_pool_center")
+Edge = ExtResource("p_pool_edge")
+Corner = ExtResource("p_pool_corner")
+Runner = ExtResource("p_pool_runner")
+RunnerEnd = ExtResource("p_pool_runner_en")
+MinimumSize = Vector2i(1, 2)
+MaximumSize = Vector2i(2, 3)
+metadata/_custom_type_script = ExtResource("p_PoolStep")
+
+[sub_resource type="Resource" id="ScatterStep_undergrowth"]
+script = ExtResource("24_scatterstep")
+Id = "undergrowth"
+Content = [ExtResource("p_fern"), ExtResource("p_broadleaf"), ExtResource("p_mushrooms")]
+MaximumCount = 3
+WallChance = 0.7
+metadata/_custom_type_script = ExtResource("24_scatterstep")
+
 [resource]
 script = ExtResource("2_roomtype")
 Id = "jungle.temple_hall"
@@ -89,5 +121,5 @@ Walls = [ExtResource("4_mossy_walls"), ExtResource("5_overgrown_walls")]
 Floors = [ExtResource("6_flagstones_ruine"), ExtResource("7_flagstones_borde"), ExtResource("8_flagstones_floor")]
 Columns = [SubResource("AisleColumns_2")]
 ColumnChance = 0.8
-Steps = [SubResource("AlongWallsStep_3"), SubResource("CornersStep_4"), SubResource("ScatterStep_5"), SubResource("WallDecorStep_6")]
+Steps = [SubResource("PoolStep_reflecting"), SubResource("AlongWallsStep_3"), SubResource("CornersStep_4"), SubResource("ScatterStep_5"), SubResource("ScatterStep_undergrowth"), SubResource("WallDecorStep_6")]
 metadata/_custom_type_script = ExtResource("2_roomtype")

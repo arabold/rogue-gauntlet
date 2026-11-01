@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=29 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=34 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -19,6 +19,10 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="18_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="19_torch"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="20_walldecorstep"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/props/fern.tres" id="p_fern"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/props/mushrooms.tres" id="p_mushrooms"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/props/roots_knot.tres" id="p_roots_knot"]
+[ext_resource type="Resource" path="res://scenes/levels/jungle/props/broadleaf.tres" id="p_broadleaf"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
@@ -89,6 +93,14 @@ MaximumCount = 2
 Spacing = 6.0
 metadata/_custom_type_script = ExtResource("20_walldecorstep")
 
+[sub_resource type="Resource" id="ScatterStep_undergrowth"]
+script = ExtResource("13_scatterstep")
+Id = "undergrowth"
+Content = [ExtResource("p_fern"), ExtResource("p_mushrooms"), ExtResource("p_roots_knot"), ExtResource("p_broadleaf")]
+MaximumCount = 5
+WallChance = 0.5
+metadata/_custom_type_script = ExtResource("13_scatterstep")
+
 [resource]
 script = ExtResource("2_roomtype")
 Id = "jungle.cavern"
@@ -102,5 +114,5 @@ Walls = [ExtResource("7_cave_walls")]
 Floors = [ExtResource("8_cave_floor")]
 Columns = [SubResource("CenterColumns_5"), SubResource("CornerColumns_6")]
 ColumnChance = 0.5
-Steps = [SubResource("ScatterStep_7"), SubResource("ScatterStep_8"), SubResource("WallDecorStep_9")]
+Steps = [SubResource("ScatterStep_7"), SubResource("ScatterStep_8"), SubResource("ScatterStep_undergrowth"), SubResource("WallDecorStep_9")]
 metadata/_custom_type_script = ExtResource("2_roomtype")

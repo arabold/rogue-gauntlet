@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=40 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=44 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -29,6 +29,9 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="28_torch_unlit"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="29_walldecorstep"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/sconce.tres" id="30_sconce"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/RowsStep.cs" id="p_RowsStep"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/decor/sarcophagus.tres" id="p_sarcophagus"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/decor/sarcophagus_robbed.tres" id="p_sarcophagus_ro"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
@@ -112,6 +115,18 @@ MaximumCount = 2
 Chance = 0.6
 metadata/_custom_type_script = ExtResource("29_walldecorstep")
 
+[sub_resource type="Resource" id="RowsStep_sarcophagi"]
+script = ExtResource("p_RowsStep")
+Id = "sarcophagi"
+Content = [ExtResource("p_sarcophagus"), ExtResource("p_sarcophagus_ro")]
+MinimumCount = 1
+MaximumCount = 6
+CenterAisle = 2.6
+RowGap = 1.4
+ColumnGap = 1.0
+Margin = 1.8
+metadata/_custom_type_script = ExtResource("p_RowsStep")
+
 [resource]
 script = ExtResource("2_roomtype")
 Id = "garrison.crypt"
@@ -124,5 +139,5 @@ Walls = [ExtResource("5_crypt_walls")]
 Floors = [ExtResource("6_flagstones_floor"), ExtResource("7_flagstones_ruine"), ExtResource("8_checker_floor"), ExtResource("9_stone_floor")]
 Columns = [SubResource("CornerColumns_3"), SubResource("CenterColumns_4")]
 ColumnChance = 0.4
-Steps = [SubResource("AlongWallsStep_5"), SubResource("CornersStep_6"), SubResource("AlongWallsStep_7"), SubResource("ScatterStep_8"), SubResource("WallDecorStep_9"), SubResource("WallDecorStep_10")]
+Steps = [SubResource("RowsStep_sarcophagi"), SubResource("AlongWallsStep_5"), SubResource("CornersStep_6"), SubResource("AlongWallsStep_7"), SubResource("ScatterStep_8"), SubResource("WallDecorStep_9"), SubResource("WallDecorStep_10")]
 metadata/_custom_type_script = ExtResource("2_roomtype")

@@ -178,6 +178,64 @@ public class RoomAssemblyTest
 		}
 	}
 
+	/// <summary>
+	/// Pools sink into the floor: their tiles become pits with floor all round, every quay wall faces that floor and every
+	/// open side faces more of the pool, for fields (cistern) and one-tile runners (sluice channel) alike.
+	/// </summary>
+	[TestCase("sewer/cistern_hall")]
+	[TestCase("sewer/sluice_works")]
+	public void PoolsSinkIntoTheFloorWithQuaysFacingIt(string name)
+	{
+		var type = (RoomType)Load(name).Duplicate();
+		var pool = (PoolStep)type.Steps.OfType<PoolStep>().First().Duplicate();
+		pool.Chance = 1;
+		pool.MinimumCount = 1;
+		type.Steps = [pool, .. type.Steps.Where(step => step is not PoolStep)];
+		// Columns stand on tile corners, where a pool would need its edges; the cistern only gets its pool without them.
+		type.ColumnChance = 0;
+		// Authored quay sides per piece, as outward (x, z) normals before the piece's turn.
+		var walled = new Dictionary<string, Vector2I[]>
+		{
+			["center"] = [], ["edge"] = [new(0, -1)], ["corner"] = [new(0, -1), new(-1, 0)],
+			["runner"] = [new(0, -1), new(0, 1)], ["runner_end"] = [new(0, -1), new(0, 1), new(-1, 0)],
+		};
+		Vector2I[] sides = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)];
+		for (ulong seed = 1; seed <= 4; seed++)
+		{
+			var blueprint = RoomAssembler.Build(type, seed * 523);
+			try
+			{
+				string label = $"{name} seed {seed}";
+				var pieces = blueprint.Pieces.Where(piece => piece.Prop.Id.StartsWith("dungeon.pool_"))
+					.ToDictionary(piece => Tile(piece.Transform.Origin), piece => piece);
+				AssertInt(pieces.Count).OverrideFailureMessage($"{label}: no pool").IsGreaterEqual(2);
+				foreach (var (tile, piece) in pieces)
+				{
+					AssertBool(blueprint.IsFloor(tile)).OverrideFailureMessage($"{label}: pool tile {tile} is still floor").IsFalse();
+					var quays = walled[piece.Prop.Id["dungeon.pool_".Length..]].Select(side => Turned(piece.Transform, side)).ToArray();
+					foreach (var side in sides)
+					{
+						bool water = pieces.ContainsKey(tile + side);
+						AssertBool(water != quays.Contains(side))
+							.OverrideFailureMessage($"{label}: {piece.Prop.Id} at {tile} has {(water ? "a quay toward water" : "no quay toward floor")} at {side}").IsTrue();
+						AssertBool(water || blueprint.IsFloor(tile + side)).OverrideFailureMessage($"{label}: pool at {tile} not enclosed by floor").IsTrue();
+					}
+				}
+			}
+			finally
+			{
+				blueprint.Room.Free();
+			}
+		}
+
+		static Vector2I Tile(Vector3 origin) => new(Mathf.RoundToInt(origin.X / Room.TileSize), Mathf.RoundToInt(origin.Z / Room.TileSize));
+		static Vector2I Turned(Transform3D transform, Vector2I side)
+		{
+			var outward = transform.Basis * new Vector3(side.X, 0, side.Y);
+			return new(Mathf.RoundToInt(outward.X), Mathf.RoundToInt(outward.Z));
+		}
+	}
+
 	[TestCase]
 	public void AnUnfittableRequiredStepFailsWithItsReasonInsteadOfAnotherRoom()
 	{

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=37 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=38 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -27,6 +27,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/slimy_walls.tres" id="x_slimy_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/sewer/styles/floors/bricks_floor.tres" id="x_bricks_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/sewer/styles/floors/rotten_planks_floor.tres" id="x_rotten_planks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/sewer/props/goo_barrel.tres" id="p_goo_barrel"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -92,7 +93,7 @@ metadata/_custom_type_script = ExtResource("20_AlongWallsSt")
 [sub_resource type="Resource" id="ScatterStep_8"]
 script = ExtResource("22_ScatterStep")
 Id = "loose_supplies"
-Content = [ExtResource("23_crate"), ExtResource("24_small_box")]
+Content = [ExtResource("23_crate"), ExtResource("24_small_box"), ExtResource("p_goo_barrel")]
 MaximumCount = 2
 WallChance = 0.8
 metadata/_custom_type_script = ExtResource("22_ScatterStep")
