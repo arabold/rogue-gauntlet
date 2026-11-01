@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BorderedFloor" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/BorderedFloor.cs" id="2_borderedfloor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_ruined.tres" id="3_flagstones_ruine"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/checker.tres" id="4_checker"]
+
+[resource]
+script = ExtResource("2_borderedfloor")
+Id = "flagstones_bordered_checker"
+Realms = PackedStringArray("jungle")
+Weight = 0.7
+Border = ExtResource("3_flagstones_ruine")
+Center = ExtResource("4_checker")
+Width = 1
+metadata/_custom_type_script = ExtResource("2_borderedfloor")

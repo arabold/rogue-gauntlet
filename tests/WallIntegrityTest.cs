@@ -48,7 +48,7 @@ public class WallIntegrityTest
 	{
 		// Procedural rooms author no walls at all, so every one of their edges must be
 		// sealed by generated walls — the hardest stress on the wall pass.
-		await AssertNoWallGaps(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		await AssertNoWallGaps(new PackedRoomLayout(), TestFactories.RoomPool());
 	}
 
 	[TestCase]
@@ -57,7 +57,7 @@ public class WallIntegrityTest
 		// Explicit doorways make every OTHER edge fall back to a plain Room tile, which
 		// must still be sealed exactly like a void-facing edge -- the doorway/door path's
 		// stress on the wall pass.
-		await AssertNoWallGaps(new PackedRoomLayout(), TestFactories.GarrisonRoomsWithDoors());
+		await AssertNoWallGaps(new PackedRoomLayout(), TestFactories.RoomPoolWithDoors());
 	}
 
 	private static async Task AssertNoWallGaps(RoomLayoutStrategy layout, RoomFactory factory = null)

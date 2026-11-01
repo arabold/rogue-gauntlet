@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="DungeonTileFactory" load_steps=4 format=3 uid="uid://djtuce71qkm72"]
+
+[ext_resource type="Script" path="res://scenes/levels/dungeon/DungeonTileFactory.cs" id="2_dungeontilefacto"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/dirt.tres" id="3_dirt"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/corridor_walls.tres" id="4_corridor_walls"]
+
+[resource]
+script = ExtResource("2_dungeontilefacto")
+Floor = ExtResource("3_dirt")
+Walls = ExtResource("4_corridor_walls")
+metadata/_custom_type_script = ExtResource("2_dungeontilefacto")

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="FloorInlay" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/FloorInlay.cs" id="2_floorinlay"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones.tres" id="3_flagstones"]
+
+[resource]
+script = ExtResource("2_floorinlay")
+Id = "flagstone_drain"
+Items = Dictionary[String, float]({"floor_tile_big_grate": 3.0, "floor_tile_big_grate_open": 1.0, "floor_water_pool_A": 1.0, "floor_water_pool_B": 1.0})
+Host = ExtResource("3_flagstones")
+Chance = 0.8
+MinimumCount = 1
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("2_floorinlay")

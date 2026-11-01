@@ -51,7 +51,7 @@ public class LayoutConnectivityTest
 	[TestCase]
 	public async Task ProceduralRoomDungeonsAreFullyConnected()
 	{
-		await AssertConnectedAcrossSeeds(new PackedRoomLayout(), 30, factory: TestFactories.GarrisonRooms());
+		await AssertConnectedAcrossSeeds(new PackedRoomLayout(), 30, factory: TestFactories.RoomPool());
 	}
 
 	[TestCase]
@@ -60,7 +60,7 @@ public class LayoutConnectivityTest
 		// Every explicit doorway must end up force-connected by ConnectRemainingDoorways
 		// (checked by FindConnectivityFailures below), the same contract authored rooms
 		// with DoorwayMarkers rely on.
-		await AssertConnectedAcrossSeeds(new PackedRoomLayout(), 30, factory: TestFactories.GarrisonRoomsWithDoors());
+		await AssertConnectedAcrossSeeds(new PackedRoomLayout(), 30, factory: TestFactories.RoomPoolWithDoors());
 	}
 
 	/// <summary>
@@ -76,7 +76,7 @@ public class LayoutConnectivityTest
 	[TestCase]
 	public async Task EnabledDoorwayMarkersAlwaysHaveAnOpenDirection()
 	{
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRoomsWithDoors());
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPoolWithDoors());
 		var failures = new List<string>();
 
 		for (ulong seed = 1; seed <= 40; seed++)
@@ -181,7 +181,7 @@ public class LayoutConnectivityTest
 	[TestCase]
 	public async Task ProceduralRoomDungeonsAreDeterministicPerSeed()
 	{
-		var (_, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (_, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
 		mapGenerator.Seed = 11;
 		mapGenerator.GenerateMap(includeGameplay: false);
 		string first = Fingerprint(mapGenerator.Map);

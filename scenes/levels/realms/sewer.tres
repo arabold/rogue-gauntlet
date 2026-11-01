@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Realm" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/Realm.cs" id="2_realm"]
+[ext_resource type="Resource" path="res://scenes/levels/realms/sewer_corridors.tres" id="3_sewer_corridors"]
+
+[resource]
+script = ExtResource("2_realm")
+Id = "sewer"
+FirstDepth = 4
+LastDepth = 6
+Corridors = ExtResource("3_sewer_corridors")
+metadata/_custom_type_script = ExtResource("2_realm")

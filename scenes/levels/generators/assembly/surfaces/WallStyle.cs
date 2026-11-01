@@ -12,6 +12,8 @@ public partial class WallStyle : Resource
 {
 	[Export] public string Id { get; set; } = "";
 	[Export(PropertyHint.Range, "0.01,10,0.01")] public float Weight { get; set; } = 1;
+	/// <summary>Realms (by ID) this appears in; none means every realm.</summary>
+	[Export] public string[] Realms { get; set; } = [];
 	[Export] public MeshLibrary Library { get; set; }
 	/// <summary>Plain straight pieces by weight; decorations may hang on these.</summary>
 	[Export] public Godot.Collections.Dictionary<string, float> Straight { get; set; } = new() { ["wall"] = 1 };

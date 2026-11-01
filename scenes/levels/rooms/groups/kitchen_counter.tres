@@ -1,0 +1,51 @@
+[gd_resource type="Resource" script_class="PropGroup" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroup.cs" id="1_PropGroup"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/counter.tres" id="2_counter"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="3_PropGroupMem"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/tableware/plate.tres" id="4_plate"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/tableware/bottle.tres" id="5_bottle"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/tableware/candle.tres" id="6_candle"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/barrel_stack.tres" id="7_barrel_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/sack.tres" id="8_sack"]
+
+[sub_resource type="Resource" id="PropGroupMember_1"]
+script = ExtResource("3_PropGroupMem")
+Options = [ExtResource("4_plate")]
+Offset = Vector3(-1.2, 1.0, 0.0)
+Chance = 0.8
+QuarterTurns = 0
+metadata/_custom_type_script = ExtResource("3_PropGroupMem")
+
+[sub_resource type="Resource" id="PropGroupMember_2"]
+script = ExtResource("3_PropGroupMem")
+Options = [ExtResource("5_bottle")]
+Offset = Vector3(0.3, 1.0, -0.2)
+Chance = 0.7
+QuarterTurns = 0
+metadata/_custom_type_script = ExtResource("3_PropGroupMem")
+
+[sub_resource type="Resource" id="PropGroupMember_3"]
+script = ExtResource("3_PropGroupMem")
+Options = [ExtResource("6_candle"), ExtResource("5_bottle")]
+Offset = Vector3(1.3, 1.0, 0.1)
+Chance = 0.5
+QuarterTurns = 0
+metadata/_custom_type_script = ExtResource("3_PropGroupMem")
+
+[sub_resource type="Resource" id="PropGroupMember_4"]
+script = ExtResource("3_PropGroupMem")
+Options = [ExtResource("7_barrel_stack"), ExtResource("8_sack")]
+Offset = Vector3(2.95, 0.0, 0.0)
+Chance = 0.45
+QuarterTurns = 0
+metadata/_custom_type_script = ExtResource("3_PropGroupMem")
+
+[resource]
+script = ExtResource("1_PropGroup")
+Id = "kitchen_counter"
+Weight = 1.0
+Anchor = [ExtResource("2_counter")]
+Members = [SubResource("PropGroupMember_1"), SubResource("PropGroupMember_2"), SubResource("PropGroupMember_3"), SubResource("PropGroupMember_4")]
+MirrorChance = 0.5
+metadata/_custom_type_script = ExtResource("1_PropGroup")

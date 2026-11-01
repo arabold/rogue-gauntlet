@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/sewer/goo_puddle_small.glb" id="2_goo_puddle_s"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/sewer/goo_puddle_large.glb" id="3_goo_puddle_l"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/sewer/goo_puddle_long.glb" id="4_goo_puddle_l"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "goo_puddle"
+Scenes = [ExtResource("2_goo_puddle_s"), ExtResource("3_goo_puddle_l"), ExtResource("4_goo_puddle_l")]
+Blocking = false
+Gap = 0.15
+TurnJitter = 45.0
+ShiftJitter = 0.1
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

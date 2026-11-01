@@ -16,7 +16,7 @@ public class DiscoveryPersistenceTest
 	[TestCase]
 	public async Task SampleHistorySurvivesRegenerationExactlyAndInvalidRestoreIsAtomic()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.GarrisonRoomsWithDoors());
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithDoors());
 		level.Generate();
 		AssertInt(level.CaptureExploration().ExploredSamples.Count).IsEqual(0);
 		Vector3 position = level.Floor.Arrival.GlobalPosition;
@@ -40,7 +40,7 @@ public class DiscoveryPersistenceTest
 	[TestCase]
 	public async Task DoorEventsDoNotRevealAnEntireDestination()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.GarrisonRoomsWithDoors());
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithDoors());
 		level.Generate();
 		var door = level.Floor.Doors[0].Door;
 		door.IsOpen = true;
@@ -52,7 +52,7 @@ public class DiscoveryPersistenceTest
 	[TestCase]
 	public async Task AdjacentCorridorRequiresAnOpeningAndSecretsStaySealedUntilOpened()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPool());
 		var map = level.MapGenerator;
 		level.Generate();
 		map.Map.ResetToBorderedEmpty();

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/chapel/statue_mage.glb" id="2_statue_mage"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/chapel/statue_knight.glb" id="3_statue_knigh"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "statue"
+Scenes = [ExtResource("2_statue_mage"), ExtResource("3_statue_knigh")]
+Gap = 0.3
+TurnJitter = 6.0
+ShiftJitter = 0.04
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

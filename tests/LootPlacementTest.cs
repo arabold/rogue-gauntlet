@@ -31,7 +31,7 @@ public class LootPlacementTest
 	{
 		// All-procedural standard rooms: loot placement only considers procedural rooms,
 		// so the default all-authored factory would yield zero placements to check.
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
 		TestFactories.WireLootScenes(mapGenerator);
 		mapGenerator.MinChests = mapGenerator.MaxChests = 2;
 
@@ -58,7 +58,7 @@ public class LootPlacementTest
 	[TestCase]
 	public async Task LooseItemsRollAsRewardSourcesAndSurviveASaveRoundTrip()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPool());
 		var map = level.MapGenerator;
 		TestFactories.WireLootScenes(map);
 		map.MinLooseItems = map.MaxLooseItems = 3;
@@ -87,7 +87,7 @@ public class LootPlacementTest
 	[TestCase]
 	public async Task PlacedLootIsParentedUnderNavigationRegionForNavmeshBaking()
 	{
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
 		TestFactories.WireLootScenes(mapGenerator);
 		mapGenerator.MinChests = mapGenerator.MaxChests = 1;
 		mapGenerator.MinTraps = mapGenerator.MaxTraps = 1;
@@ -116,7 +116,7 @@ public class LootPlacementTest
 	[TestCase]
 	public async Task PlacedLootRespectsMinimumSpacing()
 	{
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
 		TestFactories.WireLootScenes(mapGenerator);
 		// The smallest map that still fits every request on every seed: a map too small to hold all nine pieces
 		// silently drops some and checks fewer pairs, while larger maps mostly add corridor routing and navmesh time.

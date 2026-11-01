@@ -22,15 +22,17 @@ public partial class MapGenerator : Node3D
 	[Export] public MobFactory MobFactory { get; set; }
 	[Export] public WorldEffectDefinition SpawnArrivalEffect { get; set; }
 
+	/// <summary>The shared room pool; each floor takes the rooms of its realm.</summary>
+	[Export] public RoomFactory Rooms { get; set; }
 	/// <summary>
-	/// Realms by depth band: the one covering <see cref="DungeonDepth"/> supplies the floor's rooms and corridor tiles,
-	/// and the deepest realm carries on below the last band.
+	/// Realms by depth band: the one covering <see cref="DungeonDepth"/> picks the floor's rooms from <see cref="Rooms"/>
+	/// and supplies its corridor tiles; the deepest realm carries on below the last band.
 	/// </summary>
 	[Export] public Realm[] Realms { get; set; } = [];
 
 	/// <summary>The realm the current attempt builds from, resolved when the generator resets.</summary>
 	public Realm CurrentRealm { get; private set; }
-	private RoomFactory Rooms => CurrentRealm?.Rooms;
+	private RoomFactory _realmRooms;
 	private TileFactory Corridors => CurrentRealm?.Corridors;
 
 	public MapData Map;
@@ -157,7 +159,7 @@ public partial class MapGenerator : Node3D
 		GD.Print("Generating rooms...");
 
 		var roomPlacements = RoomLayout.GenerateRooms(
-			Map, Rooms, MaxRooms, _random.Layout);
+			Map, _realmRooms, MaxRooms, _random.Layout);
 		PlaceRooms(roomPlacements);
 	}
 
@@ -677,7 +679,7 @@ public partial class MapGenerator : Node3D
 
 		GD.Print("Generating map...");
 		if (RoomLayout == null || CorridorConnector == null
-			|| Rooms == null || MobFactory == null || Corridors == null
+			|| _realmRooms == null || MobFactory == null || Corridors == null
 			|| FloorGridMap == null || WallGridMap == null || DecorationGridMap == null)
 		{
 			// This is especially important to check in the editor
@@ -765,6 +767,7 @@ public partial class MapGenerator : Node3D
 		GD.Print("Resetting map generator...");
 		_random = new LevelGenerationContext(Seed, GenerationAttempt);
 		CurrentRealm = Realms.FirstOrDefault(realm => realm?.Covers(DungeonDepth) == true) ?? Realms.Where(realm => realm != null).MaxBy(realm => realm.LastDepth);
+		_realmRooms = Rooms?.ForRealm(CurrentRealm?.Id);
 
 		ResetAccess();
 		_markerIndicators.Clear();
@@ -803,7 +806,7 @@ public partial class MapGenerator : Node3D
 		RoomLayout?.Reset();
 		CorridorConnector?.Reset();
 		MobFactory?.Reset();
-		Rooms?.Reset();
+		_realmRooms?.Reset();
 		Corridors?.Reset();
 	}
 

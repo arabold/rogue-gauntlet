@@ -37,7 +37,7 @@ public static class TestFactories
 
 	public const string LitTorch = "res://scenes/props/torch_mounted.tscn";
 	public const string UnlitTorch = "res://scenes/props/furnishings/wall_torch_unlit.tscn";
-	public const string GarrisonFactory = "res://scenes/levels/garrison/factories/garrison_room_factory.tres";
+	public const string RoomPoolPath = "res://scenes/levels/rooms/room_pool.tres";
 
 	/// <summary>Instance a wall torch fixture, placed and turned for the test's layout; the caller adds it to a tree.</summary>
 	public static Node3D Torch(string path = LitTorch, Vector3 position = default, float yaw = 0)
@@ -174,17 +174,17 @@ public static class TestFactories
 		return AddToSceneTree(player);
 	}
 
-	/// <summary>The production Garrison factory: every room, entrance and exit assembled from its room types.</summary>
-	public static AssembledRoomFactory GarrisonRooms() => Load<AssembledRoomFactory>(GarrisonFactory);
+	/// <summary>The production room pool: every realm's room types, entrances and exits; a realm narrows it down.</summary>
+	public static AssembledRoomFactory RoomPool() => Load<AssembledRoomFactory>(RoomPoolPath);
 
 	/// <summary>
 	/// Like <see cref="GarrisonRooms"/>, but most generated doorways get a physical door -- the hardest stress on
 	/// doorway/door placement. Room types are copied, so the shared definitions keep their own door settings.
 	/// </summary>
-	public static AssembledRoomFactory GarrisonRoomsWithDoors()
+	public static AssembledRoomFactory RoomPoolWithDoors()
 	{
 		var door = Load<PackedScene>("res://scenes/props/door.tscn");
-		var garrison = GarrisonRooms();
+		var garrison = RoomPool();
 		RoomType[] WithDoors(RoomType[] types) => types.Select(type =>
 		{
 			var copy = (RoomType)type.Duplicate();
@@ -237,15 +237,10 @@ public static class TestFactories
 	{
 		mapGenerator.RoomLayout = layout;
 		mapGenerator.CorridorConnector = new AStarCorridorConnector();
-		// Tests pin their rooms: one realm covers every depth.
+		// Tests pin their rooms: the Garrison's, at every depth.
+		mapGenerator.Rooms = factory ?? RoomPool();
 		mapGenerator.Realms =
-		[
-			new Realm
-			{
-				Id = "test", FirstDepth = 1, LastDepth = 100, Rooms = factory ?? GarrisonRooms(),
-				Corridors = Load<TileFactory>("res://scenes/levels/dungeon/dungeon_tile_factory.tres"),
-			},
-		];
+			[new Realm { Id = "garrison", FirstDepth = 1, LastDepth = 100, Corridors = Load<TileFactory>("res://scenes/levels/realms/garrison_corridors.tres") }];
 		mapGenerator.MobFactory = Load<MobFactory>("res://scenes/levels/dungeon/dungeon_mob_factory.tres");
 	}
 

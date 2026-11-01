@@ -30,7 +30,7 @@ public class RealmGenerationTest
 			AssertString(failure).OverrideFailureMessage($"{label}: {failure}").IsEmpty();
 			var realm = generator.CurrentRealm;
 			var rooms = generator.NavigationRegion.GetChildren().OfType<Room>().Where(room => room.Type != null).ToArray();
-			AssertBool(rooms.Length > 0 && rooms.All(room => room.Type.Id.StartsWith(realm.Id + ".")))
+			AssertBool(rooms.Length > 0 && rooms.All(room => room.Type.Realms.Contains(realm.Id)))
 				.OverrideFailureMessage($"{label}: rooms outside the {realm.Id} realm").IsTrue();
 			AssertArray(LayoutConnectivityTest.FindConnectivityFailures(generator)).IsEmpty();
 			var corridors = ((DungeonTileFactory)realm.Corridors).Floor;

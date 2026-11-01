@@ -1,0 +1,75 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=26 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/stone_walls.tres" id="3_stone_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/ruined_walls.tres" id="4_ruined_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/stone_floor.tres" id="5_stone_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/cobble_floor.tres" id="7_cobble_floor"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/FencedAreaStep.cs" id="8_FencedAreaSt"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/fence.tres" id="9_fence"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/fence_panel.tres" id="10_fence_panel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/fence_half.tres" id="11_fence_half"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/fence_corner.tres" id="12_fence_corner"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="13_AlongWallsSt"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/barrel_station.tres" id="14_barrel_stati"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/keg_station.tres" id="15_keg_station"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/crate_stack.tres" id="16_crate_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/barrel_stack.tres" id="17_barrel_stack"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="18_WallDecorSte"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="19_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="20_torch_unlit"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/bricks_floor.tres" id="x_bricks_floor"]
+
+[sub_resource type="Resource" id="RectangleShape_1"]
+script = ExtResource("2_RectangleSha")
+Weight = 1.0
+MinimumSize = Vector2i(3, 4)
+MaximumSize = Vector2i(3, 6)
+OddWidth = false
+metadata/_custom_type_script = ExtResource("2_RectangleSha")
+
+[sub_resource type="Resource" id="FencedAreaStep_2"]
+script = ExtResource("8_FencedAreaSt")
+Id = "walkway"
+Mode = 2
+Content = []
+MaximumCount = 3
+Segments = [ExtResource("9_fence"), ExtResource("10_fence_panel")]
+Half = ExtResource("11_fence_half")
+Corner = ExtResource("12_fence_corner")
+metadata/_custom_type_script = ExtResource("8_FencedAreaSt")
+
+[sub_resource type="Resource" id="AlongWallsStep_3"]
+script = ExtResource("13_AlongWallsSt")
+Id = "stores"
+Content = [ExtResource("14_barrel_stati"), ExtResource("15_keg_station"), ExtResource("16_crate_stack"), ExtResource("17_barrel_stack")]
+MinimumCount = 0
+MaximumCount = 4
+Sides = 1
+metadata/_custom_type_script = ExtResource("13_AlongWallsSt")
+
+[sub_resource type="Resource" id="WallDecorStep_4"]
+script = ExtResource("18_WallDecorSte")
+Id = "door_torches"
+Content = [ExtResource("19_torch"), ExtResource("20_torch_unlit")]
+MaximumCount = 2
+BesideDoorways = true
+metadata/_custom_type_script = ExtResource("18_WallDecorSte")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "fenced_walkway"
+Realms = PackedStringArray("garrison")
+Weight = 0.6
+Shapes = [SubResource("RectangleShape_1")]
+MinimumFloorTiles = 12
+MinDoorways = 2
+MaxDoorways = 2
+DoorwayPlacement = 1
+Circulation = 1
+Walls = [ExtResource("3_stone_walls"), ExtResource("4_ruined_walls")]
+Floors = [ExtResource("5_stone_floor"), ExtResource("7_cobble_floor"), ExtResource("x_flagstones_floor"), ExtResource("x_bricks_floor")]
+Steps = [SubResource("FencedAreaStep_2"), SubResource("AlongWallsStep_3"), SubResource("WallDecorStep_4")]
+metadata/_custom_type_script = ExtResource("1_RoomType")

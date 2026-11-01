@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/wall/shield_quartered.glb" id="2_shield_quart"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/wall/shield_chevron.glb" id="3_shield_chevr"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/wall/shield_bend.glb" id="4_shield_bend"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "heraldic_shield"
+Scenes = [ExtResource("2_shield_quart"), ExtResource("3_shield_chevr"), ExtResource("4_shield_bend")]
+Mount = 1
+MountHeight = 0.0
+Blocking = false
+Gap = 0.3
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

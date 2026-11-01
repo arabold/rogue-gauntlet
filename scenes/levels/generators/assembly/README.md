@@ -1,13 +1,14 @@
 # Room assembly authoring
 
-How to add content to generated rooms. [Level design](../../../../docs/level-design.md#room-assembly) describes the system; this guide is the workflow. Garrison content lives under [`scenes/levels/garrison/`](../../garrison/): `room_types/`, `props/<category>/`, `groups/` and `styles/{floors,walls}/`. The Sewer and Jungle realms keep their own `room_types/`, `styles/floors/` and `props/` (sewer fixtures and goo, jungle plants) under `scenes/levels/sewer/` and `scenes/levels/jungle/` and otherwise reuse the Garrison props; pool pieces shared by every realm are in [`dungeon/water/`](../../dungeon/water/); floor materials and wall styles over the Asset Studio tiles are shared in [`scenes/levels/dungeon/styles/`](../../dungeon/styles/). Every file is a small Inspector-editable `.tres`; copy a neighbour and change it.
+How to add content to generated rooms. [Level design](../../../../docs/level-design.md#room-assembly) describes the system; this guide is the workflow. Room content for every realm lives under [`scenes/levels/rooms/`](../../rooms/): `room_types/`, `props/<category>/`, `groups/` and `styles/{floors,walls}/`, with the [room pool](../../rooms/room_pool.tres) listing every room type. Realm-specific props have their own categories (`fixtures/` for sewer pipework and sluices, `plants/` for jungle growth, `pool/` for the water pool pieces). Every file is a small Inspector-editable `.tres`; copy a neighbour and change it.
 
 ## Conventions
 
 - **Facing.** After a prop's `QuarterTurns`, its front faces local **+Z** and its back **-Z**. Back-to-wall props stand with -Z on the wall face; wall props hang with their back on the mounting surface. Seats face local +Z too (`SeatedTable` turns them toward the table).
 - **Measured, not authored.** Sizes come from the model's mesh and collision. A prop that should block actors but has no collision gets a box collider over its mesh.
 - **Gap.** `Gap` is the free margin to neighbouring props (the larger of two props' gaps applies). Use 0 for sections that should abut (shelf runs, fences, bars).
-- **Ids** are stable strings (`garrison.bed`); they name emitted nodes, gate identities and failure messages.
+- **Ids** are stable strings (`bed`); they name emitted nodes, gate identities and failure messages.
+- **Realms.** Room types name the realms they appear in (`Realms`); wall styles, floor styles and furnishing steps may name theirs too, and an untagged one suits every realm. A room assembled for a realm uses only its styles and steps tagged for that realm, so one room type serves several realms with their own walls and floors.
 - **Weights.** Every list of options is a weighted pick by each entry's `Weight`, balanced over the room: counts follow the weights (a 0.3 entry appears about once per three of a 1.0 entry) and equal entries alternate. Unused variants of a prop come first.
 
 ## Add a prop
@@ -48,7 +49,7 @@ Floor pieces tile edge to edge on a quarter-tile grid and never overlap, so ever
 
 ## Add a room type
 
-`room_types/<name>.tres` (`RoomType`): weighted `Shapes` (sizes in tiles: width across, length along the room's axis), doorway count and placement, optional door scene, `Circulation` (doorway approaches, or a door-to-door spine), `MaxPocketShare`, weighted `Walls` and `Floors`, optional `Columns` behind `ColumnChance`, then ordered `Steps`. Add it to its realm's factory (the [Garrison factory](../../garrison/factories/garrison_room_factory.tres), `sewer/factories/` or `jungle/factories/`) `RoomTypes` with a `Weight`; entrance and exit types go in `EntranceTypes` and `ExitTypes` and must place the stairs. A new [realm](../../../../docs/level-design.md#current-generation) is a `Realm` resource (depth band, room factory, and a `DungeonTileFactory` naming its corridors' floor material and wall style) added to the level's `MapGenerator.Realms`.
+`room_types/<name>.tres` (`RoomType`): weighted `Shapes` (sizes in tiles: width across, length along the room's axis), doorway count and placement, optional door scene, `Circulation` (doorway approaches, or a door-to-door spine), `MaxPocketShare`, weighted `Walls` and `Floors`, optional `Columns` behind `ColumnChance`, then ordered `Steps`. Tag it with its `Realms` and add it to the [room pool](../../rooms/room_pool.tres) `RoomTypes` with a `Weight`; the pool's one entrance and one exit type place the stairs for every realm. A new [realm](../../../../docs/level-design.md#current-generation) is a `Realm` in `scenes/levels/realms/` (ID, depth band, and a `DungeonTileFactory` naming its corridors' floor material and wall style) added to the level's `MapGenerator.Realms`; tag the room types, styles and steps it should use.
 
 Steps run in order and take the space they need first: place identity-defining content (beds, cells, tables) before decoration and clutter. A `MinimumCount` makes a step required; `Chance` makes it occasional; `Uniform` keeps one content choice for the whole room (one banner colour, one table kind); `ChoiceStep` runs one of several weighted variants.
 
@@ -63,7 +64,7 @@ Steps run in order and take the space they need first: place identity-defining c
 | `CellsStep` | Barred cells with operable gates, corner and junction pieces where bars meet, and content against each back wall; rows start flush in a room corner when they fit |
 | `FencedAreaStep` | A wall or corner bay (with content), a fenced walkway, or a divider |
 | `StairsStep` | The level's stairs: up-stairs against a wall, or `Sunken` down-stairs in a two-tile stairwell cut into open floor (floor on every side); the landing at the walk-on end must stay reachable from every doorway |
-| `PoolStep` | Deep water: a rectangle of whole tiles (`MinimumSize`..`MaximumSize`, either way round) cut out of open floor with floor on all eight sides, filled with the pool pieces in [`dungeon/water/`](../../dungeon/water/) turned like a rug field, or a runner when one tile wide. Put it first so furniture works around the water |
+| `PoolStep` | Deep water: a rectangle of whole tiles (`MinimumSize`..`MaximumSize`, either way round) cut out of open floor with floor on all eight sides, filled with the pool pieces in [`rooms/props/pool/`](../../rooms/props/pool/) turned like a rug field, or a runner when one tile wide. Put it first so furniture works around the water |
 
 A new kind of placement is a new `FurnishingStep` subclass that composes plans from `Content` and places them through `RoomBlueprint.TryPlace` (or `AgainstWall` for wall runs); the blueprint enforces floor support, overlap, circulation, connectivity and the pocket budget.
 
@@ -71,4 +72,4 @@ A new kind of placement is a new `FurnishingStep` subclass that composes plans f
 
 Run the [room generation harness](../../../debug/rooms/room_generation_harness.tscn) (**F6**). Pick the realm and room type (entrances and exits are listed after the ordinary types) and seed, override any axis (shape, walls, floor, columns), toggle furnishings and the walkability overlay (green reachable, blue reserved circulation and stair landings, red pocket), and rotate. When a type cannot fit, the error names the step and the last refused placement, such as `garrison.bed: blocks reserved circulation`.
 
-Validate content with `RoomAssemblyTest` (every realm's definitions validate; every type keeps doorways connected, pockets bounded and props apart across seeds; stair rooms land arrivals on reachable floor).
+Validate content with `RoomAssemblyTest` (every room and realm definition validates; every type keeps doorways connected, pockets bounded and props apart across seeds; stair rooms land arrivals on reachable floor).
