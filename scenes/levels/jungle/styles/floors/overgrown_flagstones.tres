@@ -7,7 +7,6 @@
 [resource]
 script = ExtResource("2_splitfloor")
 Id = "jungle.overgrown_flagstones"
-Weight = 1.0
 Base = ExtResource("3_flagstones_ruine")
 Other = ExtResource("4_earth")
 DiagonalChance = 0.0

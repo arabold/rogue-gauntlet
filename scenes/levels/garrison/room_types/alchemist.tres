@@ -26,8 +26,8 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/herb_rack.tres" id="24_herb_rack"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/groups/brewing_table.tres" id="25_brewing_tabl"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/book_alcove_walls.tres" id="x_book_alcove_walls"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/planks_dark_floor.tres" id="x_planks_dark_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/planks_dark_floor.tres" id="x_planks_dark_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")

@@ -7,7 +7,6 @@
 [resource]
 script = ExtResource("2_splitfloor")
 Id = "sewer.silted_bricks"
-Weight = 1.0
 Base = ExtResource("3_bricks")
 Other = ExtResource("4_earth")
 DiagonalChance = 0.0

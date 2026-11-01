@@ -19,20 +19,19 @@ public partial class MapGenerator : Node3D
 
 	[Export] public RoomLayoutStrategy RoomLayout { get; set; }
 	[Export] public CorridorConnectorStrategy CorridorConnector { get; set; }
-	/// <summary>Rooms for depths no <see cref="Realms"/> entry covers (previews, tests and depths beyond the realms).</summary>
-	[Export] public RoomFactory RoomFactory { get; set; }
 	[Export] public MobFactory MobFactory { get; set; }
 	[Export] public WorldEffectDefinition SpawnArrivalEffect { get; set; }
 
-	/// <summary>Corridor tiles for depths no <see cref="Realms"/> entry covers.</summary>
-	[Export] public TileFactory TileFactory { get; set; }
-	/// <summary>Realms by depth band: the one covering <see cref="DungeonDepth"/> supplies the floor's rooms and corridor tiles.</summary>
+	/// <summary>
+	/// Realms by depth band: the one covering <see cref="DungeonDepth"/> supplies the floor's rooms and corridor tiles,
+	/// and the deepest realm carries on below the last band.
+	/// </summary>
 	[Export] public Realm[] Realms { get; set; } = [];
 
-	/// <summary>The realm covering <see cref="DungeonDepth"/>, or null when the fallback factories apply.</summary>
-	public Realm CurrentRealm => Realms.FirstOrDefault(realm => realm?.Covers(DungeonDepth) == true);
-	private RoomFactory Rooms => CurrentRealm?.Rooms ?? RoomFactory;
-	private TileFactory Corridors => CurrentRealm?.Corridors ?? TileFactory;
+	/// <summary>The realm the current attempt builds from, resolved when the generator resets.</summary>
+	public Realm CurrentRealm { get; private set; }
+	private RoomFactory Rooms => CurrentRealm?.Rooms;
+	private TileFactory Corridors => CurrentRealm?.Corridors;
 
 	public MapData Map;
 	/// <summary>The current attempt's floor: generation queries it while it fills, gameplay once it is frozen.</summary>
@@ -765,6 +764,7 @@ public partial class MapGenerator : Node3D
 	{
 		GD.Print("Resetting map generator...");
 		_random = new LevelGenerationContext(Seed, GenerationAttempt);
+		CurrentRealm = Realms.FirstOrDefault(realm => realm?.Covers(DungeonDepth) == true) ?? Realms.Where(realm => realm != null).MaxBy(realm => realm.LastDepth);
 
 		ResetAccess();
 		_markerIndicators.Clear();

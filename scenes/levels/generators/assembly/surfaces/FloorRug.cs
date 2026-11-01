@@ -19,9 +19,6 @@ public enum RugLayout
 [Tool, GlobalClass]
 public partial class FloorRug : Resource
 {
-	// GridMap orientations for Y turns of 0, 90, 180 and -90 degrees.
-	private const int Turn0 = 0, Turn90 = 16, Turn180 = 10, TurnMinus90 = 22;
-
 	[Export] public MeshLibrary Library { get; set; }
 	/// <summary>Carpets by weight, as their item prefix (carpet_red); one carpet per room.</summary>
 	[Export] public Godot.Collections.Dictionary<string, float> Carpets { get; set; } = [];
@@ -63,6 +60,19 @@ public partial class FloorRug : Resource
 		return true;
 	}
 
+	/// <summary>
+	/// One piece of a runner from <paramref name="first"/> to <paramref name="last"/> along X or Z. Runner pieces run
+	/// along local X with their fringe toward -X: a quarter turn lays them along Z, and each end turns its fringe outward.
+	/// </summary>
+	private static (Vector2I, string, int) RunnerPiece(string carpet, Vector2I tile, Vector2I first, Vector2I last)
+	{
+		bool alongZ = first.X == last.X && first != last;
+		string piece = tile == first || tile == last ? "runner_end" : "runner";
+		int orientation = alongZ ? tile == first ? GridTurns.Turn270 : GridTurns.Turn90
+			: tile == last && tile != first ? GridTurns.Turn180 : GridTurns.Turn0;
+		return (tile, Item(carpet, piece), orientation);
+	}
+
 	/// <summary>The longest open run of the middle column; a runner needs at least two tiles for its two ends.</summary>
 	private static List<(Vector2I, string, int)> RunnerCells(RoomBlueprint room, string carpet, bool[,] blocked)
 	{
@@ -77,10 +87,9 @@ public partial class FloorRug : Resource
 			start = z + 1;
 		}
 		if (best.Length < 2) return [];
-		// Runner pieces run along local X with the fringe toward -X; a 90 degree turn lays them along +Z, fringe at +Z.
-		return Enumerable.Range(best.Start, best.Length).Select(z => (new Vector2I(x, z),
-			Item(carpet, z == best.Start || z == best.Start + best.Length - 1 ? "runner_end" : "runner"),
-			z == best.Start ? TurnMinus90 : Turn90)).ToList();
+		var first = new Vector2I(x, best.Start);
+		var last = new Vector2I(x, best.Start + best.Length - 1);
+		return Enumerable.Range(best.Start, best.Length).Select(z => RunnerPiece(carpet, new Vector2I(x, z), first, last)).ToList();
 	}
 
 	/// <summary>A rectangle inset by the margin; all of it must be open, or the room gets no rug.</summary>
@@ -95,9 +104,9 @@ public partial class FloorRug : Resource
 		{
 			var tile = new Vector2I(x, z);
 			if (!Open(room, blocked, tile)) return [];
-			cells.Add((tile, null, 0));
+			cells.Add(Piece(carpet, area, tile));
 		}
-		return cells.Select(cell => Piece(carpet, area, cell.Item1)).ToList();
+		return cells;
 	}
 
 	/// <summary>
@@ -105,18 +114,17 @@ public partial class FloorRug : Resource
 	/// </summary>
 	private static (Vector2I, string, int) Piece(string carpet, Rect2I area, Vector2I tile)
 	{
+		if (area.Size.X == 1 || area.Size.Y == 1) return RunnerPiece(carpet, tile, area.Position, area.End - Vector2I.One);
 		bool west = tile.X == area.Position.X, east = tile.X == area.End.X - 1;
 		bool north = tile.Y == area.Position.Y, south = tile.Y == area.End.Y - 1;
-		if (area.Size.X == 1) return (tile, Item(carpet, north || south ? "runner_end" : "runner"), north ? TurnMinus90 : Turn90);
-		if (area.Size.Y == 1) return (tile, Item(carpet, west || east ? "runner_end" : "runner"), west ? Turn0 : east ? Turn180 : Turn0);
-		if (north && west) return (tile, Item(carpet, "corner"), Turn0);
-		if (north && east) return (tile, Item(carpet, "corner"), TurnMinus90);
-		if (south && east) return (tile, Item(carpet, "corner"), Turn180);
-		if (south && west) return (tile, Item(carpet, "corner"), Turn90);
-		if (north) return (tile, Item(carpet, "edge"), Turn0);
-		if (east) return (tile, Item(carpet, "edge"), TurnMinus90);
-		if (south) return (tile, Item(carpet, "edge"), Turn180);
-		if (west) return (tile, Item(carpet, "edge"), Turn90);
-		return (tile, Item(carpet, "center"), Turn0);
+		if (north && west) return (tile, Item(carpet, "corner"), GridTurns.Turn0);
+		if (north && east) return (tile, Item(carpet, "corner"), GridTurns.Turn270);
+		if (south && east) return (tile, Item(carpet, "corner"), GridTurns.Turn180);
+		if (south && west) return (tile, Item(carpet, "corner"), GridTurns.Turn90);
+		if (north) return (tile, Item(carpet, "edge"), GridTurns.Turn0);
+		if (east) return (tile, Item(carpet, "edge"), GridTurns.Turn270);
+		if (south) return (tile, Item(carpet, "edge"), GridTurns.Turn180);
+		if (west) return (tile, Item(carpet, "edge"), GridTurns.Turn90);
+		return (tile, Item(carpet, "center"), GridTurns.Turn0);
 	}
 }

@@ -14,7 +14,7 @@ extends SceneTree
 #
 # e.g. -- /tmp/level_preview.png 23 1600 5
 #
-# The depth (default 1) picks the realm, from level.tscn's realm list, whose rooms and corridors the floor uses.
+# The level's own generator renders the floor; the depth (default 1) picks the realm whose rooms and corridors it uses.
 #
 # Overlay legend (drawn as flat, unshaded geometry lifted above the floor):
 #   yellow disc = explicit doorway connector (guaranteed-connected)
@@ -44,19 +44,13 @@ func _initialize():
 	_image_size = int(args[2]) if args.size() > 2 else 1600
 	_depth = int(args[3]) if args.size() > 3 else 1
 
-	var map_generator_scene = load("res://scenes/levels/generators/map_generator.tscn")
-	_map_generator = map_generator_scene.instantiate()
-
-	_map_generator.RoomLayout = load("res://scenes/levels/generators/layouts/PackedRoomLayout.cs").new()
-	_map_generator.CorridorConnector = load("res://scenes/levels/generators/connectors/AStarCorridorConnector.cs").new()
-	_map_generator.RoomFactory = load("res://scenes/levels/garrison/factories/garrison_room_factory.tres")
-	_map_generator.MobFactory = load("res://scenes/levels/dungeon/dungeon_mob_factory.tres")
-	_map_generator.TileFactory = load("res://scenes/levels/dungeon/dungeon_tile_factory.tres")
+	# The production level's generator, with its layout, corridors and realms; only the seed and depth change.
+	var level = load("res://scenes/levels/level.tscn").instantiate()
+	_map_generator = level.get_node("MapGenerator")
+	level.remove_child(_map_generator)
+	level.free()
 	_map_generator.Seed = _seed_value
 	_map_generator.DungeonDepth = _depth
-	var level = load("res://scenes/levels/level.tscn").instantiate()
-	_map_generator.Realms = level.get_node("MapGenerator").Realms
-	level.free()
 
 	_viewport = SubViewport.new()
 	_viewport.transparent_bg = false

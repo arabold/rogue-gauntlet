@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("2_wallstyle")
 Id = "dungeon.book_alcove_walls"
-Weight = 1.0
 Library = ExtResource("3_wallsmeshlibrary")
 Straight = Dictionary[String, float]({"wall": 1.0})
 Corner = "wall_corner"

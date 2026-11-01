@@ -38,7 +38,6 @@
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
-Weight = 1.0
 MinimumSize = Vector2i(5, 5)
 MaximumSize = Vector2i(5, 7)
 OddWidth = true
@@ -101,7 +100,6 @@ metadata/_custom_type_script = ExtResource("p_AlongWallsStep")
 [resource]
 script = ExtResource("2_roomtype")
 Id = "sewer.cistern_hall"
-Weight = 1.0
 Shapes = [SubResource("RectangleShape_1")]
 MinimumFloorTiles = 25
 MinDoorways = 2

@@ -27,8 +27,8 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_brown.tres" id="27_banner_brown"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="28_torch"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="29_torch_unlit"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_ruined_floor.tres" id="x_flagstones_ruined_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_ruined_floor.tres" id="x_flagstones_ruined_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")

@@ -9,5 +9,5 @@ Id = "dungeon.checker"
 Library = ExtResource("3_floormeshlibrary")
 Large = Dictionary[String, float]({"floor_checker_large_A": 1.0, "floor_checker_large_B": 1.0})
 Small = Dictionary[String, float]({"floor_checker_small_A": 1.0, "floor_checker_small_B": 1.0})
-AlignedPlanks = true
+RoomWideOrientation = true
 metadata/_custom_type_script = ExtResource("2_floormaterial")

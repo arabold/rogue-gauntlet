@@ -7,7 +7,6 @@
 [resource]
 script = ExtResource("2_uniformfloor")
 Id = "sewer.channel_flagstones"
-Weight = 1.0
 Material = ExtResource("3_flagstones")
 Inlays = [ExtResource("4_long_gutter")]
 metadata/_custom_type_script = ExtResource("2_uniformfloor")

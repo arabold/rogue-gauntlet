@@ -5,8 +5,8 @@
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/LShape.cs" id="4_lshape"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/ruined_walls.tres" id="5_ruined_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/slimy_walls.tres" id="6_slimy_walls"]
-[ext_resource type="Resource" path="res://scenes/levels/sewer/styles/floors/silt_floor.tres" id="7_silt_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/sewer/styles/floors/flagstones_ruined_floor.tres" id="8_flagstones_ruine"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/earth_floor.tres" id="7_earth_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_ruined_floor.tres" id="8_flagstones_ruine"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/straw_pile.tres" id="9_straw_pile"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/bone_pile.tres" id="10_bone_pile"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="11_cornersstep"]
@@ -21,7 +21,6 @@
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
-Weight = 1.0
 MinimumSize = Vector2i(4, 4)
 MaximumSize = Vector2i(5, 6)
 OddWidth = false
@@ -29,7 +28,6 @@ metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
 [sub_resource type="Resource" id="LShape_2"]
 script = ExtResource("4_lshape")
-Weight = 1.0
 MinimumSize = Vector2i(4, 4)
 MaximumSize = Vector2i(5, 5)
 ArmWidth = 2
@@ -78,6 +76,6 @@ MinDoorways = 1
 MaxDoorways = 3
 Circulation = 0
 Walls = [ExtResource("5_ruined_walls"), ExtResource("6_slimy_walls")]
-Floors = [ExtResource("7_silt_floor"), ExtResource("8_flagstones_ruine")]
+Floors = [ExtResource("7_earth_floor"), ExtResource("8_flagstones_ruine")]
 Steps = [SubResource("CornersStep_3"), SubResource("ScatterStep_4"), SubResource("ScatterStep_5"), SubResource("WallDecorStep_6")]
 metadata/_custom_type_script = ExtResource("2_roomtype")

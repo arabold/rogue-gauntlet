@@ -44,12 +44,9 @@ public partial class WallStyle : Resource
 			int pillarPhase = PillarEvery > 0 ? (run.Length - 1) / 2 % PillarEvery : -1;
 			for (int index = 0; index < run.Length; index++)
 			{
-				// Draw both values for every edge so a style change never reshuffles the rest of the run.
-				bool accent = rng.Randf() < AccentChance && Accents.Count > 0;
-				string straight = Weighted.Pick(Straight, rng);
-				string accentItem = Accents.Count > 0 ? Weighted.Pick(Accents, rng) : null;
+				var (straight, edge) = DrawEdge(rng);
 				var tile = run.TileAt(index);
-				string item = PillarEvery > 0 && index % PillarEvery == pillarPhase ? Pillar : accent ? accentItem : straight;
+				string item = PillarEvery > 0 && index % PillarEvery == pillarPhase ? Pillar : edge;
 				pieces[EdgeCell(tile, run.Outward)] = (tile, run.Outward, item, item == straight);
 			}
 		}
@@ -72,6 +69,18 @@ public partial class WallStyle : Resource
 			float depth = mesh == null ? .5f : mesh.GetAabb().End.Z;
 			room.SetWall(piece.Tile, piece.Outward, depth, piece.Decoratable);
 		}
+	}
+
+	/// <summary>
+	/// One wall edge: an accent at <see cref="AccentChance"/>, else a straight piece, returned with the straight piece it
+	/// replaced. Both are drawn for every edge so a style change never reshuffles the rest of a run.
+	/// </summary>
+	public (string Straight, string Item) DrawEdge(RandomNumberGenerator rng)
+	{
+		bool accent = rng.Randf() < AccentChance && Accents.Count > 0;
+		string straight = Weighted.Pick(Straight, rng);
+		string accentItem = Accents.Count > 0 ? Weighted.Pick(Accents, rng) : null;
+		return (straight, accent ? accentItem : straight);
 	}
 
 	private static Vector3I EdgeCell(Vector2I tile, Vector2I outward) =>

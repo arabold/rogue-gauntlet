@@ -36,7 +36,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/sconce.tres" id="36_sconce"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/crypt_walls.tres" id="x_crypt_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/checker_runner.tres" id="x_checker_runner"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/checker_floor.tres" id="x_checker_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/checker_floor.tres" id="x_checker_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")

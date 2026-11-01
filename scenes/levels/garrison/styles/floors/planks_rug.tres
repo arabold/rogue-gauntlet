@@ -10,14 +10,11 @@ script = ExtResource("5_floorrug")
 Library = ExtResource("4_decorationmeshli")
 Carpets = Dictionary[String, float]({"carpet_red": 1.0})
 Layout = 1
-Chance = 1.0
-Margin = 1
 metadata/_custom_type_script = ExtResource("5_floorrug")
 
 [resource]
 script = ExtResource("2_uniformfloor")
 Id = "garrison.planks_rug"
-Weight = 1.0
 Material = ExtResource("3_planks")
 Rug = SubResource("FloorRug_1")
 metadata/_custom_type_script = ExtResource("2_uniformfloor")

@@ -19,8 +19,8 @@
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="18_WallDecorSte"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="19_torch"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="20_torch_unlit"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/bricks_floor.tres" id="x_bricks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/bricks_floor.tres" id="x_bricks_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")

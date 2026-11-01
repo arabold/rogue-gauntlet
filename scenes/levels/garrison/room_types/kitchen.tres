@@ -31,7 +31,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/bucket.tres" id="30_bucket"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/pot_rack.tres" id="31_pot_rack"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/herb_rack.tres" id="32_herb_rack"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/bricks_floor.tres" id="x_bricks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/bricks_floor.tres" id="x_bricks_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")

@@ -57,9 +57,8 @@ public partial class RoomGenerationHarness : Node3D
 			GD.PushError(LastError);
 			return;
 		}
-		SelectedRealm = Mathf.Clamp(SelectedRealm, 0, Generator.Realms.Length - 1);
-		Generator.DungeonDepth = Realm.FirstDepth;
 		BuildControls();
+		ApplyRealm(Mathf.Clamp(SelectedRealm, 0, Generator.Realms.Length - 1));
 		Regenerate();
 	}
 
@@ -134,7 +133,7 @@ public partial class RoomGenerationHarness : Node3D
 	private static string RecipeName(RoomType type) => type == null ? "Missing room type" : Local(type.Id).Replace('_', ' ').Capitalize();
 
 	/// <summary>An ID without its realm prefix (garrison.hall → hall).</summary>
-	private static string Local(string id) => id[(id.IndexOf('.') + 1)..];
+	private static string Local(string id) => id.Split('.').Last();
 
 	private static string ShapeName(RoomShape shape) =>
 		$"{shape.GetType().Name.Replace("Shape", "")} {shape.MinimumSize.X}–{shape.MaximumSize.X} × {shape.MinimumSize.Y}–{shape.MaximumSize.Y}";
@@ -142,9 +141,16 @@ public partial class RoomGenerationHarness : Node3D
 	/// <summary>Previews another realm: its room types, and its first depth for the floor view's rooms and corridors.</summary>
 	public void SelectRealm(int index)
 	{
+		ApplyRealm(index);
+		SelectRecipe(0);
+	}
+
+	private void ApplyRealm(int index)
+	{
 		SelectedRealm = index;
 		Generator.DungeonDepth = Realm.FirstDepth;
-		SelectRecipe(0);
+		_recipePicker.Clear();
+		foreach (var recipe in Recipes) _recipePicker.AddItem(RecipeName(recipe));
 	}
 
 	/// <summary>Changing recipes resets the viewing rotation and overrides while preserving the seed.</summary>
@@ -210,8 +216,6 @@ public partial class RoomGenerationHarness : Node3D
 		bool room = Mode == RoomPreviewMode.Room;
 		_modePicker.Select((int)Mode);
 		_realmPicker.Select(SelectedRealm);
-		_recipePicker.Clear();
-		foreach (var recipe in Recipes) _recipePicker.AddItem(RecipeName(recipe));
 		_recipePicker.Select(SelectedRecipe);
 		_recipePicker.Disabled = !room;
 		Fill(_shapeRow, _shapePicker, type?.Shapes.Select(ShapeName), ShapeOverride + 1, "Seeded");

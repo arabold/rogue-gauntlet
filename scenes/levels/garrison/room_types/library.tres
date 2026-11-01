@@ -26,7 +26,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/sconce.tres" id="24_sconce"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/book_alcove_walls.tres" id="x_book_alcove_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/parquet_rug.tres" id="x_parquet_rug"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/parquet_floor.tres" id="x_parquet_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/parquet_floor.tres" id="x_parquet_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")

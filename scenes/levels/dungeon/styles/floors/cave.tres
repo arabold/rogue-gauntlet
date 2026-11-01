@@ -9,5 +9,5 @@ Id = "dungeon.cave"
 Library = ExtResource("3_floormeshlibrary")
 Large = Dictionary[String, float]({"floor_cave_large_A": 1.0, "floor_cave_large_B": 1.0, "floor_cave_large_C": 1.0, "floor_cave_large_D": 1.0, "floor_cave_large_E": 1.0, "floor_cave_large_F": 1.0})
 Small = Dictionary[String, float]({"floor_cave_small_A": 1.0, "floor_cave_small_B": 1.0, "floor_cave_small_C": 1.0, "floor_cave_small_D": 1.0, "floor_cave_small_E": 1.0, "floor_cave_small_F": 1.0})
-AlignedPlanks = true
+RoomWideOrientation = true
 metadata/_custom_type_script = ExtResource("2_floormaterial")

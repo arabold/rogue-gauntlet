@@ -4,9 +4,9 @@
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/LShape.cs" id="4_lshape"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/crypt_walls.tres" id="5_crypt_walls"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_floor.tres" id="6_flagstones_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_ruined_floor.tres" id="7_flagstones_ruine"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/checker_floor.tres" id="8_checker_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_floor.tres" id="6_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_ruined_floor.tres" id="7_flagstones_ruine"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/checker_floor.tres" id="8_checker_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/stone_floor.tres" id="9_stone_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar.tres" id="10_pillar"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/pillar_broken.tres" id="11_pillar_broken"]
@@ -43,7 +43,6 @@ metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
 [sub_resource type="Resource" id="LShape_2"]
 script = ExtResource("4_lshape")
-Weight = 1.0
 MinimumSize = Vector2i(4, 4)
 MaximumSize = Vector2i(5, 5)
 ArmWidth = 2

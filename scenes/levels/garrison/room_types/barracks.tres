@@ -40,8 +40,8 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/decor/armor_stand.tres" id="38_armor_stand"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/furniture/training_dummy.tres" id="39_training_dum"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/heraldic_shield.tres" id="40_heraldic_shi"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/planks_floor.tres" id="x_planks_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/planks_dark_floor.tres" id="x_planks_dark_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/planks_floor.tres" id="x_planks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/planks_dark_floor.tres" id="x_planks_dark_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")

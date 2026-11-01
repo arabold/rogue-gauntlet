@@ -4,8 +4,8 @@
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/overgrown_walls.tres" id="4_overgrown_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/mossy_walls.tres" id="5_mossy_walls"]
-[ext_resource type="Resource" path="res://scenes/levels/jungle/styles/floors/earth_floor.tres" id="6_earth_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/jungle/styles/floors/flagstones_ruined_floor.tres" id="7_flagstones_ruine"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/earth_floor.tres" id="6_earth_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_ruined_floor.tres" id="7_flagstones_ruine"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/rubble.tres" id="8_rubble"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/floor_debris.tres" id="9_floor_debris"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/bone_pile.tres" id="10_bone_pile"]
@@ -20,7 +20,6 @@
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
-Weight = 1.0
 MinimumSize = Vector2i(1, 3)
 MaximumSize = Vector2i(2, 5)
 OddWidth = false

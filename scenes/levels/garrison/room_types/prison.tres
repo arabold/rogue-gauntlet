@@ -24,8 +24,8 @@
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/storage/bucket.tres" id="24_bucket"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/props/debris/bone_pile.tres" id="25_bone_pile"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/walls/prison_walls.tres" id="x_prison_walls"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/earth_floor.tres" id="x_earth_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/styles/floors/earth_floor.tres" id="x_earth_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")

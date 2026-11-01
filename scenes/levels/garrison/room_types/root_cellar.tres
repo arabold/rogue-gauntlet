@@ -37,7 +37,6 @@ metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
 [sub_resource type="Resource" id="LShape_2"]
 script = ExtResource("4_lshape")
-Weight = 1.0
 MinimumSize = Vector2i(4, 4)
 MaximumSize = Vector2i(4, 5)
 ArmWidth = 2
