@@ -1,7 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="PackedScene" path="res://assets/custom-items/weapons/dagger/dagger_kukri.glb" id="1_glb"]
-
-[node name="DaggerKukri" type="Node3D"]
-
-[node name="dagger_kukri" parent="." instance=ExtResource("1_glb")]

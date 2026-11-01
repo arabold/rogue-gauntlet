@@ -1,0 +1,74 @@
+{
+  "key": "weapons/dagger_dirk",
+  "inputs": "e1af4c7624f3f0310e5bc335587e6ec6f7c491d1bb73b7c7015c04f555d6acfb",
+  "files": {
+    "dagger_dirk.glb": "4c7ae69295716c1d7a53982b65b7f8c1bfd02262b2c0b5de399d7549e57da598",
+    "lineup.png": "8dd10508c0a77227c45d8856d5b4787306d88212c8f9ad7be3eb1df507112bb1"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 344,
+      "bounds": [
+        [
+          -0.18000000715255737,
+          -0.29391035437583923,
+          -0.06786035001277924
+        ],
+        [
+          0.18000000715255737,
+          0.9900000095367432,
+          0.06786035001277924
+        ]
+      ],
+      "dimensions": [
+        0.36000001430511475,
+        1.2839103639125824,
+        0.13572070002555847
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.014554628142459452
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Dagger Dirk",
+      "backend": "procedural",
+      "builder": "blade",
+      "design": {
+        "kind": "dirk"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/dagger/dagger_dirk.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

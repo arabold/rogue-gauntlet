@@ -1,29 +1,29 @@
 {
   "key": "weapons/staff_crooked",
-  "inputs": "e3c5c8f537339e0ddc39a1bbbc63bb785e1245f24e35784a32c67afed8066892",
+  "inputs": "517628b7599a8337a4b29c47d96adbe190c72edd0b134d3ceb2b1ce04ab41930",
   "files": {
-    "staff_crooked.glb": "8eae34ff9c4f2183810785c070781555ed11f5ce1634a0f21908c98d5a9d2bd4",
-    "lineup.png": "4ef0cd52030000851f706cbfe8a09db369aa74d87af9c882139ab65e5979f445"
+    "staff_crooked.glb": "ee60c8e138b58a1d5114f17b300b6bf8cbc3bc50cf626c58b3fd8bc122659623",
+    "lineup.png": "6f62b5df9de1a69e47689c4e914d62b88d9c5ad22b393b96426e5709724c9a80"
   },
   "metadata": {
     "report": {
-      "triangles": 926,
+      "triangles": 1026,
       "bounds": [
         [
-          -0.07623490691184998,
-          -0.8629346489906311,
-          -0.0611332543194294
+          -0.07880053669214249,
+          -0.9426586031913757,
+          -0.07199999690055847
         ],
         [
-          0.2954946756362915,
-          1.375478982925415,
-          0.07695651054382324
+          0.3336518406867981,
+          1.4164215326309204,
+          0.08074019849300385
         ]
       ],
       "dimensions": [
-        0.3717295825481415,
-        2.238413631916046,
-        0.13808976486325264
+        0.4124523773789406,
+        2.359080135822296,
+        0.15274019539356232
       ],
       "materials": 1,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.019558247763879853
+        "signed_volume": 0.024127481587590732
       },
       "warnings": [],
       "errors": []
@@ -47,7 +47,7 @@
       "version": 1,
       "name": "Staff Crooked",
       "backend": "procedural",
-      "builder": "arsenal",
+      "builder": "staff",
       "design": {
         "kind": "crooked_staff"
       },
@@ -58,40 +58,16 @@
         "scale": 1
       },
       "budget": {
-        "triangles": 3500,
+        "triangles": 2400,
         "materials": 5,
         "texture_size": 1024
-      },
-      "colors": {
-        "bark": [
-          92,
-          62,
-          40
-        ],
-        "leather": [
-          79,
-          47,
-          32
-        ]
-      },
-      "materials": {
-        "bark": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        }
       },
       "export": {
         "glb": "res://assets/custom-items/weapons/staff/staff_crooked.glb"
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Gnarled branch staff curling into a crook at the top. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+        "quality_notes": "KayKit-style weapon per objects/weapons/README.md, built from items/forge.py. Grip-centered origin. No gameplay data."
       }
     }
   }

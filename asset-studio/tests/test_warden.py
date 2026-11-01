@@ -7,7 +7,7 @@ from studio import Character
 from core import character_workflow as workflow,creature_rigs as cr,hinges
 from core.rig import Rig
 from prefabs.creatures import wardens
-from items import arsenal,solid
+from items import executioner,solid
 
 
 class WardenTests(unittest.TestCase):
@@ -149,7 +149,7 @@ class WardenTests(unittest.TestCase):
                 self.assertGreater((posed ^ helmet.transform(d['head'][:3])).volume(),1e-5,(clip,t,'helmet'))
 
     def test_executioner_has_a_broad_squared_blade_and_closed_fittings(self):
-        sword=arsenal.arsenal({'kind':'executioner'})
+        sword=executioner.executioner_sword()
         upper=sword.verts[sword.verts[:,1]>1]
         self.assertGreater(np.ptp(upper[:,0]),.55)
         tip=sword.verts[np.isclose(sword.verts[:,1],sword.verts[:,1].max())]

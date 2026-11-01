@@ -23,6 +23,13 @@ public static class WallFootprints
 
 	public readonly record struct WallStraightRequest(Vector3I Position, int Orientation);
 
+	/// <summary>GridMap orientation that turns local +Z toward <paramref name="inward"/>.</summary>
+	public static int FacingInto(Vector2I inward) =>
+		inward == Vector2I.Down ? GridTurns.Turn0
+		: inward == Vector2I.Up ? GridTurns.Turn180
+		: inward == Vector2I.Right ? GridTurns.Turn90
+		: GridTurns.Turn270;
+
 	public struct WallCornerEdges
 	{
 		public bool HorizontalWest;
@@ -55,6 +62,7 @@ public static class WallFootprints
 
 		var cornerEdges = new Dictionary<Vector2I, WallCornerEdges>();
 		var straightWalls = new HashSet<WallStraightRequest>();
+		var inwardDirections = new Dictionary<Vector3I, Vector2I>();
 		var wallBoxes = Collect(wallGridMap);
 		MeshLibrary library = wallGridMap.MeshLibrary;
 		int tileCenter = tileSize / 2;
@@ -75,28 +83,36 @@ public static class WallFootprints
 			{
 				AddHorizontalCornerEdge(cornerEdges, new Vector2I(westX, northZ), extendsEast: true);
 				AddHorizontalCornerEdge(cornerEdges, new Vector2I(eastX, northZ), extendsEast: false);
-				straightWalls.Add(new(basePosition + new Vector3I(0, 0, -tileCenter), HorizontalWallOrientation));
+				var position = basePosition + new Vector3I(0, 0, -tileCenter);
+				straightWalls.Add(new(position, HorizontalWallOrientation));
+				inwardDirections.TryAdd(position, Vector2I.Down);
 			}
 
 			if (south)
 			{
 				AddHorizontalCornerEdge(cornerEdges, new Vector2I(westX, southZ), extendsEast: true);
 				AddHorizontalCornerEdge(cornerEdges, new Vector2I(eastX, southZ), extendsEast: false);
-				straightWalls.Add(new(basePosition + new Vector3I(0, 0, tileCenter), HorizontalWallOrientation));
+				var position = basePosition + new Vector3I(0, 0, tileCenter);
+				straightWalls.Add(new(position, HorizontalWallOrientation));
+				inwardDirections.TryAdd(position, Vector2I.Up);
 			}
 
 			if (west)
 			{
 				AddVerticalCornerEdge(cornerEdges, new Vector2I(westX, northZ), extendsSouth: true);
 				AddVerticalCornerEdge(cornerEdges, new Vector2I(westX, southZ), extendsSouth: false);
-				straightWalls.Add(new(basePosition + new Vector3I(-tileCenter, 0, 0), VerticalWallOrientation));
+				var position = basePosition + new Vector3I(-tileCenter, 0, 0);
+				straightWalls.Add(new(position, VerticalWallOrientation));
+				inwardDirections.TryAdd(position, Vector2I.Right);
 			}
 
 			if (east)
 			{
 				AddVerticalCornerEdge(cornerEdges, new Vector2I(eastX, northZ), extendsSouth: true);
 				AddVerticalCornerEdge(cornerEdges, new Vector2I(eastX, southZ), extendsSouth: false);
-				straightWalls.Add(new(basePosition + new Vector3I(tileCenter, 0, 0), VerticalWallOrientation));
+				var position = basePosition + new Vector3I(tileCenter, 0, 0);
+				straightWalls.Add(new(position, VerticalWallOrientation));
+				inwardDirections.TryAdd(position, Vector2I.Left);
 			}
 		}
 
@@ -104,8 +120,12 @@ public static class WallFootprints
 		{
 			if (wallGridMap.GetCellItem(wall.Position) < 0)
 			{
-				// A positional picker may vary pieces along a run and turn asymmetric ones to face the room.
-				var (wallItem, orientation) = pickStraight?.Invoke(wall) ?? (getWallItem(), wall.Orientation);
+				// A positional picker may vary pieces along a run and turn asymmetric ones to face the room;
+				// otherwise turn straight walls inward toward the tile that requested them.
+				int defaultOrientation = inwardDirections.TryGetValue(wall.Position, out var inward)
+					? FacingInto(inward)
+					: wall.Orientation;
+				var (wallItem, orientation) = pickStraight?.Invoke(wall) ?? (getWallItem(), defaultOrientation);
 				if (wallItem >= 0)
 				{
 					wallGridMap.SetCellItem(wall.Position, wallItem, orientation);

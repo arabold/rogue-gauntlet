@@ -10,9 +10,9 @@ Every room is assembled; there are no hand-authored rooms. All rooms come from o
 
 | Depths | Realm | Its own rooms | Shared rooms | Corridors |
 | --- | --- | --- | --- | --- |
-| 1–3 | Garrison | hall, mess hall, barracks, library, alchemist, passage, fenced walkway, chapel, kitchen, guardroom, crypt, root cellar | prison, storage, partitioned storage, ruins, entrance, exit | KayKit dirt, plain walls |
-| 4–6 | Sewer | cistern hall, drain tunnel, junction, rat warren | prison, storage, partitioned storage, ruins, entrance, exit | studio bricks, slimy walls |
-| 7–9 | Jungle | temple hall, root passage, cavern, timbered mine, ruined shrine | ruins, entrance, exit | studio earth, mossy walls |
+| 1–3 | Garrison | hall, mess hall, barracks, library, alchemist, passage, fenced walkway, chapel, kitchen, guardroom, crypt, root cellar | prison, storage, partitioned storage, ruins, entrance, exit | KayKit dirt, stone/arched/gated walls, passageways, torches & heraldic decor |
+| 4–6 | Sewer | cistern hall, drain tunnel, junction, rat warren | prison, storage, partitioned storage, ruins, entrance, exit | studio bricks, slimy/gated walls, stone/scaffold passageways, torches & shackles |
+| 7–9 | Jungle | temple hall, root passage, cavern, timbered mine, ruined shrine | ruins, entrance, exit | studio earth, mossy/overgrown/scaffold walls, cave/timber passageways, torches & trophies |
 
 The entrance and exit carry the stairs. Encounters do not follow realms: the [encounter prototype](#first-realm-encounter-prototype) covers depths 1–3 and later depths use its development fallback. Per-depth room roles and required routes remain proposed.
 
@@ -65,6 +65,10 @@ Steps place `Placeable`s. A `Prop` is one object: mesh-library items (cosmetic v
 `RoomBlueprint` checks every piece for floor support, wall and prop overlap (with each prop's `Gap`) and circulation, and keeps all doorways mutually reachable on a 0.5-unit `WalkabilityGrid` sized for the navigation agent. Inaccessible pockets behind furniture are allowed up to the type's `MaxPocketShare` of standable floor (default 10%). Interactive props reserve the space in front of them. Walkability treats a cell as standable when some point in it clears the actor, so a 2.4-unit cell gate admits a 2-unit actor wherever the grid falls. Assembled props are plain nodes under the room's `Props` (mesh plus static collision on the prop layer, so they block actors and navigation but not exploration sight). Stretched structural pieces such as cell bars get box colliders sized to their stretch. Prison gates are ordinary doors with [interior identities](door-access.md#interior-cell-gates).
 
 Pools are deep water. `PoolStep` cuts a rectangle of whole tiles out of the floor, with floor on all eight sides like a stairwell, and fills it with pool pieces laid like a rug field (or a one-tile runner): quay walls toward the floor, open water between pool tiles. The room maps the pit as an enclosed chasm, so the tiles reveal with the room but are not walkable, and each piece carries a box from its bed to a low curb above the floor, so actors stop at the edge while missiles fly over. Water channels and basins set into the floor as inlays keep their KayKit grate's collision and navigation. Every water surface is drawn by the [water shader](../scenes/levels/dungeon/water/water.gdshader): translucent at the surface, murky within about a unit of depth, pale where it meets stone or floating things.
+
+### Corridor styling and decoration
+
+Each realm's `DungeonTileFactory` pairs a `FloorMaterial` and `WallStyle` with an ordered array of `CorridorStep` strategies (`CorridorPassagewayStep`, `CorridorThresholdStep`, `CorridorCornerStep`, `CorridorHallwayStep`). Corridor straight walls face inward into the corridor (`WallFootprints.FacingInto`) so asymmetric wall pieces and accents (`wall_arched`, `wall_pillar`, `wall_window_closed`, `wall_gated`, `wall_archedwindow_gated`, `wall_open_scaffold`, slimy and mossy variants) orient toward the walkway. After corridor walls and secret branches are placed, `CorridorBlueprint` measures decoratable straight wall runs (excluding accents, corners, doorways and concealed secret-door walls), doorway thresholds, L-corners, T-junctions and straight 1-tile-wide spans, then executes each `CorridorStep` on its own derived decoration RNG stream and emits the accepted props under `CorridorProps`.
 
 ### Light flicker
 

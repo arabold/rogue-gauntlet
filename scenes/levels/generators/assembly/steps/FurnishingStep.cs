@@ -57,12 +57,6 @@ public abstract partial class FurnishingStep : Resource
 		return TryPlace(room, choice, plan, at);
 	}
 
-	protected static void Shuffle<T>(IList<T> items, RandomNumberGenerator rng)
-	{
-		for (int index = items.Count - 1; index > 0; index--)
-		{
-			int other = rng.RandiRange(0, index);
-			(items[index], items[other]) = (items[other], items[index]);
-		}
-	}
+	protected static void Shuffle<T>(IList<T> items, RandomNumberGenerator rng) =>
+		GenerationRandom.Shuffle(items, rng);
 }

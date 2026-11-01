@@ -1,142 +1,31 @@
 {
   "key": "weapons/axe_bearded",
-  "inputs": "3dfc3ebd4d1e8d216bac325e0d9501ab8897920dc386e2a7cb35a6b1122794fe",
+  "inputs": "885aa021a013cfe027a7444114fda061fd86e02d50a06c59b6860e226b157add",
   "files": {
-    "axe_bearded.glb": "7cd4a522fbae98695c9905026b6404d4a86eccc19428a6cfd3112a0c773a3a5c",
-    "lineup.png": "109cbf61e86e1356f7bc0182e32dd0012646afb45283428ee72dd2f840b9996a"
+    "axe_bearded.glb": "8d8c3045174396f4d1176f961d2d00fcf58d7f89c1f4d41cc0bb2dff7558c893",
+    "lineup.png": "48979506cc23283945a9270ea18c4eb1ac09d7a222fcf0d61abf8f4dd1b55614"
   },
   "metadata": {
-    "recipe": {
-      "version": 1,
-      "name": "Axe Bearded",
-      "backend": "source",
-      "placement": {
-        "pivot": "authored",
-        "scale": 1
-      },
-      "budget": {
-        "triangles": 2400,
-        "materials": 8,
-        "texture_size": 2048
-      },
-      "export": {
-        "glb": "res://assets/custom-items/weapons/axe/axe_bearded.glb"
-      },
-      "provenance": {
-        "kind": "original_geometry_character_surface",
-        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
-        "original_path": "assets/custom-items/weapons/axe/axe_bearded.glb",
-        "source_sha256": "df2889f332f64c35a86b251684d4210f1d40ffc8c7f72352f98db42cded6fc7d",
-        "original_triangles": 1720,
-        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
-      },
-      "colors": {
-        "gold_brass": [
-          208,
-          151,
-          69
-        ],
-        "metal_steel": [
-          129,
-          140,
-          145
-        ],
-        "leather_wood": [
-          155,
-          90,
-          69
-        ],
-        "leather_copper": [
-          177,
-          111,
-          82
-        ],
-        "iron_dark_iron": [
-          74,
-          81,
-          85
-        ],
-        "metal_silver": [
-          212,
-          219,
-          222
-        ]
-      },
-      "materials": {
-        "gold_brass": {
-          "metallic": 0.5,
-          "roughness": 0.3,
-          "crease": 45.0,
-          "double_sided": true
-        },
-        "metal_steel": {
-          "metallic": 0.5,
-          "roughness": 0.3,
-          "crease": 45.0,
-          "double_sided": true
-        },
-        "leather_wood": {
-          "metallic": 0.0,
-          "roughness": 0.85,
-          "crease": 50.0,
-          "double_sided": true
-        },
-        "leather_copper": {
-          "metallic": 0.0,
-          "roughness": 0.85,
-          "crease": 50.0,
-          "double_sided": true
-        },
-        "iron_dark_iron": {
-          "metallic": 0.35,
-          "roughness": 0.6,
-          "crease": 48.0,
-          "double_sided": true
-        },
-        "metal_silver": {
-          "metallic": 0.5,
-          "roughness": 0.3,
-          "crease": 45.0,
-          "double_sided": true
-        }
-      },
-      "color_mode": "character",
-      "source": "source.glb",
-      "topology": "authored_assembly",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "brass": "gold_brass",
-          "steel": "metal_steel",
-          "wood": "leather_wood",
-          "copper": "leather_copper",
-          "dark_iron": "iron_dark_iron",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "crease": 50
-    },
     "report": {
-      "triangles": 1740,
+      "triangles": 700,
       "bounds": [
         [
-          -0.5899999737739563,
-          -0.2800000011920929,
-          -0.10999999940395355
+          -0.6050000190734863,
+          -0.28977617621421814,
+          -0.08380000293254852
         ],
         [
-          0.14000000059604645,
-          1.0399999618530273,
-          0.10999999940395355
+          0.10140000283718109,
+          1.0199999809265137,
+          0.08380000293254852
         ]
       ],
       "dimensions": [
-        0.7299999743700027,
-        1.3199999630451202,
-        0.2199999988079071
+        0.7064000219106674,
+        1.3097761571407318,
+        0.16760000586509705
       ],
-      "materials": 3,
+      "materials": 2,
       "textures": [
         [
           128,
@@ -144,19 +33,49 @@
         ]
       ],
       "topology": {
-        "components": 12,
-        "boundary_edges": 42,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.02950973006992531
+        "signed_volume": 0.0349691494461342
       },
-      "warnings": [
-        "12 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Axe Bearded",
+      "backend": "procedural",
+      "builder": "axe",
+      "design": {
+        "kind": "bearded"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "cloth": [
+          84,
+          128,
+          168
+        ]
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/axe/axe_bearded.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style axe per objects/weapons/README.md: bent octagonal haft, chunky bands, bevelled slab bits, silhouette chips. Grip-centered origin. No gameplay data."
+      }
     }
-  },
-  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+  }
 }

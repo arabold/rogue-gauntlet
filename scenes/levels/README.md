@@ -5,6 +5,7 @@
 | `generators/` | Floor orchestration (with its access and loot partials), the `GeneratedFloor` handoff, map data, randomness and wall geometry |
 | `generators/assembly/` | Room assembly: `RoomType`, `RoomAssembler`, `RoomBlueprint` and the shared `WalkabilityGrid` |
 | `generators/assembly/shapes/`, `surfaces/`, `columns/`, `steps/`, `content/` | One strategy family per axis: footprints, floor/wall styles, column patterns, furnishing steps, props and groups |
+| `generators/corridors/` | Corridor decoration: `CorridorBlueprint` and `CorridorStep` strategies (passageways, doorway thresholds, corners/T-junctions, hallway walls) |
 | `generators/factories/` | Room, tile and monster factory contracts/implementations |
 | `generators/layouts/`, `generators/connectors/` | Floor packing and corridor-routing strategies |
 | `access/` | Door access policies and the interior-door capability |

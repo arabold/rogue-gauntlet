@@ -2,7 +2,7 @@
   "version": 1,
   "name": "Wand Crooked",
   "backend": "procedural",
-  "builder": "arsenal",
+  "builder": "staff",
   "design": {
     "kind": "crooked_wand"
   },
@@ -13,39 +13,15 @@
     "scale": 1
   },
   "budget": {
-    "triangles": 3500,
+    "triangles": 2400,
     "materials": 5,
     "texture_size": 1024
-  },
-  "colors": {
-    "bark": [
-      92,
-      62,
-      40
-    ],
-    "leather": [
-      79,
-      47,
-      32
-    ]
-  },
-  "materials": {
-    "bark": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 55
-    },
-    "leather": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 55
-    }
   },
   "export": {
     "glb": "res://assets/custom-items/weapons/wand/wand_crooked.glb"
   },
   "provenance": {
     "kind": "studio_original",
-    "quality_notes": "Gnarled branch wand with knots, a root knob and a split twig. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+    "quality_notes": "KayKit-style weapon per objects/weapons/README.md, built from items/forge.py. Grip-centered origin. No gameplay data."
   }
 }

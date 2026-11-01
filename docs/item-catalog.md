@@ -68,21 +68,10 @@ These rows describe each definition's intended role and depth gate. Inspect the 
 for exact stats, timing, price, model, and effects. Repeated family IDs are deliberate visual or
 potency variants. Empty family IDs mean the item has no hidden type-wide identity.
 
-### Weapons (69)
+### Weapons (76)
 
 | Definition | Family / role | Depth |
 | --- | --- | --- |
-| [Steel Broadsword](../scenes/items/weapons/arsenal/broadsword_steel.tres) | `tier 3` | 10–18 |
-| [Steel Cudgel](../scenes/items/weapons/arsenal/club_steel.tres) | `tier 2` | 4–12 |
-| [Wooden Club](../scenes/items/weapons/arsenal/club_wood_old.tres) | `tier 1` | 1–6 |
-| [Short Steel Dagger](../scenes/items/weapons/arsenal/dagger_short.tres) | `tier 1` | 1–6 |
-| [Steel Greatsword](../scenes/items/weapons/arsenal/greatsword_steel.tres) | `tier 4` | 16–21 |
-| [Steel Halberd](../scenes/items/weapons/arsenal/halberd_steel.tres) | `tier 3` | 10–18 |
-| [Iron Morning Star](../scenes/items/weapons/arsenal/morning_star_iron.tres) | `tier 3` | 10–18 |
-| [Steel Rapier](../scenes/items/weapons/arsenal/rapier_steel.tres) | `tier 2` | 4–12 |
-| [Steel Saber](../scenes/items/weapons/arsenal/saber_steel.tres) | `tier 2` | 4–12 |
-| [Iron War Scythe](../scenes/items/weapons/arsenal/scythe_iron.tres) | `tier 3` | 10–18 |
-| [Steel Spear](../scenes/items/weapons/arsenal/spear_steel.tres) | `tier 2` | 4–12 |
 | [Bearded Viking Axe](../scenes/items/weapons/axe/axe_bearded.tres) | `tier 3` | 10–18 |
 | [Executioner's Gilded Hatchet](../scenes/items/weapons/axe/axe_executioner.tres) | `tier 5` | 19+ |
 | [Axe](../scenes/items/weapons/axe_common.tres) | `tier 1` | 1–6 |
@@ -97,52 +86,66 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Steel Battle Axe](../scenes/items/weapons/battleaxe_common.tres) | `tier 3` | 10–18 |
 | [Skeleton Battle Axe](../scenes/items/weapons/battleaxe_skeleton.tres) | `tier 3` | 10–18 |
 | [Battle Axe](../scenes/items/weapons/battleaxe_starter.tres) | `tier 1` | 1–6 |
-| [Winged Greatsword](../scenes/items/weapons/broadsword/broadsword_gilded.tres) | `tier 5` | 19+ |
-| [Iron Claymore](../scenes/items/weapons/broadsword/broadsword_iron.tres) | `tier 2` | 4–12 |
 | [Broadsword](../scenes/items/weapons/broadsword_common.tres) | `tier 3` | 10–18 |
 | [Royal Broadsword](../scenes/items/weapons/broadsword_rare.tres) | `tier 4` | 16–21 |
+| [Steel Cudgel](../scenes/items/weapons/club/club_steel.tres) | `tier 2` | 4–12 |
+| [Wooden Club](../scenes/items/weapons/club/club_wood_old.tres) | `tier 1` | 1–6 |
 | [Gilded Siege Arbalest](../scenes/items/weapons/crossbow/crossbow_gilded.tres) | `tier 5` | 19+ |
 | [Large Crossbow](../scenes/items/weapons/crossbow_2handed.tres) | `tier 3` | 10–18 |
 | [Crossbow](../scenes/items/weapons/crossbow_common.tres) | `tier 1` | 1–6 |
 | [Arbalest](../scenes/items/weapons/crossbow_rare.tres) | `tier 4` | 16–21 |
 | [Spiked Crossbow](../scenes/items/weapons/crossbow_spiked.tres) | `tier 2` | 4–12 |
 | [Heavy Crossbow](../scenes/items/weapons/crossbow_uncommon.tres) | `tier 3` | 10–18 |
-| [Heavy Hunting Dirk](../scenes/items/weapons/dagger/dagger_kukri.tres) | `tier 3` | 10–18 |
-| [Obsidian Fang Dagger](../scenes/items/weapons/dagger/dagger_nightblade.tres) | `tier 5` | 19+ |
+| [Heavy Hunting Dirk](../scenes/items/weapons/dagger/dagger_dirk.tres) | `tier 3` | 10–18 |
+| [Obsidian Fang Dagger](../scenes/items/weapons/dagger/dagger_fang.tres) | `tier 5` | 19+ |
+| [Short Steel Dagger](../scenes/items/weapons/dagger/dagger_short.tres) | `tier 1` | 1–6 |
 | [Dagger](../scenes/items/weapons/dagger_common.tres) | `tier 1` | 1–6 |
 | [Assassin's Dagger](../scenes/items/weapons/dagger_rare.tres) | `tier 4` | 16–21 |
 | [Stiletto](../scenes/items/weapons/dagger_uncommon.tres) | `tier 2` | 4–12 |
-| [Gilded Paladin Mace](../scenes/items/weapons/hammer/hammer_gilded.tres) | `tier 5` | 19+ |
+| [Steel Broadsword](../scenes/items/weapons/greatsword/broadsword_steel.tres) | `tier 3` | 10–18 |
+| [Iron Claymore](../scenes/items/weapons/greatsword/claymore_iron.tres) | `tier 2` | 4–12 |
+| [Curved Greatblade](../scenes/items/weapons/greatsword/greatblade_curved.tres) | `tier 4` | 16–21 |
+| [Steel Greatsword](../scenes/items/weapons/greatsword/greatsword_steel.tres) | `tier 4` | 16–21 |
+| [Winged Greatsword](../scenes/items/weapons/greatsword/greatsword_winged.tres) | `tier 5` | 19+ |
+| [Wooden Practice Greatsword](../scenes/items/weapons/greatsword/greatsword_wooden.tres) | `tier 1` | 1–6 |
+| [Crescent Longblade](../scenes/items/weapons/greatsword/longblade_crescent.tres) | `tier 3` | 10–18 |
 | [Wooden Cudgel Mallet](../scenes/items/weapons/hammer/hammer_mallet.tres) | `tier 1` | 1–6 |
 | [Hammer](../scenes/items/weapons/hammer_common.tres) | `tier 2` | 4–12 |
 | [Royal Hammer](../scenes/items/weapons/hammer_rare.tres) | `tier 4` | 16–21 |
 | [Battle Hammer](../scenes/items/weapons/hammer_uncommon.tres) | `tier 3` | 10–18 |
 | [Sword](../scenes/items/weapons/longsword_common.tres) | `tier 1` | 1–6 |
+| [Gilded Paladin Mace](../scenes/items/weapons/mace/mace_gilded.tres) | `tier 5` | 19+ |
+| [Iron Morning Star](../scenes/items/weapons/mace/morning_star_iron.tres) | `tier 3` | 10–18 |
+| [Steel Halberd](../scenes/items/weapons/polearm/halberd_steel.tres) | `tier 3` | 10–18 |
+| [Iron War Scythe](../scenes/items/weapons/polearm/scythe_iron.tres) | `tier 3` | 10–18 |
+| [Steel Spear](../scenes/items/weapons/polearm/spear_steel.tres) | `tier 2` | 4–12 |
 | [Saber](../scenes/items/weapons/saber_skeleton.tres) | `tier 2` | 4–12 |
 | [Shortsword](../scenes/items/weapons/shortsword_common.tres) | `tier 1` | 1–6 |
 | [Archmage Astral Staff](../scenes/items/weapons/staff/staff_archmage.tres) | `tier 5` | 19+ |
+| [Bone Staff](../scenes/items/weapons/staff/staff_bone.tres) | `tier 3` | 10–18 |
+| [Crooked Staff](../scenes/items/weapons/staff/staff_crooked.tres) | `tier 1` | 1–6 |
 | [Emerald Crescent Staff](../scenes/items/weapons/staff/staff_emerald.tres) | `tier 3` | 10–18 |
+| [Horned Staff](../scenes/items/weapons/staff/staff_horned.tres) | `tier 4` | 16–21 |
+| [Iron Staff](../scenes/items/weapons/staff/staff_iron.tres) | `tier 2` | 4–12 |
 | [Staff](../scenes/items/weapons/staff_common.tres) | `tier 1` | 1–6 |
 | [Rune Staff](../scenes/items/weapons/staff_rare.tres) | `tier 4` | 16–21 |
 | [Skeleton Staff](../scenes/items/weapons/staff_skeleton.tres) | `tier 2` | 4–12 |
 | [Ash Staff](../scenes/items/weapons/staff_uncommon.tres) | `tier 2` | 4–12 |
-| [Bone Staff](../scenes/items/weapons/staff/staff_bone.tres) | `tier 3` | 10–18 |
-| [Crooked Staff](../scenes/items/weapons/staff/staff_crooked.tres) | `tier 1` | 1–6 |
-| [Horned Staff](../scenes/items/weapons/staff/staff_horned.tres) | `tier 4` | 16–21 |
-| [Iron Staff](../scenes/items/weapons/staff/staff_iron.tres) | `tier 2` | 4–12 |
+| [Steel Rapier](../scenes/items/weapons/sword/rapier_steel.tres) | `tier 2` | 4–12 |
+| [Steel Saber](../scenes/items/weapons/sword/saber_steel.tres) | `tier 2` | 4–12 |
 | [Knightly Broadblade](../scenes/items/weapons/sword/sword_knight.tres) | `tier 3` | 10–18 |
 | [Gilded Sunblade](../scenes/items/weapons/sword/sword_sunblade.tres) | `tier 5` | 19+ |
 | [Longsword](../scenes/items/weapons/sword_common.tres) | `tier 2` | 4–12 |
 | [Royal Sword](../scenes/items/weapons/sword_rare.tres) | `tier 4` | 16–21 |
 | [Wand](../scenes/items/weapons/wand.tres) | `tier 1` | 1–6 |
-| [Celestial Golden Wand](../scenes/items/weapons/wand/wand_celestial.tres) | `tier 5` | 19+ |
-| [Ruby Scepter Wand](../scenes/items/weapons/wand/wand_ruby.tres) | `tier 3` | 10–18 |
 | [Bone Wand](../scenes/items/weapons/wand/wand_bone.tres) | `tier 3` | 10–18 |
+| [Scholar's Wand](../scenes/items/weapons/wand/wand_carved.tres) | `tier 4` | 16–21 |
+| [Celestial Golden Wand](../scenes/items/weapons/wand/wand_celestial.tres) | `tier 5` | 19+ |
 | [Crooked Wand](../scenes/items/weapons/wand/wand_crooked.tres) | `tier 1` | 1–6 |
 | [Iron Wand](../scenes/items/weapons/wand/wand_iron.tres) | `tier 2` | 4–12 |
-| [Scholar's Wand](../scenes/items/weapons/wand/wand_carved.tres) | `tier 4` | 16–21 |
+| [Ruby Scepter Wand](../scenes/items/weapons/wand/wand_ruby.tres) | `tier 3` | 10–18 |
 | [Warhammer](../scenes/items/weapons/warhammer.tres) | `tier 4` | 16–21 |
-| [Heavy Sledge](../scenes/items/weapons/warhammer/warhammer_iron.tres) | `tier 2` | 4–12 |
+| [Heavy Sledge](../scenes/items/weapons/warhammer/warhammer_sledge.tres) | `tier 2` | 4–12 |
 | [Spiked Maul](../scenes/items/weapons/warhammer/warhammer_spiked.tres) | `tier 3` | 10–18 |
 | [Gilded Warhammer](../scenes/items/weapons/warhammer_gold.tres) | `tier 5` | 19+ |
 
