@@ -1,29 +1,29 @@
 {
   "key": "weapons/wand_bone",
-  "inputs": "b6d7a54a335419f67f24e5a525a1806316f16e11ee990f1e18eef34443ff4b97",
+  "inputs": "09019dd6f7e1bdaa7ae8e1f5d5b59893b53152dc8317c8a42a3263cd1edc8782",
   "files": {
-    "wand_bone.glb": "39a0fb68dd7c4caf9a1e6698951d84b015a3257437fe94b23bf777a36a3b68a6",
-    "lineup.png": "ac4bdc34885e5c259534b6d29a1969053db3fea87cc391754291c9a4a8b8d99a"
+    "wand_bone.glb": "5c1c2144e4879945a7ca31f42a549ed7325205df4067b853b85dae7f62651dff",
+    "lineup.png": "e0b28d3b5f83544ccc333c719f4dc4b084c3ae3bd7f718bc93beef626cb61c55"
   },
   "metadata": {
     "report": {
-      "triangles": 1382,
+      "triangles": 762,
       "bounds": [
         [
-          -0.07999123632907867,
-          -0.27000001072883606,
-          -0.07666218280792236
+          -0.10946168750524521,
+          -0.2800000011920929,
+          -0.10859034955501556
         ],
         [
-          0.07999123632907867,
-          0.7540133595466614,
-          0.09666217863559723
+          0.10946168750524521,
+          0.8286498785018921,
+          0.12859034538269043
         ]
       ],
       "dimensions": [
-        0.15998247265815735,
-        1.0240133702754974,
-        0.1733243614435196
+        0.21892337501049042,
+        1.108649879693985,
+        0.237180694937706
       ],
       "materials": 1,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.0076418409836374645
+        "signed_volume": 0.014026425052858879
       },
       "warnings": [],
       "errors": []
@@ -47,7 +47,7 @@
       "version": 1,
       "name": "Wand Bone",
       "backend": "procedural",
-      "builder": "arsenal",
+      "builder": "staff",
       "design": {
         "kind": "bone_wand"
       },
@@ -58,40 +58,16 @@
         "scale": 1
       },
       "budget": {
-        "triangles": 3500,
+        "triangles": 2400,
         "materials": 5,
         "texture_size": 1024
-      },
-      "colors": {
-        "bone": [
-          228,
-          216,
-          186
-        ],
-        "leather": [
-          79,
-          47,
-          32
-        ]
-      },
-      "materials": {
-        "bone": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        }
       },
       "export": {
         "glb": "res://assets/custom-items/weapons/wand/wand_bone.glb"
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Long bone with lashed grip and big knuckles, topped by a small skull prefab. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+        "quality_notes": "KayKit-style weapon per objects/weapons/README.md, built from items/forge.py. Grip-centered origin. No gameplay data."
       }
     }
   }

@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/weapons/greatsword/greatblade_curved.glb" id="1_glb"]
+
+[node name="GreatbladeCurved" type="Node3D"]
+
+[node name="greatblade_curved" parent="." instance=ExtResource("1_glb")]
+
+[node name="TrailBase" type="Marker3D" parent="."]
+position = Vector3(0.01000, 0.62000, 0)
+
+[node name="TrailTip" type="Marker3D" parent="."]
+position = Vector3(0.20000, 1.98000, 0)

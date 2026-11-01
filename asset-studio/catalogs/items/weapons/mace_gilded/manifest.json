@@ -1,0 +1,74 @@
+{
+  "key": "weapons/mace_gilded",
+  "inputs": "f05e1ad63fdc79d1304aca1bb2865ab8cc3b153570f965c94286b84ecc6658cf",
+  "files": {
+    "mace_gilded.glb": "4d7ec3933b9cd91467e8b971ff288455e0b2ad709ecfbc179ad72eba4a536166",
+    "lineup.png": "e4476363e9a5ac63a03275e34cc9cb4f92c693477f5cf7b2d63d404e1f3ec958"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 864,
+      "bounds": [
+        [
+          -0.25999999046325684,
+          -0.32600000500679016,
+          -0.22891660034656525
+        ],
+        [
+          0.25999999046325684,
+          1.2200000286102295,
+          0.22891660034656525
+        ]
+      ],
+      "dimensions": [
+        0.5199999809265137,
+        1.5460000336170197,
+        0.4578332006931305
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.043514349636116896
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Mace Gilded",
+      "backend": "procedural",
+      "builder": "blunt",
+      "design": {
+        "kind": "mace"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/mace/mace_gilded.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style weapon per objects/weapons/README.md, built from items/forge.py. Grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

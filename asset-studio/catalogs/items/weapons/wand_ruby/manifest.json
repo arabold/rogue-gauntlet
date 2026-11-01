@@ -1,125 +1,31 @@
 {
   "key": "weapons/wand_ruby",
-  "inputs": "3a44dc92cd24fe6773ddc9e59a26ac46afaf6c2af6354efba30384168074b301",
+  "inputs": "84d119a9d9caaa63f9b66e8bb71b0667ec8c96ec6c11488c068156926b4f7bb9",
   "files": {
-    "wand_ruby.glb": "cea00a9eaea323fe27ea5ba7fd7656eb7b25ffddfb2225bd0d91e5088b0bcc4f",
-    "lineup.png": "b25c5421b223c9b17bfddbb6030bc10a70d00f05c996a281fcebb3be5b38fea1"
+    "wand_ruby.glb": "66f3b04df5f89dd9e6e721fe42def3928c7277c2cc639666c8a9aab1660b8bc3",
+    "lineup.png": "b5317fe19bbbe4beb57d12cfa38fcb3b0a2203e9a9c14b9d0763671e1188524b"
   },
   "metadata": {
-    "recipe": {
-      "version": 1,
-      "name": "Wand Ruby",
-      "backend": "source",
-      "placement": {
-        "pivot": "authored",
-        "scale": 1
-      },
-      "budget": {
-        "triangles": 2400,
-        "materials": 8,
-        "texture_size": 2048
-      },
-      "export": {
-        "glb": "res://assets/custom-items/weapons/wand/wand_ruby.glb"
-      },
-      "provenance": {
-        "kind": "original_geometry_character_surface",
-        "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
-        "original_path": "assets/custom-items/weapons/wand/wand_ruby.glb",
-        "source_sha256": "62a7201e4acfc13c646771546592293a88bf7dc8e6cbea201c4c138e884a3495",
-        "original_triangles": 320,
-        "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
-      },
-      "colors": {
-        "surface_crimson": [
-          210,
-          34,
-          39
-        ],
-        "gold_gold": [
-          234,
-          194,
-          83
-        ],
-        "leather_copper": [
-          177,
-          111,
-          82
-        ],
-        "leather_wood": [
-          155,
-          90,
-          69
-        ],
-        "iron_dark_iron": [
-          74,
-          81,
-          85
-        ]
-      },
-      "materials": {
-        "surface_crimson": {
-          "metallic": 0,
-          "roughness": 0.95,
-          "crease": 55
-        },
-        "gold_gold": {
-          "metallic": 0.5,
-          "roughness": 0.3,
-          "crease": 45.0
-        },
-        "leather_copper": {
-          "metallic": 0.0,
-          "roughness": 0.85,
-          "crease": 50.0
-        },
-        "leather_wood": {
-          "metallic": 0.0,
-          "roughness": 0.85,
-          "crease": 50.0
-        },
-        "iron_dark_iron": {
-          "metallic": 0.35,
-          "roughness": 0.6,
-          "crease": 48.0
-        }
-      },
-      "color_mode": "character",
-      "source": "source.glb",
-      "topology": "closed_assembly",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "crimson": "surface_crimson",
-          "gold": "gold_gold",
-          "copper": "leather_copper",
-          "wood": "leather_wood",
-          "dark_iron": "iron_dark_iron"
-        },
-        "repair": "boundaries"
-      },
-      "crease": 50
-    },
     "report": {
-      "triangles": 328,
+      "triangles": 284,
       "bounds": [
         [
-          -0.18000000715255737,
-          -0.23999999463558197,
-          -0.14000000059604645
+          -0.0949999988079071,
+          -0.29600000381469727,
+          -0.0949999988079071
         ],
         [
-          0.18000000715255737,
-          0.8799999952316284,
-          0.14000000059604645
+          0.0949999988079071,
+          0.9559999704360962,
+          0.0949999988079071
         ]
       ],
       "dimensions": [
-        0.36000001430511475,
-        1.1199999898672104,
-        0.2800000011920929
+        0.1899999976158142,
+        1.2519999742507935,
+        0.1899999976158142
       ],
-      "materials": 4,
+      "materials": 3,
       "textures": [
         [
           128,
@@ -127,18 +33,49 @@
         ]
       ],
       "topology": {
-        "components": 4,
+        "components": 1,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.011522096818500789
+        "signed_volume": 0.011973656415784848
       },
-      "warnings": [
-        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
-      ],
+      "warnings": [],
       "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Wand Ruby",
+      "backend": "procedural",
+      "builder": "staff",
+      "design": {
+        "kind": "ruby_wand"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "leather": [
+          150,
+          46,
+          46
+        ]
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/wand/wand_ruby.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style weapon per objects/weapons/README.md, built from items/forge.py. Grip-centered origin. No gameplay data."
+      }
     }
-  },
-  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+  }
 }

@@ -1,0 +1,81 @@
+{
+  "key": "weapons/longblade_crescent",
+  "inputs": "6b8dca6db104be0f072fc27095043ede00a9877d93300ffa767ca6ace43280c6",
+  "files": {
+    "longblade_crescent.glb": "e13018ebb1cb5ca019442be8273f1e96a4223ef74074ddc5f9cd14c58ae514c6",
+    "lineup.png": "a51b5c163855a9c82e1ce267583c5c5edb3e07b761c1a8c01dc8919432469e28"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 822,
+      "bounds": [
+        [
+          -0.3475579023361206,
+          -0.5577685832977295,
+          -0.07565125077962875
+        ],
+        [
+          0.3475579023361206,
+          2.0399999618530273,
+          0.07565125077962875
+        ]
+      ],
+      "dimensions": [
+        0.6951158046722412,
+        2.597768545150757,
+        0.1513025015592575
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.027544963874398993
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Longblade Crescent",
+      "backend": "procedural",
+      "builder": "blade",
+      "design": {
+        "kind": "crescent"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "leather": [
+          150,
+          92,
+          62
+        ]
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/greatsword/longblade_crescent.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

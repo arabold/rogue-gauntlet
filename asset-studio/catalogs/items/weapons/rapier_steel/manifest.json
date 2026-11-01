@@ -1,130 +1,29 @@
 {
   "key": "weapons/rapier_steel",
-  "inputs": "6f0ec84831da5b6add9498d4bfe9277719e251de0216a0f6d02408af01b76530",
+  "inputs": "61bc07211319fc1403533ddf76d2610273d6b984d4d701bf7acea7781d0bb677",
   "files": {
-    "rapier_steel.glb": "9fa55233e1ba887a05575f5f22978a57d10943998ce551d7c1515857cfdbfc8e",
-    "lineup.png": "d639cb80d05ec25aa4496648e26486bea5445d94dbf675410e3ce94bac2a528c"
+    "rapier_steel.glb": "741922808ad4bfc67cf9127010e5f6c77241c30ba50e6a8cacc276c44b484f6b",
+    "lineup.png": "837bc737b3d4fbdcca402ccea548721196e0c120329fffa999abc138f68cba74"
   },
   "metadata": {
-    "recipe": {
-      "version": 1,
-      "name": "Rapier Steel",
-      "backend": "procedural",
-      "builder": "arsenal",
-      "design": {
-        "kind": "rapier"
-      },
-      "color_mode": "character",
-      "topology": "closed_surface",
-      "placement": {
-        "pivot": "authored",
-        "scale": 1
-      },
-      "budget": {
-        "triangles": 3500,
-        "materials": 5,
-        "texture_size": 1024
-      },
-      "colors": {
-        "steel": [
-          134,
-          153,
-          166
-        ],
-        "edge": [
-          181,
-          194,
-          203
-        ],
-        "iron": [
-          65,
-          76,
-          83
-        ],
-        "wood": [
-          119,
-          78,
-          46
-        ],
-        "endgrain": [
-          148,
-          104,
-          62
-        ],
-        "leather": [
-          79,
-          47,
-          32
-        ],
-        "brass": [
-          165,
-          119,
-          48
-        ]
-      },
-      "materials": {
-        "steel": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
-        "edge": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
-        "iron": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
-        "brass": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
-        "wood": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        },
-        "endgrain": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        }
-      },
-      "export": {
-        "glb": "res://assets/custom-items/weapons/arsenal/rapier_steel.glb"
-      },
-      "provenance": {
-        "kind": "studio_original",
-        "quality_notes": "Dedicated continuous blade/profile geometry, solid-unioned structural fittings, material color regions, grip-centered origin. No gameplay data."
-      }
-    },
     "report": {
-      "triangles": 1750,
+      "triangles": 568,
       "bounds": [
         [
-          -0.2508000135421753,
-          -0.2618499994277954,
-          -0.09527958184480667
+          -0.20000000298023224,
+          -0.3292909562587738,
+          -0.06642105430364609
         ],
         [
-          0.2508000135421753,
-          1.5099999904632568,
-          0.09527958184480667
+          0.23582863807678223,
+          1.5,
+          0.06642105430364609
         ]
       ],
       "dimensions": [
-        0.5016000270843506,
-        1.7718499898910522,
-        0.19055916368961334
+        0.43582864105701447,
+        1.8292909562587738,
+        0.13284210860729218
       ],
       "materials": 2,
       "textures": [
@@ -139,11 +38,44 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.007771656510575871
+        "signed_volume": 0.012248751644946857
       },
       "warnings": [],
       "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Rapier Steel",
+      "backend": "procedural",
+      "builder": "blade",
+      "design": {
+        "kind": "rapier"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "leather": [
+          150,
+          92,
+          62
+        ]
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/sword/rapier_steel.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
+      }
     }
-  },
-  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+  }
 }

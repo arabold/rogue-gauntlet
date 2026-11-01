@@ -6,6 +6,7 @@ the legacy contour builder is an opt-in procedural backend for known archetypes.
 """
 
 import argparse
+import ast
 import json
 import math
 import re
@@ -21,7 +22,8 @@ from core import publication
 from core.publication import digest
 from items import align, model
 from items.builders import BUILDERS
-from items.designs import FAMILIES, COLORS, MATERIALS
+from items.designs import FAMILIES, COLORS, MATERIALS, WEAPONS
+from items import forge
 from items import solid
 
 STUDIO = Path(__file__).resolve().parents[1]
@@ -294,8 +296,12 @@ class Item:
                     world_surface.export(str(raw), self.id, built_piece, crease=data.get("crease", 50),
                                          slot_crease={slot: spec["crease"] for slot, spec in data.get("materials", {}).items() if "crease" in spec})
                 else:
-                    export_static(str(raw), self.id, built_piece, {**COLORS, **data.get("colors", {})},
-                                  materials={**MATERIALS, **data.get("materials", {})}, crease=data.get("crease", 50), parts=parts)
+                    # Weapon recipes start from the shared weapon palette and list only the slots they change.
+                    weapon = data["builder"] in WEAPONS
+                    colors = {**COLORS, **(forge.COLORS if weapon else {}), **data.get("colors", {})}
+                    materials = {**MATERIALS, **(forge.MATERIALS if weapon else {}), **data.get("materials", {})}
+                    export_static(str(raw), self.id, built_piece, colors, materials=materials, crease=data.get("crease", 50),
+                                  parts=parts)
                 source = raw
                 model.place(source, self.built, data.get("placement", {}))
                 return self.finish_build(data)
@@ -432,11 +438,15 @@ class Item:
             paths.extend(library.find_prefab_path(part["mesh"]) for part in data["parts"])
         if data["backend"] in ("procedural", "prefab"):
             paths.append(PALETTE)
-            paths.extend(STUDIO / "items" / name for name in ["designs.py", "builders.py", "solid.py", "bread.py", "arsenal.py", "shieldcraft.py", "furnishings.py", "furnishing_kit.py", "world_surface.py"])
-            if data.get("builder") == "fountain":
-                paths.extend(STUDIO / name for name in ["items/fountains.py", "core/kit.py"])
-            if data.get("builder") == "shieldcraft":
-                paths.extend(STUDIO / name for name in ["prefabs/details/construction.py", "prefabs/details/wear.py", "items/heroic_shields.py", "prefabs/details/heraldry.py", "core/kit.py"])
+            builder = data.get("builder")
+            if builder in WEAPONS:
+                paths.extend(module_sources(WEAPONS[builder].__name__))
+            elif builder in FAMILIES:
+                paths.extend(module_sources(FAMILIES[builder].__module__))
+            else:
+                paths.extend(sorted(set(module_sources("items.designs")) | set(module_sources("items.builders"))))
+            if data.get("color_mode") == "world":
+                paths.append(STUDIO / "items/world_surface.py")
             paths.append(STUDIO / "core/export.py")
             paths.append(STUDIO / "core/mesh.py")
         return {str(path.relative_to(REPO)): digest(path) for path in paths}
@@ -553,6 +563,26 @@ class Item:
                 raise ValueError("Existing import metadata has no [params] section")
             text = text.replace("[params]", "[params]\n" + setting, 1)
         path.write_text(text)
+
+
+def module_sources(name):
+    """The studio source files a module runs: itself and, transitively, every studio module it imports,
+    including imports inside functions."""
+    seen, stack = set(), [STUDIO / (name.replace(".", "/") + ".py")]
+    while stack:
+        path = stack.pop()
+        if path in seen or not path.is_file():
+            continue
+        seen.add(path)
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node, ast.Import):
+                names = [alias.name for alias in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+                names = [node.module, *(f"{node.module}.{alias.name}" for alias in node.names)]
+            else:
+                continue
+            stack.extend(STUDIO / (n.replace(".", "/") + ".py") for n in names)
+    return sorted(seen)
 
 
 def run_godot(args, headless=True):

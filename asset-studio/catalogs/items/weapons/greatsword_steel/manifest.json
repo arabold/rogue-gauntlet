@@ -1,16 +1,53 @@
 {
   "key": "weapons/greatsword_steel",
-  "inputs": "3f5b869606500c194b17f8d0e21ea39ccf6af477faa8aa5d2d279227be1d7a29",
+  "inputs": "b67f6e1b479c5f02012d2b72f264337bfdca3b6258cad9f268428e805ea33193",
   "files": {
-    "greatsword_steel.glb": "d452948ece3b6a374cde5b3e11ee8eb686335486ab81fb0768648dac1fef0ecf",
-    "lineup.png": "cfeeedeff733f5f83edd3bc7acb6c6bbd6c78146737cb14c4d5d999f74dbd4b5"
+    "greatsword_steel.glb": "ea3e3ec9923ad30924765fdbdd5726bca6729b3af2fb4e1fc7cc3f0d5256badd",
+    "lineup.png": "630e8351ac118d4a2999f54621ac8c1743656c8ffb8128c08e0ff3ca6055d811"
   },
   "metadata": {
+    "report": {
+      "triangles": 740,
+      "bounds": [
+        [
+          -0.4446715712547302,
+          -0.5423879623413086,
+          -0.07855570316314697
+        ],
+        [
+          0.4446715712547302,
+          2.0,
+          0.07855570316314697
+        ]
+      ],
+      "dimensions": [
+        0.8893431425094604,
+        2.5423879623413086,
+        0.15711140632629395
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.053114822313343725
+      },
+      "warnings": [],
+      "errors": []
+    },
     "recipe": {
       "version": 1,
       "name": "Greatsword Steel",
       "backend": "procedural",
-      "builder": "arsenal",
+      "builder": "blade",
       "design": {
         "kind": "greatsword"
       },
@@ -26,124 +63,19 @@
         "texture_size": 1024
       },
       "colors": {
-        "steel": [
-          134,
-          153,
-          166
-        ],
-        "edge": [
-          181,
-          194,
-          203
-        ],
-        "iron": [
-          65,
-          76,
-          83
-        ],
-        "wood": [
-          119,
-          78,
-          46
-        ],
-        "endgrain": [
-          148,
-          104,
-          62
-        ],
         "leather": [
-          79,
-          47,
-          32
-        ],
-        "brass": [
-          165,
-          119,
-          48
+          150,
+          92,
+          62
         ]
       },
-      "materials": {
-        "steel": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
-        "edge": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
-        "iron": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
-        "brass": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
-        "wood": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        },
-        "endgrain": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        }
-      },
       "export": {
-        "glb": "res://assets/custom-items/weapons/arsenal/greatsword_steel.glb"
+        "glb": "res://assets/custom-items/weapons/greatsword/greatsword_steel.glb"
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Dedicated continuous blade/profile geometry, solid-unioned structural fittings, material color regions, grip-centered origin. No gameplay data."
+        "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
       }
-    },
-    "report": {
-      "triangles": 1376,
-      "bounds": [
-        [
-          -0.3808000087738037,
-          -0.4422999918460846,
-          -0.0860000029206276
-        ],
-        [
-          0.3808000087738037,
-          2.0,
-          0.0860000029206276
-        ]
-      ],
-      "dimensions": [
-        0.7616000175476074,
-        2.4422999918460846,
-        0.1720000058412552
-      ],
-      "materials": 2,
-      "textures": [
-        [
-          128,
-          256
-        ]
-      ],
-      "topology": {
-        "components": 1,
-        "boundary_edges": 0,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.023690561845629145
-      },
-      "warnings": [],
-      "errors": []
     }
-  },
-  "migration": "Existing selected final art preserved byte-for-byte during folder/publication cleanup; no geometry or shading edits."
+  }
 }

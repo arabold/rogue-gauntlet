@@ -1,29 +1,29 @@
 {
   "key": "weapons/staff_iron",
-  "inputs": "4356cd31c7cfd5f0888c8bb9caa99a80fde9acf1d62c6a3164ee0a9d380f056c",
+  "inputs": "53903939275475f09151865de32801d4f96985819864ce05f5ecaf9917967c54",
   "files": {
-    "staff_iron.glb": "0bf3931d7aae1e963d857e66fa2418ac53e4574ccaa1c29af07aa3c7fd9a1e03",
-    "lineup.png": "1af264f6e9e2b0431b3792ef5883ba550c9ac43b3e137b3064dc117dc538d128"
+    "staff_iron.glb": "6024265965e3aeae6c9585f5835085c91ce410203ff67c766dcf0da963bdb68e",
+    "lineup.png": "4b5f479f4acccbe69b4cbdaf901a43821508b5f8456c6aebf7542b1ec7e8b7af"
   },
   "metadata": {
     "report": {
-      "triangles": 1320,
+      "triangles": 920,
       "bounds": [
         [
-          -0.1555936485528946,
-          -0.949999988079071,
-          -0.1555936485528946
+          -0.1937810778617859,
+          -0.9599999785423279,
+          -0.1914236843585968
         ],
         [
-          0.1555936485528946,
-          1.649999976158142,
-          0.1555936485528946
+          0.1937810778617859,
+          1.5711711645126343,
+          0.1914236843585968
         ]
       ],
       "dimensions": [
-        0.3111872971057892,
-        2.599999964237213,
-        0.3111872971057892
+        0.3875621557235718,
+        2.531171143054962,
+        0.3828473687171936
       ],
       "materials": 3,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.021301988704553455
+        "signed_volume": 0.043534964445055925
       },
       "warnings": [],
       "errors": []
@@ -47,7 +47,7 @@
       "version": 1,
       "name": "Staff Iron",
       "backend": "procedural",
-      "builder": "arsenal",
+      "builder": "staff",
       "design": {
         "kind": "iron_staff"
       },
@@ -58,52 +58,39 @@
         "scale": 1
       },
       "budget": {
-        "triangles": 3500,
+        "triangles": 2400,
         "materials": 5,
         "texture_size": 1024
       },
       "colors": {
         "iron": [
-          65,
-          76,
-          83
-        ],
-        "leather": [
-          79,
-          47,
-          32
-        ],
-        "moonstone": [
-          214,
-          222,
-          236
-        ],
-        "steel": [
-          134,
-          153,
-          166
+          92,
+          100,
+          108
         ]
       },
       "materials": {
         "iron": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
-        },
-        "leather": {
-          "metallic": 0,
-          "roughness": 0.9,
-          "crease": 55
-        },
-        "moonstone": {
-          "metallic": 0,
-          "roughness": 0.3,
-          "crease": 40
-        },
-        "steel": {
-          "metallic": 0.55,
-          "roughness": 0.36,
-          "crease": 48
+          "metallic": 0.1,
+          "roughness": 0.55,
+          "crease": 45,
+          "ramp": [
+            [
+              116,
+              124,
+              132
+            ],
+            [
+              56,
+              62,
+              68
+            ],
+            [
+              92,
+              100,
+              108
+            ]
+          ]
         }
       },
       "export": {
@@ -111,7 +98,7 @@
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Forged iron pole with a four-prong cage around a pale stone. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+        "quality_notes": "KayKit-style weapon per objects/weapons/README.md, built from items/forge.py. Grip-centered origin. No gameplay data."
       }
     }
   }

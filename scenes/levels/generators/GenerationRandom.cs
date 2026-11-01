@@ -46,6 +46,16 @@ public static class GenerationRandom
 		return new RandomNumberGenerator { Seed = DeriveSeed(levelSeed, domain, sourceId) };
 	}
 
+	/// <summary>In-place Fisher-Yates shuffle using <paramref name="rng"/>.</summary>
+	public static void Shuffle<T>(System.Collections.Generic.IList<T> items, RandomNumberGenerator rng)
+	{
+		for (int index = items.Count - 1; index > 0; index--)
+		{
+			int other = rng.RandiRange(0, index);
+			(items[index], items[other]) = (items[other], items[index]);
+		}
+	}
+
 	private static void AddNumber(ref ulong hash, ulong value)
 	{
 		for (int i = 0; i < 8; i++)

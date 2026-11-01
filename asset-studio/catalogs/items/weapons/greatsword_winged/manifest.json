@@ -1,0 +1,74 @@
+{
+  "key": "weapons/greatsword_winged",
+  "inputs": "74ce0b88285a14b3fae3307d10540238b3246ffa059349a148843df962b8da84",
+  "files": {
+    "greatsword_winged.glb": "5211ccb6b572271e71189e7143a4a0fb30bbe0068e86fcf3477287d017852814",
+    "lineup.png": "243c7b640541966b9e29ed4bb98ae00b194feca5a611cdffaa8f3ddab55accd7"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 700,
+      "bounds": [
+        [
+          -0.46000000834465027,
+          -0.4977685511112213,
+          -0.08500000089406967
+        ],
+        [
+          0.46000000834465027,
+          1.9600000381469727,
+          0.08500000089406967
+        ]
+      ],
+      "dimensions": [
+        0.9200000166893005,
+        2.457768589258194,
+        0.17000000178813934
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.06166564945253195
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Greatsword Winged",
+      "backend": "procedural",
+      "builder": "blade",
+      "design": {
+        "kind": "winged"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/greatsword/greatsword_winged.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

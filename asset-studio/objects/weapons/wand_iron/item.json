@@ -2,7 +2,7 @@
   "version": 1,
   "name": "Wand Iron",
   "backend": "procedural",
-  "builder": "arsenal",
+  "builder": "staff",
   "design": {
     "kind": "iron_wand"
   },
@@ -13,59 +13,15 @@
     "scale": 1
   },
   "budget": {
-    "triangles": 3500,
+    "triangles": 2400,
     "materials": 5,
     "texture_size": 1024
-  },
-  "colors": {
-    "iron": [
-      65,
-      76,
-      83
-    ],
-    "leather": [
-      79,
-      47,
-      32
-    ],
-    "moonstone": [
-      214,
-      222,
-      236
-    ],
-    "steel": [
-      134,
-      153,
-      166
-    ]
-  },
-  "materials": {
-    "iron": {
-      "metallic": 0.55,
-      "roughness": 0.36,
-      "crease": 48
-    },
-    "leather": {
-      "metallic": 0,
-      "roughness": 0.9,
-      "crease": 55
-    },
-    "moonstone": {
-      "metallic": 0,
-      "roughness": 0.3,
-      "crease": 40
-    },
-    "steel": {
-      "metallic": 0.55,
-      "roughness": 0.36,
-      "crease": 48
-    }
   },
   "export": {
     "glb": "res://assets/custom-items/weapons/wand/wand_iron.glb"
   },
   "provenance": {
     "kind": "studio_original",
-    "quality_notes": "Forged twisted iron bar with a wrapped grip and three claws closing over a pale stone. Solid-unioned parts, material color regions, grip-centered origin. No gameplay data."
+    "quality_notes": "KayKit-style weapon per objects/weapons/README.md, built from items/forge.py. Grip-centered origin. No gameplay data."
   }
 }

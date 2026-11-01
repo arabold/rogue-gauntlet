@@ -1,0 +1,81 @@
+{
+  "key": "weapons/greatblade_curved",
+  "inputs": "f0d8dc3017e284ba4bc59a82565615cfebc32a0d8ea6b7d51c5446c6d25df8cd",
+  "files": {
+    "greatblade_curved.glb": "3abcc54965bddfd4e9260a78bade52df3ad5ac32f157c83e9ec89b31f46d340e",
+    "lineup.png": "1bcd799dd965c14985eaa7dc8d6a3e7704f42f43a10533cd351e6693a22b7ec0"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 664,
+      "bounds": [
+        [
+          -0.13459999859333038,
+          -0.4449999928474426,
+          -0.13459999859333038
+        ],
+        [
+          0.25,
+          2.0799999237060547,
+          0.13459999859333038
+        ]
+      ],
+      "dimensions": [
+        0.3845999985933304,
+        2.5249999165534973,
+        0.26919999718666077
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.025722257020465062
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Greatblade Curved",
+      "backend": "procedural",
+      "builder": "blade",
+      "design": {
+        "kind": "curved_great"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "colors": {
+        "cloth": [
+          58,
+          78,
+          120
+        ]
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/greatsword/greatblade_curved.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

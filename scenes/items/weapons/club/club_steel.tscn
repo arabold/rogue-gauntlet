@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/weapons/club/club_steel.glb" id="1_model"]
+
+[node name="ClubSteel" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="TrailBase" type="Marker3D" parent="."]
+position = Vector3(-0.12000, 0.72000, 0)
+
+[node name="TrailTip" type="Marker3D" parent="."]
+position = Vector3(-0.12000, 1.04000, 0)

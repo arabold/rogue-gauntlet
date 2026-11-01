@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "name": "Claymore Iron",
+  "backend": "procedural",
+  "builder": "blade",
+  "design": {
+    "kind": "claymore"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 3500,
+    "materials": 5,
+    "texture_size": 1024
+  },
+  "colors": {
+    "edge": [
+      142,
+      152,
+      160
+    ],
+    "iron": [
+      92,
+      100,
+      108
+    ],
+    "leather": [
+      150,
+      92,
+      62
+    ],
+    "steel": [
+      126,
+      136,
+      144
+    ]
+  },
+  "materials": {
+    "edge": {
+      "metallic": 0.1,
+      "roughness": 0.55,
+      "crease": 45,
+      "ramp": [
+        [
+          164,
+          174,
+          182
+        ],
+        [
+          90,
+          98,
+          104
+        ],
+        [
+          142,
+          152,
+          160
+        ]
+      ]
+    },
+    "iron": {
+      "metallic": 0.1,
+      "roughness": 0.55,
+      "crease": 45,
+      "ramp": [
+        [
+          116,
+          124,
+          132
+        ],
+        [
+          56,
+          62,
+          68
+        ],
+        [
+          92,
+          100,
+          108
+        ]
+      ]
+    },
+    "steel": {
+      "metallic": 0.1,
+      "roughness": 0.55,
+      "crease": 45,
+      "ramp": [
+        [
+          150,
+          160,
+          168
+        ],
+        [
+          76,
+          84,
+          90
+        ],
+        [
+          126,
+          136,
+          144
+        ]
+      ]
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-items/weapons/greatsword/claymore_iron.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "KayKit-style blade per objects/weapons/README.md: bevelled straight-facet blade, chunky guard and pommel, banded grip, tier-scaled edge chips. Grip-centered origin. No gameplay data."
+  }
+}

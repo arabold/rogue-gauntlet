@@ -15,7 +15,7 @@ its nominal metre scale differs from the existing imported game models.
 `prefabs/creatures/wardens.py` is the procedural geometry source, on the Studio-local
 large rig. It reuses the approved plate costume, belt, shoulder hinges, cuffs, joint
 guards, fist/boot forms, crown points, sunburst detail and shield construction. The
-executioner blade is a reusable `arsenal` kind with a genuinely broad squared tip.
+executioner blade (`items/executioner.py`) has a genuinely broad squared tip.
 Armor is rigidly attached; shoulder caps use baked half-arm hinges at their actual
 mounts. The neck blends between chest and head, keeping both ends seated through turns
 and nods. Visor and breathing slots are real openings with dark backing; eyes have their

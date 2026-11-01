@@ -1,24 +1,9 @@
 {
-  "items": 161,
-  "godot_verified_exports": 8,
+  "items": 164,
+  "godot_verified_exports": 41,
   "authored_surface_exceptions": [
     "food/drink_beer_stein",
-    "keys/key_bronze_ornate",
-    "weapons/axe_bearded",
-    "weapons/axe_executioner",
-    "weapons/battleaxe_gilded",
-    "weapons/battleaxe_iron",
-    "weapons/broadsword_gilded",
-    "weapons/broadsword_iron",
-    "weapons/dagger_kukri",
-    "weapons/dagger_nightblade",
-    "weapons/hammer_gilded",
-    "weapons/hammer_mallet",
-    "weapons/staff_emerald",
-    "weapons/sword_knight",
-    "weapons/sword_sunblade",
-    "weapons/warhammer_iron",
-    "weapons/warhammer_spiked"
+    "keys/key_bronze_ornate"
   ],
   "assets": [
     {
@@ -440,7 +425,7 @@
     },
     {
       "key": "fountains/fountain_chalice_health",
-      "source_current": true,
+      "source_current": false,
       "inputs": "6821a5dfbfae2f180a1730c2139ed68310f55e0b7cab794db6a3760e1ac2e7d3",
       "triangles": 1280,
       "materials": 3,
@@ -459,12 +444,12 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_chalice_health.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_chalice_health/lineup.png"
     },
     {
       "key": "fountains/fountain_chalice_mana",
-      "source_current": true,
+      "source_current": false,
       "inputs": "5ef4441ca02ab05e12f58a149991696fa9434af51f0b0b94435889c0c7866beb",
       "triangles": 1280,
       "materials": 3,
@@ -483,12 +468,12 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_chalice_mana.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_chalice_mana/lineup.png"
     },
     {
       "key": "fountains/fountain_font_health",
-      "source_current": true,
+      "source_current": false,
       "inputs": "552898e7b479fa3dd6c89b59a43fa977f05c6e24d4dd3f0d5556e75f81f45b09",
       "triangles": 1648,
       "materials": 2,
@@ -507,12 +492,12 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_font_health.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_font_health/lineup.png"
     },
     {
       "key": "fountains/fountain_font_mana",
-      "source_current": true,
+      "source_current": false,
       "inputs": "1ee5020e13fedbce49734cd73123147724eddee40ccb7f89ef26e805030e9004",
       "triangles": 1648,
       "materials": 2,
@@ -531,12 +516,12 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_font_mana.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_font_mana/lineup.png"
     },
     {
       "key": "fountains/fountain_spring_health",
-      "source_current": true,
+      "source_current": false,
       "inputs": "7007f1c695a2586f98d89ef38c81ed71764c17161f787b31272985ee82f9f76d",
       "triangles": 2032,
       "materials": 3,
@@ -555,12 +540,12 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_spring_health.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_spring_health/lineup.png"
     },
     {
       "key": "fountains/fountain_spring_mana",
-      "source_current": true,
+      "source_current": false,
       "inputs": "23a1c8f51a3aecbcf27c0f703fd85d6d741152c8f3d1a57d3b7755653373f2d1",
       "triangles": 2032,
       "materials": 3,
@@ -579,12 +564,12 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_spring_mana.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_spring_mana/lineup.png"
     },
     {
       "key": "fountains/fountain_tiered_health",
-      "source_current": true,
+      "source_current": false,
       "inputs": "0e3d37a821425b146af5c1c6e7a1d2de0035ebb67d4ef40362ab78092486453f",
       "triangles": 1164,
       "materials": 2,
@@ -603,12 +588,12 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_tiered_health.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_tiered_health/lineup.png"
     },
     {
       "key": "fountains/fountain_tiered_mana",
-      "source_current": true,
+      "source_current": false,
       "inputs": "f47677f7169460735f0dbe8444b908eef52529719240442b6de159951a287e2f",
       "triangles": 1164,
       "materials": 2,
@@ -627,7 +612,7 @@
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],
       "export": "res://assets/custom-props/fountains/fountain_tiered_mana.glb",
-      "export_verified": true,
+      "export_verified": false,
       "lineup": "fountains/fountain_tiered_mana/lineup.png"
     },
     {
@@ -4254,223 +4239,97 @@
     },
     {
       "key": "weapons/axe_bearded",
-      "source_current": false,
-      "inputs": "3dfc3ebd4d1e8d216bac325e0d9501ab8897920dc386e2a7cb35a6b1122794fe",
-      "triangles": 1740,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "brass": "gold_brass",
-          "steel": "metal_steel",
-          "wood": "leather_wood",
-          "copper": "leather_copper",
-          "dark_iron": "iron_dark_iron",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source_current": true,
+      "inputs": "885aa021a013cfe027a7444114fda061fd86e02d50a06c59b6860e226b157add",
+      "triangles": 700,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 12,
-        "boundary_edges": 42,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.02950973006992531
+        "signed_volume": 0.0349691494461342
       },
-      "warnings": [
-        "12 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/axe/axe_bearded.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/axe_bearded/lineup.png"
     },
     {
       "key": "weapons/axe_executioner",
-      "source_current": false,
-      "inputs": "c5a4209274632bebc01ae6d54fda2e64d0f08c29134b78583bc6188f0edaa2a0",
-      "triangles": 1739,
+      "source_current": true,
+      "inputs": "be29a0b8dac957aa4a363a265a5a8c11c619b69aaff7bc4f8e476ba3786f3b89",
+      "triangles": 748,
       "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "gold": "gold_gold",
-          "wood": "leather_wood",
-          "copper": "leather_copper",
-          "dark_iron": "iron_dark_iron",
-          "steel": "metal_steel",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 12,
-        "boundary_edges": 45,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.028669269400963263
+        "signed_volume": 0.03624115934768825
       },
-      "warnings": [
-        "12 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 45 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/axe/axe_executioner.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/axe_executioner/lineup.png"
     },
     {
       "key": "weapons/battleaxe_gilded",
-      "source_current": false,
-      "inputs": "636003e78e497506c864d8e9cfaa3539ca4ad9be7c6e4393ceb0aba0668495ef",
-      "triangles": 2818,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "gold": "gold_gold",
-          "wood": "leather_wood",
-          "copper": "leather_copper",
-          "dark_iron": "iron_dark_iron",
-          "steel": "metal_steel",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source_current": true,
+      "inputs": "eb4d7871e64c220c786bd41a5cb166fe7f6ea484931af676a2881ddc31ccdd05",
+      "triangles": 1280,
+      "materials": 4,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 14,
-        "boundary_edges": 42,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.1922473725808914
+        "signed_volume": 0.1279840121762826
       },
-      "warnings": [
-        "14 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/battleaxe/battleaxe_gilded.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/battleaxe_gilded/lineup.png"
     },
     {
       "key": "weapons/battleaxe_iron",
-      "source_current": false,
-      "inputs": "2f3903ffdb70a9f03b44db7b0760392e5434cc83d5f4cce1e9a7338214d4beab",
-      "triangles": 2818,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "brass": "gold_brass",
-          "steel": "metal_steel",
-          "wood": "leather_wood",
-          "copper": "leather_copper",
-          "dark_iron": "iron_dark_iron",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source_current": true,
+      "inputs": "3e62359e17c913e858fe7a8182bdaee7a1597196b67effdeeb93c9f0a3195229",
+      "triangles": 930,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 14,
-        "boundary_edges": 42,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.19081131055688347
+        "signed_volume": 0.10766481262096494
       },
-      "warnings": [
-        "14 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/battleaxe/battleaxe_iron.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/battleaxe_iron/lineup.png"
     },
     {
-      "key": "weapons/broadsword_gilded",
-      "source_current": false,
-      "inputs": "1db8b163bc57ce357c07bf4a5a14639fac566e6a6723a8f523905d37039f7065",
-      "triangles": 536,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "crimson": "surface_crimson",
-          "gold": "gold_gold",
-          "wood": "leather_wood",
-          "silver": "metal_silver",
-          "steel": "metal_steel"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
-      "topology": {
-        "components": 9,
-        "boundary_edges": 42,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.06553934063007535
-      },
-      "warnings": [
-        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
-      "export": "res://assets/custom-items/weapons/broadsword/broadsword_gilded.glb",
-      "export_verified": false,
-      "lineup": "weapons/broadsword_gilded/lineup.png"
-    },
-    {
-      "key": "weapons/broadsword_iron",
-      "source_current": false,
-      "inputs": "7818886e9111919f89a19c74c80d4a59c813bdc6bfce96db18fa3db4d80ec493",
-      "triangles": 536,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "dark_iron": "iron_dark_iron",
-          "silver": "metal_silver",
-          "steel": "metal_steel",
-          "wood": "leather_wood",
-          "copper": "leather_copper"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
-      "topology": {
-        "components": 9,
-        "boundary_edges": 42,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.06520248304201304
-      },
-      "warnings": [
-        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
-      "export": "res://assets/custom-items/weapons/broadsword/broadsword_iron.glb",
-      "export_verified": false,
-      "lineup": "weapons/broadsword_iron/lineup.png"
-    },
-    {
       "key": "weapons/broadsword_steel",
-      "source_current": false,
-      "inputs": "92738f65ca2a373da7c8392c48117cfc7e5f6a2f255b04e143ec64854c504809",
-      "triangles": 1420,
+      "source_current": true,
+      "inputs": "b9feb7dc6e3519e26480d5135915ff4f625612f61b2378533ee2eb861a1cc897",
+      "triangles": 536,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4481,18 +4340,18 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.01829176106066739
+        "signed_volume": 0.03369399698601976
       },
       "warnings": [],
-      "export": "res://assets/custom-items/weapons/arsenal/broadsword_steel.glb",
-      "export_verified": false,
+      "export": "res://assets/custom-items/weapons/greatsword/broadsword_steel.glb",
+      "export_verified": true,
       "lineup": "weapons/broadsword_steel/lineup.png"
     },
     {
-      "key": "weapons/club_steel",
-      "source_current": false,
-      "inputs": "cedd78adca260ab2cee877080dab012b4b04d6b0ce8d6bf65260464e7be4c806",
-      "triangles": 1408,
+      "key": "weapons/claymore_iron",
+      "source_current": true,
+      "inputs": "1d8c2f52ea5931d7839e504c4703c7bac1bef2cd5139a9b5dda82f56dfca7620",
+      "triangles": 670,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4503,19 +4362,41 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.03461798025836866
+        "signed_volume": 0.056841461080094635
       },
       "warnings": [],
-      "export": "res://assets/custom-items/weapons/arsenal/club_steel.glb",
-      "export_verified": false,
+      "export": "res://assets/custom-items/weapons/greatsword/claymore_iron.glb",
+      "export_verified": true,
+      "lineup": "weapons/claymore_iron/lineup.png"
+    },
+    {
+      "key": "weapons/club_steel",
+      "source_current": true,
+      "inputs": "87da55398aa374f2a036e54d2f444b183bd2fd57187877849285f41245c6d452",
+      "triangles": 652,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.028811459817238108
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/club/club_steel.glb",
+      "export_verified": true,
       "lineup": "weapons/club_steel/lineup.png"
     },
     {
       "key": "weapons/club_wood_old",
-      "source_current": false,
-      "inputs": "6046f660fe1082911539793e631a7c9f66d809a9ca6895a896945974f430bc30",
-      "triangles": 1080,
-      "materials": 2,
+      "source_current": true,
+      "inputs": "ca25679195fa191fa0babc0b4e6b16689796197d55d22e25ef6fdea36f02d59d",
+      "triangles": 354,
+      "materials": 1,
       "source": null,
       "surface": null,
       "topology_policy": "closed_surface",
@@ -4525,124 +4406,84 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.03938855496088783
+        "signed_volume": 0.027869262382825916
       },
       "warnings": [],
-      "export": "res://assets/custom-items/weapons/arsenal/club_wood_old.glb",
-      "export_verified": false,
+      "export": "res://assets/custom-items/weapons/club/club_wood_old.glb",
+      "export_verified": true,
       "lineup": "weapons/club_wood_old/lineup.png"
     },
     {
       "key": "weapons/crossbow_gilded",
-      "source_current": false,
-      "inputs": "c9aa430f57d640039b4bbbf8a6251199cc359659424a2812b8d1c724111593e3",
-      "triangles": 248,
-      "materials": 4,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "copper": "leather_copper",
-          "gold": "gold_gold",
-          "crimson": "surface_crimson",
-          "wood": "leather_wood",
-          "steel": "metal_steel",
-          "dark_iron": "iron_dark_iron",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "closed_assembly",
+      "source_current": true,
+      "inputs": "09d1509b86de21d03073619ff314448ea4dae15386d626b559a76bd19faa17df",
+      "triangles": 1314,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 16,
+        "components": 1,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.06279078122358704
+        "signed_volume": 0.0458238081434239
       },
-      "warnings": [
-        "16 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/crossbow/crossbow_gilded.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/crossbow_gilded/lineup.png"
     },
     {
-      "key": "weapons/dagger_kukri",
-      "source_current": false,
-      "inputs": "9dcc562ddc340393d363677d29f0161f5d7bdb8c2bf323467aa647aa71fdd66b",
-      "triangles": 534,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "dark_iron": "iron_dark_iron",
-          "silver": "metal_silver",
-          "steel": "metal_steel",
-          "wood": "leather_wood",
-          "copper": "leather_copper"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "key": "weapons/dagger_dirk",
+      "source_current": true,
+      "inputs": "e1af4c7624f3f0310e5bc335587e6ec6f7c491d1bb73b7c7015c04f555d6acfb",
+      "triangles": 344,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 10,
-        "boundary_edges": 48,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.011530452718079379
+        "signed_volume": 0.014554628142459452
       },
-      "warnings": [
-        "10 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 48 boundary_edges; review the preserved original geometry"
-      ],
-      "export": "res://assets/custom-items/weapons/dagger/dagger_kukri.glb",
-      "export_verified": false,
-      "lineup": "weapons/dagger_kukri/lineup.png"
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/dagger/dagger_dirk.glb",
+      "export_verified": true,
+      "lineup": "weapons/dagger_dirk/lineup.png"
     },
     {
-      "key": "weapons/dagger_nightblade",
-      "source_current": false,
-      "inputs": "651e49855db898b782577d5188f8be9d7fe6bf2607a6e5d8df6d1cf23e0a3ffe",
-      "triangles": 534,
-      "materials": 4,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "crimson": "surface_crimson",
-          "gold": "gold_gold",
-          "bark": "leather_bark",
-          "blue_steel": "metal_blue_steel",
-          "dark_iron": "iron_dark_iron"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "key": "weapons/dagger_fang",
+      "source_current": true,
+      "inputs": "911f7a84535ccf5369b2ba277bfaa11791102a506f53fcd375ce3ee8dd8e8131",
+      "triangles": 492,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 10,
-        "boundary_edges": 48,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.010825615656402103
+        "signed_volume": 0.014075892503970554
       },
-      "warnings": [
-        "10 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 48 boundary_edges; review the preserved original geometry"
-      ],
-      "export": "res://assets/custom-items/weapons/dagger/dagger_nightblade.glb",
-      "export_verified": false,
-      "lineup": "weapons/dagger_nightblade/lineup.png"
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/dagger/dagger_fang.glb",
+      "export_verified": true,
+      "lineup": "weapons/dagger_fang/lineup.png"
     },
     {
       "key": "weapons/dagger_short",
-      "source_current": false,
-      "inputs": "047a62ac92b2d20b0e172a1012eb7bf71e9bfd333f8b069137260fe7d7ee64d4",
-      "triangles": 1348,
+      "source_current": true,
+      "inputs": "fb86188c32491d2f65373a79ab09eafea6f2e1e02c357be028876f9c99734fb4",
+      "triangles": 334,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4653,18 +4494,18 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.0054212289472577065
+        "signed_volume": 0.007984613627304429
       },
       "warnings": [],
-      "export": "res://assets/custom-items/weapons/arsenal/dagger_short.glb",
-      "export_verified": false,
+      "export": "res://assets/custom-items/weapons/dagger/dagger_short.glb",
+      "export_verified": true,
       "lineup": "weapons/dagger_short/lineup.png"
     },
     {
-      "key": "weapons/greatsword_steel",
-      "source_current": false,
-      "inputs": "3f5b869606500c194b17f8d0e21ea39ccf6af477faa8aa5d2d279227be1d7a29",
-      "triangles": 1376,
+      "key": "weapons/greatblade_curved",
+      "source_current": true,
+      "inputs": "f0d8dc3017e284ba4bc59a82565615cfebc32a0d8ea6b7d51c5446c6d25df8cd",
+      "triangles": 664,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4675,18 +4516,84 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.023690561845629145
+        "signed_volume": 0.025722257020465062
       },
       "warnings": [],
-      "export": "res://assets/custom-items/weapons/arsenal/greatsword_steel.glb",
-      "export_verified": false,
+      "export": "res://assets/custom-items/weapons/greatsword/greatblade_curved.glb",
+      "export_verified": true,
+      "lineup": "weapons/greatblade_curved/lineup.png"
+    },
+    {
+      "key": "weapons/greatsword_steel",
+      "source_current": true,
+      "inputs": "b67f6e1b479c5f02012d2b72f264337bfdca3b6258cad9f268428e805ea33193",
+      "triangles": 740,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.053114822313343725
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/greatsword/greatsword_steel.glb",
+      "export_verified": true,
       "lineup": "weapons/greatsword_steel/lineup.png"
     },
     {
+      "key": "weapons/greatsword_winged",
+      "source_current": true,
+      "inputs": "74ce0b88285a14b3fae3307d10540238b3246ffa059349a148843df962b8da84",
+      "triangles": 700,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.06166564945253195
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/greatsword/greatsword_winged.glb",
+      "export_verified": true,
+      "lineup": "weapons/greatsword_winged/lineup.png"
+    },
+    {
+      "key": "weapons/greatsword_wooden",
+      "source_current": true,
+      "inputs": "26a11d197e9ca2537d4f528ca5354b7e99d511608894d526ddbeb6caca9e4c64",
+      "triangles": 556,
+      "materials": 1,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03650769764908398
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/greatsword/greatsword_wooden.glb",
+      "export_verified": true,
+      "lineup": "weapons/greatsword_wooden/lineup.png"
+    },
+    {
       "key": "weapons/halberd_steel",
-      "source_current": false,
-      "inputs": "b5d0147981944098b919e58cf15bb560e0d4f9e29bc729ecb69e9d12e688c764",
-      "triangles": 2322,
+      "source_current": true,
+      "inputs": "718baf093bc59f4c4c20d1c4c3f6a6e5c20380fb88b78392424ade3e8a4233c6",
+      "triangles": 948,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4697,87 +4604,18 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.037439371198947684
+        "signed_volume": 0.0603850339249157
       },
       "warnings": [],
-      "export": "res://assets/custom-items/weapons/arsenal/halberd_steel.glb",
-      "export_verified": false,
+      "export": "res://assets/custom-items/weapons/polearm/halberd_steel.glb",
+      "export_verified": true,
       "lineup": "weapons/halberd_steel/lineup.png"
     },
     {
-      "key": "weapons/hammer_gilded",
-      "source_current": false,
-      "inputs": "1149088424311bc8f81e760297073bb9098ad41bf9bd91764ac8f670b693f9fe",
-      "triangles": 594,
-      "materials": 2,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "gold": "gold_gold",
-          "wood": "leather_wood",
-          "copper": "leather_copper",
-          "steel": "metal_steel",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
-      "topology": {
-        "components": 7,
-        "boundary_edges": 42,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.1252954070987253
-      },
-      "warnings": [
-        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
-      "export": "res://assets/custom-items/weapons/hammer/hammer_gilded.glb",
-      "export_verified": false,
-      "lineup": "weapons/hammer_gilded/lineup.png"
-    },
-    {
       "key": "weapons/hammer_mallet",
-      "source_current": false,
-      "inputs": "038a21fd6b208e3b4fa47bf29db364aabcba323a99a0f5a460444d0cbcbd5c4a",
-      "triangles": 594,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "dark_iron": "iron_dark_iron",
-          "steel": "metal_steel",
-          "wood": "leather_wood",
-          "copper": "leather_copper"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
-      "topology": {
-        "components": 7,
-        "boundary_edges": 42,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.1252954070987253
-      },
-      "warnings": [
-        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
-      "export": "res://assets/custom-items/weapons/hammer/hammer_mallet.glb",
-      "export_verified": false,
-      "lineup": "weapons/hammer_mallet/lineup.png"
-    },
-    {
-      "key": "weapons/morning_star_iron",
-      "source_current": false,
-      "inputs": "3a1294e824cbeb467e8b6ee6b2db38894e37580e4be52703087678fece5808d8",
-      "triangles": 1650,
+      "source_current": true,
+      "inputs": "a093e0b7f753023074773a67bb2041c55961782f6cbf2b6fe8d9d93a79f4416b",
+      "triangles": 712,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4788,18 +4626,84 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.0313720632016359
+        "signed_volume": 0.06988692000252562
       },
       "warnings": [],
-      "export": "res://assets/custom-items/weapons/arsenal/morning_star_iron.glb",
-      "export_verified": false,
+      "export": "res://assets/custom-items/weapons/hammer/hammer_mallet.glb",
+      "export_verified": true,
+      "lineup": "weapons/hammer_mallet/lineup.png"
+    },
+    {
+      "key": "weapons/longblade_crescent",
+      "source_current": true,
+      "inputs": "6b8dca6db104be0f072fc27095043ede00a9877d93300ffa767ca6ace43280c6",
+      "triangles": 822,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.027544963874398993
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/greatsword/longblade_crescent.glb",
+      "export_verified": true,
+      "lineup": "weapons/longblade_crescent/lineup.png"
+    },
+    {
+      "key": "weapons/mace_gilded",
+      "source_current": true,
+      "inputs": "f05e1ad63fdc79d1304aca1bb2865ab8cc3b153570f965c94286b84ecc6658cf",
+      "triangles": 864,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.043514349636116896
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/mace/mace_gilded.glb",
+      "export_verified": true,
+      "lineup": "weapons/mace_gilded/lineup.png"
+    },
+    {
+      "key": "weapons/morning_star_iron",
+      "source_current": true,
+      "inputs": "0b655f329dc6679d45b4507a151100fe4f88dc639bce28d8890343467d7be62a",
+      "triangles": 1054,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.03826948231474867
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/mace/morning_star_iron.glb",
+      "export_verified": true,
       "lineup": "weapons/morning_star_iron/lineup.png"
     },
     {
       "key": "weapons/rapier_steel",
-      "source_current": false,
-      "inputs": "6f0ec84831da5b6add9498d4bfe9277719e251de0216a0f6d02408af01b76530",
-      "triangles": 1750,
+      "source_current": true,
+      "inputs": "61bc07211319fc1403533ddf76d2610273d6b984d4d701bf7acea7781d0bb677",
+      "triangles": 568,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4810,18 +4714,18 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.007771656510575871
+        "signed_volume": 0.012248751644946857
       },
       "warnings": [],
-      "export": "res://assets/custom-items/weapons/arsenal/rapier_steel.glb",
-      "export_verified": false,
+      "export": "res://assets/custom-items/weapons/sword/rapier_steel.glb",
+      "export_verified": true,
       "lineup": "weapons/rapier_steel/lineup.png"
     },
     {
       "key": "weapons/saber_steel",
-      "source_current": false,
-      "inputs": "683b4f1ec849545c1cb3faf92903d96bd3173aa8f896e3d224b4afd433da35c1",
-      "triangles": 1542,
+      "source_current": true,
+      "inputs": "425348cdbcbfdfb15af8e7c83291b806224f84ce54db40a78e4d09fa0c5a02c1",
+      "triangles": 556,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4832,18 +4736,18 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.011241736454912728
+        "signed_volume": 0.015920806224145396
       },
       "warnings": [],
-      "export": "res://assets/custom-items/weapons/arsenal/saber_steel.glb",
-      "export_verified": false,
+      "export": "res://assets/custom-items/weapons/sword/saber_steel.glb",
+      "export_verified": true,
       "lineup": "weapons/saber_steel/lineup.png"
     },
     {
       "key": "weapons/scythe_iron",
-      "source_current": false,
-      "inputs": "a6b2cfb673d152e4a827495efb6a7a21b1c81aa48f623568b98d82d3fa4b2b6f",
-      "triangles": 2050,
+      "source_current": true,
+      "inputs": "bcefb6ea12d89f8e90bc8e808fe9c22e9d35536c2f84c9a92272cc20f7e04d65",
+      "triangles": 918,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4854,18 +4758,18 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.026911741436715878
+        "signed_volume": 0.05262421402015018
       },
       "warnings": [],
-      "export": "res://assets/custom-items/weapons/arsenal/scythe_iron.glb",
-      "export_verified": false,
+      "export": "res://assets/custom-items/weapons/polearm/scythe_iron.glb",
+      "export_verified": true,
       "lineup": "weapons/scythe_iron/lineup.png"
     },
     {
       "key": "weapons/spear_steel",
-      "source_current": false,
-      "inputs": "4f580e6005db294dc1f3acd838b2fe4955dabeefc5cdebe0accebc6efe79a09c",
-      "triangles": 1944,
+      "source_current": true,
+      "inputs": "ff163bb536cb7fa03312a5484ccdf2b7cd788c9c191fbb3a901fcca2f7316169",
+      "triangles": 884,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4876,53 +4780,40 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.01947839481313012
+        "signed_volume": 0.05050412043898228
       },
       "warnings": [],
-      "export": "res://assets/custom-items/weapons/arsenal/spear_steel.glb",
-      "export_verified": false,
+      "export": "res://assets/custom-items/weapons/polearm/spear_steel.glb",
+      "export_verified": true,
       "lineup": "weapons/spear_steel/lineup.png"
     },
     {
       "key": "weapons/staff_archmage",
-      "source_current": false,
-      "inputs": "57a48fa4b07da0fd86e97f9c6e90c2e1640459b7ce6d203ea00aa9cd7a69739a",
-      "triangles": 328,
-      "materials": 4,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "gold": "gold_gold",
-          "copper": "leather_copper",
-          "wood": "leather_wood",
-          "dark_iron": "iron_dark_iron",
-          "cobalt": "surface_cobalt",
-          "sky_blue": "surface_sky_blue"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "closed_assembly",
+      "source_current": true,
+      "inputs": "0418ab0f7467b1c5f51c3b1dfa43884e08abcbc11e431dc315b6eb5d44db1ad8",
+      "triangles": 948,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 4,
+        "components": 1,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.051365645563160804
+        "signed_volume": 0.046287059701697
       },
-      "warnings": [
-        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/staff/staff_archmage.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/staff_archmage/lineup.png"
     },
     {
       "key": "weapons/staff_bone",
-      "source_current": false,
-      "inputs": "d92c38dd0382735fee419e3e13375ea45efdd5ebe960a7e7f97e56fee8b048fb",
-      "triangles": 3244,
+      "source_current": true,
+      "inputs": "ff6ec7f6a3d6f9fdb72a5ed91ae12222b7fdeb702f02ccb09747848c4ce7306a",
+      "triangles": 1104,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -4933,18 +4824,18 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.019648706458357704
+        "signed_volume": 0.040245997800572364
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/staff/staff_bone.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/staff_bone/lineup.png"
     },
     {
       "key": "weapons/staff_crooked",
-      "source_current": false,
-      "inputs": "e3c5c8f537339e0ddc39a1bbbc63bb785e1245f24e35784a32c67afed8066892",
-      "triangles": 926,
+      "source_current": true,
+      "inputs": "517628b7599a8337a4b29c47d96adbe190c72edd0b134d3ceb2b1ce04ab41930",
+      "triangles": 1026,
       "materials": 1,
       "source": null,
       "surface": null,
@@ -4955,54 +4846,40 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.019558247763879853
+        "signed_volume": 0.024127481587590732
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/staff/staff_crooked.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/staff_crooked/lineup.png"
     },
     {
       "key": "weapons/staff_emerald",
-      "source_current": false,
-      "inputs": "6fdc356b278ad2bed6e5ee434a17851724caeb4cf608c679a6e3b3445b70d344",
-      "triangles": 366,
-      "materials": 4,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "gold": "gold_gold",
-          "copper": "leather_copper",
-          "wood": "leather_wood",
-          "dark_iron": "iron_dark_iron",
-          "lime": "surface_lime"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source_current": true,
+      "inputs": "46e8429a2b27aa581bc30876921c63765a98e0c1c3c6f3c516c40379974ec364",
+      "triangles": 512,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 4,
-        "boundary_edges": 22,
-        "nonmanifold_edges": 6,
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.07807142870122373
+        "signed_volume": 0.03155378947967138
       },
-      "warnings": [
-        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 22 boundary_edges; review the preserved original geometry",
-        "Authored surface exception: 6 nonmanifold_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/staff/staff_emerald.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/staff_emerald/lineup.png"
     },
     {
       "key": "weapons/staff_horned",
-      "source_current": false,
-      "inputs": "1a1d754dfa47aeeec4d4f4762f1f0b6c096229d88111a57c369a0b964a2945fa",
-      "triangles": 2390,
+      "source_current": true,
+      "inputs": "c29bab807f5f95f9911a132fe2f3e1ea25d4b544da1b2e86cda1195662073f07",
+      "triangles": 1616,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -5013,18 +4890,18 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.028980395436807166
+        "signed_volume": 0.05205494541307288
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/staff/staff_horned.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/staff_horned/lineup.png"
     },
     {
       "key": "weapons/staff_iron",
-      "source_current": false,
-      "inputs": "4356cd31c7cfd5f0888c8bb9caa99a80fde9acf1d62c6a3164ee0a9d380f056c",
-      "triangles": 1320,
+      "source_current": true,
+      "inputs": "53903939275475f09151865de32801d4f96985819864ce05f5ecaf9917967c54",
+      "triangles": 920,
       "materials": 3,
       "source": null,
       "surface": null,
@@ -5035,109 +4912,18 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.021301988704553455
+        "signed_volume": 0.043534964445055925
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/staff/staff_iron.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/staff_iron/lineup.png"
     },
     {
       "key": "weapons/sword_knight",
-      "source_current": false,
-      "inputs": "b38db852a384bb14261c3e037888693d42db159321bc1ab82cbf460054a1465f",
-      "triangles": 536,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "dark_iron": "iron_dark_iron",
-          "silver": "metal_silver",
-          "steel": "metal_steel",
-          "wood": "leather_wood",
-          "copper": "leather_copper"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
-      "topology": {
-        "components": 9,
-        "boundary_edges": 42,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.02631478754037205
-      },
-      "warnings": [
-        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
-      "export": "res://assets/custom-items/weapons/sword/sword_knight.glb",
-      "export_verified": false,
-      "lineup": "weapons/sword_knight/lineup.png"
-    },
-    {
-      "key": "weapons/sword_sunblade",
-      "source_current": false,
-      "inputs": "5130f0ebf770ccaf736bf1fa9feea4e7a83c0867ce10148fadedae5ce32642ba",
-      "triangles": 536,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "crimson": "surface_crimson",
-          "gold": "gold_gold",
-          "wood": "leather_wood",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
-      "topology": {
-        "components": 9,
-        "boundary_edges": 42,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.02631478769972163
-      },
-      "warnings": [
-        "9 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
-      "export": "res://assets/custom-items/weapons/sword/sword_sunblade.glb",
-      "export_verified": false,
-      "lineup": "weapons/sword_sunblade/lineup.png"
-    },
-    {
-      "key": "weapons/wand_bone",
-      "source_current": false,
-      "inputs": "b6d7a54a335419f67f24e5a525a1806316f16e11ee990f1e18eef34443ff4b97",
-      "triangles": 1382,
-      "materials": 1,
-      "source": null,
-      "surface": null,
-      "topology_policy": "closed_surface",
-      "topology": {
-        "components": 1,
-        "boundary_edges": 0,
-        "nonmanifold_edges": 0,
-        "inconsistent_edges": 0,
-        "duplicate_faces": 0,
-        "signed_volume": 0.0076418409836374645
-      },
-      "warnings": [],
-      "export": "res://assets/custom-items/weapons/wand/wand_bone.glb",
-      "export_verified": false,
-      "lineup": "weapons/wand_bone/lineup.png"
-    },
-    {
-      "key": "weapons/wand_carved",
-      "source_current": false,
-      "inputs": "b579d16fc08d46376f8c8195ceaa0c9cfb5c3a95bd4d70187a484d8392a76b72",
-      "triangles": 840,
+      "source_current": true,
+      "inputs": "d0b10beb66a9ea42bf1bc66c704e94956a4f9c1dee2eac1e3e2bbacd55087f15",
+      "triangles": 486,
       "materials": 2,
       "source": null,
       "surface": null,
@@ -5148,53 +4934,40 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.0065531290765488736
+        "signed_volume": 0.030684690936243732
       },
       "warnings": [],
-      "export": "res://assets/custom-items/weapons/wand/wand_carved.glb",
-      "export_verified": false,
-      "lineup": "weapons/wand_carved/lineup.png"
+      "export": "res://assets/custom-items/weapons/sword/sword_knight.glb",
+      "export_verified": true,
+      "lineup": "weapons/sword_knight/lineup.png"
     },
     {
-      "key": "weapons/wand_celestial",
-      "source_current": false,
-      "inputs": "8b71b2b69aee3d2044c6bb8b485509bd3d1f11c8d2fec71209f6215c3cd651a8",
-      "triangles": 328,
+      "key": "weapons/sword_sunblade",
+      "source_current": true,
+      "inputs": "bc283de5c180a8987276f988bb8587d59da49f843cbe7938b404efb319af521b",
+      "triangles": 668,
       "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "gold": "gold_gold",
-          "copper": "leather_copper",
-          "wood": "leather_wood",
-          "bark": "leather_bark",
-          "cobalt": "surface_cobalt",
-          "sky_blue": "surface_sky_blue"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "closed_assembly",
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 4,
+        "components": 1,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.011522096818500785
+        "signed_volume": 0.033002045468699
       },
-      "warnings": [
-        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
-      ],
-      "export": "res://assets/custom-items/weapons/wand/wand_celestial.glb",
-      "export_verified": false,
-      "lineup": "weapons/wand_celestial/lineup.png"
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/sword/sword_sunblade.glb",
+      "export_verified": true,
+      "lineup": "weapons/sword_sunblade/lineup.png"
     },
     {
-      "key": "weapons/wand_crooked",
-      "source_current": false,
-      "inputs": "5ba85f9aba03c9d1179b06f72e7197c29074f2d268f00acc8f3617cfbf29a049",
-      "triangles": 1110,
+      "key": "weapons/wand_bone",
+      "source_current": true,
+      "inputs": "09019dd6f7e1bdaa7ae8e1f5d5b59893b53152dc8317c8a42a3263cd1edc8782",
+      "triangles": 762,
       "materials": 1,
       "source": null,
       "surface": null,
@@ -5205,18 +4978,40 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.004937019130051404
+        "signed_volume": 0.014026425052858879
       },
       "warnings": [],
-      "export": "res://assets/custom-items/weapons/wand/wand_crooked.glb",
-      "export_verified": false,
-      "lineup": "weapons/wand_crooked/lineup.png"
+      "export": "res://assets/custom-items/weapons/wand/wand_bone.glb",
+      "export_verified": true,
+      "lineup": "weapons/wand_bone/lineup.png"
     },
     {
-      "key": "weapons/wand_iron",
-      "source_current": false,
-      "inputs": "5717161069868a7c4778a648e3da2eadad9e94d3446f7b5a88926ec0d08e3ffe",
-      "triangles": 1582,
+      "key": "weapons/wand_carved",
+      "source_current": true,
+      "inputs": "acb6c7b6e50acb2313add4b0499c6833889b859f7447e40ccb6f22d96b2652f6",
+      "triangles": 560,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.009122839357915536
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/wand/wand_carved.glb",
+      "export_verified": true,
+      "lineup": "weapons/wand_carved/lineup.png"
+    },
+    {
+      "key": "weapons/wand_celestial",
+      "source_current": true,
+      "inputs": "73cf9c28d900de343104b3632a1ae23aefe3805e4172afb3578bb035869251d2",
+      "triangles": 516,
       "materials": 3,
       "source": null,
       "surface": null,
@@ -5227,116 +5022,121 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.008875810714293901
+        "signed_volume": 0.010825139755720721
       },
       "warnings": [],
-      "export": "res://assets/custom-items/weapons/wand/wand_iron.glb",
-      "export_verified": false,
-      "lineup": "weapons/wand_iron/lineup.png"
+      "export": "res://assets/custom-items/weapons/wand/wand_celestial.glb",
+      "export_verified": true,
+      "lineup": "weapons/wand_celestial/lineup.png"
     },
     {
-      "key": "weapons/wand_ruby",
-      "source_current": false,
-      "inputs": "3a44dc92cd24fe6773ddc9e59a26ac46afaf6c2af6354efba30384168074b301",
-      "triangles": 328,
-      "materials": 4,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "crimson": "surface_crimson",
-          "gold": "gold_gold",
-          "copper": "leather_copper",
-          "wood": "leather_wood",
-          "dark_iron": "iron_dark_iron"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "closed_assembly",
+      "key": "weapons/wand_crooked",
+      "source_current": true,
+      "inputs": "dcf6bfcf5700978b0f6abf3cf80c9602444f440822d0731b1e280b268deefd4c",
+      "triangles": 666,
+      "materials": 1,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 4,
+        "components": 1,
         "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.011522096818500789
+        "signed_volume": 0.00686471661172432
       },
-      "warnings": [
-        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
-      ],
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/wand/wand_crooked.glb",
+      "export_verified": true,
+      "lineup": "weapons/wand_crooked/lineup.png"
+    },
+    {
+      "key": "weapons/wand_iron",
+      "source_current": true,
+      "inputs": "6e6383129fabbce1a86fedd681d147f99846252749017f3e7a6eaeb64966dc4b",
+      "triangles": 614,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.00968994842553426
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/wand/wand_iron.glb",
+      "export_verified": true,
+      "lineup": "weapons/wand_iron/lineup.png"
+    },
+    {
+      "key": "weapons/wand_ruby",
+      "source_current": true,
+      "inputs": "84d119a9d9caaa63f9b66e8bb71b0667ec8c96ec6c11488c068156926b4f7bb9",
+      "triangles": 284,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.011973656415784848
+      },
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/wand/wand_ruby.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/wand_ruby/lineup.png"
     },
     {
-      "key": "weapons/warhammer_iron",
-      "source_current": false,
-      "inputs": "49befea678ecacfcc86038a78f37d7fc31e842522376b99b89551a2539a0023d",
-      "triangles": 594,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "dark_iron": "iron_dark_iron",
-          "steel": "metal_steel",
-          "wood": "leather_wood",
-          "copper": "leather_copper",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "key": "weapons/warhammer_sledge",
+      "source_current": true,
+      "inputs": "f663920c1af555c21a6976121226f51763fd93bb9ae0a4bbb16b7da46049eecc",
+      "triangles": 902,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 7,
-        "boundary_edges": 42,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.33615834129145
+        "signed_volume": 0.17662610690000968
       },
-      "warnings": [
-        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
-      "export": "res://assets/custom-items/weapons/warhammer/warhammer_iron.glb",
-      "export_verified": false,
-      "lineup": "weapons/warhammer_iron/lineup.png"
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/warhammer/warhammer_sledge.glb",
+      "export_verified": true,
+      "lineup": "weapons/warhammer_sledge/lineup.png"
     },
     {
       "key": "weapons/warhammer_spiked",
-      "source_current": false,
-      "inputs": "75aa9677896d3e85f786ce72b42514257e9e87cc9883d4dc08581685716d2bd8",
-      "triangles": 594,
-      "materials": 3,
-      "source": "source.glb",
-      "surface": {
-        "palette": "studio_grid",
-        "slots": {
-          "copper": "leather_copper",
-          "brass": "gold_brass",
-          "wood": "leather_wood",
-          "dark_iron": "iron_dark_iron",
-          "steel": "metal_steel",
-          "silver": "metal_silver"
-        },
-        "repair": "boundaries"
-      },
-      "topology_policy": "authored_assembly",
+      "source_current": true,
+      "inputs": "2418965c321ade3dddcc33379a85a44b1f87b7fa3b6c795f0deb646cd4adc323",
+      "triangles": 958,
+      "materials": 2,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
       "topology": {
-        "components": 7,
-        "boundary_edges": 42,
+        "components": 1,
+        "boundary_edges": 0,
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.2932445736025548
+        "signed_volume": 0.18011709834472253
       },
-      "warnings": [
-        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts",
-        "Authored surface exception: 42 boundary_edges; review the preserved original geometry"
-      ],
+      "warnings": [],
       "export": "res://assets/custom-items/weapons/warhammer/warhammer_spiked.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/warhammer_spiked/lineup.png"
     }
   ]

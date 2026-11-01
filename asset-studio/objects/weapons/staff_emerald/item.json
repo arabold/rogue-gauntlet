@@ -1,99 +1,27 @@
 {
   "version": 1,
   "name": "Staff Emerald",
-  "backend": "source",
+  "backend": "procedural",
+  "builder": "staff",
+  "design": {
+    "kind": "emerald_staff"
+  },
+  "color_mode": "character",
+  "topology": "closed_surface",
   "placement": {
     "pivot": "authored",
     "scale": 1
   },
   "budget": {
     "triangles": 2400,
-    "materials": 8,
-    "texture_size": 2048
+    "materials": 5,
+    "texture_size": 1024
   },
   "export": {
     "glb": "res://assets/custom-items/weapons/staff/staff_emerald.glb"
   },
   "provenance": {
-    "kind": "original_geometry_character_surface",
-    "git_revision": "fe843306a95a5a0fb3ac47123e2e83f2b126dbdb",
-    "original_path": "assets/custom-items/weapons/staff/staff_emerald.glb",
-    "source_sha256": "68f93e4c096533a9797713724df19413aa8c2a2514b38c8189b5cf00649c5433",
-    "original_triangles": 356,
-    "quality_notes": "Original forms and color regions retained. See source-repair.json for caps/winding corrections and validation.json for any authored-surface exceptions."
-  },
-  "colors": {
-    "gold_gold": [
-      234,
-      194,
-      83
-    ],
-    "leather_copper": [
-      177,
-      111,
-      82
-    ],
-    "leather_wood": [
-      155,
-      90,
-      69
-    ],
-    "iron_dark_iron": [
-      74,
-      81,
-      85
-    ],
-    "surface_lime": [
-      85,
-      182,
-      106
-    ]
-  },
-  "materials": {
-    "gold_gold": {
-      "metallic": 0.5,
-      "roughness": 0.3,
-      "crease": 45.0,
-      "double_sided": true
-    },
-    "leather_copper": {
-      "metallic": 0.0,
-      "roughness": 0.85,
-      "crease": 50.0,
-      "double_sided": true
-    },
-    "leather_wood": {
-      "metallic": 0.0,
-      "roughness": 0.85,
-      "crease": 50.0,
-      "double_sided": true
-    },
-    "iron_dark_iron": {
-      "metallic": 0.35,
-      "roughness": 0.6,
-      "crease": 48.0,
-      "double_sided": true
-    },
-    "surface_lime": {
-      "metallic": 0,
-      "roughness": 0.95,
-      "crease": 55,
-      "double_sided": true
-    }
-  },
-  "color_mode": "character",
-  "source": "source.glb",
-  "topology": "authored_assembly",
-  "surface": {
-    "palette": "studio_grid",
-    "slots": {
-      "gold": "gold_gold",
-      "copper": "leather_copper",
-      "wood": "leather_wood",
-      "dark_iron": "iron_dark_iron",
-      "lime": "surface_lime"
-    },
-    "repair": "boundaries"
-  },
-  "crease": 50
+    "kind": "studio_original",
+    "quality_notes": "KayKit-style weapon per objects/weapons/README.md, built from items/forge.py. Grip-centered origin. No gameplay data."
+  }
 }
