@@ -306,17 +306,26 @@ public class RoomAssemblyTest
 		}
 	}
 
-	/// <summary>The pit is enclosed down its full shaft, with a clear opening only at the walk-on end.</summary>
+	/// <summary>The pit has a flush stone lining below the floor and its original railing above, open only at the walk-on end.</summary>
 	[TestCase]
 	public void DownStairwellWallsSealThreeSidesAndLeaveTheLandingOpen()
 	{
 		var stairs = TestFactories.Load<PackedScene>("res://scenes/levels/stairs/stairs_down.tscn").Instantiate<Node3D>();
 		try
 		{
-			var walls = CollisionOutlines.FromGridMap(stairs.GetNode<GridMap>("Enclosure"), Transform3D.Identity).ToArray();
-			bool Covered(Vector3 point) => walls.Any(wall => point.Y >= wall.Bottom && point.Y <= wall.Top
+			var enclosure = stairs.GetNode<GridMap>("Enclosure");
+			var walls = CollisionOutlines.FromGridMap(enclosure, Transform3D.Identity).ToArray();
+			var railing = CollisionOutlines.FromGridMap(stairs.GetNode<GridMap>("Railing"), Transform3D.Identity).ToArray();
+			foreach (Vector3I cell in enclosure.GetUsedCells())
+			{
+				int item = enclosure.GetCellItem(cell);
+				var visual = enclosure.Transform * enclosure.GetCellTransform(cell)
+					* enclosure.MeshLibrary.GetItemMeshTransform(item) * enclosure.MeshLibrary.GetItemMesh(item).GetAabb();
+				AssertFloat(visual.End.Y).OverrideFailureMessage("Stairwell wall top must align with the floor").IsEqualApprox(0, .001f);
+			}
+			bool Covered(Vector3 point) => (point.Y < 0 ? walls : railing).Any(wall => point.Y >= wall.Bottom && point.Y <= wall.Top
 				&& Geometry2D.IsPointInPolygon(RoomBlueprint.XZ(point), wall.Polygon));
-			for (float y = -3.5f; y <= 1.5f; y++)
+			for (float y = -3.5f; y <= .5f; y++)
 			{
 				for (float z = -3.75f; z <= 3.75f; z += .5f)
 				{
