@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=43 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=44 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -36,8 +36,8 @@
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
 Weight = 1.0
-MinimumSize = Vector2i(4, 4)
-MaximumSize = Vector2i(4, 5)
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 4)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("2_RectangleSha")
 
@@ -119,13 +119,20 @@ MaximumCount = 1
 WallChance = 0.8
 metadata/_custom_type_script = ExtResource("22_ScatterStep")
 
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("2_RectangleSha")
+Weight = 0.5
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("2_RectangleSha")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "partitioned_store"
 Realms = PackedStringArray("garrison", "sewer")
 Weight = 0.6
-Shapes = [SubResource("RectangleShape_1")]
-MinimumFloorTiles = 16
+Shapes = [SubResource("RectangleShape_1"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 9
 MinDoorways = 1
 MaxDoorways = 2
 DoorChance = 0.6

@@ -47,7 +47,7 @@ public static class RoomAssembler
 			var blueprint = TryBuild(type, seed, attempt, options, out failure);
 			if (blueprint != null) return blueprint;
 		}
-		throw new InvalidOperationException($"Room type {type.Id}: no layout fits after {type.Attempts} attempts; last: {failure}.");
+		throw new InvalidOperationException($"Room type {type.Id} seed {seed}: no layout fits after {type.Attempts} attempts; last: {failure}.");
 	}
 
 	private static RoomBlueprint TryBuild(RoomType type, ulong seed, int attempt, RoomAssemblyOptions options, out string failure)
@@ -84,6 +84,7 @@ public static class RoomAssembler
 				for (int index = 0; index < steps.Length; index++)
 				{
 					var step = steps[index];
+					if (step.WallStyles.Length > 0 && !step.WallStyles.Contains(walls.Id)) continue;
 					using var chanceRng = blueprint.Random($"step:{index}:{step.Id}:chance");
 					if (chanceRng.Randf() >= step.Chance) continue;
 					using var stepRng = blueprint.Random($"step:{index}:{step.Id}");

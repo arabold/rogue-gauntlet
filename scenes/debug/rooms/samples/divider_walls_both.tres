@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DividerWallStyle" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/DividerWallStyle.cs" id="style"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="library"]
+[ext_resource type="PackedScene" path="res://scenes/props/door.tscn" id="door"]
+
+[resource]
+script = ExtResource("style")
+Id = "sample.divider_walls_both"
+Library = ExtResource("library")
+Straight = Dictionary[String, float]({"wall": 8.0, "wall_cracked": 1.0})
+DoorScene = ExtResource("door")
+Ends = PackedStringArray("wall_half_endcap", "wall_half_endcap_sloped")
+Sides = 2
+metadata/_custom_type_script = ExtResource("style")

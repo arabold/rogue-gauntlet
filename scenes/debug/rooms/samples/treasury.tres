@@ -1,0 +1,113 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=29 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="type"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="shape"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/stone_walls.tres" id="walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/stone_bordered_light_wood.tres" id="floor"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="along"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/groups/treasury_cache.tres" id="cache"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="center"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/groups/counting_table.tres" id="table"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="decor"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/yellow_banner.tres" id="banner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/sword_shield.tres" id="heraldry"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="scatter"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/coin_piles.tres" id="coins"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="corners"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/trunk.tres" id="trunk"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/small_box.tres" id="box"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/bookcase.tres" id="bookcase"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/lit_sconce.tres" id="sconce"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="shelf"]
+
+[sub_resource type="Resource" id="shape"]
+script = ExtResource("shape")
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("shape")
+
+[sub_resource type="Resource" id="cache"]
+script = ExtResource("along")
+Id = "gold_cache"
+Content = [ExtResource("cache")]
+MinimumCount = 1
+MaximumCount = 1
+Sides = 2
+Centered = true
+AvoidDoorwayWalls = true
+metadata/_custom_type_script = ExtResource("along")
+
+[sub_resource type="Resource" id="table"]
+script = ExtResource("center")
+Id = "counting_table"
+Content = [ExtResource("table")]
+MinimumCount = 1
+MaximumCount = 1
+metadata/_custom_type_script = ExtResource("center")
+
+[sub_resource type="Resource" id="valuables"]
+script = ExtResource("corners")
+Id = "valuables"
+Content = [ExtResource("trunk"), ExtResource("box")]
+MinimumCount = 2
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("corners")
+
+[sub_resource type="Resource" id="ledgers"]
+script = ExtResource("along")
+Id = "ledger_shelves"
+Content = [ExtResource("bookcase")]
+MinimumCount = 1
+MaximumCount = 1
+Sides = 1
+metadata/_custom_type_script = ExtResource("along")
+
+[sub_resource type="Resource" id="banner"]
+script = ExtResource("along")
+Id = "focal_banner"
+Content = [ExtResource("banner")]
+MinimumCount = 1
+MaximumCount = 1
+Sides = 2
+EndClearance = 1.2
+AvoidDoorwayWalls = true
+metadata/_custom_type_script = ExtResource("along")
+
+[sub_resource type="Resource" id="heraldry"]
+script = ExtResource("decor")
+Id = "heraldry"
+Content = [ExtResource("heraldry"), ExtResource("shelf")]
+MinimumCount = 2
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("decor")
+
+[sub_resource type="Resource" id="coins"]
+script = ExtResource("scatter")
+Id = "decorative_coins"
+Content = [ExtResource("coins")]
+MinimumCount = 3
+MaximumCount = 5
+WallChance = 0.85
+metadata/_custom_type_script = ExtResource("scatter")
+
+[sub_resource type="Resource" id="lighting"]
+script = ExtResource("decor")
+Id = "wall_sconces"
+Content = [ExtResource("sconce")]
+MinimumCount = 3
+MaximumCount = 3
+Spacing = 5.0
+metadata/_custom_type_script = ExtResource("decor")
+
+[resource]
+script = ExtResource("type")
+Id = "sample.treasury"
+Realms = PackedStringArray("garrison")
+Shapes = [SubResource("shape")]
+MinDoorways = 1
+MaxDoorways = 1
+DoorwayPlacement = 3
+Walls = [ExtResource("walls")]
+Floors = [ExtResource("floor")]
+Steps = [SubResource("banner"), SubResource("cache"), SubResource("table"), SubResource("ledgers"), SubResource("lighting"), SubResource("heraldry"), SubResource("valuables"), SubResource("coins")]
+metadata/_custom_type_script = ExtResource("type")

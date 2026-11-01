@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=61 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=62 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/LShape.cs" id="2_LShape"]
@@ -50,14 +50,14 @@
 [sub_resource type="Resource" id="LShape_1"]
 script = ExtResource("2_LShape")
 Weight = 1.0
-MinimumSize = Vector2i(4, 4)
-MaximumSize = Vector2i(5, 5)
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 4)
 ArmWidth = 2
 metadata/_custom_type_script = ExtResource("2_LShape")
 
 [sub_resource type="Resource" id="TShape_2"]
 script = ExtResource("3_TShape")
-MinimumSize = Vector2i(5, 4)
+MinimumSize = Vector2i(4, 4)
 MaximumSize = Vector2i(5, 5)
 StemWidth = 2
 BarDepth = 2
@@ -65,24 +65,24 @@ metadata/_custom_type_script = ExtResource("3_TShape")
 
 [sub_resource type="Resource" id="UShape_3"]
 script = ExtResource("4_UShape")
-MinimumSize = Vector2i(4, 5)
-MaximumSize = Vector2i(5, 6)
+MinimumSize = Vector2i(3, 5)
+MaximumSize = Vector2i(4, 5)
 WingWidth = 2
 BackDepth = 2
 metadata/_custom_type_script = ExtResource("4_UShape")
 
 [sub_resource type="Resource" id="CrossShape_4"]
 script = ExtResource("5_CrossShape")
-MinimumSize = Vector2i(5, 5)
-MaximumSize = Vector2i(5, 6)
+MinimumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(5, 5)
 ArmWidth = 2
 metadata/_custom_type_script = ExtResource("5_CrossShape")
 
 [sub_resource type="Resource" id="RectangleShape_5"]
 script = ExtResource("6_RectangleSha")
-Weight = 1.0
-MinimumSize = Vector2i(3, 4)
-MaximumSize = Vector2i(4, 5)
+Weight = 2.0
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(4, 4)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("6_RectangleSha")
 
@@ -157,13 +157,20 @@ MaximumCount = 6
 WallChance = 0.5
 metadata/_custom_type_script = ExtResource("17_ScatterStep")
 
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("6_RectangleSha")
+Weight = 0.5
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("6_RectangleSha")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "ruins"
 Realms = PackedStringArray("garrison", "sewer", "jungle")
 Weight = 0.6
-Shapes = [SubResource("LShape_1"), SubResource("TShape_2"), SubResource("UShape_3"), SubResource("CrossShape_4"), SubResource("RectangleShape_5")]
-MinimumFloorTiles = 10
+Shapes = [SubResource("LShape_1"), SubResource("TShape_2"), SubResource("UShape_3"), SubResource("CrossShape_4"), SubResource("RectangleShape_5"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 6
 MinDoorways = 1
 MaxDoorways = 3
 MaxPocketShare = 0.15

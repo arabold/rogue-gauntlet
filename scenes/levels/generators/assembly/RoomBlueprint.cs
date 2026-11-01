@@ -21,6 +21,9 @@ public readonly record struct WallRun(Vector2I Start, Vector2I Along, Vector2I O
 /// <summary>A prop accepted into the room, in room-local space.</summary>
 public readonly record struct PlacedPiece(Prop Prop, int Variant, Transform3D Transform, Aabb Envelope);
 
+/// <summary>A cosmetic floor-material override in room-local space, recorded after its defining structure fits.</summary>
+public readonly record struct FloorPatch(Rect2 Area, FloorMaterial Material);
+
 /// <summary>
 /// One room-assembly attempt: footprint, doorways, pits, walls, walkability and accepted props. Every placement goes
 /// through <see cref="TryPlace"/>, which checks floor support, walls, other props and circulation, and keeps all
@@ -34,6 +37,7 @@ public sealed class RoomBlueprint
 	private readonly HashSet<(Vector2I Tile, Vector2I Outward)> _doorwayEdges;
 	private readonly List<Aabb> _wallBoxes = [];
 	private readonly List<PlacedPiece> _pieces = [];
+	private readonly List<FloorPatch> _floorPatches = [];
 	private readonly List<Rect2> _reserved = [];
 	private readonly List<Vector2I> _pits = [];
 	private readonly List<Rect2> _landings = [];
@@ -69,6 +73,7 @@ public sealed class RoomBlueprint
 	/// <summary>The footprint's bounding rectangle in local XZ, on the tile edges (wall lines).</summary>
 	public Rect2 Interior { get; }
 	public IReadOnlyList<PlacedPiece> Pieces => _pieces;
+	public IReadOnlyList<FloorPatch> FloorPatches => _floorPatches;
 	public IReadOnlyList<Rect2> Reserved => _reserved;
 	/// <summary>Stair landings: kept free of floor props and reachable from every doorway.</summary>
 	public IReadOnlyList<Rect2> Landings => _landings;
@@ -81,6 +86,17 @@ public sealed class RoomBlueprint
 
 	/// <summary>A footprint tile that still has floor: not cut into a pit such as a stairwell.</summary>
 	public bool IsFloor(Vector2I tile) => Footprint.IsFloor(tile) && !_pits.Contains(tile);
+
+	/// <summary>Marks an accepted structure's floor area for the later cosmetic pass. Later patches win on overlap;
+	/// materials must use this room's floor library. Does not consume placement RNG or change walkability.</summary>
+	public void AddFloorPatch(Rect2 area, FloorMaterial material)
+	{
+		var library = Room.FloorGridMap.MeshLibrary;
+		if (material?.Library == null || material.Library != library
+			&& (string.IsNullOrEmpty(library.ResourcePath) || material.Library.ResourcePath != library.ResourcePath))
+			throw new InvalidOperationException($"Room {Type.Id}: floor patch {material?.Id} must use the room's floor library.");
+		_floorPatches.Add(new(area, material));
+	}
 
 	/// <summary>Records the wall piece on an edge: how far its face reaches into the room, and whether decor may hang on it.</summary>
 	public void SetWall(Vector2I tile, Vector2I outward, float depth, bool decoratable) => _walls[(tile, outward)] = (depth, decoratable);

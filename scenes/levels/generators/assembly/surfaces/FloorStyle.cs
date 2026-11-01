@@ -53,9 +53,19 @@ public abstract partial class FloorStyle : Resource
 		var quads = new FloorMaterial[footprint.Width * 2, footprint.Length * 2];
 		var splits = new FloorSplit[quads.GetLength(0), quads.GetLength(1)];
 		Assign(room, quads, splits, rng);
+		foreach (var patch in room.FloorPatches)
+		for (int x = 0; x < quads.GetLength(0); x++)
+		for (int z = 0; z < quads.GetLength(1); z++)
+		{
+			// Quarter tile q spans 2q - 2 to 2q; sample its center so all styles retain exact, non-overlapping tiling.
+			if (!IsFloorQuad(room, x, z) || !patch.Area.HasPoint(new Vector2(2 * x - 1, 2 * z - 1))) continue;
+			quads[x, z] = patch.Material;
+			splits[x, z] = default;
+		}
 		var covered = new bool[quads.GetLength(0), quads.GetLength(1)];
 		foreach (var inlay in Inlays) PlaceInlay(room, inlay, quads, splits, covered, rng);
-		var roomTurns = Materials.Distinct().ToDictionary(material => material, _ => rng.Randf() < .5f ? GridTurns.Turn0 : GridTurns.Turn90);
+		var roomTurns = Materials.Concat(room.FloorPatches.Select(patch => patch.Material)).Distinct()
+			.ToDictionary(material => material, _ => rng.Randf() < .5f ? GridTurns.Turn0 : GridTurns.Turn90);
 		var grid = room.Room.FloorGridMap;
 		foreach (var tile in footprint.Tiles.Where(room.IsFloor))
 		{

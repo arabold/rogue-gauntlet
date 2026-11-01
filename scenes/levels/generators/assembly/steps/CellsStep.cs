@@ -38,6 +38,9 @@ public partial class CellsStep : FurnishingStep
 	/// <summary>Chance of a second row on the opposite wall, when the aisle stays wide enough.</summary>
 	[Export(PropertyHint.Range, "0,1,0.05")] public float OpposingChance { get; set; } = .5f;
 	[Export(PropertyHint.Range, "2,8,0.1")] public float MinimumAisle { get; set; } = 4;
+	/// <summary>Optional cell-floor palette; one material is chosen per room on a separate cosmetic stream.
+	/// Empty keeps the room's floor style inside the cells too.</summary>
+	[Export] public FloorMaterial[] CellFloors { get; set; } = [];
 
 	public override int Furnish(RoomBlueprint room, RandomNumberGenerator rng)
 	{
@@ -51,13 +54,15 @@ public partial class CellsStep : FurnishingStep
 		float Aisle(int rowCount) => room.Interior.Size.X - 1 - rowCount * (CellSize.Y + .5f);
 		if (Aisle(1) < MinimumAisle) return 0;
 		if (opposing && opposite != default && Aisle(2) >= MinimumAisle) rows.Add(opposite);
+		using var floorRng = GenerationRandom.Create(room.Seed, GenerationRandom.Decoration, $"{room.Type.Id}:{Id}:cell_floor");
+		var cellFloor = Weighted.Pick(CellFloors, _ => 1, floorRng);
 		int count = 0;
 		foreach (var run in rows)
 		{
 			foreach (var (left, cells, wallSide) in Anchors(room, run, rng))
 			{
 				int fitted = Mathf.Min(cells, MaximumCount - count);
-				if (fitted < 1 || !TryPlaceRow(room, run, wallSide == 1 ? left + (cells - fitted) * CellSize.X : left, fitted, wallSide, rng)) continue;
+				if (fitted < 1 || !TryPlaceRow(room, run, wallSide == 1 ? left + (cells - fitted) * CellSize.X : left, fitted, wallSide, cellFloor, rng)) continue;
 				count += fitted;
 				break;
 			}
@@ -89,7 +94,7 @@ public partial class CellsStep : FurnishingStep
 		yield return (-centered * CellSize.X / 2, centered, 0);
 	}
 
-	private bool TryPlaceRow(RoomBlueprint room, WallRun run, float left, int cells, int wallSide, RandomNumberGenerator rng)
+	private bool TryPlaceRow(RoomBlueprint room, WallRun run, float left, int cells, int wallSide, FloorMaterial cellFloor, RandomNumberGenerator rng)
 	{
 		var frame = room.RunFrame(run);
 		float width = CellSize.X, depth = CellSize.Y, jamb = (width - OpeningWidth) / 2, right = left + cells * width;
@@ -127,6 +132,8 @@ public partial class CellsStep : FurnishingStep
 			for (int divider = 1; divider < cells; divider++)
 				plan.Add(Structure(JunctionWall), 0, new Transform3D(new Basis(Vector3.Up, Mathf.Pi), new Vector3(left + divider * width, 0, depth)), optional: false);
 		if (!room.TryPlace(plan, frame)) return false;
+		if (cellFloor != null)
+			room.AddFloorPatch(RoomBlueprint.XZ(frame * new Aabb(left, 0, 0, right - left, 0, depth)), cellFloor);
 		foreach (var gate in gates)
 		{
 			// The gate swings over both approaches; keep it and the doorway in front clear.
@@ -178,6 +185,8 @@ public partial class CellsStep : FurnishingStep
 			errors.Add($"Step {Id}: assign the wall library and existing front, partition, corner and junction pieces.");
 		if (Gate == null || Gate.Scenes.Length == 0 || Gate.Blocking) errors.Add($"Step {Id}: assign a non-blocking gate prop with its door scene.");
 		if (CellSize.X - OpeningWidth < 1 || CellSize.Y < 4) errors.Add($"Step {Id}: cells must fit the opening, its jambs and a bed.");
+		if (CellFloors.Any(material => material == null)) errors.Add($"Step {Id}: remove empty cell-floor entries.");
+		errors.AddRange(CellFloors.Where(material => material != null).SelectMany(material => material.Validate()));
 		return errors.ToArray();
 	}
 }

@@ -5,6 +5,7 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 | Harness | Entry point | Purpose |
 | --- | --- | --- |
 | Room generation | [rooms/room_generation_harness.tscn](rooms/room_generation_harness.tscn) | Inspect each realm's room types alone or in a production floor |
+| Room style samples | [rooms/room_style_samples.tscn](rooms/room_style_samples.tscn) | Compare an isolated partitioned depot, compact lockup and gold treasury |
 | Combat | [combat/combat_harness.tscn](combat/combat_harness.tscn) | Interactive combat, monster tactics and scripted traces; [guide](../../docs/combat-harness.md) |
 | Item lifecycle | [items/item_lifecycle_harness.tscn](items/item_lifecycle_harness.tscn) | Item creation, inventory, equipment and consumables |
 | World effects | [effects/world_effect_harness.tscn](effects/world_effect_harness.tscn) | Replay and tune production trap/secret discovery, loot glow, blood hit and prop x-rays |
@@ -19,6 +20,8 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 ## Room generation
 
 The scene instances the production level and lists its generator's realms; it keeps no catalog of its own. The **Realm** picker selects a realm: the room pool's types tagged for it, then the entrance and exit, form the recipe list, and the style pickers list only that realm's styles; the floor view generates that realm's first depth, with its rooms and corridors.
+
+The separate [room style samples](rooms/room_style_samples.tscn) scene assigns the harness's optional `PreviewRecipes` collection. It previews two experimental recipes outside the production room pool alongside a direct reference to the existing production prison. See the [sample guide](rooms/samples/README.md) for composition and gold tuning. The realm picker is disabled during an isolated single-room preview; the generated-floor view still uses the selected production realm.
 
 - **Single room:** select a recipe and seed, rotate in quarter-turns and toggle furnishings. Room types expose every axis as an override — Shape, Walls, Floor and Columns (type chance, off, or a specific pattern) — and run the production `RoomAssembler` with them. The **Walkability overlay** colours standable floor: green is reachable from the doorways, blue is reserved circulation or a stair landing, red is an inaccessible pocket. Overrides never change production Resources.
 - **Generated floor:** uses the production packing, corridor, wall and furnishing pipeline with the same factory. Recipe selection and room rotation are disabled in this view.

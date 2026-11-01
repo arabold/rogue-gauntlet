@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="SeatedTable" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/SeatedTable.cs" id="seated"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroup.cs" id="group"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="member"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/table_medium_plain.tres" id="table"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/coin_piles.tres" id="coins"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/tableware/candle.tres" id="candle"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/chair.tres" id="chair"]
+
+[sub_resource type="Resource" id="coins"]
+script = ExtResource("member")
+Options = [ExtResource("coins")]
+Offset = Vector3(0.35, 1, 0)
+metadata/_custom_type_script = ExtResource("member")
+
+[sub_resource type="Resource" id="candle"]
+script = ExtResource("member")
+Options = [ExtResource("candle")]
+Offset = Vector3(-0.55, 1, -0.4)
+metadata/_custom_type_script = ExtResource("member")
+
+[sub_resource type="Resource" id="setting"]
+script = ExtResource("group")
+Id = "sample.counting_table_setting"
+Anchor = [ExtResource("table")]
+Members = [SubResource("coins"), SubResource("candle")]
+metadata/_custom_type_script = ExtResource("group")
+
+[resource]
+script = ExtResource("seated")
+Id = "sample.counting_table"
+Tables = [SubResource("setting")]
+Seats = [ExtResource("chair")]
+SeatSpacing = 1.0
+SeatChance = 0.8
+metadata/_custom_type_script = ExtResource("seated")

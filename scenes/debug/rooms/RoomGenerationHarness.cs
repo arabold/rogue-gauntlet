@@ -14,6 +14,9 @@ public partial class RoomGenerationHarness : Node3D
 {
 	/// <summary>The production generator: its room pool and realms are what the harness previews.</summary>
 	[Export] public MapGenerator Generator { get; set; }
+	/// <summary>Optional isolated recipe collection for content studies. Empty uses the room pool filtered to the selected realm.
+	/// The generated-floor view always uses production content.</summary>
+	[Export] public RoomType[] PreviewRecipes { get; set; } = [];
 	[Export] public int SelectedRealm { get; set; }
 	[Export] public Node3D PreviewRoot { get; set; }
 	[Export] public Camera3D PreviewCamera { get; set; }
@@ -37,8 +40,12 @@ public partial class RoomGenerationHarness : Node3D
 	public Realm Realm => Generator.Realms[SelectedRealm];
 	/// <summary>The room pool narrowed to the selected realm.</summary>
 	public AssembledRoomFactory Factory { get; private set; }
-	/// <summary>Every room type the realm's factory assembles: ordinary rooms, then entrances and exits.</summary>
-	public IReadOnlyList<RoomType> Recipes => [.. Factory.RoomTypes, .. Factory.EntranceTypes, .. Factory.ExitTypes];
+	/// <summary>The isolated preview collection, or the realm's ordinary rooms followed by entrances and exits.</summary>
+	public IReadOnlyList<RoomType> Recipes => PreviewRecipes.Length > 0
+		? PreviewRecipes : [.. Factory.RoomTypes, .. Factory.EntranceTypes, .. Factory.ExitTypes];
+
+	/// <summary>Isolated studies use their full authored palettes, independent of the generated-floor realm.</summary>
+	private string RecipeRealm => PreviewRecipes.Length > 0 ? null : Realm.Id;
 
 	private int _quarterTurns;
 	private OptionButton _modePicker, _realmPicker, _recipePicker, _shapePicker, _wallsPicker, _floorPicker, _columnPicker;
@@ -218,11 +225,12 @@ public partial class RoomGenerationHarness : Node3D
 		bool room = Mode == RoomPreviewMode.Room;
 		_modePicker.Select((int)Mode);
 		_realmPicker.Select(SelectedRealm);
+		_realmPicker.Disabled = room && PreviewRecipes.Length > 0;
 		_recipePicker.Select(SelectedRecipe);
 		_recipePicker.Disabled = !room;
 		Fill(_shapeRow, _shapePicker, type?.Shapes.Select(ShapeName), ShapeOverride + 1, "Seeded");
-		Fill(_wallsRow, _wallsPicker, type?.WallsIn(Realm.Id).Select(style => Local(style.Id)), WallsOverride + 1, "Seeded");
-		Fill(_floorRow, _floorPicker, type?.FloorsIn(Realm.Id).Select(style => Local(style.Id)), FloorOverride + 1, "Seeded");
+		Fill(_wallsRow, _wallsPicker, type?.WallsIn(RecipeRealm).Select(style => Local(style.Id)), WallsOverride + 1, "Seeded");
+		Fill(_floorRow, _floorPicker, type?.FloorsIn(RecipeRealm).Select(style => Local(style.Id)), FloorOverride + 1, "Seeded");
 		Fill(_columnRow, _columnPicker, type == null || type.Columns.Length == 0 ? null : type.Columns.Select(pattern => pattern.Id),
 			ColumnsOverride == RoomAssemblyOptions.Seeded ? 0 : ColumnsOverride == RoomAssemblyOptions.Off ? 1 : ColumnsOverride + 2,
 			$"Type chance ({type?.ColumnChance:P0})", "Off");
@@ -269,13 +277,14 @@ public partial class RoomGenerationHarness : Node3D
 	{
 		var options = new RoomAssemblyOptions
 		{
-			Shape = ShapeOverride, Walls = WallsOverride, Floor = FloorOverride, Columns = ColumnsOverride, Furnish = Furnishings, Realm = Realm.Id,
+			Shape = ShapeOverride, Walls = WallsOverride, Floor = FloorOverride, Columns = ColumnsOverride, Furnish = Furnishings, Realm = RecipeRealm,
 		};
 		var blueprint = RoomAssembler.Build(type, Seed, options);
 		PreviewBlueprint = blueprint;
 		var (reachable, pockets) = AddWalkabilityOverlay(blueprint);
 		Status.Text = $"{type.Id} · Seed {Seed} · {_quarterTurns * 90}°\n"
-			+ $"{blueprint.Footprint.Width} × {blueprint.Footprint.Length} tiles · {ShapeName(blueprint.Shape)}\n"
+			+ $"{blueprint.Footprint.Width} × {blueprint.Footprint.Length} tile bounds · {blueprint.Footprint.Count} footprint tiles\n"
+			+ $"{ShapeName(blueprint.Shape)}\n"
 			+ $"walls {Local(blueprint.Walls.Id)} · floor {Local(blueprint.Floor.Id)} · columns {blueprint.Columns?.Id ?? "none"}\n"
 			+ $"{blueprint.Pieces.Count} props · {blueprint.Doorways.Count} doorways · pockets {(reachable + pockets == 0 ? 0 : 100f * pockets / (reachable + pockets)):F1}% of standable floor";
 		return blueprint.Room;

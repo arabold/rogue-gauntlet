@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="PropGroup" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroup.cs" id="group"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="member"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/treasury_chest.tres" id="chest"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/coin_piles.tres" id="coins"]
+
+[sub_resource type="Resource" id="left"]
+script = ExtResource("member")
+Options = [ExtResource("coins")]
+Offset = Vector3(-2.2, 0, 0.6)
+metadata/_custom_type_script = ExtResource("member")
+
+[sub_resource type="Resource" id="right"]
+script = ExtResource("member")
+Options = [ExtResource("coins")]
+Offset = Vector3(2.2, 0, 0.6)
+metadata/_custom_type_script = ExtResource("member")
+
+[resource]
+script = ExtResource("group")
+Id = "sample.treasury_cache"
+Anchor = [ExtResource("chest")]
+Members = [SubResource("left"), SubResource("right")]
+metadata/_custom_type_script = ExtResource("group")

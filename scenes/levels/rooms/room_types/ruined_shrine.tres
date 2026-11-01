@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=41 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=42 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -34,8 +34,8 @@
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
-MinimumSize = Vector2i(4, 4)
-MaximumSize = Vector2i(5, 6)
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(4, 4)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
@@ -107,13 +107,20 @@ MaximumCount = 4
 WallChance = 0.6
 metadata/_custom_type_script = ExtResource("24_scatterstep")
 
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("3_rectangleshape")
+Weight = 0.5
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("3_rectangleshape")
+
 [resource]
 script = ExtResource("2_roomtype")
 Id = "ruined_shrine"
 Realms = PackedStringArray("jungle")
 Weight = 0.7
-Shapes = [SubResource("RectangleShape_1")]
-MinimumFloorTiles = 16
+Shapes = [SubResource("RectangleShape_1"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 6
 MinDoorways = 1
 MaxDoorways = 2
 DoorwayPlacement = 3

@@ -23,9 +23,9 @@
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
-MinimumSize = Vector2i(3, 4)
-MaximumSize = Vector2i(3, 7)
-OddWidth = true
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(3, 5)
+OddWidth = false
 metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
 [sub_resource type="Resource" id="ScatterStep_2"]
@@ -57,7 +57,7 @@ script = ExtResource("2_roomtype")
 Id = "drain_tunnel"
 Realms = PackedStringArray("sewer")
 Shapes = [SubResource("RectangleShape_1")]
-MinimumFloorTiles = 12
+MinimumFloorTiles = 6
 MinDoorways = 2
 MaxDoorways = 2
 DoorwayPlacement = 1

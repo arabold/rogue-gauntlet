@@ -1,0 +1,106 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=31 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="type"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="shape"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/stone_walls.tres" id="walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/worn_stone.tres" id="stone"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/dirt_with_stone.tres" id="earth"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="center"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/groups/t_partition.tres" id="partition"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="corners"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/supply_corner.tres" id="supplies"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/sack_pile.tres" id="sacks"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="along"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/barrel_station.tres" id="barrels"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/work_station.tres" id="work"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="scatter"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="debris"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="decor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="torch"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/lit_sconce.tres" id="sconce"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="shelf"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/keg_station.tres" id="kegs"]
+
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/divider_walls_one.tres" id="walls_one"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/divider_walls_both.tres" id="walls_both"]
+
+[sub_resource type="Resource" id="shape"]
+script = ExtResource("shape")
+MinimumSize = Vector2i(4, 5)
+MaximumSize = Vector2i(4, 5)
+metadata/_custom_type_script = ExtResource("shape")
+
+[sub_resource type="Resource" id="partition"]
+script = ExtResource("center")
+Id = "central_partition"
+WallStyles = PackedStringArray("stone_walls")
+Content = [ExtResource("partition")]
+MinimumCount = 1
+MaximumCount = 1
+AllowCrosswise = false
+metadata/_custom_type_script = ExtResource("center")
+
+[sub_resource type="Resource" id="supplies"]
+script = ExtResource("corners")
+Id = "supply_corners"
+Content = [ExtResource("supplies"), ExtResource("sacks")]
+MinimumCount = 3
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("corners")
+
+[sub_resource type="Resource" id="stations"]
+script = ExtResource("along")
+Id = "work_and_stores"
+Content = [ExtResource("barrels"), ExtResource("work"), ExtResource("kegs")]
+MinimumCount = 2
+MaximumCount = 2
+Sides = 1
+metadata/_custom_type_script = ExtResource("along")
+
+[sub_resource type="Resource" id="lighting"]
+script = ExtResource("decor")
+Id = "door_torches"
+Content = [ExtResource("torch")]
+MinimumCount = 2
+MaximumCount = 2
+BesideDoorways = true
+PairChance = 1.0
+metadata/_custom_type_script = ExtResource("decor")
+
+[sub_resource type="Resource" id="sconces"]
+script = ExtResource("decor")
+Id = "store_lights"
+Content = [ExtResource("sconce")]
+MinimumCount = 2
+MaximumCount = 2
+Spacing = 6.0
+metadata/_custom_type_script = ExtResource("decor")
+
+[sub_resource type="Resource" id="shelves"]
+script = ExtResource("decor")
+Id = "wall_stores"
+Content = [ExtResource("shelf")]
+MinimumCount = 1
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("decor")
+
+[sub_resource type="Resource" id="debris"]
+script = ExtResource("scatter")
+Id = "debris"
+Content = [ExtResource("debris")]
+MaximumCount = 3
+WallChance = 0.25
+metadata/_custom_type_script = ExtResource("scatter")
+
+[resource]
+script = ExtResource("type")
+Id = "sample.partitioned_depot"
+Realms = PackedStringArray("garrison")
+Shapes = [SubResource("shape")]
+MinDoorways = 2
+MaxDoorways = 2
+DoorwayPlacement = 1
+Walls = [ExtResource("walls"), ExtResource("walls_one"), ExtResource("walls_both")]
+Floors = [ExtResource("stone"), ExtResource("earth")]
+Steps = [SubResource("partition"), SubResource("supplies"), SubResource("stations"), SubResource("lighting"), SubResource("sconces"), SubResource("shelves"), SubResource("debris")]
+metadata/_custom_type_script = ExtResource("type")
