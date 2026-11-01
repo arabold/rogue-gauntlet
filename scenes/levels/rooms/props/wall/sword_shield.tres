@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/wall_sword_shield.tscn" id="2_wall_sword_s"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "sword_shield"
+Scenes = [ExtResource("2_wall_sword_s")]
+Mount = 1
+MountHeight = 2.0
+Blocking = false
+Gap = 0.3
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

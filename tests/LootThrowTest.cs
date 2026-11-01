@@ -44,7 +44,7 @@ public class LootThrowTest
 	[TestCase]
 	public async Task ChestLootLandsOnAFreeSpotInSightOfTheChest()
 	{
-		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
 		TestFactories.WireLootScenes(map);
 		map.MinChests = map.MaxChests = 2;
 		var failures = new List<string>();

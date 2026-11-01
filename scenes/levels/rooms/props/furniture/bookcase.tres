@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/library_bookcase.tscn" id="2_library_book"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/library_bookcase_bare.tscn" id="3_library_book"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/library_bookcase_mixed_a.tscn" id="4_library_book"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/library_bookcase_mixed_b.tscn" id="5_library_book"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "bookcase"
+Scenes = [ExtResource("2_library_book"), ExtResource("3_library_book"), ExtResource("4_library_book"), ExtResource("5_library_book")]
+BackToWall = true
+Gap = 0.0
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

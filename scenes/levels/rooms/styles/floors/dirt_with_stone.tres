@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SplitFloor" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/SplitFloor.cs" id="1_SplitFloor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/dirt.tres" id="2_dirt"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/stone.tres" id="3_stone"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/transitions/stone_dirt.tres" id="4_stone_dirt"]
+
+[resource]
+script = ExtResource("1_SplitFloor")
+Id = "dirt_with_stone"
+Realms = PackedStringArray("garrison")
+Weight = 1.0
+Base = ExtResource("2_dirt")
+Other = ExtResource("3_stone")
+Transition = ExtResource("4_stone_dirt")
+DiagonalChance = 0.6
+MinimumShare = 0.3
+MaximumShare = 0.5
+metadata/_custom_type_script = ExtResource("1_SplitFloor")

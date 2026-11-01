@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/banner_blue.gltf" id="2_banner_blue"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/banner_patternA_blue.gltf" id="3_banner_patte"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/banner_patternB_blue.gltf" id="4_banner_patte"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/banner_patternC_blue.gltf" id="5_banner_patte"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/banner_thin_blue.gltf" id="6_banner_thin_"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/banner_shield_blue.gltf" id="7_banner_shiel"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "banner_blue"
+Scenes = [ExtResource("2_banner_blue"), ExtResource("3_banner_patte"), ExtResource("4_banner_patte"), ExtResource("5_banner_patte"), ExtResource("6_banner_thin_"), ExtResource("7_banner_shiel")]
+Mount = 1
+MountHeight = 0.0
+Blocking = false
+Gap = 0.3
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

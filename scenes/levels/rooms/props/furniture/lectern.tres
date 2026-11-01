@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/chapel/lectern.glb" id="2_lectern"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "lectern"
+Scenes = [ExtResource("2_lectern")]
+Gap = 0.25
+TurnJitter = 8.0
+ShiftJitter = 0.05
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

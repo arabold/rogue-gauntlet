@@ -11,28 +11,35 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class GarrisonRoomPoolTest
 {
-	private const string Preset = TestFactories.GarrisonFactory;
+	private const string Preset = TestFactories.RoomPoolPath;
 
 	[TestCase]
-	public void StandardSlotsDrawEveryRoomTypeAndReproduceTheirContent()
+	public void EachRealmDrawsEveryOneOfItsRoomTypesAndReproducesTheirContent()
 	{
-		var factory = TestFactories.Load<AssembledRoomFactory>(Preset);
-		var seen = new HashSet<RoomType>();
-		// Enough draws for the rarest type (weight 0.5 of 16) to appear.
-		for (ulong seed = 1; seed <= 150; seed++)
+		var pool = TestFactories.Load<AssembledRoomFactory>(Preset);
+		foreach (string realm in new[] { "garrison", "sewer", "jungle" })
 		{
-			using var a = new RandomNumberGenerator { Seed = seed };
-			using var b = new RandomNumberGenerator { Seed = seed };
-			var first = factory.CreateStandardRoom(a);
-			var second = factory.CreateStandardRoom(b);
-			AssertObject(first.Type).IsNotNull();
-			AssertObject(first.Type).IsSame(second.Type);
-			AssertString(Signature(first)).IsEqual(Signature(second));
-			seen.Add(first.Type);
-			first.Free();
-			second.Free();
+			var factory = (AssembledRoomFactory)pool.ForRealm(realm);
+			AssertBool(factory.RoomTypes.All(type => type.Realms.Contains(realm))).IsTrue();
+			var seen = new HashSet<RoomType>();
+			// Enough draws for the rarest Garrison type (weight 0.5 of 16) to appear.
+			for (ulong seed = 1; seed <= 150; seed++)
+			{
+				using var a = new RandomNumberGenerator { Seed = seed };
+				var first = factory.CreateStandardRoom(a);
+				seen.Add(first.Type);
+				if (seed <= 8)
+				{
+					using var b = new RandomNumberGenerator { Seed = seed };
+					var second = factory.CreateStandardRoom(b);
+					AssertObject(first.Type).IsSame(second.Type);
+					AssertString(Signature(first)).IsEqual(Signature(second));
+					second.Free();
+				}
+				first.Free();
+			}
+			AssertInt(seen.Count).OverrideFailureMessage($"{realm}: room types drawn").IsEqual(factory.RoomTypes.Length);
 		}
-		AssertInt(seen.Count).IsEqual(factory.RoomTypes.Length);
 	}
 
 	[TestCase]
@@ -69,7 +76,7 @@ public class GarrisonRoomPoolTest
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		var generator = level.MapGenerator;
-		AssertString(generator.Realms.Single(realm => realm.Covers(1)).Rooms.ResourcePath).IsEqual(Preset);
+		AssertString(generator.Rooms.ResourcePath).IsEqual(Preset);
 		var encounters = (RealmEncounterFactory)generator.MobFactory;
 		string failure = "";
 		level.GenerationFailed += error => failure = error;

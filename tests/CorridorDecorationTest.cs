@@ -16,9 +16,9 @@ public class CorridorDecorationTest
 {
 	private static readonly string[] CorridorFactoryPaths =
 	[
-		"res://scenes/levels/dungeon/dungeon_tile_factory.tres",
-		"res://scenes/levels/sewer/sewer_corridors.tres",
-		"res://scenes/levels/jungle/jungle_corridors.tres",
+		"res://scenes/levels/realms/garrison_corridors.tres",
+		"res://scenes/levels/realms/sewer_corridors.tres",
+		"res://scenes/levels/realms/jungle_corridors.tres",
 	];
 
 	[TestCase]

@@ -18,6 +18,8 @@ public partial class RoomType : Resource
 {
 	[Export] public string Id { get; set; } = "";
 	[Export(PropertyHint.Range, "0.01,10,0.01")] public float Weight { get; set; } = 1;
+	/// <summary>Realms (by ID) this room appears in; its styles and steps narrow down per realm by their own tags.</summary>
+	[Export] public string[] Realms { get; set; } = [];
 
 	[ExportGroup("Structure")]
 	[Export] public RoomShape[] Shapes { get; set; } = [];
@@ -44,16 +46,25 @@ public partial class RoomType : Resource
 	/// <summary>Shape rerolls allowed when a required step cannot fit.</summary>
 	[Export(PropertyHint.Range, "1,16")] public int Attempts { get; set; } = 8;
 
+	/// <summary>The wall styles a room in <paramref name="realm"/> draws from; null takes every style.</summary>
+	public WallStyle[] WallsIn(string realm) => Walls.Where(style => Realm.Allows(style.Realms, realm)).ToArray();
+	public FloorStyle[] FloorsIn(string realm) => Floors.Where(style => Realm.Allows(style.Realms, realm)).ToArray();
+	public FurnishingStep[] StepsIn(string realm) => Steps.Where(step => Realm.Allows(step.Realms, realm)).ToArray();
+
 	public string[] Validate()
 	{
 		var errors = new List<string>();
 		if (string.IsNullOrWhiteSpace(Id)) errors.Add("Room type: assign a stable ID.");
+		if (Realms.Length == 0) errors.Add($"Room type {Id}: name the realms it appears in.");
 		if (Shapes.Length == 0 || Shapes.Any(shape => shape == null)) errors.Add($"Room type {Id}: assign shapes.");
 		if (Walls.Length == 0 || Walls.Any(style => style == null)) errors.Add($"Room type {Id}: assign wall styles.");
 		if (Floors.Length == 0 || Floors.Any(style => style == null)) errors.Add($"Room type {Id}: assign floor styles.");
 		if (Columns.Any(column => column == null) || Steps.Any(step => step == null)) errors.Add($"Room type {Id}: remove empty column or step entries.");
 		if (MinDoorways > MaxDoorways) errors.Add($"Room type {Id}: the doorway minimum exceeds the maximum.");
 		if (DoorChance > 0 && DoorScene == null) errors.Add($"Room type {Id}: assign a door scene or set the door chance to zero.");
+		if (Walls.All(style => style != null) && Floors.All(style => style != null))
+			foreach (string realm in Realms.Where(realm => WallsIn(realm).Length == 0 || FloorsIn(realm).Length == 0))
+				errors.Add($"Room type {Id}: no wall or floor style is tagged for realm '{realm}'.");
 		errors.AddRange(Shapes.Where(shape => shape != null).SelectMany(shape => shape.Validate()));
 		errors.AddRange(Walls.Where(style => style != null).SelectMany(style => style.Validate()));
 		errors.AddRange(Floors.Where(style => style != null).SelectMany(style => style.Validate()));

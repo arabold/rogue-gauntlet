@@ -6,15 +6,15 @@ See the [folder guide](../scenes/levels/README.md) for code and preset locations
 
 ## Current generation
 
-Every room is assembled; there are no hand-authored rooms. A `Realm` ([level.tscn](../scenes/levels/level.tscn) lists them) names a band of depths, the room factory its floors assemble rooms from and the corridor tiles between them. The generator uses the realm covering its depth; the deepest realm carries on below the last band. Corridor tiles are a realm's floor material and wall style, so corridors match its rooms. All realms share the dungeon mesh libraries; each draws a different subset of the KayKit and [Asset Studio tiles](../asset-studio/tilesets/README.md) in them.
+Every room is assembled; there are no hand-authored rooms. All rooms come from one [room pool](../scenes/levels/rooms/room_pool.tres). A [`Realm`](../scenes/levels/realms/) names a band of depths and its corridor tiles (a floor material and a wall style, so corridors match its rooms); the generator uses the realm covering its depth, and the deepest realm carries on below the last band. Room types, wall and floor styles and furnishing steps carry `Realms` tags: a realm assembles only the room types tagged for it, each with the styles and steps tagged for it (untagged styles and steps suit every realm). A room shared by several realms therefore changes with them: the prison is a Garrison prison or a Sewer lock-up with slimy walls and brick floors. All realms share the dungeon mesh libraries; each draws a different subset of the KayKit and [Asset Studio tiles](../asset-studio/tilesets/README.md) in them.
 
-| Depths | Realm | Rooms | Corridors |
-| --- | --- | --- | --- |
-| 1–3 | [Garrison](../scenes/levels/garrison/factories/garrison_room_factory.tres) | hall, storage, mess hall, barracks, library, alchemist, passage, fenced walkway, partitioned storage, prison, chapel, kitchen, guardroom, ruins, crypt, root cellar | KayKit dirt, stone/arched/gated walls, passageways, torches & heraldic decor |
-| 4–6 | [Sewer](../scenes/levels/sewer/factories/sewer_room_factory.tres) | cistern hall, drain tunnel, junction, rat warren, sluice works, smugglers' cache, lock-up, collapsed culvert | studio bricks, slimy/gated walls, stone/scaffold passageways, torches & shackles |
-| 7–9 | [Jungle](../scenes/levels/jungle/factories/jungle_room_factory.tres) | temple hall, root passage, cavern, timbered mine, ruined shrine, collapsed grove | studio earth, mossy/overgrown/scaffold walls, cave/timber passageways, torches & trophies |
+| Depths | Realm | Its own rooms | Shared rooms | Corridors |
+| --- | --- | --- | --- | --- |
+| 1–3 | Garrison | hall, mess hall, barracks, library, alchemist, passage, fenced walkway, chapel, kitchen, guardroom, crypt, root cellar | prison, storage, partitioned storage, ruins, entrance, exit | KayKit dirt, stone/arched/gated walls, passageways, torches & heraldic decor |
+| 4–6 | Sewer | cistern hall, drain tunnel, junction, rat warren | prison, storage, partitioned storage, ruins, entrance, exit | studio bricks, slimy/gated walls, stone/scaffold passageways, torches & shackles |
+| 7–9 | Jungle | temple hall, root passage, cavern, timbered mine, ruined shrine | ruins, entrance, exit | studio earth, mossy/overgrown/scaffold walls, cave/timber passageways, torches & trophies |
 
-Each realm also has entrance and exit types that carry the stairs. Encounters do not follow realms: the [encounter prototype](#first-realm-encounter-prototype) covers depths 1–3 and later depths use its development fallback. Per-depth room roles and required routes remain proposed.
+The entrance and exit carry the stairs. Encounters do not follow realms: the [encounter prototype](#first-realm-encounter-prototype) covers depths 1–3 and later depths use its development fallback. Per-depth room roles and required routes remain proposed.
 
 Generation packs and rotates rooms around an entrance, prefers a geometrically distant exit, connects rooms and explicit doorways, resolves walls/doors, reserves optional secret pockets, builds floor reachability, decides special encounters, assigns validated lock/key pairs, then places other loot and bakes navigation. Ordinary encounters use the completed geometry. Ordinary connectivity and a distant exit do not guarantee a mandatory route or encounter order.
 
@@ -48,7 +48,7 @@ The level's stairs are scenes ([up](../scenes/levels/stairs/stairs_up.tscn), [do
 
 ## Room assembly
 
-Garrison rooms are assembled with their content by a `RoomType` ([room types](../scenes/levels/garrison/room_types/)): one strategy, or weighted palette of strategies, per axis. `RoomAssembler` runs them in a fixed order — shape → doorways → walls → circulation → columns → furnishing steps → floor → props — each axis on its own derived stream, so changing a floor style or toggling columns never moves furniture. Rooms are finished before floor packing and rotate as a whole; gameplay must connect every doorway, as before. A required step that cannot fit retries with a new shape (`Attempts`); a type that never fits throws instead of delivering a different room, naming the step and the last placement it refused. The [authoring guide](../scenes/levels/generators/assembly/README.md) covers adding props, groups, styles, steps and room types.
+Garrison rooms are assembled with their content by a `RoomType` ([room types](../scenes/levels/rooms/room_types/)): one strategy, or weighted palette of strategies, per axis. `RoomAssembler` runs them in a fixed order — shape → doorways → walls → circulation → columns → furnishing steps → floor → props — each axis on its own derived stream, so changing a floor style or toggling columns never moves furniture. Rooms are finished before floor packing and rotate as a whole; gameplay must connect every doorway, as before. A required step that cannot fit retries with a new shape (`Attempts`); a type that never fits throws instead of delivering a different room, naming the step and the last placement it refused. The [authoring guide](../scenes/levels/generators/assembly/README.md) covers adding props, groups, styles, steps and room types.
 
 | Axis | Strategies |
 | --- | --- |

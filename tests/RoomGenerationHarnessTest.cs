@@ -47,9 +47,11 @@ public class RoomGenerationHarnessTest
 		using var runner = TestFactories.LoadScene(Scene);
 		await runner.SimulateFrames(2);
 		var harness = (RoomGenerationHarness)runner.Scene();
-		int barracks = harness.Recipes.ToList().FindIndex(recipe => recipe is RoomType { Id: "garrison.barracks" });
+		int barracks = harness.Recipes.ToList().FindIndex(recipe => recipe is RoomType { Id: "barracks" });
 		harness.SelectRecipe(barracks);
 		harness.Seed = 99;
+		// Columns are structure, not furnishing: keep them out so a bare room has no props at all.
+		harness.ColumnsOverride = RoomAssemblyOptions.Off;
 		harness.Regenerate();
 		string props = Props(harness.PreviewRoom);
 		string walls = Cells(harness.PreviewRoom.WallGridMap);
