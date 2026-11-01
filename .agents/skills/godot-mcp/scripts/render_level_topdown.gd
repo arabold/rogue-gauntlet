@@ -1,10 +1,8 @@
 extends SceneTree
 #
-# Renders a top-down screenshot of a generated level (or a single room), with an
-# overlay marking every doorway/connector's per-direction open/sealed status -- lets
-# you visually verify doorway/wall alignment instead of reasoning about coordinates,
-# and without depending on DoorwayMarker's arrow gizmo (editor-only, invisible outside
-# the actual Godot editor, so it can't be captured by a headless/windowed script run).
+# Renders a top-down screenshot of a generated level, with an overlay marking every
+# doorway's per-direction open/sealed status -- lets you visually verify doorway/wall
+# alignment instead of reasoning about coordinates.
 #
 # MUST run WINDOWED (not --headless): the headless dummy renderer produces blank
 # images and hangs. A real window briefly opens (uses the machine's GPU).
@@ -17,11 +15,10 @@ extends SceneTree
 # The level's own generator renders the floor; the depth (default 1) picks the realm whose rooms and corridors it uses.
 #
 # Overlay legend (drawn as flat, unshaded geometry lifted above the floor):
-#   yellow disc = explicit doorway connector (guaranteed-connected)
-#   cyan disc   = inferred/optional connector
+#   yellow disc = doorway connector (a room's doorway, or a secret pocket's entrance)
 #   green line  = that direction leads to an open passage
-#   red line    = that direction is SEALED by a generated wall (a bug if unexpected --
-#                 e.g. this is exactly what MapGenerator.FinalizeMarkers guards against)
+#   red line    = that direction is SEALED by a generated wall (always a bug: every
+#                 doorway must connect, see MapGenerator.ConnectRooms)
 #
 # Uses MapGenerator.GetConnectorDebugInfo() for the overlay data, since MapData (a
 # plain C# class) can't marshal to GDScript directly -- see that method's doc comment.
@@ -116,8 +113,7 @@ func _add_connector_overlay(map_generator):
 	for connector in map_generator.call("GetConnectorDebugInfo"):
 		var position = connector["worldPosition"]
 		position.y = overlay_height
-		var disc_color = Color(1.0, 0.95, 0.05) if connector["isDoorway"] else Color(0.1, 0.85, 0.95)
-		vertex_count += _add_flat_quad(surface_tool, position, 0.9, disc_color)
+		vertex_count += _add_flat_quad(surface_tool, position, 0.9, Color(1.0, 0.95, 0.05))
 
 		for direction_info in connector["directions"]:
 			var direction: Vector3 = direction_info["direction"]

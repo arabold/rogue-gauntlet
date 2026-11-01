@@ -26,9 +26,6 @@ public class MapData
     public int Height { get; }
     public MapTile[,] Tiles { get; }
     private readonly Dictionary<Vector2I, List<Vector2I>> _connectorDirections = new();
-    // Connectors that come from an explicit DoorwayMarker (vs. inferred open edges).
-    // These are intentional entrances and must all be connected by a corridor.
-    private readonly HashSet<Vector2I> _doorwayTiles = new();
 
     public MapData(int width, int height)
     {
@@ -74,18 +71,15 @@ public class MapData
 
         if (tile != MapTile.Connector)
         {
-            var key = new Vector2I(x, y);
-            _connectorDirections.Remove(key);
-            _doorwayTiles.Remove(key);
+            _connectorDirections.Remove(new Vector2I(x, y));
         }
     }
 
     /// <summary>
-    /// Marks a tile as a room connector and stores the directions where the room has
-    /// no wall. <paramref name="isDoorway"/> flags connectors that come from an
-    /// explicit DoorwayMarker (intentional entrances that must all be connected).
+    /// Marks a tile as a room connector, a doorway every corridor must connect, and stores
+    /// the directions it opens toward.
     /// </summary>
-    public void SetConnector(int x, int y, IEnumerable<Vector2I> directions, bool isDoorway = false)
+    public void SetConnector(int x, int y, IEnumerable<Vector2I> directions)
     {
         Tiles[x, y] = MapTile.Connector;
 
@@ -96,22 +90,11 @@ public class MapData
         if (openDirections.Count == 0)
         {
             _connectorDirections.Remove(key);
-            _doorwayTiles.Remove(key);
             return;
         }
 
         _connectorDirections[key] = openDirections;
-        if (isDoorway)
-        {
-            _doorwayTiles.Add(key);
-        }
     }
-
-    /// <summary>
-    /// True when the connector tile is an explicit doorway (from a DoorwayMarker),
-    /// as opposed to an inferred open edge.
-    /// </summary>
-    public bool IsDoorway(int x, int y) => _doorwayTiles.Contains(new Vector2I(x, y));
 
     /// <summary>
     /// Returns the open sides for a connector tile.
@@ -209,8 +192,54 @@ public class MapData
         }
 
         _connectorDirections.Clear();
-        _doorwayTiles.Clear();
     }
+
+    /// <summary>
+    /// This map a quarter turn on, the way <see cref="Room.Rotate"/> turns its room: tiles
+    /// move by <see cref="TurnTile"/> and connector directions by <see cref="TurnDirection"/>.
+    /// </summary>
+    public MapData Turned()
+    {
+        var turned = new MapData(Height, Width);
+        for (var x = 0; x < Width; x++)
+        {
+            for (var y = 0; y < Height; y++)
+            {
+                var to = TurnTile(new Vector2I(x, y), Width);
+                if (IsConnector(x, y))
+                {
+                    turned.SetConnector(to.X, to.Y, GetConnectorDirections(x, y).Select(TurnDirection));
+                }
+                else
+                {
+                    turned.SetTile(to.X, to.Y, Tiles[x, y]);
+                }
+            }
+        }
+
+        return turned;
+    }
+
+    /// <summary>
+    /// Where tile (x, y) of a <paramref name="width"/>-wide map lands after a quarter turn:
+    /// local +X turns toward -Z, so the turned map's first column is the old first row.
+    /// </summary>
+    public static Vector2I TurnTile(Vector2I tile, int width) => new(tile.Y, width - 1 - tile.X);
+
+    /// <summary>A cardinal direction after the quarter turn of <see cref="TurnTile"/>.</summary>
+    public static Vector2I TurnDirection(Vector2I direction) => new(direction.Y, -direction.X);
+
+    /// <summary>
+    /// The Y rotation, in degrees, that turns content authored facing north (-Z), such as a
+    /// door, toward the cardinal <paramref name="direction"/>.
+    /// </summary>
+    public static float FacingYaw(Vector2I direction) => (direction.X, direction.Y) switch
+    {
+        (1, 0) => 270f,
+        (0, 1) => 180f,
+        (-1, 0) => 90f,
+        _ => 0f,
+    };
 
     // Helper checks: IsWall, IsRoom, etc.
     public bool IsWall(int x, int y) => Tiles[x, y] == MapTile.Wall;

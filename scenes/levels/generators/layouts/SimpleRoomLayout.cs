@@ -20,13 +20,7 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 	{
 		List<RoomPlacement> rooms = new();
 
-		// Factories load content lazily. If a scene path is broken, skip generation
-		// gracefully so content mistakes show as editor/runtime errors instead of crashes.
-		var entranceRoom = PrepareConnectableRoom(factory.CreateEntrance(rng));
-		if (entranceRoom == null)
-		{
-			return rooms;
-		}
+		var entranceRoom = factory.CreateEntrance(rng);
 		var entrancePlacement = TryPlaceRoom(map, entranceRoom.Map, 99, rng);
 		if (entrancePlacement == null)
 		{
@@ -37,11 +31,7 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		rooms.Add(new RoomPlacement(entranceRoom, entrancePlacement.Value));
 		StampRoom(map, entranceRoom.Map, entrancePlacement.Value);
 
-		var exitRoom = PrepareConnectableRoom(factory.CreateExit(rng));
-		if (exitRoom == null)
-		{
-			return rooms;
-		}
+		var exitRoom = factory.CreateExit(rng);
 		var exitPlacement = TryPlaceRoom(map, exitRoom.Map, 99, rng);
 		if (exitPlacement == null)
 		{
@@ -58,14 +48,9 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 			var retries = Retries;
 			do
 			{
-				var room = PrepareConnectableRoom((i < countSpecialRooms)
+				var room = i < countSpecialRooms
 					? factory.CreateSpecialRoom(rng)
-					: factory.CreateStandardRoom(rng));
-				if (room == null)
-				{
-					continue;
-				}
-
+					: factory.CreateStandardRoom(rng);
 				var placement = TryPlaceRoom(map, room.Map, retries, rng);
 				if (placement != null)
 				{

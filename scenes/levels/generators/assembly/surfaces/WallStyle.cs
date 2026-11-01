@@ -4,9 +4,9 @@ using Godot;
 
 /// <summary>
 /// A room's wall family: weighted straight pieces (plain, cracked, broken, arched…), corner and half pieces, an
-/// optional rhythm piece every few modules (pillared walls), occasional accents (windows, built-in shelves) and the
-/// frame set into open doorways. Asymmetric pieces face into the room. Data only: new looks are new .tres files, not
-/// new code.
+/// optional rhythm piece every few modules (pillared walls), occasional accents (windows, built-in shelves), and the
+/// door or frame set into each doorway. Asymmetric pieces face into the room. Data only: new looks are new .tres files,
+/// not new code.
 /// </summary>
 [Tool, GlobalClass]
 public partial class WallStyle : Resource
@@ -27,6 +27,9 @@ public partial class WallStyle : Resource
 	/// <summary>Full-width frame set into doorways without a door, so an opening reads as a passage and the wall ends
 	/// beside it are finished. Visual only: it never blocks the opening. Empty leaves openings bare.</summary>
 	[Export] public string Opening { get; set; } = "wall_open_scaffold";
+	/// <summary>The door set into doorways that get one (see <see cref="RoomType.DoorChance"/>), with its own frame in
+	/// this family's look. Every style a room type with doors draws from needs one.</summary>
+	[Export] public PackedScene DoorScene { get; set; }
 	/// <summary>Rhythm piece placed every <see cref="PillarEvery"/> modules along each wall, centered on the run.</summary>
 	[Export] public string Pillar { get; set; } = "";
 	[Export(PropertyHint.Range, "0,6")] public int PillarEvery { get; set; }

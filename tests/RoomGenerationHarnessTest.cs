@@ -29,7 +29,7 @@ public class RoomGenerationHarnessTest
 				AssertObject(harness.PreviewRoom.Type).IsSame(type);
 				AssertBool(harness.PreviewBlueprint.IsConnected).IsTrue();
 			}
-			AssertBool(harness.PreviewCamera.Size > harness.PreviewRoom.Bounds.Size.X).IsTrue();
+			AssertBool(harness.PreviewCamera.Size > harness.PreviewRoom.Map.Width * Room.TileSize).IsTrue();
 		}
 		// Other realms list their own factory's types; RoomAssemblyTest assembles each of them.
 		for (int realm = 1; realm < harness.Generator.Realms.Length; realm++)

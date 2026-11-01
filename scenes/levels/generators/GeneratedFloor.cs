@@ -48,7 +48,8 @@ public sealed class GeneratedFloor
 	public MapData Map { get; }
 	/// <summary>Full floor regions, including connector thresholds, indexed by room id.</summary>
 	public IReadOnlyList<RoomRegion> Rooms => _rooms;
-	/// <summary>Physical doors paired with the connector they guard. One connector can carry two doors.</summary>
+	/// <summary>Exterior doors paired with the connector they guard: the doors rooms set into their doorways, and secret
+	/// pockets' concealed doors. Interior gates are not listed.</summary>
 	public IReadOnlyList<(Door Door, Vector2I Connector)> Doors => _doors;
 	/// <summary>The descent arrival the floor is built around; null only for a layout without one.</summary>
 	public PlayerSpawnPoint Arrival { get; internal set; }
@@ -94,12 +95,6 @@ public sealed class GeneratedFloor
 	{
 		RequireLive();
 		_doors.Add((door, connector));
-	}
-
-	internal void RemoveDoors(Predicate<(Door Door, Vector2I Connector)> match)
-	{
-		RequireLive();
-		_doors.RemoveAll(match);
 	}
 
 	/// <summary>Records a door's seeded access state once its connection id is final.</summary>

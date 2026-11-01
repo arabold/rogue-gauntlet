@@ -22,8 +22,8 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 	/// <summary>
 	/// Empty tiles kept between the bounding rectangles of neighboring rooms. 1 is the
 	/// minimum the generator supports: rooms must never sit directly adjacent because
-	/// door resolution and the fog-reveal cascade both assume at least one corridor
-	/// tile between two rooms.
+	/// every doorway opens onto a corridor tile and the fog-reveal cascade assumes at
+	/// least one corridor tile between two rooms.
 	/// </summary>
 	[Export(PropertyHint.Range, "1,4")] public int RoomGap { get; set; } = 1;
 
@@ -48,12 +48,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 		List<RoomPlacement> rooms = new();
 
 		// The entrance anchors the cluster at the map center so it can grow in every direction.
-		var entranceRoom = PrepareConnectableRoom(factory.CreateEntrance(rng));
-		if (entranceRoom == null)
-		{
-			return rooms;
-		}
-
+		var entranceRoom = factory.CreateEntrance(rng);
 		var entrancePlacement = new Vector2I(
 			(map.Width - entranceRoom.Map.Width) / 2,
 			(map.Height - entranceRoom.Map.Height) / 2);
@@ -135,12 +130,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 	{
 		for (int attempt = 0; attempt < Retries; attempt++)
 		{
-			var room = PrepareConnectableRoom(createRoom());
-			if (room == null)
-			{
-				continue;
-			}
-
+			var room = createRoom();
 			if (TryFindBestPlacementAcrossRotations(map, rooms, room, score, rng, out var placement))
 			{
 				AddPlacement(map, rooms, room, placement);
@@ -175,18 +165,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 
 		for (int steps = 0; steps < 4; steps++)
 		{
-			// A rotated orientation is re-baked from scratch (Room.Rotate), and content
-			// whose walls/props extend past its own floor bounds can occasionally fail
-			// doorway-marker validation at some angles even though the unrotated room
-			// validated fine -- skip any orientation that came out unreachable rather
-			// than ever placing an unconnectable room. Logged so a room that's
-			// unusable at most rotations (a content authoring issue, not a placement
-			// one) is discoverable instead of just being picked less often.
-			if (!IsConnectable(room))
-			{
-				GD.PrintErr($"PackedRoomLayout: {room.Name} has no connector at {steps * 90} degrees of rotation, skipping this orientation.");
-			}
-			else if (TryFindBestPlacement(map, rooms, room.Map, score, rng, out var placement, out float placementScore)
+			if (TryFindBestPlacement(map, rooms, room.Map, score, rng, out var placement, out float placementScore)
 				&& placementScore > bestScore)
 			{
 				bestScore = placementScore;
@@ -201,20 +180,9 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 			room.Rotate(1);
 		}
 
-		if (found && bestRotationSteps != 0)
+		if (found)
 		{
 			room.Rotate(bestRotationSteps);
-
-			// BakeTileMap is a pure function of the room's current geometry, so
-			// re-baking the exact same rotated geometry a second time cannot legally
-			// produce a different result -- but this guards the invariant explicitly
-			// rather than silently trusting it, since placing an unconnectable room
-			// would be a much worse failure than the placement attempt just failing.
-			if (!IsConnectable(room))
-			{
-				GD.PrintErr($"PackedRoomLayout: {room.Name} lost its connector re-baking the winning rotation; treating this attempt as failed.");
-				return false;
-			}
 		}
 
 		return found;

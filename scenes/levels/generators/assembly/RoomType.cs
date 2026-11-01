@@ -27,8 +27,12 @@ public partial class RoomType : Resource
 	[Export(PropertyHint.Range, "1,4")] public int MinDoorways { get; set; } = 1;
 	[Export(PropertyHint.Range, "1,4")] public int MaxDoorways { get; set; } = 3;
 	[Export] public DoorwayPlacement DoorwayPlacement { get; set; }
-	[Export] public PackedScene DoorScene { get; set; }
+	/// <summary>Chance per doorway of the wall style's door; the rest get its opening frame. 1 doors every doorway, 0
+	/// none. Access locks only lock rooms whose doorways all have doors.</summary>
 	[Export(PropertyHint.Range, "0,1,0.05")] public float DoorChance { get; set; }
+	/// <summary>Chance per doorway without a door of the wall style's opening frame; the rest stay open walkways. A
+	/// doorway beside a corner never takes a frame, which would run into the side wall.</summary>
+	[Export(PropertyHint.Range, "0,1,0.05")] public float FrameChance { get; set; } = .5f;
 	[Export] public CirculationMode Circulation { get; set; }
 	/// <summary>Largest share of standable floor that may end up inaccessible. Small pockets behind furniture read naturally;
 	/// sealing off half a room does not. Nothing ever spawns in a pocket either way.</summary>
@@ -61,7 +65,9 @@ public partial class RoomType : Resource
 		if (Floors.Length == 0 || Floors.Any(style => style == null)) errors.Add($"Room type {Id}: assign floor styles.");
 		if (Columns.Any(column => column == null) || Steps.Any(step => step == null)) errors.Add($"Room type {Id}: remove empty column or step entries.");
 		if (MinDoorways > MaxDoorways) errors.Add($"Room type {Id}: the doorway minimum exceeds the maximum.");
-		if (DoorChance > 0 && DoorScene == null) errors.Add($"Room type {Id}: assign a door scene or set the door chance to zero.");
+		if (DoorChance > 0)
+			foreach (var style in Walls.Where(style => style != null && style.DoorScene == null))
+				errors.Add($"Room type {Id}: wall style {style.Id} has no door scene; assign one or set the door chance to zero.");
 		if (Walls.All(style => style != null) && Floors.All(style => style != null))
 			foreach (string realm in Realms.Where(realm => WallsIn(realm).Length == 0 || FloorsIn(realm).Length == 0))
 				errors.Add($"Room type {Id}: no wall or floor style is tagged for realm '{realm}'.");

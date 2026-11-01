@@ -91,6 +91,7 @@ Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2")]
 MinimumFloorTiles = 8
 MinDoorways = 1
 MaxDoorways = 2
+DoorChance = 0.4
 Walls = [ExtResource("5_stone_walls"), ExtResource("6_cellar_alcove_wa")]
 Floors = [ExtResource("7_worn_stone"), ExtResource("8_dirt_with_stone"), ExtResource("9_flagstones_earth")]
 Steps = [SubResource("CornersStep_3"), SubResource("AlongWallsStep_4"), SubResource("ScatterStep_5"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7")]

@@ -253,10 +253,10 @@ public partial class RoomGenerationHarness : Node3D
 			candidate.Rotate(_quarterTurns);
 			ClearRoom();
 			PreviewRoot.AddChild(candidate);
-			var center = candidate.Bounds.Position + (candidate.Bounds.Size - Vector2I.One * Room.TileSize) / 2;
-			candidate.Position = new(-center.X, 0, -center.Y);
+			var map = candidate.Map;
+			candidate.Position = -(candidate.Origin + new Vector3I(map.Width - 1, 0, map.Height - 1) * (Room.TileSize / 2));
 			PreviewRoom = candidate;
-			FramePreview(Mathf.Max(candidate.Bounds.Size.X, candidate.Bounds.Size.Y) + 12);
+			FramePreview(Mathf.Max(map.Width, map.Height) * Room.TileSize + 12);
 		}
 		catch
 		{

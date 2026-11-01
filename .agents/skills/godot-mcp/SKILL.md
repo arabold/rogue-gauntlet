@@ -119,14 +119,12 @@ Run a GDScript file as the main loop to exercise the project without the editor:
 
 ## Visual verification: top-down level/room screenshots
 
-Reasoning about tile coordinates or trusting an editor-only gizmo (e.g. `DoorwayMarker`'s arrow,
-which only draws inside the actual Godot editor process) can't confirm what a generated level or
-room actually looks like. `scripts/render_level_topdown.gd` renders a real top-down screenshot of
-a generated level instead, with an overlay drawn straight from `MapGenerator.GetConnectorDebugInfo()`
-(Godot-native return types, since `MapData` itself can't marshal to GDScript) showing every
-connector's position and per-direction open (green) / sealed (red) status, plus doorway (yellow)
-vs inferred (cyan) markers. This must run **windowed**, not headless — the headless renderer
-produces blank images:
+Reasoning about tile coordinates can't confirm what a generated level or room actually looks like.
+`scripts/render_level_topdown.gd` renders a real top-down screenshot of a generated level instead,
+with an overlay drawn straight from `MapGenerator.GetConnectorDebugInfo()` (Godot-native return
+types, since `MapData` itself can't marshal to GDScript) showing every doorway connector (yellow)
+and its per-direction open (green) / sealed (red) status. This must run **windowed**, not
+headless — the headless renderer produces blank images:
 
 ```bash
 .agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" --script \
@@ -141,7 +139,7 @@ call `SelectRealm`, `SelectRecipe` and `Regenerate`, hide its `UI` node and save
 Then `Read` the resulting PNG to inspect it. Use this whenever a change to room layout, doorway
 placement, wall generation, or rotation needs a visual sanity check instead of (or in addition to)
 numeric probes/tests — e.g. confirming a doorway's connector tile is flush with its wall gap, or
-that a rotated room's markers still point the right way.
+that a rotated room's doors still stand in their doorways.
 
 ## Visual verification: animated GIFs
 

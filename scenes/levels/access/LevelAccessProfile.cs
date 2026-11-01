@@ -7,6 +7,7 @@ using System.Linq;
 [GlobalClass]
 public partial class LevelAccessProfile : Resource
 {
+	/// <summary>The concealed door of secret pockets; room doorways bring their own doors (see <see cref="WallStyle.DoorScene"/>).</summary>
 	[Export] public PackedScene DoorScene { get; set; }
 	[Export] public DoorLockDefinition[] Locks { get; set; } = [];
 	[Export] public SecretDetectionProfile Detection { get; set; }
