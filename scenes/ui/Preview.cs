@@ -100,12 +100,17 @@ public partial class Preview : SubViewport
 	} = 1.12f;
 
 	[Export] public Camera3D Camera { get; set; }
+	[Export] public PackedScene AuraPresentation { get; set; }
+
+	public ItemAuraPresenter AuraPresenter => _aura;
 
 	/// <summary>Seconds the sway takes to fade in or out.</summary>
 	private const float SwayEaseTime = 0.25f;
 
 	private Node3D _pivot;
 	private Node3D _object;
+	private Item _item;
+	private ItemAuraPresenter _aura;
 	private readonly List<Vector3> _points = [];
 	private Basis? _authoredPose;
 	private Transform3D _rest = Transform3D.Identity;
@@ -135,8 +140,10 @@ public partial class Preview : SubViewport
 	/// <summary>Shows <paramref name="item"/>'s run appearance; weapons lie diagonally.</summary>
 	public void ShowItem(Item item)
 	{
+		_item = item;
 		Diagonal = item is Weapon;
 		Scene = ItemIdentity.ResolveScene(item);
+		UpdateAura();
 	}
 
 	public void Refresh()
@@ -146,6 +153,7 @@ public partial class Preview : SubViewport
 			return;
 		}
 
+		ClearAura();
 		if (_pivot != null)
 		{
 			// Hidden at once so the next render never shows the outgoing model.
@@ -164,6 +172,7 @@ public partial class Preview : SubViewport
 			_authoredPose = Measure(_object, _points);
 		}
 		Frame();
+		UpdateAura();
 	}
 
 	/// <summary>Poses and fits the current model, then renders it once.</summary>
@@ -179,7 +188,7 @@ public partial class Preview : SubViewport
 			_swayAxis = pose.SwayAxis;
 			ApplySway();
 		}
-		RenderOnce();
+		UpdateRenderMode();
 	}
 
 	/// <summary>
@@ -196,7 +205,7 @@ public partial class Preview : SubViewport
 
 		void Visit(Node3D node, Transform3D transform)
 		{
-			if (!node.Visible)
+			if (!node.Visible || VisualHelper.IsHelper(node))
 			{
 				return;
 			}
@@ -242,7 +251,7 @@ public partial class Preview : SubViewport
 		if (!Animated && _swayWeight <= 0f)
 		{
 			SetProcess(false);
-			RenderOnce();
+			UpdateRenderMode();
 		}
 	}
 
@@ -267,12 +276,55 @@ public partial class Preview : SubViewport
 		_pivot.Transform = new Transform3D(new Basis(_swayAxis, angle), Vector3.Zero) * _rest;
 	}
 
-	private void RenderOnce()
+	private void UpdateRenderMode()
 	{
-		// While swaying it already renders every frame.
-		if (!IsProcessing())
+		if (IsProcessing() || (_aura != null && _aura.HasActiveAura))
+		{
+			RenderTargetUpdateMode = UpdateMode.Always;
+		}
+		else
 		{
 			RenderTargetUpdateMode = UpdateMode.Once;
 		}
+	}
+
+	private void UpdateAura()
+	{
+		if (Engine.IsEditorHint() || _object == null || AuraPresentation == null || _item is not EquipableItem equipable)
+		{
+			ClearAura();
+			return;
+		}
+
+		if (_aura != null && _aura.GetParent() == _object && _aura.Item == equipable)
+		{
+			_aura.Sync();
+			return;
+		}
+
+		ClearAura();
+		_aura = AuraPresentation.Instantiate<ItemAuraPresenter>();
+		_aura.Initialize(equipable, _object);
+		_aura.AuraChanged += OnAuraChanged;
+		_object.AddChild(_aura);
+		UpdateRenderMode();
+	}
+
+	private void ClearAura()
+	{
+		if (_aura != null)
+		{
+			_aura.AuraChanged -= OnAuraChanged;
+			_aura.QueueFree();
+			_aura = null;
+		}
+		UpdateRenderMode();
+	}
+
+	private void OnAuraChanged(WorldEffectDefinition active) => UpdateRenderMode();
+
+	public override void _ExitTree()
+	{
+		ClearAura();
 	}
 }
