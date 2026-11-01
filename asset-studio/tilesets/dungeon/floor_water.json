@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "name": "Sewer water",
+  "concept": "KayKit's own grate tiles with their bars taken out and their shafts filled with still sewer water to just under the granite rim, drawn by the game's water shader; a 4x2 channel laid in runs and a 4x4 pool.",
+  "kind": "inlay",
+  "style": "water",
+  "design": {
+    "source": {
+      "channel": "floor_tile_grate_open",
+      "pool": "floor_tile_big_grate_open"
+    },
+    "level": -0.06,
+    "depth": 0.3
+  },
+  "colors": {
+    "water": [
+      64,
+      126,
+      118
+    ],
+    "scum": [
+      104,
+      138,
+      96
+    ]
+  },
+  "materials": {
+    "water": {
+      "alpha": 0.55,
+      "roughness": 0.1,
+      "crease": 30
+    },
+    "scum": {
+      "roughness": 0.7,
+      "crease": 50
+    }
+  },
+  "pieces": {
+    "channel": [
+      "A",
+      "B"
+    ],
+    "pool": [
+      "A",
+      "B"
+    ]
+  },
+  "budget": {
+    "triangles": 1500
+  },
+  "export": {
+    "folder": "res://assets/custom-tiles/dungeon"
+  }
+}

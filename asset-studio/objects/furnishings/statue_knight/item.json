@@ -5,27 +5,21 @@
   "builder": "furnishing",
   "design": {
     "kind": "statue",
-    "pose": "sword"
+    "character": "knight"
   },
   "color_mode": "world",
-  "topology": "closed_surface",
+  "topology": "closed_assembly",
   "placement": {
     "pivot": "authored",
     "scale": 1
   },
   "budget": {
-    "triangles": 3000,
+    "triangles": 7000,
     "materials": 2,
     "texture_size": 1024
   },
   "crease": 45,
   "materials": {
-    "marble": {
-      "crease": 35
-    },
-    "marble_dark": {
-      "crease": 35
-    },
     "stone": {
       "crease": 35
     },
@@ -38,6 +32,6 @@
   },
   "provenance": {
     "kind": "studio_original",
-    "quality_notes": "Room furnishing at KayKit dungeon scale: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+    "quality_notes": "Statue: the KayKit Adventurers knight (CC0), posed in Blender (items/pose_kaykit.py) and carved in the plinth stone. No gameplay data."
   }
 }

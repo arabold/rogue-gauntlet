@@ -291,6 +291,8 @@ Everything is built from the KayKit-style vocabulary in [`items/furnishing_kit.p
 
 Furnishing recipes use `"color_mode": "world"`: [`items/world_surface.py`](items/world_surface.py) maps every material slot to a swatch of KayKit's own `dungeon_texture.png` (byte-identical to `rigs/item_palette.png`) and shades it by height the way KayKit's props do, under KayKit's single material (metallic 0, roughness 0.45; flames and brews get an emissive copy). Colors therefore come from the world's palette, never from per-prop RGB values; check new props side by side with related KayKit assets. Details KayKit already models are reused rather than imitated: [`items/borrowed_parts.py`](items/borrowed_parts.py) lifts triangles out of KayKit models with their UVs and material (`python -m items.borrowed_parts` regenerates the bunk bedding from `bed_frame.gltf`), and game scenes combine props with existing art, such as KayKit's woodcutter's axe in the chopping block. Room composition (`Prop`/`PropGroup` resources, lit and composed scenes, room types) stays game-side; see the [room assembly guide](../scenes/levels/generators/assembly/README.md).
 
+Realm furnishings follow the same rules. Sarcophagi (`crypt/`), sewer fixtures (valve, outfall, pipe run, sluice gate, goo barrel) and raised goo puddles (`sewer/`) wear the dungeon texture; the drain pipe and slime take the swatches of the slimy wall's own pipe and slime. Statues and the sarcophagus effigy are the pack's own adventurers carved in stone rather than modeled figures: [`items/pose_kaykit.py`](items/pose_kaykit.py) poses a KayKit character in headless Blender (`Blender -b --factory-startup --python items/pose_kaykit.py -- <character.glb> <clip> items/meshes/<name>.npz`, never in an open Blender session) and stores its closed parts, which `furnishings.figure` unions. Jungle plants ([`items/foliage.py`](items/foliage.py): ferns, bushes, broadleaves, root tangles, mushrooms) are the walls' growth come down to the floor, so their recipes use `color_mode: "character"` with the jungle walls' moss, fern and root colors and the tiles' ramp instead of the dungeon texture.
+
 `Assembly.cut` subtracts from everything added before it, so details added afterwards can sit inside a recess; `Assembly.label`/`join` let a part take its own booleans (a chipped board) before it joins.
 
 ### Curated shields
@@ -438,6 +440,8 @@ Floor, wall and rug tiles in the KayKit dungeon style, on the KayKit footprints 
 ./.venv/bin/python asset-studio/studio.py tile build dungeon/floor_planks
 ./.venv/bin/python asset-studio/studio.py tile lineup dungeon/floor_planks
 ```
+
+Water comes in two tile kinds: inlays (`floor_water`, KayKit's own grates with water in their shafts, laid where grates are) and pools (`floor_pool`, deep water laid like rugs with quay walls in KayKit's foundation profile). Their exported water is a translucent stand-in; the game draws it with its water shader.
 
 The studio owns the tile art only. Mesh libraries, collision, navigation and which realm or room uses which family are game-side wiring.
 

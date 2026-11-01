@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=41 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=43 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -31,6 +31,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth_floor.tres" id="x_earth_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/slimy_walls.tres" id="x_slimy_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/planks_rotten_floor.tres" id="x_planks_rotten_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/goo_barrel.tres" id="p_goo_barrel"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -109,6 +110,15 @@ MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("25_WallDecorSte")
 
+[sub_resource type="Resource" id="ScatterStep_goo"]
+script = ExtResource("22_ScatterStep")
+Id = "goo"
+Realms = PackedStringArray("sewer")
+Content = [ExtResource("p_goo_barrel")]
+MaximumCount = 1
+WallChance = 0.8
+metadata/_custom_type_script = ExtResource("22_ScatterStep")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "partitioned_store"
@@ -120,5 +130,5 @@ MinDoorways = 1
 MaxDoorways = 2
 Walls = [ExtResource("3_stone_walls"), ExtResource("4_ruined_walls"), ExtResource("x_cellar_alcove_walls"), ExtResource("x_slimy_walls")]
 Floors = [ExtResource("5_stone_floor"), ExtResource("6_dirt_floor"), ExtResource("x_bricks_floor"), ExtResource("x_earth_floor"), ExtResource("x_planks_rotten_floor")]
-Steps = [SubResource("ChoiceStep_2"), SubResource("CornersStep_6"), SubResource("AlongWallsStep_7"), SubResource("ScatterStep_8"), SubResource("WallDecorStep_9")]
+Steps = [SubResource("ChoiceStep_2"), SubResource("CornersStep_6"), SubResource("AlongWallsStep_7"), SubResource("ScatterStep_8"), SubResource("ScatterStep_goo"), SubResource("WallDecorStep_9")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

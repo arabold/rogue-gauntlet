@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "name": "Statue Mage",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "statue",
+    "character": "mage"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 7000,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 45,
+  "materials": {
+    "stone": {
+      "crease": 35
+    },
+    "stone_dark": {
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/chapel/statue_mage.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Statue: the KayKit Adventurers mage (CC0), posed in Blender (items/pose_kaykit.py) and carved in the plinth stone. No gameplay data."
+  }
+}

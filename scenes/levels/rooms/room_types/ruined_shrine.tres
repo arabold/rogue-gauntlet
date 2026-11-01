@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=34 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=41 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -26,6 +26,11 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="25_torch"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="26_torch_unlit"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="27_walldecorstep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/sarcophagus_robbed.tres" id="p_sarcophagus_ro"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/sarcophagus.tres" id="p_sarcophagus"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/fern.tres" id="p_fern"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/bush.tres" id="p_bush"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/mushrooms.tres" id="p_mushrooms"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
@@ -85,6 +90,23 @@ MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("27_walldecorstep")
 
+[sub_resource type="Resource" id="AlongWallsStep_tomb"]
+script = ExtResource("14_alongwallsstep")
+Id = "tomb"
+Content = [ExtResource("p_sarcophagus_ro"), ExtResource("p_sarcophagus")]
+MaximumCount = 1
+Chance = 0.7
+Spacing = 0.6
+metadata/_custom_type_script = ExtResource("14_alongwallsstep")
+
+[sub_resource type="Resource" id="ScatterStep_undergrowth"]
+script = ExtResource("24_scatterstep")
+Id = "undergrowth"
+Content = [ExtResource("p_fern"), ExtResource("p_bush"), ExtResource("p_mushrooms")]
+MaximumCount = 4
+WallChance = 0.6
+metadata/_custom_type_script = ExtResource("24_scatterstep")
+
 [resource]
 script = ExtResource("2_roomtype")
 Id = "ruined_shrine"
@@ -100,5 +122,5 @@ Walls = [ExtResource("4_crypt_walls"), ExtResource("5_mossy_walls")]
 Floors = [ExtResource("6_flagstones_ruine"), ExtResource("7_checker_floor"), ExtResource("8_flagstones_floor")]
 Columns = [SubResource("CornerColumns_2")]
 ColumnChance = 0.5
-Steps = [SubResource("AlongWallsStep_3"), SubResource("CornersStep_4"), SubResource("AlongWallsStep_5"), SubResource("ScatterStep_6"), SubResource("WallDecorStep_7")]
+Steps = [SubResource("AlongWallsStep_3"), SubResource("AlongWallsStep_tomb"), SubResource("CornersStep_4"), SubResource("AlongWallsStep_5"), SubResource("ScatterStep_6"), SubResource("ScatterStep_undergrowth"), SubResource("WallDecorStep_7")]
 metadata/_custom_type_script = ExtResource("2_roomtype")

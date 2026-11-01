@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "name": "Goo Barrel",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "goo_barrel"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 3000,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 45,
+  "materials": {
+    "wood": {
+      "crease": 35
+    },
+    "wood_dark": {
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/sewer/goo_barrel.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Room furnishing at KayKit dungeon scale: floor props stand on y=0 facing +Z; back-to-wall props keep their back on -Z. Solid-unioned parts with material color regions. No gameplay data."
+  }
+}

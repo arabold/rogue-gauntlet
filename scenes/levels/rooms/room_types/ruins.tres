@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=50 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=61 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/LShape.cs" id="2_LShape"]
@@ -38,6 +38,14 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/silted_bricks.tres" id="x_silted_bricks"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/silt_floor.tres" id="x_silt_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/overgrown_flagstones.tres" id="x_overgrown_flagstones"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="p_AlongWallsStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/fixtures/pipe_outlet.tres" id="p_pipe_outlet"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/goo_puddle.tres" id="p_goo_puddle"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/fern.tres" id="p_fern"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/bush.tres" id="p_bush"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/broadleaf.tres" id="p_broadleaf"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/roots_surface.tres" id="p_roots_surface"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/mushrooms.tres" id="p_mushrooms"]
 
 [sub_resource type="Resource" id="LShape_1"]
 script = ExtResource("2_LShape")
@@ -122,6 +130,33 @@ MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("24_WallDecorSte")
 
+[sub_resource type="Resource" id="AlongWallsStep_outfalls"]
+script = ExtResource("p_AlongWallsStep")
+Id = "outfalls"
+Realms = PackedStringArray("sewer")
+Content = [ExtResource("p_pipe_outlet")]
+MaximumCount = 1
+Chance = 0.7
+metadata/_custom_type_script = ExtResource("p_AlongWallsStep")
+
+[sub_resource type="Resource" id="ScatterStep_goo"]
+script = ExtResource("17_ScatterStep")
+Id = "goo"
+Realms = PackedStringArray("sewer")
+Content = [ExtResource("p_goo_puddle")]
+MaximumCount = 2
+WallChance = 0.5
+metadata/_custom_type_script = ExtResource("17_ScatterStep")
+
+[sub_resource type="Resource" id="ScatterStep_undergrowth"]
+script = ExtResource("17_ScatterStep")
+Id = "undergrowth"
+Realms = PackedStringArray("jungle")
+Content = [ExtResource("p_fern"), ExtResource("p_bush"), ExtResource("p_broadleaf"), ExtResource("p_roots_surface"), ExtResource("p_mushrooms")]
+MaximumCount = 6
+WallChance = 0.5
+metadata/_custom_type_script = ExtResource("17_ScatterStep")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "ruins"
@@ -136,5 +171,5 @@ Walls = [ExtResource("7_ruined_walls"), ExtResource("8_scaffold_wal"), ExtResour
 Floors = [ExtResource("9_worn_stone"), ExtResource("10_dirt_with_st"), ExtResource("11_drained_ston"), ExtResource("12_dirt_floor"), ExtResource("x_flagstones_ruined_floor"), ExtResource("x_planks_rotten_floor"), ExtResource("x_earth_floor"), ExtResource("x_silted_bricks"), ExtResource("x_silt_floor"), ExtResource("x_overgrown_flagstones")]
 Columns = [SubResource("CenterColumns_6"), SubResource("CornerColumns_7")]
 ColumnChance = 0.5
-Steps = [SubResource("ScatterStep_8"), SubResource("ScatterStep_9"), SubResource("ScatterStep_10"), SubResource("WallDecorStep_11")]
+Steps = [SubResource("AlongWallsStep_outfalls"), SubResource("ScatterStep_8"), SubResource("ScatterStep_9"), SubResource("ScatterStep_10"), SubResource("ScatterStep_goo"), SubResource("ScatterStep_undergrowth"), SubResource("WallDecorStep_11")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

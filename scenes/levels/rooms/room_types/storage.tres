@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=46 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=61 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -36,6 +36,17 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/planks_rotten_floor.tres" id="x_planks_rotten_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/slimy_walls.tres" id="x_slimy_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/drained_flagstones.tres" id="x_drained_flagstones"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/fixtures/sluice_gate.tres" id="p_sluice_gate"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/PoolStep.cs" id="p_PoolStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_center.tres" id="p_pool_center"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_edge.tres" id="p_pool_edge"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_corner.tres" id="p_pool_corner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_runner.tres" id="p_pool_runner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_runner_end.tres" id="p_pool_runner_en"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/fixtures/valve.tres" id="p_valve"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/fixtures/pipe_run.tres" id="p_pipe_run"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/goo_barrel.tres" id="p_goo_barrel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/goo_puddle.tres" id="p_goo_puddle"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -108,6 +119,50 @@ MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("29_WallDecorSte")
 
+[sub_resource type="Resource" id="AlongWallsStep_sluice"]
+script = ExtResource("20_AlongWallsSt")
+Id = "sluice"
+Realms = PackedStringArray("sewer")
+Content = [ExtResource("p_sluice_gate")]
+MaximumCount = 1
+Chance = 0.9
+AvoidDoorwayWalls = true
+metadata/_custom_type_script = ExtResource("20_AlongWallsSt")
+
+[sub_resource type="Resource" id="PoolStep_channel"]
+script = ExtResource("p_PoolStep")
+Id = "channel"
+MinimumCount = 0
+MaximumCount = 1
+Chance = 0.6
+Realms = PackedStringArray("sewer")
+Center = ExtResource("p_pool_center")
+Edge = ExtResource("p_pool_edge")
+Corner = ExtResource("p_pool_corner")
+Runner = ExtResource("p_pool_runner")
+RunnerEnd = ExtResource("p_pool_runner_en")
+MinimumSize = Vector2i(1, 2)
+MaximumSize = Vector2i(1, 3)
+metadata/_custom_type_script = ExtResource("p_PoolStep")
+
+[sub_resource type="Resource" id="AlongWallsStep_pipework"]
+script = ExtResource("20_AlongWallsSt")
+Id = "pipework"
+Realms = PackedStringArray("sewer")
+Content = [ExtResource("p_valve"), ExtResource("p_pipe_run")]
+MaximumCount = 2
+Spacing = 0.6
+metadata/_custom_type_script = ExtResource("20_AlongWallsSt")
+
+[sub_resource type="Resource" id="ScatterStep_goo"]
+script = ExtResource("23_ScatterStep")
+Id = "goo"
+Realms = PackedStringArray("sewer")
+Content = [ExtResource("p_goo_barrel"), ExtResource("p_goo_puddle")]
+MaximumCount = 2
+WallChance = 0.6
+metadata/_custom_type_script = ExtResource("23_ScatterStep")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "storage"
@@ -120,5 +175,5 @@ Walls = [ExtResource("4_stone_walls"), ExtResource("5_ruined_walls"), ExtResourc
 Floors = [ExtResource("7_stone_floor"), ExtResource("8_dirt_floor"), ExtResource("11_drained_ston"), ExtResource("x_bricks_floor"), ExtResource("x_earth_floor"), ExtResource("x_planks_rotten_floor"), ExtResource("x_drained_flagstones")]
 Columns = [SubResource("CenterColumns_3"), SubResource("CornerColumns_4")]
 ColumnChance = 0.25
-Steps = [SubResource("CornersStep_5"), SubResource("AlongWallsStep_6"), SubResource("ScatterStep_7"), SubResource("CornersStep_8"), SubResource("WallDecorStep_9")]
+Steps = [SubResource("AlongWallsStep_sluice"), SubResource("PoolStep_channel"), SubResource("AlongWallsStep_pipework"), SubResource("CornersStep_5"), SubResource("AlongWallsStep_6"), SubResource("ScatterStep_7"), SubResource("CornersStep_8"), SubResource("ScatterStep_goo"), SubResource("WallDecorStep_9")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_floorinlay")
 Id = "flagstone_center_drain"
-Items = Dictionary[String, float]({"floor_tile_big_grate": 1.0, "floor_tile_big_grate_open": 1.0})
+Items = Dictionary[String, float]({"floor_tile_big_grate": 1.0, "floor_tile_big_grate_open": 1.0, "floor_water_pool_A": 1.0, "floor_water_pool_B": 1.0})
 Host = ExtResource("3_flagstones")
 MinimumCount = 1
 MaximumCount = 1
