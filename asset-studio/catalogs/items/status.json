@@ -1,6 +1,6 @@
 {
-  "items": 164,
-  "godot_verified_exports": 40,
+  "items": 168,
+  "godot_verified_exports": 45,
   "authored_surface_exceptions": [
     "food/drink_beer_stein",
     "keys/key_bronze_ornate"
@@ -4240,7 +4240,7 @@
     {
       "key": "weapons/axe_bearded",
       "source_current": true,
-      "inputs": "53e56d4b11ad4f4237d8a4e79b2146d7f85cd949321ec0d1ea15248c51cc5e53",
+      "inputs": "758a3b776de881c03987f098ecc9ec460114cd74758aa01fed95d336e79d4b21",
       "triangles": 1724,
       "materials": 2,
       "source": null,
@@ -4262,7 +4262,7 @@
     {
       "key": "weapons/axe_executioner",
       "source_current": true,
-      "inputs": "8e1dfcff041517e7ff0513a48fa7e1afb98cdd38b691dc772b6491ce7d80e228",
+      "inputs": "8f6494ffff0b26f08c221bd7b9c2c0efc640c92b1328e22f8471d2d36933296a",
       "triangles": 746,
       "materials": 3,
       "source": null,
@@ -4284,7 +4284,7 @@
     {
       "key": "weapons/battleaxe_gilded",
       "source_current": true,
-      "inputs": "a9b25222d3aaa7f8e03a1b451793c857705f22ea75aa0c4e8676c02111c9457f",
+      "inputs": "6399a0d3cdf836d244cb6a601352ef0a5351e1571023cb1917bb4e742d896ad6",
       "triangles": 1282,
       "materials": 4,
       "source": null,
@@ -4306,7 +4306,7 @@
     {
       "key": "weapons/battleaxe_iron",
       "source_current": true,
-      "inputs": "112213dfcdfecfd27c6848b92460a42d3c100db154fa6a837366f816d8199e31",
+      "inputs": "f03093bfbf3d6445e3ea310f70391e328583193ae362a6bf084a71272cc4b0fc",
       "triangles": 1546,
       "materials": 2,
       "source": null,
@@ -4328,7 +4328,7 @@
     {
       "key": "weapons/broadsword_steel",
       "source_current": true,
-      "inputs": "6bcd298c515fe5da6a74d568dc7fe31753284ae2fbaf3ee0849379a95c640b6f",
+      "inputs": "ab65a18680fad76cee731b4eb83cf8f0fec44dada5e0809cb97af340694eb404",
       "triangles": 536,
       "materials": 2,
       "source": null,
@@ -4350,7 +4350,7 @@
     {
       "key": "weapons/claymore_iron",
       "source_current": true,
-      "inputs": "7106923bde70760f61245e862377569406a45d99713f4cdf90cb366a23b59a6a",
+      "inputs": "39dffa0c8bdc8ad2c48f2fa7acfdf9b7c746b02a52e5946b61fad6f5f15bf62f",
       "triangles": 658,
       "materials": 2,
       "source": null,
@@ -4372,7 +4372,7 @@
     {
       "key": "weapons/club_steel",
       "source_current": true,
-      "inputs": "c460187711e840694e0bcffe00bdef5517c1851d95a2a22cd871088d23e4f29b",
+      "inputs": "d44612693df1d4dbf0ff6040248f4079c5ba5e34a5e500836a104324d684f7e9",
       "triangles": 812,
       "materials": 2,
       "source": null,
@@ -4394,7 +4394,7 @@
     {
       "key": "weapons/club_wood_old",
       "source_current": true,
-      "inputs": "e97b3e13594d71711134b8edefc09d7f19a8c0bf575e67cf334c5a9a8361a035",
+      "inputs": "3d4276f5e5d18e2ecfa09ff037eb7242ba4456513c71c2419a37c94333cc0808",
       "triangles": 354,
       "materials": 1,
       "source": null,
@@ -4416,7 +4416,7 @@
     {
       "key": "weapons/crossbow_gilded",
       "source_current": true,
-      "inputs": "5012d7fabb9a3b549ef004ebd552aed61b0357a41581267ddd4e666859726c08",
+      "inputs": "ae3bc4200be2ed0285cae66ef201c55135b3244cc99b4432bccbe1530a678da2",
       "triangles": 1314,
       "materials": 3,
       "source": null,
@@ -4438,7 +4438,7 @@
     {
       "key": "weapons/dagger_dirk",
       "source_current": true,
-      "inputs": "a4f0f190cbe2be691563d0d2e417f5be6f648ea33a62a3f328360279d3fd7bb8",
+      "inputs": "dfc74fe215ed756b1a04d4988e1537230dff6fe72aef58a4327163b802d1abbe",
       "triangles": 338,
       "materials": 2,
       "source": null,
@@ -4460,7 +4460,7 @@
     {
       "key": "weapons/dagger_fang",
       "source_current": true,
-      "inputs": "b7f4c5ce32e8ed1bf16949b82dc8733ad1317cab81597e0f92c1e35f9bc9dfde",
+      "inputs": "c5d72408896f4a00772ff2ca3e68b5ee26a69bdd01599a0fdcc2cee604dc7a49",
       "triangles": 494,
       "materials": 3,
       "source": null,
@@ -4482,7 +4482,7 @@
     {
       "key": "weapons/dagger_short",
       "source_current": true,
-      "inputs": "6c466eb3a1d22acf53b53c7f86287613cf36dcbde1db4f39fa87c7f267cb712c",
+      "inputs": "f354d66b01fe036a41a44fb51e50da834913708609e8f848d8d5c8bcfa41d80f",
       "triangles": 334,
       "materials": 2,
       "source": null,
@@ -4504,7 +4504,7 @@
     {
       "key": "weapons/greatblade_curved",
       "source_current": true,
-      "inputs": "dc8cbb5de488f80bf662c3a5dc624aa694725563b069d8dc7bd755a958245406",
+      "inputs": "b2e6603b548d956490844b5b879311d958eff9230ea9fa257eb4ce6e6b6d863b",
       "triangles": 776,
       "materials": 2,
       "source": null,
@@ -4526,7 +4526,7 @@
     {
       "key": "weapons/greatsword_steel",
       "source_current": true,
-      "inputs": "e80537bb141173b82530b003538ebefaebacffc7851389ab51114dabc297b968",
+      "inputs": "a3433bf682a305697d8202bb5c84161fe873b495003e26fc12646a80637b933d",
       "triangles": 668,
       "materials": 2,
       "source": null,
@@ -4548,7 +4548,7 @@
     {
       "key": "weapons/greatsword_winged",
       "source_current": true,
-      "inputs": "771a3f900ea599d2b80d03e6340f1f12050faa1ea8f628a9480a79a5308d9f5b",
+      "inputs": "ab430770818fb1f63b1b6acf3c7f52040a64a3557516d5c39869340fb4d90fa7",
       "triangles": 688,
       "materials": 3,
       "source": null,
@@ -4570,7 +4570,7 @@
     {
       "key": "weapons/greatsword_wooden",
       "source_current": true,
-      "inputs": "fed93538c0280affdca143f45327686d9412f313dd943cfc6c9d352cbd6dabe2",
+      "inputs": "efaddc51f6dd014ad6c489bc4ad06a1614e63e1538ef6dd3318c06f95273fa1d",
       "triangles": 556,
       "materials": 1,
       "source": null,
@@ -4592,7 +4592,7 @@
     {
       "key": "weapons/halberd_steel",
       "source_current": true,
-      "inputs": "3a5d4c39085efb32b200ec89b2c3189740e5430cc3b69d9396d374b6769f0000",
+      "inputs": "77f829a2b247730b5e59989a36e1cc30ff3412f294a3ab3d121336f2c564cda0",
       "triangles": 1002,
       "materials": 2,
       "source": null,
@@ -4614,7 +4614,7 @@
     {
       "key": "weapons/hammer_mallet",
       "source_current": true,
-      "inputs": "33b20f8da18ac6ee0000f7fd35471c069863a435f1502c8193a5d7cd1555e0fb",
+      "inputs": "1f4d0b7627ce2fb16eb60d8f249385208d4940a09ade11390365998617519109",
       "triangles": 848,
       "materials": 2,
       "source": null,
@@ -4636,7 +4636,7 @@
     {
       "key": "weapons/longblade_crescent",
       "source_current": true,
-      "inputs": "d303979d8efe27500e5355d3d2a6c8975d603466b31069ed5cb56ae58bca1cbd",
+      "inputs": "6e8c8737ae86e955a021b77b1aa8363ce0e6e1e1ae7af8d66119a6c582bcb19b",
       "triangles": 1022,
       "materials": 2,
       "source": null,
@@ -4658,7 +4658,7 @@
     {
       "key": "weapons/mace_gilded",
       "source_current": true,
-      "inputs": "0e0a1a9b2e6ca348d2707d55e1887805f0924415bc0add461828bd65edfeb62b",
+      "inputs": "5e2826352b8ee157668e4b1c0af1469016272575d387c59e7a0f26ced1c7bb6f",
       "triangles": 864,
       "materials": 3,
       "source": null,
@@ -4680,7 +4680,7 @@
     {
       "key": "weapons/morning_star_iron",
       "source_current": true,
-      "inputs": "2bea4309949ac67e1185190589ec1666bb7ab50411cb636b2c7616b2d5273f05",
+      "inputs": "42af5a0b896730298bf003a5648e146ca35825bc81752aa314f5eedf92ce1fe3",
       "triangles": 1174,
       "materials": 2,
       "source": null,
@@ -4702,7 +4702,7 @@
     {
       "key": "weapons/rapier_steel",
       "source_current": true,
-      "inputs": "6d6cd4b5973b92f20f7022625dc76ff3f4259bd347221256c7b054093427af68",
+      "inputs": "f256cd1f1af53c191db905bac53dcb27c4365e0e8d9082e557daf3ab396213c6",
       "triangles": 570,
       "materials": 2,
       "source": null,
@@ -4724,7 +4724,7 @@
     {
       "key": "weapons/saber_steel",
       "source_current": true,
-      "inputs": "bcba135c5f5e94ecd0bd9d66cd30372149d0ac8c1ec68a5bf19fbbbacb384366",
+      "inputs": "34b4f94e2cf9dd620b45b5c47761f7609164436540ff23145b6bf0a96b271804",
       "triangles": 558,
       "materials": 2,
       "source": null,
@@ -4746,7 +4746,7 @@
     {
       "key": "weapons/scythe_iron",
       "source_current": true,
-      "inputs": "d5d96dc5320c62a2061f5e3a62a0256a5fa25c59842cb8976d5c2cb56821d431",
+      "inputs": "37b228536fb27d01f06e5a0e8cdc3bc19030e12c7a5c13cfba84946698336ea3",
       "triangles": 992,
       "materials": 2,
       "source": null,
@@ -4768,7 +4768,7 @@
     {
       "key": "weapons/spear_steel",
       "source_current": true,
-      "inputs": "d6bdfb67354c19741748a0bd5da2ca4a09ab88cab884e951d962677292aec2f5",
+      "inputs": "2357e1f1984c0e4763d15f1dce3ce464f4b68ac7ef973c164d98c56043f8e38c",
       "triangles": 954,
       "materials": 2,
       "source": null,
@@ -4790,7 +4790,7 @@
     {
       "key": "weapons/staff_archmage",
       "source_current": true,
-      "inputs": "513291159e01ecc4aa78cdef9edfe38376ad3897cb5921484b9c47399e5f560b",
+      "inputs": "cae2c8a276aee4de45524d105e25c2a13c6cd409bd5772065d43fe15d69b90e3",
       "triangles": 948,
       "materials": 4,
       "source": null,
@@ -4812,7 +4812,7 @@
     {
       "key": "weapons/staff_bone",
       "source_current": true,
-      "inputs": "9a30e21c724ce798ca0f4ff9fa178cf0e01c7a2c9f14aef87f989afb1475a88a",
+      "inputs": "d45c9d0d9bd925b4665ca97e05166f0a98d0ce3d456744d80f39dae18e9c529c",
       "triangles": 1104,
       "materials": 2,
       "source": null,
@@ -4834,7 +4834,7 @@
     {
       "key": "weapons/staff_crooked",
       "source_current": true,
-      "inputs": "778b19f3619708eab4a5d55e24548ba59f0262050e0881de7e5eec74a03ba65f",
+      "inputs": "13ce875b1b089fb89eceb11c4caa218afba78415a3c1f6176633b34cbefebd57",
       "triangles": 1026,
       "materials": 1,
       "source": null,
@@ -4856,7 +4856,7 @@
     {
       "key": "weapons/staff_emerald",
       "source_current": true,
-      "inputs": "ef6a614f1cb8ddb8f16478653a5d98b75d8f986da9b883333eb7256608df52c6",
+      "inputs": "e51b4ef23f821f8adef259facf5fde10e640d8cca9f954ac330fbd5c0f27efbb",
       "triangles": 656,
       "materials": 3,
       "source": null,
@@ -4878,7 +4878,7 @@
     {
       "key": "weapons/staff_horned",
       "source_current": true,
-      "inputs": "ce4b822772f871c9e1068f327fa96e509331efce8b7bf67daa759f85a490ccd2",
+      "inputs": "d51973ee290caca37ac3a330fcc8a00cf06bf3688fff9ed98f2d2100e7fec9e5",
       "triangles": 1758,
       "materials": 2,
       "source": null,
@@ -4900,7 +4900,7 @@
     {
       "key": "weapons/staff_iron",
       "source_current": true,
-      "inputs": "5cd46440c94eed3806c63ad080a1f2c0af10995e1e8918dc5381cc5e395487d0",
+      "inputs": "c50014d0c91ba9f21214574d727af5af5d813f2b5b4e6cd221fa4ab1c4c91209",
       "triangles": 920,
       "materials": 3,
       "source": null,
@@ -4920,9 +4920,53 @@
       "lineup": "weapons/staff_iron/lineup.png"
     },
     {
+      "key": "weapons/sword_flame",
+      "source_current": true,
+      "inputs": "e6874cfd9ddad91b1f642102cd420dca60e2e51f40ca22a96b130cd36d6077b3",
+      "triangles": 1140,
+      "materials": 4,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.04182176249437681
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/sword/sword_flame.glb",
+      "export_verified": true,
+      "lineup": "weapons/sword_flame/lineup.png"
+    },
+    {
+      "key": "weapons/sword_frost",
+      "source_current": true,
+      "inputs": "0d72e1b6bff4242badb009e787e539f9e120416f4e9c19d95f8e593fd385ce49",
+      "triangles": 1192,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.037892848126914104
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/sword/sword_frost.glb",
+      "export_verified": true,
+      "lineup": "weapons/sword_frost/lineup.png"
+    },
+    {
       "key": "weapons/sword_knight",
       "source_current": true,
-      "inputs": "06f79e3e5b22c6554b3e98f373434a5e89ab352dc154f42af923872bb4b5f9c7",
+      "inputs": "c774403e979c636e72ce561160b2d33af0f544f616c6da243ab9ea7d4207a22a",
       "triangles": 486,
       "materials": 2,
       "source": null,
@@ -4944,7 +4988,7 @@
     {
       "key": "weapons/sword_sunblade",
       "source_current": true,
-      "inputs": "ec89b76770bb179bb1d59e2be96e3dca7b74c64c5a89f37c043ada2766c23560",
+      "inputs": "d88714ea71aa18613afc01517c34e699fc98b3373bd216deea408d067242c685",
       "triangles": 670,
       "materials": 3,
       "source": null,
@@ -4964,9 +5008,31 @@
       "lineup": "weapons/sword_sunblade/lineup.png"
     },
     {
+      "key": "weapons/trident_storm",
+      "source_current": true,
+      "inputs": "3698664f2f5a04026c3f9d63ed8681532a49af31787ec3500560ad0e95a6355e",
+      "triangles": 1284,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.0796336880876601
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/polearm/trident_storm.glb",
+      "export_verified": true,
+      "lineup": "weapons/trident_storm/lineup.png"
+    },
+    {
       "key": "weapons/wand_bone",
       "source_current": true,
-      "inputs": "9a595a61b9299db3b61da8de873f2f1343e544c4412f0015a200ce44bf49a213",
+      "inputs": "8559412b659b0161765ad33ec422d7bc4881e0a5110c3c77a0b19cb152243470",
       "triangles": 762,
       "materials": 1,
       "source": null,
@@ -4988,7 +5054,7 @@
     {
       "key": "weapons/wand_carved",
       "source_current": true,
-      "inputs": "bb16f7335891fa2460fb7a4d5aa60dc3b959de2295405c20fa92c9886ec75336",
+      "inputs": "0a601107002b26922871605c7ec3542bc59953fc0306da540c8095ab99a493ac",
       "triangles": 560,
       "materials": 2,
       "source": null,
@@ -5010,7 +5076,7 @@
     {
       "key": "weapons/wand_celestial",
       "source_current": true,
-      "inputs": "ca32e655a2141bef2ea11422f55da2e78c4255d6b9f8eff5038723fcd07370e2",
+      "inputs": "0822c812b77afe019da750a7fa3712b9972ff00277270a5a71b62961363b7781",
       "triangles": 516,
       "materials": 4,
       "source": null,
@@ -5032,7 +5098,7 @@
     {
       "key": "weapons/wand_crooked",
       "source_current": true,
-      "inputs": "37af9733cf60cc56856e5dac929d2241d67386e8d0d1a654104ac7e94d681d53",
+      "inputs": "98d955c289d2445e568fce0f55916a98f529654be9f7e810da04a21963fc94a1",
       "triangles": 666,
       "materials": 1,
       "source": null,
@@ -5054,7 +5120,7 @@
     {
       "key": "weapons/wand_iron",
       "source_current": true,
-      "inputs": "29e2c540770b7ae43a7c1432e20bdec68f2193ceea601c28d5cb5905c7c97e2a",
+      "inputs": "8649982e288d77c064d7db82b0b15600f1972972a23ec3368a803be63c46e503",
       "triangles": 614,
       "materials": 3,
       "source": null,
@@ -5076,7 +5142,7 @@
     {
       "key": "weapons/wand_ruby",
       "source_current": true,
-      "inputs": "db7d6080c4d8acfeeb58a0e7e4cb891ce2274d3fc1a617a0448266be85a75fd8",
+      "inputs": "609951278f9592b5ba8daee1a4b6b4f9356a440d2a1051d67e24b8c2302bcefa",
       "triangles": 284,
       "materials": 3,
       "source": null,
@@ -5098,7 +5164,7 @@
     {
       "key": "weapons/warhammer_sledge",
       "source_current": true,
-      "inputs": "53c81d270ef01d0ec4437686b31f78adb3de17185e3faf121f9785457fb79953",
+      "inputs": "442e7190ba725d87bc9c081eccfd6e35a99445fe6a03ce6875780af49305bb52",
       "triangles": 968,
       "materials": 2,
       "source": null,
@@ -5120,7 +5186,7 @@
     {
       "key": "weapons/warhammer_spiked",
       "source_current": true,
-      "inputs": "84b87611b5563c07d22ae83c7d9cbe5a973a6c041efaf5470500eb0d2385ab8b",
+      "inputs": "e09db7279375e997e32419899f373f0af6d0d4d0c3f3f473a4143194761acfd8",
       "triangles": 1022,
       "materials": 2,
       "source": null,
@@ -5136,8 +5202,30 @@
       },
       "warnings": [],
       "export": "res://assets/custom-items/weapons/warhammer/warhammer_spiked.glb",
-      "export_verified": false,
+      "export_verified": true,
       "lineup": "weapons/warhammer_spiked/lineup.png"
+    },
+    {
+      "key": "weapons/warhammer_stone",
+      "source_current": true,
+      "inputs": "d11e763158e67333903e066d273c75a3f05aebf56605b8be4f2dd4dcb7a7d120",
+      "triangles": 1338,
+      "materials": 3,
+      "source": null,
+      "surface": null,
+      "topology_policy": "closed_surface",
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.25821008416425195
+      },
+      "warnings": [],
+      "export": "res://assets/custom-items/weapons/warhammer/warhammer_stone.glb",
+      "export_verified": true,
+      "lineup": "weapons/warhammer_stone/lineup.png"
     }
   ]
 }

@@ -29,16 +29,22 @@ RAMPS = {'steel': ((176, 188, 198), (92, 102, 112), (150, 164, 176)),
          'obsidian_edge': ((160, 136, 196), (70, 54, 96), (128, 104, 160))}
 MATTES = {'wood': (176, 98, 66), 'wood_cut': (222, 170, 120), 'birch': (214, 174, 120), 'ebony': (96, 58, 42),
           'leather': (128, 74, 50), 'wrap': (222, 206, 176), 'cloth': (236, 228, 212), 'bone': (232, 220, 192),
-          'horn': (200, 166, 118), 'string': (230, 220, 200), 'fletch': (190, 60, 50), 'feather': (70, 120, 200)}
-STONES = {'gem': (222, 42, 78), 'crystal': (70, 170, 240), 'emerald': (70, 200, 120), 'moonstone': (214, 222, 236)}
+          'horn': (200, 166, 118), 'string': (230, 220, 200), 'fletch': (190, 60, 50), 'feather': (70, 120, 200),
+          'stone': (128, 114, 98), 'stone_cut': (180, 164, 138)}
+STONES = {'gem': (222, 42, 78), 'crystal': (70, 170, 240), 'emerald': (70, 200, 120), 'moonstone': (214, 222, 236),
+          'ice': (150, 214, 244)}
 # Magic stones glow; the game can add a light or VFX on top.
 GLOWING = ('crystal', 'emerald', 'moonstone')
+# Elemental fire and lightning are pure light, so they always glow.
+ENERGY = {'flame': (246, 112, 34), 'flame_core': (255, 210, 80), 'lightning': (130, 210, 255)}
 # The weapon palette every weapon recipe starts from; a recipe lists only the slots it changes.
-COLORS = {**{slot: [*ramp[2]] for slot, ramp in RAMPS.items()}, **{slot: [*c] for slot, c in {**MATTES, **STONES}.items()}}
+COLORS = {**{slot: [*ramp[2]] for slot, ramp in RAMPS.items()},
+          **{slot: [*c] for slot, c in {**MATTES, **STONES, **ENERGY}.items()}}
 MATERIALS = {**{slot: {**(GLASS if slot.startswith('obsidian') else METAL), 'ramp': [[*c] for c in ramp]}
                 for slot, ramp in RAMPS.items()},
              **{slot: dict(MATTE) for slot in MATTES},
-             **{slot: {**GLASS, **({'emissive': True} if slot in GLOWING else {})} for slot in STONES}}
+             **{slot: {**GLASS, **({'emissive': True} if slot in GLOWING else {})} for slot in STONES},
+             **{slot: {**GLASS, 'emissive': True} for slot in ENERGY}}
 
 
 def dispatch(kinds, family):
@@ -199,13 +205,18 @@ def plate(a, points, half, slot='gold', chamfer=.012, runes=()):
     layers = [(p, half-chamfer), (inner, half), (p, -(half-chamfer)), (inner, -half)]
     shape = a.label(mf.Manifold.hull_points(np.vstack([np.column_stack([q, np.full(len(q), z)]) for q, z in layers])), slot)
     for start, end in runes:
-        start, end = np.asarray(start, float), np.asarray(end, float)
-        length = np.linalg.norm(end-start)
-        angle = np.degrees(np.arctan2(*(end-start)[::-1]))
         for side in (1, -1):
-            groove = mf.Manifold.cube((length+.024, .024, .022), center=True).rotate((0, 0, angle))
-            shape = shape - a.label(groove.translate((*(start+end)/2, side*half)), f'{slot}_dark')
+            shape = shape - a.label(groove(start, end, side*half), f'{slot}_dark')
     a.parts.append(shape)
+
+
+def groove(start, end, face, width=.024, depth=.022):
+    """A chunky stroke cutter from XY `start` to `end`, centered on the face at Z = `face`: runes and glyphs."""
+    start, end = np.asarray(start, float), np.asarray(end, float)
+    length = np.linalg.norm(end-start)
+    angle = np.degrees(np.arctan2(*(end-start)[::-1]))
+    return mf.Manifold.cube((length+width, width, depth), center=True).rotate((0, 0, angle)).translate(
+        (*(start+end)/2, face))
 
 
 def placed(piece, at):

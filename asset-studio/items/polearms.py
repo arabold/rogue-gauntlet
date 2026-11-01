@@ -6,8 +6,9 @@ The origin is the lower hand; heads sit at the top of +Y, and axe bits point to 
 """
 
 import numpy as np
+from core import kit
 from prefabs.details import hilts
-from items.forge import Haft, Blade, collar, pyramid, dispatch
+from items.forge import Haft, Blade, collar, pyramid, tube, dispatch
 from items.blades import straight, curved
 from items.solid import Assembly
 
@@ -66,5 +67,33 @@ def war_scythe():
     return a.build()
 
 
-KINDS = {'spear': spear, 'halberd': halberd, 'war_scythe': war_scythe}
+def bolt(a, points, radii, slot='lightning'):
+    """A zig-zag lightning bolt: faceted diamonds at each XY corner, hulled pairwise into chunky segments that taper
+    to a point."""
+    axes = np.vstack([np.eye(3), -np.eye(3)])
+    joints = [np.array([*p, 0]) + axes*r for p, r in zip(points, radii)]
+    for lo, hi in zip(joints[:-1], joints[1:]):
+        a.add(kit.hull(np.vstack([lo, hi]), slot))
+
+
+# Lightning prongs as (XY corners, radii); the side prongs rise from the crossbar's upturned ends.
+BOLTS = [([(0, 1.56), (.11, 1.84), (-.08, 1.88), (.09, 2.14), (-.05, 2.18), (.02, 2.50)], [.085, .08, .08, .07, .06, 0]),
+         ([(-.36, 1.72), (-.27, 1.92), (-.44, 1.96), (-.34, 2.16), (-.39, 2.36)], [.075, .07, .07, .058, 0]),
+         ([(.37, 1.72), (.46, 1.90), (.31, 1.95), (.40, 2.14), (.36, 2.34)], [.075, .07, .07, .058, 0])]
+
+
+def storm_trident():
+    """Tier-five storm trident: three glowing zig-zag lightning prongs on an upturned gold crossbar and socket."""
+    a = Assembly()
+    haft = polearm_shaft(a)
+    a.add(collar((0, 1.50, 0), (0, 1, 0), .10, .24, 'gold'))
+    haft.fit(hilts.feather_tuft, 1.34)
+    a.add(tube([(-.365, 1.78, 0), (-.33, 1.66, 0), (-.18, 1.59, 0), (0, 1.57, 0), (.18, 1.59, 0), (.33, 1.66, 0),
+                (.37, 1.78, 0)], [.055, .066, .072, .078, .072, .066, .055], 'gold'))
+    for points, radii in BOLTS:
+        bolt(a, points, radii)
+    return a.build()
+
+
+KINDS = {'spear': spear, 'halberd': halberd, 'war_scythe': war_scythe, 'storm_trident': storm_trident}
 polearm = dispatch(KINDS, 'polearm')

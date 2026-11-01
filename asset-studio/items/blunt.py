@@ -9,7 +9,7 @@ import numpy as np
 import manifold3d as mf
 from core import kit
 from prefabs.details import hilts
-from items.forge import Haft, collar, pyramid, gem, dispatch
+from items.forge import Haft, collar, pyramid, gem, groove, dispatch
 from items.solid import Assembly, box
 
 ONE_HANDED = [(.012, -.30, .044), (.014, -.28, .062), (.010, -.20, .058), (.004, 0, .054), (0, .40, .052),
@@ -134,6 +134,41 @@ def morning_star():
     return a.build()
 
 
+# A square spiral glyph, as strokes winding out from the center of a face.
+SPIRAL = np.array([(0, 0), (.06, 0), (.06, .06), (-.06, .06), (-.06, -.06), (.12, -.06), (.12, .12), (-.12, .12),
+                   (-.12, -.12)])
+
+
+def hewn(size, center, bevel, slot, seed, rough=(.06, .06, .03)):
+    """A rough-hewn block: a chamfered box whose eight corners are each knocked a little off square, by up to
+    `rough` of its size per axis."""
+    block = box(size, center, bevel)
+    corner = ((block.verts - center) > 0) @ (4, 2, 1)
+    offsets = np.random.default_rng(seed).uniform(-1, 1, (8, 3))*np.multiply(size, rough)
+    return kit.hull(block.verts + offsets[corner], slot)
+
+
+def stone_maul():
+    """Tier-four earth maul: a rough-hewn sandstone block, chunks knocked off its corners and a glowing spiral glyph
+    carved into each face, held by iron bands on a rope grip."""
+    a = Assembly()
+    haft = Haft(a, TWO_HANDED)
+    haft.wraps(-.32, .14)
+    haft.band(.94, .08, 'leather')
+    haft.knob(hilts.spiked_cap)
+    head = a.label(hewn((.80, .52, .52), (0, 1.24, 0), .05, 'stone', 3), 'stone')
+    for corner, size in (((-.40, 1.50, .26), .24), ((.40, .98, -.26), .20), ((.40, 1.50, -.26), .16),
+                         ((-.40, .98, .26), .15), ((.40, 1.50, .26), .12), ((-.40, 1.50, -.26), .10)):
+        head = corner_bite(a, head, corner, size, 'stone_cut')
+    for side in (1, -1):
+        for start, end in zip(SPIRAL[:-1], SPIRAL[1:]):
+            head = head - a.label(groove(start + (0, 1.24), end + (0, 1.24), side*.26, .032, .06), 'emerald')
+    a.parts.append(head)
+    for x in (-.28, .28):
+        a.add(box((.07, .56, .56), (x, 1.24, 0), .02), 'iron')
+    return a.build()
+
+
 KINDS = {'mallet': mallet, 'mace': mace, 'sledge': lambda: maul(False), 'spiked_maul': lambda: maul(True),
-         'cudgel': cudgel, 'club': club, 'morning_star': morning_star}
+         'cudgel': cudgel, 'club': club, 'morning_star': morning_star, 'stone_maul': stone_maul}
 blunt = dispatch(KINDS, 'blunt')

@@ -424,7 +424,8 @@ class ItemWorkflowTest(unittest.TestCase):
                 # KayKit blades are thick slabs, and their guards are chunky blocks rather than plates.
                 self.assertGreaterEqual(np.ptp(section(p, top * .6)[:, 2]), .05)
                 self.assertGreaterEqual(np.ptp(p.verts[:, 2]), .09)
-                self.assertTrue(any(str(s).endswith("edge") or str(s) == "birch" for s in p.slots))
+                # Wooden practice and flame blades have no metal edge.
+                self.assertTrue(any(str(s).endswith("edge") or str(s) in ("birch", "flame") for s in p.slots))
         self.assertLess(heights["short"], heights["dirk"])
         self.assertLess(heights["dirk"], heights["knight"])
         for two_handed in ("claymore", "winged", "greatsword", "practice", "crescent", "curved_great"):

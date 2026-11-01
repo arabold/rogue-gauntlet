@@ -7,7 +7,7 @@ just above the grip; the origin is the hand grip.
 
 import numpy as np
 from core import kit
-from items.forge import Haft, Blade, plate, disc, ring, gem, dispatch
+from items.forge import Haft, Blade, plate, disc, ring, gem, pyramid, dispatch
 from items.solid import Assembly
 
 
@@ -269,7 +269,66 @@ def curved_great():
     return a.build()
 
 
+def tongue(base, side, reach, rise, width):
+    """One licking flame tongue: a broad base on the blade's center line at height `base`, bellying out
+    `reach` to `side` and curling back in to a point `rise` above."""
+    return [(side*.02, base - width), (side*reach*.8, base + rise*.12), (side*reach, base + rise*.45),
+            (side*reach*.7, base + rise), (side*.02, base + width)]
+
+
+def flame():
+    """Tier-five flame sword: a blade of licking orange flame tongues round a yellow core, on a gold hilt with
+    flame-curled wings and a ruby."""
+    a = Assembly()
+    disc(a, (0, -.28), .085, .058, 'gold')
+    gem(a, (0, -.28), .04, .058)
+    g = grip(a, -.235, .19, .058)
+    for y in (-.17, .13):
+        g.band(y, .045, 'gold', .014)
+    plate(a, [(-.10, .28), (.10, .28), (.10, .15), (-.10, .15)], .066, 'gold')
+    for m in (1, -1):
+        plate(a, np.array([(.05, .16), (.05, .27), (.20, .42), (.27, .33), (.21, .18)])*(m, 1), .056, 'gold')
+    gem(a, (0, .215), .04, .066)
+    plate(a, [(-.11, .26), (.11, .26), (.13, .55), (.08, .95), (.02, 1.48), (-.07, 1.10), (-.13, .62)], .036, 'flame', .016)
+    for base, side, reach, rise, width in ((.30, -1, .25, .40, .08), (.42, 1, .24, .44, .08), (.66, -1, .21, .42, .07),
+                                           (.80, 1, .19, .40, .07), (1.00, -1, .15, .36, .06), (1.10, 1, .13, .34, .05)):
+        plate(a, tongue(base, side, reach, rise, width), .036, 'flame', .016)
+    plate(a, [(-.06, .27), (.06, .27), (.075, .55), (.04, .86), (0, 1.02), (-.05, .78), (-.075, .50)], .046,
+          'flame_core', .014)
+    for base, side, reach, rise, width in ((.36, -1, .14, .28, .05), (.52, 1, .13, .30, .05), (.74, -1, .11, .26, .04)):
+        plate(a, tongue(base, side, reach, rise, width), .046, 'flame_core', .014)
+    return a.build()
+
+
+# Ice shards on the frost blade as (base, direction, size, length): up and out from both edges and faces.
+SHARDS = [((-.13, .40, 0), (-1, 1.4, 0), .075, .20), ((.13, .55, 0), (1, 1.1, 0), .08, .22),
+          ((-.12, .74, 0), (-1, 1.6, 0), .06, .15), ((.12, 1.00, 0), (1, 1.8, 0), .05, .12),
+          ((.04, .48, .05), (.4, 1, 1), .07, .16), ((-.05, .66, .05), (-.3, 1, 1), .06, .13),
+          ((-.03, .44, -.05), (-.4, 1, -1), .07, .16), ((.05, .70, -.05), (.3, 1, -1), .06, .13)]
+
+
+def frost():
+    """Tier-four frost blade: a steel blade crusted in ice from the guard up, shards jutting up and out of the crust,
+    an iron guard and knuckle bow over a rope grip."""
+    a = Assembly()
+    disc(a, (0, -.27), .08, .056, 'iron')
+    g = grip(a, -.22, .17, .056)
+    g.wraps(-.18, .13, swell=.016)
+    plate(a, [(-.17, .225), (.17, .225), (.20, .19), (.17, .155), (-.17, .155), (-.20, .19)], .062, 'iron')
+    bow(a, [(.17, .18, 0), (.21, .08, 0), (.20, -.08, 0), (.13, -.20, 0), (.03, -.27, 0)], 'iron')
+    blade = straight(a, [(.18, .13), (1.15, .12)], (0, 1.44), .075, .05)
+    blade.chip(.80, .03, .045, -.2)
+    blade.finish()
+    for outline in ([(-.155, .21), (.155, .21), (.15, .50), (.02, .60), (-.15, .52)],
+                    [(-.16, .40), (-.04, .50), (-.09, .90), (-.16, .80)], [(.16, .45), (.04, .55), (.08, .76), (.16, .70)],
+                    [(.16, .64), (.06, .80), (.11, 1.10), (.155, 1.02)], [(-.07, .48), (.06, .50), (0, .74)]):
+        plate(a, outline, .05, 'ice', .014)
+    for base, direction, size, length in SHARDS:
+        a.add(pyramid(base, direction, size, length, 'ice'))
+    return a.build()
+
+
 KINDS = {'knight': knight, 'sunblade': sunblade, 'claymore': claymore, 'winged': winged, 'broadsword': broadsword,
          'greatsword': greatsword, 'rapier': rapier, 'saber': saber, 'dirk': dirk, 'fang': fang, 'short': short,
-         'practice': practice, 'crescent': crescent, 'curved_great': curved_great}
+         'practice': practice, 'crescent': crescent, 'curved_great': curved_great, 'flame': flame, 'frost': frost}
 blade = dispatch(KINDS, 'blade')

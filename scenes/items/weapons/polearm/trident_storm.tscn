@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/weapons/polearm/trident_storm.glb" id="1_glb"]
+
+[node name="TridentStorm" type="Node3D"]
+
+[node name="trident_storm" parent="." instance=ExtResource("1_glb")]

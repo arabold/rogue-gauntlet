@@ -1,0 +1,74 @@
+{
+  "key": "weapons/warhammer_stone",
+  "inputs": "d11e763158e67333903e066d273c75a3f05aebf56605b8be4f2dd4dcb7a7d120",
+  "files": {
+    "warhammer_stone.glb": "d340176528d738057b72110e52d9944b829680883d3b81df52c4005c421e7883",
+    "lineup.png": "69f573660ab8f1a336b4f934453a2cd6e531a1491a29e28b50e48b2e67fa6c85"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1338,
+      "bounds": [
+        [
+          -0.439777672290802,
+          -0.6150000095367432,
+          -0.2800000011920929
+        ],
+        [
+          0.44545218348503113,
+          1.5199999809265137,
+          0.2800000011920929
+        ]
+      ],
+      "dimensions": [
+        0.8852298557758331,
+        2.134999990463257,
+        0.5600000023841858
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.25821008416425195
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Warhammer Stone",
+      "backend": "procedural",
+      "builder": "blunt",
+      "design": {
+        "kind": "stone_maul"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/warhammer/warhammer_stone.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style elemental weapon per objects/weapons/README.md, built from items/forge.py: the element is shape, color and glow only. Grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}
