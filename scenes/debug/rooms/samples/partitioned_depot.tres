@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=30 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=34 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="type"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="shape"]
@@ -19,8 +19,10 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="torch"]
 [ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/lit_sconce.tres" id="sconce"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="shelf"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/herb_rack.tres" id="herbs"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/keg_station.tres" id="kegs"]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ChoiceStep.cs" id="choice"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/groups/bay_divider.tres" id="bay"]
 
 [sub_resource type="Resource" id="shape"]
 script = ExtResource("shape")
@@ -30,19 +32,44 @@ metadata/_custom_type_script = ExtResource("shape")
 
 [sub_resource type="Resource" id="partition"]
 script = ExtResource("center")
-Id = "partition"
+Id = "central_partition"
 Content = [ExtResource("partition")]
 MinimumCount = 1
 MaximumCount = 1
 AllowCrosswise = false
 metadata/_custom_type_script = ExtResource("center")
 
+[sub_resource type="Resource" id="bays_one_side"]
+script = ExtResource("along")
+Id = "bays_one_side"
+Content = [ExtResource("bay")]
+MaximumCount = 1
+Sides = 1
+Centered = true
+metadata/_custom_type_script = ExtResource("along")
+
+[sub_resource type="Resource" id="bays_both_sides"]
+script = ExtResource("along")
+Id = "bays_both_sides"
+Content = [ExtResource("bay")]
+MaximumCount = 2
+Sides = 1
+Centered = true
+metadata/_custom_type_script = ExtResource("along")
+
+[sub_resource type="Resource" id="layout"]
+script = ExtResource("choice")
+Id = "depot_layout"
+MinimumCount = 1
+Options = [SubResource("partition"), SubResource("bays_one_side"), SubResource("bays_both_sides")]
+metadata/_custom_type_script = ExtResource("choice")
+
 [sub_resource type="Resource" id="supplies"]
 script = ExtResource("corners")
 Id = "supply_corners"
 Content = [ExtResource("supplies"), ExtResource("sacks")]
 MinimumCount = 3
-MaximumCount = 4
+MaximumCount = 3
 metadata/_custom_type_script = ExtResource("corners")
 
 [sub_resource type="Resource" id="stations"]
@@ -50,7 +77,7 @@ script = ExtResource("along")
 Id = "work_and_stores"
 Content = [ExtResource("barrels"), ExtResource("work"), ExtResource("kegs")]
 MinimumCount = 2
-MaximumCount = 3
+MaximumCount = 2
 Sides = 1
 metadata/_custom_type_script = ExtResource("along")
 
@@ -59,7 +86,7 @@ script = ExtResource("decor")
 Id = "door_torches"
 Content = [ExtResource("torch")]
 MinimumCount = 2
-MaximumCount = 4
+MaximumCount = 2
 BesideDoorways = true
 PairChance = 1.0
 metadata/_custom_type_script = ExtResource("decor")
@@ -69,16 +96,16 @@ script = ExtResource("decor")
 Id = "store_lights"
 Content = [ExtResource("sconce")]
 MinimumCount = 2
-MaximumCount = 3
+MaximumCount = 2
 Spacing = 6.0
 metadata/_custom_type_script = ExtResource("decor")
 
 [sub_resource type="Resource" id="shelves"]
 script = ExtResource("decor")
 Id = "wall_stores"
-Content = [ExtResource("shelf"), ExtResource("herbs")]
-MinimumCount = 3
-MaximumCount = 4
+Content = [ExtResource("shelf")]
+MinimumCount = 1
+MaximumCount = 2
 metadata/_custom_type_script = ExtResource("decor")
 
 [sub_resource type="Resource" id="debris"]
@@ -99,5 +126,5 @@ MaxDoorways = 2
 DoorwayPlacement = 1
 Walls = [ExtResource("walls")]
 Floors = [ExtResource("stone"), ExtResource("earth")]
-Steps = [SubResource("partition"), SubResource("supplies"), SubResource("stations"), SubResource("sconces"), SubResource("lighting"), SubResource("shelves"), SubResource("debris")]
+Steps = [SubResource("layout"), SubResource("supplies"), SubResource("stations"), SubResource("lighting"), SubResource("sconces"), SubResource("shelves"), SubResource("debris")]
 metadata/_custom_type_script = ExtResource("type")

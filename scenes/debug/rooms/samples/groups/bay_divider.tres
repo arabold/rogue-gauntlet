@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="PropGroup" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroup.cs" id="group"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="member"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/bay_junction.tres" id="junction"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/bay_end.tres" id="end"]
+
+[sub_resource type="Resource" id="end"]
+script = ExtResource("member")
+Options = [ExtResource("end")]
+Offset = Vector3(0, 0, 2)
+Required = true
+metadata/_custom_type_script = ExtResource("member")
+
+[resource]
+script = ExtResource("group")
+Id = "sample.bay_divider"
+Anchor = [ExtResource("junction")]
+Members = [SubResource("end")]
+MirrorChance = 0.0
+metadata/_custom_type_script = ExtResource("group")

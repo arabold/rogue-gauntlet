@@ -4,11 +4,11 @@ Open [room_style_samples.tscn](../room_style_samples.tscn) and run **F6**. Selec
 
 | Recipe | Study |
 | --- | --- |
-| [Partitioned depot](partitioned_depot.tres) | 4×5 tiles: a required T partition, at least three supply clusters, two work/storage stations, shelves and lit fixtures |
+| [Partitioned depot](partitioned_depot.tres) | 4×5 tiles: a central T partition or doorless storage bays along one or both long walls, at least three supply clusters, two work/storage stations, shelves and lit fixtures |
 | [Prison](../../../levels/rooms/room_types/prison.tres) | The production prison: seeded cell rows with brown or gray dirt floors, stone or brick aisles, guard furniture, shackles and lights |
 | [Treasury](treasury.tres) | 3×3 tiles: a gold chest and banner, counting table, ledger bookcase, storage boxes, heraldry and three lit sconces |
 
-All entries are ordinary `RoomType` resources; the prison has one shared definition for previews and production. They reuse existing shape, placement and surface strategies. [T partition](groups/t_partition.tres) uses `PropGroupMember.Required` for its structural pieces, so a placement cannot silently lose an arm; supply companions remain optional. Mutable placement state stays on `RoomBlueprint`.
+All entries are ordinary `RoomType` resources; the prison has one shared definition for previews and production. They reuse existing shape, placement and surface strategies. [T partition](groups/t_partition.tres) uses `PropGroupMember.Required` for its structural pieces, so a placement cannot silently lose an arm; supply companions remain optional. The alternate [bay divider](groups/bay_divider.tres) combines a wall T junction with a required straight or sloped end piece. `ChoiceStep` selects the layout and `AlongWallsStep` attaches dividers to one or both long walls, leaving the central aisle and doorway approaches clear. Mutable placement state stays on `RoomBlueprint`.
 
 Footprints are bounded independently for each composition. The larger depot requires more furnishing groups and content variety than the treasury. The depot and treasury require wall decoration and lit sconces, alongside optional finishing clutter. The prison's `CellsStep.CellFloors` palette chooses one material per room on a cosmetic RNG stream. Cell-floor patches follow fitted geometry without changing cell layout or walkability.
 

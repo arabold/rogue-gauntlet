@@ -33,7 +33,12 @@ public class RoomStyleSamplesTest
 				AssertInt(first.Pieces.Count(piece => piece.Prop.Id == "sample.lit_sconce")).IsGreaterEqual(2);
 				var nodes = first.Room.FindChildren("*", "", true, false);
 				if (name == "partitioned_depot")
-					AssertInt(first.Pieces.Count(piece => piece.Prop.Id == "sample.partition_wall")).IsEqual(3);
+				{
+					int central = first.Pieces.Count(piece => piece.Prop.Id == "sample.partition_wall");
+					int bays = first.Pieces.Count(piece => piece.Prop.Id == "sample.bay_junction");
+					AssertBool(central == 3 && bays == 0 || central == 0 && bays is 1 or 2).IsTrue();
+					AssertInt(first.Pieces.Count(piece => piece.Prop.Id == "sample.bay_end")).IsEqual(bays);
+				}
 				if (name == "treasury")
 				{
 					var chest = nodes.OfType<Chest>().Single();
@@ -50,6 +55,37 @@ public class RoomStyleSamplesTest
 				second.Room.Free();
 			}
 		}
+	}
+
+	/// <summary>One depot definition offers a central T or wall-attached storage bays, with complete end pieces.</summary>
+	[TestCase("central_partition", 0)]
+	[TestCase("bays_one_side", 1)]
+	[TestCase("bays_both_sides", 2)]
+	public void DepotLayoutsKeepTheirPartitionsCompleteAndTheirBaysOpen(string layoutId, int sides)
+	{
+		using var type = (RoomType)TestFactories.Load<RoomType>($"{Samples}partitioned_depot.tres").Duplicate();
+		var layout = (ChoiceStep)type.Steps[0];
+		type.Steps = [layout.Options.Single(option => option.Id == layoutId), .. type.Steps.Skip(1)];
+		var ends = new System.Collections.Generic.HashSet<string>();
+		foreach (ulong seed in new ulong[] { 1, 2, 3, 4, 5, 6, 7, 8, 31, 60, 65, 95 })
+		{
+			var blueprint = RoomAssembler.Build(type, seed);
+			try
+			{
+				AssertBool(blueprint.IsAcceptable).OverrideFailureMessage($"{layoutId} seed {seed}").IsTrue();
+				AssertString(RoomAssemblyTest.FloorCoverage(blueprint)).IsEmpty();
+				var junctions = blueprint.Pieces.Where(piece => piece.Prop.Id == "sample.bay_junction").ToArray();
+				var caps = blueprint.Pieces.Where(piece => piece.Prop.Id == "sample.bay_end").ToArray();
+				AssertInt(junctions.Length).IsEqual(sides);
+				AssertInt(caps.Length).IsEqual(sides);
+				AssertInt(junctions.Select(piece => Mathf.Sign(piece.Transform.Origin.X - blueprint.Interior.GetCenter().X)).Distinct().Count()).IsEqual(sides);
+				AssertInt(blueprint.Pieces.Count(piece => piece.Prop.Id == "sample.partition_wall")).IsEqual(sides == 0 ? 3 : 0);
+				AssertBool(blueprint.Room.GetNode("Props").GetChildren().OfType<Door>().Any(door => door.Interior != null)).IsFalse();
+				foreach (var cap in caps) ends.Add(cap.Prop.Items[cap.Variant]);
+			}
+			finally { blueprint.Room.Free(); }
+		}
+		if (sides > 0) AssertInt(ends.Count).IsEqual(2);
 	}
 
 	[TestCase]
