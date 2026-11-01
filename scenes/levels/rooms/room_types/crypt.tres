@@ -135,6 +135,7 @@ Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2")]
 MinimumFloorTiles = 12
 MinDoorways = 1
 MaxDoorways = 2
+DoorChance = 0.5
 Walls = [ExtResource("5_crypt_walls")]
 Floors = [ExtResource("6_flagstones_floor"), ExtResource("7_flagstones_ruine"), ExtResource("8_checker_floor"), ExtResource("9_stone_floor")]
 Columns = [SubResource("CornerColumns_3"), SubResource("CenterColumns_4")]

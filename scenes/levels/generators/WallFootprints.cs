@@ -4,18 +4,16 @@ using Godot;
 
 /// <summary>
 /// Shared wall-geometry math: real, rotated mesh footprints as the single source of
-/// truth for "is this tile edge covered by wall?". Used by the generator's wall pass
-/// (to seal every required edge and verify it) and by <see cref="Room"/>'s doorway/
-/// connector validation (to ask whether an authored edge is passable).
+/// truth for "is this tile edge covered by wall?". Used by the generator's corridor wall
+/// pass and by <see cref="WallStyle"/>'s room walls to seal every required edge, and to
+/// measure the walls rooms furnish against.
 /// </summary>
 public static class WallFootprints
 {
 	public const float Eps = 0.05f;
 
 	public const int HorizontalWallOrientation = 0;
-	public const int HorizontalWallWestHalfOrientation = 10;
 	public const int VerticalWallOrientation = 16;
-	public const int VerticalWallSouthHalfOrientation = 22;
 	public const int NorthWestCornerOrientation = 16;
 	public const int NorthEastCornerOrientation = 0;
 	public const int SouthWestCornerOrientation = 10;
@@ -140,11 +138,6 @@ public static class WallFootprints
 			{
 				Place(wallGridMap, wall.Position, wallItem, FacingInto(inward), wallBoxes);
 			}
-		}
-
-		foreach (var wall in straightWalls)
-		{
-			EnsureEdgeCovered(wallGridMap, tileSize, wall, wallBoxes, getWallItem, getHalfWallItem);
 		}
 	}
 
@@ -319,122 +312,6 @@ public static class WallFootprints
 		}
 	}
 
-	private static void EnsureEdgeCovered(
-		GridMap wallGridMap,
-		int tileSize,
-		WallStraightRequest wall,
-		List<Aabb> wallBoxes,
-		Func<int> getWallItem,
-		Func<int> getHalfWallItem)
-	{
-		bool horizontal = wall.Orientation == HorizontalWallOrientation;
-		var (lineCoord, spanMin, spanMax) = EdgeSpan(wall.Position, horizontal, tileSize);
-
-		for (int attempt = 0; attempt < tileSize; attempt++)
-		{
-			if (!TryGetUncoveredSpan(wallBoxes, horizontal, lineCoord, spanMin, spanMax, out var gap))
-			{
-				return;
-			}
-
-			if (!TryFillEdgeGap(wallGridMap, tileSize, horizontal, lineCoord, gap, wallBoxes, getWallItem, getHalfWallItem))
-			{
-				break;
-			}
-		}
-
-		if (TryGetUncoveredSpan(wallBoxes, horizontal, lineCoord, spanMin, spanMax, out var remaining))
-		{
-			GD.PrintErr($"Wall gap could not be sealed on the {(horizontal ? "horizontal" : "vertical")} edge at "
-				+ $"{(horizontal ? "z" : "x")}={lineCoord}, span [{remaining.A:F1},{remaining.B:F1}] near {wall.Position}: "
-				+ "no free cell on the edge row fits a covering wall piece.");
-		}
-	}
-
-	private static bool TryFillEdgeGap(
-		GridMap wallGridMap,
-		int tileSize,
-		bool horizontal,
-		float lineCoord,
-		(float A, float B) gap,
-		List<Aabb> wallBoxes,
-		Func<int> getWallItem,
-		Func<int> getHalfWallItem)
-	{
-		MeshLibrary library = wallGridMap.MeshLibrary;
-		if (library == null)
-		{
-			return false;
-		}
-
-		int fullItem = getWallItem();
-		int halfItem = getHalfWallItem();
-		Mesh fullMesh = fullItem >= 0 ? library.GetItemMesh(fullItem) : null;
-		Mesh halfMesh = halfItem >= 0 ? library.GetItemMesh(halfItem) : null;
-		Aabb fullAabb = fullMesh?.GetAabb() ?? default;
-		Aabb halfAabb = halfMesh?.GetAabb() ?? default;
-
-		ReadOnlySpan<(int Item, int Orientation, Aabb LocalAabb, bool Valid)> candidates = horizontal
-			? [
-				(fullItem, HorizontalWallOrientation, fullAabb, fullMesh != null),
-				(halfItem, HorizontalWallOrientation, halfAabb, halfMesh != null),
-				(halfItem, HorizontalWallWestHalfOrientation, halfAabb, halfMesh != null),
-			]
-			: [
-				(fullItem, VerticalWallOrientation, fullAabb, fullMesh != null),
-				(halfItem, VerticalWallOrientation, halfAabb, halfMesh != null),
-				(halfItem, VerticalWallSouthHalfOrientation, halfAabb, halfMesh != null),
-			];
-
-		float bestOverlap = Eps;
-		Vector3I bestCell = default;
-		(int Item, int Orientation) bestCandidate = default;
-
-		int gapCenter = Mathf.RoundToInt((gap.A + gap.B) / 2f);
-		for (int offset = -tileSize / 2; offset <= tileSize / 2; offset++)
-		{
-			var cell = horizontal
-				? new Vector3I(gapCenter + offset, 0, Mathf.RoundToInt(lineCoord))
-				: new Vector3I(Mathf.RoundToInt(lineCoord), 0, gapCenter + offset);
-			if (wallGridMap.GetCellItem(cell) >= 0)
-			{
-				continue;
-			}
-
-			foreach (var candidate in candidates)
-			{
-				if (!candidate.Valid)
-				{
-					continue;
-				}
-
-				Aabb footprint = FootprintWorld(candidate.LocalAabb, candidate.Orientation, cell);
-				var (perpMin, perpMax) = Across(footprint, horizontal);
-				if (lineCoord < perpMin - Eps || lineCoord > perpMax + Eps)
-				{
-					continue;
-				}
-
-				var (a, b) = Along(footprint, horizontal);
-				float overlap = Mathf.Min(b, gap.B) - Mathf.Max(a, gap.A);
-				if (overlap > bestOverlap)
-				{
-					bestOverlap = overlap;
-					bestCell = cell;
-					bestCandidate = (candidate.Item, candidate.Orientation);
-				}
-			}
-		}
-
-		if (bestOverlap <= Eps)
-		{
-			return false;
-		}
-
-		Place(wallGridMap, bestCell, bestCandidate.Item, bestCandidate.Orientation, wallBoxes);
-		return true;
-	}
-
 	/// <summary>Sets a piece into the grid and records its footprints for the coverage checks that follow.</summary>
 	private static void Place(GridMap wallGridMap, Vector3I cell, int item, int orientation, List<Aabb> wallBoxes)
 	{
@@ -562,30 +439,6 @@ public static class WallFootprints
 
 		uncovered = default;
 		return false;
-	}
-
-	/// <summary>
-	/// The largest contiguous uncovered stretch of an edge, in world units. 0 means the
-	/// edge is fully walled; a value of at least half a tile means something can walk
-	/// through the hole.
-	/// </summary>
-	public static float MaxUncoveredGap(
-		List<Aabb> wallBoxes, bool horizontal, float lineCoord, float spanMin, float spanMax)
-	{
-		var intervals = CollectEdgeIntervals(wallBoxes, horizontal, lineCoord, spanMin, spanMax);
-		float reached = spanMin;
-		float maxGap = 0f;
-		foreach (var (a, b) in intervals)
-		{
-			if (a > reached)
-			{
-				maxGap = Mathf.Max(maxGap, a - reached);
-			}
-
-			reached = Mathf.Max(reached, b);
-		}
-
-		return Mathf.Max(maxGap, spanMax - reached);
 	}
 
 	/// <summary>Non-empty covered intervals along the edge axis, clamped to the span and sorted.</summary>

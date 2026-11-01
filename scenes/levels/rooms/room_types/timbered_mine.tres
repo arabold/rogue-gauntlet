@@ -1,8 +1,7 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=29 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=28 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
-[ext_resource type="PackedScene" path="res://scenes/props/cave_door.tscn" id="4_cave_door"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/cave_walls.tres" id="5_cave_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth_floor.tres" id="6_earth_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/supply_corner.tres" id="7_supply_corner"]
@@ -73,7 +72,6 @@ Shapes = [SubResource("RectangleShape_1")]
 MinimumFloorTiles = 12
 MinDoorways = 1
 MaxDoorways = 2
-DoorScene = ExtResource("4_cave_door")
 DoorChance = 0.6
 Circulation = 0
 Walls = [ExtResource("5_cave_walls")]

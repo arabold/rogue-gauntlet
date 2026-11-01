@@ -31,8 +31,6 @@ public static class RoomAssembler
 	public const float ActorRadius = 1f;
 	private const float CirculationWidth = 2.4f;
 	private const float ApproachDepth = 3f;
-	/// <summary>Metadata marking a doorway's opening frame among a room's nodes.</summary>
-	public const string OpeningMeta = "doorway_opening";
 	private static readonly Vector2I[] Directions = [Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left];
 
 	public static Room Assemble(RoomType type, ulong seed, string realm = null) => Build(type, seed, new RoomAssemblyOptions { Realm = realm }).Room;
@@ -77,7 +75,7 @@ public static class RoomAssembler
 			var blueprint = new RoomBlueprint(room, type, footprint, doorways, seed, ActorRadius) { Shape = shape, Walls = walls, Floor = floor };
 			walls.Build(blueprint, wallRng);
 			blueprint.FinishStructure();
-			AddDoorways(blueprint, doorRng);
+			var doors = AddDoorways(blueprint, doorRng);
 			ReserveCirculation(blueprint);
 			PlaceColumns(blueprint, options, columnRng);
 			if (options.Furnish)
@@ -99,7 +97,7 @@ public static class RoomAssembler
 			floor.Paint(blueprint, floorRng);
 			blueprint.EmitProps();
 			room.LayoutAxis = Vector2I.Down;
-			room.BakeTileMap();
+			room.SetLayout(footprint, blueprint.Pits, blueprint.Doorways.Zip(doors).ToArray());
 			failure = "";
 			return blueprint;
 		}
@@ -194,52 +192,57 @@ public static class RoomAssembler
 		chosen.All(other => Mathf.Abs(other.Tile.X - candidate.Tile.X) + Mathf.Abs(other.Tile.Y - candidate.Tile.Y) > 1);
 
 	/// <summary>
-	/// Doorway markers make every other edge solid when the room is placed; doors gate some openings, and the wall
-	/// style's opening frame finishes the others.
+	/// Fills every doorway's wall gap for good: the wall style's door at the room type's <see cref="RoomType.DoorChance"/>,
+	/// otherwise its opening frame at <see cref="RoomType.FrameChance"/> where the wall carries on along both sides,
+	/// otherwise nothing, an open walkway. Every other edge of the room is walled. Returns each doorway's door, null for
+	/// a frame or walkway.
 	/// </summary>
-	private static void AddDoorways(RoomBlueprint blueprint, RandomNumberGenerator rng)
+	private static Door[] AddDoorways(RoomBlueprint blueprint, RandomNumberGenerator rng)
 	{
-		for (int index = 0; index < blueprint.Doorways.Count; index++)
+		var doors = new Door[blueprint.Doorways.Count];
+		for (int index = 0; index < doors.Length; index++)
 		{
 			var doorway = blueprint.Doorways[index];
-			blueprint.Room.AddChild(new DoorwayMarker
+			float yaw = MapData.FacingYaw(doorway.Direction);
+			bool door = rng.Randf() < blueprint.Type.DoorChance;
+			bool frame = rng.Randf() < blueprint.Type.FrameChance;
+			if (!door)
 			{
-				Name = $"DoorwayMarker{index + 1}",
-				Position = doorway.Approach,
-				Directions = DoorwayMarker.GetDirectionFlag(doorway.Direction),
-			});
-			float yaw = DoorwayMarker.GetYRotationDegrees(DoorwayMarker.GetDirectionFlag(doorway.Direction));
-			if (blueprint.Type.DoorScene == null || rng.Randf() >= blueprint.Type.DoorChance)
-			{
-				AddOpening(blueprint, doorway, yaw, index);
+				if (frame && IsMidWall(blueprint.Footprint, doorway)) AddOpening(blueprint, doorway, yaw, index);
 				continue;
 			}
-			var door = blueprint.Type.DoorScene.Instantiate<Node3D>();
-			door.Name = $"Door{index + 1}";
-			door.Position = doorway.Edge;
-			door.RotationDegrees = new Vector3(0, yaw, 0);
-			blueprint.Room.AddChild(door);
+			var node = doors[index] = blueprint.Walls.DoorScene.Instantiate<Door>();
+			node.Name = $"Door{index + 1}";
+			node.Position = doorway.Edge;
+			node.RotationDegrees = new Vector3(0, yaw, 0);
+			blueprint.Room.AddChild(node);
 		}
+		return doors;
+	}
+
+	/// <summary>Whether the doorway's wall carries on along its line on both sides rather than meeting a corner.
+	/// Doorways sit on outer edges, so a floor tile beside one always carries the same wall.</summary>
+	private static bool IsMidWall(RoomFootprint footprint, RoomDoorway doorway)
+	{
+		var along = new Vector2I(doorway.Direction.Y, doorway.Direction.X);
+		return footprint.IsFloor(doorway.Tile + along) && footprint.IsFloor(doorway.Tile - along);
 	}
 
 	/// <summary>
 	/// Sets the wall style's opening frame into a doorless doorway's wall gap, turned like a door would be. Its posts
-	/// cover the wall ends on both sides; it carries no collision, so the opening stays exactly as passable. Tagged with
-	/// <see cref="OpeningMeta"/> so a door the level adds later (an access lock) can take its place.
+	/// cover the wall ends on both sides; it carries no collision, so the opening stays exactly as passable.
 	/// </summary>
 	private static void AddOpening(RoomBlueprint blueprint, RoomDoorway doorway, float yaw, int index)
 	{
 		var library = blueprint.Walls.Library;
 		int item = library.FindItemByName(blueprint.Walls.Opening);
 		if (item < 0) return;
-		var frame = new MeshInstance3D
+		blueprint.Room.AddChild(new MeshInstance3D
 		{
 			Name = $"Opening{index + 1}",
 			Mesh = library.GetItemMesh(item),
 			Transform = new Transform3D(new Basis(Vector3.Up, Mathf.DegToRad(yaw)), doorway.Edge) * library.GetItemMeshTransform(item),
-		};
-		frame.SetMeta(OpeningMeta, true);
-		blueprint.Room.AddChild(frame);
+		});
 	}
 
 	/// <summary>Keeps doorway approaches (and optionally door-to-door paths) free of furniture.</summary>

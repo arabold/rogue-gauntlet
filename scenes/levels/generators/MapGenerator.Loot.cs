@@ -294,13 +294,13 @@ public partial class MapGenerator
 				continue;
 			}
 
-			// GetYRotationDegrees assumes its prop is authored facing North (0deg) --
-			// true for doors/markers, but chest.tscn's lid/opening faces the opposite
-			// way at rotation 0. Rotating toward the wall direction itself (not away
-			// from it) compensates for that -- equivalent to "away + 180" but without
-			// a sum that can exceed 360 (RotationDegrees.Y doesn't normalize on a
-			// direct assignment, so a raw 450 would stay 450, not wrap to 90).
-			float rotation = DoorwayMarker.GetYRotationDegrees(DoorwayMarker.GetDirectionFlag(walls[0]));
+			// FacingYaw assumes its prop is authored facing North (0deg) -- true for
+			// doors, but chest.tscn's lid/opening faces the opposite way at rotation 0.
+			// Rotating toward the wall direction itself (not away from it) compensates
+			// for that -- equivalent to "away + 180" but without a sum that can exceed
+			// 360 (RotationDegrees.Y doesn't normalize on a direct assignment, so a raw
+			// 450 would stay 450, not wrap to 90).
+			float rotation = MapData.FacingYaw(walls[0]);
 			(walls.Count == 1 ? flatCandidates : cornerCandidates).Add((point, rotation));
 		}
 

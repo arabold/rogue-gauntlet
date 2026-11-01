@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="WallStyle" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="WallStyle" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/WallStyle.cs" id="1_WallStyle"]
 [ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="2_WallsMeshLib"]
+[ext_resource type="PackedScene" uid="uid://dbns86sg2gnll" path="res://scenes/props/door.tscn" id="door"]
 
 [resource]
 script = ExtResource("1_WallStyle")
@@ -12,4 +13,5 @@ Library = ExtResource("2_WallsMeshLib")
 Straight = Dictionary[String, float]({"wall": 1.0})
 Accents = Dictionary[String, float]({"wall_window_closed": 1.0})
 AccentChance = 0.3
+DoorScene = ExtResource("door")
 metadata/_custom_type_script = ExtResource("1_WallStyle")

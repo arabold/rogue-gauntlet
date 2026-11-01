@@ -22,7 +22,7 @@ public readonly record struct WallRun(Vector2I Start, Vector2I Along, Vector2I O
 public readonly record struct PlacedPiece(Prop Prop, int Variant, Transform3D Transform, Aabb Envelope);
 
 /// <summary>
-/// One room-assembly attempt: footprint, doorways, walls, walkability and accepted props. Every placement goes
+/// One room-assembly attempt: footprint, doorways, pits, walls, walkability and accepted props. Every placement goes
 /// through <see cref="TryPlace"/>, which checks floor support, walls, other props and circulation, and keeps all
 /// doorways mutually reachable. Pockets of free space are allowed; the floor's reachability keeps spawns out.
 /// Owns the candidate <see cref="Room"/> until it is emitted.
@@ -72,6 +72,8 @@ public sealed class RoomBlueprint
 	public IReadOnlyList<Rect2> Reserved => _reserved;
 	/// <summary>Stair landings: kept free of floor props and reachable from every doorway.</summary>
 	public IReadOnlyList<Rect2> Landings => _landings;
+	/// <summary>Footprint tiles cut out of the floor (stairwells, pools): the room maps them as chasms.</summary>
+	public IReadOnlyList<Vector2I> Pits => _pits;
 	/// <summary>Why the most recent placement was refused, for failure messages and authoring diagnostics.</summary>
 	public string LastRejection { get; private set; } = "";
 

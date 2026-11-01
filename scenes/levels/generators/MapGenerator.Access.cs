@@ -75,7 +75,10 @@ public partial class MapGenerator
 		// Every other edge is already sealed, so only the pockets need walls.
 		if (count > 0) PlaceWallsAround(pocketTiles.OrderBy(t => t.X).ThenBy(t => t.Y));
 	}
-	/// <summary>Assign optional regions only if all their entrances can be secured without gating progression.</summary>
+	/// <summary>
+	/// Locks optional rooms whose every doorway has a door its room set there, as long as that never gates
+	/// progression. Access never adds a door to a room.
+	/// </summary>
 	private void PlaceAccess()
 	{
 		if (AccessProfile != null)
@@ -96,13 +99,14 @@ public partial class MapGenerator
 			while (candidates.Count > 0 && targets.Count < lockBudget)
 			{
 				int index = rng.RandiRange(0, candidates.Count - 1); var region = candidates[index]; candidates.RemoveAt(index);
-				var entrances = region.ConnectorTiles.Where(IsConnectorConnected).Distinct().ToList();
-				if (entrances.Count == 0 || targets.Sum(t => t.Entrances.Count) + entrances.Count > AccessProfile.MaximumLockedDoors || entrances.Count > 3 || entrances.Any(c => Map.GetConnectorDirections(c.X, c.Y)
-					.Count(d => Map.IsWithinBounds(c.X + d.X, c.Y + d.Y) && Map.IsCorridor(c.X + d.X, c.Y + d.Y)) != 1)) continue;
+				// Every doorway is connected (generation throws otherwise) and opens one way only.
+				var entrances = region.ConnectorTiles;
+				if (entrances.Count == 0 || targets.Sum(t => t.Entrances.Count) + entrances.Count > AccessProfile.MaximumLockedDoors || entrances.Count > 3
+					|| !entrances.All(c => Floor.Doors.Any(d => d.Connector == c && d.Door.Lock != null))) continue;
 				if (region.Tiles.Any(protectedTiles.Contains)) continue;
 				var trial = blocked.Concat(entrances).ToHashSet();
 				var reached = AccessSolutionValidator.Reachable(Map, entry, trial);
-				if (region.Tiles.Any(t => reached.Contains(t))) continue; // an unprotected inferred opening/bypass
+				if (region.Tiles.Any(t => reached.Contains(t))) continue; // an unprotected bypass
 				// Every other ordinary room must retain its route. Prior selected optional rooms stay blocked.
 				if (Floor.Rooms.Any(r => r != region && !_secretRoomIds.Contains(r.Id) && !targets.Any(t => t.Region == r)
 					&& r.Tiles.Any(t => Map.IsRoom(t.X, t.Y)) && !r.Tiles.Any(reached.Contains))) continue;
@@ -126,11 +130,7 @@ public partial class MapGenerator
 				if (reserved.Count != entrances.Count) continue;
 				for (int i = 0; i < entrances.Count; i++)
 				{
-					var connector = entrances[i];
-					var matches = Floor.Doors.Where(d => d.Connector == connector).ToList();
-					if (matches.Count > 1) throw new InvalidOperationException("Multiple physical doors share a generated lock threshold.");
-					Door door = matches.Count == 1 ? matches[0].Door : CreateConnectorDoor(connector, Map.GetConnectorDirections(connector.X, connector.Y)
-						.First(d => Map.IsWithinBounds(connector.X + d.X, connector.Y + d.Y) && Map.IsCorridor(connector.X + d.X, connector.Y + d.Y)));
+					var door = Floor.Doors.Single(d => d.Connector == entrances[i]).Door;
 					door.Lock.Initialize(definition); door.RefreshAccessPresentation();
 					SpawnAccessItem(definition.RequiredKey, reserved[i], $"key:{sourceIndex++}");
 				}
@@ -139,13 +139,18 @@ public partial class MapGenerator
 		int ordinal = 0;
 		foreach (var door in LiveNodes<Door>())
 		{
-			var pair = Floor.Doors.FirstOrDefault(d => d.Door == door);
-			if (door.Interior == null) door.ConnectionId = pair.Door != null ? $"connector:{pair.Connector.X}:{pair.Connector.Y}:{ordinal++}"
-				: "authored:" + NavigationRegion.GetPathTo(door);
+			if (door.Interior == null)
+			{
+				var connector = Floor.Doors.First(d => d.Door == door).Connector;
+				door.ConnectionId = $"connector:{connector.X}:{connector.Y}:{ordinal++}";
+			}
 			Floor.RecordDoorBaseline(door);
 		}
 	}
-	/// <summary>Places a door on the connector's edge toward <paramref name="opening"/> and registers it with the floor; while closed it seals sight.</summary>
+	/// <summary>
+	/// Places a secret pocket's door on the connector's edge toward <paramref name="opening"/> and registers it with the
+	/// floor; while closed it seals sight. Pockets are the level's, not a room's, so they are the only doors added here.
+	/// </summary>
 	private Door CreateConnectorDoor(Vector2I connector, Vector2I opening)
 	{
 		var door = AccessProfile.DoorScene.Instantiate<Door>();
@@ -155,8 +160,6 @@ public partial class MapGenerator
 			throw new InvalidOperationException("The access door scene must wire its Lock and Secret components.");
 		}
 		NavigationRegion.AddChild(door);
-		// The door brings its own doorway frame.
-		if (_openings.Remove(connector, out var frame)) frame.QueueFree();
 		door.Position = (Vector3)Map.TileToWorld(connector) + new Vector3(opening.X * 2, 0, opening.Y * 2);
 		door.RotationDegrees = new Vector3(0, opening.X == 0 ? 0 : 90, 0);
 		Floor.AddDoor(door, connector);

@@ -258,22 +258,20 @@ public class LootPlacementTest
 
 		// Recover the direction the chest is facing from its rotation. GetChestCandidates
 		// rotates toward the WALL direction (not away from it): chest.tscn's lid/opening
-		// faces the opposite way from the North-facing convention DoorwayMarker.
-		// GetYRotationDegrees assumes, so rotating toward the wall makes the chest
-		// physically face away from it. That means this table maps each rotation to the
-		// opposite of GetYRotationDegrees' own inverse -- e.g. rotation 0 came from
-		// GetYRotationDegrees(North), so the chest actually faces South.
-		// Then assert the tile directly behind it -- the direction the chest's back is
-		// turned to -- is actually a wall.
-		RoomMarkerDirection facing = Mathf.RoundToInt(chest.RotationDegrees.Y) switch
+		// faces the opposite way from the North-facing convention MapData.FacingYaw
+		// assumes, so rotating toward the wall makes the chest physically face away from
+		// it. That means this table maps each rotation to the opposite of FacingYaw's own
+		// inverse -- e.g. rotation 0 came from FacingYaw(North), so the chest actually
+		// faces South. Then assert the tile directly behind it -- the direction the
+		// chest's back is turned to -- is actually a wall.
+		Vector2I facing = Mathf.RoundToInt(chest.RotationDegrees.Y) switch
 		{
-			270 => RoomMarkerDirection.West,
-			180 => RoomMarkerDirection.North,
-			90 => RoomMarkerDirection.East,
-			_ => RoomMarkerDirection.South,
+			270 => Vector2I.Left,
+			180 => Vector2I.Up,
+			90 => Vector2I.Right,
+			_ => Vector2I.Down,
 		};
-		Vector2I facingVector = DoorwayMarker.GetDirectionVector(facing);
-		Vector2I behind = tile - facingVector;
+		Vector2I behind = tile - facing;
 		bool behindIsWall = !map.IsWithinBounds(behind.X, behind.Y) || !map.IsWalkable(behind.X, behind.Y);
 		if (!behindIsWall)
 		{

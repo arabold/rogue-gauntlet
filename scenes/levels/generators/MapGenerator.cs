@@ -46,12 +46,6 @@ public partial class MapGenerator : Node3D
 
 	// Shared unlit black cap mesh for permanent void coverage.
 	private PlaneMesh _occlusionCapMesh;
-	// Doorway markers paired with the connector they mark, so a marker whose doorway
-	// never got a corridor routed to it (see FinalizeDoors) can be hidden instead of
-	// misleadingly pointing at what is now a solid generated wall.
-	private readonly List<(DoorwayMarker Marker, Vector2I Connector)> _markerIndicators = new();
-	// Opening frames of doorless room doorways by connector; a door added there later replaces its frame.
-	private readonly System.Collections.Generic.Dictionary<Vector2I, Node3D> _openings = new();
 
 	/// <summary>
 	/// Y level the flat void occluder caps sit at (slightly above wall-top
@@ -114,8 +108,7 @@ public partial class MapGenerator : Node3D
 		var roomWallGridMap = room.WallGridMap;
 		var roomDecorationGridMap = room.DecorationGridMap;
 
-		var roomOffset = new Vector3I(room.Bounds.Position.X, 0, room.Bounds.Position.Y);
-		var gridMapOffset = Map.TileToWorld(placement.X, placement.Z) - roomOffset;
+		var gridMapOffset = Map.TileToWorld(placement.X, placement.Z) - room.Origin;
 		MergeGridMaps(roomFloorGridMap, FloorGridMap, gridMapOffset);
 		MergeGridMaps(roomWallGridMap, WallGridMap, gridMapOffset);
 		MergeGridMaps(roomDecorationGridMap, DecorationGridMap, gridMapOffset);
@@ -195,8 +188,7 @@ public partial class MapGenerator : Node3D
 			// avoid obstactles in it.
 			NavigationRegion.AddChild(room);
 
-			var roomOffset = new Vector3I(room.Bounds.Position.X, 0, room.Bounds.Position.Y);
-			room.Translate(Map.TileToWorld(placement.Position) - roomOffset);
+			room.Translate(Map.TileToWorld(placement.Position) - room.Origin);
 			// Placed and merged: each authored trap can now find the floor cell it conceals.
 			foreach (var (trap, id) in traps)
 				trap.Initialize(id, Seed, FloorGridMap, FloorGridMap.LocalToMap(FloorGridMap.ToLocal(trap.GlobalPosition)));
@@ -212,11 +204,6 @@ public partial class MapGenerator : Node3D
 	private void RegisterRoomRegion(RoomPlacement placement)
 	{
 		var roomMap = placement.Room.Map;
-		if (roomMap == null)
-		{
-			return;
-		}
-
 		var region = new RoomRegion(Floor.Rooms.Count) { LayoutAxis = placement.Room.LayoutAxis };
 		for (int lx = 0; lx < roomMap.Width; lx++)
 		{
@@ -250,134 +237,29 @@ public partial class MapGenerator : Node3D
 			}
 		}
 
-		RegisterDoors(placement.Room, region);
+		RegisterDoors(placement, region);
 		Floor.AddRoom(region);
 	}
 
 	/// <summary>
-	/// Marks the connectors guarded by hand-placed Door props so fog reveal stops
-	/// at them, and separately tracks every DoorwayMarker so one whose doorway never
-	/// gets a corridor routed to it (see FinalizeDoors) can be hidden rather than left
-	/// pointing at a solid wall. Doors sit in the wall opening rather than exactly on a
-	/// connector tile, so they're matched to the nearest connector of the room. Markers
-	/// are authored exactly on their own tile's center (see the coordinate-convention
-	/// docs in Room.cs), so they're matched to that exact tile directly -- proximity
-	/// matching would let a marker whose OWN doorway failed validation (its tile never
-	/// became a connector at all) borrow a nearby, unrelated doorway's connected status
-	/// instead of correctly always reading as unconnected. Doorless doorways' opening
-	/// frames are recorded by connector too, so an access door can replace one.
+	/// Takes over the doors the room set into its doorways, each guarding its doorway's connector (closed, it stops fog
+	/// reveal there), and gives interior doors (cell gates) their room-scoped connection IDs.
 	/// </summary>
-	private void RegisterDoors(Room room, RoomRegion region)
+	private void RegisterDoors(RoomPlacement placement, RoomRegion region)
 	{
+		foreach (var (tile, door) in placement.Room.Doors)
+		{
+			Floor.AddDoor(door, placement.Position + tile);
+		}
+
 		var interiorIds = new HashSet<string>();
-		foreach (Node node in room.FindChildren("*", "", true, false))
+		foreach (var door in placement.Room.FindChildren("*", "", true, false).OfType<Door>().Where(door => door.Interior != null))
 		{
-			if (node is Door door)
-			{
-				if (door.Interior != null)
-				{
-					if (string.IsNullOrWhiteSpace(door.Interior.Id) || !interiorIds.Add(door.Interior.Id)
-						|| door.Lock?.Definition != null || door.Secret?.IsSecret == true)
-						throw new InvalidOperationException("Interior doors require unique local IDs and unlocked, non-secret access.");
-					door.ConnectionId = $"room:{region.Id}:interior:{door.Interior.Id}";
-					continue;
-				}
-				// Candidates only: which doorways are real passages isn't known until
-				// corridors have been routed (see FinalizeDoors).
-				if (TryFindNearestConnector(region, door.GlobalPosition, out var connector))
-				{
-					Floor.AddDoor(door, connector);
-				}
-			}
-			else if (node is Node3D frame && frame.HasMeta(RoomAssembler.OpeningMeta))
-			{
-				if (TryFindNearestConnector(region, frame.GlobalPosition, out var connector)) _openings[connector] = frame;
-			}
-			else if (node is DoorwayMarker marker)
-			{
-				var tile = Map.WorldToTile(marker.GlobalPosition);
-				if (region.ConnectorTiles.Contains(tile))
-				{
-					_markerIndicators.Add((marker, tile));
-				}
-				else
-				{
-					// The marker's own doorway validation failed outright (its tile
-					// never became a connector at all) -- known now, without waiting on
-					// corridor routing, so disable it immediately rather than leaving it
-					// enabled forever (FinalizeMarkers only ever visits tracked markers).
-					marker.Enabled = false;
-				}
-			}
+			if (string.IsNullOrWhiteSpace(door.Interior.Id) || !interiorIds.Add(door.Interior.Id)
+				|| door.Lock?.Definition != null || door.Secret?.IsSecret == true)
+				throw new InvalidOperationException("Interior doors require unique local IDs and unlocked, non-secret access.");
+			door.ConnectionId = $"room:{region.Id}:interior:{door.Interior.Id}";
 		}
-	}
-
-	private bool TryFindNearestConnector(RoomRegion region, Vector3 worldPosition, out Vector2I connector)
-	{
-		connector = default;
-		float bestDistance = float.MaxValue;
-		foreach (var candidate in region.ConnectorTiles)
-		{
-			var center = Map.TileToWorld(candidate);
-			float dx = worldPosition.X - center.X;
-			float dz = worldPosition.Z - center.Z;
-			float distance = dx * dx + dz * dz;
-			if (distance < bestDistance)
-			{
-				bestDistance = distance;
-				connector = candidate;
-			}
-		}
-
-		// Doors sit in the wall opening, up to ~1.5 tiles from the connector floor
-		// tile they guard (plus tile-center rounding), so accept the nearest match
-		// within a 2-tile radius and reject doors with no connector near them.
-		float maxDistance = Room.TileSize * 2f;
-		return bestDistance <= maxDistance * maxDistance;
-	}
-
-	/// <summary>
-	/// Resolves hand-placed doors against the routed corridors. A door whose doorway
-	/// was connected becomes a real gating door (its closed leaf seals the fog); a door
-	/// at a doorway the connector step walled shut is removed so it does not linger as
-	/// an interactable door embedded in a solid wall.
-	/// </summary>
-	private void FinalizeDoors()
-	{
-		foreach (var (door, connector) in Floor.Doors)
-		{
-			if (!IsConnectorConnected(connector))
-			{
-				door.QueueFree();
-			}
-		}
-
-		Floor.RemoveDoors(pair => !IsConnectorConnected(pair.Connector));
-	}
-
-	/// <summary>
-	/// Hides the editor-only gizmo of every DoorwayMarker whose doorway never got a
-	/// corridor routed to it. A doorway can validate fine (it becomes a real
-	/// MapData connector) yet still end up walled shut -- e.g. a tightly packed room
-	/// with more doorways than the layout had room to route corridors to, or one side
-	/// of a corner tile after Room.Rotate -- and MapData keeps classifying that tile
-	/// as a Connector either way (wall placement is pure geometry, it never touches
-	/// tile classification). Without this, the marker's arrow keeps pointing at what
-	/// is now a solid generated wall, which is confusing when inspecting a level in
-	/// the editor even though it has no effect on actual gameplay (the arrow doesn't
-	/// render outside the editor at all).
-	/// </summary>
-	private void FinalizeMarkers()
-	{
-		foreach (var (marker, connector) in _markerIndicators)
-		{
-			if (!IsConnectorConnected(connector))
-			{
-				marker.Enabled = false;
-			}
-		}
-
-		_markerIndicators.Clear();
 	}
 
 	/// <summary>
@@ -404,11 +286,11 @@ public partial class MapGenerator : Node3D
 
 		CorridorConnector.ConnectRooms(Map);
 
-		// Explicit entrances are structural commitments, including both ends of a hall's aisle.
-		// Never turn an unrouteable required opening into a wall and deliver a different room.
+		// Doorways are structural commitments, including both ends of a hall's aisle, and their doors and frames are
+		// already set. Never turn an unrouteable doorway into a wall and deliver a different room.
 		foreach (var room in Floor.Rooms)
 		foreach (var tile in room.ConnectorTiles)
-			if (Map.IsDoorway(tile.X, tile.Y) && !IsConnectorConnected(tile))
+			if (!IsConnectorConnected(tile))
 				throw new InvalidOperationException($"Required doorway at {tile} could not be connected; the floor cannot be generated.");
 
 		PlaceCorridors();
@@ -718,13 +600,6 @@ public partial class MapGenerator : Node3D
 
 		// Step 2: Connect the rooms
 		ConnectRooms();
-
-		// Step 2b: Resolve doors against the routed corridors: keep doors at connected
-		// doorways (and gate fog there), drop doors at doorways that got walled shut.
-		FinalizeDoors();
-
-		// Step 2b.2: Hide doorway-marker gizmos left pointing at a wall for the same reason.
-		FinalizeMarkers();
 		AccessProfile?.Validate();
 		CreateSecretBranches();
 		DecorateCorridors();
@@ -798,8 +673,6 @@ public partial class MapGenerator : Node3D
 		_realmRooms = Rooms?.ForRealm(CurrentRealm?.Id);
 
 		ResetAccess();
-		_markerIndicators.Clear();
-		_openings.Clear();
 
 		// Initialize the map with empty tiles and a walled border
 		Map = new MapData((int)MapWidth, (int)MapDepth);
@@ -846,10 +719,9 @@ public partial class MapGenerator : Node3D
 	}
 
 	/// <summary>
-	/// Debug/tooling query: every connector tile's world position, whether it's an
-	/// explicit doorway (guaranteed-connected) or an inferred edge (optional), and each
-	/// open direction annotated with whether it actually leads to an open passage or is
-	/// sealed by a generated wall. All-Godot-native return types so this is callable
+	/// Debug/tooling query: every connector tile's world position and each open direction
+	/// annotated with whether it actually leads to an open passage or is sealed by a
+	/// generated wall. All-Godot-native return types so this is callable
 	/// from a GDScript preview/verification script even though MapData itself (a plain
 	/// C# class) can't marshal across that boundary -- see
 	/// .agents/skills/godot-mcp/scripts/render_level_topdown.gd, which renders this
@@ -883,7 +755,6 @@ public partial class MapGenerator : Node3D
 				result.Add(new Godot.Collections.Dictionary
 				{
 					{ "worldPosition", (Vector3)Map.TileToWorld(x, z) },
-					{ "isDoorway", Map.IsDoorway(x, z) },
 					{ "directions", directionsInfo },
 				});
 			}

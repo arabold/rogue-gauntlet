@@ -14,8 +14,8 @@ using static GdUnit4.Assertions;
 /// <list type="bullet">
 /// <item>Every walkable tile (Room/Connector/Corridor) is reachable from every other —
 /// no disconnected rooms or orphaned corridors.</item>
-/// <item>Every explicit doorway opens onto a corridor tile — no doorway was silently
-/// walled shut.</item>
+/// <item>Every doorway opens onto a corridor tile — no doorway was silently walled
+/// shut — and every room door stands in its doorway.</item>
 /// <item>Generation is deterministic per seed — fog-of-war persistence replays reveals
 /// against a regenerated map, so any nondeterminism corrupts saves.</item>
 /// <item>The packed layout produces measurably denser maps than the simple layout —
@@ -57,125 +57,59 @@ public class LayoutConnectivityTest
 	[TestCase]
 	public async Task ProceduralRoomsWithDoorsAreFullyConnected()
 	{
-		// Every explicit doorway must end up force-connected by ConnectRemainingDoorways
-		// (checked by FindConnectivityFailures below), the same contract authored rooms
-		// with DoorwayMarkers rely on.
+		// Every doorway must end up force-connected by ConnectRemainingDoorways (checked by
+		// FindConnectivityFailures below), whether it holds a door or a frame.
 		await AssertConnectedAcrossSeeds(new PackedRoomLayout(), 30, factory: TestFactories.RoomPoolWithDoors());
 	}
 
 	/// <summary>
-	/// A doorway marker can validate fine (become a real MapData connector) yet still
-	/// end up walled shut if the corridor router never reaches it -- MapData keeps
-	/// classifying the tile as a Connector regardless of whether a corridor actually
-	/// got routed there, since wall placement is pure geometry and never touches tile
-	/// classification. MapGenerator.FinalizeMarkers hides (Enabled = false) exactly
-	/// this case so an editor-visible marker never points at a solid wall; this test
-	/// guards that every marker still Enabled after generation has at least one
-	/// sanctioned direction that actually leads to a corridor.
+	/// Rooms set their doors into their doorways and hand each over with the doorway it fills, so after rotation and
+	/// placement every registered room door still stands in the wall gap of a connected doorway, facing along it.
 	/// </summary>
 	[TestCase]
-	public async Task EnabledDoorwayMarkersAlwaysHaveAnOpenDirection()
+	public async Task RoomDoorsStandInTheirConnectedDoorways()
 	{
 		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPoolWithDoors());
 		var failures = new List<string>();
+		int doors = 0;
 
 		for (ulong seed = 1; seed <= 40; seed++)
 		{
 			mapGenerator.Seed = seed;
 			mapGenerator.GenerateMap(includeGameplay: false);
 			MapData map = mapGenerator.Map;
-
-			foreach (Node roomNode in mapGenerator.NavigationRegion.GetChildren())
+			foreach (var (door, connector) in mapGenerator.Floor.Doors)
 			{
-				if (roomNode is not Room room)
+				doors++;
+				var directions = map.GetConnectorDirections(connector.X, connector.Y);
+				if (directions.Count != 1)
 				{
+					failures.Add($"seed {seed}: door at connector {connector} has {directions.Count} doorway directions");
 					continue;
 				}
 
-				foreach (Node child in room.GetChildren())
+				var direction = directions[0];
+				var outside = connector + direction;
+				if (!map.IsWithinBounds(outside.X, outside.Y) || !map.IsCorridor(outside.X, outside.Y))
 				{
-					if (child is not DoorwayMarker marker || !marker.Enabled)
-					{
-						continue;
-					}
+					failures.Add($"seed {seed}: door at connector {connector} does not open onto a corridor");
+				}
 
-					if (!TryFindNearestMasterConnector(map, marker.GlobalPosition, out Vector2I connectorTile))
-					{
-						failures.Add($"seed {seed}: enabled marker {marker.Name} in {room.Name} has no master-map "
-							+ "connector within range at all");
-						continue;
-					}
-
-					bool hasOpenDirection = false;
-					foreach (Vector2I direction in marker.GetDirectionVectors())
-					{
-						if (!map.GetConnectorDirections(connectorTile.X, connectorTile.Y).Contains(direction))
-						{
-							continue;
-						}
-
-						Vector2I outside = connectorTile + direction;
-						if (map.IsWithinBounds(outside.X, outside.Y) && !map.IsWallOrEmpty(outside.X, outside.Y))
-						{
-							hasOpenDirection = true;
-							break;
-						}
-					}
-
-					if (!hasOpenDirection)
-					{
-						failures.Add($"seed {seed}: enabled marker {marker.Name} in {room.Name} at tile {connectorTile} "
-							+ "has every sanctioned direction sealed by a wall");
-					}
+				Vector3 edge = map.TileToWorld(connector) + new Vector3(direction.X, 0, direction.Y) * (Room.TileSize / 2f);
+				float turn = Mathf.AngleDifference(door.GlobalRotation.Y, Mathf.DegToRad(MapData.FacingYaw(direction)));
+				if (door.GlobalPosition.DistanceTo(edge) > .01f || Mathf.Abs(turn) > .01f)
+				{
+					failures.Add($"seed {seed}: door at {door.GlobalPosition} does not stand in its doorway's gap at {edge} facing {direction}");
 				}
 			}
 
 			await runner.SimulateFrames(1);
 		}
 
+		AssertInt(doors).IsGreater(0);
 		AssertArray(failures)
-			.OverrideFailureMessage($"Found {failures.Count} marker(s) left enabled with no open direction "
-				+ $"across 40 seeds:\n  " + string.Join("\n  ", failures))
+			.OverrideFailureMessage($"Found {failures.Count} misplaced room door(s) across 40 seeds:\n  " + string.Join("\n  ", failures))
 			.IsEmpty();
-	}
-
-	/// <summary>
-	/// Finds the connector tile nearest a world position, mirroring
-	/// MapGenerator.TryFindNearestConnector's own matching (nearest connector within a
-	/// 2-tile radius) since that private method isn't reachable from a test.
-	/// </summary>
-	private static bool TryFindNearestMasterConnector(MapData map, Vector3 worldPosition, out Vector2I connector)
-	{
-		int centerX = map.Width / 2;
-		int centerZ = map.Height / 2;
-		var approxTile = new Vector2I(
-			Mathf.RoundToInt(worldPosition.X / 4f) + centerX, Mathf.RoundToInt(worldPosition.Z / 4f) + centerZ);
-
-		connector = default;
-		float bestDistanceSq = float.MaxValue;
-		bool found = false;
-		for (int dx = -2; dx <= 2; dx++)
-		{
-			for (int dz = -2; dz <= 2; dz++)
-			{
-				var candidate = new Vector2I(approxTile.X + dx, approxTile.Y + dz);
-				if (!map.IsWithinBounds(candidate.X, candidate.Y) || !map.IsConnector(candidate.X, candidate.Y))
-				{
-					continue;
-				}
-
-				var candidateWorld = new Vector3((candidate.X - centerX) * 4f, 0, (candidate.Y - centerZ) * 4f);
-				float distSq = worldPosition.DistanceSquaredTo(candidateWorld);
-				if (distSq < bestDistanceSq)
-				{
-					bestDistanceSq = distSq;
-					connector = candidate;
-					found = true;
-				}
-			}
-		}
-
-		return found && bestDistanceSq <= (4f * 2f) * (4f * 2f);
 	}
 
 	[TestCase]
@@ -294,11 +228,13 @@ public class LayoutConnectivityTest
 			failures.Add($"only {reached} of {walkable.Count} walkable tiles are connected");
 		}
 
-		// 2. Every explicit doorway opens onto a corridor (the corridor connector's
-		// contract: doorways are intentional entrances and must all be connected).
+		// 2. Every room doorway opens onto a corridor (the corridor connector's contract:
+		// doorways are built entrances and must all be connected). Secret pockets open
+		// onto whatever wall they were cut behind instead.
+		var secrets = mapGenerator.GeneratedSecrets.Select(secret => secret.Connector).ToHashSet();
 		foreach (var tile in walkable)
 		{
-			if (!map.IsConnector(tile.X, tile.Y) || !map.IsDoorway(tile.X, tile.Y))
+			if (!map.IsConnector(tile.X, tile.Y) || secrets.Contains(tile))
 			{
 				continue;
 			}

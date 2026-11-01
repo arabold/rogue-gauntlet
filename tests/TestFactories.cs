@@ -178,17 +178,15 @@ public static class TestFactories
 	public static AssembledRoomFactory RoomPool() => Load<AssembledRoomFactory>(RoomPoolPath);
 
 	/// <summary>
-	/// Like <see cref="GarrisonRooms"/>, but most generated doorways get a physical door -- the hardest stress on
-	/// doorway/door placement. Room types are copied, so the shared definitions keep their own door settings.
+	/// Like <see cref="RoomPool"/>, but most generated doorways get their wall style's door -- the hardest stress on
+	/// doorway/door placement. Room types are copied, so the shared definitions keep their own door chances.
 	/// </summary>
 	public static AssembledRoomFactory RoomPoolWithDoors()
 	{
-		var door = Load<PackedScene>("res://scenes/props/door.tscn");
 		var garrison = RoomPool();
 		RoomType[] WithDoors(RoomType[] types) => types.Select(type =>
 		{
 			var copy = (RoomType)type.Duplicate();
-			copy.DoorScene = door;
 			copy.DoorChance = .75f;
 			return copy;
 		}).ToArray();

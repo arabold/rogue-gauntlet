@@ -171,6 +171,7 @@ Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2")]
 MinimumFloorTiles = 8
 MinDoorways = 1
 MaxDoorways = 2
+DoorChance = 0.7
 Walls = [ExtResource("4_stone_walls"), ExtResource("5_ruined_walls"), ExtResource("6_scaffold_wal"), ExtResource("x_cellar_alcove_walls"), ExtResource("x_slimy_walls")]
 Floors = [ExtResource("7_stone_floor"), ExtResource("8_dirt_floor"), ExtResource("11_drained_ston"), ExtResource("x_bricks_floor"), ExtResource("x_earth_floor"), ExtResource("x_planks_rotten_floor"), ExtResource("x_drained_flagstones")]
 Columns = [SubResource("CenterColumns_3"), SubResource("CornerColumns_4")]
