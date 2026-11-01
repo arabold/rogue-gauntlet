@@ -48,7 +48,7 @@ public class WallIntegrityTest
 	{
 		// Procedural rooms author no walls at all, so every one of their edges must be
 		// sealed by generated walls — the hardest stress on the wall pass.
-		await AssertNoWallGaps(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		await AssertNoWallGaps(new PackedRoomLayout(), TestFactories.RoomPool());
 	}
 
 	[TestCase]
@@ -57,7 +57,7 @@ public class WallIntegrityTest
 		// Explicit doorways make every OTHER edge fall back to a plain Room tile, which
 		// must still be sealed exactly like a void-facing edge -- the doorway/door path's
 		// stress on the wall pass.
-		await AssertNoWallGaps(new PackedRoomLayout(), TestFactories.GarrisonRoomsWithDoors());
+		await AssertNoWallGaps(new PackedRoomLayout(), TestFactories.RoomPoolWithDoors());
 	}
 
 	private static async Task AssertNoWallGaps(RoomLayoutStrategy layout, RoomFactory factory = null)
@@ -73,6 +73,10 @@ public class WallIntegrityTest
 			{
 				gaps.Add($"seed {seed}: {gap}");
 			}
+			foreach (string overlap in FindWallOverlaps(mapGenerator.WallGridMap))
+			{
+				gaps.Add($"seed {seed}: {overlap}");
+			}
 
 			// GenerateMap re-instantiates room scenes each call and QueueFrees the previous
 			// ones; that free is deferred to frame end, so pump a frame here. Without it,
@@ -83,8 +87,57 @@ public class WallIntegrityTest
 		}
 
 		AssertArray(gaps)
-			.OverrideFailureMessage($"Found {gaps.Count} wall gap(s) across {SeedCount} seeds:\n  " + string.Join("\n  ", gaps))
+			.OverrideFailureMessage($"Found {gaps.Count} wall gap(s) or overlap(s) across {SeedCount} seeds:\n  " + string.Join("\n  ", gaps))
 			.IsEmpty();
+	}
+
+	/// <summary>
+	/// Pieces along one wall line must abut, not overlap: a corner's arms cover half of each edge they join, so a
+	/// whole piece there would push through the arm (a built-in shelf merging into the corner). Perpendicular walls
+	/// meeting at a joint share up to one wall thickness, so only longer overlaps count.
+	/// </summary>
+	private static List<string> FindWallOverlaps(GridMap wallGridMap)
+	{
+		const float Thickness = 1f;
+		var library = wallGridMap.MeshLibrary;
+		var lines = new Dictionary<(bool Horizontal, int Line), List<(float A, float B, string Name, Vector3I Cell)>>();
+		foreach (Vector3I cell in wallGridMap.GetUsedCells())
+		{
+			int item = wallGridMap.GetCellItem(cell);
+			var footprint = WallFootprints.FootprintWorld(library.GetItemMesh(item).GetAabb(), wallGridMap.GetCellItemOrientation(cell), cell);
+			foreach (bool horizontal in new[] { true, false })
+			{
+				float a = horizontal ? footprint.Position.X : footprint.Position.Z;
+				float b = horizontal ? footprint.End.X : footprint.End.Z;
+				// A piece crossing this axis' lines only with its thickness does not run along them.
+				if (b - a < TileSize / 2f - WallFootprints.Eps) continue;
+				float min = horizontal ? footprint.Position.Z : footprint.Position.X;
+				float max = horizontal ? footprint.End.Z : footprint.End.X;
+				// Wall lines run on tile edges, half a tile off the tile centers.
+				for (int k = Mathf.CeilToInt((min - TileSize / 2f) / TileSize); k * TileSize + TileSize / 2 <= max; k++)
+				{
+					var key = (horizontal, k * TileSize + TileSize / 2);
+					if (!lines.TryGetValue(key, out var pieces)) lines[key] = pieces = [];
+					pieces.Add((a, b, library.GetItemName(item), cell));
+				}
+			}
+		}
+
+		var overlaps = new List<string>();
+		foreach (var ((horizontal, line), pieces) in lines)
+		{
+			pieces.Sort((p, q) => p.A.CompareTo(q.A));
+			var reach = pieces[0];
+			for (int index = 1; index < pieces.Count; index++)
+			{
+				var piece = pieces[index];
+				float overlap = Mathf.Min(reach.B, piece.B) - piece.A;
+				if (overlap > Thickness + WallFootprints.Eps)
+					overlaps.Add($"{reach.Name} at {reach.Cell} overlaps {piece.Name} at {piece.Cell} by {overlap:0.##} along {(horizontal ? "z" : "x")}={line}");
+				if (piece.B > reach.B) reach = piece;
+			}
+		}
+		return overlaps;
 	}
 
 	private static List<string> FindWallGaps(MapGenerator mapGenerator)

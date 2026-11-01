@@ -1,29 +1,29 @@
 {
   "key": "weapons/warhammer_sledge",
-  "inputs": "f663920c1af555c21a6976121226f51763fd93bb9ae0a4bbb16b7da46049eecc",
+  "inputs": "442e7190ba725d87bc9c081eccfd6e35a99445fe6a03ce6875780af49305bb52",
   "files": {
-    "warhammer_sledge.glb": "16fa8d2346a89625f10ab3c4c0afebd9c0fde7eca0603782dcbc7ad5f75a6761",
-    "lineup.png": "5a21b8ae149c1c3f27d411ee72cc370b5a297b518b9905d666f3c55e2c96576a"
+    "warhammer_sledge.glb": "e2ff561ccb593d8e4a7cf3a482a856401234c1fe4dd8c29a85aa4df9a82c48c0",
+    "lineup.png": "7398fefc68cc04118b088e4d5b5c97fcfdc675eaf01bf32335e4f3db18e8565f"
   },
   "metadata": {
     "report": {
-      "triangles": 902,
+      "triangles": 968,
       "bounds": [
         [
-          -0.4050000011920929,
-          -0.460263192653656,
-          -0.23999999463558197
+          -0.45500001311302185,
+          -0.6150000095367432,
+          -0.25999999046325684
         ],
         [
-          0.4050000011920929,
-          1.4700000286102295,
-          0.23999999463558197
+          0.45500001311302185,
+          1.5,
+          0.25999999046325684
         ]
       ],
       "dimensions": [
-        0.8100000023841858,
-        1.9302632212638855,
-        0.47999998927116394
+        0.9100000262260437,
+        2.115000009536743,
+        0.5199999809265137
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.17662610690000968
+        "signed_volume": 0.22619558726659908
       },
       "warnings": [],
       "errors": []

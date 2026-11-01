@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "name": "Sunken pool",
+  "concept": "Water sunk into the floor, as KayKit's dungeon pack lays its water beside the floor foundations: open water over a dark bed, and quay walls in the foundation's own profile, swatch and accent bricks wherever the pool meets floor. The surface is translucent and turns murky with depth in the game's water shader.",
+  "kind": "pool",
+  "style": "quay",
+  "design": {"drop": 0.6, "depth": 1.0, "thickness": 0.3},
+  "colors": {"kaykit_00": [74, 81, 85], "water": [64, 126, 118], "bed": [40, 58, 52]},
+  "materials": {"water": {"alpha": 0.55, "roughness": 0.1, "crease": 30}, "bed": {"roughness": 0.9}},
+  "pieces": {"center": ["A"], "edge": ["A", "B"], "corner": ["A", "B"], "runner": ["A", "B"], "runner_end": ["A"]},
+  "budget": {"triangles": 3000},
+  "export": {"folder": "res://assets/custom-tiles/dungeon"}
+}

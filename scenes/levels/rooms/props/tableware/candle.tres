@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/candle.gltf" id="2_candle"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/candle_lit.gltf" id="3_candle_lit"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/candle_melted.gltf" id="4_candle_melte"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/candle_thin.gltf" id="5_candle_thin"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/candle_thin_lit.gltf" id="6_candle_thin_"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/candle_triple.gltf" id="7_candle_tripl"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "candle"
+Scenes = [ExtResource("2_candle"), ExtResource("3_candle_lit"), ExtResource("4_candle_melte"), ExtResource("5_candle_thin"), ExtResource("6_candle_thin_"), ExtResource("7_candle_tripl")]
+Blocking = false
+Gap = 0.02
+TurnJitter = 30.0
+ShiftJitter = 0.03
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

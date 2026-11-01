@@ -1,9 +1,9 @@
 {
   "key": "weapons/staff_archmage",
-  "inputs": "0418ab0f7467b1c5f51c3b1dfa43884e08abcbc11e431dc315b6eb5d44db1ad8",
+  "inputs": "cae2c8a276aee4de45524d105e25c2a13c6cd409bd5772065d43fe15d69b90e3",
   "files": {
-    "staff_archmage.glb": "f23565cf0f241c8119d656a9d6e4b4261bcd41a08aa34030bb8d37c0bf6ffd42",
-    "lineup.png": "5d6aa6a166be60796d6b7e6104023d3c9f7538a0dc438b9a7c6d9080d9f6bb63"
+    "staff_archmage.glb": "8be171ec3e906c91e3dcc2144deae095691e1a49ff54626006f8d3ccfad27915",
+    "lineup.png": "50dd038c58b93615edec3134c54044269d86362e866984f1027a0c0db58cde6c"
   },
   "metadata": {
     "report": {
@@ -25,7 +25,7 @@
         2.6358984112739563,
         0.38254210352897644
       ],
-      "materials": 3,
+      "materials": 4,
       "textures": [
         [
           128,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.046287059701697
+        "signed_volume": 0.04628705970727592
       },
       "warnings": [],
       "errors": []

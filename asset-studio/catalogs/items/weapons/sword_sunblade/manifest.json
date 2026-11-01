@@ -1,13 +1,13 @@
 {
   "key": "weapons/sword_sunblade",
-  "inputs": "bc283de5c180a8987276f988bb8587d59da49f843cbe7938b404efb319af521b",
+  "inputs": "d88714ea71aa18613afc01517c34e699fc98b3373bd216deea408d067242c685",
   "files": {
-    "sword_sunblade.glb": "5ddb67a8919ff965750749eb503c8099211e069399db7315806b7ae16be2b7ea",
-    "lineup.png": "2a92fcdb9f68b51dd2e3170c62d018753baf946903b271c85f3cad9c985e3e16"
+    "sword_sunblade.glb": "237e06b2481a37b331d2bd64788a4ff555d5dd161f198917b90a14ae7f25b9ec",
+    "lineup.png": "44faea19c7183c939d1076c4292650510b2cc65b4028f676bf1ecc7a7b8e3757"
   },
   "metadata": {
     "report": {
-      "triangles": 668,
+      "triangles": 670,
       "bounds": [
         [
           -0.30000001192092896,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.033002045468699
+        "signed_volume": 0.033002045443565324
       },
       "warnings": [],
       "errors": []

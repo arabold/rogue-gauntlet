@@ -17,13 +17,6 @@
     "materials": 5,
     "texture_size": 1024
   },
-  "colors": {
-    "cloth": [
-      70,
-      110,
-      170
-    ]
-  },
   "export": {
     "glb": "res://assets/custom-items/weapons/polearm/halberd_steel.glb"
   },

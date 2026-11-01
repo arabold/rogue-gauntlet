@@ -13,18 +13,12 @@
     "scale": 1
   },
   "budget": {
-    "triangles": 2500,
+    "triangles": 9000,
     "materials": 2,
     "texture_size": 1024
   },
   "crease": 45,
   "materials": {
-    "marble": {
-      "crease": 35
-    },
-    "marble_dark": {
-      "crease": 35
-    },
     "stone": {
       "crease": 35
     },

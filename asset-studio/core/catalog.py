@@ -198,7 +198,7 @@ def _get_modules():
     from prefabs import anatomy, details, items, library, outfits
     from prefabs.anatomy import appendages, bodies, heads
     from prefabs.creatures import characters, golems
-    from prefabs.details import fasteners, trophies, wear
+    from prefabs.details import fasteners, trophies, wear, hilts
     from prefabs.items import props, shields, weapons
     from prefabs.outfits import armor, belts, clothes, crowns, cuirass, helmets, pauldrons
 
@@ -227,6 +227,7 @@ def _get_modules():
         "fasteners": fasteners,
         "trophies": trophies,
         "wear": wear,
+        "hilts": hilts,
         "trinkets": details,
         # Meshes & creatures
         "library": library,

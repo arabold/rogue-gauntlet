@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WallStyle" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/WallStyle.cs" id="2_wallstyle"]
+[ext_resource type="MeshLibrary" uid="uid://b686hpw5x2r8t" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="3_wallsmeshlibrary"]
+
+[resource]
+script = ExtResource("2_wallstyle")
+Id = "sewer_corridor_walls"
+Library = ExtResource("3_wallsmeshlibrary")
+Straight = Dictionary[String, float]({"wall": 2.5, "wall_cracked": 1.0})
+Corner = "wall_slimy_corner_A"
+Half = "wall_slimy_half_A"
+Accents = Dictionary[String, float]({"wall_slimy_A": 1.0, "wall_slimy_B": 1.0, "wall_slimy_C": 1.0, "wall_slimy_D": 1.0, "wall_gated": 0.8, "wall_archedwindow_gated": 0.8, "wall_arched": 0.6})
+AccentChance = 0.45
+PlainEnds = false
+metadata/_custom_type_script = ExtResource("2_wallstyle")

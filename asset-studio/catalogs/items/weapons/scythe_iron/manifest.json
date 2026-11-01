@@ -1,29 +1,29 @@
 {
   "key": "weapons/scythe_iron",
-  "inputs": "bcefb6ea12d89f8e90bc8e808fe9c22e9d35536c2f84c9a92272cc20f7e04d65",
+  "inputs": "37b228536fb27d01f06e5a0e8cdc3bc19030e12c7a5c13cfba84946698336ea3",
   "files": {
-    "scythe_iron.glb": "0ef565d05d439a2a2fb73ddb457f8a4119f3b3492eb703553fab362a03e3afdd",
-    "lineup.png": "ee684c04d581718ea236aeb51344b40eff48ca02ca002affd8b5959d5f13ea70"
+    "scythe_iron.glb": "9f8402c30e3e6a41c43d455619305ba75be780d6ad9335c1a09aac48184b101c",
+    "lineup.png": "6dbccbb24db9912c7dcc8e9bc50589da777248f250eb41b58c31a660614c442e"
   },
   "metadata": {
     "report": {
-      "triangles": 918,
+      "triangles": 992,
       "bounds": [
         [
-          -0.10476799309253693,
-          -0.6700000166893005,
-          -0.1289999932050705
+          -0.20618000626564026,
+          -0.8199999928474426,
+          -0.18263854086399078
         ],
         [
           0.27000001072883606,
           2.4200000762939453,
-          0.1289999932050705
+          0.18263854086399078
         ]
       ],
       "dimensions": [
-        0.374768003821373,
-        3.090000092983246,
-        0.257999986410141
+        0.4761800169944763,
+        3.240000069141388,
+        0.36527708172798157
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.05262421402015018
+        "signed_volume": 0.05680527846723277
       },
       "warnings": [],
       "errors": []
@@ -63,7 +63,7 @@
         "texture_size": 1024
       },
       "colors": {
-        "cloth": [
+        "feather": [
           150,
           50,
           50

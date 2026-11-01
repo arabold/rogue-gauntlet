@@ -1,7 +1,16 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="PackedScene" path="res://assets/custom-items/weapons/staff/staff_bone.glb" id="1_glb"]
+[ext_resource type="Script" uid="uid://b057bpmpc54l5" path="res://scenes/effects/FlickerLight.cs" id="glow_light"]
 
 [node name="StaffBone" type="Node3D"]
 
 [node name="staff_bone" parent="." instance=ExtResource("1_glb")]
+
+[node name="GlowLight" type="OmniLight3D" parent="."]
+position = Vector3(0, 1.17, 0)
+light_color = Color(0.82, 0.88, 1.0, 1)
+light_specular = 0.0
+omni_range = 2.5
+script = ExtResource("glow_light")
+Energy = 0.7

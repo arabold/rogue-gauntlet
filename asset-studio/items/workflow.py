@@ -445,6 +445,9 @@ class Item:
                 paths.extend(module_sources(FAMILIES[builder].__module__))
             else:
                 paths.extend(sorted(set(module_sources("items.designs")) | set(module_sources("items.builders"))))
+            if builder == "furnishing":
+                # Posed figures the furnishing builder carves into stone (`items/pose_kaykit.py`).
+                paths.extend(sorted((STUDIO / "items/meshes").glob("*.npz")))
             if data.get("color_mode") == "world":
                 paths.append(STUDIO / "items/world_surface.py")
             paths.append(STUDIO / "core/export.py")

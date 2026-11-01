@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-legacy/potA.gltf.glb" id="2_potA.gltf"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-legacy/potA_decorated.gltf.glb" id="3_potA_decorat"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-legacy/potB.gltf.glb" id="4_potB.gltf"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-legacy/potC.gltf.glb" id="5_potC.gltf"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "pot"
+Scenes = [ExtResource("2_potA.gltf"), ExtResource("3_potA_decorat"), ExtResource("4_potB.gltf"), ExtResource("5_potC.gltf")]
+Gap = 0.05
+TurnJitter = 30.0
+ShiftJitter = 0.08
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

@@ -22,15 +22,17 @@ public partial class MapGenerator : Node3D
 	[Export] public MobFactory MobFactory { get; set; }
 	[Export] public WorldEffectDefinition SpawnArrivalEffect { get; set; }
 
+	/// <summary>The shared room pool; each floor takes the rooms of its realm.</summary>
+	[Export] public RoomFactory Rooms { get; set; }
 	/// <summary>
-	/// Realms by depth band: the one covering <see cref="DungeonDepth"/> supplies the floor's rooms and corridor tiles,
-	/// and the deepest realm carries on below the last band.
+	/// Realms by depth band: the one covering <see cref="DungeonDepth"/> picks the floor's rooms from <see cref="Rooms"/>
+	/// and supplies its corridor tiles; the deepest realm carries on below the last band.
 	/// </summary>
 	[Export] public Realm[] Realms { get; set; } = [];
 
 	/// <summary>The realm the current attempt builds from, resolved when the generator resets.</summary>
 	public Realm CurrentRealm { get; private set; }
-	private RoomFactory Rooms => CurrentRealm?.Rooms;
+	private RoomFactory _realmRooms;
 	private TileFactory Corridors => CurrentRealm?.Corridors;
 
 	public MapData Map;
@@ -48,6 +50,8 @@ public partial class MapGenerator : Node3D
 	// never got a corridor routed to it (see FinalizeDoors) can be hidden instead of
 	// misleadingly pointing at what is now a solid generated wall.
 	private readonly List<(DoorwayMarker Marker, Vector2I Connector)> _markerIndicators = new();
+	// Opening frames of doorless room doorways by connector; a door added there later replaces its frame.
+	private readonly System.Collections.Generic.Dictionary<Vector2I, Node3D> _openings = new();
 
 	/// <summary>
 	/// Y level the flat void occluder caps sit at (slightly above wall-top
@@ -157,7 +161,7 @@ public partial class MapGenerator : Node3D
 		GD.Print("Generating rooms...");
 
 		var roomPlacements = RoomLayout.GenerateRooms(
-			Map, Rooms, MaxRooms, _random.Layout);
+			Map, _realmRooms, MaxRooms, _random.Layout);
 		PlaceRooms(roomPlacements);
 	}
 
@@ -260,7 +264,8 @@ public partial class MapGenerator : Node3D
 	/// docs in Room.cs), so they're matched to that exact tile directly -- proximity
 	/// matching would let a marker whose OWN doorway failed validation (its tile never
 	/// became a connector at all) borrow a nearby, unrelated doorway's connected status
-	/// instead of correctly always reading as unconnected.
+	/// instead of correctly always reading as unconnected. Doorless doorways' opening
+	/// frames are recorded by connector too, so an access door can replace one.
 	/// </summary>
 	private void RegisterDoors(Room room, RoomRegion region)
 	{
@@ -283,6 +288,10 @@ public partial class MapGenerator : Node3D
 				{
 					Floor.AddDoor(door, connector);
 				}
+			}
+			else if (node is Node3D frame && frame.HasMeta(RoomAssembler.OpeningMeta))
+			{
+				if (TryFindNearestConnector(region, frame.GlobalPosition, out var connector)) _openings[connector] = frame;
 			}
 			else if (node is DoorwayMarker marker)
 			{
@@ -501,6 +510,26 @@ public partial class MapGenerator : Node3D
 		},
 	};
 
+	/// <summary>Decorates corridor walls, corners, thresholds, and straight spans using the realm's corridor steps.</summary>
+	private void DecorateCorridors()
+	{
+		if (Corridors is not DungeonTileFactory dungeonTiles || dungeonTiles.Steps.Length == 0) return;
+		ulong corridorSeed = GenerationRandom.DeriveSeed(Seed, GenerationRandom.Decoration, $"corridors:{GenerationAttempt}");
+		var blueprint = new CorridorBlueprint(this, dungeonTiles.Walls, corridorSeed);
+		for (int index = 0; index < dungeonTiles.Steps.Length; index++)
+		{
+			var step = dungeonTiles.Steps[index];
+			if (step == null) continue;
+			using var rng = blueprint.Random($"{index}:{step.Id}");
+			if (rng.Randf() <= step.Chance)
+			{
+				step.Decorate(blueprint, rng);
+			}
+		}
+
+		blueprint.EmitProps(this);
+	}
+
 	/// <summary>Caps permanent void and the outer margin. Gameplay exploration is rendered separately.</summary>
 	private void PlaceOcclusion()
 	{
@@ -677,7 +706,7 @@ public partial class MapGenerator : Node3D
 
 		GD.Print("Generating map...");
 		if (RoomLayout == null || CorridorConnector == null
-			|| Rooms == null || MobFactory == null || Corridors == null
+			|| _realmRooms == null || MobFactory == null || Corridors == null
 			|| FloorGridMap == null || WallGridMap == null || DecorationGridMap == null)
 		{
 			// This is especially important to check in the editor
@@ -698,6 +727,7 @@ public partial class MapGenerator : Node3D
 		FinalizeMarkers();
 		AccessProfile?.Validate();
 		CreateSecretBranches();
+		DecorateCorridors();
 
 		// Step 2c: Cap permanent void. Exploration is the level's FloorDiscovery, started once the floor is handed off.
 		PlaceOcclusion();
@@ -765,9 +795,11 @@ public partial class MapGenerator : Node3D
 		GD.Print("Resetting map generator...");
 		_random = new LevelGenerationContext(Seed, GenerationAttempt);
 		CurrentRealm = Realms.FirstOrDefault(realm => realm?.Covers(DungeonDepth) == true) ?? Realms.Where(realm => realm != null).MaxBy(realm => realm.LastDepth);
+		_realmRooms = Rooms?.ForRealm(CurrentRealm?.Id);
 
 		ResetAccess();
 		_markerIndicators.Clear();
+		_openings.Clear();
 
 		// Initialize the map with empty tiles and a walled border
 		Map = new MapData((int)MapWidth, (int)MapDepth);
@@ -800,10 +832,16 @@ public partial class MapGenerator : Node3D
 			NavigationRegion.NavigationMesh.Clear();
 		}
 
+		if (GetNodeOrNull<Node3D>("CorridorProps") is { } corridorProps)
+		{
+			RemoveChild(corridorProps);
+			corridorProps.QueueFree();
+		}
+
 		RoomLayout?.Reset();
 		CorridorConnector?.Reset();
 		MobFactory?.Reset();
-		Rooms?.Reset();
+		_realmRooms?.Reset();
 		Corridors?.Reset();
 	}
 

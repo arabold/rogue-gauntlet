@@ -11,6 +11,7 @@ public readonly record struct WallRun(Vector2I Start, Vector2I Along, Vector2I O
 	public Vector3 Inward => new(-Outward.X, 0, -Outward.Y);
 	public Vector2I TileAt(int index) => Start + Along * index;
 	public Vector2I Last => TileAt(Length - 1);
+	public float TileCenterAlong(int index) => (index + 0.5f) * Room.TileSize;
 	/// <summary>The run's start on the wall line (the tile edge), at its first tile's outer corner.</summary>
 	public Vector3 LineStart => RoomFootprint.TileCenter(Start) - Inward * (Room.TileSize / 2f) - Tangent * (Room.TileSize / 2f);
 	/// <summary>Rotation that turns local +Z into the room, so a prop's back (-Z) faces this wall.</summary>
@@ -85,6 +86,8 @@ public sealed class RoomBlueprint
 	public float WallDepth(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.Depth : .5f;
 	public bool IsDecoratable(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) && wall.Decoratable;
 	public float RunDepth(WallRun run) => Enumerable.Range(0, run.Length).Max(index => WallDepth(run.TileAt(index), run.Outward));
+	/// <summary>How far the perpendicular wall at the run's start (or end) corner reaches into the room.</summary>
+	public float EndDepth(WallRun run, bool atStart) => atStart ? WallDepth(run.Start, -run.Along) : WallDepth(run.Last, run.Along);
 
 	/// <summary>Registers floor, void and the placed wall geometry with the walkability grid. Call once, after walls.</summary>
 	public void FinishStructure()
@@ -99,16 +102,9 @@ public sealed class RoomBlueprint
 			else Grid.AddObstacle(area);
 		}
 		foreach (var outline in CollisionOutlines.FromGridMap(Room.WallGridMap, Transform3D.Identity)) Grid.AddObstacle(outline);
-		// Furniture may stand in a corner: the corner piece's visual arms coincide with the straight walls, and its
-		// convex collision hull only fills space no actor reaches anyway.
-		var library = Room.WallGridMap.MeshLibrary;
-		foreach (Vector3I cell in Room.WallGridMap.GetUsedCells())
-		{
-			int item = Room.WallGridMap.GetCellItem(cell);
-			var mesh = library.GetItemMesh(item);
-			if (mesh == null || library.GetItemName(item).Contains("corner")) continue;
-			_wallBoxes.Add(WallFootprints.FootprintWorld(mesh.GetAabb(), Room.WallGridMap.GetCellItemOrientation(cell), cell));
-		}
+		// Furniture may stand in a corner: a corner piece blocks only its two arms, not its L's whole bounding box, and
+		// its convex collision hull only fills space no actor reaches anyway.
+		_wallBoxes.AddRange(WallFootprints.Collect(Room.WallGridMap));
 	}
 
 	/// <summary>Straight wall runs, split at doorways and wherever the room continues past the wall line.</summary>
@@ -141,37 +137,12 @@ public sealed class RoomBlueprint
 	/// Over many picks the counts follow the weights (a weight-0.3 option comes about once per three of a weight-1
 	/// option), while early picks stay random and equal options alternate instead of repeating. Draws once per option.
 	/// </summary>
-	public T Pick<T>(IReadOnlyList<T> options, RandomNumberGenerator rng) where T : Placeable
-	{
-		if (options == null) return null;
-		T best = null;
-		double bestScore = double.MaxValue;
-		foreach (var option in options)
-		{
-			double fraction = rng.Randf();
-			if (option == null || option.Weight <= 0) continue;
-			double score = (_uses.GetValueOrDefault(option) + fraction) / option.Weight;
-			if (score >= bestScore) continue;
-			bestScore = score;
-			best = option;
-		}
-		return best;
-	}
+	public T Pick<T>(IReadOnlyList<T> options, RandomNumberGenerator rng) where T : Placeable =>
+		Weighted.PickBalanced(options, opt => _uses.GetValueOrDefault(opt), rng);
 
 	/// <summary>Prefers variants not yet placed in this room; ties break by the seeded draw.</summary>
-	public int PickVariant(Prop prop, RandomNumberGenerator rng)
-	{
-		double roll = rng.Randf();
-		if (prop.VariantCount <= 1) return 0;
-		var weights = Enumerable.Range(0, prop.VariantCount).Select(variant => 1.0 / (1 + 4 * _uses.GetValueOrDefault((prop, variant)))).ToArray();
-		roll *= weights.Sum();
-		for (int variant = 0; variant < weights.Length; variant++)
-		{
-			roll -= weights[variant];
-			if (roll < 0) return variant;
-		}
-		return weights.Length - 1;
-	}
+	public int PickVariant(Prop prop, RandomNumberGenerator rng) =>
+		Weighted.PickVariant(prop, v => _uses.GetValueOrDefault((prop, v)), rng);
 
 	public void RecordUse(Placeable placeable) => _uses[placeable] = _uses.GetValueOrDefault(placeable) + 1;
 
@@ -321,7 +292,7 @@ public sealed class RoomBlueprint
 	}
 
 	/// <summary>Wall-mounted props only hang where every edge behind them carries a plain, decoratable wall.</summary>
-	public bool HasWallSupport(Aabb envelope, WallRun run)
+	public static bool HasWallSupport(Aabb envelope, WallRun run, Func<Vector2I, Vector2I, bool> isDecoratable)
 	{
 		var (min, max) = Project(envelope, run.Tangent);
 		float start = run.LineStart.Dot(run.Tangent);
@@ -329,9 +300,13 @@ public sealed class RoomBlueprint
 		int last = Mathf.FloorToInt((max - start - Tolerance) / Room.TileSize);
 		if (first < 0 || last >= run.Length) return false;
 		for (int index = first; index <= last; index++)
-			if (!IsDecoratable(run.TileAt(index), run.Outward)) return false;
+			if (!isDecoratable(run.TileAt(index), run.Outward)) return false;
 		return true;
 	}
+
+	/// <summary>Wall-mounted props only hang where every edge behind them carries a plain, decoratable wall.</summary>
+	public bool HasWallSupport(Aabb envelope, WallRun run) =>
+		HasWallSupport(envelope, run, IsDecoratable);
 
 	private bool TryAdd(PlannedPiece piece, Transform3D transform, bool checkConnectivity)
 	{
@@ -420,7 +395,7 @@ public sealed class RoomBlueprint
 		}
 	}
 
-	private static Node3D CreateNode(PlacedPiece piece)
+	internal static Node3D CreateNode(PlacedPiece piece)
 	{
 		var prop = piece.Prop;
 		var turn = new Transform3D(prop.Turn, Vector3.Zero);

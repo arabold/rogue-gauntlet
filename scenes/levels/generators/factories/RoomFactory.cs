@@ -14,4 +14,6 @@ public abstract partial class RoomFactory : Resource
 	public abstract Room CreateStandardRoom(RandomNumberGenerator rng);
 	public abstract Room CreateSpecialRoom(RandomNumberGenerator rng);
 	public virtual void Reset() { }
+	/// <summary>The rooms this factory makes for <paramref name="realm"/>; factories without realm content return themselves.</summary>
+	public virtual RoomFactory ForRealm(string realm) => this;
 }

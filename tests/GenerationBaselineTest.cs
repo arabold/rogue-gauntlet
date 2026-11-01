@@ -72,7 +72,7 @@ public class GenerationBaselineTest
 	[TestCase]
 	public async Task RegenerationReproducesLayoutEncountersAndItemsWithoutAdvancingGameplayLoot()
 	{
-		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.GarrisonRooms());
+		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
 		TestFactories.WireLootScenes(generator);
 		generator.MapWidth = generator.MapDepth = 40;
 		generator.MaxRooms = 12;

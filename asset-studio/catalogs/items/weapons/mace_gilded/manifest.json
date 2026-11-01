@@ -1,8 +1,8 @@
 {
   "key": "weapons/mace_gilded",
-  "inputs": "f05e1ad63fdc79d1304aca1bb2865ab8cc3b153570f965c94286b84ecc6658cf",
+  "inputs": "5e2826352b8ee157668e4b1c0af1469016272575d387c59e7a0f26ced1c7bb6f",
   "files": {
-    "mace_gilded.glb": "4d7ec3933b9cd91467e8b971ff288455e0b2ad709ecfbc179ad72eba4a536166",
+    "mace_gilded.glb": "ea87e23f3957890b4539c42c2eb682a61ec28b72d5fe50b547c0eb480a523832",
     "lineup.png": "e4476363e9a5ac63a03275e34cc9cb4f92c693477f5cf7b2d63d404e1f3ec958"
   },
   "metadata": {
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.043514349636116896
+        "signed_volume": 0.043514349637529974
       },
       "warnings": [],
       "errors": []

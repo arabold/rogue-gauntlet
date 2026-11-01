@@ -1,13 +1,13 @@
 {
   "key": "weapons/greatblade_curved",
-  "inputs": "f0d8dc3017e284ba4bc59a82565615cfebc32a0d8ea6b7d51c5446c6d25df8cd",
+  "inputs": "b2e6603b548d956490844b5b879311d958eff9230ea9fa257eb4ce6e6b6d863b",
   "files": {
-    "greatblade_curved.glb": "3abcc54965bddfd4e9260a78bade52df3ad5ac32f157c83e9ec89b31f46d340e",
-    "lineup.png": "1bcd799dd965c14985eaa7dc8d6a3e7704f42f43a10533cd351e6693a22b7ec0"
+    "greatblade_curved.glb": "1654fd08cc992942fe2635e6706244dbbe056d20efbf3ee6db686c6f35c37215",
+    "lineup.png": "81291b2d9258b684af60f2e7e3256e407d90b0651f3b8b18cd3eaabb60b7071d"
   },
   "metadata": {
     "report": {
-      "triangles": 664,
+      "triangles": 776,
       "bounds": [
         [
           -0.13459999859333038,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.025722257020465062
+        "signed_volume": 0.027156659842956028
       },
       "warnings": [],
       "errors": []

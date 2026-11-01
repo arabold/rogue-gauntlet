@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=7 format=3]
+
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/thrust.tres" id="melee_contact"]
+[ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/polearm/trident_storm.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_script"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
+[ext_resource type="Resource" path="res://scenes/attacks/combos/spear_2h.tres" id="primary_combo"]
+
+[resource]
+script = ExtResource("2_script")
+MeleeContact = ExtResource("melee_contact")
+PrimaryCombo = ExtResource("primary_combo")
+AttackStyle = &"spear.2h.thrust"
+Grip = ExtResource("weapon_grip")
+Tier = 5
+RequiredStrength = 21
+DamageMin = 15.0
+DamageMax = 27.0
+CritChance = 0.03
+IsTwoHanded = true
+Delay = 0.0
+PerformDuration = 0.6
+CooldownDuration = 0.0
+ValidSlots = 256
+RollTable = ExtResource("roll_table")
+Name = "Storm Trident"
+Scene = ExtResource("1_scene")
+Value = 200
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_script")

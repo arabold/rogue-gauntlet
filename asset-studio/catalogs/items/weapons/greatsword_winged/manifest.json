@@ -1,13 +1,13 @@
 {
   "key": "weapons/greatsword_winged",
-  "inputs": "74ce0b88285a14b3fae3307d10540238b3246ffa059349a148843df962b8da84",
+  "inputs": "ab430770818fb1f63b1b6acf3c7f52040a64a3557516d5c39869340fb4d90fa7",
   "files": {
-    "greatsword_winged.glb": "5211ccb6b572271e71189e7143a4a0fb30bbe0068e86fcf3477287d017852814",
-    "lineup.png": "243c7b640541966b9e29ed4bb98ae00b194feca5a611cdffaa8f3ddab55accd7"
+    "greatsword_winged.glb": "5723ca57c00d894ecb742924507138bb7d21c7807e106ee0e877a384ea1d0bf1",
+    "lineup.png": "71981ea6d4a6ceb96809994bd9026c90e8fe9e63c56a75c1c0e541e9736f208c"
   },
   "metadata": {
     "report": {
-      "triangles": 700,
+      "triangles": 688,
       "bounds": [
         [
           -0.46000000834465027,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.06166564945253195
+        "signed_volume": 0.06166564947285761
       },
       "warnings": [],
       "errors": []

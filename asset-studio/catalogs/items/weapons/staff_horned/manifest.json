@@ -1,13 +1,13 @@
 {
   "key": "weapons/staff_horned",
-  "inputs": "c29bab807f5f95f9911a132fe2f3e1ea25d4b544da1b2e86cda1195662073f07",
+  "inputs": "d51973ee290caca37ac3a330fcc8a00cf06bf3688fff9ed98f2d2100e7fec9e5",
   "files": {
-    "staff_horned.glb": "e9ab6f40cf2aef68d7921e984ebf9b1e71657afb848e7b6ad323ade0a22eee84",
-    "lineup.png": "2fb5fdd02a2156670e64fdb0e08683d1fece264979c85053de304cea28a3bdaa"
+    "staff_horned.glb": "9a62f734464e1f203d24e21215b73586383bc3d7765da803202931101072a9af",
+    "lineup.png": "4cb885b605f16a6239d467b6dab762283ed8b9da81759ec3dc9392996a3ae37d"
   },
   "metadata": {
     "report": {
-      "triangles": 1616,
+      "triangles": 1758,
       "bounds": [
         [
           -0.4396497309207916,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.05205494541307288
+        "signed_volume": 0.05327586545350629
       },
       "warnings": [],
       "errors": []

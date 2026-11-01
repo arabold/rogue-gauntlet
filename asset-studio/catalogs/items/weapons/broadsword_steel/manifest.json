@@ -1,9 +1,9 @@
 {
   "key": "weapons/broadsword_steel",
-  "inputs": "b9feb7dc6e3519e26480d5135915ff4f625612f61b2378533ee2eb861a1cc897",
+  "inputs": "ab65a18680fad76cee731b4eb83cf8f0fec44dada5e0809cb97af340694eb404",
   "files": {
-    "broadsword_steel.glb": "1ba078dd475cb352453f3d3ff4f6dfe20fb3c36dc413ffa7234ab8df16b01776",
-    "lineup.png": "b56cfbe457cba9d03176ad0798542548a013d2cdb8240978a1d1ecad506e4a7a"
+    "broadsword_steel.glb": "e377af453a3b8a71ac6d6bcb7e74c6dd1ff020f7bb3021461650f99ef2d67cbf",
+    "lineup.png": "df61f714ae2025738e568d1c67c39e5c52594a38c87ca1ff425128610d671e95"
   },
   "metadata": {
     "report": {
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.03369399698601976
+        "signed_volume": 0.03369399699394701
       },
       "warnings": [],
       "errors": []

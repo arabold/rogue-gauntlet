@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="WallStyle" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/WallStyle.cs" id="1_WallStyle"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="2_WallsMeshLib"]
+
+[resource]
+script = ExtResource("1_WallStyle")
+Id = "ruined_walls"
+Weight = 1.0
+Library = ExtResource("2_WallsMeshLib")
+Straight = Dictionary[String, float]({"wall": 4.0, "wall_cracked": 3.0, "wall_broken": 2.0})
+metadata/_custom_type_script = ExtResource("1_WallStyle")

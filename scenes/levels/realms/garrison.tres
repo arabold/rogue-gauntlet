@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Realm" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/Realm.cs" id="2_realm"]
+[ext_resource type="Resource" path="res://scenes/levels/realms/garrison_corridors.tres" id="3_garrison_corrido"]
+
+[resource]
+script = ExtResource("2_realm")
+Id = "garrison"
+LastDepth = 3
+Corridors = ExtResource("3_garrison_corrido")
+metadata/_custom_type_script = ExtResource("2_realm")

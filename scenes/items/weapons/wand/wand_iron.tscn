@@ -1,7 +1,16 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="PackedScene" path="res://assets/custom-items/weapons/wand/wand_iron.glb" id="1_glb"]
+[ext_resource type="Script" uid="uid://b057bpmpc54l5" path="res://scenes/effects/FlickerLight.cs" id="glow_light"]
 
 [node name="WandIron" type="Node3D"]
 
 [node name="wand_iron" parent="." instance=ExtResource("1_glb")]
+
+[node name="GlowLight" type="OmniLight3D" parent="."]
+position = Vector3(0, 0.71, 0)
+light_color = Color(0.82, 0.88, 1.0, 1)
+light_specular = 0.0
+omni_range = 1.8
+script = ExtResource("glow_light")
+Energy = 0.45

@@ -7,22 +7,23 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Every realm's assembled rooms keep their doorways connected, their props apart and their choices reproducible.</summary>
+/// <summary>Rooms, as each realm assembles them, keep their doorways connected, their props apart and their choices reproducible.</summary>
 [TestSuite, RequireGodotRuntime]
 public class RoomAssemblyTest
 {
 	private const string Levels = "res://scenes/levels/";
-	private static readonly string[] Realms = ["garrison", "sewer", "jungle"];
 
-	/// <summary>A room type by realm-relative name: "garrison/hall", "sewer/cistern_hall".</summary>
-	private static RoomType Load(string name) => TestFactories.Load<RoomType>($"{Levels}{name.Replace("/", "/room_types/")}.tres");
+	/// <summary>The room type of a "realm/room" case name: "garrison/hall", "sewer/prison".</summary>
+	private static RoomType Load(string name) => TestFactories.Load<RoomType>($"{Levels}rooms/room_types/{name.Split('/').Last()}.tres");
+
+	/// <summary>Assembles a "realm/room" case as that realm would.</summary>
+	private static RoomAssemblyOptions In(string name, int floor = RoomAssemblyOptions.Seeded) => new() { Realm = name.Split('/')[0], Floor = floor };
 
 	[TestCase]
-	public void EveryRealmDefinitionValidates()
+	public void EveryRoomAndRealmDefinitionValidates()
 	{
 		var errors = new List<string>();
-		var paths = ResourcesUnder($"{Levels}dungeon/styles").Append($"{Levels}dungeon/dungeon_tile_factory.tres")
-			.Concat(Realms.SelectMany(realm => ResourcesUnder($"{Levels}{realm}")));
+		var paths = ResourcesUnder($"{Levels}rooms").Concat(ResourcesUnder($"{Levels}realms"));
 		foreach (string path in paths)
 		{
 			errors.AddRange(TestFactories.Load<Resource>(path) switch
@@ -67,10 +68,10 @@ public class RoomAssemblyTest
 	[TestCase("sewer/drain_tunnel")]
 	[TestCase("sewer/junction")]
 	[TestCase("sewer/rat_warren")]
-	[TestCase("sewer/sluice_works")]
-	[TestCase("sewer/smugglers_cache")]
-	[TestCase("sewer/lockup")]
-	[TestCase("sewer/collapsed_culvert")]
+	[TestCase("sewer/storage")]
+	[TestCase("sewer/partitioned_store")]
+	[TestCase("sewer/prison")]
+	[TestCase("sewer/ruins")]
 	[TestCase("sewer/entrance")]
 	[TestCase("sewer/exit")]
 	[TestCase("jungle/temple_hall")]
@@ -78,7 +79,7 @@ public class RoomAssemblyTest
 	[TestCase("jungle/cavern")]
 	[TestCase("jungle/timbered_mine")]
 	[TestCase("jungle/ruined_shrine")]
-	[TestCase("jungle/collapsed_grove")]
+	[TestCase("jungle/ruins")]
 	[TestCase("jungle/entrance")]
 	[TestCase("jungle/exit")]
 	public void RoomsKeepDoorwaysConnectedPocketsBoundedAndPropsApart(string name)
@@ -86,8 +87,8 @@ public class RoomAssemblyTest
 		var type = Load(name);
 		for (ulong seed = 1; seed <= 8; seed++)
 		{
-			var blueprint = RoomAssembler.Build(type, seed * 7919);
-			var again = RoomAssembler.Build(type, seed * 7919);
+			var blueprint = RoomAssembler.Build(type, seed * 7919, In(name));
+			var again = RoomAssembler.Build(type, seed * 7919, In(name));
 			try
 			{
 				string label = $"{name} seed {seed}";
@@ -128,16 +129,18 @@ public class RoomAssemblyTest
 	{
 		foreach (string name in new[] { "garrison/storage", "garrison/kitchen", "garrison/ruins", "garrison/hall", "garrison/chapel",
 			"garrison/library", "garrison/barracks", "garrison/dining", "garrison/exit", "garrison/crypt", "garrison/root_cellar",
-			"sewer/cistern_hall", "sewer/drain_tunnel", "sewer/rat_warren", "sewer/exit", "jungle/temple_hall", "jungle/cavern", "jungle/exit" })
+			"sewer/cistern_hall", "sewer/drain_tunnel", "sewer/rat_warren", "sewer/storage", "sewer/ruins", "sewer/exit",
+			"jungle/temple_hall", "jungle/cavern", "jungle/ruins", "jungle/exit" })
 		{
 			var type = Load(name);
-			for (int floor = 0; floor < type.Floors.Length; floor++)
+			var floors = type.FloorsIn(In(name).Realm);
+			for (int floor = 0; floor < floors.Length; floor++)
 			for (ulong seed = 1; seed <= 3; seed++)
 			{
-				var blueprint = RoomAssembler.Build(type, seed * 104729, new RoomAssemblyOptions { Floor = floor });
+				var blueprint = RoomAssembler.Build(type, seed * 104729, In(name, floor));
 				try
 				{
-					AssertString(FloorCoverage(blueprint)).OverrideFailureMessage($"{name} floor {type.Floors[floor].Id} seed {seed}").IsEmpty();
+					AssertString(FloorCoverage(blueprint)).OverrideFailureMessage($"{name} floor {floors[floor].Id} seed {seed}").IsEmpty();
 				}
 				finally
 				{
@@ -154,10 +157,10 @@ public class RoomAssemblyTest
 		foreach (var (name, layout) in new[] { ("garrison/hall", RugLayout.Runner), ("garrison/dining", RugLayout.Field) })
 		{
 			var type = Load(name);
-			int floor = Array.FindIndex(type.Floors, style => style.Rug?.Layout == layout);
+			int floor = Array.FindIndex(type.FloorsIn(In(name).Realm), style => style.Rug?.Layout == layout);
 			for (ulong seed = 1; seed <= 4; seed++)
 			{
-				var blueprint = RoomAssembler.Build(type, seed * 389, new RoomAssemblyOptions { Floor = floor });
+				var blueprint = RoomAssembler.Build(type, seed * 389, In(name, floor));
 				try
 				{
 					string label = $"{name} seed {seed}";
@@ -175,6 +178,64 @@ public class RoomAssemblyTest
 					blueprint.Room.Free();
 				}
 			}
+		}
+	}
+
+	/// <summary>
+	/// Pools sink into the floor: their tiles become pits with floor all round, every quay wall faces that floor and every
+	/// open side faces more of the pool, for the cistern's channels and the sewer storeroom's sluice channel alike.
+	/// </summary>
+	[TestCase("sewer/cistern_hall")]
+	[TestCase("sewer/storage")]
+	public void PoolsSinkIntoTheFloorWithQuaysFacingIt(string name)
+	{
+		var type = (RoomType)Load(name).Duplicate();
+		var pool = (PoolStep)type.Steps.OfType<PoolStep>().First().Duplicate();
+		pool.Chance = 1;
+		pool.MinimumCount = 1;
+		type.Steps = [pool, .. type.Steps.Where(step => step is not PoolStep)];
+		// Columns stand on tile corners, where a pool would need its edges; the cistern only gets its pool without them.
+		type.ColumnChance = 0;
+		// Authored quay sides per piece, as outward (x, z) normals before the piece's turn.
+		var walled = new Dictionary<string, Vector2I[]>
+		{
+			["center"] = [], ["edge"] = [new(0, -1)], ["corner"] = [new(0, -1), new(-1, 0)],
+			["runner"] = [new(0, -1), new(0, 1)], ["runner_end"] = [new(0, -1), new(0, 1), new(-1, 0)],
+		};
+		Vector2I[] sides = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)];
+		for (ulong seed = 1; seed <= 4; seed++)
+		{
+			var blueprint = RoomAssembler.Build(type, seed * 523, In(name));
+			try
+			{
+				string label = $"{name} seed {seed}";
+				var pieces = blueprint.Pieces.Where(piece => piece.Prop.Id.StartsWith("pool_"))
+					.ToDictionary(piece => Tile(piece.Transform.Origin), piece => piece);
+				AssertInt(pieces.Count).OverrideFailureMessage($"{label}: no pool").IsGreaterEqual(2);
+				foreach (var (tile, piece) in pieces)
+				{
+					AssertBool(blueprint.IsFloor(tile)).OverrideFailureMessage($"{label}: pool tile {tile} is still floor").IsFalse();
+					var quays = walled[piece.Prop.Id["pool_".Length..]].Select(side => Turned(piece.Transform, side)).ToArray();
+					foreach (var side in sides)
+					{
+						bool water = pieces.ContainsKey(tile + side);
+						AssertBool(water != quays.Contains(side))
+							.OverrideFailureMessage($"{label}: {piece.Prop.Id} at {tile} has {(water ? "a quay toward water" : "no quay toward floor")} at {side}").IsTrue();
+						AssertBool(water || blueprint.IsFloor(tile + side)).OverrideFailureMessage($"{label}: pool at {tile} not enclosed by floor").IsTrue();
+					}
+				}
+			}
+			finally
+			{
+				blueprint.Room.Free();
+			}
+		}
+
+		static Vector2I Tile(Vector3 origin) => new(Mathf.RoundToInt(origin.X / Room.TileSize), Mathf.RoundToInt(origin.Z / Room.TileSize));
+		static Vector2I Turned(Transform3D transform, Vector2I side)
+		{
+			var outward = transform.Basis * new Vector3(side.X, 0, side.Y);
+			return new(Mathf.RoundToInt(outward.X), Mathf.RoundToInt(outward.Z));
 		}
 	}
 
@@ -261,7 +322,7 @@ public class RoomAssemblyTest
 		var type = Load(name);
 		for (ulong seed = 1; seed <= 8; seed++)
 		{
-			var blueprint = RoomAssembler.Build(type, seed * 6151);
+			var blueprint = RoomAssembler.Build(type, seed * 6151, In(name));
 			try
 			{
 				string label = $"{name} seed {seed}";

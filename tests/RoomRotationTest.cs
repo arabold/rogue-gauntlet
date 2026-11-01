@@ -79,7 +79,7 @@ public class RoomRotationTest
 	/// <summary>A room assembled from the Garrison types (entrances and exits included), cycling through them by seed.</summary>
 	private static Room Assemble(ulong seed, bool withDoors = false)
 	{
-		var factory = withDoors ? TestFactories.GarrisonRoomsWithDoors() : TestFactories.GarrisonRooms();
+		var factory = withDoors ? TestFactories.RoomPoolWithDoors() : TestFactories.RoomPool();
 		RoomType[] types = [.. factory.RoomTypes, .. factory.EntranceTypes, .. factory.ExitTypes];
 		return RoomAssembler.Assemble(types[(int)(seed % (ulong)types.Length)], seed);
 	}

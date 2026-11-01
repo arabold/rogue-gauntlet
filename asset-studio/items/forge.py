@@ -10,6 +10,7 @@ import numpy as np
 import manifold3d as mf
 from core import kit
 from items.solid import polygon, winding
+from prefabs.details import hilts
 
 OCTAGON = kit.ring_profile(1, 1, 8)
 
@@ -28,13 +29,22 @@ RAMPS = {'steel': ((176, 188, 198), (92, 102, 112), (150, 164, 176)),
          'obsidian_edge': ((160, 136, 196), (70, 54, 96), (128, 104, 160))}
 MATTES = {'wood': (176, 98, 66), 'wood_cut': (222, 170, 120), 'birch': (214, 174, 120), 'ebony': (96, 58, 42),
           'leather': (128, 74, 50), 'wrap': (222, 206, 176), 'cloth': (236, 228, 212), 'bone': (232, 220, 192),
-          'horn': (200, 166, 118), 'string': (230, 220, 200), 'fletch': (190, 60, 50)}
-STONES = {'gem': (222, 42, 78), 'crystal': (70, 170, 240), 'emerald': (70, 200, 120), 'moonstone': (214, 222, 236)}
+          'horn': (200, 166, 118), 'string': (230, 220, 200), 'fletch': (190, 60, 50), 'feather': (70, 120, 200),
+          'stone': (128, 114, 98), 'stone_cut': (180, 164, 138)}
+STONES = {'gem': (222, 42, 78), 'crystal': (70, 170, 240), 'emerald': (70, 200, 120), 'moonstone': (214, 222, 236),
+          'ice': (150, 214, 244)}
+# Magic stones glow; the game can add a light or VFX on top.
+GLOWING = ('crystal', 'emerald', 'moonstone')
+# Elemental fire and lightning are pure light, so they always glow.
+ENERGY = {'flame': (246, 112, 34), 'flame_core': (255, 210, 80), 'lightning': (130, 210, 255)}
 # The weapon palette every weapon recipe starts from; a recipe lists only the slots it changes.
-COLORS = {**{slot: [*ramp[2]] for slot, ramp in RAMPS.items()}, **{slot: [*c] for slot, c in {**MATTES, **STONES}.items()}}
+COLORS = {**{slot: [*ramp[2]] for slot, ramp in RAMPS.items()},
+          **{slot: [*c] for slot, c in {**MATTES, **STONES, **ENERGY}.items()}}
 MATERIALS = {**{slot: {**(GLASS if slot.startswith('obsidian') else METAL), 'ramp': [[*c] for c in ramp]}
                 for slot, ramp in RAMPS.items()},
-             **{slot: dict(MATTE) for slot in MATTES}, **{slot: dict(GLASS) for slot in STONES}}
+             **{slot: dict(MATTE) for slot in MATTES},
+             **{slot: {**GLASS, **({'emissive': True} if slot in GLOWING else {})} for slot in STONES},
+             **{slot: {**GLASS, 'emissive': True} for slot in ENERGY}}
 
 
 def dispatch(kinds, family):
@@ -107,8 +117,23 @@ class Haft:
     def band(self, y, height, slot, proud=.022, tilt=0.):
         """A chunky wrap standing proud of the haft; `tilt` (degrees) winds it aslant like a strap."""
         x, r = self.at(y)
-        self.a.add(collar((x, y, 0), kit.rotation([0, 0, 1], tilt) @ (0, 1, 0), r + proud, height, slot,
-                          min(proud*.5, height*.2)))
+        self.a.add(placed(hilts.strap(r, height, slot, proud, tilt), (x, y)))
+
+    def wraps(self, lo, hi, slot='wrap', swell=.022):
+        """KayKit's bulging rope turns wrapped round the haft from `lo` to `hi`, wider than the bare haft."""
+        x, r = self.at((lo + hi)/2)
+        self.a.add(placed(hilts.rope_wraps(r, hi - lo, slot, swell), (x, (lo + hi)/2)))
+
+    def fit(self, part, y, **kw):
+        """A handle part from `prefabs.details.hilts` (riveted band, feather tuft) fitted round the haft at `y`."""
+        x, r = self.at(y)
+        self.a.add(placed(part(r, **kw), (x, y)))
+
+    def knob(self, part, **kw):
+        """Cap the haft's butt with a knob from `prefabs.details.hilts`."""
+        y = self.s[0, 1]
+        x, r = self.at(y + .04)
+        self.a.add(placed(part(r, **kw), (x, y)))
 
 
 class Blade:
@@ -159,6 +184,11 @@ class Blade:
         notch = [point - d*width/2 + n*.06, point + d*width/2 + n*.06, point - n*depth + d*lean*width]
         self.shape = self.shape - self.a.label(polygon(notch, .6), self.edge_slot)
 
+    def comb(self, start, end, count, depth, width):
+        """A row of `count` small V-notches between `start` and `end` (0..1 along the edge): KayKit's comb wear."""
+        for at in np.linspace(start, end, count):
+            self.chip(at, depth, width)
+
     def finish(self):
         self.a.parts.append(self.shape)
 
@@ -175,27 +205,34 @@ def plate(a, points, half, slot='gold', chamfer=.012, runes=()):
     layers = [(p, half-chamfer), (inner, half), (p, -(half-chamfer)), (inner, -half)]
     shape = a.label(mf.Manifold.hull_points(np.vstack([np.column_stack([q, np.full(len(q), z)]) for q, z in layers])), slot)
     for start, end in runes:
-        start, end = np.asarray(start, float), np.asarray(end, float)
-        length = np.linalg.norm(end-start)
-        angle = np.degrees(np.arctan2(*(end-start)[::-1]))
         for side in (1, -1):
-            groove = mf.Manifold.cube((length+.024, .024, .022), center=True).rotate((0, 0, angle))
-            shape = shape - a.label(groove.translate((*(start+end)/2, side*half)), f'{slot}_dark')
+            shape = shape - a.label(groove(start, end, side*half), f'{slot}_dark')
     a.parts.append(shape)
+
+
+def groove(start, end, face, width=.024, depth=.022):
+    """A chunky stroke cutter from XY `start` to `end`, centered on the face at Z = `face`: runes and glyphs."""
+    start, end = np.asarray(start, float), np.asarray(end, float)
+    length = np.linalg.norm(end-start)
+    angle = np.degrees(np.arctan2(*(end-start)[::-1]))
+    return mf.Manifold.cube((length+width, width, depth), center=True).rotate((0, 0, angle)).translate(
+        (*(start+end)/2, face))
+
+
+def placed(piece, at):
+    """A hilt prefab moved from its own origin to `at`, an XY point on the weapon (or XYZ)."""
+    piece.verts = piece.verts + (*at, 0)[:3]
+    return piece
 
 
 def disc(a, center, radius, half, slot, chamfer=.014):
     """A chunky eight-faceted coin facing the viewer, for pommels and guard bosses."""
-    t = 2*np.pi*(np.arange(8)+.5)/8
-    plate(a, center + np.column_stack([np.cos(t), np.sin(t)])*radius, half, slot, chamfer)
+    a.add(placed(hilts.disc_pommel(radius, 2*half, slot, chamfer), center))
 
 
 def ring(a, center, outer, inner, half, slot):
     """A chunky eight-faceted ring facing the viewer, for ring pommels."""
-    t = 2*np.pi*(np.arange(8)+.5)/8
-    loop = np.column_stack([np.cos(t), np.sin(t)])
-    shape = mf.Manifold.extrude(mf.CrossSection([center + loop*outer, (center + loop*inner)[::-1]]), 2*half)
-    a.add(shape.translate((0, 0, -half)), slot)
+    a.add(placed(hilts.ring_pommel(outer, inner, 2*half, slot), center))
 
 
 def gem(a, center, size, face, slot='gem'):
@@ -204,16 +241,6 @@ def gem(a, center, size, face, slot='gem'):
         g = kit.gem(size, slot, 'diamond')
         g.verts = (g.verts + (0, 0, face-.012)) @ kit.rotation([0, 1, 0], turn).T + (center[0], center[1], 0)
         a.add(g)
-
-
-def butt_cap(a, haft, slot='gold', gem_slot='gem'):
-    """A metal cap over the haft's butt with a gem in its end."""
-    y = haft.s[0, 1]
-    x, r = haft.at(y+.04)
-    a.add(tube([(x, y-.012, 0), (x, y, 0), (x, y+.07, 0), (x, y+.08, 0)], [r*.82, r+.014, r+.014, r*.9], slot, 8))
-    g = kit.gem(.03, gem_slot, 'diamond')
-    g.verts = (g.verts + (0, 0, -.004)) @ kit.rotation([1, 0, 0], 90).T + (x, y-.012, 0)
-    a.add(g)
 
 
 def branch(points, radii, slot='wood', sides=8, seed=0):

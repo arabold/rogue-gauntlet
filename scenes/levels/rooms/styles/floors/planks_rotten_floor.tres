@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="UniformFloor" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/UniformFloor.cs" id="2_uniformfloor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/planks_rotten.tres" id="3_planks_rotten"]
+
+[resource]
+script = ExtResource("2_uniformfloor")
+Id = "planks_rotten_floor"
+Realms = PackedStringArray("garrison", "sewer")
+Weight = 0.7
+Material = ExtResource("3_planks_rotten")
+metadata/_custom_type_script = ExtResource("2_uniformfloor")

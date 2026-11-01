@@ -12,7 +12,7 @@ public enum RoomPreviewMode { Room, Floor }
 /// </summary>
 public partial class RoomGenerationHarness : Node3D
 {
-	/// <summary>The production generator; its realms list the room factories to preview.</summary>
+	/// <summary>The production generator: its room pool and realms are what the harness previews.</summary>
 	[Export] public MapGenerator Generator { get; set; }
 	[Export] public int SelectedRealm { get; set; }
 	[Export] public Node3D PreviewRoot { get; set; }
@@ -35,7 +35,8 @@ public partial class RoomGenerationHarness : Node3D
 	public RoomBlueprint PreviewBlueprint { get; private set; }
 	public string LastError { get; private set; } = "";
 	public Realm Realm => Generator.Realms[SelectedRealm];
-	public AssembledRoomFactory Factory => (AssembledRoomFactory)Realm.Rooms;
+	/// <summary>The room pool narrowed to the selected realm.</summary>
+	public AssembledRoomFactory Factory { get; private set; }
 	/// <summary>Every room type the realm's factory assembles: ordinary rooms, then entrances and exits.</summary>
 	public IReadOnlyList<RoomType> Recipes => [.. Factory.RoomTypes, .. Factory.EntranceTypes, .. Factory.ExitTypes];
 
@@ -51,9 +52,9 @@ public partial class RoomGenerationHarness : Node3D
 	public override void _Ready()
 	{
 		if (Generator == null || PreviewRoot == null || PreviewCamera == null || Controls == null || Status == null
-			|| Generator.Realms.Length == 0 || Generator.Realms.Any(realm => realm?.Rooms is not AssembledRoomFactory))
+			|| Generator.Rooms is not AssembledRoomFactory || Generator.Realms.Length == 0 || Generator.Realms.Any(realm => realm == null))
 		{
-			LastError = "Assign the map generator (with realms of assembled rooms), preview root, camera, controls and status label in the harness scene.";
+			LastError = "Assign the map generator (with an assembled room pool and realms), preview root, camera, controls and status label in the harness scene.";
 			GD.PushError(LastError);
 			return;
 		}
@@ -149,6 +150,7 @@ public partial class RoomGenerationHarness : Node3D
 	{
 		SelectedRealm = index;
 		Generator.DungeonDepth = Realm.FirstDepth;
+		Factory = (AssembledRoomFactory)Generator.Rooms.ForRealm(Realm.Id);
 		_recipePicker.Clear();
 		foreach (var recipe in Recipes) _recipePicker.AddItem(RecipeName(recipe));
 	}
@@ -219,8 +221,8 @@ public partial class RoomGenerationHarness : Node3D
 		_recipePicker.Select(SelectedRecipe);
 		_recipePicker.Disabled = !room;
 		Fill(_shapeRow, _shapePicker, type?.Shapes.Select(ShapeName), ShapeOverride + 1, "Seeded");
-		Fill(_wallsRow, _wallsPicker, type?.Walls.Select(style => Local(style.Id)), WallsOverride + 1, "Seeded");
-		Fill(_floorRow, _floorPicker, type?.Floors.Select(style => Local(style.Id)), FloorOverride + 1, "Seeded");
+		Fill(_wallsRow, _wallsPicker, type?.WallsIn(Realm.Id).Select(style => Local(style.Id)), WallsOverride + 1, "Seeded");
+		Fill(_floorRow, _floorPicker, type?.FloorsIn(Realm.Id).Select(style => Local(style.Id)), FloorOverride + 1, "Seeded");
 		Fill(_columnRow, _columnPicker, type == null || type.Columns.Length == 0 ? null : type.Columns.Select(pattern => pattern.Id),
 			ColumnsOverride == RoomAssemblyOptions.Seeded ? 0 : ColumnsOverride == RoomAssemblyOptions.Off ? 1 : ColumnsOverride + 2,
 			$"Type chance ({type?.ColumnChance:P0})", "Off");
@@ -265,7 +267,10 @@ public partial class RoomGenerationHarness : Node3D
 
 	private Room AssembleRoomType(RoomType type)
 	{
-		var options = new RoomAssemblyOptions { Shape = ShapeOverride, Walls = WallsOverride, Floor = FloorOverride, Columns = ColumnsOverride, Furnish = Furnishings };
+		var options = new RoomAssemblyOptions
+		{
+			Shape = ShapeOverride, Walls = WallsOverride, Floor = FloorOverride, Columns = ColumnsOverride, Furnish = Furnishings, Realm = Realm.Id,
+		};
 		var blueprint = RoomAssembler.Build(type, Seed, options);
 		PreviewBlueprint = blueprint;
 		var (reachable, pockets) = AddWalkabilityOverlay(blueprint);

@@ -1,13 +1,13 @@
 {
   "key": "weapons/rapier_steel",
-  "inputs": "61bc07211319fc1403533ddf76d2610273d6b984d4d701bf7acea7781d0bb677",
+  "inputs": "f256cd1f1af53c191db905bac53dcb27c4365e0e8d9082e557daf3ab396213c6",
   "files": {
-    "rapier_steel.glb": "741922808ad4bfc67cf9127010e5f6c77241c30ba50e6a8cacc276c44b484f6b",
-    "lineup.png": "837bc737b3d4fbdcca402ccea548721196e0c120329fffa999abc138f68cba74"
+    "rapier_steel.glb": "849d86cf3903f491dae2fb65d16364cbaf07938ae8309b47ff55e80296853e83",
+    "lineup.png": "176ebecce57f103947d70daa4f8499d800b6ecb3651479e3bdef926d07b1bdd7"
   },
   "metadata": {
     "report": {
-      "triangles": 568,
+      "triangles": 570,
       "bounds": [
         [
           -0.20000000298023224,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.012248751644946857
+        "signed_volume": 0.012248751629705642
       },
       "warnings": [],
       "errors": []

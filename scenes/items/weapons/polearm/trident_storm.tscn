@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/weapons/polearm/trident_storm.glb" id="1_glb"]
+[ext_resource type="Script" uid="uid://b057bpmpc54l5" path="res://scenes/effects/FlickerLight.cs" id="glow_light"]
+[ext_resource type="Resource" path="res://scenes/effects/light_flicker/charged.tres" id="glow_flicker"]
+
+[node name="TridentStorm" type="Node3D"]
+
+[node name="trident_storm" parent="." instance=ExtResource("1_glb")]
+
+[node name="GlowLight" type="OmniLight3D" parent="."]
+position = Vector3(0, 2.0, 0)
+light_color = Color(0.55, 0.85, 1.0, 1)
+light_specular = 0.0
+omni_range = 3.0
+script = ExtResource("glow_light")
+Energy = 1.5
+Flicker = ExtResource("glow_flicker")

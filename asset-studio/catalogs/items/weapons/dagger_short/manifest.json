@@ -1,9 +1,9 @@
 {
   "key": "weapons/dagger_short",
-  "inputs": "fb86188c32491d2f65373a79ab09eafea6f2e1e02c357be028876f9c99734fb4",
+  "inputs": "f354d66b01fe036a41a44fb51e50da834913708609e8f848d8d5c8bcfa41d80f",
   "files": {
-    "dagger_short.glb": "3b8381b47d21a17e121bd684dda08a3b18cf82d10fdaff630613f0be7571f0c9",
-    "lineup.png": "7a340db3766ae320de13339744c18adcde265c24c848688d84e3579cabac8df9"
+    "dagger_short.glb": "d791f1d67893c106a45e85febf48eddf1ad41d747dcfbfd34c80f4339bfa64c7",
+    "lineup.png": "aabe537df040dc498a0e36c080838732a00954d9cea885a6a838402d07e0305e"
   },
   "metadata": {
     "report": {
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.007984613627304429
+        "signed_volume": 0.007984613632370552
       },
       "warnings": [],
       "errors": []

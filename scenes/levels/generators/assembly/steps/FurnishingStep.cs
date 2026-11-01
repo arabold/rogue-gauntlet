@@ -20,6 +20,8 @@ public abstract partial class FurnishingStep : Resource
 	[Export] public bool Uniform { get; set; }
 	/// <summary>Relative chance when this step is one option of a <see cref="ChoiceStep"/>.</summary>
 	[Export(PropertyHint.Range, "0.01,10,0.01")] public float Weight { get; set; } = 1;
+	/// <summary>Realms (by ID) this appears in; none means every realm.</summary>
+	[Export] public string[] Realms { get; set; } = [];
 
 	/// <summary>Places content and returns how many were placed; never throws on misfit.</summary>
 	public abstract int Furnish(RoomBlueprint room, RandomNumberGenerator rng);
@@ -55,12 +57,6 @@ public abstract partial class FurnishingStep : Resource
 		return TryPlace(room, choice, plan, at);
 	}
 
-	protected static void Shuffle<T>(IList<T> items, RandomNumberGenerator rng)
-	{
-		for (int index = items.Count - 1; index > 0; index--)
-		{
-			int other = rng.RandiRange(0, index);
-			(items[index], items[other]) = (items[other], items[index]);
-		}
-	}
+	protected static void Shuffle<T>(IList<T> items, RandomNumberGenerator rng) =>
+		GenerationRandom.Shuffle(items, rng);
 }
