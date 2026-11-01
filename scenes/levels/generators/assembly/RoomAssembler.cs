@@ -47,7 +47,7 @@ public static class RoomAssembler
 			var blueprint = TryBuild(type, seed, attempt, options, out failure);
 			if (blueprint != null) return blueprint;
 		}
-		throw new InvalidOperationException($"Room type {type.Id}: no layout fits after {type.Attempts} attempts; last: {failure}.");
+		throw new InvalidOperationException($"Room type {type.Id} seed {seed}: no layout fits after {type.Attempts} attempts; last: {failure}.");
 	}
 
 	private static RoomBlueprint TryBuild(RoomType type, ulong seed, int attempt, RoomAssemblyOptions options, out string failure)

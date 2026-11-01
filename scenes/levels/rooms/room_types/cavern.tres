@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=34 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=35 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -26,23 +26,23 @@
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
-MinimumSize = Vector2i(4, 4)
-MaximumSize = Vector2i(5, 6)
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(4, 4)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
 [sub_resource type="Resource" id="LShape_2"]
 script = ExtResource("4_lshape")
-MinimumSize = Vector2i(4, 4)
-MaximumSize = Vector2i(5, 5)
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 4)
 ArmWidth = 2
 metadata/_custom_type_script = ExtResource("4_lshape")
 
 [sub_resource type="Resource" id="UShape_3"]
 script = ExtResource("5_ushape")
 Weight = 0.7
-MinimumSize = Vector2i(4, 5)
-MaximumSize = Vector2i(5, 6)
+MinimumSize = Vector2i(3, 5)
+MaximumSize = Vector2i(4, 5)
 WingWidth = 2
 BackDepth = 2
 metadata/_custom_type_script = ExtResource("5_ushape")
@@ -50,8 +50,8 @@ metadata/_custom_type_script = ExtResource("5_ushape")
 [sub_resource type="Resource" id="CrossShape_4"]
 script = ExtResource("6_crossshape")
 Weight = 0.7
-MinimumSize = Vector2i(5, 5)
-MaximumSize = Vector2i(5, 6)
+MinimumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(5, 5)
 ArmWidth = 2
 metadata/_custom_type_script = ExtResource("6_crossshape")
 
@@ -99,12 +99,19 @@ MaximumCount = 5
 WallChance = 0.5
 metadata/_custom_type_script = ExtResource("13_scatterstep")
 
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("3_rectangleshape")
+Weight = 0.5
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("3_rectangleshape")
+
 [resource]
 script = ExtResource("2_roomtype")
 Id = "cavern"
 Realms = PackedStringArray("jungle")
-Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2"), SubResource("UShape_3"), SubResource("CrossShape_4")]
-MinimumFloorTiles = 12
+Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2"), SubResource("UShape_3"), SubResource("CrossShape_4"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 6
 MinDoorways = 1
 MaxDoorways = 3
 Circulation = 0

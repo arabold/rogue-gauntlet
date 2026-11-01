@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=25 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -21,15 +21,15 @@
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
-MinimumSize = Vector2i(4, 4)
-MaximumSize = Vector2i(5, 6)
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(4, 4)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
 [sub_resource type="Resource" id="LShape_2"]
 script = ExtResource("4_lshape")
-MinimumSize = Vector2i(4, 4)
-MaximumSize = Vector2i(5, 5)
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 4)
 ArmWidth = 2
 metadata/_custom_type_script = ExtResource("4_lshape")
 
@@ -66,13 +66,20 @@ MaximumCount = 1
 Chance = 0.5
 metadata/_custom_type_script = ExtResource("18_walldecorstep")
 
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("3_rectangleshape")
+Weight = 0.5
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("3_rectangleshape")
+
 [resource]
 script = ExtResource("2_roomtype")
 Id = "rat_warren"
 Realms = PackedStringArray("sewer")
 Weight = 0.8
-Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2")]
-MinimumFloorTiles = 14
+Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 6
 MinDoorways = 1
 MaxDoorways = 3
 Circulation = 0

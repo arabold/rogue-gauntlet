@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=44 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=39 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -8,10 +8,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_ruined_floor.tres" id="7_flagstones_ruine"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/checker_floor.tres" id="8_checker_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/stone_floor.tres" id="9_stone_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/pillar.tres" id="10_pillar"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/pillar_broken.tres" id="11_pillar_broken"]
-[ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/CornerColumns.cs" id="12_cornercolumns"]
-[ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/CenterColumns.cs" id="13_centercolumns"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/altar_shrine.tres" id="14_altar_shrine"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/altar.tres" id="15_altar"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="16_alongwallsstep"]
@@ -29,36 +25,24 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="28_torch_unlit"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="29_walldecorstep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/sconce.tres" id="30_sconce"]
-[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/RowsStep.cs" id="p_RowsStep"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="p_CenterStep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/sarcophagus.tres" id="p_sarcophagus"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/sarcophagus_robbed.tres" id="p_sarcophagus_ro"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
 Weight = 2.0
-MinimumSize = Vector2i(4, 4)
-MaximumSize = Vector2i(5, 6)
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 4)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
 [sub_resource type="Resource" id="LShape_2"]
 script = ExtResource("4_lshape")
-MinimumSize = Vector2i(4, 4)
-MaximumSize = Vector2i(5, 5)
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 4)
 ArmWidth = 2
 metadata/_custom_type_script = ExtResource("4_lshape")
-
-[sub_resource type="Resource" id="CornerColumns_3"]
-script = ExtResource("12_cornercolumns")
-Id = "corners"
-Column = [ExtResource("10_pillar"), ExtResource("11_pillar_broken")]
-metadata/_custom_type_script = ExtResource("12_cornercolumns")
-
-[sub_resource type="Resource" id="CenterColumns_4"]
-script = ExtResource("13_centercolumns")
-Id = "center"
-Column = [ExtResource("10_pillar"), ExtResource("11_pillar_broken")]
-metadata/_custom_type_script = ExtResource("13_centercolumns")
 
 [sub_resource type="Resource" id="AlongWallsStep_5"]
 script = ExtResource("16_alongwallsstep")
@@ -114,31 +98,32 @@ MaximumCount = 2
 Chance = 0.6
 metadata/_custom_type_script = ExtResource("29_walldecorstep")
 
-[sub_resource type="Resource" id="RowsStep_sarcophagi"]
-script = ExtResource("p_RowsStep")
+[sub_resource type="Resource" id="CenterStep_sarcophagi"]
+script = ExtResource("p_CenterStep")
 Id = "sarcophagi"
 Content = [ExtResource("p_sarcophagus"), ExtResource("p_sarcophagus_ro")]
 MinimumCount = 1
-MaximumCount = 6
-CenterAisle = 2.6
-RowGap = 1.4
-ColumnGap = 1.0
-Margin = 1.8
-metadata/_custom_type_script = ExtResource("p_RowsStep")
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("p_CenterStep")
+
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("3_rectangleshape")
+Weight = 1.0
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
 [resource]
 script = ExtResource("2_roomtype")
 Id = "crypt"
 Realms = PackedStringArray("garrison")
 Weight = 0.5
-Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2")]
-MinimumFloorTiles = 12
+Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 8
 MinDoorways = 1
 MaxDoorways = 2
 DoorChance = 0.5
 Walls = [ExtResource("5_crypt_walls")]
 Floors = [ExtResource("6_flagstones_floor"), ExtResource("7_flagstones_ruine"), ExtResource("8_checker_floor"), ExtResource("9_stone_floor")]
-Columns = [SubResource("CornerColumns_3"), SubResource("CenterColumns_4")]
-ColumnChance = 0.4
-Steps = [SubResource("RowsStep_sarcophagi"), SubResource("AlongWallsStep_5"), SubResource("CornersStep_6"), SubResource("AlongWallsStep_7"), SubResource("ScatterStep_8"), SubResource("WallDecorStep_9"), SubResource("WallDecorStep_10")]
+Steps = [SubResource("CenterStep_sarcophagi"), SubResource("CornersStep_6"), SubResource("AlongWallsStep_5"), SubResource("AlongWallsStep_7"), SubResource("ScatterStep_8"), SubResource("WallDecorStep_9"), SubResource("WallDecorStep_10")]
 metadata/_custom_type_script = ExtResource("2_roomtype")

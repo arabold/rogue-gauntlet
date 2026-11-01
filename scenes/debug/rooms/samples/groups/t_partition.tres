@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="PropGroup" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroup.cs" id="group"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="member"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/partition_wall.tres" id="wall"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/crate_stack.tres" id="crates"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/barrel_stack.tres" id="barrels"]
+
+[sub_resource type="Resource" id="crossbar"]
+script = ExtResource("member")
+Options = [ExtResource("wall")]
+Offset = Vector3(4, 0, 0)
+Required = true
+metadata/_custom_type_script = ExtResource("member")
+
+[sub_resource type="Resource" id="stem"]
+script = ExtResource("member")
+Options = [ExtResource("wall")]
+Offset = Vector3(2, 0, 2.5)
+QuarterTurns = 1
+Required = true
+metadata/_custom_type_script = ExtResource("member")
+
+[sub_resource type="Resource" id="left_supplies"]
+script = ExtResource("member")
+Options = [ExtResource("crates")]
+Offset = Vector3(-0.8, 0, 2.2)
+metadata/_custom_type_script = ExtResource("member")
+
+[sub_resource type="Resource" id="right_supplies"]
+script = ExtResource("member")
+Options = [ExtResource("barrels")]
+Offset = Vector3(4.8, 0, 2.2)
+metadata/_custom_type_script = ExtResource("member")
+
+[resource]
+script = ExtResource("group")
+Id = "sample.t_partition"
+Anchor = [ExtResource("wall")]
+Members = [SubResource("crossbar"), SubResource("stem"), SubResource("left_supplies"), SubResource("right_supplies")]
+MirrorChance = 0.5
+metadata/_custom_type_script = ExtResource("group")

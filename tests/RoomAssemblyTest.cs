@@ -150,28 +150,36 @@ public class RoomAssemblyTest
 		}
 	}
 
-	/// <summary>Rugs lie whole on floor tiles: runners with a fringed end at each end, field rugs with four corners.</summary>
+	/// <summary>Rugs fit whole on the floor, use fringed ends in narrow fields and skip fields too small for two pieces.</summary>
 	[TestCase]
 	public void RugsLieWholeOnTheFloor()
 	{
-		foreach (var (name, layout) in new[] { ("garrison/hall", RugLayout.Runner), ("garrison/dining", RugLayout.Field) })
+		foreach (var (name, layout, size, ends, corners) in new[]
 		{
-			var type = Load(name);
+			("garrison/hall", RugLayout.Runner, new Vector2I(5, 5), 2, 0),
+			("garrison/dining", RugLayout.Field, new Vector2I(5, 5), 0, 4),
+			("garrison/dining", RugLayout.Field, new Vector2I(3, 4), 2, 0),
+			("garrison/dining", RugLayout.Field, new Vector2I(3, 3), 0, 0),
+		})
+		{
+			var type = (RoomType)Load(name).Duplicate();
+			type.Shapes = [new RectangleShape { MinimumSize = size, MaximumSize = size }];
 			int floor = Array.FindIndex(type.FloorsIn(In(name).Realm), style => style.Rug?.Layout == layout);
 			for (ulong seed = 1; seed <= 4; seed++)
 			{
-				var blueprint = RoomAssembler.Build(type, seed * 389, In(name, floor));
+				var blueprint = RoomAssembler.Build(type, seed * 389, new RoomAssemblyOptions { Realm = In(name).Realm, Floor = floor, Furnish = false, Columns = RoomAssemblyOptions.Off });
 				try
 				{
-					string label = $"{name} seed {seed}";
+					string label = $"{name} {size} seed {seed}";
 					var grid = blueprint.Room.DecorationGridMap;
 					var cells = grid.GetUsedCells().Cast<Vector3I>().ToArray();
 					var items = cells.Select(cell => grid.MeshLibrary.GetItemName(grid.GetCellItem(cell))).ToArray();
-					AssertBool(items.Length > 0 && items.All(item => item.StartsWith("carpet_"))).OverrideFailureMessage($"{label}: no rug").IsTrue();
+					AssertBool(items.All(item => item.StartsWith("carpet_"))).OverrideFailureMessage(label).IsTrue();
+					AssertBool(items.Length > 0).OverrideFailureMessage($"{label}: rug presence").IsEqual(ends + corners > 0);
 					AssertBool(cells.All(cell => blueprint.IsFloor(new(cell.X / Room.TileSize, cell.Z / Room.TileSize))))
 						.OverrideFailureMessage($"{label}: rug off the floor").IsTrue();
-					if (layout == RugLayout.Runner) AssertInt(items.Count(item => item.EndsWith("_runner_end_A"))).IsEqual(2);
-					else AssertInt(items.Count(item => item.EndsWith("_corner_A"))).IsEqual(4);
+					AssertInt(items.Count(item => item.EndsWith("_runner_end_A"))).OverrideFailureMessage(label).IsEqual(ends);
+					AssertInt(items.Count(item => item.EndsWith("_corner_A"))).OverrideFailureMessage(label).IsEqual(corners);
 				}
 				finally
 				{
@@ -280,7 +288,7 @@ public class RoomAssemblyTest
 	}
 
 	/// <summary>The first quarter tile covered by no floor piece or by several, or pieces off the floor; empty when exact.</summary>
-	private static string FloorCoverage(RoomBlueprint blueprint)
+	internal static string FloorCoverage(RoomBlueprint blueprint)
 	{
 		var footprint = blueprint.Footprint;
 		var counts = new int[footprint.Width * 2, footprint.Length * 2];

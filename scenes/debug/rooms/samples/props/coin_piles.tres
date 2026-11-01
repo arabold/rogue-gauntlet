@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="prop"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/coin_stack_small.gltf" id="small"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/coin_stack_medium.gltf" id="medium"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/coin_stack_large.gltf" id="large"]
+
+[resource]
+script = ExtResource("prop")
+Id = "sample.decorative_coins"
+Scenes = [ExtResource("small"), ExtResource("medium"), ExtResource("large")]
+Blocking = false
+Gap = 0.15
+TurnJitter = 15.0
+ShiftJitter = 0.08
+metadata/_custom_type_script = ExtResource("prop")

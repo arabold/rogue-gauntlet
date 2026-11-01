@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=49 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=50 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -43,7 +43,7 @@
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
 Weight = 1.0
-MinimumSize = Vector2i(3, 3)
+MinimumSize = Vector2i(2, 2)
 MaximumSize = Vector2i(4, 4)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("2_RectangleSha")
@@ -116,13 +116,20 @@ MaximumCount = 1
 Chance = 0.7
 metadata/_custom_type_script = ExtResource("12_AlongWallsSt")
 
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("2_RectangleSha")
+Weight = 0.5
+MinimumSize = Vector2i(2, 2)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("2_RectangleSha")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "guardroom"
 Realms = PackedStringArray("garrison")
 Weight = 0.7
-Shapes = [SubResource("RectangleShape_1")]
-MinimumFloorTiles = 9
+Shapes = [SubResource("RectangleShape_1"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 4
 MinDoorways = 1
 MaxDoorways = 3
 Walls = [ExtResource("3_stone_walls"), ExtResource("4_pillared_wal"), ExtResource("x_key_alcove_walls")]

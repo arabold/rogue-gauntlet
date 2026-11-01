@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=38 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=39 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -35,8 +35,8 @@
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
 Weight = 1.0
-MinimumSize = Vector2i(4, 5)
-MaximumSize = Vector2i(5, 7)
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 5)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("2_RectangleSha")
 
@@ -48,7 +48,7 @@ MinimumCount = 1
 MaximumCount = 6
 ColumnGap = 2.6
 RowGap = 2.2
-Margin = 2.4
+Margin = 1.2
 metadata/_custom_type_script = ExtResource("10_RowsStep")
 
 [sub_resource type="Resource" id="AlongWallsStep_3"]
@@ -85,12 +85,19 @@ MaximumCount = 2
 Chance = 0.7
 metadata/_custom_type_script = ExtResource("16_WallDecorSte")
 
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("2_RectangleSha")
+Weight = 0.3
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("2_RectangleSha")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "dining"
 Realms = PackedStringArray("garrison")
-Shapes = [SubResource("RectangleShape_1")]
-MinimumFloorTiles = 20
+Shapes = [SubResource("RectangleShape_1"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 9
 MinDoorways = 2
 MaxDoorways = 3
 DoorwayPlacement = 1

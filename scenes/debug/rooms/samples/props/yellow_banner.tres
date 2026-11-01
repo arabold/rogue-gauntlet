@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="prop"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-dungeon-remastered/banner_yellow.gltf" id="banner"]
+
+[resource]
+script = ExtResource("prop")
+Id = "sample.yellow_banner"
+Scenes = [ExtResource("banner")]
+Mount = 1
+MountHeight = 0.0
+Blocking = false
+Gap = 0.3
+metadata/_custom_type_script = ExtResource("prop")
