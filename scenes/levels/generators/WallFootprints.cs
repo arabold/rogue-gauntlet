@@ -206,7 +206,7 @@ public static class WallFootprints
 				continue;
 			}
 
-			foreach (var box in Footprints(mesh.GetAabb(), wallGridMap.GetCellItemOrientation(cell), cell))
+			foreach (var box in Footprints(mesh.GetAabb(), wallGridMap.GetCellItemOrientation(cell), cell, wallGridMap.MeshLibrary.GetItemName(item)))
 			{
 				var (a, b) = Along(box, horizontal);
 				if (Mathf.Min(b, max) - Mathf.Max(a, min) <= tileSize / 4f)
@@ -318,7 +318,7 @@ public static class WallFootprints
 		wallGridMap.SetCellItem(cell, item, orientation);
 		if (wallGridMap.MeshLibrary?.GetItemMesh(item) is { } mesh)
 		{
-			wallBoxes.AddRange(Footprints(mesh.GetAabb(), orientation, cell));
+			wallBoxes.AddRange(Footprints(mesh.GetAabb(), orientation, cell, wallGridMap.MeshLibrary.GetItemName(item)));
 		}
 	}
 
@@ -326,7 +326,7 @@ public static class WallFootprints
 	/// World XZ boxes of a piece at <paramref name="cell"/>: its footprint, or for an L-shaped corner (at least half a
 	/// tile deep along both axes) its two arms, each as thick as its wall, so the inside of the L stays open.
 	/// </summary>
-	private static IEnumerable<Aabb> Footprints(Aabb local, int orientation, Vector3I cell)
+	private static IEnumerable<Aabb> Footprints(Aabb local, int orientation, Vector3I cell, string itemName)
 	{
 		var footprint = FootprintWorld(local, orientation, cell);
 		if (footprint.Size.X < Room.TileSize / 2f || footprint.Size.Z < Room.TileSize / 2f)
@@ -337,6 +337,13 @@ public static class WallFootprints
 
 		float halfDepthZ = Mathf.Min(cell.Z - footprint.Position.Z, footprint.End.Z - cell.Z);
 		float halfDepthX = Mathf.Min(cell.X - footprint.Position.X, footprint.End.X - cell.X);
+		// A T junction is centered on its crossbar: its stem has the same thickness as that bar.
+		if (itemName.StartsWith("wall_Tsplit"))
+		{
+			float thickness = Mathf.Min(halfDepthX, halfDepthZ);
+			halfDepthX = thickness;
+			halfDepthZ = thickness;
+		}
 		yield return new Aabb(new Vector3(footprint.Position.X, footprint.Position.Y, cell.Z - halfDepthZ), new Vector3(footprint.Size.X, footprint.Size.Y, 2 * halfDepthZ));
 		yield return new Aabb(new Vector3(cell.X - halfDepthX, footprint.Position.Y, footprint.Position.Z), new Vector3(2 * halfDepthX, footprint.Size.Y, footprint.Size.Z));
 	}
@@ -403,7 +410,7 @@ public static class WallFootprints
 				continue;
 			}
 
-			boxes.AddRange(Footprints(mesh.GetAabb(), wallGridMap.GetCellItemOrientation(cell), cell));
+			boxes.AddRange(Footprints(mesh.GetAabb(), wallGridMap.GetCellItemOrientation(cell), cell, library.GetItemName(tileIndex)));
 		}
 
 		return boxes;

@@ -76,6 +76,9 @@ public partial class RoomType : Resource
 		errors.AddRange(Floors.Where(style => style != null).SelectMany(style => style.Validate()));
 		errors.AddRange(Columns.Where(column => column != null).SelectMany(column => column.Validate()));
 		errors.AddRange(Steps.Where(step => step != null).SelectMany(step => step.Validate()));
+		foreach (var step in Steps.Where(step => step != null))
+		foreach (string wallId in step.WallStyles.Where(id => !Walls.Any(wall => wall != null && wall.Id == id)))
+			errors.Add($"Room type {Id}: step {step.Id} references unknown wall style {wallId}.");
 		return errors.Distinct().ToArray();
 	}
 }

@@ -37,7 +37,7 @@ public partial class WallStyle : Resource
 	[Export] public Godot.Collections.Dictionary<string, float> Accents { get; set; } = [];
 	[Export(PropertyHint.Range, "0,1,0.01")] public float AccentChance { get; set; }
 
-	public string[] Validate()
+	public virtual string[] Validate()
 	{
 		var errors = new List<string>();
 		if (string.IsNullOrWhiteSpace(Id) || Library == null || Straight.Count == 0)
@@ -56,7 +56,7 @@ public partial class WallStyle : Resource
 	/// Builds the room's perimeter walls into its wall GridMap and records each edge's depth and decor support as
 	/// measured from the pieces on it; accents and pillars drawn for a run end beside a corner give way to the half.
 	/// </summary>
-	public void Build(RoomBlueprint room, RandomNumberGenerator rng)
+	public virtual void Build(RoomBlueprint room, RandomNumberGenerator rng)
 	{
 		var pieces = new Dictionary<Vector3I, (Vector2I Tile, Vector2I Outward, string Item)>();
 		foreach (var run in room.WallRuns)

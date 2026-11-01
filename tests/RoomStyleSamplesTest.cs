@@ -35,9 +35,9 @@ public class RoomStyleSamplesTest
 				if (name == "partitioned_depot")
 				{
 					int central = first.Pieces.Count(piece => piece.Prop.Id == "sample.partition_wall");
-					int bays = first.Pieces.Count(piece => piece.Prop.Id == "sample.bay_junction");
-					AssertBool(central == 3 && bays == 0 || central == 0 && bays is 1 or 2).IsTrue();
-					AssertInt(first.Pieces.Count(piece => piece.Prop.Id == "sample.bay_end")).IsEqual(bays);
+					int junctions = first.Room.WallGridMap.GetUsedCells().Cast<Vector3I>().Count(cell =>
+						first.Room.WallGridMap.MeshLibrary.GetItemName(first.Room.WallGridMap.GetCellItem(cell)) == "wall_Tsplit");
+					AssertBool(central == 3 && junctions == 0 || central == 0 && junctions is 1 or 2).IsTrue();
 				}
 				if (name == "treasury")
 				{
@@ -57,31 +57,53 @@ public class RoomStyleSamplesTest
 		}
 	}
 
-	/// <summary>One depot definition offers a central T or wall-attached storage bays, with complete end pieces.</summary>
-	[TestCase("central_partition", 0)]
-	[TestCase("bays_one_side", 1)]
-	[TestCase("bays_both_sides", 2)]
-	public void DepotLayoutsKeepTheirPartitionsCompleteAndTheirBaysOpen(string layoutId, int sides)
+	/// <summary>Junctions replace perimeter pieces and their outward-facing ends join without overlapping other walls.</summary>
+	[TestCase(0, 0)]
+	[TestCase(1, 1)]
+	[TestCase(2, 2)]
+	public void DepotWallVariantsJoinWithoutOverlapping(int style, int sides)
 	{
-		using var type = (RoomType)TestFactories.Load<RoomType>($"{Samples}partitioned_depot.tres").Duplicate();
-		var layout = (ChoiceStep)type.Steps[0];
-		type.Steps = [layout.Options.Single(option => option.Id == layoutId), .. type.Steps.Skip(1)];
+		var type = TestFactories.Load<RoomType>($"{Samples}partitioned_depot.tres");
 		var ends = new System.Collections.Generic.HashSet<string>();
 		foreach (ulong seed in new ulong[] { 1, 2, 3, 4, 5, 6, 7, 8, 31, 60, 65, 95 })
 		{
-			var blueprint = RoomAssembler.Build(type, seed);
+			var blueprint = RoomAssembler.Build(type, seed, new RoomAssemblyOptions { Walls = style });
 			try
 			{
-				AssertBool(blueprint.IsAcceptable).OverrideFailureMessage($"{layoutId} seed {seed}").IsTrue();
+				AssertBool(blueprint.IsAcceptable).OverrideFailureMessage($"style {style} seed {seed}").IsTrue();
 				AssertString(RoomAssemblyTest.FloorCoverage(blueprint)).IsEmpty();
-				var junctions = blueprint.Pieces.Where(piece => piece.Prop.Id == "sample.bay_junction").ToArray();
-				var caps = blueprint.Pieces.Where(piece => piece.Prop.Id == "sample.bay_end").ToArray();
+				var grid = blueprint.Room.WallGridMap;
+				var cells = grid.GetUsedCells().Cast<Vector3I>().ToArray();
+				string Name(Vector3I cell) => grid.MeshLibrary.GetItemName(grid.GetCellItem(cell));
+				var junctions = cells.Where(cell => Name(cell) == "wall_Tsplit").ToArray();
+				var wallBoxes = WallFootprints.Collect(grid);
 				AssertInt(junctions.Length).IsEqual(sides);
-				AssertInt(caps.Length).IsEqual(sides);
-				AssertInt(junctions.Select(piece => Mathf.Sign(piece.Transform.Origin.X - blueprint.Interior.GetCenter().X)).Distinct().Count()).IsEqual(sides);
 				AssertInt(blueprint.Pieces.Count(piece => piece.Prop.Id == "sample.partition_wall")).IsEqual(sides == 0 ? 3 : 0);
-				AssertBool(blueprint.Room.GetNode("Props").GetChildren().OfType<Door>().Any(door => door.Interior != null)).IsFalse();
-				foreach (var cap in caps) ends.Add(cap.Prop.Items[cap.Variant]);
+				foreach (var junction in junctions)
+				{
+					var direction = junction.X < blueprint.Interior.GetCenter().X ? Vector3I.Right : Vector3I.Left;
+					AssertBool(wallBoxes.Any(box => Mathf.Abs(box.Size.X - 2.5f) < .05f && Mathf.Abs(box.Size.Z - 1f) < .05f
+						&& Mathf.Abs(box.GetCenter().Z - junction.Z) < .05f && Mathf.Abs(box.GetCenter().X - junction.X) < 1f)).IsTrue();
+					var end = junction + direction * Room.TileSize;
+					AssertBool(cells.Contains(end)).IsTrue();
+					string name = Name(end);
+					AssertBool(name is "wall_half_endcap" or "wall_half_endcap_sloped").IsTrue();
+					ends.Add(name);
+					int facing = grid.GetCellItemOrientation(junction);
+					int turn = Array.IndexOf(GridTurns.Upright, facing);
+					AssertInt(grid.GetCellItemOrientation(end)).IsEqual(GridTurns.Upright[(turn + 3) % 4]);
+					foreach (var part in new[] { junction, end })
+					{
+						var box = WallFootprints.FootprintWorld(grid.MeshLibrary.GetItemMesh(grid.GetCellItem(part)).GetAabb(), grid.GetCellItemOrientation(part), part);
+						foreach (var other in cells.Where(cell => cell != part))
+						{
+							var otherBox = WallFootprints.FootprintWorld(grid.MeshLibrary.GetItemMesh(grid.GetCellItem(other)).GetAabb(), grid.GetCellItemOrientation(other), other);
+							float overlapX = Mathf.Min(box.End.X, otherBox.End.X) - Mathf.Max(box.Position.X, otherBox.Position.X);
+							float overlapZ = Mathf.Min(box.End.Z, otherBox.End.Z) - Mathf.Max(box.Position.Z, otherBox.Position.Z);
+							AssertBool(overlapX > .05f && overlapZ > .05f).OverrideFailureMessage($"{part} overlaps {other}").IsFalse();
+						}
+					}
+				}
 			}
 			finally { blueprint.Room.Free(); }
 		}

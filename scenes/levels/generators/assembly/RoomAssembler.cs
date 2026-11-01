@@ -84,6 +84,7 @@ public static class RoomAssembler
 				for (int index = 0; index < steps.Length; index++)
 				{
 					var step = steps[index];
+					if (step.WallStyles.Length > 0 && !step.WallStyles.Contains(walls.Id)) continue;
 					using var chanceRng = blueprint.Random($"step:{index}:{step.Id}:chance");
 					if (chanceRng.Randf() >= step.Chance) continue;
 					using var stepRng = blueprint.Random($"step:{index}:{step.Id}");

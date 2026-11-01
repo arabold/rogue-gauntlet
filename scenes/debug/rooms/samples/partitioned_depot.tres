@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=34 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=31 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="type"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="shape"]
@@ -21,8 +21,8 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="shelf"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/keg_station.tres" id="kegs"]
 
-[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ChoiceStep.cs" id="choice"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/groups/bay_divider.tres" id="bay"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/divider_walls_one.tres" id="walls_one"]
+[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/divider_walls_both.tres" id="walls_both"]
 
 [sub_resource type="Resource" id="shape"]
 script = ExtResource("shape")
@@ -33,36 +33,12 @@ metadata/_custom_type_script = ExtResource("shape")
 [sub_resource type="Resource" id="partition"]
 script = ExtResource("center")
 Id = "central_partition"
+WallStyles = PackedStringArray("stone_walls")
 Content = [ExtResource("partition")]
 MinimumCount = 1
 MaximumCount = 1
 AllowCrosswise = false
 metadata/_custom_type_script = ExtResource("center")
-
-[sub_resource type="Resource" id="bays_one_side"]
-script = ExtResource("along")
-Id = "bays_one_side"
-Content = [ExtResource("bay")]
-MaximumCount = 1
-Sides = 1
-Centered = true
-metadata/_custom_type_script = ExtResource("along")
-
-[sub_resource type="Resource" id="bays_both_sides"]
-script = ExtResource("along")
-Id = "bays_both_sides"
-Content = [ExtResource("bay")]
-MaximumCount = 2
-Sides = 1
-Centered = true
-metadata/_custom_type_script = ExtResource("along")
-
-[sub_resource type="Resource" id="layout"]
-script = ExtResource("choice")
-Id = "depot_layout"
-MinimumCount = 1
-Options = [SubResource("partition"), SubResource("bays_one_side"), SubResource("bays_both_sides")]
-metadata/_custom_type_script = ExtResource("choice")
 
 [sub_resource type="Resource" id="supplies"]
 script = ExtResource("corners")
@@ -124,7 +100,7 @@ Shapes = [SubResource("shape")]
 MinDoorways = 2
 MaxDoorways = 2
 DoorwayPlacement = 1
-Walls = [ExtResource("walls")]
+Walls = [ExtResource("walls"), ExtResource("walls_one"), ExtResource("walls_both")]
 Floors = [ExtResource("stone"), ExtResource("earth")]
-Steps = [SubResource("layout"), SubResource("supplies"), SubResource("stations"), SubResource("lighting"), SubResource("sconces"), SubResource("shelves"), SubResource("debris")]
+Steps = [SubResource("partition"), SubResource("supplies"), SubResource("stations"), SubResource("lighting"), SubResource("sconces"), SubResource("shelves"), SubResource("debris")]
 metadata/_custom_type_script = ExtResource("type")
