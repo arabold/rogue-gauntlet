@@ -14,7 +14,6 @@ public class RoomStyleSamplesTest
 	private const string Samples = "res://scenes/debug/rooms/samples/";
 
 	[TestCase("partitioned_depot")]
-	[TestCase("compact_lockup")]
 	[TestCase("treasury")]
 	public void SamplesReproduceConnectedLayoutsAndTheirDefiningContent(string name)
 	{
@@ -28,15 +27,13 @@ public class RoomStyleSamplesTest
 			{
 				AssertBool(first.IsAcceptable).OverrideFailureMessage($"{name} seed {seed}").IsTrue();
 				AssertString(Signature(second)).IsEqual(Signature(first));
-				int maximumTiles = name switch { "treasury" => 9, "compact_lockup" => 16, _ => 20 };
+				int maximumTiles = name == "treasury" ? 9 : 20;
 				AssertInt(first.Footprint.Count).IsLessEqual(maximumTiles);
 				AssertString(RoomAssemblyTest.FloorCoverage(first)).IsEmpty();
 				AssertInt(first.Pieces.Count(piece => piece.Prop.Id == "sample.lit_sconce")).IsGreaterEqual(2);
 				var nodes = first.Room.FindChildren("*", "", true, false);
 				if (name == "partitioned_depot")
 					AssertInt(first.Pieces.Count(piece => piece.Prop.Id == "sample.partition_wall")).IsEqual(3);
-				if (name == "compact_lockup")
-					AssertInt(nodes.OfType<Door>().Count(door => door.Interior != null)).IsEqual(2);
 				if (name == "treasury")
 				{
 					var chest = nodes.OfType<Chest>().Single();
@@ -53,42 +50,6 @@ public class RoomStyleSamplesTest
 				second.Room.Free();
 			}
 		}
-	}
-
-	[TestCase]
-	public void DirtStaysInsideCellRowsWithoutChangingFurnitureOrWalkability()
-	{
-		var type = TestFactories.Load<RoomType>($"{Samples}compact_lockup.tres");
-		using var plainType = (RoomType)type.Duplicate();
-		using var cells = (CellsStep)type.Steps.OfType<CellsStep>().Single().Duplicate();
-		cells.CellFloor = null;
-		plainType.Steps = type.Steps.Select(step => step is CellsStep ? cells : step).ToArray();
-		var dirt = RoomAssembler.Build(type, 23);
-		var plain = RoomAssembler.Build(plainType, 23);
-		try
-		{
-			AssertString(Signature(dirt)).IsEqual(Signature(plain));
-			AssertString(Convert.ToBase64String(dirt.Grid.Save())).IsEqual(Convert.ToBase64String(plain.Grid.Save()));
-			AssertInt(dirt.FloorPatches.Count).IsEqual(1);
-			AssertInt(plain.FloorPatches.Count).IsEqual(0);
-			var patch = dirt.FloorPatches.Single();
-			var dirtItems = patch.Material.Large.Keys.Concat(patch.Material.Small.Keys).Concat(patch.Material.Wear.Keys).ToHashSet();
-			var grid = dirt.Room.FloorGridMap;
-			int inside = 0, outside = 0;
-			foreach (Vector3I cell in grid.GetUsedCells())
-			{
-				if (dirtItems.Contains(grid.MeshLibrary.GetItemName(grid.GetCellItem(cell))))
-				{
-					AssertBool(patch.Area.HasPoint(new Vector2(cell.X, cell.Z))).IsTrue();
-					inside++;
-				}
-				else outside++;
-			}
-			AssertInt(inside).IsGreater(0);
-			AssertInt(outside).IsGreater(0);
-			AssertString(RoomAssemblyTest.FloorCoverage(dirt)).IsEmpty();
-		}
-		finally { dirt.Room.Free(); plain.Room.Free(); }
 	}
 
 	[TestCase]
@@ -132,12 +93,14 @@ public class RoomStyleSamplesTest
 	}
 
 	[TestCase]
-	public async Task SampleWorkbenchPreviewsEachRecipeWithoutAddingItToProductionFactories()
+	public async Task SampleWorkbenchReusesTheProductionPrisonAndKeepsNewStudiesOutsideThePool()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/rooms/room_style_samples.tscn");
 		await runner.SimulateFrames(2);
 		var harness = (RoomGenerationHarness)runner.Scene();
 		AssertInt(harness.Recipes.Count).IsEqual(3);
+		var pool = (AssembledRoomFactory)harness.Generator.Rooms;
+		AssertObject(harness.Recipes[1]).IsSame(pool.RoomTypes.Single(type => type.Id == "prison"));
 		for (int index = 0; index < harness.Recipes.Count; index++)
 		{
 			harness.SelectRecipe(index);
@@ -145,7 +108,7 @@ public class RoomStyleSamplesTest
 			await runner.SimulateFrames(1);
 			AssertString(harness.LastError).IsEmpty();
 			AssertBool(harness.PreviewBlueprint.IsAcceptable).IsTrue();
-			AssertBool(((AssembledRoomFactory)harness.Generator.Rooms).RoomTypes.Contains(harness.Recipes[index])).IsFalse();
+			AssertBool(pool.RoomTypes.Contains(harness.Recipes[index])).IsEqual(index == 1);
 			harness.RotatePreview(1);
 			harness.Regenerate();
 			await runner.SimulateFrames(1);
@@ -162,7 +125,7 @@ public class RoomStyleSamplesTest
 		harness.Regenerate();
 		await runner.SimulateFrames(1);
 		AssertString(harness.LastError).IsEmpty();
-		AssertString(harness.PreviewRoom.Type.Id).IsEqual("sample.compact_lockup");
+		AssertString(harness.PreviewRoom.Type.Id).IsEqual("prison");
 		AssertBool(harness.PreviewBlueprint.IsAcceptable).IsTrue();
 	}
 

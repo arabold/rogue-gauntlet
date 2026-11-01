@@ -2,11 +2,11 @@
 
 [ext_resource type="PackedScene" path="res://scenes/debug/rooms/room_generation_harness.tscn" id="harness"]
 [ext_resource type="Resource" path="res://scenes/debug/rooms/samples/partitioned_depot.tres" id="depot"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/compact_lockup.tres" id="lockup"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/prison.tres" id="prison"]
 [ext_resource type="Resource" path="res://scenes/debug/rooms/samples/treasury.tres" id="treasury"]
 
 [node name="RoomStyleSamples" instance=ExtResource("harness")]
-PreviewRecipes = [ExtResource("depot"), ExtResource("lockup"), ExtResource("treasury")]
+PreviewRecipes = [ExtResource("depot"), ExtResource("prison"), ExtResource("treasury")]
 ShowWalkability = false
 
 [node name="Title" parent="UI/Panel/Margin/Controls" index="0"]
