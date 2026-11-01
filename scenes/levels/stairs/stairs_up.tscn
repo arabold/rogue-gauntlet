@@ -125,7 +125,7 @@ script = ExtResource("2_llhmm")
 DebugColor = Color(1, 0.25, 0.1, 0.35)
 
 [node name="TransitionBlocker" type="StaticBody3D" parent="UpTransitionTrigger" unique_id=1262478052]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.625)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.375)
 collision_mask = 4
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="UpTransitionTrigger/TransitionBlocker" unique_id=1457313677]

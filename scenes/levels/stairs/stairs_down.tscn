@@ -5,7 +5,8 @@
 [ext_resource type="PackedScene" path="res://scenes/levels/player_spawn_point.tscn" id="3_atbg8"]
 [ext_resource type="Script" path="res://scenes/levels/PlayerSpawnPoint.cs" id="4_13fvs"]
 [ext_resource type="Script" path="res://scenes/levels/LevelTransitionTrigger.cs" id="5_uvkvf"]
-[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="6_jkn5o"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="6_jkn5o"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="7_railing"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0qmis"]
 resource_name = "texture"
@@ -131,8 +132,21 @@ collision_mask = 4
 [node name="CollisionShape3D" type="CollisionShape3D" parent="DownTransitionTrigger/TransitionBlocker" unique_id=524510723]
 shape = SubResource("BoxShape3D_transition_blocker")
 
-[node name="Railing" type="GridMap" parent="." unique_id=1244440530]
+[node name="Enclosure" type="GridMap" parent="."]
+position = Vector3(0, -4, 0)
 mesh_library = ExtResource("6_jkn5o")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+collision_layer = 16
+collision_mask = 0
+data = {
+"cells": PackedInt32Array(65534, 65534, 1048576, 2, 65534, 1441792, 65534, 2, 1048576, 2, 2, 1441792)
+}
+
+[node name="Railing" type="GridMap" parent="." unique_id=1244440530]
+mesh_library = ExtResource("7_railing")
 cell_size = Vector3(1, 1, 1)
 cell_center_x = false
 cell_center_y = false

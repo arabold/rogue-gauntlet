@@ -330,6 +330,22 @@ public class RoomAssemblyTest
 				var spawn = nodes.OfType<PlayerSpawnPoint>().Single();
 				AssertInt((int)spawn.SpawnAfterTravelDirection).IsEqual((int)arrival);
 				AssertInt((int)nodes.OfType<LevelTransitionTrigger>().Single().Direction).IsEqual((int)travel);
+				if (pitTiles == 0)
+				{
+					var stairs = spawn.GetParent<Node3D>();
+					var mesh = stairs.GetNode<MeshInstance3D>("stairs_long");
+					var visual = mesh.Transform * mesh.GetAabb();
+					var back = stairs.Transform * new Vector3(0, 0, visual.Position.Z);
+					bool touchesWall = blueprint.WallRuns.Any(run =>
+					{
+						float along = RoomBlueprint.AlongRun(run, back);
+						if (run.Inward.Dot(stairs.Basis.Z) < .99f || along < 0 || along >= run.LengthUnits) return false;
+						int index = Mathf.FloorToInt(along / Room.TileSize);
+						float gap = (back - run.LineStart).Dot(run.Inward) - blueprint.WallDepth(run.TileAt(index), run.Outward);
+						return Mathf.Abs(gap) < .02f;
+					});
+					AssertBool(touchesWall).OverrideFailureMessage($"{label}: up-stairs separated from their backing wall").IsTrue();
+				}
 				// The stairs scene sits directly under the room's Props node, which has no offset of its own.
 				var landing = spawn.GetParent<Node3D>().Transform * spawn.Landing.Position;
 				AssertBool(blueprint.IsReachable(RoomBlueprint.XZ(landing))).OverrideFailureMessage($"{label}: landing cut off").IsTrue();
@@ -349,6 +365,44 @@ public class RoomAssemblyTest
 				blueprint.Room.Free();
 			}
 		}
+	}
+
+	/// <summary>Side walls end flush with the floor under the original railing; both the top entrance and lower exit stay open.</summary>
+	[TestCase]
+	public void DownStairwellLinesSidesBelowFloorAndLeavesBothEndsOpen()
+	{
+		var stairs = TestFactories.Load<PackedScene>("res://scenes/levels/stairs/stairs_down.tscn").Instantiate<Node3D>();
+		try
+		{
+			var enclosure = stairs.GetNode<GridMap>("Enclosure");
+			var walls = CollisionOutlines.FromGridMap(enclosure, Transform3D.Identity).ToArray();
+			var railing = CollisionOutlines.FromGridMap(stairs.GetNode<GridMap>("Railing"), Transform3D.Identity).ToArray();
+			foreach (Vector3I cell in enclosure.GetUsedCells())
+			{
+				int item = enclosure.GetCellItem(cell);
+				var visual = enclosure.Transform * enclosure.GetCellTransform(cell)
+					* enclosure.MeshLibrary.GetItemMeshTransform(item) * enclosure.MeshLibrary.GetItemMesh(item).GetAabb();
+				AssertFloat(visual.End.Y).OverrideFailureMessage("Stairwell wall top must align with the floor").IsEqualApprox(0, .001f);
+			}
+			bool Covered(Vector3 point) => (point.Y < 0 ? walls : railing).Any(wall => point.Y >= wall.Bottom && point.Y <= wall.Top
+				&& Geometry2D.IsPointInPolygon(RoomBlueprint.XZ(point), wall.Polygon));
+			for (float y = -3.5f; y <= .5f; y++)
+			{
+				for (float z = -3.75f; z <= 3.75f; z += .5f)
+				{
+					AssertBool(Covered(new(-2, y, z))).OverrideFailureMessage($"Left stairwell wall gap at y={y}, z={z}").IsTrue();
+					AssertBool(Covered(new(2, y, z))).OverrideFailureMessage($"Right stairwell wall gap at y={y}, z={z}").IsTrue();
+				}
+				// Check the passage between the side walls, leaving their half-unit jambs in place.
+				for (float x = -1; x <= 1; x += .5f)
+					AssertBool(Covered(new(x, y, -4)))
+						.OverrideFailureMessage($"Lower stairwell exit must be open below the floor and fenced above it: x={x}, y={y}")
+						.IsEqual(y >= 0);
+			}
+			for (float x = -1; x <= 1; x += .5f)
+				AssertBool(Covered(new(x, 1, 4))).OverrideFailureMessage($"Stairwell entrance blocked at x={x}").IsFalse();
+		}
+		finally { stairs.Free(); }
 	}
 
 	private static float PocketShare(RoomBlueprint blueprint)
