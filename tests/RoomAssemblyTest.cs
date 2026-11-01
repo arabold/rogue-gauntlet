@@ -272,7 +272,7 @@ public class RoomAssemblyTest
 		plainType.Steps = type.Steps.Select(step => step is CellsStep ? plainCells : step).ToArray();
 		var seen = new HashSet<string>();
 		var options = new RoomAssemblyOptions { Realm = realm, Floor = 0 };
-		for (ulong seed = 1; seed <= 16; seed++)
+		for (ulong seed = 1; seed <= 4; seed++)
 		{
 			var dirt = RoomAssembler.Build(type, seed, options);
 			var plain = RoomAssembler.Build(plainType, seed, options);

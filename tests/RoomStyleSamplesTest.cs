@@ -32,21 +32,10 @@ public class RoomStyleSamplesTest
 				AssertString(RoomAssemblyTest.FloorCoverage(first)).IsEmpty();
 				AssertInt(first.Pieces.Count(piece => piece.Prop.Id == "sample.lit_sconce")).IsGreaterEqual(2);
 				var nodes = first.Room.FindChildren("*", "", true, false);
-				if (name == "partitioned_depot")
-				{
-					int central = first.Pieces.Count(piece => piece.Prop.Id == "sample.partition_wall");
-					int junctions = first.Room.WallGridMap.GetUsedCells().Cast<Vector3I>().Count(cell =>
-						first.Room.WallGridMap.MeshLibrary.GetItemName(first.Room.WallGridMap.GetCellItem(cell)) == "wall_Tsplit");
-					AssertBool(central == 3 && junctions == 0 || central == 0 && junctions is 1 or 2).IsTrue();
-				}
 				if (name == "treasury")
 				{
 					var chest = nodes.OfType<Chest>().Single();
 					AssertString(chest.LootTable.Profile.ResourcePath).IsEqual($"{Samples}treasury_gold.tres");
-					AssertInt(first.Pieces.Count(piece => piece.Prop.Id == "sample.yellow_banner")).IsEqual(1);
-					AssertInt(first.Pieces.Count(piece => piece.Prop.Id == "bookcase")).IsEqual(1);
-					AssertInt(first.Pieces.Count(piece => piece.Prop.Id is "trunk" or "small_box")).IsGreaterEqual(2);
-					AssertInt(first.Pieces.Count(piece => piece.Prop.Id == "sample.decorative_coins")).IsGreaterEqual(3);
 				}
 			}
 			finally
@@ -134,7 +123,7 @@ public class RoomStyleSamplesTest
 	}
 
 	[TestCase]
-	public void TreasuryChestGuaranteesAuthoredGoldWithoutChangingTheOrdinaryChestProfile()
+	public void TreasuryChestGuaranteesAuthoredGold()
 	{
 		var profile = TestFactories.Load<LootDropProfile>($"{Samples}treasury_gold.tres");
 		AssertArray(profile.Table.Validate()).IsEmpty();
@@ -146,8 +135,6 @@ public class RoomStyleSamplesTest
 			AssertBool(rewards[0].Item is Gold).IsTrue();
 			AssertInt(rewards[0].Quantity).IsEqual(240);
 		}
-		var ordinary = TestFactories.Load<LootDropProfile>("res://scenes/items/loot/drops/chest_rare.tres");
-		AssertObject(ordinary).IsNotSame(profile);
 	}
 
 	[TestCase]

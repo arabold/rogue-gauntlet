@@ -31,7 +31,7 @@ public partial class DividerWallStyle : WallStyle
 		{
 			if (placedSides.Contains(run.Outward)) continue;
 			var tile = run.TileAt(run.Length / 2);
-			var edge = (Vector3I)RoomFootprint.TileCenter(tile) + new Vector3I(run.Outward.X, 0, run.Outward.Y) * (Room.TileSize / 2);
+			var edge = EdgeCell(tile, run.Outward);
 			var end = edge + new Vector3I(-run.Outward.X, 0, -run.Outward.Y) * Room.TileSize;
 			int original = grid.GetCellItem(edge);
 			if (original < 0 || !Straight.ContainsKey(Library.GetItemName(original)) || grid.GetCellItem(end) >= 0

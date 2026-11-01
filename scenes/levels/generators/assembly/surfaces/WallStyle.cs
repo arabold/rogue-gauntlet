@@ -108,6 +108,6 @@ public partial class WallStyle : Resource
 		return accent ? accentItem : straight;
 	}
 
-	private static Vector3I EdgeCell(Vector2I tile, Vector2I outward) =>
+	protected static Vector3I EdgeCell(Vector2I tile, Vector2I outward) =>
 		(Vector3I)RoomFootprint.TileCenter(tile) + new Vector3I(outward.X, 0, outward.Y) * (Room.TileSize / 2);
 }
