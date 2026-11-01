@@ -86,6 +86,8 @@ public sealed class RoomBlueprint
 	public float WallDepth(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.Depth : .5f;
 	public bool IsDecoratable(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) && wall.Decoratable;
 	public float RunDepth(WallRun run) => Enumerable.Range(0, run.Length).Max(index => WallDepth(run.TileAt(index), run.Outward));
+	/// <summary>How far the perpendicular wall at the run's start (or end) corner reaches into the room.</summary>
+	public float EndDepth(WallRun run, bool atStart) => atStart ? WallDepth(run.Start, -run.Along) : WallDepth(run.Last, run.Along);
 
 	/// <summary>Registers floor, void and the placed wall geometry with the walkability grid. Call once, after walls.</summary>
 	public void FinishStructure()
@@ -100,16 +102,9 @@ public sealed class RoomBlueprint
 			else Grid.AddObstacle(area);
 		}
 		foreach (var outline in CollisionOutlines.FromGridMap(Room.WallGridMap, Transform3D.Identity)) Grid.AddObstacle(outline);
-		// Furniture may stand in a corner: the corner piece's visual arms coincide with the straight walls, and its
-		// convex collision hull only fills space no actor reaches anyway.
-		var library = Room.WallGridMap.MeshLibrary;
-		foreach (Vector3I cell in Room.WallGridMap.GetUsedCells())
-		{
-			int item = Room.WallGridMap.GetCellItem(cell);
-			var mesh = library.GetItemMesh(item);
-			if (mesh == null || library.GetItemName(item).Contains("corner")) continue;
-			_wallBoxes.Add(WallFootprints.FootprintWorld(mesh.GetAabb(), Room.WallGridMap.GetCellItemOrientation(cell), cell));
-		}
+		// Furniture may stand in a corner: a corner piece blocks only its two arms, not its L's whole bounding box, and
+		// its convex collision hull only fills space no actor reaches anyway.
+		_wallBoxes.AddRange(WallFootprints.Collect(Room.WallGridMap));
 	}
 
 	/// <summary>Straight wall runs, split at doorways and wherever the room continues past the wall line.</summary>

@@ -5,8 +5,8 @@ using Godot;
 [Tool, GlobalClass]
 public partial class CornersStep : FurnishingStep
 {
-	/// <summary>Distance kept from the perpendicular wall line.</summary>
-	[Export(PropertyHint.Range, "0,2,0.05")] public float Clearance { get; set; } = .55f;
+	/// <summary>Distance kept from the perpendicular wall's face, however far that wall (or its corner piece) reaches.</summary>
+	[Export(PropertyHint.Range, "0,2,0.05")] public float Clearance { get; set; } = .05f;
 
 	public override int Furnish(RoomBlueprint room, RandomNumberGenerator rng)
 	{
@@ -23,8 +23,9 @@ public partial class CornersStep : FurnishingStep
 		{
 			if (count >= MaximumCount || plan.IsEmpty) break;
 			float width = room.WidthAlong(plan, run);
-			if (width + Clearance > run.LengthUnits) continue;
-			float along = atStart ? Clearance : run.LengthUnits - Clearance - width;
+			float clearance = Clearance + room.EndDepth(run, atStart);
+			if (width + clearance > run.LengthUnits) continue;
+			float along = atStart ? clearance : run.LengthUnits - clearance - width;
 			if (!TryPlaceAgainstWall(room, choice, plan, run, along)) continue;
 			count++;
 			plan = Next(room, rng, out choice);

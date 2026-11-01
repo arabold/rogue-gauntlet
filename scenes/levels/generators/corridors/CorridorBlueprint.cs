@@ -312,7 +312,7 @@ public sealed class CorridorBlueprint
 
 	private void MeasureWalls()
 	{
-		MeshLibrary library = WallGridMap?.MeshLibrary;
+		if (WallGridMap?.MeshLibrary == null) return;
 		int half = Room.TileSize / 2;
 		foreach (var tile in CorridorTiles)
 		{
@@ -327,19 +327,9 @@ public sealed class CorridorBlueprint
 				var localEdge = localCenter + new Vector3(outward.X * half, 0, outward.Y * half);
 				if (HasNearbyDoor(localEdge, 2.2f)) continue;
 
-				var cell = worldCenter + new Vector3I(outward.X * half, 0, outward.Y * half);
-				int item = WallGridMap?.GetCellItem(cell) ?? -1;
-				if (item < 0) continue;
-
-				string name = library?.GetItemName(item) ?? "";
-				var mesh = library?.GetItemMesh(item);
-				float depth = mesh == null ? .5f : mesh.GetAabb().End.Z;
-				bool decoratable = Walls != null
-					? Walls.Straight.ContainsKey(name) && !Walls.Accents.ContainsKey(name) && name != Walls.Pillar
-					: !name.Contains("corner", StringComparison.OrdinalIgnoreCase)
-						&& !name.Contains("half", StringComparison.OrdinalIgnoreCase)
-						&& !name.Contains("doorway", StringComparison.OrdinalIgnoreCase);
-				_walls[(tile, outward)] = (depth, decoratable);
+				var edge = WallFootprints.MeasureEdge(WallGridMap, worldCenter + new Vector3I(outward.X * half, 0, outward.Y * half), -outward, Room.TileSize);
+				if (!edge.Covered) continue;
+				_walls[(tile, outward)] = (edge.Depth, Walls?.IsPlain(edge.Item) == true);
 			}
 		}
 	}

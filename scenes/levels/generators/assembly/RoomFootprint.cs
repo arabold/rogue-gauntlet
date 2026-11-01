@@ -68,4 +68,7 @@ public readonly record struct RoomDoorway(Vector2I Tile, Vector2I Direction)
 {
 	/// <summary>Where an actor enters the room: the doorway tile's center.</summary>
 	public Vector3 Approach => RoomFootprint.TileCenter(Tile);
+	public Vector3 Outward => new(Direction.X, 0, Direction.Y);
+	/// <summary>The opening itself: the middle of the doorway's wall gap, where a door or frame stands.</summary>
+	public Vector3 Edge => Approach + Outward * (Room.TileSize / 2f);
 }

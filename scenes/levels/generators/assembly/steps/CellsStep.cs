@@ -76,8 +76,8 @@ public partial class CellsStep : FurnishingStep
 		// Local X may run either way along the wall; find which side the run's start lies on.
 		bool startLow = (run.LineStart - frame.Origin).Dot(frame.Basis.X) < 0;
 		var corners = new List<(float Face, int Side)>();
-		if (room.StartsAtCorner(run)) corners.Add((room.WallDepth(run.Start, -run.Along), startLow ? -1 : 1));
-		if (room.EndsAtCorner(run)) corners.Add((room.WallDepth(run.Last, run.Along), startLow ? 1 : -1));
+		if (room.StartsAtCorner(run)) corners.Add((room.EndDepth(run, atStart: true), startLow ? -1 : 1));
+		if (room.EndsAtCorner(run)) corners.Add((room.EndDepth(run, atStart: false), startLow ? 1 : -1));
 		if (corners.Count == 2 && rng.Randf() < .5f) corners.Reverse();
 		if (FlushToCorner)
 			foreach (var (face, side) in corners)

@@ -13,4 +13,5 @@ Corner = "wall_prison_corner_A"
 Half = "wall_prison_half_A"
 Accents = Dictionary[String, float]({"wall_prison_A": 1.0, "wall_prison_B": 1.0, "wall_prison_C": 1.0, "wall_prison_D": 1.0})
 AccentChance = 0.6
+PlainEnds = false
 metadata/_custom_type_script = ExtResource("2_wallstyle")

@@ -21,7 +21,7 @@ public static class WallFootprints
 	public const int SouthWestCornerOrientation = 10;
 	public const int SouthEastCornerOrientation = 22;
 
-	public readonly record struct WallStraightRequest(Vector3I Position, int Orientation);
+	private readonly record struct WallStraightRequest(Vector3I Position, int Orientation);
 
 	/// <summary>GridMap orientation that turns local +Z toward <paramref name="inward"/>.</summary>
 	public static int FacingInto(Vector2I inward) =>
@@ -39,11 +39,12 @@ public static class WallFootprints
 	}
 
 	/// <summary>
-	/// Places straight walls, gap-filling half-walls, and corner pieces onto <paramref name="wallGridMap"/>
-	/// for every tile in <paramref name="sourceTiles"/> whose cardinal edge satisfies <paramref name="needsWallToward"/>.
+	/// Places corner pieces, straight walls and half walls onto <paramref name="wallGridMap"/> for every tile in
+	/// <paramref name="sourceTiles"/> whose cardinal edge satisfies <paramref name="needsWallToward"/>.
 	/// Shared between runtime level generation (<see cref="MapGenerator"/>) and standalone room generation
-	/// (<see cref="WallStyle"/>). Requests keep their axis orientation (horizontal 0, vertical 16) for gap
-	/// filling; <paramref name="pickStraight"/> may place a straight piece at either facing of that axis.
+	/// (<see cref="WallStyle"/>). Pieces never overlap along a wall: corners go first, and since a corner's arms
+	/// cover half of each edge they join, the rest of such an edge gets a half piece instead of a full one. Pieces
+	/// face the tile that requested them; <paramref name="pickStraight"/> may vary the full piece per edge position.
 	/// </summary>
 	public static void PlaceWalls(
 		GridMap wallGridMap,
@@ -53,7 +54,7 @@ public static class WallFootprints
 		Func<int> getWallItem,
 		Func<int> getHalfWallItem,
 		Func<int> getCornerWallItem,
-		Func<WallStraightRequest, (int Item, int Orientation)> pickStraight = null)
+		Func<Vector3I, int> pickStraight = null)
 	{
 		if (wallGridMap == null)
 		{
@@ -116,25 +117,28 @@ public static class WallFootprints
 			}
 		}
 
+		PlaceWallCorners(wallGridMap, cornerEdges, getCornerWallItem, wallBoxes);
+
 		foreach (var wall in straightWalls)
 		{
-			if (wallGridMap.GetCellItem(wall.Position) < 0)
+			bool horizontal = wall.Orientation == HorizontalWallOrientation;
+			var (line, min, max) = EdgeSpan(wall.Position, horizontal, tileSize);
+			if (!TryGetUncoveredSpan(wallBoxes, horizontal, line, min, max, out var gap))
 			{
-				// A positional picker may vary pieces along a run and turn asymmetric ones to face the room;
-				// otherwise turn straight walls inward toward the tile that requested them.
-				int defaultOrientation = inwardDirections.TryGetValue(wall.Position, out var inward)
-					? FacingInto(inward)
-					: wall.Orientation;
-				var (wallItem, orientation) = pickStraight?.Invoke(wall) ?? (getWallItem(), defaultOrientation);
-				if (wallItem >= 0)
-				{
-					wallGridMap.SetCellItem(wall.Position, wallItem, orientation);
-					Mesh mesh = library?.GetItemMesh(wallItem);
-					if (mesh != null)
-					{
-						wallBoxes.Add(FootprintWorld(mesh.GetAabb(), orientation, wall.Position));
-					}
-				}
+				continue;
+			}
+
+			var inward = inwardDirections[wall.Position];
+			if (TryPlaceHalf(wallGridMap, horizontal, line, min, tileSize, gap, inward, getHalfWallItem, wallBoxes)
+				|| wallGridMap.GetCellItem(wall.Position) >= 0)
+			{
+				continue;
+			}
+
+			int wallItem = pickStraight?.Invoke(wall.Position) ?? getWallItem();
+			if (wallItem >= 0)
+			{
+				Place(wallGridMap, wall.Position, wallItem, FacingInto(inward), wallBoxes);
 			}
 		}
 
@@ -142,8 +146,97 @@ public static class WallFootprints
 		{
 			EnsureEdgeCovered(wallGridMap, tileSize, wall, wallBoxes, getWallItem, getHalfWallItem);
 		}
+	}
 
-		PlaceWallCorners(wallGridMap, cornerEdges, getCornerWallItem);
+	/// <summary>
+	/// Fills the half of an edge that the uncovered <paramref name="gap"/> lies in (a corner arm covers the other half)
+	/// with the half piece, facing <paramref name="inward"/>. It covers the whole half even where a crossing wall's
+	/// thickness shortens the gap, and turns around only when its facing cell, the edge's far end, holds another corner.
+	/// </summary>
+	private static bool TryPlaceHalf(
+		GridMap wallGridMap, bool horizontal, float line, float min, int tileSize, (float A, float B) gap, Vector2I inward,
+		Func<int> getHalfWallItem, List<Aabb> wallBoxes)
+	{
+		float mid = min + tileSize / 2f;
+		if (gap.B - gap.A < tileSize / 4f || (gap.A < mid - Eps && gap.B > mid + Eps))
+		{
+			return false;
+		}
+
+		int item = getHalfWallItem();
+		Mesh mesh = item >= 0 ? wallGridMap.MeshLibrary?.GetItemMesh(item) : null;
+		if (mesh == null || Mathf.Abs(mesh.GetAabb().Size.X - tileSize / 2f) > Eps)
+		{
+			return false;
+		}
+
+		float target = gap.B <= mid + Eps ? min : mid;
+		foreach (int facing in (ReadOnlySpan<int>)[FacingInto(inward), FacingInto(-inward)])
+		{
+			int along = Mathf.RoundToInt(target - Along(FootprintWorld(mesh.GetAabb(), facing, Vector3I.Zero), horizontal).Min);
+			var cell = horizontal ? new Vector3I(along, 0, Mathf.RoundToInt(line)) : new Vector3I(Mathf.RoundToInt(line), 0, along);
+			if (wallGridMap.GetCellItem(cell) < 0)
+			{
+				Place(wallGridMap, cell, item, facing, wallBoxes);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/// <summary>One tile edge as its wall pieces cover it. <see cref="Item"/> is the edge's own piece at
+	/// <see cref="Cell"/> (a straight, or a half beside a corner), -1 where corner arms alone cover it.</summary>
+	public readonly record struct WallEdge(bool Covered, float Depth, int Item, Vector3I Cell);
+
+	/// <summary>
+	/// Measures the tile edge centered on <paramref name="edgeCell"/> from the pieces running along it: whether they seal
+	/// it, how far they reach from the wall line toward <paramref name="inward"/> (a corner by its arm, not its whole L),
+	/// and the edge's own piece. Walls crossing the edge's ends share only their thickness with it and do not count.
+	/// </summary>
+	public static WallEdge MeasureEdge(GridMap wallGridMap, Vector3I edgeCell, Vector2I inward, int tileSize)
+	{
+		bool horizontal = inward.X == 0;
+		var (line, min, max) = EdgeSpan(edgeCell, horizontal, tileSize);
+		var step = horizontal ? Vector3I.Right : Vector3I.Back;
+		var covering = new List<Aabb>();
+		float depth = 0;
+		var own = (Item: -1, Cell: Vector3I.Zero);
+		// Pieces on the edge sit on its line within a tile of its center; the center goes first.
+		for (int index = 0; index <= 2 * tileSize; index++)
+		{
+			var cell = edgeCell + step * ((index + 1) / 2 * (index % 2 == 0 ? -1 : 1));
+			int item = wallGridMap.GetCellItem(cell);
+			Mesh mesh = item >= 0 ? wallGridMap.MeshLibrary.GetItemMesh(item) : null;
+			if (mesh == null)
+			{
+				continue;
+			}
+
+			foreach (var box in Footprints(mesh.GetAabb(), wallGridMap.GetCellItemOrientation(cell), cell))
+			{
+				var (a, b) = Along(box, horizontal);
+				if (Mathf.Min(b, max) - Mathf.Max(a, min) <= tileSize / 4f)
+				{
+					continue;
+				}
+
+				covering.Add(box);
+				var (near, far) = Across(box, horizontal);
+				depth = Mathf.Max(depth, (horizontal ? inward.Y : inward.X) > 0 ? far - line : line - near);
+				if (own.Item < 0 && a >= min - Eps && b <= max + Eps)
+				{
+					own = (item, cell);
+				}
+			}
+		}
+
+		if (covering.Count == 0)
+		{
+			return new(false, .5f, -1, default);
+		}
+
+		return new(!TryGetUncoveredSpan(covering, horizontal, line, min, max, out _), depth, own.Item, own.Cell);
 	}
 
 	public static bool EdgeFullyCovered(List<Aabb> wallBoxes, bool horizontal, float lineCoord, float spanMin, float spanMax)
@@ -184,25 +277,26 @@ public static class WallFootprints
 	private static void PlaceWallCorners(
 		GridMap wallGridMap,
 		Dictionary<Vector2I, WallCornerEdges> cornerEdges,
-		Func<int> getCornerWallItem)
+		Func<int> getCornerWallItem,
+		List<Aabb> wallBoxes)
 	{
 		foreach (var (position, edges) in cornerEdges)
 		{
 			if (edges.HorizontalEast && edges.VerticalSouth)
 			{
-				PlaceWallCorner(wallGridMap, position, NorthWestCornerOrientation, getCornerWallItem);
+				PlaceWallCorner(wallGridMap, position, NorthWestCornerOrientation, getCornerWallItem, wallBoxes);
 			}
 			else if (edges.HorizontalWest && edges.VerticalSouth)
 			{
-				PlaceWallCorner(wallGridMap, position, NorthEastCornerOrientation, getCornerWallItem);
+				PlaceWallCorner(wallGridMap, position, NorthEastCornerOrientation, getCornerWallItem, wallBoxes);
 			}
 			else if (edges.HorizontalEast && edges.VerticalNorth)
 			{
-				PlaceWallCorner(wallGridMap, position, SouthWestCornerOrientation, getCornerWallItem);
+				PlaceWallCorner(wallGridMap, position, SouthWestCornerOrientation, getCornerWallItem, wallBoxes);
 			}
 			else if (edges.HorizontalWest && edges.VerticalNorth)
 			{
-				PlaceWallCorner(wallGridMap, position, SouthEastCornerOrientation, getCornerWallItem);
+				PlaceWallCorner(wallGridMap, position, SouthEastCornerOrientation, getCornerWallItem, wallBoxes);
 			}
 		}
 	}
@@ -211,7 +305,8 @@ public static class WallFootprints
 		GridMap wallGridMap,
 		Vector2I position,
 		int orientation,
-		Func<int> getCornerWallItem)
+		Func<int> getCornerWallItem,
+		List<Aabb> wallBoxes)
 	{
 		var cellPosition = new Vector3I(position.X, 0, position.Y);
 		if (wallGridMap.GetCellItem(cellPosition) < 0)
@@ -219,7 +314,7 @@ public static class WallFootprints
 			int cornerItem = getCornerWallItem();
 			if (cornerItem >= 0)
 			{
-				wallGridMap.SetCellItem(cellPosition, cornerItem, orientation);
+				Place(wallGridMap, cellPosition, cornerItem, orientation, wallBoxes);
 			}
 		}
 	}
@@ -233,9 +328,7 @@ public static class WallFootprints
 		Func<int> getHalfWallItem)
 	{
 		bool horizontal = wall.Orientation == HorizontalWallOrientation;
-		float lineCoord = horizontal ? wall.Position.Z : wall.Position.X;
-		float spanMin = (horizontal ? wall.Position.X : wall.Position.Z) - tileSize / 2f;
-		float spanMax = spanMin + tileSize;
+		var (lineCoord, spanMin, spanMax) = EdgeSpan(wall.Position, horizontal, tileSize);
 
 		for (int attempt = 0; attempt < tileSize; attempt++)
 		{
@@ -296,7 +389,6 @@ public static class WallFootprints
 		float bestOverlap = Eps;
 		Vector3I bestCell = default;
 		(int Item, int Orientation) bestCandidate = default;
-		Aabb bestFootprint = default;
 
 		int gapCenter = Mathf.RoundToInt((gap.A + gap.B) / 2f);
 		for (int offset = -tileSize / 2; offset <= tileSize / 2; offset++)
@@ -317,22 +409,19 @@ public static class WallFootprints
 				}
 
 				Aabb footprint = FootprintWorld(candidate.LocalAabb, candidate.Orientation, cell);
-				float perpMin = horizontal ? footprint.Position.Z : footprint.Position.X;
-				float perpMax = horizontal ? footprint.End.Z : footprint.End.X;
+				var (perpMin, perpMax) = Across(footprint, horizontal);
 				if (lineCoord < perpMin - Eps || lineCoord > perpMax + Eps)
 				{
 					continue;
 				}
 
-				float a = horizontal ? footprint.Position.X : footprint.Position.Z;
-				float b = horizontal ? footprint.End.X : footprint.End.Z;
+				var (a, b) = Along(footprint, horizontal);
 				float overlap = Mathf.Min(b, gap.B) - Mathf.Max(a, gap.A);
 				if (overlap > bestOverlap)
 				{
 					bestOverlap = overlap;
 					bestCell = cell;
 					bestCandidate = (candidate.Item, candidate.Orientation);
-					bestFootprint = footprint;
 				}
 			}
 		}
@@ -342,10 +431,52 @@ public static class WallFootprints
 			return false;
 		}
 
-		wallGridMap.SetCellItem(bestCell, bestCandidate.Item, bestCandidate.Orientation);
-		wallBoxes.Add(bestFootprint);
+		Place(wallGridMap, bestCell, bestCandidate.Item, bestCandidate.Orientation, wallBoxes);
 		return true;
 	}
+
+	/// <summary>Sets a piece into the grid and records its footprints for the coverage checks that follow.</summary>
+	private static void Place(GridMap wallGridMap, Vector3I cell, int item, int orientation, List<Aabb> wallBoxes)
+	{
+		wallGridMap.SetCellItem(cell, item, orientation);
+		if (wallGridMap.MeshLibrary?.GetItemMesh(item) is { } mesh)
+		{
+			wallBoxes.AddRange(Footprints(mesh.GetAabb(), orientation, cell));
+		}
+	}
+
+	/// <summary>
+	/// World XZ boxes of a piece at <paramref name="cell"/>: its footprint, or for an L-shaped corner (at least half a
+	/// tile deep along both axes) its two arms, each as thick as its wall, so the inside of the L stays open.
+	/// </summary>
+	private static IEnumerable<Aabb> Footprints(Aabb local, int orientation, Vector3I cell)
+	{
+		var footprint = FootprintWorld(local, orientation, cell);
+		if (footprint.Size.X < Room.TileSize / 2f || footprint.Size.Z < Room.TileSize / 2f)
+		{
+			yield return footprint;
+			yield break;
+		}
+
+		float halfDepthZ = Mathf.Min(cell.Z - footprint.Position.Z, footprint.End.Z - cell.Z);
+		float halfDepthX = Mathf.Min(cell.X - footprint.Position.X, footprint.End.X - cell.X);
+		yield return new Aabb(new Vector3(footprint.Position.X, footprint.Position.Y, cell.Z - halfDepthZ), new Vector3(footprint.Size.X, footprint.Size.Y, 2 * halfDepthZ));
+		yield return new Aabb(new Vector3(cell.X - halfDepthX, footprint.Position.Y, footprint.Position.Z), new Vector3(2 * halfDepthX, footprint.Size.Y, footprint.Size.Z));
+	}
+
+	/// <summary>The wall line of the tile edge centered on <paramref name="edgeCell"/> and the edge's extent along it.</summary>
+	private static (float Line, float Min, float Max) EdgeSpan(Vector3I edgeCell, bool horizontal, int tileSize)
+	{
+		float center = horizontal ? edgeCell.X : edgeCell.Z;
+		return (horizontal ? edgeCell.Z : edgeCell.X, center - tileSize / 2f, center + tileSize / 2f);
+	}
+
+	/// <summary>A box's extent along a horizontal (X) or vertical (Z) wall line.</summary>
+	private static (float Min, float Max) Along(Aabb box, bool horizontal) =>
+		horizontal ? (box.Position.X, box.End.X) : (box.Position.Z, box.End.Z);
+
+	/// <summary>A box's extent across a wall line.</summary>
+	private static (float Min, float Max) Across(Aabb box, bool horizontal) => Along(box, !horizontal);
 
 	/// <summary>
 	/// World XZ footprint of a wall cell. Wall pieces use only the upright Y-rotation
@@ -370,7 +501,7 @@ public static class WallFootprints
 
 	/// <summary>
 	/// World-space XZ footprints of every piece currently in a wall GridMap, from each
-	/// piece's actual mesh AABB + orientation.
+	/// piece's actual mesh AABB + orientation; corners count as their two arms (see <see cref="Footprints"/>).
 	/// </summary>
 	public static List<Aabb> Collect(GridMap wallGridMap)
 	{
@@ -395,7 +526,7 @@ public static class WallFootprints
 				continue;
 			}
 
-			boxes.Add(FootprintWorld(mesh.GetAabb(), wallGridMap.GetCellItemOrientation(cell), cell));
+			boxes.AddRange(Footprints(mesh.GetAabb(), wallGridMap.GetCellItemOrientation(cell), cell));
 		}
 
 		return boxes;
@@ -464,15 +595,13 @@ public static class WallFootprints
 		var intervals = new List<(float A, float B)>();
 		foreach (Aabb box in wallBoxes)
 		{
-			float perpMin = horizontal ? box.Position.Z : box.Position.X;
-			float perpMax = horizontal ? box.End.Z : box.End.X;
+			var (perpMin, perpMax) = Across(box, horizontal);
 			if (lineCoord < perpMin - Eps || lineCoord > perpMax + Eps)
 			{
 				continue;
 			}
 
-			float a = horizontal ? box.Position.X : box.Position.Z;
-			float b = horizontal ? box.End.X : box.End.Z;
+			var (a, b) = Along(box, horizontal);
 			a = Mathf.Max(a, spanMin);
 			b = Mathf.Min(b, spanMax);
 			if (b > a)
