@@ -14,7 +14,7 @@ import inspect
 from prefabs import library
 from prefabs.anatomy import appendages, bodies, extremities, faces, heads, limbs
 from prefabs.creatures import characters, golems
-from prefabs.details import fasteners, trophies, wear, construction, heraldry, primal, fur
+from prefabs.details import fasteners, trophies, wear, construction, heraldry, primal, fur, hilts
 from prefabs.items import props, shields, weapons
 from prefabs.outfits import armor, belts, capes, clothes, costumes, crowns, cuirass, helmets, pauldrons
 
@@ -51,6 +51,7 @@ def get_schema():
         "fasteners": {name: _sig_params(fn) for name, fn in fasteners.FASTENERS.items()},
         "trophies": {name: _sig_params(fn) for name, fn in trophies.TROPHIES.items()},
         "wear": {name: _sig_params(fn) for name, fn in wear.WEAR.items()},
+        "hilts": {name: _sig_params(fn) for name, fn in hilts.HILTS.items()},
     }
 
     return {

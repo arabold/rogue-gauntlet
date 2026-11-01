@@ -1,13 +1,13 @@
 {
   "key": "weapons/hammer_mallet",
-  "inputs": "a093e0b7f753023074773a67bb2041c55961782f6cbf2b6fe8d9d93a79f4416b",
+  "inputs": "1f4d0b7627ce2fb16eb60d8f249385208d4940a09ade11390365998617519109",
   "files": {
-    "hammer_mallet.glb": "6c3941e2ecf26f654d2a164f539f5c22237d03100da0652fe57ab0f30aab733d",
-    "lineup.png": "cc6c8d1f446eb6ec00a5f6bcde69f915be03ae0c425b5da04f8023000f47daf8"
+    "hammer_mallet.glb": "d40aa8333fd72a452ac422634c7c4744302a45fb8a5a6f725c4457cf304302ec",
+    "lineup.png": "624fa2cc96f96242e1547edb9e2507c7d1d562a0954c524baef829af89a4bb49"
   },
   "metadata": {
     "report": {
-      "triangles": 712,
+      "triangles": 848,
       "bounds": [
         [
           -0.33000001311302185,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.06988692000252562
+        "signed_volume": 0.07139755166870809
       },
       "warnings": [],
       "errors": []

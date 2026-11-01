@@ -9,7 +9,8 @@ import numpy as np
 import manifold3d as mf
 from core import kit
 from prefabs import library
-from items.forge import Haft, collar, tube, crystal, branch, spiral, butt_cap, dispatch
+from prefabs.details import hilts
+from items.forge import Haft, collar, tube, crystal, branch, spiral, dispatch
 from items.solid import Assembly, ellipsoid
 
 STAFF = [(0, -.94, .048), (0, -.90, .062), (0, -.40, .060), (0, .40, .058), (0, 1.00, .056), (0, 1.06, .045)]
@@ -41,7 +42,7 @@ def archmage():
     a.add(collar((0, 0, 0), (0, 1, 0), .076, .40, 'cloth', .012))
     for y in (-.22, .22, -.62, .62):
         haft.band(y, .05, 'gold', .02)
-    butt_cap(a, haft)
+    haft.knob(hilts.gem_cap)
     a.add(collar((0, 1.04, 0), (0, 1, 0), .09, .12, 'gold'))
     claws(a, 1.06, 1.66, .22, 4, .04, 'gold', 45)
     a.add(crystal((0, 1.28, 0), .16, .50, 'crystal'))
@@ -52,8 +53,7 @@ def emerald():
     """Tier-three emerald staff: a gold crescent cradling a green crystal, leather wraps."""
     a = Assembly()
     haft = Haft(a, STAFF)
-    for y in (-.06, .06):
-        haft.band(y, .07, 'leather', .016)
+    haft.wraps(-.14, .14)
     a.add(collar((0, 1.04, 0), (0, 1, 0), .085, .10, 'gold'))
     crescent(a, 1.06, .24, .07, 'gold')
     a.add(crystal((0, 1.26, 0), .13, .40, 'emerald'))
@@ -93,8 +93,7 @@ def horned():
     """Tier-four horned staff: a carved head block sprouting two chunky ram horns, brass fittings."""
     a = Assembly()
     haft = Haft(a, STAFF)
-    for y in (-.06, .06):
-        haft.band(y, .07, 'leather', .016)
+    haft.wraps(-.14, .14)
     for y in (-.66, .56):
         haft.band(y, .06, 'brass', .02)
     a.add(collar((0, 1.16, 0), (0, 1, 0), .13, .28, 'wood'))
@@ -150,7 +149,7 @@ def celestial_wand():
     a = Assembly()
     haft = Haft(a, WAND)
     a.add(collar((0, -.09, 0), (0, 1, 0), .068, .26, 'cloth', .012))
-    butt_cap(a, haft)
+    haft.knob(hilts.gem_cap)
     a.add(collar((0, .62, 0), (0, 1, 0), .062, .08, 'gold'))
     claws(a, .64, .94, .11, 3, .024, 'gold', 90)
     a.add(crystal((0, .74, 0), .075, .26, 'crystal'))
@@ -189,7 +188,7 @@ def ruby_wand():
     a = Assembly()
     haft = Haft(a, WAND)
     a.add(collar((0, -.09, 0), (0, 1, 0), .066, .26, 'leather', .012))
-    butt_cap(a, haft)
+    haft.knob(hilts.gem_cap)
     a.add(tube([(0, .58, 0), (0, .60, 0), (0, .68, 0), (0, .74, 0)], [.04, .055, .085, .095], 'gold', 8))
     a.add(crystal((0, .80, 0), .09, .26, 'gem'))
     return a.build()

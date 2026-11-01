@@ -1,13 +1,13 @@
 {
   "key": "weapons/battleaxe_gilded",
-  "inputs": "eb4d7871e64c220c786bd41a5cb166fe7f6ea484931af676a2881ddc31ccdd05",
+  "inputs": "6399a0d3cdf836d244cb6a601352ef0a5351e1571023cb1917bb4e742d896ad6",
   "files": {
-    "battleaxe_gilded.glb": "ade07d14ed0e1a2c1799de3cd20f9862fdbea59364119ed2d520dc6c291f5bb4",
-    "lineup.png": "5c86942b10950611a4af2927bd4bc92ff81a44a4d61867eee99fd44284c761ef"
+    "battleaxe_gilded.glb": "284b0c056dbae3f04d4c5257513ce3f91950683adcd4834c3efcb8f07342f14b",
+    "lineup.png": "8087cca69b0315b3db87bc18fc24838a94477880252235bcc0142eb3c4a96100"
   },
   "metadata": {
     "report": {
-      "triangles": 1280,
+      "triangles": 1282,
       "bounds": [
         [
           -0.75,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.1279840121762826
+        "signed_volume": 0.1279840122761142
       },
       "warnings": [],
       "errors": []

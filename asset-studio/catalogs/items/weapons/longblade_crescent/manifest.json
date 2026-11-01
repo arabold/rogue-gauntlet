@@ -1,29 +1,29 @@
 {
   "key": "weapons/longblade_crescent",
-  "inputs": "6b8dca6db104be0f072fc27095043ede00a9877d93300ffa767ca6ace43280c6",
+  "inputs": "6e8c8737ae86e955a021b77b1aa8363ce0e6e1e1ae7af8d66119a6c582bcb19b",
   "files": {
-    "longblade_crescent.glb": "e13018ebb1cb5ca019442be8273f1e96a4223ef74074ddc5f9cd14c58ae514c6",
-    "lineup.png": "a51b5c163855a9c82e1ce267583c5c5edb3e07b761c1a8c01dc8919432469e28"
+    "longblade_crescent.glb": "9201ce3090a61f4fbc4be0bf731ed4f79452560493090c10f20dfeaf832bde4e",
+    "lineup.png": "1aa7464f91728a2452f74f990a2c08055caa2a0cee2cbcf3a4dff665b77c2a61"
   },
   "metadata": {
     "report": {
-      "triangles": 822,
+      "triangles": 1022,
       "bounds": [
         [
           -0.3475579023361206,
           -0.5577685832977295,
-          -0.07565125077962875
+          -0.08279874920845032
         ],
         [
           0.3475579023361206,
           2.0399999618530273,
-          0.07565125077962875
+          0.08279874920845032
         ]
       ],
       "dimensions": [
         0.6951158046722412,
         2.597768545150757,
-        0.1513025015592575
+        0.16559749841690063
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.027544963874398993
+        "signed_volume": 0.030103791457347966
       },
       "warnings": [],
       "errors": []

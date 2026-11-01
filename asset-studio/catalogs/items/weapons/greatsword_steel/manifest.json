@@ -1,27 +1,27 @@
 {
   "key": "weapons/greatsword_steel",
-  "inputs": "b67f6e1b479c5f02012d2b72f264337bfdca3b6258cad9f268428e805ea33193",
+  "inputs": "a3433bf682a305697d8202bb5c84161fe873b495003e26fc12646a80637b933d",
   "files": {
-    "greatsword_steel.glb": "ea3e3ec9923ad30924765fdbdd5726bca6729b3af2fb4e1fc7cc3f0d5256badd",
-    "lineup.png": "630e8351ac118d4a2999f54621ac8c1743656c8ffb8128c08e0ff3ca6055d811"
+    "greatsword_steel.glb": "71064a7960db6407c91a86a102fa5812ab6db66cbc13a00caabd1d723f604e15",
+    "lineup.png": "9c7b66175baa18401f01110806e83eec7c0994d2b3ad5c9bff327c9f7ee09132"
   },
   "metadata": {
     "report": {
-      "triangles": 740,
+      "triangles": 668,
       "bounds": [
         [
-          -0.4446715712547302,
+          -0.41736575961112976,
           -0.5423879623413086,
           -0.07855570316314697
         ],
         [
-          0.4446715712547302,
+          0.41736575961112976,
           2.0,
           0.07855570316314697
         ]
       ],
       "dimensions": [
-        0.8893431425094604,
+        0.8347315192222595,
         2.5423879623413086,
         0.15711140632629395
       ],
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.053114822313343725
+        "signed_volume": 0.045758782066579295
       },
       "warnings": [],
       "errors": []

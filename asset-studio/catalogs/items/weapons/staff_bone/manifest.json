@@ -1,9 +1,9 @@
 {
   "key": "weapons/staff_bone",
-  "inputs": "ff6ec7f6a3d6f9fdb72a5ed91ae12222b7fdeb702f02ccb09747848c4ce7306a",
+  "inputs": "d45c9d0d9bd925b4665ca97e05166f0a98d0ce3d456744d80f39dae18e9c529c",
   "files": {
-    "staff_bone.glb": "9d3bfdf161fa3b006ab581b3c41e2db686f0ccf29245dd69cb1cbcb63b7bc4e1",
-    "lineup.png": "d36fe1f2d54cc10494ef641f764bc0157fd5b422cbf8c0d1b346bfc763fccc92"
+    "staff_bone.glb": "de9abbf986df51af52151e5fd1418362a1b154ec3ac9ba2a81df59a238d4d5bb",
+    "lineup.png": "afca9f79171563a323fdaccb5eb28cd37e66f732a3e86642a2c6e187832b1406"
   },
   "metadata": {
     "report": {

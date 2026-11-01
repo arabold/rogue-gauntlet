@@ -1,9 +1,9 @@
 {
   "key": "weapons/wand_iron",
-  "inputs": "6e6383129fabbce1a86fedd681d147f99846252749017f3e7a6eaeb64966dc4b",
+  "inputs": "8649982e288d77c064d7db82b0b15600f1972972a23ec3368a803be63c46e503",
   "files": {
-    "wand_iron.glb": "f1e8da94200cc1a87804fbf96cd0175006da557b398aca0dc572f1513df470c7",
-    "lineup.png": "c5aa02b62c519ca31510718da8561aeba8f7e68113d9cb01026f258396e4f6df"
+    "wand_iron.glb": "0d63821548419341c0cb56bde4c322037d4f0f9dc966369a6624a6715f57b911",
+    "lineup.png": "46576fc4a886d6d7f751d881c568e3bd3cb66eefbffdc80e9a3a1ac6f3c10150"
   },
   "metadata": {
     "report": {

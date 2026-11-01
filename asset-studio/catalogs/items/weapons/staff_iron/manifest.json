@@ -1,9 +1,9 @@
 {
   "key": "weapons/staff_iron",
-  "inputs": "53903939275475f09151865de32801d4f96985819864ce05f5ecaf9917967c54",
+  "inputs": "c50014d0c91ba9f21214574d727af5af5d813f2b5b4e6cd221fa4ab1c4c91209",
   "files": {
-    "staff_iron.glb": "6024265965e3aeae6c9585f5835085c91ce410203ff67c766dcf0da963bdb68e",
-    "lineup.png": "4b5f479f4acccbe69b4cbdaf901a43821508b5f8456c6aebf7542b1ec7e8b7af"
+    "staff_iron.glb": "57e4b58fde3c7eed01179fe3a71467bde5436ec104246f67c9fbbdfadb42d9f9",
+    "lineup.png": "eed0a42dd57e8d4a0705d39b87999f90810a8b5dc946bb7ae121a402d24d41bd"
   },
   "metadata": {
     "report": {

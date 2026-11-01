@@ -1,9 +1,9 @@
 {
   "key": "weapons/greatsword_wooden",
-  "inputs": "26a11d197e9ca2537d4f528ca5354b7e99d511608894d526ddbeb6caca9e4c64",
+  "inputs": "efaddc51f6dd014ad6c489bc4ad06a1614e63e1538ef6dd3318c06f95273fa1d",
   "files": {
-    "greatsword_wooden.glb": "915c99f5ec7ea6ca26c3563dd994360c8b47c32bb175c52a1cf6768c1a5b9db2",
-    "lineup.png": "220930eeb102cfeda66b09daa771bc5fe0108b49db91ee19ad8c75e67fbdcf80"
+    "greatsword_wooden.glb": "7d6b367abbbe4bc0769c911e4bcda9906ee7916eee0866c32dea681859da833c",
+    "lineup.png": "7560e94ad5f3a77c4afa5dad8cd173acaa28a3e92a6f56526123897952fc2860"
   },
   "metadata": {
     "report": {
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.03650769764908398
+        "signed_volume": 0.036507697681259735
       },
       "warnings": [],
       "errors": []

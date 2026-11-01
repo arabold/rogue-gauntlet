@@ -1,0 +1,74 @@
+{
+  "key": "weapons/sword_flame",
+  "inputs": "e6874cfd9ddad91b1f642102cd420dca60e2e51f40ca22a96b130cd36d6077b3",
+  "files": {
+    "sword_flame.glb": "55a268351160c5859ac8ed48486274d7f3cc2f107f8f9a5fa135c64ef9b1f799",
+    "lineup.png": "1ce8bac3d119595ba8fab15e5399a02b518a183ce83507e5bd8954b48273fb2f"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1140,
+      "bounds": [
+        [
+          -0.27000001072883606,
+          -0.3585297465324402,
+          -0.07800000160932541
+        ],
+        [
+          0.27000001072883606,
+          1.4800000190734863,
+          0.07800000160932541
+        ]
+      ],
+      "dimensions": [
+        0.5400000214576721,
+        1.8385297656059265,
+        0.15600000321865082
+      ],
+      "materials": 4,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.04182176249437681
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Sword Flame",
+      "backend": "procedural",
+      "builder": "blade",
+      "design": {
+        "kind": "flame"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/sword/sword_flame.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style elemental weapon per objects/weapons/README.md, built from items/forge.py: the element is shape, color and glow only. Grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

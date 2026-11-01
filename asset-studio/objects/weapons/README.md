@@ -21,8 +21,9 @@ KayKit grips are about 8–10% of a weapon's length.
 
 - Keep it thick: 0.10–0.12 for one-handed weapons and 0.13–0.16 for two-handed ones. Sword and dagger grips are just as chunky, 0.11–0.13, which plays up KayKit's comically big weapons. Pommels and guards stay at least as deep as the grip they hold. Taper it slightly toward the head and flare or cap the butt. A gentle bend reads as hand-made.
 - Use eight sides. The flat facets catch the palette gradient like KayKit's hafts do.
-- Use one to three chunky bands, 0.06–0.10 tall and 0.015–0.02 proud, or two or three diagonal straps. Never a full-length spiral wrap or fine ring grooves.
-- End in a wooden knob, a chunky octagonal cap or, for rare tiers, a metal cap with a gem. Spikes are not part of the language.
+- Wrap the grip zone in a stack of bulging rope turns, wider than the bare haft, as KayKit's Fantasy Weapons Bits do. Accent with one or two chunky bands (0.06–0.10 tall, 0.015–0.02 proud), riveted metal strap bands, or two or three diagonal leather straps. Never a full-length spiral wrap or fine ring grooves.
+- End in a chunky knob: a pointed metal cap on axes, mauls and polearms, a flared wooden knob, a disc, ring or ball pommel, or, for rare tiers, a metal cap with a gem. Apart from these caps, a maul's studs and a morning star, spikes are not part of the language.
+- Bind plain axe sockets with a rope X across both faces, and hang a feather tuft under spear and halberd heads.
 
 ## Head and blade
 
@@ -38,7 +39,7 @@ KayKit grips are about 8–10% of a weapon's length.
 
 ## Aging
 
-- Wear lives in the silhouette: V-chips bitten out of cutting edges, a clipped corner, an uneven double bit. Cut faces show bright metal.
+- Wear lives in the silhouette: V-chips bitten out of cutting edges, rows of small comb notches, a clipped corner, an uneven double bit. Cut faces show bright metal.
 - Scale wear inversely with tier. Plain low-tier weapons carry the most chips, and rare ones at most a small nick.
 - No noise textures, painted scratches or dirt decals.
 
@@ -46,9 +47,13 @@ KayKit grips are about 8–10% of a weapon's length.
 
 - Shading comes from the palette gradient. Metals stay nearly matte (metallic 0.1, roughness 0.55); wood, leather and cloth are fully matte. Strong metallic values read as chrome next to KayKit art.
 - Keep the palette small: steel with its edge, wood, one wrap color, and optional gold with a gem.
+- Magic stones glow: crystals, emeralds and moonstones are emissive; gems set in gold stay plain. In the game, every emissive weapon's scene also carries a `GlowLight` (a `FlickerLight`) at its glow source, tinted to match and short-ranged. Fire flickers with the `flame` preset and lightning with `charged`; stones glow steadily.
+- Elemental weapons show their element in shape, color and glow only; they deal ordinary damage. Fire is a blade of chunky flame tongues, orange round a yellow core; water is ice crusting a steel blade, with shards jutting up and out; earth is a rough-hewn stone head with a glowing carved glyph; air is zig-zag lightning prongs. Flame and lightning always glow, while ice and stone stay unlit.
 - A tier changes form as well as color. Rare weapons add gold cheek plates, gems, a lighter wrap and a capped butt.
 
 ## Construction
+
+Knobs and handles are registered prefabs in `prefabs/details/hilts.py` (see `studio.py schema details` and the details prefab catalog): disc, ring and ball pommels, spiked, flared and gem caps, rope wraps, straps, riveted bands, rope crosses and feather tufts. Each is built round the Y axis and sized from the haft radius it fits; `Haft.wraps`, `Haft.band`, `Haft.fit` and `Haft.knob` place them.
 
 `items/forge.py` holds the shared vocabulary: octagonal hafts and grips, bands and collars, bevelled `Blade` slabs with chip wear, chamfered plates, discs, rings, studs, tubes, crystals, gems and gnarled branches. One builder per family composes weapons from it: `axe` (`items/axes.py`), `blade` (swords and daggers, `items/blades.py`), `blunt` (hammers, maces, mauls and clubs, `items/blunt.py`), `polearm` (`items/polearms.py`), `staff` (staffs and wands, `items/staves.py`) and `ranged` (crossbows, `items/ranged.py`). Recipes choose a `kind`, and each kind authors its wear to suit its tier. Every weapon recipe starts from the forge's shared palette (`COLORS`, `MATERIALS`) and lists only the slots it changes. Shaded metals carry explicit (light, shadow, base) ramps there, because the atlas's default metal ramp washes up-facing bevels to white.
 

@@ -1,13 +1,13 @@
 {
   "key": "weapons/claymore_iron",
-  "inputs": "1d8c2f52ea5931d7839e504c4703c7bac1bef2cd5139a9b5dda82f56dfca7620",
+  "inputs": "39dffa0c8bdc8ad2c48f2fa7acfdf9b7c746b02a52e5946b61fad6f5f15bf62f",
   "files": {
-    "claymore_iron.glb": "c1434ab32b5a2827538136eb9cf453b5869a223ce78f97275bc9c1c5576ccce8",
-    "lineup.png": "0173342cd8abcd0bc744da8aa8139fb8b5b0fbceea65b3c27dfc3d81c859462f"
+    "claymore_iron.glb": "71506d53c180613641bacd1e52033bf4a9c002744a299510eb2e55ba1e466f63",
+    "lineup.png": "be3938211ff2a113e34eaab57ed427248bbf812dcf9a5fa9528998eb9c498416"
   },
   "metadata": {
     "report": {
-      "triangles": 670,
+      "triangles": 658,
       "bounds": [
         [
           -0.4399999976158142,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.056841461080094635
+        "signed_volume": 0.05684146103382067
       },
       "warnings": [],
       "errors": []

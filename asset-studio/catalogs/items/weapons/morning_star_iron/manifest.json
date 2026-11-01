@@ -1,17 +1,17 @@
 {
   "key": "weapons/morning_star_iron",
-  "inputs": "0b655f329dc6679d45b4507a151100fe4f88dc639bce28d8890343467d7be62a",
+  "inputs": "42af5a0b896730298bf003a5648e146ca35825bc81752aa314f5eedf92ce1fe3",
   "files": {
-    "morning_star_iron.glb": "4fb3278b4e2c5f1ba28c8558c6f889f69ff50e7d53804db4a2690426b3666b9a",
-    "lineup.png": "4cfe4ebb6eeb653b22eedc6da81668906472a8b38828cfbc74e2491665682bf0"
+    "morning_star_iron.glb": "223639e2fa8570dc6781e4b96b52cf6a7c8aeaf899abd96ee3f27ad89c06709e",
+    "lineup.png": "085104efd983cb3ade1de3af9acd7715fe46b0b2692479fedd75d91d919485ee"
   },
   "metadata": {
     "report": {
-      "triangles": 1054,
+      "triangles": 1174,
       "bounds": [
         [
           -0.30510231852531433,
-          -0.3043781518936157,
+          -0.4000000059604645,
           -0.2749658524990082
         ],
         [
@@ -22,7 +22,7 @@
       ],
       "dimensions": [
         0.5783499479293823,
-        1.537711501121521,
+        1.6333333551883698,
         0.5829197764396667
       ],
       "materials": 2,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.03826948231474867
+        "signed_volume": 0.04114202059879722
       },
       "warnings": [],
       "errors": []

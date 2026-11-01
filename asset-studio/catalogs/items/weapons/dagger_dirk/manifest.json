@@ -1,13 +1,13 @@
 {
   "key": "weapons/dagger_dirk",
-  "inputs": "e1af4c7624f3f0310e5bc335587e6ec6f7c491d1bb73b7c7015c04f555d6acfb",
+  "inputs": "dfc74fe215ed756b1a04d4988e1537230dff6fe72aef58a4327163b802d1abbe",
   "files": {
-    "dagger_dirk.glb": "4c7ae69295716c1d7a53982b65b7f8c1bfd02262b2c0b5de399d7549e57da598",
-    "lineup.png": "8dd10508c0a77227c45d8856d5b4787306d88212c8f9ad7be3eb1df507112bb1"
+    "dagger_dirk.glb": "f18d670d93bb50bdd1fcbfaa4fc8914f699e9076de416bfaa72803a513f21d6b",
+    "lineup.png": "bd9c81a0d482079b4dd7ac8aacc9b7abd3c225198de7edc3e29fa4864dd8ea34"
   },
   "metadata": {
     "report": {
-      "triangles": 344,
+      "triangles": 338,
       "bounds": [
         [
           -0.18000000715255737,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.014554628142459452
+        "signed_volume": 0.0145546281349793
       },
       "warnings": [],
       "errors": []

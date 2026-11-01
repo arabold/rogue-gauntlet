@@ -68,7 +68,7 @@ These rows describe each definition's intended role and depth gate. Inspect the 
 for exact stats, timing, price, model, and effects. Repeated family IDs are deliberate visual or
 potency variants. Empty family IDs mean the item has no hidden type-wide identity.
 
-### Weapons (76)
+### Weapons (80)
 
 | Definition | Family / role | Depth |
 | --- | --- | --- |
@@ -119,6 +119,7 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Steel Halberd](../scenes/items/weapons/polearm/halberd_steel.tres) | `tier 3` | 10–18 |
 | [Iron War Scythe](../scenes/items/weapons/polearm/scythe_iron.tres) | `tier 3` | 10–18 |
 | [Steel Spear](../scenes/items/weapons/polearm/spear_steel.tres) | `tier 2` | 4–12 |
+| [Storm Trident](../scenes/items/weapons/polearm/trident_storm.tres) | `tier 5` | 19+ |
 | [Saber](../scenes/items/weapons/saber_skeleton.tres) | `tier 2` | 4–12 |
 | [Shortsword](../scenes/items/weapons/shortsword_common.tres) | `tier 1` | 1–6 |
 | [Archmage Astral Staff](../scenes/items/weapons/staff/staff_archmage.tres) | `tier 5` | 19+ |
@@ -133,6 +134,8 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Ash Staff](../scenes/items/weapons/staff_uncommon.tres) | `tier 2` | 4–12 |
 | [Steel Rapier](../scenes/items/weapons/sword/rapier_steel.tres) | `tier 2` | 4–12 |
 | [Steel Saber](../scenes/items/weapons/sword/saber_steel.tres) | `tier 2` | 4–12 |
+| [Flame Sword](../scenes/items/weapons/sword/sword_flame.tres) | `tier 5` | 19+ |
+| [Frost Blade](../scenes/items/weapons/sword/sword_frost.tres) | `tier 4` | 16–21 |
 | [Knightly Broadblade](../scenes/items/weapons/sword/sword_knight.tres) | `tier 3` | 10–18 |
 | [Gilded Sunblade](../scenes/items/weapons/sword/sword_sunblade.tres) | `tier 5` | 19+ |
 | [Longsword](../scenes/items/weapons/sword_common.tres) | `tier 2` | 4–12 |
@@ -147,6 +150,7 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Warhammer](../scenes/items/weapons/warhammer.tres) | `tier 4` | 16–21 |
 | [Heavy Sledge](../scenes/items/weapons/warhammer/warhammer_sledge.tres) | `tier 2` | 4–12 |
 | [Spiked Maul](../scenes/items/weapons/warhammer/warhammer_spiked.tres) | `tier 3` | 10–18 |
+| [Stone Maul](../scenes/items/weapons/warhammer/warhammer_stone.tres) | `tier 4` | 16–21 |
 | [Gilded Warhammer](../scenes/items/weapons/warhammer_gold.tres) | `tier 5` | 19+ |
 
 ### Armor (28)

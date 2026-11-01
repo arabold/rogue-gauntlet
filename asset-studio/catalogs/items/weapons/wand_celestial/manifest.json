@@ -1,9 +1,9 @@
 {
   "key": "weapons/wand_celestial",
-  "inputs": "73cf9c28d900de343104b3632a1ae23aefe3805e4172afb3578bb035869251d2",
+  "inputs": "0822c812b77afe019da750a7fa3712b9972ff00277270a5a71b62961363b7781",
   "files": {
-    "wand_celestial.glb": "046ac31d9d72e9abbc3a36b8d23b6be5b3d8596859d61794ef20c8fd150480ca",
-    "lineup.png": "f1a6eceab7c5071231a46ad8ef379539947497d0a422d9b6c5270e68d6c6157c"
+    "wand_celestial.glb": "2c7d1e295a8dd833bed53a3f904f3fe9fc4464bca86eebebcd3ae9c350820651",
+    "lineup.png": "4d05a86d3d3752c814def73450660cb7a692d2cb94e3e230db4ce4825b489afb"
   },
   "metadata": {
     "report": {
@@ -25,7 +25,7 @@
         1.2424023151397705,
         0.20640210062265396
       ],
-      "materials": 3,
+      "materials": 4,
       "textures": [
         [
           128,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.010825139755720721
+        "signed_volume": 0.0108251397571338
       },
       "warnings": [],
       "errors": []

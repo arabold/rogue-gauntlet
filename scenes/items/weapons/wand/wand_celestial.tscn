@@ -1,7 +1,16 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="PackedScene" path="res://assets/custom-items/weapons/wand/wand_celestial.glb" id="1_glb"]
+[ext_resource type="Script" uid="uid://b057bpmpc54l5" path="res://scenes/effects/FlickerLight.cs" id="glow_light"]
 
 [node name="WandCelestial" type="Node3D"]
 
 [node name="wand_celestial" parent="." instance=ExtResource("1_glb")]
+
+[node name="GlowLight" type="OmniLight3D" parent="."]
+position = Vector3(0, 0.78, 0)
+light_color = Color(0.4, 0.72, 1.0, 1)
+light_specular = 0.0
+omni_range = 2.0
+script = ExtResource("glow_light")
+Energy = 0.8

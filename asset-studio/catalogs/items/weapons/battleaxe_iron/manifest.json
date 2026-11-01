@@ -1,29 +1,29 @@
 {
   "key": "weapons/battleaxe_iron",
-  "inputs": "3e62359e17c913e858fe7a8182bdaee7a1597196b67effdeeb93c9f0a3195229",
+  "inputs": "f03093bfbf3d6445e3ea310f70391e328583193ae362a6bf084a71272cc4b0fc",
   "files": {
-    "battleaxe_iron.glb": "992052f9cf0b75f5e704260983f860167678661d4c2a0c0babe14165044971b2",
-    "lineup.png": "c0e4964e771c16700f3ccebc2a77c21506f0ff2637e9a31067ebc594218be26e"
+    "battleaxe_iron.glb": "0931cda89a702177ad1f9d5bfa2db15bcaf4329663aa44a7be08a16460e1b3cb",
+    "lineup.png": "c12bbdd16acefab4dc16e69d87451f45973b9d440f20914250a69112dc553b9f"
   },
   "metadata": {
     "report": {
-      "triangles": 930,
+      "triangles": 1546,
       "bounds": [
         [
           -0.7200000286102295,
-          -0.460263192653656,
-          -0.11574999988079071
+          -0.6150000095367432,
+          -0.11230000108480453
         ],
         [
           0.7200000286102295,
           1.4700000286102295,
-          0.11574999988079071
+          0.11230000108480453
         ]
       ],
       "dimensions": [
         1.440000057220459,
-        1.9302632212638855,
-        0.23149999976158142
+        2.0850000381469727,
+        0.22460000216960907
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.10766481262096494
+        "signed_volume": 0.11178590706882265
       },
       "warnings": [],
       "errors": []
@@ -82,11 +82,6 @@
           112,
           84,
           70
-        ],
-        "leather": [
-          178,
-          96,
-          64
         ]
       },
       "materials": {

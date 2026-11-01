@@ -1,0 +1,74 @@
+{
+  "key": "weapons/sword_frost",
+  "inputs": "0d72e1b6bff4242badb009e787e539f9e120416f4e9c19d95f8e593fd385ce49",
+  "files": {
+    "sword_frost.glb": "ee684358898f423a4dde59195ef85efcd85adab384363460a4cb6a27ca5f2f73",
+    "lineup.png": "ecb268fe33879740384d33c52c0772789787b3eaf66ff9409bd6194401763774"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1192,
+      "bounds": [
+        [
+          -0.24624763429164886,
+          -0.3439103662967682,
+          -0.15886621177196503
+        ],
+        [
+          0.2779880166053772,
+          1.440000057220459,
+          0.15886621177196503
+        ]
+      ],
+      "dimensions": [
+        0.5242356508970261,
+        1.7839104235172272,
+        0.31773242354393005
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.037892848126914104
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Sword Frost",
+      "backend": "procedural",
+      "builder": "blade",
+      "design": {
+        "kind": "frost"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/sword/sword_frost.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style elemental weapon per objects/weapons/README.md, built from items/forge.py: the element is shape, color and glow only. Grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}

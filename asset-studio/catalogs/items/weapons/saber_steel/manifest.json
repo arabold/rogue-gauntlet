@@ -1,13 +1,13 @@
 {
   "key": "weapons/saber_steel",
-  "inputs": "425348cdbcbfdfb15af8e7c83291b806224f84ce54db40a78e4d09fa0c5a02c1",
+  "inputs": "34b4f94e2cf9dd620b45b5c47761f7609164436540ff23145b6bf0a96b271804",
   "files": {
-    "saber_steel.glb": "c4f27aa5f8cdccfd8db0acb1e9e3309fd568887bd4b10a34a1986121c02c4179",
-    "lineup.png": "f664464eb5e111f3011e74905e404b32cafd15ba299632299bbdf2d4bdb4d9e0"
+    "saber_steel.glb": "b5338a9a9258c469ead025c9853f660726e0700e24b33bcb803b2a2c471b54b9",
+    "lineup.png": "5ff316044122962c8eab3cddffe27bba2b79486e611d6d50a2c66139fda1739e"
   },
   "metadata": {
     "report": {
-      "triangles": 556,
+      "triangles": 558,
       "bounds": [
         [
           -0.21553216874599457,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.015920806224145396
+        "signed_volume": 0.015920806214058517
       },
       "warnings": [],
       "errors": []

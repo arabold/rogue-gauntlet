@@ -1,10 +1,11 @@
-"""KayKit-style axes: thick bent hafts, chunky bands, wedge bits and silhouette wear.
+"""KayKit-style axes: thick bent hafts, rope-wrapped grips, wedge bits, bound sockets and silhouette wear.
 
 Built from the shared weapon construction in `items.forge`. One-handed bits point to -X.
 """
 
 import numpy as np
-from items.forge import Haft, Blade, plate, gem, butt_cap, dispatch
+from prefabs.details import hilts
+from items.forge import Haft, Blade, plate, gem, placed, dispatch
 from items.solid import Assembly, box
 
 # One-handed haft stations (x, y, radius): a flared butt bending back from the blade side, then straight under the head.
@@ -13,17 +14,19 @@ ONE_HANDED = [(.022, -.285, .048), (.024, -.265, .066), (.020, -.20, .063), (.01
 
 
 def bearded():
-    """Tier-three Viking axe: long hooked beard, blue cloth bands, a few chips from use."""
+    """Tier-three Viking axe: long hooked beard, rope-bound socket, rope grip, chips and a notched beard."""
     a = Assembly()
     haft = Haft(a, ONE_HANDED)
-    for y, height in [(-.17, .08), (.08, .085), (.60, .07)]:
-        haft.band(y, height, 'cloth')
+    haft.wraps(-.24, .10)
+    haft.band(.60, .07, 'cloth')
+    haft.knob(hilts.spiked_cap, length=.11)
     a.add(box((.15, .30, .15), (0, .80, 0), .025), 'steel')
+    a.add(placed(hilts.rope_cross(.075, .075, .22), (0, .80)))
     edge = [(-.47, 1.02), (-.555, .95), (-.60, .82), (-.605, .66), (-.57, .50), (-.50, .36)]
     bit = Blade(a, [(0, .92), (-.18, .90), (-.33, .94), *edge, (-.42, .37), (-.33, .45), (-.22, .56), (-.10, .64), (0, .67)],
                 edge, .11, .10, taper=(.065, -.10))
     bit.chip(.38, .045, .06, .3)
-    bit.chip(.80, .035, .05, -.2)
+    bit.comb(.74, .92, 3, .03, .035)
     bit.finish()
     return a.build()
 
@@ -34,7 +37,7 @@ def executioner():
     haft = Haft(a, ONE_HANDED)
     haft.band(-.01, .30, 'leather', proud=.014)
     haft.band(.60, .05, 'gold')
-    butt_cap(a, haft)
+    haft.knob(hilts.gem_cap)
     a.add(box((.19, .34, .17), (0, .80, 0), .03), 'gold')
     edge = [(-.46, 1.05), (-.56, .99), (-.60, .86), (-.60, .70), (-.56, .57), (-.46, .51)]
     bit = Blade(a, [(0, .93), (-.20, .92), (-.34, .97), *edge, (-.34, .59), (-.20, .66), (0, .67)],
@@ -67,15 +70,16 @@ CRESCENT = ([(0, 1.32), (-.20, 1.30), (-.40, 1.42), *CRESCENT_EDGE, (-.40, .88),
 
 
 def cleaver_double():
-    """Tier-two iron greataxe: squared cleaver bits, leather straps, heavy and uneven wear."""
+    """Tier-two iron greataxe: squared cleaver bits on riveted straps, a rope grip, combed and chipped edges."""
     a, haft, (left, right) = double(CLEAVER, ((.24, .48, .22), (0, 1.15, 0), .035), 'iron')
-    for y in (-.15, -.03, .09):
-        haft.band(y, .09, 'leather', proud=.028, tilt=18)
-    haft.band(.86, .08, 'leather')
+    haft.wraps(-.30, .10)
+    for y in (.82, .68):
+        haft.fit(hilts.riveted_band, y, height=.09)
+    haft.knob(hilts.spiked_cap)
     left.chip(.30, .06, .075, .3)
     left.chip(.72, .045, .055, -.3)
     right.chip(0, .07, .12)
-    right.chip(.55, .05, .06, .2)
+    right.comb(.35, .75, 4, .04, .045)
     left.finish()
     right.finish()
     return a.build()
@@ -87,7 +91,7 @@ def runic_double():
     haft.band(0, .40, 'cloth', proud=.016)
     for y in (.85, .24):
         haft.band(y, .06, 'gold')
-    butt_cap(a, haft)
+    haft.knob(hilts.gem_cap)
     right.chip(.60, .025, .04, -.2)
     left.finish()
     right.finish()

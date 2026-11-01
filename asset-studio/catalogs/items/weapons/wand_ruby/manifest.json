@@ -1,8 +1,8 @@
 {
   "key": "weapons/wand_ruby",
-  "inputs": "84d119a9d9caaa63f9b66e8bb71b0667ec8c96ec6c11488c068156926b4f7bb9",
+  "inputs": "609951278f9592b5ba8daee1a4b6b4f9356a440d2a1051d67e24b8c2302bcefa",
   "files": {
-    "wand_ruby.glb": "66f3b04df5f89dd9e6e721fe42def3928c7277c2cc639666c8a9aab1660b8bc3",
+    "wand_ruby.glb": "9d53d8bc85e4ec0561499e6a0b80deab4639e79cba1d2e385d939e37a62bb4dd",
     "lineup.png": "b5317fe19bbbe4beb57d12cfa38fcb3b0a2203e9a9c14b9d0763671e1188524b"
   },
   "metadata": {
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.011973656415784848
+        "signed_volume": 0.011973656417197928
       },
       "warnings": [],
       "errors": []

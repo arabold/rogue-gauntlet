@@ -1,0 +1,74 @@
+{
+  "key": "weapons/trident_storm",
+  "inputs": "3698664f2f5a04026c3f9d63ed8681532a49af31787ec3500560ad0e95a6355e",
+  "files": {
+    "trident_storm.glb": "d01d8466e57b03146a59925570c2690c0baf696f2ffa19c45ab40793c5e12144",
+    "lineup.png": "35d66ee762cdb727eca872a48be08c9ab1f94d3ef9a6fea93712920d76a9f237"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1284,
+      "bounds": [
+        [
+          -0.5099999904632568,
+          -0.8199999928474426,
+          -0.18263854086399078
+        ],
+        [
+          0.5299999713897705,
+          2.5,
+          0.18263854086399078
+        ]
+      ],
+      "dimensions": [
+        1.0399999618530273,
+        3.3199999928474426,
+        0.36527708172798157
+      ],
+      "materials": 3,
+      "textures": [
+        [
+          128,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.0796336880876601
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Trident Storm",
+      "backend": "procedural",
+      "builder": "polearm",
+      "design": {
+        "kind": "storm_trident"
+      },
+      "color_mode": "character",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 5,
+        "texture_size": 1024
+      },
+      "export": {
+        "glb": "res://assets/custom-items/weapons/polearm/trident_storm.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "KayKit-style elemental weapon per objects/weapons/README.md, built from items/forge.py: the element is shape, color and glow only. Grip-centered origin. No gameplay data."
+      }
+    }
+  }
+}
