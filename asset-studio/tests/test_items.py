@@ -26,11 +26,12 @@ from core import kit, export as character_export
 
 
 def section(piece, y):
-    """Points where the surface crosses the horizontal plane at `y`."""
+    """Points where the surface crosses the horizontal plane at `y`, including vertices lying on it."""
     a, b = piece.verts[piece.faces], piece.verts[np.roll(piece.faces, -1, axis=1)]
     crossing = (a[..., 1] - y) * (b[..., 1] - y) < 0
     t = (y - a[..., 1][crossing]) / (b[..., 1] - a[..., 1])[crossing]
-    return a[crossing] + t[:, None] * (b[crossing] - a[crossing])
+    on_plane = piece.verts[np.abs(piece.verts[:, 1] - y) < 1e-9]
+    return np.vstack([a[crossing] + t[:, None] * (b[crossing] - a[crossing]), on_plane])
 
 
 class ItemWorkflowTest(unittest.TestCase):

@@ -1,29 +1,29 @@
 {
   "key": "weapons/halberd_steel",
-  "inputs": "718baf093bc59f4c4c20d1c4c3f6a6e5c20380fb88b78392424ade3e8a4233c6",
+  "inputs": "3a5d4c39085efb32b200ec89b2c3189740e5430cc3b69d9396d374b6769f0000",
   "files": {
-    "halberd_steel.glb": "893d5b84b62ec77319500bad34f8c5f8709040eb8d5cefa7f3fb7dc38a1a116b",
-    "lineup.png": "af9d28ea9608af6eb77e4c8188a38a7116c6a41cf915eeca754b7ff383deec8a"
+    "halberd_steel.glb": "00e82fa9005986efb68226ae9c0e0671ecf82a9f909c1e825a254a9868a4c822",
+    "lineup.png": "181d804c31e5b7d55d8572f6e0b9eaf324d9fc325694fd3ea3eeef29de35016f"
   },
   "metadata": {
     "report": {
-      "triangles": 948,
+      "triangles": 1002,
       "bounds": [
         [
           -0.5,
-          -0.6700000166893005,
-          -0.12097565829753876
+          -0.8199999928474426,
+          -0.18279442191123962
         ],
         [
           0.30000001192092896,
           2.0999999046325684,
-          0.10000000149011612
+          0.18279442191123962
         ]
       ],
       "dimensions": [
         0.800000011920929,
-        2.769999921321869,
-        0.22097565978765488
+        2.919999897480011,
+        0.36558884382247925
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.0603850339249157
+        "signed_volume": 0.06460181860660791
       },
       "warnings": [],
       "errors": []
@@ -61,13 +61,6 @@
         "triangles": 2400,
         "materials": 5,
         "texture_size": 1024
-      },
-      "colors": {
-        "cloth": [
-          70,
-          110,
-          170
-        ]
       },
       "export": {
         "glb": "res://assets/custom-items/weapons/polearm/halberd_steel.glb"

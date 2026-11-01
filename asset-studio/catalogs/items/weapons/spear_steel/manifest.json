@@ -1,29 +1,29 @@
 {
   "key": "weapons/spear_steel",
-  "inputs": "ff163bb536cb7fa03312a5484ccdf2b7cd788c9c191fbb3a901fcca2f7316169",
+  "inputs": "d6bdfb67354c19741748a0bd5da2ca4a09ab88cab884e951d962677292aec2f5",
   "files": {
-    "spear_steel.glb": "21a3d58b5655f67df14570a67f15fd52a31cade30ef144955d2cb85013f09db4",
-    "lineup.png": "ee76313a0e270c64aecc5042cf443be4bb9fc31e7b0205c63dba59ffa443c003"
+    "spear_steel.glb": "ab96a2b089bd47ee56f134db872eed21c165363267f13656d9277417a2d3cbdb",
+    "lineup.png": "5061b22020c111b62601ae24a33fa54015d45d3189aad95aee8f3d902a552eee"
   },
   "metadata": {
     "report": {
-      "triangles": 884,
+      "triangles": 954,
       "bounds": [
         [
-          -0.12999999523162842,
-          -0.6700000166893005,
-          -0.12097565829753876
+          -0.2060600072145462,
+          -0.8199999928474426,
+          -0.1825346052646637
         ],
         [
-          0.12999999523162842,
+          0.2060600072145462,
           2.2200000286102295,
-          0.10000000149011612
+          0.1825346052646637
         ]
       ],
       "dimensions": [
-        0.25999999046325684,
-        2.89000004529953,
-        0.22097565978765488
+        0.4121200144290924,
+        3.040000021457672,
+        0.3650692105293274
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.05050412043898228
+        "signed_volume": 0.05469049741498333
       },
       "warnings": [],
       "errors": []
@@ -61,13 +61,6 @@
         "triangles": 2400,
         "materials": 5,
         "texture_size": 1024
-      },
-      "colors": {
-        "cloth": [
-          70,
-          110,
-          170
-        ]
       },
       "export": {
         "glb": "res://assets/custom-items/weapons/polearm/spear_steel.glb"

@@ -1,13 +1,13 @@
 {
   "key": "weapons/club_steel",
-  "inputs": "87da55398aa374f2a036e54d2f444b183bd2fd57187877849285f41245c6d452",
+  "inputs": "c460187711e840694e0bcffe00bdef5517c1851d95a2a22cd871088d23e4f29b",
   "files": {
-    "club_steel.glb": "b80c70794e285e3752390ba4dbe3c156ba11797e823cb7cb071b7348299ed474",
-    "lineup.png": "33cd2c6e2fab67dae4307a7f2385a816058c73cd46000ffe8ca42f517ae1176e"
+    "club_steel.glb": "0e523ff09b38eb151a539559ddc25bfb008d444e80295f01e1be45b9bcf04b8c",
+    "lineup.png": "75e32d4b1be953bf7ab8b55b818057fc7f916dcce7459322eccfc4f158fcc077"
   },
   "metadata": {
     "report": {
-      "triangles": 652,
+      "triangles": 812,
       "bounds": [
         [
           -0.20000000298023224,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.028811459817238108
+        "signed_volume": 0.030041524851062488
       },
       "warnings": [],
       "errors": []

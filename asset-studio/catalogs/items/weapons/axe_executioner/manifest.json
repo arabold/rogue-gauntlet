@@ -1,13 +1,13 @@
 {
   "key": "weapons/axe_executioner",
-  "inputs": "be29a0b8dac957aa4a363a265a5a8c11c619b69aaff7bc4f8e476ba3786f3b89",
+  "inputs": "8e1dfcff041517e7ff0513a48fa7e1afb98cdd38b691dc772b6491ce7d80e228",
   "files": {
-    "axe_executioner.glb": "f47f6a1259030776a6f5af04954e41e23a495c0a70b596544c2acb86df0495b4",
-    "lineup.png": "b944fbad99deb56388738affc5079b0e3a0d70ed6dec16ccd01551d7a5ddcef9"
+    "axe_executioner.glb": "dd300b345ae36d50d60f7e6f78c8eb988e1185c0e3452dacb95467c738ee4d47",
+    "lineup.png": "58ba0468dfae5902a862641a48da079432bb4b1de864be94469e46d96310c8d1"
   },
   "metadata": {
     "report": {
-      "triangles": 748,
+      "triangles": 746,
       "bounds": [
         [
           -0.6000000238418579,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.03624115934768825
+        "signed_volume": 0.03624115934458453
       },
       "warnings": [],
       "errors": []

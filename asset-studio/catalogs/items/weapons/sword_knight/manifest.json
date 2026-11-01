@@ -1,9 +1,9 @@
 {
   "key": "weapons/sword_knight",
-  "inputs": "d0b10beb66a9ea42bf1bc66c704e94956a4f9c1dee2eac1e3e2bbacd55087f15",
+  "inputs": "06f79e3e5b22c6554b3e98f373434a5e89ab352dc154f42af923872bb4b5f9c7",
   "files": {
-    "sword_knight.glb": "9ab2c4c566ade82132e1e32b5f8316b2e49283ff047ac0151e4397c47b197b23",
-    "lineup.png": "cea78cd53a76f992f93b1fd6f2fb791709f7640fe0c37680c063cee9b8e86cbf"
+    "sword_knight.glb": "bffa1c34d57d751292f66a106b52723ee062a2be30c5be281409bc7e2ab0f68b",
+    "lineup.png": "ef5147565cd43892ae923b17ac574dafda6f0542671220ff0e67581d7936b4e9"
   },
   "metadata": {
     "report": {
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.030684690936243732
+        "signed_volume": 0.030684690944401658
       },
       "warnings": [],
       "errors": []

@@ -1,29 +1,29 @@
 {
   "key": "weapons/warhammer_spiked",
-  "inputs": "2418965c321ade3dddcc33379a85a44b1f87b7fa3b6c795f0deb646cd4adc323",
+  "inputs": "84b87611b5563c07d22ae83c7d9cbe5a973a6c041efaf5470500eb0d2385ab8b",
   "files": {
-    "warhammer_spiked.glb": "800e7a722837705795ef9c2a522ac7b88e2d4783980893ba64801ecf303b45c7",
-    "lineup.png": "b7bbaa3b219715d46494e917180cbf45b61dc0d770466c2cee1159a5f0713343"
+    "warhammer_spiked.glb": "752e20eeab7edb70e8a8e3383e82e509466c78c88aebc27a1b8363e398b9e5a6",
+    "lineup.png": "42bb45efc83e5f663e12e99a1ebf14c789c21e4ca241a7932613ab3cfedcd0e3"
   },
   "metadata": {
     "report": {
-      "triangles": 958,
+      "triangles": 1022,
       "bounds": [
         [
-          -0.5099999904632568,
-          -0.460263192653656,
-          -0.3100000023841858
+          -0.574999988079071,
+          -0.6150000095367432,
+          -0.3400000035762787
         ],
         [
-          0.5099999904632568,
-          1.4700000286102295,
-          0.3100000023841858
+          0.574999988079071,
+          1.5,
+          0.3400000035762787
         ]
       ],
       "dimensions": [
-        1.0199999809265137,
-        1.9302632212638855,
-        0.6200000047683716
+        1.149999976158142,
+        2.115000009536743,
+        0.6800000071525574
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.18011709834472253
+        "signed_volume": 0.23123693209972407
       },
       "warnings": [],
       "errors": []

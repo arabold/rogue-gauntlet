@@ -1,29 +1,29 @@
 {
   "key": "weapons/axe_bearded",
-  "inputs": "885aa021a013cfe027a7444114fda061fd86e02d50a06c59b6860e226b157add",
+  "inputs": "53e56d4b11ad4f4237d8a4e79b2146d7f85cd949321ec0d1ea15248c51cc5e53",
   "files": {
-    "axe_bearded.glb": "8d8c3045174396f4d1176f961d2d00fcf58d7f89c1f4d41cc0bb2dff7558c893",
-    "lineup.png": "48979506cc23283945a9270ea18c4eb1ac09d7a222fcf0d61abf8f4dd1b55614"
+    "axe_bearded.glb": "08a43ef4e8e431011cd3b6cbc2b0dc3a5d56f887e9443aa249c152b795dba5f9",
+    "lineup.png": "c2a93969f3e3a7a7609691e8fd7f70193d7dd4f9fe5ebeeb869ab6c3346feb27"
   },
   "metadata": {
     "report": {
-      "triangles": 700,
+      "triangles": 1724,
       "bounds": [
         [
           -0.6050000190734863,
-          -0.28977617621421814,
-          -0.08380000293254852
+          -0.39500001072883606,
+          -0.08797245472669601
         ],
         [
-          0.10140000283718109,
+          0.10021023452281952,
           1.0199999809265137,
-          0.08380000293254852
+          0.08797245472669601
         ]
       ],
       "dimensions": [
-        0.7064000219106674,
-        1.3097761571407318,
-        0.16760000586509705
+        0.7052102535963058,
+        1.4149999916553497,
+        0.17594490945339203
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.0349691494461342
+        "signed_volume": 0.037945032152856224
       },
       "warnings": [],
       "errors": []

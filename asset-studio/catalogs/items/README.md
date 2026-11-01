@@ -18,7 +18,7 @@ Current catalog: **164 items**, using the shared character shading pipeline.
 
 Each published item has a final GLB, fingerprint manifest and `lineup.png` in its category/name folder: front, three-quarter, side and gameplay-scale views.
 
-Godot-verified current exports: **41/164**. Authored-surface exceptions still flagged for geometry review: **2**. These exceptions are preserved original surfaces, not clean closed-mesh certifications.
+Godot-verified current exports: **40/164**. Authored-surface exceptions still flagged for geometry review: **2**. These exceptions are preserved original surfaces, not clean closed-mesh certifications.
 
 Regenerate these catalogs from published outputs with `./.venv/bin/python asset-studio/studio.py item catalog`. Use `item lineup` to render candidates in OS temporary storage, inspect them, then `item publish` to finalize. Rendering never updates this catalog. Changed sources set `source_current: false` until reviewed again.
 

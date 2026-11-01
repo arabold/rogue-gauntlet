@@ -128,15 +128,16 @@ def broadsword():
 
 
 def greatsword():
-    """Tier-four steel greatsword: tapering blade, long blocky crossguard, one nick."""
+    """Tier-four steel greatsword: tapering blade, an S-curved crossguard with one quillon up and one down, one nick."""
     a = Assembly()
     disc(a, (0, -.45), .10, .064, 'iron')
     g = grip(a, -.385, .22, .064)
     for y in (-.28, -.08, .12):
         g.band(y, .06, 'wrap', .015)
-    plate(a, [(-.37, .31), (.37, .31), (.37, .19), (-.37, .19)], .07, 'iron')
-    for x in (-.38, .38):
-        disc(a, (x, .25), .07, .076, 'iron')
+    plate(a, [(-.10, .31), (.10, .31), (.10, .19), (-.10, .19)], .07, 'iron')
+    a.add(kit.sweep([(-.40, .44, 0), (-.33, .35, 0), (-.20, .28, 0), (0, .25, 0), (.20, .22, 0), (.33, .15, 0),
+                     (.40, .06, 0)], kit.ring_profile(1, 1.15, 6), 'iron', up=(0, 0, 1),
+                    scale=[.022, .04, .052, .058, .052, .04, .022]))
     blade = straight(a, [(.24, .16), (1.40, .12), (1.80, .09)], (0, 2.0), .085, .06, .016)
     blade.chip(.66, .03, .05, .2)
     blade.finish()
@@ -241,8 +242,7 @@ def crescent():
     a = Assembly()
     ring(a, (0, -.47), .095, .045, .062, 'iron')
     g = grip(a, -.40, .24, .062)
-    for y in (-.31, -.17, -.03, .11):
-        g.band(y, .07, 'wrap', .014)
+    g.wraps(-.36, .18)
     a.add(kit.sweep([(-.33, .05, 0), (-.27, .16, 0), (-.15, .245, 0), (0, .27, 0), (.15, .245, 0), (.27, .16, 0),
                      (.33, .05, 0)], kit.ring_profile(1, 1.1, 6), 'iron', up=(0, 0, 1),
                     scale=[.02, .046, .06, .066, .06, .046, .02]))
@@ -258,8 +258,7 @@ def curved_great():
     """Tier-four curved greatblade: long single-edged blade, round guard, long wrapped grip, one nick."""
     a = Assembly()
     g = grip(a, -.42, .19, .062, 'cloth')
-    for y in (-.32, -.20, -.08, .04):
-        g.band(y, .055, 'wrap', .012)
+    g.wraps(-.36, .10, swell=.016)
     g.band(-.42, .05, 'iron', .016)
     g.band(.21, .04, 'iron', .085)
     plate(a, [(-.075, .30), (.075, .30), (.075, .21), (-.075, .21)], .068, 'iron')

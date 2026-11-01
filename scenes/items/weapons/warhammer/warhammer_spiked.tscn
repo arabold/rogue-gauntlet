@@ -7,7 +7,7 @@
 [node name="warhammer_spiked" parent="." instance=ExtResource("1_glb")]
 
 [node name="TrailBase" type="Marker3D" parent="."]
-position = Vector3(-0.40000, 1.02000, 0)
+position = Vector3(-0.46000, 1.02000, 0)
 
 [node name="TrailTip" type="Marker3D" parent="."]
-position = Vector3(-0.40000, 1.42000, 0)
+position = Vector3(-0.46000, 1.46000, 0)

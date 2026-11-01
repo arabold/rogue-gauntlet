@@ -1,8 +1,8 @@
-"""Small accents, fasteners, and hardware details: buckles, studs, trophies, and surface wear."""
+"""Small accents, fasteners, and hardware details: buckles, studs, trophies, hilts, and surface wear."""
 
-from . import fasteners, trophies, wear, construction, heraldry, primal, fur
+from . import fasteners, trophies, wear, construction, heraldry, primal, fur, hilts
 
-__all__ = ["fasteners", "trophies", "wear", "construction", "heraldry", "primal", "fur"]
+__all__ = ["fasteners", "trophies", "wear", "construction", "heraldry", "primal", "fur", "hilts"]
 
 
 def catalog():
@@ -13,3 +13,4 @@ def catalog():
     yield from construction.catalog()
     yield from heraldry.catalog()
     yield from primal.catalog()
+    yield from hilts.catalog()

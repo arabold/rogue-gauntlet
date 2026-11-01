@@ -1,13 +1,13 @@
 {
   "key": "weapons/dagger_fang",
-  "inputs": "911f7a84535ccf5369b2ba277bfaa11791102a506f53fcd375ce3ee8dd8e8131",
+  "inputs": "b7f4c5ce32e8ed1bf16949b82dc8733ad1317cab81597e0f92c1e35f9bc9dfde",
   "files": {
-    "dagger_fang.glb": "491eec55b97a456e48e6e070825bfa816397d92d3875e9b62e74965c8950c555",
-    "lineup.png": "676865b0096c189e79775547a0e3c6377a1c0efe3dc9dbf9b11887e5665991bc"
+    "dagger_fang.glb": "6c308268e83b292e351ea282d41194b8ae0d8395f59e4af3b10eb928b7b906a0",
+    "lineup.png": "c6aaedda05457deaf6d987923bc57527e45c0a56858d5af0739d76fe975b244f"
   },
   "metadata": {
     "report": {
-      "triangles": 492,
+      "triangles": 494,
       "bounds": [
         [
           -0.20000000298023224,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.014075892503970554
+        "signed_volume": 0.014075892493614581
       },
       "warnings": [],
       "errors": []

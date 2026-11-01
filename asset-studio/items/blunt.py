@@ -8,7 +8,8 @@ their striking faces point along X.
 import numpy as np
 import manifold3d as mf
 from core import kit
-from items.forge import Haft, collar, pyramid, gem, butt_cap, dispatch
+from prefabs.details import hilts
+from items.forge import Haft, collar, pyramid, gem, dispatch
 from items.solid import Assembly, box
 
 ONE_HANDED = [(.012, -.30, .044), (.014, -.28, .062), (.010, -.20, .058), (.004, 0, .054), (0, .40, .052),
@@ -27,8 +28,7 @@ def mallet():
     """Tier-one wooden mallet: an iron-hooped barrel head on a plain haft, its rims chipped."""
     a = Assembly()
     haft = Haft(a, ONE_HANDED)
-    for y in (-.15, .05):
-        haft.band(y, .07, 'wrap', .014)
+    haft.wraps(-.24, .08)
     head = a.label(collar((0, .88, 0), (1, 0, 0), .18, .66, 'wood', .035), 'wood')
     for corner in ((-.33, 1.04, .09), (.33, .74, -.10)):
         head = corner_bite(a, head, corner, .11, 'wood_cut')
@@ -46,7 +46,7 @@ def mace():
     for y in (-.20, .14):
         haft.band(y, .045, 'gold', .02)
     haft.band(.60, .07, 'gold', .035)
-    butt_cap(a, haft)
+    haft.knob(hilts.gem_cap)
     a.add(collar((0, .88, 0), (0, 1, 0), .11, .42, 'gold'))
     for k in range(6):
         flange = box((.20, .38, .055), (.16, .88, 0), .02)
@@ -58,30 +58,31 @@ def mace():
 
 
 # The sledge's chipped face corners, (y, z) per side: the leading -X face took the most blows.
-BITES = {-1: ((1.46, .24), (.98, -.24)), 1: ((1.46, .24),)}
+BITES = {-1: ((1.50, .26), (.98, -.26)), 1: ((1.50, .26),)}
 
 
 def maul(spiked):
-    """Two-handed iron maul: a three-part block head with steel faces; studded or plain, chipped by tier."""
+    """Two-handed iron maul: an oversized three-part block head with steel faces on a rope grip and spiked butt;
+    studded or plain, chipped by tier."""
     a = Assembly()
     haft = Haft(a, TWO_HANDED)
-    for y in (-.15, -.03, .09):
-        haft.band(y, .09, 'leather', .028, 18)
+    haft.wraps(-.32, .14)
     haft.band(.94, .08, 'leather')
-    a.add(box((.60, .42, .42), (0, 1.22, 0), .05), 'iron')
+    haft.knob(hilts.spiked_cap)
+    a.add(box((.70, .46, .46), (0, 1.24, 0), .055), 'iron')
     for side in (-1, 1):
-        face = a.label(box((.13, .48, .48), (side*.34, 1.22, 0), .055), 'steel')
+        face = a.label(box((.13, .52, .52), (side*.39, 1.24, 0), .06), 'steel')
         if not spiked:
             for corner in BITES[side]:
-                face = corner_bite(a, face, (side*.40, *corner), .13, 'edge')
+                face = corner_bite(a, face, (side*.455, *corner), .14, 'edge')
         a.parts.append(face)
         if spiked:
-            for y in (1.11, 1.33):
-                for z in (-.11, .11):
-                    a.add(pyramid((side*.40, y, z), (side, 0, 0), .10, .11, 'steel'))
+            for y in (1.12, 1.36):
+                for z in (-.12, .12):
+                    a.add(pyramid((side*.455, y, z), (side, 0, 0), .11, .12, 'steel'))
     if spiked:
-        for z in (-.21, .21):
-            a.add(pyramid((0, 1.22, z), (0, 0, np.sign(z)), .11, .10, 'steel'))
+        for z in (-.23, .23):
+            a.add(pyramid((0, 1.24, z), (0, 0, np.sign(z)), .12, .11, 'steel'))
     return a.build()
 
 
@@ -91,8 +92,7 @@ def cudgel():
     haft = Haft(a, [(0, -.30, .040), (0, -.28, .056), (0, .10, .052), (0, .40, .062), (0, .70, .10), (0, .95, .125),
                     (0, 1.04, .115), (0, 1.07, .075)], add=False)
     a.parts.append(a.label(haft.piece, 'wood'))
-    for y in (-.17, .03):
-        haft.band(y, .07, 'wrap', .014)
+    haft.wraps(-.22, .06)
     haft.band(.99, .09, 'iron', .018)
     haft.band(.55, .06, 'iron', .016)
     for k in range(6):
@@ -119,8 +119,8 @@ def morning_star():
     """Tier-three morning star: a faceted iron ball bristling with chunky spikes on a wrapped haft."""
     a = Assembly()
     haft = Haft(a, ONE_HANDED[:5] + [(0, .74, .050), (0, .78, .04)])
-    for y in (-.17, -.03, .11):
-        haft.band(y, .065, 'wrap', .014)
+    haft.wraps(-.22, .16)
+    haft.knob(hilts.spiked_cap, length=.10)
     haft.band(.70, .10, 'iron', .022)
     center = np.array([0, .94, 0])
     a.add(mf.Manifold.sphere(.19, 10).translate(center), 'iron')

@@ -1,13 +1,13 @@
 {
   "key": "weapons/staff_emerald",
-  "inputs": "46e8429a2b27aa581bc30876921c63765a98e0c1c3c6f3c516c40379974ec364",
+  "inputs": "ef6a614f1cb8ddb8f16478653a5d98b75d8f986da9b883333eb7256608df52c6",
   "files": {
-    "staff_emerald.glb": "da022987bb21e8592e8f9ee950008060bb4e5e109f95def4d549520e65b27c09",
-    "lineup.png": "43f37d6eebaf5296a800f6677033e68e4a17b82f4226fd1fd4cd7a17e314eb94"
+    "staff_emerald.glb": "a35e116ca8c5e93d226729afce0918f9324c279e13e6af4775c633e5ea4dd7ac",
+    "lineup.png": "37ebf8ea401a206b1f0abb46900c00b52956cd8e6c43d71245ec06eff9a1fa33"
   },
   "metadata": {
     "report": {
-      "triangles": 512,
+      "triangles": 656,
       "bounds": [
         [
           -0.2463785856962204,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.03155378947967138
+        "signed_volume": 0.03277470949365732
       },
       "warnings": [],
       "errors": []
