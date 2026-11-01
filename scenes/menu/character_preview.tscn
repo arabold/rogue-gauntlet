@@ -11,7 +11,6 @@ render_target_update_mode = 4
 script = ExtResource("1_preview")
 
 [node name="Turntable" type="Node3D" parent="."]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 3.75)
