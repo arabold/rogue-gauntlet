@@ -155,6 +155,8 @@ public partial class MapGenerator
 			throw new InvalidOperationException("The access door scene must wire its Lock and Secret components.");
 		}
 		NavigationRegion.AddChild(door);
+		// The door brings its own doorway frame.
+		if (_openings.Remove(connector, out var frame)) frame.QueueFree();
 		door.Position = (Vector3)Map.TileToWorld(connector) + new Vector3(opening.X * 2, 0, opening.Y * 2);
 		door.RotationDegrees = new Vector3(0, opening.X == 0 ? 0 : 90, 0);
 		Floor.AddDoor(door, connector);

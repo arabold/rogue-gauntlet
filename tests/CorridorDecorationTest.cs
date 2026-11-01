@@ -106,14 +106,22 @@ public class CorridorDecorationTest
 				var beyond = tile + outward * 2;
 				if (map.IsWithinBounds(beyond.X, beyond.Y) && map.IsWalkable(beyond.X, beyond.Y)) continue;
 
-				var cell = worldCenter + new Vector3I(outward.X * half, 0, outward.Y * half);
-				int item = wallGrid.GetCellItem(cell);
-				if (item < 0) continue;
+				// The edge's straight or half piece; a half beside a corner may sit on the edge's end cell.
+				var edge = WallFootprints.MeasureEdge(wallGrid, worldCenter + new Vector3I(outward.X * half, 0, outward.Y * half), -outward, Room.TileSize);
+				if (edge.Item < 0) continue;
+				int item = edge.Item;
+				var cell = edge.Cell;
 				string name = library.GetItemName(item);
-				if (name.Contains("corner") || name.Contains("half")) continue;
 
 				int expectedOrientation = WallFootprints.FacingInto(-outward);
 				int actualOrientation = wallGrid.GetCellItemOrientation(cell);
+				// A half turns around only when the cell that would let it face inward (the other end of the half it
+				// covers) holds a corner turning away at the edge's far end.
+				var footprint = WallFootprints.FootprintWorld(library.GetItemMesh(item).GetAabb(), actualOrientation, cell);
+				var facingCell = outward.X == 0
+					? new Vector3I(Mathf.RoundToInt(footprint.Position.X + footprint.End.X) - cell.X, 0, cell.Z)
+					: new Vector3I(cell.X, 0, Mathf.RoundToInt(footprint.Position.Z + footprint.End.Z) - cell.Z);
+				if (facingCell != cell && wallGrid.GetCellItem(facingCell) >= 0) continue;
 				AssertInt(actualOrientation)
 					.OverrideFailureMessage($"depth {depth}: corridor wall '{name}' at {cell} (tile {tile}, outward {outward}) should face inward ({expectedOrientation}) but had orientation {actualOrientation}")
 					.IsEqual(expectedOrientation);

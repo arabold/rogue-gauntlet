@@ -16,7 +16,7 @@ public partial class DungeonTileFactory : TileFactory
 	[Export] public CorridorStep[] Steps { get; set; } = [];
 
 	public override int GetCorridorTileIndex(RandomNumberGenerator rng) => Floor.Library.FindItemByName(Weighted.Pick(Floor.Large, rng));
-	public override int GetWallTileIndex(RandomNumberGenerator rng) => Walls.Library.FindItemByName(Walls.DrawEdge(rng).Item);
+	public override int GetWallTileIndex(RandomNumberGenerator rng) => Walls.Library.FindItemByName(Walls.DrawEdge(rng));
 	public override int GetWallHalfTileIndex(RandomNumberGenerator rng) => Walls.Library.FindItemByName(Walls.Half);
 	public override int GetWallCornerTileIndex(RandomNumberGenerator rng) => Walls.Library.FindItemByName(Walls.Corner);
 

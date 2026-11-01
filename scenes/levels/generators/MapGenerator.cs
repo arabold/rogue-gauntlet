@@ -50,6 +50,8 @@ public partial class MapGenerator : Node3D
 	// never got a corridor routed to it (see FinalizeDoors) can be hidden instead of
 	// misleadingly pointing at what is now a solid generated wall.
 	private readonly List<(DoorwayMarker Marker, Vector2I Connector)> _markerIndicators = new();
+	// Opening frames of doorless room doorways by connector; a door added there later replaces its frame.
+	private readonly System.Collections.Generic.Dictionary<Vector2I, Node3D> _openings = new();
 
 	/// <summary>
 	/// Y level the flat void occluder caps sit at (slightly above wall-top
@@ -262,7 +264,8 @@ public partial class MapGenerator : Node3D
 	/// docs in Room.cs), so they're matched to that exact tile directly -- proximity
 	/// matching would let a marker whose OWN doorway failed validation (its tile never
 	/// became a connector at all) borrow a nearby, unrelated doorway's connected status
-	/// instead of correctly always reading as unconnected.
+	/// instead of correctly always reading as unconnected. Doorless doorways' opening
+	/// frames are recorded by connector too, so an access door can replace one.
 	/// </summary>
 	private void RegisterDoors(Room room, RoomRegion region)
 	{
@@ -285,6 +288,10 @@ public partial class MapGenerator : Node3D
 				{
 					Floor.AddDoor(door, connector);
 				}
+			}
+			else if (node is Node3D frame && frame.HasMeta(RoomAssembler.OpeningMeta))
+			{
+				if (TryFindNearestConnector(region, frame.GlobalPosition, out var connector)) _openings[connector] = frame;
 			}
 			else if (node is DoorwayMarker marker)
 			{
@@ -792,6 +799,7 @@ public partial class MapGenerator : Node3D
 
 		ResetAccess();
 		_markerIndicators.Clear();
+		_openings.Clear();
 
 		// Initialize the map with empty tiles and a walled border
 		Map = new MapData((int)MapWidth, (int)MapDepth);

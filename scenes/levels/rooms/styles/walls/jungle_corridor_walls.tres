@@ -12,4 +12,5 @@ Corner = "wall_mossy_corner_A"
 Half = "wall_mossy_half_A"
 Accents = Dictionary[String, float]({"wall_mossy_A": 1.0, "wall_mossy_B": 1.0, "wall_mossy_C": 1.0, "wall_mossy_D": 1.0, "wall_overgrown_A": 0.8, "wall_overgrown_B": 0.8, "wall_arched": 0.6, "wall_open_scaffold": 0.6})
 AccentChance = 0.45
+PlainEnds = false
 metadata/_custom_type_script = ExtResource("2_wallstyle")
