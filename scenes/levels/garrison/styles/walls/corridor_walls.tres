@@ -7,5 +7,7 @@
 script = ExtResource("2_wallstyle")
 Id = "garrison.corridor_walls"
 Library = ExtResource("3_wallsmeshlibrary")
-Straight = Dictionary[String, float]({"wall": 4.0, "wall_cracked": 1.0, "wall_pillar": 1.0})
+Straight = Dictionary[String, float]({"wall": 5.0, "wall_cracked": 1.5})
+Accents = Dictionary[String, float]({"wall_arched": 2.0, "wall_pillar": 1.5, "wall_window_closed": 1.0, "wall_gated": 1.0})
+AccentChance = 0.25
 metadata/_custom_type_script = ExtResource("2_wallstyle")
