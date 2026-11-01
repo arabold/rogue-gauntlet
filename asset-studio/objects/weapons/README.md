@@ -47,7 +47,7 @@ KayKit grips are about 8–10% of a weapon's length.
 
 - Shading comes from the palette gradient. Metals stay nearly matte (metallic 0.1, roughness 0.55); wood, leather and cloth are fully matte. Strong metallic values read as chrome next to KayKit art.
 - Keep the palette small: steel with its edge, wood, one wrap color, and optional gold with a gem.
-- Magic stones glow: crystals, emeralds and moonstones are emissive. The game may add a light or VFX on top; gems set in gold stay plain.
+- Magic stones glow: crystals, emeralds and moonstones are emissive; gems set in gold stay plain. In the game, every emissive weapon's scene also carries a `GlowLight` (a `FlickerLight`) at its glow source, tinted to match and short-ranged. Fire flickers with the `flame` preset and lightning with `charged`; stones glow steadily.
 - Elemental weapons show their element in shape, color and glow only; they deal ordinary damage. Fire is a blade of chunky flame tongues, orange round a yellow core; water is ice crusting a steel blade, with shards jutting up and out; earth is a rough-hewn stone head with a glowing carved glyph; air is zig-zag lightning prongs. Flame and lightning always glow, while ice and stone stay unlit.
 - A tier changes form as well as color. Rare weapons add gold cheek plates, gems, a lighter wrap and a capped butt.
 

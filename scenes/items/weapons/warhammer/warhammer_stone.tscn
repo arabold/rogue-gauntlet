@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="PackedScene" path="res://assets/custom-items/weapons/warhammer/warhammer_stone.glb" id="1_glb"]
+[ext_resource type="Script" uid="uid://b057bpmpc54l5" path="res://scenes/effects/FlickerLight.cs" id="glow_light"]
 
 [node name="WarhammerStone" type="Node3D"]
 
@@ -11,3 +12,11 @@ position = Vector3(-0.40000, 1.02000, 0)
 
 [node name="TrailTip" type="Marker3D" parent="."]
 position = Vector3(-0.40000, 1.46000, 0)
+
+[node name="GlowLight" type="OmniLight3D" parent="."]
+position = Vector3(0, 1.24, 0)
+light_color = Color(0.4, 0.95, 0.6, 1)
+light_specular = 0.0
+omni_range = 2.0
+script = ExtResource("glow_light")
+Energy = 0.5
