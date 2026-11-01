@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_library"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "dungeon.pool_runner"
+Library = ExtResource("2_library")
+Items = ["floor_pool_runner_A", "floor_pool_runner_B"]
+Gap = 0.0
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

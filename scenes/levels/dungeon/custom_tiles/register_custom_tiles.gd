@@ -8,8 +8,12 @@ extends SceneTree
 ## the floor, wall or decoration library under the tile's name. Existing items keep their ids, so GridMap cells and
 ## the KayKit items are untouched; re-running updates studio items in place. Collision follows the KayKit items:
 ## floors get a trimesh of their surface and a flat navigation mesh on top, walls a convex hull, rugs none (actors
-## walk over them). Doorway pieces and the gate leaf only get their meshes saved, for door scenes; T-splits,
-## crossings, endcaps and pillars have no generator use yet, so they stay out of the libraries.
+## walk over them). Water channels and basins keep a KayKit grate's rim, so they take that grate's collision and
+## navigation. Pool pieces are laid as props by `PoolStep` over a pit with no floor: they get no navigation and one
+## box from their bed to a low curb above the floor, so actors stop at the edge while missiles fly over. Every
+## translucent surface (water) is drawn with the water shader. Doorway pieces and the gate leaf only get their meshes
+## saved, for door scenes; T-splits, crossings, endcaps and pillars have no generator use yet, so they stay out of the
+## libraries.
 
 const SOURCE := "res://assets/custom-tiles/dungeon"
 const OUTPUT := "res://scenes/levels/dungeon/custom_tiles"
@@ -22,6 +26,12 @@ const SKIPPED := ["_Tsplit_", "_crossing_", "_half_endcap_", "_pillar_"]
 const DOOR_PARTS := ["_doorway_", "_gate_leaf_"]
 ## Target of pieces that only get their mesh saved.
 const DOOR_PART := "door part"
+const WATER := "res://scenes/levels/dungeon/water/water.tres"
+## Inlays by name prefix and the KayKit grate whose rim, collision and navigation they share.
+const GRATES := {"floor_water_channel_": "floor_tile_grate", "floor_water_pool_": "floor_tile_big_grate"}
+const POOL := "floor_pool_"
+## Pool collision: the whole tile, from below the bed to this height above the floor.
+const POOL_CURB := 0.35
 
 var _started := false
 
@@ -41,6 +51,7 @@ func _register() -> bool:
 	DirAccess.make_dir_recursive_absolute(OUTPUT + "/meshes")
 	DirAccess.make_dir_recursive_absolute(OUTPUT + "/shapes")
 	var navigation := {4.0: _floor_navigation("large", 2.0), 2.0: _floor_navigation("small", 1.0)}
+	var pool := _pool_shape()
 	var count := 0
 	for file in DirAccess.get_files_at(SOURCE):
 		if file.get_extension() != "glb":
@@ -58,6 +69,7 @@ func _register() -> bool:
 		if mesh == null:
 			push_error("No mesh in %s" % file)
 			return false
+		_draw_water(mesh)
 		var mesh_path := "%s/meshes/%s.res" % [OUTPUT, name]
 		if ResourceSaver.save(mesh, mesh_path, ResourceSaver.FLAG_COMPRESS) != OK:
 			return false
@@ -74,6 +86,15 @@ func _register() -> bool:
 		library.set_item_mesh_cast_shadow(id, RenderingServer.SHADOW_CASTING_SETTING_ON)
 		library.set_item_shapes(id, [])
 		library.set_item_navigation_mesh(id, null)
+		if name.begins_with(POOL):
+			library.set_item_shapes(id, [pool, Transform3D(Basis.IDENTITY, Vector3(0, (POOL_CURB - 1.7) / 2, 0))])
+			continue
+		var grate := _grate_for(library, name)
+		if grate >= 0:
+			library.set_item_shapes(id, library.get_item_shapes(grate))
+			library.set_item_navigation_mesh(id, library.get_item_navigation_mesh(grate))
+			library.set_item_navigation_layers(id, library.get_item_navigation_layers(grate))
+			continue
 		if target != DECORATION:
 			var shape: Shape3D = mesh.create_trimesh_shape() if target == FLOORS else mesh.create_convex_shape(true, true)
 			var shape_path := "%s/shapes/%s.res" % [OUTPUT, name]
@@ -104,6 +125,33 @@ func _library_for(name: String) -> String:
 	if name.begins_with("carpet_"):
 		return DECORATION
 	return ""
+
+
+## One box over a whole pool tile, from under its bed (y -1.7) to the curb; saved once so the libraries reference it.
+func _pool_shape() -> Shape3D:
+	var box := BoxShape3D.new()
+	box.size = Vector3(4, POOL_CURB + 1.7, 4)
+	var path := "%s/shapes/floor_pool.res" % OUTPUT
+	ResourceSaver.save(box, path)
+	return load(path)
+
+
+## The KayKit grate an inlay shares its rim with, or -1.
+func _grate_for(library: MeshLibrary, name: String) -> int:
+	for prefix in GRATES:
+		if name.begins_with(prefix):
+			return library.find_item_by_name(GRATES[prefix])
+	return -1
+
+
+## The studio exports water as a translucent stand-in; the game draws it with the water shader.
+func _draw_water(mesh: Mesh) -> void:
+	var water: Material = null
+	for surface in mesh.get_surface_count():
+		var material := mesh.surface_get_material(surface) as BaseMaterial3D
+		if material != null and material.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
+			water = water if water != null else load(WATER)
+			mesh.surface_set_material(surface, water)
 
 
 ## The tile's single mesh, detached from the imported scene so it saves as its own resource.

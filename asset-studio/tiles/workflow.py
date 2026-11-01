@@ -23,7 +23,7 @@ from core.publication import digest
 from items import solid
 from items.workflow import check, godot, run_godot, save, within
 from prefabs import decor
-from tiles import caves, dressing, floors, kaykit, overlays, walls
+from tiles import caves, dressing, floors, inlays, kaykit, overlays, pools, walls
 from tiles.geometry import SEAM, boundary_profile, rng
 
 STUDIO = Path(__file__).resolve().parents[1]
@@ -31,28 +31,32 @@ REPO = STUDIO.parent
 TILESETS = STUDIO / "tilesets"
 EXPORT_ROOT = REPO / "assets/custom-tiles"
 CONTEXT_FLOOR = REPO / "assets/kaykit-dungeon-remastered/floor_tile_large.gltf"
-KINDS = {"floor": floors.STYLES, "wall": {**walls.STYLES, **dressing.STYLES, **caves.STYLES}, "overlay": overlays.STYLES}
+KINDS = {"floor": floors.STYLES, "wall": {**walls.STYLES, **dressing.STYLES, **caves.STYLES}, "overlay": overlays.STYLES,
+         "inlay": inlays.STYLES, "pool": pools.STYLES}
 # Rock walls bulge inside their footprint and may crest below it; only their ends fill it exactly.
 INSET = {"cave": .25}
 # Styles that decorate an original KayKit tile: its open panels and seams are the reference.
-DERIVED = {"dressed"}
+DERIVED = {"dressed", "water"}
 # Growth may rise above a wall's cap and stand slightly proud of its faces, never past its ends.
 GROWTH_ALLOWANCE = np.array([.15, .25, .15])
 PIECES = {"floor": list(floors.SIZES), "wall": list(dict.fromkeys([*walls.PIECES, *caves.PIECES])),
-          "overlay": list(overlays.BORDERS)}
+          "overlay": list(overlays.BORDERS), "inlay": list(inlays.SOURCES), "pool": list(overlays.BORDERS)}
 # Pieces each wall style can build; the rest of a kind's pieces are rejected at recipe load.
 STYLE_PIECES = {"masonry": list(walls.PIECES), "dressed": list(walls.PIECES), "cave": list(caves.PIECES)}
 # Fixed shading ramps: tops of floors and walls land mid-ramp whatever a tile's own extent.
-HEIGHT_RANGE = {"floor": (-0.03, 0.27), "wall": (-3.0, 7.0), "overlay": (0.0, 0.3)}
+# Inlay water sits under the floor top; its fixed range lands every surface on one shade.
+HEIGHT_RANGE = {"floor": (-0.03, 0.27), "wall": (-3.0, 7.0), "overlay": (0.0, 0.3), "inlay": (-0.4, 0.3), "pool": (-1.7, 0.3)}
 # Footprints (min, max) every piece must fill exactly, matching the KayKit dungeon tiles.
 FOOTPRINT = {"large": ([-2, -.1, -2], [2, None, 2]), "small": ([-1, -.1, -1], [1, None, 1]),
              "wall": ([-2, 0, -.5], [2, 4, .5]), "wall_half": ([0, 0, -.5], [2, 4, .5]),
              "wall_corner": ([-2, 0, -.5], [.5, 4, 2]), "wall_Tsplit": ([-2, 0, -.5], [2, 4, 2]),
              "wall_crossing": ([-2, 0, -2], [2, 4, 2]), "wall_doorway": ([-2, 0, -.5], [2, 4, .5]),
              "wall_gated": ([-2, 0, -.5], [2, 4, .5]), "wall_half_endcap": ([-2, 0, -.5], [0, 4, .5]),
-             "pillar": ([-.75, 0, -.75], [.75, 4, .75]), "gate_leaf": ([-.16, .05, -.075], [1.8, 2.72, .075])}
-# Overlays only have to stay on their cell and just above the floor; rug ends are inset.
-WITHIN = {"overlay": ([-2, .03, -2], [2, .12, 2])}
+             "pillar": ([-.75, 0, -.75], [.75, 4, .75]), "gate_leaf": ([-.16, .05, -.075], [1.8, 2.72, .075]),
+             "channel": ([-2, None, -1], [2, .05, 1]), "pool": ([-2, None, -2], [2, .05, 2])}
+# Overlays only have to stay on their cell and just above the floor; rug ends are inset. Pools fill their cell's
+# width and length, sunk below the floor top.
+WITHIN = {"overlay": ([-2, .03, -2], [2, .12, 2]), "pool": ([-2, -3, -2], [2, .05, 2])}
 VARIANT = {"type": "array", "minItems": 1, "maxItems": 26, "items": {"type": "string", "pattern": "^[A-Z]$"}}
 SCHEMA = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -108,7 +112,7 @@ class Family:
         """(piece, variant, file stem) for every tile, named like the KayKit originals."""
         out = []
         for piece, variants in data["pieces"].items():
-            if data["kind"] == "floor":
+            if data["kind"] in ("floor", "inlay", "pool"):
                 stem = f"{self.id}_{piece}"
             else:
                 stem = self.id if piece == "wall" else f"{self.id}_{piece.removeprefix('wall_')}"
@@ -196,7 +200,9 @@ class Family:
             for key in ("boundary_edges", "nonmanifold_edges", "inconsistent_edges", "duplicate_faces"):
                 if topology[key] > allowed.get(key, 0):
                     errors.append(f"{stem}: {topology[key]} {key}" + (f" (source has {allowed[key]})" if allowed else ""))
-            if topology["signed_volume"] <= 0:
+            # A derived tile may keep its source's open, inward-facing shell (a grate's shaft); it must not lose volume.
+            least = min(0.0, allowed.get("signed_volume", 0.0)) if data["style"] in DERIVED else 0.0
+            if topology["signed_volume"] <= least - 1e-6 or (not least and topology["signed_volume"] <= 0):
                 errors.append(f"{stem}: surface must enclose a positive volume")
             if data["kind"] in WITHIN:
                 lo, hi = WITHIN[data["kind"]]
@@ -222,7 +228,9 @@ class Family:
 
     def inputs(self):
         paths = [self.path, *(STUDIO / "tiles" / name for name in ("geometry.py", "floors.py", "walls.py", "overlays.py",
-                                                                      "dressing.py", "kaykit.py", "caves.py")),
+                                                                      "dressing.py", "kaykit.py", "caves.py", "inlays.py", "pools.py")),
+                 *sorted(kaykit.SOURCE.glob("floor_tile*grate*.gltf")), *sorted(kaykit.SOURCE.glob("floor_tile*grate*.bin")),
+                 *sorted(kaykit.SOURCE.glob("floor_foundation*.gltf")), *sorted(kaykit.SOURCE.glob("floor_foundation*.bin")),
                  *sorted(kaykit.SOURCE.glob("wall*.gltf")), *sorted(kaykit.SOURCE.glob("wall*.bin")),
                  STUDIO / "prefabs/decor.py", *sorted(decor.MESHES.glob("*.npz")),
                  kaykit.SOURCE / "dungeon_texture.png",
@@ -266,7 +274,7 @@ class Family:
         for piece, _, stem in tiles:
             by_piece.setdefault(piece, []).append(glb[stem])
         r = rng(self.key, "review-layout")
-        return {"floor": floor_jobs, "wall": wall_jobs, "overlay": overlay_jobs}[data["kind"]](by_piece, r, out)
+        return {"floor": floor_jobs, "wall": wall_jobs, "overlay": overlay_jobs, "inlay": inlay_jobs, "pool": pool_jobs}[data["kind"]](by_piece, r, out)
 
     def compose(self, shots):
         """Three review panels over a strip of every variant, labeled with the family and its pieces."""
@@ -293,7 +301,9 @@ class Family:
     def titles(data):
         return {"floor": ["Top: random variants, mixed 4x4 / 2x2", "Game camera", "Seam close-up"],
                 "wall": ["Game camera: corner, walls, half", "Elevation", "Outer corner"],
-                "overlay": ["Top: 3x3 rug and a runner", "Game camera", "Corner close-up"]}[data["kind"]]
+                "overlay": ["Top: 3x3 rug and a runner", "Game camera", "Corner close-up"],
+                "inlay": ["Top: channel run and pool in stone", "Game camera", "Close-up"],
+                "pool": ["Top: 3x3 pool and a runner in stone", "Game camera", "Corner close-up"]}[data["kind"]]
 
     def publish(self):
         self.models()
@@ -353,6 +363,10 @@ def floor_seams(pieces):
 
 def seam_report(data, pieces):
     """The seam check for a family: against its own contract, or its KayKit source when derived."""
+    if data["kind"] == "inlay":
+        return inlay_seams(pieces, data.get("design", {}))
+    if data["kind"] == "pool":
+        return overlay_seams(pieces, ys=np.arange(-2.9993, .05, .0041), walled=True)
     if data["style"] in DERIVED:
         return source_seams(pieces, data.get("design", {}).get("source", {}))
     return {"floor": floor_seams, "wall": wall_seams, "overlay": overlay_seams}[data["kind"]](pieces)
@@ -385,6 +399,23 @@ def source_seams(pieces, sources):
     return {"worst_mismatch": worst, "errors": errors}
 
 
+def inlay_seams(pieces, design):
+    """Inlays keep their KayKit grate's rim, so every tile edge must be exactly the source's edge."""
+    ys = np.arange(-.9993, .05, .0041)
+    errors, worst = [], 0.0
+    for stem, (piece, built) in pieces.items():
+        source = kaykit.load(inlays.source(design, piece))[0]
+        half = np.array(FOOTPRINT[piece][1])[[0, 2]]
+        for axis, along, value in ((0, 2, half[0]), (0, 2, -half[0]), (2, 0, half[1]), (2, 0, -half[1])):
+            cross = np.arange(-half[along // 2] + .0063, half[along // 2], .0137)
+            mismatch = float(np.mean(boundary_profile(built, axis, value, along, ys, cross)
+                                     != boundary_profile(source, axis, value, along, ys, cross)))
+            worst = max(worst, mismatch)
+            if mismatch > 0:
+                errors.append(f"{stem}: edge {'xyz'[axis]}={value:+} differs from its KayKit grate")
+    return {"worst_mismatch": worst, "errors": errors}
+
+
 def wall_seams(pieces):
     """Every wall end must match the straight wall's end, mirrored front to back."""
     ns = np.arange(.0043, .5, .0087)
@@ -403,7 +434,7 @@ def wall_seams(pieces):
     return {"worst_mismatch": worst, "errors": errors}
 
 
-def overlay_seams(pieces):
+def overlay_seams(pieces, ys=None, walled=False):
     """Rug pieces turn in place, so edges are compared by role rather than by fixed axis.
 
     Field edges (rug continues in both pieces) must all match and be symmetric. Run edges (a border
@@ -411,7 +442,7 @@ def overlay_seams(pieces):
     borders at both ends and must be symmetric. Rug ends must leave the cell edge bare.
     """
     ts = np.arange(-1.9963, 2.0, .0137)
-    ys = np.arange(.0302, .12, .0021)
+    ys = np.arange(.0302, .12, .0021) if ys is None else ys
     sides = {(1, 0): (0, 2.0, 2), (-1, 0): (0, -2.0, 2), (0, 1): (2, 2.0, 0), (0, -1): (2, -2.0, 0)}
     reference, errors, worst = {}, [], 0.0
     for stem, (piece, built) in pieces.items():
@@ -425,7 +456,7 @@ def overlay_seams(pieces):
                 role = "field" if not cross else "run2" if len(cross) == 2 else "run"
                 if role == "run" and (cross[0][0] > 0 or cross[0][1] > 0):
                     profile = profile[:, ::-1]
-            if role == "end":
+            if role == "end" and not walled:
                 if profile.any():
                     errors.append(f"{stem}: rug end {side} reaches the cell edge")
                 continue
@@ -437,6 +468,17 @@ def overlay_seams(pieces):
             if mismatch > .004:
                 errors.append(f"{stem}: {role} edge {side} differs from the family ({mismatch:.1%})")
     return {"worst_mismatch": worst, "errors": errors}
+
+
+def pool_jobs(by_piece, r, out):
+    """A 3x3 pool and a three-tile runner sunk into KayKit stone floor, laid as the game lays them."""
+    jobs = overlay_jobs(by_piece, r, out)
+    pool = {(4 * i, 4 * j) for i in range(3) for j in range(3)} | {(4 * k, 12) for k in range(3)}
+    # Floor only where there is no pool, in a ring around both.
+    floor = [{"glb": str(CONTEXT_FLOOR), "position": [x, 0, z]} for x in range(-4, 13, 4) for z in range(-4, 17, 4)
+             if (x, z) not in pool]
+    jobs[0]["tiles"] = [tile for tile in jobs[0]["tiles"] if tile["glb"] != str(CONTEXT_FLOOR)] + floor
+    return jobs
 
 
 def overlay_jobs(by_piece, r, out):
@@ -468,6 +510,34 @@ def overlay_jobs(by_piece, r, out):
         {"out": str(out / "variants.png"), "target": [(x - .8) / 2, 0, 0], "direction": [0, 1, 1e-4],
          "size": max(5.0, (x + .4) * 360 / 1920)}]}
     return [rows, single]
+
+
+def inlay_jobs(by_piece, r, out):
+    """A run of channels and a pool set into KayKit stone floor beside a KayKit grate, as the game lays them."""
+    floor, grate = str(CONTEXT_FLOOR), str(CONTEXT_FLOOR.with_name("floor_tile_big_grate.gltf"))
+    channels, pools = by_piece.get("channel", []), by_piece.get("pool", [])
+    # Cells (i, j) of 4 units; the channel run fills the middle row's halves along x.
+    tiles = [{"glb": floor, "position": [4 * i, 0, 4 * j]} for i in range(5) for j in range(4) if j != 1 and (i, j) not in ((3, 2), (1, 2))]
+    for i in range(5):
+        if channels:
+            tiles.append({"glb": str(channels[i % len(channels)]), "position": [4 * i, 0, 3]})
+        tiles.append({"glb": floor.replace("large", "small"), "position": [4 * i - 1, 0, 5]})
+        tiles.append({"glb": floor.replace("large", "small"), "position": [4 * i + 1, 0, 5]})
+    if pools:
+        tiles.append({"glb": str(pools[0]), "position": [12, 0, 8]})
+    tiles.append({"glb": grate, "position": [4, 0, 8]})
+    grid = {"tiles": tiles, "resolution": [960, 960], "shots": [
+        {"out": str(out / "top.png"), "target": [8, 0, 6], "direction": [0, 1, 1e-4], "size": 16.6},
+        {"out": str(out / "game.png"), "target": [8, 0, 6], "direction": [6.8, 11.5, 6.8], "size": 12},
+        {"out": str(out / "close.png"), "target": [12, 0, 6], "direction": [6.8, 11.5, 6.8], "size": 5.5}]}
+    strip, x = [], 0.0
+    for path in channels + pools:
+        strip.append({"glb": str(path), "position": [x + 2, 0, 0]})
+        x += 4.8
+    single = {"tiles": strip, "resolution": [1920, 360], "shots": [
+        {"out": str(out / "variants.png"), "target": [(x - .8) / 2, 0, 0], "direction": [0, 1, 1e-4],
+         "size": max(5.0, (x + .4) * 360 / 1920)}]}
+    return [grid, single]
 
 
 def floor_jobs(by_piece, r, out):
