@@ -501,6 +501,26 @@ public partial class MapGenerator : Node3D
 		},
 	};
 
+	/// <summary>Decorates corridor walls, corners, thresholds, and straight spans using the realm's corridor steps.</summary>
+	private void DecorateCorridors()
+	{
+		if (Corridors is not DungeonTileFactory dungeonTiles || dungeonTiles.Steps.Length == 0) return;
+		ulong corridorSeed = GenerationRandom.DeriveSeed(Seed, GenerationRandom.Decoration, $"corridors:{GenerationAttempt}");
+		var blueprint = new CorridorBlueprint(this, dungeonTiles.Walls, corridorSeed);
+		for (int index = 0; index < dungeonTiles.Steps.Length; index++)
+		{
+			var step = dungeonTiles.Steps[index];
+			if (step == null) continue;
+			using var rng = blueprint.Random($"{index}:{step.Id}");
+			if (rng.Randf() <= step.Chance)
+			{
+				step.Decorate(blueprint, rng);
+			}
+		}
+
+		blueprint.EmitProps(this);
+	}
+
 	/// <summary>Caps permanent void and the outer margin. Gameplay exploration is rendered separately.</summary>
 	private void PlaceOcclusion()
 	{
@@ -698,6 +718,7 @@ public partial class MapGenerator : Node3D
 		FinalizeMarkers();
 		AccessProfile?.Validate();
 		CreateSecretBranches();
+		DecorateCorridors();
 
 		// Step 2c: Cap permanent void. Exploration is the level's FloorDiscovery, started once the floor is handed off.
 		PlaceOcclusion();
@@ -798,6 +819,12 @@ public partial class MapGenerator : Node3D
 				node.QueueFree();
 			}
 			NavigationRegion.NavigationMesh.Clear();
+		}
+
+		if (GetNodeOrNull<Node3D>("CorridorProps") is { } corridorProps)
+		{
+			RemoveChild(corridorProps);
+			corridorProps.QueueFree();
 		}
 
 		RoomLayout?.Reset();

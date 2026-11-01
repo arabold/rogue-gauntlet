@@ -1,11 +1,78 @@
-[gd_resource type="Resource" script_class="DungeonTileFactory" load_steps=4 format=3 uid="uid://djtuce71qkm72"]
+[gd_resource type="Resource" script_class="DungeonTileFactory" load_steps=23 format=3 uid="uid://djtuce71qkm72"]
 
 [ext_resource type="Script" path="res://scenes/levels/dungeon/DungeonTileFactory.cs" id="2_dungeontilefacto"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/floors/dirt.tres" id="3_dirt"]
 [ext_resource type="Resource" path="res://scenes/levels/garrison/styles/walls/corridor_walls.tres" id="4_corridor_walls"]
+[ext_resource type="Script" path="res://scenes/levels/generators/corridors/CorridorPassagewayStep.cs" id="5_passageway_step"]
+[ext_resource type="Script" path="res://scenes/levels/generators/corridors/CorridorThresholdStep.cs" id="6_threshold_step"]
+[ext_resource type="Script" path="res://scenes/levels/generators/corridors/CorridorCornerStep.cs" id="7_corner_step"]
+[ext_resource type="Script" path="res://scenes/levels/generators/corridors/CorridorHallwayStep.cs" id="8_hallway_step"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/stone_passageway.tres" id="9_stone_passageway"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/structure/scaffold_passageway.tres" id="10_scaffold_passageway"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch.tres" id="11_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/sconce.tres" id="12_sconce"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_red.tres" id="13_banner_red"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_blue.tres" id="14_banner_blue"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/banner_brown.tres" id="15_banner_brown"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/heraldic_shield.tres" id="16_heraldic_shield"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/sword_shield.tres" id="17_sword_shield"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/shackles.tres" id="18_shackles"]
+[ext_resource type="Resource" path="res://scenes/levels/garrison/props/wall/torch_unlit.tres" id="19_torch_unlit"]
+
+[sub_resource type="Resource" id="Resource_passageways"]
+script = ExtResource("5_passageway_step")
+MinimumSpanTiles = 3
+PerSpanChance = 0.65
+Id = "passageways"
+Content = [ExtResource("9_stone_passageway"), ExtResource("10_scaffold_passageway")]
+MaximumCount = 6
+Chance = 1.0
+Spacing = 8.0
+
+[sub_resource type="Resource" id="Resource_doorway_torches"]
+script = ExtResource("6_threshold_step")
+PerThresholdChance = 0.55
+PairChance = 0.25
+Id = "doorway_torches"
+Content = [ExtResource("11_torch"), ExtResource("12_sconce")]
+MaximumCount = 10
+Chance = 1.0
+Spacing = 8.0
+
+[sub_resource type="Resource" id="Resource_corner_torches"]
+script = ExtResource("7_corner_step")
+IncludeCorners = true
+IncludeTJunctions = true
+PerJunctionChance = 0.5
+Id = "corner_torches"
+Content = [ExtResource("11_torch"), ExtResource("12_sconce")]
+MaximumCount = 8
+Chance = 1.0
+Spacing = 8.0
+
+[sub_resource type="Resource" id="Resource_hallway_lights"]
+script = ExtResource("8_hallway_step")
+MinimumRunTiles = 4
+PairAcrossChance = 0.25
+Id = "hallway_lights"
+Content = [ExtResource("11_torch"), ExtResource("12_sconce")]
+MaximumCount = 6
+Chance = 1.0
+Spacing = 12.0
+
+[sub_resource type="Resource" id="Resource_hallway_decor"]
+script = ExtResource("8_hallway_step")
+MinimumRunTiles = 2
+PairAcrossChance = 0.3
+Id = "hallway_decor"
+Content = [ExtResource("13_banner_red"), ExtResource("14_banner_blue"), ExtResource("15_banner_brown"), ExtResource("16_heraldic_shield"), ExtResource("17_sword_shield"), ExtResource("18_shackles"), ExtResource("19_torch_unlit")]
+MaximumCount = 10
+Chance = 1.0
+Spacing = 6.0
 
 [resource]
 script = ExtResource("2_dungeontilefacto")
 Floor = ExtResource("3_dirt")
 Walls = ExtResource("4_corridor_walls")
+Steps = [SubResource("Resource_passageways"), SubResource("Resource_doorway_torches"), SubResource("Resource_corner_torches"), SubResource("Resource_hallway_lights"), SubResource("Resource_hallway_decor")]
 metadata/_custom_type_script = ExtResource("2_dungeontilefacto")

@@ -60,7 +60,7 @@ public partial class WallStyle : Resource
 			() => Library.FindItemByName(Half),
 			() => Library.FindItemByName(Corner),
 			request => pieces.TryGetValue(request.Position, out var piece)
-				? (Library.FindItemByName(piece.Item), FacingInto(-piece.Outward))
+				? (Library.FindItemByName(piece.Item), WallFootprints.FacingInto(-piece.Outward))
 				: (Library.FindItemByName(Straight.Keys.First()), request.Orientation));
 		foreach (var piece in pieces.Values)
 		{
@@ -85,7 +85,4 @@ public partial class WallStyle : Resource
 
 	private static Vector3I EdgeCell(Vector2I tile, Vector2I outward) =>
 		(Vector3I)RoomFootprint.TileCenter(tile) + new Vector3I(outward.X, 0, outward.Y) * (Room.TileSize / 2);
-
-	/// <summary>GridMap orientation that turns local +Z toward <paramref name="inward"/>.</summary>
-	private static int FacingInto(Vector2I inward) => inward == Vector2I.Down ? 0 : inward == Vector2I.Up ? 10 : inward == Vector2I.Right ? 16 : 22;
 }

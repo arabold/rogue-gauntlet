@@ -60,8 +60,16 @@ public class TorchExplorationGateTest
 		AssertBool(gates.Any(g => !g.Target.Visible)).IsTrue(); // Torches beyond the start room are still in the fog.
 		// A gate probing the wall plane or the void behind it would stay dark forever.
 		// The debug reveal must mark tiles explored too, not just clear the caps.
-		if (debugRevealAll) level.Discovery.RevealAll();
-		else for (int room = 0; room < level.Floor.Rooms.Count; room++) level.Discovery.RevealRoom(room);
+		if (debugRevealAll)
+		{
+			level.Discovery.RevealAll();
+		}
+		else
+		{
+			for (int room = 0; room < level.Floor.Rooms.Count; room++) level.Discovery.RevealRoom(room);
+			foreach (var gate in gates.Where(g => g.GetAncestorOrNull<Room>() == null))
+				TestFactories.RevealTileAt(level.Discovery, level.Floor.Map, gate.GlobalPosition);
+		}
 		await runner.SimulateFrames(2);
 		AssertArray(gates.Where(g => !g.Target.Visible).Select(g => g.GetPath().ToString()).ToArray()).IsEmpty();
 	}

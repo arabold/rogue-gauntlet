@@ -17,6 +17,7 @@ public partial class Prop : Placeable
 	private PackedScene[] _scenes = [];
 	private int _quarterTurns;
 	private bool _blocking = true;
+	private bool _emitsLight;
 	private PropGeometry[] _geometry;
 
 	[ExportGroup("Model")]
@@ -32,6 +33,13 @@ public partial class Prop : Placeable
 	[Export] public PropMount Mount { get; set; }
 	/// <summary>Floor props whose back stands flush against a wall: beds, shelves, wall-side tables.</summary>
 	[Export] public bool BackToWall { get; set; }
+	/// <summary>True for light-emitting fixtures (torches, sconces, braziers) that need inter-prop light spacing.</summary>
+	[Export]
+	public bool EmitsLight
+	{
+		get => _emitsLight || (_scenes.Length > 0 && _scenes[0] != null && (_scenes[0].ResourcePath.EndsWith("wall_torch.tscn") || _scenes[0].ResourcePath.Contains("_lit.")));
+		set => _emitsLight = value;
+	}
 	/// <summary>Wall props: height of the scene root above the floor.</summary>
 	[Export(PropertyHint.Range, "0,6,0.05")] public float MountHeight { get; set; } = 2.2f;
 	/// <summary>Wall props: recess from the wall's outer trim to its flat mounting surface.</summary>
