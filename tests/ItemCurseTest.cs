@@ -198,30 +198,30 @@ public class ItemCurseTest
 
 		// 1. Unknown curse in backpack slot: no active aura, render-once
 		panel.SetItem(new InventoryItemSlot { Item = sword }, isEquipped: false);
-		AssertBool(preview.AuraPresenter == null || !preview.AuraPresenter.HasActiveAura).IsTrue();
+		AssertBool(preview.AuraPresenter?.ActiveEffect != null).IsFalse();
 		AssertInt((int)preview.RenderTargetUpdateMode).IsEqual((int)SubViewport.UpdateMode.Once);
 
 		// 2. Revealed curse: shows curse aura, renders live
 		sword.RevealCurseStatus();
 		AssertObject(preview.AuraPresenter).IsNotNull();
-		AssertBool(preview.AuraPresenter.HasActiveAura).IsTrue();
+		AssertBool(preview.AuraPresenter.ActiveEffect != null).IsTrue();
 		AssertString(preview.AuraPresenter.ActiveEffect?.Id.ToString()).IsEqual("cursed_item");
 		AssertInt((int)preview.RenderTargetUpdateMode).IsEqual((int)SubViewport.UpdateMode.Always);
 
 		// 3. Equipped slot also shows curse aura
 		panel.SetItem(new InventoryItemSlot { Item = sword }, isEquipped: true);
-		AssertBool(preview.AuraPresenter.HasActiveAura).IsTrue();
+		AssertBool(preview.AuraPresenter.ActiveEffect != null).IsTrue();
 		AssertString(preview.AuraPresenter.ActiveEffect?.Id.ToString()).IsEqual("cursed_item");
 		AssertInt((int)preview.RenderTargetUpdateMode).IsEqual((int)SubViewport.UpdateMode.Always);
 
 		// 4. Lifting the curse ends the aura and returns to render-once
 		sword.LiftCurse();
-		AssertBool(preview.AuraPresenter.HasActiveAura).IsFalse();
+		AssertBool(preview.AuraPresenter.ActiveEffect != null).IsFalse();
 		AssertInt((int)preview.RenderTargetUpdateMode).IsEqual((int)SubViewport.UpdateMode.Once);
 
 		// 5. Uncursed item has no aura
 		panel.SetItem(new InventoryItemSlot { Item = Create(Sword) }, isEquipped: false);
-		AssertBool(preview.AuraPresenter == null || !preview.AuraPresenter.HasActiveAura).IsTrue();
+		AssertBool(preview.AuraPresenter?.ActiveEffect != null).IsFalse();
 		AssertInt((int)preview.RenderTargetUpdateMode).IsEqual((int)SubViewport.UpdateMode.Once);
 
 		// 6. Clearing the slot removes the aura

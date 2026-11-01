@@ -142,8 +142,15 @@ public partial class Preview : SubViewport
 	{
 		_item = item;
 		Diagonal = item is Weapon;
-		Scene = ItemIdentity.ResolveScene(item);
-		UpdateAura();
+		PackedScene newScene = ItemIdentity.ResolveScene(item);
+		if (Scene == newScene && GodotObject.IsInstanceValid(_object))
+		{
+			UpdateAura();
+		}
+		else
+		{
+			Scene = newScene;
+		}
 	}
 
 	public void Refresh()
@@ -278,7 +285,7 @@ public partial class Preview : SubViewport
 
 	private void UpdateRenderMode()
 	{
-		if (IsProcessing() || (_aura != null && _aura.HasActiveAura))
+		if (IsProcessing() || _aura?.ActiveEffect != null)
 		{
 			RenderTargetUpdateMode = UpdateMode.Always;
 		}
@@ -296,9 +303,8 @@ public partial class Preview : SubViewport
 			return;
 		}
 
-		if (_aura != null && _aura.GetParent() == _object && _aura.Item == equipable)
+		if (_aura != null && _aura.Item == equipable)
 		{
-			_aura.Sync();
 			return;
 		}
 
@@ -312,19 +318,16 @@ public partial class Preview : SubViewport
 
 	private void ClearAura()
 	{
-		if (_aura != null)
+		if (_aura == null)
 		{
-			_aura.AuraChanged -= OnAuraChanged;
-			_aura.QueueFree();
-			_aura = null;
+			return;
 		}
+
+		_aura.AuraChanged -= OnAuraChanged;
+		_aura.QueueFree();
+		_aura = null;
 		UpdateRenderMode();
 	}
 
 	private void OnAuraChanged(WorldEffectDefinition active) => UpdateRenderMode();
-
-	public override void _ExitTree()
-	{
-		ClearAura();
-	}
 }

@@ -19,7 +19,6 @@ public partial class ItemAuraPresenter : Node3D
 	private WorldEffectDefinition _active;
 
 	public EquipableItem Item => _item;
-	public bool HasActiveAura => _active != null;
 	public WorldEffectDefinition ActiveEffect => _active;
 
 	/// <summary>Initialize before adding to the model tree. The presenter lifetime follows that model.</summary>
@@ -35,7 +34,7 @@ public partial class ItemAuraPresenter : Node3D
 		if (_actor != null) this.SubscribeUntilExit(_actor, a => a.GateChanged += Sync, a => a.GateChanged -= Sync);
 		Sync();
 	}
-	public void Sync()
+	private void Sync()
 	{
 		if (_actor?.IsStopped == true) { Host.StopForDeath(); return; }
 		Host.SetOwnerSuppressed(_actor?.IsSuppressed == true);
