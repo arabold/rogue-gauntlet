@@ -10,7 +10,7 @@ using Godot;
 /// (<c>fog_of_war.gdshaderinc</c>), so the fog and the silhouettes drawn above it read one source. The fade clock is
 /// pushed only while a reveal is fading in. Gameplay reads exploration through <see cref="ExplorationVisibility"/>.
 /// </summary>
-[GlobalClass]
+[Tool, GlobalClass]
 public partial class FloorDiscovery : Node3D
 {
 	/// <summary>Omnidirectional exploration reach in world units; independent of lighting and camera zoom.</summary>
@@ -61,6 +61,11 @@ public partial class FloorDiscovery : Node3D
 	public override void _Ready()
 	{
 		SetProcess(false);
+		if (Engine.IsEditorHint())
+		{
+			SetPhysicsProcess(false);
+			return;
+		}
 		this.SubscribeUntilExit(SignalBus.Instance,
 			bus => bus.PlayerSpawned += OnPlayerSpawned, bus => bus.PlayerSpawned -= OnPlayerSpawned);
 		this.SubscribeUntilExit(SignalBus.Instance,
@@ -70,7 +75,10 @@ public partial class FloorDiscovery : Node3D
 	}
 
 	/// <summary>Leaves no stale fog for silhouettes in scenes without a floor.</summary>
-	public override void _ExitTree() => RenderingServer.GlobalShaderParameterSet(MapExtentGlobal, Vector2.Zero);
+	public override void _ExitTree()
+	{
+		if (!Engine.IsEditorHint()) RenderingServer.GlobalShaderParameterSet(MapExtentGlobal, Vector2.Zero);
+	}
 
 	/// <summary>Drops the previous floor, so nothing reads its exploration while the next one generates.</summary>
 	public void Clear()

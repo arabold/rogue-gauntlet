@@ -137,26 +137,23 @@ public partial class DiscoveryAndAccessBalanceTest
 		}
 	}
 	[TestCase]
-	public void RarityPolicyAllowsEmptyFloorsAndSecretsAreMoreFrequent()
+	public void RarityPolicyAllowsEmptyFloors()
 	{
 		var profile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
 		profile.Validate();
 		AssertInt(profile.MaximumLockedDoors).IsEqual(1);
-		int locked = 0, secret = 0;
+		int locked = 0;
 		for (ulong seed = 0; seed < 200; seed++)
 		{
 			using var locks = GenerationRandom.Create(seed, "access-locks", "0");
-			using var secrets = GenerationRandom.Create(seed, "access-secrets", "0");
 			locked += profile.RollLockedRoomBudget(locks);
-			secret += profile.RollSecretRoomBudget(secrets);
 		}
 		AssertInt(locked).IsGreater(0); AssertInt(locked).IsLess(200);
-		AssertInt(secret).IsGreater(locked); AssertInt(secret).IsLess(200);
-		profile.LockedRoomChance = profile.SecretRoomChance = 0;
+		profile.LockedRoomChance = 0;
 		using var rng = GenerationRandom.Create(42, "none");
 		AssertInt(profile.RollLockedRoomBudget(rng)).IsEqual(0);
-		AssertInt(profile.RollSecretRoomBudget(rng)).IsEqual(0);
 	}
+
 	[TestCase]
 	public async Task DoorCapAppliesAcrossMultiEntranceRoomsAndFloorsSpawnNoPicks()
 	{

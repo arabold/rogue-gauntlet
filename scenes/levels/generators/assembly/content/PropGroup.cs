@@ -4,8 +4,8 @@ using Godot;
 
 /// <summary>
 /// The data way to compose things that belong together (a bed with a nightstand and a chest, a wine barrel with a
-/// small table and bottles): an anchor plus optional members at offsets. The anchor must fit; each member is placed
-/// and validated on its own and simply dropped when it does not fit. Mirroring flips members to the other side.
+/// small table and bottles): an anchor plus members at offsets. Required members fit with the anchor atomically;
+/// optional dressing is validated on its own and dropped when it does not fit. Mirroring flips members to the other side.
 /// </summary>
 [Tool, GlobalClass]
 public partial class PropGroup : Placeable
@@ -27,7 +27,7 @@ public partial class PropGroup : Placeable
 			if (!include || option == null) continue;
 			var local = new Transform3D(new Basis(Vector3.Up, member.QuarterTurns * side * Mathf.Pi / 2),
 				new Vector3(member.Offset.X * side, member.Offset.Y, member.Offset.Z));
-			option.Compose(room, rng, plan, at * local, optional: true);
+			option.Compose(room, rng, plan, at * local, optional: optional || !member.Required);
 		}
 	}
 

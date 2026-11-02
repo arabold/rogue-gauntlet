@@ -19,14 +19,13 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble.tres" id="19_rubble"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="20_scatterstep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="21_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="22_torch_unlit"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="23_walldecorstep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/mushrooms.tres" id="p_mushrooms"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
-MinimumSize = Vector2i(3, 4)
-MaximumSize = Vector2i(4, 6)
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(4, 4)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
@@ -58,18 +57,25 @@ metadata/_custom_type_script = ExtResource("20_scatterstep")
 [sub_resource type="Resource" id="WallDecorStep_5"]
 script = ExtResource("23_walldecorstep")
 Id = "torches"
-Content = [ExtResource("21_torch"), ExtResource("21_torch"), ExtResource("22_torch_unlit")]
+Content = [ExtResource("21_torch")]
 MaximumCount = 3
 Spacing = 5.0
 metadata/_custom_type_script = ExtResource("23_walldecorstep")
+
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("3_rectangleshape")
+Weight = 0.5
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
 [resource]
 script = ExtResource("2_roomtype")
 Id = "timbered_mine"
 Realms = PackedStringArray("jungle")
 Weight = 0.8
-Shapes = [SubResource("RectangleShape_1")]
-MinimumFloorTiles = 12
+Shapes = [SubResource("RectangleShape_1"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 6
 MinDoorways = 1
 MaxDoorways = 2
 DoorChance = 0.6

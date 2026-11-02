@@ -1,8 +1,6 @@
-[gd_resource type="Resource" script_class="LevelAccessProfile" load_steps=13 format=3]
+[gd_resource type="Resource" script_class="LevelAccessProfile" load_steps=11 format=3]
 [ext_resource type="Script" path="res://scenes/levels/access/LevelAccessProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/levels/access/DoorLockDefinition.cs" id="lock"]
-[ext_resource type="Resource" path="res://scenes/levels/access/proximity_detection.tres" id="detection"]
-[ext_resource type="PackedScene" path="res://scenes/props/door.tscn" id="door"]
 [ext_resource type="Resource" path="res://scenes/items/keys/key/key_gold_treasury.tres" id="gold"]
 [ext_resource type="Resource" path="res://scenes/items/keys/key/key_silver_crypt.tres" id="silver"]
 [ext_resource type="Resource" path="res://scenes/items/keys/key/key_arcane_crystal.tres" id="arcane"]
@@ -22,11 +20,7 @@ RequiredKey = ExtResource("arcane")
 Methods = [ExtResource("unlock_key"), ExtResource("unlock_pick")]
 [resource]
 script = ExtResource("profile")
-DoorScene = ExtResource("door")
 Locks = [SubResource("GoldLock"), SubResource("SilverLock"), SubResource("ArcaneLock")]
-Detection = ExtResource("detection")
 MaximumLockedRooms = 1
 MaximumLockedDoors = 1
 LockedRoomChance = 0.2
-MaximumSecretRooms = 1
-SecretRoomChance = 0.45

@@ -7,7 +7,7 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Curated room types, optional landmark exhaustion and the actual three-floor generation path.</summary>
+/// <summary>Curated room types, seeded replay and the actual three-floor generation path.</summary>
 [TestSuite, RequireGodotRuntime]
 public class GarrisonRoomPoolTest
 {
@@ -43,18 +43,17 @@ public class GarrisonRoomPoolTest
 	}
 
 	[TestCase]
-	public void EverySlotIsAssembledAndResetReproducesTheirGeometry()
+	public void EverySlotIsAssembledAndSeedReproducesItsGeometry()
 	{
-		var factory = TestFactories.Load<AssembledRoomFactory>(Preset, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		var factory = TestFactories.Load<AssembledRoomFactory>(Preset);
 		using var rng = new RandomNumberGenerator { Seed = 42 };
 		string first = "";
 		for (int index = 0; index < 8; index++)
 		{
-			var room = (index % 4) switch
+			var room = (index % 3) switch
 			{
-				0 => factory.CreateSpecialRoom(rng),
-				1 => factory.CreateStandardRoom(rng),
-				2 => factory.CreateEntrance(rng),
+				0 => factory.CreateStandardRoom(rng),
+				1 => factory.CreateEntrance(rng),
 				_ => factory.CreateExit(rng),
 			};
 			AssertString(room.SceneFilePath).IsEmpty();
@@ -62,9 +61,8 @@ public class GarrisonRoomPoolTest
 			if (index == 0) first = Signature(room);
 			room.Free();
 		}
-		factory.Reset();
 		rng.Seed = 42;
-		var reset = factory.CreateSpecialRoom(rng);
+		var reset = factory.CreateStandardRoom(rng);
 		AssertString(Signature(reset)).IsEqual(first);
 		reset.Free();
 	}

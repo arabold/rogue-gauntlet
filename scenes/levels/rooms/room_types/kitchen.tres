@@ -24,7 +24,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelving.tres" id="23_wall_shelvin"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="24_wall_shelf"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="25_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="26_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/hearth.tres" id="27_hearth"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/set_kitchen_table.tres" id="28_set_kitchen_"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/chopping_block.tres" id="29_chopping_blo"]
@@ -36,16 +35,16 @@
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
 Weight = 1.0
-MinimumSize = Vector2i(3, 4)
-MaximumSize = Vector2i(4, 5)
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(4, 4)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("2_RectangleSha")
 
 [sub_resource type="Resource" id="LShape_2"]
 script = ExtResource("3_LShape")
 Weight = 1.0
-MinimumSize = Vector2i(4, 4)
-MaximumSize = Vector2i(4, 5)
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 4)
 ArmWidth = 2
 metadata/_custom_type_script = ExtResource("3_LShape")
 
@@ -93,7 +92,7 @@ metadata/_custom_type_script = ExtResource("22_WallDecorSte")
 [sub_resource type="Resource" id="WallDecorStep_8"]
 script = ExtResource("22_WallDecorSte")
 Id = "door_torches"
-Content = [ExtResource("25_torch"), ExtResource("26_torch_unlit")]
+Content = [ExtResource("25_torch")]
 MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("22_WallDecorSte")
@@ -107,13 +106,20 @@ MaximumCount = 1
 EndClearance = 0.3
 metadata/_custom_type_script = ExtResource("10_AlongWallsSt")
 
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("2_RectangleSha")
+Weight = 0.5
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("2_RectangleSha")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "kitchen"
 Realms = PackedStringArray("garrison")
 Weight = 0.7
-Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2")]
-MinimumFloorTiles = 12
+Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 6
 MinDoorways = 1
 MaxDoorways = 2
 Walls = [ExtResource("4_stone_walls"), ExtResource("5_scaffold_wal")]

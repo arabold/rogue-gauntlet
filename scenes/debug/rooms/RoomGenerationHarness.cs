@@ -37,7 +37,7 @@ public partial class RoomGenerationHarness : Node3D
 	public Realm Realm => Generator.Realms[SelectedRealm];
 	/// <summary>The room pool narrowed to the selected realm.</summary>
 	public AssembledRoomFactory Factory { get; private set; }
-	/// <summary>Every room type the realm's factory assembles: ordinary rooms, then entrances and exits.</summary>
+	/// <summary>The realm's ordinary rooms followed by entrances and exits.</summary>
 	public IReadOnlyList<RoomType> Recipes => [.. Factory.RoomTypes, .. Factory.EntranceTypes, .. Factory.ExitTypes];
 
 	private int _quarterTurns;
@@ -275,7 +275,8 @@ public partial class RoomGenerationHarness : Node3D
 		PreviewBlueprint = blueprint;
 		var (reachable, pockets) = AddWalkabilityOverlay(blueprint);
 		Status.Text = $"{type.Id} · Seed {Seed} · {_quarterTurns * 90}°\n"
-			+ $"{blueprint.Footprint.Width} × {blueprint.Footprint.Length} tiles · {ShapeName(blueprint.Shape)}\n"
+			+ $"{blueprint.Footprint.Width} × {blueprint.Footprint.Length} tile bounds · {blueprint.Footprint.Count} footprint tiles\n"
+			+ $"{ShapeName(blueprint.Shape)}\n"
 			+ $"walls {Local(blueprint.Walls.Id)} · floor {Local(blueprint.Floor.Id)} · columns {blueprint.Columns?.Id ?? "none"}\n"
 			+ $"{blueprint.Pieces.Count} props · {blueprint.Doorways.Count} doorways · pockets {(reachable + pockets == 0 ? 0 : 100f * pockets / (reachable + pockets)):F1}% of standable floor";
 		return blueprint.Room;

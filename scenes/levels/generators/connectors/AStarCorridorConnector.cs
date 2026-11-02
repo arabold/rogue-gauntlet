@@ -9,25 +9,9 @@ using Godot;
 [GlobalClass]
 public partial class AStarCorridorConnector : CorridorConnectorStrategy
 {
-    private readonly struct RoomConnector
-    {
-        public RoomConnector(Vector2I roomTile, Vector2I direction)
-        {
-            ConnectorTile = roomTile;
-            CorridorTile = roomTile + direction;
-        }
-
-        /// <summary>The room-edge connector tile.</summary>
-        public Vector2I ConnectorTile { get; }
-
-        /// <summary>The tile just outside the connector where a corridor enters.</summary>
-        public Vector2I CorridorTile { get; }
-    }
-
     private sealed class RoomComponent
     {
-        public List<Vector2I> Tiles { get; } = new();
-        public List<RoomConnector> Connectors { get; } = new();
+        public List<Vector2I> Connectors { get; } = new();
     }
 
     /// <summary>
@@ -40,10 +24,10 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
         public int MinPathCount { get; } = Math.Abs(To.X - From.X) + Math.Abs(To.Y - From.Y) + 1;
     }
 
-    public override void ConnectRooms(MapData map)
+    public override void ConnectRooms(MapData map, IReadOnlyList<RoomRegion> rooms)
     {
-        var astar = CreatePathGrid(map);
-        var components = FindRoomComponents(map);
+        using var astar = CreatePathGrid(map);
+        var components = BuildComponents(map, rooms);
 
         // Phase 1: link every room into a single reachable network (spanning tree),
         // guaranteeing each room at least one connection.
@@ -67,8 +51,7 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
         {
             if (component.Connectors.Count == 0)
             {
-                GD.PrintErr($"Room component at {component.Tiles[0]} has no connector tiles and cannot be reached.");
-                continue;
+                throw new InvalidOperationException("A room has no routable doorway and cannot be reached.");
             }
 
             if (connectedComponents.Count == 0)
@@ -106,7 +89,7 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
     /// </summary>
     private void ConnectRemainingDoorways(MapData map, AStarGrid2D astar, List<RoomComponent> components)
     {
-        var connectors = new List<RoomConnector>();
+        var connectors = new List<Vector2I>();
         foreach (var component in components)
         {
             connectors.AddRange(component.Connectors);
@@ -114,7 +97,7 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
 
         foreach (var connector in connectors)
         {
-            if (map.IsCorridor(connector.CorridorTile.X, connector.CorridorTile.Y))
+            if (map.IsCorridor(connector.X, connector.Y))
             {
                 continue; // Already opens into the network.
             }
@@ -122,13 +105,13 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
             var candidates = new List<CorridorCandidate>();
             foreach (var target in connectors)
             {
-                if (target.CorridorTile == connector.CorridorTile
-                    || !map.IsCorridor(target.CorridorTile.X, target.CorridorTile.Y))
+                if (target == connector
+                    || !map.IsCorridor(target.X, target.Y))
                 {
                     continue;
                 }
 
-                candidates.Add(new CorridorCandidate(connector.CorridorTile, target.CorridorTile, candidates.Count, null));
+                candidates.Add(new CorridorCandidate(connector, target, candidates.Count, null));
             }
 
             if (TryFindShortestPath(astar, candidates, out _, out var bestPath))
@@ -137,7 +120,7 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
             }
             else
             {
-                GD.PrintErr($"Doorway entrance at {connector.CorridorTile} could not be connected.");
+                GD.PrintErr($"Doorway entrance at {connector} could not be connected.");
             }
         }
     }
@@ -175,68 +158,24 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
         return astar;
     }
 
-    private List<RoomComponent> FindRoomComponents(MapData map)
+    /// <summary>Uses the rooms and doorway tiles already registered by the layout, without flood-filling the map.</summary>
+    private static List<RoomComponent> BuildComponents(MapData map, IReadOnlyList<RoomRegion> rooms)
     {
-        var components = new List<RoomComponent>();
-        var visited = new bool[map.Width, map.Height];
-
-        for (int x = 0; x < map.Width; x++)
+        var components = new List<RoomComponent>(rooms.Count);
+        foreach (var room in rooms)
         {
-            for (int z = 0; z < map.Height; z++)
+            var component = new RoomComponent();
+            foreach (var connector in room.ConnectorTiles)
+            foreach (var direction in map.GetConnectorDirections(connector.X, connector.Y))
             {
-                if (!visited[x, z] && IsRoomComponentTile(map, x, z))
-                {
-                    components.Add(FloodFillRoomComponent(map, x, z, visited));
-                }
+                var outside = connector + direction;
+                if (map.IsWithinBounds(outside.X, outside.Y)
+                    && (map.IsEmpty(outside.X, outside.Y) || map.IsCorridor(outside.X, outside.Y)))
+                    component.Connectors.Add(outside);
             }
+            components.Add(component);
         }
-
         return components;
-    }
-
-    private RoomComponent FloodFillRoomComponent(MapData map, int startX, int startZ, bool[,] visited)
-    {
-        var component = new RoomComponent();
-        var queue = new Queue<Vector2I>();
-        queue.Enqueue(new Vector2I(startX, startZ));
-        visited[startX, startZ] = true;
-
-        while (queue.Count > 0)
-        {
-            var tile = queue.Dequeue();
-            component.Tiles.Add(tile);
-
-            if (map.IsConnector(tile.X, tile.Y))
-            {
-                AddConnectorEntrances(map, component, tile);
-            }
-
-            foreach (var neighbor in GetCardinalNeighbors(tile))
-            {
-                if (map.IsWithinBounds(neighbor.X, neighbor.Y)
-                    && !visited[neighbor.X, neighbor.Y]
-                    && IsRoomComponentTile(map, neighbor.X, neighbor.Y))
-                {
-                    visited[neighbor.X, neighbor.Y] = true;
-                    queue.Enqueue(neighbor);
-                }
-            }
-        }
-
-        return component;
-    }
-
-    private void AddConnectorEntrances(MapData map, RoomComponent component, Vector2I connectorTile)
-    {
-        foreach (var direction in map.GetConnectorDirections(connectorTile.X, connectorTile.Y))
-        {
-            var corridorTile = connectorTile + direction;
-            if (map.IsWithinBounds(corridorTile.X, corridorTile.Y)
-                && (map.IsEmpty(corridorTile.X, corridorTile.Y) || map.IsCorridor(corridorTile.X, corridorTile.Y)))
-            {
-                component.Connectors.Add(new RoomConnector(connectorTile, direction));
-            }
-        }
     }
 
     private bool TryFindBestConnection(
@@ -256,7 +195,7 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
                     foreach (var endConnector in remainingComponent.Connectors)
                     {
                         candidates.Add(new CorridorCandidate(
-                            startConnector.CorridorTile, endConnector.CorridorTile, candidates.Count, remainingComponent));
+                            startConnector, endConnector, candidates.Count, remainingComponent));
                     }
                 }
             }
@@ -318,16 +257,4 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
         }
     }
 
-    private bool IsRoomComponentTile(MapData map, int x, int z)
-    {
-        return map.IsRoom(x, z) || map.IsConnector(x, z);
-    }
-
-    private IEnumerable<Vector2I> GetCardinalNeighbors(Vector2I tile)
-    {
-        yield return tile + Vector2I.Right;
-        yield return tile + Vector2I.Left;
-        yield return tile + Vector2I.Down;
-        yield return tile + Vector2I.Up;
-    }
 }

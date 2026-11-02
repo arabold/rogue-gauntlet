@@ -22,6 +22,11 @@ public partial class Room : Node3D
 	public IReadOnlyDictionary<Vector2I, Door> Doors => _doors;
 	private Dictionary<Vector2I, Door> _doors = [];
 
+	/// <summary>Wall cells intentionally placed as interior dividers, retained during floor assembly.</summary>
+	internal HashSet<Vector3I> DividerCells { get; private set; } = [];
+	/// <summary>Edges occupied by doorway frames or concealed walls, in room-local grid coordinates.</summary>
+	internal HashSet<(Vector3I Center, bool Horizontal)> FramedEdges { get; private set; } = [];
+
 	/// <summary>The room type that assembled this room, content included.</summary>
 	[Export] public RoomType Type { get; set; }
 	/// <summary>Circulation axis; zero means the room has no primary aisle.</summary>
@@ -77,6 +82,8 @@ public partial class Room : Node3D
 		LayoutAxis = new((int)axis.X, (int)axis.Z);
 		RotateGridMapCells(FloorGridMap, steps);
 		RotateGridMapCells(WallGridMap, steps);
+		DividerCells = DividerCells.Select(cell => RotateCell(cell, steps)).ToHashSet();
+		FramedEdges = FramedEdges.Select(edge => (RotateCell(edge.Center, steps), steps % 2 == 0 ? edge.Horizontal : !edge.Horizontal)).ToHashSet();
 		RotateGridMapCells(DecorationGridMap, steps);
 
 		// Direct children only, not recursive: a node's LOCAL transform is relative to

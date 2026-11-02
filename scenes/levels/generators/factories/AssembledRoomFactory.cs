@@ -31,8 +31,6 @@ public partial class AssembledRoomFactory : RoomFactory
 	public override Room CreateEntrance(RandomNumberGenerator rng) => Assemble(EntranceTypes, "entrance", rng);
 	public override Room CreateExit(RandomNumberGenerator rng) => Assemble(ExitTypes, "exit", rng);
 	public override Room CreateStandardRoom(RandomNumberGenerator rng) => Assemble(RoomTypes, "room", rng);
-	// No landmark types yet: special slots take ordinary rooms.
-	public override Room CreateSpecialRoom(RandomNumberGenerator rng) => CreateStandardRoom(rng);
 
 	/// <summary>A selected type must succeed: substituting another room would hide broken authoring.</summary>
 	private Room Assemble(RoomType[] types, string slot, RandomNumberGenerator rng)

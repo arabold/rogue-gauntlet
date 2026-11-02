@@ -182,14 +182,38 @@ public class DoorAccessTest
 		AssertFloat(profile.Chance(1000)).IsEqualApprox(0.9f, 0.001f);
 	}
 	[TestCase]
+	public async Task RequiredRoutesMayPassThroughSecretDoors()
+	{
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithSecrets(1));
+		var generator = level.MapGenerator;
+		generator.MapWidth = generator.MapDepth = 30; generator.MaxRooms = 6;
+		bool sawHiddenRoute = false;
+		for (ulong seed = 1; seed <= 8; seed++)
+		{
+			generator.Seed = seed; level.Generate();
+			var blocked = generator.Floor.Doors.Where(d => !d.Door.IsDiscovered).Select(d => d.Connector).ToHashSet();
+			var entry = generator.Map.WorldToTile(generator.Floor.Arrival.GlobalPosition);
+			var beforeDiscovery = AccessSolutionValidator.Reachable(generator.Map, entry, blocked);
+			int exitRoom = generator.RoomRegionFor(generator.Floor.Descent);
+			AssertInt(exitRoom).IsGreaterEqual(0);
+			var exit = generator.Floor.Rooms[exitRoom];
+			if (!exit.Tiles.Any(beforeDiscovery.Contains)) sawHiddenRoute = true;
+			var afterDiscovery = AccessSolutionValidator.Reachable(generator.Map, entry, new System.Collections.Generic.HashSet<Vector2I>());
+			AssertBool(exit.Tiles.Any(afterDiscovery.Contains)).IsTrue();
+			await runner.SimulateFrames(1);
+		}
+		AssertBool(sawHiddenRoute).IsTrue();
+	}
+
+	[TestCase]
 	public async Task GeneratedPairsAreReachableAndSecretsRestoreAsClosedDoors()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPool());
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithSecrets());
 		var generator = level.MapGenerator;
 		TestFactories.WireLootScenes(generator);
 		generator.AccessProfile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
 		// Solvability coverage deliberately requests dense content; player-facing scarcity is tested separately.
-		generator.AccessProfile.LockedRoomChance = generator.AccessProfile.SecretRoomChance = 1;
+		generator.AccessProfile.LockedRoomChance = 1;
 		generator.AccessProfile.MaximumLockedRooms = 2;
 		generator.AccessProfile.MaximumLockedDoors = 3;
 		generator.MapWidth = generator.MapDepth = 30; generator.MaxRooms = 6;
@@ -197,32 +221,52 @@ public class DoorAccessTest
 		for (ulong seed = 1; seed <= 8; seed++)
 		{
 			generator.Seed = seed; level.Generate();
+			AssertObject(level.Floor).IsNotNull();
 			var doors = generator.NavigationRegion.FindChildren("*", "", true, false).OfType<Door>().Where(d => !d.IsQueuedForDeletion()).ToArray();
 			var locked = doors.Where(d => d.Lock?.IsLocked == true).ToArray(); lockedCount += locked.Length;
-			var blocked = generator.GeneratedSecrets.Select(s => s.Connector).ToHashSet();
-			foreach (var door in locked)
-			{
-				var id = door.ConnectionId.Split(':'); blocked.Add(new Vector2I(int.Parse(id[1]), int.Parse(id[2])));
-			}
+			var secrets = generator.Floor.Doors.Where(d => d.Door.Secret?.IsSecret == true).ToArray();
+			var blocked = generator.Floor.Doors.Where(d => d.Door.Lock?.IsLocked == true || !d.Door.IsDiscovered)
+				.Select(d => d.Connector).ToHashSet();
 			var reached = AccessSolutionValidator.Reachable(generator.Map, generator.Map.WorldToTile(generator.Floor.Arrival.GlobalPosition), blocked);
+			int exitRoom = generator.RoomRegionFor(generator.Floor.Descent);
+			AssertInt(exitRoom).IsGreaterEqual(0);
+			// Discoverable secrets and locks with reachable keys can both be traversed.
+			var afterDiscovery = AccessSolutionValidator.Reachable(generator.Map, generator.Map.WorldToTile(generator.Floor.Arrival.GlobalPosition), new System.Collections.Generic.HashSet<Vector2I>());
+			AssertBool(generator.Floor.Rooms[exitRoom].Tiles.Any(afterDiscovery.Contains)).IsTrue();
 			AssertBool(generator.NavigationRegion.GetChildren().OfType<LootableItem>().All(p => p.Item is not LockpickItem)).IsTrue();
 			var keys = generator.NavigationRegion.GetChildren().OfType<LootableItem>().Where(p => p.Item is KeyItem).ToArray();
 			foreach (var key in keys) AssertBool(reached.Contains(generator.Map.WorldToTile(key.GlobalPosition))).IsTrue();
-			foreach (var secret in generator.GeneratedSecrets) AssertBool(generator.Floor.FreelyAccessibleTiles().Contains(secret.Connector)).IsFalse();
-			if (generator.Floor.TryPickRandomFreePosition(out var landing)) AssertBool(generator.Floor.FreelyAccessibleTiles().Contains(generator.Map.WorldToTile(landing))).IsTrue();
+			// The map route must also be walkable around the actual room furnishings.
+			var walk = generator.Floor.Walkability;
+			var walkSnapshot = walk.Save();
+			foreach (var connector in blocked)
+			{
+				var center = generator.Map.TileToWorld(connector);
+				walk.AddObstacle(new Rect2(center.X - 2, center.Z - 2, 4, 4));
+			}
+			var start = (generator.Floor.Arrival.Landing ?? generator.Floor.Arrival).GlobalPosition;
+			var physicallyReached = walk.Reachable([new Vector2(start.X, start.Z)], Room.TileSize);
+			walk.Restore(walkSnapshot);
+			foreach (var key in keys)
+			{
+				var cell = walk.CellAt(new Vector2(key.GlobalPosition.X, key.GlobalPosition.Z));
+				AssertBool(walk.Contains(cell) && physicallyReached[cell.Y * walk.Size.X + cell.X]).IsTrue();
+			}
+			var freelyAccessible = generator.Floor.FreelyAccessibleTiles();
+			foreach (var secret in secrets) AssertBool(freelyAccessible.Contains(secret.Connector)).IsFalse();
+			if (generator.Floor.TryPickRandomFreePosition(out var landing)) AssertBool(freelyAccessible.Contains(generator.Map.WorldToTile(landing))).IsTrue();
 			foreach (var color in locked.GroupBy(d => d.Lock.Definition.RequiredKey.DefinitionPath))
 				AssertInt(keys.Where(p => p.Item.DefinitionPath == color.Key).Sum(p => p.Quantity)).IsEqual(color.Count());
-			foreach (var secret in generator.GeneratedSecrets)
+			foreach (var secret in secrets)
 			{
 				secretCount++;
 				AssertBool(secret.Door.IsDiscovered).IsFalse(); AssertBool(secret.Door.KeyMarker.Visible).IsFalse();
 				AssertBool(secret.Door.GetNode<InteractiveComponent>("InteractiveComponent").GetOffer(default).IsValid).IsFalse();
-				var side = secret.Host - secret.Connector;
-				var approach = new Vector3(side.X, 0, side.Y);
+				var approach = secret.Door.GlobalBasis * Vector3.Forward;
 				AssertBool(secret.Door.Secret.CanBeObservedFrom(secret.Door.GlobalPosition + approach)).IsTrue();
-				AssertBool(secret.Door.Secret.CanBeObservedFrom(secret.Door.GlobalPosition - approach)).IsFalse();
-				AssertBool(secret.Door.Secret.AcceptsSightHit(generator.WallGridMap, secret.Door.GlobalPosition + Vector3.Up * 2)).IsTrue();
-				AssertBool(secret.Door.Secret.AcceptsSightHit(generator.WallGridMap, secret.Door.GlobalPosition + approach * 4)).IsFalse();
+				AssertBool(secret.Door.Secret.CanBeObservedFrom(secret.Door.GlobalPosition - approach)).IsTrue();
+				AssertBool(secret.Door.Secret.AcceptsSightHit(secret.Door.GetChildren().OfType<GridMap>().Single(), secret.Door.GlobalPosition + Vector3.Up * 2)).IsTrue();
+				AssertBool(secret.Door.Secret.AcceptsSightHit(secret.Door.GetChildren().OfType<GridMap>().Single(), secret.Door.GlobalPosition + approach * 4)).IsFalse();
 				secret.Door.Secret.Reveal(); AssertBool(secret.Door.IsOpen).IsFalse();
 				var state = level.CaptureExploration();
 				level.RestoreExploration(JsonSerializer.Deserialize<RevealedLevelSaveData>(JsonSerializer.Serialize(state)));

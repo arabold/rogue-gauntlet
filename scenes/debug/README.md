@@ -20,6 +20,7 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 
 The scene instances the production level and lists its generator's realms; it keeps no catalog of its own. The **Realm** picker selects a realm: the room pool's types tagged for it, then the entrance and exit, form the recipe list, and the style pickers list only that realm's styles; the floor view generates that realm's first depth, with its rooms and corridors.
 
+
 - **Single room:** select a recipe and seed, rotate in quarter-turns and toggle furnishings. Room types expose every axis as an override — Shape, Walls, Floor and Columns (type chance, off, or a specific pattern) — and run the production `RoomAssembler` with them. The **Walkability overlay** colours standable floor: green is reachable from the doorways, blue is reserved circulation or a stair landing, red is an inaccessible pocket. Overrides never change production Resources.
 - **Generated floor:** uses the production packing, corridor, wall and furnishing pipeline with the same factory. Recipe selection and room rotation are disabled in this view.
 - **Controls:** R advances the seed, A toggles furnishings, W toggles the walkability overlay, F switches views, 1–9 and 0 select the first ten room types, Q/E rotates a room. The panel also accepts a manual seed and can rebuild without advancing it.

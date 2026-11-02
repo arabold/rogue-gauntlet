@@ -25,20 +25,19 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="24_wall_shelf"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="25_walldecorstep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="26_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="27_torch_unlit"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
 Weight = 2.0
-MinimumSize = Vector2i(3, 3)
-MaximumSize = Vector2i(4, 5)
+MinimumSize = Vector2i(2, 2)
+MaximumSize = Vector2i(4, 4)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
 [sub_resource type="Resource" id="LShape_2"]
 script = ExtResource("4_lshape")
-MinimumSize = Vector2i(4, 4)
-MaximumSize = Vector2i(4, 5)
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 4)
 ArmWidth = 2
 metadata/_custom_type_script = ExtResource("4_lshape")
 
@@ -77,18 +76,25 @@ metadata/_custom_type_script = ExtResource("25_walldecorstep")
 [sub_resource type="Resource" id="WallDecorStep_7"]
 script = ExtResource("25_walldecorstep")
 Id = "door_torches"
-Content = [ExtResource("26_torch"), ExtResource("27_torch_unlit")]
+Content = [ExtResource("26_torch")]
 MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("25_walldecorstep")
+
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("3_rectangleshape")
+Weight = 1.0
+MinimumSize = Vector2i(2, 2)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
 [resource]
 script = ExtResource("2_roomtype")
 Id = "root_cellar"
 Realms = PackedStringArray("garrison")
 Weight = 0.6
-Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2")]
-MinimumFloorTiles = 8
+Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 4
 MinDoorways = 1
 MaxDoorways = 2
 DoorChance = 0.4

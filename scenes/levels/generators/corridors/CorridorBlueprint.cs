@@ -33,7 +33,7 @@ public readonly record struct CorridorSpan(Vector2I Start, Vector2I Along, int L
 }
 
 /// <summary>
-/// Blueprint for decorating generated dungeon corridors after walls and secret branches have been placed.
+/// Blueprint for decorating generated dungeon corridors after boundary walls have been placed.
 /// Measures corridor wall runs, doorway thresholds, corners/T-junctions, and straight 1-tile-wide spans in the same
 /// local tile coordinate frame as <see cref="RoomBlueprint"/> (origin at map tile (0, 0)).
 /// </summary>
@@ -72,11 +72,16 @@ public sealed class CorridorBlueprint
 		}
 
 		var secretConnectors = new HashSet<Vector2I>();
-		foreach (var (_, host, connector, _) in generator.GeneratedSecrets)
+		foreach (var (door, connector) in generator.Floor.Doors)
 		{
+			if (door.Secret?.IsSecret != true) continue;
 			secretConnectors.Add(connector);
-			_blockedEdges.Add((host, connector - host));
-			_blockedEdges.Add((connector, host - connector));
+			foreach (var direction in Map.GetConnectorDirections(connector.X, connector.Y))
+			{
+				var outside = connector + direction;
+				_blockedEdges.Add((connector, direction));
+				_blockedEdges.Add((outside, -direction));
+			}
 		}
 
 		var corridorTiles = new List<Vector2I>();
@@ -105,7 +110,7 @@ public sealed class CorridorBlueprint
 	public IReadOnlyList<Vector3> LightPositions => _lightPositions;
 	public IReadOnlyList<Vector3> PassagewayPositions => _passagewayPositions;
 
-	public IReadOnlyList<WallRun> WallRuns => _wallRuns ??= ComputeWallRuns().ToArray();
+	public IReadOnlyList<WallRun> WallRuns => _wallRuns ??= WallRun.Find(CorridorTiles, HasWall).ToArray();
 	public IReadOnlyList<CorridorThreshold> Thresholds => _thresholds;
 	public IReadOnlyList<CorridorJunction> Junctions => _junctions ??= ComputeJunctions().ToArray();
 	public IReadOnlyList<CorridorSpan> Spans => _spans ??= ComputeSpans().ToArray();
@@ -246,7 +251,7 @@ public sealed class CorridorBlueprint
 	}
 
 	/// <summary>Instantiates all accepted corridor props under a CorridorProps node on <paramref name="parent"/>.</summary>
-	public Node3D EmitProps(Node3D parent)
+	public Node3D EmitProps(Node3D parent, float fixtureLitChance)
 	{
 		if (_pieces.Count == 0) return null;
 		var root = new Node3D
@@ -254,11 +259,13 @@ public sealed class CorridorBlueprint
 			Name = "CorridorProps",
 			Position = Map.TileToWorld(0, 0),
 		};
+		using var lighting = GenerationRandom.Create(Seed, GenerationRandom.Cosmetic, "corridor-lighting");
 		parent.AddChild(root);
 		for (int index = 0; index < _pieces.Count; index++)
 		{
 			var piece = _pieces[index];
 			var node = RoomBlueprint.CreateNode(piece);
+			RoomBlueprint.ConfigureLighting(node, lighting, fixtureLitChance);
 			int dot = piece.Prop.Id.LastIndexOf('.');
 			string baseName = dot >= 0 ? piece.Prop.Id[(dot + 1)..] : piece.Prop.Id;
 			node.Name = $"{baseName}_{index}";
@@ -320,7 +327,6 @@ public sealed class CorridorBlueprint
 			var worldCenter = Map.TileToWorld(tile);
 			foreach (var outward in Cardinals)
 			{
-				if (_blockedEdges.Contains((tile, outward))) continue;
 				var neighbor = tile + outward;
 				if (Map.IsWithinBounds(neighbor.X, neighbor.Y) && !Map.IsWallOrEmpty(neighbor.X, neighbor.Y)) continue;
 
@@ -330,25 +336,6 @@ public sealed class CorridorBlueprint
 				var edge = WallFootprints.MeasureEdge(WallGridMap, worldCenter + new Vector3I(outward.X * half, 0, outward.Y * half), -outward, Room.TileSize);
 				if (!edge.Covered) continue;
 				_walls[(tile, outward)] = (edge.Depth, Walls?.IsPlain(edge.Item) == true);
-			}
-		}
-	}
-
-	private IEnumerable<WallRun> ComputeWallRuns()
-	{
-		foreach (var outward in Cardinals)
-		{
-			var along = outward.X == 0 ? Vector2I.Right : Vector2I.Down;
-			var edges = CorridorTiles.Where(tile => HasWall(tile, outward)).ToHashSet();
-			foreach (var first in edges.OrderBy(tile => tile.Y).ThenBy(tile => tile.X).ToArray())
-			{
-				if (!edges.Contains(first) || edges.Contains(first - along)) continue;
-				int length = 0;
-				while (edges.Remove(first + along * length))
-				{
-					length++;
-				}
-				yield return new(first, along, outward, length);
 			}
 		}
 	}

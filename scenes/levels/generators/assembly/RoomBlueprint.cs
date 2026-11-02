@@ -14,12 +14,31 @@ public readonly record struct WallRun(Vector2I Start, Vector2I Along, Vector2I O
 	public float TileCenterAlong(int index) => (index + 0.5f) * Room.TileSize;
 	/// <summary>The run's start on the wall line (the tile edge), at its first tile's outer corner.</summary>
 	public Vector3 LineStart => RoomFootprint.TileCenter(Start) - Inward * (Room.TileSize / 2f) - Tangent * (Room.TileSize / 2f);
+	/// <summary>Extracts ordered contiguous runs from room or corridor wall edges.</summary>
+	public static IEnumerable<WallRun> Find(IEnumerable<Vector2I> tiles, Func<Vector2I, Vector2I, bool> hasWall)
+	{
+		foreach (var outward in new[] { Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left })
+		{
+			var along = outward.X == 0 ? Vector2I.Right : Vector2I.Down;
+			var edges = tiles.Where(tile => hasWall(tile, outward)).ToHashSet();
+			foreach (var first in edges.OrderBy(tile => tile.Y).ThenBy(tile => tile.X).ToArray())
+			{
+				if (!edges.Contains(first) || edges.Contains(first - along)) continue;
+				int length = 0;
+				while (edges.Remove(first + along * length)) length++;
+				yield return new(first, along, outward, length);
+			}
+		}
+	}
 	/// <summary>Rotation that turns local +Z into the room, so a prop's back (-Z) faces this wall.</summary>
 	public Basis Facing => new(Vector3.Up, Mathf.Atan2(Inward.X, Inward.Z));
 }
 
 /// <summary>A prop accepted into the room, in room-local space.</summary>
 public readonly record struct PlacedPiece(Prop Prop, int Variant, Transform3D Transform, Aabb Envelope);
+
+/// <summary>A cosmetic floor-material override in room-local space, recorded after its defining structure fits.</summary>
+public readonly record struct FloorPatch(Rect2 Area, FloorMaterial Material);
 
 /// <summary>
 /// One room-assembly attempt: footprint, doorways, pits, walls, walkability and accepted props. Every placement goes
@@ -34,6 +53,7 @@ public sealed class RoomBlueprint
 	private readonly HashSet<(Vector2I Tile, Vector2I Outward)> _doorwayEdges;
 	private readonly List<Aabb> _wallBoxes = [];
 	private readonly List<PlacedPiece> _pieces = [];
+	private readonly List<FloorPatch> _floorPatches = [];
 	private readonly List<Rect2> _reserved = [];
 	private readonly List<Vector2I> _pits = [];
 	private readonly List<Rect2> _landings = [];
@@ -69,6 +89,7 @@ public sealed class RoomBlueprint
 	/// <summary>The footprint's bounding rectangle in local XZ, on the tile edges (wall lines).</summary>
 	public Rect2 Interior { get; }
 	public IReadOnlyList<PlacedPiece> Pieces => _pieces;
+	public IReadOnlyList<FloorPatch> FloorPatches => _floorPatches;
 	public IReadOnlyList<Rect2> Reserved => _reserved;
 	/// <summary>Stair landings: kept free of floor props and reachable from every doorway.</summary>
 	public IReadOnlyList<Rect2> Landings => _landings;
@@ -81,6 +102,17 @@ public sealed class RoomBlueprint
 
 	/// <summary>A footprint tile that still has floor: not cut into a pit such as a stairwell.</summary>
 	public bool IsFloor(Vector2I tile) => Footprint.IsFloor(tile) && !_pits.Contains(tile);
+
+	/// <summary>Marks an accepted structure's floor area for the later cosmetic pass. Later patches win on overlap;
+	/// materials must use this room's floor library. Does not consume placement RNG or change walkability.</summary>
+	public void AddFloorPatch(Rect2 area, FloorMaterial material)
+	{
+		var library = Room.FloorGridMap.MeshLibrary;
+		if (material?.Library == null || material.Library != library
+			&& (string.IsNullOrEmpty(library.ResourcePath) || material.Library.ResourcePath != library.ResourcePath))
+			throw new InvalidOperationException($"Room {Type.Id}: floor patch {material?.Id} must use the room's floor library.");
+		_floorPatches.Add(new(area, material));
+	}
 
 	/// <summary>Records the wall piece on an edge: how far its face reaches into the room, and whether decor may hang on it.</summary>
 	public void SetWall(Vector2I tile, Vector2I outward, float depth, bool decoratable) => _walls[(tile, outward)] = (depth, decoratable);
@@ -110,23 +142,8 @@ public sealed class RoomBlueprint
 	}
 
 	/// <summary>Straight wall runs, split at doorways and wherever the room continues past the wall line.</summary>
-	public IReadOnlyList<WallRun> WallRuns => _wallRuns ??= ComputeWallRuns().ToArray();
-
-	private IEnumerable<WallRun> ComputeWallRuns()
-	{
-		foreach (var outward in new[] { Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left })
-		{
-			var along = outward.X == 0 ? Vector2I.Right : Vector2I.Down;
-			var edges = Footprint.Tiles.Where(tile => !Footprint.IsFloor(tile + outward) && !IsDoorway(tile, outward)).ToHashSet();
-			foreach (var first in edges.OrderBy(tile => tile.Y).ThenBy(tile => tile.X).ToArray())
-			{
-				if (!edges.Contains(first) || edges.Contains(first - along)) continue;
-				int length = 0;
-				while (edges.Remove(first + along * length)) length++;
-				yield return new(first, along, outward, length);
-			}
-		}
-	}
+	public IReadOnlyList<WallRun> WallRuns => _wallRuns ??= WallRun.Find(Footprint.Tiles,
+		(tile, outward) => !Footprint.IsFloor(tile + outward) && !IsDoorway(tile, outward)).ToArray();
 
 	/// <summary>True when the run's start (or end) meets a perpendicular wall rather than a doorway or open floor.</summary>
 	public bool StartsAtCorner(WallRun run) => !Footprint.IsFloor(run.Start - run.Along);
@@ -385,16 +402,25 @@ public sealed class RoomBlueprint
 	public void EmitProps()
 	{
 		var root = new Node3D { Name = "Props" };
+		using var lighting = GenerationRandom.Create(Seed, GenerationRandom.Cosmetic, $"room-lighting:{Type.Id}");
 		Room.AddChild(root);
 		for (int index = 0; index < _pieces.Count; index++)
 		{
 			var piece = _pieces[index];
 			var node = CreateNode(piece);
+			ConfigureLighting(node, lighting, Type.FixtureLitChance);
 			node.Name = $"{piece.Prop.Id.Split('.').Last()}_{index}";
 			node.SetMeta("prop_id", piece.Prop.Id);
 			if (node is Door { Interior: not null } door) door.Interior.Id = $"{piece.Prop.Id}:{index}";
 			root.AddChild(node);
 		}
+	}
+
+	/// <summary>Assigns fixture state before entering the tree, on a cosmetic RNG stream independent of placement.</summary>
+	internal static void ConfigureLighting(Node node, RandomNumberGenerator rng, float litChance)
+	{
+		if (node is LightFixture fixture) fixture.IsLit = litChance >= 1f || (litChance > 0f && rng.Randf() < litChance);
+		foreach (Node child in node.GetChildren()) ConfigureLighting(child, rng, litChance);
 	}
 
 	internal static Node3D CreateNode(PlacedPiece piece)

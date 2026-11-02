@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=50 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=49 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -14,7 +14,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/pillar_ornate.tres" id="13_pillar_ornat"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="14_WallDecorSte"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="15_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="16_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_red.tres" id="17_banner_red"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_blue.tres" id="18_banner_blue"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_green.tres" id="19_banner_green"]
@@ -60,7 +59,7 @@ metadata/_custom_type_script = ExtResource("11_AisleColumns")
 [sub_resource type="Resource" id="WallDecorStep_3"]
 script = ExtResource("14_WallDecorSte")
 Id = "torches"
-Content = [ExtResource("15_torch"), ExtResource("16_torch_unlit")]
+Content = [ExtResource("15_torch")]
 MaximumCount = 6
 Spacing = 6.0
 metadata/_custom_type_script = ExtResource("14_WallDecorSte")

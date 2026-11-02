@@ -28,7 +28,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_white.tres" id="27_banner_white"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_brown.tres" id="28_banner_brown"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="29_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="30_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/war_table.tres" id="31_war_table"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/weapon_rack.tres" id="32_weapon_rack"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/armor_stand.tres" id="33_armor_stand"]
@@ -43,7 +42,7 @@
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
 Weight = 1.0
-MinimumSize = Vector2i(3, 3)
+MinimumSize = Vector2i(2, 2)
 MaximumSize = Vector2i(4, 4)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("2_RectangleSha")
@@ -102,7 +101,7 @@ metadata/_custom_type_script = ExtResource("19_WallDecorSte")
 [sub_resource type="Resource" id="WallDecorStep_8"]
 script = ExtResource("19_WallDecorSte")
 Id = "door_torches"
-Content = [ExtResource("29_torch"), ExtResource("30_torch_unlit")]
+Content = [ExtResource("29_torch")]
 MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("19_WallDecorSte")
@@ -116,13 +115,20 @@ MaximumCount = 1
 Chance = 0.7
 metadata/_custom_type_script = ExtResource("12_AlongWallsSt")
 
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("2_RectangleSha")
+Weight = 0.5
+MinimumSize = Vector2i(2, 2)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("2_RectangleSha")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "guardroom"
 Realms = PackedStringArray("garrison")
 Weight = 0.7
-Shapes = [SubResource("RectangleShape_1")]
-MinimumFloorTiles = 9
+Shapes = [SubResource("RectangleShape_1"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 4
 MinDoorways = 1
 MaxDoorways = 3
 Walls = [ExtResource("3_stone_walls"), ExtResource("4_pillared_wal"), ExtResource("x_key_alcove_walls")]

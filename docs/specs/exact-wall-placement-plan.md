@@ -1,0 +1,7 @@
+# Remaining wall-piece fitting work
+
+[Level generation](../level-design.md) describes the implemented boundary fitter. Room and floor assembly now fit the shared 4×1 wall and doorway module, 2-unit half walls, junctions, and the 1.5-unit segment needed beside a door or frame. The room carries framed edges and divider placements through rotation into the floor fit. Secret disguises use the same 4×1 doorway footprint as ordinary doors.
+
+The shared junction pieces deliberately take priority over family-specific pieces. Decorated faces and pillars are retained when their four-unit span and occupied footprint fit without intersecting other pieces. Nonstandard end caps and differently shaped wall families are not automatically interchangeable. [The room authoring guide](../../scenes/levels/generators/assembly/README.md) describes current behavior.
+
+If more families or arbitrary dimensions are needed, measure each mesh and collider, define its occupied region and exact seam positions, and add only the pieces that fill an actual missing span. Verify rotated junctions, door/disguise swaps, room-to-corridor contacts and seeded floors against both geometry and collision, then inspect rendered joins. The asset authoring contract guarantees that each piece conforms to its declared footprint; the fitter is responsible for matching those footprints and their seams. [Asset Studio](../../asset-studio/tilesets/README.md) owns newly authored tile families.

@@ -62,26 +62,15 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 		AddPlacement(map, rooms, entranceRoom, entrancePlacement);
 
 		var entranceCenter = PlacementCenter(rooms[0]);
-		// Standard rooms placed successfully in this pass, tracked separately from
-		// `rooms` so the exit-placement rollback below can free space by dropping filler
-		// content only -- never the entrance or a special room.
-		var removableRooms = new List<RoomPlacement>();
-		var countSpecialRooms = PickSpecialRoomCount(maxRooms, rng);
 		for (int i = 0; i < maxRooms; i++)
 		{
-			bool isSpecial = i < countSpecialRooms;
-			int countBefore = rooms.Count;
 			var clusterCenter = ComputeClusterCenter(rooms);
 			TryAddPackedRoom(map, rooms,
-				() => isSpecial ? factory.CreateSpecialRoom(rng) : factory.CreateStandardRoom(rng),
+				() => factory.CreateStandardRoom(rng),
 				(placement, roomMap, connectors) => ScoreCompactPlacement(map, clusterCenter, placement, roomMap, connectors), rng);
-			if (!isSpecial && rooms.Count > countBefore)
-			{
-				removableRooms.Add(rooms[^1]);
-			}
 		}
 
-		PlaceExit(map, rooms, factory, entranceCenter, removableRooms, rng);
+		PlaceExit(map, rooms, factory, entranceCenter, rng);
 		return rooms;
 	}
 
@@ -89,12 +78,12 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 	/// Places the exit packed against the cluster, preferring the candidate farthest from
 	/// the entrance. On very full maps there may be no space left; in that case standard
 	/// (filler) rooms are removed, newest first, until the exit fits -- never the
-	/// entrance or a special room -- because a level without an exit is a dead end for
+	/// entrance -- because a level without an exit is a dead end for
 	/// the run.
 	/// </summary>
 	private void PlaceExit(
 		MapData map, List<RoomPlacement> rooms, RoomFactory factory, Vector2 entranceCenter,
-		List<RoomPlacement> removableRooms, RandomNumberGenerator rng)
+		RandomNumberGenerator rng)
 	{
 		while (true)
 		{
@@ -107,7 +96,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 				return;
 			}
 
-			if (removableRooms.Count == 0)
+			if (rooms.Count == 1)
 			{
 				GD.PrintErr("PackedRoomLayout: could not place an exit room.");
 				return;
@@ -115,9 +104,8 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 
 			// Free up space: drop the most recently placed standard (filler) room and
 			// rebuild the map.
-			var removed = removableRooms[^1];
-			removableRooms.RemoveAt(removableRooms.Count - 1);
-			rooms.Remove(removed);
+			var removed = rooms[^1];
+			rooms.RemoveAt(rooms.Count - 1);
 			removed.Room.QueueFree();
 			GD.Print($"PackedRoomLayout: removed a room at {removed.Position} to make space for the exit.");
 			RestampAll(map, rooms);

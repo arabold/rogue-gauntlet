@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dicgur8pgsgmg"
-path="res://.godot/imported/warhammer_sledge_surface_palette.png-1e7f5db51a9b94539e3a8dddc14b3012.ctex"
+path.s3tc="res://.godot/imported/warhammer_sledge_surface_palette.png-1e7f5db51a9b94539e3a8dddc14b3012.s3tc.ctex"
+path.etc2="res://.godot/imported/warhammer_sledge_surface_palette.png-1e7f5db51a9b94539e3a8dddc14b3012.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f70c4791019bc26ab51bc38de7cf4047"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-items/weapons/warhammer/warhammer_sledge_surface_palette.png"
-dest_files=["res://.godot/imported/warhammer_sledge_surface_palette.png-1e7f5db51a9b94539e3a8dddc14b3012.ctex"]
+dest_files=["res://.godot/imported/warhammer_sledge_surface_palette.png-1e7f5db51a9b94539e3a8dddc14b3012.s3tc.ctex", "res://.godot/imported/warhammer_sledge_surface_palette.png-1e7f5db51a9b94539e3a8dddc14b3012.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

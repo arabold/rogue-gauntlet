@@ -9,7 +9,7 @@ using Godot.Collections;
 /// count splits the depth range into equal bands with one fountain per band, which keeps them spread out; kinds avoid
 /// each other's depths while a band has room. Stateless: the run seed is passed in.
 /// </summary>
-[GlobalClass]
+[Tool, GlobalClass]
 public partial class FountainProfile : Resource
 {
 	/// <summary>Scheduled in order; earlier kinds claim their depths first.</summary>

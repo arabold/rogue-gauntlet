@@ -1882,6 +1882,9 @@ image = SubResource("Image_xfcq8")
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_e7q5f"]
 points = PackedVector3Array(-0.50005, 3.44988, 1.00006, 0.499853, 4, 0.999916, -0.50005, 4, 0.999916, -1, 4, 0.499944, -1, 0, 0.499944, -0.50005, 0, 0.999916, 0.499853, 0, 0.999916, 0.499853, 4, -2.81036e-05, -1, 4, -0.5, -1, 0, -0.5, 0.499853, 0, -2.81036e-05, -9.83477e-05, 4, -0.5, -9.83477e-05, 0, -0.5)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_junction_short"]
+size = Vector3(1.5, 4, 1)
+
 [resource]
 item/0/name = "wall"
 item/0/mesh = SubResource("ArrayMesh_dn1dq")
@@ -2573,3 +2576,9 @@ item/89/mesh_cast_shadow = 1
 item/89/shapes = [ExtResource("117_b3atd"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
 item/89/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 item/89/navigation_layers = 1
+
+item/90/name = "wall_junction_short"
+item/90/mesh = SubResource("ArrayMesh_d14e0")
+item/90/mesh_transform = Transform3D(0.75, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 0, 0)
+item/90/mesh_cast_shadow = 1
+item/90/shapes = [SubResource("BoxShape3D_junction_short"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 2, 0)]

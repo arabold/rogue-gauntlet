@@ -13,7 +13,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/guard_table.tres" id="13_guard_table"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="14_WallDecorSte"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="15_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="16_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/keyring.tres" id="17_keyring"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="18_ScatterStep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/small_box.tres" id="19_small_box"]
@@ -25,7 +24,8 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/bone_pile.tres" id="25_bone_pile"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/prison_walls.tres" id="x_prison_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth_floor.tres" id="x_earth_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth.tres" id="cell_earth"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/dirt.tres" id="cell_dirt"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/bricks_floor.tres" id="x_bricks_floor"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
@@ -45,6 +45,7 @@ MaximumCount = 6
 WallLibrary = ExtResource("10_WallsMeshLib")
 Gate = ExtResource("11_cell_gate")
 OpposingChance = 0.5
+CellFloors = [ExtResource("cell_earth"), ExtResource("cell_dirt")]
 metadata/_custom_type_script = ExtResource("8_CellsStep")
 
 [sub_resource type="Resource" id="AlongWallsStep_3"]
@@ -60,7 +61,7 @@ metadata/_custom_type_script = ExtResource("12_AlongWallsSt")
 [sub_resource type="Resource" id="WallDecorStep_4"]
 script = ExtResource("14_WallDecorSte")
 Id = "door_torches"
-Content = [ExtResource("15_torch"), ExtResource("16_torch_unlit")]
+Content = [ExtResource("15_torch")]
 MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("14_WallDecorSte")
@@ -99,6 +100,6 @@ MaxDoorways = 2
 DoorwayPlacement = 1
 Circulation = 0
 Walls = [ExtResource("3_stone_walls"), ExtResource("4_ruined_walls"), ExtResource("x_prison_walls")]
-Floors = [ExtResource("5_stone_floor"), ExtResource("x_flagstones_floor"), ExtResource("x_earth_floor"), ExtResource("x_bricks_floor")]
+Floors = [ExtResource("5_stone_floor"), ExtResource("x_flagstones_floor"), ExtResource("x_bricks_floor")]
 Steps = [SubResource("CellsStep_2"), SubResource("AlongWallsStep_3"), SubResource("WallDecorStep_7"), SubResource("WallDecorStep_4"), SubResource("WallDecorStep_5"), SubResource("ScatterStep_6")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

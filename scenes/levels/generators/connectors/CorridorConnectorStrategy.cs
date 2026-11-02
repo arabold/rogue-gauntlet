@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 using Godot;
 
 [Tool]
@@ -8,6 +8,5 @@ public abstract partial class CorridorConnectorStrategy : Resource
 	/// <summary>
 	/// Connects the rooms in the base map with corridors
 	/// </summary>
-	public abstract void ConnectRooms(MapData map);
-	public virtual void Reset() { }
+	public abstract void ConnectRooms(MapData map, IReadOnlyList<RoomRegion> rooms);
 }

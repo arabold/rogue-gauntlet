@@ -200,6 +200,24 @@ public static class TestFactories
 		};
 	}
 
+	/// <summary>Ordinary room types can conceal entrances; progression rooms keep their authored configuration.</summary>
+	public static AssembledRoomFactory RoomPoolWithSecrets(float chance = .15f)
+	{
+		var pool = RoomPool();
+		var detection = Load<SecretDetectionProfile>("res://scenes/levels/access/proximity_detection.tres");
+		return new AssembledRoomFactory
+		{
+			EntranceTypes = pool.EntranceTypes, ExitTypes = pool.ExitTypes,
+			RoomTypes = pool.RoomTypes.Select(type =>
+			{
+				var copy = (RoomType)type.Duplicate();
+				copy.SecretDoorChance = chance;
+				copy.SecretDetection = detection;
+				return copy;
+			}).ToArray(),
+		};
+	}
+
 	/// <summary>
 	/// Loads the map generator scene wired with the given layout/factory (defaulting to
 	/// the Garrison factory), ready to call GenerateMap on.
@@ -240,7 +258,7 @@ public static class TestFactories
 		// Tests pin their rooms: the Garrison's, at every depth.
 		mapGenerator.Rooms = factory ?? RoomPool();
 		mapGenerator.Realms =
-			[new Realm { Id = "garrison", FirstDepth = 1, LastDepth = 100, Corridors = Load<TileFactory>("res://scenes/levels/realms/garrison_corridors.tres") }];
+			[new Realm { Id = "garrison", FirstDepth = 1, LastDepth = 100, Corridors = Load<DungeonTileFactory>("res://scenes/levels/realms/garrison_corridors.tres") }];
 		mapGenerator.MobFactory = Load<MobFactory>("res://scenes/levels/dungeon/dungeon_mob_factory.tres");
 	}
 

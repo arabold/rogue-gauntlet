@@ -25,7 +25,7 @@ public class GenerationBaselineTest
 		using (runner)
 		{
 			var realm = generator.Realms[0];
-			var authored = (DungeonTileFactory)realm.Corridors;
+			var authored = realm.Corridors;
 			realm.Corridors = new DungeonTileFactory
 			{
 				Floor = missingFloor ? null : authored.Floor,
@@ -36,6 +36,24 @@ public class GenerationBaselineTest
 			catch (InvalidOperationException error) { message = error.Message; }
 			AssertString(message).Contains("assign the corridor floor material and wall style");
 			AssertInt(generator.NavigationRegion.GetChildCount()).IsEqual(0);
+		}
+	}
+
+	[TestCase]
+	public async Task MissingExitRetriesInsteadOfDeliveringADeadEnd()
+	{
+		using var pool = (AssembledRoomFactory)TestFactories.RoomPool().Duplicate();
+		pool.ExitTypes = pool.EntranceTypes; // no descent anchor in the would-be exit
+		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), pool);
+		using (runner)
+		{
+			generator.MaxRooms = 1;
+			string message = "";
+			try { generator.GenerateMap(); }
+			catch (InvalidOperationException error) { message = error.Message; }
+			AssertString(message).Contains("required stairs");
+			AssertBool(generator.Floor.IsFrozen).IsFalse();
+			AssertInt(generator.GenerationAttempt).IsEqual(8);
 		}
 	}
 

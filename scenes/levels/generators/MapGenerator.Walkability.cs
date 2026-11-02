@@ -12,7 +12,7 @@ public partial class MapGenerator
 	/// <summary>Reachability assumes the navigation bake's agent radius, so both agree on what fits.</summary>
 	private float WalkabilityRadius => NavigationRegion?.NavigationMesh?.AgentRadius ?? 1f;
 
-	/// <summary>Builds the grid once rooms, corridors, walls, doors and secret pockets exist, before encounters and loot.</summary>
+	/// <summary>Builds the grid once rooms, corridors, walls and doors exist, before encounters and loot.</summary>
 	private void BuildWalkability()
 	{
 		if (Floor.Arrival == null) return;
@@ -48,6 +48,25 @@ public partial class MapGenerator
 		foreach (var outline in CollisionOutlines.FromGridMap(DecorationGridMap, Transform3D.Identity)) grid.AddObstacle(outline);
 		foreach (var outline in CollisionOutlines.FromStaticBodies(NavigationRegion, toLocal * NavigationRegion.GlobalTransform)) grid.AddObstacle(outline);
 		return grid;
+	}
+
+	/// <summary>Physical reachability with inaccessible doorway tiles blocked, without changing the floor grid.</summary>
+	private bool[] ReachableWithoutConnectors(IEnumerable<Vector2I> blocked)
+	{
+		var grid = Floor.Walkability;
+		if (grid == null) return null;
+		var saved = grid.Save();
+		try
+		{
+			foreach (var tile in blocked)
+			{
+				var center = Map.TileToWorld(tile);
+				float half = Room.TileSize / 2f;
+				grid.AddObstacle(new Rect2(center.X - half, center.Z - half, Room.TileSize, Room.TileSize));
+			}
+			return grid.Reachable([ArrivalPoint()], Room.TileSize);
+		}
+		finally { grid.Restore(saved); }
 	}
 
 	/// <summary>

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=34 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=37 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -17,7 +17,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/bookcase_broken.tres" id="15_bookcase_bro"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="16_WallDecorSte"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="17_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="18_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="19_wall_shelf"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/scroll_rack.tres" id="20_scroll_rack"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/globe.tres" id="21_globe"]
@@ -34,9 +33,9 @@
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
 Weight = 1.0
-MinimumSize = Vector2i(5, 4)
-MaximumSize = Vector2i(5, 6)
-OddWidth = true
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 4)
+OddWidth = false
 metadata/_custom_type_script = ExtResource("2_RectangleSha")
 
 [sub_resource type="Resource" id="RowsStep_2"]
@@ -49,6 +48,7 @@ CenterAisle = 2.6
 Columns = 1
 RowGap = 2.4
 Margin = 0.6
+QuarterTurns = 1
 metadata/_custom_type_script = ExtResource("11_RowsStep")
 
 [sub_resource type="Resource" id="AlongWallsStep_3"]
@@ -65,7 +65,7 @@ metadata/_custom_type_script = ExtResource("13_AlongWallsSt")
 [sub_resource type="Resource" id="WallDecorStep_4"]
 script = ExtResource("16_WallDecorSte")
 Id = "door_torches"
-Content = [ExtResource("17_torch"), ExtResource("18_torch_unlit")]
+Content = [ExtResource("17_torch")]
 MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("16_WallDecorSte")
@@ -85,12 +85,19 @@ MaximumCount = 4
 WallChance = 0.4
 metadata/_custom_type_script = ExtResource("23_ScatterStep")
 
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("2_RectangleSha")
+Weight = 0.3
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("2_RectangleSha")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "library"
 Realms = PackedStringArray("garrison")
-Shapes = [SubResource("RectangleShape_1")]
-MinimumFloorTiles = 16
+Shapes = [SubResource("RectangleShape_1"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 9
 MinDoorways = 2
 MaxDoorways = 2
 DoorwayPlacement = 1

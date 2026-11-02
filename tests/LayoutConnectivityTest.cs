@@ -49,12 +49,6 @@ public class LayoutConnectivityTest
 	}
 
 	[TestCase]
-	public async Task ProceduralRoomDungeonsAreFullyConnected()
-	{
-		await AssertConnectedAcrossSeeds(new PackedRoomLayout(), 30, factory: TestFactories.RoomPool());
-	}
-
-	[TestCase]
 	public async Task ProceduralRoomsWithDoorsAreFullyConnected()
 	{
 		// Every doorway must end up force-connected by ConnectRemainingDoorways (checked by
@@ -229,12 +223,10 @@ public class LayoutConnectivityTest
 		}
 
 		// 2. Every room doorway opens onto a corridor (the corridor connector's contract:
-		// doorways are built entrances and must all be connected). Secret pockets open
-		// onto whatever wall they were cut behind instead.
-		var secrets = mapGenerator.GeneratedSecrets.Select(secret => secret.Connector).ToHashSet();
+		// doorways are built entrances and must all be connected), including secret ones.
 		foreach (var tile in walkable)
 		{
-			if (!map.IsConnector(tile.X, tile.Y) || secrets.Contains(tile))
+			if (!map.IsConnector(tile.X, tile.Y))
 			{
 				continue;
 			}

@@ -47,7 +47,7 @@ public static class RoomAssembler
 			var blueprint = TryBuild(type, seed, attempt, options, out failure);
 			if (blueprint != null) return blueprint;
 		}
-		throw new InvalidOperationException($"Room type {type.Id}: no layout fits after {type.Attempts} attempts; last: {failure}.");
+		throw new InvalidOperationException($"Room type {type.Id} seed {seed}: no layout fits after {type.Attempts} attempts; last: {failure}.");
 	}
 
 	private static RoomBlueprint TryBuild(RoomType type, ulong seed, int attempt, RoomAssemblyOptions options, out string failure)
@@ -56,14 +56,15 @@ public static class RoomAssembler
 		var shape = options.Shape >= 0 ? type.Shapes[options.Shape] : Weighted.Pick(type.Shapes, entry => entry.Weight, shapeRng);
 		var footprint = shape.Build(shapeRng);
 		var doorways = ChooseDoorways(type, footprint, shapeRng);
-		if (footprint.Count < type.MinimumFloorTiles || doorways.Count == 0)
+		if (footprint.Count < type.MinimumFloorTiles || doorways.Count < type.MinDoorways)
 		{
-			failure = "footprint too small";
+			failure = "footprint too small or cannot fit the required doorways";
 			return null;
 		}
 		using var wallRng = GenerationRandom.Create(seed, GenerationRandom.Decoration, $"{type.Id}:walls");
 		using var floorRng = GenerationRandom.Create(seed, GenerationRandom.Decoration, $"{type.Id}:floor");
 		using var doorRng = GenerationRandom.Create(seed, GenerationRandom.Layout, $"{type.Id}:doors");
+		using var secretRng = GenerationRandom.Create(seed, GenerationRandom.Layout, $"{type.Id}:secret-doors");
 		using var columnRng = GenerationRandom.Create(seed, GenerationRandom.Layout, $"{type.Id}:columns");
 		var wallStyles = type.WallsIn(options.Realm);
 		var floorStyles = type.FloorsIn(options.Realm);
@@ -73,9 +74,20 @@ public static class RoomAssembler
 		try
 		{
 			var blueprint = new RoomBlueprint(room, type, footprint, doorways, seed, ActorRadius) { Shape = shape, Walls = walls, Floor = floor };
-			walls.Build(blueprint, wallRng);
+			var doors = AddDoorways(blueprint, doorRng, secretRng);
+			if (!walls.Build(blueprint, wallRng))
+			{
+				failure = $"wall style {walls.Id} cannot fit this shape";
+				room.Free();
+				return null;
+			}
+			failure = WallFootprints.FindOverlap(room.WallGridMap);
+			if (failure != "")
+			{
+				room.Free();
+				return null;
+			}
 			blueprint.FinishStructure();
-			var doors = AddDoorways(blueprint, doorRng);
 			ReserveCirculation(blueprint);
 			PlaceColumns(blueprint, options, columnRng);
 			if (options.Furnish)
@@ -84,6 +96,7 @@ public static class RoomAssembler
 				for (int index = 0; index < steps.Length; index++)
 				{
 					var step = steps[index];
+					if (step.WallStyles.Length > 0 && !step.WallStyles.Contains(walls.Id)) continue;
 					using var chanceRng = blueprint.Random($"step:{index}:{step.Id}:chance");
 					if (chanceRng.Randf() >= step.Chance) continue;
 					using var stepRng = blueprint.Random($"step:{index}:{step.Id}");
@@ -145,11 +158,13 @@ public static class RoomAssembler
 				var ends = type.DoorwayPlacement == DoorwayPlacement.SingleEnd ? new[] { rng.Randf() < .5f ? Vector2I.Up : Vector2I.Down } : new[] { Vector2I.Up, Vector2I.Down };
 				foreach (var direction in ends)
 				{
-					var end = candidates.Where(candidate => candidate.Direction == direction)
-						.OrderBy(candidate => Mathf.Abs(candidate.Tile.X - (footprint.Width - 1) / 2f)).ThenBy(candidate => candidate.Tile.X);
-					if (end.Any()) chosen.Add(end.First());
+					var end = candidates.Where(candidate => candidate.Direction == direction && IsApart(candidate, chosen))
+						.OrderBy(candidate => Mathf.Abs(candidate.Tile.X - (footprint.Width - 1) / 2f)).ThenBy(candidate => candidate.Tile.X)
+						.FirstOrDefault();
+					if (end == default) return [];
+					chosen.Add(end);
 				}
-				Spread(candidates.Where(candidate => candidate.Direction.X != 0).ToList(), chosen, rng.RandiRange(0, Mathf.Max(0, type.MaxDoorways - ends.Length)), footprint, rng);
+				Spread(candidates.Where(candidate => candidate.Direction.X != 0).ToList(), chosen, Mathf.Max(0, count - chosen.Count), footprint, rng);
 				break;
 			case DoorwayPlacement.LongSides:
 				Spread(candidates.Where(candidate => candidate.Direction.X != 0).ToList(), chosen, count, footprint, rng);
@@ -192,51 +207,53 @@ public static class RoomAssembler
 		chosen.All(other => Mathf.Abs(other.Tile.X - candidate.Tile.X) + Mathf.Abs(other.Tile.Y - candidate.Tile.Y) > 1);
 
 	/// <summary>
-	/// Fills every doorway's wall gap for good: the wall style's door at the room type's <see cref="RoomType.DoorChance"/>,
-	/// otherwise its opening frame at <see cref="RoomType.FrameChance"/> where the wall carries on along both sides,
+	/// Fills every doorway's wall gap for good: a secret door at <see cref="RoomType.SecretDoorChance"/>, otherwise
+	/// the wall style's door at <see cref="RoomType.DoorChance"/>, otherwise its opening frame at <see cref="RoomType.FrameChance"/>,
 	/// otherwise nothing, an open walkway. Every other edge of the room is walled. Returns each doorway's door, null for
 	/// a frame or walkway.
 	/// </summary>
-	private static Door[] AddDoorways(RoomBlueprint blueprint, RandomNumberGenerator rng)
+	private static Door[] AddDoorways(RoomBlueprint blueprint, RandomNumberGenerator rng, RandomNumberGenerator secretRng)
 	{
 		var doors = new Door[blueprint.Doorways.Count];
 		for (int index = 0; index < doors.Length; index++)
 		{
 			var doorway = blueprint.Doorways[index];
 			float yaw = MapData.FacingYaw(doorway.Direction);
-			bool door = rng.Randf() < blueprint.Type.DoorChance;
+			bool secret = secretRng.Randf() < blueprint.Type.SecretDoorChance;
+			bool door = rng.Randf() < blueprint.Type.DoorChance || secret;
 			bool frame = rng.Randf() < blueprint.Type.FrameChance;
 			if (!door)
 			{
-				if (frame && IsMidWall(blueprint.Footprint, doorway)) AddOpening(blueprint, doorway, yaw, index);
+				if (frame) AddOpening(blueprint, doorway, yaw, index);
 				continue;
 			}
+			ReserveFrame(blueprint.Room, doorway);
 			var node = doors[index] = blueprint.Walls.DoorScene.Instantiate<Door>();
 			node.Name = $"Door{index + 1}";
 			node.Position = doorway.Edge;
 			node.RotationDegrees = new Vector3(0, yaw, 0);
 			blueprint.Room.AddChild(node);
+			if (secret)
+			{
+				if (node.Secret == null) throw new InvalidOperationException($"Room type {blueprint.Type.Id}: secret door scene needs a SecretDoorComponent.");
+				int item = blueprint.Walls.Library.FindItemByName("wall");
+				node.Secret.InitializeRoomDoor(blueprint.Walls.Library, item, blueprint.Type.SecretDetection,
+					GenerationRandom.DeriveSeed(blueprint.Seed, "secret-discovery", $"{blueprint.Type.Id}:{index}"));
+			}
 		}
 		return doors;
 	}
 
-	/// <summary>Whether the doorway's wall carries on along its line on both sides rather than meeting a corner.
-	/// Doorways sit on outer edges, so a floor tile beside one always carries the same wall.</summary>
-	private static bool IsMidWall(RoomFootprint footprint, RoomDoorway doorway)
-	{
-		var along = new Vector2I(doorway.Direction.Y, doorway.Direction.X);
-		return footprint.IsFloor(doorway.Tile + along) && footprint.IsFloor(doorway.Tile - along);
-	}
-
 	/// <summary>
 	/// Sets the wall style's opening frame into a doorless doorway's wall gap, turned like a door would be. Its posts
-	/// cover the wall ends on both sides; it carries no collision, so the opening stays exactly as passable.
+	/// cover the wall ends on both sides while keeping the full opening passable.
 	/// </summary>
 	private static void AddOpening(RoomBlueprint blueprint, RoomDoorway doorway, float yaw, int index)
 	{
 		var library = blueprint.Walls.Library;
 		int item = library.FindItemByName(blueprint.Walls.Opening);
 		if (item < 0) return;
+		ReserveFrame(blueprint.Room, doorway);
 		blueprint.Room.AddChild(new MeshInstance3D
 		{
 			Name = $"Opening{index + 1}",
@@ -244,6 +261,10 @@ public static class RoomAssembler
 			Transform = new Transform3D(new Basis(Vector3.Up, Mathf.DegToRad(yaw)), doorway.Edge) * library.GetItemMeshTransform(item),
 		});
 	}
+
+	/// <summary>Reserves the frame's full visual footprint for wall fitting without narrowing actor clearance.</summary>
+	private static void ReserveFrame(Room room, RoomDoorway doorway) =>
+		room.FramedEdges.Add(((Vector3I)doorway.Edge, doorway.Direction.Y != 0));
 
 	/// <summary>Keeps doorway approaches (and optionally door-to-door paths) free of furniture.</summary>
 	private static void ReserveCirculation(RoomBlueprint blueprint)

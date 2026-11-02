@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bhoqcqyiwxxnw"
-path="res://.godot/imported/bunk_bed_dungeon_texture.png-0838d55779eb62d1b9d954045b5621dd.ctex"
+path.s3tc="res://.godot/imported/bunk_bed_dungeon_texture.png-0838d55779eb62d1b9d954045b5621dd.s3tc.ctex"
+path.etc2="res://.godot/imported/bunk_bed_dungeon_texture.png-0838d55779eb62d1b9d954045b5621dd.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "33c924802a36c4f3415e10bb6940e832"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-props/barracks/bunk_bed_dungeon_texture.png"
-dest_files=["res://.godot/imported/bunk_bed_dungeon_texture.png-0838d55779eb62d1b9d954045b5621dd.ctex"]
+dest_files=["res://.godot/imported/bunk_bed_dungeon_texture.png-0838d55779eb62d1b9d954045b5621dd.s3tc.ctex", "res://.godot/imported/bunk_bed_dungeon_texture.png-0838d55779eb62d1b9d954045b5621dd.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

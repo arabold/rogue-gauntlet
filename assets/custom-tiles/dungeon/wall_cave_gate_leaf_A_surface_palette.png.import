@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bg3epd8oodybr"
-path="res://.godot/imported/wall_cave_gate_leaf_A_surface_palette.png-a1f64a77c5a6c348136f3150c8b78814.ctex"
+path.s3tc="res://.godot/imported/wall_cave_gate_leaf_A_surface_palette.png-a1f64a77c5a6c348136f3150c8b78814.s3tc.ctex"
+path.etc2="res://.godot/imported/wall_cave_gate_leaf_A_surface_palette.png-a1f64a77c5a6c348136f3150c8b78814.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "ce81aba60e5cb33522105eaf9e01ab71"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-tiles/dungeon/wall_cave_gate_leaf_A_surface_palette.png"
-dest_files=["res://.godot/imported/wall_cave_gate_leaf_A_surface_palette.png-a1f64a77c5a6c348136f3150c8b78814.ctex"]
+dest_files=["res://.godot/imported/wall_cave_gate_leaf_A_surface_palette.png-a1f64a77c5a6c348136f3150c8b78814.s3tc.ctex", "res://.godot/imported/wall_cave_gate_leaf_A_surface_palette.png-a1f64a77c5a6c348136f3150c8b78814.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

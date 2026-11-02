@@ -25,7 +25,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/small_box.tres" id="24_small_box"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="25_WallDecorSte"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="26_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="27_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/cellar_alcove_walls.tres" id="x_cellar_alcove_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/bricks_floor.tres" id="x_bricks_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth_floor.tres" id="x_earth_floor"]
@@ -36,8 +35,8 @@
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
 Weight = 1.0
-MinimumSize = Vector2i(4, 4)
-MaximumSize = Vector2i(4, 5)
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 4)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("2_RectangleSha")
 
@@ -105,7 +104,7 @@ metadata/_custom_type_script = ExtResource("22_ScatterStep")
 [sub_resource type="Resource" id="WallDecorStep_9"]
 script = ExtResource("25_WallDecorSte")
 Id = "door_torches"
-Content = [ExtResource("26_torch"), ExtResource("27_torch_unlit")]
+Content = [ExtResource("26_torch")]
 MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("25_WallDecorSte")
@@ -119,13 +118,20 @@ MaximumCount = 1
 WallChance = 0.8
 metadata/_custom_type_script = ExtResource("22_ScatterStep")
 
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("2_RectangleSha")
+Weight = 0.5
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("2_RectangleSha")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "partitioned_store"
 Realms = PackedStringArray("garrison", "sewer")
 Weight = 0.6
-Shapes = [SubResource("RectangleShape_1")]
-MinimumFloorTiles = 16
+Shapes = [SubResource("RectangleShape_1"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 9
 MinDoorways = 1
 MaxDoorways = 2
 DoorChance = 0.6

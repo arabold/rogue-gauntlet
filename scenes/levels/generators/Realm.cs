@@ -14,7 +14,7 @@ public partial class Realm : Resource
 	[Export] public string Id { get; set; } = "";
 	[Export(PropertyHint.Range, "1,100")] public uint FirstDepth { get; set; } = 1;
 	[Export(PropertyHint.Range, "1,100")] public uint LastDepth { get; set; } = 1;
-	[Export] public TileFactory Corridors { get; set; }
+	[Export] public DungeonTileFactory Corridors { get; set; }
 
 	public bool Covers(uint depth) => depth >= FirstDepth && depth <= LastDepth;
 

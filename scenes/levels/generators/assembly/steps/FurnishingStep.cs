@@ -22,6 +22,8 @@ public abstract partial class FurnishingStep : Resource
 	[Export(PropertyHint.Range, "0.01,10,0.01")] public float Weight { get; set; } = 1;
 	/// <summary>Realms (by ID) this appears in; none means every realm.</summary>
 	[Export] public string[] Realms { get; set; } = [];
+	/// <summary>Optional wall-style IDs for furnishing that belongs to a particular structural layout.</summary>
+	[Export] public string[] WallStyles { get; set; } = [];
 
 	/// <summary>Places content and returns how many were placed; never throws on misfit.</summary>
 	public abstract int Furnish(RoomBlueprint room, RandomNumberGenerator rng);
