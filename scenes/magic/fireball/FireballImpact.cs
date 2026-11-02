@@ -21,7 +21,7 @@ public partial class FireballImpact : TimedEffect
 	/// <summary>Light brightness over flame progress. Values above 1 are the impact flash, which only applies
 	/// when <see cref="ImpactFlash"/> grants one; brightness also grows with the effect's scale (spell level).</summary>
 	[Export] public Curve LightCurve { get; set; }
-	[Export] public LightFlicker LightFlicker { get; set; }
+	[Export] public FlickerProfile FlickerProfile { get; set; }
 	/// <summary>Floor mark quad; hidden when no floor is in reach so it never hangs in the air.</summary>
 	[Export] public MeshInstance3D Scorch { get; set; }
 	/// <summary>Seconds the flame layers play; the rest of <see cref="TimedEffect.Lifetime"/> fades the scorch.</summary>
@@ -60,7 +60,7 @@ public partial class FireballImpact : TimedEffect
 		_groundQuery.CollisionMask = GroundMask;
 		_lightEnergy = ImpactLight?.LightEnergy ?? 0;
 		// The flicker clock never resets, so a pooled impact reads a fresh stretch of noise on every spawn.
-		_flickerTime = LightFlicker.RandomOffset(this);
+		_flickerTime = FlickerProfile.RandomOffset(this);
 		if (Scorch != null)
 		{
 			_scorchMaterial = (ShaderMaterial)Scorch.MaterialOverride.Duplicate();
@@ -99,7 +99,7 @@ public partial class FireballImpact : TimedEffect
 		if (ImpactLight != null && (progress < 1f || ImpactLight.Visible))
 		{
 			EffectLight.Apply(ImpactLight, _lightEnergy * _lightScale, LightCurve?.Sample(progress) ?? 1f - progress,
-				_flash, LightFlicker, _flickerTime);
+				_flash, FlickerProfile, _flickerTime);
 		}
 		if (_scorchMaterial != null)
 		{

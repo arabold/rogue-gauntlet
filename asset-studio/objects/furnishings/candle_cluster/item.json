@@ -7,7 +7,7 @@
     "kind": "candle_cluster"
   },
   "color_mode": "world",
-  "topology": "closed_surface",
+  "topology": "closed_assembly",
   "placement": {
     "pivot": "authored",
     "scale": 1

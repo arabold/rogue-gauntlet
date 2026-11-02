@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=40 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=42 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -18,7 +18,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/barrel_stack.tres" id="16_barrel_stack"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="17_WallDecorSte"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="18_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="19_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="20_wall_shelf"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/cauldron.tres" id="21_cauldron"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/bucket.tres" id="22_bucket"]
@@ -28,6 +27,9 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/book_alcove_walls.tres" id="x_book_alcove_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/planks_dark_floor.tres" id="x_planks_dark_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_plate.tres" id="c_candle_plate"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_stubs.tres" id="c_candle_stubs"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_pile.tres" id="c_candle_pile"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -75,14 +77,14 @@ metadata/_custom_type_script = ExtResource("12_CenterStep")
 [sub_resource type="Resource" id="ScatterStep_6"]
 script = ExtResource("14_ScatterStep")
 Id = "supplies"
-Content = [ExtResource("15_small_box"), ExtResource("16_barrel_stack"), ExtResource("22_bucket"), ExtResource("23_globe")]
-MaximumCount = 2
+Content = [ExtResource("15_small_box"), ExtResource("16_barrel_stack"), ExtResource("22_bucket"), ExtResource("23_globe"), ExtResource("c_candle_plate"), ExtResource("c_candle_stubs"), ExtResource("c_candle_pile")]
+MaximumCount = 4
 metadata/_custom_type_script = ExtResource("14_ScatterStep")
 
 [sub_resource type="Resource" id="WallDecorStep_7"]
 script = ExtResource("17_WallDecorSte")
 Id = "door_torches"
-Content = [ExtResource("18_torch"), ExtResource("19_torch_unlit")]
+Content = [ExtResource("18_torch")]
 MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("17_WallDecorSte")

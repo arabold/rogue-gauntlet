@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=36 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=35 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -13,7 +13,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/guard_table.tres" id="13_guard_table"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="14_WallDecorSte"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="15_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="16_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/keyring.tres" id="17_keyring"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="18_ScatterStep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/small_box.tres" id="19_small_box"]
@@ -62,7 +61,7 @@ metadata/_custom_type_script = ExtResource("12_AlongWallsSt")
 [sub_resource type="Resource" id="WallDecorStep_4"]
 script = ExtResource("14_WallDecorSte")
 Id = "door_torches"
-Content = [ExtResource("15_torch"), ExtResource("16_torch_unlit")]
+Content = [ExtResource("15_torch")]
 MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("14_WallDecorSte")

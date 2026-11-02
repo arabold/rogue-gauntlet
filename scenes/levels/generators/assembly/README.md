@@ -26,7 +26,7 @@ Create `props/<category>/<name>.tres` with script `Prop`:
 | `TurnJitter`, `ShiftJitter` | Seeded random turn (degrees either way) and shift (units) so loose props never line up perfectly; placement measures the turned prop. Leave at 0 for anchors that carry members (tables), fitted pieces and wall props |
 | `Interactive` | Keeps the space in front clear |
 
-Studio-made furnishings (altars, statues, candles, racks, wall decor, sarcophagi, sewer fixtures and goo, jungle plants) are exported to `assets/custom-props/<theme>/` by the [Asset Studio](../../../../asset-studio/README.md#room-furnishings). Lit variants are game scenes in `scenes/props/furnishings/` (`*_lit.tscn`): the model, its separate flames model or a fire effect as `Flame`, a `FlickerLight`, and the exploration-gate and environmental-light components that put both out on dark floors. List lit and unlit scenes as variants of one prop. Composed scenes in the same folder combine a Studio model with existing art (the bunk bed carries KayKit's own bedding; the chopping block holds KayKit's woodcutter's axe).
+Studio-made furnishings (altars, statues, candles, racks, wall decor, sarcophagi, sewer fixtures and goo, jungle plants) are exported to `assets/custom-props/<theme>/` by the [Asset Studio](../../../../asset-studio/README.md#room-furnishings). Lit variants are game scenes in `scenes/props/furnishings/` (`*_lit.tscn`): the model, its separate flames model or a fire effect as `Flame`, a `FlickeringLight`, and the exploration-gate and environmental-light components that put both out on dark floors. List lit and unlit scenes as variants of one prop. Composed scenes in the same folder combine a Studio model with existing art (the bunk bed carries KayKit's own bedding; the chopping block holds KayKit's woodcutter's axe).
 
 ## Add a group
 
@@ -82,3 +82,5 @@ A new kind of placement is a new `FurnishingStep` subclass that composes plans f
 Run the [room generation harness](../../../debug/rooms/room_generation_harness.tscn) (**F6**). Pick the realm and room type (entrances and exits are listed after the ordinary types) and seed, override any axis (shape, walls, floor, columns), toggle furnishings and the walkability overlay (green reachable, blue reserved circulation and stair landings, red pocket), and rotate. When a type cannot fit, the error names the step and the last refused placement, such as `garrison.bed: blocks reserved circulation`.
 
 Validate content with `RoomAssemblyTest` (every room and realm definition validates; every type keeps doorways connected, pockets bounded and props apart across seeds; stair rooms land arrivals on reachable floor).
+
+Room types expose `FixtureLitChance` (default 85%) to choose whether each placed `LightFixture` starts lit. This seeded cosmetic choice is independent of placement and applies to torches, candles, sconces and other fixture scenes.

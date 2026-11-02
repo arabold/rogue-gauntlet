@@ -17,7 +17,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="debris"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="decor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="torch"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/lit_sconce.tres" id="sconce"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/sconce.tres" id="sconce"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="shelf"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/keg_station.tres" id="kegs"]
 

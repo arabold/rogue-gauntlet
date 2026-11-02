@@ -18,6 +18,14 @@ import numpy as np
 from core.export import corner_normals
 
 TEXTURE = Path(__file__).resolve().parents[2] / 'assets/kaykit-dungeon-remastered/dungeon_texture.png'
+_TEXTURE_BYTES = None
+
+
+def get_texture_bytes():
+    global _TEXTURE_BYTES
+    if _TEXTURE_BYTES is None:
+        _TEXTURE_BYTES = TEXTURE.read_bytes()
+    return _TEXTURE_BYTES
 # Slot -> ((row, column) of the 8x4 grid, u inside the cell, shade offset added to v: + darker, - lighter).
 SWATCHES = {
     'wood': ((0, 4), .45, 0), 'wood_dark': ((0, 4), .45, .12), 'bark': ((0, 4), .45, .06),
@@ -28,7 +36,7 @@ SWATCHES = {
     'iron': ((0, 0), .3, -.05), 'iron_dark': ((0, 0), .3, .15), 'steel': ((0, 1), .3, -.15), 'pot': ((0, 0), .3, 0),
     'pot_inner': ((0, 3), .4, 0), 'copper': ((0, 2), .45, 0), 'gold': ((2, 5), .45, 0), 'trim': ((2, 5), .45, -.05),
     'silver': ((1, 0), .45, 0),
-    'wax': ((3, 0), .45, -.1), 'wick': ((0, 3), .45, 0), 'flame': ((2, 7), .45, -.35), 'coal': ((0, 3), .45, 0),
+    'wax': ((3, 0), .5, .1), 'wick': ((0, 7), .45, .08), 'flame': ((2, 7), .45, -.35), 'coal': ((0, 3), .45, 0),
     'cloth_red': ((2, 3), .45, 0), 'cloth_blue': ((2, 6), .45, 0), 'cloth_green': ((2, 1), .45, 0),
     'cloth_purple': ((1, 3), .45, 0), 'cloth_yellow': ((2, 5), .45, -.05),
     'sheet': ((3, 0), .45, -.2), 'linen': ((1, 1), .45, -.1), 'blanket_grey': ((0, 5), .45, 0), 'blanket_tan': ((1, 1), .45, 0),
@@ -55,11 +63,13 @@ def export(path, name, piece, crease=40.0, slot_crease=None):
     normals = corner_normals(piece.verts, piece.faces, crease=crease, slots=piece.slots, slot_crease=slot_crease or {})
     height = tri[:, :, 1]
     t = (height - height.min()) / max(float(np.ptp(height)), 1e-6)
-    uv = np.zeros(tri.shape[:2] + (2,))
-    for i, slot in enumerate(slots):
+    unique_slots, inverse = np.unique(slots, return_inverse=True)
+    uv = np.empty(tri.shape[:2] + (2,), dtype=np.float32)
+    for u_idx, slot in enumerate(unique_slots):
+        mask = (inverse == u_idx)
         (row, column), u, shade = SWATCHES[slot]
-        uv[i, :, 0] = (column + u) / 8
-        uv[i, :, 1] = (row + np.clip(.86 - .72 * t[i] + shade, .04, .96)) / 4
+        uv[mask, :, 0] = (column + u) / 8
+        uv[mask, :, 1] = (row + np.clip(.86 - .72 * t[mask] + shade, .04, .96)) / 4
     glowing = np.array([slot in EMISSIVE for slot in slots])
     order = np.r_[np.flatnonzero(~glowing), np.flatnonzero(glowing)]
     positions = tri[order].reshape(-1, 3).astype(np.float32)
@@ -69,7 +79,7 @@ def export(path, name, piece, crease=40.0, slot_crease=None):
     indices = np.arange(len(positions), dtype=np.uint32)
     groups = [(indices[:lit_count], 0), (indices[lit_count:], 1)]
     groups = [(group, material) for group, material in groups if len(group)]
-    blobs += [group.tobytes() for group, _ in groups] + [TEXTURE.read_bytes()]
+    blobs += [group.tobytes() for group, _ in groups] + [get_texture_bytes()]
     views, binary = [], b''
     for blob in blobs:
         views.append({'buffer': 0, 'byteOffset': len(binary), 'byteLength': len(blob)})

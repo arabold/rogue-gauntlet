@@ -72,6 +72,41 @@ public class CorridorDecorationTest
 	}
 
 	[TestCase]
+	public async Task CorridorLightingUsesItsOwnSeededPolicy()
+	{
+		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
+		using (runner)
+		{
+			var realms = generator.Realms.ToArray();
+			var realm = (Realm)realms[0].Duplicate();
+			var tiles = (DungeonTileFactory)realm.Corridors.Duplicate();
+			realm.Corridors = tiles;
+			realms[0] = realm;
+			generator.Realms = realms;
+			string signature = null;
+			bool[] previous = null;
+			foreach (float chance in new[] { 0f, 1f, .5f, .5f })
+			{
+				tiles.FixtureLitChance = chance;
+				generator.Seed = 23;
+				generator.GenerateMap(includeGameplay: false);
+				var root = generator.GetNode<Node3D>("CorridorProps");
+				var fixtures = root.FindChildren("*", "", true, false).OfType<LightFixture>().ToArray();
+				AssertInt(fixtures.Length).IsGreater(0);
+				if (chance == 0) AssertBool(fixtures.All(fixture => !fixture.IsLit)).IsTrue();
+				if (chance == 1) AssertBool(fixtures.All(fixture => fixture.IsLit)).IsTrue();
+				if (chance == .5f && previous != null)
+					AssertBool(fixtures.Select(fixture => fixture.IsLit).SequenceEqual(previous)).IsTrue();
+				if (chance == .5f) previous = fixtures.Select(fixture => fixture.IsLit).ToArray();
+				string current = string.Join("|", root.GetChildren().OfType<Node3D>().Select(node => $"{node.Name}:{node.Transform}"));
+				if (signature != null) AssertString(current).IsEqual(signature);
+				signature = current;
+				await runner.SimulateFrames(1);
+			}
+		}
+	}
+
+	[TestCase]
 	public async Task RealmsDecorateCorridorsDeterministicallyAndOrientWallsInward()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");

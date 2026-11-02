@@ -7,6 +7,8 @@ using Godot;
 [GlobalClass]
 public partial class ItemAuraPresenter : Node3D
 {
+	[Signal] public delegate void AuraChangedEventHandler(WorldEffectDefinition active);
+
 	[Export] public WorldEffectHost Host { get; set; }
 	/// <summary>Asked in order; the first aura wins.</summary>
 	[Export] public ItemAuraRule[] Rules { get; set; } = [];
@@ -15,6 +17,9 @@ public partial class ItemAuraPresenter : Node3D
 	private WorldEffectHost _actor;
 	private Node3D _model;
 	private WorldEffectDefinition _active;
+
+	public EquipableItem Item => _item;
+	public WorldEffectDefinition ActiveEffect => _active;
 
 	/// <summary>Initialize before adding to the model tree. The presenter lifetime follows that model.</summary>
 	public void Initialize(EquipableItem item, Node3D model, WorldEffectHost actor = null)
@@ -39,9 +44,11 @@ public partial class ItemAuraPresenter : Node3D
 		if (_active != null) Host.SetSustained(this, _active, false, CosmeticSeed);
 		_active = desired;
 		if (desired != null) Host.SetSustained(this, desired, true, CosmeticSeed, instance => instance is ItemAuraEffect aura && aura.Configure(_model));
+		EmitSignalAuraChanged(_active);
 	}
 	public override void _ExitTree()
 	{
 		if (_active != null && IsInstanceValid(Host)) Host.SetSustained(this, _active, false, CosmeticSeed);
+		_active = null;
 	}
 }

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=35 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=37 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -17,7 +17,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/bookcase_broken.tres" id="15_bookcase_bro"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="16_WallDecorSte"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="17_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="18_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="19_wall_shelf"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/scroll_rack.tres" id="20_scroll_rack"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/globe.tres" id="21_globe"]
@@ -27,6 +26,9 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/book_alcove_walls.tres" id="x_book_alcove_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/parquet_rug.tres" id="x_parquet_rug"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/parquet_floor.tres" id="x_parquet_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_plate.tres" id="c_candle_plate"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_pile.tres" id="c_candle_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_stubs.tres" id="c_candle_stubs"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -63,7 +65,7 @@ metadata/_custom_type_script = ExtResource("13_AlongWallsSt")
 [sub_resource type="Resource" id="WallDecorStep_4"]
 script = ExtResource("16_WallDecorSte")
 Id = "door_torches"
-Content = [ExtResource("17_torch"), ExtResource("18_torch_unlit")]
+Content = [ExtResource("17_torch")]
 MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("16_WallDecorSte")
@@ -78,8 +80,8 @@ metadata/_custom_type_script = ExtResource("16_WallDecorSte")
 [sub_resource type="Resource" id="ScatterStep_6"]
 script = ExtResource("23_ScatterStep")
 Id = "study"
-Content = [ExtResource("21_globe"), ExtResource("22_lectern")]
-MaximumCount = 2
+Content = [ExtResource("21_globe"), ExtResource("22_lectern"), ExtResource("c_candle_plate"), ExtResource("c_candle_pile"), ExtResource("c_candle_stubs")]
+MaximumCount = 4
 WallChance = 0.4
 metadata/_custom_type_script = ExtResource("23_ScatterStep")
 

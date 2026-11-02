@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=38 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=37 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -19,7 +19,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/small_box.tres" id="19_small_box"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="20_WallDecorSte"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="21_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="22_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_ruined_floor.tres" id="x_flagstones_ruined_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/slimy_walls.tres" id="x_slimy_walls"]
@@ -89,7 +88,7 @@ metadata/_custom_type_script = ExtResource("15_ScatterStep")
 [sub_resource type="Resource" id="WallDecorStep_8"]
 script = ExtResource("20_WallDecorSte")
 Id = "door_torches"
-Content = [ExtResource("21_torch"), ExtResource("22_torch_unlit")]
+Content = [ExtResource("21_torch")]
 MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("20_WallDecorSte")
@@ -97,7 +96,7 @@ metadata/_custom_type_script = ExtResource("20_WallDecorSte")
 [sub_resource type="Resource" id="WallDecorStep_9"]
 script = ExtResource("20_WallDecorSte")
 Id = "torches"
-Content = [ExtResource("21_torch"), ExtResource("22_torch_unlit")]
+Content = [ExtResource("21_torch")]
 MaximumCount = 2
 Spacing = 6.0
 metadata/_custom_type_script = ExtResource("20_WallDecorSte")

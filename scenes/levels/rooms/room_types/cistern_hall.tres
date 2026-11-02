@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=43 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=42 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -20,7 +20,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/vase_broken.tres" id="19_vase_broken"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="20_floor_debris"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="21_scatterstep"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="22_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="23_torch"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="24_walldecorstep"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/PoolStep.cs" id="p_PoolStep"]
@@ -69,7 +68,7 @@ metadata/_custom_type_script = ExtResource("21_scatterstep")
 [sub_resource type="Resource" id="WallDecorStep_5"]
 script = ExtResource("24_walldecorstep")
 Id = "torches"
-Content = [ExtResource("22_torch_unlit"), ExtResource("22_torch_unlit"), ExtResource("23_torch")]
+Content = [ExtResource("23_torch")]
 MaximumCount = 4
 Spacing = 6.0
 metadata/_custom_type_script = ExtResource("24_walldecorstep")

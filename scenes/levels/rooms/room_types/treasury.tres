@@ -18,7 +18,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/trunk.tres" id="trunk"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/small_box.tres" id="box"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/bookcase.tres" id="bookcase"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/lit_sconce.tres" id="sconce"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/sconce.tres" id="sconce"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="shelf"]
 
 [sub_resource type="Resource" id="shape"]

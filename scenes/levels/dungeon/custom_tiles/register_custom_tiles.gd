@@ -121,7 +121,7 @@ func _library_for(name: String) -> String:
 		return FLOORS
 	if name.begins_with("wall_"):
 		return WALLS
-	if name.begins_with("carpet_"):
+	if name.begins_with("carpet_") or name.begins_with("candle_"):
 		return DECORATION
 	return ""
 

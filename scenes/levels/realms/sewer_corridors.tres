@@ -12,7 +12,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="11_torch"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/sconce.tres" id="12_sconce"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/shackles.tres" id="13_shackles"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="14_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/keyring.tres" id="15_keyring"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="16_wall_shelf"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_brown.tres" id="17_banner_brown"]
@@ -63,7 +62,7 @@ script = ExtResource("8_hallway_step")
 MinimumRunTiles = 2
 PairAcrossChance = 0.2
 Id = "hallway_decor"
-Content = [ExtResource("13_shackles"), ExtResource("14_torch_unlit"), ExtResource("15_keyring"), ExtResource("16_wall_shelf"), ExtResource("17_banner_brown")]
+Content = [ExtResource("13_shackles"), ExtResource("11_torch"), ExtResource("15_keyring"), ExtResource("16_wall_shelf"), ExtResource("17_banner_brown")]
 MaximumCount = 8
 Chance = 1.0
 Spacing = 6.0

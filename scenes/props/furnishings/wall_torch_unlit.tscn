@@ -5,17 +5,4 @@
 [node name="WallTorchUnlit" type="Node3D"]
 
 [node name="Content" parent="." instance=ExtResource("torch")]
-
-[node name="FlickerLight" parent="Content" index="1"]
-visible = false
-process_mode = 4
-
-[node name="Fire" parent="Content" index="2"]
-visible = false
-process_mode = 4
-
-[node name="GPUParticles3D" parent="Content/Fire" index="0"]
-emitting = false
-
-[editable path="Content"]
-[editable path="Content/Fire"]
+IsLit = false

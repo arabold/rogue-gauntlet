@@ -51,8 +51,10 @@ public static class TestFactories
 	/// <summary>Assert a torch fixture's flame and light are both shown, or both hidden, in the tree.</summary>
 	public static void AssertTorchEffects(Node torch, bool visible)
 	{
-		Assertions.AssertBool(torch.FindChild("Fire", true, false) is Node3D { } fire && fire.IsVisibleInTree()).IsEqual(visible);
-		Assertions.AssertBool(torch.FindChild("FlickerLight", true, false) is OmniLight3D { } light && light.IsVisibleInTree()).IsEqual(visible);
+		var flame = torch.FindChild("Flame", true, false) ?? torch.FindChild("Fire", true, false);
+		var light = torch.FindChild("FlickeringLight", true, false);
+		Assertions.AssertBool(flame is Node3D { } fire && fire.IsVisibleInTree()).IsEqual(visible);
+		Assertions.AssertBool(light is OmniLight3D { } omni && omni.IsVisibleInTree()).IsEqual(visible);
 	}
 
 	/// <summary>Load the combat harness scene; the caller owns (and may dispose) the runner.</summary>

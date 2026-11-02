@@ -30,7 +30,7 @@ public class RoomStyleSamplesTest
 				int maximumTiles = name == "treasury" ? 9 : 20;
 				AssertInt(first.Footprint.Count).IsLessEqual(maximumTiles);
 				AssertString(RoomAssemblyTest.FloorCoverage(first)).IsEmpty();
-				AssertInt(first.Pieces.Count(piece => piece.Prop.Id == "lit_sconce")).IsGreaterEqual(2);
+				AssertInt(first.Pieces.Count(piece => piece.Prop.Id == "sconce")).IsGreaterEqual(2);
 				var nodes = first.Room.FindChildren("*", "", true, false);
 				if (name == "treasury")
 				{
@@ -43,6 +43,32 @@ public class RoomStyleSamplesTest
 				first.Room.Free();
 				second.Room.Free();
 			}
+		}
+	}
+
+	[TestCase]
+	public void RoomLightingIsSeededAndIndependentOfPlacement()
+	{
+		using var type = (RoomType)TestFactories.Load<RoomType>($"{RoomTypes}treasury.tres").Duplicate();
+		string signature = null;
+		bool[] previous = null;
+		foreach (float chance in new[] { 0f, 1f, .5f, .5f })
+		{
+			type.FixtureLitChance = chance;
+			var blueprint = RoomAssembler.Build(type, 23);
+			try
+			{
+				var fixtures = blueprint.Room.FindChildren("*", "", true, false).OfType<LightFixture>().ToArray();
+				AssertInt(fixtures.Length).IsGreater(0);
+				if (chance == 0) AssertBool(fixtures.All(fixture => !fixture.IsLit)).IsTrue();
+				if (chance == 1) AssertBool(fixtures.All(fixture => fixture.IsLit)).IsTrue();
+				if (chance == .5f && previous != null)
+					AssertBool(fixtures.Select(fixture => fixture.IsLit).SequenceEqual(previous)).IsTrue();
+				if (chance == .5f) previous = fixtures.Select(fixture => fixture.IsLit).ToArray();
+				if (signature != null) AssertString(Signature(blueprint)).IsEqual(signature);
+				signature = Signature(blueprint);
+			}
+			finally { blueprint.Room.Free(); }
 		}
 	}
 

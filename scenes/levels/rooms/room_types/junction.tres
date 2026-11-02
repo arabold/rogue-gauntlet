@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=25 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=24 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/CrossShape.cs" id="3_crossshape"]
@@ -12,7 +12,6 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/bone_pile.tres" id="11_bone_pile"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/barrel.tres" id="12_barrel"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="13_scatterstep"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch_unlit.tres" id="14_torch_unlit"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="15_torch"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="16_walldecorstep"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="p_AlongWallsStep"]
@@ -46,7 +45,7 @@ metadata/_custom_type_script = ExtResource("13_scatterstep")
 [sub_resource type="Resource" id="WallDecorStep_4"]
 script = ExtResource("16_walldecorstep")
 Id = "torches"
-Content = [ExtResource("14_torch_unlit"), ExtResource("14_torch_unlit"), ExtResource("15_torch")]
+Content = [ExtResource("15_torch")]
 MaximumCount = 2
 Spacing = 6.0
 metadata/_custom_type_script = ExtResource("16_walldecorstep")

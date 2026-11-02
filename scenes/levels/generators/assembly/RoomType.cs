@@ -51,6 +51,9 @@ public partial class RoomType : Resource
 	/// <summary>Run in order against the same room; earlier steps get first choice of space.</summary>
 	[Export] public FurnishingStep[] Steps { get; set; } = [];
 	/// <summary>Shape rerolls allowed when a required step cannot fit.</summary>
+	/// <summary>Seeded probability that each placed light fixture starts lit.</summary>
+	[Export(PropertyHint.Range, "0,1,0.05")] public float FixtureLitChance { get; set; } = .85f;
+
 	[Export(PropertyHint.Range, "1,16")] public int Attempts { get; set; } = 8;
 
 	/// <summary>The wall styles a room in <paramref name="realm"/> draws from; null takes every style.</summary>
@@ -67,6 +70,8 @@ public partial class RoomType : Resource
 		if (Walls.Length == 0 || Walls.Any(style => style == null)) errors.Add($"Room type {Id}: assign wall styles.");
 		if (Floors.Length == 0 || Floors.Any(style => style == null)) errors.Add($"Room type {Id}: assign floor styles.");
 		if (Columns.Any(column => column == null) || Steps.Any(step => step == null)) errors.Add($"Room type {Id}: remove empty column or step entries.");
+		if (!float.IsFinite(FixtureLitChance) || FixtureLitChance < 0 || FixtureLitChance > 1)
+			errors.Add($"Room type {Id}: fixture lit chance must be between zero and one.");
 		if (MinDoorways > MaxDoorways) errors.Add($"Room type {Id}: the doorway minimum exceeds the maximum.");
 		if (DoorwayPlacement == DoorwayPlacement.LongAxisEnds && MinDoorways < 2)
 			errors.Add($"Room type {Id}: long-axis ends need at least two doorways.");

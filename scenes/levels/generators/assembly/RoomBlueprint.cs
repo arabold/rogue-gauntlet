@@ -402,16 +402,25 @@ public sealed class RoomBlueprint
 	public void EmitProps()
 	{
 		var root = new Node3D { Name = "Props" };
+		using var lighting = GenerationRandom.Create(Seed, GenerationRandom.Cosmetic, $"room-lighting:{Type.Id}");
 		Room.AddChild(root);
 		for (int index = 0; index < _pieces.Count; index++)
 		{
 			var piece = _pieces[index];
 			var node = CreateNode(piece);
+			ConfigureLighting(node, lighting, Type.FixtureLitChance);
 			node.Name = $"{piece.Prop.Id.Split('.').Last()}_{index}";
 			node.SetMeta("prop_id", piece.Prop.Id);
 			if (node is Door { Interior: not null } door) door.Interior.Id = $"{piece.Prop.Id}:{index}";
 			root.AddChild(node);
 		}
+	}
+
+	/// <summary>Assigns fixture state before entering the tree, on a cosmetic RNG stream independent of placement.</summary>
+	internal static void ConfigureLighting(Node node, RandomNumberGenerator rng, float litChance)
+	{
+		if (node is LightFixture fixture) fixture.IsLit = litChance >= 1f || (litChance > 0f && rng.Randf() < litChance);
+		foreach (Node child in node.GetChildren()) ConfigureLighting(child, rng, litChance);
 	}
 
 	internal static Node3D CreateNode(PlacedPiece piece)

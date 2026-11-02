@@ -251,7 +251,7 @@ public sealed class CorridorBlueprint
 	}
 
 	/// <summary>Instantiates all accepted corridor props under a CorridorProps node on <paramref name="parent"/>.</summary>
-	public Node3D EmitProps(Node3D parent)
+	public Node3D EmitProps(Node3D parent, float fixtureLitChance)
 	{
 		if (_pieces.Count == 0) return null;
 		var root = new Node3D
@@ -259,11 +259,13 @@ public sealed class CorridorBlueprint
 			Name = "CorridorProps",
 			Position = Map.TileToWorld(0, 0),
 		};
+		using var lighting = GenerationRandom.Create(Seed, GenerationRandom.Cosmetic, "corridor-lighting");
 		parent.AddChild(root);
 		for (int index = 0; index < _pieces.Count; index++)
 		{
 			var piece = _pieces[index];
 			var node = RoomBlueprint.CreateNode(piece);
+			RoomBlueprint.ConfigureLighting(node, lighting, fixtureLitChance);
 			int dot = piece.Prop.Id.LastIndexOf('.');
 			string baseName = dot >= 0 ? piece.Prop.Id[(dot + 1)..] : piece.Prop.Id;
 			node.Name = $"{baseName}_{index}";

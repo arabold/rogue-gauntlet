@@ -185,4 +185,48 @@ public class ItemCurseTest
 		AssertInt(restored.CursePenalty.Length).IsEqual(ring.CursePenalty.Length);
 		AssertFloat(restored.CursePenalty[0].Value).IsEqual(ring.CursePenalty[0].Value);
 	}
+
+	[TestCase]
+	public void CursedItemShowsCurseAuraInInventoryOnlyWhenCurseStatusIsKnown()
+	{
+		var panel = TestFactories.AddToSceneTree(
+			TestFactories.Load<PackedScene>("res://scenes/ui/item_slot_panel.tscn").Instantiate<ItemSlotPanel>());
+		var preview = panel.GetNode<Preview>("%Preview");
+
+		EquipableItem sword = Cursed(Sword);
+		AssertBool(sword.CurseStatusKnown).IsFalse();
+
+		// 1. Unknown curse in backpack slot: no active aura, render-once
+		panel.SetItem(new InventoryItemSlot { Item = sword }, isEquipped: false);
+		AssertBool(preview.AuraPresenter?.ActiveEffect != null).IsFalse();
+		AssertInt((int)preview.RenderTargetUpdateMode).IsEqual((int)SubViewport.UpdateMode.Once);
+
+		// 2. Revealed curse: shows curse aura, renders live
+		sword.RevealCurseStatus();
+		AssertObject(preview.AuraPresenter).IsNotNull();
+		AssertBool(preview.AuraPresenter.ActiveEffect != null).IsTrue();
+		AssertString(preview.AuraPresenter.ActiveEffect?.Id.ToString()).IsEqual("cursed_item");
+		AssertInt((int)preview.RenderTargetUpdateMode).IsEqual((int)SubViewport.UpdateMode.Always);
+
+		// 3. Equipped slot also shows curse aura
+		panel.SetItem(new InventoryItemSlot { Item = sword }, isEquipped: true);
+		AssertBool(preview.AuraPresenter.ActiveEffect != null).IsTrue();
+		AssertString(preview.AuraPresenter.ActiveEffect?.Id.ToString()).IsEqual("cursed_item");
+		AssertInt((int)preview.RenderTargetUpdateMode).IsEqual((int)SubViewport.UpdateMode.Always);
+
+		// 4. Lifting the curse ends the aura and returns to render-once
+		sword.LiftCurse();
+		AssertBool(preview.AuraPresenter.ActiveEffect != null).IsFalse();
+		AssertInt((int)preview.RenderTargetUpdateMode).IsEqual((int)SubViewport.UpdateMode.Once);
+
+		// 5. Uncursed item has no aura
+		panel.SetItem(new InventoryItemSlot { Item = Create(Sword) }, isEquipped: false);
+		AssertBool(preview.AuraPresenter?.ActiveEffect != null).IsFalse();
+		AssertInt((int)preview.RenderTargetUpdateMode).IsEqual((int)SubViewport.UpdateMode.Once);
+
+		// 6. Clearing the slot removes the aura
+		panel.SetItem(null, isEquipped: false);
+		AssertObject(preview.AuraPresenter).IsNull();
+		AssertInt((int)preview.RenderTargetUpdateMode).IsEqual((int)SubViewport.UpdateMode.Once);
+	}
 }

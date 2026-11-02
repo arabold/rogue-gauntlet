@@ -395,7 +395,7 @@ public partial class MapGenerator : Node3D
 			}
 		}
 
-		blueprint.EmitProps(this);
+		blueprint.EmitProps(this, dungeonTiles.FixtureLitChance);
 	}
 
 	/// <summary>Caps permanent void and the outer margin. Gameplay exploration is rendered separately.</summary>

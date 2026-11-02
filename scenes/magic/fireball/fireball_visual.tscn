@@ -17,8 +17,8 @@
 [ext_resource type="Material" path="res://scenes/magic/fireball/toon_flame_card.tres" id="flame_card"]
 [ext_resource type="Material" path="res://scenes/magic/fireball/toon_smoke_card.tres" id="smoke_card"]
 [ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material_res"]
-[ext_resource type="Script" uid="uid://b057bpmpc54l5" path="res://scenes/effects/FlickerLight.cs" id="flicker_light"]
-[ext_resource type="Resource" uid="uid://bypjdcf5nuu8i" path="res://scenes/effects/light_flicker/flame.tres" id="light_flicker"]
+[ext_resource type="Script" uid="uid://d3b0cqg4qa73" path="res://scenes/effects/FlickeringLight.cs" id="flicker_light"]
+[ext_resource type="Resource" uid="uid://bypjdcf5nuu8i" path="res://scenes/effects/flicker_profiles/flame.tres" id="flicker_profile"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
 radius = 0.42
@@ -222,4 +222,4 @@ light_specular = 0.15
 omni_range = 4.6
 script = ExtResource("flicker_light")
 Energy = 2.2
-Flicker = ExtResource("light_flicker")
+Profile = ExtResource("flicker_profile")
