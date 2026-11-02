@@ -145,7 +145,7 @@ public class RoomStyleSamplesTest
 	[TestCase(1)] // secret door
 	[TestCase(2)] // doorless frame
 	[TestCase(3)] // bare opening
-	public void FramedDoorwaysKeepSolidJambs(int mode)
+	public void DoorwayFramesKeepTheirOpeningsClear(int mode)
 	{
 		using var type = (RoomType)TestFactories.Load<RoomType>($"{RoomTypes}treasury.tres").Duplicate();
 		type.SecretDoorChance = mode == 1 ? 1 : 0;
@@ -155,21 +155,55 @@ public class RoomStyleSamplesTest
 		try
 		{
 			var room = blueprint.Room;
-			AssertInt(room.FrameColliders.Count).IsEqual(mode == 3 ? 0 : 1);
-			AssertInt(room.FramedEdges.Count).IsEqual(room.FrameColliders.Count);
-			if (mode == 3) return;
-			var frame = room.FrameColliders.Single();
-			AssertInt((int)frame.CollisionLayer).IsEqual(2);
-			var posts = frame.GetChildren().OfType<CollisionShape3D>().ToArray();
-			AssertInt(posts.Length).IsEqual(2);
-			foreach (var post in posts)
-			{
-				AssertBool(post.Shape is BoxShape3D { Size: var size } && size.IsEqualApprox(new Vector3(1, 4, 1))).IsTrue();
-				AssertFloat(Mathf.Abs(post.Position.X)).IsEqualApprox(1.5f, .001f);
-			}
+			AssertInt(room.FramedEdges.Count).IsEqual(mode == 3 ? 0 : 1);
+			// The door leaf owns its own collision; the frame adds no permanent obstruction.
+			AssertInt(room.GetChildren().OfType<StaticBody3D>().Count()).IsEqual(0);
 			AssertBool(blueprint.IsAcceptable).IsTrue();
 		}
 		finally { blueprint.Room.Free(); }
+	}
+
+	/// <summary>The player-sized body can cross open frames and doors in every room rotation; a closed leaf still blocks it.</summary>
+	[TestCase(false)]
+	[TestCase(true)]
+	public async Task PlayerFitsThroughDoorway(bool hasDoor)
+	{
+		using var runner = TestFactories.LoadScene("res://scenes/debug/rooms/room_generation_harness.tscn");
+		await runner.SimulateFrames(2, 20);
+		using var type = (RoomType)TestFactories.Load<RoomType>($"{RoomTypes}treasury.tres").Duplicate();
+		type.SecretDoorChance = 0;
+		type.DoorChance = hasDoor ? 1 : 0;
+		type.FrameChance = 1;
+		for (int turn = 0; turn < 4; turn++)
+		{
+			var blueprint = RoomAssembler.Build(type, 23, new RoomAssemblyOptions { Furnish = false });
+			var room = blueprint.Room;
+			var doorway = blueprint.Doorways.Single();
+			var rotation = new Basis(Vector3.Up, turn * Mathf.Pi / 2);
+			room.Rotate(turn);
+			room.Position = new Vector3(1000, 0, 1000);
+			runner.Scene().AddChild(room);
+			await runner.SimulateFrames(2, 20);
+			var outward = rotation * doorway.Outward;
+			var center = room.GlobalTransform * (rotation * doorway.Edge);
+			using var query = new PhysicsShapeQueryParameters3D
+			{
+				Shape = new SphereShape3D { Radius = 1f },
+				Transform = new Transform3D(Basis.Identity, center - outward * 3 + Vector3.Up),
+				Motion = outward * 6,
+				CollisionMask = 18,
+			};
+			var space = room.GetWorld3D().DirectSpaceState;
+			if (hasDoor)
+			{
+				AssertFloat(space.CastMotion(query)[0]).IsLess(1f);
+				room.Doors.Values.Single().IsOpen = true;
+				await runner.SimulateFrames(2, 20);
+			}
+			AssertFloat(space.CastMotion(query)[0]).OverrideFailureMessage($"door={hasDoor}, rotation={turn}").IsGreaterEqual(.99f);
+			room.QueueFree();
+			await runner.SimulateFrames(1, 20);
+		}
 	}
 
 	/// <summary>A room's secret chance owns the doorway decision; the wall and discovery state follow the door.</summary>

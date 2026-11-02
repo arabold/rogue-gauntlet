@@ -227,7 +227,7 @@ public static class RoomAssembler
 				if (frame) AddOpening(blueprint, doorway, yaw, index);
 				continue;
 			}
-			AddFrameCollision(blueprint.Room, doorway, yaw, index);
+			ReserveFrame(blueprint.Room, doorway);
 			var node = doors[index] = blueprint.Walls.DoorScene.Instantiate<Door>();
 			node.Name = $"Door{index + 1}";
 			node.Position = doorway.Edge;
@@ -246,14 +246,14 @@ public static class RoomAssembler
 
 	/// <summary>
 	/// Sets the wall style's opening frame into a doorless doorway's wall gap, turned like a door would be. Its posts
-	/// cover the wall ends on both sides; solid posts leave the central opening passable.
+	/// cover the wall ends on both sides while keeping the full opening passable.
 	/// </summary>
 	private static void AddOpening(RoomBlueprint blueprint, RoomDoorway doorway, float yaw, int index)
 	{
 		var library = blueprint.Walls.Library;
 		int item = library.FindItemByName(blueprint.Walls.Opening);
 		if (item < 0) return;
-		AddFrameCollision(blueprint.Room, doorway, yaw, index);
+		ReserveFrame(blueprint.Room, doorway);
 		blueprint.Room.AddChild(new MeshInstance3D
 		{
 			Name = $"Opening{index + 1}",
@@ -262,18 +262,9 @@ public static class RoomAssembler
 		});
 	}
 
-	/// <summary>Frame posts remain solid when a door opens; their footprints meet the adjoining wall faces.</summary>
-	private static void AddFrameCollision(Room room, RoomDoorway doorway, float yaw, int index)
-	{
+	/// <summary>Reserves the frame's full visual footprint for wall fitting without narrowing actor clearance.</summary>
+	private static void ReserveFrame(Room room, RoomDoorway doorway) =>
 		room.FramedEdges.Add(((Vector3I)doorway.Edge, doorway.Direction.Y != 0));
-		var body = new StaticBody3D { Name = $"FrameCollision{index + 1}", Position = doorway.Edge,
-			RotationDegrees = new Vector3(0, yaw, 0), CollisionLayer = 2, CollisionMask = 0 };
-		var shape = new BoxShape3D { Size = new Vector3(1, 4, 1) };
-		body.AddChild(new CollisionShape3D { Position = new Vector3(-1.5f, 2, 0), Shape = shape });
-		body.AddChild(new CollisionShape3D { Position = new Vector3(1.5f, 2, 0), Shape = shape });
-		room.AddChild(body);
-		room.FrameColliders.Add(body);
-	}
 
 	/// <summary>Keeps doorway approaches (and optionally door-to-door paths) free of furniture.</summary>
 	private static void ReserveCirculation(RoomBlueprint blueprint)

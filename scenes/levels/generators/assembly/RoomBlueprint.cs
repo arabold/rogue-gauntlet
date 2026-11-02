@@ -139,12 +139,6 @@ public sealed class RoomBlueprint
 		// Furniture may stand in a corner: a corner piece blocks only its two arms, not its L's whole bounding box, and
 		// its convex collision hull only fills space no actor reaches anyway.
 		_wallBoxes.AddRange(WallFootprints.Collect(Room.WallGridMap));
-		foreach (var frame in Room.FrameColliders)
-		foreach (var outline in CollisionOutlines.FromStaticBodies(frame, frame.Transform))
-		{
-			Grid.AddObstacle(outline);
-			_wallBoxes.Add(outline.Bounds);
-		}
 	}
 
 	/// <summary>Straight wall runs, split at doorways and wherever the room continues past the wall line.</summary>

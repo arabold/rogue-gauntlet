@@ -26,8 +26,6 @@ public partial class Room : Node3D
 	internal HashSet<Vector3I> DividerCells { get; private set; } = [];
 	/// <summary>Edges occupied by doorway frames or concealed walls, in room-local grid coordinates.</summary>
 	internal HashSet<(Vector3I Center, bool Horizontal)> FramedEdges { get; private set; } = [];
-	/// <summary>Permanent doorway jambs, also used by the room walkability calculation.</summary>
-	internal List<StaticBody3D> FrameColliders { get; } = [];
 
 	/// <summary>The room type that assembled this room, content included.</summary>
 	[Export] public RoomType Type { get; set; }
