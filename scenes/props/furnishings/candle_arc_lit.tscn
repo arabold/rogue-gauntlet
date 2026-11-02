@@ -1,0 +1,50 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/props/LightFixture.cs" id="1_candle"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/chapel/candle_arc.glb" id="2_model"]
+[ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flickering_light.tscn" id="3_light"]
+[ext_resource type="PackedScene" path="res://scenes/effects/candle_flame.tscn" id="4_flame"]
+[ext_resource type="Script" uid="uid://cqxw2ow56hai2" path="res://scenes/components/ExplorationGateComponent.cs" id="5_gate"]
+[ext_resource type="Script" uid="uid://c7jefenbk3vi0" path="res://scenes/components/EnvironmentalLightComponent.cs" id="6_lighting"]
+
+[node name="CandleArcLit" type="Node3D" node_paths=PackedStringArray("Flame", "Light", "EnvironmentalLight")]
+script = ExtResource("1_candle")
+IsLit = true
+Flame = NodePath("Flame")
+Light = NodePath("FlickeringLight")
+EnvironmentalLight = NodePath("EnvironmentalLightComponent")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+
+[node name="Flame" type="Node3D" parent="."]
+
+[node name="Flame0" parent="Flame" instance=ExtResource("4_flame")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.48, 0.915, -0.08)
+
+[node name="Flame1" parent="Flame" instance=ExtResource("4_flame")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.24, 0.715, 0.07)
+
+[node name="Flame2" parent="Flame" instance=ExtResource("4_flame")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.515, 0.14)
+
+[node name="Flame3" parent="Flame" instance=ExtResource("4_flame")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.355, 0.08)
+
+[node name="Flame4" parent="Flame" instance=ExtResource("4_flame")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.46, 0.215, -0.04)
+
+[node name="FlickeringLight" parent="." instance=ExtResource("3_light")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -0.1, 1.05, 0.05)
+light_energy = 0.9
+shadow_enabled = false
+omni_range = 6.0
+
+[node name="ExplorationGateComponent" type="Node3D" parent="." node_paths=PackedStringArray("Target")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+script = ExtResource("5_gate")
+Target = NodePath("..")
+
+[node name="EnvironmentalLightComponent" type="Node" parent="." node_paths=PackedStringArray("Light", "Flame")]
+script = ExtResource("6_lighting")
+Light = NodePath("../FlickeringLight")
+Flame = NodePath("../Flame")

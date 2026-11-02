@@ -7,8 +7,8 @@
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
 [ext_resource type="Resource" uid="uid://nmu6am3fevbi" path="res://scenes/player/resources/player_stats.tres" id="2_sug4b"]
-[ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flicker_light.tscn" id="3_3qxnv"]
-[ext_resource type="Script" uid="uid://cdw6evppde3jq" path="res://scenes/effects/LightFlicker.cs" id="light_flicker_script"]
+[ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flickering_light.tscn" id="3_3qxnv"]
+[ext_resource type="Script" uid="uid://cdw6evppde3jq" path="res://scenes/effects/FlickerProfile.cs" id="flicker_profile_script"]
 [ext_resource type="Script" uid="uid://s73gxicbccb2" path="res://scenes/player/InventoryItemSlot.cs" id="3_uf5tr"]
 [ext_resource type="Script" uid="uid://7aetn0f4oogq" path="res://scenes/player/InteractionArea.cs" id="4_rbblq"]
 [ext_resource type="Resource" uid="uid://bc4es25jpb62o" path="res://scenes/items/weapons/axe_common.tres" id="4_uf5tr"]
@@ -96,8 +96,8 @@ InnateGuard = ExtResource("innate_guard")
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_f3pwl"]
 frequency = 0.75
 
-[sub_resource type="Resource" id="LightFlicker_dim"]
-script = ExtResource("light_flicker_script")
+[sub_resource type="Resource" id="FlickerProfile_dim"]
+script = ExtResource("flicker_profile_script")
 Noise = SubResource("FastNoiseLite_f3pwl")
 Min = 0.333333
 Max = 1.0
@@ -397,7 +397,7 @@ layers = 4
 
 [node name="NormalLighting" type="Node3D" parent="Pivot" unique_id=1847077433]
 
-[node name="FlickerLight" parent="Pivot/NormalLighting" unique_id=974580749 instance=ExtResource("3_3qxnv")]
+[node name="FlickeringLight" parent="Pivot/NormalLighting" unique_id=974580749 instance=ExtResource("3_3qxnv")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 1)
 shadow_caster_mask = 4294966527
 omni_range = 25.0
@@ -415,13 +415,13 @@ omni_attenuation = 0.0
 [node name="DarkLighting" type="Node3D" parent="Pivot" unique_id=583364089]
 visible = false
 
-[node name="FlickerLight" parent="Pivot/DarkLighting" unique_id=1439019186 instance=ExtResource("3_3qxnv")]
+[node name="FlickeringLight" parent="Pivot/DarkLighting" unique_id=1439019186 instance=ExtResource("3_3qxnv")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 1)
 shadow_caster_mask = 4294966527
 omni_range = 6.0
 omni_attenuation = 1.8
 Energy = 0.12
-Flicker = SubResource("LightFlicker_dim")
+Profile = SubResource("FlickerProfile_dim")
 
 [node name="ObjectHighlight" type="OmniLight3D" parent="Pivot/DarkLighting" unique_id=428531110]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)

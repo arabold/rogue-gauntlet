@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=41 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=46 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -14,6 +14,11 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/altar.tres" id="13_altar"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="14_alongwallsstep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_pile.tres" id="15_candle_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_corner.tres" id="c_candle_corner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_stubs.tres" id="c_candle_stubs"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_arc.tres" id="c_candle_arc"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_ring.tres" id="c_candle_ring"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_plate.tres" id="c_candle_plate"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candelabra.tres" id="16_candelabra"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/brazier.tres" id="17_brazier"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="18_cornersstep"]
@@ -59,26 +64,26 @@ metadata/_custom_type_script = ExtResource("14_alongwallsstep")
 [sub_resource type="Resource" id="CornersStep_4"]
 script = ExtResource("18_cornersstep")
 Id = "candles"
-Content = [ExtResource("15_candle_pile"), ExtResource("16_candelabra"), ExtResource("17_brazier")]
-MinimumCount = 1
-MaximumCount = 3
+Content = [ExtResource("15_candle_pile"), ExtResource("c_candle_corner"), ExtResource("c_candle_stubs"), ExtResource("c_candle_arc"), ExtResource("c_candle_ring"), ExtResource("c_candle_plate"), ExtResource("16_candelabra"), ExtResource("17_brazier")]
+MinimumCount = 0
+MaximumCount = 4
 metadata/_custom_type_script = ExtResource("18_cornersstep")
 
 [sub_resource type="Resource" id="AlongWallsStep_5"]
 script = ExtResource("14_alongwallsstep")
 Id = "statues"
-Content = [ExtResource("19_statue"), ExtResource("20_statue_broken")]
-MinimumCount = 0
-MaximumCount = 2
-Chance = 0.7
+Content = [ExtResource("19_statue"), ExtResource("20_statue_broken"), ExtResource("15_candle_pile"), ExtResource("c_candle_arc"), ExtResource("c_candle_plate")]
+MinimumCount = 1
+MaximumCount = 3
+Chance = 0.8
 Spacing = 2.0
 metadata/_custom_type_script = ExtResource("14_alongwallsstep")
 
 [sub_resource type="Resource" id="ScatterStep_6"]
 script = ExtResource("24_scatterstep")
 Id = "debris"
-Content = [ExtResource("21_rubble"), ExtResource("22_vase_broken"), ExtResource("23_floor_debris")]
-MaximumCount = 2
+Content = [ExtResource("21_rubble"), ExtResource("22_vase_broken"), ExtResource("23_floor_debris"), ExtResource("15_candle_pile"), ExtResource("c_candle_stubs"), ExtResource("c_candle_plate"), ExtResource("c_candle_arc"), ExtResource("c_candle_ring")]
+MaximumCount = 5
 WallChance = 0.7
 metadata/_custom_type_script = ExtResource("24_scatterstep")
 

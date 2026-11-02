@@ -20,7 +20,7 @@ public partial class VisualEffectTimeline : Node
 	/// apply when <see cref="ImpactFlash"/> grants one, so dense effects never strobe.</summary>
 	[Export] public Curve LightCurve { get; set; }
 	/// <summary>Optional flicker on the timeline lights, such as a soft flame waver or a hard electric strobe.</summary>
-	[Export] public LightFlicker LightFlicker { get; set; }
+	[Export] public FlickerProfile FlickerProfile { get; set; }
 	/// <summary>Composed effects may keep their root until independently fading children finish.</summary>
 	[Export] public bool FreeOnCompletion { get; set; } = true;
 	public float StartDelay { get; set; }
@@ -40,7 +40,7 @@ public partial class VisualEffectTimeline : Node
 	public override void _Ready()
 	{
 		ProcessPriority = -1;
-		_flickerOffset = LightFlicker.RandomOffset(this);
+		_flickerOffset = FlickerProfile.RandomOffset(this);
 		_materials = new ShaderMaterial[Surfaces.Length];
 		for (int i = 0; i < Surfaces.Length; i++)
 		{
@@ -91,7 +91,7 @@ public partial class VisualEffectTimeline : Node
 	{
 		float curve = LightCurve?.Sample(Progress) ?? 1f;
 		for (int i = 0; i < Lights.Length; i++)
-			EffectLight.Apply(Lights[i], _lightEnergy[i] * opacity * _lightMultiplier, curve, _flash, LightFlicker, _flickerOffset + Elapsed + i);
+			EffectLight.Apply(Lights[i], _lightEnergy[i] * opacity * _lightMultiplier, curve, _flash, FlickerProfile, _flickerOffset + Elapsed + i);
 	}
 
 	public override void _Process(double delta)
@@ -109,7 +109,7 @@ public partial class VisualEffectTimeline : Node
 		Opacity = Sustained ? Mathf.SmoothStep(0, Mathf.Max(FadeIn, .001f), Progress)
 			: EffectEnvelope.Evaluate(Progress, Mathf.Max(FadeIn, .001f), Mathf.Clamp(FadeOutStart, 0, .999f));
 		if (!Sustained || previous < 1) SetVisual(Progress, Opacity);
-		else if (LightFlicker != null) ApplyLights(Opacity);
+		else if (FlickerProfile != null) ApplyLights(Opacity);
 		if (!Sustained && Progress >= 1)
 		{
 			if (FreeOnCompletion) GetParent().QueueFree();

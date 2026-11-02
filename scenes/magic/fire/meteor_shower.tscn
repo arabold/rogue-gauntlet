@@ -16,7 +16,7 @@
 [ext_resource type="Material" path="res://scenes/magic/fireball/toon_flame_card.tres" id="flame_card"]
 [ext_resource type="Material" path="res://scenes/magic/fireball/toon_smoke_card.tres" id="smoke_card"]
 [ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material_res"]
-[ext_resource type="Resource" uid="uid://bypjdcf5nuu8i" path="res://scenes/effects/light_flicker/flame.tres" id="light_flicker"]
+[ext_resource type="Resource" uid="uid://bypjdcf5nuu8i" path="res://scenes/effects/flicker_profiles/flame.tres" id="flicker_profile"]
 
 [sub_resource type="ShaderMaterial" id="crown_mat"]
 render_priority = 1
@@ -147,7 +147,7 @@ omni_range = 5.5
 
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
 script = ExtResource("timeline")
-LightFlicker = ExtResource("light_flicker")
+FlickerProfile = ExtResource("flicker_profile")
 Surfaces = []
 Lights = [NodePath("../Meteor/Light")]
 Duration = 1.6

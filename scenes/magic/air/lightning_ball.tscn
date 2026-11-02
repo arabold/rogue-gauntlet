@@ -10,7 +10,7 @@
 [ext_resource type="Texture2D" path="res://scenes/magic/air/toon_storm_ramp.tres" id="storm_ramp"]
 [ext_resource type="Texture2D" path="res://scenes/magic/air/toon_storm_spark_life.tres" id="spark_life"]
 [ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material_res"]
-[ext_resource type="Resource" uid="uid://v8gnnl1bnqv5" path="res://scenes/effects/light_flicker/electric.tres" id="light_flicker"]
+[ext_resource type="Resource" uid="uid://v8gnnl1bnqv5" path="res://scenes/effects/flicker_profiles/electric.tres" id="flicker_profile"]
 
 [sub_resource type="ShaderMaterial" id="core_material"]
 shader = ExtResource("core_shader")
@@ -101,7 +101,7 @@ omni_range = 4.0
 
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights", "Emitters")]
 script = ExtResource("timeline")
-LightFlicker = ExtResource("light_flicker")
+FlickerProfile = ExtResource("flicker_profile")
 Surfaces = [NodePath("../Core"), NodePath("../Shell"), NodePath("../Trail")]
 Lights = [NodePath("../Light")]
 Emitters = [NodePath("../Sparks")]

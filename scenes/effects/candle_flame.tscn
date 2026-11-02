@@ -1,0 +1,60 @@
+[gd_scene load_steps=11 format=3 uid="uid://b8t4yql2cnk50"]
+
+[ext_resource type="Shader" uid="uid://b7i3u0l0gwbmu" path="res://scenes/effects/shaders/stylized_fire.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="2_noise"]
+[ext_resource type="Texture2D" uid="uid://c8nnpux2gtihn" path="res://scenes/effects/assets/FireMask.png" id="3_mask"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_candle"]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/noise_texture = ExtResource("2_noise")
+shader_parameter/texture_mask = ExtResource("3_mask")
+shader_parameter/emission_intensity = 2.0
+shader_parameter/time_scale = 3.0
+shader_parameter/texture_scale = Vector2(1, 1)
+shader_parameter/edge_softness = 0.1
+
+[sub_resource type="Gradient" id="Gradient_candle"]
+offsets = PackedFloat32Array(0, 0.32, 0.72, 1)
+colors = PackedColorArray(1, 0.94, 0.7, 1, 1, 0.62, 0.12, 0.92, 0.88, 0.28, 0.02, 0.6, 0.7, 0.1, 0, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_candle"]
+gradient = SubResource("Gradient_candle")
+width = 128
+
+[sub_resource type="Curve" id="Curve_candle"]
+_data = [Vector2(0, 0.22), 0.0, 3.0, 0, 0, Vector2(0.28, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -1.5, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_candle"]
+width = 128
+curve = SubResource("Curve_candle")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_candle"]
+lifetime_randomness = 0.4
+direction = Vector3(0, 1, 0)
+spread = 0.0
+initial_velocity_min = 0.15
+initial_velocity_max = 0.25
+gravity = Vector3(0, 0, 0)
+linear_accel_min = 0.5
+linear_accel_max = 1.0
+scale_max = 1.0
+scale_curve = SubResource("CurveTexture_candle")
+color_ramp = SubResource("GradientTexture1D_candle")
+
+[sub_resource type="QuadMesh" id="QuadMesh_candle"]
+size = Vector2(0.08, 0.13)
+center_offset = Vector3(0, 0.045, 0)
+
+[node name="CandleFlame" type="Node3D"]
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+material_override = SubResource("ShaderMaterial_candle")
+cast_shadow = 0
+amount = 14
+lifetime = 0.5
+randomness = 0.6
+draw_order = 1
+process_material = SubResource("ParticleProcessMaterial_candle")
+draw_pass_1 = SubResource("QuadMesh_candle")

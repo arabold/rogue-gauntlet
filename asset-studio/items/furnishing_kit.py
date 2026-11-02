@@ -174,13 +174,14 @@ def candle(a, tips, x, z, y, height, radius, drips=2, seed=0):
         a.add(ball((x + np.cos(t) * radius * .93, y + height - .04 - length * .55, z + np.sin(t) * radius * .93),
                    (radius * .3, length * .55, radius * .3), 7), 'wax')
     a.add(post(radius * .16, y + height - .03, y + height + .08, x, z, 5), 'wick')
-    tips.append(flame(x, y + height + .055, z, radius))
+    if tips is not None:
+        tips.append(flame(x, y + height + .055, z, radius))
 
 
-def lit(a, tips, flames):
+def lit(a, tips, flames, loose=False):
     """The model, or with `flames` only its flame tips, each a separate body."""
     if not flames:
-        return a.build()
+        return a.build(loose=loose)
     meshes = [tip.to_mesh() for tip in tips]
     return kit.Piece.merge(*[kit.Piece(np.asarray(m.vert_properties[:, :3], float), np.asarray(m.tri_verts), 'flame')
                              for m in meshes])

@@ -74,7 +74,7 @@ Each realm's `DungeonTileFactory` pairs a `FloorMaterial` and `WallStyle` with a
 
 ### Light flicker
 
-Every flickering light shares one Inspector-tunable `LightFlicker` resource that turns noise into a brightness multiplier. Presets live in `scenes/effects/light_flicker/`: `torch` for wall torches, candles and the player's light, `flame` for fire spells and `electric` for lightning strobes. Each light starts its flicker at its own random offset, so the torches spawned with a floor never flicker in step. Standalone lights are `FlickerLight` nodes, which flicker around their `Energy` only while visible; lights whose energy a spell effect already drives apply the flicker through `EffectLight`.
+Every flickering light shares one Inspector-tunable `FlickerProfile` resource that turns noise into a brightness multiplier. Presets live in `scenes/effects/flicker_profiles/`: `torch` for wall torches, candles and the player's light, `flame` for fire spells and `electric` for lightning strobes. Each light starts its flicker at its own random offset, so the torches spawned with a floor never flicker in step. Standalone lights are `FlickeringLight` nodes, which flicker around their `Energy` only while visible; lights whose energy a spell effect already drives apply the flicker through `EffectLight`.
 
 ## Doors and enemy navigation
 

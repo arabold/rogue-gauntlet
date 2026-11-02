@@ -76,6 +76,7 @@ Use the `godot-csharp` skill (`.agents/skills/godot-csharp/SKILL.md`) whenever w
   - Defer physics state changes (`SetDeferred` / `CallDeferred`) inside `BodyEntered`/`AreaEntered` callbacks, kill previous `_activeTween?.Kill()` before replacing a tween, and cache `StringName`s on hot paths.
 - Godot C# partial classes are in the global namespace in existing code despite the csproj root namespace; follow the current pattern unless doing a deliberate namespace migration.
 - Keep scene/resource paths lowercase as authored (`scenes/main/main.tscn`); there is at least one stale mixed-case reference in code (`Main.tscn`) that should not be copied.
+- **Naming, Taxonomy & Shims:** Follow the `program-design` skill (`.agents/skills/program-design/SKILL.md`) for naming rules: use `*Profile` for configuration resources, `*Component` for actor capabilities, direct domain nouns for actors/props, enforce subject-first asset and scene naming (`torch_flame.tscn`, `brazier_fire.tscn`), and never introduce backward-compatibility shims or legacy aliases.
 - Phantom Camera is GDScript-only here; `Main.cs` accesses it via `Node3D.Call("set_follow_target", player)` and property strings.
 - `.editorconfig` sets tabs for `*.cs`, CRLF, and no final newline; match local formatting when editing C#.
 

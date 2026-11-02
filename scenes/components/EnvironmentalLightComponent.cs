@@ -5,34 +5,49 @@ using Godot;
 /// independent of the parent exploration gate, so revealing a room cannot relight a dark floor.
 /// Standalone previews retain their authored state when there is no enclosing level.
 /// </summary>
-[GlobalClass]
+[Tool, GlobalClass]
 public partial class EnvironmentalLightComponent : Node
 {
 	[Export] public Node3D Light { get; set; }
 	[Export] public Node3D Flame { get; set; }
-	private bool _lightVisible;
-	private bool _flameVisible;
+
+	private bool _lightVisible = true;
+	private bool _flameVisible = true;
+	private Level _level;
 
 	public override void _Ready()
 	{
+		if (Engine.IsEditorHint()) return;
 		if (Light == null || Flame == null)
 		{
 			GD.PushError($"{Name}: assign the fixture's Light and Flame.");
 			return;
 		}
+
 		_lightVisible = Light.Visible;
 		_flameVisible = Flame.Visible;
-		var level = this.GetAncestorOrNull<Level>();
-		if (level == null) { return; }
-		this.SubscribeUntilExit(level,
+		_level = this.GetAncestorOrNull<Level>();
+		if (_level == null) { return; }
+
+		this.SubscribeUntilExit(_level,
 			source => source.DarknessChanged += ApplyDarkness,
 			source => source.DarknessChanged -= ApplyDarkness);
-		ApplyDarkness(level.IsDark);
+		ApplyDarkness(_level.IsDark);
+	}
+
+	/// <summary>
+	/// Updates the authored lit state of this fixture, maintaining dark-level masking.
+	/// </summary>
+	public void SetAuthoredLit(bool isLit)
+	{
+		_lightVisible = isLit;
+		_flameVisible = isLit;
+		ApplyDarkness(_level?.IsDark ?? false);
 	}
 
 	private void ApplyDarkness(bool isDark)
 	{
-		Light.Visible = !isDark && _lightVisible;
-		Flame.Visible = !isDark && _flameVisible;
+		if (Light != null) Light.Visible = !isDark && _lightVisible;
+		if (Flame != null) Flame.Visible = !isDark && _flameVisible;
 	}
 }
