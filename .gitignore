@@ -27,6 +27,7 @@ __pycache__/
 
 # Local tool caches (root only: a bare Library/ also matched scenes/levels/garrison/rooms/library on case-insensitive filesystems)
 .local/
+.codegraph/
 /Library/
 asset-studio/.cache/
 

@@ -1,6 +1,6 @@
 # Dungeon Layout, Access, and Discovery
 
-Status: intended gameplay design, updated October 30, 2026. [Door access](door-access.md) describes the implemented first version; its [remaining plan](specs/secret-doors-and-locks-plan.md) covers later extensions and tuning. This document defines the agreed exploration concept; it does not describe completed implementation. The [implementation plan](specs/level-progression-prototype-plan.md) defines proposed code changes and delivery slices. [Level design](level-design.md) describes the generator and encounter prototype that exist today. [Realms and monster design](realms-and-monster-design.md) owns world themes, realm cadence, and encounter concepts.
+Status: intended gameplay design, updated October 30, 2026. [Door access](door-access.md) describes the implemented first version. This document defines the agreed exploration concept; it does not describe completed implementation. The [implementation plan](specs/level-progression-prototype-plan.md) defines proposed code changes and delivery slices. [Level design](level-design.md) describes the generator and encounter prototype that exist today. [Realms and monster design](realms-and-monster-design.md) owns world themes, realm cadence, and encounter concepts.
 
 ## Design goals
 
@@ -125,4 +125,4 @@ Generation uses bounded retries. If required content cannot be placed, report a 
 
 ## Delivery boundary
 
-The first [access implementation](door-access.md) delivers consumable locks and saved access state, guaranteed generated lock/key pairs, room-authored secret entrances and random discovery. Its [remaining plan](specs/secret-doors-and-locks-plan.md) covers later extensions and tuning. Remaining per-depth realm recipes and the visible Warden seal are separate progression work, not prerequisites for this delivery. Each step must retain current-version save/load and playable generation. [The implementation plan](specs/level-progression-prototype-plan.md) owns types, scene wiring, algorithms, failure handling, and verification; this document owns the gameplay rules.
+The first [access implementation](door-access.md) delivers consumable locks and saved access state, guaranteed generated lock/key pairs, room-authored secret entrances and random discovery. Remaining per-depth realm recipes and the visible Warden seal are separate progression work, not prerequisites for this delivery. Each step must retain current-version save/load and playable generation. [The implementation plan](specs/level-progression-prototype-plan.md) owns types, scene wiring, algorithms, failure handling, and verification; this document owns the gameplay rules.

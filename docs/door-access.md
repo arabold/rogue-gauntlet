@@ -1,6 +1,6 @@
 # Doors, keys and secret rooms
 
-Status: implemented foundations, October 31, 2026. [Dungeon design](dungeon-exploration-design.md) owns intended exploration rules; this document describes current behavior and authoring. The [remaining plan](specs/secret-doors-and-locks-plan.md) records follow-up scope rather than the delivered implementation.
+Status: implemented foundations, October 31, 2026. [Dungeon design](dungeon-exploration-design.md) owns intended exploration rules; this document describes current behavior and authoring. The [progression plan](specs/level-progression-prototype-plan.md) retains realm recipes and encounter seals.
 
 ## Runtime responsibilities
 
