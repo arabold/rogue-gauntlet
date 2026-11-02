@@ -1,0 +1,59 @@
+[gd_scene load_steps=11 format=3 uid="uid://dfy5m2x7k8p9b"]
+
+[ext_resource type="Shader" uid="uid://b7i3u0l0gwbmu" path="res://scenes/effects/shaders/stylized_fire.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="2_noise"]
+[ext_resource type="Texture2D" uid="uid://c8nnpux2gtihn" path="res://scenes/effects/assets/FireMask.png" id="3_mask"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hearth"]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/noise_texture = ExtResource("2_noise")
+shader_parameter/texture_mask = ExtResource("3_mask")
+shader_parameter/emission_intensity = 2.4
+shader_parameter/time_scale = 3.0
+shader_parameter/texture_scale = Vector2(1, 1)
+shader_parameter/edge_softness = 0.1
+
+[sub_resource type="Gradient" id="Gradient_hearth"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(1, 0.85, 0.5, 1, 0.8, 0.25, 0.02, 0.6, 0.85, 0.15, 0, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_hearth"]
+gradient = SubResource("Gradient_hearth")
+width = 128
+
+[sub_resource type="Curve" id="Curve_hearth"]
+_data = [Vector2(0, 0.1), 0.0, 2.5, 0, 0, Vector2(0.5, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -2.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_hearth"]
+width = 128
+curve = SubResource("Curve_hearth")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_hearth"]
+emission_shape = 3
+emission_box_extents = Vector3(0.35, 0.05, 0.18)
+direction = Vector3(0, 1, 0)
+spread = 6.0
+initial_velocity_min = 0.7
+initial_velocity_max = 1.1
+gravity = Vector3(0, 0, 0)
+linear_accel_min = 2.5
+linear_accel_max = 4.2
+scale_max = 2.0
+scale_curve = SubResource("CurveTexture_hearth")
+color_ramp = SubResource("GradientTexture1D_hearth")
+
+[sub_resource type="QuadMesh" id="QuadMesh_hearth"]
+size = Vector2(0.9, 0.9)
+
+[node name="HearthFire" type="Node3D"]
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+material_override = SubResource("ShaderMaterial_hearth")
+cast_shadow = 0
+amount = 65
+randomness = 0.75
+draw_order = 1
+process_material = SubResource("ParticleProcessMaterial_hearth")
+draw_pass_1 = SubResource("QuadMesh_hearth")

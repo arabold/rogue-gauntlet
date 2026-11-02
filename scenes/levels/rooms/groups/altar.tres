@@ -1,13 +1,19 @@
-[gd_resource type="Resource" script_class="PropGroup" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="PropGroup" load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroup.cs" id="1_PropGroup"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/altar_table.tres" id="2_altar_table"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="3_PropGroupMem"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/tableware/candle.tres" id="4_candle"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/tableware/candle_cluster.tres" id="5_candle_cluster"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_plate.tres" id="6_candle_plate"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_stubs.tres" id="7_candle_stubs"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candelabra.tres" id="8_candelabra"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_arc.tres" id="9_candle_arc"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_pile.tres" id="10_candle_pile"]
 
 [sub_resource type="Resource" id="PropGroupMember_1"]
 script = ExtResource("3_PropGroupMem")
-Options = [ExtResource("4_candle")]
+Options = [ExtResource("4_candle"), ExtResource("5_candle_cluster"), ExtResource("6_candle_plate")]
 Offset = Vector3(-1.4, 1.0, 0.0)
 Chance = 0.95
 QuarterTurns = 0
@@ -15,7 +21,7 @@ metadata/_custom_type_script = ExtResource("3_PropGroupMem")
 
 [sub_resource type="Resource" id="PropGroupMember_2"]
 script = ExtResource("3_PropGroupMem")
-Options = [ExtResource("4_candle")]
+Options = [ExtResource("4_candle"), ExtResource("5_candle_cluster"), ExtResource("6_candle_plate")]
 Offset = Vector3(1.4, 1.0, 0.0)
 Chance = 0.95
 QuarterTurns = 0
@@ -23,9 +29,25 @@ metadata/_custom_type_script = ExtResource("3_PropGroupMem")
 
 [sub_resource type="Resource" id="PropGroupMember_3"]
 script = ExtResource("3_PropGroupMem")
-Options = [ExtResource("4_candle")]
+Options = [ExtResource("4_candle"), ExtResource("6_candle_plate"), ExtResource("7_candle_stubs")]
 Offset = Vector3(0.0, 1.0, 0.1)
 Chance = 0.6
+QuarterTurns = 0
+metadata/_custom_type_script = ExtResource("3_PropGroupMem")
+
+[sub_resource type="Resource" id="PropGroupMember_4"]
+script = ExtResource("3_PropGroupMem")
+Options = [ExtResource("8_candelabra"), ExtResource("6_candle_plate"), ExtResource("9_candle_arc"), ExtResource("10_candle_pile")]
+Offset = Vector3(-2.2, 0.0, 0.0)
+Chance = 0.8
+QuarterTurns = 0
+metadata/_custom_type_script = ExtResource("3_PropGroupMem")
+
+[sub_resource type="Resource" id="PropGroupMember_5"]
+script = ExtResource("3_PropGroupMem")
+Options = [ExtResource("8_candelabra"), ExtResource("6_candle_plate"), ExtResource("9_candle_arc"), ExtResource("10_candle_pile")]
+Offset = Vector3(2.2, 0.0, 0.0)
+Chance = 0.8
 QuarterTurns = 0
 metadata/_custom_type_script = ExtResource("3_PropGroupMem")
 
@@ -34,6 +56,6 @@ script = ExtResource("1_PropGroup")
 Id = "altar"
 Weight = 1.0
 Anchor = [ExtResource("2_altar_table")]
-Members = [SubResource("PropGroupMember_1"), SubResource("PropGroupMember_2"), SubResource("PropGroupMember_3")]
+Members = [SubResource("PropGroupMember_1"), SubResource("PropGroupMember_2"), SubResource("PropGroupMember_3"), SubResource("PropGroupMember_4"), SubResource("PropGroupMember_5")]
 MirrorChance = 0.0
 metadata/_custom_type_script = ExtResource("1_PropGroup")

@@ -9,86 +9,85 @@ Bridge architecture and implementation: settle the decisions an implementer woul
 
 ## Scope and altitude
 
-- Reference `AGENTS.md`, `README.md`, `ARCHITECTURE.md`, the GDD, roadmap, and relevant feature documents rather than repeating their requirements or system overview.
-- Describe what changes. Record alternatives and rationale only where they settle a real implementation choice.
-- If a wrong guess could materially affect ownership, correctness, authoring, or migration, specify the contract. Omit obvious accessors and plumbing.
-- Preserve the user's requested scope. A planning request authorizes planning and documentation; it does not by itself authorize implementing, committing, or publishing the feature.
-- Use an existing plan's useful decisions. Put feature implementation plans and proposed technical specifications in `docs/specs/`; update the documentation index and roadmap links when adding or moving a plan. Keep architecture summaries in `ARCHITECTURE.md` and intended gameplay in the GDD; proposed behavior is not implemented behavior.
+- Reference `AGENTS.md`, `README.md`, `ARCHITECTURE.md`, the GDD, roadmap, and feature documents rather than repeating their contents. Proposed behavior is not implemented behavior; store plans in `docs/specs/` and update index links.
+- Describe what changes and why. If a wrong guess could materially affect ownership, correctness, authoring, or migration, specify the contract. Omit obvious accessors and plumbing.
+- Preserve the user's requested scope: planning authorizes design and documentation, not immediate implementation or publishing.
 
 ## Establish the current seams
 
-Trace the smallest complete path affected by the change, including callers and consumers. Check adjacent `.tres`/`.tscn` references, exported properties, signals, save DTOs, and tests when applicable. Use existing type and method names for unchanged code; clearly label proposed names.
+Trace the smallest complete path affected by the change (callers, consumers, adjacent `.tres`/`.tscn` references, exports, signals, save DTOs, and tests). Use existing names for unchanged code; clearly label proposed names. Resolve critical unknowns through code inspection or small scoped experiments before turning assumptions into API promises.
 
-Identify the uncertainty most likely to invalidate later work. Resolve it from code, authoritative Godot documentation, or a small explicitly scoped experiment; otherwise mark it open with the slice that must resolve it. Do not silently turn an unknown into an API promise.
+## Naming and taxonomy rules
+
+- **Node and Class Types:**
+  - **`*Profile` for configuration resources:** Authored datasets and tunable presets use the `*Profile` suffix (`FlickerProfile`, `StatProfile`, `SurfaceAppearanceProfile`, `AttackAnimationProfile`, `HitVulnerabilityProfile`, `LootDropProfile`). Store presets in a matching pluralized directory (`scenes/effects/flicker_profiles/`).
+  - **`*Component` for actor capabilities:** Single-capability child nodes attached to actors end in `Component` (`HealthComponent`, `MovementComponent`, `HurtBoxComponent`, `DodgeComponent`).
+  - **`*Controller` for coordinators:** Nodes coordinating multiple child components or visual systems end in `Controller` (`SurfaceAppearanceController`).
+  - **Domain nouns for actors, fixtures & visual nodes:** Standalone entities, interactive props, and effect nodes use direct conceptual nouns (`Player`, `EnemyBase`, `LightFixture`, `FlickeringLight`, `EffectLight`, `FlyingOrb`, `CharacterModel`, `Chest`, `Door`).
+  - **Interfaces:** Prefix with `I` (`IDamageable`, `ICombatDamageable`, `IInteractive`, `IPooledNode`).
+  - **C# filenames:** Exactly match the class name in PascalCase (`LightFixture.cs` defines `public partial class LightFixture`). One `[GlobalClass]` per `.cs` file.
+
+- **Scene and Asset Files (Subject-First):**
+  - **Subject-first ordering:** File and scene names start with the primary subject followed by descriptor or state: `<subject>_<descriptor>.tscn` / `<subject>_<state>.tscn` (e.g., `candle_flame.tscn`, `torch_flame.tscn`, `brazier_fire.tscn`, `hearth_fire.tscn`, `torch_mounted.tscn`, `wall_torch_unlit.tscn`, `candelabra_lit.tscn`).
+  - **Strict lowercase `snake_case`:** All scene (`.tscn`), resource (`.tres`), and asset paths use lowercase `snake_case` (`flickering_light.tscn`, `torch_mounted.tscn`, `charged.tres`).
+
+- **Properties, Exports & Signals:**
+  - **Exported properties:** PascalCase reflecting domain concepts directly (`IsLit`, `Flame`, `Light`).
+  - **Profile bindings:** When a component configures a single profile type unambiguously, name the property `Profile` (e.g., `FlickeringLight.Profile`). Use the full type name (`FlickerProfile`) when ambiguous or alongside multiple profiles (`VisualEffectTimeline.FlickerProfile`).
+  - **Signals:** Past-tense event names (`Died`, `Finished`, `Interacted`), with delegate `[Signal] public delegate void <Name>EventHandler(...)`.
+
+- **No Backward-Compatibility Shims:**
+  - We own all code in this repository. Never retain transitional subclasses, dummy inheritance shims (`class Candle : LightFixture`), or legacy aliases. When refactoring or standardizing names, migrate all callers, scenes, resources, and tests directly and completely.
+  - Prefer configuring an instance property (e.g., `IsLit = false`) over creating duplicate variant scenes with brittle child-node index overrides.
 
 ## Godot design contract
 
 Align planned C# contracts with `.agents/skills/godot-csharp/SKILL.md`:
 
-- Prefer composition: focused child Nodes for active scene behavior, typed `[GlobalClass]` Resources for authored data and selectable strategies. Retain useful existing subclasses; avoid new inheritance permutations for independently varying capabilities.
-- Specify which types are `[GlobalClass]` Resources, which are Nodes, and which are ordinary C# helpers/DTOs. A factory pattern does not itself require a Node or Resource; its designer-controlled policy does.
-- For new authoring surfaces, expose `[Export]` properties (`{ get; set; }`) for tunable attributes, configurable actor states, and Node/Resource references—never C#-only `GetX()`/`SetX()` methods or `{ get; private set; }`. Name defaults, Inspector hints (`PropertyHint.Range`, `[ExportGroup]`) or validation that matter, and the scene responsible for assigning them. Do not hide tunable rules in a static service or hardcoded path.
-- For runtime state, name its owner and whether referenced Resources are shared immutable definitions or instance-specific copies (`CreateRuntimeCopy()` / `Duplicate()` in `_EnterTree()`). Specify creation, restoration, copying, disposal, and mutation boundaries where relevant. Do not assume scene instantiation or `ResourceLocalToScene` isolates independently created items.
-- For generated content, specify seed derivation, RNG ownership/draw order, and stable source identities. Regenerate the untouched baseline and persist differences; do not default to full-floor snapshots. Separate generation from gameplay/cosmetic streams and distinguish deterministic initial state from changes caused by play. Tests must compare generated outcomes, not just equal seeds.
-- Scope RNG repeatability to the same build/content and relevant inputs. Changes to draw order between builds may change scenarios; do not add historical-seed compatibility machinery. Separate level, monster, and item generators with derived seeds, and distinguish accidental shared-stream coupling from intentional dependencies on generated data.
-- Resource strategies may contain behavior; they must not retain per-actor mutable state when shared. Nodes own ticking, rendering, physics, and scene lifetime.
-- Follow the three-tier notification model: `[Signal]` delegates (with Variant-compatible parameters) for local component events, `ObservableResource` (`SetValue` -> `EmitChanged()`) for observed data resources, and `SignalBus` static emit helpers only for intentionally decoupled cross-system broadcasts (not fallible operation requests). Specify `SubscribeUntilExit` where a Node observes a long-lived emitter. Define success/failure before notifications.
-- Avoid new autoload responsibilities or global gameplay registries. Inject local dependencies through parents and exported references.
-- Keep editor construction and reactive `[Export]` setters safe: no random gameplay rolls, world queries, or unguarded child-node side effects before `IsNodeReady()` during deserialization or inspection.
-- Separate Inspector reachability from safe live editing. Specify exported state, change propagation, and commands needed to maintain invariants; do not promise arbitrary edits are safe merely because a property is visible.
-- Account for Godot Variant-compatible signatures at editor, `AnimationTree`/`AnimationPlayer`, `[Signal]`, and GDScript boundaries. Ordinary C# result records can remain internal; a debug Node can expose simple command arguments and a readable result.
-- Respect the Mobile renderer (`rendering_method="mobile"`): never plan around Forward+-only features like `GeometryInstance3D.Transparency`. Use instance-local material duplication (`FadeOutComponent`) for simple fades and a two-pass depth pre-pass `ShaderMaterial` (`NextPass`) for multi-mesh actor fades.
+- **Composition, Strategy & Factory:** Build actors from focused single-capability child Nodes (`[GlobalClass]`) and selectable `[GlobalClass] Resource` strategies (one per `.cs` file). Strategy `.tres` resources must remain stateless; pass actor context into methods. Clone runtime copies (`CreateRuntimeCopy()` / `Duplicate()`) in the actor root's `_EnterTree()` before child `_Ready()` runs.
+- **Editor-First Authoring:** Expose tunable attributes and Node/Resource dependencies as `[Export] public T Prop { get; set; }` (never C#-only `GetX()`/`SetX()` or `{ get; private set; }`). In reactive setters, assign the backing field first, guard child/scene side effects with `if (!IsNodeReady()) return;`, and apply state in `_Ready()`. Keep properties exposed to `AnimationPlayer` or GDScript Variant-compatible.
+- **Three-Tier Notification Model:** Local component events use `[Signal]` delegates (Variant-compatible); observed data resources use `ObservableResource` (`SetValue` -> `EmitChanged()`); decoupled cross-system broadcasts use `SignalBus` static emit helpers. Use `SubscribeUntilExit` whenever observing long-lived emitters.
+- **Dependency Injection & Contracts:** Avoid new autoloads or global registries. Prefer C# interfaces (`IDamageable`, `IInteractive`) and local Godot group queries (`player`, `enemy`). Inject dependencies via parents or typed exports.
+- **Seeded Determinism & Persistence:** Separate RNG streams (`GenerationRandom.DeriveSeed`). Reconstruct untouched content from the run seed; persist only deltas. No historical-seed compatibility machinery. Bump `SaveGame.CurrentVersion` when schemas change.
+- **Mobile Renderer Discipline:** Never plan around Forward+-only features (`GeometryInstance3D.Transparency`). Use instance-local material duplication (`FadeOutComponent`) or two-pass depth pre-pass `ShaderMaterial`s (`SurfaceAppearanceController`).
 
 ## Choose useful notations
 
 ### Types and signatures
-
-Write the key new/changed properties, methods, signals, and DTO fields that carry behavior or ownership. Use C# declarations without bodies. Distinguish an abbreviated contract from a compilable source file.
-
-State the error contract alongside it: return value versus exception, whether failure mutates state, and when notifications fire. For Resources, identify authored versus runtime-only fields. One designer-created `[GlobalClass]` Resource belongs in one script file; show authored `.tres` and scene wiring separately.
+Write key properties, methods, signals, and DTO fields without implementation bodies. State error contracts (return value vs. exception, mutation on failure, notification timing). Distinguish authored `.tres` fields from runtime-only fields.
 
 ### Affected file tree
-
-Mark `+` added, `~` modified, `-` removed. Include only affected paths and a short reason when the role is not obvious. Include scene/resource changes, tests, and supporting docs alongside C# files. A bounded content migration may use an explicit glob with a selection rule rather than enumerating hundreds of assets. Do not list the whole repository.
+Mark `+` added, `~` modified, `-` removed. Include only affected paths and short rationale when non-obvious. Include scenes, resources, and tests alongside C# files.
 
 ### Call-stack trees
-
-Required when orchestration/control flow changes. Show the meaningful boundaries: Node to Resource/helper, inventory ownership transfer, scene lifecycle, signal callbacks, RNG consumption, and save/restore. Use existing entry points and label additions. Put correctness invariants next to the step that enforces them.
-
-For example, a pickup tree should settle when capacity is checked, when ownership moves, when the source is removed, and when observers see success. A tree confined to one method adds little value. No implementation bodies or pseudocode algorithms.
+Required when orchestration or control flow changes across Node/Resource boundaries, signal callbacks, or save/restore. Put correctness invariants next to the step that enforces them. No implementation bodies or pseudocode.
 
 ### Diagrams
-
-Use Mermaid only when a state machine or interleaved relationship is clearer in two dimensions. Use a list or call-stack tree for a linear flow. Do not repeat a system architecture diagram in an implementation plan.
+Use Mermaid only when a state machine or interleaved relationship is clearer in two dimensions. Use linear lists or call-stack trees otherwise.
 
 ## Slice the work
 
-- Choose a small number of coherent slices and record whether delivery is vertical, horizontal, or hybrid, with a short reason.
-- Start with a risky uncertainty if it can overturn the design; establish shared contracts before dependent work.
-- Each slice names what a developer can exercise when it lands, affected files/contracts, its verification, and explicit remaining limitations.
-- Include callers, authored resources, and persistence adapters needed to keep that slice coherent. Do not leave the game unable to load intermediate content or depend on an unimplemented later slice.
-- For code and authored-content transitions, prefer changes that leave each slice coherent. Save compatibility is explicitly excluded before public release: bump `SaveGame.CurrentVersion` when necessary and reject mismatched or missing versions; do not plan migrations, legacy fields, or old-save adapters. Same-version round trips still require verification.
-- Deferred mechanics get extension seams, not unused state fields, speculative type systems, or mandatory framework work.
+- Choose a small number of coherent slices (vertical, horizontal, or hybrid) with rationale.
+- Resolve risky uncertainties in early slices; establish shared contracts before dependent work.
+- Each slice defines what can be exercised when it lands, affected files/contracts, verification steps, and remaining limitations.
+- Keep each slice coherent: update callers, authored resources, and persistence adapters together.
+- Deferred mechanics get clean extension seams, not unused state fields or speculative framework layers.
 
 ## Verification and cadence
 
-This skill plans verification; run implementation checks as the corresponding code lands. For documentation-only work, validate the skill/plan and links instead of claiming engine validation.
-
-- C# compile: `dotnet build "Rogue Gauntlet.sln"`; use `/usr/local/share/dotnet/dotnet` if absent from PATH.
-- Behavior: targeted GdUnit4 tests in `tests/`, compiled into the existing game project. Use `.runsettings` and set `GODOT_BIN` as described in `AGENTS.md`; no separate test project. Keep engine-independent tests plain C# where possible.
-- Scenes/resources: use the repository's `godot-mcp` skill for build, import, UID/resource checks, and focused runtime smoke tests. Navmesh-dependent behavior needs the documented limitations and editor verification.
-- Designer-facing changes: name an editor acceptance exercise that creates/assigns Resources, inspects runtime copies, and invokes supported operations through the same implementation as gameplay.
-- Asset Studio-only work: use the relevant pipeline commands and tests discovered in its current docs; do not run game checks by rote.
-
-Keep implementation scoped to the slice. Record useful follow-ups rather than mixing them in. Introduce abstractions for a stable responsibility or actual independent variation, not solely to shorten code.
+Plan verification steps matched to the change type; run implementation checks as code lands:
+- C# compile: `dotnet build "Rogue Gauntlet.sln"`. Exported clean check: `dotnet build "Rogue Gauntlet.csproj" -c ExportRelease`.
+- Behavior: targeted GdUnit4 tests under `tests/` with `GODOT_BIN` set and isolated `TMPDIR`.
+- Scenes/resources: use `godot-mcp` skill for build, import, UID validation, and headless smoke checks.
+- Designer workflows: acceptance exercise creating/assigning Resources and verifying Inspector behavior.
 
 ## Completion check
 
-- Key contracts and errors are settled; proposed names are distinguishable from existing names.
-- New files have a home; changed callers, scenes, resources, and save fields have a reason.
-- Resource sharing, runtime ownership, composition, Inspector authoring, and change notification are explicit where affected.
-- Changed orchestration has a call-stack tree with important ordering invariants.
-- Slicing direction, independently executable checks, and interim compatibility are recorded.
+- Proposed names follow repository taxonomy (subject-first assets, `*Profile` resources, `*Component` capabilities, domain nouns) with zero backward-compatibility shims.
+- Key contracts, errors, and ownership boundaries are settled; new files and modified callers have clear justification.
+- Resource sharing, runtime cloning, composition, Inspector authoring, and change notifications are explicit.
+- Changed orchestration has a call-stack tree with ordering invariants.
+- Slicing direction, independently verifiable checks, and interim coherence are recorded.
 - Open decisions and unverified engine boundaries are visible; no implementation is implied by a plan.
 
 Use these as a review checklist, not a requirement to pad every plan with every notation or every internal signature.

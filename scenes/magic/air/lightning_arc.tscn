@@ -5,7 +5,7 @@
 [ext_resource type="Shader" path="res://scenes/magic/air/lightning_arc.gdshader" id="shader"]
 [ext_resource type="Texture2D" path="res://scenes/magic/air/toon_storm_ramp.tres" id="storm_ramp"]
 [ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_flash.gdshader" id="flash_shader"]
-[ext_resource type="Resource" uid="uid://v8gnnl1bnqv5" path="res://scenes/effects/light_flicker/electric.tres" id="light_flicker"]
+[ext_resource type="Resource" uid="uid://v8gnnl1bnqv5" path="res://scenes/effects/flicker_profiles/electric.tres" id="flicker_profile"]
 [sub_resource type="ShaderMaterial" id="impact_material"]
 shader = ExtResource("flash_shader")
 shader_parameter/color_ramp = ExtResource("storm_ramp")
@@ -40,7 +40,7 @@ omni_range = 4.5
 
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights")]
 script = ExtResource("timeline")
-LightFlicker = ExtResource("light_flicker")
+FlickerProfile = ExtResource("flicker_profile")
 Surfaces = [NodePath(".."), NodePath("../Impact")]
 Lights = [NodePath("../Impact/Flash")]
 LightCurve = SubResource("light_curve")

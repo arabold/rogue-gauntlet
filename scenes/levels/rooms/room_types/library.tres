@@ -27,6 +27,9 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/book_alcove_walls.tres" id="x_book_alcove_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/parquet_rug.tres" id="x_parquet_rug"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/parquet_floor.tres" id="x_parquet_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_plate.tres" id="c_candle_plate"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_pile.tres" id="c_candle_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_stubs.tres" id="c_candle_stubs"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -77,8 +80,8 @@ metadata/_custom_type_script = ExtResource("16_WallDecorSte")
 [sub_resource type="Resource" id="ScatterStep_6"]
 script = ExtResource("23_ScatterStep")
 Id = "study"
-Content = [ExtResource("21_globe"), ExtResource("22_lectern")]
-MaximumCount = 2
+Content = [ExtResource("21_globe"), ExtResource("22_lectern"), ExtResource("c_candle_plate"), ExtResource("c_candle_pile"), ExtResource("c_candle_stubs")]
+MaximumCount = 4
 WallChance = 0.4
 metadata/_custom_type_script = ExtResource("23_ScatterStep")
 

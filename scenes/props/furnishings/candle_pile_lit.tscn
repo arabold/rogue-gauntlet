@@ -1,31 +1,59 @@
 [gd_scene load_steps=7 format=3]
 
-[ext_resource type="PackedScene" path="res://assets/custom-props/chapel/candle_pile.glb" id="1_model"]
-[ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flicker_light.tscn" id="2_light"]
-[ext_resource type="PackedScene" path="res://assets/custom-props/chapel/candle_pile_flames.glb" id="3_flames"]
-[ext_resource type="Resource" uid="uid://bypjdcf5nuu8i" path="res://scenes/effects/light_flicker/flame.tres" id="4_flicker"]
+[ext_resource type="Script" path="res://scenes/props/LightFixture.cs" id="1_candle"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/chapel/candle_pile.glb" id="2_model"]
+[ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flickering_light.tscn" id="3_light"]
+[ext_resource type="PackedScene" path="res://scenes/effects/candle_flame.tscn" id="4_flame"]
 [ext_resource type="Script" uid="uid://cqxw2ow56hai2" path="res://scenes/components/ExplorationGateComponent.cs" id="5_gate"]
 [ext_resource type="Script" uid="uid://c7jefenbk3vi0" path="res://scenes/components/EnvironmentalLightComponent.cs" id="6_lighting"]
 
-[node name="CandlePileLit" type="Node3D"]
+[node name="CandlePileLit" type="Node3D" node_paths=PackedStringArray("Flame", "Light", "EnvironmentalLight")]
+script = ExtResource("1_candle")
+IsLit = true
+Flame = NodePath("Flame")
+Light = NodePath("FlickeringLight")
+EnvironmentalLight = NodePath("EnvironmentalLightComponent")
 
-[node name="Model" parent="." instance=ExtResource("1_model")]
+[node name="Model" parent="." instance=ExtResource("2_model")]
 
-[node name="Flame" parent="." instance=ExtResource("3_flames")]
+[node name="Flame" type="Node3D" parent="."]
 
-[node name="FlickerLight" parent="." instance=ExtResource("2_light")]
+[node name="Flame0" parent="Flame" instance=ExtResource("4_flame")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.985, -0.06)
+
+[node name="Flame1" parent="Flame" instance=ExtResource("4_flame")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.36, 0.715, -0.12)
+
+[node name="Flame2" parent="Flame" instance=ExtResource("4_flame")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.34, 0.815, -0.16)
+
+[node name="Flame3" parent="Flame" instance=ExtResource("4_flame")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.24, 0.515, 0.26)
+
+[node name="Flame4" parent="Flame" instance=ExtResource("4_flame")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.27, 0.435, 0.24)
+
+[node name="Flame5" parent="Flame" instance=ExtResource("4_flame")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.58, 0.335, 0.06)
+
+[node name="Flame6" parent="Flame" instance=ExtResource("4_flame")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0.375, 0.06)
+
+[node name="Flame7" parent="Flame" instance=ExtResource("4_flame")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.02, 0.295, 0.4)
+
+[node name="FlickeringLight" parent="." instance=ExtResource("3_light")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 1.25, 0.3)
 light_energy = 0.9
 shadow_enabled = false
 omni_range = 6.0
-Flicker = ExtResource("4_flicker")
 
 [node name="ExplorationGateComponent" type="Node3D" parent="." node_paths=PackedStringArray("Target")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 script = ExtResource("5_gate")
 Target = NodePath("..")
 
 [node name="EnvironmentalLightComponent" type="Node" parent="." node_paths=PackedStringArray("Light", "Flame")]
 script = ExtResource("6_lighting")
-Light = NodePath("../FlickerLight")
+Light = NodePath("../FlickeringLight")
 Flame = NodePath("../Flame")

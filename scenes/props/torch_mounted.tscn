@@ -1,8 +1,9 @@
 [gd_scene load_steps=9 format=4 uid="uid://cyhr68psc2ku"]
 
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="1_ydphq"]
-[ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flicker_light.tscn" id="2_excks"]
-[ext_resource type="PackedScene" uid="uid://cdpdt64lfmt86" path="res://scenes/effects/fire.tscn" id="3_gja5y"]
+[ext_resource type="Script" path="res://scenes/props/LightFixture.cs" id="1_fixture"]
+[ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flickering_light.tscn" id="2_excks"]
+[ext_resource type="PackedScene" uid="uid://df7j4kw8qm2xa" path="res://scenes/effects/torch_flame.tscn" id="3_gja5y"]
 [ext_resource type="Script" uid="uid://cqxw2ow56hai2" path="res://scenes/components/ExplorationGateComponent.cs" id="4_gate"]
 
 [ext_resource type="Script" uid="uid://c7jefenbk3vi0" path="res://scenes/components/EnvironmentalLightComponent.cs" id="5_lighting"]
@@ -46,16 +47,20 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_1c4ul")
 
-[node name="TorchMounted" type="Node3D"]
+[node name="TorchMounted" type="Node3D" node_paths=PackedStringArray("Flame", "Light", "EnvironmentalLight")]
+script = ExtResource("1_fixture")
+Flame = NodePath("Flame")
+Light = NodePath("FlickeringLight")
+EnvironmentalLight = NodePath("EnvironmentalLightComponent")
 
 [node name="torch_mounted" type="MeshInstance3D" parent="."]
 mesh = SubResource("ArrayMesh_t1pbs")
 skeleton = NodePath("")
 
-[node name="FlickerLight" parent="." instance=ExtResource("2_excks")]
+[node name="FlickeringLight" parent="." instance=ExtResource("2_excks")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0.825363, 0.39241)
 
-[node name="Fire" parent="." instance=ExtResource("3_gja5y")]
+[node name="Flame" parent="." instance=ExtResource("3_gja5y")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.37741, 0.323494)
 
 [node name="ExplorationGateComponent" type="Node3D" parent="." node_paths=PackedStringArray("Target")]
@@ -65,5 +70,5 @@ Target = NodePath("..")
 
 [node name="EnvironmentalLightComponent" type="Node" parent="." node_paths=PackedStringArray("Light", "Flame")]
 script = ExtResource("5_lighting")
-Light = NodePath("../FlickerLight")
-Flame = NodePath("../Fire")
+Light = NodePath("../FlickeringLight")
+Flame = NodePath("../Flame")

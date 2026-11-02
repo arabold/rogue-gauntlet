@@ -35,6 +35,12 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/fern.tres" id="p_fern"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/broadleaf.tres" id="p_broadleaf"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/mushrooms.tres" id="p_mushrooms"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_pile.tres" id="c_candle_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_arc.tres" id="c_candle_arc"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_ring.tres" id="c_candle_ring"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_corner.tres" id="c_candle_corner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_stubs.tres" id="c_candle_stubs"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_plate.tres" id="c_candle_plate"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
@@ -62,16 +68,16 @@ metadata/_custom_type_script = ExtResource("16_alongwallsstep")
 [sub_resource type="Resource" id="CornersStep_4"]
 script = ExtResource("20_cornersstep")
 Id = "fire_bowls"
-Content = [ExtResource("17_brazier"), ExtResource("18_vase"), ExtResource("19_rubble")]
+Content = [ExtResource("17_brazier"), ExtResource("18_vase"), ExtResource("19_rubble"), ExtResource("c_candle_pile"), ExtResource("c_candle_corner"), ExtResource("c_candle_ring"), ExtResource("c_candle_arc"), ExtResource("c_candle_stubs"), ExtResource("c_candle_plate")]
 MinimumCount = 0
-MaximumCount = 3
+MaximumCount = 4
 metadata/_custom_type_script = ExtResource("20_cornersstep")
 
 [sub_resource type="Resource" id="ScatterStep_5"]
 script = ExtResource("24_scatterstep")
 Id = "debris"
-Content = [ExtResource("21_floor_debris"), ExtResource("22_vase_broken"), ExtResource("23_bone_pile"), ExtResource("19_rubble")]
-MaximumCount = 4
+Content = [ExtResource("21_floor_debris"), ExtResource("22_vase_broken"), ExtResource("23_bone_pile"), ExtResource("19_rubble"), ExtResource("c_candle_pile"), ExtResource("c_candle_arc"), ExtResource("c_candle_stubs"), ExtResource("c_candle_plate")]
+MaximumCount = 6
 WallChance = 0.6
 metadata/_custom_type_script = ExtResource("24_scatterstep")
 

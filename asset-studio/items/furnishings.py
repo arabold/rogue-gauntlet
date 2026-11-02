@@ -88,24 +88,67 @@ def candelabra(flames=False):
     return lit(a, tips, flames)
 
 
+def _candle_cluster(spots, y=0.0, a=None, flames=False):
+    a = Assembly() if a is None else a
+    tips = [] if flames else None
+    for i, spot in enumerate(spots):
+        x, z, h, r = spot[:4]
+        drips = spot[4] if len(spot) > 4 else 2
+        candle(a, tips, x, z, y, h, r, drips, i)
+    return lit(a, tips, flames, loose=True)
+
+
 def candle_cluster(flames=False):
-    """Three fat candles on a puddle of their own wax, for tables and altars."""
-    a, tips = Assembly(), []
-    a.add(lathe([(.42, 0), (.44, .025), (.38, .06), (.2, .08), (.01, .085)], 14).scale((1, 1, .85)), 'wax')
-    for i, (x, z, h, r) in enumerate([(-.1, -.06, .62, .16), (.17, .04, .44, .13), (-.03, .2, .3, .12)]):
-        candle(a, tips, x, z, .03, h, r, 2, i)
-    return lit(a, tips, flames)
+    """Three fat candles standing together, for tables and altars."""
+    return _candle_cluster([(-.1, -.06, .62, .16), (.17, .04, .44, .13), (-.03, .2, .3, .12)], flames=flames)
 
 
 def candle_pile(flames=False):
-    """A shrine heap of candles of every height on a mound of melted wax."""
-    a, tips = Assembly(), []
-    a.add(lathe([(.8, 0), (.78, .07), (.62, .16), (.36, .22), (.01, .24)], 16).scale((1, 1, .85)), 'wax')
-    spots = [(0, -.06, .95, .18), (-.36, -.12, .68, .15), (.34, -.16, .78, .15), (-.24, .26, .48, .14),
-             (.27, .24, .4, .13), (.58, .06, .3, .12), (-.6, .06, .34, .12), (.02, .4, .26, .12)]
-    for i, (x, z, h, r) in enumerate(spots):
-        candle(a, tips, x, z, max(.02, .2 - .24 * np.hypot(x, z / .85)), h, r, 2, i)
-    return lit(a, tips, flames)
+    """A shrine heap of candles of every height standing directly on the floor."""
+    return _candle_cluster([(0, -.06, .95, .18), (-.36, -.12, .68, .15), (.34, -.16, .78, .15), (-.24, .26, .48, .14),
+                           (.27, .24, .4, .13), (.58, .06, .3, .12), (-.6, .06, .34, .12), (.02, .4, .26, .12)], flames=flames)
+
+
+def candle_corner(flames=False):
+    """An L-shaped cluster of candles designed to sit in a room corner or wall intersection."""
+    return _candle_cluster([(-.16, -.16, .82, .17), (.16, -.14, .56, .14), (.42, -.12, .32, .12),
+                           (-.14, .16, .52, .14), (-.12, .42, .28, .12), (.10, .10, .20, .10)], flames=flames)
+
+
+def candle_ring(flames=False):
+    """A ceremonial circular ring of 7 candles surrounding an open center."""
+    angles = np.linspace(0, 2 * np.pi, 7, endpoint=False)
+    heights = [.74, .42, .60, .35, .68, .45, .54]
+    radii = [.15, .12, .14, .11, .14, .12, .13]
+    spots = [(.46 * np.cos(ang), .46 * np.sin(ang), h, r) for ang, h, r in zip(angles, heights, radii)]
+    return _candle_cluster(spots, flames=flames)
+
+
+def candle_arc(flames=False):
+    """An elegant curved crescent cascade of 5 candles stepping down from a tall church pillar to a stub."""
+    return _candle_cluster([(-.48, -.08, .88, .17), (-.24, .07, .68, .15), (.00, .14, .48, .14),
+                           (.24, .08, .32, .12), (.46, -.04, .18, .11)], flames=flames)
+
+
+def candle_stubs(flames=False):
+    """An ancient, dying cluster of heavily melted, slumped candle stubs."""
+    return _candle_cluster([(.08, -.10, .42, .16, 3), (-.26, -.12, .24, .15, 3), (-.14, .24, .19, .14, 1),
+                           (.28, .18, .14, .13, 1), (-.42, .06, .12, .12, 1), (.38, -.18, .09, .11, 1)], flames=flames)
+
+
+def candle_plate(flames=False):
+    """A forged iron floor tray with rolled rim and stud feet holding 5 candles."""
+    a = Assembly()
+    if not flames:
+        for ang in np.linspace(np.pi / 4, 2 * np.pi + np.pi / 4, 4, endpoint=False):
+            fx, fz = .32 * np.cos(ang), .32 * np.sin(ang)
+            a.add(rivet((fx, .03, fz), radius=.07, facing=(0, 1, 0)), 'iron_dark')
+        dish_profile = [(.44, .02), (.46, .035), (.48, .07), (.47, .09), (.44, .09), (.42, .07), (.38, .04), (.01, .03)]
+        a.add(lathe(dish_profile, 16), 'iron')
+
+    spots = [(.00, .00, .72, .16), (.00, .22, .44, .13), (.00, -.22, .52, .14),
+             (-.22, .00, .46, .13), (.22, .00, .38, .13)]
+    return _candle_cluster(spots, y=.035, a=a, flames=flames)
 
 
 def lectern():
@@ -1027,6 +1070,8 @@ def sconce(flames=False):
 
 KINDS = {
     'altar': altar, 'candelabra': candelabra, 'candle_cluster': candle_cluster, 'candle_pile': candle_pile,
+    'candle_corner': candle_corner, 'candle_ring': candle_ring, 'candle_arc': candle_arc,
+    'candle_stubs': candle_stubs, 'candle_plate': candle_plate,
     'lectern': lectern, 'statue': statue, 'statue_broken': statue_broken, 'brazier': brazier,
     'vase_tall': vase_tall, 'urn_wide': urn_wide, 'vase_broken': vase_broken, 'bust': bust, 'armor_stand': armor_stand,
     'globe': globe, 'cauldron': cauldron, 'scroll_rack': scroll_rack, 'herb_rack': herb_rack,

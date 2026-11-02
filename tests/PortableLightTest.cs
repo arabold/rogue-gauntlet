@@ -56,15 +56,15 @@ public class PortableLightTest
 		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
 		var normal = player.GetNode<Node3D>("Pivot/NormalLighting");
 		var dark = player.GetNode<Node3D>("Pivot/DarkLighting");
-		var normalLight = normal.GetNode<FlickerLight>("FlickerLight");
-		var darkLight = dark.GetNode<FlickerLight>("FlickerLight");
+		var normalLight = normal.GetNode<FlickeringLight>("FlickeringLight");
+		var darkLight = dark.GetNode<FlickeringLight>("FlickeringLight");
 		AssertFloat(normalLight.OmniRange).IsEqual(25f);
-		AssertFloat(normalLight.Energy * normalLight.Flicker.Min).IsEqual(0.25f);
-		AssertFloat(normalLight.Energy * normalLight.Flicker.Max).IsEqual(1f);
+		AssertFloat(normalLight.Energy * normalLight.Profile.Min).IsEqual(0.25f);
+		AssertFloat(normalLight.Energy * normalLight.Profile.Max).IsEqual(1f);
 		AssertFloat(normal.GetNode<OmniLight3D>("ObjectHighlight").OmniRange).IsEqual(30f);
 		AssertFloat(darkLight.OmniRange).IsEqual(6f);
-		AssertFloat(darkLight.Energy * darkLight.Flicker.Min).IsEqualApprox(0.04f, .0001f);
-		AssertFloat(darkLight.Energy * darkLight.Flicker.Max).IsEqual(0.12f);
+		AssertFloat(darkLight.Energy * darkLight.Profile.Min).IsEqualApprox(0.04f, .0001f);
+		AssertFloat(darkLight.Energy * darkLight.Profile.Max).IsEqual(0.12f);
 		foreach (var hand in player.Inventory.EquippedItems.Keys.ToArray()) { player.Inventory.Unequip(hand); }
 		player.Inventory.Items.Clear();
 		foreach (string name in new[] { "tool_candelabrum", "tool_candle_tallow", "tool_lamp_oil", "tool_lantern_brass", "tool_torch_iron", "tool_torch_wooden" })
@@ -181,7 +181,7 @@ public class PortableLightTest
 				AssertString(mount.BoneName).IsEqual(definition.GripFor(hand).Bone.ToString());
 				var light = mount.FindChildren("*", "OmniLight3D", true, false).OfType<OmniLight3D>().Single();
 				AssertBool(light.IsVisibleInTree()).IsTrue();
-				AssertFloat(light.OmniRange).IsGreater(player.GetNode<OmniLight3D>("Pivot/DarkLighting/FlickerLight").OmniRange);
+				AssertFloat(light.OmniRange).IsGreater(player.GetNode<OmniLight3D>("Pivot/DarkLighting/FlickeringLight").OmniRange);
 				AssertBool(player.InventoryController.TryUnequip(entry).Success).IsTrue();
 				AssertInt(mount.GetChildCount()).IsEqual(0);
 			}

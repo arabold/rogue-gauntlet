@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="PackedScene" path="res://scenes/magic/air/lightning_arc.tscn" id="arc"]
 [ext_resource type="PackedScene" path="res://scenes/magic/air/lightning_cracks.tscn" id="cracks"]
-[ext_resource type="Resource" uid="uid://v8gnnl1bnqv5" path="res://scenes/effects/light_flicker/electric.tres" id="light_flicker"]
+[ext_resource type="Resource" uid="uid://v8gnnl1bnqv5" path="res://scenes/effects/flicker_profiles/electric.tres" id="flicker_profile"]
 [ext_resource type="Script" path="res://scenes/magic/shared/WaveFront.cs" id="wave_front_script"]
 
 [sub_resource type="Resource" id="wave_front"]
@@ -38,7 +38,7 @@ omni_range = 8.0
 [node name="Timeline" type="Node" parent="." node_paths=PackedStringArray("Surfaces", "Lights")]
 script = ExtResource("timeline")
 WaveFront = SubResource("wave_front")
-LightFlicker = ExtResource("light_flicker")
+FlickerProfile = ExtResource("flicker_profile")
 Surfaces = [NodePath("../ElectricWave")]
 Lights = [NodePath("../Light")]
 Duration = 1.15

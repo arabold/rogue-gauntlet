@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/candle_arc_lit.tscn" id="2_arc_lit"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "candle_arc"
+Scenes = [ExtResource("2_arc_lit")]
+Gap = 0.2
+TurnJitter = 15.0
+ShiftJitter = 0.06
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")
