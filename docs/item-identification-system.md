@@ -247,8 +247,9 @@ Run-wide and per-item knowledge have separate owners:
 - `IsFullyIdentified(item)` also needs the curse status. It is what makes an item a valid target
   for the scroll of identify.
 
-`EquipableItem.CurseStatusKnown` gates the "Cursed"/"Uncursed" tooltip line, the penalty lines and
-the "Cursed" name prefix.
+`EquipableItem.CurseStatusKnown` gates the "Cursed"/"Uncursed" tooltip line, the penalty lines,
+the "Cursed" name prefix, and the dark-veil curse aura presentation (`ItemAuraPresenter`) on world/equipped models
+and inventory preview slots.
 
 The quality is deliberately visible either way, so name color, the tooltip's quality line and
 `ItemSlotPanel`'s tint use `ItemQualityPalette` without those checks.

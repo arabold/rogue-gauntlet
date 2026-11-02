@@ -1,12 +1,20 @@
 # Dungeon progression: remaining implementation
 
-Status: proposed work. [Dungeon design](../dungeon-exploration-design.md) owns realm pools, route obligations, locks and secrets. [Level design](../level-design.md) owns existing generation, arrangements and first-realm encounters. Reuse those systems and their factories; do not rebuild encounter/reward mechanics.
+Status: in progress. Realm definitions, corridor tile factories, realm-tagged room/style/step selection, room-owned doorways, inward-facing corridor styling, and sunken pools/basins are implemented foundations (see [level design](../level-design.md)). [Dungeon design](../dungeon-exploration-design.md) owns intended realm pools, route obligations, locks and secrets. This plan records the remaining delivery: per-depth room recipes and the visible encounter stair seal.
 
-## Definitions and ownership
+## Delivered foundations
 
-Add realm/recipe Resources under `scenes/levels/progression/`. Realm definitions select depth ranges, room pools, recipes and the existing encounter factory. An ordinary/themed pool entry selects a generated composition from the [implemented room system](../level-design.md#room-assembly), with stable identity, purpose/depth eligibility, weight and repeat cap. Entrance/exit anchors can retain their existing authored scenes. Recipes distinguish required existence, traversal and completion; none implies the others.
+- **Realm definitions:** `Realm` Resources in `scenes/levels/realms/` (`garrison.tres`, `sewer.tres`, `jungle.tres`) select depth bands (1–3, 4–6, 7–9) and corridor tile factories (`DungeonTileFactory`).
+- **Shared rooms across realms:** room types, wall styles, floor styles, and furnishing steps carry `Realms` tags, letting rooms adopt realm-specific wall styles and furnishing while sharing baseline room structures.
+- **Room-owned doorways:** assembly hands each room its tile map as data, and fills every doorway immediately with its wall style's door (`WallStyle.DoorScene`), opening frame, or an open walkway. No geometry re-derivation or legacy doorway markers remain.
+- **Corridor styling & pools:** `CorridorStep` strategies place passageways, threshold props, and torches along inward-facing corridor walls. `PoolStep` cuts deep-water chasms with quay walls and curbs drawn with the animated water shader.
 
-Plans and realized placements are ordinary per-generation C# data. Shared Resources remain immutable. Explicitly assign realm/recipe dependencies on Level; retain the current generator path for unconfigured development floors. Reuse room packing, rotation and doorway helpers instead of duplicating them. Editor changes apply on regeneration, not a live floor.
+## Remaining definitions and ownership
+
+Per-depth recipes distinguish required existence, traversal and completion; none implies the others:
+- Plans and realized placements are ordinary per-generation C# data. Shared Resources remain immutable.
+- Explicitly assign recipe dependencies on Level; retain the current generator path for unconfigured development floors.
+- Reuse room packing, rotation and doorway helpers instead of duplicating them. Editor changes apply on regeneration, not a live floor.
 
 ## Geometry and failure contracts
 
@@ -18,7 +26,7 @@ The Garrison preset curates generated recipes, including modular barracks/storag
 
 ## Extend existing access for encounter seals
 
-[Door access](../door-access.md) already implements local lock/discovery composition, actor-context interactions, stable connection identity, exact explored tiles and saved current door state. Reuse that state/interaction boundary instead of adding competing door lists or timers. The separate [access follow-up plan](secret-doors-and-locks-plan.md) owns tuning, buttons, chains and shortcuts.
+[Door access](../door-access.md) already implements local lock/discovery composition, actor-context interactions, stable connection identity, exact explored tiles and saved current door state. Reuse that state/interaction boundary instead of adding competing door lists or timers.
 
 The visible Warden stair seal remains work: bind an explicitly assigned encounter condition to existing cleared-source state, show a readable barrier and enforce it for physical passage and both travel callers. Existing Warden completion remains the authority; ordinary picks cannot bypass it. Opening a route and discovering space remain independent. No new global gameplay registry.
 

@@ -132,4 +132,4 @@ Each slice runs `dotnet build "Rogue Gauntlet.sln"`, its focused GdUnit4 tests w
 - **Damage numbers.** About five hits a second may crowd the floating numbers; consider merging a volley's hits on one target.
 - **Cast motion.** The shared `staff.cast` clip (`Spellcast_Shoot`) compressed to 0.5 s may read poorly for a one-handed wand; a dedicated wand style is a candidate after slice 2.
 - **Monster casters.** Monsters can use a missile definition through the shared executor; their definitions should author a gentler turn rate so the player can sidestep as well as dodge.
-- **Modifiers.** Extra missiles, piercing, stronger homing and elemental riders are natural wand affixes; they belong to the [affix plan](item-quality-affixes-and-curses-plan.md), not this one.
+- **Modifiers.** Extra missiles, piercing, stronger homing and elemental riders are natural wand affixes; they belong to [stats and itemization](../stats-and-itemization.md#equipment-quality-affixes-and-enchantment), not this one.

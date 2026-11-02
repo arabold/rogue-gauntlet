@@ -50,7 +50,9 @@ Mage simply casts more often.
 1. **Menu** (`MainMenu` → `CharacterPanel`): picking a slot for a new game (after the
    overwrite confirm, which is lossless until the first save) opens the carousel — a
    `CharacterPreview` SubViewport turntable playing each class's `PreviewAnimation`, plus
-   description and stat readout. Confirm calls `GameSession.StartNewGame(slotId, classId)`.
+   description and stat readout. The turntable faces models forward toward the camera,
+   pausing rotation for 0.5s when a class is loaded or switched before turntable rotation resumes.
+   Confirm calls `GameSession.StartNewGame(slotId, classId)`.
 2. **Session** (`GameSession`): resolves the id against the catalog
    (`ResolveCharacterClass`; unknown/empty → default class), pre-identifies the class's item
    types, and stamps `CharacterClassId` into the `SaveGame` (schema v4; older saves
