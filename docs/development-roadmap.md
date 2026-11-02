@@ -14,12 +14,14 @@ Studio exports supply art independently of Godot gameplay definitions. Available
 
 Rooms completely own their doorways: doors are supplied by the wall style (`WallStyle.DoorScene`), and assembly fills doorways directly with doors, opening frames, or open walkways. Rooms and corridor styles are shared across realms (Garrison, Sewer, Jungle) using `Realms` tags, with corridor tile factories in `scenes/levels/realms/`. Connecting corridors are styled and decorated via `CorridorStep` strategies (passageways, threshold props, corner/hallway dressings) with inward-facing corridor walls. Deep-water pools (`PoolStep`), quays, curbs, water channels and basins are integrated into room assembly with animated water shaders.
 
+Sewer rooms include centered cisterns and dry walkways beside impassable water, with optional bank fencing. Walking collision and navigation exclude water; flying traversal remains unverified.
+
 Remaining:
 - **More variety:** further room types, props, groups and wall/floor styles; this is authoring work on the existing strategies (see the [authoring guide](../scenes/levels/generators/assembly/README.md)).
 - **Secret entrances:** tune and playtest [room-owned concealed doorways](specs/room-owned-secrets-plan.md), then choose which production room types use them.
 - **Wall placement:** extend [wall and doorway fitting](specs/exact-wall-placement-plan.md) to additional wall-piece families as needed.
 - **Opaque partitions and internal locks:** a room-local sight boundary projected through rotation and placement; internal mechanical locks need guaranteed reachable sources and saved state. Bars and fences stay non-occluding.
-- **Sewer and cistern content:** crossings (bridges or stepping stones over pools) and shallow water as gameplay.
+- **Sewer crossings:** bridges or stepping stones over impassable pools.
 - **Per-depth room roles** and required routes.
 
 ## First-three-floor acceptance

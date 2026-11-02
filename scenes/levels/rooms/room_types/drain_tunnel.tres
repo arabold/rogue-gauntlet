@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=24 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=33 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -20,11 +20,20 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/fixtures/valve.tres" id="p_valve"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/goo_puddle.tres" id="p_goo_puddle"]
 
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/PoolStep.cs" id="water_step"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_center.tres" id="water_center"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_edge.tres" id="water_edge"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_corner.tres" id="water_corner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_runner.tres" id="water_runner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_runner_end.tres" id="water_runner_end"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/fence.tres" id="water_fence"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/fence_corner.tres" id="water_fence_corner"]
+
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
-MinimumSize = Vector2i(2, 3)
+MinimumSize = Vector2i(3, 4)
 MaximumSize = Vector2i(3, 5)
-OddWidth = false
+OddWidth = true
 metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
 [sub_resource type="Resource" id="ScatterStep_2"]
@@ -51,17 +60,33 @@ MaximumCount = 2
 Spacing = 0.8
 metadata/_custom_type_script = ExtResource("p_AlongWallsStep")
 
+[sub_resource type="Resource" id="PoolStep_walkway"]
+script = ExtResource("water_step")
+Id = "water_walkway"
+Layout = 2
+MinimumCount = 1
+MaximumCount = 1
+Center = ExtResource("water_center")
+Edge = ExtResource("water_edge")
+Corner = ExtResource("water_corner")
+Runner = ExtResource("water_runner")
+RunnerEnd = ExtResource("water_runner_end")
+Fence = ExtResource("water_fence")
+FenceCorner = ExtResource("water_fence_corner")
+FenceChance = 0.6
+metadata/_custom_type_script = ExtResource("water_step")
+
 [resource]
 script = ExtResource("2_roomtype")
 Id = "drain_tunnel"
 Realms = PackedStringArray("sewer")
 Shapes = [SubResource("RectangleShape_1")]
-MinimumFloorTiles = 6
+MinimumFloorTiles = 12
 MinDoorways = 2
 MaxDoorways = 2
 DoorwayPlacement = 1
 Circulation = 1
 Walls = [ExtResource("4_slimy_walls"), ExtResource("5_stone_walls")]
 Floors = [ExtResource("6_channel_flagston"), ExtResource("7_bricks_floor")]
-Steps = [SubResource("AlongWallsStep_outfalls"), SubResource("ScatterStep_2"), SubResource("WallDecorStep_3")]
+Steps = [SubResource("PoolStep_walkway"), SubResource("AlongWallsStep_outfalls"), SubResource("ScatterStep_2"), SubResource("WallDecorStep_3")]
 metadata/_custom_type_script = ExtResource("2_roomtype")

@@ -56,6 +56,7 @@ public sealed class RoomBlueprint
 	private readonly List<FloorPatch> _floorPatches = [];
 	private readonly List<Rect2> _reserved = [];
 	private readonly List<Vector2I> _pits = [];
+	private readonly List<Rect2> _walkingBarriers = [];
 	private readonly List<Rect2> _landings = [];
 	private readonly Dictionary<object, int> _uses = [];
 	private readonly Dictionary<object, object> _memo = [];
@@ -219,20 +220,26 @@ public sealed class RoomBlueprint
 	/// <summary>Keeps floor props out of an area (doorway approaches, circulation, interaction space); actors may use it.</summary>
 	public void Reserve(Rect2 area) => _reserved.Add(area);
 
+	/// <summary>Stops walking bodies across accepted water, without obstructing projectiles or exploration sight.
+	/// Called only after a water placement commits; the pit already owns assembly walkability and navigation.</summary>
+	public void AddWalkingBarrier(Rect2 area) => _walkingBarriers.Add(area);
+
 	/// <summary>
 	/// Places a plan at <paramref name="at"/>. Required pieces go in together or not at all and must keep the room
 	/// <see cref="IsAcceptable"/>; optional pieces are then tried one by one. Leaves the blueprint unchanged on false.
-	/// The required pieces may sink into a <paramref name="pit"/> cut from the floor tiles under them, and may claim a
+	/// The required pieces may sink into a <paramref name="pit"/> cut from the floor tiles under them. Pit-contained
+	/// pieces may extend under perimeter walls; circulation and prop overlap checks still apply. They may also claim a
 	/// <paramref name="landing"/>: an area in front of stairs that no floor prop may ever cover and that every doorway
 	/// must keep reaching, for the rest of the assembly.
+	/// <paramref name="allowPitOverhang"/> lets rail corners span existing pits; only overlaps inside those pits are exempt.
 	/// </summary>
-	public bool TryPlace(PlacementPlan plan, Transform3D at, IReadOnlyCollection<Vector2I> pit = null, Rect2? landing = null)
+	public bool TryPlace(PlacementPlan plan, Transform3D at, IReadOnlyCollection<Vector2I> pit = null, Rect2? landing = null, bool allowPitOverhang = false)
 	{
 		if (plan.IsEmpty) return false;
 		var start = Save();
 		foreach (var piece in plan.Pieces.Where(piece => !piece.Optional))
 		{
-			if (TryAdd(piece, at * piece.Local, checkConnectivity: false)) continue;
+			if (TryAdd(piece, at * piece.Local, checkConnectivity: false, pit, allowPitOverhang)) continue;
 			Restore(start);
 			return false;
 		}
@@ -263,7 +270,7 @@ public sealed class RoomBlueprint
 		foreach (var piece in plan.Pieces.Where(piece => piece.Optional))
 		{
 			var before = Save();
-			if (!TryAdd(piece, at * piece.Local, checkConnectivity: true)) Restore(before);
+			if (!TryAdd(piece, at * piece.Local, checkConnectivity: true, allowPitOverhang: allowPitOverhang)) Restore(before);
 		}
 		for (int index = start.Pieces; index < _pieces.Count; index++)
 		{
@@ -327,15 +334,16 @@ public sealed class RoomBlueprint
 	public bool HasWallSupport(Aabb envelope, WallRun run) =>
 		HasWallSupport(envelope, run, IsDecoratable);
 
-	private bool TryAdd(PlannedPiece piece, Transform3D transform, bool checkConnectivity)
+	private bool TryAdd(PlannedPiece piece, Transform3D transform, bool checkConnectivity, IReadOnlyCollection<Vector2I> pit = null, bool allowPitOverhang = false)
 	{
 		var geometry = piece.Prop.Geometry(piece.Variant);
 		var envelope = transform * geometry.Envelope;
 		var area = XZ(envelope);
 		if (piece.Prop.Mount == PropMount.Floor)
 		{
-			if (!HasFloorSupport(area.Grow(-.05f))) return Reject(piece, "extends past the floor");
-			if (_wallBoxes.Any(wall => XZ(wall).Grow(-Tolerance).Intersects(area))) return Reject(piece, "overlaps a wall");
+			if (!HasTileSupport(area.Grow(-.05f), allowPitOverhang ? Footprint.IsFloor : IsFloor)) return Reject(piece, "extends past the floor");
+			bool insidePit = pit != null && HasTileSupport(area.Grow(-.05f), pit.Contains);
+			if (!insidePit && _wallBoxes.Any(wall => XZ(wall).Grow(-Tolerance).Intersects(area))) return Reject(piece, "overlaps a wall");
 			if (piece.Prop.Blocking && _reserved.Any(reserved => reserved.Intersects(area))) return Reject(piece, "blocks reserved circulation");
 			if (_landings.Any(landing => landing.Intersects(area))) return Reject(piece, "covers a stair landing");
 		}
@@ -348,7 +356,10 @@ public sealed class RoomBlueprint
 			if (piece.Prop.Structural && other.Prop.Structural) continue;
 			float gap = Mathf.Max(piece.Prop.Gap, other.Prop.Gap);
 			bool vertical = envelope.Position.Y < other.Envelope.End.Y - .01f && envelope.End.Y > other.Envelope.Position.Y + .01f;
-			if (vertical && XZ(other.Envelope).Grow(gap - Tolerance).Intersects(area)) return Reject(piece, $"overlaps {other.Prop.Id}");
+			var otherArea = XZ(other.Envelope).Grow(gap - Tolerance);
+			if (vertical && otherArea.Intersects(area)
+				&& !(allowPitOverhang && HasTileSupport(otherArea.Intersection(area).Grow(-Tolerance), _pits.Contains)))
+				return Reject(piece, $"overlaps {other.Prop.Id}");
 		}
 		_pieces.Add(new(piece.Prop, piece.Variant, transform, envelope));
 		foreach (var solid in geometry.Solids) Grid.AddObstacle(transform * solid);
@@ -369,7 +380,9 @@ public sealed class RoomBlueprint
 		return false;
 	}
 
-	private bool HasFloorSupport(Rect2 area)
+	private bool HasFloorSupport(Rect2 area) => HasTileSupport(area, IsFloor);
+
+	private static bool HasTileSupport(Rect2 area, Func<Vector2I, bool> supports)
 	{
 		float half = Room.TileSize / 2f;
 		int left = Mathf.FloorToInt((area.Position.X + half) / Room.TileSize);
@@ -378,7 +391,7 @@ public sealed class RoomBlueprint
 		int bottom = Mathf.FloorToInt((area.End.Y + half) / Room.TileSize);
 		for (int x = left; x <= right; x++)
 		for (int z = top; z <= bottom; z++)
-			if (!IsFloor(new(x, z))) return false;
+			if (!supports(new(x, z))) return false;
 		return true;
 	}
 
@@ -413,6 +426,35 @@ public sealed class RoomBlueprint
 			node.SetMeta("prop_id", piece.Prop.Id);
 			if (node is Door { Interior: not null } door) door.Interior.Id = $"{piece.Prop.Id}:{index}";
 			root.AddChild(node);
+		}
+		// A low curb can be climbed by rounded character colliders. Water needs a full-height actor-only barrier.
+		if (_walkingBarriers.Count > 0)
+		{
+			var barriers = new StaticBody3D { Name = "WalkingBarriers", CollisionLayer = CollisionOutlines.WalkingTerrainLayer, CollisionMask = 0 };
+			Room.AddChild(barriers);
+			foreach (var area in _walkingBarriers)
+				barriers.AddChild(new CollisionShape3D
+				{
+					Position = new Vector3(area.GetCenter().X, Room.TileSize / 2f, area.GetCenter().Y),
+					Shape = new BoxShape3D { Size = new Vector3(area.Size.X, Room.TileSize, area.Size.Y) },
+				});
+		}
+		// Rendered pool surfaces and stairwell beds must never become walkable geometry during a bake.
+		if (_pits.Count == 0) return;
+		var navigation = new Node3D { Name = "PitNavigation" };
+		Room.AddChild(navigation);
+		foreach (var tile in _pits)
+		{
+			float half = Room.TileSize / 2f;
+			navigation.AddChild(new NavigationObstacle3D
+			{
+				Name = $"PitNavigation{tile.X}_{tile.Y}",
+				Position = RoomFootprint.TileCenter(tile) + Vector3.Down * Room.TileSize,
+				Height = Room.TileSize * 2,
+				AffectNavigationMesh = true,
+				AvoidanceEnabled = false,
+				Vertices = [new(-half, 0, -half), new(half, 0, -half), new(half, 0, half), new(-half, 0, half)],
+			});
 		}
 	}
 
