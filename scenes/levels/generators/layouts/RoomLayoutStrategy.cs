@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Godot;
 
 [Tool]
@@ -11,7 +9,6 @@ public abstract partial class RoomLayoutStrategy : Resource
 	/// Populates the map with room data (e.g., which tiles are rooms)
 	/// </summary>
 	public abstract List<RoomPlacement> GenerateRooms(MapData map, RoomFactory factory, uint maxRooms, RandomNumberGenerator rng);
-	public virtual void Reset() { }
 
 	/// <summary>
 	/// Stamps a room's local tile map into the master map at the given placement. Local
@@ -44,9 +41,4 @@ public abstract partial class RoomLayoutStrategy : Resource
 		}
 	}
 
-	/// <summary>Rolls how many of a level's rooms should be special rooms rather than standard ones.</summary>
-	protected static int PickSpecialRoomCount(uint maxRooms, RandomNumberGenerator rng)
-	{
-		return rng.RandiRange(1, 1 + (int)Mathf.Floor(maxRooms / 3));
-	}
 }

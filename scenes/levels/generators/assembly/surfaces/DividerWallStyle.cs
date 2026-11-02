@@ -20,9 +20,9 @@ public partial class DividerWallStyle : WallStyle
 		return errors.ToArray();
 	}
 
-	public override void Build(RoomBlueprint room, RandomNumberGenerator rng)
+	public override bool Build(RoomBlueprint room, RandomNumberGenerator rng)
 	{
-		base.Build(room, rng);
+		if (!base.Build(room, rng)) return false;
 		var grid = room.Room.WallGridMap;
 		var runs = room.WallRuns.Where(run => run.Outward.X != 0 && run.Length >= 3 && run.Length % 2 == 1).ToList();
 		GenerationRandom.Shuffle(runs, rng);
@@ -32,33 +32,44 @@ public partial class DividerWallStyle : WallStyle
 			if (placedSides.Contains(run.Outward)) continue;
 			var tile = run.TileAt(run.Length / 2);
 			var edge = EdgeCell(tile, run.Outward);
-			var end = edge + new Vector3I(-run.Outward.X, 0, -run.Outward.Y) * Room.TileSize;
 			int original = grid.GetCellItem(edge);
-			if (original < 0 || !Straight.ContainsKey(Library.GetItemName(original)) || grid.GetCellItem(end) >= 0
+			if (original < 0 || !Straight.ContainsKey(Library.GetItemName(original))
 				|| !room.Footprint.IsFloor(tile - run.Outward)) continue;
 			int facing = WallFootprints.FacingInto(-run.Outward);
 			int turn = Array.IndexOf(GridTurns.Upright, facing);
 			int junction = Library.FindItemByName(Junction);
 			int tip = Library.FindItemByName(Ends[rng.RandiRange(0, Ends.Length - 1)]);
 			int tipFacing = GridTurns.Upright[(turn + 3) % 4];
-			var junctionBox = WallFootprints.FootprintWorld(Library.GetItemMesh(junction).GetAabb(), facing, edge);
-			var tipBox = WallFootprints.FootprintWorld(Library.GetItemMesh(tip).GetAabb(), tipFacing, end);
-			if (Overlaps(junctionBox, tipBox) || grid.GetUsedCells().Cast<Vector3I>().Where(cell => cell != edge).Any(cell =>
+			// Match the measured ends, not a presumed tile length. GridMap origins are integer coordinates;
+			// a piece requiring a fractional origin cannot be fitted here.
+			var junctionBounds = WallFootprints.FootprintWorld(WallFootprints.MeshBounds(Library, junction), facing, edge);
+			var tipBounds = WallFootprints.FootprintWorld(WallFootprints.MeshBounds(Library, tip), tipFacing, edge);
+			var inward = new Vector3I(-run.Outward.X, 0, -run.Outward.Y);
+			float junctionEnd = inward.X != 0 ? (inward.X > 0 ? junctionBounds.End.X : -junctionBounds.Position.X)
+				: (inward.Z > 0 ? junctionBounds.End.Z : -junctionBounds.Position.Z);
+			float tipStart = inward.X != 0 ? (inward.X > 0 ? tipBounds.Position.X : -tipBounds.End.X)
+				: (inward.Z > 0 ? tipBounds.Position.Z : -tipBounds.End.Z);
+			float distance = junctionEnd - tipStart;
+			int steps = Mathf.RoundToInt(distance);
+			if (steps <= 0 || Mathf.Abs(distance - steps) > .001f) continue;
+			var end = edge + inward * steps;
+			if (grid.GetCellItem(end) >= 0) continue;
+			bool Overlaps(int item, int orientation, Vector3I cell, int other, int otherOrientation, Vector3I otherCell) =>
+				WallFootprints.PiecesOverlap(Library, item, orientation, cell, other, otherOrientation, otherCell);
+			if (Overlaps(junction, facing, edge, tip, tipFacing, end) || grid.GetUsedCells().Cast<Vector3I>().Where(cell => cell != edge).Any(cell =>
 			{
 				int item = grid.GetCellItem(cell);
-				var box = WallFootprints.FootprintWorld(Library.GetItemMesh(item).GetAabb(), grid.GetCellItemOrientation(cell), cell);
-				return Overlaps(junctionBox, box) || Overlaps(tipBox, box);
+				int orientation = grid.GetCellItemOrientation(cell);
+				return Overlaps(junction, facing, edge, item, orientation, cell) || Overlaps(tip, tipFacing, end, item, orientation, cell);
 			})) continue;
 			grid.SetCellItem(edge, junction, facing);
 			grid.SetCellItem(end, tip, tipFacing);
+			room.Room.DividerCells.Add(edge);
+			room.Room.DividerCells.Add(end);
 			room.SetWall(tile, run.Outward, .5f, false);
 			placedSides.Add(run.Outward);
-			if (placedSides.Count == Sides) return;
+			if (placedSides.Count == Sides) return true;
 		}
-		throw new InvalidOperationException($"Wall style {Id}: cannot fit {Sides} wall dividers in room {room.Type.Id}.");
+		return false;
 	}
-
-	private static bool Overlaps(Aabb a, Aabb b) =>
-		Mathf.Min(a.End.X, b.End.X) - Mathf.Max(a.Position.X, b.Position.X) > WallFootprints.Eps
-		&& Mathf.Min(a.End.Z, b.End.Z) - Mathf.Max(a.Position.Z, b.Position.Z) > WallFootprints.Eps;
 }

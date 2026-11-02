@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroup.cs" id="group"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="member"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/partition_wall.tres" id="wall"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/partition_wall.tres" id="wall"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/crate_stack.tres" id="crates"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/barrel_stack.tres" id="barrels"]
 
@@ -35,7 +35,7 @@ metadata/_custom_type_script = ExtResource("member")
 
 [resource]
 script = ExtResource("group")
-Id = "sample.t_partition"
+Id = "t_partition"
 Anchor = [ExtResource("wall")]
 Members = [SubResource("crossbar"), SubResource("stem"), SubResource("left_supplies"), SubResource("right_supplies")]
 MirrorChance = 0.5

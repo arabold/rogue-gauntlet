@@ -14,6 +14,8 @@ Studio exports supply art independently of Godot gameplay definitions. Available
 
 Remaining:
 - **More variety:** further room types, props, groups and wall/floor styles; this is authoring work on the existing strategies (see the [authoring guide](../scenes/levels/generators/assembly/README.md)).
+- **Secret entrances:** tune and playtest [room-owned concealed doorways](specs/room-owned-secrets-plan.md), then choose which production room types use them.
+- **Wall placement:** extend [wall and doorway fitting](specs/exact-wall-placement-plan.md) to additional wall-piece families as needed.
 - **Corridor dressing:** weighted scatter or opposing pairs along corridor walls, reusing props and wall-decor placement.
 - **Opaque partitions and internal locks:** a room-local sight boundary projected through rotation and placement; internal mechanical locks need guaranteed reachable sources and saved state. Bars and fences stay non-occluding.
 - **Sewer and cistern content:** crossings (bridges or stepping stones over pools) and shallow water as gameplay.
@@ -37,7 +39,7 @@ Authoring acceptance also requires duplicating an actor in Godot, adding/removin
 
 ## Dungeon progression
 
-[Dungeon design](dungeon-exploration-design.md) and its [remaining plan](specs/level-progression-prototype-plan.md) cover realm pools, required locations/routes, composed access and secrets. Implemented [door access](door-access.md) includes consumable keys/picks, matching colored markers, guaranteed accessible key sources, occasional capped secret pockets and locks, random Intelligence-based door/trap discovery, shared discovery feedback and separate saved exploration/current door state. Regular floors supply no lockpicks; the Rogue starts with two. [Remaining access work](specs/secret-doors-and-locks-plan.md) is tuning and later mechanisms/chains/shortcuts. Per-depth recipes and the visible Warden stair seal remain separately planned. Existing encounters/rewards are reused.
+[Dungeon design](dungeon-exploration-design.md) and its [remaining plan](specs/level-progression-prototype-plan.md) cover realm pools, required locations/routes, composed access and secrets. Implemented [door access](door-access.md) includes consumable keys/picks, matching colored markers, guaranteed accessible key sources, room-authored secret doorways and optional locks, random Intelligence-based door/trap discovery, shared discovery feedback and separate saved exploration/current door state. Regular floors supply no lockpicks; the Rogue starts with two. [Remaining access work](specs/secret-doors-and-locks-plan.md) is tuning and later mechanisms/chains/shortcuts. Per-depth recipes and the visible Warden stair seal remain separately planned. Existing encounters/rewards are reused.
 
 Acceptance must validate actual geometry and access solutions, including loops, locked/closed states, discovery and save/load. Required rooms and routes cannot disappear when optional content does not fit. Full later realm order remains provisional.
 

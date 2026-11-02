@@ -6,7 +6,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/worn_stone.tres" id="stone"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/dirt_with_stone.tres" id="earth"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="center"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/groups/t_partition.tres" id="partition"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/t_partition.tres" id="partition"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="corners"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/supply_corner.tres" id="supplies"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/sack_pile.tres" id="sacks"]
@@ -17,12 +17,12 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="debris"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="decor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="torch"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/lit_sconce.tres" id="sconce"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/lit_sconce.tres" id="sconce"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="shelf"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/keg_station.tres" id="kegs"]
 
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/divider_walls_one.tres" id="walls_one"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/divider_walls_both.tres" id="walls_both"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/divider_walls_one.tres" id="walls_one"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/divider_walls_both.tres" id="walls_both"]
 
 [sub_resource type="Resource" id="shape"]
 script = ExtResource("shape")
@@ -94,7 +94,7 @@ metadata/_custom_type_script = ExtResource("scatter")
 
 [resource]
 script = ExtResource("type")
-Id = "sample.partitioned_depot"
+Id = "partitioned_depot"
 Realms = PackedStringArray("garrison")
 Shapes = [SubResource("shape")]
 MinDoorways = 2

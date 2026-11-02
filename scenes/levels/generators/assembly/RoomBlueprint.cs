@@ -14,6 +14,22 @@ public readonly record struct WallRun(Vector2I Start, Vector2I Along, Vector2I O
 	public float TileCenterAlong(int index) => (index + 0.5f) * Room.TileSize;
 	/// <summary>The run's start on the wall line (the tile edge), at its first tile's outer corner.</summary>
 	public Vector3 LineStart => RoomFootprint.TileCenter(Start) - Inward * (Room.TileSize / 2f) - Tangent * (Room.TileSize / 2f);
+	/// <summary>Extracts ordered contiguous runs from room or corridor wall edges.</summary>
+	public static IEnumerable<WallRun> Find(IEnumerable<Vector2I> tiles, Func<Vector2I, Vector2I, bool> hasWall)
+	{
+		foreach (var outward in new[] { Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left })
+		{
+			var along = outward.X == 0 ? Vector2I.Right : Vector2I.Down;
+			var edges = tiles.Where(tile => hasWall(tile, outward)).ToHashSet();
+			foreach (var first in edges.OrderBy(tile => tile.Y).ThenBy(tile => tile.X).ToArray())
+			{
+				if (!edges.Contains(first) || edges.Contains(first - along)) continue;
+				int length = 0;
+				while (edges.Remove(first + along * length)) length++;
+				yield return new(first, along, outward, length);
+			}
+		}
+	}
 	/// <summary>Rotation that turns local +Z into the room, so a prop's back (-Z) faces this wall.</summary>
 	public Basis Facing => new(Vector3.Up, Mathf.Atan2(Inward.X, Inward.Z));
 }
@@ -123,26 +139,17 @@ public sealed class RoomBlueprint
 		// Furniture may stand in a corner: a corner piece blocks only its two arms, not its L's whole bounding box, and
 		// its convex collision hull only fills space no actor reaches anyway.
 		_wallBoxes.AddRange(WallFootprints.Collect(Room.WallGridMap));
+		foreach (var frame in Room.FrameColliders)
+		foreach (var outline in CollisionOutlines.FromStaticBodies(frame, frame.Transform))
+		{
+			Grid.AddObstacle(outline);
+			_wallBoxes.Add(outline.Bounds);
+		}
 	}
 
 	/// <summary>Straight wall runs, split at doorways and wherever the room continues past the wall line.</summary>
-	public IReadOnlyList<WallRun> WallRuns => _wallRuns ??= ComputeWallRuns().ToArray();
-
-	private IEnumerable<WallRun> ComputeWallRuns()
-	{
-		foreach (var outward in new[] { Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left })
-		{
-			var along = outward.X == 0 ? Vector2I.Right : Vector2I.Down;
-			var edges = Footprint.Tiles.Where(tile => !Footprint.IsFloor(tile + outward) && !IsDoorway(tile, outward)).ToHashSet();
-			foreach (var first in edges.OrderBy(tile => tile.Y).ThenBy(tile => tile.X).ToArray())
-			{
-				if (!edges.Contains(first) || edges.Contains(first - along)) continue;
-				int length = 0;
-				while (edges.Remove(first + along * length)) length++;
-				yield return new(first, along, outward, length);
-			}
-		}
-	}
+	public IReadOnlyList<WallRun> WallRuns => _wallRuns ??= WallRun.Find(Footprint.Tiles,
+		(tile, outward) => !Footprint.IsFloor(tile + outward) && !IsDoorway(tile, outward)).ToArray();
 
 	/// <summary>True when the run's start (or end) meets a perpendicular wall rather than a doorway or open floor.</summary>
 	public bool StartsAtCorner(WallRun run) => !Footprint.IsFloor(run.Start - run.Along);

@@ -7,7 +7,7 @@
 
 [resource]
 script = ExtResource("prop")
-Id = "sample.decorative_coins"
+Id = "decorative_coins"
 Scenes = [ExtResource("small"), ExtResource("medium"), ExtResource("large")]
 Blocking = false
 Gap = 0.15

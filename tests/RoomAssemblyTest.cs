@@ -46,6 +46,44 @@ public class RoomAssemblyTest
 		AssertArray(errors.ToArray()).IsEmpty();
 	}
 
+	[TestCase(1)] // long-axis ends
+	[TestCase(3)] // one end plus a side
+	public void DirectionalDoorwaysRespectAuthoredCount(int placement)
+	{
+		using var type = (RoomType)TestFactories.Load<RoomType>("res://scenes/levels/rooms/room_types/storage.tres").Duplicate();
+		type.DoorwayPlacement = (DoorwayPlacement)placement;
+		type.MinDoorways = type.MaxDoorways = 2;
+		for (ulong seed = 1; seed <= 12; seed++)
+		{
+			var blueprint = RoomAssembler.Build(type, seed, new RoomAssemblyOptions { Furnish = false, Realm = "garrison" });
+			try { AssertInt(blueprint.Doorways.Count).IsEqual(2); }
+			finally { blueprint.Room.Free(); }
+		}
+	}
+
+	[TestCase]
+	public void DoorlessFramesFitAtCorners()
+	{
+		using var type = (RoomType)TestFactories.Load<RoomType>("res://scenes/levels/rooms/room_types/storage.tres").Duplicate();
+		type.DoorChance = type.SecretDoorChance = 0;
+		type.FrameChance = 1;
+		int shortWalls = 0;
+		for (ulong seed = 1; seed <= 20; seed++)
+		{
+			var blueprint = RoomAssembler.Build(type, seed, new RoomAssemblyOptions { Furnish = false, Realm = "garrison" });
+			try
+			{
+				AssertInt(blueprint.Room.FramedEdges.Count).IsEqual(blueprint.Doorways.Count);
+				AssertString(WallFootprints.FindOverlap(blueprint.Room.WallGridMap)).IsEmpty();
+				var grid = blueprint.Room.WallGridMap;
+				foreach (Vector3I cell in grid.GetUsedCells())
+					if (grid.MeshLibrary.GetItemName(grid.GetCellItem(cell)) == "wall_junction_short") shortWalls++;
+			}
+			finally { blueprint.Room.Free(); }
+		}
+		AssertInt(shortWalls).IsGreater(0);
+	}
+
 	[TestCase("garrison/hall")]
 	[TestCase("garrison/storage")]
 	[TestCase("garrison/dining")]

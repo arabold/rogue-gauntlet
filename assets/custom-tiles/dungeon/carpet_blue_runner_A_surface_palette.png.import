@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bk8a6fpaxnjrt"
-path="res://.godot/imported/carpet_blue_runner_A_surface_palette.png-ae6d153daeff86a0f72c4525672b001b.ctex"
+path.s3tc="res://.godot/imported/carpet_blue_runner_A_surface_palette.png-ae6d153daeff86a0f72c4525672b001b.s3tc.ctex"
+path.etc2="res://.godot/imported/carpet_blue_runner_A_surface_palette.png-ae6d153daeff86a0f72c4525672b001b.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "78062049eaf63cfd8e6d406532173e38"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-tiles/dungeon/carpet_blue_runner_A_surface_palette.png"
-dest_files=["res://.godot/imported/carpet_blue_runner_A_surface_palette.png-ae6d153daeff86a0f72c4525672b001b.ctex"]
+dest_files=["res://.godot/imported/carpet_blue_runner_A_surface_palette.png-ae6d153daeff86a0f72c4525672b001b.s3tc.ctex", "res://.godot/imported/carpet_blue_runner_A_surface_palette.png-ae6d153daeff86a0f72c4525672b001b.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

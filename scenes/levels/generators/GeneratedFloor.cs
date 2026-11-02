@@ -48,8 +48,7 @@ public sealed class GeneratedFloor
 	public MapData Map { get; }
 	/// <summary>Full floor regions, including connector thresholds, indexed by room id.</summary>
 	public IReadOnlyList<RoomRegion> Rooms => _rooms;
-	/// <summary>Exterior doors paired with the connector they guard: the doors rooms set into their doorways, and secret
-	/// pockets' concealed doors. Interior gates are not listed.</summary>
+	/// <summary>Exterior doors paired with the connector they guard; interior gates are not listed.</summary>
 	public IReadOnlyList<(Door Door, Vector2I Connector)> Doors => _doors;
 	/// <summary>The descent arrival the floor is built around; null only for a layout without one.</summary>
 	public PlayerSpawnPoint Arrival { get; internal set; }
@@ -104,7 +103,7 @@ public sealed class GeneratedFloor
 		_doorBaselines.Add(door.ConnectionId, (door, door.CaptureAccess()));
 	}
 
-	/// <summary>Actor-center walkability of the finished geometry, built once rooms, corridors and secret pockets exist.
+	/// <summary>Actor-center walkability of the finished geometry, built once rooms and corridors exist.
 	/// Null in previews and layouts without an arrival; queries then fall back to tile occupancy alone.</summary>
 	internal WalkabilityGrid Walkability => _walkability;
 	/// <summary>Per-cell reachability for <see cref="Walkability"/>; null alongside it.</summary>
@@ -268,7 +267,7 @@ public sealed class GeneratedFloor
 		position = default;
 		float best = float.NegativeInfinity;
 		var occupied = new List<Vector3>();
-		var accessible = FreelyAccessibleTiles();
+		var accessible = ProgressionAccessibleTiles();
 		foreach (var tilePoint in OpenTileCandidates())
 		{
 			// Half-tile offsets also find clear 2x2 spaces between cell centers.
@@ -298,8 +297,16 @@ public sealed class GeneratedFloor
 		return float.IsFinite(best);
 	}
 
-	/// <summary>Tiles reachable from the arrival without crossing a locked or undiscovered door; null without an arrival.
-	/// Optional access must not strand teleport arrivals or hide required encounter placement.</summary>
+	/// <summary>Tiles reachable after discovering secrets, without crossing locked doors; null without an arrival.</summary>
+	private HashSet<Vector2I> ProgressionAccessibleTiles()
+	{
+		if (Arrival == null) return null;
+		var blocked = _doors.Where(d => d.Door.Lock?.IsLocked == true).Select(d => d.Connector).ToHashSet();
+		return AccessSolutionValidator.Reachable(Map, Map.WorldToTile(Arrival.GlobalPosition), blocked);
+	}
+
+	/// <summary>Tiles reachable without crossing a locked or undiscovered door; null without an arrival.
+	/// This prevents teleport arrivals from stranding the player behind an undiscovered door.</summary>
 	internal HashSet<Vector2I> FreelyAccessibleTiles()
 	{
 		if (Arrival == null) return null;

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://du6pxu23kgsrn"
-path="res://.godot/imported/floor_flagstones_small_B_surface_palette.png-d70f9afef347a2571ff7feec860106ed.ctex"
+path.s3tc="res://.godot/imported/floor_flagstones_small_B_surface_palette.png-d70f9afef347a2571ff7feec860106ed.s3tc.ctex"
+path.etc2="res://.godot/imported/floor_flagstones_small_B_surface_palette.png-d70f9afef347a2571ff7feec860106ed.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "3b597c9b43d5644145c7a7015c93b5c4"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-tiles/dungeon/floor_flagstones_small_B_surface_palette.png"
-dest_files=["res://.godot/imported/floor_flagstones_small_B_surface_palette.png-d70f9afef347a2571ff7feec860106ed.ctex"]
+dest_files=["res://.godot/imported/floor_flagstones_small_B_surface_palette.png-d70f9afef347a2571ff7feec860106ed.s3tc.ctex", "res://.godot/imported/floor_flagstones_small_B_surface_palette.png-d70f9afef347a2571ff7feec860106ed.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

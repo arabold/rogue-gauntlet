@@ -42,15 +42,12 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		rooms.Add(new RoomPlacement(exitRoom, exitPlacement.Value));
 		StampRoom(map, exitRoom.Map, exitPlacement.Value);
 
-		var countSpecialRooms = PickSpecialRoomCount(maxRooms, rng);
 		for (int i = 0; i < maxRooms; i++)
 		{
 			var retries = Retries;
 			do
 			{
-				var room = i < countSpecialRooms
-					? factory.CreateSpecialRoom(rng)
-					: factory.CreateStandardRoom(rng);
+				var room = factory.CreateStandardRoom(rng);
 				var placement = TryPlaceRoom(map, room.Map, retries, rng);
 				if (placement != null)
 				{

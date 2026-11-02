@@ -1,23 +1,24 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=29 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=30 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="type"]
+[ext_resource type="Resource" path="res://scenes/levels/access/proximity_detection.tres" id="detection"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="shape"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/stone_walls.tres" id="walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/stone_bordered_light_wood.tres" id="floor"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="along"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/groups/treasury_cache.tres" id="cache"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/treasury_cache.tres" id="cache"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="center"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/groups/counting_table.tres" id="table"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/counting_table.tres" id="table"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="decor"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/yellow_banner.tres" id="banner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/yellow_banner.tres" id="banner"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/sword_shield.tres" id="heraldry"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="scatter"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/coin_piles.tres" id="coins"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/coin_piles.tres" id="coins"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="corners"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/trunk.tres" id="trunk"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/small_box.tres" id="box"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/bookcase.tres" id="bookcase"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/lit_sconce.tres" id="sconce"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/lit_sconce.tres" id="sconce"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="shelf"]
 
 [sub_resource type="Resource" id="shape"]
@@ -101,11 +102,14 @@ metadata/_custom_type_script = ExtResource("decor")
 
 [resource]
 script = ExtResource("type")
-Id = "sample.treasury"
+Id = "treasury"
 Realms = PackedStringArray("garrison")
 Shapes = [SubResource("shape")]
 MinDoorways = 1
 MaxDoorways = 1
+DoorChance = 1.0
+SecretDoorChance = 0.8
+SecretDetection = ExtResource("detection")
 DoorwayPlacement = 3
 Walls = [ExtResource("walls")]
 Floors = [ExtResource("floor")]

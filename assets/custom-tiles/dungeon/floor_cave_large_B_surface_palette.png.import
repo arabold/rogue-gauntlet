@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cepfgbn6hwus4"
-path="res://.godot/imported/floor_cave_large_B_surface_palette.png-36e71909841c4e8e07044432fd34d551.ctex"
+path.s3tc="res://.godot/imported/floor_cave_large_B_surface_palette.png-36e71909841c4e8e07044432fd34d551.s3tc.ctex"
+path.etc2="res://.godot/imported/floor_cave_large_B_surface_palette.png-36e71909841c4e8e07044432fd34d551.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "bd332160be74eb40dbcd6c90661fca46"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-tiles/dungeon/floor_cave_large_B_surface_palette.png"
-dest_files=["res://.godot/imported/floor_cave_large_B_surface_palette.png-36e71909841c4e8e07044432fd34d551.ctex"]
+dest_files=["res://.godot/imported/floor_cave_large_B_surface_palette.png-36e71909841c4e8e07044432fd34d551.s3tc.ctex", "res://.godot/imported/floor_cave_large_B_surface_palette.png-36e71909841c4e8e07044432fd34d551.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

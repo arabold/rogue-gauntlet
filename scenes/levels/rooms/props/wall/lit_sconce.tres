@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("prop")
-Id = "sample.lit_sconce"
+Id = "lit_sconce"
 Scenes = [ExtResource("sconce")]
 Mount = 1
 MountHeight = 0.0

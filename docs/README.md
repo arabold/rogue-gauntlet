@@ -28,7 +28,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Character classes](character-classes.md) | Authored classes, starting gear, stat profiles, and model integration |
 | [Gameplay item catalog](item-catalog.md) | All active definitions, effect families, source budgets, access keys/picks and deferred tools |
 | [Randomness and seeds](randomness-and-seeds.md) | Existing run/level seeds, generation RNG, loot RNG, identification, and saved world changes; isolation and current persistence limits |
-| [Door access](door-access.md) | Implemented locks, consumable keys/picks, colored door markers, secret pockets, discovery and saved access state |
+| [Door access](door-access.md) | Implemented locks, consumable keys/picks, colored door markers, room-owned secret doors, discovery and saved access state |
 | [Level design](level-design.md) | Procedural layouts, room assembly, reachability, room authoring, fog of war, encounters and light flicker |
 | [Stats and itemization](stats-and-itemization.md) | Attributes, modifiers, equipment tiers, loot rolls, and enchantment |
 | [Item identification](item-identification-system.md) | Per-run disguises, discovery, jewelry, and scroll targeting |
@@ -43,6 +43,8 @@ These documents explain code that exists today. Any proposed extension or future
 
 | Document | Remaining scope |
 | --- | --- |
+| [Room-owned secret entrances](specs/room-owned-secrets-plan.md) | Room-selected concealed doorways, access and discovery |
+| [Exact wall placement experiment](specs/exact-wall-placement-plan.md) | Geometry contracts, room boundaries and doorway fit, corridor and interior follow-up |
 | [Secret doors and locks](specs/secret-doors-and-locks-plan.md) | Remaining tuning, hidden mechanisms, consumable key chains and secret shortcuts |
 | [Dungeon progression](specs/level-progression-prototype-plan.md) | Realm pools/recipes and the visible Warden stair seal |
 | [Actions and interactions](specs/actor-actions-and-interactions-plan.md) | Further actor intentions/content; magic moved to the magic rework plan |

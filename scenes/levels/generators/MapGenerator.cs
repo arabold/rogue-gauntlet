@@ -33,7 +33,9 @@ public partial class MapGenerator : Node3D
 	/// <summary>The realm the current attempt builds from, resolved when the generator resets.</summary>
 	public Realm CurrentRealm { get; private set; }
 	private RoomFactory _realmRooms;
-	private TileFactory Corridors => CurrentRealm?.Corridors;
+	private DungeonTileFactory Corridors => CurrentRealm?.Corridors;
+	private readonly HashSet<Vector3I> _dividerCells = [];
+	private readonly HashSet<(Vector3I Center, bool Horizontal)> _framedEdges = [];
 
 	public MapData Map;
 	/// <summary>The current attempt's floor: generation queries it while it fills, gameplay once it is frozen.</summary>
@@ -109,6 +111,8 @@ public partial class MapGenerator : Node3D
 		var roomDecorationGridMap = room.DecorationGridMap;
 
 		var gridMapOffset = Map.TileToWorld(placement.X, placement.Z) - room.Origin;
+		foreach (var cell in room.DividerCells) _dividerCells.Add(cell + gridMapOffset);
+		foreach (var (center, horizontal) in room.FramedEdges) _framedEdges.Add((center + gridMapOffset, horizontal));
 		MergeGridMaps(roomFloorGridMap, FloorGridMap, gridMapOffset);
 		MergeGridMaps(roomWallGridMap, WallGridMap, gridMapOffset);
 		MergeGridMaps(roomDecorationGridMap, DecorationGridMap, gridMapOffset);
@@ -280,11 +284,11 @@ public partial class MapGenerator : Node3D
 		return false;
 	}
 
-	private void ConnectRooms()
+	private bool ConnectRooms()
 	{
 		GD.Print("Connecting rooms...");
 
-		CorridorConnector.ConnectRooms(Map);
+		CorridorConnector.ConnectRooms(Map, Floor.Rooms);
 
 		// Doorways are structural commitments, including both ends of a hall's aisle, and their doors and frames are
 		// already set. Never turn an unrouteable doorway into a wall and deliver a different room.
@@ -294,7 +298,7 @@ public partial class MapGenerator : Node3D
 				throw new InvalidOperationException($"Required doorway at {tile} could not be connected; the floor cannot be generated.");
 
 		PlaceCorridors();
-		PlaceWalls();
+		return PlaceWalls();
 	}
 
 	private void PlaceCorridors()
@@ -314,36 +318,17 @@ public partial class MapGenerator : Node3D
 		}
 	}
 
-	private void PlaceWalls()
+	private bool PlaceWalls()
 	{
-		var tiles = new List<Vector2I>();
+		var tiles = new List<(Vector2I Tile, Vector3I Center)>();
 		for (int x = 0; x < Map.Width; x++)
-		{
-			for (int z = 0; z < Map.Height; z++)
-			{
-				tiles.Add(new Vector2I(x, z));
-			}
-		}
+		for (int z = 0; z < Map.Height; z++)
+			if (Map.IsWalkable(x, z)) tiles.Add((new Vector2I(x, z), Map.TileToWorld(x, z)));
 
-		PlaceWallsAround(tiles);
-	}
-
-	/// <summary>
-	/// Seals every required edge of the given tiles that is not already covered by a wall. Pass tiles in x-then-z order:
-	/// wall variants are drawn from the decoration stream in that order, matching a full-map pass.
-	/// </summary>
-	private void PlaceWallsAround(IEnumerable<Vector2I> tiles)
-	{
-		GD.Print("Placing walls...");
-		var sourceTiles = tiles.Where(tile => Map.IsWalkable(tile.X, tile.Y)).Select(tile => (tile, Map.TileToWorld(tile)));
-		WallFootprints.PlaceWalls(
-			WallGridMap,
-			Room.TileSize,
-			sourceTiles,
-			(tile, dx, dz) => NeedsWallToward(tile.X, tile.Y, dx, dz),
-			() => Corridors.GetWallTileIndex(_random.Decoration),
-			() => Corridors.GetWallHalfTileIndex(_random.Decoration),
-			() => Corridors.GetWallCornerTileIndex(_random.Decoration));
+		using var rng = GenerationRandom.Create(Seed, GenerationRandom.Decoration, $"corridor-walls:{GenerationAttempt}");
+		return BoundaryWallBuilder.Build(WallGridMap, tiles, (tile, dx, dz) => NeedsWallToward(tile.X, tile.Y, dx, dz),
+			_ => WallGridMap.MeshLibrary.FindItemByName(Corridors.Walls.DrawEdge(rng)),
+			dividerCells: _dividerCells, framedEdges: _framedEdges);
 	}
 
 	private bool NeedsGeneratedWallAgainst(int x, int z)
@@ -395,7 +380,8 @@ public partial class MapGenerator : Node3D
 	/// <summary>Decorates corridor walls, corners, thresholds, and straight spans using the realm's corridor steps.</summary>
 	private void DecorateCorridors()
 	{
-		if (Corridors is not DungeonTileFactory dungeonTiles || dungeonTiles.Steps.Length == 0) return;
+		var dungeonTiles = Corridors;
+		if (dungeonTiles == null || dungeonTiles.Steps.Length == 0) return;
 		ulong corridorSeed = GenerationRandom.DeriveSeed(Seed, GenerationRandom.Decoration, $"corridors:{GenerationAttempt}");
 		var blueprint = new CorridorBlueprint(this, dungeonTiles.Walls, corridorSeed);
 		for (int index = 0; index < dungeonTiles.Steps.Length; index++)
@@ -431,6 +417,22 @@ public partial class MapGenerator : Node3D
 				}
 			}
 		}
+	}
+
+	/// <summary>Resolve a placed node through its owning room, even when a staircase trigger extends beyond its floor tiles.</summary>
+	internal int RoomRegionFor(Node node)
+	{
+		while (node != null && node is not Room) node = node.GetParent();
+		if (node is not Room room || room.Map == null) return -1;
+		for (int x = 0; x < room.Map.Width; x++)
+		for (int z = 0; z < room.Map.Height; z++)
+		{
+			if (!room.Map.IsRoom(x, z)) continue;
+			var local = (Vector3)room.Origin + new Vector3(x * Room.TileSize, 0, z * Room.TileSize);
+			int region = Floor.RoomIdAt(Map.WorldToTile(room.ToGlobal(local)));
+			if (region >= 0) return region;
+		}
+		return -1;
 	}
 
 	private void FindProgressionAnchors()
@@ -576,12 +578,12 @@ public partial class MapGenerator : Node3D
 		for (GenerationAttempt = 0; GenerationAttempt < 8; GenerationAttempt++)
 		{
 			if (GenerateMapAttempt(includeGameplay)) return;
-			GD.Print($"No room fits the gatekeeper; retrying layout (attempt {GenerationAttempt + 1}/8).");
+			GD.Print($"Required structure, progression or encounter placement does not fit; retrying layout (attempt {GenerationAttempt + 1}/8).");
 		}
-		throw new InvalidOperationException("No generated room can accommodate the gatekeeper after eight layout attempts.");
+		throw new InvalidOperationException("No generated layout provides required stairs, structural fit and encounter space after eight attempts.");
 	}
 
-	/// <summary>False when the layout cannot host the floor's gatekeeper; the attempt is abandoned before access and loot.</summary>
+	/// <summary>Retries layouts whose required stairs, walls or gatekeeper placement cannot fit.</summary>
 	private bool GenerateMapAttempt(bool includeGameplay)
 	{
 		Reset();
@@ -598,10 +600,16 @@ public partial class MapGenerator : Node3D
 		// Step 1: Generate random rooms
 		GenerateRooms();
 
+		// Gameplay needs both stairs. A crowded layout without an exit must be retried, never delivered as a dead end.
+		if (includeGameplay)
+		{
+			FindProgressionAnchors();
+			if (Floor.Arrival == null || Floor.Descent == null) return false;
+		}
+
 		// Step 2: Connect the rooms
-		ConnectRooms();
+		if (!ConnectRooms()) return false;
 		AccessProfile?.Validate();
-		CreateSecretBranches();
 		DecorateCorridors();
 
 		// Step 2c: Cap permanent void. Exploration is the level's FloorDiscovery, started once the floor is handed off.
@@ -613,11 +621,6 @@ public partial class MapGenerator : Node3D
 			GD.Print("Map preview generated.");
 			return true;
 		}
-
-		// Step 3: Find the arrival and descent (moved ahead of the navmesh bake: loot
-		// placement below needs them for clearance, and they're just a scene lookup with no
-		// dependency on anything the bake computes).
-		FindProgressionAnchors();
 
 		// Step 3.1: Reachability over the finished geometry; everything placed from here on lands on reachable cells.
 		BuildWalkability();
@@ -673,6 +676,8 @@ public partial class MapGenerator : Node3D
 		_realmRooms = Rooms?.ForRealm(CurrentRealm?.Id);
 
 		ResetAccess();
+		_dividerCells.Clear();
+		_framedEdges.Clear();
 
 		// Initialize the map with empty tiles and a walled border
 		Map = new MapData((int)MapWidth, (int)MapDepth);
@@ -711,11 +716,7 @@ public partial class MapGenerator : Node3D
 			corridorProps.QueueFree();
 		}
 
-		RoomLayout?.Reset();
-		CorridorConnector?.Reset();
-		MobFactory?.Reset();
-		_realmRooms?.Reset();
-		Corridors?.Reset();
+		Corridors?.ValidateOrThrow();
 	}
 
 	/// <summary>

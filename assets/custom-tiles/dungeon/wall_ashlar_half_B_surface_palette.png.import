@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bfcv5ninnjbcb"
-path="res://.godot/imported/wall_ashlar_half_B_surface_palette.png-9ba489f1645250311b82240893338ffd.ctex"
+path.s3tc="res://.godot/imported/wall_ashlar_half_B_surface_palette.png-9ba489f1645250311b82240893338ffd.s3tc.ctex"
+path.etc2="res://.godot/imported/wall_ashlar_half_B_surface_palette.png-9ba489f1645250311b82240893338ffd.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "cb6b379b8415da8ca58841a8c8321d6a"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-tiles/dungeon/wall_ashlar_half_B_surface_palette.png"
-dest_files=["res://.godot/imported/wall_ashlar_half_B_surface_palette.png-9ba489f1645250311b82240893338ffd.ctex"]
+dest_files=["res://.godot/imported/wall_ashlar_half_B_surface_palette.png-9ba489f1645250311b82240893338ffd.s3tc.ctex", "res://.godot/imported/wall_ashlar_half_B_surface_palette.png-9ba489f1645250311b82240893338ffd.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

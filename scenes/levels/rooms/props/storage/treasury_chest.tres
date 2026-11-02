@@ -1,13 +1,13 @@
 [gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="prop"]
-[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="walls"]
+[ext_resource type="PackedScene" path="res://scenes/props/chest_treasury.tscn" id="chest"]
 
 [resource]
 script = ExtResource("prop")
-Id = "sample.partition_wall"
-Library = ExtResource("walls")
-Items = ["wall"]
-Gap = 0.0
-Structural = true
+Id = "treasury_chest"
+Scenes = [ExtResource("chest")]
+BackToWall = true
+Interactive = true
+Gap = 0.3
 metadata/_custom_type_script = ExtResource("prop")

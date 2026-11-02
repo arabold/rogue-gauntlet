@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroup.cs" id="group"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="member"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/table_medium_plain.tres" id="table"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/coin_piles.tres" id="coins"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/coin_piles.tres" id="coins"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/tableware/candle.tres" id="candle"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/chair.tres" id="chair"]
 
@@ -22,14 +22,14 @@ metadata/_custom_type_script = ExtResource("member")
 
 [sub_resource type="Resource" id="setting"]
 script = ExtResource("group")
-Id = "sample.counting_table_setting"
+Id = "counting_table_setting"
 Anchor = [ExtResource("table")]
 Members = [SubResource("coins"), SubResource("candle")]
 metadata/_custom_type_script = ExtResource("group")
 
 [resource]
 script = ExtResource("seated")
-Id = "sample.counting_table"
+Id = "counting_table"
 Tables = [SubResource("setting")]
 Seats = [ExtResource("chair")]
 SeatSpacing = 1.0

@@ -1,7 +1,7 @@
 using Godot;
 
 /// <summary>A light's flicker: a brightness multiplier read from noise over time. Presets are shared and stateless.</summary>
-[GlobalClass]
+[Tool, GlobalClass]
 public partial class LightFlicker : Resource
 {
 	/// <summary>Shapes the flicker. It is read along one axis in seconds, so its frequency is how busy the flicker

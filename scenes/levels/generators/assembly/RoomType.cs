@@ -27,11 +27,14 @@ public partial class RoomType : Resource
 	[Export(PropertyHint.Range, "1,4")] public int MinDoorways { get; set; } = 1;
 	[Export(PropertyHint.Range, "1,4")] public int MaxDoorways { get; set; } = 3;
 	[Export] public DoorwayPlacement DoorwayPlacement { get; set; }
-	/// <summary>Chance per doorway of the wall style's door; the rest get its opening frame. 1 doors every doorway, 0
-	/// none. Access locks only lock rooms whose doorways all have doors.</summary>
+	/// <summary>Chance per non-secret doorway of the wall style's door; the rest get a frame or open walkway.
+	/// Access locks only lock rooms whose doorways all have doors.</summary>
 	[Export(PropertyHint.Range, "0,1,0.05")] public float DoorChance { get; set; }
-	/// <summary>Chance per doorway without a door of the wall style's opening frame; the rest stay open walkways. A
-	/// doorway beside a corner never takes a frame, which would run into the side wall.</summary>
+	/// <summary>Independent chance per doorway to create a concealed door instead of the ordinary door/frame choice.</summary>
+	[Export(PropertyHint.Range, "0,1,0.05")] public float SecretDoorChance { get; set; }
+	/// <summary>Detection policy for room-owned secret doors; required when their chance is nonzero.</summary>
+	[Export] public SecretDetectionProfile SecretDetection { get; set; }
+	/// <summary>Chance per doorway without a door of the wall style's opening frame; the rest stay open walkways. The boundary fitter joins frames to adjacent walls.</summary>
 	[Export(PropertyHint.Range, "0,1,0.05")] public float FrameChance { get; set; } = .5f;
 	[Export] public CirculationMode Circulation { get; set; }
 	/// <summary>Largest share of standable floor that may end up inaccessible. Small pockets behind furniture read naturally;
@@ -65,9 +68,14 @@ public partial class RoomType : Resource
 		if (Floors.Length == 0 || Floors.Any(style => style == null)) errors.Add($"Room type {Id}: assign floor styles.");
 		if (Columns.Any(column => column == null) || Steps.Any(step => step == null)) errors.Add($"Room type {Id}: remove empty column or step entries.");
 		if (MinDoorways > MaxDoorways) errors.Add($"Room type {Id}: the doorway minimum exceeds the maximum.");
-		if (DoorChance > 0)
+		if (DoorwayPlacement == DoorwayPlacement.LongAxisEnds && MinDoorways < 2)
+			errors.Add($"Room type {Id}: long-axis ends need at least two doorways.");
+		if (!float.IsFinite(SecretDoorChance) || SecretDoorChance < 0 || SecretDoorChance > 1)
+			errors.Add($"Room type {Id}: secret door chance must be between zero and one.");
+		if (SecretDoorChance > 0 && SecretDetection == null) errors.Add($"Room type {Id}: assign secret detection when secret doors are enabled.");
+		if (DoorChance > 0 || SecretDoorChance > 0)
 			foreach (var style in Walls.Where(style => style != null && style.DoorScene == null))
-				errors.Add($"Room type {Id}: wall style {style.Id} has no door scene; assign one or set the door chance to zero.");
+				errors.Add($"Room type {Id}: wall style {style.Id} has no door scene; assign one or disable both door chances.");
 		if (Walls.All(style => style != null) && Floors.All(style => style != null))
 			foreach (string realm in Realms.Where(realm => WallsIn(realm).Length == 0 || FloorsIn(realm).Length == 0))
 				errors.Add($"Room type {Id}: no wall or floor style is tagged for realm '{realm}'.");

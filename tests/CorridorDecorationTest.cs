@@ -36,6 +36,42 @@ public class CorridorDecorationTest
 	}
 
 	[TestCase]
+	public async Task CorridorWallsUseTheRealmPaletteWhenTheyFit()
+	{
+		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
+		using (runner)
+		{
+			var realm = generator.Realms[0];
+			var tiles = (DungeonTileFactory)realm.Corridors.Duplicate();
+			var walls = (WallStyle)tiles.Walls.Duplicate();
+			walls.Straight = new Godot.Collections.Dictionary<string, float> { ["wall_mossy_A"] = 1 };
+			walls.Accents = [];
+			walls.AccentChance = 0;
+			tiles.Walls = walls;
+			realm.Corridors = tiles;
+			int found = 0;
+			for (ulong seed = 1; seed <= 4; seed++)
+			{
+				generator.Seed = seed;
+				generator.GenerateMap(includeGameplay: false);
+				for (int x = 0; x < generator.Map.Width; x++)
+				for (int z = 0; z < generator.Map.Height; z++)
+				{
+					if (!generator.Map.IsCorridor(x, z)) continue;
+					var center = generator.Map.TileToWorld(x, z);
+					foreach (var direction in new[] { Vector3I.Forward, Vector3I.Back, Vector3I.Left, Vector3I.Right })
+					{
+						int item = generator.WallGridMap.GetCellItem(center + direction * (Room.TileSize / 2));
+						if (item >= 0 && generator.WallGridMap.MeshLibrary.GetItemName(item) == "wall_mossy_A") found++;
+					}
+				}
+				await runner.SimulateFrames(1);
+			}
+			AssertInt(found).IsGreater(0);
+		}
+	}
+
+	[TestCase]
 	public async Task RealmsDecorateCorridorsDeterministicallyAndOrientWallsInward()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
@@ -112,12 +148,14 @@ public class CorridorDecorationTest
 				int item = edge.Item;
 				var cell = edge.Cell;
 				string name = library.GetItemName(item);
+				// The 1.5-unit seam piece can fit an integer origin in only one orientation.
+				if (name == "wall_junction_short") continue;
 
 				int expectedOrientation = WallFootprints.FacingInto(-outward);
 				int actualOrientation = wallGrid.GetCellItemOrientation(cell);
 				// A half turns around only when the cell that would let it face inward (the other end of the half it
 				// covers) holds a corner turning away at the edge's far end.
-				var footprint = WallFootprints.FootprintWorld(library.GetItemMesh(item).GetAabb(), actualOrientation, cell);
+				var footprint = WallFootprints.FootprintWorld(WallFootprints.MeshBounds(library, item), actualOrientation, cell);
 				var facingCell = outward.X == 0
 					? new Vector3I(Mathf.RoundToInt(footprint.Position.X + footprint.End.X) - cell.X, 0, cell.Z)
 					: new Vector3I(cell.X, 0, Mathf.RoundToInt(footprint.Position.Z + footprint.End.Z) - cell.Z);

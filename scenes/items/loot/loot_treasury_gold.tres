@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="LootDropProfile" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scenes/components/LootDropProfile.cs" id="profile"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/treasury_gold_table.tres" id="table"]
+[ext_resource type="Resource" path="res://scenes/items/loot/drops/treasury_gold.tres" id="table"]
 
 [resource]
 script = ExtResource("profile")

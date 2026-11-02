@@ -52,7 +52,7 @@ public class DiscoveryPersistenceTest
 	[TestCase]
 	public async Task AdjacentCorridorRequiresAnOpeningAndSecretsStaySealedUntilOpened()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPool());
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithSecrets());
 		var map = level.MapGenerator;
 		level.Generate();
 		map.Map.ResetToBorderedEmpty();
@@ -65,26 +65,23 @@ public class DiscoveryPersistenceTest
 		level.Discovery.RevealFrom(Point(new Vector2I(3, 5)));
 		AssertBool(level.Discovery.IsRevealedAt(Point(new Vector2I(4, 5)))).IsTrue();
 
-		map.AccessProfile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
-		map.AccessProfile.MaximumLockedRooms = 0;
-		map.AccessProfile.SecretRoomChance = 1;
 		map.MapWidth = map.MapDepth = 30; map.MaxRooms = 6;
 		for (ulong seed = 1; seed <= 8; seed++)
 		{
 			map.Seed = seed; level.Generate();
-			if (map.GeneratedSecrets.Count > 0) break;
+			if (level.Floor != null && map.Floor.Doors.Any(d => d.Door.Secret?.IsSecret == true)) break;
 			await runner.SimulateFrames(1);
 		}
-		AssertBool(map.GeneratedSecrets.Count > 0).IsTrue();
-		var secret = map.GeneratedSecrets[0];
-		level.Discovery.RevealFrom(Point(secret.Host));
+		var secret = map.Floor.Doors.First(d => d.Door.Secret?.IsSecret == true);
+		var direction = map.Map.GetConnectorDirections(secret.Connector.X, secret.Connector.Y).Single();
+		var outside = secret.Connector + direction;
+		level.Discovery.RevealFrom(Point(outside));
 		AssertBool(level.Discovery.IsRevealedAt(Point(secret.Connector))).IsFalse();
 		secret.Door.Secret.Restore(true);
-		level.Discovery.RevealFrom(Point(secret.Host));
+		level.Discovery.RevealFrom(Point(outside));
 		AssertBool(level.Discovery.IsRevealedAt(Point(secret.Connector))).IsFalse();
-		// Seals are read from the doors themselves: opening the leaf is enough, no event needed.
 		secret.Door.IsOpen = true;
-		level.Discovery.RevealFrom(Point(secret.Host));
+		level.Discovery.RevealFrom(Point(outside));
 		AssertBool(level.Discovery.IsRevealedAt(Point(secret.Connector))).IsTrue();
 		await runner.SimulateFrames(2);
 	}
@@ -105,7 +102,7 @@ public class DiscoveryPersistenceTest
 		map.SetConnector(5, 5, [Vector2I.Left]);
 		map.SetTile(6, 5, MapTile.Room);
 		var floor = new GeneratedFloor(map, generator, generator.DecorationGridMap);
-		var doorScene = TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").DoorScene;
+		var doorScene = TestFactories.Load<PackedScene>("res://scenes/props/door.tscn");
 		var near = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
 		var far = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
 		floor.AddDoor(near, new Vector2I(3, 5));

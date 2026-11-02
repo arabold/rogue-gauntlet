@@ -2,7 +2,7 @@ using Godot;
 using Godot.Collections;
 
 /// <summary>One kind of fountain a run can hold, such as health or mana: its designs and how many a run has.</summary>
-[GlobalClass]
+[Tool, GlobalClass]
 public partial class FountainKind : Resource
 {
 	/// <summary>Stable id: it keys the run's schedule stream and each placed fountain's persistent id.</summary>

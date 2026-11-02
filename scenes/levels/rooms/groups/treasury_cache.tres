@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroup.cs" id="group"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="member"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/treasury_chest.tres" id="chest"]
-[ext_resource type="Resource" path="res://scenes/debug/rooms/samples/props/coin_piles.tres" id="coins"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/treasury_chest.tres" id="chest"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/coin_piles.tres" id="coins"]
 
 [sub_resource type="Resource" id="left"]
 script = ExtResource("member")
@@ -19,7 +19,7 @@ metadata/_custom_type_script = ExtResource("member")
 
 [resource]
 script = ExtResource("group")
-Id = "sample.treasury_cache"
+Id = "treasury_cache"
 Anchor = [ExtResource("chest")]
 Members = [SubResource("left"), SubResource("right")]
 metadata/_custom_type_script = ExtResource("group")

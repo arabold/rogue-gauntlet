@@ -33,7 +33,7 @@ public class RealmGenerationTest
 			AssertBool(rooms.Length > 0 && rooms.All(room => room.Type.Realms.Contains(realm.Id)))
 				.OverrideFailureMessage($"{label}: rooms outside the {realm.Id} realm").IsTrue();
 			AssertArray(LayoutConnectivityTest.FindConnectivityFailures(generator)).IsEmpty();
-			var corridors = ((DungeonTileFactory)realm.Corridors).Floor;
+			var corridors = realm.Corridors.Floor;
 			var map = generator.Map;
 			var foreign = Enumerable.Range(0, map.Width).SelectMany(x => Enumerable.Range(0, map.Height).Select(z => new Vector2I(x, z)))
 				.Where(tile => map.IsCorridor(tile.X, tile.Y))

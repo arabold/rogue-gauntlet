@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("prop")
-Id = "sample.yellow_banner"
+Id = "yellow_banner"
 Scenes = [ExtResource("banner")]
 Mount = 1
 MountHeight = 0.0
