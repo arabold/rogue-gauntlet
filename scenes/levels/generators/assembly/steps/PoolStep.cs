@@ -70,9 +70,12 @@ public partial class PoolStep : FurnishingStep
 		int firstPit = room.Pits.Count;
 		int count = rng.RandiRange(MinimumCount, MaximumCount), placed = 0;
 		while (placed < count && PlaceOne(room, rng)) placed++;
-		// An independent stream keeps fencing changes from rerolling water.
-		using var fenceRng = room.Random($"{Id}:fences");
-		if (Fence != null && fenceRng.Randf() < FenceChance) FenceBanks(room, room.Pits.Skip(firstPit).ToArray(), fenceRng);
+		if (Fence != null && placed > 0)
+		{
+			// An independent stream keeps fencing changes from rerolling water.
+			using var fenceRng = room.Random($"{Id}:fences");
+			if (fenceRng.Randf() < FenceChance) FenceBanks(room, room.Pits.Skip(firstPit).ToArray(), fenceRng);
+		}
 		return placed;
 	}
 

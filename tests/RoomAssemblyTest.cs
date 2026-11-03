@@ -523,8 +523,9 @@ public class RoomAssemblyTest
 			var x = solids[a].Envelope;
 			var y = solids[b].Envelope;
 			bool vertical = x.Position.Y < y.End.Y - .01f && x.End.Y > y.Position.Y + .01f;
+			if (!vertical) continue;
 			var overlap = RoomBlueprint.XZ(x).Grow(-.03f).Intersection(RoomBlueprint.XZ(y).Grow(-.03f));
-			if (!vertical || !overlap.HasArea()) continue;
+			if (!overlap.HasArea()) continue;
 			float wetArea = blueprint.Pits.Sum(tile =>
 			{
 				var center = RoomBlueprint.XZ(RoomFootprint.TileCenter(tile));

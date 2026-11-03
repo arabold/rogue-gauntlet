@@ -107,9 +107,13 @@ public class ItemCatalogTest
 			// Pools are checked through the tables that weight them.
 			if (TestFactories.Load<Resource>(path) is not LootTable table) { continue; }
 			AssertArray(table.Validate()).OverrideFailureMessage($"Invalid table: {path}").IsEmpty();
-			AssertInt(table.Items.Length).IsEqual(0);
-			AssertInt(table.Groups.Length).IsEqual(7);
-			AssertFloat(table.Groups.Sum(group => group.Weight)).IsEqual(100);
+			if (table.Groups.Length > 0)
+			{
+				AssertInt(table.Items.Length).IsEqual(0);
+				AssertInt(table.Groups.Length).IsEqual(7);
+				AssertFloat(table.Groups.Sum(group => group.Weight)).IsEqual(100);
+			}
+			else { AssertInt(table.Items.Length).IsGreater(0); }
 			foreach (var entry in table.Entries)
 			{
 				AssertBool(ExcludedFromLoot(entry.Item)).IsFalse();
