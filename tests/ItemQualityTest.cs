@@ -199,9 +199,9 @@ public class ItemQualityTest
 	[TestCase]
 	public void LootTablesFenceBaseTiersByDepth()
 	{
-		foreach (string path in Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/items/loot"), "*.tres"))
+		foreach (string path in Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/items/loot"), "*.tres", SearchOption.AllDirectories))
 		{
-			var table = TestFactories.Load<LootTable>(ProjectSettings.LocalizePath(path));
+			if (TestFactories.Load<Resource>(ProjectSettings.LocalizePath(path)) is not LootTable table) { continue; }
 			foreach (LootTableItem entry in table.Entries)
 			{
 				if (entry.Item is IdentifiableEquipableItem)

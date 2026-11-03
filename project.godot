@@ -276,6 +276,7 @@ camera_zoom_out={
 3d_physics/layer_7="projectiles"
 3d_physics/layer_8="npcs"
 3d_physics/layer_9="effects"
+3d_physics/layer_10="walking_terrain"
 
 [physics]
 

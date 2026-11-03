@@ -22,8 +22,10 @@ public readonly record struct SolidOutline(Vector2[] Polygon, float Bottom, floa
 /// </summary>
 public static class CollisionOutlines
 {
-	/// <summary>Collision layers that block actors: world, walls and props.</summary>
-	public const uint BlockingLayers = 19;
+	/// <summary>Actor-only terrain barriers; projectiles and sight ignore this layer.</summary>
+	public const uint WalkingTerrainLayer = 1 << 9;
+	/// <summary>Collision layers that block actors: world, walls, props and walking terrain.</summary>
+	public const uint BlockingLayers = 19 | WalkingTerrainLayer;
 
 	public static SolidOutline FromShape(Shape3D shape, Transform3D transform)
 	{

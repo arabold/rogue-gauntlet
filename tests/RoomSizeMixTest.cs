@@ -42,6 +42,7 @@ public class RoomSizeMixTest
 	public void CompactCryptKeepsItsSarcophagiAndCandles()
 	{
 		var type = TestFactories.Load<RoomType>("res://scenes/levels/rooms/room_types/crypt.tres");
+		var candles = type.Steps.Single(step => step.Id == "candles").Content.OfType<Prop>().ToHashSet();
 		foreach (ulong seed in new ulong[] { 1, 3, 64, 310, 424272928054322227 })
 		{
 			var blueprint = RoomAssembler.Build(type, seed, new RoomAssemblyOptions { Realm = "garrison" });
@@ -49,7 +50,7 @@ public class RoomSizeMixTest
 			{
 				AssertBool(blueprint.IsAcceptable).OverrideFailureMessage($"crypt seed {seed}").IsTrue();
 				AssertInt(blueprint.Pieces.Count(piece => piece.Prop.Id is "sarcophagus" or "sarcophagus_robbed")).IsGreaterEqual(1);
-				AssertInt(blueprint.Pieces.Count(piece => piece.Prop.Id is "candle_pile" or "candelabra" or "brazier")).IsGreaterEqual(2);
+				AssertInt(blueprint.Pieces.Count(piece => candles.Contains(piece.Prop))).IsGreaterEqual(2);
 			}
 			finally { blueprint.Room.Free(); }
 		}

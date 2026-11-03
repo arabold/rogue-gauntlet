@@ -513,7 +513,7 @@ public class RoomAssemblyTest
 		return standable == 0 ? 0 : 1 - reachable / (float)standable;
 	}
 
-	/// <summary>Blocking props may touch but never interpenetrate beyond the placement tolerance.</summary>
+	/// <summary>Blocking props may touch; envelope overlap is allowed only over pits, where railing turns overhang water.</summary>
 	private static string Overlaps(RoomBlueprint blueprint)
 	{
 		var solids = blueprint.Pieces.Where(piece => piece.Prop.Blocking).ToArray();
@@ -523,8 +523,16 @@ public class RoomAssemblyTest
 			var x = solids[a].Envelope;
 			var y = solids[b].Envelope;
 			bool vertical = x.Position.Y < y.End.Y - .01f && x.End.Y > y.Position.Y + .01f;
-			if (vertical && RoomBlueprint.XZ(x).Grow(-.03f).Intersects(RoomBlueprint.XZ(y).Grow(-.03f)))
-				return $"{solids[a].Prop.Id} and {solids[b].Prop.Id}";
+			if (!vertical) continue;
+			var overlap = RoomBlueprint.XZ(x).Grow(-.03f).Intersection(RoomBlueprint.XZ(y).Grow(-.03f));
+			if (!overlap.HasArea()) continue;
+			float wetArea = blueprint.Pits.Sum(tile =>
+			{
+				var center = RoomBlueprint.XZ(RoomFootprint.TileCenter(tile));
+				var intersection = overlap.Intersection(new Rect2(center - Vector2.One * (Room.TileSize / 2f), Vector2.One * Room.TileSize));
+				return intersection.Size.X * intersection.Size.Y;
+			});
+			if (wetArea < overlap.Size.X * overlap.Size.Y - .001f) return $"{solids[a].Prop.Id} and {solids[b].Prop.Id}";
 		}
 		return "";
 	}
