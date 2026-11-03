@@ -7,7 +7,7 @@
 script = ExtResource("1_FloorMateria")
 Id = "cobble"
 Library = ExtResource("2_FloorMeshLib")
-Small = Dictionary[String, float]({"floor_tile_small": 2.0, "floor_tile_small_decorated": 1.0})
+Small = Dictionary[String, float]({"floor_tile_small": 1.0})
 Wear = Dictionary[String, float]({"floor_tile_small_broken_A": 1.0, "floor_tile_small_broken_B": 1.0})
 WearChance = 0.04
 metadata/_custom_type_script = ExtResource("1_FloorMateria")
