@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroup.cs" id="group"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="member"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/treasury_chest.tres" id="chest"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/chest.tres" id="chest"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/coin_piles.tres" id="coins"]
 
 [sub_resource type="Resource" id="left"]

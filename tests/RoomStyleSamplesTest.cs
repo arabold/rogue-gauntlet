@@ -35,7 +35,7 @@ public class RoomStyleSamplesTest
 				if (name == "treasury")
 				{
 					var chest = nodes.OfType<Chest>().Single();
-					AssertString(chest.LootTable.Profile.ResourcePath).IsEqual("res://scenes/items/loot/loot_treasury_gold.tres");
+					AssertString(chest.LootTable.Profile.ResourcePath).IsEqual("res://scenes/items/loot/drops/chest_common.tres");
 				}
 			}
 			finally
