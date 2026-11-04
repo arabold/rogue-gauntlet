@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=61 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=64 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/LShape.cs" id="2_LShape"]
@@ -33,6 +33,8 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/planks_rotten_floor.tres" id="x_planks_rotten_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth_floor.tres" id="x_earth_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/slimy_walls.tres" id="x_slimy_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_boulders.tres" id="r_rubble_boulders"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_scatter.tres" id="r_rubble_scatter"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/overgrown_walls.tres" id="x_overgrown_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/silted_bricks.tres" id="x_silted_bricks"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/silt_floor.tres" id="x_silt_floor"]
@@ -116,9 +118,19 @@ metadata/_custom_type_script = ExtResource("17_ScatterStep")
 [sub_resource type="Resource" id="ScatterStep_10"]
 script = ExtResource("17_ScatterStep")
 Id = "debris"
-Content = [ExtResource("23_floor_debris"), ExtResource("30_bone_pile")]
+Content = [ExtResource("23_floor_debris"), ExtResource("30_bone_pile"), ExtResource("r_rubble_scatter")]
 MaximumCount = 4
 WallChance = 0.0
+metadata/_custom_type_script = ExtResource("17_ScatterStep")
+
+[sub_resource type="Resource" id="ScatterStep_boulders"]
+script = ExtResource("17_ScatterStep")
+Id = "boulders"
+Realms = PackedStringArray("sewer", "jungle")
+Content = [ExtResource("r_rubble_boulders")]
+MaximumCount = 1
+WallChance = 0.8
+Chance = 0.5
 metadata/_custom_type_script = ExtResource("17_ScatterStep")
 
 [sub_resource type="Resource" id="WallDecorStep_11"]
@@ -177,5 +189,5 @@ Walls = [ExtResource("7_ruined_walls"), ExtResource("8_scaffold_wal"), ExtResour
 Floors = [ExtResource("9_worn_stone"), ExtResource("10_dirt_with_st"), ExtResource("11_drained_ston"), ExtResource("12_dirt_floor"), ExtResource("x_flagstones_ruined_floor"), ExtResource("x_planks_rotten_floor"), ExtResource("x_earth_floor"), ExtResource("x_silted_bricks"), ExtResource("x_silt_floor"), ExtResource("x_overgrown_flagstones")]
 Columns = [SubResource("CenterColumns_6"), SubResource("CornerColumns_7")]
 ColumnChance = 0.5
-Steps = [SubResource("AlongWallsStep_outfalls"), SubResource("ScatterStep_8"), SubResource("ScatterStep_9"), SubResource("ScatterStep_10"), SubResource("ScatterStep_goo"), SubResource("ScatterStep_undergrowth"), SubResource("WallDecorStep_11")]
+Steps = [SubResource("AlongWallsStep_outfalls"), SubResource("ScatterStep_8"), SubResource("ScatterStep_boulders"), SubResource("ScatterStep_9"), SubResource("ScatterStep_10"), SubResource("ScatterStep_goo"), SubResource("ScatterStep_undergrowth"), SubResource("WallDecorStep_11")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

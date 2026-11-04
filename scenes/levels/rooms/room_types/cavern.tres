@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=34 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=35 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -22,6 +22,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/mushrooms.tres" id="p_mushrooms"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/roots_knot.tres" id="p_roots_knot"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/broadleaf.tres" id="p_broadleaf"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_boulders.tres" id="r_rubble_boulders"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
@@ -69,7 +70,7 @@ metadata/_custom_type_script = ExtResource("11_cornercolumns")
 [sub_resource type="Resource" id="ScatterStep_7"]
 script = ExtResource("13_scatterstep")
 Id = "rockfall"
-Content = [ExtResource("12_rubble")]
+Content = [ExtResource("12_rubble"), ExtResource("r_rubble_boulders")]
 MaximumCount = 3
 WallChance = 0.8
 metadata/_custom_type_script = ExtResource("13_scatterstep")

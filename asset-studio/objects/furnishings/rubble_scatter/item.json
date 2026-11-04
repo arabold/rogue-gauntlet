@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "name": "Rubble Scatter",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "rubble_scatter"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 800,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "materials": {},
+  "export": {
+    "glb": "res://assets/custom-props/ruins/rubble_scatter.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Flat scattered stone chips and small pebbles in KayKit rubble swatch on dungeon_texture.png. Closed components. No gameplay data."
+  }
+}

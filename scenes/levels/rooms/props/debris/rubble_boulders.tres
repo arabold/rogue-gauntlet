@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/ruins/rubble_boulders.glb" id="2_rubble_boulders"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "rubble_boulders"
+Scenes = [ExtResource("2_rubble_boulders")]
+Gap = 0.25
+TurnJitter = 30.0
+ShiftJitter = 0.1
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

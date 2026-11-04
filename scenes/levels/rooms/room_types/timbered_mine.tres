@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=28 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=30 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -21,6 +21,8 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="21_torch"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="23_walldecorstep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/mushrooms.tres" id="p_mushrooms"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_boulders.tres" id="r_rubble_boulders"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_scatter.tres" id="r_rubble_scatter"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
@@ -49,7 +51,7 @@ metadata/_custom_type_script = ExtResource("14_alongwallsstep")
 [sub_resource type="Resource" id="ScatterStep_4"]
 script = ExtResource("20_scatterstep")
 Id = "tools"
-Content = [ExtResource("15_bucket"), ExtResource("16_sack"), ExtResource("17_crate"), ExtResource("18_fallen_beam"), ExtResource("19_rubble"), ExtResource("p_mushrooms")]
+Content = [ExtResource("15_bucket"), ExtResource("16_sack"), ExtResource("17_crate"), ExtResource("18_fallen_beam"), ExtResource("19_rubble"), ExtResource("r_rubble_boulders"), ExtResource("r_rubble_scatter"), ExtResource("p_mushrooms")]
 MaximumCount = 4
 WallChance = 0.7
 metadata/_custom_type_script = ExtResource("20_scatterstep")

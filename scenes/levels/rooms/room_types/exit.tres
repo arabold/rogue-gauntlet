@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=37 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=41 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -27,6 +27,8 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/bricks_floor.tres" id="x_bricks_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth_floor.tres" id="x_earth_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/cave_floor.tres" id="x_cave_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_scatter.tres" id="r_rubble_scatter"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_boulders.tres" id="r_rubble_boulders"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -68,12 +70,33 @@ MaximumCount = 1
 Sunken = true
 metadata/_custom_type_script = ExtResource("13_StairsStep")
 
-[sub_resource type="Resource" id="ScatterStep_6"]
+[sub_resource type="Resource" id="ScatterStep_scatter"]
+script = ExtResource("15_ScatterStep")
+Id = "scatter"
+Realms = PackedStringArray("garrison", "sewer", "jungle")
+Content = [ExtResource("r_rubble_scatter")]
+MaximumCount = 2
+WallChance = 0.4
+Chance = 0.6
+metadata/_custom_type_script = ExtResource("15_ScatterStep")
+
+[sub_resource type="Resource" id="ScatterStep_rubble"]
 script = ExtResource("15_ScatterStep")
 Id = "rubble"
+Realms = PackedStringArray("sewer", "jungle")
 Content = [ExtResource("16_rubble")]
 MaximumCount = 2
-WallChance = 0.6
+WallChance = 0.7
+Chance = 0.6
+metadata/_custom_type_script = ExtResource("15_ScatterStep")
+
+[sub_resource type="Resource" id="ScatterStep_boulders"]
+script = ExtResource("15_ScatterStep")
+Id = "boulders"
+Realms = PackedStringArray("jungle")
+Content = [ExtResource("r_rubble_boulders")]
+MaximumCount = 1
+WallChance = 0.8
 Chance = 0.5
 metadata/_custom_type_script = ExtResource("15_ScatterStep")
 
@@ -111,5 +134,5 @@ MinDoorways = 1
 MaxDoorways = 2
 Walls = [ExtResource("5_stone_walls"), ExtResource("6_ruined_walls"), ExtResource("7_pillared_wal"), ExtResource("x_slimy_walls"), ExtResource("x_mossy_walls"), ExtResource("x_cave_walls")]
 Floors = [ExtResource("8_stone_floor"), ExtResource("10_dirt_floor"), ExtResource("12_cobble_floor"), ExtResource("x_flagstones_floor"), ExtResource("x_flagstones_ruined_floor"), ExtResource("x_bricks_floor"), ExtResource("x_earth_floor"), ExtResource("x_cave_floor")]
-Steps = [SubResource("StairsStep_5"), SubResource("ScatterStep_6"), SubResource("ScatterStep_7"), SubResource("WallDecorStep_8"), SubResource("WallDecorStep_9")]
+Steps = [SubResource("StairsStep_5"), SubResource("ScatterStep_scatter"), SubResource("ScatterStep_rubble"), SubResource("ScatterStep_boulders"), SubResource("ScatterStep_7"), SubResource("WallDecorStep_8"), SubResource("WallDecorStep_9")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

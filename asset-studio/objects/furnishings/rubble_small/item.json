@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "name": "Rubble Small",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "rubble_small"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 900,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "materials": {},
+  "export": {
+    "glb": "res://assets/custom-props/ruins/rubble_small.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Small cluster of stone chunks and chips in KayKit rubble swatch on dungeon_texture.png. Closed components. No gameplay data."
+  }
+}

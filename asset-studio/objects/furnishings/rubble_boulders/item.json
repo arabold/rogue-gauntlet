@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "name": "Rubble Boulders",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "rubble_boulders"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 1500,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "materials": {},
+  "export": {
+    "glb": "res://assets/custom-props/ruins/rubble_boulders.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Dramatic multi-boulder rockfall formation with stacked faceted boulders and tumbled stone in KayKit rubble swatch on dungeon_texture.png. Closed components. No gameplay data."
+  }
+}

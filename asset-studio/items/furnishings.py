@@ -736,6 +736,182 @@ def fallen_beam():
     return kit.Piece.merge(beam, grounded(rubble.build(loose=True)))
 
 
+# ---------------------------------------------------------------------------- rubble
+
+def _rubble_rock(center, size, rng, facets=6, top_scale=0.32, bot_scale=0.42, tilt_deg=0, tilt_axis=(1, 0, 0), slot='rock'):
+    """Faceted boulder matching KayKit facet statistics."""
+    sx, sy, sz = size
+    angles = np.sort(rng.uniform(0, 2 * np.pi, facets))
+    radii_x = sx * 0.5 * rng.uniform(0.82, 1.08, facets)
+    radii_z = sz * 0.5 * rng.uniform(0.82, 1.08, facets)
+    ring_y = sy * rng.uniform(-0.10, 0.10, facets)
+    ring = np.column_stack([np.cos(angles) * radii_x, ring_y, np.sin(angles) * radii_z])
+    top_y = sy * 0.5 * rng.uniform(0.88, 1.05)
+    top_n = max(3, facets - 2)
+    top_angles = np.sort(rng.uniform(0, 2 * np.pi, top_n))
+    top_ring = np.column_stack([
+        np.cos(top_angles) * sx * top_scale * rng.uniform(0.75, 1.05),
+        np.full(top_n, top_y),
+        np.sin(top_angles) * sz * top_scale * rng.uniform(0.75, 1.05)
+    ])
+    bot_y = -sy * 0.5 * rng.uniform(0.88, 1.05)
+    bot_n = max(3, facets - 2)
+    bot_angles = np.sort(rng.uniform(0, 2 * np.pi, bot_n))
+    bot_ring = np.column_stack([
+        np.cos(bot_angles) * sx * bot_scale * rng.uniform(0.75, 1.05),
+        np.full(bot_n, bot_y),
+        np.sin(bot_angles) * sz * bot_scale * rng.uniform(0.75, 1.05)
+    ])
+    pts = np.vstack([ring, top_ring, bot_ring])
+    if tilt_deg != 0:
+        pts = pts @ kit.rotation(tilt_axis, tilt_deg).T
+    return kit.hull(pts + np.asarray(center, float), slot)
+
+
+def _rubble_slab(center, size, rng, tilt_deg=15, yaw_deg=0, bevel=0.15, slot='rock'):
+    """Beveled weathered masonry slab."""
+    sx, sy, sz = size
+    b = bevel * min(sx, sy, sz)
+    h = np.array([sx, sy, sz]) / 2
+    pts = []
+    for sx_i in (-1, 1):
+        for sy_i in (-1, 1):
+            for sz_i in (-1, 1):
+                s = np.array([sx_i, sy_i, sz_i], float)
+                for axis in range(3):
+                    p = s * h
+                    for other in range(3):
+                        if other != axis:
+                            p[other] -= s[other] * b
+                    pts.append(p)
+    P = np.array(pts) + rng.normal(0, b * 0.25, (len(pts), 3))
+    if tilt_deg != 0:
+        P = P @ kit.rotation([1, 0, 0], tilt_deg).T
+    if yaw_deg != 0:
+        P = P @ kit.rotation([0, 1, 0], yaw_deg).T
+    return kit.hull(P + np.asarray(center, float), slot)
+
+
+def _rubble_chip(center, size, rng, slot='rock'):
+    """Small flat pebble or stone flake."""
+    sx, sy, sz = size
+    n = rng.integers(5, 8)
+    angles = np.sort(rng.uniform(0, 2 * np.pi, n))
+    rx = sx * 0.5 * rng.uniform(0.75, 1.08, n)
+    rz = sz * 0.5 * rng.uniform(0.75, 1.08, n)
+    ring = np.column_stack([np.cos(angles) * rx, rng.uniform(-0.015, 0.015, n), np.sin(angles) * rz])
+    top = np.array([[rng.uniform(-0.02, 0.02), sy * 0.5, rng.uniform(-0.02, 0.02)]])
+    bot = np.array([[0, -sy * 0.5, 0]])
+    return kit.hull(np.vstack([ring, top, bot]) + np.asarray(center, float), slot)
+
+
+def rubble_scatter():
+    """Flat scattered stone chips and small pebbles; easily passed through by actors."""
+    rng = random('rubble_scatter')
+    chips = []
+    locs = [
+        (-0.28, 0.18, (0.22, 0.06, 0.18)),
+        (-0.15, 0.28, (0.16, 0.05, 0.14)),
+        (0.18, 0.24, (0.20, 0.06, 0.16)),
+        (0.32, 0.14, (0.15, 0.04, 0.12)),
+        (-0.10, -0.25, (0.28, 0.08, 0.24)),
+        (0.12, -0.22, (0.22, 0.06, 0.18)),
+        (0.28, -0.10, (0.17, 0.05, 0.14)),
+        (-0.35, -0.08, (0.16, 0.05, 0.13)),
+        (-0.22, -0.12, (0.20, 0.06, 0.16)),
+        (0.04, 0.02, (0.26, 0.08, 0.22)),
+        (-0.06, 0.10, (0.18, 0.05, 0.15)),
+        (0.38, -0.20, (0.13, 0.04, 0.11)),
+        (-0.32, 0.32, (0.14, 0.04, 0.12)),
+        (0.08, 0.38, (0.15, 0.05, 0.13)),
+        (-0.42, 0.10, (0.13, 0.04, 0.11)),
+    ]
+    for x, z, size in locs:
+        jx = x + rng.uniform(-0.02, 0.02)
+        jz = z + rng.uniform(-0.02, 0.02)
+        chips.append(_rubble_chip((jx, size[1] / 2, jz), size, rng))
+    return grounded(kit.Piece.merge(*chips))
+
+
+def rubble_small():
+    """Small loose cluster of stone chunks and chips; easily passed through by actors."""
+    rng = random('rubble_small')
+    parts = [
+        _rubble_rock((-0.10, 0.11, -0.06), (0.45, 0.24, 0.38), rng, facets=6, tilt_deg=8),
+        _rubble_rock((0.18, 0.09, 0.06), (0.38, 0.20, 0.34), rng, facets=5, tilt_deg=-10),
+        _rubble_rock((-0.02, 0.08, 0.24), (0.34, 0.18, 0.30), rng, facets=5, tilt_deg=12),
+        _rubble_rock((-0.24, 0.07, 0.12), (0.28, 0.15, 0.26), rng, facets=5, tilt_deg=-6),
+        _rubble_chip((-0.42, 0.03, 0.15), (0.18, 0.06, 0.14), rng),
+        _rubble_chip((0.36, 0.03, -0.12), (0.16, 0.05, 0.14), rng),
+        _rubble_chip((-0.18, 0.03, -0.30), (0.20, 0.06, 0.16), rng),
+        _rubble_chip((0.14, 0.03, 0.38), (0.15, 0.05, 0.13), rng),
+        _rubble_chip((0.32, 0.03, 0.25), (0.16, 0.05, 0.13), rng),
+        _rubble_chip((-0.30, 0.03, -0.22), (0.15, 0.05, 0.12), rng),
+    ]
+    return grounded(kit.Piece.merge(*parts))
+
+
+def rubble_medium():
+    """Medium rubble pile with weathered masonry slab and tumbled stone chunks."""
+    rng = random('rubble_medium')
+    parts = [
+        _rubble_slab((-0.12, 0.16, -0.08), (0.65, 0.30, 0.52), rng, tilt_deg=14, yaw_deg=22, bevel=0.15),
+        _rubble_rock((0.20, 0.18, 0.08), (0.54, 0.38, 0.48), rng, facets=6, tilt_deg=-14, tilt_axis=(0, 0, 1)),
+        _rubble_rock((-0.06, 0.13, 0.30), (0.46, 0.28, 0.42), rng, facets=5, tilt_deg=10),
+        _rubble_rock((-0.45, 0.10, 0.08), (0.36, 0.20, 0.32), rng, facets=5),
+        _rubble_rock((0.46, 0.09, -0.16), (0.34, 0.18, 0.30), rng, facets=5),
+        _rubble_rock((0.08, 0.08, -0.38), (0.32, 0.17, 0.28), rng, facets=5),
+        _rubble_chip((0.38, 0.03, 0.35), (0.22, 0.06, 0.18), rng),
+        _rubble_chip((-0.35, 0.03, -0.36), (0.20, 0.06, 0.16), rng),
+        _rubble_chip((-0.44, 0.03, 0.30), (0.18, 0.05, 0.14), rng),
+        _rubble_chip((0.52, 0.03, 0.10), (0.16, 0.05, 0.13), rng),
+    ]
+    return grounded(kit.Piece.merge(*parts))
+
+
+def rubble_large():
+    """Large boulder cluster with a prominent faceted boulder and supporting tumbled rocks."""
+    rng = random('rubble_large')
+    parts = [
+        _rubble_rock((-0.06, 0.45, -0.05), (0.95, 0.90, 0.92), rng, facets=6, tilt_deg=7, tilt_axis=(0, 1, 1), top_scale=0.36),
+        _rubble_slab((0.44, 0.22, -0.08), (0.72, 0.36, 0.58), rng, tilt_deg=-16, yaw_deg=-28, bevel=0.14),
+        _rubble_rock((-0.44, 0.22, 0.30), (0.62, 0.44, 0.54), rng, facets=6, tilt_deg=12),
+        _rubble_rock((0.26, 0.17, 0.38), (0.48, 0.34, 0.44), rng, facets=5, tilt_deg=-10),
+        _rubble_rock((-0.52, 0.16, -0.30), (0.50, 0.32, 0.45), rng, facets=5),
+        _rubble_rock((0.30, 0.15, -0.46), (0.44, 0.30, 0.40), rng, facets=5),
+        _rubble_chip((0.20, 0.42, 0.10), (0.24, 0.10, 0.20), rng),
+        _rubble_chip((-0.70, 0.04, 0.14), (0.26, 0.08, 0.20), rng),
+        _rubble_chip((0.66, 0.04, 0.20), (0.24, 0.07, 0.18), rng),
+        _rubble_chip((0.05, 0.04, 0.65), (0.28, 0.08, 0.22), rng),
+        _rubble_chip((-0.26, 0.04, -0.62), (0.22, 0.06, 0.18), rng),
+        _rubble_chip((0.55, 0.04, -0.38), (0.20, 0.06, 0.16), rng),
+    ]
+    return grounded(kit.Piece.merge(*parts))
+
+
+def rubble_boulders():
+    """Dramatic multi-boulder rockfall formation with stacked faceted boulders and tumbled stone."""
+    rng = random('rubble_boulders')
+    parts = [
+        _rubble_rock((-0.24, 0.52, -0.12), (1.18, 1.05, 1.10), rng, facets=7, tilt_deg=6, top_scale=0.38),
+        _rubble_rock((0.50, 0.44, 0.06), (0.95, 0.88, 0.90), rng, facets=6, tilt_deg=-12, tilt_axis=(1, 0, 1)),
+        _rubble_rock((-0.06, 1.10, -0.06), (0.86, 0.68, 0.82), rng, facets=6, tilt_deg=14, tilt_axis=(1, 0, 0), top_scale=0.34),
+        _rubble_chip((-0.02, 1.48, -0.02), (0.34, 0.12, 0.28), rng),
+        _rubble_slab((0.14, 0.26, 0.54), (0.78, 0.38, 0.62), rng, tilt_deg=20, yaw_deg=-18, bevel=0.15),
+        _rubble_rock((-0.76, 0.26, 0.20), (0.66, 0.50, 0.58), rng, facets=5, tilt_deg=10),
+        _rubble_rock((0.84, 0.22, -0.24), (0.60, 0.42, 0.52), rng, facets=5, tilt_deg=-14),
+        _rubble_rock((-0.16, 0.30, -0.74), (0.72, 0.46, 0.56), rng, facets=5),
+        _rubble_rock((-0.46, 0.13, 0.68), (0.44, 0.26, 0.38), rng, facets=5),
+        _rubble_rock((0.56, 0.13, 0.60), (0.40, 0.24, 0.36), rng, facets=5),
+        _rubble_chip((-0.90, 0.04, -0.14), (0.28, 0.08, 0.22), rng),
+        _rubble_chip((0.94, 0.04, 0.24), (0.25, 0.07, 0.20), rng),
+        _rubble_chip((-0.12, 0.04, 0.94), (0.30, 0.08, 0.24), rng),
+        _rubble_chip((-0.68, 0.04, -0.56), (0.24, 0.07, 0.18), rng),
+        _rubble_chip((0.68, 0.04, -0.52), (0.22, 0.06, 0.18), rng),
+    ]
+    return grounded(kit.Piece.merge(*parts))
+
+
 # ---------------------------------------------------------------------------- crypt
 
 # The chest runs along X with its front to +Z, a little bigger than the pack's bed (1.5 x 3) so the stone
@@ -1079,6 +1255,8 @@ KINDS = {
     'ham': ham, 'bread': bread, 'weapon_rack': weapon_rack, 'training_dummy': training_dummy, 'bunk_bed': bunk_bed,
     'war_map': war_map, 'shackles': shackles, 'straw_pile': straw_pile, 'bucket': bucket, 'bone_pile': bone_pile,
     'fallen_beam': fallen_beam, 'tapestry': tapestry, 'heraldic_shield': heraldic_shield, 'sconce': sconce,
+    'rubble_scatter': rubble_scatter, 'rubble_small': rubble_small, 'rubble_medium': rubble_medium,
+    'rubble_large': rubble_large, 'rubble_boulders': rubble_boulders,
     'sarcophagus': sarcophagus, 'sarcophagus_open': sarcophagus_open, 'valve': valve, 'pipe_outlet': pipe_outlet,
     'pipe_run': pipe_run, 'sluice_gate': sluice_gate, 'goo_barrel': goo_barrel, 'goo_puddle': goo_puddle, **foliage.KINDS,
 }

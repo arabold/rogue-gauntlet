@@ -1,15 +1,15 @@
-[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="Prop" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
-[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="2_DecorationMe"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/ruins/rubble_medium.glb" id="2_rubble_medium"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/ruins/rubble_large.glb" id="3_rubble_large"]
 
 [resource]
 script = ExtResource("1_Prop")
 Id = "rubble"
-Library = ExtResource("2_DecorationMe")
-Items = ["rubble_half"]
+Scenes = [ExtResource("2_rubble_medium"), ExtResource("3_rubble_large")]
 Gap = 0.2
-TurnJitter = 15.0
+TurnJitter = 25.0
 ShiftJitter = 0.1
 Weight = 1.0
 metadata/_custom_type_script = ExtResource("1_Prop")

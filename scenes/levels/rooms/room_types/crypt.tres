@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=43 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=44 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -32,6 +32,7 @@
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="p_CenterStep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/sarcophagus.tres" id="p_sarcophagus"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/sarcophagus_robbed.tres" id="p_sarcophagus_ro"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_scatter.tres" id="r_rubble_scatter"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
@@ -81,7 +82,7 @@ metadata/_custom_type_script = ExtResource("16_alongwallsstep")
 [sub_resource type="Resource" id="ScatterStep_8"]
 script = ExtResource("26_scatterstep")
 Id = "bones"
-Content = [ExtResource("23_bone_pile"), ExtResource("24_floor_debris"), ExtResource("25_vase_broken"), ExtResource("17_candle_pile"), ExtResource("c_candle_arc"), ExtResource("c_candle_stubs"), ExtResource("c_candle_plate"), ExtResource("c_candle_ring")]
+Content = [ExtResource("23_bone_pile"), ExtResource("24_floor_debris"), ExtResource("r_rubble_scatter"), ExtResource("25_vase_broken"), ExtResource("17_candle_pile"), ExtResource("c_candle_arc"), ExtResource("c_candle_stubs"), ExtResource("c_candle_plate"), ExtResource("c_candle_ring")]
 MaximumCount = 6
 WallChance = 0.5
 metadata/_custom_type_script = ExtResource("26_scatterstep")

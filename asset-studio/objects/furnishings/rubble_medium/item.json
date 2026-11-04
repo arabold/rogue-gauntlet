@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "name": "Rubble Medium",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "rubble_medium"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 1000,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "materials": {},
+  "export": {
+    "glb": "res://assets/custom-props/ruins/rubble_medium.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Medium rubble pile with weathered masonry slab and tumbled stone chunks in KayKit rubble swatch on dungeon_texture.png. Closed components. No gameplay data."
+  }
+}
