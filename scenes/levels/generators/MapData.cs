@@ -154,11 +154,11 @@ public class MapData
         }
 
         // Room interior meeting a corridor: sealed unless a connector sanctions it.
-        if (IsRoom(x, y) && IsCorridor(nx, ny))
+        if ((IsRoom(x, y) || IsChasm(x, y)) && IsCorridor(nx, ny))
         {
             return true;
         }
-        if (IsCorridor(x, y) && IsRoom(nx, ny))
+        if (IsCorridor(x, y) && (IsRoom(nx, ny) || IsChasm(nx, ny)))
         {
             return true;
         }

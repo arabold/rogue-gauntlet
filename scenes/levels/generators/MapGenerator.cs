@@ -323,7 +323,7 @@ public partial class MapGenerator : Node3D
 		var tiles = new List<(Vector2I Tile, Vector3I Center)>();
 		for (int x = 0; x < Map.Width; x++)
 		for (int z = 0; z < Map.Height; z++)
-			if (Map.IsWalkable(x, z)) tiles.Add((new Vector2I(x, z), Map.TileToWorld(x, z)));
+			if (Map.IsExplorable(x, z)) tiles.Add((new Vector2I(x, z), Map.TileToWorld(x, z)));
 
 		using var rng = GenerationRandom.Create(Seed, GenerationRandom.Decoration, $"corridor-walls:{GenerationAttempt}");
 		return BoundaryWallBuilder.Build(WallGridMap, tiles, (tile, dx, dz) => NeedsWallToward(tile.X, tile.Y, dx, dz),

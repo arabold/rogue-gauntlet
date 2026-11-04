@@ -363,7 +363,7 @@ public class WallIntegrityTest
 		{
 			for (int z = 0; z < map.Height; z++)
 			{
-				if (!IsWalkable(map, x, z))
+				if (!IsExplorable(map, x, z))
 				{
 					continue;
 				}
@@ -393,9 +393,9 @@ public class WallIntegrityTest
 		return gaps;
 	}
 
-	private static bool IsWalkable(MapData map, int x, int z)
+	private static bool IsExplorable(MapData map, int x, int z)
 	{
-		return map.IsWithinBounds(x, z) && map.IsWalkable(x, z);
+		return map.IsWithinBounds(x, z) && map.IsExplorable(x, z);
 	}
 
 	private static bool NeedsWall(MapData map, int x, int z)
