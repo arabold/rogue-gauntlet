@@ -17,10 +17,10 @@ EnvironmentalLight = NodePath("EnvironmentalLightComponent")
 [node name="Model" parent="." instance=ExtResource("2_model")]
 
 [node name="Flame" parent="." instance=ExtResource("4_flame")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.975, 0.22)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.66, 0.38)
 
 [node name="FlickeringLight" parent="." instance=ExtResource("3_light")]
-transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2.2, 0.4)
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2.7, 0.45)
 light_energy = 0.8
 shadow_enabled = false
 omni_range = 6.0
