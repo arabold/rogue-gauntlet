@@ -147,8 +147,8 @@ public sealed class RoomBlueprint
 		(tile, outward) => !Footprint.IsFloor(tile + outward) && !IsDoorway(tile, outward)).ToArray();
 
 	/// <summary>True when the run's start (or end) meets a perpendicular wall rather than a doorway or open floor.</summary>
-	public bool StartsAtCorner(WallRun run) => !Footprint.IsFloor(run.Start - run.Along);
-	public bool EndsAtCorner(WallRun run) => !Footprint.IsFloor(run.Last + run.Along);
+	public bool StartsAtCorner(WallRun run) => !Footprint.IsFloor(run.Start - run.Along) && !IsDoorway(run.Start, -run.Along);
+	public bool EndsAtCorner(WallRun run) => !Footprint.IsFloor(run.Last + run.Along) && !IsDoorway(run.Last, run.Along);
 
 	public RandomNumberGenerator Random(string key) => GenerationRandom.Create(Seed, GenerationRandom.Arrangements, $"{Type?.Id}:{key}");
 

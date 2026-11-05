@@ -477,6 +477,17 @@ class ItemWorkflowTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "inside"):
             item.destination(data)
 
+    def test_spider_webs_are_closed_manifolds_with_web_slot(self):
+        from items.webs import KINDS as WEB_KINDS
+        for kind, builder in WEB_KINDS.items():
+            with self.subTest(web=kind):
+                piece = builder()
+                self.assertIn("web", piece.slots)
+                topology = solid.inspect(piece.verts, piece.faces)
+                self.assertEqual(topology["boundary_edges"], 0)
+                self.assertEqual(topology["nonmanifold_edges"], 0)
+                self.assertGreater(topology["signed_volume"], 0)
+
     def test_curated_shields_export_with_real_curvature_and_closed_fittings(self):
         from items.shieldcraft import shieldcraft, KINDS, COLORS as SHIELD_COLORS, MATERIALS as SHIELD_MATERIALS
         for kind in KINDS:

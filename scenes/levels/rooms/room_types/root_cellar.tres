@@ -25,6 +25,10 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="24_wall_shelf"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="25_walldecorstep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="26_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_small.tres" id="w_web_corner_s"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_large.tres" id="w_web_corner_l"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_wall_small.tres" id="w_web_wall_s"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_wall_large.tres" id="w_web_wall_l"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
@@ -88,6 +92,25 @@ MinimumSize = Vector2i(2, 2)
 MaximumSize = Vector2i(3, 3)
 metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
+[sub_resource type="Resource" id="CornersStep_webs"]
+script = ExtResource("12_cornersstep")
+Id = "corner_webs"
+Content = [ExtResource("w_web_corner_s"), ExtResource("w_web_corner_l"), ExtResource("w_web_wall_s"), ExtResource("w_web_wall_l")]
+Clearance = 0.2
+Diagonal = true
+MinimumCount = 0
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("12_cornersstep")
+
+[sub_resource type="Resource" id="WallDecorStep_webs"]
+script = ExtResource("25_walldecorstep")
+Id = "wall_webs"
+Content = [ExtResource("w_web_wall_s"), ExtResource("w_web_wall_l")]
+MaximumCount = 1
+Chance = 0.5
+Spacing = 2.5
+metadata/_custom_type_script = ExtResource("25_walldecorstep")
+
 [resource]
 script = ExtResource("2_roomtype")
 Id = "root_cellar"
@@ -100,5 +123,5 @@ MaxDoorways = 2
 DoorChance = 0.4
 Walls = [ExtResource("5_stone_walls"), ExtResource("6_cellar_alcove_wa")]
 Floors = [ExtResource("7_worn_stone"), ExtResource("8_dirt_with_stone"), ExtResource("9_flagstones_earth")]
-Steps = [SubResource("CornersStep_3"), SubResource("AlongWallsStep_4"), SubResource("ScatterStep_5"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7")]
+Steps = [SubResource("CornersStep_3"), SubResource("AlongWallsStep_4"), SubResource("ScatterStep_5"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7"), SubResource("CornersStep_webs"), SubResource("WallDecorStep_webs")]
 metadata/_custom_type_script = ExtResource("2_roomtype")

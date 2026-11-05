@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "name": "Web Wall Large",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "web_wall_large"
+  },
+  "color_mode": "world",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 6000,
+    "materials": 1,
+    "texture_size": 1024
+  },
+  "crease": 40,
+  "materials": {
+    "web": {
+      "crease": 40
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/wall/web_wall_large.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Large trapezoid wall spiderweb at KayKit dungeon scale. Stylized 3D polygonal strands with catenary arcs and nodes. Non-blocking decorative prop."
+  }
+}

@@ -47,6 +47,11 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/broadleaf.tres" id="p_broadleaf"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/roots_surface.tres" id="p_roots_surface"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/mushrooms.tres" id="p_mushrooms"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="c_cornersstep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_small.tres" id="w_web_corner_s"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_large.tres" id="w_web_corner_l"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_wall_small.tres" id="w_web_wall_s"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_wall_large.tres" id="w_web_wall_l"]
 
 [sub_resource type="Resource" id="LShape_1"]
 script = ExtResource("2_LShape")
@@ -175,6 +180,25 @@ MinimumSize = Vector2i(2, 3)
 MaximumSize = Vector2i(3, 3)
 metadata/_custom_type_script = ExtResource("6_RectangleSha")
 
+[sub_resource type="Resource" id="CornersStep_webs"]
+script = ExtResource("c_cornersstep")
+Id = "corner_webs"
+Content = [ExtResource("w_web_corner_s"), ExtResource("w_web_corner_l"), ExtResource("w_web_wall_s"), ExtResource("w_web_wall_l")]
+Clearance = 0.2
+Diagonal = true
+MinimumCount = 0
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("c_cornersstep")
+
+[sub_resource type="Resource" id="WallDecorStep_webs"]
+script = ExtResource("24_WallDecorSte")
+Id = "wall_webs"
+Content = [ExtResource("w_web_wall_s"), ExtResource("w_web_wall_l")]
+MaximumCount = 2
+Chance = 0.6
+Spacing = 2.5
+metadata/_custom_type_script = ExtResource("24_WallDecorSte")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "ruins"
@@ -189,5 +213,5 @@ Walls = [ExtResource("7_ruined_walls"), ExtResource("8_scaffold_wal"), ExtResour
 Floors = [ExtResource("9_worn_stone"), ExtResource("10_dirt_with_st"), ExtResource("11_drained_ston"), ExtResource("12_dirt_floor"), ExtResource("x_flagstones_ruined_floor"), ExtResource("x_planks_rotten_floor"), ExtResource("x_earth_floor"), ExtResource("x_silted_bricks"), ExtResource("x_silt_floor"), ExtResource("x_overgrown_flagstones")]
 Columns = [SubResource("CenterColumns_6"), SubResource("CornerColumns_7")]
 ColumnChance = 0.5
-Steps = [SubResource("AlongWallsStep_outfalls"), SubResource("ScatterStep_8"), SubResource("ScatterStep_boulders"), SubResource("ScatterStep_9"), SubResource("ScatterStep_10"), SubResource("ScatterStep_goo"), SubResource("ScatterStep_undergrowth"), SubResource("WallDecorStep_11")]
+Steps = [SubResource("AlongWallsStep_outfalls"), SubResource("ScatterStep_8"), SubResource("ScatterStep_boulders"), SubResource("ScatterStep_9"), SubResource("ScatterStep_10"), SubResource("ScatterStep_goo"), SubResource("ScatterStep_undergrowth"), SubResource("WallDecorStep_11"), SubResource("CornersStep_webs"), SubResource("WallDecorStep_webs")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

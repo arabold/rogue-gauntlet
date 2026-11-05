@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=44 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=50 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -33,6 +33,10 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/sarcophagus.tres" id="p_sarcophagus"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/sarcophagus_robbed.tres" id="p_sarcophagus_ro"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_scatter.tres" id="r_rubble_scatter"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_small.tres" id="w_web_corner_s"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_large.tres" id="w_web_corner_l"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_wall_small.tres" id="w_web_wall_s"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_wall_large.tres" id="w_web_wall_l"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
@@ -118,6 +122,25 @@ MinimumSize = Vector2i(3, 3)
 MaximumSize = Vector2i(3, 3)
 metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
+[sub_resource type="Resource" id="CornersStep_webs"]
+script = ExtResource("20_cornersstep")
+Id = "corner_webs"
+Content = [ExtResource("w_web_corner_s"), ExtResource("w_web_corner_l"), ExtResource("w_web_wall_s"), ExtResource("w_web_wall_l")]
+Clearance = 0.2
+Diagonal = true
+MinimumCount = 0
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("20_cornersstep")
+
+[sub_resource type="Resource" id="WallDecorStep_webs"]
+script = ExtResource("29_walldecorstep")
+Id = "wall_webs"
+Content = [ExtResource("w_web_wall_s"), ExtResource("w_web_wall_l")]
+MaximumCount = 2
+Chance = 0.7
+Spacing = 2.5
+metadata/_custom_type_script = ExtResource("29_walldecorstep")
+
 [resource]
 script = ExtResource("2_roomtype")
 Id = "crypt"
@@ -130,5 +153,5 @@ MaxDoorways = 2
 DoorChance = 0.5
 Walls = [ExtResource("5_crypt_walls")]
 Floors = [ExtResource("6_flagstones_floor"), ExtResource("7_flagstones_ruine"), ExtResource("8_checker_floor"), ExtResource("9_stone_floor")]
-Steps = [SubResource("CenterStep_sarcophagi"), SubResource("CornersStep_6"), SubResource("AlongWallsStep_5"), SubResource("AlongWallsStep_7"), SubResource("ScatterStep_8"), SubResource("WallDecorStep_9"), SubResource("WallDecorStep_10")]
+Steps = [SubResource("CenterStep_sarcophagi"), SubResource("CornersStep_6"), SubResource("AlongWallsStep_5"), SubResource("AlongWallsStep_7"), SubResource("ScatterStep_8"), SubResource("WallDecorStep_9"), SubResource("WallDecorStep_10"), SubResource("CornersStep_webs"), SubResource("WallDecorStep_webs")]
 metadata/_custom_type_script = ExtResource("2_roomtype")
