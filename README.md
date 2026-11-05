@@ -2,7 +2,7 @@
 
 **Rogue Gauntlet** (working title) is an open-source 3D dungeon crawler built with **Godot 4** and **C#**.
 
-[![Watch Gameplay Reel](docs/video-poster.png)](https://vimeo.com/1243971404/55a25e2821)
+https://github.com/user-attachments/assets/9e1bdc7e-e2ca-4c5b-8c15-7ea728996856
 
 The project brings the spirit of classic dungeon crawlers like *Rogue* and *Gauntlet* into a modern 3D game with approachable, easy-to-pick-up mechanics and rich environments. It is not aiming for AAA scope or cinematic bloat. The focus is on the core roguelike loop:
 - Finding loot and identifying unknown equipment
