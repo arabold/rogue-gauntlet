@@ -197,7 +197,27 @@ public partial class RoomGenerationHarness : Node3D
 				ClearRoom();
 				Generator.Seed = Seed;
 				Generator.GenerateMap(false);
-				FramePreview(Mathf.Max(Generator.MapWidth, Generator.MapDepth) * Room.TileSize + 12);
+				var usedCells = Generator.FloorGridMap.GetUsedCells();
+				if (usedCells.Count > 0)
+				{
+					int minX = int.MaxValue, maxX = int.MinValue;
+					int minZ = int.MaxValue, maxZ = int.MinValue;
+					foreach (var cell in usedCells)
+					{
+						if (cell.X < minX) minX = cell.X;
+						if (cell.X > maxX) maxX = cell.X;
+						if (cell.Z < minZ) minZ = cell.Z;
+						if (cell.Z > maxZ) maxZ = cell.Z;
+					}
+					var center = new Vector3((minX + maxX) * 0.5f, 0, (minZ + maxZ) * 0.5f);
+					float width = maxX - minX + Room.TileSize;
+					float depth = maxZ - minZ + Room.TileSize;
+					FramePreviewAt(center, Mathf.Max(width, depth) + 4);
+				}
+				else
+				{
+					FramePreview(Mathf.Max(Generator.MapWidth, Generator.MapDepth) * Room.TileSize + 12);
+				}
 				Status.Text = $"{Realm.Id.Capitalize()} floor · depth {Generator.DungeonDepth} · Seed {Seed} · {Generator.Floor.Rooms.Count} rooms";
 			}
 		}
@@ -328,16 +348,18 @@ public partial class RoomGenerationHarness : Node3D
 		PreviewRoom = null;
 	}
 
-	private void FramePreview(float extent)
+	private void FramePreview(float extent) => FramePreviewAt(Vector3.Zero, extent);
+
+	private void FramePreviewAt(Vector3 center, float extent)
 	{
 		var viewport = GetViewport().GetVisibleRect().Size;
 		float aspect = Mathf.Max(1, viewport.X) / Mathf.Max(1, viewport.Y);
 		float panelFraction = Mathf.Clamp((Controls.GetCombinedMinimumSize().X + 56) / Mathf.Max(1, viewport.X), 0, .75f);
 		float height = Mathf.Max(extent, extent / (aspect * (1 - panelFraction)));
-		float centerX = -height * aspect * panelFraction / 2;
+		float targetX = center.X - height * aspect * panelFraction / 2;
 		PreviewCamera.Size = height;
-		PreviewCamera.Position = new(centerX, height * 1.3f, height * .6f);
-		PreviewCamera.LookAt(new Vector3(centerX, 0, 0));
+		PreviewCamera.Position = new(targetX, center.Y + height * 1.3f, center.Z + height * .6f);
+		PreviewCamera.LookAt(new Vector3(targetX, center.Y, center.Z));
 	}
 
 	public override void _UnhandledKeyInput(InputEvent input)

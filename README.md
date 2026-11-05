@@ -1,107 +1,171 @@
 # ⚔️ Rogue Gauntlet
 
-Rogue Gauntlet is a roguelike game built with C# in the Godot game engine. The game is inspired by classic roguelikes such as NetHack as well as Gauntlet, a classic arcade game.
+**Rogue Gauntlet** is an open-source 3D dungeon crawler built with **Godot 4** and **C#**.
 
-Currently, this project is in the early stages of development. A playable prototype includes dungeon generation, combat, inventory, equipment, consumables, and saving; the complete-run goals and later systems are still in development. The game is being developed as a learning project to improve my skills with C# and the Godot game engine. It is also a fun way to explore game development and design.
+The project brings the spirit of classic dungeon crawlers like *Rogue* and *Gauntlet* into a modern 3D game with approachable, easy-to-pick-up mechanics and rich environments. It is not aiming for AAA scope or cinematic bloat. The focus is on the core roguelike loop:
+- Finding loot and identifying unknown equipment
+- Managing scarce resources (health, mana, food, keys, inventory space)
+- Slaying monsters in real-time tactical combat
+- Descending deeper into procedural dungeon floors
+- Repeating runs with lessons learned
 
-## Game Design & Development Plan
+As a solo developer handling gameplay code, engine architecture, and 3D art, this project is heavily AI-assisted—both in code development and through a custom procedural asset pipeline.
 
-The [Game Design Document](docs/game-design.md) describes the intended experience, core gameplay loop, dungeon progression, items, shops, and open design decisions. The [Development Roadmap](docs/development-roadmap.md) organizes that vision into playable milestones with acceptance criteria. Both are living documents; planned features are distinguished from existing foundations.
-
-[Dungeon Layout, Access, and Discovery](docs/dungeon-exploration-design.md) defines intended room selection, route obligations, locks, boss seals, and generated secrets; its separate [implementation plan](docs/specs/level-progression-prototype-plan.md) describes remaining work. The [documentation index](docs/README.md) separates concepts, current implemented systems, proposed implementation plans, and content references. Start with [Randomness and Seeds](docs/randomness-and-seeds.md) for the existing seeded-generation and persistence design.
-
-[Actor actions and world interactions](docs/actor-actions-and-interactions.md) defines player/monster actions, keyboard/gamepad primary/secondary actions, spell wands/staves and mana, four item quick slots, timed world interaction and active defense.
-
-[Monster design and authoring](docs/monster-authoring-design.md) defines the agreed first-three-floor roster, editable Godot assemblies and basic tactical strategies; the [roadmap](docs/development-roadmap.md#first-three-floor-acceptance) covers authoring acceptance and first-realm tuning. Later realm order remains provisional.
-
-[Combat actions and defense](docs/combat-system.md) describes the implemented shared action gate, dodge, guard/parry and stagger. Run the [combat harness](docs/combat-harness.md) to exercise attacks and defenses interactively or capture a seeded JSONL scenario for automated analysis.
-
-Run [`scenes/debug/items/item_lifecycle_harness.tscn`](scenes/debug/items/item_lifecycle_harness.tscn) with F6 in Godot to try item creation, food, equipment, stack operations, and backpack limits. Definitions, creation policy, seed, depth, and quantity are editable in its Inspector. See the [item ownership](docs/stats-and-itemization.md#item-ownership-food-and-persistence) for contracts and save/travel acceptance, and the [gameplay item catalog](docs/item-catalog.md) for active content and deferred mechanics.
+---
 
 ## Screenshots
 
-![In-Game Screenshot](./docs/in-game.png)
-![Room Editor](./docs/room.png)
-![Map Editor](./docs/map.png)
+![In-Game Gameplay](./docs/in-game.png)
+![Inventory & Equipment](./docs/inventory.png)
+![Room Generation Tool](./docs/room.png)
+![Floor Layout Pipeline](./docs/map.png)
 
-## How To Run
+---
 
-To run the game, you will need to have the Godot Engine with .NET installed. You can download the engine from the [Godot website](https://godotengine.org/).
+## Project Status
 
-Once you have the engine installed, you can open the project by selecting the `project.godot` file in the root directory of the project and run the default scene.
+The game is in active development, and the first few dungeon floors are fully playable.
 
-## Camera Controls
+- **Currently playable:** Procedural room and corridor generation, real-time melee and magic combat (attacks, guard/parry, dodge), inventory, equipment, consumable food/potions/scrolls, item identification, fog of war, and delta save/load.
+- **Still needed:** Gameplay balancing, expanding the monster roster and AI tactics, additional dungeon themes/biomes, and more 3D assets.
 
-Hold `,` / `.` to rotate and `'` / `/` to zoom in / out. Rotation and zoom work together while the camera stays centered on the player. Zoom smoothly adjusts the orthographic view from 10 to 32 world units (starting at 20). Floating interaction prompts, names, messages, and enemy health bars keep their default screen size throughout the zoom range.
+The repository is ready to clone, build, and run today.
 
-## Getting Started with Development
+---
 
-Interested in contributing or understanding the codebase? Here's a quick guide:
+## Visual Style & Custom Asset Pipeline
+
+Rogue Gauntlet uses the low-poly, chunky stylized aesthetic popularized by **Kay Lousberg** in the [KayKit](https://kaykit.nl/) asset packs.
+
+![Asset Studio Showcase](docs/asset-studio-showcase.png)
+
+### Why a custom asset pipeline?
+KayKit provides great free starter assets, but extended packs and specific items are paid or Patreon-exclusive. Because this is an open-source project under a permissive license, commercial and Patreon-gated assets cannot be committed to the repository.
+
+To solve this as a solo developer, I built **[Asset Studio](asset-studio/README.md)**: a custom, AI-assisted asset pipeline using Python and Blender. It takes structured recipes and concept prompts to procedurally generate original 3D models (characters, monsters, weapons, armor, shields, and dungeon props) that fit KayKit's proportions, bevels, and palette gradients.
+
+> [!TIP]
+> ### Support Kay Lousberg on Patreon
+> If you like this art style or use these assets in your own projects, consider becoming a patron of [Kay Lousberg on Patreon](https://www.patreon.com/kaylousberg) or purchasing packs on [itch.io](https://kaylousberg.itch.io/).
+
+---
+
+## Project Architecture & Godot Best Practices
+
+This project is intended for learning best practices in Godot 4 and C# as much as it is to create a playable game. It provides a real-world reference for structuring a medium-sized C# codebase in Godot without monolithic node hierarchies or entangled dependencies.
+
+### Repository Structure
+
+```
+rogue-gauntlet/
+├── scenes/             # Godot scenes (.tscn), .tres resources, and component scripts
+│   ├── actors/         # Player and enemy scene compositions
+│   ├── attacks/        # Attack definitions, animation profiles, and hitboxes
+│   ├── items/          # Item definitions, drop presets, and grip transforms
+│   ├── levels/         # Level generation, room types, assembly steps, and dungeon tiles
+│   └── ui/             # HUD, inventory, menus, and screen overlays
+├── scripts/            # Core engine singletons (GameSession, SignalBus, ScenePool)
+├── common/             # Shared C# infrastructure, ObservableResource, interfaces, codecs
+├── asset-studio/       # Python + Blender procedural 3D modeling pipeline
+├── assets/             # Game-ready 3D models (.glb), textures, audio, and materials
+├── docs/               # Game design document, roadmap, specs, and system guides
+└── tests/              # GdUnit4 automated test suites (unit tests & runtime tests)
+```
+
+### Core Architecture Patterns
+
+1. **Composition over Inheritance:** Actors (`Player`, `EnemyBase`) are thin facades composed of modular `[GlobalClass]` Node components (`HealthComponent`, `MovementComponent`, `HurtBoxComponent`, `ActionGate`, `InventoryController`).
+2. **Strategy Pattern via Godot Resources:** Behaviors that vary—such as room assembly rules, lock mechanisms, enemy tactics, and consumable effects—are authored as stateless `[GlobalClass] Resource` strategies (`.tres`). Authored definitions remain immutable; runtime state is explicitly cloned on spawn.
+3. **Editor-First `[Export]` Authoring:** Tunable attributes, actor states, and node/resource dependencies are exposed as `[Export]` properties with reactive setters (`if (!IsNodeReady()) return;`), making systems inspectable and editable in the Godot Inspector.
+4. **Three-Tier Notification Model:**
+   - **Local component signals (`[Signal]`):** Parent-child and sibling communication within an actor scene.
+   - **Observable Resources (`ObservableResource`):** Mutated runtime resources emit `Resource.Changed` for data binding.
+   - **Decoupled Cross-System Broadcasts (`SignalBus`):** Global events (room transitions, combat XP, loot discoveries) route through a central event bus, subscribed via `this.SubscribeUntilExit(...)` to prevent dangling handlers.
+5. **Seeded Determinism & Delta Persistence:** Untouched dungeon levels generate deterministically from the run seed and isolated RNG streams. Saved games persist only player state and floor deviations (opened doors, looted items, discovered fog of war), keeping save files lean.
+
+See **[ARCHITECTURE.md](./ARCHITECTURE.md)** for detailed system diagrams and engine interaction details.
+
+---
+
+## Getting Started
 
 ### Prerequisites
+- **[Godot Engine 4.x (.NET edition)](https://godotengine.org/):** Ensure you download the .NET-enabled version of Godot.
+- **[.NET SDK (9.0 or later)](https://dotnet.microsoft.com/download):** Required for building C# solutions.
+- **IDE:** Visual Studio Code (with C# Dev Kit), JetBrains Rider, or Visual Studio.
 
-- **Godot Engine (v4.x with .NET support):** Download from the [Godot website](https://godotengine.org/). Ensure you select the .NET version.
-- **C# IDE:** A compatible IDE like Visual Studio Code (with C# extensions), JetBrains Rider, or Visual Studio is recommended for editing C# scripts.
+### Building & Running
 
-### Building the Project
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/andrerabold/rogue-gauntlet.git
+   cd rogue-gauntlet
+   ```
+2. **Build the C# solution:**
+   ```bash
+   dotnet build "Rogue Gauntlet.sln"
+   ```
+3. **Open and Run:**
+   - Launch Godot, import `project.godot`, and press **F5** to play the main menu scene (`res://scenes/menu/main_menu.tscn`).
+   - Or open `res://scenes/main/main.tscn` directly with **F6** to jump straight into dungeon generation and gameplay.
 
-Godot typically handles C# compilation automatically when you run the project from the editor. If you need to build manually (e.g., for CI/CD or checking for errors), you can usually run `dotnet build` in the project's root directory from your terminal.
+### Running Tests
+Tests use **GdUnit4** and run against a real headless Godot runtime:
+```bash
+export GODOT_BIN="/Applications/Godot_mono.app/Contents/MacOS/Godot" # Adjust to your local Godot binary path
+dotnet test "Rogue Gauntlet.csproj" --settings .runsettings
+```
 
-### Key Concepts & Structure
+---
 
-The project follows a few core principles:
+## Controls
 
-- **Composition, Strategy & Factory:** Actors and props are built by composing `[GlobalClass]` child `Node` components, varying behavior via `[GlobalClass] Resource` strategies, and cloning runtime state from immutable `.tres`/`.tscn` definitions.
-- **Editor-First `[Export]` Authoring:** Tunable attributes, actor states, and `Node`/`Resource` dependencies are exposed as `[Export]` `{ get; set; }` properties with reactive setters so they can be configured directly in the Godot Inspector and Remote Scene Tree.
-- **Three-Tier Notification Model:** `[Signal]` delegates for local component events, `ObservableResource` (`Changed`) for observed runtime resources, and `SignalBus` (with `SubscribeUntilExit`) for decoupled cross-system broadcasts.
+The game is playable with keyboard or gamepad:
 
-Key directories include:
+| Action | Keyboard | Gamepad |
+| :--- | :--- | :--- |
+| **Move** | `W` / `A` / `S` / `D` or Arrow Keys | Left Stick |
+| **Primary Action** (Basic Attack / Wand Volley) | `J` | Right Trigger (`RT`) |
+| **Secondary Action** (Heavy Technique / Bound Spell) | `K` | Right Bumper (`RB`) |
+| **Guard & Parry** | `L` (hold to guard) | Left Trigger (`LT`) |
+| **Dodge** | `Space` | `B` Button / East Button |
+| **Interact** (Doors, Chests, Shrines) | `E` (hold to interact) | `A` Button / South Button |
+| **Item Quick Slots 1–4** | `1`, `2`, `3`, `4` | `LB` + Face Buttons |
+| **Rotate Camera** | `,` / `.` | Right Stick (X-Axis) |
+| **Zoom Camera** | `'` / `/` | Right Stick (Y-Axis) |
 
-- `/scenes`: Contains Godot scene files (`.tscn`), `.tres` resources, and feature-grouped C# component scripts.
-- `/scripts` & `/common`: Hold core C# infrastructure (`SignalBus`, `GameSession`, `ScenePool`, `ObservableResource`), interfaces, and save codecs.
-- `/tests`: Contains GdUnit4 C# test suites (`dotnet test "Rogue Gauntlet.csproj" --settings .runsettings`).
-- `/assets`: Stores art, sound, models, etc.
-- `/asset-studio`: Authoring tools and recipes for characters, monsters, and standalone 3D items. See the [Asset Studio guide](asset-studio/README.md) for AI references, Blender authoring, previews, and export. Gameplay definitions are authored separately.
+---
 
-For a detailed explanation of the architecture, core systems, design patterns, and a full directory breakdown, please refer to the **[ARCHITECTURE.md](./ARCHITECTURE.md)** file.
+## Documentation & Learning Resources
 
-### Basic Workflow
+Explore the design and technical documentation in the [`docs/`](docs/) directory:
 
-A typical workflow for adding a new feature might involve:
+- **[ARCHITECTURE.md](./ARCHITECTURE.md):** Architectural principles, component diagrams, and coding standards.
+- **[Game Design Document](docs/game-design.md):** Vision, core mechanics, and gameplay systems.
+- **[Development Roadmap](docs/development-roadmap.md):** Milestone targets, deliverables, and acceptance criteria.
+- **[Level Generation & Design](docs/level-design.md):** Room assembly, doorway-driven connectivity, navigation baking, and fog of war.
+- **[Combat System](docs/combat-system.md):** Action gating, contact timing, hurtboxes, poise, and parry mechanics.
+- **[Stats & Itemization](docs/stats-and-itemization.md):** Equipment tiers, modifiers, item identification, and persistence.
+- **[Asset Studio Guide](asset-studio/README.md):** Setup and workflow for the Blender/Python procedural 3D asset generator.
+- **[Documentation Index](docs/README.md):** Full catalog of technical specs, harness guides, and design docs.
 
-1.  Creating or modifying scenes and `.tres` resources in `/scenes`.
-2.  Writing or updating `[GlobalClass]` C# component or strategy scripts with `[Export]` properties.
-3.  Connecting local components via `[Signal]` delegates, runtime resources via `ObservableResource`, and cross-system listeners via `SignalBus`.
-4.  Verifying compilation (`dotnet build "Rogue Gauntlet.sln"`) and running GdUnit4 tests or editor smoke checks.
-
-### Coding Conventions
-
-Please adhere to the coding style defined in the `.editorconfig` file. Refer to [`AGENTS.md`](./AGENTS.md), the [`godot-csharp` skill](./.agents/skills/godot-csharp/SKILL.md), and the contribution guidelines in **[ARCHITECTURE.md](./ARCHITECTURE.md)** for project-specific Godot 4.7 C# rules.
-
-## Architecture
-
-See the [ARCHITECTURE.md](./ARCHITECTURE.md) file for an overview of the project structure and architecture.
-
-## Requests and Suggestions
-
-### Features
-
-If you have a feature request, please open an issue with the `feature` label.
-
-### Suggestions
-
-If you have a suggestion for the game, open an issue with the `suggestion` label.
+---
 
 ## Contributing
 
-Contributions are welcome! Before submitting changes, please:
+Contributions, ideas, bug reports, and discussions are welcome! Areas of interest include:
+- Balancing combat and tuning progression
+- Designing new dungeon room types or trap mechanics
+- Expanding monster AI tactical behaviors
+- Improving 3D assets or procedural shader effects
+- Writing tests or refining C# architecture patterns
 
-1.  Review the **[Getting Started with Development](#getting-started-with-development)** section above.
-2.  Familiarize yourself with the project structure outlined in **[ARCHITECTURE.md](./ARCHITECTURE.md)**.
-3.  Open an issue to discuss significant changes or submit a pull request for improvements.
+Feel free to open an issue or submit a pull request. Check out the [Getting Started](#getting-started) section and [ARCHITECTURE.md](./ARCHITECTURE.md) before submitting major code changes.
 
-Give a ⭐️ if you like this project!
+Give a ⭐️ on GitHub if you find the project interesting or helpful for your own Godot journey!
+
+---
 
 ## License
 
-Rogue Gauntlet is distributed under the Apache 2.0 license with Commons Clause. It is free to use for personal or commercial projects, but you may not resell the software as-is without substantial modifications. See [LICENSE](LICENSE) for details.
+Rogue Gauntlet is distributed under the **Apache 2.0 license with Commons Clause**. It is free to use, modify, and study for personal or commercial projects, but you may not resell the software as-is without substantial modifications. See [LICENSE](LICENSE) for full details.
