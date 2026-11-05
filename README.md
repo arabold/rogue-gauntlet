@@ -1,6 +1,8 @@
 # ⚔️ Rogue Gauntlet
 
-**Rogue Gauntlet** is an open-source 3D dungeon crawler built with **Godot 4** and **C#**.
+**Rogue Gauntlet** (working title) is an open-source 3D dungeon crawler built with **Godot 4** and **C#**.
+
+[![Watch Gameplay Reel](docs/video-poster.png)](https://vimeo.com/1243971404/55a25e2821)
 
 The project brings the spirit of classic dungeon crawlers like *Rogue* and *Gauntlet* into a modern 3D game with approachable, easy-to-pick-up mechanics and rich environments. It is not aiming for AAA scope or cinematic bloat. The focus is on the core roguelike loop:
 - Finding loot and identifying unknown equipment
@@ -13,12 +15,26 @@ As a solo developer handling gameplay code, engine architecture, and 3D art, thi
 
 ---
 
-## Screenshots
+## Procedural Level & Room Generation
 
-![In-Game Gameplay](./docs/in-game.png)
-![Inventory & Equipment](./docs/inventory.png)
-![Room Generation Tool](./docs/room.png)
-![Floor Layout Pipeline](./docs/map.png)
+Dungeons are generated procedurally at runtime. Individual rooms and full floor layouts are constructed algorithmically across configurable architectural themes.
+
+### Dynamic Room Assembly
+Rooms are assembled using modular strategies instead of fixed prefabs:
+- **Room Architecture:** Geometry is generated from parameterized footprints (rectangles, L-shapes, T-junctions, cross layouts) with dynamic columns, arches, and doorway sockets.
+- **Furnishing & Prop Placement:** Props and furnishings (tables, containers, light sources, obstacles) are placed based on authored room types (e.g., library, armory, crypt, laboratory).
+- **Walkability Validation:** Circulation paths and collision bounds are checked during assembly to guarantee clear paths between doorways, stairs, and interactive objects.
+
+![Procedural Room Generation](./docs/room.png)
+
+### Floor Layout & Progression
+The floor generator places rooms, connects them with corridors, and handles progression dependencies:
+- **Architectural Themes (Realms):** Depth ranges are mapped to distinct realm definitions that specify corridor tile sets, wall meshes, and eligible room pools (e.g., garrison stone, sewer brickwork, or overgrown ruins).
+- **Layout & Corridors:** Rooms are packed relative to entrance and exit stairs, then connected by corridors that automatically resolve wall junctions, corners, and doorway frames.
+- **Lock & Key Gating:** Validated lock-and-key pairs (prison doors, gates, chests) control access to ensure each generated floor is solvable.
+- **Navigation & Spawns:** A 3D navigation mesh is baked at runtime across the merged floor geometry for enemy pathfinding, followed by threat-budgeted monster and loot placement.
+
+![Procedural Floor Layout Pipeline](./docs/map.png)
 
 ---
 
@@ -26,6 +42,7 @@ As a solo developer handling gameplay code, engine architecture, and 3D art, thi
 
 The game is in active development, and the first few dungeon floors are fully playable.
 
+- **Working title:** *"Rogue Gauntlet"* is an unfinished working title and subject to change as the game's identity evolves.
 - **Currently playable:** Procedural room and corridor generation, real-time melee and magic combat (attacks, guard/parry, dodge), inventory, equipment, consumable food/potions/scrolls, item identification, fog of war, and delta save/load.
 - **Still needed:** Gameplay balancing, expanding the monster roster and AI tactics, additional dungeon themes/biomes, and more 3D assets.
 
