@@ -14,6 +14,11 @@ public partial class InputComponent : Node
 	/// </summary>
 	[Export] public bool DeviceEnabled { get; set; } = true;
 
+	/// <summary>
+	/// Speed multiplier applied when holding the walk modifier key (Shift).
+	/// </summary>
+	[Export(PropertyHint.Range, "0.1,0.9,0.05")] public float WalkSpeedFactor { get; set; } = 0.4f;
+
 	public bool IsMoving()
 	{
 		return InputDirection != Vector3.Zero;
@@ -24,6 +29,7 @@ public partial class InputComponent : Node
 	private static readonly StringName ActionInteract = "interact";
 	private static readonly StringName ActionDodge = "dodge";
 	private static readonly StringName ActionGuard = "guard";
+	private static readonly StringName ActionWalk = "walk";
 	private static readonly StringName ActionMoveRight = "move_right";
 	private static readonly StringName ActionMoveLeft = "move_left";
 	private static readonly StringName ActionMoveUp = "move_up";
@@ -110,30 +116,25 @@ public partial class InputComponent : Node
 		if (camera == null) return;
 		Vector3 cameraForward = camera.GlobalTransform.Basis.Z;
 		Vector3 cameraRight = camera.GlobalTransform.Basis.X;
+		cameraForward.Y = 0;
+		cameraRight.Y = 0;
+		if (cameraForward.LengthSquared() > 0.0001f) cameraForward = cameraForward.Normalized();
+		if (cameraRight.LengthSquared() > 0.0001f) cameraRight = cameraRight.Normalized();
+
+		Vector2 raw = Input.GetVector(ActionMoveLeft, ActionMoveRight, ActionMoveUp, ActionMoveDown);
 		var direction = Vector3.Zero;
 
-		// We check for each move input and update the direction accordingly.
-		if (Input.IsActionPressed(ActionMoveRight))
+		if (raw != Vector2.Zero)
 		{
-			direction += cameraRight;
-		}
-		if (Input.IsActionPressed(ActionMoveLeft))
-		{
-			direction -= cameraRight;
-		}
-		if (Input.IsActionPressed(ActionMoveUp))
-		{
-			direction -= cameraForward;
-		}
-		if (Input.IsActionPressed(ActionMoveDown))
-		{
-			direction += cameraForward;
-		}
+			float magnitude = Mathf.Clamp(raw.Length(), 0f, 1f);
+			direction = (cameraRight * raw.X + cameraForward * raw.Y).Normalized() * magnitude;
 
-		if (direction != Vector3.Zero)
-		{
-			direction.Y = 0;
-			direction = direction.Normalized();
+			// Keyboard / digital walk modifier: holding Shift (or "walk" action) caps max speed to a walk pace (~40%)
+			bool isWalkModifier = Input.IsActionPressed(ActionWalk) || Input.IsKeyPressed(Key.Shift);
+			if (isWalkModifier && direction.Length() > WalkSpeedFactor)
+			{
+				direction = direction.Normalized() * WalkSpeedFactor;
+			}
 		}
 
 		InputDirection = direction;

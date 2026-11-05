@@ -6,10 +6,10 @@
 [resource]
 script = ExtResource("1_dodge")
 AnimationProfile = ExtResource("animation")
-Distance = 2.4
+Distance = 6.0
 TravelDuration = 0.15
 ImmunityEnd = 0.15
-RecoveryDuration = 0.02
+RecoveryDuration = 0.05
 CooldownDuration = 0.25
 MaxCharges = 2
 ChargeRechargeDuration = 1.2

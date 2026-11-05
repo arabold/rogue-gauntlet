@@ -14,6 +14,18 @@ public partial class MovementComponent : Node
 	/// </summary>
 	[Export] public float Speed { get; set; } = 3.0f;
 	/// <summary>
+	/// Horizontal acceleration rate in meters/second^2 when starting or changing direction.
+	/// </summary>
+	[Export(PropertyHint.Range, "10,200,1")] public float Acceleration { get; set; } = 50.0f;
+	/// <summary>
+	/// Horizontal deceleration rate in meters/second^2 when input ceases (braking friction).
+	/// </summary>
+	[Export(PropertyHint.Range, "10,300,1")] public float Deceleration { get; set; } = 90.0f;
+	/// <summary>
+	/// When false, velocity jumps directly to target speed (instantaneous step-function).
+	/// </summary>
+	[Export] public bool UseAcceleration { get; set; } = true;
+	/// <summary>
 	/// Rotation speed
 	/// </summary>
 	[Export] public float RotationSpeed { get; set; } = 20.0f;
@@ -66,7 +78,9 @@ public partial class MovementComponent : Node
 
 	[Export] public ActorActionGateComponent ActionGate { get; set; }
 
-	public Vector3 LocomotionDirection => _hasOverrideVelocity ? _overrideDirection : TargetDirection;
+	public Vector3 LocomotionDirection => _hasOverrideVelocity
+		? _overrideDirection
+		: (TargetDirection != Vector3.Zero ? TargetDirection.Normalized() : Vector3.Zero);
 	public float LocomotionSpeed => (_hasOverrideVelocity ? _overrideSpeed : Speed * _speedMultiplier) * _statusSpeedFactor;
 	public float StatusSpeedFactor => _statusSpeedFactor;
 	/// <summary>Apply a source-owned status multiplier independently of attack locomotion overrides.</summary>
@@ -109,6 +123,8 @@ public partial class MovementComponent : Node
 			_hasOverrideVelocity = false;
 			_speedMultiplier = 1.0f;
 			_fixedFacing = null;
+			Velocity = new Vector3(0, Velocity.Y, 0);
+			if (GodotObject.IsInstanceValid(Actor)) Actor.Velocity = Velocity;
 		}
 	}
 
@@ -146,8 +162,9 @@ public partial class MovementComponent : Node
 
 	public void SetInputDirection(Vector3 inputDirection)
 	{
-		// Set target direction based on input direction
-		TargetDirection = inputDirection.Normalized();
+		// Preserve analog stick deflection (clamped to max length 1.0)
+		float len = inputDirection.Length();
+		TargetDirection = len > 1.0f ? inputDirection.Normalized() : inputDirection;
 	}
 
 	public void SetLookAtDirection(Vector3 lookAtDirection)
@@ -228,7 +245,7 @@ public partial class MovementComponent : Node
 
 	private void UpdateVelocity(double delta)
 	{
-		Vector3 velocity;
+		Vector3 velocity = Vector3.Zero;
 
 		// Apply horizontal velocity
 		if (ActionGate?.Disabled == true || (ActionGate?.IsStatusLocked == true && !_forcePushWhileLocked))
@@ -245,11 +262,7 @@ public partial class MovementComponent : Node
 			_pushStrength -= Speed * (float)delta; // Decrease push strength over time
 			if (_pushStrength <= 0.1f) _forcePushWhileLocked = false;
 		}
-		else if (ActionGate?.IsStatusLocked == true)
-		{
-			velocity = Vector3.Zero;
-		}
-		else if (ActionGate?.IsStaggered == true)
+		else if (ActionGate?.IsStatusLocked == true || ActionGate?.IsStaggered == true)
 		{
 			velocity = Vector3.Zero;
 		}
@@ -257,23 +270,31 @@ public partial class MovementComponent : Node
 		{
 			velocity = _overrideDirection * (_overrideSpeed * _statusSpeedFactor);
 		}
-		else if (TargetDirection != Vector3.Zero && ActionGate?.AllowsLocomotion != false)
+		else if (ActionGate?.AllowsLocomotion == false)
 		{
-			// General movement
-			velocity = TargetDirection * (Speed * _speedMultiplier * _statusSpeedFactor);
+			velocity = Vector3.Zero;
 		}
 		else
 		{
-			// Stop moving if no input
-			velocity = Vector3.Zero;
+			Vector3 desiredHorizontal = TargetDirection * (Speed * _speedMultiplier * _statusSpeedFactor);
+
+			if (!UseAcceleration)
+			{
+				velocity = desiredHorizontal;
+			}
+			else
+			{
+				velocity.X = ApproachHorizontal(Velocity.X, desiredHorizontal.X, (float)delta);
+				velocity.Z = ApproachHorizontal(Velocity.Z, desiredHorizontal.Z, (float)delta);
+			}
 		}
 
 		// Apply vertical velocity
 		velocity.Y += Velocity.Y;
 		var isOnStairs = StairsTrigger?.stairs > 0;
-		if (Actor.IsOnFloor())
+		if (Gravity <= 0 || Actor.IsOnFloor())
 		{
-			// Reset vertical velocity when on the floor
+			// Reset vertical velocity when on the floor or when gravity is disabled
 			velocity.Y = 0;
 
 			// Check if we're on stairs
@@ -296,6 +317,17 @@ public partial class MovementComponent : Node
 		}
 
 		Velocity = velocity;
+	}
+
+	private float ApproachHorizontal(float current, float target, float delta)
+	{
+		if (target == 0)
+		{
+			return Mathf.MoveToward(current, 0, Deceleration * delta);
+		}
+		// If reversing direction on this axis, brake with Deceleration first
+		float rate = (current != 0 && Mathf.Sign(current) != Mathf.Sign(target)) ? Deceleration : Acceleration;
+		return Mathf.MoveToward(current, target, rate * delta);
 	}
 
 	private void SmoothRotateToward(double delta)

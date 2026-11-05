@@ -124,8 +124,28 @@ animation = &"Idle"
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_8nu1q"]
 animation = &"Use_Item"
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_5dfu0"]
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_walk_clip"]
 animation = &"Walking_B"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_run_clip"]
+animation = &"Running_A"
+
+[sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_walk_run"]
+sync = true
+
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_walk_ts"]
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_walk"]
+nodes/Walk/node = SubResource("AnimationNodeAnimation_walk_clip")
+nodes/Walk/position = Vector2(-160, -60)
+nodes/Run/node = SubResource("AnimationNodeAnimation_run_clip")
+nodes/Run/position = Vector2(-160, 80)
+nodes/Blend2/node = SubResource("AnimationNodeBlend2_walk_run")
+nodes/Blend2/position = Vector2(40, 0)
+nodes/TimeScale/node = SubResource("AnimationNodeTimeScale_walk_ts")
+nodes/TimeScale/position = Vector2(200, 0)
+nodes/output/position = Vector2(360, 0)
+node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"Blend2", &"Blend2", 0, &"Walk", &"Blend2", 1, &"Run"]
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_5p13e"]
 xfade_time = 0.3
@@ -212,7 +232,7 @@ states/Idle/position = Vector2(709.323, 110.165)
 states/Start/position = Vector2(321.828, 104.605)
 "states/Use Item/node" = SubResource("AnimationNodeAnimation_8nu1q")
 "states/Use Item/position" = Vector2(895.157, 323.531)
-states/Walking/node = SubResource("AnimationNodeAnimation_5dfu0")
+states/Walking/node = SubResource("AnimationNodeBlendTree_walk")
 states/Walking/position = Vector2(709.334, 414.077)
 transitions = ["Idle", "Walking", SubResource("AnimationNodeStateMachineTransition_5p13e"), "Walking", "Idle", SubResource("AnimationNodeStateMachineTransition_a2x46"), "Idle", "Hit", SubResource("AnimationNodeStateMachineTransition_1rbd1"), "Walking", "Hit", SubResource("AnimationNodeStateMachineTransition_walk_hit"), "Hit", "Idle", SubResource("AnimationNodeStateMachineTransition_h4auy"), "Idle", "Dying", SubResource("AnimationNodeStateMachineTransition_dqlug"), "Walking", "Dying", SubResource("AnimationNodeStateMachineTransition_walk_dying"), "Hit", "Dying", SubResource("AnimationNodeStateMachineTransition_hit_dying"), "Dying", "Dead", SubResource("AnimationNodeStateMachineTransition_33ov3"), "Start", "Idle", SubResource("AnimationNodeStateMachineTransition_1r4ca"), "Idle", "Use Item", SubResource("AnimationNodeStateMachineTransition_83vkb"), "Use Item", "Idle", SubResource("AnimationNodeStateMachineTransition_fya0a"), "Walking", "Use Item", SubResource("AnimationNodeStateMachineTransition_walk_use"), "Use Item", "Walking", SubResource("AnimationNodeStateMachineTransition_use_walk"), "Idle", "Falling", SubResource("AnimationNodeStateMachineTransition_lhye1"), "Falling", "Idle", SubResource("AnimationNodeStateMachineTransition_35rvo")]
 graph_offset = Vector2(216.424, -286.722)
@@ -398,7 +418,7 @@ layers = 4
 [node name="NormalLighting" type="Node3D" parent="Pivot" unique_id=1847077433]
 
 [node name="FlickeringLight" parent="Pivot/NormalLighting" unique_id=974580749 instance=ExtResource("3_3qxnv")]
-transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 1)
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 2)
 shadow_caster_mask = 4294966527
 omni_range = 25.0
 omni_attenuation = 0.25
@@ -416,7 +436,7 @@ omni_attenuation = 0.0
 visible = false
 
 [node name="FlickeringLight" parent="Pivot/DarkLighting" unique_id=1439019186 instance=ExtResource("3_3qxnv")]
-transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 1)
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 2)
 shadow_caster_mask = 4294966527
 omni_range = 6.0
 omni_attenuation = 1.8
@@ -546,7 +566,7 @@ DefaultProjectileScene = ExtResource("19_projectile")
 
 [node name="MovementComponent" parent="." unique_id=956342266 node_paths=PackedStringArray("Actor", "StairsTrigger", "ActionGate") instance=ExtResource("7_7mjdt")]
 Actor = NodePath("..")
-Speed = 14.0
+Speed = 7.5
 StairsTrigger = NodePath("../StairsTrigger")
 ActionGate = NodePath("../ActorActionGateComponent")
 

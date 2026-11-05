@@ -89,8 +89,18 @@ animation = &"Spawn_Ground_Skeletons"
 [sub_resource type="AnimationNodeAnimation" id="m_AnimationNodeAnimation_stcgl"]
 animation = &"Lie_StandUp"
 
-[sub_resource type="AnimationNodeAnimation" id="m_AnimationNodeAnimation_34u5q"]
-animation = &"Walking_D_Skeletons"
+[sub_resource type="AnimationNodeAnimation" id="m_AnimationNodeAnimation_walk_anim"]
+animation = &"Running_A"
+
+[sub_resource type="AnimationNodeTimeScale" id="m_AnimationNodeTimeScale_walk_ts"]
+
+[sub_resource type="AnimationNodeBlendTree" id="m_AnimationNodeBlendTree_walk"]
+nodes/Animation/node = SubResource("m_AnimationNodeAnimation_walk_anim")
+nodes/Animation/position = Vector2(0, 0)
+nodes/TimeScale/node = SubResource("m_AnimationNodeTimeScale_walk_ts")
+nodes/TimeScale/position = Vector2(160, 0)
+nodes/output/position = Vector2(320, 0)
+node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"Animation"]
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="m_AnimationNodeStateMachineTransition_t6uxn"]
 xfade_time = 0.3
@@ -192,7 +202,7 @@ states/Spawn/position = Vector2(44.2281, 96.4024)
 states/StandUp/node = SubResource("m_AnimationNodeAnimation_stcgl")
 states/StandUp/position = Vector2(475.608, -71.7213)
 states/Start/position = Vector2(44, -71.5416)
-states/Walking/node = SubResource("m_AnimationNodeAnimation_34u5q")
+states/Walking/node = SubResource("m_AnimationNodeBlendTree_walk")
 states/Walking/position = Vector2(275.742, 419.298)
 transitions = ["Idle", "Walking", SubResource("m_AnimationNodeStateMachineTransition_t6uxn"), "Walking", "Idle", SubResource("m_AnimationNodeStateMachineTransition_d2noq"), "Idle", "Lie", SubResource("m_AnimationNodeStateMachineTransition_ahwo5"), "Lie", "StandUp", SubResource("m_AnimationNodeStateMachineTransition_jneow"), "StandUp", "Idle", SubResource("m_AnimationNodeStateMachineTransition_3ftaq"), "Idle", "Dying", SubResource("m_AnimationNodeStateMachineTransition_551pq"), "Dying", "Dead", SubResource("m_AnimationNodeStateMachineTransition_gyync"), "Walking", "Dying", SubResource("m_AnimationNodeStateMachineTransition_7hibw"), "Walking", "Hit", SubResource("m_AnimationNodeStateMachineTransition_o4lkd"), "Start", "Lie", SubResource("m_AnimationNodeStateMachineTransition_bnfo4"), "Start", "Spawn", SubResource("m_AnimationNodeStateMachineTransition_kf5fr"), "Spawn", "Idle", SubResource("m_AnimationNodeStateMachineTransition_gclll"), "Walking", "Falling", SubResource("m_AnimationNodeStateMachineTransition_jplsx"), "Idle", "Falling", SubResource("m_AnimationNodeStateMachineTransition_viqtb"), "Falling", "Idle", SubResource("m_AnimationNodeStateMachineTransition_aab00"), "Idle", "Hit", SubResource("m_AnimationNodeStateMachineTransition_lwwi4"), "Hit", "Idle", SubResource("m_AnimationNodeStateMachineTransition_m1eid"), "Hit", "Dying", SubResource("m_AnimationNodeStateMachineTransition_5cn5g")]
 graph_offset = Vector2(-0.209959, 273.549)

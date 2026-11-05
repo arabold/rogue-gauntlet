@@ -78,6 +78,10 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 	[Export] private Node3D CharacterModelNode { get; set; }
 	[Export] private AnimationTree AnimationTree { get; set; }
 	[Export] private BoneAttachmentManager AttachmentManager { get; set; }
+	/// <summary>Natural ground speed of the locomotion animation in m/s used to scale animation playback speed with physical movement.</summary>
+	[Export] public float NaturalLocomotionSpeed { get; set; } = 2.7f;
+	private static readonly StringName WalkingTimeScaleParam = "parameters/Walking/TimeScale/scale";
+	private static readonly StringName WalkingBlendParam = "parameters/Walking/Blend2/blend_amount";
 	private AnimationNodeStateMachinePlayback _animationStateMachine;
 	private bool _hasRuntimeState;
 	private Level _level;
@@ -154,6 +158,7 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 
 		_animationStateMachine = (AnimationNodeStateMachinePlayback)AnimationTree.Get("parameters/playback");
 		_animationStateMachine.Start("Idle");
+		ConfigureLocomotionLoops();
 
 		// A player outside a level (previews, harnesses) plays the default run.
 		AttackController.ConfigureRandom(GenerationRandom.DeriveSeed(_level?.Run.RunSeed ?? RunState.DefaultSeed, "combat.attack", "player"));
@@ -251,5 +256,50 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 	public void SpecialAttack()
 	{
 		AttackController.PerformSpecialAttack();
+	}
+
+	public override void _PhysicsProcess(double delta)
+	{
+		base._PhysicsProcess(delta);
+		UpdateLocomotionAnimationScale();
+	}
+
+	private void UpdateLocomotionAnimationScale()
+	{
+		if (AnimationTree == null || MovementComponent == null || NaturalLocomotionSpeed <= 0f) return;
+
+		Vector3 vel = MovementComponent.Velocity;
+		float horizSpeed = new Vector2(vel.X, vel.Z).Length();
+
+		// Blend 0.0 = Walking_B (natural speed ~1.5 m/s), 1.0 = Running_A (natural speed ~2.7 m/s)
+		// Smoothly transition between 1.5 m/s and 5.5 m/s
+		float blend = Mathf.Clamp((horizSpeed - 1.5f) / 4.0f, 0.0f, 1.0f);
+		AnimationTree.Set(WalkingBlendParam, blend);
+
+		float naturalSpeed = Mathf.Lerp(1.5f, NaturalLocomotionSpeed, blend);
+		float scale = horizSpeed > 0.05f
+			? horizSpeed / naturalSpeed
+			: 1.0f;
+		AnimationTree.Set(WalkingTimeScaleParam, scale);
+	}
+
+	private void ConfigureLocomotionLoops()
+	{
+		if (AnimationTree == null) return;
+		AnimationPlayer animPlayer = AnimationTree.GetNodeOrNull<AnimationPlayer>(AnimationTree.AnimPlayer);
+		if (animPlayer == null) return;
+
+		foreach (StringName animName in animPlayer.GetAnimationList())
+		{
+			string nameStr = animName.ToString();
+			if (nameStr.StartsWith("Running") || nameStr.StartsWith("Walking") || nameStr.StartsWith("Run") || nameStr.StartsWith("Walk"))
+			{
+				Animation anim = animPlayer.GetAnimation(animName);
+				if (anim != null && anim.LoopMode == Animation.LoopModeEnum.None)
+				{
+					anim.LoopMode = Animation.LoopModeEnum.Linear;
+				}
+			}
+		}
 	}
 }

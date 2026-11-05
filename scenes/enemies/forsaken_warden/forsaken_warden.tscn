@@ -21,8 +21,18 @@
 
 [sub_resource type="AnimationNodeAnimation" id="anim_idle"]
 animation = &"Idle_A"
-[sub_resource type="AnimationNodeAnimation" id="anim_walk"]
-animation = &"Walking_A"
+[sub_resource type="AnimationNodeAnimation" id="anim_walk_clip"]
+animation = &"Running_A"
+
+[sub_resource type="AnimationNodeTimeScale" id="anim_walk_ts"]
+
+[sub_resource type="AnimationNodeBlendTree" id="anim_walk"]
+nodes/Animation/node = SubResource("anim_walk_clip")
+nodes/Animation/position = Vector2(0, 0)
+nodes/TimeScale/node = SubResource("anim_walk_ts")
+nodes/TimeScale/position = Vector2(160, 0)
+nodes/output/position = Vector2(320, 0)
+node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"Animation"]
 [sub_resource type="AnimationNodeAnimation" id="anim_hit"]
 animation = &"Hit_A"
 [sub_resource type="AnimationNodeAnimation" id="anim_dying"]

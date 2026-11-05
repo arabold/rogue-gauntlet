@@ -119,7 +119,7 @@ public partial class PlayerStats : ObservableResource
 	[ExportGroup("Base stats")]
 	// Base secondary stats, before attribute derivation or modifiers. BaseMaxHealth is
 	// intentionally low because Vitality supplies the rest (10 Vitality * 5 = +50 -> 100).
-	[Export] public float BaseSpeed { get; set => SetValue(ref field, value); } = 10;
+	[Export] public float BaseSpeed { get; set => SetValue(ref field, value); } = 7.5f;
 	[Export] public float BaseMaxHealth { get; set => SetValue(ref field, value); } = 50;
 	// Intelligence supplies most of the pool (Mage 16 * 5 = +80 -> 100).
 	[Export] public float BaseMaxMana { get; set => SetValue(ref field, value); } = 20;

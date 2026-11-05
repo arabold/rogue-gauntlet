@@ -24,7 +24,54 @@ public static class CharacterModel
 		var model = characterClass.CharacterScene.Instantiate<Node3D>();
 		ApplyRenderLayers(model, renderLayers);
 		StripBuiltInProps(model, characterClass);
+		ConfigureAnimationLoops(model);
 		return model;
+	}
+
+	/// <summary>
+	/// Ensures locomotion animations (such as Running_A, Walking_*, etc.) have their loop mode
+	/// set to Linear so they loop seamlessly when played.
+	/// </summary>
+	public static void ConfigureAnimationLoops(Node modelRoot)
+	{
+		AnimationPlayer animPlayer = FindAnimationPlayer(modelRoot);
+		if (animPlayer == null)
+		{
+			return;
+		}
+
+		foreach (StringName animName in animPlayer.GetAnimationList())
+		{
+			string nameStr = animName.ToString();
+			if (nameStr.StartsWith("Running") || nameStr.StartsWith("Walking") || nameStr.StartsWith("Run") || nameStr.StartsWith("Walk"))
+			{
+				Animation anim = animPlayer.GetAnimation(animName);
+				if (anim != null && anim.LoopMode == Animation.LoopModeEnum.None)
+				{
+					anim.LoopMode = Animation.LoopModeEnum.Linear;
+				}
+			}
+		}
+	}
+
+	/// <summary>Depth-first search for the model's AnimationPlayer.</summary>
+	public static AnimationPlayer FindAnimationPlayer(Node root)
+	{
+		if (root is AnimationPlayer ap)
+		{
+			return ap;
+		}
+
+		foreach (Node child in root.GetChildren())
+		{
+			AnimationPlayer found = FindAnimationPlayer(child);
+			if (found != null)
+			{
+				return found;
+			}
+		}
+
+		return null;
 	}
 
 	/// <summary>Depth-first search for the model's Skeleton3D.</summary>
