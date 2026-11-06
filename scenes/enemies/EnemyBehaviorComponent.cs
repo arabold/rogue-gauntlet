@@ -76,10 +76,6 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 				? EnemyBehaviorState.Chasing : EnemyBehaviorState.Idle);
 		}
 	}
-	[Export] public AnimationTree AnimationTree { get; set; }
-	/// <summary>Natural ground speed of the locomotion animation in m/s used to scale animation playback speed with physical movement.</summary>
-	[Export] public float NaturalLocomotionSpeed { get; set; } = 2.7f;
-	private static readonly StringName WalkingTimeScaleParam = "parameters/Walking/TimeScale/scale";
 
 	public EnemyBehaviorState CurrentBehavior => _machine?.CurrentId ?? EnemyBehaviorState.Idle;
 	public EnemyAction CurrentAction { get; private set; } = EnemyAction.Spawning;
@@ -119,8 +115,6 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 
 		_profile = Profile ?? new EnemyBehaviorProfile();
 		CurrentAction = _profile.InitialAction;
-		AnimationTree ??= GetNodeOrNull<AnimationTree>("AnimationTree");
-		ConfigureLocomotionLoops();
 
 		// SightRay and NavigationAgent3D stay authored as direct children of this component so
 		// inherited enemy scenes are not disturbed; the perception and navigation components drive
@@ -168,82 +162,43 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 
 	public override void _PhysicsProcess(double delta)
 	{
-		try
+		if (_context == null) return;
+		_context.TickThrottles(delta);
+		SyncEngagedSlots();
+		var gate = (Actor as EnemyBase)?.ActionGate;
+		if (gate?.Disabled == true || (gate?.IsBusy == true && !IsAttacking))
 		{
-			if (_context == null) return;
-			_context.TickThrottles(delta);
-			SyncEngagedSlots();
-			var gate = (Actor as EnemyBase)?.ActionGate;
-			if (gate?.Disabled == true || (gate?.IsBusy == true && !IsAttacking))
+			MovementComponent.Stop();
+			_navigation.ResetStuckTracking();
+			return;
+		}
+
+		// Action layer: timed actions (spawn, stand up, hit, attack, death) interrupt the behavior
+		// layer. While one is active the body holds still and the state machine does not tick; when it
+		// expires control returns to the machine.
+		if (CurrentAction != EnemyAction.None)
+		{
+			MovementComponent.Stop();
+			_navigation.ResetStuckTracking();
+
+			// Track the target through the wind-up (movement rotation is off while stopped), no faster than
+			// the attack's authored turn rate, then hold the committed facing. An early facing lock plus a
+			// capped turn lets a target sidestep a committed swing.
+			if (IsAttacking && Target != null && GodotObject.IsInstanceValid(Target))
 			{
-				MovementComponent.Stop();
-				_navigation.ResetStuckTracking();
-				return;
+				if (_attackController.HasCommittedFacing) MovementComponent.FaceDirection(_attackController.CommittedFacing);
+				else MovementComponent.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition,
+					_attackController.CurrentAttack?.WindUpTurnRate ?? 0);
 			}
 
-			// Action layer: timed actions (spawn, stand up, hit, attack, death) interrupt the behavior
-			// layer. While one is active the body holds still and the state machine does not tick; when it
-			// expires control returns to the machine.
-			if (CurrentAction != EnemyAction.None)
+			if (IsAttacking ? !_attackController.IsAttacking : _actionCooldown.Tick(delta))
 			{
-				MovementComponent.Stop();
-				_navigation.ResetStuckTracking();
-
-				// Track the target through the wind-up (movement rotation is off while stopped), no faster than
-				// the attack's authored turn rate, then hold the committed facing. An early facing lock plus a
-				// capped turn lets a target sidestep a committed swing.
-				if (IsAttacking && Target != null && GodotObject.IsInstanceValid(Target))
-				{
-					if (_attackController.HasCommittedFacing) MovementComponent.FaceDirection(_attackController.CommittedFacing);
-					else MovementComponent.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition,
-						_attackController.CurrentAttack?.WindUpTurnRate ?? 0);
-				}
-
-				if (IsAttacking ? !_attackController.IsAttacking : _actionCooldown.Tick(delta))
-				{
-					SetAction(EnemyAction.None);
-				}
-			}
-			else if (AIEnabled)
-			{
-				_machine.Tick(delta);
+				SetAction(EnemyAction.None);
 			}
 		}
-		finally
+		else if (AIEnabled)
 		{
-			UpdateLocomotionAnimationScale();
-		}
-	}
-
-	private void UpdateLocomotionAnimationScale()
-	{
-		if (AnimationTree == null || MovementComponent == null || NaturalLocomotionSpeed <= 0f) return;
-
-		Vector3 vel = MovementComponent.Velocity;
-		float horizSpeed = new Vector2(vel.X, vel.Z).Length();
-		float scale = horizSpeed > 0.05f
-			? horizSpeed / NaturalLocomotionSpeed
-			: 1.0f;
-		AnimationTree.Set(WalkingTimeScaleParam, scale);
-	}
-
-	private void ConfigureLocomotionLoops()
-	{
-		if (AnimationTree == null) return;
-		AnimationPlayer animPlayer = AnimationTree.GetNodeOrNull<AnimationPlayer>(AnimationTree.AnimPlayer);
-		if (animPlayer == null) return;
-
-		foreach (StringName animName in animPlayer.GetAnimationList())
-		{
-			string nameStr = animName.ToString();
-			if (nameStr.StartsWith("Running") || nameStr.StartsWith("Walking") || nameStr.StartsWith("Run") || nameStr.StartsWith("Walk"))
-			{
-				Animation anim = animPlayer.GetAnimation(animName);
-				if (anim != null && anim.LoopMode == Animation.LoopModeEnum.None)
-				{
-					anim.LoopMode = Animation.LoopModeEnum.Linear;
-				}
-			}
+			_machine.Tick(delta);
 		}
 	}
 

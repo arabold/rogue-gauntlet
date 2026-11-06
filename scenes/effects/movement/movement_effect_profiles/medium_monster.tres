@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="MovementEffectProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/movement/MovementEffectProfile.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+RunEnterSpeed = 2.5
+RunExitSpeed = 2.0
+StopMinimumSpeed = 2.0
+RunPuffCount = 1
+StopPuffCount = 4
+DashPuffCount = 6

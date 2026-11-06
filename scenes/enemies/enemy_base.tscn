@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3 uid="uid://cvvu87irfmqm1"]
+[gd_scene load_steps=38 format=3 uid="uid://cvvu87irfmqm1"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/burning_status.tscn" id="burning_status_scene"]
 
@@ -27,6 +27,8 @@
 [ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_vulnerability.tres" id="vulnerability"]
 [ext_resource type="Script" path="res://scenes/components/DamageNumbersComponent.cs" id="damage_numbers"]
 [ext_resource type="PackedScene" path="res://scenes/components/damage_number.tscn" id="damage_number"]
+[ext_resource type="PackedScene" path="res://scenes/components/movement_effects_component.tscn" id="movement_effects"]
+[ext_resource type="Resource" path="res://scenes/effects/movement/movement_effect_profiles/medium_monster.tres" id="movement_profile"]
 
 [ext_resource type="Script" path="res://scenes/player/BuffController.cs" id="status_controller"]
 [ext_resource type="Script" path="res://scenes/components/FrozenStatusComponent.cs" id="frozen_driver"]
@@ -193,3 +195,8 @@ HurtBox = NodePath("../HurtBoxComponent")
 NumberScene = ExtResource("damage_number")
 Anchor = NodePath("../Nameplate/FloatingHealthBar")
 Invisibility = NodePath("../InvisibilityComponent")
+
+[node name="MovementEffectsComponent" parent="." node_paths=PackedStringArray("Movement", "Effects") instance=ExtResource("movement_effects")]
+Movement = NodePath("../MovementComponent")
+Effects = NodePath("../WorldEffects")
+Profile = ExtResource("movement_profile")

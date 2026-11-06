@@ -1,4 +1,4 @@
-[gd_scene load_steps=70 format=3]
+[gd_scene load_steps=73 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/components/burning_status.tscn" id="burning_status_scene"]
 
@@ -72,6 +72,10 @@
 [ext_resource type="PackedScene" path="res://scenes/components/editor_status_preview.tscn" id="editor_status_preview"]
 [ext_resource type="PackedScene" path="res://scenes/components/nameplate.tscn" id="nameplate"]
 [ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="stagger_animation"]
+
+[ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]
+[ext_resource type="PackedScene" path="res://scenes/components/movement_effects_component.tscn" id="movement_effects"]
+[ext_resource type="Resource" path="res://scenes/effects/movement/movement_effect_profiles/medium_monster.tres" id="movement_profile"]
 
 [sub_resource type="AnimationNodeAnimation" id="m_AnimationNodeAnimation_idauc"]
 animation = &"Death_A_Pose"
@@ -529,3 +533,11 @@ Effects = NodePath("../WorldEffects")
 Statuses = NodePath("../BuffController")
 Health = NodePath("../HealthComponent")
 Effects = NodePath("../WorldEffects")
+[node name="LocomotionAnimationComponent" parent="." node_paths=PackedStringArray("Movement", "AnimationTree") instance=ExtResource("locomotion_animation")]
+Movement = NodePath("../MovementComponent")
+AnimationTree = NodePath("../EnemyBehaviorComponent/AnimationTree")
+
+[node name="MovementEffectsComponent" parent="." node_paths=PackedStringArray("Movement", "Effects") instance=ExtResource("movement_effects")]
+Movement = NodePath("../MovementComponent")
+Effects = NodePath("../WorldEffects")
+Profile = ExtResource("movement_profile")

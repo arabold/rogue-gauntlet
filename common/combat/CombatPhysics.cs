@@ -9,6 +9,8 @@ public static class CombatPhysics
 	public const int Steering = -30;
 	public const int Clearance = -25;
 	public const int Movement = -20;
+	/// <summary>Animation and movement presentation sample the body after collision-resolved movement.</summary>
+	public const int MovementPresentation = -10;
 	/// <summary>Periodic damage resolves due ticks before condition expiry at the damage priority.</summary>
 	public const int StatusDamage = -1;
 	public const int Damage = 0;

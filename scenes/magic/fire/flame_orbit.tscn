@@ -1,6 +1,6 @@
 [gd_scene load_steps=19 format=3]
 
-[ext_resource type="Script" path="res://scenes/effects/MagicRibbonTrail.cs" id="ribbon"]
+[ext_resource type="Script" path="res://scenes/effects/RibbonTrail.cs" id="ribbon"]
 [ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_ribbon.gdshader" id="toon_wake"]
 [ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_ribbon_glow.gdshader" id="hot_wake"]
 [ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_crown.gdshader" id="crown"]
@@ -108,6 +108,8 @@ PointSpacing = 0.09
 Width = 1.6
 TailWidthScale = 0.12
 MeshUpdateInterval = 0.0
+PointLifetime = 5.0
+MaxLength = 13.41
 
 [node name="HotTrail" type="MeshInstance3D" parent="." node_paths=PackedStringArray("Target")]
 material_override = SubResource("hot_wake_mat")
@@ -118,3 +120,5 @@ PointSpacing = 0.09
 Width = 0.8
 TailWidthScale = 0.22
 MeshUpdateInterval = 0.0
+PointLifetime = 5.0
+MaxLength = 13.41

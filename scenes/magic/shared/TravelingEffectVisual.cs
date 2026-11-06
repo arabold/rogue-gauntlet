@@ -7,7 +7,7 @@ public partial class TravelingEffectVisual : Node3D
 	[Export] public MeshInstance3D Core { get; set; }
 	[Export] public Node3D DirectionalVisual { get; set; }
 	[Export] public MeshInstance3D Shell { get; set; }
-	[Export] public MagicRibbonTrail[] Trails { get; set; } = [];
+	[Export] public RibbonTrail[] Trails { get; set; } = [];
 	[Export] public GpuParticles3D Sparks { get; set; }
 	[Export] public PackedScene ImpactScene { get; set; }
 	[Export] public float Speed { get; set; } = 11f;

@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://scenes/effects/movement/dash_streak.gdshader" id="shader"]
+
+[resource]
+shader = ExtResource("shader")
