@@ -9,6 +9,7 @@ public partial class CombatTraceRecorder : Node
 {
 	[Export] public bool CaptureFrames { get; set; } = true;
 	[Export] public bool EchoToConsole { get; set; }
+	[Export] public bool EchoEffectsToConsole { get; set; } = true;
 	public string OutputPath { get; private set; } = "";
 	private Node _scope;
 	private StreamWriter _writer;
@@ -57,7 +58,7 @@ public partial class CombatTraceRecorder : Node
 		_recent.Enqueue(json);
 		while (_recent.Count > 2048) _recent.Dequeue();
 		_writer?.WriteLine(json);
-		if (EchoToConsole) GD.Print("COMBAT " + json);
+		if (EchoToConsole || (EchoEffectsToConsole && eventId.StartsWith("effect."))) GD.Print("COMBAT " + json);
 	}
 
 	public void AdvanceClock(double delta) => _time += delta;

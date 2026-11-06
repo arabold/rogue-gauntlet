@@ -10,6 +10,8 @@ public partial class DeathComponent : Node
 	[Export] public LootTableComponent LootTableComponent { get; set; }
 
 	[Export] public int Xp { get; set; } = 100;
+	/// <summary>Practice instances suppress both reward outputs while retaining their authored dependencies.</summary>
+	[Export] public bool RewardsEnabled { get; set; } = true;
 	[Export] public float Delay { get; set; } = 2.0f;
 
 	/// <summary>
@@ -49,8 +51,11 @@ public partial class DeathComponent : Node
 		owner.SetPhysicsProcess(false);
 
 		// Drop loot and announce rewards without depending on a specific player lookup.
-		LootTableComponent?.DropLoot();
-		SignalBus.EmitXpRewarded(Xp);
+		if (RewardsEnabled)
+		{
+			LootTableComponent?.DropLoot();
+			SignalBus.EmitXpRewarded(Xp);
+		}
 
 		// Wait for the death animation, then ease the corpse out instead of popping it.
 		GetTree().CreateTimer(Delay).Connect("timeout", Callable.From(() =>

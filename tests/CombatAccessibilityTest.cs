@@ -227,11 +227,11 @@ public partial class CombatAccessibilityTest
 		harness.GetNode<CheckButton>("%Controls/Effects").ButtonPressed = false;
 		AssertBool(harness.ExecuteCommand("monster_attack", 0, Vector3.Zero)).IsTrue();
 		attack.SetPhysicsProcess(false);
-		AssertBool(attack.AimIndicator.Visible).IsTrue();
+		AssertBool(attack.Indicator.Visible).IsTrue();
 		AssertBool(attack.IsProjectileAimLocked).IsFalse();
 		harness.Player.Position += Vector3.Right;
 		attack._PhysicsProcess(.35);
-		AssertBool(attack.AimIndicator.IsLocked).IsTrue();
+		AssertBool(attack.Indicator.IsCommitted).IsTrue();
 		Vector3 locked = attack.CommittedFacing;
 		AssertBool(locked.X > 0).IsTrue();
 		harness.Player.Position += Vector3.Left * 3;
@@ -239,47 +239,36 @@ public partial class CombatAccessibilityTest
 		var shots = runner.Scene().GetChildren().OfType<Projectile>().Where(p => p.Attacker == shooter).ToArray();
 		AssertInt(shots.Length).IsEqual(1);
 		AssertThat(shots[0].Direction).IsEqual(locked);
-		AssertBool(attack.AimIndicator.Visible).IsFalse();
+		AssertBool(attack.Indicator.Visible).IsFalse();
 		foreach (var shot in shots) ScenePool.Despawn(shot);
 		attack.CancelAttack();
 		shooter.EnemyBehaviorComponent.SetAction(EnemyAction.None);
 		AssertBool(harness.ExecuteCommand("monster_attack", 0, Vector3.Zero)).IsTrue();
 		attack.SetPhysicsProcess(false);
 		attack.CancelAttack();
-		AssertBool(attack.AimIndicator.Visible).IsFalse();
+		AssertBool(attack.Indicator.Visible).IsFalse();
 		attack._PhysicsProcess(1);
 		AssertInt(runner.Scene().GetChildren().OfType<Projectile>().Count(p => p.Attacker == shooter)).IsEqual(0);
 	}
 
 	[TestCase]
-	public async Task AutomaticControlsRepeatAttacksAndRespectMonsterCapabilities()
+	public async Task HarnessKeepsDefenseAndInvulnerabilityIndependent()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		harness.GetNode<CheckButton>("%Controls/HeroInvulnerable").ButtonPressed = true;
-		AssertBool(harness.Player.HurtBoxComponent.Invulnerable).IsTrue();
-		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
-		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
-		var selector = harness.GetNode<OptionButton>("%Controls/Automation");
-		selector.EmitSignal(OptionButton.SignalName.ItemSelected, 1L);
-		int attacks = 0;
-		harness.Monster.AttackController.AttackFinished += (_, _) => attacks++;
-		await Frames(runner.Scene(), 195);
-		AssertBool(attacks >= 2).IsTrue();
-		AssertBool(harness.ExecuteCommand("automation", 2, Vector3.Zero)).IsFalse();
-		AssertBool(harness.ExecuteCommand("automation", 3, Vector3.Zero)).IsFalse();
-		harness.ExecuteCommand("automation", 0, Vector3.Zero);
-		harness.Monster.AttackController.CancelAttack();
-		harness.ExecuteCommand("spawn", 1, Vector3.Zero);
+		var targetInvulnerable = harness.GetNode<CheckButton>("%Controls/TargetInvulnerable");
+		targetInvulnerable.ButtonPressed = true;
+		AssertBool(harness.PracticeTarget is CombatPracticeTarget dummy && dummy.HurtBox.Invulnerable).IsTrue();
+		AssertBool(harness.ExecuteCommand("spawn", 1, Vector3.Zero)).IsTrue();
 		await Frames(runner.Scene(), 3);
-		AssertBool(harness.ExecuteCommand("automation", 2, Vector3.Zero)).IsTrue();
-		await Frames(runner.Scene(), 3);
-		AssertBool(harness.Monster.DodgeComponent.IsDodging).IsTrue();
-		harness.ExecuteCommand("automation", 0, Vector3.Zero);
-		await Frames(runner.Scene(), 40);
-		AssertBool(harness.ExecuteCommand("automation", 3, Vector3.Zero)).IsTrue();
-		await Frames(runner.Scene(), 4);
-		AssertBool(harness.Monster.GuardComponent.IsGuarding).IsTrue();
+		var monster = harness.Monster;
+		AssertBool(monster != null && !monster.EnemyBehaviorComponent.AIEnabled && !monster.DefenseController.RiposteEnabled).IsTrue();
+		AssertBool(monster.HurtBoxComponent.Invulnerable).IsTrue();
+		AssertBool(harness.ExecuteCommand("defense", 2, Vector3.Zero)).IsTrue();
+		AssertInt((int)monster.DefenseController.Mode).IsEqual((int)EnemyDefenseMode.Dodge);
+		AssertBool(monster.HurtBoxComponent.Invulnerable).IsTrue();
+		AssertBool(harness.ExecuteCommand("defense", 3, Vector3.Zero)).IsTrue();
+		AssertInt((int)monster.DefenseController.Mode).IsEqual((int)EnemyDefenseMode.GuardParry);
 	}
 }

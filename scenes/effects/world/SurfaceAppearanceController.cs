@@ -23,11 +23,57 @@ public partial class SurfaceAppearanceController : Node
 	private readonly Dictionary<MeshInstance3D, Surface> _meshes = [];
 	private Request _winner;
 	private Action _unwatch;
+	private sealed record FlashSurface(MeshInstance3D Mesh, int Surface, Material OriginalOverride,
+		BaseMaterial3D Material, Color OriginalColor);
+	private readonly List<FlashSurface> _flashSurfaces = [];
+	private Color _flashColor;
+	private float _flashAmount;
+	private float _flashRemaining;
+	private float _flashDuration;
+
+	public override void _Process(double delta)
+	{
+		if (_flashRemaining <= 0) return;
+		_flashRemaining = Mathf.Max(0, _flashRemaining - (float)delta);
+		float amount = _flashAmount * (_flashDuration <= 0 ? 0 : _flashRemaining / _flashDuration);
+		if (_winner?.Profile.Kind == SurfaceAppearanceKind.Skin)
+		{
+			foreach (var surface in _meshes.Values)
+				foreach (var material in surface.Materials)
+				{
+					material.SetShaderParameter("hit_flash_color", _flashColor);
+					material.SetShaderParameter("hit_flash_amount", amount);
+				}
+		}
+		else
+		{
+			foreach (var surface in _flashSurfaces)
+				if (IsInstanceValid(surface.Mesh) && surface.Surface < surface.Mesh.Mesh.GetSurfaceCount())
+					surface.Material.AlbedoColor = surface.OriginalColor.Lerp(_flashColor, amount);
+		}
+		if (_flashRemaining <= 0) ClearFlash();
+	}
+
+	/// <summary>Pulse a private source-preserving material channel; cloak and teleport transitions suppress it.</summary>
+	public bool PulseHit(Color color, float amount, float duration)
+	{
+		if (IsStopped || Target == null || HasCloak || _winner?.Profile.Kind == SurfaceAppearanceKind.Transition
+			|| amount <= 0 || duration <= 0) return false;
+		ClearFlash();
+		_flashColor = color;
+		_flashAmount = Mathf.Clamp(amount, 0, 1);
+		_flashDuration = duration;
+		_flashRemaining = duration;
+		if (_winner?.Profile.Kind == SurfaceAppearanceKind.Skin) return true;
+		CaptureFlash(Target);
+		return _flashSurfaces.Count > 0;
+	}
 
 	/// <summary>Reject unsupported materials before modifying the subtree. Existing tokens update in place.</summary>
 	public bool Acquire(object token, StringName effectId, SurfaceAppearanceProfile profile, float amount)
 	{
 		if (IsStopped || token == null || Target == null || profile?.Material?.Shader == null || !IsInsideTree()) return false;
+		ClearFlash();
 		if (_requests.Count == 0 && !SurfaceMaterialFactory.CanCapture(Target)) return false;
 		if (_requests.TryGetValue(token, out var request))
 		{ request.Id = effectId; request.Profile = profile; request.Amount = Mathf.Clamp(amount, 0, 1); }
@@ -50,6 +96,7 @@ public partial class SurfaceAppearanceController : Node
 	/// <summary>Restore authored slots. Terminal shutdown prevents death fades being captured by later cues.</summary>
 	public void ClearAndRestore(bool terminal = false)
 	{
+		ClearFlash();
 		IsStopped |= terminal; _requests.Clear(); _winner = null;
 		_unwatch?.Invoke(); _unwatch = null;
 		foreach (var surface in _meshes.Values)
@@ -102,6 +149,38 @@ public partial class SurfaceAppearanceController : Node
 		{
 			if (IsInsideTree() && _winner != null && IsInstanceValid(node) && Target.IsAncestorOf(node) && !VisualHelper.IsInHelperSubtree(node)) Capture(node);
 		}).CallDeferred();
+	}
+
+	private void CaptureFlash(Node node)
+	{
+		if (VisualHelper.IsHelper(node)) return;
+		if (node is MeshInstance3D { Mesh: not null } mesh)
+		{
+			for (int i = 0; i < mesh.Mesh.GetSurfaceCount(); i++)
+			{
+				if (mesh.GetActiveMaterial(i) is not BaseMaterial3D source) continue;
+				var copy = (BaseMaterial3D)source.Duplicate();
+				Material originalOverride = mesh.GetSurfaceOverrideMaterial(i);
+				_flashSurfaces.Add(new FlashSurface(mesh, i, originalOverride, copy, source.AlbedoColor));
+				mesh.SetSurfaceOverrideMaterial(i, copy);
+				copy.AlbedoColor = source.AlbedoColor.Lerp(_flashColor, _flashAmount);
+			}
+		}
+		foreach (Node child in node.GetChildren()) CaptureFlash(child);
+	}
+
+	private void ClearFlash()
+	{
+		foreach (var surface in _flashSurfaces)
+			if (IsInstanceValid(surface.Mesh)) surface.Mesh.SetSurfaceOverrideMaterial(surface.Surface, surface.OriginalOverride);
+		_flashSurfaces.Clear();
+		foreach (var surface in _meshes.Values)
+			foreach (var material in surface.Materials)
+			{
+				material.SetShaderParameter("hit_flash_amount", 0f);
+				material.SetShaderParameter("hit_flash_color", Colors.White);
+			}
+		_flashRemaining = 0;
 	}
 	public override void _ExitTree() => ClearAndRestore();
 }

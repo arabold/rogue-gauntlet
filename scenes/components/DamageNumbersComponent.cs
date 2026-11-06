@@ -40,5 +40,7 @@ public partial class DamageNumbersComponent : Node3D
 		Vector3 drift = right * (Spread * DriftPattern[_next++ % DriftPattern.Length]);
 		var number = ScenePool.Spawn<DamageNumber>(NumberScene, GetTree().CurrentScene ?? GetTree().Root);
 		number.Play(text, kind, (Anchor ?? this).GlobalPosition + Vector3.Up * Lift, drift);
+		CombatTrace.Write(this, "effect.damage_number", ("text", text), ("kind", kind.ToString()),
+			("amount", amount), ("outcome", ((DamageOutcome)outcome).ToString()), ("triggered", true));
 	}
 }

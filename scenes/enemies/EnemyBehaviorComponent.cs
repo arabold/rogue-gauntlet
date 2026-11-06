@@ -61,7 +61,21 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	/// Authored behavior tuning for this enemy type.
 	/// </summary>
 	[Export] public EnemyBehaviorProfile Profile { get; set; }
-	[Export] public bool AIEnabled { get; set; } = true;
+	private bool _aiEnabled = true;
+	[Export]
+	public bool AIEnabled
+	{
+		get => _aiEnabled;
+		set
+		{
+			if (_aiEnabled == value) return;
+			_aiEnabled = value;
+			if (!IsNodeReady() || _context == null) return;
+			if (!value) MovementComponent?.Stop();
+			else SetBehavior(Target != null && GodotObject.IsInstanceValid(Target)
+				? EnemyBehaviorState.Chasing : EnemyBehaviorState.Idle);
+		}
+	}
 	[Export] public AnimationTree AnimationTree { get; set; }
 	/// <summary>Natural ground speed of the locomotion animation in m/s used to scale animation playback speed with physical movement.</summary>
 	[Export] public float NaturalLocomotionSpeed { get; set; } = 2.7f;

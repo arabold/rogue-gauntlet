@@ -12,4 +12,4 @@ public sealed record SpellRelease(ICombatSpell Spell, SpellPower Power);
 /// records its index and damage scale; other attacks keep -1 and 1. A spell cast carries its <see cref="SpellRelease"/>.
 /// </summary>
 public sealed record PreparedAttack(AttackDefinition Definition, AttackPlayback Playback, double Duration,
-	int ComboStep = -1, float DamageScale = 1, SpellRelease Spell = null);
+	int ComboStep = -1, float DamageScale = 1, SpellRelease Spell = null, CombatFeedbackSettings? Feedback = null);

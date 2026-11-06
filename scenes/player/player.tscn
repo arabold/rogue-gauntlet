@@ -67,6 +67,10 @@
 [ext_resource type="Resource" path="res://scenes/effects/world/runes/rune_ring.tres" id="vfx_scroll"]
 [ext_resource type="Resource" path="res://scenes/effects/world/strength/strength.tres" id="vfx_strength"]
 [ext_resource type="Script" uid="uid://xi6k1bn5o4rh" path="res://scenes/effects/world/SurfaceAppearanceController.cs" id="vfx_surface"]
+[ext_resource type="Script" path="res://scenes/effects/combat/CombatFeedbackController.cs" id="combat_feedback_script"]
+[ext_resource type="Script" path="res://scenes/effects/combat/CombatVisualMotionComponent.cs" id="combat_motion_script"]
+[ext_resource type="Resource" path="res://scenes/effects/combat/feedback_profiles/default.tres" id="combat_feedback_profile"]
+[ext_resource type="Resource" path="res://scenes/effects/combat/impact_surface_profiles/flesh.tres" id="impact_surface_profile"]
 [ext_resource type="Script" uid="uid://ciaiejkejh513" path="res://scenes/effects/world/ItemUseWorldEffectDriver.cs" id="vfx_use"]
 
 [sub_resource type="Resource" id="Resource_3j4b4"]
@@ -486,6 +490,7 @@ HealthComponent = NodePath("../HealthComponent")
 MovementComponent = NodePath("../MovementComponent")
 Poise = NodePath("../PoiseComponent")
 HitEffect = ExtResource("9_nunx8")
+ImpactSurface = ExtResource("impact_surface_profile")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" unique_id=1508668277]
 shape = SubResource("CapsuleShape3D_fktr1")
@@ -555,12 +560,15 @@ MovementComponent = NodePath("../MovementComponent")
 ActionManager = NodePath("../ActionManager")
 InteractionController = NodePath("../PlayerInteractionController")
 
-[node name="PlayerAttackController" type="Node" parent="." unique_id=648653454 node_paths=PackedStringArray("AnimationComponent", "ActionGate", "MeleeDetector")]
+[node name="PlayerAttackController" type="Node" parent="." unique_id=648653454 node_paths=PackedStringArray("AnimationComponent", "ActionGate", "MeleeDetector", "VisualMotion")]
 script = ExtResource("17_sh3lf")
 SpecialMeleeContact = ExtResource("melee_spin")
 AnimationComponent = NodePath("../CombatAnimationComponent")
 ActionGate = NodePath("../ActorActionGateComponent")
 MeleeDetector = NodePath("../MeleeHitDetector")
+VisualMotion = NodePath("../CombatVisualMotion")
+PrimaryFeedbackProfile = ExtResource("combat_feedback_profile")
+SecondaryFeedbackProfile = ExtResource("combat_feedback_profile")
 DefaultMeleeContact = ExtResource("melee_default")
 DefaultProjectileScene = ExtResource("19_projectile")
 
@@ -625,6 +633,22 @@ Target = NodePath("../Pivot")
 [node name="WorldEffects" parent="." unique_id=442307584 node_paths=PackedStringArray("SurfaceController", "Health") instance=ExtResource("vfx_host")]
 SurfaceController = NodePath("../SurfaceAppearanceController")
 Health = NodePath("../HealthComponent")
+
+[node name="CombatVisualMotion" type="Node" parent="." node_paths=PackedStringArray("Actor", "VisualOffsetRoot")]
+script = ExtResource("combat_motion_script")
+Actor = NodePath("..")
+VisualOffsetRoot = NodePath("../Pivot")
+
+[node name="CombatFeedbackController" type="Node" parent="." node_paths=PackedStringArray("Actor", "HurtBox", "Movement", "SurfaceProfile", "SurfaceAppearance", "VisualMotion", "Invisibility", "FallbackProfile")]
+script = ExtResource("combat_feedback_script")
+Actor = NodePath("..")
+HurtBox = NodePath("../HurtBoxComponent")
+Movement = NodePath("../MovementComponent")
+SurfaceProfile = ExtResource("impact_surface_profile")
+SurfaceAppearance = NodePath("../SurfaceAppearanceController")
+VisualMotion = NodePath("../CombatVisualMotion")
+Invisibility = NodePath("../InvisibilityComponent")
+FallbackProfile = ExtResource("combat_feedback_profile")
 
 [node name="ItemUseEffects" type="Node" parent="." unique_id=377069831 node_paths=PackedStringArray("Host")]
 script = ExtResource("vfx_use")

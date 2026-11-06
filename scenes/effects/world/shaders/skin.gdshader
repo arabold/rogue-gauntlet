@@ -7,6 +7,8 @@ uniform float amount : hint_range(0, 1) = 1;
 uniform int skin_kind = 0;
 uniform bool faceted = false;
 uniform float polish : hint_range(0,1) = 0;
+uniform vec4 hit_flash_color : source_color = vec4(1.0);
+uniform float hit_flash_amount : hint_range(0,1) = 0.0;
 varying vec3 local_position;
 vec2 hash2(vec2 p) { return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453); }
 void vertex() { local_position = VERTEX; }
@@ -37,7 +39,7 @@ void fragment() {
  vec3 skin=skin_kind==0 ? iron : stone;
  float reveal=skin_transition(p,amount);
  if(faceted) NORMAL=normalize(mix(NORMAL,face_normal,reveal));
- ALBEDO=mix(original.rgb,skin+original.rgb*0.08,reveal);
+	ALBEDO=mix(mix(original.rgb,skin+original.rgb*0.08,reveal),hit_flash_color.rgb,hit_flash_amount);
  METALLIC=mix(source_metallic,skin_kind==0 ? mix(0.68,0.95,polish) : 0.04,reveal);
  ROUGHNESS=mix(source_roughness,skin_kind==0 ? mix(0.3,0.055,polish) : 0.94,reveal);
  SPECULAR=mix(source_specular,skin_kind==0 ? mix(0.65,0.9,polish) : 0.28,reveal);

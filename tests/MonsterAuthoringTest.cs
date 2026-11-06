@@ -99,7 +99,7 @@ public partial class MonsterAuthoringTest
 	}
 
 	[TestCase]
-	public void HeavyMeleeNeedsATelegraphAndATierLengthWindUp()
+	public void ThreatTierNeedsASharedIndicatorAndATierLengthWindUp()
 	{
 		var minion = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
 		try
@@ -112,9 +112,10 @@ public partial class MonsterAuthoringTest
 			attack.DefenseTraits = AttackDefenseTraits.Dodgeable;
 			definition.Behavior.AttackStrategy.Attack = attack;
 			minion.Definition = definition;
+			minion.AttackController.Indicator = null;
 			var errors = MonsterSceneValidator.Validate(minion);
 			AssertBool(errors.Any(e => e.StartsWith("Attack: Unblockable attacks need"))).IsTrue();
-			AssertBool(errors.Any(e => e.StartsWith("AttackController.Telegraph:"))).IsTrue();
+			AssertBool(errors.Any(e => e.StartsWith("AttackController.Indicator:"))).IsTrue();
 		}
 		finally { minion.Free(); }
 	}

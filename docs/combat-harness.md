@@ -1,14 +1,14 @@
 # Combat harness and machine traces
 
-Open `scenes/debug/combat/combat_harness.tscn` and run it with F6. The arena uses production equipment, action slots, movement, damage resolution and enemy defense. Choose a hero weapon and use attack, guard or dodge. Spawn a monster in the Monster section; its authored defense profile is selected by default, with overrides available in the Defense selector. The status panel shows current actions and health, with display/simulation controls and combat logging grouped below. Hit-volume/hurtbox overlays, combat effects, slow motion and a moving practice target remain available. Monster attacks preserve the current geometry; they do not teleport the target into range. Arena monsters suppress dungeon loot and experience rewards.
+Open `scenes/debug/combat/combat_harness.tscn` and run it with F6. The harness uses production player equipment, action slots, movement, damage resolution, and monster defense components. It starts with a passive movable dummy, or you can select any valid authored monster scene discovered under `scenes/enemies`. **Monster AI (walk + attack)** is off by default; turn it on to let the selected monster move, chase, and attack using its normal behavior. With AI off, monsters still react to player hits and defend themselves. The defense selector offers profile default, no defense, always dodge, and always guard/parry. Target invulnerability is a separate setting. Arena monsters suppress dungeon loot and experience rewards.
 
-Select one of the 20 spells and a level (1–5), then press **Cast spell**. Area contacts land as each visual's front reaches the target. Expanding rings (Gust, Frost Nova, Fire Nova, Tremor) push targets away from the cast point; Frost Nova also freezes, and Thunderstorm's bolts strike as its storm front arrives. Hailstorm pelts and slows, Ice Wall repels once its crystals stand, Fire Serpent ignites, and wards absorb and reflect incoming hits. The practice target counts as a monster for spells, so targeted spells pick it. **Spawn / clear crowd** toggles three stationary monsters around the player for area tests; select an automated monster attack to exercise wards. The harness instances each spell of its `SpellPool` from the same self-contained scene a wand binds. Direct casts use the hero's current weapon hit as their power and spend no mana. Selecting a spell also binds it to an equipped wand or staff, whose secondary then casts it through mana and the weapon as in a run. Ward save/restore is not connected. Tremor's wall dust and camera shake remain in the visual workbench.
+The debug controls cover slow motion, optional hit-volume and hurtbox drawing, combat feedback, and camera shake. The target can be made invulnerable without changing the monster's defense mode. The dummy uses the same health, hurtbox, movement, poise, action gate, damage numbers, and feedback components as a monster, so knockback and defensive responses can be inspected without loading a dungeon.
+
+The control panel is mouse-operated so keypad, movement keys, and Space stay available to control the hero.
 
 Checkbox defaults apply immediately on startup and to newly spawned monsters. `--combat-console` also checks the console logging option.
 
-For arrow practice, choose **Skeleton Crossbow**, set **Spawn distance** to 6, spawn it, and select **Repeat attack**. The dashed guide tracks you, then becomes a solid arrow with a short sound before the shot. Move sideways or dodge on commitment; enable **Hero invulnerable (practice)** to learn the timing without dying. Slow motion helps inspect both phases. Protection outcomes still resolve before debug invulnerability.
-
-**Automatic behavior** also supports repeating dodge or guard on monsters that have those capabilities. A guard cycle holds for 0.6 seconds before release. The minimum request interval uses gameplay time; normal cooldowns, action ownership, range and sight still apply. Dodge alternates lateral directions. Manual/reactive mode and Repeat attack retain the existing Defense selector; repeating dodge/guard suspends reactive decisions so the two controllers cannot compete. Changing modes changes future requests and lets accepted actions finish. Unsupported modes report unavailability instead of adding components. Spawn distance affects the next spawn; repeat requests never reposition actors. The arena is deliberately wider for movement practice and still hosts one selected monster at a time.
+For ranged warning practice, choose **Skeleton Crossbow** and spawn it. During aiming, its translucent trapezoid starts at one-third range and grows and brightens as the cone narrows toward the projectile lane. At commitment, it becomes the existing bar and extends to the clear attack range past the player. The same reusable indicator handles other weapon attacks; the component's Inspector preview can show the cone and its narrowing. Move sideways or dodge on commitment. Slow motion helps inspect the phases.
 
 Hitboxes appear only during an attack’s contact window; use slow motion to inspect them. Hurtboxes remain visible while their toggle is enabled.
 
@@ -36,6 +36,8 @@ Use `scenes/debug/combat/scenarios/projectile_practice.json` with `--combat-fram
 
 `--combat-console` additionally echoes records with the `COMBAT ` prefix. `--combat-log` accepts an absolute path or `user://` path and creates a fresh file, flushing each entry. The destination directory must exist. Without a path the recorder keeps the most recent 2048 records in memory, exposed as `Recorder.RecentRecordsJson`; a file capture retains the complete run. Inspector `Seed`, `TracePath`, recorder `CaptureFrames` and `EchoToConsole` configure interactive sessions. Console/frame-capture checkboxes are available in the arena. Engine errors remain in the separate Godot log, so retain both files when investigating a failure.
 
+Effect events are echoed to Godot's Output panel by default, even when `--combat-console` is off. Filter for `COMBAT {"schema"` or `"event":"effect.` to see the effects and their values without per-frame noise. Events include `effect.hit_stop` (requested and applied duration), `effect.knockback` (direction and strength), `effect.lunge` (distance, duration and speed), `effect.camera_shake` (requested impulse and resulting noise amplitude), `effect.hit_flash` (amount and duration), `effect.visual_recoil` (distance and duration), `effect.melee_swoosh` (scene, reach, blade-follow status, sample count and generated geometry), `effect.particles` (cue, scene and particle amount), and `effect.damage_number` (kind and amount). Each includes `triggered`; suppressed or unconfigured effects include a reason. Use `--combat-console` to echo the full trace, or `--combat-log=/tmp/combat.jsonl` to save all records for later inspection.
+
 ## Commands
 
 Scripts are JSON arrays, ordered by `Frame` (physics-frame offset), retaining file order for commands on the same frame. Frame zero executes on the first available tick. `Command` names are lowercase. `Value` is an integer selection; `X` and `Z` form a world-space vector. Script playback turns off device input (`InputComponent.DeviceEnabled`) so keyboard state cannot perturb the run; the player's input controller keeps running, so scripted presses use the real buffer and recovery cancels. Buttons and scripts share `ExecuteCommand(string, int, Vector3)` and acceptance is recorded.
@@ -44,15 +46,14 @@ Scripts are JSON arrays, ordered by `Frame` (physics-frame offset), retaining fi
 | --- | --- |
 | `equip` | `Value`: weapon index, shown in the weapon selector |
 | `spell` | `Value`: spell index, shown in the spell selector; an equipped wand or staff takes it for its secondary |
-| `spawn` | `Value`: monster index (0 minion, 1 warrior, 2 Warden, 3 crossbowman, 4 rat) |
-| `defense` | `Value`: 0 disabled, 1 invulnerable, 2 profile, 3 forced dodge, 4 forced guard/parry |
+| `spawn` | `Value`: 0 practice dummy; 1 onward follows the locally discovered monster list shown by the selector |
+| `defense` | `Value`: 0 profile default, 1 no defense, 2 always dodge, 3 always guard/parry |
+| `automation` | `Value`: 0 disable monster AI, 1 enable monster AI (movement and attacks) |
 | `attack`, `secondary`, `monster_attack` | No arguments; same action ownership as gameplay |
 | `guard`, `release_guard` | Set or release the hero's held guard intention |
 | `dodge` | `X`, `Z`: direction; zero uses the player's movement/backstep choice |
 | `press_primary`, `press_secondary`, `press_dodge` | No arguments; buffers a fresh press in the input controller, like a button press (acceptance means buffered). A buffered dodge uses the current `move` steering |
 | `monster_guard`, `monster_dodge` | `X`, `Z`: facing/direction |
-| `automation` | `Value`: 0 manual/reactive, 1 repeat attack, 2 repeat dodge, 3 repeat guard; unsupported capabilities reject the command |
-| `spawn_distance` | `Value`: distance 1–12 for the next monster spawn |
 | `move` | `X`, `Z`: movement input; zero stops input |
 | `position_player`, `position_monster` | `X`, `Z`: explicit arena placement; height is retained |
 | `reset` | Restore hero/practice-target health and cancel hero commitment; heal a living monster |

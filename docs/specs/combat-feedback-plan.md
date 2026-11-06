@@ -1,6 +1,6 @@
 # Combat presentation, attack execution and harness cleanup
 
-Status: **proposed; inventory checked against the current source and authored scenes on 2026-11-05**. No gameplay code or tuning has changed. This plan complements the remaining [combat redesign](combat-redesign-plan.md), whose Warden attack and guard walking are separate gameplay work. [Combat actions and defense](../combat-system.md), [weapon attacks](../weapon-attack-system.md), [world effects](../world-effects.md) and the [combat harness](../combat-harness.md) describe implemented behavior. The [game design](../game-design.md) owns intended gameplay; the [roadmap](../development-roadmap.md) owns delivery priority.
+Status: **implemented (feedback components, attack execution, shared indicators and harness slices)**. The source inventory below records the baseline checked on 2026-11-05; current behavior is documented in [combat actions and defense](../combat-system.md), [weapon attacks](../weapon-attack-system.md), [world effects](../world-effects.md), [monster authoring](../monster-authoring-design.md) and the [combat harness](../combat-harness.md). This work preserves gameplay defaults and complements the remaining [combat redesign](combat-redesign-plan.md), whose Warden attack and guard walking are separate gameplay work. Rendered review at normal zoom remains an acceptance item. The [game design](../game-design.md) owns intended gameplay; the [roadmap](../development-roadmap.md) owns delivery priority.
 
 ## Goal and scope
 
@@ -10,7 +10,7 @@ The harness defaults to a passive movable dummy or one selected production monst
 
 **Simplicity rule:** implement and expose each capability on its reusable component first. The same exported property must work in the Godot Inspector, Remote Inspector and a harness control. The harness owns only scene selection/spawning, a small explicit set of UI bindings, and its existing diagnostics/scenario entry points. Keep helpers local until a real second caller or a distinct growing responsibility justifies extraction. No generic property inspector, harness-specific combat policies, actor adapters or mandatory new test framework.
 
-Interpret **lunge** as moving the **attacker** forward on a successful melee hit. Under the unchanged-gameplay constraint this is a small model offset that returns to neutral, rather than a step by the physics body. Existing physical knockback remains exactly as authored. Sound is deferred; add no audio infrastructure in these slices.
+Interpret **lunge** as moving the **attacker** forward on a successful melee hit. The original behavior-preserving scope proposed a model offset; after playtest feedback, the approved implementation uses bounded movement on the attacker's physics body. This is the one gameplay change in the feedback work. Existing defender knockback remains exactly as authored. Sound is deferred; add no audio infrastructure in these slices.
 
 Three requested effects need an explicit distinction:
 
@@ -18,11 +18,11 @@ Three requested effects need an explicit distinction:
 | --- | --- | --- |
 | Knockback | Preserve existing physical pushes; add a small visual recoil to otherwise unreactive flinches | Pushing every hit, changing distance/decay, or pushing blocked contacts changes positioning and action interruption |
 | Hit stop / freeze the game | Preserve the current attacker-only execution stop and its duration | A whole-world freeze changes relative timing against other actors; even with unchanged game-time durations it gives different real-time response opportunities |
-| Lunge | Contact-triggered visual follow-through, once per melee execution | Moving the attacker body changes reach, spacing, follow-up contacts and navigation |
+| Lunge | A 0.2 m collision-resolved attacker movement over the authored feedback duration, once per successful melee execution; actor status locks, stagger and knockback retain priority | Intentionally changes attacker spacing slightly after a hit; it does not alter damage, contact checks already resolved, or defender reactions |
 
 The first pass deliberately retains today's attacker-only stop. A true whole-world freeze is designed separately below so it can be evaluated without claiming it preserves existing combat behavior.
 
-## Current inventory
+## Baseline inventory before implementation
 
 This is a source and scene inventory, not a fresh visual playtest or claim that all listed effects read well at the gameplay camera distance.
 
@@ -256,7 +256,7 @@ Core proposed playback signatures (no implementation bodies):
 | Contact event contract | `delegate void CombatContactFeedbackHandler(in CombatContactFeedback feedback)` |
 | `CombatFeedbackController` | `void Present(in CombatContactFeedback feedback)` |
 | `CombatVisualMotionComponent` | `void Recoil(Vector3 worldDirection, float distance, float duration)` |
-| `CombatVisualMotionComponent` | `void Lunge(AttackIdentity execution, Vector3 worldDirection, float distance, float duration)` |
+| `MovementComponent` | `bool TryLunge(AttackIdentity execution, Vector3 direction, float distance, float duration)` |
 | `CombatVisualMotionComponent` | `void Clear()` |
 | `CombatVisualMotionComponent` | `Vector3 UnshiftedWorldPosition(Node3D anchor)` |
 | `SurfaceAppearanceController` | `void PulseHit(Color color, float amount, float duration)` |
@@ -303,7 +303,7 @@ Start a target pulse around 60–90 ms, with a rapid onset and short decay. Thes
 
 **Camera.** Stop deriving shake strength from hit-stop duration. Use presentation strength/outcome, with separate incoming/outgoing scaling; keep the existing emitter and strongest-wins behavior. Aggregate contacts from one execution in a physics tick with a maximum, not a sum, so a sweep through five targets does not produce five stacked shakes. Add a short capped minimum interval for repeated projectile/area contacts; uncorrelated zero identities must not be grouped as one swing. Clear aggregation after dispatch and on scene exit; keep no unbounded history of execution IDs. Never retrigger every frame of a sustained contact. Add scene Inspector controls for camera intensity (including zero), flash intensity and visual motion scale; these affect presentation only. The harness gets the same camera-feedback component and a matching emitter/host so it can exercise production shake.
 
-**Visual recoil/lunge.** Start small: roughly 0.03–0.06 world units of flinch recoil or 0.04–0.08 of attacker follow-through, returning over 80–120 ms. Capture direction at contact, clamp the combined offset and use a bounded envelope instead of additive accumulated positions. Lunge occurs only after positive `Damaged` direct melee contact, once per valid execution; misses, blocks, parries, spells and delayed projectiles cannot move the source model. Do not combine cosmetic recoil with a physical interruption/stagger push. Clamp or suppress displacement near walls after a physics-phase clearance check; if a safe visual offset cannot be established, skip motion. Flash and particles still play.
+**Target recoil and attacker lunge.** Keep flinch recoil as a small visual offset. A successful direct melee contact moves its attacker by the profile's bounded `LungeDistance` (0.2 m default) over `MotionDuration` (0.1 s default), at most once per execution. The lunge is additive to ordinary movement and uses `CharacterBody3D.MoveAndSlide`, so walls and collision shape resolve displacement. Status locks, stagger and defender knockback suppress or supersede it. Misses, blocks, parries, spells and delayed projectiles do not lunge. A confirmed contact is already resolved before the lunge begins; only subsequent spacing and movement can change.
 
 **Gameplay-origin hazard:** `AttackController.GetProjectileOrigin` and its line-of-sight checks currently read a model-mounted muzzle's `GlobalPosition`. Moving only a model can therefore still change gameplay. All such reads under the offset root must use `UnshiftedWorldPosition`; validate muzzle origins, aim-lock origins/directions and sight results against motion disabled. Root/body positions, detector frames, target centers, nav agents, camera follow, interactions and health bars stay outside the visual offset. Bone-driven trails can follow the shifted model because they are cosmetic. Reset motion on action replacement, death, teleport, load, exit and pool/harness reuse; keep it separate from animation-authored transforms. Any rig whose gameplay anchors cannot be isolated stays at zero visual motion until that is resolved.
 
@@ -323,7 +323,7 @@ Player / enemy intent
            -> local ContactResolved -> CombatFeedbackController
               -> surface pulse / surface particles / optional cosmetic recoil
            -> SignalBus.EmitCombatContactResolved
-              -> owning attacker feedback -> optional once-per-execution lunge
+              -> owning attacker feedback -> once-per-execution physical lunge
               -> scene camera feedback -> queue/aggregate impulse
         -> existing reflected contact, where applicable, resolves independently
      -> melee return -> existing outcome-based attacker hit stop
@@ -348,7 +348,7 @@ Proposed trial contract, if selected for later implementation:
 - Define input explicitly: capture fresh presses during a combat stop into the existing buffer with frozen game time, retain held guard and consume on resume under existing arbitration. Actual menu pause/focus loss continues to require fresh defense input. Give the input collector an always-processing path without allowing the action executor to advance.
 - Verify save/quit/floor transition, death during the request tick, owner teardown, a buff slow-motion change, the harness speed toggle and pause opened during the stop. No stuck pause or stale restoration of the previous time scale. Clear outstanding combat-stop ownership on scene exit.
 
-The exact pause-reason adapter/API remains a design gate for this optional trial; it is not needed by slices 1–6 below. Whole-world stop changes human reaction time and encounter pacing, so it cannot pass the strict baseline behavior-equivalence test. Physical lunge or stronger/unconditional knockback likewise require a separate mechanics decision, not merely enabling presentation settings.
+The exact pause-reason adapter/API remains a design gate for this optional trial; it is not needed by slices 1–6 below. Whole-world stop changes human reaction time and encounter pacing, so it cannot pass the strict baseline behavior-equivalence test. Stronger or unconditional knockback remains a separate mechanics decision.
 
 ## Delivery slices and verification
 
@@ -388,7 +388,7 @@ Verify ordinary/no-skin flash, frozen/iron/stone, equipped emissive gear, equipm
 
 ### 6. Add bounded cosmetic motion and review the full exchange
 
-Add dedicated visual offset roots to supported rigs, explicit motion bindings and unshifted gameplay-anchor reads. Enable small flinch recoil and successful melee follow-through only after origin/sight parity checks pass. Unsupported rigs can still ship flash/particles/numbers/shake with motion disabled.
+Keep visual offset roots limited to target flinch recoil and cosmetic animation anchors. The attacker lunge uses the actor's movement component and collision body; it does not move the visual root or alter an already-resolved contact.
 
 Verify physics body transforms/velocities, melee detector frames, muzzle origins, aim lock, sight queries, target centers and action timings with motion on/off. Check action replacement, teleport/load, death, walls, status locks, repeated contacts and reuse for exact reset. In the harness/editor review primary/secondary, critical/rear/sneak, poise flinch/break, block/parry/guard break, dodge, projectile/area impacts and death at actual gameplay zoom. Use existing multi-target tests or the main scene for crowd readability rather than restoring a crowd-control panel to the harness. Check that the shared indicators, health bars and damage numbers remain readable and effects do not hide the response window.
 
@@ -467,6 +467,6 @@ Use `rg` to complete every affected authored assignment during implementation, i
 - **Warning contract:** one reusable actor-authored component/style covers ordinary melee and ranged aiming/commit/release, with true melee footprints and readable projectile bars. Production player scenes normally omit it. Visibility cannot control attack behavior.
 - **Harness contract:** Dummy plus every concrete production monster is selectable without a per-monster list. The existing practice target physically moves under pushes; selected monsters are passive by default, with optional production AI movement/attacks on the arena's saved navmesh. Defense, AI, riposte and invulnerability are independent component settings. Capabilities work and are testable without a harness instance; a panel control and a direct Inspector/property edit produce the same behavior. Harness code contains no defense decision logic, hit/poise reaction, debug-mesh implementation, custom reset protocol or new simulation framework. Existing regression coverage remains.
 - **Authoring contract:** a designer can add the indicator scene/profile and assign source/target feedback profiles, toggle defense/riposte/invulnerability on their owning components, disable individual presentation channels and preview in the harness without editing C#. Shared resources remain unchanged during play.
-- **Scope choices:** whole-world stop and physical attacker lunge remain separately visible pacing/mechanics decisions. Audio remains deferred. Final flash color, Warden material treatment, particle density, camera cap and visual motion amplitudes require rendered playtesting; proposed numbers above are starting points, not established tuning.
+- **Scope choices:** physical attacker lunge is now implemented as a small gameplay movement after a successful melee hit. Whole-world stop remains a separate pacing decision. Audio remains deferred. Final flash color, Warden material treatment, particle density, camera cap and visual motion amplitudes require rendered playtesting; proposed numbers above are starting points, not established tuning.
 
 For the current request the recommendation is to implement slices 1–6 in order: explicit execution, simpler production-faithful harness, shared attack indicator, coordinated contacts, flash/camera and cosmetic motion. Then judge whether global freeze adds enough weight to justify its different timing and input behavior.

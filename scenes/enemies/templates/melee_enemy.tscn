@@ -46,6 +46,12 @@
 [ext_resource type="PackedScene" path="res://scenes/components/invisibility_component.tscn" id="invisibility"]
 
 [ext_resource type="Script" path="res://scenes/effects/world/SurfaceAppearanceController.cs" id="vfx_surface"]
+[ext_resource type="PackedScene" path="res://scenes/combat/attack_indicator.tscn" id="attack_indicator"]
+[ext_resource type="Resource" path="res://scenes/combat/attack_indicator_profiles/default.tres" id="attack_indicator_profile"]
+[ext_resource type="Script" path="res://scenes/effects/combat/CombatFeedbackController.cs" id="combat_feedback_script"]
+[ext_resource type="Resource" path="res://scenes/effects/combat/feedback_profiles/default.tres" id="combat_feedback_profile"]
+[ext_resource type="Resource" path="res://scenes/effects/combat/impact_surface_profiles/bone.tres" id="impact_surface_profile"]
+[ext_resource type="Script" path="res://scenes/effects/combat/CombatVisualMotionComponent.cs" id="combat_motion_script"]
 [ext_resource type="PackedScene" path="res://scenes/effects/world/actor_world_effects.tscn" id="vfx_host"]
 [ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_poise.tres" id="poise_definition"]
@@ -246,11 +252,13 @@ Actor = NodePath("..")
 MovementComponent = NodePath("../MovementComponent")
 HealthComponent = NodePath("../HealthComponent")
 
-[node name="AttackController" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "MeleeDetector", "ActionGate")]
+[node name="AttackController" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "MeleeDetector", "ActionGate", "Indicator", "VisualMotion")]
 ActionGate = NodePath("../ActorActionGateComponent")
 script = ExtResource("b_11_attack")
 AnimationComponent = NodePath("../CombatAnimationComponent")
 MeleeDetector = NodePath("../MeleeHitDetector")
+Indicator = NodePath("../AttackIndicator")
+VisualMotion = NodePath("../CombatVisualMotion")
 DefaultProjectileScene = ExtResource("b_13_projectile")
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor", "ActionGate") instance=ExtResource("b_4_qc6m8")]
@@ -273,6 +281,7 @@ collision_layer = 8
 HealthComponent = NodePath("../HealthComponent")
 MovementComponent = NodePath("../MovementComponent")
 HitEffect = ExtResource("b_9_d4q6w")
+ImpactSurface = ExtResource("impact_surface_profile")
 
 [node name="Nameplate" parent="." node_paths=PackedStringArray("Health", "Invisibility") instance=ExtResource("nameplate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
@@ -292,6 +301,14 @@ Profile = ExtResource("m_attack_animation_profile")
 
 [node name="MeleeHitDetector" type="Node" parent="."]
 script = ExtResource("b_melee_detector_script")
+
+[node name="AttackIndicator" parent="." instance=ExtResource("attack_indicator")]
+Profile = ExtResource("attack_indicator_profile")
+
+[node name="CombatVisualMotion" type="Node" parent="." node_paths=PackedStringArray("Actor", "VisualOffsetRoot")]
+script = ExtResource("combat_motion_script")
+Actor = NodePath("..")
+VisualOffsetRoot = NodePath("../Pivot")
 
 [node name="Skeleton_Minion" parent="Pivot" index="0" instance=ExtResource("m_2_lb3ug")]
 
@@ -453,6 +470,17 @@ Target = NodePath("../Pivot")
 [node name="WorldEffects" parent="." node_paths=PackedStringArray("SurfaceController", "Health") instance=ExtResource("vfx_host")]
 SurfaceController = NodePath("../SurfaceAppearanceController")
 Health = NodePath("../HealthComponent")
+
+[node name="CombatFeedbackController" type="Node" parent="." node_paths=PackedStringArray("Actor", "HurtBox", "Movement", "SurfaceProfile", "SurfaceAppearance", "VisualMotion", "Invisibility", "FallbackProfile")]
+script = ExtResource("combat_feedback_script")
+Actor = NodePath("..")
+HurtBox = NodePath("../HurtBoxComponent")
+Movement = NodePath("../MovementComponent")
+SurfaceProfile = ExtResource("impact_surface_profile")
+SurfaceAppearance = NodePath("../SurfaceAppearanceController")
+VisualMotion = NodePath("../CombatVisualMotion")
+Invisibility = NodePath("../InvisibilityComponent")
+FallbackProfile = ExtResource("combat_feedback_profile")
 
 [node name="PoiseComponent" type="Node" parent="." node_paths=PackedStringArray("ActionGate")]
 script = ExtResource("poise_script")

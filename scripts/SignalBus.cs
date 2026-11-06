@@ -3,6 +3,21 @@ using Godot;
 [Tool]
 public partial class SignalBus : Node
 {
+	public static event CombatContactFeedbackHandler CombatContactResolved;
+	public static void EmitCombatContactResolved(in CombatContactFeedback feedback)
+	{
+		if (CombatContactResolved == null) return;
+		foreach (CombatContactFeedbackHandler handler in CombatContactResolved.GetInvocationList())
+		{
+			try { handler(in feedback); }
+			catch (System.Exception error)
+			{
+				CombatContactResolved -= handler;
+				GD.PushWarning($"Combat contact observer disabled: {error.Message}");
+			}
+		}
+	}
+
     // Singleton instance for global access
     public static SignalBus Instance { get; private set; }
 

@@ -17,7 +17,6 @@
 
 [ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_poise.tres" id="poise_definition"]
-[ext_resource type="PackedScene" path="res://scenes/combat/attack_telegraph.tscn" id="telegraph"]
 
 [sub_resource type="AnimationNodeAnimation" id="anim_idle"]
 animation = &"Idle_A"
@@ -181,11 +180,10 @@ script = ExtResource("poise_script")
 Definition = ExtResource("poise_definition")
 ActionGate = NodePath("../ActorActionGateComponent")
 
-[node name="AttackTelegraph" parent="." instance=ExtResource("telegraph")]
-
-[node name="AttackController" parent="." node_paths=PackedStringArray("Telegraph", "ActionGate")]
+[node name="AttackController" parent="." node_paths=PackedStringArray("Indicator", "VisualMotion", "ActionGate")]
 ActionGate = NodePath("../ActorActionGateComponent")
-Telegraph = NodePath("../AttackTelegraph")
+Indicator = NodePath("../AttackIndicator")
+VisualMotion = NodePath("../CombatVisualMotion")
 
 [node name="FrozenStatusComponent" parent="." node_paths=PackedStringArray("ActionGate", "Animation")]
 ActionGate = NodePath("../ActorActionGateComponent")

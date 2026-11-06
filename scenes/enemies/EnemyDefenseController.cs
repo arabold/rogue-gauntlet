@@ -33,7 +33,28 @@ public partial class EnemyDefenseController : Node
 
 	[Export] public DodgeComponent DodgeComponent { get; set; }
 	[Export] public Node3D Target { get; set; }
-	[Export] public EnemyDefenseMode Mode { get; set; } = EnemyDefenseMode.ProfileDefault;
+	private EnemyDefenseMode _mode = EnemyDefenseMode.ProfileDefault;
+	[Export]
+	public EnemyDefenseMode Mode
+	{
+		get => _mode;
+		set
+		{
+			if (_mode == value) return;
+			_mode = value;
+			_pendingMeleeAttacker = null;
+			_pendingMeleeController = null;
+			_ripostePending = false;
+			if (value == EnemyDefenseMode.None) GuardComponent?.EndGuard();
+		}
+	}
+	private bool _riposteEnabled = true;
+	[Export]
+	public bool RiposteEnabled
+	{
+		get => _riposteEnabled;
+		set { _riposteEnabled = value; if (!value) _ripostePending = false; }
+	}
 
 	public bool HasGuardCapability => GuardComponent != null;
 	public bool HasDodgeCapability => DodgeComponent != null;
@@ -181,6 +202,7 @@ public partial class EnemyDefenseController : Node
 	/// <summary>Attempt one counterattack after defense completion, revalidating current sight, reach and commitment.</summary>
 	public bool TryExecuteRiposte()
 	{
+		if (!RiposteEnabled) return RecordRiposte(false, "disabled");
 		if (Enemy == null || Enemy.IsDead) return RecordRiposte(false, "unavailable");
 		if (Enemy.MovementComponent?.IsPushed == true || Enemy.ActionGate?.IsBusy == true)
 			return RecordRiposte(false, "busy");

@@ -41,6 +41,7 @@ public partial class Projectile : Node3D, IPooledNode
 	private float _distanceTravelled;
 	private AttackIdentity _executionId;
 	private AttackIdentity _parentExecution;
+	private CombatFeedbackSettings? _feedback;
 	private AttackDefenseTraits _defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable;
 	private AttackDefenseTraits _areaDefenseTraits;
 	/// <summary>The releasing attack's impact, set by its executor before flight; unset projectiles use the default.</summary>
@@ -133,9 +134,10 @@ public partial class Projectile : Node3D, IPooledNode
 		SetHitBoxMonitoring(false, deferred: true);
 	}
 
-	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, AttackStats hit, Node attacker = null, AttackDefenseTraits defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, AttackDefenseTraits areaDefenseTraits = AttackDefenseTraits.Dodgeable, ulong randomSeed = 42, AttackIdentity parentExecution = default)
+	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, AttackStats hit, Node attacker = null, AttackDefenseTraits defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, AttackDefenseTraits areaDefenseTraits = AttackDefenseTraits.Dodgeable, ulong randomSeed = 42, AttackIdentity parentExecution = default, CombatFeedbackSettings? feedback = null)
 	{
 		_parentExecution = parentExecution;
+		_feedback = feedback;
 		_areaDefenseTraits = areaDefenseTraits;
 		_random.Seed = randomSeed;
 		_executionId = new AttackIdentity((ulong)GetInstanceId(), ++_projectileSequence);
@@ -293,7 +295,8 @@ public partial class Projectile : Node3D, IPooledNode
 				DeliveryKind = DamageDeliveryKind.Projectile,
 				Element = Element,
 				Impact = Impact,
-				Critical = critical
+					Critical = critical,
+					Feedback = _feedback
 			};
 
 			if (damageable is ICombatDamageable combatDamageable)
@@ -465,7 +468,8 @@ public partial class Projectile : Node3D, IPooledNode
 					DeliveryKind = DamageDeliveryKind.AreaImpact,
 					Element = Element,
 					Impact = Impact with { PoiseDamage = Impact.PoiseDamage * damageScale },
-					Critical = critical
+						Critical = critical,
+						Feedback = _feedback
 				};
 
 				if (damageable is ICombatDamageable areaCombatDamageable)
@@ -629,6 +633,7 @@ public partial class Projectile : Node3D, IPooledNode
 		ImpactRadius = _defaultImpactRadius;
 		ImpactRadiusMinDamageScale = _defaultImpactRadiusMinDamageScale;
 		Impact = AttackImpact.Default;
+		_feedback = null;
 		SetPhysicsProcess(false);
 		if (_hitBoxComponent != null)
 		{
