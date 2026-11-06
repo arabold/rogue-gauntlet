@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="MovementEffectProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/movement/MovementEffectProfile.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+SizeScale = 0.45
+RunEnterSpeed = 2.5
+RunExitSpeed = 2.0
+StopMinimumSpeed = 2.0
+PuffDiameter = 0.22
+DustLifetime = 0.32
+RunPuffCount = 1
+StopPuffCount = 3
+DashPuffCount = 5
+ParticleCapacity = 32
+StreakWidth = 0.18
+StreakLength = 0.7
+StreakLifetime = 0.1

@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
+/// <summary>The source of horizontal motion selected for the latest physics step.</summary>
+public enum MovementMotionKind { None, Locomotion, Override, Push, Lunge }
+
 [GlobalClass]
 public partial class MovementComponent : Node
 {
@@ -53,6 +56,10 @@ public partial class MovementComponent : Node
 	[Export] public float StairsStepHeight { get; set; } = 0.5f;
 
 	public bool IsMoving => TargetDirection != Vector3.Zero;
+	/// <summary>Collision-resolved horizontal speed from the latest <see cref="CharacterBody3D.MoveAndSlide"/> call.</summary>
+	public float GroundSpeed { get; private set; }
+	/// <summary>Movement source selected before the latest slide, for consumers that distinguish locomotion from actions.</summary>
+	public MovementMotionKind LastMotionKind { get; private set; }
 	public bool IsPushed => _pushStrength > 0.1f;
 	/// <summary>Pushed by a knockback that no stagger overlapped; a stagger's pose already shows its own knockback.</summary>
 	public bool IsKnockedBack => IsPushed && !_pushCoveredByStagger;
@@ -245,6 +252,8 @@ public partial class MovementComponent : Node
 		_fixedFacing = null;
 		_hasRequestedFacing = false;
 		if (GodotObject.IsInstanceValid(Actor)) Actor.Velocity = Vector3.Zero;
+		GroundSpeed = 0;
+		LastMotionKind = MovementMotionKind.None;
 	}
 
 	public void Stop()
@@ -273,6 +282,8 @@ public partial class MovementComponent : Node
 		}
 		Actor.Velocity = Velocity;
 		Actor.MoveAndSlide();
+		Vector3 realVelocity = Actor.GetRealVelocity();
+		GroundSpeed = new Vector2(realVelocity.X, realVelocity.Z).Length();
 
 		if (_hasOverrideVelocity && Actor != null && Actor.GetSlideCollisionCount() > 0)
 		{
@@ -287,6 +298,7 @@ public partial class MovementComponent : Node
 
 	private void UpdateVelocity(double delta)
 	{
+		LastMotionKind = MovementMotionKind.None;
 		Vector3 velocity = Vector3.Zero;
 
 		// Apply horizontal velocity
@@ -298,6 +310,7 @@ public partial class MovementComponent : Node
 		}
 		else if (_pushStrength > 0.1f)
 		{
+			LastMotionKind = MovementMotionKind.Push;
 			// Pushed by an external force; a poise break's knockback plays out during its stagger.
 			velocity = _pushDirection * _pushStrength;
 			if (ActionGate?.IsStaggered == true) _pushCoveredByStagger = true;
@@ -310,6 +323,7 @@ public partial class MovementComponent : Node
 		}
 		else if (_hasOverrideVelocity)
 		{
+			LastMotionKind = MovementMotionKind.Override;
 			velocity = _overrideDirection * (_overrideSpeed * _statusSpeedFactor);
 		}
 		else if (ActionGate?.AllowsLocomotion == false)
@@ -318,6 +332,7 @@ public partial class MovementComponent : Node
 		}
 		else
 		{
+			LastMotionKind = MovementMotionKind.Locomotion;
 			Vector3 desiredHorizontal = TargetDirection * (Speed * _speedMultiplier * _statusSpeedFactor);
 
 			if (!UseAcceleration)
@@ -336,6 +351,7 @@ public partial class MovementComponent : Node
 			if (_lungeRemaining > 0 && _pushStrength <= 0.1f && ActionGate?.Disabled != true
 				&& ActionGate?.IsStatusLocked != true && ActionGate?.IsStaggered != true && delta > 0)
 			{
+				LastMotionKind = MovementMotionKind.Lunge;
 				float frameDuration = Mathf.Min((float)delta, _lungeRemaining);
 				velocity += _lungeDirection * (_lungeSpeed * frameDuration / (float)delta);
 			}

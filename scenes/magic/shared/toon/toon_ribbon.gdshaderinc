@@ -44,5 +44,5 @@ void fragment() {
 	vec3 color = toon_ramp(color_ramp, 0.2 + heat * 0.6 + filament * 0.15 + heat_bias);
 	ALBEDO = color;
 	EMISSION = color * brightness;
-	ALPHA = smoothstep(crisp_threshold, crisp_threshold + 0.06, mask) * opacity;
+	ALPHA = smoothstep(crisp_threshold, crisp_threshold + 0.06, mask) * opacity * COLOR.a;
 }

@@ -13,6 +13,21 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public class LocomotionAnimationSyncTest
 {
+	private static void PlaceOnOpenFloor(Node scene, Player player)
+	{
+		const float center = 500;
+		var floor = new StaticBody3D
+		{
+			Position = new Vector3(center, -0.1f, center),
+			CollisionLayer = 1,
+			CollisionMask = 0,
+		};
+		floor.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(100, 0.2f, 100) } });
+		scene.AddChild(floor);
+		player.GlobalPosition = new Vector3(center, 0, center);
+		player.ResetPhysicsInterpolation();
+	}
+
 	[TestCase]
 	public async Task PlayerWalkingAnimationLoopsContinuouslyWithoutFreezing()
 	{
@@ -20,6 +35,8 @@ public class LocomotionAnimationSyncTest
 		await runner.SimulateFrames(35);
 		var scene = runner.Scene();
 		var player = (Player)scene.GetTree().GetFirstNodeInGroup("player");
+		PlaceOnOpenFloor(scene, player);
+		await runner.SimulateFrames(2, 20);
 		var animTree = player.GetNode<AnimationTree>("AnimationTree");
 		var playback = (AnimationNodeStateMachinePlayback)animTree.Get("parameters/playback");
 		var animPlayer = animTree.GetNode<AnimationPlayer>(animTree.AnimPlayer);
@@ -52,6 +69,8 @@ public class LocomotionAnimationSyncTest
 
 			float scale = (float)animTree.Get("parameters/Walking/TimeScale/scale");
 			AssertBool(scale > 2.0f && scale < 3.5f).IsTrue();
+			AssertBool(player.MovementComponent.GroundSpeed > 7.0f).IsTrue();
+			AssertObject(player.MovementComponent.LastMotionKind).IsEqual(MovementMotionKind.Locomotion);
 
 			// When moving at full run speed (7.5 m/s), blend_amount should be 1.0 (pure Run)
 			float blendAmount = (float)animTree.Get("parameters/Walking/Blend2/blend_amount");
@@ -70,6 +89,8 @@ public class LocomotionAnimationSyncTest
 		await runner.SimulateFrames(35);
 		var scene = runner.Scene();
 		var player = (Player)scene.GetTree().GetFirstNodeInGroup("player");
+		PlaceOnOpenFloor(scene, player);
+		await runner.SimulateFrames(2, 20);
 		var animTree = player.GetNode<AnimationTree>("AnimationTree");
 		var playback = (AnimationNodeStateMachinePlayback)animTree.Get("parameters/playback");
 
@@ -110,13 +131,13 @@ public class LocomotionAnimationSyncTest
 
 		try
 		{
-			var behavior = skeleton.GetNode<EnemyBehaviorComponent>("EnemyBehaviorComponent");
+			var locomotion = skeleton.GetNode<LocomotionAnimationComponent>("LocomotionAnimationComponent");
 			var animTree = skeleton.GetNode<AnimationTree>("EnemyBehaviorComponent/AnimationTree");
 			var animPlayer = animTree.GetNode<AnimationPlayer>(animTree.AnimPlayer);
 			var runningAnim = animPlayer.GetAnimation("Running_A");
 
 			AssertObject(runningAnim.LoopMode).IsEqual(Animation.LoopModeEnum.Linear);
-			AssertFloat(behavior.NaturalLocomotionSpeed).IsEqualApprox(2.7f, 0.01f);
+			AssertFloat(locomotion.NaturalLocomotionSpeed).IsEqualApprox(2.7f, 0.01f);
 		}
 		finally
 		{

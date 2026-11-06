@@ -1,0 +1,58 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/components/MovementEffectsComponent.cs" id="script"]
+[ext_resource type="Script" path="res://scenes/effects/RibbonTrail.cs" id="ribbon_script"]
+[ext_resource type="Shader" path="res://scenes/effects/movement/dust_puff.gdshader" id="dust_shader"]
+[ext_resource type="Material" path="res://scenes/effects/movement/dash_streak_material.tres" id="dash_material"]
+
+[sub_resource type="Curve" id="dust_alpha_curve_data"]
+_data = [Vector2(0, 0.8), 0.0, 0.0, 0, 0, Vector2(0.3, 0.65), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="dust_alpha_curve"]
+curve = SubResource("dust_alpha_curve_data")
+
+[sub_resource type="Curve" id="dust_scale_curve_data"]
+_data = [Vector2(0, 0.65), 0.0, 0.0, 0, 0, Vector2(0.3, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.8), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="dust_scale_curve"]
+curve = SubResource("dust_scale_curve_data")
+
+[sub_resource type="ParticleProcessMaterial" id="dust_process"]
+direction = Vector3(0, 1, 0)
+spread = 180.0
+gravity = Vector3(0, 0.25, 0)
+scale_min = 0.8
+scale_max = 1.0
+lifetime_randomness = 0.15
+scale_curve = SubResource("dust_scale_curve")
+alpha_curve = SubResource("dust_alpha_curve")
+
+[sub_resource type="ShaderMaterial" id="dust_material"]
+shader = ExtResource("dust_shader")
+
+[sub_resource type="QuadMesh" id="dust_quad"]
+material = SubResource("dust_material")
+size = Vector2(0.35, 0.35)
+
+[node name="MovementEffectsComponent" type="Node3D" node_paths=PackedStringArray("Movement", "Effects", "Dust", "Dodge", "Streak", "ScreenVisibility")]
+script = ExtResource("script")
+Dust = NodePath("Dust")
+Streak = NodePath("Streak")
+ScreenVisibility = NodePath("ScreenVisibility")
+
+[node name="Dust" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+visibility_aabb = AABB(-20, -2, -20, 40, 8, 40)
+process_material = SubResource("dust_process")
+draw_pass_1 = SubResource("dust_quad")
+
+[node name="Streak" type="MeshInstance3D" parent="."]
+material_override = ExtResource("dash_material")
+cast_shadow = 0
+script = ExtResource("ribbon_script")
+TailWidthScale = 0.12
+
+[node name="ScreenVisibility" type="VisibleOnScreenNotifier3D" parent="."]
+aabb = AABB(-1, -0.15, -1, 2, 2.4, 2)

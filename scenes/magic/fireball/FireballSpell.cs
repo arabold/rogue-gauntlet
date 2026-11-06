@@ -83,7 +83,7 @@ public partial class FireballSpell : Node3D
 		float scale = LevelVisualScales[tier - 1];
 		float trailWidth = Mathf.Lerp(.8f, 1.4f, (tier - 1f) / (LevelVisualScales.Length - 1));
 		foreach (var path in TrailPaths)
-			if (projectile.GetNodeOrNull<MagicRibbonTrail>(path) is { } trail) trail.Width *= trailWidth;
+			if (projectile.GetNodeOrNull<RibbonTrail>(path) is { } trail) trail.Width *= trailWidth;
 		foreach (var path in LayerPaths)
 			if (projectile.GetNodeOrNull<Node3D>(path) is { } visual) visual.Scale = Vector3.One * scale;
 	}

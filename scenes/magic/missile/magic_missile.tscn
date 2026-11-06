@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" path="res://scenes/magic/missile/magic_missile_impact.tscn" id="impact"]
 [ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_core.gdshader" id="core_shader"]
 [ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_ribbon_glow.gdshader" id="ribbon_shader"]
-[ext_resource type="Script" path="res://scenes/effects/MagicRibbonTrail.cs" id="ribbon"]
+[ext_resource type="Script" path="res://scenes/effects/RibbonTrail.cs" id="ribbon"]
 [ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="noise"]
 [ext_resource type="Material" path="res://scenes/magic/shared/toon/toon_spark_material.tres" id="spark_material"]
 
@@ -106,3 +106,5 @@ PointSpacing = 0.07
 Width = 0.28
 TailWidthScale = 0.1
 MeshUpdateInterval = 0.025
+PointLifetime = 0.5
+MaxLength = 0.91

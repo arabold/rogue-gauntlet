@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" path="res://scenes/magic/fireball/fireball_impact.tscn" id="3_impact"]
 [ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="5_noise"]
 [ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_core.gdshader" id="6_core"]
-[ext_resource type="Script" path="res://scenes/effects/MagicRibbonTrail.cs" id="7_ribbon"]
+[ext_resource type="Script" path="res://scenes/effects/RibbonTrail.cs" id="7_ribbon"]
 [ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_ribbon_glow.gdshader" id="8_wake"]
 [ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_crown.gdshader" id="9_crown"]
 [ext_resource type="Texture2D" path="res://scenes/magic/fireball/toon_fire_ramp.tres" id="fire_ramp"]
@@ -205,6 +205,8 @@ PointSpacing = 0.09
 Width = 2.0
 TailWidthScale = 0.14
 MeshUpdateInterval = 0.025
+PointLifetime = 1.5
+MaxLength = 4.95
 
 [node name="HotRibbon" type="MeshInstance3D" parent="."]
 material_override = SubResource("hot_ribbon_material")
@@ -215,6 +217,8 @@ PointSpacing = 0.09
 Width = 0.7
 TailWidthScale = 0.08
 MeshUpdateInterval = 0.025
+PointLifetime = 1.5
+MaxLength = 4.95
 
 [node name="Light" type="OmniLight3D" parent="Pivot"]
 light_color = Color(1, 0.42, 0.1, 1)

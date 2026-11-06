@@ -73,6 +73,10 @@
 [ext_resource type="Resource" path="res://scenes/effects/combat/impact_surface_profiles/flesh.tres" id="impact_surface_profile"]
 [ext_resource type="Script" uid="uid://ciaiejkejh513" path="res://scenes/effects/world/ItemUseWorldEffectDriver.cs" id="vfx_use"]
 
+[ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]
+[ext_resource type="PackedScene" path="res://scenes/components/movement_effects_component.tscn" id="movement_effects"]
+[ext_resource type="Resource" path="res://scenes/effects/movement/movement_effect_profiles/medium.tres" id="movement_profile"]
+
 [sub_resource type="Resource" id="Resource_3j4b4"]
 script = ExtResource("3_uf5tr")
 Item = ExtResource("4_uf5tr")
@@ -702,3 +706,13 @@ Effects = NodePath("../WorldEffects")
 Statuses = NodePath("../BuffController")
 Health = NodePath("../HealthComponent")
 Effects = NodePath("../WorldEffects")
+[node name="LocomotionAnimationComponent" parent="." node_paths=PackedStringArray("Movement", "AnimationTree") instance=ExtResource("locomotion_animation")]
+Movement = NodePath("../MovementComponent")
+AnimationTree = NodePath("../AnimationTree")
+BlendWalkingAndRunning = true
+
+[node name="MovementEffectsComponent" parent="." node_paths=PackedStringArray("Movement", "Effects", "Dodge") instance=ExtResource("movement_effects")]
+Movement = NodePath("../MovementComponent")
+Effects = NodePath("../WorldEffects")
+Profile = ExtResource("movement_profile")
+Dodge = NodePath("../DodgeComponent")
