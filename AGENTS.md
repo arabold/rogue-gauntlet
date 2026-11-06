@@ -5,6 +5,12 @@
 - C# project is `Rogue Gauntlet.csproj` using `Godot.NET.Sdk/4.7.0`, `net9.0`, `LangVersion=preview`, root namespace `RogueGauntlet`.
 - C# tests live under `tests/` inside the game project (GdUnit4, see Testing below); there are no CI workflows in this repo currently.
 
+## Session Initialization Rules
+Whenever a new session, branch, or worktree is created, your very first action before executing any user prompts must be to initialize CodeGraph:
+```bash
+codegraph init
+```
+
 ## Commands
 - Fast compile check: `dotnet build "Rogue Gauntlet.sln"`. This is the default agent verification step for C# changes.
 - VS Code task config points to `/Applications/Godot.app/Contents/MacOS/Godot --build-solutions ...`, but this machine has `/Applications/Godot_mono.app/Contents/MacOS/Godot` instead.
