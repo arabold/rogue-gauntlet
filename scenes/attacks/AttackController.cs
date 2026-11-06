@@ -263,8 +263,6 @@ public partial class AttackController : Node, IParryInterruptible
 		// A positive lead commits melee facing before contact, so a defender can step out of the swing.
 		if (!_currentAttack.IsRanged && !HasCommittedFacing && _elapsedTime >= _currentAttack.HitWindowStart - _currentAttack.FacingLockLead)
 			CommitMeleeFacing();
-		UpdateIndicator(HasCommittedFacing ? AttackIndicatorStage.Committed : AttackIndicatorStage.Aiming);
-
 		if (_preparedAttack.Spell != null)
 		{
 			if (!_releaseStarted && _elapsedTime >= _currentAttack.HitWindowStart)

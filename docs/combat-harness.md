@@ -4,6 +4,8 @@ Open `scenes/debug/combat/combat_harness.tscn` and run it with F6. The harness u
 
 The debug controls cover slow motion, optional hit-volume and hurtbox drawing, combat feedback, and camera shake. The target can be made invulnerable without changing the monster's defense mode. The dummy uses the same health, hurtbox, movement, poise, action gate, damage numbers, and feedback components as a monster, so knockback and defensive responses can be inspected without loading a dungeon.
 
+The `monster_attack` scenario command requests one attack through the spawned monster's production behavior while AI remains off. Use it to inspect that monster's warning and attack timing without enabling autonomous movement.
+
 The control panel is mouse-operated so keypad, movement keys, and Space stay available to control the hero.
 
 Checkbox defaults apply immediately on startup and to newly spawned monsters. `--combat-console` also checks the console logging option.

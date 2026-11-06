@@ -45,10 +45,7 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 
 	public override void _Ready()
 	{
-		_material = new StandardMaterial3D { ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
-			Transparency = BaseMaterial3D.TransparencyEnum.Alpha, CullMode = BaseMaterial3D.CullModeEnum.Disabled,
-			NoDepthTest = false, DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.OpaqueOnly };
-		MaterialOverride = _material;
+		EnsureMaterial();
 		Visible = false;
 		ApplyProfile();
 	}
@@ -85,10 +82,7 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 		Basis basis = Basis.LookingAt(direction.Normalized(), Vector3.Up);
 		GlobalTransform = new Transform3D(basis, frame.Origin + Vector3.Up * _profile.GroundOffset);
 		Mesh = BuildMesh(frame);
-		_material ??= new StandardMaterial3D { ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
-			Transparency = BaseMaterial3D.TransparencyEnum.Alpha, CullMode = BaseMaterial3D.CullModeEnum.Disabled,
-			NoDepthTest = false, DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.OpaqueOnly };
-		MaterialOverride = _material;
+		EnsureMaterial();
 		_material.AlbedoColor = Tint(frame.ThreatTier);
 		float easedAimProgress = Mathf.Pow(Mathf.Clamp(frame.AimProgress, 0, 1), Mathf.Max(0.01f, _profile.AimConeGrowthExponent));
 		SetOpacity(frame.Stage switch
@@ -131,6 +125,14 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 	{
 		if (_profile == null) { Clear(); return; }
 		if (_material != null) _material.AlbedoColor = _profile.NormalTint;
+	}
+
+	private void EnsureMaterial()
+	{
+		_material ??= new StandardMaterial3D { ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+			Transparency = BaseMaterial3D.TransparencyEnum.Alpha, CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+			NoDepthTest = false, DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.OpaqueOnly };
+		MaterialOverride = _material;
 	}
 
 	private Color Tint(AttackThreatTier tier) => tier switch
@@ -205,6 +207,5 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 		return [new(-laneWidth / 2, 0), new(laneWidth / 2, 0), new(endWidth / 2, -shownLength), new(-endWidth / 2, -shownLength)];
 	}
 
-	private Vector2[] CreatePreviewFootprint() =>
-		[new(-PreviewWidth / 2, 0), new(PreviewWidth / 2, 0), new(PreviewWidth / 2, -PreviewReach), new(-PreviewWidth / 2, -PreviewReach)];
+	private Vector2[] CreatePreviewFootprint() => BuildBar(PreviewReach, PreviewWidth);
 }

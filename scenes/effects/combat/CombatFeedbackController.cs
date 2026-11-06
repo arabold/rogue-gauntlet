@@ -5,7 +5,6 @@ using Godot;
 public partial class CombatFeedbackController : Node
 {
 	private bool _enabled = true;
-	private CombatContactFeedbackHandler _worldHandler;
 	[Export] public Node3D Actor { get; set; }
 	[Export] public HurtBoxComponent HurtBox { get; set; }
 	[Export] public MovementComponent Movement { get; set; }
@@ -31,15 +30,12 @@ public partial class CombatFeedbackController : Node
 		if (SurfaceProfile == null) SurfaceProfile = HurtBox.ImpactSurface;
 		if (FallbackProfile != null && HurtBox.FeedbackProfile == null) HurtBox.FeedbackProfile = FallbackProfile;
 		this.SubscribeUntilExit(HurtBox, h => h.ContactResolved += OnTargetContact, h => h.ContactResolved -= OnTargetContact);
-		_worldHandler = OnWorldContact;
-		SignalBus.CombatContactResolved += _worldHandler;
+		this.SubscribeUntilExit(SignalBus.Instance,
+			_ => SignalBus.CombatContactResolved += OnWorldContact,
+			_ => SignalBus.CombatContactResolved -= OnWorldContact);
 	}
 
-	public override void _ExitTree()
-	{
-		if (_worldHandler != null) SignalBus.CombatContactResolved -= _worldHandler;
-		VisualMotion?.Clear();
-	}
+	public override void _ExitTree() => VisualMotion?.Clear();
 
 	private void OnTargetContact(in CombatContactFeedback feedback) => PresentTarget(feedback);
 

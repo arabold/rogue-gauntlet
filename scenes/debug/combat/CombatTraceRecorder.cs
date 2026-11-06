@@ -70,7 +70,9 @@ public partial class CombatTraceRecorder : Node
 		CombatTrace.Write(_scope, "simulation.tick", ("delta", delta), ("time_scale", Engine.TimeScale));
 		foreach (Node node in _scope.GetChildren())
 		{
-			if (node is not Node3D actor || actor.GetNodeOrNull<HealthComponent>("HealthComponent") == null) continue;
+			if (node is not Node3D actor) continue;
+			var health = actor.GetNodeOrNull<HealthComponent>("HealthComponent");
+			if (health == null) continue;
 			var movement = actor.GetNodeOrNull<MovementComponent>("MovementComponent");
 			var gate = actor.GetNodeOrNull<ActorActionGateComponent>("ActorActionGateComponent");
 			var attack = actor.GetNodeOrNull<AttackController>("AttackController") ?? actor.GetNodeOrNull<AttackController>("PlayerAttackController");
@@ -78,8 +80,8 @@ public partial class CombatTraceRecorder : Node
 			var guard = actor.GetNodeOrNull<GuardComponent>("GuardComponent");
 			CombatTrace.Write(actor, "actor.state", ("position", CombatTrace.Position(actor)),
 				("velocity", CombatTrace.Vector((actor as CharacterBody3D)?.Velocity ?? Vector3.Zero)), ("facing", CombatTrace.Vector(movement?.LookAtDirection ?? Vector3.Forward)),
-				("health", actor.GetNodeOrNull<HealthComponent>("HealthComponent")?.CurrentHealth),
-				("dead", actor.GetNodeOrNull<HealthComponent>("HealthComponent")?.IsDead), ("disabled", gate?.Disabled),
+				("health", health.CurrentHealth),
+				("dead", health.IsDead), ("disabled", gate?.Disabled),
 				("action", gate?.CurrentKind.ToString()), ("phase", gate?.CurrentPhase.ToString()), ("stagger_remaining", gate?.StaggerRemaining),
 				("execution", attack?.CurrentExecutionId.Sequence), ("attacking", attack?.IsAttacking),
 				("dodge_remaining", dodge?.RecoveryRemaining), ("dodge_cooldown", dodge?.CooldownRemaining),
