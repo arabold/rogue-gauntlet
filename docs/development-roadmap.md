@@ -38,6 +38,8 @@ Check pressured/cornered crossbowmen still shoot, retreat never traps or indefin
 
 The [combat redesign](specs/combat-redesign-plan.md) changes this combat review. All five slices are implemented: poise, committed wind-ups, rear and sneak hits, dodging through monsters, attack slots, threat tiers, strike-aligned contact timing, and the player kit (primary combos, input buffer, recovery cancels and dodge charges). They need playtesting against these depths; the Warden guard-breaking attack and guard walking remain.
 
+Combat presentation, attack execution and the harness now use the shared feedback components and editor-authored attack indicator. The harness exposes those component settings, a movable practice target and locally discovered monster scenes. Defense modes, AI, invulnerability and debug drawing are controlled at their owning components. Gameplay defaults, parry/poise behavior and attacker-only hit-stop timing remain unchanged. Whole-world hit stop remains a separate pacing decision; rendered review at normal zoom remains outstanding.
+
 Authoring acceptance also requires duplicating an actor in Godot, adding/removing guard or dodge with explicit references, saving/reopening, and checking two independent instances. The [template guide](../scenes/enemies/templates/README.md) owns that workflow. Automated checks support these reviews; real navigation and fun require playtesting.
 
 ## Dungeon progression

@@ -10,7 +10,7 @@ Every exchange follows **telegraph → respond → punish**, with the existing d
 
 The Warden's slash is now Normal, so blocking it and countering during its recovery works. Guard break then has no monster user. Give the Warden a second, clearly different attack so guarding him stays a choice rather than a habit:
 
-- **Overhead slam:** `BreaksGuard` plus Guardable, Parryable and Dodgeable traits, so it reads as Heavy with the orange footprint through the already-wired `AttackTelegraph`. A wind-up of at least the Heavy minimum (0.5 s), ideally longer than the slash, and hyper-armor through the swing. It needs a distinct clip or a slower playback of an existing one.
+- **Overhead slam:** `BreaksGuard` plus Guardable, Parryable and Dodgeable traits, so it reads as Heavy with the orange shared attack indicator. A wind-up of at least the Heavy minimum (0.5 s), ideally longer than the slash, and hyper-armor through the swing. It needs a distinct clip or a slower playback of an existing one.
 - **Attack selection:** monsters currently have one `EnemyAttackStrategy`. Add an ordered list of attack policies on `EnemyBehaviorProfile` with an authored choice rule (weights, cooldown per entry, optional "target is guarding" preference from visible guard state, never player input). The executor, slots, validator and defense observation keep working per accepted attack.
 - **Verification:** validator coverage for every listed attack, a harness review of block → counter against the slash and parry/dodge against the slam, and the authoring guide updated for multiple attacks.
 
@@ -30,6 +30,6 @@ Run `dotnet build "Rogue Gauntlet.sln"`, the targeted GdUnit4 tests, a harness s
 
 - **Player kit tuning.** Fresh presses cancel recovery for the first two combo steps, so timed presses raise damage per second well above the old single attack, while holding the button stays close to it. Player contact windows now cover only the visible strike, which is shorter than the old 0.3–0.65 default. Playtest both against current monster health and reach before retuning.
 - **Charged secondary and depth-scaled attack slots.** Deferred until playtests show a need.
-- **Playtest review of the implemented slices.** Engagement-ring navigation and ring spacing in generated rooms, dodging through monsters next to walls, sneak-attack frequency, Warden guard-break and riposte pacing, and whether flinches read clearly enough (a material flash or additive hit-react blend remains open). Headless runs cannot bake a navmesh, so ring movement needs the editor.
+- **Playtest review of the implemented slices.** Engagement-ring navigation and ring spacing in generated rooms, dodging through monsters next to walls, sneak-attack frequency, Warden guard-break and riposte pacing, and whether flinches read clearly enough. Delivered attack execution, feedback and harness behavior are documented in [combat actions and defense](../combat-system.md), [weapon attacks](../weapon-attack-system.md) and the [combat harness](../combat-harness.md). Headless runs cannot bake a navmesh, so ring movement needs the editor.
 - **Further multi-attack content.** After the Warden slam, the same attack selection serves Unblockable area monsters and other tier mixes.
 - **Player rear vulnerability.** The player has no vulnerability profile; revisit if being surrounded is not dangerous enough.

@@ -150,6 +150,7 @@ public static class MonsterSceneValidator
 					"ProjectileAttackStrategy: assign a projectile definition and scene.");
 			if (attack is AttackDefinition authored)
 			{
+				Check(Local(Object<Node>(controller, "Indicator")), "AttackController.Indicator: assign this actor's shared attack warning.");
 				// The attack's own rules, against the wind-up this policy and binding prepare.
 				float? windUp = matches.Length == 1 ? Number(policy, "Duration") * Number(matches[0], "ContactStart") : null;
 				Check(authored.HasValidImpactValues, "Attack: poise damage, knockback, hit-stop and wind-up turn rate must be nonnegative and finite.");
@@ -158,8 +159,6 @@ public static class MonsterSceneValidator
 				Check(authored.HasValidFlight(windUp, windUp != null ? Number(policy, "Duration") : null),
 					"Attack flight: stagger, homing and launch ramp must be finite and nonnegative with a launch scale in (0, 1]; stagger and homing belong to aimed single/spread shots whose last projectile leaves within the attack.");
 				var tier = authored.ThreatTier;
-				if (tier != AttackThreatTier.Normal && !authored.IsRanged)
-					Check(Local(Object<Node>(controller, "Telegraph")), "AttackController.Telegraph: assign this actor's telegraph for Heavy/Unblockable melee.");
 				if (windUp < tier.MinimumWindUp() - .001f)
 					errors.Add($"Attack: {tier} attacks need at least {tier.MinimumWindUp()} s of wind-up before contact.");
 			}
@@ -167,7 +166,6 @@ public static class MonsterSceneValidator
 			Check(Nonnegative(aimLock), "Attack.ProjectileAimLockDuration: must be nonnegative and finite.");
 			if (aimLock > 0)
 			{
-				Check(Local(Object<Node>(controller, "AimIndicator")), "AttackController.AimIndicator: assign this actor's projectile warning.");
 				Check(attack.Get("IsRanged").AsBool() && attack.Get("ProjectilePattern").AsInt32() is 0 or 1,
 					"Attack.ProjectileAimLockDuration: only aimed single/spread shots support locking.");
 				if (matches.Length == 1)

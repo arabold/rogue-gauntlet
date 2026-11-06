@@ -19,21 +19,25 @@
 
 [ext_resource type="PackedScene" path="res://scenes/debug/combat/combat_practice_target.tscn" id="practice_target"]
 [ext_resource type="Resource" path="res://scenes/magic/spells/spell_pool_all.tres" id="spell_pool"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/skeleton/skeleton_minion.tscn" id="monster_minion"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/skeleton/skeleton_warrior.tscn" id="monster_skeleton"]
-
-[ext_resource type="PackedScene" path="res://scenes/enemies/forsaken_warden/forsaken_warden.tscn" id="monster_warden"]
-
 [ext_resource type="Script" path="res://scenes/debug/combat/CombatTraceRecorder.cs" id="recorder"]
-
-[ext_resource type="PackedScene" path="res://scenes/enemies/skeleton/skeleton_crossbow.tscn" id="monster_crossbow"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/rat/rat.tscn" id="monster_rat"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_noise_emitter_3d.gd" id="noise_emitter"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/resources/phantom_camera_noise_3d.gd" id="noise_resource"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="phantom_camera_host"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="phantom_camera"]
+[ext_resource type="Script" path="res://scenes/effects/combat/CombatCameraFeedbackController.cs" id="camera_feedback"]
+[ext_resource type="Resource" path="res://scenes/debug/combat/combat_arena_navigation.tres" id="arena_navigation"]
 
 [sub_resource type="BoxShape3D" id="floor_shape"]
 size = Vector3(40, 1, 40)
 
 [sub_resource type="BoxMesh" id="floor_mesh"]
 size = Vector3(40, 1, 40)
+
+[sub_resource type="BoxShape3D" id="north_boundary_shape"]
+size = Vector3(40, 2, 1)
+
+[sub_resource type="BoxShape3D" id="east_boundary_shape"]
+size = Vector3(1, 2, 40)
 
 [sub_resource type="Environment" id="environment"]
 background_mode = 1
@@ -44,6 +48,13 @@ ambient_light_energy = 0.7
 
 [sub_resource type="Theme" id="controls_theme"]
 default_font_size = 16
+
+[sub_resource type="Resource" id="combat_noise"]
+script = ExtResource("noise_resource")
+amplitude = 7.5
+frequency = 30.0
+rotational_noise = false
+positional_noise = true
 
 [sub_resource type="StyleBoxFlat" id="panel_style"]
 content_margin_left = 12.0
@@ -65,12 +76,39 @@ current = true
 projection = 1
 size = 18.0
 
+[node name="PhantomCameraHost" type="Node" parent="Camera3D"]
+process_priority = 300
+process_physics_priority = 300
+script = ExtResource("phantom_camera_host")
+
+[node name="PhantomCamera3D" type="Node3D" parent="."]
+position = Vector3(-4, 14, 7)
+rotation_degrees = Vector3(-55, 0, 0)
+top_level = true
+script = ExtResource("phantom_camera")
+follow_mode = 0
+noise_emitter_layer = 1
+
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("environment")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-45, 30, 0)
 light_energy = 1.3
+
+[node name="HitNoiseEmitter" type="Node3D" parent="."]
+script = ExtResource("noise_emitter")
+noise = SubResource("combat_noise")
+duration = 0.0
+decay_time = 0.18
+noise_emitter_layer = 1
+
+[node name="CombatCameraFeedbackController" type="Node" parent="." node_paths=PackedStringArray("NoiseEmitter")]
+script = ExtResource("camera_feedback")
+NoiseEmitter = NodePath("../HitNoiseEmitter")
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = ExtResource("arena_navigation")
 
 [node name="Floor" type="StaticBody3D" parent="."]
 position = Vector3(0, -0.5, 0)
@@ -81,17 +119,38 @@ shape = SubResource("floor_shape")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("floor_mesh")
 
+[node name="BoundaryNorth" type="StaticBody3D" parent="."]
+position = Vector3(0, 1, -19.5)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BoundaryNorth"]
+shape = SubResource("north_boundary_shape")
+
+[node name="BoundarySouth" type="StaticBody3D" parent="."]
+position = Vector3(0, 1, 19.5)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BoundarySouth"]
+shape = SubResource("north_boundary_shape")
+
+[node name="BoundaryEast" type="StaticBody3D" parent="."]
+position = Vector3(19.5, 1, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BoundaryEast"]
+shape = SubResource("east_boundary_shape")
+
+[node name="BoundaryWest" type="StaticBody3D" parent="."]
+position = Vector3(-19.5, 1, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BoundaryWest"]
+shape = SubResource("east_boundary_shape")
+
 [node name="Player" parent="." instance=ExtResource("player")]
 
-[node name="PracticeTarget" parent="." instance=ExtResource("practice_target")]
-position = Vector3(0, 0, -2)
-
-[node name="Instructions" type="CanvasLayer" parent="." node_paths=PackedStringArray("Player", "PracticeTarget")]
+[node name="Instructions" type="CanvasLayer" parent="." node_paths=PackedStringArray("Player", "TargetParent")]
 script = ExtResource("harness")
 Player = NodePath("../Player")
-PracticeTarget = NodePath("../PracticeTarget")
+TargetParent = NodePath("..")
+PracticeTargetScene = ExtResource("practice_target")
 SpellPool = ExtResource("spell_pool")
-Monsters = [ExtResource("monster_minion"), ExtResource("monster_skeleton"), ExtResource("monster_warden"), ExtResource("monster_crossbow"), ExtResource("monster_rat")]
 Weapons = [ExtResource("weapon_0"), ExtResource("weapon_1"), ExtResource("weapon_2"), ExtResource("weapon_3"), ExtResource("weapon_4"), ExtResource("weapon_5"), ExtResource("weapon_6"), ExtResource("weapon_7"), ExtResource("weapon_8"), ExtResource("weapon_9"), ExtResource("weapon_10"), ExtResource("weapon_11"), ExtResource("weapon_12")]
 
 [node name="Panel" type="PanelContainer" parent="Instructions"]
@@ -157,12 +216,15 @@ custom_minimum_size = Vector2(0, 30)
 
 [node name="Spell" type="OptionButton" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
+visible = false
 
 [node name="SpellLevel" type="OptionButton" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
+visible = false
 
 [node name="CastSpell" type="Button" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
+visible = false
 text = "Cast spell"
 tooltip_text = "Cast the selected spell directly with the hero's weapon hit and no mana. An equipped wand or staff also takes the selected spell for its secondary."
 
@@ -176,11 +238,6 @@ tooltip_text = "Click to hold or release guard. Keyboard: hold L; parry during t
 layout_mode = 2
 text = "Dodge (Space)"
 custom_minimum_size = Vector2(0, 30)
-
-[node name="HeroInvulnerable" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-text = "Hero invulnerable (practice)"
-tooltip_text = "Ignore unprotected damage while practicing. Dodge, block and parry outcomes still resolve first."
 
 [node name="MonsterSectionSeparator" type="HSeparator" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
@@ -204,51 +261,29 @@ text = "Defense"
 layout_mode = 2
 tooltip_text = "Monster default uses its authored defense chances and timing. Overrides retain normal cooldowns."
 
+[node name="MonsterAI" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Monster AI (walk + attack)"
+button_pressed = false
+tooltip_text = "Let the selected monster move, chase and attack using its normal behavior. When off, it stays passive but still reacts to your hits and can defend itself."
+
+[node name="TargetInvulnerable" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Target invulnerable"
+tooltip_text = "Prevent health loss independently of the monster's defense behavior."
+
 [node name="SpawnMonster" type="Button" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
 text = "Spawn / respawn"
 custom_minimum_size = Vector2(0, 30)
 
-[node name="SpawnCrowd" type="Button" parent="Instructions/Panel/Scroll/Controls"]
+[node name="CameraShake" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
+unique_name_in_owner = true
 layout_mode = 2
-text = "Spawn / clear crowd"
-tooltip_text = "Toggle three stationary monsters around the player to exercise area spells."
-
-[node name="SpawnDistanceLabel" type="Label" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-text = "Spawn distance (6 recommended for archers)"
-
-[node name="SpawnDistance" type="SpinBox" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-min_value = 1.0
-max_value = 12.0
-step = 0.5
-value = 2.0
-
-[node name="AutomationLabel" type="Label" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-text = "Automatic behavior"
-
-[node name="Automation" type="OptionButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-tooltip_text = "Manual still permits reactive defenses from the Defense selector. Repeating dodge/guard replaces reactive defense; unavailable capabilities cannot be selected."
-
-[node name="RepeatPauseLabel" type="Label" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-text = "Minimum interval between requests (seconds)"
-
-[node name="RepeatPause" type="SpinBox" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-min_value = 0.1
-max_value = 5.0
-step = 0.1
-value = 1.0
-
-[node name="MonsterAttack" type="Button" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-text = "Attack hero"
-custom_minimum_size = Vector2(0, 30)
-tooltip_text = "Request the monster's authored melee or ranged attack; normal range and action restrictions apply."
+text = "Camera shake"
+button_pressed = true
 
 [node name="DisplaySectionSeparator" type="HSeparator" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
@@ -277,6 +312,7 @@ button_pressed = true
 
 [node name="Moving" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
+visible = false
 text = "Move practice target"
 button_pressed = false
 
@@ -301,12 +337,14 @@ text = "Combat outcomes appear here."
 
 [node name="TraceFrames" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
+visible = false
 text = "Record actor state each frame"
 button_pressed = true
 tooltip_text = "Include position, health, action and defense timers in the combat trace."
 
 [node name="TraceConsole" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
+visible = false
 text = "Echo JSON to console"
 button_pressed = false
 tooltip_text = "Print structured combat records to the Godot output console."

@@ -7,6 +7,9 @@ public partial class PlayerAttackController : AttackController
 {
 	[Export] public Player Player { get; set; }
 	[Export] public MeleeAttackProfile SpecialMeleeContact { get; set; }
+	[ExportGroup("Combat feedback")]
+	[Export] public CombatFeedbackProfile PrimaryFeedbackProfile { get; set; }
+	[Export] public CombatFeedbackProfile SecondaryFeedbackProfile { get; set; }
 
 	/// <summary>Impact of weapon attacks without a custom definition. Custom definitions author their own.</summary>
 	[ExportGroup("Default impact")]
@@ -117,6 +120,11 @@ public partial class PlayerAttackController : AttackController
 		duration *= step?.DurationScale ?? 1;
 		var contact = isSpecial ? (weapon?.GetEffectiveSecondaryMeleeContact(SpecialMeleeContact) ?? SpecialMeleeContact) : weapon?.MeleeContact;
 		if (!TryPrepareAttack(definition, style, duration, out attack, contact)) return false;
+		if (attack.Feedback == null)
+		{
+			var profile = isSpecial ? SecondaryFeedbackProfile : PrimaryFeedbackProfile;
+			if (profile != null) attack = attack with { Feedback = profile.Capture() };
+		}
 		if (step == null) return true;
 		attack.Definition.PoiseDamage *= step.PoiseDamageScale;
 		attack.Definition.HitStopDuration *= step.HitStopScale;

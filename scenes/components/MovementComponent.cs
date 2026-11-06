@@ -66,6 +66,11 @@ public partial class MovementComponent : Node
 	private float _pushStrength = 0.0f;
 	private bool _forcePushWhileLocked;
 	private bool _pushCoveredByStagger;
+	private Vector3 _lungeDirection;
+	private float _lungeSpeed;
+	private float _lungeRemaining;
+	private AttackIdentity _lastLungeExecution;
+	private bool _hasLungedExecution;
 
 	private object _locomotionOverrideOwner;
 	private Vector3 _overrideDirection = Vector3.Zero;
@@ -91,7 +96,7 @@ public partial class MovementComponent : Node
 		_statusSpeedFactor = 1;
 		foreach (float value in _statusSpeedFactors.Values) _statusSpeedFactor = Mathf.Min(_statusSpeedFactor, value);
 	}
-	public void HaltLocomotion() { _hasOverrideVelocity = false; Stop(); }
+	public void HaltLocomotion() { _hasOverrideVelocity = false; CancelLunge(); Stop(); }
 	public bool HasOverrideVelocity => _hasOverrideVelocity;
 	public float SpeedMultiplier => _speedMultiplier;
 
@@ -101,6 +106,33 @@ public partial class MovementComponent : Node
 		_overrideDirection = direction.Normalized();
 		_overrideSpeed = speed;
 		_hasOverrideVelocity = true;
+	}
+
+	/// <summary>Apply a short, collision-resolved forward movement once for a successful melee execution.</summary>
+	public bool TryLunge(AttackIdentity execution, Vector3 direction, float distance, float duration)
+	{
+		if (execution == default || (_hasLungedExecution && execution == _lastLungeExecution)
+			|| !GodotObject.IsInstanceValid(Actor) || !float.IsFinite(distance) || distance <= 0
+			|| !float.IsFinite(duration) || duration <= 0 || direction.LengthSquared() < 0.0001f
+			|| ActionGate?.Disabled == true || ActionGate?.IsStatusLocked == true || ActionGate?.IsStaggered == true
+			|| _pushStrength > 0.1f)
+			return false;
+
+		direction.Y = 0;
+		if (direction.LengthSquared() < 0.0001f) return false;
+		_lastLungeExecution = execution;
+		_hasLungedExecution = true;
+		_lungeDirection = direction.Normalized();
+		_lungeSpeed = distance / duration;
+		_lungeRemaining = duration;
+		return true;
+	}
+
+	private void CancelLunge()
+	{
+		_lungeDirection = Vector3.Zero;
+		_lungeSpeed = 0;
+		_lungeRemaining = 0;
 	}
 
 	public void SetSpeedMultiplier(object owner, float multiplier)
@@ -146,18 +178,25 @@ public partial class MovementComponent : Node
 
 	public void Push(Vector3 direction, float strength)
 	{
+		SetPush(direction, strength, false);
+	}
+
+	public void PushForced(Vector3 direction, float strength)
+	{
+		SetPush(direction, strength, true);
+		_forcePushWhileLocked = true;
+	}
+
+	private void SetPush(Vector3 direction, float strength, bool bypassStatusLock)
+	{
+		CancelLunge();
 		_pushDirection = direction.Normalized();
 		_pushStrength = strength;
 		_pushCoveredByStagger = ActionGate?.IsStaggered == true;
 		_forcePushWhileLocked = false;
 		_hasOverrideVelocity = false;
-	}
-
-	/// <summary>Move under an external force even while a status blocks voluntary movement.</summary>
-	public void PushForced(Vector3 direction, float strength)
-	{
-		Push(direction, strength);
-		_forcePushWhileLocked = true;
+		CombatTrace.Write(this, "effect.knockback", ("direction", CombatTrace.Vector(_pushDirection)),
+			("strength", strength), ("bypass_status_lock", bypassStatusLock));
 	}
 
 	public void SetInputDirection(Vector3 inputDirection)
@@ -199,6 +238,7 @@ public partial class MovementComponent : Node
 		_pushDirection = Vector3.Zero;
 		_pushStrength = 0;
 		_forcePushWhileLocked = false;
+		CancelLunge();
 		_locomotionOverrideOwner = null;
 		_hasOverrideVelocity = false;
 		_speedMultiplier = 1;
@@ -218,6 +258,8 @@ public partial class MovementComponent : Node
 		UpdateVelocity(delta);
 		if (ActionGate?.IsStatusLocked != true) SmoothRotateToward(delta);
 		MoveAndSlideActor();
+		_lungeRemaining = Mathf.Max(0, _lungeRemaining - (float)delta);
+		if (_lungeRemaining == 0) _lungeSpeed = 0;
 	}
 
 	/// <summary>
@@ -288,6 +330,15 @@ public partial class MovementComponent : Node
 				velocity.Z = ApproachHorizontal(Velocity.Z, desiredHorizontal.Z, (float)delta);
 			}
 		}
+
+			// Lunge is attack movement, so it can carry an actor while ordinary locomotion is locked
+			// by its attack action. Status locks, stagger, death, and knockback still take priority.
+			if (_lungeRemaining > 0 && _pushStrength <= 0.1f && ActionGate?.Disabled != true
+				&& ActionGate?.IsStatusLocked != true && ActionGate?.IsStaggered != true && delta > 0)
+			{
+				float frameDuration = Mathf.Min((float)delta, _lungeRemaining);
+				velocity += _lungeDirection * (_lungeSpeed * frameDuration / (float)delta);
+			}
 
 		// Apply vertical velocity
 		velocity.Y += Velocity.Y;

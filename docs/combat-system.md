@@ -10,6 +10,14 @@ Player presses of primary, secondary, dodge and guard wait 0.2 seconds (`PlayerI
 
 The executor owns its timing and releases ownership on completion or interruption. Movement and animation follow that same commitment; stale callbacks cannot complete an old action or cancel a newer one. Shared authored Resources are definitions. Accepted actions snapshot their settings so live edits cannot change an action halfway through.
 
+`AttackExecution` owns the attack phase and elapsed clock (`WindUp`, `Active`, `Recovery`), including the existing once-per-execution attacker hit stop. `AttackController` remains responsible for action-gate leases, contact sampling, projectile release and interruption. Effects and debug switches observe the execution; they do not drive phase transitions.
+
+## Contact feedback
+
+After the hurtbox resolves a contact, one immutable result feeds target and camera feedback. `CombatFeedbackController` coordinates the existing target knockback with a short target flash, material-selected particles, damage numbers, cosmetic flinch recoil, and a physical attacker lunge on successful melee contact. The lunge moves the attacker's `CharacterBody3D` through `MovementComponent` for the profile's bounded distance and duration; `MoveAndSlide` resolves walls, while status locks, stagger and knockback take priority. Each attack execution can lunge once. The effect profile and impact-surface profile are assigned in the actor scene. `CombatCameraFeedbackController` scales its impulse from the resolved outcome, including a softer blocked response. Feedback never rolls damage, evaluates defense or applies another physical push. Sound remains deferred.
+
+The existing hit stop remains on the attacking execution; other actors, defense timers, projectiles and movement continue. The existing authored push remains the only defender knockback. The attacker lunge is intentionally a gameplay movement change: it closes a small gap after a confirmed hit and may affect spacing for the next action. Target recoil remains a visual-only model offset.
+
 ## Dodge, guard and parry
 
 Dodge combines physical displacement with an authored immunity interval, recovery, charges and a minimum interval between dodges. Collision may stop displacement without extending immunity. AI must also find a supported, clear destination before dodging.
@@ -43,27 +51,27 @@ An actor may assign a `PoiseComponent` to its hurtbox. Its shared `PoiseDefiniti
 
 Attacks author `PoiseDamage`, `Knockback`, `ForcePushback` and `HitStopDuration`. Weapons without a custom definition use the player attack controller's default impact; the default secondary carries hyper-armor. Absorbed, blocked, dodged and parried contacts deal no poise damage.
 
-Hit-stop pauses only the attacker's execution clock and pose, once per swing, after a damaging or blocked contact. When the player is interrupted or staggered, or causes hit-stop, the main scene shakes the camera through a Phantom Camera noise emitter (`HitNoiseEmitter`), scaled per impulse. Poise is runtime-only: loading, floor entry and harness resets start full. Sources without authored poise (traps, scripted hits) deal poise equal to their damage. Status ticks deal no poise damage or hit reaction; burning ticks pass through the hurtbox so elemental shields can absorb them.
+Hit-stop pauses only the attacker's execution clock and pose, once per swing, after a damaging or blocked contact. Poise is runtime-only: loading, floor entry and harness resets start full. Sources without authored poise (traps, scripted hits) deal poise equal to their damage. Status ticks deal no poise damage or hit reaction; burning ticks pass through the hurtbox so elemental shields can absorb them.
 
 ## Threat tiers and telegraphs
 
 An attack's `DefenseTraits` (Dodgeable, Guardable, Parryable, BreaksGuard) are the single source of what defenses do against it. Its `AttackThreatTier` is a label derived from them:
 
-| Tier | Derived from | Guard | Parry | Dodge | Telegraph |
+| Tier | Derived from | Guard | Parry | Dodge | Indicator style |
 | --- | --- | --- | --- | --- | --- |
-| Normal | Guardable or Parryable, no BreaksGuard | Blocks with chip damage | If Parryable | If Dodgeable | The wind-up animation |
-| Heavy | BreaksGuard | Breaks (see above) | If Parryable | If Dodgeable | Orange ground footprint |
-| Unblockable | Neither Guardable nor Parryable | No | No | If Dodgeable | Red ground footprint |
+| Normal | Guardable or Parryable, no BreaksGuard | Blocks with chip damage | If Parryable | If Dodgeable | Shared warning, normal tint |
+| Heavy | BreaksGuard | Breaks (see above) | If Parryable | If Dodgeable | Shared warning, orange tint |
+| Unblockable | Neither Guardable nor Parryable | No | No | If Dodgeable | Shared warning, red tint |
 
-A monster's Heavy or Unblockable melee draws its contact footprint through an assigned `AttackTelegraph` (`attack_telegraph.tscn`). The footprint is the same outline the hit detector extrudes (`MeleeAttackProfile.FootprintOutline`), so it shows the real hit area. It follows tracking, brightens with a short cue when facing commits, and disappears when the contact window closes or the attack is interrupted. It is presentation only. Validation requires the telegraph for those tiers and a minimum wind-up before contact: 0.35 s Normal, 0.5 s Heavy, 0.6 s Unblockable.
+Monsters use one reusable `AttackIndicatorComponent` (`attack_indicator.tscn`) for weapon warnings, including Normal melee attacks. It draws the authored melee contact footprint or projectile lanes on the ground, follows aim during wind-up, becomes clearer at commitment and fades after release. During projectile aiming, a translucent trapezoid starts at one-third range and grows brighter while its far edge narrows toward the projectile lane. At commitment it becomes a bar that reaches through and beyond the target to the visible attack range. Threat tier changes only the tint. The indicator does not choose targets, change timing or affect defense. Monster validation requires the capability for weapon attacks; the player omits it by default. Tier wind-up requirements remain 0.35 s Normal, 0.5 s Heavy and 0.6 s Unblockable.
 
-The Warden's slash is Normal, so blocking it leaves time to counter-attack during its recovery: block, attack, block. The Warden keeps its `AttackTelegraph` wired for a future guard-breaking attack. The player's default melee secondary breaks guard, so it breaks a monster's guard.
+The Warden's slash is Normal, so blocking it leaves time to counter-attack during its recovery: block, attack, block. The Warden uses the same indicator for its current slash and any future guard-breaking attack. The player's default melee secondary breaks guard, so it breaks a monster's guard.
 
 ## Projectile warnings
 
-Crossbowmen show a subdued dashed aiming guide during preparation. It becomes wider, solid and arrow-tipped with a short sound when aim locks, 0.3 seconds before release. The shot uses that captured origin and direction even if the player moves afterward. Release, interruption and target death remove the warning; an interrupted preparation cannot fire later. Walls and invisible shooters suppress the guide.
+Crossbowmen use the shared warning during preparation. Aim locks 0.3 seconds before release; the shot uses that captured origin and direction even if the player moves afterward. Release, interruption and target death remove the warning; an interrupted preparation cannot fire later. Walls and invisible shooters suppress the guide.
 
-`AttackDefinition.ProjectileAimLockDuration` opts single/spread shots into this behavior; zero retains release-time aiming. The attack executor owns tracking and commitment independently of effects/debug toggles. Assign its optional `AimIndicator` explicitly to the reusable `projectile_aim_indicator.tscn`; the crossbowman and projectile template are prewired, and monster validation flags missing warning assignments for locked shots. The indicator draws the trajectory and plays its assigned sound without choosing targets or applying damage. Radial and area-drop patterns require different warning shapes and do not accept this setting.
+`AttackDefinition.ProjectileAimLockDuration` opts single/spread shots into this behavior; zero retains release-time aiming. The attack executor owns tracking and commitment independently of effects/debug toggles. `AttackController.Indicator` references the actor's reusable `AttackIndicatorComponent`; the crossbowman and projectile template are prewired. The component only draws attack data and does not choose targets or apply damage. Radial and area-drop patterns require different warning shapes and do not accept this setting.
 
 ## Contact resolution
 

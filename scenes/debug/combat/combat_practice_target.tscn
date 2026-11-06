@@ -1,4 +1,4 @@
-[gd_scene format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" uid="uid://cggr3rbo84qxg" path="res://scenes/debug/combat/CombatPracticeTarget.cs" id="practice_target"]
 [ext_resource type="PackedScene" path="res://scenes/components/hurt_box_component.tscn" id="hurtbox"]
@@ -7,6 +7,15 @@
 [ext_resource type="Script" uid="uid://wi1l4pav2ehr" path="res://scenes/components/ConstantScreenSize3D.cs" id="constant_screen_size"]
 [ext_resource type="Script" path="res://scenes/components/DamageNumbersComponent.cs" id="damage_numbers"]
 [ext_resource type="PackedScene" path="res://scenes/components/damage_number.tscn" id="damage_number"]
+[ext_resource type="PackedScene" path="res://scenes/components/movement_component.tscn" id="movement"]
+[ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="action_gate"]
+[ext_resource type="Script" path="res://scenes/combat/PoiseComponent.cs" id="poise"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_poise.tres" id="poise_profile"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="stagger_profile"]
+[ext_resource type="Script" path="res://scenes/effects/combat/CombatFeedbackController.cs" id="feedback"]
+[ext_resource type="Script" path="res://scenes/effects/combat/CombatVisualMotionComponent.cs" id="motion"]
+[ext_resource type="Resource" path="res://scenes/effects/combat/feedback_profiles/default.tres" id="feedback_profile"]
+[ext_resource type="Resource" path="res://scenes/effects/combat/impact_surface_profiles/flesh.tres" id="surface_profile"]
 
 [sub_resource type="CapsuleShape3D" id="shape"]
 radius = 0.4
@@ -24,22 +33,27 @@ top_radius = 0.55
 bottom_radius = 0.55
 height = 0.1
 
-[node name="PracticeTarget" type="StaticBody3D" groups=["enemy"] node_paths=PackedStringArray("HurtBox")]
+[node name="PracticeTarget" type="CharacterBody3D" groups=["enemy"] node_paths=PackedStringArray("HurtBox", "Health", "Movement", "ActionGate")]
 collision_layer = 8
-collision_mask = 0
+collision_mask = 1
 script = ExtResource("practice_target")
 HurtBox = NodePath("HurtBoxComponent")
+Health = NodePath("HealthComponent")
+Movement = NodePath("MovementComponent")
+ActionGate = NodePath("ActorActionGateComponent")
 
-[node name="Mesh" type="MeshInstance3D" parent="."]
+[node name="Pivot" type="Node3D" parent="."]
+
+[node name="Mesh" type="MeshInstance3D" parent="Pivot"]
 position = Vector3(0, 1, 0)
 mesh = SubResource("mesh")
 material_override = SubResource("material")
 
-[node name="Base" type="MeshInstance3D" parent="."]
+[node name="Base" type="MeshInstance3D" parent="Pivot"]
 position = Vector3(0, 0.05, 0)
 mesh = SubResource("base")
 
-[node name="Label" type="Label3D" parent="."]
+[node name="Label" type="Label3D" parent="Pivot"]
 position = Vector3(0, 2.3, 0)
 billboard = 1
 no_depth_test = true
@@ -55,16 +69,19 @@ shape = SubResource("shape")
 MaxHealth = 1000.0
 CurrentHealth = 1000.0
 
-[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("hurtbox")]
+[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent", "MovementComponent", "Poise") instance=ExtResource("hurtbox")]
 position = Vector3(0, 1, 0)
 collision_layer = 8
 HealthComponent = NodePath("../HealthComponent")
+MovementComponent = NodePath("../MovementComponent")
+Poise = NodePath("../PoiseComponent")
 DamageFilter = 31
+ImpactSurface = ExtResource("surface_profile")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent"]
 shape = SubResource("shape")
 
-[node name="ConstantScreenSize3D" type="Node" parent="Label" node_paths=PackedStringArray("Target")]
+[node name="ConstantScreenSize3D" type="Node" parent="Pivot/Label" node_paths=PackedStringArray("Target")]
 script = ExtResource("constant_screen_size")
 Target = NodePath("..")
 
@@ -72,4 +89,30 @@ Target = NodePath("..")
 script = ExtResource("damage_numbers")
 HurtBox = NodePath("../HurtBoxComponent")
 NumberScene = ExtResource("damage_number")
-Anchor = NodePath("../Label")
+Anchor = NodePath("../Pivot/Label")
+
+[node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor", "ActionGate") instance=ExtResource("movement")]
+Actor = NodePath("..")
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="ActorActionGateComponent" type="Node" parent="."]
+script = ExtResource("action_gate")
+AnimationProfile = ExtResource("stagger_profile")
+
+[node name="PoiseComponent" type="Node" parent="." node_paths=PackedStringArray("ActionGate")]
+script = ExtResource("poise")
+Definition = ExtResource("poise_profile")
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="CombatVisualMotion" type="Node" parent="." node_paths=PackedStringArray("Actor", "VisualOffsetRoot")]
+script = ExtResource("motion")
+Actor = NodePath("..")
+VisualOffsetRoot = NodePath("../Pivot")
+
+[node name="CombatFeedbackController" type="Node" parent="." node_paths=PackedStringArray("Actor", "HurtBox", "Movement", "VisualMotion")]
+script = ExtResource("feedback")
+Actor = NodePath("..")
+HurtBox = NodePath("../HurtBoxComponent")
+Movement = NodePath("../MovementComponent")
+VisualMotion = NodePath("../CombatVisualMotion")
+FallbackProfile = ExtResource("feedback_profile")

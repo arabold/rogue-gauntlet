@@ -17,6 +17,9 @@ public enum DamageSourceFlags
 [GlobalClass]
 public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 {
+	public event CombatContactFeedbackHandler ContactResolved;
+	private readonly System.Collections.Generic.Dictionary<CollisionShape3D, MeshInstance3D> _debugMeshes = [];
+	private bool _debugDrawEnabled;
 	/// <summary>Every resolved contact: its <see cref="DamageOutcome"/>, final damage and <see cref="DamageEmphasis"/> flags.</summary>
 	[Signal] public delegate void DamageResolvedEventHandler(int outcome, float amount, int emphasis);
 	[Signal]
@@ -33,9 +36,21 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	/// <summary>Runtime awareness of the owning actor, registered by its root like a defense evaluator. Null means never unaware.</summary>
 	public ICombatAwareness Awareness { get; set; }
 	[Export] public PackedScene HitEffect { get; set; }
+	[Export] public CombatFeedbackProfile FeedbackProfile { get; set; }
+	[Export] public ImpactSurfaceProfile ImpactSurface { get; set; }
+	[Export]
+	public bool DebugDrawEnabled
+	{
+		get => _debugDrawEnabled;
+		set { _debugDrawEnabled = value; if (IsNodeReady()) RefreshDebugDraw(); }
+	}
 
 	[Export] public float Armor { get; set; } = 0;
 	[Export] public bool Invulnerable { get; set; } = false;
+
+	public override void _Ready() => RefreshDebugDraw();
+
+	public override void _ExitTree() => ClearDebugDraw();
 
 	private readonly System.Collections.Generic.List<IDefenseEvaluator> _defenseEvaluators = new();
 	private ICombatShield _shield;
@@ -110,6 +125,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		var zone = HitZone.Front;
 		bool unaware = false;
 		float hitStopScale = 1;
+		bool reactionSuppressed = false;
 		DamageResolution Resolved(DamageOutcome outcome, float amount = 0)
 		{
 			if (CombatTrace.Enabled) CombatTrace.Write(this, "damage.resolved", ("source", CombatTrace.Identity(snapshot.SourceNode)),
@@ -124,6 +140,10 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 				: (snapshot.Critical ? DamageEmphasis.Critical : 0) | (zone == HitZone.Rear ? DamageEmphasis.Rear : 0)
 					| (unaware ? DamageEmphasis.Sneak : 0);
 			EmitSignalDamageResolved((int)outcome, amount, (int)emphasis);
+			var feedback = new CombatContactFeedback(snapshot, this, outcome, amount, emphasis, reaction,
+				reactionSuppressed, HealthComponent?.IsDead == true, GlobalPosition, snapshot.IncomingDirection,
+				snapshot.Feedback ?? FeedbackProfile?.Capture() ?? default);
+			PublishContactResolved(in feedback);
 			return new DamageResolution(outcome, amount, hitStopScale);
 		}
 		var attackerFaction = contact.Faction != DamageSourceFlags.None ? contact.Faction : GetDamageSource(contact.OwnerNode ?? contact.SourceNode);
@@ -202,7 +222,8 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		EmitSignalDamageTaken(finalDamage, contact.IncomingDirection);
 		HealthComponent?.TakeDamage(finalDamage);
 
-		if (!defenseEval.SuppressHitStun && !statusLocked && !contact.SuppressHitReaction)
+		reactionSuppressed = defenseEval.SuppressHitStun || statusLocked || contact.SuppressHitReaction;
+		if (!reactionSuppressed)
 			reaction = ReactToHit(contact, poiseDamage);
 		if (!isDefended && float.IsFinite(contact.ForcedPush) && contact.ForcedPush > 0 && HealthComponent?.IsDead != true)
 			MovementComponent?.PushForced(contact.IncomingDirection, contact.ForcedPush);
@@ -240,23 +261,72 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 			reaction = HitReaction.Interrupted;
 		}
 		if (reaction != HitReaction.Flinch || forced) MovementComponent?.Push(contact.IncomingDirection, contact.Knockback);
-		SpawnHitEffect(contact.IncomingDirection);
 		EmitSignalHitReacted((int)reaction);
 		return reaction;
 	}
 
 
+	private void PublishContactResolved(in CombatContactFeedback feedback)
+	{
+		if (ContactResolved == null && feedback.Outcome == DamageOutcome.Damaged && !feedback.ReactionSuppressed)
+			SpawnHitEffect(feedback.Context.IncomingDirection);
+		if (ContactResolved != null)
+		{
+			foreach (CombatContactFeedbackHandler handler in ContactResolved.GetInvocationList())
+			{
+				try { handler(in feedback); }
+				catch (System.Exception error)
+				{
+					ContactResolved -= handler;
+					GD.PushWarning($"Combat contact presentation listener disabled: {error.Message}");
+				}
+			}
+		}
+		SignalBus.EmitCombatContactResolved(in feedback);
+	}
+
+	/// <summary>Keep the authored generic hit burst for damageable props without an actor feedback component.</summary>
 	private void SpawnHitEffect(Vector3 attackDirection)
 	{
-		if (HitEffect == null)
-		{
-			return;
-		}
+		if (HitEffect == null || !IsInsideTree()) return;
+		var particles = ScenePool.Spawn<GpuParticles3D>(HitEffect, this);
+		particles.Position = attackDirection.Normalized() * 0.5f;
+		particles.ResetPhysicsInterpolation();
+		particles.OneShot = true;
+		particles.Restart();
+		particles.Emitting = true;
+	}
 
-		var hitEffect = ScenePool.Spawn<GpuParticles3D>(HitEffect, this);
-		hitEffect.Position = attackDirection.Normalized() * 0.5f;
-		hitEffect.ResetPhysicsInterpolation();
-		hitEffect.OneShot = true;
+	private void RefreshDebugDraw()
+	{
+		if (!DebugDrawEnabled) { ClearDebugDraw(); return; }
+		foreach (Node child in GetChildren())
+		{
+			if (child is not CollisionShape3D shape || shape.Shape == null || _debugMeshes.ContainsKey(shape)) continue;
+			var mesh = new MeshInstance3D
+			{
+				Name = "HurtboxDebugMesh",
+				Mesh = shape.Shape.GetDebugMesh(),
+				CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+				MaterialOverride = new StandardMaterial3D
+				{
+					ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+					AlbedoColor = new Color(0.1f, 0.8f, 1f, 0.28f),
+					Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+					CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+					NoDepthTest = true
+				}
+			};
+			shape.AddChild(mesh);
+			_debugMeshes.Add(shape, mesh);
+		}
+	}
+
+	private void ClearDebugDraw()
+	{
+		foreach (MeshInstance3D mesh in _debugMeshes.Values)
+			if (GodotObject.IsInstanceValid(mesh)) mesh.QueueFree();
+		_debugMeshes.Clear();
 	}
 
 	public static DamageSourceFlags GetDamageSource(Node attacker)

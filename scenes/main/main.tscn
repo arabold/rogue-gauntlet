@@ -1,6 +1,7 @@
 [gd_scene load_steps=15 format=3 uid="uid://ds1fgmaafnkkj"]
 
 [ext_resource type="Script" uid="uid://cdal8n3nlw3ng" path="res://scenes/main/Main.cs" id="1_dl2xl"]
+[ext_resource type="Script" path="res://scenes/effects/combat/CombatCameraFeedbackController.cs" id="combat_camera_feedback"]
 [ext_resource type="PackedScene" uid="uid://beddkxj3k6x7i" path="res://scenes/ui/hud.tscn" id="3_stuk7"]
 [ext_resource type="PackedScene" uid="uid://b1b1kyg5ak1kw" path="res://scenes/levels/level.tscn" id="5_nxjfc"]
 [ext_resource type="Script" uid="uid://bd046eokvcnu2" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="6_g3uvw"]
@@ -29,9 +30,8 @@ frequency = 30.0
 rotational_noise = false
 positional_noise = true
 
-[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects", "GameCamera", "HitNoiseEmitter")]
+[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects", "GameCamera")]
 script = ExtResource("1_dl2xl")
-HitNoiseEmitter = NodePath("HitNoiseEmitter")
 ScreenEffects = NodePath("ScreenEffects")
 GameCamera = NodePath("Camera3D")
 
@@ -84,6 +84,10 @@ noise = SubResource("hit_noise")
 duration = 0.0
 decay_time = 0.18
 noise_emitter_layer = 1
+
+[node name="CombatCameraFeedbackController" type="Node" parent="." node_paths=PackedStringArray("NoiseEmitter")]
+script = ExtResource("combat_camera_feedback")
+NoiseEmitter = NodePath("../HitNoiseEmitter")
 
 [node name="CameraTargetPlaceholder" type="Node3D" parent="." unique_id=2113066232]
 

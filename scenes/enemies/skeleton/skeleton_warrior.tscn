@@ -307,7 +307,7 @@ shape = SubResource("CapsuleShape3D_5rbcv")
 [node name="Nameplate" parent="." index="7"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." index="8"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00756836, 1.2, 0.0137939)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00756836, 1.0, 0.0137939)
 shape = SubResource("CapsuleShape3D_4cr0r")
 
 [editable path="Pivot/Skeleton_Warrior"]

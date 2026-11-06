@@ -38,7 +38,7 @@ public partial class AttackDefinition : Resource
 
 	/// <summary>
 	/// Threat label derived from <see cref="DefenseTraits"/>. Monster Heavy (BreaksGuard) and Unblockable (neither
-	/// Guardable nor Parryable) melee shows its footprint through an <see cref="AttackTelegraph"/>.
+	/// Guardable nor Parryable) melee shows its footprint through the actor's shared attack indicator.
 	/// </summary>
 	public AttackThreatTier ThreatTier => DefenseTraits.ThreatTier();
 
@@ -61,6 +61,8 @@ public partial class AttackDefinition : Resource
 	/// The projectile scene to instantiate (ranged only).
 	/// </summary>
 	[Export] public PackedScene ProjectileScene { get; set; }
+	/// <summary>Optional source presentation profile; absent uses the defender's authored fallback.</summary>
+	[Export] public CombatFeedbackProfile FeedbackProfile { get; set; }
 
 	/// <summary>
 	/// Optional effect spawned at the muzzle when projectiles are released.

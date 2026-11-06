@@ -88,6 +88,8 @@ public readonly record struct DamageContext
 	public bool ForcePushback { get; init; }
 	/// <summary>The attacker's critical roll succeeded; <see cref="Amount"/> already includes it. Presentation only.</summary>
 	public bool Critical { get; init; }
+	/// <summary>Optional source presentation snapshot; null delegates to the defender's authored fallback.</summary>
+	public CombatFeedbackSettings? Feedback { get; init; }
 
 	/// <summary>Both impact values at once, so contact builders copy an attack's impact in one assignment.</summary>
 	public AttackImpact Impact
