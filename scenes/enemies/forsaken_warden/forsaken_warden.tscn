@@ -180,10 +180,8 @@ script = ExtResource("poise_script")
 Definition = ExtResource("poise_definition")
 ActionGate = NodePath("../ActorActionGateComponent")
 
-[node name="AttackController" parent="." node_paths=PackedStringArray("Indicator", "VisualMotion", "ActionGate")]
+[node name="AttackController" parent="." node_paths=PackedStringArray("ActionGate")]
 ActionGate = NodePath("../ActorActionGateComponent")
-Indicator = NodePath("../AttackIndicator")
-VisualMotion = NodePath("../CombatVisualMotion")
 
 [node name="FrozenStatusComponent" parent="." node_paths=PackedStringArray("ActionGate", "Animation")]
 ActionGate = NodePath("../ActorActionGateComponent")
