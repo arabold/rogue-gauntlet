@@ -59,7 +59,7 @@ public partial class TargetedSpellTest
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var target = await SpawnTarget(runner, new Vector3(0, 0, -4));
 		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue(); await runner.SimulateFrames(3);
-		target.GlobalPosition = new Vector3(0, 0, -8);
+		target.GlobalPosition = new Vector3(0, 0, -15);
 		await runner.SimulateFrames(90);
 		AssertFloat(target.HealthComponent.CurrentHealth).IsEqual(50);
 		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue(); await runner.SimulateFrames(3);
@@ -89,14 +89,8 @@ public partial class TargetedSpellTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		TestFactories.MovePracticeTargetAway(harness);
-		var targetFront = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(0, 0, -3), "FrontTarget");
-		var targetSide = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, -2), "SideTarget");
-		await runner.SimulateFrames(5);
-		TestFactories.PrepareCombatMonster(targetFront);
-		TestFactories.PrepareCombatMonster(targetSide);
-		targetFront.HurtBoxComponent.Awareness = null; targetFront.HurtBoxComponent.Vulnerability = null;
-		targetSide.HurtBoxComponent.Awareness = null; targetSide.HurtBoxComponent.Vulnerability = null;
+		var targetFront = await SpawnTarget(runner, new Vector3(0, 0, -3), "FrontTarget");
+		var targetSide = await SpawnTarget(runner, new Vector3(2, 0, -2), "SideTarget");
 
 		AssertBool(TestFactories.CastSpell(harness, "Fireball", 1)).IsTrue();
 		await runner.SimulateFrames(160);
@@ -110,17 +104,9 @@ public partial class TargetedSpellTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		TestFactories.MovePracticeTargetAway(harness);
-		var targetA = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(0, 0, -3), "TargetA");
-		var targetB = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(1.5f, 0, -3), "TargetB");
-		var targetC = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(-1.5f, 0, -3), "TargetC");
-		await runner.SimulateFrames(5);
-		TestFactories.PrepareCombatMonster(targetA);
-		TestFactories.PrepareCombatMonster(targetB);
-		TestFactories.PrepareCombatMonster(targetC);
-		targetA.HurtBoxComponent.Awareness = null; targetA.HurtBoxComponent.Vulnerability = null;
-		targetB.HurtBoxComponent.Awareness = null; targetB.HurtBoxComponent.Vulnerability = null;
-		targetC.HurtBoxComponent.Awareness = null; targetC.HurtBoxComponent.Vulnerability = null;
+		var targetA = await SpawnTarget(runner, new Vector3(0, 0, -3), "TargetA");
+		var targetB = await SpawnTarget(runner, new Vector3(1.5f, 0, -3), "TargetB");
+		var targetC = await SpawnTarget(runner, new Vector3(-1.5f, 0, -3), "TargetC");
 
 		AssertBool(TestFactories.CastSpell(harness, "Fireball", 3)).IsTrue();
 		await runner.SimulateFrames(160);
@@ -165,14 +151,8 @@ public partial class TargetedSpellTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		TestFactories.MovePracticeTargetAway(harness);
-		var targetA = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(0, 0, -3), "ClusterA");
-		var targetB = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(1.2f, 0, -3), "ClusterB");
-		await runner.SimulateFrames(5);
-		TestFactories.PrepareCombatMonster(targetA);
-		TestFactories.PrepareCombatMonster(targetB);
-		targetA.HurtBoxComponent.Awareness = null; targetA.HurtBoxComponent.Vulnerability = null;
-		targetB.HurtBoxComponent.Awareness = null; targetB.HurtBoxComponent.Vulnerability = null;
+		var targetA = await SpawnTarget(runner, new Vector3(0, 0, -3), "ClusterA");
+		var targetB = await SpawnTarget(runner, new Vector3(1.2f, 0, -3), "ClusterB");
 
 		AssertBool(TestFactories.CastSpell(harness, "Meteor", 1)).IsTrue();
 		await runner.SimulateFrames(160);
@@ -204,8 +184,8 @@ public partial class TargetedSpellTest
 		var target = await SpawnTarget(runner, new Vector3(0, 0, -3));
 		AssertBool(TestFactories.CastSpell(harness, "Meteor", 1)).IsTrue();
 		await runner.SimulateFrames(3);
-		// Monster moves 6m away, completely outside the 2.5m AoE.
-		target.GlobalPosition = new Vector3(6, 0, -3);
+		// Monster moves far away, completely outside the spell radius and impact area.
+		target.GlobalPosition = new Vector3(15, 0, -3);
 		await runner.SimulateFrames(160);
 		AssertFloat(target.HealthComponent.CurrentHealth).IsEqual(50);
 	}
@@ -244,11 +224,11 @@ public partial class TargetedSpellTest
 
 	private static (ulong Frame, ulong Tick) Now() => (Engine.GetProcessFrames(), Engine.GetPhysicsFrames());
 
-	/// <summary>Spawns the case's one target; the arena's practice target moves out of range so it takes no strikes.</summary>
-	private static async Task<EnemyBase> SpawnTarget(ISceneRunner runner, Vector3 position)
+	/// <summary>Spawns the case's target; the arena's practice target moves out of range so it takes no strikes.</summary>
+	private static async Task<EnemyBase> SpawnTarget(ISceneRunner runner, Vector3 position, string name = "Target")
 	{
 		TestFactories.MovePracticeTargetAway(runner.Scene().GetNode<CombatHarness>("Instructions"));
-		var target = TestFactories.SpawnCombatMonster(runner.Scene(), position, "Target");
+		var target = TestFactories.SpawnCombatMonster(runner.Scene(), position, name);
 		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(target);
 		// Rear and sneak bonuses would scale projectile damage; these cases check strike counts only.
 		target.HurtBoxComponent.Awareness = null; target.HurtBoxComponent.Vulnerability = null;

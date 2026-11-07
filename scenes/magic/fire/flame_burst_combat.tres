@@ -7,5 +7,5 @@ script = ExtResource("script")
 SpellName = "Fire Nova"
 Element = 1
 PushByLevel = PackedFloat32Array(2, 2, 2, 2, 2)
-RadiusByLevel = PackedFloat32Array(3.5, 5, 6.5, 7.5, 8.5)
-DamageScaleByLevel = PackedFloat32Array(0.375, 0.4125, 0.45, 0.4875, 0.525)
+RadiusByLevel = PackedFloat32Array(7, 7, 7, 7, 7)
+DamageScaleByLevel = PackedFloat32Array(1.2, 1.32, 1.44, 1.56, 1.68)

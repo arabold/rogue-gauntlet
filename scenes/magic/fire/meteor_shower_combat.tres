@@ -7,6 +7,6 @@ Element = 1
 Delivery = 4
 Targeting = 1
 TargetsByLevel = PackedInt32Array(3, 6, 9, 11, 13)
-DamageScaleByLevel = PackedFloat32Array(0.375, 0.4125, 0.45, 0.4875, 0.525)
+DamageScaleByLevel = PackedFloat32Array(2.5, 2.75, 3, 3.25, 3.5)
 Radius = 9.5
 HitRadius = 2.5

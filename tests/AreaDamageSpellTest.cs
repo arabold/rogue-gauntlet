@@ -21,7 +21,7 @@ public partial class AreaDamageSpellTest
 		var root = runner.Scene();
 		var hit = TestFactories.SpawnCombatMonster(root, new Vector3(2, 0, 0), "Hit");
 		var blocked = TestFactories.SpawnCombatMonster(root, new Vector3(-2, 0, 0), "Blocked");
-		var distant = TestFactories.SpawnCombatMonster(root, new Vector3(7, 0, 0), "Distant");
+		var distant = TestFactories.SpawnCombatMonster(root, new Vector3(10, 0, 0), "Distant");
 		AddWall(root, new Vector3(-1, 1, 0));
 		await runner.SimulateFrames(5);
 		foreach (var actor in new[] { hit, blocked, distant }) TestFactories.PrepareCombatMonster(actor);
@@ -69,16 +69,16 @@ public partial class AreaDamageSpellTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await SettleAtOrigin(runner);
 		var leaving = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Leaving");
-		var entering = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(-7, 0, 0), "Entering");
+		var entering = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(-10, 0, 0), "Entering");
 		await runner.SimulateFrames(5);
 		TestFactories.PrepareCombatMonster(leaving); TestFactories.PrepareCombatMonster(entering);
 		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Stone Spears");
 		AssertFloat(spell.Definition.ContactDelay).IsGreater(0);
 
 		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue();
-		leaving.GlobalPosition = new Vector3(7, 0, 0);
+		leaving.GlobalPosition = new Vector3(10, 0, 0);
 		entering.GlobalPosition = new Vector3(-2, 0, 0);
-		harness.Player.GlobalPosition = new Vector3(0, 0, 10); // The area stays where it was cast.
+		harness.Player.GlobalPosition = new Vector3(0, 0, 15); // The area stays where it was cast.
 		await AwaitContact(runner, spell);
 		AssertFloat(leaving.HealthComponent.CurrentHealth).IsEqual(50);
 		AssertFloat(entering.HealthComponent.CurrentHealth).IsEqual(50 - TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0]));

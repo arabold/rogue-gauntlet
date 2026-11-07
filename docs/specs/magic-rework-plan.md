@@ -50,7 +50,7 @@ The 20 spells keep their roles. Ten names were clunky or misdescribed the effect
 
 Implemented for wands: [weapon attacks](../weapon-attack-system.md) describes the shared `AttackStats` roll, the spell power captured from the casting wand's own hit and definitions authored as scales of that hit. Every spell was converted from its absolute values by dividing by 8, about a Mage's average hit with the tier-1 wand, so depth 1 keeps the old feel.
 
-Tier already multiplies damage about fourfold from T1 to T5 through the weapon's base damage, so levels grow **reach** (targets, strikes, radius, freeze time, ward reflection) and every hit-scaled value (damage, burn, ward capacity) adds 10% of its level-1 scale per level: Fireball deals 1.0× to 1.4× its hit from level 1 to 5.
+Tier already multiplies damage about fourfold from T1 to T5 through the weapon's base damage, so levels grow **reach** (targets, strikes, freeze time, ward reflection) and every hit-scaled value (damage, burn, ward capacity) adds 10% of its level-1 scale per level: Fireball deals 1.2× to 1.68× its hit from level 1 to 5.
 
 | Tier | Wands | Staves | Damage band | Depths |
 | --- | --- | --- | --- | --- |

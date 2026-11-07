@@ -26,28 +26,28 @@ public static class AreaSpellTargets
 	/// Filters and sorts candidate targets within <paramref name="aimingAngle"/> degrees of <paramref name="facing"/>,
 	/// ordered by horizontal angle from facing (closest to center line first), then horizontal distance.
 	/// </summary>
-	public static Node3D[] FilterForward(IEnumerable<Node3D> candidates, Vector3 origin, Vector3 facing, float aimingAngle, World3D world)
+	public static List<Node3D> FilterForward(IEnumerable<Node3D> candidates, Vector3 origin, Vector3 facing, float aimingAngle, World3D world)
 	{
-		return candidates
-			.Where(target => target is not IShieldOwner { ShieldHurtBox.HealthComponent.IsDead: true }
-				&& facing.HorizontalAngleTo(target.GlobalPosition - origin) <= aimingAngle
-				&& IsVisible(target, world, origin))
-			.Distinct()
-			.OrderBy(target => facing.HorizontalAngleTo(target.GlobalPosition - origin))
-			.ThenBy(target => origin.HorizontalDistanceTo(target.GlobalPosition))
-			.ToArray();
+		var list = new List<(Node3D Target, float Angle, float Dist)>();
+		foreach (var target in candidates)
+		{
+			if (!IsEligible(target, world, origin)) continue;
+			float angle = facing.HorizontalAngleTo(target.GlobalPosition - origin);
+			if (angle <= aimingAngle)
+				list.Add((target, angle, origin.HorizontalDistanceTo(target.GlobalPosition)));
+		}
+		list.Sort((a, b) =>
+		{
+			int c = a.Angle.CompareTo(b.Angle);
+			return c != 0 ? c : a.Dist.CompareTo(b.Dist);
+		});
+		var result = new List<Node3D>(list.Count);
+		for (int i = 0; i < list.Count; i++) result.Add(list[i].Target);
+		return result;
 	}
 
-	/// <summary>
-	/// Captures hostile actors in front of the caster within <paramref name="range"/> and <paramref name="aimingAngle"/>,
-	/// ordered by horizontal angle from facing, then horizontal distance.
-	/// </summary>
-	public static Node3D[] CaptureForward(Node owner, Node3D caster, Vector3 origin, Vector3 facing,
-		float range, float aimingAngle, World3D world, HashSet<Node3D> exclude = null)
-	{
-		var all = Capture(owner, caster, origin, range, world, exclude);
-		return all == null ? null : FilterForward(all, origin, facing, aimingAngle, world);
-	}
+	public static bool IsEligible(Node3D target, World3D world, Vector3 origin) =>
+		AttackController.IsLivingTarget(target) && IsVisible(target, world, origin);
 
 	public static bool IsVisible(Node3D target, World3D world, Vector3 origin) =>
 		GodotObject.IsInstanceValid(target) && target.IsInsideTree() && target.GetWorld3D() == world

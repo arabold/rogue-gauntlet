@@ -28,60 +28,36 @@ public partial class TargetedSpell : Node, ICombatSpell
 			var hit = _pending[0]; _pending.RemoveAt(0);
 			if (!IsInstanceValid(hit.Caster) || !hit.Caster.IsInsideTree()) continue;
 
+			var baseContact = new DamageContext
+			{
+				ExecutionId = hit.Identity,
+				SourceNode = this,
+				OwnerNode = hit.Caster,
+				Faction = HurtBoxComponent.GetDamageSource(hit.Caster),
+				Random = hit.Random,
+				DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable,
+				DeliveryKind = hit.IsAreaImpact ? DamageDeliveryKind.AreaImpact : DamageDeliveryKind.Projectile,
+				Element = Definition.Element
+			};
+
 			if (hit.IsAreaImpact)
 			{
 				var targets = AreaSpellTargets.Capture(this, hit.Caster, hit.Position, hit.Radius, hit.World);
-				if (targets != null)
+				if (targets is { Length: > 0 })
 				{
-					foreach (var target in targets)
-					{
-						if (!AreaSpellTargets.IsVisible(target, hit.World, hit.Position)) continue;
-						Vector3 direction = target.GlobalPosition - hit.Position; direction.Y = 0;
-						if (direction.LengthSquared() < .0001f) direction = hit.Position - hit.Origin;
-						direction.Y = 0;
-						if (direction.LengthSquared() < .0001f) direction = Vector3.Forward;
-
-						var (amount, critical) = hit.Damage.Roll(hit.Random);
-						var contact = new DamageContext
-						{
-							ExecutionId = hit.Identity,
-							SourceNode = this,
-							OwnerNode = hit.Caster,
-							Faction = HurtBoxComponent.GetDamageSource(hit.Caster),
-							Amount = amount,
-							Critical = critical,
-							Random = hit.Random,
-							IncomingDirection = direction.Normalized(),
-							DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable,
-							DeliveryKind = DamageDeliveryKind.AreaImpact,
-							Element = Definition.Element
-						};
-						((ICombatDamageable)target).ResolveDamage(in contact);
-					}
+					Vector3 flat = hit.Position - hit.Origin; flat.Y = 0;
+					Vector3 facing = flat.LengthSquared() >= .0001f ? flat.Normalized() : Vector3.Forward;
+					AreaSpellTargets.Resolve(targets, hit.World, hit.Position, facing, baseContact, hit.Damage,
+						() => IsInstanceValid(hit.Caster) && hit.Caster.IsInsideTree());
 				}
 			}
-			else
+			else if (hit.Target != null && IsInstanceValid(hit.Target) && AreaSpellTargets.IsVisible(hit.Target, hit.World, hit.Origin)
+				&& hit.Target.GlobalPosition.DistanceTo(hit.Position) <= hit.Radius)
 			{
-				if (hit.Target == null || !IsInstanceValid(hit.Target) || !AreaSpellTargets.IsVisible(hit.Target, hit.World, hit.Origin)
-					|| hit.Target.GlobalPosition.DistanceTo(hit.Position) > hit.Radius) continue;
-
 				Vector3 direction = hit.Position - hit.Origin; direction.Y = 0;
 				var (amount, critical) = hit.Damage.Roll(hit.Random);
-				var contact = new DamageContext
-				{
-					ExecutionId = hit.Identity,
-					SourceNode = this,
-					OwnerNode = hit.Caster,
-					Faction = HurtBoxComponent.GetDamageSource(hit.Caster),
-					Amount = amount,
-					Critical = critical,
-					Random = hit.Random,
-					IncomingDirection = direction.Normalized(),
-					DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable,
-					DeliveryKind = DamageDeliveryKind.Projectile,
-					Element = Definition.Element
-				};
-				((ICombatDamageable)hit.Target).ResolveDamage(in contact);
+				var directed = baseContact with { IncomingDirection = direction.Normalized(), Amount = amount, Critical = critical };
+				((ICombatDamageable)hit.Target).ResolveDamage(in directed);
 			}
 		}
 		if (_pending.Count == 0) SetPhysicsProcess(false);
@@ -107,12 +83,11 @@ public partial class TargetedSpell : Node, ICombatSpell
 		int count = Definition.TargetsByLevel[level - 1];
 		AttackStats hit = power.Hit.Scaled(Definition.DamageScaleByLevel[level - 1]);
 		bool shower = Definition.IsAreaTargeting;
-		List<Node3D> candidates = Definition.Targeting == SpellTargetingKind.Forward
-			? AreaSpellTargets.FilterForward(cast.Targets, cast.Origin, cast.Facing, Definition.AimingAngle, cast.World).ToList()
-			: cast.Targets.Where(target => target is not IShieldOwner { ShieldHurtBox.HealthComponent.IsDead: true }
-				&& AreaSpellTargets.IsVisible(target, cast.World, cast.Origin)).ToList();
+		List<Node3D> candidates = Definition.IsAreaTargeting
+			? cast.Targets.Where(target => AreaSpellTargets.IsEligible(target, cast.World, cast.Origin)).ToList()
+			: AreaSpellTargets.FilterForward(cast.Targets, cast.Origin, cast.Facing, Definition.AimingAngle, cast.World);
 
-		if (Definition.Targeting == SpellTargetingKind.Area)
+		if (Definition.IsAreaTargeting)
 		{
 			for (int i = candidates.Count - 1; i > 0; i--)
 			{
@@ -129,14 +104,7 @@ public partial class TargetedSpell : Node, ICombatSpell
 
 		for (int i = 0; i < count; i++)
 		{
-			Node3D target = null;
-			if (candidateCount > 0)
-			{
-				if (Definition.CanTargetSameEnemy)
-					target = candidates[i % candidateCount];
-				else if (i < candidateCount)
-					target = candidates[i];
-			}
+			Node3D target = i < candidateCount ? candidates[i] : null;
 
 			Vector3 position;
 			Vector3 start;
@@ -153,26 +121,21 @@ public partial class TargetedSpell : Node, ICombatSpell
 			else
 			{
 				start = cast.Origin + Vector3.Up;
-				if (Definition.Targeting == SpellTargetingKind.Forward)
+				if (Definition.IsAreaTargeting)
 				{
-					Vector3 direction;
-					if (i == 0 && candidateCount == 0)
-					{
-						direction = cast.Facing;
-					}
-					else
+					position = CosmeticPosition(cast, cosmetic);
+					end = position + Vector3.Up;
+				}
+				else
+				{
+					Vector3 direction = cast.Facing;
+					if (i > 0 || candidateCount > 0)
 					{
 						float halfSpread = Definition.SpreadAngle * 0.5f;
 						float angleOffset = random.RandfRange(-halfSpread, halfSpread);
 						direction = cast.Facing.Rotated(Vector3.Up, Mathf.DegToRad(angleOffset)).Normalized();
 					}
-					float reach = WorldSight.ClearDistance(cast.World, start, direction, Definition.Radius);
-					end = start + direction * Mathf.Max(reach - 0.5f, 1f);
-					position = end - Vector3.Up;
-				}
-				else
-				{
-					position = CosmeticPosition(cast, cosmetic);
+					position = ForwardPosition(cast, direction);
 					end = position + Vector3.Up;
 				}
 			}
@@ -230,13 +193,13 @@ public partial class TargetedSpell : Node, ICombatSpell
 	}
 
 	/// <summary>
-	/// The farthest clear point straight ahead within the spell's radius, stopping short of a wall but never at the caster:
+	/// The farthest clear point along <paramref name="direction"/> within the spell's radius, stopping short of a wall but never at the caster:
 	/// a shot aimed at its own origin has no direction and would hang in place.
 	/// </summary>
-	private Vector3 ForwardPosition(AreaCastLifecycle.Cast cast)
+	private Vector3 ForwardPosition(AreaCastLifecycle.Cast cast, Vector3 direction)
 	{
-		float reach = WorldSight.ClearDistance(cast.World, cast.Origin + Vector3.Up, cast.Facing, Definition.Radius);
-		return cast.Origin + cast.Facing * Mathf.Max(reach - .5f, 1);
+		float reach = WorldSight.ClearDistance(cast.World, cast.Origin + Vector3.Up, direction, Definition.Radius);
+		return cast.Origin + direction * Mathf.Max(reach - .5f, 1);
 	}
 
 	/// <summary>A random clear spot for shower debris, else straight ahead.</summary>
@@ -248,7 +211,7 @@ public partial class TargetedSpell : Node, ICombatSpell
 			Vector3 point = cast.Origin + new Vector3(Mathf.Cos(angle) * distance, 0, Mathf.Sin(angle) * distance);
 			if (WorldSight.IsClear(cast.World, cast.Origin + Vector3.Up, point + Vector3.Up)) return point;
 		}
-		return ForwardPosition(cast);
+		return ForwardPosition(cast, cast.Facing);
 	}
 	public void Cancel()
 	{

@@ -118,8 +118,9 @@ public partial class SpellWandTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var (harness, wand) = await EquipWand(runner, FireballPath);
 		var player = harness.Player;
+		var fireballDef = TestFactories.Load<TargetedSpellDefinition>("res://scenes/magic/fire/fireball_combat.tres");
 		AssertArray(TooltipLines(wand, player))
-			.Contains("Fireball (Level 1)", "10 mana per cast", SpellLevels.Damage(player.Stats.ResolveAttack(wand)) + " per hit");
+			.Contains("Fireball (Level 1)", "10 mana per cast", SpellLevels.Damage(player.Stats.ResolveAttack(wand).Scaled(fireballDef.DamageScaleByLevel[0])) + " per hit");
 
 		// A staff in the backpack quotes the damage it deals once it replaces the wand.
 		var staff = (MagicStaff)ItemFactory.Create(TestFactories.Load<Item>(RuneStaffPath));
@@ -129,7 +130,8 @@ public partial class SpellWandTest
 		player.Inventory.Equip(player.Inventory.Items.First(entry => ReferenceEquals(entry.Item, staff)), EquipmentSlot.WeaponHand);
 		AssertBool(player.SpellCaster.IsBoundTo(staff)).IsTrue();
 		AssertArray(TooltipLines(staff, player)).IsEqual(quoted);
-		AssertArray(quoted).Contains(SpellLevels.Damage(player.Stats.ResolveAttack(staff).Scaled(1.3f)) + " per hit");
+		var chainDef = TestFactories.Load<TargetedSpellDefinition>("res://scenes/magic/air/chain_lightning_combat.tres");
+		AssertArray(quoted).Contains(SpellLevels.Damage(player.Stats.ResolveAttack(staff).Scaled(chainDef.DamageScaleByLevel[3])) + " per hit");
 
 		// No damage without a viewer, or for a weapon whose stats are unidentified.
 		var hidden = (MagicStaff)ItemFactory.Create(TestFactories.Load<Item>(RuneStaffPath));
