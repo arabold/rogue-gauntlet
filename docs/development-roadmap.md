@@ -64,6 +64,10 @@ The [magic rework](specs/magic-rework-plan.md) is implemented across all four de
 
 The next consumable-feedback goal is [catalog-wide activation coverage](specs/consumable-feedback-plan.md): distinct world/screen signatures for all 9 potion families and 11 scroll types, independent of longer-lived status presentation. Sizes share their type's signature. This is proposed work, beyond the existing healing/strength cues, shared scroll-reading ring and teleport/spawn presentation.
 
+## Audio
+
+The [audio concept and implementation plan](specs/audio-system-plan.md) proposes a first-three-floor sound pass using the local Kenney CC0 packs, separate Music/Effects/UI volume controls, resolved-action cues and persistent exploration/boss crossfades. Start with a playback workbench and a few menu sounds, prove music/settings next, then wire movement/combat/doors and deliberate attack warnings/boss music. Expand magic, items and ambience in small content batches. Each slice has an audible acceptance exercise; final soundtrack selection does not block the prototype. This remains planned work.
+
 ## Later delivery
 
 - **Architecture cleanup:** floor services, the run state and player persistence are separated. Remaining: item use through one context (consumable and scroll-effect signatures, `ActionManager` slot creation), and a scene autoload for the session-flow scene paths shared with `SceneDebugBootstrap`.
