@@ -10,7 +10,7 @@
 [node name="Model" parent="." instance=ExtResource("model")]
 
 [node name="Light" type="OmniLight3D" parent="."]
-position = Vector3(0.18, -0.56, 0)
+position = Vector3(0.18, 0.56, 0)
 light_color = Color(1, 0.82, 0.59, 1)
 light_energy = 1.0
 light_specular = 0.0
@@ -21,7 +21,7 @@ omni_attenuation = 0.7
 
 [node name="Flame" parent="." instance=ExtResource("fire")]
 rotation_degrees = Vector3(0, 0, -90)
-position = Vector3(0.18, -0.56, 0)
+position = Vector3(0.18, 0.56, 0)
 scale = Vector3(0.09, 0.09, 0.09)
 
 [node name="FloorLightingComponent" type="Node" parent="." node_paths=PackedStringArray("DarkLighting")]
