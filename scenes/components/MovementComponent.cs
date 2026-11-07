@@ -54,8 +54,17 @@ public partial class MovementComponent : Node
 	/// Stairs step height
 	/// </summary>
 	[Export] public float StairsStepHeight { get; set; } = 0.5f;
+	/// <summary>
+	/// Grace window (in seconds) that an actor pressing into an obstacle can maintain locomotion state
+	/// before being considered blocked and transitioning to idle. Prevents animation fluttering when
+	/// grazing corners or sliding along walls.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,0.5,0.01,suffix:s")] public float BlockedGraceDuration { get; set; } = 0.15f;
 
-	public bool IsMoving => TargetDirection != Vector3.Zero;
+	private float _blockedDuration = 0.15f;
+	private bool _isMoving;
+
+	public bool IsMoving => _isMoving;
 	/// <summary>Collision-resolved horizontal speed from the latest <see cref="CharacterBody3D.MoveAndSlide"/> call.</summary>
 	public float GroundSpeed { get; private set; }
 	/// <summary>Movement source selected before the latest slide, for consumers that distinguish locomotion from actions.</summary>
@@ -211,6 +220,14 @@ public partial class MovementComponent : Node
 		// Preserve analog stick deflection (clamped to max length 1.0)
 		float len = inputDirection.Length();
 		TargetDirection = len > 1.0f ? inputDirection.Normalized() : inputDirection;
+		if (TargetDirection == Vector3.Zero)
+		{
+			SetStopped();
+		}
+		else if (Actor == null || !Actor.IsInsideTree())
+		{
+			_isMoving = true;
+		}
 	}
 
 	public void SetLookAtDirection(Vector3 lookAtDirection)
@@ -260,6 +277,13 @@ public partial class MovementComponent : Node
 	{
 		TargetDirection = Vector3.Zero;
 		Velocity = Vector3.Zero;
+		SetStopped();
+	}
+
+	private void SetStopped()
+	{
+		_blockedDuration = BlockedGraceDuration;
+		_isMoving = false;
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -269,6 +293,33 @@ public partial class MovementComponent : Node
 		MoveAndSlideActor();
 		_lungeRemaining = Mathf.Max(0, _lungeRemaining - (float)delta);
 		if (_lungeRemaining == 0) _lungeSpeed = 0;
+		UpdateIsMoving(delta);
+	}
+
+	private void UpdateIsMoving(double delta)
+	{
+		if (TargetDirection == Vector3.Zero)
+		{
+			SetStopped();
+			return;
+		}
+
+		if (Actor == null || !Actor.IsInsideTree())
+		{
+			_isMoving = true;
+			return;
+		}
+
+		if (GroundSpeed > 0.05f)
+		{
+			_blockedDuration = 0f;
+			_isMoving = true;
+		}
+		else
+		{
+			_blockedDuration += (float)delta;
+			_isMoving = _blockedDuration < BlockedGraceDuration;
+		}
 	}
 
 	/// <summary>
@@ -285,14 +336,10 @@ public partial class MovementComponent : Node
 		Vector3 realVelocity = Actor.GetRealVelocity();
 		GroundSpeed = new Vector2(realVelocity.X, realVelocity.Z).Length();
 
-		if (_hasOverrideVelocity && Actor != null && Actor.GetSlideCollisionCount() > 0)
+		if (_hasOverrideVelocity && Actor.GetSlideCollisionCount() > 0
+			&& GroundSpeed * GroundSpeed < 0.05f * _overrideSpeed * _overrideSpeed)
 		{
-			Vector3 realHoriz = Actor.GetRealVelocity();
-			realHoriz.Y = 0;
-			if (realHoriz.LengthSquared() < 0.05f * _overrideSpeed * _overrideSpeed)
-			{
-				_hasOverrideVelocity = false;
-			}
+			_hasOverrideVelocity = false;
 		}
 	}
 

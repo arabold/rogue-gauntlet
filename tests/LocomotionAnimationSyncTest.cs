@@ -83,6 +83,56 @@ public class LocomotionAnimationSyncTest
 	}
 
 	[TestCase]
+	public async Task PlayerBlockedByWallTransitionsToIdle()
+	{
+		ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
+		await runner.SimulateFrames(35);
+		var scene = runner.Scene();
+		var player = (Player)scene.GetTree().GetFirstNodeInGroup("player");
+		PlaceOnOpenFloor(scene, player);
+
+		// Place a blocking barrier enclosing the player so movement is blocked in all directions (at distance 1.5m, outside player 0.75m radius)
+		var wall = new StaticBody3D
+		{
+			Position = player.GlobalPosition,
+			CollisionLayer = 2,
+			CollisionMask = 0,
+		};
+		wall.AddChild(new CollisionShape3D { Position = new Vector3(1.5f, 1, 0), Shape = new BoxShape3D { Size = new Vector3(0.5f, 4f, 4f) } });
+		wall.AddChild(new CollisionShape3D { Position = new Vector3(-1.5f, 1, 0), Shape = new BoxShape3D { Size = new Vector3(0.5f, 4f, 4f) } });
+		wall.AddChild(new CollisionShape3D { Position = new Vector3(0, 1, 1.5f), Shape = new BoxShape3D { Size = new Vector3(4f, 4f, 0.5f) } });
+		wall.AddChild(new CollisionShape3D { Position = new Vector3(0, 1, -1.5f), Shape = new BoxShape3D { Size = new Vector3(4f, 4f, 0.5f) } });
+		scene.AddChild(wall);
+
+		await runner.SimulateFrames(2, 20);
+		var animTree = player.GetNode<AnimationTree>("AnimationTree");
+		var playback = (AnimationNodeStateMachinePlayback)animTree.Get("parameters/playback");
+
+		Input.ActionPress("move_right");
+		try
+		{
+			// Give enough frames to walk into the wall, exhaust the blocked grace duration (0.15s), and complete crossfade to Idle (0.3s)
+			for (int f = 0; f < 50; f++)
+			{
+				await runner.SimulateFrames(1, 20);
+			}
+
+			// Ground speed should be zero against the wall
+			AssertFloat(player.MovementComponent.GroundSpeed).IsLessEqual(0.05f);
+			// IsMoving should be false because the player cannot traverse ground
+			AssertBool(player.IsMoving).IsFalse();
+			AssertBool(player.MovementComponent.IsMoving).IsFalse();
+			// Animation state machine should have cleanly transitioned to Idle
+			AssertString(playback.GetCurrentNode()).IsEqual("Idle");
+		}
+		finally
+		{
+			Input.ActionRelease("move_right");
+			wall.QueueFree();
+		}
+	}
+
+	[TestCase]
 	public async Task PlayerWalkModifierBlendsTowardsWalkAnimation()
 	{
 		ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
