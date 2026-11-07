@@ -563,6 +563,8 @@ InputComponent = NodePath("../InputComponent")
 MovementComponent = NodePath("../MovementComponent")
 ActionManager = NodePath("../ActionManager")
 InteractionController = NodePath("../PlayerInteractionController")
+DodgeSteeringWindow = 0.04
+DodgeDirectionMemoryDuration = 0.08
 
 [node name="PlayerAttackController" type="Node" parent="." unique_id=648653454 node_paths=PackedStringArray("AnimationComponent", "ActionGate", "MeleeDetector", "VisualMotion")]
 script = ExtResource("17_sh3lf")

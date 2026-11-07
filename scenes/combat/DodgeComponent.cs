@@ -37,6 +37,8 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 	private Vector3 _dodgeDirection;
 	private Vector3 _dodgeFacing;
 	private float _dodgeSpeed;
+	private float _steeringWindow;
+	private StringName _dodgeClip;
 	private ActorActionLease _dodgeLease = ActorActionLease.None;
 	// Layers this dodge actually removed from the actor's mask; restored on every exit path.
 	private uint _passThroughMask;
@@ -50,15 +52,20 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		SetPhysicsProcess(false);
 	}
 
-	public DefenseRequestResult TryDodge(Vector3 direction)
+	public DefenseRequestResult TryDodge(Vector3 direction, float steeringWindow = 0f)
 	{
-		var result = TryDodgeInternal(direction);
+		var result = TryDodgeInternal(direction, steeringWindow);
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.request", ("kind", "dodge"), ("result", result.ToString()), ("direction", CombatTrace.Vector(direction)));
 		return result;
 	}
 
-	private DefenseRequestResult TryDodgeInternal(Vector3 direction)
+	private DefenseRequestResult TryDodgeInternal(Vector3 direction, float steeringWindow)
 	{
+		if (!float.IsFinite(steeringWindow) || steeringWindow < 0)
+		{
+			return DefenseRequestResult.InvalidDefinition;
+		}
+
 		if (DodgeDef == null)
 		{
 			return DefenseRequestResult.Unavailable;
@@ -98,7 +105,7 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 			|| !(DodgeDef.PassThroughExitSpeedScale >= 0 && DodgeDef.PassThroughExitSpeedScale <= 1) || !DodgeDef.HasValidCharges)
 			return DefenseRequestResult.InvalidDefinition;
 		Vector3 facing = MovementComponent?.LookAtDirection ?? (Actor != null ? -Actor.GlobalTransform.Basis.Z : Vector3.Forward);
-		if (AnimationComponent != null && !AnimationComponent.HasClip(ChooseDodgeClip(facing, DodgeDef.AnimationProfile))) return DefenseRequestResult.Unavailable;
+		if (AnimationComponent != null && !AnimationComponent.HasClip(ChooseDodgeClip(_dodgeDirection, facing, DodgeDef.AnimationProfile))) return DefenseRequestResult.Unavailable;
 
 		var acquireResult = ActionGate.TryAcquire(
 			ActorActionKind.Dodge,
@@ -117,6 +124,7 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		_dodgeElapsed = 0f;
 		_dodgeFacing = facing;
 		_dodgeSpeed = EffectiveDefinition.Distance / Mathf.Max(0.01f, EffectiveDefinition.TravelDuration);
+		_steeringWindow = Mathf.Min(steeringWindow, EffectiveDefinition.TravelDuration);
 
 		MovementComponent?.SetInputDirection(Vector3.Zero);
 		MovementComponent?.SetLocomotionOverride(this, _dodgeDirection, _dodgeSpeed);
@@ -140,10 +148,51 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		return DefenseRequestResult.Success;
 	}
 
+	/// <summary>Correct the current travel heading while this accepted dodge is inside its fixed steering window.</summary>
+	public bool TryRedirect(Vector3 direction)
+	{
+		if (!IsDodging || EffectiveDefinition == null || _dodgeElapsed >= _steeringWindow
+			|| !GodotObject.IsInstanceValid(Actor) || !GodotObject.IsInstanceValid(MovementComponent)
+			|| !GodotObject.IsInstanceValid(ActionGate) || ActionGate.Disabled || ActionGate.IsStatusLocked || ActionGate.IsStaggered
+			|| ActionGate.CurrentPhase != ActorActionPhase.Active || !ActionGate.IsLeaseCurrent(_dodgeLease)
+			|| Actor is Player { IsDead: true } || Actor is EnemyBase { IsDead: true }
+			|| MovementComponent.IsPushed || !MovementComponent.HasOverrideVelocity
+			|| (AnimationComponent != null && !GodotObject.IsInstanceValid(AnimationComponent))
+				|| !direction.TryNormalizeHorizontal(out Vector3 nextDirection))
+			return false;
+
+		if (_dodgeDirection.DistanceSquaredTo(nextDirection) < 0.000001f) return false;
+
+		StringName nextClip = ChooseDodgeClip(nextDirection, _dodgeFacing, EffectiveDefinition.AnimationProfile);
+		if (AnimationComponent != null)
+		{
+			if (!AnimationComponent.HasClip(nextClip)) return false;
+			if (nextClip != _dodgeClip)
+			{
+				if (!AnimationComponent.BeginPose(this, nextClip)) return false;
+				AnimationComponent.SamplePose(this,
+					_dodgeElapsed / EffectiveDefinition.TravelDuration * AnimationComponent.PoseLength(this));
+				_dodgeClip = nextClip;
+			}
+		}
+
+		Vector3 previousDirection = _dodgeDirection;
+		_dodgeDirection = nextDirection;
+		MovementComponent.SetLocomotionOverride(this, _dodgeDirection, _dodgeSpeed);
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.redirected", ("kind", "dodge"),
+			("previous_direction", CombatTrace.Vector(previousDirection)), ("direction", CombatTrace.Vector(_dodgeDirection)), ("elapsed", _dodgeElapsed));
+		return true;
+	}
+
+	/// <summary>Close the per-execution steering window when its input owner loses focus or control.</summary>
+	public void LockDirection() => _steeringWindow = 0f;
+
 	public void Cancel(ActionInterruptReason reason)
 	{
 		if (!IsDodging) return;
 		IsDodging = false;
+		LockDirection();
+		_dodgeClip = "";
 		EndPassThrough();
 		MovementComponent?.ClearLocomotionOverride(this);
 		if (ActionGate?.IsLeaseCurrent(_dodgeLease) == true) ActionGate.CancelCurrent(reason);
@@ -252,6 +301,8 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 	{
 		if (!IsDodging) return;
 		IsDodging = false;
+		LockDirection();
+		_dodgeClip = "";
 		EndPassThrough();
 		MovementComponent?.ClearLocomotionOverride(this);
 		if (ActionGate != null && ActionGate.IsLeaseCurrent(_dodgeLease))
@@ -268,6 +319,8 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 	{
 		if (!IsDodging) return;
 		IsDodging = false;
+		LockDirection();
+		_dodgeClip = "";
 		EndPassThrough();
 		MovementComponent?.ClearLocomotionOverride(this);
 		_dodgeLease = ActorActionLease.None;
@@ -340,19 +393,27 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		if (IsTimerRunning) SetPhysicsProcess(true);
 	}
 
-	private void PlayDodgeAnimation() => AnimationComponent?.BeginPose(this, ChooseDodgeClip(_dodgeFacing, EffectiveDefinition.AnimationProfile), 0.08f);
+	private void PlayDodgeAnimation()
+	{
+		_dodgeClip = ChooseDodgeClip(_dodgeDirection, _dodgeFacing, EffectiveDefinition.AnimationProfile);
+		AnimationComponent?.BeginPose(this, _dodgeClip, 0.08f);
+	}
 	private void PlayDodgeExitAnimation(float duration) => AnimationComponent?.BeginPose(this, EffectiveDefinition.AnimationProfile?.RecoveryClip ?? "", duration, true);
 	private void StopDodgeAnimation() => AnimationComponent?.EndPose(this);
 	private void RestoreTreePlayback() => AnimationComponent?.EndPose(this);
-	private StringName ChooseDodgeClip(Vector3 forward, DefenseAnimationProfile profile)
+	private static StringName ChooseDodgeClip(Vector3 direction, Vector3 forward, DefenseAnimationProfile profile)
 	{
 		if (profile == null) return "";
+		forward.Y = 0;
+		if (forward.LengthSquared() < 0.0001f) forward = Vector3.Forward;
+		forward = forward.Normalized();
 		Vector3 right = forward.Cross(Vector3.Up);
-		float fwd = _dodgeDirection.Dot(forward), side = _dodgeDirection.Dot(right);
+		float fwd = direction.Dot(forward), side = direction.Dot(right);
 		return Mathf.Abs(fwd) >= Mathf.Abs(side)
 			? (fwd >= 0 ? profile.DodgeForwardClip : profile.DodgeBackwardClip)
 			: (side >= 0 ? profile.DodgeRightClip : profile.DodgeLeftClip);
 	}
+
 	public override void _ExitTree()
 	{
 		Cancel(ActionInterruptReason.Invalidated);

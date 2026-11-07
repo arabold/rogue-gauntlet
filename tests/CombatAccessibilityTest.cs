@@ -31,7 +31,7 @@ public partial class CombatAccessibilityTest
 		player.InputComponent.InputDirection = Vector3.Right;
 		AssertThat(player.InputController.GetDodgeDirection()).IsEqual(Vector3.Right);
 		player.InputComponent.InputDirection = Vector3.Zero;
-		AssertThat(player.InputController.GetDodgeDirection()).IsEqual(Vector3.Back);
+		AssertThat(player.InputController.GetDodgeDirection()).IsEqual(Vector3.Forward);
 		player.MovementComponent.ResetTransientMotion();
 		player.InputComponent.InputDirection = Vector3.Right;
 		AssertBool(harness.RequestHeroDodge(Vector3.Zero)).IsTrue();
