@@ -144,6 +144,78 @@ public partial class CombatDefenseTest
 	}
 
 	[TestCase]
+	public void StartupCorrectionChangesHeadingWithoutRestartingTheAction()
+	{
+		var (actor, movement, _, gate, dodge, _) = CreateDodgeActor();
+		TestFactories.AddToSceneTree(actor);
+		movement.SetLookAtDirection(Vector3.Forward);
+		int starts = 0;
+		dodge.DodgeStarted += _ => starts++;
+
+		AssertInt((int)dodge.TryDodge(Vector3.Forward, 0.04f)).IsEqual((int)DefenseRequestResult.Success);
+		dodge.SetPhysicsProcess(false);
+		ulong generation = gate.CurrentGeneration;
+		int charges = dodge.ChargesRemaining;
+		dodge._PhysicsProcess(0.015);
+
+		AssertBool(dodge.TryRedirect(Vector3.Right)).IsTrue();
+		AssertThat(movement.LocomotionDirection).IsEqual(Vector3.Right);
+		AssertThat(movement.LookAtDirection).IsEqual(Vector3.Forward);
+		AssertBool(dodge.TryRedirect(Vector3.Right)).IsFalse();
+
+		dodge._PhysicsProcess(0.026);
+		AssertFloat(dodge.ElapsedTime).IsEqualApprox(0.041f, 0.0001f);
+		AssertBool(dodge.TryRedirect(Vector3.Back)).IsFalse();
+		AssertThat(movement.LocomotionDirection).IsEqual(Vector3.Right);
+		AssertInt(dodge.ChargesRemaining).IsEqual(charges);
+		AssertInt((int)gate.CurrentKind).IsEqual((int)ActorActionKind.Dodge);
+		AssertInt((int)gate.CurrentPhase).IsEqual((int)ActorActionPhase.Active);
+		AssertBool(gate.CurrentGeneration == generation).IsTrue();
+		AssertInt(starts).IsEqual(1);
+	}
+
+	[TestCase]
+	public void DirectAndCollisionStoppedDodgesCannotBeRedirected()
+	{
+		var (actor, movement, _, _, dodge, _) = CreateDodgeActor();
+		TestFactories.AddToSceneTree(actor);
+
+		AssertInt((int)dodge.TryDodge(Vector3.Forward)).IsEqual((int)DefenseRequestResult.Success);
+		dodge.SetPhysicsProcess(false);
+		AssertBool(dodge.TryRedirect(Vector3.Right)).IsFalse();
+		AssertThat(movement.LocomotionDirection).IsEqual(Vector3.Forward);
+
+		dodge.Cancel(ActionInterruptReason.Invalidated);
+		dodge._PhysicsProcess(0.61);
+		AssertInt((int)dodge.TryDodge(Vector3.Forward, 0.04f)).IsEqual((int)DefenseRequestResult.Success);
+		dodge.SetPhysicsProcess(false);
+		dodge.LockDirection();
+		AssertBool(dodge.TryRedirect(Vector3.Right)).IsFalse();
+		AssertThat(movement.LocomotionDirection).IsEqual(Vector3.Forward);
+
+		dodge.Cancel(ActionInterruptReason.Invalidated);
+		dodge._PhysicsProcess(0.61);
+		AssertInt((int)dodge.TryDodge(Vector3.Forward, 0.04f)).IsEqual((int)DefenseRequestResult.Success);
+		dodge.SetPhysicsProcess(false);
+		movement.HaltLocomotion();
+		AssertBool(movement.HasOverrideVelocity).IsFalse();
+		AssertBool(dodge.TryRedirect(Vector3.Right)).IsFalse();
+		AssertBool(movement.HasOverrideVelocity).IsFalse();
+	}
+
+	[TestCase]
+	public void InvalidSteeringWindowIsRejectedWithoutAcquiringTheAction()
+	{
+		var (actor, movement, _, gate, dodge, _) = CreateDodgeActor();
+		TestFactories.AddToSceneTree(actor);
+
+		AssertInt((int)dodge.TryDodge(Vector3.Forward, -0.01f)).IsEqual((int)DefenseRequestResult.InvalidDefinition);
+		AssertInt((int)dodge.TryDodge(Vector3.Forward, float.NaN)).IsEqual((int)DefenseRequestResult.InvalidDefinition);
+		AssertBool(gate.IsBusy).IsFalse();
+		AssertBool(movement.HasOverrideVelocity).IsFalse();
+	}
+
+	[TestCase]
 	public void DodgeImmunityGrantsDamageDodged()
 	{
 		var (_, _, hurtbox, _, dodge, health) = CreateDodgeActor();

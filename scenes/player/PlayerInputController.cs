@@ -12,12 +12,30 @@ public partial class PlayerInputController : Node
 	[Export] public PlayerInteractionController InteractionController { get; set; }
 	/// <summary>Seconds a fresh primary, secondary, dodge or guard press waits for an action that can accept it.</summary>
 	[Export(PropertyHint.Range, "0,0.5,0.01")] public float InputBufferWindow { get; set; } = 0.2f;
+	private float _dodgeSteeringWindow = 0.04f;
+	/// <summary>Seconds after an input-driven dodge starts that fresh steering can correct its travel direction.</summary>
+	[Export(PropertyHint.Range, "0,0.15,0.005,suffix:s")]
+	public float DodgeSteeringWindow
+	{
+		get => _dodgeSteeringWindow;
+		set => _dodgeSteeringWindow = float.IsFinite(value) ? Mathf.Clamp(value, 0f, 0.15f) : 0f;
+	}
+	private float _dodgeDirectionMemoryDuration = 0.08f;
+	/// <summary>How long a released steering direction remains available to a new dodge.</summary>
+	[Export(PropertyHint.Range, "0,0.2,0.005,suffix:s")]
+	public float DodgeDirectionMemoryDuration
+	{
+		get => _dodgeDirectionMemoryDuration;
+		set => _dodgeDirectionMemoryDuration = float.IsFinite(value) ? Mathf.Clamp(value, 0f, 0.2f) : 0f;
+	}
 
 	private InputIntentBuffer _intents;
+	private readonly DodgeDirectionMemory _dodgeDirectionMemory = new();
 	// Gameplay clock for the intent buffer; it stops while the tree is paused.
 	private double _clock;
 	private bool _requireDefenseRelease;
 	private bool _guardIntent;
+	private bool _isFocused = true;
 	public void SetGuardIntent(bool held) => _guardIntent = held;
 	private bool IsGuardHeld => _guardIntent || InputComponent.IsGuardPressed();
 	public void RequireFreshDefenseInput()
@@ -25,6 +43,7 @@ public partial class PlayerInputController : Node
 		_requireDefenseRelease = true;
 		_guardIntent = false;
 		_intents?.Clear();
+		ClearDodgeDirectionState();
 		Player?.GuardComponent?.EndGuard();
 	}
 
@@ -33,7 +52,17 @@ public partial class PlayerInputController : Node
 
 	public override void _Notification(int what)
 	{
-		if (what == NotificationPaused || what == NotificationWMWindowFocusOut) RequireFreshDefenseInput();
+		if (what == NotificationPaused) RequireFreshDefenseInput();
+		else if (what == NotificationWMWindowFocusOut)
+		{
+			_isFocused = false;
+			RequireFreshDefenseInput();
+		}
+		else if (what == NotificationWMWindowFocusIn)
+		{
+			_isFocused = true;
+			RequireFreshDefenseInput();
+		}
 	}
 
 	public override void _Ready()
@@ -49,8 +78,10 @@ public partial class PlayerInputController : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (Player.IsDead) { MovementComponent.Stop(); _intents.Clear(); return; }
+		if (Player.IsDead) { MovementComponent.Stop(); _intents.Clear(); ClearDodgeDirectionState(); return; }
+		if (!_isFocused) return;
 		_clock += delta;
+		_dodgeDirectionMemory.Observe(InputComponent.InputDirection, _clock);
 		BufferFreshPresses();
 		if (_requireDefenseRelease && !IsGuardHeld) _requireDefenseRelease = false;
 		// Active world interaction channel: check for input cancellation
@@ -105,6 +136,7 @@ public partial class PlayerInputController : Node
 
 		if (Player.DodgeComponent?.IsDodging == true)
 		{
+			Player.DodgeComponent.TryRedirect(InputComponent.InputDirection);
 			// The dodge override owns travel; keep fresh intent ready for the moment it releases.
 			MovementComponent.SetInputDirection(InputComponent.InputDirection);
 			return;
@@ -179,40 +211,26 @@ public partial class PlayerInputController : Node
 	private bool TryBufferedDodge()
 	{
 		if (!_intents.IsPending(PlayerIntent.Dodge, _clock)
-			|| Player.DodgeComponent?.TryDodge(GetDodgeDirection()) != DefenseRequestResult.Success) return false;
+			|| Player.DodgeComponent?.TryDodge(GetDodgeDirection(), DodgeSteeringWindow) != DefenseRequestResult.Success) return false;
 		_intents.Clear();
 		return true;
 	}
 
-	/// <summary>Use steering intent, never physical velocity; idle input backsteps from facing.</summary>
+	/// <summary>Use current steering, recent steering, or facing for a neutral dash; never derive direction from velocity.</summary>
 	public Vector3 GetDodgeDirection()
 	{
 		Vector3 facing = MovementComponent != null && MovementComponent.LookAtDirection != Vector3.Zero
 			? MovementComponent.LookAtDirection
 			: (Player != null ? -Player.GlobalTransform.Basis.Z : Vector3.Forward);
-		facing.Y = 0;
-		if (facing.LengthSquared() > 0.0001f)
-		{
-			facing = facing.Normalized();
-		}
-		else
-		{
-			facing = Vector3.Forward;
-		}
-
-		if (InputComponent == null || !InputComponent.IsMoving())
-		{
-			return -facing;
-		}
-
-		Vector3 input = InputComponent.InputDirection;
-		input.Y = 0;
-		if (input.LengthSquared() < 0.0001f)
-		{
-			return -facing;
-		}
-		input = input.Normalized();
-
-		return input;
+		Vector3 input = _isFocused && InputComponent != null ? InputComponent.InputDirection : Vector3.Zero;
+		return _dodgeDirectionMemory.Resolve(input, facing, _clock, DodgeDirectionMemoryDuration);
 	}
+
+	private void ClearDodgeDirectionState()
+	{
+		_dodgeDirectionMemory.Clear();
+		Player?.DodgeComponent?.LockDirection();
+	}
+
+	public override void _ExitTree() => ClearDodgeDirectionState();
 }

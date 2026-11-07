@@ -175,6 +175,7 @@ public partial class MovementEffectsComponent : Node3D, IPooledNode
 		bool hasTravel = displacement.LengthSquared() > 0.0001f;
 		if (_dashPending && !_dashTravelled && hasTravel && DodgeTravelIsActive())
 		{
+			if (direction != Vector3.Zero) _dashDirection = direction;
 			EmitDust(Profile.DashPuffCount, _dashOrigin, -_dashDirection);
 			_dashTravelled = true;
 			Streak?.Begin();
@@ -185,7 +186,11 @@ public partial class MovementEffectsComponent : Node3D, IPooledNode
 		if (DodgeTravelIsActive() && hasTravel)
 		{
 			_dashTravelled = true;
-			if (direction != Vector3.Zero) Streak?.Sample(Actor.GlobalPosition);
+			if (direction != Vector3.Zero)
+			{
+				_dashDirection = direction;
+				Streak?.Sample(Actor.GlobalPosition);
+			}
 			return;
 		}
 

@@ -8,6 +8,8 @@ The `monster_attack` scenario command requests one attack through the spawned mo
 
 The control panel is mouse-operated so keypad, movement keys, and Space stay available to control the hero.
 
+For player dodges, current processed movement input selects the heading; a released direction remains available for 0.08 seconds, then the player's facing is used. Space starts the dodge immediately. A new direction can correct an input-driven dodge during its first 0.04 seconds while the captured facing stays in place, making the correction a sidestep. Use slow motion to inspect timing, then review the curved path at normal speed.
+
 Checkbox defaults apply immediately on startup and to newly spawned monsters. `--combat-console` also checks the console logging option.
 
 For ranged warning practice, choose **Skeleton Crossbow** and spawn it. During aiming, its translucent trapezoid starts at one-third range and grows and brightens as the cone narrows toward the projectile lane. At commitment, it becomes the existing bar and extends to the clear attack range past the player. The same reusable indicator handles other weapon attacks; the component's Inspector preview can show the cone and its narrowing. Move sideways or dodge on commitment. Slow motion helps inspect the phases.
@@ -53,8 +55,8 @@ Scripts are JSON arrays, ordered by `Frame` (physics-frame offset), retaining fi
 | `automation` | `Value`: 0 disable monster AI, 1 enable monster AI (movement and attacks) |
 | `attack`, `secondary`, `monster_attack` | No arguments; same action ownership as gameplay |
 | `guard`, `release_guard` | Set or release the hero's held guard intention |
-| `dodge` | `X`, `Z`: direction; zero uses the player's movement/backstep choice |
-| `press_primary`, `press_secondary`, `press_dodge` | No arguments; buffers a fresh press in the input controller, like a button press (acceptance means buffered). A buffered dodge uses the current `move` steering |
+| `dodge` | `X`, `Z`: direction; zero resolves current/recent input, then facing. This direct command stays locked after it starts |
+| `press_primary`, `press_secondary`, `press_dodge` | No arguments; buffers a fresh press in the input controller, like a button press (acceptance means buffered). A buffered dodge resolves the latest current/recent input when accepted and allows steering correction during its first 0.04 s |
 | `monster_guard`, `monster_dodge` | `X`, `Z`: facing/direction |
 | `move` | `X`, `Z`: movement input; zero stops input |
 | `position_player`, `position_monster` | `X`, `Z`: explicit arena placement; height is retained |
