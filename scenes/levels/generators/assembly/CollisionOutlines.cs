@@ -82,6 +82,28 @@ public static class CollisionOutlines
 		}
 	}
 
+	/// <summary>Zero inside a convex polygon (either winding), else the distance to its nearest edge.</summary>
+	public static float DistanceTo(Vector2[] polygon, Vector2 point)
+	{
+		if (polygon.Length == 1) return point.DistanceTo(polygon[0]);
+		bool inside = true;
+		float sign = 0, best = float.MaxValue;
+		for (int index = 0; index < polygon.Length; index++)
+		{
+			var a = polygon[index];
+			var b = polygon[(index + 1) % polygon.Length];
+			if (a == b) continue;
+			float cross = (b - a).Cross(point - a);
+			if (cross != 0)
+			{
+				if (sign == 0) sign = Mathf.Sign(cross);
+				else if (Mathf.Sign(cross) != sign) inside = false;
+			}
+			best = Mathf.Min(best, point.DistanceTo(Geometry2D.GetClosestPointToSegment(point, a, b)));
+		}
+		return inside && polygon.Length >= 3 ? 0 : best;
+	}
+
 	private static IEnumerable<Vector3> Corners(Aabb box)
 	{
 		for (int corner = 0; corner < 8; corner++) yield return box.GetEndpoint(corner);

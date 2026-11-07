@@ -439,23 +439,6 @@ public sealed class RoomBlueprint
 					Shape = new BoxShape3D { Size = new Vector3(area.Size.X, Room.TileSize, area.Size.Y) },
 				});
 		}
-		// Rendered pool surfaces and stairwell beds must never become walkable geometry during a bake.
-		if (_pits.Count == 0) return;
-		var navigation = new Node3D { Name = "PitNavigation" };
-		Room.AddChild(navigation);
-		foreach (var tile in _pits)
-		{
-			float half = Room.TileSize / 2f;
-			navigation.AddChild(new NavigationObstacle3D
-			{
-				Name = $"PitNavigation{tile.X}_{tile.Y}",
-				Position = RoomFootprint.TileCenter(tile) + Vector3.Down * Room.TileSize,
-				Height = Room.TileSize * 2,
-				AffectNavigationMesh = true,
-				AvoidanceEnabled = false,
-				Vertices = [new(-half, 0, -half), new(half, 0, -half), new(half, 0, half), new(-half, 0, half)],
-			});
-		}
 	}
 
 	/// <summary>Assigns fixture state before entering the tree, on a cosmetic RNG stream independent of placement.</summary>

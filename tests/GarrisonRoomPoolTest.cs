@@ -109,7 +109,7 @@ public class GarrisonRoomPoolTest
 		var floor = generator.Floor;
 		bool Beside(Vector3 point) => Enumerable.Range(0, 8).Any(step =>
 			floor.IsReachable(point + new Vector3(Mathf.Cos(step * Mathf.Tau / 8), 0, Mathf.Sin(step * Mathf.Tau / 8)) * 1.75f));
-		foreach (var node in generator.NavigationRegion.FindChildren("*", "", true, false).OfType<Node3D>())
+		foreach (var node in generator.FloorContent.FindChildren("*", "", true, false).OfType<Node3D>())
 		{
 			bool chest = node.HasMeta("persistent_id") && node.GetMeta("persistent_id").AsString().Contains(":chest:");
 			if (chest && !Beside(node.GlobalPosition)) return $"chest at {node.GlobalPosition}";
@@ -124,6 +124,6 @@ public class GarrisonRoomPoolTest
 
 	private static string Fingerprint(MapGenerator generator) => string.Join("|", generator.Map.Tiles.Cast<MapTile>())
 		+ string.Join("|", generator.EnemySpawnPoints.Select(spawn => $"{spawn.PersistentId}:{spawn.Scenes[0].ResourcePath}:{spawn.GlobalTransform}"))
-		+ string.Join("|", generator.NavigationRegion.GetChildren().OfType<Room>().Where(room => room.Type != null)
+		+ string.Join("|", generator.FloorContent.GetChildren().OfType<Room>().Where(room => room.Type != null)
 			.SelectMany(room => room.GetNode("Props").GetChildren().OfType<Node3D>()).Select(prop => $"{prop.GetMeta("prop_id")}:{prop.GlobalTransform}"));
 }

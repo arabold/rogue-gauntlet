@@ -19,7 +19,7 @@ public partial class MapGenerator
 	/// </summary>
 	private void PlaceFountains(List<Vector3> placedPoints)
 	{
-		if (Fountains == null || NavigationRegion == null) return;
+		if (Fountains == null || FloorContent == null) return;
 		foreach (var kind in Fountains.KindsAt(RunSeed, DungeonDepth))
 		{
 			if (kind.Variants.Count == 0) continue;

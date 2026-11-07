@@ -44,7 +44,7 @@ public class LootExplorationVisibilityTest
 		var (level, map) = TestFactories.UngeneratedLevel();
 		var pickup = Pickup(); pickup.Position = new Vector3(8, 0, 8);
 		if (runtimeWorld) level.AddWorldNode(pickup);
-		else map.GetNode<Node3D>("NavigationRegion3D").AddChild(pickup);
+		else map.GetNode<Node3D>("FloorContent").AddChild(pickup);
 		// The pickup becomes ready before the map exists. It must fail closed.
 		TestFactories.AddToSceneTree(level);
 		AssertPresentation(pickup, false);

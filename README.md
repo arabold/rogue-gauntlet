@@ -32,7 +32,7 @@ The floor generator places rooms, connects them with corridors, and handles prog
 - **Architectural Themes (Realms):** Depth ranges are mapped to distinct realm definitions that specify corridor tile sets, wall meshes, and eligible room pools (e.g., garrison stone, sewer brickwork, or overgrown ruins).
 - **Layout & Corridors:** Rooms are packed relative to entrance and exit stairs, then connected by corridors that automatically resolve wall junctions, corners, and doorway frames.
 - **Lock & Key Gating:** Validated lock-and-key pairs (prison doors, gates, chests) control access to ensure each generated floor is solvable.
-- **Navigation & Spawns:** A 3D navigation mesh is baked at runtime across the merged floor geometry for enemy pathfinding, followed by threat-budgeted monster and loot placement.
+- **Navigation & Spawns:** A clearance grid built from the floor's collision drives size-aware monster chasing, fleeing and routing through door gates, followed by threat-budgeted monster and loot placement.
 
 ![Procedural Floor Layout Pipeline](./docs/map.png)
 
@@ -160,7 +160,7 @@ Explore the design and technical documentation in the [`docs/`](docs/) directory
 - **[ARCHITECTURE.md](./ARCHITECTURE.md):** Architectural principles, component diagrams, and coding standards.
 - **[Game Design Document](docs/game-design.md):** Vision, core mechanics, and gameplay systems.
 - **[Development Roadmap](docs/development-roadmap.md):** Milestone targets, deliverables, and acceptance criteria.
-- **[Level Generation & Design](docs/level-design.md):** Room assembly, doorway-driven connectivity, navigation baking, and fog of war.
+- **[Level Generation & Design](docs/level-design.md):** Room assembly, doorway-driven connectivity, monster navigation, and fog of war.
 - **[Combat System](docs/combat-system.md):** Action gating, contact timing, hurtboxes, poise, and parry mechanics.
 - **[Stats & Itemization](docs/stats-and-itemization.md):** Equipment tiers, modifiers, item identification, and persistence.
 - **[Asset Studio Guide](asset-studio/README.md):** Setup and workflow for the Blender/Python procedural 3D asset generator.

@@ -7,7 +7,6 @@ public static class CombatPhysics
 	public const int Intent = -50;
 	public const int Defense = -40;
 	public const int Steering = -30;
-	public const int Clearance = -25;
 	public const int Movement = -20;
 	/// <summary>Animation and movement presentation sample the body after collision-resolved movement.</summary>
 	public const int MovementPresentation = -10;

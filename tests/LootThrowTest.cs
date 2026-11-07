@@ -53,7 +53,7 @@ public class LootThrowTest
 			map.Seed = seed;
 			map.GenerateMap(includeGameplay: true);
 			await runner.SimulateFrames(3);
-			foreach (Chest chest in map.NavigationRegion.GetChildren().OfType<Chest>())
+			foreach (Chest chest in map.FloorContent.GetChildren().OfType<Chest>())
 			{
 				Vector3 source = chest.GlobalPosition, front = chest.GlobalBasis.Z;
 				// The back throw aims at the wall the chest stands against: it must turn, never pass the wall.

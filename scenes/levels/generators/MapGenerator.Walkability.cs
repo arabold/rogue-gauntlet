@@ -9,9 +9,6 @@ using Godot;
 /// </summary>
 public partial class MapGenerator
 {
-	/// <summary>Reachability assumes the navigation bake's agent radius, so both agree on what fits.</summary>
-	private float WalkabilityRadius => NavigationRegion?.NavigationMesh?.AgentRadius ?? 1f;
-
 	/// <summary>Builds the grid once rooms, corridors, walls and doors exist, before encounters and loot.</summary>
 	private void BuildWalkability()
 	{
@@ -29,25 +26,47 @@ public partial class MapGenerator
 
 	private WalkabilityGrid CreateWalkabilityGrid()
 	{
+		var grid = new WalkabilityGrid(FloorBounds(), ReachabilityRadius);
+		foreach (var (area, walkable) in TileAreas())
+		{
+			if (walkable) grid.AddFloor(area);
+			else grid.AddObstacle(area);
+		}
+		foreach (var outline in SolidOutlines()) grid.AddObstacle(outline);
+		return grid;
+	}
+
+	/// <summary>The whole map in generator space, tile edges included.</summary>
+	private Rect2 FloorBounds()
+	{
 		var min = Map.TileToWorld(0, 0);
 		var max = Map.TileToWorld(Map.Width - 1, Map.Height - 1);
 		float half = Room.TileSize / 2f;
-		var grid = new WalkabilityGrid(new Rect2(min.X - half, min.Z - half, max.X - min.X + Room.TileSize, max.Z - min.Z + Room.TileSize),
-			WalkabilityRadius);
+		return new Rect2(min.X - half, min.Z - half, max.X - min.X + Room.TileSize, max.Z - min.Z + Room.TileSize);
+	}
+
+	/// <summary>Every map tile's area and whether actors may stand on it.</summary>
+	private IEnumerable<(Rect2 Area, bool Walkable)> TileAreas()
+	{
+		float half = Room.TileSize / 2f;
 		for (int x = 0; x < Map.Width; x++)
 		for (int z = 0; z < Map.Height; z++)
 		{
 			var center = Map.TileToWorld(x, z);
-			var area = new Rect2(center.X - half, center.Z - half, Room.TileSize, Room.TileSize);
-			if (Map.IsWalkable(x, z)) grid.AddFloor(area);
-			else grid.AddObstacle(area);
+			yield return (new Rect2(center.X - half, center.Z - half, Room.TileSize, Room.TileSize), Map.IsWalkable(x, z));
 		}
-		// Real collision, not tile classes: doorway frames stay passable and wall depth varies per piece.
+	}
+
+	/// <summary>
+	/// Real collision, not tile classes: doorway frames stay passable and wall depth varies per piece. Doors are left
+	/// out; they open and close.
+	/// </summary>
+	private IEnumerable<SolidOutline> SolidOutlines()
+	{
 		var toLocal = GlobalTransform.AffineInverse();
-		foreach (var outline in CollisionOutlines.FromGridMap(WallGridMap, Transform3D.Identity)) grid.AddObstacle(outline);
-		foreach (var outline in CollisionOutlines.FromGridMap(DecorationGridMap, Transform3D.Identity)) grid.AddObstacle(outline);
-		foreach (var outline in CollisionOutlines.FromStaticBodies(NavigationRegion, toLocal * NavigationRegion.GlobalTransform)) grid.AddObstacle(outline);
-		return grid;
+		foreach (var outline in CollisionOutlines.FromGridMap(WallGridMap, Transform3D.Identity)) yield return outline;
+		foreach (var outline in CollisionOutlines.FromGridMap(DecorationGridMap, Transform3D.Identity)) yield return outline;
+		foreach (var outline in CollisionOutlines.FromStaticBodies(FloorContent, toLocal * FloorContent.GlobalTransform)) yield return outline;
 	}
 
 	/// <summary>Physical reachability with inaccessible doorway tiles blocked, without changing the floor grid.</summary>

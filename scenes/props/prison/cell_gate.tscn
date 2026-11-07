@@ -5,14 +5,13 @@
 [ext_resource type="PackedScene" path="res://scenes/components/interactive_component.tscn" id="interactive"]
 [sub_resource type="BoxShape3D" id="shape"]
 size = Vector3(2.4, 4, 0.3)
-[node name="CellGate" type="Node3D" node_paths=PackedStringArray("Interior", "Interactive", "DoorVisual", "Leaf", "Collision", "NavigationLink") groups=["door", "prop"]]
+[node name="CellGate" type="Node3D" node_paths=PackedStringArray("Interior", "Interactive", "DoorVisual", "Leaf", "Collision") groups=["door", "prop"]]
 script = ExtResource("door")
 Interior = NodePath("InteriorDoor")
 Interactive = NodePath("InteractiveComponent")
 DoorVisual = NodePath("Leaf")
 Leaf = NodePath("Leaf")
 Collision = NodePath("Body/Collision")
-NavigationLink = NodePath("NavigationLink")
 [node name="Leaf" type="MeshInstance3D" parent="."]
 position = Vector3(-1.2, 0, 0)
 scale = Vector3(2.4, 1, 1)
@@ -25,10 +24,6 @@ position = Vector3(0, 2, 0)
 shape = SubResource("shape")
 [node name="InteractiveComponent" parent="." instance=ExtResource("interactive")]
 position = Vector3(0, 2, 0)
-[node name="NavigationLink" type="NavigationLink3D" parent="."]
-start_position = Vector3(0, 0.1, -1.5)
-end_position = Vector3(0, 0.1, 1.5)
-enabled = false
 [node name="InteriorDoor" type="Node" parent="." node_paths=PackedStringArray("Door")]
 script = ExtResource("interior")
 Door = NodePath("..")

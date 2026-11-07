@@ -109,6 +109,19 @@ public sealed class GeneratedFloor
 	/// <summary>Per-cell reachability for <see cref="Walkability"/>; null alongside it.</summary>
 	internal bool[] Reachable => _reachable;
 
+	/// <summary>The frozen clearance grid monsters navigate on; null in previews and layouts generated without gameplay.</summary>
+	public ClearanceGrid Clearance { get; private set; }
+	/// <summary>Every door, interior gates included, in gate order: gate i of <see cref="Clearance"/> is door i.</summary>
+	public IReadOnlyList<Door> NavigationGates { get; private set; } = [];
+
+	/// <summary>Records the navigation grid once every solid is placed.</summary>
+	internal void SetNavigation(ClearanceGrid grid, IReadOnlyList<Door> gates)
+	{
+		RequireLive();
+		Clearance = grid;
+		NavigationGates = gates;
+	}
+
 	/// <summary>Records which cells can be reached from the arrival with every door open. Spawns, loot, traps, teleports
 	/// and drops only use reachable cells, so nothing lands in an inaccessible pocket behind furniture.</summary>
 	internal void SetWalkability(WalkabilityGrid grid, bool[] reachable)
@@ -493,8 +506,8 @@ public sealed class GeneratedFloor
 	}
 
 	/// <summary>
-	/// Keeps the tiles within <see cref="SpawnPropClearance"/> of a "prop" node current. Large actors ask about them every
-	/// physics frame, so they are cached. Generation only adds props, each positioned as it enters the tree, so while the
+	/// Keeps the tiles within <see cref="SpawnPropClearance"/> of a "prop" node current. Placement loops ask about them
+	/// many times, so they are cached. Generation only adds props, each positioned as it enters the tree, so while the
 	/// floor is live a changed group size is the only staleness; a frozen floor also refreshes once per physics frame,
 	/// because runtime props move, drop and get picked up.
 	/// </summary>

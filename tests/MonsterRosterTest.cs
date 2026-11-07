@@ -30,7 +30,7 @@ public class MonsterRosterTest
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
 		var behavior = actor.EnemyBehaviorComponent;
 		var navigation = behavior.GetNode<NavigationComponent>("Navigation");
-		// This harness deliberately has no baked navmesh: retreat cannot produce a reachable endpoint.
+		// The harness is not a generated level: without navigation, retreat has nowhere to go.
 		bool accepted = false;
 		var context = new EnemyContext(actor, actor.MovementComponent, behavior.GetNode<PerceptionComponent>("Perception"),
 			navigation, actor.Definition.Behavior, () => accepted = behavior.TryAttack());

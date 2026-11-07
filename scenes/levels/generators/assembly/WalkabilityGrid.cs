@@ -72,30 +72,8 @@ public sealed class WalkabilityGrid
 		foreach (int index in CellsWithCenterIn(bounds.Grow(_erosion)))
 		{
 			var center = CellCenter(new Vector2I(index % Size.X, index / Size.X));
-			if (DistanceTo(polygon, center) < _erosion - Epsilon) _blocked[index] = 1;
+			if (CollisionOutlines.DistanceTo(polygon, center) < _erosion - Epsilon) _blocked[index] = 1;
 		}
-	}
-
-	/// <summary>Zero inside a convex polygon (either winding), else the distance to its nearest edge.</summary>
-	private static float DistanceTo(Vector2[] polygon, Vector2 point)
-	{
-		if (polygon.Length == 1) return point.DistanceTo(polygon[0]);
-		bool inside = true;
-		float sign = 0, best = float.MaxValue;
-		for (int index = 0; index < polygon.Length; index++)
-		{
-			var a = polygon[index];
-			var b = polygon[(index + 1) % polygon.Length];
-			if (a == b) continue;
-			float cross = (b - a).Cross(point - a);
-			if (cross != 0)
-			{
-				if (sign == 0) sign = Mathf.Sign(cross);
-				else if (Mathf.Sign(cross) != sign) inside = false;
-			}
-			best = Mathf.Min(best, point.DistanceTo(Geometry2D.GetClosestPointToSegment(point, a, b)));
-		}
-		return inside && polygon.Length >= 3 ? 0 : best;
 	}
 
 	public bool IsStandable(Vector2I cell)

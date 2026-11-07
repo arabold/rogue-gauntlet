@@ -34,9 +34,9 @@ public partial class MapGenerator
 	/// <summary>
 	/// Scatters chests, traps, and loose ground items across the finished map. Runs after
 	/// walls/corridors are final (so wall-adjacency and occupancy checks are accurate) and
-	/// before <see cref="BakeNavigationMesh"/> (so chests -- solid, unlike traps/loose items
-	/// -- are added as children of <see cref="NavigationRegion"/> in time to be baked in as
-	/// navmesh obstacles, the same way rooms already are). Every content type shares one
+	/// before <see cref="BuildNavigation"/> (so chests -- solid, unlike traps/loose items
+	/// -- are children of <see cref="FloorContent"/> in time to count as navigation solids,
+	/// the same way rooms already do). Every content type shares one
 	/// running list of placed points so chests/traps/items all keep clear of each other, not
 	/// just their own kind. Access pickups, placed earlier, seed that list, and the run's scheduled fountains claim
 	/// their spots first.
@@ -58,16 +58,16 @@ public partial class MapGenerator
 		var proposed = GlobalTransform.AffineInverse() * new Transform3D(new Basis(Vector3.Up, Mathf.DegToRad(rotation)),
 			point + Vector3.Up * GetFloorSurfaceHeight(point));
 		var solids = CollisionOutlines.FromStaticBodies(prop, proposed).ToList();
-		var doorClearances = InteriorDoorComponent.CollectClearances(NavigationRegion,
-			GlobalTransform.AffineInverse() * NavigationRegion.GlobalTransform);
+		var doorClearances = InteriorDoorComponent.CollectClearances(FloorContent,
+			GlobalTransform.AffineInverse() * FloorContent.GlobalTransform);
 		return !solids.Any(solid => doorClearances.Any(clearance => clearance.Intersects(solid.Bounds))) && TryBlockReachably(solids);
 	}
 
 	/// <summary>
 	/// Places a solid prop (chest, fountain) at a candidate point when it keeps its room's free space connected. A solid
-	/// prop is parented under <see cref="NavigationRegion"/>, like rooms and the GridMap copies
-	/// <see cref="BakeNavigationMesh"/> adds, so it becomes a navmesh obstacle. Do NOT route it through SpawnPoint: that
-	/// parents under Level instead (missing the navmesh bake) and unconditionally applies an extra 180-degree yaw, which
+	/// prop is parented under <see cref="FloorContent"/>, like rooms, so it becomes a navigation solid. Do NOT route it
+	/// through SpawnPoint: that parents under Level instead (missing the navigation grid) and unconditionally applies an
+	/// extra 180-degree yaw, which
 	/// would silently point the prop the wrong way.
 	/// </summary>
 	private bool TryPlaceSolidProp(PackedScene scene, Vector3 point, float rotation, string persistentId)
@@ -80,7 +80,7 @@ public partial class MapGenerator
 		}
 
 		prop.SetMeta("persistent_id", persistentId);
-		NavigationRegion.AddChild(prop);
+		FloorContent.AddChild(prop);
 		// Raised onto the floor's visual surface: a static prop doesn't settle via physics the way characters do, so at
 		// y=0 its base sits buried inside the floor mesh.
 		prop.GlobalPosition = point + Vector3.Up * GetFloorSurfaceHeight(point);
@@ -165,7 +165,7 @@ public partial class MapGenerator
 			// which read as an oddly angled, "floating" tile rather than a natural part
 			// of the floor. Leave it unrotated, like any other floor tile.
 			var trap = TrapScene.Instantiate<Node3D>();
-			NavigationRegion.AddChild(trap);
+			FloorContent.AddChild(trap);
 			trap.GlobalPosition = point;
 			if (trap is FloorTrap floorTrap)
 			{
@@ -422,7 +422,7 @@ public partial class MapGenerator
 		pickup.Item = item;
 		pickup.Quantity = quantity;
 		pickup.SetMeta("persistent_id", sourceId);
-		NavigationRegion.AddChild(pickup);
+		FloorContent.AddChild(pickup);
 		pickup.GlobalPosition = point + Vector3.Up * GetFloorSurfaceHeight(point);
 	}
 }

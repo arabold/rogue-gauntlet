@@ -25,7 +25,6 @@
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="phantom_camera_host"]
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="phantom_camera"]
 [ext_resource type="Script" path="res://scenes/effects/combat/CombatCameraFeedbackController.cs" id="camera_feedback"]
-[ext_resource type="Resource" path="res://scenes/debug/combat/combat_arena_navigation.tres" id="arena_navigation"]
 
 [sub_resource type="BoxShape3D" id="floor_shape"]
 size = Vector3(40, 1, 40)
@@ -106,9 +105,6 @@ noise_emitter_layer = 1
 [node name="CombatCameraFeedbackController" type="Node" parent="." node_paths=PackedStringArray("NoiseEmitter")]
 script = ExtResource("camera_feedback")
 NoiseEmitter = NodePath("../HitNoiseEmitter")
-
-[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
-navigation_mesh = ExtResource("arena_navigation")
 
 [node name="Floor" type="StaticBody3D" parent="."]
 position = Vector3(0, -0.5, 0)

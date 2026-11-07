@@ -53,11 +53,6 @@ Concrete corrections — each is a mistake that happens without being told other
   false); give logic you want to probe simple/Godot-typed signatures.
 - **Shutdown noise.** Headless leak/ObjectDB "resources still in use / leaked at exit" messages
   on forced quit are noise unless preceded by real load/script/resource errors during the run.
-- **Headless navmesh bake error is expected.** A headless `main.tscn` run prints an error +
-  C# backtrace from `NavigationRegion3D.BakeNavigationMesh` (`MapGenerator.BakeNavigationMesh`);
-  generation continues and logs `Map generated.` It is a NavigationServer-in-headless
-  limitation, not a real failure. Confirm `Map generated.` and that the player spawns; bake
-  navmesh visually in the editor when it actually matters.
 - **Bulk-generating files via Bash bypasses the Read-before-Write safety check.** Writing many
   new files at once (e.g. a script/heredoc loop creating a batch of wrapper `.tscn`s) is easy to
   reach for over N individual Write calls, but it skips the "must Read before overwrite"

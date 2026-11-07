@@ -18,17 +18,10 @@ public sealed class EnemyContext
 {
 	// How often a target-less enemy re-scans its surroundings for a player to chase.
 	private const float TargetScanInterval = 0.2f;
-	// How often a chase repaths to the target's live position (throttled so we don't repath every
-	// frame); also gated by TargetPositionRefreshDistance below.
-	private const float TargetPathRefreshInterval = 0.12f;
-	// How often the (relatively expensive) navmesh reachability query for the current target runs.
+	// How often the reachability of the current target is re-checked against its chase field.
 	private const float TargetReachabilityCheckInterval = 0.35f;
-	// Minimum distance the target must have moved before an off-schedule repath is worthwhile.
-	private const float TargetPositionRefreshDistance = 0.35f;
-	// How often a monster waiting for an attack slot recomputes its ring point, and how far that point must
-	// move before it re-paths there.
+	// How often a monster waiting for an attack slot recomputes its ring point.
 	private const float RingRefreshInterval = 0.3f;
-	private const float RingRepathDistance = 0.5f;
 
 	public CharacterBody3D Actor { get; }
 	public MovementComponent Movement { get; }
@@ -40,8 +33,6 @@ public sealed class EnemyContext
 	private EnemyTacticalDecision? _lastDecision;
 	public string TacticalDecisionReason => _lastDecision?.Reason ?? "inactive";
 	public double Delta { get; private set; }
-	private float _retreatRefresh;
-	private bool _retreatDestinationValid;
 	private Cooldown _ringRefresh;
 	private Vector3 _ringPoint;
 	private bool _hasRingPoint;
@@ -78,7 +69,7 @@ public sealed class EnemyContext
 	public Node3D Target
 	{
 		get => _target;
-		set { if (_target != value) { Tactics.ClearTarget(); TacticalSelector?.ClearTarget(); _lastDecision = null; _retreatDestinationValid = false; _retreatRefresh = 0; } _target = value; }
+		set { if (_target != value) { Tactics.ClearTarget(); TacticalSelector?.ClearTarget(); _lastDecision = null; _hasRingPoint = false; } _target = value; }
 	}
 
 	/// <summary>
@@ -91,7 +82,6 @@ public sealed class EnemyContext
 	public Vector3 HomePosition { get; }
 
 	private Cooldown _scanCooldown;
-	private Cooldown _pathRefreshCooldown;
 	private Cooldown _reachabilityCooldown;
 	private bool _lastReachable = true;
 
@@ -142,10 +132,8 @@ public sealed class EnemyContext
 	{
 		Delta = delta;
 		TacticalSelector?.Tick(delta);
-		_retreatRefresh -= (float)delta;
 		_ringRefresh.Tick(delta);
 		_scanCooldown.Tick(delta);
-		_pathRefreshCooldown.Tick(delta);
 		_reachabilityCooldown.Tick(delta);
 	}
 
@@ -158,7 +146,7 @@ public sealed class EnemyContext
 	/// <summary>
 	/// Scans for a detectable, reachable player and acquires it. Returns true when a new target was
 	/// acquired this call. Detection (vision cone, hearing radius, line-of-sight) lives in
-	/// <see cref="PerceptionComponent"/>; this only supplies the navmesh-reachability gate and
+	/// <see cref="PerceptionComponent"/>; this only supplies the reachability gate and
 	/// records the sighting. See docs/level-design.md "Enemy Detection (sight &amp; hearing)".
 	/// </summary>
 	public bool LookForNewTarget()
@@ -180,7 +168,7 @@ public sealed class EnemyContext
 		return true;
 	}
 
-	/// <summary>Sets the chase target and points navigation at its current position.</summary>
+	/// <summary>Sets the chase target and records where it was seen.</summary>
 	public void SetTarget(Node3D target)
 	{
 		if (Target != target)
@@ -188,18 +176,18 @@ public sealed class EnemyContext
 			GameDebug.Ai($"{Actor.Name} is now targeting {target.Name}");
 			Target = target;
 		}
-		UpdateTargetPosition();
+		RecordTargetPosition();
 	}
 
-	/// <summary>True when the navmesh can path to <paramref name="target"/> (respects door state).</summary>
+	/// <summary>True when this body can walk to <paramref name="target"/> (door-aware, size-aware).</summary>
 	public bool CanReachTarget(Node3D target)
 	{
-		return target != null && Navigation.IsReachable(target.GlobalPosition);
+		return target != null && Navigation.CanReach(target);
 	}
 
 	/// <summary>
 	/// Throttled reachability check for the current <see cref="Target"/>, caching the last answer so
-	/// the navmesh query runs at most once per <see cref="TargetReachabilityCheckInterval"/>.
+	/// the field query runs at most once per <see cref="TargetReachabilityCheckInterval"/>.
 	/// </summary>
 	public bool CanReachCurrentTarget()
 	{
@@ -222,38 +210,10 @@ public sealed class EnemyContext
 		_lastReachable = true;
 	}
 
-	/// <summary>Records the target's current position as last-known and repaths to it.</summary>
-	public bool UpdateTargetPosition()
+	/// <summary>Records the target's current position as last known, for a search after contact is lost.</summary>
+	public void RecordTargetPosition()
 	{
-		if (Target == null)
-		{
-			return false;
-		}
-		LastKnownTargetPosition = Target.GlobalPosition;
-		Navigation.SetDestination(LastKnownTargetPosition);
-		return true;
-	}
-
-	/// <summary>
-	/// Refreshes the chase destination to the target's live position, throttled so we only repath
-	/// once per <see cref="TargetPathRefreshInterval"/> unless the target moved further than
-	/// <see cref="TargetPositionRefreshDistance"/>.
-	/// </summary>
-	public bool UpdateTargetPositionThrottled()
-	{
-		if (Target == null)
-		{
-			return false;
-		}
-
-		if (!_pathRefreshCooldown.IsReady
-			&& LastKnownTargetPosition.DistanceTo(Target.GlobalPosition) < TargetPositionRefreshDistance)
-		{
-			return true;
-		}
-
-		_pathRefreshCooldown.Start(TargetPathRefreshInterval);
-		return UpdateTargetPosition();
+		if (Target != null) LastKnownTargetPosition = Target.GlobalPosition;
 	}
 
 	/// <summary>Low-health movement temporarily overrides ordinary tactics after action commitment permits it.</summary>
@@ -276,22 +236,17 @@ public sealed class EnemyContext
 	public void ExecuteTactics(EnemyMovementIntent? preference = null)
 	{
 		var decision = TacticalSelector.Select(preference ?? EvaluateMovement(), HorizontalTargetDistance, Profile.AttackStrategy.CanAttack(this));
-		if (decision.Intent.Goal == EnemyMovementGoal.Retreat && !FollowRetreat(decision.Intent.DesiredDistance))
+		if (decision.Intent.Goal == EnemyMovementGoal.Retreat && !FollowRetreat())
 			decision = TacticalSelector.RetreatBlocked(Profile.AttackStrategy.CanAttack(this));
-		if (decision.Intent.Goal != EnemyMovementGoal.Retreat) EndRetreatMovement();
 		// An approach that is already in reach (but not yet facing or eligible) holds and turns instead.
 		bool approaching = decision.Intent.Goal == EnemyMovementGoal.Approach && !Profile.AttackStrategy.IsInReach(this);
 		if (approaching)
 		{
-			// Retreat replaces the agent destination independently of the chase refresh cache.
-			if (_lastDecision?.Intent.Goal == EnemyMovementGoal.Retreat || decision.Reason == "retreat_blocked")
-				UpdateTargetPosition();
-			else UpdateTargetPositionThrottled();
+			RecordTargetPosition();
 			FollowTargetPath();
 		}
 		else if (decision.Intent.Goal is EnemyMovementGoal.Hold or EnemyMovementGoal.Approach) Navigation.Stop();
 		else if (decision.Intent.Goal == EnemyMovementGoal.Encircle) FollowEngagementRing(decision.Intent.DesiredDistance, decision.Intent.PreferRear);
-		// Any other goal replaces the agent destination, so a later ring must path to its point again.
 		if (decision.Intent.Goal != EnemyMovementGoal.Encircle) _hasRingPoint = false;
 		// Every goal but an approach faces the target, limited by the actor's movement turn rate; approaching faces its path.
 		if (!approaching && Target != null) Movement.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition);
@@ -304,58 +259,38 @@ public sealed class EnemyContext
 		if (decision.Intent.AllowAttack) RequestAttack();
 	}
 
-	/// <summary>Follow the existing chase path, including committed door crossings, with shared stuck recovery.</summary>
+	/// <summary>Chase the target down its shared field. A stall only restarts progress tracking: the field updates as the target moves.</summary>
 	public void FollowTargetPath()
 	{
-		if (Target == null) { Movement.Stop(); return; }
-		Navigation.FollowPath(Target);
-		if (Navigation.IsStuck)
-		{
-			Navigation.ResetStuckTracking();
-			Navigation.SetDestination(LastKnownTargetPosition);
-		}
+		if (Target == null) { Navigation.Stop(); return; }
+		Navigation.Chase(Target);
+		if (Navigation.IsStuck) Navigation.ResetStuckTracking();
 	}
 
-	public void EndRetreatMovement() { _retreatRefresh = 0; _retreatDestinationValid = false; }
-
 	/// <summary>
-	/// Wait for an attack slot at this actor's spread ring position, facing the target. The ring point
-	/// is refreshed on a throttle and snapped to the navmesh when one is near.
+	/// Wait for an attack slot at this actor's spread ring position, facing the target. The ring point is refreshed on
+	/// a throttle and moved to the nearest spot this body fits; without one the actor holds where it is.
 	/// </summary>
 	public void FollowEngagementRing(float distance, bool preferRear)
 	{
 		var slots = TargetSlots;
 		if (Target == null || slots == null || Profile.AttackStrategy == null) { Navigation.Stop(); return; }
-		if (_ringRefresh.IsReady)
+		if (_ringRefresh.IsReady || !_hasRingPoint)
 		{
 			_ringRefresh.Start(RingRefreshInterval);
 			Vector3 ring = slots.GetRingPoint(Actor, Profile.AttackStrategy.SlotKind, distance, preferRear);
-			Vector3 snapped = Navigation.GetClosestNavPoint(ring);
-			Vector3 point = snapped.DistanceTo(ring) < distance ? snapped : ring;
-			if (!_hasRingPoint || point.DistanceTo(_ringPoint) > RingRepathDistance)
-			{
-				_ringPoint = point;
-				_hasRingPoint = true;
-				Navigation.SetDestination(point);
-			}
+			_hasRingPoint = Navigation.TryFindTraversable(ring, distance, out _ringPoint);
 		}
-		// The navigation agent stops once it reaches the point.
-		Navigation.FollowPath(Target);
+		if (!_hasRingPoint || !Navigation.MoveTo(_ringPoint) || Navigation.IsStuck) Navigation.Stop();
 	}
 
-	/// <summary>Bound and throttle retreat destination checks. Failed movement permits an eligible attack.</summary>
-	public bool FollowRetreat(float desiredDistance)
+	/// <summary>Flee the target down its shared field. False when cornered or stalled, which permits an eligible attack.</summary>
+	public bool FollowRetreat()
 	{
-		if (Target == null) return false;
-		if (_retreatRefresh <= 0)
-		{
-			_retreatRefresh = .2f;
-			_retreatDestinationValid = Navigation.TrySetRetreatDestination(Target.GlobalPosition,
-				Mathf.Max(.6f, desiredDistance - HorizontalTargetDistance));
-		}
-		if (!_retreatDestinationValid || Navigation.IsStuck) { Navigation.Stop(); return false; }
-		Navigation.FollowPath(Target);
-		return true;
+		if (Target == null || !Navigation.Flee(Target)) return false;
+		if (!Navigation.IsStuck) return true;
+		Navigation.Stop();
+		return false;
 	}
 
 	/// <summary>Uniform random float in [min, max).</summary>

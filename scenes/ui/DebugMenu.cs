@@ -459,29 +459,17 @@ public partial class DebugMenu : HBoxContainer
 		SetChecked(ToggleDebugMeshesId, enabled);
 	}
 
-	/// <summary>
-	/// Toggles navigation debug visuals: the baked navmesh overlay plus each enemy's red
-	/// <see cref="NavigationAgent3D"/> path. Agent paths are driven per-agent (their server-level
-	/// flag isn't honored at runtime here), so this applies to every agent currently in the scene.
-	/// </summary>
+	/// <summary>Toggles the navigation debug overlay: the floor's clearance grid for skeleton-sized bodies.</summary>
 	private void SetNavigationEnabled(bool enabled)
 	{
 		_navigationEnabled = enabled;
 
-		foreach (Node node in GetTree().GetNodesInGroup("navigation_agent"))
-		{
-			if (node is NavigationAgent3D agent)
-			{
-				agent.DebugEnabled = enabled;
-			}
-		}
-
-		// Rebuilt on every enable, so the overlay follows the current bake and door states.
+		// Rebuilt on every enable, so the overlay follows the current door states.
 		if (IsInstanceValid(_navigationOverlay))
 		{
 			_navigationOverlay.QueueFree();
 		}
-		_navigationOverlay = enabled ? NavigationDebugOverlay.Build(ActiveLevel?.MapGenerator.NavigationRegion) : null;
+		_navigationOverlay = enabled ? NavigationDebugOverlay.Build(ActiveLevel?.Navigation) : null;
 		if (_navigationOverlay != null)
 		{
 			ActiveLevel.AddWorldNode(_navigationOverlay);

@@ -16,19 +16,6 @@ public partial class Door : Node3D
 	/// <summary>The hinged leaf that swings open and carries the x-ray indicator.</summary>
 	[Export] public MeshInstance3D Leaf { get; set; }
 	[Export] public CollisionShape3D Collision { get; set; }
-	/// <summary>
-	/// Bridges the doorway gap in the baked navigation mesh only while the door is open.
-	/// The main navmesh is permanently severed at every doored doorway (the closed door
-	/// geometry blocks the bake), so this per-door link reconnects the two sides while the door
-	/// is open. A link connects by proximity to the navmesh on each end (within the map's link
-	/// connection radius) rather than by fragile edge-alignment, so it reconnects reliably where a
-	/// flat region patch only stitched one side of the doorway. Disabling it when the door is
-	/// closed makes the navmesh the single source of truth for reachability: enemies route around
-	/// closed doors. A link spans the gap rather than filling it, so the agent is briefly off the
-	/// navmesh mid-doorway; the enemy chase logic commits to the crossing (see
-	/// NavigationComponent.IsCrossingDoorway) to avoid oscillating there.
-	/// </summary>
-	[Export] public NavigationLink3D NavigationLink { get; set; }
 	[Export] public bool LockEligible { get; set; } = false;
 	public string ConnectionId { get; set; } = "";
 	public bool IsDiscovered => Secret?.IsDiscovered ?? true;
@@ -58,7 +45,7 @@ public partial class Door : Node3D
 	{
 		if (!HasRequiredParts)
 		{
-			GD.PushError($"{Name}: a door requires assigned Interactive, Leaf, Collision and NavigationLink nodes.");
+			GD.PushError($"{Name}: a door requires assigned Interactive, Leaf and Collision nodes.");
 			return;
 		}
 
@@ -81,7 +68,7 @@ public partial class Door : Node3D
 		RefreshAccessPresentation();
 	}
 
-	private bool HasRequiredParts => Interactive != null && Leaf != null && Collision != null && NavigationLink != null;
+	private bool HasRequiredParts => Interactive != null && Leaf != null && Collision != null;
 
 	public void RefreshAccessPresentation()
 	{
@@ -173,7 +160,6 @@ public partial class Door : Node3D
 		if (!HasRequiredParts) return;
 		Leaf.RotationDegrees = new Vector3(0, IsOpen ? OpenRotationDegrees : 0, 0);
 		Collision.Disabled = IsOpen;
-		NavigationLink.Enabled = IsOpen;
 	}
 
 	private void OpenDoor()

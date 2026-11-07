@@ -10,6 +10,7 @@ script = ExtResource("script")
 InitialAction = 0
 DetectionRange = 24.0
 DetectionAngle = 100.0
+StayInHomeRoom = true
 RoamRadius = 2.0
 RoamPauseMin = 1.0
 RoamPauseMax = 2.5

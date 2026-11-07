@@ -1,12 +1,13 @@
 namespace RogueGauntlet.Tests;
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Large actor fit, deterministic placement, fog and real melee execution.</summary>
+/// <summary>Room staging, deterministic placement, room-bound movement, fog and real melee execution.</summary>
 [TestSuite, RequireGodotRuntime]
 public class WardenTest
 {
@@ -22,10 +23,10 @@ public class WardenTest
 			level.ConfigureGeneration(new RunState(seed), 3, null, null);
 			level.Generate();
 			var boss = Boss(level);
-			var fit = boss.GetNode<LargeActorFitComponent>("LargeActorFitComponent");
+			int home = HomeRoom(level, boss);
 			AssertBool(level.Floor.IsFootprintClear(boss.GlobalPosition,
-				fit.Profile.MinimumClearance, fit.HomeRoomId)).IsTrue();
-			AssertBool(fit.HomeRoomId >= 0).IsTrue();
+				level.Floor.Encounter.GatekeeperFit.MinimumClearance, home)).IsTrue();
+			AssertBool(home >= 0).IsTrue();
 			AssertBool(level.Seed == RunState.GetLevelSeed(seed, 3)).IsTrue();
 			Vector3 firstPosition = boss.GlobalPosition;
 			int attempt = level.MapGenerator.GenerationAttempt;
@@ -61,7 +62,7 @@ public class WardenTest
 	}
 
 	[TestCase]
-	public async Task TallActorRespectsFogAndRejectsMovementIntoNarrowSpace()
+	public async Task TallActorStaysHiddenUntilItsRoomIsRevealed()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
@@ -74,25 +75,20 @@ public class WardenTest
 		level.FindChildren("*", "", true, false).OfType<RoomManager>().Single().SetPhysicsProcess(false);
 		var boss = Boss(level);
 		boss.EnemyBehaviorComponent.AIEnabled = false;
-		var fit = boss.GetNode<LargeActorFitComponent>("LargeActorFitComponent");
+		int home = HomeRoom(level, boss);
 		await runner.SimulateFrames(2);
 		// The boss title is its nameplate's name: fog hides it with the boss.
 		AssertString(boss.Nameplate.NameLabel.Text).IsEqual("The Forsaken Warden");
 		AssertBool(boss.Visible).IsFalse();
 		AssertBool(boss.Nameplate.NameLabel.IsVisibleInTree()).IsFalse();
-		level.Discovery.RevealRoom(fit.HomeRoomId);
-		SignalBus.EmitRoomEntered(fit.HomeRoomId);
+		level.Discovery.RevealRoom(home);
+		SignalBus.EmitRoomEntered(home);
 		await runner.SimulateFrames(1);
 		AssertBool(boss.Visible).IsTrue();
-		var shape = (CapsuleShape3D)boss.CollisionShape.Shape;
+		var shape = (CapsuleShape3D)boss.BodyShape.Shape;
 		AssertFloat(shape.Height).IsEqual(4.5f);
-		AssertFloat(shape.Radius).IsEqual(1);
+		AssertFloat(boss.BodyRadius).IsEqual(1);
 		AssertObject(boss.HurtBoxComponent.MovementComponent).IsNull();
-		AssertBool(boss.MovementComponent.ProcessPhysicsPriority > fit.ProcessPhysicsPriority).IsTrue();
-		boss.GlobalPosition += Vector3.Right * 100;
-		boss.MovementComponent.SetInputDirection(Vector3.Forward);
-		fit._PhysicsProcess(.016);
-		AssertVector(boss.MovementComponent.TargetDirection).IsEqual(Vector3.Zero);
 	}
 
 	[TestCase]
@@ -227,7 +223,7 @@ public class WardenTest
 	}
 
 	[TestCase]
-	public async Task RoomMovementUsesBodyClearanceRatherThanSpawnStagingRadius()
+	public async Task WardenWalksAroundItsRoomButNotOutOfIt()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
@@ -236,32 +232,43 @@ public class WardenTest
 		level.ConfigureGeneration(new RunState(12345), 3, null, null);
 		level.Generate();
 		var boss = Boss(level);
+		// Drive navigation directly; the behavior layer would otherwise pick its own goals.
 		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
-		var fit = boss.LargeActorFit;
 		await runner.SimulateFrames(2);
-		// Find a nearby supported movement direction rather than depending on a historical seed's exact boss position.
-		Vector3 direction = Vector3.Zero;
-		foreach (var candidate in new[] { Vector3.Back, Vector3.Forward, Vector3.Left, Vector3.Right })
+		var navigation = boss.EnemyBehaviorComponent.Navigation;
+		AssertBool(navigation.IsAvailable).IsTrue();
+		int home = HomeRoom(level, boss);
+		AssertInt(navigation.HomeRoom).IsEqual(home);
+
+		// A destination in its own room, a real walk away, the body fits at.
+		var grid = level.Navigation.Grid;
+		var route = new List<Vector2>();
+		Vector3? destination = null;
+		for (int x = 0; x < grid.Size.X && destination == null; x++)
+		for (int z = 0; z < grid.Size.Y && destination == null; z++)
 		{
-			for (float distance = 2; distance <= 6; distance += 0.5f)
-			{
-				var destination = boss.GlobalPosition + candidate * distance;
-				if (level.Floor.IsFootprintClear(destination, fit.Profile.MinimumClearance, fit.HomeRoomId)) continue;
-				bool pathClear = true;
-				for (float step = 0.5f; step <= distance; step += 0.5f)
-					if (!fit.CanMoveTo(boss.GlobalPosition + candidate * step)) { pathClear = false; break; }
-				if (pathClear) { direction = candidate; break; }
-			}
-			if (direction != Vector3.Zero) break;
+			var center = grid.CellCenter(new Vector2I(x, z));
+			var point = new Vector3(center.X, boss.GlobalPosition.Y, center.Y);
+			if (level.Navigation.RoomAt(point) != home || !navigation.CanStandAt(point)) continue;
+			if (!level.Navigation.TryFindPath(boss.GlobalPosition, point, boss.BodyRadius, route)) continue;
+			float length = 0;
+			var from = new Vector2(boss.GlobalPosition.X, boss.GlobalPosition.Z);
+			foreach (var waypoint in route) { length += from.DistanceTo(waypoint); from = waypoint; }
+			if (length >= 6 && length <= 14) destination = point;
 		}
-		AssertBool(direction != Vector3.Zero).IsTrue();
-		Vector3 start = boss.GlobalPosition;
-		for (int frame = 0; frame < 30; frame++)
+		AssertBool(destination.HasValue).OverrideFailureMessage("No destination 6-14 units away in the Warden's room.").IsTrue();
+
+		for (int frame = 0; frame < 600 && !navigation.HasArrived; frame++)
 		{
-			boss.MovementComponent.SetInputDirection(direction);
-			await runner.SimulateFrames(1);
+			AssertBool(navigation.MoveTo(destination.Value)).IsTrue();
+			await runner.SimulateFrames(1, 16);
+			AssertInt(level.Navigation.RoomAt(boss.GlobalPosition)).IsEqual(home);
 		}
-		AssertFloat(boss.GlobalPosition.DistanceTo(start)).IsGreater(1f);
+		AssertBool(navigation.HasArrived).IsTrue();
+
+		// Anywhere outside its room is out of bounds.
+		var outside = level.Floor.Rooms.First(room => room.Id != home && room.Tiles.Count > 0);
+		AssertBool(navigation.MoveTo(level.Floor.Map.TileToWorld(outside.Tiles[0]))).IsFalse();
 	}
 
 	[TestCase]
@@ -352,6 +359,8 @@ public class WardenTest
 		boss.MovementComponent.SetLookAtDirection(Vector3.Right);
 		AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
 	}
+
+	private static int HomeRoom(Level level, EnemyBase boss) => level.Floor.RoomIdAt(level.Floor.Map.WorldToTile(boss.GlobalPosition));
 
 	private static EnemyBase Boss(Level level) => level.FindChildren("*", "", true, false)
 		.OfType<EnemyBase>().Single(e => e.GetMeta("persistent_id", "").AsString() == "depth:3:gatekeeper");

@@ -24,7 +24,7 @@ The scene instances the production level and lists its generator's realms; it ke
 - **Single room:** select a recipe and seed, rotate in quarter-turns and toggle furnishings. Room types expose every axis as an override — Shape, Walls, Floor and Columns (type chance, off, or a specific pattern) — and run the production `RoomAssembler` with them. The **Walkability overlay** colours standable floor: green is reachable from the doorways, blue is reserved circulation or a stair landing, red is an inaccessible pocket. Overrides never change production Resources.
 - **Generated floor:** uses the production packing, corridor, wall and furnishing pipeline with the same factory. Recipe selection and room rotation are disabled in this view.
 - **Controls:** R advances the seed, A toggles furnishings, W toggles the walkability overlay, F switches views, 1–9 and 0 select the first ten room types, Q/E rotates a room. The panel also accepts a manual seed and can rebuild without advancing it.
-- Generation errors appear in the status panel and Godot output. These static previews do not exercise player movement or navmesh baking—use gameplay for those checks.
+- Generation errors appear in the status panel and Godot output. These static previews do not exercise player or monster movement—use gameplay for those checks.
 
 [Level folder guide](../levels/README.md) identifies where to change generator code, room presets and furnishing assets. Regenerate after editing a preset; the shared Resource remains the authored definition.
 

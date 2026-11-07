@@ -165,9 +165,9 @@ public partial class DiscoveryAndAccessBalanceTest
 		for (ulong seed = 1; seed <= 4; seed++)
 		{
 			map.Seed = seed; map.GenerateMap();
-			var doors = map.NavigationRegion.FindChildren("*", "", true, false).OfType<Door>().Where(d => !d.IsQueuedForDeletion());
+			var doors = map.FloorContent.FindChildren("*", "", true, false).OfType<Door>().Where(d => !d.IsQueuedForDeletion());
 			AssertInt(doors.Count(d => d.Lock?.IsLocked == true)).IsLessEqual(map.AccessProfile.MaximumLockedDoors);
-			AssertBool(map.NavigationRegion.GetChildren().OfType<LootableItem>().All(i => i.Item is not LockpickItem)).IsTrue();
+			AssertBool(map.FloorContent.GetChildren().OfType<LootableItem>().All(i => i.Item is not LockpickItem)).IsTrue();
 			await runner.SimulateFrames(1);
 		}
 	}

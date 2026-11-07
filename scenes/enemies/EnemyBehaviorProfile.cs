@@ -45,6 +45,12 @@ public partial class EnemyBehaviorProfile : Resource
 	[Export] public float CloseDetectionRangeMultiplier { get; set; } = 0.5f;
 
 	/// <summary>
+	/// Keep the monster in the room it spawns in: it walks anywhere inside, but holds at the room's edge rather than
+	/// follow a target out. Bosses guarding an arena use it; turning it off lets them roam like any other monster.
+	/// </summary>
+	[Export] public bool StayInHomeRoom { get; set; }
+
+	/// <summary>
 	/// Maximum distance from its spawn point that the enemy can pick roam destinations.
 	/// </summary>
 	[Export] public float RoamRadius { get; set; } = 8.0f;
@@ -65,7 +71,7 @@ public partial class EnemyBehaviorProfile : Resource
 	[Export] public float RoamTargetDistance { get; set; } = 0.75f;
 
 	/// <summary>
-	/// Number of random navmesh points to try before pausing and retrying later.
+	/// Number of random roam points to try before pausing and retrying later.
 	/// </summary>
 	[Export] public int RoamTargetAttempts { get; set; } = 8;
 

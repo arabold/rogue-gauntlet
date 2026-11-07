@@ -65,7 +65,7 @@ public class FountainTest
 		{
 			map.Seed = seed;
 			map.GenerateMap(includeGameplay: true);
-			var fountains = map.NavigationRegion.GetChildren().OfType<Fountain>().ToList();
+			var fountains = map.FloorContent.GetChildren().OfType<Fountain>().ToList();
 			var ids = fountains.Select(f => f.GetMeta("persistent_id", "").AsString()).OrderBy(id => id).ToArray();
 			// A cramped layout can leave no room tile for any solid prop (chests included); it then places none.
 			if (ids.SequenceEqual(["depth:5:fountain:health", "depth:5:fountain:mana"])) complete++;
@@ -74,7 +74,7 @@ public class FountainTest
 			{
 				var tile = map.Map.WorldToTile(fountain.GlobalPosition);
 				if (!map.Map.IsRoom(tile.X, tile.Y)) failures.Add($"seed {seed}: {fountain.Name} outside a room");
-				if (fountains.Concat<Node3D>(map.NavigationRegion.GetChildren().OfType<Chest>()).Any(other => other != fountain
+				if (fountains.Concat<Node3D>(map.FloorContent.GetChildren().OfType<Chest>()).Any(other => other != fountain
 					&& other.GlobalPosition.HorizontalDistanceTo(fountain.GlobalPosition) < MapGenerator.LootSpawnSpacing))
 					failures.Add($"seed {seed}: {fountain.Name} crowds another prop");
 			}
@@ -85,7 +85,7 @@ public class FountainTest
 		map.RunSeed = 1;
 		map.DungeonDepth = 1;
 		map.GenerateMap(includeGameplay: true);
-		AssertBool(map.NavigationRegion.GetChildren().OfType<Fountain>().Any()).OverrideFailureMessage("depth 1 holds no fountains").IsFalse();
+		AssertBool(map.FloorContent.GetChildren().OfType<Fountain>().Any()).OverrideFailureMessage("depth 1 holds no fountains").IsFalse();
 		AssertArray(failures).OverrideFailureMessage(string.Join("\n", failures)).IsEmpty();
 		AssertInt(complete).IsGreaterEqual(10);
 	}

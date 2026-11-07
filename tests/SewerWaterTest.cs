@@ -193,9 +193,6 @@ public class SewerWaterTest
 			AssertBool(room.IsFloor(pit)).IsFalse();
 			AssertBool(room.IsReachable(RoomBlueprint.XZ(RoomFootprint.TileCenter(pit)))).IsFalse();
 		}
-		var obstacles = room.Room.GetNode("PitNavigation").GetChildren().OfType<NavigationObstacle3D>().ToArray();
-		AssertInt(obstacles.Length).IsEqual(room.Pits.Count);
-		AssertBool(obstacles.All(obstacle => obstacle.AffectNavigationMesh && !obstacle.AvoidanceEnabled)).IsTrue();
 		var floor = room.Room.FloorGridMap;
 		AssertBool(floor.GetUsedCells().Any(cell => floor.MeshLibrary.GetItemName(floor.GetCellItem(cell)).StartsWith("floor_water_"))).IsFalse();
 	}

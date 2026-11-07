@@ -97,7 +97,7 @@ shadow_mesh = SubResource("ArrayMesh_yxqci")
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_ce1s2"]
 points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, -0.5, -2, 0, 0.5, -2, 4, -0.5, -2, 0, -0.5)
 
-[node name="Door" type="Node3D" node_paths=PackedStringArray("Lock", "Secret", "Interactive", "KeyMarker", "DoorVisual", "Leaf", "Collision", "NavigationLink") groups=["door", "prop"]]
+[node name="Door" type="Node3D" node_paths=PackedStringArray("Lock", "Secret", "Interactive", "KeyMarker", "DoorVisual", "Leaf", "Collision") groups=["door", "prop"]]
 script = ExtResource("1_rychn")
 Lock = NodePath("DoorLock")
 Secret = NodePath("SecretDoor")
@@ -106,7 +106,6 @@ KeyMarker = NodePath("KeyMarker")
 DoorVisual = NodePath("wall_doorway")
 Leaf = NodePath("wall_doorway/wall_doorway_door")
 Collision = NodePath("StaticBody3D/CollisionShape3D")
-NavigationLink = NodePath("NavigationLink3D")
 
 [node name="wall_doorway" type="MeshInstance3D" parent="."]
 layers = 16
@@ -129,11 +128,6 @@ shape = SubResource("ConvexPolygonShape3D_ce1s2")
 
 [node name="InteractiveComponent" parent="." instance=ExtResource("3_0wdxa")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
-
-[node name="NavigationLink3D" type="NavigationLink3D" parent="."]
-start_position = Vector3(0, 0.1, -1.5)
-end_position = Vector3(0, 0.1, 1.5)
-enabled = false
 
 [node name="DoorLock" type="Node" parent="."]
 script = ExtResource("lock_script")

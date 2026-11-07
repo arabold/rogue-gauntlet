@@ -55,6 +55,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Off-hand weapons](specs/off-hand-weapons-plan.md) | Two alternatives for off-hand weapons: a passive off-hand damage bonus, or animated dual-wield with an off-hand action replacing the guard input (blocked on a left-hand attack clip) |
 | [Attack status effects](specs/attack-status-effects-plan.md) | Proposed on-hit status payloads, actor-agnostic buffs for monsters and a monster status tint; first slice lets venomous monster attacks poison the player |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
+| [Monster navigation](specs/monster-navigation-plan.md) | Implemented (all slices): clearance grid with shared chase/flee flow fields replacing the navmesh for monsters. Playtest acceptance and open tuning decisions (cell size, low obstacles, body sizes, boss leash) remain |
 
 Completed plans are consolidated into current-system documents. The [roadmap](development-roadmap.md) owns priority and acceptance. Use the [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial future changes; a plan describes proposed work, not delivered behavior.
 

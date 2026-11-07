@@ -170,7 +170,8 @@ radius = 0.75
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4cr0r"]
 radius = 0.75
 
-[node name="SkeletonWarrior" instance=ExtResource("1_p3la7") node_paths=PackedStringArray("GuardComponent", "DodgeComponent", "DefenseController", "ActionGate")]
+[node name="SkeletonWarrior" instance=ExtResource("1_p3la7") node_paths=PackedStringArray("GuardComponent", "DodgeComponent", "DefenseController", "ActionGate", "BodyShape")]
+BodyShape = NodePath("CollisionShape3D")
 GuardComponent = NodePath("GuardComponent")
 DodgeComponent = NodePath("DodgeComponent")
 DefenseController = NodePath("EnemyDefenseController")

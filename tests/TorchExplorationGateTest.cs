@@ -18,7 +18,7 @@ public class TorchExplorationGateTest
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
 		await runner.SimulateFrames(2);
 		var (level, map) = TestFactories.UngeneratedLevel();
-		var region = map.GetNode<Node3D>("NavigationRegion3D");
+		var region = map.GetNode<Node3D>("FloorContent");
 		var lit = TestFactories.Torch(TestFactories.LitTorch, new Vector3(8, 2.2f, 8), Mathf.Pi / 2);
 		var unlit = TestFactories.Torch(TestFactories.UnlitTorch, new Vector3(-8, 2.2f, -8), 0);
 		region.AddChild(lit);
