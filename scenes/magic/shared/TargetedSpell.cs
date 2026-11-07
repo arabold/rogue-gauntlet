@@ -17,7 +17,7 @@ public partial class TargetedSpell : Node, ICombatSpell
 	private double _clock;
 	private ulong _sequence;
 	private sealed record PendingHit(Node3D Caster, Node3D Target, Vector3 Origin, Vector3 Position,
-		World3D World, float Radius, AttackStats Damage, RandomNumberGenerator Random, AttackIdentity Identity, double Due);
+		World3D World, float Radius, AttackStats Damage, RandomNumberGenerator Random, AttackIdentity Identity, double Due, bool IsAreaImpact = false);
 
 	public override void _Ready() => SetPhysicsProcess(false);
 	public override void _PhysicsProcess(double delta)
@@ -26,16 +26,63 @@ public partial class TargetedSpell : Node, ICombatSpell
 		while (_pending.Count > 0 && _pending[0].Due <= _clock)
 		{
 			var hit = _pending[0]; _pending.RemoveAt(0);
-			if (!IsInstanceValid(hit.Caster) || !hit.Caster.IsInsideTree() || !AreaSpellTargets.IsVisible(hit.Target, hit.World, hit.Origin)
-				|| hit.Target.GlobalPosition.DistanceTo(hit.Position) > hit.Radius) continue;
-			Vector3 direction = hit.Position - hit.Origin; direction.Y = 0;
-			var (amount, critical) = hit.Damage.Roll(hit.Random);
-			var contact = new DamageContext { ExecutionId = hit.Identity, SourceNode = this, OwnerNode = hit.Caster,
-				Faction = HurtBoxComponent.GetDamageSource(hit.Caster), Amount = amount, Critical = critical, Random = hit.Random,
-				IncomingDirection = direction.Normalized(), DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable,
-				DeliveryKind = Definition.Delivery is TargetDeliveryKind.Rockfall or TargetDeliveryKind.Meteor ? DamageDeliveryKind.AreaImpact : DamageDeliveryKind.Projectile,
-				Element = Definition.Element };
-			((ICombatDamageable)hit.Target).ResolveDamage(in contact);
+			if (!IsInstanceValid(hit.Caster) || !hit.Caster.IsInsideTree()) continue;
+
+			if (hit.IsAreaImpact)
+			{
+				var targets = AreaSpellTargets.Capture(this, hit.Caster, hit.Position, hit.Radius, hit.World);
+				if (targets != null)
+				{
+					foreach (var target in targets)
+					{
+						if (!AreaSpellTargets.IsVisible(target, hit.World, hit.Position)) continue;
+						Vector3 direction = target.GlobalPosition - hit.Position; direction.Y = 0;
+						if (direction.LengthSquared() < .0001f) direction = hit.Position - hit.Origin;
+						direction.Y = 0;
+						if (direction.LengthSquared() < .0001f) direction = Vector3.Forward;
+
+						var (amount, critical) = hit.Damage.Roll(hit.Random);
+						var contact = new DamageContext
+						{
+							ExecutionId = hit.Identity,
+							SourceNode = this,
+							OwnerNode = hit.Caster,
+							Faction = HurtBoxComponent.GetDamageSource(hit.Caster),
+							Amount = amount,
+							Critical = critical,
+							Random = hit.Random,
+							IncomingDirection = direction.Normalized(),
+							DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable,
+							DeliveryKind = DamageDeliveryKind.AreaImpact,
+							Element = Definition.Element
+						};
+						((ICombatDamageable)target).ResolveDamage(in contact);
+					}
+				}
+			}
+			else
+			{
+				if (hit.Target == null || !IsInstanceValid(hit.Target) || !AreaSpellTargets.IsVisible(hit.Target, hit.World, hit.Origin)
+					|| hit.Target.GlobalPosition.DistanceTo(hit.Position) > hit.Radius) continue;
+
+				Vector3 direction = hit.Position - hit.Origin; direction.Y = 0;
+				var (amount, critical) = hit.Damage.Roll(hit.Random);
+				var contact = new DamageContext
+				{
+					ExecutionId = hit.Identity,
+					SourceNode = this,
+					OwnerNode = hit.Caster,
+					Faction = HurtBoxComponent.GetDamageSource(hit.Caster),
+					Amount = amount,
+					Critical = critical,
+					Random = hit.Random,
+					IncomingDirection = direction.Normalized(),
+					DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable,
+					DeliveryKind = DamageDeliveryKind.Projectile,
+					Element = Definition.Element
+				};
+				((ICombatDamageable)hit.Target).ResolveDamage(in contact);
+			}
 		}
 		if (_pending.Count == 0) SetPhysicsProcess(false);
 	}
@@ -59,35 +106,82 @@ public partial class TargetedSpell : Node, ICombatSpell
 		if (!valid) return false;
 		int count = Definition.TargetsByLevel[level - 1];
 		AttackStats hit = power.Hit.Scaled(Definition.DamageScaleByLevel[level - 1]);
-		bool shower = Definition.Delivery is TargetDeliveryKind.Rockfall or TargetDeliveryKind.Meteor;
-		var candidates = cast.Targets.Where(target => target is not IShieldOwner { ShieldHurtBox.HealthComponent.IsDead: true }
-			&& AreaSpellTargets.IsVisible(target, cast.World, cast.Origin)).ToList();
-		for (int i = candidates.Count - 1; i > 0; i--)
+		bool shower = Definition.IsAreaTargeting;
+		List<Node3D> candidates = Definition.Targeting == SpellTargetingKind.Forward
+			? AreaSpellTargets.FilterForward(cast.Targets, cast.Origin, cast.Facing, Definition.AimingAngle, cast.World).ToList()
+			: cast.Targets.Where(target => target is not IShieldOwner { ShieldHurtBox.HealthComponent.IsDead: true }
+				&& AreaSpellTargets.IsVisible(target, cast.World, cast.Origin)).ToList();
+
+		if (Definition.Targeting == SpellTargetingKind.Area)
 		{
-			int j = random.RandiRange(0, i); (candidates[i], candidates[j]) = (candidates[j], candidates[i]);
+			for (int i = candidates.Count - 1; i > 0; i--)
+			{
+				int j = random.RandiRange(0, i); (candidates[i], candidates[j]) = (candidates[j], candidates[i]);
+			}
 		}
+
 		var group = new SpellEffectGroup(); VisualRoot.AddChild(group); _cast.Track(group);
 		var cosmetic = new RandomNumberGenerator { Seed = GetInstanceId() ^ ++_sequence * 7919UL };
 		AreaVisibility visibility = AreaVisibility.Capture(cast.World, cast.Origin, Definition.Radius);
 		Vector3 previous = cast.Origin + Vector3.Up;
 		Node3D previousTarget = null;
-		// Shots beyond the available targets cycle back to them, so one enemy can take every shot; without any target,
-		// every shot flies straight ahead.
-		Vector3 ahead = candidates.Count == 0 ? ForwardPosition(cast) : default;
+		int candidateCount = candidates.Count;
+
 		for (int i = 0; i < count; i++)
 		{
-			Node3D target = candidates.Count > 0 ? candidates[i % candidates.Count] : null;
-			Vector3 position = target?.GlobalPosition ?? ahead;
-			// A chain jumps on from its last target, or leaves the caster again when it would jump to that same one.
-			bool jump = Definition.Delivery == TargetDeliveryKind.Chain && i > 0 && !ReferenceEquals(target, previousTarget);
-			Vector3 start = jump ? previous : cast.Origin + Vector3.Up;
-			Vector3 end = position + Vector3.Up;
-			if (jump && !WorldSight.IsClear(cast.World, start, end)) continue;
+			Node3D target = null;
+			if (candidateCount > 0)
+			{
+				if (Definition.CanTargetSameEnemy)
+					target = candidates[i % candidateCount];
+				else if (i < candidateCount)
+					target = candidates[i];
+			}
+
+			Vector3 position;
+			Vector3 start;
+			Vector3 end;
+
+			if (target != null)
+			{
+				position = target.GlobalPosition;
+				bool jump = Definition.Delivery == TargetDeliveryKind.Chain && i > 0 && !ReferenceEquals(target, previousTarget);
+				start = jump ? previous : cast.Origin + Vector3.Up;
+				end = position + Vector3.Up;
+				if (jump && !WorldSight.IsClear(cast.World, start, end)) continue;
+			}
+			else
+			{
+				start = cast.Origin + Vector3.Up;
+				if (Definition.Targeting == SpellTargetingKind.Forward)
+				{
+					Vector3 direction;
+					if (i == 0 && candidateCount == 0)
+					{
+						direction = cast.Facing;
+					}
+					else
+					{
+						float halfSpread = Definition.SpreadAngle * 0.5f;
+						float angleOffset = random.RandfRange(-halfSpread, halfSpread);
+						direction = cast.Facing.Rotated(Vector3.Up, Mathf.DegToRad(angleOffset)).Normalized();
+					}
+					float reach = WorldSight.ClearDistance(cast.World, start, direction, Definition.Radius);
+					end = start + direction * Mathf.Max(reach - 0.5f, 1f);
+					position = end - Vector3.Up;
+				}
+				else
+				{
+					position = CosmeticPosition(cast, cosmetic);
+					end = position + Vector3.Up;
+				}
+			}
+
 			double delay = Spawn(group, VisualScene, level, start, end, i, visibility, target, caster, hit, random);
 			previous = end; previousTarget = target;
-			if (target != null && Definition.Delivery != TargetDeliveryKind.Fireball)
+			if (Definition.IsAreaTargeting || (target != null && Definition.Delivery != TargetDeliveryKind.Fireball))
 				_pending.Add(new PendingHit(caster, target, cast.Origin, position, cast.World, Definition.HitRadius,
-					hit, random, new AttackIdentity(caster.GetInstanceId(), ++_sequence), _clock + delay));
+					hit, random, new AttackIdentity(caster.GetInstanceId(), ++_sequence), _clock + delay, IsAreaImpact: Definition.IsAreaTargeting));
 		}
 		if (shower && DebrisScene != null)
 			for (int i = 0; i < level * 2 + 2; i++)

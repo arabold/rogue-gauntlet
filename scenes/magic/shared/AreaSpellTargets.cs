@@ -6,6 +6,10 @@ using System.Linq;
 /// <summary>Deterministic hostile actor capture shared by release-time area spells.</summary>
 public static class AreaSpellTargets
 {
+	public const float MissileRange = 16.0f;
+	public const float MissileAimingAngle = 55.0f;
+	public const float MissileSpreadAngle = 60.0f;
+
 	/// <summary>Hostile actors within <paramref name="radius"/> of <paramref name="origin"/>, in node-path order, skipping <paramref name="exclude"/>.</summary>
 	public static Node3D[] Capture(Node owner, Node3D caster, Vector3 origin, float radius, World3D world, HashSet<Node3D> exclude = null)
 	{
@@ -16,6 +20,33 @@ public static class AreaSpellTargets
 			.Where(target => target != caster && exclude?.Contains(target) != true && target is ICombatDamageable && target.IsInsideTree()
 				&& target.GetWorld3D() == world && target.GlobalPosition.DistanceTo(origin) <= radius)
 			.Distinct().OrderBy(target => target.GetPath().ToString(), StringComparer.Ordinal).ToArray();
+	}
+
+	/// <summary>
+	/// Filters and sorts candidate targets within <paramref name="aimingAngle"/> degrees of <paramref name="facing"/>,
+	/// ordered by horizontal angle from facing (closest to center line first), then horizontal distance.
+	/// </summary>
+	public static Node3D[] FilterForward(IEnumerable<Node3D> candidates, Vector3 origin, Vector3 facing, float aimingAngle, World3D world)
+	{
+		return candidates
+			.Where(target => target is not IShieldOwner { ShieldHurtBox.HealthComponent.IsDead: true }
+				&& facing.HorizontalAngleTo(target.GlobalPosition - origin) <= aimingAngle
+				&& IsVisible(target, world, origin))
+			.Distinct()
+			.OrderBy(target => facing.HorizontalAngleTo(target.GlobalPosition - origin))
+			.ThenBy(target => origin.HorizontalDistanceTo(target.GlobalPosition))
+			.ToArray();
+	}
+
+	/// <summary>
+	/// Captures hostile actors in front of the caster within <paramref name="range"/> and <paramref name="aimingAngle"/>,
+	/// ordered by horizontal angle from facing, then horizontal distance.
+	/// </summary>
+	public static Node3D[] CaptureForward(Node owner, Node3D caster, Vector3 origin, Vector3 facing,
+		float range, float aimingAngle, World3D world, HashSet<Node3D> exclude = null)
+	{
+		var all = Capture(owner, caster, origin, range, world, exclude);
+		return all == null ? null : FilterForward(all, origin, facing, aimingAngle, world);
 	}
 
 	public static bool IsVisible(Node3D target, World3D world, Vector3 origin) =>
