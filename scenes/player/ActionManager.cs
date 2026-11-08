@@ -43,6 +43,8 @@ public partial class ActionManager : Node
 	private IPlayerAction _currentAction;
 	private ActionSlot _currentSlot;
 	private readonly System.Collections.Generic.Dictionary<string, (double Remaining, double Total)> _wandCooldowns = new();
+	private readonly List<string> _activeWandKeys = [];
+	private readonly List<string> _expiredWandKeys = [];
 
 	public bool IsWandOnCooldown(string instanceId) =>
 		!string.IsNullOrEmpty(instanceId) && _wandCooldowns.TryGetValue(instanceId, out var cd) && cd.Remaining > 0;
@@ -96,25 +98,26 @@ public partial class ActionManager : Node
 			return;
 		}
 
-		System.Collections.Generic.List<string> expired = null;
-		var keys = new System.Collections.Generic.List<string>(_wandCooldowns.Keys);
-		foreach (string key in keys)
+		_activeWandKeys.Clear();
+		foreach (string key in _wandCooldowns.Keys) _activeWandKeys.Add(key);
+		_expiredWandKeys.Clear();
+		for (int i = 0; i < _activeWandKeys.Count; i++)
 		{
+			string key = _activeWandKeys[i];
 			var (remaining, total) = _wandCooldowns[key];
 			remaining -= delta;
 			if (remaining <= 0)
 			{
-				expired ??= [];
-				expired.Add(key);
+				_expiredWandKeys.Add(key);
 			}
 			else
 			{
 				_wandCooldowns[key] = (remaining, total);
 			}
 		}
-		if (expired != null)
+		for (int i = 0; i < _expiredWandKeys.Count; i++)
 		{
-			foreach (string key in expired) _wandCooldowns.Remove(key);
+			_wandCooldowns.Remove(_expiredWandKeys[i]);
 		}
 		if (_wandCooldowns.Count == 0)
 		{
@@ -152,13 +155,15 @@ public partial class ActionManager : Node
 
 		// Wire dedicated offhand action slot
 		OffhandActionSlot ??= GetNodeOrNull<ActionSlot>("OffhandActionSlot");
-		if (OffhandActionSlot != null)
+		if (OffhandActionSlot == null)
 		{
-			OffhandActionSlot.ActionKind = ActorActionKind.SecondaryTechnique;
-			OffhandActionSlot.SlotIndex = OffhandSlotIndex;
-			OffhandActionSlot.PerformAction += () => OnActionPerformed(OffhandActionSlot);
-			OffhandActionSlot.ActionPerformed += () => OnActionCompleted(OffhandActionSlot);
+			OffhandActionSlot = new ActionSlot { Name = "OffhandActionSlot", ActionKind = ActorActionKind.SecondaryTechnique };
+			AddChild(OffhandActionSlot);
 		}
+		OffhandActionSlot.ActionKind = ActorActionKind.SecondaryTechnique;
+		OffhandActionSlot.SlotIndex = OffhandSlotIndex;
+		OffhandActionSlot.PerformAction += () => OnActionPerformed(OffhandActionSlot);
+		OffhandActionSlot.ActionPerformed += () => OnActionCompleted(OffhandActionSlot);
 
 		// Default primary fallback is unarmed
 		AssignPrimary(UnarmedAttackAction.Instance, null);
@@ -237,25 +242,21 @@ public partial class ActionManager : Node
 		SignalBus.EmitPlayerActionSlotChanged(PrimarySlotIndex, PrimaryAttackSlot);
 	}
 
-	public void AssignSecondary(ICombatAttackAction action, PackedScene previewScene)
+	private void AssignCombatSlot(ActionSlot slot, int slotIndex, ICombatAttackAction action, PackedScene previewScene)
 	{
-		SecondaryTechniqueSlot?.AssignAction(SecondarySlotIndex, action as IPlayerAction, previewScene);
+		slot?.AssignAction(slotIndex, action as IPlayerAction, previewScene);
 		if (action is SpellCastAction spellCast && TryGetWandCooldown(spellCast.Focus?.InstanceId, out var cd))
 		{
-			SecondaryTechniqueSlot?.ResumeCooldown(cd.Remaining, cd.Total);
+			slot?.ResumeCooldown(cd.Remaining, cd.Total);
 		}
-		SignalBus.EmitPlayerActionSlotChanged(SecondarySlotIndex, SecondaryTechniqueSlot);
+		SignalBus.EmitPlayerActionSlotChanged(slotIndex, slot);
 	}
 
-	public void AssignOffhand(ICombatAttackAction action, PackedScene previewScene)
-	{
-		OffhandActionSlot?.AssignAction(OffhandSlotIndex, action as IPlayerAction, previewScene);
-		if (action is SpellCastAction spellCast && TryGetWandCooldown(spellCast.Focus?.InstanceId, out var cd))
-		{
-			OffhandActionSlot?.ResumeCooldown(cd.Remaining, cd.Total);
-		}
-		SignalBus.EmitPlayerActionSlotChanged(OffhandSlotIndex, OffhandActionSlot);
-	}
+	public void AssignSecondary(ICombatAttackAction action, PackedScene previewScene) =>
+		AssignCombatSlot(SecondaryTechniqueSlot, SecondarySlotIndex, action, previewScene);
+
+	public void AssignOffhand(ICombatAttackAction action, PackedScene previewScene) =>
+		AssignCombatSlot(OffhandActionSlot, OffhandSlotIndex, action, previewScene);
 
 	public bool TryPerformPrimary()
 	{
@@ -270,17 +271,15 @@ public partial class ActionManager : Node
 		return PrimaryAttackSlot?.TryPerformAction(_player, chain: true) == true;
 	}
 
-	public bool TryPerformSecondary()
+	private bool TryPerformCombatSlot(ActionSlot slot)
 	{
-		if (_player == null || _player.IsDead || _player.IsHit || SecondaryTechniqueSlot?.AssignedAction == null) return false;
-		return SecondaryTechniqueSlot.TryPerformAction(_player);
+		if (_player == null || _player.IsDead || _player.IsHit || slot?.AssignedAction == null) return false;
+		return slot.TryPerformAction(_player);
 	}
 
-	public bool TryPerformOffhand()
-	{
-		if (_player == null || _player.IsDead || _player.IsHit || OffhandActionSlot?.AssignedAction == null) return false;
-		return OffhandActionSlot.TryPerformAction(_player);
-	}
+	public bool TryPerformSecondary() => TryPerformCombatSlot(SecondaryTechniqueSlot);
+
+	public bool TryPerformOffhand() => TryPerformCombatSlot(OffhandActionSlot);
 
 	public void ClearActions()
 	{

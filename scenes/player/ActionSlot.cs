@@ -53,21 +53,6 @@ public partial class ActionSlot : Node
 
 	public void CancelExecution(ActionInterruptReason reason)
 	{
-		if (reason == ActionInterruptReason.NewAction && AssignedAction is SpellCastAction && RemainingTime > 0)
-		{
-			bool wasPerformingHandoff = IsPerformingAction;
-			_generation++;
-			if (_actor != null && _actor.AttackController.IsAttacking)
-			{
-				_actor.AttackController.CancelAttack();
-			}
-			ReleaseGateLease();
-			IsPerformingAction = false;
-			IsOnCooldown = true;
-			SetProcess(true);
-			if (wasPerformingHandoff) EmitSignalActionPerformed();
-			return;
-		}
 		bool wasPerforming = IsPerformingAction;
 		_generation++;
 		if (_actor != null && _actor.AttackController.IsAttacking)
@@ -75,7 +60,18 @@ public partial class ActionSlot : Node
 			_actor.AttackController.CancelAttack();
 		}
 		ReleaseGateLease();
-		Reset();
+
+		if (reason == ActionInterruptReason.NewAction && AssignedAction is SpellCastAction && RemainingTime > 0)
+		{
+			IsPerformingAction = false;
+			IsOnCooldown = true;
+			SetProcess(true);
+		}
+		else
+		{
+			Reset();
+		}
+
 		if (wasPerforming) EmitSignalActionPerformed();
 	}
 
@@ -138,7 +134,7 @@ public partial class ActionSlot : Node
 			player.ActionManager?.TrackWandCooldown(spellAction.Focus?.InstanceId, TotalDuration, TotalDuration);
 		}
 		SetProcess(true);
-		SetPhysicsProcess(true);
+		if (delay > 0) SetPhysicsProcess(true);
 		SignalBus.EmitCooldownUpdated(SlotIndex, (float)RemainingTime, (float)TotalDuration);
 
 		if (delay > 0)
@@ -148,6 +144,7 @@ public partial class ActionSlot : Node
 			if (!IsCurrent(generation)) return;
 		}
 		IsDelayed = false;
+		SetPhysicsProcess(false);
 		if (player.IsDead || player.IsHit || (weapon != null && !IsEquipped(player, weapon)))
 		{
 			ReleaseGateLease();
@@ -212,7 +209,8 @@ public partial class ActionSlot : Node
 		_activeLease = ActorActionLease.None;
 	}
 
-	private static bool IsEquipped(Player player, Weapon weapon) => ReferenceEquals(player?.Inventory?.EquippedWeapon, weapon);
+	private static bool IsEquipped(Player player, Weapon weapon) =>
+		ReferenceEquals(player?.Inventory?.EquippedWeapon, weapon) || ReferenceEquals(player?.Inventory?.EquippedOffhandWeapon, weapon);
 
 	private bool IsCurrent(ulong generation) => GodotObject.IsInstanceValid(this) && IsInsideTree() && generation == _generation;
 

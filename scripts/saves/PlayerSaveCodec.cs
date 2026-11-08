@@ -18,18 +18,15 @@ public static class PlayerSaveCodec
 		float wardCapacity = 0f;
 		if (player.Inventory != null && player.SpellCaster != null)
 		{
-			MagicStaff[] equippedStaves = [
-				player.Inventory.EquippedWeapon as MagicStaff,
-				player.Inventory.EquippedOffhandWeapon as MagicStaff
-			];
-			foreach (var staff in equippedStaves)
+			if (player.Inventory.EquippedWeapon is MagicStaff main && player.SpellCaster.TryGetSpell(main, out var sm) && sm is MagicGuardSpell { RemainingCapacity: > 0 } wm)
 			{
-				if (staff != null && player.SpellCaster.TryGetSpell(staff, out var s) && s is MagicGuardSpell { RemainingCapacity: > 0 } ward)
-				{
-					wardSourceId = staff.InstanceId;
-					wardCapacity = ward.RemainingCapacity;
-					break;
-				}
+				wardSourceId = main.InstanceId;
+				wardCapacity = wm.RemainingCapacity;
+			}
+			else if (player.Inventory.EquippedOffhandWeapon is MagicStaff off && player.SpellCaster.TryGetSpell(off, out var so) && so is MagicGuardSpell { RemainingCapacity: > 0 } wo)
+			{
+				wardSourceId = off.InstanceId;
+				wardCapacity = wo.RemainingCapacity;
 			}
 		}
 
@@ -74,9 +71,7 @@ public static class PlayerSaveCodec
 		// After equipping, so the ward rises on the spell node its weapon just bound.
 		if (data.WardCapacity > 0)
 		{
-			MagicStaff sourceStaff = (player.Inventory?.EquippedWeapon as MagicStaff is { } sw && sw.InstanceId == data.WardSourceItemInstanceId) ? sw
-				: (player.Inventory?.EquippedOffhandWeapon as MagicStaff is { } so && so.InstanceId == data.WardSourceItemInstanceId) ? so
-				: null;
+			MagicStaff sourceStaff = FindEquippedStaff(player.Inventory, data.WardSourceItemInstanceId);
 			if (sourceStaff != null && player.SpellCaster != null && player.SpellCaster.TryGetSpell(sourceStaff, out var s) && s is MagicGuardSpell ward)
 			{
 				ward.Restore(player, sourceStaff.SpellLevel, data.WardCapacity);
@@ -95,6 +90,13 @@ public static class PlayerSaveCodec
 	}
 
 	/// <summary>A saved ward needs a finite capacity and an equipped spell weapon to rise on again.</summary>
+	private static MagicStaff FindEquippedStaff(Inventory inventory, string instanceId = null)
+	{
+		if (inventory?.EquippedWeapon is MagicStaff main && (instanceId == null || main.InstanceId == instanceId)) return main;
+		if (inventory?.EquippedOffhandWeapon is MagicStaff off && (instanceId == null || off.InstanceId == instanceId)) return off;
+		return null;
+	}
+
 	private static void ValidateWard(PlayerSaveData data, Inventory restored)
 	{
 		if (data.WardCapacity == 0) return;

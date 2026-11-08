@@ -26,6 +26,7 @@ public partial class HandActionPanel : PanelContainer
 	[Export] public ProgressBar SecondActionCooldownBar { get; set; }
 	[Export] public Label ManaCostLabel { get; set; }
 	[Export] public Color ManaCostColor { get; set; } = new("8fb8ff");
+	private static readonly Color DimmedColor = new(0.4f, 0.4f, 0.4f, 0.6f);
 
 	private Player _player;
 	private Action _unsubscribePlayer = () => { };
@@ -196,7 +197,7 @@ public partial class HandActionPanel : PanelContainer
 	{
 		if (ViewportContainer != null)
 		{
-			ViewportContainer.Modulate = (_player != null && _player.IsDead) ? new Color(0.4f, 0.4f, 0.4f, 0.6f) : Colors.White;
+			ViewportContainer.Modulate = (_player != null && _player.IsDead) ? DimmedColor : Colors.White;
 		}
 
 		if (FirstActionKey != null)
@@ -214,11 +215,7 @@ public partial class HandActionPanel : PanelContainer
 			SecondActionKey.IsDisabled = secondaryAction == null || !canAfford || _secondaryOnCooldown || (_player != null && _player.IsDead);
 		}
 
-		if (ManaCostLabel != null)
-		{
-			ManaCostLabel.Text = manaCost > 0 ? manaCost.ToString("0") : "";
-			ManaCostLabel.SelfModulate = canAfford ? ManaCostColor : new Color(0.4f, 0.4f, 0.4f, 0.6f);
-		}
+		UpdateManaCostDisplay(secondaryAction);
 	}
 
 	private void RefreshOffHand(Item displayedItem)
@@ -253,7 +250,7 @@ public partial class HandActionPanel : PanelContainer
 
 		if (ViewportContainer != null)
 		{
-			ViewportContainer.Modulate = panelDimmed ? new Color(0.4f, 0.4f, 0.4f, 0.6f) : Colors.White;
+			ViewportContainer.Modulate = panelDimmed ? DimmedColor : Colors.White;
 		}
 
 		if (FirstActionKey != null)
@@ -261,10 +258,15 @@ public partial class HandActionPanel : PanelContainer
 			FirstActionKey.IsDisabled = !actionAvailable;
 		}
 
-		if (ManaCostLabel != null)
-		{
-			ManaCostLabel.Text = manaCost > 0 ? manaCost.ToString("0") : "";
-			ManaCostLabel.SelfModulate = canAfford ? ManaCostColor : new Color(0.4f, 0.4f, 0.4f, 0.6f);
-		}
+		UpdateManaCostDisplay(offhandAction);
+	}
+
+	private void UpdateManaCostDisplay(IPlayerAction action)
+	{
+		if (ManaCostLabel == null) return;
+		float manaCost = (action as SpellCastAction)?.ManaCost ?? 0;
+		bool canAfford = _player?.ManaComponent?.CanSpend(manaCost) ?? (manaCost == 0);
+		ManaCostLabel.Text = manaCost > 0 ? manaCost.ToString("0") : "";
+		ManaCostLabel.SelfModulate = canAfford ? ManaCostColor : DimmedColor;
 	}
 }

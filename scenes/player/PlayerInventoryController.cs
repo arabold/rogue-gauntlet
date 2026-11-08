@@ -68,10 +68,8 @@ public partial class PlayerInventoryController : Node
 		GuardDefinition effectiveGuard = null;
 		if (Inventory?.EquippedItems != null)
 		{
-			Inventory.EquippedItems.TryGetValue(EquipmentSlot.ShieldHand, out var shieldSlot);
-
 			Weapon weapon = Inventory.EquippedWeapon;
-			EquipableItem offhandItem = shieldSlot?.Item as EquipableItem;
+			EquipableItem offhandItem = Inventory.EquippedItems[EquipmentSlot.ShieldHand]?.Item as EquipableItem;
 
 			if (offhandItem is MagicStaff wand)
 			{
@@ -83,60 +81,29 @@ public partial class PlayerInventoryController : Node
 			ActionManager?.AssignOffhand(null, null);
 
 			bool isTwoHanded = weapon != null && weapon.IsTwoHanded;
-
 			if (isTwoHanded)
 			{
-				if (weapon is MagicStaff)
-				{
-					// Two-handed staff has no L action/guard
-					Player.GuardComponent.ApplyGuardDefinition(null);
-					return;
-				}
-				if (weapon.Guard != null)
-				{
-					effectiveGuard = weapon.Guard;
-				}
-				else if (weapon is not RangedWeapon)
-				{
-					effectiveGuard = Player?.Capabilities?.InnateGuard;
-				}
-				else
-				{
-					Player.GuardComponent.ApplyGuardDefinition(null);
-					return;
-				}
+				effectiveGuard = (weapon is not MagicStaff and not RangedWeapon)
+					? (weapon.Guard ?? Player?.Capabilities?.InnateGuard)
+					: null;
 			}
 			else if (offhandItem is Weapon)
 			{
-				// Paired melee off-hand weapon removes guard
-				Player.GuardComponent.ApplyGuardDefinition(null);
-				return;
+				effectiveGuard = null;
 			}
-			else if (offhandItem?.Guard != null)
+			else
 			{
-				effectiveGuard = offhandItem.Guard;
-			}
-			else if (weapon?.Guard != null)
-			{
-				effectiveGuard = weapon.Guard;
-			}
-			else if (weapon != null && weapon is not RangedWeapon)
-			{
-				effectiveGuard = Player?.Capabilities?.InnateGuard;
-			}
-			else if (weapon is RangedWeapon && offhandItem == null)
-			{
-				// Ranged weapons without a shield cannot guard/parry
-				Player.GuardComponent.ApplyGuardDefinition(null);
-				return;
+				effectiveGuard = offhandItem?.Guard
+					?? weapon?.Guard
+					?? (weapon is not RangedWeapon ? Player?.Capabilities?.InnateGuard : null);
 			}
 		}
 		else
 		{
 			ActionManager?.AssignOffhand(null, null);
+			effectiveGuard = Player?.Capabilities?.InnateGuard;
 		}
 
-		effectiveGuard ??= Player?.Capabilities?.InnateGuard;
 		Player.GuardComponent.ApplyGuardDefinition(effectiveGuard);
 	}
 

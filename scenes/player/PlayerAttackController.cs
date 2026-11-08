@@ -47,6 +47,10 @@ public partial class PlayerAttackController : AttackController
 	public bool CanChainPrimary => IsAttacking && Phase == ActorActionPhase.Recovery && HasNextComboStep;
 	private bool HasNextComboStep => ComboStep >= 0 && _chainRemaining > 0 && ComboStep + 1 < _combo.Steps.Count;
 
+	/// <summary>True when idle or when an active spell cast has released into recovery and a different wand is casting.</summary>
+	public bool CanHandoffSpell(Weapon incomingFocus) =>
+		!IsAttacking || (Phase == ActorActionPhase.Recovery && !ReferenceEquals(incomingFocus, _activeWeapon));
+
 	public override void _Ready()
 	{
 		base._Ready();
@@ -190,7 +194,7 @@ public partial class PlayerAttackController : AttackController
 		if (Player.IsDead || Player.IsHit || attack?.Spell == null) return false;
 		if (IsAttacking)
 		{
-			if (Phase != ActorActionPhase.Recovery || ReferenceEquals(focus, _activeWeapon)) return false;
+			if (!CanHandoffSpell(focus)) return false;
 			CancelAttack();
 		}
 		_activeWeapon = focus;
@@ -205,14 +209,15 @@ public partial class PlayerAttackController : AttackController
 	{
 		if (IsAttacking)
 		{
+			var offhand = Player.Inventory?.EquippedOffhandWeapon;
 			bool mainEquipped = _activeWeapon == null
 				|| ReferenceEquals(Player.Inventory?.EquippedWeapon, _activeWeapon)
-				|| ReferenceEquals(Player.Inventory?.EquippedOffhandWeapon, _activeWeapon);
+				|| ReferenceEquals(offhand, _activeWeapon);
 			if (!mainEquipped)
 			{
 				CancelAttack();
 			}
-			else if (_activeOffhandWeapon != null && !ReferenceEquals(Player.Inventory?.EquippedOffhandWeapon, _activeOffhandWeapon))
+			else if (_activeOffhandWeapon != null && !ReferenceEquals(offhand, _activeOffhandWeapon))
 			{
 				CancelAttack();
 			}

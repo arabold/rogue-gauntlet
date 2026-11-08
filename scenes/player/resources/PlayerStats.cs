@@ -199,8 +199,9 @@ public partial class PlayerStats : ObservableResource
 	/// </summary>
 	public AttackStats ResolveAttack(Weapon weapon, Weapon offhand = null)
 	{
-		float min = ResolveStat(StatType.MinDamage, BaseMinDamage + DamageFromAttributes, weapon);
-		float max = ResolveStat(StatType.MaxDamage, BaseMaxDamage + DamageFromAttributes, weapon);
+		float attrDamage = DamageFromAttributes;
+		float min = ResolveStat(StatType.MinDamage, BaseMinDamage + attrDamage, weapon);
+		float max = ResolveStat(StatType.MaxDamage, BaseMaxDamage + attrDamage, weapon);
 		float crit = ResolveStat(StatType.CritChance, BaseCritChance + Dexterity * Coefficient(p => p.CritChancePerDexterity), weapon);
 
 		if (IsEligibleMeleePair(weapon, offhand))

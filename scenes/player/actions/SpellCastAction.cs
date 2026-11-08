@@ -40,8 +40,7 @@ public partial class SpellCastAction : RefCounted, ICombatAttackAction
 			: player.Inventory?.EquippedOffhandWeapon;
 		if (!ReferenceEquals(equipped, _focus)) return false;
 
-		if (player.SpellCaster?.IsBoundTo(_focus) != true
-			|| !player.SpellCaster.TryGetSpell(_focus, out var combatSpell)
+		if (player.SpellCaster?.TryGetSpell(_focus, out var combatSpell) != true
 			|| combatSpell.LevelCount < _focus.SpellLevel)
 		{
 			return false;
@@ -49,14 +48,7 @@ public partial class SpellCastAction : RefCounted, ICombatAttackAction
 
 		if (player.ManaComponent?.CheckCost(ManaCost) != true) return false;
 
-		if (player.AttackController.IsAttacking)
-		{
-			if (player.AttackController.Phase != ActorActionPhase.Recovery
-				|| ReferenceEquals(player.AttackController.ActiveWeapon, _focus))
-			{
-				return false;
-			}
-		}
+		if (!player.AttackController.CanHandoffSpell(_focus)) return false;
 
 		return player.AttackController.TryPrepareAttack(Spell.Cast, _focus.AttackStyle, 0, out attack);
 	}

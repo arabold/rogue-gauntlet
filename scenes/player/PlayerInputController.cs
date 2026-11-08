@@ -150,10 +150,13 @@ public partial class PlayerInputController : Node
 				_intents.TryConsume(PlayerIntent.Primary, _clock);
 
 			// Opposite wand handoff during recovery:
-			if (_intents.IsPending(PlayerIntent.Secondary, _clock) && ActionManager.TryPerformSecondary())
-				_intents.TryConsume(PlayerIntent.Secondary, _clock);
-			else if (_intents.IsPending(PlayerIntent.Offhand, _clock) && ActionManager.TryPerformOffhand())
-				_intents.TryConsume(PlayerIntent.Offhand, _clock);
+			if (Player.AttackController?.Phase == ActorActionPhase.Recovery)
+			{
+				if (_intents.IsPending(PlayerIntent.Secondary, _clock) && ActionManager.TryPerformSecondary())
+					_intents.TryConsume(PlayerIntent.Secondary, _clock);
+				else if (_intents.IsPending(PlayerIntent.Offhand, _clock) && ActionManager.TryPerformOffhand())
+					_intents.TryConsume(PlayerIntent.Offhand, _clock);
+			}
 
 			// Aim-assist: while attacking, turn toward the locked target so the player does not have to
 			// face the enemy exactly. With no target, keep facing the movement/aim input as before.
@@ -173,8 +176,7 @@ public partial class PlayerInputController : Node
 
 		// Offhand action (wand cast): one request per buffered press
 		bool started = false;
-		if (ActionManager.OffhandActionSlot?.AssignedAction != null
-			&& _intents.IsPending(PlayerIntent.Offhand, _clock))
+		if (_intents.IsPending(PlayerIntent.Offhand, _clock))
 		{
 			started = ActionManager.TryPerformOffhand();
 			if (started) _intents.TryConsume(PlayerIntent.Offhand, _clock);

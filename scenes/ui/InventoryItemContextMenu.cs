@@ -48,7 +48,7 @@ public partial class InventoryItemContextMenu : PopupPanel
 		{
 			if (_slot?.Item is EquipableItem equipable)
 			{
-				bool isHandItem = ((int)equipable.ValidSlots & (int)(EquipmentSlot.WeaponHand | EquipmentSlot.ShieldHand)) != 0;
+				bool isHandItem = (equipable.ValidSlots & (ValidSlots.WeaponHand | ValidSlots.ShieldHand)) != 0;
 				EquipmentSlot? target = isHandItem ? EquipmentSlot.WeaponHand : null;
 				ShowResult(_player?.InventoryController.TryEquip(_slot, target));
 			}
@@ -104,17 +104,16 @@ public partial class InventoryItemContextMenu : PopupPanel
 		_mergeButton.Visible = slot.Item.CanStack;
 		_mergeButton.Disabled = FindMergeTarget() == null;
 
-		bool isEquipable = slot.Item is EquipableItem;
 		bool isEquipped = inventory.IsEquipped(slot);
 
-		if (isEquipable && slot.Item is EquipableItem equipable)
+		if (slot.Item is EquipableItem equipable)
 		{
-			bool isHandItem = ((int)equipable.ValidSlots & (int)(EquipmentSlot.WeaponHand | EquipmentSlot.ShieldHand)) != 0;
+			bool isHandItem = (equipable.ValidSlots & (ValidSlots.WeaponHand | ValidSlots.ShieldHand)) != 0;
 
 			if (isHandItem)
 			{
-				bool canMainHand = ((int)equipable.ValidSlots & (int)EquipmentSlot.WeaponHand) != 0;
-				bool canOffHand = ((int)equipable.ValidSlots & (int)EquipmentSlot.ShieldHand) != 0;
+				bool canMainHand = equipable.ValidSlots.HasFlag(ValidSlots.WeaponHand);
+				bool canOffHand = equipable.ValidSlots.HasFlag(ValidSlots.ShieldHand);
 
 				bool isMainHand = inventory.EquippedItems.TryGetValue(EquipmentSlot.WeaponHand, out var mh) && mh == slot;
 				bool isOffHand = inventory.EquippedItems.TryGetValue(EquipmentSlot.ShieldHand, out var oh) && oh == slot;

@@ -51,10 +51,13 @@ public partial class SpellCaster : Node
 	/// <summary>Releases all bound spells and cancels their world effects.</summary>
 	public void Clear()
 	{
-		var foci = new List<GodotObject>(_boundSpells.Keys);
-		foreach (var focus in foci)
+		foreach (var spell in _boundSpells.Values)
 		{
-			Release(focus);
+			spell.Cancel();
+			if (spell is Node node && IsInstanceValid(node)) node.QueueFree();
 		}
+		_boundSpells.Clear();
 	}
+
+	public override void _ExitTree() => Clear();
 }
