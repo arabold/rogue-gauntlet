@@ -14,7 +14,7 @@ void vertex() {
 }
 
 void fragment() {
- if (source_is_culled(FRONT_FACING)) discard;
+ if (source_is_hidden(FRONT_FACING, VERTEX, INV_VIEW_MATRIX)) discard;
  vec2 uv = source_uv(UV);
  vec4 original = source_albedo(uv);
  if(source_is_cutout(original.a)) discard;

@@ -9,6 +9,8 @@ using Godot;
 /// door state is never copied here. Exploration reaches shaders as the <c>fog_*</c> global uniforms
 /// (<c>fog_of_war.gdshaderinc</c>), so the fog and the silhouettes drawn above it read one source. The fade clock is
 /// pushed only while a reveal is fading in. Gameplay reads exploration through <see cref="ExplorationVisibility"/>.
+/// On the same sample grid it publishes the floor's <see cref="WallMask"/> as <c>floor_wall_mask</c>
+/// (<c>wall_clip.gdshaderinc</c>): solid walls plus closed doors, so wall-clipped actors' visuals stop at walls.
 /// </summary>
 [Tool, GlobalClass]
 public partial class FloorDiscovery : Node3D
@@ -35,11 +37,15 @@ public partial class FloorDiscovery : Node3D
 	private static readonly StringName ElapsedGlobal = "fog_elapsed";
 	private static readonly StringName FadeSecondsGlobal = "fog_fade_seconds";
 	private static readonly StringName FeatherWidthGlobal = "fog_feather_width";
+	private static readonly StringName WallMaskGlobal = "floor_wall_mask";
 	private static readonly StringName PlayerGroup = "player";
 
 	private GeneratedFloor _floor;
 	private DungeonDiscovery _model;
 	private Func<Vector2I, Vector2I, bool> _canSeeAcross;
+	private WallMask _walls;
+	private ImageTexture _wallTexture;
+	private bool _wallsDirty;
 	private readonly Dictionary<Vector2I, List<Door>> _doorsByConnector = new();
 	private readonly Dictionary<Vector2I, List<Door>> _indicatorDoors = new();
 	private readonly HashSet<Door> _indicatorsShown = new();
@@ -99,6 +105,9 @@ public partial class FloorDiscovery : Node3D
 		_indicatorDoors.Clear();
 		_indicatorsShown.Clear();
 		_textureDirty = false;
+		_walls = null;
+		_wallTexture = null;
+		_wallsDirty = false;
 		SetProcess(false);
 	}
 
@@ -122,6 +131,10 @@ public partial class FloorDiscovery : Node3D
 			if (!_indicatorDoors.TryGetValue(tile, out var indicators)) _indicatorDoors[tile] = indicators = new();
 			indicators.Add(pair.Door);
 		}
+		Rect2 bounds = floor.Map.WorldBounds;
+		RenderingServer.GlobalShaderParameterSet(MapOriginGlobal, bounds.Position);
+		RenderingServer.GlobalShaderParameterSet(MapExtentGlobal, bounds.Size);
+		PublishWalls();
 		_clockStart = Time.GetTicksUsec();
 		_fadeUntil = 0;
 		_refresh = true;
@@ -142,12 +155,9 @@ public partial class FloorDiscovery : Node3D
 		_texture = ImageTexture.CreateFromImage(_image);
 		var material = (ShaderMaterial)DiscoveryMaterial.Duplicate();
 		material.RenderPriority = FogRenderPriority;
-		Vector3I firstTile = _floor.Map.TileToWorld(0, 0);
 		RenderingServer.GlobalShaderParameterSet(ExplorationGlobal, _texture);
 		RenderingServer.GlobalShaderParameterSet(FadeSecondsGlobal, FadeSeconds);
 		RenderingServer.GlobalShaderParameterSet(FeatherWidthGlobal, FeatherWidth);
-		RenderingServer.GlobalShaderParameterSet(MapOriginGlobal, new Vector2(firstTile.X, firstTile.Z) - Vector2.One * (Room.TileSize * 0.5f));
-		RenderingServer.GlobalShaderParameterSet(MapExtentGlobal, new Vector2(_floor.Map.Width * Room.TileSize, _floor.Map.Height * Room.TileSize));
 		_surface = new MeshInstance3D
 		{
 			Name = "DiscoverySurface", Mesh = new QuadMesh { Size = Vector2.One * 2 },
@@ -169,7 +179,32 @@ public partial class FloorDiscovery : Node3D
 	{
 		_untilPoll = 0;
 		_refresh = true;
+		if (_walls == null) return;
+		_wallsDirty = true;
+		SetProcess(true);
 	}
+
+	/// <summary>Uploads the floor's solid walls. Doors join on the next frame, after a save restore has set them.</summary>
+	private void PublishWalls()
+	{
+		_walls = new WallMask(_floor.Map, _floor.SolidWalls);
+		_wallTexture = ImageTexture.CreateFromImage(WallImage());
+		RenderingServer.GlobalShaderParameterSet(WallMaskGlobal, _wallTexture);
+		_wallsDirty = true;
+		SetProcess(true);
+	}
+
+	/// <summary>Closed doors, concealed ones included, block like the walls around them, so clipping never singles them out.</summary>
+	private void RefreshDoorWalls()
+	{
+		_wallsDirty = false;
+		_walls.SetClosedDoors(_floor.DoorBaselines.Values.Select(pair => pair.Door)
+			.Where(door => IsInstanceValid(door) && door.IsInsideTree() && !door.IsOpen && door.Collision?.Shape != null)
+			.Select(door => door.LeafOutline(open: false, door.GlobalTransform).Polygon));
+		_wallTexture.Update(WallImage());
+	}
+
+	private Image WallImage() => Image.CreateFromData(_walls.Width, _walls.Height, false, Image.Format.R8, _walls.Data);
 
 	public override void _PhysicsProcess(double delta)
 	{
@@ -185,6 +220,7 @@ public partial class FloorDiscovery : Node3D
 
 	public override void _Process(double delta)
 	{
+		if (_wallsDirty) RefreshDoorWalls();
 		if (_textureDirty)
 		{
 			_texture.Update(_image);
@@ -196,6 +232,9 @@ public partial class FloorDiscovery : Node3D
 	}
 
 	public bool IsRevealedAt(Vector3 worldPosition) => _model != null && _model.RevealedTiles.Contains(_floor.Map.WorldToTile(worldPosition));
+
+	/// <summary>Whether wall-clipped visuals are cut off at this position: it lies inside a solid wall or a closed door.</summary>
+	public bool IsWallAt(Vector3 worldPosition) => _walls?.IsWall(new Vector2(worldPosition.X, worldPosition.Z)) == true;
 
 	/// <summary>Reveals only visible sample centers within reach. Closed door thresholds and sanctioned room edges
 	/// are authoritative blockers; furnishing does not block exploration. No RNG or room traversal is involved.</summary>

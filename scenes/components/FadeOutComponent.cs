@@ -10,10 +10,10 @@ using Godot;
 /// static <see cref="FadeOutAndFree"/> directly from code (e.g. when an enemy dies or a
 /// prop despawns).
 ///
-/// Mesh fading duplicates each surface's active <see cref="BaseMaterial3D"/> into an
-/// instance-local override with alpha blending enabled and tweens its albedo alpha to 0.
-/// Duplicating keeps shared authored materials untouched (so fading one enemy never fades
-/// the rest), and alpha blending is supported on every renderer — unlike the per-instance
+/// Mesh fading replaces each surface's active base or wall-clipped material with an instance-local
+/// blending copy (<see cref="WallClippedMaterial.PrivateCopy"/>) and tweens its color alpha to 0.
+/// Copying keeps shared authored materials untouched (so fading one enemy never fades the rest),
+/// and alpha blending is supported on every renderer — unlike the per-instance
 /// <c>GeometryInstance3D.transparency</c> property, which only works on Forward+.
 /// </summary>
 [GlobalClass]
@@ -124,35 +124,34 @@ public partial class FadeOutComponent : Node
 	}
 
 	/// <summary>
-	/// Replaces a mesh instance's active materials with alpha-blended duplicates and records
-	/// them for fading. A <see cref="GeometryInstance3D.MaterialOverride"/> wins over per-surface
+	/// Replaces a mesh instance's active materials with blending copies and records them for
+	/// fading. A <see cref="GeometryInstance3D.MaterialOverride"/> wins over per-surface
 	/// overrides, so it is faded on its own when present; otherwise each surface is handled.
-	/// Surfaces driven by a non-<see cref="BaseMaterial3D"/> (e.g. a custom shader) are skipped.
+	/// Surfaces driven by another custom shader are skipped.
 	/// </summary>
 	private static void CollectMeshFadeMaterials(MeshInstance3D meshInstance,
 		List<(GodotObject Object, string Property)> result)
 	{
-		if (meshInstance.MaterialOverride is BaseMaterial3D overrideSource)
+		if (meshInstance.MaterialOverride != null)
 		{
-			var fadeable = (BaseMaterial3D)overrideSource.Duplicate();
-			fadeable.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
-			meshInstance.MaterialOverride = fadeable;
-			result.Add((fadeable, "albedo_color:a"));
+			if (WallClippedMaterial.PrivateCopy(meshInstance.MaterialOverride, blending: true) is var (material, color))
+			{
+				meshInstance.MaterialOverride = material;
+				result.Add((material, $"{color}:a"));
+			}
 			return;
 		}
 
 		int surfaceCount = meshInstance.Mesh.GetSurfaceCount();
 		for (int surface = 0; surface < surfaceCount; surface++)
 		{
-			if (meshInstance.GetActiveMaterial(surface) is not BaseMaterial3D source)
+			if (WallClippedMaterial.PrivateCopy(meshInstance.GetActiveMaterial(surface), blending: true) is not var (material, color))
 			{
 				continue;
 			}
 
-			var fadeable = (BaseMaterial3D)source.Duplicate();
-			fadeable.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
-			meshInstance.SetSurfaceOverrideMaterial(surface, fadeable);
-			result.Add((fadeable, "albedo_color:a"));
+			meshInstance.SetSurfaceOverrideMaterial(surface, material);
+			result.Add((material, $"{color}:a"));
 		}
 	}
 }

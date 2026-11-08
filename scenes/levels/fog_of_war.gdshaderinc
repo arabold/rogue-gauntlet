@@ -1,10 +1,8 @@
 // The floor's exploration, published by FloorDiscovery as global shader uniforms (declared in project.godot), so the
 // fog surface and the silhouettes that must stay readable above it agree on exactly what is still covered.
 // R = explored coverage, G = discovery time multiplied by coverage.
+#include "res://scenes/levels/floor_map.gdshaderinc"
 global uniform sampler2D fog_exploration;
-global uniform vec2 fog_map_origin;
-// Zero while no floor is loaded, which leaves everything uncovered.
-global uniform vec2 fog_map_extent;
 global uniform float fog_elapsed;
 global uniform float fog_fade_seconds;
 global uniform float fog_feather_width;

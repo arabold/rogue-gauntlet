@@ -134,7 +134,7 @@ public class EffectPreviewTest
 		using var runner = TestFactories.LoadScene(Scene); await runner.SimulateFrames(2);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects(); var player = preview.Stage.GetChild<Player>(0);
 		var originalHead = player.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().First(m => m.Name.ToString().Contains("Head"));
-		var original = (BaseMaterial3D)originalHead.GetActiveMaterial(0);
+		var original = WallClippedMaterial.SourceOf(originalHead.GetActiveMaterial(0));
 		player.WorldEffects.PlayBurst(preview.TeleportDeparture, 42);
 		var effect = player.WorldEffects.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Single(e => !e.IsQueuedForDeletion());
 		effect.Seek(.15f);

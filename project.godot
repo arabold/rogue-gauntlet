@@ -290,8 +290,6 @@ common/physics_interpolation=true
 
 [rendering]
 
-renderer/rendering_method="forward_plus"
-renderer/rendering_method.mobile="mobile"
 textures/vram_compression/import_etc2_astc=true
 
 [shader_globals]
@@ -319,4 +317,8 @@ fog_fade_seconds={
 fog_feather_width={
 "type": "float",
 "value": 1.0
+}
+floor_wall_mask={
+"type": "sampler2D",
+"value": ""
 }

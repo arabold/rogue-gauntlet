@@ -613,6 +613,8 @@ public partial class MapGenerator : Node3D
 
 		// Step 2c: Cap permanent void. Exploration is the level's FloorDiscovery, started once the floor is handed off.
 		PlaceOcclusion();
+		Floor.SolidWalls = WallFootprints.Collect(WallGridMap, solidOnly: true)
+			.Select(box => CollisionOutlines.FromBox(WallGridMap.Transform * box).Polygon).ToList();
 
 		if (!includeGameplay)
 		{

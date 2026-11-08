@@ -122,6 +122,17 @@ public class MapData
 
     public Vector3I TileToWorld(Vector2I tile) => TileToWorld(tile.X, tile.Y);
 
+    /// <summary>The world XZ rectangle every tile covers, edge to edge: the frame floor-wide grids (exploration,
+    /// walkability, the wall mask) share.</summary>
+    public Rect2 WorldBounds
+    {
+        get
+        {
+            Vector3I first = TileToWorld(0, 0);
+            return new Rect2(first.X - Room.TileSize / 2f, first.Z - Room.TileSize / 2f, Width * Room.TileSize, Height * Room.TileSize);
+        }
+    }
+
     /// <summary>The tile containing a world position; the inverse of <see cref="TileToWorld(int,int)"/>.</summary>
     public Vector2I WorldToTile(Vector3 world) => new(
         Mathf.RoundToInt(world.X / Room.TileSize) + Width / 2,

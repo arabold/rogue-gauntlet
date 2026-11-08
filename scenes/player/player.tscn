@@ -67,6 +67,7 @@
 [ext_resource type="Resource" path="res://scenes/effects/world/runes/rune_ring.tres" id="vfx_scroll"]
 [ext_resource type="Resource" path="res://scenes/effects/world/strength/strength.tres" id="vfx_strength"]
 [ext_resource type="Script" uid="uid://xi6k1bn5o4rh" path="res://scenes/effects/world/SurfaceAppearanceController.cs" id="vfx_surface"]
+[ext_resource type="PackedScene" path="res://scenes/components/wall_clip_component.tscn" id="wall_clip"]
 [ext_resource type="Script" path="res://scenes/effects/combat/CombatFeedbackController.cs" id="combat_feedback_script"]
 [ext_resource type="Script" path="res://scenes/effects/combat/CombatVisualMotionComponent.cs" id="combat_motion_script"]
 [ext_resource type="Resource" path="res://scenes/effects/combat/feedback_profiles/default.tres" id="combat_feedback_profile"]
@@ -632,6 +633,9 @@ InventoryController = NodePath("../PlayerInventoryController")
 script = ExtResource("interaction_script")
 Actor = NodePath("..")
 ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="WallClipComponent" parent="." node_paths=PackedStringArray("Target") instance=ExtResource("wall_clip")]
+Target = NodePath("../Pivot")
 
 [node name="SurfaceAppearanceController" type="Node" parent="." unique_id=1451017666 node_paths=PackedStringArray("Target")]
 script = ExtResource("vfx_surface")

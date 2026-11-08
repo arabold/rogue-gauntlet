@@ -10,7 +10,7 @@ public partial class MapGenerator
 	/// <summary>Builds and freezes the clearance grid; runs after loot so chests and fountains count as solids.</summary>
 	private void BuildNavigation()
 	{
-		var grid = new ClearanceGrid(FloorBounds());
+		var grid = new ClearanceGrid(Map.WorldBounds);
 		foreach (var (area, walkable) in TileAreas())
 		{
 			if (walkable) grid.AddFloor(area);

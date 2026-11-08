@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3]
+[gd_scene load_steps=35 format=3]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
 [ext_resource type="PackedScene" path="res://assets/custom-monsters/forsaken_warden/forsaken_warden.glb" id="2_glb"]
@@ -19,6 +19,7 @@
 
 [ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]
 [ext_resource type="Resource" path="res://scenes/effects/movement/movement_effect_profiles/large.tres" id="movement_profile"]
+[ext_resource type="PackedScene" path="res://scenes/components/wall_clip_component.tscn" id="wall_clip"]
 
 [sub_resource type="AnimationNodeAnimation" id="anim_idle"]
 animation = &"Idle_A"
@@ -192,3 +193,6 @@ AnimationTree = NodePath("../EnemyBehaviorComponent/AnimationTree")
 
 [node name="MovementEffectsComponent" parent="."]
 Profile = ExtResource("movement_profile")
+
+[node name="WallClipComponent" parent="." node_paths=PackedStringArray("Target") instance=ExtResource("wall_clip")]
+Target = NodePath("../Pivot")

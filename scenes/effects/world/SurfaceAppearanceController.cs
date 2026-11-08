@@ -24,7 +24,7 @@ public partial class SurfaceAppearanceController : Node
 	private Request _winner;
 	private Action _unwatch;
 	private sealed record FlashSurface(MeshInstance3D Mesh, int Surface, Material OriginalOverride,
-		BaseMaterial3D Material, Color OriginalColor);
+		Material Material, StringName ColorProperty, Color OriginalColor);
 	private readonly List<FlashSurface> _flashSurfaces = [];
 	private Color _flashColor;
 	private float _flashAmount;
@@ -49,7 +49,7 @@ public partial class SurfaceAppearanceController : Node
 		{
 			foreach (var surface in _flashSurfaces)
 				if (IsInstanceValid(surface.Mesh) && surface.Surface < surface.Mesh.Mesh.GetSurfaceCount())
-					surface.Material.AlbedoColor = surface.OriginalColor.Lerp(_flashColor, amount);
+					surface.Material.Set(surface.ColorProperty, surface.OriginalColor.Lerp(_flashColor, amount));
 		}
 		if (_flashRemaining <= 0) ClearFlash();
 	}
@@ -158,12 +158,12 @@ public partial class SurfaceAppearanceController : Node
 		{
 			for (int i = 0; i < mesh.Mesh.GetSurfaceCount(); i++)
 			{
-				if (mesh.GetActiveMaterial(i) is not BaseMaterial3D source) continue;
-				var copy = (BaseMaterial3D)source.Duplicate();
-				Material originalOverride = mesh.GetSurfaceOverrideMaterial(i);
-				_flashSurfaces.Add(new FlashSurface(mesh, i, originalOverride, copy, source.AlbedoColor));
+				var active = mesh.GetActiveMaterial(i);
+				if (WallClippedMaterial.PrivateCopy(active, blending: false) is not var (copy, color)) continue;
+				Color original = WallClippedMaterial.SourceOf(active).AlbedoColor;
+				_flashSurfaces.Add(new FlashSurface(mesh, i, mesh.GetSurfaceOverrideMaterial(i), copy, color, original));
 				mesh.SetSurfaceOverrideMaterial(i, copy);
-				copy.AlbedoColor = source.AlbedoColor.Lerp(_flashColor, _flashAmount);
+				copy.Set(color, original.Lerp(_flashColor, _flashAmount));
 			}
 		}
 		foreach (Node child in node.GetChildren()) CaptureFlash(child);
