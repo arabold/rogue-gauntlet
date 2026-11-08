@@ -77,6 +77,11 @@
 [ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]
 [ext_resource type="PackedScene" path="res://scenes/components/movement_effects_component.tscn" id="movement_effects"]
 [ext_resource type="Resource" path="res://scenes/effects/movement/movement_effect_profiles/medium.tres" id="movement_profile"]
+[ext_resource type="Script" path="res://scenes/audio/ActorAudioComponent.cs" id="audio_component_script"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/footstep.tres" id="audio_footstep"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/rush.tres" id="audio_rush"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/attack_release.tres" id="audio_attack_release"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/guard_raise.tres" id="audio_guard"]
 
 [sub_resource type="Resource" id="Resource_3j4b4"]
 script = ExtResource("3_uf5tr")
@@ -723,3 +728,16 @@ Movement = NodePath("../MovementComponent")
 Effects = NodePath("../WorldEffects")
 Profile = ExtResource("movement_profile")
 Dodge = NodePath("../DodgeComponent")
+
+[node name="ActorAudioComponent" type="Node" parent="." node_paths=PackedStringArray("Actor", "Movement", "ActionGate", "Attack", "Dodge", "Guard")]
+script = ExtResource("audio_component_script")
+Actor = NodePath("..")
+Movement = NodePath("../MovementComponent")
+ActionGate = NodePath("../ActorActionGateComponent")
+Attack = NodePath("../PlayerAttackController")
+Dodge = NodePath("../DodgeComponent")
+Guard = NodePath("../GuardComponent")
+FootstepCue = ExtResource("audio_footstep")
+RushCue = ExtResource("audio_rush")
+AttackReleaseCue = ExtResource("audio_attack_release")
+GuardCue = ExtResource("audio_guard")

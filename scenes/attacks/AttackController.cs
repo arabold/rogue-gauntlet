@@ -29,6 +29,9 @@ public partial class AttackController : Node, IParryInterruptible
 	[Export] public MeleeHitDetector MeleeDetector { get; set; }
 	[Export] public MeleeAttackProfile DefaultMeleeContact { get; set; }
 	[Export] public bool EffectsEnabled { get; set; } = true;
+	[Signal] public delegate void AttackStartedEventHandler();
+	/// <summary>Reports the authored attack at its synchronized release point, before its projectile or spell begins.</summary>
+	[Signal] public delegate void AttackReleasedEventHandler(AttackDefinition definition);
 	[Signal] public delegate void AttackFeedbackEventHandler(string result, float damage);
 	/// <summary>Presentation hook (camera impulse, sound) when a contact pauses this execution.</summary>
 	[Signal] public delegate void HitStopStartedEventHandler(float duration);
@@ -190,6 +193,7 @@ public partial class AttackController : Node, IParryInterruptible
 			("poise_damage", def.PoiseDamage), ("facing_lock_lead", def.FacingLockLead), ("hyper_armor", $"{def.HyperArmorStart}-{def.HyperArmorEnd}"));
 		if (attack.Playback != null) AnimationComponent.Begin(attack.Playback);
 		UpdateIndicator(AttackIndicatorStage.Aiming);
+		EmitSignalAttackStarted();
 		SetPhysicsProcess(true);
 		return true;
 	}
@@ -268,6 +272,7 @@ public partial class AttackController : Node, IParryInterruptible
 			if (!_releaseStarted && _elapsedTime >= _currentAttack.HitWindowStart)
 			{
 				_releaseStarted = true;
+				EmitSignalAttackReleased(_currentAttack);
 				ReleaseSpell(_preparedAttack.Spell);
 			}
 		}
@@ -287,6 +292,7 @@ public partial class AttackController : Node, IParryInterruptible
 				if (!_releaseStarted)
 				{
 					_releaseStarted = true;
+					EmitSignalAttackReleased(_currentAttack);
 					BeginRelease();
 					UpdateIndicator(AttackIndicatorStage.Released);
 				}
@@ -298,6 +304,11 @@ public partial class AttackController : Node, IParryInterruptible
 		{
 			// Interval intersection, not just the current timestamp: even a whole skipped window queries once.
 			if (!HasCommittedFacing) CommitMeleeFacing();
+				if (!_releaseStarted)
+				{
+					_releaseStarted = true;
+					EmitSignalAttackReleased(_currentAttack);
+				}
 			var profile = _currentAttack.MeleeContact;
 			var frame = new Transform3D(_contactBasis, _actor.GlobalPosition + Vector3.Up * profile.CenterHeight);
 			var execution = _preparedAttack;

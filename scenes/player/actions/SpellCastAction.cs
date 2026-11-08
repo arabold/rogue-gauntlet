@@ -29,11 +29,19 @@ public partial class SpellCastAction : RefCounted, ICombatAttackAction
 	public bool TryPrepare(Player player, out PreparedAttack attack)
 	{
 		attack = null;
-		return _focus.CanBind(Spell)
-			&& ReferenceEquals(player.Inventory?.EquippedWeapon, _focus)
-			&& player.SpellCaster?.IsBoundTo(_focus) == true && player.SpellCaster.Current.LevelCount >= _focus.SpellLevel
-			&& player.ManaComponent?.CheckCost(ManaCost) == true
-			&& player.AttackController.TryPrepareAttack(Spell.Cast, _focus.AttackStyle, 0, out attack);
+		if (!_focus.CanBind(Spell)
+			|| !ReferenceEquals(player.Inventory?.EquippedWeapon, _focus)
+			|| player.SpellCaster?.IsBoundTo(_focus) != true || player.SpellCaster.Current.LevelCount < _focus.SpellLevel
+			|| player.ManaComponent?.CheckCost(ManaCost) != true
+			|| !player.AttackController.TryPrepareAttack(Spell.Cast, _focus.AttackStyle, 0, out attack)) return false;
+
+		if (attack.Definition.ReleaseCue == null && _focus.SecondaryReleaseCue != null)
+		{
+			var definition = (AttackDefinition)attack.Definition.Duplicate();
+			definition.ReleaseCue = _focus.SecondaryReleaseCue;
+			attack = attack with { Definition = definition };
+		}
+		return true;
 	}
 
 	/// <summary>Captures the focus's hit as the spell's power, starts the cast, then spends its mana.</summary>

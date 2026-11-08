@@ -45,10 +45,11 @@ frequency = 30.0
 rotational_noise = false
 positional_noise = true
 
-[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects", "GameCamera")]
+[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects", "GameCamera", "AudioListener")]
 script = ExtResource("1_dl2xl")
 ScreenEffects = NodePath("ScreenEffects")
 GameCamera = NodePath("Camera3D")
+AudioListener = NodePath("AudioListener3D")
 
 [node name="HUD" parent="." unique_id=2078119296 instance=ExtResource("3_stuk7")]
 
@@ -72,6 +73,9 @@ transform = Transform3D(0.70710677, -0.54167503, 0.4545197, 0, 0.6427879, 0.7660
 projection = 1
 current = true
 size = 20.0
+
+[node name="AudioListener3D" type="AudioListener3D" parent="."]
+current = true
 
 [node name="PhantomCameraHost" type="Node" parent="Camera3D" unique_id=581853234]
 process_priority = 300

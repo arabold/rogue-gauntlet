@@ -1,0 +1,29 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scenes/debug/audio/AudioHarness.cs" id="1_script"]
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="2_cue_profile"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/ui_click.tres" id="3_ui_click"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/ui_rollover.tres" id="4_ui_rollover"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/footstep.tres" id="5_footstep"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/door_open.tres" id="6_door_open"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/harness_stress.tres" id="7_stress"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/rush.tres" id="8_rush"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/attack_release.tres" id="9_attack_release"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/guard_raise.tres" id="10_guard_raise"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/guard_block.tres" id="11_guard_block"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/parry.tres" id="12_parry"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/guard_break.tres" id="13_guard_break"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/door_close.tres" id="14_door_close"]
+
+[node name="AudioHarness" type="Node3D"]
+process_mode = 3
+script = ExtResource("1_script")
+Cues = Array[ExtResource("2_cue_profile")]([ExtResource("3_ui_click"), ExtResource("4_ui_rollover"), ExtResource("5_footstep"), ExtResource("8_rush"), ExtResource("9_attack_release"), ExtResource("10_guard_raise"), ExtResource("11_guard_block"), ExtResource("12_parry"), ExtResource("13_guard_break"), ExtResource("6_door_open"), ExtResource("14_door_close")])
+StressCue = ExtResource("7_stress")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+current = true
+position = Vector3(0, 8, 13)
+
+[node name="AudioListener" type="AudioListener3D" parent="."]
+position = Vector3(0, 2, 10)

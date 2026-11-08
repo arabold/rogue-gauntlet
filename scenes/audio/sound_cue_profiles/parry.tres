@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/metal_latch.ogg" id="2_latch"]
+
+[resource]
+script = ExtResource("1_script")
+Variants = Array[AudioStream]([ExtResource("2_latch")])
+Category = 0
+GainDb = -3.0
+PitchMinimum = 1.0
+PitchMaximum = 1.0
+PanningStrength = 0.2
+UnitSize = 4.0
+MaxDistance = 24.0
+Priority = 5
+MaxVoicesPerSource = 1
+MaxVoicesGlobal = 4
+MinIntervalSeconds = 0.08

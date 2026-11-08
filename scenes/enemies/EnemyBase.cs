@@ -51,6 +51,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	[Export] public bool StoneSkin { get => IsNodeReady() ? StoneSkinStatus?.IsActive == true : _initialStoneSkin; set { _initialStoneSkin = value; if (IsNodeReady()) StoneSkinStatus?.SetActive(value); } }
 
 	[Export] public EnemyBehaviorComponent EnemyBehaviorComponent;
+	[Export] public VisibleOnScreenNotifier3D EncounterNotifier { get; set; }
 	[Export] public MovementComponent MovementComponent;
 	[Export] public HealthComponent HealthComponent;
 	[Export] public HurtBoxComponent HurtBoxComponent;

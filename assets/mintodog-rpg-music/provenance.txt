@@ -1,0 +1,15 @@
+Both music tracks in this directory are labeled CC0 on their OpenGameArt listings.
+
+Author: MintoDog
+License: CC0 1.0
+License deed: https://creativecommons.org/publicdomain/zero/1.0/
+
+heavy_dungeon.ogg
+  Source: https://opengameart.org/content/heavy-dungeon
+  Original filename: heavy_dungeon_bpm160_0.ogg
+
+heavy_battle_1.ogg
+  Source: https://opengameart.org/content/heavy-battle-1
+  Original filename: heavy_battle_1_bpm190_0.ogg
+
+Downloaded 2026-11-07 for the Rogue Gauntlet audio prototype.

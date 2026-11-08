@@ -1,0 +1,38 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/AudioController.cs" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/audio/world_sound.tscn" id="2_world_sound"]
+[ext_resource type="Script" path="res://scenes/audio/MusicController.cs" id="3_music_script"]
+[ext_resource type="Resource" path="res://scenes/audio/music_profiles/heavy_dungeon.tres" id="4_exploration"]
+[ext_resource type="Resource" path="res://scenes/audio/music_profiles/heavy_battle_1.tres" id="5_boss"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/door_open.tres" id="6_door_open"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/door_close.tres" id="7_door_close"]
+
+[node name="AudioController" type="Node" node_paths=PackedStringArray("WorldVoicesRoot", "UiVoicesRoot")]
+process_mode = 3
+script = ExtResource("1_script")
+WorldSoundScene = ExtResource("2_world_sound")
+WorldVoicesRoot = NodePath("WorldVoicesRoot")
+UiVoicesRoot = NodePath("UiVoicesRoot")
+DoorOpenCue = ExtResource("6_door_open")
+DoorCloseCue = ExtResource("7_door_close")
+
+[node name="WorldVoicesRoot" type="Node3D" parent="."]
+process_mode = 1
+
+[node name="UiVoicesRoot" type="Node" parent="."]
+process_mode = 3
+
+[node name="MusicController" type="Node" parent="." node_paths=PackedStringArray("DeckA", "DeckB")]
+process_mode = 3
+script = ExtResource("3_music_script")
+DeckA = NodePath("DeckA")
+DeckB = NodePath("DeckB")
+ExplorationMusic = ExtResource("4_exploration")
+BossMusic = ExtResource("5_boss")
+
+[node name="DeckA" type="AudioStreamPlayer" parent="MusicController"]
+bus = "Music"
+
+[node name="DeckB" type="AudioStreamPlayer" parent="MusicController"]
+bus = "Music"

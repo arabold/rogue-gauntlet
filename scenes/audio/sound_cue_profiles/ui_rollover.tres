@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/kenney-ui-audio/audio/rollover_1.ogg" id="2_rollover_1"]
+[ext_resource type="AudioStream" path="res://assets/kenney-ui-audio/audio/rollover_2.ogg" id="3_rollover_2"]
+
+[resource]
+script = ExtResource("1_script")
+Variants = Array[AudioStream]([ExtResource("2_rollover_1"), ExtResource("3_rollover_2")])
+Category = 1
+GainDb = -12.0
+PitchMinimum = 0.98
+PitchMaximum = 1.02
+PanningStrength = 0.0
+MinIntervalSeconds = 0.07

@@ -106,13 +106,16 @@ public partial class PlayerAttackController : AttackController
 		var step = comboStep >= 0 ? weapon.PrimaryCombo.Steps[comboStep] : null;
 		var definition = (!isSpecial ? weapon?.PrimaryAttackDefinition : weapon?.SecondaryCustomAttackDefinition)
 			?? CreateDefaultDefinition(weapon, isSpecial);
-		var style = isSpecial ? (weapon?.GetEffectiveSecondaryStyle() ?? "unarmed.kick") : (weapon?.AttackStyle ?? "unarmed.punch");
-		if (!string.IsNullOrEmpty(step?.AttackStyle))
+		SoundCueProfile weaponReleaseCue = isSpecial ? weapon?.SecondaryReleaseCue : weapon?.PrimaryReleaseCue;
+		bool setReleaseCue = definition.ReleaseCue == null && weaponReleaseCue != null;
+		bool setStepStyle = !string.IsNullOrEmpty(step?.AttackStyle);
+		if (setReleaseCue || setStepStyle)
 		{
-			// A definition's own style wins over the weapon's, so the step's motion goes on a copy.
 			definition = (AttackDefinition)definition.Duplicate();
-			definition.AttackStyle = step.AttackStyle;
+			if (setReleaseCue) definition.ReleaseCue = weaponReleaseCue;
+			if (setStepStyle) definition.AttackStyle = step.AttackStyle;
 		}
+		var style = isSpecial ? (weapon?.GetEffectiveSecondaryStyle() ?? "unarmed.kick") : (weapon?.AttackStyle ?? "unarmed.punch");
 		if (duration <= 0)
 		{
 			duration = isSpecial ? (weapon?.SecondaryPerformDuration ?? 0.6) : (weapon?.PerformDuration ?? 0.5);

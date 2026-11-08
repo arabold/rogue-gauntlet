@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/metal_pot_1.ogg" id="2_pot_1"]
+[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/metal_pot_2.ogg" id="3_pot_2"]
+[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/metal_pot_3.ogg" id="4_pot_3"]
+
+[resource]
+script = ExtResource("1_script")
+Variants = Array[AudioStream]([ExtResource("2_pot_1"), ExtResource("3_pot_2"), ExtResource("4_pot_3")])
+Category = 0
+GainDb = -4.0
+PitchMinimum = 0.92
+PitchMaximum = 1.08
+PanningStrength = 0.2
+UnitSize = 4.0
+MaxDistance = 24.0
+Priority = 4
+MaxVoicesPerSource = 2
+MaxVoicesGlobal = 6
+MinIntervalSeconds = 0.08

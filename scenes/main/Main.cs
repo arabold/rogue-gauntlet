@@ -18,11 +18,15 @@ public partial class Main : Node
 
 	/// <summary>Orthographic gameplay camera whose visible area is adjusted by zoom input.</summary>
 	[Export] public Camera3D GameCamera { get; set; }
+	/// <summary>Player-centered listener whose orientation follows the gameplay camera for stable stereo placement.</summary>
+	[Export] public AudioListener3D AudioListener { get; set; }
 
 
 	public override void _Ready()
 	{
 		GD.Print("Main scene is ready");
+		if (AudioListener == null) GD.PushError("Main requires an explicitly wired AudioListener3D.");
+		else AudioListener.MakeCurrent();
 		_pcam = GetNode<Node3D>("PhantomCamera3D");
 		_pcam.Set("follow_mode", FollowModeNone);
 
@@ -48,7 +52,9 @@ public partial class Main : Node
 		// Spawning can report the same player more than once; rebind so each signal connects only once.
 		_player = player;
 		ScreenEffects?.Bind(player);
+		AudioListener?.MakeCurrent();
 		CenterCameraOnPlayer();
+		UpdateAudioListener();
 		_pcam.ResetPhysicsInterpolation();
 	}
 
@@ -75,6 +81,13 @@ public partial class Main : Node
 		}
 
 		CenterCameraOnPlayer();
+		UpdateAudioListener();
+	}
+
+	private void UpdateAudioListener()
+	{
+		if (AudioListener == null || !GodotObject.IsInstanceValid(_player) || GameCamera == null) return;
+		AudioListener.GlobalTransform = new Transform3D(GameCamera.GlobalBasis, _player.GlobalPosition + Vector3.Up * 1.4f);
 	}
 
 	private void CenterCameraOnPlayer()

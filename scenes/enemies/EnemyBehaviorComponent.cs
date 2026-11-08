@@ -42,6 +42,8 @@ public enum EnemyAction
 /// </remarks>
 public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 {
+	/// <summary>Fires when this enemy first acquires the player, including a hit that wakes it.</summary>
+	[Signal] public delegate void PlayerTargetAcquiredEventHandler(Player player);
 	/// <summary>
 	/// Character body moved and rotated by this behavior controller.
 	/// </summary>
@@ -134,7 +136,8 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		// The context is the shared blackboard the behavior states read and mutate; the state machine
 		// owns the behavior layer. The timed-action layer (spawn, hit, attack, death) stays on this
 		// host as a gate above the machine - see _PhysicsProcess.
-		_context = new EnemyContext(Actor, MovementComponent, _perception, _navigation, _profile, RequestAttack);
+		_context = new EnemyContext(Actor, MovementComponent, _perception, _navigation, _profile, RequestAttack,
+			OnPlayerTargetAcquired);
 		if (_attackController != null) _attackController.AttackFinished += OnAttackFinished;
 		_machine = new EnemyStateMachine(_context, new IEnemyState[]
 		{
@@ -204,6 +207,7 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	}
 
 	private void RequestAttack() => TryAttack();
+	private void OnPlayerTargetAcquired(Player player) => EmitSignalPlayerTargetAcquired(player);
 
 	/// <summary>Sneak-attack window: no target yet, and not searching, chasing or fleeing.</summary>
 	public bool IsUnaware => _context != null && !IsDead && Target == null

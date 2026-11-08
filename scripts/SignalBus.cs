@@ -24,6 +24,13 @@ public partial class SignalBus : Node
     [Signal] public delegate void GamePausedEventHandler(bool isPaused);
     public static void EmitGamePaused(bool isPaused) => Instance?.EmitSignalGamePaused(isPaused);
 
+	[Signal] public delegate void WorldSoundEmittedEventHandler(SoundCueProfile cue, Node source, Vector3 position);
+	[Signal] public delegate void UiSoundEmittedEventHandler(SoundCueProfile cue, Node source);
+	public static void EmitWorldSoundEmitted(SoundCueProfile cue, Node source, Vector3 position) =>
+		Instance?.EmitSignalWorldSoundEmitted(cue, source, position);
+	public static void EmitUiSoundEmitted(SoundCueProfile cue, Node source) =>
+		Instance?.EmitSignalUiSoundEmitted(cue, source);
+
     [Signal] public delegate void PlayerStatsChangedEventHandler(PlayerStats stats);
     [Signal] public delegate void PlayerActionSlotChangedEventHandler(int slotIndex, ActionSlot action);
     [Signal] public delegate void CooldownUpdatedEventHandler(int actionIndex, float remainingTime, float totalTime);
@@ -55,6 +62,10 @@ public partial class SignalBus : Node
     [Signal] public delegate void LevelLoadedEventHandler(Level level);
     public static void EmitLevelChanged(int level) => Instance?.EmitSignalLevelChanged(level);
     public static void EmitLevelLoaded(Level level) => Instance?.EmitSignalLevelLoaded(level);
+	[Signal] public delegate void BossEncounterChangedEventHandler(bool active);
+	public static void EmitBossEncounterChanged(bool active) => Instance?.EmitSignalBossEncounterChanged(active);
+	[Signal] public delegate void MainMenuEnteredEventHandler();
+	public static void EmitMainMenuEntered() => Instance?.EmitSignalMainMenuEntered();
 
     [Signal] public delegate void RoomEnteredEventHandler(int roomId);
     public static void EmitRoomEntered(int roomId) => Instance?.EmitSignalRoomEntered(roomId);

@@ -8,6 +8,7 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 | Combat | [combat/combat_harness.tscn](combat/combat_harness.tscn) | Interactive combat, monster tactics and scripted traces; [guide](../../docs/combat-harness.md) |
 | Item lifecycle | [items/item_lifecycle_harness.tscn](items/item_lifecycle_harness.tscn) | Item creation, inventory, equipment and consumables |
 | World effects | [effects/world_effect_harness.tscn](effects/world_effect_harness.tscn) | Replay and tune production trap/secret discovery, loot glow, blood hit and prop x-rays |
+| Audio | [audio/audio_harness.tscn](audio/audio_harness.tscn) | Audition production cue profiles and exploration/boss music, compare left/center/right playback, pause routing and voice limits |
 | Actor/item effects | [effects/actor_item_effect_preview.tscn](effects/actor_item_effect_preview.tscn) | Inspect one effect/subject, skin finishes, teleport fades and fitted curse wisps; [guide](../../docs/world-effects.md) |
 | Scroll reading | [effects/runes/scroll_rune_study.tscn](effects/runes/scroll_rune_study.tscn) | Preview the production ring with its assigned scroll appearance; [guide](../../docs/world-effects.md#scroll-reading-preview) |
 | Fire spells | [effects/fireball_preview.tscn](effects/fireball_preview.tscn) | Preview five fire spells at three levels with 0–5 targets, guard reflection and Fireball wall impact |

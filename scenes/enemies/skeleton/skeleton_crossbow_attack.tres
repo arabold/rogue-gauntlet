@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="ProjectileAttackStrategy" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="ProjectileAttackStrategy" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/strategies/ProjectileAttackStrategy.cs" id="policy"]
 [ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
 [ext_resource type="PackedScene" path="res://scenes/attacks/projectile.tscn" id="projectile"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/crossbow_windup.tres" id="windup_cue"]
 [sub_resource type="Resource" id="shot"]
 script = ExtResource("attack")
 IsRanged = true
@@ -12,6 +13,7 @@ ProjectileSpeed = 16.0
 ProjectileAimLockDuration = 0.3
 Range = 20.0
 HitWindowStart = 0.45
+WindUpCue = ExtResource("windup_cue")
 PoiseDamage = 8.0
 
 [resource]

@@ -100,8 +100,9 @@ height = 4.5
 radius = 1.0
 height = 4.5
 
-[node name="ForsakenWarden" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate", "GuardComponent", "DefenseController", "BodyShape")]
+[node name="ForsakenWarden" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate", "GuardComponent", "DefenseController", "BodyShape", "EncounterNotifier")]
 BodyShape = NodePath("CollisionShape3D")
+EncounterNotifier = NodePath("EncounterNotifier")
 Definition = ExtResource("definition")
 ActionGate = NodePath("ActorActionGateComponent")
 GuardComponent = NodePath("GuardComponent")
@@ -196,3 +197,6 @@ Profile = ExtResource("movement_profile")
 
 [node name="WallClipComponent" parent="." node_paths=PackedStringArray("Target") instance=ExtResource("wall_clip")]
 Target = NodePath("../Pivot")
+
+[node name="EncounterNotifier" type="VisibleOnScreenNotifier3D" parent="."]
+aabb = AABB(-2, -0.5, -2, 4, 6.5, 4)

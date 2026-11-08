@@ -66,7 +66,7 @@ The next consumable-feedback goal is [catalog-wide activation coverage](specs/co
 
 ## Audio
 
-The [audio concept and implementation plan](specs/audio-system-plan.md) proposes a first-three-floor sound pass using the local Kenney CC0 packs, separate Music/Effects/UI volume controls, resolved-action cues and persistent exploration/boss crossfades. Start with a playback workbench and a few menu sounds, prove music/settings next, then wire movement/combat/doors and deliberate attack warnings/boss music. Expand magic, items and ambience in small content batches. Each slice has an audible acceptance exercise; final soundtrack selection does not block the prototype. This remains planned work.
+The [audio concept and implementation plan](specs/audio-system-plan.md) now has a playable prototype: Kenney CC0 effects, MintoDog CC0 exploration/boss loops, separate audio buses, menu and pause clicks, persistent volume settings with mono output, exploration music that continues into gameplay, boss crossfades, a player-centered listener, player movement/defense/attack cues, door cues, resolved contact impacts and one-shot crossbow/Warden wind-up cues. The user has heard menu/workbench playback and selected the music pair. Distinct material/element impacts and the later spell/item/ambience batches remain planned; settings persistence, in-game audibility and stereo behavior still need a windowed playthrough.
 
 ## Later delivery
 
