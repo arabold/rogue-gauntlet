@@ -15,6 +15,8 @@ public partial class Door : Node3D
 	[Export] public InteractiveComponent Interactive { get; set; }
 	[Export] public MeshInstance3D KeyMarker { get; set; }
 	[Export] public Node3D DoorVisual { get; set; }
+	[Export] public SoundCueProfile OpenCue { get; set; }
+	[Export] public SoundCueProfile CloseCue { get; set; }
 	/// <summary>The hinged leaf that swings open and carries the x-ray indicator.</summary>
 	[Export] public MeshInstance3D Leaf { get; set; }
 	/// <summary>The leaf's collider, authored in its shut pose.</summary>
@@ -209,6 +211,7 @@ public partial class Door : Node3D
 		IsOpen = true;
 		RefreshAccessPresentation(); // Blocks interaction and hides the indicator while the leaf swings.
 		SignalBus.EmitDoorOpened(this);
+		if (OpenCue != null) SignalBus.EmitWorldSoundEmitted(OpenCue, this, GlobalPosition);
 		Swing(OpenRotationDegrees);
 	}
 
@@ -220,6 +223,7 @@ public partial class Door : Node3D
 		IsOpen = false;
 		RefreshAccessPresentation(); // The shader decides when the indicator actually appears.
 		SignalBus.EmitDoorClosed(this);
+		if (CloseCue != null) SignalBus.EmitWorldSoundEmitted(CloseCue, this, GlobalPosition);
 		Swing(0);
 	}
 

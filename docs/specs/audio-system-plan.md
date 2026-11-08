@@ -113,10 +113,11 @@ Cue validation requires at least one non-null non-looping variant, finite gain, 
 | --- | --- | --- |
 | `SoundCueProfile : Resource` | `AudioStream[] Variants = []`, `SoundCueCategory Category` (`World` or `UI`), `GainDb`, `PitchMinimum/Maximum`, `PanningStrength`, `UnitSize`, `MaxDistance`, `Priority`, `MaxVoicesPerSource`, `MaxVoicesGlobal`, `MinIntervalSeconds`; `bool Validate(out string error)` | Immutable one-shot definition; world cues route to Effects and UI cues route to UI; looped Ogg/WAV/MP3 variants are invalid |
 | `MusicProfile : Resource` | `AudioStream Stream`, `GainDb`; `bool Validate(out string error)` | Immutable single-track definition; the stream must be authored/imported to loop |
-| `AudioController : Node` | Exported `WorldSoundScene`, `WorldVoicesRoot`, `UiVoicesRoot`, door cues and voice limits; listens to world/UI/door broadcasts and resolved combat contacts; child `MusicController`; `void ReleaseScene(Node scene)` | Select contact cues from the target's surface profile, then validate/rate-limit and dispatch through pooled world playback; no gameplay state |
+| `AudioController : Node` | Exported `WorldSoundScene`, `WorldVoicesRoot`, `UiVoicesRoot` and voice limits; listens to world/UI broadcasts and resolved combat contacts; child `MusicController`; `void ReleaseScene(Node scene)` | Select contact cues from the target's surface profile, then validate/rate-limit and dispatch through pooled world playback; no gameplay state |
 | `MusicController : Node` | Exported `DeckA`, `DeckB`, exploration/boss `MusicProfile`s and `TransitionSeconds`; `PlayExploration()`, `PlayBoss()`, `StopMusic()` | Own both decks and crossfades between the two authored contexts or silence |
 | `WorldSound : AudioStreamPlayer3D, IPooledNode` | `void PlayCue(AudioStream stream, SoundCueProfile profile, Vector3 position, float pitch, Action<WorldSound> finishedCallback)` | One fixed-position voice per spawn; reset and stop on despawn, return to `ScenePool` on completion |
 | `AttackDefinition : Resource` | Optional `SoundCueProfile ReleaseCue` | Per-attack override for weapon, monster and spell release sounds |
+| Interaction owners | `Door.OpenCue`, `Door.CloseCue`, `Chest.OpenCue`, `Fountain.DrinkCue` | Optional per-instance world cues emitted only after the corresponding interaction succeeds; playback stays centralized |
 | `Weapon : EquipableItem` | Optional `PrimaryReleaseCue` and `SecondaryReleaseCue` | Fallback release sounds for generated weapon attacks and focused spell casts; an attack definition's own cue wins |
 | `ActorAudioComponent : Node` | Exported actor, Movement, Attack, optional actor release fallback, footstep/rush/guard-raise cues and cadence thresholds | Emits the attack definition's release cue for players and monsters; keeps movement and guard-raise feedback local to the actor |
 | `LevelAudioComponent : Node` | Proposed exported `Level`, boss poll interval and disengage delay | Future per-realm selection and target-loss policy; the gatekeeper starts music on first screen entry or player acquisition and returns to exploration on death |
@@ -147,7 +148,7 @@ Ambient loops and any later sustained spell sounds have local scene owners, boun
 - **Boss music:** `RealmEncounterController` starts the boss transition on the gatekeeper's first screen entry or first acquisition of the player, whichever comes first. Both route through a one-shot guard; death restores exploration music. It does not wait for the boss to begin an attack.
 - **Contacts:** `AudioController` observes `SignalBus.CombatContactResolved` once, selects the target's `ImpactSurfaceProfile` cue and routes it through world playback at `feedback.Position`. A damaging elemental contact first checks `ElementDamageSounds`, then falls back to `DamageSound`; blocked, parried and guard-broken contacts use their dedicated profile fields. Neither actor adapters nor projectiles replay target impacts. Existing Guard signals supply guard-raise/end feedback only. Dead/evaded/rejected/absorbed contacts do not produce a damage impact. Actor adapters may add a distinct, throttled hurt vocal through existing `DamageResolved`, and one death vocal through Health's death signal; these are separate from the material impact. Restore/rebind must not replay them, and prop fallback VFX must still work.
 - **Magic:** Put release cues on each spell's cast `AttackDefinition`. Release plays once per cast/volley, not once per target. Elemental damage impacts use `DamageContext.Element` and the target surface profile through the contact path. Spell/projectile scenes emit their own non-damaging world impacts only when no hurtbox handled that contact; non-damaging wards, teleport and summons emit at their committed operation. Lingering/area effects rate-limit repeated impacts and own any sustained local loop. A failed cast or mana check must not sound successful; observe existing `ManaShortfall` for a throttled player error cue.
-- **Doors:** `AudioController` observes accepted `DoorOpened`/`DoorClosed` events and emits positional open/close cues. Both currently start with door motion; `RestoreAccess`, scene readiness and failed interactions remain silent. A separate close latch at motion completion is deferred unless the current sound proves mistimed. Unlock feedback is not wired yet.
+- **Interactable props:** Each prop exports its own optional cues and emits them only after its interaction commits. `Door.OpenCue`/`CloseCue` start with accepted motion; restore and failed interactions stay silent. `Chest.OpenCue` starts as the lid begins opening, after loot is committed. `Fountain.DrinkCue` fires after a drink succeeds; it stays unassigned until an appropriate water or magic asset is available. Audio playback remains centralized in `AudioController`. Unlock, trap, and other interaction-specific cues can use the same authoring pattern when wired.
 - **Items:** Add an independent inventory audio adapter subscribing to existing committed local notifications; map existing `ConsumableItem.UseCue` values to sound profiles. Do not implement or rename the separate [consumable visual proposal](consumable-feedback-plan.md). Pickup/use/equip sounds occur after success; rebind/load never synthesize them. Generic read/drink confirmation must not reveal unknown item identities or a hidden curse. Teleport departure/arrival need the operation's actual positions, not guessed inventory UI state.
 - **UI:** Activation follows `Pressed` once, not both button-down and release. Bind audio before callbacks that change scenes, so the synchronous cue is admitted before its source exits. Deduplicate mouse hover and focus transitions, suppress automatic initial focus, ignore disabled/invisible controls and throttle navigation ticks. Bind dynamic slot/dialog buttons when their owning panel builds them and unbind when removed. Panel back/error are explicit calls; gamepad cancel produces the same cue as a Back button. Slider ticks are throttled and silent on programmatic initialization.
 
@@ -175,7 +176,7 @@ Player or monster attack release (AttackDefinition.ReleaseCue) -> ActorAudioComp
 Player displacement / dodge / guard raise -> ActorAudioComponent -> WorldSoundEmitted
 HurtBox contact resolution -> CombatContactResolved -> AudioController chooses target surface/outcome/element cue
   -> WorldSoundEmitted -> positional pooled voice
-Door open/close commit -> DoorOpened / DoorClosed -> AudioController -> positional door cue
+Door, chest or fountain commit -> target's exported cue -> WorldSoundEmitted -> AudioController -> positional one-shot
 Menu button activation -> UiSoundEmitted -> centered UI voice slot
 ```
 
@@ -244,7 +245,7 @@ After slices 1–4 are accepted in gameplay, expand in independently verifiable 
 | Batch | Owning paths and proof |
 | --- | --- |
 | Magic | Active spell/projectile scenes and elemental surface mappings. Prove one damaging elemental spell and one non-damaging ward/teleport first, then cover the active roster. Check release-once, multi-target/lingering limits, failed casts, actual departure/arrival positions and local loop cleanup if a sustained sound is needed. |
-| Items and interactions | `InventoryAudioComponent`, runtime player inventory binding, existing pickup/equip/use/lock/trap/chest commit owners and resources. Prove one pickup and one consumed item first; then extend the map. Check cancellation, silent restore/rebind and no hidden-identity/curse leaks. Keep the separate consumable visual proposal untouched. |
+| Items and interactions | `InventoryAudioComponent`, runtime player inventory binding, existing pickup/equip/use/lock/trap commit owners and resources. Door and chest cue exports are wired; fountain has an optional drink cue awaiting a suitable water/magic asset. Prove one pickup and one consumed item first; then extend the map. Check cancellation, silent restore/rebind and no hidden-identity/curse leaks. Keep the separate consumable visual proposal untouched. |
 | Ambience | One realm bed and one local fountain/fire example, their scene-owned players, the Ambience slider/preferences entry and workbench controls. Check Music mute leaves ambience audible, Effects mute includes it, pause/scene exit stop it correctly, and it does not mask combat. Expand only after listening. |
 
 Every batch names unassigned/provisional active content in the workbench. Full first-three-floor acceptance requires deliberate coverage of the events in the palette table, not merely a generic fallback noise everywhere. Play real floors on headphones, speakers, mono output and at low volume; tune cue gain/range, priorities and concurrency before adding more sound layers. Authoring acceptance includes assigning/replacing a cue in the Inspector and reopening the scene without C# changes.
@@ -258,14 +259,14 @@ Defer custom screen-space panning, HRTF integration, closed-door acoustic simula
 ## Remaining proposed affected paths
 
 ```text
-~ scenes/menu/MainMenu.cs, main_menu.tscn
-~ scenes/ui/PauseMenu.cs, pause_menu.tscn, owning dynamic inventory/dialog UIs
+~ owning dynamic inventory/dialog UIs for cue binding
 ~ scenes/audio/LevelAudioComponent.cs, InventoryAudioComponent.cs
 ~ scenes/audio/ActorAudioComponent.cs and enemy scene wiring for additional monster cues
 ~ scenes/player/PlayerAttackController.cs, scenes/items/Weapon.cs and weapon resources for authored cue coverage
 ~ scenes/effects/combat/ImpactSurfaceProfile.cs and authored material profiles
 ~ scenes/levels/generators/Realm.cs, realms/{garrison,sewer,jungle}.tres
-~ scenes/props/Door.cs and lock commit owners
+~ lock commit owners and trap activation/trigger owners
+~ fountain base scenes if a fitting drink profile is selected
 ~ active spell/projectile, item-use, pickup and interactive scenes/resources
 ~ assets/<selected additional audio packs>
 ~ assets/ATTRIBUTIONS.json

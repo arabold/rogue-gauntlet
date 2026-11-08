@@ -5,18 +5,12 @@
 [ext_resource type="Script" path="res://scenes/audio/MusicController.cs" id="3_music_script"]
 [ext_resource type="Resource" path="res://scenes/audio/music_profiles/heavy_dungeon.tres" id="4_exploration"]
 [ext_resource type="Resource" path="res://scenes/audio/music_profiles/heavy_battle_1.tres" id="5_boss"]
-[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/door_open.tres" id="6_door_open"]
-[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/door_close.tres" id="7_door_close"]
-
 [node name="AudioController" type="Node" node_paths=PackedStringArray("WorldVoicesRoot", "UiVoicesRoot")]
 process_mode = 3
 script = ExtResource("1_script")
 WorldSoundScene = ExtResource("2_world_sound")
 WorldVoicesRoot = NodePath("WorldVoicesRoot")
 UiVoicesRoot = NodePath("UiVoicesRoot")
-DoorOpenCue = ExtResource("6_door_open")
-DoorCloseCue = ExtResource("7_door_close")
-
 [node name="WorldVoicesRoot" type="Node3D" parent="."]
 process_mode = 1
 

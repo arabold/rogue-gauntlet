@@ -6,6 +6,8 @@
 
 [ext_resource type="Script" path="res://scenes/levels/access/DoorLockComponent.cs" id="lock_script"]
 [ext_resource type="Script" path="res://scenes/levels/access/SecretDoorComponent.cs" id="secret_script"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/door_open.tres" id="open_cue"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/door_close.tres" id="close_cue"]
 
 [ext_resource type="Texture2D" path="res://scenes/props/key_marker.svg" id="key_marker_texture"]
 
@@ -112,6 +114,8 @@ KeyMarker = NodePath("KeyMarker")
 DoorVisual = NodePath("wall_doorway")
 Leaf = NodePath("wall_doorway/wall_doorway_door")
 Collision = NodePath("LeafBody/Collision")
+OpenCue = ExtResource("open_cue")
+CloseCue = ExtResource("close_cue")
 
 [node name="wall_doorway" type="MeshInstance3D" parent="."]
 layers = 16

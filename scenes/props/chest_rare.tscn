@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" uid="uid://nft3v52nfsps" path="res://scenes/props/Chest.cs" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://bt2xbjfmvfhn" path="res://assets/kaykit-dungeon-legacy/chest_rare.gltf.glb" id="2_body"]
@@ -6,12 +6,14 @@
 [ext_resource type="PackedScene" uid="uid://dekj8iq2d1qp5" path="res://scenes/components/interactive_component.tscn" id="4_interactive"]
 [ext_resource type="PackedScene" uid="uid://dud0hid1mwmdw" path="res://scenes/components/loot_table_component.tscn" id="5_loot_comp"]
 [ext_resource type="Resource" path="res://scenes/items/loot/drops/chest_rare.tres" id="6_loot_table"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/chest_open.tres" id="open_cue"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_body"]
 size = Vector3(1.84, 0.6, 1.1)
 
 [node name="Chest" type="Node3D" node_paths=PackedStringArray("Interactive", "LootTable", "Lid") groups=["prop"]]
 script = ExtResource("1_script")
+OpenCue = ExtResource("open_cue")
 Interactive = NodePath("InteractiveComponent")
 LootTable = NodePath("LootTableComponent")
 Lid = NodePath("chest/chest_lid")

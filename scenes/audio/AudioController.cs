@@ -16,8 +16,6 @@ public partial class AudioController : Node
 	[Export] public PackedScene WorldSoundScene { get; set; }
 	[Export] public Node3D WorldVoicesRoot { get; set; }
 	[Export] public Node UiVoicesRoot { get; set; }
-	[Export] public SoundCueProfile DoorOpenCue { get; set; }
-	[Export] public SoundCueProfile DoorCloseCue { get; set; }
 	[Export(PropertyHint.Range, "1,64,1")] public int MaxWorldVoices { get; set; } = 24;
 	[Export(PropertyHint.Range, "1,16,1")] public int MaxUiVoices { get; set; } = 4;
 
@@ -64,10 +62,6 @@ public partial class AudioController : Node
 			signalBus,
 			bus => bus.UiSoundEmitted += OnUiSoundEmitted,
 			bus => bus.UiSoundEmitted -= OnUiSoundEmitted);
-		this.SubscribeUntilExit(
-			signalBus,
-			bus => { bus.DoorOpened += OnDoorOpened; bus.DoorClosed += OnDoorClosed; },
-			bus => { bus.DoorOpened -= OnDoorOpened; bus.DoorClosed -= OnDoorClosed; });
 		this.SubscribeUntilExit(
 			signalBus,
 			_ => SignalBus.CombatContactResolved += OnCombatContactResolved,
@@ -245,10 +239,6 @@ public partial class AudioController : Node
 		RecordPlayed(cue, source.GetInstanceId());
 	}
 
-	private void OnDoorOpened(Node3D door) => EmitDoorCue(DoorOpenCue, door);
-
-	private void OnDoorClosed(Node3D door) => EmitDoorCue(DoorCloseCue, door);
-
 	/// <summary>Plays one target-authored cue for a completed damaging or defended contact.</summary>
 	private void OnCombatContactResolved(in CombatContactFeedback feedback)
 	{
@@ -283,14 +273,6 @@ public partial class AudioController : Node
 			DamageOutcome.GuardBroken => surface.GuardBreakSound,
 			_ => null
 		};
-
-	private static void EmitDoorCue(SoundCueProfile cue, Node3D door)
-	{
-		if (cue != null && GodotObject.IsInstanceValid(door) && door.IsInsideTree())
-		{
-			SignalBus.EmitWorldSoundEmitted(cue, door, door.GlobalPosition);
-		}
-	}
 
 	private readonly long[] _uiSequence = new long[MaximumUiVoiceSlots];
 
