@@ -3,12 +3,12 @@
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uhnp6"]
 resource_name = "Stone"
 albedo_color = Color(0.475807, 0.515005, 0.533327, 1)
-roughness = 0.5
+roughness = 0.85
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3t2ff"]
 resource_name = "WoodDark"
 albedo_color = Color(0.428569, 0.375849, 0.358981, 1)
-roughness = 0.5
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_peh7g"]
 _surfaces = [{

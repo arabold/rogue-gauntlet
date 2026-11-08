@@ -4,7 +4,7 @@
 resource_name = "White"
 cull_mode = 2
 albedo_color = Color(0.905882, 0.905882, 0.905882, 1)
-roughness = 0.5
+roughness = 0.85
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1wybk"]
 resource_name = "Gold"

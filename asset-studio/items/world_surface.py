@@ -2,7 +2,7 @@
 
 The pack's dungeon props are UV-mapped onto one 8x4 grid of vertical gradient swatches
 (`assets/kaykit-dungeon-remastered/dungeon_texture.png`, byte-identical to the Studio's
-`rigs/item_palette.png`) with a single plain material (metallic 0, roughness 0.45). Every
+`rigs/item_palette.png`) with a single plain material, matte as the project imports it (metallic 0, roughness 0.85). Every
 material is one swatch column, and the shade inside it follows height: measured on the pack's
 tables, barrels, crates and beds, v runs from about 0.1 at a model's top to 0.86 at its foot.
 `SWATCHES` names the cell used for each Studio material slot plus a shade offset; flames and
@@ -98,7 +98,7 @@ def export(path, name, piece, crease=40.0, slot_crease=None):
         accessors.append({'bufferView': 3 + k, 'componentType': 5125, 'count': len(group), 'type': 'SCALAR'})
         primitives.append({'attributes': {'POSITION': 0, 'NORMAL': 1, 'TEXCOORD_0': 2}, 'indices': len(accessors) - 1,
                            'material': material})
-    texture = {'baseColorTexture': {'index': 0}, 'metallicFactor': 0, 'roughnessFactor': .45}
+    texture = {'baseColorTexture': {'index': 0}, 'metallicFactor': 0, 'roughnessFactor': .85}
     gltf = {
         'asset': {'version': '2.0', 'generator': 'Rogue Gauntlet Asset Studio world_surface'},
         'scene': 0, 'scenes': [{'nodes': [0]}], 'nodes': [{'name': name, 'mesh': 0}],
