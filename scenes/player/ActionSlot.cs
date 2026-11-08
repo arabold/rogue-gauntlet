@@ -53,6 +53,21 @@ public partial class ActionSlot : Node
 
 	public void CancelExecution(ActionInterruptReason reason)
 	{
+		if (reason == ActionInterruptReason.NewAction && AssignedAction is SpellCastAction && RemainingTime > 0)
+		{
+			bool wasPerformingHandoff = IsPerformingAction;
+			_generation++;
+			if (_actor != null && _actor.AttackController.IsAttacking)
+			{
+				_actor.AttackController.CancelAttack();
+			}
+			ReleaseGateLease();
+			IsPerformingAction = false;
+			IsOnCooldown = true;
+			SetProcess(true);
+			if (wasPerformingHandoff) EmitSignalActionPerformed();
+			return;
+		}
 		bool wasPerforming = IsPerformingAction;
 		_generation++;
 		if (_actor != null && _actor.AttackController.IsAttacking)
@@ -73,6 +88,10 @@ public partial class ActionSlot : Node
 	{
 		bool replacing = chain && IsPerformingAction && !IsDelayed && !IsOnCooldown;
 		if (AssignedAction == null || IsDelayed || (IsPerformingAction && !replacing) || IsOnCooldown || player.IsDead || player.IsHit) return false;
+		if (AssignedAction is SpellCastAction spellCast && player.ActionManager?.IsWandOnCooldown(spellCast.Focus?.InstanceId) == true)
+		{
+			return false;
+		}
 		var action = AssignedAction;
 		var weapon = action as Weapon;
 		var attackAction = action as ICombatAttackAction;
@@ -114,6 +133,10 @@ public partial class ActionSlot : Node
 		var attackAction = action as ICombatAttackAction;
 		TotalDuration = delay + duration + cooldown;
 		RemainingTime = TotalDuration;
+		if (action is SpellCastAction spellAction)
+		{
+			player.ActionManager?.TrackWandCooldown(spellAction.Focus?.InstanceId, TotalDuration, TotalDuration);
+		}
 		SetProcess(true);
 		SetPhysicsProcess(true);
 		SignalBus.EmitCooldownUpdated(SlotIndex, (float)RemainingTime, (float)TotalDuration);
@@ -217,12 +240,30 @@ public partial class ActionSlot : Node
 		}
 	}
 
+	public void ResumeCooldown(double remainingTime, double totalDuration)
+	{
+		if (remainingTime <= 0 || totalDuration <= 0) return;
+		TotalDuration = totalDuration;
+		RemainingTime = remainingTime;
+		IsOnCooldown = true;
+		IsPerformingAction = false;
+		IsDelayed = false;
+		SetProcess(true);
+		SignalBus.EmitCooldownUpdated(SlotIndex, (float)RemainingTime, (float)TotalDuration);
+	}
+
 	public override void _Process(double delta)
 	{
 		if (IsDelayed || IsPerformingAction || IsOnCooldown)
 		{
 			RemainingTime = System.Math.Max(RemainingTime - delta, 0);
 			SignalBus.EmitCooldownUpdated(SlotIndex, (float)RemainingTime, (float)TotalDuration);
+			if (IsOnCooldown && RemainingTime <= 0)
+			{
+				IsOnCooldown = false;
+				EmitSignalCooldownEnded();
+				Reset();
+			}
 		}
 	}
 }

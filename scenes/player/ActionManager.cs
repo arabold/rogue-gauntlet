@@ -42,6 +42,85 @@ public partial class ActionManager : Node
 	private readonly List<ActionSlot> _quickItemSlots = new();
 	private IPlayerAction _currentAction;
 	private ActionSlot _currentSlot;
+	private readonly System.Collections.Generic.Dictionary<string, (double Remaining, double Total)> _wandCooldowns = new();
+
+	public bool IsWandOnCooldown(string instanceId) =>
+		!string.IsNullOrEmpty(instanceId) && _wandCooldowns.TryGetValue(instanceId, out var cd) && cd.Remaining > 0;
+
+	public void TrackWandCooldown(string instanceId, double remaining, double total)
+	{
+		if (string.IsNullOrEmpty(instanceId) || remaining <= 0) return;
+		_wandCooldowns[instanceId] = (remaining, total);
+		SetProcess(true);
+	}
+
+	public bool TryGetWandCooldown(string instanceId, out (double Remaining, double Total) cd)
+	{
+		if (!string.IsNullOrEmpty(instanceId) && _wandCooldowns.TryGetValue(instanceId, out cd) && cd.Remaining > 0)
+		{
+			return true;
+		}
+		cd = default;
+		return false;
+	}
+
+	public System.Collections.Generic.Dictionary<string, float> CaptureWandCooldowns()
+	{
+		var dict = new System.Collections.Generic.Dictionary<string, float>();
+		foreach (var (key, (remaining, _)) in _wandCooldowns)
+		{
+			if (remaining > 0) dict[key] = (float)remaining;
+		}
+		return dict;
+	}
+
+	public void RestoreWandCooldowns(System.Collections.Generic.Dictionary<string, float> cooldowns)
+	{
+		_wandCooldowns.Clear();
+		if (cooldowns == null) return;
+		foreach (var (key, remaining) in cooldowns)
+		{
+			if (!string.IsNullOrEmpty(key) && float.IsFinite(remaining) && remaining > 0)
+			{
+				_wandCooldowns[key] = (remaining, remaining);
+				SetProcess(true);
+			}
+		}
+	}
+
+	public override void _Process(double delta)
+	{
+		if (_wandCooldowns.Count == 0)
+		{
+			SetProcess(false);
+			return;
+		}
+
+		System.Collections.Generic.List<string> expired = null;
+		var keys = new System.Collections.Generic.List<string>(_wandCooldowns.Keys);
+		foreach (string key in keys)
+		{
+			var (remaining, total) = _wandCooldowns[key];
+			remaining -= delta;
+			if (remaining <= 0)
+			{
+				expired ??= [];
+				expired.Add(key);
+			}
+			else
+			{
+				_wandCooldowns[key] = (remaining, total);
+			}
+		}
+		if (expired != null)
+		{
+			foreach (string key in expired) _wandCooldowns.Remove(key);
+		}
+		if (_wandCooldowns.Count == 0)
+		{
+			SetProcess(false);
+		}
+	}
 
 	public override void _Ready()
 	{
@@ -75,6 +154,7 @@ public partial class ActionManager : Node
 		OffhandActionSlot ??= GetNodeOrNull<ActionSlot>("OffhandActionSlot");
 		if (OffhandActionSlot != null)
 		{
+			OffhandActionSlot.ActionKind = ActorActionKind.SecondaryTechnique;
 			OffhandActionSlot.SlotIndex = OffhandSlotIndex;
 			OffhandActionSlot.PerformAction += () => OnActionPerformed(OffhandActionSlot);
 			OffhandActionSlot.ActionPerformed += () => OnActionCompleted(OffhandActionSlot);
@@ -160,12 +240,20 @@ public partial class ActionManager : Node
 	public void AssignSecondary(ICombatAttackAction action, PackedScene previewScene)
 	{
 		SecondaryTechniqueSlot?.AssignAction(SecondarySlotIndex, action as IPlayerAction, previewScene);
+		if (action is SpellCastAction spellCast && TryGetWandCooldown(spellCast.Focus?.InstanceId, out var cd))
+		{
+			SecondaryTechniqueSlot?.ResumeCooldown(cd.Remaining, cd.Total);
+		}
 		SignalBus.EmitPlayerActionSlotChanged(SecondarySlotIndex, SecondaryTechniqueSlot);
 	}
 
 	public void AssignOffhand(ICombatAttackAction action, PackedScene previewScene)
 	{
 		OffhandActionSlot?.AssignAction(OffhandSlotIndex, action as IPlayerAction, previewScene);
+		if (action is SpellCastAction spellCast && TryGetWandCooldown(spellCast.Focus?.InstanceId, out var cd))
+		{
+			OffhandActionSlot?.ResumeCooldown(cd.Remaining, cd.Total);
+		}
 		SignalBus.EmitPlayerActionSlotChanged(OffhandSlotIndex, OffhandActionSlot);
 	}
 

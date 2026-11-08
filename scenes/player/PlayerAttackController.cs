@@ -32,6 +32,7 @@ public partial class PlayerAttackController : AttackController
 	/// </summary>
 	private Node3D _aimAssistTarget;
 	private Weapon _activeWeapon;
+	public Weapon ActiveWeapon => _activeWeapon;
 	private Weapon _activeOffhandWeapon;
 
 	/// <summary>Index of the last started step of the current primary combo; -1 when no combo is in progress.</summary>
@@ -186,7 +187,12 @@ public partial class PlayerAttackController : AttackController
 	/// </summary>
 	public bool StartPreparedSpellCast(PreparedAttack attack, Weapon focus, ActorActionLease lease = default)
 	{
-		if (Player.IsDead || Player.IsHit || IsAttacking || attack?.Spell == null) return false;
+		if (Player.IsDead || Player.IsHit || attack?.Spell == null) return false;
+		if (IsAttacking)
+		{
+			if (Phase != ActorActionPhase.Recovery || ReferenceEquals(focus, _activeWeapon)) return false;
+			CancelAttack();
+		}
 		_activeWeapon = focus;
 		_activeOffhandWeapon = null;
 		_aimAssistTarget = null;
@@ -199,7 +205,10 @@ public partial class PlayerAttackController : AttackController
 	{
 		if (IsAttacking)
 		{
-			if (_activeWeapon != null && !ReferenceEquals(Player.Inventory.EquippedWeapon, _activeWeapon))
+			bool mainEquipped = _activeWeapon == null
+				|| ReferenceEquals(Player.Inventory?.EquippedWeapon, _activeWeapon)
+				|| ReferenceEquals(Player.Inventory?.EquippedOffhandWeapon, _activeWeapon);
+			if (!mainEquipped)
 			{
 				CancelAttack();
 			}
@@ -236,6 +245,8 @@ public partial class PlayerAttackController : AttackController
 
 	private void OnAttackFinished(AttackIdentity execution, bool interrupted)
 	{
+		_activeWeapon = null;
+		_activeOffhandWeapon = null;
 		if (ComboStep < 0) return;
 		// A chain also interrupts the previous step; the new step was already prepared and restarts tracking.
 		if (interrupted || ComboStep + 1 >= _combo.Steps.Count) { ResetCombo(); return; }

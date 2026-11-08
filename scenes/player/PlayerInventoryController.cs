@@ -73,6 +73,15 @@ public partial class PlayerInventoryController : Node
 			Weapon weapon = Inventory.EquippedWeapon;
 			EquipableItem offhandItem = shieldSlot?.Item as EquipableItem;
 
+			if (offhandItem is MagicStaff wand)
+			{
+				ActionManager?.AssignOffhand(new SpellCastAction(wand, EquipmentSlot.ShieldHand), wand.Scene);
+				Player.GuardComponent.ApplyGuardDefinition(null);
+				return;
+			}
+
+			ActionManager?.AssignOffhand(null, null);
+
 			bool isTwoHanded = weapon != null && weapon.IsTwoHanded;
 
 			if (isTwoHanded)
@@ -99,7 +108,7 @@ public partial class PlayerInventoryController : Node
 			}
 			else if (offhandItem is Weapon)
 			{
-				// Off-hand weapon (melee dagger, or wand) removes guard
+				// Paired melee off-hand weapon removes guard
 				Player.GuardComponent.ApplyGuardDefinition(null);
 				return;
 			}
@@ -121,6 +130,10 @@ public partial class PlayerInventoryController : Node
 				Player.GuardComponent.ApplyGuardDefinition(null);
 				return;
 			}
+		}
+		else
+		{
+			ActionManager?.AssignOffhand(null, null);
 		}
 
 		effectiveGuard ??= Player?.Capabilities?.InnateGuard;

@@ -13,6 +13,7 @@ ActionKind = 1
 ActionKind = 2
 
 [node name="OffhandActionSlot" parent="." instance=ExtResource("1_f7uw6")]
+ActionKind = 2
 
 [node name="ActionSlot_1" parent="." instance=ExtResource("1_f7uw6")]
 

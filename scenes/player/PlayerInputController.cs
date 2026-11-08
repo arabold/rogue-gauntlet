@@ -116,8 +116,8 @@ public partial class PlayerInputController : Node
 		if (TryBufferedDodge()) return;
 
 		// 2. Guard: raise while the press is fresh and still held (it may cancel attack recovery), hold, release
-		if (!_requireDefenseRelease && IsGuardHeld && Player.GuardComponent?.IsGuarding == false
-			&& _intents.IsPending(PlayerIntent.GuardPress, _clock)
+		if (!_requireDefenseRelease && IsGuardHeld && Player.GuardComponent?.HasGuard == true && Player.GuardComponent?.IsGuarding == false
+			&& _intents.IsPending(PlayerIntent.Offhand, _clock)
 			&& Player.GuardComponent.TryBeginGuard(MovementComponent.LookAtDirection) == DefenseRequestResult.Success)
 		{
 			_intents.Clear();
@@ -149,6 +149,12 @@ public partial class PlayerInputController : Node
 			if (_intents.IsPending(PlayerIntent.Primary, _clock) && ActionManager.TryChainPrimary())
 				_intents.TryConsume(PlayerIntent.Primary, _clock);
 
+			// Opposite wand handoff during recovery:
+			if (_intents.IsPending(PlayerIntent.Secondary, _clock) && ActionManager.TryPerformSecondary())
+				_intents.TryConsume(PlayerIntent.Secondary, _clock);
+			else if (_intents.IsPending(PlayerIntent.Offhand, _clock) && ActionManager.TryPerformOffhand())
+				_intents.TryConsume(PlayerIntent.Offhand, _clock);
+
 			// Aim-assist: while attacking, turn toward the locked target so the player does not have to
 			// face the enemy exactly. With no target, keep facing the movement/aim input as before.
 			Vector3 assistFacing = Player.AttackController?.GetAimAssistFacing() ?? Vector3.Zero;
@@ -165,9 +171,21 @@ public partial class PlayerInputController : Node
 			return;
 		}
 
+		// Offhand action (wand cast): one request per buffered press
+		bool started = false;
+		if (ActionManager.OffhandActionSlot?.AssignedAction != null
+			&& _intents.IsPending(PlayerIntent.Offhand, _clock))
+		{
+			started = ActionManager.TryPerformOffhand();
+			if (started) _intents.TryConsume(PlayerIntent.Offhand, _clock);
+		}
+
 		// Secondary technique: one request per buffered press
-		bool started = _intents.IsPending(PlayerIntent.Secondary, _clock) && ActionManager.TryPerformSecondary()
-			&& _intents.TryConsume(PlayerIntent.Secondary, _clock);
+		if (!started && _intents.IsPending(PlayerIntent.Secondary, _clock))
+		{
+			started = ActionManager.TryPerformSecondary();
+			if (started) _intents.TryConsume(PlayerIntent.Secondary, _clock);
+		}
 		// Primary action: press, or hold to repeat complete attacks (and combo steps) at normal cadence
 		if (!started && (_intents.IsPending(PlayerIntent.Primary, _clock) || InputComponent.IsPrimaryActionPressed()))
 		{
@@ -202,7 +220,7 @@ public partial class PlayerInputController : Node
 	private void BufferFreshPresses()
 	{
 		if (InputComponent.IsDodgeJustPressed()) _intents.Push(PlayerIntent.Dodge, _clock);
-		if (InputComponent.IsOffhandJustPressed()) _intents.Push(PlayerIntent.GuardPress, _clock);
+		if (InputComponent.IsOffhandJustPressed()) _intents.Push(PlayerIntent.Offhand, _clock);
 		if (InputComponent.IsPrimaryActionJustPressed()) _intents.Push(PlayerIntent.Primary, _clock);
 		if (InputComponent.IsSecondaryActionJustPressed()) _intents.Push(PlayerIntent.Secondary, _clock);
 	}

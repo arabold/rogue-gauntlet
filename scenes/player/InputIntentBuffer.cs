@@ -1,7 +1,7 @@
 using System;
 
 /// <summary>Fresh presses the input controller may hold until an action can accept them.</summary>
-public enum PlayerIntent { Primary, Secondary, Dodge, GuardPress }
+public enum PlayerIntent { Primary, Secondary, Dodge, Offhand }
 
 /// <summary>
 /// Remembers each fresh press for <c>window</c> seconds of gameplay time, so a press made while the player is
