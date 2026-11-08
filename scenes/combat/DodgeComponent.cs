@@ -44,7 +44,10 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 	private uint _passThroughMask;
 	private float _exitElapsed;
 	// Shape queries for the exit check, built once per pass-through dodge; only their transforms change.
-	private readonly System.Collections.Generic.List<(PhysicsShapeQueryParameters3D Query, Node3D Shape)> _exitQueries = [];
+	private readonly System.Collections.Generic.List<(PhysicsShapeQueryParameters3D Query, Node3D Shape, Aabb Bounds)> _exitQueries = [];
+	private readonly System.Collections.Generic.List<PhysicsBody3D> _passThroughBodies = [];
+	private readonly Godot.Collections.Array<Rid> _passThroughExclude = [];
+	private PhysicsShapeQueryParameters3D _passThroughQuery;
 
 	public override void _Ready()
 	{
@@ -245,6 +248,7 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 						_dodgeSpeed * Mathf.Min(1, (EffectiveDefinition.TravelDuration - previous) / dt));
 			}
 			else if (!exiting) MovementComponent?.ClearLocomotionOverride(this);
+			UpdatePassThroughBodies(dt);
 			// Fresh steering may queue the next turn, but a sidestep keeps its starting orientation through recovery.
 			MovementComponent?.SetFixedFacing(this, _dodgeFacing);
 
@@ -336,23 +340,68 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		if (_passThroughMask == 0) return;
 		Actor.CollisionMask &= ~_passThroughMask;
 		var exclude = new Godot.Collections.Array<Rid> { Actor.GetRid() };
+		_passThroughExclude.Clear();
+		_passThroughExclude.Add(Actor.GetRid());
+		// Existing exceptions belong to their original owner and must survive this dodge.
+		foreach (var body in Actor.GetCollisionExceptions())
+			if (GodotObject.IsInstanceValid(body)) _passThroughExclude.Add(body.GetRid());
+		_passThroughQuery = new PhysicsShapeQueryParameters3D
+		{
+			Shape = new BoxShape3D(), CollisionMask = _passThroughMask, Exclude = _passThroughExclude
+		};
 		foreach (uint owner in Actor.GetShapeOwners())
 		{
 			if (Actor.IsShapeOwnerDisabled(owner) || Actor.ShapeOwnerGetOwner(owner) is not Node3D shapeNode) continue;
 			for (int i = 0; i < Actor.ShapeOwnerGetShapeCount(owner); i++)
+			{
+				var shape = Actor.ShapeOwnerGetShape(owner, i);
 				_exitQueries.Add((new PhysicsShapeQueryParameters3D
 				{
-					Shape = Actor.ShapeOwnerGetShape(owner, i),
-					CollisionMask = _passThroughMask,
-					Exclude = exclude
-				}, shapeNode));
+					Shape = shape, CollisionMask = _passThroughMask, Exclude = exclude
+				}, shapeNode, shape.GetDebugMesh().GetAabb()));
+			}
+		}
+	}
+
+	/// <summary>Ignore bodies along this step in both directions, preventing their MoveAndSlide recovery from pushing them away.</summary>
+	private void UpdatePassThroughBodies(float dt)
+	{
+		if (_passThroughMask == 0 || !GodotObject.IsInstanceValid(Actor) || !Actor.IsInsideTree()) return;
+		var space = Actor.GetWorld3D().DirectSpaceState;
+		Vector3 motion = _dodgeDirection * (_dodgeSpeed * dt);
+		motion.Y = (MovementComponent?.Velocity.Y ?? 0) * dt;
+		foreach (var (_, shape, localBounds) in _exitQueries)
+		{
+			// A swept bounding box includes slowed travel and wall slides as well as the intended endpoint.
+			Aabb bounds = shape.GlobalTransform * localBounds;
+			bounds = bounds.Merge(new Aabb(bounds.Position + motion, bounds.Size)).Grow(Actor.SafeMargin);
+			((BoxShape3D)_passThroughQuery.Shape).Size = bounds.Size;
+			_passThroughQuery.Transform = new Transform3D(Basis.Identity, bounds.GetCenter());
+			// Excluding each discovered body lets dense crowds exceed the query's result limit.
+			while (space.IntersectShape(_passThroughQuery, 1) is { Count: > 0 } hits)
+			{
+				var body = (PhysicsBody3D)hits[0]["collider"].AsGodotObject();
+				Actor.AddCollisionExceptionWith(body);
+				_passThroughBodies.Add(body);
+				_passThroughExclude.Add(body.GetRid());
+				_passThroughQuery.Exclude = _passThroughExclude;
+			}
 		}
 	}
 
 	private void EndPassThrough()
 	{
 		if (_passThroughMask == 0) return;
-		if (GodotObject.IsInstanceValid(Actor)) Actor.CollisionMask |= _passThroughMask;
+		if (GodotObject.IsInstanceValid(Actor))
+		{
+			Actor.CollisionMask |= _passThroughMask;
+			foreach (var body in _passThroughBodies)
+				if (GodotObject.IsInstanceValid(body)) Actor.RemoveCollisionExceptionWith(body);
+		}
+		_passThroughBodies.Clear();
+		_passThroughExclude.Clear();
+		_passThroughQuery = null;
+		_exitQueries.Clear();
 		_passThroughMask = 0;
 	}
 
@@ -375,7 +424,7 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 	{
 		if (!GodotObject.IsInstanceValid(Actor) || !Actor.IsInsideTree()) return false;
 		var space = Actor.GetWorld3D().DirectSpaceState;
-		foreach (var (query, shape) in _exitQueries)
+		foreach (var (query, shape, _) in _exitQueries)
 		{
 			query.Transform = shape.GlobalTransform;
 			if (space.IntersectShape(query, 1).Count > 0) return true;
