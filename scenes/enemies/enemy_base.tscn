@@ -48,7 +48,7 @@
 [ext_resource type="Script" path="res://scenes/effects/combat/CombatVisualMotionComponent.cs" id="combat_motion_script"]
 [ext_resource type="Script" path="res://scenes/audio/ActorAudioComponent.cs" id="audio_component_script"]
 
-[node name="Enemy" type="CharacterBody3D" node_paths=PackedStringArray("Nameplate", "FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "BuffController", "WorldEffects", "Invisibility", "AttackController", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+[node name="Enemy" type="CharacterBody3D" node_paths=PackedStringArray("Nameplate", "FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "BuffController", "WorldEffects", "Invisibility", "AttackController", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent", "ActorAudioComponent") groups=["enemy"]]
 Nameplate = NodePath("Nameplate")
 BuffController = NodePath("BuffController")
 FrozenStatus = NodePath("FrozenStatusComponent")
@@ -70,6 +70,7 @@ HealthComponent = NodePath("HealthComponent")
 HurtBoxComponent = NodePath("HurtBoxComponent")
 DeathComponent = NodePath("DeathComponent")
 LootTableComponent = NodePath("LootTableComponent")
+ActorAudioComponent = NodePath("ActorAudioComponent")
 
 [node name="Pivot" type="Node3D" parent="."]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)

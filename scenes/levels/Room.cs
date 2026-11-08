@@ -26,6 +26,7 @@ public partial class Room : Node3D
 	internal HashSet<Vector3I> DividerCells { get; private set; } = [];
 	/// <summary>Edges occupied by doorway frames or concealed walls, in room-local grid coordinates.</summary>
 	internal HashSet<(Vector3I Center, bool Horizontal)> FramedEdges { get; private set; } = [];
+	private readonly Dictionary<int, SoundCueProfile> _footstepCuesByFloorItem = [];
 
 	/// <summary>The room type that assembled this room, content included.</summary>
 	[Export] public RoomType Type { get; set; }
@@ -40,6 +41,19 @@ public partial class Room : Node3D
 	/// The size of each tile in the grid map (must be 4x4)
 	/// </summary>
 	public const int TileSize = 4;
+
+	/// <summary>Maps this assembled room's floor mesh items to their surface footsteps before the maps are merged.</summary>
+	internal IReadOnlyDictionary<int, SoundCueProfile> FootstepCuesByFloorItem => _footstepCuesByFloorItem;
+
+	internal void RegisterFootstepMaterial(FloorMaterial material)
+	{
+		if (material?.FootstepCue == null || FloorGridMap?.MeshLibrary == null) return;
+		foreach (string item in material.Large.Keys.Concat(material.Small.Keys).Concat(material.Wear.Keys))
+		{
+			int itemId = FloorGridMap.MeshLibrary.FindItemByName(item);
+			if (itemId >= 0) _footstepCuesByFloorItem.TryAdd(itemId, material.FootstepCue);
+		}
+	}
 
 	/// <summary>
 	/// Sets the room's tile map from its assembly: every footprint tile is floor, except pits cut out of it (chasms that

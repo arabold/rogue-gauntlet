@@ -75,6 +75,9 @@ current = true
 projection = 1
 size = 18.0
 
+[node name="AudioListener3D" type="AudioListener3D" parent="Camera3D"]
+current = true
+
 [node name="PhantomCameraHost" type="Node" parent="Camera3D"]
 process_priority = 300
 process_physics_priority = 300

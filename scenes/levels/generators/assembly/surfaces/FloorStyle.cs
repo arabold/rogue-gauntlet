@@ -62,6 +62,8 @@ public abstract partial class FloorStyle : Resource
 			quads[x, z] = patch.Material;
 			splits[x, z] = default;
 		}
+		foreach (FloorMaterial material in quads.Cast<FloorMaterial>().Where(material => material != null).Distinct())
+			room.Room.RegisterFootstepMaterial(material);
 		var covered = new bool[quads.GetLength(0), quads.GetLength(1)];
 		foreach (var inlay in Inlays) PlaceInlay(room, inlay, quads, splits, covered, rng);
 		var roomTurns = Materials.Concat(room.FloorPatches.Select(patch => patch.Material)).Distinct()

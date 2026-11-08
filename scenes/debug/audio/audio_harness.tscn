@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scenes/debug/audio/AudioHarness.cs" id="1_script"]
 [ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="2_cue_profile"]
@@ -14,11 +14,13 @@
 [ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/parry.tres" id="12_parry"]
 [ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/guard_break.tres" id="13_guard_break"]
 [ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/door_close.tres" id="14_door_close"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/item_pickup.tres" id="15_item_pickup"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/item_drop.tres" id="16_item_drop"]
 
 [node name="AudioHarness" type="Node3D"]
 process_mode = 3
 script = ExtResource("1_script")
-Cues = Array[ExtResource("2_cue_profile")]([ExtResource("3_ui_click"), ExtResource("4_ui_rollover"), ExtResource("5_footstep"), ExtResource("8_rush"), ExtResource("9_attack_release"), ExtResource("10_guard_raise"), ExtResource("11_guard_block"), ExtResource("12_parry"), ExtResource("13_guard_break"), ExtResource("6_door_open"), ExtResource("14_door_close")])
+Cues = Array[ExtResource("2_cue_profile")]([ExtResource("3_ui_click"), ExtResource("4_ui_rollover"), ExtResource("5_footstep"), ExtResource("8_rush"), ExtResource("9_attack_release"), ExtResource("10_guard_raise"), ExtResource("11_guard_block"), ExtResource("12_parry"), ExtResource("13_guard_break"), ExtResource("6_door_open"), ExtResource("14_door_close"), ExtResource("15_item_pickup"), ExtResource("16_item_drop")])
 StressCue = ExtResource("7_stress")
 
 [node name="Camera3D" type="Camera3D" parent="."]

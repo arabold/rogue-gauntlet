@@ -62,6 +62,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	[Export] public DodgeComponent DodgeComponent { get; set; }
 	[Export] public EnemyDefenseController DefenseController { get; set; }
 	[Export] public AttackController AttackController { get; set; }
+	[Export] public ActorAudioComponent ActorAudioComponent { get; set; }
 
 	/// <summary>Optional: shows <see cref="MonsterDefinition.DisplayName"/> above the monster while the player is near.</summary>
 	[Export] public Nameplate Nameplate { get; set; }
@@ -90,6 +91,8 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 		HealthComponent.SetHealth(Definition.MaxHealth, Definition.MaxHealth);
 		MovementComponent.Speed = Definition.MoveSpeed;
 		DeathComponent.Xp = Definition.XpReward;
+		DeathComponent.DeathCue = Definition.DeathCue;
+		if (ActorAudioComponent != null) ActorAudioComponent.AttackVoiceCue = Definition.AttackVoiceCue;
 		LootTableComponent.Profile = Definition.Loot;
 		EnemyBehaviorComponent.Profile = Definition.Behavior;
 		if (Nameplate != null) Nameplate.NameLabel.Text = Definition.DisplayName;

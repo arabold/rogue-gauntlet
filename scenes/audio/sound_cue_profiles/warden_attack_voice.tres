@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="script"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/ogre/ogre1.wav" id="sample_1"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/ogre/ogre2.wav" id="sample_2"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/ogre/ogre3.wav" id="sample_3"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/ogre/ogre4.wav" id="sample_4"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/ogre/ogre5.wav" id="sample_5"]
+
+[resource]
+script = ExtResource("script")
+Variants = Array[AudioStream]([ExtResource("sample_1"), ExtResource("sample_2"), ExtResource("sample_3"), ExtResource("sample_4"), ExtResource("sample_5")])
+Category = 0
+GainDb = -14.0
+PitchMinimum = 0.96
+PitchMaximum = 1.04
+PanningStrength = 0.2
+UnitSize = 5.0
+MaxDistance = 28.0
+Priority = 5
+MaxVoicesPerSource = 1
+MaxVoicesGlobal = 4
+MinIntervalSeconds = 0.08

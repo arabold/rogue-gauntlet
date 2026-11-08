@@ -1,8 +1,11 @@
-[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/MonsterDefinition.cs" id="script"]
 [ext_resource type="Resource" path="res://scenes/enemies/rat/rat_behavior.tres" id="behavior"]
 [ext_resource type="Resource" path="res://scenes/items/loot/drops/enemy_common.tres" id="loot"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/rat_attack_voice.tres" id="attack_voice"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/rat_death.tres" id="death_voice"]
 
 [resource]
 script = ExtResource("script")
@@ -13,3 +16,5 @@ MoveSpeed = 5.0
 XpReward = 3
 Loot = ExtResource("loot")
 Behavior = ExtResource("behavior")
+AttackVoiceCue = ExtResource("attack_voice")
+DeathCue = ExtResource("death_voice")

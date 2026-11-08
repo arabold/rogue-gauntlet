@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="script"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr1.wav" id="sample_1"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr2.wav" id="sample_2"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr3.wav" id="sample_3"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr4.wav" id="sample_4"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr5.wav" id="sample_5"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr6.wav" id="sample_6"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr7.wav" id="sample_7"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr8.wav" id="sample_8"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr9.wav" id="sample_9"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr10.wav" id="sample_10"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr11.wav" id="sample_11"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr12.wav" id="sample_12"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr13.wav" id="sample_13"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr14.wav" id="sample_14"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/gutteral beast/mnstr15.wav" id="sample_15"]
+
+[resource]
+script = ExtResource("script")
+Variants = Array[AudioStream]([ExtResource("sample_1"), ExtResource("sample_2"), ExtResource("sample_3"), ExtResource("sample_4"), ExtResource("sample_5"), ExtResource("sample_6"), ExtResource("sample_7"), ExtResource("sample_8"), ExtResource("sample_9"), ExtResource("sample_10"), ExtResource("sample_11"), ExtResource("sample_12"), ExtResource("sample_13"), ExtResource("sample_14"), ExtResource("sample_15")])
+Category = 0
+GainDb = -10.0
+PitchMinimum = 0.96
+PitchMaximum = 1.04
+PanningStrength = 0.2
+UnitSize = 4.0
+MaxDistance = 24.0
+Priority = 6
+MaxVoicesPerSource = 1
+MaxVoicesGlobal = 4
+MinIntervalSeconds = 0.08

@@ -1,6 +1,6 @@
 # Audio concept and implementation plan
 
-Status: the first-draft spec is committed; menu, workbench and gameplay audio have been heard. The Kenney CC0 packs, MintoDog CC0 exploration/boss pair and OpenGameArt CC0 swish pack are in the repo. Two-deck music, the shared menu/exploration loop, persistent category settings, mono downmix, initial player/door cues, first-seen/target-acquired boss switching, per-attack release cues, player-centered camera-aligned stereo placement, the first resolved-contact impact pass and one-shot crossbow/Warden wind-up cues are wired. Gameplay feedback identified footsteps as too frequent/loud and the original knife-slice cue as too impact-like; the prototype now uses wider step spacing, lower gains and dedicated swish recordings. Per-realm music, distinct material/element impact coverage, broader monster-threat coverage and spell/item audio remain future slices. This plan follows [program-design](../../.agents/skills/program-design/SKILL.md), the [architecture](../../ARCHITECTURE.md), and the existing [combat](../combat-system.md), [movement](../movement-feedback.md), [world effects](../world-effects.md) and [door access](../door-access.md) boundaries.
+Status: the first-draft spec is committed; menu, workbench and gameplay audio have been heard. The Kenney CC0 packs, MintoDog CC0 exploration/boss pair, OpenGameArt CC0 swish pack and Artisticdude CC0 RPG sound pack are in the repo. Two-deck music, persistent category settings, boss music transitions, camera-aligned stereo placement, player/door/item pickup/drop cues, randomized attack swishes and resolved-contact routing are wired. Footsteps now follow the floor material; Kenney plate/tin variants drive parry/guard; monster definitions author attack voices and death cues from Artisticdude's pack. Real gameplay listening is still needed to tune those new mappings. Per-realm music, distinct damage/element impact coverage, spell and item-use audio remain future slices. This plan follows [program-design](../../.agents/skills/program-design/SKILL.md), the [architecture](../../ARCHITECTURE.md), and the existing [combat](../combat-system.md), [movement](../movement-feedback.md), [world effects](../world-effects.md) and [door access](../door-access.md) boundaries.
 
 ## Sound direction
 
@@ -12,16 +12,16 @@ Audio reinforces existing visual information. Guard, parry, guard break, damage 
 
 | Event | Intended sound and timing | Initial content |
 | --- | --- | --- |
-| Walk/run | Repeated soft ground contacts, spaced by actual travel; quieter monster steps | Kenney `footstep00`–`footstep03`; prototype now spaces steps 2.5 units apart at -13 dB |
+| Walk/run | Repeated soft ground contacts, spaced by actual travel; quieter monster steps | Kenney Impact Sounds: concrete for stone, wood for planks and grass for dirt/earth; five randomized variants per surface at -13 dB |
 | Rush/dodge and stop | Brief cloth/air rush only after actual dodge travel; light landing/skid | RPG `cloth1`–`cloth4` as temporary material; acquire a proper rush |
 | Melee attack | Short airy swish at the active strike, whether or not it hits; reserve impact cues for confirmed contacts | OpenGameArt `Swishes` CC0 pack; 13 mono variants for positional playback at -12 dB |
-| Contact, hurt and death | Separate flesh, bone, stone and metal impacts; restrained hurt/death accents | First pass routes confirmed contacts through the target surface; Kenney `chop` is a provisional shared flesh/bone hit; distinct material and creature recordings remain gaps |
-| Guard/parry/break | Quiet guard raise, solid block, crisp higher parry, heavy break | Guard raise remains actor-owned; one resolved target-surface cue plays for block/parry/break using the existing Kenney metal recordings |
+| Contact, hurt and death | Separate flesh, bone, stone and metal impacts; restrained hurt/death accents | Confirmed contacts route through the target surface; Kenney `chop` remains a provisional shared flesh/bone hit. Monster definitions now author optional Artisticdude attack voices and death cues |
+| Guard/parry/break | Quiet guard raise, solid block, crisp higher parry, heavy break | Kenney Impact Sounds `impactTin_medium` variants for guard and `impactPlate_medium` variants for parry; one resolved target-surface cue per contact |
 | Ranged attack | One mechanical preparation cue during an accepted wind-up; distinct release and actual projectile impact | Start with a clearly labelled Kenney placeholder; acquire crossbow recordings; no repeated tracking beep |
 | Magic | Fire crackle/ignition, water/ice snap, wind gust, earth grind/thud; distinct release and impact | Additional licensed recordings required; no final elemental set in the two local packs |
 | Doors and locks | Hinge/open sound when motion starts; close latch when the leaf reaches shut; unlock only after success | RPG `doorOpen_1/2`, `doorClose_1`–`4`, `creak1`–`3`, `metalLatch` |
-| Inventory and consumables | Coin pickup, equipment handling, drink/read and result confirmation after commit | RPG `handleCoins/2`, leather/cloth/book sounds; bottle/drink additions needed |
-| World interactions | Chests, traps, fountains, breakage, secrets and stairs; source-local confirmation | Reuse suitable door/book/metal candidates sparingly; acquire water, trap and breakage material |
+| Inventory and consumables | Pickup/drop confirmation after successful commit; equipment handling, drink/read and result cues | RPG `handleSmallLeather/2` pickup, `dropLeather`; coin/book/bottle sounds for later item-specific coverage |
+| World interactions | Chests, traps, fountains, breakage, secrets and stairs; source-local confirmation | Chests reuse the randomized door-open cue; acquire water, trap and breakage material |
 | UI | Subtle navigation tick, activate, back, panel open/close, error and slider feedback | UI `rollover1`–`6`, `click1`–`5`, `switch1`–`38`; choose a small consistent family |
 | Ambience | Quiet realm bed plus sparse local fire/water/air sources | Acquire loops separately; ambience should remain audible with music muted |
 
@@ -213,7 +213,7 @@ Implement in dependency order, with one audible acceptance exercise per slice. T
 
 **Remaining proof:** relaunch after changing each slider and mono option, confirm exact mute and live mix response, and play a real floor to tune step cadence, attack swishes, defenses and door cues. Confirm spatial placement. Rotate the camera and player separately, zoom in/out, pause during a crossfade and travel to another floor to check the loop does not restart.
 
-**Remaining implementation:** per-realm and menu music profiles, target-loss grace behavior, distinct material/element impact assets and mappings, and authored release profiles for the active weapon/spell roster.
+**Remaining implementation:** per-realm and menu music profiles, target-loss grace behavior, distinct damage and elemental impact assets/mappings, and authored release profiles for the active weapon/spell roster.
 
 
 ### 3. Threat and combat coverage
@@ -222,11 +222,13 @@ Implement in dependency order, with one audible acceptance exercise per slice. T
 
 **Delivered, second pass:** `AttackDefinition` authors an optional one-shot `WindUpCue` alongside its release cue. `ActorAudioComponent` plays it once from the existing accepted `AttackStarted` signal, so tracking never retriggers it and attacks rejected before start stay silent. The skeleton crossbow has a quiet Kenney mechanical click; the Warden's heavy swing has a stronger randomized draw sound. Release cues remain synchronized to the existing attack clock.
 
-**Remaining delivery:** replace the temporary crossbow cue when a fitting recording is available; add distinct material and elemental recordings/mappings; then extend cues to active monster movement, damage and death where useful.
+**Delivered, third pass:** imported Kenney Impact Sounds and Artisticdude's CC0 RPG Sound Pack with provenance. `FloorMaterial` authors optional footsteps; the generated floor resolves the closest floor mesh item at a step to its material cue, with the actor's generic step as fallback. `ActorAudioComponent` layers the monster's optional attack voice with the move-specific wind-up. `MonsterDefinition` authors attack and death cues, which `EnemyBase` injects into its audio/death components before child readiness. Kenney tin impacts play on blocks and plate impacts on parries. Active rat, skeleton and Warden definitions have attack and death variants.
+
+**Delivered, fourth pass:** every chest variant shares the randomized door-open cue. `PlayerInventoryController` exports pickup and drop cues and emits them at the player only after the corresponding inventory operation commits; the audio harness can audition both. Initial clips are Kenney leather handling and drop sounds.
 
 **Prove:** warning and visual wind-up share the real attack clock; target tracking never repeats a warning; canceled attacks do not release. A contact produces one impact at the resolved position, including block/parry/break outcomes, without suppressing fallback VFX. Existing visuals remain sufficient with sound muted. Keep all cue changes independent of gameplay RNG and outcomes.
 
-**Still absent:** distinct material/element recordings, optional hurt/death accents, and spell/item/ambient coverage. Play the real gameplay loop with VFX both enabled and disabled, confirm the crossbow/Warden warnings read clearly at normal play distance, and compare gameplay/RNG outcomes with audio on/off.
+**Still absent:** distinct damage material/element recordings, optional hurt accents, and spell/item/ambient coverage. Prove the new floor, defense, attack and death cues in the real gameplay loop with VFX both enabled and disabled; confirm crossbow/Warden warnings remain readable and compare gameplay/RNG outcomes with audio on/off.
 
 ### 4. Boss threat and encounter refinement
 
@@ -245,7 +247,7 @@ After slices 1–4 are accepted in gameplay, expand in independently verifiable 
 | Batch | Owning paths and proof |
 | --- | --- |
 | Magic | Active spell/projectile scenes and elemental surface mappings. Prove one damaging elemental spell and one non-damaging ward/teleport first, then cover the active roster. Check release-once, multi-target/lingering limits, failed casts, actual departure/arrival positions and local loop cleanup if a sustained sound is needed. |
-| Items and interactions | `InventoryAudioComponent`, runtime player inventory binding, existing pickup/equip/use/lock/trap commit owners and resources. Door and chest cue exports are wired; fountain has an optional drink cue awaiting a suitable water/magic asset. Prove one pickup and one consumed item first; then extend the map. Check cancellation, silent restore/rebind and no hidden-identity/curse leaks. Keep the separate consumable visual proposal untouched. |
+| Items and interactions | `PlayerInventoryController` pickup/drop cue exports plus existing equip/use/lock/trap commit owners and resources. Door and chest cue exports are wired; fountain has an optional drink cue awaiting a suitable water/magic asset. Prove pickup/drop and one consumed item first; then extend the map. Check cancellation, silent restore/rebind and no hidden-identity/curse leaks. Keep the separate consumable visual proposal untouched. |
 | Ambience | One realm bed and one local fountain/fire example, their scene-owned players, the Ambience slider/preferences entry and workbench controls. Check Music mute leaves ambience audible, Effects mute includes it, pause/scene exit stop it correctly, and it does not mask combat. Expand only after listening. |
 
 Every batch names unassigned/provisional active content in the workbench. Full first-three-floor acceptance requires deliberate coverage of the events in the palette table, not merely a generic fallback noise everywhere. Play real floors on headphones, speakers, mono output and at low volume; tune cue gain/range, priorities and concurrency before adding more sound layers. Authoring acceptance includes assigning/replacing a cue in the Inspector and reopening the scene without C# changes.

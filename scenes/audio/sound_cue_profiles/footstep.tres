@@ -1,14 +1,15 @@
-[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=7 format=3]
 
-[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="1_script"]
-[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/footstep_00.ogg" id="2_footstep_00"]
-[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/footstep_01.ogg" id="3_footstep_01"]
-[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/footstep_02.ogg" id="4_footstep_02"]
-[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/footstep_03.ogg" id="5_footstep_03"]
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="script"]
+[ext_resource type="AudioStreamOggVorbis" path="res://assets/kenney-impact-sounds/audio/footstep_concrete_000.ogg" id="sample_1"]
+[ext_resource type="AudioStreamOggVorbis" path="res://assets/kenney-impact-sounds/audio/footstep_concrete_001.ogg" id="sample_2"]
+[ext_resource type="AudioStreamOggVorbis" path="res://assets/kenney-impact-sounds/audio/footstep_concrete_002.ogg" id="sample_3"]
+[ext_resource type="AudioStreamOggVorbis" path="res://assets/kenney-impact-sounds/audio/footstep_concrete_003.ogg" id="sample_4"]
+[ext_resource type="AudioStreamOggVorbis" path="res://assets/kenney-impact-sounds/audio/footstep_concrete_004.ogg" id="sample_5"]
 
 [resource]
-script = ExtResource("1_script")
-Variants = Array[AudioStream]([ExtResource("2_footstep_00"), ExtResource("3_footstep_01"), ExtResource("4_footstep_02"), ExtResource("5_footstep_03")])
+script = ExtResource("script")
+Variants = Array[AudioStream]([ExtResource("sample_1"), ExtResource("sample_2"), ExtResource("sample_3"), ExtResource("sample_4"), ExtResource("sample_5")])
 Category = 0
 GainDb = -13.0
 PitchMinimum = 0.92

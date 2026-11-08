@@ -175,7 +175,6 @@ public partial class CombatHarness : CanvasLayer
 				else GD.PushWarning($"Combat harness skipped {path}: {string.Join(" ", errors)}");
 			}
 		}
-		ResourceCacheGuard.Settle();
 		Visit(MonsterRootDirectory.TrimEnd('/'));
 		return scenes.OrderBy(MonsterDisplayName, StringComparer.OrdinalIgnoreCase)
 			.ThenBy(scene => scene.ResourcePath, StringComparer.Ordinal).ToArray();

@@ -82,6 +82,8 @@
 [ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/rush.tres" id="audio_rush"]
 [ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/attack_release.tres" id="audio_attack_release"]
 [ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/guard_raise.tres" id="audio_guard"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/item_pickup.tres" id="audio_item_pickup"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/item_drop.tres" id="audio_item_drop"]
 
 [sub_resource type="Resource" id="Resource_3j4b4"]
 script = ExtResource("3_uf5tr")
@@ -562,6 +564,8 @@ Player = NodePath("..")
 ActionManager = NodePath("../ActionManager")
 StatsController = NodePath("../PlayerStatsController")
 LootableItemScene = ExtResource("11_wj3nu")
+PickupCue = ExtResource("audio_item_pickup")
+DropCue = ExtResource("audio_item_drop")
 
 [node name="PlayerInputController" type="Node" parent="." unique_id=980165432 node_paths=PackedStringArray("Player", "InputComponent", "MovementComponent", "ActionManager", "InteractionController")]
 script = ExtResource("16_1atg5")

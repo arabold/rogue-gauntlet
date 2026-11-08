@@ -11,6 +11,8 @@ public partial class PlayerInventoryController : Node
 	/// <summary>The player's runtime inventory, injected by <see cref="Player"/> when it creates the copy.</summary>
 	public Inventory Inventory { get; set; }
 	[Export] public ActionManager ActionManager { get; set; }
+	[Export] public SoundCueProfile PickupCue { get; set; }
+	[Export] public SoundCueProfile DropCue { get; set; }
 	[Export] public PlayerStatsController StatsController { get; set; }
 	/// <summary>The level the player is in: runtime context, resolved from the tree on entry rather than authored.</summary>
 	public Level Level { get; private set; }
@@ -152,9 +154,19 @@ public partial class PlayerInventoryController : Node
 			source?.CommitCollected();
 			item.OnPickup(Player, quantity);
 			Player?.QuickItemController?.OnItemAcquired(item, quantity);
+			PlayItemCue(PickupCue);
 			return Report(ItemFailure.None);
 		}
 		finally { IsCommittingItemOperation = false; }
+	}
+
+	/// <summary>Plays an authored inventory cue at the player after the operation commits.</summary>
+	private void PlayItemCue(SoundCueProfile cue)
+	{
+		if (cue != null && GodotObject.IsInstanceValid(Player) && Player.IsInsideTree())
+		{
+			SignalBus.EmitWorldSoundEmitted(cue, Player, Player.GlobalPosition);
+		}
 	}
 
 	public ItemOperationResult TryBeginItemUse(InventoryItemSlot source, InventoryItemSlot target = null)
@@ -287,6 +299,7 @@ public partial class PlayerInventoryController : Node
 			item.OnDropped(Player, quantity);
 			Inventory.NotifyDropped(item, quantity);
 			SignalBus.EmitItemDropped(Player, item, quantity);
+			PlayItemCue(DropCue);
 			return Report(ItemFailure.None);
 		}
 		finally { IsCommittingItemOperation = false; }

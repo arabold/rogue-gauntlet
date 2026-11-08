@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://dekj8iq2d1qp5" path="res://scenes/components/interactive_component.tscn" id="3_p08mt"]
 [ext_resource type="PackedScene" uid="uid://dud0hid1mwmdw" path="res://scenes/components/loot_table_component.tscn" id="4_loot_comp"]
 [ext_resource type="Resource" path="res://scenes/items/loot/drops/chest_common.tres" id="5_loot_table"]
-[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/chest_open.tres" id="open_cue"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/door_open.tres" id="open_cue"]
 
 [ext_resource type="Script" uid="uid://c2wpig74i81r4" path="res://scenes/components/OcclusionXrayComponent.cs" id="xray_script"]
 

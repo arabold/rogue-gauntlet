@@ -14,6 +14,8 @@ public partial class ActorAudioComponent : Node
 	[Export] public SoundCueProfile RushCue { get; set; }
 	[Export] public SoundCueProfile AttackReleaseCue { get; set; }
 	[Export] public SoundCueProfile GuardCue { get; set; }
+	/// <summary>Optional creature vocalization layered on the move-specific attack wind-up.</summary>
+	[Export] public SoundCueProfile AttackVoiceCue { get; set; }
 	[Export(PropertyHint.Range, "0.1,4,0.05")] public float StepDistance { get; set; } = 2.5f;
 	[Export(PropertyHint.Range, "0,12,0.1")] public float StepSpeed { get; set; } = 2.5f;
 
@@ -21,6 +23,13 @@ public partial class ActorAudioComponent : Node
 	private float _distanceSinceStep;
 	private bool _rushPending;
 	private bool _wasGuarding;
+	private Level _level;
+
+	public override void _EnterTree()
+	{
+		base._EnterTree();
+		_level = this.GetAncestorOrNull<Level>();
+	}
 
 	public override void _Ready()
 	{
@@ -66,7 +75,7 @@ public partial class ActorAudioComponent : Node
 			_distanceSinceStep += displacement.Length();
 			if (_distanceSinceStep >= StepDistance)
 			{
-				EmitCue(FootstepCue, position);
+				EmitCue(_level?.Floor?.FootstepCueAt(position) ?? FootstepCue, position);
 				_distanceSinceStep %= StepDistance;
 			}
 		}
@@ -94,7 +103,12 @@ public partial class ActorAudioComponent : Node
 		base._ExitTree();
 	}
 
-	private void OnAttackStarted() => EmitCue(Attack?.CurrentAttack?.WindUpCue, Actor.GlobalPosition);
+	private void OnAttackStarted()
+	{
+		Vector3 position = Actor.GlobalPosition;
+		EmitCue(Attack?.CurrentAttack?.WindUpCue, position);
+		EmitCue(AttackVoiceCue, position);
+	}
 	private void OnAttackReleased(AttackDefinition definition) =>
 		EmitCue(definition?.ReleaseCue ?? AttackReleaseCue, Actor.GlobalPosition);
 	private void OnDodgeStarted(Vector3 direction) => _rushPending = true;

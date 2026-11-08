@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="script"]
+[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/handle_small_leather.ogg" id="sample_1"]
+[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/handle_small_leather_2.ogg" id="sample_2"]
+
+[resource]
+script = ExtResource("script")
+Variants = Array[AudioStream]([ExtResource("sample_1"), ExtResource("sample_2")])
+Category = 0
+GainDb = -11.0
+PitchMinimum = 0.96
+PitchMaximum = 1.05
+PanningStrength = 0.4
+UnitSize = 4.0
+MaxDistance = 24.0
+Priority = 1
+MaxVoicesPerSource = 2
+MaxVoicesGlobal = 6
+MinIntervalSeconds = 0.08
