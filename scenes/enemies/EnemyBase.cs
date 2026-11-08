@@ -7,7 +7,29 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 {
 	HurtBoxComponent IShieldOwner.ShieldHurtBox => HurtBoxComponent;
 	public Node3D Pivot;
-	public CollisionShape3D CollisionShape;
+	/// <summary>The body's collision shape (a capsule, cylinder or sphere): its radius is the monster's size for navigation.</summary>
+	[Export] public CollisionShape3D BodyShape { get; set; }
+
+	/// <summary>Navigation size of an actor whose body shape gives none.</summary>
+	public const float DefaultBodyRadius = .5f;
+
+	/// <summary>Horizontal radius of <see cref="BodyShape"/>, scale included; <see cref="DefaultBodyRadius"/> without one.</summary>
+	public float BodyRadius => HorizontalRadius(BodyShape) is > 0 and var radius ? radius : DefaultBodyRadius;
+
+	/// <summary>The horizontal radius of an upright capsule, cylinder or sphere body, its node's scale included; 0 for any other shape.</summary>
+	public static float HorizontalRadius(CollisionShape3D body)
+	{
+		float radius = body?.Shape switch
+		{
+			CapsuleShape3D capsule => capsule.Radius,
+			CylinderShape3D cylinder => cylinder.Radius,
+			SphereShape3D sphere => sphere.Radius,
+			_ => 0,
+		};
+		if (radius <= 0) return 0;
+		var scale = body.Transform.Basis.Scale;
+		return radius * Mathf.Max(scale.X, scale.Z);
+	}
 	[Export] public WorldEffectHost WorldEffects { get; set; }
 	[Export] public InvisibilityComponent Invisibility { get; set; }
 	[Export] public BuffController BuffController { get; set; }
@@ -40,7 +62,6 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	[Export] public EnemyDefenseController DefenseController { get; set; }
 	[Export] public AttackController AttackController { get; set; }
 
-	[Export] public LargeActorFitComponent LargeActorFit { get; set; }
 	/// <summary>Optional: shows <see cref="MonsterDefinition.DisplayName"/> above the monster while the player is near.</summary>
 	[Export] public Nameplate Nameplate { get; set; }
 	[Export] public MonsterDefinition Definition { get; set; }
@@ -91,7 +112,6 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 		if (_initialIronSkin) IronSkinStatus?.SetActive(true);
 		if (_initialStoneSkin) StoneSkinStatus?.SetActive(true);
 		Pivot = GetNode<Node3D>("Pivot");
-		CollisionShape = GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
 
 		HealthComponent.Died += () => ActionGate.Disable();
 

@@ -75,7 +75,7 @@ Write C# so every actor, component, strategy, and resource works first-class in 
 ## 4. Runtime, Physics & Pooling
 
 - **Deterministic physics tick order (`CombatPhysics`):**
-  - Any component whose `_PhysicsProcess` order matters must set `ProcessPhysicsPriority` in `_Ready()` from `CombatPhysics` (`Input = -60`, `InputModifier = -55`, `Intent = -50`, `Defense = -40`, `Steering = -30`, `Clearance = -25`, `Movement = -20`, `Damage = 0`, `Commit = 10`, `Trace = 20`) instead of relying on Scene Tree sibling order.
+  - Any component whose `_PhysicsProcess` order matters must set `ProcessPhysicsPriority` in `_Ready()` from `CombatPhysics` (`Input = -60`, `InputModifier = -55`, `Intent = -50`, `Defense = -40`, `Steering = -30`, `Movement = -20`, `Damage = 0`, `Commit = 10`, `Trace = 20`) instead of relying on Scene Tree sibling order.
   - Call `SetPhysicsProcess(false)` / `SetProcess(false)` when a component is idle and enable ticking only while active.
 - **Disposed wrappers (`GodotObject.IsInstanceValid`):**
   - `QueueFree()` leaves existing C# references non-null (`ObjectDisposedException` on access). Always check `GodotObject.IsInstanceValid(node)` (not just `!= null`) on dynamic runtime `Node` references held across frames, tweens, `await ToSignal(...)`, or `CallDeferred`.

@@ -318,8 +318,8 @@ public class RoomAssemblyTest
 			{
 				string label = $"{realm}/prison seed {seed}";
 				AssertString(Signature(dirt)).OverrideFailureMessage(label).IsEqual(Signature(plain));
-				AssertString(Convert.ToBase64String(dirt.Grid.Save())).OverrideFailureMessage(label)
-					.IsEqual(Convert.ToBase64String(plain.Grid.Save()));
+				AssertString(string.Join(",", dirt.Grid.Save())).OverrideFailureMessage(label)
+					.IsEqual(string.Join(",", plain.Grid.Save()));
 				AssertInt(plain.FloorPatches.Count).IsEqual(0);
 				AssertInt(dirt.FloorPatches.Count).IsGreater(0);
 				var material = dirt.FloorPatches[0].Material;

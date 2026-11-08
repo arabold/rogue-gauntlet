@@ -89,7 +89,8 @@ height = 0.75
 radius = 0.35
 height = 0.75
 
-[node name="PlagueRat" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate")]
+[node name="PlagueRat" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate", "BodyShape")]
+BodyShape = NodePath("CollisionShape3D")
 Definition = ExtResource("definition")
 ActionGate = NodePath("ActorActionGateComponent")
 

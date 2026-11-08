@@ -9,9 +9,6 @@ using Godot;
 /// </summary>
 public partial class MapGenerator
 {
-	/// <summary>Reachability assumes the navigation bake's agent radius, so both agree on what fits.</summary>
-	private float WalkabilityRadius => NavigationRegion?.NavigationMesh?.AgentRadius ?? 1f;
-
 	/// <summary>Builds the grid once rooms, corridors, walls and doors exist, before encounters and loot.</summary>
 	private void BuildWalkability()
 	{
@@ -29,25 +26,60 @@ public partial class MapGenerator
 
 	private WalkabilityGrid CreateWalkabilityGrid()
 	{
+		var grid = new WalkabilityGrid(FloorBounds(), RoomAssembler.ActorRadius);
+		foreach (var (area, walkable) in TileAreas())
+		{
+			if (walkable) grid.AddFloor(area);
+			else grid.AddObstacle(area);
+		}
+		foreach (var outline in SolidOutlines()) grid.AddObstacle(outline);
+		return grid;
+	}
+
+	/// <summary>The whole map in generator space, tile edges included.</summary>
+	private Rect2 FloorBounds()
+	{
 		var min = Map.TileToWorld(0, 0);
 		var max = Map.TileToWorld(Map.Width - 1, Map.Height - 1);
 		float half = Room.TileSize / 2f;
-		var grid = new WalkabilityGrid(new Rect2(min.X - half, min.Z - half, max.X - min.X + Room.TileSize, max.Z - min.Z + Room.TileSize),
-			WalkabilityRadius);
+		return new Rect2(min.X - half, min.Z - half, max.X - min.X + Room.TileSize, max.Z - min.Z + Room.TileSize);
+	}
+
+	/// <summary>
+	/// Every walkable tile's area, and every unwalkable one beside it. Unwalkable tiles farther out lie a whole tile from
+	/// any floor, beyond the room either grid measures (<see cref="ClearanceGrid.DefaultMaxClearance"/> is under a tile).
+	/// </summary>
+	private IEnumerable<(Rect2 Area, bool Walkable)> TileAreas()
+	{
+		float half = Room.TileSize / 2f;
 		for (int x = 0; x < Map.Width; x++)
 		for (int z = 0; z < Map.Height; z++)
 		{
+			bool walkable = Map.IsWalkable(x, z);
+			if (!walkable && !BordersWalkable(x, z)) continue;
 			var center = Map.TileToWorld(x, z);
-			var area = new Rect2(center.X - half, center.Z - half, Room.TileSize, Room.TileSize);
-			if (Map.IsWalkable(x, z)) grid.AddFloor(area);
-			else grid.AddObstacle(area);
+			yield return (new Rect2(center.X - half, center.Z - half, Room.TileSize, Room.TileSize), walkable);
 		}
-		// Real collision, not tile classes: doorway frames stay passable and wall depth varies per piece.
+	}
+
+	private bool BordersWalkable(int x, int z)
+	{
+		for (int dx = -1; dx <= 1; dx++)
+		for (int dz = -1; dz <= 1; dz++)
+			if (Map.IsWithinBounds(x + dx, z + dz) && Map.IsWalkable(x + dx, z + dz)) return true;
+		return false;
+	}
+
+	/// <summary>
+	/// Real collision, not tile classes: doorway openings stay passable and wall depth varies per piece. Doors count with
+	/// their frame and their leaf standing open.
+	/// </summary>
+	private IEnumerable<SolidOutline> SolidOutlines()
+	{
 		var toLocal = GlobalTransform.AffineInverse();
-		foreach (var outline in CollisionOutlines.FromGridMap(WallGridMap, Transform3D.Identity)) grid.AddObstacle(outline);
-		foreach (var outline in CollisionOutlines.FromGridMap(DecorationGridMap, Transform3D.Identity)) grid.AddObstacle(outline);
-		foreach (var outline in CollisionOutlines.FromStaticBodies(NavigationRegion, toLocal * NavigationRegion.GlobalTransform)) grid.AddObstacle(outline);
-		return grid;
+		foreach (var outline in CollisionOutlines.FromGridMap(WallGridMap, Transform3D.Identity)) yield return outline;
+		foreach (var outline in CollisionOutlines.FromGridMap(DecorationGridMap, Transform3D.Identity)) yield return outline;
+		foreach (var outline in CollisionOutlines.FromStaticBodies(FloorContent, toLocal * FloorContent.GlobalTransform)) yield return outline;
 	}
 
 	/// <summary>Physical reachability with inaccessible doorway tiles blocked, without changing the floor grid.</summary>

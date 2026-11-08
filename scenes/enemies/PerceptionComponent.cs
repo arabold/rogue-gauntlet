@@ -44,7 +44,7 @@ public partial class PerceptionComponent : Node
 	/// the cone branch or proximity alone would aggro through walls.
 	/// </summary>
 	/// <param name="isReachable">
-	/// Predicate (supplied by the behavior layer) that rejects players the navmesh cannot path to,
+	/// Predicate (supplied by the behavior layer) that rejects players this body cannot walk to,
 	/// so an enemy never locks onto a target it can never reach. Passed as a delegate so perception
 	/// does not depend on the navigation component.
 	/// </param>
@@ -64,7 +64,8 @@ public partial class PerceptionComponent : Node
 			}
 
 			bool isClose = distance < _profile.DetectionRange * _profile.CloseDetectionRangeMultiplier;
-			if (isReachable(player) && (isClose || IsWithinVisionCone(player)) && CanSee(player))
+			// Reachability last: it is the costliest test and sizes shared navigation fields.
+			if ((isClose || IsWithinVisionCone(player)) && CanSee(player) && isReachable(player))
 			{
 				return player;
 			}

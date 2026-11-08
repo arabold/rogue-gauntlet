@@ -65,25 +65,14 @@ public sealed class PatrollingState : IEnemyState
 			}
 		}
 
-		if (ctx.Navigation.IsNavigationFinished()
-			|| ctx.Actor.GlobalPosition.DistanceTo(_roamTargetPosition) <= ctx.Profile.RoamTargetDistance)
-		{
-			_hasRoamTarget = false;
-			StartRoamPause(ctx);
-			ctx.Movement.Stop();
-			return;
-		}
-
-		ctx.Navigation.FollowPath();
-		if (ctx.Navigation.IsStuck)
-		{
-			// Stuck mid-roam: drop this destination and pause before trying a new one.
-			GameDebug.Ai($"{ctx.Actor.Name} appears stuck while patrolling; abandoning roam target.");
-			ctx.Navigation.ResetStuckTracking();
-			_hasRoamTarget = false;
-			StartRoamPause(ctx);
-			ctx.Movement.Stop();
-		}
+		bool done = ctx.Actor.GlobalPosition.DistanceTo(_roamTargetPosition) <= ctx.Profile.RoamTargetDistance
+			|| !ctx.Navigation.MoveTo(_roamTargetPosition) || ctx.Navigation.HasArrived;
+		if (!done && !ctx.Navigation.IsStuck) return;
+		// Arrived, unreachable, or stuck mid-roam: drop this destination and pause before trying a new one.
+		if (!done) GameDebug.Ai($"{ctx.Actor.Name} appears stuck while patrolling; abandoning roam target.");
+		_hasRoamTarget = false;
+		StartRoamPause(ctx);
+		ctx.Navigation.Stop();
 	}
 
 	private bool TrySetRoamTarget(EnemyContext ctx)
@@ -93,9 +82,8 @@ public sealed class PatrollingState : IEnemyState
 			float angle = EnemyContext.RandomRange(0, Mathf.Pi * 2.0f);
 			float distance = EnemyContext.RandomRange(ctx.Profile.RoamRadius * 0.25f, ctx.Profile.RoamRadius);
 			Vector3 offset = new(Mathf.Cos(angle) * distance, 0, Mathf.Sin(angle) * distance);
-			Vector3 targetPosition = ctx.Navigation.GetClosestNavPoint(ctx.HomePosition + offset);
-
-			if (targetPosition.DistanceTo(ctx.HomePosition) > ctx.Profile.RoamRadius
+			if (!ctx.Navigation.TryFindTraversable(ctx.HomePosition + offset, ctx.Profile.RoamRadius, out Vector3 targetPosition)
+				|| targetPosition.DistanceTo(ctx.HomePosition) > ctx.Profile.RoamRadius
 				|| targetPosition.DistanceTo(ctx.Actor.GlobalPosition) <= ctx.Profile.RoamTargetDistance)
 			{
 				continue;
@@ -103,7 +91,6 @@ public sealed class PatrollingState : IEnemyState
 
 			_roamTargetPosition = targetPosition;
 			_hasRoamTarget = true;
-			ctx.Navigation.SetDestination(_roamTargetPosition);
 			return true;
 		}
 

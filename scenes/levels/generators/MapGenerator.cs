@@ -44,7 +44,8 @@ public partial class MapGenerator : Node3D
 	[Export] public GridMap WallGridMap { get; set; }
 	[Export] public GridMap DecorationGridMap { get; set; }
 	[Export] public GridMap OcclusionGridMap { get; set; }
-	[Export] public NavigationRegion3D NavigationRegion { get; set; }
+	/// <summary>Parent of everything generation places on the floor: rooms, doors, props, traps and loose loot.</summary>
+	[Export] public Node3D FloorContent { get; set; }
 
 	// Shared unlit black cap mesh for permanent void coverage.
 	private PlaneMesh _occlusionCapMesh;
@@ -70,9 +71,9 @@ public partial class MapGenerator : Node3D
 	public override void _Ready()
 	{
 		GD.Print("Initializing map generator...");
-		if (FloorGridMap == null || WallGridMap == null || DecorationGridMap == null || OcclusionGridMap == null || NavigationRegion == null)
+		if (FloorGridMap == null || WallGridMap == null || DecorationGridMap == null || OcclusionGridMap == null || FloorContent == null)
 		{
-			GD.PushError($"{Name}: assign the floor, wall, decoration and occlusion GridMaps and the navigation region.");
+			GD.PushError($"{Name}: assign the floor, wall, decoration and occlusion GridMaps and the floor content node.");
 			return;
 		}
 		OcclusionGridMap.MeshLibrary = BuildOcclusionMeshLibrary();
@@ -187,10 +188,8 @@ public partial class MapGenerator : Node3D
 			var position = new Vector3I(placement.Position.X, 0, placement.Position.Y);
 			MergeRoomGridMaps(room, position);
 
-			// Make the room a child of the navigation region, so
-			// it is included in the navigation mesh and enemies
-			// avoid obstactles in it.
-			NavigationRegion.AddChild(room);
+			// Rooms join the floor content, whose solids the reachability and navigation grids read.
+			FloorContent.AddChild(room);
 
 			room.Translate(Map.TileToWorld(placement.Position) - room.Origin);
 			// Placed and merged: each authored trap can now find the floor cell it conceals.
@@ -439,7 +438,7 @@ public partial class MapGenerator : Node3D
 	{
 		// Rooms are generated content, so this is a typed query over them rather than an authored reference. The exit
 		// room carries a spawn point too, for arriving from below; the descent arrival is the one the floor is built around.
-		var nodes = NavigationRegion.FindChildren("*", "", true, false).OfType<Node3D>().ToList();
+		var nodes = FloorContent.FindChildren("*", "", true, false).OfType<Node3D>().ToList();
 		Floor.Arrival = nodes.OfType<PlayerSpawnPoint>()
 			.FirstOrDefault(point => point.SpawnAfterTravelDirection == GameSession.LevelTravelDirection.Down);
 		Floor.Descent = nodes.OfType<LevelTransitionTrigger>()
@@ -497,7 +496,7 @@ public partial class MapGenerator : Node3D
 			first = 1;
 		}
 
-		// Candidate selection uses map tiles and collision clearance, not navmesh paths.
+		// Candidate selection uses map tiles and collision clearance, not navigation routes.
 		// Keep the initial encounter baseline reproducible even in headless validation.
 		var candidates = Floor.OpenTileCandidates();
 		if (candidates.Count == 0)
@@ -628,14 +627,14 @@ public partial class MapGenerator : Node3D
 		// Step 3a: Decide special encounters before anything else claims the floor.
 		if (!ResolveEncounters()) return false;
 
-		// Step 3b: Place access, scheduled fountains, then chests/traps/loose items. Must run before BakeNavigationMesh so
-		// fountains and chests are included as navmesh obstacles, and before GenerateEnemySpawnPoints so
+		// Step 3b: Place access, scheduled fountains, then chests/traps/loose items. Must run before BuildNavigation so
+		// fountains and chests are included as navigation solids, and before GenerateEnemySpawnPoints so
 		// enemy-spawn clearance (which already checks the "prop" group) naturally avoids them.
 		PlaceAccess();
 		PlaceLoot();
 
-		// Step 4: Bake navigation mesh
-		BakeNavigationMesh();
+		// Step 4: The clearance grid monsters navigate on
+		BuildNavigation();
 
 		// Step 5: Create enemy spawn points
 		GenerateEnemySpawnPoints();
@@ -643,29 +642,6 @@ public partial class MapGenerator : Node3D
 
 		GD.Print("Map generated.");
 		return true;
-	}
-
-	private void BakeNavigationMesh()
-	{
-		// Add grid maps back to the NavigationRegion and rebake the navigation mesh
-		// TODO: Not sure why we cannot make the GridMaps children of the NavigationRegion directly
-		// If we try, the thread seems to block indefinitely when making updates to the GridMaps
-		Node floorGridMapCopy = FloorGridMap.Duplicate();
-		Node wallGripMapCopy = WallGridMap.Duplicate();
-		Node decorationGridMapCopy = DecorationGridMap.Duplicate();
-		try
-		{
-			NavigationRegion.AddChild(floorGridMapCopy);
-			NavigationRegion.AddChild(wallGripMapCopy);
-			NavigationRegion.AddChild(decorationGridMapCopy);
-			NavigationRegion.BakeNavigationMesh(false);
-		}
-		finally
-		{
-			floorGridMapCopy.QueueFree();
-			wallGripMapCopy.QueueFree();
-			decorationGridMapCopy.QueueFree();
-		}
 	}
 
 	private void Reset()
@@ -699,15 +675,13 @@ public partial class MapGenerator : Node3D
 		}
 		EnemySpawnPoints = new Array<SpawnPoint>();
 
-		if (NavigationRegion != null)
+		if (FloorContent != null)
 		{
-			// Empty the navigation region
-			foreach (var node in NavigationRegion.GetChildren())
+			foreach (var node in FloorContent.GetChildren())
 			{
-				NavigationRegion.RemoveChild(node);
+				FloorContent.RemoveChild(node);
 				node.QueueFree();
 			}
-			NavigationRegion.NavigationMesh.Clear();
 		}
 
 		if (GetNodeOrNull<Node3D>("CorridorProps") is { } corridorProps)

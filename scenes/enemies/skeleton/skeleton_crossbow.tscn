@@ -223,9 +223,10 @@ graph_offset = Vector2(-0.209959, 273.549)
 radius = 0.75
 
 [sub_resource type="CapsuleShape3D" id="m_CapsuleShape3D_m4sjw"]
-radius = 0.75
+radius = 0.6
 
-[node name="SkeletonCrossbow" type="CharacterBody3D" node_paths=PackedStringArray("Nameplate", "FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "BuffController", "WorldEffects", "Invisibility", "AttackController", "ActionGate", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+[node name="SkeletonCrossbow" type="CharacterBody3D" node_paths=PackedStringArray("Nameplate", "FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "BuffController", "WorldEffects", "Invisibility", "AttackController", "ActionGate", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent", "BodyShape") groups=["enemy"]]
+BodyShape = NodePath("CollisionShape3D")
 Nameplate = NodePath("Nameplate")
 BuffController = NodePath("BuffController")
 FrozenStatus = NodePath("FrozenStatusComponent")

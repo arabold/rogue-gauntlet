@@ -1,7 +1,7 @@
 /// <summary>
-/// Active pursuit. The enemy keeps repathing to the target's live position for as long as the
-/// navmesh can still reach it, drops to Searching once the target becomes unreachable, and melee
-/// attacks when in range. Retention deliberately does NOT require line of sight: an alerted enemy
+/// Active pursuit. The enemy follows the target's shared chase field for as long as it can still
+/// reach the target, drops to Searching once the target becomes unreachable (a door closed between
+/// them, say), and attacks when in range. Retention deliberately does NOT require line of sight: an alerted enemy
 /// follows the target around corners and through other doors even when it cannot see the player.
 /// </summary>
 /// <remarks>
@@ -21,20 +21,11 @@ public sealed class ChasingState : IEnemyState
 
 	public EnemyBehaviorState? Update(EnemyContext ctx, double delta)
 	{
-		// While crossing a doorway link the actor is briefly off the navmesh (the link spans the
-		// doorway gap rather than filling it). Repathing or reachability-testing from an off-mesh
-		// position snaps the path start to whichever doorway side is nearest and flips it as the
-		// actor inches across, so the enemy oscillates in the doorway. Freeze those decisions until
-		// it lands back on the mesh so it commits to the crossing; it keeps following its
-		// already-computed path, which routes through the link.
-		bool crossingDoorway = ctx.Navigation.IsCrossingDoorway();
-
-		if (!crossingDoorway && !ctx.CanReachCurrentTarget())
+		if (!ctx.CanReachCurrentTarget())
 		{
 			return EnemyBehaviorState.Searching;
 		}
 
-		if (crossingDoorway) { ctx.FollowTargetPath(); return null; }
 		ctx.ExecuteTactics();
 		return null;
 	}

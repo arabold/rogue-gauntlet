@@ -13,8 +13,8 @@ using static GdUnit4.Assertions;
 /// placed chest sits on an interior room tile with its back to a real wall and its
 /// rotation actually facing away from that wall (not just "some" wall it happened to
 /// find); nothing lands adjacent to a connector (doorway traffic); every placed prop is
-/// spaced apart and parented under <see cref="MapGenerator.NavigationRegion"/> (not
-/// <c>Level</c>) so it becomes a navmesh obstacle the same way rooms already are; the
+/// spaced apart and parented under <see cref="MapGenerator.FloorContent"/> (not
+/// <c>Level</c>) so it counts as a navigation solid the same way rooms already do; the
 /// feature is fully opt-in — zero configured counts places nothing; and loot only ever
 /// goes into procedurally built rooms — an authored room's interior is hand-designed
 /// (including any chests it wants, placed by its author) and must never receive
@@ -85,7 +85,7 @@ public class LootPlacementTest
 	}
 
 	[TestCase]
-	public async Task PlacedLootIsParentedUnderNavigationRegionForNavmeshBaking()
+	public async Task PlacedLootIsParentedUnderFloorContentForNavigation()
 	{
 		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
 		TestFactories.WireLootScenes(mapGenerator);
@@ -96,16 +96,16 @@ public class LootPlacementTest
 		mapGenerator.GenerateMap(includeGameplay: true);
 
 		var failures = new List<string>();
-		foreach (Node node in mapGenerator.NavigationRegion.GetChildren())
+		foreach (Node node in mapGenerator.FloorContent.GetChildren())
 		{
 			if (node is not (Chest or FloorTrap or LootableItem))
 			{
 				continue;
 			}
 
-			if (node.GetParent() != mapGenerator.NavigationRegion)
+			if (node.GetParent() != mapGenerator.FloorContent)
 			{
-				failures.Add($"{node.Name} is parented under {node.GetParent()?.Name}, not NavigationRegion");
+				failures.Add($"{node.Name} is parented under {node.GetParent()?.Name}, not FloorContent");
 			}
 		}
 
@@ -119,7 +119,7 @@ public class LootPlacementTest
 		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
 		TestFactories.WireLootScenes(mapGenerator);
 		// The smallest map that still fits every request on every seed: a map too small to hold all nine pieces
-		// silently drops some and checks fewer pairs, while larger maps mostly add corridor routing and navmesh time.
+		// silently drops some and checks fewer pairs, while larger maps mostly add corridor routing and grid time.
 		const int PerKind = 3;
 		mapGenerator.MapWidth = 30;
 		mapGenerator.MapDepth = 30;
@@ -210,7 +210,7 @@ public class LootPlacementTest
 
 	private static IEnumerable<Chest> FindChests(MapGenerator mapGenerator)
 	{
-		foreach (Node node in mapGenerator.NavigationRegion.GetChildren())
+		foreach (Node node in mapGenerator.FloorContent.GetChildren())
 		{
 			if (node is Chest chest)
 			{
@@ -221,7 +221,7 @@ public class LootPlacementTest
 
 	private static IEnumerable<Node3D> FindLootNodes(MapGenerator mapGenerator)
 	{
-		foreach (Node node in mapGenerator.NavigationRegion.GetChildren())
+		foreach (Node node in mapGenerator.FloorContent.GetChildren())
 		{
 			if (node is Chest or FloorTrap or LootableItem)
 			{

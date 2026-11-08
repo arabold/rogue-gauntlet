@@ -42,12 +42,12 @@ public partial class MapGenerator
 		var targets = new List<(RoomRegion Region, List<Vector2I> Entrances, DoorLockDefinition Definition)>();
 		// The gatekeeper's room was resolved before access; locking it would hide a required encounter.
 		int requiredEncounterRoom = Floor.GatekeeperSite is Transform3D site ? Floor.RoomIdAt(Map.WorldToTile(site.Origin)) : -1;
-		var protectedRooms = NavigationRegion.FindChildren("*", "", true, false).OfType<Node3D>()
+		var protectedRooms = FloorContent.FindChildren("*", "", true, false).OfType<Node3D>()
 			.Where(n => n is IProgressionAnchor).Select(RoomRegionFor).Where(id => id >= 0).ToHashSet();
 		var candidates = Floor.Rooms.Where(r => r.Id != requiredEncounterRoom && !protectedRooms.Contains(r.Id)
 			&& r.Tiles.Any(initiallyReachable.Contains) && !r.Tiles.Contains(entry)).ToList();
 		// Protect progression anchors, stairs and existing explicit-lock rooms from arbitrary assignment.
-		var protectedTiles = NavigationRegion.FindChildren("*", "", true, false).OfType<Node3D>()
+		var protectedTiles = FloorContent.FindChildren("*", "", true, false).OfType<Node3D>()
 			.Where(n => n is IProgressionAnchor or Door { Lock.Definition: not null } || n.IsInGroup("stairs"))
 			.Select(n => Map.WorldToTile(n.GlobalPosition)).ToHashSet();
 		while (candidates.Count > 0 && targets.Count < lockBudget)
@@ -101,7 +101,7 @@ public partial class MapGenerator
 		}
 	}
 
-	private IEnumerable<T> LiveNodes<T>() where T : Node => NavigationRegion.FindChildren("*", "", true, false).OfType<T>().Where(n => !n.IsQueuedForDeletion());
+	private IEnumerable<T> LiveNodes<T>() where T : Node => FloorContent.FindChildren("*", "", true, false).OfType<T>().Where(n => !n.IsQueuedForDeletion());
 	private void SpawnAccessItem(Item definition, Vector3 point, string identity, int quantity = 1)
 	{
 		if (LooseItemScene == null) throw new InvalidOperationException("Access generation requires a pickup scene.");

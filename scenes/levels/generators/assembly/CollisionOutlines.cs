@@ -9,8 +9,7 @@ public readonly record struct SolidOutline(Vector2[] Polygon, float Bottom, floa
 	{
 		get
 		{
-			var area = new Rect2(Polygon[0], Vector2.Zero);
-			foreach (var point in Polygon) area = area.Expand(point);
+			var area = CollisionOutlines.Bounds(Polygon);
 			return new Aabb(new Vector3(area.Position.X, Bottom, area.Position.Y), new Vector3(area.Size.X, Top - Bottom, area.Size.Y));
 		}
 	}
@@ -29,20 +28,31 @@ public static class CollisionOutlines
 
 	public static SolidOutline FromShape(Shape3D shape, Transform3D transform)
 	{
-		IEnumerable<Vector3> points = shape switch
-		{
-			ConvexPolygonShape3D convex => convex.Points,
-			BoxShape3D box => Corners(new Aabb(-box.Size / 2, box.Size)),
-			_ => Corners(shape.GetDebugMesh().GetAabb()),
-		};
-		var world = points.Select(point => transform * point).ToArray();
+		var world = Points(shape).Select(point => transform * point).ToArray();
 		var hull = Geometry2D.ConvexHull(world.Select(point => new Vector2(point.X, point.Z)).ToArray());
 		return new SolidOutline(hull, world.Min(point => point.Y), world.Max(point => point.Y));
 	}
 
-	public static SolidOutline FromBox(Aabb box) => new(
-		[new(box.Position.X, box.Position.Z), new(box.End.X, box.Position.Z), new(box.End.X, box.End.Z), new(box.Position.X, box.End.Z)],
-		box.Position.Y, box.End.Y);
+	public static SolidOutline FromBox(Aabb box) =>
+		new(Corners(new Rect2(box.Position.X, box.Position.Z, box.Size.X, box.Size.Z)), box.Position.Y, box.End.Y);
+
+	/// <summary>A shape's extreme points in its own space: a hull's points, a box's corners, or any other shape's bounding corners.</summary>
+	public static Vector3[] Points(Shape3D shape) => shape switch
+	{
+		ConvexPolygonShape3D convex => convex.Points,
+		BoxShape3D box => Corners(new Aabb(-box.Size / 2, box.Size)).ToArray(),
+		_ => Corners(shape.GetDebugMesh().GetAabb()).ToArray(),
+	};
+
+	/// <summary>A rectangle's outline, counter-clockwise from its minimum corner.</summary>
+	public static Vector2[] Corners(Rect2 area) => [area.Position, new(area.End.X, area.Position.Y), area.End, new(area.Position.X, area.End.Y)];
+
+	public static Rect2 Bounds(Vector2[] polygon)
+	{
+		var bounds = new Rect2(polygon[0], Vector2.Zero);
+		foreach (var point in polygon) bounds = bounds.Expand(point);
+		return bounds;
+	}
 
 	/// <summary>Every collision shape of a GridMap's cells, in the GridMap parent's space.</summary>
 	public static IEnumerable<SolidOutline> FromGridMap(GridMap grid, Transform3D toParent)
@@ -58,16 +68,25 @@ public static class CollisionOutlines
 		}
 	}
 
-	/// <summary>Static collision under <paramref name="root"/> (bodies and GridMaps), skipping doors, which can open.</summary>
+	/// <summary>
+	/// Static collision under <paramref name="root"/> (bodies and GridMaps). A door counts with its frame and its leaf
+	/// standing open; the shut leaf is a navigation gate (<see cref="ClearanceGrid.AddGate"/>), not a solid.
+	/// </summary>
 	public static IEnumerable<SolidOutline> FromStaticBodies(Node root, Transform3D toParent)
 	{
 		var result = new List<SolidOutline>();
+		var leaves = new HashSet<Node>();
 		Collect(root, toParent);
 		return result;
 
 		void Collect(Node node, Transform3D transform)
 		{
-			if (node is Door || node.IsQueuedForDeletion()) return;
+			if (node.IsQueuedForDeletion() || leaves.Contains(node)) return;
+			if (node is Door { Collision.Shape: not null } door)
+			{
+				result.Add(door.LeafOutline(open: true, transform));
+				leaves.Add(door.Collision);
+			}
 			if (node is GridMap grid)
 			{
 				// GridMap.Transform is already part of transform here.
@@ -80,6 +99,31 @@ public static class CollisionOutlines
 			foreach (Node child in node.GetChildren())
 				Collect(child, child is Node3D spatial ? transform * spatial.Transform : transform);
 		}
+	}
+
+	/// <summary>Zero inside a convex polygon (either winding), else the distance to its nearest edge. Pure math: grids call it per sample.</summary>
+	public static float DistanceTo(Vector2[] polygon, Vector2 point)
+	{
+		if (polygon.Length == 1) return point.DistanceTo(polygon[0]);
+		bool inside = polygon.Length >= 3;
+		float sign = 0, best = float.MaxValue;
+		for (int index = 0; index < polygon.Length; index++)
+		{
+			var a = polygon[index];
+			var edge = polygon[(index + 1) % polygon.Length] - a;
+			float lengthSquared = edge.LengthSquared();
+			if (lengthSquared == 0) continue;
+			var offset = point - a;
+			float cross = edge.Cross(offset);
+			if (cross != 0)
+			{
+				if (sign == 0) sign = Mathf.Sign(cross);
+				else if (Mathf.Sign(cross) != sign) inside = false;
+			}
+			float along = Mathf.Clamp(offset.Dot(edge) / lengthSquared, 0, 1);
+			best = Mathf.Min(best, (offset - edge * along).LengthSquared());
+		}
+		return inside ? 0 : Mathf.Sqrt(best);
 	}
 
 	private static IEnumerable<Vector3> Corners(Aabb box)

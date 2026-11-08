@@ -17,11 +17,10 @@ public sealed class SearchingState : IEnemyState
 	public void Enter(EnemyContext ctx)
 	{
 		GameDebug.Ai($"{ctx.Actor.Name} lost contact; searching last known position for {ctx.Profile.SearchDuration}s.");
-		ctx.Movement.Stop();
+		ctx.Navigation.Stop();
 		ctx.Target = null;
 		ctx.ResetReachabilityCache();
 		_searchCooldown.Start(ctx.Profile.SearchDuration);
-		ctx.Navigation.SetDestination(ctx.LastKnownTargetPosition);
 	}
 
 	public EnemyBehaviorState? Update(EnemyContext ctx, double delta)
@@ -33,17 +32,10 @@ public sealed class SearchingState : IEnemyState
 			return EnemyBehaviorState.Chasing;
 		}
 
-		if (searchExpired || ctx.Navigation.IsNavigationFinished())
+		// Reached the last known position, cannot get there, or gave up: resume normal patrol.
+		if (searchExpired || !ctx.Navigation.MoveTo(ctx.LastKnownTargetPosition) || ctx.Navigation.HasArrived || ctx.Navigation.IsStuck)
 		{
-			// Reached the last known position or gave up; resume normal patrol.
 			return EnemyBehaviorState.Patrolling;
-		}
-
-		ctx.Navigation.FollowPath();
-		if (ctx.Navigation.IsStuck)
-		{
-			ctx.Navigation.ResetStuckTracking();
-			ctx.Navigation.SetDestination(ctx.LastKnownTargetPosition);
 		}
 
 		return null;

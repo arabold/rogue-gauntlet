@@ -50,7 +50,7 @@ Acquisition requires navigation reachability and unobstructed sight. Long-range 
 
 An acquired target remains pursued while reachable, even around corners without sight. Breaking the path starts a search at the last reachable position; losing sight alone does not end a valid chase. Doorway crossings retain their commitment. Defense observes visible threats, never input presses or hidden future state.
 
-The FSM owns awareness/pursuit, movement strategies express preferences and a per-actor tactical runtime bounds local choices. Existing navigation supplies reachable destinations; this is not a behavior-tree framework or a global planning service. Tactical decision traces are available through the [harness](combat-harness.md).
+The FSM owns awareness/pursuit, movement strategies express preferences and a per-actor tactical runtime bounds local choices. The clearance-grid navigation described in [level design](level-design.md#doors-and-enemy-navigation) supplies chase, flee and route movement sized by each monster's `BodyShape`; this is not a behavior-tree framework or a global planning service. Tactical decision traces are available through the [harness](combat-harness.md).
 
 ## Strength, placement and rewards
 

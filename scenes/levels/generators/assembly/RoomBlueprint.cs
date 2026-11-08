@@ -395,7 +395,7 @@ public sealed class RoomBlueprint
 		return true;
 	}
 
-	private readonly record struct Checkpoint(byte[] Grid, int Pieces, int Reserved, int Pits, int Landings);
+	private readonly record struct Checkpoint(float[] Grid, int Pieces, int Reserved, int Pits, int Landings);
 
 	private Checkpoint Save() => new(Grid.Save(), _pieces.Count, _reserved.Count, _pits.Count, _landings.Count);
 
@@ -439,23 +439,6 @@ public sealed class RoomBlueprint
 					Shape = new BoxShape3D { Size = new Vector3(area.Size.X, Room.TileSize, area.Size.Y) },
 				});
 		}
-		// Rendered pool surfaces and stairwell beds must never become walkable geometry during a bake.
-		if (_pits.Count == 0) return;
-		var navigation = new Node3D { Name = "PitNavigation" };
-		Room.AddChild(navigation);
-		foreach (var tile in _pits)
-		{
-			float half = Room.TileSize / 2f;
-			navigation.AddChild(new NavigationObstacle3D
-			{
-				Name = $"PitNavigation{tile.X}_{tile.Y}",
-				Position = RoomFootprint.TileCenter(tile) + Vector3.Down * Room.TileSize,
-				Height = Room.TileSize * 2,
-				AffectNavigationMesh = true,
-				AvoidanceEnabled = false,
-				Vertices = [new(-half, 0, -half), new(half, 0, -half), new(half, 0, half), new(-half, 0, half)],
-			});
-		}
 	}
 
 	/// <summary>Assigns fixture state before entering the tree, on a cosmetic RNG stream independent of placement.</summary>
@@ -463,6 +446,22 @@ public sealed class RoomBlueprint
 	{
 		if (node is LightFixture fixture) fixture.IsLit = litChance >= 1f || (litChance > 0f && rng.Randf() < litChance);
 		foreach (Node child in node.GetChildren()) ConfigureLighting(child, rng, litChance);
+	}
+
+	/// <summary>
+	/// The collider for one of a prop's shapes. A shape hanging inside the actor height band (a wall shelf, a trophy)
+	/// reaches down to the floor, as floor reachability and navigation already treat it: an actor walking into it meets
+	/// an upright face, never an underside that presses it into the floor and pins it there.
+	/// </summary>
+	private static CollisionShape3D Collider(Shape3D shape, Transform3D transform, Transform3D placement)
+	{
+		var points = CollisionOutlines.Points(shape).Select(point => placement * transform * point).ToArray();
+		float bottom = points.Min(point => point.Y);
+		if (bottom <= ClearanceGrid.MinimumBlockingHeight || bottom >= ClearanceGrid.MaximumBlockingHeight)
+			return new CollisionShape3D { Shape = shape, Transform = transform };
+		// Room space, floor at 0: the shape's points plus their footprint on the floor.
+		var column = points.Concat(points.Select(point => point with { Y = 0 })).ToArray();
+		return new CollisionShape3D { Shape = new ConvexPolygonShape3D { Points = column }, Transform = placement.AffineInverse() };
 	}
 
 	internal static Node3D CreateNode(PlacedPiece piece)
@@ -511,7 +510,7 @@ public sealed class RoomBlueprint
 		}
 		else if (geometry.Shapes.Count > 0)
 		{
-			foreach (var (shape, transform) in geometry.Shapes) body.AddChild(new CollisionShape3D { Shape = shape, Transform = transform });
+			foreach (var (shape, transform) in geometry.Shapes) body.AddChild(Collider(shape, transform, node.Transform));
 		}
 		else
 		{

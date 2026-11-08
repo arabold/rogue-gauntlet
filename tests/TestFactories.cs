@@ -251,6 +251,23 @@ public static class TestFactories
 		return (runner, level);
 	}
 
+	/// <summary>
+	/// The authored level generated like a real floor for <paramref name="seed"/> and <paramref name="depth"/>, without
+	/// the floor's own monsters, which would wander into whatever the test stages.
+	/// </summary>
+	public static async Task<(ISceneRunner Runner, Level Level)> GenerateLevel(ulong seed, uint depth)
+	{
+		ISceneRunner runner = LoadScene("res://scenes/levels/level.tscn");
+		await runner.SimulateFrames(2);
+		var level = (Level)runner.Scene();
+		GameSession.Instance.ResetLevelDebugState(depth);
+		level.ConfigureGeneration(new RunState(seed), depth, null, null);
+		level.Generate();
+		foreach (var enemy in level.FindChildren("*", "", true, false).OfType<EnemyBase>()) enemy.QueueFree();
+		await runner.SimulateFrames(2);
+		return (runner, level);
+	}
+
 	private static void Configure(MapGenerator mapGenerator, RoomLayoutStrategy layout, RoomFactory factory)
 	{
 		mapGenerator.RoomLayout = layout;

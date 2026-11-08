@@ -477,7 +477,7 @@ public partial class EnemyDefenseController : Node
 		}
 	}
 
-	/// <summary>AI declines a dash without a supported endpoint or collision-free path.</summary>
+	/// <summary>AI declines a dash without a supported endpoint, a collision-free path, or room for its body there.</summary>
 	private bool IsSafeDodge(Vector3 direction)
 	{
 		if (!Enemy.IsInsideTree()) return true;
@@ -485,8 +485,7 @@ public partial class EnemyDefenseController : Node
 		Vector3 motion = direction * distance;
 		if (Enemy.TestMove(Enemy.GlobalTransform, motion)) return false;
 		Vector3 end = Enemy.GlobalPosition + motion;
-		var fit = Enemy.GetNodeOrNull<LargeActorFitComponent>("LargeActorFitComponent");
-		if (fit != null && !fit.CanMoveTo(end)) return false;
+		if (Enemy.EnemyBehaviorComponent?.Navigation?.CanStandAt(end) == false) return false;
 		var query = PhysicsRayQueryParameters3D.Create(end + Vector3.Up, end - Vector3.Up * 2, 1);
 		return Enemy.GetWorld3D().DirectSpaceState.IntersectRay(query).Count > 0;
 	}

@@ -293,7 +293,7 @@ public class WallIntegrityTest
 		{
 			generator.Seed = seed;
 			generator.GenerateMap(includeGameplay: false);
-			foreach (var room in generator.NavigationRegion.GetChildren().OfType<Room>())
+			foreach (var room in generator.FloorContent.GetChildren().OfType<Room>())
 			{
 				secretCount += room.Doors.Values.Count(door => door.Secret?.IsSecret == true);
 				foreach (var (local, horizontal) in room.FramedEdges)
@@ -321,7 +321,7 @@ public class WallIntegrityTest
 		for (ulong seed = 1; seed <= SeedCount; seed++)
 		{
 			mapGenerator.Seed = seed;
-			mapGenerator.GenerateMap(includeGameplay: false); // preview: skip navmesh bake + spawns
+			mapGenerator.GenerateMap(includeGameplay: false); // preview: skip navigation + spawns
 			foreach (string gap in FindWallGaps(mapGenerator))
 			{
 				gaps.Add($"seed {seed}: {gap}");
@@ -350,7 +350,7 @@ public class WallIntegrityTest
 		// A frame seals the half-unit where a perpendicular wall meets its endpoint.
 		var grid = mapGenerator.WallGridMap;
 		int frame = grid.MeshLibrary.FindItemByName("wall");
-		foreach (var room in mapGenerator.NavigationRegion.GetChildren().OfType<Room>())
+		foreach (var room in mapGenerator.FloorContent.GetChildren().OfType<Room>())
 		foreach (var (local, horizontal) in room.FramedEdges)
 		{
 			var center = (Vector3I)grid.ToLocal(room.ToGlobal(local));

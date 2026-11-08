@@ -59,8 +59,7 @@ func _initialize():
 	# since MapGenerator's own _Ready() is what wires up its GridMap/child references.
 
 func _generate_and_frame():
-	# Skip navmesh bake + spawns (includeGameplay=false): this is a static geometry
-	# preview, and headless navmesh baking is a known no-op (see SKILL.md).
+	# Skip navigation + spawns (includeGameplay=false): this is a static geometry preview.
 	_map_generator.call("GenerateMap", false)
 
 	var map_width = float(_map_generator.MapWidth)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=21 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" uid="uid://dufyxbs8mado1" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://ccltoxuycom37" path="res://scenes/items/lootable_item.tscn" id="10_lootitem"]
 [ext_resource type="Resource" path="res://scenes/items/loot/drops/loose_items.tres" id="11_loose_items"]
 [ext_resource type="Resource" path="res://scenes/props/fountains/fountain_profile.tres" id="12_fountains"]
+[ext_resource type="Resource" path="res://scenes/levels/navigation/navigation_profiles/default.tres" id="13_navigation"]
 
 [ext_resource type="Script" path="res://scenes/levels/LevelItemPersistence.cs" id="13_persistence"]
 
@@ -36,6 +37,7 @@ script = ExtResource("1_37vyo")
 MapGenerator = NodePath("MapGenerator")
 ItemPersistence = NodePath("ItemPersistence")
 Discovery = NodePath("FloorDiscovery")
+NavigationProfile = ExtResource("13_navigation")
 
 [node name="MapGenerator" parent="." instance=ExtResource("2_dtjl1")]
 AccessProfile = ExtResource("access_profile")

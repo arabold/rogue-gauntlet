@@ -1,12 +1,11 @@
-[gd_scene load_steps=35 format=3]
+[gd_scene load_steps=34 format=3]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
 [ext_resource type="PackedScene" path="res://assets/custom-monsters/forsaken_warden/forsaken_warden.glb" id="2_glb"]
 
 [ext_resource type="Resource" path="res://scenes/attacks/animation_profiles/forsaken_warden.tres" id="attack_animation_profile"]
 
-[ext_resource type="Script" path="res://scenes/enemies/LargeActorFitComponent.cs" id="fit"]
-[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_fit.tres" id="fit_profile"]
+[ext_resource type="Script" path="res://scenes/enemies/TallActorVisibilityComponent.cs" id="tall_visibility"]
 
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_definition.tres" id="definition"]
 [ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="gate_script"]
@@ -100,12 +99,12 @@ height = 4.5
 radius = 1.0
 height = 4.5
 
-[node name="ForsakenWarden" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate", "GuardComponent", "DefenseController", "LargeActorFit")]
+[node name="ForsakenWarden" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate", "GuardComponent", "DefenseController", "BodyShape")]
+BodyShape = NodePath("CollisionShape3D")
 Definition = ExtResource("definition")
 ActionGate = NodePath("ActorActionGateComponent")
 GuardComponent = NodePath("GuardComponent")
 DefenseController = NodePath("EnemyDefenseController")
-LargeActorFit = NodePath("LargeActorFitComponent")
 
 [node name="WardenModel" parent="Pivot" index="0" instance=ExtResource("2_glb")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
@@ -139,11 +138,9 @@ AnimationPlayerPath = NodePath("../Pivot/WardenModel/AnimationPlayer")
 AnimationTreePath = NodePath("../EnemyBehaviorComponent/AnimationTree")
 Profile = ExtResource("attack_animation_profile")
 
-[node name="LargeActorFitComponent" type="Node" parent="." index="3" node_paths=PackedStringArray("Actor", "Movement")]
-script = ExtResource("fit")
-Profile = ExtResource("fit_profile")
+[node name="TallActorVisibilityComponent" type="Node" parent="." index="3" node_paths=PackedStringArray("Actor")]
+script = ExtResource("tall_visibility")
 Actor = NodePath("..")
-Movement = NodePath("../MovementComponent")
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("ActionGate")]
 ActionGate = NodePath("../ActorActionGateComponent")

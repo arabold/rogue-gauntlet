@@ -49,6 +49,10 @@ public class RoomStyleSamplesTest
 	[TestCase]
 	public void RoomLightingIsSeededAndIndependentOfPlacement()
 	{
+		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<CharacterBody3D>();
+		var playerBody = player.GetNode<CollisionShape3D>("CollisionShape3D");
+		var (bodyShape, bodyOffset) = (playerBody.Shape, playerBody.Position);
+		player.Free();
 		using var type = (RoomType)TestFactories.Load<RoomType>($"{RoomTypes}treasury.tres").Duplicate();
 		string signature = null;
 		bool[] previous = null;
@@ -173,6 +177,10 @@ public class RoomStyleSamplesTest
 	[TestCase(3)] // bare opening
 	public void DoorwayFramesKeepTheirOpeningsClear(int mode)
 	{
+		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<CharacterBody3D>();
+		var playerBody = player.GetNode<CollisionShape3D>("CollisionShape3D");
+		var (bodyShape, bodyOffset) = (playerBody.Shape, playerBody.Position);
+		player.Free();
 		using var type = (RoomType)TestFactories.Load<RoomType>($"{RoomTypes}treasury.tres").Duplicate();
 		type.SecretDoorChance = mode == 1 ? 1 : 0;
 		type.DoorChance = mode < 2 ? 1 : 0;
@@ -189,13 +197,17 @@ public class RoomStyleSamplesTest
 		finally { blueprint.Room.Free(); }
 	}
 
-	/// <summary>The player-sized body can cross open frames and doors in every room rotation; a closed leaf still blocks it.</summary>
+	/// <summary>The player's body can cross open frames and doors in every room rotation; a closed leaf still blocks it.</summary>
 	[TestCase(false)]
 	[TestCase(true)]
 	public async Task PlayerFitsThroughDoorway(bool hasDoor)
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/rooms/room_generation_harness.tscn");
 		await runner.SimulateFrames(2, 20);
+		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<CharacterBody3D>();
+		var playerBody = player.GetNode<CollisionShape3D>("CollisionShape3D");
+		var (bodyShape, bodyOffset) = (playerBody.Shape, playerBody.Position);
+		player.Free();
 		using var type = (RoomType)TestFactories.Load<RoomType>($"{RoomTypes}treasury.tres").Duplicate();
 		type.SecretDoorChance = 0;
 		type.DoorChance = hasDoor ? 1 : 0;
@@ -214,8 +226,8 @@ public class RoomStyleSamplesTest
 			var center = room.GlobalTransform * (rotation * doorway.Edge);
 			using var query = new PhysicsShapeQueryParameters3D
 			{
-				Shape = new SphereShape3D { Radius = 1f },
-				Transform = new Transform3D(Basis.Identity, center - outward * 3 + Vector3.Up),
+				Shape = bodyShape,
+				Transform = new Transform3D(Basis.Identity, center - outward * 3 + bodyOffset),
 				Motion = outward * 6,
 				CollisionMask = 18,
 			};
@@ -237,6 +249,10 @@ public class RoomStyleSamplesTest
 	[TestCase(1, true)]
 	public async Task TreasuryChoosesItsOwnSecretDoor(int chance, bool expectedSecret)
 	{
+		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<CharacterBody3D>();
+		var playerBody = player.GetNode<CollisionShape3D>("CollisionShape3D");
+		var (bodyShape, bodyOffset) = (playerBody.Shape, playerBody.Position);
+		player.Free();
 		using var type = (RoomType)TestFactories.Load<RoomType>($"{RoomTypes}treasury.tres").Duplicate();
 		type.SecretDoorChance = chance;
 		var blueprint = RoomAssembler.Build(type, 23, new RoomAssemblyOptions { Furnish = false });
@@ -312,10 +328,10 @@ public class RoomStyleSamplesTest
 			using var group = new PropGroup { Id = "test.required_group", Anchor = [wall], Members = [member], MirrorChance = 0 };
 			using var rng = blueprint.Random("required_group");
 			var at = new Transform3D(Basis.Identity, new Vector3(8, 0, 8));
-			string before = Convert.ToBase64String(blueprint.Grid.Save());
+			string before = string.Join(",", blueprint.Grid.Save());
 			AssertBool(blueprint.TryPlace(group.Compose(blueprint, rng), at)).IsFalse();
 			AssertInt(blueprint.Pieces.Count).IsEqual(0);
-			AssertString(Convert.ToBase64String(blueprint.Grid.Save())).IsEqual(before);
+			AssertString(string.Join(",", blueprint.Grid.Save())).IsEqual(before);
 			member.Required = false;
 			AssertBool(blueprint.TryPlace(group.Compose(blueprint, rng), at)).IsTrue();
 			AssertInt(blueprint.Pieces.Count).IsEqual(1);

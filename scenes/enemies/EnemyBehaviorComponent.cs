@@ -93,6 +93,8 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	/// The target node that the enemy is chasing
 	/// </summary>
 	public Node3D Target => _context?.Target;
+	/// <summary>Moves the actor over the floor's navigation; null until ready.</summary>
+	public NavigationComponent Navigation => _navigation;
 	/// <summary>Latest engagement choice for debug tools; changes are also emitted to the combat trace.</summary>
 	public string TacticalDecisionReason => _context?.TacticalDecisionReason ?? "inactive";
 
@@ -116,13 +118,12 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		_profile = Profile ?? new EnemyBehaviorProfile();
 		CurrentAction = _profile.InitialAction;
 
-		// SightRay and NavigationAgent3D stay authored as direct children of this component so
-		// inherited enemy scenes are not disturbed; the perception and navigation components drive
-		// them by reference.
+		// SightRay stays authored as a direct child of this component so inherited enemy scenes are not
+		// disturbed; the perception component drives it by reference.
 		_perception = GetNode<PerceptionComponent>("Perception");
 		_perception.Initialize(Actor, _profile, GetNode<RayCast3D>("SightRay"));
 		_navigation = GetNode<NavigationComponent>("Navigation");
-		_navigation.Initialize(Actor, MovementComponent, GetNode<NavigationAgent3D>("NavigationAgent3D"), (Actor as EnemyBase)?.LargeActorFit);
+		_navigation.Initialize(Actor, MovementComponent, (Actor as EnemyBase)?.BodyRadius ?? EnemyBase.DefaultBodyRadius, _profile.StayInHomeRoom);
 
 		_attackController = Actor is EnemyBase enemy ? enemy.AttackController : Actor.GetNodeOrNull<AttackController>("AttackController");
 		if (_attackController == null)

@@ -25,6 +25,9 @@ public static class MonsterSceneValidator
 		Check(definition.Get("XpReward").AsInt32() >= 0, "Definition.XpReward: cannot be negative.");
 		foreach (var name in new[] { "HealthComponent", "MovementComponent", "EnemyBehaviorComponent", "DeathComponent", "LootTableComponent", "HurtBoxComponent", "ActionGate" })
 			Check(Local(Object<Node>(actor, name)), $"{name}: assign a component within this actor.");
+		var body = Object<CollisionShape3D>(actor, "BodyShape");
+		Check(body != null && body.GetParent() == actor && body.Shape is CapsuleShape3D or CylinderShape3D or SphereShape3D,
+			"BodyShape: assign the actor's own capsule, cylinder or sphere collision shape; its radius sizes navigation.");
 		var health = Object<Node>(actor, "HealthComponent");
 		var statuses = Object<Node>(actor, "BuffController");
 		if (statuses != null)
@@ -92,14 +95,16 @@ public static class MonsterSceneValidator
 		{
 			Check(Object<Node>(behavior, "Actor") == actor && Object<Node>(behavior, "HealthComponent") == health
 				&& Object<Node>(behavior, "MovementComponent") == movement, "EnemyBehaviorComponent: bind this actor's health and movement.");
-			Check(behavior.GetNodeOrNull<Node>("Navigation") != null && behavior.GetNodeOrNull<NavigationAgent3D>("NavigationAgent3D") != null
+			Check(behavior.GetNodeOrNull<NavigationComponent>("Navigation") != null
 				&& behavior.GetNodeOrNull<Node>("Perception") != null && behavior.GetNodeOrNull<RayCast3D>("SightRay") != null,
-				"EnemyBehaviorComponent: retain navigation, perception, agent and sight ray children.");
+				"EnemyBehaviorComponent: retain navigation, perception and sight ray children.");
 		}
 		var profile = Object<Resource>(definition, "Behavior");
 		Check(profile != null, "Definition.Behavior: assign a behavior Resource.");
 		if (profile == null) return errors.ToArray();
 		Check(Object<Resource>(profile, "MovementStrategy") != null, "Behavior.MovementStrategy: assign a positioning strategy.");
+		Check(profile.Get("StayInHomeRoom").AsBool() || EnemyBase.HorizontalRadius(body) <= RoomAssembler.ActorRadius + .001f,
+			$"BodyShape: wider than generation keeps passable ({RoomAssembler.ActorRadius}); shrink it or hold the monster in its room (Behavior.StayInHomeRoom).");
 		var tactics = Object<Resource>(profile, "TacticalStrategy");
 		Check(tactics != null, "Behavior.TacticalStrategy: assign an engagement priority strategy.");
 		if (tactics != null)

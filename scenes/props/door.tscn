@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=4 uid="uid://dbns86sg2gnll"]
+[gd_scene load_steps=20 format=4 uid="uid://dbns86sg2gnll"]
 
 [ext_resource type="Script" uid="uid://bbavd8jl8n263" path="res://scenes/props/Door.cs" id="1_rychn"]
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="2_yt2ch"]
@@ -94,10 +94,16 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_yxqci")
 
-[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_ce1s2"]
-points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, -0.5, -2, 0, 0.5, -2, 4, -0.5, -2, 0, -0.5)
+[sub_resource type="BoxShape3D" id="LeafShape"]
+size = Vector3(2, 2.75, 0.5)
 
-[node name="Door" type="Node3D" node_paths=PackedStringArray("Lock", "Secret", "Interactive", "KeyMarker", "DoorVisual", "Leaf", "Collision", "NavigationLink") groups=["door", "prop"]]
+[sub_resource type="BoxShape3D" id="JambShape"]
+size = Vector3(1, 4, 1)
+
+[sub_resource type="BoxShape3D" id="LintelShape"]
+size = Vector3(2, 1.25, 1)
+
+[node name="Door" type="Node3D" node_paths=PackedStringArray("Lock", "Secret", "Interactive", "KeyMarker", "DoorVisual", "Leaf", "Collision") groups=["door", "prop"]]
 script = ExtResource("1_rychn")
 Lock = NodePath("DoorLock")
 Secret = NodePath("SecretDoor")
@@ -105,8 +111,7 @@ Interactive = NodePath("InteractiveComponent")
 KeyMarker = NodePath("KeyMarker")
 DoorVisual = NodePath("wall_doorway")
 Leaf = NodePath("wall_doorway/wall_doorway_door")
-Collision = NodePath("StaticBody3D/CollisionShape3D")
-NavigationLink = NodePath("NavigationLink3D")
+Collision = NodePath("LeafBody/Collision")
 
 [node name="wall_doorway" type="MeshInstance3D" parent="."]
 layers = 16
@@ -119,21 +124,32 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.820099, 0, 0)
 mesh = SubResource("ArrayMesh_k0rpy")
 skeleton = NodePath("")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="."]
+[node name="Frame" type="StaticBody3D" parent="."]
 collision_layer = 16
 collision_mask = 0
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
-unique_name_in_owner = true
-shape = SubResource("ConvexPolygonShape3D_ce1s2")
+[node name="LeftJamb" type="CollisionShape3D" parent="Frame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 2, 0)
+shape = SubResource("JambShape")
+
+[node name="RightJamb" type="CollisionShape3D" parent="Frame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 2, 0)
+shape = SubResource("JambShape")
+
+[node name="Lintel" type="CollisionShape3D" parent="Frame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.375, 0)
+shape = SubResource("LintelShape")
+
+[node name="LeafBody" type="StaticBody3D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape3D" parent="LeafBody"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.375, 0)
+shape = SubResource("LeafShape")
 
 [node name="InteractiveComponent" parent="." instance=ExtResource("3_0wdxa")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
-
-[node name="NavigationLink3D" type="NavigationLink3D" parent="."]
-start_position = Vector3(0, 0.1, -1.5)
-end_position = Vector3(0, 0.1, 1.5)
-enabled = false
 
 [node name="DoorLock" type="Node" parent="."]
 script = ExtResource("lock_script")

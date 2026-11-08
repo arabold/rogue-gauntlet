@@ -40,6 +40,10 @@ public partial class Level : Node
 	[Export] public LevelItemPersistence ItemPersistence { get; set; }
 	/// <summary>The floor's exploration and fog. Unassigned, fog is disabled and everything shows.</summary>
 	[Export] public FloorDiscovery Discovery { get; set; }
+	/// <summary>Tuning for monster navigation. Unassigned, monsters cannot navigate and hold still.</summary>
+	[Export] public NavigationProfile NavigationProfile { get; set; }
+	/// <summary>Monster navigation on the generated floor; null until generation succeeds or without a profile.</summary>
+	public FloorNavigation Navigation { get; private set; }
 	private Node _runtimeWorldRoot;
 	public RealmEncounterController Encounters { get; private set; }
 	public bool CanDescend => Encounters?.DescentUnlocked != false;
@@ -74,6 +78,10 @@ public partial class Level : Node
 		if (Discovery == null)
 		{
 			GD.PushError($"{Name}: assign the level's FloorDiscovery; fog is disabled.");
+		}
+		if (NavigationProfile == null)
+		{
+			GD.PushError($"{Name}: assign the level's NavigationProfile; monsters cannot navigate.");
 		}
 		Run ??= new RunState(RunState.DefaultSeed);
 
@@ -190,6 +198,7 @@ public partial class Level : Node
 		// level is regenerated in place rather than replaced by a full scene reload.
 		ClearWorldNodes();
 		Floor = null;
+		Navigation = null;
 		Discovery?.Clear();
 		// The previous floor was just freed, and generation reloads many of its resources by path.
 		ResourceCacheGuard.Settle();
@@ -201,6 +210,7 @@ public partial class Level : Node
 			return;
 		}
 		Floor = MapGenerator.Floor;
+		Navigation = Floor.Clearance != null && NavigationProfile != null ? new FloorNavigation(Floor, NavigationProfile) : null;
 		Discovery?.Initialize(Floor);
 		ItemPersistence.Initialize(this);
 		try

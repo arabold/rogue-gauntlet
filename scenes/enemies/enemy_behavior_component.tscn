@@ -7,10 +7,6 @@
 [node name="EnemyBehaviorComponent" type="Node3D"]
 script = ExtResource("1_o22n4")
 
-[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." groups=["navigation_agent"]]
-debug_enabled = false
-debug_path_custom_color = Color(1, 0, 0, 1)
-
 [node name="SightRay" type="RayCast3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 enabled = false

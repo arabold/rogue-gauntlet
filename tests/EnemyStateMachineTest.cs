@@ -8,8 +8,8 @@ using static GdUnit4.Assertions;
 /// Tests for <see cref="EnemyStateMachine"/> transition semantics — the control flow that
 /// drives enemy behavior (idle/patrol/chase/flee/...). Pure: the machine is a plain class
 /// and the states are an interface, so fake states with a null context exercise the
-/// Enter/Exit/Update contract without a Godot runtime. (The navmesh pathfinding the real
-/// states call into needs a baked mesh and is covered at the scene level, not here.)
+/// Enter/Exit/Update contract without a Godot runtime. (The navigation the real states call into
+/// is covered by ClearanceNavigationTest and MonsterChaseTest.)
 /// </summary>
 [TestSuite]
 public class EnemyStateMachineTest

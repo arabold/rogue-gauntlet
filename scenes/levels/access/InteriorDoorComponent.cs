@@ -17,14 +17,15 @@ public partial class InteriorDoorComponent : Node
 
 	public override void _Ready() => ApplyGeometry();
 
-	/// <summary>The authored gate mesh spans local X 0..1 from its hinge; collision and navigation remain instance-local.</summary>
+	/// <summary>The authored gate mesh spans local X 0..1 from its hinge; collision remains instance-local.</summary>
 	public void ApplyGeometry()
 	{
-		if (Door?.Leaf == null || Door.Collision == null || Door.NavigationLink == null) return;
+		if (Door?.Leaf == null || Door.Collision == null) return;
 		Door.Leaf.Position = new(-OpeningWidth / 2, 0, 0);
 		Door.Leaf.Scale = new(OpeningWidth, 1, 1);
 		Door.Collision.Shape = new BoxShape3D { Size = new(OpeningWidth, 4, .3f) };
 		Door.Collision.Position = new(0, 2, 0);
+		Door.CaptureClosedLeaf();
 		if (string.IsNullOrEmpty(Door.ConnectionId)) Door.ConnectionId = "interior:" + Id;
 	}
 

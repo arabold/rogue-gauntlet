@@ -6,11 +6,13 @@ extends SceneTree
 ##
 ## Each tile's mesh and collision are saved as resources beside this script (the GLBs stay art only), then added to
 ## the floor, wall or decoration library under the tile's name. Existing items keep their ids, so GridMap cells and
-## the KayKit items are untouched; re-running updates studio items in place. Collision follows the KayKit items:
-## floors get a trimesh of their surface and a flat navigation mesh on top, walls a convex hull, rugs none (actors
-## walk over them). Water channels and basins keep a KayKit grate's rim, so they take that grate's collision and
-## navigation. Pool pieces are laid as props by `PoolStep` over a pit with no floor: they get no navigation and one
-## box from their bed to a low curb above the floor, so actors stop at the edge while missiles fly over. Every
+## the KayKit items are untouched; re-running updates studio items in place. Walls get a convex hull, rugs no
+## collision (actors walk over them). Every walkable floor item in the floor library, KayKit's included, collides as
+## one flat box at the shared floor height: surface detail stays visual, because a trimesh's lips and seams stop small
+## bodies that monster navigation treats as free to walk. No item carries a navigation mesh: monsters navigate on the
+## floor's clearance grid. Pool pieces are laid as props by `PoolStep` over a pit with no floor: they get one box from
+## their bed to a low curb above the floor, so actors stop at the edge while missiles fly over. Raised foundations keep
+## their own collision. Every
 ## translucent surface (water) is drawn with the water shader. Doorway pieces and the gate leaf only get their meshes
 ## saved, for door scenes; T-splits, crossings, endcaps and pillars have no generator use yet, so they stay out of the
 ## libraries.
@@ -20,18 +22,20 @@ const OUTPUT := "res://scenes/levels/dungeon/custom_tiles"
 const FLOORS := "res://scenes/levels/dungeon/FloorMeshLibrary.tres"
 const WALLS := "res://scenes/levels/dungeon/WallsMeshLibrary.tres"
 const DECORATION := "res://scenes/levels/dungeon/DecorationMeshLibrary.tres"
-## Studio floor tops sit at y 0.05 (KayKit's floor footprint).
-const FLOOR_TOP := 0.05
 const SKIPPED := ["_Tsplit_", "_crossing_", "_half_endcap_", "_pillar_"]
 const DOOR_PARTS := ["_doorway_", "_gate_leaf_"]
 ## Target of pieces that only get their mesh saved.
 const DOOR_PART := "door part"
 const WATER := "res://scenes/levels/dungeon/water/water.tres"
-## Inlays by name prefix and the KayKit grate whose rim, collision and navigation they share.
-const GRATES := {"floor_water_channel_": "floor_tile_grate", "floor_water_pool_": "floor_tile_big_grate"}
 const POOL := "floor_pool_"
 ## Pool collision: the whole tile, from below the bed to this height above the floor.
 const POOL_CURB := 0.35
+## Raised structure rather than walkable floor; keeps its own collision.
+const FOUNDATION := "floor_foundation_"
+## Flat floor collision: every walkable floor tile shares one top height (KayKit's floor surface), so seams between
+## different tiles are perfectly flush; tiles with a higher surface (dirt, rubble) show the difference only visually.
+const FLOOR_TOP := 0.05
+const FLOOR_BOTTOM := -0.1
 
 var _started := false
 
@@ -88,21 +92,13 @@ func _register() -> bool:
 		if name.begins_with(POOL):
 			library.set_item_shapes(id, [pool, Transform3D(Basis.IDENTITY, Vector3(0, (POOL_CURB - 1.7) / 2, 0))])
 			continue
-		var grate := _grate_for(library, name)
-		if grate >= 0:
-			library.set_item_shapes(id, library.get_item_shapes(grate))
-			library.set_item_navigation_mesh(id, library.get_item_navigation_mesh(grate))
-			library.set_item_navigation_layers(id, library.get_item_navigation_layers(grate))
-			continue
-		if target != DECORATION:
-			var shape: Shape3D = mesh.create_trimesh_shape() if target == FLOORS else mesh.create_convex_shape(true, true)
+		if target == WALLS:
 			var shape_path := "%s/shapes/%s.res" % [OUTPUT, name]
-			if ResourceSaver.save(shape, shape_path, ResourceSaver.FLAG_COMPRESS) != OK:
+			if ResourceSaver.save(mesh.create_convex_shape(true, true), shape_path, ResourceSaver.FLAG_COMPRESS) != OK:
 				return false
 			library.set_item_shapes(id, [load(shape_path), Transform3D.IDENTITY])
-		if target == FLOORS:
-			library.set_item_navigation_mesh(id, _floor_navigation(snappedi(mesh.get_aabb().size.x, 1)))
-			library.set_item_navigation_layers(id, 1)
+	if not _flatten_floors(libraries[FLOORS]):
+		return false
 	for path in libraries:
 		if not _save_keeping_uid(libraries[path], path):
 			return false
@@ -135,12 +131,29 @@ func _pool_shape() -> Shape3D:
 	return load(path)
 
 
-## The KayKit grate an inlay shares its rim with, or -1.
-func _grate_for(library: MeshLibrary, name: String) -> int:
-	for prefix in GRATES:
-		if name.begins_with(prefix):
-			return library.find_item_by_name(GRATES[prefix])
-	return -1
+## Gives every walkable floor item one flat box over its footprint, studio and KayKit items alike, and clears every
+## floor item's navigation mesh. Boxes are shared per footprint, so the library references a handful of resources.
+func _flatten_floors(library: MeshLibrary) -> bool:
+	var boxes := {}
+	for id in library.get_item_list():
+		var name := library.get_item_name(id)
+		var mesh := library.get_item_mesh(id)
+		library.set_item_navigation_mesh(id, null)
+		if mesh == null or name.begins_with(POOL) or name.begins_with(FOUNDATION):
+			continue
+		var bounds := mesh.get_aabb()
+		var top := FLOOR_TOP
+		var size := Vector3(snappedf(bounds.size.x, 0.01), top - FLOOR_BOTTOM, snappedf(bounds.size.z, 0.01))
+		var path := "%s/shapes/floor_flat_%dx%d.res" % [OUTPUT, roundi(size.x * 100), roundi(size.z * 100)]
+		if not boxes.has(path):
+			var box := BoxShape3D.new()
+			box.size = size
+			if ResourceSaver.save(box, path) != OK:
+				return false
+			boxes[path] = load(path)
+		var center := bounds.get_center()
+		library.set_item_shapes(id, [boxes[path], Transform3D(Basis.IDENTITY, Vector3(center.x, (top + FLOOR_BOTTOM) / 2, center.z))])
+	return true
 
 
 ## The studio exports water as a translucent stand-in; the game draws it with the water shader.
@@ -162,20 +175,6 @@ func _extract_mesh(path: String) -> Mesh:
 		mesh = (instances[0] as MeshInstance3D).mesh.duplicate()
 	scene.free()
 	return mesh
-
-
-## A flat walkable square on the floor top, saved once per floor width so the libraries reference one resource.
-func _floor_navigation(width: int) -> NavigationMesh:
-	var path := "%s/shapes/floor_%d_navigation.res" % [OUTPUT, width]
-	if ResourceLoader.exists(path):
-		return load(path)
-	var half := width / 2.0
-	var navigation := NavigationMesh.new()
-	navigation.vertices = PackedVector3Array([Vector3(-half, FLOOR_TOP, -half), Vector3(half, FLOOR_TOP, -half),
-		Vector3(half, FLOOR_TOP, half), Vector3(-half, FLOOR_TOP, half)])
-	navigation.add_polygon(PackedInt32Array([0, 1, 2, 3]))
-	ResourceSaver.save(navigation, path)
-	return load(path)
 
 
 ## Headless saves drop the file's UID; restore it so uid:// references to the library keep resolving.

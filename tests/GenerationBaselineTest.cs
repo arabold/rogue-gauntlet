@@ -35,7 +35,7 @@ public class GenerationBaselineTest
 			try { generator.GenerateMap(); }
 			catch (InvalidOperationException error) { message = error.Message; }
 			AssertString(message).Contains("assign the corridor floor material and wall style");
-			AssertInt(generator.NavigationRegion.GetChildCount()).IsEqual(0);
+			AssertInt(generator.FloorContent.GetChildCount()).IsEqual(0);
 		}
 	}
 
@@ -102,7 +102,7 @@ public class GenerationBaselineTest
 		generator.GenerateMap();
 		string first = Fingerprint(generator);
 		AssertInt(generator.EnemySpawnPoints.Count).IsGreater(0);
-		AssertInt(generator.NavigationRegion.GetChildren().OfType<LootableItem>().Count()).IsGreater(0);
+		AssertInt(generator.FloorContent.GetChildren().OfType<LootableItem>().Count()).IsGreater(0);
 		await runner.SimulateFrames(1);
 
 		for (int i = 0; i < 100; i++) { GD.Randi(); }
@@ -142,7 +142,7 @@ public class GenerationBaselineTest
 			result.Append(spawn.PersistentId).Append(spawn.Scenes[0].ResourcePath)
 				.Append(spawn.GlobalTransform);
 		}
-		foreach (Node3D node in generator.NavigationRegion.GetChildren().OfType<Node3D>())
+		foreach (Node3D node in generator.FloorContent.GetChildren().OfType<Node3D>())
 		{
 			if (node is not (Chest or LootableItem)) { continue; }
 			result.Append(node.GlobalTransform).Append(node.GetMeta("persistent_id"));
