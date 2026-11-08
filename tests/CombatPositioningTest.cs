@@ -118,22 +118,54 @@ public class CombatPositioningTest
 			player.MovementComponent.Stop();
 			player.DodgeComponent.RestoreCharges(2, 0, 0);
 			await runner.SimulateFrames(2, 20);
-			Vector3 start = enemy.GlobalPosition;
+			Vector3 enemyStart = enemy.GlobalPosition;
+			Vector3 playerStart = player.GlobalPosition;
 			uint mask = player.CollisionMask;
 			AssertBool(harness.RequestHeroDodge(direction)).IsTrue();
 			for (int frame = 0; frame < 40 && player.DodgeComponent.IsDodging; frame++)
 			{
 				await runner.SimulateFrames(1, 20);
-				AssertFloat(enemy.GlobalPosition.DistanceTo(start))
-					.OverrideFailureMessage($"{scene} was pushed while dodging {direction}: {enemy.GlobalPosition - start}")
+				AssertFloat(enemy.GlobalPosition.DistanceTo(enemyStart))
+					.OverrideFailureMessage($"{scene} was pushed while dodging {direction}: {enemy.GlobalPosition - enemyStart}")
 					.IsLess(.01f);
 			}
 			AssertBool(player.DodgeComponent.IsDodging).IsFalse();
 			AssertBool(player.CollisionMask == mask).IsTrue();
 			AssertInt(player.GetCollisionExceptions().Count).IsEqual(1);
 			AssertBool(player.GetCollisionExceptions().Contains(existingException)).IsTrue();
-			AssertFloat((player.GlobalPosition - start).Dot(direction)).IsGreater(2f);
+			AssertFloat((player.GlobalPosition - playerStart).Dot(direction)).IsGreater(2f);
 		}
+	}
+
+	[TestCase]
+	public async Task DodgeQueriesEveryBodyInCrowdsLargerThanOneBatch()
+	{
+		var (runner, harness) = await Load();
+		using var cleanup = runner;
+		var player = harness.Player;
+		player.InputComponent.SetPhysicsProcess(false);
+		player.MovementComponent.Gravity = 0;
+		player.Position = Vector3.Zero;
+		harness.PracticeTarget.Position = Vector3.Right * 10;
+		const int crowdSize = 40;
+		for (int index = 0; index < crowdSize; index++)
+		{
+			var body = new StaticBody3D
+			{
+				CollisionLayer = EnemyLayer,
+				Position = new Vector3(0, .9f, -1f)
+			};
+			body.AddChild(new CollisionShape3D { Shape = new SphereShape3D { Radius = .15f } });
+			runner.Scene().AddChild(body);
+		}
+		await runner.SimulateFrames(2, 20);
+		AssertBool(harness.RequestHeroDodge(Vector3.Forward)).IsTrue();
+		await runner.SimulateFrames(1, 20);
+		AssertInt(player.GetCollisionExceptions().Count).IsEqual(crowdSize);
+		await runner.SimulateFrames(40, 20);
+		AssertBool(player.DodgeComponent.IsDodging).IsFalse();
+		AssertInt(player.GetCollisionExceptions().Count).IsEqual(0);
+		AssertFloat(player.Position.Z).IsLess(-5f);
 	}
 
 	[TestCase("cancel")]
@@ -181,14 +213,15 @@ public class CombatPositioningTest
 		player.MovementComponent.Gravity = 0;
 		player.Position = Vector3.Zero;
 		harness.PracticeTarget.Position = Vector3.Right * 10;
+		const float wallHalfDepth = .1f;
 		var wall = new StaticBody3D { CollisionLayer = 2, Position = new Vector3(0, 2, -2) };
-		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(10, 5, .2f) } });
+		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(10, 5, wallHalfDepth * 2) } });
 		runner.Scene().AddChild(wall);
 		await runner.SimulateFrames(2, 20);
 		AssertBool(harness.RequestHeroDodge(Vector3.Forward)).IsTrue();
 		await runner.SimulateFrames(40, 20);
 		AssertBool(player.DodgeComponent.IsDodging).IsFalse();
-		AssertFloat(player.Position.Z).IsGreater(-1f);
+		AssertFloat(player.GlobalPosition.Z).IsGreater(wall.GlobalPosition.Z + wallHalfDepth);
 		AssertInt(player.GetCollisionExceptions().Count).IsEqual(0);
 	}
 

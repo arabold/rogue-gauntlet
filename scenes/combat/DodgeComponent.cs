@@ -46,6 +46,7 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 	// Shape queries for the exit check, built once per pass-through dodge; only their transforms change.
 	private readonly System.Collections.Generic.List<(PhysicsShapeQueryParameters3D Query, Node3D Shape, Aabb Bounds)> _exitQueries = [];
 	private readonly System.Collections.Generic.List<PhysicsBody3D> _passThroughBodies = [];
+	private const int PassThroughQueryBatchSize = 32;
 	private readonly Godot.Collections.Array<Rid> _passThroughExclude = [];
 	private PhysicsShapeQueryParameters3D _passThroughQuery;
 
@@ -377,14 +378,24 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 			bounds = bounds.Merge(new Aabb(bounds.Position + motion, bounds.Size)).Grow(Actor.SafeMargin);
 			((BoxShape3D)_passThroughQuery.Shape).Size = bounds.Size;
 			_passThroughQuery.Transform = new Transform3D(Basis.Identity, bounds.GetCenter());
-			// Excluding each discovered body lets dense crowds exceed the query's result limit.
-			while (space.IntersectShape(_passThroughQuery, 1) is { Count: > 0 } hits)
+			// Page results so dense crowds exceed the query limit without one native query per body.
+			while (true)
 			{
-				var body = (PhysicsBody3D)hits[0]["collider"].AsGodotObject();
-				Actor.AddCollisionExceptionWith(body);
-				_passThroughBodies.Add(body);
-				_passThroughExclude.Add(body.GetRid());
+				var hits = space.IntersectShape(_passThroughQuery, PassThroughQueryBatchSize);
+				if (hits.Count == 0) break;
+				bool progressed = false;
+				foreach (var hit in hits)
+				{
+					if (hit["collider"].AsGodotObject() is not PhysicsBody3D body) continue;
+					Rid rid = body.GetRid();
+					if (_passThroughExclude.Contains(rid)) continue;
+					Actor.AddCollisionExceptionWith(body);
+					_passThroughBodies.Add(body);
+					_passThroughExclude.Add(rid);
+					progressed = true;
+				}
 				_passThroughQuery.Exclude = _passThroughExclude;
+				if (hits.Count < PassThroughQueryBatchSize || !progressed) break;
 			}
 		}
 	}
