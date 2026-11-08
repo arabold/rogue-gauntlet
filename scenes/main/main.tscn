@@ -16,9 +16,24 @@
 [sub_resource type="Environment" id="Environment_cxo8v"]
 background_mode = 1
 ambient_light_source = 2
-ambient_light_color = Color(1, 1, 1, 1)
-ambient_light_energy = 0.05
+ambient_light_color = Color(0.6, 0.6, 0.6, 1)
+ambient_light_energy = 0.38
+tonemap_mode = 3
+tonemap_exposure = 1.05
 glow_enabled = true
+glow_bloom = 0.1
+ssao_enabled = true
+ssao_radius = 1.0
+ssao_intensity = 1.8
+ssao_power = 1.5
+ssao_detail = 0.0
+ssao_horizon = 0.06
+ssao_sharpness = 0.98
+ssao_light_affect = 0.1
+ssil_enabled = false
+adjustment_enabled = true
+adjustment_contrast = 1.03
+adjustment_saturation = 1.0
 
 [sub_resource type="Resource" id="Resource_3h1r8"]
 script = ExtResource("8_qd7vr")
