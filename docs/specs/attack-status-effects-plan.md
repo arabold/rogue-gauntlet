@@ -1,404 +1,147 @@
-# Attack Status Effects — Program Design
+# Attack status effects
 
-Status: **proposed**. Covers statuses applied by attacks: monster attacks that poison the player (venomous bites, poisoned bolts) and player weapons that poison monsters. It builds on [combat actions and defense](../combat-system.md), [weapon attacks](../weapon-attack-system.md), [stats and itemization](../stats-and-itemization.md) and [monster design and authoring](../monster-authoring-design.md).
+Status: proposed; no on-hit status payload is implemented by this document. The [monster actions and boss phases plan](monster-actions-and-boss-phases-plan.md) includes poison/venom as an early delivery slice. This document owns its payload, periodic-buff, refresh and save contracts. [Combat](../combat-system.md), [weapon attacks](../weapon-attack-system.md), [status conditions](../stats-and-itemization.md#buffs-and-status-conditions), [screen effects](../screen-effects.md) and [world effects](../world-effects.md) own the existing systems.
 
-**Existing foundation:** actor-local, source-owned timed conditions and a frozen status exist on players and monsters (see [status conditions](../stats-and-itemization.md#buffs-and-status-conditions) and [world effects](../world-effects.md)). The proposed buff generalization below must build on that controller and its existing scene wiring; periodic and stat buffs remain player-specific, and attack payloads are not yet implemented.
+## Current foundation
 
-**Foundation:** this plan builds on the implemented [status conditions](../stats-and-itemization.md#buffs-and-status-conditions) and [screen effects](../screen-effects.md) and uses their contracts unchanged:
+- Players and monsters already have actor-local `BuffController` instances and source-owned timed conditions. Reuse their existing wiring and `IStatusActor`; do not add a second status registry or recreate those nodes.
+- `ActiveBuff` still stores a `Player`, `PeriodicBuff.OnTick` takes a player, and `StatModifierBuff` accesses player stats. `PoisonBuff` deals periodic damage directly to player health; `HealingBuff` heals it. These callbacks need an actor-neutral target for shared poison.
+- `AttackDefinition`, `PreparedAttack`, `DamageContext` and projectile direct contacts do not carry on-hit payloads yet. Player weapon defaults are constructed at runtime, so weapon-wide payloads need a `Weapon` authoring surface too. The [shared spell plan](shared-spell-activation-plan.md) routes spell/item poison through these same `PoisonBuff` activations; a contact payload and a poison potion are different application mechanisms for one periodic effect.
+- The hurtbox already resolves active defense, armor, shields, health and reactions. Confirmed contact has no passive accuracy/evasion roll. Add payload application to that existing resolution boundary.
+- Player activations **already save** through `BuffSaveCodec`, including poison/healing amount, remaining duration and tick progress. Node-owned sources must currently be restorable with the player. An enemy Node cannot serve as the source of a saved poison activation.
+- The existing `poisoned.tres` condition drives the player's poison overlay. Shared surface ownership already exists; later monster tinting must submit appearance intent through `SurfaceAppearanceController`, rather than write materials independently.
 
-- `StatusCondition`, whose identity is the external `.tres` (`scenes/buffs/conditions/poisoned.tres`).
-- `Buff.Condition` and `Buff.CuredConditions`.
-- On `BuffController`: `HasCondition`, `ClearBuffs`, and one `BuffsChanged` notification per application, removal, expiry sweep or clear, after which observers re-read what they need.
+## Gameplay contract
 
-Any buff carrying `poisoned.tres` already turns on the player's poison overlay, so poisoning the player needs no presentation work.
+Venom and poison use the same mechanic and `poisoned` condition. A bite, poisoned bolt or player weapon selects a poison payload through authored data; species and weapon names do not implicitly grant it.
 
-**World-VFX integration dependency:** [shared actor surface ownership](../world-effects.md#surface-ownership-and-visibility) now exists. Before slice 3, revise the tint-rendering contract below to submit tint intent through `SurfaceAppearanceController`; its direct `MaterialOverlay` writer and independent material capture are superseded. Preserve cloak/skin priority, helper exclusion and terminal death handoff. The current controller supports cloak/skin profiles; adding tint composition belongs to that slice, not this VFX delivery. Status application and buff generalization remain separate from this rendering adjustment.
+- Apply a payload only when a **direct** contact resolves to `DamageOutcome.Damaged` and its target remains alive. Dodged, parried, blocked (including chip), guard-broken, absorbed, invulnerable and filtered contacts apply none. A killing contact applies none.
+- First delivery covers direct melee and projectile hits. Splash, reflection, poison ticks and legacy untyped damage carry no payload, preventing repeated poison chains.
+- Author application chance on `OnHitStatusProfile`; duration, tick rate and damage belong to an external `PoisonBuff`. Different strengths reference different definitions. A chance must be finite and in `(0, 1]`; attack poison must be timed, with positive finite tick rate and damage.
+- Each qualifying contact rolls each payload once in authored list order, using `contact.Random` (the attack/projectile stream). Chance 1 draws nothing. Non-qualifying contacts and missing receivers draw nothing. Do not use generation, loot or AI-choice RNG. A rejected application after a chance roll does not undo that draw.
+- Reapplying the **same venom definition** refreshes one activation's remaining duration, without stacking another instance or resetting its tick progress. Identical venom from several rats therefore cannot multiply its damage per second or postpone every tick. Distinct venom definitions are separate authored effects; the initial roster uses one attack venom.
+- Poison ticks bypass armor and active defense and cause no hit reaction, poise damage, push or attack payload. Preserve the existing direct-health periodic path. Death and a successful cure prevent later ticks; attacker death does not remove an applied finite poison.
+- Healing spells restore health without curing poison by default. Existing potion cures continue to remove the conditions in their authored `CuredConditions`.
 
-## Target behavior
+Starting content: the Plague Rat bite has a 35% chance to apply `rat_venom.tres`: one damage per second for four seconds, refreshing on reapplication. Verify the projectile path with a harness variant; keep ordinary crossbow bolts plain. A player weapon using the same payload must work against a monster in tests. Assassin's Dagger venom remains optional content after that shared path passes acceptance.
 
-| Source | Target | First content | Presentation |
-| --- | --- | --- | --- |
-| Monster melee attack | Player | Plague Rat bite: 35% chance of venom | Existing poison screen overlay |
-| Monster projectile | Player | Supported path; no roster change in this plan | Existing poison screen overlay |
-| Player weapon, any attack made with it | Monster | Assassin's Dagger: 30% chance of venom | Green tint on the monster (slice 3) |
+## Shared actor targets and runtime ownership
 
-- A status can only apply when the contact resolves to `DamageOutcome.Damaged` and the target is still alive afterwards. Dodged, parried, blocked (even with chip damage), evaded, absorbed, invulnerable and filtered contacts apply nothing.
-- Each status rolls its chance once per qualifying contact. Splash damage from area impacts applies no status.
-- When the target already has a venom applied by an attack, a new application restarts its timer instead of adding a second stack.
-- Poison ticks on a monster bypass armor and active defenses and do not stagger it, which matches the player today. A monster killed by poison drops loot and grants XP like any other death.
-- Death clears an actor's buffs, so a corpse stops ticking and loses its tint before it fades out.
+Add `IBuffTarget` with `HealthComponent Health` and optional `IStatModifierTarget Modifiers`. `BuffController` implements it using its existing exported health reference; the player injects its runtime `PlayerStats` modifier target during `_EnterTree`, while monsters can wire an `ActorStatsComponent`. The [shared spell plan](shared-spell-activation-plan.md) owns that common modifier interface/ledger and the existing source adapters; monsters need no player progression state.
 
-## Current seams
+Replace `ActiveBuff.Player` with `Target : IBuffTarget` and change `PeriodicBuff.OnTick` to take that target. `PoisonBuff`/`HealingBuff` use `Target.Health`. Stat modifiers use `Target.Modifiers` and reject a target without the required supported stats through `Buff.CanApplyTo` before cures or activation side effects. Migrate all current buff callbacks, consumable/equipment callers and tests directly; retain no compatibility overload or player-only fallback.
 
-- `DamageContext` (`common/combat/DamageContext.cs`) carries execution identity, source, owner, faction, amount, accuracy, an explicit `Random`, direction, defense traits and delivery kind. It has no status field.
-- **Monster attacks.** `EnemyAttackStrategy.Attack` holds an embedded `AttackDefinition`. `EnemyBehaviorComponent.TryAttack` calls `AttackController.TryPrepareAttack`, which stores a shallow `Duplicate()` in a `PreparedAttack`, and then `StartAttack`. `ApplyMeleeContact` rolls damage and crit on the controller's `_random`, then builds the `DamageContext`. `SpawnProjectile` and `SpawnAreaDrop` pass values into `Projectile.Initialize`, which seeds its own RNG from `_random.Randi()`. That RNG builds the direct context and a separate `AreaImpact` context for each splash target.
-- **Player weapons.** Only staffs and wands author `Weapon.CustomAttackDefinition`. All other weapons get a definition built per attack by `PlayerAttackController.CreateDefaultDefinition`, so a weapon-wide property cannot live on `AttackDefinition` alone. `Weapon.TryPrepare`, `MartialTechniqueAction` and `UnarmedAttackAction` all go through `TryPrepareWeaponAttack`. `tests/QuickItemTest.cs` constructs `new PreparedAttack(null, null, 0.2)`.
-- **Resolution.** `HurtBoxComponent.ResolveDamageInternal` runs in this order: faction filter, death, active defense (`IDefenseEvaluator`), debug invulnerability, evasion against accuracy, armor, `DamageTaken`, `HealthComponent.TakeDamage`, hit stun/push/effect, `Resolved`. Every roll uses `contact.Random` and falls back to the global RNG only when no RNG is supplied.
-- **Combat RNG.** `EnemyBase.ConfigureCombatRandom` derives `combat.attack` and `combat.defense` from the level seed and the spawn's persistent ID. `Player._Ready` derives `combat.attack` from the run seed. The streams are local to each actor and outside generation isolation (see [randomness and seeds](../randomness-and-seeds.md#gameplay-time-randomness)).
-- **Buffs.** These are player-only.
-  - `Buff.OnApply/OnRemove(ActiveBuff)` take the activation, which stores the player (`ActiveBuff.Initialize(Player, Buff)`); stat modifiers register under the activation. `PeriodicBuff.OnTick(Player)` takes a player, and `BuffController` exports `Player` with a `GetOwner<Player>()` fallback.
-  - `PoisonBuff` and `HealingBuff` only use the player's `HealthComponent`, and `StatModifierBuff` uses `Player.Stats`.
-  - A plain `Buff` carrying only a condition (blinded, confused) and `TimeScaleBuff` have no callbacks. Player components that wire `Buffs` in the Inspector read them: `ConfusionComponent`, `TimeScaleComponent` and the screen drivers.
-  - `ApplyBuff` first ends the conditions in `CuredConditions`, then always adds a new instance, fires `BuffsChanged` and returns nothing.
-  - Only `player.tscn` has a `BuffController`.
-- **Enemy scenes.** `enemy_base.tscn` is inherited by the rat, minion, warrior and Warden. `skeleton_crossbow.tscn` and the three templates (`melee_enemy`, `projectile_enemy`, `mobile_enemy`) are standalone roots, so each needs its own wiring. `MonsterSceneValidator` reads stored properties, which is safe for editor placeholders, and `EnemyBase._EnterTree` disables an actor that fails validation.
-- **Hit reactions.** A monster reacts to hits through the hurtbox path (`IsHit`, push), not through `HealthChanged`. Periodic damage through `HealthComponent.TakeDamage` therefore never staggers it. `DeathComponent` grants XP on `HealthComponent.Died` whatever the killing source. `FadeOutComponent` replaces the corpse's `MaterialOverride`. No monster mesh uses `MaterialOverlay`.
-- **Persistence.** Live monster health is not saved; only cleared spawn IDs are. The player's timed buffs are not saved either: loading calls `ClearBuffs`.
+`BuffController.ApplyBuff` returns `Applied`, `Refreshed` or `Rejected`. Reject null/invalid buffs, dead targets and unsupported target capabilities before mutation. Preserve `ApplyStatus`, `SetPersistentStatus`, source removal and their independent condition lifetimes. One controller operation emits one `BuffsChanged` after the final state is visible.
 
-## Design decisions
+Add `Buff.Stacking` (`Stack` by default, `Refresh` for attack venom). Existing food, potion and equipment overlap keeps its authored behavior. Refresh matching for attack payloads uses a canonical external buff path passed as a stable `stackKey`; ordinary stackable activations use an empty key. Keys identify the effect, never the attacking monster or an attack execution.
 
-1. **The payload is a buff plus a chance.** A new `OnHitStatus` Resource references a `Buff` and a `Chance`. Duration and strength stay on the `Buff` (`Buff.Duration`, `PoisonBuff.DamagePointsPerTick`), so an attack with a weaker or shorter venom references a different buff `.tres`. Chance belongs to the payload: the same venom can be certain on a bite and occasional on a bolt.
-   - Rejected: per-attack `Duration`/`Strength` overrides. Buff subclasses have different strength fields, so a generic "strength" would need per-class scaling rules. Overrides would also mean duplicating the buff on every hit, which breaks the identity that refresh and conditions depend on.
-   - Rejected: a `Buff` exported directly on `AttackDefinition` with no wrapper. It has nowhere to put the chance, and it allows only one status per attack.
-2. **Two authoring surfaces feed one runtime list.** `AttackDefinition.OnHitStatuses` holds statuses specific to one attack: monster strategies and custom weapon definitions. `Weapon.OnHitStatuses` holds statuses for every attack made with that weapon (primary, secondary technique, ranged), because most weapons have no authored definition. Preparation concatenates them, definition first, into `PreparedAttack.OnHitStatuses`. It reads them from the authored sources rather than from the duplicated copy, so the entries are the authored instances.
-3. **Only direct contacts carry statuses.** Melee contacts and a projectile's direct hit, including area-drop projectiles, carry the list. A projectile's splash contexts and the legacy `IDamageable.TakeDamage` path carry none. If a cloud or splash status is needed later, it gets its own authored list rather than reusing this one.
-4. **The defender's hurtbox applies statuses after resolution.** `HurtBoxComponent` gets an optional exported `BuffController Buffs`. Unassigned means the actor ignores statuses. The hurtbox already owns the target's health and the contact's RNG and ordering, and it knows the final outcome.
-   - Rejected: the attacker applying statuses after `ResolveDamage` returns. It would have to discover the target's `BuffController` by node lookup.
-   - Rejected: a separate receiver component fed by a C# event from the hurtbox. That is one more hop, and the receiver would still need the contact RNG and the death ordering.
-5. **Only `Damaged` qualifies.** A blocked hit applies no status even when chip damage gets through, so guarding counters venom. A killing blow applies nothing.
-6. **The chance roll uses the attacker's stream.** It draws from `contact.Random`: the attacker's `combat.attack` stream for melee, or the projectile's seeded RNG. This matches how crit, evasion and armor are already rolled. Each status in list order makes one draw (`Randf() < Chance`), after the armor roll and only on a qualifying contact. Nothing is drawn when `Chance` is 1, when the outcome does not qualify, or when the hurtbox has no `Buffs`. The roll happens before `ApplyBuff`, so the draw count does not depend on whether the buff is accepted. Adding a payload shifts that attacker's later rolls. That is acceptable, since reproducibility is only promised for the same build and content. No generation stream or `GameSession` loot counter is touched.
-   - Rejected: a separate `combat.status` stream for each actor. It would need another seed in the actor and in projectile plumbing, for no current benefit.
-   - Rejected: an RNG owned by the target. The outcome would then depend on the victim's history across several attackers.
-7. **Stacking is authored on the buff.** `Buff.Stacking` is `Stack`, the default, or `Refresh`. `Stack` keeps today's behavior for potions and food. With `Refresh`, applying a buff instance that is already active resets its remaining duration without a second `OnApply`. It still fires `BuffsChanged`, like any application. Venoms use `Refresh`. Matching is by reference, and attack payloads reference shared external `.tres` buffs, so bites from several rats refresh one venom. Item buffs are per-instance copies from `ItemFactory`, so they never refresh each other.
-8. **Buffs target any actor through `IBuffTarget`.** `IBuffTarget` exposes `HealthComponent Health` and `PlayerStats Stats` (null when the actor has no stat block). `BuffController` implements it. Buff callbacks take an `IBuffTarget` instead of a `Player`. `Buff.CanApplyTo` lets `StatModifierBuff` reject actors without stats; `ApplyBuff` then reports `Rejected` and has no side effects. Plain condition buffs and `TimeScaleBuff` are accepted on monsters but do nothing there, because no monster component reads them. `BuffController` replaces its `Player` export with an Inspector-wired `Health`. `Player` injects its runtime `Stats` copy as runtime context.
-   - Rejected: giving monsters a `PlayerStats`. Nothing reads monster stats today.
-   - Rejected: `OnApply(Node actor)` with lookups inside buffs. That discovers dependencies by name.
-9. **Death clears buffs.** `BuffController` subscribes to `Health.Died` and calls `ClearBuffs` deferred. A poison tick that kills the actor therefore never removes the `ActiveBuff` that is still inside its own `_PhysicsProcess`. `ApplyBuff` rejects a dead actor. Player death clears too; it is terminal today.
-10. **One tint presenter per monster owns the overlay slot.** `StatusTintPresenter` maps conditions to tints. It holds an ordered list of `StatusTint` entries (condition and color), and the first active entry wins. It is the only writer of `MaterialOverlay` on the meshes it collects, and it sets the overlay only while a tint is visible.
-    - Rejected: one presenter per condition. Two presenters would fight over the single overlay slot.
-    - Rejected: a buff referencing its own visual. As with screen effects, status sources never reference presentation.
-    - Rejected: swapping `MaterialOverride`. That conflicts with `FadeOutComponent` and loses the model's albedo.
-11. **Invalid payloads fail loudly.** `OnHitStatus.IsValid` requires a non-null `Buff`, `Buff.Duration > 0` (on-hit statuses must expire) and `0 < Chance ≤ 1`. `TryPrepareAttack` rejects an attack with an invalid entry, as it already does for an invalid contact profile. `MonsterSceneValidator` reports it, so the monster is disabled with an error at spawn instead of silently never attacking. Tests cover weapons and monsters as content. On-hit buffs and their conditions are external `.tres` files, never embedded.
+Capture chance, key and a shallow runtime copy of the buff at attack acceptance in an immutable `PreparedHitStatus`. Preserve the authored condition reference and snapshot its numeric settings. Generalize the existing `ActiveBuff.RefreshStatus` into `Refresh(duration)` and migrate its current condition call sites; do not add a parallel refresh path. Keep timed/permanent duration mode on the activation so refresh never mutates a shared `Buff.Duration`. Preserve tick progress without repeating `OnApply` or cures, including the existing timed-to-persistent condition transition.
 
-## Contracts
+Keep the existing deferred death clear. The periodic loop must stop if its target dies or its activation is removed during a callback, even when a large delta covers more ticks. Expiry, cure and death reverse each activation at most once. This retains the current per-activation ownership of reversible stat modifiers.
 
-Proposed names are marked `+`; `~` marks changes to existing types.
+## Payload and resolution boundaries
 
-```csharp
-// + scenes/attacks/OnHitStatus.cs
-/// A buff an attack may apply when one of its direct contacts deals unprotected damage. Duration and strength
-/// belong to the Buff; reference a different Buff for a weaker or shorter status.
-[GlobalClass]
-public partial class OnHitStatus : Resource
-{
-	[Export] public Buff Buff { get; set; }                                         // required, external .tres, Duration > 0
-	[Export(PropertyHint.Range, "0,1,0.01")] public float Chance { get; set; } = 1f; // per qualifying contact
-	public bool IsValid { get; }
-}
+Proposed types/properties; configurable values are `[Export]` properties and arrays default to `[]`:
 
-// ~ scenes/attacks/AttackDefinition.cs
-/// Statuses applied by this attack's direct melee or projectile contacts; splash applies none.
-[Export] public OnHitStatus[] OnHitStatuses { get; set; } = [];
+```text
+OnHitStatusProfile : Resource
+  Buff : Buff                  // required external timed definition
+  Chance : float               // finite, 0 < chance <= 1
+Buff.Stacking : BuffStacking
 
-// ~ scenes/items/Weapon.cs
-/// Statuses applied by every attack made with this weapon, after the attack definition's own.
-[Export] public OnHitStatus[] OnHitStatuses { get; set; } = [];
+AttackDefinition.OnHitStatuses : OnHitStatusProfile[]
+Weapon.OnHitStatuses : OnHitStatusProfile[]
+PreparedHitStatus(Buff snapshot, float chance, string stackKey)
+PreparedAttack.OnHitStatuses : IReadOnlyList<PreparedHitStatus>
+DamageContext.OnHitStatuses : IReadOnlyList<PreparedHitStatus>
+HurtBoxComponent.Buffs : BuffController // explicit optional local receiver
 
-// ~ scenes/attacks/PreparedAttack.cs
-public sealed record PreparedAttack(AttackDefinition Definition, AttackPlayback Playback, double Duration,
-	IReadOnlyList<OnHitStatus> OnHitStatuses = null); // null or empty: none
+IBuffTarget.Health : HealthComponent
+IBuffTarget.Modifiers : IStatModifierTarget // absent without a modifier capability
+ActiveBuff.Target : IBuffTarget
+ActiveBuff.StackKey : string            // runtime-only identity observation
+ActiveBuff.Refresh(float duration) -> void
+Buff.CanApplyTo(IBuffTarget target) -> bool
+BuffController.ApplyBuff(Buff buff, string stackKey = "") -> BuffApplication
+PeriodicBuff.OnTick(IBuffTarget target) -> void
 
-// ~ scenes/attacks/AttackController.cs
-/// Also rejects (returns false, starts nothing) when any definition or weapon status is invalid.
-public bool TryPrepareAttack(AttackDefinition definition, StringName weaponStyle, double duration,
-	out PreparedAttack attack, MeleeAttackProfile weaponContact = null, IReadOnlyList<OnHitStatus> weaponStatuses = null);
-
-// ~ scenes/attacks/Projectile.cs — new trailing parameter; cleared in OnDespawnedToPool
-public void Initialize(/* existing parameters */, AttackIdentity parentExecution = default,
-	IReadOnlyList<OnHitStatus> onHitStatuses = null);
-
-// ~ common/combat/DamageContext.cs
-/// Statuses to roll if this contact resolves to Damaged; null for none.
-public IReadOnlyList<OnHitStatus> OnHitStatuses { get; init; }
-
-// ~ scenes/components/HurtBoxComponent.cs
-/// Receives on-hit statuses; unassigned means this actor ignores them.
-[Export] public BuffController Buffs { get; set; }
+ActiveBuffSaveData.StackKey : string
+ActiveBuffSaveData.Stacking : BuffStacking
 ```
 
-`PlayerAttackController.TryPrepareWeaponAttack` passes `weapon?.OnHitStatuses`. `EnemyBehaviorComponent.TryAttack` is unchanged, because the strategy's definition already carries its list.
+`PlayerAttackController.TryPrepareWeaponAttack` merges definition payloads first, then weapon payloads. Monster preparation uses its selected `EnemyAttackProfile` definition. Existing spells do not inherit weapon contact payloads automatically. Validate and capture before execution starts; invalid entries reject the attack rather than silently skip venom.
 
-```csharp
-// + common/interfaces/IBuffTarget.cs
-/// The actor state a buff acts on. BuffController implements it for players and monsters.
-public interface IBuffTarget
-{
-	HealthComponent Health { get; }
-	/// Stat block of actors that have one (the player); null for monsters.
-	PlayerStats Stats { get; }
-}
+Projectile initialization receives the prepared payload list. Only its direct hit forwards it; splash contexts omit it. Clear the list on pool reset/despawn so another shooter cannot inherit it. The hurtbox owns application after damage/health/reactions are resolved and before publishing the final `Damaged` notification; no attacker-side receiver lookup is needed.
 
-// ~ scenes/buffs/Buff.cs
-public enum BuffStacking { Stack, Refresh }
-[Export] public BuffStacking Stacking { get; set; } = BuffStacking.Stack;
-public virtual bool CanApplyTo(IBuffTarget target) => true;
-public virtual void OnApply(ActiveBuff activation);   // unchanged; reads activation.Target
-public virtual void OnRemove(ActiveBuff activation);
-// ~ PeriodicBuff.OnTick(IBuffTarget target); PoisonBuff and HealingBuff use target.Health
-// ~ StatModifierBuff.CanApplyTo => target.Stats != null; OnApply/OnRemove use activation.Target.Stats, keyed by the activation
+```text
+AttackController preparation
+  validate payloads -> capture chance, canonical key and runtime buff settings
+  start accepted execution -> carry immutable prepared list
 
-// ~ scenes/player/ActiveBuff.cs
-public IBuffTarget Target { get; private set; }  // replaces Player
-public void Initialize(IBuffTarget target, Buff buff);
-/// Restarts the remaining duration; keeps the tick phase. No-op for permanent buffs.
-public void Refresh();
+Direct melee contact / projectile direct hit
+  DamageContext with payloads + explicit attack/projectile RNG
+  HurtBoxComponent resolves current defense/armor/shield rules
+    no surviving Damaged outcome -> no payload and no chance draw
+    surviving Damaged -> roll -> local Buffs.ApplyBuff(snapshot, stackKey)
+      Applied -> one activation; Refreshed -> existing duration only
+      Rejected -> no target mutation
+    publish damage/status feedback after state is settled
 
-// ~ scenes/player/BuffController.cs (path kept; it is no longer player-specific)
-public enum BuffApplication { Applied, Refreshed, Rejected }
-public partial class BuffController : Node, IBuffTarget
-{
-	[Export] public HealthComponent Health { get; set; } // required; replaces the Player export and GetOwner fallback
-	public PlayerStats Stats { get; set; }              // runtime context injected by Player; null on monsters
-	public BuffApplication ApplyBuff(Buff buff);
-}
+ActiveBuff periodic tick
+  PoisonBuff.OnTick(target) -> target.Health.TakeDamage
+    no contact resolution, armor, defense, poise or status application
+    target death -> existing deferred clear; stop further due ticks immediately
+
+Save/load or stairs
+  BuffSaveCodec captures/restores remaining duration + tick progress + stack key/mode
+    validate all records before replacing runtime activations
+    restore without replaying ticks, cures or OnApply effects twice
+    later application with the same canonical key refreshes the restored activation
 ```
 
-`ApplyBuff` contract:
-
-- It returns `Rejected` when `buff` is null (with `PushError`), when `Health` is dead (from slice 2, when `Health` exists), or when `buff.CanApplyTo(this)` is false. A rejection cures nothing, creates no `ActiveBuff`, calls no callbacks and fires no `BuffsChanged`.
-- With `Refresh` stacking, if an `ActiveBuff` holds the same instance and has not yet expired, it runs the existing cure step, calls `Refresh`, fires `BuffsChanged` and returns `Refreshed`.
-- Otherwise it returns `Applied`, with the existing sequence: cure, `OnApply`, listing, `BuffsChanged`. An expired instance waiting for the sweep does not count as active. The new instance is listed before the sweep removes the old one, so `HasCondition` stays true throughout.
-
-The `Player.ApplyBuff` wrapper and the item callers ignore the result. `Player._EnterTree` assigns `BuffController.Stats` immediately after `Stats.CreateRuntimeCopy()`, before any child `_Ready` and before `AutoEquipItems` can apply an equipment buff. `ActiveBuff` stops its tick loop as soon as `Deactivate` has run.
-
-```csharp
-// + scenes/effects/status/StatusTint.cs
-[GlobalClass]
-public partial class StatusTint : Resource
-{
-	[Export] public StatusCondition Condition { get; set; } // external, e.g. poisoned.tres
-	[Export] public Color Color { get; set; }               // alpha = strength at full intensity
-}
-
-// + scenes/effects/status/StatusTintPresenter.cs
-/// Tints an actor's meshes while its BuffController has one of the listed conditions; the first active entry wins.
-[GlobalClass]
-public partial class StatusTintPresenter : Node
-{
-	[Export] public BuffController Buffs { get; set; }        // required, same actor
-	[Export] public Node3D VisualRoot { get; set; }           // required; GeometryInstance3D descendants collected in _Ready
-	[Export] public ShaderMaterial TintMaterial { get; set; } // required shared definition; duplicated once per presenter
-	[Export] public Array<StatusTint> Tints { get; set; } = [];
-	[Export(PropertyHint.Range, "0,3,0.05,suffix:s")] public float FadeInTime { get; set; } = 0.25f;
-	[Export(PropertyHint.Range, "0,3,0.05,suffix:s")] public float FadeOutTime { get; set; } = 0.5f;
-}
-```
-
-The presenter mirrors `StatusScreenEffectDriver`. It subscribes to `BuffsChanged` until it exits the tree, and on each notification and once at start it re-reads `HasCondition` for every entry. It tweens the duplicated material's `tint` uniform. It assigns `MaterialOverlay` when fading toward a visible tint and clears it when a fade-out completes. A missing required export produces `PushError` in `_Ready`, and the presenter stays idle. `FadeOutTime` must stay below `DeathComponent.Delay` (2 s), so the tint is gone before the corpse fades. Meshes are collected in the presenter's `_Ready`, which runs before `EnemyBase._Ready` adds the x-ray silhouettes, so the silhouettes are never tinted.
-
-## Scene and resource wiring
-
-```
-player.tscn
-├─ HurtBoxComponent      + Buffs = ../BuffController                 (slice 1)
-└─ BuffController        ~ Health = ../HealthComponent (replaces Player) (slice 2)
-
-enemy_base.tscn (inherited by rat, minion, warrior, Warden)
-├─ HurtBoxComponent      + Buffs = ../BuffController                 (slice 2)
-├─ + BuffController        Health = ../HealthComponent                (slice 2)
-└─ + StatusTintPresenter   Buffs = ../BuffController, VisualRoot = ../Pivot,
-                           TintMaterial = status_tint_material.tres, Tints = [poisoned_tint.tres] (slice 3)
-```
-
-`skeleton_crossbow.tscn`, `melee_enemy.tscn`, `projectile_enemy.tscn` and `mobile_enemy.tscn` get the same nodes and assignments. `MonsterSceneValidator` checks the following:
-
-- `HurtBoxComponent.Buffs`, when assigned, is local and its `Health` is the actor's `HealthComponent`.
-- A `StatusTintPresenter`, when present, has a local `Buffs`, a `VisualRoot` and a material.
-- Every `OnHitStatus` in `Behavior.AttackStrategy.Attack` is valid.
-
-Content:
-
-- `+ scenes/enemies/rat/rat_venom.tres`: `PoisonBuff`, Name "Plague venom", 1 damage per tick, 1 tick/s, 4 s, `Stacking = Refresh`, `Condition = poisoned.tres`.
-- `~ scenes/enemies/rat/rat_attack.tres`: the `bite` definition gets `OnHitStatuses = [OnHitStatus { Buff = rat_venom.tres, Chance = 0.35 }]`. The `OnHitStatus` is an embedded sub-resource; the buff is external.
-- `+ scenes/items/weapons/assassin_venom.tres`: `PoisonBuff`, Name "Assassin's venom", 2 per tick, 1 tick/s, 5 s, `Refresh`, `poisoned`.
-- `~ scenes/items/weapons/dagger_rare.tres` (Assassin's Dagger, tier 4): `OnHitStatuses = [Chance 0.3, assassin_venom.tres]`.
-- `+ scenes/effects/status/status_tint.gdshader` (spatial, unshaded, alpha-blended, rim-weighted `uniform vec4 tint`), `status_tint_material.tres` and `poisoned_tint.tres` (`StatusTint`, `poisoned`, green).
-
-All values are starting tuning for playtests.
-
-## Call stacks
-
-Monster melee bite poisons the player:
-
-```
-EnemyBehaviorComponent.TryAttack
-├─ AttackController.TryPrepareAttack(policy.Attack, style, duration)
-│  ├─ + any invalid OnHitStatus → false; nothing starts, no cooldown       ← validation before acceptance
-│  └─ PreparedAttack(copy, playback, duration, + authored definition statuses)
-├─ AttackController.StartAttack(attack, …)                                 + keeps attack.OnHitStatuses
-└─ AttackController._PhysicsProcess → ApplyMeleeContact(target)
-   ├─ damage and crit rolls on _random                                     (existing)
-   ├─ DamageContext { …, Random = _random, + OnHitStatuses }
-   └─ HurtBoxComponent.ResolveDamage(in context)
-      ├─ filter · death · active defense · invulnerable                    (existing; early return → no status, no draw)
-      ├─ evasion · accuracy · armor rolls on contact.Random                 (existing; Evaded/Absorbed/Blocked → no status)
-      ├─ DamageTaken · Health.TakeDamage(final) · hit stun/push/effect      (existing)
-      ├─ + Damaged, Health alive, Buffs assigned → for each status in order:
-      │     Chance < 1 ? draw Randf() : no draw;  draw ≥ Chance → trace chance_failed
-      │     else Buffs.ApplyBuff(buff) → Applied | Refreshed | Rejected     → trace status.resolved
-      │       Applied → cure · OnApply · listed · BuffsChanged
-      │                 └─ PoisonDriver re-reads HasCondition(poisoned) and fades the overlay in   (existing)
-      └─ Resolved(Damaged) → damage.resolved trace · DamageResolved signal  ← observers already see the status
-```
-
-Projectile (direct hits only):
-
-```
-AttackController.SpawnProjectile
-└─ Projectile.Initialize(…, _random.Randi(), CurrentExecutionId, + prepared.OnHitStatuses)
-Projectile.OnHitDetected
-├─ damage and crit on the projectile RNG                                   (existing)
-├─ ResolveDamage(DamageContext { DeliveryKind = Projectile, Random = projectile RNG, + OnHitStatuses })
-└─ ApplyImpactRadiusDamage(excluding the direct target)
-   └─ AreaImpact contexts: OnHitStatuses = null                            ← splash never applies statuses
-Projectile.OnDespawnedToPool → + clears its statuses                        ← pooled reuse cannot inherit them
-```
-
-Player weapon:
-
-```
-Weapon.TryPrepare / MartialTechniqueAction / UnarmedAttackAction
-└─ PlayerAttackController.TryPrepareWeaponAttack(weapon, …)
-   └─ TryPrepareAttack(definition, style, duration, contact, + weapon?.OnHitStatuses)
-      └─ PreparedAttack.OnHitStatuses = definition's ++ weapon's            (unarmed: none)
-```
-
-Poison on a monster, through to death:
-
-```
-monster HurtBoxComponent → Buffs.ApplyBuff(assassin_venom) → ActiveBuff.Initialize(controller, buff)
-ActiveBuff._PhysicsProcess → PoisonBuff.OnTick(target) → target.Health.TakeDamage(n)   (no armor, defense or stagger)
-└─ HealthComponent.Died
-   ├─ DeathComponent: clear spawn ID, loot, XP                                         (existing)
-   ├─ EnemyBase: ActionGate.Disable                                                     (existing)
-   └─ + BuffController: CallDeferred(ClearBuffs) → OnRemove for each · one BuffsChanged
-      └─ StatusTintPresenter re-reads, fades out within FadeOutTime < DeathComponent.Delay
-```
-
-## Affected files
-
-```
-+ scenes/attacks/OnHitStatus.cs                                    1
-~ scenes/attacks/AttackDefinition.cs, PreparedAttack.cs            1
-~ scenes/attacks/AttackController.cs, Projectile.cs               1  prepare validation, contexts, projectile plumbing
-~ common/combat/DamageContext.cs                                   1
-~ scenes/components/HurtBoxComponent.cs                            1  Buffs export, application, status.resolved trace
-~ scenes/buffs/Buff.cs                                             1  Stacking; 2  IBuffTarget callbacks, CanApplyTo
-~ scenes/player/ActiveBuff.cs                                      1  Refresh; 2  IBuffTarget, tick-loop guard
-~ scenes/player/BuffController.cs                                  1  BuffApplication, refresh; 2  IBuffTarget, Health, Stats, death clearing
-~ scenes/player/player.tscn                                        1  HurtBox.Buffs; 2  BuffController.Health
-+ scenes/enemies/rat/rat_venom.tres                                1
-~ scenes/enemies/rat/rat_attack.tres                               1
-~ scenes/enemies/MonsterSceneValidator.cs                          1  payload; 2  BuffController wiring; 3  presenter
-+ common/interfaces/IBuffTarget.cs                                 2
-~ scenes/buffs/PeriodicBuff.cs, PoisonBuff.cs, HealingBuff.cs, StatModifierBuff.cs   2
-~ scenes/player/Player.cs                                          2  inject Stats in _EnterTree
-~ scenes/items/Weapon.cs, scenes/player/PlayerAttackController.cs  2
-~ scenes/enemies/enemy_base.tscn, skeleton/skeleton_crossbow.tscn,
-  templates/{melee,projectile,mobile}_enemy.tscn                   2  BuffController; 3  presenter
-+ scenes/items/weapons/assassin_venom.tres                         2
-~ scenes/items/weapons/dagger_rare.tres                            2
-~ scenes/debug/combat_harness.tscn                                 2  add the Assassin's Dagger to Weapons
-+ scenes/effects/status/StatusTint.cs, StatusTintPresenter.cs      3
-+ scenes/effects/status/status_tint.gdshader, status_tint_material.tres, poisoned_tint.tres   3
-+ tests/OnHitStatusTest.cs                                         1, extended in 2
-+ tests/CombatTestActors.cs, ~ tests/CombatDefenseTest.cs         1  shared dodge/guard actor builders
-~ tests/CombatIntegrationTest.cs                                   1, 2
-~ tests/ItemCatalogTest.cs                                         1  poison content check covers on-hit statuses; 2  weapon payloads
-~ tests/ActiveBuffTest.cs, tests/StatusConditionTest.cs            2  IBuffTarget signatures
-~ tests/MonsterAuthoringTest.cs                                    1, 2
-+ tests/StatusTintPresenterTest.cs                                 3
-~ docs/combat-system.md, docs/combat-harness.md                    1
-~ docs/stats-and-itemization.md                                    1, 2
-~ docs/monster-authoring-design.md, docs/monster-catalog/README.md 1, 3
-~ scenes/enemies/templates/README.md                               2, 3
-~ docs/weapon-attack-system.md, docs/item-catalog.md, ARCHITECTURE.md  2  buffs no longer player-only
-~ docs/README.md, docs/development-roadmap.md                      each slice: plan status
-```
-
-## Slices
-
-Delivery is vertical: each slice ends with a status that can be played in the combat harness and in gameplay. Slice 1 needs only items 1 and 2 of the task (payload and application), because the player already has a `BuffController`.
-
-1. **Monster attacks poison the player.** Adds the payload, prepare validation, the melee and projectile context plumbing, and application in the hurtbox. It also adds `Buff.Stacking`, `ActiveBuff.Refresh` and the `BuffApplication` result, wires the player's `HurtBoxComponent.Buffs`, adds the `status.resolved` trace event, validates payloads in `MonsterSceneValidator`, and authors the Plague Rat venom.
-   - Exercise: in the combat harness, let a rat bite the hero repeatedly. Some bites poison: the overlay fades in and health ticks down. Further bites restart the timer instead of stacking. Bites that are dodged, parried or blocked never poison.
-   - Verify:
-     - `dotnet build`.
-     - `dotnet test`, with the tests below.
-     - Import, then `inspect_resource.gd` on `rat_venom.tres` and `rat_attack.tres`.
-     - A headless `main.tscn` smoke run (`Map generated.`, no validator errors).
-   - Limitation: monsters cannot receive statuses, and no weapon carries any.
-2. **Player weapons poison monsters.** Adds `IBuffTarget`, the buff signature change, `Health`/`Stats` on `BuffController`, the `Player` stats injection, death clearing and the tick-loop guard. It also adds `Weapon.OnHitStatuses` and its merge, the `BuffController` and `HurtBox.Buffs` wiring in the five enemy roots, the validator wiring checks, and the Assassin's Dagger venom.
-   - Exercise: equip the Assassin's Dagger from the debug menu or from the harness `Weapons` list. Some hits poison a rat or skeleton: its health bar keeps dropping between hits, and a poison kill drops loot and grants XP. Health, regeneration and strength potions still affect the player exactly as before.
-   - Verify:
-     - `dotnet build` and `dotnet test`.
-     - `dotnet build -c ExportRelease`, which keeps test sources out of exports.
-     - A resource check of the edited weapon and buff files.
-     - A headless smoke run.
-     - The editor's *Validate monster scene* on each of the five monsters and the three templates.
-   - Limitation: a poisoned monster looks unchanged apart from its health bar.
-3. **Monster status tint.** Adds `StatusTint`, `StatusTintPresenter`, the shader and material, the `poisoned` tint entry, the presenter in the five enemy roots, and the validator check.
-   - Exercise: poison a monster: it gains a green tint that fades out when the venom ends or the monster dies, before the corpse fades.
-   - Verify:
-     - `dotnet test`.
-     - A windowed screenshot through a temporary preview scene or the windowed combat harness, then reading the PNG. Headless renders are blank.
-     - The editor acceptance exercise below.
-   - Limitation: one tint at a time, chosen by list order. There are no HUD icons.
-
-No slice depends on a later one, and the condition foundation is already on `main`.
-
-## Tests
-
-`OnHitStatusTest`, `[RequireGodotRuntime]` (hurtbox and controller are Nodes). It reuses the actor builders from `CombatDefenseTest`, moved into a shared test helper.
-
-- A `Damaged` contact with `Chance = 1` applies the buff once. Dodged, parried, blocked with chip damage, evaded, absorbed, invulnerable and filtered contacts apply nothing.
-- A killing blow applies nothing. A hurtbox without `Buffs` applies nothing.
-- Draws, compared by RNG state with an identical contact without a payload:
-  - A non-qualifying outcome, a missing `Buffs` and `Chance = 1` each draw nothing.
-  - `Chance < 1` draws exactly once per status, and a fixed seed reproduces the same result.
-- `Refresh` keeps one `ActiveBuff` with its full duration restored, and `Stack` adds a second instance. `ApplyBuff` results cover null, dead target, refresh and apply.
-- `TryPrepareAttack` rejects null buffs, permanent buffs and chances of 0 or above 1. `PreparedAttack.OnHitStatuses` holds the authored instances.
-- Slice 2 adds the following:
-  - Weapon statuses are merged for primary, technique and ranged attacks, and unarmed attacks have none.
-  - On an actor without stats, `PoisonBuff` ticks its `HealthComponent` and `StatModifierBuff` is `Rejected` with no signals.
-  - A poison tick that kills clears every buff, and no buff ticks or reverses twice.
-  - A freshly spawned player still accepts stat buffs.
-
-`CombatIntegrationTest`:
-
-- Slice 1: a projectile carrying a status poisons the hero on a direct hit. A wall impact whose splash damages a nearby target applies no status. The trace contains `status.resolved` correlated with the execution.
-- Slice 2: the hero with a certain-venom weapon poisons the harness monster, which loses health over time and dies.
-
-Content checks:
-
-- `ItemCatalogTest.EveryAuthoredPoisonCarriesThePoisonedCondition` also walks `OnHitStatuses` on weapons under `scenes/items` and on attack strategies under `scenes/enemies`. Every on-hit `PoisonBuff` must carry `poisoned`, be an external file and be timed.
-- `ItemCatalogTest` checks that every weapon's statuses are valid.
-- `MonsterAuthoringTest` checks that an invalid payload or broken `Buffs` wiring is reported, and that the five monsters and three templates validate.
-
-`StatusTintPresenterTest` (slice 3):
-
-- Syncing to a controller that already has the condition assigns the overlay. Losing the condition clears it once the fade completes, with the fade times set to 0.
-- Priority order picks the first active entry.
-- Missing exports leave the presenter idle.
-- The authored material is never mutated.
-
-Editor acceptance (slice 2 and 3): open `rat.tscn` and assign a different venom `.tres` to the bite's `OnHitStatus`. Duplicate `melee_enemy.tscn`, remove its `BuffController`, and confirm that *Validate monster scene* reports the dangling `HurtBoxComponent.Buffs`. Run the harness and confirm that the runtime `ActiveBuff` references the authored buff.
-
-Not automated: navmesh-dependent approach (see `AGENTS.md`) and the tint's look.
+Trace `status.resolved` with attack identity, canonical buff key, chance outcome and application result through the existing optional combat trace. Observability must not change draws or execution.
 
 ## Persistence
 
-No save data changes, and `SaveGame.CurrentVersion` (currently 14) stays unchanged. Payloads are authored on definitions, and weapons are rebuilt from their definition path, so authored `OnHitStatuses` come back on load. Timed buffs are not saved on any actor, and live monster health is not saved either. A save taken while something is poisoned loses the remaining ticks, as player poison does today. Nothing changes generation or loot draws.
+Extend `ActiveBuffSaveData` and `BuffSaveCodec` with `StackKey` and `Stacking`. The codec currently reconstructs buff objects, so reference equality alone would lose refresh identity after load. A nonempty key must resolve to a compatible external buff definition and be paired with Refresh; retain the saved numeric snapshot and clocks rather than restarting it from the authored duration.
 
-## Open decisions
+Attack-applied poison has no Node `Source`. The stable key, snapshot and target-owned duration are sufficient, including after its attacker dies. Preserve existing player-authored Node sources for other conditions and their validation. Equipment restores its own activations as today. Test save/load and stairs with a poisoned player, then apply the same venom again and verify there is still exactly one activation with preserved tick phase.
 
-1. **Undead and poison.** Three of the five first-realm monsters are skeletons. Making them immune would be thematic but would leave the dagger with little to poison on early floors. The recommendation is to add no immunities now. If they are wanted, an authored immunity list on `BuffController` becomes one more `Rejected` rule.
-2. **Poisoned bolts on the crossbowman.** The projectile path is covered by tests. The recommendation is to keep the existing crossbowman's shots plain for readability and to give poisoned bolts to a later variant.
-3. **Tuning.** The chances, tick damage and durations above are starting values for a playtest at depths 2–3.
+Bump `SaveGame.CurrentVersion` when this schema change lands; do not add old-format adapters or fallback values for older saves. Reject incompatible or invalid saves without overwriting them. Surviving monsters and their active effects still reset on floor reconstruction; cleared deaths, loot and XP follow the existing rules. The documentation edit itself changes no save version.
 
-## Not covered
+## Affected files and authoring
 
-- Coatings applied to a single weapon at runtime (a poison vial used on a blade) need item save fields. Rolled affixes such as "of Venom" would need `RolledAffix` to carry statuses. Both extend the weapon surface from decision 2.
-- Stat-changing statuses on monsters, such as slow or weaken, stay `Rejected` until monsters have a stat block. Monster AI reacting to `blinded` or `confused` would read `HasCondition` on the monster's `BuffController`.
-- Cure effects, resistances, HUD or health-bar status icons, player log lines (see the [logging plan](logging-plan.md)), and weapon tooltip lines. No weapon stat UI exists today.
-- Poison darts and other traps. `FloorTrap` uses the legacy damage path, but it could pass a payload through `DamageContext` later.
+```text
++ scenes/attacks/OnHitStatusProfile.cs, PreparedHitStatus.cs
+~ scenes/attacks/{AttackDefinition,PreparedAttack,AttackController,Projectile}.cs
+~ common/combat/DamageContext.cs
+~ scenes/components/HurtBoxComponent.cs
++ common/interfaces/IBuffTarget.cs, IStatModifierTarget.cs
+~ scenes/player/resources/PlayerStats.cs  implement modifier interface via existing methods
+~ scenes/buffs/{Buff,PeriodicBuff,PoisonBuff,HealingBuff,StatModifierBuff}.cs
+~ scenes/player/{ActiveBuff,BuffController,Player,PlayerAttackController}.cs
+~ scenes/items/Weapon.cs
+~ scripts/saves/{SaveGame,BuffSaveCodec}.cs
+~ scenes/player/player.tscn  local receiver and runtime stats wiring
+~ scenes/enemies/MonsterSceneValidator.cs  every action/phase payload and receiver
+~ scenes/enemies/enemy_base.tscn, skeleton/skeleton_crossbow.tscn
+~ scenes/enemies/templates/{melee,projectile,mobile}_enemy.tscn
++ scenes/enemies/rat/rat_venom.tres
+~ scenes/enemies/rat/rat_attack.tres
++ tests/OnHitStatusTest.cs
+~ tests/{ActiveBuff,StatusCondition,CombatIntegration,MonsterAuthoring,PlayerSaveCodec}Test.cs
+~ docs/{monster-authoring-design,weapon-attack-system,combat-system,stats-and-itemization}.md
+```
+
+Existing status controller nodes stay in place. Wire `HurtBoxComponent.Buffs` to the same actor's controller and health, validate local ownership and every payload on every phase, and verify Inspector-created Resources after save/reopen. Adapt remaining buff subclasses/test overrides to the actor-neutral target; unsupported stat targets must report rejection.
+
+## Delivery and verification
+
+1. **Shared poison contacts and persistence.** Land the periodic target change, payload capture/direct-hit plumbing, refresh identity, save schema and rat venom together. Exercise poison on the player and a test monster using identical authored payloads. No healing-caster or rush dependency. Current monster attack authoring may land before the multi-action refactor if necessary, but the integration must validate the complete selected-action repertoire when that refactor is present.
+2. **Optional weapon content and monster feedback.** After the shared path passes, author the Assassin's Dagger venom if desired. A monster poison visual uses the existing world/surface presentation owner and its visibility/death rules; do not introduce a separate material writer. Specific visual tuning is not a dependency for poisoning the player.
+
+Verification covers: melee/projectile direct hits; zero status on each defended/filtered/absorbed/killing outcome and splash; exact chance draw behavior; pooled reuse; repeated bites retaining one activation/tick phase; independent actors; cure/expiry/death idempotence; source death; large-delta death stopping further ticks; player stat/potion regressions; unsupported stat buffs on monsters; and poison save/load/stairs followed by reapplication. Player overlay uses the existing condition.
+
+Use `dotnet build "Rogue Gauntlet.sln"`, targeted GdUnit4 tests with `GODOT_BIN` and an isolated short `TMPDIR`, and `dotnet build "Rogue Gauntlet.csproj" -c ExportRelease`. Use `TestFactories` for runtime resources/scene attachment. Import new scripts/resources, validate every monster/template, smoke `scenes/main/main.tscn` and review a rat bite in the windowed combat harness.
+
+Poison resistance/immunity, coatings, rolled venom affixes, poison clouds and extra status families remain separate extensions. Tune application chance, tick damage and duration against early-floor supplies and crowd pressure; adding poison to the entire roster is not implied.

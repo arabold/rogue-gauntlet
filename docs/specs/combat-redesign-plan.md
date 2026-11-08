@@ -8,11 +8,7 @@ Every exchange follows **telegraph → respond → punish**, with the existing d
 
 ## Warden guard-breaking attack
 
-The Warden's slash is now Normal, so blocking it and countering during its recovery works. Guard break then has no monster user. Give the Warden a second, clearly different attack so guarding him stays a choice rather than a habit:
-
-- **Overhead slam:** `BreaksGuard` plus Guardable, Parryable and Dodgeable traits, so it reads as Heavy with the orange shared attack indicator. A wind-up of at least the Heavy minimum (0.5 s), ideally longer than the slash, and hyper-armor through the swing. It needs a distinct clip or a slower playback of an existing one.
-- **Attack selection:** monsters currently have one `EnemyAttackStrategy`. Add an ordered list of attack policies on `EnemyBehaviorProfile` with an authored choice rule (weights, cooldown per entry, optional "target is guarding" preference from visible guard state, never player input). The executor, slots, validator and defense observation keep working per accepted attack.
-- **Verification:** validator coverage for every listed attack, a harness review of block → counter against the slash and parry/dodge against the slam, and the authoring guide updated for multiple attacks.
+The Warden's Normal slash supports block/counter play. Its proposed Heavy overhead, multiple action choices and validation now belong to the [monster actions and boss phases plan](monster-actions-and-boss-phases-plan.md), which also covers stomp, health phases, rush and casting. Keep one source of implementation decisions there. Guard walking remains independent below.
 
 ## Guard walking
 

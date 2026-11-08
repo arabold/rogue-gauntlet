@@ -1,5 +1,7 @@
 # Magic rework: spell wands, staves and mana
 
+The [shared spell activation plan](shared-spell-activation-plan.md) proposes extending this delivered wand/staff rollout to scrolls, potions and innate monster actions by reusing current spell definitions and activation owners. Wand-only restrictions below describe the initial rollout, not a permanent boundary.
+
 **Implemented, awaiting playtest acceptance.** The player has a [mana pool](../stats-and-itemization.md#mana), and every wand and staff is a [spell weapon](../weapon-attack-system.md) that rolls one of the 20 spells at five levels, shows it in its tooltip and HUD slot, and keeps an active ward across saves. Balance, the level 4–5 visuals and the open decisions below remain. Magic moves from the character onto the weapon. Every wand and staff fires the free [magic missile](magic-missile-plan.md) as its primary attack and casts one bound elemental spell as its secondary attack, paid from a new mana pool. Nothing is learned and there are no skill points: finding a better wand is how magic progresses. This plan replaces the older learning, point, selection and staff-requirement proposals; the spell roster, targeting, area, guard and focus-lifetime rules and the visual direction in the [elemental spell plan](elemental-spells-plan.md) still apply. Current weapons are described in [weapon attacks](../weapon-attack-system.md), items in [stats and itemization](../stats-and-itemization.md) and classes in [character classes](../character-classes.md).
 
 ## Gameplay rules

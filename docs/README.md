@@ -51,9 +51,11 @@ These documents explain code that exists today. Any proposed extension or future
 | [Elemental spells and effects](specs/elemental-spells-plan.md) | All 20 spells authored at 5 levels; targeting, guard rules, visual direction and playtest acceptance remain |
 | [Magic missile](specs/magic-missile-plan.md) | Free wand/staff primary as a homing seeker volley for all elements; flight contract and playable missile landed, finished look and acceptance remain |
 | [Potion and scroll feedback](specs/consumable-feedback-plan.md) | Proposed unique activation signature for all 20 potion/scroll types, with world and screen channels and catalog coverage checks |
-| [Combat redesign](specs/combat-redesign-plan.md) | Remaining combat work: a Warden guard-breaking attack and guard walking, plus open tuning risks |
+| [Shared spell activation](specs/shared-spell-activation-plan.md) | Proposed one effect library through existing SpellCaster/item-use owners; shared buffs and unchanged spell-pool identities |
+| [Monster actions and boss phases](specs/monster-actions-and-boss-phases-plan.md) | Proposed multiple actions, up to three boss phases, Warden overhead/stomp, rush/casting, self/ally healing, empowerment and poison |
+| [Combat redesign](specs/combat-redesign-plan.md) | Guard walking and open tuning risks; Warden multi-attack delivery is owned by the monster actions plan |
 | [Off-hand weapons](specs/off-hand-weapons-plan.md) | Two alternatives for off-hand weapons: a passive off-hand damage bonus, or animated dual-wield with an off-hand action replacing the guard input (blocked on a left-hand attack clip) |
-| [Attack status effects](specs/attack-status-effects-plan.md) | Proposed on-hit status payloads, actor-agnostic buffs for monsters and a monster status tint; first slice lets venomous monster attacks poison the player |
+| [Attack status effects](specs/attack-status-effects-plan.md) | Proposed shared poison/venom payloads, actor-neutral periodic buffs, refresh/save contracts and later monster presentation |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
 
 Completed plans are consolidated into current-system documents. The [roadmap](development-roadmap.md) owns priority and acceptance. Use the [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial future changes; a plan describes proposed work, not delivered behavior.
