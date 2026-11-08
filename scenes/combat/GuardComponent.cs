@@ -31,7 +31,8 @@ public partial class GuardComponent : Node, IDefenseEvaluator
 	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
 
 	private GuardDefinition _activeDefinition;
-	private GuardDefinition EffectiveDefinition => _activeDefinition ?? GuardDef;
+	public GuardDefinition EffectiveDefinition => _activeDefinition ?? GuardDef;
+	public bool HasGuard => EffectiveDefinition != null;
 
 	public bool IsGuarding { get; private set; }
 	public float ElapsedTime => _guardElapsed;

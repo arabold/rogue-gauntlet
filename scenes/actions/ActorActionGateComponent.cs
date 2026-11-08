@@ -48,7 +48,9 @@ public partial class ActorActionGateComponent : Node
 	public bool Adopt(ActorActionLease lease, Action<ActionInterruptReason> interrupted)
 	{
 		if (!IsLeaseCurrent(lease)) return false;
-		_currentOnInterrupted = interrupted;
+		_currentOnInterrupted = interrupted != null && _currentOnInterrupted != null
+			? (Action<ActionInterruptReason>)Delegate.Combine(interrupted, _currentOnInterrupted)
+			: (interrupted ?? _currentOnInterrupted);
 		return true;
 	}
 
@@ -248,8 +250,7 @@ public partial class ActorActionGateComponent : Node
 			{
 				ActorActionPhase.WindUp => newKind is ActorActionKind.Dodge or ActorActionKind.Guard,
 				ActorActionPhase.Recovery => newKind == ActorActionKind.Dodge
-					|| (recoveryCancels && (newKind == ActorActionKind.Guard
-						|| (currentKind == ActorActionKind.PrimaryAttack && newKind == ActorActionKind.PrimaryAttack))),
+					|| (recoveryCancels && (newKind == ActorActionKind.Guard || newKind == currentKind)),
 				_ => false
 			};
 		}

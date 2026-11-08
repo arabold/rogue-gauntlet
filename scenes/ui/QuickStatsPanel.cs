@@ -48,7 +48,7 @@ public partial class QuickStatsPanel : PanelContainer
 			return;
 		}
 
-		var attack = _stats.ResolveAttack(_inventory?.EquippedItems[EquipmentSlot.WeaponHand]?.Item as Weapon);
+		var attack = _stats.ResolveAttack(_inventory?.EquippedWeapon, _inventory?.EquippedOffhandWeapon);
 		DamageValue.Text = $"{attack.MinDamage:F0} - {attack.MaxDamage:F0}";
 		ArmorValue.Text = $"{_stats.Armor:F0}";
 		CritChanceValue.Text = $"{attack.CritChance * 100:F0}%";

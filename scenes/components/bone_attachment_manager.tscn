@@ -1,11 +1,12 @@
-[gd_scene load_steps=4 format=3 uid="uid://n0xkrntlfaa1"]
+[gd_scene load_steps=5 format=3 uid="uid://n0xkrntlfaa1"]
 
 [ext_resource type="Script" path="res://scenes/components/BoneAttachmentManager.cs" id="1_hs6hs"]
-
 [ext_resource type="PackedScene" path="res://scenes/effects/world/item_aura_presenter.tscn" id="aura_vfx"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_shield.tres" id="shield_grip"]
+[ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee_offhand.tres" id="melee_offhand_grip"]
 
 [node name="BoneAttachmentManager" type="Node"]
 script = ExtResource("1_hs6hs")
 AuraPresentation = ExtResource("aura_vfx")
 ShieldGrip = ExtResource("shield_grip")
+DefaultMeleeOffhandGrip = ExtResource("melee_offhand_grip")

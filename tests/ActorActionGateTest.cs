@@ -112,6 +112,7 @@ public partial class ActorActionGateTest
 			AssertBool(ActorActionGateComponent.CanTransition(primary, ActorActionPhase.Recovery, ActorActionKind.Guard, cancels)).IsEqual(cancels);
 			AssertBool(ActorActionGateComponent.CanTransition(secondary, ActorActionPhase.Recovery, ActorActionKind.Guard, cancels)).IsEqual(cancels);
 			AssertBool(ActorActionGateComponent.CanTransition(primary, ActorActionPhase.Recovery, primary, cancels)).IsEqual(cancels);
+			AssertBool(ActorActionGateComponent.CanTransition(secondary, ActorActionPhase.Recovery, secondary, cancels)).IsEqual(cancels);
 			// Only a primary step chains, and only out of primary recovery.
 			AssertBool(ActorActionGateComponent.CanTransition(secondary, ActorActionPhase.Recovery, primary, cancels)).IsFalse();
 			AssertBool(ActorActionGateComponent.CanTransition(primary, ActorActionPhase.Recovery, secondary, cancels)).IsFalse();

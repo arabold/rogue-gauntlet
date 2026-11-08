@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=8 format=3 uid="uid://cfjd6iimvn0lp"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=9 format=3 uid="uid://cfjd6iimvn0lp"]
 
 [ext_resource type="Resource" path="res://scenes/combat/definitions/weapon_guard.tres" id="guard_weapon"]
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/dagger.tres" id="melee_contact"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
+[ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee_offhand.tres" id="offhand_grip"]
 [ext_resource type="PackedScene" uid="uid://crmqcqukxcm5a" path="res://scenes/items/weapons/dagger_common.tscn" id="1_xjf30"]
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_r05mt"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
@@ -15,6 +16,8 @@ MeleeContact = ExtResource("melee_contact")
 PrimaryCombo = ExtResource("primary_combo")
 AttackStyle = &"dagger.1h.thrust"
 Grip = ExtResource("weapon_grip")
+OffhandGrip = ExtResource("offhand_grip")
+OffhandDamageScale = 0.5
 Tier = 1
 RequiredStrength = 10
 DamageMin = 1
@@ -24,7 +27,7 @@ IsTwoHanded = false
 Delay = 0.0
 PerformDuration = 0.5
 CooldownDuration = 0.0
-ValidSlots = 256
+ValidSlots = 768
 RollTable = ExtResource("roll_table")
 Name = "Dagger"
 Scene = ExtResource("1_xjf30")

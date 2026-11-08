@@ -60,7 +60,18 @@ public partial class ActionSlot : Node
 			_actor.AttackController.CancelAttack();
 		}
 		ReleaseGateLease();
-		Reset();
+
+		if (reason == ActionInterruptReason.NewAction && AssignedAction is SpellCastAction && RemainingTime > 0)
+		{
+			IsPerformingAction = false;
+			IsOnCooldown = true;
+			SetProcess(true);
+		}
+		else
+		{
+			Reset();
+		}
+
 		if (wasPerforming) EmitSignalActionPerformed();
 	}
 
@@ -73,6 +84,10 @@ public partial class ActionSlot : Node
 	{
 		bool replacing = chain && IsPerformingAction && !IsDelayed && !IsOnCooldown;
 		if (AssignedAction == null || IsDelayed || (IsPerformingAction && !replacing) || IsOnCooldown || player.IsDead || player.IsHit) return false;
+		if (AssignedAction is SpellCastAction spellCast && player.ActionManager?.IsWandOnCooldown(spellCast.Focus?.InstanceId) == true)
+		{
+			return false;
+		}
 		var action = AssignedAction;
 		var weapon = action as Weapon;
 		var attackAction = action as ICombatAttackAction;
@@ -114,8 +129,12 @@ public partial class ActionSlot : Node
 		var attackAction = action as ICombatAttackAction;
 		TotalDuration = delay + duration + cooldown;
 		RemainingTime = TotalDuration;
+		if (action is SpellCastAction spellAction)
+		{
+			player.ActionManager?.TrackWandCooldown(spellAction.Focus?.InstanceId, TotalDuration, TotalDuration);
+		}
 		SetProcess(true);
-		SetPhysicsProcess(true);
+		if (delay > 0) SetPhysicsProcess(true);
 		SignalBus.EmitCooldownUpdated(SlotIndex, (float)RemainingTime, (float)TotalDuration);
 
 		if (delay > 0)
@@ -125,6 +144,7 @@ public partial class ActionSlot : Node
 			if (!IsCurrent(generation)) return;
 		}
 		IsDelayed = false;
+		SetPhysicsProcess(false);
 		if (player.IsDead || player.IsHit || (weapon != null && !IsEquipped(player, weapon)))
 		{
 			ReleaseGateLease();
@@ -189,7 +209,8 @@ public partial class ActionSlot : Node
 		_activeLease = ActorActionLease.None;
 	}
 
-	private static bool IsEquipped(Player player, Weapon weapon) => ReferenceEquals(player?.Inventory?.EquippedWeapon, weapon);
+	private static bool IsEquipped(Player player, Weapon weapon) =>
+		ReferenceEquals(player?.Inventory?.EquippedWeapon, weapon) || ReferenceEquals(player?.Inventory?.EquippedOffhandWeapon, weapon);
 
 	private bool IsCurrent(ulong generation) => GodotObject.IsInstanceValid(this) && IsInsideTree() && generation == _generation;
 
@@ -217,12 +238,30 @@ public partial class ActionSlot : Node
 		}
 	}
 
+	public void ResumeCooldown(double remainingTime, double totalDuration)
+	{
+		if (remainingTime <= 0 || totalDuration <= 0) return;
+		TotalDuration = totalDuration;
+		RemainingTime = remainingTime;
+		IsOnCooldown = true;
+		IsPerformingAction = false;
+		IsDelayed = false;
+		SetProcess(true);
+		SignalBus.EmitCooldownUpdated(SlotIndex, (float)RemainingTime, (float)TotalDuration);
+	}
+
 	public override void _Process(double delta)
 	{
 		if (IsDelayed || IsPerformingAction || IsOnCooldown)
 		{
 			RemainingTime = System.Math.Max(RemainingTime - delta, 0);
 			SignalBus.EmitCooldownUpdated(SlotIndex, (float)RemainingTime, (float)TotalDuration);
+			if (IsOnCooldown && RemainingTime <= 0)
+			{
+				IsOnCooldown = false;
+				EmitSignalCooldownEnded();
+				Reset();
+			}
 		}
 	}
 }

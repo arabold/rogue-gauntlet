@@ -153,14 +153,67 @@ public partial class PlayerStats : ObservableResource
 	public float MaxDamage => ResolveAttack(null).MaxDamage;
 	public float CritChance => ResolveAttack(null).CritChance;
 
+	/// <summary>Checks whether main and off-hand weapons form an eligible melee pair for dual-wield attacks.</summary>
+	public static bool IsEligibleMeleePair(Weapon main, Weapon offhand)
+	{
+		return main != null && !main.IsTwoHanded && main is not RangedWeapon
+			&& offhand != null && !offhand.IsTwoHanded && offhand is not RangedWeapon
+			&& offhand.OffhandDamageScale > 0f;
+	}
+
 	/// <summary>
-	/// Damage range and crit chance for an attack made with <paramref name="weapon"/>, or unarmed when null: the
-	/// character's stats with only that weapon's attack stats folded into the same sums.
+	/// Resolves the local min/max damage contributed by a weapon in a single pass without folding in character-wide base attributes or global modifiers.
 	/// </summary>
-	public AttackStats ResolveAttack(Weapon weapon) => new(
-		ResolveStat(StatType.MinDamage, BaseMinDamage + DamageFromAttributes, weapon),
-		ResolveStat(StatType.MaxDamage, BaseMaxDamage + DamageFromAttributes, weapon),
-		ResolveStat(StatType.CritChance, BaseCritChance + Dexterity * Coefficient(p => p.CritChancePerDexterity), weapon));
+	private void ResolveWeaponDamageContribution(Weapon weapon, out float min, out float max)
+	{
+		if (weapon == null)
+		{
+			min = 0f;
+			max = 0f;
+			return;
+		}
+		float minFlat = 0f, minPercent = 0f;
+		float maxFlat = 0f, maxPercent = 0f;
+		foreach ((object source, StatModifier modifier, bool _) in _modifiers)
+		{
+			if (!ReferenceEquals(source, weapon)) continue;
+			if (modifier.Stat == StatType.MinDamage)
+			{
+				if (modifier.Op == ModifierOp.Percent) minPercent += modifier.Value;
+				else minFlat += modifier.Value;
+			}
+			else if (modifier.Stat == StatType.MaxDamage)
+			{
+				if (modifier.Op == ModifierOp.Percent) maxPercent += modifier.Value;
+				else maxFlat += modifier.Value;
+			}
+		}
+		min = minFlat * (1f + minPercent);
+		max = maxFlat * (1f + maxPercent);
+	}
+
+	/// <summary>
+	/// Damage range and crit chance for an attack made with <paramref name="weapon"/> (and optional paired
+	/// <paramref name="offhand"/> weapon), or unarmed when null: the character's stats with weapon attack stats
+	/// folded into the same sums.
+	/// </summary>
+	public AttackStats ResolveAttack(Weapon weapon, Weapon offhand = null)
+	{
+		float attrDamage = DamageFromAttributes;
+		float min = ResolveStat(StatType.MinDamage, BaseMinDamage + attrDamage, weapon);
+		float max = ResolveStat(StatType.MaxDamage, BaseMaxDamage + attrDamage, weapon);
+		float crit = ResolveStat(StatType.CritChance, BaseCritChance + Dexterity * Coefficient(p => p.CritChancePerDexterity), weapon);
+
+		if (IsEligibleMeleePair(weapon, offhand))
+		{
+			float scale = offhand.OffhandDamageScale;
+			ResolveWeaponDamageContribution(offhand, out float offMin, out float offMax);
+			min += offMin * scale;
+			max += offMax * scale;
+		}
+
+		return new AttackStats(min, max, crit);
+	}
 
 	/// <summary>
 	/// The hit <paramref name="weapon"/> would deal wielded in place of the current weapon while granting

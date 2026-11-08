@@ -1,6 +1,6 @@
 # Magic missile
 
-**In progress.** Slices 1 and 2 are implemented: the flight contract is described in [weapon attacks](../weapon-attack-system.md), and every wand now fires a first-pass missile volley of its element. Slice 3, the finished look and acceptance, remains. Every wand's free primary attack becomes the same seeker volley of small homing missiles, tinted by the wand's element. The mana-costing spell on a wand's alternate attack and the wand/staff progression belong to the [magic rework plan](magic-rework-plan.md), which also gives staves a heavier volley; dual wielding is separate. This plan only replaces the wand primary. Current ranged attacks are described in [weapon attacks](../weapon-attack-system.md), poise and defenses in [combat](../combat-system.md), and the toon effect language in the [elemental spell plan](elemental-spells-plan.md#visual-direction).
+**In progress.** Slices 1 and 2 are implemented: the flight contract is described in [weapon attacks](../weapon-attack-system.md), and every wand now fires a first-pass missile volley of its element. Slice 3, the finished look and acceptance, remains. Every wand's free primary attack becomes the same seeker volley of small homing missiles, tinted by the wand's element. The mana-costing spell on a wand's alternate attack and the wand/staff progression belong to [weapon attacks](../weapon-attack-system.md#spell-weapons-wands-and-staves), which also gives staves a heavier volley; dual wielding is separate. This plan only replaces the wand primary. Current ranged attacks are described in [weapon attacks](../weapon-attack-system.md), poise and defenses in [combat](../combat-system.md), and the toon effect language in the [elemental spell plan](elemental-spells-plan.md#visual-direction).
 
 ## Gameplay rules
 
@@ -95,7 +95,7 @@ Projectile._PhysicsProcess
 
 - One shared `AttackDefinition` per element holds the values above, its element and projectile scene. The prepared attack duplicates it, so wands can share it.
 - One base projectile scene owns the hitbox, missile body, trail, garnish emitter and impact scene, in a neutral arcane palette. Four inherited scenes swap only the ramp, garnish particles and impact variant; `ScenePool` pools each separately. The impact reuses the `FireballImpact` driver for its flash, ring and spark burst, without scorch, ground layers or light.
-- Wands pick their element's shared definition through the [magic rework](magic-rework-plan.md)'s `MissileSet`, by their bound spell's element, and take the new cast timing.
+- Wands pick their element's shared definition through [weapon attacks](../weapon-attack-system.md#spell-weapons-wands-and-staves)'s `MissileSet`, by their bound spell's element, and take the new cast timing.
 - Staffs keep their current primaries until the wand/staff progression decides their role.
 
 ```text

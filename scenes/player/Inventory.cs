@@ -50,7 +50,8 @@ public partial class Inventory : Resource
 	};
 
 	/// <summary>The weapon in the weapon hand, or null.</summary>
-	public Weapon EquippedWeapon => EquippedItems.TryGetValue(EquipmentSlot.WeaponHand, out var slot) ? slot?.Item as Weapon : null;
+	public Weapon EquippedWeapon => EquippedItems[EquipmentSlot.WeaponHand]?.Item as Weapon;
+	public Weapon EquippedOffhandWeapon => EquippedItems[EquipmentSlot.ShieldHand]?.Item as Weapon;
 
 	/// <summary>
 	/// The maximum number of items that can be stored in the inventory.
@@ -208,7 +209,7 @@ public partial class Inventory : Resource
 			return new(ItemFailure.InvalidTarget);
 		}
 
-		if (item is Weapon { IsTwoHanded: true })
+		if (item is Weapon)
 		{
 			return Equip(itemSlot, EquipmentSlot.WeaponHand);
 		}
