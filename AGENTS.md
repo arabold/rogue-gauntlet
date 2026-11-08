@@ -74,6 +74,7 @@ Use the `godot-csharp` skill (`.agents/skills/godot-csharp/SKILL.md`) whenever w
   - Never use `GeometryInstance3D.Transparency` (Forward+-only; fails silently on Mobile).
   - For standard fades (`FadeOutComponent`), duplicate each surface's `BaseMaterial3D` into an instance-local override (`TransparencyEnum.Alpha`) and tween `albedo_color:a` (plus `modulate:a` on `SpriteBase3D`/`Label3D`) so shared materials are never mutated.
   - For multi-mesh actor shader fades (`teleport_depth.gdshader` + `teleport_surface.gdshader`), use a two-pass `ShaderMaterial` (`NextPass`): an invisible depth pre-pass (`blend_add, depth_draw_always`) followed by the color fade pass (`blend_mix, depth_draw_never`). Keep solid skin overrides on opaque depth (`depth_draw_opaque` / `AlphaScissor`) via `SurfaceAppearanceController`.
+- **Physics engine:** 3D physics runs on Jolt (`physics/3d/physics_engine`); GodotPhysics3D deadlocked bodies resting on a floor GridMap while touching a convex wall, and is being phased out upstream.
 - **Runtime Lifecycle, Physics & Pooling:**
   - Set `ProcessPhysicsPriority` from `CombatPhysics` in `_Ready()` whenever `_PhysicsProcess` order matters; call `SetPhysicsProcess(false)` when idle.
   - Check `GodotObject.IsInstanceValid(node)` (not just `!= null`) on dynamic runtime `Node` references held across frames, tweens, `ToSignal`, or `CallDeferred`.
