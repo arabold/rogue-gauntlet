@@ -32,7 +32,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Level design](level-design.md) | Procedural layouts, assembled rooms with room-owned doorways, realm tags, inward-facing corridor styling, sunken water pools and basins, reachability, monster navigation, fog of war, encounters and light flicker |
 | [Stats and itemization](stats-and-itemization.md) | Attributes, modifiers, equipment tiers, loot rolls, and enchantment |
 | [Item identification](item-identification-system.md) | Per-run disguises, discovery, jewelry, and scroll targeting |
-| [Weapon attacks](weapon-attack-system.md) | Existing weapon and attack behavior |
+| [Weapon attacks](weapon-attack-system.md) | Equipment and hand capabilities, melee attacks and paired dual wielding, spell weapons and magic missiles, off-hand defenses, hand-based HUD panels, combos, and contact resolution |
 | [Combat actions and defense](combat-system.md) | Shared action ownership and execution, hit feedback, attack indicators, dodge, guard/parry/guard break, poise and hit reactions, threat tiers, attack slots, RNG and persistence |
 | [Combat harness and traces](combat-harness.md) | Passive movable target, discovered production monster scenes, component settings, interactive/scripted combat, JSONL schema and analyzer |
 | [Screen effects](screen-effects.md) | Blindness/poison/near-death post-process overlays, their gameplay wiring through health and status conditions (including confusion and slowness), and the debug harness |
@@ -47,12 +47,10 @@ These documents explain code that exists today. Any proposed extension or future
 | [Room-owned secret entrances](specs/room-owned-secrets-plan.md) | Room-selected concealed doorways, access and discovery |
 | [Exact wall placement experiment](specs/exact-wall-placement-plan.md) | Geometry contracts, room boundaries and doorway fit, corridor and interior follow-up |
 | [Dungeon progression](specs/level-progression-prototype-plan.md) | Realm definitions, corridor factories, realm tags, and room-owned doorways landed; per-depth room roles/recipes and visible Warden stair seal remain |
-| [Magic rework](specs/magic-rework-plan.md) | Implementation delivered (slices 1–4 landed: mana pool, wands/staves, rolled spells, hit scaling, tooltips, HUD slots, ward persistence); balance, level 4–5 visuals and playtest acceptance remain |
 | [Elemental spells and effects](specs/elemental-spells-plan.md) | All 20 spells authored at 5 levels; targeting, guard rules, visual direction and playtest acceptance remain |
 | [Magic missile](specs/magic-missile-plan.md) | Free wand/staff primary as a homing seeker volley for all elements; flight contract and playable missile landed, finished look and acceptance remain |
 | [Potion and scroll feedback](specs/consumable-feedback-plan.md) | Proposed unique activation signature for all 20 potion/scroll types, with world and screen channels and catalog coverage checks |
 | [Combat redesign](specs/combat-redesign-plan.md) | Remaining combat work: a Warden guard-breaking attack and guard walking, plus open tuning risks |
-| [Off-hand weapons and hand-based HUD](specs/off-hand-weapons-plan.md) | Selected design, pending implementation: paired melee J/K with bonus damage and no L action; either-hand wands with independent cooldowns; two equipment previews with J/K on the main hand and L on the off hand |
 | [Attack status effects](specs/attack-status-effects-plan.md) | Proposed on-hit status payloads, actor-agnostic buffs for monsters and a monster status tint; first slice lets venomous monster attacks poison the player |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
 

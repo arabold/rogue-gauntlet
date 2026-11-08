@@ -2,7 +2,7 @@
 
 Visual + data reference for every item definition in the game — the itemization counterpart to the [monster catalog](../monster-catalog/README.md). Renders are generated from each item's actual world model (the same one shown in the inventory preview and dropped in the world) by `asset-studio/godot/render_item_catalog.gd` — see the `assets` skill. Each row maps to its `.tres` definition under `scenes/items/`.
 
-> Wands and staves are spell weapons: each drop rolls its spell from the pool, so the Notes column names only the authored default (see `docs/specs/magic-rework-plan.md`). `Tier` is the base item's ladder rung (1–5), independent of the quality (Poor to Rare) an instance rolls when it drops — see `docs/stats-and-itemization.md`. Rows are grouped by tier for weapons/shields since that's the nominal dungeon-depth progression.
+> Wands and staves are spell weapons: each drop rolls its spell from the pool, so the Notes column names only the authored default (see `docs/weapon-attack-system.md#spell-weapons-wands-and-staves`). `Tier` is the base item's ladder rung (1–5), independent of the quality (Poor to Rare) an instance rolls when it drops — see `docs/stats-and-itemization.md`. Rows are grouped by tier for weapons/shields since that's the nominal dungeon-depth progression.
 
 ## Weapons
 

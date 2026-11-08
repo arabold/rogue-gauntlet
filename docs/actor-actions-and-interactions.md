@@ -12,7 +12,7 @@ Melee remains horizontal gameplay with reliable timed contact, including around 
 
 ## Player controls and four item quick-action slots
 
-Primary and secondary are dedicated inputs driven by the equipped main-hand weapon. Primary is its reliable basic action, with an authored unarmed fallback. Secondary is its equipped technique: usually a heavy/special attack for a martial weapon, or the bound elemental spell of a wand or staff. Neither consumes one of the four configurable slots. Unarmed secondary is unavailable unless explicitly authored. Dodge, guard and interact are dedicated inputs too. Guard contains the brief opening parry window; there is no additional parry button initially. The [off-hand weapons plan](specs/off-hand-weapons-plan.md) keeps these inputs for a passive off-hand weapon; its dual-wield alternative replaces the guard input with an off-hand action (shield guard or off-hand weapon strike) and a new gamepad layout.
+Primary and secondary are dedicated inputs driven by the equipped main-hand weapon. Primary is its reliable basic action, with an authored unarmed fallback. Secondary is its equipped technique: usually a heavy/special attack for a martial weapon, or the bound elemental spell of a wand or staff. Neither consumes one of the four configurable slots. Unarmed secondary is unavailable unless explicitly authored. Dodge and interact are dedicated inputs too. The off-hand action on L performs a shield guard or makeshift light guard (with the opening parry window), or casts the off-hand wand's bound spell; it is unavailable when wielding paired melee weapons or a two-handed weapon (see [weapon and attack system](weapon-attack-system.md)).
 
 The four slots are reserved for **item quick actions** such as drinking a potion, reading a scroll, or eating an eligible food item. They are not attack or general combat-ability slots. Primary and secondary remain available independently of all four slot assignments. Equipment changes update primary/secondary actions and defensive capabilities, not quick-item assignments. There is no requirement to invent four abilities or populate every slot.
 
@@ -22,7 +22,7 @@ The four slots are reserved for **item quick actions** such as drinking a potion
 | Primary action | Press or hold to repeat complete basic attacks at their normal cadence | J |
 | Secondary technique / spell | One request per new press; cooldown/mana as authored | K |
 | Dodge | New press; direction captured from movement or facing | Space |
-| Guard / parry | New press raises; hold guards; release lowers | L |
+| Off-hand action / guard | Shield guard, makeshift light guard, or off-hand wand spell (suppressed for paired melee and 2H weapons) | L |
 | Interact | Hold on one focused target until its authored duration completes | E |
 | Item quick-action slots 1–4 | One use request per new press; never repeat consumption while held | 1–4 |
 
@@ -45,7 +45,7 @@ Class supplies starting stats and equipment; it is not a magic permission. Any c
 
 ### Spell wands and staves
 
-Earth, fire, water and air each have five spells: targeted attacks, caster-centered area attacks and protective guards. Water includes ice. Each wand or staff carries exactly one spell, rolled when the item is created, and casts it at the level its tier sets, so deeper weapons carry stronger spells. Spells are never learned, upgraded or selected; trying another spell means equipping another weapon. The free missile primary stays available without mana or a usable spell. A staff gives up the off hand for a stronger missile volley. The [magic rework plan](specs/magic-rework-plan.md) owns spell names, levels, damage and mana numbers; the [spell plan](specs/elemental-spells-plan.md) owns targeting, area, guard and visual rules. Permanent account unlocks remain outside the first version.
+Earth, fire, water and air each have five spells: targeted attacks, caster-centered area attacks and protective guards. Water includes ice. Each wand or staff carries exactly one spell, rolled when the item is created, and casts it at the level its tier sets, so deeper weapons carry stronger spells. Spells are never learned, upgraded or selected; trying another spell means equipping another weapon. The free missile primary stays available without mana or a usable spell. A staff gives up the off hand for a stronger missile volley. [Weapon attacks](weapon-attack-system.md#spell-weapons-wands-and-staves) and [stats and itemization](stats-and-itemization.md) define spell weapons, tiers and damage; the [spell plan](specs/elemental-spells-plan.md) owns targeting, area, guard and visual rules. Permanent account unlocks remain outside the first version.
 
 ### Mana, cooldowns and equipment commitments
 

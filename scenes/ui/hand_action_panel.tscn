@@ -77,9 +77,9 @@ show_percentage = false
 [node name="SecondActionKey" parent="KeyOverlay" instance=ExtResource("3_key")]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(48, 48)
-offset_left = 68.0
+offset_left = 32.0
 offset_top = -16.0
-offset_right = 116.0
+offset_right = 80.0
 offset_bottom = 32.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
@@ -89,9 +89,9 @@ stretch_mode = 5
 
 [node name="SecondActionCooldownBar" type="ProgressBar" parent="KeyOverlay"]
 unique_name_in_owner = true
-offset_left = 72.0
+offset_left = 36.0
 offset_top = 28.0
-offset_right = 112.0
+offset_right = 76.0
 offset_bottom = 33.0
 theme_override_styles/background = SubResource("StyleBoxFlat_cd_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_cd_fill")
