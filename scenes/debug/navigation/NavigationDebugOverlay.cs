@@ -13,8 +13,11 @@ public partial class NavigationDebugOverlay : MeshInstance3D
 	private static readonly Color Open = new(.1f, .6f, 1f, .3f);
 	private static readonly Color ClosedGate = new(1f, .1f, .1f, .55f);
 
-	/// <summary>Builds the overlay for bodies of <paramref name="radius"/>; null without navigation or traversable cells.</summary>
-	public static NavigationDebugOverlay Build(FloorNavigation navigation, float radius = .75f)
+	/// <summary>
+	/// Builds the overlay for bodies of <paramref name="radius"/> (by default the largest ordinary body); null without
+	/// navigation or traversable cells.
+	/// </summary>
+	public static NavigationDebugOverlay Build(FloorNavigation navigation, float radius = RoomAssembler.ActorRadius)
 	{
 		if (navigation == null) return null;
 		var grid = navigation.Grid;
@@ -22,7 +25,6 @@ public partial class NavigationDebugOverlay : MeshInstance3D
 		surfaceTool.Begin(Mesh.PrimitiveType.Triangles);
 		bool hasGeometry = false;
 		float half = grid.CellSize * .45f;
-		float preferred = radius + navigation.Profile.PreferredMargin;
 		for (int x = 0; x < grid.Size.X; x++)
 		for (int z = 0; z < grid.Size.Y; z++)
 		{
@@ -30,7 +32,7 @@ public partial class NavigationDebugOverlay : MeshInstance3D
 			if (!grid.IsTraversable(cell, radius, null)) continue;
 			var center = grid.CellCenter(cell);
 			bool closed = !navigation.IsTraversable(new Vector3(center.X, 0, center.Y), radius);
-			var color = closed ? ClosedGate : Tight.Lerp(Open, Mathf.Clamp((grid.ClearanceAt(cell) - radius) / Mathf.Max(.01f, preferred - radius), 0, 1));
+			var color = closed ? ClosedGate : Open.Lerp(Tight, navigation.Profile.Costs.Tightness(grid.ClearanceAt(cell), radius));
 			var a = new Vector3(center.X - half, Lift, center.Y - half);
 			var b = new Vector3(center.X + half, Lift, center.Y - half);
 			var c = new Vector3(center.X + half, Lift, center.Y + half);

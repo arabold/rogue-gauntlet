@@ -260,7 +260,7 @@ public sealed class EnemyContext
 	}
 
 	/// <summary>Chase the target down its shared field. A stall only restarts progress tracking: the field updates as the target moves.</summary>
-	public void FollowTargetPath()
+	private void FollowTargetPath()
 	{
 		if (Target == null) { Navigation.Stop(); return; }
 		Navigation.Chase(Target);
@@ -271,7 +271,7 @@ public sealed class EnemyContext
 	/// Wait for an attack slot at this actor's spread ring position, facing the target. The ring point is refreshed on
 	/// a throttle and moved to the nearest spot this body fits; without one the actor holds where it is.
 	/// </summary>
-	public void FollowEngagementRing(float distance, bool preferRear)
+	private void FollowEngagementRing(float distance, bool preferRear)
 	{
 		var slots = TargetSlots;
 		if (Target == null || slots == null || Profile.AttackStrategy == null) { Navigation.Stop(); return; }
@@ -285,7 +285,7 @@ public sealed class EnemyContext
 	}
 
 	/// <summary>Flee the target down its shared field. False when cornered or stalled, which permits an eligible attack.</summary>
-	public bool FollowRetreat()
+	private bool FollowRetreat()
 	{
 		if (Target == null || !Navigation.Flee(Target)) return false;
 		if (!Navigation.IsStuck) return true;

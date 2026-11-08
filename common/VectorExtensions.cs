@@ -15,6 +15,12 @@ public static class VectorExtensions
 		return true;
 	}
 
+	/// <summary>The point on the ground plane as floor grids index it: X stays X, Z becomes Y.</summary>
+	public static Vector2 Xz(this Vector3 point) => new(point.X, point.Z);
+
+	/// <summary>The vector with its vertical part dropped.</summary>
+	public static Vector3 Horizontal(this Vector3 vector) => new(vector.X, 0, vector.Z);
+
 	/// <summary>Distance on the ground plane, ignoring height.</summary>
 	public static float HorizontalDistanceTo(this Vector3 from, Vector3 to) =>
 		new Vector2(from.X, from.Z).DistanceTo(new Vector2(to.X, to.Z));

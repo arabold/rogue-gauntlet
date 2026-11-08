@@ -46,8 +46,8 @@ public partial class NavigationComponent : Node
 
 	private float _bestRemaining = float.PositiveInfinity;
 	private Vector3 _windowStart;
-	private float _windowTime;
-	private float _recoveryTime;
+	private Cooldown _window;
+	private Cooldown _recovery;
 	private bool _recovered;
 	private Vector3 _recoveryDirection;
 
@@ -115,8 +115,7 @@ public partial class NavigationComponent : Node
 	{
 		var navigation = Navigation;
 		if (navigation == null || !GodotObject.IsInstanceValid(target)) return false;
-		var field = navigation.ChaseField(target, target.GlobalPosition, BodyRadius, Position);
-		return field.ReachesNear(navigation.Grid.CellAt(Position));
+		return navigation.ChaseField(target, BodyRadius, Position).ReachesNear(navigation.Grid.CellAt(Position));
 	}
 
 	/// <summary>
@@ -128,18 +127,17 @@ public partial class NavigationComponent : Node
 		var navigation = Navigation;
 		if (navigation == null || !GodotObject.IsInstanceValid(target)) { Stop(); return; }
 		_hasRoute = false;
+		var position = Position;
 		var goal = target.GlobalPosition;
-		var field = navigation.ChaseField(target, goal, BodyRadius, Position);
-		float remaining = field.CostAt(Position);
-		bool direct = HorizontalDistance(goal) <= navigation.Profile.DirectApproachDistance
-			&& navigation.HasClearLine(Position, goal, BodyRadius);
-		if (direct || !navigation.TrySteer(field, Position, out var point))
-		{
-			if (!direct && !navigation.HasClearLine(Position, goal, BodyRadius)) { HoldStill(); return; }
-			point = goal;
-			remaining = HorizontalDistance(goal);
-		}
-		Steer(navigation, point, remaining, target);
+		var field = navigation.ChaseField(target, BodyRadius, position);
+		float distance = position.HorizontalDistanceTo(goal);
+		// Close by with a clear line, head straight for the target; otherwise follow the field, and only where the field
+		// has no step left (at its goal cell) fall back to the straight line.
+		if (distance <= navigation.Profile.DirectApproachDistance && navigation.HasClearLine(position, goal, BodyRadius))
+			Steer(goal, distance, target);
+		else if (navigation.TrySteer(field, position, out var point)) Steer(point, field.CostAt(position), target);
+		else if (navigation.HasClearLine(position, goal, BodyRadius)) Steer(goal, distance, target);
+		else HoldStill();
 	}
 
 	/// <summary>
@@ -152,7 +150,7 @@ public partial class NavigationComponent : Node
 		var navigation = Navigation;
 		if (navigation == null) { Stop(); return false; }
 		if (HomeRoom >= 0 && navigation.RoomAt(destination) != HomeRoom) { HoldStill(); return false; }
-		if (!_hasRoute || _routeVersion != navigation.GateVersion || HorizontalDistance(destination, _destination) > ReplanDistance)
+		if (!_hasRoute || _routeVersion != navigation.GateVersion || destination.HorizontalDistanceTo(_destination) > ReplanDistance)
 		{
 			_destination = destination;
 			_routeVersion = navigation.GateVersion;
@@ -161,19 +159,16 @@ public partial class NavigationComponent : Node
 			_bestRemaining = float.PositiveInfinity;
 		}
 		if (!_hasRoute) { HoldStill(); return false; }
-		var position = new Vector2(Position.X, Position.Z);
+		var position = Position.Xz();
 		while (_waypointIndex < _waypoints.Count - 1 && position.DistanceTo(_waypoints[_waypointIndex]) <= WaypointReach) _waypointIndex++;
-		var last = _waypoints[^1];
-		if (position.DistanceTo(last) <= ArriveDistance)
+		if (position.DistanceTo(_waypoints[^1]) <= ArriveDistance)
 		{
 			HasArrived = true;
 			HoldStill();
 			return true;
 		}
-		float remaining = position.DistanceTo(_waypoints[_waypointIndex]);
-		for (int index = _waypointIndex + 1; index < _waypoints.Count; index++) remaining += _waypoints[index - 1].DistanceTo(_waypoints[index]);
 		var waypoint = _waypoints[_waypointIndex];
-		Steer(navigation, new Vector3(waypoint.X, Position.Y, waypoint.Y), remaining, null);
+		Steer(new Vector3(waypoint.X, Position.Y, waypoint.Y), GridPath.Length(position, _waypoints, _waypointIndex), null);
 		return true;
 	}
 
@@ -186,9 +181,9 @@ public partial class NavigationComponent : Node
 		var navigation = Navigation;
 		if (navigation == null || !GodotObject.IsInstanceValid(threat)) { Stop(); return false; }
 		_hasRoute = false;
-		var field = navigation.FleeField(threat, threat.GlobalPosition, BodyRadius, Position);
+		var field = navigation.FleeField(threat, BodyRadius, Position);
 		if (!navigation.TrySteer(field, Position, out var point)) { HoldStill(); return false; }
-		Steer(navigation, point, field.CostAt(Position), threat);
+		Steer(point, field.CostAt(Position), threat);
 		return true;
 	}
 
@@ -219,9 +214,8 @@ public partial class NavigationComponent : Node
 	{
 		IsStuck = false;
 		_bestRemaining = float.PositiveInfinity;
-		_windowStart = Position;
-		_windowTime = 0;
-		_recoveryTime = 0;
+		RestartWindow();
+		_recovery.Start(0);
 		_recovered = false;
 	}
 
@@ -229,8 +223,13 @@ public partial class NavigationComponent : Node
 	private void HoldStill()
 	{
 		_movement?.Stop();
+		RestartWindow();
+	}
+
+	private void RestartWindow()
+	{
 		_windowStart = Position;
-		_windowTime = 0;
+		_window.Start(StuckWindow);
 	}
 
 	/// <summary>
@@ -238,37 +237,39 @@ public partial class NavigationComponent : Node
 	/// side-step, and sliding along walls the body is pressed into. <paramref name="ignoreCollider"/> (the target or
 	/// threat) is never slid along, so a chaser does not orbit the player.
 	/// </summary>
-	private void Steer(FloorNavigation navigation, Vector3 point, float remaining, Node3D ignoreCollider)
+	private void Steer(Vector3 point, float remaining, Node3D ignoreCollider)
 	{
-		var direction = Flat(point - Position).Normalized();
-		if (direction == Vector3.Zero) { HoldStill(); return; }
+		var position = Position;
+		if (!(point - position).TryNormalizeHorizontal(out var direction)) { HoldStill(); return; }
 		// A held actor stops at its room's edge; one knocked outside may still walk back in.
-		if (HomeRoom >= 0 && navigation.RoomAt(Position) == HomeRoom
-			&& navigation.RoomAt(Position + direction * (BodyRadius + navigation.Grid.CellSize)) != HomeRoom)
+		if (HomeRoom >= 0 && _navigation.RoomAt(position) == HomeRoom
+			&& _navigation.RoomAt(position + direction * (BodyRadius + _navigation.Grid.CellSize)) != HomeRoom)
 		{
 			HoldStill();
 			return;
 		}
-		direction = Separate(navigation, direction);
-		if (_recoveryTime > 0)
+		direction = Separate(position, direction);
+		if (!_recovery.IsReady)
 		{
-			_recoveryTime -= (float)GetPhysicsProcessDeltaTime();
+			_recovery.Tick(GetPhysicsProcessDeltaTime());
 			direction = _recoveryDirection;
 		}
 		_movement.SetInputDirection(SlideAlongWalls(direction, ignoreCollider));
-		TrackProgress(navigation, remaining);
+		TrackProgress(position, remaining);
 	}
 
 	/// <summary>Pushes away from agents closer than both radii plus the profile's margin, never fully against the goal.</summary>
-	private Vector3 Separate(FloorNavigation navigation, Vector3 direction)
+	private Vector3 Separate(Vector3 position, Vector3 direction)
 	{
-		float margin = navigation.Profile.SeparationMargin;
+		float margin = _navigation.Profile.SeparationMargin;
 		if (margin <= 0) return direction;
 		var push = Vector3.Zero;
-		foreach (var agent in navigation.Agents)
+		var agents = _navigation.Agents;
+		for (int index = 0; index < agents.Count; index++)
 		{
+			var agent = agents[index];
 			if (agent == this || !GodotObject.IsInstanceValid(agent) || !agent.IsInsideTree()) continue;
-			var away = Flat(Position - agent.Position);
+			var away = (position - agent.Position).Horizontal();
 			float reach = BodyRadius + agent.BodyRadius + margin;
 			float distance = away.Length();
 			if (distance >= reach || distance < .001f) continue;
@@ -283,29 +284,25 @@ public partial class NavigationComponent : Node
 	/// A window without getting closer to the goal or moving starts one side-step toward the roomiest nearby cell; a
 	/// second such window reports <see cref="IsStuck"/>.
 	/// </summary>
-	private void TrackProgress(FloorNavigation navigation, float remaining)
+	private void TrackProgress(Vector3 position, float remaining)
 	{
-		float delta = (float)GetPhysicsProcessDeltaTime();
 		if (float.IsFinite(remaining) && remaining < _bestRemaining - StuckMinimumProgress)
 		{
 			_bestRemaining = remaining;
-			_windowStart = Position;
-			_windowTime = 0;
+			RestartWindow();
 			_recovered = false;
 			return;
 		}
-		_windowTime += delta;
-		if (_windowTime < StuckWindow) return;
-		bool travelled = HorizontalDistance(_windowStart) >= StuckMinimumTravel;
-		_windowStart = Position;
-		_windowTime = 0;
+		if (!_window.Tick(GetPhysicsProcessDeltaTime())) return;
+		bool travelled = position.HorizontalDistanceTo(_windowStart) >= StuckMinimumTravel;
+		RestartWindow();
 		if (float.IsFinite(remaining)) _bestRemaining = Mathf.Min(_bestRemaining, remaining);
 		if (travelled) return;
 		if (!_recovered)
 		{
 			_recovered = true;
-			_recoveryTime = RecoverySeconds;
-			_recoveryDirection = navigation.RoomiestDirection(Position, BodyRadius);
+			_recovery.Start(RecoverySeconds);
+			_recoveryDirection = _navigation.RoomiestDirection(position, BodyRadius);
 			_hasRoute = false;
 			return;
 		}
@@ -319,9 +316,12 @@ public partial class NavigationComponent : Node
 	private Vector3 SlideAlongWalls(Vector3 desired, Node3D ignoreCollider)
 	{
 		var deflected = desired;
-		for (int index = 0; index < _actor.GetSlideCollisionCount(); index++)
+		int count = _actor.GetSlideCollisionCount();
+		for (int index = 0; index < count; index++)
 		{
 			var collision = _actor.GetSlideCollision(index);
+			// Floor contacts, small seams between floor tiles included, are not walls.
+			if (collision.GetAngle(0, _actor.UpDirection) <= _actor.FloorMaxAngle) continue;
 			if (ignoreCollider != null && collision.GetCollider() == ignoreCollider) continue;
 			var normal = collision.GetNormal();
 			normal.Y = 0;
@@ -333,7 +333,4 @@ public partial class NavigationComponent : Node
 		return deflected.LengthSquared() < WallSlideMinLengthSquared ? desired : deflected;
 	}
 
-	private float HorizontalDistance(Vector3 point) => HorizontalDistance(point, Position);
-	private static float HorizontalDistance(Vector3 a, Vector3 b) => new Vector2(a.X - b.X, a.Z - b.Z).Length();
-	private static Vector3 Flat(Vector3 vector) => new(vector.X, 0, vector.Z);
 }

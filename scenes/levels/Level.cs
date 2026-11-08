@@ -185,16 +185,6 @@ public partial class Level : Node
 		RestoreExploration(_savedExploration);
 	}
 
-	/// <summary>Navigation over the floor's clearance grid; a gate is open while its door is open.</summary>
-	private FloorNavigation CreateNavigation(GeneratedFloor floor)
-	{
-		if (floor.Clearance == null || NavigationProfile == null) return null;
-		var gates = floor.NavigationGates;
-		return new FloorNavigation(floor.Clearance, NavigationProfile,
-			gate => GodotObject.IsInstanceValid(gates[gate]) && gates[gate].IsOpen,
-			point => floor.RoomIdAt(floor.Map.WorldToTile(point)));
-	}
-
 	public void Generate()
 	{
 		if (ItemPersistence == null)
@@ -220,7 +210,7 @@ public partial class Level : Node
 			return;
 		}
 		Floor = MapGenerator.Floor;
-		Navigation = CreateNavigation(Floor);
+		Navigation = Floor.Clearance != null && NavigationProfile != null ? new FloorNavigation(Floor, NavigationProfile) : null;
 		Discovery?.Initialize(Floor);
 		ItemPersistence.Initialize(this);
 		try

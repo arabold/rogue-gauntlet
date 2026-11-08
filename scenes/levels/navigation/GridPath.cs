@@ -9,8 +9,6 @@ using Godot;
 /// </summary>
 public static class GridPath
 {
-	private static readonly Vector2I[] Steps = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1), new(1, 1), new(1, -1), new(-1, 1), new(-1, -1)];
-
 	/// <summary>
 	/// Fills <paramref name="waypoints"/> with the route from <paramref name="from"/> to <paramref name="to"/>, excluding
 	/// the start and ending at <paramref name="to"/> (or at the traversable cell nearest it, within
@@ -26,7 +24,7 @@ public static class GridPath
 			|| !grid.TryFindTraversable(to, radius, snapRadius, openGates, out var goal)) return false;
 		var cells = new List<Vector2I>();
 		if (!Search(grid, start, goal, radius, openGates, costs, maxExpansions, cells)) return false;
-		var end = grid.IsTraversable(grid.CellAt(to), radius, openGates) ? to : grid.CellCenter(goal);
+		var end = grid.ClearanceAt(to) >= radius && grid.IsTraversable(grid.CellAt(to), radius, openGates) ? to : grid.BestPoint(goal);
 		// String-pull: from each anchor skip ahead while the route stays in a clear straight line.
 		var anchor = from;
 		int index = 0;
@@ -35,16 +33,27 @@ public static class GridPath
 			int farthest = index;
 			for (int candidate = index + 1; candidate < cells.Count; candidate++)
 			{
-				if (!grid.HasClearLine(anchor, grid.CellCenter(cells[candidate]), radius, openGates)) break;
+				if (!grid.HasClearLine(anchor, grid.BestPoint(cells[candidate]), radius, openGates)) break;
 				farthest = candidate;
 			}
-			var point = farthest == cells.Count - 1 ? end : grid.CellCenter(cells[farthest]);
+			var point = farthest == cells.Count - 1 ? end : grid.BestPoint(cells[farthest]);
 			waypoints.Add(point);
 			anchor = point;
 			index = farthest + 1;
 		}
-		if (waypoints.Count == 0) waypoints.Add(end);
 		return true;
+	}
+
+	/// <summary>Walking length from <paramref name="from"/> through <paramref name="waypoints"/>, starting at index <paramref name="first"/>.</summary>
+	public static float Length(Vector2 from, IReadOnlyList<Vector2> waypoints, int first = 0)
+	{
+		float length = 0;
+		for (int index = first; index < waypoints.Count; index++)
+		{
+			length += from.DistanceTo(waypoints[index]);
+			from = waypoints[index];
+		}
+		return length;
 	}
 
 	/// <summary>A* over traversable cells; <paramref name="cells"/> receives the route after <paramref name="start"/>.</summary>
@@ -58,7 +67,6 @@ public static class GridPath
 		int origin = grid.IndexOf(start), target = grid.IndexOf(goal);
 		cost[origin] = 0;
 		queue.Enqueue(origin, Heuristic(grid, start, goal));
-		float diagonal = grid.CellSize * Mathf.Sqrt2;
 		int expansions = 0;
 		while (queue.TryDequeue(out int index, out float priority))
 		{
@@ -72,15 +80,12 @@ public static class GridPath
 				return true;
 			}
 			if (++expansions > maxExpansions) return false;
-			foreach (var offset in Steps)
+			foreach (var step in ClearanceGrid.Steps)
 			{
-				var next = cell + offset;
-				if (!grid.IsTraversable(next, radius, openGates)) continue;
-				bool isDiagonal = offset.X != 0 && offset.Y != 0;
-				if (isDiagonal && !(grid.IsTraversable(cell + new Vector2I(offset.X, 0), radius, openGates)
-					&& grid.IsTraversable(cell + new Vector2I(0, offset.Y), radius, openGates))) continue;
+				var next = cell + step;
+				if (!grid.CanMove(cell, next, radius, openGates)) continue;
 				int nextIndex = grid.IndexOf(next);
-				float candidate = settled + (isDiagonal ? diagonal : grid.CellSize) * costs.Multiplier(grid.ClearanceAt(next), radius);
+				float candidate = settled + costs.StepCost(grid, cell, next, radius);
 				if (cost.TryGetValue(nextIndex, out float known) && candidate >= known) continue;
 				cost[nextIndex] = candidate;
 				parent[nextIndex] = index;

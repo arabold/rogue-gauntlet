@@ -26,7 +26,7 @@ public partial class MapGenerator
 
 	private WalkabilityGrid CreateWalkabilityGrid()
 	{
-		var grid = new WalkabilityGrid(FloorBounds(), ReachabilityRadius);
+		var grid = new WalkabilityGrid(FloorBounds(), RoomAssembler.ActorRadius);
 		foreach (var (area, walkable) in TileAreas())
 		{
 			if (walkable) grid.AddFloor(area);
@@ -45,21 +45,34 @@ public partial class MapGenerator
 		return new Rect2(min.X - half, min.Z - half, max.X - min.X + Room.TileSize, max.Z - min.Z + Room.TileSize);
 	}
 
-	/// <summary>Every map tile's area and whether actors may stand on it.</summary>
+	/// <summary>
+	/// Every walkable tile's area, and every unwalkable one beside it. Unwalkable tiles farther out lie a whole tile from
+	/// any floor, beyond the room either grid measures (<see cref="ClearanceGrid.DefaultMaxClearance"/> is under a tile).
+	/// </summary>
 	private IEnumerable<(Rect2 Area, bool Walkable)> TileAreas()
 	{
 		float half = Room.TileSize / 2f;
 		for (int x = 0; x < Map.Width; x++)
 		for (int z = 0; z < Map.Height; z++)
 		{
+			bool walkable = Map.IsWalkable(x, z);
+			if (!walkable && !BordersWalkable(x, z)) continue;
 			var center = Map.TileToWorld(x, z);
-			yield return (new Rect2(center.X - half, center.Z - half, Room.TileSize, Room.TileSize), Map.IsWalkable(x, z));
+			yield return (new Rect2(center.X - half, center.Z - half, Room.TileSize, Room.TileSize), walkable);
 		}
 	}
 
+	private bool BordersWalkable(int x, int z)
+	{
+		for (int dx = -1; dx <= 1; dx++)
+		for (int dz = -1; dz <= 1; dz++)
+			if (Map.IsWithinBounds(x + dx, z + dz) && Map.IsWalkable(x + dx, z + dz)) return true;
+		return false;
+	}
+
 	/// <summary>
-	/// Real collision, not tile classes: doorway frames stay passable and wall depth varies per piece. Doors are left
-	/// out; they open and close.
+	/// Real collision, not tile classes: doorway openings stay passable and wall depth varies per piece. Doors count with
+	/// their frame and their leaf standing open.
 	/// </summary>
 	private IEnumerable<SolidOutline> SolidOutlines()
 	{

@@ -32,6 +32,21 @@ public class WalkabilityGridTest
 	}
 
 	[TestCase]
+	public void GapsOpenExactlyWhenTheActorFitsWhereverTheGridFalls()
+	{
+		// A half-unit wall with a gap, shifted by fractions of a cell: narrower than the 2-unit actor never connects,
+		// a quarter cell wider always does.
+		foreach (float shift in new[] { 0f, .1f, .2f, .3f, .4f })
+		foreach (var (gap, open) in new[] { (1.7f, false), (1.95f, false), (2.3f, true) })
+		{
+			var grid = OpenFloor();
+			grid.AddObstacle(new Rect2(5.75f, 0, .5f, 6 + shift - gap / 2));
+			grid.AddObstacle(new Rect2(5.75f, 6 + shift + gap / 2, .5f, 6 - shift - gap / 2));
+			AssertBool(grid.AreConnected([new(2, 6), new(10, 6)])).OverrideFailureMessage($"gap {gap} shifted {shift}").IsEqual(open);
+		}
+	}
+
+	[TestCase]
 	public void SealedEnclosuresLeaveStandablePocketsOutOfReach()
 	{
 		var grid = OpenFloor(16);

@@ -11,26 +11,20 @@ using Godot;
 /// </summary>
 public sealed class FlowField
 {
-	/// <summary>Orthogonal steps first, then diagonals; a diagonal never cuts a blocked corner.</summary>
-	private static readonly Vector2I[] Steps = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1), new(1, 1), new(1, -1), new(-1, 1), new(-1, -1)];
-
 	private readonly float[] _cost;
 
-	private FlowField(ClearanceGrid grid, float radius, float[] cost, bool isComplete, Vector2I goal)
+	private FlowField(ClearanceGrid grid, float radius, float[] cost, bool isComplete)
 	{
 		Grid = grid;
 		Radius = radius;
 		_cost = cost;
 		IsComplete = isComplete;
-		Goal = goal;
 	}
 
 	public ClearanceGrid Grid { get; }
 	public float Radius { get; }
 	/// <summary>True when the search settled every cell it could reach; otherwise it stopped at its cost bound.</summary>
 	public bool IsComplete { get; }
-	/// <summary>The goal cell the field leads to; for an away field, the threat's cell.</summary>
-	public Vector2I Goal { get; }
 
 	/// <summary>Cost to the goal (for an away field: lower is safer); +inf where the search did not reach.</summary>
 	public float CostAt(Vector2I cell) => Grid.Contains(cell) ? _cost[Grid.IndexOf(cell)] : float.PositiveInfinity;
@@ -41,7 +35,7 @@ public sealed class FlowField
 	public bool ReachesNear(Vector2I cell)
 	{
 		if (Reaches(cell)) return true;
-		foreach (var step in Steps)
+		foreach (var step in ClearanceGrid.Steps)
 			if (Reaches(cell + step)) return true;
 		return false;
 	}
@@ -55,13 +49,13 @@ public sealed class FlowField
 	{
 		next = from;
 		float best = CostAt(from);
-		for (int index = 0; index < Steps.Length; index++)
+		foreach (var step in ClearanceGrid.Steps)
 		{
-			var step = Steps[index];
 			var candidate = from + step;
 			float cost = CostAt(candidate);
 			if (!(cost < best)) continue;
 			if (step.X != 0 && step.Y != 0 && !(Reaches(from + new Vector2I(step.X, 0)) && Reaches(from + new Vector2I(0, step.Y)))) continue;
+			if (Reaches(from) && !Grid.CanStep(from, candidate, Radius)) continue;
 			best = cost;
 			next = candidate;
 		}
@@ -79,13 +73,13 @@ public sealed class FlowField
 		var cost = new float[grid.Size.X * grid.Size.Y];
 		Array.Fill(cost, float.PositiveInfinity);
 		if (!grid.TryFindTraversable(goal, radius, snapRadius, openGates, out var start))
-			return new FlowField(grid, radius, cost, true, grid.CellAt(goal));
+			return new FlowField(grid, radius, cost, true);
 		var queue = new PriorityQueue<int, float>();
 		int origin = grid.IndexOf(start);
 		cost[origin] = 0;
 		queue.Enqueue(origin, 0);
 		bool complete = Relax(grid, radius, openGates, costs, cost, queue, bound, null);
-		return new FlowField(grid, radius, cost, complete, start);
+		return new FlowField(grid, radius, cost, complete);
 	}
 
 	/// <summary>
@@ -110,31 +104,26 @@ public sealed class FlowField
 			queue.Enqueue(index, cost[index]);
 		}
 		Relax(grid, chase.Radius, openGates, costs, cost, queue, float.PositiveInfinity, domain);
-		return new FlowField(grid, chase.Radius, cost, chase.IsComplete, chase.Goal);
+		return new FlowField(grid, chase.Radius, cost, chase.IsComplete);
 	}
 
 	/// <summary>Dijkstra relaxation over traversable cells (within <paramref name="domain"/> when given). True when exhausted.</summary>
 	private static bool Relax(ClearanceGrid grid, float radius, bool[] openGates, NavigationCosts costs, float[] cost,
 		PriorityQueue<int, float> queue, float bound, bool[] domain)
 	{
-		float diagonal = grid.CellSize * Mathf.Sqrt2;
 		while (queue.TryDequeue(out int index, out float settled))
 		{
 			if (settled > cost[index]) continue;
 			if (settled > bound) return false;
 			var cell = grid.CellOf(index);
-			for (int step = 0; step < Steps.Length; step++)
+			foreach (var step in ClearanceGrid.Steps)
 			{
-				var offset = Steps[step];
-				var next = cell + offset;
+				var next = cell + step;
 				if (!grid.Contains(next)) continue;
 				int nextIndex = grid.IndexOf(next);
 				if (domain != null && !domain[nextIndex]) continue;
-				if (!grid.IsTraversable(next, radius, openGates)) continue;
-				bool isDiagonal = offset.X != 0 && offset.Y != 0;
-				if (isDiagonal && !(grid.IsTraversable(cell + new Vector2I(offset.X, 0), radius, openGates)
-					&& grid.IsTraversable(cell + new Vector2I(0, offset.Y), radius, openGates))) continue;
-				float candidate = settled + (isDiagonal ? diagonal : grid.CellSize) * costs.Multiplier(grid.ClearanceAt(next), radius);
+				if (!grid.CanMove(cell, next, radius, openGates)) continue;
+				float candidate = settled + costs.StepCost(grid, cell, next, radius);
 				if (candidate >= cost[nextIndex]) continue;
 				cost[nextIndex] = candidate;
 				queue.Enqueue(nextIndex, candidate);

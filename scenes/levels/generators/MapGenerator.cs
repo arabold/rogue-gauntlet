@@ -46,8 +46,6 @@ public partial class MapGenerator : Node3D
 	[Export] public GridMap OcclusionGridMap { get; set; }
 	/// <summary>Parent of everything generation places on the floor: rooms, doors, props, traps and loose loot.</summary>
 	[Export] public Node3D FloorContent { get; set; }
-	/// <summary>Body radius floor reachability assumes: the largest ordinary monster, so spawns and loot suit every one.</summary>
-	[Export(PropertyHint.Range, "0.25,2,0.05")] public float ReachabilityRadius { get; set; } = 1f;
 
 	// Shared unlit black cap mesh for permanent void coverage.
 	private PlaneMesh _occlusionCapMesh;
@@ -75,7 +73,7 @@ public partial class MapGenerator : Node3D
 		GD.Print("Initializing map generator...");
 		if (FloorGridMap == null || WallGridMap == null || DecorationGridMap == null || OcclusionGridMap == null || FloorContent == null)
 		{
-			GD.PushError($"{Name}: assign the floor, wall, decoration and occlusion GridMaps and the navigation region.");
+			GD.PushError($"{Name}: assign the floor, wall, decoration and occlusion GridMaps and the floor content node.");
 			return;
 		}
 		OcclusionGridMap.MeshLibrary = BuildOcclusionMeshLibrary();

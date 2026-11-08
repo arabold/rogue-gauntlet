@@ -25,6 +25,7 @@ public partial class InteriorDoorComponent : Node
 		Door.Leaf.Scale = new(OpeningWidth, 1, 1);
 		Door.Collision.Shape = new BoxShape3D { Size = new(OpeningWidth, 4, .3f) };
 		Door.Collision.Position = new(0, 2, 0);
+		Door.CaptureClosedLeaf();
 		if (string.IsNullOrEmpty(Door.ConnectionId)) Door.ConnectionId = "interior:" + Id;
 	}
 

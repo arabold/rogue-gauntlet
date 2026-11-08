@@ -251,9 +251,7 @@ public class WardenTest
 			var point = new Vector3(center.X, boss.GlobalPosition.Y, center.Y);
 			if (level.Navigation.RoomAt(point) != home || !navigation.CanStandAt(point)) continue;
 			if (!level.Navigation.TryFindPath(boss.GlobalPosition, point, boss.BodyRadius, route)) continue;
-			float length = 0;
-			var from = new Vector2(boss.GlobalPosition.X, boss.GlobalPosition.Z);
-			foreach (var waypoint in route) { length += from.DistanceTo(waypoint); from = waypoint; }
+			float length = GridPath.Length(boss.GlobalPosition.Xz(), route);
 			if (length >= 6 && length <= 14) destination = point;
 		}
 		AssertBool(destination.HasValue).OverrideFailureMessage("No destination 6-14 units away in the Warden's room.").IsTrue();
@@ -360,7 +358,7 @@ public class WardenTest
 		AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
 	}
 
-	private static int HomeRoom(Level level, EnemyBase boss) => level.Floor.RoomIdAt(level.Floor.Map.WorldToTile(boss.GlobalPosition));
+	private static int HomeRoom(Level level, EnemyBase boss) => level.Floor.RoomIdAt(boss.GlobalPosition);
 
 	private static EnemyBase Boss(Level level) => level.FindChildren("*", "", true, false)
 		.OfType<EnemyBase>().Single(e => e.GetMeta("persistent_id", "").AsString() == "depth:3:gatekeeper");

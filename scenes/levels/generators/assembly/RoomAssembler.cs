@@ -27,8 +27,11 @@ public sealed class RoomAssemblyOptions
 /// </summary>
 public static class RoomAssembler
 {
-	/// <summary>Actor clearance for doorway connectivity; matches the navigation bake's agent radius.</summary>
-	public const float ActorRadius = 1f;
+	/// <summary>
+	/// Body radius every reachability check guarantees: the largest ordinary walking body (skeletons). The player and
+	/// smaller monsters fit wherever it does; the room-bound Warden is staged with its own clearance.
+	/// </summary>
+	public const float ActorRadius = .6f;
 	private const float CirculationWidth = 2.4f;
 	private const float ApproachDepth = 3f;
 	private static readonly Vector2I[] Directions = [Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left];

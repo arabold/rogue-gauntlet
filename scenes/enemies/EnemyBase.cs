@@ -10,22 +10,25 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	/// <summary>The body's collision shape (a capsule, cylinder or sphere): its radius is the monster's size for navigation.</summary>
 	[Export] public CollisionShape3D BodyShape { get; set; }
 
-	/// <summary>Horizontal radius of <see cref="BodyShape"/>, scale included; 0.5 without one.</summary>
-	public float BodyRadius
+	/// <summary>Navigation size of an actor whose body shape gives none.</summary>
+	public const float DefaultBodyRadius = .5f;
+
+	/// <summary>Horizontal radius of <see cref="BodyShape"/>, scale included; <see cref="DefaultBodyRadius"/> without one.</summary>
+	public float BodyRadius => HorizontalRadius(BodyShape) is > 0 and var radius ? radius : DefaultBodyRadius;
+
+	/// <summary>The horizontal radius of an upright capsule, cylinder or sphere body, its node's scale included; 0 for any other shape.</summary>
+	public static float HorizontalRadius(CollisionShape3D body)
 	{
-		get
+		float radius = body?.Shape switch
 		{
-			float radius = BodyShape?.Shape switch
-			{
-				CapsuleShape3D capsule => capsule.Radius,
-				CylinderShape3D cylinder => cylinder.Radius,
-				SphereShape3D sphere => sphere.Radius,
-				_ => .5f,
-			};
-			if (BodyShape == null) return radius;
-			var scale = BodyShape.Transform.Basis.Scale;
-			return radius * Mathf.Max(scale.X, scale.Z);
-		}
+			CapsuleShape3D capsule => capsule.Radius,
+			CylinderShape3D cylinder => cylinder.Radius,
+			SphereShape3D sphere => sphere.Radius,
+			_ => 0,
+		};
+		if (radius <= 0) return 0;
+		var scale = body.Transform.Basis.Scale;
+		return radius * Mathf.Max(scale.X, scale.Z);
 	}
 	[Export] public WorldEffectHost WorldEffects { get; set; }
 	[Export] public InvisibilityComponent Invisibility { get; set; }

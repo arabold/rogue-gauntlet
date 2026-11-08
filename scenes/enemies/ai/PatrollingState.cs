@@ -65,23 +65,14 @@ public sealed class PatrollingState : IEnemyState
 			}
 		}
 
-		bool arrived = ctx.Actor.GlobalPosition.DistanceTo(_roamTargetPosition) <= ctx.Profile.RoamTargetDistance;
-		if (arrived || !ctx.Navigation.MoveTo(_roamTargetPosition) || ctx.Navigation.HasArrived)
-		{
-			_hasRoamTarget = false;
-			StartRoamPause(ctx);
-			ctx.Navigation.Stop();
-			return;
-		}
-
-		if (ctx.Navigation.IsStuck)
-		{
-			// Stuck mid-roam: drop this destination and pause before trying a new one.
-			GameDebug.Ai($"{ctx.Actor.Name} appears stuck while patrolling; abandoning roam target.");
-			_hasRoamTarget = false;
-			StartRoamPause(ctx);
-			ctx.Navigation.Stop();
-		}
+		bool done = ctx.Actor.GlobalPosition.DistanceTo(_roamTargetPosition) <= ctx.Profile.RoamTargetDistance
+			|| !ctx.Navigation.MoveTo(_roamTargetPosition) || ctx.Navigation.HasArrived;
+		if (!done && !ctx.Navigation.IsStuck) return;
+		// Arrived, unreachable, or stuck mid-roam: drop this destination and pause before trying a new one.
+		if (!done) GameDebug.Ai($"{ctx.Actor.Name} appears stuck while patrolling; abandoning roam target.");
+		_hasRoamTarget = false;
+		StartRoamPause(ctx);
+		ctx.Navigation.Stop();
 	}
 
 	private bool TrySetRoamTarget(EnemyContext ctx)

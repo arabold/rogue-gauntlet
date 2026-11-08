@@ -3,6 +3,8 @@ using Godot;
 /// <summary>
 /// A hinged door composed in its scene: optional <see cref="DoorLockComponent"/> and <see cref="SecretDoorComponent"/>
 /// own access state and announce changes, while the door turns that state into its offer, prompt, marker and indicator.
+/// The frame is ordinary solid collision; the leaf's collider follows the leaf about its hinge, so the doorway closes
+/// with it and the open leaf stands solid beside the opening. It only passes through actors while it swings.
 /// </summary>
 [Tool]
 public partial class Door : Node3D
@@ -15,6 +17,7 @@ public partial class Door : Node3D
 	[Export] public Node3D DoorVisual { get; set; }
 	/// <summary>The hinged leaf that swings open and carries the x-ray indicator.</summary>
 	[Export] public MeshInstance3D Leaf { get; set; }
+	/// <summary>The leaf's collider, authored in its shut pose.</summary>
 	[Export] public CollisionShape3D Collision { get; set; }
 	[Export] public bool LockEligible { get; set; } = false;
 	public string ConnectionId { get; set; } = "";
@@ -40,6 +43,8 @@ public partial class Door : Node3D
 	private bool _isAnimating;
 	private Tween _activeTween;
 	private StandardMaterial3D _keyMarkerMaterial;
+	// The leaf collider's pose in door space with the leaf shut.
+	private Transform3D? _closedLeafPose;
 
 	public override void _Ready()
 	{
@@ -64,8 +69,39 @@ public partial class Door : Node3D
 				bus => bus.XraySettingsChanged -= RefreshIndicator);
 		}
 
+		CaptureClosedLeaf();
 		Update();
 		RefreshAccessPresentation();
+	}
+
+	/// <summary>Records the leaf collider's current placement as its shut pose; call after changing the leaf's geometry.</summary>
+	public void CaptureClosedLeaf()
+	{
+		if (HasRequiredParts) _closedLeafPose = DoorSpace(Collision);
+	}
+
+	/// <summary>The leaf collider's pose in door space, shut or swung open about the leaf's hinge.</summary>
+	public Transform3D LeafPose(bool open)
+	{
+		if (_closedLeafPose == null) CaptureClosedLeaf();
+		var shut = _closedLeafPose ?? Transform3D.Identity;
+		if (!open) return shut;
+		var hinge = DoorSpace(Leaf.GetParentNode3D()) * Leaf.Position;
+		var swing = new Transform3D(new Basis(Vector3.Up, Mathf.DegToRad(OpenRotationDegrees)), Vector3.Zero);
+		return Transform3D.Identity.Translated(hinge) * swing * Transform3D.Identity.Translated(-hinge) * shut;
+	}
+
+	/// <summary>The leaf's collision outline, shut or open, mapped by <paramref name="doorToSpace"/> from door space.</summary>
+	public SolidOutline LeafOutline(bool open, Transform3D doorToSpace) =>
+		CollisionOutlines.FromShape(Collision.Shape, doorToSpace * LeafPose(open));
+
+	/// <summary>A descendant's transform relative to this door.</summary>
+	private Transform3D DoorSpace(Node3D node)
+	{
+		var transform = Transform3D.Identity;
+		for (Node current = node; current != null && current != this; current = current.GetParent())
+			if (current is Node3D spatial) transform = spatial.Transform * transform;
+		return transform;
 	}
 
 	private bool HasRequiredParts => Interactive != null && Leaf != null && Collision != null;
@@ -159,7 +195,10 @@ public partial class Door : Node3D
 	{
 		if (!HasRequiredParts) return;
 		Leaf.RotationDegrees = new Vector3(0, IsOpen ? OpenRotationDegrees : 0, 0);
-		Collision.Disabled = IsOpen;
+		// The editor previews the leaf only; moving the collider there would save the open pose into the scene.
+		if (Engine.IsEditorHint()) return;
+		Collision.Transform = DoorSpace(Collision.GetParentNode3D()).AffineInverse() * LeafPose(IsOpen);
+		Collision.Disabled = false;
 	}
 
 	private void OpenDoor()
@@ -177,6 +216,7 @@ public partial class Door : Node3D
 	{
 		GD.Print("Closing door");
 		_isAnimating = true;
+		Collision.Disabled = true;
 		IsOpen = false;
 		RefreshAccessPresentation(); // The shader decides when the indicator actually appears.
 		SignalBus.EmitDoorClosed(this);

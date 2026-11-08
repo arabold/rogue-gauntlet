@@ -98,9 +98,6 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	/// <summary>Latest engagement choice for debug tools; changes are also emitted to the combat trace.</summary>
 	public string TacticalDecisionReason => _context?.TacticalDecisionReason ?? "inactive";
 
-	// Body radius for actors without an EnemyBase body shape (tests, ad-hoc actors).
-	private const float DefaultBodyRadius = .5f;
-
 	private PerceptionComponent _perception;
 	private NavigationComponent _navigation;
 	private EnemyBehaviorProfile _profile;
@@ -126,7 +123,7 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		_perception = GetNode<PerceptionComponent>("Perception");
 		_perception.Initialize(Actor, _profile, GetNode<RayCast3D>("SightRay"));
 		_navigation = GetNode<NavigationComponent>("Navigation");
-		_navigation.Initialize(Actor, MovementComponent, (Actor as EnemyBase)?.BodyRadius ?? DefaultBodyRadius, _profile.StayInHomeRoom);
+		_navigation.Initialize(Actor, MovementComponent, (Actor as EnemyBase)?.BodyRadius ?? EnemyBase.DefaultBodyRadius, _profile.StayInHomeRoom);
 
 		_attackController = Actor is EnemyBase enemy ? enemy.AttackController : Actor.GetNodeOrNull<AttackController>("AttackController");
 		if (_attackController == null)

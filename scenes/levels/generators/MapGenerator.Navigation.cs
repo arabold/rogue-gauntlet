@@ -3,7 +3,7 @@ using Godot;
 
 /// <summary>
 /// Monster navigation data: the floor's clearance grid, built from the same tiles and collision outlines as floor
-/// reachability once every solid is placed, with each door recorded as a gate instead of a solid.
+/// reachability once every solid is placed, with each door's shut leaf recorded as a gate instead of a solid.
 /// </summary>
 public partial class MapGenerator
 {
@@ -21,11 +21,7 @@ public partial class MapGenerator
 		var toLocal = GlobalTransform.AffineInverse();
 		var gates = LiveNodes<Door>().ToArray();
 		foreach (var door in gates)
-		{
-			var collision = door.Collision;
-			grid.AddGate(collision?.Shape != null
-				? CollisionOutlines.FromShape(collision.Shape, toLocal * collision.GlobalTransform).Polygon : []);
-		}
+			grid.AddGate(door.Collision?.Shape != null ? door.LeafOutline(open: false, toLocal * door.GlobalTransform).Polygon : []);
 		grid.Freeze();
 		Floor.SetNavigation(grid, gates);
 	}

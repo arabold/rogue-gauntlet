@@ -50,7 +50,7 @@ public class MeleeContactTest
 	public async Task BodyContactIsTimedAndCanBeEnteredAfterTheWindowOpens()
 	{
 		var (runner, harness) = await Load();
-		harness.PracticeTarget.Position = new Vector3(0, 0, 1.3f); // touching the rear of the hero's physical body
+		harness.PracticeTarget.Position = new Vector3(0, 0, .85f); // touching the rear of the hero's physical body (radius .5)
 		await runner.SimulateFrames(2);
 		var controller = Start(harness);
 		controller._PhysicsProcess(.05);
@@ -60,7 +60,7 @@ public class MeleeContactTest
 		await runner.SimulateFrames(2);
 		controller._PhysicsProcess(.35); // window opens while the target is absent
 		AssertInt(controller.ContactCount).IsEqual(0);
-		harness.PracticeTarget.Position = new Vector3(0, 0, 1.3f);
+		harness.PracticeTarget.Position = new Vector3(0, 0, .85f);
 		await runner.SimulateFrames(2);
 		controller._PhysicsProcess(.1);
 		AssertInt(controller.ContactCount).IsEqual(1);

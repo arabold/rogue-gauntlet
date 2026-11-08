@@ -8,7 +8,7 @@ extends SceneTree
 ## the floor, wall or decoration library under the tile's name. Existing items keep their ids, so GridMap cells and
 ## the KayKit items are untouched; re-running updates studio items in place. Walls get a convex hull, rugs no
 ## collision (actors walk over them). Every walkable floor item in the floor library, KayKit's included, collides as
-## one flat box at its walkable height: surface detail stays visual, because a trimesh's lips and seams stop small
+## one flat box at the shared floor height: surface detail stays visual, because a trimesh's lips and seams stop small
 ## bodies that monster navigation treats as free to walk. No item carries a navigation mesh: monsters navigate on the
 ## floor's clearance grid. Pool pieces are laid as props by `PoolStep` over a pit with no floor: they get one box from
 ## their bed to a low curb above the floor, so actors stop at the edge while missiles fly over. Raised foundations keep
@@ -32,9 +32,9 @@ const POOL := "floor_pool_"
 const POOL_CURB := 0.35
 ## Raised structure rather than walkable floor; keeps its own collision.
 const FOUNDATION := "floor_foundation_"
-## Flat floor collision: the top follows the tile's surface, capped where scattered rocks or rubble would otherwise
-## lift it (MapGenerator.GetFloorSurfaceHeight uses the same cap), down to the bottom of the floor slab.
-const FLOOR_MAX_TOP := 0.12
+## Flat floor collision: every walkable floor tile shares one top height (KayKit's floor surface), so seams between
+## different tiles are perfectly flush; tiles with a higher surface (dirt, rubble) show the difference only visually.
+const FLOOR_TOP := 0.05
 const FLOOR_BOTTOM := -0.1
 
 var _started := false
@@ -132,8 +132,7 @@ func _pool_shape() -> Shape3D:
 
 
 ## Gives every walkable floor item one flat box over its footprint, studio and KayKit items alike, and clears every
-## floor item's navigation mesh. Boxes are shared per footprint and top height, so the library references a handful of
-## resources.
+## floor item's navigation mesh. Boxes are shared per footprint, so the library references a handful of resources.
 func _flatten_floors(library: MeshLibrary) -> bool:
 	var boxes := {}
 	for id in library.get_item_list():
@@ -143,9 +142,9 @@ func _flatten_floors(library: MeshLibrary) -> bool:
 		if mesh == null or name.begins_with(POOL) or name.begins_with(FOUNDATION):
 			continue
 		var bounds := mesh.get_aabb()
-		var top := snappedf(minf(bounds.end.y, FLOOR_MAX_TOP), 0.01)
+		var top := FLOOR_TOP
 		var size := Vector3(snappedf(bounds.size.x, 0.01), top - FLOOR_BOTTOM, snappedf(bounds.size.z, 0.01))
-		var path := "%s/shapes/floor_flat_%dx%d_top%d.res" % [OUTPUT, roundi(size.x * 100), roundi(size.z * 100), roundi(top * 100)]
+		var path := "%s/shapes/floor_flat_%dx%d.res" % [OUTPUT, roundi(size.x * 100), roundi(size.z * 100)]
 		if not boxes.has(path):
 			var box := BoxShape3D.new()
 			box.size = size

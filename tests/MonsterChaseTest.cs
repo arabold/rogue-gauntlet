@@ -29,7 +29,7 @@ public class MonsterChaseTest
 	[TestCase(11ul, 8u)]
 	public async Task ChasersReachTargetsInOtherRooms(ulong seed, uint depth)
 	{
-		var (runner, level) = await GenerateFloor(seed, depth);
+		var (runner, level) = await TestFactories.GenerateLevel(seed, depth);
 		using var scope = runner;
 		foreach (var door in level.Floor.NavigationGates) door.IsOpen = true;
 		var rng = new RandomNumberGenerator { Seed = seed * 7919 + depth };
@@ -54,10 +54,16 @@ public class MonsterChaseTest
 			monster.EnemyBehaviorComponent.SetBehavior(EnemyBehaviorState.Chasing);
 		}
 
-		for (int frame = 0; frame < 1600 && chases.Any(chase => !Arrived(chase.Monster, chase.Target)); frame++)
+		// Arrival latches: a rat bites and then backs off, which still counts as having reached its target.
+		var arrived = new HashSet<EnemyBase>();
+		for (int frame = 0; frame < 1600 && arrived.Count < chases.Count; frame++)
+		{
 			await runner.SimulateFrames(1, FrameMilliseconds);
+			foreach (var (monster, target, _) in chases)
+				if (Arrived(monster, target)) arrived.Add(monster);
+		}
 
-		var missed = chases.Where(chase => !Arrived(chase.Monster, chase.Target))
+		var missed = chases.Where(chase => !arrived.Contains(chase.Monster))
 			.Select(chase => $"{chase.Label}: stopped at {Flat(chase.Monster.GlobalPosition)}, {chase.Monster.EnemyBehaviorComponent.CurrentBehavior}").ToArray();
 		AssertArray(missed).OverrideFailureMessage($"Did not arrive: {string.Join("; ", missed)}").IsEmpty();
 	}
@@ -65,7 +71,7 @@ public class MonsterChaseTest
 	[TestCase]
 	public async Task AClosedDoorEndsTheChase()
 	{
-		var (runner, level) = await GenerateFloor(23, 1);
+		var (runner, level) = await TestFactories.GenerateLevel(23, 1);
 		using var scope = runner;
 		foreach (var door in level.Floor.NavigationGates) door.IsOpen = true;
 		// Either side of a door that is the only way between them once every door shuts.
@@ -105,7 +111,7 @@ public class MonsterChaseTest
 	[TestCase]
 	public async Task AFleeingMonsterGetsAway()
 	{
-		var (runner, level) = await GenerateFloor(23, 1);
+		var (runner, level) = await TestFactories.GenerateLevel(23, 1);
 		using var scope = runner;
 		foreach (var door in level.Floor.NavigationGates) door.IsOpen = true;
 		var rng = new RandomNumberGenerator { Seed = 9 };
@@ -116,27 +122,13 @@ public class MonsterChaseTest
 		// The threat stands right next to the rat; fleeing must put real distance between them.
 		AssertBool(navigation.TryFindTraversable(monster.GlobalPosition + Vector3.Right * 2, 2, out var near)).IsTrue();
 		var threat = AddMarker(level, near);
-		float before = Distance(monster.GlobalPosition, threat.GlobalPosition);
+		float before = monster.GlobalPosition.HorizontalDistanceTo(threat.GlobalPosition);
 		for (int frame = 0; frame < 180; frame++)
 		{
 			navigation.Flee(threat);
 			await runner.SimulateFrames(1, FrameMilliseconds);
 		}
-		AssertFloat(Distance(monster.GlobalPosition, threat.GlobalPosition)).IsGreater(before + 6);
-	}
-
-	private static async Task<(ISceneRunner Runner, Level Level)> GenerateFloor(ulong seed, uint depth)
-	{
-		var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2);
-		var level = (Level)runner.Scene();
-		GameSession.Instance.ResetLevelDebugState(depth);
-		level.ConfigureGeneration(new RunState(seed), depth, null, null);
-		level.Generate();
-		// The floor's own monsters would wander into the chases; these tests place their own.
-		foreach (var enemy in level.FindChildren("*", "", true, false).OfType<EnemyBase>()) enemy.QueueFree();
-		await runner.SimulateFrames(2);
-		return (runner, level);
+		AssertFloat(monster.GlobalPosition.HorizontalDistanceTo(threat.GlobalPosition)).IsGreater(before + 6);
 	}
 
 	/// <summary>A monster at a random roomy cell; positioned before entering the tree, as spawn points do.</summary>
@@ -172,9 +164,7 @@ public class MonsterChaseTest
 			var point = new Vector3(center.X, .1f, center.Y);
 			int room = level.Navigation.RoomAt(point);
 			if (room < 0 || room == home || !level.Navigation.TryFindPath(monster.Position, point, monster.BodyRadius, route)) continue;
-			float length = 0;
-			var from = new Vector2(monster.Position.X, monster.Position.Z);
-			foreach (var waypoint in route) { length += from.DistanceTo(waypoint); from = waypoint; }
+			float length = GridPath.Length(monster.Position.Xz(), route);
 			if (length >= 8 && length <= 40) return point;
 		}
 		return null;
@@ -190,7 +180,6 @@ public class MonsterChaseTest
 	/// <summary>Past the spawn and stand-up actions, so behavior states are in control.</summary>
 	private static async Task Settle(ISceneRunner runner) => await runner.SimulateFrames(260, FrameMilliseconds);
 
-	private static bool Arrived(EnemyBase monster, Node3D target) => Distance(monster.GlobalPosition, target.GlobalPosition) <= MeleeReach;
-	private static float Distance(Vector3 a, Vector3 b) => new Vector2(a.X - b.X, a.Z - b.Z).Length();
+	private static bool Arrived(EnemyBase monster, Node3D target) => monster.GlobalPosition.HorizontalDistanceTo(target.GlobalPosition) <= MeleeReach;
 	private static string Flat(Vector3 point) => $"({point.X:0.0}, {point.Z:0.0})";
 }

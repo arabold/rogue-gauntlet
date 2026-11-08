@@ -30,8 +30,8 @@ Not in this plan: monsters opening doors, flying or swimming movement, new autho
 
 ## Concepts
 
-- **Clearance grid:** world XZ cells (default 0.5 units, matching `WalkabilityGrid.DefaultCellSize`). Each cell stores the distance from its center to the nearest solid outline within the actor height band, capped at `MaxClearance`. It is built once per floor from the same outlines as floor reachability: walls, solid decoration and static bodies, with doors excluded. Doors are recorded as gates instead.
-- **Traversable:** a cell is traversable for body radius `r` when `clearance + CellSize/2 ≥ r` and its gate is open. This is the same allowance `WalkabilityGrid` uses, so generation reachability and runtime movement agree on what fits.
+- **Clearance grid:** world XZ cells (default 0.5 units, eight per tile). Distance to the nearest solid outline within the actor height band, capped at `MaxClearance`, is sampled on a quarter-cell lattice; each cell keeps its roomiest sample. It is built once per floor from the same outlines as floor reachability: walls, solid decoration and static bodies, with doors excluded. Doors are recorded as gates instead.
+- **Traversable:** a cell is traversable for body radius `r` when one of its nine quarter-cell samples has `clearance ≥ r` and its gate is open, and neighbors connect only through a shared sample with that room. `WalkabilityGrid` is a `ClearanceGrid` capped at one actor radius, so generation reachability and runtime movement agree on what fits by construction.
 - **Step cost:** the cost of each step is its length × `(1 + CenterBias × w)`, where `w = clamp((r + PreferredMargin − clearance) / PreferredMargin, 0, 1)`.
   - Low clearance costs more, which is what centers routes.
   - Diagonal steps never cut a blocked corner.
@@ -72,14 +72,15 @@ public partial class NavigationProfile : Resource
 // scenes/levels/navigation/ClearanceGrid.cs: plain C#, built during generation, frozen with the floor
 public sealed class ClearanceGrid
 {
-	public ClearanceGrid(Rect2 bounds, float maxClearance = DefaultMaxClearance, float cellSize = DefaultCellSize);
+	public ClearanceGrid(Rect2 bounds, float maxClearance = DefaultMaxClearance);
 	public float CellSize { get; }
 	public Vector2I Size { get; }
 	public void AddFloor(Rect2 area);
-	public void AddObstacle(SolidOutline solid);           // ignores solids outside WalkabilityGrid's height band
+	public void AddObstacle(SolidOutline solid);           // ignores solids outside the blocking height band
 	public int AddGate(Vector2[] footprint);               // returns the gate index; cells inside close with it
 	public float ClearanceAt(Vector2I cell);               // 0 off the floor
 	public bool IsTraversable(Vector2I cell, float radius, bool[] openGates); // null treats every gate as open
+	public bool CanMove(Vector2I from, Vector2I to, float radius, bool[] openGates); // the one neighbor rule fields, routes and reachability share
 	public void Freeze();                                  // InvalidOperationException on later mutation
 }
 
@@ -94,12 +95,12 @@ public sealed class FlowField
 // scenes/levels/navigation/FloorNavigation.cs: plain C#, runtime service owned by Level
 public sealed class FloorNavigation
 {
-	public FloorNavigation(ClearanceGrid grid, NavigationProfile profile, Func<int, bool> isGateOpen, Func<Vector3, int> roomAt);
+	public FloorNavigation(GeneratedFloor floor, NavigationProfile profile); // gate i is door i of floor.NavigationGates
 	public NavigationProfile Profile { get; }
 	public void Register(NavigationComponent agent);       // idempotent; holds no freed nodes
 	public void Unregister(NavigationComponent agent);
-	public FlowField ChaseField(object key, Vector3 target, float radius, Vector3 requester);
-	public FlowField FleeField(object key, Vector3 threat, float radius, Vector3 requester);
+	public FlowField ChaseField(Node3D target, float radius, Vector3 requester);
+	public FlowField FleeField(Node3D threat, float radius, Vector3 requester);
 	public bool TryFindPath(Vector3 from, Vector3 to, float radius, List<Vector2> waypoints); // false: unreachable or over budget, cleared
 	public bool TrySteer(FlowField field, Vector3 position, out Vector3 point);
 	public Vector3 RoomiestDirection(Vector3 position, float radius);
@@ -196,7 +197,8 @@ Invariants:
 Slice 1: collision ground truth
 ~ scenes/levels/dungeon/custom_tiles/register_custom_tiles.gd   the floor library's source of collision: one flat BoxShape3D per
                                                      floor item sized to its footprint (4×4 large, 2×2 small, 8×8 extra-large,
-                                                     4×2 grates/channels); pools keep their curb box, foundations their own shape
+                                                     4×2 grates/channels) at one shared top height; pools keep their curb box,
+                                                     foundations their own shape
 ~ scenes/levels/dungeon/FloorMeshLibrary.tres        re-exported
 - scenes/levels/dungeon/custom_tiles/shapes/floor_*.res   no longer referenced
 ~ scenes/levels/generators/map_generator.tscn        interim: navmesh parses static colliders only
@@ -249,7 +251,7 @@ Slice 4: navmesh removal
 - **Slice 2: grid core.** This slice settles the two riskiest unknowns first: field cost on large maps, and quantization at 2.0–2.4-unit gates for a 1.0 body.
    - **What lands:** the grid, fields and paths are built for every floor and shown in the debug overlay. Monsters still use the navmesh.
    - **Verify:**
-     - **Unit tests:** clearance near boxes; traversable cells agree with `WalkabilityGrid` standability; corridor routes keep to the middle; a 2.4 gate admits r=1.0 but not r=1.3.
+     - **Unit tests:** clearance near boxes; corridor routes keep to the middle; a 2.4 gate admits r=1.0 but not r=1.3.
      - **Door gates:** a closed gate splits a field; opening it rejoins.
      - **Flee:** the flee field leaves a dead end through its mouth instead of retreating deeper.
      - **Timing:** measure chase field times on 20×20 and 60×60 floors, with a target of ≤2 ms per field on 20×20. If the target is missed, the cell size or bounds change before slice 3a.
@@ -279,7 +281,7 @@ Verification cadence for every slice: `dotnet build "Rogue Gauntlet.sln"`, then 
 - **Cell size:** 0.5 (default, shared with walkability) or 0.25 (finer gates, four times the cells). The slice 2 timings and gate tests decide.
 - **Low obstacles:** the walkability height band starts at 0.15. A rat's capsule (0.35) can only step over about 0.10 at the 45° floor limit. Slice 2 must check curbs, grates and pool rims. If small classes snag, store a second low-obstacle layer that only small classes treat as blocking.
 - **Separation, not collision:** monsters keep passing through each other physically and only steer apart. Hard collision between monsters would bring back doorway jams.
-- **Body sizes:** skeletons are as wide as the player (0.75). Shrinking them is a separate tuning decision once slice 3a has been played.
+- **Body sizes (resolved):** the player's body is now a 0.5 capsule (it was a 1.0 sphere, twice the model's width, which trapped it behind furniture a slim character visibly passes) and skeletons are 0.6. On stairs, a body pushing into a step with open space one step up is lifted over it, so slim bodies climb as well as the old sphere. Reachability and navigation test fit with the full radius on quarter-cell samples, and cells connect only through a free shared sample, so a gap admits a body exactly when it fits.
 - **Boss leash:** the Warden stays room-bound for now. Releasing it is data, but its 1.0 body clears doorways by only about 0.2 per side.
 - **Dynamic obstacles:** only doors change at runtime. A destroyed `DestructibleNest` keeps its cells blocked until the floor is rebuilt. That is acceptable until something destructible stands on a route.
 - **Single floor plane:** the grid is 2D. Stairs and pits are not monster terrain. Flying movement would need its own traversability rule, which is a seam on `IsTraversable`, not state now.

@@ -181,6 +181,7 @@ public sealed class GeneratedFloor
 
 	/// <summary>The room owning an interior floor tile, or -1 for corridors, thresholds, void and out-of-bounds tiles.</summary>
 	public int RoomIdAt(Vector2I tile) => _tileToRoom.TryGetValue(tile, out var id) ? id : -1;
+	public int RoomIdAt(Vector3 point) => RoomIdAt(Map.WorldToTile(point));
 
 	/// <summary>An unreachable tile center, decoration and nearby props make a tile unusable for spawns and loot.</summary>
 	internal bool IsOccupied(int x, int z)

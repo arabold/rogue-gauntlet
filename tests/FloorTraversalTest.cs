@@ -20,11 +20,8 @@ public partial class FloorTraversalTest
 	private const float RowSpacing = 12f;
 	private const float Speed = 6f;
 	private const int Copies = 3;
-	// Contacts flatter than CharacterBody3D's default 45° floor angle are floors; anything steeper stops movement.
-	private static readonly float FloorNormalY = Mathf.Cos(Mathf.DegToRad(46));
-
 	/// <summary>Body radius and height of the smallest (rat) and a medium (skeleton) walking actor.</summary>
-	private static readonly (float Radius, float Height)[] Bodies = [(.35f, .75f), (.75f, 2f)];
+	private static readonly (float Radius, float Height)[] Bodies = [(.35f, .75f), (.6f, 2f)];
 
 	private readonly List<(CharacterBody3D Body, string Row, float Radius, float Goal)> _walkers = [];
 	private int _row;
@@ -58,11 +55,9 @@ public partial class FloorTraversalTest
 				if (body.Position.X >= goal) continue;
 				body.Velocity = new Vector3(Speed, body.IsOnFloor() ? 0 : body.Velocity.Y - .5f, 0);
 				body.MoveAndSlide();
+				// Contacts steeper than the body's floor angle are walls: they stop movement.
 				for (int i = 0; i < body.GetSlideCollisionCount(); i++)
-				{
-					var normal = body.GetSlideCollision(i).GetNormal();
-					if (normal.Y < FloorNormalY) blocked.Add($"{row} (r={radius})");
-				}
+					if (body.GetSlideCollision(i).GetAngle(0, body.UpDirection) > body.FloorMaxAngle) blocked.Add($"{row} (r={radius})");
 			}
 		}
 		var stranded = _walkers.Where(w => w.Body.Position.X < w.Goal).Select(w => $"{w.Row} (r={w.Radius})").ToArray();

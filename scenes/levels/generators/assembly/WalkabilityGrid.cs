@@ -1,88 +1,45 @@
-using System;
 using System.Collections.Generic;
 using Godot;
 
 /// <summary>
-/// Where an actor's center can stand, on a sub-tile grid in world XZ. Obstacles are grown by the actor radius less
-/// half a cell and rasterized by cell center, so a standable cell is one holding some point where an actor touches
-/// nothing solid. Without that allowance a 2.4-unit gate would pass or fail for a 2-unit actor depending on where the
-/// grid happens to fall.
+/// Where an actor's center can stand, on a sub-tile grid in world XZ: a <see cref="ClearanceGrid"/> asked about one
+/// actor radius. A cell is standable when one of its nine lattice samples clears the actor, and two cells connect only
+/// through a shared sample that does, so a gap is open exactly when the actor fits through it, to quarter-cell
+/// precision and wherever the grid falls: a 2.4-unit gate admits a 2-unit actor, a 1.7-unit one does not. Monster
+/// navigation applies the same rule, so what generation keeps reachable, the bodies it was checked for can walk.
 /// Shared by room assembly (every doorway must stay reachable) and the generated floor (spawns and loot only use
 /// reachable cells). Plain C#: one instance belongs to one assembly attempt or one floor.
 /// </summary>
 public sealed class WalkabilityGrid
 {
-	/// <summary>Eight cells per logical tile, matching the exploration sample grid.</summary>
-	public const float DefaultCellSize = Room.TileSize / 8f;
-	/// <summary>Solid geometry only blocks an actor inside this height band: rugs and wall mounts do not.</summary>
-	public const float MinimumBlockingHeight = .15f;
-	public const float MaximumBlockingHeight = 1.8f;
-	private const float Epsilon = .001f;
+	private readonly ClearanceGrid _clearance;
 
-	private readonly Vector2 _origin;
-	private readonly float _erosion;
-	private readonly bool[] _floor;
-	private byte[] _blocked;
-
-	public WalkabilityGrid(Rect2 bounds, float actorRadius, float cellSize = DefaultCellSize)
+	public WalkabilityGrid(Rect2 bounds, float actorRadius)
 	{
-		if (cellSize <= 0 || actorRadius < 0) throw new ArgumentOutOfRangeException(nameof(cellSize));
-		CellSize = cellSize;
 		ActorRadius = actorRadius;
-		_erosion = Mathf.Max(0, actorRadius - cellSize / 2);
-		_origin = bounds.Position;
-		Size = new(Mathf.Max(1, Mathf.CeilToInt(bounds.Size.X / cellSize)), Mathf.Max(1, Mathf.CeilToInt(bounds.Size.Y / cellSize)));
-		_floor = new bool[Size.X * Size.Y];
-		_blocked = new byte[Size.X * Size.Y];
+		// Room past the actor radius never matters here, so samples only measure solids that close.
+		_clearance = new ClearanceGrid(bounds, actorRadius);
 	}
 
-	public float CellSize { get; }
+	public float CellSize => _clearance.CellSize;
 	public float ActorRadius { get; }
-	public Vector2I Size { get; }
+	public Vector2I Size => _clearance.Size;
 
-	public Vector2I CellAt(Vector2 point) => new(Mathf.FloorToInt((point.X - _origin.X) / CellSize), Mathf.FloorToInt((point.Y - _origin.Y) / CellSize));
-	public Vector2 CellCenter(Vector2I cell) => _origin + new Vector2((cell.X + .5f) * CellSize, (cell.Y + .5f) * CellSize);
-	public bool Contains(Vector2I cell) => cell.X >= 0 && cell.Y >= 0 && cell.X < Size.X && cell.Y < Size.Y;
+	public Vector2I CellAt(Vector2 point) => _clearance.CellAt(point);
+	public Vector2 CellCenter(Vector2I cell) => _clearance.CellCenter(cell);
+	public bool Contains(Vector2I cell) => _clearance.Contains(cell);
 
 	/// <summary>Cells whose centers lie inside <paramref name="area"/> become walkable floor.</summary>
-	public void AddFloor(Rect2 area)
-	{
-		foreach (int index in CellsWithCenterIn(area)) _floor[index] = true;
-	}
+	public void AddFloor(Rect2 area) => _clearance.AddFloor(area);
 
-	/// <summary>Blocks every cell where an actor centered there would overlap <paramref name="footprint"/>.</summary>
-	public void AddObstacle(Rect2 footprint) => AddObstacle(
-		[footprint.Position, new(footprint.End.X, footprint.Position.Y), footprint.End, new(footprint.Position.X, footprint.End.Y)]);
+	public void AddObstacle(Rect2 footprint) => _clearance.AddObstacle(footprint);
+	public void AddObstacle(Aabb solid) => _clearance.AddObstacle(CollisionOutlines.FromBox(solid));
+	/// <summary>Solid geometry blocks only inside the actor height band (<see cref="ClearanceGrid.MinimumBlockingHeight"/>).</summary>
+	public void AddObstacle(SolidOutline solid) => _clearance.AddObstacle(solid);
+	public void AddObstacle(Vector2[] polygon) => _clearance.AddObstacle(polygon);
 
-	/// <summary>Projects solid geometry onto the floor when it lies inside the actor height band.</summary>
-	public void AddObstacle(Aabb solid) => AddObstacle(CollisionOutlines.FromBox(solid));
-
-	public void AddObstacle(SolidOutline solid)
-	{
-		if (solid.Bottom >= MaximumBlockingHeight || solid.Top <= MinimumBlockingHeight) return;
-		AddObstacle(solid.Polygon);
-	}
-
-	/// <summary>Blocks cells whose centers lie within the erosion radius of a convex outline (its Minkowski sum with the actor).</summary>
-	public void AddObstacle(Vector2[] polygon)
-	{
-		if (polygon.Length == 0) return;
-		var bounds = new Rect2(polygon[0], Vector2.Zero);
-		foreach (var point in polygon) bounds = bounds.Expand(point);
-		foreach (int index in CellsWithCenterIn(bounds.Grow(_erosion)))
-		{
-			var center = CellCenter(new Vector2I(index % Size.X, index / Size.X));
-			if (CollisionOutlines.DistanceTo(polygon, center) < _erosion - Epsilon) _blocked[index] = 1;
-		}
-	}
-
-	public bool IsStandable(Vector2I cell)
-	{
-		if (!Contains(cell)) return false;
-		int index = cell.Y * Size.X + cell.X;
-		return _floor[index] && _blocked[index] == 0;
-	}
-
+	/// <summary>Floor where at least one of the cell's nine sample points clears the actor.</summary>
+	public bool IsStandable(Vector2I cell) => _clearance.IsTraversable(cell, ActorRadius, null);
 	public bool IsStandable(Vector2 point) => IsStandable(CellAt(point));
 
 	/// <summary>Whether every point lies in one standable component; a point off standable space fails.</summary>
@@ -93,7 +50,7 @@ public sealed class WalkabilityGrid
 		foreach (var point in points)
 		{
 			var cell = CellAt(point);
-			if (!Contains(cell) || !reachable[cell.Y * Size.X + cell.X]) return false;
+			if (!Contains(cell) || !reachable[_clearance.IndexOf(cell)]) return false;
 		}
 		return true;
 	}
@@ -102,69 +59,29 @@ public sealed class WalkabilityGrid
 	/// cell within <paramref name="snapRadius"/> world units, or is ignored.</summary>
 	public bool[] Reachable(IEnumerable<Vector2> sources, float snapRadius = 0)
 	{
-		var reached = new bool[_floor.Length];
-		var queue = new Queue<int>();
+		var reached = new bool[Size.X * Size.Y];
+		var queue = new Queue<Vector2I>();
 		foreach (var source in sources)
 		{
-			if (!TryFindStandable(source, snapRadius, out var start)) continue;
-			int index = start.Y * Size.X + start.X;
-			if (reached[index]) continue;
-			reached[index] = true;
-			queue.Enqueue(index);
+			if (!TryFindStandable(source, snapRadius, out var start) || reached[_clearance.IndexOf(start)]) continue;
+			reached[_clearance.IndexOf(start)] = true;
+			queue.Enqueue(start);
 		}
-		while (queue.TryDequeue(out int index))
-		{
-			int x = index % Size.X, z = index / Size.X;
-			if (x > 0) Visit(index - 1);
-			if (x + 1 < Size.X) Visit(index + 1);
-			if (z > 0) Visit(index - Size.X);
-			if (z + 1 < Size.Y) Visit(index + Size.X);
-		}
+		while (queue.TryDequeue(out var cell))
+			for (int step = 0; step < 4; step++)
+			{
+				var next = cell + ClearanceGrid.Steps[step];
+				if (!Contains(next) || reached[_clearance.IndexOf(next)] || !_clearance.CanMove(cell, next, ActorRadius, null)) continue;
+				reached[_clearance.IndexOf(next)] = true;
+				queue.Enqueue(next);
+			}
 		return reached;
-
-		void Visit(int next)
-		{
-			if (reached[next] || !_floor[next] || _blocked[next] != 0) return;
-			reached[next] = true;
-			queue.Enqueue(next);
-		}
 	}
 
-	public bool TryFindStandable(Vector2 point, float searchRadius, out Vector2I cell)
-	{
-		cell = CellAt(point);
-		if (IsStandable(cell)) return true;
-		int reach = Mathf.CeilToInt(searchRadius / CellSize);
-		float best = float.MaxValue;
-		var origin = cell;
-		bool found = false;
-		for (int x = origin.X - reach; x <= origin.X + reach; x++)
-		for (int z = origin.Y - reach; z <= origin.Y + reach; z++)
-		{
-			var candidate = new Vector2I(x, z);
-			if (!IsStandable(candidate)) continue;
-			float distance = CellCenter(candidate).DistanceSquaredTo(point);
-			if (distance > searchRadius * searchRadius || distance >= best) continue;
-			best = distance;
-			cell = candidate;
-			found = true;
-		}
-		return found;
-	}
+	public bool TryFindStandable(Vector2 point, float searchRadius, out Vector2I cell) =>
+		_clearance.TryFindTraversable(point, ActorRadius, searchRadius, null, out cell);
 
-	/// <summary>Blocked-state snapshot for transactional placement; floor never changes after setup.</summary>
-	public byte[] Save() => (byte[])_blocked.Clone();
-	public void Restore(byte[] state) => _blocked = (byte[])state.Clone();
-
-	private IEnumerable<int> CellsWithCenterIn(Rect2 area)
-	{
-		// Strict containment: an actor exactly touching an obstacle still fits.
-		int left = Mathf.Max(0, Mathf.CeilToInt((area.Position.X - _origin.X) / CellSize - .5f + Epsilon));
-		int right = Mathf.Min(Size.X - 1, Mathf.FloorToInt((area.End.X - _origin.X) / CellSize - .5f - Epsilon));
-		int top = Mathf.Max(0, Mathf.CeilToInt((area.Position.Y - _origin.Y) / CellSize - .5f + Epsilon));
-		int bottom = Mathf.Min(Size.Y - 1, Mathf.FloorToInt((area.End.Y - _origin.Y) / CellSize - .5f - Epsilon));
-		for (int z = top; z <= bottom; z++)
-		for (int x = left; x <= right; x++)
-			yield return z * Size.X + x;
-	}
+	/// <summary>Snapshot for transactional placement; floor never changes after setup.</summary>
+	public float[] Save() => _clearance.Save();
+	public void Restore(float[] state) => _clearance.Restore(state);
 }

@@ -96,8 +96,8 @@ public class CombatPositioningTest
 		player.DodgeComponent.DodgeDef = dodge;
 		player.Position = Vector3.Zero;
 		player.MovementComponent.SetLookAtDirection(Vector3.Forward);
-		// The practice target is an enemy-layer body just beyond touching distance (player radius 1, target 0.4).
-		harness.PracticeTarget.Position = new Vector3(0, 0, -1.5f);
+		// The practice target is an enemy-layer body just beyond touching distance (player radius 0.5, target 0.4).
+		harness.PracticeTarget.Position = new Vector3(0, 0, -1f);
 		await runner.SimulateFrames(3);
 		AssertBool(harness.RequestHeroDodge(Vector3.Forward)).IsTrue();
 		AssertBool((player.CollisionMask & EnemyLayer) == 0).IsEqual(passThrough);
@@ -106,7 +106,7 @@ public class CombatPositioningTest
 		AssertBool((player.CollisionMask & EnemyLayer) != 0).IsTrue();
 		if (passThrough)
 			// Travel ended inside the target, so the exit carried the player clear of it.
-			AssertFloat(player.Position.Z).IsLess(-1.5f - 1.4f + .05f);
+			AssertFloat(player.Position.Z).IsLess(-1f - .9f + .05f);
 		else
 			AssertFloat(player.Position.Z).IsGreater(-.3f);
 	}

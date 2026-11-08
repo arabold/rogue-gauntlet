@@ -51,9 +51,16 @@ public partial class MovementComponent : Node
 	/// </summary>
 	[Export] public float MaxFallSpeed { get; set; } = 50.0f;
 	/// <summary>
-	/// Stairs step height
+	/// Riser height of the stairs, in units. A body pushing into a riser while on stairs rises this far in the time it
+	/// would take to walk one riser height horizontally, twice over, so any body shape climbs the same steps briskly.
 	/// </summary>
 	[Export] public float StairsStepHeight { get; set; } = 0.5f;
+
+	// On stairs, contacts steeper than about 37° (normal.y below this) that face against the heading are a step's edge
+	// or riser: rounded bodies meet a step edge at an angle, not head on, and a contact at exactly the 45° floor limit
+	// would otherwise hold them in place.
+	private const float RiserNormalY = .8f;
+	private const float RiserFacing = -.3f;
 
 	public bool IsMoving => TargetDirection != Vector3.Zero;
 	/// <summary>Collision-resolved horizontal speed from the latest <see cref="CharacterBody3D.MoveAndSlide"/> call.</summary>
@@ -363,12 +370,6 @@ public partial class MovementComponent : Node
 		{
 			// Reset vertical velocity when on the floor or when gravity is disabled
 			velocity.Y = 0;
-
-			// Check if we're on stairs
-			if (isOnStairs && (velocity.X != 0 || velocity.Z != 0))
-			{
-				velocity.Y = StairsStepHeight * Speed;
-			}
 		}
 		else
 		{
@@ -383,7 +384,32 @@ public partial class MovementComponent : Node
 			}
 		}
 
+		// Pushing into a step riser on stairs lifts the body over it, on the floor or mid-step alike.
+		if (isOnStairs && IsPressingIntoRiser(velocity)) velocity.Y = Mathf.Max(velocity.Y, StairsStepHeight * Speed * 2);
+
 		Velocity = velocity;
+	}
+
+	/// <summary>
+	/// Whether the last slide pressed the body against something too steep to stand on that it is still heading into,
+	/// with open space one step up: a step, not a railing or a wall.
+	/// </summary>
+	private bool IsPressingIntoRiser(Vector3 velocity)
+	{
+		if (!velocity.TryNormalizeHorizontal(out var heading)) return false;
+		bool pressing = false;
+		int count = Actor.GetSlideCollisionCount();
+		for (int index = 0; index < count && !pressing; index++)
+		{
+			var normal = Actor.GetSlideCollision(index).GetNormal();
+			if (normal.Y >= RiserNormalY || normal.Y < 0) continue;
+			pressing = normal.TryNormalizeHorizontal(out var facing) && facing.Dot(heading) < RiserFacing;
+		}
+		if (!pressing) return false;
+		// Test from just off the riser: a body resting against it would report contact for any motion.
+		var lift = Vector3.Up * (StairsStepHeight + .05f);
+		var clear = Actor.GlobalTransform.Translated(-heading * .05f);
+		return !Actor.TestMove(clear, lift) && !Actor.TestMove(clear.Translated(lift), heading * .3f);
 	}
 
 	private float ApproachHorizontal(float current, float target, float delta)

@@ -58,9 +58,30 @@ public class ClearanceNavigationTest
 	public void ClearanceIsTheDistanceToTheNearestSolid()
 	{
 		var grid = Divided(2.4f);
-		AssertFloat(grid.ClearanceAt(grid.CellAt(new Vector2(4.75f, 1.25f)))).IsEqualApprox(1f, .01f);
-		AssertFloat(grid.ClearanceAt(grid.CellAt(new Vector2(5.75f, 1.25f)))).IsEqualApprox(0f, .01f);
-		AssertFloat(grid.ClearanceAt(grid.CellAt(new Vector2(-1, 6)))).IsEqualApprox(0f, .01f);
+		AssertFloat(grid.ClearanceAt(new Vector2(4.75f, 1.25f))).IsEqualApprox(1f, .01f);
+		AssertFloat(grid.ClearanceAt(new Vector2(5.75f, 1.25f))).IsEqualApprox(0f, .01f);
+		AssertFloat(grid.ClearanceAt(new Vector2(-1, 6))).IsEqualApprox(0f, .01f);
+		// A cell's clearance is its roomiest sample: the far edge of the cell around (4.75, 1.25).
+		var cell = grid.CellAt(new Vector2(4.75f, 1.25f));
+		AssertFloat(grid.ClearanceAt(cell)).IsEqualApprox(1.25f, .01f);
+		AssertVector(grid.BestPoint(cell)).IsEqualApprox(new Vector2(4.5f, 1.25f), new Vector2(.01f, .26f));
+	}
+
+	[TestCase]
+	public void GapsNarrowerThanTheBodyStayClosedWhereverTheGridFalls()
+	{
+		// Shift the wall by fractions of a cell: a gap narrower than the body never admits it, and one a quarter cell
+		// wider than the body always does, whatever the alignment.
+		foreach (float shift in new[] { 0f, .1f, .2f, .3f, .4f })
+		foreach (var (gap, open) in new[] { (1.7f, false), (1.95f, false), (2.3f, true) })
+		{
+			var grid = OpenFloor();
+			grid.AddObstacle(new Rect2(5.75f, 0, .5f, 6 + shift - gap / 2));
+			grid.AddObstacle(new Rect2(5.75f, 6 + shift + gap / 2, .5f, 6 - shift - gap / 2));
+			bool reaches = FlowField.Toward(grid, new Vector2(10, 6), 1, null, Centered, float.PositiveInfinity, 1)
+				.Reaches(grid.CellAt(new Vector2(2, 6)));
+			AssertBool(reaches).OverrideFailureMessage($"gap {gap} shifted {shift}").IsEqual(open);
+		}
 	}
 
 	[TestCase]
@@ -70,22 +91,6 @@ public class ClearanceNavigationTest
 		AssertBool(Reaches(grid, .35f, null)).IsTrue();
 		AssertBool(Reaches(grid, 1f, null)).IsTrue();
 		AssertBool(Reaches(grid, 1.3f, null)).IsFalse();
-	}
-
-	[TestCase]
-	public void TraversableCellsMatchWalkabilityStandability()
-	{
-		var clearance = Divided(1.6f);
-		var walkability = new WalkabilityGrid(new Rect2(0, 0, 12, 12), 1);
-		walkability.AddFloor(new Rect2(0, 0, 12, 12));
-		walkability.AddObstacle(new Rect2(5.75f, 0, .5f, 5.2f));
-		walkability.AddObstacle(new Rect2(5.75f, 6.8f, .5f, 5.2f));
-		for (int x = 0; x < clearance.Size.X; x++)
-		for (int z = 0; z < clearance.Size.Y; z++)
-		{
-			var cell = new Vector2I(x, z);
-			AssertBool(clearance.IsTraversable(cell, 1, null)).IsEqual(walkability.IsStandable(cell));
-		}
 	}
 
 	[TestCase]
@@ -107,9 +112,10 @@ public class ClearanceNavigationTest
 		var start = new Vector2(2, 4.6f);
 		var centered = Descend(FlowField.Toward(grid, goal, .5f, null, Centered, float.PositiveInfinity, 1), start);
 		var shortest = Descend(FlowField.Toward(grid, goal, .5f, null, Shortest, float.PositiveInfinity, 1), start);
-		float Midway(List<Vector2I> walked) => grid.CellCenter(walked.Find(cell => grid.CellCenter(cell).X > 10)).Y;
-		AssertFloat(Mathf.Abs(Midway(centered) - 6)).IsLessEqual(.5f);
-		AssertFloat(Mathf.Abs(Midway(shortest) - 6)).IsGreater(1f);
+		float Midway(List<Vector2I> walked) => grid.BestPoint(walked.Find(cell => grid.CellCenter(cell).X > 10)).Y;
+		// Clearance past the body radius plus the preferred margin costs nothing: the middle half unit of the corridor.
+		AssertFloat(Mathf.Abs(Midway(centered) - 6)).IsLessEqual(.55f);
+		AssertFloat(Mathf.Abs(Midway(shortest) - 6)).IsGreaterEqual(.95f);
 	}
 
 	[TestCase]

@@ -103,6 +103,8 @@ public static class MonsterSceneValidator
 		Check(profile != null, "Definition.Behavior: assign a behavior Resource.");
 		if (profile == null) return errors.ToArray();
 		Check(Object<Resource>(profile, "MovementStrategy") != null, "Behavior.MovementStrategy: assign a positioning strategy.");
+		Check(profile.Get("StayInHomeRoom").AsBool() || EnemyBase.HorizontalRadius(body) <= RoomAssembler.ActorRadius + .001f,
+			$"BodyShape: wider than generation keeps passable ({RoomAssembler.ActorRadius}); shrink it or hold the monster in its room (Behavior.StayInHomeRoom).");
 		var tactics = Object<Resource>(profile, "TacticalStrategy");
 		Check(tactics != null, "Behavior.TacticalStrategy: assign an engagement priority strategy.");
 		if (tactics != null)

@@ -7,10 +7,13 @@ using Godot;
 public readonly record struct NavigationCosts(float CenterBias, float PreferredMargin)
 {
 	/// <summary>Cost multiplier for a body of <paramref name="radius"/> entering a cell with <paramref name="clearance"/>.</summary>
-	public float Multiplier(float clearance, float radius)
-	{
-		if (CenterBias <= 0 || PreferredMargin <= 0) return 1;
-		float tightness = Mathf.Clamp((radius + PreferredMargin - clearance) / PreferredMargin, 0, 1);
-		return 1 + CenterBias * tightness;
-	}
+	public float Multiplier(float clearance, float radius) => CenterBias <= 0 ? 1 : 1 + CenterBias * Tightness(clearance, radius);
+
+	/// <summary>How far short of the body radius plus <see cref="PreferredMargin"/> the clearance falls: 0 (roomy) to 1.</summary>
+	public float Tightness(float clearance, float radius) =>
+		PreferredMargin <= 0 ? 0 : Mathf.Clamp((radius + PreferredMargin - clearance) / PreferredMargin, 0, 1);
+
+	/// <summary>Cost of a body of <paramref name="radius"/> stepping between neighboring cells.</summary>
+	public float StepCost(ClearanceGrid grid, Vector2I from, Vector2I to, float radius) =>
+		(from.X != to.X && from.Y != to.Y ? grid.CellSize * Mathf.Sqrt2 : grid.CellSize) * Multiplier(grid.ClearanceAt(to), radius);
 }

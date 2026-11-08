@@ -16,14 +16,16 @@ using Godot;
 /// </remarks>
 public sealed class FloorNavigation
 {
-	/// <summary>Body radii round up to this step, so similar bodies share fields.</summary>
-	public const float SizeStep = .25f;
+	/// <summary>
+	/// Body radii round up to this step, so near-identical bodies share fields. Kept fine: rounding a 0.6 skeleton up to
+	/// 0.75 would demand gaps generation never promised.
+	/// </summary>
+	public const float SizeStep = .05f;
 
-	private readonly Func<int, bool> _isGateOpen;
-	private readonly Func<Vector3, int> _roomAt;
+	private readonly GeneratedFloor _floor;
 	private readonly bool[] _openGates;
 	private readonly List<NavigationComponent> _agents = [];
-	private readonly Dictionary<(object Key, float Size), FieldEntry> _fields = [];
+	private readonly Dictionary<(Node3D Target, float Size), FieldEntry> _fields = [];
 	private ulong _gateFrame = ulong.MaxValue;
 
 	private sealed class FieldEntry
@@ -34,15 +36,18 @@ public sealed class FloorNavigation
 		public ulong Frame;
 		public int Version;
 		public float Bound;
+		// A requester the bounded search missed asked for a full search; later recomputes under this gate version search
+		// fully straight away instead of bounded first.
+		public bool NeedsFull;
 	}
 
-	public FloorNavigation(ClearanceGrid grid, NavigationProfile profile, Func<int, bool> isGateOpen, Func<Vector3, int> roomAt)
+	/// <summary>Navigation over <paramref name="floor"/>'s clearance grid; gate i is open while door i is.</summary>
+	public FloorNavigation(GeneratedFloor floor, NavigationProfile profile)
 	{
-		Grid = grid ?? throw new ArgumentNullException(nameof(grid));
+		_floor = floor ?? throw new ArgumentNullException(nameof(floor));
+		Grid = floor.Clearance ?? throw new ArgumentException("The floor has no clearance grid.", nameof(floor));
 		Profile = profile ?? throw new ArgumentNullException(nameof(profile));
-		_isGateOpen = isGateOpen;
-		_roomAt = roomAt;
-		_openGates = new bool[grid.GateCount];
+		_openGates = new bool[Grid.GateCount];
 	}
 
 	public ClearanceGrid Grid { get; }
@@ -62,20 +67,20 @@ public sealed class FloorNavigation
 	public void Unregister(NavigationComponent agent) => _agents.Remove(agent);
 
 	/// <summary>The room the point lies in, or -1 for corridors, thresholds and void.</summary>
-	public int RoomAt(Vector3 point) => _roomAt?.Invoke(point) ?? -1;
+	public int RoomAt(Vector3 point) => _floor.RoomIdAt(point);
 
 	/// <summary>
-	/// The shared field leading to <paramref name="target"/> for bodies of <paramref name="radius"/>, keyed by
-	/// <paramref name="key"/> (the target node). It covers <paramref name="requester"/> whenever the target is
-	/// reachable from there within <see cref="NavigationProfile.MaxFieldCost"/>.
+	/// The field leading to <paramref name="target"/> for bodies of <paramref name="radius"/>, shared by everyone chasing
+	/// it. It covers <paramref name="requester"/> whenever the target is reachable from there within
+	/// <see cref="NavigationProfile.MaxFieldCost"/>.
 	/// </summary>
-	public FlowField ChaseField(object key, Vector3 target, float radius, Vector3 requester) =>
-		Entry(key, target, radius, requester, 0).Chase;
+	public FlowField ChaseField(Node3D target, float radius, Vector3 requester) =>
+		Entry(target, radius, requester, 0).Chase;
 
 	/// <summary>The shared field leading away from <paramref name="threat"/>, covering at least <see cref="NavigationProfile.FleeHorizon"/> past the requester.</summary>
-	public FlowField FleeField(object key, Vector3 threat, float radius, Vector3 requester)
+	public FlowField FleeField(Node3D threat, float radius, Vector3 requester)
 	{
-		var entry = Entry(key, threat, radius, requester, Profile.FleeHorizon);
+		var entry = Entry(threat, radius, requester, Profile.FleeHorizon);
 		entry.Flee ??= FlowField.Away(entry.Chase, Profile.FleeCoefficient, Profile.Costs, _openGates);
 		return entry.Flee;
 	}
@@ -84,7 +89,7 @@ public sealed class FloorNavigation
 	public bool TryFindPath(Vector3 from, Vector3 to, float radius, List<Vector2> waypoints)
 	{
 		RefreshGates();
-		return GridPath.TryFind(Grid, Flat(from), Flat(to), SizeClass(radius), _openGates, Profile.Costs,
+		return GridPath.TryFind(Grid, from.Xz(), to.Xz(), SizeClass(radius), _openGates, Profile.Costs,
 			Profile.MaxPathExpansions, SizeClass(radius) + Grid.CellSize * 2, waypoints);
 	}
 
@@ -97,15 +102,15 @@ public sealed class FloorNavigation
 	public bool HasClearLine(Vector3 from, Vector3 to, float radius)
 	{
 		RefreshGates();
-		return Grid.HasClearLine(Flat(from), Flat(to), SizeClass(radius), _openGates);
+		return Grid.HasClearLine(from.Xz(), to.Xz(), SizeClass(radius), _openGates);
 	}
 
 	/// <summary>The center of the traversable cell nearest <paramref name="point"/> within <paramref name="searchRadius"/>.</summary>
 	public bool TryFindTraversable(Vector3 point, float radius, float searchRadius, out Vector3 result)
 	{
 		RefreshGates();
-		bool found = Grid.TryFindTraversable(Flat(point), SizeClass(radius), searchRadius, _openGates, out var cell);
-		var center = Grid.CellCenter(cell);
+		bool found = Grid.TryFindTraversable(point.Xz(), SizeClass(radius), searchRadius, _openGates, out var cell);
+		var center = Grid.BestPoint(cell);
 		result = found ? new Vector3(center.X, point.Y, center.Y) : point;
 		return found;
 	}
@@ -119,14 +124,14 @@ public sealed class FloorNavigation
 	public bool TrySteer(FlowField field, Vector3 position, out Vector3 point)
 	{
 		point = position;
-		var from = Flat(position);
+		var from = position.Xz();
 		var cell = Grid.CellAt(from);
 		int steps = Mathf.Max(1, Mathf.CeilToInt(Profile.LookaheadDistance / Grid.CellSize));
 		Vector2? first = null, best = null;
 		for (int step = 0; step < steps && field.TryDescend(cell, out var next); step++)
 		{
 			cell = next;
-			var center = Grid.CellCenter(cell);
+			var center = Grid.BestPoint(cell);
 			first ??= center;
 			if (Grid.HasClearLine(from, center, field.Radius, _openGates)) best = center;
 			else if (best != null) break;
@@ -138,14 +143,14 @@ public sealed class FloorNavigation
 	}
 
 	/// <summary>
-	/// The horizontal direction toward the roomiest traversable cell within about a unit: where a stalled body
+	/// The horizontal direction toward the roomiest traversable spot within about a unit: where a stalled body
 	/// side-steps to get free of whatever holds it. Zero when nothing nearby is roomier than where it stands.
 	/// </summary>
 	public Vector3 RoomiestDirection(Vector3 position, float radius)
 	{
 		RefreshGates();
 		float size = SizeClass(radius);
-		var from = Flat(position);
+		var from = position.Xz();
 		var center = Grid.CellAt(from);
 		int reach = Mathf.Max(1, Mathf.CeilToInt(1f / Grid.CellSize));
 		float best = Grid.ClearanceAt(center);
@@ -157,33 +162,41 @@ public sealed class FloorNavigation
 			float clearance = Grid.ClearanceAt(cell);
 			if (clearance <= best || !Grid.IsTraversable(cell, size, _openGates)) continue;
 			best = clearance;
-			target = Grid.CellCenter(cell);
+			target = Grid.BestPoint(cell);
 		}
 		var direction = target - from;
 		return direction.LengthSquared() < .0001f ? Vector3.Zero : new Vector3(direction.X, 0, direction.Y).Normalized();
 	}
 
-	private FieldEntry Entry(object key, Vector3 goal, float radius, Vector3 requester, float extra)
+	/// <remarks>
+	/// A recompute bounds the search by the farthest agent of the size class, so later requests only check their own
+	/// distance: one agent drifting out of range does not make every other agent rescan the roster each frame.
+	/// </remarks>
+	private FieldEntry Entry(Node3D target, float radius, Vector3 requester, float extra)
 	{
 		RefreshGates();
 		float size = SizeClass(radius);
+		var goal = target.GlobalPosition;
 		var goalCell = Grid.CellAt(goal);
 		ulong frame = Engine.GetPhysicsFrames();
-		if (!_fields.TryGetValue((key, size), out var entry)) _fields[(key, size)] = entry = new FieldEntry { Frame = ulong.MaxValue };
-		float needed = NeededBound(goal, size, requester, extra);
+		if (!_fields.TryGetValue((target, size), out var entry)) _fields[(target, size)] = entry = new FieldEntry();
+		if (entry.Version != GateVersion) entry.NeedsFull = false;
 		bool stale = entry.Chase == null || entry.Version != GateVersion
 			|| (entry.Goal != goalCell && frame - entry.Frame >= (ulong)Profile.FieldRefreshFrames)
-			|| (!entry.Chase.IsComplete && entry.Bound < needed);
-		if (stale) Compute(entry, goal, goalCell, size, needed, frame);
-		// A requester the bounded search missed gets one full search rather than a false "unreachable".
+			|| (!entry.Chase.IsComplete && entry.Bound < BoundFor(goal.HorizontalDistanceTo(requester), extra));
+		if (stale) Compute(entry, goal, goalCell, size, entry.NeedsFull ? Profile.MaxFieldCost : NeededBound(goal, size, requester, extra), frame);
+		// A requester the bounded search missed gets a full search rather than a false "unreachable".
 		if (!entry.Chase.ReachesNear(Grid.CellAt(requester)) && !entry.Chase.IsComplete && entry.Bound < Profile.MaxFieldCost)
+		{
+			entry.NeedsFull = true;
 			Compute(entry, goal, goalCell, size, Profile.MaxFieldCost, frame);
+		}
 		return entry;
 	}
 
 	private void Compute(FieldEntry entry, Vector3 goal, Vector2I goalCell, float size, float bound, ulong frame)
 	{
-		entry.Chase = FlowField.Toward(Grid, Flat(goal), size, _openGates, Profile.Costs, bound, size + Grid.CellSize * 2);
+		entry.Chase = FlowField.Toward(Grid, goal.Xz(), size, _openGates, Profile.Costs, bound, size + Grid.CellSize * 2);
 		entry.Flee = null;
 		entry.Goal = goalCell;
 		entry.Frame = frame;
@@ -194,15 +207,22 @@ public sealed class FloorNavigation
 	/// <summary>The cost bound covering every registered agent of this size class (and the requester) with margin.</summary>
 	private float NeededBound(Vector3 goal, float size, Vector3 requester, float extra)
 	{
-		float farthest = Distance(goal, requester);
-		foreach (var agent in _agents)
+		float farthest = goal.HorizontalDistanceTo(requester);
+		for (int index = 0; index < _agents.Count; index++)
 		{
+			var agent = _agents[index];
 			if (!GodotObject.IsInstanceValid(agent) || !agent.IsInsideTree() || SizeClass(agent.BodyRadius) != size) continue;
-			farthest = Mathf.Max(farthest, Distance(goal, agent.Position));
+			farthest = Mathf.Max(farthest, goal.HorizontalDistanceTo(agent.Position));
 		}
-		// Detours around walls run longer than the straight line; tight cells cost up to (1 + CenterBias) per unit.
-		return Mathf.Min(Profile.MaxFieldCost, farthest * 1.5f * (1 + Profile.CenterBias * .25f) + Profile.FieldBoundMargin + extra);
+		return BoundFor(farthest, extra);
 	}
+
+	/// <summary>
+	/// A search bound for an agent <paramref name="distance"/> from the goal: detours around walls run longer than the
+	/// straight line, and tight cells cost up to (1 + CenterBias) per unit.
+	/// </summary>
+	private float BoundFor(float distance, float extra) =>
+		Mathf.Min(Profile.MaxFieldCost, distance * 1.5f * (1 + Profile.CenterBias * .25f) + Profile.FieldBoundMargin + extra);
 
 	/// <summary>Reads every gate once per physics frame; a change bumps <see cref="GateVersion"/>.</summary>
 	private void RefreshGates()
@@ -211,15 +231,14 @@ public sealed class FloorNavigation
 		if (frame == _gateFrame) return;
 		_gateFrame = frame;
 		bool changed = GateVersion == 0;
+		var doors = _floor.NavigationGates;
 		for (int gate = 0; gate < _openGates.Length; gate++)
 		{
-			bool open = _isGateOpen?.Invoke(gate) ?? true;
+			bool open = gate < doors.Count && GodotObject.IsInstanceValid(doors[gate]) && doors[gate].IsOpen;
 			changed |= open != _openGates[gate];
 			_openGates[gate] = open;
 		}
 		if (changed) GateVersion++;
 	}
 
-	private static float Distance(Vector3 a, Vector3 b) => new Vector2(a.X - b.X, a.Z - b.Z).Length();
-	private static Vector2 Flat(Vector3 point) => new(point.X, point.Z);
 }

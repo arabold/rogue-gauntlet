@@ -168,7 +168,7 @@ graph_offset = Vector2(-45.75, -25.415)
 radius = 0.75
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4cr0r"]
-radius = 0.75
+radius = 0.6
 
 [node name="SkeletonWarrior" instance=ExtResource("1_p3la7") node_paths=PackedStringArray("GuardComponent", "DodgeComponent", "DefenseController", "ActionGate", "BodyShape")]
 BodyShape = NodePath("CollisionShape3D")
