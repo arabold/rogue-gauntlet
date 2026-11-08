@@ -13,6 +13,6 @@ light_cull_mask = 4293918975
 shadow_enabled = true
 shadow_opacity = 0.75
 distance_fade_enabled = true
-omni_range = 15.0
+omni_range = 8.0
 script = ExtResource("1_6oxul")
 Profile = ExtResource("2_torch")
